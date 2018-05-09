@@ -743,6 +743,7 @@ class ProgramBuilder {
     if (!onlyForRti && !_elementEnvironment.isMixinApplication(cls)) {
       List<MemberEntity> members = <MemberEntity>[];
       _elementEnvironment.forEachLocalClassMember(cls, members.add);
+      _elementEnvironment.forEachInjectedClassMember(cls, members.add);
       _elementEnvironment.forEachConstructorBody(cls, members.add);
       _sorter.sortMembers(members).forEach(visitMember);
     }

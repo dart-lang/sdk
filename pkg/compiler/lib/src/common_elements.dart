@@ -1393,6 +1393,9 @@ abstract class ElementEnvironment {
   /// Calls [f] for each class member declared in [cls].
   void forEachLocalClassMember(ClassEntity cls, void f(MemberEntity member));
 
+  /// Calls [f] for each class member added to [cls] during compilation.
+  void forEachInjectedClassMember(ClassEntity cls, void f(MemberEntity member));
+
   /// Calls [f] for each class member declared or inherited in [cls] together
   /// with the class that declared the member.
   ///

@@ -60,6 +60,7 @@ abstract class HVisitor<R> {
   R visitInvokeStatic(HInvokeStatic node);
   R visitInvokeSuper(HInvokeSuper node);
   R visitInvokeConstructorBody(HInvokeConstructorBody node);
+  R visitInvokeGeneratorBody(HInvokeGeneratorBody node);
   R visitIs(HIs node);
   R visitIsViaInterceptor(HIsViaInterceptor node);
   R visitLazyStatic(HLazyStatic node);
@@ -206,10 +207,15 @@ class HGraph {
   HBasicBlock exit;
   HThis thisInstruction;
 
+  /// `true` if a sync*/async/async* method is split into an entry and a body
+  /// and this graph is for the entry, which should not be rewritten.
+  bool isGeneratorEntry = false;
+
   /// Receiver parameter, set for methods using interceptor calling convention.
   HParameterValue explicitReceiverParameter;
   bool isRecursiveMethod = false;
   bool calledInLoop = false;
+
   final List<HBasicBlock> blocks = <HBasicBlock>[];
 
   /// Nodes containing list allocations for which there is a known fixed length.
@@ -413,6 +419,8 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitInterceptor(HInterceptor node) => visitInstruction(node);
   visitInvokeClosure(HInvokeClosure node) => visitInvokeDynamic(node);
   visitInvokeConstructorBody(HInvokeConstructorBody node) =>
+      visitInvokeStatic(node);
+  visitInvokeGeneratorBody(HInvokeGeneratorBody node) =>
       visitInvokeStatic(node);
   visitInvokeDynamicMethod(HInvokeDynamicMethod node) =>
       visitInvokeDynamic(node);
@@ -1819,6 +1827,25 @@ class HInvokeConstructorBody extends HInvokeStatic {
 
   String toString() => 'invoke constructor body: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeConstructorBody(this);
+}
+
+class HInvokeGeneratorBody extends HInvokeStatic {
+  // Directly call the JGeneratorBody method. The generator body can be a static
+  // method or a member. The target is directly called.
+  // The 'inputs' are
+  //     [arg1, ..., argN] or
+  //     [receiver, arg1, ..., argN] or
+  //     [interceptor, receiver, arg1, ... argN].
+  // The 'inputs' may or may not have an additional type argument used for
+  // creating the generator (T for new Completer<T>() inside the body).
+  HInvokeGeneratorBody(FunctionEntity element, List<HInstruction> inputs,
+      AbstractValue type, SourceInformation sourceInformation)
+      : super(element, inputs, type, const <DartType>[]) {
+    this.sourceInformation = sourceInformation;
+  }
+
+  String toString() => 'HInvokeGeneratorBody(${element.name})';
+  accept(HVisitor visitor) => visitor.visitInvokeGeneratorBody(this);
 }
 
 abstract class HFieldAccess extends HInstruction {

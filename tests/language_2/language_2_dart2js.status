@@ -511,17 +511,11 @@ type_parameter_test/09: Crash # Internal Error: Unexpected type variable in stat
 type_variable_scope_test/03: Crash # Internal Error: Unexpected type variable in static context.
 
 [ $compiler == dart2js && !$checked ]
-async_covariant_type_test: RuntimeError # checked / strong mode test
-async_dcall_type_test: RuntimeError # checked / strong mode test
-asyncstar_covariant_type_test: RuntimeError # checked / strong mode test
-asyncstar_dcall_type_test: RuntimeError # checked / strong mode test
 covariance_field_test/01: RuntimeError
 covariance_field_test/02: RuntimeError
 covariance_field_test/03: RuntimeError
 covariance_field_test/04: RuntimeError
 covariance_field_test/05: RuntimeError
-syncstar_covariant_type_test: RuntimeError # checked / strong mode test
-syncstar_dcall_type_test: RuntimeError # checked / strong mode test
 
 [ $compiler == dart2js && !$checked && !$enable_asserts ]
 assertion_test: RuntimeError, OK
@@ -1057,7 +1051,6 @@ function_subtype_not1_test: RuntimeError
 function_subtype_setter0_test: RuntimeError
 function_type_alias2_test: RuntimeError
 function_type_alias4_test: RuntimeError
-generic_async_star_test: RuntimeError
 generic_closure_test/01: RuntimeError
 generic_closure_test/none: RuntimeError
 generic_function_bounds_test: RuntimeError
@@ -1610,7 +1603,6 @@ function_subtype_not1_test: RuntimeError
 function_subtype_setter0_test: RuntimeError
 function_type_alias2_test: RuntimeError
 function_type_alias4_test: RuntimeError
-generic_async_star_test: RuntimeError
 generic_function_bounds_test: RuntimeError
 generic_function_dcall_test: RuntimeError
 generic_function_type_as_type_argument_test/01: MissingCompileTimeError

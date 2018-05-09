@@ -552,6 +552,10 @@ class _CompilerElementEnvironment extends ElementEnvironment {
   }
 
   @override
+  void forEachInjectedClassMember(
+      covariant ClassElement cls, void f(MemberElement member)) {}
+
+  @override
   void forEachClassMember(covariant ClassElement cls,
       void f(ClassElement declarer, MemberElement member)) {
     cls.ensureResolved(_resolution);

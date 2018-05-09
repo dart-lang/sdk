@@ -305,6 +305,12 @@ class StaticUse {
         callStructure: callStructure);
   }
 
+  /// Direct invocation of a generator (body) [element], as a static call or
+  /// through a this or super constructor call.
+  factory StaticUse.generatorBodyInvoke(FunctionEntity element) {
+    return new StaticUse.internal(element, StaticUseKind.INVOKE);
+  }
+
   /// Direct invocation of a method [element] with the given [callStructure].
   factory StaticUse.directInvoke(FunctionEntity element,
       CallStructure callStructure, List<DartType> typeArguments) {

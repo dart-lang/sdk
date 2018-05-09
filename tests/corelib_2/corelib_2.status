@@ -222,7 +222,6 @@ uri_test: RuntimeError
 [ $compiler == dart2js && $fasta ]
 int_from_environment_test: Pass # Issue 31762
 int_parse_radix_test/none: Pass # Issue 31762
-map_entry_test: RuntimeError
 
 [ $compiler == dart2js && $fasta && $host_checked && $strong ]
 cast_test: RuntimeError

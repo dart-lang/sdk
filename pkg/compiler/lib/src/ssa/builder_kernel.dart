@@ -30,6 +30,7 @@ import '../js_backend/runtime_types.dart' show RuntimeTypesSubstitutions;
 import '../js_emitter/js_emitter.dart' show NativeEmitter;
 import '../js_model/locals.dart'
     show forEachOrderedParameter, GlobalLocalsMap, JumpVisitor;
+import '../js_model/elements.dart' show JGeneratorBody;
 import '../kernel/element_map.dart';
 import '../kernel/kernel_backend_strategy.dart';
 import '../native/native.dart' as native;
@@ -70,6 +71,7 @@ class StackFrame {
 class KernelSsaGraphBuilder extends ir.Visitor
     with GraphBuilder, SsaBuilderFieldMixin {
   final MemberEntity targetElement;
+  final MemberEntity initialTargetElement;
 
   final ClosedWorld closedWorld;
   final CodegenWorldBuilder _worldBuilder;
@@ -124,7 +126,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   StackFrame _currentFrame;
 
   KernelSsaGraphBuilder(
-      this.targetElement,
+      this.initialTargetElement,
       InterfaceType instanceType,
       this.compiler,
       this._elementMap,
@@ -136,7 +138,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       this.closureDataLookup,
       this.nativeEmitter,
       this._sourceInformationStrategy)
-      : _infoReporter = compiler.dumpInfoTask {
+      : this.targetElement = _effectiveTargetElementFor(initialTargetElement),
+        _infoReporter = compiler.dumpInfoTask {
     _enterFrame(targetElement);
     this.loopHandler = new KernelLoopHandler(this);
     typeBuilder = new KernelTypeBuilder(this, _elementMap, _globalLocalsMap);
@@ -156,6 +159,11 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   SourceInformationBuilder get _sourceInformationBuilder =>
       _currentFrame.sourceInformationBuilder;
+
+  static MemberEntity _effectiveTargetElementFor(MemberEntity member) {
+    if (member is JGeneratorBody) return member.function;
+    return member;
+  }
 
   void _enterFrame(MemberEntity member) {
     AsyncMarker asyncMarker = AsyncMarker.SYNC;
@@ -183,7 +191,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // TODO(het): no reason to do this here...
       HInstruction.idCounter = 0;
       MemberDefinition definition =
-          _elementMap.getMemberDefinition(targetElement);
+          _elementMap.getMemberDefinition(initialTargetElement);
 
       switch (definition.kind) {
         case MemberKind.regular:
@@ -247,6 +255,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
           }
           buildMethodSignature(originalClosureNode);
           break;
+        case MemberKind.generatorBody:
+          buildGeneratorBody(
+              initialTargetElement, _functionNodeOf(definition.node));
+          break;
       }
       assert(graph.isValid());
 
@@ -267,6 +279,13 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
       return graph;
     });
+  }
+
+  ir.FunctionNode _functionNodeOf(ir.TreeNode node) {
+    if (node is ir.Member) return node.function;
+    if (node is ir.FunctionDeclaration) return node.function;
+    if (node is ir.FunctionExpression) return node.function;
+    return null;
   }
 
   ir.FunctionNode _ensureDefaultArgumentValues(ir.FunctionNode function) {
@@ -386,8 +405,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
         // Unused, so bind to `dynamic`.
         param = graph.addConstantNull(closedWorld);
       }
-      localsHandler.directLocals[
-          localsHandler.getTypeVariableAsLocal(typeVariableType)] = param;
+      Local local = localsHandler.getTypeVariableAsLocal(typeVariableType);
+      localsHandler.directLocals[local] = param;
     });
   }
 
@@ -414,10 +433,13 @@ class KernelSsaGraphBuilder extends ir.Visitor
         // Unused, so bind to `dynamic`.
         param = graph.addConstantNull(closedWorld);
       }
-      localsHandler.directLocals[
-          localsHandler.getTypeVariableAsLocal(typeVariableType)] = param;
+      Local local = localsHandler.getTypeVariableAsLocal(typeVariableType);
+      localsHandler.directLocals[local] = param;
+      functionTypeParameterLocals.add(local);
     });
   }
+
+  List<Local> functionTypeParameterLocals = <Local>[];
 
   /// Builds a generative constructor.
   ///
@@ -622,7 +644,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   void _invokeConstructorBody(ir.Constructor constructor,
       List<HInstruction> inputs, SourceInformation sourceInformation) {
-    // TODO(sra): Inline the constructor body.
     MemberEntity constructorBody = _elementMap.getConstructorBody(constructor);
     HInvokeConstructorBody invoke = new HInvokeConstructorBody(
         constructorBody, inputs, commonMasks.nonNullType, sourceInformation);
@@ -941,6 +962,11 @@ class KernelSsaGraphBuilder extends ir.Visitor
   /// Procedures.
   void buildFunctionNode(
       FunctionEntity function, ir.FunctionNode functionNode) {
+    if (functionNode.asyncMarker != ir.AsyncMarker.Sync) {
+      buildGenerator(function, functionNode);
+      return;
+    }
+
     openFunction(function, functionNode);
 
     // If [functionNode] is `operator==` we explicitly add a null check at the
@@ -964,6 +990,76 @@ class KernelSsaGraphBuilder extends ir.Visitor
             sourceInformation: _sourceInformationBuilder.buildIf(functionNode));
       }
     }
+    functionNode.body.accept(this);
+    closeFunction();
+  }
+
+  /// Builds a SSA graph for a sync*/async/async* generator.
+  void buildGenerator(FunctionEntity function, ir.FunctionNode functionNode) {
+    // TODO(sra): Optimize by generating a merged entry + body when (1) there
+    // are no checks in the entry and (2) the element type is simple.
+    if (true == true) {
+      buildGeneratorEntry(function, functionNode);
+    } else {
+      openFunction(function, functionNode);
+      functionNode.body.accept(this);
+      closeFunction();
+    }
+  }
+
+  /// Builds a SSA graph for a sync*/async/async* generator body.
+  void buildGeneratorEntry(
+      FunctionEntity function, ir.FunctionNode functionNode) {
+    graph.isGeneratorEntry = true;
+
+    // TODO(sra): Omit entry checks.
+    openFunction(function, functionNode);
+
+    // Generate type argument for generator class.
+
+    // Tail-call body.
+    JGeneratorBody body = _elementMap.getGeneratorBody(function);
+    // Is 'buildAsyncBody' the best location for the entry?
+    var sourceInformation = _sourceInformationBuilder.buildAsyncBody();
+
+    // Forward all the parameters.
+    List<HInstruction> inputs = <HInstruction>[];
+    if (graph.thisInstruction != null) {
+      inputs.add(graph.thisInstruction);
+    }
+    if (graph.explicitReceiverParameter != null) {
+      inputs.add(graph.explicitReceiverParameter);
+    }
+    for (Local local in parameters.keys) {
+      inputs.add(localsHandler.readLocal(local));
+    }
+    for (Local local in functionTypeParameterLocals) {
+      inputs.add(localsHandler.readLocal(local));
+    }
+
+    // Add the type parameter for the generator's element type.
+    DartType elementType = _elementMap.elementEnvironment
+        .getAsyncOrSyncStarElementType(function.asyncMarker, _returnType);
+    inputs.add(typeBuilder.analyzeTypeArgument(elementType, function));
+
+    push(new HInvokeGeneratorBody(
+        body,
+        inputs,
+        commonMasks.dynamicType, // TODO: better type.
+        sourceInformation));
+
+    closeAndGotoExit(
+        new HReturn(abstractValueDomain, pop(), sourceInformation));
+
+    closeFunction();
+  }
+
+  /// Builds a SSA graph for a sync*/async/async* generator body.
+  void buildGeneratorBody(
+      JGeneratorBody function, ir.FunctionNode functionNode) {
+    // TODO(sra): Omit entry checks.
+    FunctionEntity entry = function.function;
+    openFunction(entry, functionNode);
     functionNode.body.accept(this);
     closeFunction();
   }
