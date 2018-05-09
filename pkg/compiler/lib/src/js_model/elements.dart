@@ -504,9 +504,11 @@ class JMethod extends JFunction {
 
 class JGeneratorBody extends JFunction {
   final FunctionEntity function;
+  final int hashCode;
 
   JGeneratorBody(this.function)
-      : super(function.library, function.enclosingClass, function.memberName,
+      : hashCode = function.hashCode + 1, // Hack stabilize sort order.
+        super(function.library, function.enclosingClass, function.memberName,
             function.parameterStructure, function.asyncMarker,
             isStatic: function.isStatic, isExternal: false);
 
