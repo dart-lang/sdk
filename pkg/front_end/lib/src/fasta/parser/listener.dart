@@ -1047,12 +1047,12 @@ class Listener {
   }
 
   void handleLiteralList(
-      int count, Token beginToken, Token constKeyword, Token endToken) {
+      int count, Token leftBracket, Token constKeyword, Token rightBracket) {
     logEvent("LiteralList");
   }
 
   void handleLiteralMap(
-      int count, Token beginToken, Token constKeyword, Token endToken) {
+      int count, Token leftBrace, Token constKeyword, Token rightBrace) {
     logEvent("LiteralMap");
   }
 

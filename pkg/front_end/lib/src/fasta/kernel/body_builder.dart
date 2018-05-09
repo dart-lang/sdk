@@ -1849,7 +1849,7 @@ class BodyBuilder<
 
   @override
   void handleLiteralList(
-      int count, Token beginToken, Token constKeyword, Token endToken) {
+      int count, Token leftBracket, Token constKeyword, Token rightBracket) {
     debugEvent("LiteralList");
     List<Expression> expressions = popListForValue(count);
     Object typeArguments = pop();
@@ -1858,8 +1858,8 @@ class BodyBuilder<
       if (forest.getTypeCount(typeArguments) > 1) {
         addProblem(
             fasta.messageListLiteralTooManyTypeArguments,
-            offsetForToken(beginToken),
-            lengthOfSpan(beginToken, beginToken.endGroup));
+            offsetForToken(leftBracket),
+            lengthOfSpan(leftBracket, leftBracket.endGroup));
       } else {
         typeArgument = forest.getTypeAt(typeArguments, 0);
         if (library.loader.target.strongMode) {
@@ -1873,9 +1873,9 @@ class BodyBuilder<
         constKeyword != null || constantContext == ConstantContext.inferred,
         typeArgument,
         typeArguments,
-        beginToken,
+        leftBracket,
         expressions,
-        endToken));
+        rightBracket));
   }
 
   @override
@@ -1900,7 +1900,7 @@ class BodyBuilder<
 
   @override
   void handleLiteralMap(
-      int count, Token beginToken, Token constKeyword, Token endToken) {
+      int count, Token leftBrace, Token constKeyword, Token rightBrace) {
     debugEvent("LiteralMap");
     List entries = forest.mapEntryList(count);
     popList(count, entries);
@@ -1911,8 +1911,8 @@ class BodyBuilder<
       if (forest.getTypeCount(typeArguments) != 2) {
         addProblem(
             fasta.messageListLiteralTypeArgumentMismatch,
-            offsetForToken(beginToken),
-            lengthOfSpan(beginToken, beginToken.endGroup));
+            offsetForToken(leftBrace),
+            lengthOfSpan(leftBrace, leftBrace.endGroup));
       } else {
         keyType = forest.getTypeAt(typeArguments, 0);
         valueType = forest.getTypeAt(typeArguments, 1);
@@ -1929,9 +1929,9 @@ class BodyBuilder<
         keyType,
         valueType,
         typeArguments,
-        beginToken,
+        leftBrace,
         entries,
-        endToken));
+        rightBrace));
   }
 
   @override

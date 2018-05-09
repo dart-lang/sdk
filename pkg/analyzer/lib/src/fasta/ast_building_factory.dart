@@ -79,14 +79,13 @@ class AstBuildingForest
           condition, question, thenExpression, colon, elseExpression);
 
   @override
-  kernel.DartType getTypeAt(Object typeArguments, int index) {
-    return null; // (typeArguments as TypeArgumentList).arguments[index].type.kernelType;
+  kernel.DartType getTypeAt(TypeArgumentList typeArguments, int index) {
+    return null; // typeArguments.arguments[index].type.kernelType;
   }
 
   @override
-  int getTypeCount(Object typeArguments) {
-    return (typeArguments as TypeArgumentList).arguments.length;
-  }
+  int getTypeCount(TypeArgumentList typeArguments) =>
+      typeArguments.arguments.length;
 
   @override
   bool isErroneousNode(covariant node) => false; // ???

@@ -172,11 +172,10 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   int readOffset(TreeNode node) => node.fileOffset;
 
   @override
-  int getTypeCount(Object typeArguments) => (typeArguments as List).length;
+  int getTypeCount(List typeArguments) => typeArguments.length;
 
   @override
-  DartType getTypeAt(Object typeArguments, int index) =>
-      (typeArguments as List)[index];
+  DartType getTypeAt(List typeArguments, int index) => typeArguments[index];
 
   @override
   Expression loadLibrary(LibraryDependency dependency) {
