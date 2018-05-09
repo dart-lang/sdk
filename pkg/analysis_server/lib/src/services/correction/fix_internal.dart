@@ -632,8 +632,7 @@ class FixProcessor {
     AstNode argumentList = namedExpression.parent;
 
     // Prepare the invoked element.
-    var context =
-        new _ExecutableParameters(session, astProvider, argumentList.parent);
+    var context = new _ExecutableParameters(astProvider, argumentList.parent);
     if (context == null) {
       return;
     }
@@ -645,8 +644,15 @@ class FixProcessor {
 
     Future<void> addParameter(int offset, String prefix, String suffix) async {
       if (offset != null) {
-        DartChangeBuilder changeBuilder = await context.addParameter(
-            offset, prefix, namedExpression.staticType, name, suffix);
+        var changeBuilder = new DartChangeBuilder(session);
+        await changeBuilder.addFileEdit(context.file, (builder) {
+          builder.addInsertion(offset, (builder) {
+            builder.write(prefix);
+            builder.writeParameterMatchingArgument(
+                namedExpression, 0, new Set<String>());
+            builder.write(suffix);
+          });
+        });
         _addFixFromBuilder(
             changeBuilder, DartFixKind.ADD_MISSING_PARAMETER_NAMED,
             args: [name]);
@@ -666,91 +672,67 @@ class FixProcessor {
   }
 
   Future<Null> _addFix_addMissingParameter() async {
-    if (node is ArgumentList && node.parent is MethodInvocation) {
-      ArgumentList argumentList = node;
-      MethodInvocation invocation = node.parent;
-      SimpleIdentifier methodName = invocation.methodName;
-      Element targetElement = methodName.bestElement;
-      List<Expression> arguments = argumentList.arguments;
-      if (targetElement is ExecutableElement) {
-        List<ParameterElement> parameters = targetElement.parameters;
-        int numParameters = parameters.length;
-        Iterable<ParameterElement> requiredParameters =
-            parameters.takeWhile((p) => p.isNotOptional);
-        Iterable<ParameterElement> optionalParameters =
-            parameters.skipWhile((p) => p.isNotOptional);
-        // prepare the argument to add a new parameter for
-        int numRequired = requiredParameters.length;
-        if (numRequired >= arguments.length) {
-          return;
-        }
-        Expression argument = arguments[numRequired];
-        // prepare target
-        int targetOffset;
-        if (numRequired != 0) {
-          SimpleIdentifier lastName = await astProvider
-              .getParsedNameForElement(requiredParameters.last);
-          if (lastName != null) {
-            targetOffset = lastName.end;
-          } else {
-            return;
-          }
-        } else {
-          SimpleIdentifier targetName =
-              await astProvider.getParsedNameForElement(targetElement);
-          AstNode targetDeclaration = targetName?.parent;
-          if (targetDeclaration is FunctionDeclaration) {
-            FunctionExpression function = targetDeclaration.functionExpression;
-            Token paren = function.parameters?.leftParenthesis;
-            if (paren == null) {
-              return;
-            }
-            targetOffset = paren.end;
-          } else if (targetDeclaration is MethodDeclaration) {
-            Token paren = targetDeclaration.parameters?.leftParenthesis;
-            if (paren == null) {
-              return;
-            }
-            targetOffset = paren.end;
-          } else {
-            return;
-          }
-        }
-        Source targetSource = targetElement.source;
-        String targetFile = targetSource.fullName;
-        DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
-        await changeBuilder.addFileEdit(targetFile,
-            (DartFileEditBuilder builder) {
-          builder.addInsertion(targetOffset, (DartEditBuilder builder) {
-            if (numRequired != 0) {
-              builder.write(', ');
-            }
+    // The error is reported on ArgumentList.
+    if (node is! ArgumentList) {
+      return;
+    }
+    ArgumentList argumentList = node;
+    List<Expression> arguments = argumentList.arguments;
+
+    // Prepare the invoked element.
+    var context = new _ExecutableParameters(astProvider, node.parent);
+    if (context == null) {
+      return;
+    }
+
+    // prepare the argument to add a new parameter for
+    int numRequired = context.required.length;
+    if (numRequired >= arguments.length) {
+      return;
+    }
+    Expression argument = arguments[numRequired];
+
+    Future<void> addParameter(
+        FixKind kind, int offset, String prefix, String suffix) async {
+      if (offset != null) {
+        var changeBuilder = new DartChangeBuilder(session);
+        await changeBuilder.addFileEdit(context.file, (builder) {
+          builder.addInsertion(offset, (builder) {
+            builder.write(prefix);
             builder.writeParameterMatchingArgument(
                 argument, numRequired, new Set<String>());
-            if (numRequired != numParameters) {
-              builder.write(', ');
-            }
+            builder.write(suffix);
           });
         });
-        _addFixFromBuilder(
-            changeBuilder, DartFixKind.ADD_MISSING_PARAMETER_REQUIRED);
-        if (optionalParameters.isEmpty) {
-          DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
-          await changeBuilder.addFileEdit(targetFile,
-              (DartFileEditBuilder builder) {
-            builder.addInsertion(targetOffset, (DartEditBuilder builder) {
-              if (numRequired != 0) {
-                builder.write(', ');
-              }
-              builder.write('[');
-              builder.writeParameterMatchingArgument(
-                  argument, numRequired, new Set<String>());
-              builder.write(']');
-            });
-          });
-          _addFixFromBuilder(
-              changeBuilder, DartFixKind.ADD_MISSING_PARAMETER_POSITIONAL);
-        }
+        _addFixFromBuilder(changeBuilder, kind);
+      }
+    }
+
+    // Suggest adding a required parameter.
+    {
+      var kind = DartFixKind.ADD_MISSING_PARAMETER_REQUIRED;
+      if (context.required.isNotEmpty) {
+        var prevNode = await context.getParameterNode(context.required.last);
+        await addParameter(kind, prevNode?.end, ', ', '');
+      } else {
+        var parameterList = await context.getParameterList();
+        var offset = parameterList?.leftParenthesis?.end;
+        var suffix = context.executable.parameters.isNotEmpty ? ', ' : '';
+        await addParameter(kind, offset, '', suffix);
+      }
+    }
+
+    // Suggest adding the first optional positional parameter.
+    if (context.optionalPositional.isEmpty && context.named.isEmpty) {
+      var kind = DartFixKind.ADD_MISSING_PARAMETER_POSITIONAL;
+      var prefix = context.required.isNotEmpty ? ', [' : '[';
+      if (context.required.isNotEmpty) {
+        var prevNode = await context.getParameterNode(context.required.last);
+        await addParameter(kind, prevNode?.end, prefix, ']');
+      } else {
+        var parameterList = await context.getParameterList();
+        var offset = parameterList?.leftParenthesis?.end;
+        await addParameter(kind, offset, prefix, ']');
       }
     }
   }
@@ -3791,7 +3773,6 @@ class _ClosestElementFinder {
  * [ExecutableElement], its parameters, and operations on them.
  */
 class _ExecutableParameters {
-  final AnalysisSession session;
   final AstProvider astProvider;
   final ExecutableElement executable;
 
@@ -3799,8 +3780,7 @@ class _ExecutableParameters {
   final List<ParameterElement> optionalPositional = [];
   final List<ParameterElement> named = [];
 
-  factory _ExecutableParameters(
-      AnalysisSession session, AstProvider astProvider, AstNode invocation) {
+  factory _ExecutableParameters(AstProvider astProvider, AstNode invocation) {
     Element element;
     if (invocation is InstanceCreationExpression) {
       element = invocation.staticElement;
@@ -3809,13 +3789,13 @@ class _ExecutableParameters {
       element = invocation.methodName.staticElement;
     }
     if (element is ExecutableElement) {
-      return new _ExecutableParameters._(session, astProvider, element);
+      return new _ExecutableParameters._(astProvider, element);
     } else {
       return null;
     }
   }
 
-  _ExecutableParameters._(this.session, this.astProvider, this.executable) {
+  _ExecutableParameters._(this.astProvider, this.executable) {
     for (var parameter in executable.parameters) {
       if (parameter.isNotOptional) {
         required.add(parameter);
@@ -3827,22 +3807,7 @@ class _ExecutableParameters {
     }
   }
 
-  /**
-   * Write the code for a new parameter with the given [type] and [name].
-   */
-  Future<DartChangeBuilder> addParameter(int offset, String prefix,
-      DartType type, String name, String suffix) async {
-    String targetFile = executable.source.fullName;
-    var changeBuilder = new DartChangeBuilder(session);
-    await changeBuilder.addFileEdit(targetFile, (builder) {
-      builder.addInsertion(offset, (builder) {
-        builder.write(prefix);
-        builder.writeParameter(name, type: type);
-        builder.write(suffix);
-      });
-    });
-    return changeBuilder;
-  }
+  String get file => executable.source.fullName;
 
   /**
    * Return the [FormalParameterList] of the [executable], or `null` is cannot
