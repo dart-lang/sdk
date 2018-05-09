@@ -825,6 +825,90 @@ class A {
 ''');
   }
 
+  test_addMissingParameterNamed_constructor_hasNamed() async {
+    await resolveTestUnit('''
+class A {
+  A(int a, {int b}) {}
+}
+
+main() {
+  new A(1, b: 2, named: 3.0);
+}
+''');
+    await assertHasFix(DartFixKind.ADD_MISSING_PARAMETER_NAMED, '''
+class A {
+  A(int a, {int b, double named}) {}
+}
+
+main() {
+  new A(1, b: 2, named: 3.0);
+}
+''');
+  }
+
+  test_addMissingParameterNamed_constructor_hasRequired() async {
+    await resolveTestUnit('''
+class A {
+  A(int a) {}
+}
+
+main() {
+  new A(1, named: 2.0);
+}
+''');
+    await assertHasFix(DartFixKind.ADD_MISSING_PARAMETER_NAMED, '''
+class A {
+  A(int a, {double named}) {}
+}
+
+main() {
+  new A(1, named: 2.0);
+}
+''');
+  }
+
+  test_addMissingParameterNamed_constructor_noParameters() async {
+    await resolveTestUnit('''
+class A {
+  A() {}
+}
+
+main() {
+  new A(named: 42);
+}
+''');
+    await assertHasFix(DartFixKind.ADD_MISSING_PARAMETER_NAMED, '''
+class A {
+  A({int named}) {}
+}
+
+main() {
+  new A(named: 42);
+}
+''');
+  }
+
+  test_addMissingParameterNamed_constructor_noParameters_named() async {
+    await resolveTestUnit('''
+class A {
+  A.aaa() {}
+}
+
+main() {
+  new A.aaa(named: 42);
+}
+''');
+    await assertHasFix(DartFixKind.ADD_MISSING_PARAMETER_NAMED, '''
+class A {
+  A.aaa({int named}) {}
+}
+
+main() {
+  new A.aaa(named: 42);
+}
+''');
+  }
+
   test_addMissingParameterNamed_function_hasNamed() async {
     await resolveTestUnit('''
 test(int a, {int b: 0}) {}
@@ -895,6 +979,19 @@ class A {
   }
 }
 ''');
+  }
+
+  test_addMissingParameterNamed_method_hasOptionalPositional() async {
+    await resolveTestUnit('''
+class A {
+  test(int a, [int b]) {}
+
+  main() {
+    test(1, 2, named: 3.0);
+  }
+}
+''');
+    await assertNoFix(DartFixKind.ADD_MISSING_PARAMETER_NAMED);
   }
 
   test_addMissingParameterNamed_method_hasRequired() async {

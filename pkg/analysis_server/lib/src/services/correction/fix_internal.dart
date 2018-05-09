@@ -3816,7 +3816,9 @@ class _ExecutableParameters {
   Future<FormalParameterList> getParameterList() async {
     var name = await astProvider.getParsedNameForElement(executable);
     AstNode targetDeclaration = name?.parent;
-    if (targetDeclaration is FunctionDeclaration) {
+    if (targetDeclaration is ConstructorDeclaration) {
+      return targetDeclaration.parameters;
+    } else if (targetDeclaration is FunctionDeclaration) {
       FunctionExpression function = targetDeclaration.functionExpression;
       return function.parameters;
     } else if (targetDeclaration is MethodDeclaration) {
