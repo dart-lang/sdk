@@ -88,8 +88,7 @@ class IdentifierContext {
       isContinuation: true);
 
   /// Identifier is the type name being declared by an enum declaration.
-  static const enumDeclaration = const IdentifierContext('enumDeclaration',
-      inDeclaration: true, isBuiltInIdentifierAllowed: false);
+  static const enumDeclaration = const EnumDeclarationIdentifierContext();
 
   /// Identifier is an enumerated value name being declared by an enum
   /// declaration.

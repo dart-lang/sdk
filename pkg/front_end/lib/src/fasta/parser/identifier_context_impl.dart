@@ -39,7 +39,7 @@ class ClassOrNamedMixinIdentifierContext extends IdentifierContext {
           message: fasta.templateExpectedIdentifier.withArguments(identifier));
     } else if (identifier.type.isBuiltIn) {
       parser.reportRecoverableErrorWithToken(
-          identifier, fasta.templateBuiltInIdentifierAsType);
+          identifier, fasta.templateBuiltInIdentifierInDeclaration);
     } else {
       parser.reportRecoverableErrorWithToken(
           identifier, fasta.templateExpectedIdentifier);
@@ -82,6 +82,41 @@ class DottedNameIdentifierContext extends IdentifierContext {
         isOneOfOrEof(identifier, followingValues)) {
       identifier = parser.insertSyntheticIdentifier(token, this,
           message: fasta.templateExpectedIdentifier.withArguments(identifier));
+    } else {
+      parser.reportRecoverableErrorWithToken(
+          identifier, fasta.templateExpectedIdentifier);
+      if (!identifier.isKeywordOrIdentifier) {
+        // When in doubt, consume the token to ensure we make progress
+        // but insert a synthetic identifier to satisfy listeners.
+        identifier = insertSyntheticIdentifierAfter(identifier, parser);
+      }
+    }
+    return identifier;
+  }
+}
+
+/// See [IdentifierContext.enumDeclaration].
+class EnumDeclarationIdentifierContext extends IdentifierContext {
+  const EnumDeclarationIdentifierContext()
+      : super('enumDeclaration',
+            inDeclaration: true, isBuiltInIdentifierAllowed: false);
+
+  @override
+  Token ensureIdentifier(Token token, Parser parser) {
+    Token identifier = token.next;
+    assert(identifier.kind != IDENTIFIER_TOKEN);
+    if (identifier.type.isPseudo) {
+      return identifier;
+    }
+
+    // Recovery
+    if (looksLikeStartOfNextTopLevelDeclaration(identifier) ||
+        isOneOfOrEof(identifier, const ['{'])) {
+      identifier = parser.insertSyntheticIdentifier(token, this,
+          message: fasta.templateExpectedIdentifier.withArguments(identifier));
+    } else if (identifier.type.isBuiltIn) {
+      parser.reportRecoverableErrorWithToken(
+          identifier, fasta.templateBuiltInIdentifierInDeclaration);
     } else {
       parser.reportRecoverableErrorWithToken(
           identifier, fasta.templateExpectedIdentifier);

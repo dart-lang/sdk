@@ -2008,8 +2008,6 @@ class Parser {
       followingValues = [';'];
     } else if (context == IdentifierContext.constructorReferenceContinuation) {
       followingValues = ['.', ',', '(', ')', '[', ']', '}', ';'];
-    } else if (context == IdentifierContext.enumDeclaration) {
-      followingValues = ['{'];
     } else if (context == IdentifierContext.enumValueDeclaration) {
       followingValues = [',', '}'];
     } else if (context == IdentifierContext.formalParameterDeclaration) {
@@ -2082,9 +2080,7 @@ class Parser {
     // could create a method to test whether a given token matches one of the
     // patterns.
     List<String> initialKeywords;
-    if (context == IdentifierContext.enumDeclaration) {
-      initialKeywords = topLevelKeywords();
-    } else if (context == IdentifierContext.formalParameterDeclaration) {
+    if (context == IdentifierContext.formalParameterDeclaration) {
       initialKeywords = topLevelKeywords()
         ..addAll(classMemberKeywords())
         ..addAll(statementKeywords())
