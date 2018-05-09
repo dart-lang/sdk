@@ -11,17 +11,12 @@ import 'dart:io';
 
 import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/commandline_options.dart';
-import 'package:compiler/src/common.dart';
-import 'package:compiler/src/common/tasks.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/dart2js.dart' as dart2js;
 import 'package:compiler/src/filenames.dart';
-import 'package:compiler/src/kernel/element_map.dart';
-import 'package:compiler/src/library_loader.dart';
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/util/util.dart';
 import 'package:expect/expect.dart';
-import 'package:kernel/ast.dart' as ir;
 import 'package:sourcemap_testing/src/stacktrace_helper.dart';
 import '../memory_compiler.dart';
 
@@ -58,19 +53,6 @@ Future<Pair<Compiler, Compiler>> analyzeOnly(
         compiler.impactCacheDeleter.retainCachesForTesting = true;
       });
   return new Pair<Compiler, Compiler>(result1.compiler, result2.compiler);
-}
-
-class MemoryKernelLibraryLoaderTask extends KernelLibraryLoaderTask {
-  final ir.Component component;
-
-  MemoryKernelLibraryLoaderTask(KernelToElementMapForImpact elementMap,
-      DiagnosticReporter reporter, Measurer measurer, this.component)
-      : super(null, null, null, elementMap, null, reporter, measurer);
-
-  Future<LoadedLibraries> loadLibrary(Uri resolvedUri,
-      {bool skipFileWithPartOfTag: false}) async {
-    return createLoadedLibraries(component);
-  }
 }
 
 Future createTemp(Uri entryPoint, Map<String, String> memorySourceFiles,

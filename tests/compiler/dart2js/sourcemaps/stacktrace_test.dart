@@ -8,7 +8,6 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_new.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/dart2js.dart' as entry;
 
 import 'package:sourcemap_testing/src/stacktrace_helper.dart';
@@ -46,16 +45,12 @@ void main(List<String> args) {
   });
 }
 
-const String astMarker = 'ast.';
 const String kernelMarker = 'kernel.';
 
 Future testAnnotatedCode(String code,
     {bool printJs: false, bool writeJs: false, bool verbose: false}) async {
-  Test test = processTestCode(code, [astMarker, kernelMarker]);
+  Test test = processTestCode(code, [kernelMarker]);
   print(test.code);
-  print('---from ast---------------------------------------------------------');
-  await runTest(test, astMarker,
-      printJs: printJs, writeJs: writeJs, verbose: verbose);
   print('---from kernel------------------------------------------------------');
   await runTest(test, kernelMarker,
       printJs: printJs, writeJs: writeJs, verbose: verbose);
@@ -79,12 +74,8 @@ Future runTest(Test test, String config,
       '-o$output',
       '--library-root=sdk',
       '--packages=${Platform.packageConfig}',
-      Flags.useNewSourceInfo,
       input,
     ]..addAll(options);
-    if (config == astMarker) {
-      arguments.add(Flags.useOldFrontend);
-    }
     print("Compiling dart2js ${arguments.join(' ')}");
     CompilationResult compilationResult = await entry.internalMain(arguments);
     return compilationResult.isSuccess;

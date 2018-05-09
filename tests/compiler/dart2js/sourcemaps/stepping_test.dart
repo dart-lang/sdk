@@ -44,7 +44,6 @@ void main(List<String> args) {
   });
 }
 
-const String astMarker = 'ast.';
 const String kernelMarker = 'kernel.';
 
 Future testAnnotatedCode(String code,
@@ -53,9 +52,7 @@ Future testAnnotatedCode(String code,
       new AnnotatedCode.fromText(code, commentStart, commentEnd);
   print(annotatedCode.sourceCode);
   Map<String, AnnotatedCode> split =
-      splitByPrefixes(annotatedCode, [astMarker, kernelMarker]);
-  print('---from ast---------------------------------------------------------');
-  await runTest(split[astMarker], astMarker, debug: debug, verbose: verbose);
+      splitByPrefixes(annotatedCode, [kernelMarker]);
   print('---from kernel------------------------------------------------------');
   await runTest(split[kernelMarker], kernelMarker,
       debug: debug, verbose: verbose);
@@ -75,10 +72,6 @@ Future runTest(AnnotatedCode annotatedCode, String config,
     inputFile,
     Flags.disableInlining,
   ];
-  if (config == astMarker) {
-    arguments.add(Flags.useOldFrontend);
-    arguments.add(Flags.useNewSourceInfo);
-  }
   CompilationResult compilationResult = await entry.internalMain(arguments);
   Expect.isTrue(compilationResult.isSuccess);
   List<String> scriptD8Command = [
