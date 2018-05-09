@@ -1246,4 +1246,12 @@ class OutputUnitData {
         _constantToUnit[constant] == null || _constantToUnit[constant] == unit);
     _constantToUnit[constant] = unit;
   }
+
+  /// Registers [newEntity] to be emitted in the same output unit as
+  /// [existingEntity];
+  void registerColocatedMembers(
+      MemberEntity existingEntity, MemberEntity newEntity) {
+    assert(_entityToUnit[newEntity] == null);
+    _entityToUnit[newEntity] = outputUnitForMember(existingEntity);
+  }
 }

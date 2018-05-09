@@ -1019,6 +1019,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     // Tail-call body.
     JGeneratorBody body = _elementMap.getGeneratorBody(function);
+    backend.outputUnitData.registerColocatedMembers(function, body);
+
     // Is 'buildAsyncBody' the best location for the entry?
     var sourceInformation = _sourceInformationBuilder.buildAsyncBody();
 
