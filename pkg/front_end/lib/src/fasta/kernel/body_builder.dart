@@ -88,7 +88,12 @@ import 'kernel_builder.dart';
 // TODO(ahe): Remove this and ensure all nodes have a location.
 const noLocation = null;
 
-class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
+class BodyBuilder<
+        OpaqueExpression, // TODO(ahe): Rename to Expression when we've removed
+        // all references to kernel's Expression.
+        OpaqueStatement, // TODO(ahe): Rename to Statement when we've removed
+        // all references to kernel's Statement.
+        Arguments> extends ScopeListener<JumpTarget>
     implements BuilderHelper<Arguments> {
   @override
   final KernelLibraryBuilder library;
@@ -182,9 +187,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   /// and where that was.
   Map<String, int> initializedFields;
 
-  // TODO(ahe): Update type parameters.
-  @override
-  Forest<dynamic, dynamic, Token, dynamic> forest;
+  final Forest forestInternal;
 
   BodyBuilder(
       KernelLibraryBuilder library,
@@ -197,7 +200,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
       this.isInstanceMember,
       this.uri,
       this._typeInferrer,
-      [this.forest = const Fangorn()])
+      [this.forestInternal = const Fangorn()])
       : enclosingScope = scope,
         library = library,
         enableNative =
@@ -210,6 +213,12 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
             coreTypes.objectClass != classBuilder?.cls,
         typePromoter = _typeInferrer.typePromoter,
         super(scope);
+
+  Forest<
+      Expression, // TODO(ahe): Should be OpaqueExpression.
+      OpaqueStatement,
+      Token,
+      Arguments> get forest => forestInternal;
 
   bool get hasParserError => recoverableErrors.isNotEmpty;
 

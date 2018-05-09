@@ -60,6 +60,15 @@ class ExpressionParserTest_Forest extends FastaParserTestCase
     expect(binaryExpression.rightOperand, isNotNull);
   }
 
+  void test_int_literal() {
+    Expression expression = parseAdditiveExpression('1');
+    expect(expression, isNotNull);
+    // assertNoErrors();
+    expect(expression is IntegerLiteral, isTrue);
+    IntegerLiteral literal = expression;
+    expect(literal.value, equals(1));
+  }
+
   @failingTest
   void test_namedArgument() {
     super.test_namedArgument();
@@ -1220,7 +1229,7 @@ class FastaParserTestCase extends Object
         false /* strong mode */,
       ));
 
-      BodyBuilder builder = new BodyBuilder(
+      BodyBuilder builder = new AstBodyBuilder(
         library,
         procedureBuilder,
         library.scope,
@@ -1288,4 +1297,35 @@ class FastaParserTestCase extends Object
   }
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+// TODO(ahe): Remove this class when we no longer need to override `forest`.
+class AstBodyBuilder extends BodyBuilder {
+  AstBodyBuilder(
+      library,
+      member,
+      scope,
+      formalParameterScope,
+      hierarchy,
+      coreTypes,
+      classBuilder,
+      isInstanceMember,
+      uri,
+      typeInferrer,
+      forestInternal)
+      : super(
+            library,
+            member,
+            scope,
+            formalParameterScope,
+            hierarchy,
+            coreTypes,
+            classBuilder,
+            isInstanceMember,
+            uri,
+            typeInferrer,
+            forestInternal);
+
+  // ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE
+  dynamic get forest => super.forestInternal;
 }
