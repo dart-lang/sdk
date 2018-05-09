@@ -1766,8 +1766,7 @@ class _HttpClientConnection {
   void close() {
     closed = true;
     _httpClient._connectionClosed(this);
-    _streamFuture
-        // TODO(ajohnsen): Add timeout.
+    _streamFuture.timeout(_httpClient.idleTimeout)
         .then((_) => _socket.destroy());
   }
 
@@ -1885,12 +1884,16 @@ class _ConnectionTarget {
   }
 
   void close(bool force) {
-    for (var c in _idle.toList()) {
-      c.close();
-    }
     if (force) {
+      for (var c in _idle.toList()) {
+        c.destroy();
+      }
       for (var c in _active.toList()) {
         c.destroy();
+      }
+    } else {
+      for (var c in _idle.toList()) {
+        c.close();
       }
     }
   }
