@@ -10,7 +10,9 @@
 # 2. A suggestion for how to correct the problem (tip).
 #
 # 3. Examples that produce the message (one of expression, statement,
-#    declaration, member, script, or bytes).
+#    declaration, member, script, bytes or external). Note that 'external'
+#    should be the path to an external test. The external test will not be run,
+#    but the existance of the file will be verified.
 #
 # A message shouldn't indicate which kind of diagnostic it is, for example,
 # warning or error. Tools are expected to prepend "Warning: ", or "Error: ",
@@ -42,6 +44,9 @@
 #
 # Long term, the analyzer and front-end need to share the same error codes. So
 # eventually all error codes should have an `analyzerCode` field.
+#
+# In some cases a mesage is internal to the frontend, and no meaningful dart2js
+# nor analyzer code can be provided. In such cases set `frontendInternal: true`.
 #
 # ## Parameter Substitution in Template and Tip
 #
