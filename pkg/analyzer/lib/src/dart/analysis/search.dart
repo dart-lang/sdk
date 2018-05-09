@@ -14,7 +14,6 @@ import 'package:analyzer/src/dart/analysis/index.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart' show NamespaceBuilder;
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:collection/collection.dart';
 
@@ -823,11 +822,7 @@ class _ImportElementReferencesVisitor extends RecursiveAstVisitor {
   _ImportElementReferencesVisitor(
       ImportElement element, this.enclosingUnitElement)
       : importElement = element {
-    importedElements = new NamespaceBuilder()
-        .createImportNamespaceForDirective(element)
-        .definedNames
-        .values
-        .toSet();
+    importedElements = element.namespace.definedNames.values.toSet();
   }
 
   @override

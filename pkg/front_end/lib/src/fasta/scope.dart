@@ -66,6 +66,11 @@ class Scope extends MutableScope {
       : this(<String, Builder>{}, null, parent, debugName,
             isModifiable: isModifiable);
 
+  Scope copyWithParent(Scope parent, String debugName) {
+    return new Scope(super.local, super.setters, parent, debugName,
+        isModifiable: isModifiable);
+  }
+
   /// Don't use this. Use [becomePartOf] instead.
   void set local(_) => unsupported("local=", -1, null);
 

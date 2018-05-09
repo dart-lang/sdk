@@ -63,45 +63,43 @@ main() {
 }
 """;
 
-twoClasses(CompileMode compileMode) async {
-  String generated = await compileAll(TEST_ONE, compileMode: compileMode);
+twoClasses() async {
+  String generated = await compileAll(TEST_ONE);
   Expect.isTrue(generated.contains(new RegExp('A: {[ \n]*"\\^": "Object;"')));
   Expect.isTrue(generated.contains(new RegExp('B: {[ \n]*"\\^": "Object;"')));
 }
 
-subClass(CompileMode compileMode) async {
+subClass() async {
   checkOutput(String generated) {
     Expect.isTrue(generated.contains(new RegExp('A: {[ \n]*"\\^": "Object;"')));
     Expect.isTrue(generated.contains(new RegExp('B: {[ \n]*"\\^": "A;"')));
   }
 
-  checkOutput(await compileAll(TEST_TWO, compileMode: compileMode));
-  checkOutput(await compileAll(TEST_THREE, compileMode: compileMode));
+  checkOutput(await compileAll(TEST_TWO));
+  checkOutput(await compileAll(TEST_THREE));
 }
 
-fieldTest(CompileMode compileMode) async {
-  String generated = await compileAll(TEST_FOUR, compileMode: compileMode);
+fieldTest() async {
+  String generated = await compileAll(TEST_FOUR);
   Expect.isTrue(generated
       .contains(new RegExp('B: {[ \n]*"\\^": "A;y,z,x",[ \n]*static:')));
 }
 
-constructor1(CompileMode compileMode) async {
-  String generated = await compileAll(TEST_FIVE, compileMode: compileMode);
+constructor1() async {
+  String generated = await compileAll(TEST_FIVE);
   Expect.isTrue(generated.contains(new RegExp(r"new [$A-Z]+\.A\(a\);")));
 }
 
 main() {
-  runTests(CompileMode compileMode) async {
-    await twoClasses(compileMode);
-    await subClass(compileMode);
-    await fieldTest(compileMode);
-    await constructor1(compileMode);
+  runTests() async {
+    await twoClasses();
+    await subClass();
+    await fieldTest();
+    await constructor1();
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(CompileMode.memory);
     print('--test from kernel------------------------------------------------');
-    await runTests(CompileMode.kernel);
+    await runTests();
   });
 }

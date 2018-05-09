@@ -527,13 +527,9 @@ class DietListener extends StackListener {
   StackListener createListener(
       ModifierBuilder builder, Scope memberScope, bool isInstanceMember,
       [Scope formalParameterScope]) {
-    InterfaceType thisType;
-    if (builder.isClassMember) {
-      // Note: we set thisType regardless of whether we are building a static
-      // member, since that provides better error recovery.
-      Class cls = builder.parent.target;
-      thisType = cls.thisType;
-    }
+    // Note: we set thisType regardless of whether we are building a static
+    // member, since that provides better error recovery.
+    InterfaceType thisType = currentClass?.target?.thisType;
     var typeInferrer = library.disableTypeInference
         ? typeInferenceEngine.createDisabledTypeInferrer()
         : typeInferenceEngine.createLocalTypeInferrer(uri, thisType, library);

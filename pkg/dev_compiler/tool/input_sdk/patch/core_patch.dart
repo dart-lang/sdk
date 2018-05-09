@@ -17,17 +17,18 @@ import 'dart:_js_helper'
         notNull,
         nullCheck,
         Primitives,
+        PrivateSymbol,
         quoteStringForRegExp;
-
 import 'dart:_runtime' as dart;
-
 import 'dart:_foreign_helper' show JS;
-
 import 'dart:_native_typed_data' show NativeUint8List;
-
+import 'dart:collection' show UnmodifiableMapView;
+import 'dart:convert' show Encoding, utf8;
 import 'dart:typed_data' show Endian, Uint8List, Uint16List;
 
-String _symbolToString(Symbol symbol) => _symbol_dev.Symbol.getName(symbol);
+String _symbolToString(Symbol symbol) => symbol is PrivateSymbol
+    ? PrivateSymbol.getName(symbol)
+    : _symbol_dev.Symbol.getName(symbol);
 
 @patch
 int identityHashCode(Object object) {

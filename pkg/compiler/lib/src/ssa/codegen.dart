@@ -25,6 +25,7 @@ import '../js_backend/runtime_types.dart';
 import '../js_emitter/code_emitter_task.dart';
 import '../native/native.dart' as native;
 import '../options.dart';
+import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
@@ -237,6 +238,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   InterceptorData get _interceptorData => _closedWorld.interceptorData;
 
+  AbstractValueDomain get _abstractValueDomain =>
+      _closedWorld.abstractValueDomain;
+
   bool isGenerateAtUseSite(HInstruction instruction) {
     return generateAtUseSite.contains(instruction);
   }
@@ -306,7 +310,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   bool requiresUintConversion(HInstruction instruction) {
-    if (instruction.isUInt31(_closedWorld)) return false;
+    if (instruction.isUInt31(_abstractValueDomain)) return false;
     if (bitWidth(instruction) <= 31) return false;
     // If the result of a bit-operation is only used by other bit
     // operations, we do not have to convert to an unsigned integer.
@@ -353,7 +357,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         .visitGraph(graph);
     new SsaTypeKnownRemover().visitGraph(graph);
     new SsaTrustedCheckRemover(_options).visitGraph(graph);
-    new SsaInstructionMerger(generateAtUseSite, _superMemberData)
+    new SsaInstructionMerger(_closedWorld.abstractValueDomain,
+            generateAtUseSite, _superMemberData)
         .visitGraph(graph);
     new SsaConditionMerger(generateAtUseSite, controlFlowOperators)
         .visitGraph(graph);
@@ -1467,11 +1472,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitShiftRight(HShiftRight node) => visitBitInvokeBinary(node, '>>>');
 
   visitTruncatingDivide(HTruncatingDivide node) {
-    assert(node.isUInt31(_closedWorld));
+    assert(node.isUInt31(_abstractValueDomain));
     // TODO(karlklose): Enable this assertion again when type propagation is
     // fixed. Issue 23555.
 //    assert(node.left.isUInt32(compiler));
-    assert(node.right.isPositiveInteger(_closedWorld));
+    assert(node.right.isPositiveInteger(_abstractValueDomain));
     use(node.left);
     js.Expression jsLeft = pop();
     use(node.right);
@@ -1806,7 +1811,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // invoke dynamic knows more than the receiver.
       ClassEntity enclosing = node.element.enclosingClass;
       if (_closedWorld.isInstantiated(enclosing)) {
-        return _closedWorld.commonMasks.createNonNullExact(enclosing);
+        return _closedWorld.abstractValueDomain.createNonNullExact(enclosing);
       } else {
         // The element is mixed in so a non-null subtype mask is the most
         // precise we have.
@@ -1816,7 +1821,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                 node,
                 "Element ${node.element} from $enclosing expected "
                 "to be mixed in."));
-        return _closedWorld.commonMasks.createNonNullSubtype(enclosing);
+        return _closedWorld.abstractValueDomain.createNonNullSubtype(enclosing);
       }
     }
     // If [JSInvocationMirror._invokeOn] is enabled, and this call
@@ -2207,14 +2212,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
       HInstruction left = relational.left;
       HInstruction right = relational.right;
-      if (left.isStringOrNull(_closedWorld) &&
-          right.isStringOrNull(_closedWorld)) {
+      if (left.isStringOrNull(_abstractValueDomain) &&
+          right.isStringOrNull(_abstractValueDomain)) {
         return true;
       }
 
       // This optimization doesn't work for NaN, so we only do it if the
       // type is known to be an integer.
-      return left.isInteger(_closedWorld) && right.isInteger(_closedWorld);
+      return left.isInteger(_abstractValueDomain) &&
+          right.isInteger(_abstractValueDomain);
     }
 
     bool handledBySpecialCase = false;
@@ -2350,13 +2356,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       js.Expression over;
       if (node.staticChecks != HBoundsCheck.ALWAYS_ABOVE_ZERO) {
         use(node.index);
-        if (node.index.isInteger(_closedWorld)) {
+        if (node.index.isInteger(_abstractValueDomain)) {
           under = js.js("# < 0", pop());
         } else {
           js.Expression jsIndex = pop();
           under = js.js("# >>> 0 !== #", [jsIndex, jsIndex]);
         }
-      } else if (!node.index.isInteger(_closedWorld)) {
+      } else if (!node.index.isInteger(_abstractValueDomain)) {
         checkInt(node.index, '!==');
         under = pop();
       }
@@ -2486,9 +2492,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitStringify(HStringify node) {
     HInstruction input = node.inputs.first;
-    if (input.isString(_closedWorld)) {
+    if (input.isString(_abstractValueDomain)) {
       use(input);
-    } else if (input.isInteger(_closedWorld) || input.isBoolean(_closedWorld)) {
+    } else if (input.isInteger(_abstractValueDomain) ||
+        input.isBoolean(_abstractValueDomain)) {
       // JavaScript's + operator with a string for the left operand will convert
       // the right operand to a string, and the conversion result is correct.
       use(input);
@@ -2879,9 +2886,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       } else if (type.isFunctionType) {
         checkType(input, interceptor, type, sourceInformation,
             negative: negative);
-      } else if ((input.canBePrimitive(_closedWorld) &&
-              !input.canBePrimitiveArray(_closedWorld)) ||
-          input.canBeNull()) {
+      } else if ((input.canBePrimitive(_abstractValueDomain) &&
+              !input.canBePrimitiveArray(_abstractValueDomain)) ||
+          input.canBeNull(_abstractValueDomain)) {
         checkObject(input, relation, node.sourceInformation);
         js.Expression objectTest = pop();
         checkType(input, interceptor, type, sourceInformation,

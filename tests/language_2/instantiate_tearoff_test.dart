@@ -58,6 +58,7 @@ main() {
     String Function(X, int) x = foo;
     return x;
   }
+
   dynamic fn = bar<String>();
   Expect.equals("${fn.runtimeType}", "${stringAndIntToString.runtimeType}");
   Expect.equals(fn("a", 1), "String, int");

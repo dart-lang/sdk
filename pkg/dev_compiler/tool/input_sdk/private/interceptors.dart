@@ -96,17 +96,47 @@ class UnknownJavaScriptObject extends JavaScriptObject {
   String toString() => JS('String', 'String(#)', this);
 }
 
+class NativeError extends Interceptor {
+  String dartStack() => JS('String', '#.stack', this);
+}
+
 // Note that this needs to be in interceptors.dart in order for
 // it to be picked up as an extension type.
 @JsPeerInterface(name: 'TypeError')
-class NullError extends Interceptor implements NoSuchMethodError {
+class NullError extends NativeError implements NoSuchMethodError {
+  static RegExp _nullError =
+      new RegExp(r"^Cannot read property '(.+)' of null$");
+  static RegExp _extensionName = new RegExp(r"^Symbol\(dartx\.(.+)\)$");
+  static RegExp _privateName = new RegExp(r"^Symbol\((_.+)\)$");
+
+  String _fieldName() {
+    var message = JS('String', '#.message', this);
+    var match = _nullError.firstMatch(message);
+    if (match == null) return null;
+    var name = match[1];
+    match = _extensionName.firstMatch(name) ?? _privateName.firstMatch(name);
+    return match != null ? match[1] : name;
+  }
+
+  String dartStack() {
+    var stack = super.dartStack();
+    // Strip TypeError from first line.
+    stack = toString() + '\n' + stack.split('\n').sublist(1).join('\n');
+    return stack;
+  }
+
   StackTrace get stackTrace => getTraceFromException(this);
 
   String toString() {
     // TODO(vsm): Distinguish between null reference errors and other
     // TypeErrors.  We should not get non-null TypeErrors from DDC code,
     // but we may from native JavaScript.
-    return "NullError: ${JS('String', '#.message', this)}";
+    var name = _fieldName();
+    if (name == null) {
+      // Not a Null NSM error: fallback to JS.
+      return JS('String', '#.toString()', this);
+    }
+    return "NullError: invalid member on null: '$name'";
   }
 }
 

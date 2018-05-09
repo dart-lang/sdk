@@ -121,11 +121,11 @@ main() async {
 
   await retry(() async {
     await testBindDifferentAddresses(
-        InternetAddress.ANY_IP_V6, InternetAddress.ANY_IP_V4, true, false);
+        InternetAddress.anyIPv6, InternetAddress.anyIPv4, true, false);
   });
   await retry(() async {
     await testBindDifferentAddresses(
-        InternetAddress.ANY_IP_V4, InternetAddress.ANY_IP_V6, false, true);
+        InternetAddress.anyIPv4, InternetAddress.anyIPv6, false, true);
   });
 
   for (var host in ['127.0.0.1', '::1']) {

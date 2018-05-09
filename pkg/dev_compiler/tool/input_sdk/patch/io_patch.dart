@@ -3,6 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:_js_helper' show patch;
+import 'dart:async';
+import 'dart:convert';
+import 'dart:isolate' show SendPort;
+import 'dart:typed_data';
 
 @patch
 class _Directory {
@@ -343,7 +347,7 @@ class Process {
       Map<String, String> environment,
       bool includeParentEnvironment: true,
       bool runInShell: false,
-      ProcessStartMode mode: ProcessStartMode.NORMAL}) {
+      ProcessStartMode mode: ProcessStartMode.normal}) {
     throw new UnsupportedError("Process.start");
   }
 
@@ -353,8 +357,8 @@ class Process {
       Map<String, String> environment,
       bool includeParentEnvironment: true,
       bool runInShell: false,
-      Encoding stdoutEncoding: SYSTEM_ENCODING,
-      Encoding stderrEncoding: SYSTEM_ENCODING}) {
+      Encoding stdoutEncoding: systemEncoding,
+      Encoding stderrEncoding: systemEncoding}) {
     throw new UnsupportedError("Process.run");
   }
 
@@ -364,13 +368,13 @@ class Process {
       Map<String, String> environment,
       bool includeParentEnvironment: true,
       bool runInShell: false,
-      Encoding stdoutEncoding: SYSTEM_ENCODING,
-      Encoding stderrEncoding: SYSTEM_ENCODING}) {
+      Encoding stdoutEncoding: systemEncoding,
+      Encoding stderrEncoding: systemEncoding}) {
     throw new UnsupportedError("Process.runSync");
   }
 
   @patch
-  static bool killPid(int pid, [ProcessSignal signal = ProcessSignal.SIGTERM]) {
+  static bool killPid(int pid, [ProcessSignal signal = ProcessSignal.sigterm]) {
     throw new UnsupportedError("Process.killPid");
   }
 }
@@ -403,7 +407,7 @@ class InternetAddress {
   }
   @patch
   static Future<List<InternetAddress>> lookup(String host,
-      {InternetAddressType type: InternetAddressType.ANY}) {
+      {InternetAddressType type: InternetAddressType.any}) {
     throw new UnsupportedError("InternetAddress.lookup");
   }
 
@@ -425,7 +429,7 @@ class NetworkInterface {
   static Future<List<NetworkInterface>> list(
       {bool includeLoopback: false,
       bool includeLinkLocal: false,
-      InternetAddressType type: InternetAddressType.ANY}) {
+      InternetAddressType type: InternetAddressType.any}) {
     throw new UnsupportedError("NetworkInterface.list");
   }
 }

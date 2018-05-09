@@ -75,6 +75,7 @@ class Statistics {
   static int invocationsProcessed = 0;
   static int usedCachedResultsOfInvocations = 0;
   static int invocationsInvalidated = 0;
+  static int maxInvalidationsPerInvocation = 0;
   static int recursiveInvocationsApproximated = 0;
   static int typeConeSpecializations = 0;
   static int classesDropped = 0;
@@ -93,6 +94,7 @@ class Statistics {
     invocationsProcessed = 0;
     usedCachedResultsOfInvocations = 0;
     invocationsInvalidated = 0;
+    maxInvalidationsPerInvocation = 0;
     recursiveInvocationsApproximated = 0;
     typeConeSpecializations = 0;
     classesDropped = 0;
@@ -112,6 +114,7 @@ class Statistics {
     ${invocationsProcessed} invocations processed
     ${usedCachedResultsOfInvocations} times cached result of invocation is used
     ${invocationsInvalidated} invocations invalidated
+    ${maxInvalidationsPerInvocation} maximum invalidations per invocation
     ${recursiveInvocationsApproximated} recursive invocations approximated
     ${typeConeSpecializations} type cones specialized
     ${classesDropped} classes dropped

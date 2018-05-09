@@ -40,17 +40,12 @@ main() {
 ''';
 
 main() {
-  runTests({bool useKernel}) async {
-    CompileMode compileMode =
-        useKernel ? CompileMode.kernel : CompileMode.memory;
-
-    String generated1 =
-        await compileAll(SHOULD_NOT_BE_BOXED_TEST, compileMode: compileMode);
+  runTests() async {
+    String generated1 = await compileAll(SHOULD_NOT_BE_BOXED_TEST);
     Expect.isTrue(generated1.contains('main_closure(i)'),
         'for-loop variable should not have been boxed');
 
-    String generated2 =
-        await compileAll(SHOULD_BE_BOXED_TEST, compileMode: compileMode);
+    String generated2 = await compileAll(SHOULD_BE_BOXED_TEST);
     Expect.isFalse(generated2.contains('main_closure(i)'),
         'for-loop variable should have been boxed');
 
@@ -62,9 +57,7 @@ main() {
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTests(useKernel: true);
+    await runTests();
   });
 }

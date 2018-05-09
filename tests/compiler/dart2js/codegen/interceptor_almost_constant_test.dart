@@ -14,19 +14,16 @@ const String TEST_ONE = r"""
 """;
 
 main() {
-  runTest({bool useKernel}) async {
+  runTest() async {
     // Check that almost-constant interceptor is used.
-    await compile(TEST_ONE, entry: 'foo', useKernel: useKernel,
-        check: (String generated) {
+    await compile(TEST_ONE, entry: 'foo', check: (String generated) {
       String re = r'a && [\w\.]*_methods';
       Expect.isTrue(generated.contains(new RegExp(re)), 'contains /$re/');
     });
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTest(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTest(useKernel: true);
+    await runTest();
   });
 }

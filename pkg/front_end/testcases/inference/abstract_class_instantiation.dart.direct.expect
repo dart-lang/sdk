@@ -7,7 +7,7 @@ abstract class C extends core::Object {
     : super core::Object::•()
     ;
 }
-abstract class D<T extends core::Object> extends core::Object {
+abstract class D<T extends core::Object = dynamic> extends core::Object {
   constructor •(self::D::T t) → void
     : super core::Object::•()
     ;

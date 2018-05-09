@@ -27,7 +27,7 @@ RefactoringStatus validateConstructorName(String name) {
   if (name != null && name.isEmpty) {
     return new RefactoringStatus();
   }
-  return _validateLowerCamelCase(name, "Constructor");
+  return _validateLowerCamelCase(name, "Constructor", allowBuiltIn: true);
 }
 
 /**
@@ -37,7 +37,7 @@ RefactoringStatus validateConstructorName(String name) {
  *   FATAL if the name is illegal.
  */
 RefactoringStatus validateFieldName(String name) {
-  return _validateLowerCamelCase(name, "Field");
+  return _validateLowerCamelCase(name, "Field", allowBuiltIn: true);
 }
 
 /**
@@ -47,7 +47,7 @@ RefactoringStatus validateFieldName(String name) {
  *   FATAL if the name is illegal.
  */
 RefactoringStatus validateFunctionName(String name) {
-  return _validateLowerCamelCase(name, "Function");
+  return _validateLowerCamelCase(name, "Function", allowBuiltIn: true);
 }
 
 /**
@@ -80,7 +80,7 @@ RefactoringStatus validateImportPrefixName(String name) {
  *   FATAL if the name is illegal.
  */
 RefactoringStatus validateLabelName(String name) {
-  return _validateLowerCamelCase(name, "Label");
+  return _validateLowerCamelCase(name, "Label", allowBuiltIn: true);
 }
 
 /**
@@ -127,7 +127,7 @@ RefactoringStatus validateLibraryName(String name) {
  *   FATAL if the name is illegal.
  */
 RefactoringStatus validateMethodName(String name) {
-  return _validateLowerCamelCase(name, "Method");
+  return _validateLowerCamelCase(name, "Method", allowBuiltIn: true);
 }
 
 /**
@@ -137,7 +137,7 @@ RefactoringStatus validateMethodName(String name) {
  *   FATAL if the name is illegal.
  */
 RefactoringStatus validateParameterName(String name) {
-  return _validateLowerCamelCase(name, "Parameter");
+  return _validateLowerCamelCase(name, "Parameter", allowBuiltIn: true);
 }
 
 /**
@@ -147,11 +147,12 @@ RefactoringStatus validateParameterName(String name) {
  *   FATAL if the name is illegal.
  */
 RefactoringStatus validateVariableName(String name) {
-  return _validateLowerCamelCase(name, "Variable");
+  return _validateLowerCamelCase(name, "Variable", allowBuiltIn: true);
 }
 
 RefactoringStatus _validateIdentifier(
-    String identifier, String desc, String beginDesc) {
+    String identifier, String desc, String beginDesc,
+    {bool allowBuiltIn: false}) {
   // has leading/trailing spaces
   String trimmed = identifier.trim();
   if (identifier != trimmed) {
@@ -168,8 +169,13 @@ RefactoringStatus _validateIdentifier(
   {
     Keyword keyword = Keyword.keywords[identifier];
     if (keyword != null) {
-      String message = "$desc must not be a keyword.";
-      return new RefactoringStatus.fatal(message);
+      if (keyword.isBuiltInOrPseudo && allowBuiltIn) {
+        String message = "Avoid using built-in identifiers as names.";
+        return new RefactoringStatus.warning(message);
+      } else {
+        String message = "$desc must not be a keyword.";
+        return new RefactoringStatus.fatal(message);
+      }
     }
   }
   // first character
@@ -198,7 +204,8 @@ RefactoringStatus _validateIdentifier(
 /**
  * Validates [identifier], should be lower camel case.
  */
-RefactoringStatus _validateLowerCamelCase(String identifier, String desc) {
+RefactoringStatus _validateLowerCamelCase(String identifier, String desc,
+    {bool allowBuiltIn: false}) {
   desc += ' name';
   // null
   if (identifier == null) {
@@ -206,8 +213,9 @@ RefactoringStatus _validateLowerCamelCase(String identifier, String desc) {
     return new RefactoringStatus.fatal(message);
   }
   // is not identifier
-  RefactoringStatus status =
-      _validateIdentifier(identifier, desc, "a lowercase letter or underscore");
+  RefactoringStatus status = _validateIdentifier(
+      identifier, desc, "a lowercase letter or underscore",
+      allowBuiltIn: allowBuiltIn);
   if (!status.isOK) {
     return status;
   }

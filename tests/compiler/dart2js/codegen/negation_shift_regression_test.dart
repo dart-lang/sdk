@@ -26,12 +26,9 @@ foo(param) {
 """;
 
 main() {
-  runTests({bool useKernel}) async {
+  runTests() async {
     check(String test) async {
-      await compile(test,
-          entry: 'foo',
-          useKernel: useKernel,
-          check: checkerForAbsentPresent(test));
+      await compile(test, entry: 'foo', check: checkerForAbsentPresent(test));
     }
 
     await check(TEST1);
@@ -39,9 +36,7 @@ main() {
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTests(useKernel: true);
+    await runTests();
   });
 }

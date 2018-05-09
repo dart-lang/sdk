@@ -88,5 +88,5 @@ void Console::RestoreConfig() {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) ||                 \
+#endif  // defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) ||
         // defined(HOST_OS_ANDROID) || defined(HOST_OS_FUCHSIA)

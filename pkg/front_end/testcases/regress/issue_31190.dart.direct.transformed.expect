@@ -2,7 +2,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class Typed<T extends core::Object> extends core::Object {
+class Typed<T extends core::Object = dynamic> extends core::Object {
   field self::Typed::T v = null;
   synthetic constructor •() → void
     : super core::Object::•()

@@ -61,6 +61,7 @@ class AbstractContextTest extends Object with ResourceProviderMixin {
   bool get previewDart2 => driver.analysisOptions.previewDart2;
 
   void addFlutterPackage() {
+    addMetaPackageSource();
     Folder libFolder = configureFlutterPackage(resourceProvider);
     packageMap['flutter'] = [libFolder];
   }
@@ -68,11 +69,23 @@ class AbstractContextTest extends Object with ResourceProviderMixin {
   Source addMetaPackageSource() => addPackageSource('meta', 'meta.dart', r'''
 library meta;
 
+const _IsTest isTest = const _IsTest();
+
+const _IsTestGroup isTestGroup = const _IsTestGroup();
+
 const Required required = const Required();
 
 class Required {
   final String reason;
   const Required([this.reason]);
+}
+
+class _IsTest {
+  const _IsTest();
+}
+
+class _IsTestGroup {
+  const _IsTestGroup();
 }
 ''');
 

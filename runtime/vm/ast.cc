@@ -314,7 +314,7 @@ bool BinaryOpNode::IsPotentiallyConst() const {
           this->right()->AsLiteralNode()->literal().IsNull()) {
         return false;
       }
-    // Fall-through intentional.
+      /* Falls through */
     case Token::kADD:
     case Token::kSUB:
     case Token::kMUL:
@@ -353,7 +353,7 @@ const Instance* BinaryOpNode::EvalConstExpr() const {
       if (left_val->IsString()) {
         return right_val->IsString() ? left_val : NULL;
       }
-    // Fall-through intentional.
+      /* Falls through */
     case Token::kSUB:
     case Token::kMUL:
     case Token::kDIV:

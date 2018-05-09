@@ -58,8 +58,8 @@ class _Directory extends FileSystemEntity implements Directory {
   }
 
   Future<bool> exists() {
-    return _File._dispatchWithNamespace(_DIRECTORY_EXISTS, [null, path]).then(
-        (response) {
+    return _File._dispatchWithNamespace(
+        _IOService.directoryExists, [null, path]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionOrErrorFromResponse(response, "Exists failed");
       }
@@ -90,8 +90,8 @@ class _Directory extends FileSystemEntity implements Directory {
         }
       });
     } else {
-      return _File._dispatchWithNamespace(_DIRECTORY_CREATE, [null, path]).then(
-          (response) {
+      return _File._dispatchWithNamespace(
+          _IOService.directoryCreate, [null, path]).then((response) {
         if (_isErrorResponse(response)) {
           throw _exceptionOrErrorFromResponse(response, "Creation failed");
         }
@@ -129,7 +129,7 @@ class _Directory extends FileSystemEntity implements Directory {
       fullPrefix = "$path${Platform.pathSeparator}$prefix";
     }
     return _File._dispatchWithNamespace(
-        _DIRECTORY_CREATE_TEMP, [null, fullPrefix]).then((response) {
+        _IOService.directoryCreateTemp, [null, fullPrefix]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionOrErrorFromResponse(
             response, "Creation of temporary directory failed");
@@ -160,7 +160,7 @@ class _Directory extends FileSystemEntity implements Directory {
 
   Future<Directory> _delete({bool recursive: false}) {
     return _File._dispatchWithNamespace(
-        _DIRECTORY_DELETE, [null, path, recursive]).then((response) {
+        _IOService.directoryDelete, [null, path, recursive]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionOrErrorFromResponse(response, "Deletion failed");
       }
@@ -177,7 +177,7 @@ class _Directory extends FileSystemEntity implements Directory {
 
   Future<Directory> rename(String newPath) {
     return _File._dispatchWithNamespace(
-        _DIRECTORY_RENAME, [null, path, newPath]).then((response) {
+        _IOService.directoryRename, [null, path, newPath]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionOrErrorFromResponse(response, "Rename failed");
       }
@@ -223,16 +223,16 @@ class _Directory extends FileSystemEntity implements Directory {
   String toString() => "Directory: '$path'";
 
   bool _isErrorResponse(response) =>
-      response is List && response[0] != _SUCCESS_RESPONSE;
+      response is List && response[0] != _successResponse;
 
   _exceptionOrErrorFromResponse(response, String message) {
     assert(_isErrorResponse(response));
-    switch (response[_ERROR_RESPONSE_ERROR_TYPE]) {
-      case _ILLEGAL_ARGUMENT_RESPONSE:
+    switch (response[_errorResponseErrorType]) {
+      case _illegalArgumentResponse:
         return new ArgumentError();
-      case _OSERROR_RESPONSE:
-        var err = new OSError(response[_OSERROR_RESPONSE_MESSAGE],
-            response[_OSERROR_RESPONSE_ERROR_CODE]);
+      case _osErrorResponse:
+        var err = new OSError(response[_osErrorResponseMessage],
+            response[_osErrorResponseErrorCode]);
         return new FileSystemException(message, path, err);
       default:
         return new Exception("Unknown error");
@@ -247,16 +247,16 @@ abstract class _AsyncDirectoryListerOps {
 }
 
 class _AsyncDirectoryLister {
-  static const int LIST_FILE = 0;
-  static const int LIST_DIRECTORY = 1;
-  static const int LIST_LINK = 2;
-  static const int LIST_ERROR = 3;
-  static const int LIST_DONE = 4;
+  static const int listFile = 0;
+  static const int listDirectory = 1;
+  static const int listLink = 2;
+  static const int listError = 3;
+  static const int listDone = 4;
 
-  static const int RESPONSE_TYPE = 0;
-  static const int RESPONSE_PATH = 1;
-  static const int RESPONSE_COMPLETE = 1;
-  static const int RESPONSE_ERROR = 2;
+  static const int responseType = 0;
+  static const int responsePath = 1;
+  static const int responseComplete = 1;
+  static const int responseError = 2;
 
   final String path;
   final bool recursive;
@@ -286,7 +286,7 @@ class _AsyncDirectoryLister {
   Stream<FileSystemEntity> get stream => controller.stream;
 
   void onListen() {
-    _File._dispatchWithNamespace(_DIRECTORY_LIST_START,
+    _File._dispatchWithNamespace(_IOService.directoryListStart,
         [null, path, recursive, followLinks]).then((response) {
       if (response is int) {
         _ops = new _AsyncDirectoryListerOps(response);
@@ -330,7 +330,8 @@ class _AsyncDirectoryLister {
       return;
     }
     nextRunning = true;
-    _IOService._dispatch(_DIRECTORY_LIST_NEXT, [pointer]).then((result) {
+    _IOService
+        ._dispatch(_IOService.directoryListNext, [pointer]).then((result) {
       nextRunning = false;
       if (result is List) {
         next();
@@ -338,19 +339,19 @@ class _AsyncDirectoryLister {
         for (int i = 0; i < result.length; i++) {
           assert(i % 2 == 0);
           switch (result[i++]) {
-            case LIST_FILE:
+            case listFile:
               controller.add(new File(result[i]));
               break;
-            case LIST_DIRECTORY:
+            case listDirectory:
               controller.add(new Directory(result[i]));
               break;
-            case LIST_LINK:
+            case listLink:
               controller.add(new Link(result[i]));
               break;
-            case LIST_ERROR:
+            case listError:
               error(result[i]);
               break;
-            case LIST_DONE:
+            case listDone:
               canceled = true;
               return;
           }
@@ -380,20 +381,20 @@ class _AsyncDirectoryLister {
     if (pointer == null) {
       _cleanup();
     } else {
-      _IOService
-          ._dispatch(_DIRECTORY_LIST_STOP, [pointer]).whenComplete(_cleanup);
+      _IOService._dispatch(
+          _IOService.directoryListStop, [pointer]).whenComplete(_cleanup);
     }
   }
 
   void error(message) {
-    var errorType = message[RESPONSE_ERROR][_ERROR_RESPONSE_ERROR_TYPE];
-    if (errorType == _ILLEGAL_ARGUMENT_RESPONSE) {
+    var errorType = message[responseError][_errorResponseErrorType];
+    if (errorType == _illegalArgumentResponse) {
       controller.addError(new ArgumentError());
-    } else if (errorType == _OSERROR_RESPONSE) {
-      var responseError = message[RESPONSE_ERROR];
-      var err = new OSError(responseError[_OSERROR_RESPONSE_MESSAGE],
-          responseError[_OSERROR_RESPONSE_ERROR_CODE]);
-      var errorPath = message[RESPONSE_PATH];
+    } else if (errorType == _osErrorResponse) {
+      var responseErrorInfo = message[responseError];
+      var err = new OSError(responseErrorInfo[_osErrorResponseMessage],
+          responseErrorInfo[_osErrorResponseErrorCode]);
+      var errorPath = message[responsePath];
       if (errorPath == null) errorPath = path;
       controller.addError(
           new FileSystemException("Directory listing failed", errorPath, err));

@@ -498,10 +498,6 @@ class Object {
     ASSERT(void_type_ != NULL);
     return *void_type_;
   }
-  static const Type& vector_type() {
-    ASSERT(vector_type_ != NULL);
-    return *vector_type_;
-  }
 
   static void set_vm_isolate_snapshot_object_table(const Array& table);
 
@@ -771,7 +767,6 @@ class Object {
   static RawClass* class_class_;             // Class of the Class vm object.
   static RawClass* dynamic_class_;           // Class of the 'dynamic' type.
   static RawClass* void_class_;              // Class of the 'void' type.
-  static RawClass* vector_class_;            // Class of the 'vector' type.
   static RawClass* unresolved_class_class_;  // Class of UnresolvedClass.
   static RawClass* type_arguments_class_;  // Class of TypeArguments vm object.
   static RawClass* patch_class_class_;     // Class of the PatchClass vm object.
@@ -840,7 +835,6 @@ class Object {
   static Array* vm_isolate_snapshot_object_table_;
   static Type* dynamic_type_;
   static Type* void_type_;
-  static Type* vector_type_;
 
   friend void ClassTable::Register(const Class& cls);
   friend void RawObject::Validate(Isolate* isolate) const;
@@ -2165,11 +2159,6 @@ class Function : public Object {
   RawArray* parameter_names() const { return raw_ptr()->parameter_names_; }
   void set_parameter_names(const Array& value) const;
 
-  // For converted closure functions: indicate how many type parameters on the
-  // target are actually captured.
-  void set_num_parent_type_parameters(intptr_t num) const;
-  intptr_t num_parent_type_parameters() const;
-
   // The type parameters (and their bounds) are specified as an array of
   // TypeParameter.
   RawTypeArguments* type_parameters() const {
@@ -2291,25 +2280,11 @@ class Function : public Object {
     return implicit_closure_function() != null();
   }
 
-  // Returns true iff a converted closure function has been created
-  // for this function.
-  bool HasConvertedClosureFunction() const {
-    return converted_closure_function() != null();
-  }
-
   // Returns the closure function implicitly created for this function.  If none
   // exists yet, create one and remember it.  Implicit closure functions are
   // used in VM Closure instances that represent results of tear-off operations.
   RawFunction* ImplicitClosureFunction() const;
   void DropUncompiledImplicitClosureFunction() const;
-
-  // Returns the converted closure function created for this function.
-  // If none exists yet, create one and remember it.  See the comment on
-  // ConvertedClosureFunction definition in runtime/vm/object.cc for elaborate
-  // explanation.
-  RawFunction* ConvertedClosureFunction(
-      intptr_t num_parent_type_parameters) const;
-  void DropUncompiledConvertedClosureFunction() const;
 
   // Return the closure implicitly created for this function.
   // If none exists yet, create one and remember it.
@@ -2640,11 +2615,6 @@ class Function : public Object {
     return kind() == RawFunction::kImplicitClosureFunction;
   }
 
-  // Returns true if this function represents a converted closure function.
-  bool IsConvertedClosureFunction() const {
-    return kind() == RawFunction::kConvertedClosureFunction;
-  }
-
   // Returns true if this function represents a non implicit closure function.
   bool IsNonImplicitClosureFunction() const {
     return IsClosureFunction() && !IsImplicitClosureFunction();
@@ -2731,8 +2701,7 @@ class Function : public Object {
                           Heap::Space space = Heap::kOld);
 
   // Allocates a new Function object representing a closure function
-  // with given kind - kClosureFunction, kImplicitClosureFunction or
-  // kConvertedClosureFunction.
+  // with given kind - kClosureFunction or kImplicitClosureFunction.
   static RawFunction* NewClosureFunctionWithKind(RawFunction::Kind kind,
                                                  const String& name,
                                                  const Function& parent,
@@ -2747,11 +2716,6 @@ class Function : public Object {
   static RawFunction* NewImplicitClosureFunction(const String& name,
                                                  const Function& parent,
                                                  TokenPosition token_pos);
-
-  // Allocates a new Function object representing a converted closure function.
-  static RawFunction* NewConvertedClosureFunction(const String& name,
-                                                  const Function& parent,
-                                                  TokenPosition token_pos);
 
   // Allocates a new Function object representing a signature function.
   // The owner is the scope class of the function type.
@@ -2927,8 +2891,6 @@ class Function : public Object {
   void set_owner(const Object& value) const;
   RawFunction* implicit_closure_function() const;
   void set_implicit_closure_function(const Function& value) const;
-  RawFunction* converted_closure_function() const;
-  void set_converted_closure_function(const Function& value) const;
   RawInstance* implicit_static_closure() const;
   void set_implicit_static_closure(const Instance& closure) const;
   RawScript* eval_script() const;
@@ -2990,9 +2952,6 @@ class ClosureData : public Object {
 
   RawInstance* implicit_static_closure() const { return raw_ptr()->closure_; }
   void set_implicit_static_closure(const Instance& closure) const;
-
-  intptr_t num_parent_type_parameters() const;
-  void set_num_parent_type_parameters(intptr_t value) const;
 
   static RawClosureData* New();
 
@@ -5757,6 +5716,7 @@ class TypeArguments : public Instance {
 
   RawTypeArguments* Prepend(Zone* zone,
                             const TypeArguments& other,
+                            intptr_t other_length,
                             intptr_t total_length) const;
 
   // Check if the subvector of length 'len' starting at 'from_index' of this
@@ -7913,16 +7873,7 @@ class Array : public Instance {
   virtual uword ComputeCanonicalTableHash() const;
 
   static const intptr_t kBytesPerElement = kWordSize;
-  // The length field is a Smi so that sets one limit on the max Array length.
-  // But we also need to be able to represent the length in bytes in an
-  // intptr_t, which is a different limit.  Either may be smaller.  We can't
-  // use Utils::Minimum here because it is not a const expression.
-  static const intptr_t kElementLimitDueToIntptrMax = static_cast<intptr_t>(
-      (kIntptrMax - sizeof(RawArray) - kObjectAlignment + kBytesPerElement) /
-      kBytesPerElement);
-  static const intptr_t kMaxElements = kSmiMax < kElementLimitDueToIntptrMax
-                                           ? kSmiMax
-                                           : kElementLimitDueToIntptrMax;
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
   static const intptr_t kMaxNewSpaceElements =
       (Heap::kNewAllocatableSize - sizeof(RawArray)) / kBytesPerElement;
 

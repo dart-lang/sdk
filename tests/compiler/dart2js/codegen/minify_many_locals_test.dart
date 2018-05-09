@@ -8,7 +8,7 @@ import 'package:expect/expect.dart';
 import '../compiler_helper.dart';
 
 main() {
-  runTests({bool useKernel, int numberOfParameters}) async {
+  runTests({int numberOfParameters}) async {
     StringBuffer buffer = new StringBuffer();
     buffer.write("foo(");
     for (int i = 0; i < numberOfParameters; i++) {
@@ -21,8 +21,7 @@ main() {
     buffer.write("$numberOfParameters; return i; }");
     String code = buffer.toString();
 
-    String generated =
-        await compile(code, entry: 'foo', minify: true, useKernel: useKernel);
+    String generated = await compile(code, entry: 'foo', minify: true);
     RegExp re = new RegExp(r"\(a,b,c");
     Expect.isTrue(re.hasMatch(generated));
 
@@ -46,10 +45,8 @@ main() {
   }
 
   asyncTest(() async {
-    // The [numberOfParameters] values are somewhat arbitrary.
-    print('--test from ast---------------------------------------------------');
-    await runTests(useKernel: false, numberOfParameters: 1800);
+    // The [numberOfParameters] value is somewhat arbitrary.
     print('--test from kernel------------------------------------------------');
-    await runTests(useKernel: true, numberOfParameters: 2000);
+    await runTests(numberOfParameters: 2000);
   });
 }

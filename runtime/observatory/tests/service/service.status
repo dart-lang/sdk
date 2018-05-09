@@ -7,6 +7,8 @@ get_allocation_samples_test: Pass, RuntimeError # Inconsistent stack trace
 get_isolate_rpc_test: Pass, RuntimeError # Issue 29324
 get_retained_size_rpc_test: Pass, RuntimeError # Issue 28193
 isolate_lifecycle_test: Pass, RuntimeError # Issue 24174
+pause_on_exceptions_test: Pass, RuntimeError # Issue 33049
+pause_on_start_and_exit_with_child_test: Pass, RuntimeError # Issue 33049
 reload_sources_test: Pass, Slow # Reload is slow on the bots
 valid_source_locations_test: Pass, Slow # Generally slow, even in release-x64.
 

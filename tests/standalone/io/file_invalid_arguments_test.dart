@@ -32,7 +32,7 @@ void testReadIntoInvalidArgs(buffer, start, end) {
 
 void testWriteByteInvalidArgs(value) {
   String filename = getFilename("fixed_length_file_invalid_arguments");
-  var file = (new File("${filename}_out")).openSync(mode: FileMode.WRITE);
+  var file = (new File("${filename}_out")).openSync(mode: FileMode.write);
   Expect.throws(() => file.writeByteSync(value), (e) => e is ArgumentError);
 
   Expect.throws(() => file.writeByte(value), (e) => e is ArgumentError);
@@ -41,7 +41,7 @@ void testWriteByteInvalidArgs(value) {
 
 void testWriteFromInvalidArgs(buffer, start, end) {
   String filename = getFilename("fixed_length_file_invalid_arguments");
-  var file = (new File("${filename}_out")).openSync(mode: FileMode.WRITE);
+  var file = (new File("${filename}_out")).openSync(mode: FileMode.write);
   Expect.throws(
       () => file.writeFromSync(buffer, start, end), (e) => e is ArgumentError);
 
@@ -52,7 +52,7 @@ void testWriteFromInvalidArgs(buffer, start, end) {
 
 void testWriteStringInvalidArgs(string, encoding) {
   String filename = getFilename("fixed_length_file_invalid_arguments");
-  var file = new File("${filename}_out").openSync(mode: FileMode.WRITE);
+  var file = new File("${filename}_out").openSync(mode: FileMode.write);
   Expect.throws(() => file.writeStringSync(string, encoding: encoding),
       (e) => e is ArgumentError);
 

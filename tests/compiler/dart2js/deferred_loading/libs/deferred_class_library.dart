@@ -6,6 +6,7 @@
 
 library deferred_class_library;
 
+/*class: MyClass:OutputUnit(1, {lib})*/
 class MyClass {
   /*element: MyClass.:OutputUnit(1, {lib})*/
   const MyClass();

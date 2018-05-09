@@ -77,6 +77,7 @@ class AnalysisServerMemoryUsageTest
     return startServer(
       servicesPort: vmServicePort,
       cfe: useCFE,
+      checked: false,
     ).then((_) {
       server.listenToOutput(dispatchNotification);
       server.exitCode.then((_) {

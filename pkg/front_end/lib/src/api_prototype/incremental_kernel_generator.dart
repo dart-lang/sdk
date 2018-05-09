@@ -5,7 +5,7 @@
 import 'dart:async' show Future;
 
 import 'package:kernel/kernel.dart'
-    show Component, DartType, NamedNode, Procedure, TypeParameter;
+    show Component, Procedure, DartType, TypeParameter;
 
 import '../base/processed_options.dart' show ProcessedOptions;
 
@@ -16,15 +16,6 @@ import '../fasta/incremental_compiler.dart' show IncrementalCompiler;
 import '../fasta/scanner/string_scanner.dart' show StringScanner;
 
 import 'compiler_options.dart' show CompilerOptions;
-
-/// Identifies a position in the source program for expression compilation.
-///
-/// Currently this can be either a library-scope or a class-scope. This object
-/// may also contain references to FE-internal datastructures, so it is
-/// invalidated by any changes to the Kernel program.
-abstract class CompilationPosition {
-  final NamedNode kernelNode = null;
-}
 
 abstract class IncrementalKernelGenerator {
   factory IncrementalKernelGenerator(CompilerOptions options, Uri entryPoint,
@@ -53,9 +44,10 @@ abstract class IncrementalKernelGenerator {
   /// parameters, whether or not they appear free in [expression]. The type
   /// parameters should have a null parent pointer.
   ///
-  /// [enclosingNode] must refer to either a [Library] or a [Class] in which
-  /// scope [expression] is compiled. If it refers to a [Class], the flag
-  /// [isStatic] determines whether [expression] may reference "this".
+  /// [libraryUri] must refer to either a previously compiled library.
+  /// [className] may optionally refer to a class within such library to use for
+  /// the scope of the expression. In that case, [isStatic] indicates whether
+  /// the scope can access [this].
   ///
   /// It is illegal to use "await" in [expression] and the compiled function
   /// will always be synchronous.
@@ -69,13 +61,9 @@ abstract class IncrementalKernelGenerator {
       String expression,
       Map<String, DartType> definitions,
       List<TypeParameter> typeDefinitions,
-      CompilationPosition position,
-      [bool isStatic = false]);
-
-  /// Finds the [CompilationPosition] referenced by [library] and optionally
-  /// [class].
-  CompilationPosition resolveCompilationPosition(Uri library,
-      [String className]);
+      Uri libraryUri,
+      [String className,
+      bool isStatic = false]);
 }
 
 bool isLegalIdentifier(String identifier) {

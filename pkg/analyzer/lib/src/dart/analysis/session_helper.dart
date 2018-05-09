@@ -29,4 +29,18 @@ class AnalysisSessionHelper {
       return null;
     }
   }
+
+  /// Return the [PropertyAccessorElement] with the given [name] that is
+  /// exported from the library with the given [uri], or `null` if the
+  /// library does not export a top-level accessor with such name.
+  Future<PropertyAccessorElement> getTopLevelPropertyAccessor(
+      String uri, String name) async {
+    var libraryElement = await session.getLibraryByUri(uri);
+    var element = libraryElement.exportNamespace.get(name);
+    if (element is PropertyAccessorElement) {
+      return element;
+    } else {
+      return null;
+    }
+  }
 }

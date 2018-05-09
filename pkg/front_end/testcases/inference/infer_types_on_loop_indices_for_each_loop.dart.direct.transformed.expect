@@ -8,7 +8,7 @@ class Foo extends core::Object {
     : super core::Object::•()
     ;
 }
-class Bar<T extends core::Iterable<core::String>> extends core::Object {
+class Bar<T extends core::Iterable<core::String> = dynamic> extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
@@ -18,7 +18,7 @@ class Bar<T extends core::Iterable<core::String>> extends core::Object {
     }
   }
 }
-class Baz<T extends core::Object, E extends core::Iterable<self::Baz::T>, S extends self::Baz::E> extends core::Object {
+class Baz<T extends core::Object = dynamic, E extends core::Iterable<self::Baz::T> = dynamic, S extends self::Baz::E = dynamic> extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;

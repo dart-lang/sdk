@@ -130,7 +130,9 @@ class MyWidget extends StatelessWidget {
 }
 
 class Test extends StatelessWidget {
-  Test({Key key}) : super(key: key);
+  const Test({
+    Key key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -180,7 +182,9 @@ Widget main() {
 }
 
 class Test extends StatelessWidget {
-  Test({Key key}) : super(key: key);
+  const Test({
+    Key key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -215,7 +219,9 @@ class MyWidget extends StatelessWidget {
 }
 
 class Test extends StatelessWidget {
-  Test({Key key}) : super(key: key);
+  const Test({
+    Key key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -254,7 +260,9 @@ Widget main() {
 }
 
 class Test extends StatelessWidget {
-  Test({Key key}) : super(key: key);
+  const Test({
+    Key key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -358,9 +366,12 @@ class MyWidget extends StatelessWidget {
 }
 
 class Test extends StatelessWidget {
-  final C c;
+  const Test({
+    Key key,
+    @required this.c,
+  }) : super(key: key);
 
-  Test({Key key, this.c}) : super(key: key);
+  final C c;
 
   @override
   Widget build(BuildContext context) {
@@ -408,7 +419,9 @@ class MyWidget extends StatelessWidget {
 }
 
 class Test extends StatelessWidget {
-  Test({Key key}) : super(key: key);
+  const Test({
+    Key key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -471,11 +484,16 @@ class MyWidget extends StatelessWidget {
 }
 
 class Test extends StatelessWidget {
+  const Test({
+    Key key,
+    @required this.foo,
+    @required this.p1,
+    @required this.p2,
+  }) : super(key: key);
+
   final String foo;
   final String p1;
   final int p2;
-
-  Test({Key key, this.foo, this.p1, this.p2}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -538,11 +556,16 @@ class MyWidget extends StatelessWidget {
 }
 
 class Test extends StatelessWidget {
+  const Test({
+    Key key,
+    @required this.foo,
+    @required this.p1,
+    @required this.p2,
+  }) : super(key: key);
+
   final String foo;
   final String p1;
   final int p2;
-
-  Test({Key key, this.foo, this.p1, this.p2}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -585,9 +608,12 @@ class MyWidget extends StatelessWidget {
 }
 
 class Test extends StatelessWidget {
-  final String field;
+  const Test({
+    Key key,
+    @required this.field,
+  }) : super(key: key);
 
-  Test({Key key, this.field}) : super(key: key);
+  final String field;
 
   @override
   Widget build(BuildContext context) {
@@ -634,9 +660,12 @@ class MyWidget extends StatelessWidget {
 }
 
 class Test extends StatelessWidget {
-  final C c;
+  const Test({
+    Key key,
+    @required this.c,
+  }) : super(key: key);
 
-  Test({Key key, this.c}) : super(key: key);
+  final C c;
 
   @override
   Widget build(BuildContext context) {
@@ -675,7 +704,9 @@ class MyWidget extends StatelessWidget {
 }
 
 class Test extends StatelessWidget {
-  Test({Key key}) : super(key: key);
+  const Test({
+    Key key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -779,9 +810,12 @@ class MyWidget extends StatelessWidget {
 }
 
 class Test extends StatelessWidget {
-  final C c;
+  const Test({
+    Key key,
+    @required this.c,
+  }) : super(key: key);
 
-  Test({Key key, this.c}) : super(key: key);
+  final C c;
 
   @override
   Widget build(BuildContext context) {
@@ -842,9 +876,12 @@ class MyWidget extends StatelessWidget {
 }
 
 class Test extends StatelessWidget {
-  final String local;
+  const Test({
+    Key key,
+    @required this.local,
+  }) : super(key: key);
 
-  Test({Key key, this.local}) : super(key: key);
+  final String local;
 
   @override
   Widget build(BuildContext context) {
@@ -914,10 +951,14 @@ class MyWidget extends StatelessWidget {
 }
 
 class Test extends StatelessWidget {
+  const Test({
+    Key key,
+    @required this.field,
+    @required this.local,
+  }) : super(key: key);
+
   final String field;
   final String local;
-
-  Test({Key key, this.field, this.local}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

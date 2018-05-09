@@ -29,18 +29,15 @@ baz(a) {
 """;
 
 main() {
-  runTest({bool useKernel}) async {
-    String generated = await compileAll(TEST,
-        compileMode: useKernel ? CompileMode.kernel : CompileMode.memory);
+  runTest() async {
+    String generated = await compileAll(TEST);
     RegExp regexp = new RegExp('foo\\\$1\\\$a: function');
     Iterator<Match> matches = regexp.allMatches(generated).iterator;
     checkNumberOfMatches(matches, 1);
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTest(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTest(useKernel: true);
+    await runTest();
   });
 }

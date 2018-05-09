@@ -7,6 +7,7 @@ library ssa.tracer;
 import '../../compiler_new.dart' show OutputSink;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../js_backend/namer.dart' show Namer;
+import '../types/abstract_value_domain.dart';
 import '../tracer.dart';
 import '../world.dart' show ClosedWorld;
 import 'nodes.dart';
@@ -118,35 +119,38 @@ class HInstructionStringifier implements HVisitor<String> {
 
   HInstructionStringifier(this.currentBlock, this.closedWorld, this.namer);
 
+  AbstractValueDomain get _abstractValueDomain =>
+      closedWorld.abstractValueDomain;
+
   visit(HInstruction node) => '${node.accept(this)} ${node.instructionType}';
 
   String temporaryId(HInstruction instruction) {
     String prefix;
-    if (instruction.isNull()) {
+    if (instruction.isNull(_abstractValueDomain)) {
       prefix = 'u';
-    } else if (instruction.isConflicting()) {
+    } else if (instruction.isConflicting(_abstractValueDomain)) {
       prefix = 'c';
-    } else if (instruction.isExtendableArray(closedWorld)) {
+    } else if (instruction.isExtendableArray(_abstractValueDomain)) {
       prefix = 'e';
-    } else if (instruction.isFixedArray(closedWorld)) {
+    } else if (instruction.isFixedArray(_abstractValueDomain)) {
       prefix = 'f';
-    } else if (instruction.isMutableArray(closedWorld)) {
+    } else if (instruction.isMutableArray(_abstractValueDomain)) {
       prefix = 'm';
-    } else if (instruction.isReadableArray(closedWorld)) {
+    } else if (instruction.isArray(_abstractValueDomain)) {
       prefix = 'a';
-    } else if (instruction.isString(closedWorld)) {
+    } else if (instruction.isString(_abstractValueDomain)) {
       prefix = 's';
-    } else if (instruction.isIndexablePrimitive(closedWorld)) {
+    } else if (instruction.isIndexablePrimitive(_abstractValueDomain)) {
       prefix = 'r';
-    } else if (instruction.isBoolean(closedWorld)) {
+    } else if (instruction.isBoolean(_abstractValueDomain)) {
       prefix = 'b';
-    } else if (instruction.isInteger(closedWorld)) {
+    } else if (instruction.isInteger(_abstractValueDomain)) {
       prefix = 'i';
-    } else if (instruction.isDouble(closedWorld)) {
+    } else if (instruction.isDouble(_abstractValueDomain)) {
       prefix = 'd';
-    } else if (instruction.isNumber(closedWorld)) {
+    } else if (instruction.isNumber(_abstractValueDomain)) {
       prefix = 'n';
-    } else if (instruction.instructionType.containsAll(closedWorld)) {
+    } else if (_abstractValueDomain.containsAll(instruction.instructionType)) {
       prefix = 'v';
     } else {
       prefix = 'U';

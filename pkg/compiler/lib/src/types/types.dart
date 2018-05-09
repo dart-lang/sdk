@@ -293,7 +293,7 @@ abstract class GlobalTypeInferenceResults<T> {
         parameter, () => createParameterResult(_inferrer, parameter));
   }
 
-  TypeMask get dynamicType => closedWorld.commonMasks.dynamicType;
+  TypeMask get dynamicType => closedWorld.abstractValueDomain.dynamicType;
 
   /// Returns the type of a [selector] when applied to a receiver with the given
   /// type [mask].

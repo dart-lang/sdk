@@ -25,18 +25,15 @@ main() {
 """;
 
 void main() {
-  runTests({bool useKernel}) async {
-    String code =
-        await compile(SOURCE, useKernel: useKernel, methodName: 'test');
+  runTests() async {
+    String code = await compile(SOURCE, methodName: 'test');
     Expect.isNotNull(code);
     Expect.equals(0, new RegExp('add').allMatches(code).length);
     Expect.equals(3, new RegExp('\\+').allMatches(code).length);
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTests(useKernel: true);
+    await runTests();
   });
 }

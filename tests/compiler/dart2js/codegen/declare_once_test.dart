@@ -11,7 +11,7 @@ main() {
   // For a function with only one variable we declare it inline for more
   // compactness.  Test that we don't also declare it at the start of the
   // method.
-  runTest({bool useKernel}) async {
+  runTest() async {
     String generated = await compile(
         'final List a = const ["bar", "baz"];'
         'int foo() {'
@@ -19,7 +19,6 @@ main() {
         '    print(a[i]);'
         '  }'
         '}',
-        useKernel: useKernel,
         entry: 'foo',
         minify: false);
     RegExp re = new RegExp(r"var ");
@@ -29,9 +28,7 @@ main() {
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTest(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTest(useKernel: true);
+    await runTest();
   });
 }

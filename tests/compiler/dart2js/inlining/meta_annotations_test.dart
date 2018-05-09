@@ -4,7 +4,6 @@
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
@@ -34,10 +33,9 @@ void main(List<String> args) {
 };
 
 main() {
-  runTests({bool useKernel}) async {
-    CompilationResult result = await runCompiler(
-        memorySourceFiles: MEMORY_SOURCE_FILES,
-        options: useKernel ? [] : [Flags.useOldFrontend]);
+  runTests() async {
+    CompilationResult result =
+        await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
     Compiler compiler = result.compiler;
     ClosedWorld closedWorld =
         compiler.resolutionWorldBuilder.closedWorldForTesting;
@@ -72,9 +70,7 @@ main() {
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTests(useKernel: true);
+    await runTests();
   });
 }

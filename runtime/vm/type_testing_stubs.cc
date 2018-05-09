@@ -98,7 +98,7 @@ RawInstructions* TypeTestingStubGenerator::DefaultCodeForType(
   if (!StubCode::HasBeenInitialized()) {
     ASSERT(type.IsType());
     const intptr_t cid = Type::Cast(type).type_class_id();
-    ASSERT(cid == kDynamicCid || cid == kVoidCid || cid == kVectorCid);
+    ASSERT(cid == kDynamicCid || cid == kVoidCid);
     return Instructions::null();
   }
 

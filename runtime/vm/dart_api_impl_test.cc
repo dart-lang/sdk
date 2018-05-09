@@ -6579,6 +6579,12 @@ TEST_CASE(DartAPI_ImportLibrary3) {
     int sourcefiles_count = sizeof(sourcefiles) / sizeof(Dart_SourceFile);
     lib = TestCase::LoadTestScriptWithDFE(sourcefiles_count, sourcefiles, NULL,
                                           true);
+    if (TestCase::UsingStrongMode()) {
+      EXPECT_ERROR(lib,
+                   "Compilation failed file:///test-lib:4:10:"
+                   " Error: Setter not found: 'foo'");
+      return;
+    }
     EXPECT_VALID(lib);
   } else {
     Dart_Handle url = NewString(TestCase::url());

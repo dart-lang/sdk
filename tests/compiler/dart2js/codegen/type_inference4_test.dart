@@ -17,9 +17,8 @@ foo(j) {
 """;
 
 main() {
-  runTest({bool useKernel}) async {
-    await compile(TEST_ONE, entry: 'foo', useKernel: useKernel,
-        check: (String generated) {
+  runTest() async {
+    await compile(TEST_ONE, entry: 'foo', check: (String generated) {
       // Test for absence of an illegal argument exception. This means that the
       // arguments are known to be integers.
       Expect.isFalse(generated.contains('iae'));
@@ -31,9 +30,7 @@ main() {
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTest(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTest(useKernel: true);
+    await runTest();
   });
 }

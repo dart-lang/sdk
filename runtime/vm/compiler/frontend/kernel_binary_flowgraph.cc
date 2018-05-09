@@ -38,43 +38,55 @@ void FunctionNodeHelper::ReadUntilExcluding(Field field) {
       ASSERT(tag == kFunctionNode);
       if (++next_read_ == field) return;
     }
+    /* Falls through */
     case kPosition:
       position_ = helper_->ReadPosition();  // read position.
       if (++next_read_ == field) return;
+      /* Falls through */
     case kEndPosition:
       end_position_ = helper_->ReadPosition();  // read end position.
       if (++next_read_ == field) return;
+      /* Falls through */
     case kAsyncMarker:
       async_marker_ = static_cast<AsyncMarker>(helper_->ReadByte());
       if (++next_read_ == field) return;
+      /* Falls through */
     case kDartAsyncMarker:
       dart_async_marker_ = static_cast<AsyncMarker>(
           helper_->ReadByte());  // read dart async marker.
       if (++next_read_ == field) return;
+      /* Falls through */
     case kTypeParameters:
       helper_->SkipTypeParametersList();  // read type parameters.
       if (++next_read_ == field) return;
+      /* Falls through */
     case kTotalParameterCount:
       total_parameter_count_ =
           helper_->ReadUInt();  // read total parameter count.
       if (++next_read_ == field) return;
+      /* Falls through */
     case kRequiredParameterCount:
       required_parameter_count_ =
           helper_->ReadUInt();  // read required parameter count.
       if (++next_read_ == field) return;
+      /* Falls through */
     case kPositionalParameters:
       helper_->SkipListOfVariableDeclarations();  // read positionals.
       if (++next_read_ == field) return;
+      /* Falls through */
     case kNamedParameters:
       helper_->SkipListOfVariableDeclarations();  // read named.
       if (++next_read_ == field) return;
+      /* Falls through */
     case kReturnType:
       helper_->SkipDartType();  // read return type.
       if (++next_read_ == field) return;
+      /* Falls through */
     case kBody:
       if (helper_->ReadTag() == kSomething)
         helper_->SkipStatement();  // read body.
       if (++next_read_ == field) return;
+      /* Falls through */
     case kEnd:
       return;
   }
@@ -114,25 +126,32 @@ void VariableDeclarationHelper::ReadUntilExcluding(Field field) {
     case kPosition:
       position_ = helper_->ReadPosition();  // read position.
       if (++next_read_ == field) return;
+      /* Falls through */
     case kEqualPosition:
       equals_position_ = helper_->ReadPosition();  // read equals position.
       if (++next_read_ == field) return;
+      /* Falls through */
     case kAnnotations:
       helper_->SkipListOfExpressions();  // read annotations.
       if (++next_read_ == field) return;
+      /* Falls through */
     case kFlags:
       flags_ = helper_->ReadFlags();
       if (++next_read_ == field) return;
+      /* Falls through */
     case kNameIndex:
       name_index_ = helper_->ReadStringReference();  // read name index.
       if (++next_read_ == field) return;
+      /* Falls through */
     case kType:
       helper_->SkipDartType();  // read type.
       if (++next_read_ == field) return;
+      /* Falls through */
     case kInitializer:
       if (helper_->ReadTag() == kSomething)
         helper_->SkipExpression();  // read initializer.
       if (++next_read_ == field) return;
+      /* Falls through */
     case kEnd:
       return;
   }
@@ -156,28 +175,35 @@ void FieldHelper::ReadUntilExcluding(Field field,
       ASSERT(tag == kField);
       if (++next_read_ == field) return;
     }
+      /* Falls through */
     case kCanonicalName:
       canonical_name_ =
           helper_->ReadCanonicalNameReference();  // read canonical_name.
       if (++next_read_ == field) return;
+      /* Falls through */
     case kSourceUriIndex:
       source_uri_index_ = helper_->ReadUInt();  // read source_uri_index.
       helper_->set_current_script_id(source_uri_index_);
       if (++next_read_ == field) return;
+      /* Falls through */
     case kPosition:
       position_ = helper_->ReadPosition(false);  // read position.
       helper_->RecordTokenPosition(position_);
       if (++next_read_ == field) return;
+      /* Falls through */
     case kEndPosition:
       end_position_ = helper_->ReadPosition(false);  // read end position.
       helper_->RecordTokenPosition(end_position_);
       if (++next_read_ == field) return;
+      /* Falls through */
     case kFlags:
       flags_ = helper_->ReadFlags();
       if (++next_read_ == field) return;
+      /* Falls through */
     case kName:
       helper_->SkipName();  // read name.
       if (++next_read_ == field) return;
+      /* Falls through */
     case kAnnotations: {
       annotation_count_ = helper_->ReadListLength();  // read list length.
       for (intptr_t i = 0; i < annotation_count_; ++i) {
@@ -185,9 +211,11 @@ void FieldHelper::ReadUntilExcluding(Field field,
       }
       if (++next_read_ == field) return;
     }
+      /* Falls through */
     case kType:
       helper_->SkipDartType();  // read type.
       if (++next_read_ == field) return;
+      /* Falls through */
     case kInitializer:
       if (helper_->ReadTag() == kSomething) {
         if (detect_function_literal_initializer &&
@@ -207,6 +235,7 @@ void FieldHelper::ReadUntilExcluding(Field field,
         helper_->SkipExpression();  // read initializer.
       }
       if (++next_read_ == field) return;
+      /* Falls through */
     case kEnd:
       return;
   }
@@ -222,31 +251,39 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
       ASSERT(tag == kProcedure);
       if (++next_read_ == field) return;
     }
+    /* Falls through */
     case kCanonicalName:
       canonical_name_ =
           helper_->ReadCanonicalNameReference();  // read canonical_name.
       if (++next_read_ == field) return;
+      /* Falls through */
     case kSourceUriIndex:
       source_uri_index_ = helper_->ReadUInt();  // read source_uri_index.
       helper_->set_current_script_id(source_uri_index_);
       if (++next_read_ == field) return;
+      /* Falls through */
     case kPosition:
       position_ = helper_->ReadPosition(false);  // read position.
       helper_->RecordTokenPosition(position_);
       if (++next_read_ == field) return;
+      /* Falls through */
     case kEndPosition:
       end_position_ = helper_->ReadPosition(false);  // read end position.
       helper_->RecordTokenPosition(end_position_);
       if (++next_read_ == field) return;
+      /* Falls through */
     case kKind:
       kind_ = static_cast<Kind>(helper_->ReadByte());
       if (++next_read_ == field) return;
+      /* Falls through */
     case kFlags:
       flags_ = helper_->ReadFlags();
       if (++next_read_ == field) return;
+      /* Falls through */
     case kName:
       helper_->SkipName();  // read name.
       if (++next_read_ == field) return;
+      /* Falls through */
     case kAnnotations: {
       annotation_count_ = helper_->ReadListLength();  // read list length.
       for (intptr_t i = 0; i < annotation_count_; ++i) {
@@ -254,20 +291,24 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
       }
       if (++next_read_ == field) return;
     }
+      /* Falls through */
     case kForwardingStubSuperTarget:
       if (helper_->ReadTag() == kSomething) {
         forwarding_stub_super_target_ = helper_->ReadCanonicalNameReference();
       }
       if (++next_read_ == field) return;
+      /* Falls through */
     case kForwardingStubInterfaceTarget:
       if (helper_->ReadTag() == kSomething) {
         helper_->ReadCanonicalNameReference();
       }
       if (++next_read_ == field) return;
+      /* Falls through */
     case kFunction:
       if (helper_->ReadTag() == kSomething)
         helper_->SkipFunctionNode();  // read function node.
       if (++next_read_ == field) return;
+      /* Falls through */
     case kEnd:
       return;
   }
@@ -283,28 +324,35 @@ void ConstructorHelper::ReadUntilExcluding(Field field) {
       ASSERT(tag == kConstructor);
       if (++next_read_ == field) return;
     }
+      /* Falls through */
     case kCanonicalName:
       canonical_name_ =
           helper_->ReadCanonicalNameReference();  // read canonical_name.
       if (++next_read_ == field) return;
+      /* Falls through */
     case kSourceUriIndex:
       source_uri_index_ = helper_->ReadUInt();  // read source_uri_index.
       helper_->set_current_script_id(source_uri_index_);
       if (++next_read_ == field) return;
+      /* Falls through */
     case kPosition:
       position_ = helper_->ReadPosition();  // read position.
       helper_->RecordTokenPosition(position_);
       if (++next_read_ == field) return;
+      /* Falls through */
     case kEndPosition:
       end_position_ = helper_->ReadPosition();  // read end position.
       helper_->RecordTokenPosition(end_position_);
       if (++next_read_ == field) return;
+      /* Falls through */
     case kFlags:
       flags_ = helper_->ReadFlags();
       if (++next_read_ == field) return;
+      /* Falls through */
     case kName:
       helper_->SkipName();  // read name.
       if (++next_read_ == field) return;
+      /* Falls through */
     case kAnnotations: {
       annotation_count_ = helper_->ReadListLength();  // read list length.
       for (intptr_t i = 0; i < annotation_count_; ++i) {
@@ -312,9 +360,11 @@ void ConstructorHelper::ReadUntilExcluding(Field field) {
       }
       if (++next_read_ == field) return;
     }
+      /* Falls through */
     case kFunction:
       helper_->SkipFunctionNode();  // read function.
       if (++next_read_ == field) return;
+      /* Falls through */
     case kInitializers: {
       intptr_t list_length =
           helper_->ReadListLength();  // read initializers list length.
@@ -323,6 +373,7 @@ void ConstructorHelper::ReadUntilExcluding(Field field) {
       }
       if (++next_read_ == field) return;
     }
+      /* Falls through */
     case kEnd:
       return;
   }
@@ -338,28 +389,35 @@ void ClassHelper::ReadUntilExcluding(Field field) {
       ASSERT(tag == kClass);
       if (++next_read_ == field) return;
     }
+      /* Falls through */
     case kCanonicalName:
       canonical_name_ =
           helper_->ReadCanonicalNameReference();  // read canonical_name.
       if (++next_read_ == field) return;
+      /* Falls through */
     case kSourceUriIndex:
       source_uri_index_ = helper_->ReadUInt();  // read source_uri_index.
       helper_->set_current_script_id(source_uri_index_);
       if (++next_read_ == field) return;
+      /* Falls through */
     case kPosition:
       position_ = helper_->ReadPosition(false);  // read position.
       helper_->RecordTokenPosition(position_);
       if (++next_read_ == field) return;
+      /* Falls through */
     case kEndPosition:
       end_position_ = helper_->ReadPosition();  // read end position.
       helper_->RecordTokenPosition(end_position_);
       if (++next_read_ == field) return;
+      /* Falls through */
     case kFlags:
       flags_ = helper_->ReadFlags();  // read flags.
       if (++next_read_ == field) return;
+      /* Falls through */
     case kNameIndex:
       name_index_ = helper_->ReadStringReference();  // read name index.
       if (++next_read_ == field) return;
+      /* Falls through */
     case kAnnotations: {
       annotation_count_ = helper_->ReadListLength();  // read list length.
       for (intptr_t i = 0; i < annotation_count_; ++i) {
@@ -367,9 +425,11 @@ void ClassHelper::ReadUntilExcluding(Field field) {
       }
       if (++next_read_ == field) return;
     }
+      /* Falls through */
     case kTypeParameters:
       helper_->SkipTypeParametersList();  // read type parameters.
       if (++next_read_ == field) return;
+      /* Falls through */
     case kSuperClass: {
       Tag type_tag = helper_->ReadTag();  // read super class type (part 1).
       if (type_tag == kSomething) {
@@ -377,6 +437,7 @@ void ClassHelper::ReadUntilExcluding(Field field) {
       }
       if (++next_read_ == field) return;
     }
+      /* Falls through */
     case kMixinType: {
       Tag type_tag = helper_->ReadTag();  // read mixin type (part 1).
       if (type_tag == kSomething) {
@@ -384,9 +445,11 @@ void ClassHelper::ReadUntilExcluding(Field field) {
       }
       if (++next_read_ == field) return;
     }
+      /* Falls through */
     case kImplementedClasses:
       helper_->SkipListOfDartTypes();  // read implemented_classes.
       if (++next_read_ == field) return;
+      /* Falls through */
     case kFields: {
       intptr_t list_length =
           helper_->ReadListLength();  // read fields list length.
@@ -396,6 +459,7 @@ void ClassHelper::ReadUntilExcluding(Field field) {
       }
       if (++next_read_ == field) return;
     }
+      /* Falls through */
     case kConstructors: {
       intptr_t list_length =
           helper_->ReadListLength();  // read constructors list length.
@@ -406,6 +470,7 @@ void ClassHelper::ReadUntilExcluding(Field field) {
       }
       if (++next_read_ == field) return;
     }
+      /* Falls through */
     case kProcedures: {
       procedure_count_ = helper_->ReadListLength();  // read procedures #.
       for (intptr_t i = 0; i < procedure_count_; i++) {
@@ -415,6 +480,7 @@ void ClassHelper::ReadUntilExcluding(Field field) {
       }
       if (++next_read_ == field) return;
     }
+      /* Falls through */
     case kClassIndex:
       // Read class index.
       for (intptr_t i = 0; i < procedure_count_; ++i) {
@@ -423,6 +489,7 @@ void ClassHelper::ReadUntilExcluding(Field field) {
       helper_->reader_.ReadUInt32();
       helper_->reader_.ReadUInt32();
       if (++next_read_ == field) return;
+      /* Falls through */
     case kEnd:
       return;
   }
@@ -437,20 +504,25 @@ void LibraryHelper::ReadUntilExcluding(Field field) {
       flags_ = helper_->ReadFlags();
       if (++next_read_ == field) return;
     }
+      /* Falls through */
     case kCanonicalName:
       canonical_name_ =
           helper_->ReadCanonicalNameReference();  // read canonical_name.
       if (++next_read_ == field) return;
+      /* Falls through */
     case kName:
       name_index_ = helper_->ReadStringReference();  // read name index.
       if (++next_read_ == field) return;
+      /* Falls through */
     case kSourceUriIndex:
       source_uri_index_ = helper_->ReadUInt();  // read source_uri_index.
       helper_->set_current_script_id(source_uri_index_);
       if (++next_read_ == field) return;
+      /* Falls through */
     case kAnnotations:
       helper_->SkipListOfExpressions();  // read annotations.
       if (++next_read_ == field) return;
+      /* Falls through */
     case kDependencies: {
       intptr_t dependency_count = helper_->ReadUInt();  // read list length.
       for (intptr_t i = 0; i < dependency_count; ++i) {
@@ -458,6 +530,7 @@ void LibraryHelper::ReadUntilExcluding(Field field) {
       }
       if (++next_read_ == field) return;
     }
+      /* Falls through */
     case kAdditionalExports: {
       intptr_t name_count = helper_->ReadUInt();
       for (intptr_t i = 0; i < name_count; ++i) {
@@ -465,6 +538,7 @@ void LibraryHelper::ReadUntilExcluding(Field field) {
       }
       if (++next_read_ == field) return;
     }
+      /* Falls through */
     case kParts: {
       intptr_t part_count = helper_->ReadUInt();  // read list length.
       for (intptr_t i = 0; i < part_count; ++i) {
@@ -472,6 +546,7 @@ void LibraryHelper::ReadUntilExcluding(Field field) {
       }
       if (++next_read_ == field) return;
     }
+      /* Falls through */
     case kTypedefs: {
       intptr_t typedef_count = helper_->ReadListLength();  // read list length.
       for (intptr_t i = 0; i < typedef_count; i++) {
@@ -479,6 +554,7 @@ void LibraryHelper::ReadUntilExcluding(Field field) {
       }
       if (++next_read_ == field) return;
     }
+      /* Falls through */
     case kClasses: {
       class_count_ = helper_->ReadListLength();  // read list length.
       for (intptr_t i = 0; i < class_count_; ++i) {
@@ -487,6 +563,7 @@ void LibraryHelper::ReadUntilExcluding(Field field) {
       }
       if (++next_read_ == field) return;
     }
+      /* Falls through */
     case kToplevelField: {
       intptr_t field_count = helper_->ReadListLength();  // read list length.
       for (intptr_t i = 0; i < field_count; ++i) {
@@ -495,6 +572,7 @@ void LibraryHelper::ReadUntilExcluding(Field field) {
       }
       if (++next_read_ == field) return;
     }
+      /* Falls through */
     case kToplevelProcedures: {
       procedure_count_ = helper_->ReadListLength();  // read list length.
       for (intptr_t i = 0; i < procedure_count_; ++i) {
@@ -503,6 +581,7 @@ void LibraryHelper::ReadUntilExcluding(Field field) {
       }
       if (++next_read_ == field) return;
     }
+      /* Falls through */
     case kLibraryIndex:
       // Read library index.
       for (intptr_t i = 0; i < class_count_; ++i) {
@@ -516,6 +595,7 @@ void LibraryHelper::ReadUntilExcluding(Field field) {
       helper_->reader_.ReadUInt32();
       helper_->reader_.ReadUInt32();
       if (++next_read_ == field) return;
+      /* Falls through */
     case kEnd:
       return;
   }
@@ -530,22 +610,27 @@ void LibraryDependencyHelper::ReadUntilExcluding(Field field) {
       helper_->ReadPosition();
       if (++next_read_ == field) return;
     }
+      /* Falls through */
     case kFlags: {
       flags_ = helper_->ReadFlags();
       if (++next_read_ == field) return;
     }
+      /* Falls through */
     case kAnnotations: {
       helper_->SkipListOfExpressions();
       if (++next_read_ == field) return;
     }
+      /* Falls through */
     case kTargetLibrary: {
       target_library_canonical_name_ = helper_->ReadCanonicalNameReference();
       if (++next_read_ == field) return;
     }
+      /* Falls through */
     case kName: {
       name_index_ = helper_->ReadStringReference();
       if (++next_read_ == field) return;
     }
+      /* Falls through */
     case kCombinators: {
       intptr_t count = helper_->ReadListLength();
       for (intptr_t i = 0; i < count; ++i) {
@@ -556,6 +641,7 @@ void LibraryDependencyHelper::ReadUntilExcluding(Field field) {
       }
       if (++next_read_ == field) return;
     }
+      /* Falls through */
     case kEnd:
       return;
   }
@@ -921,7 +1007,6 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
   switch (function.kind()) {
     case RawFunction::kClosureFunction:
     case RawFunction::kImplicitClosureFunction:
-    case RawFunction::kConvertedClosureFunction:
     case RawFunction::kRegularFunction:
     case RawFunction::kGetterFunction:
     case RawFunction::kSetterFunction:
@@ -1548,34 +1633,13 @@ void StreamingScopeBuilder::VisitExpression() {
       builder_->ReadUInt();  // read value.
       return;
     case kDoubleLiteral:
-      builder_->SkipStringReference();  // read index into string table.
+      builder_->ReadDouble();  // read value.
       return;
     case kTrueLiteral:
       return;
     case kFalseLiteral:
       return;
     case kNullLiteral:
-      return;
-    case kVectorCreation:
-      builder_->ReadUInt();  // read size.
-      return;
-    case kVectorGet:
-      VisitExpression();     // read expression.
-      builder_->ReadUInt();  // read index.
-      return;
-    case kVectorSet:
-      VisitExpression();     // read vector expression.
-      builder_->ReadUInt();  // read index.
-      VisitExpression();     // read value.
-      return;
-    case kVectorCopy:
-      VisitExpression();  // read vector expression.
-      return;
-    case kClosureCreation:
-      builder_->SkipCanonicalNameReference();  // read function reference.
-      VisitExpression();                       // read context vector.
-      VisitDartType();                  // read function type of the closure.
-      builder_->SkipListOfDartTypes();  // read type arguments.
       return;
     case kConstantExpression: {
       builder_->SkipConstantReference();
@@ -1959,7 +2023,6 @@ void StreamingScopeBuilder::VisitDartType() {
     case kDynamicType:
     case kVoidType:
     case kBottomType:
-    case kVectorType:
       // those contain nothing.
       return;
     case kInterfaceType:
@@ -2448,9 +2511,6 @@ void StreamingDartTypeTranslator::BuildTypeInternal(bool invalid_as_dynamic) {
       break;
     case kVoidType:
       result_ = Object::void_type().raw();
-      break;
-    case kVectorType:
-      result_ = Object::vector_type().raw();
       break;
     case kBottomType:
       result_ =
@@ -3542,8 +3602,7 @@ void StreamingConstantEvaluator::EvaluateIntLiteral(bool is_negative) {
 }
 
 void StreamingConstantEvaluator::EvaluateDoubleLiteral() {
-  result_ = Double::New(H.DartString(builder_->ReadStringReference()),
-                        Heap::kOld);  // read string reference.
+  result_ = Double::New(builder_->ReadDouble(), Heap::kOld);  // read value.
   result_ = H.Canonicalize(result_);
 }
 
@@ -3929,9 +3988,9 @@ void KernelFingerprintHelper::CalculateDartTypeFingerprint() {
     case kDynamicType:
     case kVoidType:
     case kBottomType:
-    case kVectorType:
       // those contain nothing.
       break;
+      UNIMPLEMENTED();
     case kInterfaceType:
       CalculateInterfaceTypeFingerprint(false);
       break;
@@ -4202,28 +4261,6 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       CalculateExpressionFingerprint();       // read expression.
       CalculateListOfDartTypesFingerprint();  // read type arguments.
       return;
-    case kVectorCreation:
-      BuildHash(ReadUInt());  // read value.
-      return;
-    case kVectorGet:
-      CalculateExpressionFingerprint();  // read vector expression.
-      BuildHash(ReadUInt());             // read index.
-      return;
-    case kVectorSet:
-      CalculateExpressionFingerprint();  // read vector expression.
-      BuildHash(ReadUInt());             // read index.
-      CalculateExpressionFingerprint();  // read value.
-      return;
-    case kVectorCopy:
-      CalculateExpressionFingerprint();  // read vector expression.
-      return;
-    case kClosureCreation:
-      // read top-level function reference.
-      CalculateCanonicalNameFingerprint();
-      CalculateExpressionFingerprint();       // read context vector.
-      CalculateDartTypeFingerprint();         // read function type.
-      CalculateListOfDartTypesFingerprint();  // read type arguments.
-      return;
     case kBigIntLiteral:
       CalculateStringReferenceFingerprint();  // read string reference.
       return;
@@ -4238,9 +4275,13 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
     case kPositiveIntLiteral:
       BuildHash(ReadUInt());  // read value.
       return;
-    case kDoubleLiteral:
-      CalculateStringReferenceFingerprint();  // read index into string table.
+    case kDoubleLiteral: {
+      double value = ReadDouble();  // read value.
+      uint64_t data = bit_cast<uint64_t>(value);
+      BuildHash(static_cast<uint32_t>(data >> 32));
+      BuildHash(static_cast<uint32_t>(data));
       return;
+    }
     case kTrueLiteral:
       return;
     case kFalseLiteral:
@@ -5411,61 +5452,12 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
   LocalVariable* closure = NULL;
   if (dart_function.IsClosureFunction()) {
     closure = parsed_function()->node_sequence()->scope()->VariableAt(0);
-  } else if (dart_function.IsConvertedClosureFunction()) {
-    closure = new (Z) LocalVariable(
-        TokenPosition::kNoSource, TokenPosition::kNoSource,
-        Symbols::TempParam(), AbstractType::ZoneHandle(Z, Type::DynamicType()));
-    closure->set_index(parsed_function()->first_parameter_index());
-    closure->set_is_captured_parameter(true);
   }
 
-  if ((dart_function.IsClosureFunction() ||
-       dart_function.IsConvertedClosureFunction()) &&
-      dart_function.NumParentTypeParameters() > 0 &&
-      I->reify_generic_functions()) {
-    LocalVariable* fn_type_args = parsed_function()->function_type_arguments();
-    ASSERT(fn_type_args != NULL && closure != NULL);
-
-    if (dart_function.IsGeneric()) {
-      body += LoadLocal(fn_type_args);
-      body += PushArgument();
-      body += LoadLocal(closure);
-      body += LoadField(Closure::function_type_arguments_offset());
-      body += PushArgument();
-      body += IntConstant(dart_function.NumTypeParameters() +
-                          dart_function.NumParentTypeParameters());
-      body += PushArgument();
-
-      const Library& dart_internal =
-          Library::Handle(Z, Library::InternalLibrary());
-      const Function& prepend_function =
-          Function::ZoneHandle(Z, dart_internal.LookupFunctionAllowPrivate(
-                                      Symbols::PrependTypeArguments()));
-      ASSERT(!prepend_function.IsNull());
-
-      body += StaticCall(TokenPosition::kNoSource, prepend_function, 3,
-                         ICData::kStatic);
-      body += StoreLocal(TokenPosition::kNoSource, fn_type_args);
-      body += Drop();
-    } else {
-      body += LoadLocal(closure);
-      body += LoadField(Closure::function_type_arguments_offset());
-      body += StoreLocal(TokenPosition::kNoSource, fn_type_args);
-      body += Drop();
-    }
-  }
-
-  if (dart_function.IsConvertedClosureFunction()) {
-    body += LoadLocal(closure);
-    body += LoadField(Closure::context_offset());
-    LocalVariable* context = closure;
-    body += StoreLocal(TokenPosition::kNoSource, context);
-    body += Drop();
-  }
-
-  if (!dart_function.is_native())
+  if (!dart_function.is_native()) {
     body += flow_graph_builder_->CheckStackOverflowInPrologue(
         dart_function.token_pos());
+  }
   intptr_t context_size =
       parsed_function()->node_sequence()->scope()->num_context_variables();
   if (context_size > 0) {
@@ -5654,6 +5646,53 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
     flow_graph_builder_->context_depth_ = current_context_depth;
   }
 
+  // :function_type_arguments_var handling is built here and prepended to the
+  // body because it needs to be executed everytime we enter the function -
+  // even if we are resuming from the yield.
+  Fragment prologue;
+  if (dart_function.IsClosureFunction() &&
+      dart_function.NumParentTypeParameters() > 0 &&
+      I->reify_generic_functions()) {
+    // Function with yield points can not be generic itself but the outer
+    // function can be.
+    ASSERT(yield_continuations().is_empty() || !dart_function.IsGeneric());
+
+    LocalVariable* fn_type_args = parsed_function()->function_type_arguments();
+    ASSERT(fn_type_args != NULL && closure != NULL);
+
+    if (dart_function.IsGeneric()) {
+      prologue += LoadLocal(fn_type_args);
+      prologue += PushArgument();
+      prologue += LoadLocal(closure);
+      prologue += LoadField(Closure::function_type_arguments_offset());
+      prologue += PushArgument();
+      prologue += IntConstant(dart_function.NumParentTypeParameters());
+      prologue += PushArgument();
+      prologue += IntConstant(dart_function.NumTypeParameters() +
+                              dart_function.NumParentTypeParameters());
+      prologue += PushArgument();
+
+      const Library& dart_internal =
+          Library::Handle(Z, Library::InternalLibrary());
+      const Function& prepend_function =
+          Function::ZoneHandle(Z, dart_internal.LookupFunctionAllowPrivate(
+                                      Symbols::PrependTypeArguments()));
+      ASSERT(!prepend_function.IsNull());
+
+      prologue += StaticCall(TokenPosition::kNoSource, prepend_function, 4,
+                             ICData::kStatic);
+      prologue += StoreLocal(TokenPosition::kNoSource, fn_type_args);
+      prologue += Drop();
+    } else {
+      prologue += LoadLocal(closure);
+      prologue += LoadField(Closure::function_type_arguments_offset());
+      prologue += StoreLocal(TokenPosition::kNoSource, fn_type_args);
+      prologue += Drop();
+    }
+  }
+
+  body = prologue + body;
+
   if (FLAG_causal_async_stacks &&
       (dart_function.IsAsyncClosure() || dart_function.IsAsyncGenClosure())) {
     // The code we are building will be executed right after we enter
@@ -5779,9 +5818,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph(intptr_t kernel_offset) {
         return BuildGraphOfImplicitClosureFunction(function);
       }
     }
-    // fallthrough intended
-    case RawFunction::kClosureFunction:
-    case RawFunction::kConvertedClosureFunction: {
+    /* Falls through */
+    case RawFunction::kClosureFunction: {
       ReadUntilFunctionNode(parsed_function());  // read until function node.
       return BuildGraphOfFunction(false);
     }
@@ -5911,16 +5949,6 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
       return BuildBoolLiteral(false, position);
     case kNullLiteral:
       return BuildNullLiteral(position);
-    case kVectorCreation:
-      return BuildVectorCreation(position);
-    case kVectorGet:
-      return BuildVectorGet(position);
-    case kVectorSet:
-      return BuildVectorSet(position);
-    case kVectorCopy:
-      return BuildVectorCopy(position);
-    case kClosureCreation:
-      return BuildClosureCreation(position);
     case kConstantExpression:
       return BuildConstantExpression(position);
     case kInstantiation:
@@ -6020,6 +6048,10 @@ uint32_t KernelReaderHelper::ReadUInt32() {
 uint32_t KernelReaderHelper::PeekUInt() {
   AlternativeReadingScope alt(&reader_);
   return reader_.ReadUInt();
+}
+
+double KernelReaderHelper::ReadDouble() {
+  return reader_.ReadDouble();
 }
 
 uint32_t KernelReaderHelper::PeekListLength() {
@@ -6132,7 +6164,6 @@ void KernelReaderHelper::SkipDartType() {
     case kDynamicType:
     case kVoidType:
     case kBottomType:
-    case kVectorType:
       // those contain nothing.
       return;
     case kInterfaceType:
@@ -6453,27 +6484,6 @@ void KernelReaderHelper::SkipExpression() {
       SkipExpression();       // read expression.
       SkipListOfDartTypes();  // read type arguments.
       return;
-    case kVectorCreation:
-      ReadUInt();  // read value.
-      return;
-    case kVectorGet:
-      SkipExpression();  // read vector expression.
-      ReadUInt();        // read index.
-      return;
-    case kVectorSet:
-      SkipExpression();  // read vector expression.
-      ReadUInt();        // read index.
-      SkipExpression();  // read value.
-      return;
-    case kVectorCopy:
-      SkipExpression();  // read vector expression.
-      return;
-    case kClosureCreation:
-      SkipCanonicalNameReference();  // read top-level function reference.
-      SkipExpression();              // read context vector.
-      SkipDartType();                // read function type.
-      SkipListOfDartTypes();         // read type arguments.
-      return;
     case kBigIntLiteral:
       SkipStringReference();  // read string reference.
       return;
@@ -6489,7 +6499,7 @@ void KernelReaderHelper::SkipExpression() {
       ReadUInt();  // read value.
       return;
     case kDoubleLiteral:
-      SkipStringReference();  // read index into string table.
+      ReadDouble();  // read value.
       return;
     case kTrueLiteral:
       return;
@@ -8983,8 +8993,7 @@ Fragment StreamingFlowGraphBuilder::BuildDoubleLiteral(
   if (position != NULL) *position = TokenPosition::kNoSource;
 
   Double& constant = Double::ZoneHandle(
-      Z, Double::NewCanonical(
-             H.DartString(ReadStringReference())));  // read string reference.
+      Z, Double::NewCanonical(ReadDouble()));  // read double.
   return Constant(constant);
 }
 
@@ -9015,117 +9024,6 @@ Fragment StreamingFlowGraphBuilder::BuildFutureNullValue(
   instructions += PushArgument();
   instructions += StaticCall(TokenPosition::kNoSource, constructor,
                              /* argument_count = */ 1, ICData::kStatic);
-  return instructions;
-}
-
-Fragment StreamingFlowGraphBuilder::BuildVectorCreation(
-    TokenPosition* position) {
-  if (position != NULL) *position = TokenPosition::kNoSource;
-
-  intptr_t size = ReadUInt();  // read size.
-  return AllocateContext(size);
-}
-
-Fragment StreamingFlowGraphBuilder::BuildVectorGet(TokenPosition* position) {
-  if (position != NULL) *position = TokenPosition::kNoSource;
-
-  Fragment instructions = BuildExpression();  // read expression.
-  intptr_t index = ReadUInt();                // read index.
-  instructions += LoadField(Context::variable_offset(index));
-  return instructions;
-}
-
-Fragment StreamingFlowGraphBuilder::BuildVectorSet(TokenPosition* position) {
-  if (position != NULL) *position = TokenPosition::kNoSource;
-
-  Fragment instructions = NullConstant();
-  LocalVariable* result = MakeTemporary();
-
-  instructions += BuildExpression();  // read vector expression.
-  intptr_t index = ReadUInt();        // read index.
-  instructions += BuildExpression();  // read value expression.
-  instructions += StoreLocal(TokenPosition::kNoSource, result);
-
-  instructions += StoreInstanceField(TokenPosition::kNoSource,
-                                     Context::variable_offset(index));
-
-  return instructions;
-}
-
-Fragment StreamingFlowGraphBuilder::BuildVectorCopy(TokenPosition* position) {
-  if (position != NULL) *position = TokenPosition::kNoSource;
-
-  Fragment instructions = BuildExpression();  // read vector expression.
-  Value* context_to_copy = Pop();
-  // TODO(dartbug.com/31218) VectorCopy should contain size of the context
-  // as a constant.
-  CloneContextInstr* clone_instruction =
-      new (Z) CloneContextInstr(TokenPosition::kNoSource, context_to_copy,
-                                CloneContextInstr::kUnknownContextSize,
-                                Thread::Current()->GetNextDeoptId());
-  instructions <<= clone_instruction;
-  Push(clone_instruction);
-
-  return instructions;
-}
-
-Fragment StreamingFlowGraphBuilder::BuildClosureCreation(
-    TokenPosition* position) {
-  if (position != NULL) *position = TokenPosition::kNoSource;
-
-  NameIndex function_reference =
-      ReadCanonicalNameReference();  // read function reference.
-  Function& function = Function::ZoneHandle(
-      Z, H.LookupStaticMethodByKernelProcedure(function_reference));
-
-  intptr_t num_type_parameters;
-  {
-    AlternativeReadingScope _(&reader_);
-    SkipExpression();  // context vector
-    SkipDartType();    // skip function type
-    num_type_parameters = ReadListLength();
-  }
-  function = function.ConvertedClosureFunction(num_type_parameters);
-  ASSERT(!function.IsNull());
-
-  const Class& closure_class =
-      Class::ZoneHandle(Z, I->object_store()->closure_class());
-  Fragment instructions = AllocateObject(closure_class, function);
-  LocalVariable* closure = MakeTemporary();
-
-  instructions += BuildExpression();  // read context vector.
-  LocalVariable* context = MakeTemporary();
-
-  instructions += LoadLocal(closure);
-  instructions += Constant(function);
-  instructions +=
-      StoreInstanceField(TokenPosition::kNoSource, Closure::function_offset());
-
-  instructions += LoadLocal(closure);
-  instructions += LoadLocal(context);
-  instructions +=
-      StoreInstanceField(TokenPosition::kNoSource, Closure::context_offset());
-
-  // Skip the function type of the closure (it's predicable from the
-  // target and the supplied type arguments).
-  SkipDartType();
-
-  ReadListLength();  // type parameter count
-  if (num_type_parameters > 0) {
-    instructions += LoadLocal(closure);
-    const TypeArguments& type_args = T.BuildTypeArguments(
-        num_type_parameters);  // read list of type arguments.
-    instructions += TranslateInstantiatedTypeArguments(type_args);
-    instructions += StoreInstanceField(
-        TokenPosition::kNoSource, Closure::function_type_arguments_offset());
-  }
-
-  instructions += LoadLocal(closure);
-  instructions += Constant(Object::empty_type_arguments());
-  instructions += StoreInstanceField(TokenPosition::kNoSource,
-                                     Closure::delayed_type_arguments_offset());
-
-  instructions += Drop();  // context
   return instructions;
 }
 
@@ -10826,8 +10724,7 @@ const Array& ConstantHelper::ReadConstantTable() {
         break;
       }
       case kDoubleConstant: {
-        temp_instance_ = Double::New(
-            H.DartString(builder_.ReadStringReference()), Heap::kOld);
+        temp_instance_ = Double::New(builder_.ReadDouble(), Heap::kOld);
         temp_instance_ = H.Canonicalize(temp_instance_);
         break;
       }

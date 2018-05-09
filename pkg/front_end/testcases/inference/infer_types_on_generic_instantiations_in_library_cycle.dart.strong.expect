@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 import "./infer_types_on_generic_instantiations_in_library_cycle_a.dart" as inf;
 
-abstract class A<E extends core::Object> extends core::Object implements inf::I<self::A::E> {
+abstract class A<E extends core::Object = dynamic> extends core::Object implements inf::I<self::A::E> {
   final field self::A::E value = null;
   const constructor •() → void
     : super core::Object::•()
@@ -15,7 +15,7 @@ abstract class M extends core::Object {
     : super core::Object::•()
     ;
 }
-class B<E extends core::Object> extends self::A<self::B::E> implements self::M {
+class B<E extends core::Object = dynamic> extends self::A<self::B::E> implements self::M {
   const constructor •() → void
     : super self::A::•()
     ;

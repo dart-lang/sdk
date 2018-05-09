@@ -77,7 +77,7 @@ class ImportDirectivesTest extends PartialCodeTest {
               ],
               "import 'a.dart' if (b) '';"),
           new TestDescriptor(
-              'ifCondition',
+              'as',
               "import 'a.dart' as",
               [
                 ParserErrorCode.MISSING_IDENTIFIER,

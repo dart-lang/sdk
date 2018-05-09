@@ -12,7 +12,7 @@ class Folder extends self::Resource {
     : super self::Resource::•()
     ;
 }
-class Foo<T extends core::Object> extends core::Object {
+class Foo<T extends core::Object = dynamic> extends core::Object {
   constructor •(self::Foo::T t) → void
     : super core::Object::•()
     ;

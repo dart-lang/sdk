@@ -32,20 +32,20 @@ class ProfileTrieNode;
 
 struct ProfilerCounters {
   // Count of bail out reasons:
-  int64_t bail_out_unknown_task;
-  int64_t bail_out_jump_to_exception_handler;
-  int64_t bail_out_check_isolate;
+  ALIGN8 int64_t bail_out_unknown_task;
+  ALIGN8 int64_t bail_out_jump_to_exception_handler;
+  ALIGN8 int64_t bail_out_check_isolate;
   // Count of single frame sampling reasons:
-  int64_t single_frame_sample_deoptimizing;
-  int64_t single_frame_sample_register_check;
-  int64_t single_frame_sample_get_and_validate_stack_bounds;
+  ALIGN8 int64_t single_frame_sample_deoptimizing;
+  ALIGN8 int64_t single_frame_sample_register_check;
+  ALIGN8 int64_t single_frame_sample_get_and_validate_stack_bounds;
   // Count of stack walkers used:
-  int64_t stack_walker_native;
-  int64_t stack_walker_dart_exit;
-  int64_t stack_walker_dart;
-  int64_t stack_walker_none;
+  ALIGN8 int64_t stack_walker_native;
+  ALIGN8 int64_t stack_walker_dart_exit;
+  ALIGN8 int64_t stack_walker_dart;
+  ALIGN8 int64_t stack_walker_none;
   // Count of failed checks:
-  int64_t failure_native_allocation_sample;
+  ALIGN8 int64_t failure_native_allocation_sample;
 };
 
 class Profiler : public AllStatic {

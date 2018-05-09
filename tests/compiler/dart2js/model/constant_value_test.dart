@@ -7,7 +7,8 @@ library dart2js.constants.values.test;
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/helpers/helpers.dart';
-import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/constants/values.dart';
 import '../type_test_helper.dart';
 
@@ -23,14 +24,15 @@ void main() {
       C(this.field1, this.field2);
     }
     ''');
-    ClassElement C = env.getElement('C');
-    FieldElement field1 = C.lookupLocalMember('field1');
-    FieldElement field2 = C.lookupLocalMember('field2');
-    ConstantValue value1 = new ConstructedConstantValue(C.rawType, {
+    ClassEntity C = env.getClass('C');
+    InterfaceType C_raw = env.elementEnvironment.getRawType(C);
+    FieldEntity field1 = env.elementEnvironment.lookupClassMember(C, 'field1');
+    FieldEntity field2 = env.elementEnvironment.lookupClassMember(C, 'field2');
+    ConstructedConstantValue value1 = new ConstructedConstantValue(C_raw, {
       field1: new IntConstantValue(0),
       field2: new IntConstantValue(1),
     });
-    ConstantValue value2 = new ConstructedConstantValue(C.rawType, {
+    ConstantValue value2 = new ConstructedConstantValue(C_raw, {
       field2: new IntConstantValue(1),
       field1: new IntConstantValue(0),
     });

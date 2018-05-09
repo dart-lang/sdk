@@ -618,6 +618,16 @@ abstract class Element implements AnalysisTarget {
   bool get hasFactory;
 
   /**
+   * Return `true` if this element has an annotation of the form `@isTest`.
+   */
+  bool get hasIsTest;
+
+  /**
+   * Return `true` if this element has an annotation of the form `@isTestGroup`.
+   */
+  bool get hasIsTestGroup;
+
+  /**
    * Return `true` if this element has an annotation of the form `@JS(..)`.
    */
   bool get hasJS;
@@ -887,6 +897,18 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
    * subclasses as being immutable.
    */
   bool get isImmutable;
+
+  /**
+   * Return `true` if this annotation marks the associated member as running
+   * a single test.
+   */
+  bool get isIsTest;
+
+  /**
+   * Return `true` if this annotation marks the associated member as running
+   * a test group.
+   */
+  bool get isIsTestGroup;
 
   /**
    * Return `true` if this annotation marks the associated element with the `JS`
@@ -1434,6 +1456,11 @@ abstract class ImportElement implements Element, UriReferencedElement {
    * Return `true` if this import is for a deferred library.
    */
   bool get isDeferred;
+
+  /**
+   * The [Namespace] that this directive contributes to the containing library.
+   */
+  Namespace get namespace;
 
   /**
    * Return the prefix that was specified as part of the import directive, or

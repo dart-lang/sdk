@@ -87,6 +87,7 @@ bad_override_test/06: MissingCompileTimeError
 bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
 bug31436_test: RuntimeError
+bug32305_test: MissingCompileTimeError
 bug32372_test: RuntimeError
 built_in_identifier_prefix_test: CompileTimeError
 call_constructor_on_unresolvable_class_test/01: MissingCompileTimeError
@@ -910,8 +911,6 @@ string_test/01: MissingCompileTimeError
 substring_test/01: MissingCompileTimeError
 super_assign_test/01: MissingCompileTimeError
 super_bound_closure_test/01: MissingCompileTimeError
-super_call4_test: CompileTimeError
-super_getter_setter_test: CompileTimeError
 super_operator_index_test/01: MissingCompileTimeError
 super_operator_index_test/02: MissingCompileTimeError
 super_operator_index_test/03: MissingCompileTimeError

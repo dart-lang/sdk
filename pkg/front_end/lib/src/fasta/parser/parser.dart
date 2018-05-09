@@ -86,10 +86,13 @@ import 'type_continuation.dart' show TypeContinuation;
 import 'type_info.dart'
     show
         TypeInfo,
+        TypeParamOrArgInfo,
         computeType,
+        computeTypeParamOrArg,
         isGeneralizedFunctionType,
         isValidTypeReference,
-        noType;
+        noType,
+        noTypeParamOrArg;
 
 import 'type_info_impl.dart' show skipTypeVariables;
 
@@ -533,6 +536,12 @@ class Parser {
       Token next = token.next;
       directiveState?.checkDeclaration();
       if (next.isIdentifier || optional("void", next)) {
+        return parseTypedef(previous);
+      } else if (next.isTopLevelKeyword ||
+          optional('var', next) ||
+          optional('=', next) ||
+          next.isEof) {
+        // Recovery
         return parseTypedef(previous);
       } else {
         return parseTopLevelMemberImpl(previous);
@@ -2019,8 +2028,6 @@ class Parser {
       followingValues = ['(', '{', '=>'];
     } else if (context == IdentifierContext.topLevelVariableDeclaration) {
       followingValues = [';', '=', ','];
-    } else if (context == IdentifierContext.typedefDeclaration) {
-      followingValues = ['(', '<', ';'];
     } else if (context == IdentifierContext.typeVariableDeclaration) {
       followingValues = ['<', '>', ';', '}'];
     } else {
@@ -2094,8 +2101,6 @@ class Parser {
     } else if (context == IdentifierContext.topLevelFunctionDeclaration) {
       initialKeywords = topLevelKeywords();
     } else if (context == IdentifierContext.topLevelVariableDeclaration) {
-      initialKeywords = topLevelKeywords();
-    } else if (context == IdentifierContext.typedefDeclaration) {
       initialKeywords = topLevelKeywords();
     } else if (context == IdentifierContext.typeVariableDeclaration) {
       initialKeywords = topLevelKeywords()
@@ -4110,10 +4115,12 @@ class Parser {
     TokenType type = next.type;
     int tokenLevel = type.precedence;
     Token typeArguments;
-    if (isValidMethodTypeArguments(next)) {
-      // For example a(b)<T>(c), where token is '<'.
+    TypeParamOrArgInfo typeArg = computeTypeParamOrArg(token);
+    if (typeArg != noTypeParamOrArg &&
+        optional('(', typeArg.skip(token).next)) {
+      // For example a(b)<T>(c), where token is before '<'.
       typeArguments = next;
-      token = parseTypeArgumentsOpt(token);
+      token = typeArg.parseArguments(token, this);
       next = token.next;
       assert(optional('(', next));
       type = next.type;

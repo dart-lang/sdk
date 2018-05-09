@@ -3,11 +3,11 @@ import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
 
-abstract class MyStream<T extends core::Object> extends asy::Stream<self::MyStream::T> {
-  static factory •<T extends core::Object>() → self::MyStream<self::MyStream::•::T>
+abstract class MyStream<T extends core::Object = dynamic> extends asy::Stream<self::MyStream::T> {
+  static factory •<T extends core::Object = dynamic>() → self::MyStream<self::MyStream::•::T>
     return null;
 }
-static method F<T extends core::Object>() → self::F::T
+static method F<T extends core::Object = dynamic>() → self::F::T
   return null;
 static method f() → asy::Future<dynamic> async {
   dynamic d;

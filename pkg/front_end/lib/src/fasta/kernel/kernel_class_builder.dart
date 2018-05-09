@@ -56,7 +56,8 @@ import '../fasta_codes.dart'
         templateOverrideTypeMismatchParameter,
         templateOverrideTypeMismatchReturnType,
         templateOverrideTypeVariablesMismatch,
-        templateRedirectionTargetNotFound;
+        templateRedirectionTargetNotFound,
+        templateTypeArgumentMismatch;
 
 import '../names.dart' show noSuchMethodName;
 
@@ -79,18 +80,13 @@ import 'kernel_builder.dart'
         MetadataBuilder,
         ProcedureBuilder,
         Scope,
-        TypeVariableBuilder,
-        TypeBuilder,
-        computeDefaultTypeArguments;
+        TypeVariableBuilder;
 
 import 'redirecting_factory_body.dart' show RedirectingFactoryBody;
 
 abstract class KernelClassBuilder
     extends ClassBuilder<KernelTypeBuilder, InterfaceType> {
   KernelClassBuilder actualOrigin;
-
-  @override
-  List<TypeBuilder> calculatedBounds;
 
   KernelClassBuilder(
       List<MetadataBuilder> metadata,
@@ -127,37 +123,49 @@ abstract class KernelClassBuilder
 
   List<DartType> buildTypeArguments(
       LibraryBuilder library, List<KernelTypeBuilder> arguments) {
-    List<DartType> typeArguments = <DartType>[];
-    for (KernelTypeBuilder builder in arguments) {
-      DartType type = builder.build(library);
-      if (type == null) {
-        unhandled("${builder.runtimeType}", "buildTypeArguments", -1, null);
-      }
-      typeArguments.add(type);
+    if (arguments == null && typeVariables == null) {
+      return <DartType>[];
     }
-    return computeDefaultTypeArguments(
-        library, cls.typeParameters, typeArguments);
+
+    if (arguments == null && typeVariables != null) {
+      List<DartType> result =
+          new List<DartType>.filled(typeVariables.length, null);
+      for (int i = 0; i < result.length; ++i) {
+        result[i] = typeVariables[i].defaultType.build(library);
+      }
+      return result;
+    }
+
+    if (arguments != null && arguments.length != (typeVariables?.length ?? 0)) {
+      // That should be caught and reported as a compile-time error earlier.
+      return unhandled(
+          templateTypeArgumentMismatch
+              .withArguments(name, typeVariables.length.toString())
+              .message,
+          "buildTypeArguments",
+          -1,
+          null);
+    }
+
+    // arguments.length == typeVariables.length
+    List<DartType> result = new List<DartType>.filled(arguments.length, null);
+    for (int i = 0; i < result.length; ++i) {
+      result[i] = arguments[i].build(library);
+    }
+    return result;
   }
 
+  /// If [arguments] are null, the default types for the variables are used.
   InterfaceType buildType(
       LibraryBuilder library, List<KernelTypeBuilder> arguments) {
-    arguments ??= calculatedBounds;
-    List<DartType> typeArguments;
-    if (arguments != null) {
-      typeArguments = buildTypeArguments(library, arguments);
-    }
-    return buildTypesWithBuiltArguments(library, typeArguments);
+    return buildTypesWithBuiltArguments(
+        library, buildTypeArguments(library, arguments));
   }
 
   Supertype buildSupertype(
       LibraryBuilder library, List<KernelTypeBuilder> arguments) {
     Class cls = isPatch ? origin.target : this.cls;
-    arguments ??= calculatedBounds;
-    if (arguments != null) {
-      return new Supertype(cls, buildTypeArguments(library, arguments));
-    } else {
-      return cls.asRawSupertype;
-    }
+    return new Supertype(cls, buildTypeArguments(library, arguments));
   }
 
   Supertype buildMixedInType(

@@ -17,12 +17,8 @@ import 'package:compiler/src/elements/elements.dart'
     show ClassElement, LibraryElement, TypedefElement;
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/world.dart' show ClosedWorld;
-import 'compiler_helper.dart' as mock;
-import 'compiler_helper.dart' show CompileMode;
 import 'memory_compiler.dart' as memory;
 import 'kernel/compiler_helper.dart' as dill;
-
-export 'compiler_helper.dart' show CompileMode;
 
 DartType instantiate(Entity element, List<DartType> arguments) {
   if (element is ClassElement) {
@@ -42,8 +38,7 @@ class TypeEnvironment {
   Resolution get resolution => compiler.resolution;
 
   static Future<TypeEnvironment> create(String source,
-      {CompileMode compileMode: CompileMode.mock,
-      bool useDillCompiler: false,
+      {bool useDillCompiler: false,
       bool expectNoErrors: false,
       bool expectNoWarningsOrErrors: false,
       bool stopAfterTypeInference: false,
@@ -68,52 +63,19 @@ class TypeEnvironment {
       source = '$mainSource\n$source';
     }
     memory.DiagnosticCollector collector;
-    if (compileMode == CompileMode.kernel) {
-      collector = new memory.DiagnosticCollector();
-      uri = Uri.parse('memory:main.dart');
-      compiler = await dill.compileWithDill(
-          entryPoint: uri,
-          memorySourceFiles: {'main.dart': source},
-          diagnosticHandler: collector,
-          options: stopAfterTypeInference
-              ? ([Flags.disableTypeInference]..addAll(options))
-              : ([
-                  Flags.disableTypeInference,
-                  Flags.analyzeAll,
-                  Flags.analyzeOnly
-                ]..addAll(options)),
-          beforeRun: (Compiler compiler) {
-            compiler.stopAfterTypeInference = stopAfterTypeInference;
-          });
-    } else {
-      if (compileMode == CompileMode.mock) {
-        uri = new Uri(scheme: 'source');
-        mock.MockCompiler mockCompiler = mock.mockCompilerFor(source, uri,
-            analyzeAll: !stopAfterTypeInference,
-            analyzeOnly: !stopAfterTypeInference);
-        mockCompiler.diagnosticHandler =
-            mock.createHandler(mockCompiler, source);
-        collector = mockCompiler.diagnosticCollector;
-        compiler = mockCompiler;
-        compiler.stopAfterTypeInference = stopAfterTypeInference;
-        await compiler.run(uri);
-      } else {
-        collector = new memory.DiagnosticCollector();
-        uri = Uri.parse('memory:main.dart');
-        memory.CompilationResult result = await memory.runCompiler(
-            entryPoint: uri,
-            memorySourceFiles: {'main.dart': source},
-            diagnosticHandler: collector,
-            options: stopAfterTypeInference
-                ? ([Flags.useOldFrontend]..addAll(options))
-                : ([Flags.useOldFrontend, Flags.analyzeAll, Flags.analyzeOnly]
-                  ..addAll(options)),
-            beforeRun: (compiler) {
-              compiler.stopAfterTypeInference = stopAfterTypeInference;
-            });
-        compiler = result.compiler;
-      }
-    }
+    collector = new memory.DiagnosticCollector();
+    uri = Uri.parse('memory:main.dart');
+    compiler = await dill.compileWithDill(
+        entryPoint: uri,
+        memorySourceFiles: {'main.dart': source},
+        diagnosticHandler: collector,
+        options: stopAfterTypeInference
+            ? ([Flags.disableTypeInference]..addAll(options))
+            : ([Flags.disableTypeInference, Flags.analyzeAll, Flags.analyzeOnly]
+              ..addAll(options)),
+        beforeRun: (Compiler compiler) {
+          compiler.stopAfterTypeInference = stopAfterTypeInference;
+        });
     if (expectNoErrors || expectNoWarningsOrErrors) {
       var errors = collector.errors;
       Expect.isTrue(errors.isEmpty, 'Unexpected errors: ${errors}');

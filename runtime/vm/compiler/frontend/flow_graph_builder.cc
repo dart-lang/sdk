@@ -3797,15 +3797,18 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
         ASSERT(parent_type_args_var->owner() != scope);
         // Call the runtime to concatenate both vectors.
         ZoneGrowableArray<PushArgumentInstr*>* arguments =
-            new (Z) ZoneGrowableArray<PushArgumentInstr*>(3);
+            new (Z) ZoneGrowableArray<PushArgumentInstr*>(4);
         arguments->Add(PushArgument(type_args_val));
         Value* parent_type_args_val =
             Bind(BuildLoadLocal(*parent_type_args_var, node->token_pos()));
         arguments->Add(PushArgument(parent_type_args_val));
-        Value* len_const = Bind(new (Z) ConstantInstr(
+        Value* parent_len = Bind(new (Z) ConstantInstr(
+            Smi::ZoneHandle(Z, Smi::New(function.NumParentTypeParameters()))));
+        arguments->Add(PushArgument(parent_len));
+        Value* total_len = Bind(new (Z) ConstantInstr(
             Smi::ZoneHandle(Z, Smi::New(function.NumTypeParameters() +
                                         function.NumParentTypeParameters()))));
-        arguments->Add(PushArgument(len_const));
+        arguments->Add(PushArgument(total_len));
         const Library& dart_internal =
             Library::Handle(Z, Library::InternalLibrary());
         const Function& prepend_function =

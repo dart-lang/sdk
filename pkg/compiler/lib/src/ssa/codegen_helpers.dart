@@ -7,6 +7,7 @@ import '../elements/entities.dart';
 import '../js_backend/js_backend.dart';
 import '../js_backend/interceptor_data.dart';
 import '../options.dart';
+import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
 import '../world.dart' show ClosedWorld;
@@ -22,6 +23,9 @@ class SsaInstructionSelection extends HBaseVisitor {
   HGraph graph;
 
   SsaInstructionSelection(this._closedWorld, this._interceptorData);
+
+  AbstractValueDomain get _abstractValueDomain =>
+      _closedWorld.abstractValueDomain;
 
   void visitGraph(HGraph graph) {
     this.graph = graph;
@@ -68,7 +72,7 @@ class SsaInstructionSelection extends HBaseVisitor {
       HInstruction interceptor = node.interceptor;
       if (interceptor != null) {
         return new HIsViaInterceptor(node.typeExpression, interceptor,
-            _closedWorld.commonMasks.boolType);
+            _closedWorld.abstractValueDomain.boolType);
       }
     }
     return node;
@@ -87,7 +91,7 @@ class SsaInstructionSelection extends HBaseVisitor {
     if (leftType.isNullable && rightType.isNullable) {
       if (left.isConstantNull() ||
           right.isConstantNull() ||
-          (left.isPrimitive(_closedWorld) && leftType == rightType)) {
+          (left.isPrimitive(_abstractValueDomain) && leftType == rightType)) {
         return '==';
       }
       return null;
@@ -244,7 +248,7 @@ class SsaInstructionSelection extends HBaseVisitor {
     HInstruction bitop(String assignOp) {
       // HBitAnd, HBitOr etc. are more difficult because HBitAnd(a.x, y)
       // sometimes needs to be forced to unsigned: a.x = (a.x & y) >>> 0.
-      if (op.isUInt31(_closedWorld)) return simpleBinary(assignOp);
+      if (op.isUInt31(_abstractValueDomain)) return simpleBinary(assignOp);
       return noMatchingRead();
     }
 
@@ -335,6 +339,7 @@ class SsaTrustedCheckRemover extends HBaseVisitor {
  *   t2 = add(4, 3);
  */
 class SsaInstructionMerger extends HBaseVisitor {
+  final AbstractValueDomain _abstractValueDomain;
   final SuperMemberData _superMemberData;
   /**
    * List of [HInstruction] that the instruction merger expects in
@@ -354,7 +359,8 @@ class SsaInstructionMerger extends HBaseVisitor {
     generateAtUseSite.add(instruction);
   }
 
-  SsaInstructionMerger(this.generateAtUseSite, this._superMemberData);
+  SsaInstructionMerger(
+      this._abstractValueDomain, this.generateAtUseSite, this._superMemberData);
 
   void visitGraph(HGraph graph) {
     visitDominatorTree(graph);
@@ -404,7 +410,7 @@ class SsaInstructionMerger extends HBaseVisitor {
   // construction always precede a use.
   bool isEffectivelyPure(HInstruction instruction) {
     if (instruction is HLocalGet) return !isAssignedLocal(instruction.local);
-    return instruction.isPure();
+    return instruction.isPure(_abstractValueDomain);
   }
 
   bool isAssignedLocal(HLocalValue local) {

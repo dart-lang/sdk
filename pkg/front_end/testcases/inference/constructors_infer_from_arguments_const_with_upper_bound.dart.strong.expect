@@ -2,13 +2,13 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-class C<T extends core::num> extends core::Object {
+class C<T extends core::num = core::num> extends core::Object {
   final field self::C::T x;
   const constructor •(self::C::T x) → void
     : self::C::x = x, super core::Object::•()
     ;
 }
-class D<T extends core::num> extends core::Object {
+class D<T extends core::num = core::num> extends core::Object {
   const constructor •() → void
     : super core::Object::•()
     ;

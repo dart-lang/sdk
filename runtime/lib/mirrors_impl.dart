@@ -4,13 +4,11 @@
 
 // part of "mirrors_patch.dart";
 
-var _dirty = false;
-// Note: _emtpyList needs to be assignable to List<T> for any T hence Null.
-final _emptyList = new UnmodifiableListView<Null>([]);
+var _dirty = false; // Set to true by the VM when more libraries are loaded.
 
-class _InternalMirrorError {
+class _InternalMirrorError extends Error {
   final String _msg;
-  const _InternalMirrorError(this._msg);
+  _InternalMirrorError(this._msg);
   String toString() => _msg;
 }
 
@@ -65,13 +63,13 @@ String _makeSignatureString(
 
 SourceLocation _location(reflectee) native "DeclarationMirror_location";
 
-List _metadata(reflectee) native 'DeclarationMirror_metadata';
+List<dynamic> _metadata(reflectee) native 'DeclarationMirror_metadata';
 
 bool _subtypeTest(Type a, Type b) native 'TypeMirror_subtypeTest';
 
-class _AccessorCacheAssociation {
+class _AccessorCacheAssociation<T extends Function> {
   String key;
-  Function value;
+  T value;
   bool usedSinceGrowth = true;
   _AccessorCacheAssociation(this.key, this.value);
 }
@@ -82,7 +80,7 @@ class _AccessorCacheAssociation {
  * grow again. Implemented as an open addressing hash table.
  */
 class _AccessorCache<T extends Function> {
-  List table;
+  List<_AccessorCacheAssociation<T>> table;
   int shift;
   int mask;
   int capacity; // Max number of associations before we start evicting/growing.
@@ -94,7 +92,9 @@ class _AccessorCache<T extends Function> {
   _AccessorCache.withInitialShift(int shift) {
     // The scheme used here for handling collisions relies on there always
     // being at least one empty slot.
-    if (shift < 1) throw new Exception("_AccessorCache requires a shift >= 1");
+    if (shift < 1) {
+      throw new _InternalMirrorError("_AccessorCache requires a shift >= 1");
+    }
     initWithShift(shift);
   }
 
@@ -102,7 +102,7 @@ class _AccessorCache<T extends Function> {
     this.shift = shift;
     this.mask = (1 << shift) - 1;
     this.capacity = (1 << shift) * 3 ~/ 4;
-    this.table = new List(1 << shift);
+    this.table = new List<_AccessorCacheAssociation<T>>(1 << shift);
     assert(table.length > capacity);
   }
 
@@ -118,7 +118,7 @@ class _AccessorCache<T extends Function> {
     } while (index != start);
     // Should never happen because we start evicting associations before the
     // table is full.
-    throw new Exception("Internal error: _AccessorCache table full");
+    throw new _InternalMirrorError("Internal error: _AccessorCache table full");
   }
 
   int scanForEmpty(String key) {
@@ -132,7 +132,7 @@ class _AccessorCache<T extends Function> {
     } while (index != start);
     // Should never happen because we start evicting associations before the
     // table is full.
-    throw new Exception("Internal error: _AccessorCache table full");
+    throw new _InternalMirrorError("Internal error: _AccessorCache table full");
   }
 
   void fixCollisionsAfter(int start) {
@@ -218,16 +218,19 @@ class _LocalMirrorSystem extends MirrorSystem {
   var _libraries;
   Map<Uri, LibraryMirror> get libraries {
     if ((_libraries == null) || _dirty) {
-      _libraries = new Map<Uri, LibraryMirror>.fromIterable(_computeLibraries(),
-          key: (e) => e.uri);
+      _libraries = new Map<Uri, LibraryMirror>();
+      for (LibraryMirror lib in _computeLibraries()) {
+        _libraries[lib.uri] = lib;
+      }
+      _libraries = new UnmodifiableMapView<Uri, LibraryMirror>(_libraries);
       _dirty = false;
     }
     return _libraries;
   }
 
-  static _computeLibraries() native "MirrorSystem_libraries";
+  static List<dynamic> _computeLibraries() native "MirrorSystem_libraries";
 
-  var _isolate;
+  IsolateMirror _isolate;
   IsolateMirror get isolate {
     if (_isolate == null) {
       _isolate = _computeIsolate();
@@ -235,7 +238,7 @@ class _LocalMirrorSystem extends MirrorSystem {
     return _isolate;
   }
 
-  static _computeIsolate() native "MirrorSystem_isolate";
+  static IsolateMirror _computeIsolate() native "MirrorSystem_isolate";
 
   String toString() => "MirrorSystem for isolate '${isolate.debugName}'";
 }
@@ -298,13 +301,13 @@ class _SyntheticAccessor implements MethodMirror {
 
   TypeMirror get returnType => _target.type;
   List<ParameterMirror> get parameters {
-    if (isGetter) return _emptyList;
-    return new UnmodifiableListView(
-        [new _SyntheticSetterParameter(this, this._target)]);
+    if (isGetter) return const <ParameterMirror>[];
+    return new UnmodifiableListView<ParameterMirror>(
+        <ParameterMirror>[new _SyntheticSetterParameter(this, this._target)]);
   }
 
   SourceLocation get location => null;
-  List<InstanceMirror> get metadata => _emptyList;
+  List<InstanceMirror> get metadata => const <InstanceMirror>[];
   String get source => null;
 }
 
@@ -328,7 +331,7 @@ class _SyntheticSetterParameter implements ParameterMirror {
   bool get hasDefaultValue => false;
   InstanceMirror get defaultValue => null;
   SourceLocation get location => null;
-  List<InstanceMirror> get metadata => _emptyList;
+  List<InstanceMirror> get metadata => const <InstanceMirror>[];
 }
 
 abstract class _LocalObjectMirror extends _LocalMirror implements ObjectMirror {
@@ -608,7 +611,7 @@ class _LocalClassMirror extends _LocalObjectMirror
     return _simpleName;
   }
 
-  Symbol _qualifiedName = null;
+  Symbol _qualifiedName;
   Symbol get qualifiedName {
     if (_qualifiedName == null) {
       _qualifiedName = _computeQualifiedName(owner, simpleName);
@@ -658,8 +661,8 @@ class _LocalClassMirror extends _LocalObjectMirror
       _superinterfaces = isOriginalDeclaration
           ? _nativeInterfaces(_reflectedType)
           : _nativeInterfacesInstantiated(_reflectedType);
-      _superinterfaces =
-          new UnmodifiableListView(_superinterfaces.map(reflectType));
+      _superinterfaces = new UnmodifiableListView<ClassMirror>(
+          _superinterfaces.map(reflectType));
     }
     return _superinterfaces;
   }
@@ -787,10 +790,12 @@ class _LocalClassMirror extends _LocalObjectMirror
     return true;
   }
 
-  List<TypeVariableMirror> _typeVariables = null;
+  List<TypeVariableMirror> _typeVariables;
   List<TypeVariableMirror> get typeVariables {
     if (_typeVariables == null) {
-      if (_isAnonymousMixinApplication) return _typeVariables = _emptyList;
+      if (_isAnonymousMixinApplication) {
+        return _typeVariables = const <TypeVariableMirror>[];
+      }
       _typeVariables = new List<TypeVariableMirror>();
 
       List params = _ClassMirror_type_variables(_reflectee);
@@ -800,19 +805,20 @@ class _LocalClassMirror extends _LocalObjectMirror
         mirror = new _LocalTypeVariableMirror(params[i + 1], params[i], owner);
         _typeVariables.add(mirror);
       }
-      _typeVariables = new UnmodifiableListView(_typeVariables);
+      _typeVariables =
+          new UnmodifiableListView<TypeVariableMirror>(_typeVariables);
     }
     return _typeVariables;
   }
 
-  List<TypeMirror> _typeArguments = null;
+  List<TypeMirror> _typeArguments;
   List<TypeMirror> get typeArguments {
     if (_typeArguments == null) {
       if (_isGenericDeclaration || _isAnonymousMixinApplication) {
-        _typeArguments = _emptyList;
+        _typeArguments = const <TypeMirror>[];
       } else {
-        _typeArguments =
-            new UnmodifiableListView(_computeTypeArguments(_reflectedType));
+        _typeArguments = new UnmodifiableListView<TypeMirror>(
+            _computeTypeArguments(_reflectedType).cast<TypeMirror>());
       }
     }
     return _typeArguments;
@@ -856,7 +862,8 @@ class _LocalClassMirror extends _LocalObjectMirror
   List<InstanceMirror> get metadata {
     // Get the metadata objects, convert them into InstanceMirrors using
     // reflect() and then make them into a Dart list.
-    return new UnmodifiableListView(_metadata(_reflectee).map(reflect));
+    return new UnmodifiableListView<InstanceMirror>(
+        _metadata(_reflectee).map(reflect));
   }
 
   bool operator ==(other) {
@@ -895,26 +902,28 @@ class _LocalClassMirror extends _LocalObjectMirror
     return false;
   }
 
-  static _libraryUri(reflectee) native "ClassMirror_libraryUri";
+  static String _libraryUri(reflectee) native "ClassMirror_libraryUri";
 
-  static _supertype(reflectedType) native "ClassMirror_supertype";
+  static Type _supertype(reflectedType) native "ClassMirror_supertype";
 
-  static _supertypeInstantiated(reflectedType)
+  static Type _supertypeInstantiated(reflectedType)
       native "ClassMirror_supertype_instantiated";
 
-  static _nativeInterfaces(reflectedType) native "ClassMirror_interfaces";
+  static List<dynamic> _nativeInterfaces(reflectedType)
+      native "ClassMirror_interfaces";
 
-  static _nativeInterfacesInstantiated(reflectedType)
+  static List<dynamic> _nativeInterfacesInstantiated(reflectedType)
       native "ClassMirror_interfaces_instantiated";
 
-  static _nativeMixin(reflectedType) native "ClassMirror_mixin";
+  static Type _nativeMixin(reflectedType) native "ClassMirror_mixin";
 
-  static _nativeMixinInstantiated(reflectedType, instantiator)
+  static Type _nativeMixinInstantiated(reflectedType, instantiator)
       native "ClassMirror_mixin_instantiated";
 
-  _computeMembers(reflectee, instantiator) native "ClassMirror_members";
+  List<dynamic> _computeMembers(reflectee, instantiator)
+      native "ClassMirror_members";
 
-  _computeConstructors(reflectee, instantiator)
+  List<dynamic> _computeConstructors(reflectee, instantiator)
       native "ClassMirror_constructors";
 
   _invoke(reflectee, memberName, arguments, argumentNames)
@@ -927,10 +936,11 @@ class _LocalClassMirror extends _LocalObjectMirror
   static _invokeConstructor(reflectee, type, constructorName, arguments,
       argumentNames) native 'ClassMirror_invokeConstructor';
 
-  static _ClassMirror_type_variables(reflectee)
+  static List<dynamic> _ClassMirror_type_variables(reflectee)
       native "ClassMirror_type_variables";
 
-  static _computeTypeArguments(reflectee) native "ClassMirror_type_arguments";
+  static List<dynamic> _computeTypeArguments(reflectee)
+      native "ClassMirror_type_arguments";
 }
 
 class _LocalFunctionTypeMirror extends _LocalClassMirror
@@ -943,7 +953,7 @@ class _LocalFunctionTypeMirror extends _LocalClassMirror
   bool get _isAnonymousMixinApplication => false;
 
   // FunctionTypeMirrors have a simpleName generated from their signature.
-  Symbol _simpleName = null;
+  Symbol _simpleName;
   Symbol get simpleName {
     if (_simpleName == null) {
       _simpleName = _s(_makeSignatureString(returnType, parameters));
@@ -959,7 +969,7 @@ class _LocalFunctionTypeMirror extends _LocalClassMirror
     return _callMethod;
   }
 
-  TypeMirror _returnType = null;
+  TypeMirror _returnType;
   TypeMirror get returnType {
     if (_returnType == null) {
       _returnType =
@@ -968,20 +978,20 @@ class _LocalFunctionTypeMirror extends _LocalClassMirror
     return _returnType;
   }
 
-  List<ParameterMirror> _parameters = null;
+  List<ParameterMirror> _parameters;
   List<ParameterMirror> get parameters {
     if (_parameters == null) {
       _parameters = _FunctionTypeMirror_parameters(_functionReflectee);
-      _parameters = new UnmodifiableListView(_parameters);
+      _parameters = new UnmodifiableListView<ParameterMirror>(_parameters);
     }
     return _parameters;
   }
 
   bool get isOriginalDeclaration => true;
   ClassMirror get originalDeclaration => this;
-  get typeVariables => _emptyList;
-  get typeArguments => _emptyList;
-  get metadata => _emptyList;
+  get typeVariables => const <TypeVariableMirror>[];
+  get typeArguments => const <TypeMirror>[];
+  get metadata => const <InstanceMirror>[];
   get location => null;
 
   String toString() => "FunctionTypeMirror on '${_n(simpleName)}'";
@@ -992,7 +1002,7 @@ class _LocalFunctionTypeMirror extends _LocalClassMirror
   static Type _FunctionTypeMirror_return_type(functionReflectee)
       native "FunctionTypeMirror_return_type";
 
-  List<ParameterMirror> _FunctionTypeMirror_parameters(functionReflectee)
+  List<dynamic> _FunctionTypeMirror_parameters(functionReflectee)
       native "FunctionTypeMirror_parameters";
 }
 
@@ -1005,7 +1015,7 @@ abstract class _LocalDeclarationMirror extends _LocalMirror
 
   Symbol get simpleName => _simpleName;
 
-  Symbol _qualifiedName = null;
+  Symbol _qualifiedName;
   Symbol get qualifiedName {
     if (_qualifiedName == null) {
       _qualifiedName = _computeQualifiedName(owner, simpleName);
@@ -1022,7 +1032,8 @@ abstract class _LocalDeclarationMirror extends _LocalMirror
   List<InstanceMirror> get metadata {
     // Get the metadata objects, convert them into InstanceMirrors using
     // reflect() and then make them into a Dart list.
-    return new UnmodifiableListView(_metadata(_reflectee).map(reflect));
+    return new UnmodifiableListView<InstanceMirror>(
+        _metadata(_reflectee).map(reflect));
   }
 
   bool operator ==(other) {
@@ -1050,7 +1061,7 @@ class _LocalTypeVariableMirror extends _LocalDeclarationMirror
   bool get isStatic => false;
   bool get isTopLevel => false;
 
-  TypeMirror _upperBound = null;
+  TypeMirror _upperBound;
   TypeMirror get upperBound {
     if (_upperBound == null) {
       _upperBound = reflectType(_TypeVariableMirror_upper_bound(_reflectee));
@@ -1065,8 +1076,8 @@ class _LocalTypeVariableMirror extends _LocalDeclarationMirror
 
   Type get _reflectedType => _reflectee;
 
-  List<TypeVariableMirror> get typeVariables => _emptyList;
-  List<TypeMirror> get typeArguments => _emptyList;
+  List<TypeVariableMirror> get typeVariables => const <TypeVariableMirror>[];
+  List<TypeMirror> get typeArguments => const <TypeMirror>[];
 
   bool get isOriginalDeclaration => true;
   TypeMirror get originalDeclaration => this;
@@ -1124,7 +1135,7 @@ class _LocalTypedefMirror extends _LocalDeclarationMirror
     return _owner;
   }
 
-  _LocalFunctionTypeMirror _referent = null;
+  _LocalFunctionTypeMirror _referent;
   FunctionTypeMirror get referent {
     if (_referent == null) {
       _referent = _nativeReferent(_reflectedType);
@@ -1152,7 +1163,7 @@ class _LocalTypedefMirror extends _LocalDeclarationMirror
     }
   }
 
-  List<TypeVariableMirror> _typeVariables = null;
+  List<TypeVariableMirror> _typeVariables;
   List<TypeVariableMirror> get typeVariables {
     if (_typeVariables == null) {
       _typeVariables = new List<TypeVariableMirror>();
@@ -1167,14 +1178,15 @@ class _LocalTypedefMirror extends _LocalDeclarationMirror
     return _typeVariables;
   }
 
-  List<TypeMirror> _typeArguments = null;
+  List<TypeMirror> _typeArguments;
   List<TypeMirror> get typeArguments {
     if (_typeArguments == null) {
       if (_isGenericDeclaration) {
-        _typeArguments = _emptyList;
+        _typeArguments = const <TypeMirror>[];
       } else {
-        _typeArguments = new UnmodifiableListView(
-            _LocalClassMirror._computeTypeArguments(_reflectedType));
+        _typeArguments = new UnmodifiableListView<TypeMirror>(_LocalClassMirror
+            ._computeTypeArguments(_reflectedType)
+            .cast<TypeMirror>());
       }
     }
     return _typeArguments;
@@ -1197,9 +1209,11 @@ class _LocalTypedefMirror extends _LocalDeclarationMirror
         _subtypeTest(otherReflectedType, _reflectedType);
   }
 
-  static _nativeReferent(reflectedType) native "TypedefMirror_referent";
+  static FunctionTypeMirror _nativeReferent(reflectedType)
+      native "TypedefMirror_referent";
 
-  static _nativeDeclaration(reflectedType) native "TypedefMirror_declaration";
+  static TypedefMirror _nativeDeclaration(reflectedType)
+      native "TypedefMirror_declaration";
 }
 
 Symbol _asSetter(Symbol getter, LibraryMirror library) {
@@ -1247,7 +1261,8 @@ class _LocalLibraryMirror extends _LocalObjectMirror implements LibraryMirror {
   List<InstanceMirror> get metadata {
     // Get the metadata objects, convert them into InstanceMirrors using
     // reflect() and then make them into a Dart list.
-    return new UnmodifiableListView(_metadata(_reflectee).map(reflect));
+    return new UnmodifiableListView<InstanceMirror>(
+        _metadata(_reflectee).map(reflect));
   }
 
   bool operator ==(other) {
@@ -1262,12 +1277,15 @@ class _LocalLibraryMirror extends _LocalObjectMirror implements LibraryMirror {
   var _cachedLibraryDependencies;
   get libraryDependencies {
     if (_cachedLibraryDependencies == null) {
-      _cachedLibraryDependencies = _libraryDependencies(_reflectee);
+      _cachedLibraryDependencies =
+          new UnmodifiableListView<LibraryDependencyMirror>(
+              _libraryDependencies(_reflectee).cast<LibraryDependencyMirror>());
     }
     return _cachedLibraryDependencies;
   }
 
-  _libraryDependencies(reflectee) native 'LibraryMirror_libraryDependencies';
+  List<dynamic> _libraryDependencies(reflectee)
+      native 'LibraryMirror_libraryDependencies';
 
   _invoke(reflectee, memberName, arguments, argumentNames)
       native 'LibraryMirror_invoke';
@@ -1277,7 +1295,7 @@ class _LocalLibraryMirror extends _LocalObjectMirror implements LibraryMirror {
   _invokeSetter(reflectee, setterName, value)
       native 'LibraryMirror_invokeSetter';
 
-  _computeMembers(reflectee) native "LibraryMirror_members";
+  List<dynamic> _computeMembers(reflectee) native "LibraryMirror_members";
 }
 
 class _LocalLibraryDependencyMirror extends _LocalMirror
@@ -1297,9 +1315,10 @@ class _LocalLibraryDependencyMirror extends _LocalMirror
       prefixString,
       this.isImport,
       this.isDeferred,
-      unwrappedMetadata)
+      List<dynamic> unwrappedMetadata)
       : prefix = _s(prefixString),
-        metadata = new UnmodifiableListView(unwrappedMetadata.map(reflect));
+        metadata = new UnmodifiableListView<InstanceMirror>(
+            unwrappedMetadata.map(reflect));
 
   bool get isExport => !isImport;
 
@@ -1324,7 +1343,8 @@ class _LocalLibraryDependencyMirror extends _LocalMirror
     });
   }
 
-  static _tryUpgradePrefix(libraryPrefix) native "LibraryMirror_fromPrefix";
+  static LibraryMirror _tryUpgradePrefix(libraryPrefix)
+      native "LibraryMirror_fromPrefix";
 
   SourceLocation get location => null;
 }
@@ -1395,7 +1415,7 @@ class _LocalMethodMirror extends _LocalDeclarationMirror
   bool get isTopLevel => owner is LibraryMirror;
   bool get isSynthetic => false;
 
-  TypeMirror _returnType = null;
+  TypeMirror _returnType;
   TypeMirror get returnType {
     if (_returnType == null) {
       if (isConstructor) {
@@ -1408,18 +1428,18 @@ class _LocalMethodMirror extends _LocalDeclarationMirror
     return _returnType;
   }
 
-  List<ParameterMirror> _parameters = null;
+  List<ParameterMirror> _parameters;
   List<ParameterMirror> get parameters {
     if (_parameters == null) {
-      _parameters = _MethodMirror_parameters(_reflectee);
-      _parameters = new UnmodifiableListView(_parameters);
+      _parameters = new UnmodifiableListView<ParameterMirror>(
+          _MethodMirror_parameters(_reflectee).cast<ParameterMirror>());
     }
     return _parameters;
   }
 
   bool get isRegularMethod => !isGetter && !isSetter && !isConstructor;
 
-  Symbol _constructorName = null;
+  Symbol _constructorName;
   Symbol get constructorName {
     if (_constructorName == null) {
       if (!isConstructor) {
@@ -1460,7 +1480,7 @@ class _LocalMethodMirror extends _LocalDeclarationMirror
   static dynamic _MethodMirror_return_type(reflectee, instantiator)
       native "MethodMirror_return_type";
 
-  List<ParameterMirror> _MethodMirror_parameters(reflectee)
+  List<dynamic> _MethodMirror_parameters(reflectee)
       native "MethodMirror_parameters";
 
   static String _MethodMirror_source(reflectee) native "MethodMirror_source";
@@ -1553,11 +1573,12 @@ class _LocalParameterMirror extends _LocalVariableMirror
   }
 
   List<InstanceMirror> get metadata {
-    if (_unmirroredMetadata == null) return _emptyList;
-    return new UnmodifiableListView(_unmirroredMetadata.map(reflect));
+    if (_unmirroredMetadata == null) return const <InstanceMirror>[];
+    return new UnmodifiableListView<InstanceMirror>(
+        _unmirroredMetadata.map(reflect));
   }
 
-  TypeMirror _type = null;
+  TypeMirror _type;
   TypeMirror get type {
     if (_type == null) {
       _type = reflectType(
@@ -1584,7 +1605,7 @@ class _SpecialTypeMirror extends _LocalMirror
   DeclarationMirror get owner => null;
 
   SourceLocation get location => null;
-  List<InstanceMirror> get metadata => _emptyList;
+  List<InstanceMirror> get metadata => const <InstanceMirror>[];
 
   bool get hasReflectedType => simpleName == #dynamic;
   Type get reflectedType {
@@ -1592,8 +1613,8 @@ class _SpecialTypeMirror extends _LocalMirror
     throw new UnsupportedError("void has no reflected type");
   }
 
-  List<TypeVariableMirror> get typeVariables => _emptyList;
-  List<TypeMirror> get typeArguments => _emptyList;
+  List<TypeVariableMirror> get typeVariables => const <TypeVariableMirror>[];
+  List<TypeMirror> get typeArguments => const <TypeMirror>[];
 
   bool get isOriginalDeclaration => true;
   TypeMirror get originalDeclaration => this;

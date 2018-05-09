@@ -80,7 +80,7 @@ abstract class BytesBuilder {
 
 class _CopyingBytesBuilder implements BytesBuilder {
   // Start with 1024 bytes.
-  static const int _INIT_SIZE = 1024;
+  static const int _initSize = 1024;
 
   static final _emptyList = new Uint8List(0);
 
@@ -125,8 +125,8 @@ class _CopyingBytesBuilder implements BytesBuilder {
     // We will create a list in the range of 2-4 times larger than
     // required.
     int newSize = required * 2;
-    if (newSize < _INIT_SIZE) {
-      newSize = _INIT_SIZE;
+    if (newSize < _initSize) {
+      newSize = _initSize;
     } else {
       newSize = _pow2roundup(newSize);
     }

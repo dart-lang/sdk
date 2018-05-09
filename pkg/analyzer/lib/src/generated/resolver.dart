@@ -4263,8 +4263,7 @@ class ImportsVerifier {
       // the map.
       ImportElement importElement = importDirective.element;
       if (importElement != null) {
-        NamespaceBuilder builder = new NamespaceBuilder();
-        namespace = builder.createImportNamespaceForDirective(importElement);
+        namespace = importElement.namespace;
         _namespaceMap[importDirective] = namespace;
       }
     }
@@ -8505,7 +8504,17 @@ class TypeNameResolver {
     if (typeName is SimpleIdentifier) {
       return typeName;
     } else {
-      return (typeName as PrefixedIdentifier).identifier;
+      PrefixedIdentifier prefixed = typeName;
+      SimpleIdentifier prefix = prefixed.prefix;
+      // The prefixed identifier can be:
+      // 1. new importPrefix.TypeName()
+      // 2. new TypeName.constructorName()
+      // 3. new unresolved.Unresolved()
+      if (prefix.staticElement is PrefixElement) {
+        return prefixed.identifier;
+      } else {
+        return prefix;
+      }
     }
   }
 

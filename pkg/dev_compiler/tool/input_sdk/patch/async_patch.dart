@@ -15,7 +15,7 @@ typedef void _TakeCallback(_Callback callback);
 
 @JSExportName('async')
 @ReifyFunctionTypes(false)
-async_<T>(Function() initGenerator) {
+_async<T>(Function() initGenerator) {
   var iter;
   Object Function(Object) onValue;
   Object Function(Object) onError;

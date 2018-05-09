@@ -6,9 +6,9 @@ class C extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
-  method f<T extends core::Object>(self::C::f::T x) → self::C::f::T
+  method f<T extends core::Object = dynamic>(self::C::f::T x) → self::C::f::T
     return x;
-  static method g<T extends core::Object>(self::C::g::T x) → self::C::g::T
+  static method g<T extends core::Object = dynamic>(self::C::g::T x) → self::C::g::T
     return x;
 }
 class D extends self::C {
@@ -20,10 +20,10 @@ class D extends self::C {
     func = super.{self::C::f}<core::int>;
   }
 }
-static method f<T extends core::Object>(self::f::T x) → self::f::T
+static method f<T extends core::Object = dynamic>(self::f::T x) → self::f::T
   return x;
 static method test() → void {
-  function h<T extends core::Object>(T x) → T
+  function h<T extends core::Object = dynamic>(T x) → T
     return x;
   (core::int) → core::int func;
   func = self::f<core::int>;

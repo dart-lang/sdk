@@ -32,10 +32,6 @@ main() {
 
 main() {
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTest([Flags.useOldFrontend]);
-    print('--test from ast (trust-type-annotations)--------------------------');
-    await runTest([Flags.useOldFrontend, Flags.trustTypeAnnotations]);
     print('--test from kernel------------------------------------------------');
     await runTest([]);
     print('--test from kernel (trust-type-annotations)-----------------------');

@@ -14,6 +14,7 @@ import 'package:kernel/ast.dart'
         Class,
         Constructor,
         DartType,
+        Procedure,
         DynamicType,
         EmptyStatement,
         Expression,
@@ -28,7 +29,6 @@ import 'package:kernel/ast.dart'
         Name,
         NamedExpression,
         NullLiteral,
-        Procedure,
         ProcedureKind,
         Component,
         Source,
@@ -106,6 +106,9 @@ class KernelTarget extends TargetImplementation {
   /// Shared with [CompilerContext].
   final Map<Uri, Source> uriToSource;
 
+  /// The [MetadataCollector] to write metadata to.
+  final MetadataCollector metadataCollector;
+
   SourceLoader<Library> loader;
 
   Component component;
@@ -130,8 +133,8 @@ class KernelTarget extends TargetImplementation {
       {Map<Uri, Source> uriToSource, MetadataCollector metadataCollector})
       : dillTarget = dillTarget,
         uriToSource = uriToSource ?? CompilerContext.current.uriToSource,
-        super(dillTarget.ticker, uriTranslator, dillTarget.backendTarget,
-            metadataCollector) {
+        metadataCollector = metadataCollector,
+        super(dillTarget.ticker, uriTranslator, dillTarget.backendTarget) {
     resetCrashReporting();
     loader = createLoader();
   }
@@ -242,7 +245,7 @@ class KernelTarget extends TargetImplementation {
       loader.instantiateToBound(dynamicType, bottomType, objectClassBuilder);
       List<SourceClassBuilder> myClasses = collectMyClasses();
       loader.checkSemantics(myClasses);
-      loader.finishTypeVariables(objectClassBuilder);
+      loader.finishTypeVariables(objectClassBuilder, dynamicType);
       loader.buildComponent();
       installDefaultSupertypes();
       installDefaultConstructors(myClasses);
@@ -707,6 +710,12 @@ class KernelTarget extends TargetImplementation {
   void runBuildTransformations() {
     backendTarget.performModularTransformationsOnLibraries(
         loader.coreTypes, loader.hierarchy, loader.libraries,
+        logger: (String msg) => ticker.logMs(msg));
+  }
+
+  void runProcedureTransformations(Procedure procedure) {
+    backendTarget.performTransformationsOnProcedure(
+        loader.coreTypes, loader.hierarchy, procedure,
         logger: (String msg) => ticker.logMs(msg));
   }
 

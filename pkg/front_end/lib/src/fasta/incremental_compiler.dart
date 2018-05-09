@@ -12,21 +12,29 @@ import '../api_prototype/file_system.dart' show FileSystemEntity;
 
 import 'package:kernel/kernel.dart'
     show
-        AsyncMarker,
-        Component,
-        DartType,
-        DynamicType,
-        InterfaceType,
         Library,
+        Name,
+        ReturnStatement,
+        FunctionNode,
+        Class,
+        Expression,
+        DartType,
         LibraryPart,
-        NamedNode,
-        Procedure,
-        ProcedureKind,
+        Component,
+        LibraryDependency,
         Source,
-        TypeParameter;
+        Procedure,
+        TypeParameter,
+        ProcedureKind;
+
+import '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
+
+import 'hybrid_file_system.dart' show HybridFileSystem;
+
+import 'package:kernel/kernel.dart' as kernel show Combinator;
 
 import '../api_prototype/incremental_kernel_generator.dart'
-    show CompilationPosition, isLegalIdentifier, IncrementalKernelGenerator;
+    show IncrementalKernelGenerator, isLegalIdentifier;
 
 import 'builder/builder.dart' show LibraryBuilder;
 
@@ -44,6 +52,7 @@ import 'kernel/kernel_incremental_target.dart'
 import 'library_graph.dart' show LibraryGraph;
 
 import 'kernel/kernel_library_builder.dart' show KernelLibraryBuilder;
+import 'kernel/kernel_shadow_ast.dart' show ShadowVariableDeclaration;
 
 import 'source/source_library_builder.dart' show SourceLibraryBuilder;
 
@@ -51,46 +60,7 @@ import 'ticker.dart' show Ticker;
 
 import 'uri_translator.dart' show UriTranslator;
 
-import 'modifier.dart' as Modifier;
-
-import '../scanner/token.dart' show Token;
-
-import 'scanner/error_token.dart' show ErrorToken;
-
-import 'scanner/string_scanner.dart' show StringScanner;
-
-import 'dill/built_type_builder.dart' show BuiltTypeBuilder;
-
-import 'kernel/kernel_formal_parameter_builder.dart'
-    show KernelFormalParameterBuilder;
-
-import 'kernel/kernel_procedure_builder.dart' show KernelProcedureBuilder;
-
-import 'builder/class_builder.dart' show ClassBuilder;
-
-import 'kernel/kernel_shadow_ast.dart' show ShadowTypeInferenceEngine;
-
-import 'kernel/body_builder.dart' show BodyBuilder;
-
-import 'kernel/kernel_type_variable_builder.dart'
-    show KernelTypeVariableBuilder;
-
-import 'parser/parser.dart' show Parser;
-
-import 'parser/member_kind.dart' show MemberKind;
-
-import 'scope.dart' show Scope;
-
-import 'type_inference/type_inferrer.dart' show TypeInferrer;
-
-class IncrementalCompilationPosition implements CompilationPosition {
-  final NamedNode kernelNode;
-  final LibraryBuilder libraryBuilder; // will not be null
-  final ClassBuilder classBuilder; // may be null if not inside a class
-
-  IncrementalCompilationPosition(
-      this.kernelNode, this.libraryBuilder, this.classBuilder);
-}
+import 'combinator.dart' show Combinator;
 
 class IncrementalCompiler implements IncrementalKernelGenerator {
   final CompilerContext context;
@@ -101,7 +71,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   DillTarget dillLoadedData;
   Map<Uri, Source> dillLoadedDataUriToSource = <Uri, Source>{};
-  Map<Uri, LibraryBuilder> platformBuilders;
+  List<LibraryBuilder> platformBuilders;
   Map<Uri, LibraryBuilder> userBuilders;
   final Uri initializeFromDillUri;
   bool initializedFromDill = false;
@@ -156,10 +126,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
         summaryBytes = null;
         userBuilders = <Uri, LibraryBuilder>{};
-        platformBuilders = <Uri, LibraryBuilder>{};
+        platformBuilders = <LibraryBuilder>[];
         dillLoadedData.loader.builders.forEach((uri, builder) {
           if (builder.uri.scheme == "dart") {
-            platformBuilders[uri] = builder;
+            platformBuilders.add(builder);
           } else {
             userBuilders[uri] = builder;
           }
@@ -188,11 +158,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             " of ${userCode.loader.builders.length} libraries");
       }
 
-      reusedLibraries.addAll(platformBuilders.values);
+      reusedLibraries.addAll(platformBuilders);
 
       KernelIncrementalTarget userCodeOld = userCode;
       userCode = new KernelIncrementalTarget(
-          c.fileSystem, false, dillLoadedData, uriTranslator,
+          new HybridFileSystem(
+              new MemoryFileSystem(
+                  new Uri(scheme: "org-dartlang-debug", path: "/")),
+              c.fileSystem),
+          false,
+          dillLoadedData,
+          uriTranslator,
           uriToSource: c.uriToSource);
 
       for (LibraryBuilder library in reusedLibraries) {
@@ -379,189 +355,104 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     ticker.logMs("Appended libraries");
   }
 
-  IncrementalCompilationPosition resolveCompilationPosition(Uri libraryUri,
-      [String className]) {
-    if (userCode == null || dillLoadedData == null) return null;
-
-    // Find library.
-    LibraryBuilder enclosingLibrary = userCode.loader.builders[libraryUri];
-    if (enclosingLibrary == null) return null;
-
-    if (className == null) {
-      return new IncrementalCompilationPosition(
-          enclosingLibrary.target, enclosingLibrary, null);
-    }
-
-    ClassBuilder classBuilder = enclosingLibrary.scopeBuilder[className];
-    if (classBuilder == null) return null;
-
-    return new IncrementalCompilationPosition(
-        classBuilder.target, enclosingLibrary, classBuilder);
-  }
-
   @override
   Future<Procedure> compileExpression(
       String expression,
       Map<String, DartType> definitions,
       List<TypeParameter> typeDefinitions,
-      covariant IncrementalCompilationPosition position,
-      [bool isStatic = false]) async {
+      Uri libraryUri,
+      [String className,
+      bool isStatic = false]) async {
     assert(dillLoadedData != null && userCode != null);
 
-    dillLoadedData.loader.seenMessages.clear();
-    userCode.loader.seenMessages.clear();
+    return await context.runInContext((_) async {
+      LibraryBuilder library = userCode.loader.read(libraryUri, -1);
 
-    for (TypeParameter typeParam in typeDefinitions) {
-      if (!isLegalIdentifier(typeParam.name)) return null;
-    }
-    for (String name in definitions.keys) {
-      if (!isLegalIdentifier(name)) return null;
-    }
+      Class kernelClass;
+      if (className != null) {
+        kernelClass = library.scopeBuilder[className]?.target;
+        if (kernelClass == null) return null;
+      }
 
-    String expressionPrefix =
-        '(${definitions.keys.map((name) => "dynamic $name").join(",")}) =>';
+      userCode.loader.seenMessages.clear();
 
-    return context.runInContext((CompilerContext c) async {
-      // Find library builder or report error.
-      bool inClass = position.classBuilder != null;
-      LibraryBuilder enclosingLibraryBuilder = position.libraryBuilder;
-      ClassBuilder classBuilder = position.classBuilder;
-      Library enclosingLibrary = position.libraryBuilder.target;
+      for (TypeParameter typeParam in typeDefinitions) {
+        if (!isLegalIdentifier(typeParam.name)) return null;
+      }
+      for (String name in definitions.keys) {
+        if (!isLegalIdentifier(name)) return null;
+      }
 
-      dillLoadedData.loader.coreTypes = userCode.loader.coreTypes;
-
-      // Create a synthetic KernelLibraryBuilder to hold the compiled procedure.
-      // This ensures that the uri and character offset positions inside the
-      // expression refer to the the expression text, and not to random
-      // positions in the enclosing library's source.
       Uri debugExprUri = new Uri(
           scheme: "org-dartlang-debug", path: "synthetic_debug_expression");
-      KernelLibraryBuilder kernelLibraryBuilder = new KernelLibraryBuilder(
-          debugExprUri,
+
+      KernelLibraryBuilder debugLibrary = new KernelLibraryBuilder(
+          libraryUri,
           debugExprUri,
           userCode.loader,
-          /*actualOrigin=*/ null,
-          enclosingLibrary);
+          null,
+          library.scope.createNestedScope("expression"),
+          library.target);
 
-      // Parse the function prefix.
-      StringScanner scanner = new StringScanner(expressionPrefix);
-      Token startToken = scanner.tokenize();
-      assert(startToken is! ErrorToken);
-      assert(!scanner.hasErrors);
+      if (library is DillLibraryBuilder) {
+        for (LibraryDependency dependency in library.target.dependencies) {
+          if (!dependency.isImport) continue;
 
-      // Parse the expression. By parsing the expression separately from the
-      // function prefix, we ensure that the offsets for tokens coming from the
-      // expression are correct.
-      scanner = new StringScanner(expression);
-      Token expressionStartToken = scanner.tokenize();
-      while (expressionStartToken is ErrorToken) {
-        ErrorToken token = expressionStartToken;
-        // add compile time error
-        kernelLibraryBuilder.addCompileTimeError(token.assertionMessage,
-            token.charOffset, token.endOffset - token.charOffset, debugExprUri);
+          List<Combinator> combinators;
+
+          for (kernel.Combinator combinator in dependency.combinators) {
+            combinators ??= <Combinator>[];
+
+            combinators.add(combinator.isShow
+                ? new Combinator.show(
+                    combinator.names, combinator.fileOffset, library.fileUri)
+                : new Combinator.hide(
+                    combinator.names, combinator.fileOffset, library.fileUri));
+          }
+
+          debugLibrary.addImport(
+              null,
+              dependency.importedLibraryReference.canonicalName.name,
+              null,
+              dependency.name,
+              combinators,
+              dependency.isDeferred,
+              -1,
+              -1,
+              -1);
+        }
+
+        debugLibrary.addImportsToScope();
       }
 
-      var functionLastToken = startToken;
-      while (!functionLastToken.next.isEof) {
-        functionLastToken.offset = -1;
-        functionLastToken = functionLastToken.next;
-      }
-      functionLastToken.offset = -1;
+      HybridFileSystem hfs = userCode.fileSystem;
+      MemoryFileSystem fs = hfs.memory;
+      fs.entityForUri(debugExprUri).writeAsStringSync(expression);
 
-      functionLastToken.next = expressionStartToken;
-      expressionStartToken.previous = functionLastToken;
+      FunctionNode parameters = new FunctionNode(null,
+          typeParameters: typeDefinitions,
+          positionalParameters: definitions.keys
+              .map((name) => new ShadowVariableDeclaration(name, 0))
+              .toList());
 
-      // If we're in a library loaded from a dill file, we'll have to do some
-      // extra work to get the scope setup.
-      if (enclosingLibraryBuilder is DillLibraryBuilder) {
-        dillLoadedData.loader.buildOutline(enclosingLibraryBuilder);
-        Map<Uri, LibraryBuilder> libraries = <Uri, LibraryBuilder>{};
-        if (userBuilders != null) libraries.addAll(userBuilders);
-        libraries.addAll(platformBuilders);
-        enclosingLibraryBuilder.addImportsToScope(libraries);
-      }
-      Scope scope =
-          inClass ? classBuilder.scope : enclosingLibraryBuilder.scope;
+      debugLibrary.build(userCode.loader.coreLibrary, modifyTarget: false);
+      Expression compiledExpression = await userCode.loader.buildExpression(
+          debugLibrary, className, className != null && !isStatic, parameters);
 
-      // Create a [ProcedureBuilder] and a [BodyBuilder] to parse the expression.
-      dynamicType() => new BuiltTypeBuilder(new DynamicType());
-      List<KernelFormalParameterBuilder> formalParameterBuilders =
-          <KernelFormalParameterBuilder>[];
-      definitions.forEach((name, type) {
-        formalParameterBuilders.add(new KernelFormalParameterBuilder(
-            null,
-            Modifier.varMask,
-            new BuiltTypeBuilder(type),
-            name,
-            false,
-            kernelLibraryBuilder,
-            -1));
-      });
-      List<KernelTypeVariableBuilder> typeVariableBuilders =
-          <KernelTypeVariableBuilder>[];
-      typeDefinitions.forEach((TypeParameter typeParam) {
-        typeVariableBuilders.add(new KernelTypeVariableBuilder(
-            typeParam.name,
-            kernelLibraryBuilder,
-            -1,
-            new BuiltTypeBuilder(typeParam.bound),
-            typeParam));
-      });
-      KernelProcedureBuilder procedureBuilder = new KernelProcedureBuilder(
-          /*metadata=*/ null,
-          isStatic ? Modifier.staticMask : Modifier.varMask,
-          dynamicType(),
-          "debugExpr",
-          typeVariableBuilders,
-          formalParameterBuilders,
-          ProcedureKind.Method,
-          kernelLibraryBuilder,
-          /*charOffset=*/ -1,
-          /*charOpenParenOffset=*/ -1,
-          /*charEndOffset=*/ -1);
-      Procedure procedure = procedureBuilder.build(kernelLibraryBuilder);
-      procedure.parent =
-          inClass ? classBuilder.target : kernelLibraryBuilder.target;
-      scope = procedureBuilder.computeTypeParameterScope(scope);
-      Scope formalParamScope =
-          procedureBuilder.computeFormalParameterScope(scope);
-      var typeInferenceEngine = new ShadowTypeInferenceEngine(
-          null, /*strongMode=*/ context.options.strongMode);
-      typeInferenceEngine.prepareTopLevel(
-          userCode.loader.coreTypes, userCode.loader.hierarchy);
-      InterfaceType thisType;
-      if (inClass) {
-        thisType = classBuilder.target.thisType;
-      }
-      TypeInferrer typeInferrer = typeInferenceEngine.createLocalTypeInferrer(
-          debugExprUri, thisType, kernelLibraryBuilder);
-      BodyBuilder bodyBuilder = new BodyBuilder(
-          kernelLibraryBuilder,
-          procedureBuilder,
-          scope,
-          formalParamScope,
-          userCode.loader.hierarchy,
-          userCode.loader.coreTypes,
-          classBuilder,
-          inClass && !isStatic,
-          null /*uri*/,
-          typeInferrer);
-      bodyBuilder.scope = formalParamScope;
+      Procedure procedure = new Procedure(
+          new Name("debugExpr"), ProcedureKind.Method, parameters,
+          isStatic: isStatic);
 
-      // Parse the expression.
-      MemberKind kind = inClass
-          ? (isStatic ? MemberKind.StaticMethod : MemberKind.NonStaticMethod)
-          : MemberKind.TopLevelMethod;
-      Parser parser = new Parser(bodyBuilder);
-      Token token = parser.syntheticPreviousToken(startToken);
-      token = parser.parseFormalParametersOpt(token, kind);
-      var formals = bodyBuilder.pop();
-      bodyBuilder.checkEmpty(token.next.charOffset);
-      parser.parseFunctionBody(
-          token, /*isExpression=*/ true, /*allowAbstract=*/ false);
-      var body = bodyBuilder.pop();
-      bodyBuilder.checkEmpty(token.charOffset);
-      bodyBuilder.finishFunction([], formals, AsyncMarker.Sync, body);
+      parameters.body = new ReturnStatement(compiledExpression)
+        ..parent = parameters;
+
+      procedure.fileUri = debugLibrary.fileUri;
+      procedure.parent = className != null ? kernelClass : library.target;
+
+      userCode.uriToSource.remove(debugExprUri);
+      userCode.loader.sourceBytes.remove(debugExprUri);
+
+      userCode.runProcedureTransformations(procedure);
 
       return procedure;
     });

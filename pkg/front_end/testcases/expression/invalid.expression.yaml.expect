@@ -1,4 +1,5 @@
 Errors: {
+  Can't find ')' to match '('. (@4)
   Expected an identifier, but got '*'. (@0)
   Method not found: 'foo'. (@1)
   Getter not found: ''. (@0)

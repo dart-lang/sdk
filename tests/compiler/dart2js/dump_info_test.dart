@@ -97,11 +97,8 @@ const String TEST_INLINED_2 = r"""
 
 typedef void JsonTaking(Map<String, dynamic> json);
 
-jsonTest(String program, JsonTaking testFn, {bool useKernel}) async {
+jsonTest(String program, JsonTaking testFn) async {
   var options = ['--out=out.js', Flags.dumpInfo];
-  if (!useKernel) {
-    options.add(Flags.useOldFrontend);
-  }
   var result = await runCompiler(
       memorySourceFiles: {'main.dart': program}, options: options);
   var compiler = result.compiler;
@@ -118,14 +115,12 @@ jsonTest(String program, JsonTaking testFn, {bool useKernel}) async {
 
 main() {
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTests(useKernel: true);
+    await runTests();
   });
 }
 
-runTests({bool useKernel}) async {
+runTests() async {
   await jsonTest(TEST_BASIC, (map) {
     Expect.isTrue(map['elements'].isNotEmpty);
     Expect.isTrue(map['elements']['function'].isNotEmpty);
@@ -139,7 +134,7 @@ runTests({bool useKernel}) async {
     Expect.isTrue(map['elements']['function'].values.any((fun) {
       return fun['name'] == 'f';
     }));
-  }, useKernel: useKernel);
+  });
 
   await jsonTest(TEST_CLOSURES, (map) {
     var functions = map['elements']['function'].values;
@@ -149,7 +144,7 @@ runTests({bool useKernel}) async {
     Expect.isTrue(functions.any((fn) {
       return fn['name'] == 'foo' && fn['children'].length == 10;
     }));
-  }, useKernel: useKernel);
+  });
 
   await jsonTest(TEST_STATICS, (map) {
     var functions = map['elements']['function'].values;
@@ -160,7 +155,7 @@ runTests({bool useKernel}) async {
     Expect.isTrue(classes.any((cls) {
       return cls['name'] == 'ContainsStatics' && cls['children'].length >= 1;
     }));
-  }, useKernel: useKernel);
+  });
 
   await jsonTest(TEST_INLINED_1, (map) {
     var functions = map['elements']['function'].values;
@@ -171,7 +166,7 @@ runTests({bool useKernel}) async {
     Expect.isTrue(classes.any((cls) {
       return cls['name'] == 'Doubler' && cls['children'].length >= 1;
     }));
-  }, useKernel: useKernel);
+  });
 
   await jsonTest(TEST_INLINED_2, (map) {
     var functions = map['elements']['function'].values;
@@ -187,5 +182,5 @@ runTests({bool useKernel}) async {
     Expect.isTrue(deps.containsKey(fn2['id']));
     Expect.isTrue(deps[main_['id']].any((dep) => dep['id'] == fn1['id']));
     Expect.isTrue(deps[fn1['id']].any((dep) => dep['id'] == fn2['id']));
-  }, useKernel: useKernel);
+  });
 }

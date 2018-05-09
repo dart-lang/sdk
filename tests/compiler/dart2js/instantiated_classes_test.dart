@@ -12,7 +12,7 @@ import 'package:compiler/src/elements/entities.dart'
 import 'type_test_helper.dart';
 
 void main() {
-  Future runTests({bool useKernel}) async {
+  Future runTests() async {
     Future test(String source, List<String> directlyInstantiatedClasses,
         [List<String> newClasses = const <String>["Class"]]) async {
       StringBuffer mainSource = new StringBuffer();
@@ -22,8 +22,7 @@ void main() {
       }
       mainSource.write('}');
       dynamic env = await TypeEnvironment.create(source,
-          mainSource: mainSource.toString(),
-          compileMode: useKernel ? CompileMode.kernel : CompileMode.memory);
+          mainSource: mainSource.toString());
       LibraryEntity mainLibrary =
           env.compiler.frontendStrategy.elementEnvironment.mainLibrary;
       Iterable<ClassEntity> expectedClasses =
@@ -70,24 +69,14 @@ void main() {
                   class Class extends B with A {}""", ["Class", "A"],
         ["Class", "A"]);
 
-    if (!useKernel) {
-      // TODO(johnniwinther): Avoid registration of `Class` as instantiated.
-      await test("""class A {}
-                    class Class implements A {
-                      factory Class() = A;
-                    }""", ["Class", "A"], ["Class"]);
-    } else {
-      await test("""class A {}
-                    class Class implements A {
-                      factory Class() = A;
-                    }""", ["A"], ["Class"]);
-    }
+    await test("""class A {}
+                  class Class implements A {
+                    factory Class() = A;
+                  }""", ["A"], ["Class"]);
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTests(useKernel: true);
+    await runTests();
   });
 }

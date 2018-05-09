@@ -66,16 +66,12 @@ import 'kernel_builder.dart'
         KernelClassBuilder,
         KernelFunctionTypeAliasBuilder,
         KernelInvalidTypeBuilder,
-        KernelLibraryBuilder,
         KernelPrefixBuilder,
         KernelTypeVariableBuilder,
         LibraryBuilder,
         LoadLibraryBuilder,
         PrefixBuilder,
-        TypeDeclarationBuilder,
-        KernelTypeBuilder;
-
-import 'type_algorithms.dart' show calculateBoundsForDeclaration;
+        TypeDeclarationBuilder;
 
 abstract class BuilderHelper<Arguments> {
   LibraryBuilder get library;
@@ -88,7 +84,8 @@ abstract class BuilderHelper<Arguments> {
 
   ConstantContext get constantContext;
 
-  Forest<Expression, Statement, Token, Arguments> get forest;
+  // TODO(ahe): Update type parameters.
+  Forest<dynamic, dynamic, Token, dynamic> get forest;
 
   Constructor lookupConstructor(Name name, {bool isSuper});
 
@@ -434,7 +431,7 @@ class ThisAccessor<Arguments> extends FastaAccessor<Arguments> {
 
   Expression buildSimpleRead() {
     if (!isSuper) {
-      return new ShadowThisExpression()..fileOffset = offsetForToken(token);
+      return forest.thisExpression(token);
     } else {
       return helper.buildCompileTimeError(messageSuperAsExpression,
           offsetForToken(token), lengthForToken(token));
@@ -471,7 +468,7 @@ class ThisAccessor<Arguments> extends FastaAccessor<Arguments> {
         helper.warnUnresolvedMethod(name, offsetForToken(send.token),
             isSuper: isSuper);
       }
-      return helper.buildMethodInvocation(new ShadowThisExpression(), name,
+      return helper.buildMethodInvocation(forest.thisExpression(null), name,
           send.arguments, offsetForToken(send.token),
           isSuper: isSuper, interfaceTarget: getter);
     } else {
@@ -495,7 +492,7 @@ class ThisAccessor<Arguments> extends FastaAccessor<Arguments> {
           messageSuperAsExpression, offset, noLength);
     } else {
       return helper.buildMethodInvocation(
-          new ShadowThisExpression(), callName, arguments, offset,
+          forest.thisExpression(null), callName, arguments, offset,
           isImplicitCall: true);
     }
   }
@@ -1073,7 +1070,7 @@ class ThisPropertyAccessor<Arguments> extends kernel
       interfaceTarget = null;
     }
     return helper.buildMethodInvocation(
-        new ShadowThisExpression(), name, arguments, offset,
+        forest.thisExpression(null), name, arguments, offset,
         interfaceTarget: interfaceTarget);
   }
 
@@ -1303,68 +1300,18 @@ class TypeDeclarationAccessor<Arguments> extends ReadOnlyAccessor<Arguments> {
     }
 
     DartType type;
-    LibraryBuilder helperLibrary = helper.library;
-    if (arguments == null &&
-        helperLibrary is KernelLibraryBuilder &&
-        helperLibrary.loader.target.strongMode) {
+    if (arguments == null) {
       TypeDeclarationBuilder typeDeclaration = declaration;
       if (typeDeclaration is KernelClassBuilder) {
-        typeDeclaration.calculatedBounds ??= calculateBoundsForDeclaration(
-            typeDeclaration,
-            helperLibrary.loader.target.dynamicType,
-            helperLibrary.loader.target.bottomType,
-            helperLibrary.loader.target.objectClassBuilder);
-        type = typeDeclaration.buildType(
-            helper.library, typeDeclaration.calculatedBounds);
+        type = typeDeclaration.buildType(helper.library, null);
       } else if (typeDeclaration is KernelFunctionTypeAliasBuilder) {
-        typeDeclaration.calculatedBounds ??= calculateBoundsForDeclaration(
-            typeDeclaration,
-            helperLibrary.loader.target.dynamicType,
-            helperLibrary.loader.target.bottomType,
-            helperLibrary.loader.target.objectClassBuilder);
-        type = typeDeclaration.buildType(
-            helper.library, typeDeclaration.calculatedBounds);
+        type = typeDeclaration.buildType(helper.library, null);
       }
     }
     if (type == null) {
       type =
           declaration.buildTypesWithBuiltArguments(helper.library, arguments);
     }
-    if (type is TypeParameterType) {
-      return helper.validatedTypeVariableUse(
-          type, offsetForToken(token), nonInstanceAccessIsError);
-    }
-    return type;
-  }
-
-  DartType buildType(List<KernelTypeBuilder> arguments,
-      {bool nonInstanceAccessIsError: false}) {
-    if (arguments != null) {
-      int expected = 0;
-      if (declaration is KernelClassBuilder) {
-        expected = declaration.target.typeParameters.length;
-      } else if (declaration is FunctionTypeAliasBuilder) {
-        expected = declaration.target.typeParameters.length;
-      } else if (declaration is KernelTypeVariableBuilder) {
-        // Type arguments on a type variable - error reported elsewhere.
-      } else {
-        return unhandled(
-            "${declaration.runtimeType}",
-            "TypeDeclarationAccessor.buildType",
-            offsetForToken(token),
-            helper.uri);
-      }
-      if (arguments.length != expected) {
-        helper.warnTypeArgumentsMismatch(
-            declaration.name, expected, offsetForToken(token));
-        // We ignore the provided arguments, which will in turn return the
-        // raw type below.
-        // TODO(sigmund): change to use an InvalidType and include the raw type
-        // as a recovery node once the IR can represent it (Issue #29840).
-        arguments = null;
-      }
-    }
-    DartType type = declaration.buildType(helper.library, arguments);
     if (type is TypeParameterType) {
       return helper.validatedTypeVariableUse(
           type, offsetForToken(token), nonInstanceAccessIsError);

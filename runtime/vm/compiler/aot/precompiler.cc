@@ -1914,12 +1914,6 @@ void Precompiler::AttachOptimizedTypeTestingStub() {
       continue;
     }
 
-    // [kVectorCid] is excluded because it doesn't have a real class,
-    // corresponding to the class id, in Dart source code.
-    if (type.IsType() && type.type_class_id() == kVectorCid) {
-      continue;
-    }
-
     if (type.InVMHeap()) {
       // The only important types in the vm isolate are "dynamic"/"void", which
       // will get their optimized top-type testing stub installed at creation.

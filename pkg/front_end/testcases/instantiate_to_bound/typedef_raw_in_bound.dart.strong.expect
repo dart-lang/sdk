@@ -2,8 +2,8 @@ library;
 import self as self;
 import "dart:core" as core;
 
-typedef A<T extends core::num> = (T) → dynamic;
-class B<T extends (core::num) → dynamic> extends core::Object {
+typedef A<T extends core::num = core::num> = (T) → dynamic;
+class B<T extends (core::num) → dynamic = (core::num) → dynamic> extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;

@@ -19,7 +19,7 @@ void test() {
   var script =
       Platform.script.resolve('process_detached_script.dart').toFilePath();
   var future = Process.start(Platform.executable, [script],
-      mode: ProcessStartMode.DETACHED);
+      mode: ProcessStartMode.detached);
   future.then((process) {
     Expect.isNotNull(process.pid);
     Expect.isTrue(process.pid is int);
@@ -38,7 +38,7 @@ void testWithStdio() {
   var script =
       Platform.script.resolve('process_detached_script.dart').toFilePath();
   var future = Process.start(Platform.executable, [script, 'echo'],
-      mode: ProcessStartMode.DETACHED_WITH_STDIO);
+      mode: ProcessStartMode.detachedWithStdio);
   future.then((process) {
     Expect.isNotNull(process.pid);
     Expect.isTrue(process.pid is int);
@@ -63,7 +63,7 @@ void testFailure() {
   asyncStart();
   Directory.systemTemp.createTemp('dart_detached_process').then((temp) {
     var future =
-        Process.start(temp.path, ['a', 'b'], mode: ProcessStartMode.DETACHED);
+        Process.start(temp.path, ['a', 'b'], mode: ProcessStartMode.detached);
     future.then((process) {
       Expect.fail('Starting process from invalid executable succeeded');
     }, onError: (e) {

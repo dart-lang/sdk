@@ -2546,25 +2546,42 @@ class LineInfoTest {
     }, throwsArgumentError);
   }
 
-  void test_firstLine() {
+  void test_getLocation_firstLine() {
     LineInfo info = new LineInfo(<int>[0, 12, 34]);
     CharacterLocation location = info.getLocation(4);
     expect(location.lineNumber, 1);
     expect(location.columnNumber, 5);
   }
 
-  void test_lastLine() {
+  void test_getLocation_lastLine() {
     LineInfo info = new LineInfo(<int>[0, 12, 34]);
     CharacterLocation location = info.getLocation(36);
     expect(location.lineNumber, 3);
     expect(location.columnNumber, 3);
   }
 
-  void test_middleLine() {
+  void test_getLocation_middleLine() {
     LineInfo info = new LineInfo(<int>[0, 12, 34]);
     CharacterLocation location = info.getLocation(12);
     expect(location.lineNumber, 2);
     expect(location.columnNumber, 1);
+  }
+
+  void test_getOffsetOfLine() {
+    LineInfo info = new LineInfo(<int>[0, 12, 34]);
+    expect(0, info.getOffsetOfLine(0));
+    expect(12, info.getOffsetOfLine(1));
+    expect(34, info.getOffsetOfLine(2));
+  }
+
+  void test_getOffsetOfLineAfter() {
+    LineInfo info = new LineInfo(<int>[0, 12, 34]);
+
+    expect(info.getOffsetOfLineAfter(0), 12);
+    expect(info.getOffsetOfLineAfter(11), 12);
+
+    expect(info.getOffsetOfLineAfter(12), 34);
+    expect(info.getOffsetOfLineAfter(33), 34);
   }
 }
 

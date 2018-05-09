@@ -1423,6 +1423,80 @@ ConflictsWithTypeVariableCause:
   template: "This is the type variable."
   severity: CONTEXT
 
+DeclaredMemberConflictsWithInheritedMember:
+  template: "Can't declare a member that conflicts with an inherited one."
+  severity: ERROR_LEGACY_WARNING
+  script:
+    - >-
+      class A {
+        var foo;
+      }
+      class B extends A {
+        foo() {}
+      }
+    - >-
+      abstract class A {
+        get foo;
+      }
+      class B implements A {
+        foo() {}
+      }
+    - >-
+      class A {
+        foo() {}
+      }
+      class B extends A {
+        var foo;
+      }
+    - >-
+      abstract class A {
+        foo();
+      }
+      class B implements A {
+        var foo;
+      }
+
+DeclaredMemberConflictsWithInheritedMemberCause:
+  template: "This is the inherited member."
+  severity: CONTEXT
+
+InheritedMembersConflict:
+  template: "Can't inherit members that conflict with each other."
+  severity: ERROR_LEGACY_WARNING
+  script:
+    - >-
+      class A {
+        foo() {}
+      }
+      abstract class B {
+        get foo;
+      }
+      class C extends A implements B {}
+    - >-
+      class A {
+        var foo;
+      }
+      abstract class B {
+        foo();
+      }
+      class C extends A implements B {}
+    - >-
+      class A {
+        get foo => 0;
+      }
+      abstract class B {
+        foo();
+      }
+      class C extends A implements B {}
+
+InheritedMembersConflictCause1:
+  template: "This is one inherited member."
+  severity: CONTEXT
+
+InheritedMembersConflictCause2:
+  template: "This is the other inherited member."
+  severity: CONTEXT
+
 IllegalMixin:
   template: "The type '#name' can't be mixed in."
 
@@ -2102,4 +2176,8 @@ MixinInferenceNoMatchingClass:
 ImplicitCallOfNonMethod:
   template: "Can't invoke the type '#type' because its declaration of `.call` is not a method."
   tip: "Change .call to a method or explicitly invoke .call."
+  severity: ERROR
+
+ExpectedOneExpression:
+  template: "Expected one expression, but found additional input."
   severity: ERROR

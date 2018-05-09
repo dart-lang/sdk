@@ -40,7 +40,7 @@ class Test extends self::Base {
   method test() → void
     ;
 }
-static method f<T extends core::Object>() → self::f::T
+static method f<T extends core::Object = dynamic>() → self::f::T
   ;
 static method main() → dynamic
   ;

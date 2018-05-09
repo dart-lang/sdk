@@ -88,9 +88,11 @@ class TargetJumpHandler implements JumpHandler {
       [LabelDefinition label]) {
     HInstruction breakInstruction;
     if (label == null) {
-      breakInstruction = new HBreak(target, sourceInformation);
+      breakInstruction =
+          new HBreak(builder.abstractValueDomain, target, sourceInformation);
     } else {
-      breakInstruction = new HBreak.toLabel(label, sourceInformation);
+      breakInstruction = new HBreak.toLabel(
+          builder.abstractValueDomain, label, sourceInformation);
     }
     LocalsHandler locals = new LocalsHandler.from(builder.localsHandler);
     builder.close(breakInstruction);
@@ -101,9 +103,11 @@ class TargetJumpHandler implements JumpHandler {
       [LabelDefinition label]) {
     HInstruction continueInstruction;
     if (label == null) {
-      continueInstruction = new HContinue(target, sourceInformation);
+      continueInstruction =
+          new HContinue(builder.abstractValueDomain, target, sourceInformation);
     } else {
-      continueInstruction = new HContinue.toLabel(label, sourceInformation);
+      continueInstruction = new HContinue.toLabel(
+          builder.abstractValueDomain, label, sourceInformation);
       // Switch case continue statements must be handled by the
       // [SwitchCaseJumpHandler].
       assert(!label.target.isSwitchCase);
@@ -171,8 +175,9 @@ abstract class SwitchCaseJumpHandler extends TargetJumpHandler {
       // for a switch statement with continue statements. See
       // [SsaFromAstMixin.buildComplexSwitchStatement] for detail.
 
-      HInstruction breakInstruction =
-          new HBreak(target, sourceInformation, breakSwitchContinueLoop: true);
+      HInstruction breakInstruction = new HBreak(
+          builder.abstractValueDomain, target, sourceInformation,
+          breakSwitchContinueLoop: true);
       LocalsHandler locals = new LocalsHandler.from(builder.localsHandler);
       builder.close(breakInstruction);
       jumps.add(new _JumpHandlerEntry(breakInstruction, locals));
@@ -199,7 +204,7 @@ abstract class SwitchCaseJumpHandler extends TargetJumpHandler {
 
       assert(label.target.labels.contains(label));
       HInstruction continueInstruction =
-          new HContinue(target, sourceInformation);
+          new HContinue(builder.abstractValueDomain, target, sourceInformation);
       LocalsHandler locals = new LocalsHandler.from(builder.localsHandler);
       builder.close(continueInstruction);
       jumps.add(new _JumpHandlerEntry(continueInstruction, locals));

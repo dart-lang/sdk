@@ -48,7 +48,7 @@ def RunCrossGn(options):
     'python',
     os.path.join(DART_ROOT, 'tools', 'gn.py'),
     '-m', 'all',
-    '-a', 'arm,arm64',
+    '-a', 'arm,armsimdbc,arm64,armsimdbc64',
   ]
   if options.verbose:
     gn_command.append('-v')

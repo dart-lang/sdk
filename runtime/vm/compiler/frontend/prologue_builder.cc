@@ -34,8 +34,7 @@ BlockEntryInstr* PrologueBuilder::BuildPrologue(BlockEntryInstr* entry,
   const bool load_optional_arguments = function_.HasOptionalParameters();
   const bool expect_type_args =
       function_.IsGeneric() && isolate->reify_generic_functions();
-  const bool check_arguments =
-      (function_.IsClosureFunction() || function_.IsConvertedClosureFunction());
+  const bool check_arguments = function_.IsClosureFunction();
 
   Fragment prologue = Fragment(entry);
   JoinEntryInstr* nsm = NULL;

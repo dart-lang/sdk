@@ -19,8 +19,6 @@ dependencies:
     path: ../../third_party/pkg/dart2js_info
   front_end:
     path: ../front_end
-  path:
-    path: ../../third_party/pkg/path
 dependency_overrides:
   front_end:
     path: ../front_end

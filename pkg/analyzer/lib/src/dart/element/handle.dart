@@ -363,6 +363,12 @@ abstract class ElementHandle implements Element {
   int get hashCode => _location.hashCode;
 
   @override
+  bool get hasIsTest => actualElement.hasIsTest;
+
+  @override
+  bool get hasIsTestGroup => actualElement.hasIsTestGroup;
+
+  @override
   bool get hasJS => actualElement.hasJS;
 
   @override
@@ -755,6 +761,9 @@ class ImportElementHandle extends ElementHandle implements ImportElement {
 
   @override
   ElementKind get kind => ElementKind.IMPORT;
+
+  @override
+  Namespace get namespace => actualElement.namespace;
 
   @override
   PrefixElement get prefix => actualElement.prefix;

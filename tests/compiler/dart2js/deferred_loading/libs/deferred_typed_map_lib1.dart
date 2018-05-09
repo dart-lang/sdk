@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/*class: M:OutputUnit(1, {lib})*/
 class M {}
 
 typedef dynamic FF({M b});
@@ -9,8 +10,7 @@ typedef dynamic FF({M b});
 /*element: table:OutputUnit(1, {lib})*/
 const table =
 /*ast.null*/
-/*kernel.OutputUnit(1, {lib})*/
-/*strong.OutputUnit(1, {lib})*/
+/*!ast.OutputUnit(1, {lib})*/
     const <int, FF>{1: f1, 2: f2};
 
 /*element: f1:OutputUnit(1, {lib})*/

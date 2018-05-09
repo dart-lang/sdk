@@ -825,6 +825,120 @@ class A {
 ''');
   }
 
+  test_addMissingParameterNamed_function_hasNamed() async {
+    await resolveTestUnit('''
+test(int a, {int b: 0}) {}
+
+main() {
+  test(1, b: 2, named: 3.0);
+}
+''');
+    await assertHasFix(DartFixKind.ADD_MISSING_PARAMETER_NAMED, '''
+test(int a, {int b: 0, double named}) {}
+
+main() {
+  test(1, b: 2, named: 3.0);
+}
+''');
+  }
+
+  test_addMissingParameterNamed_function_hasRequired() async {
+    await resolveTestUnit('''
+test(int a) {}
+
+main() {
+  test(1, named: 2.0);
+}
+''');
+    await assertHasFix(DartFixKind.ADD_MISSING_PARAMETER_NAMED, '''
+test(int a, {double named}) {}
+
+main() {
+  test(1, named: 2.0);
+}
+''');
+  }
+
+  test_addMissingParameterNamed_function_noParameters() async {
+    await resolveTestUnit('''
+test() {}
+
+main() {
+  test(named: 42);
+}
+''');
+    await assertHasFix(DartFixKind.ADD_MISSING_PARAMETER_NAMED, '''
+test({int named}) {}
+
+main() {
+  test(named: 42);
+}
+''');
+  }
+
+  test_addMissingParameterNamed_method_hasNamed() async {
+    await resolveTestUnit('''
+class A {
+  test(int a, {int b: 0}) {}
+
+  main() {
+    test(1, b: 2, named: 3.0);
+  }
+}
+''');
+    await assertHasFix(DartFixKind.ADD_MISSING_PARAMETER_NAMED, '''
+class A {
+  test(int a, {int b: 0, double named}) {}
+
+  main() {
+    test(1, b: 2, named: 3.0);
+  }
+}
+''');
+  }
+
+  test_addMissingParameterNamed_method_hasRequired() async {
+    await resolveTestUnit('''
+class A {
+  test(int a) {}
+
+  main() {
+    test(1, named: 2.0);
+  }
+}
+''');
+    await assertHasFix(DartFixKind.ADD_MISSING_PARAMETER_NAMED, '''
+class A {
+  test(int a, {double named}) {}
+
+  main() {
+    test(1, named: 2.0);
+  }
+}
+''');
+  }
+
+  test_addMissingParameterNamed_method_noParameters() async {
+    await resolveTestUnit('''
+class A {
+  test() {}
+
+  main() {
+    test(named: 42);
+  }
+}
+''');
+    await assertHasFix(DartFixKind.ADD_MISSING_PARAMETER_NAMED, '''
+class A {
+  test({int named}) {}
+
+  main() {
+    test(named: 42);
+  }
+}
+''');
+  }
+
   test_addMissingRequiredArg_cons_flutter_children() async {
     addFlutterPackage();
     _addMetaPackageSource();
@@ -4139,6 +4253,27 @@ main() {
 ''');
   }
 
+  test_importLibraryProject_withClass_instanceCreation_const_namedConstructor() async {
+    testFile = '/project/lib/test.dart';
+    addSource('/project/lib/lib.dart', '''
+class Test {
+  const Test.named();
+}
+''');
+    await resolveTestUnit('''
+main() {
+  const Test.named();
+}
+''');
+    await assertHasFix(DartFixKind.IMPORT_LIBRARY_PROJECT1, '''
+import 'lib.dart';
+
+main() {
+  const Test.named();
+}
+''');
+  }
+
   test_importLibraryProject_withClass_instanceCreation_implicit() async {
     testFile = '/project/lib/test.dart';
     addSource('/project/lib/lib.dart', '''
@@ -4177,6 +4312,27 @@ import 'lib.dart';
 
 main() {
   return new Test();
+}
+''');
+  }
+
+  test_importLibraryProject_withClass_instanceCreation_new_namedConstructor() async {
+    testFile = '/project/lib/test.dart';
+    addSource('/project/lib/lib.dart', '''
+class Test {
+  Test.named();
+}
+''');
+    await resolveTestUnit('''
+main() {
+  new Test.named();
+}
+''');
+    await assertHasFix(DartFixKind.IMPORT_LIBRARY_PROJECT1, '''
+import 'lib.dart';
+
+main() {
+  new Test.named();
 }
 ''');
   }
@@ -5893,9 +6049,8 @@ build() {
   return new Container(
     child: new Row(
       child: <Widget>[
-        new Transform(),
+        new Container(),
         null,
-        new AspectRatio(),
       ],
     ),
   );
@@ -5912,9 +6067,8 @@ build() {
   return new Container(
     child: new Row(
       child: [
-        new Transform(),
-        new ClipRect.rect(),
-        new AspectRatio(),
+        new Text('111'),
+        new Text('222'),
       ],
     ),
   );
@@ -5926,9 +6080,8 @@ build() {
   return new Container(
     child: new Row(
       children: <Widget>[
-        new Transform(),
-        new ClipRect.rect(),
-        new AspectRatio(),
+        new Text('111'),
+        new Text('222'),
       ],
     ),
   );
@@ -5944,9 +6097,8 @@ build() {
   return new Container(
     child: new Row(
       child: <Widget>[
-        new Transform(),
-        new ClipRect.rect(),
-        new AspectRatio(),
+        new Text('111'),
+        new Text('222'),
       ],
     ),
   );
@@ -5958,9 +6110,8 @@ build() {
   return new Container(
     child: new Row(
       children: <Widget>[
-        new Transform(),
-        new ClipRect.rect(),
-        new AspectRatio(),
+        new Text('111'),
+        new Text('222'),
       ],
     ),
   );
@@ -6489,6 +6640,23 @@ main() {
 main() {
   var v = 42;
   print('v: $v');
+}
+''');
+  }
+
+  test_makeFieldFinal_noKeyword() async {
+    String src = '''
+class C {
+  /*LINT*/f = 2;
+}
+''';
+    await findLint(src, LintNames.prefer_final_fields);
+
+    await applyFix(DartFixKind.MAKE_FINAL);
+
+    verifyResult('''
+class C {
+  final f = 2;
 }
 ''');
   }

@@ -883,12 +883,13 @@ class StandardTestSuite extends TestSuite {
     var compilerConfiguration = configuration.compilerConfiguration;
     var sharedOptions = info.optionsFromFile['sharedOptions'] as List<String>;
     var dart2jsOptions = info.optionsFromFile['dart2jsOptions'] as List<String>;
+    var ddcOptions = info.optionsFromFile['ddcOptions'] as List<String>;
 
     var compileTimeArguments = <String>[];
     String tempDir;
     if (compilerConfiguration.hasCompiler) {
       compileTimeArguments = compilerConfiguration.computeCompilerArguments(
-          vmOptions, sharedOptions, dart2jsOptions, args);
+          vmOptions, sharedOptions, dart2jsOptions, ddcOptions, args);
       // Avoid doing this for analyzer.
       var path = info.filePath;
       if (vmOptionsVariant != 0) {
@@ -1460,6 +1461,7 @@ class StandardTestSuite extends TestSuite {
     List<String> dartOptions;
     List<String> sharedOptions;
     List<String> dart2jsOptions;
+    List<String> ddcOptions;
     Map<String, String> environment;
     String packageRoot;
     String packages;
@@ -1489,6 +1491,7 @@ class StandardTestSuite extends TestSuite {
     dartOptions = singleListOfOptions('DartOptions');
     sharedOptions = singleListOfOptions('SharedOptions');
     dart2jsOptions = singleListOfOptions('dart2jsOptions');
+    ddcOptions = singleListOfOptions('dartdevcOptions');
 
     matches = environmentRegExp.allMatches(contents);
     for (var match in matches) {
@@ -1587,6 +1590,7 @@ class StandardTestSuite extends TestSuite {
       "vmOptions": result,
       "sharedOptions": sharedOptions ?? <String>[],
       "dart2jsOptions": dart2jsOptions ?? <String>[],
+      "ddcOptions": ddcOptions ?? <String>[],
       "dartOptions": dartOptions,
       "environment": environment,
       "packageRoot": packageRoot,

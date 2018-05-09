@@ -39,7 +39,7 @@ main() {
     }
     void F11<Q extends C3<Q>>(Q q) {}
     void F12<P extends C3<P>>(P p) {}
-  """), compileMode: CompileMode.kernel, options: [Flags.strongMode]);
+  """), options: [Flags.strongMode]);
 
     testToString(FunctionType type, String expectedToString) {
       Expect.equals(expectedToString, type.toString());

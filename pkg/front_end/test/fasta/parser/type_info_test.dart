@@ -4,6 +4,7 @@
 
 import 'package:front_end/src/fasta/messages.dart';
 import 'package:front_end/src/fasta/parser.dart';
+import 'package:front_end/src/fasta/parser/token_stream_rewriter.dart';
 import 'package:front_end/src/fasta/parser/type_info.dart';
 import 'package:front_end/src/fasta/parser/type_info_impl.dart';
 import 'package:front_end/src/fasta/scanner.dart';
@@ -13,12 +14,13 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(TokenInfoTest);
+    defineReflectiveTests(TypeInfoTest);
+    defineReflectiveTests(TypeParamOrArgInfoTest);
   });
 }
 
 @reflectiveTest
-class TokenInfoTest {
+class TypeInfoTest {
   void test_noType() {
     final Token start = scanString('before ;').tokens;
 
@@ -190,6 +192,7 @@ class TokenInfoTest {
   void test_simpleTypeArgumentsInfo() {
     final Token start = scanString('before C<T> ;').tokens;
     final Token expectedEnd = start.next.next.next.next;
+    expect(expectedEnd.lexeme, '>');
 
     expect(simpleTypeWith1Argument.skipType(start), expectedEnd);
     expect(simpleTypeWith1Argument.couldBeExpression, isFalse);
@@ -205,6 +208,47 @@ class TokenInfoTest {
         'handleType T >',
         'endTypeArguments 1 < >',
         'handleType C ;',
+      ]);
+      expect(listener.errors, isNull);
+    }
+
+    listener = new TypeInfoListener();
+    assertResult(
+        simpleTypeWith1Argument.ensureTypeNotVoid(start, new Parser(listener)));
+
+    listener = new TypeInfoListener();
+    assertResult(
+        simpleTypeWith1Argument.ensureTypeOrVoid(start, new Parser(listener)));
+
+    listener = new TypeInfoListener();
+    assertResult(
+        simpleTypeWith1Argument.parseTypeNotVoid(start, new Parser(listener)));
+
+    listener = new TypeInfoListener();
+    assertResult(
+        simpleTypeWith1Argument.parseType(start, new Parser(listener)));
+  }
+
+  void test_simpleTypeArgumentsInfo2() {
+    final Token start = scanString('before S<C<T>> ;').tokens.next.next;
+    expect(start.lexeme, '<');
+    final Token expectedEnd = start.next.next.next;
+    expect(expectedEnd.next.lexeme, '>>');
+
+    expect(simpleTypeWith1Argument.skipType(start), expectedEnd);
+    expect(simpleTypeWith1Argument.couldBeExpression, isFalse);
+
+    TypeInfoListener listener;
+    assertResult(Token actualEnd) {
+      expect(actualEnd, expectedEnd);
+      expect(listener.calls, [
+        'handleIdentifier C typeReference',
+        'beginTypeArguments <',
+        'handleIdentifier T typeReference',
+        'handleNoTypeArguments >>',
+        'handleType T >>',
+        'endTypeArguments 1 < >>',
+        'handleType C >>',
       ]);
       expect(listener.errors, isNull);
     }
@@ -520,21 +564,23 @@ class TokenInfoTest {
     // TOOD(danrubel): dynamic, do, other keywords, malformed, recovery
     // <T>
 
-    expectComplexInfo('G<int double> g',
-        required: true,
-        tokenAfter: 'g',
-        expectedCalls: [
-          'handleIdentifier G typeReference',
-          'beginTypeArguments <',
-          'handleIdentifier int typeReference',
-          'handleNoTypeArguments double',
-          'handleType int double',
-          'endTypeArguments 1 < >',
-          'handleType G g',
-        ],
-        expectedErrors: [
-          error(codeExpectedToken, 6, 6)
-        ]);
+    // TODO(danrubel): Improve missing comma recovery
+    expectTypeParamOrArg(noTypeParamOrArg, 'G<int double> g');
+    // expectComplexInfo('G<int double> g',
+    //     required: true,
+    //     tokenAfter: 'g',
+    //     expectedCalls: [
+    //       'handleIdentifier G typeReference',
+    //       'beginTypeArguments <',
+    //       'handleIdentifier int typeReference',
+    //       'handleNoTypeArguments double',
+    //       'handleType int double',
+    //       'endTypeArguments 1 < >',
+    //       'handleType G g',
+    //     ],
+    //     expectedErrors: [
+    //       error(codeExpectedToken, 6, 6)
+    //     ]);
 
     expectInfo(noType, 'C<>', required: false);
     expectComplexInfo('C<>', required: true, expectedCalls: [
@@ -542,7 +588,7 @@ class TokenInfoTest {
       'beginTypeArguments <',
       'handleIdentifier  typeReference',
       'handleNoTypeArguments >',
-      'handleType > >',
+      'handleType  >',
       'endTypeArguments 1 < >',
       'handleType C ',
     ], expectedErrors: [
@@ -553,7 +599,7 @@ class TokenInfoTest {
       'beginTypeArguments <',
       'handleIdentifier  typeReference',
       'handleNoTypeArguments >',
-      'handleType > >',
+      'handleType  >',
       'endTypeArguments 1 < >',
       'handleType C f',
     ], expectedErrors: [
@@ -563,6 +609,23 @@ class TokenInfoTest {
     // Statements that should not have a type
     expectInfo(noType, 'C<T ; T>U;', required: false);
     expectInfo(noType, 'C<T && T>U;', required: false);
+  }
+
+  void test_computeType_nested() {
+    expectNestedInfo(simpleType, '<T>');
+    expectNestedInfo(simpleTypeWith1Argument, '<T<S>>');
+    expectNestedComplexInfo('<T<S,R>>');
+    expectNestedComplexInfo('<T<S Function()>>');
+    expectNestedComplexInfo('<T<S Function()>>');
+  }
+
+  void test_computeType_nested_recovery() {
+    expectNestedInfo(noType, '<>');
+    expectNestedInfo(noType, '<3>');
+    expectNestedInfo(noType, '<,T>');
+    expectNestedInfo(simpleType, '<T,>');
+    expectNestedInfo(noType, '<,T<S>>');
+    expectNestedInfo(simpleTypeWith1Argument, '<T<S>,>');
   }
 
   void test_computeType_prefixed() {
@@ -587,6 +650,20 @@ class TokenInfoTest {
     expectInfo(prefixedType, 'C.a set');
     expectInfo(prefixedType, 'C.a operator');
     expectInfo(prefixedType, 'C.a Function');
+  }
+
+  void test_computeType_prefixedComplex() {
+    expectComplexInfo('a < b, c > d', tokenAfter: 'd');
+    expectComplexInfo('a < b, c > d', tokenAfter: 'd');
+
+    expectComplexInfo('a < p.b, c > d', tokenAfter: 'd');
+    expectComplexInfo('a < b, p.c > d', tokenAfter: 'd');
+
+    expectInfo(noType, 'a < p.q.b, c > d', required: false);
+    expectInfo(noType, 'a < b, p.q.c > d', required: false);
+
+    expectInfo(simpleType, 'a < p.q.b, c > d', required: true);
+    expectInfo(simpleType, 'a < b, p.q.c > d', required: true);
   }
 
   void test_computeType_prefixedGFT() {
@@ -752,6 +829,255 @@ class TokenInfoTest {
   }
 }
 
+@reflectiveTest
+class TypeParamOrArgInfoTest {
+  void test_noTypeParamOrArg() {
+    final Token start = scanString('before after').tokens;
+
+    expect(noTypeParamOrArg.skip(start), start);
+  }
+
+  void test_noTypeParamOrArg_parseArguments() {
+    final Token start = scanString('before after').tokens;
+    final TypeInfoListener listener = new TypeInfoListener();
+
+    expect(noTypeParamOrArg.parseArguments(start, new Parser(listener)), start);
+    expect(listener.calls, ['handleNoTypeArguments after']);
+    expect(listener.errors, isNull);
+  }
+
+  void test_simple_skip() {
+    final Token start = scanString('before <T> after').tokens;
+    final Token gt = start.next.next.next;
+    expect(gt.lexeme, '>');
+
+    expect(simpleTypeArgument1.skip(start), gt);
+  }
+
+  void test_simple_skip2() {
+    final Token start = scanString('before <S<T>> after').tokens.next.next;
+    Token t = start.next.next;
+    expect(t.next.lexeme, '>>');
+
+    expect(simpleTypeArgument1.skip(start), t);
+  }
+
+  void test_simple_parseArguments() {
+    final Token start = scanString('before <T> after').tokens;
+    final Token gt = start.next.next.next;
+    expect(gt.lexeme, '>');
+    final TypeInfoListener listener = new TypeInfoListener();
+
+    expect(simpleTypeArgument1.parseArguments(start, new Parser(listener)), gt);
+    expect(listener.calls, [
+      'beginTypeArguments <',
+      'handleIdentifier T typeReference',
+      'handleNoTypeArguments >',
+      'handleType T >',
+      'endTypeArguments 1 < >'
+    ]);
+    expect(listener.errors, isNull);
+  }
+
+  void test_simple_parseArguments2() {
+    final Token start = scanString('before <S<T>> after').tokens.next.next;
+    Token t = start.next.next;
+    expect(t.next.lexeme, '>>');
+    final TypeInfoListener listener = new TypeInfoListener();
+
+    expect(simpleTypeArgument1.parseArguments(start, new Parser(listener)), t);
+    expect(listener.calls, [
+      'beginTypeArguments <',
+      'handleIdentifier T typeReference',
+      'handleNoTypeArguments >>',
+      'handleType T >>',
+      'endTypeArguments 1 < >>'
+    ]);
+    expect(listener.errors, isNull);
+  }
+
+  void test_computeTypeParamOrArg_basic() {
+    expectTypeParamOrArg(noTypeParamOrArg, '');
+    expectTypeParamOrArg(noTypeParamOrArg, 'a');
+    expectTypeParamOrArg(noTypeParamOrArg, 'a b');
+    expectTypeParamOrArg(noTypeParamOrArg, '<');
+    expectTypeParamOrArg(noTypeParamOrArg, '< b');
+    expectTypeParamOrArg(noTypeParamOrArg, '< 3 >');
+  }
+
+  void test_computeTypeParamOrArg_simple() {
+    expectTypeParamOrArg(simpleTypeArgument1, '<T>');
+  }
+
+  void test_computeTypeParamOrArg_simple_nested() {
+    String source = '<C<T>>';
+    Token start = scan(source).next.next;
+    expect(start.lexeme, 'C');
+    Token gtgt = start.next.next.next;
+    expect(gtgt.lexeme, '>>');
+
+    TypeParamOrArgInfo typeVarInfo = computeTypeParamOrArg(start, gtgt);
+    expect(typeVarInfo, simpleTypeArgument1, reason: source);
+  }
+
+  void test_computeTypeVar_complex() {
+    expectComplexTypeParamOrArg('<S,T>', expectedCalls: [
+      'beginTypeArguments <',
+      'handleIdentifier S typeReference',
+      'handleNoTypeArguments ,',
+      'handleType S ,',
+      'handleIdentifier T typeReference',
+      'handleNoTypeArguments >',
+      'handleType T >',
+      'endTypeArguments 2 < >'
+    ]);
+    expectComplexTypeParamOrArg('<S Function()>', expectedCalls: [
+      'beginTypeArguments <',
+      'handleNoTypeVariables (',
+      'beginFunctionType S',
+      'handleIdentifier S typeReference',
+      'handleNoTypeArguments Function',
+      'handleType S Function',
+      'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
+      'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
+      'endFunctionType Function >',
+      'endTypeArguments 1 < >'
+    ]);
+    expectComplexTypeParamOrArg('<void Function()>', expectedCalls: [
+      'beginTypeArguments <',
+      'handleNoTypeVariables (',
+      'beginFunctionType void',
+      'handleVoidKeyword void',
+      'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
+      'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
+      'endFunctionType Function >',
+      'endTypeArguments 1 < >'
+    ]);
+    expectComplexTypeParamOrArg('<S<T>>', expectedCalls: [
+      'beginTypeArguments <',
+      'handleIdentifier S typeReference',
+      'beginTypeArguments <',
+      'handleIdentifier T typeReference',
+      'handleNoTypeArguments >',
+      'handleType T >',
+      'endTypeArguments 1 < >',
+      'handleType S >',
+      'endTypeArguments 1 < >'
+    ]);
+    expectComplexTypeParamOrArg('<S<T>>', splitGtGt: false, expectedCalls: [
+      'beginTypeArguments <',
+      'handleIdentifier S typeReference',
+      'beginTypeArguments <',
+      'handleIdentifier T typeReference',
+      'handleNoTypeArguments >>',
+      'handleType T >>',
+      'endTypeArguments 1 < >>',
+      'handleType S >>',
+      'endTypeArguments 1 < >>'
+    ]);
+    expectComplexTypeParamOrArg('<S<Function()>>', expectedCalls: [
+      'beginTypeArguments <',
+      'handleIdentifier S typeReference',
+      'beginTypeArguments <',
+      'handleNoTypeVariables (',
+      'beginFunctionType Function',
+      'handleNoType <',
+      'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
+      'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
+      'endFunctionType Function >',
+      'endTypeArguments 1 < >',
+      'handleType S >',
+      'endTypeArguments 1 < >'
+    ]);
+    expectComplexTypeParamOrArg('<S<Function()>>',
+        splitGtGt: false,
+        expectedCalls: [
+          'beginTypeArguments <',
+          'handleIdentifier S typeReference',
+          'beginTypeArguments <',
+          'handleNoTypeVariables (',
+          'beginFunctionType Function',
+          'handleNoType <',
+          'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
+          'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
+          'endFunctionType Function >>',
+          'endTypeArguments 1 < >>',
+          'handleType S >>',
+          'endTypeArguments 1 < >>'
+        ]);
+    expectComplexTypeParamOrArg('<S<void Function()>>', expectedCalls: [
+      'beginTypeArguments <',
+      'handleIdentifier S typeReference',
+      'beginTypeArguments <',
+      'handleNoTypeVariables (',
+      'beginFunctionType void', // was 'beginFunctionType Function'
+      'handleVoidKeyword void', // was 'handleNoType <'
+      'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
+      'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
+      'endFunctionType Function >',
+      'endTypeArguments 1 < >',
+      'handleType S >',
+      'endTypeArguments 1 < >'
+    ]);
+    expectComplexTypeParamOrArg('<S<void Function()>>',
+        splitGtGt: false,
+        expectedCalls: [
+          'beginTypeArguments <',
+          'handleIdentifier S typeReference',
+          'beginTypeArguments <',
+          'handleNoTypeVariables (',
+          'beginFunctionType void', // was 'beginFunctionType Function'
+          'handleVoidKeyword void', // was 'handleNoType <'
+          'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
+          'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
+          'endFunctionType Function >>',
+          'endTypeArguments 1 < >>',
+          'handleType S >>',
+          'endTypeArguments 1 < >>'
+        ]);
+  }
+
+  void test_computeTypeVar_complex_recovery() {
+    expectComplexTypeParamOrArg('<@A S,T>', expectedErrors: [
+      error(codeUnexpectedToken, 1, 1)
+    ], expectedCalls: [
+      'beginTypeArguments <',
+      'handleIdentifier S typeReference',
+      'handleNoTypeArguments ,',
+      'handleType S ,',
+      'handleIdentifier T typeReference',
+      'handleNoTypeArguments >',
+      'handleType T >',
+      'endTypeArguments 2 < >'
+    ]);
+    expectComplexTypeParamOrArg('<@A() S,T>', expectedErrors: [
+      error(codeUnexpectedToken, 1, 1)
+    ], expectedCalls: [
+      'beginTypeArguments <',
+      'handleIdentifier S typeReference',
+      'handleNoTypeArguments ,',
+      'handleType S ,',
+      'handleIdentifier T typeReference',
+      'handleNoTypeArguments >',
+      'handleType T >',
+      'endTypeArguments 2 < >'
+    ]);
+    expectComplexTypeParamOrArg('<@A() @B S,T>', expectedErrors: [
+      error(codeUnexpectedToken, 1, 1),
+      error(codeUnexpectedToken, 6, 1),
+    ], expectedCalls: [
+      'beginTypeArguments <',
+      'handleIdentifier S typeReference',
+      'handleNoTypeArguments ,',
+      'handleType S ,',
+      'handleIdentifier T typeReference',
+      'handleNoTypeArguments >',
+      'handleType T >',
+      'endTypeArguments 2 < >'
+    ]);
+  }
+}
+
 void expectInfo(expectedInfo, String source,
     {bool required,
     String expectedAfter,
@@ -782,6 +1108,28 @@ void expectComplexInfo(String source,
       expectedErrors: expectedErrors);
 }
 
+void expectNestedInfo(expectedInfo, String source,
+    {List<String> expectedCalls, List<ExpectedError> expectedErrors}) {
+  expect(source.startsWith('<'), isTrue);
+  Token start = scan(source).next;
+  Token innerEndGroup = start;
+  while (!innerEndGroup.next.isEof) {
+    innerEndGroup = innerEndGroup.next;
+  }
+  if (!optional('>>', innerEndGroup)) {
+    innerEndGroup = null;
+  }
+  compute(expectedInfo, source, start, true, innerEndGroup != null ? '>>' : '>',
+      expectedCalls, expectedErrors,
+      innerEndGroup: innerEndGroup);
+}
+
+void expectNestedComplexInfo(String source,
+    {List<String> expectedCalls, List<ExpectedError> expectedErrors}) {
+  expectNestedInfo(const isInstanceOf<ComplexTypeInfo>(), source,
+      expectedCalls: expectedCalls, expectedErrors: expectedErrors);
+}
+
 void compute(
     expectedInfo,
     String source,
@@ -789,13 +1137,20 @@ void compute(
     bool required,
     String expectedAfter,
     List<String> expectedCalls,
-    List<ExpectedError> expectedErrors) {
-  TypeInfo typeInfo = computeType(start, required);
+    List<ExpectedError> expectedErrors,
+    {Token innerEndGroup}) {
+  int expectedGtGtAndNullEndCount = countGtGtAndNullEnd(start);
+  TypeInfo typeInfo = computeType(start, required, innerEndGroup);
   expect(typeInfo, expectedInfo, reason: source);
+  expect(countGtGtAndNullEnd(start), expectedGtGtAndNullEndCount,
+      reason: 'computeType should not modify the token stream');
+
   if (typeInfo is ComplexTypeInfo) {
     expect(typeInfo.start, start.next, reason: source);
     expect(typeInfo.couldBeExpression, isFalse);
     expectEnd(expectedAfter, typeInfo.skipType(start));
+    expect(countGtGtAndNullEnd(start), expectedGtGtAndNullEndCount,
+        reason: 'TypeInfo.skipType should not modify the token stream');
 
     TypeInfoListener listener;
     assertResult(Token actualEnd) {
@@ -817,7 +1172,80 @@ void compute(
     listener = new TypeInfoListener();
     assertResult(typeInfo.parseType(start, new Parser(listener)));
   } else {
-    assert(expectedErrors == null);
+    expect(expectedErrors, isNull);
+  }
+}
+
+void expectComplexTypeParamOrArg(String source,
+    {bool splitGtGt: true,
+    String tokenAfter,
+    List<String> expectedCalls,
+    List<ExpectedError> expectedErrors}) {
+  expectTypeParamOrArg(const isInstanceOf<ComplexTypeParamOrArgInfo>(), source,
+      splitGtGt: splitGtGt,
+      expectedAfter: tokenAfter,
+      expectedCalls: expectedCalls,
+      expectedErrors: expectedErrors);
+}
+
+void expectTypeParamOrArg(expectedInfo, String source,
+    {bool splitGtGt: true,
+    String expectedAfter,
+    List<String> expectedCalls,
+    List<ExpectedError> expectedErrors}) {
+  Token start = scan(source);
+  computeVar(expectedInfo, source, start, splitGtGt, expectedAfter,
+      expectedCalls, expectedErrors);
+}
+
+void computeVar(
+    expectedInfo,
+    String source,
+    Token start,
+    bool splitGtGt,
+    String expectedAfter,
+    List<String> expectedCalls,
+    List<ExpectedError> expectedErrors) {
+  int expectedGtGtAndNullEndCount = countGtGtAndNullEnd(start);
+  TypeParamOrArgInfo typeVarInfo = computeTypeParamOrArg(start);
+  expect(typeVarInfo, expectedInfo, reason: source);
+  expect(countGtGtAndNullEnd(start), expectedGtGtAndNullEndCount,
+      reason: 'computeTypeParamOrArg should not modify the token stream');
+
+  if (typeVarInfo is ComplexTypeParamOrArgInfo) {
+    expect(typeVarInfo.start, start.next, reason: source);
+    expectEnd(expectedAfter, typeVarInfo.skip(start));
+    expect(countGtGtAndNullEnd(start), expectedGtGtAndNullEndCount,
+        reason: 'TypeParamOrArgInfo.skipType'
+            ' should not modify the token stream');
+
+    TypeInfoListener listener = new TypeInfoListener();
+    Parser parser = new Parser(listener);
+    if (!splitGtGt) {
+      parser.cachedRewriter = new TokenStreamNonRewriter();
+    }
+    Token actualEnd = typeVarInfo.parseArguments(start, parser);
+    expectEnd(expectedAfter, actualEnd);
+    if (!splitGtGt) {
+      expect(countGtGtAndNullEnd(start), expectedGtGtAndNullEndCount,
+          reason: 'TypeParamOrArgInfo.parseArguments'
+              ' should not modify the token stream');
+    }
+
+    if (expectedCalls != null) {
+      // TypeInfoListener listener2 = new TypeInfoListener();
+      // new Parser(listener2).parseTypeArgumentsOpt(start);
+      // print('[');
+      // for (String call in listener2.calls) {
+      //   print("'$call',");
+      // }
+      // print(']');
+
+      expect(listener.calls, expectedCalls, reason: source);
+    }
+    expect(listener.errors, expectedErrors, reason: source);
+  } else {
+    expect(expectedErrors, isNull);
   }
 }
 
@@ -836,6 +1264,18 @@ Token scan(String source) {
     start = start.next;
   }
   return new SyntheticToken(TokenType.EOF, 0)..setNext(start);
+}
+
+int countGtGtAndNullEnd(Token token) {
+  int count = 0;
+  while (!token.isEof) {
+    if ((optional('<', token) && token.endGroup == null) ||
+        optional('>>', token)) {
+      ++count;
+    }
+    token = token.next;
+  }
+  return count;
 }
 
 class TypeInfoListener implements Listener {
@@ -993,4 +1433,16 @@ class ExpectedError {
 
   @override
   String toString() => 'error(${code.name}, $start, $length)';
+}
+
+class TokenStreamNonRewriter implements TokenStreamRewriter {
+  @override
+  Token splitGtGt(BeginToken start) {
+    Token gtgt = start.endGroup;
+    assert(gtgt != null);
+    assert(optional('>>', gtgt));
+    return gtgt;
+  }
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

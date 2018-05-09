@@ -1606,25 +1606,17 @@ main() {
         extraFiles: sources,
         failingTests: '1');
 
-    buildTests(
-        'test_importPrefix_hideCombinator',
-        '''
+    buildTests('test_importPrefix_hideCombinator', '''
 import 'dart:math' as math hide PI;
 main() {
   math.!1
-}''',
-        <String>["1-PI", "1+LN10"],
-        failingTests: '1');
+}''', <String>["1-PI", "1+LN10"]);
 
-    buildTests(
-        'test_importPrefix_showCombinator',
-        '''
+    buildTests('test_importPrefix_showCombinator', '''
 import 'dart:math' as math show PI;
 main() {
   math.!1
-}''',
-        <String>["1+PI", "1-LN10"],
-        failingTests: '1');
+}''', <String>["1+PI", "1-LN10"]);
 
     sources.clear();
     sources["/lib.dart"] = '''

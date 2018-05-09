@@ -7,7 +7,7 @@ class A extends core::Object {
     : super core::Object::•()
     ;
 }
-class C<T extends self::A> extends core::Object {
+class C<T extends self::A = self::A> extends core::Object {
   generic-covariant-impl generic-covariant-interface field self::C::T _field = null;
   synthetic constructor •() → void
     : super core::Object::•()

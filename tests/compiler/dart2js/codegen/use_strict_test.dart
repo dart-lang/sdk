@@ -4,7 +4,6 @@
 
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_new.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:expect/expect.dart';
 import '../memory_compiler.dart';
 
@@ -48,12 +47,10 @@ const MEMORY_SOURCE_FILES = const {
 };
 
 main() {
-  runTest({bool useKernel}) async {
+  runTest() async {
     OutputCollector collector = new OutputCollector();
     await runCompiler(
-        memorySourceFiles: MEMORY_SOURCE_FILES,
-        outputProvider: collector,
-        options: useKernel ? [] : [Flags.useOldFrontend]);
+        memorySourceFiles: MEMORY_SOURCE_FILES, outputProvider: collector);
     String jsOutput = collector.getOutput('', OutputType.js);
 
     // Skip comments.
@@ -70,9 +67,7 @@ main() {
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTest(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTest(useKernel: true);
+    await runTest();
   });
 }

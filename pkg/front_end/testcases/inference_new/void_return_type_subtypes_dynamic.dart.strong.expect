@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 static field void y = self::run<void>(self::printRunning);
-static method run<T extends core::Object>(() → self::run::T f) → self::run::T {
+static method run<T extends core::Object = dynamic>(() → self::run::T f) → self::run::T {
   core::print("running");
   self::run::T t = f.call();
   core::print("done running");

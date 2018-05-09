@@ -400,6 +400,12 @@ abstract class Member implements Element {
   bool get hasFactory => _baseElement.hasFactory;
 
   @override
+  bool get hasIsTest => _baseElement.hasIsTest;
+
+  @override
+  bool get hasIsTestGroup => _baseElement.hasIsTestGroup;
+
+  @override
   bool get hasJS => _baseElement.hasJS;
 
   @override

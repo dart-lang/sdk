@@ -6,4 +6,4 @@ entry_point: "main.dart"
 definitions: []
 position: "main.dart"
 expression: |
-  new Random();
+  new Random()

@@ -38,23 +38,12 @@
       "^tests/compiler/dart2js/kernel/closed_world_test\\.dart",
       "^tests/compiler/dart2js/kernel/visitor_test\\.dart",
       "^tests/compiler/dart2js/memory_compiler\\.dart",
-      "^tests/compiler/dart2js/mirrors/data/mirrors_helper\\.dart",
-      "^tests/compiler/dart2js/mirrors/deferred_mirrors_test\\.dart",
-      "^tests/compiler/dart2js/mirrors/mirrors_used_test\\.dart",
       "^tests/compiler/dart2js/mixin_typevariable_test\\.dart",
       "^tests/compiler/dart2js/model/constant_expression_evaluate_test\\.dart",
       "^tests/compiler/dart2js/model/constant_expression_test\\.dart",
       "^tests/compiler/dart2js/needs_no_such_method_test\\.dart",
       "^tests/compiler/dart2js/no_such_method_enabled_test\\.dart",
       "^tests/compiler/dart2js/output_collector\\.dart",
-      "^tests/compiler/dart2js/old_frontend/data/one_line_dart_program\\.dart",
-      "^tests/compiler/dart2js/old_frontend/message_kind_helper\\.dart",
-      "^tests/compiler/dart2js/old_frontend/metadata_test\\.dart",
-      "^tests/compiler/dart2js/old_frontend/patch_test\\.dart",
-      "^tests/compiler/dart2js/old_frontend/reexport_handled_test\\.dart",
-      "^tests/compiler/dart2js/old_frontend/resolution_test\\.dart",
-      "^tests/compiler/dart2js/quarantined/http_launch_data/http_launch_main_package\\.dart",
-      "^tests/compiler/dart2js/quarantined/http_test\\.dart",
       "^tests/compiler/dart2js/rti/data/future_or_future_or_generic_strong\\.dart",
       "^tests/compiler/dart2js/rti/data/future_or_future_or_strong\\.dart",
       "^tests/compiler/dart2js/rti/data/future_or_generic2_strong\\.dart",
@@ -78,9 +67,7 @@
       "^tests/compiler/dart2js/token_naming_test\\.dart",
       "^tests/compiler/dart2js/type_representation_test\\.dart",
       "^tests/compiler/dart2js/type_variable_occurrence_test\\.dart",
-      "^tests/compiler/dart2js/unused_empty_map_test\\.dart",
-
-      "^tests/compiler/dart2js/path with spaces/.*"
+      "^tests/compiler/dart2js/unused_empty_map_test\\.dart"
     ]
   }
 }

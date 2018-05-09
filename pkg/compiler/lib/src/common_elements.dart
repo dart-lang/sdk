@@ -576,8 +576,10 @@ class CommonElements {
   ClassEntity get controllerStream =>
       _findAsyncHelperClass("_ControllerStream");
 
+  ClassEntity get streamIterator => _findAsyncHelperClass("StreamIterator");
+
   ConstructorEntity get streamIteratorConstructor =>
-      _env.lookupConstructor(_findAsyncHelperClass("StreamIterator"), "");
+      _env.lookupConstructor(streamIterator, "");
 
   FunctionEntity _syncStarIterableFactory;
   FunctionEntity get syncStarIterableFactory => _syncStarIterableFactory ??=

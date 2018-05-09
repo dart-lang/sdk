@@ -80,6 +80,7 @@ CyclicClassHierarchy/analyzerCode: Fail
 CyclicClassHierarchy/example: Fail
 CyclicTypedef/analyzerCode: Fail
 CyclicTypedef/example: Fail
+DeclaredMemberConflictsWithInheritedMember/analyzerCode: Fail
 DeferredAfterPrefix/example: Fail
 DeferredPrefixDuplicated/analyzerCode: Fail
 DeferredPrefixDuplicated/example: Fail
@@ -118,6 +119,8 @@ ExpectedClassBody/example: Fail
 ExpectedClassMember/example: Fail
 ExpectedDeclaration/example: Fail
 ExpectedFunctionBody/example: Fail
+ExpectedOneExpression/analyzerCode: Fail
+ExpectedOneExpression/example: Fail
 ExpectedOpenParens/analyzerCode: Fail
 ExpectedOpenParens/example: Fail
 ExpectedStatement/statement: Fail
@@ -189,6 +192,7 @@ ImplicitCallOfNonMethod/example: Fail
 ImportAfterPart/script1: Fail
 ImportHidesImport/analyzerCode: Fail
 ImportHidesImport/example: Fail
+InheritedMembersConflict/analyzerCode: Fail
 InputFileNotFound/analyzerCode: Fail
 InputFileNotFound/example: Fail
 IntegerLiteralIsOutOfRange/example: Fail
@@ -411,4 +415,3 @@ UnterminatedToken/analyzerCode: Fail
 UnterminatedToken/example: Fail
 YieldAsIdentifier/example: Fail
 YieldNotGenerator/example: Fail
-

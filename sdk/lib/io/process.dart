@@ -137,19 +137,39 @@ class ProcessInfo {
 /**
  * Modes for running a new process.
  */
-enum ProcessStartMode {
+class ProcessStartMode {
   /// Normal child process.
-  NORMAL,
+  static const normal = const ProcessStartMode._internal(0);
+  @Deprecated("Use normal instead")
+  static const NORMAL = normal;
 
   /// Stdio handles are inherited by the child process.
-  INHERIT_STDIO,
+  static const inheritStdio = const ProcessStartMode._internal(1);
+  @Deprecated("Use inheritStdio instead")
+  static const INHERIT_STDIO = inheritStdio;
 
   /// Detached child process with no open communication channel.
-  DETACHED,
+  static const detached = const ProcessStartMode._internal(2);
+  @Deprecated("Use detached instead")
+  static const DETACHED = detached;
 
   /// Detached child process with stdin, stdout and stderr still open
   /// for communication with the child.
-  DETACHED_WITH_STDIO,
+  static const detachedWithStdio = const ProcessStartMode._internal(3);
+  @Deprecated("Use detachedWithStdio instead")
+  static const DETACHED_WITH_STDIO = detachedWithStdio;
+
+  List<ProcessStartMode> get values => const <ProcessStartMode>[
+        normal,
+        inheritStdio,
+        detached,
+        detachedWithStdio
+      ];
+  String toString() =>
+      const ["normal", "inheritStdio", "detached", "detachedWithStdio"][_mode];
+
+  final int _mode;
+  const ProcessStartMode._internal(this._mode);
 }
 
 /**
@@ -311,25 +331,25 @@ abstract class Process {
    *       stderr.addStream(process.stderr);
    *     });
    *
-   * If [mode] is [ProcessStartMode.NORMAL] (the default) a child
+   * If [mode] is [ProcessStartMode.normal] (the default) a child
    * process will be started with `stdin`, `stdout` and `stderr`
    * connected.
    *
-   * If `mode` is [ProcessStartMode.DETACHED] a detached process will
+   * If `mode` is [ProcessStartMode.detached] a detached process will
    * be created. A detached process has no connection to its parent,
    * and can keep running on its own when the parent dies. The only
    * information available from a detached process is its `pid`. There
    * is no connection to its `stdin`, `stdout` or `stderr`, nor will
    * the process' exit code become available when it terminates.
    *
-   * If `mode` is [ProcessStartMode.DETACHED_WITH_STDIO] a detached
+   * If `mode` is [ProcessStartMode.detachedWithStdio] a detached
    * process will be created where the `stdin`, `stdout` and `stderr`
    * are connected. The creator can communicate with the child through
    * these. The detached process will keep running even if these
    * communication channels are closed. The process' exit code will
    * not become available when it terminated.
    *
-   * The default value for `mode` is `ProcessStartMode.NORMAL`.
+   * The default value for `mode` is `ProcessStartMode.normal`.
    */
   external static Future<Process> start(
       String executable, List<String> arguments,
@@ -337,7 +357,7 @@ abstract class Process {
       Map<String, String> environment,
       bool includeParentEnvironment: true,
       bool runInShell: false,
-      ProcessStartMode mode: ProcessStartMode.NORMAL});
+      ProcessStartMode mode: ProcessStartMode.normal});
 
   /**
    * Starts a process and runs it non-interactively to completion. The
@@ -364,7 +384,7 @@ abstract class Process {
    *
    * The encoding used for decoding `stdout` and `stderr` into text is
    * controlled through [stdoutEncoding] and [stderrEncoding]. The
-   * default encoding is [SYSTEM_ENCODING]. If `null` is used no
+   * default encoding is [systemEncoding]. If `null` is used no
    * decoding will happen and the [ProcessResult] will hold binary
    * data.
    *
@@ -386,8 +406,8 @@ abstract class Process {
       Map<String, String> environment,
       bool includeParentEnvironment: true,
       bool runInShell: false,
-      Encoding stdoutEncoding: SYSTEM_ENCODING,
-      Encoding stderrEncoding: SYSTEM_ENCODING});
+      Encoding stdoutEncoding: systemEncoding,
+      Encoding stderrEncoding: systemEncoding});
 
   /**
    * Starts a process and runs it to completion. This is a synchronous
@@ -404,15 +424,15 @@ abstract class Process {
       Map<String, String> environment,
       bool includeParentEnvironment: true,
       bool runInShell: false,
-      Encoding stdoutEncoding: SYSTEM_ENCODING,
-      Encoding stderrEncoding: SYSTEM_ENCODING});
+      Encoding stdoutEncoding: systemEncoding,
+      Encoding stderrEncoding: systemEncoding});
 
   /**
    * Kills the process with id [pid].
    *
    * Where possible, sends the [signal] to the process with id
    * `pid`. This includes Linux and OS X. The default signal is
-   * [ProcessSignal.SIGTERM] which will normally terminate the
+   * [ProcessSignal.sigterm] which will normally terminate the
    * process.
    *
    * On platforms without signal support, including Windows, the call
@@ -424,7 +444,7 @@ abstract class Process {
    * that the process is already dead.
    */
   external static bool killPid(int pid,
-      [ProcessSignal signal = ProcessSignal.SIGTERM]);
+      [ProcessSignal signal = ProcessSignal.sigterm]);
 
   /**
    * Returns the standard output stream of the process as a [:Stream:].
@@ -450,7 +470,7 @@ abstract class Process {
    * Kills the process.
    *
    * Where possible, sends the [signal] to the process. This includes
-   * Linux and OS X. The default signal is [ProcessSignal.SIGTERM]
+   * Linux and OS X. The default signal is [ProcessSignal.sigterm]
    * which will normally terminate the process.
    *
    * On platforms without signal support, including Windows, the call
@@ -461,7 +481,7 @@ abstract class Process {
    * process. Otherwise the signal could not be sent, usually meaning
    * that the process is already dead.
    */
-  bool kill([ProcessSignal signal = ProcessSignal.SIGTERM]);
+  bool kill([ProcessSignal signal = ProcessSignal.sigterm]);
 }
 
 /**
@@ -510,35 +530,94 @@ class ProcessResult {
  * information.
  */
 class ProcessSignal {
-  static const ProcessSignal SIGHUP = const ProcessSignal._(1, "SIGHUP");
-  static const ProcessSignal SIGINT = const ProcessSignal._(2, "SIGINT");
-  static const ProcessSignal SIGQUIT = const ProcessSignal._(3, "SIGQUIT");
-  static const ProcessSignal SIGILL = const ProcessSignal._(4, "SIGILL");
-  static const ProcessSignal SIGTRAP = const ProcessSignal._(5, "SIGTRAP");
-  static const ProcessSignal SIGABRT = const ProcessSignal._(6, "SIGABRT");
-  static const ProcessSignal SIGBUS = const ProcessSignal._(7, "SIGBUS");
-  static const ProcessSignal SIGFPE = const ProcessSignal._(8, "SIGFPE");
-  static const ProcessSignal SIGKILL = const ProcessSignal._(9, "SIGKILL");
-  static const ProcessSignal SIGUSR1 = const ProcessSignal._(10, "SIGUSR1");
-  static const ProcessSignal SIGSEGV = const ProcessSignal._(11, "SIGSEGV");
-  static const ProcessSignal SIGUSR2 = const ProcessSignal._(12, "SIGUSR2");
-  static const ProcessSignal SIGPIPE = const ProcessSignal._(13, "SIGPIPE");
-  static const ProcessSignal SIGALRM = const ProcessSignal._(14, "SIGALRM");
-  static const ProcessSignal SIGTERM = const ProcessSignal._(15, "SIGTERM");
-  static const ProcessSignal SIGCHLD = const ProcessSignal._(17, "SIGCHLD");
-  static const ProcessSignal SIGCONT = const ProcessSignal._(18, "SIGCONT");
-  static const ProcessSignal SIGSTOP = const ProcessSignal._(19, "SIGSTOP");
-  static const ProcessSignal SIGTSTP = const ProcessSignal._(20, "SIGTSTP");
-  static const ProcessSignal SIGTTIN = const ProcessSignal._(21, "SIGTTIN");
-  static const ProcessSignal SIGTTOU = const ProcessSignal._(22, "SIGTTOU");
-  static const ProcessSignal SIGURG = const ProcessSignal._(23, "SIGURG");
-  static const ProcessSignal SIGXCPU = const ProcessSignal._(24, "SIGXCPU");
-  static const ProcessSignal SIGXFSZ = const ProcessSignal._(25, "SIGXFSZ");
-  static const ProcessSignal SIGVTALRM = const ProcessSignal._(26, "SIGVTALRM");
-  static const ProcessSignal SIGPROF = const ProcessSignal._(27, "SIGPROF");
-  static const ProcessSignal SIGWINCH = const ProcessSignal._(28, "SIGWINCH");
-  static const ProcessSignal SIGPOLL = const ProcessSignal._(29, "SIGPOLL");
-  static const ProcessSignal SIGSYS = const ProcessSignal._(31, "SIGSYS");
+  static const ProcessSignal sighup = const ProcessSignal._(1, "SIGHUP");
+  static const ProcessSignal sigint = const ProcessSignal._(2, "SIGINT");
+  static const ProcessSignal sigquit = const ProcessSignal._(3, "SIGQUIT");
+  static const ProcessSignal sigill = const ProcessSignal._(4, "SIGILL");
+  static const ProcessSignal sigtrap = const ProcessSignal._(5, "SIGTRAP");
+  static const ProcessSignal sigabrt = const ProcessSignal._(6, "SIGABRT");
+  static const ProcessSignal sigbus = const ProcessSignal._(7, "SIGBUS");
+  static const ProcessSignal sigfpe = const ProcessSignal._(8, "SIGFPE");
+  static const ProcessSignal sigkill = const ProcessSignal._(9, "SIGKILL");
+  static const ProcessSignal sigusr1 = const ProcessSignal._(10, "SIGUSR1");
+  static const ProcessSignal sigsegv = const ProcessSignal._(11, "SIGSEGV");
+  static const ProcessSignal sigusr2 = const ProcessSignal._(12, "SIGUSR2");
+  static const ProcessSignal sigpipe = const ProcessSignal._(13, "SIGPIPE");
+  static const ProcessSignal sigalrm = const ProcessSignal._(14, "SIGALRM");
+  static const ProcessSignal sigterm = const ProcessSignal._(15, "SIGTERM");
+  static const ProcessSignal sigchld = const ProcessSignal._(17, "SIGCHLD");
+  static const ProcessSignal sigcont = const ProcessSignal._(18, "SIGCONT");
+  static const ProcessSignal sigstop = const ProcessSignal._(19, "SIGSTOP");
+  static const ProcessSignal sigtstp = const ProcessSignal._(20, "SIGTSTP");
+  static const ProcessSignal sigttin = const ProcessSignal._(21, "SIGTTIN");
+  static const ProcessSignal sigttou = const ProcessSignal._(22, "SIGTTOU");
+  static const ProcessSignal sigurg = const ProcessSignal._(23, "SIGURG");
+  static const ProcessSignal sigxcpu = const ProcessSignal._(24, "SIGXCPU");
+  static const ProcessSignal sigxfsz = const ProcessSignal._(25, "SIGXFSZ");
+  static const ProcessSignal sigvtalrm = const ProcessSignal._(26, "SIGVTALRM");
+  static const ProcessSignal sigprof = const ProcessSignal._(27, "SIGPROF");
+  static const ProcessSignal sigwinch = const ProcessSignal._(28, "SIGWINCH");
+  static const ProcessSignal sigpoll = const ProcessSignal._(29, "SIGPOLL");
+  static const ProcessSignal sigsys = const ProcessSignal._(31, "SIGSYS");
+
+  @Deprecated("Use sighup instead")
+  static const ProcessSignal SIGHUP = sighup;
+  @Deprecated("Use sigint instead")
+  static const ProcessSignal SIGINT = sigint;
+  @Deprecated("Use sigquit instead")
+  static const ProcessSignal SIGQUIT = sigquit;
+  @Deprecated("Use sigill instead")
+  static const ProcessSignal SIGILL = sigill;
+  @Deprecated("Use sigtrap instead")
+  static const ProcessSignal SIGTRAP = sigtrap;
+  @Deprecated("Use sigabrt instead")
+  static const ProcessSignal SIGABRT = sigabrt;
+  @Deprecated("Use sigbus instead")
+  static const ProcessSignal SIGBUS = sigbus;
+  @Deprecated("Use sigfpe instead")
+  static const ProcessSignal SIGFPE = sigfpe;
+  @Deprecated("Use sigkill instead")
+  static const ProcessSignal SIGKILL = sigkill;
+  @Deprecated("Use sigusr1 instead")
+  static const ProcessSignal SIGUSR1 = sigusr1;
+  @Deprecated("Use sigsegv instead")
+  static const ProcessSignal SIGSEGV = sigsegv;
+  @Deprecated("Use sigusr2 instead")
+  static const ProcessSignal SIGUSR2 = sigusr2;
+  @Deprecated("Use sigpipe instead")
+  static const ProcessSignal SIGPIPE = sigpipe;
+  @Deprecated("Use sigalrm instead")
+  static const ProcessSignal SIGALRM = sigalrm;
+  @Deprecated("Use sigterm instead")
+  static const ProcessSignal SIGTERM = sigterm;
+  @Deprecated("Use sigchld instead")
+  static const ProcessSignal SIGCHLD = sigchld;
+  @Deprecated("Use sigcont instead")
+  static const ProcessSignal SIGCONT = sigcont;
+  @Deprecated("Use sigstop instead")
+  static const ProcessSignal SIGSTOP = sigstop;
+  @Deprecated("Use sigtstp instead")
+  static const ProcessSignal SIGTSTP = sigtstp;
+  @Deprecated("Use sigttin instead")
+  static const ProcessSignal SIGTTIN = sigttin;
+  @Deprecated("Use sigttou instead")
+  static const ProcessSignal SIGTTOU = sigttou;
+  @Deprecated("Use sigurg instead")
+  static const ProcessSignal SIGURG = sigurg;
+  @Deprecated("Use sigxcpu instead")
+  static const ProcessSignal SIGXCPU = sigxcpu;
+  @Deprecated("Use sigxfsz instead")
+  static const ProcessSignal SIGXFSZ = sigxfsz;
+  @Deprecated("Use sigvtalrm instead")
+  static const ProcessSignal SIGVTALRM = sigvtalrm;
+  @Deprecated("Use sigprof instead")
+  static const ProcessSignal SIGPROF = sigprof;
+  @Deprecated("Use sigwinch instead")
+  static const ProcessSignal SIGWINCH = sigwinch;
+  @Deprecated("Use sigpoll instead")
+  static const ProcessSignal SIGPOLL = sigpoll;
+  @Deprecated("Use sigsys instead")
+  static const ProcessSignal SIGSYS = sigsys;
 
   final int _signalNumber;
   final String _name;
@@ -552,12 +631,12 @@ class ProcessSignal {
    *
    * The following [ProcessSignal]s can be listened to:
    *
-   *   * [ProcessSignal.SIGHUP].
-   *   * [ProcessSignal.SIGINT]. Signal sent by e.g. CTRL-C.
-   *   * [ProcessSignal.SIGTERM]. Not available on Windows.
-   *   * [ProcessSignal.SIGUSR1]. Not available on Windows.
-   *   * [ProcessSignal.SIGUSR2]. Not available on Windows.
-   *   * [ProcessSignal.SIGWINCH]. Not available on Windows.
+   *   * [ProcessSignal.sighup].
+   *   * [ProcessSignal.sigint]. Signal sent by e.g. CTRL-C.
+   *   * [ProcessSignal.sigterm]. Not available on Windows.
+   *   * [ProcessSignal.sigusr1]. Not available on Windows.
+   *   * [ProcessSignal.sigusr2]. Not available on Windows.
+   *   * [ProcessSignal.sigwinch]. Not available on Windows.
    *
    * Other signals are disallowed, as they may be used by the VM.
    *

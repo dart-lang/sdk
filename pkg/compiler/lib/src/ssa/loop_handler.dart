@@ -65,8 +65,8 @@ abstract class LoopHandler<T> {
     if (startBlock == null) startBlock = conditionBlock;
 
     HInstruction conditionInstruction = condition();
-    HBasicBlock conditionEndBlock =
-        builder.close(new HLoopBranch(conditionInstruction));
+    HBasicBlock conditionEndBlock = builder.close(
+        new HLoopBranch(builder.abstractValueDomain, conditionInstruction));
     SubExpression conditionExpression =
         new SubExpression(conditionBlock, conditionEndBlock);
 
@@ -85,7 +85,8 @@ abstract class LoopHandler<T> {
 
     SubGraph bodyGraph = new SubGraph(beginBodyBlock, builder.lastOpenedBlock);
     HBasicBlock bodyBlock = builder.current;
-    if (builder.current != null) builder.close(new HGoto());
+    if (builder.current != null)
+      builder.close(new HGoto(builder.abstractValueDomain));
 
     SubExpression updateGraph;
 
@@ -133,7 +134,8 @@ abstract class LoopHandler<T> {
 
       update();
 
-      HBasicBlock updateEndBlock = builder.close(new HGoto());
+      HBasicBlock updateEndBlock =
+          builder.close(new HGoto(builder.abstractValueDomain));
       // The back-edge completing the cycle.
       updateEndBlock.addSuccessor(conditionBlock);
       updateGraph = new SubExpression(updateBlock, updateEndBlock);
@@ -141,7 +143,7 @@ abstract class LoopHandler<T> {
       // Avoid a critical edge from the condition to the loop-exit body.
       HBasicBlock conditionExitBlock = builder.addNewBlock();
       builder.open(conditionExitBlock);
-      builder.close(new HGoto());
+      builder.close(new HGoto(builder.abstractValueDomain));
       conditionEndBlock.addSuccessor(conditionExitBlock);
 
       endLoop(conditionBlock, conditionExitBlock, jumpHandler, savedLocals);
@@ -172,7 +174,7 @@ abstract class LoopHandler<T> {
       // label to the if.
       HBasicBlock elseBlock = builder.addNewBlock();
       builder.open(elseBlock);
-      builder.close(new HGoto());
+      builder.close(new HGoto(builder.abstractValueDomain));
       // Pass the elseBlock as the branchBlock, because that's the block we go
       // to just before leaving the 'loop'.
       endLoop(conditionBlock, elseBlock, jumpHandler, savedLocals);
@@ -184,7 +186,8 @@ abstract class LoopHandler<T> {
       // Remove the [HLoopBranch] instruction and replace it with
       // [HIf].
       HInstruction condition = conditionEndBlock.last.inputs[0];
-      conditionEndBlock.addAtExit(new HIf(condition));
+      conditionEndBlock
+          .addAtExit(new HIf(builder.abstractValueDomain, condition));
       conditionEndBlock.addSuccessor(elseBlock);
       conditionEndBlock.remove(conditionEndBlock.last);
       HIfBlockInformation info = new HIfBlockInformation(
@@ -210,7 +213,8 @@ abstract class LoopHandler<T> {
 
         jumpHandler.forEachBreak((HBreak breakInstruction, _) {
           HBasicBlock block = breakInstruction.block;
-          block.addAtExit(new HBreak.toLabel(label, sourceInformation));
+          block.addAtExit(new HBreak.toLabel(
+              builder.abstractValueDomain, label, sourceInformation));
           block.remove(breakInstruction);
         });
       }
@@ -224,7 +228,8 @@ abstract class LoopHandler<T> {
   /// Also notifies the locals handler that we're entering a loop.
   JumpHandler beginLoopHeader(T node, JumpTarget jumpTarget) {
     assert(!builder.isAborted());
-    HBasicBlock previousBlock = builder.close(new HGoto());
+    HBasicBlock previousBlock =
+        builder.close(new HGoto(builder.abstractValueDomain));
 
     JumpHandler jumpHandler =
         createJumpHandler(node, jumpTarget, isLoopJump: true);

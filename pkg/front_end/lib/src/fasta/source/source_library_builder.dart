@@ -109,9 +109,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   bool canAddImplementationBuilders = false;
 
-  SourceLibraryBuilder(SourceLoader loader, Uri fileUri)
+  SourceLibraryBuilder(SourceLoader loader, Uri fileUri, Scope scope)
       : this.fromScopes(loader, fileUri, new DeclarationBuilder<T>.library(),
-            new Scope.top());
+            scope ?? new Scope.top());
 
   SourceLibraryBuilder.fromScopes(
       this.loader, this.fileUri, this.libraryDeclaration, this.importScope)
@@ -652,7 +652,18 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   }
 
   void addImportsToScope() {
-    super.addSpecificImportsToScope(imports);
+    bool explicitCoreImport = this == loader.coreLibrary;
+    for (Import import in imports) {
+      if (import.imported == loader.coreLibrary) {
+        explicitCoreImport = true;
+      }
+      import.finalizeImports(this);
+    }
+    if (!explicitCoreImport) {
+      loader.coreLibrary.exportScope.forEach((String name, Builder member) {
+        addToScope(name, member, -1, true);
+      });
+    }
   }
 
   @override
@@ -678,6 +689,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       t.resolveIn(scope);
       if (loader.target.strongMode) {
         t.checkType();
+      } else {
+        t.normalizeType();
       }
     }
     types.clear();

@@ -2,8 +2,8 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-typedef F<T extends core::Object> = (T) → void;
-class C<T extends core::Object> extends core::Object {
+typedef F<T extends core::Object = dynamic> = (T) → void;
+class C<T extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → void
     ;
   method f1() → (self::C::T) → void

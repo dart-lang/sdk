@@ -16,7 +16,6 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show SourceChange, SourceEdit;
@@ -342,9 +341,7 @@ int getExpressionPrecedence(AstNode node) {
  * Returns the namespace of the given [ImportElement].
  */
 Map<String, Element> getImportNamespace(ImportElement imp) {
-  NamespaceBuilder builder = new NamespaceBuilder();
-  Namespace namespace = builder.createImportNamespaceForDirective(imp);
-  return namespace.definedNames;
+  return imp.namespace.definedNames;
 }
 
 /**

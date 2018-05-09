@@ -397,8 +397,8 @@ class ConstantArgDesc extends ConstantPoolEntry {
       'ArgDesc num-args $numArguments, num-type-args $numTypeArgs, names $argNames';
 
   @override
-  int get hashCode =>
-      (numArguments * 31 + numTypeArgs) * 31 + listHashCode(argNames);
+  int get hashCode => _combineHashes(
+      _combineHashes(numArguments, numTypeArgs), listHashCode(argNames));
 
   @override
   bool operator ==(other) =>
@@ -770,9 +770,9 @@ class ConstantInstance extends ConstantPoolEntry {
               new MapEntry(fieldRef.asField.name.name, valueIndex))}';
 
   @override
-  int get hashCode =>
-      (classNode.hashCode * 31 + _typeArgumentsConstantIndex) * 31 +
-      mapHashCode(_fieldValues);
+  int get hashCode => _combineHashes(
+      _combineHashes(classNode.hashCode, _typeArgumentsConstantIndex),
+      mapHashCode(_fieldValues));
 
   @override
   bool operator ==(other) =>
@@ -844,7 +844,7 @@ class ConstantTypeArgumentsForInstanceAllocation extends ConstantPoolEntry {
 
   @override
   int get hashCode =>
-      instantiatingClass.hashCode * 31 + _typeArgumentsConstantIndex;
+      _combineHashes(instantiatingClass.hashCode, _typeArgumentsConstantIndex);
 
   @override
   bool operator ==(other) =>
@@ -893,3 +893,6 @@ class ConstantPool {
     return sb.toString();
   }
 }
+
+int _combineHashes(int hash1, int hash2) =>
+    (((hash1 * 31) & 0x3fffffff) + hash2) & 0x3fffffff;

@@ -14,6 +14,6 @@ abstract class B extends core::Object {
     ;
   abstract get x() → core::int;
 }
-static method f<T extends core::Object>() → self::f::T
+static method f<T extends core::Object = dynamic>() → self::f::T
   return null;
 static method main() → dynamic {}

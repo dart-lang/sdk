@@ -34,7 +34,9 @@ static RawInstance* CreateMirror(const String& mirror_class_name,
 
   const Object& result = Object::Handle(DartLibraryCalls::InstanceCreate(
       mirrors_lib, mirror_class_name, constructor_name, constructor_arguments));
-  ASSERT(!result.IsError());
+  if (result.IsError()) {
+    Exceptions::PropagateError(Error::Cast(result));
+  }
   return Instance::Cast(result).raw();
 }
 

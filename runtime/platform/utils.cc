@@ -78,8 +78,10 @@ uint32_t Utils::StringHash(const char* data, int length) {
   switch (size) {
     case 3:
       hash ^= cursor[2] << 16;
+      /* Falls through. */
     case 2:
       hash ^= cursor[1] << 8;
+      /* Falls through. */
     case 1:
       hash ^= cursor[0];
       hash *= M;

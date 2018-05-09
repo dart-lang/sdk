@@ -11,12 +11,7 @@ import "dart:convert" show JsonEncoder;
 import "dart:io" show File, IOSink;
 
 import "package:kernel/ast.dart"
-    show
-        Procedure,
-        Component,
-        DynamicType,
-        DartType,
-        TypeParameter;
+    show Procedure, Component, DynamicType, DartType, TypeParameter;
 
 import "package:testing/testing.dart"
     show Chain, ChainContext, Result, Step, TestDescription, runMe;
@@ -41,7 +36,7 @@ import 'package:front_end/src/base/processed_options.dart'
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/fasta/incremental_compiler.dart'
-    show IncrementalCompiler, IncrementalCompilationPosition;
+    show IncrementalCompiler;
 
 import 'package:kernel/text/ast_to_text.dart' show Printer;
 
@@ -326,13 +321,13 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
       }
 
       for (var compiler in [sourceCompiler, dillCompiler]) {
-        IncrementalCompilationPosition enclosingNode =
-            compiler.resolveCompilationPosition(test.library, test.className);
-        Procedure compiledProcedure;
-        if (enclosingNode != null) {
-          compiledProcedure = await compiler.compileExpression(test.expression,
-              definitions, typeParams, enclosingNode, test.isStaticMethod);
-        }
+        Procedure compiledProcedure = await compiler.compileExpression(
+            test.expression,
+            definitions,
+            typeParams,
+            test.library,
+            test.className,
+            test.isStaticMethod);
         var errors = context.takeErrors();
         test.results.add(new CompilationResult(compiledProcedure, errors));
       }

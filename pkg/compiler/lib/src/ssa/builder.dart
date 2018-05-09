@@ -480,7 +480,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       // Don't inline operator== methods if the parameter can be null.
       if (function.name == '==') {
         if (function.enclosingClass != commonElements.objectClass &&
-            providedArguments[1].canBeNull()) {
+            providedArguments[1].canBeNull(abstractValueDomain)) {
           return false;
         }
       }
@@ -727,8 +727,8 @@ class SsaAstGraphBuilder extends ast.Visitor
       push(invokeJsInteropFunction(functionElement, parameters.values.toList(),
           sourceInformationBuilder.buildGeneric(function)));
       var value = pop();
-      closeAndGotoExit(new HReturn(
-          value, sourceInformationBuilder.buildReturn(functionElement.node)));
+      closeAndGotoExit(new HReturn(abstractValueDomain, value,
+          sourceInformationBuilder.buildReturn(functionElement.node)));
       return closeFunction();
     }
     assert(!function.modifiers.isExternal, failedAt(functionElement));
@@ -747,6 +747,7 @@ class SsaAstGraphBuilder extends ast.Visitor
             },
             visitThen: () {
               closeAndGotoExit(new HReturn(
+                  abstractValueDomain,
                   graph.addConstantBool(false, closedWorld),
                   sourceInformationBuilder
                       .buildImplicitReturn(functionElement)));
@@ -756,8 +757,8 @@ class SsaAstGraphBuilder extends ast.Visitor
       }
     }
     if (const bool.fromEnvironment('unreachable-throw')) {
-      var emptyParameters =
-          parameters.values.where((p) => p.instructionType.isEmpty);
+      var emptyParameters = parameters.values
+          .where((p) => abstractValueDomain.isEmpty(p.instructionType));
       if (emptyParameters.length > 0) {
         addComment('${emptyParameters} inferred as [empty]');
         pushInvokeStatic(
@@ -796,7 +797,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     graph.entry.addBefore(graph.entry.last, parameter);
     HInstruction value = typeBuilder.potentiallyCheckOrTrustTypeOfParameter(
         parameter, field.type);
-    add(new HFieldSet(field, thisInstruction, value));
+    add(new HFieldSet(abstractValueDomain, field, thisInstruction, value));
     return closeFunction();
   }
 
@@ -827,8 +828,8 @@ class SsaAstGraphBuilder extends ast.Visitor
       }
     }
 
-    closeAndGotoExit(new HReturn(
-        value, sourceInformationBuilder.buildReturn(sourceInfoNode)));
+    closeAndGotoExit(new HReturn(abstractValueDomain, value,
+        sourceInformationBuilder.buildReturn(sourceInfoNode)));
     return closeFunction();
   }
 
@@ -1358,7 +1359,8 @@ class SsaAstGraphBuilder extends ast.Visitor
       add(new HFieldGet(null, newObject, commonMasks.dynamicType,
           isAssignable: false));
       for (int i = 0; i < fields.length; i++) {
-        add(new HFieldSet(fields[i], newObject, constructorArguments[i]));
+        add(new HFieldSet(abstractValueDomain, fields[i], newObject,
+            constructorArguments[i]));
       }
     }
     removeInlinedInstantiation(type);
@@ -1431,7 +1433,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       }
     }
     if (inliningStack.isEmpty) {
-      closeAndGotoExit(new HReturn(newObject,
+      closeAndGotoExit(new HReturn(abstractValueDomain, newObject,
           sourceInformationBuilder.buildImplicitReturn(functionElement)));
       return closeFunction();
     } else {
@@ -1466,7 +1468,7 @@ class SsaAstGraphBuilder extends ast.Visitor
         parameters,
         sourceInformationBuilder.buildDeclaration(element),
         isGenerativeConstructorBody: element.isGenerativeConstructorBody);
-    close(new HGoto()).addSuccessor(block);
+    close(new HGoto(abstractValueDomain)).addSuccessor(block);
 
     open(block);
 
@@ -1598,8 +1600,8 @@ class SsaAstGraphBuilder extends ast.Visitor
 
   HGraph closeFunction() {
     // TODO(kasperl): Make this goto an implicit return.
-    if (!isAborted()) closeAndGotoExit(new HGoto());
-    graph.finalize();
+    if (!isAborted()) closeAndGotoExit(new HGoto(abstractValueDomain));
+    graph.finalize(abstractValueDomain);
     return graph;
   }
 
@@ -1715,8 +1717,8 @@ class SsaAstGraphBuilder extends ast.Visitor
     if (throwExpression != null && inliningStack.isEmpty) {
       visitThrowExpression(throwExpression.expression);
       handleInTryStatement();
-      closeAndGotoExit(
-          new HThrow(pop(), sourceInformationBuilder.buildThrow(node)));
+      closeAndGotoExit(new HThrow(abstractValueDomain, pop(),
+          sourceInformationBuilder.buildThrow(node)));
     } else {
       visit(node.expression);
       pop();
@@ -1813,7 +1815,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     HBasicBlock bodyExitBlock;
     bool isAbortingBody = false;
     if (current != null) {
-      bodyExitBlock = close(new HGoto());
+      bodyExitBlock = close(new HGoto(abstractValueDomain));
     } else {
       isAbortingBody = true;
       bodyExitBlock = lastOpenedBlock;
@@ -1858,13 +1860,13 @@ class SsaAstGraphBuilder extends ast.Visitor
       visit(node.condition);
       assert(!isAborted());
       HInstruction conditionInstruction = popBoolified();
-      HBasicBlock conditionEndBlock = close(
-          new HLoopBranch(conditionInstruction, HLoopBranch.DO_WHILE_LOOP));
+      HBasicBlock conditionEndBlock = close(new HLoopBranch(abstractValueDomain,
+          conditionInstruction, HLoopBranch.DO_WHILE_LOOP));
 
       HBasicBlock avoidCriticalEdge = addNewBlock();
       conditionEndBlock.addSuccessor(avoidCriticalEdge);
       open(avoidCriticalEdge);
-      close(new HGoto());
+      close(new HGoto(abstractValueDomain));
       avoidCriticalEdge.addSuccessor(loopEntryBlock); // The back-edge.
 
       conditionExpression =
@@ -1873,7 +1875,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       // Avoid a critical edge from the condition to the loop-exit body.
       HBasicBlock conditionExitBlock = addNewBlock();
       open(conditionExitBlock);
-      close(new HGoto());
+      close(new HGoto(abstractValueDomain));
       conditionEndBlock.addSuccessor(conditionExitBlock);
 
       loopHandler.endLoop(
@@ -1913,7 +1915,8 @@ class SsaAstGraphBuilder extends ast.Visitor
         loopEntryBlock.setBlockFlow(info, current);
         jumpHandler.forEachBreak((HBreak breakInstruction, _) {
           HBasicBlock block = breakInstruction.block;
-          block.addAtExit(new HBreak.toLabel(label, sourceInformation));
+          block.addAtExit(new HBreak.toLabel(
+              abstractValueDomain, label, sourceInformation));
           block.remove(breakInstruction);
         });
       }
@@ -2431,7 +2434,8 @@ class SsaAstGraphBuilder extends ast.Visitor
         FieldElement field = element;
         value = typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(
             value, field.type);
-        addWithPosition(new HStaticStore(field, value), location);
+        addWithPosition(
+            new HStaticStore(abstractValueDomain, field, value), location);
       }
       stack.add(value);
     } else if (Elements.isError(element)) {
@@ -2802,7 +2806,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     if (trustedMask != null) {
       // We only allow the type argument to narrow `dynamic`, which probably
       // comes from an unspecified return type in the NativeBehavior.
-      if (code.instructionType.containsAll(closedWorld)) {
+      if (abstractValueDomain.containsAll(code.instructionType)) {
         // Overwrite the type with the narrower type.
         code.instructionType = trustedMask;
       } else if (trustedMask.containsMask(code.instructionType, closedWorld)) {
@@ -3471,7 +3475,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       } else if (isGrowableListConstructorCall) {
         TypeMask inferred = _inferredTypeOfNewList(send);
         return inferred.containsAll(closedWorld)
-            ? commonMasks.extendableArrayType
+            ? commonMasks.growableListType
             : inferred;
       } else if (Elements.isConstructorOfTypedArraySubclass(
           originalElement, closedWorld)) {
@@ -3579,7 +3583,7 @@ class SsaAstGraphBuilder extends ast.Visitor
 
     TypeMask elementType = computeType(constructor);
     if (isFixedListConstructorCall) {
-      if (!inputs[0].isNumber(closedWorld)) {
+      if (!inputs[0].isNumber(abstractValueDomain)) {
         HTypeConversion conversion = new HTypeConversion(
             null,
             HTypeConversion.ARGUMENT_TYPE_CHECK,
@@ -3598,7 +3602,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       // TODO(sra): Array allocation should be an instruction so that canThrow
       // can depend on a length type discovered in optimization.
       bool canThrow = true;
-      if (inputs[0].isInteger(closedWorld) && inputs[0] is HConstant) {
+      if (inputs[0].isInteger(abstractValueDomain) && inputs[0] is HConstant) {
         dynamic constant = inputs[0];
         IntConstantValue intConstant = constant.constant;
         int value = intConstant.intValue;
@@ -4359,7 +4363,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       type = TypeMaskFactory.inferredReturnTypeForElement(
           method, globalInferenceResults);
     } else {
-      type = closedWorld.commonMasks.dynamicType;
+      type = closedWorld.abstractValueDomain.dynamicType;
     }
     HInstruction instruction = new HInvokeSuper(
         element,
@@ -5219,8 +5223,8 @@ class SsaAstGraphBuilder extends ast.Visitor
       reporter.internalError(node, 'rethrowableException should not be null.');
     }
     handleInTryStatement();
-    closeAndGotoExit(new HThrow(
-        exception, sourceInformationBuilder.buildThrow(node),
+    closeAndGotoExit(new HThrow(abstractValueDomain, exception,
+        sourceInformationBuilder.buildThrow(node),
         isRethrow: true));
   }
 
@@ -5361,8 +5365,8 @@ class SsaAstGraphBuilder extends ast.Visitor
     visitThrowExpression(node.expression);
     if (isReachable) {
       handleInTryStatement();
-      push(new HThrowExpression(
-          pop(), sourceInformationBuilder.buildThrow(node)));
+      push(new HThrowExpression(abstractValueDomain, pop(),
+          sourceInformationBuilder.buildThrow(node)));
       isReachable = false;
     }
   }
@@ -5370,8 +5374,8 @@ class SsaAstGraphBuilder extends ast.Visitor
   visitYield(ast.Yield node) {
     visit(node.expression);
     HInstruction yielded = pop();
-    add(new HYield(
-        yielded, node.hasStar, sourceInformationBuilder.buildYield(node)));
+    add(new HYield(abstractValueDomain, yielded, node.hasStar,
+        sourceInformationBuilder.buildYield(node)));
   }
 
   visitAwait(ast.Await node) {
@@ -5894,7 +5898,8 @@ class SsaAstGraphBuilder extends ast.Visitor
 
       // We lift this common call pattern into a helper function to save space
       // in the output.
-      if (typeInputs.every((HInstruction input) => input.isNull())) {
+      if (typeInputs
+          .every((HInstruction input) => input.isNull(abstractValueDomain))) {
         if (listInputs.isEmpty) {
           createFunction = commonElements.mapLiteralUntypedEmptyMaker;
         } else {
@@ -6217,7 +6222,8 @@ class SsaAstGraphBuilder extends ast.Visitor
       return;
     }
 
-    HSwitch switchInstruction = new HSwitch(<HInstruction>[expression]);
+    HSwitch switchInstruction =
+        new HSwitch(abstractValueDomain, <HInstruction>[expression]);
     HBasicBlock expressionEnd = close(switchInstruction);
     LocalsHandler savedLocals = localsHandler;
 
@@ -6248,7 +6254,8 @@ class SsaAstGraphBuilder extends ast.Visitor
         if (caseIterator.hasNext && isReachable) {
           pushInvokeStatic(switchCase, commonElements.fallThroughError, []);
           HInstruction error = pop();
-          closeAndGotoExit(new HThrow(error, error.sourceInformation));
+          closeAndGotoExit(
+              new HThrow(abstractValueDomain, error, error.sourceInformation));
         } else if (!isDefaultCase(switchCase)) {
           // If there is no default, we will add one later to avoid
           // the critical edge. So we generate a break statement to make
@@ -6277,7 +6284,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       assert(false, failedAt(errorNode, 'Continue cannot target a switch.'));
     });
     if (!isAborted()) {
-      current.close(new HGoto());
+      current.close(new HGoto(abstractValueDomain));
       lastOpenedBlock.addSuccessor(joinBlock);
       caseHandlers.add(localsHandler);
     }
@@ -6287,7 +6294,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       HBasicBlock defaultCase = addNewBlock();
       expressionEnd.addSuccessor(defaultCase);
       open(defaultCase);
-      close(new HGoto());
+      close(new HGoto(abstractValueDomain));
       defaultCase.addSuccessor(joinBlock);
       caseHandlers.add(savedLocals);
       statements.add(new HSubGraphBlockInformation(
@@ -6340,7 +6347,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     // variables were used in a non-dominated block.
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
     HBasicBlock enterBlock = openNewBlock();
-    HTry tryInstruction = new HTry();
+    HTry tryInstruction = new HTry(abstractValueDomain);
     close(tryInstruction);
     bool oldInTryStatement = inTryStatement;
     inTryStatement = true;
@@ -6356,7 +6363,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     // We use a [HExitTry] instead of a [HGoto] for the try block
     // because it will have two successors: the join block, and
     // the finally block.
-    if (!isAborted()) endTryBlock = close(new HExitTry());
+    if (!isAborted()) endTryBlock = close(new HExitTry(abstractValueDomain));
     SubGraph bodyGraph = new SubGraph(startTryBlock, lastOpenedBlock);
 
     SubGraph finallyGraph = null;
@@ -6365,7 +6372,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     startFinallyBlock = graph.addNewBlock();
     open(startFinallyBlock);
     buildFinally();
-    if (!isAborted()) endFinallyBlock = close(new HGoto());
+    if (!isAborted()) endFinallyBlock = close(new HGoto(abstractValueDomain));
     tryInstruction.finallyBlock = startFinallyBlock;
     finallyGraph = new SubGraph(startFinallyBlock, lastOpenedBlock);
 
@@ -6430,7 +6437,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     // in a non-dominated block.
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
     HBasicBlock enterBlock = openNewBlock();
-    HTry tryInstruction = new HTry();
+    HTry tryInstruction = new HTry(abstractValueDomain);
     close(tryInstruction);
     bool oldInTryStatement = inTryStatement;
     inTryStatement = true;
@@ -6448,7 +6455,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     // We use a [HExitTry] instead of a [HGoto] for the try block
     // because it will have multiple successors: the join block, and
     // the catch or finally block.
-    if (!isAborted()) endTryBlock = close(new HExitTry());
+    if (!isAborted()) endTryBlock = close(new HExitTry(abstractValueDomain));
     SubGraph bodyGraph = new SubGraph(startTryBlock, lastOpenedBlock);
     SubGraph catchGraph = null;
     HLocalValue exception = null;
@@ -6530,7 +6537,8 @@ class SsaAstGraphBuilder extends ast.Visitor
 
       void visitElse() {
         if (link.isEmpty) {
-          closeAndGotoExit(new HThrow(exception, exception.sourceInformation,
+          closeAndGotoExit(new HThrow(
+              abstractValueDomain, exception, exception.sourceInformation,
               isRethrow: true));
         } else {
           ast.CatchBlock newBlock = link.head;
@@ -6554,7 +6562,7 @@ class SsaAstGraphBuilder extends ast.Visitor
           visitThen: visitThen,
           visitElse: visitElse,
           sourceInformation: sourceInformationBuilder.buildCatch(firstBlock));
-      if (!isAborted()) endCatchBlock = close(new HGoto());
+      if (!isAborted()) endCatchBlock = close(new HGoto(abstractValueDomain));
 
       rethrowableException = oldRethrowableException;
       tryInstruction.catchBlock = startCatchBlock;
@@ -6567,7 +6575,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       startFinallyBlock = graph.addNewBlock();
       open(startFinallyBlock);
       visit(node.finallyBlock);
-      if (!isAborted()) endFinallyBlock = close(new HGoto());
+      if (!isAborted()) endFinallyBlock = close(new HGoto(abstractValueDomain));
       tryInstruction.finallyBlock = startFinallyBlock;
       finallyGraph = new SubGraph(startFinallyBlock, lastOpenedBlock);
     }
@@ -6692,8 +6700,8 @@ class SsaAstGraphBuilder extends ast.Visitor
 
   void emitReturn(HInstruction value, ast.Node node) {
     if (inliningStack.isEmpty) {
-      closeAndGotoExit(
-          new HReturn(value, sourceInformationBuilder.buildReturn(node)));
+      closeAndGotoExit(new HReturn(abstractValueDomain, value,
+          sourceInformationBuilder.buildReturn(node)));
     } else {
       localsHandler.updateLocal(returnLocal, value);
     }
@@ -6782,7 +6790,7 @@ class StringBuilderVisitor extends ast.Visitor {
     //      conversions.
     //   2. The value can be primitive, because the library stringifier has
     //      fast-path code for most primitives.
-    if (expression.canBePrimitive(builder.closedWorld)) {
+    if (expression.canBePrimitive(builder.abstractValueDomain)) {
       append(stringify(node, expression));
       return;
     }

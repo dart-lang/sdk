@@ -5,12 +5,24 @@
 import "package:expect/expect.dart";
 import "package:compiler/src/ssa/nodes.dart";
 import "package:compiler/src/ssa/value_range_analyzer.dart";
+import "package:compiler/src/types/abstract_value_domain.dart";
 import "package:compiler/src/js_backend/constant_system_javascript.dart";
 
 ValueRangeInfo info = new ValueRangeInfo(const JavaScriptConstantSystem());
 
-Value instructionValue = info.newInstructionValue(new HBreak(null, null));
-Value lengthValue = info.newPositiveValue(new HBreak(null, null));
+class AbstractValueDomainMock implements AbstractValueDomain {
+  const AbstractValueDomainMock();
+
+  @override
+  noSuchMethod(Invocation invocation) => null;
+}
+
+AbstractValueDomain abstractValueDomain = const AbstractValueDomainMock();
+
+Value instructionValue =
+    info.newInstructionValue(new HBreak(abstractValueDomain, null, null));
+Value lengthValue =
+    info.newPositiveValue(new HBreak(abstractValueDomain, null, null));
 
 Range createSingleRange(Value value) => info.newNormalizedRange(value, value);
 

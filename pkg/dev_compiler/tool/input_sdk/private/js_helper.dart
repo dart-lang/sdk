@@ -574,7 +574,7 @@ StackTrace getTraceFromException(exception) {
   var error = dart.recordJsError(exception);
   StackTrace trace = JS('', '#[#]', error, _stackTrace);
   if (trace != null) return trace;
-  trace = new _StackTrace(error);
+  trace = _StackTrace(error);
   JS('', '#[#] = #', error, _stackTrace, trace);
   return trace;
 }
@@ -599,7 +599,11 @@ class _StackTrace implements StackTrace {
     String trace;
     if (JS('bool', '# !== null', _exception) &&
         JS('bool', 'typeof # === "object"', _exception)) {
-      trace = JS("", r"#.stack", _exception);
+      if (_exception is NativeError) {
+        trace = _exception.dartStack();
+      } else {
+        trace = JS("", r"#.stack", _exception);
+      }
       if (trace != null && stackTraceMapper != null) {
         trace = stackTraceMapper(trace);
       }

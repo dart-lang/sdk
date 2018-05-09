@@ -12,10 +12,12 @@ import 'package:kernel/ast.dart'
     show
         Arguments,
         Class,
+        Component,
         Expression,
+        FunctionNode,
         Library,
         LibraryDependency,
-        Component,
+        ProcedureKind,
         Supertype;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -64,13 +66,17 @@ import '../fasta_codes.dart' as fasta_codes;
 import '../kernel/kernel_shadow_ast.dart'
     show ShadowClass, ShadowTypeInferenceEngine;
 
+import '../kernel/kernel_builder.dart' show KernelProcedureBuilder;
+
 import '../kernel/kernel_target.dart' show KernelTarget;
+
+import '../kernel/body_builder.dart' show BodyBuilder;
 
 import '../loader.dart' show Loader;
 
 import '../parser/class_member_parser.dart' show ClassMemberParser;
 
-import '../parser.dart' show lengthForToken, offsetForToken;
+import '../parser.dart' show Parser, lengthForToken, offsetForToken;
 
 import '../problems.dart' show internalProblem;
 
@@ -205,6 +211,37 @@ class SourceLoader<L> extends Loader<L> {
         }
       }
     }
+  }
+
+  Future<Expression> buildExpression(
+      SourceLibraryBuilder library,
+      String enclosingClass,
+      bool isInstanceMember,
+      FunctionNode parameters) async {
+    Token token = await tokenize(library, suppressLexicalErrors: false);
+    if (token == null) return null;
+    DietListener dietListener = createDietListener(library);
+
+    Builder parent = library;
+    if (enclosingClass != null) {
+      Builder cls = dietListener.memberScope.lookup(enclosingClass, -1, null);
+      if (cls is ClassBuilder) {
+        parent = cls;
+        dietListener
+          ..currentClass = cls
+          ..memberScope = cls.scope.copyWithParent(
+              dietListener.memberScope.withTypeVariables(cls.typeVariables),
+              "debugExpression in $enclosingClass");
+      }
+    }
+    KernelProcedureBuilder builder = new KernelProcedureBuilder(null, 0, null,
+        "debugExpr", null, null, ProcedureKind.Method, library, 0, -1, -1)
+      ..parent = parent;
+    BodyBuilder listener = dietListener.createListener(
+        builder, dietListener.memberScope, isInstanceMember);
+
+    return listener.parseSingleExpression(
+        new Parser(listener), token, parameters);
   }
 
   KernelTarget get target => super.target;
@@ -348,11 +385,11 @@ class SourceLoader<L> extends Loader<L> {
     ticker.logMs("Resolved $count constructors");
   }
 
-  void finishTypeVariables(ClassBuilder object) {
+  void finishTypeVariables(ClassBuilder object, TypeBuilder dynamicType) {
     int count = 0;
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == this) {
-        count += library.finishTypeVariables(object);
+        count += library.finishTypeVariables(object, dynamicType);
       }
     });
     ticker.logMs("Resolved $count type-variable bounds");
@@ -360,8 +397,6 @@ class SourceLoader<L> extends Loader<L> {
 
   void instantiateToBound(TypeBuilder dynamicType, TypeBuilder bottomType,
       ClassBuilder objectClass) {
-    if (!target.strongMode) return;
-
     int count = 0;
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == this) {

@@ -41,47 +41,37 @@ class A {
 main() { new A().foo(1); }
 """;
 
-Future closureInvocation({bool useKernel, bool minify, String prefix}) async {
-  await compile(TEST_INVOCATION0, useKernel: useKernel, minify: minify,
-      check: (String generated) {
+Future closureInvocation({bool minify, String prefix}) async {
+  await compile(TEST_INVOCATION0, minify: minify, check: (String generated) {
     Expect.isTrue(generated.contains(".$prefix\$0()"));
   });
-  await compile(TEST_INVOCATION1, useKernel: useKernel, minify: minify,
-      check: (String generated) {
+  await compile(TEST_INVOCATION1, minify: minify, check: (String generated) {
     Expect.isTrue(generated.contains(".$prefix\$1(1)"));
   });
-  await compile(TEST_INVOCATION2, useKernel: useKernel, minify: minify,
-      check: (String generated) {
+  await compile(TEST_INVOCATION2, minify: minify, check: (String generated) {
     Expect.isTrue(generated.contains(".$prefix\$2(1,${minify ? "" : " "}2)"));
   });
 }
 
 // Make sure that the bailout version does not introduce a second version of
 // the closure.
-Future closureBailout(CompileMode compileMode,
-    {bool minify, String prefix}) async {
-  String generated =
-      await compileAll(TEST_BAILOUT, compileMode: compileMode, minify: minify);
+Future closureBailout({bool minify, String prefix}) async {
+  String generated = await compileAll(TEST_BAILOUT, minify: minify);
   RegExp regexp = new RegExp("$prefix\\\$0:${minify ? "" : " "}function");
   Iterator<Match> matches = regexp.allMatches(generated).iterator;
   checkNumberOfMatches(matches, 1);
 }
 
 main() {
-  runTests({bool useKernel}) async {
-    await closureInvocation(
-        useKernel: useKernel, minify: false, prefix: "call");
-    await closureInvocation(useKernel: useKernel, minify: true, prefix: "");
-    CompileMode compileMode =
-        useKernel ? CompileMode.kernel : CompileMode.memory;
-    await closureBailout(compileMode, minify: false, prefix: "call");
-    await closureBailout(compileMode, minify: true, prefix: "");
+  runTests() async {
+    await closureInvocation(minify: false, prefix: "call");
+    await closureInvocation(minify: true, prefix: "");
+    await closureBailout(minify: false, prefix: "call");
+    await closureBailout(minify: true, prefix: "");
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTests(useKernel: true);
+    await runTests();
   });
 }

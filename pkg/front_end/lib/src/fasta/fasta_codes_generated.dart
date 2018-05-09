@@ -967,6 +967,27 @@ Message _withArgumentsCyclicTypedef(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeDeclaredMemberConflictsWithInheritedMember =
+    messageDeclaredMemberConflictsWithInheritedMember;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageDeclaredMemberConflictsWithInheritedMember =
+    const MessageCode("DeclaredMemberConflictsWithInheritedMember",
+        severity: Severity.errorLegacyWarning,
+        message:
+            r"""Can't declare a member that conflicts with an inherited one.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeDeclaredMemberConflictsWithInheritedMemberCause =
+    messageDeclaredMemberConflictsWithInheritedMemberCause;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageDeclaredMemberConflictsWithInheritedMemberCause =
+    const MessageCode("DeclaredMemberConflictsWithInheritedMemberCause",
+        severity: Severity.context,
+        message: r"""This is the inherited member.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeDeferredAfterPrefix = messageDeferredAfterPrefix;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1348,6 +1369,8 @@ const Template<
 const Code<Message Function(String name)> codeDuplicatedNamePreviouslyUsed =
     const Code<Message Function(String name)>(
         "DuplicatedNamePreviouslyUsed", templateDuplicatedNamePreviouslyUsed,
+        analyzerCode: "REFERENCED_BEFORE_DECLARATION",
+        dart2jsCode: "*ignored*",
         severity: Severity.error);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1723,6 +1746,15 @@ Message _withArgumentsExpectedIdentifier(Token token) {
       message: """Expected an identifier, but got '$lexeme'.""",
       arguments: {'token': token});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExpectedOneExpression = messageExpectedOneExpression;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExpectedOneExpression = const MessageCode(
+    "ExpectedOneExpression",
+    severity: Severity.error,
+    message: r"""Expected one expression, but found additional input.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExpectedOpenParens = messageExpectedOpenParens;
@@ -2523,6 +2555,35 @@ Message _withArgumentsImportHidesImport(String name, Uri uri_, Uri uri2_) {
       message: """Import of '$name' (from '$uri') hides import from '$uri2'.""",
       arguments: {'name': name, 'uri': uri_, 'uri2': uri2_});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInheritedMembersConflict = messageInheritedMembersConflict;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInheritedMembersConflict = const MessageCode(
+    "InheritedMembersConflict",
+    severity: Severity.errorLegacyWarning,
+    message: r"""Can't inherit members that conflict with each other.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInheritedMembersConflictCause1 =
+    messageInheritedMembersConflictCause1;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInheritedMembersConflictCause1 = const MessageCode(
+    "InheritedMembersConflictCause1",
+    severity: Severity.context,
+    message: r"""This is one inherited member.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInheritedMembersConflictCause2 =
+    messageInheritedMembersConflictCause2;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInheritedMembersConflictCause2 = const MessageCode(
+    "InheritedMembersConflictCause2",
+    severity: Severity.context,
+    message: r"""This is the other inherited member.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInitializedVariableInForEach =

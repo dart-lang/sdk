@@ -152,12 +152,13 @@ regress_29784_test/02: MissingCompileTimeError
 regress_30121_test: CompileTimeError # Issue 31087
 regress_30339_test: CompileTimeError # As expected. Should we make this a multi test?
 reify_typevar_static_test/00: MissingCompileTimeError # Issue 29920
+setter_override2_test/02: MissingCompileTimeError # Issue 14736
 stacktrace_test: RuntimeError # Issue 29920
 string_interpolate_test: CompileTimeError
 string_split_test: CompileTimeError
 string_supertype_checked_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
-super_call4_test: RuntimeError
+super_call4_test/01: MissingCompileTimeError
 super_no_such_method1_test: RuntimeError
 super_no_such_method2_test: RuntimeError
 super_no_such_method3_test: RuntimeError
@@ -294,8 +295,6 @@ async_return_types_test/wrongReturnType: MissingCompileTimeError
 bad_override_test/01: MissingCompileTimeError
 bad_override_test/02: MissingCompileTimeError
 bad_override_test/03: MissingCompileTimeError
-bad_override_test/04: MissingCompileTimeError
-bad_override_test/05: MissingCompileTimeError
 built_in_identifier_type_annotation_test/05: RuntimeError # Issue 32194
 built_in_identifier_type_annotation_test/none: RuntimeError # Issue 32194
 call_method_as_cast_test/06: RuntimeError # Kernel allows classes to subtype `Function` so DDK elides the explicit cast.
@@ -378,7 +377,6 @@ field_override3_test/00: MissingCompileTimeError
 field_override3_test/01: MissingCompileTimeError
 field_override3_test/02: MissingCompileTimeError
 field_override3_test/03: MissingCompileTimeError
-field_override4_test/02: MissingCompileTimeError
 field_override_test/00: MissingCompileTimeError
 field_override_test/01: MissingCompileTimeError
 function_propagation_test: RuntimeError
@@ -390,7 +388,6 @@ generic_methods_recursive_bound_test/02: MissingCompileTimeError
 generic_no_such_method_dispatcher_simple_test: CompileTimeError # Warning: Superclass has no method named 'foo'.
 generic_no_such_method_dispatcher_test: CompileTimeError # Issue 31533
 generic_test/01: MissingCompileTimeError # front end does not validate `extends`
-getter_override2_test/02: MissingCompileTimeError
 getter_override_test/00: MissingCompileTimeError
 getter_override_test/01: MissingCompileTimeError
 getter_override_test/02: MissingCompileTimeError
@@ -443,9 +440,6 @@ map_literal3_test/03: MissingCompileTimeError
 method_override7_test/00: MissingCompileTimeError
 method_override7_test/01: MissingCompileTimeError
 method_override7_test/02: MissingCompileTimeError
-method_override8_test/00: MissingCompileTimeError
-method_override8_test/01: MissingCompileTimeError
-method_override8_test/03: MissingCompileTimeError
 method_override_test: CompileTimeError # Issue 31616
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError
@@ -530,10 +524,6 @@ null_method_test: RuntimeError # Issue 32194
 null_no_such_method_test: CompileTimeError # Issue 31533
 null_test/none: RuntimeError # Issue 32194
 null_to_string_test: RuntimeError # Issue 32194
-override_field_method1_negative_test: Fail
-override_field_method2_negative_test: Fail
-override_field_method4_negative_test: Fail
-override_field_method5_negative_test: Fail
 override_field_test/01: MissingCompileTimeError
 override_field_test/02: MissingCompileTimeError
 override_inheritance_field_test/04: CompileTimeError # Issue 31616
@@ -548,13 +538,6 @@ override_inheritance_field_test/54: MissingCompileTimeError
 override_inheritance_generic_test/02: CompileTimeError # Issue 31616
 override_inheritance_method_test/28: CompileTimeError # Issue 31616
 override_inheritance_method_test/29: CompileTimeError # Issue 31616
-override_inheritance_mixed_test/01: MissingCompileTimeError
-override_inheritance_mixed_test/02: MissingCompileTimeError
-override_inheritance_mixed_test/03: MissingCompileTimeError
-override_inheritance_mixed_test/04: MissingCompileTimeError
-override_inheritance_mixed_test/08: MissingCompileTimeError
-override_inheritance_mixed_test/09: MissingCompileTimeError
-override_method_with_field_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
@@ -580,8 +563,6 @@ string_optimizations_test: RuntimeError # Issue 32194
 string_split_test: CompileTimeError # Issue 31616
 string_supertype_checked_test: CompileTimeError # Issue 31616
 super_bound_closure_test/none: CompileTimeError # Issue 31533
-super_call4_test: CompileTimeError
-super_getter_setter_test: CompileTimeError
 super_no_such_method1_test: CompileTimeError
 super_no_such_method2_test: CompileTimeError
 super_no_such_method3_test: CompileTimeError
@@ -640,9 +621,11 @@ assertion_initializer_const_error2_test/*: SkipByDesign # DDC does not support n
 [ $compiler == dartdevc || $compiler == dartdevk ]
 abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue #30568
 abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError # Issue #30568
+async_covariant_type_test: RuntimeError # Check too late
 async_star_cancel_while_paused_test: RuntimeError # Issue 29920; Uncaught Expect.listEquals(list length, expected: <4>, actual: <3>) fails: Next element <*3>
 async_star_pause_test: RuntimeError # Uncaught Expect.listEquals(at index 2, expected: <0+>, actual: <0!>) fails
 async_star_test/02: RuntimeError
+asyncstar_covariant_type_test: RuntimeError # Check too late
 asyncstar_throw_in_catch_test: Skip # Times out. Issue 29920
 bit_operations_test: RuntimeError # No bigints on web.; Expect.equals(expected: <-25>, actual: <4294967271>) fails.
 bit_operations_test/01: MissingCompileTimeError
@@ -681,7 +664,6 @@ exception_test: RuntimeError # DDC doesn't implement NullThrownError?; Expect.is
 expect_test: RuntimeError # Issue 29920; Expect.identical did not fail
 f_bounded_quantification3_test: RuntimeError # Issue 29920; Uncaught Error: type arguments should not be null: (F1, F2) => {
 field3_test/01: MissingCompileTimeError
-field_increment_bailout_test: RuntimeError # Issue 29920; UnimplementedError: JsInstanceMirror.delegate unimplemented
 field_initialization_order_test/none: RuntimeError # Expect.equals(expected: <b.a.ai.bi.>, actual: <b.bi.a.ai.>) fails.
 flatten_test/05: MissingRuntimeError # Issue 29920
 flatten_test/08: MissingRuntimeError # Issue 29920
@@ -702,21 +684,18 @@ instance_creation_in_function_annotation_test: RuntimeError # Issue 29920; Unimp
 int64_literal_test/*: Skip # This is testing Dart 2.0 int64 semantics.
 integer_division_by_zero_test: RuntimeError # Issue 29920; Expect.throws: Unexpected 'Unsupported operation: Infinity'
 internal_library_test/02: Crash
-invocation_mirror2_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented
 invocation_mirror_invoke_on2_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented
 invocation_mirror_invoke_on_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented
 invocation_mirror_test: RuntimeError # Type 'NativeJavaScriptObject' is not a subtype of type 'int' in strong mode
-issue21159_test: RuntimeError # Issue 30701; TypeError: method.bind is not a function
 issue23244_test: RuntimeError # Issue 29920; Uncaught Unsupported operation: only top-level functions can be spawned.
 least_upper_bound_expansive_test/none: RuntimeError # 30908; Uncaught RangeError: Maximum call stack size exceeded
 left_shift_test: RuntimeError # Ints and doubles are unified.; Expect.equals(expected: <1>, actual: <-4294967295>) fails.
 library_env_test/has_io_support: RuntimeError, OK # Intended to fail, bool.fromEnvironment("dart.library.async") is false
-library_env_test/has_mirror_support: RuntimeError, OK  # Intended to fail, bool.fromEnvironment("dart.library.async") is false
-library_env_test/has_no_html_support: RuntimeError, OK  # Intended to fail, bool.fromEnvironment("dart.library.async") is false
+library_env_test/has_mirror_support: RuntimeError, OK # Intended to fail, bool.fromEnvironment("dart.library.async") is false
+library_env_test/has_no_html_support: RuntimeError, OK # Intended to fail, bool.fromEnvironment("dart.library.async") is false
 local_function2_test/none: RuntimeError # ReferenceError: TToNull is not defined
 local_function3_test/none: RuntimeError # Expect.equals(expected: <true>, actual: <false>) fails.
 local_function_test/none: RuntimeError # Expect.equals(expected: <true>, actual: <false>) fails.
-many_overridden_no_such_method_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented; UnimplementedError: JsInstanceMirror.delegate unimplemented
 method_override7_test/03: MissingCompileTimeError # Issue 30514
 mint_arithmetic_test: RuntimeError # Issue 29920; Expect.equals(expected: <4294967297>, actual: <1>) fails.
 modulo_test: RuntimeError # Ints and doubles are unified.; Expect.throws fails: Did not throw
@@ -727,14 +706,11 @@ multiline_newline_test/05r: MissingCompileTimeError
 named_parameters_default_eq_test/none: RuntimeError # Expect.isTrue(false) fails.
 nan_identical_test: RuntimeError # Issue 29920; Unsupported operation: Uint64 accessor not supported by dart2js.
 nested_switch_label_test: RuntimeError # Issue 29920; UnimplementedError: node <ShadowContinueSwitchStatement> see https://github.com/dart-lang/sdk/issues/29352 `continue #L1;
-no_such_method_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented
 null_test/mirrors: RuntimeError # Uses mirrors.; ReferenceError: GenericOfT is not defined
 number_identity2_test: RuntimeError # Issue 29920; Expect.isTrue(false) fails.
 numbers_test: RuntimeError # Issue 29920; Expect.equals(expected: <false>, actual: <true>) fails.
-overridden_no_such_method_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented; UnimplementedError: JsInstanceMirror.delegate unimplemented
 override_field_test/03: MissingCompileTimeError
 parser_quirks_test: CompileTimeError
-private3_test: RuntimeError # Type 'PrivateSymbol' is not a subtype of type 'Symbol' in strong mode
 regress_16640_test: RuntimeError # Issue 29920; Uncaught Error: type arguments should not be null: E => {
 regress_22443_test: RuntimeError # Uncaught Expect.isTrue(false) fails.
 regress_27617_test/1: MissingCompileTimeError
@@ -748,6 +724,7 @@ super_test: RuntimeError # Expect.equals(expected: <0>, actual: <2>) fails.
 switch_label2_test: RuntimeError # Issue 29920; UnimplementedError: node <ShadowContinueSwitchStatement> see https://github.com/dart-lang/sdk/issues/29352 `continue #L1;
 switch_label_test: RuntimeError # Issue 29920; UnimplementedError: node <ShadowContinueSwitchStatement> see https://github.com/dart-lang/sdk/issues/29352 `continue #L1;
 switch_try_catch_test: RuntimeError # Issue 29920; Expect.throws: Unexpected 'UnimplementedError: node <ShadowContinueSwitchStatement> see https://github.com/dart-lang/sdk/issues/29352 `continue #L1;
+syncstar_covariant_type_test: RuntimeError # Check too late
 syntax_test/60: MissingCompileTimeError
 syntax_test/61: MissingCompileTimeError
 truncdiv_test: RuntimeError # Issue 29920; Expect.throws fails: Did not throw

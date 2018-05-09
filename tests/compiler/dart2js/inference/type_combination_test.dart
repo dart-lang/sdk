@@ -6,7 +6,6 @@ import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/types/types.dart';
 import 'package:compiler/src/world.dart';
@@ -741,17 +740,14 @@ void testRegressions(ClosedWorld closedWorld) {
 
 void main() {
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTests(useKernel: true);
+    await runTests();
   });
 }
 
-runTests({bool useKernel}) async {
-  CompilationResult result = await runCompiler(
-      memorySourceFiles: {
-        'main.dart': r'''
+runTests() async {
+  CompilationResult result = await runCompiler(memorySourceFiles: {
+    'main.dart': r'''
     import 'dart:collection';
     class AList<E> extends ListBase<E> {}
     main() {
@@ -760,9 +756,7 @@ runTests({bool useKernel}) async {
       print('${const []}${const {}}${(){}}${new AList()}');
     }
     '''
-      },
-      options: useKernel ? [] : [Flags.useOldFrontend],
-      beforeRun: (compiler) => compiler.stopAfterTypeInference = true);
+  }, beforeRun: (compiler) => compiler.stopAfterTypeInference = true);
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler;
   ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;

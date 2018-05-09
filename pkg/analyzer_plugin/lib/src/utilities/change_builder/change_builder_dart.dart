@@ -580,6 +580,30 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
+  void writeReference(Element element) {
+    if (element.enclosingElement is CompilationUnitElement) {
+      LibraryElement definingLibrary = element.library;
+      LibraryElement importingLibrary =
+          dartFileEditBuilder.unit.element.library;
+
+      // TODO(scheglov) Extract this code (it is already used twice).
+      // TODO(scheglov) Consider updating `show` combinator to show the element.
+      ImportElement existingImport =
+          _getImportElement(element, importingLibrary);
+      if (existingImport != null) {
+        if (existingImport.prefix != null) {
+          write(existingImport.prefix.displayName);
+          write('.');
+        }
+      } else {
+        importLibrary(definingLibrary.source);
+      }
+    }
+
+    write(element.displayName);
+  }
+
+  @override
   bool writeType(DartType type,
       {bool addSupertypeProposals: false,
       String groupName,
@@ -841,9 +865,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
    * Return the namespace added by the given import [element].
    */
   Map<String, Element> _getImportNamespace(ImportElement element) {
-    NamespaceBuilder builder = new NamespaceBuilder();
-    Namespace namespace = builder.createImportNamespaceForDirective(element);
-    return namespace.definedNames;
+    return element.namespace.definedNames;
   }
 
   /**
@@ -1402,80 +1424,26 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       return;
     }
 
-    // If still at the beginning of the file, skip shebang and line comments.
-    _InsertionDescription desc = _getInsertDescTop();
-    int offset = desc.offset;
+    // If still at the beginning of the file, add before the first declaration.
+    int offset;
+    bool insertEmptyLineAfter = false;
+    if (unit.declarations.isNotEmpty) {
+      offset = unit.declarations.first.offset;
+      insertEmptyLineAfter = true;
+    } else {
+      offset = unit.end;
+    }
     for (int i = 0; i < uriList.length; i++) {
       String importUri = uriList[i];
       addInsertion(offset, (EditBuilder builder) {
-        if (i == 0 && desc.insertEmptyLineBefore) {
-          builder.writeln();
-        }
         builder.write("import '");
         builder.write(importUri);
         builder.writeln("';");
-        if (i == uriList.length - 1 && desc.insertEmptyLineAfter) {
+        if (i == uriList.length - 1 && insertEmptyLineAfter) {
           builder.writeln();
         }
       });
     }
-  }
-
-  /**
-   * Returns an insertion description describing where to insert a new directive
-   * or a top-level declaration at the top of the file.
-   */
-  _InsertionDescription _getInsertDescTop() {
-    // skip leading line comments
-    int offset = 0;
-    bool insertEmptyLineBefore = false;
-    bool insertEmptyLineAfter = false;
-    String source = unit.element.context.getContents(unit.element.source).data;
-    var lineInfo = unit.lineInfo;
-    // skip hash-bang
-    if (offset < source.length - 2) {
-      String linePrefix = _getText(source, offset, 2);
-      if (linePrefix == "#!") {
-        insertEmptyLineBefore = true;
-        offset = lineInfo.getOffsetOfLineAfter(offset);
-        // skip empty lines to first line comment
-        int emptyOffset = offset;
-        while (emptyOffset < source.length - 2) {
-          int nextLineOffset = lineInfo.getOffsetOfLineAfter(emptyOffset);
-          String line = source.substring(emptyOffset, nextLineOffset);
-          if (line.trim().isEmpty) {
-            emptyOffset = nextLineOffset;
-            continue;
-          } else if (line.startsWith("//")) {
-            offset = emptyOffset;
-            break;
-          } else {
-            break;
-          }
-        }
-      }
-    }
-    // skip line comments
-    while (offset < source.length - 2) {
-      String linePrefix = _getText(source, offset, 2);
-      if (linePrefix == "//") {
-        insertEmptyLineBefore = true;
-        offset = lineInfo.getOffsetOfLineAfter(offset);
-      } else {
-        break;
-      }
-    }
-    // determine if empty line is required after
-    int currentLine = lineInfo.getLocation(offset).lineNumber;
-    if (currentLine + 1 < lineInfo.lineCount) {
-      int nextLineOffset = lineInfo.getOffsetOfLine(currentLine + 1);
-      String insertLine = source.substring(offset, nextLineOffset);
-      if (!insertLine.trim().isEmpty) {
-        insertEmptyLineAfter = true;
-      }
-    }
-    return new _InsertionDescription(
-        offset, insertEmptyLineBefore, insertEmptyLineAfter);
   }
 
   /**
@@ -1493,13 +1461,6 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     String fromFolder = path.dirname(from.source.fullName);
     String relativeFile = path.relative(whatPath, from: fromFolder);
     return path.split(relativeFile).join('/');
-  }
-
-  /**
-   * Returns the text of the given range in the unit.
-   */
-  String _getText(String content, int offset, int length) {
-    return content.substring(offset, offset + length);
   }
 
   /**
@@ -1664,12 +1625,4 @@ class _InheritanceChain {
     }
     return null;
   }
-}
-
-class _InsertionDescription {
-  final int offset;
-  final bool insertEmptyLineBefore;
-  final bool insertEmptyLineAfter;
-  _InsertionDescription(
-      this.offset, this.insertEmptyLineBefore, this.insertEmptyLineAfter);
 }

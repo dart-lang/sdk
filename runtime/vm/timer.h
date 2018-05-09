@@ -87,10 +87,10 @@ class Timer : public ValueObject {
     return stop_ - start_;
   }
 
-  int64_t start_;
-  int64_t stop_;
-  int64_t total_;
-  int64_t max_contiguous_;
+  ALIGN8 int64_t start_;
+  ALIGN8 int64_t stop_;
+  ALIGN8 int64_t total_;
+  ALIGN8 int64_t max_contiguous_;
   bool report_;
   bool running_;
   const char* message_;

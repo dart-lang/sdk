@@ -42,7 +42,7 @@ class G extends core::Object {
   set target(self::B value) → void
     ;
 }
-static method f<T extends core::Object>() → self::f::T
+static method f<T extends core::Object = dynamic>() → self::f::T
   ;
 static method test1(self::G g) → void
   ;

@@ -7,10 +7,10 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:compiler/src/kernel/element_map.dart';
+import 'package:compiler/src/types/abstract_value_domain.dart';
 import 'package:compiler/src/types/types.dart';
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
@@ -29,8 +29,6 @@ callLoadLibrary() => expect.loadLibrary();
 
 main() async {
   asyncTest(() async {
-    print('--test Dart 1 --use-old-frontend ---------------------------------');
-    await runTest([Flags.useOldFrontend], trust: false, useOldFrontend: true);
     print('--test Dart 1 ----------------------------------------------------');
     await runTest([], trust: false);
     print('--test Dart 1 --trust-type-annotations ---------------------------');
@@ -42,39 +40,36 @@ main() async {
   });
 }
 
-runTest(List<String> options,
-    {bool trust: true, bool useOldFrontend: false}) async {
+runTest(List<String> options, {bool trust: true}) async {
   CompilationResult result = await runCompiler(
       memorySourceFiles: {'main.dart': source}, options: options);
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler;
   ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+  AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   LibraryEntity helperLibrary =
       elementEnvironment.lookupLibrary(Uris.dart__js_helper);
   FunctionEntity loadDeferredLibrary = elementEnvironment.lookupLibraryMember(
       helperLibrary, 'loadDeferredLibrary');
   TypeMask typeMask;
-  if (useOldFrontend) {
-    MethodElement method = loadDeferredLibrary;
-    typeMask = compiler.globalInference.results
-        .resultOfParameter(method.parameters.first)
-        .type;
-  } else {
-    JsBackendStrategy backendStrategy = compiler.backendStrategy;
-    KernelToLocalsMap localsMap = backendStrategy.globalLocalsMapForTesting
-        .getLocalsMap(loadDeferredLibrary);
-    MemberDefinition definition =
-        backendStrategy.elementMap.getMemberDefinition(loadDeferredLibrary);
-    ir.Procedure procedure = definition.node;
-    typeMask = compiler.globalInference.results
-        .resultOfParameter(localsMap
-            .getLocalVariable(procedure.function.positionalParameters.first))
-        .type;
-  }
+
+  JsBackendStrategy backendStrategy = compiler.backendStrategy;
+  KernelToLocalsMap localsMap = backendStrategy.globalLocalsMapForTesting
+      .getLocalsMap(loadDeferredLibrary);
+  MemberDefinition definition =
+      backendStrategy.elementMap.getMemberDefinition(loadDeferredLibrary);
+  ir.Procedure procedure = definition.node;
+  typeMask = compiler.globalInference.results
+      .resultOfParameter(localsMap
+          .getLocalVariable(procedure.function.positionalParameters.first))
+      .type;
+
   if (trust) {
-    Expect.equals(closedWorld.commonMasks.stringType.nullable(), typeMask);
+    Expect.equals(
+        abstractValueDomain.includeNull(abstractValueDomain.stringType),
+        typeMask);
   } else {
-    Expect.equals(closedWorld.commonMasks.dynamicType, typeMask);
+    Expect.equals(abstractValueDomain.dynamicType, typeMask);
   }
 }

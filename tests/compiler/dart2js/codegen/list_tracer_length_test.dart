@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// TODO(johnniwinther): Move this to the codegen folder. Currently this only
-/// works with the mock compiler.
+/// TODO(johnniwinther): Currently this only works with the mock compiler.
 
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
@@ -90,23 +89,28 @@ main() {
 }
 """;
 
-void checkRangeError(String test, {bool hasRangeError}) {
-  asyncTest(() => compileAll(test).then((generated) {
-        Expect.equals(hasRangeError, generated.contains('ioore'));
-      }));
+checkRangeError(String test, {bool hasRangeError}) async {
+  String generated = await compileAll(test);
+  Expect.equals(
+      hasRangeError,
+      generated.contains('ioore'),
+      "Unexpected use of 'hasRangeError' for test:\n$test\n"
+      "in code\n$generated");
 }
 
 main() {
-  checkRangeError(TEST1, hasRangeError: false);
-  checkRangeError(TEST2('insert', 'null, null'), hasRangeError: true);
-  checkRangeError(TEST2('add', 'null'), hasRangeError: true);
-  checkRangeError(TEST2('clear', ''), hasRangeError: true);
-  checkRangeError(TEST2('toString', ''), hasRangeError: false);
-  checkRangeError(TEST3, hasRangeError: false);
-  checkRangeError(TEST4, hasRangeError: true);
-  checkRangeError(TEST5, hasRangeError: true);
-  checkRangeError(TEST6, hasRangeError: true);
-  checkRangeError(TEST7, hasRangeError: false);
-  checkRangeError(TEST8, hasRangeError: true);
-  checkRangeError(TEST9, hasRangeError: false);
+  asyncTest(() async {
+    await checkRangeError(TEST1, hasRangeError: false);
+    await checkRangeError(TEST2('insert', 'null, null'), hasRangeError: true);
+    await checkRangeError(TEST2('add', 'null'), hasRangeError: true);
+    await checkRangeError(TEST2('clear', ''), hasRangeError: true);
+    await checkRangeError(TEST2('toString', ''), hasRangeError: false);
+    await checkRangeError(TEST3, hasRangeError: false);
+    await checkRangeError(TEST4, hasRangeError: true);
+    await checkRangeError(TEST5, hasRangeError: true);
+    await checkRangeError(TEST6, hasRangeError: true);
+    await checkRangeError(TEST7, hasRangeError: false);
+    await checkRangeError(TEST8, hasRangeError: true);
+    await checkRangeError(TEST9, hasRangeError: false);
+  });
 }

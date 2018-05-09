@@ -8,7 +8,6 @@ import 'dart:convert'
     show ChunkedConversionSink, JsonEncoder, StringConversionSink;
 
 import 'package:dart2js_info/info.dart';
-import 'package:path/path.dart' as p;
 
 import '../compiler_new.dart';
 import 'common/names.dart';
@@ -78,17 +77,7 @@ class ElementInfoCollector {
       libname = '<unnamed>';
     }
     int size = compiler.dumpInfoTask.sizeOf(lib);
-
-    var uri = lib.canonicalUri;
-    if (Uri.base.isScheme('file') && lib.canonicalUri.isScheme('file')) {
-      var basePath = p.fromUri(Uri.base);
-      var libPath = p.fromUri(lib.canonicalUri);
-      if (p.isWithin(basePath, libPath)) {
-        uri = p.toUri(p.relative(libPath, from: basePath));
-      }
-    }
-
-    LibraryInfo info = new LibraryInfo(libname, uri, null, size);
+    LibraryInfo info = new LibraryInfo(libname, lib.canonicalUri, null, size);
     _entityToInfo[lib] = info;
 
     environment.forEachLibraryMember(lib, (MemberEntity member) {

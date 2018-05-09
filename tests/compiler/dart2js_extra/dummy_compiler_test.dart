@@ -11,7 +11,7 @@ import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler.dart';
 
-import '../dart2js/old_frontend/mock_libraries.dart';
+import 'mock_libraries.dart';
 
 String libProvider(Uri uri) {
   if (uri.path.endsWith(".platform")) {

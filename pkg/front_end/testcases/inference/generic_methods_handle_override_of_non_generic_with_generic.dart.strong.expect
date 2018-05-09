@@ -15,9 +15,9 @@ class D extends self::C {
   synthetic constructor •() → void
     : super self::C::•()
     ;
-  method m<T extends core::Object>(self::D::m::T x) → self::D::m::T
+  method m<T extends core::Object = dynamic>(self::D::m::T x) → self::D::m::T
     return x;
-  method g<T extends core::Object>(self::D::g::T x) → self::D::g::T
+  method g<T extends core::Object = dynamic>(self::D::g::T x) → self::D::g::T
     return x;
 }
 static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/inference/generic_methods_handle_override_of_non_generic_with_generic.dart:14:46: Error: Declared type variables of 'D::m' doesn't match those on overridden method 'C::m'.

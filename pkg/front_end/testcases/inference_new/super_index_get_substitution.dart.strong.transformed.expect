@@ -3,24 +3,24 @@ import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
 
-class D<T extends core::Object> extends core::Object {
+class D<T extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
 }
-class E<T extends core::Object> extends self::D<self::E::T> {
+class E<T extends core::Object = dynamic> extends self::D<self::E::T> {
   synthetic constructor •() → void
     : super self::D::•()
     ;
 }
-class B<T extends core::Object> extends core::Object {
+class B<T extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
   operator [](generic-covariant-impl generic-covariant-interface self::E<self::B::T> x) → self::D<self::B::T>
     return null;
 }
-class C<U extends core::Object> extends self::B<asy::Future<self::C::U>> {
+class C<U extends core::Object = dynamic> extends self::B<asy::Future<self::C::U>> {
   synthetic constructor •() → void
     : super self::B::•()
     ;
@@ -30,6 +30,6 @@ class C<U extends core::Object> extends self::B<asy::Future<self::C::U>> {
     self::D<asy::Future<self::C::U>> x = super.{self::B::[]}(self::f<self::E<asy::Future<self::C::U>>>());
   }
 }
-static method f<T extends core::Object>() → self::f::T
+static method f<T extends core::Object = dynamic>() → self::f::T
   return null;
 static method main() → dynamic {}

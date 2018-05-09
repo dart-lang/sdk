@@ -457,14 +457,15 @@ DEFINE_NATIVE_ENTRY(Internal_extractTypeArguments, 2) {
   return result.raw();
 }
 
-DEFINE_NATIVE_ENTRY(Internal_prependTypeArguments, 3) {
+DEFINE_NATIVE_ENTRY(Internal_prependTypeArguments, 4) {
   const TypeArguments& function_type_arguments =
       TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0));
   const TypeArguments& parent_type_arguments =
       TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(1));
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, smi_len, arguments->NativeArgAt(2));
-  const intptr_t len = smi_len.Value();
-  return function_type_arguments.Prepend(zone, parent_type_arguments, len);
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, smi_parent_len, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, smi_len, arguments->NativeArgAt(3));
+  return function_type_arguments.Prepend(
+      zone, parent_type_arguments, smi_parent_len.Value(), smi_len.Value());
 }
 
 DEFINE_NATIVE_ENTRY(InvocationMirror_unpackTypeArguments, 1) {

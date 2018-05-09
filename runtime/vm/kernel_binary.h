@@ -213,6 +213,14 @@ class Reader : public ValueObject {
     return value;
   }
 
+  double ReadDouble() {
+    ASSERT((size_ >= 8) && (offset_ >= 0) && (offset_ <= size_ - 8));
+    double value = ReadUnaligned(
+        reinterpret_cast<const double*>(&this->buffer()[offset_]));
+    offset_ += 8;
+    return value;
+  }
+
   uint32_t ReadUInt() {
     ASSERT((size_ >= 1) && (offset_ >= 0) && (offset_ <= size_ - 1));
 

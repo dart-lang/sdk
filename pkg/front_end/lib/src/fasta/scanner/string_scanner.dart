@@ -4,7 +4,7 @@
 
 library dart2js.scanner.string_scanner;
 
-import '../../scanner/token.dart' show SyntheticStringToken, Token, TokenType;
+import '../../scanner/token.dart' show Token, SyntheticStringToken, TokenType;
 
 import '../../scanner/token.dart' as analyzer show StringToken;
 

@@ -19,6 +19,7 @@ import '../modifier.dart' show Modifier, constMask, covariantMask, finalMask;
 import '../parser.dart'
     show
         Assert,
+        Parser,
         FormalParameterKind,
         IdentifierContext,
         MemberKind,
@@ -83,8 +84,6 @@ import 'kernel_api.dart';
 import 'kernel_ast_api.dart';
 
 import 'kernel_builder.dart';
-
-final Forest _forest = new Fangorn();
 
 // TODO(ahe): Remove this and ensure all nodes have a location.
 const noLocation = null;
@@ -183,6 +182,10 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   /// and where that was.
   Map<String, int> initializedFields;
 
+  // TODO(ahe): Update type parameters.
+  @override
+  Forest<dynamic, dynamic, Token, dynamic> forest;
+
   BodyBuilder(
       KernelLibraryBuilder library,
       this.member,
@@ -193,7 +196,8 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
       this.classBuilder,
       this.isInstanceMember,
       this.uri,
-      this._typeInferrer)
+      this._typeInferrer,
+      [this.forest = const Fangorn()])
       : enclosingScope = scope,
         library = library,
         enableNative =
@@ -206,9 +210,6 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
             coreTypes.objectClass != classBuilder?.cls,
         typePromoter = _typeInferrer.typePromoter,
         super(scope);
-
-  @override
-  Forest<Expression, Statement, Token, Arguments> get forest => _forest;
 
   bool get hasParserError => recoverableErrors.isNotEmpty;
 
@@ -714,6 +715,42 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     return expressions;
   }
 
+  @override
+  Expression parseSingleExpression(
+      Parser parser, Token token, FunctionNode parameters) {
+    List<KernelTypeVariableBuilder> typeParameterBuilders;
+    for (TypeParameter typeParameter in parameters.typeParameters) {
+      typeParameterBuilders ??= <KernelTypeVariableBuilder>[];
+      typeParameterBuilders.add(
+          new KernelTypeVariableBuilder.fromKernel(typeParameter, library));
+    }
+    enterFunctionTypeScope(typeParameterBuilders);
+
+    enterLocalScope(
+        null,
+        new FormalParameters(parameters.positionalParameters, null, -1)
+            .computeFormalParameterScope(scope, member, this));
+
+    token = parser.parseExpression(parser.syntheticPreviousToken(token));
+
+    Expression expression = popForValue();
+    Token eof = token.next;
+
+    if (!eof.isEof) {
+      expression = wrapInLocatedCompileTimeError(
+          expression,
+          fasta.messageExpectedOneExpression
+              .withLocation(uri, eof.charOffset, eof.length));
+    }
+
+    ShadowReturnStatement fakeReturn = new ShadowReturnStatement(expression);
+
+    _typeInferrer.inferFunctionBody(
+        this, const DynamicType(), AsyncMarker.Sync, fakeReturn);
+
+    return fakeReturn.expression;
+  }
+
   void finishConstructor(
       KernelConstructorBuilder builder, AsyncMarker asyncModifier) {
     /// Quotes below are from [Dart Programming Language Specification, 4th
@@ -942,8 +979,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     if (receiver is ThisAccessor && receiver.isSuper) {
       ThisAccessor thisAccessorReceiver = receiver;
       isSuper = true;
-      receiver = new ShadowThisExpression()
-        ..fileOffset = offsetForToken(thisAccessorReceiver.token);
+      receiver = forest.thisExpression(thisAccessorReceiver.token);
     }
     push(buildBinaryOperator(toValue(receiver), token, argument, isSuper));
   }
@@ -966,7 +1002,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
           // evaluating [a] and [b].
           isConstantExpression: !isSuper,
           isSuper: isSuper);
-      return negate ? new ShadowNot(result) : result;
+      return negate ? forest.notExpression(result, null) : result;
     }
   }
 
@@ -1470,8 +1506,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
           expressions.add(forest.literalString(value, last));
         }
       }
-      push(new ShadowStringConcatenation(expressions)
-        ..fileOffset = offsetForToken(endToken));
+      push(forest.stringConcatenationExpression(expressions, endToken));
     }
   }
 
@@ -1507,7 +1542,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
         }
       }
     }
-    push(new ShadowStringConcatenation(expressions ?? parts));
+    push(forest.stringConcatenationExpression(expressions ?? parts, null));
   }
 
   @override
@@ -1787,8 +1822,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
   @override
   void endAwaitExpression(Token keyword, Token endToken) {
     debugEvent("AwaitExpression");
-    push(new ShadowAwaitExpression(popForValue())
-      ..fileOffset = offsetForToken(keyword));
+    push(forest.awaitExpression(popForValue(), keyword));
   }
 
   @override
@@ -1802,25 +1836,30 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
       int count, Token beginToken, Token constKeyword, Token endToken) {
     debugEvent("LiteralList");
     List<Expression> expressions = popListForValue(count);
-    List<DartType> typeArguments = pop();
+    Object typeArguments = pop();
     DartType typeArgument;
     if (typeArguments != null) {
-      typeArgument = typeArguments.first;
-      if (typeArguments.length > 1) {
-        typeArgument = null;
+      if (forest.getTypeCount(typeArguments) > 1) {
         addProblem(
             fasta.messageListLiteralTooManyTypeArguments,
             offsetForToken(beginToken),
             lengthOfSpan(beginToken, beginToken.endGroup));
-      } else if (library.loader.target.strongMode) {
-        typeArgument = instantiateToBounds(typeArgument, coreTypes.objectClass);
+      } else {
+        typeArgument = forest.getTypeAt(typeArguments, 0);
+        if (library.loader.target.strongMode) {
+          typeArgument =
+              instantiateToBounds(typeArgument, coreTypes.objectClass);
+        }
       }
     }
     push(forest.literalList(
-        typeArgument,
-        expressions,
+        constKeyword,
         constKeyword != null || constantContext == ConstantContext.inferred,
-        constKeyword ?? beginToken));
+        typeArgument,
+        typeArguments,
+        beginToken,
+        expressions,
+        endToken));
   }
 
   @override
@@ -1849,36 +1888,34 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     debugEvent("LiteralMap");
     List entries = forest.mapEntryList(count);
     popList(count, entries);
-    List<DartType> typeArguments = pop();
+    Object typeArguments = pop();
     DartType keyType;
     DartType valueType;
     if (typeArguments != null) {
-      if (typeArguments.length != 2) {
-        keyType = null;
-        valueType = null;
+      if (forest.getTypeCount(typeArguments) != 2) {
         addProblem(
             fasta.messageListLiteralTypeArgumentMismatch,
             offsetForToken(beginToken),
             lengthOfSpan(beginToken, beginToken.endGroup));
       } else {
+        keyType = forest.getTypeAt(typeArguments, 0);
+        valueType = forest.getTypeAt(typeArguments, 1);
         if (library.loader.target.strongMode) {
-          keyType =
-              instantiateToBounds(typeArguments[0], coreTypes.objectClass);
-          valueType =
-              instantiateToBounds(typeArguments[1], coreTypes.objectClass);
-        } else {
-          keyType = typeArguments[0];
-          valueType = typeArguments[1];
+          keyType = instantiateToBounds(keyType, coreTypes.objectClass);
+          valueType = instantiateToBounds(valueType, coreTypes.objectClass);
         }
       }
     }
 
     push(forest.literalMap(
+        constKeyword,
+        constKeyword != null || constantContext == ConstantContext.inferred,
         keyType,
         valueType,
+        typeArguments,
+        beginToken,
         entries,
-        constKeyword != null || constantContext == ConstantContext.inferred,
-        constKeyword ?? beginToken));
+        endToken));
   }
 
   @override
@@ -1886,7 +1923,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     debugEvent("LiteralMapEntry");
     Expression value = popForValue();
     Expression key = popForValue();
-    push(forest.mapEntry(key, value, colon));
+    push(forest.mapEntry(key, colon, value));
   }
 
   String symbolPartToString(name) {
@@ -2008,8 +2045,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
       push(deprecated_buildCompileTimeError(
           "Not a constant expression.", operator.charOffset));
     } else {
-      push(new ShadowAsExpression(expression, type)
-        ..fileOffset = offsetForToken(operator));
+      push(forest.asExpression(expression, type, operator));
     }
   }
 
@@ -2019,11 +2055,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     DartType type = pop();
     Expression operand = popForValue();
     bool isInverted = not != null;
-    var offset = offsetForToken(operator);
-    Expression isExpression = isInverted
-        ? new ShadowIsNotExpression(operand, type, offset)
-        : new ShadowIsExpression(operand, type)
-      ..fileOffset = offset;
+    Expression isExpression = forest.isExpression(operand, operator, not, type);
     if (operand is VariableGet) {
       typePromoter.handleIsCheck(isExpression, isInverted, operand.variable,
           type, functionNestingLevel);
@@ -2059,9 +2091,8 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     Expression thenExpression = pop();
     Expression condition = pop();
     typePromoter.exitConditional();
-    push(new ShadowConditionalExpression(
-        condition, thenExpression, elseExpression)
-      ..fileOffset = question.offset);
+    push(forest.conditionalExpression(
+        condition, question, thenExpression, colon, elseExpression));
   }
 
   @override
@@ -2318,8 +2349,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
     debugEvent("UnaryPrefixExpression");
     var receiver = pop();
     if (optional("!", token)) {
-      push(
-          new ShadowNot(toValue(receiver))..fileOffset = offsetForToken(token));
+      push(forest.notExpression(toValue(receiver), token));
     } else {
       String operator = token.stringValue;
       if (optional("-", token)) {
@@ -2338,8 +2368,7 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
       Expression receiverValue;
       if (receiver is ThisAccessor && receiver.isSuper) {
         isSuper = true;
-        receiverValue = new ShadowThisExpression()
-          ..fileOffset = offsetForToken(receiver.token);
+        receiverValue = forest.thisExpression(receiver.token);
       } else {
         receiverValue = toValue(receiver);
       }
@@ -3529,7 +3558,9 @@ class BodyBuilder<Arguments> extends ScopeListener<JumpTarget>
           name.name, library, offsetForToken(name.token), null);
     }
     variable.parameter.bound = bound;
-    push(variable..finish(library, library.loader.coreLibrary["Object"]));
+    push(variable
+      ..finish(library, library.loader.target.objectClassBuilder,
+          library.loader.target.dynamicType));
   }
 
   @override

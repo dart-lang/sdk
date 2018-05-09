@@ -36,18 +36,16 @@ main() {
   // we just verify that their members are in the correct order.
   RegExp regexp = new RegExp(r"foo\$0?:(.|\n)*bar\$0:(.|\n)*gee\$0:");
 
-  runTests(CompileMode compileMode) async {
-    String generated1 = await compileAll(TEST_ONE, compileMode: compileMode);
+  runTests() async {
+    String generated1 = await compileAll(TEST_ONE);
     Expect.isTrue(regexp.hasMatch(generated1));
 
-    String generated2 = await compileAll(TEST_TWO, compileMode: compileMode);
+    String generated2 = await compileAll(TEST_TWO);
     Expect.isTrue(regexp.hasMatch(generated2));
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(CompileMode.memory);
     print('--test from kernel------------------------------------------------');
-    await runTests(CompileMode.kernel);
+    await runTests();
   });
 }

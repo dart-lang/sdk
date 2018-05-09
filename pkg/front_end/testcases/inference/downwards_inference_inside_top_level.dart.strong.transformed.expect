@@ -8,7 +8,7 @@ class A extends core::Object {
     : super core::Object::•()
     ;
 }
-class B<T extends core::Object> extends core::Object {
+class B<T extends core::Object = dynamic> extends core::Object {
   constructor •(self::B::T x) → void
     : super core::Object::•()
     ;

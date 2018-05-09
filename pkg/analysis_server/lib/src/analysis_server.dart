@@ -108,7 +108,7 @@ class AnalysisServer {
    * The version of the analysis server. The value should be replaced
    * automatically during the build.
    */
-  static final String VERSION = '1.20.1';
+  static final String VERSION = '1.20.2';
 
   /**
    * The options of this server instance.
@@ -1275,6 +1275,15 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
                 analysisServer, path, result.lineInfo, unit);
           });
         }
+        // TODO:(dantup) Uncomment this and equivilent in
+        // test/analysis/notification_folding_test.dart once the
+        // implementation is complete.
+        // if (analysisServer._hasAnalysisServiceSubscription(
+        //     AnalysisService.FOLDING, path)) {
+        //   _runDelayed(() {
+        //     sendAnalysisNotificationFolding(analysisServer, path, unit);
+        //   });
+        // }
         if (analysisServer._hasAnalysisServiceSubscription(
             AnalysisService.OUTLINE, path)) {
           _runDelayed(() {

@@ -23,7 +23,7 @@ import 'elements/elements.dart'
     show AstElement, ClassElement, Element, MethodElement, LocalFunctionElement;
 import 'elements/entities.dart';
 import 'kernel/kelements.dart' show KLocalFunction;
-import 'universe/use.dart' show StaticUse, StaticUseKind, TypeUse, TypeUseKind;
+import 'universe/use.dart';
 import 'universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitorImpl;
 import 'util/uri_extras.dart' as uri_extras;
@@ -320,6 +320,18 @@ abstract class DeferredLoadTask extends CompilerTask {
             case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
               _collectTypeDependencies(staticUse.type, elements);
               break;
+            case StaticUseKind.INVOKE:
+            case StaticUseKind.CLOSURE_CALL:
+            case StaticUseKind.DIRECT_INVOKE:
+              // TODO(johnniwinther): Use rti need data to skip unneeded type
+              // arguments.
+              List<DartType> typeArguments = staticUse.typeArguments;
+              if (typeArguments != null) {
+                for (DartType typeArgument in typeArguments) {
+                  _collectTypeDependencies(typeArgument, elements);
+                }
+              }
+              break;
             default:
           }
         }, visitTypeUse: (TypeUse typeUse) {
@@ -357,6 +369,15 @@ abstract class DeferredLoadTask extends CompilerTask {
                 _collectTypeDependencies(type, elements);
               }
               break;
+          }
+        }, visitDynamicUse: (DynamicUse dynamicUse) {
+          // TODO(johnniwinther): Use rti need data to skip unneeded type
+          // arguments.
+          List<DartType> typeArguments = dynamicUse.typeArguments;
+          if (typeArguments != null) {
+            for (DartType typeArgument in typeArguments) {
+              _collectTypeDependencies(typeArgument, elements);
+            }
           }
         }),
         DeferredLoadTask.IMPACT_USE);

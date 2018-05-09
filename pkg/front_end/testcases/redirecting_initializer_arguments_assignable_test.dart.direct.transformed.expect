@@ -7,7 +7,7 @@ class X extends core::Object {
     : super core::Object::•()
     ;
 }
-class Foo<T extends self::X> extends core::Object {
+class Foo<T extends self::X = dynamic> extends core::Object {
   field self::Foo::T x;
   constructor fromX(self::X _init) → void
     : this self::Foo::_internal(x: _init)

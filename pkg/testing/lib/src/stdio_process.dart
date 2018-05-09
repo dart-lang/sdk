@@ -60,7 +60,7 @@ class StdioProcess {
         process.kill();
         timer = new Timer(const Duration(seconds: 10), () {
           sb.writeln("Sending SIGKILL to process");
-          process.kill(ProcessSignal.SIGKILL);
+          process.kill(ProcessSignal.sigkill);
         });
       });
     }

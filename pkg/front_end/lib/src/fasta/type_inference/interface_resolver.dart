@@ -798,14 +798,15 @@ class InterfaceResolver {
     }
   }
 
-  /// Populates [apiMembers] with a list of the implemented and inherited
-  /// members of the given [class_]'s interface.
+  /// Populates [getters] and [setters] with the members of the given [class_]'s
+  /// interface.
   ///
-  /// Members of the class's interface that need to be resolved later are
-  /// represented by a [ForwardingNode] object.
-  ///
-  /// If [setters] is `true`, the list will be populated by setters; otherwise
-  /// it will be populated by getters and methods.
+  /// [getters] will contain methods and getters, [setters] will contain
+  /// setters.  Some members cannot be resolved immediately.  For instance,
+  /// top-level type inference has not yet inferred field types based on
+  /// initializers and so we cannot yet do override based resolution of getters
+  /// and setters.  Members of the class's interface that need to be resolved
+  /// later are represented by a [ForwardingNode] object.
   void createApiMembers(Class class_, List<Member> getters,
       List<Member> setters, LibraryBuilder library) {
     var candidates = ClassHierarchy.mergeSortedLists(
@@ -816,112 +817,167 @@ class InterfaceResolver {
     setters.length = candidates.length;
     int getterIndex = 0;
     int setterIndex = 0;
-    forEachApiMember(candidates, (int getterStart, int setterEnd, Name name) {
+    forEachApiMember(candidates, (int start, int end, Name name) {
       // TODO(paulberry): check for illegal getter/method mixing
+      Procedure member = candidates[start];
+      ProcedureKind kind = _kindOf(member);
+      if (kind != ProcedureKind.Getter && kind != ProcedureKind.Setter) {
+        for (int i = start + 1; i < end; ++i) {
+          if (_kindOf(candidates[i]) != kind) {
+            // We've seen a getter or setter.  If it's a getter conflicting
+            // with a method and both are declared in the same class, then that
+            // has already been signaled as a duplicated definition.
+            Procedure conflict = candidates[i];
+            if (conflict.enclosingClass != member.enclosingClass) {
+              if (member.enclosingClass == class_) {
+                library.addProblem(
+                    messageDeclaredMemberConflictsWithInheritedMember,
+                    member.fileOffset,
+                    noLength,
+                    member.fileUri,
+                    context: [
+                      messageDeclaredMemberConflictsWithInheritedMemberCause
+                          .withLocation(
+                              conflict.fileUri, conflict.fileOffset, noLength)
+                    ]);
+              } else if (conflict.enclosingClass == class_) {
+                library.addProblem(
+                    messageDeclaredMemberConflictsWithInheritedMember,
+                    conflict.fileOffset,
+                    noLength,
+                    conflict.fileUri,
+                    context: [
+                      messageDeclaredMemberConflictsWithInheritedMemberCause
+                          .withLocation(
+                              member.fileUri, member.fileOffset, noLength)
+                    ]);
+              } else {
+                library.addProblem(messageInheritedMembersConflict,
+                    class_.fileOffset, noLength, class_.fileUri,
+                    context: [
+                      messageInheritedMembersConflictCause1.withLocation(
+                          member.fileUri, member.fileOffset, noLength),
+                      messageInheritedMembersConflictCause2.withLocation(
+                          conflict.fileUri, conflict.fileOffset, noLength)
+                    ]);
+              }
+            }
+            return;
+          }
+        }
+        if (strongMode &&
+            member.enclosingClass == class_ &&
+            _requiresTypeInference(member)) {
+          inferMethodType(library, class_, member, candidates, start + 1, end);
+        }
+        var forwardingNode = new ForwardingNode(
+            this, null, class_, name, kind, candidates, start, end);
+        getters[getterIndex++] = forwardingNode.finalize();
+        return;
+      }
 
       Procedure declaredGetter;
-      int i = getterStart;
-      int inheritedGetterStart;
-      int getterEnd;
-      if (_kindOf(candidates[i]) == ProcedureKind.Setter) {
-        inheritedGetterStart = i;
-      } else {
-        if (identical(candidates[i].enclosingClass, class_)) {
-          declaredGetter = candidates[i++];
+      int inheritedGetterStart = start;
+      int getterEnd = start;
+      if (kind == ProcedureKind.Getter) {
+        if (member.enclosingClass == class_) {
+          declaredGetter = member;
+          ++inheritedGetterStart;
         }
-        inheritedGetterStart = i;
-        while (
-            i < setterEnd && _kindOf(candidates[i]) != ProcedureKind.Setter) {
-          ++i;
+        while (++getterEnd < end) {
+          ProcedureKind currentKind = _kindOf(candidates[getterEnd]);
+          if (currentKind == ProcedureKind.Setter) break;
+          if (currentKind != ProcedureKind.Getter) {
+            Procedure conflict = candidates[getterEnd];
+            if (conflict.enclosingClass != member.enclosingClass) {
+              if (member.enclosingClass == class_) {
+                library.addProblem(
+                    messageDeclaredMemberConflictsWithInheritedMember,
+                    member.fileOffset,
+                    noLength,
+                    member.fileUri,
+                    context: [
+                      messageDeclaredMemberConflictsWithInheritedMemberCause
+                          .withLocation(
+                              conflict.fileUri, conflict.fileOffset, noLength)
+                    ]);
+              } else {
+                library.addProblem(messageInheritedMembersConflict,
+                    class_.fileOffset, noLength, class_.fileUri,
+                    context: [
+                      messageInheritedMembersConflictCause1.withLocation(
+                          member.fileUri, member.fileOffset, noLength),
+                      messageInheritedMembersConflictCause2.withLocation(
+                          conflict.fileUri, conflict.fileOffset, noLength)
+                    ]);
+              }
+            }
+            return;
+          }
         }
       }
-      getterEnd = i;
+
       Procedure declaredSetter;
-      int inheritedSetterStart;
-      if (i < setterEnd && identical(candidates[i].enclosingClass, class_)) {
-        declaredSetter = candidates[i];
-        inheritedSetterStart = i + 1;
-      } else {
-        inheritedSetterStart = i;
+      int inheritedSetterStart = getterEnd;
+      if (getterEnd < end) {
+        member = candidates[getterEnd];
+        if (member.enclosingClass == class_) {
+          declaredSetter = member;
+          ++inheritedSetterStart;
+        }
       }
 
       InferenceNode getterInferenceNode;
-      if (getterStart < getterEnd) {
-        if (_kindOf(candidates[getterStart]) == ProcedureKind.Getter) {
-          // Member is a getter.
-          if (declaredGetter != null) {
-            getterInferenceNode = _createInferenceNode(
-                class_,
-                declaredGetter,
-                candidates,
-                inheritedGetterStart,
-                getterEnd,
-                inheritedSetterStart,
-                setterEnd,
-                library,
-                class_.fileUri);
-          }
-          // Getters need to be resolved later, as part of type
-          // inference, so just save the forwarding node for now.
-          getters[getterIndex++] = new ForwardingNode(
-              this,
-              getterInferenceNode,
+      if (start < getterEnd) {
+        if (declaredGetter != null) {
+          getterInferenceNode = _createInferenceNode(
               class_,
-              name,
-              _kindOf(candidates[getterStart]),
+              declaredGetter,
               candidates,
-              getterStart,
-              getterEnd);
-        } else {
-          // Member is a method.
-          if (strongMode &&
-              declaredGetter != null &&
-              _requiresTypeInference(declaredGetter)) {
-            inferMethodType(library, class_, declaredGetter, candidates,
-                inheritedGetterStart, getterEnd);
-          }
-          var forwardingNode = new ForwardingNode(
-              this,
-              null,
-              class_,
-              name,
-              _kindOf(candidates[getterStart]),
-              candidates,
-              getterStart,
-              getterEnd);
-          // Methods and operators can be finalized immediately.
-          getters[getterIndex++] = forwardingNode.finalize();
+              inheritedGetterStart,
+              getterEnd,
+              inheritedSetterStart,
+              end,
+              library,
+              class_.fileUri);
         }
+        // Getters need to be resolved later, as part of type inference, so just
+        // save the forwarding node for now.
+        //
+        // Choose a representative to use for error reporting, such as if a
+        // class inherits this getter and tries to declare a method with the
+        // same name.
+        Member representative = candidates[start];
+        getters[getterIndex++] = new ForwardingNode(this, getterInferenceNode,
+            class_, name, ProcedureKind.Getter, candidates, start, getterEnd)
+          ..fileUri = representative.fileUri
+          ..fileOffset = representative.fileOffset
+          ..fileEndOffset = representative.fileEndOffset;
       }
-      if (getterEnd < setterEnd) {
+      if (getterEnd < end) {
         InferenceNode setterInferenceNode;
         if (declaredSetter != null) {
-          if (declaredSetter is SyntheticAccessor) {
-            setterInferenceNode = getterInferenceNode;
-          } else {
-            setterInferenceNode = _createInferenceNode(
-                class_,
-                declaredSetter,
-                candidates,
-                inheritedSetterStart,
-                setterEnd,
-                inheritedGetterStart,
-                getterEnd,
-                library,
-                class_.fileUri);
-          }
+          setterInferenceNode = declaredSetter is SyntheticAccessor
+              ? getterInferenceNode
+              : _createInferenceNode(
+                  class_,
+                  declaredSetter,
+                  candidates,
+                  inheritedSetterStart,
+                  end,
+                  inheritedGetterStart,
+                  getterEnd,
+                  library,
+                  class_.fileUri);
         }
-        var forwardingNode = new ForwardingNode(
-            this,
-            setterInferenceNode,
-            class_,
-            name,
-            ProcedureKind.Setter,
-            candidates,
-            getterEnd,
-            setterEnd);
-        // Setters need to be resolved later, as part of type
-        // inference, so just save the forwarding node for now.
+        Member representative = candidates[getterEnd];
+        var forwardingNode = new ForwardingNode(this, setterInferenceNode,
+            class_, name, ProcedureKind.Setter, candidates, getterEnd, end)
+          ..fileUri = representative.fileUri
+          ..fileOffset = representative.fileOffset
+          ..fileEndOffset = representative.fileEndOffset;
+        // Setters need to be resolved later, as part of type inference, so just
+        // save the forwarding node for now.
         setters[setterIndex++] = forwardingNode;
       }
     });

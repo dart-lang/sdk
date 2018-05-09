@@ -54,10 +54,7 @@ class IdentifierContext {
       isContinuation: true);
 
   /// Identifier is the name being declared by a typedef declaration.
-  static const typedefDeclaration = const IdentifierContext(
-      'typedefDeclaration',
-      inDeclaration: true,
-      isBuiltInIdentifierAllowed: false);
+  static const typedefDeclaration = const TypedefDeclarationIdentifierContext();
 
   /// Identifier is a field initializer in a formal parameter list (i.e. it
   /// appears directly after `this.`).

@@ -106,49 +106,40 @@ main() {
 """;
 
 main() {
-  runTests({bool useKernel}) async {
-    await compile(TEST_ONE, entry: 'foo', useKernel: useKernel,
-        check: (String generated) {
+  runTests() async {
+    await compile(TEST_ONE, entry: 'foo', check: (String generated) {
       RegExp regexp = new RegExp(r"1 \+ [a-z]+");
       checkNumberOfMatches(regexp.allMatches(generated).iterator, 1);
     });
-    await compile(TEST_TWO, entry: 'foo', useKernel: useKernel,
-        check: (String generated) {
+    await compile(TEST_TWO, entry: 'foo', check: (String generated) {
       checkNumberOfMatches(
           new RegExp("length").allMatches(generated).iterator, 1);
     });
-    await compile(TEST_THREE, entry: 'foo', useKernel: useKernel,
-        check: (String generated) {
+    await compile(TEST_THREE, entry: 'foo', check: (String generated) {
       checkNumberOfMatches(
           new RegExp("number").allMatches(generated).iterator, 1);
     });
-    await compile(TEST_FOUR, entry: 'foo', useKernel: useKernel,
-        check: (String generated) {
+    await compile(TEST_FOUR, entry: 'foo', check: (String generated) {
       checkNumberOfMatches(new RegExp("shr").allMatches(generated).iterator, 1);
     });
 
-    CompileMode compileMode =
-        useKernel ? CompileMode.kernel : CompileMode.memory;
-
-    await compileAll(TEST_FIVE, compileMode: compileMode).then((generated) {
+    await compileAll(TEST_FIVE).then((generated) {
       checkNumberOfMatches(
           new RegExp("get\\\$foo").allMatches(generated).iterator, 1);
     });
-    await compileAll(TEST_SIX, compileMode: compileMode).then((generated) {
+    await compileAll(TEST_SIX).then((generated) {
       Expect.isTrue(generated.contains('for (t1 = a.field === 54; t1;)'));
     });
-    await compileAll(TEST_SEVEN, compileMode: compileMode).then((generated) {
+    await compileAll(TEST_SEVEN).then((generated) {
       Expect.isTrue(generated.contains('for (t1 = a.field === 54; t1;)'));
     });
-    await compileAll(TEST_EIGHT, compileMode: compileMode).then((generated) {
+    await compileAll(TEST_EIGHT).then((generated) {
       Expect.isTrue(generated.contains('for (; i < t1; ++i)'));
     });
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTests(useKernel: true);
+    await runTests();
   });
 }

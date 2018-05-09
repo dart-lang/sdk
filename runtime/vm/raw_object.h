@@ -188,12 +188,10 @@ enum ClassId {
       kByteBufferCid,
 
   // The following entries do not describe a predefined class, but instead
-  // are class indexes for pre-allocated instances (Null, dynamic, Void and
-  // Vector).
+  // are class indexes for pre-allocated instances (Null, dynamic and Void).
   kNullCid,
   kDynamicCid,
   kVoidCid,
-  kVectorCid,
 
   kNumPredefinedCids,
 };
@@ -399,7 +397,7 @@ class RawObject {
     UpdateTagBit<MarkBit>(false);
   }
   // Returns false if the bit was already set.
-  // TODO(koda): Add "must use result" annotation here, after we add support.
+  DART_WARN_UNUSED_RESULT
   bool TryAcquireMarkBit() { return TryAcquireTagBit<MarkBit>(); }
 
   // Support for object tags.
@@ -426,7 +424,7 @@ class RawObject {
     ptr()->tags_ = RememberedBit::update(false, tags);
   }
   // Returns false if the bit was already set.
-  // TODO(koda): Add "must use result" annotation here, after we add support.
+  DART_WARN_UNUSED_RESULT
   bool TryAcquireRememberedBit() { return TryAcquireTagBit<RememberedBit>(); }
 
 #define DEFINE_IS_CID(clazz)                                                   \
@@ -862,7 +860,6 @@ class RawFunction : public RawObject {
     kRegularFunction,
     kClosureFunction,
     kImplicitClosureFunction,
-    kConvertedClosureFunction,
     kSignatureFunction,  // represents a signature only without actual code.
     kGetterFunction,     // represents getter functions e.g: get foo() { .. }.
     kSetterFunction,     // represents setter functions e.g: set foo(..) { .. }.
@@ -987,8 +984,7 @@ class RawClosureData : public RawObject {
   RawFunction* parent_function_;  // Enclosing function of this local function.
   RawType* signature_type_;
   RawInstance* closure_;  // Closure object for static implicit closures.
-  RawSmi* num_parent_type_parameters_;  // For converted closures only
-  VISIT_TO(RawObject*, num_parent_type_parameters_);
+  VISIT_TO(RawObject*, closure_);
 
   friend class Function;
 };

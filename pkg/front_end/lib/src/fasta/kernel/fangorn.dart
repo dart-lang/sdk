@@ -28,23 +28,33 @@ import '../scanner.dart' show Token;
 import 'kernel_shadow_ast.dart'
     show
         ShadowArguments,
+        ShadowAsExpression,
+        ShadowAwaitExpression,
         ShadowBoolLiteral,
         ShadowCheckLibraryIsLoaded,
+        ShadowConditionalExpression,
         ShadowDoubleLiteral,
         ShadowIntLiteral,
+        ShadowIsExpression,
+        ShadowIsNotExpression,
         ShadowListLiteral,
         ShadowLoadLibrary,
         ShadowMapLiteral,
+        ShadowNot,
         ShadowNullLiteral,
+        ShadowStringConcatenation,
         ShadowStringLiteral,
         ShadowSymbolLiteral,
         ShadowSyntheticExpression,
+        ShadowThisExpression,
         ShadowTypeLiteral;
 
 import 'forest.dart' show Forest;
 
 /// A shadow tree factory.
 class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
+  const Fangorn();
+
   @override
   ShadowArguments arguments(List<Expression> positional, Token token,
       {List<DartType> types, List<NamedExpression> named}) {
@@ -96,19 +106,36 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
-  ShadowListLiteral literalList(covariant typeArgument,
-      List<Expression> expressions, bool isConst, Token token) {
+  ShadowListLiteral literalList(
+      Token constKeyword,
+      bool isConst,
+      Object typeArgument,
+      Object typeArguments,
+      Token leftBracket,
+      List<Expression> expressions,
+      Token rightBracket) {
+    // TODO(brianwilkerson): The file offset computed below will not be correct
+    // if there are type arguments but no `const` keyword.
     return new ShadowListLiteral(expressions,
         typeArgument: typeArgument, isConst: isConst)
-      ..fileOffset = offsetForToken(token);
+      ..fileOffset = offsetForToken(constKeyword ?? leftBracket);
   }
 
   @override
-  ShadowMapLiteral literalMap(DartType keyType, DartType valueType,
-      List<MapEntry> entries, bool isConst, Token token) {
+  ShadowMapLiteral literalMap(
+      Token constKeyword,
+      bool isConst,
+      DartType keyType,
+      DartType valueType,
+      Object typeArguments,
+      Token leftBracket,
+      List<MapEntry> entries,
+      Token rightBracket) {
+    // TODO(brianwilkerson): The file offset computed below will not be correct
+    // if there are type arguments but no `const` keyword.
     return new ShadowMapLiteral(entries,
         keyType: keyType, valueType: valueType, isConst: isConst)
-      ..fileOffset = offsetForToken(token);
+      ..fileOffset = offsetForToken(constKeyword ?? leftBracket);
   }
 
   @override
@@ -132,8 +159,8 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
-  MapEntry mapEntry(Expression key, Expression value, Token token) {
-    return new MapEntry(key, value)..fileOffset = offsetForToken(token);
+  MapEntry mapEntry(Expression key, Token colon, Expression value) {
+    return new MapEntry(key, value)..fileOffset = offsetForToken(colon);
   }
 
   @override
@@ -145,6 +172,13 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   int readOffset(TreeNode node) => node.fileOffset;
 
   @override
+  int getTypeCount(Object typeArguments) => (typeArguments as List).length;
+
+  @override
+  DartType getTypeAt(Object typeArguments, int index) =>
+      (typeArguments as List)[index];
+
+  @override
   Expression loadLibrary(LibraryDependency dependency) {
     return new ShadowLoadLibrary(dependency);
   }
@@ -152,6 +186,53 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   @override
   Expression checkLibraryIsLoaded(LibraryDependency dependency) {
     return new ShadowCheckLibraryIsLoaded(dependency);
+  }
+
+  @override
+  Expression asExpression(Expression expression, covariant type, Token token) {
+    return new ShadowAsExpression(expression, type)
+      ..fileOffset = offsetForToken(token);
+  }
+
+  @override
+  Expression awaitExpression(Expression operand, Token token) {
+    return new ShadowAwaitExpression(operand)
+      ..fileOffset = offsetForToken(token);
+  }
+
+  @override
+  Expression conditionalExpression(Expression condition, Token question,
+      Expression thenExpression, Token colon, Expression elseExpression) {
+    return new ShadowConditionalExpression(
+        condition, thenExpression, elseExpression)
+      ..fileOffset = offsetForToken(question);
+  }
+
+  @override
+  Expression isExpression(
+      Expression operand, isOperator, Token notOperator, covariant type) {
+    int offset = offsetForToken(isOperator);
+    if (notOperator != null) {
+      return new ShadowIsNotExpression(operand, type, offset);
+    }
+    return new ShadowIsExpression(operand, type)..fileOffset = offset;
+  }
+
+  @override
+  Expression notExpression(Expression operand, Token token) {
+    return new ShadowNot(operand)..fileOffset = offsetForToken(token);
+  }
+
+  @override
+  Expression stringConcatenationExpression(
+      List<Expression> expressions, Token token) {
+    return new ShadowStringConcatenation(expressions)
+      ..fileOffset = offsetForToken(token);
+  }
+
+  @override
+  Expression thisExpression(Token token) {
+    return new ShadowThisExpression()..fileOffset = offsetForToken(token);
   }
 
   @override

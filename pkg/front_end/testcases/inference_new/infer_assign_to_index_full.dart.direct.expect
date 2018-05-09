@@ -55,6 +55,6 @@ class Test extends core::Object {
     dynamic v7 = let final dynamic #t42 = t in let final dynamic #t43 = self::f<dynamic>() in let final dynamic #t44 = #t42.[](#t43) in let final dynamic #t45 = #t42.[]=(#t43, #t44.-(1)) in #t44;
   }
 }
-static method f<T extends core::Object>() → self::f::T
+static method f<T extends core::Object = dynamic>() → self::f::T
   return null;
 static method main() → dynamic {}

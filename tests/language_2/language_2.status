@@ -57,7 +57,6 @@ type_promotion_functions_test: CompileTimeError # Issue 30895: This test require
 # errors aren't detected by fasta, but reported by back ends as compile-time
 # errors.
 [ $compiler != dart2js && $runtime != dart_precompiled && $runtime != vm && $fasta ]
-deferred_constraints_constants_test/default_argument2: MissingCompileTimeError
 function_type_parameter2_negative_test: Fail
 function_type_parameter_negative_test: Fail
 implicit_creation/implicit_const_not_default_values_test/e12: MissingCompileTimeError
@@ -279,6 +278,7 @@ implicit_creation/implicit_new_or_const_generic_test: Fail # No support for impl
 implicit_creation/implicit_new_or_const_test: Fail # No support for implicit creation.
 implicit_creation/implicit_new_prefix_constructor_generic_named_test: Fail # No support for implicit creation.
 implicit_creation/implicit_new_prefix_constructor_named_test: Fail # No support for implicit creation.
+setter_override2_test/02: MissingCompileTimeError # Issue 14736
 
 [ $compiler == app_jit || $compiler == none ]
 library_env_test/has_no_mirror_support: RuntimeError, OK
@@ -315,7 +315,6 @@ deferred_shared_and_unshared_classes_test: Crash # Requires deferred libraries
 deferred_static_seperate_test: Crash # Requires deferred libraries
 deferred_super_dependency_test: Pass, Crash # Requires deferred libraries
 deferred_type_dependency_test: Crash # Requires deferred libraries
-issue21159_test: Pass, Crash # Issue 29094
 issue_1751477_test: Crash # Requires deferred libraries
 issue_22780_test/01: Pass, Crash # Issue 29094
 regress_22443_test: Crash # Requires deferred libraries

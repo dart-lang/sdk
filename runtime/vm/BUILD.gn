@@ -3,7 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 import("../../build/executable_suffix.gni")
-import("../../build/prebuilt_dart_sdk.gni")
 import("../../sdk/lib/async/async_sources.gni")
 import("../../sdk/lib/collection/collection_sources.gni")
 import("../../sdk/lib/convert/convert_sources.gni")

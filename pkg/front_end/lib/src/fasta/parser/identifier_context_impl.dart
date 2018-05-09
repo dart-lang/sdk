@@ -15,9 +15,9 @@ import 'parser.dart' show Parser;
 import 'type_info.dart'
     show insertSyntheticIdentifierAfter, isValidTypeReference;
 
-import 'util.dart' show optional;
+import 'util.dart' show optional, skipMetadata;
 
-/// See [IdentifierContext].classOrNamedMixin
+/// See [IdentifierContext.classOrNamedMixinDeclaration].
 class ClassOrNamedMixinIdentifierContext extends IdentifierContext {
   const ClassOrNamedMixinIdentifierContext()
       : super('classOrNamedMixinDeclaration',
@@ -53,7 +53,7 @@ class ClassOrNamedMixinIdentifierContext extends IdentifierContext {
   }
 }
 
-/// See [IdentifierContext].dottedName
+/// See [IdentifierContext.dottedName].
 class DottedNameIdentifierContext extends IdentifierContext {
   const DottedNameIdentifierContext() : super('dottedName');
 
@@ -95,7 +95,7 @@ class DottedNameIdentifierContext extends IdentifierContext {
   }
 }
 
-/// See [IdentifierContext].expression
+/// See [IdentifierContext.expression].
 class ExpressionIdentifierContext extends IdentifierContext {
   const ExpressionIdentifierContext()
       : super('expression', isScopeReference: true);
@@ -145,6 +145,7 @@ class ExpressionIdentifierContext extends IdentifierContext {
   }
 }
 
+/// See [IdentifierContext.fieldDeclaration].
 class FieldDeclarationIdentifierContext extends IdentifierContext {
   const FieldDeclarationIdentifierContext()
       : super('fieldDeclaration', inDeclaration: true);
@@ -175,7 +176,7 @@ class FieldDeclarationIdentifierContext extends IdentifierContext {
   }
 }
 
-/// See [IdentifierContext].fieldInitializer
+/// See [IdentifierContext.fieldInitializer].
 class FieldInitializerIdentifierContext extends IdentifierContext {
   const FieldInitializerIdentifierContext()
       : super('fieldInitializer', isContinuation: true);
@@ -234,7 +235,7 @@ class ImportPrefixIdentifierContext extends IdentifierContext {
   }
 }
 
-/// See [IdentifierContext].libraryName
+/// See [IdentifierContext.libraryName].
 class LibraryIdentifierContext extends IdentifierContext {
   const LibraryIdentifierContext()
       : super('libraryName', inLibraryOrPartOfDeclaration: true);
@@ -276,7 +277,7 @@ class LibraryIdentifierContext extends IdentifierContext {
   }
 }
 
-/// See [IdentifierContext].localVariableDeclaration
+/// See [IdentifierContext.localVariableDeclaration].
 class LocalVariableDeclarationIdentifierContext extends IdentifierContext {
   const LocalVariableDeclarationIdentifierContext()
       : super('localVariableDeclaration', inDeclaration: true);
@@ -308,6 +309,7 @@ class LocalVariableDeclarationIdentifierContext extends IdentifierContext {
   }
 }
 
+/// See [IdentifierContext.methodDeclaration].
 class MethodDeclarationIdentifierContext extends IdentifierContext {
   const MethodDeclarationIdentifierContext()
       : super('methodDeclaration', inDeclaration: true);
@@ -346,7 +348,44 @@ class MethodDeclarationIdentifierContext extends IdentifierContext {
   }
 }
 
-/// See [IdentifierContext].typeReference
+/// See [IdentifierContext].typedefDeclaration
+class TypedefDeclarationIdentifierContext extends IdentifierContext {
+  const TypedefDeclarationIdentifierContext()
+      : super('typedefDeclaration',
+            inDeclaration: true, isBuiltInIdentifierAllowed: false);
+
+  @override
+  Token ensureIdentifier(Token token, Parser parser) {
+    Token identifier = token.next;
+    assert(identifier.kind != IDENTIFIER_TOKEN);
+    if (identifier.type.isPseudo) {
+      return identifier;
+    }
+
+    // Recovery
+    const followingValues = const ['(', '<', '=', ';', 'var'];
+    if (identifier.type.isBuiltIn &&
+        isOneOfOrEof(identifier.next, followingValues)) {
+      parser.reportRecoverableErrorWithToken(
+          identifier, fasta.templateBuiltInIdentifierInDeclaration);
+    } else if (looksLikeStartOfNextTopLevelDeclaration(identifier) ||
+        isOneOfOrEof(identifier, followingValues)) {
+      identifier = parser.insertSyntheticIdentifier(token, this,
+          message: fasta.templateExpectedIdentifier.withArguments(identifier));
+    } else {
+      parser.reportRecoverableErrorWithToken(
+          identifier, fasta.templateExpectedIdentifier);
+      if (!identifier.isKeywordOrIdentifier) {
+        // When in doubt, consume the token to ensure we make progress
+        // but insert a synthetic identifier to satisfy listeners.
+        identifier = insertSyntheticIdentifierAfter(identifier, parser);
+      }
+    }
+    return identifier;
+  }
+}
+
+/// See [IdentifierContext.typeReference].
 class TypeReferenceIdentifierContext extends IdentifierContext {
   const TypeReferenceIdentifierContext()
       : super('typeReference',
@@ -378,7 +417,7 @@ class TypeReferenceIdentifierContext extends IdentifierContext {
       // annotation is not allowed before type arguments.
       parser.reportRecoverableErrorWithToken(
           next, fasta.templateUnexpectedToken);
-      token = skipMetadata(next);
+      token = skipMetadata(token);
       next = token.next;
     }
 
@@ -453,25 +492,3 @@ bool looksLikeStartOfNextStatement(Token token) => isOneOfOrEof(token, const [
 bool looksLikeStartOfNextTopLevelDeclaration(Token token) =>
     token.isTopLevelKeyword ||
     isOneOfOrEof(token, const ['const', 'get', 'final', 'set', 'var', 'void']);
-
-Token skipMetadata(Token token) {
-  assert(optional('@', token));
-  Token next = token.next;
-  if (next.isIdentifier) {
-    token = next;
-    next = token.next;
-    while (optional('.', next)) {
-      token = next;
-      next = token.next;
-      if (next.isIdentifier) {
-        token = next;
-        next = token.next;
-      }
-    }
-    if (optional('(', next)) {
-      token = next.endGroup;
-      next = token.next;
-    }
-  }
-  return token;
-}

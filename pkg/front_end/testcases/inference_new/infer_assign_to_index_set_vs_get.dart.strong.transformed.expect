@@ -66,6 +66,6 @@ class Test extends core::Object {
     self::B v5 = let final self::Test #t30 = t in let final dynamic #t31 = self::f<dynamic>() in let final self::B #t32 = #t30.{self::Test::[]}(#t31 as{TypeError} self::Index) in let final void #t33 = #t30.{self::Test::[]=}(#t31 as{TypeError} self::Index, #t32.{self::B::-}(1)) in #t32;
   }
 }
-static method f<T extends core::Object>() → self::f::T
+static method f<T extends core::Object = dynamic>() → self::f::T
   return null;
 static method main() → dynamic {}

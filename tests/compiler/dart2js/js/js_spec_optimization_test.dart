@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:expect/expect.dart';
 import '../compiler_helper.dart';
@@ -87,15 +86,13 @@ const String TEST_5 = r"""
 """;
 
 main() {
-  runTests({bool useKernel}) async {
+  runTests() async {
     check(String test) async {
       var checker = checkerForAbsentPresent(test);
       String main = 'sdk/tests/compiler/dart2js_native/main.dart';
       Uri entryPoint = Uri.parse('memory:$main');
       var result = await runCompiler(
-          entryPoint: entryPoint,
-          memorySourceFiles: {main: test},
-          options: useKernel ? [] : [Flags.useOldFrontend]);
+          entryPoint: entryPoint, memorySourceFiles: {main: test});
       Expect.isTrue(result.isSuccess);
       var compiler = result.compiler;
       var closedWorld = compiler.backendClosedWorldForTesting;
@@ -115,9 +112,7 @@ main() {
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTests(useKernel: true);
+    await runTests();
   });
 }

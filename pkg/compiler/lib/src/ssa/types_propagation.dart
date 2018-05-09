@@ -5,6 +5,7 @@
 import '../common_elements.dart' show CommonElements;
 import '../elements/entities.dart';
 import '../options.dart';
+import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
 import '../world.dart' show ClosedWorld;
@@ -41,6 +42,9 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
 
   SsaTypePropagator(
       this.results, this.options, this.commonElements, this.closedWorld);
+
+  AbstractValueDomain get abstractValueDomain =>
+      closedWorld.abstractValueDomain;
 
   TypeMask computeType(HInstruction instruction) {
     return instruction.accept(this);
@@ -125,21 +129,22 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   TypeMask visitBinaryArithmetic(HBinaryArithmetic instruction) {
     HInstruction left = instruction.left;
     HInstruction right = instruction.right;
-    if (left.isInteger(closedWorld) && right.isInteger(closedWorld)) {
-      return closedWorld.commonMasks.intType;
+    if (left.isInteger(closedWorld.abstractValueDomain) &&
+        right.isInteger(closedWorld.abstractValueDomain)) {
+      return closedWorld.abstractValueDomain.intType;
     }
-    if (left.isDouble(closedWorld)) {
-      return closedWorld.commonMasks.doubleType;
+    if (left.isDouble(closedWorld.abstractValueDomain)) {
+      return closedWorld.abstractValueDomain.doubleType;
     }
-    return closedWorld.commonMasks.numType;
+    return closedWorld.abstractValueDomain.numType;
   }
 
   TypeMask checkPositiveInteger(HBinaryArithmetic instruction) {
     HInstruction left = instruction.left;
     HInstruction right = instruction.right;
-    if (left.isPositiveInteger(closedWorld) &&
-        right.isPositiveInteger(closedWorld)) {
-      return closedWorld.commonMasks.positiveIntType;
+    if (left.isPositiveInteger(closedWorld.abstractValueDomain) &&
+        right.isPositiveInteger(closedWorld.abstractValueDomain)) {
+      return closedWorld.abstractValueDomain.positiveIntType;
     }
     return visitBinaryArithmetic(instruction);
   }
@@ -171,8 +176,8 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     HInstruction operand = instruction.operand;
     // We have integer subclasses that represent ranges, so widen any int
     // subclass to full integer.
-    if (operand.isInteger(closedWorld)) {
-      return closedWorld.commonMasks.intType;
+    if (operand.isInteger(closedWorld.abstractValueDomain)) {
+      return closedWorld.abstractValueDomain.intType;
     }
     return instruction.operand.instructionType;
   }
@@ -188,7 +193,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   }
 
   TypeMask visitPhi(HPhi phi) {
-    TypeMask candidateType = closedWorld.commonMasks.emptyType;
+    TypeMask candidateType = closedWorld.abstractValueDomain.emptyType;
     for (int i = 0, length = phi.inputs.length; i < length; i++) {
       TypeMask inputType = phi.inputs[i].instructionType;
       candidateType = candidateType.union(inputType, closedWorld);
@@ -206,11 +211,11 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
       // We only do an int check if the input is integer or null.
       if (checkedType.containsOnlyNum(closedWorld) &&
           !checkedType.containsOnlyDouble(closedWorld) &&
-          input.isIntegerOrNull(closedWorld)) {
-        instruction.checkedType = closedWorld.commonMasks.intType;
+          input.isIntegerOrNull(closedWorld.abstractValueDomain)) {
+        instruction.checkedType = closedWorld.abstractValueDomain.intType;
       } else if (checkedType.containsOnlyInt(closedWorld) &&
-          !input.isIntegerOrNull(closedWorld)) {
-        instruction.checkedType = closedWorld.commonMasks.numType;
+          !input.isIntegerOrNull(closedWorld.abstractValueDomain)) {
+        instruction.checkedType = closedWorld.abstractValueDomain.numType;
       }
     }
 
@@ -224,9 +229,10 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
       if (inputType.containsOnlyInt(closedWorld) &&
           checkedType.containsOnlyDouble(closedWorld)) {
         if (inputType.isNullable && checkedType.isNullable) {
-          outputType = closedWorld.commonMasks.doubleType.nullable();
+          outputType =
+              abstractValueDomain.includeNull(abstractValueDomain.doubleType);
         } else {
-          outputType = closedWorld.commonMasks.doubleType;
+          outputType = abstractValueDomain.doubleType;
         }
       }
     }
@@ -252,7 +258,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     HInstruction input = instruction.checkedInput;
     TypeMask inputType = input.instructionType;
     TypeMask outputType =
-        instruction.knownType.intersection(inputType, closedWorld);
+        abstractValueDomain.intersection(instruction.knownType, inputType);
     if (inputType != outputType) {
       input.replaceAllUsersDominatedBy(instruction.next, instruction);
     }
@@ -279,7 +285,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
       // If the instruction's type is integer or null, the codegen
       // will emit a null check, which is enough to know if it will
       // hit a noSuchMethod.
-      return instruction.isIntegerOrNull(closedWorld);
+      return instruction.isIntegerOrNull(closedWorld.abstractValueDomain);
     }
     return true;
   }
@@ -290,12 +296,12 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   bool checkReceiver(HInvokeDynamic instruction) {
     assert(instruction.isInterceptedCall);
     HInstruction receiver = instruction.inputs[1];
-    if (receiver.isNumber(closedWorld)) return false;
-    if (receiver.isNumberOrNull(closedWorld)) {
+    if (receiver.isNumber(closedWorld.abstractValueDomain)) return false;
+    if (receiver.isNumberOrNull(closedWorld.abstractValueDomain)) {
       convertInput(
           instruction,
           receiver,
-          receiver.instructionType.nonNullable(),
+          closedWorld.abstractValueDomain.excludeNull(receiver.instructionType),
           HTypeConversion.RECEIVER_TYPE_CHECK);
       return true;
     } else if (instruction.element == null) {
@@ -334,11 +340,11 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     HInstruction right = instruction.inputs[2];
 
     Selector selector = instruction.selector;
-    if (selector.isOperator && left.isNumber(closedWorld)) {
-      if (right.isNumber(closedWorld)) return false;
-      TypeMask type = right.isIntegerOrNull(closedWorld)
-          ? right.instructionType.nonNullable()
-          : closedWorld.commonMasks.numType;
+    if (selector.isOperator && left.isNumber(closedWorld.abstractValueDomain)) {
+      if (right.isNumber(closedWorld.abstractValueDomain)) return false;
+      TypeMask type = right.isIntegerOrNull(closedWorld.abstractValueDomain)
+          ? closedWorld.abstractValueDomain.excludeNull(right.instructionType)
+          : closedWorld.abstractValueDomain.numType;
       // TODO(ngeoffray): Some number operations don't have a builtin
       // variant and will do the check in their method anyway. We
       // still add a check because it allows to GVN these operations,

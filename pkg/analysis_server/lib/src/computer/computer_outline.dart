@@ -365,6 +365,9 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor {
    * test package.
    */
   bool isGroup(engine.ExecutableElement element) {
+    if (element != null && element.hasIsTestGroup) {
+      return true;
+    }
     return element is engine.FunctionElement &&
         element.name == 'group' &&
         _isInsideTestPackage(element);
@@ -375,6 +378,9 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor {
    * test package.
    */
   bool isTest(engine.ExecutableElement element) {
+    if (element != null && element.hasIsTest) {
+      return true;
+    }
     return element is engine.FunctionElement &&
         element.name == 'test' &&
         _isInsideTestPackage(element);
@@ -424,9 +430,9 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor {
     }
 
     void addOutlineNode(ElementKind kind, [List<Outline> children]) {
-      String kindName = kind == ElementKind.UNIT_TEST_GROUP ? 'group' : 'test';
-      String name = '$kindName("${extractString(
-          node.argumentList?.arguments)}")';
+      String executableName = nameNode.name;
+      String description = extractString(node.argumentList?.arguments);
+      String name = '$executableName("$description")';
       Element element = new Element(kind, name, 0,
           location: outlineComputer._getLocationNode(nameNode));
       contents.add(new Outline(

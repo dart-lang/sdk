@@ -269,10 +269,8 @@ void Intrinsifier::Integer_addFromInteger(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);
   // RAX contains right argument.
-  __ AssertSmiInRange(RAX);
-  __ addl(RAX, Address(RSP, +2 * kWordSize));
+  __ addq(RAX, Address(RSP, +2 * kWordSize));
   __ j(OVERFLOW, &fall_through, Assembler::kNearJump);
-  __ movsxd(RAX, RAX);
   // Result is in RAX.
   __ ret();
   __ Bind(&fall_through);
@@ -286,10 +284,8 @@ void Intrinsifier::Integer_subFromInteger(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);
   // RAX contains right argument, which is the actual minuend of subtraction.
-  __ AssertSmiInRange(RAX);
-  __ subl(RAX, Address(RSP, +2 * kWordSize));
+  __ subq(RAX, Address(RSP, +2 * kWordSize));
   __ j(OVERFLOW, &fall_through, Assembler::kNearJump);
-  __ movsxd(RAX, RAX);
   // Result is in RAX.
   __ ret();
   __ Bind(&fall_through);
@@ -299,13 +295,10 @@ void Intrinsifier::Integer_sub(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);
   // RAX contains right argument, which is the actual subtrahend of subtraction.
-  __ AssertSmiInRange(RAX);
   __ movq(RCX, RAX);
   __ movq(RAX, Address(RSP, +2 * kWordSize));
-  __ AssertSmiInRange(RAX);
-  __ subl(RAX, RCX);
+  __ subq(RAX, RCX);
   __ j(OVERFLOW, &fall_through, Assembler::kNearJump);
-  __ movsxd(RAX, RAX);
   // Result is in RAX.
   __ ret();
   __ Bind(&fall_through);
@@ -315,12 +308,10 @@ void Intrinsifier::Integer_mulFromInteger(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);
   // RAX is the right argument.
-  __ AssertSmiInRange(RAX);
   ASSERT(kSmiTag == 0);  // Adjust code below if not the case.
   __ SmiUntag(RAX);
-  __ imull(RAX, Address(RSP, +2 * kWordSize));
+  __ imulq(RAX, Address(RSP, +2 * kWordSize));
   __ j(OVERFLOW, &fall_through, Assembler::kNearJump);
-  __ movsxd(RAX, RAX);
   // Result is in RAX.
   __ ret();
   __ Bind(&fall_through);
@@ -342,9 +333,7 @@ void Intrinsifier::Integer_mul(Assembler* assembler) {
 //   RAX: Untagged fallthrough result (remainder to be adjusted), or
 //   RAX: Tagged return result (remainder).
 static void EmitRemainderOperation(Assembler* assembler) {
-  Label return_zero, try_modulo, not_32bit;
-  __ AssertSmiInRange(RAX);
-  __ AssertSmiInRange(RCX);
+  Label return_zero, try_modulo, not_32bit, done;
   // Check for quick zero results.
   __ cmpq(RAX, Immediate(0));
   __ j(EQUAL, &return_zero, Assembler::kNearJump);
@@ -366,12 +355,33 @@ static void EmitRemainderOperation(Assembler* assembler) {
 
   __ Bind(&try_modulo);
 
+  // Check if both operands fit into 32bits as idiv with 64bit operands
+  // requires twice as many cycles and has much higher latency. We are checking
+  // this before untagging them to avoid corner case dividing INT_MAX by -1 that
+  // raises exception because quotient is too large for 32bit register.
+  __ movsxd(RBX, RAX);
+  __ cmpq(RBX, RAX);
+  __ j(NOT_EQUAL, &not_32bit, Assembler::kNearJump);
+  __ movsxd(RBX, RCX);
+  __ cmpq(RBX, RCX);
+  __ j(NOT_EQUAL, &not_32bit, Assembler::kNearJump);
+
   // Both operands are 31bit smis. Divide using 32bit idiv.
   __ SmiUntag(RAX);
   __ SmiUntag(RCX);
   __ cdq();
   __ idivl(RCX);
   __ movsxd(RAX, RDX);
+  __ jmp(&done, Assembler::kNearJump);
+
+  // Divide using 64bit idiv.
+  __ Bind(&not_32bit);
+  __ SmiUntag(RAX);
+  __ SmiUntag(RCX);
+  __ cqo();
+  __ idivq(RCX);
+  __ movq(RAX, RDX);
+  __ Bind(&done);
 }
 
 // Implementation:
@@ -386,9 +396,7 @@ static void EmitRemainderOperation(Assembler* assembler) {
 void Intrinsifier::Integer_moduloFromInteger(Assembler* assembler) {
   Label fall_through, negative_result;
   TestBothArgumentsSmis(assembler, &fall_through);
-  __ AssertSmiInRange(RAX);
   __ movq(RCX, Address(RSP, +2 * kWordSize));
-  __ AssertSmiInRange(RCX);
   // RAX: Tagged left (dividend).
   // RCX: Tagged right (divisor).
   __ cmpq(RCX, Immediate(0));
@@ -422,17 +430,21 @@ void Intrinsifier::Integer_truncDivide(Assembler* assembler) {
   Label fall_through, not_32bit;
   TestBothArgumentsSmis(assembler, &fall_through);
   // RAX: right argument (divisor)
-  __ AssertSmiInRange(RAX);
   __ cmpq(RAX, Immediate(0));
   __ j(EQUAL, &fall_through, Assembler::kNearJump);
   __ movq(RCX, RAX);
   __ movq(RAX, Address(RSP, +2 * kWordSize));  // Left argument (dividend).
-  __ AssertSmiInRange(RAX);
 
-  // Check the corner case of dividing the 'MIN_SMI' with -1, in which case we
-  // cannot tag the result.
-  __ cmpq(RAX, Immediate(-0x80000000ll));
-  __ j(EQUAL, &fall_through);
+  // Check if both operands fit into 32bits as idiv with 64bit operands
+  // requires twice as many cycles and has much higher latency. We are checking
+  // this before untagging them to avoid corner case dividing INT_MAX by -1 that
+  // raises exception because quotient is too large for 32bit register.
+  __ movsxd(RBX, RAX);
+  __ cmpq(RBX, RAX);
+  __ j(NOT_EQUAL, &not_32bit);
+  __ movsxd(RBX, RCX);
+  __ cmpq(RBX, RCX);
+  __ j(NOT_EQUAL, &not_32bit);
 
   // Both operands are 31bit smis. Divide using 32bit idiv.
   __ SmiUntag(RAX);
@@ -442,6 +454,21 @@ void Intrinsifier::Integer_truncDivide(Assembler* assembler) {
   __ movsxd(RAX, RAX);
   __ SmiTag(RAX);  // Result is guaranteed to fit into a smi.
   __ ret();
+
+  // Divide using 64bit idiv.
+  __ Bind(&not_32bit);
+  __ SmiUntag(RAX);
+  __ SmiUntag(RCX);
+  __ pushq(RDX);  // Preserve RDX in case of 'fall_through'.
+  __ cqo();
+  __ idivq(RCX);
+  __ popq(RDX);
+  // Check the corner case of dividing the 'MIN_SMI' with -1, in which case we
+  // cannot tag the result.
+  __ cmpq(RAX, Immediate(0x4000000000000000));
+  __ j(EQUAL, &fall_through);
+  __ SmiTag(RAX);
+  __ ret();
   __ Bind(&fall_through);
 }
 
@@ -450,10 +477,8 @@ void Intrinsifier::Integer_negate(Assembler* assembler) {
   __ movq(RAX, Address(RSP, +1 * kWordSize));
   __ testq(RAX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi value.
-  __ AssertSmiInRange(RAX);
-  __ cmpq(RAX, Immediate(-0x80000000ll));
-  __ j(EQUAL, &fall_through, Assembler::kNearJump);
   __ negq(RAX);
+  __ j(OVERFLOW, &fall_through, Assembler::kNearJump);
   // Result is in RAX.
   __ ret();
   __ Bind(&fall_through);
@@ -462,7 +487,6 @@ void Intrinsifier::Integer_negate(Assembler* assembler) {
 void Intrinsifier::Integer_bitAndFromInteger(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);
-  __ AssertSmiInRange(RAX);
   // RAX is the right argument.
   __ andq(RAX, Address(RSP, +2 * kWordSize));
   // Result is in RAX.
@@ -478,7 +502,6 @@ void Intrinsifier::Integer_bitOrFromInteger(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);
   // RAX is the right argument.
-  __ AssertSmiInRange(RAX);
   __ orq(RAX, Address(RSP, +2 * kWordSize));
   // Result is in RAX.
   __ ret();
@@ -494,7 +517,6 @@ void Intrinsifier::Integer_bitXorFromInteger(Assembler* assembler) {
   TestBothArgumentsSmis(assembler, &fall_through);
   // RAX is the right argument.
   __ xorq(RAX, Address(RSP, +2 * kWordSize));
-  __ AssertSmiInRange(RAX);
   // Result is in RAX.
   __ ret();
   __ Bind(&fall_through);
@@ -510,32 +532,28 @@ void Intrinsifier::Integer_shl(Assembler* assembler) {
   Label fall_through, overflow;
   TestBothArgumentsSmis(assembler, &fall_through);
   // Shift value is in RAX. Compare with tagged Smi.
-  __ AssertSmiInRange(RAX);
   __ cmpq(RAX, Immediate(Smi::RawValue(Smi::kBits)));
   __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
 
   __ SmiUntag(RAX);
   __ movq(RCX, RAX);                           // Shift amount must be in RCX.
   __ movq(RAX, Address(RSP, +2 * kWordSize));  // Value.
-  __ AssertSmiInRange(RAX);
 
   // Overflow test - all the shifted-out bits must be same as the sign bit.
   __ movq(RDI, RAX);
-  __ shll(RAX, RCX);
-  __ sarl(RAX, RCX);
-  __ movsxd(RAX, RAX);
+  __ shlq(RAX, RCX);
+  __ sarq(RAX, RCX);
   __ cmpq(RAX, RDI);
   __ j(NOT_EQUAL, &overflow, Assembler::kNearJump);
 
-  __ shlq(RDI, RCX);  // Shift for result now we know there is no overflow.
-  __ movq(RAX, RDI);
+  __ shlq(RAX, RCX);  // Shift for result now we know there is no overflow.
 
   // RAX is a correctly tagged Smi.
   __ ret();
 
   __ Bind(&overflow);
-  // Mint is used on x64 for integers requiring 64 bit instead of 31 bits as
-  // represented by Smi.
+  // Mint is rarely used on x64 (only for integers requiring 64 bit instead of
+  // 63 bits as represented by Smi).
   __ Bind(&fall_through);
 }
 
@@ -543,7 +561,6 @@ static void CompareIntegers(Assembler* assembler, Condition true_condition) {
   Label fall_through, true_label;
   TestBothArgumentsSmis(assembler, &fall_through);
   // RAX contains the right argument.
-  __ AssertSmiInRange(RAX);
   __ cmpq(Address(RSP, +2 * kWordSize), RAX);
   __ j(true_condition, &true_label, Assembler::kNearJump);
   __ LoadObject(RAX, Bool::False());
@@ -589,9 +606,6 @@ void Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   __ orq(RAX, RCX);
   __ testq(RAX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &check_for_mint, Assembler::kNearJump);
-  // Or-ing them together should still leave them both as compressible smis.
-  __ AssertSmiInRange(RAX);
-  __ AssertSmiInRange(RCX);
   // Both arguments are smi, '===' is good enough.
   __ LoadObject(RAX, Bool::False());
   __ ret();
@@ -609,21 +623,9 @@ void Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   // Left (receiver) is Smi, return false if right is not Double.
   // Note that an instance of Mint or Bigint never contains a value that can be
   // represented by Smi.
-  __ AssertSmiInRange(RAX);
   __ movq(RAX, Address(RSP, +kArgumentOffset * kWordSize));
   __ CompareClassId(RAX, kDoubleCid);
   __ j(EQUAL, &fall_through);
-#if defined(DEBUG)
-  Label ok;
-  __ CompareClassId(RAX, kMintCid);
-  __ j(NOT_EQUAL, &ok);
-  __ movq(RAX, FieldAddress(RAX, Mint::value_offset()));
-  __ sarq(RCX, Immediate(1));
-  __ cmpq(RAX, RCX);
-  __ j(NOT_EQUAL, &ok);
-  __ Stop("Smi wrapped in a Mint");
-  __ Bind(&ok);
-#endif
   __ LoadObject(RAX, Bool::False());
   __ ret();
 
@@ -635,7 +637,6 @@ void Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   __ movq(RAX, Address(RSP, +kArgumentOffset * kWordSize));
   __ testq(RAX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &fall_through);
-  __ AssertSmiInRange(RAX);
   // Smi == Mint -> false.
   __ LoadObject(RAX, Bool::False());
   __ ret();
@@ -665,7 +666,6 @@ void Intrinsifier::Integer_sar(Assembler* assembler) {
   __ Bind(&shift_count_ok);
   __ movq(RCX, RAX);                           // Shift amount must be in RCX.
   __ movq(RAX, Address(RSP, +2 * kWordSize));  // Value.
-  __ AssertSmiInRange(RAX);
   __ SmiUntag(RAX);                            // Value.
   __ sarq(RAX, RCX);
   __ SmiTag(RAX);
@@ -676,7 +676,6 @@ void Intrinsifier::Integer_sar(Assembler* assembler) {
 // Argument is Smi (receiver).
 void Intrinsifier::Smi_bitNegate(Assembler* assembler) {
   __ movq(RAX, Address(RSP, +1 * kWordSize));  // Index.
-  __ AssertSmiInRange(RAX);
   __ notq(RAX);
   __ andq(RAX, Immediate(~kSmiTagMask));  // Remove inverted smi-tag.
   __ ret();
@@ -685,7 +684,6 @@ void Intrinsifier::Smi_bitNegate(Assembler* assembler) {
 void Intrinsifier::Smi_bitLength(Assembler* assembler) {
   ASSERT(kSmiTagShift == 1);
   __ movq(RAX, Address(RSP, +1 * kWordSize));  // Index.
-  __ AssertSmiInRange(RAX);
   // XOR with sign bit to complement bits if value is negative.
   __ movq(RCX, RAX);
   __ sarq(RCX, Immediate(63));  // All 0 or all 1.
@@ -711,7 +709,6 @@ void Intrinsifier::Bigint_lsh(Assembler* assembler) {
   __ subq(R8, Immediate(2));  // x_used > 0, Smi. R8 = x_used - 1, round up.
   __ sarq(R8, Immediate(2));  // R8 + 1 = number of digit pairs to read.
   __ movq(RCX, Address(RSP, 2 * kWordSize));  // n is Smi
-  __ AssertSmiInRange(RCX);
   __ SmiUntag(RCX);
   __ movq(RBX, Address(RSP, 1 * kWordSize));  // r_digits
   __ movq(RSI, RCX);
@@ -747,7 +744,6 @@ void Intrinsifier::Bigint_rsh(Assembler* assembler) {
 
   __ movq(RDI, Address(RSP, 4 * kWordSize));  // x_digits
   __ movq(RCX, Address(RSP, 2 * kWordSize));  // n is Smi
-  __ AssertSmiInRange(RCX);
   __ SmiUntag(RCX);
   __ movq(RBX, Address(RSP, 1 * kWordSize));  // r_digits
   __ movq(RDX, RCX);
@@ -1235,7 +1231,6 @@ static void CompareDoubles(Assembler* assembler, Condition true_condition) {
   __ LoadObject(RAX, Bool::True());
   __ ret();
   __ Bind(&is_smi);
-  __ AssertSmiInRange(RAX);
   __ SmiUntag(RAX);
   __ cvtsi2sdq(XMM1, RAX);
   __ jmp(&double_op);
@@ -1296,7 +1291,6 @@ static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
   __ ret();
   __ Bind(&is_smi);
-  __ AssertSmiInRange(RAX);
   __ SmiUntag(RAX);
   __ cvtsi2sdq(XMM1, RAX);
   __ jmp(&double_op);
@@ -1326,7 +1320,6 @@ void Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
   __ testq(RAX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &fall_through);
   // Is Smi.
-  __ AssertSmiInRange(RAX);
   __ SmiUntag(RAX);
   __ cvtsi2sdq(XMM1, RAX);
   __ movq(RAX, Address(RSP, +2 * kWordSize));
@@ -1349,7 +1342,6 @@ void Intrinsifier::DoubleFromInteger(Assembler* assembler) {
   __ testq(RAX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &fall_through);
   // Is Smi.
-  __ AssertSmiInRange(RAX);
   __ SmiUntag(RAX);
   __ cvtsi2sdq(XMM0, RAX);
   const Class& double_class =
@@ -1420,15 +1412,14 @@ void Intrinsifier::Double_getIsNegative(Assembler* assembler) {
 void Intrinsifier::DoubleToInteger(Assembler* assembler) {
   __ movq(RAX, Address(RSP, +1 * kWordSize));
   __ movsd(XMM0, FieldAddress(RAX, Double::value_offset()));
-  __ cvttsd2sil(RAX, XMM0);
+  __ cvttsd2siq(RAX, XMM0);
   // Overflow is signalled with minint.
   Label fall_through;
   // Check for overflow and that it fits into Smi.
   __ movq(RCX, RAX);
-  __ shll(RCX, Immediate(1));
+  __ shlq(RCX, Immediate(1));
   __ j(OVERFLOW, &fall_through, Assembler::kNearJump);
-  ASSERT(kSmiTagShift == 1 && kSmiTag == 0);
-  __ movsxd(RAX, RCX);
+  __ SmiTag(RAX);
   __ ret();
   __ Bind(&fall_through);
 }
@@ -1440,17 +1431,16 @@ void Intrinsifier::Double_hashCode(Assembler* assembler) {
   // back to a double in XMM1.
   __ movq(RCX, Address(RSP, +1 * kWordSize));
   __ movsd(XMM0, FieldAddress(RCX, Double::value_offset()));
-  __ cvttsd2sil(RAX, XMM0);
-  __ cvtsi2sdl(XMM1, RAX);
+  __ cvttsd2siq(RAX, XMM0);
+  __ cvtsi2sdq(XMM1, RAX);
 
   // Tag the int as a Smi, making sure that it fits; this checks for
   // overflow and NaN in the conversion from double to int. Conversion
-  // overflow from cvttsd2sil is signalled with an INT32_MIN value.
+  // overflow from cvttsd2si is signalled with an INT64_MIN value.
   Label fall_through;
   ASSERT(kSmiTag == 0 && kSmiTagShift == 1);
-  __ addl(RAX, RAX);
+  __ addq(RAX, RAX);
   __ j(OVERFLOW, &fall_through, Assembler::kNearJump);
-  __ movsxd(RAX, RAX);
 
   // Compare the two double values. If they are equal, we return the
   // Smi tagged result immediately as the hash code.
@@ -1488,7 +1478,6 @@ void Intrinsifier::MathSqrt(Assembler* assembler) {
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
   __ ret();
   __ Bind(&is_smi);
-  __ AssertSmiInRange(RAX);
   __ SmiUntag(RAX);
   __ cvtsi2sdq(XMM1, RAX);
   __ jmp(&double_op);

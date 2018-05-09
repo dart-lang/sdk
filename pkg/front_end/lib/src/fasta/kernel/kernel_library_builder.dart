@@ -112,11 +112,10 @@ class KernelLibraryBuilder
   Map<String, String> unserializableExports;
 
   KernelLibraryBuilder(Uri uri, Uri fileUri, Loader loader, this.actualOrigin,
-      [Library intendedTarget])
-      : library = intendedTarget ??
-            actualOrigin?.library ??
-            new Library(uri, fileUri: fileUri),
-        super(loader, fileUri);
+      [Scope scope, Library target])
+      : library = target ??
+            (actualOrigin?.library ?? new Library(uri, fileUri: fileUri)),
+        super(loader, fileUri, scope);
 
   @override
   KernelLibraryBuilder get origin => actualOrigin ?? this;
@@ -831,13 +830,16 @@ class KernelLibraryBuilder
   }
 
   @override
-  Library build(LibraryBuilder coreLibrary) {
+  Library build(LibraryBuilder coreLibrary, {bool modifyTarget}) {
     super.build(coreLibrary);
+
+    if (modifyTarget == false) return library;
 
     addDependencies(library, new Set<KernelLibraryBuilder>());
 
     loader.target.metadataCollector
         ?.setDocumentationComment(library, documentationComment);
+
     library.name = name;
     library.procedures.sort(compareProcedures);
 
@@ -979,10 +981,10 @@ class KernelLibraryBuilder
     return copy;
   }
 
-  int finishTypeVariables(ClassBuilder object) {
+  int finishTypeVariables(ClassBuilder object, TypeBuilder dynamicType) {
     int count = boundlessTypeVariables.length;
     for (KernelTypeVariableBuilder builder in boundlessTypeVariables) {
-      builder.finish(this, object);
+      builder.finish(this, object, dynamicType);
     }
     boundlessTypeVariables.clear();
     return count;
@@ -992,24 +994,42 @@ class KernelLibraryBuilder
       ClassBuilder objectClass) {
     int count = 0;
 
-    for (var declarationBuilder in libraryDeclaration.members.values) {
-      if (declarationBuilder is KernelClassBuilder) {
-        if (declarationBuilder.typeVariables != null) {
-          declarationBuilder.calculatedBounds = calculateBounds(
-              declarationBuilder.typeVariables,
-              dynamicType,
-              bottomType,
-              objectClass);
-          count += declarationBuilder.calculatedBounds.length;
+    for (var declaration in libraryDeclaration.members.values) {
+      if (declaration is KernelClassBuilder) {
+        if (declaration.typeVariables != null) {
+          List<KernelTypeBuilder> calculatedBounds;
+          if (loader.target.strongMode) {
+            calculatedBounds = calculateBounds(declaration.typeVariables,
+                dynamicType, bottomType, objectClass);
+          } else {
+            calculatedBounds =
+                new List<KernelTypeBuilder>(declaration.typeVariables.length);
+            for (int i = 0; i < calculatedBounds.length; ++i) {
+              calculatedBounds[i] = dynamicType;
+            }
+          }
+          for (int i = 0; i < calculatedBounds.length; ++i) {
+            declaration.typeVariables[i].defaultType = calculatedBounds[i];
+          }
+          count += calculatedBounds.length;
         }
-      } else if (declarationBuilder is KernelFunctionTypeAliasBuilder) {
-        if (declarationBuilder.typeVariables != null) {
-          declarationBuilder.calculatedBounds = calculateBounds(
-              declarationBuilder.typeVariables,
-              dynamicType,
-              bottomType,
-              objectClass);
-          count += declarationBuilder.calculatedBounds.length;
+      } else if (declaration is KernelFunctionTypeAliasBuilder) {
+        if (declaration.typeVariables != null) {
+          List<KernelTypeBuilder> calculatedBounds;
+          if (loader.target.strongMode) {
+            calculatedBounds = calculateBounds(declaration.typeVariables,
+                dynamicType, bottomType, objectClass);
+          } else {
+            calculatedBounds =
+                new List<KernelTypeBuilder>(declaration.typeVariables.length);
+            for (int i = 0; i < calculatedBounds.length; ++i) {
+              calculatedBounds[i] = dynamicType;
+            }
+          }
+          for (int i = 0; i < calculatedBounds.length; ++i) {
+            declaration.typeVariables[i].defaultType = calculatedBounds[i];
+          }
+          count += calculatedBounds.length;
         }
       }
     }

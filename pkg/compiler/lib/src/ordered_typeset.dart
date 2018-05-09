@@ -36,8 +36,7 @@ class OrderedTypeSet {
   final Link<InterfaceType> types;
   final Link<InterfaceType> _supertypes;
 
-  OrderedTypeSet.internal(List<Link<InterfaceType>> this._levels,
-      Link<InterfaceType> this.types, Link<InterfaceType> this._supertypes);
+  OrderedTypeSet.internal(this._levels, this.types, this._supertypes);
 
   factory OrderedTypeSet.singleton(InterfaceType type) {
     Link<InterfaceType> types =

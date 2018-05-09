@@ -32,7 +32,7 @@ import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 import 'package:front_end/src/fasta/kernel/utils.dart';
-import 'package:front_end/src/testing/hybrid_file_system.dart';
+import 'package:front_end/src/fasta/hybrid_file_system.dart';
 import 'package:kernel/kernel.dart' show Component;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:kernel/target/vm.dart' show VmTarget;

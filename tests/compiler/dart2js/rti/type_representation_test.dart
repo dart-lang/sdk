@@ -24,17 +24,15 @@ import '../type_test_helper.dart';
 
 void main() {
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await testAll(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await testAll(useKernel: true);
+    await testAll();
     print('--test from kernel (strong)---------------------------------------');
-    await testAll(useKernel: true, strongMode: true);
+    await testAll(strongMode: true);
   });
 }
 
-testAll({bool useKernel, bool strongMode: false}) async {
-  await testTypeRepresentations(useKernel: useKernel, strongMode: strongMode);
+testAll({bool strongMode: false}) async {
+  await testTypeRepresentations(strongMode: strongMode);
 }
 
 List<FunctionTypeData> signatures = const <FunctionTypeData>[
@@ -55,7 +53,7 @@ List<FunctionTypeData> signatures = const <FunctionTypeData>[
       "<T extends num, S>(FutureOr<T> a, S b, List<void> c)"),
 ];
 
-testTypeRepresentations({bool useKernel, bool strongMode}) async {
+testTypeRepresentations({bool strongMode}) async {
   String source = '''
 import 'dart:async';
 
@@ -69,9 +67,7 @@ main() {
 ''';
   CompilationResult result = await runCompiler(
       memorySourceFiles: {'main.dart': source},
-      options: useKernel
-          ? (strongMode ? [Flags.strongMode] : [])
-          : [Flags.useOldFrontend]);
+      options: strongMode ? [Flags.strongMode] : []);
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler;
   JavaScriptBackend backend = compiler.backend;
@@ -126,7 +122,6 @@ main() {
   String bounds = backend.namer.functionTypeGenericBoundsTag;
   String futureOr = backend.namer.futureOrTag;
   String futureOrType = backend.namer.futureOrTypeTag;
-  String typedefTag = backend.namer.typedefTag;
 
   ClassEntity List_ = findClass(closedWorld, 'List');
   TypeVariableType List_E =
@@ -166,12 +161,11 @@ main() {
   String String_rep = getJsName(String_.element);
 
   String getTypedefTag(DartType type) {
-    if (useKernel) {
-      // TODO(johnniwinther): Should/can we preserve typedef names from kernel?
-      return '';
-    }
-    TypedefType typedef = type;
-    return ', $typedefTag: ${getJsName(typedef.element)}';
+    // TODO(johnniwinther): Should/can we preserve typedef names from kernel?
+    //String typedefTag = backend.namer.typedefTag;
+    //TypedefType typedef = type;
+    //return ', $typedefTag: ${getJsName(typedef.element)}';
+    return '';
   }
 
   String Typedef1_tag = getTypedefTag(Typedef1_);

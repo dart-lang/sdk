@@ -1367,15 +1367,19 @@ class ProgramCompiler extends Object
 
   JS.Expression _emitConstructor(
       Constructor node, List<Field> fields, JS.Expression className) {
+    var savedUri = _currentUri;
+    _currentUri = node.fileUri ?? savedUri;
     var params = _emitFormalParameters(node.function);
     var body = _withCurrentFunction(
         node.function,
         () => _superDisallowed(
             () => _emitConstructorBody(node, fields, className)));
 
-    return new JS.Fun(params, new JS.Block(body))
-      ..sourceInformation = _nodeEnd(node.fileEndOffset) ??
-          _nodeEnd(node.enclosingClass.fileEndOffset);
+    var end = _nodeEnd(node.fileEndOffset);
+    _currentUri = savedUri;
+    end ??= _nodeEnd(node.enclosingClass.fileEndOffset);
+
+    return new JS.Fun(params, new JS.Block(body))..sourceInformation = end;
   }
 
   List<JS.Statement> _emitConstructorBody(
@@ -1617,7 +1621,9 @@ class ProgramCompiler extends Object
       }
     }
 
+    var savedUri = _currentUri;
     for (var m in c.procedures) {
+      _currentUri = m.fileUri ?? savedUri;
       if (m.isForwardingStub) {
         // TODO(jmesserly): is there any other kind of forwarding stub?
         jsMethods.addAll(_emitCovarianceCheckStub(m));
@@ -1636,6 +1642,7 @@ class ProgramCompiler extends Object
         jsMethods.add(_emitMethodDeclaration(m));
       }
     }
+    _currentUri = savedUri;
 
     _classProperties.mockMembers.forEach((String name, Member member) {
       jsMethods

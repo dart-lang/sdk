@@ -7,6 +7,7 @@ library kernel.transformations.analysis;
 
 import 'dart:collection';
 import 'dart:core' hide Type;
+import 'dart:math' show max;
 
 import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
 import 'package:kernel/class_hierarchy.dart' show ClosedWorldClassHierarchy;
@@ -55,6 +56,12 @@ class _DependencyTracker {
 
   void invalidateDependentInvocations(_WorkList workList) {
     if (_dependentInvocations != null) {
+      if (kPrintTrace) {
+        tracePrint('   - CHANGED: $this');
+        for (var di in _dependentInvocations) {
+          tracePrint('     - invalidating $di');
+        }
+      }
       _dependentInvocations.forEach(workList.invalidateInvocation);
     }
   }
@@ -76,6 +83,13 @@ abstract class _Invocation extends _DependencyTracker
   /// Used to check if the re-analysis of the invocation yields the same
   /// result or not (to avoid invalidation of callers if result hasn't changed).
   Type invalidatedResult;
+
+  /// Number of times result of this invocation was invalidated.
+  int invalidationCounter = 0;
+
+  /// If an invocation is invalidated more than [invalidationLimit] times,
+  /// its result is saturated in order to guarantee convergence.
+  static const int invalidationLimit = 1000;
 
   Type process(TypeFlowAnalysis typeFlowAnalysis);
 
@@ -320,6 +334,9 @@ class _DispatchableInvocation extends _Invocation {
               .getInvocation(directSelector, directArgs);
 
           type = typeFlowAnalysis.workList.processInvocation(directInvocation);
+          if (kPrintTrace) {
+            tracePrint('Dispatch: $directInvocation, result: $type');
+          }
 
           // Result of this invocation depends on the results of direct
           // invocations corresponding to each target.
@@ -672,7 +689,9 @@ class _FieldValue extends _DependencyTracker {
         newValue.intersection(staticType, typeFlowAnalysis.hierarchyCache),
         typeFlowAnalysis.hierarchyCache);
     if (newType != value) {
-      tracePrint("Set field $field value $newType");
+      if (kPrintTrace) {
+        tracePrint("Set field $field value $newType");
+      }
       invalidateDependentInvocations(typeFlowAnalysis.workList);
       value = newType;
     }
@@ -866,7 +885,9 @@ class _ClassHierarchyCache implements TypeHierarchy {
 
   @override
   Type specializeTypeCone(DartType base) {
-    tracePrint("specializeTypeCone for $base");
+    if (kPrintTrace) {
+      tracePrint("specializeTypeCone for $base");
+    }
     Statistics.typeConeSpecializations++;
 
     // TODO(alexmarkov): handle function types properly
@@ -1009,7 +1030,7 @@ class _WorkList {
       callStack.add(invocation);
       pending.remove(invocation);
 
-      final Type result = invocation.process(_typeFlowAnalysis);
+      Type result = invocation.process(_typeFlowAnalysis);
 
       assertx(result != null);
       invocation.result = result;
@@ -1017,6 +1038,21 @@ class _WorkList {
       if (invocation.invalidatedResult != null) {
         if (invocation.invalidatedResult != result) {
           invocation.invalidateDependentInvocations(this);
+
+          invocation.invalidationCounter++;
+          Statistics.maxInvalidationsPerInvocation = max(
+              Statistics.maxInvalidationsPerInvocation,
+              invocation.invalidationCounter);
+          // In rare cases, loops in dependencies and approximation of
+          // recursive invocations may cause infinite bouncing of result
+          // types. To prevent infinite looping and guarantee convergence of
+          // the analysis, result is saturated after invocation is invalidated
+          // at least [_Invocation.invalidationLimit] times.
+          if (invocation.invalidationCounter > _Invocation.invalidationLimit) {
+            result = result.union(
+                invocation.invalidatedResult, _typeFlowAnalysis.hierarchyCache);
+            invocation.result = result;
+          }
         }
         invocation.invalidatedResult = null;
       }
@@ -1034,14 +1070,20 @@ class _WorkList {
       processing.remove(invocation);
 
       Statistics.invocationsProcessed++;
+      if (kPrintTrace) {
+        tracePrint('END PROCESSING $invocation, RESULT $result');
+      }
       return result;
     } else {
       // Recursive invocation, approximate with static type.
       Statistics.recursiveInvocationsApproximated++;
       final staticType =
           new Type.fromStatic(invocation.selector.staticReturnType);
-      tracePrint(
-          "Approximated recursive invocation with static type $staticType");
+      if (kPrintTrace) {
+        tracePrint(
+            "Approximated recursive invocation with static type $staticType");
+        tracePrint('END PROCESSING $invocation, RESULT $staticType');
+      }
       return staticType;
     }
   }
@@ -1145,7 +1187,9 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
 
   @override
   void addRawCall(Selector selector) {
-    debugPrint("ADD RAW CALL: $selector");
+    if (kPrintDebug) {
+      debugPrint("ADD RAW CALL: $selector");
+    }
     assertx(selector is! DynamicSelector); // TODO(alexmarkov)
 
     applyCall(null, selector, summaryCollector.rawArguments(selector),
@@ -1154,7 +1198,9 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
 
   @override
   ConcreteType addAllocatedClass(Class c) {
-    debugPrint("ADD ALLOCATED CLASS: $c");
+    if (kPrintDebug) {
+      debugPrint("ADD ALLOCATED CLASS: $c");
+    }
     return hierarchyCache.addAllocatedClass(c);
   }
 }

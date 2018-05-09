@@ -14,7 +14,7 @@ import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:kernel/target/vm.dart' show VmTarget;
 import 'package:kernel/text/ast_to_text.dart'
     show globalDebuggingNames, NameSystem;
-import 'package:vm/bytecode/gen_bytecode.dart' show kEnableKernelBytecode;
+import 'package:vm/bytecode/gen_bytecode.dart' show isKernelBytecodeEnabled;
 import 'package:vm/kernel_front_end.dart' show compileToKernel, ErrorDetector;
 
 final ArgParser _argParser = new ArgParser(allowTrailingOptions: true)
@@ -39,7 +39,7 @@ final ArgParser _argParser = new ArgParser(allowTrailingOptions: true)
   ..addMultiOption('entry-points',
       help: 'Path to JSON file with the list of entry points')
   ..addFlag('gen-bytecode',
-      help: 'Generate bytecode', defaultsTo: kEnableKernelBytecode);
+      help: 'Generate bytecode', defaultsTo: isKernelBytecodeEnabled);
 
 final String _usage = '''
 Usage: dart pkg/vm/bin/gen_kernel.dart --platform vm_platform_strong.dill [options] input.dart

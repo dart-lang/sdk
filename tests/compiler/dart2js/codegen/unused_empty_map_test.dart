@@ -6,7 +6,6 @@
 
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_new.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:expect/expect.dart';
 import '../memory_compiler.dart';
 
@@ -22,20 +21,16 @@ void main() {
 const HASHMAP_EMPTY_CONSTRUCTOR = r"LinkedHashMap_LinkedHashMap$_empty";
 
 main() {
-  runTest({bool useKernel}) async {
+  runTest() async {
     var collector = new OutputCollector();
     await runCompiler(
-        memorySourceFiles: TEST_SOURCE,
-        outputProvider: collector,
-        options: useKernel ? [] : [Flags.useOldFrontend]);
+        memorySourceFiles: TEST_SOURCE, outputProvider: collector);
     String generated = collector.getOutput('', OutputType.js);
     Expect.isFalse(generated.contains(HASHMAP_EMPTY_CONSTRUCTOR));
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTest(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTest(useKernel: true);
+    await runTest();
   });
 }

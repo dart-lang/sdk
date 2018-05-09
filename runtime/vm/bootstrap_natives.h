@@ -315,7 +315,7 @@ namespace dart {
   V(Internal_makeFixedListUnmodifiable, 1)                                     \
   V(Internal_inquireIs64Bit, 0)                                                \
   V(Internal_extractTypeArguments, 2)                                          \
-  V(Internal_prependTypeArguments, 3)                                          \
+  V(Internal_prependTypeArguments, 4)                                          \
   V(InvocationMirror_unpackTypeArguments, 1)                                   \
   V(NoSuchMethodError_existingMethodSignature, 3)                              \
   V(LinkedHashMap_getIndex, 1)                                                 \

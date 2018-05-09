@@ -174,8 +174,8 @@ class _Link extends FileSystemEntity implements Link {
     var result =
         recursive ? parent.create(recursive: true) : new Future.value(null);
     return result
-        .then((_) => _File
-            ._dispatchWithNamespace(_FILE_CREATE_LINK, [null, path, target]))
+        .then((_) => _File._dispatchWithNamespace(
+            _IOService.fileCreateLink, [null, path, target]))
         .then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(
@@ -232,8 +232,8 @@ class _Link extends FileSystemEntity implements Link {
     if (recursive) {
       return new Directory(path).delete(recursive: true).then((_) => this);
     }
-    return _File._dispatchWithNamespace(_FILE_DELETE_LINK, [null, path]).then(
-        (response) {
+    return _File._dispatchWithNamespace(
+        _IOService.fileDeleteLink, [null, path]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "Cannot delete link", path);
       }
@@ -251,7 +251,7 @@ class _Link extends FileSystemEntity implements Link {
 
   Future<Link> rename(String newPath) {
     return _File._dispatchWithNamespace(
-        _FILE_RENAME_LINK, [null, path, newPath]).then((response) {
+        _IOService.fileRenameLink, [null, path, newPath]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(
             response, "Cannot rename link to '$newPath'", path);
@@ -267,8 +267,8 @@ class _Link extends FileSystemEntity implements Link {
   }
 
   Future<String> target() {
-    return _File._dispatchWithNamespace(_FILE_LINK_TARGET, [null, path]).then(
-        (response) {
+    return _File._dispatchWithNamespace(
+        _IOService.fileLinkTarget, [null, path]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(
             response, "Cannot get target of link", path);
@@ -290,17 +290,17 @@ class _Link extends FileSystemEntity implements Link {
   }
 
   bool _isErrorResponse(response) {
-    return response is List && response[0] != _SUCCESS_RESPONSE;
+    return response is List && response[0] != _successResponse;
   }
 
   _exceptionFromResponse(response, String message, String path) {
     assert(_isErrorResponse(response));
-    switch (response[_ERROR_RESPONSE_ERROR_TYPE]) {
-      case _ILLEGAL_ARGUMENT_RESPONSE:
+    switch (response[_errorResponseErrorType]) {
+      case _illegalArgumentResponse:
         return new ArgumentError();
-      case _OSERROR_RESPONSE:
-        var err = new OSError(response[_OSERROR_RESPONSE_MESSAGE],
-            response[_OSERROR_RESPONSE_ERROR_CODE]);
+      case _osErrorResponse:
+        var err = new OSError(response[_osErrorResponseMessage],
+            response[_osErrorResponseErrorCode]);
         return new FileSystemException(message, path, err);
       default:
         return new Exception("Unknown error");

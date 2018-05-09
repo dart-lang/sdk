@@ -135,6 +135,7 @@ abstract class CompilerConfiguration {
       List<String> vmOptions,
       List<String> sharedOptions,
       List<String> dart2jsOptions,
+      List<String> ddcOptions,
       List<String> args) {
     return sharedOptions.toList()..addAll(args);
   }
@@ -350,7 +351,7 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
   }
 
   List<String> computeCompilerArguments(
-      vmOptions, sharedOptions, dart2jsOptions, args) {
+      vmOptions, sharedOptions, dart2jsOptions, ddcOptions, args) {
     // The result will be passed as an input to [extractArguments]
     // (i.e. the arguments to the [PipelineCommand]).
     return <String>[]..addAll(vmOptions)..addAll(sharedOptions)..addAll(args);
@@ -446,6 +447,7 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
       List<String> vmOptions,
       List<String> sharedOptions,
       List<String> dart2jsOptions,
+      List<String> ddcOptions,
       List<String> args) {
     return <String>[]
       ..addAll(sharedOptions)
@@ -493,8 +495,9 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       List<String> vmOptions,
       List<String> sharedOptions,
       List<String> dart2jsOptions,
+      List<String> ddcOptions,
       List<String> args) {
-    var result = sharedOptions.toList();
+    var result = sharedOptions.toList()..addAll(ddcOptions);
 
     // The file being compiled is the last argument.
     result.add(args.last);
@@ -580,8 +583,9 @@ class DevKernelCompilerConfiguration extends CompilerConfiguration {
       List<String> vmOptions,
       List<String> sharedOptions,
       List<String> dart2jsOptions,
+      List<String> ddcOptions,
       List<String> args) {
-    var result = sharedOptions.toList();
+    var result = sharedOptions.toList()..addAll(ddcOptions);
 
     // The file being compiled is the last argument.
     result.add(args.last);
@@ -863,7 +867,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   }
 
   List<String> computeCompilerArguments(
-      vmOptions, sharedOptions, dart2jsOptions, originalArguments) {
+      vmOptions, sharedOptions, dart2jsOptions, ddcOptions, originalArguments) {
     List<String> args = [];
     if (_isChecked) {
       args.add('--enable_asserts');
@@ -939,7 +943,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
   }
 
   List<String> computeCompilerArguments(
-      vmOptions, sharedOptions, dart2jsOptions, originalArguments) {
+      vmOptions, sharedOptions, dart2jsOptions, ddcOptions, originalArguments) {
     var args = <String>[];
     if (_isChecked) {
       args.add('--enable_asserts');
@@ -1194,6 +1198,7 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
       List<String> vmOptions,
       List<String> sharedOptions,
       List<String> dart2jsOptions,
+      List<String> ddcOptions,
       List<String> args) {
     var arguments = <String>[];
     for (var argument in args) {

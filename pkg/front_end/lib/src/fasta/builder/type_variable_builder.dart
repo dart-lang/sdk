@@ -10,6 +10,8 @@ abstract class TypeVariableBuilder<T extends TypeBuilder, R>
     extends TypeDeclarationBuilder<T, R> {
   T bound;
 
+  T defaultType;
+
   TypeVariableBuilder(
       String name, this.bound, LibraryBuilder compilationUnit, int charOffset)
       : super(null, null, name, compilationUnit, charOffset);

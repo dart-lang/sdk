@@ -8,7 +8,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import '../compiler_helper.dart';
 
-testUnreachableCrash({bool useKernel}) async {
+testUnreachableCrash() async {
   print("-- unreachable code doesn't crash the compiler --");
   // This test is a regression for Issue #24974
   String generated = await compile("""
@@ -19,13 +19,13 @@ testUnreachableCrash({bool useKernel}) async {
           external factory UniqueLongNameForTesting_A();
         }
         main() {}
-    """, returnAll: true, useKernel: useKernel);
+    """, returnAll: true);
 
   // the code should not be included in the output either.
   Expect.isFalse(generated.contains("UniqueLongNameForTesting_A"));
 }
 
-testTreeShakingJsInteropTypes({bool useKernel}) async {
+testTreeShakingJsInteropTypes() async {
   print('-- tree-shaking interop types --');
   String program = """
         import 'package:js/js.dart';
@@ -71,8 +71,7 @@ testTreeShakingJsInteropTypes({bool useKernel}) async {
     """;
 
   print(' - no tree-shaking by default -');
-  String generated1 =
-      await compile(program, returnAll: true, useKernel: useKernel);
+  String generated1 = await compile(program, returnAll: true);
   Expect.isTrue(generated1.contains("UniqueLongNameForTesting_A"));
   Expect.isTrue(generated1.contains("UniqueLongNameForTesting_D"));
 
@@ -82,9 +81,7 @@ testTreeShakingJsInteropTypes({bool useKernel}) async {
 
   print(' - tree-shake when using flag -');
   String generated2 = await compile(program,
-      trustJSInteropTypeAnnotations: true,
-      returnAll: true,
-      useKernel: useKernel);
+      trustJSInteropTypeAnnotations: true, returnAll: true);
   Expect.isTrue(generated2.contains("UniqueLongNameForTesting_A"));
   Expect.isTrue(generated2.contains("UniqueLongNameForTesting_D"));
 
@@ -93,7 +90,7 @@ testTreeShakingJsInteropTypes({bool useKernel}) async {
   Expect.isFalse(generated2.contains("UniqueLongNameForTesting_E"));
 }
 
-testTreeShakingNativeTypes({bool useKernel}) async {
+testTreeShakingNativeTypes() async {
   print('-- tree-shaking other native types --');
 
   String program = """
@@ -116,8 +113,7 @@ testTreeShakingNativeTypes({bool useKernel}) async {
     """;
 
   print(' - allocation effect of dynamic excludes native types -');
-  String generated1 =
-      await compile(program, returnAll: true, useKernel: useKernel);
+  String generated1 = await compile(program, returnAll: true);
   Expect.isTrue(generated1.contains("UniqueLongNameForTesting_A"));
   // any js-interop type could be allocated by `get x`
   Expect.isTrue(generated1.contains("UniqueLongNameForTesting_B"));
@@ -127,9 +123,7 @@ testTreeShakingNativeTypes({bool useKernel}) async {
   print(' - allocation effect of dynamic excludes native types [flag] -');
   // Trusting types doesn't make a difference.
   String generated2 = await compile(program,
-      trustJSInteropTypeAnnotations: true,
-      returnAll: true,
-      useKernel: useKernel);
+      trustJSInteropTypeAnnotations: true, returnAll: true);
   Expect.isTrue(generated2.contains("UniqueLongNameForTesting_A"));
   Expect.isTrue(generated2.contains("UniqueLongNameForTesting_B"));
   Expect.isFalse(generated2.contains("HTMLAudioElement"));
@@ -149,8 +143,7 @@ testTreeShakingNativeTypes({bool useKernel}) async {
         }
     """;
 
-  String generated3 =
-      await compile(program2, returnAll: true, useKernel: useKernel);
+  String generated3 = await compile(program2, returnAll: true);
   Expect.isTrue(generated3.contains("UniqueLongNameForTesting_A"));
   Expect.isTrue(generated3.contains("HTMLAudioElement"));
 
@@ -168,7 +161,7 @@ testTreeShakingNativeTypes({bool useKernel}) async {
         }
     """;
 
-  generated3 = await compile(program2, returnAll: true, useKernel: useKernel);
+  generated3 = await compile(program2, returnAll: true);
   Expect.isTrue(generated3.contains("UniqueLongNameForTesting_A"));
   // This extra check is to make sure that we don't include HTMLAudioElement
   // just because of the is-check. It is optimized away in this case because
@@ -177,16 +170,14 @@ testTreeShakingNativeTypes({bool useKernel}) async {
 }
 
 main() {
-  runTests({bool useKernel}) async {
-    await testUnreachableCrash(useKernel: useKernel);
-    await testTreeShakingJsInteropTypes(useKernel: useKernel);
-    await testTreeShakingNativeTypes(useKernel: useKernel);
+  runTests() async {
+    await testUnreachableCrash();
+    await testTreeShakingJsInteropTypes();
+    await testTreeShakingNativeTypes();
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTests(useKernel: true);
+    await runTests();
   });
 }

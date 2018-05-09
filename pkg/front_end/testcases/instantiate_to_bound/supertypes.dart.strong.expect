@@ -8,7 +8,7 @@ class B extends core::Object {
     : super core::Object::•()
     ;
 }
-class X<T extends self::B> extends core::Object {
+class X<T extends self::B = self::B> extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;

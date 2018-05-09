@@ -6,7 +6,6 @@
 
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_new.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:expect/expect.dart';
 
 import '../memory_compiler.dart';
@@ -14,18 +13,14 @@ import '../output_collector.dart';
 
 void main() {
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTest(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTest(useKernel: true);
+    await runTest();
   });
 }
 
-runTest({bool useKernel}) async {
+runTest() async {
   OutputCollector collector = new OutputCollector();
-  var options = useKernel ? [] : [Flags.useOldFrontend];
-  await runCompiler(
-      memorySourceFiles: sources, outputProvider: collector, options: options);
+  await runCompiler(memorySourceFiles: sources, outputProvider: collector);
   String mainOutput = collector.getOutput("", OutputType.js);
   String deferredOutput = collector.getOutput("out_1", OutputType.jsPart);
 

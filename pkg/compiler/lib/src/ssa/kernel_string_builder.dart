@@ -33,7 +33,7 @@ class KernelStringBuilder extends ir.Visitor {
     //      conversions.
     //   2. The value can be primitive, because the library stringifier has
     //      fast-path code for most primitives.
-    if (expression.canBePrimitive(builder.closedWorld)) {
+    if (expression.canBePrimitive(builder.abstractValueDomain)) {
       append(stringify(expression));
       return;
     }
