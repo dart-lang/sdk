@@ -935,22 +935,13 @@ abstract class Stream<T> {
   /**
    * Adapt this stream to be a `Stream<R>`.
    *
-   * If this stream already has the desired type, its returned directly.
-   * Otherwise it is wrapped as a `Stream<R>` which checks at run-time that
-   * each data event emitted by this stream is also an instance of [R].
-   */
-  Stream<R> cast<R>() {
-    Stream<Object> self = this;
-    return self is Stream<R> ? self : retype<R>();
-  }
-
-  /**
-   * Adapt this stream to be a `Stream<R>`.
-   *
    * This stream is wrapped as a `Stream<R>` which checks at run-time that
    * each data event emitted by this stream is also an instance of [R].
    */
-  Stream<R> retype<R>() => Stream.castFrom<T, R>(this);
+  Stream<R> cast<R>() => Stream.castFrom<T, R>(this);
+
+  @Deprecated("Use cast instead.")
+  Stream<R> retype<R>() => cast<R>();
 
   /**
    * Collects all elements of this stream in a [List].
@@ -2021,15 +2012,6 @@ abstract class StreamTransformer<S, T> {
   Stream<T> bind(Stream<S> stream);
 
   /**
-   * Provides a `StreamTransformer<RS, RT>` view of this stream transformer.
-   *
-   * If this transformer already has the desired type, or a subtype,
-   * it is returned directly,
-   * otherwise returns the result of `retype<RS, RT>()`.
-   */
-  StreamTransformer<RS, RT> cast<RS, RT>();
-
-  /**
    * Provides a `StreamTrasformer<RS, RT>` view of this stream transformer.
    *
    * The resulting transformer will check at run-time that all data events
@@ -2037,6 +2019,9 @@ abstract class StreamTransformer<S, T> {
    * and it will check that all data events produced by this transformer
    * are acually instances of [RT].
    */
+  StreamTransformer<RS, RT> cast<RS, RT>();
+
+  @Deprecated("Use cast instead.")
   StreamTransformer<RS, RT> retype<RS, RT>();
 }
 
@@ -2048,13 +2033,11 @@ abstract class StreamTransformer<S, T> {
 abstract class StreamTransformerBase<S, T> implements StreamTransformer<S, T> {
   const StreamTransformerBase();
 
-  StreamTransformer<RS, RT> cast<RS, RT>() {
-    StreamTransformer<Object, Object> self = this;
-    return self is StreamTransformer<RS, RT> ? self : retype<RS, RT>();
-  }
-
-  StreamTransformer<RS, RT> retype<RS, RT>() =>
+  StreamTransformer<RS, RT> cast<RS, RT>() =>
       StreamTransformer.castFrom<S, T, RS, RT>(this);
+
+  @Deprecated("Use cast instead.")
+  StreamTransformer<RS, RT> retype<RS, RT>() => cast<RS, RT>();
 }
 
 /**

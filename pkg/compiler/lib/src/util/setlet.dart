@@ -29,7 +29,10 @@ class Setlet<E> extends SetBase<E> {
 
   static Set<R> _newSet<R>() => new Setlet<R>();
 
-  Set<R> retype<R>() => Set.castFrom<E, R>(this, newSet: _newSet);
+  Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newSet);
+
+  @Deprecated("Use cast instead.")
+  Set<R> retype<R>() => cast<R>();
 
   Iterator<E> get iterator {
     if (_extra == null) {

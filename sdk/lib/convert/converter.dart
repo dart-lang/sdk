@@ -59,24 +59,15 @@ abstract class Converter<S, T> extends StreamTransformerBase<S, T> {
   /**
    * Provides a `Converter<RS, RT>` view of this stream transformer.
    *
-   * If this transformer already has the desired type, or a subtype,
-   * it is returned directly,
-   * otherwise returns the result of `retype<RS, RT>()`.
-   */
-  Converter<RS, RT> cast<RS, RT>() {
-    Converter<Object, Object> self = this;
-    return self is Converter<RS, RT> ? self : retype<RS, RT>();
-  }
-
-  /**
-   * Provides a `Converter<RS, RT>` view of this stream transformer.
-   *
    * The resulting transformer will check at run-time that all conversion
    * inputs are actually instances of [S],
    * and it will check that all conversion output produced by this converter
    * are acually instances of [RT].
    */
-  Converter<RS, RT> retype<RS, RT>() => Converter.castFrom<S, T, RS, RT>(this);
+  Converter<RS, RT> cast<RS, RT>() => Converter.castFrom<S, T, RS, RT>(this);
+
+  @Deprecated("Use cast instead.")
+  Converter<RS, RT> retype<RS, RT>() => cast<RS, RT>();
 }
 
 /**

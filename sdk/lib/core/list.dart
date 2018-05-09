@@ -254,22 +254,6 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   }
 
   /**
-   * Returns a view of this list as a list of [R] instances, if necessary.
-   *
-   * If this list is already a `List<R>`, it is returned unchanged.
-   *
-   * If this list contains only instances of [R], all read operations
-   * will work correctly. If any operation tries to access an element
-   * that is not an instance of [R], the access will throw instead.
-   *
-   * Elements added to the list (e.g., by using [add] or [addAll])
-   * must be instance of [R] to be valid arguments to the adding function,
-   * and they must be instances of [E] as well to be accepted by
-   * this list as well.
-   */
-  List<R> cast<R>();
-
-  /**
    * Returns a view of this list as a list of [R] instances.
    *
    * If this list contains only instances of [R], all read operations
@@ -283,6 +267,9 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    *
    * Typically implemented as `List.castFrom<E, R>(this)`.
    */
+  List<R> cast<R>();
+
+  @Deprecated("Use cast instead.")
   List<R> retype<R>();
 
   /**

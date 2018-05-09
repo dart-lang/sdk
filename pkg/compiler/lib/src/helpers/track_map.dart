@@ -99,7 +99,8 @@ class TrackMap<K, V> implements Map<K, V> {
 
   Map<KR, VR> cast<KR, VR>() => _map.cast<KR, VR>();
 
-  Map<KR, VR> retype<KR, VR>() => _map.retype<KR, VR>();
+  @Deprecated("Use cast instead.")
+  Map<KR, VR> retype<KR, VR>() => cast<KR, VR>();
 
   Iterable<MapEntry<K, V>> get entries => _map.entries;
 

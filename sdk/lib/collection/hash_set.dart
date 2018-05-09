@@ -14,14 +14,10 @@ abstract class _HashSetBase<E> extends SetBase<E> {
 
   Set<R> _newSimilarSet<R>();
 
-  Set<R> cast<R>() {
-    Set<Object> self = this;
-    return self is Set<R>
-        ? self
-        : Set.castFrom<E, R>(this, newSet: _newSimilarSet);
-  }
+  Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newSimilarSet);
 
-  Set<R> retype<R>() => Set.castFrom<E, R>(this, newSet: _newSimilarSet);
+  @Deprecated("Use cast instead.")
+  Set<R> retype<R>() => cast<R>();
 
   Set<E> difference(Set<Object> other) {
     Set<E> result = _newSet();

@@ -148,7 +148,8 @@ class ObservableList<T> extends AbstractObservable
 
   List<R> cast<R>() => _internal.cast<R>();
 
-  List<R> retype<R>() => _internal.retype<R>();
+  @Deprecated("Use cast instead.")
+  List<R> retype<R>() => cast<R>();
 
   Iterable<R> whereType<R>() => _internal.whereType<R>();
 

@@ -123,12 +123,10 @@ abstract class _IntListMixin implements List<int> {
   Iterable<int> followedBy(Iterable<int> other) =>
       new FollowedByIterable<int>.firstEfficient(this, other);
 
-  List<R> cast<R>() {
-    List<Object> self = this;
-    return self is List<R> ? self : List.castFrom<int, R>(this);
-  }
+  List<R> cast<R>() => List.castFrom<int, R>(this);
 
-  List<R> retype<R>() => List.castFrom<int, R>(this);
+  @Deprecated("Use cast instead.")
+  List<R> retype<R>() => cast<R>();
 
   void set first(int value) {
     if (this.length == 0) throw new RangeError.index(0, this);
@@ -486,12 +484,10 @@ abstract class _DoubleListMixin implements List<double> {
   Iterable<double> followedBy(Iterable<double> other) =>
       new FollowedByIterable<double>.firstEfficient(this, other);
 
-  List<R> cast<R>() {
-    List<Object> self = this;
-    return self is List<R> ? self : List.castFrom<double, R>(this);
-  }
+  List<R> cast<R>() => List.castFrom<double, R>(this);
 
-  List<R> retype<R>() => List.castFrom<double, R>(this);
+  @Deprecated("Use cast instead.")
+  List<R> retype<R>() => cast<R>();
 
   void set first(double value) {
     if (this.length == 0) throw new RangeError.index(0, this);
@@ -852,12 +848,10 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
   Iterable<Float32x4> followedBy(Iterable<Float32x4> other) =>
       new FollowedByIterable<Float32x4>.firstEfficient(this, other);
 
-  List<R> cast<R>() {
-    List<Object> self = this;
-    return self is List<R> ? self : List.castFrom<Float32x4, R>(this);
-  }
+  List<R> cast<R>() => List.castFrom<Float32x4, R>(this);
 
-  List<R> retype<R>() => List.castFrom<Float32x4, R>(this);
+  @Deprecated("Use cast instead.")
+  List<R> retype<R>() => cast<R>();
 
   void set first(Float32x4 value) {
     if (this.length == 0) throw new RangeError.index(0, this);
@@ -1222,12 +1216,10 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
   Iterable<Int32x4> followedBy(Iterable<Int32x4> other) =>
       new FollowedByIterable<Int32x4>.firstEfficient(this, other);
 
-  List<R> cast<R>() {
-    List<Object> self = this;
-    return self is List<R> ? self : List.castFrom<Int32x4, R>(this);
-  }
+  List<R> cast<R>() => List.castFrom<Int32x4, R>(this);
 
-  List<R> retype<R>() => List.castFrom<Int32x4, R>(this);
+  @Deprecated("Use cast instead.")
+  List<R> retype<R>() => cast<R>();
 
   void set first(Int32x4 value) {
     if (this.length == 0) throw new RangeError.index(0, this);
@@ -1591,12 +1583,10 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
   Iterable<Float64x2> followedBy(Iterable<Float64x2> other) =>
       new FollowedByIterable<Float64x2>.firstEfficient(this, other);
 
-  List<R> cast<R>() {
-    List<Object> self = this;
-    return self is List<R> ? self : List.castFrom<Float64x2, R>(this);
-  }
+  List<R> cast<R>() => List.castFrom<Float64x2, R>(this);
 
-  List<R> retype<R>() => List.castFrom<Float64x2, R>(this);
+  @Deprecated("Use cast instead.")
+  List<R> retype<R>() => cast<R>();
 
   void set first(Float64x2 value) {
     if (this.length == 0) throw new RangeError.index(0, this);

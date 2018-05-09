@@ -765,12 +765,10 @@ class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeNode<E>>
   Set<T> _newSet<T>() =>
       new SplayTreeSet<T>((T a, T b) => _comparator(a as E, b as E), _validKey);
 
-  Set<R> cast<R>() {
-    Set<Object> self = this;
-    return self is Set<R> ? self : Set.castFrom<E, R>(this, newSet: _newSet);
-  }
+  Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newSet);
 
-  Set<R> retype<R>() => Set.castFrom<E, R>(this, newSet: _newSet);
+  @Deprecated("Use cast instead.")
+  Set<R> retype<R>() => cast<R>();
 
   int _compare(E e1, E e2) => _comparator(e1, e2);
 

@@ -21,12 +21,10 @@ class DebugMap<K, V> implements Map<K, V> {
     putIfAbsentCallback = value;
   }
 
-  Map<RK, RV> cast<RK, RV>() {
-    Map<Object, Object> self = this;
-    return self is Map<RK, RV> ? self : this.retype<RK, RV>();
-  }
+  Map<RK, RV> cast<RK, RV>() => Map.castFrom<K, V, RK, RV>(this);
 
-  Map<RK, RV> retype<RK, RV>() => Map.castFrom<K, V, RK, RV>(this);
+  @Deprecated("Use cast instead.")
+  Map<RK, RV> retype<RK, RV>() => cast<RK, RV>();
 
   bool containsValue(Object value) {
     return sourceMap.containsValue(value);
@@ -109,12 +107,10 @@ class DebugIterable<E> implements Iterable<E> {
 
   Iterator<E> get iterator => iterable.iterator;
 
-  Iterable<R> cast<R>() {
-    Iterable<Object> self = this;
-    return self is Iterable<R> ? self : this.retype<R>();
-  }
+  Iterable<R> cast<R>() => Iterable.castFrom<E, R>(this);
 
-  Iterable<R> retype<R>() => Iterable.castFrom<E, R>(this);
+  @Deprecated("Use cast instead.")
+  Iterable<R> retype<R>() => cast<R>();
 
   Iterable<T> map<T>(T f(E element)) => iterable.map(f);
 
@@ -193,12 +189,10 @@ class DebugList<E> extends DebugIterable<E> implements List<E> {
 
   List<E> get list => iterable;
 
-  List<R> cast<R>() {
-    List<Object> self = this;
-    return self is List<R> ? self : this.retype<R>();
-  }
+  List<R> cast<R>() => List.castFrom<E, R>(this);
 
-  List<R> retype<R>() => List.castFrom<E, R>(this);
+  @Deprecated("Use cast instead.")
+  List<R> retype<R>() => cast<R>();
 
   List<E> operator +(List<E> other) => list + other;
 
@@ -302,12 +296,10 @@ class DebugSet<E> extends DebugIterable<E> implements Set<E> {
 
   Set<E> get set => iterable;
 
-  Set<R> cast<R>() {
-    Set<Object> self = this;
-    return self is Set<R> ? self : this.retype<R>();
-  }
+  Set<R> cast<R>() => Set.castFrom<E, R>(this);
 
-  Set<R> retype<R>() => Set.castFrom<E, R>(this);
+  @Deprecated("Use cast instead.")
+  Set<R> retype<R>() => cast<R>();
 
   bool contains(Object value) => set.contains(value);
 
