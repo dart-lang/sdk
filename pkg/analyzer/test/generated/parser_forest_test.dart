@@ -356,11 +356,6 @@ class ExpressionParserTest_Forest extends FastaParserTestCase
   }
 
   @failingTest
-  void test_parseConstExpression_mapLiteral_untyped() {
-    super.test_parseConstExpression_mapLiteral_untyped();
-  }
-
-  @failingTest
   void test_parseEqualityExpression_normal() {
     super.test_parseEqualityExpression_normal();
   }
@@ -898,53 +893,8 @@ class ExpressionParserTest_Forest extends FastaParserTestCase
   }
 
   @failingTest
-  void test_parseStringLiteral_multiline_encodedSpace() {
-    super.test_parseStringLiteral_multiline_encodedSpace();
-  }
-
-  @failingTest
   void test_parseStringLiteral_multiline_endsWithInterpolation() {
     super.test_parseStringLiteral_multiline_endsWithInterpolation();
-  }
-
-  @failingTest
-  void test_parseStringLiteral_multiline_escapedBackslash() {
-    super.test_parseStringLiteral_multiline_escapedBackslash();
-  }
-
-  @failingTest
-  void test_parseStringLiteral_multiline_escapedBackslash_raw() {
-    super.test_parseStringLiteral_multiline_escapedBackslash_raw();
-  }
-
-  @failingTest
-  void test_parseStringLiteral_multiline_escapedEolMarker() {
-    super.test_parseStringLiteral_multiline_escapedEolMarker();
-  }
-
-  @failingTest
-  void test_parseStringLiteral_multiline_escapedEolMarker_raw() {
-    super.test_parseStringLiteral_multiline_escapedEolMarker_raw();
-  }
-
-  @failingTest
-  void test_parseStringLiteral_multiline_escapedSpaceAndEolMarker() {
-    super.test_parseStringLiteral_multiline_escapedSpaceAndEolMarker();
-  }
-
-  @failingTest
-  void test_parseStringLiteral_multiline_escapedSpaceAndEolMarker_raw() {
-    super.test_parseStringLiteral_multiline_escapedSpaceAndEolMarker_raw();
-  }
-
-  @failingTest
-  void test_parseStringLiteral_multiline_escapedTab() {
-    super.test_parseStringLiteral_multiline_escapedTab();
-  }
-
-  @failingTest
-  void test_parseStringLiteral_multiline_escapedTab_raw() {
-    super.test_parseStringLiteral_multiline_escapedTab_raw();
   }
 
   @failingTest
@@ -958,28 +908,8 @@ class ExpressionParserTest_Forest extends FastaParserTestCase
   }
 
   @failingTest
-  void test_parseStringLiteral_multiline_twoSpaces() {
-    super.test_parseStringLiteral_multiline_twoSpaces();
-  }
-
-  @failingTest
-  void test_parseStringLiteral_multiline_twoSpaces_raw() {
-    super.test_parseStringLiteral_multiline_twoSpaces_raw();
-  }
-
-  @failingTest
-  void test_parseStringLiteral_multiline_untrimmed() {
-    super.test_parseStringLiteral_multiline_untrimmed();
-  }
-
-  @failingTest
   void test_parseStringLiteral_quoteAfterInterpolation() {
     super.test_parseStringLiteral_quoteAfterInterpolation();
-  }
-
-  @failingTest
-  void test_parseStringLiteral_single() {
-    super.test_parseStringLiteral_single();
   }
 
   @failingTest
@@ -1127,6 +1057,79 @@ class FastaParserTestCase extends Object
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
+  Expression parseAdditiveExpression(String code) {
+    return parseExpression(code);
+  }
+
+  @override
+  Expression parseAssignableExpression(String code, bool primaryAllowed) {
+    return parseExpression(code);
+  }
+
+  @override
+  Expression parseAssignableSelector(String code, bool optional,
+      {bool allowConditional: true}) {
+    return parseExpression(code);
+  }
+
+  @override
+  AwaitExpression parseAwaitExpression(String code) {
+    return parseExpression(code);
+  }
+
+  @override
+  Expression parseBitwiseAndExpression(String code) {
+    return parseExpression(code);
+  }
+
+  @override
+  Expression parseBitwiseOrExpression(String code) {
+    return parseExpression(code);
+  }
+
+  @override
+  Expression parseBitwiseXorExpression(String code) {
+    return parseExpression(code);
+  }
+
+  @override
+  Expression parseCascadeSection(String code) {
+    return parseExpression(code);
+  }
+
+  @override
+  CompilationUnit parseCompilationUnit(String source,
+      {List<ErrorCode> codes, List<ExpectedError> errors}) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  ConditionalExpression parseConditionalExpression(String code) {
+    return parseExpression(code);
+  }
+
+  @override
+  Expression parseConstExpression(String code) {
+    return parseExpression(code);
+  }
+
+  @override
+  ConstructorInitializer parseConstructorInitializer(String code) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  CompilationUnit parseDirectives(String source,
+      [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  BinaryExpression parseEqualityExpression(String code) {
+    return parseExpression(code);
+  }
+
+  @override
   Expression parseExpression(String source,
       {List<ErrorCode> codes,
       List<ExpectedError> errors,
@@ -1186,10 +1189,170 @@ class FastaParserTestCase extends Object
   }
 
   @override
+  List<Expression> parseExpressionList(String code) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  Expression parseExpressionWithoutCascade(String code) {
+    return parseExpression(code);
+  }
+
+  @override
+  FormalParameter parseFormalParameter(String code, ParameterKind kind,
+      {List<ErrorCode> errorCodes: const <ErrorCode>[]}) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  FormalParameterList parseFormalParameterList(String code,
+      {bool inFunctionType: false,
+      List<ErrorCode> errorCodes: const <ErrorCode>[],
+      List<ExpectedError> errors}) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  CompilationUnitMember parseFullCompilationUnitMember() {
+    throw new UnimplementedError();
+  }
+
+  @override
+  Directive parseFullDirective() {
+    throw new UnimplementedError();
+  }
+
+  @override
+  FunctionExpression parseFunctionExpression(String code) {
+    return parseExpression(code);
+  }
+
+  @override
+  InstanceCreationExpression parseInstanceCreationExpression(
+      String code, Token newToken) {
+    return parseExpression(code);
+  }
+
+  @override
+  ListLiteral parseListLiteral(
+      Token token, String typeArgumentsCode, String code) {
+    return parseExpression(code);
+  }
+
+  @override
+  TypedLiteral parseListOrMapLiteral(Token modifier, String code) {
+    return parseExpression(code);
+  }
+
+  @override
+  Expression parseLogicalAndExpression(String code) {
+    return parseExpression(code);
+  }
+
+  @override
+  Expression parseLogicalOrExpression(String code) {
+    return parseExpression(code);
+  }
+
+  @override
+  MapLiteral parseMapLiteral(
+      Token token, String typeArgumentsCode, String code) {
+    return parseExpression(code);
+  }
+
+  @override
+  MapLiteralEntry parseMapLiteralEntry(String code) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  Expression parseMultiplicativeExpression(String code) {
+    return parseExpression(code);
+  }
+
+  @override
+  InstanceCreationExpression parseNewExpression(String code) {
+    return parseExpression(code);
+  }
+
+  @override
+  NormalFormalParameter parseNormalFormalParameter(String code,
+      {bool inFunctionType: false,
+      List<ErrorCode> errorCodes: const <ErrorCode>[]}) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  Expression parsePostfixExpression(String code) {
+    return parseExpression(code);
+  }
+
+  @override
+  Identifier parsePrefixedIdentifier(String code) {
+    return parseExpression(code);
+  }
+
+  @override
   Expression parsePrimaryExpression(String code,
       {int expectedEndOffset, List<ExpectedError> errors}) {
     return parseExpression(code,
         expectedEndOffset: expectedEndOffset, errors: errors);
+  }
+
+  @override
+  Expression parseRelationalExpression(String code) {
+    return parseExpression(code);
+  }
+
+  @override
+  RethrowExpression parseRethrowExpression(String code) {
+    return parseExpression(code);
+  }
+
+  @override
+  BinaryExpression parseShiftExpression(String code) {
+    return parseExpression(code);
+  }
+
+  @override
+  SimpleIdentifier parseSimpleIdentifier(String code) {
+    return parseExpression(code);
+  }
+
+  @override
+  Statement parseStatement(String source,
+      {bool enableLazyAssignmentOperators, int expectedEndOffset}) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  Expression parseStringLiteral(String code) {
+    return parseExpression(code);
+  }
+
+  @override
+  SymbolLiteral parseSymbolLiteral(String code) {
+    return parseExpression(code);
+  }
+
+  @override
+  Expression parseThrowExpression(String code) {
+    return parseExpression(code);
+  }
+
+  @override
+  Expression parseThrowExpressionWithoutCascade(String code) {
+    return parseExpression(code);
+  }
+
+  @override
+  PrefixExpression parseUnaryExpression(String code) {
+    return parseExpression(code);
+  }
+
+  @override
+  VariableDeclarationList parseVariableDeclarationList(String source) {
+    throw new UnimplementedError();
   }
 
   Future setUp() async {
