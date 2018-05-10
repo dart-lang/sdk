@@ -68,7 +68,7 @@ class ClassDeclarationTest extends PartialCodeTest {
                 ParserErrorCode.MISSING_CLASS_BODY
               ],
               'class A extends B with _s_ {}',
-              failing: allExceptEof),
+              failing: ['functionVoid', 'functionNonVoid', 'getter']),
           new TestDescriptor(
               'extendsNameWithBody',
               'class A extends B with {}',

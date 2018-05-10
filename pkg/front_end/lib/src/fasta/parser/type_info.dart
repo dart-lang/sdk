@@ -150,7 +150,8 @@ TypeInfo computeType(final Token token, bool required, [Token innerEndGroup]) {
         if ((!identical('get', value) &&
             !identical('set', value) &&
             !identical('factory', value) &&
-            !identical('operator', value))) {
+            !identical('operator', value) &&
+            !(identical('typedef', value) && next.next.isIdentifier))) {
           return new ComplexTypeInfo(token, typeParamOrArg)
               .computeBuiltinAsType(required);
         }

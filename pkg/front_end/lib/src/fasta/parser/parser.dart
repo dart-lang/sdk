@@ -929,10 +929,10 @@ class Parser {
   /// ```
   Token parseTypeList(Token token) {
     listener.beginTypeList(token.next);
-    token = parseType(token);
+    token = computeType(token, true).ensureTypeOrVoid(token, this);
     int count = 1;
     while (optional(',', token.next)) {
-      token = parseType(token.next);
+      token = computeType(token.next, true).ensureTypeOrVoid(token.next, this);
       count++;
     }
     listener.endTypeList(count);
