@@ -65,6 +65,15 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitAnnotation(Annotation node) {
+    _addRegion(
+        node.arguments.leftParenthesis.end,
+        node.arguments.rightParenthesis.offset,
+        FoldingKind.TOP_LEVEL_DECLARATION);
+    return super.visitAnnotation(node);
+  }
+
+  @override
   Object visitComment(Comment node) {
     final FoldingKind kind = node.isDocumentation
         ? FoldingKind.DOCUMENTATION_COMMENT

@@ -144,6 +144,21 @@ class Person {/*1:INC*/
     _compareRegions(regions, content);
   }
 
+  test_annotations() async {
+    String content = """
+@myMultilineAnnotation(/*1:INC*/
+  "this",
+  "is a test"
+/*1:INC:TOP_LEVEL_DECLARATION*/)
+main() {/*2:INC*/
+  print("Hello, world!");
+/*2:INC:TOP_LEVEL_DECLARATION*/}
+""";
+
+    final regions = await _computeRegions(content);
+    _compareRegions(regions, content);
+  }
+
   /// Compares provided folding regions with expected
   /// regions extracted from the comments in the provided content.
   void _compareRegions(List<FoldingRegion> regions, String content) {
