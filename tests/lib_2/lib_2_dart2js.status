@@ -3,7 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js ]
-async/async_await_sync_completer_test: RuntimeError
 async/future_or_strong_test: RuntimeError
 convert/base64_test/01: Fail, OK # Uses bit-wise operations to detect invalid values. Some large invalid values accepted by dart2js.
 convert/chunked_conversion_utf88_test: Slow, Pass
@@ -234,7 +233,6 @@ html/js_dispatch_property_test: RuntimeError
 html/js_extend_class_test: RuntimeError
 html/js_function_getter_test: RuntimeError
 html/js_function_getter_trust_types_test: RuntimeError
-html/js_function_getter_trust_types_test: CompileTimeError
 html/js_identity_test: RuntimeError
 html/js_interop_1_test: RuntimeError
 html/js_interop_constructor_name_div_test: RuntimeError
@@ -490,6 +488,9 @@ html/js_function_getter_trust_types_test: Skip # --trust-type-annotations incomp
 
 [ $compiler == dart2js && $checked && $fasta ]
 async/stream_listen_zone_test: RuntimeError
+
+[ $compiler == dart2js && !$checked ]
+async/async_await_sync_completer_test: RuntimeError
 
 [ $compiler == dart2js && $csp && $fasta && $minified ]
 collection/list_test: RuntimeError
