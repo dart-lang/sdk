@@ -118,6 +118,7 @@ class FastaParserTestCase {
         false /* isInstanceMember */,
         null /* uri */,
         typeInferrer,
+        _typeProvider,
       )..constantContext = ConstantContext.none; // .inferred ?
 
       Parser parser = new Parser(builder);
@@ -218,7 +219,6 @@ class FastaParserTestCase {
  */
 @reflectiveTest
 class ResolutionTest extends FastaParserTestCase {
-  @failingTest
   test_booleanLiteral_false() {
     Expression result = parseExpression('false');
     expect(result, new isInstanceOf<BooleanLiteral>());
@@ -226,7 +226,6 @@ class ResolutionTest extends FastaParserTestCase {
         FastaParserTestCase._typeProvider.boolType);
   }
 
-  @failingTest
   test_booleanLiteral_true() {
     Expression result = parseExpression('true');
     expect(result, new isInstanceOf<BooleanLiteral>());
@@ -234,32 +233,14 @@ class ResolutionTest extends FastaParserTestCase {
         FastaParserTestCase._typeProvider.boolType);
   }
 
-  @failingTest
-  test_doubleLiteral_negative() {
-    Expression result = parseExpression('-5.1');
-    expect(result, new isInstanceOf<DoubleLiteral>());
-    expect((result as DoubleLiteral).staticType,
-        FastaParserTestCase._typeProvider.doubleType);
-  }
-
-  @failingTest
-  test_doubleLiteral_positive() {
+  test_doubleLiteral() {
     Expression result = parseExpression('4.2');
     expect(result, new isInstanceOf<DoubleLiteral>());
     expect((result as DoubleLiteral).staticType,
         FastaParserTestCase._typeProvider.doubleType);
   }
 
-  @failingTest
-  test_integerLiteral_negative() {
-    Expression result = parseExpression('-6');
-    expect(result, new isInstanceOf<IntegerLiteral>());
-    expect((result as IntegerLiteral).staticType,
-        FastaParserTestCase._typeProvider.intType);
-  }
-
-  @failingTest
-  test_integerLiteral_positive() {
+  test_integerLiteral() {
     Expression result = parseExpression('3');
     expect(result, new isInstanceOf<IntegerLiteral>());
     expect((result as IntegerLiteral).staticType,
@@ -310,15 +291,13 @@ class ResolutionTest extends FastaParserTestCase {
         ]));
   }
 
-  @failingTest
-  test_nullLiteral_negative() {
+  test_nullLiteral() {
     Expression result = parseExpression('null');
     expect(result, new isInstanceOf<NullLiteral>());
     expect((result as NullLiteral).staticType,
         FastaParserTestCase._typeProvider.nullType);
   }
 
-  @failingTest
   test_simpleStringLiteral() {
     Expression result = parseExpression('"abc"');
     expect(result, new isInstanceOf<SimpleStringLiteral>());

@@ -1150,6 +1150,7 @@ class FastaParserTestCase extends Object
         false /* isInstanceMember */,
         null /* uri */,
         typeInferrer,
+        null,
       )..constantContext = ConstantContext.none; // .inferred ?
 
       Parser parser = new Parser(builder);

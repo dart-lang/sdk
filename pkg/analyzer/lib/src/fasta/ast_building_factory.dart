@@ -5,17 +5,22 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
+import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:front_end/src/fasta/kernel/forest.dart';
 import 'package:kernel/ast.dart' as kernel;
 
 /// An implementation of a [Forest] that can be used to build an AST structure.
 class AstBuildingForest
     implements Forest<Expression, Statement, Token, _Arguments> {
+  /// The type provider used to resolve the types of literal nodes, or `null` if
+  /// type resolution is not being performed.
+  final TypeProvider _typeProvider;
+
   /// The factory used to create AST nodes.
   AstFactoryImpl astFactory = new AstFactoryImpl();
 
   /// Initialize a newly created AST-building forest.
-  AstBuildingForest();
+  AstBuildingForest(this._typeProvider);
 
   @override
   _Arguments arguments(List<Expression> positional, Token location,
@@ -97,15 +102,18 @@ class AstBuildingForest
 
   @override
   Expression literalBool(bool value, Token location) =>
-      astFactory.booleanLiteral(location, value);
+      astFactory.booleanLiteral(location, value)
+        ..staticType = _typeProvider?.boolType;
 
   @override
   Expression literalDouble(double value, Token location) =>
-      astFactory.doubleLiteral(location, value);
+      astFactory.doubleLiteral(location, value)
+        ..staticType = _typeProvider?.doubleType;
 
   @override
   Expression literalInt(int value, Token location) =>
-      astFactory.integerLiteral(location, value);
+      astFactory.integerLiteral(location, value)
+        ..staticType = _typeProvider?.intType;
 
   @override
   Expression literalList(
@@ -133,22 +141,26 @@ class AstBuildingForest
           constKeyword, typeArguments, leftBracket, entries, rightBracket);
 
   @override
-  Expression literalNull(Token location) => astFactory.nullLiteral(location);
+  Expression literalNull(Token location) =>
+      astFactory.nullLiteral(location)..staticType = _typeProvider?.nullType;
 
   @override
   Expression literalString(String value, Token location) =>
-      astFactory.simpleStringLiteral(location, value);
+      astFactory.simpleStringLiteral(location, value)
+        ..staticType = _typeProvider?.stringType;
 
   @override
   Expression literalSymbol(String value, Token location) {
     // TODO(brianwilkerson) Get the missing information.
-    return astFactory.symbolLiteral(location, null /* components */);
+    return astFactory.symbolLiteral(location, null /* components */)
+      ..staticType = _typeProvider?.symbolType;
   }
 
   @override
   Expression literalType(covariant type, Token location) {
     // TODO(brianwilkerson) Capture the type information.
-    return astFactory.simpleIdentifier(location);
+    return astFactory.simpleIdentifier(location)
+      ..staticType = _typeProvider?.typeType;
   }
 
   @override
@@ -166,7 +178,8 @@ class AstBuildingForest
 
   @override
   Expression notExpression(Expression operand, Token operator) =>
-      astFactory.prefixExpression(operator, operand);
+      astFactory.prefixExpression(operator, operand)
+        ..staticType = _typeProvider?.boolType;
 
   @override
   int readOffset(AstNode node) => node.offset;
