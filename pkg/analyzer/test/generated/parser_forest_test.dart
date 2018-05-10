@@ -341,11 +341,6 @@ class ExpressionParserTest_Forest extends FastaParserTestCase
   }
 
   @failingTest
-  void test_parseConstExpression_listLiteral_untyped() {
-    super.test_parseConstExpression_listLiteral_untyped();
-  }
-
-  @failingTest
   void test_parseConstExpression_mapLiteral_typed() {
     super.test_parseConstExpression_mapLiteral_typed();
   }
@@ -567,23 +562,8 @@ class ExpressionParserTest_Forest extends FastaParserTestCase
   }
 
   @failingTest
-  void test_parseListLiteral_multiple() {
-    super.test_parseListLiteral_multiple();
-  }
-
-  @failingTest
-  void test_parseListLiteral_single() {
-    super.test_parseListLiteral_single();
-  }
-
-  @failingTest
   void test_parseListLiteral_single_withTypeArgument() {
     super.test_parseListLiteral_single_withTypeArgument();
-  }
-
-  @failingTest
-  void test_parseListOrMapLiteral_list_noType() {
-    super.test_parseListOrMapLiteral_list_noType();
   }
 
   @failingTest
@@ -745,16 +725,6 @@ class ExpressionParserTest_Forest extends FastaParserTestCase
   @failingTest
   void test_parsePrimaryExpression_identifier() {
     super.test_parsePrimaryExpression_identifier();
-  }
-
-  @failingTest
-  void test_parsePrimaryExpression_listLiteral() {
-    super.test_parsePrimaryExpression_listLiteral();
-  }
-
-  @failingTest
-  void test_parsePrimaryExpression_listLiteral_index() {
-    super.test_parsePrimaryExpression_listLiteral_index();
   }
 
   @failingTest

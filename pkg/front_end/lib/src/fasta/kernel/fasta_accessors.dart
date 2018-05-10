@@ -90,7 +90,7 @@ abstract class BuilderHelper<Expression, Statement, Arguments> {
 
   Constructor lookupConstructor(Name name, {bool isSuper});
 
-  kernel.Expression toValue(node);
+  Expression toValue(node);
 
   Member lookupInstanceMember(Name name, {bool isSetter, bool isSuper});
 
@@ -99,20 +99,17 @@ abstract class BuilderHelper<Expression, Statement, Arguments> {
 
   finishSend(Object receiver, Arguments arguments, int offset);
 
-  kernel.Expression buildCompileTimeError(
-      Message message, int charOffset, int length);
+  Expression buildCompileTimeError(Message message, int charOffset, int length,
+      {List<LocatedMessage> context});
 
-  kernel.Expression wrapInCompileTimeError(
-      kernel.Expression expression, Message message);
+  Expression wrapInCompileTimeError(Expression expression, Message message);
 
-  kernel.Expression deprecated_buildCompileTimeError(String error,
-      [int offset]);
+  Expression deprecated_buildCompileTimeError(String error, [int offset]);
 
-  Initializer buildInvalidInitializer(kernel.Expression expression,
-      [int offset]);
+  Initializer buildInvalidInitializer(Expression expression, [int offset]);
 
   Initializer buildFieldInitializer(
-      bool isSynthetic, String name, int offset, kernel.Expression expression);
+      bool isSynthetic, String name, int offset, Expression expression);
 
   Initializer buildSuperInitializer(
       bool isSynthetic, Constructor constructor, Arguments arguments,
@@ -122,14 +119,14 @@ abstract class BuilderHelper<Expression, Statement, Arguments> {
       Constructor constructor, Arguments arguments,
       [int charOffset = -1]);
 
-  kernel.Expression buildStaticInvocation(Procedure target, Arguments arguments,
+  Expression buildStaticInvocation(Procedure target, Arguments arguments,
       {Constness constness, int charOffset, Member initialTarget});
 
-  kernel.Expression buildProblemExpression(
+  Expression buildProblemExpression(
       ProblemBuilder builder, int offset, int length);
 
-  kernel.Expression throwNoSuchMethodError(
-      kernel.Expression receiver, String name, Arguments arguments, int offset,
+  Expression throwNoSuchMethodError(
+      Expression receiver, String name, Arguments arguments, int offset,
       {Member candidate,
       bool isSuper,
       bool isGetter,
@@ -143,22 +140,22 @@ abstract class BuilderHelper<Expression, Statement, Arguments> {
 
   StaticGet makeStaticGet(Member readTarget, Token token);
 
-  kernel.Expression wrapInDeferredCheck(
-      kernel.Expression expression, KernelPrefixBuilder prefix, int charOffset);
+  Expression wrapInDeferredCheck(
+      Expression expression, KernelPrefixBuilder prefix, int charOffset);
 
   dynamic deprecated_addCompileTimeError(int charOffset, String message);
 
   bool isIdentical(Member member);
 
-  kernel.Expression buildMethodInvocation(
-      kernel.Expression receiver, Name name, Arguments arguments, int offset,
+  Expression buildMethodInvocation(
+      Expression receiver, Name name, Arguments arguments, int offset,
       {bool isConstantExpression,
       bool isNullAware,
       bool isImplicitCall,
       bool isSuper,
       Member interfaceTarget});
 
-  kernel.Expression buildConstructorInvocation(
+  Expression buildConstructorInvocation(
       TypeDeclarationBuilder type,
       Token nameToken,
       Arguments arguments,
