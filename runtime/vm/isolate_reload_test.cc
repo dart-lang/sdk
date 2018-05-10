@@ -123,15 +123,17 @@ TEST_CASE(IsolateReload_KernelIncrementalCompile) {
     }};
   // clang-format on
   {
-    void* kernel_pgm = NULL;
+    const uint8_t* kernel_buffer = NULL;
+    intptr_t kernel_buffer_size = 0;
     char* error = TestCase::CompileTestScriptWithDFE(
         "file:///test-app",
         sizeof(updated_sourcefiles) / sizeof(Dart_SourceFile),
-        updated_sourcefiles, &kernel_pgm, true /* incrementally */);
+        updated_sourcefiles, &kernel_buffer, &kernel_buffer_size,
+        true /* incrementally */);
     EXPECT(error == NULL);
-    EXPECT_NOTNULL(kernel_pgm);
+    EXPECT_NOTNULL(kernel_buffer);
 
-    lib = TestCase::ReloadTestKernel(kernel_pgm);
+    lib = TestCase::ReloadTestKernel(kernel_buffer, kernel_buffer_size);
     EXPECT_VALID(lib);
   }
   result = Dart_Invoke(lib, NewString("main"), 0, NULL);
@@ -182,15 +184,17 @@ TEST_CASE(IsolateReload_KernelIncrementalCompileAppAndLib) {
     }};
   // clang-format on
   {
-    void* kernel_pgm = NULL;
+    const uint8_t* kernel_buffer = NULL;
+    intptr_t kernel_buffer_size = 0;
     char* error = TestCase::CompileTestScriptWithDFE(
         "file:///test-app.dart",
         sizeof(updated_sourcefiles) / sizeof(Dart_SourceFile),
-        updated_sourcefiles, &kernel_pgm, true /* incrementally */);
+        updated_sourcefiles, &kernel_buffer, &kernel_buffer_size,
+        true /* incrementally */);
     EXPECT(error == NULL);
-    EXPECT_NOTNULL(kernel_pgm);
+    EXPECT_NOTNULL(kernel_buffer);
 
-    lib = TestCase::ReloadTestKernel(kernel_pgm);
+    lib = TestCase::ReloadTestKernel(kernel_buffer, kernel_buffer_size);
     EXPECT_VALID(lib);
   }
   result = Dart_Invoke(lib, NewString("main"), 0, NULL);
@@ -257,15 +261,17 @@ TEST_CASE(IsolateReload_KernelIncrementalCompileGenerics) {
     }};
   // clang-format on
   {
-    void* kernel_pgm = NULL;
+    const uint8_t* kernel_buffer = NULL;
+    intptr_t kernel_buffer_size = 0;
     char* error = TestCase::CompileTestScriptWithDFE(
         "file:///test-app.dart",
         sizeof(updated_sourcefiles) / sizeof(Dart_SourceFile),
-        updated_sourcefiles, &kernel_pgm, true /* incrementally */);
+        updated_sourcefiles, &kernel_buffer, &kernel_buffer_size,
+        true /* incrementally */);
     EXPECT(error == NULL);
-    EXPECT_NOTNULL(kernel_pgm);
+    EXPECT_NOTNULL(kernel_buffer);
 
-    lib = TestCase::ReloadTestKernel(kernel_pgm);
+    lib = TestCase::ReloadTestKernel(kernel_buffer, kernel_buffer_size);
     EXPECT_VALID(lib);
   }
   result = Dart_Invoke(lib, NewString("main"), 0, NULL);

@@ -224,9 +224,12 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
                                        char** error,
                                        int* exit_code) {
   Dart_EnterScope();
+#if !defined(DART_PRECOMPILED_RUNTIME)
   IsolateData* isolate_data =
       reinterpret_cast<IsolateData*>(Dart_IsolateData(isolate));
-  void* kernel_program = isolate_data->kernel_program;
+  const uint8_t* kernel_buffer = isolate_data->kernel_buffer();
+  intptr_t kernel_buffer_size = isolate_data->kernel_buffer_size();
+#endif
 
   // Set up the library tag handler for this isolate.
   Dart_Handle result = Dart_SetLibraryTagHandler(Loader::LibraryTagHandler);
@@ -258,7 +261,7 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (Options::preview_dart_2() && !isolate_run_app_snapshot &&
-      kernel_program == NULL && !Dart_IsKernelIsolate(isolate)) {
+      kernel_buffer == NULL && !Dart_IsKernelIsolate(isolate)) {
     if (!dfe.CanUseDartFrontend()) {
       const char* format = "Dart frontend unavailable to compile script %s.";
       intptr_t len = snprintf(NULL, 0, format, script_uri) + 1;
@@ -270,24 +273,28 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
       Dart_ShutdownIsolate();
       return NULL;
     }
-    kernel_program = dfe.CompileAndReadScript(
-        script_uri, error, exit_code, flags->strong, resolved_packages_config);
-    if (kernel_program == NULL) {
+    uint8_t* application_kernel_buffer = NULL;
+    intptr_t application_kernel_buffer_size = 0;
+    dfe.CompileAndReadScript(script_uri, &application_kernel_buffer,
+                             &application_kernel_buffer_size, error, exit_code,
+                             flags->strong, resolved_packages_config);
+    if (application_kernel_buffer == NULL) {
       Dart_ExitScope();
       Dart_ShutdownIsolate();
       return NULL;
     }
-    isolate_data->kernel_program = kernel_program;
+    isolate_data->set_kernel_buffer(application_kernel_buffer,
+                                    application_kernel_buffer_size,
+                                    true /*take ownership*/);
+    kernel_buffer = application_kernel_buffer;
+    kernel_buffer_size = application_kernel_buffer_size;
   }
-  if (kernel_program != NULL) {
+  if (kernel_buffer != NULL) {
     Dart_Handle uri = Dart_NewStringFromCString(script_uri);
     CHECK_RESULT(uri);
     Dart_Handle resolved_script_uri = DartUtils::ResolveScript(uri);
     CHECK_RESULT(resolved_script_uri);
-    result =
-        Dart_LoadScript(uri, resolved_script_uri,
-                        reinterpret_cast<Dart_Handle>(kernel_program), 0, 0);
-    isolate_data->kernel_program = NULL;  // Dart_LoadScript takes ownership.
+    result = Dart_LoadScriptFromKernel(kernel_buffer, kernel_buffer_size);
     CHECK_RESULT(result);
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -322,11 +329,12 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
     }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   } else {
+#if !defined(DART_PRECOMPILED_RUNTIME)
     // Load the specified application script into the newly created isolate.
     Dart_Handle uri =
         DartUtils::ResolveScript(Dart_NewStringFromCString(script_uri));
     CHECK_RESULT(uri);
-    if (kernel_program == NULL) {
+    if (kernel_buffer == NULL) {
       result = Loader::LibraryTagHandler(Dart_kScriptTag, Dart_Null(), uri);
       CHECK_RESULT(result);
     } else {
@@ -344,6 +352,9 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
     result = DartUtils::SetupIOLibrary(Options::namespc(), script_uri,
                                        Options::exit_disabled());
     CHECK_RESULT(result);
+#else
+    UNREACHABLE();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   }
 
   // Make the isolate runnable so that it is ready to handle messages.
@@ -402,13 +413,18 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
         isolate_snapshot_instructions, app_isolate_shared_data,
         app_isolate_shared_instructions, flags, isolate_data, error);
   } else {
-    void* kernel_service_program = dfe.LoadKernelServiceProgram();
-    ASSERT(kernel_service_program != NULL);
+    const uint8_t* kernel_service_buffer = NULL;
+    intptr_t kernel_service_buffer_size = 0;
+    dfe.LoadKernelService(&kernel_service_buffer, &kernel_service_buffer_size);
+    ASSERT(kernel_service_buffer != NULL);
     IsolateData* isolate_data =
         new IsolateData(uri, package_root, packages_config, NULL);
-    isolate_data->kernel_program = kernel_service_program;
-    isolate = Dart_CreateIsolateFromKernel(uri, main, kernel_service_program,
-                                           flags, isolate_data, error);
+    isolate_data->set_kernel_buffer(const_cast<uint8_t*>(kernel_service_buffer),
+                                    kernel_service_buffer_size,
+                                    false /* take_ownership */);
+    isolate = Dart_CreateIsolateFromKernel(uri, main, kernel_service_buffer,
+                                           kernel_service_buffer_size, flags,
+                                           isolate_data, error);
   }
 
   if (isolate == NULL) {
@@ -466,15 +482,20 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   if (Options::preview_dart_2()) {
     // If there is intention to use DFE, then we create the isolate
     // from kernel only if we can.
-    void* platform_program = dfe.platform_program(flags->strong) != NULL
-                                 ? dfe.platform_program(flags->strong)
-                                 : dfe.application_kernel_binary();
+    const uint8_t* kernel_buffer = NULL;
+    intptr_t kernel_buffer_size = 0;
+    dfe.LoadPlatform(&kernel_buffer, &kernel_buffer_size, flags->strong);
+    if (kernel_buffer == NULL) {
+      dfe.application_kernel_buffer(&kernel_buffer, &kernel_buffer_size);
+    }
+
     // TODO(sivachandra): When the platform program is unavailable, check if
     // application kernel binary is self contained or an incremental binary.
     // Isolate should be created only if it is a self contained kernel binary.
-    if (platform_program != NULL) {
-      isolate = Dart_CreateIsolateFromKernel(script_uri, NULL, platform_program,
-                                             flags, isolate_data, error);
+    if (kernel_buffer != NULL) {
+      isolate = Dart_CreateIsolateFromKernel(script_uri, NULL, kernel_buffer,
+                                             kernel_buffer_size, flags,
+                                             isolate_data, error);
     } else {
       *error =
           strdup("Platform kernel not available to create service isolate.");
@@ -529,7 +550,8 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
                                                 int* exit_code) {
   int64_t start = Dart_TimelineGetMicros();
   ASSERT(script_uri != NULL);
-  void* kernel_program = NULL;
+  uint8_t* kernel_buffer = NULL;
+  intptr_t kernel_buffer_size = 0;
   AppSnapshot* app_snapshot = NULL;
 
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -563,12 +585,16 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
     }
   }
   if (!isolate_run_app_snapshot) {
-    kernel_program = dfe.ReadScript(script_uri);
+    dfe.ReadScript(script_uri, &kernel_buffer, &kernel_buffer_size);
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   IsolateData* isolate_data =
       new IsolateData(script_uri, package_root, packages_config, app_snapshot);
+  if (kernel_buffer != NULL) {
+    isolate_data->set_kernel_buffer(kernel_buffer, kernel_buffer_size,
+                                    true /*take ownership*/);
+  }
   if (is_main_isolate && (Options::snapshot_deps_filename() != NULL)) {
     isolate_data->set_dependencies(new MallocGrowableArray<char*>());
   }
@@ -577,19 +603,23 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (Options::preview_dart_2()) {
-    void* platform_program = dfe.platform_program(flags->strong) != NULL
-                                 ? dfe.platform_program(flags->strong)
-                                 : kernel_program;
-
-    if (platform_program == NULL) {
+    const uint8_t* platform_kernel_buffer = NULL;
+    intptr_t platform_kernel_buffer_size = 0;
+    dfe.LoadPlatform(&platform_kernel_buffer, &platform_kernel_buffer_size,
+                     flags->strong);
+    if (platform_kernel_buffer == NULL) {
+      platform_kernel_buffer = kernel_buffer;
+      platform_kernel_buffer_size = kernel_buffer_size;
+    }
+    if (platform_kernel_buffer == NULL) {
       FATAL("platform_program cannot be NULL.");
     }
     // TODO(sivachandra): When the platform program is unavailable, check if
     // application kernel binary is self contained or an incremental binary.
     // Isolate should be created only if it is a self contained kernel binary.
-    isolate = Dart_CreateIsolateFromKernel(script_uri, main, platform_program,
-                                           flags, isolate_data, error);
-    isolate_data->kernel_program = kernel_program;
+    isolate = Dart_CreateIsolateFromKernel(
+        script_uri, main, platform_kernel_buffer, platform_kernel_buffer_size,
+        flags, isolate_data, error);
   } else {
     isolate = Dart_CreateIsolate(
         script_uri, main, isolate_snapshot_data, isolate_snapshot_instructions,
@@ -607,7 +637,12 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
   if (isolate == NULL) {
     delete isolate_data;
   } else {
-    bool set_native_resolvers = (kernel_program || isolate_snapshot_data);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    bool set_native_resolvers =
+        (kernel_buffer != NULL) || (isolate_snapshot_data != NULL);
+#else
+    bool set_native_resolvers = isolate_snapshot_data != NULL;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
     created_isolate =
         IsolateSetupHelper(isolate, is_main_isolate, script_uri, package_root,
                            packages_config, set_native_resolvers,
@@ -616,7 +651,6 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
   int64_t end = Dart_TimelineGetMicros();
   Dart_TimelineEvent("CreateIsolateAndSetupHelper", start, end,
                      Dart_Timeline_Event_Duration, 0, NULL, NULL);
-
   return created_isolate;
 }
 
@@ -1158,10 +1192,14 @@ void main(int argc, char** argv) {
 // they might affect how the platform is loaded.
 #if !defined(DART_PRECOMPILED_RUNTIME)
   dfe.Init();
-  void* application_kernel_binary = dfe.ReadScript(script_name);
-  if (application_kernel_binary != NULL) {
+  uint8_t* application_kernel_buffer = NULL;
+  intptr_t application_kernel_buffer_size = 0;
+  dfe.ReadScript(script_name, &application_kernel_buffer,
+                 &application_kernel_buffer_size);
+  if (application_kernel_buffer != NULL) {
     // Since we loaded the script anyway, save it.
-    dfe.set_application_kernel_binary(application_kernel_binary);
+    dfe.set_application_kernel_buffer(application_kernel_buffer,
+                                      application_kernel_buffer_size);
     // Since we saw a dill file, it means we have to turn on all the
     // preview_dart_2 options.
     Options::SetPreviewDart2Options(&vm_options);

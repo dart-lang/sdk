@@ -558,7 +558,9 @@ class Object {
 
   // Initialize a new isolate either from a Kernel IR, from source, or from a
   // snapshot.
-  static RawError* Init(Isolate* isolate, kernel::Program* program);
+  static RawError* Init(Isolate* isolate,
+                        const uint8_t* kernel_buffer,
+                        intptr_t kernel_buffer_size);
 
   static void MakeUnusedSpaceTraversable(const Object& obj,
                                          intptr_t original_size,
