@@ -5468,20 +5468,18 @@ RawTypeArguments* TypeArguments::Canonicalize(TrailPtr trail) const {
   return result.raw();
 }
 
-RawString* TypeArguments::EnumerateURIs() const {
+void TypeArguments::EnumerateURIs(URIs* uris) const {
   if (IsNull()) {
-    return Symbols::Empty().raw();
+    return;
   }
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   AbstractType& type = AbstractType::Handle(zone);
   const intptr_t num_types = Length();
-  const Array& pieces = Array::Handle(zone, Array::New(num_types));
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
-    pieces.SetAt(i, String::Handle(zone, type.EnumerateURIs()));
+    type.EnumerateURIs(uris);
   }
-  return String::ConcatAll(pieces);
 }
 
 const char* TypeArguments::ToCString() const {
@@ -16346,10 +16344,9 @@ RawAbstractType* AbstractType::Canonicalize(TrailPtr trail) const {
   return NULL;
 }
 
-RawString* AbstractType::EnumerateURIs() const {
+void AbstractType::EnumerateURIs(URIs* uris) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
-  return NULL;
 }
 
 RawAbstractType* AbstractType::OnlyBuddyInTrail(TrailPtr trail) const {
@@ -16419,6 +16416,52 @@ bool AbstractType::TestAndAddBuddyToTrail(TrailPtr* trail,
   (*trail)->Add(*this);
   (*trail)->Add(buddy);
   return false;
+}
+
+void AbstractType::AddURI(URIs* uris, const String& name, const String& uri) {
+  ASSERT(uris != NULL);
+  const intptr_t len = uris->length();
+  ASSERT((len % 3) == 0);
+  bool print_uri = false;
+  for (intptr_t i = 0; i < len; i += 3) {
+    if (uris->At(i).Equals(name)) {
+      if (uris->At(i + 1).Equals(uri)) {
+        // Same name and same URI: no need to add this already listed URI.
+        return;  // No state change is possible.
+      } else {
+        // Same name and different URI: the name is ambiguous, print both URIs.
+        print_uri = true;
+        uris->SetAt(i + 2, Symbols::print());
+      }
+    }
+  }
+  uris->Add(name);
+  uris->Add(uri);
+  if (print_uri) {
+    uris->Add(Symbols::print());
+  } else {
+    uris->Add(Symbols::Empty());
+  }
+}
+
+RawString* AbstractType::PrintURIs(URIs* uris) {
+  ASSERT(uris != NULL);
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const intptr_t len = uris->length();
+  ASSERT((len % 3) == 0);
+  GrowableHandlePtrArray<const String> pieces(zone, 5 * (len / 3));
+  for (intptr_t i = 0; i < len; i += 3) {
+    // Only print URIs that have been marked.
+    if (uris->At(i + 2).raw() == Symbols::print().raw()) {
+      pieces.Add(Symbols::TwoSpaces());
+      pieces.Add(uris->At(i));
+      pieces.Add(Symbols::SpaceIsFromSpace());
+      pieces.Add(uris->At(i + 1));
+      pieces.Add(Symbols::NewLine());
+    }
+  }
+  return Symbols::FromConcatAll(thread, pieces);
 }
 
 RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
@@ -17723,13 +17766,12 @@ bool Type::CheckIsCanonical(Thread* thread) const {
 }
 #endif  // DEBUG
 
-RawString* Type::EnumerateURIs() const {
+void Type::EnumerateURIs(URIs* uris) const {
   if (IsDynamicType() || IsVoidType()) {
-    return Symbols::Empty().raw();
+    return;
   }
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  GrowableHandlePtrArray<const String> pieces(zone, 6);
   if (IsFunctionType()) {
     // The scope class and type arguments do not appear explicitly in the user
     // visible name. The type arguments were used to instantiate the function
@@ -17737,26 +17779,22 @@ RawString* Type::EnumerateURIs() const {
     const Function& sig_fun = Function::Handle(zone, signature());
     AbstractType& type = AbstractType::Handle(zone);
     const intptr_t num_params = sig_fun.NumParameters();
-    GrowableHandlePtrArray<const String> pieces(zone, num_params + 1);
     for (intptr_t i = 0; i < num_params; i++) {
       type = sig_fun.ParameterTypeAt(i);
-      pieces.Add(String::Handle(zone, type.EnumerateURIs()));
+      type.EnumerateURIs(uris);
     }
     // Handle result type last, since it appears last in the user visible name.
     type = sig_fun.result_type();
-    pieces.Add(String::Handle(zone, type.EnumerateURIs()));
+    type.EnumerateURIs(uris);
   } else {
     const Class& cls = Class::Handle(zone, type_class());
-    pieces.Add(Symbols::TwoSpaces());
-    pieces.Add(String::Handle(zone, cls.UserVisibleName()));
-    pieces.Add(Symbols::SpaceIsFromSpace());
+    const String& name = String::Handle(zone, cls.UserVisibleName());
     const Library& library = Library::Handle(zone, cls.library());
-    pieces.Add(String::Handle(zone, library.url()));
-    pieces.Add(Symbols::NewLine());
+    const String& uri = String::Handle(zone, library.url());
+    AddURI(uris, name, uri);
     const TypeArguments& type_args = TypeArguments::Handle(zone, arguments());
-    pieces.Add(String::Handle(zone, type_args.EnumerateURIs()));
+    type_args.EnumerateURIs(uris);
   }
-  return Symbols::FromConcatAll(thread, pieces);
 }
 
 intptr_t Type::ComputeHash() const {
@@ -17993,22 +18031,17 @@ bool TypeRef::CheckIsCanonical(Thread* thread) const {
 }
 #endif  // DEBUG
 
-RawString* TypeRef::EnumerateURIs() const {
+void TypeRef::EnumerateURIs(URIs* uris) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const AbstractType& ref_type = AbstractType::Handle(zone, type());
   ASSERT(!ref_type.IsDynamicType() && !ref_type.IsVoidType());
-  GrowableHandlePtrArray<const String> pieces(zone, 6);
   const Class& cls = Class::Handle(zone, ref_type.type_class());
-  pieces.Add(Symbols::TwoSpaces());
-  pieces.Add(String::Handle(zone, cls.UserVisibleName()));
-  // Break cycle by not printing type arguments, but '<optimized out>' instead.
-  pieces.Add(Symbols::OptimizedOut());
-  pieces.Add(Symbols::SpaceIsFromSpace());
+  const String& name = String::Handle(zone, cls.UserVisibleName());
   const Library& library = Library::Handle(zone, cls.library());
-  pieces.Add(String::Handle(zone, library.url()));
-  pieces.Add(Symbols::NewLine());
-  return Symbols::FromConcatAll(thread, pieces);
+  const String& uri = String::Handle(zone, library.url());
+  AddURI(uris, name, uri);
+  // Break cycle by not printing type arguments.
 }
 
 intptr_t TypeRef::Hash() const {
@@ -18225,12 +18258,10 @@ bool TypeParameter::CheckBound(const AbstractType& bounded_type,
           *bound_error, script, token_pos(), Report::AtLocation,
           Report::kMalboundedType, Heap::kNew,
           "type parameter '%s' of class '%s' must extend bound '%s', "
-          "but type argument '%s' is not a subtype of '%s' where\n%s%s",
+          "but type argument '%s' is not a subtype of '%s'",
           type_param_name.ToCString(), class_name.ToCString(),
           declared_bound_name.ToCString(), bounded_type_name.ToCString(),
-          upper_bound_name.ToCString(),
-          String::Handle(bounded_type.EnumerateURIs()).ToCString(),
-          String::Handle(upper_bound.EnumerateURIs()).ToCString());
+          upper_bound_name.ToCString());
     }
   }
   return false;
@@ -18279,11 +18310,10 @@ RawAbstractType* TypeParameter::CloneUninstantiated(const Class& new_owner,
   return clone.raw();
 }
 
-RawString* TypeParameter::EnumerateURIs() const {
+void TypeParameter::EnumerateURIs(URIs* uris) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   GrowableHandlePtrArray<const String> pieces(zone, 4);
-  pieces.Add(Symbols::TwoSpaces());
   pieces.Add(String::Handle(zone, name()));
   Class& cls = Class::Handle(zone, parameterized_class());
   if (cls.IsNull()) {
@@ -18296,12 +18326,12 @@ RawString* TypeParameter::EnumerateURIs() const {
   if (!cls.IsNull()) {
     pieces.Add(Symbols::SpaceOfSpace());
     pieces.Add(String::Handle(zone, cls.UserVisibleName()));
-    pieces.Add(Symbols::SpaceIsFromSpace());
+    const String& name =
+        String::Handle(zone, Symbols::FromConcatAll(thread, pieces));
     const Library& library = Library::Handle(zone, cls.library());
-    pieces.Add(String::Handle(zone, library.url()));
+    const String& uri = String::Handle(zone, library.url());
+    AddURI(uris, name, uri);
   }
-  pieces.Add(Symbols::NewLine());
-  return Symbols::FromConcatAll(thread, pieces);
 }
 
 intptr_t TypeParameter::ComputeHash() const {
@@ -18579,9 +18609,9 @@ RawAbstractType* BoundedType::CloneUninstantiated(const Class& new_owner,
   return BoundedType::New(bounded_type, upper_bound, type_param);
 }
 
-RawString* BoundedType::EnumerateURIs() const {
+void BoundedType::EnumerateURIs(URIs* uris) const {
   // The bound does not appear in the user visible name.
-  return AbstractType::Handle(type()).EnumerateURIs();
+  AbstractType::Handle(type()).EnumerateURIs(uris);
 }
 
 intptr_t BoundedType::ComputeHash() const {
