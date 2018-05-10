@@ -35,8 +35,6 @@ jsAst.Statement buildSetupProgram(
     ClosedWorld closedWorld) {
   jsAst.Expression typeInformationAccess =
       emitter.generateEmbeddedGlobalAccess(embeddedNames.TYPE_INFORMATION);
-  jsAst.Expression globalFunctionsAccess =
-      emitter.generateEmbeddedGlobalAccess(embeddedNames.GLOBAL_FUNCTIONS);
   jsAst.Expression staticsAccess =
       emitter.generateEmbeddedGlobalAccess(embeddedNames.STATICS);
   jsAst.Expression interceptedNamesAccess =
@@ -49,10 +47,6 @@ jsAst.Statement buildSetupProgram(
       emitter.generateEmbeddedGlobalAccess(embeddedNames.LIBRARIES);
   jsAst.Expression typesAccess =
       emitter.generateEmbeddedGlobalAccess(embeddedNames.TYPES);
-  jsAst.Expression createNewIsolateFunctionAccess =
-      emitter.generateEmbeddedGlobalAccess(embeddedNames.CREATE_NEW_ISOLATE);
-  jsAst.Expression classIdExtractorAccess =
-      emitter.generateEmbeddedGlobalAccess(embeddedNames.CLASS_ID_EXTRACTOR);
   jsAst.Expression allClassesAccess =
       emitter.generateEmbeddedGlobalAccess(embeddedNames.ALL_CLASSES);
   jsAst.Expression precompiledAccess =
@@ -63,12 +57,6 @@ jsAst.Statement buildSetupProgram(
       emitter.generateEmbeddedGlobalAccess(embeddedNames.INTERCEPTORS_BY_TAG);
   jsAst.Expression leafTagsAccess =
       emitter.generateEmbeddedGlobalAccess(embeddedNames.LEAF_TAGS);
-  jsAst.Expression initializeEmptyInstanceAccess = emitter
-      .generateEmbeddedGlobalAccess(embeddedNames.INITIALIZE_EMPTY_INSTANCE);
-  jsAst.Expression classFieldsExtractorAccess = emitter
-      .generateEmbeddedGlobalAccess(embeddedNames.CLASS_FIELDS_EXTRACTOR);
-  jsAst.Expression instanceFromClassIdAccess = emitter
-      .generateEmbeddedGlobalAccess(embeddedNames.INSTANCE_FROM_CLASS_ID);
 
   String reflectableField = namer.reflectableField;
   String reflectionInfoField = namer.reflectionInfoField;
@@ -108,21 +96,12 @@ jsAst.Statement buildSetupProgram(
     'staticsPropertyName': namer.staticsPropertyName,
     'staticsPropertyNameString': js.quoteName(namer.staticsPropertyName),
     'typeInformation': typeInformationAccess,
-    'globalFunctions': globalFunctionsAccess,
     'enabledInvokeOn': closedWorld.backendUsage.isInvokeOnUsed,
     'interceptedNames': interceptedNamesAccess,
     'interceptedNamesSet': emitter.generateInterceptedNamesSet(),
     'notInCspMode': !compiler.options.useContentSecurityPolicy,
     'inCspMode': compiler.options.useContentSecurityPolicy,
     'deferredAction': namer.deferredAction,
-    'hasIsolateSupport': program.hasIsolateSupport,
-    'fieldNamesProperty': js.string(Emitter.FIELD_NAMES_PROPERTY_NAME),
-    'createNewIsolateFunction': createNewIsolateFunctionAccess,
-    'isolateName': namer.isolateName,
-    'classIdExtractor': classIdExtractorAccess,
-    'classFieldsExtractor': classFieldsExtractorAccess,
-    'instanceFromClassId': instanceFromClassIdAccess,
-    'initializeEmptyInstance': initializeEmptyInstanceAccess,
     'allClasses': allClassesAccess,
     'debugFastObjects': DEBUG_FAST_OBJECTS,
     'isTreeShakingDisabled': backend.mirrorsData.isTreeShakingDisabled,
@@ -232,13 +211,11 @@ function $setupProgramName(programData, metadataOffset, typesOffset) {
 
       var str = "function " + name + "(";
       var body = "";
-      if (#hasIsolateSupport) { var fieldNames = ""; }
 
       for (var i = 0; i < fields.length; i++) {
         if(i != 0) str += ", ";
 
         var field = generateAccessor(fields[i], accessors, name);
-        if (#hasIsolateSupport) { fieldNames += "'" + field + "',"; }
         var parameter = "p_" + field;
         str += parameter;
         body += ("this." + field + " = " + parameter + ";\\n");
@@ -253,37 +230,9 @@ function $setupProgramName(programData, metadataOffset, typesOffset) {
       if (typeof defineClass.name != "string") {
         str += name + ".name=\\"" + name + "\\";\\n";
       }
-      if (#hasIsolateSupport) {
-        str += name + "." + #fieldNamesProperty + "=[" + fieldNames
-               + "];\\n";
-      }
       str += accessors.join("");
 
       return str;
-    }
-
-    if (#hasIsolateSupport) {
-      #createNewIsolateFunction = function() { return new #isolateName(); };
-
-      #classIdExtractor = function(o) { return o.constructor.name; };
-
-      #classFieldsExtractor = function(o) {
-        var fieldNames = o.constructor.#fieldNamesProperty;
-        if (!fieldNames) return [];  // TODO(floitsch): do something else here.
-        var result = [];
-        result.length = fieldNames.length;
-        for (var i = 0; i < fieldNames.length; i++) {
-          result[i] = o[fieldNames[i]];
-        }
-        return result;
-      };
-
-      #instanceFromClassId = function(name) { return new #allClasses[name](); };
-
-      #initializeEmptyInstance = function(name, o, fields) {
-        #allClasses[name].apply(o, fields);
-        return o;
-      }
     }
 
     // If the browser supports changing the prototype via __proto__, we make
@@ -629,7 +578,6 @@ function $setupProgramName(programData, metadataOffset, typesOffset) {
       } else if (typeof element === "function") {
         globalObject[previousProperty = property] = element;
         functions.push(property);
-        #globalFunctions[property] = element;
       } else if (element.constructor === Array) {
         if (#needsStructuredMemberInfo) {
           addStubs(globalObject, element, property, true, functions);
@@ -732,9 +680,7 @@ function $setupProgramName(programData, metadataOffset, typesOffset) {
         f = tearOff(funcs, array, isStatic, name, isIntercepted);
         prototype[name].\$getter = f;
         f.\$getterStub = true;
-        // Used to create an isolate using spawnFunction.
         if (isStatic) {
-          #globalFunctions[name] = f;
           functions.push(getterStubName);
         }
         prototype[getterStubName] = f;
@@ -795,7 +741,6 @@ function $setupProgramName(programData, metadataOffset, typesOffset) {
   if (!#mangledGlobalNames) #mangledGlobalNames = map();
   if (!#statics) #statics = map();
   if (!#typeInformation) #typeInformation = map();
-  if (!#globalFunctions) #globalFunctions = map();
   if (#enabledInvokeOn)
     if (!#interceptedNames) #interceptedNames = #interceptedNamesSet;
   var libraries = #libraries;

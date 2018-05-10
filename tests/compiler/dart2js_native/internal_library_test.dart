@@ -5,8 +5,8 @@
 // Test that a private library can be accessed from libraries in this special
 // test folder.
 
-import 'dart:_isolate_helper';
+import 'dart:_js_helper';
 
 void main() {
-  print(startRootIsolate);
+  print(loadDeferredLibrary);
 }

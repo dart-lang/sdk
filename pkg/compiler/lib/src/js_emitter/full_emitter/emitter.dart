@@ -278,11 +278,6 @@ class Emitter extends js_emitter.EmitterBase {
   jsAst.Name get makeConstListProperty =>
       namer.internalGlobal('makeConstantList');
 
-  /// The name of the property that contains all field names.
-  ///
-  /// This property is added to constructors when isolate support is enabled.
-  static const String FIELD_NAMES_PROPERTY_NAME = r"$__fields__";
-
   /// For deferred loading we communicate the initializers via this global var.
   final String deferredInitializers = r"$dart_deferred_initializers$";
 
@@ -373,13 +368,6 @@ class Emitter extends js_emitter.EmitterBase {
         String typesAccess =
             generateEmbeddedGlobalAccessString(embeddedNames.TYPES);
         return jsAst.js.expressionTemplateFor("$typesAccess[#]");
-
-      case JsBuiltin.createDartClosureFromNameOfStaticFunction:
-        // The global-functions map contains a map from name to tear-off
-        // getters.
-        String functionGettersMap =
-            generateEmbeddedGlobalAccessString(embeddedNames.GLOBAL_FUNCTIONS);
-        return jsAst.js.expressionTemplateFor("$functionGettersMap[#]()");
 
       default:
         reporter.internalError(
@@ -1115,18 +1103,7 @@ class Emitter extends js_emitter.EmitterBase {
     cspPrecompiledFunctionFor(outputUnit)
         .add(new jsAst.FunctionDeclaration(constructorName, constructorAst));
 
-    String fieldNamesProperty = FIELD_NAMES_PROPERTY_NAME;
-    bool hasIsolateSupport = _closedWorld.backendUsage.isIsolateInUse;
-    jsAst.Node fieldNamesArray;
-    if (hasIsolateSupport) {
-      fieldNamesArray =
-          new jsAst.ArrayInitializer(fields.map(js.quoteName).toList());
-    } else {
-      fieldNamesArray = new jsAst.LiteralNull();
-    }
-
-    cspPrecompiledFunctionFor(outputUnit).add(js.statement(
-        r'''
+    cspPrecompiledFunctionFor(outputUnit).add(js.statement(r'''
         {
           #constructorName.#typeNameProperty = #constructorNameString;
           // IE does not have a name property.
@@ -1134,18 +1111,11 @@ class Emitter extends js_emitter.EmitterBase {
               #constructorName.name = #constructorNameString;
           $desc = $collectedClasses$.#constructorName[1];
           #constructorName.prototype = $desc;
-          ''' /* next string is not a raw string */ '''
-          if (#hasIsolateSupport) {
-            #constructorName.$fieldNamesProperty = #fieldNamesArray;
-          }
-        }''',
-        {
-          "constructorName": constructorName,
-          "typeNameProperty": typeNameProperty,
-          "constructorNameString": js.quoteName(constructorName),
-          "hasIsolateSupport": hasIsolateSupport,
-          "fieldNamesArray": fieldNamesArray
-        }));
+        }''', {
+      "constructorName": constructorName,
+      "typeNameProperty": typeNameProperty,
+      "constructorNameString": js.quoteName(constructorName),
+    }));
 
     cspPrecompiledConstructorNamesFor(outputUnit).add(js('#', constructorName));
   }

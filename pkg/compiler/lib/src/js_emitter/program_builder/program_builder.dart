@@ -277,7 +277,6 @@ class ProgramBuilder {
         _buildTypeToInterceptorMap(), _task.metadataCollector, finalizers,
         needsNativeSupport: needsNativeSupport,
         outputContainsConstantList: collector.outputContainsConstantList,
-        hasIsolateSupport: _backendUsage.isIsolateInUse,
         hasSoftDeferredClasses: _notSoftDeferred != null);
   }
 
@@ -391,10 +390,8 @@ class ProgramBuilder {
 
   js.Statement _buildInvokeMain() {
     if (_isMockCompilation) return js.js.comment("Mock compilation");
-
-    MainCallStubGenerator generator = new MainCallStubGenerator(
-        _commonElements, _task.emitter, _backendUsage);
-    return generator.generateInvokeMain(_mainFunction);
+    return MainCallStubGenerator.generateInvokeMain(
+        _task.emitter, _mainFunction);
   }
 
   DeferredFragment _buildDeferredFragment(LibrariesMap librariesMap) {

@@ -637,7 +637,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         dumpInfoDuration: new Duration(milliseconds: this.timing),
         noSuchMethodEnabled: closedWorld.backendUsage.isNoSuchMethodUsed,
         isRuntimeTypeUsed: closedWorld.backendUsage.isRuntimeTypeUsed,
-        isIsolateInUse: closedWorld.backendUsage.isIsolateInUse,
+        isIsolateInUse: false,
         isFunctionApplyUsed: closedWorld.backendUsage.isFunctionApplyUsed,
         isMirrorsUsed: closedWorld.backendUsage.isMirrorsUsed,
         minified: compiler.options.enableMinification);

@@ -138,43 +138,6 @@ const TYPE_TO_INTERCEPTOR_MAP = "typeToInterceptorMap";
 /// This embedded global is set at startup, just before invoking `main`.
 const CURRENT_SCRIPT = 'currentScript';
 
-/// Returns a function that creates a new Isolate (its static state).
-///
-/// (floitsch): Note that this embedded global will probably go away, since one
-/// JS heap will only contain one Dart isolate.
-const CREATE_NEW_ISOLATE = 'createNewIsolate';
-
-/// Returns a class-id of the given instance.
-///
-/// The extracted id can be used to built a new instance of the same type
-/// (see [INSTANCE_FROM_CLASS_ID].
-///
-/// This embedded global is used for serialization in the isolate-library.
-const CLASS_ID_EXTRACTOR = 'classIdExtractor';
-
-/// Returns an empty instance of the given class-id.
-///
-/// Given a class-id (see [CLASS_ID_EXTRACTOR]) returns an empty instance.
-///
-/// This embedded global is used for deserialization in the isolate-library.
-const INSTANCE_FROM_CLASS_ID = "instanceFromClassId";
-
-/// Returns a list of (mangled) field names for the given instance.
-///
-/// The list of fields can be used to extract the instance's values and then
-/// initialize an empty instance (see [INITIALIZE_EMPTY_INSTANCE].
-///
-/// This embedded global is used for serialization in the isolate-library.
-const CLASS_FIELDS_EXTRACTOR = 'classFieldsExtractor';
-
-/// Initializes the given empty instance with the given fields.
-///
-/// The given fields are in an array and must be in the same order as the
-/// field-names obtained by [CLASS_FIELDS_EXTRACTOR].
-///
-/// This embedded global is used for deserialization in the isolate-library.
-const INITIALIZE_EMPTY_INSTANCE = "initializeEmptyInstance";
-
 /// Contains a map from load-ids to lists of part indexes.
 ///
 /// To load the deferred library that is represented by the load-id, the runtime
@@ -249,29 +212,6 @@ const PRECOMPILED = 'precompiled';
 
 /// An emitter-internal embedded global. This global is not used by the runtime.
 const FINISHED_CLASSES = 'finishedClasses';
-
-/// An emitter-internal embedded global. This global is not used by the runtime.
-///
-/// The constant remains in this file to make sure that other embedded globals
-/// don't clash with it.
-///
-/// It can be used by the compiler to store a mapping from static function names
-/// to dart-closure getters (which can be useful for
-/// [JsBuiltin.createDartClosureFromNameOfStaticFunction].
-const GLOBAL_FUNCTIONS = 'globalFunctions';
-
-/// An emitter-internal embedded global. This global is not used by the runtime.
-///
-/// The constant remains in this file to make sure that other embedded globals
-/// don't clash with it.
-///
-/// This embedded global stores a function that returns a dart-closure getter
-/// for a given static function name.
-///
-/// This embedded global is used to implement
-/// [JsBuiltin.createDartClosureFromNameOfStaticFunction], and is only
-/// used with isolates.
-const STATIC_FUNCTION_NAME_TO_CLOSURE = 'staticFunctionNameToClosure';
 
 /// A JavaScript object literal that maps the (minified) JavaScript constructor
 /// name (as given by [JsBuiltin.rawRtiToJsConstructorName] to the
@@ -475,16 +415,4 @@ enum JsBuiltin {
   ///     JS_BUILTIN('returns:var;effects:none;depends:none',
   ///                JsBuiltin.getType, index);
   getType,
-
-  /// Returns a Dart closure for the global function with the given [name].
-  ///
-  /// The [name] is the globally unique (minified) JavaScript name of the
-  /// function (same as the one stored in [STATIC_FUNCTION_NAME_PROPERTY_NAME])
-  ///
-  /// This builtin is used when a static closure was sent to a different
-  /// isolate.
-  ///
-  ///     JS_BUILTIN('returns:Function',
-  ///                JsBuiltin.createDartClosureFromNameOfStaticFunction, name);
-  createDartClosureFromNameOfStaticFunction,
 }

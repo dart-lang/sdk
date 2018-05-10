@@ -687,8 +687,8 @@ abstract class DeferredLoadTask extends CompilerTask {
 
       // Also add "global" dependencies to the main output unit.  These are
       // things that the backend needs but cannot associate with a particular
-      // element, for example, startRootIsolate.  This set also contains
-      // elements for which we lack precise information.
+      // element. This set also contains elements for which we lack precise
+      // information.
       for (MemberEntity element
           in closedWorld.backendUsage.globalFunctionDependencies) {
         element = element is MethodElement ? element.implementation : element;

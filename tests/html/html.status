@@ -42,10 +42,12 @@ indexeddb_3_test: Pass, Timeout # Roll 50 failure
 indexeddb_4_test: Pass, Timeout # Roll 50 failure
 indexeddb_5_test: Pass, Timeout # Roll 50 failure
 input_element_test/attributes: Fail # Issue 21555
+isolates_test: SkipByDesign
 js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue #25759
 js_typed_interop_side_cast_exp_test: Pass, RuntimeError # Roll 50 failure
 mirrors_js_typed_interop_test: Pass, Slow
 svgelement_test/PathElement: Pass, RuntimeError # Roll 50 failure
+worker_api_test: SkipByDesign
 wrapping_collections_test: SkipByDesign # Testing an issue that is only relevant to Dartium
 xhr_test/xhr: Pass, RuntimeError # Roll 50 failure
 
@@ -152,7 +154,6 @@ shadow_dom_test/supported: Fail # Safari Feature support statuses - All changes 
 speechrecognition_test/supported: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
 touchevent_test/supported: Fail # Safari does not support TouchEvents
 webgl_1_test: Pass, Fail # Issue 8219
-worker_api_test: Skip # Issue 13221
 
 # The html tests were moved to lib_2/html, and there they should be made strong
 # mode compliant. There's no sense in running the old versions here.

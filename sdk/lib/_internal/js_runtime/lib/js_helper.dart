@@ -24,28 +24,16 @@ import 'dart:_js_embedded_names'
 
 import 'dart:collection';
 
-import 'dart:_isolate_helper'
-    show IsolateNatives, enterJsAsync, isWorker, leaveJsAsync;
+import 'dart:_isolate_helper' show thisScript, isWorker;
 
-import 'dart:async'
-    show
-        Completer,
-        DeferredLoadException,
-        Future,
-        StreamController,
-        Stream,
-        StreamSubscription,
-        scheduleMicrotask,
-        Zone;
+import 'dart:async' show Completer, DeferredLoadException, Future;
 
 import 'dart:_foreign_helper'
     show
         DART_CLOSURE_TO_JS,
         JS,
         JS_BUILTIN,
-        JS_CALL_IN_ISOLATE,
         JS_CONST,
-        JS_CURRENT_ISOLATE_CONTEXT,
         JS_EFFECT,
         JS_EMBEDDED_GLOBAL,
         JS_GET_FLAG,
@@ -62,11 +50,7 @@ import 'dart:_internal'
 import 'dart:_native_typed_data';
 
 import 'dart:_js_names'
-    show
-        extractKeys,
-        mangledNames,
-        unmangleGlobalNameIfPreservedAnyways,
-        unmangleAllIdentifiersIfPreservedAnyways;
+    show extractKeys, mangledNames, unmangleAllIdentifiersIfPreservedAnyways;
 
 part 'annotations.dart';
 part 'constant_map.dart';
@@ -224,16 +208,6 @@ getMetadata(int index) {
 getType(int index) {
   return JS_BUILTIN(
       'returns:var;effects:none;depends:none', JsBuiltin.getType, index);
-}
-
-/// Returns a Dart closure for the global function with the given [name].
-///
-/// The [name] is the globally unique (minified) JavaScript name of the
-/// function. The name must be in correspondence with the propertyName that is
-/// used when creating a tear-off (see [fromTearOff]).
-Function createDartClosureFromNameOfStaticFunction(String name) {
-  return JS_BUILTIN('returns:Function',
-      JsBuiltin.createDartClosureFromNameOfStaticFunction, name);
 }
 
 /// No-op method that is called to inform the compiler that preambles might
@@ -2471,19 +2445,19 @@ fillLiteralMap(keyValuePairs, Map result) {
   return result;
 }
 
-invokeClosure(Function closure, var isolate, int numberOfArguments, var arg1,
-    var arg2, var arg3, var arg4) {
+invokeClosure(Function closure, int numberOfArguments, var arg1, var arg2,
+    var arg3, var arg4) {
   switch (numberOfArguments) {
     case 0:
-      return JS_CALL_IN_ISOLATE(isolate, () => closure());
+      return closure();
     case 1:
-      return JS_CALL_IN_ISOLATE(isolate, () => closure(arg1));
+      return closure(arg1);
     case 2:
-      return JS_CALL_IN_ISOLATE(isolate, () => closure(arg1, arg2));
+      return closure(arg1, arg2);
     case 3:
-      return JS_CALL_IN_ISOLATE(isolate, () => closure(arg1, arg2, arg3));
+      return closure(arg1, arg2, arg3);
     case 4:
-      return JS_CALL_IN_ISOLATE(isolate, () => closure(arg1, arg2, arg3, arg4));
+      return closure(arg1, arg2, arg3, arg4);
   }
   throw new Exception('Unsupported number of arguments for wrapped closure');
 }
@@ -2500,14 +2474,13 @@ convertDartClosureToJS(closure, int arity) {
   function = JS(
       'var',
       r'''
-        (function(closure, arity, context, invoke) {
+        (function(closure, arity, invoke) {
           return function(a1, a2, a3, a4) {
-            return invoke(closure, context, arity, a1, a2, a3, a4);
+            return invoke(closure, arity, a1, a2, a3, a4);
           };
-        })(#,#,#,#)''',
+        })(#,#,#)''',
       closure,
       arity,
-      JS_CURRENT_ISOLATE_CONTEXT(),
       DART_CLOSURE_TO_JS(invokeClosure));
 
   JS('void', r'#.$identity = #', closure, function);
@@ -2547,9 +2520,6 @@ abstract class Closure implements Function {
    * method.
    *
    * In other words, creates a tear-off closure.
-   *
-   * The [propertyName] argument is used by
-   * [JsBuiltin.createDartClosureFromNameOfStaticFunction].
    *
    * Called from [closureFromTearOff] as well as from reflection when tearing
    * of a method via `getField`.
@@ -3826,7 +3796,7 @@ Future<Null> _loadHunk(String hunkName) {
     return future.then((_) => null);
   }
 
-  String uri = IsolateNatives.thisScript;
+  String uri = thisScript;
 
   int index = uri.lastIndexOf('/');
   uri = '${uri.substring(0, index + 1)}$hunkName';
@@ -3865,11 +3835,6 @@ Future<Null> _loadHunk(String hunkName) {
     }
   } else if (isWorker()) {
     // We are in a web worker. Load the code with an XMLHttpRequest.
-    enterJsAsync();
-    Future<Null> leavingFuture = completer.future.whenComplete(() {
-      leaveJsAsync();
-    });
-
     int index = uri.lastIndexOf('/');
     uri = '${uri.substring(0, index + 1)}$hunkName';
     var xhr = JS('var', 'new XMLHttpRequest()');

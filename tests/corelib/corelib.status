@@ -93,6 +93,9 @@ http_resource_test: Skip, OK # VM specific test, uses dart:io.
 list_as_map_test: Pass, Slow # TODO(kasperl): Please triage.
 string_trimlr_test/unicode63: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
+[ $compiler == dart2js && $runtime != d8 ]
+main_test: RuntimeError
+
 [ $compiler == dart2js && $runtime == drt ]
 string_trimlr_test/unicode63: RuntimeError # Uses Unicode 6.2.0 or earlier.
 

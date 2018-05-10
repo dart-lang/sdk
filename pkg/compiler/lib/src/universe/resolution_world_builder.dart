@@ -378,7 +378,6 @@ abstract class ResolutionWorldBuilderBase extends WorldBuilderBase
   final ClassQueries classQueries;
 
   bool hasRuntimeTypeSupport = false;
-  bool hasIsolateSupport = false;
   bool hasFunctionApplySupport = false;
 
   bool _closed = false;

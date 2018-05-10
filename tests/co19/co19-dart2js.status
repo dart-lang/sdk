@@ -40,6 +40,7 @@ Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/cla
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t07: MissingCompileTimeError # Issue 24332
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t08: MissingCompileTimeError # Issue 24332
 Language/Expressions/Shift/syntax_t01/14: MissingRuntimeError # Please triage this failure
+Language/Expressions/Spawning_an_Isolate/new_isolate_t01: SkipByDesign
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: CompileTimeError # Please triage this failure
 Language/Metadata/before_export_t01: RuntimeError # Please triage this failure
 Language/Metadata/before_import_t01: RuntimeError # Please triage this failure
@@ -179,18 +180,7 @@ LibTest/html/HttpRequest/responseType_A01_t03: CompileTimeError # co19-roll r706
 LibTest/html/IFrameElement/addEventListener_A01_t04: Skip # https://github.com/dart-lang/sdk/issues/28873
 LibTest/html/IFrameElement/enteredView_A01_t01: CompileTimeError # co19-roll r706: Please triage this failure
 LibTest/html/Window/postMessage_A01_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
-LibTest/isolate/Isolate/spawnUri_A01_t01: Fail # Dart issue 15974
-LibTest/isolate/Isolate/spawnUri_A01_t02: Fail # Dart issue 15974
-LibTest/isolate/Isolate/spawnUri_A01_t03: Fail # Dart issue 15974
-LibTest/isolate/Isolate/spawnUri_A01_t04: Fail # Dart issue 15974
-LibTest/isolate/Isolate/spawnUri_A01_t05: Fail # Dart issue 15974
-LibTest/isolate/Isolate/spawnUri_A01_t06: RuntimeError # Dart issue 15974
-LibTest/isolate/Isolate/spawnUri_A01_t07: RuntimeError # Dart issue 15974
-LibTest/isolate/Isolate/spawnUri_A02_t01: RuntimeError, Pass # Dart issue 15617
-LibTest/isolate/Isolate/spawn_A02_t02: RuntimeError, Pass # Dart issue 15617
-LibTest/isolate/Isolate/spawn_A04_t01: SkipByDesign
-LibTest/isolate/Isolate/spawn_A04_t02: SkipByDesign
-LibTest/isolate/Isolate/spawn_A06_t06: Skip # Times out. Please triage this failure.
+LibTest/isolate/*: SkipByDesign # dart:isolate not supported.
 LibTest/math/MutableRectangle/boundingBox_A01_t01: RuntimeError, Pass # co19-roll r706: Please triage this failure.
 LibTest/math/Rectangle/boundingBox_A01_t01: RuntimeError, Pass # co19-roll r706: Please triage this failure.
 LibTest/math/pow_A04_t01: Fail # co19-roll r587: Please triage this failure
@@ -1282,7 +1272,6 @@ LayoutTests/fast/text/glyph-reordering_t01: RuntimeError # Please triage this fa
 LayoutTests/fast/text/line-break-after-question-mark_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/text-combine-shrink-to-fit_t01: RuntimeError # Please triage this failure
 LibTest/async/Timer/Timer.periodic_A01_t01: Skip # Times out. Please triage this failure
-LibTest/isolate/Isolate/spawn_A01_t05: Skip # Times out. Please triage this failure
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-002_t01: Skip # Times out. Please triage this failure
 
 [ $compiler == dart2js && $runtime == chrome && $system != macos ]
@@ -1467,13 +1456,6 @@ LibTest/core/int/operator_truncating_division_A01_t02: Fail # Please triage this
 LibTest/core/int/remainder_A01_t01: Fail # Please triage this failure.
 LibTest/core/int/remainder_A01_t03: Fail # Please triage this failure.
 LibTest/core/int/toRadixString_A01_t01: Fail # Please triage this failure.
-LibTest/isolate/Isolate/spawnUri_A01_t01: Skip # Please triage this failure.
-LibTest/isolate/Isolate/spawnUri_A01_t02: Skip # Please triage this failure.
-LibTest/isolate/Isolate/spawnUri_A01_t03: Skip # Please triage this failure.
-LibTest/isolate/Isolate/spawnUri_A02_t01: RuntimeError # Please triage this failure.
-LibTest/isolate/Isolate/spawnUri_A02_t02: Skip # Please triage this failure.
-LibTest/isolate/Isolate/spawnUri_A02_t03: Skip # Please triage this failure.
-LibTest/isolate/Isolate/spawnUri_A02_t04: Skip # Please triage this failure.
 LibTest/math/log_A01_t01: Fail # Please triage this failure.
 LibTest/typed_data/Float32x4List/Float32x4List.view_A01_t02: RuntimeError # Please triage this failure.
 LibTest/typed_data/Float32x4List/Float32x4List.view_A06_t01: RuntimeError # Please triage this failure.
@@ -1484,8 +1466,6 @@ LibTest/typed_data/Int8List/sublist_A02_t01: Pass, Slow # Please triage this fai
 LibTest/typed_data/Uint8ClampedList/map_A02_t01: Pass, Slow # Please triage this failure.
 
 [ $compiler == dart2js && $runtime == d8 ]
-LibTest/isolate/Isolate/spawn_A03_t01: Pass # co19 issue 77
-LibTest/isolate/Isolate/spawn_A04_t02: RuntimeError # Please triage this failure.
 LibTest/typed_data/Float32x4List/Float32x4List.view_A06_t01: Fail # co19-roll r587: Please triage this failure
 LibTest/typed_data/Int32x4/operator_OR_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
 
@@ -1493,9 +1473,6 @@ LibTest/typed_data/Int32x4/operator_OR_A01_t01: RuntimeError # Issue 7728, timer
 Language/Classes/Constructors/Factories/function_type_t02: RuntimeError
 Language/Expressions/Instance_Creation/New/redirecting_factory_constructor_t02: RuntimeError
 Language/Generics/malformed_t02: Crash
-
-[ $compiler == dart2js && $runtime == d8 && $fast_startup ]
-LibTest/isolate/Isolate/spawn_A04_t04: Pass # Technically fails, but since sync-async was turned on, this test completes before it fails. Underlying issue: #27558
 
 [ $compiler == dart2js && $runtime == d8 && $fasta ]
 LayoutTests/*: SkipByDesign
@@ -5593,22 +5570,6 @@ LibTest/core/Stopwatch/start_A01_t02: RuntimeError # Please triage this failure
 LibTest/core/Stopwatch/start_A01_t03: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/core/Stopwatch/stop_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/core/Uri/Uri_A06_t03: Pass, Slow
-LibTest/isolate/Isolate/spawn_A03_t01: RuntimeError # Please triage this failure
-LibTest/isolate/Isolate/spawn_A03_t03: RuntimeError # Please triage this failure
-LibTest/isolate/Isolate/spawn_A03_t04: RuntimeError # Please triage this failure
-LibTest/isolate/Isolate/spawn_A04_t02: RuntimeError # Please triage this failure
-LibTest/isolate/Isolate/spawn_A04_t03: Fail # Please triage this failure
-LibTest/isolate/Isolate/spawn_A04_t04: Fail # Issue 27558
-LibTest/isolate/Isolate/spawn_A04_t05: Fail # Please triage this failure
-LibTest/isolate/Isolate/spawn_A06_t02: Fail # Please triage this failure
-LibTest/isolate/Isolate/spawn_A06_t03: Fail # Please triage this failure
-LibTest/isolate/Isolate/spawn_A06_t04: RuntimeError # Please triage this failure
-LibTest/isolate/Isolate/spawn_A06_t05: RuntimeError # Please triage this failure
-LibTest/isolate/Isolate/spawn_A06_t07: Fail # Please triage this failure
-LibTest/isolate/RawReceivePort/close_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
-LibTest/isolate/ReceivePort/asBroadcastStream_A03_t01: RuntimeError # Issue 7728, timer not supported in jsshell
-LibTest/isolate/ReceivePort/asBroadcastStream_A04_t03: RuntimeError # Issue 7728, timer not supported in jsshell
-LibTest/isolate/ReceivePort/close_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/typed_data/Float32List/toList_A01_t01: Skip # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float32x4List/Float32x4List.view_A06_t01: Fail # co19-roll r587: Please triage this failure
 LibTest/typed_data/Float64List/toList_A01_t01: Skip # co19-roll r559: Please triage this failure
@@ -5625,9 +5586,6 @@ LibTest/typed_data/Uint8List/toList_A01_t01: Skip # co19-roll r559: Please triag
 LibTest/core/Map/Map_class_A01_t04: Skip # Issue 18093, timeout.
 LibTest/core/Uri/Uri_A06_t03: Skip # Issue 18093, timeout.
 LibTest/core/Uri/encodeQueryComponent_A01_t02: Skip # Issue 18093, timeout.
-
-[ $compiler == dart2js && $runtime == jsshell && $fast_startup ]
-LibTest/isolate/ReceivePort/asBroadcastStream_A03_t01: Fail # please triage
 
 [ $compiler == dart2js && $runtime == safari ]
 LayoutTests/fast/alignment/parse-align-items_t01: RuntimeError # Please triage this failure
@@ -7108,7 +7066,6 @@ LibTest/html/Window/postMessage_A01_t02: Crash
 LibTest/html/Window/requestFileSystem_A01_t01: Crash
 LibTest/html/Window/requestFileSystem_A01_t02: Crash
 LibTest/html/Window/requestFileSystem_A02_t01: Crash
-LibTest/isolate/SendPort/send_A01_t03: RuntimeError
 WebPlatformTest/html/semantics/embedded-content/the-audio-element/audio_constructor_t01: RuntimeError
 
 [ $compiler == dart2js && $fasta && $host_checked ]
@@ -7261,9 +7218,6 @@ Language/Types/Type_Void/syntax_t02: CompileTimeError # Please triage this failu
 Language/Variables/final_t01/01: CompileTimeError # co19 issue 77
 Language/Variables/final_t02/01: CompileTimeError # co19 issue 77
 Language/Variables/local_variable_t01: MissingCompileTimeError # Issue 21050
-LibTest/isolate/SendPort/send_A01_t01: CompileTimeError # co19-roll r706: Please triage this failure
-LibTest/isolate/SendPort/send_A01_t02: CompileTimeError # co19-roll r706: Please triage this failure
-LibTest/isolate/SendPort/send_A01_t03: CompileTimeError # co19-roll r706: Please triage this failure
 
 [ $compiler == dart2js && $jscl ]
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: RuntimeError, OK # This is not rejected by V8. Issue 22200

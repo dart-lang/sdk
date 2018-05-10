@@ -14,6 +14,7 @@ full_stacktrace1_test: Pass, RuntimeError # Issue 12698
 full_stacktrace2_test: Pass, RuntimeError # Issue 12698
 full_stacktrace3_test: Pass, RuntimeError # Issue 12698
 library_env_test/has_no_html_support: RuntimeError, OK
+main_test/03: MissingRuntimeError # dart:isolate not supported
 vm/*: Skip # Issue 12699
 
 [ $arch == ia32 && $compiler == dart2js && $runtime == d8 ]
@@ -132,9 +133,9 @@ const_constructor3_test/04: MissingCompileTimeError
 const_init2_test/02: MissingCompileTimeError
 deferred_constraints_constants_test/none: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred_constraints_constants_test/reference_after_load: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
+deferred_constraints_type_annotation_test/type_annotation1: Fail # Missing dynamic type error
 deferred_constraints_type_annotation_test/type_annotation_generic1: Fail # Missing dynamic type error
 deferred_constraints_type_annotation_test/type_annotation_generic4: Fail # Missing dynamic type error
-deferred_constraints_type_annotation_test/type_annotation1: Fail # Missing dynamic type error
 factory_redirection_test/08: Fail
 factory_redirection_test/09: Fail
 factory_redirection_test/10: Fail

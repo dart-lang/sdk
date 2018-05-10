@@ -120,9 +120,6 @@ const List<LineException> afterExceptions = const [
   const LineException('_AsyncRun._scheduleImmediateJsOverride.internalCallback',
       'async_patch.dart'),
   const LineException('invokeClosure.<anonymous function>', 'js_helper.dart'),
-  const LineException('_IsolateContext.eval', 'isolate_helper.dart'),
-  const LineException('_callInIsolate', 'isolate_helper.dart'),
-  const LineException('startRootIsolate', 'isolate_helper.dart'),
   const LineException('invokeClosure', 'js_helper.dart'),
   const LineException('convertDartClosureToJS', 'js_helper.dart'),
 ];

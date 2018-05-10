@@ -725,24 +725,6 @@ class BackendImpacts {
         dynamicUses: [Selectors.noSuchMethod_]);
   }
 
-  BackendImpact _isolateSupport;
-
-  /// Backend impact for isolate support.
-  BackendImpact get isolateSupport {
-    return _isolateSupport ??=
-        new BackendImpact(globalUses: [_commonElements.startRootIsolate]);
-  }
-
-  BackendImpact _isolateSupportForResolution;
-
-  /// Additional backend impact for isolate support in resolution.
-  BackendImpact get isolateSupportForResolution {
-    return _isolateSupportForResolution ??= new BackendImpact(globalUses: [
-      _commonElements.currentIsolate,
-      _commonElements.callInIsolate
-    ]);
-  }
-
   BackendImpact _loadLibrary;
 
   /// Backend impact for accessing a `loadLibrary` function on a deferred

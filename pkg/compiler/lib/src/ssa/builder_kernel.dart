@@ -3410,9 +3410,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
     if (name == 'JS') {
       handleForeignJs(invocation);
     } else if (name == 'JS_CURRENT_ISOLATE_CONTEXT') {
+      // TODO(sigmund): delete. The only reference left to this foreign function
+      // is from the deprecated dart:mirrors code.
       handleForeignJsCurrentIsolateContext(invocation);
-    } else if (name == 'JS_CALL_IN_ISOLATE') {
-      handleForeignJsCallInIsolate(invocation);
     } else if (name == 'DART_CLOSURE_TO_JS') {
       handleForeignDartClosureToJs(invocation, 'DART_CLOSURE_TO_JS');
     } else if (name == 'RAW_DART_FUNCTION_REF') {
@@ -3525,57 +3525,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
       return;
     }
 
-    if (!backendUsage.isIsolateInUse) {
-      // If the isolate library is not used, we just generate code
-      // to fetch the static state.
-      String name = namer.staticStateHolder;
-      push(new HForeignCode(
-          js.js.parseForeignJS(name), commonMasks.dynamicType, <HInstruction>[],
-          nativeBehavior: native.NativeBehavior.DEPENDS_OTHER));
-    } else {
-      // Call a helper method from the isolate library. The isolate library uses
-      // its own isolate structure that encapsulates the isolate structure used
-      // for binding to methods.
-      FunctionEntity target = _commonElements.currentIsolate;
-      if (target == null) {
-        reporter.internalError(
-            _elementMap.getSpannable(targetElement, invocation),
-            'Isolate library and compiler mismatch.');
-      }
-      _pushStaticInvocation(target, <HInstruction>[], commonMasks.dynamicType,
-          const <DartType>[]);
-    }
-  }
-
-  void handleForeignJsCallInIsolate(ir.StaticInvocation invocation) {
-    if (_unexpectedForeignArguments(invocation,
-        minPositional: 2, maxPositional: 2)) {
-      // Result expected on stack.
-      stack.add(graph.addConstantNull(closedWorld));
-      return;
-    }
-
-    List<HInstruction> inputs = _visitPositionalArguments(invocation.arguments);
-
-    if (!backendUsage.isIsolateInUse) {
-      // If the isolate library is not used, we ignore the isolate argument and
-      // just invoke the closure.
-      push(new HInvokeClosure(
-          new Selector.callClosure(0),
-          <HInstruction>[inputs[1]],
-          commonMasks.dynamicType,
-          const <DartType>[]));
-    } else {
-      // Call a helper method from the isolate library.
-      FunctionEntity callInIsolate = _commonElements.callInIsolate;
-      if (callInIsolate == null) {
-        reporter.internalError(
-            _elementMap.getSpannable(targetElement, invocation),
-            'Isolate library and compiler mismatch.');
-      }
-      _pushStaticInvocation(
-          callInIsolate, inputs, commonMasks.dynamicType, const <DartType>[]);
-    }
+    // Isolates cannot be spawned, so we just generate code to fetch the static
+    // state.
+    String name = namer.staticStateHolder;
+    push(new HForeignCode(
+        js.js.parseForeignJS(name), commonMasks.dynamicType, <HInstruction>[],
+        nativeBehavior: native.NativeBehavior.DEPENDS_OTHER));
   }
 
   void handleForeignDartClosureToJs(

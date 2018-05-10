@@ -4,7 +4,7 @@
 
 library js_backend.backend.resolution_listener;
 
-import '../common/names.dart' show Identifiers, Uris;
+import '../common/names.dart' show Identifiers;
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../constants/values.dart';
 import '../deferred_load.dart';
@@ -117,30 +117,6 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     }
   }
 
-  /// Called to enable support for isolates. Any backend specific [WorldImpact]
-  /// of this is returned.
-  WorldImpact _enableIsolateSupport(FunctionEntity mainMethod) {
-    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
-    // TODO(floitsch): We should also ensure that the class IsolateMessage is
-    // instantiated. Currently, just enabling isolate support works.
-    if (mainMethod != null) {
-      // The JavaScript backend implements [Isolate.spawn] by looking up
-      // top-level functions by name. So all top-level function tear-off
-      // closures have a private name field.
-      //
-      // The JavaScript backend of [Isolate.spawnUri] uses the same internal
-      // implementation as [Isolate.spawn], and fails if it cannot look main up
-      // by name.
-      impactBuilder.registerStaticUse(new StaticUse.staticTearOff(mainMethod));
-    }
-    _impacts.isolateSupport.registerImpact(impactBuilder, _elementEnvironment);
-    _backendUsage.processBackendImpact(_impacts.isolateSupport);
-    _impacts.isolateSupportForResolution
-        .registerImpact(impactBuilder, _elementEnvironment);
-    _backendUsage.processBackendImpact(_impacts.isolateSupportForResolution);
-    return impactBuilder;
-  }
-
   /// Computes the [WorldImpact] of calling [mainMethod] as the entry point.
   WorldImpact _computeMainImpact(FunctionEntity mainMethod) {
     WorldImpactBuilderImpl mainImpact = new WorldImpactBuilderImpl();
@@ -151,11 +127,6 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       _backendUsage.processBackendImpact(_impacts.mainWithArguments);
       mainImpact.registerStaticUse(
           new StaticUse.staticInvoke(mainMethod, callStructure));
-      // If the main method takes arguments, this compilation could be the
-      // target of Isolate.spawnUri. Strictly speaking, that can happen also if
-      // main takes no arguments, but in this case the spawned isolate can't
-      // communicate with the spawning isolate.
-      mainImpact.addImpact(_enableIsolateSupport(mainMethod));
     }
     mainImpact.registerStaticUse(
         new StaticUse.staticInvoke(mainMethod, CallStructure.NO_ARGS));
@@ -311,17 +282,6 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       }
     }
 
-    // Enable isolate support if we start using something from the isolate
-    // library.  We exclude constant fields, which are ending here because their
-    // initializing expression is compiled.
-    if (!_backendUsage.isIsolateInUse &&
-        !(member.isField && member.isConst) &&
-        member.library.canonicalUri == Uris.dart_isolate) {
-      _backendUsage.isIsolateInUse = true;
-      worldImpact
-          .addImpact(_enableIsolateSupport(_elementEnvironment.mainFunction));
-    }
-
     if (member.isGetter && member.name == Identifiers.runtimeType_) {
       // Enable runtime type support if we discover a getter called
       // runtimeType. We have to enable runtime type before hitting the
@@ -425,10 +385,6 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       _interceptorData.addInterceptorsForNativeClassMembers(cls);
     } else if (cls == _commonElements.jsIndexingBehaviorInterface) {
       _registerBackendImpact(impactBuilder, _impacts.jsIndexingBehavior);
-    } else if (cls.library.canonicalUri == Uris.dart_isolate) {
-      _backendUsage.isIsolateInUse = true;
-      impactBuilder
-          .addImpact(_enableIsolateSupport(_elementEnvironment.mainFunction));
     }
 
     _customElementsAnalysis.registerInstantiatedClass(cls);

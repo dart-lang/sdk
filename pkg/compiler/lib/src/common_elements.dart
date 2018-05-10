@@ -1210,17 +1210,6 @@ class CommonElements {
       _env.lookupLibrary(Uris.dart__js_embedded_names, required: true),
       'JsBuiltin');
 
-  // From dart:_isolate_helper
-
-  FunctionEntity get startRootIsolate =>
-      _findLibraryMember(isolateHelperLibrary, 'startRootIsolate');
-
-  FunctionEntity get currentIsolate =>
-      _findLibraryMember(isolateHelperLibrary, '_currentIsolate');
-
-  FunctionEntity get callInIsolate =>
-      _findLibraryMember(isolateHelperLibrary, '_callInIsolate');
-
   static final Uri PACKAGE_EXPECT =
       new Uri(scheme: 'package', path: 'expect/expect.dart');
 

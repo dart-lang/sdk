@@ -36,9 +36,6 @@ abstract class BackendUsage {
   /// `true` of `Object.runtimeType` is used.
   bool get isRuntimeTypeUsed;
 
-  /// `true` if the `dart:isolate` library is in use.
-  bool get isIsolateInUse;
-
   /// `true` if `Function.apply` is used.
   bool get isFunctionApplyUsed;
 
@@ -81,9 +78,6 @@ abstract class BackendUsageBuilder {
   /// `true` of `Object.runtimeType` is used.
   bool isRuntimeTypeUsed;
 
-  /// `true` if the `dart:isolate` library is in use.
-  bool isIsolateInUse;
-
   /// `true` if `Function.apply` is used.
   bool isFunctionApplyUsed;
 
@@ -119,9 +113,6 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
 
   /// `true` of `Object.runtimeType` is used.
   bool isRuntimeTypeUsed = false;
-
-  /// `true` if the `dart:isolate` library is in use.
-  bool isIsolateInUse = false;
 
   /// `true` if `Function.apply` is used.
   bool isFunctionApplyUsed = false;
@@ -289,7 +280,6 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
         requiresPreamble: requiresPreamble,
         isInvokeOnUsed: isInvokeOnUsed,
         isRuntimeTypeUsed: isRuntimeTypeUsed,
-        isIsolateInUse: isIsolateInUse,
         isFunctionApplyUsed: isFunctionApplyUsed,
         isMirrorsUsed: isMirrorsUsed,
         isNoSuchMethodUsed: isNoSuchMethodUsed,
@@ -320,9 +310,6 @@ class BackendUsageImpl implements BackendUsage {
   /// `true` of `Object.runtimeType` is used.
   final bool isRuntimeTypeUsed;
 
-  /// `true` if the `dart:isolate` library is in use.
-  final bool isIsolateInUse;
-
   /// `true` if `Function.apply` is used.
   final bool isFunctionApplyUsed;
 
@@ -345,7 +332,6 @@ class BackendUsageImpl implements BackendUsage {
       this.requiresPreamble,
       this.isInvokeOnUsed,
       this.isRuntimeTypeUsed,
-      this.isIsolateInUse,
       this.isFunctionApplyUsed,
       this.isMirrorsUsed,
       this.isNoSuchMethodUsed,

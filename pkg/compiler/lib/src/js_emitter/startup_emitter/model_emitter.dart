@@ -9,17 +9,12 @@ import 'dart:math' show Random;
 
 import 'package:js_runtime/shared/embedded_names.dart'
     show
-        CLASS_FIELDS_EXTRACTOR,
-        CLASS_ID_EXTRACTOR,
-        CREATE_NEW_ISOLATE,
         DEFERRED_INITIALIZED,
         DEFERRED_LIBRARY_PARTS,
         DEFERRED_PART_URIS,
         DEFERRED_PART_HASHES,
         GET_TYPE_FROM_NAME,
-        INITIALIZE_EMPTY_INSTANCE,
         INITIALIZE_LOADED_HUNK,
-        INSTANCE_FROM_CLASS_ID,
         INTERCEPTORS_BY_TAG,
         IS_HUNK_INITIALIZED,
         IS_HUNK_LOADED,
@@ -28,7 +23,6 @@ import 'package:js_runtime/shared/embedded_names.dart'
         MANGLED_NAMES,
         METADATA,
         NATIVE_SUPERCLASS_TAG_NAME,
-        STATIC_FUNCTION_NAME_TO_CLOSURE,
         TYPE_TO_INTERCEPTOR_MAP,
         TYPES;
 
