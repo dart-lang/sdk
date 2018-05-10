@@ -1097,7 +1097,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
   }
 
   void checkTypeVariableBounds(FunctionEntity method) {
-    if (rtiNeed.methodNeedsTypeArguments(method)) {
+    if (rtiNeed.methodNeedsTypeArguments(method) &&
+        options.parameterCheckPolicy.isEmitted) {
       ir.FunctionNode function = getFunctionNode(_elementMap, method);
       for (ir.TypeParameter typeParameter in function.typeParameters) {
         Local local = localsMap.getLocalTypeVariable(
