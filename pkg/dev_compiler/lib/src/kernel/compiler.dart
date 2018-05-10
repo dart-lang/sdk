@@ -5034,7 +5034,7 @@ class ProgramCompiler extends Object
   @override
   visitFunctionExpression(FunctionExpression node) {
     var fn = _emitArrowFunction(node);
-    if (!_reifyFunctionType(_currentFunction)) return fn;
+    if (!_reifyFunctionType(node.function)) return fn;
     return _emitFunctionTagged(fn, node.getStaticType(types) as FunctionType);
   }
 
@@ -5140,7 +5140,7 @@ class ProgramCompiler extends Object
         isBuiltinAnnotation(a, '_js_helper', 'ReifyFunctionTypes');
     while (parent != null) {
       var a = findAnnotation(parent, reifyFunctionTypes);
-      if (a != null && a is ConstructorInvocation) {
+      if (a is ConstructorInvocation) {
         var args = a.arguments.positional;
         if (args.length == 1) {
           var arg = args[0];
