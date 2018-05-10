@@ -1101,8 +1101,8 @@ static Dart_Isolate CreateIsolate(const char* script_uri,
                                   const uint8_t* snapshot_instructions,
                                   const uint8_t* shared_data,
                                   const uint8_t* shared_instructions,
-                                  const uint8_t* kernel_buffer,
-                                  intptr_t kernel_buffer_size,
+                                  intptr_t snapshot_length,
+                                  kernel::Program* kernel_program,
                                   Dart_IsolateFlags* flags,
                                   void* callback_data,
                                   char** error) {
@@ -1131,14 +1131,14 @@ static Dart_Isolate CreateIsolate(const char* script_uri,
     // bootstrap library files which call out to a tag handler that may create
     // Api Handles when an error is encountered.
     Dart_EnterScope();
-    const Error& error_obj = Error::Handle(
-        Z,
-        Dart::InitializeIsolate(snapshot_data, snapshot_instructions,
-                                shared_data, shared_instructions, kernel_buffer,
-                                kernel_buffer_size, callback_data));
+    const Error& error_obj =
+        Error::Handle(Z, Dart::InitializeIsolate(
+                             snapshot_data, snapshot_instructions, shared_data,
+                             shared_instructions, snapshot_length,
+                             kernel_program, callback_data));
     if (error_obj.IsNull()) {
 #if defined(DART_NO_SNAPSHOT) && !defined(PRODUCT)
-      if (FLAG_check_function_fingerprints && kernel_buffer == NULL) {
+      if (FLAG_check_function_fingerprints && kernel_program == NULL) {
         Library::CheckFunctionFingerprints();
       }
 #endif  // defined(DART_NO_SNAPSHOT) && !defined(PRODUCT).
@@ -1181,18 +1181,16 @@ Dart_CreateIsolate(const char* script_uri,
                    char** error) {
   API_TIMELINE_DURATION(Thread::Current());
   return CreateIsolate(script_uri, main, snapshot_data, snapshot_instructions,
-                       shared_data, shared_instructions, NULL, 0, flags,
+                       shared_data, shared_instructions, -1, NULL, flags,
                        callback_data, error);
 }
 
-DART_EXPORT Dart_Isolate
-Dart_CreateIsolateFromKernel(const char* script_uri,
-                             const char* main,
-                             const uint8_t* kernel_buffer,
-                             intptr_t kernel_buffer_size,
-                             Dart_IsolateFlags* flags,
-                             void* callback_data,
-                             char** error) {
+DART_EXPORT Dart_Isolate Dart_CreateIsolateFromKernel(const char* script_uri,
+                                                      const char* main,
+                                                      void* kernel_program,
+                                                      Dart_IsolateFlags* flags,
+                                                      void* callback_data,
+                                                      char** error) {
   API_TIMELINE_DURATION(Thread::Current());
   // Setup default flags in case none were passed.
   Dart_IsolateFlags api_flags;
@@ -1201,8 +1199,9 @@ Dart_CreateIsolateFromKernel(const char* script_uri,
     flags = &api_flags;
   }
   flags->use_dart_frontend = true;
-  return CreateIsolate(script_uri, main, NULL, NULL, NULL, NULL, kernel_buffer,
-                       kernel_buffer_size, flags, callback_data, error);
+  return CreateIsolate(script_uri, main, NULL, NULL, NULL, NULL, -1,
+                       reinterpret_cast<kernel::Program*>(kernel_program),
+                       flags, callback_data, error);
 }
 
 DART_EXPORT void Dart_ShutdownIsolate() {
@@ -5154,6 +5153,17 @@ static void CompileSource(Thread* thread,
     lib.SetLoadError(Object::null_instance());
   }
 }
+
+static Dart_Handle LoadKernelProgram(Thread* T,
+                                     const String& url,
+                                     void* kernel) {
+  // NOTE: Now the VM owns the [kernel_program] memory!
+  // We will promptly delete it when done.
+  kernel::Program* program = reinterpret_cast<kernel::Program*>(kernel);
+  const Object& tmp = kernel::KernelLoader::LoadEntireProgram(program);
+  delete program;
+  return Api::NewHandle(T, tmp.raw());
+}
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
@@ -5197,8 +5207,27 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
 
   Dart_Handle result;
   if (I->use_dart_frontend()) {
-    return Api::NewError("%s: Should not be called with using Dart frontend",
-                         CURRENT_FUNC);
+    // TODO(kernel): Fix callers to use Dart_LoadScriptFromKernel.
+    if ((source == Api::Null()) || (source == NULL)) {
+      RETURN_NULL_ERROR(source);
+    }
+    void* kernel_pgm = reinterpret_cast<void*>(source);
+    result = LoadKernelProgram(T, resolved_url_str, kernel_pgm);
+    if (::Dart_IsError(result)) {
+      return result;
+    }
+    library ^= Library::LookupLibrary(T, resolved_url_str);
+    if (library.IsNull()) {
+      // If the URL string does not match, use the library object
+      // returned by the kernel loader.
+      library ^= Api::UnwrapHandle(result);
+    }
+    if (library.IsNull()) {
+      return Api::NewError("%s: Unable to load script '%s' correctly.",
+                           CURRENT_FUNC, resolved_url_str.ToCString());
+    }
+    I->object_store()->set_root_library(library);
+    return Api::NewHandle(T, library.raw());
   }
 
   const String& source_str = Api::UnwrapStringHandle(Z, source);
@@ -5290,6 +5319,20 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer,
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
+DART_EXPORT void* Dart_ReadKernelBinary(const uint8_t* buffer,
+                                        intptr_t buffer_len,
+                                        Dart_ReleaseBufferCallback callback) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+  return NULL;
+#else
+  kernel::Program* program =
+      kernel::Program::ReadFromBuffer(buffer, buffer_len);
+  program->set_release_buffer_callback(callback);
+  return program;
+#endif
+}
+
 DART_EXPORT Dart_Handle Dart_LoadScriptFromKernel(const uint8_t* buffer,
                                                   intptr_t buffer_size) {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -5317,7 +5360,7 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromKernel(const uint8_t* buffer,
   if (tmp.IsError()) {
     return Api::NewHandle(T, tmp.raw());
   }
-  // TODO(32618): Setting root library based on whether it has 'main' or not
+  // TODO(kernel): Setting root library based on whether it has 'main' or not
   // is not correct because main can be in the exported namespace of a library
   // or it could be a getter.
   if (tmp.IsNull()) {
@@ -5533,8 +5576,13 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
   }
   Dart_Handle result;
   if (I->use_dart_frontend()) {
-    return Api::NewError("%s: Should not be called with using Dart frontend",
-                         CURRENT_FUNC);
+    // TODO(kernel): Fix callers to use Dart_LoadLibraryFromKernel.
+    void* kernel_pgm = reinterpret_cast<void*>(source);
+    result = LoadKernelProgram(T, url_str, kernel_pgm);
+    if (::Dart_IsError(result)) {
+      return result;
+    }
+    return Api::NewHandle(T, Library::LookupLibrary(T, url_str));
   }
   if (::Dart_IsNull(resolved_url)) {
     resolved_url = url;

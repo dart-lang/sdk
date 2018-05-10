@@ -24,8 +24,7 @@ class Bootstrap : public AllStatic {
   // bootstrapping.
   // The caller of this function is responsible for managing the kernel
   // program's memory.
-  static RawError* DoBootstrapping(const uint8_t* kernel_buffer,
-                                   intptr_t kernel_buffer_size);
+  static RawError* DoBootstrapping(kernel::Program* program);
 
   static void SetupNativeResolver();
   static bool IsBootstapResolver(Dart_NativeEntryResolver resolver);

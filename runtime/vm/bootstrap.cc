@@ -310,12 +310,8 @@ static RawError* BootstrapFromSource(Thread* thread) {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-static RawError* BootstrapFromKernel(Thread* thread,
-                                     const uint8_t* kernel_buffer,
-                                     intptr_t kernel_buffer_size) {
+static RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
   Zone* zone = thread->zone();
-  kernel::Program* program =
-      kernel::Program::ReadFromBuffer(kernel_buffer, kernel_buffer_size, false);
   kernel::KernelLoader loader(program);
   Isolate* isolate = thread->isolate();
 
@@ -341,7 +337,6 @@ static RawError* BootstrapFromKernel(Thread* thread,
   // The platform binary may contain other libraries (e.g., dart:_builtin or
   // dart:io) that will not be bundled with application.  Load them now.
   const Object& result = loader.LoadProgram();
-  delete program;
   if (result.IsError()) {
     return Error::Cast(result).raw();
   }
@@ -354,16 +349,13 @@ static RawError* BootstrapFromKernel(Thread* thread,
   return Error::null();
 }
 #else
-static RawError* BootstrapFromKernel(Thread* thread,
-                                     const uint8_t* kernel_buffer,
-                                     intptr_t kernel_buffer_size) {
+static RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
   UNREACHABLE();
   return Error::null();
 }
 #endif
 
-RawError* Bootstrap::DoBootstrapping(const uint8_t* kernel_buffer,
-                                     intptr_t kernel_buffer_size) {
+RawError* Bootstrap::DoBootstrapping(kernel::Program* kernel_program) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
@@ -386,9 +378,8 @@ RawError* Bootstrap::DoBootstrapping(const uint8_t* kernel_buffer,
     }
   }
 
-  return (kernel_buffer == NULL)
-             ? BootstrapFromSource(thread)
-             : BootstrapFromKernel(thread, kernel_buffer, kernel_buffer_size);
+  return (kernel_program == NULL) ? BootstrapFromSource(thread)
+                                  : BootstrapFromKernel(thread, kernel_program);
 }
 
 }  // namespace dart

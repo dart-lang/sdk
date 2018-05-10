@@ -51,15 +51,7 @@ class IsolateData {
   char* script_url;
   char* package_root;
   char* packages_file;
-
-  const uint8_t* kernel_buffer() const { return kernel_buffer_; }
-  intptr_t kernel_buffer_size() const { return kernel_buffer_size_; }
-  void set_kernel_buffer(uint8_t* buffer, intptr_t size, bool take_ownership) {
-    ASSERT(kernel_buffer_ == NULL);
-    kernel_buffer_ = buffer;
-    kernel_buffer_size_ = size;
-    owns_kernel_buffer_ = take_ownership;
-  }
+  void* kernel_program;
 
   void UpdatePackagesFile(const char* packages_file_) {
     if (packages_file != NULL) {
@@ -86,14 +78,19 @@ class IsolateData {
 
   void OnIsolateShutdown();
 
+  void set_create_isolate_from_kernel(bool value) {
+    create_isolate_from_kernel_ = value;
+  }
+  bool create_isolate_from_kernel() const {
+    return create_isolate_from_kernel_;
+  }
+
  private:
   Dart_Handle builtin_lib_;
   Loader* loader_;
   AppSnapshot* app_snapshot_;
   MallocGrowableArray<char*>* dependencies_;
-  uint8_t* kernel_buffer_;
-  intptr_t kernel_buffer_size_;
-  bool owns_kernel_buffer_;
+  bool create_isolate_from_kernel_;
 
   DISALLOW_COPY_AND_ASSIGN(IsolateData);
 };

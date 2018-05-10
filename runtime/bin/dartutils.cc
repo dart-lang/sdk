@@ -213,7 +213,7 @@ void* DartUtils::OpenFileUri(const char* uri, bool write) {
   return reinterpret_cast<void*>(file);
 }
 
-void DartUtils::ReadFile(uint8_t** data, intptr_t* len, void* stream) {
+void DartUtils::ReadFile(const uint8_t** data, intptr_t* len, void* stream) {
   ASSERT(data != NULL);
   ASSERT(len != NULL);
   ASSERT(stream != NULL);
@@ -225,16 +225,14 @@ void DartUtils::ReadFile(uint8_t** data, intptr_t* len, void* stream) {
     return;
   }
   *len = static_cast<intptr_t>(file_len);
-  *data = reinterpret_cast<uint8_t*>(malloc(*len));
-  if (*data == NULL) {
-    OUT_OF_MEMORY();
-  }
-  if (!file_stream->ReadFully(*data, *len)) {
-    free(*data);
+  uint8_t* text_buffer = reinterpret_cast<uint8_t*>(malloc(*len));
+  ASSERT(text_buffer != NULL);
+  if (!file_stream->ReadFully(text_buffer, *len)) {
     *data = NULL;
     *len = -1;  // Indicates read was not successful.
     return;
   }
+  *data = text_buffer;
 }
 
 void DartUtils::WriteFile(const void* buffer,
@@ -272,16 +270,16 @@ static Dart_Handle SingleArgDart_Invoke(Dart_Handle lib,
   snprintf(msg, len + 1, format, __VA_ARGS__);                                 \
   *error_msg = msg
 
-static uint8_t* ReadFileFully(const char* filename,
-                              intptr_t* file_len,
-                              const char** error_msg) {
+static const uint8_t* ReadFileFully(const char* filename,
+                                    intptr_t* file_len,
+                                    const char** error_msg) {
   *file_len = -1;
   void* stream = DartUtils::OpenFile(filename, false);
   if (stream == NULL) {
     SET_ERROR_MSG(error_msg, "Unable to open file: %s", filename);
     return NULL;
   }
-  uint8_t* text_buffer = NULL;
+  const uint8_t* text_buffer = NULL;
   DartUtils::ReadFile(&text_buffer, file_len, stream);
   if (text_buffer == NULL || *file_len == -1) {
     *error_msg = "Unable to read file contents";
@@ -294,12 +292,12 @@ static uint8_t* ReadFileFully(const char* filename,
 Dart_Handle DartUtils::ReadStringFromFile(const char* filename) {
   const char* error_msg = NULL;
   intptr_t len;
-  uint8_t* text_buffer = ReadFileFully(filename, &len, &error_msg);
+  const uint8_t* text_buffer = ReadFileFully(filename, &len, &error_msg);
   if (text_buffer == NULL) {
     return Dart_NewApiError(error_msg);
   }
   Dart_Handle str = Dart_NewStringFromUTF8(text_buffer, len);
-  free(text_buffer);
+  free(const_cast<uint8_t*>(text_buffer));
   return str;
 }
 

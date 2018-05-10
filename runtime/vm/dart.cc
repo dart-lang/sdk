@@ -504,8 +504,8 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
                                   const uint8_t* snapshot_instructions,
                                   const uint8_t* shared_data,
                                   const uint8_t* shared_instructions,
-                                  const uint8_t* kernel_buffer,
-                                  intptr_t kernel_buffer_size,
+                                  intptr_t snapshot_length,
+                                  kernel::Program* kernel_program,
                                   void* data) {
   // Initialize the new isolate.
   Thread* T = Thread::Current();
@@ -524,11 +524,11 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
   }
 
   Error& error = Error::Handle(T->zone());
-  error = Object::Init(I, kernel_buffer, kernel_buffer_size);
+  error = Object::Init(I, kernel_program);
   if (!error.IsNull()) {
     return error.raw();
   }
-  if ((snapshot_data != NULL) && kernel_buffer == NULL) {
+  if ((snapshot_data != NULL) && kernel_program == NULL) {
     // Read the snapshot and setup the initial state.
     NOT_IN_PRODUCT(TimelineDurationScope tds(T, Timeline::GetIsolateStream(),
                                              "IsolateSnapshotReader"));
@@ -567,7 +567,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
       MegamorphicCacheTable::PrintSizes(I);
     }
   } else {
-    if ((vm_snapshot_kind_ != Snapshot::kNone) && kernel_buffer == NULL) {
+    if ((vm_snapshot_kind_ != Snapshot::kNone) && kernel_program == NULL) {
       const String& message =
           String::Handle(String::New("Missing isolate snapshot"));
       return ApiError::New(message);
@@ -592,7 +592,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
       Code::Handle(I->object_store()->megamorphic_miss_code());
   I->set_ic_miss_code(miss_code);
 
-  if ((snapshot_data == NULL) || (kernel_buffer != NULL)) {
+  if ((snapshot_data == NULL) || (kernel_program != NULL)) {
     const Error& error = Error::Handle(I->object_store()->PreallocateObjects());
     if (!error.IsNull()) {
       return error.raw();

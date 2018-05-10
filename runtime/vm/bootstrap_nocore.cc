@@ -70,12 +70,8 @@ static void Finish(Thread* thread) {
   Compiler::CompileClass(cls);
 }
 
-RawError* BootstrapFromKernel(Thread* thread,
-                              const uint8_t* kernel_buffer,
-                              intptr_t kernel_buffer_size) {
+RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
   Zone* zone = thread->zone();
-  kernel::Program* program =
-      kernel::Program::ReadFromBuffer(kernel_buffer, kernel_buffer_size, false);
   kernel::KernelLoader loader(program);
   Isolate* isolate = thread->isolate();
 
@@ -101,7 +97,6 @@ RawError* BootstrapFromKernel(Thread* thread,
   // The platform binary may contain other libraries (e.g., dart:_builtin or
   // dart:io) that will not be bundled with application.  Load them now.
   const Object& result = loader.LoadProgram();
-  delete program;
   if (result.IsError()) {
     return Error::Cast(result).raw();
   }
@@ -114,8 +109,7 @@ RawError* BootstrapFromKernel(Thread* thread,
   return Error::null();
 }
 
-RawError* Bootstrap::DoBootstrapping(const uint8_t* kernel_buffer,
-                                     intptr_t kernel_buffer_size) {
+RawError* Bootstrap::DoBootstrapping(kernel::Program* program) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
@@ -138,11 +132,10 @@ RawError* Bootstrap::DoBootstrapping(const uint8_t* kernel_buffer,
     }
   }
 
-  return BootstrapFromKernel(thread, kernel_buffer, kernel_buffer_size);
+  return BootstrapFromKernel(thread, program);
 }
 #else
-RawError* Bootstrap::DoBootstrapping(const uint8_t* kernel_buffer,
-                                     intptr_t kernel_buffer_size) {
+RawError* Bootstrap::DoBootstrapping(kernel::Program* program) {
   UNREACHABLE();
   return Error::null();
 }

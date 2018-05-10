@@ -582,7 +582,6 @@ disassemble_test: Pass, Slow
 dynamic_prefix_core_test/none: CompileTimeError
 emit_const_fields_test: CompileTimeError # Issue 31533
 example_constructor_test: Fail, OK
-export_ambiguous_main_test: Crash # Issue 32618
 external_test/10: MissingRuntimeError # KernelVM bug: Unbound external.
 external_test/13: MissingRuntimeError # KernelVM bug: Unbound external.
 external_test/20: MissingRuntimeError # KernelVM bug: Unbound external.

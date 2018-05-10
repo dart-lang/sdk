@@ -336,6 +336,10 @@ class ScopedDecompress : public ValueObject {
   uint8_t* decompressed_;
 };
 
+static void ReleaseFetchedBytes(uint8_t* buffer) {
+  free(buffer);
+}
+
 bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
   // We have to copy everything we care about out of |result| because after
   // dropping the lock below |result| may no longer valid.
@@ -453,7 +457,10 @@ bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
         // isolates. We currently do not have support for neither
         // `Isolate.spawn()` nor `Isolate.spawnUri()` with kernel-based
         // frontend.
-        dart_result = Dart_LoadScriptFromKernel(payload, payload_length);
+        Dart_Handle kernel_binary =
+            reinterpret_cast<Dart_Handle>(Dart_ReadKernelBinary(
+                payload, payload_length, ReleaseFetchedBytes));
+        dart_result = Dart_LoadScript(uri, resolved_uri, kernel_binary, 0, 0);
       } else {
         dart_result = Dart_LoadScript(uri, resolved_uri, source, 0, 0);
       }
@@ -639,12 +646,6 @@ Dart_Handle Loader::DartColonLibraryTagHandler(Dart_LibraryTag tag,
   return Dart_Null();
 }
 #else
-static void MallocFinalizer(void* isolate_callback_data,
-                            Dart_WeakPersistentHandle handle,
-                            void* peer) {
-  free(peer);
-}
-
 Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
                                       Dart_Handle library,
                                       Dart_Handle url) {
@@ -662,17 +663,17 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
   }
   Dart_Isolate current = Dart_CurrentIsolate();
   if (tag == Dart_kKernelTag) {
-    uint8_t* kernel_buffer = NULL;
-    intptr_t kernel_buffer_size = 0;
-    if (!DFE::TryReadKernelFile(url_string, &kernel_buffer,
-                                &kernel_buffer_size)) {
+    const uint8_t* kernel_ir = NULL;
+    intptr_t kernel_ir_size = 0;
+
+    // Check to see if url_string points to a valid dill file. If so, return the
+    // loaded kernel::Program.
+    if (!DFE::TryReadKernelFile(url_string, &kernel_ir, &kernel_ir_size)) {
       return DartUtils::NewError("'%s' is not a kernel file", url_string);
     }
-    result = Dart_NewExternalTypedData(Dart_TypedData_kUint8, kernel_buffer,
-                                       kernel_buffer_size);
-    Dart_NewWeakPersistentHandle(result, kernel_buffer, kernel_buffer_size,
-                                 MallocFinalizer);
-    return result;
+    void* kernel_program =
+        Dart_ReadKernelBinary(kernel_ir, kernel_ir_size, ReleaseFetchedBytes);
+    return Dart_NewExternalTypedData(Dart_TypedData_kUint64, kernel_program, 1);
   }
   if (tag == Dart_kImportResolvedExtensionTag) {
     if (strncmp(url_string, "file://", 7)) {

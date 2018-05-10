@@ -5,6 +5,8 @@
 #include "bin/isolate_data.h"
 #include "bin/snapshot_utils.h"
 
+#include "vm/kernel.h"
+
 namespace dart {
 namespace bin {
 
@@ -15,13 +17,12 @@ IsolateData::IsolateData(const char* url,
     : script_url((url != NULL) ? strdup(url) : NULL),
       package_root(NULL),
       packages_file(NULL),
+      kernel_program(NULL),
       builtin_lib_(NULL),
       loader_(NULL),
       app_snapshot_(app_snapshot),
       dependencies_(NULL),
-      kernel_buffer_(NULL),
-      kernel_buffer_size_(0),
-      owns_kernel_buffer_(false) {
+      create_isolate_from_kernel_(false) {
   if (package_root != NULL) {
     ASSERT(packages_file == NULL);
     this->package_root = strdup(package_root);
@@ -44,12 +45,10 @@ IsolateData::~IsolateData() {
   package_root = NULL;
   free(packages_file);
   packages_file = NULL;
-  if (owns_kernel_buffer_) {
-    ASSERT(kernel_buffer_ != NULL);
-    free(kernel_buffer_);
+  if (kernel_program != NULL) {
+    delete reinterpret_cast<kernel::Program*>(kernel_program);
+    kernel_program = NULL;
   }
-  kernel_buffer_ = NULL;
-  kernel_buffer_size_ = 0;
   delete app_snapshot_;
   app_snapshot_ = NULL;
 }

@@ -147,8 +147,7 @@ cc/Service_TokenStream: Fail
 [ $compiler == dartk && $runtime == vm ]
 cc/Class_ComputeEndTokenPos: Crash
 cc/DartAPI_IsolateShutdownRunDartCode: Skip # Flaky
-cc/DartAPI_LazyLoadDeoptimizes: Fail
-cc/DartAPI_LoadLibrary: Fail, Crash # Issue 33048.
+cc/DartAPI_LoadLibrary: Crash # Issue 33048.
 cc/DebuggerAPI_BreakpointStubPatching: Fail
 cc/DebuggerAPI_GetClosureInfo: Fail
 cc/DebuggerAPI_InterruptIsolate: SkipSlow

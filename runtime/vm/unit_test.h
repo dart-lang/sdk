@@ -316,14 +316,12 @@ class TestCase : TestCaseBase {
 
   static char* CompileTestScriptWithDFE(const char* url,
                                         const char* source,
-                                        const uint8_t** kernel_buffer,
-                                        intptr_t* kernel_buffer_size,
+                                        void** kernel_pgm,
                                         bool incrementally = true);
   static char* CompileTestScriptWithDFE(const char* url,
                                         int sourcefiles_count,
                                         Dart_SourceFile sourcefiles[],
-                                        const uint8_t** kernel_buffer,
-                                        intptr_t* kernel_buffer_size,
+                                        void** kernel_pgm,
                                         bool incrementally = true);
   static Dart_Handle LoadTestScript(const char* script,
                                     Dart_NativeEntryResolver resolver,
@@ -364,8 +362,7 @@ class TestCase : TestCaseBase {
 
   // Helper function which reloads the current isolate using |script|.
   static Dart_Handle ReloadTestScript(const char* script);
-  static Dart_Handle ReloadTestKernel(const uint8_t* kernel_buffer,
-                                      intptr_t kernel_buffer_size);
+  static Dart_Handle ReloadTestKernel(const void* kernel);
 
   static void AddTestLib(const char* url, const char* source);
   static const char* GetTestLib(const char* url);

@@ -50,8 +50,8 @@ class Dart : public AllStatic {
                                      const uint8_t* snapshot_instructions,
                                      const uint8_t* shared_data,
                                      const uint8_t* shared_instructions,
-                                     const uint8_t* kernel_buffer,
-                                     intptr_t kernel_buffer_size,
+                                     intptr_t snapshot_length,
+                                     kernel::Program* kernel_program,
                                      void* data);
   static void RunShutdownCallback();
   static void ShutdownIsolate(Isolate* isolate);

@@ -40,14 +40,10 @@ class DFE {
 
   // Set the kernel program for the main application if it was specified
   // as a dill file.
-  void set_application_kernel_buffer(uint8_t* buffer, intptr_t size) {
-    application_kernel_buffer_ = buffer;
-    application_kernel_buffer_size_ = size;
+  void set_application_kernel_binary(void* application_kernel_binary) {
+    application_kernel_binary_ = application_kernel_binary;
   }
-  void application_kernel_buffer(const uint8_t** buffer, intptr_t* size) const {
-    *buffer = application_kernel_buffer_;
-    *size = application_kernel_buffer_size_;
-  }
+  void* application_kernel_binary() const { return application_kernel_binary_; }
 
   // Compiles specified script.
   // Returns result from compiling the script.
@@ -60,20 +56,16 @@ class DFE {
   // If the compilation is successful, returns a valid in memory kernel
   // representation of the script, NULL otherwise
   // 'error' and 'exit_code' have the error values in case of errors.
-  void CompileAndReadScript(const char* script_uri,
-                            uint8_t** kernel_buffer,
-                            intptr_t* kernel_buffer_size,
-                            char** error,
-                            int* exit_code,
-                            bool strong,
-                            const char* package_config);
+  void* CompileAndReadScript(const char* script_uri,
+                             char** error,
+                             int* exit_code,
+                             bool strong,
+                             const char* package_config);
 
   // Reads the script kernel file if specified 'script_uri' is a kernel file.
   // Returns an in memory kernel representation of the specified script is a
   // valid kernel file, false otherwise.
-  void ReadScript(const char* script_uri,
-                  uint8_t** kernel_buffer,
-                  intptr_t* kernel_buffer_size) const;
+  void* ReadScript(const char* script_uri) const;
 
   static bool KernelServiceDillAvailable();
 
@@ -83,8 +75,8 @@ class DFE {
   // The caller is responsible for free()ing [kernel_file] if `true`
   // was returned.
   static bool TryReadKernelFile(const char* script_uri,
-                                uint8_t** kernel_buffer,
-                                intptr_t* kernel_buffer_size);
+                                const uint8_t** kernel_ir,
+                                intptr_t* kernel_ir_size);
 
   // We distinguish between "intent to use Dart frontend" vs "can actually
   // use Dart frontend". The method UseDartFrontend tells us about the
@@ -92,19 +84,20 @@ class DFE {
   // be used.
   bool CanUseDartFrontend() const;
 
-  void LoadPlatform(const uint8_t** kernel_buffer,
-                    intptr_t* kernel_buffer_size,
-                    bool strong = false);
-  void LoadKernelService(const uint8_t** kernel_service_buffer,
-                         intptr_t* kernel_service_buffer_size);
+  void* platform_program(bool strong = false) const;
+
+  void* LoadKernelServiceProgram();
 
  private:
   bool use_dfe_;
   char* frontend_filename_;
 
+  void* kernel_service_program_;
+  void* platform_program_;
+  void* platform_strong_program_;
+
   // Kernel binary specified on the cmd line.
-  uint8_t* application_kernel_buffer_;
-  intptr_t application_kernel_buffer_size_;
+  void* application_kernel_binary_;
 
   DISALLOW_COPY_AND_ASSIGN(DFE);
 };

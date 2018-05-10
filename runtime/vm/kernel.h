@@ -55,8 +55,6 @@ const uint8_t kNativeYieldFlags = 0x2;
 
 enum LogicalOperator { kAnd, kOr };
 
-typedef void (*Dart_ReleaseBufferCallback)(uint8_t* buffer);
-
 class Program {
  public:
   ~Program() {
@@ -79,12 +77,12 @@ class Program {
    * "sub program" should not try to release the buffer.
    * @return
    */
-  static Program* ReadFrom(Reader* reader, bool take_buffer_ownership = false);
+  static Program* ReadFrom(Reader* reader, bool take_buffer_ownership = true);
 
   static Program* ReadFromFile(const char* script_uri);
   static Program* ReadFromBuffer(const uint8_t* buffer,
                                  intptr_t buffer_length,
-                                 bool take_buffer_ownership = false);
+                                 bool take_buffer_ownership = true);
 
   bool is_single_program() { return single_program_; }
   NameIndex main_method() { return main_method_reference_; }
@@ -196,7 +194,6 @@ class KernelLineStartsReader {
 
   const dart::TypedData& line_starts_data_;
   KernelLineStartsHelper* helper_;
-  Dart_ReleaseBufferCallback release_callback;
 
   DISALLOW_COPY_AND_ASSIGN(KernelLineStartsReader);
 };
