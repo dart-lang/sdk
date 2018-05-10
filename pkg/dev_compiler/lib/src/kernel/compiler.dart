@@ -4378,11 +4378,21 @@ class ProgramCompiler extends Object
     if (isInlineJS(target)) return _emitInlineJSCode(node) as JS.Expression;
     if (target.isFactory) return _emitFactoryInvocation(node);
 
-    if (target.name.name == 'extensionSymbol' &&
-        isSdkInternalRuntime(target.enclosingLibrary)) {
-      var args = node.arguments;
-      var firstArg = args.positional.length == 1 ? args.positional[0] : null;
-      if (firstArg is StringLiteral) {
+    // Optimize some internal SDK calls.
+    if (isSdkInternalRuntime(target.enclosingLibrary) &&
+        node.arguments.positional.length == 1) {
+      var name = target.name.name;
+      var firstArg = node.arguments.positional[0];
+      if (name == 'getGenericClass' && firstArg is TypeLiteral) {
+        var type = firstArg.type;
+        if (type is InterfaceType) {
+          return _emitTopLevelNameNoInterop(type.classNode, suffix: '\$');
+        }
+      }
+      if (name == 'unwrapType' && firstArg is TypeLiteral) {
+        return _emitType(firstArg.type);
+      }
+      if (name == 'extensionSymbol' && firstArg is StringLiteral) {
         return _getExtensionSymbolInternal(firstArg.value);
       }
     }
@@ -4531,25 +4541,6 @@ class ProgramCompiler extends Object
       }
     }
 
-    JS.Expression visitTemplateArg(Expression arg) {
-      if (arg is StaticInvocation) {
-        var target = arg.target;
-        var positional = arg.arguments.positional;
-        if (target.name.name == 'getGenericClass' &&
-            isSdkInternalRuntime(target.enclosingLibrary) &&
-            positional.length == 1) {
-          var typeArg = positional[0];
-          if (typeArg is TypeLiteral) {
-            var type = typeArg.type;
-            if (type is InterfaceType) {
-              return _emitTopLevelNameNoInterop(type.classNode, suffix: '\$');
-            }
-          }
-        }
-      }
-      return _visitExpression(arg);
-    }
-
     // TODO(rnystrom): The JS() calls are almost never nested, and probably
     // really shouldn't be, but there are at least a couple of calls in the
     // HTML library where an argument to JS() is itself a JS() call. If those
@@ -4558,7 +4549,7 @@ class ProgramCompiler extends Object
     // wrapped Type object.
     var wasInForeignJS = _isInForeignJS;
     _isInForeignJS = true;
-    var jsArgs = templateArgs.map(visitTemplateArg).toList();
+    var jsArgs = templateArgs.map(_visitExpression).toList();
     _isInForeignJS = wasInForeignJS;
 
     var result = js.parseForeignJS(source).instantiate(jsArgs);

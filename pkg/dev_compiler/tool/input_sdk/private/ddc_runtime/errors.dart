@@ -17,6 +17,7 @@ void ignoreWhitelistedErrors(bool flag) {
   JS('', 'dart.__ignoreWhitelistedErrors = #', flag);
 }
 
+// TODO(jmesserly): remove this?
 void ignoreAllErrors(bool flag) {
   JS('', 'dart.__ignoreAllErrors = #', flag);
 }
@@ -48,4 +49,39 @@ throwNullValueError() {
   if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
   throw new NoSuchMethodError(
       null, new Symbol('<Unexpected Null Value>'), null, null, null);
+}
+
+castError(obj, expectedType, [bool typeError = undefined]) {
+  var actualType = getReifiedType(obj);
+  var message = _castErrorMessage(actualType, expectedType);
+  if (JS('!', 'dart.__ignoreAllErrors')) {
+    JS('', 'console.error(#)', message);
+    return obj;
+  }
+  if (JS('!', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
+  var error = JS<bool>('!', '#', typeError)
+      ? new TypeErrorImpl(message)
+      : new CastErrorImpl(message);
+  throw error;
+}
+
+String _castErrorMessage(from, to) {
+  // If both types are generic classes, see if we can infer generic type
+  // arguments for `from` that would allow the subtype relation to work.
+  var fromClass = getGenericClass(from);
+  if (fromClass != null) {
+    var fromTypeFormals = getGenericTypeFormals(fromClass);
+    var fromType = instantiateClass(fromClass, fromTypeFormals);
+    var inferrer = new _TypeInferrer(fromTypeFormals);
+    if (inferrer.trySubtypeMatch(fromType, to)) {
+      var inferredTypes = inferrer.getInferredTypes();
+      if (inferredTypes != null) {
+        var inferred = instantiateClass(fromClass, inferredTypes);
+        return "Type '${typeName(from)}' should be '${typeName(inferred)}' "
+            "to implement expected type '${typeName(to)}'.";
+      }
+    }
+  }
+  return "Type '${typeName(from)}' is not a subtype of "
+      "expected type '${typeName(to)}'.";
 }

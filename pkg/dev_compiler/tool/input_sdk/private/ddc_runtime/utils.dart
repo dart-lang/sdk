@@ -40,7 +40,7 @@ final Function(Object) getOwnPropertySymbols =
 /// assertion failure (TypeError) or CastError.
 void throwTypeError(String message) {
   if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
-  throw new TypeErrorImplementation.fromMessage(message);
+  throw new TypeErrorImpl(message);
 }
 
 /// This error indicates a bug in the runtime or the compiler.
