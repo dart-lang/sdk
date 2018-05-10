@@ -15,11 +15,7 @@ import '../analysis_abstract.dart';
 
 main() {
   defineReflectiveSuite(() {
-    // TODO(dantup): Uncomment once implementation is complete.
-    // Cannot just mark the tests as @failingTest as they time out
-    // (no FOLDING notification ever) and failingTest doesn't seem
-    // to cover that.
-    // defineReflectiveTests(_AnalysisNotificationFoldingTest);
+    defineReflectiveTests(_AnalysisNotificationFoldingTest);
   });
 }
 
@@ -33,7 +29,9 @@ main async() {}
 ''';
 
   static final expectedResults = [
-    new FoldingRegion(FoldingKind.DIRECTIVES, 0, 40)
+    // We don't include the first "import" in the region because
+    // we want that to remain visible (not collapse).
+    new FoldingRegion(FoldingKind.DIRECTIVES, 6, 34)
   ];
 
   List<FoldingRegion> lastRegions;

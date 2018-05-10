@@ -41,15 +41,103 @@ main() {}
 
   test_multiple_import_directives() async {
     String content = """
-/*1*/import 'dart:async';
+import/*1:INC*/ 'dart:async';
 
 // We can have comments
 import 'package:a/b.dart';
 import 'package:b/c.dart';
 
-import '../a.dart';/*1:DIRECTIVES*/
+import '../a.dart';/*1:EXC:DIRECTIVES*/
 
 main() {}
+""";
+
+    final regions = await _computeRegions(content);
+    _compareRegions(regions, content);
+  }
+
+  test_multiple_directive_types() async {
+    String content = """
+import/*1:INC*/ 'dart:async';
+
+// We can have comments
+import 'package:a/b.dart';
+import 'package:b/c.dart';
+
+export '../a.dart';/*1:EXC:DIRECTIVES*/
+
+main() {}
+""";
+
+    final regions = await _computeRegions(content);
+    _compareRegions(regions, content);
+  }
+
+  test_function() async {
+    String content = """
+// Content before
+
+main() {/*1:INC*/
+  print("Hello, world!");
+/*1:INC:TOP_LEVEL_DECLARATION*/}
+
+// Content after
+""";
+
+    final regions = await _computeRegions(content);
+    _compareRegions(regions, content);
+  }
+
+  test_function_with_dart_doc() async {
+    String content = """
+// Content before
+
+/*1:EXC*//// This is a doc comment
+/// that spans lines/*1:INC:DOCUMENTATION_COMMENT*/
+main() {/*2:INC*/
+  print("Hello, world!");
+/*2:INC:TOP_LEVEL_DECLARATION*/}
+
+// Content after
+""";
+
+    final regions = await _computeRegions(content);
+    _compareRegions(regions, content);
+  }
+
+  test_nested_function() async {
+    String content = """
+// Content before
+
+main() {/*1:INC*/
+  doPrint() {/*2:INC*/
+    print("Hello, world!");
+  /*2:INC:TOP_LEVEL_DECLARATION*/}
+  doPrint();
+/*1:INC:TOP_LEVEL_DECLARATION*/}
+
+// Content after
+""";
+
+    final regions = await _computeRegions(content);
+    _compareRegions(regions, content);
+  }
+
+  test_class() async {
+    String content = """
+// Content before
+
+class Person {/*1:INC*/
+  Person() {/*2:INC*/
+    print("Hello, world!");
+  /*2:INC:CLASS_MEMBER*/}
+
+  void sayHello() {/*3:INC*/
+    print("Hello, world!");
+  /*3:INC:CLASS_MEMBER*/}
+/*1:INC:TOP_LEVEL_DECLARATION*/}
+
+// Content after
 """;
 
     final regions = await _computeRegions(content);
@@ -60,7 +148,7 @@ main() {}
   /// regions extracted from the comments in the provided content.
   void _compareRegions(List<FoldingRegion> regions, String content) {
     // Find all numeric markers for region starts.
-    final regex = new RegExp(r'/\*(\d+)\*/');
+    final regex = new RegExp(r'/\*(\d+):(INC|EXC)\*/');
     final expectedRegions = regex.allMatches(content);
 
     // Check we didn't get more than expected, since the loop below only
@@ -71,14 +159,22 @@ main() {}
     // ensure it's in the results.
     expectedRegions.forEach((m) {
       final i = m.group(1);
+      final inclusiveStart = m.group(2) == "INC";
       // Find the end marker.
-      final endMatch = new RegExp('/\\*$i:(.+?)\\*/').firstMatch(content);
+      final endMatch =
+          new RegExp('/\\*$i:(INC|EXC):(.+?)\\*/').firstMatch(content);
 
-      final expectedStart = m.end;
-      final expectedLength = endMatch.start - expectedStart;
-      final expectedKindString = endMatch.group(1);
-      final expectedKind = FoldingKind.VALUES
-          .firstWhere((f) => f.toString() == 'FoldingKind.$expectedKindString');
+      final inclusiveEnd = endMatch.group(1) == "INC";
+      final expectedKindString = endMatch.group(2);
+      final expectedKind = FoldingKind.VALUES.firstWhere(
+          (f) => f.toString() == 'FoldingKind.$expectedKindString',
+          orElse: () => throw new Exception(
+              "Annotated test code references $expectedKindString but "
+              "this does not exist in FoldingKind"));
+
+      final expectedStart = inclusiveStart ? m.start : m.end;
+      final expectedLength =
+          (inclusiveEnd ? endMatch.end : endMatch.start) - expectedStart;
 
       expect(
           regions,
@@ -90,7 +186,8 @@ main() {}
   Future<List<FoldingRegion>> _computeRegions(String sourceContent) async {
     newFile(sourcePath, content: sourceContent);
     ResolveResult result = await driver.getResult(sourcePath);
-    DartUnitFoldingComputer computer = new DartUnitFoldingComputer(result.unit);
+    DartUnitFoldingComputer computer =
+        new DartUnitFoldingComputer(result.lineInfo, result.unit);
     return computer.compute();
   }
 }
