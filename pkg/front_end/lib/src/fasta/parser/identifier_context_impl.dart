@@ -311,10 +311,12 @@ class LibraryIdentifierContext extends IdentifierContext {
   Token ensureIdentifier(Token token, Parser parser) {
     Token identifier = token.next;
     assert(identifier.kind != IDENTIFIER_TOKEN);
+    const followingValues = const ['.', ';'];
+
     if (identifier.isIdentifier) {
       Token next = identifier.next;
-      if (isOneOfOrEof(next, const ['.', ';']) ||
-          !looksLikeStartOfNextTopLevelDeclaration(identifier)) {
+      if (!looksLikeStartOfNextTopLevelDeclaration(identifier) ||
+          isOneOfOrEof(next, followingValues)) {
         return identifier;
       }
       // Although this is a valid library name, the library declaration
@@ -323,7 +325,7 @@ class LibraryIdentifierContext extends IdentifierContext {
     }
 
     // Recovery
-    if (isOneOfOrEof(identifier, const ['.', ';']) ||
+    if (isOneOfOrEof(identifier, followingValues) ||
         looksLikeStartOfNextTopLevelDeclaration(identifier)) {
       identifier = parser.insertSyntheticIdentifier(token, this,
           message: fasta.templateExpectedIdentifier.withArguments(identifier));
@@ -408,6 +410,49 @@ class MethodDeclarationIdentifierContext extends IdentifierContext {
           identifier, fasta.templateExpectedIdentifier);
       return identifier;
     }
+  }
+}
+
+/// See [IdentifierContext.topLevelVariableDeclaration].
+class TopLevelVariableIdentifierContext extends IdentifierContext {
+  const TopLevelVariableIdentifierContext()
+      : super('topLevelVariableDeclaration', inDeclaration: true);
+
+  @override
+  Token ensureIdentifier(Token token, Parser parser) {
+    Token identifier = token.next;
+    assert(identifier.kind != IDENTIFIER_TOKEN);
+    const followingValues = const [';', '=', ','];
+
+    if (identifier.isIdentifier) {
+      Token next = identifier.next;
+      if (!looksLikeStartOfNextTopLevelDeclaration(identifier) ||
+          isOneOfOrEof(next, followingValues)) {
+        return identifier;
+      }
+      // Although this is a valid top level var name, the var declaration
+      // is invalid and this looks like the start of the next declaration.
+      // In this situation, fall through to insert a synthetic var name.
+    }
+
+    // Recovery
+    if (looksLikeStartOfNextTopLevelDeclaration(identifier) ||
+        isOneOfOrEof(identifier, followingValues)) {
+      identifier = parser.insertSyntheticIdentifier(token, this,
+          message: fasta.templateExpectedIdentifier.withArguments(identifier));
+    } else if (identifier.type.isBuiltIn) {
+      parser.reportRecoverableErrorWithToken(
+          identifier, fasta.templateBuiltInIdentifierInDeclaration);
+    } else {
+      parser.reportRecoverableErrorWithToken(
+          identifier, fasta.templateExpectedIdentifier);
+      if (!identifier.isKeywordOrIdentifier) {
+        // When in doubt, consume the token to ensure we make progress
+        // but insert a synthetic identifier to satisfy listeners.
+        identifier = insertSyntheticIdentifierAfter(identifier, parser);
+      }
+    }
+    return identifier;
   }
 }
 

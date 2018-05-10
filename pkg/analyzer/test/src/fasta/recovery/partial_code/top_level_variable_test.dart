@@ -33,10 +33,15 @@ class TopLevelVariableTest extends PartialCodeTest {
             [
               ParserErrorCode.MISSING_IDENTIFIER,
               ParserErrorCode.EXPECTED_TOKEN,
-              CompileTimeErrorCode.CONST_NOT_INITIALIZED
             ],
             "const _s_;",
-            failing: allExceptEof,
+            failing: [
+              'class',
+              'functionVoid',
+              'functionNonVoid',
+              'getter',
+              'setter'
+            ],
             expectedErrorsInValidCode: [
               CompileTimeErrorCode.CONST_NOT_INITIALIZED
             ],
@@ -49,7 +54,7 @@ class TopLevelVariableTest extends PartialCodeTest {
               CompileTimeErrorCode.CONST_NOT_INITIALIZED
             ],
             "const a;",
-            failing: ['typedef', 'functionNonVoid', 'getter', 'setter'],
+            failing: ['functionNonVoid', 'getter', 'setter'],
             expectedErrorsInValidCode: [
               CompileTimeErrorCode.CONST_NOT_INITIALIZED
             ],
@@ -72,11 +77,10 @@ class TopLevelVariableTest extends PartialCodeTest {
             [
               ParserErrorCode.MISSING_IDENTIFIER,
               ParserErrorCode.EXPECTED_TOKEN,
-              CompileTimeErrorCode.CONST_NOT_INITIALIZED,
               CompileTimeErrorCode.CONST_NOT_INITIALIZED
             ],
             "const a, _s_;",
-            failing: ['typedef', 'functionNonVoid', 'getter', 'setter'],
+            failing: ['functionNonVoid', 'getter'],
             expectedErrorsInValidCode: [
               CompileTimeErrorCode.CONST_NOT_INITIALIZED,
               CompileTimeErrorCode.CONST_NOT_INITIALIZED
@@ -88,11 +92,10 @@ class TopLevelVariableTest extends PartialCodeTest {
             [
               ParserErrorCode.MISSING_IDENTIFIER,
               ParserErrorCode.EXPECTED_TOKEN,
-              CompileTimeErrorCode.CONST_NOT_INITIALIZED,
               CompileTimeErrorCode.CONST_NOT_INITIALIZED
             ],
             "const int a, _s_;",
-            failing: ['typedef', 'functionNonVoid', 'getter', 'setter'],
+            failing: ['functionNonVoid', 'getter'],
             expectedErrorsInValidCode: [
               CompileTimeErrorCode.CONST_NOT_INITIALIZED,
               CompileTimeErrorCode.CONST_NOT_INITIALIZED
@@ -132,10 +135,15 @@ class TopLevelVariableTest extends PartialCodeTest {
             [
               ParserErrorCode.MISSING_IDENTIFIER,
               ParserErrorCode.EXPECTED_TOKEN,
-              StaticWarningCode.FINAL_NOT_INITIALIZED
             ],
             "final _s_;",
-            failing: allExceptEof,
+            failing: [
+              'class',
+              'functionVoid',
+              'functionNonVoid',
+              'getter',
+              'setter'
+            ],
             expectedErrorsInValidCode: [
               StaticWarningCode.FINAL_NOT_INITIALIZED
             ],
@@ -148,7 +156,7 @@ class TopLevelVariableTest extends PartialCodeTest {
               StaticWarningCode.FINAL_NOT_INITIALIZED
             ],
             "final a;",
-            failing: ['typedef', 'functionNonVoid', 'getter', 'setter'],
+            failing: ['functionNonVoid', 'getter', 'setter'],
             expectedErrorsInValidCode: [
               StaticWarningCode.FINAL_NOT_INITIALIZED
             ],
@@ -189,14 +197,14 @@ class TopLevelVariableTest extends PartialCodeTest {
               ParserErrorCode.EXPECTED_TOKEN
             ],
             "var _s_;",
-            failing: allExceptEof,
+            failing: ['functionVoid', 'functionNonVoid', 'getter', 'setter'],
           ),
           new TestDescriptor(
             'varName',
             'var a',
             [ParserErrorCode.EXPECTED_TOKEN],
             "var a;",
-            failing: ['typedef', 'functionNonVoid', 'getter', 'setter'],
+            failing: ['functionNonVoid', 'getter', 'setter'],
           ),
           new TestDescriptor(
             'varNameEquals',

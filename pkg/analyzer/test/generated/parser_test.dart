@@ -2633,7 +2633,14 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
 
   void test_constEnum() {
     parseCompilationUnit("const enum E {ONE}",
-        errors: [expectedError(ParserErrorCode.CONST_ENUM, 0, 5)]);
+        errors: usingFastaParser
+            ? [
+                // Fasta interprets the `const` as a malformed top level const
+                // and `enum` as the start of an enum declaration.
+                expectedError(ParserErrorCode.MISSING_IDENTIFIER, 6, 4),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 6, 4),
+              ]
+            : [expectedError(ParserErrorCode.CONST_ENUM, 0, 5)]);
   }
 
   void test_constFactory() {
@@ -2687,7 +2694,14 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
 
   void test_constTypedef() {
     parseCompilationUnit("const typedef F();",
-        errors: [expectedError(ParserErrorCode.CONST_TYPEDEF, 0, 5)]);
+        errors: usingFastaParser
+            ? [
+                // Fasta interprets the `const` as a malformed top level const
+                // and `typedef` as the start of an typedef declaration.
+                expectedError(ParserErrorCode.MISSING_IDENTIFIER, 6, 7),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 6, 7),
+              ]
+            : [expectedError(ParserErrorCode.CONST_TYPEDEF, 0, 5)]);
   }
 
   void test_continueOutsideOfLoop_continueInDoStatement() {
@@ -3616,7 +3630,14 @@ class Foo {
 
   void test_finalEnum() {
     parseCompilationUnit("final enum E {ONE}",
-        errors: [expectedError(ParserErrorCode.FINAL_ENUM, 0, 5)]);
+        errors: usingFastaParser
+            ? [
+                // Fasta interprets the `final` as a malformed top level final
+                // and `enum` as the start of a enum declaration.
+                expectedError(ParserErrorCode.MISSING_IDENTIFIER, 6, 4),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 6, 4),
+              ]
+            : [expectedError(ParserErrorCode.FINAL_ENUM, 0, 5)]);
   }
 
   void test_finalMethod() {
@@ -3633,7 +3654,14 @@ class Foo {
 
   void test_finalTypedef() {
     parseCompilationUnit("final typedef F();",
-        errors: [expectedError(ParserErrorCode.FINAL_TYPEDEF, 0, 5)]);
+        errors: usingFastaParser
+            ? [
+                // Fasta interprets the `final` as a malformed top level final
+                // and `typedef` as the start of an typedef declaration.
+                expectedError(ParserErrorCode.MISSING_IDENTIFIER, 6, 7),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 6, 7),
+              ]
+            : [expectedError(ParserErrorCode.FINAL_TYPEDEF, 0, 5)]);
   }
 
   void test_functionTypedField_invalidType_abstract() {
@@ -5702,14 +5730,24 @@ void main() {
   void test_varClass() {
     parseCompilationUnit("var class C {}",
         errors: usingFastaParser
-            ? [expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 0, 3)]
+            ? [
+                // Fasta interprets the `var` as a malformed top level var
+                // and `class` as the start of a class declaration.
+                expectedError(ParserErrorCode.MISSING_IDENTIFIER, 4, 5),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 5),
+              ]
             : [expectedError(ParserErrorCode.VAR_CLASS, 0, 3)]);
   }
 
   void test_varEnum() {
     parseCompilationUnit("var enum E {ONE}",
         errors: usingFastaParser
-            ? [expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 0, 3)]
+            ? [
+                // Fasta interprets the `var` as a malformed top level var
+                // and `enum` as the start of an enum declaration.
+                expectedError(ParserErrorCode.MISSING_IDENTIFIER, 4, 4),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 4),
+              ]
             : [expectedError(ParserErrorCode.VAR_ENUM, 0, 3)]);
   }
 
@@ -5724,7 +5762,12 @@ void main() {
   void test_varTypedef() {
     parseCompilationUnit("var typedef F();",
         errors: usingFastaParser
-            ? [expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 0, 3)]
+            ? [
+                // Fasta interprets the `var` as a malformed top level var
+                // and `typedef` as the start of an typedef declaration.
+                expectedError(ParserErrorCode.MISSING_IDENTIFIER, 4, 7),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 7),
+              ]
             : [expectedError(ParserErrorCode.VAR_TYPEDEF, 0, 3)]);
   }
 
@@ -11056,17 +11099,10 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
   }
 
   void test_incomplete_topLevelVariable_const() {
-    CompilationUnit unit = parseCompilationUnit("const ",
-        codes: usingFastaParser
-            ? [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN,
-                CompileTimeErrorCode.CONST_NOT_INITIALIZED
-              ]
-            : [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN
-              ]);
+    CompilationUnit unit = parseCompilationUnit("const ", codes: [
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.EXPECTED_TOKEN
+    ]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
     CompilationUnitMember member = declarations[0];
@@ -11080,17 +11116,10 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
   }
 
   void test_incomplete_topLevelVariable_final() {
-    CompilationUnit unit = parseCompilationUnit("final ",
-        codes: usingFastaParser
-            ? [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN,
-                StaticWarningCode.FINAL_NOT_INITIALIZED
-              ]
-            : [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN
-              ]);
+    CompilationUnit unit = parseCompilationUnit("final ", codes: [
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.EXPECTED_TOKEN
+    ]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
     CompilationUnitMember member = declarations[0];
@@ -11124,17 +11153,10 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
     CompilationUnit unit = parseCompilationUnit(r'''
 class C {
   const
-}''',
-        codes: usingFastaParser
-            ? [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN,
-                CompileTimeErrorCode.CONST_NOT_INITIALIZED
-              ]
-            : [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN
-              ]);
+}''', codes: [
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.EXPECTED_TOKEN
+    ]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
     CompilationUnitMember unitMember = declarations[0];

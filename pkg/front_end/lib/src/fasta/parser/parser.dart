@@ -332,9 +332,12 @@ class Parser {
       listener.endTopLevelDeclaration(token.next);
       count++;
       if (start == token.next) {
+        // Recovery:
         // If progress has not been made reaching the end of the token stream,
         // then report an error and skip the current token.
         token = token.next;
+        listener.beginMetadataStar(token);
+        listener.endMetadataStar(0);
         reportRecoverableErrorWithToken(
             token, fasta.templateExpectedDeclaration);
         listener.handleInvalidTopLevelDeclaration(token);
@@ -443,15 +446,26 @@ class Parser {
       return parseScript(token);
     }
     token = parseMetadataStar(token);
-    if (token.next.isTopLevelKeyword) {
+    Token next = token.next;
+    if (next.isTopLevelKeyword) {
       return parseTopLevelKeywordDeclaration(token, null, directiveState);
     }
     Token start = token;
     // Skip modifiers to find a top level keyword or identifier
-    while (token.next.isModifier) {
-      token = token.next;
+    if (next.isModifier) {
+      if (optional('var', next) ||
+          ((optional('const', next) || optional('final', next)) &&
+              // Ignore `const class` and `final class` so that it is reported
+              // below as an invalid modifier on a class.
+              !optional('class', next.next))) {
+        directiveState?.checkDeclaration();
+        return parseTopLevelMemberImpl(token);
+      }
+      while (token.next.isModifier) {
+        token = token.next;
+      }
     }
-    Token next = token.next;
+    next = token.next;
     if (next.isTopLevelKeyword) {
       Token beforeAbstractToken;
       Token beforeModifier = start;
@@ -1934,14 +1948,7 @@ class Parser {
         token = next;
       } else {
         reportRecoverableErrorWithToken(next, context.recoveryTemplate);
-        if (context == IdentifierContext.topLevelVariableDeclaration) {
-          // Since the token is not a keyword or identifier, consume it to
-          // ensure forward progress in parseField.
-          token = next.next;
-          // Supply a non-empty method name so that it does not accidentally
-          // match the default constructor.
-          token = insertSyntheticIdentifier(next, context);
-        } else if (context == IdentifierContext.constructorReference) {
+        if (context == IdentifierContext.constructorReference) {
           token = insertSyntheticIdentifier(token, context);
         } else {
           token = next;
@@ -2027,8 +2034,6 @@ class Parser {
       followingValues = ['.', '(', '{', '=>'];
     } else if (context == IdentifierContext.topLevelFunctionDeclaration) {
       followingValues = ['(', '{', '=>'];
-    } else if (context == IdentifierContext.topLevelVariableDeclaration) {
-      followingValues = [';', '=', ','];
     } else if (context == IdentifierContext.typeVariableDeclaration) {
       followingValues = ['<', '>', ';', '}'];
     } else {
@@ -2098,8 +2103,6 @@ class Parser {
         IdentifierContext.localFunctionDeclarationContinuation) {
       initialKeywords = statementKeywords();
     } else if (context == IdentifierContext.topLevelFunctionDeclaration) {
-      initialKeywords = topLevelKeywords();
-    } else if (context == IdentifierContext.topLevelVariableDeclaration) {
       initialKeywords = topLevelKeywords();
     } else if (context == IdentifierContext.typeVariableDeclaration) {
       initialKeywords = topLevelKeywords()
@@ -2521,14 +2524,23 @@ class Parser {
           next = token.next;
         }
         if (isModifier(next)) {
-          ModifierRecoveryContext context = new ModifierRecoveryContext(this);
-          token = context.parseTopLevelModifiers(token,
-              externalToken: externalToken, varFinalOrConst: varFinalOrConst);
-          next = token.next;
+          // Recovery
+          if (varFinalOrConst != null &&
+              (optional('final', next) ||
+                  optional('var', next) ||
+                  optional('const', next))) {
+            // If another `var`, `final`, or `const` then fall through
+            // to parse that as part of the next top level declaration.
+          } else {
+            ModifierRecoveryContext context = new ModifierRecoveryContext(this);
+            token = context.parseTopLevelModifiers(token,
+                externalToken: externalToken, varFinalOrConst: varFinalOrConst);
+            next = token.next;
 
-          externalToken = context.externalToken;
-          varFinalOrConst = context.varFinalOrConst;
-          context = null;
+            externalToken = context.externalToken;
+            varFinalOrConst = context.varFinalOrConst;
+            context = null;
+          }
         }
       }
     }
@@ -2745,7 +2757,7 @@ class Parser {
       token = parseExpression(next);
       listener.endFieldInitializer(assignment, token.next);
     } else {
-      if (varFinalOrConst != null) {
+      if (varFinalOrConst != null && !name.isSynthetic) {
         if (optional("const", varFinalOrConst)) {
           reportRecoverableError(
               name,

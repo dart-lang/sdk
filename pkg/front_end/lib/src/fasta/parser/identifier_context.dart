@@ -120,9 +120,8 @@ class IdentifierContext {
       const TypeReferenceIdentifierContext.continuation();
 
   /// Identifier is a name being declared by a top level variable declaration.
-  static const topLevelVariableDeclaration = const IdentifierContext(
-      'topLevelVariableDeclaration',
-      inDeclaration: true);
+  static const topLevelVariableDeclaration =
+      const TopLevelVariableIdentifierContext();
 
   /// Identifier is a name being declared by a field declaration.
   static const fieldDeclaration = const FieldDeclarationIdentifierContext();
