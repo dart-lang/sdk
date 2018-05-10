@@ -1614,7 +1614,12 @@ class Parser {
           break;
         } else {
           // Recovery
-          if (next.isIdentifier) {
+          Token endGroup = leftBrace.endGroup;
+          if (endGroup.isSynthetic) {
+            // The scanner did not place the synthetic '}' correctly.
+            token = rewriter.moveSynthetic(token, endGroup);
+            break;
+          } else if (next.isIdentifier) {
             // If the next token is an identifier, assume a missing comma.
             // TODO(danrubel): Consider improved recovery for missing `}`
             // both here and when the scanner inserts a synthetic `}`
@@ -2008,8 +2013,6 @@ class Parser {
       followingValues = [';'];
     } else if (context == IdentifierContext.constructorReferenceContinuation) {
       followingValues = ['.', ',', '(', ')', '[', ']', '}', ';'];
-    } else if (context == IdentifierContext.enumValueDeclaration) {
-      followingValues = [',', '}'];
     } else if (context == IdentifierContext.formalParameterDeclaration) {
       followingValues = [':', '=', ',', '(', ')', '[', ']', '{', '}'];
     } else if (context == IdentifierContext.labelDeclaration) {

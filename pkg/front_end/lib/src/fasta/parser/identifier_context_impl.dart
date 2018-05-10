@@ -130,6 +130,34 @@ class EnumDeclarationIdentifierContext extends IdentifierContext {
   }
 }
 
+/// See [IdentifierContext.enumValueDeclaration].
+class EnumValueDeclarationIdentifierContext extends IdentifierContext {
+  const EnumValueDeclarationIdentifierContext()
+      : super('enumValueDeclaration', inDeclaration: true);
+
+  @override
+  Token ensureIdentifier(Token token, Parser parser) {
+    Token identifier = token.next;
+    assert(identifier.kind != IDENTIFIER_TOKEN);
+    if (identifier.isIdentifier) {
+      return identifier;
+    }
+
+    // Recovery
+    parser.reportRecoverableErrorWithToken(
+        identifier, fasta.templateExpectedIdentifier);
+    if (looksLikeStartOfNextTopLevelDeclaration(identifier) ||
+        isOneOfOrEof(identifier, const [',', '}'])) {
+      return insertSyntheticIdentifierAfter(token, parser);
+    } else if (!identifier.isKeywordOrIdentifier) {
+      // When in doubt, consume the token to ensure we make progress
+      // but insert a synthetic identifier to satisfy listeners.
+      return insertSyntheticIdentifierAfter(identifier, parser);
+    }
+    return identifier;
+  }
+}
+
 /// See [IdentifierContext.expression].
 class ExpressionIdentifierContext extends IdentifierContext {
   const ExpressionIdentifierContext()

@@ -93,7 +93,7 @@ class IdentifierContext {
   /// Identifier is an enumerated value name being declared by an enum
   /// declaration.
   static const enumValueDeclaration =
-      const IdentifierContext('enumValueDeclaration', inDeclaration: true);
+      const EnumValueDeclarationIdentifierContext();
 
   /// Identifier is the name being declared by a class declaration or a named
   /// mixin application, for example, `Foo` in `class Foo = X with Y;`.
