@@ -88,13 +88,13 @@ class _InvocationMirror implements Invocation {
       // A TypeArguments object does not have a corresponding Dart class and
       // cannot be accessed as an array in Dart. Therefore, we need a native
       // call to unpack the individual types into a list.
-      _typeArguments = _unpackTypeArguments(_arguments[0]);
+      _typeArguments = _unpackTypeArguments(_arguments[0], typeArgsLen);
     }
     return _typeArguments;
   }
 
   // Unpack the given TypeArguments object into a new list of individual types.
-  static List<Type> _unpackTypeArguments(typeArguments)
+  static List<Type> _unpackTypeArguments(typeArguments, int numTypeArguments)
       native "InvocationMirror_unpackTypeArguments";
 
   List get positionalArguments {

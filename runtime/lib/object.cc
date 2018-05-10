@@ -468,16 +468,24 @@ DEFINE_NATIVE_ENTRY(Internal_prependTypeArguments, 4) {
       zone, parent_type_arguments, smi_parent_len.Value(), smi_len.Value());
 }
 
-DEFINE_NATIVE_ENTRY(InvocationMirror_unpackTypeArguments, 1) {
+DEFINE_NATIVE_ENTRY(InvocationMirror_unpackTypeArguments, 2) {
   const TypeArguments& type_arguments =
       TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0));
-  const intptr_t len = type_arguments.Length();
+  const Smi& num_type_arguments =
+      Smi::CheckedHandle(zone, arguments->NativeArgAt(1));
+  bool all_dynamic = type_arguments.IsNull();
+  const intptr_t len =
+      all_dynamic ? num_type_arguments.Value() : type_arguments.Length();
   const Array& type_list = Array::Handle(
       zone, Array::New(len, Type::Handle(zone, Type::DartTypeType())));
   AbstractType& type = AbstractType::Handle(zone);
   for (intptr_t i = 0; i < len; i++) {
-    type = type_arguments.TypeAt(i);
-    type_list.SetAt(i, type);
+    if (all_dynamic) {
+      type_list.SetAt(i, Object::dynamic_type());
+    } else {
+      type = type_arguments.TypeAt(i);
+      type_list.SetAt(i, type);
+    }
   }
   type_list.MakeImmutable();
   return type_list.raw();

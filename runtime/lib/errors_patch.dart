@@ -256,7 +256,8 @@ class NoSuchMethodError {
             new Symbol(memberName),
             invocation_type,
             typeArguments != null
-                ? _InvocationMirror._unpackTypeArguments(typeArguments)
+                // TODO(33073): Use actual count of type arguments in place of 0.
+                ? _InvocationMirror._unpackTypeArguments(typeArguments, 0)
                 : null,
             argumentNames != null
                 ? arguments.sublist(0, arguments.length - argumentNames.length)
