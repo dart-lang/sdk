@@ -8430,10 +8430,10 @@ class ExternalTypedData : public Instance {
 
 #define TYPED_GETTER_SETTER(name, type)                                        \
   type Get##name(intptr_t byte_offset) const {                                 \
-    return *reinterpret_cast<type*>(DataAddr(byte_offset));                    \
+    return ReadUnaligned(reinterpret_cast<type*>(DataAddr(byte_offset)));      \
   }                                                                            \
   void Set##name(intptr_t byte_offset, type value) const {                     \
-    *reinterpret_cast<type*>(DataAddr(byte_offset)) = value;                   \
+    StoreUnaligned(reinterpret_cast<type*>(DataAddr(byte_offset)), value);     \
   }
   TYPED_GETTER_SETTER(Int8, int8_t)
   TYPED_GETTER_SETTER(Uint8, uint8_t)
