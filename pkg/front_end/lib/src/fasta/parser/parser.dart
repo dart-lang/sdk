@@ -4321,13 +4321,7 @@ class Parser {
         next = token.next;
       } else if (optional('(', next)) {
         if (typeArguments == null) {
-          TypeParamOrArgInfo typeArg = computeMethodTypeArguments(token);
-          if (typeArg != noTypeParamOrArg) {
-            token = typeArg.parseArguments(token, this);
-            next = token.next;
-          } else {
-            listener.handleNoTypeArguments(next);
-          }
+          listener.handleNoTypeArguments(next);
         }
         token = parseArguments(token);
         next = token.next;
