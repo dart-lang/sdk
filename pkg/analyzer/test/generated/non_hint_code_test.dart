@@ -1094,6 +1094,35 @@ m(v) {
     verify([source]);
   }
 
+  test_unnecessaryCast_function() async {
+    Source source = addSource(r'''
+void main() {
+  Function(Null) f = (String x) => x;
+  (f as Function(int))(3); 
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_unnecessaryCast_function2() async {
+    Source source = addSource(r'''
+class A {}
+
+class B<T extends A> {
+  void foo() {
+    T Function(T) f;
+    A Function(A) g;
+    g = f as A Function(A);
+  }
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_unnecessaryCast_generics() async {
     // dartbug.com/18953
     Source source = addSource(r'''

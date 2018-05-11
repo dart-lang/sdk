@@ -2957,18 +2957,18 @@ void main() {
   // For as, the validity of checks is deferred to runtime.
   Function f;
   f = /*info:UNNECESSARY_CAST*/foo as I2I;
-  f = /*info:UNNECESSARY_CAST*/foo as D2I;
+  f = foo as D2I;
   f = /*info:UNNECESSARY_CAST*/foo as I2D;
-  f = /*info:UNNECESSARY_CAST*/foo as D2D;
+  f = foo as D2D;
 
   f = /*info:UNNECESSARY_CAST*/bar as II2I;
-  f = /*info:UNNECESSARY_CAST*/bar as DI2I;
-  f = /*info:UNNECESSARY_CAST*/bar as ID2I;
+  f = bar as DI2I;
+  f = bar as ID2I;
   f = /*info:UNNECESSARY_CAST*/bar as II2D;
-  f = /*info:UNNECESSARY_CAST*/bar as DD2I;
-  f = /*info:UNNECESSARY_CAST*/bar as DI2D;
-  f = /*info:UNNECESSARY_CAST*/bar as ID2D;
-  f = /*info:UNNECESSARY_CAST*/bar as DD2D;
+  f = bar as DD2I;
+  f = bar as DI2D;
+  f = bar as ID2D;
+  f = bar as DD2D;
 }
 ''');
   }
