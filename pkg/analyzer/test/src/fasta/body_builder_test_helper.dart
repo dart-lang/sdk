@@ -345,7 +345,7 @@ class FastaBodyBuilderTestCase extends Object
       ..onProblem = (FormattedMessage problem, Severity severity,
           List<FormattedMessage> context) {
         // TODO(danrubel): Capture problems and check against expectations.
-        print(problem.formatted);
+//        print(problem.formatted);
       };
 
     options = new ProcessedOptions(optionBuilder, false, [entryPoint]);

@@ -33,4 +33,10 @@ class AstBodyBuilder extends BodyBuilder<Expression, Statement, dynamic> {
       : forest = new AstBuildingForest(typeProvider),
         super(library, member, scope, formalParameterScope, hierarchy,
             coreTypes, classBuilder, isInstanceMember, uri, typeInferrer);
+
+  @override
+  void printEvent(String name) {
+    // TODO(scheglov): Call of super is commented out to prevent spamming.
+//    super.printEvent(name);
+  }
 }
