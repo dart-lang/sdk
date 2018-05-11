@@ -990,8 +990,30 @@ class KernelSsaGraphBuilder extends ir.Visitor
             sourceInformation: _sourceInformationBuilder.buildIf(functionNode));
       }
     }
+    if (const bool.fromEnvironment('unreachable-throw')) {
+      var emptyParameters = parameters.values
+          .where((p) => abstractValueDomain.isEmpty(p.instructionType));
+      if (emptyParameters.length > 0) {
+        addComment('${emptyParameters} inferred as [empty]');
+        add(new HInvokeStatic(commonElements.assertUnreachableMethod,
+            <HInstruction>[], commonMasks.dynamicType, const <DartType>[]));
+        closeFunction();
+        return;
+      }
+    }
     functionNode.body.accept(this);
     closeFunction();
+  }
+
+  /// Adds a JavaScript comment to the output. The comment will be omitted in
+  /// minified mode.  Each line in [text] is preceded with `//` and indented.
+  /// Use sparingly. In order for the comment to be retained it is modeled as
+  /// having side effects which will inhibit code motion.
+  // TODO(sra): Figure out how to keep comment anchored without effects.
+  void addComment(String text) {
+    add(new HForeignCode(js.js.statementTemplateYielding(new js.Comment(text)),
+        commonMasks.dynamicType, <HInstruction>[],
+        isStatement: true));
   }
 
   /// Builds a SSA graph for a sync*/async/async* generator.
