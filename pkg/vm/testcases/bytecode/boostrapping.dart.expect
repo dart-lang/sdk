@@ -105,17 +105,19 @@ ConstantPool {
   external static method _getDefault() → core::int;
 [@vm.bytecode=
 Bytecode {
-  Entry                1
+  Entry                2
   CheckStack
   Allocate             CP#0
-  StoreLocal           r0
-  Push                 r0
+  StoreLocal           r1
+  Push                 r1
   PushConstant         CP#2
   IndirectStaticCall   1, CP#1
   Drop1
   Push                 FP[-5]
   PushConstant         CP#4
   IndirectStaticCall   2, CP#3
+  StoreLocal           r0
+  Push                 r0
   StoreStaticTOS       CP#5
   Drop1
   PushConstant         CP#6
@@ -135,7 +137,7 @@ ConstantPool {
   }
 [@vm.bytecode=
 Bytecode {
-  Entry                1
+  Entry                2
   CheckStack
   PushConstant         CP#0
   PushStatic           CP#0
@@ -145,8 +147,8 @@ Bytecode {
   IfNeStrictTOS
   Jump                 L1
   Allocate             CP#5
-  StoreLocal           r0
-  Push                 r0
+  StoreLocal           r1
+  Push                 r1
   PushConstant         CP#7
   IndirectStaticCall   1, CP#6
   Drop1
@@ -154,6 +156,8 @@ Bytecode {
   IndirectStaticCall   0, CP#8
   PushConstant         CP#10
   IndirectStaticCall   2, CP#2
+  StoreLocal           r0
+  Push                 r0
   StoreStaticTOS       CP#0
   Drop1
 L1:
@@ -421,12 +425,16 @@ ConstantPool {
     ;
 [@vm.bytecode=
 Bytecode {
-  Entry                0
+  Entry                2
   CheckStack
   Push                 FP[-5]
+  StoreLocal           r0
+  Push                 r0
   StoreStaticTOS       CP#0
   Drop1
   PushConstant         CP#1
+  StoreLocal           r1
+  Push                 r1
   StoreStaticTOS       CP#2
   Drop1
   PushConstant         CP#1
@@ -443,7 +451,7 @@ ConstantPool {
   }
 [@vm.bytecode=
 Bytecode {
-  Entry                1
+  Entry                2
   CheckStack
   PushConstant         CP#0
   PushStatic           CP#0
@@ -470,6 +478,8 @@ L2:
   PushConstant         CP#5
   PushStatic           CP#5
   InstanceCall1        1, CP#9
+  StoreLocal           r1
+  Push                 r1
   StoreStaticTOS       CP#0
   Drop1
 L3:
@@ -582,9 +592,11 @@ ConstantPool {
   return self::_print;
 [@vm.bytecode=
 Bytecode {
-  Entry                0
+  Entry                1
   CheckStack
   Push                 FP[-5]
+  StoreLocal           r0
+  Push                 r0
   StoreStaticTOS       CP#0
   Drop1
   PushConstant         CP#1
@@ -599,15 +611,21 @@ ConstantPool {
 }
 [@vm.bytecode=
 Bytecode {
-  Entry                0
+  Entry                3
   CheckStack
   Push                 FP[-7]
+  StoreLocal           r0
+  Push                 r0
   StoreStaticTOS       CP#0
   Drop1
   Push                 FP[-6]
+  StoreLocal           r1
+  Push                 r1
   StoreStaticTOS       CP#1
   Drop1
   Push                 FP[-5]
+  StoreLocal           r2
+  Push                 r2
   StoreStaticTOS       CP#2
   Drop1
   PushConstant         CP#3
@@ -711,11 +729,14 @@ ConstantPool {
 }
 [@vm.bytecode=
 Bytecode {
-  Entry                0
+  Entry                1
   CheckStack
   PushConstant         CP#0
+  StoreLocal           r0
+  Push                 r0
   PushConstant         CP#2
   IndirectStaticCall   1, CP#1
+  Drop1
   Drop1
   PushConstant         CP#3
   ReturnTOS
