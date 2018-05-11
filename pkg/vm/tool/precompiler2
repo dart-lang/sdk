@@ -24,15 +24,10 @@ for arg in "$@"; do
     --packages=*)
     PACKAGES="$arg"
     ;;
-    --enable-asserts)
-    GEN_KERNEL_OPTIONS+=("$arg")
-    OPTIONS+=("$arg")
-    ;;
     --sync-async | \
     --no-sync-async | \
     --tfa | \
-    --no-tfa | \
-    -D* )
+    --no-tfa )
     GEN_KERNEL_OPTIONS+=("$arg")
     ;;
     --*)

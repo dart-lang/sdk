@@ -172,11 +172,6 @@ String type2 = '$buffer';
         arguments.add("'count2': count2");
         break;
 
-      case "#constant":
-        parameters.add("Constant constant");
-        arguments.add("'constant': constant");
-        break;
-
       default:
         throw "Unhandled placeholder in template: ${match[0]}";
     }

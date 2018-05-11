@@ -7,34 +7,16 @@ library vm.kernel_front_end;
 
 import 'dart:async';
 
-import 'package:front_end/src/base/processed_options.dart'
-    show ProcessedOptions;
-import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
-import 'package:front_end/src/fasta/fasta_codes.dart' as codes;
-
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions, ProblemHandler;
+    show CompilerOptions, ErrorHandler;
 import 'package:front_end/src/api_prototype/kernel_generator.dart'
     show kernelForProgram;
 import 'package:front_end/src/api_prototype/compilation_message.dart'
-    show Severity;
-import 'package:kernel/type_environment.dart' show TypeEnvironment;
-import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-import 'package:kernel/ast.dart'
-    show
-        Component,
-        Constant,
-        DartType,
-        Field,
-        FileUriNode,
-        Procedure,
-        StaticGet,
-        TreeNode;
+    show CompilationMessage, Severity;
+import 'package:front_end/src/fasta/severity.dart' show Severity;
+import 'package:kernel/ast.dart' show Component, StaticGet, Field;
 import 'package:kernel/core_types.dart' show CoreTypes;
-import 'package:kernel/transformations/constants.dart' as constants;
-import 'package:kernel/vm/constants_native_effects.dart' as vm_constants;
-
-import 'bytecode/gen_bytecode.dart' show generateBytecode;
+import 'package:vm/bytecode/gen_bytecode.dart' show generateBytecode;
 
 import 'transformations/devirtualization.dart' as devirtualization
     show transformComponent;
@@ -54,34 +36,22 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
     {bool aot: false,
     bool useGlobalTypeFlowAnalysis: false,
     List<String> entryPoints,
-    Map<String, String> environmentDefines,
-    bool genBytecode: false,
-    bool enableAsserts: false,
-    bool enableConstantEvaluation: true}) async {
+    bool genBytecode: false}) async {
   // Replace error handler to detect if there are compilation errors.
   final errorDetector =
-      new ErrorDetector(previousErrorHandler: options.onProblem);
-  options.onProblem = errorDetector;
+      new ErrorDetector(previousErrorHandler: options.onError);
+  options.onError = errorDetector;
 
   final component = await kernelForProgram(source, options);
 
-  // Run global transformations only if component is correct.
-  if (aot && component != null) {
-    await _runGlobalTransformations(
-        source,
-        options,
-        component,
-        options.strongMode,
-        useGlobalTypeFlowAnalysis,
-        entryPoints,
-        environmentDefines,
-        enableAsserts,
-        enableConstantEvaluation,
-        errorDetector);
-  }
-
   // Restore error handler (in case 'options' are reused).
-  options.onProblem = errorDetector.previousErrorHandler;
+  options.onError = errorDetector.previousErrorHandler;
+
+  // Run global transformations only if component is correct.
+  if (aot && (component != null) && !errorDetector.hasCompilationErrors) {
+    _runGlobalTransformations(
+        component, options.strongMode, useGlobalTypeFlowAnalysis, entryPoints);
+  }
 
   if (genBytecode && component != null) {
     generateBytecode(component, strongMode: options.strongMode);
@@ -90,21 +60,11 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
   return component;
 }
 
-Future _runGlobalTransformations(
-    Uri source,
-    CompilerOptions compilerOptions,
-    Component component,
-    bool strongMode,
-    bool useGlobalTypeFlowAnalysis,
-    List<String> entryPoints,
-    Map<String, String> environmentDefines,
-    bool enableAsserts,
-    bool enableConstantEvaluation,
-    ErrorDetector errorDetector) async {
+_runGlobalTransformations(Component component, bool strongMode,
+    bool useGlobalTypeFlowAnalysis, List<String> entryPoints) {
   if (strongMode) {
-    if (errorDetector.hasCompilationErrors) return;
-
     final coreTypes = new CoreTypes(component);
+
     _patchVmConstants(coreTypes);
 
     // TODO(alexmarkov, dmitryas): Consider doing canonicalization of identical
@@ -121,54 +81,8 @@ Future _runGlobalTransformations(
       devirtualization.transformComponent(coreTypes, component);
     }
 
-    if (enableConstantEvaluation) {
-      await _performConstantEvaluation(source, compilerOptions, component,
-          coreTypes, environmentDefines, strongMode, enableAsserts);
-
-      if (errorDetector.hasCompilationErrors) return;
-    }
-
     no_dynamic_invocations_annotator.transformComponent(component);
   }
-}
-
-Future _performConstantEvaluation(
-    Uri source,
-    CompilerOptions compilerOptions,
-    Component component,
-    CoreTypes coreTypes,
-    Map<String, String> environmentDefines,
-    bool strongMode,
-    bool enableAsserts) async {
-  final vmConstants =
-      new vm_constants.VmConstantsBackend(environmentDefines, coreTypes);
-
-  final processedOptions =
-      new ProcessedOptions(compilerOptions, false, [source]);
-
-  // Run within the context, so we have uri source tokens...
-  await CompilerContext.runWithOptions(processedOptions,
-      (CompilerContext context) async {
-    // To make the fileUri/fileOffset -> line/column mapping, we need to
-    // pre-fill the map.
-    context.uriToSource.addAll(component.uriToSource);
-
-    final hierarchy = new ClassHierarchy(component);
-    final typeEnvironment =
-        new TypeEnvironment(coreTypes, hierarchy, strongMode: strongMode);
-
-    // NOTE: Currently we keep fields, because there are certain constant
-    // fields which the VM accesses (e.g. `_Random._A` needs to be preserved).
-    // TODO(kustermann): We should use the entrypoints manifest to find out
-    // which fields need to be preserved and remove the rest.
-    constants.transformComponent(component, vmConstants,
-        keepFields: true,
-        strongMode: true,
-        evaluateAnnotations: false,
-        enableAsserts: enableAsserts,
-        errorReporter:
-            new ForwardConstantEvaluationErrors(context, typeEnvironment));
-  });
 }
 
 void _patchVmConstants(CoreTypes coreTypes) {
@@ -187,147 +101,16 @@ void _patchVmConstants(CoreTypes coreTypes) {
 }
 
 class ErrorDetector {
-  final ProblemHandler previousErrorHandler;
+  final ErrorHandler previousErrorHandler;
   bool hasCompilationErrors = false;
 
   ErrorDetector({this.previousErrorHandler});
 
-  void call(codes.FormattedMessage problem, Severity severity,
-      List<codes.FormattedMessage> context) {
-    if (severity == Severity.error) {
+  void call(CompilationMessage message) {
+    if (message.severity == Severity.error) {
       hasCompilationErrors = true;
     }
 
-    previousErrorHandler?.call(problem, severity, context);
-  }
-}
-
-class ErrorPrinter {
-  final ProblemHandler previousErrorHandler;
-  final compilationMessages = <Uri, List<List>>{};
-
-  ErrorPrinter({this.previousErrorHandler});
-
-  void call(codes.FormattedMessage problem, Severity severity,
-      List<codes.FormattedMessage> context) {
-    final sourceUri = problem.locatedMessage.uri;
-    compilationMessages.putIfAbsent(sourceUri, () => [])
-      ..add([problem, context]);
-    previousErrorHandler?.call(problem, severity, context);
-  }
-
-  void printCompilationMessages(Uri baseUri) {
-    final sortedUris = compilationMessages.keys.toList()
-      ..sort((a, b) => '$a'.compareTo('$b'));
-    for (final Uri sourceUri in sortedUris) {
-      for (final List errorTuple in compilationMessages[sourceUri]) {
-        final codes.FormattedMessage message = errorTuple.first;
-        print(message.formatted);
-
-        final List context = errorTuple.last;
-        for (final codes.FormattedMessage message in context?.reversed) {
-          print(message.formatted);
-        }
-      }
-    }
-  }
-}
-
-class ForwardConstantEvaluationErrors implements constants.ErrorReporter {
-  final CompilerContext compilerContext;
-  final TypeEnvironment typeEnvironment;
-
-  ForwardConstantEvaluationErrors(this.compilerContext, this.typeEnvironment);
-
-  duplicateKey(List<TreeNode> context, TreeNode node, Constant key) {
-    final message = codes.templateConstEvalDuplicateKey.withArguments(key);
-    reportIt(context, message, node);
-  }
-
-  invalidDartType(List<TreeNode> context, TreeNode node, Constant receiver,
-      DartType expectedType) {
-    final message = codes.templateConstEvalInvalidType.withArguments(
-        receiver, expectedType, receiver.getType(typeEnvironment));
-    reportIt(context, message, node);
-  }
-
-  invalidBinaryOperandType(
-      List<TreeNode> context,
-      TreeNode node,
-      Constant receiver,
-      String op,
-      DartType expectedType,
-      DartType actualType) {
-    final message = codes.templateConstEvalInvalidBinaryOperandType
-        .withArguments(op, receiver, expectedType, actualType);
-    reportIt(context, message, node);
-  }
-
-  invalidMethodInvocation(
-      List<TreeNode> context, TreeNode node, Constant receiver, String op) {
-    final message = codes.templateConstEvalInvalidMethodInvocation
-        .withArguments(op, receiver);
-    reportIt(context, message, node);
-  }
-
-  invalidStaticInvocation(
-      List<TreeNode> context, TreeNode node, Procedure target) {
-    final message = codes.templateConstEvalInvalidStaticInvocation
-        .withArguments(target.name.toString());
-    reportIt(context, message, node);
-  }
-
-  invalidStringInterpolationOperand(
-      List<TreeNode> context, TreeNode node, Constant constant) {
-    final message = codes.templateConstEvalInvalidStringInterpolationOperand
-        .withArguments(constant);
-    reportIt(context, message, node);
-  }
-
-  nonConstLiteral(List<TreeNode> context, TreeNode node, String klass) {
-    final message =
-        codes.templateConstEvalNonConstantLiteral.withArguments(klass);
-    reportIt(context, message, node);
-  }
-
-  failedAssertion(List<TreeNode> context, TreeNode node, String string) {
-    final message = string == null
-        ? codes.messageConstEvalFailedAssertion
-        : codes.templateConstEvalFailedAssertionWithMessage
-            .withArguments(string);
-    reportIt(context, message, node);
-  }
-
-  reportIt(List<TreeNode> context, codes.Message message, TreeNode node) {
-    final Uri uri = getFileUri(node);
-    final int fileOffset = getFileOffset(node);
-
-    final contextMessages = <codes.LocatedMessage>[];
-    for (final TreeNode node in context) {
-      final Uri uri = getFileUri(node);
-      final int fileOffset = getFileOffset(node);
-      contextMessages.add(codes.messageConstEvalContext
-          .withLocation(uri, fileOffset, codes.noLength));
-    }
-
-    final locatedMessage =
-        message.withLocation(uri, fileOffset, codes.noLength);
-
-    compilerContext.options
-        .report(locatedMessage, Severity.error, context: contextMessages);
-  }
-
-  getFileUri(TreeNode node) {
-    while (node is! FileUriNode) {
-      node = node.parent;
-    }
-    return (node as FileUriNode).fileUri;
-  }
-
-  getFileOffset(TreeNode node) {
-    while (node.fileOffset == TreeNode.noOffset) {
-      node = node.parent;
-    }
-    return node == null ? TreeNode.noOffset : node.fileOffset;
+    previousErrorHandler?.call(message);
   }
 }

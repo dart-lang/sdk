@@ -2712,7 +2712,6 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     CollectImmediateSuperInterfaces(cls, &cids);
     RemoveCHAOptimizedCode(cls, cids);
   }
-
   if (cls.is_enum_class()) {
     AllocateEnumValues(cls);
   }
@@ -2766,15 +2765,11 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
           (sentinel.raw() == field.raw())) {
         continue;
       }
-      // The eager evaluation of the enum values is required for hot-reload (see
-      // commit e3ecc87).
-      if (!FLAG_precompiled_mode) {
-        field.SetStaticValue(Object::transition_sentinel());
-        result = Compiler::EvaluateStaticInitializer(field);
-        ASSERT(!result.IsError());
-        field.SetStaticValue(Instance::Cast(result), true);
-        field.RecordStore(Instance::Cast(result));
-      }
+      field.SetStaticValue(Object::transition_sentinel());
+      result = Compiler::EvaluateStaticInitializer(field);
+      ASSERT(!result.IsError());
+      field.SetStaticValue(Instance::Cast(result), true);
+      field.RecordStore(Instance::Cast(result));
     }
   } else {
     const String& name_prefix =

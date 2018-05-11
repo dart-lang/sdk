@@ -8,14 +8,14 @@ import 'dart:io';
 import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
+import 'package:kernel/kernel.dart' show Component;
 import 'package:kernel/src/tool/batch_util.dart' as batch_util;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:kernel/target/vm.dart' show VmTarget;
 import 'package:kernel/text/ast_to_text.dart'
     show globalDebuggingNames, NameSystem;
 import 'package:vm/bytecode/gen_bytecode.dart' show isKernelBytecodeEnabled;
-import 'package:vm/kernel_front_end.dart'
-    show compileToKernel, ErrorDetector, ErrorPrinter;
+import 'package:vm/kernel_front_end.dart' show compileToKernel, ErrorDetector;
 
 final ArgParser _argParser = new ArgParser(allowTrailingOptions: true)
   ..addOption('platform',
@@ -35,14 +35,6 @@ final ArgParser _argParser = new ArgParser(allowTrailingOptions: true)
   ..addFlag('tfa',
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',
-      defaultsTo: true)
-  ..addMultiOption('define',
-      abbr: 'D',
-      help: 'The values for the environment constants (e.g. -Dkey=value).')
-  ..addFlag('enable-asserts',
-      help: 'Whether asserts will be enabled.', defaultsTo: false)
-  ..addFlag('enable-constant-evaluation',
-      help: 'Whether kernel constant evaluation will be enabled.',
       defaultsTo: true)
   ..addMultiOption('entry-points',
       help: 'Path to JSON file with the list of entry points')
@@ -85,13 +77,6 @@ Future<int> compile(List<String> arguments) async {
   final bool syncAsync = options['sync-async'];
   final bool tfa = options['tfa'];
   final bool genBytecode = options['gen-bytecode'];
-  final bool enableAsserts = options['enable-asserts'];
-  final bool enableConstantEvaluation = options['enable-constant-evaluation'];
-  final Map<String, String> environmentDefines = {};
-
-  if (!_parseDefines(options['define'], environmentDefines)) {
-    return _badUsageExitCode;
-  }
 
   final List<String> entryPoints = options['entry-points'] ?? <String>[];
   if (entryPoints.isEmpty) {
@@ -102,8 +87,7 @@ Future<int> compile(List<String> arguments) async {
     ]);
   }
 
-  final errorPrinter = new ErrorPrinter();
-  final errorDetector = new ErrorDetector(previousErrorHandler: errorPrinter);
+  ErrorDetector errorDetector = new ErrorDetector();
 
   final CompilerOptions compilerOptions = new CompilerOptions()
     ..strongMode = strongMode
@@ -115,21 +99,15 @@ Future<int> compile(List<String> arguments) async {
     ..packagesFileUri =
         packages != null ? Uri.base.resolveUri(new Uri.file(packages)) : null
     ..reportMessages = true
-    ..onProblem = errorDetector
+    ..onError = errorDetector
     ..embedSourceText = options['embed-sources'];
 
-  final inputUri = new Uri.file(filename);
-  final component = await compileToKernel(
-      Uri.base.resolveUri(inputUri), compilerOptions,
+  Component component = await compileToKernel(
+      Uri.base.resolveUri(new Uri.file(filename)), compilerOptions,
       aot: aot,
       useGlobalTypeFlowAnalysis: tfa,
       entryPoints: entryPoints,
-      environmentDefines: environmentDefines,
-      genBytecode: genBytecode,
-      enableAsserts: enableAsserts,
-      enableConstantEvaluation: enableConstantEvaluation);
-
-  errorPrinter.printCompilationMessages(inputUri);
+      genBytecode: genBytecode);
 
   if (errorDetector.hasCompilationErrors || (component == null)) {
     return _compileTimeErrorExitCode;
@@ -173,23 +151,4 @@ Future runBatchModeCompiler() async {
         throw 'Could not obtain correct exit code from compiler.';
     }
   });
-}
-
-bool _parseDefines(
-    List<String> dFlags, Map<String, String> environmentDefines) {
-  for (final String dflag in dFlags) {
-    final equalsSignIndex = dflag.indexOf('=');
-    if (equalsSignIndex < 0) {
-      environmentDefines[dflag] = '';
-    } else if (equalsSignIndex > 0) {
-      final key = dflag.substring(0, equalsSignIndex);
-      final value = dflag.substring(equalsSignIndex + 1);
-      environmentDefines[key] = value;
-    } else {
-      print('The environment constant options must have a key (was: "$dflag")');
-      print(_usage);
-      return false;
-    }
-  }
-  return true;
 }
