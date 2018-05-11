@@ -357,7 +357,6 @@ namespace dart {
 
 // List of bootstrap native entry points used in the dart:mirror library.
 #define MIRRORS_BOOTSTRAP_NATIVE_LIST(V)                                       \
-  V(Mirrors_evalInLibraryWithPrivateKey, 2)                                    \
   V(Mirrors_makeLocalClassMirror, 1)                                           \
   V(Mirrors_makeLocalTypeMirror, 1)                                            \
   V(Mirrors_instantiateGenericType, 2)                                         \
