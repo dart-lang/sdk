@@ -1281,9 +1281,6 @@ regress_28341_test: Fail # Issue 28340
 type_variable_nested_test/01: RuntimeError
 type_variable_promotion_test: RuntimeError
 
-[ $compiler == dartkp && $runtime == dart_precompiled ]
-metadata_test: Crash # Issue 33086
-
 [ $compiler != dartkp && $mode == product && $runtime == dart_precompiled ]
 vm/type_vm_test/28: MissingRuntimeError
 vm/type_vm_test/29: MissingRuntimeError
