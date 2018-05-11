@@ -32,6 +32,8 @@
 
 #### Pub
 
+* Use forward-slash paths to Git on Windows
+
 #### Other Tools
 
 ## 2.0.0-dev.54.0
