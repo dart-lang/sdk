@@ -30,7 +30,6 @@ mirrors/generic_f_bounded_mixin_application_test: CompileTimeError
 mirrors/mirrors_nsm_mismatch_test: CompileTimeError, OK
 mirrors/mirrors_nsm_test: CompileTimeError, OK
 mirrors/mirrors_nsm_test/dart2js: CompileTimeError, OK
-mirrors/relation_subclass_test: CompileTimeError, OK
 mirrors/repeated_private_anon_mixin_app_test: CompileTimeError, OK # Intentional library name conflict.
 
 [ $compiler == dart2analyzer && !$strong ]

@@ -658,11 +658,15 @@ class _LocalClassMirror extends _LocalObjectMirror
   var _superinterfaces;
   List<ClassMirror> get superinterfaces {
     if (_superinterfaces == null) {
-      _superinterfaces = isOriginalDeclaration
+      var interfaceTypes = isOriginalDeclaration
           ? _nativeInterfaces(_reflectedType)
           : _nativeInterfacesInstantiated(_reflectedType);
-      _superinterfaces = new UnmodifiableListView<ClassMirror>(
-          _superinterfaces.map(reflectType));
+      var interfaceMirrors = new List<ClassMirror>();
+      for (var interfaceType in interfaceTypes) {
+        interfaceMirrors.add(reflectType(interfaceType));
+      }
+      _superinterfaces =
+          new UnmodifiableListView<ClassMirror>(interfaceMirrors);
     }
     return _superinterfaces;
   }
@@ -1311,12 +1315,14 @@ class _LocalLibraryDependencyMirror extends _LocalMirror
   _LocalLibraryDependencyMirror(
       this.sourceLibrary,
       this._targetMirrorOrPrefix,
-      this.combinators,
+      List<dynamic> mutableCombinators,
       prefixString,
       this.isImport,
       this.isDeferred,
       List<dynamic> unwrappedMetadata)
       : prefix = _s(prefixString),
+        combinators = new UnmodifiableListView<CombinatorMirror>(
+            mutableCombinators.cast<CombinatorMirror>()),
         metadata = new UnmodifiableListView<InstanceMirror>(
             unwrappedMetadata.map(reflect));
 
@@ -1354,7 +1360,8 @@ class _LocalCombinatorMirror extends _LocalMirror implements CombinatorMirror {
   final bool isShow;
 
   _LocalCombinatorMirror(identifierString, this.isShow)
-      : this.identifiers = [_s(identifierString)];
+      : this.identifiers =
+            new UnmodifiableListView<Symbol>(<Symbol>[_s(identifierString)]);
 
   bool get isHide => !isShow;
 }
