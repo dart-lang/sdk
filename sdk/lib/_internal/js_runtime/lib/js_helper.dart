@@ -3882,7 +3882,7 @@ Future<Null> _loadHunk(String hunkName) {
     var script = JS('', 'document.createElement("script")');
     JS('', '#.type = "text/javascript"', script);
     JS('', '#.src = #', script, uri);
-    if (_cspNonce != '') {
+    if (_cspNonce != null && _cspNonce != '') {
       JS('', '#.nonce = #', script, _cspNonce);
     }
     JS('', '#.addEventListener("load", #, false)', script, jsSuccess);

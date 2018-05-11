@@ -18,7 +18,7 @@ main() {
       .where((s) => s.src.contains("generated_compilations"))
       .toList();
   Expect.equals(1, scripts.length);
-  Expect.equals('', scripts.first.nonce);
+  Expect.equals('', scripts.first.nonce ?? '');
   scripts.first.nonce = "an-example-nonce-string";
 
   lib.loadLibrary().then((_) {
