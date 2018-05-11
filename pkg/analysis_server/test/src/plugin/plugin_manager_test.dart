@@ -779,6 +779,7 @@ import 'dart:async';
 import 'dart:isolate';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/plugin/plugin.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/starter.dart';
@@ -800,6 +801,9 @@ class MinimalPlugin extends ServerPlugin {
 
   @override
   String get version => '0.0.1';
+
+  @override
+  AnalysisDriverGeneric createAnalysisDriver(ContextRoot contextRoot) => null;
 
   @override
   Future<AnalysisHandleWatchEventsResult> handleAnalysisHandleWatchEvents(
