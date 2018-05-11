@@ -87,14 +87,13 @@ import 'type_info.dart'
     show
         TypeInfo,
         TypeParamOrArgInfo,
+        computeMethodTypeArguments,
         computeType,
         computeTypeParamOrArg,
         isGeneralizedFunctionType,
         isValidTypeReference,
         noType,
         noTypeParamOrArg;
-
-import 'type_info_impl.dart' show skipTypeVariables;
 
 import 'util.dart' show optional;
 
@@ -1020,7 +1019,7 @@ class Parser {
     if (optional("<", token.next)) {
       reportRecoverableError(token.next, fasta.messageMetadataTypeArguments);
     }
-    token = parseTypeArgumentsOpt(token);
+    token = computeTypeParamOrArg(token).parseArguments(token, this);
     Token period = null;
     if (optional('.', token.next)) {
       period = token.next;
@@ -1520,22 +1519,6 @@ class Parser {
     assert(optional('}', token));
     listener.endOptionalFormalParameters(parameterCount, begin, token);
     return token;
-  }
-
-  /// Returns `true` if [token] matches '<' type (',' type)* '>' '(', and
-  /// otherwise returns `false`. The final '(' is not part of the grammar
-  /// construct `typeArguments`, but it is required here such that type
-  /// arguments in generic method invocations can be recognized, and as few as
-  /// possible other constructs will pass (e.g., 'a < C, D > 3').
-  bool isValidMethodTypeArguments(Token token) {
-    // TODO(danrubel): Replace call with a call to computeTypeVar.
-    if (optional('<', token)) {
-      Token endGroup = skipTypeVariables(token);
-      if (endGroup != null && optional('(', endGroup.next)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   /// ```
@@ -3583,7 +3566,7 @@ class Parser {
     listener.beginConstructorReference(start);
     token = parseQualifiedRestOpt(
         start, IdentifierContext.constructorReferenceContinuation);
-    token = parseTypeArgumentsOpt(token);
+    token = computeTypeParamOrArg(token).parseArguments(token, this);
     Token period = null;
     if (optional('.', token.next)) {
       period = token.next;
@@ -4126,9 +4109,8 @@ class Parser {
     TokenType type = next.type;
     int tokenLevel = type.precedence;
     Token typeArguments;
-    TypeParamOrArgInfo typeArg = computeTypeParamOrArg(token);
-    if (typeArg != noTypeParamOrArg &&
-        optional('(', typeArg.skip(token).next)) {
+    TypeParamOrArgInfo typeArg = computeMethodTypeArguments(token);
+    if (typeArg != noTypeParamOrArg) {
       // For example a(b)<T>(c), where token is before '<'.
       typeArguments = next;
       token = typeArg.parseArguments(token, this);
@@ -4235,10 +4217,11 @@ class Parser {
         listener.endBinaryExpression(period);
       }
       Token typeArguments;
-      if (isValidMethodTypeArguments(next)) {
+      TypeParamOrArgInfo typeArg = computeMethodTypeArguments(token);
+      if (typeArg != noTypeParamOrArg) {
         // For example a(b)..<T>(c), where token is '<'.
         typeArguments = next;
-        token = parseTypeArgumentsOpt(token);
+        token = typeArg.parseArguments(token, this);
         next = token.next;
         assert(optional('(', next));
       }
@@ -4338,8 +4321,9 @@ class Parser {
         next = token.next;
       } else if (optional('(', next)) {
         if (typeArguments == null) {
-          if (isValidMethodTypeArguments(next)) {
-            token = parseTypeArgumentsOpt(token);
+          TypeParamOrArgInfo typeArg = computeMethodTypeArguments(token);
+          if (typeArg != noTypeParamOrArg) {
+            token = typeArg.parseArguments(token, this);
             next = token.next;
           } else {
             listener.handleNoTypeArguments(next);
@@ -4657,7 +4641,7 @@ class Parser {
       token = parseTypeVariablesOpt(token);
       return parseLiteralFunctionSuffix(token);
     } else {
-      token = parseTypeArgumentsOpt(token);
+      token = computeTypeParamOrArg(token).parseArguments(token, this);
       Token next = token.next;
       if (optional('{', next)) {
         return parseLiteralMapSuffix(token, constKeyword);
@@ -4929,8 +4913,9 @@ class Parser {
 
   Token parseSend(Token token, IdentifierContext context) {
     Token beginToken = token = ensureIdentifier(token, context);
-    if (isValidMethodTypeArguments(token.next)) {
-      token = parseTypeArgumentsOpt(token);
+    TypeParamOrArgInfo typeArg = computeMethodTypeArguments(token);
+    if (typeArg != noTypeParamOrArg) {
+      token = typeArg.parseArguments(token, this);
     } else {
       listener.handleNoTypeArguments(token.next);
     }

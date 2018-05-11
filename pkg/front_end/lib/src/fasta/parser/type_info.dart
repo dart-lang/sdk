@@ -280,3 +280,15 @@ TypeParamOrArgInfo computeTypeParamOrArg(Token token, [Token innerEndGroup]) {
   // TODO(danrubel): Consider adding additional const for common situations.
   return new ComplexTypeParamOrArgInfo(token).compute(innerEndGroup);
 }
+
+/// Called by the parser to obtain information about a possible group of type
+/// type arguments that follow [token] and that are followed by '('.
+/// Returns the type arguments if [token] matches '<' type (',' type)* '>' '(',
+/// and otherwise returns [noTypeParamOrArg]. The final '(' is not part of the
+/// grammar construct `typeArguments`, but it is required here such that type
+/// arguments in generic method invocations can be recognized, and as few as
+/// possible other constructs will pass (e.g., 'a < C, D > 3').
+TypeParamOrArgInfo computeMethodTypeArguments(Token token) {
+  TypeParamOrArgInfo typeArg = computeTypeParamOrArg(token);
+  return optional('(', typeArg.skip(token).next) ? typeArg : noTypeParamOrArg;
+}

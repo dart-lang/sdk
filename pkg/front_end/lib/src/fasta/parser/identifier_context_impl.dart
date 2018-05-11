@@ -15,7 +15,7 @@ import 'parser.dart' show Parser;
 import 'type_info.dart'
     show insertSyntheticIdentifierAfter, isValidTypeReference;
 
-import 'util.dart' show optional, skipMetadata;
+import 'util.dart' show optional;
 
 /// See [IdentifierContext.classOrNamedMixinDeclaration].
 class ClassOrNamedMixinIdentifierContext extends IdentifierContext {
@@ -515,20 +515,6 @@ class TypeReferenceIdentifierContext extends IdentifierContext {
   Token ensureIdentifier(Token token, Parser parser) {
     Token next = token.next;
     assert(next.kind != IDENTIFIER_TOKEN);
-    if (isValidTypeReference(next)) {
-      return next;
-    }
-
-    // Recovery: skip over any annotations
-    while (optional('@', next)) {
-      // TODO(danrubel): Improve this error message to indicate that an
-      // annotation is not allowed before type arguments.
-      parser.reportRecoverableErrorWithToken(
-          next, fasta.templateUnexpectedToken);
-      token = skipMetadata(token);
-      next = token.next;
-    }
-
     if (isValidTypeReference(next)) {
       return next;
     } else if (next.isKeywordOrIdentifier) {

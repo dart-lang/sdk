@@ -291,8 +291,10 @@ abstract class ParserAdapter implements Parser {
 
   @override
   TypeArgumentList parseTypeArgumentList() {
-    currentToken = fastaParser
-        .parseTypeArgumentsOpt(fastaParser.syntheticPreviousToken(currentToken))
+    Token previous = fastaParser.syntheticPreviousToken(currentToken);
+    currentToken = fasta
+        .computeTypeParamOrArg(previous)
+        .parseArguments(previous, fastaParser)
         .next;
     return astBuilder.pop();
   }
