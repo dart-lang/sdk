@@ -6,6 +6,7 @@ library _js_helper;
 
 import 'dart:_js_embedded_names'
     show
+        CURRENT_SCRIPT,
         DEFERRED_LIBRARY_PARTS,
         DEFERRED_PART_URIS,
         DEFERRED_PART_HASHES,
@@ -3788,6 +3789,15 @@ Future<Null> loadDeferredLibrary(String loadId) {
   });
 }
 
+/// The `nonce` value on the current script used for strict-CSP, if any.
+String _cspNonce = _computeCspNonce();
+
+String _computeCspNonce() {
+  var currentScript = JS_EMBEDDED_GLOBAL('', CURRENT_SCRIPT);
+  if (currentScript == null) return null;
+  return JS('String', 'String(#.nonce)', currentScript);
+}
+
 Future<Null> _loadHunk(String hunkName) {
   Future<Null> future = _loadingLibraries[hunkName];
   _eventLog.add(' - _loadHunk: $hunkName');
@@ -3872,6 +3882,9 @@ Future<Null> _loadHunk(String hunkName) {
     var script = JS('', 'document.createElement("script")');
     JS('', '#.type = "text/javascript"', script);
     JS('', '#.src = #', script, uri);
+    if (_cspNonce != '') {
+      JS('', '#.nonce = #', script, _cspNonce);
+    }
     JS('', '#.addEventListener("load", #, false)', script, jsSuccess);
     JS('', '#.addEventListener("error", #, false)', script, jsFailure);
     JS('', 'document.body.appendChild(#)', script);

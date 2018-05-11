@@ -43,6 +43,7 @@ no_such_method_mirrors_test: Pass, Slow # TODO(kasperl): Please triage.
 
 [ $compiler == dart2js && $runtime == d8 && $fasta ]
 deferred_fail_and_retry_test: RuntimeError # Uses XHR in dart:html
+deferred_with_csp_nonce_test: RuntimeError # Uses dart:html
 unconditional_dartio_import_test: RuntimeError # Uses dart:io
 
 [ $compiler == dart2js && $runtime == ff && $system == windows ]
