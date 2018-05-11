@@ -370,35 +370,32 @@ class FastaBodyBuilderTestCase extends Object
       assert(kernelTarget.loader.coreTypes != null);
 
       // Initialize the typeProvider if types should be resolved.
-      if (resolveTypes) {
-        Map<String, Element> map = <String, Element>{};
-        var coreTypes = kernelTarget.loader.coreTypes;
-        for (var coreType in [
-          coreTypes.boolClass,
-          coreTypes.doubleClass,
-          coreTypes.functionClass,
-          coreTypes.futureClass,
-          coreTypes.futureOrClass,
-          coreTypes.intClass,
-          coreTypes.iterableClass,
-          coreTypes.iteratorClass,
-          coreTypes.listClass,
-          coreTypes.mapClass,
-          coreTypes.nullClass,
-          coreTypes.numClass,
-          coreTypes.objectClass,
-          coreTypes.stackTraceClass,
-          coreTypes.streamClass,
-          coreTypes.stringClass,
-          coreTypes.symbolClass,
-          coreTypes.typeClass
-        ]) {
-          map[coreType.name] = _buildElement(coreType);
-        }
-        Namespace namespace = new Namespace(map);
-        _typeProvider =
-            new TypeProviderImpl.forNamespaces(namespace, namespace);
+      Map<String, Element> map = <String, Element>{};
+      var coreTypes = kernelTarget.loader.coreTypes;
+      for (var coreType in [
+        coreTypes.boolClass,
+        coreTypes.doubleClass,
+        coreTypes.functionClass,
+        coreTypes.futureClass,
+        coreTypes.futureOrClass,
+        coreTypes.intClass,
+        coreTypes.iterableClass,
+        coreTypes.iteratorClass,
+        coreTypes.listClass,
+        coreTypes.mapClass,
+        coreTypes.nullClass,
+        coreTypes.numClass,
+        coreTypes.objectClass,
+        coreTypes.stackTraceClass,
+        coreTypes.streamClass,
+        coreTypes.stringClass,
+        coreTypes.symbolClass,
+        coreTypes.typeClass
+      ]) {
+        map[coreType.name] = _buildElement(coreType);
       }
+      Namespace namespace = new Namespace(map);
+      _typeProvider = new TypeProviderImpl.forNamespaces(namespace, namespace);
     });
   }
 
