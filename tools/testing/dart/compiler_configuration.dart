@@ -498,7 +498,6 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       List<String> ddcOptions,
       List<String> args) {
     var result = sharedOptions.toList()..addAll(ddcOptions);
-
     // The file being compiled is the last argument.
     result.add(args.last);
 

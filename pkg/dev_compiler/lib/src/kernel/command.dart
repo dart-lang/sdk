@@ -198,20 +198,25 @@ Future<CompilerResult> _compile(List<String> args,
     return new CompilerResult(compilerState, false);
   }
 
+  var component = result.component;
+  var emitMetadata = argResults['emit-metadata'] as bool;
+  if (!emitMetadata && _checkForDartMirrorsImport(component)) {
+    return new CompilerResult(compilerState, false);
+  }
+
   String output = argResults['out'];
   var file = new File(output);
   if (!file.parent.existsSync()) file.parent.createSync(recursive: true);
 
-  // Useful for debugging:
-  writeComponentToText(result.component, path: output + '.txt');
-
   // TODO(jmesserly): Save .dill file so other modules can link in this one.
   //await writeComponentToBinary(component, output);
-  var component = result.component;
+
+  // Useful for debugging:
+  writeComponentToText(component, path: output + '.txt');
 
   var compiler = new ProgramCompiler(component,
       declaredVariables: declaredVariables,
-      emitMetadata: argResults['emit-metadata'] as bool,
+      emitMetadata: emitMetadata,
       enableAsserts: argResults['enable-asserts'] as bool);
   var jsModule =
       compiler.emitModule(component, result.inputSummaries, summaryUris);
@@ -385,3 +390,18 @@ final defaultSdkSummaryPath = path.join(
     'lib',
     '_internal',
     'ddc_sdk.dill');
+
+bool _checkForDartMirrorsImport(Component component) {
+  for (var library in component.libraries) {
+    if (library.isExternal) continue;
+    for (var dep in library.dependencies) {
+      var uri = dep.targetLibrary.importUri;
+      if (uri.scheme == 'dart' && uri.path == 'mirrors') {
+        print('${library.importUri}: Error: Cannot import "dart:mirrors" '
+            'in web applications (https://goo.gl/R1anEs).');
+        return true;
+      }
+    }
+  }
+  return false;
+}
