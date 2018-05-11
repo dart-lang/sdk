@@ -876,7 +876,6 @@ call_method_must_not_be_getter_test/03: RuntimeError # Issue 32155
 checked_setter2_test: RuntimeError # Issue 31128
 checked_setter_test: RuntimeError # Issue 31128
 const_dynamic_type_literal_test/03: Pass # but it shouldn't until we fix issue 17207
-extract_type_arguments_test: Crash # Issue 31371
 function_propagation_test: RuntimeError
 generic_test/01: MissingCompileTimeError # front end does not validate `extends`
 instantiate_tearoff_of_call_test: RuntimeError
@@ -1016,7 +1015,6 @@ external_test/13: MissingRuntimeError
 external_test/20: MissingRuntimeError
 external_test/21: CompileTimeError
 external_test/24: CompileTimeError
-extract_type_arguments_test: RuntimeError # Issue 31371
 f_bounded_quantification4_test: RuntimeError
 f_bounded_quantification_test/01: MissingCompileTimeError
 f_bounded_quantification_test/02: MissingCompileTimeError
@@ -1567,7 +1565,6 @@ external_test/13: MissingRuntimeError
 external_test/20: MissingRuntimeError
 external_test/21: CompileTimeError
 external_test/24: CompileTimeError
-extract_type_arguments_test: RuntimeError # Issue 31371
 f_bounded_quantification4_test: RuntimeError # Issue 12605
 f_bounded_quantification_test/01: MissingCompileTimeError
 f_bounded_quantification_test/02: MissingCompileTimeError

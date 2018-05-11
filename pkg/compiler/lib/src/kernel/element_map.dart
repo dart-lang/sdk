@@ -125,6 +125,7 @@ abstract class KernelToElementMap {
 /// Interface that translates between Kernel IR nodes and entities used for
 /// computing the [WorldImpact] for members.
 abstract class KernelToElementMapForImpact extends KernelToElementMap {
+  ElementEnvironment get elementEnvironment;
   NativeBasicData get nativeBasicData;
 
   /// Adds libraries in [component] to the set of libraries.

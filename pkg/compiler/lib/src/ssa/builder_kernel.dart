@@ -3203,6 +3203,13 @@ class KernelSsaGraphBuilder extends ir.Visitor
       return;
     }
     FunctionEntity function = _elementMap.getMember(target);
+
+    if (options.strongMode &&
+        function == _commonElements.extractTypeArguments &&
+        handleExtractTypeArguments(node, sourceInformation)) {
+      return;
+    }
+
     TypeMask typeMask = _typeInferenceMap.getReturnTypeOf(function);
 
     List<DartType> typeArguments =
@@ -3403,6 +3410,69 @@ class KernelSsaGraphBuilder extends ir.Visitor
       stack
           .add(_setListRuntimeTypeInfoIfNeeded(pop(), type, sourceInformation));
     }
+  }
+
+  /// Replace calls to `extractTypeArguments` with equivalent code. Returns
+  /// `true` if `extractTypeArguments` is handled.
+  bool handleExtractTypeArguments(
+      ir.StaticInvocation invocation, SourceInformation sourceInformation) {
+    // Expand calls as follows:
+    //
+    //     r = extractTypeArguments<Map>(e, f)
+    // -->
+    //     interceptor = getInterceptor(e);
+    //     T1 = getRuntimeTypeArgumentIntercepted(interceptor, e, 'Map', 0);
+    //     T2 = getRuntimeTypeArgumentIntercepted(interceptor, e, 'Map', 1);
+    //     r = f<T1, T2>();
+    //
+    // TODO(sra): Should we add a check before the variable extraction? We could
+    // add a type check (which would permit `null`), or add an is-check with an
+    // explicit throw.
+
+    if (invocation.arguments.positional.length != 2) return false;
+    if (invocation.arguments.named.isNotEmpty) return false;
+    var types = invocation.arguments.types;
+    if (types.length != 1) return false;
+
+    // The type should be a single type name.
+    ir.DartType type = types.first;
+    DartType typeValue =
+        localsHandler.substInContext(_elementMap.getDartType(type));
+    if (typeValue is! InterfaceType) return false;
+    InterfaceType interfaceType = typeValue;
+    if (!interfaceType.treatAsRaw) return false;
+
+    ClassEntity cls = interfaceType.element;
+    InterfaceType thisType = _elementMap.elementEnvironment.getThisType(cls);
+
+    List<HInstruction> arguments =
+        _visitPositionalArguments(invocation.arguments);
+
+    HInstruction object = arguments[0];
+    HInstruction closure = arguments[1];
+    HInstruction interceptor = _interceptorFor(object, sourceInformation);
+
+    List<HInstruction> inputs = <HInstruction>[closure];
+    List<DartType> typeArguments = <DartType>[];
+
+    thisType.typeArguments.forEach((_typeVariable) {
+      TypeVariableType variable = _typeVariable;
+      typeArguments.add(variable);
+      HInstruction readType = new HTypeInfoReadVariable.intercepted(
+          variable, interceptor, object, commonMasks.dynamicType);
+      add(readType);
+      inputs.add(readType);
+    });
+
+    // TODO(sra): In compliance mode, insert a check that [closure] is a
+    // function of N type arguments.
+
+    Selector selector =
+        new Selector.callClosure(0, const <String>[], typeArguments.length);
+    push(new HInvokeClosure(
+        selector, inputs, commonMasks.dynamicType, typeArguments));
+
+    return true;
   }
 
   void handleInvokeStaticForeign(
