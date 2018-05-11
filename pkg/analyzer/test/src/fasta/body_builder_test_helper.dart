@@ -118,7 +118,7 @@ class FastaBodyBuilderTestCase extends Object
   @override
   CompilationUnit parseCompilationUnit(String source,
       {List<ErrorCode> codes, List<ExpectedError> errors}) {
-    throw new UnimplementedError();
+    return _parse(source, (parser, token) => parser.parseUnit(token.next));
   }
 
   @override
@@ -152,59 +152,8 @@ class FastaBodyBuilderTestCase extends Object
       {List<ErrorCode> codes,
       List<ExpectedError> errors,
       int expectedEndOffset}) {
-    ScannerResult scan = scanString(source);
-
-    return CompilerContext.runWithOptions(options, (CompilerContext c) {
-      KernelLibraryBuilder library = new KernelLibraryBuilder(
-        entryPoint,
-        entryPoint,
-        kernelTarget.loader,
-        null /* actualOrigin */,
-        null /* enclosingLibrary */,
-      );
-      List<KernelTypeVariableBuilder> typeVariableBuilders =
-          <KernelTypeVariableBuilder>[];
-      List<KernelFormalParameterBuilder> formalParameterBuilders =
-          <KernelFormalParameterBuilder>[];
-      KernelProcedureBuilder procedureBuilder = new KernelProcedureBuilder(
-          null /* metadata */,
-          Modifier.staticMask /* or Modifier.varMask */,
-          kernelTarget.dynamicType,
-          "analyzerTest",
-          typeVariableBuilders,
-          formalParameterBuilders,
-          kernel.ProcedureKind.Method,
-          library,
-          -1 /* charOffset */,
-          -1 /* charOpenParenOffset */,
-          -1 /* charEndOffset */);
-
-      TypeInferrerDisabled typeInferrer =
-          new TypeInferrerDisabled(new TypeSchemaEnvironment(
-        kernelTarget.loader.coreTypes,
-        kernelTarget.loader.hierarchy,
-        // TODO(danrubel): Enable strong mode.
-        false /* strong mode */,
-      ));
-
-      BodyBuilder builder = new AstBodyBuilder(
-        library,
-        procedureBuilder,
-        library.scope,
-        procedureBuilder.computeFormalParameterScope(library.scope),
-        kernelTarget.loader.hierarchy,
-        kernelTarget.loader.coreTypes,
-        null /* classBuilder */,
-        false /* isInstanceMember */,
-        null /* uri */,
-        typeInferrer,
-        typeProvider,
-      )..constantContext = ConstantContext.none; // .inferred ?
-
-      Parser parser = new Parser(builder);
-      parser.parseExpression(parser.syntheticPreviousToken(scan.tokens));
-      return builder.pop();
-    });
+    // TODO(brianwilkerson) Check error codes.
+    return _parse(source, (parser, token) => parser.parseExpression(token));
   }
 
   @override
@@ -341,7 +290,8 @@ class FastaBodyBuilderTestCase extends Object
   @override
   Statement parseStatement(String source,
       {bool enableLazyAssignmentOperators, int expectedEndOffset}) {
-    throw new UnimplementedError();
+    // TODO(brianwilkerson) Check error codes.
+    return _parse(source, (parser, token) => parser.parseStatement(token));
   }
 
   @override
@@ -462,5 +412,62 @@ class FastaBodyBuilderTestCase extends Object
       return element;
     }).toList();
     return element;
+  }
+
+  T _parse<T>(
+      String source, void parseFunction(Parser parser, Token previousToken)) {
+    ScannerResult scan = scanString(source);
+
+    return CompilerContext.runWithOptions(options, (CompilerContext c) {
+      KernelLibraryBuilder library = new KernelLibraryBuilder(
+        entryPoint,
+        entryPoint,
+        kernelTarget.loader,
+        null /* actualOrigin */,
+        null /* enclosingLibrary */,
+      );
+      List<KernelTypeVariableBuilder> typeVariableBuilders =
+          <KernelTypeVariableBuilder>[];
+      List<KernelFormalParameterBuilder> formalParameterBuilders =
+          <KernelFormalParameterBuilder>[];
+      KernelProcedureBuilder procedureBuilder = new KernelProcedureBuilder(
+          null /* metadata */,
+          Modifier.staticMask /* or Modifier.varMask */,
+          kernelTarget.dynamicType,
+          "analyzerTest",
+          typeVariableBuilders,
+          formalParameterBuilders,
+          kernel.ProcedureKind.Method,
+          library,
+          -1 /* charOffset */,
+          -1 /* charOpenParenOffset */,
+          -1 /* charEndOffset */);
+
+      TypeInferrerDisabled typeInferrer =
+          new TypeInferrerDisabled(new TypeSchemaEnvironment(
+        kernelTarget.loader.coreTypes,
+        kernelTarget.loader.hierarchy,
+        // TODO(danrubel): Enable strong mode.
+        false /* strong mode */,
+      ));
+
+      BodyBuilder builder = new AstBodyBuilder(
+        library,
+        procedureBuilder,
+        library.scope,
+        procedureBuilder.computeFormalParameterScope(library.scope),
+        kernelTarget.loader.hierarchy,
+        kernelTarget.loader.coreTypes,
+        null /* classBuilder */,
+        false /* isInstanceMember */,
+        null /* uri */,
+        typeInferrer,
+        typeProvider,
+      )..constantContext = ConstantContext.none; // .inferred ?
+
+      Parser parser = new Parser(builder);
+      parseFunction(parser, parser.syntheticPreviousToken(scan.tokens));
+      return builder.pop();
+    });
   }
 }
