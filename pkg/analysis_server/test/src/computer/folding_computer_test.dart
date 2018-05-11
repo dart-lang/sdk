@@ -150,6 +150,8 @@ class Person {/*1:INC*/
   "this",
   "is a test"
 /*1:INC:TOP_LEVEL_DECLARATION*/)
+@another()
+@andAnother
 main() {/*2:INC*/
   print("Hello, world!");
 /*2:INC:TOP_LEVEL_DECLARATION*/}

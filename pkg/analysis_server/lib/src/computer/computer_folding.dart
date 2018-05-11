@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -66,10 +65,14 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitAnnotation(Annotation node) {
-    _addRegion(
-        node.arguments.leftParenthesis.end,
-        node.arguments.rightParenthesis.offset,
-        FoldingKind.TOP_LEVEL_DECLARATION);
+    if (node.arguments != null &&
+        node.arguments.leftParenthesis != null &&
+        node.arguments.rightParenthesis != null) {
+      _addRegion(
+          node.arguments.leftParenthesis.end,
+          node.arguments.rightParenthesis.offset,
+          FoldingKind.TOP_LEVEL_DECLARATION);
+    }
     return super.visitAnnotation(node);
   }
 
