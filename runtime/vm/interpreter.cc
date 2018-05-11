@@ -563,7 +563,7 @@ Interpreter::Interpreter()
   last_setjmp_buffer_ = NULL;
   top_exit_frame_info_ = 0;
 
-  DEBUG_ONLY(icount_ = 0);
+  DEBUG_ONLY(icount_ = 1);  // So that tracing after 0 traces first bytecode.
 }
 
 Interpreter::~Interpreter() {
@@ -586,6 +586,7 @@ Interpreter* Interpreter::Current() {
 
 #if defined(DEBUG)
 // Returns true if tracing of executed instructions is enabled.
+// May be called on entry, when icount_ has not been incremented yet.
 DART_FORCE_INLINE bool Interpreter::IsTracingExecution() const {
   return icount_ > FLAG_trace_interpreter_after;
 }
@@ -624,6 +625,10 @@ void Interpreter::Exit(Thread* thread,
   frame[3] = reinterpret_cast<RawObject*>(base);
   fp_ = frame + kKBCDartFrameFixedSize;
   thread->set_top_exit_frame_info(reinterpret_cast<uword>(fp_));
+  if (IsTracingExecution()) {
+    THR_Print("Exiting interpreter 0x%" Px " at fp_ 0x%" Px "\n",
+              reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_));
+  }
 }
 
 // TODO(vegorov): Investigate advantages of using
@@ -1119,10 +1124,10 @@ static DART_NOINLINE bool InvokeNative(Thread* thread,
 // Counts and prints executed bytecode instructions (in DEBUG mode).
 #if defined(DEBUG)
 #define TRACE_INSTRUCTION                                                      \
-  icount_++;                                                                   \
   if (IsTracingExecution()) {                                                  \
     TraceInstruction(pc - 1);                                                  \
-  }
+  }                                                                            \
+  icount_++;
 #else
 #define TRACE_INSTRUCTION
 #endif  // defined(DEBUG)
@@ -1249,6 +1254,12 @@ static DART_NOINLINE bool InvokeNative(Thread* thread,
       thread->set_top_exit_frame_info(reinterpret_cast<uword>(fp_));           \
       thread->set_top_resource(top_resource);                                  \
       thread->set_vm_tag(vm_tag);                                              \
+      if (IsTracingExecution()) {                                              \
+        THR_Print("Returning exception from interpreter 0x%" Px                \
+                  " at fp_ 0x%" Px "\n",                                       \
+                  reinterpret_cast<uword>(this),                               \
+                  reinterpret_cast<uword>(fp_));                               \
+      }                                                                        \
       return special_[kExceptionSpecialIndex];                                 \
     }                                                                          \
     pp_ = InterpreterHelpers::FrameCode(FP)->ptr()->object_pool_;              \
@@ -1352,8 +1363,14 @@ RawObject* Interpreter::Call(const Code& code,
   uint32_t op;  // Currently executing op.
   uint16_t rA;  // A component of the currently executing op.
 
-  if (fp_ == NULL) {
+  bool reentering = fp_ != NULL;
+  if (!reentering) {
     fp_ = reinterpret_cast<RawObject**>(stack_);
+  }
+  if (IsTracingExecution()) {
+    THR_Print("%s interpreter 0x%" Px " at fp_ 0x%" Px "\n",
+              reentering ? "Re-entering" : "Entering",
+              reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_));
   }
 
   // Save current VM tag and mark thread as executing Dart code.
@@ -1440,9 +1457,122 @@ RawObject* Interpreter::Call(const Code& code,
 
   {
     BYTECODE(EntryOptional, A_B_C);
-    // TODO(regis): Recover deleted code.
-    // See https://dart-review.googlesource.com/c/sdk/+/25320
-    UNIMPLEMENTED();
+    const uint16_t num_fixed_params = rA;
+    const uint16_t num_opt_pos_params = rB;
+    const uint16_t num_opt_named_params = rC;
+    const intptr_t min_num_pos_args = num_fixed_params;
+    const intptr_t max_num_pos_args = num_fixed_params + num_opt_pos_params;
+
+    // Decode arguments descriptor.
+    const intptr_t arg_count = InterpreterHelpers::ArgDescArgCount(argdesc_);
+    const intptr_t pos_count = InterpreterHelpers::ArgDescPosCount(argdesc_);
+    const intptr_t named_count = (arg_count - pos_count);
+
+    // Check that got the right number of positional parameters.
+    if ((min_num_pos_args > pos_count) || (pos_count > max_num_pos_args)) {
+      goto ClosureNoSuchMethod;
+    }
+
+    // Copy all passed position arguments.
+    RawObject** first_arg = FrameArguments(FP, arg_count);
+    memmove(FP, first_arg, pos_count * kWordSize);
+
+    if (num_opt_named_params != 0) {
+      // This is a function with named parameters.
+      // Walk the list of named parameters and their
+      // default values encoded as pairs of LoadConstant instructions that
+      // follows the entry point and find matching values via arguments
+      // descriptor.
+      RawObject** argdesc_data = argdesc_->ptr()->data();
+
+      intptr_t i = named_count - 1;           // argument position
+      intptr_t j = num_opt_named_params - 1;  // parameter position
+      while ((j >= 0) && (i >= 0)) {
+        // Fetch formal parameter information: name, default value, target slot.
+        const uint32_t load_name = pc[2 * j];
+        const uint32_t load_value = pc[2 * j + 1];
+        ASSERT(KernelBytecode::DecodeOpcode(load_name) ==
+               KernelBytecode::kLoadConstant);
+        ASSERT(KernelBytecode::DecodeOpcode(load_value) ==
+               KernelBytecode::kLoadConstant);
+        const uint8_t reg = KernelBytecode::DecodeA(load_name);
+        ASSERT(reg == KernelBytecode::DecodeA(load_value));
+
+        RawString* name = static_cast<RawString*>(
+            LOAD_CONSTANT(KernelBytecode::DecodeD(load_name)));
+        if (name == argdesc_data[ArgumentsDescriptor::name_index(i)]) {
+          // Parameter was passed. Fetch passed value.
+          const intptr_t arg_index = Smi::Value(static_cast<RawSmi*>(
+              argdesc_data[ArgumentsDescriptor::position_index(i)]));
+          FP[reg] = first_arg[arg_index];
+          i--;  // Consume passed argument.
+        } else {
+          // Parameter was not passed. Fetch default value.
+          FP[reg] = LOAD_CONSTANT(KernelBytecode::DecodeD(load_value));
+        }
+        j--;  // Next formal parameter.
+      }
+
+      // If we have unprocessed formal parameters then initialize them all
+      // using default values.
+      while (j >= 0) {
+        const uint32_t load_name = pc[2 * j];
+        const uint32_t load_value = pc[2 * j + 1];
+        ASSERT(KernelBytecode::DecodeOpcode(load_name) ==
+               KernelBytecode::kLoadConstant);
+        ASSERT(KernelBytecode::DecodeOpcode(load_value) ==
+               KernelBytecode::kLoadConstant);
+        const uint8_t reg = KernelBytecode::DecodeA(load_name);
+        ASSERT(reg == KernelBytecode::DecodeA(load_value));
+
+        FP[reg] = LOAD_CONSTANT(KernelBytecode::DecodeD(load_value));
+        j--;
+      }
+
+      // If we have unprocessed passed arguments that means we have mismatch
+      // between formal parameters and concrete arguments. This can only
+      // occur if the current function is a closure.
+      if (i != -1) {
+        goto ClosureNoSuchMethod;
+      }
+
+      // Skip LoadConstant-s encoding information about named parameters.
+      pc += num_opt_named_params * 2;
+
+      // SP points past copied arguments.
+      SP = FP + num_fixed_params + num_opt_named_params - 1;
+    } else {
+      ASSERT(num_opt_pos_params != 0);
+      if (named_count != 0) {
+        // Function can't have both named and optional positional parameters.
+        // This kind of mismatch can only occur if the current function
+        // is a closure.
+        goto ClosureNoSuchMethod;
+      }
+
+      // Process the list of default values encoded as a sequence of
+      // LoadConstant instructions after EntryOpt bytecode.
+      // Execute only those that correspond to parameters that were not passed.
+      for (intptr_t i = pos_count - num_fixed_params; i < num_opt_pos_params;
+           i++) {
+        const uint32_t load_value = pc[i];
+        ASSERT(KernelBytecode::DecodeOpcode(load_value) ==
+               KernelBytecode::kLoadConstant);
+#if defined(DEBUG)
+        const uint8_t reg = KernelBytecode::DecodeA(load_value);
+        ASSERT((num_fixed_params + i) == reg);
+#endif
+        FP[num_fixed_params + i] =
+            LOAD_CONSTANT(KernelBytecode::DecodeD(load_value));
+      }
+
+      // Skip LoadConstant-s encoding default values for optional positional
+      // parameters.
+      pc += num_opt_pos_params;
+
+      // SP points past the last copied parameter.
+      SP = FP + max_num_pos_args - 1;
+    }
 
     DISPATCH();
   }
@@ -2758,6 +2888,10 @@ RawObject* Interpreter::Call(const Code& code,
       thread->set_top_exit_frame_info(reinterpret_cast<uword>(fp_));
       thread->set_top_resource(top_resource);
       thread->set_vm_tag(vm_tag);
+      if (IsTracingExecution()) {
+        THR_Print("Returning from interpreter 0x%" Px " at fp_ 0x%" Px "\n",
+                  reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_));
+      }
       return result;
     }
 

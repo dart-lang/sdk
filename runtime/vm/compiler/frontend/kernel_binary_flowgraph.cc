@@ -1014,8 +1014,8 @@ void BytecodeMetadataHelper::CopyBytecode(const Function& function) {
         }
       } break;
       case ConstantPoolTag::kICData: {
-        NameIndex target = builder_->ReadCanonicalNameReference();
-        name = H.DartProcedureName(target).raw();
+        StringIndex target = builder_->ReadStringReference();
+        name = H.DartSymbolPlain(target).raw();
         intptr_t arg_desc_index = builder_->ReadUInt();
         ASSERT(arg_desc_index < i);
         array ^= obj_pool.ObjectAt(arg_desc_index);

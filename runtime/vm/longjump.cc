@@ -7,6 +7,7 @@
 #include "include/dart_api.h"
 
 #include "vm/dart_api_impl.h"
+#include "vm/interpreter.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -26,12 +27,22 @@ bool LongJumpScope::IsSafeToJump() {
   // assumes the stack grows from high to low.
   Thread* thread = Thread::Current();
   uword jumpbuf_addr = OSThread::GetCurrentStackPointer();
+
+#if defined(USING_SIMULATOR) && defined(DART_USE_INTERPRETER)
+#error "Simultaneous usage of simulator and interpreter not yet supported."
+#endif  // defined(USING_SIMULATOR) && defined(DART_USE_INTERPRETER)
+
 #if defined(USING_SIMULATOR)
   Simulator* sim = Simulator::Current();
   // When using simulator, only mutator thread should refer to Simulator
   // since there can be only one per isolate.
   uword top_exit_frame_info =
       thread->IsMutatorThread() ? sim->top_exit_frame_info() : 0;
+#elif defined(DART_USE_INTERPRETER)
+  Interpreter* interpreter = Interpreter::Current();
+  ASSERT(interpreter->top_exit_frame_info() == 0);
+  uword top_exit_frame_info = 0;
+  // TODO(regis): Determine if top exit frame is jitted or interpreted.
 #else
   uword top_exit_frame_info = thread->top_exit_frame_info();
 #endif

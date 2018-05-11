@@ -9,6 +9,10 @@
 # Usage
 # pkg/vm/tool/test_bytecode ~/foo.dart
 
+# Note: To generate bytecode in the platform dill file as well, change the value
+#       of the constant 'isKernelBytecodeEnabled' in file
+#       pkg/vm/lib/bytecode/gen_bytecode.dart from 'false' to 'true'.
+
 set -e
 
 # Pick the architecture and mode to build and test.
@@ -55,11 +59,21 @@ fi
 $CUR_DIR/gen_kernel --platform $BUILD_DIR/vm_platform_strong.dill \
   --gen-bytecode $@ -o $BUILD_DIR/test_bytecode.dill
 
+# Dump bytecode in generated vm_platform_strong.dill file to platform.txt.
+# $BUILD_DIR/dart $SDK_DIR/pkg/vm/bin/dump_kernel.dart \
+#   $BUILD_DIR/vm_platform_strong.dill $BUILD_DIR/platform.txt
+
+# Dump bytecode in generated test_bytecode.dill file to test_bytecode.txt.
+# $BUILD_DIR/dart $SDK_DIR/pkg/vm/bin/dump_kernel.dart \
+#   $BUILD_DIR/test_bytecode.dill $BUILD_DIR/test_bytecode.txt
+
 # Required flags.
 DART_VM_FLAGS="--preview-dart-2 --optimization-counter-threshold=-1 $DART_VM_FLAGS"
 
-# Optional flags.
-# DART_VM_FLAGS="--force-log-flush --dump-kernel-bytecode --trace-interpreter-after=0 $DART_VM_FLAGS"
+# Optional flags examples. Uncomment as needed.
+# DART_VM_FLAGS="--force-log-flush --isolate-log-filter=\"\" $DART_VM_FLAGS"
+# DART_VM_FLAGS="--dump-kernel-bytecode $DART_VM_FLAGS"
+# DART_VM_FLAGS="--trace-interpreter-after=0 $DART_VM_FLAGS"
 
 # Execute dill file.
 exec $BUILD_DIR/dart $DART_VM_FLAGS $BUILD_DIR/test_bytecode.dill

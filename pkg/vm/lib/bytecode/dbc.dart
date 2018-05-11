@@ -182,6 +182,7 @@ enum Opcode {
   kBooleanNegate,
   kThrow,
   kEntry,
+  kEntryOptional,
   kEntryOptimized,
   kFrame,
   kSetFrame,
@@ -212,7 +213,6 @@ enum Opcode {
   kDebugBreak,
   kDeopt,
   kDeoptRewind,
-  kEntryOptional,
 }
 
 enum Encoding {
