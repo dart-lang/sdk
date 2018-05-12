@@ -576,7 +576,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
   Dart_Isolate isolate = NULL;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  if (Options::preview_dart_2()) {
+  if (Options::preview_dart_2() && !isolate_run_app_snapshot) {
     void* platform_program = dfe.platform_program(flags->strong) != NULL
                                  ? dfe.platform_program(flags->strong)
                                  : kernel_program;
