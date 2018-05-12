@@ -82,7 +82,7 @@ void main() {
   var mock3 = new MockCat3();
   Expect.isTrue(mock3.eatFood("cat food", amount: 0.9));
   Expect.isFalse(mock3.eatFood("cat food", amount: 0.3));
-  Expect.equals("chair", mock3.scratch("chair"));
+  Expect.equals("chair,null", mock3.scratch("chair"));
   Expect.equals("chair,couch", mock3.scratch("chair", "couch"));
   Expect.equals("chair,null", mock3.scratch("chair", null));
   Expect.equals("chair,", mock3.scratch("chair", ""));
