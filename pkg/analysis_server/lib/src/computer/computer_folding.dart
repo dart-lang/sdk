@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
@@ -116,10 +117,9 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<Object> {
   }
 
   _addRegion(int startOffset, int endOffset, FoldingKind kind) {
-    // TODO(dantup): This class is marked deprecated; find out what to change it to.
-    final LineInfo_Location start =
+    final CharacterLocation start =
         _computer._lineInfo.getLocation(startOffset);
-    final LineInfo_Location end = _computer._lineInfo.getLocation(endOffset);
+    final CharacterLocation end = _computer._lineInfo.getLocation(endOffset);
 
     if (start.lineNumber != end.lineNumber) {
       _computer._foldingRegions
