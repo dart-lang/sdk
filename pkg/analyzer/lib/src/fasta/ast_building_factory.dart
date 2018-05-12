@@ -187,7 +187,7 @@ class AstBuildingForest
   @override
   Expression stringConcatenationExpression(
           List<Expression> strings, Token location) =>
-      astFactory.adjacentStrings(strings);
+      astFactory.adjacentStrings(strings.cast<StringLiteral>());
 
   @override
   Expression thisExpression(Token thisKeyword) =>

@@ -34,6 +34,7 @@ import 'package:front_end/src/fasta/uri_translator_impl.dart';
 import 'package:kernel/class_hierarchy.dart' as kernel;
 import 'package:kernel/core_types.dart' as kernel;
 import 'package:kernel/kernel.dart' as kernel;
+import 'package:test/test.dart';
 
 import '../../generated/parser_test.dart';
 import '../../generated/test_support.dart';
@@ -63,6 +64,12 @@ class FastaBodyBuilderTestCase extends Object
 
   final bool resolveTypes;
 
+  String content;
+
+  /// The expected offset of the next token to be parsed after the parser has
+  /// finished parsing, or `null` (the default) if EOF is expected.
+  int expectedEndOffset;
+
   FastaBodyBuilderTestCase(this.resolveTypes);
 
   TypeProvider get typeProvider => _typeProvider;
@@ -70,6 +77,11 @@ class FastaBodyBuilderTestCase extends Object
   @override
   void assertNoErrors() {
     // TODO(brianwilkerson) Implement this.
+  }
+
+  void createParser(String content, {int expectedEndOffset}) {
+    this.content = content;
+    this.expectedEndOffset = expectedEndOffset;
   }
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -139,7 +151,7 @@ class FastaBodyBuilderTestCase extends Object
   @override
   CompilationUnit parseDirectives(String source,
       [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
-    throw new UnimplementedError();
+    return parseCompilationUnit(content, codes: errorCodes);
   }
 
   @override
@@ -182,12 +194,18 @@ class FastaBodyBuilderTestCase extends Object
 
   @override
   CompilationUnitMember parseFullCompilationUnitMember() {
-    throw new UnimplementedError();
+    CompilationUnit unit = parseCompilationUnit(content);
+    expect(unit.directives, hasLength(0));
+    expect(unit.declarations, hasLength(1));
+    return unit.declarations[0];
   }
 
   @override
   Directive parseFullDirective() {
-    throw new UnimplementedError();
+    CompilationUnit unit = parseCompilationUnit(content);
+    expect(unit.directives, hasLength(1));
+    expect(unit.declarations, hasLength(0));
+    return unit.directives[0];
   }
 
   @override
@@ -230,7 +248,11 @@ class FastaBodyBuilderTestCase extends Object
 
   @override
   MapLiteralEntry parseMapLiteralEntry(String code) {
-    throw new UnimplementedError();
+    Expression expression = parseExpression('{$code}');
+    expect(expression, new isInstanceOf<MapLiteral>());
+    MapLiteral literal = expression;
+    expect(literal.entries, hasLength(1));
+    return literal.entries[0];
   }
 
   @override
@@ -464,6 +486,7 @@ class FastaBodyBuilderTestCase extends Object
 
       Parser parser = new Parser(builder);
       parseFunction(parser, parser.syntheticPreviousToken(scan.tokens));
+      // TODO(brianwilkerson) Check `expectedEndOffset` if it is not `null`.
       return builder.pop();
     });
   }
