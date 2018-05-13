@@ -5,6 +5,7 @@
 #include "bin/directory.h"
 
 #include "bin/dartutils.h"
+#include "bin/io_buffer.h"
 #include "bin/log.h"
 #include "bin/namespace.h"
 #include "include/dart_api.h"
@@ -432,8 +433,24 @@ bool SyncDirectoryListing::HandleLink(const char* link_name) {
 }
 
 bool SyncDirectoryListing::HandleFile(const char* file_name) {
-  Dart_Handle file_name_dart = DartUtils::NewString(file_name);
-  Dart_Handle file = Dart_New(file_type_, Dart_Null(), 1, &file_name_dart);
+  // Allocates a Uint8List for file_name, and invokes the File.fromRawPath
+  // constructor. This avoids/delays interpreting the utf8 bytes in file_name.
+  // Later, client code may either choose to access FileSystemEntity.path
+  // or FileSystemEntity.rawPath. FileSystemEntity.path will trigger
+  // UTF8 decoding and throw an exception if invalid bytes are found,
+  // whereas FileSystemEntity.rawPath returns the bytes exactly as they
+  // came from the OS (same as what's in file_name here).
+
+  size_t file_name_length = strlen(file_name);
+  uint8_t* buffer = NULL;
+  Dart_Handle file_name_dart = IOBuffer::Allocate(file_name_length, &buffer);
+  if (Dart_IsNull(file_name_dart)) {
+    dart_error_ = DartUtils::NewDartOSError();
+    return false;
+  }
+  memmove(buffer, file_name, file_name_length);
+  Dart_Handle constructor_name = from_raw_path_string_;
+  Dart_Handle file = Dart_New(file_type_, constructor_name, 1, &file_name_dart);
   Dart_Handle result = Dart_Invoke(results_, add_string_, 1, &file);
   if (Dart_IsError(result)) {
     dart_error_ = result;

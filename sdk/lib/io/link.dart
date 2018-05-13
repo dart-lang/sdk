@@ -150,14 +150,19 @@ abstract class Link implements FileSystemEntity {
 }
 
 class _Link extends FileSystemEntity implements Link {
-  final String path;
+  Uint8List _rawPath;
 
-  _Link(this.path) {
+  _Link(String path) {
     if (path is! String) {
       throw new ArgumentError('${Error.safeToString(path)} '
           'is not a String');
     }
+    this._rawPath = new Uint8List.fromList(utf8.encode(path));
   }
+
+  _Link.fromRawPath(this._rawPath);
+
+  Uint8List get rawPath => _rawPath;
 
   String toString() => "Link: '$path'";
 
