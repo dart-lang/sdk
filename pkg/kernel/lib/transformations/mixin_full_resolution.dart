@@ -63,7 +63,7 @@ class MixinFullResolution {
     }
 
     // We might need to update the class hierarchy.
-    hierarchy = hierarchy.applyChanges(transformedClasses);
+    hierarchy = hierarchy.applyChanges(transformedClasses, transformedClasses);
 
     if (!doSuperResolution) {
       return;
