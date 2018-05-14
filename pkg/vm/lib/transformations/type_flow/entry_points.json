@@ -619,6 +619,12 @@
     },
     {
       "library": "dart:core",
+      "class": "_InvocationMirror",
+      "name": "_allocateInvocationMirrorForClosure",
+      "action": "call"
+    },
+    {
+      "library": "dart:core",
       "class": "_TypeError",
       "name": "_TypeError._create",
       "action": "call"

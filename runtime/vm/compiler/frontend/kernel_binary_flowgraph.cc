@@ -5376,27 +5376,14 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
   body += StoreLocal(TokenPosition::kNoSource, argument_count_var);
   body += Drop();
   if (function.IsGeneric() && Isolate::Current()->reify_generic_functions()) {
-    Fragment test_generic;
-    JoinEntryInstr* join = BuildJoinEntry();
-
-    TargetEntryInstr *passed_type_args, *not_passed_type_args;
-    test_generic += B->LoadArgDescriptor();
-    test_generic += LoadField(ArgumentsDescriptor::type_args_len_offset());
-    test_generic += IntConstant(0);
-    test_generic += BranchIfEqual(&not_passed_type_args, &passed_type_args,
-                                  /*negate=*/false);
-
-    Fragment passed_type_args_frag(passed_type_args);
-    passed_type_args_frag += IntConstant(1);
-    passed_type_args_frag +=
-        StoreLocal(TokenPosition::kNoSource, argument_count_var);
-    passed_type_args_frag += Drop();
-    passed_type_args_frag += Goto(join);
-
-    Fragment not_passed_type_args_frag(not_passed_type_args);
-    not_passed_type_args_frag += Goto(join);
-
-    body += Fragment(test_generic.entry, join);
+    body += flow_graph_builder_->TestAnyTypeArgs(
+        [&]() {
+          return Fragment(
+              {IntConstant(1),
+               StoreLocal(TokenPosition::kNoSource, argument_count_var),
+               Drop()});
+        },
+        Fragment());
   }
 
   if (function.HasOptionalParameters()) {
@@ -5413,7 +5400,13 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
   //
   // var arguments = new Array<dynamic>(argument_count);
   //
-  // for (int i = 0; i < argument_count; ++i) {
+  // int i = 0;
+  // if (any type arguments are passed) {
+  //   arguments[0] = function_type_arguments;
+  //   ++i;
+  // }
+  //
+  // for (; i < argument_count; ++i) {
   //   arguments[i] = LoadFpRelativeSlot(
   //       kWordSize * (kParamEndSlotFromFp + argument_count - i));
   // }
@@ -5428,6 +5421,28 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
     body += IntConstant(0);
     body += StoreLocal(TokenPosition::kNoSource, index);
     body += Drop();
+
+    // if (any type arguments are passed) {
+    //   arguments[0] = function_type_arguments;
+    //   i = 1;
+    // }
+    if (function.IsGeneric() && Isolate::Current()->reify_generic_functions()) {
+      // clang-format off
+      std::function<Fragment()> store_type_arguments = [&]() {
+        return Fragment({
+            LoadLocal(arguments),
+            IntConstant(0),
+            LoadFunctionTypeArguments(),
+            StoreIndexed(kArrayCid),
+            Drop(),
+            IntConstant(1),
+            StoreLocal(TokenPosition::kNoSource, index),
+            Drop()
+          });
+      };
+      // clang-format on
+      body += B->TestAnyTypeArgs(store_type_arguments, Fragment());
+    }
 
     TargetEntryInstr* body_entry;
     TargetEntryInstr* loop_exit;
@@ -5515,10 +5530,6 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
   body += LoadLocal(arguments);
   body += PushArgument();
 
-  // false -> this is not super NSM
-  body += Constant(Bool::False());
-  body += PushArgument();
-
   if (throw_no_such_method_error) {
     const Function& parent =
         Function::ZoneHandle(Z, function.parent_function());
@@ -5541,12 +5552,30 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
   }
   body += PushArgument();
 
+  // Push the number of delayed type arguments.
+  if (function.IsClosureFunction()) {
+    LocalVariable* closure =
+        parsed_function()->node_sequence()->scope()->VariableAt(0);
+    body += B->TestDelayedTypeArgs(
+        closure,
+        Fragment({IntConstant(function.NumTypeParameters()),
+                  StoreLocal(TokenPosition::kNoSource, argument_count_var),
+                  Drop()}),
+        Fragment({IntConstant(0),
+                  StoreLocal(TokenPosition::kNoSource, argument_count_var),
+                  Drop()}));
+    body += LoadLocal(argument_count_var);
+  } else {
+    body += IntConstant(0);
+  }
+  body += PushArgument();
+
   const Class& mirror_class =
       Class::Handle(Z, Library::LookupCoreClass(Symbols::InvocationMirror()));
   ASSERT(!mirror_class.IsNull());
   const Function& allocation_function = Function::ZoneHandle(
-      Z, mirror_class.LookupStaticFunction(
-             Library::PrivateCoreLibName(Symbols::AllocateInvocationMirror())));
+      Z, mirror_class.LookupStaticFunction(Library::PrivateCoreLibName(
+             Symbols::AllocateInvocationMirrorForClosure())));
   ASSERT(!allocation_function.IsNull());
   body += StaticCall(TokenPosition::kMinSource, allocation_function,
                      /* argument_count = */ 5, ICData::kStatic);

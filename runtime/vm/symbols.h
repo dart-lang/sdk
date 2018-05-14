@@ -325,6 +325,7 @@ class ObjectPointerVisitor;
   V(ForwardingCorpse, "ForwardingCorpse")                                      \
   V(InvocationMirror, "_InvocationMirror")                                     \
   V(AllocateInvocationMirror, "_allocateInvocationMirror")                     \
+  V(AllocateInvocationMirrorForClosure, "_allocateInvocationMirrorForClosure") \
   V(toString, "toString")                                                      \
   V(_lookupHandler, "_lookupHandler")                                          \
   V(_handleMessage, "_handleMessage")                                          \

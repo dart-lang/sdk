@@ -1323,6 +1323,8 @@ mixin_illegal_superclass_test: Skip # Issues 24478 and 23773
 mixin_mixin6_test: RuntimeError, OK # Not running in strong mode.
 multiline_strings_test: Fail # Issue 23020
 no_main_test/01: Skip
+nosuchmethod_forwarding/nosuchmethod_forwarding_partial_instantiation: RuntimeError # ByDesign
+nosuchmethod_forwarding/nosuchmethod_forwarding_partial_instantiation_test: RuntimeError
 regress_19413_test: MissingCompileTimeError
 regress_21793_test/01: MissingCompileTimeError
 super_test: Fail, OK

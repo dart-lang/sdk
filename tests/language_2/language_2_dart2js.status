@@ -1958,6 +1958,7 @@ wrong_number_type_arguments_test/none: Pass
 const_constructor3_test/04: MissingCompileTimeError # OK - Subtype check uses JS number semantics.
 covariant_subtyping_test: Crash
 ct_const_test: RuntimeError
+nosuchmethod_forwarding/nosuchmethod_forwarding_partial_instantiation_test: RuntimeError
 
 [ $compiler == dart2js && $fasta && !$strong ]
 *: SkipByDesign

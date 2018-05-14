@@ -1385,6 +1385,19 @@ Fragment BaseFlowGraphBuilder::TestDelayedTypeArgs(LocalVariable* closure,
   return Fragment(test.entry, join);
 }
 
+Fragment BaseFlowGraphBuilder::TestAnyTypeArgs(
+    std::function<Fragment()> present,
+    Fragment absent) {
+  if (parsed_function_->function().IsClosureFunction()) {
+    LocalVariable* closure =
+        parsed_function_->node_sequence()->scope()->VariableAt(0);
+    return TestTypeArgsLen(TestDelayedTypeArgs(closure, present(), absent),
+                           present(), 0);
+  } else {
+    return TestTypeArgsLen(absent, present(), 0);
+  }
+}
+
 Fragment FlowGraphBuilder::RethrowException(TokenPosition position,
                                             int catch_try_index) {
   Fragment instructions;

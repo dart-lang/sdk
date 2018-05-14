@@ -7,6 +7,7 @@
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
+#include <functional>
 #include <initializer_list>
 
 #include "vm/growable_array.h"
@@ -647,6 +648,7 @@ class BaseFlowGraphBuilder {
   Fragment TestDelayedTypeArgs(LocalVariable* closure,
                                Fragment present,
                                Fragment absent);
+  Fragment TestAnyTypeArgs(std::function<Fragment()> present, Fragment absent);
 
   JoinEntryInstr* BuildThrowNoSuchMethod();
 
