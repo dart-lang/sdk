@@ -115,15 +115,7 @@ abstract class Directory implements FileSystemEntity {
   /**
    * Gets the path of this directory.
    */
-  String get path;
-
-  /**
-   * Gets the raw path of this directory.
-   *
-   * This is useful for performing operations with paths that are not valid
-   * UTF-8.
-   */
-  UnmodifiableUint8ListView get rawPath;
+  final String path;
 
   /**
    * Creates a [Directory] object.
@@ -140,11 +132,6 @@ abstract class Directory implements FileSystemEntity {
       return new _Directory(path);
     }
     return overrides.createDirectory(path);
-  }
-
-  factory Directory.fromRawPath(Uint8List path) {
-    // TODO(bkonyi): Handle overrides.
-    return new _Directory.fromRawPath(path);
   }
 
   /**

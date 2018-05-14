@@ -86,8 +86,6 @@ namespace bin {
   V(Namespace_GetDefault, 0)                                                   \
   V(Namespace_GetPointer, 1)                                                   \
   V(NetworkInterface_ListSupported, 0)                                         \
-  V(Path_GetRawPath, 1)                                                        \
-  V(Path_SetRawPath, 2)                                                        \
   V(Platform_NumberOfProcessors, 0)                                            \
   V(Platform_OperatingSystem, 0)                                               \
   V(Platform_OperatingSystemVersion, 0)                                        \
