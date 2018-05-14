@@ -33,21 +33,13 @@ import 'io/source_file.dart' show Binary;
 import 'js_backend/backend.dart' show JavaScriptBackend;
 import 'kernel/kernel_backend_strategy.dart';
 import 'kernel/kernel_strategy.dart';
-import 'library_loader.dart'
-    show
-        ElementScanner,
-        LibraryLoader,
-        LibraryLoaderTask,
-        LoadedLibraries,
-        ScriptLoader;
+import 'library_loader.dart' show LibraryLoaderTask, LoadedLibraries;
 import 'mirrors_used.dart' show MirrorUsageAnalyzerTask;
 import 'null_compiler_output.dart' show NullCompilerOutput, NullSink;
 import 'options.dart' show CompilerOptions, DiagnosticOptions;
 import 'parser/diet_parser_task.dart' show DietParserTask;
 import 'parser/parser_task.dart' show ParserTask;
-import 'patch_parser.dart' show PatchParserTask;
 import 'resolution/resolution.dart' show ResolverTask;
-import 'resolved_uri_translator.dart';
 import 'scanner/scanner_task.dart' show ScannerTask;
 import 'script.dart' show Script;
 import 'ssa/nodes.dart' show HInstruction;
@@ -97,8 +89,6 @@ abstract class Compiler {
 
   List<Uri> librariesToAnalyzeWhenRun;
 
-  ResolvedUriTranslator get resolvedUriTranslator;
-
   Uri mainLibraryUri;
 
   ClosedWorld backendClosedWorldForTesting;
@@ -127,7 +117,6 @@ abstract class Compiler {
   ScannerTask scanner;
   DietParserTask dietParser;
   ParserTask parser;
-  PatchParserTask patchParser;
   LibraryLoaderTask libraryLoader;
   ResolverTask resolver;
   TypeCheckerTask checker;
@@ -197,17 +186,8 @@ abstract class Compiler {
     tasks = [
       dietParser = new DietParserTask(idGenerator, backend, reporter, measurer),
       scanner = createScannerTask(),
-      patchParser = new PatchParserTask(this),
-      libraryLoader = frontendStrategy.createLibraryLoader(
-          resolvedUriTranslator,
-          new _ScriptLoader(this),
-          provider,
-          new _ElementScanner(scanner),
-          resolvePatchUri,
-          patchParser,
-          environment,
-          reporter,
-          measurer),
+      libraryLoader =
+          frontendStrategy.createLibraryLoader(provider, reporter, measurer),
       parser = new ParserTask(this),
       resolver = createResolverTask(),
       checker = new TypeCheckerTask(this),
@@ -223,8 +203,7 @@ abstract class Compiler {
     ];
     tasks.add(kernelFrontEndTask);
 
-    _parsingContext =
-        new ParsingContext(reporter, parser, scanner, patchParser, backend);
+    _parsingContext = new ParsingContext(reporter, parser, scanner, backend);
 
     tasks.addAll(backend.tasks);
   }
@@ -1233,24 +1212,6 @@ class _MapImpactCacheDeleter implements ImpactCacheDeleter {
     if (retainCachesForTesting) return;
     _impactCache.clear();
   }
-}
-
-class _ScriptLoader implements ScriptLoader {
-  Compiler compiler;
-  _ScriptLoader(this.compiler);
-
-  Future<Script> readScript(Uri uri, [Spannable spannable]) =>
-      compiler.readScript(uri, spannable);
-
-  Future<Binary> readBinary(Uri uri, [Spannable spannable]) =>
-      compiler.readBinary(uri, spannable);
-}
-
-class _ElementScanner implements ElementScanner {
-  ScannerTask scanner;
-  _ElementScanner(this.scanner);
-  void scanLibrary(LibraryElement library) => scanner.scanLibrary(library);
-  void scanUnit(CompilationUnitElement unit) => scanner.scan(unit);
 }
 
 class _EmptyEnvironment implements Environment {

@@ -14,7 +14,6 @@ import 'deferred_load.dart' show DeferredLoadTask;
 import 'elements/entities.dart';
 import 'elements/types.dart';
 import 'enqueue.dart';
-import 'environment.dart';
 import 'js_backend/backend.dart';
 import 'js_backend/backend_usage.dart';
 import 'js_backend/interceptor_data.dart';
@@ -26,8 +25,6 @@ import 'js_backend/runtime_types.dart';
 import 'library_loader.dart';
 import 'native/enqueue.dart' show NativeResolutionEnqueuer;
 import 'native/resolver.dart';
-import 'patch_parser.dart';
-import 'resolved_uri_translator.dart';
 import 'universe/class_hierarchy_builder.dart';
 import 'universe/world_builder.dart';
 import 'universe/world_impact.dart';
@@ -36,16 +33,8 @@ import 'universe/world_impact.dart';
 /// the resolved element model.
 abstract class FrontendStrategy {
   /// Creates library loader task for this strategy.
-  LibraryLoaderTask createLibraryLoader(
-      ResolvedUriTranslator uriTranslator,
-      ScriptLoader scriptLoader,
-      api.CompilerInput compilerInput,
-      ElementScanner scriptScanner,
-      PatchResolverFunction patchResolverFunc,
-      PatchParserTask patchParser,
-      Environment environment,
-      DiagnosticReporter reporter,
-      Measurer measurer);
+  LibraryLoaderTask createLibraryLoader(api.CompilerInput compilerInput,
+      DiagnosticReporter reporter, Measurer measurer);
 
   /// Returns the [ElementEnvironment] for the element model used in this
   /// strategy.

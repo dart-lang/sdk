@@ -276,10 +276,7 @@ useElements(
 }
 
 useCompiler(compiler.Compiler c) {
-  c.libraryLoader
-    ..reset()
-    ..resetAsync(null)
-    ..lookupLibrary(null);
+  c.libraryLoader..lookupLibrary(null);
   c.backend.constantCompilerTask.copyConstantValues(null);
   c.currentlyInUserCode();
 }

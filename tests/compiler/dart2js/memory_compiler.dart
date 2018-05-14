@@ -224,7 +224,6 @@ CompilerImpl compilerFor(
     cachedCompiler.scanner = null;
     cachedCompiler.dietParser = null;
     cachedCompiler.parser = null;
-    cachedCompiler.patchParser = null;
     cachedCompiler.libraryLoader = null;
     cachedCompiler.resolver = null;
     cachedCompiler.checker = null;

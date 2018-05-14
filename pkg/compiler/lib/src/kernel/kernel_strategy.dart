@@ -34,8 +34,6 @@ import '../library_loader.dart';
 import '../native/enqueue.dart' show NativeResolutionEnqueuer;
 import '../native/resolver.dart';
 import '../options.dart';
-import '../patch_parser.dart';
-import '../resolved_uri_translator.dart';
 import '../universe/class_hierarchy_builder.dart';
 import '../universe/world_builder.dart';
 import '../universe/world_impact.dart';
@@ -71,16 +69,8 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
   }
 
   @override
-  LibraryLoaderTask createLibraryLoader(
-      ResolvedUriTranslator uriTranslator,
-      ScriptLoader scriptLoader,
-      api.CompilerInput compilerInput,
-      ElementScanner scriptScanner,
-      PatchResolverFunction patchResolverFunc,
-      PatchParserTask patchParser,
-      env.Environment environment,
-      DiagnosticReporter reporter,
-      Measurer measurer) {
+  LibraryLoaderTask createLibraryLoader(api.CompilerInput compilerInput,
+      DiagnosticReporter reporter, Measurer measurer) {
     return new KernelLibraryLoaderTask(
         _options.librariesSpecificationUri,
         _options.platformBinaries,
