@@ -1,0 +1,241 @@
+# Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+_dart_runtime = get_path_info("../runtime", "abspath")
+
+_base_config = [
+  "$_dart_runtime:dart_arch_config",
+  "$_dart_runtime:dart_config",
+  "$_dart_runtime:dart_os_config",
+]
+
+_base_fuchsia_config = [
+  "$_dart_runtime:dart_arch_config",
+  "$_dart_runtime:dart_config",
+  "$_dart_runtime:dart_os_fuchsia_config",
+]
+
+_jit_config = _base_config + [
+                "$_dart_runtime:dart_maybe_interpreter_config",
+                "$_dart_runtime:dart_maybe_product_config",
+              ]
+
+_jit_product_config = _base_config + [
+                        "$_dart_runtime:dart_maybe_interpreter_config",
+                        "$_dart_runtime:dart_product_config",
+                      ]
+
+_jit_interpreter_config = _base_config + [
+                            "$_dart_runtime:dart_interpreter_config",
+                            "$_dart_runtime:dart_maybe_product_config",
+                          ]
+
+_jit_product_interpreter_config = _base_config + [
+                                    "$_dart_runtime:dart_interpreter_config",
+                                    "$_dart_runtime:dart_product_config",
+                                  ]
+
+_precompiled_runtime_config =
+    _base_config + [
+      "$_dart_runtime:dart_maybe_product_config",
+      "$_dart_runtime:dart_precompiled_runtime_config",
+    ]
+
+_precompiled_runtime_product_config =
+    _base_config + [
+      "$_dart_runtime:dart_precompiled_runtime_config",
+      "$_dart_runtime:dart_product_config",
+    ]
+
+_precompiler_config = _base_config + [
+                        "$_dart_runtime:dart_maybe_product_config",
+                        "$_dart_runtime:dart_precompiler_config",
+                      ]
+
+_precompiler_product_config = _base_config + [
+                                "$_dart_runtime:dart_product_config",
+                                "$_dart_runtime:dart_precompiler_config",
+                              ]
+
+_nosnapshot_with_precompiler_config =
+    _base_config + [
+      "$_dart_runtime:dart_maybe_product_config",
+      "$_dart_runtime:dart_nosnapshot_config",
+      "$_dart_runtime:dart_precompiler_config",
+    ]
+
+_nosnapshot_with_precompiler_product_config =
+    _base_config + [
+      "$_dart_runtime:dart_product_config",
+      "$_dart_runtime:dart_nosnapshot_config",
+      "$_dart_runtime:dart_precompiler_config",
+    ]
+
+_nosnapshot_with_precompiler_fuchsia_config =
+    _base_fuchsia_config + [
+      "$_dart_runtime:dart_maybe_product_config",
+      "$_dart_runtime:dart_nosnapshot_config",
+      "$_dart_runtime:dart_precompiler_config",
+    ]
+
+_nosnapshot_with_precompiler_product_fuchsia_config =
+    _base_fuchsia_config + [
+      "$_dart_runtime:dart_product_config",
+      "$_dart_runtime:dart_nosnapshot_config",
+      "$_dart_runtime:dart_precompiler_config",
+    ]
+
+_all_configs = [
+  {
+    suffix = "_jit"
+    configs = _jit_config
+    snapshot = true
+  },
+  {
+    suffix = "_jit_product"
+    configs = _jit_product_config
+    snapshot = true
+  },
+  {
+    suffix = "_jit_interpreter"
+    configs = _jit_interpreter_config
+    snapshot = true
+  },
+  {
+    suffix = "_jit_product_interpreter"
+    configs = _jit_product_interpreter_config
+    snapshot = true
+  },
+  {
+    suffix = "_precompiled_runtime"
+    configs = _precompiled_runtime_config
+    snapshot = true
+  },
+  {
+    suffix = "_precompiled_runtime_product"
+    configs = _precompiled_runtime_product_config
+    snapshot = true
+  },
+  {
+    suffix = "_with_precompiler"
+    configs = _precompiler_config
+    snapshot = true
+  },
+  {
+    suffix = "_with_precompiler_product"
+    configs = _precompiler_product_config
+    snapshot = true
+  },
+  {
+    suffix = "_nosnapshot_with_precompiler"
+    configs = _nosnapshot_with_precompiler_config
+    snapshot = false
+  },
+  {
+    suffix = "_nosnapshot_with_precompiler_product"
+    configs = _nosnapshot_with_precompiler_product_config
+    snapshot = false
+  },
+  {
+    suffix = "_nosnapshot_with_precompiler_fuchsia"
+    configs = _nosnapshot_with_precompiler_fuchsia_config
+    snapshot = false
+  },
+  {
+    suffix = "_nosnapshot_with_precompiler_product_fuchsia"
+    configs = _nosnapshot_with_precompiler_product_fuchsia_config
+    snapshot = false
+  },
+]
+
+# This template creates a target for each of the configurations listed above.
+# For example:
+#
+#  library_for_all_configs("libfoo") {
+#    target_type = "source_set"
+#    sources = [ "foo.c" ]
+#    configurable_deps [ ":libbar" ]
+#  }
+#
+# will make a source_set target for libfoo_jit, libfoo_jit_product, etc. that
+# depends on libbar_jit, libbar_jit_product etc. respectively.
+#
+# Parameters
+#
+#  target_type (required):
+#    The target declaration or template to repeat for each configuration.
+#
+#  configurable_deps (optional):
+#    Dependencies of this target, which are themselves generated by
+#    library_for_all_configs(). The listed dependencies will be suffixed with
+#    a string that matches the configuration.
+#
+#  extra_deps (optional):
+#    Regular additional deps that don't receive special treatment.
+#
+#  extra_configs (optional):
+#    Any configs needed in addition to the ones above.
+#
+#  snapshot_sources (optional):
+#    Additional sources to include when the configuration has a snapshot.
+#
+#  nosnapshot_sources (optional):
+#    Additional sources to include when the configuration does not have a
+#    snapshot (that is, one of the "nosnapshot" configurations above).
+#
+#  nosnapshot_deps (optional):
+#    Similar to nosnapshot_sources, but for deps.
+template("library_for_all_configs") {
+  assert(defined(invoker.target_type))
+  extra_configs = []
+  if (defined(invoker.extra_configs)) {
+    extra_configs += invoker.extra_configs
+  }
+  configurable_deps = []
+  if (defined(invoker.configurable_deps)) {
+    configurable_deps += invoker.configurable_deps
+  }
+  extra_deps = []
+  if (defined(invoker.extra_deps)) {
+    extra_deps += invoker.extra_deps
+  }
+  not_needed(invoker,
+             [
+               "snapshot_sources",
+               "nosnapshot_sources",
+               "nosnapshot_deps",
+             ])
+  foreach(conf, _all_configs) {
+    target(invoker.target_type, "${target_name}${conf.suffix}") {
+      forward_variables_from(invoker,
+                             "*",
+                             [
+                               "extra_configs",
+                               "extra_deps",
+                               "configurable_deps",
+                             ])
+      if (is_fuchsia) {
+        configs -= [ "//build/config:symbol_visibility_hidden" ]
+      }
+      configs += conf.configs + extra_configs
+      configured_deps = []
+      foreach(dep, configurable_deps) {
+        configured_deps += [ "${dep}${conf.suffix}" ]
+      }
+      deps = configured_deps + extra_deps
+      if (conf.snapshot) {
+        if (defined(invoker.snapshot_sources)) {
+          sources += snapshot_sources
+        }
+      } else {
+        if (defined(invoker.nosnapshot_sources)) {
+          sources += nosnapshot_sources
+        }
+        if (defined(nosnapshot_deps)) {
+          deps += nosnapshot_deps
+        }
+      }
+    }
+  }
+}

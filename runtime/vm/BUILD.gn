@@ -30,6 +30,7 @@ import("../lib/mirrors_sources.gni")
 import("../lib/profiler_sources.gni")
 import("../lib/typed_data_sources.gni")
 import("../lib/vmservice_sources.gni")
+import("../configs.gni")
 import("../runtime_args.gni")
 import("compiler/compiler_sources.gni")
 import("vm_sources.gni")
@@ -54,128 +55,28 @@ config("libdart_vm_config") {
   }
 }
 
-template("build_libdart_vm") {
-  extra_configs = []
-  if (defined(invoker.extra_configs)) {
-    extra_configs += invoker.extra_configs
+library_for_all_configs("libdart_vm") {
+  target_type = "source_set"
+  if (is_fuchsia) {
+    extra_deps = [
+      # TODO(US-399): Remove time_service specific code when it is no longer
+      # necessary.
+      "//garnet/public/lib/app/cpp",
+      "//garnet/public/lib/time_zone/fidl",
+
+      # TODO(zra): When the platform-specific timeline code is moved out to
+      # the embedder, this can go away.
+      "//zircon/public/lib/fbl",
+      "//zircon/public/lib/trace-engine",
+    ]
   }
-  source_set(target_name) {
-    configs += [
-                 "..:dart_arch_config",
-                 "..:dart_config",
-               ] + extra_configs
-    if (is_fuchsia) {
-      configs -= [ "//build/config:symbol_visibility_hidden" ]
-      deps = [
-        # TODO(US-399): Remove time_service specific code when it is no longer
-        # necessary.
-        "//garnet/public/lib/app/cpp",
-        "//garnet/public/lib/time_zone/fidl",
-
-        # TODO(zra): When the platform-specific timeline code is moved out to
-        # the embedder, this can go away.
-        "//zircon/public/lib/fbl",
-        "//zircon/public/lib/trace-engine",
-      ]
-    }
-    public_configs = [ ":libdart_vm_config" ]
-    set_sources_assignment_filter([
-                                    "*_test.cc",
-                                    "*_test.h",
-                                  ])
-    sources = vm_sources + rebase_path(compiler_sources, ".", "./compiler/")
-    include_dirs = [ ".." ]
-  }
-}
-
-build_libdart_vm("libdart_vm_jit") {
-  extra_configs = [
-    "..:dart_maybe_product_config",
-    "..:dart_os_config",
-  ]
-}
-
-build_libdart_vm("libdart_vm_jit_product") {
-  extra_configs = [
-    "..:dart_product_config",
-    "..:dart_os_config",
-  ]
-}
-
-build_libdart_vm("libdart_vm_precompiled_runtime") {
-  extra_configs = [
-    "..:dart_maybe_product_config",
-    "..:dart_precompiled_runtime_config",
-    "..:dart_os_config",
-  ]
-}
-
-build_libdart_vm("libdart_vm_precompiled_runtime_product") {
-  extra_configs = [
-    "..:dart_product_config",
-    "..:dart_precompiled_runtime_config",
-    "..:dart_os_config",
-  ]
-}
-
-build_libdart_vm("libdart_vm_nosnapshot") {
-  extra_configs = [
-    "..:dart_maybe_product_config",
-    "..:dart_no_snapshot_config",
-    "..:dart_os_config",
-  ]
-}
-
-build_libdart_vm("libdart_vm_nosnapshot_with_precompiler") {
-  extra_configs = [
-    "..:dart_maybe_product_config",
-    "..:dart_precompiler_config",
-    "..:dart_no_snapshot_config",
-    "..:dart_os_config",
-  ]
-}
-
-build_libdart_vm("libdart_vm_nosnapshot_with_precompiler_product") {
-  extra_configs = [
-    "..:dart_product_config",
-    "..:dart_precompiler_config",
-    "..:dart_no_snapshot_config",
-    "..:dart_os_config",
-  ]
-}
-
-build_libdart_vm("libdart_vm_nosnapshot_with_precompiler_fuchsia") {
-  extra_configs = [
-    "..:dart_maybe_product_config",
-    "..:dart_precompiler_config",
-    "..:dart_no_snapshot_config",
-    "..:dart_os_fuchsia_config",
-  ]
-}
-
-build_libdart_vm("libdart_vm_nosnapshot_with_precompiler_product_fuchsia") {
-  extra_configs = [
-    "..:dart_product_config",
-    "..:dart_precompiler_config",
-    "..:dart_no_snapshot_config",
-    "..:dart_os_fuchsia_config",
-  ]
-}
-
-build_libdart_vm("libdart_vm_with_precompiler") {
-  extra_configs = [
-    "..:dart_maybe_product_config",
-    "..:dart_precompiler_config",
-    "..:dart_os_config",
-  ]
-}
-
-build_libdart_vm("libdart_vm_with_precompiler_product") {
-  extra_configs = [
-    "..:dart_product_config",
-    "..:dart_precompiler_config",
-    "..:dart_os_config",
-  ]
+  public_configs = [ ":libdart_vm_config" ]
+  set_sources_assignment_filter([
+                                  "*_test.cc",
+                                  "*_test.h",
+                                ])
+  sources = vm_sources + rebase_path(compiler_sources, ".", "./compiler/")
+  include_dirs = [ ".." ]
 }
 
 template("process_library_source") {
@@ -221,33 +122,6 @@ template("generate_library_source") {
       "--library_name",
       "dart:${libname}",
     ]
-  }
-}
-
-template("build_libdart_lib") {
-  extra_configs = []
-  if (defined(invoker.extra_configs)) {
-    extra_configs += invoker.extra_configs
-  }
-  extra_deps = []
-  if (defined(invoker.extra_deps)) {
-    extra_deps += invoker.extra_deps
-  }
-  extra_sources = []
-  if (defined(invoker.extra_sources)) {
-    extra_sources += invoker.extra_sources
-  }
-  source_set(target_name) {
-    configs += [
-                 "..:dart_arch_config",
-                 "..:dart_config",
-               ] + extra_configs
-    if (is_fuchsia) {
-      configs -= [ "//build/config:symbol_visibility_hidden" ]
-    }
-    deps = extra_deps
-    sources = extra_sources
-    include_dirs = [ ".." ]
   }
 }
 
@@ -300,98 +174,13 @@ template("generate_core_libraries") {
 
   all_libsources = rebase_path(invoker.allsources, ".", "../lib")
 
-  build_libdart_lib("libdart_lib_nosnapshot_with_precompiler") {
-    extra_configs = [
-      "..:dart_maybe_product_config",
-      "..:dart_precompiler_config",
-      "..:dart_os_config",
-    ]
-    extra_deps = libdeps
-    extra_sources = all_libsources + [ "bootstrap.cc" ] + liboutputs
-  }
-
-  build_libdart_lib("libdart_lib_nosnapshot_with_precompiler_product") {
-    extra_configs = [
-      "..:dart_product_config",
-      "..:dart_precompiler_config",
-      "..:dart_os_config",
-    ]
-    extra_deps = libdeps
-    extra_sources = all_libsources + [ "bootstrap.cc" ] + liboutputs
-  }
-
-  build_libdart_lib("libdart_lib_nosnapshot_with_precompiler_fuchsia") {
-    extra_configs = [
-      "..:dart_maybe_product_config",
-      "..:dart_precompiler_config",
-      "..:dart_os_fuchsia_config",
-    ]
-    extra_deps = libdeps
-    extra_sources = all_libsources + [ "bootstrap.cc" ] + liboutputs
-  }
-
-  build_libdart_lib("libdart_lib_nosnapshot_with_precompiler_product_fuchsia") {
-    extra_configs = [
-      "..:dart_product_config",
-      "..:dart_precompiler_config",
-      "..:dart_os_fuchsia_config",
-    ]
-    extra_deps = libdeps
-    extra_sources = all_libsources + [ "bootstrap.cc" ] + liboutputs
-  }
-
-  build_libdart_lib("libdart_lib_with_precompiler") {
-    extra_configs = [
-      "..:dart_maybe_product_config",
-      "..:dart_precompiler_config",
-      "..:dart_os_config",
-    ]
-    extra_deps = libdeps
-    extra_sources = all_libsources + [ "bootstrap_nocore.cc" ]
-  }
-
-  build_libdart_lib("libdart_lib_with_precompiler_product") {
-    extra_configs = [
-      "..:dart_product_config",
-      "..:dart_precompiler_config",
-      "..:dart_os_config",
-    ]
-    extra_deps = libdeps
-    extra_sources = all_libsources + [ "bootstrap_nocore.cc" ]
-  }
-
-  build_libdart_lib("libdart_lib_jit") {
-    extra_configs = [
-      "..:dart_maybe_product_config",
-      "..:dart_os_config",
-    ]
-    extra_sources = all_libsources + [ "bootstrap_nocore.cc" ]
-  }
-
-  build_libdart_lib("libdart_lib_jit_product") {
-    extra_configs = [
-      "..:dart_product_config",
-      "..:dart_os_config",
-    ]
-    extra_sources = all_libsources + [ "bootstrap_nocore.cc" ]
-  }
-
-  build_libdart_lib("libdart_lib_precompiled_runtime") {
-    extra_configs = [
-      "..:dart_maybe_product_config",
-      "..:dart_precompiled_runtime_config",
-      "..:dart_os_config",
-    ]
-    extra_sources = all_libsources + [ "bootstrap_nocore.cc" ]
-  }
-
-  build_libdart_lib("libdart_lib_precompiled_runtime_product") {
-    extra_configs = [
-      "..:dart_product_config",
-      "..:dart_precompiled_runtime_config",
-      "..:dart_os_config",
-    ]
-    extra_sources = all_libsources + [ "bootstrap_nocore.cc" ]
+  library_for_all_configs("libdart_lib") {
+    target_type = "source_set"
+    include_dirs = [ ".." ]
+    sources = all_libsources
+    snapshot_sources = [ "bootstrap_nocore.cc" ]
+    nosnapshot_sources = [ "bootstrap.cc" ] + liboutputs
+    nosnapshot_deps = libdeps
   }
 }
 
