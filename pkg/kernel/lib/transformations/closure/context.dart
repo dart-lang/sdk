@@ -20,16 +20,16 @@ import '../../ast.dart'
         VectorSet,
         VectorCopy;
 
-import '../../frontend/accessors.dart' show Accessor, VariableAccessor;
-
 import 'converter.dart' show ClosureConverter;
+
+import 'variable_accessor.dart' show VariableAccessor;
 
 abstract class Context {
   /// Returns a new expression for accessing this context.
   Expression get expression;
 
   /// Returns an accessor (or null) for accessing this context.
-  Accessor get accessor;
+  VariableAccessor get accessor;
 
   /// Extend the context to include [variable] initialized to [value]. For
   /// example, this replaces the [VariableDeclaration] node of a captured local
@@ -64,7 +64,7 @@ abstract class Context {
   /// to this context can't be accessed directly via [expression]. In other
   /// cases, for example, a for-loop, this context is still in scope and can be
   /// accessed directly (with [accessor]).
-  Context toNestedContext([Accessor accessor]);
+  Context toNestedContext([VariableAccessor accessor]);
 
   /// Returns a new expression which will copy this context and store the copy
   /// in the local variable currently holding this context.
@@ -81,7 +81,7 @@ class NoContext extends Context {
 
   Expression get expression => new NullLiteral();
 
-  Accessor get accessor => null;
+  VariableAccessor get accessor => null;
 
   void extend(VariableDeclaration variable, Expression value) {
     converter.context = new LocalContext(converter, this)
@@ -97,7 +97,7 @@ class NoContext extends Context {
     throw 'Unbound NoContext.assign($variable, ...)';
   }
 
-  Context toNestedContext([Accessor accessor]) {
+  Context toNestedContext([VariableAccessor accessor]) {
     return new NestedContext(
         converter, accessor, <List<VariableDeclaration>>[]);
   }
@@ -127,7 +127,8 @@ class LocalContext extends Context {
 
   Expression get expression => accessor.buildSimpleRead();
 
-  Accessor get accessor => new VariableAccessor(self, null, TreeNode.noOffset);
+  VariableAccessor get accessor =>
+      new VariableAccessor(self, null, TreeNode.noOffset);
 
   void extend(VariableDeclaration variable, Expression value) {
     // Increase index by 2, because the type arguments vector occupies position
@@ -174,7 +175,7 @@ class LocalContext extends Context {
         : new VectorSet(expression, index + 2, value);
   }
 
-  Context toNestedContext([Accessor accessor]) {
+  Context toNestedContext([VariableAccessor accessor]) {
     accessor ??= this.accessor;
     List<List<VariableDeclaration>> variabless = <List<VariableDeclaration>>[];
     var current = this;
@@ -198,7 +199,7 @@ class LocalContext extends Context {
 
 class NestedContext extends Context {
   final ClosureConverter converter;
-  final Accessor accessor;
+  final VariableAccessor accessor;
   final List<List<VariableDeclaration>> variabless;
 
   NestedContext(this.converter, this.accessor, this.variabless);
@@ -245,7 +246,7 @@ class NestedContext extends Context {
     throw 'Unbound NestedContext.lookup($variable)';
   }
 
-  Context toNestedContext([Accessor accessor]) {
+  Context toNestedContext([VariableAccessor accessor]) {
     return new NestedContext(converter, accessor ?? this.accessor, variabless);
   }
 }

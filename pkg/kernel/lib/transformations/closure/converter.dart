@@ -57,8 +57,6 @@ import '../../ast.dart'
         WhileStatement,
         transformList;
 
-import '../../frontend/accessors.dart' show VariableAccessor;
-
 import '../../clone.dart' show CloneVisitor;
 
 import '../../core_types.dart' show CoreTypes;
@@ -72,6 +70,8 @@ import 'context.dart' show Context, NoContext, LocalContext;
 import 'info.dart' show ClosureInfo;
 
 import 'rewriter.dart' show AstRewriter, BlockRewriter, InitializerListRewriter;
+
+import 'variable_accessor.dart' show VariableAccessor;
 
 bool isLoop(TreeNode node) {
   return node is WhileStatement ||
