@@ -87,6 +87,10 @@ class AstBuildingForest
       astFactory.expressionStatement(expression, semicolon);
 
   @override
+  Statement emptyStatement(Token semicolon) =>
+      astFactory.emptyStatement(semicolon);
+
+  @override
   kernel.DartType getTypeAt(TypeArgumentList typeArguments, int index) {
     return null; // typeArguments.arguments[index].type.kernelType;
   }

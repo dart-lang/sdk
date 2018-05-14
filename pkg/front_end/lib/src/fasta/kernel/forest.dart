@@ -136,6 +136,10 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   /// [expression] and [semicolon].
   Statement expressionStatement(Expression expression, Location semicolon);
 
+  /// Return a representation of an empty statement consisting of the given
+  /// [semicolon].
+  Statement emptyStatement(Location semicolon);
+
   /// Return a representation of an `is` expression. The [operand] is the
   /// representation of the left operand. The [isOperator] is the `is` operator.
   /// The [notOperator] is either the `!` or `null` if the test is not negated.

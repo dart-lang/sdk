@@ -3304,7 +3304,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void handleEmptyStatement(Token token) {
     debugEvent("EmptyStatement");
-    push(new EmptyStatement());
+    push(forest.emptyStatement(token));
   }
 
   @override

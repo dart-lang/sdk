@@ -10,6 +10,7 @@ import 'package:kernel/ast.dart'
     show
         Arguments,
         DartType,
+        EmptyStatement,
         Expression,
         ExpressionStatement,
         InvalidExpression,
@@ -211,6 +212,11 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
 
   Statement expressionStatement(Expression expression, Token semicolon) {
     return new ShadowExpressionStatement(expression);
+  }
+
+  @override
+  Statement emptyStatement(Token semicolon) {
+    return new EmptyStatement();
   }
 
   @override

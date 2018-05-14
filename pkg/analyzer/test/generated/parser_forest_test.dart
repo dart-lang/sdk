@@ -5107,11 +5107,6 @@ class StatementParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_parseEmptyStatement() {
-    super.test_parseEmptyStatement();
-  }
-
-  @failingTest
   void test_parseForStatement_each_await() {
     super.test_parseForStatement_each_await();
   }
