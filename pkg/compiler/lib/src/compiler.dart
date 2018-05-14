@@ -37,14 +37,10 @@ import 'library_loader.dart' show LibraryLoaderTask, LoadedLibraries;
 import 'mirrors_used.dart' show MirrorUsageAnalyzerTask;
 import 'null_compiler_output.dart' show NullCompilerOutput, NullSink;
 import 'options.dart' show CompilerOptions, DiagnosticOptions;
-import 'parser/diet_parser_task.dart' show DietParserTask;
-import 'parser/parser_task.dart' show ParserTask;
 import 'resolution/resolution.dart' show ResolverTask;
-import 'scanner/scanner_task.dart' show ScannerTask;
 import 'script.dart' show Script;
 import 'ssa/nodes.dart' show HInstruction;
 import 'package:front_end/src/fasta/scanner.dart' show StringToken, Token;
-import 'typechecker.dart' show TypeCheckerTask;
 import 'types/types.dart' show GlobalTypeInferenceTask;
 import 'universe/selector.dart' show Selector;
 import 'universe/world_builder.dart'
@@ -69,7 +65,6 @@ abstract class Compiler {
   CompilerDiagnosticReporter _reporter;
   Map<Entity, WorldImpact> _impactCache;
   ImpactCacheDeleter _impactCacheDeleter;
-  ParsingContext _parsingContext;
 
   ImpactStrategy impactStrategy = const ImpactStrategy();
 
@@ -97,7 +92,7 @@ abstract class Compiler {
   Resolution get resolution => null;
   Map<Entity, WorldImpact> get impactCache => _impactCache;
   ImpactCacheDeleter get impactCacheDeleter => _impactCacheDeleter;
-  ParsingContext get parsingContext => _parsingContext;
+  ParsingContext get parsingContext => null;
 
   // TODO(zarah): Remove this map and incorporate compile-time errors
   // in the model.
@@ -114,12 +109,8 @@ abstract class Compiler {
   Entity get currentElement => _reporter.currentElement;
 
   List<CompilerTask> tasks;
-  ScannerTask scanner;
-  DietParserTask dietParser;
-  ParserTask parser;
   LibraryLoaderTask libraryLoader;
   ResolverTask resolver;
-  TypeCheckerTask checker;
   GlobalTypeInferenceTask globalInference;
   JavaScriptBackend backend;
   CodegenWorldBuilder _codegenWorldBuilder;
@@ -184,13 +175,8 @@ abstract class Compiler {
     enqueuer = backend.makeEnqueuer();
 
     tasks = [
-      dietParser = new DietParserTask(idGenerator, backend, reporter, measurer),
-      scanner = createScannerTask(),
       libraryLoader =
           frontendStrategy.createLibraryLoader(provider, reporter, measurer),
-      parser = new ParserTask(this),
-      resolver = createResolverTask(),
-      checker = new TypeCheckerTask(this),
       globalInference = new GlobalTypeInferenceTask(this),
       constants = backend.constantCompilerTask,
       deferredLoadTask = frontendStrategy.createDeferredLoadTask(this),
@@ -202,8 +188,6 @@ abstract class Compiler {
       selfTask,
     ];
     tasks.add(kernelFrontEndTask);
-
-    _parsingContext = new ParsingContext(reporter, parser, scanner, backend);
 
     tasks.addAll(backend.tasks);
   }
@@ -217,19 +201,6 @@ abstract class Compiler {
         useStartupEmitter: options.useStartupEmitter,
         useMultiSourceInfo: options.useMultiSourceInfo,
         useNewSourceInfo: options.useNewSourceInfo);
-  }
-
-  /// Creates the scanner task.
-  ///
-  /// Override this to mock the scanner for testing.
-  ScannerTask createScannerTask() =>
-      new ScannerTask(dietParser, reporter, measurer);
-
-  /// Creates the resolver task.
-  ///
-  /// Override this to mock the resolver for testing.
-  ResolverTask createResolverTask() {
-    return new ResolverTask(resolution, backend.constantCompilerTask, measurer);
   }
 
   ResolutionWorldBuilder get resolutionWorldBuilder =>

@@ -31,7 +31,6 @@ import '../mirrors_used.dart';
 import '../options.dart' show CompilerOptions;
 import '../parser/element_listener.dart' show ScannerOptions;
 import '../parser/parser_task.dart';
-import '../scanner/scanner_task.dart';
 import '../resolution/resolution.dart';
 import '../tree/tree.dart' show Send, TypeAnnotation;
 import '../universe/call_structure.dart' show CallStructure;
@@ -213,11 +212,10 @@ abstract class Resolution {
 /// A container of commonly used dependencies for tasks that involve parsing.
 abstract class ParsingContext {
   factory ParsingContext(DiagnosticReporter reporter, ParserTask parser,
-      ScannerTask scanner, JavaScriptBackend backend) = _ParsingContext;
+      JavaScriptBackend backend) = _ParsingContext;
 
   DiagnosticReporter get reporter;
   ParserTask get parser;
-  ScannerTask get scanner;
 
   /// Use [patchParser] directly instead.
   @deprecated
@@ -234,10 +232,9 @@ abstract class ParsingContext {
 class _ParsingContext implements ParsingContext {
   final DiagnosticReporter reporter;
   final ParserTask parser;
-  final ScannerTask scanner;
   final JavaScriptBackend backend;
 
-  _ParsingContext(this.reporter, this.parser, this.scanner, this.backend);
+  _ParsingContext(this.reporter, this.parser, this.backend);
 
   @override
   measure(f()) => parser.measure(f);

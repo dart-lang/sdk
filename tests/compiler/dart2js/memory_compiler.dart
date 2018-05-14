@@ -221,12 +221,8 @@ CompilerImpl compilerFor(
     // One potential problem that can occur when reusing elements is that there
     // is a stale reference to an old compiler object.  By nulling out the old
     // compiler's fields, such stale references are easier to identify.
-    cachedCompiler.scanner = null;
-    cachedCompiler.dietParser = null;
-    cachedCompiler.parser = null;
     cachedCompiler.libraryLoader = null;
     cachedCompiler.resolver = null;
-    cachedCompiler.checker = null;
     cachedCompiler.globalInference = null;
     cachedCompiler.backend = null;
     // Don't null out the enqueuer as it prevents us from using cachedCompiler
