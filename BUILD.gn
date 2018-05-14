@@ -13,7 +13,7 @@ group("default") {
     testonly = true
   }
   deps = [
-    ":runtime",
+    ":runtime_kernel",
   ]
 }
 
