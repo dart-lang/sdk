@@ -2837,18 +2837,6 @@ class SsaAstGraphBuilder extends ast.Visitor
         inputs[0], inputs[1], abstractValueDomain.stringType));
   }
 
-  void handleForeignJsCurrentIsolateContext(ast.Send node) {
-    if (!node.arguments.isEmpty) {
-      reporter.internalError(
-          node, 'Too many arguments to JS_CURRENT_ISOLATE_CONTEXT.');
-    }
-
-    String name = namer.staticStateHolder;
-    push(new HForeignCode(js.js.parseForeignJS(name),
-        abstractValueDomain.dynamicType, <HInstruction>[],
-        nativeBehavior: native.NativeBehavior.DEPENDS_OTHER));
-  }
-
   void handleForeignJsGetFlag(ast.Send node) {
     List<ast.Node> arguments = node.arguments.toList();
     ast.Node argument;
@@ -3085,8 +3073,6 @@ class SsaAstGraphBuilder extends ast.Visitor
     String name = element.name;
     if (name == JavaScriptBackend.JS) {
       handleForeignJs(node);
-    } else if (name == 'JS_CURRENT_ISOLATE_CONTEXT') {
-      handleForeignJsCurrentIsolateContext(node);
     } else if (name == 'DART_CLOSURE_TO_JS') {
       handleForeignDartClosureToJs(node, 'DART_CLOSURE_TO_JS');
     } else if (name == 'RAW_DART_FUNCTION_REF') {

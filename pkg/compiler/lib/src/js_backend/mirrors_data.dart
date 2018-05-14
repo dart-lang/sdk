@@ -195,14 +195,8 @@ abstract class MirrorsDataImpl implements MirrorsData, MirrorsDataBuilder {
       this._compiler, this._elementEnvironment, this._commonElements);
 
   void registerUsedMember(MemberEntity member) {
-    if (member == _commonElements.disableTreeShakingMarker) {
-      isTreeShakingDisabled = true;
-    } else if (member == _commonElements.preserveNamesMarker) {
+    if (member == _commonElements.preserveNamesMarker) {
       mustPreserveNames = true;
-    } else if (member == _commonElements.preserveMetadataMarker) {
-      mustRetainMetadata = true;
-    } else if (member == _commonElements.preserveLibraryNamesMarker) {
-      mustRetainLibraryNames = true;
     }
   }
 

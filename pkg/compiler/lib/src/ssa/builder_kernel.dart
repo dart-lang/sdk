@@ -3514,10 +3514,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
     String name = target.name.name;
     if (name == 'JS') {
       handleForeignJs(invocation);
-    } else if (name == 'JS_CURRENT_ISOLATE_CONTEXT') {
-      // TODO(sigmund): delete. The only reference left to this foreign function
-      // is from the deprecated dart:mirrors code.
-      handleForeignJsCurrentIsolateContext(invocation);
     } else if (name == 'DART_CLOSURE_TO_JS') {
       handleForeignDartClosureToJs(invocation, 'DART_CLOSURE_TO_JS');
     } else if (name == 'RAW_DART_FUNCTION_REF') {
@@ -3620,22 +3616,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
     HConstant hConstant = instruction;
     StringConstantValue stringConstant = hConstant.constant;
     return stringConstant.stringValue;
-  }
-
-  void handleForeignJsCurrentIsolateContext(ir.StaticInvocation invocation) {
-    if (_unexpectedForeignArguments(invocation,
-        minPositional: 0, maxPositional: 0)) {
-      // Result expected on stack.
-      stack.add(graph.addConstantNull(closedWorld));
-      return;
-    }
-
-    // Isolates cannot be spawned, so we just generate code to fetch the static
-    // state.
-    String name = namer.staticStateHolder;
-    push(new HForeignCode(js.js.parseForeignJS(name),
-        abstractValueDomain.dynamicType, <HInstruction>[],
-        nativeBehavior: native.NativeBehavior.DEPENDS_OTHER));
   }
 
   void handleForeignDartClosureToJs(

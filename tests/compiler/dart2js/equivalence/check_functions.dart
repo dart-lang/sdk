@@ -489,7 +489,6 @@ checkElementEnvironment(ElementEnvironment env1, ElementEnvironment env2,
   Iterable<LibraryEntity> filterLibraries(Iterable<LibraryEntity> libraries) {
     List<Uri> skippedLibraries = [
       Uri.parse('dart:mirrors'),
-      Uri.parse('dart:_js_mirrors'),
       Uri.parse('dart:js'),
       Uri.parse('dart:_js'),
       Uri.parse('dart:js_util'),

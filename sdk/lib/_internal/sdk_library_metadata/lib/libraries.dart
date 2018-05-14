@@ -106,7 +106,7 @@ const Map<String, LibraryInfo> libraries = const {
   "mirrors": const LibraryInfo("mirrors/mirrors.dart",
       categories: "Client,Server",
       maturity: Maturity.UNSTABLE,
-      dart2jsPatchPath: "_internal/js_runtime/lib/mirrors_patch.dart"),
+      dart2jsPatchPath: "_internal/js_runtime/lib/mirrors_patch_cfe.dart"),
   "nativewrappers": const LibraryInfo("html/dartium/nativewrappers.dart",
       categories: "Client",
       implementation: true,
@@ -162,8 +162,6 @@ const Map<String, LibraryInfo> libraries = const {
       categories: "",
       documented: false,
       platforms: DART2JS_PLATFORM),
-  "_js_mirrors": const LibraryInfo("_internal/js_runtime/lib/js_mirrors.dart",
-      categories: "", documented: false, platforms: DART2JS_PLATFORM),
   "_js_names": const LibraryInfo("_internal/js_runtime/lib/js_names.dart",
       categories: "", documented: false, platforms: DART2JS_PLATFORM),
   "_js_primitives": const LibraryInfo(

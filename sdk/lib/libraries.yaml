@@ -245,9 +245,6 @@ dart2js:
     _isolate_helper:
       uri: "_internal/js_runtime/lib/isolate_helper.dart"
 
-    _js_mirrors:
-      uri: "_internal/js_runtime/lib/js_mirrors.dart"
-
     _js_names:
       uri: "_internal/js_runtime/lib/js_names.dart"
 
@@ -339,9 +336,6 @@ dart2js_server:
 
     _isolate_helper:
       uri: "_internal/js_runtime/lib/isolate_helper.dart"
-
-    _js_mirrors:
-      uri: "_internal/js_runtime/lib/js_mirrors.dart"
 
     _js_names:
       uri: "_internal/js_runtime/lib/js_names.dart"
