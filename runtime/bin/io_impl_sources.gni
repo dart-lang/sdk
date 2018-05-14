@@ -40,6 +40,8 @@ io_impl_sources = [
   "namespace_linux.cc",
   "namespace_macos.cc",
   "namespace_win.cc",
+  "path.cc",
+  "path.h",
   "platform.cc",
   "platform.h",
   "platform_android.cc",

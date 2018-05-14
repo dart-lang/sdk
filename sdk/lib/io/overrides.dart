@@ -214,7 +214,7 @@ abstract class IOOverrides {
   /// When this override is installed, this function overrides the behavior of
   /// `FileSystemEntity.type`.
   Future<FileSystemEntityType> fseGetType(String path, bool followLinks) {
-    return FileSystemEntity._getTypeRequest(path, followLinks);
+    return FileSystemEntity._getTypeRequest(utf8.encode(path), followLinks);
   }
 
   /// Returns the [FileSystemEntityType] for [path].
@@ -222,7 +222,7 @@ abstract class IOOverrides {
   /// When this override is installed, this function overrides the behavior of
   /// `FileSystemEntity.typeSync`.
   FileSystemEntityType fseGetTypeSync(String path, bool followLinks) {
-    return FileSystemEntity._getTypeSyncHelper(path, followLinks);
+    return FileSystemEntity._getTypeSyncHelper(utf8.encode(path), followLinks);
   }
 
   // _FileSystemWatcher

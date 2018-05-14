@@ -103,6 +103,9 @@ class DartUtils {
   // Returns the boolean value of a Dart object. If the object is not
   // a boolean value an API error is propagated.
   static bool GetBooleanValue(Dart_Handle bool_obj);
+  // Returns the raw string value of a Dart object. If the object is
+  // not a Dart List an API error is propagated.
+  static const char* GetRawStringValue(Dart_Handle list_obj);
 
   static Dart_Handle SetIntegerField(Dart_Handle handle,
                                      const char* name,

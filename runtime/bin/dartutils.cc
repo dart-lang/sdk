@@ -85,7 +85,9 @@ const char* DartUtils::MapLibraryUrl(const char* url_string) {
 int64_t DartUtils::GetIntegerValue(Dart_Handle value_obj) {
   int64_t value = 0;
   Dart_Handle result = Dart_IntegerToInt64(value_obj, &value);
-  if (Dart_IsError(result)) Dart_PropagateError(result);
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
   return value;
 }
 
@@ -102,7 +104,9 @@ int64_t DartUtils::GetInt64ValueCheckRange(Dart_Handle value_obj,
 intptr_t DartUtils::GetIntptrValue(Dart_Handle value_obj) {
   int64_t value = 0;
   Dart_Handle result = Dart_IntegerToInt64(value_obj, &value);
-  if (Dart_IsError(result)) Dart_PropagateError(result);
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
   if (value < kIntptrMin || kIntptrMax < value) {
     Dart_PropagateError(Dart_NewApiError("Value outside intptr_t range"));
   }
@@ -113,26 +117,60 @@ bool DartUtils::GetInt64Value(Dart_Handle value_obj, int64_t* value) {
   bool valid = Dart_IsInteger(value_obj);
   if (valid) {
     Dart_Handle result = Dart_IntegerFitsIntoInt64(value_obj, &valid);
-    if (Dart_IsError(result)) Dart_PropagateError(result);
+    if (Dart_IsError(result)) {
+      Dart_PropagateError(result);
+    }
   }
   if (!valid) return false;
   Dart_Handle result = Dart_IntegerToInt64(value_obj, value);
-  if (Dart_IsError(result)) Dart_PropagateError(result);
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
   return true;
 }
 
 const char* DartUtils::GetStringValue(Dart_Handle str_obj) {
   const char* cstring = NULL;
   Dart_Handle result = Dart_StringToCString(str_obj, &cstring);
-  if (Dart_IsError(result)) Dart_PropagateError(result);
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
   return cstring;
 }
 
 bool DartUtils::GetBooleanValue(Dart_Handle bool_obj) {
   bool value = false;
   Dart_Handle result = Dart_BooleanValue(bool_obj, &value);
-  if (Dart_IsError(result)) Dart_PropagateError(result);
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
   return value;
+}
+
+const char* DartUtils::GetRawStringValue(Dart_Handle list_obj) {
+  intptr_t len = 0;
+  char* str = NULL;
+
+  if (!Dart_IsList(list_obj)) {
+    Dart_PropagateError(Dart_NewApiError("GetRawStringValue expects a List"));
+  }
+
+  Dart_Handle result = Dart_ListLength(list_obj, &len);
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
+  str = reinterpret_cast<char*>(Dart_ScopeAllocate(len + 1));
+  result =
+      Dart_ListGetAsBytes(list_obj, 0, reinterpret_cast<uint8_t*>(str), len);
+
+  // Ensure there's a null terminator so we don't crash at a later point.
+  str[len] = 0;
+
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
+
+  return str;
 }
 
 Dart_Handle DartUtils::SetIntegerField(Dart_Handle handle,

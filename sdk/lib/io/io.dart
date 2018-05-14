@@ -193,7 +193,14 @@ library dart.io;
 import 'dart:async';
 import 'dart:_internal' hide Symbol;
 import 'dart:collection'
-    show HashMap, HashSet, Queue, ListQueue, MapBase, UnmodifiableMapView;
+    show
+        HashMap,
+        HashSet,
+        Queue,
+        ListQueue,
+        MapBase,
+        UnmodifiableUint8ListView,
+        UnmodifiableMapView;
 import 'dart:convert';
 import 'dart:developer' hide log;
 import 'dart:isolate';
