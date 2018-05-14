@@ -4,16 +4,40 @@
 
 /// A library to help transform compounds and null-aware accessors into
 /// let expressions.
+library fasta.expression_generator;
 
 import '../../scanner/token.dart' show Token;
 
-import '../names.dart' show equalsName, indexGetName, indexSetName;
+import '../constant_context.dart' show ConstantContext;
 
-import '../parser.dart' show offsetForToken;
+import '../fasta_codes.dart'
+    show
+        LocatedMessage,
+        messageInvalidInitializer,
+        messageLoadLibraryTakesNoArguments,
+        messageSuperAsExpression,
+        templateDeferredTypeAnnotation,
+        templateIntegerLiteralIsOutOfRange,
+        templateNotAPrefixInTypeAnnotation,
+        templateNotAType,
+        templateUnresolvedPrefixInTypeAnnotation;
 
-import '../problems.dart' show unhandled;
+import '../messages.dart' show Message, noLength;
 
-import 'fasta_accessors.dart' show BuilderHelper;
+import '../names.dart'
+    show callName, equalsName, indexGetName, indexSetName, lengthName;
+
+import '../parser.dart' show lengthForToken, lengthOfSpan, offsetForToken;
+
+import '../problems.dart' show unhandled, unimplemented, unsupported;
+
+import '../scope.dart' show AccessErrorBuilder, ProblemBuilder, Scope;
+
+import '../type_inference/type_promotion.dart' show TypePromoter;
+
+import 'body_builder.dart' show Identifier, noLocation;
+
+import 'constness.dart' show Constness;
 
 import 'forest.dart' show Forest;
 
@@ -21,8 +45,13 @@ import 'kernel_builder.dart' show LoadLibraryBuilder, PrefixBuilder;
 
 import 'kernel_ast_api.dart'
     show
+        Constructor,
         DartType,
-        Expression,
+        Field,
+        FunctionNode,
+        FunctionType,
+        Initializer,
+        InvalidType,
         Let,
         Member,
         Name,
@@ -30,22 +59,50 @@ import 'kernel_ast_api.dart'
         PropertySet,
         ShadowComplexAssignment,
         ShadowIllegalAssignment,
+        ShadowIndexAssign,
         ShadowMethodInvocation,
         ShadowNullAwarePropertyGet,
         ShadowPropertyAssign,
         ShadowPropertyGet,
+        ShadowStaticAssignment,
         ShadowSuperMethodInvocation,
         ShadowSuperPropertyGet,
+        ShadowVariableAssignment,
         ShadowVariableDeclaration,
         ShadowVariableGet,
-        Statement,
+        StaticGet,
         StaticSet,
         SuperMethodInvocation,
         SuperPropertySet,
+        Throw,
         TreeNode,
+        TypeParameter,
+        TypeParameterType,
         VariableDeclaration,
         VariableGet,
         VariableSet;
+
+import 'kernel_ast_api.dart' as kernel show Expression, Statement;
+
+// TODO(ahe): Remove this import.
+import 'kernel_ast_api.dart' show Expression, Statement;
+
+import 'kernel_builder.dart'
+    show
+        Builder,
+        BuiltinTypeBuilder,
+        FunctionTypeAliasBuilder,
+        KernelClassBuilder,
+        KernelFunctionTypeAliasBuilder,
+        KernelInvalidTypeBuilder,
+        KernelPrefixBuilder,
+        KernelTypeVariableBuilder,
+        LibraryBuilder,
+        LoadLibraryBuilder,
+        PrefixBuilder,
+        TypeDeclarationBuilder;
+
+part 'expression_generator_impl.dart';
 
 /// An [Accessor] represents a subexpression for which we can't yet build a
 /// kernel [Expression] because we don't yet know the context in which it is
@@ -221,11 +278,11 @@ abstract class Accessor<Arguments> {
       new ShadowIllegalAssignment(rhs);
 }
 
-abstract class VariableAccessor<Arguments> extends Accessor<Arguments> {
+abstract class _VariableAccessor<Arguments> extends Accessor<Arguments> {
   VariableDeclaration variable;
   DartType promotedType;
 
-  VariableAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
+  _VariableAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
       this.variable, this.promotedType, Token token)
       : super(helper, token);
 
@@ -251,7 +308,7 @@ abstract class VariableAccessor<Arguments> extends Accessor<Arguments> {
   }
 }
 
-class PropertyAccessor<Arguments> extends Accessor<Arguments> {
+class _PropertyAccessor<Arguments> extends Accessor<Arguments> {
   VariableDeclaration _receiverVariable;
   Expression receiver;
   Name name;
@@ -265,14 +322,14 @@ class PropertyAccessor<Arguments> extends Accessor<Arguments> {
       Member setter,
       {Token token}) {
     if (helper.forest.isThisExpression(receiver)) {
-      return new ThisPropertyAccessor(helper, name, getter, setter, token);
+      return new _ThisPropertyAccessor(helper, name, getter, setter, token);
     } else {
-      return new PropertyAccessor.internal(
+      return new _PropertyAccessor.internal(
           helper, receiver, name, getter, setter, token);
     }
   }
 
-  PropertyAccessor.internal(BuilderHelper<dynamic, dynamic, Arguments> helper,
+  _PropertyAccessor.internal(BuilderHelper<dynamic, dynamic, Arguments> helper,
       this.receiver, this.name, this.getter, this.setter, Token token)
       : super(helper, token);
 
@@ -314,13 +371,13 @@ class PropertyAccessor<Arguments> extends Accessor<Arguments> {
   }
 }
 
-/// Special case of [PropertyAccessor] to avoid creating an indirect access to
+/// Special case of [_PropertyAccessor] to avoid creating an indirect access to
 /// 'this'.
-class ThisPropertyAccessor<Arguments> extends Accessor<Arguments> {
+class _ThisPropertyAccessor<Arguments> extends Accessor<Arguments> {
   Name name;
   Member getter, setter;
 
-  ThisPropertyAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
+  _ThisPropertyAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
       this.name, this.getter, this.setter, Token token)
       : super(helper, token);
 
@@ -347,14 +404,14 @@ class ThisPropertyAccessor<Arguments> extends Accessor<Arguments> {
   }
 }
 
-class NullAwarePropertyAccessor<Arguments> extends Accessor<Arguments> {
+class _NullAwarePropertyAccessor<Arguments> extends Accessor<Arguments> {
   VariableDeclaration receiver;
   Expression receiverExpression;
   Name name;
   Member getter, setter;
   DartType type;
 
-  NullAwarePropertyAccessor(
+  _NullAwarePropertyAccessor(
       BuilderHelper<dynamic, dynamic, Arguments> helper,
       this.receiverExpression,
       this.name,
@@ -406,11 +463,11 @@ class NullAwarePropertyAccessor<Arguments> extends Accessor<Arguments> {
   }
 }
 
-class SuperPropertyAccessor<Arguments> extends Accessor<Arguments> {
+class _SuperPropertyAccessor<Arguments> extends Accessor<Arguments> {
   Name name;
   Member getter, setter;
 
-  SuperPropertyAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
+  _SuperPropertyAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
       this.name, this.getter, this.setter, Token token)
       : super(helper, token);
 
@@ -438,7 +495,7 @@ class SuperPropertyAccessor<Arguments> extends Accessor<Arguments> {
   }
 }
 
-class IndexAccessor<Arguments> extends Accessor<Arguments> {
+class _IndexAccessor<Arguments> extends Accessor<Arguments> {
   Expression receiver;
   Expression index;
   VariableDeclaration receiverVariable;
@@ -453,14 +510,14 @@ class IndexAccessor<Arguments> extends Accessor<Arguments> {
       Procedure setter,
       {Token token}) {
     if (helper.forest.isThisExpression(receiver)) {
-      return new ThisIndexAccessor(helper, index, getter, setter, token);
+      return new _ThisIndexAccessor(helper, index, getter, setter, token);
     } else {
-      return new IndexAccessor.internal(
+      return new _IndexAccessor.internal(
           helper, receiver, index, getter, setter, token);
     }
   }
 
-  IndexAccessor.internal(BuilderHelper<dynamic, dynamic, Arguments> helper,
+  _IndexAccessor.internal(BuilderHelper<dynamic, dynamic, Arguments> helper,
       this.receiver, this.index, this.getter, this.setter, Token token)
       : super(helper, token);
 
@@ -555,14 +612,14 @@ class IndexAccessor<Arguments> extends Accessor<Arguments> {
   }
 }
 
-/// Special case of [IndexAccessor] to avoid creating an indirect access to
+/// Special case of [_IndexAccessor] to avoid creating an indirect access to
 /// 'this'.
-class ThisIndexAccessor<Arguments> extends Accessor<Arguments> {
+class _ThisIndexAccessor<Arguments> extends Accessor<Arguments> {
   Expression index;
   VariableDeclaration indexVariable;
   Procedure getter, setter;
 
-  ThisIndexAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
+  _ThisIndexAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
       this.index, this.getter, this.setter, Token token)
       : super(helper, token);
 
@@ -643,12 +700,12 @@ class ThisIndexAccessor<Arguments> extends Accessor<Arguments> {
   }
 }
 
-class SuperIndexAccessor<Arguments> extends Accessor<Arguments> {
+class _SuperIndexAccessor<Arguments> extends Accessor<Arguments> {
   Expression index;
   VariableDeclaration indexVariable;
   Member getter, setter;
 
-  SuperIndexAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
+  _SuperIndexAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
       this.index, this.getter, this.setter, Token token)
       : super(helper, token);
 
@@ -745,11 +802,11 @@ class SuperIndexAccessor<Arguments> extends Accessor<Arguments> {
   }
 }
 
-class StaticAccessor<Arguments> extends Accessor<Arguments> {
+class _StaticAccessor<Arguments> extends Accessor<Arguments> {
   Member readTarget;
   Member writeTarget;
 
-  StaticAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
+  _StaticAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
       this.readTarget, this.writeTarget, Token token)
       : super(helper, token);
 
@@ -777,10 +834,10 @@ class StaticAccessor<Arguments> extends Accessor<Arguments> {
   }
 }
 
-abstract class LoadLibraryAccessor<Arguments> extends Accessor<Arguments> {
+abstract class _LoadLibraryAccessor<Arguments> extends Accessor<Arguments> {
   final LoadLibraryBuilder builder;
 
-  LoadLibraryAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
+  _LoadLibraryAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
       Token token, this.builder)
       : super(helper, token);
 
@@ -799,11 +856,11 @@ abstract class LoadLibraryAccessor<Arguments> extends Accessor<Arguments> {
   }
 }
 
-abstract class DeferredAccessor<Arguments> extends Accessor<Arguments> {
+abstract class _DeferredAccessor<Arguments> extends Accessor<Arguments> {
   final PrefixBuilder builder;
   final Accessor accessor;
 
-  DeferredAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
+  _DeferredAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
       Token token, this.builder, this.accessor)
       : super(helper, token);
 
@@ -826,11 +883,11 @@ abstract class DeferredAccessor<Arguments> extends Accessor<Arguments> {
   }
 }
 
-class ReadOnlyAccessor<Arguments> extends Accessor<Arguments> {
+class _ReadOnlyAccessor<Arguments> extends Accessor<Arguments> {
   Expression expression;
   VariableDeclaration value;
 
-  ReadOnlyAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
+  _ReadOnlyAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
       this.expression, Token token)
       : super(helper, token);
 
@@ -853,8 +910,8 @@ class ReadOnlyAccessor<Arguments> extends Accessor<Arguments> {
       super._finish(makeLet(value, body), complexAssignment);
 }
 
-abstract class DelayedErrorAccessor<Arguments> extends Accessor<Arguments> {
-  DelayedErrorAccessor(
+abstract class _DelayedErrorAccessor<Arguments> extends Accessor<Arguments> {
+  _DelayedErrorAccessor(
       BuilderHelper<dynamic, dynamic, Arguments> helper, Token token)
       : super(helper, token);
 

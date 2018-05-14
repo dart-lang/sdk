@@ -16,6 +16,24 @@ import '../messages.dart' as messages show getLocationFromUri;
 
 import '../modifier.dart' show Modifier, constMask, covariantMask, finalMask;
 
+import '../names.dart'
+    show
+        ampersandName,
+        barName,
+        callName,
+        caretName,
+        divisionName,
+        emptyName,
+        indexGetName,
+        indexSetName,
+        leftShiftName,
+        minusName,
+        multiplyName,
+        mustacheName,
+        percentName,
+        plusName,
+        rightShiftName;
+
 import '../parser.dart'
     show
         Assert,
@@ -62,7 +80,32 @@ import '../type_inference/type_promotion.dart' show TypePromoter;
 
 import 'constness.dart' show Constness;
 
-import 'frontend_accessors.dart' show buildIsNull;
+import 'expression_generator.dart'
+    show
+        BuilderHelper,
+        CalleeDesignation,
+        DeferredAccessor,
+        ErrorAccessor,
+        FastaAccessor,
+        FunctionTypeAccessor,
+        GeneratorImpl,
+        IncompleteError,
+        IncompletePropertyAccessor,
+        IncompleteSend,
+        IndexAccessor,
+        LargeIntAccessor,
+        LoadLibraryAccessor,
+        ParenthesizedExpression,
+        ReadOnlyAccessor,
+        SendAccessor,
+        StaticAccessor,
+        SuperIndexAccessor,
+        ThisAccessor,
+        ThisPropertyAccessor,
+        TypeDeclarationAccessor,
+        UnresolvedAccessor,
+        VariableAccessor,
+        buildIsNull;
 
 import 'redirecting_factory_body.dart'
     show
@@ -70,10 +113,6 @@ import 'redirecting_factory_body.dart'
         RedirectionTarget,
         getRedirectingFactoryBody,
         getRedirectionTarget;
-
-import '../names.dart';
-
-import 'fasta_accessors.dart';
 
 import 'kernel_api.dart';
 
@@ -4129,7 +4168,8 @@ class Label {
   String toString() => "label($name)";
 }
 
-abstract class ContextAccessor<Arguments> extends FastaAccessor<Arguments> {
+abstract class ContextAccessor<Arguments> extends FastaAccessor<Arguments>
+    with GeneratorImpl {
   final BuilderHelper<dynamic, dynamic, Arguments> helper;
 
   final FastaAccessor accessor;

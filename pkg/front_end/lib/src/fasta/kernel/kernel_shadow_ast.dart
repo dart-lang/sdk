@@ -20,25 +20,54 @@
 
 import 'dart:core' hide MapEntry;
 
-import 'package:front_end/src/base/instrumentation.dart';
-import 'package:front_end/src/fasta/fasta_codes.dart';
-import 'package:front_end/src/fasta/kernel/body_builder.dart';
-import 'package:front_end/src/fasta/kernel/fasta_accessors.dart';
-import 'package:front_end/src/fasta/source/source_class_builder.dart';
-import 'package:front_end/src/fasta/source/source_library_builder.dart';
-import 'package:front_end/src/fasta/type_inference/interface_resolver.dart';
-import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
-import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
-import 'package:front_end/src/fasta/type_inference/type_promotion.dart';
-import 'package:front_end/src/fasta/type_inference/type_schema.dart';
-import 'package:front_end/src/fasta/type_inference/type_schema_elimination.dart';
-import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart' hide InvalidExpression, InvalidInitializer;
+
 import 'package:kernel/clone.dart' show CloneVisitor;
-import 'package:kernel/frontend/accessors.dart';
-import 'package:kernel/type_algebra.dart';
+
+import 'package:kernel/type_algebra.dart' show Substitution;
+
+import '../../base/instrumentation.dart'
+    show
+        Instrumentation,
+        InstrumentationValueForMember,
+        InstrumentationValueForType,
+        InstrumentationValueForTypeArgs;
+
+import '../fasta_codes.dart'
+    show templateCantUseSuperBoundedTypeForInstanceCreation;
 
 import '../problems.dart' show unhandled, unsupported;
+
+import '../source/source_class_builder.dart' show SourceClassBuilder;
+
+import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+
+import '../type_inference/interface_resolver.dart' show InterfaceResolver;
+
+import '../type_inference/type_inference_engine.dart'
+    show
+        FieldInitializerInferenceNode,
+        IncludesTypeParametersCovariantly,
+        InferenceNode,
+        TypeInferenceEngine,
+        TypeInferenceEngineImpl;
+
+import '../type_inference/type_inferrer.dart'
+    show TypeInferrer, TypeInferrerDisabled, TypeInferrerImpl;
+
+import '../type_inference/type_promotion.dart'
+    show TypePromoter, TypePromoterImpl, TypePromotionFact, TypePromotionScope;
+
+import '../type_inference/type_schema.dart' show UnknownType;
+
+import '../type_inference/type_schema_elimination.dart' show greatestClosure;
+
+import '../type_inference/type_schema_environment.dart'
+    show TypeSchemaEnvironment, getPositionalParameterType;
+
+import 'body_builder.dart' show combineStatements;
+
+import 'expression_generator.dart' show BuilderHelper, makeLet;
 
 /// Indicates whether type inference involving conditional expressions should
 /// always use least upper bound.

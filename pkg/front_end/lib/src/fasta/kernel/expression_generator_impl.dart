@@ -2,78 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.fasta_accessors;
-
-import '../../scanner/token.dart' show Token;
-
-import '../constant_context.dart' show ConstantContext;
-
-import '../fasta_codes.dart'
-    show
-        LocatedMessage,
-        messageInvalidInitializer,
-        messageLoadLibraryTakesNoArguments,
-        messageSuperAsExpression,
-        templateDeferredTypeAnnotation,
-        templateIntegerLiteralIsOutOfRange,
-        templateNotAPrefixInTypeAnnotation,
-        templateNotAType,
-        templateUnresolvedPrefixInTypeAnnotation;
-
-import '../messages.dart' show Message, noLength;
-
-import '../names.dart' show callName, lengthName;
-
-import '../parser.dart' show lengthForToken, lengthOfSpan, offsetForToken;
-
-import '../problems.dart' show unhandled, unimplemented, unsupported;
-
-import '../scope.dart' show AccessErrorBuilder, ProblemBuilder, Scope;
-
-import '../type_inference/type_promotion.dart' show TypePromoter;
-
-import 'body_builder.dart' show Identifier, noLocation;
-
-import 'constness.dart' show Constness;
-
-import 'forest.dart' show Forest;
-
-import 'frontend_accessors.dart' as kernel
-    show
-        IndexAccessor,
-        NullAwarePropertyAccessor,
-        LoadLibraryAccessor,
-        PropertyAccessor,
-        ReadOnlyAccessor,
-        DeferredAccessor,
-        DelayedErrorAccessor,
-        StaticAccessor,
-        SuperIndexAccessor,
-        SuperPropertyAccessor,
-        ThisIndexAccessor,
-        ThisPropertyAccessor,
-        VariableAccessor;
-
-import 'frontend_accessors.dart' show Accessor;
-
-import 'kernel_ast_api.dart' hide Expression, Statement;
-
-import 'kernel_ast_api.dart' as kernel show Expression, Statement;
-
-import 'kernel_builder.dart'
-    show
-        Builder,
-        BuiltinTypeBuilder,
-        FunctionTypeAliasBuilder,
-        KernelClassBuilder,
-        KernelFunctionTypeAliasBuilder,
-        KernelInvalidTypeBuilder,
-        KernelPrefixBuilder,
-        KernelTypeVariableBuilder,
-        LibraryBuilder,
-        LoadLibraryBuilder,
-        PrefixBuilder,
-        TypeDeclarationBuilder;
+part of 'expression_generator.dart';
 
 abstract class BuilderHelper<Expression, Statement, Arguments> {
   LibraryBuilder get library;
@@ -304,6 +233,35 @@ abstract class FastaAccessor<Arguments> implements Accessor<Arguments> {
       new ShadowIllegalAssignment(rhs);
 }
 
+abstract class GeneratorImpl {
+  Token get token;
+
+  Uri get uri;
+
+  kernel.Expression _finish(
+      kernel.Expression body, ShadowComplexAssignment complexAssignment) {
+    return unimplemented("_finish", offsetForToken(token), uri);
+  }
+
+  kernel.Expression _makeSimpleRead() {
+    return unimplemented("_makeSimpleRead", offsetForToken(token), uri);
+  }
+
+  kernel.Expression _makeSimpleWrite(kernel.Expression value, bool voidContext,
+      ShadowComplexAssignment complexAssignment) {
+    return unimplemented("_makeSimpleWrite", offsetForToken(token), uri);
+  }
+
+  kernel.Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+    return unimplemented("_makeRead", offsetForToken(token), uri);
+  }
+
+  kernel.Expression _makeWrite(kernel.Expression value, bool voidContext,
+      ShadowComplexAssignment complexAssignment) {
+    return unimplemented("_makeWrite", offsetForToken(token), uri);
+  }
+}
+
 abstract class ErrorAccessor<Arguments> implements FastaAccessor<Arguments> {
   /// Pass [arguments] that must be evaluated before throwing an error.  At
   /// most one of [isGetter] and [isSetter] should be true and they're passed
@@ -418,7 +376,8 @@ abstract class ErrorAccessor<Arguments> implements FastaAccessor<Arguments> {
   }
 }
 
-class ThisAccessor<Arguments> extends FastaAccessor<Arguments> {
+class ThisAccessor<Arguments> extends FastaAccessor<Arguments>
+    with GeneratorImpl {
   final BuilderHelper<dynamic, dynamic, Arguments> helper;
 
   final Token token;
@@ -578,7 +537,8 @@ class ThisAccessor<Arguments> extends FastaAccessor<Arguments> {
   }
 }
 
-abstract class IncompleteSend<Arguments> extends FastaAccessor<Arguments> {
+abstract class IncompleteSend<Arguments> extends FastaAccessor<Arguments>
+    with GeneratorImpl {
   final BuilderHelper<dynamic, dynamic, Arguments> helper;
 
   @override
@@ -780,7 +740,7 @@ class IncompletePropertyAccessor<Arguments> extends IncompleteSend<Arguments> {
   }
 }
 
-class IndexAccessor<Arguments> extends kernel.IndexAccessor<Arguments>
+class IndexAccessor<Arguments> extends _IndexAccessor<Arguments>
     with FastaAccessor<Arguments> {
   final BuilderHelper<dynamic, dynamic, Arguments> helper;
 
@@ -820,7 +780,7 @@ class IndexAccessor<Arguments> extends kernel.IndexAccessor<Arguments>
       new ShadowIndexAssign(receiver, index, rhs);
 }
 
-class PropertyAccessor<Arguments> extends kernel.PropertyAccessor<Arguments>
+class PropertyAccessor<Arguments> extends _PropertyAccessor<Arguments>
     with FastaAccessor<Arguments> {
   final BuilderHelper<dynamic, dynamic, Arguments> helper;
 
@@ -862,7 +822,7 @@ class PropertyAccessor<Arguments> extends kernel.PropertyAccessor<Arguments>
       new ShadowPropertyAssign(receiver, rhs);
 }
 
-class StaticAccessor<Arguments> extends kernel.StaticAccessor<Arguments>
+class StaticAccessor<Arguments> extends _StaticAccessor<Arguments>
     with FastaAccessor<Arguments> {
   StaticAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper, Token token,
       Member readTarget, Member writeTarget)
@@ -923,8 +883,8 @@ class StaticAccessor<Arguments> extends kernel.StaticAccessor<Arguments>
       new ShadowStaticAssignment(rhs);
 }
 
-class LoadLibraryAccessor<Arguments> extends kernel
-    .LoadLibraryAccessor<Arguments> with FastaAccessor<Arguments> {
+class LoadLibraryAccessor<Arguments> extends _LoadLibraryAccessor<Arguments>
+    with FastaAccessor<Arguments> {
   LoadLibraryAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
       Token token, LoadLibraryBuilder builder)
       : super(helper, token, builder);
@@ -941,7 +901,7 @@ class LoadLibraryAccessor<Arguments> extends kernel
   }
 }
 
-class DeferredAccessor<Arguments> extends kernel.DeferredAccessor<Arguments>
+class DeferredAccessor<Arguments> extends _DeferredAccessor<Arguments>
     with FastaAccessor<Arguments> {
   DeferredAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
       Token token, PrefixBuilder builder, FastaAccessor expression)
@@ -985,8 +945,8 @@ class DeferredAccessor<Arguments> extends kernel.DeferredAccessor<Arguments>
   }
 }
 
-class SuperPropertyAccessor<Arguments> extends kernel
-    .SuperPropertyAccessor<Arguments> with FastaAccessor<Arguments> {
+class SuperPropertyAccessor<Arguments> extends _SuperPropertyAccessor<Arguments>
+    with FastaAccessor<Arguments> {
   SuperPropertyAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
       Token token, Name name, Member getter, Member setter)
       : super(helper, name, getter, setter, token);
@@ -1019,7 +979,7 @@ class SuperPropertyAccessor<Arguments> extends kernel
       new ShadowPropertyAssign(null, rhs, isSuper: true);
 }
 
-class ThisIndexAccessor<Arguments> extends kernel.ThisIndexAccessor<Arguments>
+class ThisIndexAccessor<Arguments> extends _ThisIndexAccessor<Arguments>
     with FastaAccessor<Arguments> {
   ThisIndexAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
       Token token, kernel.Expression index, Procedure getter, Procedure setter)
@@ -1042,7 +1002,7 @@ class ThisIndexAccessor<Arguments> extends kernel.ThisIndexAccessor<Arguments>
       new ShadowIndexAssign(null, index, rhs);
 }
 
-class SuperIndexAccessor<Arguments> extends kernel.SuperIndexAccessor<Arguments>
+class SuperIndexAccessor<Arguments> extends _SuperIndexAccessor<Arguments>
     with FastaAccessor<Arguments> {
   SuperIndexAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
       Token token, kernel.Expression index, Member getter, Member setter)
@@ -1065,8 +1025,8 @@ class SuperIndexAccessor<Arguments> extends kernel.SuperIndexAccessor<Arguments>
       new ShadowIndexAssign(null, index, rhs, isSuper: true);
 }
 
-class ThisPropertyAccessor<Arguments> extends kernel
-    .ThisPropertyAccessor<Arguments> with FastaAccessor<Arguments> {
+class ThisPropertyAccessor<Arguments> extends _ThisPropertyAccessor<Arguments>
+    with FastaAccessor<Arguments> {
   final BuilderHelper<dynamic, dynamic, Arguments> helper;
 
   ThisPropertyAccessor(
@@ -1099,8 +1059,9 @@ class ThisPropertyAccessor<Arguments> extends kernel
       new ShadowPropertyAssign(null, rhs);
 }
 
-class NullAwarePropertyAccessor<Arguments> extends kernel
-    .NullAwarePropertyAccessor<Arguments> with FastaAccessor<Arguments> {
+class NullAwarePropertyAccessor<Arguments>
+    extends _NullAwarePropertyAccessor<Arguments>
+    with FastaAccessor<Arguments> {
   final BuilderHelper<dynamic, dynamic, Arguments> helper;
 
   NullAwarePropertyAccessor(
@@ -1132,7 +1093,7 @@ int adjustForImplicitCall(String name, int offset) {
   return offset + (name?.length ?? 0);
 }
 
-class VariableAccessor<Arguments> extends kernel.VariableAccessor<Arguments>
+class VariableAccessor<Arguments> extends _VariableAccessor<Arguments>
     with FastaAccessor<Arguments> {
   VariableAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
       Token token, VariableDeclaration variable,
@@ -1154,7 +1115,7 @@ class VariableAccessor<Arguments> extends kernel.VariableAccessor<Arguments>
       new ShadowVariableAssignment(rhs);
 }
 
-class ReadOnlyAccessor<Arguments> extends kernel.ReadOnlyAccessor<Arguments>
+class ReadOnlyAccessor<Arguments> extends _ReadOnlyAccessor<Arguments>
     with FastaAccessor<Arguments> {
   final String plainNameForRead;
 
@@ -1169,7 +1130,7 @@ class ReadOnlyAccessor<Arguments> extends kernel.ReadOnlyAccessor<Arguments>
   }
 }
 
-class LargeIntAccessor<Arguments> extends kernel.DelayedErrorAccessor<Arguments>
+class LargeIntAccessor<Arguments> extends _DelayedErrorAccessor<Arguments>
     with FastaAccessor<Arguments> {
   final String plainNameForRead = null;
 
@@ -1354,7 +1315,7 @@ class TypeDeclarationAccessor<Arguments> extends ReadOnlyAccessor<Arguments> {
 }
 
 class UnresolvedAccessor<Arguments> extends FastaAccessor<Arguments>
-    with ErrorAccessor<Arguments> {
+    with GeneratorImpl, ErrorAccessor<Arguments> {
   @override
   final Token token;
 

@@ -62,10 +62,8 @@ import '../../base/instrumentation.dart'
 
 import '../fasta_codes.dart';
 
-import '../kernel/fasta_accessors.dart'
-    show BuilderHelper, CalleeDesignation, FunctionTypeAccessor;
-
-import '../kernel/frontend_accessors.dart' show buildIsNull;
+import '../kernel/expression_generator.dart'
+    show BuilderHelper, CalleeDesignation, FunctionTypeAccessor, buildIsNull;
 
 import '../kernel/kernel_shadow_ast.dart'
     show
