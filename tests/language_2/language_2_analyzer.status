@@ -17,7 +17,7 @@ const_cast2_test/01: CompileTimeError
 const_cast2_test/none: CompileTimeError
 const_for_in_variable_test/01: MissingCompileTimeError # Issue 25161
 constructor_call_wrong_argument_count_negative_test: Fail # Issue 11585
-constructor_type_parameter_test/00: MissingCompileTimeError
+constructor_type_parameter_test/00: MissingCompileTimeError # Issue 33110
 deep_nesting1_negative_test: CompileTimeError # Issue 25558
 deep_nesting2_negative_test: CompileTimeError # Issue 25558
 duplicate_export_negative_test: CompileTimeError
@@ -1102,6 +1102,7 @@ const_types_test/15: MissingCompileTimeError # Incorrectly allows using type par
 constant_type_literal_test/01: MissingCompileTimeError # Issue 28823
 default_implementation2_test: CompileTimeError # Issue 30855
 error_stacktrace_test/00: Pass
+field3_test/02: MissingCompileTimeError # Issue 33022
 field3a_negative_test: StaticWarning # Issue 28823
 forwarding_stub_tearoff_test: CompileTimeError
 generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30207

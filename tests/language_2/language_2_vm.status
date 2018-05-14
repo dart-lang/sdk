@@ -375,7 +375,8 @@ factory_redirection_test/13: MissingCompileTimeError
 factory_redirection_test/14: MissingCompileTimeError
 factory_redirection_test/none: MissingCompileTimeError
 factory_return_type_checked_test/00: MissingCompileTimeError
-field3_test/01: MissingCompileTimeError
+field3_test/01: MissingCompileTimeError # Issue 33022
+field3_test/02: MissingCompileTimeError # Issue 33022
 field_method4_test: MissingCompileTimeError
 field_override2_test: MissingCompileTimeError
 field_override_test/00: MissingCompileTimeError
