@@ -65,9 +65,7 @@ class VmConstantsBackend implements ConstantsBackend {
             constant is IntConstant ? constant.value : null;
         int value;
         if (defines != null) {
-          value = defines.containsKey(name)
-              ? int.parse(defines[name], onError: (_) => defaultValue)
-              : defaultValue;
+          value = int.tryParse(defines[name]) ?? defaultValue;
         } else {
           value = new int.fromEnvironment(name, defaultValue: defaultValue);
         }
