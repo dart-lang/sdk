@@ -2,25 +2,7 @@
 (Add new changes here, and they will be copied to the
  change section for the next dev version)
 
-### Tool Changes
-
-#### dart2js
-
-* Several fixes to improve support for running output of dart2js as a webworker.
-
-* `dart:isolate` implementation removed. To launch background tasks,
-   please use webworkers instead. APIs for webworkers can be accessed from
-   `dart:html` or JS-interop.
-
 ### Language
-
-* Changed the `cast` method to always change the type.  Deprecated the
-  `retype` method and made it redirect to `cast`.  Applies to all of the
-  following interfaces:
-  * `Stream`:
-  * `StreamTransformer`
-  * `Iterable`
-  * `Map`
 
 #### Strong Mode
 
@@ -32,9 +14,33 @@
 
 #### Pub
 
-* Use forward-slash paths to Git on Windows
-
 #### Other Tools
+
+## 2.0.0-dev.55.0
+
+### Language
+
+* Changed the `cast` method to always change the type.  Deprecated the
+  `retype` method and made it redirect to `cast`.  Applies to all of the
+  following interfaces:
+  * `Stream`:
+  * `StreamTransformer`
+  * `Iterable`
+  * `Map`
+
+### Tool Changes
+
+#### dart2js
+
+* Several fixes to improve support for running output of dart2js as a webworker.
+
+* `dart:isolate` implementation removed. To launch background tasks,
+  please use webworkers instead. APIs for webworkers can be accessed from
+  `dart:html` or JS-interop.
+
+#### Pub
+
+* Use forward-slash paths to Git on Windows
 
 ## 2.0.0-dev.54.0
 
