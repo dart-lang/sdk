@@ -29,10 +29,6 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.ABSTRACT_CLASS_MEMBER, offset, length);
         return;
-      case "ANNOTATION_ON_ENUM_CONSTANT":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.ANNOTATION_ON_ENUM_CONSTANT, offset, length);
-        return;
       case "ASYNC_FOR_IN_WRONG_CONTEXT":
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT, offset, length);

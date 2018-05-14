@@ -2542,18 +2542,6 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
         errors: [expectedError(ParserErrorCode.ABSTRACT_TYPEDEF, 0, 8)]);
   }
 
-  void test_annotationOnEnumConstant_first() {
-    parseCompilationUnit("enum E { @override C }", errors: [
-      expectedError(ParserErrorCode.ANNOTATION_ON_ENUM_CONSTANT, 9, 9)
-    ]);
-  }
-
-  void test_annotationOnEnumConstant_middle() {
-    parseCompilationUnit("enum E { C, @override D, E }", errors: [
-      expectedError(ParserErrorCode.ANNOTATION_ON_ENUM_CONSTANT, 12, 9)
-    ]);
-  }
-
   void test_breakOutsideOfLoop_breakInDoStatement() {
     DoStatement statement = parseStatement('do {break;} while (x);');
     expectNotNullIfNoErrors(statement);
@@ -9731,6 +9719,20 @@ abstract class FormalParameterParserTestMixin
 
 @reflectiveTest
 class NonErrorParserTest extends ParserTestCase {
+  void test_annotationOnEnumConstant_first() {
+    createParser("enum E { @override C }");
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expectNotNullIfNoErrors(unit);
+    listener.assertNoErrors();
+  }
+
+  void test_annotationOnEnumConstant_middle() {
+    createParser("enum E { C, @override D, E }");
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expectNotNullIfNoErrors(unit);
+    listener.assertNoErrors();
+  }
+
   void test_staticMethod_notParsingFunctionBodies() {
     ParserTestCase.parseFunctionBodies = false;
     try {
