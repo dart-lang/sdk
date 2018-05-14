@@ -250,7 +250,6 @@ void KernelBytecodeDisassembler::DecodeInstruction(char* hex_buffer,
                                                    const Code& bytecode,
                                                    Object** object,
                                                    uword pc) {
-#if !defined(PRODUCT)
   const uint32_t instr = *reinterpret_cast<uint32_t*>(pc);
   const uint8_t opcode = instr & 0xFF;
   ASSERT(opcode < kOpcodeCount);
@@ -274,9 +273,6 @@ void KernelBytecodeDisassembler::DecodeInstruction(char* hex_buffer,
       *object = NULL;
     }
   }
-#else
-  UNREACHABLE();
-#endif
 }
 
 void KernelBytecodeDisassembler::Disassemble(uword start,

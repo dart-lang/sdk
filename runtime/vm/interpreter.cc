@@ -625,10 +625,12 @@ void Interpreter::Exit(Thread* thread,
   frame[3] = reinterpret_cast<RawObject*>(base);
   fp_ = frame + kKBCDartFrameFixedSize;
   thread->set_top_exit_frame_info(reinterpret_cast<uword>(fp_));
+#if defined(DEBUG)
   if (IsTracingExecution()) {
     THR_Print("Exiting interpreter 0x%" Px " at fp_ 0x%" Px "\n",
               reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_));
   }
+#endif
 }
 
 // TODO(vegorov): Investigate advantages of using
@@ -1245,6 +1247,8 @@ static DART_NOINLINE bool InvokeNative(Thread* thread,
 // Corner case: handler PC can be a fake marker that marks entry frame, which
 // means exception was not handled in the Dart code. In this case we return
 // caught exception from Interpreter::Call.
+#if defined(DEBUG)
+
 #define HANDLE_EXCEPTION                                                       \
   do {                                                                         \
     FP = reinterpret_cast<RawObject**>(fp_);                                   \
@@ -1265,6 +1269,25 @@ static DART_NOINLINE bool InvokeNative(Thread* thread,
     pp_ = InterpreterHelpers::FrameCode(FP)->ptr()->object_pool_;              \
     goto DispatchAfterException;                                               \
   } while (0)
+
+#else  // !defined(DEBUG)
+
+#define HANDLE_EXCEPTION                                                       \
+  do {                                                                         \
+    FP = reinterpret_cast<RawObject**>(fp_);                                   \
+    pc = reinterpret_cast<uint32_t*>(pc_);                                     \
+    if ((reinterpret_cast<uword>(pc) & 2) != 0) { /* Entry frame? */           \
+      fp_ = reinterpret_cast<RawObject**>(fp_[0]);                             \
+      thread->set_top_exit_frame_info(reinterpret_cast<uword>(fp_));           \
+      thread->set_top_resource(top_resource);                                  \
+      thread->set_vm_tag(vm_tag);                                              \
+      return special_[kExceptionSpecialIndex];                                 \
+    }                                                                          \
+    pp_ = InterpreterHelpers::FrameCode(FP)->ptr()->object_pool_;              \
+    goto DispatchAfterException;                                               \
+  } while (0)
+
+#endif  // !defined(DEBUG)
 
 #define HANDLE_RETURN                                                          \
   do {                                                                         \
@@ -1367,11 +1390,13 @@ RawObject* Interpreter::Call(const Code& code,
   if (!reentering) {
     fp_ = reinterpret_cast<RawObject**>(stack_);
   }
+#if defined(DEBUG)
   if (IsTracingExecution()) {
     THR_Print("%s interpreter 0x%" Px " at fp_ 0x%" Px "\n",
               reentering ? "Re-entering" : "Entering",
               reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_));
   }
+#endif
 
   // Save current VM tag and mark thread as executing Dart code.
   const uword vm_tag = thread->vm_tag();
@@ -2888,10 +2913,12 @@ RawObject* Interpreter::Call(const Code& code,
       thread->set_top_exit_frame_info(reinterpret_cast<uword>(fp_));
       thread->set_top_resource(top_resource);
       thread->set_vm_tag(vm_tag);
+#if defined(DEBUG)
       if (IsTracingExecution()) {
         THR_Print("Returning from interpreter 0x%" Px " at fp_ 0x%" Px "\n",
                   reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_));
       }
+#endif
       return result;
     }
 

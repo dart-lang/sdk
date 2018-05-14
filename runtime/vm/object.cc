@@ -14625,9 +14625,11 @@ RawCode* Code::FinalizeBytecode(void* bytecode_data,
   code.set_compile_timestamp(OS::GetCurrentMonotonicMicros());
   // TODO(regis): Do we need to notify CodeObservers for bytecode too?
   // If so, provide a better name using ToLibNamePrefixedQualifiedCString().
+#ifndef PRODUCT
   CodeObservers::NotifyAll("bytecode", instrs.PayloadStart(),
                            0 /* prologue_offset */, instrs.Size(),
                            false /* optimized */);
+#endif
   {
     NoSafepointScope no_safepoint;
 
