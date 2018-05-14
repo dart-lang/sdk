@@ -4,6 +4,7 @@
 
 library fasta.forest;
 
+import 'body_builder.dart' show Identifier;
 // TODO(ahe): Remove this import.
 import 'package:kernel/ast.dart' as kernel show Arguments, DartType;
 
@@ -91,7 +92,16 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   /// either adjacent strings or interpolated strings.
   Expression literalString(String value, Location location);
 
-  Expression literalSymbol(String value, Location location);
+  /// Return a representation of a symbol literal defined by the [hash] and the
+  /// list of [components]. The [value] is the string value of the symbol.
+  Expression literalSymbolMultiple(
+      String value, Location hash, List<Identifier> components);
+
+  /// Return a representation of a symbol literal defined by the [hash] and the
+  /// single [component]. The component can be either an [Identifier] or an
+  /// [Operator]. The [value] is the string value of the symbol.
+  Expression literalSymbolSingluar(
+      String value, Location hash, Object component);
 
   Expression literalType(covariant type, Location location);
 

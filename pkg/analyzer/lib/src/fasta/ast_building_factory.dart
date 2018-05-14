@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/ast.dart' hide Identifier;
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
+import 'package:front_end/src/fasta/kernel/body_builder.dart'
+    show Identifier, Operator;
 import 'package:front_end/src/fasta/kernel/forest.dart';
 import 'package:kernel/ast.dart' as kernel;
 
@@ -108,6 +110,9 @@ class AstBuildingForest
       astFactory.isExpression(expression, isOperator, notOperator, type);
 
   @override
+  bool isThisExpression(Object node) => node is ThisExpression;
+
+  @override
   Expression literalBool(bool value, Token location) =>
       astFactory.booleanLiteral(location, value)
         ..staticType = _typeProvider?.boolType;
@@ -157,9 +162,25 @@ class AstBuildingForest
         ..staticType = _typeProvider?.stringType;
 
   @override
-  Expression literalSymbol(String value, Token location) {
-    // TODO(brianwilkerson) Get the missing information.
-    return astFactory.symbolLiteral(location, null /* components */)
+  Expression literalSymbolMultiple(
+      String value, Token hash, List<Identifier> components) {
+    return astFactory.symbolLiteral(
+        hash, components.map((identifier) => identifier.token).toList())
+      ..staticType = _typeProvider?.symbolType;
+  }
+
+  @override
+  Expression literalSymbolSingluar(String value, Token hash, Object component) {
+    Token token;
+    if (component is Identifier) {
+      token = component.token;
+    } else if (component is Operator) {
+      token = component.token;
+    } else {
+      throw new ArgumentError(
+          'Unexpected class of component: ${component.runtimeType}');
+    }
+    return astFactory.symbolLiteral(hash, <Token>[token])
       ..staticType = _typeProvider?.symbolType;
   }
 
@@ -199,9 +220,6 @@ class AstBuildingForest
   @override
   Expression thisExpression(Token thisKeyword) =>
       astFactory.thisExpression(thisKeyword);
-
-  @override
-  bool isThisExpression(Object node) => node is ThisExpression;
 }
 
 /// A data holder used to conform to the [Forest] API.

@@ -2002,15 +2002,17 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     debugEvent("LiteralSymbol");
     String value;
     if (identifierCount == 1) {
-      value = symbolPartToString(pop());
+      Object part = pop();
+      value = symbolPartToString(part);
+      push(forest.literalSymbolSingluar(value, hashToken, part));
     } else {
-      List parts = popList(identifierCount);
+      List<Identifier> parts = popList(identifierCount);
       value = symbolPartToString(parts.first);
       for (int i = 1; i < parts.length; i++) {
         value += ".${symbolPartToString(parts[i])}";
       }
+      push(forest.literalSymbolMultiple(value, hashToken, parts));
     }
-    push(forest.literalSymbol(value, hashToken));
   }
 
   @override
@@ -3913,7 +3915,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void handleOperator(Token token) {
     debugEvent("Operator");
-    push(new Operator(token.stringValue, token.charOffset));
+    push(new Operator(token, token.charOffset));
   }
 
   @override
@@ -4142,11 +4144,12 @@ class Identifier {
 }
 
 class Operator {
-  final String name;
+  final Token token;
+  String get name => token.stringValue;
 
   final int charOffset;
 
-  Operator(this.name, this.charOffset);
+  Operator(this.token, this.charOffset);
 
   String toString() => "operator($name)";
 }

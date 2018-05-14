@@ -3373,31 +3373,6 @@ class ExpressionParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_parseSymbolLiteral_builtInIdentifier() {
-    super.test_parseSymbolLiteral_builtInIdentifier();
-  }
-
-  @failingTest
-  void test_parseSymbolLiteral_multiple() {
-    super.test_parseSymbolLiteral_multiple();
-  }
-
-  @failingTest
-  void test_parseSymbolLiteral_operator() {
-    super.test_parseSymbolLiteral_operator();
-  }
-
-  @failingTest
-  void test_parseSymbolLiteral_single() {
-    super.test_parseSymbolLiteral_single();
-  }
-
-  @failingTest
-  void test_parseSymbolLiteral_void() {
-    super.test_parseSymbolLiteral_void();
-  }
-
-  @failingTest
   void test_parseThrowExpression() {
     super.test_parseThrowExpression();
   }

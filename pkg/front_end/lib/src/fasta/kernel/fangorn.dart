@@ -152,8 +152,13 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
-  ShadowSymbolLiteral literalSymbol(String value, Token token) {
-    return new ShadowSymbolLiteral(value)..fileOffset = offsetForToken(token);
+  ShadowSymbolLiteral literalSymbolMultiple(String value, Token hash, _) {
+    return new ShadowSymbolLiteral(value)..fileOffset = offsetForToken(hash);
+  }
+
+  @override
+  ShadowSymbolLiteral literalSymbolSingluar(String value, Token hash, _) {
+    return new ShadowSymbolLiteral(value)..fileOffset = offsetForToken(hash);
   }
 
   @override
