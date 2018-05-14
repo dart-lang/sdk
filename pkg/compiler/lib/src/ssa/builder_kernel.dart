@@ -335,7 +335,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // Use dynamic type because the type computed by the inferrer is
       // narrowed to the type annotation.
       HInstruction parameter =
-          new HParameterValue(field, commonMasks.dynamicType);
+          new HParameterValue(field, abstractValueDomain.dynamicType);
       // Add the parameter as the last instruction of the entry block.
       // If the method is intercepted, we want the actual receiver
       // to be the first parameter.
@@ -377,7 +377,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       return typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(value, type,
           kind: HTypeConversion.BOOLEAN_CONVERSION_CHECK);
     }
-    HInstruction result = new HBoolify(value, commonMasks.boolType);
+    HInstruction result = new HBoolify(value, abstractValueDomain.boolType);
     add(result);
     return result;
   }
@@ -400,7 +400,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       TypeVariableType typeVariableType = _typeVariable;
       HInstruction param;
       if (needsTypeArguments) {
-        param = addParameter(typeVariableType.element, commonMasks.nonNullType);
+        param = addParameter(
+            typeVariableType.element, abstractValueDomain.nonNullType);
       } else {
         // Unused, so bind to `dynamic`.
         param = graph.addConstantNull(closedWorld);
@@ -428,7 +429,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
     typeVariables.forEach((TypeVariableType typeVariableType) {
       HInstruction param;
       if (needsTypeArguments) {
-        param = addParameter(typeVariableType.element, commonMasks.nonNullType);
+        param = addParameter(
+            typeVariableType.element, abstractValueDomain.nonNullType);
       } else {
         // Unused, so bind to `dynamic`.
         param = graph.addConstantNull(closedWorld);
@@ -515,7 +517,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // Null guard ensures an error if we are being called from an explicit
       // 'new' of the constructor instead of via an upgrade. It is optimized out
       // if there are field initializers.
-      add(new HFieldGet(null, newObject, commonMasks.dynamicType,
+      add(new HFieldGet(null, newObject, abstractValueDomain.dynamicType,
           isAssignable: false));
       for (int i = 0; i < fields.length; i++) {
         add(new HFieldSet(abstractValueDomain, fields[i], newObject,
@@ -541,7 +543,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
             TypeInfoExpressionKind.INSTANCE,
             thisType,
             typeArguments,
-            commonMasks.dynamicType);
+            abstractValueDomain.dynamicType);
         add(typeInfo);
         constructorArguments.add(typeInfo);
       }
@@ -645,8 +647,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
   void _invokeConstructorBody(ir.Constructor constructor,
       List<HInstruction> inputs, SourceInformation sourceInformation) {
     MemberEntity constructorBody = _elementMap.getConstructorBody(constructor);
-    HInvokeConstructorBody invoke = new HInvokeConstructorBody(
-        constructorBody, inputs, commonMasks.nonNullType, sourceInformation);
+    HInvokeConstructorBody invoke = new HInvokeConstructorBody(constructorBody,
+        inputs, abstractValueDomain.nonNullType, sourceInformation);
     add(invoke);
   }
 
@@ -941,7 +943,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         TypeInfoExpressionKind.COMPLETE,
         _elementMap.getFunctionType(originalClosureNode),
         typeArguments,
-        commonMasks.functionType));
+        abstractValueDomain.functionType));
     HInstruction value = pop();
     close(new HReturn(abstractValueDomain, value,
             _sourceInformationBuilder.buildReturn(originalClosureNode)))
@@ -978,7 +980,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
             visitCondition: () {
               HParameterValue parameter = parameters.values.first;
               push(new HIdentity(parameter, graph.addConstantNull(closedWorld),
-                  null, commonMasks.boolType));
+                  null, abstractValueDomain.boolType));
             },
             visitThen: () {
               closeAndGotoExit(new HReturn(
@@ -995,8 +997,11 @@ class KernelSsaGraphBuilder extends ir.Visitor
           .where((p) => abstractValueDomain.isEmpty(p.instructionType));
       if (emptyParameters.length > 0) {
         addComment('${emptyParameters} inferred as [empty]');
-        add(new HInvokeStatic(commonElements.assertUnreachableMethod,
-            <HInstruction>[], commonMasks.dynamicType, const <DartType>[]));
+        add(new HInvokeStatic(
+            commonElements.assertUnreachableMethod,
+            <HInstruction>[],
+            abstractValueDomain.dynamicType,
+            const <DartType>[]));
         closeFunction();
         return;
       }
@@ -1012,7 +1017,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   // TODO(sra): Figure out how to keep comment anchored without effects.
   void addComment(String text) {
     add(new HForeignCode(js.js.statementTemplateYielding(new js.Comment(text)),
-        commonMasks.dynamicType, <HInstruction>[],
+        abstractValueDomain.dynamicType, <HInstruction>[],
         isStatement: true));
   }
 
@@ -1069,7 +1074,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     push(new HInvokeGeneratorBody(
         body,
         inputs,
-        commonMasks.dynamicType, // TODO: better type.
+        abstractValueDomain.dynamicType, // TODO: better type.
         sourceInformation));
 
     closeAndGotoExit(
@@ -1179,7 +1184,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
           _pushStaticInvocation(
               _commonElements.closureConverter,
               [argument, graph.addConstantInt(arity, closedWorld)],
-              commonMasks.dynamicType,
+              abstractValueDomain.dynamicType,
               const <DartType>[]);
           argument = pop();
         }
@@ -1189,7 +1194,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       String arguments = templateArguments.join(',');
 
       // TODO(sra): Use declared type or NativeBehavior type.
-      TypeMask typeMask = commonMasks.dynamicType;
+      TypeMask typeMask = abstractValueDomain.dynamicType;
       String template;
       if (targetElement.isGetter) {
         template = '${templateReceiver}$nativeName';
@@ -1287,8 +1292,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
   void _trap(String message) {
     HInstruction nullValue = graph.addConstantNull(closedWorld);
     HInstruction errorMessage = graph.addConstantString(message, closedWorld);
-    HInstruction trap = new HForeignCode(js.js.parseForeignJS("#.#"),
-        commonMasks.dynamicType, <HInstruction>[nullValue, errorMessage]);
+    HInstruction trap = new HForeignCode(
+        js.js.parseForeignJS("#.#"),
+        abstractValueDomain.dynamicType,
+        <HInstruction>[nullValue, errorMessage]);
     trap.sideEffects
       ..setAllSideEffects()
       ..setDependsOnSomething();
@@ -1329,7 +1336,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     push(new HInvokeStatic(
         commonElements.loadDeferredLibrary,
         [graph.addConstantString(loadId, closedWorld)],
-        commonMasks.nonNullType,
+        abstractValueDomain.nonNullType,
         const <DartType>[],
         targetCanThrow: false));
   }
@@ -1504,7 +1511,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
     HInstruction originalLength = null; // Set for growable lists.
 
     HInstruction buildGetLength(SourceInformation sourceInformation) {
-      HGetLength result = new HGetLength(array, commonMasks.positiveIntType,
+      HGetLength result = new HGetLength(
+          array, abstractValueDomain.positiveIntType,
           isAssignable: !isFixed)
         ..sourceInformation = sourceInformation;
       add(result);
@@ -1521,7 +1529,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       SourceInformation sourceInformation =
           _sourceInformationBuilder.buildForInMoveNext(node);
       HInstruction length = buildGetLength(sourceInformation);
-      push(new HIdentity(length, originalLength, null, commonMasks.boolType)
+      push(new HIdentity(
+          length, originalLength, null, abstractValueDomain.boolType)
         ..sourceInformation = sourceInformation);
       _pushStaticInvocation(
           _commonElements.checkConcurrentModificationError,
@@ -1554,7 +1563,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
           sourceInformation: sourceInformation);
       HInstruction length = buildGetLength(sourceInformation);
       HInstruction compare =
-          new HLess(index, length, null, commonMasks.boolType)
+          new HLess(index, length, null, abstractValueDomain.boolType)
             ..sourceInformation = sourceInformation;
       add(compare);
       return compare;
@@ -1606,7 +1615,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
           sourceInformation: sourceInformation);
       HInstruction one = graph.addConstantInt(1, closedWorld);
       HInstruction addInstruction =
-          new HAdd(index, one, null, commonMasks.positiveIntType)
+          new HAdd(index, one, null, abstractValueDomain.positiveIntType)
             ..sourceInformation = sourceInformation;
       add(addInstruction);
       localsHandler.updateLocal(indexVariable, addInstruction,
@@ -1781,7 +1790,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     FunctionEntity typeInfoSetterFn = _commonElements.setRuntimeTypeInfo;
     // TODO(efortuna): Insert source information in this static invocation.
     _pushStaticInvocation(typeInfoSetterFn, <HInstruction>[newObject, typeInfo],
-        commonMasks.dynamicType, const <DartType>[],
+        abstractValueDomain.dynamicType, const <DartType>[],
         sourceInformation: sourceInformation);
 
     // The new object will now be referenced through the
@@ -2416,8 +2425,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // null, so we don't drop into the while loop.
       void buildCondition() {
         js.Template code = js.js.parseForeignJS('#');
-        push(new HForeignCode(
-            code, commonMasks.boolType, [localsHandler.readLocal(switchTarget)],
+        push(new HForeignCode(code, abstractValueDomain.boolType,
+            [localsHandler.readLocal(switchTarget)],
             nativeBehavior: native.NativeBehavior.PURE));
       }
 
@@ -2795,8 +2804,11 @@ class KernelSsaGraphBuilder extends ir.Visitor
     HInstruction value = typeBuilder.analyzeTypeArgument(
         dartType, sourceElement,
         sourceInformation: sourceInformation);
-    _pushStaticInvocation(_commonElements.runtimeTypeToString,
-        <HInstruction>[value], commonMasks.stringType, const <DartType>[],
+    _pushStaticInvocation(
+        _commonElements.runtimeTypeToString,
+        <HInstruction>[value],
+        abstractValueDomain.stringType,
+        const <DartType>[],
         sourceInformation: sourceInformation);
     _pushStaticInvocation(
         _commonElements.createRuntimeType,
@@ -3313,7 +3325,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       return globalInferenceResults
               .resultOfMember(element)
               .typeOfNewList(node) ??
-          commonMasks.dynamicType;
+          abstractValueDomain.dynamicType;
     }
 
     if (isFixedListConstructorCall) {
@@ -3329,7 +3341,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         HTypeConversion conversion = new HTypeConversion(
             null,
             HTypeConversion.ARGUMENT_TYPE_CHECK,
-            commonMasks.numType,
+            abstractValueDomain.numType,
             lengthInput,
             sourceInformation);
         add(conversion);
@@ -3353,8 +3365,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       }
 
       var inferredType = _inferredTypeOfNewList(invocation);
-      resultType = inferredType.containsAll(closedWorld)
-          ? commonMasks.fixedListType
+      resultType = abstractValueDomain.containsAll(inferredType)
+          ? abstractValueDomain.fixedListType
           : inferredType;
       HForeignCode foreign = new HForeignCode(
           code, resultType, <HInstruction>[lengthInput],
@@ -3371,14 +3383,14 @@ class KernelSsaGraphBuilder extends ir.Visitor
         js.Template code = js.js.parseForeignJS(r'#.fixed$length = Array');
         // We set the instruction as [canThrow] to avoid it being dead code.
         // We need a finer grained side effect.
-        add(new HForeignCode(code, commonMasks.nullType, [stack.last],
+        add(new HForeignCode(code, abstractValueDomain.nullType, [stack.last],
             throwBehavior: native.NativeThrowBehavior.MAY));
       }
     } else if (isGrowableListConstructorCall) {
       push(buildLiteralList(<HInstruction>[]));
       var inferredType = _inferredTypeOfNewList(invocation);
-      resultType = inferredType.containsAll(closedWorld)
-          ? commonMasks.growableListType
+      resultType = abstractValueDomain.containsAll(inferredType)
+          ? abstractValueDomain.growableListType
           : inferredType;
       stack.last.instructionType = resultType;
     } else if (isJSArrayTypedConstructor) {
@@ -3481,7 +3493,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       TypeVariableType variable = _typeVariable;
       typeArguments.add(variable);
       HInstruction readType = new HTypeInfoReadVariable.intercepted(
-          variable, interceptor, object, commonMasks.dynamicType);
+          variable, interceptor, object, abstractValueDomain.dynamicType);
       add(readType);
       inputs.add(readType);
     });
@@ -3492,7 +3504,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     Selector selector =
         new Selector.callClosure(0, const <String>[], typeArguments.length);
     push(new HInvokeClosure(
-        selector, inputs, commonMasks.dynamicType, typeArguments));
+        selector, inputs, abstractValueDomain.dynamicType, typeArguments));
 
     return true;
   }
@@ -3621,8 +3633,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
     // Isolates cannot be spawned, so we just generate code to fetch the static
     // state.
     String name = namer.staticStateHolder;
-    push(new HForeignCode(
-        js.js.parseForeignJS(name), commonMasks.dynamicType, <HInstruction>[],
+    push(new HForeignCode(js.js.parseForeignJS(name),
+        abstractValueDomain.dynamicType, <HInstruction>[],
         nativeBehavior: native.NativeBehavior.DEPENDS_OTHER));
   }
 
@@ -3656,7 +3668,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
             push(new HForeignCode(
                 js.js.expressionTemplateYielding(emitter
                     .staticFunctionAccess(_elementMap.getMethod(staticTarget))),
-                commonMasks.dynamicType,
+                abstractValueDomain.dynamicType,
                 <HInstruction>[],
                 nativeBehavior: native.NativeBehavior.PURE,
                 foreignFunction: _elementMap.getMethod(staticTarget)));
@@ -3689,7 +3701,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     SideEffects sideEffects = new SideEffects.empty();
     sideEffects.setAllSideEffects();
     push(new HForeignCode(js.js.parseForeignJS("$isolateName = #"),
-        commonMasks.dynamicType, inputs,
+        abstractValueDomain.dynamicType, inputs,
         nativeBehavior: native.NativeBehavior.CHANGES_OTHER,
         effects: sideEffects));
   }
@@ -3703,7 +3715,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
 
     push(new HForeignCode(js.js.parseForeignJS(namer.staticStateHolder),
-        commonMasks.dynamicType, <HInstruction>[],
+        abstractValueDomain.dynamicType, <HInstruction>[],
         nativeBehavior: native.NativeBehavior.DEPENDS_OTHER));
   }
 
@@ -3940,7 +3952,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       return;
     }
     List<HInstruction> inputs = _visitPositionalArguments(invocation.arguments);
-    push(new HStringConcat(inputs[0], inputs[1], commonMasks.stringType));
+    push(new HStringConcat(
+        inputs[0], inputs[1], abstractValueDomain.stringType));
   }
 
   void _pushStaticInvocation(MemberEntity target, List<HInstruction> arguments,
@@ -4090,14 +4103,14 @@ class KernelSsaGraphBuilder extends ir.Visitor
       }
       // TODO(efortuna): Source information.
       return new HForeignCode(
-          codeTemplate, commonMasks.dynamicType, filteredArguments,
+          codeTemplate, abstractValueDomain.dynamicType, filteredArguments,
           nativeBehavior: nativeBehavior);
     }
 
     var target = new HForeignCode(
         js.js.parseForeignJS("${nativeData.getFixedBackendMethodPath(element)}."
             "${nativeData.getFixedBackendName(element)}"),
-        commonMasks.dynamicType,
+        abstractValueDomain.dynamicType,
         <HInstruction>[]);
     add(target);
     // Strip off trailing arguments that were not specified.
@@ -4147,7 +4160,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
     nativeBehavior.codeTemplate = codeTemplate;
 
     // TODO(efortuna): Add source information.
-    return new HForeignCode(codeTemplate, commonMasks.dynamicType, inputs,
+    return new HForeignCode(
+        codeTemplate, abstractValueDomain.dynamicType, inputs,
         nativeBehavior: nativeBehavior);
   }
 
@@ -4208,7 +4222,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       return;
     }
     HInstruction instruction = new HInvokeStatic(
-        target, arguments, commonMasks.functionType, <DartType>[],
+        target, arguments, abstractValueDomain.functionType, <DartType>[],
         targetCanThrow: targetCanThrow);
     // TODO(sra): ..sourceInformation = sourceInformation
     instruction.sideEffects
@@ -4247,7 +4261,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   HInterceptor _interceptorFor(
       HInstruction intercepted, SourceInformation sourceInformation) {
     HInterceptor interceptor =
-        new HInterceptor(intercepted, commonMasks.nonNullType)
+        new HInterceptor(intercepted, abstractValueDomain.nonNullType)
           ..sourceInformation = sourceInformation;
     add(interceptor);
     return interceptor;
@@ -4313,7 +4327,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
           argumentNamesInstruction,
           graph.addConstantInt(typeArguments.length, closedWorld),
         ],
-        commonMasks.dynamicType,
+        abstractValueDomain.dynamicType,
         typeArguments);
 
     _buildInvokeSuper(Selectors.noSuchMethod_, containingClass, noSuchMethod,
@@ -4611,11 +4625,11 @@ class KernelSsaGraphBuilder extends ir.Visitor
         representation,
       ];
       _pushStaticInvocation(_commonElements.functionTypeTest, inputs,
-          commonMasks.boolType, const <DartType>[],
+          abstractValueDomain.boolType, const <DartType>[],
           sourceInformation: sourceInformation);
       HInstruction call = pop();
-      push(new HIs.compound(typeValue, expression, call, commonMasks.boolType,
-          sourceInformation));
+      push(new HIs.compound(typeValue, expression, call,
+          abstractValueDomain.boolType, sourceInformation));
       return;
     }
 
@@ -4627,11 +4641,11 @@ class KernelSsaGraphBuilder extends ir.Visitor
         representation,
       ];
       _pushStaticInvocation(_commonElements.futureOrTest, inputs,
-          commonMasks.boolType, const <DartType>[],
+          abstractValueDomain.boolType, const <DartType>[],
           sourceInformation: sourceInformation);
       HInstruction call = pop();
-      push(new HIs.compound(typeValue, expression, call, commonMasks.boolType,
-          sourceInformation));
+      push(new HIs.compound(typeValue, expression, call,
+          abstractValueDomain.boolType, sourceInformation));
       return;
     }
 
@@ -4641,11 +4655,11 @@ class KernelSsaGraphBuilder extends ir.Visitor
       _pushStaticInvocation(
           _commonElements.checkSubtypeOfRuntimeType,
           <HInstruction>[expression, runtimeType],
-          commonMasks.boolType,
+          abstractValueDomain.boolType,
           const <DartType>[],
           sourceInformation: sourceInformation);
-      push(new HIs.variable(typeValue, expression, pop(), commonMasks.boolType,
-          sourceInformation));
+      push(new HIs.variable(typeValue, expression, pop(),
+          abstractValueDomain.boolType, sourceInformation));
       return;
     }
 
@@ -4670,16 +4684,16 @@ class KernelSsaGraphBuilder extends ir.Visitor
         asFieldName
       ];
       _pushStaticInvocation(_commonElements.checkSubtype, inputs,
-          commonMasks.boolType, const <DartType>[],
+          abstractValueDomain.boolType, const <DartType>[],
           sourceInformation: sourceInformation);
-      push(new HIs.compound(typeValue, expression, pop(), commonMasks.boolType,
-          sourceInformation));
+      push(new HIs.compound(typeValue, expression, pop(),
+          abstractValueDomain.boolType, sourceInformation));
       return;
     }
 
     if (backend.hasDirectCheckFor(closedWorld.commonElements, typeValue)) {
-      push(new HIs.direct(
-          typeValue, expression, commonMasks.boolType, sourceInformation));
+      push(new HIs.direct(typeValue, expression, abstractValueDomain.boolType,
+          sourceInformation));
       return;
     }
     // The interceptor is not always needed.  It is removed by optimization
@@ -4688,7 +4702,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         typeValue,
         expression,
         _interceptorFor(expression, sourceInformation),
-        commonMasks.boolType,
+        abstractValueDomain.boolType,
         sourceInformation));
     return;
   }
@@ -4758,7 +4772,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   @override
   void visitNot(ir.Not node) {
     node.operand.accept(this);
-    push(new HNot(popBoolified(), commonMasks.boolType)
+    push(new HNot(popBoolified(), abstractValueDomain.boolType)
       ..sourceInformation = _sourceInformationBuilder.buildUnary(node));
   }
 
@@ -4991,7 +5005,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       if (function.isInstanceMember &&
           function is! ConstructorBodyEntity &&
           (mask == null || mask.isNullable)) {
-        add(new HFieldGet(null, providedArguments[0], commonMasks.dynamicType,
+        add(new HFieldGet(
+            null, providedArguments[0], abstractValueDomain.dynamicType,
             isAssignable: false)
           ..sourceInformation = sourceInformation);
       }
@@ -5342,7 +5357,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       add(new HInvokeStatic(
           commonElements.traceHelper,
           <HInstruction>[nameConstant],
-          commonMasks.dynamicType,
+          abstractValueDomain.dynamicType,
           const <DartType>[]));
     }
   }
@@ -5358,7 +5373,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       add(new HInvokeStatic(
           commonElements.traceHelper,
           <HInstruction>[idConstant, nameConstant],
-          commonMasks.dynamicType,
+          abstractValueDomain.dynamicType,
           const <DartType>[]));
     }
   }
@@ -5718,8 +5733,9 @@ class TryCatchFinallyBuilder {
     kernelBuilder.open(startCatchBlock);
     // Note that the name of this local is irrelevant.
     SyntheticLocal local = kernelBuilder.localsHandler.createLocal('exception');
-    exception = new HLocalValue(local, kernelBuilder.commonMasks.nonNullType)
-      ..sourceInformation = trySourceInformation;
+    exception =
+        new HLocalValue(local, kernelBuilder.abstractValueDomain.nonNullType)
+          ..sourceInformation = trySourceInformation;
     kernelBuilder.add(exception);
     HInstruction oldRethrowableException = kernelBuilder.rethrowableException;
     kernelBuilder.rethrowableException = exception;

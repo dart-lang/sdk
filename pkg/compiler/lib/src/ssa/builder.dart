@@ -596,7 +596,8 @@ class SsaAstGraphBuilder extends ast.Visitor
           !function.isGenerativeConstructorBody &&
           (mask == null || mask.isNullable)) {
         addWithPosition(
-            new HFieldGet(null, providedArguments[0], commonMasks.dynamicType,
+            new HFieldGet(
+                null, providedArguments[0], abstractValueDomain.dynamicType,
                 isAssignable: false),
             currentNode);
       }
@@ -743,7 +744,7 @@ class SsaAstGraphBuilder extends ast.Visitor
             visitCondition: () {
               HParameterValue parameter = parameters.values.first;
               push(new HIdentity(parameter, graph.addConstantNull(closedWorld),
-                  null, commonMasks.boolType));
+                  null, abstractValueDomain.boolType));
             },
             visitThen: () {
               closeAndGotoExit(new HReturn(
@@ -778,7 +779,7 @@ class SsaAstGraphBuilder extends ast.Visitor
   // TODO(sra): Figure out how to keep comment anchored without effects.
   void addComment(String text) {
     add(new HForeignCode(js.js.statementTemplateYielding(new js.Comment(text)),
-        commonMasks.dynamicType, <HInstruction>[],
+        abstractValueDomain.dynamicType, <HInstruction>[],
         isStatement: true));
   }
 
@@ -790,7 +791,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     // Use dynamic type because the type computed by the inferrer is
     // narrowed to the type annotation.
     HInstruction parameter =
-        new HParameterValue(field, commonMasks.dynamicType);
+        new HParameterValue(field, abstractValueDomain.dynamicType);
     // Add the parameter as the last instruction of the entry block.
     // If the method is intercepted, we want the actual receiver
     // to be the first parameter.
@@ -1335,7 +1336,7 @@ class SsaAstGraphBuilder extends ast.Visitor
             TypeInfoExpressionKind.INSTANCE,
             classElement.thisType,
             typeArguments,
-            commonMasks.dynamicType);
+            abstractValueDomain.dynamicType);
         add(typeInfo);
         constructorArguments.add(typeInfo);
       }
@@ -1356,7 +1357,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       // Null guard ensures an error if we are being called from an explicit
       // 'new' of the constructor instead of via an upgrade. It is optimized out
       // if there are field initializers.
-      add(new HFieldGet(null, newObject, commonMasks.dynamicType,
+      add(new HFieldGet(null, newObject, abstractValueDomain.dynamicType,
           isAssignable: false));
       for (int i = 0; i < fields.length; i++) {
         add(new HFieldSet(abstractValueDomain, fields[i], newObject,
@@ -1426,7 +1427,7 @@ class SsaAstGraphBuilder extends ast.Visitor
         HInvokeConstructorBody invoke = new HInvokeConstructorBody(
             declaration,
             bodyCallInputs,
-            commonMasks.nonNullType,
+            abstractValueDomain.nonNullType,
             sourceInformationBuilder.buildDeclaration(constructor));
         invoke.sideEffects = closedWorld.getSideEffectsOfElement(constructor);
         add(invoke);
@@ -1481,7 +1482,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       cls.typeVariables.forEach((_typeVariable) {
         ResolutionTypeVariableType typeVariable = _typeVariable;
         HParameterValue param =
-            addParameter(typeVariable.element, commonMasks.nonNullType);
+            addParameter(typeVariable.element, abstractValueDomain.nonNullType);
         localsHandler.directLocals[
             localsHandler.getTypeVariableAsLocal(typeVariable)] = param;
       });
@@ -1548,7 +1549,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       add(new HInvokeStatic(
           commonElements.traceHelper,
           <HInstruction>[nameConstant],
-          commonMasks.dynamicType,
+          abstractValueDomain.dynamicType,
           const <DartType>[]));
     }
   }
@@ -1563,7 +1564,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       add(new HInvokeStatic(
           commonElements.traceHelper,
           <HInstruction>[idConstant, nameConstant],
-          commonMasks.dynamicType,
+          abstractValueDomain.dynamicType,
           const <DartType>[]));
     }
   }
@@ -1621,7 +1622,7 @@ class SsaAstGraphBuilder extends ast.Visitor
           value, boolType,
           kind: HTypeConversion.BOOLEAN_CONVERSION_CHECK);
     }
-    HInstruction result = new HBoolify(value, commonMasks.boolType)
+    HInstruction result = new HBoolify(value, abstractValueDomain.boolType)
       ..sourceInformation = value.sourceInformation;
     add(result);
     return result;
@@ -2056,7 +2057,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     visit(expression);
     SourceInformation sourceInformation =
         sourceInformationBuilder.buildGeneric(node);
-    push(new HNot(popBoolified(), commonMasks.boolType)
+    push(new HNot(popBoolified(), abstractValueDomain.boolType)
       ..sourceInformation = sourceInformation);
   }
 
@@ -2102,7 +2103,7 @@ class SsaAstGraphBuilder extends ast.Visitor
   void visitNotEquals(ast.Send node, ast.Node left, ast.Node right, _) {
     handleBinary(node, left, right);
     pushWithPosition(
-        new HNot(popBoolified(), commonMasks.boolType), node.selector);
+        new HNot(popBoolified(), abstractValueDomain.boolType), node.selector);
   }
 
   void handleBinary(ast.Send node, ast.Node left, ast.Node right) {
@@ -2288,7 +2289,8 @@ class SsaAstGraphBuilder extends ast.Visitor
     // creating an [HStatic].
     SourceInformation sourceInformation =
         sourceInformationBuilder.buildGet(node.selector);
-    push(new HStatic(method, commonMasks.nonNullType, sourceInformation));
+    push(new HStatic(
+        method, abstractValueDomain.nonNullType, sourceInformation));
   }
 
   /// Read a local variable, function or parameter.
@@ -2465,7 +2467,7 @@ class SsaAstGraphBuilder extends ast.Visitor
 
   HInstruction invokeInterceptor(HInstruction receiver) {
     HInterceptor interceptor =
-        new HInterceptor(receiver, commonMasks.nonNullType);
+        new HInterceptor(receiver, abstractValueDomain.nonNullType);
     add(interceptor);
     return interceptor;
   }
@@ -2506,7 +2508,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     HInstruction instruction = buildIsNode(node, type, expressionInstruction,
         sourceInformationBuilder.buildIs(node));
     add(instruction);
-    push(new HNot(instruction, commonMasks.boolType));
+    push(new HNot(instruction, abstractValueDomain.boolType));
   }
 
   HInstruction buildIsNode(ast.Node node, ResolutionDartType type,
@@ -2524,8 +2526,8 @@ class SsaAstGraphBuilder extends ast.Visitor
       }
       generateTypeError(node, message);
       HInstruction call = pop();
-      return new HIs.compound(
-          type, expression, call, commonMasks.boolType, sourceInformation);
+      return new HIs.compound(type, expression, call,
+          abstractValueDomain.boolType, sourceInformation);
     } else if (type.isFunctionType) {
       HInstruction representation =
           typeBuilder.analyzeTypeArgument(type, sourceElement);
@@ -2534,10 +2536,11 @@ class SsaAstGraphBuilder extends ast.Visitor
         representation,
       ];
       pushInvokeStatic(node, commonElements.functionTypeTest, inputs,
-          typeMask: commonMasks.boolType, sourceInformation: sourceInformation);
+          typeMask: abstractValueDomain.boolType,
+          sourceInformation: sourceInformation);
       HInstruction call = pop();
-      return new HIs.compound(
-          type, expression, call, commonMasks.boolType, sourceInformation);
+      return new HIs.compound(type, expression, call,
+          abstractValueDomain.boolType, sourceInformation);
     } else if (type.isTypeVariable) {
       ResolutionTypeVariableType typeVariable = type;
       HInstruction runtimeType =
@@ -2545,10 +2548,11 @@ class SsaAstGraphBuilder extends ast.Visitor
       MethodElement helper = commonElements.checkSubtypeOfRuntimeType;
       List<HInstruction> inputs = <HInstruction>[expression, runtimeType];
       pushInvokeStatic(null, helper, inputs,
-          typeMask: commonMasks.boolType, sourceInformation: sourceInformation);
+          typeMask: abstractValueDomain.boolType,
+          sourceInformation: sourceInformation);
       HInstruction call = pop();
-      return new HIs.variable(
-          type, expression, call, commonMasks.boolType, sourceInformation);
+      return new HIs.variable(type, expression, call,
+          abstractValueDomain.boolType, sourceInformation);
     } else if (RuntimeTypesSubstitutions.hasTypeArguments(type)) {
       ClassElement element = type.element;
       MethodElement helper = commonElements.checkSubtype;
@@ -2567,19 +2571,20 @@ class SsaAstGraphBuilder extends ast.Visitor
         asFieldName
       ];
       pushInvokeStatic(node, helper, inputs,
-          typeMask: commonMasks.boolType, sourceInformation: sourceInformation);
+          typeMask: abstractValueDomain.boolType,
+          sourceInformation: sourceInformation);
       HInstruction call = pop();
-      return new HIs.compound(
-          type, expression, call, commonMasks.boolType, sourceInformation);
+      return new HIs.compound(type, expression, call,
+          abstractValueDomain.boolType, sourceInformation);
     } else {
       if (backend.hasDirectCheckFor(closedWorld.commonElements, type)) {
         return new HIs.direct(
-            type, expression, commonMasks.boolType, sourceInformation);
+            type, expression, abstractValueDomain.boolType, sourceInformation);
       }
       // The interceptor is not always needed.  It is removed by optimization
       // when the receiver type or tested type permit.
       return new HIs.raw(type, expression, invokeInterceptor(expression),
-          commonMasks.boolType, sourceInformation);
+          abstractValueDomain.boolType, sourceInformation);
     }
   }
 
@@ -2828,7 +2833,8 @@ class SsaAstGraphBuilder extends ast.Visitor
     if (inputs.length != 2) {
       reporter.internalError(node.argumentsNode, 'Two arguments expected.');
     }
-    push(new HStringConcat(inputs[0], inputs[1], commonMasks.stringType));
+    push(new HStringConcat(
+        inputs[0], inputs[1], abstractValueDomain.stringType));
   }
 
   void handleForeignJsCurrentIsolateContext(ast.Send node) {
@@ -2838,8 +2844,8 @@ class SsaAstGraphBuilder extends ast.Visitor
     }
 
     String name = namer.staticStateHolder;
-    push(new HForeignCode(
-        js.js.parseForeignJS(name), commonMasks.dynamicType, <HInstruction>[],
+    push(new HForeignCode(js.js.parseForeignJS(name),
+        abstractValueDomain.dynamicType, <HInstruction>[],
         nativeBehavior: native.NativeBehavior.DEPENDS_OTHER));
   }
 
@@ -3037,7 +3043,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     push(new HForeignCode(
         js.js
             .expressionTemplateYielding(emitter.staticFunctionAccess(function)),
-        commonMasks.dynamicType,
+        abstractValueDomain.dynamicType,
         <HInstruction>[],
         nativeBehavior: native.NativeBehavior.PURE,
         foreignFunction: function));
@@ -3061,7 +3067,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     SideEffects sideEffects = new SideEffects.empty();
     sideEffects.setAllSideEffects();
     push(new HForeignCode(js.js.parseForeignJS("$isolateName = #"),
-        commonMasks.dynamicType, <HInstruction>[pop()],
+        abstractValueDomain.dynamicType, <HInstruction>[pop()],
         nativeBehavior: native.NativeBehavior.CHANGES_OTHER,
         effects: sideEffects));
   }
@@ -3071,7 +3077,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       reporter.internalError(node.argumentsNode, 'Too many arguments.');
     }
     push(new HForeignCode(js.js.parseForeignJS(namer.staticStateHolder),
-        commonMasks.dynamicType, <HInstruction>[],
+        abstractValueDomain.dynamicType, <HInstruction>[],
         nativeBehavior: native.NativeBehavior.DEPENDS_OTHER));
   }
 
@@ -3119,8 +3125,8 @@ class SsaAstGraphBuilder extends ast.Visitor
     String loadId =
         deferredLoadTask.getImportDeferName(node, prefixElement.deferredImport);
     var inputs = [graph.addConstantString(loadId, closedWorld)];
-    push(new HInvokeStatic(
-        loadFunction, inputs, commonMasks.nonNullType, const <DartType>[],
+    push(new HInvokeStatic(loadFunction, inputs,
+        abstractValueDomain.nonNullType, const <DartType>[],
         targetCanThrow: false)
       ..sourceInformation = sourceInformation);
   }
@@ -3179,7 +3185,7 @@ class SsaAstGraphBuilder extends ast.Visitor
           argumentNamesInstruction,
           graph.addConstantInt(0, closedWorld), // type argument count.
         ],
-        typeMask: commonMasks.dynamicType);
+        typeMask: abstractValueDomain.dynamicType);
 
     var inputs = <HInstruction>[pop()];
     push(buildInvokeSuper(Selectors.noSuchMethod_, element, inputs,
@@ -3336,7 +3342,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       ast.Send node, MethodElement method, ast.Node argument, _) {
     handleSuperMethodInvoke(node, method);
     pushWithPosition(
-        new HNot(popBoolified(), commonMasks.boolType), node.selector);
+        new HNot(popBoolified(), abstractValueDomain.boolType), node.selector);
   }
 
   @override
@@ -3395,7 +3401,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     MethodElement typeInfoSetterElement = commonElements.setRuntimeTypeInfo;
     pushInvokeStatic(
         null, typeInfoSetterElement, <HInstruction>[newObject, typeInfo],
-        typeMask: commonMasks.dynamicType,
+        typeMask: abstractValueDomain.dynamicType,
         sourceInformation: sourceInformation);
 
     // The new object will now be referenced through the
@@ -3434,12 +3440,12 @@ class SsaAstGraphBuilder extends ast.Visitor
         isFixedList = true;
         TypeMask inferred = _inferredTypeOfNewList(send);
         return inferred.containsAll(closedWorld)
-            ? commonMasks.fixedArrayType
+            ? abstractValueDomain.fixedListType
             : inferred;
       } else if (isGrowableListConstructorCall) {
         TypeMask inferred = _inferredTypeOfNewList(send);
         return inferred.containsAll(closedWorld)
-            ? commonMasks.growableListType
+            ? abstractValueDomain.growableListType
             : inferred;
       } else if (Elements.isConstructorOfTypedArraySubclass(
           originalElement, closedWorld)) {
@@ -3551,7 +3557,7 @@ class SsaAstGraphBuilder extends ast.Visitor
         HTypeConversion conversion = new HTypeConversion(
             null,
             HTypeConversion.ARGUMENT_TYPE_CHECK,
-            commonMasks.numType,
+            abstractValueDomain.numType,
             inputs[0],
             sourceInformation);
         add(conversion);
@@ -3582,7 +3588,7 @@ class SsaAstGraphBuilder extends ast.Visitor
         js.Template code = js.js.parseForeignJS(r'#.fixed$length = Array');
         // We set the instruction as [canThrow] to avoid it being dead code.
         // We need a finer grained side effect.
-        add(new HForeignCode(code, commonMasks.nullType, [stack.last],
+        add(new HForeignCode(code, abstractValueDomain.nullType, [stack.last],
             throwBehavior: native.NativeThrowBehavior.MAY));
       }
     } else if (isGrowableListConstructorCall) {
@@ -3925,7 +3931,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       HInstruction value = typeBuilder.analyzeTypeArgument(type, sourceElement,
           sourceInformation: sourceInformationBuilder.buildGet(node));
       pushInvokeStatic(node, commonElements.runtimeTypeToString, [value],
-          typeMask: commonMasks.stringType);
+          typeMask: abstractValueDomain.stringType);
       pushInvokeStatic(node, commonElements.createRuntimeType, [pop()]);
     }
   }
@@ -3948,7 +3954,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     List<HInstruction> inputs = <HInstruction>[target];
     addDynamicSendArgumentsToList(node, inputs);
     push(new HInvokeClosure(new Selector.callClosureFrom(selector), inputs,
-        commonMasks.dynamicType, const <DartType>[])
+        abstractValueDomain.dynamicType, const <DartType>[])
       ..sourceInformation = sourceInformation);
   }
 
@@ -4198,14 +4204,14 @@ class SsaAstGraphBuilder extends ast.Visitor
         nativeBehavior.typesReturned.add(constructor.enclosingClass.thisType);
       }
       return new HForeignCode(
-          codeTemplate, commonMasks.dynamicType, filteredArguments,
+          codeTemplate, abstractValueDomain.dynamicType, filteredArguments,
           nativeBehavior: nativeBehavior)
         ..sourceInformation = sourceInformation;
     }
     var target = new HForeignCode(
         js.js.parseForeignJS("${nativeData.getFixedBackendMethodPath(element)}."
             "${nativeData.getFixedBackendName(element)}"),
-        commonMasks.dynamicType,
+        abstractValueDomain.dynamicType,
         <HInstruction>[]);
     add(target);
     // Strip off trailing arguments that were not specified.
@@ -4256,7 +4262,8 @@ class SsaAstGraphBuilder extends ast.Visitor
     js.Template codeTemplate = js.js.parseForeignJS(code);
     nativeBehavior.codeTemplate = codeTemplate;
 
-    return new HForeignCode(codeTemplate, commonMasks.dynamicType, inputs,
+    return new HForeignCode(
+        codeTemplate, abstractValueDomain.dynamicType, inputs,
         nativeBehavior: nativeBehavior)
       ..sourceInformation = sourceInformation;
   }
@@ -5419,11 +5426,12 @@ class SsaAstGraphBuilder extends ast.Visitor
   }
 
   _inferredTypeOfNewList(ast.Send node) =>
-      _resultOf(sourceElement).typeOfNewList(node) ?? commonMasks.dynamicType;
+      _resultOf(sourceElement).typeOfNewList(node) ??
+      abstractValueDomain.dynamicType;
 
   _inferredTypeOfListLiteral(ast.LiteralList node) =>
       _resultOf(sourceElement).typeOfListLiteral(node) ??
-      commonMasks.dynamicType;
+      abstractValueDomain.dynamicType;
 
   visitConditional(ast.Conditional node) {
     SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
@@ -5672,7 +5680,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     ExecutableElement loopVariable = elements.getForInVariable(node);
     SyntheticLocal indexVariable =
         new SyntheticLocal('_i', loopVariable, target);
-    TypeMask boolType = commonMasks.boolType;
+    TypeMask boolType = abstractValueDomain.boolType;
 
     // These variables are shared by initializer, condition, body and update.
     HInstruction array; // Set in buildInitializer.
@@ -5680,7 +5688,8 @@ class SsaAstGraphBuilder extends ast.Visitor
     HInstruction originalLength = null; // Set for growable lists.
 
     HInstruction buildGetLength() {
-      HInstruction result = new HGetLength(array, commonMasks.positiveIntType,
+      HInstruction result = new HGetLength(
+          array, abstractValueDomain.positiveIntType,
           isAssignable: !isFixed);
       add(result);
       return result;
@@ -5751,7 +5760,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       HInstruction index = localsHandler.readLocal(indexVariable);
       HInstruction one = graph.addConstantInt(1, closedWorld);
       HInstruction addInstruction =
-          new HAdd(index, one, null, commonMasks.positiveIntType);
+          new HAdd(index, one, null, abstractValueDomain.positiveIntType);
       add(addInstruction);
       localsHandler.updateLocal(indexVariable, addInstruction);
     }
@@ -6145,8 +6154,8 @@ class SsaAstGraphBuilder extends ast.Visitor
       // a test of the target.
       void buildCondition() {
         js.Template code = js.js.parseForeignJS('#');
-        push(new HForeignCode(
-            code, commonMasks.boolType, [localsHandler.readLocal(switchTarget)],
+        push(new HForeignCode(code, abstractValueDomain.boolType,
+            [localsHandler.readLocal(switchTarget)],
             nativeBehavior: native.NativeBehavior.PURE));
       }
 
@@ -6432,7 +6441,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       SyntheticLocal local = localsHandler.createLocal('exception');
       SourceInformation trySourceInformation =
           sourceInformationBuilder.buildTry(node);
-      exception = new HLocalValue(local, commonMasks.nonNullType)
+      exception = new HLocalValue(local, abstractValueDomain.nonNullType)
         ..sourceInformation = trySourceInformation;
       add(exception);
       HInstruction oldRethrowableException = rethrowableException;
@@ -6797,14 +6806,14 @@ class StringBuilderVisitor extends ast.Visitor {
 
   HInstruction concat(HInstruction left, HInstruction right) {
     HInstruction instruction =
-        new HStringConcat(left, right, builder.commonMasks.stringType);
+        new HStringConcat(left, right, builder.abstractValueDomain.stringType);
     builder.add(instruction);
     return instruction;
   }
 
   HInstruction stringify(ast.Node node, HInstruction expression) {
     HInstruction instruction =
-        new HStringify(expression, builder.commonMasks.stringType)
+        new HStringify(expression, builder.abstractValueDomain.stringType)
           ..sourceInformation = expression.sourceInformation;
     builder.add(instruction);
     return instruction;

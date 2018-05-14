@@ -171,11 +171,11 @@ abstract class TypeBuilder {
     HInstruction target =
         builder.localsHandler.readThis(sourceInformation: sourceInformation);
     HInstruction interceptor =
-        new HInterceptor(target, builder.commonMasks.nonNullType)
+        new HInterceptor(target, builder.abstractValueDomain.nonNullType)
           ..sourceInformation = sourceInformation;
     builder.add(interceptor);
     builder.push(new HTypeInfoReadVariable.intercepted(
-        variable, interceptor, target, builder.commonMasks.dynamicType)
+        variable, interceptor, target, builder.abstractValueDomain.dynamicType)
       ..sourceInformation = sourceInformation);
     return builder.pop();
   }
@@ -197,7 +197,7 @@ abstract class TypeBuilder {
         TypeInfoExpressionKind.INSTANCE,
         builder.closedWorld.elementEnvironment.getThisType(interface.element),
         inputs,
-        builder.commonMasks.dynamicType)
+        builder.abstractValueDomain.dynamicType)
       ..sourceInformation = sourceInformation;
     return representation;
   }
@@ -229,7 +229,7 @@ abstract class TypeBuilder {
         TypeInfoExpressionKind.COMPLETE,
         argument,
         inputs,
-        builder.commonMasks.dynamicType)
+        builder.abstractValueDomain.dynamicType)
       ..sourceInformation = sourceInformation;
     builder.add(result);
     return result;

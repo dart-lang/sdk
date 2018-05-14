@@ -96,7 +96,7 @@ void handleSsaNative(SsaAstGraphBuilder builder, Expression nativeBody) {
         // be proportional to the number of native methods, which is bounded
         // by the dart: libraries.
         js.js.uncachedExpressionTemplate(nativeMethodCall),
-        builder.commonMasks.dynamicType,
+        builder.abstractValueDomain.dynamicType,
         inputs,
         effects: new SideEffects()));
     // TODO(johnniwinther): Provide source information.
@@ -117,6 +117,6 @@ void handleSsaNative(SsaAstGraphBuilder builder, Expression nativeBody) {
         <HInstruction>[],
         new SideEffects(),
         null,
-        builder.commonMasks.dynamicType));
+        builder.abstractValueDomain.dynamicType));
   }
 }

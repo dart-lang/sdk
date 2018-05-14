@@ -63,7 +63,7 @@ abstract class AbstractValueDomain {
 
   /// The [AbstractValue] that represents a non-null fixed size JavaScript array
   /// at runtime.
-  AbstractValue get fixedArrayType;
+  AbstractValue get fixedListType;
 
   /// The [AbstractValue] that represents a non-null 31-bit unsigned integer at
   /// runtime.

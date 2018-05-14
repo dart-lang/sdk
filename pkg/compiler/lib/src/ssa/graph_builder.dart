@@ -63,8 +63,6 @@ abstract class GraphBuilder {
   AbstractValueDomain get abstractValueDomain =>
       closedWorld.abstractValueDomain;
 
-  CommonMasks get commonMasks => closedWorld.abstractValueDomain;
-
   DiagnosticReporter get reporter => backend.reporter;
 
   CompilerOptions get options => compiler.options;
@@ -250,7 +248,7 @@ abstract class GraphBuilder {
   MemberEntity get sourceElement;
 
   HLiteralList buildLiteralList(List<HInstruction> inputs) {
-    return new HLiteralList(inputs, commonMasks.growableListType);
+    return new HLiteralList(inputs, abstractValueDomain.growableListType);
   }
 
   HInstruction callSetRuntimeTypeInfoWithTypeArguments(
@@ -266,7 +264,7 @@ abstract class GraphBuilder {
         TypeInfoExpressionKind.INSTANCE,
         closedWorld.elementEnvironment.getThisType(type.element),
         rtiInputs,
-        closedWorld.abstractValueDomain.dynamicType);
+        abstractValueDomain.dynamicType);
     add(typeInfo);
     return callSetRuntimeTypeInfo(typeInfo, newObject, sourceInformation);
   }

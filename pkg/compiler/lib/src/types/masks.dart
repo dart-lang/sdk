@@ -63,7 +63,6 @@ class CommonMasks implements AbstractValueDomain {
   TypeMask _indexablePrimitiveType;
   TypeMask _readableArrayType;
   TypeMask _mutableArrayType;
-  TypeMask _fixedArrayType;
   TypeMask _unmodifiableArrayType;
   TypeMask _interceptorType;
 
@@ -148,9 +147,6 @@ class CommonMasks implements AbstractValueDomain {
   TypeMask get mutableArrayType =>
       _mutableArrayType ??= new TypeMask.nonNullSubclass(
           commonElements.jsMutableArrayClass, _closedWorld);
-
-  TypeMask get fixedArrayType => _fixedArrayType ??=
-      new TypeMask.nonNullExact(commonElements.jsFixedArrayClass, _closedWorld);
 
   TypeMask get unmodifiableArrayType =>
       _unmodifiableArrayType ??= new TypeMask.nonNullExact(
