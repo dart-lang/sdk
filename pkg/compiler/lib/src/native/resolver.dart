@@ -245,20 +245,18 @@ class NativeDataResolverImpl extends NativeMemberResolverBase
   @override
   NativeBehavior computeNativeMethodBehavior(MethodElement function,
       {bool isJsInterop}) {
-    return NativeBehavior.ofMethodElement(function, _compiler,
-        isJsInterop: isJsInterop);
+    return null;
   }
 
   @override
   NativeBehavior computeNativeFieldLoadBehavior(FieldElement field,
       {bool isJsInterop}) {
-    return NativeBehavior.ofFieldElementLoad(field, _compiler,
-        isJsInterop: isJsInterop);
+    return null;
   }
 
   @override
   NativeBehavior computeNativeFieldStoreBehavior(FieldElement field) {
-    return NativeBehavior.ofFieldElementStore(field, _compiler);
+    return null;
   }
 
   @override

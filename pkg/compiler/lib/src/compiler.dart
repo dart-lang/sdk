@@ -10,19 +10,12 @@ import '../compiler_new.dart' as api;
 import 'backend_strategy.dart';
 import 'common/names.dart' show Selectors;
 import 'common/names.dart' show Uris;
-import 'common/resolution.dart'
-    show
-        ParsingContext,
-        Resolution,
-        ResolutionWorkItem,
-        ResolutionImpact,
-        Target;
+import 'common/resolution.dart' show ParsingContext, Resolution;
 import 'common/tasks.dart' show CompilerTask, GenericTask, Measurer;
 import 'common/work.dart' show WorkItem;
 import 'common.dart';
 import 'compile_time_constants.dart';
-import 'constants/values.dart';
-import 'common_elements.dart' show CommonElements, ElementEnvironment;
+import 'common_elements.dart' show ElementEnvironment;
 import 'deferred_load.dart' show DeferredLoadTask, OutputUnitData;
 import 'diagnostics/code_location.dart';
 import 'diagnostics/diagnostic_listener.dart' show DiagnosticReporter;
@@ -31,7 +24,6 @@ import 'diagnostics/messages.dart' show Message, MessageTemplate;
 import 'dump_info.dart' show DumpInfoTask;
 import 'elements/elements.dart';
 import 'elements/entities.dart';
-import 'elements/resolution_types.dart' show ResolutionDartType, Types;
 import 'enqueue.dart' show Enqueuer, EnqueueTask, ResolutionEnqueuer;
 import 'environment.dart';
 import 'frontend_strategy.dart';
@@ -55,13 +47,11 @@ import 'parser/diet_parser_task.dart' show DietParserTask;
 import 'parser/parser_task.dart' show ParserTask;
 import 'patch_parser.dart' show PatchParserTask;
 import 'resolution/resolution.dart' show ResolverTask;
-import 'resolution/resolution_strategy.dart';
 import 'resolved_uri_translator.dart';
 import 'scanner/scanner_task.dart' show ScannerTask;
 import 'script.dart' show Script;
 import 'ssa/nodes.dart' show HInstruction;
 import 'package:front_end/src/fasta/scanner.dart' show StringToken, Token;
-import 'tree/tree.dart' show Node, TypeAnnotation;
 import 'typechecker.dart' show TypeCheckerTask;
 import 'types/types.dart' show GlobalTypeInferenceTask;
 import 'universe/selector.dart' show Selector;
@@ -85,7 +75,6 @@ abstract class Compiler {
   FrontendStrategy frontendStrategy;
   BackendStrategy backendStrategy;
   CompilerDiagnosticReporter _reporter;
-  CompilerResolution _resolution;
   Map<Entity, WorldImpact> _impactCache;
   ImpactCacheDeleter _impactCacheDeleter;
   ParsingContext _parsingContext;
@@ -115,7 +104,7 @@ abstract class Compiler {
   ClosedWorld backendClosedWorldForTesting;
 
   DiagnosticReporter get reporter => _reporter;
-  Resolution get resolution => _resolution;
+  Resolution get resolution => null;
   Map<Entity, WorldImpact> get impactCache => _impactCache;
   ImpactCacheDeleter get impactCacheDeleter => _impactCacheDeleter;
   ParsingContext get parsingContext => _parsingContext;
@@ -256,11 +245,6 @@ abstract class Compiler {
   /// Override this to mock the scanner for testing.
   ScannerTask createScannerTask() =>
       new ScannerTask(dietParser, reporter, measurer);
-
-  /// Creates the resolution object.
-  ///
-  /// Override this to mock resolution for testing.
-  Resolution createResolution() => new CompilerResolution(this);
 
   /// Creates the resolver task.
   ///
@@ -1126,10 +1110,6 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
   // TODO(johnniwinther): Move this to the parser listeners.
   @override
   SourceSpan spanFromToken(Token token) {
-    if (compiler.frontendStrategy is ResolutionFrontEndStrategy) {
-      ResolutionFrontEndStrategy strategy = compiler.frontendStrategy;
-      return strategy.spanFromToken(currentElement, token);
-    }
     throw 'No error location.';
   }
 
@@ -1235,258 +1215,6 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
             const <DiagnosticMessage>[], api.Diagnostic.HINT);
       });
     }
-  }
-}
-
-// TODO(johnniwinther): Move [ResolverTask] here.
-class CompilerResolution implements Resolution, ImpactCacheDeleter {
-  final Compiler _compiler;
-  final Map<Element, ResolutionImpact> _resolutionImpactCache =
-      <Element, ResolutionImpact>{};
-  final Map<Entity, WorldImpact> _worldImpactCache = <Entity, WorldImpact>{};
-  bool retainCachesForTesting = false;
-  Types _types;
-
-  CompilerResolution(this._compiler) {
-    _types = new Types(this);
-  }
-
-  @override
-  DiagnosticReporter get reporter => _compiler.reporter;
-
-  @override
-  ParsingContext get parsingContext => _compiler.parsingContext;
-
-  @override
-  ElementEnvironment get elementEnvironment =>
-      _compiler.frontendStrategy.elementEnvironment;
-
-  @override
-  CommonElements get commonElements =>
-      _compiler.frontendStrategy.commonElements;
-
-  @override
-  Types get types => _types;
-
-  @override
-  Target get target => _compiler.backend.target;
-
-  @override
-  ResolverTask get resolver => _compiler.resolver;
-
-  @override
-  ResolutionEnqueuer get enqueuer => _compiler.enqueuer.resolution;
-
-  @override
-  CompilerOptions get options => _compiler.options;
-
-  @override
-  IdGenerator get idGenerator => _compiler.idGenerator;
-
-  @override
-  ConstantEnvironment get constants => _compiler.constants;
-
-  @override
-  MirrorUsageAnalyzerTask get mirrorUsageAnalyzerTask =>
-      _compiler.mirrorUsageAnalyzerTask;
-
-  LibraryElement get coreLibrary =>
-      _compiler.frontendStrategy.commonElements.coreLibrary;
-
-  @override
-  bool get wasProxyConstantComputedTestingOnly => _proxyConstant != null;
-
-  @override
-  void resolveClass(ClassElement cls) {
-    _compiler.resolver.resolveClass(cls);
-  }
-
-  @override
-  void resolveTypedef(TypedefElement typdef) {
-    _compiler.resolver.resolve(typdef);
-  }
-
-  @override
-  void resolveMetadataAnnotation(MetadataAnnotation metadataAnnotation) {
-    _compiler.resolver.resolveMetadataAnnotation(metadataAnnotation);
-  }
-
-  @override
-  FunctionSignature resolveSignature(FunctionElement function) {
-    return _compiler.resolver.resolveSignature(function);
-  }
-
-  @override
-  ResolutionDartType resolveTypeAnnotation(
-      Element element, TypeAnnotation node) {
-    return _compiler.resolver.resolveTypeAnnotation(element, node);
-  }
-
-  @override
-  void ensureResolved(Element element) {
-    computeWorldImpact(element);
-  }
-
-  @override
-  void ensureClassMembers(ClassElement element) {
-    _compiler.resolver.checkClass(element);
-  }
-
-  @override
-  void registerCompileTimeError(Element element, DiagnosticMessage message) =>
-      _compiler.registerCompileTimeError(element, message);
-
-  @override
-  bool hasResolvedAst(ExecutableElement element) {
-    assert(element.isDeclaration,
-        failedAt(element, "Element $element must be the declaration."));
-    return hasBeenResolved(element.memberContext.declaration) &&
-        element.hasResolvedAst;
-  }
-
-  @override
-  ResolvedAst getResolvedAst(ExecutableElement element) {
-    assert(element.isDeclaration,
-        failedAt(element, "Element $element must be the declaration."));
-    assert(hasResolvedAst(element),
-        failedAt(element, "ResolvedAst not available for $element."));
-    return element.resolvedAst;
-  }
-
-  @override
-  ResolvedAst computeResolvedAst(Element element) {
-    ensureResolved(element);
-    return getResolvedAst(element);
-  }
-
-  @override
-  bool hasResolutionImpact(Element element) {
-    assert(element.isDeclaration,
-        failedAt(element, "Element $element must be the declaration."));
-    return _resolutionImpactCache.containsKey(element);
-  }
-
-  @override
-  ResolutionImpact getResolutionImpact(Element element) {
-    assert(element.isDeclaration,
-        failedAt(element, "Element $element must be the declaration."));
-    ResolutionImpact resolutionImpact = _resolutionImpactCache[element];
-    assert(resolutionImpact != null,
-        failedAt(element, "ResolutionImpact not available for $element."));
-    return resolutionImpact;
-  }
-
-  @override
-  WorldImpact getWorldImpact(Element element) {
-    assert(element.isDeclaration,
-        failedAt(element, "Element $element must be the declaration."));
-    WorldImpact worldImpact = _worldImpactCache[element];
-    assert(worldImpact != null,
-        failedAt(element, "WorldImpact not computed for $element."));
-    return worldImpact;
-  }
-
-  @override
-  WorldImpact computeWorldImpact(Element element) {
-    return _compiler.selfTask.measureSubtask("Resolution.computeWorldImpact",
-        () {
-      assert(
-          element.impliesType ||
-              element.isField ||
-              element.isFunction ||
-              element.isConstructor ||
-              element.isGetter ||
-              element.isSetter,
-          failedAt(element, 'Unexpected element kind: ${element.kind}'));
-      // `true ==` prevents analyzer type inference from strengthening element
-      // to AnalyzableElement which incompatible with some down-cast to ElementX
-      // uses.
-      // TODO(29712): Can this be made to work as we expect?
-      assert(true == element is AnalyzableElement,
-          failedAt(element, 'Element $element is not analyzable.'));
-      assert(element.isDeclaration,
-          failedAt(element, "Element $element must be the declaration."));
-      return _worldImpactCache.putIfAbsent(element, () {
-        assert(_compiler.parser != null);
-        Node tree = _compiler.parser.parse(element);
-        assert(!element.isSynthesized || tree == null, failedAt(element));
-        ResolutionImpact resolutionImpact = _compiler.resolver.resolve(element);
-
-        if (retainCachesForTesting) {
-          // [ResolutionImpact] is currently only used by serialization. The
-          // enqueuer uses the [WorldImpact] which is always cached.
-          // TODO(johnniwinther): Align these use cases better; maybe only
-          // cache [ResolutionImpact] and let the enqueuer transform it into
-          // a [WorldImpact].
-          _resolutionImpactCache[element] = resolutionImpact;
-        }
-        if (tree != null && !_compiler.options.analyzeSignaturesOnly) {
-          // TODO(het): don't do this if suppressWarnings is on, currently we
-          // have to do it because the typechecker also sets types
-          // Only analyze nodes with a corresponding [TreeElements].
-          _compiler.checker.check(element);
-        }
-        return transformResolutionImpact(element, resolutionImpact);
-      });
-    });
-  }
-
-  @override
-  WorldImpact transformResolutionImpact(
-      Element element, ResolutionImpact resolutionImpact) {
-    WorldImpact worldImpact = _compiler.backend.impactTransformer
-        .transformResolutionImpact(resolutionImpact);
-    _worldImpactCache[element] = worldImpact;
-    return worldImpact;
-  }
-
-  @override
-  void uncacheWorldImpact(covariant Element element) {
-    assert(element.isDeclaration,
-        failedAt(element, "Element $element must be the declaration."));
-    if (retainCachesForTesting) return;
-    assert(_worldImpactCache[element] != null,
-        failedAt(element, "WorldImpact not computed for $element."));
-    _worldImpactCache[element] = const WorldImpact();
-    _resolutionImpactCache.remove(element);
-  }
-
-  @override
-  void emptyCache() {
-    if (retainCachesForTesting) return;
-    for (Element element in _worldImpactCache.keys) {
-      _worldImpactCache[element] = const WorldImpact();
-    }
-    _resolutionImpactCache.clear();
-  }
-
-  @override
-  bool hasBeenResolved(Element element) {
-    return _worldImpactCache.containsKey(element);
-  }
-
-  @override
-  ResolutionWorkItem createWorkItem(MemberElement element) {
-    return new ResolutionWorkItem(this, element);
-  }
-
-  ConstantValue _proxyConstant;
-
-  @override
-  bool isProxyConstant(ConstantValue value) {
-    FieldElement field = coreLibrary.find('proxy');
-    if (field == null) return false;
-    if (!hasBeenResolved(field)) return false;
-    if (_proxyConstant == null) {
-      _proxyConstant = constants
-          .getConstantValue(resolver.constantCompiler.compileConstant(field));
-    }
-    return _proxyConstant == value;
-  }
-
-  @override
-  void registerClass(ClassEntity cls) {
-    enqueuer.worldBuilder.registerClass(cls);
   }
 }
 

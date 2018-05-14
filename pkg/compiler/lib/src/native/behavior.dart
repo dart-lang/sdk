@@ -4,17 +4,14 @@
 
 import '../common.dart';
 import '../common/backend_api.dart' show ForeignResolver;
-import '../common/resolution.dart' show ParsingContext, Resolution;
-import '../compiler.dart' show Compiler;
+import '../common/resolution.dart' show ParsingContext;
 import '../constants/values.dart';
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
-import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as js;
 import '../js_backend/native_data.dart' show NativeBasicData;
-import '../resolution/resolution_strategy.dart';
 import '../tree/tree.dart';
 import '../universe/side_effects.dart' show SideEffects;
 import '../util/util.dart';
@@ -765,67 +762,6 @@ class NativeBehavior {
     return behavior;
   }
 
-  static NativeBehavior ofMethodElement(
-      MethodElement element, Compiler compiler,
-      {bool isJsInterop}) {
-    ResolutionFunctionType type = element.computeType(compiler.resolution);
-    List<ConstantValue> metadata = <ConstantValue>[];
-    for (MetadataAnnotation annotation in element.implementation.metadata) {
-      annotation.ensureResolved(compiler.resolution);
-      metadata.add(compiler.constants.getConstantValue(annotation.constant));
-    }
-
-    BehaviorBuilder builder = new ResolverBehaviorBuilder(
-        compiler, compiler.frontendStrategy.nativeBasicData);
-    return builder.buildMethodBehavior(
-        type, metadata, lookupFromElement(compiler.resolution, element),
-        isJsInterop: isJsInterop);
-  }
-
-  static NativeBehavior ofFieldElementLoad(
-      MemberElement element, Compiler compiler,
-      {bool isJsInterop}) {
-    Resolution resolution = compiler.resolution;
-    ResolutionDartType type = element.computeType(resolution);
-    List<ConstantValue> metadata = <ConstantValue>[];
-    for (MetadataAnnotation annotation in element.implementation.metadata) {
-      annotation.ensureResolved(compiler.resolution);
-      metadata.add(compiler.constants.getConstantValue(annotation.constant));
-    }
-
-    BehaviorBuilder builder = new ResolverBehaviorBuilder(
-        compiler, compiler.frontendStrategy.nativeBasicData);
-    return builder.buildFieldLoadBehavior(
-        type, metadata, lookupFromElement(resolution, element),
-        isJsInterop: isJsInterop);
-  }
-
-  static NativeBehavior ofFieldElementStore(
-      MemberElement field, Compiler compiler) {
-    BehaviorBuilder builder = new ResolverBehaviorBuilder(
-        compiler, compiler.frontendStrategy.nativeBasicData);
-    ResolutionDartType type = field.computeType(compiler.resolution);
-    return builder.buildFieldStoreBehavior(type);
-  }
-
-  static TypeLookup lookupFromElement(Resolution resolution, Element element) {
-    ResolutionDartType lookup(String name, {bool required}) {
-      Element e = element.buildScope().lookup(name);
-      if (e == null || e is! ClassElement) {
-        if (required) {
-          resolution.reporter.reportErrorMessage(element, MessageKind.GENERIC,
-              {'text': "Type '$name' not found."});
-        }
-        return null;
-      }
-      ClassElement cls = e;
-      cls.ensureResolved(resolution);
-      return cls.thisType;
-    }
-
-    return lookup;
-  }
-
   static dynamic /*DartType|SpecialType*/ _parseType(
       String typeString, TypeLookup lookupType) {
     if (typeString == '=Object') return SpecialType.JsObject;
@@ -1023,28 +959,5 @@ abstract class BehaviorBuilder {
 
     _overrideWithAnnotations(metadata, lookupType);
     return _behavior;
-  }
-}
-
-class ResolverBehaviorBuilder extends BehaviorBuilder {
-  final Compiler compiler;
-  final NativeBasicData nativeBasicData;
-
-  ResolverBehaviorBuilder(this.compiler, this.nativeBasicData);
-
-  @override
-  CommonElements get commonElements => compiler.resolution.commonElements;
-
-  @override
-  bool get trustJSInteropTypeAnnotations =>
-      compiler.options.trustJSInteropTypeAnnotations;
-
-  @override
-  DiagnosticReporter get reporter => compiler.reporter;
-
-  @override
-  ElementEnvironment get elementEnvironment {
-    ResolutionFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
-    return frontendStrategy.elementEnvironment;
   }
 }
