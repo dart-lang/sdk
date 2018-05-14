@@ -8,6 +8,7 @@ async_star_cancel_while_paused_test: RuntimeError # Issue 22853
 bit_operations_test: RuntimeError, OK # non JS number semantics
 config_import_corelib_test: CompileTimeError # we need a special platform.dill file for categories=all. Once we fix that, all dart:* are supported when using '--categories=all' so this will become a RuntimeError, OK.
 config_import_test: RuntimeError # Test flag is not passed to the compiler.
+constructor_type_parameter_test/00: Crash
 double_identical_test: RuntimeError # Negative and positive zero are distinct, but not in dart2js; bug #11551.
 issue23244_test: RuntimeError # Isolates - enum canonicalization - Issue 23244
 library_env_test/has_mirror_support: RuntimeError, OK
