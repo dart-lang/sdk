@@ -10,12 +10,8 @@ import 'dart:convert' show jsonDecode, jsonEncode, LineSplitter, utf8;
 
 import 'dart:io' show File, exitCode, stderr, stdin, stdout;
 
-import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
-
 import 'package:kernel/kernel.dart'
     show CanonicalName, Library, Component, Source, loadComponentFromBytes;
-
-import 'package:kernel/target/targets.dart' show TargetFlags, targets;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
@@ -42,6 +38,8 @@ import 'package:front_end/src/fasta/ticker.dart' show Ticker;
 
 import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 
+import 'additional_targets.dart' show installAdditionalTargets;
+
 import 'command_line.dart' show withGlobalOptions;
 
 const bool summary = const bool.fromEnvironment("summary", defaultValue: false);
@@ -49,10 +47,7 @@ const bool summary = const bool.fromEnvironment("summary", defaultValue: false);
 const int iterations = const int.fromEnvironment("iterations", defaultValue: 1);
 
 compileEntryPoint(List<String> arguments) async {
-  targets["dart2js"] =
-      (TargetFlags flags) => new Dart2jsTarget("dart2js", flags);
-  targets["dart2js_server"] =
-      (TargetFlags flags) => new Dart2jsTarget("dart2js_server", flags);
+  installAdditionalTargets();
 
   // Timing results for each iteration
   List<double> elapsedTimes = <double>[];
@@ -75,6 +70,8 @@ compileEntryPoint(List<String> arguments) async {
 }
 
 outlineEntryPoint(List<String> arguments) async {
+  installAdditionalTargets();
+
   for (int i = 0; i < iterations; i++) {
     if (i > 0) {
       print("\n");
@@ -84,6 +81,8 @@ outlineEntryPoint(List<String> arguments) async {
 }
 
 batchEntryPoint(List<String> arguments) {
+  installAdditionalTargets();
+
   return new BatchCompiler(
           stdin.transform(utf8.decoder).transform(new LineSplitter()))
       .run();

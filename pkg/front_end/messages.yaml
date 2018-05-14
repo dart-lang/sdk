@@ -1165,7 +1165,7 @@ FastaUsageLong:
         Read the SDK platform from <file>, which should be in Dill/Kernel IR format
         and contain the Dart SDK.
 
-      --target=none|vm|vmcc|vmreify|flutter
+      --target=dart2js|dart2js_server|dart_runner|flutter|flutter_runner|none|vm
         Specify the target configuration.
 
       --verify
