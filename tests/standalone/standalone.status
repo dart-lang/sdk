@@ -69,6 +69,9 @@ io/process_invalid_arguments_test: Fail, OK # These tests have type errors on pu
 io/socket_invalid_arguments_test: Fail, OK # These tests have type errors on purpose.
 io/stdout_bad_argument_test: Fail, OK # These tests have type errors on purpose.
 
+[ !$strong && ($compiler == dartk || $compiler == dartkp) ]
+*: Skip
+
 [ $compiler == app_jit || $compiler == precompiler ]
 io/compile_all_test: Skip # Incompatible flag --compile_all
 
