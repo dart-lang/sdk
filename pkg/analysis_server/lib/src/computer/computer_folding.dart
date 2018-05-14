@@ -48,19 +48,15 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitBlockFunctionBody(BlockFunctionBody node) {
-    final FoldingKind kind = node.parent is ConstructorDeclaration ||
-            node.parent is MethodDeclaration
-        ? FoldingKind.CLASS_MEMBER
-        : FoldingKind.TOP_LEVEL_DECLARATION;
-    _addRegion(
-        node.block.leftBracket.end, node.block.rightBracket.offset, kind);
+    _addRegion(node.block.leftBracket.end, node.block.rightBracket.offset,
+        FoldingKind.FUNCTION_BODY);
     return super.visitBlockFunctionBody(node);
   }
 
   @override
   Object visitClassDeclaration(ClassDeclaration node) {
-    _addRegion(node.leftBracket.end, node.rightBracket.offset,
-        FoldingKind.TOP_LEVEL_DECLARATION);
+    _addRegion(
+        node.leftBracket.end, node.rightBracket.offset, FoldingKind.CLASS_BODY);
     return super.visitClassDeclaration(node);
   }
 
@@ -69,20 +65,17 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<Object> {
     if (node.arguments != null &&
         node.arguments.leftParenthesis != null &&
         node.arguments.rightParenthesis != null) {
-      _addRegion(
-          node.arguments.leftParenthesis.end,
-          node.arguments.rightParenthesis.offset,
-          FoldingKind.TOP_LEVEL_DECLARATION);
+      _addRegion(node.arguments.leftParenthesis.end,
+          node.arguments.rightParenthesis.offset, FoldingKind.ANNOTATIONS);
     }
     return super.visitAnnotation(node);
   }
 
   @override
   Object visitComment(Comment node) {
-    final FoldingKind kind = node.isDocumentation
-        ? FoldingKind.DOCUMENTATION_COMMENT
-        : FoldingKind.COMMENT;
-    _addRegion(node.offset, node.end, kind);
+    if (node.isDocumentation) {
+      _addRegion(node.offset, node.end, FoldingKind.DOCUMENTATION_COMMENT);
+    }
     return super.visitComment(node);
   }
 

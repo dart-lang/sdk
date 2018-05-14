@@ -15,14 +15,16 @@ package org.dartlang.analysis.server.protocol;
  */
 public class FoldingKind {
 
-  public static final String COMMENT = "COMMENT";
+  public static final String ANNOTATIONS = "ANNOTATIONS";
 
-  public static final String CLASS_MEMBER = "CLASS_MEMBER";
+  public static final String CLASS_BODY = "CLASS_BODY";
 
   public static final String DIRECTIVES = "DIRECTIVES";
 
   public static final String DOCUMENTATION_COMMENT = "DOCUMENTATION_COMMENT";
 
-  public static final String TOP_LEVEL_DECLARATION = "TOP_LEVEL_DECLARATION";
+  public static final String FILE_HEADER = "FILE_HEADER";
+
+  public static final String FUNCTION_BODY = "FUNCTION_BODY";
 
 }

@@ -91,7 +91,7 @@ class ProtocolTestUtilities {
   String fileName(int stringIndex) => '${strings[stringIndex]}.dart';
 
   FoldingRegion foldingRegion(int offset, int length) =>
-      new FoldingRegion(FoldingKind.COMMENT, offset, length);
+      new FoldingRegion(FoldingKind.FILE_HEADER, offset, length);
 
   HighlightRegion highlightRegion(int offset, int length) =>
       new HighlightRegion(HighlightRegionType.FIELD, offset, length);

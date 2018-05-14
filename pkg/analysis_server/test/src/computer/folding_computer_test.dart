@@ -79,7 +79,7 @@ main() {}
 
 main() {/*1:INC*/
   print("Hello, world!");
-/*1:INC:TOP_LEVEL_DECLARATION*/}
+/*1:INC:FUNCTION_BODY*/}
 
 // Content after
 """;
@@ -96,7 +96,7 @@ main() {/*1:INC*/
 /// that spans lines/*1:INC:DOCUMENTATION_COMMENT*/
 main() {/*2:INC*/
   print("Hello, world!");
-/*2:INC:TOP_LEVEL_DECLARATION*/}
+/*2:INC:FUNCTION_BODY*/}
 
 // Content after
 """;
@@ -112,9 +112,9 @@ main() {/*2:INC*/
 main() {/*1:INC*/
   doPrint() {/*2:INC*/
     print("Hello, world!");
-  /*2:INC:TOP_LEVEL_DECLARATION*/}
+  /*2:INC:FUNCTION_BODY*/}
   doPrint();
-/*1:INC:TOP_LEVEL_DECLARATION*/}
+/*1:INC:FUNCTION_BODY*/}
 
 // Content after
 """;
@@ -130,12 +130,12 @@ main() {/*1:INC*/
 class Person {/*1:INC*/
   Person() {/*2:INC*/
     print("Hello, world!");
-  /*2:INC:CLASS_MEMBER*/}
+  /*2:INC:FUNCTION_BODY*/}
 
   void sayHello() {/*3:INC*/
     print("Hello, world!");
-  /*3:INC:CLASS_MEMBER*/}
-/*1:INC:TOP_LEVEL_DECLARATION*/}
+  /*3:INC:FUNCTION_BODY*/}
+/*1:INC:CLASS_BODY*/}
 
 // Content after
 """;
@@ -149,12 +149,12 @@ class Person {/*1:INC*/
 @myMultilineAnnotation(/*1:INC*/
   "this",
   "is a test"
-/*1:INC:TOP_LEVEL_DECLARATION*/)
+/*1:INC:ANNOTATIONS*/)
 @another()
 @andAnother
 main() {/*2:INC*/
   print("Hello, world!");
-/*2:INC:TOP_LEVEL_DECLARATION*/}
+/*2:INC:FUNCTION_BODY*/}
 """;
 
     final regions = await _computeRegions(content);

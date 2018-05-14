@@ -129,7 +129,7 @@ class ResultMergerTest {
   }
 
   void test_mergeFoldingRegion() {
-    FoldingKind kind = FoldingKind.COMMENT;
+    FoldingKind kind = FoldingKind.FILE_HEADER;
     FoldingRegion region1 = new FoldingRegion(kind, 30, 5);
     FoldingRegion region2 = new FoldingRegion(kind, 0, 4);
     FoldingRegion region3 = new FoldingRegion(kind, 20, 6);
