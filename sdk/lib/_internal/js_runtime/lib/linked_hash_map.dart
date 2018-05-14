@@ -98,12 +98,12 @@ class JsLinkedHashMap<K, V> extends MapBase<K, V>
       var strings = _strings;
       if (strings == null) return null;
       LinkedHashMapCell cell = _getTableCell(strings, key);
-      return (cell == null) ? null : cell.hashMapCellValue;
+      return JS('', '#', cell == null ? null : cell.hashMapCellValue);
     } else if (_isNumericKey(key)) {
       var nums = _nums;
       if (nums == null) return null;
       LinkedHashMapCell cell = _getTableCell(nums, key);
-      return (cell == null) ? null : cell.hashMapCellValue;
+      return JS('', '#', cell == null ? null : cell.hashMapCellValue);
     } else {
       return internalGet(key);
     }
@@ -116,7 +116,7 @@ class JsLinkedHashMap<K, V> extends MapBase<K, V>
     int index = internalFindBucketIndex(bucket, key);
     if (index < 0) return null;
     LinkedHashMapCell cell = JS('var', '#[#]', bucket, index);
-    return cell.hashMapCellValue;
+    return JS('', '#', cell.hashMapCellValue);
   }
 
   void operator []=(K key, V value) {
@@ -182,7 +182,7 @@ class JsLinkedHashMap<K, V> extends MapBase<K, V>
     _unlinkCell(cell);
     // TODO(kasperl): Consider getting rid of the bucket list when
     // the length reaches zero.
-    return cell.hashMapCellValue;
+    return JS('', '#', cell.hashMapCellValue);
   }
 
   void clear() {
@@ -220,7 +220,7 @@ class JsLinkedHashMap<K, V> extends MapBase<K, V>
     if (cell == null) return null;
     _unlinkCell(cell);
     _deleteTableEntry(table, key);
-    return cell.hashMapCellValue;
+    return JS('', '#', cell.hashMapCellValue);
   }
 
   void _modified() {
