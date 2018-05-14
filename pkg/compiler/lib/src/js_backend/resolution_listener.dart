@@ -263,13 +263,34 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     _mirrorsDataBuilder.registerUsedMember(member);
     _customElementsAnalysis.registerStaticUse(member);
 
-    if (member.isFunction && member.isInstanceMember) {
-      FunctionEntity method = member;
-      ClassEntity cls = method.enclosingClass;
+    if (member.isFunction) {
+      FunctionEntity function = member;
+      if (function.isExternal) {
+        FunctionType functionType =
+            _elementEnvironment.getFunctionType(function);
 
-      if (method.name == Identifiers.call &&
-          _elementEnvironment.isGenericClass(cls)) {
-        worldImpact.addImpact(_registerComputeSignature());
+        var allParameterTypes = <DartType>[]
+          ..addAll(functionType.parameterTypes)
+          ..addAll(functionType.optionalParameterTypes)
+          ..addAll(functionType.namedParameterTypes);
+        for (var type in allParameterTypes) {
+          if (type.isFunctionType || type.isTypedef) {
+            var closureConverter = _commonElements.closureConverter;
+            worldImpact.registerStaticUse(
+                new StaticUse.implicitInvoke(closureConverter));
+            _backendUsage.registerBackendFunctionUse(closureConverter);
+            _backendUsage.registerGlobalFunctionDependency(closureConverter);
+            break;
+          }
+        }
+      }
+      if (function.isInstanceMember) {
+        ClassEntity cls = function.enclosingClass;
+
+        if (function.name == Identifiers.call &&
+            _elementEnvironment.isGenericClass(cls)) {
+          worldImpact.addImpact(_registerComputeSignature());
+        }
       }
     }
     _backendUsage.registerUsedMember(member);

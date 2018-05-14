@@ -704,7 +704,6 @@ class JavaScriptBackend {
         elementEnvironment,
         commonElements,
         compiler.frontendStrategy.dartTypes,
-        _backendUsageBuilder,
         compiler.frontendStrategy.createNativeClassFinder(nativeBasicData));
     _nativeDataBuilder = new NativeDataBuilderImpl(nativeBasicData);
     _customElementsResolutionAnalysis = new CustomElementsResolutionAnalysis(

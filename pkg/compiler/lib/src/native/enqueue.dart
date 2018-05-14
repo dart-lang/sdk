@@ -5,11 +5,10 @@
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../js_backend/backend_usage.dart' show BackendUsageBuilder;
 import '../js_backend/native_data.dart' show NativeData;
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;
 import '../options.dart';
-import '../universe/use.dart' show StaticUse, TypeUse;
+import '../universe/use.dart' show TypeUse;
 import '../universe/world_impact.dart'
     show WorldImpact, WorldImpactBuilder, WorldImpactBuilderImpl;
 import 'behavior.dart';
@@ -150,18 +149,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     return _unusedClasses.where(predicate);
   }
 
-  void _registerBackendUse(FunctionEntity element) {}
-
   Iterable<ClassEntity> _onFirstNativeClass(WorldImpactBuilder impactBuilder) {
-    void staticUse(FunctionEntity element) {
-      impactBuilder.registerStaticUse(new StaticUse.implicitInvoke(element));
-      _registerBackendUse(element);
-    }
-
-    staticUse(_commonElements.defineProperty);
-    staticUse(_commonElements.toStringForNativeObject);
-    staticUse(_commonElements.hashCodeForNativeObject);
-    staticUse(_commonElements.closureConverter);
     return _findNativeExceptions();
   }
 
@@ -184,7 +172,6 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
 class NativeResolutionEnqueuer extends NativeEnqueuerBase {
   final NativeClassFinder _nativeClassFinder;
-  final BackendUsageBuilder _backendUsageBuilder;
 
   /// The set of all native classes.  Each native class is in [nativeClasses]
   /// and exactly one of [unusedClasses] and [registeredClasses].
@@ -195,7 +182,6 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
       ElementEnvironment elementEnvironment,
       CommonElements commonElements,
       DartTypes dartTypes,
-      this._backendUsageBuilder,
       this._nativeClassFinder)
       : super(options, elementEnvironment, commonElements, dartTypes);
 
@@ -204,11 +190,6 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
   Iterable<ClassEntity> get registeredClassesForTesting => _registeredClasses;
 
   Iterable<ClassEntity> get liveNativeClasses => _registeredClasses;
-
-  void _registerBackendUse(FunctionEntity element) {
-    _backendUsageBuilder.registerBackendFunctionUse(element);
-    _backendUsageBuilder.registerGlobalFunctionDependency(element);
-  }
 
   WorldImpact processNativeClasses(Iterable<LibraryEntity> libraries) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
