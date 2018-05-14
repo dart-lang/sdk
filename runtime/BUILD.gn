@@ -148,11 +148,14 @@ config("dart_config") {
   }
 
   if (is_fuchsia) {
-    defines += [ "DART_USE_JEMALLOC" ]
+    import("//build/config/scudo/scudo.gni")
     include_dirs += [
       "//zircon/system/ulib/zx/include",
-      "//zircon/third_party/ulib/jemalloc/include",
     ]
+    if (!use_scudo) {
+      defines += [ "DART_USE_JEMALLOC" ]
+      include_dirs += [ "//zircon/third_party/ulib/jemalloc/include" ]
+    }
   }
 
   if (!is_win) {
