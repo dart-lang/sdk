@@ -98,16 +98,6 @@ _all_configs = [
     snapshot = true
   },
   {
-    suffix = "_jit_interpreter"
-    configs = _jit_interpreter_config
-    snapshot = true
-  },
-  {
-    suffix = "_jit_product_interpreter"
-    configs = _jit_product_interpreter_config
-    snapshot = true
-  },
-  {
     suffix = "_precompiled_runtime"
     configs = _precompiled_runtime_config
     snapshot = true
@@ -148,6 +138,22 @@ _all_configs = [
     snapshot = false
   },
 ]
+
+# The interpreter is not currently needed on Windows.
+if (!is_win) {
+  _all_configs += [
+    {
+      suffix = "_jit_interpreter"
+      configs = _jit_interpreter_config
+      snapshot = true
+    },
+    {
+      suffix = "_jit_product_interpreter"
+      configs = _jit_product_interpreter_config
+      snapshot = true
+    },
+  ]
+}
 
 # This template creates a target for each of the configurations listed above.
 # For example:
