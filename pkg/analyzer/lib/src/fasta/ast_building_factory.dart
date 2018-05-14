@@ -83,6 +83,9 @@ class AstBuildingForest
       astFactory.conditionalExpression(
           condition, question, thenExpression, colon, elseExpression);
 
+  Statement expressionStatement(Expression expression, Token semicolon) =>
+      astFactory.expressionStatement(expression, semicolon);
+
   @override
   kernel.DartType getTypeAt(TypeArgumentList typeArguments, int index) {
     return null; // typeArguments.arguments[index].type.kernelType;

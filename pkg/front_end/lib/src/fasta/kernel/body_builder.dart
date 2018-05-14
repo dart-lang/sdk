@@ -846,7 +846,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void endExpressionStatement(Token token) {
     debugEvent("ExpressionStatement");
-    push(new ShadowExpressionStatement(toKernelExpression(popForEffect())));
+    push(forest.expressionStatement(popForEffect(), token));
   }
 
   @override

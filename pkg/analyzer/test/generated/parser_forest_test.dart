@@ -790,16 +790,6 @@ class ErrorParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_annotationOnEnumConstant_first() {
-    super.test_annotationOnEnumConstant_first();
-  }
-
-  @failingTest
-  void test_annotationOnEnumConstant_middle() {
-    super.test_annotationOnEnumConstant_middle();
-  }
-
-  @failingTest
   void test_breakOutsideOfLoop_breakInDoStatement() {
     super.test_breakOutsideOfLoop_breakInDoStatement();
   }
@@ -5242,21 +5232,6 @@ class StatementParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_parseNonLabeledStatement_const_list_empty() {
-    super.test_parseNonLabeledStatement_const_list_empty();
-  }
-
-  @failingTest
-  void test_parseNonLabeledStatement_const_list_nonEmpty() {
-    super.test_parseNonLabeledStatement_const_list_nonEmpty();
-  }
-
-  @failingTest
-  void test_parseNonLabeledStatement_const_map_empty() {
-    super.test_parseNonLabeledStatement_const_map_empty();
-  }
-
-  @failingTest
   void test_parseNonLabeledStatement_const_map_nonEmpty() {
     super.test_parseNonLabeledStatement_const_map_nonEmpty();
   }
@@ -5274,11 +5249,6 @@ class StatementParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_parseNonLabeledStatement_constructorInvocation() {
     super.test_parseNonLabeledStatement_constructorInvocation();
-  }
-
-  @failingTest
-  void test_parseNonLabeledStatement_false() {
-    super.test_parseNonLabeledStatement_false();
   }
 
   @failingTest
@@ -5312,18 +5282,8 @@ class StatementParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_parseNonLabeledStatement_null() {
-    super.test_parseNonLabeledStatement_null();
-  }
-
-  @failingTest
   void test_parseNonLabeledStatement_startingWithBuiltInIdentifier() {
     super.test_parseNonLabeledStatement_startingWithBuiltInIdentifier();
-  }
-
-  @failingTest
-  void test_parseNonLabeledStatement_true() {
-    super.test_parseNonLabeledStatement_true();
   }
 
   @failingTest
@@ -5406,11 +5366,6 @@ class StatementParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_parseStatement_function_gftReturnType() {
     super.test_parseStatement_function_gftReturnType();
-  }
-
-  @failingTest
-  void test_parseStatement_functionDeclaration_noReturnType() {
-    super.test_parseStatement_functionDeclaration_noReturnType();
   }
 
   @failingTest
