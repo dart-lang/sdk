@@ -227,7 +227,16 @@ class FastaBodyBuilderTestCase extends Object
   @override
   ListLiteral parseListLiteral(
       Token token, String typeArgumentsCode, String code) {
-    return parseExpression(code);
+    StringBuffer buffer = new StringBuffer();
+    if (token != null) {
+      buffer.write(token.lexeme);
+      buffer.write(' ');
+    }
+    if (typeArgumentsCode != null) {
+      buffer.write(typeArgumentsCode);
+    }
+    buffer.write(code);
+    return parseExpression(buffer.toString());
   }
 
   @override
@@ -248,7 +257,16 @@ class FastaBodyBuilderTestCase extends Object
   @override
   MapLiteral parseMapLiteral(
       Token token, String typeArgumentsCode, String code) {
-    return parseExpression(code);
+    StringBuffer buffer = new StringBuffer();
+    if (token != null) {
+      buffer.write(token.lexeme);
+      buffer.write(' ');
+    }
+    if (typeArgumentsCode != null) {
+      buffer.write(typeArgumentsCode);
+    }
+    buffer.write(code);
+    return parseExpression(buffer.toString());
   }
 
   @override
@@ -301,7 +319,11 @@ class FastaBodyBuilderTestCase extends Object
 
   @override
   RethrowExpression parseRethrowExpression(String code) {
-    return parseExpression(code, inCatchBlock: true);
+    Statement statement = parseStatement(code, inCatchBlock: true);
+    expect(statement, new isInstanceOf<ExpressionStatement>());
+    Expression expression = (statement as ExpressionStatement).expression;
+    expect(expression, new isInstanceOf<RethrowExpression>());
+    return expression;
   }
 
   @override
@@ -316,9 +338,12 @@ class FastaBodyBuilderTestCase extends Object
 
   @override
   Statement parseStatement(String source,
-      {bool enableLazyAssignmentOperators, int expectedEndOffset}) {
+      {bool enableLazyAssignmentOperators,
+      int expectedEndOffset,
+      bool inCatchBlock: true}) {
     // TODO(brianwilkerson) Check error codes.
-    return _parse(source, (parser, token) => parser.parseStatement(token));
+    return _parse(source, (parser, token) => parser.parseStatement(token),
+        inCatchBlock: inCatchBlock);
   }
 
   @override

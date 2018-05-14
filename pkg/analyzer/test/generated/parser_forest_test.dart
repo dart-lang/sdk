@@ -3027,18 +3027,8 @@ class ExpressionParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_parseListLiteral_empty_oneToken() {
-    super.test_parseListLiteral_empty_oneToken();
-  }
-
-  @failingTest
   void test_parseListLiteral_empty_oneToken_withComment() {
     super.test_parseListLiteral_empty_oneToken_withComment();
-  }
-
-  @failingTest
-  void test_parseListLiteral_empty_twoTokens() {
-    super.test_parseListLiteral_empty_twoTokens();
   }
 
   @failingTest
