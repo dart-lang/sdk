@@ -278,13 +278,17 @@ abstract class Accessor<Arguments> {
       new ShadowIllegalAssignment(rhs);
 }
 
-abstract class _VariableAccessor<Arguments> extends Accessor<Arguments> {
+class VariableUseGenerator<Arguments> extends Accessor<Arguments>
+    with FastaAccessor<Arguments> {
   VariableDeclaration variable;
   DartType promotedType;
 
-  _VariableAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      this.variable, this.promotedType, Token token)
+  VariableUseGenerator(BuilderHelper<dynamic, dynamic, Arguments> helper,
+      Token token, this.variable,
+      [this.promotedType])
       : super(helper, token);
+
+  String get plainNameForRead => variable.name;
 
   kernel.Expression _makeRead(ShadowComplexAssignment complexAssignment) {
     var fact = helper.typePromoter
@@ -306,6 +310,19 @@ abstract class _VariableAccessor<Arguments> extends Accessor<Arguments> {
     complexAssignment?.write = write;
     return write;
   }
+
+  @override
+  kernel.Expression doInvocation(int offset, Arguments arguments) {
+    return helper.buildMethodInvocation(buildSimpleRead(), callName, arguments,
+        adjustForImplicitCall(plainNameForRead, offset),
+        isImplicitCall: true);
+  }
+
+  @override
+  ShadowComplexAssignment startComplexAssignment(kernel.Expression rhs) =>
+      new ShadowVariableAssignment(rhs);
+
+  String toString() => "VariableUseGenerator()";
 }
 
 class _PropertyAccessor<Arguments> extends Accessor<Arguments> {

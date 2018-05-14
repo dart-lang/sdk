@@ -1093,28 +1093,6 @@ int adjustForImplicitCall(String name, int offset) {
   return offset + (name?.length ?? 0);
 }
 
-class VariableAccessor<Arguments> extends _VariableAccessor<Arguments>
-    with FastaAccessor<Arguments> {
-  VariableAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      Token token, VariableDeclaration variable,
-      [DartType promotedType])
-      : super(helper, variable, promotedType, token);
-
-  String get plainNameForRead => variable.name;
-
-  kernel.Expression doInvocation(int offset, Arguments arguments) {
-    return helper.buildMethodInvocation(buildSimpleRead(), callName, arguments,
-        adjustForImplicitCall(plainNameForRead, offset),
-        isImplicitCall: true);
-  }
-
-  toString() => "VariableAccessor()";
-
-  @override
-  ShadowComplexAssignment startComplexAssignment(kernel.Expression rhs) =>
-      new ShadowVariableAssignment(rhs);
-}
-
 class ReadOnlyAccessor<Arguments> extends _ReadOnlyAccessor<Arguments>
     with FastaAccessor<Arguments> {
   final String plainNameForRead;

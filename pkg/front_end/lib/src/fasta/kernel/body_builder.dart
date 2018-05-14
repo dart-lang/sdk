@@ -104,7 +104,7 @@ import 'expression_generator.dart'
         ThisPropertyAccessor,
         TypeDeclarationAccessor,
         UnresolvedAccessor,
-        VariableAccessor,
+        VariableUseGenerator,
         buildIsNull;
 
 import 'redirecting_factory_body.dart'
@@ -961,13 +961,13 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     Expression expression = popForValue();
     if (expression is ShadowCascadeExpression) {
       push(expression);
-      push(new VariableAccessor(this, token, expression.variable));
+      push(new VariableUseGenerator(this, token, expression.variable));
       expression.extend();
     } else {
       VariableDeclaration variable = new ShadowVariableDeclaration.forValue(
           toKernelExpression(expression), functionNestingLevel);
       push(new ShadowCascadeExpression(variable));
-      push(new VariableAccessor(this, token, variable));
+      push(new VariableUseGenerator(this, token, variable));
     }
   }
 
@@ -1416,7 +1416,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       // An initializing formal parameter might be final without its
       // VariableDeclaration being final. See
       // [ProcedureBuilder.computeFormalParameterInitializerScope]. If that
-      // wasn't the case, we could always use VariableAccessor.
+      // wasn't the case, we could always use [VariableUseGenerator].
       if (builder.isFinal) {
         var fact =
             typePromoter.getFactForAccess(builder.target, functionNestingLevel);
@@ -1428,7 +1428,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
             name,
             token);
       } else {
-        return new VariableAccessor(this, token, builder.target);
+        return new VariableUseGenerator(this, token, builder.target);
       }
     } else if (builder.isInstanceMember) {
       if (constantContext != ConstantContext.none &&
