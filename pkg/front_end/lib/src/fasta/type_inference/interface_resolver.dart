@@ -797,7 +797,6 @@ class InterfaceResolver {
     int getterIndex = 0;
     int setterIndex = 0;
     forEachApiMember(candidates, (int start, int end, Name name) {
-      // TODO(paulberry): check for illegal getter/method mixing
       Procedure member = candidates[start];
       ProcedureKind kind = _kindOf(member);
       if (kind != ProcedureKind.Getter && kind != ProcedureKind.Setter) {
