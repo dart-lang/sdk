@@ -5487,7 +5487,7 @@ class Instance : public Object {
   virtual bool OperatorEquals(const Instance& other) const;
   bool IsIdenticalTo(const Instance& other) const;
   virtual bool CanonicalizeEquals(const Instance& other) const;
-  virtual uword ComputeCanonicalTableHash() const;
+  virtual uint32_t CanonicalizeHash() const;
 
   intptr_t SizeFromClass() const {
 #if defined(DEBUG)
@@ -5878,6 +5878,10 @@ class TypeArguments : public Instance {
                                  (len * kBytesPerElement));
   }
 
+  virtual uint32_t CanonicalizeHash() const {
+    // Hash() is not stable until finalization is done.
+    return 0;
+  }
   intptr_t Hash() const;
 
   static RawTypeArguments* New(intptr_t len, Heap::Space space = Heap::kOld);
@@ -5957,6 +5961,7 @@ class AbstractType : public Instance {
   virtual bool CanonicalizeEquals(const Instance& other) const {
     return Equals(other);
   }
+  virtual uint32_t CanonicalizeHash() const { return Hash(); }
   virtual bool Equals(const Instance& other) const {
     return IsEquivalent(other);
   }
@@ -6733,10 +6738,7 @@ class Integer : public Number {
   virtual bool CanonicalizeEquals(const Instance& other) const {
     return Equals(other);
   }
-  virtual uword ComputeCanonicalTableHash() const {
-    UNREACHABLE();
-    return 0;
-  }
+  virtual uint32_t CanonicalizeHash() const { return AsTruncatedUint32Value(); }
   virtual bool Equals(const Instance& other) const;
 
   virtual RawObject* HashCode() const { return raw(); }
@@ -7013,10 +7015,7 @@ class Double : public Number {
   bool BitwiseEqualsToDouble(double value) const;
   virtual bool OperatorEquals(const Instance& other) const;
   virtual bool CanonicalizeEquals(const Instance& other) const;
-  virtual uword ComputeCanonicalTableHash() const {
-    UNREACHABLE();
-    return 0;
-  }
+  virtual uint32_t CanonicalizeHash() const;
 
   static RawDouble* New(double d, Heap::Space space = Heap::kNew);
 
@@ -7166,10 +7165,7 @@ class String : public Instance {
   virtual bool CanonicalizeEquals(const Instance& other) const {
     return Equals(other);
   }
-  virtual uword ComputeCanonicalTableHash() const {
-    UNREACHABLE();
-    return 0;
-  }
+  virtual uint32_t CanonicalizeHash() const { return Hash(); }
   virtual bool Equals(const Instance& other) const;
 
   intptr_t CompareTo(const String& other) const;
@@ -7844,6 +7840,10 @@ class Bool : public Instance {
     return value ? Bool::True() : Bool::False();
   }
 
+  virtual uint32_t CanonicalizeHash() const {
+    return raw() == True().raw() ? 1231 : 1237;
+  }
+
  private:
   void set_value(bool value) const {
     StoreNonPointer(&raw_ptr()->value_, value);
@@ -7900,7 +7900,7 @@ class Array : public Instance {
   }
 
   virtual bool CanonicalizeEquals(const Instance& other) const;
-  virtual uword ComputeCanonicalTableHash() const;
+  virtual uint32_t CanonicalizeHash() const;
 
   static const intptr_t kBytesPerElement = kWordSize;
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
@@ -8073,10 +8073,6 @@ class GrowableObjectArray : public Instance {
   virtual bool CanonicalizeEquals(const Instance& other) const {
     UNREACHABLE();
     return false;
-  }
-  virtual uword ComputeCanonicalTableHash() const {
-    UNREACHABLE();
-    return 0;
   }
 
   // We don't expect a growable object array to be canonicalized.
@@ -8253,7 +8249,7 @@ class TypedData : public Instance {
   }
 
   virtual bool CanonicalizeEquals(const Instance& other) const;
-  virtual uword ComputeCanonicalTableHash() const;
+  virtual uint32_t CanonicalizeHash() const;
 
 #define TYPED_GETTER_SETTER(name, type)                                        \
   type Get##name(intptr_t byte_offset) const {                                 \
@@ -8778,7 +8774,9 @@ class Closure : public Instance {
     // None of the fields of a closure are instances.
     return true;
   }
-
+  virtual uint32_t CanonicalizeHash() const {
+    return Function::Handle(function()).Hash();
+  }
   int64_t ComputeHash() const;
 
   static RawClosure* New(const TypeArguments& instantiator_type_arguments,

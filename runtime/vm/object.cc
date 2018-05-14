@@ -4637,7 +4637,7 @@ class CanonicalInstanceKey {
     }
     return false;
   }
-  uword Hash() const { return key_.ComputeCanonicalTableHash(); }
+  uword Hash() const { return key_.CanonicalizeHash(); }
   const Instance& key_;
 
  private:
@@ -4662,7 +4662,7 @@ class CanonicalInstanceTraits {
   static uword Hash(const Object& key) {
     ASSERT(!(key.IsString() || key.IsNumber() || key.IsAbstractType()));
     ASSERT(key.IsInstance());
-    return Instance::Cast(key).ComputeCanonicalTableHash();
+    return Instance::Cast(key).CanonicalizeHash();
   }
   static uword Hash(const CanonicalInstanceKey& key) { return key.Hash(); }
   static RawObject* NewKey(const CanonicalInstanceKey& obj) {
@@ -15670,20 +15670,22 @@ bool Instance::CanonicalizeEquals(const Instance& other) const {
   return true;
 }
 
-uword Instance::ComputeCanonicalTableHash() const {
-  ASSERT(!IsNull());
+uint32_t Instance::CanonicalizeHash() const {
+  if (IsNull()) {
+    return 2011;
+  }
   NoSafepointScope no_safepoint;
   const intptr_t instance_size = SizeFromClass();
   ASSERT(instance_size != 0);
-  uword hash = instance_size;
+  uint32_t hash = instance_size;
   uword this_addr = reinterpret_cast<uword>(this->raw_ptr());
+  Instance& member = Instance::Handle();
   for (intptr_t offset = Instance::NextFieldOffset(); offset < instance_size;
        offset += kWordSize) {
-    uword value = reinterpret_cast<uword>(
-        *reinterpret_cast<RawObject**>(this_addr + offset));
-    hash = CombineHashes(hash, value);
+    member ^= *reinterpret_cast<RawObject**>(this_addr + offset);
+    hash = CombineHashes(hash, member.CanonicalizeHash());
   }
-  return FinalizeHash(hash, (kBitsPerWord - 1));
+  return FinalizeHash(hash, String::kHashBits);
 }
 
 #if defined(DEBUG)
@@ -19383,6 +19385,10 @@ bool Double::CanonicalizeEquals(const Instance& other) const {
   return BitwiseEqualsToDouble(Double::Cast(other).value());
 }
 
+uint32_t Double::CanonicalizeHash() const {
+  return Hash64To32(bit_cast<uint64_t>(value()));
+}
+
 RawDouble* Double::New(double d, Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->double_class() != Class::null());
   Double& result = Double::Handle();
@@ -21784,16 +21790,18 @@ bool Array::CanonicalizeEquals(const Instance& other) const {
   return true;
 }
 
-uword Array::ComputeCanonicalTableHash() const {
-  ASSERT(!IsNull());
+uint32_t Array::CanonicalizeHash() const {
   NoSafepointScope no_safepoint;
   intptr_t len = Length();
-  uword hash = len;
-  uword value = reinterpret_cast<uword>(GetTypeArguments());
-  hash = CombineHashes(hash, value);
+  if (len == 0) {
+    return 1;
+  }
+  uint32_t hash = len;
+  Instance& member = Instance::Handle(GetTypeArguments());
+  hash = CombineHashes(hash, member.CanonicalizeHash());
   for (intptr_t i = 0; i < len; i++) {
-    value = reinterpret_cast<uword>(At(i));
-    hash = CombineHashes(hash, value);
+    member ^= At(i);
+    hash = CombineHashes(hash, member.CanonicalizeHash());
   }
   return FinalizeHash(hash, kHashBits);
 }
@@ -22410,12 +22418,12 @@ bool TypedData::CanonicalizeEquals(const Instance& other) const {
          (memcmp(DataAddr(0), other_typed_data.DataAddr(0), len) == 0);
 }
 
-uword TypedData::ComputeCanonicalTableHash() const {
+uint32_t TypedData::CanonicalizeHash() const {
   const intptr_t len = this->LengthInBytes();
   if (len == 0) {
     return 1;
   }
-  uword hash = len;
+  uint32_t hash = len;
   for (intptr_t i = 0; i < len; i++) {
     hash = CombineHashes(len, GetUint8(i));
   }

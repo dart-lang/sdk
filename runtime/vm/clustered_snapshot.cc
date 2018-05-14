@@ -256,22 +256,6 @@ class ClassDeserializationCluster : public DeserializationCluster {
     }
   }
 
-  void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
-    NOT_IN_PRODUCT(TimelineDurationScope tds(
-        Thread::Current(), Timeline::GetIsolateStream(), "PostLoadClass"));
-
-    Class& cls = Class::Handle(zone);
-    for (intptr_t i = predefined_start_index_; i < predefined_stop_index_;
-         i++) {
-      cls ^= refs.At(i);
-      cls.RehashConstants(zone);
-    }
-    for (intptr_t i = start_index_; i < stop_index_; i++) {
-      cls ^= refs.At(i);
-      cls.RehashConstants(zone);
-    }
-  }
-
  private:
   intptr_t predefined_start_index_;
   intptr_t predefined_stop_index_;

@@ -1501,8 +1501,8 @@ void IsolateReloadContext::Commit() {
     Become::ElementsForwardIdentity(before, after);
   }
 
-  // Rehash constants map for all classes. Constants are hashed by address, and
-  // addresses may change during a become operation.
+  // Rehash constants map for all classes. Constants are hashed by content, and
+  // content may have changed from fields being added or removed.
   {
     TIMELINE_SCOPE(RehashConstants);
     I->RehashConstants();
