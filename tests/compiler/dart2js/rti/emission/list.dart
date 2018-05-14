@@ -4,7 +4,6 @@
 
 import 'package:meta/dart2js.dart';
 
-/*ast.class: global#JSArray:checkedInstance,checks=[$isIterable],instance*/
 /*kernel.class: global#JSArray:checkedInstance,checks=[$isIterable],instance*/
 /*strong.class: global#JSArray:checkedInstance,checks=[$isIterable,$isList],instance*/
 

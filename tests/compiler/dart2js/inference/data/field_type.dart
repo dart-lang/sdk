@@ -348,8 +348,8 @@ test15() {
 }
 
 class A16 {
-  // TODO(johnniwinther): Investigate with these differ.
-  /*ast.element: A16.f16:Union([exact=JSString], [exact=JSUInt31])*/
+  // TODO(johnniwinther): Investigate why these include `null`. The ast version
+  // didn't.
   /*kernel.element: A16.f16:Union([exact=JSString], [null|exact=JSUInt31])*/
   /*strong.element: A16.f16:Union([exact=JSString], [null|exact=JSUInt31])*/
   var f16;
@@ -609,7 +609,6 @@ class A24 {
 
   /*element: A24.+:Value([exact=JSString], value: "foo")*/
   operator +(
-          /*ast.[exact=JSUInt31]*/
           /*kernel.[exact=JSUInt31]*/
           /*strong.[empty]*/
           other) =>

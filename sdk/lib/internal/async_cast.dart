@@ -18,12 +18,10 @@ class CastStream<S, T> extends Stream<T> {
       ..onData(onData);
   }
 
-  Stream<R> cast<R>() {
-    Stream<Object> self = this;
-    return self is Stream<R> ? self : this.retype<R>();
-  }
+  Stream<R> cast<R>() => new CastStream<S, R>(_source);
 
-  Stream<R> retype<R>() => new CastStream<S, R>(_source);
+  @Deprecated("Use cast instead.")
+  Stream<R> retype<R>() => cast<R>();
 }
 
 class CastStreamSubscription<S, T> implements StreamSubscription<T> {
@@ -63,10 +61,11 @@ class CastStreamTransformer<SS, ST, TS, TT>
   final StreamTransformer<SS, ST> _source;
   CastStreamTransformer(this._source);
 
-  // cast is inherited from StreamTransformerBase.
-
-  StreamTransformer<RS, RT> retype<RS, RT>() =>
+  StreamTransformer<RS, RT> cast<RS, RT>() =>
       new CastStreamTransformer<SS, ST, RS, RT>(_source);
+
+  @Deprecated("Use cast instead.")
+  StreamTransformer<RS, RT> retype<RS, RT>() => cast<RS, RT>();
 
   Stream<TT> bind(Stream<TS> stream) =>
       _source.bind(stream.cast<SS>()).cast<TT>();
@@ -83,6 +82,9 @@ class CastConverter<SS, ST, TS, TT> extends Converter<TS, TT> {
   Stream<TT> bind(Stream<TS> stream) =>
       _source.bind(stream.cast<SS>()).cast<TT>();
 
-  Converter<RS, RT> retype<RS, RT>() =>
+  Converter<RS, RT> cast<RS, RT>() =>
       new CastConverter<SS, ST, RS, RT>(_source);
+
+  @Deprecated("Use cast instead.")
+  Converter<RS, RT> retype<RS, RT>() => cast<RS, RT>();
 }

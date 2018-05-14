@@ -81,10 +81,10 @@ void sendAnalysisNotificationClosingLabels(AnalysisServer server, String file,
   });
 }
 
-void sendAnalysisNotificationFolding(
-    AnalysisServer server, String file, CompilationUnit dartUnit) {
+void sendAnalysisNotificationFolding(AnalysisServer server, String file,
+    LineInfo lineInfo, CompilationUnit dartUnit) {
   _sendNotification(server, () {
-    var regions = new DartUnitFoldingComputer(dartUnit).compute();
+    var regions = new DartUnitFoldingComputer(lineInfo, dartUnit).compute();
     var params = new protocol.AnalysisFoldingParams(file, regions);
     server.sendNotification(params.toNotification());
   });

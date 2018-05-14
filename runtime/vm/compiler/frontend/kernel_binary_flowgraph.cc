@@ -4,6 +4,7 @@
 
 #include "vm/compiler/frontend/kernel_binary_flowgraph.h"
 #include "vm/compiler/aot/precompiler.h"
+#include "vm/compiler/assembler/disassembler_kbc.h"
 #include "vm/compiler/frontend/prologue_builder.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/longjump.h"
@@ -14,6 +15,11 @@
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
+
+#if defined(DART_USE_INTERPRETER)
+DEFINE_FLAG(bool, dump_kernel_bytecode, false, "Dump kernel bytecode");
+#endif  // defined(DART_USE_INTERPRETER)
+
 namespace kernel {
 
 #define Z (zone_)
@@ -906,6 +912,262 @@ InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
 
   return InferredTypeMetadata(cid, nullable);
 }
+
+#if defined(DART_USE_INTERPRETER)
+void BytecodeMetadataHelper::CopyBytecode(const Function& function) {
+  // TODO(regis): Avoid copying bytecode from mapped kernel binary.
+  const intptr_t node_offset = function.kernel_offset();
+  const intptr_t md_offset = GetNextMetadataPayloadOffset(node_offset);
+  if (md_offset < 0) {
+    return;
+  }
+
+  AlternativeReadingScope alt(&builder_->reader_, &H.metadata_payloads(),
+                              md_offset - MetadataPayloadOffset);
+
+  // Read bytecode.
+  intptr_t bytecode_size = builder_->reader_.ReadUInt();
+  intptr_t bytecode_offset = builder_->reader_.offset();
+  uint8_t* bytecode_data = builder_->reader_.CopyDataIntoZone(
+      builder_->zone_, bytecode_offset, bytecode_size);
+
+  // This enum and the code below reading the constant pool from kernel must be
+  // kept in sync with pkg/vm/lib/bytecode/constant_pool.dart.
+  enum ConstantPoolTag {
+    kInvalid,
+    kNull,
+    kString,
+    kInt,
+    kDouble,
+    kBool,
+    kArgDesc,
+    kICData,
+    kStaticICData,
+    kField,
+    kFieldOffset,
+    kClass,
+    kTypeArgumentsFieldOffset,
+    kTearOff,
+    kType,
+    kTypeArguments,
+    kList,
+    kInstance,
+    kSymbol,
+    kTypeArgumentsForInstanceAllocation,
+  };
+
+  // Read object pool.
+  builder_->reader_.set_offset(bytecode_offset + bytecode_size);
+  intptr_t obj_count = builder_->reader_.ReadListLength();
+  const ObjectPool& obj_pool =
+      ObjectPool::Handle(builder_->zone_, ObjectPool::New(obj_count));
+  Object& obj = Object::Handle(builder_->zone_);
+  Object& elem = Object::Handle(builder_->zone_);
+  Array& array = Array::Handle(builder_->zone_);
+  Field& field = Field::Handle(builder_->zone_);
+  String& name = String::Handle(builder_->zone_);
+  for (intptr_t i = 0; i < obj_count; ++i) {
+    const intptr_t tag = builder_->ReadTag();
+    switch (tag) {
+      case ConstantPoolTag::kInvalid:
+        UNREACHABLE();
+      case ConstantPoolTag::kNull:
+        obj = Object::null();
+        break;
+      case ConstantPoolTag::kString:
+        obj = H.DartString(builder_->ReadStringReference()).raw();
+        ASSERT(obj.IsString());
+        obj = H.Canonicalize(String::Cast(obj));
+        break;
+      case ConstantPoolTag::kInt: {
+        uint32_t low_bits = builder_->ReadUInt32();
+        int64_t value = builder_->ReadUInt32();
+        value = (value << 32) | low_bits;
+        obj = Integer::New(value);
+      } break;
+      case ConstantPoolTag::kDouble: {
+        uint32_t low_bits = builder_->ReadUInt32();
+        uint64_t bits = builder_->ReadUInt32();
+        bits = (bits << 32) | low_bits;
+        double value = bit_cast<double, uint64_t>(bits);
+        obj = Double::New(value);
+      } break;
+      case ConstantPoolTag::kBool:
+        if (builder_->ReadUInt() == 1) {
+          obj = Bool::True().raw();
+        } else {
+          obj = Bool::False().raw();
+        }
+        break;
+      case ConstantPoolTag::kArgDesc: {
+        intptr_t num_arguments = builder_->ReadUInt();
+        intptr_t num_type_args = builder_->ReadUInt();
+        intptr_t num_arg_names = builder_->ReadListLength();
+        if (num_arg_names == 0) {
+          obj = ArgumentsDescriptor::New(num_type_args, num_arguments);
+        } else {
+          array = Array::New(num_arg_names);
+          for (intptr_t j = 0; j < num_arg_names; j++) {
+            array.SetAt(j, H.DartSymbolPlain(builder_->ReadStringReference()));
+          }
+          obj = ArgumentsDescriptor::New(num_type_args, num_arguments, array);
+        }
+      } break;
+      case ConstantPoolTag::kICData: {
+        NameIndex target = builder_->ReadCanonicalNameReference();
+        name = H.DartProcedureName(target).raw();
+        intptr_t arg_desc_index = builder_->ReadUInt();
+        ASSERT(arg_desc_index < i);
+        array ^= obj_pool.ObjectAt(arg_desc_index);
+        // TODO(regis): Should num_args_tested be explicitly provided?
+        obj = ICData::New(function, name,
+                          array,  // Arguments descriptor.
+                          Thread::kNoDeoptId, 1 /* num_args_tested */,
+                          ICData::RebindRule::kInstance);
+#if defined(TAG_IC_DATA)
+        ICData::Cast(obj).set_tag(Instruction::kInstanceCall);
+#endif
+      } break;
+      case ConstantPoolTag::kStaticICData: {
+        NameIndex target = builder_->ReadCanonicalNameReference();
+        if (H.IsConstructor(target)) {
+          name = H.DartConstructorName(target).raw();
+          elem = H.LookupConstructorByKernelConstructor(target);
+        } else {
+          name = H.DartProcedureName(target).raw();
+          elem = H.LookupStaticMethodByKernelProcedure(target);
+        }
+        ASSERT(elem.IsFunction());
+        intptr_t arg_desc_index = builder_->ReadUInt();
+        ASSERT(arg_desc_index < i);
+        array ^= obj_pool.ObjectAt(arg_desc_index);
+        obj = ICData::New(function, name,
+                          array,  // Arguments descriptor.
+                          Thread::kNoDeoptId, 0 /* num_args_tested */,
+                          ICData::RebindRule::kStatic);
+        ICData::Cast(obj).AddTarget(Function::Cast(elem));
+#if defined(TAG_IC_DATA)
+        ICData::Cast(obj).set_tag(Instruction::kStaticCall);
+#endif
+      } break;
+      case ConstantPoolTag::kField:
+        obj =
+            H.LookupFieldByKernelField(builder_->ReadCanonicalNameReference());
+        ASSERT(obj.IsField());
+        break;
+      case ConstantPoolTag::kFieldOffset:
+        obj =
+            H.LookupFieldByKernelField(builder_->ReadCanonicalNameReference());
+        ASSERT(obj.IsField());
+        obj = Smi::New(Field::Cast(obj).Offset() / kWordSize);
+        break;
+      case ConstantPoolTag::kClass:
+        obj =
+            H.LookupClassByKernelClass(builder_->ReadCanonicalNameReference());
+        ASSERT(obj.IsClass());
+        break;
+      case ConstantPoolTag::kTypeArgumentsFieldOffset:
+        obj =
+            H.LookupClassByKernelClass(builder_->ReadCanonicalNameReference());
+        ASSERT(obj.IsClass());
+        obj = Smi::New(Class::Cast(obj).type_arguments_field_offset() /
+                       kWordSize);
+        break;
+      case ConstantPoolTag::kTearOff:
+        obj = H.LookupStaticMethodByKernelProcedure(
+            builder_->ReadCanonicalNameReference());
+        ASSERT(obj.IsFunction());
+        obj = Function::Cast(obj).ImplicitClosureFunction();
+        ASSERT(obj.IsFunction());
+        obj = Function::Cast(obj).ImplicitStaticClosure();
+        ASSERT(obj.IsInstance());
+        obj = H.Canonicalize(Instance::Cast(obj));
+        break;
+      case ConstantPoolTag::kType:
+        UNIMPLEMENTED();  // Encoding is under discussion with CFE team.
+        obj = builder_->type_translator_.BuildType().raw();
+        ASSERT(obj.IsAbstractType());
+        break;
+      case ConstantPoolTag::kTypeArguments:
+        UNIMPLEMENTED();  // Encoding is under discussion with CFE team.
+        obj = builder_->type_translator_
+                  .BuildTypeArguments(builder_->ReadListLength())
+                  .raw();
+        ASSERT(obj.IsNull() || obj.IsTypeArguments());
+        break;
+      case ConstantPoolTag::kList: {
+        obj = builder_->type_translator_.BuildType().raw();
+        ASSERT(obj.IsAbstractType());
+        const intptr_t length = builder_->ReadListLength();
+        array = Array::New(length, AbstractType::Cast(obj));
+        for (intptr_t j = 0; j < length; j++) {
+          intptr_t elem_index = builder_->ReadUInt();
+          ASSERT(elem_index < i);
+          elem = obj_pool.ObjectAt(elem_index);
+          array.SetAt(j, elem);
+        }
+        obj = H.Canonicalize(Array::Cast(obj));
+        ASSERT(!obj.IsNull());
+      } break;
+      case ConstantPoolTag::kInstance: {
+        obj =
+            H.LookupClassByKernelClass(builder_->ReadCanonicalNameReference());
+        ASSERT(obj.IsClass());
+        obj = Instance::New(Class::Cast(obj), Heap::kOld);
+        intptr_t elem_index = builder_->ReadUInt();
+        ASSERT(elem_index < i);
+        elem = obj_pool.ObjectAt(elem_index);
+        if (!elem.IsNull()) {
+          ASSERT(elem.IsTypeArguments());
+          Instance::Cast(obj).SetTypeArguments(TypeArguments::Cast(elem));
+        }
+        intptr_t num_fields = builder_->ReadUInt();
+        for (intptr_t j = 0; j < num_fields; j++) {
+          NameIndex field_name = builder_->ReadCanonicalNameReference();
+          ASSERT(H.IsField(field_name));
+          field = H.LookupFieldByKernelField(field_name);
+          intptr_t elem_index = builder_->ReadUInt();
+          ASSERT(elem_index < i);
+          elem = obj_pool.ObjectAt(elem_index);
+          Instance::Cast(obj).SetField(field, elem);
+        }
+        obj = H.Canonicalize(Instance::Cast(obj));
+      } break;
+      case ConstantPoolTag::kSymbol:
+        obj = H.DartSymbolPlain(builder_->ReadStringReference()).raw();
+        ASSERT(String::Cast(obj).IsSymbol());
+        break;
+      case kTypeArgumentsForInstanceAllocation: {
+        obj =
+            H.LookupClassByKernelClass(builder_->ReadCanonicalNameReference());
+        ASSERT(obj.IsClass());
+        intptr_t elem_index = builder_->ReadUInt();
+        ASSERT(elem_index < i);
+        elem = obj_pool.ObjectAt(elem_index);
+        ASSERT(elem.IsNull() || elem.IsTypeArguments());
+        elem = Type::New(Class::Cast(obj), TypeArguments::Cast(elem),
+                         TokenPosition::kNoSource);
+        elem = ClassFinalizer::FinalizeType(Class::Cast(obj), Type::Cast(elem));
+        obj = Type::Cast(elem).arguments();
+      } break;
+      default:
+        UNREACHABLE();
+    }
+    obj_pool.SetTypeAt(i, ObjectPool::kTaggedObject);
+    obj_pool.SetObjectAt(i, obj);
+  }
+
+  const Code& bytecode = Code::Handle(
+      builder_->zone_,
+      Code::FinalizeBytecode(reinterpret_cast<void*>(bytecode_data),
+                             bytecode_size, obj_pool));
+  function.AttachBytecode(bytecode);
+
+  if (FLAG_dump_kernel_bytecode) {
+    KernelBytecodeDisassembler::Disassemble(function);
+  }
+}
+#endif  // defined(DART_USE_INTERPRETER)
 
 StreamingScopeBuilder::StreamingScopeBuilder(ParsedFunction* parsed_function)
     : result_(NULL),
@@ -5787,6 +6049,17 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph(intptr_t kernel_offset) {
   ActiveTypeParametersScope active_type_params(active_class(), function, Z);
 
   SetOffset(kernel_offset);
+
+#if defined(DART_USE_INTERPRETER)
+  // TODO(regis): Clean up this logic of when to compile.
+  // If the bytecode was previously loaded, we really want to compile.
+  if (!function.HasBytecode()) {
+    bytecode_metadata_helper_.CopyBytecode(function);
+    if (function.HasBytecode()) {
+      return NULL;
+    }
+  }
+#endif
 
   // We need to read out the NSM-forwarder bit before we can build scopes.
   switch (function.kind()) {
@@ -10684,6 +10957,9 @@ void StreamingFlowGraphBuilder::EnsureMetadataIsScanned() {
         procedure_attributes_metadata_helper_.SetMetadataMappings(
             offset + kUInt32Size, mappings_num);
       }
+    } else if (H.StringEquals(tag, BytecodeMetadataHelper::tag())) {
+      bytecode_metadata_helper_.SetMetadataMappings(offset + kUInt32Size,
+                                                    mappings_num);
     }
   }
 }

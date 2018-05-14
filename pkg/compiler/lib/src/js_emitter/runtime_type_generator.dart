@@ -106,7 +106,6 @@ class RuntimeTypeGenerator {
   final RuntimeTypesChecks _rtiChecks;
   final RuntimeTypesEncoder _rtiEncoder;
   final JsInteropAnalysis _jsInteropAnalysis;
-  final bool _useKernel;
   final bool _strongMode;
 
   RuntimeTypeGenerator(
@@ -118,7 +117,6 @@ class RuntimeTypeGenerator {
       this._rtiChecks,
       this._rtiEncoder,
       this._jsInteropAnalysis,
-      this._useKernel,
       this._strongMode);
 
   /**
@@ -169,7 +167,7 @@ class RuntimeTypeGenerator {
         if (classFunctionType.signatureFunction != null) {
           // Use precomputed signature function if live.
         } else {
-          assert(!_useKernel || !_strongMode);
+          assert(!_strongMode);
           // Generate the signature on the fly. This is only supported for
           // Dart 1.
 

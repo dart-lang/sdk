@@ -161,7 +161,11 @@ FlowGraph* DartCompilationPipeline::BuildFlowGraph(
         /* not building var desc */ NULL,
         /* not inlining */ NULL, optimized, osr_id);
     FlowGraph* graph = builder.BuildGraph();
+#if defined(DART_USE_INTERPRETER)
+    ASSERT((graph != NULL) || parsed_function->function().HasBytecode());
+#else
     ASSERT(graph != NULL);
+#endif
     return graph;
   }
   FlowGraphBuilder builder(*parsed_function, ic_data_array,
@@ -255,6 +259,14 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
     }
     Exceptions::PropagateError(Error::Cast(result));
   }
+#if defined(DART_USE_INTERPRETER)
+  // TODO(regis): Revisit.
+  if (!function.HasCode() && function.HasBytecode()) {
+    // Function was not actually compiled, but its bytecode was loaded.
+    // Verify that InterpretCall stub code was installed.
+    ASSERT(function.CurrentCode() == StubCode::InterpretCall_entry()->code());
+  }
+#endif
 }
 
 bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
@@ -816,6 +828,13 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
             zone, parsed_function(), *ic_data_array, osr_id(), optimized());
       }
 
+#if defined(DART_USE_INTERPRETER)
+      // TODO(regis): Revisit.
+      if (flow_graph == NULL && function.HasBytecode()) {
+        return Code::null();
+      }
+#endif
+
       const bool print_flow_graph =
           (FLAG_print_flow_graph ||
            (optimized() && FLAG_print_flow_graph_optimized)) &&
@@ -997,6 +1016,14 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
     }
 
     const Code& result = Code::Handle(helper.Compile(pipeline));
+
+#if defined(DART_USE_INTERPRETER)
+    // TODO(regis): Revisit.
+    if (result.IsNull() && function.HasBytecode()) {
+      return Object::null();
+    }
+#endif
+
     if (!result.IsNull()) {
       if (!optimized) {
         function.SetWasCompiled(true);

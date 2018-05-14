@@ -736,34 +736,6 @@ linter:
     _expectEqualOptions(options, expected);
   }
 
-  void test_getAnalysisOptions_default_flutter_repo() {
-    _defineMockLintRules();
-    AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
-    builderOptions.defaultOptions = defaultOptions;
-    AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
-    expected.lint = true;
-    expected.lintRules = <Linter>[_mockLintRule, _mockPublicMemberApiDocs];
-    String packagesFilePath =
-        resourceProvider.convertPath('/some/directory/path/.packages');
-    createFile(packagesFilePath, 'flutter:/pkg/flutter/lib/');
-    String optionsFilePath = resourceProvider
-        .convertPath('/pkg/flutter/lib/analysis_options_user.yaml');
-    createFile(optionsFilePath, '''
-linter:
-  rules:
-    - mock_lint_rule
-''');
-    String projPath = resourceProvider.convertPath('/some/directory/path');
-    AnalysisOptions options;
-    try {
-      ContextBuilderOptions.flutterRepo = true;
-      options = builder.getAnalysisOptions(projPath);
-    } finally {
-      ContextBuilderOptions.flutterRepo = false;
-    }
-    _expectEqualOptions(options, expected);
-  }
-
   void test_getAnalysisOptions_default_noOverrides() {
     AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
     defaultOptions.enableLazyAssignmentOperators = true;

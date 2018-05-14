@@ -6,7 +6,6 @@
 
 import "package:expect/expect.dart";
 
-/*ast.element: f:[subclass=JSNumber]*/
 /*kernel.element: f:[subclass=JSNumber]*/
 /*strong.element: f:[subclass=JSInt]*/
 int f(int /*[null|subclass=Object]*/ i) => 2 /*invoke: [exact=JSUInt31]*/ * i;

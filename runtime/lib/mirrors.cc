@@ -1217,49 +1217,6 @@ DEFINE_NATIVE_ENTRY(TypeVariableMirror_upper_bound, 1) {
   return param.bound();
 }
 
-DEFINE_NATIVE_ENTRY(Mirrors_evalInLibraryWithPrivateKey, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(String, expression, arguments->NativeArgAt(0));
-  GET_NATIVE_ARGUMENT(String, private_key, arguments->NativeArgAt(1));
-
-  const GrowableObjectArray& libraries =
-      GrowableObjectArray::Handle(isolate->object_store()->libraries());
-  const int num_libraries = libraries.Length();
-  Library& each_library = Library::Handle();
-  Library& ctxt_library = Library::Handle();
-  String& library_key = String::Handle();
-
-  if (private_key.IsNull()) {
-    ctxt_library = Library::CoreLibrary();
-  } else {
-    for (int i = 0; i < num_libraries; i++) {
-      each_library ^= libraries.At(i);
-      library_key = each_library.private_key();
-      if (library_key.Equals(private_key)) {
-        ctxt_library = each_library.raw();
-        break;
-      }
-    }
-  }
-  ASSERT(!ctxt_library.IsNull());
-  const Object& result = Object::Handle(ctxt_library.Evaluate(
-      expression, Array::empty_array(), Array::empty_array()));
-  if (result.IsError()) {
-    Exceptions::PropagateError(Error::Cast(result));
-    UNREACHABLE();
-  }
-
-  // Because we currently only use this native for building field extractors and
-  // setters, assume the result is a closure and mark its function as invisible,
-  // so it will not appear in stack traces. Whenever we support
-  // ObjectMirror.evaluate this will need to be separated.
-  ASSERT(result.IsClosure());
-  const Function& func = Function::Handle(Closure::Cast(result).function());
-  func.set_is_visible(false);
-  func.set_is_debuggable(false);
-
-  return result.raw();
-}
-
 DEFINE_NATIVE_ENTRY(TypedefMirror_declaration, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Type, type, arguments->NativeArgAt(0));
   ASSERT(type.IsFunctionType());

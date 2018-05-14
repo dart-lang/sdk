@@ -2738,21 +2738,26 @@ For any non-generic declaration, the corresponding type parameters may be elided
 An {\em enumerated type}, or {\em enum}, is used to represent a fixed number of constant values.
 
 \begin{grammar}
-{\bf enumType:}metadata \ENUM{} id `\{' id [\gcomma{} id]* [\gcomma{}] `\}'
+{\bf enumType:}metadata \ENUM{} identifier
+  \gnewline{} `\{' enumEntry (\gcomma{} enumEntry)* (\gcomma{})? `\}'
+  .
+
+{\bf enumEntry:}metadata identifier
   .
 \end{grammar}
 
 \LMHash{}
-The declaration of an enum of the form \code{metadata \ENUM{} E \{ id$_0$, \ldots,\ id$_{n-1}$\};}
+The declaration of an enum of the form
+\code{$m$ \ENUM{} E \{$m_0\,\,id_0, \ldots,\ m_{n-1}\,\,id_{n-1}$\}}
 has the same effect as a class declaration
 
 \begin{dartCode}
-metadata \CLASS{} E \{
+$m$ \CLASS{} E \{
   \FINAL{} int index;
   \CONST{} E(\THIS{}.index);
-  \STATIC{} \CONST{} E id$_0$ = \CONST{} E(0);
+  $m_0$ \STATIC{} \CONST{} E id$_0$ = \CONST{} E(0);
   $\ldots$
-  \STATIC{} \CONST{} E id$_{n-1}$ = const E(n - 1);
+  $m_{n-1}$ \STATIC{} \CONST{} E id$_{n-1}$ = const E(n - 1);
   \STATIC{} \CONST{} List<E> values = const <E>[id$_0, \ldots, $ id$_{n-1}$];
   String toString() => \{ 0: `E.id$_0$', $\ldots$, n-1: `E.id$_{n-1}$'\}[index]
 \}

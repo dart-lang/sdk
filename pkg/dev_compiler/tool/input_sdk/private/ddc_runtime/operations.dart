@@ -476,33 +476,9 @@ void _throwBooleanConversionError() =>
     throw new BooleanConversionAssertionError();
 
 void booleanConversionFailed(obj) {
-  if (obj == null) {
-    _throwBooleanConversionError();
-  }
-  var actual = getReifiedType(obj);
-  var expected = JS('', '#', bool);
-  throw new TypeErrorImplementation.fromMessage(
-      "type '${typeName(actual)}' is not a subtype of "
-      "type '${typeName(expected)}' in boolean expression");
-}
-
-castError(obj, type, bool isExplicit) {
-  var objType = getReifiedType(obj);
-  if (JS('bool', '!dart.__ignoreAllErrors')) {
-    var errorInStrongMode = isSubtype(objType, type) == null;
-
-    var actual = typeName(objType);
-    var expected = typeName(type);
-    if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
-
-    var error = JS('bool', '#', isExplicit)
-        ? new TypeErrorImplementation(obj, actual, expected, errorInStrongMode)
-        : new CastErrorImplementation(obj, actual, expected, errorInStrongMode);
-    throw error;
-  }
-  JS('', 'console.error(#)',
-      'Actual: ${typeName(objType)} Expected: ${typeName(type)}');
-  return obj;
+  var actual = typeName(getReifiedType(test(obj)));
+  throw new TypeErrorImpl(
+      "type '$actual' is not a 'bool' in boolean expression");
 }
 
 asInt(obj) {

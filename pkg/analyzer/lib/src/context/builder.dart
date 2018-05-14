@@ -28,7 +28,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/workspace.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/plugin/resolver_provider.dart';
-import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/task/options.dart';
@@ -487,18 +486,6 @@ class ContextBuilder {
           verbose('Using default lint rules');
         }
       }
-      if (ContextBuilderOptions.flutterRepo) {
-        // TODO(devoncarew): Should we still be auto-inserting this?
-        const lintName = 'public_member_api_docs';
-        Linter rule = options.lintRules.firstWhere(
-            (Linter lint) => lint.name == lintName,
-            orElse: () => null);
-        if (rule == null) {
-          rule = Registry.ruleRegistry
-              .firstWhere((Linter lint) => lint.name == lintName);
-          options.lintRules = new List.from(options.lintRules)..add(rule);
-        }
-      }
     } else {
       verbose('Using default analysis options');
     }
@@ -655,12 +642,6 @@ class ContextBuilder {
  * Options used by a [ContextBuilder].
  */
 class ContextBuilderOptions {
-  /**
-   * A flag indicating that the flutter repository is being analyzed.
-   * See comments in source for `flutter analyze --watch`.
-   */
-  static bool flutterRepo = false;
-
   /**
    * The results of parsing the command line arguments as defined by
    * [defineAnalysisArguments] or `null` if none.

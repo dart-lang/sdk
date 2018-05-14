@@ -575,7 +575,6 @@ bool checkSubtypeV1(
   // Interceptor is needed for JSArray and native classes.
   // TODO(sra): It could be a more specialized interceptor since [object] is not
   // `null` or a primitive.
-  // TODO(9586): Move type info for static functions onto an interceptor.
   var interceptor = getInterceptor(object);
   var isSubclass = getField(interceptor, isField);
   // When we read the field and it is not there, [isSubclass] will be `null`.
@@ -592,7 +591,6 @@ bool checkSubtypeV2(
   // Interceptor is needed for JSArray and native classes.
   // TODO(sra): It could be a more specialized interceptor since [object] is not
   // `null` or a primitive.
-  // TODO(9586): Move type info for static functions onto an interceptor.
   var interceptor = getInterceptor(object);
   var isSubclass = getField(interceptor, isField);
   // When we read the field and it is not there, [isSubclass] will be `null`.

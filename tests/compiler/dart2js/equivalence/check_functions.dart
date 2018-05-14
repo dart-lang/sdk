@@ -458,8 +458,6 @@ void checkBackendUsage(
       usage2.isInvokeOnUsed);
   check(usage1, usage2, 'isRuntimeTypeUsed', usage1.isRuntimeTypeUsed,
       usage2.isRuntimeTypeUsed);
-  check(usage1, usage2, 'isIsolateInUse', usage1.isIsolateInUse,
-      usage2.isIsolateInUse);
   check(usage1, usage2, 'isFunctionApplyUsed', usage1.isFunctionApplyUsed,
       usage2.isFunctionApplyUsed);
   check(usage1, usage2, 'isNoSuchMethodUsed', usage1.isNoSuchMethodUsed,
@@ -915,8 +913,6 @@ void checkResolutionEnqueuers(
       backendUsage1.isRuntimeTypeUsed,
       backendUsage2.isRuntimeTypeUsed,
       "JavaScriptBackend.hasRuntimeTypeSupport mismatch");
-  Expect.equals(backendUsage1.isIsolateInUse, backendUsage2.isIsolateInUse,
-      "JavaScriptBackend.hasIsolateSupport mismatch");
 }
 
 void checkCodegenEnqueuers(CodegenEnqueuer enqueuer1, CodegenEnqueuer enqueuer2,
@@ -1026,8 +1022,6 @@ void checkEmitterPrograms(
       program1.outputContainsConstantList, program2.outputContainsConstantList);
   check(program1, program2, 'needsNativeSupport', program1.needsNativeSupport,
       program2.needsNativeSupport);
-  check(program1, program2, 'hasIsolateSupport', program1.hasIsolateSupport,
-      program2.hasIsolateSupport);
   check(program1, program2, 'hasSoftDeferredClasses',
       program1.hasSoftDeferredClasses, program2.hasSoftDeferredClasses);
   checkMaps(

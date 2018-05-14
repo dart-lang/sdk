@@ -89,6 +89,8 @@ class Zone;
     StubCode::FixAllocationStubTarget_entry()->code(), NULL)                   \
   V(RawCode*, invoke_dart_code_stub_,                                          \
     StubCode::InvokeDartCode_entry()->code(), NULL)                            \
+  V(RawCode*, invoke_dart_code_from_bytecode_stub_,                            \
+    StubCode::InvokeDartCodeFromBytecode_entry()->code(), NULL)                \
   V(RawCode*, call_to_runtime_stub_, StubCode::CallToRuntime_entry()->code(),  \
     NULL)                                                                      \
   V(RawCode*, monomorphic_miss_stub_,                                          \
@@ -871,6 +873,7 @@ class Thread : public BaseThread {
 #undef REUSABLE_FRIEND_DECLARATION
 
   friend class ApiZone;
+  friend class Interpreter;
   friend class InterruptChecker;
   friend class Isolate;
   friend class IsolateTestHelper;

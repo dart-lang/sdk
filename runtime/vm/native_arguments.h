@@ -96,13 +96,8 @@ class NativeArguments {
 
   RawObject* ArgAt(int index) const {
     ASSERT((index >= 0) && (index < ArgCount()));
-#if defined(TARGET_ARCH_DBC)
-    // On DBC stack is growing upwards, in reverse direction from all other
-    // architectures.
-    RawObject** arg_ptr = &(argv_[index]);
-#else
-    RawObject** arg_ptr = &(argv_[-index]);
-#endif
+    RawObject** arg_ptr =
+        &(argv_[ReverseArgOrderBit::decode(argc_tag_) ? index : -index]);
     // Tell MemorySanitizer the RawObject* was initialized (by generated code).
     MSAN_UNPOISON(arg_ptr, kWordSize);
     return *arg_ptr;
@@ -205,23 +200,32 @@ class NativeArguments {
   enum ArgcTagBits {
     kArgcBit = 0,
     kArgcSize = 24,
-    kFunctionBit = 24,
+    kFunctionBit = kArgcBit + kArgcSize,
     kFunctionSize = 3,
+    kReverseArgOrderBit = kFunctionBit + kFunctionSize,
+    kReverseArgOrderSize = 1,
   };
   class ArgcBits : public BitField<intptr_t, int32_t, kArgcBit, kArgcSize> {};
   class FunctionBits
       : public BitField<intptr_t, int, kFunctionBit, kFunctionSize> {};
+  class ReverseArgOrderBit
+      : public BitField<intptr_t, bool, kReverseArgOrderBit, 1> {};
   friend class Api;
   friend class BootstrapNatives;
+  friend class Interpreter;
   friend class Simulator;
 
-#if defined(TARGET_ARCH_DBC)
-  // Allow simulator to create NativeArguments on the stack.
+#if defined(TARGET_ARCH_DBC) || defined(DART_USE_INTERPRETER)
+  // Allow simulator and interpreter to create NativeArguments in reverse order
+  // on the stack.
   NativeArguments(Thread* thread,
                   int argc_tag,
                   RawObject** argv,
                   RawObject** retval)
-      : thread_(thread), argc_tag_(argc_tag), argv_(argv), retval_(retval) {}
+      : thread_(thread),
+        argc_tag_(ReverseArgOrderBit::update(kReverseArgOrderBit, argc_tag)),
+        argv_(argv),
+        retval_(retval) {}
 #endif
 
   // Since this function is passed a RawObject directly, we need to be

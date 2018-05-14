@@ -143,6 +143,10 @@ class JsElementCreatorMixin {
     return new JConstructorBody(constructor);
   }
 
+  JGeneratorBody createGeneratorBody(FunctionEntity function) {
+    return new JGeneratorBody(function);
+  }
+
   IndexedFunction createGetter(LibraryEntity library,
       ClassEntity enclosingClass, Name name, AsyncMarker asyncMarker,
       {bool isStatic, bool isExternal, bool isAbstract}) {
@@ -496,6 +500,19 @@ class JMethod extends JFunction {
   bool get isFunction => true;
 
   String get _kind => 'method';
+}
+
+class JGeneratorBody extends JFunction {
+  final FunctionEntity function;
+  final int hashCode;
+
+  JGeneratorBody(this.function)
+      : hashCode = function.hashCode + 1, // Hack stabilize sort order.
+        super(function.library, function.enclosingClass, function.memberName,
+            function.parameterStructure, function.asyncMarker,
+            isStatic: function.isStatic, isExternal: false);
+
+  String get _kind => 'generator_body';
 }
 
 class JGetter extends JFunction {

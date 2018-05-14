@@ -8,6 +8,8 @@ import '../../scanner/token.dart' show BeginToken, Token;
 
 import '../fasta_codes.dart' as fasta;
 
+import '../scanner/token_constants.dart' show IDENTIFIER_TOKEN;
+
 import '../util/link.dart' show Link;
 
 import 'identifier_context.dart' show IdentifierContext;
@@ -214,7 +216,13 @@ class VoidType implements TypeInfo {
 }
 
 bool looksLikeName(Token token) =>
-    token.isIdentifier || optional('this', token);
+    token.kind == IDENTIFIER_TOKEN ||
+    optional('this', token) ||
+    (token.isIdentifier &&
+        // Although `typedef` is a legal identifier,
+        // type `typedef` identifier is not legal and in this situation
+        // `typedef` is probably a separate declaration.
+        (!optional('typedef', token) || !token.next.isIdentifier));
 
 Token skipTypeVariables(Token token) {
   assert(optional('<', token));

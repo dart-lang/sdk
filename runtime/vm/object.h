@@ -903,6 +903,12 @@ class PassiveObject : public Object {
 typedef ZoneGrowableHandlePtrArray<const AbstractType> Trail;
 typedef ZoneGrowableHandlePtrArray<const AbstractType>* TrailPtr;
 
+// A URIs array contains triplets of strings.
+// The first string in the triplet is a type name (usually a class).
+// The second string in the triplet is the URI of the type.
+// The third string in the triplet is "print" if the triplet should be printed.
+typedef ZoneGrowableHandlePtrArray<const String> URIs;
+
 class Class : public Object {
  public:
   intptr_t instance_size() const {
@@ -2229,12 +2235,22 @@ class Function : public Object {
   }
   void set_unoptimized_code(const Code& value) const;
   bool HasCode() const;
+#if defined(DART_USE_INTERPRETER)
+  static bool HasCode(RawFunction* function);
+  static bool HasBytecode(RawFunction* function);
+#endif
 
   static intptr_t code_offset() { return OFFSET_OF(RawFunction, code_); }
 
   static intptr_t entry_point_offset() {
     return OFFSET_OF(RawFunction, entry_point_);
   }
+
+#if defined(DART_USE_INTERPRETER)
+  void AttachBytecode(const Code& bytecode) const;
+  RawCode* Bytecode() const { return raw_ptr()->bytecode_; }
+  bool HasBytecode() const;
+#endif
 
   virtual intptr_t Hash() const;
 
@@ -4915,6 +4931,12 @@ class Code : public Object {
                                Assembler* assembler,
                                bool optimized,
                                CodeStatistics* stats = nullptr);
+#if defined(DART_USE_INTERPRETER)
+  static RawCode* FinalizeBytecode(void* bytecode_data,
+                                   intptr_t bytecode_size,
+                                   const ObjectPool& object_pool,
+                                   CodeStatistics* stats = nullptr);
+#endif
 #endif
   static RawCode* LookupCode(uword pc);
   static RawCode* LookupCodeInVmIsolate(uword pc);
@@ -5801,8 +5823,9 @@ class TypeArguments : public Instance {
   // Canonicalize only if instantiated, otherwise returns 'this'.
   RawTypeArguments* Canonicalize(TrailPtr trail = NULL) const;
 
-  // Returns a formatted list of occurring type arguments with their URI.
-  RawString* EnumerateURIs() const;
+  // Add the class name and URI of each type argument of this vector to the uris
+  // list and mark ambiguous triplets to be printed.
+  void EnumerateURIs(URIs* uris) const;
 
   // Return 'this' if this type argument vector is instantiated, i.e. if it does
   // not refer to type parameters. Otherwise, return a new type argument vector
@@ -6015,6 +6038,12 @@ class AbstractType : public Instance {
   // The receiver may be added several times, each time with a different buddy.
   bool TestAndAddBuddyToTrail(TrailPtr* trail, const AbstractType& buddy) const;
 
+  // Add the pair <name, uri> to the list, if not already present.
+  static void AddURI(URIs* uris, const String& name, const String& uri);
+
+  // Return a formatted string of the uris.
+  static RawString* PrintURIs(URIs* uris);
+
   // The name of this type, including the names of its type arguments, if any.
   virtual RawString* Name() const { return BuildName(kInternalName); }
 
@@ -6024,8 +6053,9 @@ class AbstractType : public Instance {
     return BuildName(kUserVisibleName);
   }
 
-  // Returns a formatted list of occurring types with their URI.
-  virtual RawString* EnumerateURIs() const;
+  // Add the class name and URI of each occuring type to the uris
+  // list and mark ambiguous triplets to be printed.
+  virtual void EnumerateURIs(URIs* uris) const;
 
   virtual intptr_t Hash() const;
 
@@ -6231,7 +6261,7 @@ class Type : public AbstractType {
   // Check if type is canonical.
   virtual bool CheckIsCanonical(Thread* thread) const;
 #endif  // DEBUG
-  virtual RawString* EnumerateURIs() const;
+  virtual void EnumerateURIs(URIs* uris) const;
 
   virtual intptr_t Hash() const;
 
@@ -6384,7 +6414,7 @@ class TypeRef : public AbstractType {
   // Check if typeref is canonical.
   virtual bool CheckIsCanonical(Thread* thread) const;
 #endif  // DEBUG
-  virtual RawString* EnumerateURIs() const;
+  virtual void EnumerateURIs(URIs* uris) const;
 
   virtual intptr_t Hash() const;
 
@@ -6474,7 +6504,7 @@ class TypeParameter : public AbstractType {
   // Check if type parameter is canonical.
   virtual bool CheckIsCanonical(Thread* thread) const { return true; }
 #endif  // DEBUG
-  virtual RawString* EnumerateURIs() const;
+  virtual void EnumerateURIs(URIs* uris) const;
 
   virtual intptr_t Hash() const;
 
@@ -6580,7 +6610,7 @@ class BoundedType : public AbstractType {
   // Check if bounded type is canonical.
   virtual bool CheckIsCanonical(Thread* thread) const { return true; }
 #endif  // DEBUG
-  virtual RawString* EnumerateURIs() const;
+  virtual void EnumerateURIs(URIs* uris) const;
 
   virtual intptr_t Hash() const;
 
@@ -8414,10 +8444,10 @@ class ExternalTypedData : public Instance {
 
 #define TYPED_GETTER_SETTER(name, type)                                        \
   type Get##name(intptr_t byte_offset) const {                                 \
-    return *reinterpret_cast<type*>(DataAddr(byte_offset));                    \
+    return ReadUnaligned(reinterpret_cast<type*>(DataAddr(byte_offset)));      \
   }                                                                            \
   void Set##name(intptr_t byte_offset, type value) const {                     \
-    *reinterpret_cast<type*>(DataAddr(byte_offset)) = value;                   \
+    StoreUnaligned(reinterpret_cast<type*>(DataAddr(byte_offset)), value);     \
   }
   TYPED_GETTER_SETTER(Int8, int8_t)
   TYPED_GETTER_SETTER(Uint8, uint8_t)

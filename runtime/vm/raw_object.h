@@ -260,6 +260,8 @@ enum TypedDataElementType {
   friend class object;                                                         \
   friend class RawObject;                                                      \
   friend class Heap;                                                           \
+  friend class Interpreter;                                                    \
+  friend class InterpreterHelpers;                                             \
   friend class Simulator;                                                      \
   friend class SimulatorHelpers;                                               \
   DISALLOW_ALLOCATION();                                                       \
@@ -725,6 +727,8 @@ class RawObject {
   friend class CodeLookupTableBuilder;  // profiler
   friend class NativeEntry;             // GetClassId
   friend class WritePointerVisitor;     // GetClassId
+  friend class Interpreter;
+  friend class InterpreterHelpers;
   friend class Simulator;
   friend class SimulatorHelpers;
   friend class ObjectLocator;
@@ -926,6 +930,9 @@ class RawFunction : public RawObject {
   RawObject** to_no_code() {
     return reinterpret_cast<RawObject**>(&ptr()->ic_data_array_);
   }
+#if defined(DART_USE_INTERPRETER)
+  RawCode* bytecode_;
+#endif
   RawCode* code_;  // Currently active code. Accessed from generated code.
   NOT_IN_PRECOMPILED(RawCode* unoptimized_code_);  // Unoptimized code, keep it
                                                    // after optimization.

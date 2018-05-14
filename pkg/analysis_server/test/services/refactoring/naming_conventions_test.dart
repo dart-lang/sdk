@@ -48,9 +48,14 @@ class NamingConventionsTest extends RefactoringTest {
 
   void test_validateClassName_notIdentifierStart() {
     assertRefactoringStatus(
+        validateClassName("badName"), RefactoringProblemSeverity.WARNING,
+        expectedMessage: "Class name should start with an uppercase letter.");
+  }
+
+  void test_validateClassName_invalidCharacter() {
+    assertRefactoringStatus(
         validateClassName("-NewName"), RefactoringProblemSeverity.FATAL,
-        expectedMessage:
-            "Class name must begin with an uppercase letter or underscore.");
+        expectedMessage: "Class name must not contain '-'.");
   }
 
   void test_validateClassName_null() {
@@ -290,10 +295,16 @@ class NamingConventionsTest extends RefactoringTest {
   }
 
   void test_validateFunctionTypeAliasName_notIdentifierStart() {
-    assertRefactoringStatus(validateFunctionTypeAliasName("-NewName"),
-        RefactoringProblemSeverity.FATAL,
+    assertRefactoringStatus(validateFunctionTypeAliasName("newName"),
+        RefactoringProblemSeverity.WARNING,
         expectedMessage:
-            "Function type alias name must begin with an uppercase letter or underscore.");
+            "Function type alias name should start with an uppercase letter.");
+  }
+
+  void test_validateFunctionTypeAliasName_invalidCharacters() {
+    assertRefactoringStatus(validateFunctionTypeAliasName("New-Name"),
+        RefactoringProblemSeverity.FATAL,
+        expectedMessage: "Function type alias name must not contain \'-\'.");
   }
 
   void test_validateFunctionTypeAliasName_null() {

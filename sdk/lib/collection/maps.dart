@@ -118,12 +118,10 @@ abstract class MapMixin<K, V> implements Map<K, V> {
   // It should clear the map even if some keys are not equal to themselves.
   void clear();
 
-  Map<RK, RV> cast<RK, RV>() {
-    Map<Object, Object> self = this;
-    return self is Map<RK, RV> ? self : Map.castFrom<K, V, RK, RV>(this);
-  }
+  Map<RK, RV> cast<RK, RV>() => Map.castFrom<K, V, RK, RV>(this);
 
-  Map<RK, RV> retype<RK, RV>() => Map.castFrom<K, V, RK, RV>(this);
+  @Deprecated("Use cast instead.")
+  Map<RK, RV> retype<RK, RV>() => cast<RK, RV>();
 
   void forEach(void action(K key, V value)) {
     for (K key in keys) {
@@ -318,7 +316,8 @@ class MapView<K, V> implements Map<K, V> {
 
   Map<RK, RV> cast<RK, RV>() => _map.cast<RK, RV>();
 
-  Map<RK, RV> retype<RK, RV>() => _map.retype<RK, RV>();
+  @Deprecated("Use cast instead.")
+  Map<RK, RV> retype<RK, RV>() => cast<RK, RV>();
 
   V operator [](Object key) => _map[key];
   void operator []=(K key, V value) {
@@ -380,12 +379,9 @@ class UnmodifiableMapView<K, V> extends MapView<K, V>
     with _UnmodifiableMapMixin<K, V> {
   UnmodifiableMapView(Map<K, V> map) : super(map);
 
-  Map<RK, RV> cast<RK, RV>() {
-    Map<Object, Object> self = this;
-    if (self is Map<RK, RV>) return self;
-    return new UnmodifiableMapView<RK, RV>(_map.cast<RK, RV>());
-  }
+  Map<RK, RV> cast<RK, RV>() =>
+      new UnmodifiableMapView<RK, RV>(_map.cast<RK, RV>());
 
-  Map<RK, RV> retype<RK, RV>() =>
-      new UnmodifiableMapView<RK, RV>(_map.retype<RK, RV>());
+  @Deprecated("Use cast instead.")
+  Map<RK, RV> retype<RK, RV>() => cast<RK, RV>();
 }

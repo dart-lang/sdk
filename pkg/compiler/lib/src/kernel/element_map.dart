@@ -17,6 +17,7 @@ import '../js_backend/namer.dart';
 import '../js_backend/native_data.dart';
 import '../js_emitter/code_emitter_task.dart';
 import '../js_model/closure.dart' show JRecordField, KernelScopeInfo;
+import '../js_model/elements.dart' show JGeneratorBody;
 import '../native/native.dart' as native;
 import '../ssa/type_builder.dart';
 import '../types/types.dart';
@@ -124,6 +125,7 @@ abstract class KernelToElementMap {
 /// Interface that translates between Kernel IR nodes and entities used for
 /// computing the [WorldImpact] for members.
 abstract class KernelToElementMapForImpact extends KernelToElementMap {
+  ElementEnvironment get elementEnvironment;
   NativeBasicData get nativeBasicData;
 
   /// Adds libraries in [component] to the set of libraries.
@@ -236,6 +238,9 @@ abstract class KernelToElementMapForBuilding implements KernelToElementMap {
   /// Returns the constructor body entity corresponding to [constructor].
   FunctionEntity getConstructorBody(ir.Constructor node);
 
+  /// Returns the constructor body entity corresponding to [function].
+  JGeneratorBody getGeneratorBody(FunctionEntity function);
+
   /// Make a record to ensure variables that are are declared in one scope and
   /// modified in another get their values updated correctly.
   Map<Local, JRecordField> makeRecordContainer(
@@ -261,6 +266,8 @@ enum MemberKind {
   // the closure class. It does not have a corresponding ir.Node or a method
   // body.
   signature,
+  // A separated body of a generator (sync*/async/async*) function.
+  generatorBody,
 }
 
 /// Definition information for a [MemberEntity].

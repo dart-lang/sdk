@@ -10,7 +10,7 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js/js.dart' as js;
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
-import '../kernel/compiler_helper.dart';
+import '../helpers/d8_helper.dart';
 
 const String SOURCE = r'''
 import 'package:meta/dart2js.dart';

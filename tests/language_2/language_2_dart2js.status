@@ -511,17 +511,11 @@ type_parameter_test/09: Crash # Internal Error: Unexpected type variable in stat
 type_variable_scope_test/03: Crash # Internal Error: Unexpected type variable in static context.
 
 [ $compiler == dart2js && !$checked ]
-async_covariant_type_test: RuntimeError # checked / strong mode test
-async_dcall_type_test: RuntimeError # checked / strong mode test
-asyncstar_covariant_type_test: RuntimeError # checked / strong mode test
-asyncstar_dcall_type_test: RuntimeError # checked / strong mode test
 covariance_field_test/01: RuntimeError
 covariance_field_test/02: RuntimeError
 covariance_field_test/03: RuntimeError
 covariance_field_test/04: RuntimeError
 covariance_field_test/05: RuntimeError
-syncstar_covariant_type_test: RuntimeError # checked / strong mode test
-syncstar_dcall_type_test: RuntimeError # checked / strong mode test
 
 [ $compiler == dart2js && !$checked && !$enable_asserts ]
 assertion_test: RuntimeError, OK
@@ -701,7 +695,6 @@ library_env_test/has_mirror_support: RuntimeError
 local_function2_test/none: RuntimeError
 local_function3_test/none: RuntimeError
 local_function_test/none: RuntimeError
-main_test/03: RuntimeError
 many_overridden_no_such_method_test: RuntimeError
 method_override7_test/00: MissingCompileTimeError
 method_override7_test/01: MissingCompileTimeError
@@ -883,7 +876,6 @@ call_method_must_not_be_getter_test/03: RuntimeError # Issue 32155
 checked_setter2_test: RuntimeError # Issue 31128
 checked_setter_test: RuntimeError # Issue 31128
 const_dynamic_type_literal_test/03: Pass # but it shouldn't until we fix issue 17207
-extract_type_arguments_test: Crash # Issue 31371
 function_propagation_test: RuntimeError
 generic_test/01: MissingCompileTimeError # front end does not validate `extends`
 instantiate_tearoff_of_call_test: RuntimeError
@@ -1023,7 +1015,6 @@ external_test/13: MissingRuntimeError
 external_test/20: MissingRuntimeError
 external_test/21: CompileTimeError
 external_test/24: CompileTimeError
-extract_type_arguments_test: RuntimeError # Issue 31371
 f_bounded_quantification4_test: RuntimeError
 f_bounded_quantification_test/01: MissingCompileTimeError
 f_bounded_quantification_test/02: MissingCompileTimeError
@@ -1057,7 +1048,6 @@ function_subtype_not1_test: RuntimeError
 function_subtype_setter0_test: RuntimeError
 function_type_alias2_test: RuntimeError
 function_type_alias4_test: RuntimeError
-generic_async_star_test: RuntimeError
 generic_closure_test/01: RuntimeError
 generic_closure_test/none: RuntimeError
 generic_function_bounds_test: RuntimeError
@@ -1125,7 +1115,6 @@ library_env_test/has_no_io_support: RuntimeError
 local_function2_test/none: RuntimeError
 local_function3_test/none: RuntimeError
 local_function_test/none: RuntimeError
-main_test/03: RuntimeError
 malbounded_instantiation_test/01: MissingCompileTimeError
 malbounded_instantiation_test/02: MissingCompileTimeError
 malbounded_instantiation_test/03: MissingCompileTimeError
@@ -1576,7 +1565,6 @@ external_test/13: MissingRuntimeError
 external_test/20: MissingRuntimeError
 external_test/21: CompileTimeError
 external_test/24: CompileTimeError
-extract_type_arguments_test: RuntimeError # Issue 31371
 f_bounded_quantification4_test: RuntimeError # Issue 12605
 f_bounded_quantification_test/01: MissingCompileTimeError
 f_bounded_quantification_test/02: MissingCompileTimeError
@@ -1610,7 +1598,6 @@ function_subtype_not1_test: RuntimeError
 function_subtype_setter0_test: RuntimeError
 function_type_alias2_test: RuntimeError
 function_type_alias4_test: RuntimeError
-generic_async_star_test: RuntimeError
 generic_function_bounds_test: RuntimeError
 generic_function_dcall_test: RuntimeError
 generic_function_type_as_type_argument_test/01: MissingCompileTimeError
@@ -1677,7 +1664,6 @@ library_env_test/has_no_io_support: RuntimeError
 local_function2_test/none: RuntimeError
 local_function3_test/none: RuntimeError
 local_function_test/none: RuntimeError
-main_test/03: RuntimeError
 malbounded_instantiation_test/01: MissingCompileTimeError
 malbounded_instantiation_test/02: MissingCompileTimeError
 malbounded_instantiation_test/03: MissingCompileTimeError

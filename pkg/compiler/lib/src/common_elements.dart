@@ -1129,6 +1129,10 @@ class CommonElements {
   FunctionEntity get convertRtiToRuntimeType =>
       _findHelperFunction('convertRtiToRuntimeType');
 
+  FunctionEntity _extractTypeArguments;
+  FunctionEntity get extractTypeArguments => _extractTypeArguments ??=
+      _findLibraryMember(internalLibrary, 'extractTypeArguments');
+
   FunctionEntity get toStringForNativeObject =>
       _findHelperFunction('toStringForNativeObject');
 
@@ -1209,17 +1213,6 @@ class CommonElements {
   ClassEntity get jsBuiltinEnum => _jsBuiltinEnum ??= _findClass(
       _env.lookupLibrary(Uris.dart__js_embedded_names, required: true),
       'JsBuiltin');
-
-  // From dart:_isolate_helper
-
-  FunctionEntity get startRootIsolate =>
-      _findLibraryMember(isolateHelperLibrary, 'startRootIsolate');
-
-  FunctionEntity get currentIsolate =>
-      _findLibraryMember(isolateHelperLibrary, '_currentIsolate');
-
-  FunctionEntity get callInIsolate =>
-      _findLibraryMember(isolateHelperLibrary, '_callInIsolate');
 
   static final Uri PACKAGE_EXPECT =
       new Uri(scheme: 'package', path: 'expect/expect.dart');
@@ -1392,6 +1385,9 @@ abstract class ElementEnvironment {
 
   /// Calls [f] for each class member declared in [cls].
   void forEachLocalClassMember(ClassEntity cls, void f(MemberEntity member));
+
+  /// Calls [f] for each class member added to [cls] during compilation.
+  void forEachInjectedClassMember(ClassEntity cls, void f(MemberEntity member));
 
   /// Calls [f] for each class member declared or inherited in [cls] together
   /// with the class that declared the member.

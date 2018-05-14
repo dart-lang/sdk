@@ -23,8 +23,8 @@ abstract class I<T extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
-  abstract method f([generic-covariant-impl generic-covariant-interface self::I::T x = null]) → void;
-  abstract method g({generic-covariant-impl generic-covariant-interface self::I::T x = null}) → void;
+  abstract method f([generic-covariant-impl self::I::T x = null]) → void;
+  abstract method g({generic-covariant-impl self::I::T x = null}) → void;
 }
 class C extends self::B implements self::I<core::num> {
   synthetic constructor •() → void

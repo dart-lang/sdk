@@ -460,12 +460,10 @@ class _CompactLinkedHashSet<E> extends _HashFieldBase
 
   static Set<R> _newEmpty<R>() => new _CompactLinkedHashSet<R>();
 
-  Set<R> cast<R>() {
-    Set<Object> self = this;
-    return self is Set<R> ? self : Set.castFrom<E, R>(this, newSet: _newEmpty);
-  }
+  Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);
 
-  Set<R> retype<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);
+  @Deprecated("Use cast instead.")
+  Set<R> retype<R>() => cast<R>();
 
   int get length => _usedData - _deletedKeys;
 
@@ -623,12 +621,10 @@ class _CompactLinkedIdentityHashSet<E> extends _CompactLinkedHashSet<E>
 
   static Set<R> _newEmpty<R>() => new _CompactLinkedIdentityHashSet<R>();
 
-  Set<R> cast<R>() {
-    Set<Object> self = this;
-    return self is Set<R> ? self : Set.castFrom<E, R>(this, newSet: _newEmpty);
-  }
+  Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);
 
-  Set<R> retype<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);
+  @Deprecated("Use cast instead.")
+  Set<R> retype<R>() => cast<R>();
 }
 
 class _CompactLinkedCustomHashSet<E> extends _CompactLinkedHashSet<E> {
@@ -646,12 +642,10 @@ class _CompactLinkedCustomHashSet<E> extends _CompactLinkedHashSet<E> {
   _CompactLinkedCustomHashSet(this._equality, this._hasher, validKey)
       : _validKey = (validKey != null) ? validKey : new _TypeTest<E>().test;
 
-  Set<R> cast<R>() {
-    Set<Object> self = this;
-    return self is Set<R> ? self : Set.castFrom<E, R>(this);
-  }
+  Set<R> cast<R>() => Set.castFrom<E, R>(this);
 
-  Set<R> retype<R>() => Set.castFrom<E, R>(this);
+  @Deprecated("Use cast instead.")
+  Set<R> retype<R>() => cast<R>();
 
   Set<E> toSet() =>
       new _CompactLinkedCustomHashSet<E>(_equality, _hasher, _validKey)

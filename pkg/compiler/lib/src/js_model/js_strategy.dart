@@ -391,7 +391,6 @@ class JsClosedWorldBuilder {
         requiresPreamble: backendUsage.requiresPreamble,
         isInvokeOnUsed: backendUsage.isInvokeOnUsed,
         isRuntimeTypeUsed: backendUsage.isRuntimeTypeUsed,
-        isIsolateInUse: backendUsage.isIsolateInUse,
         isFunctionApplyUsed: backendUsage.isFunctionApplyUsed,
         isMirrorsUsed: backendUsage.isMirrorsUsed,
         isNoSuchMethodUsed: backendUsage.isNoSuchMethodUsed);

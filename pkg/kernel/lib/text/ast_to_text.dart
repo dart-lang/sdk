@@ -869,11 +869,17 @@ class Printer extends Visitor<Null> {
     }
   }
 
-  void writeAnnotationList(List<Expression> nodes) {
+  void writeAnnotationList(List<Expression> nodes, {bool separateLines: true}) {
     for (Expression node in nodes) {
-      writeIndentation();
+      if (separateLines) {
+        writeIndentation();
+      }
       writeAnnotation(node);
-      endLine();
+      if (separateLines) {
+        endLine();
+      } else {
+        writeSpace();
+      }
     }
   }
 
@@ -885,8 +891,6 @@ class Printer extends Visitor<Null> {
     writeModifier(node.isStatic, 'static');
     writeModifier(node.isCovariant, 'covariant');
     writeModifier(node.isGenericCovariantImpl, 'generic-covariant-impl');
-    writeModifier(
-        node.isGenericCovariantInterface, 'generic-covariant-interface');
     writeModifier(node.isFinal, 'final');
     writeModifier(node.isConst, 'const');
     // Only show implicit getter/setter modifiers in cases where they are
@@ -1671,6 +1675,7 @@ class Printer extends Visitor<Null> {
   }
 
   visitFunctionDeclaration(FunctionDeclaration node) {
+    writeAnnotationList(node.variable.annotations);
     writeIndentation();
     writeWord('function');
     if (node.function != null) {
@@ -1685,11 +1690,9 @@ class Printer extends Visitor<Null> {
       {bool useVarKeyword: false}) {
     if (showOffsets) writeWord("[${node.fileOffset}]");
     if (showMetadata) writeMetadata(node);
-    writeAnnotationList(node.annotations);
+    writeAnnotationList(node.annotations, separateLines: false);
     writeModifier(node.isCovariant, 'covariant');
     writeModifier(node.isGenericCovariantImpl, 'generic-covariant-impl');
-    writeModifier(
-        node.isGenericCovariantInterface, 'generic-covariant-interface');
     writeModifier(node.isFinal, 'final');
     writeModifier(node.isConst, 'const');
     if (node.type != null) {
@@ -1834,9 +1837,7 @@ class Printer extends Visitor<Null> {
 
   visitTypeParameter(TypeParameter node) {
     writeModifier(node.isGenericCovariantImpl, 'generic-covariant-impl');
-    writeModifier(
-        node.isGenericCovariantInterface, 'generic-covariant-interface');
-    writeAnnotationList(node.annotations);
+    writeAnnotationList(node.annotations, separateLines: false);
     writeWord(getTypeParameterName(node));
     writeSpaced('extends');
     writeType(node.bound);

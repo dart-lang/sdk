@@ -9,7 +9,7 @@ typedef void F<T>(T x);
 
 class C<T> {
   F<T> y;
-  void f(T /*@covariance=genericInterface, genericImpl*/ value) {
+  void f(T /*@covariance=genericImpl*/ value) {
     this.y(value);
   }
 }

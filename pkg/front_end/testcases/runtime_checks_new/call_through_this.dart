@@ -8,36 +8,25 @@ library test;
 typedef F<T>(T x);
 
 class C<T> {
-  void f(T /*@covariance=genericInterface, genericImpl*/ x) {}
-  void g1(T /*@covariance=genericInterface, genericImpl*/ x) {
+  void f(T /*@covariance=genericImpl*/ x) {}
+  void g1(T /*@covariance=genericImpl*/ x) {
     this.f(x);
   }
 
-  void g2(T /*@covariance=genericInterface, genericImpl*/ x) {
+  void g2(T /*@covariance=genericImpl*/ x) {
     f(x);
   }
 
-  void g3(C<T> /*@covariance=genericInterface, genericImpl*/ c,
-      T /*@covariance=genericInterface, genericImpl*/ x) {
+  void g3(C<T> /*@covariance=genericImpl*/ c, T /*@covariance=genericImpl*/ x) {
     c.f(x);
   }
 
   F<T> g4() => this.f;
 }
 
-class
-/*@forwardingStub=abstract void f(covariance=(genericImpl) int x)*/
-/*@forwardingStub=abstract void g1(covariance=(genericImpl) int x)*/
-/*@forwardingStub=abstract void g2(covariance=(genericImpl) int x)*/
-/*@forwardingStub=abstract void g3(covariance=(genericImpl) C<int> c, covariance=(genericImpl) int x)*/
+class D extends C<int> {}
 
-    D extends C<int> {}
-
-class /*@forwardingStub=abstract void g1(covariance=(genericImpl) num x)*/
-/*@forwardingStub=abstract void g2(covariance=(genericImpl) num x)*/
-/*@forwardingStub=abstract void g3(covariance=(genericImpl) C<num> c, covariance=(genericImpl) num x)*/
-
-    E extends C<num> {
+class E extends C<num> {
   void f(covariant int /*@covariance=explicit*/ x) {}
 }
 

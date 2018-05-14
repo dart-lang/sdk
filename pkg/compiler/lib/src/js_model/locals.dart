@@ -14,6 +14,8 @@ import '../elements/types.dart';
 import '../kernel/element_map.dart';
 import '../kernel/indexed.dart';
 
+import '../js_model/elements.dart' show JGeneratorBody;
+
 class GlobalLocalsMap {
   Map<MemberEntity, KernelToLocalsMap> _localsMaps =
       <MemberEntity, KernelToLocalsMap>{};
@@ -419,7 +421,9 @@ class JLocal extends IndexedLocal {
   /// True if this local represents a local parameter.
   final bool isRegularParameter;
 
-  JLocal(this.name, this.memberContext, {this.isRegularParameter: false});
+  JLocal(this.name, this.memberContext, {this.isRegularParameter: false}) {
+    assert(memberContext is! JGeneratorBody);
+  }
 
   String get _kind => 'local';
 

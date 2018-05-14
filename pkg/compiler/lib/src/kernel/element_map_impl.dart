@@ -748,6 +748,13 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
     });
   }
 
+  void _forEachInjectedClassMember(
+      IndexedClass cls, void f(MemberEntity member)) {
+    assert(checkFamily(cls));
+    throw new UnsupportedError(
+        'KernelToElementMapBase._forEachInjectedClassMember');
+  }
+
   void _forEachClassMember(
       IndexedClass cls, void f(ClassEntity cls, MemberEntity member)) {
     assert(checkFamily(cls));
@@ -1373,7 +1380,7 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
   /// Returns the element type of a async/sync*/async* function.
   @override
   DartType getFunctionAsyncOrSyncStarElementType(ir.FunctionNode functionNode) {
-    DartType returnType = getFunctionType(functionNode).returnType;
+    DartType returnType = getDartType(functionNode.returnType);
     switch (functionNode.asyncMarker) {
       case ir.AsyncMarker.SyncStar:
         return elementEnvironment.getAsyncOrSyncStarElementType(
@@ -1471,6 +1478,7 @@ class KernelElementEnvironment extends ElementEnvironment {
 
   @override
   DartType getFunctionAsyncOrSyncStarElementType(FunctionEntity function) {
+    // TODO(sra): Should be getting the DartType from the node.
     DartType returnType = getFunctionType(function).returnType;
     return getAsyncOrSyncStarElementType(function.asyncMarker, returnType);
   }
@@ -1578,6 +1586,12 @@ class KernelElementEnvironment extends ElementEnvironment {
   @override
   void forEachLocalClassMember(ClassEntity cls, void f(MemberEntity member)) {
     elementMap._forEachLocalClassMember(cls, f);
+  }
+
+  @override
+  void forEachInjectedClassMember(
+      ClassEntity cls, void f(MemberEntity member)) {
+    elementMap._forEachInjectedClassMember(cls, f);
   }
 
   @override
@@ -2257,6 +2271,12 @@ class JsKernelToElementMap extends KernelToElementMapBase
 
   NativeBasicData nativeBasicData;
 
+  Map<FunctionEntity, JGeneratorBody> _generatorBodies =
+      <FunctionEntity, JGeneratorBody>{};
+
+  Map<ClassEntity, List<MemberEntity>> _injectedClassMembers =
+      <ClassEntity, List<MemberEntity>>{};
+
   JsKernelToElementMap(
       DiagnosticReporter reporter,
       Environment environment,
@@ -2512,6 +2532,11 @@ class JsKernelToElementMap extends KernelToElementMapBase
       IndexedClass cls, void f(ConstructorBodyEntity member)) {
     ClassEnv env = _classes.getEnv(cls);
     env.forEachConstructorBody(f);
+  }
+
+  void _forEachInjectedClassMember(
+      IndexedClass cls, void f(MemberEntity member)) {
+    _injectedClassMembers[cls]?.forEach(f);
   }
 
   JRecordField _constructRecordFieldEntry(
@@ -2911,6 +2936,31 @@ class JsKernelToElementMap extends KernelToElementMapBase
   String _getClosureVariableName(String name, int id) {
     return "_captured_${name}_$id";
   }
+
+  JGeneratorBody getGeneratorBody(covariant IndexedFunction function) {
+    FunctionData functionData = _members.getData(function);
+    ir.TreeNode node = functionData.definition.node;
+    // TODO(sra): Maybe store this in the FunctionData.
+    JGeneratorBody generatorBody = _generatorBodies[function];
+    if (generatorBody == null) {
+      generatorBody = createGeneratorBody(function);
+      _members.register<IndexedFunction, FunctionData>(
+          generatorBody,
+          new GeneratorBodyFunctionData(
+              functionData,
+              new SpecialMemberDefinition(
+                  generatorBody, node, MemberKind.generatorBody)));
+
+      if (function.enclosingClass != null) {
+        // TODO(sra): Integrate this with ClassEnvImpl.addConstructorBody ?
+        (_injectedClassMembers[function.enclosingClass] ??= <MemberEntity>[])
+            .add(generatorBody);
+      }
+    }
+    return generatorBody;
+  }
+
+  JGeneratorBody createGeneratorBody(FunctionEntity function);
 }
 
 class KernelClassQueries extends ClassQueries {

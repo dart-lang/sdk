@@ -1,4 +1,45 @@
+## 2.0.0-dev.55.0
+
+### Language
+
+* Changed the `cast` method to always change the type.  Deprecated the
+  `retype` method and made it redirect to `cast`.  Applies to all of the
+  following interfaces:
+  * `Stream`:
+  * `StreamTransformer`
+  * `Iterable`
+  * `Map`
+
+### Tool Changes
+
+#### dart2js
+
+* Several fixes to improve support for running output of dart2js as a webworker.
+
+* `dart:isolate` implementation removed. To launch background tasks,
+  please use webworkers instead. APIs for webworkers can be accessed from
+  `dart:html` or JS-interop.
+
+#### Pub
+
+* Use forward-slash paths to Git on Windows
+
 ## 2.0.0-dev.54.0
+
+### Core library changes
+
+* `dart:io`
+  * Added Dart-styled constants to  `ZLibOptions`, `FileMode`, `FileLock`,
+    `FileSystemEntityType`, `FileSystemEvent`, `ProcessStartMode`,
+    `ProcessSignal`, `InternetAddressType`, `InternetAddress`,
+    `SocketDirection`, `SocketOption`, `RawSocketEvent`, and `StdioType`, and
+    deprecated the old `SCREAMING_CAPS` constants.
+  * Added the Dart-styled top-level constants `zlib`, `gzip`, and
+    `systemEncoding`, and deprecated the old `SCREAMING_CAPS` top-level
+    constants.
+  * Removed the top-level `FileMode` constants `READ`, `WRITE`, `APPEND`,
+    `WRITE_ONLY`, and `WRITE_ONLY_APPEND`. Please use e.g. `FileMode.read`
+    instead.
 
 ### Tool Changes
 

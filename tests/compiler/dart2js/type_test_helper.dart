@@ -16,9 +16,9 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/elements.dart'
     show ClassElement, LibraryElement, TypedefElement;
 import 'package:compiler/src/kernel/kernel_strategy.dart';
+import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/world.dart' show ClosedWorld;
 import 'memory_compiler.dart' as memory;
-import 'kernel/compiler_helper.dart' as dill;
 
 DartType instantiate(Entity element, List<DartType> arguments) {
   if (element is ClassElement) {
@@ -38,8 +38,7 @@ class TypeEnvironment {
   Resolution get resolution => compiler.resolution;
 
   static Future<TypeEnvironment> create(String source,
-      {bool useDillCompiler: false,
-      bool expectNoErrors: false,
+      {bool expectNoErrors: false,
       bool expectNoWarningsOrErrors: false,
       bool stopAfterTypeInference: false,
       String mainSource,
@@ -65,17 +64,20 @@ class TypeEnvironment {
     memory.DiagnosticCollector collector;
     collector = new memory.DiagnosticCollector();
     uri = Uri.parse('memory:main.dart');
-    compiler = await dill.compileWithDill(
+    memory.CompilationResult result = await memory.runCompiler(
         entryPoint: uri,
         memorySourceFiles: {'main.dart': source},
-        diagnosticHandler: collector,
         options: stopAfterTypeInference
             ? ([Flags.disableTypeInference]..addAll(options))
             : ([Flags.disableTypeInference, Flags.analyzeAll, Flags.analyzeOnly]
               ..addAll(options)),
-        beforeRun: (Compiler compiler) {
+        diagnosticHandler: collector,
+        beforeRun: (compiler) {
+          ElementResolutionWorldBuilder.useInstantiationMap = true;
+          compiler.impactCacheDeleter.retainCachesForTesting = true;
           compiler.stopAfterTypeInference = stopAfterTypeInference;
         });
+    compiler = result.compiler;
     if (expectNoErrors || expectNoWarningsOrErrors) {
       var errors = collector.errors;
       Expect.isTrue(errors.isEmpty, 'Unexpected errors: ${errors}');

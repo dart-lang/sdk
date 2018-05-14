@@ -3642,10 +3642,25 @@ class CodeGenerator extends Object
     var result = _emitForeignJS(node, e);
     if (result != null) return result;
 
-    if (e?.name == 'extensionSymbol' && isSdkInternalRuntime(e.library)) {
-      var args = node.argumentList.arguments;
-      var firstArg = args.length == 1 ? args[0] : null;
-      if (firstArg is StringLiteral) {
+    // Optimize some internal SDK calls.
+    if (e != null &&
+        isSdkInternalRuntime(e.library) &&
+        node.argumentList.arguments.length == 1) {
+      var firstArg = node.argumentList.arguments[0];
+      if (e.name == 'getGenericClass' && firstArg is SimpleIdentifier) {
+        var typeElem = firstArg.staticElement;
+        if (typeElem is TypeDefiningElement &&
+            typeElem.type is ParameterizedType) {
+          return _emitTopLevelNameNoInterop(typeElem, suffix: '\$');
+        }
+      }
+      if (e.name == 'unwrapType' && firstArg is SimpleIdentifier) {
+        var typeElem = firstArg.staticElement;
+        if (typeElem is TypeDefiningElement) {
+          return _emitType(fillDynamicTypeArgs(typeElem.type));
+        }
+      }
+      if (e.name == 'extensionSymbol' && firstArg is StringLiteral) {
         return _getExtensionSymbolInternal(firstArg.stringValue);
       }
     }
@@ -4059,27 +4074,6 @@ class CodeGenerator extends Object
       }
     }
 
-    JS.Expression visitTemplateArg(Expression arg) {
-      if (arg is InvocationExpression) {
-        var e = arg is MethodInvocation
-            ? arg.methodName.staticElement
-            : (arg as FunctionExpressionInvocation).staticElement;
-        if (e?.name == 'getGenericClass' &&
-            e.library.name == 'dart._runtime' &&
-            arg.argumentList.arguments.length == 1) {
-          var typeArg = arg.argumentList.arguments[0];
-          if (typeArg is SimpleIdentifier) {
-            var typeElem = typeArg.staticElement;
-            if (typeElem is TypeDefiningElement &&
-                typeElem.type is ParameterizedType) {
-              return _emitTopLevelNameNoInterop(typeElem, suffix: '\$');
-            }
-          }
-        }
-      }
-      return _visitExpression(arg);
-    }
-
     // TODO(rnystrom): The JS() calls are almost never nested, and probably
     // really shouldn't be, but there are at least a couple of calls in the
     // HTML library where an argument to JS() is itself a JS() call. If those
@@ -4088,7 +4082,7 @@ class CodeGenerator extends Object
     // wrapped Type object.
     var wasInForeignJS = _isInForeignJS;
     _isInForeignJS = true;
-    var jsArgs = templateArgs.map(visitTemplateArg).toList();
+    var jsArgs = templateArgs.map(_visitExpression).toList();
     _isInForeignJS = wasInForeignJS;
 
     var result = js.parseForeignJS(source).instantiate(jsArgs);

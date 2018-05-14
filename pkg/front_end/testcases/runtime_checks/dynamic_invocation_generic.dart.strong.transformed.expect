@@ -6,7 +6,7 @@ class C<T extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
-  method f<generic-covariant-impl generic-covariant-interface U extends self::C::T = dynamic>(self::C::f::U x) → void {}
+  method f<generic-covariant-impl U extends self::C::T = dynamic>(self::C::f::U x) → void {}
 }
 static method g1(dynamic d) → void {
   d.f<core::num>(1.5);

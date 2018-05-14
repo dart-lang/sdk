@@ -10,6 +10,5 @@ import 'inlining_test.dart';
 
 main(List<String> args) async {
   JavaScriptBackend.cacheCodegenImpactForTesting = true;
-  await show(createArgParser().parse(args), computeMemberAstInlinings,
-      computeMemberIrInlinings);
+  await show(createArgParser().parse(args), computeMemberIrInlinings);
 }

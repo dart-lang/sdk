@@ -63,6 +63,8 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
           ' by gen_snapshot(which needs platform embedded) vs'
           ' Flutter engine(which does not)',
       defaultsTo: true)
+  ..addOption('import-dill',
+      help: 'Import libraries from existing dill file', defaultsTo: null)
   ..addOption('output-dill',
       help: 'Output path for the generated dill', defaultsTo: null)
   ..addOption('output-incremental-dill',
@@ -258,6 +260,13 @@ class FrontendCompiler implements CompilerInterface {
         strongMode: options['strong'], syncAsync: options['sync-async']);
     compilerOptions.target = getTarget(options['target'], targetFlags);
 
+    final String importDill = options['import-dill'];
+    if (importDill != null) {
+      compilerOptions.inputSummaries = <Uri>[
+        Uri.base.resolveUri(new Uri.file(importDill))
+      ];
+    }
+
     Component component;
     if (options['incremental']) {
       _compilerOptions = compilerOptions;
@@ -284,10 +293,9 @@ class FrontendCompiler implements CompilerInterface {
         transformer.transform(component);
       }
 
-      final IOSink sink = new File(_kernelBinaryFilename).openWrite();
-      final BinaryPrinter printer = printerFactory.newBinaryPrinter(sink);
-      printer.writeComponentFile(component);
-      await sink.close();
+      await writeDillFile(component, _kernelBinaryFilename,
+          filterExternal: importDill != null);
+
       _outputStream
           .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
       final String depfile = options['depfile'];
@@ -299,6 +307,18 @@ class FrontendCompiler implements CompilerInterface {
     } else
       _outputStream.writeln(boundaryKey);
     return errors.isEmpty;
+  }
+
+  writeDillFile(Component component, String filename,
+      {bool filterExternal: false}) async {
+    final IOSink sink = new File(filename).openWrite();
+    final BinaryPrinter printer = filterExternal
+        ? new LimitedBinaryPrinter(
+            sink, (lib) => !lib.isExternal, true /* excludeUriToSource */)
+        : printerFactory.newBinaryPrinter(sink);
+
+    printer.writeComponentFile(component);
+    await sink.close();
   }
 
   Future<Null> invalidateIfBootstrapping() async {

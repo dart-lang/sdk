@@ -50,13 +50,6 @@ isolate/browser/package_resolve_browser_test: CompileTimeError
 
 [ $compiler == dartk && $mode == debug && $runtime == vm && $strong ]
 isolate/isolate_complex_messages_test: Crash
-mirrors/library_exports_shown_test: Crash # 31916
-mirrors/library_imports_deferred_test: Crash # 31916
-mirrors/library_imports_hidden_test: Crash # 31916
-mirrors/library_imports_metadata_test: Crash # 31916
-mirrors/library_imports_prefixed_show_hide_test: Crash # 31916
-mirrors/library_imports_prefixed_test: Crash # 31916
-mirrors/library_imports_shown_test: Crash # 31916
 mirrors/other_declarations_location_test: Crash # assertion error, TypeParameter not having position.
 
 [ $compiler == dartk && $mode == debug && $strong ]
@@ -120,7 +113,6 @@ mirrors/generic_interface_test/01: RuntimeError
 mirrors/generic_interface_test/none: RuntimeError
 mirrors/generic_mixin_applications_test: RuntimeError
 mirrors/generic_mixin_test: RuntimeError
-mirrors/generics_dynamic_test: RuntimeError
 mirrors/hot_get_field_test: RuntimeError
 mirrors/hot_set_field_test: RuntimeError
 mirrors/intercepted_object_test: RuntimeError # Issue 31402 (Invocation arguments)
@@ -129,15 +121,15 @@ mirrors/invoke_private_test: RuntimeError
 mirrors/invoke_private_wrong_library_test: RuntimeError
 mirrors/library_declarations_test/none: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/library_enumeration_deferred_loading_test: RuntimeError
-mirrors/library_exports_hidden_test: RuntimeError, Crash, CompileTimeError # Issue 31402 (Invocation arguments)
-mirrors/library_exports_shown_test: RuntimeError, CompileTimeError # Issue 31402 (Invocation arguments)
-mirrors/library_import_deferred_loading_test: RuntimeError # Deferred loading kernel issue 28335.
-mirrors/library_imports_deferred_test: RuntimeError, CompileTimeError # Issue 31402 (Invocation arguments)
-mirrors/library_imports_hidden_test: RuntimeError # Issue 31402 (Invocation arguments)
-mirrors/library_imports_metadata_test: RuntimeError # Issue 31402 (Invocation arguments)
-mirrors/library_imports_prefixed_show_hide_test: RuntimeError # Issue 31402 (Invocation arguments)
-mirrors/library_imports_prefixed_test: RuntimeError # Issue 31402 (Invocation arguments)
-mirrors/library_imports_shown_test: RuntimeError # Issue 31402 (Invocation arguments)
+mirrors/library_exports_hidden_test: RuntimeError # Issue 33098
+mirrors/library_exports_shown_test: RuntimeError # Issue 33098
+mirrors/library_import_deferred_loading_test: RuntimeError # Issue 33098
+mirrors/library_imports_deferred_test: RuntimeError # Issue 33098
+mirrors/library_imports_hidden_test: RuntimeError # Issue 33098
+mirrors/library_imports_metadata_test: RuntimeError # Issue 33098
+mirrors/library_imports_prefixed_show_hide_test: RuntimeError # Issue 33098
+mirrors/library_imports_prefixed_test: RuntimeError # Issue 33098
+mirrors/library_imports_shown_test: RuntimeError # Issue 33098
 mirrors/library_metadata_test: RuntimeError
 mirrors/load_library_test: RuntimeError
 mirrors/metadata_allowed_values_test/16: Skip # Flaky, crashes.
@@ -181,7 +173,7 @@ mirrors/reflected_type_typedefs_test: RuntimeError
 mirrors/reflected_type_typevars_test: RuntimeError
 mirrors/regress_26187_test: RuntimeError
 mirrors/relation_assignable_test: RuntimeError
-mirrors/relation_subclass_test: CompileTimeError # Issue 31533
+mirrors/relation_subclass_test: RuntimeError
 mirrors/relation_subtype_test: RuntimeError
 mirrors/repeated_private_anon_mixin_app_test: RuntimeError
 mirrors/static_members_easier_test: RuntimeError # Issue 31402 (Invocation arguments)
@@ -222,10 +214,6 @@ mirrors/constructor_optional_args_test: RuntimeError
 mirrors/constructors_test: RuntimeError
 mirrors/deferred_constraints_constants_test/default_argument2: Pass
 mirrors/fake_function_with_call_test: RuntimeError
-mirrors/generic_superclass_test/01: RuntimeError
-mirrors/generic_superclass_test/none: RuntimeError
-mirrors/hierarchy_invariants_test: RuntimeError
-mirrors/immutable_collections_test: RuntimeError
 mirrors/instance_members_easier_test: RuntimeError
 mirrors/instance_members_test: RuntimeError
 mirrors/instance_members_unimplemented_interface_test: RuntimeError
@@ -234,7 +222,6 @@ mirrors/invoke_closurization2_test: RuntimeError
 mirrors/invoke_throws_test: RuntimeError
 mirrors/metadata_const_map_test: Crash
 mirrors/mixin_members_test: RuntimeError
-mirrors/null_test: RuntimeError
 mirrors/operator_test: RuntimeError
 mirrors/redirecting_factory_different_type_test/02: MissingCompileTimeError
 mirrors/redirecting_factory_different_type_test/none: RuntimeError
@@ -315,7 +302,6 @@ mirrors/mirrors_nsm_test/none: CompileTimeError
 mirrors/native_class_test: CompileTimeError
 mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError
 mirrors/redirecting_factory_different_type_test/02: MissingCompileTimeError
-mirrors/relation_subclass_test: CompileTimeError
 
 [ $fasta && $strong ]
 mirrors/top_level_accessors_test/01: MissingCompileTimeError

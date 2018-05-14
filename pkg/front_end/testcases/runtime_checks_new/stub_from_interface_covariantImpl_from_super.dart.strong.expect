@@ -6,7 +6,7 @@ class B<T extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
-  method f(generic-covariant-impl generic-covariant-interface self::B::T x, core::int y) → void {}
+  method f(generic-covariant-impl self::B::T x, core::int y) → void {}
 }
 abstract class I extends core::Object {
   synthetic constructor •() → void

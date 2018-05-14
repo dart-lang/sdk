@@ -789,6 +789,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   @override
   visitStaticSet(StaticSet node) {
     node.value.accept(this);
+    _genDupTOS(node);
     final target = node.target;
     if (target is Field) {
       // TODO(alexmarkov): assignable check
@@ -796,6 +797,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       asm.emitStoreStaticTOS(cpIndex);
     } else {
       _genStaticCall(target, new ConstantArgDesc(1), 1);
+      asm.emitDrop1();
     }
   }
 

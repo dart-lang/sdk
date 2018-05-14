@@ -9,7 +9,6 @@ test(o) => o is Function;
 
 main() {
   test(
-      /*ast.checks=[],functionType,instance*/
       /*kernel.checks=[],functionType,instance*/
       /*strong.checks=[],instance*/ () {});
   test(null);

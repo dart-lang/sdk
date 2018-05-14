@@ -8,14 +8,13 @@ import 'dart:_js_helper'
     show
         patch,
         ExceptionAndStackTrace,
-        Primitives,
         convertDartClosureToJS,
         getTraceFromException,
         requiresPreamble,
         wrapException,
         unwrapException;
-import 'dart:_isolate_helper'
-    show IsolateNatives, TimerImpl, leaveJsAsync, enterJsAsync, isWorker;
+
+import 'dart:_isolate_helper' show TimerImpl;
 
 import 'dart:_foreign_helper' show JS, JS_GET_FLAG;
 
@@ -47,7 +46,6 @@ class _AsyncRun {
       var storedCallback;
 
       internalCallback(_) {
-        leaveJsAsync();
         var f = storedCallback;
         storedCallback = null;
         f();
@@ -59,7 +57,6 @@ class _AsyncRun {
 
       return (void callback()) {
         assert(storedCallback == null);
-        enterJsAsync();
         storedCallback = callback;
         // Because of a broken shadow-dom polyfill we have to change the
         // children instead a cheap property.
@@ -76,24 +73,20 @@ class _AsyncRun {
 
   static void _scheduleImmediateJsOverride(void callback()) {
     internalCallback() {
-      leaveJsAsync();
       callback();
     }
 
     ;
-    enterJsAsync();
     JS('void', 'self.scheduleImmediate(#)',
         convertDartClosureToJS(internalCallback, 0));
   }
 
   static void _scheduleImmediateWithSetImmediate(void callback()) {
     internalCallback() {
-      leaveJsAsync();
       callback();
     }
 
     ;
-    enterJsAsync();
     JS('void', 'self.setImmediate(#)',
         convertDartClosureToJS(internalCallback, 0));
   }

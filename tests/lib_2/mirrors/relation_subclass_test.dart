@@ -66,12 +66,12 @@ test(MirrorSystem mirrors) {
   Expect.isFalse(Obj.isSubclassOf(Func));
 
   // Function typedef.
-  var NumPred = thisLibrary.declarations[#NumberPredicate];
-  var IntPred = thisLibrary.declarations[#IntegerPredicate];
-  var DubPred = thisLibrary.declarations[#DoublePredicate];
-  var NumGen = thisLibrary.declarations[#NumberGenerator];
-  var IntGen = thisLibrary.declarations[#IntegerGenerator];
-  var DubGen = thisLibrary.declarations[#DoubleGenerator];
+  dynamic NumPred = thisLibrary.declarations[#NumberPredicate];
+  dynamic IntPred = thisLibrary.declarations[#IntegerPredicate];
+  dynamic DubPred = thisLibrary.declarations[#DoublePredicate];
+  dynamic NumGen = thisLibrary.declarations[#NumberGenerator];
+  dynamic IntGen = thisLibrary.declarations[#IntegerGenerator];
+  dynamic DubGen = thisLibrary.declarations[#DoubleGenerator];
 
   isArgumentOrTypeError(e) => e is ArgumentError || e is TypeError;
   Expect.throws(() => Func.isSubclassOf(NumPred), isArgumentOrTypeError);

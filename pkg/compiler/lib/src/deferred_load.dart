@@ -97,9 +97,6 @@ abstract class DeferredLoadTask extends CompilerTask {
   /// Will be `true` if the program contains deferred libraries.
   bool isProgramSplit = false;
 
-  /// Whether mirrors have been used in the program.
-  bool _isMirrorsUsed = false;
-
   static const ImpactUseCase IMPACT_USE = const ImpactUseCase('Deferred load');
 
   /// A mapping from the name of a defer import to all the output units it
@@ -222,10 +219,6 @@ abstract class DeferredLoadTask extends CompilerTask {
       }
       _collectDependenciesFromImpact(analyzableElement, elements);
       collectConstantsInBody(analyzableElement, constants);
-    }
-
-    if (_isMirrorsUsed) {
-      collectConstantsFromMetadata(element, constants);
     }
 
     if (element is FunctionEntity) {
@@ -686,8 +679,6 @@ abstract class DeferredLoadTask extends CompilerTask {
 
     work() {
       var queue = new WorkQueue(this.importSets);
-      _isMirrorsUsed =
-          closedWorld.backendUsage.isMirrorsUsed && !compiler.options.useKernel;
 
       // Add `main` and their recursive dependencies to the main output unit.
       // We do this upfront to avoid wasting time visiting these elements when
@@ -696,8 +687,8 @@ abstract class DeferredLoadTask extends CompilerTask {
 
       // Also add "global" dependencies to the main output unit.  These are
       // things that the backend needs but cannot associate with a particular
-      // element, for example, startRootIsolate.  This set also contains
-      // elements for which we lack precise information.
+      // element. This set also contains elements for which we lack precise
+      // information.
       for (MemberEntity element
           in closedWorld.backendUsage.globalFunctionDependencies) {
         element = element is MethodElement ? element.implementation : element;
@@ -707,9 +698,6 @@ abstract class DeferredLoadTask extends CompilerTask {
           in closedWorld.backendUsage.globalClassDependencies) {
         element = element is ClassElement ? element.implementation : element;
         queue.addElement(element, importSets.mainSet);
-      }
-      if (_isMirrorsUsed) {
-        addMirrorElementsForLibrary(queue, main.library, importSets.mainSet);
       }
 
       void emptyQueue() {
@@ -729,10 +717,6 @@ abstract class DeferredLoadTask extends CompilerTask {
       }
 
       emptyQueue();
-      if (_isMirrorsUsed) {
-        addDeferredMirrorElements(queue);
-        emptyQueue();
-      }
     }
 
     reporter.withCurrentElement(main.library, () => measure(work));
@@ -1261,5 +1245,13 @@ class OutputUnitData {
     assert(
         _constantToUnit[constant] == null || _constantToUnit[constant] == unit);
     _constantToUnit[constant] = unit;
+  }
+
+  /// Registers [newEntity] to be emitted in the same output unit as
+  /// [existingEntity];
+  void registerColocatedMembers(
+      MemberEntity existingEntity, MemberEntity newEntity) {
+    assert(_entityToUnit[newEntity] == null);
+    _entityToUnit[newEntity] = outputUnitForMember(existingEntity);
   }
 }

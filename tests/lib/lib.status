@@ -176,6 +176,9 @@ mirrors/generic_bounded_test/02: Fail # Type equality - Issue 26869
 [ $strong ]
 *: SkipByDesign # tests/lib_2 has the strong mode versions of these tests.
 
+[ $arch == arm64 && $runtime == vm ]
+mirrors/immutable_collections_test: Pass, Slow # http://dartbug.com/33057
+
 [ $arch == ia32 && $mode == debug && $system == windows ]
 convert/streamed_conversion_json_utf8_decode_test: Skip # Verification OOM.
 

@@ -88,13 +88,12 @@ class IdentifierContext {
       isContinuation: true);
 
   /// Identifier is the type name being declared by an enum declaration.
-  static const enumDeclaration = const IdentifierContext('enumDeclaration',
-      inDeclaration: true, isBuiltInIdentifierAllowed: false);
+  static const enumDeclaration = const EnumDeclarationIdentifierContext();
 
   /// Identifier is an enumerated value name being declared by an enum
   /// declaration.
   static const enumValueDeclaration =
-      const IdentifierContext('enumValueDeclaration', inDeclaration: true);
+      const EnumValueDeclarationIdentifierContext();
 
   /// Identifier is the name being declared by a class declaration or a named
   /// mixin application, for example, `Foo` in `class Foo = X with Y;`.
@@ -121,9 +120,8 @@ class IdentifierContext {
       const TypeReferenceIdentifierContext.continuation();
 
   /// Identifier is a name being declared by a top level variable declaration.
-  static const topLevelVariableDeclaration = const IdentifierContext(
-      'topLevelVariableDeclaration',
-      inDeclaration: true);
+  static const topLevelVariableDeclaration =
+      const TopLevelVariableIdentifierContext();
 
   /// Identifier is a name being declared by a field declaration.
   static const fieldDeclaration = const FieldDeclarationIdentifierContext();

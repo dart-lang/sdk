@@ -125,6 +125,8 @@ class ArgumentsDescriptor : public ValueObject {
   friend class SnapshotWriter;
   friend class Serializer;
   friend class Deserializer;
+  friend class Interpreter;
+  friend class InterpreterHelpers;
   friend class Simulator;
   friend class SimulatorHelpers;
   DISALLOW_COPY_AND_ASSIGN(ArgumentsDescriptor);

@@ -6,8 +6,8 @@
 library test;
 
 class C<T> {
-  void f< /*@covariance=genericInterface, genericImpl*/ U extends T>(U x) {}
-  void g1< /*@covariance=genericInterface, genericImpl*/ U extends T>() {
+  void f< /*@covariance=genericImpl*/ U extends T>(U x) {}
+  void g1< /*@covariance=genericImpl*/ U extends T>() {
     this.f<U>(1.5);
   }
 }

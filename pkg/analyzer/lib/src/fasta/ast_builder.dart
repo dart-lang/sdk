@@ -2530,6 +2530,12 @@ class AstBuilder extends ScopeListener {
     push(popTypedList<Annotation>(count) ?? NullValue.Metadata);
   }
 
+  @override
+  void printEvent(String name) {
+    // TODO(scheglov): Call of super is commented out to prevent spamming.
+//    super.printEvent(name);
+  }
+
   ParameterKind _toAnalyzerParameterKind(FormalParameterKind type) {
     if (type == FormalParameterKind.optionalPositional) {
       return ParameterKind.POSITIONAL;

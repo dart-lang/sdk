@@ -15,12 +15,10 @@ abstract class IterableMixin<E> implements Iterable<E> {
   // - SetMixin
   // If changing a method here, also change the other copies.
 
-  Iterable<R> cast<R>() {
-    Iterable<Object> self = this;
-    return self is Iterable<R> ? self : Iterable.castFrom<E, R>(this);
-  }
+  Iterable<R> cast<R>() => Iterable.castFrom<E, R>(this);
 
-  Iterable<R> retype<R>() => Iterable.castFrom<E, R>(this);
+  @Deprecated("Use cast instead.")
+  Iterable<R> retype<R>() => cast<R>();
 
   Iterable<T> map<T>(T f(E element)) => new MappedIterable<E, T>(this, f);
 

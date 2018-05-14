@@ -24,6 +24,7 @@ import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
 import '../js_model/closure.dart';
+import '../js_model/elements.dart' show JGeneratorBody;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector, SelectorKind;
 import '../universe/world_builder.dart' show CodegenWorldBuilder;
@@ -782,12 +783,28 @@ class Namer {
         ctor, () => _proposeNameForConstructorBody(ctor));
   }
 
+  /// Name for a generator body.
+  jsAst.Name generatorBodyInstanceMethodName(JGeneratorBody method) {
+    assert(method.isInstanceMember);
+    // TODO(sra): Except for methods declared in mixins, we can use a compact
+    // naming scheme like we do for [ConstructorBodyEntity].
+    FunctionEntity function = method.function;
+    return _disambiguateInternalMember(method, () {
+      String invocationName = operatorNameToIdentifier(function.name);
+      return '${invocationName}\$body\$${method.enclosingClass.name}';
+    });
+  }
+
   /// Annotated name for [method] encoding arity and named parameters.
   jsAst.Name instanceMethodName(FunctionEntity method) {
-    // TODO(johnniwinther): Avoid the use of [ConstructorBodyEntity]. The
-    // codegen model should be explicit about its constructor body elements.
+    // TODO(johnniwinther): Avoid the use of [ConstructorBodyEntity] and
+    // [JGeneratorBody]. The codegen model should be explicit about its
+    // constructor body elements.
     if (method is ConstructorBodyEntity) {
       return constructorBodyName(method);
+    }
+    if (method is JGeneratorBody) {
+      return generatorBodyInstanceMethodName(method);
     }
     return invocationName(new Selector.fromElement(method));
   }
@@ -1337,6 +1354,8 @@ class Namer {
   String _proposeNameForMember(MemberEntity element) {
     if (element.isConstructor) {
       return _proposeNameForConstructor(element);
+    } else if (element is JGeneratorBody) {
+      return _proposeNameForMember(element.function) + r'$body';
     } else if (element.enclosingClass != null) {
       ClassEntity enclosingClass = element.enclosingClass;
       return '${enclosingClass.name}_${element.name}';

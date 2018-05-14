@@ -17,7 +17,6 @@ import 'package:analysis_server/starter.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/file_instrumentation.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -199,12 +198,6 @@ class Driver implements ServerStarter {
   static const String FILE_READ_MODE = "file-read-mode";
 
   /**
-   * The name of the flag used when analyzing the flutter repository.
-   * See comments in source for `flutter analyze --watch`.
-   */
-  static const FLUTTER_REPO = "flutter-repo";
-
-  /**
    * The name of the option used to print usage information.
    */
   static const String HELP_OPTION = "help";
@@ -320,8 +313,6 @@ class Driver implements ServerStarter {
       analysisServerOptions.previewDart2 = true;
     }
     analysisServerOptions.useCFE = results[USE_CFE];
-
-    ContextBuilderOptions.flutterRepo = results[FLUTTER_REPO];
 
     telemetry.Analytics analytics = telemetry.createAnalyticsInstance(
         'UA-26406144-29', 'analysis-server',
@@ -501,10 +492,6 @@ class Driver implements ServerStarter {
         help: "enable sending instrumentation information to a server",
         defaultsTo: false,
         negatable: false);
-    parser.addFlag(FLUTTER_REPO,
-        help: 'used by "flutter analyze" to enable specific lints'
-            ' when analyzing the flutter repository',
-        hide: false);
     parser.addFlag(HELP_OPTION,
         help: "print this help message without starting a server",
         abbr: 'h',

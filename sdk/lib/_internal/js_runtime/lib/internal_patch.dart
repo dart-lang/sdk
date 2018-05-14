@@ -5,9 +5,9 @@
 import 'dart:core' hide Symbol;
 import 'dart:core' as core;
 import 'dart:_js_primitives' show printString;
-import 'dart:_js_helper' show patch;
+import 'dart:_js_helper' show patch, NoInline;
 import 'dart:_interceptors' show JSArray;
-import 'dart:_foreign_helper' show JS;
+import 'dart:_foreign_helper' show JS, JS_GET_FLAG;
 
 @patch
 class Symbol implements core.Symbol {
@@ -49,10 +49,18 @@ List<T> makeFixedListUnmodifiable<T>(List<T> fixedLengthList) {
 }
 
 @patch
+@NoInline()
 Object extractTypeArguments<T>(T instance, Function extract) {
-  // TODO(31371): Implement this correctly for Dart 2.0.
+  // In Dart 2.0 this function is recognized and replaced with calls to
+  // js_runtime.
+  if (JS_GET_FLAG('STRONG_MODE')) throw new UnimplementedError();
+
   // In Dart 1.0, instantiating the generic with dynamic (which this does),
   // gives you an object that can be used anywhere a more specific type is
   // expected, so this works for now.
+
+  // This call to [extract] is also required for Dart 2.0 to model that the
+  // function is called and the returned value flows to the result of
+  // extractTypeArguments.
   return extract();
 }

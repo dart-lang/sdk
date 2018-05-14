@@ -15,6 +15,7 @@
 #include "vm/exceptions.h"
 #include "vm/flags.h"
 #include "vm/instructions.h"
+#include "vm/interpreter.h"
 #include "vm/kernel_isolate.h"
 #include "vm/message.h"
 #include "vm/message_handler.h"
@@ -1714,6 +1715,42 @@ DEFINE_RUNTIME_ENTRY(InvokeClosureNoSuchMethod, 3) {
       receiver, original_function_name, orig_arguments, orig_arguments_desc));
   CheckResultError(result);
   arguments.SetReturn(result);
+}
+
+// Interpret a function call. Should be called only for uncompiled functions.
+// Arg0: function object
+// Arg1: ICData or MegamorphicCache
+// Arg2: arguments descriptor array
+// Arg3: arguments array
+DEFINE_RUNTIME_ENTRY(InterpretCall, 4) {
+#if defined(DART_USE_INTERPRETER)
+  const Function& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
+  // TODO(regis): Use icdata.
+  // const Object& ic_data_or_cache = Object::Handle(zone, arguments.ArgAt(1));
+  const Array& orig_arguments_desc =
+      Array::CheckedHandle(zone, arguments.ArgAt(2));
+  const Array& orig_arguments = Array::CheckedHandle(zone, arguments.ArgAt(3));
+  ASSERT(!function.HasCode());
+  ASSERT(function.HasBytecode());
+  const Code& bytecode = Code::Handle(zone, function.Bytecode());
+  Object& result = Object::Handle(zone);
+  Interpreter* interpreter = Interpreter::Current();
+  ASSERT(interpreter != NULL);
+  {
+    TransitionToGenerated transition(thread);
+    result = interpreter->Call(bytecode, orig_arguments_desc, orig_arguments,
+                               thread);
+  }
+  if (result.IsError()) {
+    if (result.IsLanguageError()) {
+      Exceptions::ThrowCompileTimeError(LanguageError::Cast(result));
+      UNREACHABLE();
+    }
+    Exceptions::PropagateError(Error::Cast(result));
+  }
+#else
+  UNREACHABLE();
+#endif
 }
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)

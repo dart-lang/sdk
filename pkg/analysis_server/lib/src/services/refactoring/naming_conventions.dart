@@ -178,17 +178,9 @@ RefactoringStatus _validateIdentifier(
       }
     }
   }
-  // first character
-  int currentChar = identifier.codeUnitAt(0);
-  if (!isLetter(currentChar) &&
-      currentChar != CHAR_UNDERSCORE &&
-      currentChar != CHAR_DOLLAR) {
-    String message = "$desc must begin with $beginDesc.";
-    return new RefactoringStatus.fatal(message);
-  }
-  // other characters
-  for (int i = 1; i < length; i++) {
-    currentChar = identifier.codeUnitAt(i);
+  // invalid characters
+  for (int i = 0; i < length; i++) {
+    int currentChar = identifier.codeUnitAt(i);
     if (!isLetterOrDigit(currentChar) &&
         currentChar != CHAR_UNDERSCORE &&
         currentChar != CHAR_DOLLAR) {
@@ -196,6 +188,14 @@ RefactoringStatus _validateIdentifier(
       String message = "$desc must not contain '$charStr'.";
       return new RefactoringStatus.fatal(message);
     }
+  }
+  // first character
+  final int currentChar = identifier.codeUnitAt(0);
+  if (!isLetter(currentChar) &&
+      currentChar != CHAR_UNDERSCORE &&
+      currentChar != CHAR_DOLLAR) {
+    String message = "$desc must begin with $beginDesc.";
+    return new RefactoringStatus.fatal(message);
   }
   // OK
   return new RefactoringStatus();

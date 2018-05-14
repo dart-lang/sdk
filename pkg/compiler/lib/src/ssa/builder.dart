@@ -2837,23 +2837,10 @@ class SsaAstGraphBuilder extends ast.Visitor
           node, 'Too many arguments to JS_CURRENT_ISOLATE_CONTEXT.');
     }
 
-    if (!backendUsage.isIsolateInUse) {
-      // If the isolate library is not used, we just generate code
-      // to fetch the static state.
-      String name = namer.staticStateHolder;
-      push(new HForeignCode(
-          js.js.parseForeignJS(name), commonMasks.dynamicType, <HInstruction>[],
-          nativeBehavior: native.NativeBehavior.DEPENDS_OTHER));
-    } else {
-      // Call a helper method from the isolate library. The isolate
-      // library uses its own isolate structure, that encapsulates
-      // Leg's isolate.
-      MethodElement element = commonElements.currentIsolate;
-      if (element == null) {
-        reporter.internalError(node, 'Isolate library and compiler mismatch.');
-      }
-      pushInvokeStatic(null, element, [], typeMask: commonMasks.dynamicType);
-    }
+    String name = namer.staticStateHolder;
+    push(new HForeignCode(
+        js.js.parseForeignJS(name), commonMasks.dynamicType, <HInstruction>[],
+        nativeBehavior: native.NativeBehavior.DEPENDS_OTHER));
   }
 
   void handleForeignJsGetFlag(ast.Send node) {
@@ -3025,27 +3012,6 @@ class SsaAstGraphBuilder extends ast.Visitor
     stack.add(graph.addConstantNull(closedWorld));
   }
 
-  void handleForeignJsCallInIsolate(ast.Send node) {
-    Link<ast.Node> link = node.arguments;
-    if (!backendUsage.isIsolateInUse) {
-      // If the isolate library is not used, we just invoke the
-      // closure.
-      visit(link.tail.head);
-      push(new HInvokeClosure(new Selector.callClosure(0),
-          <HInstruction>[pop()], commonMasks.dynamicType, const <DartType>[]));
-    } else {
-      // Call a helper method from the isolate library.
-      MethodElement element = commonElements.callInIsolate;
-      if (element == null) {
-        reporter.internalError(node, 'Isolate library and compiler mismatch.');
-      }
-      List<HInstruction> inputs = <HInstruction>[];
-      addGenericSendArgumentsToList(link, inputs);
-      pushInvokeStatic(node, element, inputs,
-          typeMask: commonMasks.dynamicType);
-    }
-  }
-
   FunctionSignature handleForeignRawFunctionRef(ast.Send node, String name) {
     if (node.arguments.isEmpty || !node.arguments.tail.isEmpty) {
       reporter.internalError(
@@ -3115,8 +3081,6 @@ class SsaAstGraphBuilder extends ast.Visitor
       handleForeignJs(node);
     } else if (name == 'JS_CURRENT_ISOLATE_CONTEXT') {
       handleForeignJsCurrentIsolateContext(node);
-    } else if (name == 'JS_CALL_IN_ISOLATE') {
-      handleForeignJsCallInIsolate(node);
     } else if (name == 'DART_CLOSURE_TO_JS') {
       handleForeignDartClosureToJs(node, 'DART_CLOSURE_TO_JS');
     } else if (name == 'RAW_DART_FUNCTION_REF') {

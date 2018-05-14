@@ -800,6 +800,10 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ ret();
 }
 
+void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
+  __ Unimplemented("Interpreter not yet supported");
+}
+
 // Called for inline allocation of contexts.
 // Input:
 // EDX: number of context variables.
@@ -1604,6 +1608,10 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
 
   __ movl(EAX, FieldAddress(EAX, Function::entry_point_offset()));
   __ jmp(EAX);
+}
+
+void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
+  __ Unimplemented("Interpreter not yet supported");
 }
 
 // ECX: Contains an ICData.

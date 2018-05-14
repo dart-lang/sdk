@@ -14,7 +14,6 @@ import 'package:compiler/compiler_new.dart'
         CompilerOutput,
         Diagnostic,
         PackagesDiscoveryProvider;
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/diagnostics/messages.dart' show Message;
 import 'package:compiler/src/elements/entities.dart'
     show LibraryEntity, MemberEntity;
@@ -140,10 +139,7 @@ CompilerImpl compilerFor(
     Uri packageConfig,
     PackagesDiscoveryProvider packagesDiscoveryProvider}) {
   Uri libraryRoot = Uri.base.resolve('sdk/');
-  Uri platformBinaries;
-  if (!options.contains(Flags.useOldFrontend)) {
-    platformBinaries = computePlatformBinariesLocation();
-  }
+  Uri platformBinaries = computePlatformBinariesLocation();
 
   if (packageRoot == null &&
       packageConfig == null &&

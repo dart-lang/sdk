@@ -10,9 +10,8 @@ import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 
 import 'package:compiler/compiler_new.dart' as api;
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/codegen.dart';
-import 'package:compiler/src/common/resolution.dart';
-import 'package:compiler/src/compile_time_constants.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/dart2js.dart' as entry;
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
@@ -20,14 +19,11 @@ import 'package:compiler/src/diagnostics/invariant.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/diagnostics/spannable.dart';
 import 'package:compiler/src/apiimpl.dart' as apiimpl;
-import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_backend/js_backend.dart';
 import 'package:compiler/src/library_loader.dart';
 import 'package:compiler/src/null_compiler_output.dart';
 import 'package:compiler/src/options.dart' show CompilerOptions;
-import 'package:compiler/src/resolution/resolution.dart';
-import 'package:compiler/src/scanner/scanner_task.dart';
 import 'package:compiler/src/universe/world_impact.dart';
 import 'package:compiler/src/world.dart';
 import 'diagnostic_reporter_helper.dart';
@@ -56,17 +52,6 @@ class TestCompiler extends apiimpl.CompilerImpl {
   @override
   JavaScriptBackend createBackend() {
     return new TestBackend(this);
-  }
-
-  @override
-  ScannerTask createScannerTask() => new TestScanner(this);
-
-  @override
-  Resolution createResolution() => new TestResolution(this);
-
-  @override
-  ResolverTask createResolverTask() {
-    return new TestResolver(this, backend.constantCompilerTask);
   }
 
   Future<bool> run(Uri uri) {
@@ -146,46 +131,6 @@ class TestDiagnosticReporter extends DiagnosticReporterWrapper {
   }
 }
 
-class TestScanner extends ScannerTask {
-  final TestCompiler compiler;
-
-  TestScanner(TestCompiler compiler)
-      : compiler = compiler,
-        super(compiler.dietParser, compiler.reporter, compiler.measurer);
-
-  void scanElements(CompilationUnitElement compilationUnit) {
-    compiler.test('ScannerTask.scanElements');
-    super.scanElements(compilationUnit);
-  }
-}
-
-class TestResolver extends ResolverTask {
-  final TestCompiler compiler;
-
-  TestResolver(TestCompiler compiler, ConstantCompiler constantCompiler)
-      : this.compiler = compiler,
-        super(compiler.resolution, constantCompiler, compiler.measurer);
-
-  void computeClassMembers(ClassElement element) {
-    compiler.test('ResolverTask.computeClassMembers');
-    super.computeClassMembers(element);
-  }
-}
-
-class TestResolution extends CompilerResolution {
-  TestCompiler compiler;
-
-  TestResolution(TestCompiler compiler)
-      : this.compiler = compiler,
-        super(compiler);
-
-  @override
-  WorldImpact computeWorldImpact(Element element) {
-    compiler.test('Compiler.analyzeElement');
-    return super.computeWorldImpact(element);
-  }
-}
-
 int checkedResults = 0;
 
 Future testExitCode(
@@ -242,7 +187,6 @@ Future testExitCode(
 
     List<String> args = new List<String>.from(options)
       // TODO(sigmund): convert to support the new CFE
-      ..add("--use-old-frontend")
       ..add("--library-root=${Uri.base.resolve('sdk/')}")
       ..add("tests/compiler/dart2js/end_to_end/data/exit_code_helper.dart");
     Future result = entry.internalMain(args);
@@ -293,11 +237,8 @@ void main() {
     'Compiler': beforeRun,
     'Compiler.run': beforeRun,
     'Compiler.processLoadedLibraries': beforeRun,
-    'ScannerTask.scanElements': duringRun,
     'Compiler.withCurrentElement': duringRun,
-    'Compiler.analyzeElement': duringRun,
     'Compiler.codegen': duringRun,
-    'ResolverTask.computeClassMembers': duringRun,
   };
   int totalExpectedErrors = 0;
 
@@ -310,7 +251,7 @@ void main() {
       expected =
           _expectedExitCode(beforeRun: tests[marker], fatalWarnings: true);
       totalExpectedErrors += expected.length;
-      await testExitCodes(marker, expected, ['--fatal-warnings']);
+      await testExitCodes(marker, expected, [Flags.fatalWarnings]);
     }
 
     Expect.equals(totalExpectedErrors, checkedResults);

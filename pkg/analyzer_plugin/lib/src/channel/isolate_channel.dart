@@ -222,7 +222,7 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
 
   @override
   void kill() {
-    _isolate.kill(priority: Isolate.immediate);
+    _isolate?.kill(priority: Isolate.immediate);
   }
 
   @override

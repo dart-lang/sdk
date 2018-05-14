@@ -28,6 +28,7 @@ import 'package:front_end/src/fasta/kernel/kernel_builder.dart';
 import 'package:front_end/src/fasta/parser/identifier_context.dart' as fasta;
 import 'package:front_end/src/fasta/parser/member_kind.dart' as fasta;
 import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
+import 'package:front_end/src/fasta/parser/type_info.dart' as fasta;
 import 'package:front_end/src/fasta/scanner.dart' as fasta;
 
 export 'package:analyzer/src/dart/ast/utilities.dart' show ResolutionCopier;

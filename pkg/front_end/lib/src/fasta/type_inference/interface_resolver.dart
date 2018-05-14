@@ -232,14 +232,8 @@ class ForwardingNode extends Procedure {
         : substitution.substituteType(type).accept(needsCheckVisitor);
     for (int i = 0; i < interfacePositionalParameters.length; i++) {
       var parameter = interfacePositionalParameters[i];
-      var isGenericCovariantInterface = needsCheck(parameter.type);
-      if (isGenericCovariantInterface !=
-          parameter.isGenericCovariantInterface) {
-        fixes.add((FunctionNode function) => function.positionalParameters[i]
-            .isGenericCovariantInterface = isGenericCovariantInterface);
-      }
       var isGenericCovariantImpl =
-          isGenericCovariantInterface || parameter.isGenericCovariantImpl;
+          parameter.isGenericCovariantImpl || needsCheck(parameter.type);
       var isCovariant = parameter.isCovariant;
       var superParameter = parameter;
       for (int j = _start; j < _end; j++) {
@@ -275,14 +269,8 @@ class ForwardingNode extends Procedure {
     }
     for (int i = 0; i < interfaceNamedParameters.length; i++) {
       var parameter = interfaceNamedParameters[i];
-      var isGenericCovariantInterface = needsCheck(parameter.type);
-      if (isGenericCovariantInterface !=
-          parameter.isGenericCovariantInterface) {
-        fixes.add((FunctionNode function) => function.namedParameters[i]
-            .isGenericCovariantInterface = isGenericCovariantInterface);
-      }
       var isGenericCovariantImpl =
-          isGenericCovariantInterface || parameter.isGenericCovariantImpl;
+          parameter.isGenericCovariantImpl || needsCheck(parameter.type);
       var isCovariant = parameter.isCovariant;
       var superParameter = parameter;
       for (int j = _start; j < _end; j++) {
@@ -317,14 +305,8 @@ class ForwardingNode extends Procedure {
     }
     for (int i = 0; i < interfaceTypeParameters.length; i++) {
       var typeParameter = interfaceTypeParameters[i];
-      var isGenericCovariantInterface = needsCheck(typeParameter.bound);
-      if (isGenericCovariantInterface !=
-          typeParameter.isGenericCovariantInterface) {
-        fixes.add((FunctionNode function) => function.typeParameters[i]
-            .isGenericCovariantInterface = isGenericCovariantInterface);
-      }
-      var isGenericCovariantImpl =
-          isGenericCovariantInterface || typeParameter.isGenericCovariantImpl;
+      var isGenericCovariantImpl = typeParameter.isGenericCovariantImpl ||
+          needsCheck(typeParameter.bound);
       var superTypeParameter = typeParameter;
       for (int j = _start; j < _end; j++) {
         var otherMember = _finalizedCandidate(j);
@@ -431,8 +413,7 @@ class ForwardingNode extends Procedure {
       return new VariableDeclaration(parameter.name,
           type: substitution.substituteType(parameter.type),
           isCovariant: parameter.isCovariant)
-        ..isGenericCovariantImpl = parameter.isGenericCovariantImpl
-        ..isGenericCovariantInterface = parameter.isGenericCovariantInterface;
+        ..isGenericCovariantImpl = parameter.isGenericCovariantImpl;
     }
 
     var targetTypeParameters = target.function.typeParameters;
@@ -444,9 +425,7 @@ class ForwardingNode extends Procedure {
       for (int i = 0; i < targetTypeParameters.length; i++) {
         var targetTypeParameter = targetTypeParameters[i];
         var typeParameter = new TypeParameter(targetTypeParameter.name, null)
-          ..isGenericCovariantImpl = targetTypeParameter.isGenericCovariantImpl
-          ..isGenericCovariantInterface =
-              targetTypeParameter.isGenericCovariantInterface;
+          ..isGenericCovariantImpl = targetTypeParameter.isGenericCovariantImpl;
         typeParameters[i] = typeParameter;
         additionalSubstitution[targetTypeParameter] =
             new TypeParameterType(typeParameter);
@@ -1136,10 +1115,9 @@ class InterfaceResolver {
   void _recordInstrumentation(Class class_) {
     var uri = class_.fileUri;
     void recordCovariance(int fileOffset, bool isExplicitlyCovariant,
-        bool isGenericCovariantInterface, bool isGenericCovariantImpl) {
+        bool isGenericCovariantImpl) {
       var covariance = <String>[];
       if (isExplicitlyCovariant) covariance.add('explicit');
-      if (isGenericCovariantInterface) covariance.add('genericInterface');
       if (!isExplicitlyCovariant && isGenericCovariantImpl) {
         covariance.add('genericImpl');
       }
@@ -1157,14 +1135,11 @@ class InterfaceResolver {
       }
       void recordFormalAnnotations(VariableDeclaration formal) {
         recordCovariance(formal.fileOffset, formal.isCovariant,
-            formal.isGenericCovariantInterface, formal.isGenericCovariantImpl);
+            formal.isGenericCovariantImpl);
       }
 
       void recordTypeParameterAnnotations(TypeParameter typeParameter) {
-        recordCovariance(
-            typeParameter.fileOffset,
-            false,
-            typeParameter.isGenericCovariantInterface,
+        recordCovariance(typeParameter.fileOffset, false,
             typeParameter.isGenericCovariantImpl);
       }
 
@@ -1174,8 +1149,8 @@ class InterfaceResolver {
     }
     for (var field in class_.fields) {
       if (field.isStatic) continue;
-      recordCovariance(field.fileOffset, field.isCovariant,
-          field.isGenericCovariantInterface, field.isGenericCovariantImpl);
+      recordCovariance(
+          field.fileOffset, field.isCovariant, field.isGenericCovariantImpl);
     }
   }
 
@@ -1217,12 +1192,10 @@ class InterfaceResolver {
       // information is propagated to the getter/setter during type inference.
       var type = member.type;
       var isGenericCovariantImpl = member.isGenericCovariantImpl;
-      var isGenericCovariantInterface = member.isGenericCovariantInterface;
       var isCovariant = member.isCovariant;
       if (setter) {
         var valueParam = new VariableDeclaration('_', type: type)
           ..isGenericCovariantImpl = isGenericCovariantImpl
-          ..isGenericCovariantInterface = isGenericCovariantInterface
           ..isCovariant = isCovariant;
         var function = new FunctionNode(null,
             positionalParameters: [valueParam], returnType: const VoidType());
@@ -1341,14 +1314,6 @@ class SyntheticSetterParameter extends VariableDeclaration {
   @override
   void set isGenericCovariantImpl(bool value) {
     _field.isGenericCovariantImpl = value;
-  }
-
-  @override
-  bool get isGenericCovariantInterface => _field.isGenericCovariantInterface;
-
-  @override
-  void set isGenericCovariantInterface(bool value) {
-    _field.isGenericCovariantInterface = value;
   }
 
   @override

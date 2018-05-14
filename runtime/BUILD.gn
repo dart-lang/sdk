@@ -143,6 +143,10 @@ config("dart_config") {
     ]
   }
 
+  if (dart_use_interpreter) {
+    defines += [ "DART_USE_INTERPRETER" ]
+  }
+
   if (!is_win) {
     cflags = [
       "-Werror",

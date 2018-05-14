@@ -737,46 +737,25 @@ abstract class JavaScriptIndexingBehavior<E> {}
 // TODO(lrn): These exceptions should be implemented in core.
 // When they are, remove the 'Implementation' here.
 
-/** Thrown by type assertions that fail. */
-class TypeErrorImplementation extends Error implements TypeError {
+/// Thrown by type assertions that fail.
+class TypeErrorImpl extends Error implements TypeError {
   final String message;
 
-  /**
-   * Normal type error caused by a failed subtype test.
-   */
-  // TODO(sra): Include [value] in message.
-  TypeErrorImplementation(Object value, Object actualType, Object expectedType,
-      bool strongModeError)
-      : message = "Type '${actualType}' is not a subtype "
-            "of type '${expectedType}'" +
-            (strongModeError ? " in strong mode" : "");
-
-  TypeErrorImplementation.fromMessage(String this.message);
+  TypeErrorImpl(this.message);
 
   String toString() => message;
 }
 
-/** Thrown by the 'as' operator if the cast isn't valid. */
-class CastErrorImplementation extends Error implements CastError {
-  // TODO(lrn): Rename to CastError (and move implementation into core).
+/// Thrown by the 'as' operator if the cast isn't valid.
+class CastErrorImpl extends Error implements CastError {
   final String message;
 
-  /**
-   * Normal cast error caused by a failed type cast.
-   */
-  // TODO(sra): Include [value] in message.
-  CastErrorImplementation(Object value, Object actualType, Object expectedType,
-      bool strongModeError)
-      : message = "CastError: Casting value of type '$actualType' to"
-            " type '$expectedType' which is incompatible" +
-            (strongModeError ? " in strong mode": "");
+  CastErrorImpl(this.message);
 
   String toString() => message;
 }
-
 
 class FallThroughErrorImplementation extends FallThroughError {
-  FallThroughErrorImplementation();
   String toString() => "Switch case fall-through.";
 }
 

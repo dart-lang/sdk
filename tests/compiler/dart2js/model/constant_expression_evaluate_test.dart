@@ -11,7 +11,6 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/compile_time_constants.dart';
 import 'package:compiler/src/constants/constructors.dart';
 import 'package:compiler/src/constants/evaluation.dart';
 import 'package:compiler/src/constants/expressions.dart';
@@ -645,38 +644,14 @@ Future testData(TestData data) async {
     });
   }
 
-  const skipAstList = const [
-    // The old front end reports errors through the compile time constant
-    // evaluator which results in different constant expressions for errorneous
-    // constants.
-    'errors',
-    // Assert in initializer is not supported by the old frontend.
-    'assert',
-  ];
-  const skipKernelList = const [
-    // TODO(johnniwinther): Investigate why some types of the constructed
-    // objects don't match.
-    'redirect',
-  ];
+  const skipKernelList = const [];
 
   const skipStrongList = const [
-    // TODO(johnniwinther): Investigate why some types of the constructed
-    // objects don't match.
-    'redirect',
     // TODO(johnniwinther): Investigate why different errors are reported in
     // strong mode.
     'errors',
   ];
 
-  if (!skipAstList.contains(data.name) && !data.strongModeOnly) {
-    print(
-        '--test ast----------------------------------------------------------');
-    await runTest(
-        [Flags.useOldFrontend],
-        (Compiler compiler, FieldEntity field) => new AstEvaluationEnvironment(
-            compiler,
-            constantRequired: field.isConst));
-  }
   if (!skipKernelList.contains(data.name) && !data.strongModeOnly) {
     print(
         '--test kernel-------------------------------------------------------');

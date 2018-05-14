@@ -829,6 +829,44 @@ class SignatureFunctionData implements FunctionData {
   }
 }
 
+abstract class DelegatedFunctionData implements FunctionData {
+  final FunctionData baseData;
+
+  DelegatedFunctionData(this.baseData);
+
+  FunctionType getFunctionType(covariant KernelToElementMapBase elementMap) {
+    return baseData.getFunctionType(elementMap);
+  }
+
+  List<TypeVariableType> getFunctionTypeVariables(
+      KernelToElementMap elementMap) {
+    return baseData.getFunctionTypeVariables(elementMap);
+  }
+
+  void forEachParameter(KernelToElementMapForBuilding elementMap,
+      void f(DartType type, String name, ConstantValue defaultValue)) {
+    return baseData.forEachParameter(elementMap, f);
+  }
+
+  @override
+  Iterable<ConstantValue> getMetadata(KernelToElementMap elementMap) {
+    return const <ConstantValue>[];
+  }
+
+  InterfaceType getMemberThisType(KernelToElementMapForBuilding elementMap) {
+    return baseData.getMemberThisType(elementMap);
+  }
+
+  ClassTypeVariableAccess get classTypeVariableAccess =>
+      baseData.classTypeVariableAccess;
+}
+
+class GeneratorBodyFunctionData extends DelegatedFunctionData {
+  final MemberDefinition definition;
+  GeneratorBodyFunctionData(FunctionData baseData, this.definition)
+      : super(baseData);
+}
+
 abstract class ConstructorData extends FunctionData {
   ConstantConstructor getConstructorConstant(
       KernelToElementMapBase elementMap, ConstructorEntity constructor);

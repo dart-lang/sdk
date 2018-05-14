@@ -92,7 +92,6 @@ class TypeParameterHelper {
 
   enum Flag {
     kIsGenericCovariantImpl = 1 << 0,
-    kIsGenericCovariantInterface = 1 << 1
   };
 
   explicit TypeParameterHelper(KernelReaderHelper* helper) {
@@ -150,7 +149,6 @@ class VariableDeclarationHelper {
     kConst = 1 << 1,
     kCovariant = 1 << 3,
     kIsGenericCovariantImpl = 1 << 5,
-    kIsGenericCovariantInterface = 1 << 6
   };
 
   explicit VariableDeclarationHelper(KernelReaderHelper* helper)
@@ -169,9 +167,6 @@ class VariableDeclarationHelper {
   bool IsFinal() { return (flags_ & kFinal) != 0; }
   bool IsCovariant() { return (flags_ & kCovariant) != 0; }
 
-  bool IsGenericCovariantInterface() {
-    return (flags_ & kIsGenericCovariantInterface) != 0;
-  }
   bool IsGenericCovariantImpl() {
     return (flags_ & kIsGenericCovariantImpl) != 0;
   }
@@ -215,7 +210,6 @@ class FieldHelper {
     kStatic = 1 << 2,
     kIsCovariant = 1 << 5,
     kIsGenericCovariantImpl = 1 << 6,
-    kIsGenericCovariantInterface = 1 << 7
   };
 
   explicit FieldHelper(KernelReaderHelper* helper)
@@ -241,9 +235,6 @@ class FieldHelper {
   bool IsCovariant() const { return (flags_ & kIsCovariant) != 0; }
   bool IsGenericCovariantImpl() {
     return (flags_ & kIsGenericCovariantImpl) != 0;
-  }
-  bool IsGenericCovariantInterface() {
-    return (flags_ & kIsGenericCovariantInterface) != 0;
   }
 
   bool FieldHasFunctionLiteralInitializer(TokenPosition* start,
@@ -671,6 +662,19 @@ class ProcedureAttributesMetadataHelper : public MetadataHelper {
  private:
   bool ReadMetadata(intptr_t node_offset,
                     ProcedureAttributesMetadata* metadata);
+};
+
+// Helper class which provides access to bytecode metadata.
+class BytecodeMetadataHelper : public MetadataHelper {
+ public:
+  static const char* tag() { return "vm.bytecode"; }
+
+  explicit BytecodeMetadataHelper(StreamingFlowGraphBuilder* builder)
+      : MetadataHelper(builder) {}
+
+#if defined(DART_USE_INTERPRETER)
+  void CopyBytecode(const Function& function);
+#endif
 };
 
 class StreamingDartTypeTranslator {
@@ -1188,6 +1192,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
         direct_call_metadata_helper_(this),
         inferred_type_metadata_helper_(this),
         procedure_attributes_metadata_helper_(this),
+        bytecode_metadata_helper_(this),
         metadata_scanned_(false) {}
 
   StreamingFlowGraphBuilder(TranslationHelper* translation_helper,
@@ -1210,6 +1215,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
         direct_call_metadata_helper_(this),
         inferred_type_metadata_helper_(this),
         procedure_attributes_metadata_helper_(this),
+        bytecode_metadata_helper_(this),
         metadata_scanned_(false) {}
 
   StreamingFlowGraphBuilder(TranslationHelper* translation_helper,
@@ -1232,6 +1238,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
         direct_call_metadata_helper_(this),
         inferred_type_metadata_helper_(this),
         procedure_attributes_metadata_helper_(this),
+        bytecode_metadata_helper_(this),
         metadata_scanned_(false) {}
 
   virtual ~StreamingFlowGraphBuilder() {}
@@ -1561,6 +1568,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   DirectCallMetadataHelper direct_call_metadata_helper_;
   InferredTypeMetadataHelper inferred_type_metadata_helper_;
   ProcedureAttributesMetadataHelper procedure_attributes_metadata_helper_;
+  BytecodeMetadataHelper bytecode_metadata_helper_;
   bool metadata_scanned_;
 
   friend class ClassHelper;
@@ -1568,6 +1576,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   friend class ConstructorHelper;
   friend class DirectCallMetadataHelper;
   friend class ProcedureAttributesMetadataHelper;
+  friend class BytecodeMetadataHelper;
   friend class FieldHelper;
   friend class FunctionNodeHelper;
   friend class InferredTypeMetadataHelper;

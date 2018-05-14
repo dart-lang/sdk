@@ -5,8 +5,7 @@
 library fasta.forest;
 
 // TODO(ahe): Remove this import.
-import 'package:kernel/ast.dart' as kernel show Arguments;
-import 'package:kernel/ast.dart';
+import 'package:kernel/ast.dart' as kernel show Arguments, DartType;
 
 /// A tree factory.
 ///
@@ -43,16 +42,15 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
 
   /// Return a representation of a list literal. The [constKeyword] is the
   /// location of the `const` keyword, or `null` if there is no keyword. The
-  /// [isConst] is `true` if either the `const` keyword is not-`null` or if the
-  /// list literal is in a const context. The [typeArgument] is the
-  /// representation of the single valid type argument preceding the list
-  /// literal, or `null` if there is no type argument, there is more than one
-  /// type argument, or if the type argument cannot be resolved. The
-  /// [typeArguments] is the representation of all of the type arguments
-  /// preceding the list literal, or `null` if there are no type arguments. The
-  /// [leftBracket] is the location of the `[`. The list of [expressions] is a
-  /// list of the representations of the list elements. The [rightBracket] is
-  /// the location of the `]`.
+  /// [isConst] is `true` if the literal is either explicitly or implicitly a
+  /// constant. The [typeArgument] is the representation of the single valid
+  /// type argument preceding the list literal, or `null` if there is no type
+  /// argument, there is more than one type argument, or if the type argument
+  /// cannot be resolved. The [typeArguments] is the representation of all of
+  /// the type arguments preceding the list literal, or `null` if there are no
+  /// type arguments. The [leftBracket] is the location of the `[`. The list of
+  /// [expressions] is a list of the representations of the list elements. The
+  /// [rightBracket] is the location of the `]`.
   Expression literalList(
       Location constKeyword,
       bool isConst,
@@ -64,18 +62,17 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
 
   /// Return a representation of a map literal. The [constKeyword] is the
   /// location of the `const` keyword, or `null` if there is no keyword. The
-  /// [isConst] is `true` if either the `const` keyword is not-`null` or if the
-  /// map literal is in a const context. The [keyType] is the representation of
-  /// the first type argument preceding the map literal, or `null` if there are
-  /// not exactly two type arguments or if the first type argument cannot be
-  /// resolved. The [valueType] is the representation of the second type
-  /// argument preceding the map literal, or `null` if there are not exactly two
-  /// type arguments or if the second type argument cannot be resolved. The
-  /// [typeArguments] is the representation of all of the type arguments
-  /// preceding the map literal, or `null` if there are no type arguments. The
-  /// [leftBracket] is the location of the `{`. The list of [entries] is a
-  /// list of the representations of the map entries. The [rightBracket] is
-  /// the location of the `}`.
+  /// [isConst] is `true` if the literal is either explicitly or implicitly a
+  /// constant. The [keyType] is the representation of the first type argument
+  /// preceding the map literal, or `null` if there are not exactly two type
+  /// arguments or if the first type argument cannot be resolved. The
+  /// [valueType] is the representation of the second type argument preceding
+  /// the map literal, or `null` if there are not exactly two type arguments or
+  /// if the second type argument cannot be resolved. The [typeArguments] is the
+  /// representation of all of the type arguments preceding the map literal, or
+  /// `null` if there are no type arguments. The [leftBracket] is the location
+  /// of the `{`. The list of [entries] is a list of the representations of the
+  /// map entries. The [rightBracket] is the location of the `}`.
   Expression literalMap(
       Location constKeyword,
       bool isConst,
@@ -112,11 +109,11 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
 
   /// Given a representation of a list of [typeArguments], return the number of
   /// type arguments in the list.
-  int getTypeCount(Object typeArguments);
+  int getTypeCount(covariant typeArguments);
 
   /// Given a representation of a list of [typeArguments], return the type
   /// associated with the argument at the given [index].
-  DartType getTypeAt(Object typeArguments, int index);
+  kernel.DartType getTypeAt(covariant typeArguments, int index);
 
   Expression loadLibrary(covariant dependency);
 
@@ -128,9 +125,10 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   Expression awaitExpression(Expression operand, Location location);
 
   /// Return a representation of a conditional expression. The [condition] is
-  /// the condition. The [question] is the `?`. The [thenExpression] is the
-  /// expression following the question mark. The [colon] is the `:`. The
-  /// [elseExpression] is the expression following the colon.
+  /// the expression preceding the question mark. The [question] is the `?`. The
+  /// [thenExpression] is the expression following the question mark. The
+  /// [colon] is the `:`. The [elseExpression] is the expression following the
+  /// colon.
   Expression conditionalExpression(Expression condition, Location question,
       Expression thenExpression, Location colon, Expression elseExpression);
 

@@ -15,8 +15,8 @@ class B implements A {
 }
 
 class C<T> implements B {
-  void f(T /*@covariance=explicit, genericInterface*/ x) {}
-  T /*@covariance=explicit, genericInterface*/ x;
+  void f(T /*@covariance=explicit*/ x) {}
+  T /*@covariance=explicit*/ x;
 }
 
 main() {}

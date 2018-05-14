@@ -31,7 +31,7 @@ void testAsyncTransform(String source, String expected) {
           asyncReturn: new VariableUse("returnHelper"),
           asyncRethrow: new VariableUse("rethrowHelper"),
           completerFactory: new VariableUse("NewCompleter"),
-          completerFactoryTypeArgument: new VariableUse("CompleterType"),
+          completerFactoryTypeArguments: [new VariableUse("CompleterType")],
           wrapBody: new VariableUse("_wrapJsFunctionForAsync"),
           safeVariableName: (String name) => "__$name",
           bodyName: new StringBackedName("body")));
@@ -44,7 +44,7 @@ void testSyncStarTransform(String source, String expected) {
       new SyncStarRewriter(null, null,
           endOfIteration: new VariableUse("endOfIteration"),
           iterableFactory: new VariableUse("NewIterable"),
-          iterableFactoryTypeArgument: new VariableUse("IterableType"),
+          iterableFactoryTypeArguments: [new VariableUse("IterableType")],
           yieldStarExpression: new VariableUse("yieldStar"),
           uncaughtErrorExpression: new VariableUse("uncaughtError"),
           safeVariableName: (String name) => "__$name",

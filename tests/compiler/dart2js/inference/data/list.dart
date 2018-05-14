@@ -104,9 +104,7 @@ newUint16List() => new Uint16List(_field3);
 // Create a Uint32List using a parenthesized literal int as length.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*ast.element: newUint32List:Container([exact=NativeUint32List], element: [subclass=JSUInt32], length: null)*/
-/*kernel.element: newUint32List:Container([exact=NativeUint32List], element: [subclass=JSUInt32], length: 13)*/
-/*strong.element: newUint32List:Container([exact=NativeUint32List], element: [subclass=JSUInt32], length: 13)*/
+/*element: newUint32List:Container([exact=NativeUint32List], element: [subclass=JSUInt32], length: 13)*/
 newUint32List() => new Uint32List((13));
 
 ////////////////////////////////////////////////////////////////////////////////

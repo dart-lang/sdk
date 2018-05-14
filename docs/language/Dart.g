@@ -471,7 +471,11 @@ mixinApplication
     ;
 
 enumType
-    :    ENUM typeIdentifier LBRACE identifier (',' identifier)* (',')? RBRACE
+    :    ENUM typeIdentifier LBRACE enumEntry (',' enumEntry)* (',')? RBRACE
+    ;
+
+enumEntry
+    :    metadata identifier
     ;
 
 typeParameter

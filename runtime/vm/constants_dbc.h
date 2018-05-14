@@ -953,7 +953,7 @@ class Bytecode {
     const char* names[] = {
 #define NAME(name, encoding, op1, op2, op3) #name,
         BYTECODES_LIST(NAME)
-#undef DECLARE_BYTECODE
+#undef NAME
     };
     return names[DecodeOpcode(instr)];
   }

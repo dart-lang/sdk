@@ -324,10 +324,6 @@ class JavaScriptBackend {
 
   FrontendStrategy get frontendStrategy => compiler.frontendStrategy;
 
-  /// Returns true if the backend supports reflection and this isn't Dart 2.
-  bool get supportsReflection =>
-      emitter.supportsReflection && !compiler.options.useKernel;
-
   FunctionCompiler functionCompiler;
 
   CodeEmitterTask emitter;
@@ -1169,7 +1165,8 @@ class JavaScriptBackend {
     if (element.asyncMarker == AsyncMarker.SYNC) return code;
 
     AsyncRewriterBase rewriter = null;
-    jsAst.Name name = namer.methodPropertyName(element);
+    jsAst.Name name = namer.methodPropertyName(
+        element is JGeneratorBody ? element.function : element);
 
     switch (element.asyncMarker) {
       case AsyncMarker.ASYNC:
@@ -1182,7 +1179,7 @@ class JavaScriptBackend {
                 emitter.staticFunctionAccess(commonElements.endOfIteration),
             iterableFactory: emitter
                 .staticFunctionAccess(commonElements.syncStarIterableFactory),
-            iterableFactoryTypeArgument:
+            iterableFactoryTypeArguments:
                 _fetchItemType(element, elementEnvironment),
             yieldStarExpression:
                 emitter.staticFunctionAccess(commonElements.yieldStar),
@@ -1205,7 +1202,7 @@ class JavaScriptBackend {
             wrapBody: emitter.staticFunctionAccess(commonElements.wrapBody),
             newController: emitter.staticFunctionAccess(
                 commonElements.asyncStarStreamControllerFactory),
-            newControllerTypeArgument:
+            newControllerTypeArguments:
                 _fetchItemType(element, elementEnvironment),
             safeVariableName: namer.safeVariablePrefixForAsyncRewrite,
             yieldExpression:
@@ -1223,19 +1220,22 @@ class JavaScriptBackend {
     return rewriter.rewrite(code, bodySourceInformation, exitSourceInformation);
   }
 
-  /// Returns an expression that evaluates the type argument to the
+  /// Returns an optional expression that evaluates the type argument to the
   /// Future/Stream/Iterable.
-  jsAst.Expression _fetchItemType(
+  /// Returns an empty list if the type is not needed.
+  /// Returns `null` if the type expression is determined by
+  /// the outside context and should be added as a function parameter.
+  List<jsAst.Expression> _fetchItemType(
       FunctionEntity element, ElementEnvironment elementEnvironment) {
-    DartType type =
-        elementEnvironment.getFunctionAsyncOrSyncStarElementType(element);
+    //DartType type =
+    //  elementEnvironment.getFunctionAsyncOrSyncStarElementType(element);
 
-    if (!type.containsFreeTypeVariables) {
-      return rtiEncoder.getTypeRepresentation(emitter.emitter, type, null);
-    }
+    //if (!type.containsFreeTypeVariables) {
+    //  var ast = rtiEncoder.getTypeRepresentation(emitter.emitter, type, null);
+    //  return <jsAst.Expression>[ast];
+    //}
 
-    // TODO(sra): Handle types that have type variables.
-    return js('null');
+    return null;
   }
 
   AsyncRewriter _makeAsyncRewriter(
@@ -1254,7 +1254,7 @@ class JavaScriptBackend {
         ? commonElements.asyncAwaitCompleterFactory
         : commonElements.syncCompleterFactory;
 
-    jsAst.Expression itemTypeExpression =
+    List<jsAst.Expression> itemTypeExpression =
         _fetchItemType(element, elementEnvironment);
 
     var rewriter = new AsyncRewriter(reporter, element,
@@ -1267,7 +1267,7 @@ class JavaScriptBackend {
             emitter.staticFunctionAccess(commonElements.asyncHelperRethrow),
         wrapBody: emitter.staticFunctionAccess(commonElements.wrapBody),
         completerFactory: emitter.staticFunctionAccess(completerFactory),
-        completerFactoryTypeArgument: itemTypeExpression,
+        completerFactoryTypeArguments: itemTypeExpression,
         safeVariableName: namer.safeVariablePrefixForAsyncRewrite,
         bodyName: namer.deriveAsyncBodyName(name));
 

@@ -16,7 +16,6 @@ main(List<String> args) async {
   argParser.addFlag('callers', defaultsTo: false);
   ArgResults results = argParser.parse(args);
 
-  ComputeMemberDataFunction astFunction = computeClosureData;
   ComputeMemberDataFunction kernelFunction = computeKernelClosureData;
-  await show(results, astFunction, kernelFunction);
+  await show(results, kernelFunction);
 }

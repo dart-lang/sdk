@@ -30,6 +30,7 @@ import '../js_backend/runtime_types.dart' show RuntimeTypesSubstitutions;
 import '../js_emitter/js_emitter.dart' show NativeEmitter;
 import '../js_model/locals.dart'
     show forEachOrderedParameter, GlobalLocalsMap, JumpVisitor;
+import '../js_model/elements.dart' show JGeneratorBody;
 import '../kernel/element_map.dart';
 import '../kernel/kernel_backend_strategy.dart';
 import '../native/native.dart' as native;
@@ -70,6 +71,7 @@ class StackFrame {
 class KernelSsaGraphBuilder extends ir.Visitor
     with GraphBuilder, SsaBuilderFieldMixin {
   final MemberEntity targetElement;
+  final MemberEntity initialTargetElement;
 
   final ClosedWorld closedWorld;
   final CodegenWorldBuilder _worldBuilder;
@@ -124,7 +126,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   StackFrame _currentFrame;
 
   KernelSsaGraphBuilder(
-      this.targetElement,
+      this.initialTargetElement,
       InterfaceType instanceType,
       this.compiler,
       this._elementMap,
@@ -136,7 +138,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       this.closureDataLookup,
       this.nativeEmitter,
       this._sourceInformationStrategy)
-      : _infoReporter = compiler.dumpInfoTask {
+      : this.targetElement = _effectiveTargetElementFor(initialTargetElement),
+        _infoReporter = compiler.dumpInfoTask {
     _enterFrame(targetElement);
     this.loopHandler = new KernelLoopHandler(this);
     typeBuilder = new KernelTypeBuilder(this, _elementMap, _globalLocalsMap);
@@ -156,6 +159,11 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   SourceInformationBuilder get _sourceInformationBuilder =>
       _currentFrame.sourceInformationBuilder;
+
+  static MemberEntity _effectiveTargetElementFor(MemberEntity member) {
+    if (member is JGeneratorBody) return member.function;
+    return member;
+  }
 
   void _enterFrame(MemberEntity member) {
     AsyncMarker asyncMarker = AsyncMarker.SYNC;
@@ -183,7 +191,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // TODO(het): no reason to do this here...
       HInstruction.idCounter = 0;
       MemberDefinition definition =
-          _elementMap.getMemberDefinition(targetElement);
+          _elementMap.getMemberDefinition(initialTargetElement);
 
       switch (definition.kind) {
         case MemberKind.regular:
@@ -247,6 +255,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
           }
           buildMethodSignature(originalClosureNode);
           break;
+        case MemberKind.generatorBody:
+          buildGeneratorBody(
+              initialTargetElement, _functionNodeOf(definition.node));
+          break;
       }
       assert(graph.isValid());
 
@@ -267,6 +279,13 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
       return graph;
     });
+  }
+
+  ir.FunctionNode _functionNodeOf(ir.TreeNode node) {
+    if (node is ir.Member) return node.function;
+    if (node is ir.FunctionDeclaration) return node.function;
+    if (node is ir.FunctionExpression) return node.function;
+    return null;
   }
 
   ir.FunctionNode _ensureDefaultArgumentValues(ir.FunctionNode function) {
@@ -386,8 +405,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
         // Unused, so bind to `dynamic`.
         param = graph.addConstantNull(closedWorld);
       }
-      localsHandler.directLocals[
-          localsHandler.getTypeVariableAsLocal(typeVariableType)] = param;
+      Local local = localsHandler.getTypeVariableAsLocal(typeVariableType);
+      localsHandler.directLocals[local] = param;
     });
   }
 
@@ -414,10 +433,13 @@ class KernelSsaGraphBuilder extends ir.Visitor
         // Unused, so bind to `dynamic`.
         param = graph.addConstantNull(closedWorld);
       }
-      localsHandler.directLocals[
-          localsHandler.getTypeVariableAsLocal(typeVariableType)] = param;
+      Local local = localsHandler.getTypeVariableAsLocal(typeVariableType);
+      localsHandler.directLocals[local] = param;
+      functionTypeParameterLocals.add(local);
     });
   }
+
+  List<Local> functionTypeParameterLocals = <Local>[];
 
   /// Builds a generative constructor.
   ///
@@ -622,7 +644,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   void _invokeConstructorBody(ir.Constructor constructor,
       List<HInstruction> inputs, SourceInformation sourceInformation) {
-    // TODO(sra): Inline the constructor body.
     MemberEntity constructorBody = _elementMap.getConstructorBody(constructor);
     HInvokeConstructorBody invoke = new HInvokeConstructorBody(
         constructorBody, inputs, commonMasks.nonNullType, sourceInformation);
@@ -941,6 +962,11 @@ class KernelSsaGraphBuilder extends ir.Visitor
   /// Procedures.
   void buildFunctionNode(
       FunctionEntity function, ir.FunctionNode functionNode) {
+    if (functionNode.asyncMarker != ir.AsyncMarker.Sync) {
+      buildGenerator(function, functionNode);
+      return;
+    }
+
     openFunction(function, functionNode);
 
     // If [functionNode] is `operator==` we explicitly add a null check at the
@@ -964,6 +990,78 @@ class KernelSsaGraphBuilder extends ir.Visitor
             sourceInformation: _sourceInformationBuilder.buildIf(functionNode));
       }
     }
+    functionNode.body.accept(this);
+    closeFunction();
+  }
+
+  /// Builds a SSA graph for a sync*/async/async* generator.
+  void buildGenerator(FunctionEntity function, ir.FunctionNode functionNode) {
+    // TODO(sra): Optimize by generating a merged entry + body when (1) there
+    // are no checks in the entry and (2) the element type is simple.
+    if (true == true) {
+      buildGeneratorEntry(function, functionNode);
+    } else {
+      openFunction(function, functionNode);
+      functionNode.body.accept(this);
+      closeFunction();
+    }
+  }
+
+  /// Builds a SSA graph for a sync*/async/async* generator body.
+  void buildGeneratorEntry(
+      FunctionEntity function, ir.FunctionNode functionNode) {
+    graph.isGeneratorEntry = true;
+
+    // TODO(sra): Omit entry checks.
+    openFunction(function, functionNode);
+
+    // Generate type argument for generator class.
+
+    // Tail-call body.
+    JGeneratorBody body = _elementMap.getGeneratorBody(function);
+    backend.outputUnitData.registerColocatedMembers(function, body);
+
+    // Is 'buildAsyncBody' the best location for the entry?
+    var sourceInformation = _sourceInformationBuilder.buildAsyncBody();
+
+    // Forward all the parameters.
+    List<HInstruction> inputs = <HInstruction>[];
+    if (graph.thisInstruction != null) {
+      inputs.add(graph.thisInstruction);
+    }
+    if (graph.explicitReceiverParameter != null) {
+      inputs.add(graph.explicitReceiverParameter);
+    }
+    for (Local local in parameters.keys) {
+      inputs.add(localsHandler.readLocal(local));
+    }
+    for (Local local in functionTypeParameterLocals) {
+      inputs.add(localsHandler.readLocal(local));
+    }
+
+    // Add the type parameter for the generator's element type.
+    DartType elementType = _elementMap.elementEnvironment
+        .getAsyncOrSyncStarElementType(function.asyncMarker, _returnType);
+    inputs.add(typeBuilder.analyzeTypeArgument(elementType, function));
+
+    push(new HInvokeGeneratorBody(
+        body,
+        inputs,
+        commonMasks.dynamicType, // TODO: better type.
+        sourceInformation));
+
+    closeAndGotoExit(
+        new HReturn(abstractValueDomain, pop(), sourceInformation));
+
+    closeFunction();
+  }
+
+  /// Builds a SSA graph for a sync*/async/async* generator body.
+  void buildGeneratorBody(
+      JGeneratorBody function, ir.FunctionNode functionNode) {
+    // TODO(sra): Omit entry checks.
+    FunctionEntity entry = function.function;
+    openFunction(entry, functionNode);
     functionNode.body.accept(this);
     closeFunction();
   }
@@ -999,7 +1097,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
   }
 
   void checkTypeVariableBounds(FunctionEntity method) {
-    if (rtiNeed.methodNeedsTypeArguments(method)) {
+    if (rtiNeed.methodNeedsTypeArguments(method) &&
+        options.parameterCheckPolicy.isEmitted) {
       ir.FunctionNode function = getFunctionNode(_elementMap, method);
       for (ir.TypeParameter typeParameter in function.typeParameters) {
         Local local = localsMap.getLocalTypeVariable(
@@ -3104,6 +3203,13 @@ class KernelSsaGraphBuilder extends ir.Visitor
       return;
     }
     FunctionEntity function = _elementMap.getMember(target);
+
+    if (options.strongMode &&
+        function == _commonElements.extractTypeArguments &&
+        handleExtractTypeArguments(node, sourceInformation)) {
+      return;
+    }
+
     TypeMask typeMask = _typeInferenceMap.getReturnTypeOf(function);
 
     List<DartType> typeArguments =
@@ -3306,15 +3412,78 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
   }
 
+  /// Replace calls to `extractTypeArguments` with equivalent code. Returns
+  /// `true` if `extractTypeArguments` is handled.
+  bool handleExtractTypeArguments(
+      ir.StaticInvocation invocation, SourceInformation sourceInformation) {
+    // Expand calls as follows:
+    //
+    //     r = extractTypeArguments<Map>(e, f)
+    // -->
+    //     interceptor = getInterceptor(e);
+    //     T1 = getRuntimeTypeArgumentIntercepted(interceptor, e, 'Map', 0);
+    //     T2 = getRuntimeTypeArgumentIntercepted(interceptor, e, 'Map', 1);
+    //     r = f<T1, T2>();
+    //
+    // TODO(sra): Should we add a check before the variable extraction? We could
+    // add a type check (which would permit `null`), or add an is-check with an
+    // explicit throw.
+
+    if (invocation.arguments.positional.length != 2) return false;
+    if (invocation.arguments.named.isNotEmpty) return false;
+    var types = invocation.arguments.types;
+    if (types.length != 1) return false;
+
+    // The type should be a single type name.
+    ir.DartType type = types.first;
+    DartType typeValue =
+        localsHandler.substInContext(_elementMap.getDartType(type));
+    if (typeValue is! InterfaceType) return false;
+    InterfaceType interfaceType = typeValue;
+    if (!interfaceType.treatAsRaw) return false;
+
+    ClassEntity cls = interfaceType.element;
+    InterfaceType thisType = _elementMap.elementEnvironment.getThisType(cls);
+
+    List<HInstruction> arguments =
+        _visitPositionalArguments(invocation.arguments);
+
+    HInstruction object = arguments[0];
+    HInstruction closure = arguments[1];
+    HInstruction interceptor = _interceptorFor(object, sourceInformation);
+
+    List<HInstruction> inputs = <HInstruction>[closure];
+    List<DartType> typeArguments = <DartType>[];
+
+    thisType.typeArguments.forEach((_typeVariable) {
+      TypeVariableType variable = _typeVariable;
+      typeArguments.add(variable);
+      HInstruction readType = new HTypeInfoReadVariable.intercepted(
+          variable, interceptor, object, commonMasks.dynamicType);
+      add(readType);
+      inputs.add(readType);
+    });
+
+    // TODO(sra): In compliance mode, insert a check that [closure] is a
+    // function of N type arguments.
+
+    Selector selector =
+        new Selector.callClosure(0, const <String>[], typeArguments.length);
+    push(new HInvokeClosure(
+        selector, inputs, commonMasks.dynamicType, typeArguments));
+
+    return true;
+  }
+
   void handleInvokeStaticForeign(
       ir.StaticInvocation invocation, ir.Procedure target) {
     String name = target.name.name;
     if (name == 'JS') {
       handleForeignJs(invocation);
     } else if (name == 'JS_CURRENT_ISOLATE_CONTEXT') {
+      // TODO(sigmund): delete. The only reference left to this foreign function
+      // is from the deprecated dart:mirrors code.
       handleForeignJsCurrentIsolateContext(invocation);
-    } else if (name == 'JS_CALL_IN_ISOLATE') {
-      handleForeignJsCallInIsolate(invocation);
     } else if (name == 'DART_CLOSURE_TO_JS') {
       handleForeignDartClosureToJs(invocation, 'DART_CLOSURE_TO_JS');
     } else if (name == 'RAW_DART_FUNCTION_REF') {
@@ -3427,57 +3596,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
       return;
     }
 
-    if (!backendUsage.isIsolateInUse) {
-      // If the isolate library is not used, we just generate code
-      // to fetch the static state.
-      String name = namer.staticStateHolder;
-      push(new HForeignCode(
-          js.js.parseForeignJS(name), commonMasks.dynamicType, <HInstruction>[],
-          nativeBehavior: native.NativeBehavior.DEPENDS_OTHER));
-    } else {
-      // Call a helper method from the isolate library. The isolate library uses
-      // its own isolate structure that encapsulates the isolate structure used
-      // for binding to methods.
-      FunctionEntity target = _commonElements.currentIsolate;
-      if (target == null) {
-        reporter.internalError(
-            _elementMap.getSpannable(targetElement, invocation),
-            'Isolate library and compiler mismatch.');
-      }
-      _pushStaticInvocation(target, <HInstruction>[], commonMasks.dynamicType,
-          const <DartType>[]);
-    }
-  }
-
-  void handleForeignJsCallInIsolate(ir.StaticInvocation invocation) {
-    if (_unexpectedForeignArguments(invocation,
-        minPositional: 2, maxPositional: 2)) {
-      // Result expected on stack.
-      stack.add(graph.addConstantNull(closedWorld));
-      return;
-    }
-
-    List<HInstruction> inputs = _visitPositionalArguments(invocation.arguments);
-
-    if (!backendUsage.isIsolateInUse) {
-      // If the isolate library is not used, we ignore the isolate argument and
-      // just invoke the closure.
-      push(new HInvokeClosure(
-          new Selector.callClosure(0),
-          <HInstruction>[inputs[1]],
-          commonMasks.dynamicType,
-          const <DartType>[]));
-    } else {
-      // Call a helper method from the isolate library.
-      FunctionEntity callInIsolate = _commonElements.callInIsolate;
-      if (callInIsolate == null) {
-        reporter.internalError(
-            _elementMap.getSpannable(targetElement, invocation),
-            'Isolate library and compiler mismatch.');
-      }
-      _pushStaticInvocation(
-          callInIsolate, inputs, commonMasks.dynamicType, const <DartType>[]);
-    }
+    // Isolates cannot be spawned, so we just generate code to fetch the static
+    // state.
+    String name = namer.staticStateHolder;
+    push(new HForeignCode(
+        js.js.parseForeignJS(name), commonMasks.dynamicType, <HInstruction>[],
+        nativeBehavior: native.NativeBehavior.DEPENDS_OTHER));
   }
 
   void handleForeignDartClosureToJs(

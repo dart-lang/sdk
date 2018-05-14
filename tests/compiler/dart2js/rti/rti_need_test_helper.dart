@@ -13,12 +13,10 @@ import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/elements/types.dart';
-import 'package:compiler/src/tree/nodes.dart' as ast;
 import 'package:compiler/src/js_backend/runtime_types.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
-import 'package:compiler/src/ssa/builder.dart' as ast;
 import 'package:compiler/src/universe/selector.dart';
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:kernel/ast.dart' as ir;
@@ -34,9 +32,7 @@ runTests(List<String> args, [int shardIndex]) {
   cacheRtiDataForTesting = true;
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-    await checkTests(
-        dataDir, computeAstRtiMemberNeed, computeKernelRtiMemberNeed,
-        computeClassDataFromAst: computeAstRtiClassNeed,
+    await checkTests(dataDir, computeKernelRtiMemberNeed,
         computeClassDataFromKernel: computeKernelRtiClassNeed,
         options: [],
         skipForStrong: [
@@ -50,30 +46,6 @@ runTests(List<String> args, [int shardIndex]) {
         shardIndex: shardIndex ?? 0,
         shards: shardIndex != null ? 2 : 1);
   });
-}
-
-/// Compute RTI need data for [_member] as a [MemberElement].
-///
-/// Fills [actualMap] with the data.
-void computeAstRtiMemberNeed(
-    Compiler compiler, MemberEntity _member, Map<Id, ActualData> actualMap,
-    {bool verbose: false}) {
-  MemberElement member = _member;
-  ResolvedAst resolvedAst = member.resolvedAst;
-  compiler.reporter.withCurrentElement(member.implementation, () {
-    new RtiMemberNeedAstComputer(
-            compiler.reporter, actualMap, resolvedAst, compiler)
-        .run();
-  });
-}
-
-/// Compute RTI need data for [cls] from the old frontend.
-///
-/// Fills [actualMap] with the data.
-void computeAstRtiClassNeed(
-    Compiler compiler, ClassEntity cls, Map<Id, ActualData> actualMap,
-    {bool verbose: false}) {
-  new RtiClassNeedAstComputer(compiler, actualMap).computeClassValue(cls);
 }
 
 class Tags {
@@ -256,70 +228,6 @@ class FindTypeVisitor extends BaseResolutionDartTypeVisitor<bool, Null> {
   @override
   bool visitFutureOrType(FutureOrType type, _) {
     return type.typeArgument.accept(this, null);
-  }
-}
-
-abstract class AstMixin implements ComputeValueMixin<ast.Node> {
-  @override
-  ClassEntity getFrontendClass(ClassEntity cls) {
-    return cls;
-  }
-
-  @override
-  MemberEntity getFrontendMember(MemberEntity member) {
-    return member;
-  }
-
-  @override
-  Local getFrontendClosure(MemberEntity member) {
-    if (member is SynthesizedCallMethodElementX) return member.expression;
-    return null;
-  }
-}
-
-class RtiClassNeedAstComputer extends DataRegistry
-    with ComputeValueMixin<ast.Node>, AstMixin {
-  final Compiler compiler;
-  final Map<Id, ActualData> actualMap;
-
-  RtiClassNeedAstComputer(this.compiler, this.actualMap);
-
-  DiagnosticReporter get reporter => compiler.reporter;
-
-  void computeClassValue(covariant ClassElement cls) {
-    Id id = new ClassId(cls.name);
-    registerValue(cls.sourcePosition, id, getClassValue(cls), cls);
-  }
-}
-
-/// AST visitor for computing inlining data for a member.
-class RtiMemberNeedAstComputer extends AstDataExtractor
-    with ComputeValueMixin<ast.Node>, AstMixin {
-  final Compiler compiler;
-
-  RtiMemberNeedAstComputer(DiagnosticReporter reporter,
-      Map<Id, ActualData> actualMap, ResolvedAst resolvedAst, this.compiler)
-      : super(reporter, actualMap, resolvedAst);
-
-  @override
-  String computeElementValue(Id id, AstElement element) {
-    if (element.isParameter) {
-      return null;
-    } else if (element.isLocal && element.isFunction) {
-      LocalFunctionElement localFunction = element;
-      return getMemberValue(localFunction.callMethod);
-    } else {
-      MemberElement member = element.declaration;
-      return getMemberValue(member);
-    }
-  }
-
-  @override
-  String computeNodeValue(Id id, ast.Node node, [AstElement element]) {
-    if (element != null && element.isLocal && element.isFunction) {
-      return computeElementValue(id, element);
-    }
-    return null;
   }
 }
 

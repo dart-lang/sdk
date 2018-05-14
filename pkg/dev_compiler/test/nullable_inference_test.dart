@@ -223,7 +223,13 @@ void main() {
         s.trim();
         s.trimLeft();
         s.trimRight();
-        s.compareTo(s);
+
+        // compareTo relies on the interface target being String.compareTo
+        // except that method does not exist unless we insert too many
+        // forwarding stubs.
+        //
+        // s.compareTo(s);
+
         s.toString();
         // Pattern methods (allMatches, matchAsPrefix) are not recognized.
       }''');
@@ -413,27 +419,25 @@ void main() {
       useAnnotations = false;
     });
     var imports = "import 'package:meta/meta.dart';";
-    group('(kernel annotation bug)', () {
-      test('variable wihout initializer', () async {
-        await expectNotNull('$imports main() { @notNull var x; print(x); }',
-            ''); // should be: 'x'
+    group('(previously known kernel annotation bug)', () {
+      test('variable without initializer', () async {
+        await expectNotNull(
+            '$imports main() { @notNull var x; print(x); }', 'x');
       });
       test('variable with initializer', () async {
         // TODO(jmesserly): this does not work in the Analyzer backend.
         await expectNotNull(
-            '$imports main() { @notNull var x = null; print(x); }',
-            ''); // should be: 'x'
+            '$imports main() { @notNull var x = null; print(x); }', 'x');
       });
       test('parameters', () async {
         await expectNotNull(
             '$imports f(@notNull x, [@notNull y, @notNull z = 42]) '
             '{ x; y; z; }',
-            '42, z'); // should be: '42, x, y, z'
+            '42, x, y, z');
       });
       test('named parameters', () async {
         await expectNotNull(
-            '$imports f({@notNull x, @notNull y: 42}) { x; y; }',
-            '42, y'); // should be: '42, x, y'
+            '$imports f({@notNull x, @notNull y: 42}) { x; y; }', '42, x, y');
       });
     });
 

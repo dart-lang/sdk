@@ -5,7 +5,7 @@
 library dart2js.js_emitter.startup_emitter;
 
 import 'package:js_runtime/shared/embedded_names.dart'
-    show JsBuiltin, METADATA, STATIC_FUNCTION_NAME_TO_CLOSURE, TYPES;
+    show JsBuiltin, METADATA, TYPES;
 
 import '../../common.dart';
 import '../../compiler.dart' show Compiler;
@@ -161,11 +161,6 @@ class Emitter extends emitterTask.EmitterBase {
       case JsBuiltin.getType:
         String typesAccess = _emitter.generateEmbeddedGlobalAccessString(TYPES);
         return js.js.expressionTemplateFor("$typesAccess[#]");
-
-      case JsBuiltin.createDartClosureFromNameOfStaticFunction:
-        String functionAccess = _emitter.generateEmbeddedGlobalAccessString(
-            STATIC_FUNCTION_NAME_TO_CLOSURE);
-        return js.js.expressionTemplateFor("$functionAccess(#)");
 
       default:
         reporter.internalError(

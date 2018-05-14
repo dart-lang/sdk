@@ -8,6 +8,7 @@
 #include "vm/class_finalizer.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/debugger.h"
+#include "vm/interpreter.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
 #include "vm/runtime_entry.h"
@@ -113,11 +114,32 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
   ASSERT(thread->IsMutatorThread());
   ScopedIsolateStackLimits stack_limit(thread, current_sp);
   if (!function.HasCode()) {
+#if defined(DART_USE_INTERPRETER)
+    // The function is not compiled yet. Interpret it if it has bytecode.
+    // The bytecode is loaded as part as an aborted compilation step.
+    if (!function.HasBytecode()) {
+      const Object& result =
+          Object::Handle(zone, Compiler::CompileFunction(thread, function));
+      if (result.IsError()) {
+        return Error::Cast(result).raw();
+      }
+    }
+    if (!function.HasCode() && function.HasBytecode()) {
+      const Code& bytecode = Code::Handle(zone, function.Bytecode());
+      ASSERT(!bytecode.IsNull());
+      ASSERT(thread->no_callback_scope_depth() == 0);
+      SuspendLongJumpScope suspend_long_jump_scope(thread);
+      TransitionToGenerated transition(thread);
+      return Interpreter::Current()->Call(bytecode, arguments_descriptor,
+                                          arguments, thread);
+    }
+#else
     const Object& result =
         Object::Handle(zone, Compiler::CompileFunction(thread, function));
     if (result.IsError()) {
       return Error::Cast(result).raw();
     }
+#endif
   }
 // Now Call the invoke stub which will invoke the dart function.
 #if !defined(TARGET_ARCH_DBC)

@@ -18,23 +18,16 @@ main(List<String> args) async {
   argParser.addFlag('emission');
   ArgResults results = argParser.parse(args);
 
-  ComputeMemberDataFunction computeAstData;
   ComputeMemberDataFunction computeKernelData;
-  ComputeClassDataFunction computeAstClassData;
   ComputeClassDataFunction computeKernelClassData;
   if (results['emission']) {
-    computeAstData = computeAstRtiMemberEmission;
     computeKernelData = computeKernelRtiMemberEmission;
-    computeAstClassData = computeAstRtiClassEmission;
     computeKernelClassData = computeKernelRtiClassEmission;
   } else {
-    computeAstData = computeAstRtiMemberNeed;
     computeKernelData = computeKernelRtiMemberNeed;
-    computeAstClassData = computeAstRtiClassNeed;
     computeKernelClassData = computeKernelRtiClassNeed;
   }
 
-  await show(results, computeAstData, computeKernelData,
-      computeAstClassData: computeAstClassData,
+  await show(results, computeKernelData,
       computeKernelClassData: computeKernelClassData);
 }

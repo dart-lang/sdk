@@ -284,8 +284,7 @@ void CallSpecializer::SpecializePolymorphicInstanceCall(
     return;
   }
 
-  const intptr_t receiver_cid =
-      call->PushArgumentAt(0)->value()->Type()->ToCid();
+  const intptr_t receiver_cid = call->Receiver()->Type()->ToCid();
   if (receiver_cid == kDynamicCid) {
     return;  // No information about receiver was infered.
   }

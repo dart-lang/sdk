@@ -8,16 +8,16 @@ main() {
   /*1:main*/ test();
 }
 
-test() async /*ast.2:test*/ {
+test() async {
   // TODO(johnniwinther): Investigate why kernel doesn't point to the body
   // start brace.
   // ignore: UNUSED_LOCAL_VARIABLE
-  var /*kernel.2:test*/ c = new /*3:test*/ Class();
+  var /*2:test*/ /*3:test*/ c = new /*4:test*/ Class();
 }
 
 class Class {
   @NoInline()
-  /*4:Class*/ Class() {
-    /*5:Class*/ throw '>ExceptionMarker<';
+  /*5:Class*/ Class() {
+    /*6:Class*/ throw '>ExceptionMarker<';
   }
 }

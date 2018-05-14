@@ -140,6 +140,11 @@
 #error DART_PRECOMPILED_RUNTIME and DART_NOSNAPSHOT are mutually exclusive
 #endif  // defined(DART_PRECOMPILED_RUNTIME) && defined(DART_NOSNAPSHOT)
 
+#if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
+// TODO(zra): Fix GN build file not to define DART_USE_INTERPRETER in this case.
+#undef DART_USE_INTERPRETER
+#endif  // defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
+
 #if defined(DART_PRECOMPILED_RUNTIME)
 #define NOT_IN_PRECOMPILED(code)
 #else

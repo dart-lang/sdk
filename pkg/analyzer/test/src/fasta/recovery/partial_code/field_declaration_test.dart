@@ -31,11 +31,7 @@ class MethodTest extends PartialCodeTest {
         new TestDescriptor(
           'const_noName',
           'const',
-          [
-            ParserErrorCode.MISSING_IDENTIFIER,
-            ParserErrorCode.EXPECTED_TOKEN,
-            CompileTimeErrorCode.CONST_NOT_INITIALIZED
-          ],
+          [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
           'const _s_;',
           failing: allExceptEof,
           expectedErrorsInValidCode: [
@@ -166,11 +162,7 @@ class MethodTest extends PartialCodeTest {
         new TestDescriptor(
           'static_const_noName',
           'static const',
-          [
-            ParserErrorCode.MISSING_IDENTIFIER,
-            ParserErrorCode.EXPECTED_TOKEN,
-            CompileTimeErrorCode.CONST_NOT_INITIALIZED
-          ],
+          [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
           'static const _s_;',
           failing: allExceptEof,
           expectedErrorsInValidCode: [

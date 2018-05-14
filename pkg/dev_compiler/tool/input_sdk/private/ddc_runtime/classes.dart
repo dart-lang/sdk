@@ -100,8 +100,13 @@ getMixin(clazz) => JS('', 'Object.hasOwnProperty.call(#, #) ? #[#] : null',
 @JSExportName('implements')
 final _implements = JS('', 'Symbol("implements")');
 
-getImplements(clazz) => JS('', 'Object.hasOwnProperty.call(#, #) ? #[#] : null',
-    clazz, _implements, clazz, _implements);
+List Function() getImplements(clazz) => JS(
+    '',
+    'Object.hasOwnProperty.call(#, #) ? #[#] : null',
+    clazz,
+    _implements,
+    clazz,
+    _implements);
 
 /// The Symbol for storing type arguments on a specialized generic type.
 final _typeArguments = JS('', 'Symbol("typeArguments")');
@@ -158,6 +163,14 @@ getGenericClass(type) => safeGetOwnProperty(type, _originalDeclaration);
 
 List getGenericArgs(type) =>
     JS('List', '#', safeGetOwnProperty(type, _typeArguments));
+
+List<TypeVariable> getGenericTypeFormals(genericClass) {
+  return _typeFormalsFromFunction(getGenericTypeCtor(genericClass));
+}
+
+Object instantiateClass(Object genericClass, List<Object> typeArgs) {
+  return JS('', '#.apply(null, #)', genericClass, typeArgs);
+}
 
 final _constructorSig = JS('', 'Symbol("sigCtor")');
 final _methodSig = JS('', 'Symbol("sigMethod")');

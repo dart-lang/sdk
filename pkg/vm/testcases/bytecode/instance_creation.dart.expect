@@ -3,8 +3,8 @@ import self as self;
 import "dart:core" as core;
 
 class Base<T1 extends core::Object = dynamic, T2 extends core::Object = dynamic> extends core::Object {
-  generic-covariant-impl generic-covariant-interface field self::Base::T1 t1 = null;
-  generic-covariant-impl generic-covariant-interface field self::Base::T2 t2 = null;
+  generic-covariant-impl field self::Base::T1 t1 = null;
+  generic-covariant-impl field self::Base::T2 t2 = null;
 [@vm.bytecode=
 Bytecode {
   Entry                1
@@ -89,8 +89,6 @@ ConstantPool {
 ]  constructor •(core::String s) → void
     : super self::Base::•()
     ;
-  abstract forwarding-stub set t1(generic-covariant-impl core::int _) → void;
-  abstract forwarding-stub set t2(generic-covariant-impl core::String _) → void;
 }
 class B<T extends core::Object = dynamic> extends self::Base<core::List<self::B::T>, core::String> {
 [@vm.bytecode=
@@ -141,7 +139,6 @@ ConstantPool {
     : super self::Base::•() {
     core::print("B: ${self::B::T}");
   }
-  abstract forwarding-stub set t2(generic-covariant-impl core::String _) → void;
 }
 class C extends core::Object {
 [@vm.bytecode=

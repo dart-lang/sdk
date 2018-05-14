@@ -350,6 +350,11 @@ class HInstructionStringifier implements HVisitor<String> {
     return handleGenericInvoke("InvokeConstructorBody", target, invoke.inputs);
   }
 
+  String visitInvokeGeneratorBody(HInvokeGeneratorBody invoke) {
+    String target = invoke.element.name;
+    return handleGenericInvoke("InvokeGeneratorBody", target, invoke.inputs);
+  }
+
   String visitForeignCode(HForeignCode node) {
     var template = node.codeTemplate;
     String code = '${template.ast}';

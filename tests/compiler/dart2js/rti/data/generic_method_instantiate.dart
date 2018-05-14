@@ -8,7 +8,6 @@ class A {}
 /*class: B:deps=[method],explicit=[B<A>],needsArgs*/
 class B<T> {}
 
-/*ast.element: method:*/
 /*kernel.element: method:*/
 /*strong.element: method:needsArgs*/
 /*omit.element: method:needsArgs*/

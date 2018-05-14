@@ -397,6 +397,11 @@ class KernelImpactBuilder extends ir.Visitor {
       handleNew(node, node.target, isConst: node.isConst);
     } else {
       FunctionEntity target = elementMap.getMethod(node.target);
+      if (_options.strongMode &&
+          target == commonElements.extractTypeArguments) {
+        _handleExtractTypeArguments(node, target);
+        return;
+      }
       List<DartType> typeArguments = _visitArguments(node.arguments);
       impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
           target, elementMap.getCallStructure(node.arguments), typeArguments));
@@ -424,6 +429,35 @@ class KernelImpactBuilder extends ir.Visitor {
       case ForeignKind.NONE:
         break;
     }
+  }
+
+  void _handleExtractTypeArguments(
+      ir.StaticInvocation node, FunctionEntity target) {
+    // extractTypeArguments<Map>(obj, fn) has additional impacts:
+    //
+    //   1. All classes implementing Map need to carry type arguments (similar
+    //      to checking `o is Map<K, V>`).
+    //
+    //   2. There is an invocation of fn with some number of type arguments.
+    //
+    List<DartType> typeArguments = _visitArguments(node.arguments);
+    impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
+        target, elementMap.getCallStructure(node.arguments), typeArguments));
+
+    if (typeArguments.length != 1) return;
+    DartType matchedType = typeArguments.first;
+
+    if (matchedType is! InterfaceType) return;
+    InterfaceType interfaceType = matchedType;
+    ClassEntity cls = interfaceType.element;
+    InterfaceType thisType = elementMap.elementEnvironment.getThisType(cls);
+
+    impactBuilder.registerTypeUse(new TypeUse.isCheck(thisType));
+
+    Selector selector = new Selector.callClosure(
+        0, const <String>[], thisType.typeArguments.length);
+    impactBuilder.registerDynamicUse(
+        new ConstrainedDynamicUse(selector, null, thisType.typeArguments));
   }
 
   @override

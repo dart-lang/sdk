@@ -10,12 +10,12 @@ main() {
 }
 
 @NoInline()
-test1() async /*2:test1*/ {
+test1() async /*3:test1*/ /*kernel.4:test1*/ {
   // This call is on the stack when the error is thrown.
-  await /*3:test1*/ test2();
+  await /*5:test1*/ test2();
 }
 
 @NoInline()
-test2() async /*4:test2*/ {
-  /*5:test2*/ throw '>ExceptionMarker<';
+test2() async /*7:test2*/ /*kernel.8:test2*/ {
+  /*9:test2*/ throw '>ExceptionMarker<';
 }

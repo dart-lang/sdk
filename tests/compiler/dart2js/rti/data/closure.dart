@@ -13,7 +13,6 @@ class A<T> {
   f() {
     // TODO(johnniwinther): Optimize local function type signature need.
     return
-        /*ast.*/
         /*kernel.*/
         /*strong.needsSignature*/
         /*omit.needsSignature*/

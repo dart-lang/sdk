@@ -9,11 +9,11 @@ main() {
 }
 
 @NoInline()
-test1() async /*2:test1*/ {
-  /*3:test1*/ test2();
+test1() async /*2:test1*/ /*kernel.3:test1*/ {
+  /*9:test1*/ test2();
 }
 
 @NoInline()
 test2() {
-  /*4:test2*/ throw '>ExceptionMarker<';
+  /*10:test2*/ throw '>ExceptionMarker<';
 }

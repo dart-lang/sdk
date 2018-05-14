@@ -426,7 +426,7 @@ bool FlowGraph::InstanceCallNeedsClassCheck(InstanceCallInstr* call,
     // may later add overriding methods.
     return true;
   }
-  Definition* callee_receiver = call->ArgumentAt(0);
+  Definition* callee_receiver = call->Receiver()->definition();
   ASSERT(callee_receiver != NULL);
   if (function().IsDynamicFunction() && IsReceiver(callee_receiver)) {
     const String& name =

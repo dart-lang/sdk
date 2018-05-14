@@ -4,7 +4,6 @@
 
 import 'graph_builder.dart';
 import 'nodes.dart';
-import '../common.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../io/source_information.dart';
@@ -115,9 +114,8 @@ abstract class TypeBuilder {
   HInstruction addTypeVariableReference(
       TypeVariableType type, MemberEntity member,
       {SourceInformation sourceInformation}) {
-    assert(assertTypeInContext(type));
     if (type.element.typeDeclaration is! ClassEntity &&
-        (!builder.options.strongMode || !builder.options.useKernel)) {
+        !builder.options.strongMode) {
       // GENERIC_METHODS:  We currently don't reify method type variables.
       return builder.graph.addConstantNull(builder.closedWorld);
     }
@@ -204,25 +202,9 @@ abstract class TypeBuilder {
     return representation;
   }
 
-  /// Check that [type] is valid in the context of `localsHandler.contextClass`.
-  /// This should only be called in assertions.
-  bool assertTypeInContext(DartType type, [Spannable spannable]) {
-    if (builder.compiler.options.useKernel) return true;
-    ClassEntity contextClass = DartTypes.getClassContext(type);
-    assert(
-        contextClass == null ||
-            contextClass == builder.localsHandler.instanceType?.element,
-        failedAt(
-            spannable ?? CURRENT_ELEMENT_SPANNABLE,
-            "Type '$type' is not valid context of "
-            "${builder.localsHandler.instanceType?.element}."));
-    return true;
-  }
-
   HInstruction analyzeTypeArgument(
       DartType argument, MemberEntity sourceElement,
       {SourceInformation sourceInformation}) {
-    assert(assertTypeInContext(argument));
     argument = argument.unaliased;
     if (argument.treatAsDynamic) {
       // Represent [dynamic] as [null].
@@ -237,7 +219,7 @@ abstract class TypeBuilder {
     List<HInstruction> inputs = <HInstruction>[];
     argument.forEachTypeVariable((TypeVariableType variable) {
       if (variable.element.typeDeclaration is ClassEntity ||
-          (builder.options.strongMode && builder.options.useKernel)) {
+          builder.options.strongMode) {
         // TODO(johnniwinther): Also make this conditional on whether we have
         // calculated we need that particular method signature.
         inputs.add(analyzeTypeArgument(variable, sourceElement));
@@ -280,7 +262,6 @@ abstract class TypeBuilder {
       }
     }
     type = type.unaliased;
-    assert(assertTypeInContext(type, original));
     if (type.isInterfaceType && !type.treatAsRaw) {
       InterfaceType interfaceType = type;
       TypeMask subtype =

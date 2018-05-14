@@ -46,9 +46,6 @@ class InstrumentationValueForForwardingStub extends InstrumentationValue {
     var buffer = new StringBuffer();
     void writeParameter(VariableDeclaration parameter) {
       var covariances = <String>[];
-      if (parameter.isGenericCovariantInterface) {
-        covariances.add('genericInterface');
-      }
       if (parameter.isGenericCovariantImpl) {
         covariances.add('genericImpl');
       }
@@ -91,9 +88,6 @@ class InstrumentationValueForForwardingStub extends InstrumentationValue {
         if (i != 0) buffer.write(', ');
         var typeParameter = function.typeParameters[i];
         var covariances = <String>[];
-        if (typeParameter.isGenericCovariantInterface) {
-          covariances.add('genericInterface');
-        }
         if (typeParameter.isGenericCovariantImpl) {
           covariances.add('genericImpl');
         }

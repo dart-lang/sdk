@@ -277,7 +277,6 @@ class ProgramBuilder {
         _buildTypeToInterceptorMap(), _task.metadataCollector, finalizers,
         needsNativeSupport: needsNativeSupport,
         outputContainsConstantList: collector.outputContainsConstantList,
-        hasIsolateSupport: _backendUsage.isIsolateInUse,
         hasSoftDeferredClasses: _notSoftDeferred != null);
   }
 
@@ -391,10 +390,8 @@ class ProgramBuilder {
 
   js.Statement _buildInvokeMain() {
     if (_isMockCompilation) return js.js.comment("Mock compilation");
-
-    MainCallStubGenerator generator = new MainCallStubGenerator(
-        _commonElements, _task.emitter, _backendUsage);
-    return generator.generateInvokeMain(_mainFunction);
+    return MainCallStubGenerator.generateInvokeMain(
+        _task.emitter, _mainFunction);
   }
 
   DeferredFragment _buildDeferredFragment(LibrariesMap librariesMap) {
@@ -687,7 +684,6 @@ class ProgramBuilder {
         _rtiChecks,
         _rtiEncoder,
         _jsInteropAnalysis,
-        _options.useKernel,
         _options.strongMode);
 
     void visitMember(MemberEntity member) {
@@ -744,6 +740,7 @@ class ProgramBuilder {
     if (!onlyForRti && !_elementEnvironment.isMixinApplication(cls)) {
       List<MemberEntity> members = <MemberEntity>[];
       _elementEnvironment.forEachLocalClassMember(cls, members.add);
+      _elementEnvironment.forEachInjectedClassMember(cls, members.add);
       _elementEnvironment.forEachConstructorBody(cls, members.add);
       _sorter.sortMembers(members).forEach(visitMember);
     }

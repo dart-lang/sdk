@@ -83,6 +83,8 @@ class MessageTestSuite extends ChainContext {
 
       List<String> unknownKeys = <String>[];
       List<Example> examples = <Example>[];
+      String externalTest;
+      bool frontendInternal = false;
       String analyzerCode;
       String dart2jsCode;
       Severity severity;
@@ -101,6 +103,10 @@ class MessageTestSuite extends ChainContext {
             if (severity == null) {
               badSeverity = node;
             }
+            break;
+
+          case "frontendInternal":
+            frontendInternal = value;
             break;
 
           case "analyzerCode":
@@ -170,6 +176,10 @@ class MessageTestSuite extends ChainContext {
             }
             break;
 
+          case "external":
+            externalTest = node.value;
+            break;
+
           default:
             unknownKeys.add(key);
         }
@@ -213,16 +223,29 @@ class MessageTestSuite extends ChainContext {
           severity != Severity.internalProblem);
 
       yield createDescription(
+          "externalexample",
+          null,
+          exampleAndAnalyzerCodeRequired &&
+                  externalTest != null &&
+                  !(new File(externalTest).existsSync())
+              ? "Given external example for $name points to a nonexisting file."
+              : null);
+
+      yield createDescription(
           "example",
           null,
-          exampleAndAnalyzerCodeRequired && examples.isEmpty
+          exampleAndAnalyzerCodeRequired &&
+                  examples.isEmpty &&
+                  externalTest == null
               ? "No example for $name, please add at least one example."
               : null);
 
       yield createDescription(
           "analyzerCode",
           null,
-          exampleAndAnalyzerCodeRequired && analyzerCode == null
+          exampleAndAnalyzerCodeRequired &&
+                  !frontendInternal &&
+                  analyzerCode == null
               ? "No analyzer code for $name."
                   "\nTry running"
                   " <BUILDDIR>/dart-sdk/bin/dartanalyzer --format=machine"
@@ -234,6 +257,7 @@ class MessageTestSuite extends ChainContext {
           "dart2jsCode",
           null,
           exampleAndAnalyzerCodeRequired &&
+                  !frontendInternal &&
                   analyzerCode != null &&
                   dart2jsCode == null
               ? "No dart2js code for $name."

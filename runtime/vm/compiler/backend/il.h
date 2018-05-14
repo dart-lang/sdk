@@ -3077,6 +3077,9 @@ class TemplateDartCall : public TemplateDefinition<kInputCount, Throws> {
   }
 
   intptr_t FirstArgIndex() const { return type_args_len_ > 0 ? 1 : 0; }
+  Value* Receiver() const {
+    return this->PushArgumentAt(FirstArgIndex())->value();
+  }
   intptr_t ArgumentCountWithoutTypeArgs() const {
     return arguments_->length() - FirstArgIndex();
   }
@@ -3323,6 +3326,8 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
     return instance_call()->argument_names();
   }
   intptr_t type_args_len() const { return instance_call()->type_args_len(); }
+
+  Value* Receiver() const { return instance_call()->Receiver(); }
 
   bool HasOnlyDispatcherOrImplicitAccessorTargets() const;
 

@@ -14,7 +14,7 @@ class E<T extends core::Object = dynamic> extends self::D<self::E::T> {
     ;
 }
 class B<T extends core::Object = dynamic> extends core::Object {
-  generic-covariant-impl generic-covariant-interface field self::D<self::B::T> x = null;
+  generic-covariant-impl field self::D<self::B::T> x = null;
   synthetic constructor •() → void
     : super core::Object::•()
     ;

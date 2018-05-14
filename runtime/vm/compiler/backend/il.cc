@@ -3699,7 +3699,7 @@ RawType* PolymorphicInstanceCallInstr::ComputeRuntimeType(
 }
 
 Definition* InstanceCallInstr::Canonicalize(FlowGraph* flow_graph) {
-  const intptr_t receiver_cid = PushArgumentAt(0)->value()->Type()->ToCid();
+  const intptr_t receiver_cid = Receiver()->Type()->ToCid();
 
   // TODO(erikcorry): Even for cold call sites we could still try to look up
   // methods when we know the receiver cid. We don't currently do this because

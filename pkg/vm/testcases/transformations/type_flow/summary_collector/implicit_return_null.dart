@@ -102,13 +102,15 @@ if2(bool c) {
 }
 
 if3(bool c) {
-  if (c) {} else {
+  if (c) {
+  } else {
     throw 'Error!';
   }
 }
 
 if4(bool c) {
-  if (c) {} else {}
+  if (c) {
+  } else {}
 }
 
 void if5(bool c) {

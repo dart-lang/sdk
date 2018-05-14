@@ -1072,7 +1072,6 @@ class Field extends Member {
   static const int FlagHasImplicitSetter = 1 << 4;
   static const int FlagCovariant = 1 << 5;
   static const int FlagGenericCovariantImpl = 1 << 6;
-  static const int FlagGenericCovariantInterface = 1 << 7;
 
   /// Whether the field is declared with the `covariant` keyword.
   bool get isCovariant => flags & FlagCovariant != 0;
@@ -1108,14 +1107,6 @@ class Field extends Member {
   /// [DispatchCategory] for details.
   bool get isGenericCovariantImpl => flags & FlagGenericCovariantImpl != 0;
 
-  /// Indicates whether setter invocations using this interface target may need
-  /// to perform a runtime type check to deal with generic covariance.
-  ///
-  /// When `true`, runtime checks may need to be performed; see
-  /// [DispatchCategory] for details.
-  bool get isGenericCovariantInterface =>
-      flags & FlagGenericCovariantInterface != 0;
-
   void set isCovariant(bool value) {
     flags = value ? (flags | FlagCovariant) : (flags & ~FlagCovariant);
   }
@@ -1148,12 +1139,6 @@ class Field extends Member {
     flags = value
         ? (flags | FlagGenericCovariantImpl)
         : (flags & ~FlagGenericCovariantImpl);
-  }
-
-  void set isGenericCovariantInterface(bool value) {
-    flags = value
-        ? (flags | FlagGenericCovariantInterface)
-        : (flags & ~FlagGenericCovariantInterface);
   }
 
   /// True if the field is neither final nor const.
@@ -4381,7 +4366,6 @@ class VariableDeclaration extends Statement {
   static const int FlagCovariant = 1 << 3;
   static const int FlagInScope = 1 << 4; // Temporary flag used by verifier.
   static const int FlagGenericCovariantImpl = 1 << 5;
-  static const int FlagGenericCovariantInterface = 1 << 6;
 
   bool get isFinal => flags & FlagFinal != 0;
   bool get isConst => flags & FlagConst != 0;
@@ -4401,15 +4385,6 @@ class VariableDeclaration extends Statement {
   /// When `true`, runtime checks may need to be performed; see
   /// [DispatchCategory] for details.
   bool get isGenericCovariantImpl => flags & FlagGenericCovariantImpl != 0;
-
-  /// If this [VariableDeclaration] is a parameter of a method, indicates
-  /// whether invocations using the method as an interface target may need to
-  /// perform a runtime type check to deal with generic covariance.
-  ///
-  /// When `true`, runtime checks may need to be performed; see
-  /// [DispatchCategory] for details.
-  bool get isGenericCovariantInterface =>
-      flags & FlagGenericCovariantInterface != 0;
 
   void set isFinal(bool value) {
     flags = value ? (flags | FlagFinal) : (flags & ~FlagFinal);
@@ -4434,12 +4409,6 @@ class VariableDeclaration extends Statement {
         : (flags & ~FlagGenericCovariantImpl);
   }
 
-  void set isGenericCovariantInterface(bool value) {
-    flags = value
-        ? (flags | FlagGenericCovariantInterface)
-        : (flags & ~FlagGenericCovariantInterface);
-  }
-
   void addAnnotation(Expression annotation) {
     if (annotations.isEmpty) {
       annotations = <Expression>[];
@@ -4451,11 +4420,13 @@ class VariableDeclaration extends Statement {
   accept1(StatementVisitor1 v, arg) => v.visitVariableDeclaration(this, arg);
 
   visitChildren(Visitor v) {
+    visitList(annotations, v);
     type?.accept(v);
     initializer?.accept(v);
   }
 
   transformChildren(Transformer v) {
+    transformList(annotations, v, this);
     type = v.visitDartType(type);
     if (initializer != null) {
       initializer = initializer.accept(v);
@@ -5034,7 +5005,6 @@ class TypeParameter extends TreeNode {
 
   // Must match serialized bit positions.
   static const int FlagGenericCovariantImpl = 1 << 0;
-  static const int FlagGenericCovariantInterface = 1 << 1;
 
   /// If this [TypeParameter] is a type parameter of a generic method, indicates
   /// whether the method implementation needs to contain a runtime type check to
@@ -5044,25 +5014,10 @@ class TypeParameter extends TreeNode {
   /// [DispatchCategory] for details.
   bool get isGenericCovariantImpl => flags & FlagGenericCovariantImpl != 0;
 
-  /// If this [TypeParameter] is a type parameter of a generic method, indicates
-  /// whether invocations using the method as an interface target may need to
-  /// perform a runtime type check to deal with generic covariance.
-  ///
-  /// When `true`, runtime checks may need to be performed; see
-  /// [DispatchCategory] for details.
-  bool get isGenericCovariantInterface =>
-      flags & FlagGenericCovariantInterface != 0;
-
   void set isGenericCovariantImpl(bool value) {
     flags = value
         ? (flags | FlagGenericCovariantImpl)
         : (flags & ~FlagGenericCovariantImpl);
-  }
-
-  void set isGenericCovariantInterface(bool value) {
-    flags = value
-        ? (flags | FlagGenericCovariantInterface)
-        : (flags & ~FlagGenericCovariantInterface);
   }
 
   void addAnnotation(Expression annotation) {

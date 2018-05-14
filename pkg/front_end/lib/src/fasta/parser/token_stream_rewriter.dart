@@ -83,7 +83,8 @@ class TokenStreamRewriter {
 
     // A no-op rewriter could simply return `>>` here.
 
-    Token gt1 = new SimpleToken(TokenType.GT, gtgt.charOffset);
+    Token gt1 =
+        new SimpleToken(TokenType.GT, gtgt.charOffset, gtgt.precedingComments);
     Token gt2 = gt1.setNext(new SimpleToken(TokenType.GT, gt1.charOffset + 1));
     gt2.setNext(gtgt.next);
 

@@ -23,6 +23,7 @@ import '../js_backend/native_data.dart';
 import '../js_backend/namer.dart';
 import '../js_backend/runtime_types.dart';
 import '../js_emitter/code_emitter_task.dart';
+import '../js_model/elements.dart' show JGeneratorBody;
 import '../native/native.dart' as native;
 import '../options.dart';
 import '../types/abstract_value_domain.dart';
@@ -47,20 +48,24 @@ class SsaCodeGeneratorTask extends CompilerTask {
 
   String get name => 'SSA code generator';
 
-  js.Fun buildJavaScriptFunction(
-      FunctionEntity element, List<js.Parameter> parameters, js.Block body) {
-    js.AsyncModifier asyncModifier = element.asyncMarker.isAsync
+  js.Fun buildJavaScriptFunction(bool isGeneratorEntry, FunctionEntity element,
+      List<js.Parameter> parameters, js.Block body) {
+    js.Fun finish(js.AsyncModifier asyncModifier) {
+      return new js.Fun(parameters, body, asyncModifier: asyncModifier)
+          .withSourceInformation(sourceInformationFactory
+              .createBuilderForContext(element)
+              .buildDeclaration(element));
+    }
+
+    if (isGeneratorEntry) return finish(const js.AsyncModifier.sync());
+
+    return finish(element.asyncMarker.isAsync
         ? (element.asyncMarker.isYielding
             ? const js.AsyncModifier.asyncStar()
             : const js.AsyncModifier.async())
         : (element.asyncMarker.isYielding
             ? const js.AsyncModifier.syncStar()
-            : const js.AsyncModifier.sync());
-
-    return new js.Fun(parameters, body, asyncModifier: asyncModifier)
-        .withSourceInformation(sourceInformationFactory
-            .createBuilderForContext(element)
-            .buildDeclaration(element));
+            : const js.AsyncModifier.sync()));
   }
 
   js.Expression generateCode(
@@ -118,8 +123,8 @@ class SsaCodeGeneratorTask extends CompilerTask {
           work);
       codegen.visitGraph(graph);
       backend.tracer.traceGraph("codegen", graph);
-      return buildJavaScriptFunction(
-          work.element, codegen.parameters, codegen.body);
+      return buildJavaScriptFunction(graph.isGeneratorEntry, work.element,
+          codegen.parameters, codegen.body);
     });
   }
 }
@@ -1780,6 +1785,27 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         .withSourceInformation(node.sourceInformation));
     _registry.registerStaticUse(new StaticUse.constructorBodyInvoke(
         node.element, new CallStructure.unnamed(arguments.length)));
+  }
+
+  void visitInvokeGeneratorBody(HInvokeGeneratorBody node) {
+    JGeneratorBody element = node.element;
+    if (element.isInstanceMember) {
+      use(node.inputs[0]);
+      js.Expression object = pop();
+      List<js.Expression> arguments = visitArguments(node.inputs);
+      js.Name methodName = _namer.instanceMethodName(element);
+      push(js
+          .propertyCall(object, methodName, arguments)
+          .withSourceInformation(node.sourceInformation));
+    } else {
+      push(_emitter.staticFunctionAccess(element));
+      List<js.Expression> arguments = visitArguments(node.inputs, start: 0);
+      push(new js.Call(pop(), arguments,
+          sourceInformation: node.sourceInformation));
+    }
+
+    _registry
+        .registerStaticUse(new StaticUse.generatorBodyInvoke(node.element));
   }
 
   void visitOneShotInterceptor(HOneShotInterceptor node) {

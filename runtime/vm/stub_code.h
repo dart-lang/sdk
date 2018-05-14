@@ -28,8 +28,11 @@ class SnapshotWriter;
   V(DeoptForRewind)                                                            \
   V(UpdateStoreBuffer)                                                         \
   V(PrintStopMessage)                                                          \
+  V(AllocateArray)                                                             \
+  V(AllocateContext)                                                           \
   V(CallToRuntime)                                                             \
   V(LazyCompile)                                                               \
+  V(InterpretCall)                                                             \
   V(CallBootstrapNative)                                                       \
   V(CallNoScopeNative)                                                         \
   V(CallAutoScopeNative)                                                       \
@@ -37,6 +40,7 @@ class SnapshotWriter;
   V(CallStaticFunction)                                                        \
   V(OptimizeFunction)                                                          \
   V(InvokeDartCode)                                                            \
+  V(InvokeDartCodeFromBytecode)                                                \
   V(DebugStepCheck)                                                            \
   V(UnlinkedCall)                                                              \
   V(MonomorphicMiss)                                                           \
@@ -52,8 +56,6 @@ class SnapshotWriter;
   V(OptimizedIdenticalWithNumberCheck)                                         \
   V(ICCallBreakpoint)                                                          \
   V(RuntimeCallBreakpoint)                                                     \
-  V(AllocateArray)                                                             \
-  V(AllocateContext)                                                           \
   V(OneArgCheckInlineCache)                                                    \
   V(TwoArgsCheckInlineCache)                                                   \
   V(SmiAddInlineCache)                                                         \

@@ -235,4 +235,10 @@ class LocalVariables extends RecursiveVisitor<Null> {
     _allocateTemp(node);
     super.visitSwitchStatement(node);
   }
+
+  @override
+  visitStaticSet(StaticSet node) {
+    _allocateTemp(node);
+    super.visitStaticSet(node);
+  }
 }

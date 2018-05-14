@@ -9,12 +9,10 @@ import 'dart:collection' show IterableBase;
 class ImmutableEmptySet<E> extends IterableBase<E> implements Set<E> {
   const ImmutableEmptySet();
 
-  Set<R> cast<R>() {
-    Set<Object> self = this;
-    return self is Set<R> ? self : this.retype<R>();
-  }
+  Set<R> cast<R>() => new ImmutableEmptySet<R>();
 
-  Set<R> retype<R>() => new ImmutableEmptySet<R>();
+  @Deprecated("Use cast instead.")
+  Set<R> retype<R>() => cast<R>();
 
   get iterator => const _EmptySetIterator();
   int get length => 0;

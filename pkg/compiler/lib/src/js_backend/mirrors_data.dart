@@ -542,11 +542,11 @@ abstract class MirrorsDataImpl implements MirrorsData, MirrorsDataBuilder {
   void computeMembersNeededForReflection(
       ResolutionWorldBuilder worldBuilder, ClosedWorld closedWorld) {
     if (_membersNeededForReflection != null) return;
-    if (!closedWorld.backendUsage.isMirrorsUsed ||
-        _compiler.options.useKernel) {
+    if (!closedWorld.backendUsage.isMirrorsUsed || true) {
       createImmutableSets();
       return;
     }
+    // TODO(johnniwinther): Remove this:
     _classesNeededForReflection = new Set<ClassEntity>();
     _typedefsNeededForReflection = new Set<TypedefEntity>();
     _membersNeededForReflection = new Set<MemberEntity>();
