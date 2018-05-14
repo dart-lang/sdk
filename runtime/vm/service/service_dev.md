@@ -244,7 +244,7 @@ information about a Dart function is returned using the [Function](#function) ty
 
 If the type of a response begins with the _@_ character, then that
 response is a _reference_. If the type name of a response does not
-begin with the _@_ character, it is the an _object_. A reference is
+begin with the _@_ character, it is an _object_. A reference is
 intended to be a subset of an object which provides enough information
 to generate a reasonable looking reference to the object.
 
@@ -358,7 +358,7 @@ An RPC is described using the following format:
 
 ```
 ReturnType methodName(parameterType1 parameterName1,
-                      parameterType2, parameterName2,
+                      parameterType2 parameterName2,
                       ...)
 ```
 
@@ -380,7 +380,7 @@ Some parameters are optional. This is indicated by the text
 _[optional]_ following the parameter name:
 
 ```
-ReturnType methodName(parameterType parameterName [optional)
+ReturnType methodName(parameterType parameterName [optional])
 ```
 
 A description of the return types and parameter types is provided
