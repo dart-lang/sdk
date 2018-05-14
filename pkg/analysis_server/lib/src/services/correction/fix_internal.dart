@@ -403,6 +403,7 @@ class FixProcessor {
     if (errorCode == HintCode.UNDEFINED_METHOD ||
         errorCode == StaticTypeWarningCode.UNDEFINED_METHOD) {
       await _addFix_importLibrary_withFunction();
+      await _addFix_importLibrary_withType();
       await _addFix_undefinedMethod_useSimilar();
       await _addFix_undefinedMethod_create();
       await _addFix_undefinedFunction_create();

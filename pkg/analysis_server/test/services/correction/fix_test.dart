@@ -4533,6 +4533,84 @@ main(p) {
 ''');
   }
 
+  test_importLibrarySdk_withClass_instanceCreation_explicitNew() async {
+    await resolveTestUnit('''
+class C {
+  foo() {
+    new Future();
+  }
+}
+''');
+    await assertHasFix(DartFixKind.IMPORT_LIBRARY_SDK, '''
+import 'dart:async';
+
+class C {
+  foo() {
+    new Future();
+  }
+}
+''');
+  }
+
+  test_importLibrarySdk_withClass_instanceCreation_explicitNew_namedConstructor() async {
+    await resolveTestUnit('''
+class C {
+  foo() {
+    new Future.value(0);
+  }
+}
+''');
+    await assertHasFix(DartFixKind.IMPORT_LIBRARY_SDK, '''
+import 'dart:async';
+
+class C {
+  foo() {
+    new Future.value(0);
+  }
+}
+''');
+  }
+
+  test_importLibrarySdk_withClass_instanceCreation_implicitNew() async {
+    configurePreviewDart2();
+    await resolveTestUnit('''
+class C {
+  foo() {
+    Future();
+  }
+}
+''');
+    await assertHasFix(DartFixKind.IMPORT_LIBRARY_SDK, '''
+import 'dart:async';
+
+class C {
+  foo() {
+    Future();
+  }
+}
+''');
+  }
+
+  test_importLibrarySdk_withClass_instanceCreation_implicitNew_namedConstructor() async {
+    configurePreviewDart2();
+    await resolveTestUnit('''
+class C {
+  foo() {
+    Future.value(0);
+  }
+}
+''');
+    await assertHasFix(DartFixKind.IMPORT_LIBRARY_SDK, '''
+import 'dart:async';
+
+class C {
+  foo() {
+    Future.value(0);
+  }
+}
+''');
+  }
+
   test_importLibrarySdk_withClass_invocationTarget() async {
     await resolveTestUnit('''
 main() {
