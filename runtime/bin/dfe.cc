@@ -3,14 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "bin/dfe.h"
+
 #include "bin/dartutils.h"
 #include "bin/directory.h"
 #include "bin/error_exit.h"
 #include "bin/file.h"
 #include "bin/platform.h"
 #include "bin/utils.h"
-
-#include "vm/kernel.h"
+#include "include/dart_tools_api.h"
+#include "platform/utils.h"
+#include "vm/os.h"
 
 extern "C" {
 #if !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
@@ -75,15 +77,11 @@ static char* GetDirectoryPrefixFromExeName() {
   return Utils::StrNDup(name, i + 1);
 }
 
-static void NoopRelease(uint8_t* buffer) {}
-
 DFE::DFE()
     : use_dfe_(false),
       frontend_filename_(NULL),
-      kernel_service_program_(NULL),
-      platform_program_(NULL),
-      platform_strong_program_(NULL),
-      application_kernel_binary_(NULL) {}
+      application_kernel_buffer_(NULL),
+      application_kernel_buffer_size_(0) {}
 
 DFE::~DFE() {
   if (frontend_filename_ != NULL) {
@@ -91,37 +89,14 @@ DFE::~DFE() {
   }
   frontend_filename_ = NULL;
 
-  // Do NOT delete kernel_service_program_ in the destructor.
-  // It is always a full a dill file, hence it is used as
-  // argument to Dart_CreateIsolateFromKernel as well as loaded
-  // as the kernel program for the isolate. Hence, deleting here
-  // would lead to double deletion.
-
-  delete reinterpret_cast<kernel::Program*>(platform_program_);
-  platform_program_ = NULL;
-
-  delete reinterpret_cast<kernel::Program*>(platform_strong_program_);
-  platform_strong_program_ = NULL;
-
-  delete reinterpret_cast<kernel::Program*>(application_kernel_binary_);
-  application_kernel_binary_ = NULL;
+  free(application_kernel_buffer_);
+  application_kernel_buffer_ = NULL;
+  application_kernel_buffer_size_ = 0;
 }
 
 void DFE::Init() {
   if (platform_dill == NULL) {
     return;
-  }
-  // platform_dill is not NULL implies that platform_strong_dill is also
-  // not NULL.
-  if (platform_program_ == NULL) {
-    ASSERT(Dart_IsKernel(platform_dill, platform_dill_size));
-    platform_program_ =
-        Dart_ReadKernelBinary(platform_dill, platform_dill_size, NoopRelease);
-  }
-  if (platform_strong_program_ == NULL) {
-    ASSERT(Dart_IsKernel(platform_strong_dill, platform_strong_dill_size));
-    platform_strong_program_ = Dart_ReadKernelBinary(
-        platform_strong_dill, platform_strong_dill_size, NoopRelease);
   }
 
   if (frontend_filename_ == NULL) {
@@ -153,32 +128,27 @@ bool DFE::KernelServiceDillAvailable() {
   return kernel_service_dill != NULL;
 }
 
-void* DFE::LoadKernelServiceProgram() {
-  if (kernel_service_dill == NULL) {
-    return NULL;
-  }
-  if (kernel_service_program_ == NULL) {
-    kernel_service_program_ = Dart_ReadKernelBinary(
-        kernel_service_dill, kernel_service_dill_size, NoopRelease);
-  }
-  return kernel_service_program_;
+void DFE::LoadKernelService(const uint8_t** kernel_service_buffer,
+                            intptr_t* kernel_service_buffer_size) {
+  *kernel_service_buffer = kernel_service_dill;
+  *kernel_service_buffer_size = kernel_service_dill_size;
 }
 
-void* DFE::platform_program(bool strong) const {
+void DFE::LoadPlatform(const uint8_t** kernel_buffer,
+                       intptr_t* kernel_buffer_size,
+                       bool strong) {
   if (strong) {
-    return platform_strong_program_;
+    *kernel_buffer = platform_strong_dill;
+    *kernel_buffer_size = platform_strong_dill_size;
   } else {
-    return platform_program_;
+    *kernel_buffer = platform_dill;
+    *kernel_buffer_size = platform_dill_size;
   }
 }
 
 bool DFE::CanUseDartFrontend() const {
-  return (platform_program() != NULL) &&
+  return (platform_dill != NULL) &&
          (KernelServiceDillAvailable() || (frontend_filename() != NULL));
-}
-
-static void ReleaseFetchedBytes(uint8_t* buffer) {
-  free(buffer);
 }
 
 class WindowsPathSanitizer {
@@ -239,17 +209,22 @@ Dart_KernelCompilationResult DFE::CompileScript(const char* script_uri,
                               package_config);
 }
 
-void* DFE::CompileAndReadScript(const char* script_uri,
-                                char** error,
-                                int* exit_code,
-                                bool strong,
-                                const char* package_config) {
+void DFE::CompileAndReadScript(const char* script_uri,
+                               uint8_t** kernel_buffer,
+                               intptr_t* kernel_buffer_size,
+                               char** error,
+                               int* exit_code,
+                               bool strong,
+                               const char* package_config) {
   Dart_KernelCompilationResult result =
       CompileScript(script_uri, strong, true, package_config);
   switch (result.status) {
     case Dart_KernelCompilationStatus_Ok:
-      return Dart_ReadKernelBinary(result.kernel, result.kernel_size,
-                                   ReleaseFetchedBytes);
+      *kernel_buffer = result.kernel;
+      *kernel_buffer_size = result.kernel_size;
+      *error = NULL;
+      *exit_code = 0;
+      break;
     case Dart_KernelCompilationStatus_Error:
       *error = result.error;  // Copy error message.
       *exit_code = kCompilationErrorExitCode;
@@ -263,25 +238,27 @@ void* DFE::CompileAndReadScript(const char* script_uri,
       *exit_code = kErrorExitCode;
       break;
   }
-  return NULL;
 }
 
-void* DFE::ReadScript(const char* script_uri) const {
+void DFE::ReadScript(const char* script_uri,
+                     uint8_t** kernel_buffer,
+                     intptr_t* kernel_buffer_size) const {
   int64_t start = Dart_TimelineGetMicros();
-  const uint8_t* buffer = NULL;
-  intptr_t buffer_length = -1;
-  bool result = TryReadKernelFile(script_uri, &buffer, &buffer_length);
-  void* read_binary =
-      result ? Dart_ReadKernelBinary(buffer, buffer_length, ReleaseFetchedBytes)
-             : NULL;
+  if (!TryReadKernelFile(script_uri, kernel_buffer, kernel_buffer_size)) {
+    return;
+  }
+  if (!Dart_IsKernel(*kernel_buffer, *kernel_buffer_size)) {
+    free(*kernel_buffer);
+    *kernel_buffer = NULL;
+    *kernel_buffer_size = -1;
+  }
   int64_t end = Dart_TimelineGetMicros();
   Dart_TimelineEvent("DFE::ReadScript", start, end,
                      Dart_Timeline_Event_Duration, 0, NULL, NULL);
-  return read_binary;
 }
 
 bool DFE::TryReadKernelFile(const char* script_uri,
-                            const uint8_t** kernel_ir,
+                            uint8_t** kernel_ir,
                             intptr_t* kernel_ir_size) {
   *kernel_ir = NULL;
   *kernel_ir_size = -1;
@@ -289,7 +266,7 @@ bool DFE::TryReadKernelFile(const char* script_uri,
   if (script_file == NULL) {
     return false;
   }
-  const uint8_t* buffer = NULL;
+  uint8_t* buffer = NULL;
   DartUtils::ReadFile(&buffer, kernel_ir_size, script_file);
   DartUtils::CloseFile(script_file);
   if (*kernel_ir_size == 0 || buffer == NULL) {
@@ -297,7 +274,7 @@ bool DFE::TryReadKernelFile(const char* script_uri,
   }
   if (DartUtils::SniffForMagicNumber(buffer, *kernel_ir_size) !=
       DartUtils::kKernelMagicNumber) {
-    free(const_cast<uint8_t*>(buffer));
+    free(buffer);
     *kernel_ir = NULL;
     *kernel_ir_size = -1;
     return false;

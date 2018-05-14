@@ -1293,12 +1293,14 @@ void Object::RegisterPrivateClass(const Class& cls,
 // A non-NULL kernel argument indicates (1).  A NULL kernel indicates (2) or
 // (3), depending on whether the VM is compiled with DART_NO_SNAPSHOT defined or
 // not.
-RawError* Object::Init(Isolate* isolate, kernel::Program* kernel_program) {
+RawError* Object::Init(Isolate* isolate,
+                       const uint8_t* kernel_buffer,
+                       intptr_t kernel_buffer_size) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   ASSERT(isolate == thread->isolate());
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  const bool is_kernel = (kernel_program != NULL);
+  const bool is_kernel = (kernel_buffer != NULL);
 #endif
   NOT_IN_PRODUCT(TimelineDurationScope tds(thread, Timeline::GetIsolateStream(),
                                            "Object::Init");)
@@ -1813,8 +1815,8 @@ RawError* Object::Init(Isolate* isolate, kernel::Program* kernel_program) {
 
     // Finish the initialization by compiling the bootstrap scripts containing
     // the base interfaces and the implementation of the internal classes.
-    const Error& error =
-        Error::Handle(zone, Bootstrap::DoBootstrapping(kernel_program));
+    const Error& error = Error::Handle(
+        zone, Bootstrap::DoBootstrapping(kernel_buffer, kernel_buffer_size));
     if (!error.IsNull()) {
       return error.raw();
     }

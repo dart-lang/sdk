@@ -1416,7 +1416,8 @@ static Dart_Isolate CreateServiceIsolate(const char* script_uri,
   return isolate;
 }
 
-static int GenerateSnapshotFromKernelProgram(void* kernel_program) {
+static int GenerateSnapshotFromKernel(const uint8_t* kernel_buffer,
+                                      intptr_t kernel_buffer_size) {
   ASSERT(SnapshotKindAllowedFromKernel());
 
   char* error = NULL;
@@ -1440,7 +1441,8 @@ static int GenerateSnapshotFromKernelProgram(void* kernel_program) {
   // in the main isolate as well.
   isolate_flags.load_vmservice_library = true;
   Dart_Isolate isolate = Dart_CreateIsolateFromKernel(
-      NULL, NULL, kernel_program, &isolate_flags, isolate_data, &error);
+      NULL, NULL, kernel_buffer, kernel_buffer_size, &isolate_flags,
+      isolate_data, &error);
   if (isolate == NULL) {
     delete isolate_data;
     Log::PrintErr("%s\n", error);
@@ -1462,11 +1464,8 @@ static int GenerateSnapshotFromKernelProgram(void* kernel_program) {
     //
     // If the input dill file does not have a root library, then
     // Dart_LoadScript will error.
-    Dart_Handle dummy_uri =
-        DartUtils::NewString("____dummy_gen_snapshot_root_library_uri____");
     Dart_Handle library =
-        Dart_LoadScript(dummy_uri, Dart_Null(),
-                        reinterpret_cast<Dart_Handle>(kernel_program), 0, 0);
+        Dart_LoadScriptFromKernel(kernel_buffer, kernel_buffer_size);
     if (Dart_IsError(library)) {
       Log::PrintErr("Unable to load root library from the input dill file.\n");
       return kErrorExitCode;
@@ -1511,11 +1510,12 @@ int main(int argc, char** argv) {
   }
 
   // Sniff the script to check if it is actually a dill file.
-  void* kernel_program = NULL;
+  uint8_t* kernel_buffer = NULL;
+  intptr_t kernel_buffer_size = NULL;
   if (app_script_name != NULL) {
-    kernel_program = dfe.ReadScript(app_script_name);
+    dfe.ReadScript(app_script_name, &kernel_buffer, &kernel_buffer_size);
   }
-  if (kernel_program != NULL && !SnapshotKindAllowedFromKernel()) {
+  if (kernel_buffer != NULL && !SnapshotKindAllowedFromKernel()) {
     // TODO(sivachandra): Add check for the kernel program format (incremental
     // vs batch).
     Log::PrintErr(
@@ -1567,7 +1567,7 @@ int main(int argc, char** argv) {
   Dart_InitializeParams init_params;
   memset(&init_params, 0, sizeof(init_params));
   init_params.version = DART_INITIALIZE_PARAMS_CURRENT_VERSION;
-  if (app_script_name != NULL && kernel_program == NULL) {
+  if (app_script_name != NULL && kernel_buffer == NULL) {
     // We need the service isolate to load script files.
     // When generating snapshots from a kernel program, we do not need to load
     // any script files.
@@ -1613,8 +1613,8 @@ int main(int argc, char** argv) {
     return kErrorExitCode;
   }
 
-  if (kernel_program != NULL) {
-    return GenerateSnapshotFromKernelProgram(kernel_program);
+  if (kernel_buffer != NULL) {
+    return GenerateSnapshotFromKernel(kernel_buffer, kernel_buffer_size);
   }
 
   Dart_IsolateFlags flags;
@@ -1714,7 +1714,7 @@ int main(int argc, char** argv) {
       AddDependency(commandline_packages_file);
     }
 
-    ASSERT(kernel_program == NULL);
+    ASSERT(kernel_buffer == NULL);
 
     // Load any libraries named in the entry points. Do this before loading the
     // user's script to ensure conditional imports see the embedder-specific

@@ -444,8 +444,8 @@ void_type_usage_test/paren_while: MissingCompileTimeError # Issue 32804
 [ $arch == simarm && $compiler == dartkp && $strong ]
 await_test: RuntimeError
 
-[ $arch != simarm && $arch != simarm64 && $arch != simdbc64 && $compiler == dartk ]
-export_ambiguous_main_test: MissingCompileTimeError
+[ $arch != simarm && $arch != simarm64 && $arch != simdbc64 && $compiler == dartk && $runtime == vm && $strong ]
+export_ambiguous_main_test: Crash # Issue 32618
 
 [ $compiler != dart2js && $compiler != dartk && $compiler != dartkp && $fasta ]
 const_optional_args_test/01: MissingCompileTimeError

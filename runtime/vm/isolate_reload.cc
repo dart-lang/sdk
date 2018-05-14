@@ -614,8 +614,8 @@ void IsolateReloadContext::Reload(bool force_reload,
         return;
       }
       did_kernel_compilation = true;
-      kernel_program.set(
-          kernel::Program::ReadFromBuffer(retval.kernel, retval.kernel_size));
+      kernel_program.set(kernel::Program::ReadFromBuffer(
+          retval.kernel, retval.kernel_size, true));
     }
 
     kernel_program.get()->set_release_buffer_callback(ReleaseFetchedBytes);

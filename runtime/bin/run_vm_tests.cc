@@ -172,7 +172,7 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
   Dart_EnterScope();
 
   if (isolate_run_script_snapshot) {
-    const uint8_t* payload;
+    uint8_t* payload;
     intptr_t payload_length;
     void* file = bin::DartUtils::OpenFile(script_uri, false);
     bin::DartUtils::ReadFile(&payload, &payload_length, file);
