@@ -633,7 +633,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   }
 
   @override
-  void finishFunction(List annotations, FormalParameters formals,
+  void finishFunction(List annotations, FormalParameters<Arguments> formals,
       AsyncMarker asyncModifier, kernel.Statement body) {
     debugEvent("finishFunction");
     typePromoter.finished();
@@ -727,7 +727,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
 
     enterLocalScope(
         null,
-        new FormalParameters(parameters.positionalParameters, null, -1)
+        new FormalParameters<Arguments>(
+                parameters.positionalParameters, null, -1)
             .computeFormalParameterScope(scope, member, this));
 
     token = parser.parseExpression(parser.syntheticPreviousToken(token));
@@ -1030,11 +1031,13 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         new VariableDeclaration.forValue(toKernelExpression(a));
     push(new ShadowIfNullExpression(
         variable,
-        new ConditionalExpression(
-            buildIsNull(new VariableGet(variable), offsetForToken(token)),
-            toKernelExpression(b),
-            new VariableGet(variable),
-            null))
+        toKernelExpression(forest.conditionalExpression(
+            toExpression(buildIsNull(
+                new VariableGet(variable), offsetForToken(token), this)),
+            token,
+            b,
+            null,
+            toExpression(new VariableGet(variable)))))
       ..fileOffset = offsetForToken(token));
   }
 
@@ -2041,7 +2044,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void endFunctionType(Token functionToken, Token endToken) {
     debugEvent("FunctionType");
-    FormalParameters formals = pop();
+    FormalParameters<Arguments> formals = pop();
     DartType returnType = pop();
     List<TypeParameter> typeVariables = typeVariableBuildersToKernel(pop());
     FunctionType type = formals.toFunctionType(returnType, typeVariables);
@@ -2214,7 +2217,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     if (inCatchClause || functionNestingLevel != 0) {
       exitLocalScope();
     }
-    FormalParameters formals = pop();
+    FormalParameters<Arguments> formals = pop();
     DartType returnType = pop();
     List<TypeParameter> typeVariables = typeVariableBuildersToKernel(pop());
     FunctionType type = formals.toFunctionType(returnType, typeVariables);
@@ -2266,7 +2269,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       optional = pop();
       count--;
     }
-    FormalParameters formals = new FormalParameters(
+    FormalParameters<Arguments> formals = new FormalParameters(
         popList(count) ?? <VariableDeclaration>[],
         optional,
         beginToken.charOffset);
@@ -2303,7 +2306,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     if (catchKeyword != null) {
       exitLocalScope();
     }
-    FormalParameters catchParameters = popIfNotNull(catchKeyword);
+    FormalParameters<Arguments> catchParameters = popIfNotNull(catchKeyword);
     DartType type = popIfNotNull(onKeyword) ?? const DynamicType();
     VariableDeclaration exception;
     VariableDeclaration stackTrace;
@@ -2367,7 +2370,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
           lookupInstanceMember(indexGetName, isSuper: true),
           lookupInstanceMember(indexSetName, isSuper: true)));
     } else {
-      push(IndexAccessor.make(
+      push(IndexAccessor.make<Arguments>(
           this,
           openSquareBracket,
           toKernelExpression(toValue(receiver)),
@@ -2437,7 +2440,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     debugEvent("UnaryPostfixAssignmentExpression");
     var accessor = pop();
     if (accessor is FastaAccessor) {
-      push(new DelayedPostfixIncrement(
+      push(new DelayedPostfixIncrement<Arguments>(
           this, token, accessor, incrementOperator(token), null));
     } else {
       push(wrapInCompileTimeError(toValue(accessor), fasta.messageNotAnLvalue));
@@ -2970,7 +2973,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     kernel.Statement body = popStatement();
     AsyncMarker asyncModifier = pop();
     exitLocalScope();
-    FormalParameters formals = pop();
+    FormalParameters<Arguments> formals = pop();
     var declaration = pop();
     var returnType = pop();
     var hasImplicitReturnType = returnType == null;
@@ -3061,7 +3064,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     kernel.Statement body = popStatement();
     AsyncMarker asyncModifier = pop();
     exitLocalScope();
-    FormalParameters formals = pop();
+    FormalParameters<Arguments> formals = pop();
     exitFunction();
     List<TypeParameter> typeParameters = typeVariableBuildersToKernel(pop());
     FunctionNode function = formals.addToFunction(new FunctionNode(body,
@@ -3960,7 +3963,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     }
     if (isSuper) {
       // We can ignore [isNullAware] on super sends.
-      assert(receiver is ThisExpression);
+      assert(forest.isThisExpression(receiver));
       Member target = lookupInstanceMember(name, isSuper: true);
 
       if (target == null || (target is Procedure && !target.isAccessor)) {
@@ -3994,14 +3997,17 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
           new VariableDeclaration.forValue(toKernelExpression(receiver));
       return toExpression(new ShadowNullAwareMethodInvocation(
           variable,
-          new ConditionalExpression(
-              buildIsNull(new VariableGet(variable), offset),
-              toKernelExpression(storeOffset(forest.literalNull(null), offset)),
-              new MethodInvocation(new VariableGet(variable), name,
-                  forest.castArguments(arguments), interfaceTarget)
-                ..fileOffset = offset,
-              null)
-            ..fileOffset = offset)
+          toKernelExpression(storeOffset(
+              forest.conditionalExpression(
+                  toExpression(
+                      buildIsNull(new VariableGet(variable), offset, this)),
+                  null,
+                  storeOffset(forest.literalNull(null), offset),
+                  null,
+                  toExpression(new MethodInvocation(new VariableGet(variable),
+                      name, forest.castArguments(arguments), interfaceTarget)
+                    ..fileOffset = offset)),
+              offset)))
         ..fileOffset = offset);
     } else {
       return toExpression(new ShadowMethodInvocation(
@@ -4124,7 +4130,7 @@ class Label {
 }
 
 abstract class ContextAccessor<Arguments> extends FastaAccessor<Arguments> {
-  final BuilderHelper helper;
+  final BuilderHelper<dynamic, dynamic, Arguments> helper;
 
   final FastaAccessor accessor;
 
@@ -4194,8 +4200,8 @@ class DelayedAssignment<Arguments> extends ContextAccessor<Arguments> {
 
   final String assignmentOperator;
 
-  DelayedAssignment(BuilderHelper helper, Token token, FastaAccessor accessor,
-      this.value, this.assignmentOperator)
+  DelayedAssignment(BuilderHelper<dynamic, dynamic, Arguments> helper,
+      Token token, FastaAccessor accessor, this.value, this.assignmentOperator)
       : super(helper, token, accessor);
 
   kernel.Expression buildSimpleRead() {
@@ -4272,8 +4278,12 @@ class DelayedPostfixIncrement<Arguments> extends ContextAccessor<Arguments> {
 
   final Procedure interfaceTarget;
 
-  DelayedPostfixIncrement(BuilderHelper helper, Token token,
-      FastaAccessor accessor, this.binaryOperator, this.interfaceTarget)
+  DelayedPostfixIncrement(
+      BuilderHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      FastaAccessor accessor,
+      this.binaryOperator,
+      this.interfaceTarget)
       : super(helper, token, accessor);
 
   kernel.Expression buildSimpleRead() {
@@ -4415,7 +4425,7 @@ class OptionalFormals {
   OptionalFormals(this.kind, this.formals);
 }
 
-class FormalParameters {
+class FormalParameters<Arguments> {
   final List<VariableDeclaration> required;
   final OptionalFormals optional;
   final int charOffset;
@@ -4466,8 +4476,8 @@ class FormalParameters {
         typeParameters: typeParameters);
   }
 
-  Scope computeFormalParameterScope(
-      Scope parent, Builder builder, BuilderHelper helper) {
+  Scope computeFormalParameterScope(Scope parent, Builder builder,
+      BuilderHelper<dynamic, dynamic, Arguments> helper) {
     if (required.length == 0 && optional == null) return parent;
     Map<String, Builder> local = <String, Builder>{};
 

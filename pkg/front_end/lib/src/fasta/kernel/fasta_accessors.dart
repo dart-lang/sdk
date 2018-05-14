@@ -212,7 +212,7 @@ class FunctionTypeAccessor {
 }
 
 abstract class FastaAccessor<Arguments> implements Accessor<Arguments> {
-  BuilderHelper get helper;
+  BuilderHelper<dynamic, dynamic, Arguments> get helper;
 
   // TODO(ahe): Change type arguments.
   Forest<kernel.Expression, kernel.Statement, Token, Arguments> get forest =>
@@ -419,7 +419,7 @@ abstract class ErrorAccessor<Arguments> implements FastaAccessor<Arguments> {
 }
 
 class ThisAccessor<Arguments> extends FastaAccessor<Arguments> {
-  final BuilderHelper helper;
+  final BuilderHelper<dynamic, dynamic, Arguments> helper;
 
   final Token token;
 
@@ -579,7 +579,7 @@ class ThisAccessor<Arguments> extends FastaAccessor<Arguments> {
 }
 
 abstract class IncompleteSend<Arguments> extends FastaAccessor<Arguments> {
-  final BuilderHelper helper;
+  final BuilderHelper<dynamic, dynamic, Arguments> helper;
 
   @override
   final Token token;
@@ -597,7 +597,8 @@ class IncompleteError<Arguments> extends IncompleteSend<Arguments>
     with ErrorAccessor<Arguments> {
   final Message message;
 
-  IncompleteError(BuilderHelper helper, Token token, this.message)
+  IncompleteError(BuilderHelper<dynamic, dynamic, Arguments> helper,
+      Token token, this.message)
       : super(helper, token, null);
 
   @override
@@ -629,7 +630,8 @@ class SendAccessor<Arguments> extends IncompleteSend<Arguments> {
   @override
   final Arguments arguments;
 
-  SendAccessor(BuilderHelper helper, Token token, Name name, this.arguments)
+  SendAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper, Token token,
+      Name name, this.arguments)
       : super(helper, token, name) {
     assert(arguments != null);
   }
@@ -705,7 +707,8 @@ class SendAccessor<Arguments> extends IncompleteSend<Arguments> {
 }
 
 class IncompletePropertyAccessor<Arguments> extends IncompleteSend<Arguments> {
-  IncompletePropertyAccessor(BuilderHelper helper, Token token, Name name)
+  IncompletePropertyAccessor(
+      BuilderHelper<dynamic, dynamic, Arguments> helper, Token token, Name name)
       : super(helper, token, name);
 
   String get plainNameForRead => name.name;
@@ -779,7 +782,7 @@ class IncompletePropertyAccessor<Arguments> extends IncompleteSend<Arguments> {
 
 class IndexAccessor<Arguments> extends kernel.IndexAccessor<Arguments>
     with FastaAccessor<Arguments> {
-  final BuilderHelper helper;
+  final BuilderHelper<dynamic, dynamic, Arguments> helper;
 
   IndexAccessor.internal(this.helper, Token token, kernel.Expression receiver,
       kernel.Expression index, Procedure getter, Procedure setter)
@@ -797,14 +800,14 @@ class IndexAccessor<Arguments> extends kernel.IndexAccessor<Arguments>
 
   toString() => "IndexAccessor()";
 
-  static FastaAccessor make(
-      BuilderHelper helper,
+  static FastaAccessor<Arguments> make<Arguments>(
+      BuilderHelper<dynamic, dynamic, Arguments> helper,
       Token token,
       kernel.Expression receiver,
       kernel.Expression index,
       Procedure getter,
       Procedure setter) {
-    if (receiver is ThisExpression) {
+    if (helper.forest.isThisExpression(receiver)) {
       return new ThisIndexAccessor(helper, token, index, getter, setter);
     } else {
       return new IndexAccessor.internal(
@@ -819,7 +822,7 @@ class IndexAccessor<Arguments> extends kernel.IndexAccessor<Arguments>
 
 class PropertyAccessor<Arguments> extends kernel.PropertyAccessor<Arguments>
     with FastaAccessor<Arguments> {
-  final BuilderHelper helper;
+  final BuilderHelper<dynamic, dynamic, Arguments> helper;
 
   PropertyAccessor.internal(this.helper, Token token,
       kernel.Expression receiver, Name name, Member getter, Member setter)
@@ -827,7 +830,7 @@ class PropertyAccessor<Arguments> extends kernel.PropertyAccessor<Arguments>
 
   String get plainNameForRead => name.name;
 
-  bool get isThisPropertyAccessor => receiver is ThisExpression;
+  bool get isThisPropertyAccessor => forest.isThisExpression(receiver);
 
   kernel.Expression doInvocation(int offset, Arguments arguments) {
     return helper.buildMethodInvocation(receiver, name, arguments, offset);
@@ -835,15 +838,15 @@ class PropertyAccessor<Arguments> extends kernel.PropertyAccessor<Arguments>
 
   toString() => "PropertyAccessor()";
 
-  static FastaAccessor make(
-      BuilderHelper helper,
+  static FastaAccessor<Arguments> make<Arguments>(
+      BuilderHelper<dynamic, dynamic, Arguments> helper,
       Token token,
       kernel.Expression receiver,
       Name name,
       Member getter,
       Member setter,
       bool isNullAware) {
-    if (receiver is ThisExpression) {
+    if (helper.forest.isThisExpression(receiver)) {
       return unsupported("ThisExpression", offsetForToken(token), helper.uri);
     } else {
       return isNullAware
@@ -861,14 +864,17 @@ class PropertyAccessor<Arguments> extends kernel.PropertyAccessor<Arguments>
 
 class StaticAccessor<Arguments> extends kernel.StaticAccessor<Arguments>
     with FastaAccessor<Arguments> {
-  StaticAccessor(
-      BuilderHelper helper, Token token, Member readTarget, Member writeTarget)
+  StaticAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper, Token token,
+      Member readTarget, Member writeTarget)
       : super(helper, readTarget, writeTarget, token) {
     assert(readTarget != null || writeTarget != null);
   }
 
-  factory StaticAccessor.fromBuilder(BuilderHelper helper, Builder builder,
-      Token token, Builder builderSetter) {
+  factory StaticAccessor.fromBuilder(
+      BuilderHelper<dynamic, dynamic, Arguments> helper,
+      Builder builder,
+      Token token,
+      Builder builderSetter) {
     if (builder is AccessErrorBuilder) {
       AccessErrorBuilder error = builder;
       builder = error.builder;
@@ -919,8 +925,8 @@ class StaticAccessor<Arguments> extends kernel.StaticAccessor<Arguments>
 
 class LoadLibraryAccessor<Arguments> extends kernel
     .LoadLibraryAccessor<Arguments> with FastaAccessor<Arguments> {
-  LoadLibraryAccessor(
-      BuilderHelper helper, Token token, LoadLibraryBuilder builder)
+  LoadLibraryAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
+      Token token, LoadLibraryBuilder builder)
       : super(helper, token, builder);
 
   String get plainNameForRead => 'loadLibrary';
@@ -937,8 +943,8 @@ class LoadLibraryAccessor<Arguments> extends kernel
 
 class DeferredAccessor<Arguments> extends kernel.DeferredAccessor<Arguments>
     with FastaAccessor<Arguments> {
-  DeferredAccessor(BuilderHelper helper, Token token, PrefixBuilder builder,
-      FastaAccessor expression)
+  DeferredAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
+      Token token, PrefixBuilder builder, FastaAccessor expression)
       : super(helper, token, builder, expression);
 
   String get plainNameForRead {
@@ -981,8 +987,8 @@ class DeferredAccessor<Arguments> extends kernel.DeferredAccessor<Arguments>
 
 class SuperPropertyAccessor<Arguments> extends kernel
     .SuperPropertyAccessor<Arguments> with FastaAccessor<Arguments> {
-  SuperPropertyAccessor(BuilderHelper helper, Token token, Name name,
-      Member getter, Member setter)
+  SuperPropertyAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
+      Token token, Name name, Member getter, Member setter)
       : super(helper, name, getter, setter, token);
 
   String get plainNameForRead => name.name;
@@ -1015,8 +1021,8 @@ class SuperPropertyAccessor<Arguments> extends kernel
 
 class ThisIndexAccessor<Arguments> extends kernel.ThisIndexAccessor<Arguments>
     with FastaAccessor<Arguments> {
-  ThisIndexAccessor(BuilderHelper helper, Token token, kernel.Expression index,
-      Procedure getter, Procedure setter)
+  ThisIndexAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
+      Token token, kernel.Expression index, Procedure getter, Procedure setter)
       : super(helper, index, getter, setter, token);
 
   String get plainNameForRead => "[]";
@@ -1038,8 +1044,8 @@ class ThisIndexAccessor<Arguments> extends kernel.ThisIndexAccessor<Arguments>
 
 class SuperIndexAccessor<Arguments> extends kernel.SuperIndexAccessor<Arguments>
     with FastaAccessor<Arguments> {
-  SuperIndexAccessor(BuilderHelper helper, Token token, kernel.Expression index,
-      Member getter, Member setter)
+  SuperIndexAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
+      Token token, kernel.Expression index, Member getter, Member setter)
       : super(helper, index, getter, setter, token);
 
   String get plainNameForRead => "[]";
@@ -1061,7 +1067,7 @@ class SuperIndexAccessor<Arguments> extends kernel.SuperIndexAccessor<Arguments>
 
 class ThisPropertyAccessor<Arguments> extends kernel
     .ThisPropertyAccessor<Arguments> with FastaAccessor<Arguments> {
-  final BuilderHelper helper;
+  final BuilderHelper<dynamic, dynamic, Arguments> helper;
 
   ThisPropertyAccessor(
       this.helper, Token token, Name name, Member getter, Member setter)
@@ -1095,7 +1101,7 @@ class ThisPropertyAccessor<Arguments> extends kernel
 
 class NullAwarePropertyAccessor<Arguments> extends kernel
     .NullAwarePropertyAccessor<Arguments> with FastaAccessor<Arguments> {
-  final BuilderHelper helper;
+  final BuilderHelper<dynamic, dynamic, Arguments> helper;
 
   NullAwarePropertyAccessor(
       this.helper,
@@ -1128,8 +1134,8 @@ int adjustForImplicitCall(String name, int offset) {
 
 class VariableAccessor<Arguments> extends kernel.VariableAccessor<Arguments>
     with FastaAccessor<Arguments> {
-  VariableAccessor(
-      BuilderHelper helper, Token token, VariableDeclaration variable,
+  VariableAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
+      Token token, VariableDeclaration variable,
       [DartType promotedType])
       : super(helper, variable, promotedType, token);
 
@@ -1152,8 +1158,8 @@ class ReadOnlyAccessor<Arguments> extends kernel.ReadOnlyAccessor<Arguments>
     with FastaAccessor<Arguments> {
   final String plainNameForRead;
 
-  ReadOnlyAccessor(BuilderHelper helper, kernel.Expression expression,
-      this.plainNameForRead, Token token)
+  ReadOnlyAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
+      kernel.Expression expression, this.plainNameForRead, Token token)
       : super(helper, expression, token);
 
   kernel.Expression doInvocation(int offset, Arguments arguments) {
@@ -1167,7 +1173,9 @@ class LargeIntAccessor<Arguments> extends kernel.DelayedErrorAccessor<Arguments>
     with FastaAccessor<Arguments> {
   final String plainNameForRead = null;
 
-  LargeIntAccessor(BuilderHelper helper, Token token) : super(helper, token);
+  LargeIntAccessor(
+      BuilderHelper<dynamic, dynamic, Arguments> helper, Token token)
+      : super(helper, token);
 
   @override
   kernel.Expression buildError() {
@@ -1182,8 +1190,8 @@ class LargeIntAccessor<Arguments> extends kernel.DelayedErrorAccessor<Arguments>
 }
 
 class ParenthesizedExpression<Arguments> extends ReadOnlyAccessor<Arguments> {
-  ParenthesizedExpression(
-      BuilderHelper helper, kernel.Expression expression, Token token)
+  ParenthesizedExpression(BuilderHelper<dynamic, dynamic, Arguments> helper,
+      kernel.Expression expression, Token token)
       : super(helper, expression, null, token);
 
   kernel.Expression makeInvalidWrite(kernel.Expression value) {
@@ -1204,7 +1212,7 @@ class TypeDeclarationAccessor<Arguments> extends ReadOnlyAccessor<Arguments> {
   final TypeDeclarationBuilder declaration;
 
   TypeDeclarationAccessor(
-      BuilderHelper helper,
+      BuilderHelper<dynamic, dynamic, Arguments> helper,
       this.prefix,
       this.declarationReferenceOffset,
       this.declaration,
@@ -1351,7 +1359,7 @@ class UnresolvedAccessor<Arguments> extends FastaAccessor<Arguments>
   final Token token;
 
   @override
-  final BuilderHelper helper;
+  final BuilderHelper<dynamic, dynamic, Arguments> helper;
 
   @override
   final Name name;

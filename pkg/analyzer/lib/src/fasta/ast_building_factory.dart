@@ -192,6 +192,9 @@ class AstBuildingForest
   @override
   Expression thisExpression(Token thisKeyword) =>
       astFactory.thisExpression(thisKeyword);
+
+  @override
+  bool isThisExpression(Object node) => node is ThisExpression;
 }
 
 /// A data holder used to conform to the [Forest] API.

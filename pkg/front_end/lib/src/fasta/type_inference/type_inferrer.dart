@@ -496,7 +496,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           var parent = expression.parent;
           var t = new VariableDeclaration.forValue(expression, type: actualType)
             ..fileOffset = fileOffset;
-          var nullCheck = buildIsNull(new VariableGet(t), fileOffset);
+          var nullCheck = buildIsNull(new VariableGet(t), fileOffset, helper);
           var tearOff =
               new PropertyGet(new VariableGet(t), callName, callMember)
                 ..fileOffset = fileOffset;

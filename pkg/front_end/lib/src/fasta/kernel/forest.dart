@@ -146,7 +146,9 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
 
   Expression thisExpression(Location location);
 
-  bool isErroneousNode(covariant node);
+  bool isErroneousNode(Object node);
+
+  bool isThisExpression(Object node);
 
   // TODO(ahe): Remove this method when all users are moved here.
   kernel.Arguments castArguments(Arguments arguments) {

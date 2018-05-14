@@ -18,6 +18,7 @@ import 'package:kernel/ast.dart'
         MapEntry,
         NamedExpression,
         Statement,
+        ThisExpression,
         TreeNode,
         VariableDeclaration;
 
@@ -235,7 +236,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
-  bool isErroneousNode(TreeNode node) {
+  bool isErroneousNode(Object node) {
     if (node is ExpressionStatement) {
       ExpressionStatement statement = node;
       node = statement.expression;
@@ -254,4 +255,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
     }
     return node is InvalidExpression;
   }
+
+  @override
+  bool isThisExpression(Object node) => node is ThisExpression;
 }
