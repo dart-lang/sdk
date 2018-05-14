@@ -1,5 +1,7 @@
 name: front_end
-version: 0.1.0-alpha.12
+# Currently, front_end API is not stable and users should not
+# depend on semver semantics when depending on this package.
+version: 0.1.0
 author: Dart Team <misc@dartlang.org>
 description: Front end for compilation of Dart code.
 homepage: https://github.com/dart-lang/sdk/tree/master/pkg/front_end
@@ -9,14 +11,14 @@ dependencies:
   charcode: '^1.1.1'
   convert: '^2.0.1'
   crypto: '^2.0.2'
-  kernel: 0.3.0-alpha.12
+  kernel: 0.3.0
   meta: '^1.1.1'
   package_config: '^1.0.1'
   path: '^1.3.9'
   source_span: '^1.2.3'
   yaml: '^2.1.12'
 dev_dependencies:
-  analyzer: '>=0.30.0 <0.32.0'
+  analyzer: '>=0.31.0 <0.33.0'
   args: '>=0.13.0 <2.0.0'
   dart_style: '^1.0.7'
   json_rpc_2: ^2.0.4
