@@ -10,6 +10,7 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 import 'package:kernel/ast.dart';
 import 'package:kernel/text/ast_to_text.dart' show Printer;
+import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/target/vm.dart';
 import 'package:test/test.dart';
@@ -42,6 +43,18 @@ String kernelLibraryToString(Library library) {
   new Printer(buffer, showExternal: false, showMetadata: true)
       .writeLibraryFile(library);
   return buffer.toString();
+}
+
+class DevNullSink<T> extends Sink<T> {
+  @override
+  void add(T data) {}
+
+  @override
+  void close() {}
+}
+
+void ensureKernelCanBeSerializedToBinary(Component component) {
+  new BinaryPrinter(new DevNullSink<List<int>>()).writeComponentFile(component);
 }
 
 void compareResultWithExpectationsFile(Uri source, String actual) {

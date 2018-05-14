@@ -379,7 +379,9 @@ class TreeShaker {
 
   void addUsedTypedef(Typedef typedef) {
     if (_usedTypedefs.add(typedef)) {
-      typedef.visitChildren(typeVisitor);
+      transformList(typedef.annotations, _pass1, typedef);
+      visitList(typedef.typeParameters, typeVisitor);
+      typedef.type?.accept(typeVisitor);
     }
   }
 }
@@ -415,6 +417,14 @@ class _TreeShakerTypeVisitor extends RecursiveVisitor<Null> {
     final typedef = node.typedef;
     if (typedef != null) {
       shaker.addUsedTypedef(typedef);
+    }
+  }
+
+  @override
+  visitTypeParameterType(TypeParameterType node) {
+    final parent = node.parameter.parent;
+    if (parent is Class) {
+      shaker.addClassUsedInType(parent);
     }
   }
 }

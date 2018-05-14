@@ -30,6 +30,8 @@ runTestCase(Uri source) async {
   final actual = kernelLibraryToString(component.mainMethod.enclosingLibrary);
 
   compareResultWithExpectationsFile(source, actual);
+
+  ensureKernelCanBeSerializedToBinary(component);
 }
 
 main() {
