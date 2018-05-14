@@ -454,6 +454,7 @@ void _writeDepfile(Component component, String output, String depfile) async {
   file.write(_escapePath(output));
   file.write(':');
   for (Uri dep in component.uriToSource.keys) {
+    if (dep == null) continue;
     file.write(' ');
     file.write(_escapePath(dep.toFilePath()));
   }
