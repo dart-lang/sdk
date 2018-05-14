@@ -196,7 +196,7 @@ abstract class FastaAccessor<Arguments> implements Accessor<Arguments> {
         helper.deprecated_addCompileTimeError(
             offsetForToken(token), "Not a constant expression.");
       }
-      return PropertyAccessor.make(helper, send.token, buildSimpleRead(),
+      return PropertyAccessGenerator.make(helper, send.token, buildSimpleRead(),
           send.name, null, null, isNullAware);
     }
   }
@@ -698,7 +698,7 @@ class IncompletePropertyAccessor<Arguments> extends IncompleteSend<Arguments> {
           isQualified: true, prefix: prefix);
     }
 
-    return PropertyAccessor.make(
+    return PropertyAccessGenerator.make(
         helper, token, helper.toValue(receiver), name, null, null, isNullAware);
   }
 
@@ -778,48 +778,6 @@ class IndexAccessor<Arguments> extends _IndexAccessor<Arguments>
   @override
   ShadowComplexAssignment startComplexAssignment(kernel.Expression rhs) =>
       new ShadowIndexAssign(receiver, index, rhs);
-}
-
-class PropertyAccessor<Arguments> extends _PropertyAccessor<Arguments>
-    with FastaAccessor<Arguments> {
-  final BuilderHelper<dynamic, dynamic, Arguments> helper;
-
-  PropertyAccessor.internal(this.helper, Token token,
-      kernel.Expression receiver, Name name, Member getter, Member setter)
-      : super.internal(helper, receiver, name, getter, setter, token);
-
-  String get plainNameForRead => name.name;
-
-  bool get isThisPropertyAccessor => forest.isThisExpression(receiver);
-
-  kernel.Expression doInvocation(int offset, Arguments arguments) {
-    return helper.buildMethodInvocation(receiver, name, arguments, offset);
-  }
-
-  toString() => "PropertyAccessor()";
-
-  static FastaAccessor<Arguments> make<Arguments>(
-      BuilderHelper<dynamic, dynamic, Arguments> helper,
-      Token token,
-      kernel.Expression receiver,
-      Name name,
-      Member getter,
-      Member setter,
-      bool isNullAware) {
-    if (helper.forest.isThisExpression(receiver)) {
-      return unsupported("ThisExpression", offsetForToken(token), helper.uri);
-    } else {
-      return isNullAware
-          ? new NullAwarePropertyAccessor(
-              helper, token, receiver, name, getter, setter, null)
-          : new PropertyAccessor.internal(
-              helper, token, receiver, name, getter, setter);
-    }
-  }
-
-  @override
-  ShadowComplexAssignment startComplexAssignment(kernel.Expression rhs) =>
-      new ShadowPropertyAssign(receiver, rhs);
 }
 
 class StaticAccessor<Arguments> extends _StaticAccessor<Arguments>

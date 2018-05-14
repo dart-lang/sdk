@@ -325,30 +325,44 @@ class VariableUseGenerator<Arguments> extends Accessor<Arguments>
   String toString() => "VariableUseGenerator()";
 }
 
-class _PropertyAccessor<Arguments> extends Accessor<Arguments> {
+class PropertyAccessGenerator<Arguments> extends Accessor<Arguments>
+    with FastaAccessor<Arguments> {
   VariableDeclaration _receiverVariable;
   kernel.Expression receiver;
   Name name;
   Member getter, setter;
 
-  static Accessor<Arguments> make<Arguments>(
+  PropertyAccessGenerator.internal(
       BuilderHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      this.receiver,
+      this.name,
+      this.getter,
+      this.setter)
+      : super(helper, token);
+
+  static FastaAccessor<Arguments> make<Arguments>(
+      BuilderHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
       kernel.Expression receiver,
       Name name,
       Member getter,
       Member setter,
-      {Token token}) {
+      bool isNullAware) {
     if (helper.forest.isThisExpression(receiver)) {
-      return new _ThisPropertyAccessor(helper, name, getter, setter, token);
+      return unsupported("ThisExpression", offsetForToken(token), helper.uri);
     } else {
-      return new _PropertyAccessor.internal(
-          helper, receiver, name, getter, setter, token);
+      return isNullAware
+          ? new NullAwarePropertyAccessor(
+              helper, token, receiver, name, getter, setter, null)
+          : new PropertyAccessGenerator.internal(
+              helper, token, receiver, name, getter, setter);
     }
   }
 
-  _PropertyAccessor.internal(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      this.receiver, this.name, this.getter, this.setter, Token token)
-      : super(helper, token);
+  String get plainNameForRead => name.name;
+
+  bool get isThisPropertyAccessor => forest.isThisExpression(receiver);
 
   kernel.Expression _makeSimpleRead() =>
       new ShadowPropertyGet(receiver, name, getter)
@@ -387,6 +401,16 @@ class _PropertyAccessor<Arguments> extends Accessor<Arguments> {
       kernel.Expression body, ShadowComplexAssignment complexAssignment) {
     return super._finish(makeLet(_receiverVariable, body), complexAssignment);
   }
+
+  kernel.Expression doInvocation(int offset, Arguments arguments) {
+    return helper.buildMethodInvocation(receiver, name, arguments, offset);
+  }
+
+  @override
+  ShadowComplexAssignment startComplexAssignment(kernel.Expression rhs) =>
+      new ShadowPropertyAssign(receiver, rhs);
+
+  String toString() => "PropertyAccessGenerator()";
 }
 
 /// Special case of [_PropertyAccessor] to avoid creating an indirect access to
