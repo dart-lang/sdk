@@ -10,7 +10,6 @@ import '../transformations/treeshaker.dart' show ProgramRoot;
 import 'flutter.dart' show FlutterTarget;
 import 'vm.dart' show VmTarget;
 import 'vmcc.dart' show VmClosureConvertedTarget;
-import 'vmreify.dart' show VmGenericTypesReifiedTarget;
 
 final List<String> targetNames = targets.keys.toList();
 
@@ -37,7 +36,6 @@ final Map<String, _TargetBuilder> targets = <String, _TargetBuilder>{
   'none': (TargetFlags flags) => new NoneTarget(flags),
   'vm': (TargetFlags flags) => new VmTarget(flags),
   'vmcc': (TargetFlags flags) => new VmClosureConvertedTarget(flags),
-  'vmreify': (TargetFlags flags) => new VmGenericTypesReifiedTarget(flags),
   'flutter': (TargetFlags flags) => new FlutterTarget(flags),
 };
 
