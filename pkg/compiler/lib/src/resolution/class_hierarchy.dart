@@ -582,12 +582,7 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
 
   CommonElements get commonElements => resolution.commonElements;
 
-  void loadSupertype(ClassElement element, Node from) {
-    if (!element.isResolved) {
-      resolution.resolver.loadSupertypes(element, from);
-      element.ensureResolved(resolution);
-    }
-  }
+  void loadSupertype(ClassElement element, Node from) {}
 
   void visitNodeList(NodeList node) {
     if (node != null) {

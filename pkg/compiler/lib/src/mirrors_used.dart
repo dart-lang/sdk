@@ -125,7 +125,7 @@ class MirrorUsageAnalyzerTask extends CompilerTask {
     for (Node argument in node.send.arguments) {
       NamedArgument named = argument.asNamedArgument();
       if (named == null) continue;
-      ConstantCompiler constantCompiler = compiler.resolver.constantCompiler;
+      ConstantCompiler constantCompiler = null;
       ConstantValue value = constantCompiler.getConstantValue(
           constantCompiler.compileNode(named.expression, mapping));
 

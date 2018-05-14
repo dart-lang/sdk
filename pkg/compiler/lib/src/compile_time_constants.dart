@@ -909,10 +909,6 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     // correctly.  Find a way to avoid this.
     resolution.ensureResolved(constructor.declaration);
 
-    // The redirection chain of this element may not have been resolved through
-    // a post-process action, so we have to make sure it is done here.
-    compiler.resolver.resolveRedirectionChain(constructor, node);
-
     bool isInvalid = false;
     ResolutionInterfaceType constructedType = type;
     ConstructorElement implementation;

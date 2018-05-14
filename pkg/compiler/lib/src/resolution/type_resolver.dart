@@ -322,9 +322,6 @@ class TypeResolver {
       bool addTypeVariableBoundsCheck = false;
       if (element.isClass) {
         ClassElement cls = element;
-        // TODO(johnniwinther): [ensureClassWillBeResolvedInternal] should imply
-        // [computeType].
-        resolver.ensureClassWillBeResolvedInternal(cls);
         cls.computeType(resolution);
         List<ResolutionDartType> arguments = <ResolutionDartType>[];
         bool hasTypeArgumentMismatch = resolveTypeArguments(visitor, node,

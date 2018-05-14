@@ -21,7 +21,6 @@ import '../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
 import '../universe/world_impact.dart' show WorldImpact, WorldImpactBuilderImpl;
 import '../util/enumset.dart' show EnumSet;
 import '../util/util.dart' show Setlet;
-import 'members.dart' show ResolverVisitor;
 import 'send_structure.dart';
 import 'tree_elements.dart' show TreeElementMapping;
 
@@ -384,10 +383,10 @@ class ResolutionRegistry {
         new MapLiteralUse(type, isConstant: isConstant, isEmpty: isEmpty));
   }
 
-  void registerForeignCall(Node node, Element element,
-      CallStructure callStructure, ResolverVisitor visitor) {
-    var nativeData = target.resolveForeignCall(node, element, callStructure,
-        new ForeignResolutionResolver(visitor, this));
+  void registerForeignCall(
+      Node node, Element element, CallStructure callStructure) {
+    var nativeData = target.resolveForeignCall(
+        node, element, callStructure, new ForeignResolutionResolver(this));
     if (nativeData != null) {
       // Split impact from resolution result.
       mapping.registerNativeData(node, nativeData);
@@ -443,10 +442,9 @@ class ResolutionRegistry {
 }
 
 class ForeignResolutionResolver implements ForeignResolver {
-  final ResolverVisitor visitor;
   final ResolutionRegistry registry;
 
-  ForeignResolutionResolver(this.visitor, this.registry);
+  ForeignResolutionResolver(this.registry);
 
   @override
   ConstantExpression getConstant(Node node) {
@@ -460,6 +458,6 @@ class ForeignResolutionResolver implements ForeignResolver {
 
   @override
   ResolutionDartType resolveTypeFromString(Node node, String typeName) {
-    return visitor.resolveTypeFromString(node, typeName);
+    return null;
   }
 }

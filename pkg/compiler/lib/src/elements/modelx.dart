@@ -18,7 +18,6 @@ import '../resolution/resolution.dart' show AnalyzableElementX;
 import '../resolution/scope.dart'
     show ClassScope, LibraryScope, Scope, TypeDeclarationScope;
 import '../resolution/tree_elements.dart' show TreeElements;
-import '../resolution/typedefs.dart' show TypedefCyclicVisitor;
 import '../script.dart';
 import 'package:front_end/src/fasta/scanner.dart' show ErrorToken, Token;
 import 'package:front_end/src/fasta/scanner.dart' as Tokens show EOF_TOKEN;
@@ -1428,9 +1427,6 @@ class TypedefElementX extends ElementX
 
   void checkCyclicReference(Resolution resolution) {
     if (hasBeenCheckedForCycles) return;
-    TypedefCyclicVisitor visitor =
-        new TypedefCyclicVisitor(resolution.reporter, this);
-    computeType(resolution).accept(visitor, null);
     hasBeenCheckedForCycles = true;
   }
 
