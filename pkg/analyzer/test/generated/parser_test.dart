@@ -5553,9 +5553,10 @@ main() {
   }
 
   void test_unexpectedToken_endOfFieldDeclarationStatement() {
-    parseStatement("String s = (null));");
-    listener
-        .assertErrors([expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 17, 1)]);
+    parseStatement("String s = (null));", expectedEndOffset: 17);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.EXPECTED_TOKEN, 17, 1)]
+        : [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 17, 1)]);
   }
 
   void test_unexpectedToken_invalidPostfixExpression() {

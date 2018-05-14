@@ -488,70 +488,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     // Expected 1 errors of type ParserErrorCode.MISSING_FUNCTION_PARAMETERS, found 0
     super.test_missingFunctionParameters_topLevel_void_expression();
   }
-
-  @override
-  @failingTest
-  void test_unexpectedToken_endOfFieldDeclarationStatement() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.UNEXPECTED_TOKEN, found 0
-    super.test_unexpectedToken_endOfFieldDeclarationStatement();
-  }
-
-  @override
-//  @failingTest
-  void test_voidVariable_parseClassMember_initializer() {
-    // TODO(brianwilkerson) Passes, but ought to fail.
-    super.test_voidVariable_parseClassMember_initializer();
-  }
-
-  @override
-//  @failingTest
-  void test_voidVariable_parseClassMember_noInitializer() {
-    // TODO(brianwilkerson) Passes, but ought to fail.
-    super.test_voidVariable_parseClassMember_noInitializer();
-  }
-
-  @override
-//  @failingTest
-  void test_voidVariable_parseCompilationUnit_initializer() {
-    // TODO(brianwilkerson) Passes, but ought to fail.
-    super.test_voidVariable_parseCompilationUnit_initializer();
-  }
-
-  @override
-//  @failingTest
-  void test_voidVariable_parseCompilationUnit_noInitializer() {
-    // TODO(brianwilkerson) Passes, but ought to fail.
-    super.test_voidVariable_parseCompilationUnit_noInitializer();
-  }
-
-  @override
-//  @failingTest
-  void test_voidVariable_parseCompilationUnitMember_initializer() {
-    // TODO(brianwilkerson) Passes, but ought to fail.
-    super.test_voidVariable_parseCompilationUnitMember_initializer();
-  }
-
-  @override
-//  @failingTest
-  void test_voidVariable_parseCompilationUnitMember_noInitializer() {
-    // TODO(brianwilkerson) Passes, but ought to fail.
-    super.test_voidVariable_parseCompilationUnitMember_noInitializer();
-  }
-
-  @override
-//  @failingTest
-  void test_voidVariable_statement_initializer() {
-    // TODO(brianwilkerson) Passes, but ought to fail.
-    super.test_voidVariable_statement_initializer();
-  }
-
-  @override
-//  @failingTest
-  void test_voidVariable_statement_noInitializer() {
-    // TODO(brianwilkerson) Passes, but ought to fail.
-    super.test_voidVariable_statement_noInitializer();
-  }
 }
 
 /**
@@ -636,11 +572,8 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   }
 
   @override
-  @failingTest
   void test_parseInstanceCreationExpression_type_named_typeArgumentComments() {
-    // TODO(brianwilkerson) Does not inject generic type arguments.
-    super
-        .test_parseInstanceCreationExpression_type_named_typeArgumentComments();
+    // Ignored: Fasta does not support the generic comment syntax.
   }
 
   @override
