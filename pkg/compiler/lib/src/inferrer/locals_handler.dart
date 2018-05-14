@@ -5,12 +5,12 @@
 library locals_handler;
 
 import 'dart:collection' show IterableMixin;
-
+import 'package:kernel/ast.dart' as ir;
 import '../options.dart' show CompilerOptions;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../tree/tree.dart';
+import '../tree/tree.dart' as ast;
 import '../util/util.dart';
 import 'inferrer_engine.dart';
 import 'type_graph_nodes.dart';
@@ -32,15 +32,26 @@ class VariableScope<T> {
   /// The [Node] that created this scope.
   final T block;
 
-  VariableScope(this.block, [parent])
+  /// `true` if this scope is for a try block.
+  final bool isTry;
+
+  VariableScope(this.block, {VariableScope parent, this.isTry})
       : this.variables = null,
-        this.parent = parent;
+        this.parent = parent {
+    assert(
+        isTry ==
+            (block is ast.TryStatement ||
+                block is ir.TryCatch ||
+                block is ir.TryFinally),
+        "Unexpected block $block for isTry=$isTry");
+  }
 
   VariableScope.deepCopyOf(VariableScope<T> other)
       : variables = other.variables == null
             ? null
             : new Map<Local, TypeInformation>.from(other.variables),
         block = other.block,
+        isTry = other.isTry,
         parent = other.parent == null
             ? null
             : new VariableScope.deepCopyOf(other.parent);
@@ -50,6 +61,7 @@ class VariableScope<T> {
             ? null
             : new Map<Local, TypeInformation>.from(other.variables),
         block = other.block,
+        isTry = other.isTry,
         parent = other.parent;
 
   TypeInformation operator [](Local variable) {
@@ -261,13 +273,14 @@ class LocalsHandler<T> {
 
   LocalsHandler(this.inferrer, this.types, this.options, T block,
       [this.fieldScope])
-      : locals = new VariableScope<T>(block),
+      : locals = new VariableScope<T>(block, isTry: false),
         _capturedAndBoxed = new Map<Local, FieldEntity>(),
         tryBlock = null;
 
   LocalsHandler.from(LocalsHandler<T> other, T block,
-      {bool useOtherTryBlock: true})
-      : locals = new VariableScope<T>(block, other.locals),
+      {bool isTry: false, bool useOtherTryBlock: true})
+      : locals =
+            new VariableScope<T>(block, isTry: isTry, parent: other.locals),
         fieldScope = new FieldInitializationScope<T>.from(other.fieldScope),
         _capturedAndBoxed = other._capturedAndBoxed,
         types = other.types,
@@ -320,7 +333,7 @@ class LocalsHandler<T> {
             local,
             types.allocatePhi(
                 locals.block, local, types.narrowNotNull(currentType),
-                isTry: locals.block is TryStatement),
+                isTry: locals.isTry),
             type);
       }
       locals[local] = type;
@@ -329,7 +342,7 @@ class LocalsHandler<T> {
     if (_capturedAndBoxed.containsKey(local)) {
       inferrer.recordTypeOfField(_capturedAndBoxed[local], type);
     } else if (inTryBlock) {
-      // We don'TypeInformation know if an assignment in a try block
+      // We don't know if an assignment in a try block
       // will be executed, so all assignments in that block are
       // potential types after we have left it. We update the parent
       // of the try block so that, at exit of the try block, we get
@@ -338,7 +351,7 @@ class LocalsHandler<T> {
       if (existing != null) {
         TypeInformation phiType = types.allocatePhi(
             tryBlock.locals.block, local, existing,
-            isTry: tryBlock.locals.block is TryStatement);
+            isTry: tryBlock.locals.isTry);
         TypeInformation inputType = types.addPhiInput(local, phiType, type);
         tryBlock.locals.parent[local] = inputType;
       }
@@ -459,7 +472,8 @@ class LocalsHandler<T> {
     // Use a separate locals handler to perform the merge in, so that Phi
     // creation does not invalidate previous type knowledge while we might
     // still look it up.
-    LocalsHandler<T> merged = new LocalsHandler<T>.from(this, level);
+    LocalsHandler<T> merged =
+        new LocalsHandler<T>.from(this, level, isTry: locals.isTry);
     Set<Local> seenLocals = new Setlet<Local>();
     bool allBranchesAbort = true;
     // Merge all other handlers.
@@ -502,7 +516,7 @@ class LocalsHandler<T> {
       TypeInformation newType;
       if (seen != null && !seen.contains(local)) {
         newType = types.allocatePhi(locals.block, local, otherType,
-            isTry: locals.block is TryStatement);
+            isTry: locals.isTry);
         seen.add(local);
       } else {
         newType = types.addPhiInput(local, myType, otherType);
@@ -530,8 +544,8 @@ class LocalsHandler<T> {
 
   void startLoop(T loop) {
     locals.forEachLocal((Local variable, TypeInformation type) {
-      TypeInformation newType = types.allocateLoopPhi(loop, variable, type,
-          isTry: loop is TryStatement);
+      TypeInformation newType =
+          types.allocateLoopPhi(loop, variable, type, isTry: false);
       if (newType != type) {
         locals[variable] = newType;
       }

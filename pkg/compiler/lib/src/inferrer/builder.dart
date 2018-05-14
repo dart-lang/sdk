@@ -719,7 +719,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
 
   TypeInformation visitTryStatement(ast.TryStatement node) {
     LocalsHandler saved = locals;
-    locals = new LocalsHandler.from(locals, node, useOtherTryBlock: false);
+    locals = new LocalsHandler.from(locals, node,
+        isTry: true, useOtherTryBlock: false);
     initializationIsIndefinite();
     visit(node.tryBlock);
     saved.mergeDiamondFlow(locals, null);
