@@ -25,7 +25,8 @@ duplicate_interface_negative_test: CompileTimeError
 emit_const_fields_test: CompileTimeError
 enum_syntax_test/05: Fail # Issue 21649
 enum_syntax_test/06: Fail # Issue 21649
-field3_test/01: MissingCompileTimeError
+field3_test/01: MissingCompileTimeError # Issue 33022
+field3_test/02: MissingCompileTimeError # Issue 33022
 final_syntax_test/01: Fail # Issue 11124
 final_syntax_test/02: Fail # Issue 11124
 final_syntax_test/03: Fail # Issue 11124
