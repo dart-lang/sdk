@@ -1310,19 +1310,5 @@ class SubscriptionsPage extends DiagnosticPageWithNav {
         buf.write('$item');
       });
     }
-
-    // execution domain
-    ExecutionDomainHandler domain = server.handlers.firstWhere(
-        (handler) => handler is ExecutionDomainHandler,
-        orElse: () => null);
-
-    h3('Execution domain');
-    ul(ExecutionService.VALUES, (item) {
-      if (domain.onFileAnalyzed != null) {
-        buf.write('$item (has subscriptions)');
-      } else {
-        buf.write('$item (no subscriptions)');
-      }
-    });
   }
 }

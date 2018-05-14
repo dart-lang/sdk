@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:collection';
 import 'dart:core';
 
@@ -32,13 +31,7 @@ class ExecutionDomainHandler implements RequestHandler {
   /**
    * A table mapping execution context id's to the root of the context.
    */
-  Map<String, String> contextMap = new HashMap<String, String>();
-
-  /**
-   * The subscription to the 'onAnalysisComplete' events,
-   * used to send notifications when
-   */
-  StreamSubscription onFileAnalyzed;
+  final Map<String, String> contextMap = new HashMap<String, String>();
 
   /**
    * Initialize a newly created handler to handle requests for the given [server].

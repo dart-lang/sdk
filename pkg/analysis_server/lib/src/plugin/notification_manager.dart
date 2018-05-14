@@ -86,12 +86,12 @@ class NotificationManager {
   /**
    * The object used to convert results.
    */
-  ResultConverter converter = new ResultConverter();
+  final ResultConverter converter = new ResultConverter();
 
   /**
    * The object used to merge results.
    */
-  ResultMerger merger = new ResultMerger();
+  final ResultMerger merger = new ResultMerger();
 
   /**
    * Initialize a newly created notification manager.
