@@ -59,4 +59,13 @@ int test_for_in(List<int> list) {
   return sum;
 }
 
+int test_for_in_with_outer_var(List<int> list) {
+  int sum = 0;
+  int e = 42;
+  for (e in list) {
+    sum = sum + e;
+  }
+  return sum;
+}
+
 main() {}

@@ -923,7 +923,7 @@ class BinaryBuilder {
       debugPath.add(node.name?.name ?? 'constructor');
       return true;
     }());
-    var function = readFunctionNode(false, -1);
+    var function = readFunctionNode();
     pushVariableDeclarations(function.positionalParameters);
     pushVariableDeclarations(function.namedParameters);
     if (shouldWriteData) {
@@ -1080,11 +1080,13 @@ class BinaryBuilder {
 
   FunctionNode readFunctionNodeOption(bool lazyLoadBody, int outerEndOffset) {
     return readAndCheckOptionTag()
-        ? readFunctionNode(lazyLoadBody, outerEndOffset)
+        ? readFunctionNode(
+            lazyLoadBody: lazyLoadBody, outerEndOffset: outerEndOffset)
         : null;
   }
 
-  FunctionNode readFunctionNode(bool lazyLoadBody, int outerEndOffset) {
+  FunctionNode readFunctionNode(
+      {bool lazyLoadBody: false, int outerEndOffset: -1}) {
     int tag = readByte();
     assert(tag == Tag.FunctionNode);
     int offset = readOffset();
@@ -1403,8 +1405,7 @@ class BinaryBuilder {
         return new AwaitExpression(readExpression());
       case Tag.FunctionExpression:
         int offset = readOffset();
-        return new FunctionExpression(readFunctionNode(false, -1))
-          ..fileOffset = offset;
+        return new FunctionExpression(readFunctionNode())..fileOffset = offset;
       case Tag.Let:
         var variable = readVariableDeclaration();
         int stackHeight = variableStack.length;
@@ -1589,7 +1590,7 @@ class BinaryBuilder {
         int offset = readOffset();
         var variable = readVariableDeclaration();
         variableStack.add(variable); // Will be popped by the enclosing scope.
-        var function = readFunctionNode(false, -1);
+        var function = readFunctionNode();
         return new FunctionDeclaration(variable, function)..fileOffset = offset;
       default:
         throw fail('Invalid statement tag: $tag');
@@ -2000,9 +2001,11 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   }
 
   @override
-  FunctionNode readFunctionNode(bool lazyLoadBody, int outerEndOffset) {
+  FunctionNode readFunctionNode(
+      {bool lazyLoadBody: false, int outerEndOffset: -1}) {
     final nodeOffset = _byteOffset;
-    final result = super.readFunctionNode(lazyLoadBody, outerEndOffset);
+    final result = super.readFunctionNode(
+        lazyLoadBody: lazyLoadBody, outerEndOffset: outerEndOffset);
     return _associateMetadata(result, nodeOffset);
   }
 

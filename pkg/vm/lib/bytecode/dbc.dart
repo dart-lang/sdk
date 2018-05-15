@@ -7,8 +7,9 @@ library vm.bytecode.dbc;
 // List of changes from original DBC (described in runtime/vm/constants_dbc.h):
 //
 // 1. StoreFieldTOS, LoadFieldTOS instructions:
-//    D = index of constant pool entry with FieldOffset or
-//    TypeArgumentsFieldOffset tags (instead of field offset in words).
+//    D = index of constant pool entry with FieldOffset,
+//    TypeArgumentsFieldOffset or ConstantContextOffset tags
+//    (instead of field offset in words).
 //
 // 2. EntryOptional instruction is revived in order to re-shuffle optional
 //    parameters. This DBC instruction was removed at

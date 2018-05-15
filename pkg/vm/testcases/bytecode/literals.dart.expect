@@ -420,7 +420,7 @@ ConstantPool {
 }
 [@vm.bytecode=
 Bytecode {
-  Entry                2
+  Entry                1
   CheckStack
   PushConstant         CP#0
   StoreLocal           r0
@@ -446,21 +446,21 @@ Bytecode {
   IndirectStaticCall   1, CP#7
   Drop1
   PushConstant         CP#9
-  StoreLocal           r1
-  Push                 r1
+  StoreLocal           r0
+  Push                 r0
   PushConstant         CP#1
   CreateArrayTOS
-  StoreLocal           r1
-  Push                 r1
+  StoreLocal           r0
+  Push                 r0
   PushConstant         CP#2
   PushConstant         CP#10
   StoreIndexedTOS
-  Push                 r1
+  Push                 r0
   PushConstant         CP#3
   Push                 FP[-5]
   InstanceCall1        1, CP#11
   StoreIndexedTOS
-  Push                 r1
+  Push                 r0
   PushConstant         CP#4
   PushConstant         CP#12
   StoreIndexedTOS
@@ -496,7 +496,7 @@ ConstantPool {
 }
 [@vm.bytecode=
 Bytecode {
-  Entry                4
+  Entry                1
   CheckStack
   PushConstant         CP#0
   PushConstant         CP#1
@@ -528,21 +528,21 @@ Bytecode {
   PushConstant         CP#1
   PushConstant         CP#2
   CreateArrayTOS
-  StoreLocal           r1
-  Push                 r1
+  StoreLocal           r0
+  Push                 r0
   PushConstant         CP#3
   PushConstant         CP#12
   StoreIndexedTOS
-  Push                 r1
+  Push                 r0
   PushConstant         CP#4
   Push                 FP[-7]
   StoreIndexedTOS
-  Push                 r1
+  Push                 r0
   PushConstant         CP#5
   Push                 FP[-6]
   InstanceCall1        1, CP#13
   StoreIndexedTOS
-  Push                 r1
+  Push                 r0
   PushConstant         CP#6
   PushConstant         CP#6
   StoreIndexedTOS
@@ -566,12 +566,12 @@ Bytecode {
   PushConstant         CP#1
   PushConstant         CP#5
   CreateArrayTOS
-  StoreLocal           r3
-  Push                 r3
+  StoreLocal           r0
+  Push                 r0
   PushConstant         CP#3
   Push                 FP[-5]
   StoreIndexedTOS
-  Push                 r3
+  Push                 r0
   PushConstant         CP#4
   PushConstant         CP#2
   StoreIndexedTOS

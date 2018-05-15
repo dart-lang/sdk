@@ -5582,6 +5582,7 @@ abstract class BinarySink {
   void writeCanonicalNameReference(CanonicalName name);
   void writeStringReference(String str);
   void writeDartType(DartType type);
+  void writeNode(Node node);
 
   void enterScope(
       {List<TypeParameter> typeParameters,
@@ -5607,6 +5608,7 @@ abstract class BinarySource {
   CanonicalName readCanonicalNameReference();
   String readStringReference();
   DartType readDartType();
+  FunctionNode readFunctionNode();
 
   void enterScope({List<TypeParameter> typeParameters});
   void leaveScope({List<TypeParameter> typeParameters});

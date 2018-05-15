@@ -451,7 +451,7 @@ ConstantPool {
   }
 [@vm.bytecode=
 Bytecode {
-  Entry                2
+  Entry                1
   CheckStack
   PushConstant         CP#0
   PushStatic           CP#0
@@ -478,8 +478,8 @@ L2:
   PushConstant         CP#5
   PushStatic           CP#5
   InstanceCall1        1, CP#9
-  StoreLocal           r1
-  Push                 r1
+  StoreLocal           r0
+  Push                 r0
   StoreStaticTOS       CP#0
   Drop1
 L3:
