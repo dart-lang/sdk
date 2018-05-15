@@ -4,10 +4,8 @@
 
 library dart2js.js_emitter.full_emitter.container_builder;
 
-import '../../constants/values.dart';
 import '../../deferred_load.dart' show OutputUnit;
-import '../../elements/elements.dart'
-    show Element, MetadataAnnotation, MethodElement;
+import '../../elements/elements.dart' show Element, MethodElement;
 import '../../elements/entities.dart';
 import '../../elements/entity_utils.dart' as utils;
 import '../../elements/names.dart';
@@ -163,18 +161,6 @@ class ContainerBuilder extends CodeEmitterHelper {
         member.functionSignature.forEachParameter((Element parameter) {
           expressions.add(
               task.metadataCollector.reifyName(parameter.name, outputUnit));
-          if (backend.mirrorsData.mustRetainMetadata) {
-            Iterable<jsAst.Expression> metadataIndices =
-                parameter.metadata.map((MetadataAnnotation annotation) {
-              ConstantValue constant =
-                  backend.constants.getConstantValueForMetadata(annotation);
-              codegenWorldBuilder.addCompileTimeConstantForEmission(constant);
-              return task.metadataCollector
-                  .reifyMetadata(annotation, outputUnit);
-            });
-            expressions
-                .add(new jsAst.ArrayInitializer(metadataIndices.toList()));
-          }
         });
       } else {
         codegenWorldBuilder.forEachParameter(member, (_, String name, _2) {

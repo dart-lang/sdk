@@ -227,19 +227,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
   /// mirrors_patch to implement DeclarationMirror.metadata.
   jsAst.Fun _buildMetadataFunction(Element element) {
     return reporter.withCurrentElement(element, () {
-      List<jsAst.Expression> metadata = <jsAst.Expression>[];
-      for (MetadataAnnotation annotation in element.metadata) {
-        ConstantValue constant =
-            _constants.getConstantValueForMetadata(annotation);
-        if (constant == null) {
-          reporter.internalError(annotation, 'Annotation value is null.');
-        } else {
-          metadata.add(_emitter.constantReference(constant));
-        }
-      }
-      if (metadata.isEmpty) return null;
-      return js(
-          'function() { return # }', new jsAst.ArrayInitializer(metadata));
+      return null;
     });
   }
 
@@ -341,12 +329,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
 
   jsAst.Expression reifyMetadata(
       MetadataAnnotation annotation, OutputUnit outputUnit) {
-    ConstantValue constant = _constants.getConstantValueForMetadata(annotation);
-    if (constant == null) {
-      reporter.internalError(annotation, 'Annotation value is null.');
-      return null;
-    }
-    return _addGlobalMetadata(_emitter.constantReference(constant), outputUnit);
+    return null;
   }
 
   jsAst.Expression reifyType(DartType type, OutputUnit outputUnit,

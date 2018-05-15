@@ -129,13 +129,7 @@ class AstDeferredLoadTask extends DeferredLoadTask {
 
   @override
   void collectConstantsFromMetadata(
-      covariant AstElement element, Set<ConstantValue> constants) {
-    for (MetadataAnnotation metadata in element.metadata) {
-      ConstantValue constant =
-          backend.constants.getConstantValueForMetadata(metadata);
-      if (constant != null) constants.add(constant);
-    }
-  }
+      covariant AstElement element, Set<ConstantValue> constants) {}
 
   @override
   void collectConstantsInBody(
@@ -221,20 +215,6 @@ class AstDeferredLoadTask extends DeferredLoadTask {
       library.implementation.forEachLocalMember((Element element) {
         handleElementIfResolved(element);
       });
-
-      void processMetadata(Element element) {
-        for (MetadataAnnotation metadata in element.metadata) {
-          ConstantValue constant =
-              backend.constants.getConstantValueForMetadata(metadata);
-          if (constant != null) {
-            queue.addConstant(constant, newSet);
-          }
-        }
-      }
-
-      processMetadata(library);
-      library.imports.forEach(processMetadata);
-      library.exports.forEach(processMetadata);
     }
 
     _nonDeferredReachableLibraries(root).forEach(handleLibrary);

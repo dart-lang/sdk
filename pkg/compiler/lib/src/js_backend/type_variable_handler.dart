@@ -126,7 +126,6 @@ class TypeVariableCodegenAnalysis {
         new SyntheticConstantExpression(boundValue)
       ]);
 
-      _backend.constants.evaluate(constant);
       ConstantValue value = _backend.constants.getConstantValue(constant);
       _impactBuilder
           .registerConstantUse(new ConstantUse.typeVariableMirror(value));

@@ -16,7 +16,6 @@ import '../universe/selector.dart';
 import '../universe/use.dart';
 import '../universe/world_impact.dart';
 import 'backend.dart';
-import 'constant_handler_javascript.dart';
 import 'mirrors_data.dart';
 
 abstract class MirrorsResolutionAnalysis {
@@ -54,7 +53,6 @@ class MirrorsResolutionAnalysisImpl implements MirrorsResolutionAnalysis {
 
   DiagnosticReporter get _reporter => _backend.reporter;
   Compiler get _compiler => _backend.compiler;
-  JavaScriptConstantCompiler get _constants => _backend.constants;
   MirrorsData get _mirrorsData => _backend.mirrorsData;
 
   /// Returns all static fields that are referenced through
@@ -130,21 +128,7 @@ class MirrorsResolutionAnalysisImpl implements MirrorsResolutionAnalysis {
             addForEmission: !enqueuer.isResolutionQueue);
       }
 
-      if (!enqueuer.queueIsClosed) {
-        /// Register the constant value of [metadata] as live in resolution.
-        void registerMetadataConstant(MetadataAnnotation metadata) {
-          ConstantValue constant =
-              _constants.getConstantValueForMetadata(metadata);
-          Dependency dependency =
-              new Dependency(constant, metadata.annotatedElement);
-          _metadataConstants.add(dependency);
-          _impactBuilder.registerConstantUse(new ConstantUse.mirrors(constant));
-        }
-
-        // TODO(johnniwinther): We should have access to all recently processed
-        // elements and process these instead.
-        processMetadata(enqueuer.processedEntities, registerMetadataConstant);
-      } else {
+      if (enqueuer.queueIsClosed) {
         for (Dependency dependency in _metadataConstants) {
           _impactBuilder.registerConstantUse(
               new ConstantUse.mirrors(dependency.constant));
@@ -223,7 +207,6 @@ class MirrorsCodegenAnalysisImpl implements MirrorsCodegenAnalysis {
 
   DiagnosticReporter get _reporter => _backend.reporter;
   Compiler get _compiler => _backend.compiler;
-  JavaScriptConstantCompiler get _constants => _backend.constants;
   MirrorsData get _mirrorsData => _backend.mirrorsData;
 
   /// Compute the impact for elements that are matched by the mirrors used

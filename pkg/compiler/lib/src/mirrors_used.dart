@@ -6,7 +6,6 @@ library dart2js.mirrors_used;
 
 import 'common/tasks.dart' show CompilerTask;
 import 'common.dart';
-import 'compile_time_constants.dart' show ConstantCompiler;
 import 'compiler.dart' show Compiler;
 import 'constants/expressions.dart';
 import 'constants/values.dart'
@@ -29,7 +28,7 @@ import 'elements/elements.dart'
         ScopeContainerElement;
 import 'elements/entities.dart';
 import 'resolution/tree_elements.dart' show TreeElements;
-import 'tree/tree.dart' show NamedArgument, NewExpression, Node;
+import 'tree/tree.dart' show NewExpression, Node;
 
 /**
  * Compiler task that analyzes MirrorsUsed annotations.
@@ -121,32 +120,7 @@ class MirrorUsageAnalyzerTask extends CompilerTask {
   /// Call-back from the resolver to analyze MirrorsUsed annotations. The result
   /// is stored in [analyzer] and later used to compute
   /// [:analyzer.mergedMirrorUsage:].
-  void validate(NewExpression node, TreeElements mapping) {
-    for (Node argument in node.send.arguments) {
-      NamedArgument named = argument.asNamedArgument();
-      if (named == null) continue;
-      ConstantCompiler constantCompiler = null;
-      ConstantValue value = constantCompiler.getConstantValue(
-          constantCompiler.compileNode(named.expression, mapping));
-
-      MirrorUsageBuilder builder = new MirrorUsageBuilder(analyzer,
-          mapping.analyzedElement.library, named.expression, value, mapping);
-
-      if (named.name.source == 'symbols') {
-        analyzer.cachedStrings[value] =
-            builder.convertConstantToUsageList(value, onlyStrings: true);
-      } else if (named.name.source == 'targets') {
-        analyzer.cachedElements[value] =
-            builder.resolveUsageList(builder.convertConstantToUsageList(value));
-      } else if (named.name.source == 'metaTargets') {
-        analyzer.cachedElements[value] =
-            builder.resolveUsageList(builder.convertConstantToUsageList(value));
-      } else if (named.name.source == 'override') {
-        analyzer.cachedElements[value] =
-            builder.resolveUsageList(builder.convertConstantToUsageList(value));
-      }
-    }
-  }
+  void validate(NewExpression node, TreeElements mapping) {}
 }
 
 class MirrorUsageAnalyzer {

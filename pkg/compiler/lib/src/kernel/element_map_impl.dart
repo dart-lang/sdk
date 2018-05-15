@@ -1885,12 +1885,6 @@ class KernelConstantEnvironment implements ConstantEnvironment {
   ConstantSystem get constantSystem => const JavaScriptConstantSystem();
 
   @override
-  ConstantValue getConstantValueForVariable(VariableElement element) {
-    throw new UnimplementedError(
-        "KernelConstantEnvironment.getConstantValueForVariable");
-  }
-
-  @override
   ConstantValue getConstantValue(ConstantExpression expression) {
     return _getConstantValue(CURRENT_ELEMENT_SPANNABLE, expression,
         constantRequired: true);
