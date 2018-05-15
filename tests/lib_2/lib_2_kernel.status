@@ -30,6 +30,9 @@ mirrors/reflected_type_test/02: MissingCompileTimeError
 mirrors/reflected_type_test/03: MissingCompileTimeError
 mirrors/variable_is_const_test/01: MissingCompileTimeError
 
+[ $arch == simdbc64 && $compiler == dartk && $mode == debug && $runtime == vm && $strong ]
+isolate/isolate_complex_messages_test: Crash # http://dartbug.com/33128
+
 [ $arch == x64 && $compiler == dartk && $mode == debug && $runtime == vm && $strong ]
 mirrors/invocation_fuzz_test: Skip # Because it times out, issue 29439.
 mirrors/variable_is_const_test/01: Crash
