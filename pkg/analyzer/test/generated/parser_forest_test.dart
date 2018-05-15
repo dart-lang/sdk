@@ -3293,11 +3293,6 @@ class ExpressionParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_parseRethrowExpression() {
-    super.test_parseRethrowExpression();
-  }
-
-  @failingTest
   void test_parseShiftExpression_normal() {
     super.test_parseShiftExpression_normal();
   }

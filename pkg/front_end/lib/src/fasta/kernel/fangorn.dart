@@ -45,6 +45,7 @@ import 'kernel_shadow_ast.dart'
         ShadowMapLiteral,
         ShadowNot,
         ShadowNullLiteral,
+        ShadowRethrow,
         ShadowStringConcatenation,
         ShadowStringLiteral,
         ShadowSymbolLiteral,
@@ -238,6 +239,12 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   @override
   Expression notExpression(Expression operand, Token token) {
     return new ShadowNot(operand)..fileOffset = offsetForToken(token);
+  }
+
+  @override
+  Statement rethrowStatement(Token rethrowKeyword, Token semicolon) {
+    return new ShadowExpressionStatement(
+        new ShadowRethrow()..fileOffset = offsetForToken(rethrowKeyword));
   }
 
   @override

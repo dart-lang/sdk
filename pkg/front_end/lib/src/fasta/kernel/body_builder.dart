@@ -3272,8 +3272,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   void endRethrowStatement(Token rethrowToken, Token endToken) {
     debugEvent("RethrowStatement");
     if (inCatchBlock) {
-      push(new ShadowExpressionStatement(
-          new ShadowRethrow()..fileOffset = offsetForToken(rethrowToken)));
+      push(forest.rethrowStatement(rethrowToken, endToken));
     } else {
       push(deprecated_buildCompileTimeErrorStatement(
           "'rethrow' can only be used in catch clauses.",

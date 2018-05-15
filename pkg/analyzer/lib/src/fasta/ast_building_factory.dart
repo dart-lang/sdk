@@ -102,7 +102,7 @@ class AstBuildingForest
       typeArguments.arguments.length;
 
   @override
-  bool isErroneousNode(covariant node) => false; // ???
+  bool isErroneousNode(covariant node) => false /* ??? */;
 
   @override
   Expression isExpression(Expression expression, Token isOperator,
@@ -211,6 +211,11 @@ class AstBuildingForest
 
   @override
   int readOffset(AstNode node) => node.offset;
+
+  @override
+  Statement rethrowStatement(Token rethrowKeyword, Token semicolon) =>
+      astFactory.expressionStatement(
+          astFactory.rethrowExpression(rethrowKeyword), semicolon);
 
   @override
   Expression stringConcatenationExpression(

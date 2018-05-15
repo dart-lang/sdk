@@ -159,6 +159,10 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
 
   Expression notExpression(Expression operand, Location location);
 
+  /// Return a representation of a rethrow statement consisting of the
+  /// [rethrowKeyword] followed by the [semicolon].
+  Statement rethrowStatement(Location rethrowKeyword, Location semicolon);
+
   Expression stringConcatenationExpression(
       List<Expression> expressions, Location location);
 
