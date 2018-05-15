@@ -6,15 +6,12 @@ library type_graph_inferrer;
 
 import 'dart:collection' show Queue;
 
-import '../compiler.dart' show Compiler;
 import '../elements/entities.dart';
-import '../tree/tree.dart' as ast show Node;
 import '../types/masks.dart'
     show CommonMasks, ContainerTypeMask, MapTypeMask, TypeMask;
 import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
 import '../world.dart' show ClosedWorld, ClosedWorldRefiner;
-import 'ast_inferrer_engine.dart';
 import 'inferrer_engine.dart';
 import 'type_graph_nodes.dart';
 
@@ -162,26 +159,5 @@ abstract class TypeGraphInferrer<T> implements TypesInferrer<T> {
 
   void clear() {
     inferrer.clear();
-  }
-}
-
-class AstTypeGraphInferrer extends TypeGraphInferrer<ast.Node> {
-  final Compiler _compiler;
-
-  AstTypeGraphInferrer(
-      this._compiler, ClosedWorld closedWorld, closedWorldRefiner,
-      {bool disableTypeInference: false})
-      : super(closedWorld, closedWorldRefiner,
-            disableTypeInference: disableTypeInference);
-
-  @override
-  InferrerEngine<ast.Node> createInferrerEngineFor(FunctionEntity main) {
-    return new AstInferrerEngine(
-        _compiler, closedWorld, closedWorldRefiner, main);
-  }
-
-  @override
-  GlobalTypeInferenceResults createResults() {
-    return new AstGlobalTypeInferenceResults(this, closedWorld);
   }
 }

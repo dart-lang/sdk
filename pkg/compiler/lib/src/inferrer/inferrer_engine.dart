@@ -32,7 +32,6 @@ import 'debug.dart' as debug;
 import 'locals_handler.dart';
 import 'list_tracer.dart';
 import 'map_tracer.dart';
-import 'builder.dart';
 import 'type_graph_dump.dart';
 import 'type_graph_inferrer.dart';
 import 'type_graph_nodes.dart';
@@ -79,8 +78,7 @@ abstract class InferrerEngine<T> {
   void analyzeMapAndEnqueue(MapTypeInformation info);
 
   /// Notifies to the inferrer that [analyzedElement] can have return type
-  /// [newType]. [currentType] is the type the [ElementGraphBuilder] currently
-  /// found.
+  /// [newType]. [currentType] is the type the inference has currently found.
   ///
   /// Returns the new type for [analyzedElement].
   TypeInformation addReturnTypeForMethod(

@@ -4,119 +4,15 @@
 
 library dart2js.js_backend.element_strategy;
 
-import '../backend_strategy.dart';
-import '../closure.dart' show ClosureConversionTask, ClosureTask;
 import '../common.dart';
 import '../common/codegen.dart';
-import '../common/tasks.dart';
 import '../common/work.dart';
-import '../compiler.dart';
-import '../deferred_load.dart' show OutputUnitData;
 import '../elements/elements.dart';
 import '../enqueue.dart';
-import '../inferrer/type_graph_inferrer.dart' show AstTypeGraphInferrer;
-import '../io/multi_information.dart' show MultiSourceInformationStrategy;
-import '../io/position_information.dart' show PositionSourceInformationStrategy;
-import '../io/source_information.dart';
-import '../io/start_end_information.dart'
-    show StartEndSourceInformationStrategy;
-import '../js/js_source_mapping.dart' show JavaScriptSourceInformationStrategy;
 import '../js_backend/backend.dart';
-import '../js_backend/native_data.dart';
-import '../js_emitter/sorter.dart';
-import '../resolution/resolution_strategy.dart';
-import '../ssa/builder.dart';
-import '../ssa/ssa.dart';
-import '../types/types.dart';
 import '../options.dart';
-import '../universe/world_builder.dart';
 import '../universe/world_impact.dart';
 import '../world.dart';
-
-/// Strategy for using the [Element] model from the resolver as the backend
-/// model.
-class ElementBackendStrategy extends ComputeSpannableMixin
-    implements BackendStrategy {
-  final Compiler _compiler;
-  final ClosureConversionTask closureDataLookup;
-  SourceInformationStrategy _sourceInformationStrategy;
-
-  ElementBackendStrategy(this._compiler)
-      : closureDataLookup = new ClosureTask(_compiler);
-
-  ClosedWorldRefiner createClosedWorldRefiner(
-          covariant ClosedWorldImpl closedWorld) =>
-      closedWorld;
-
-  Sorter get sorter => const ElementSorter();
-
-  @override
-  CodegenWorldBuilder createCodegenWorldBuilder(
-      NativeBasicData nativeBasicData,
-      ClosedWorld closedWorld,
-      SelectorConstraintsStrategy selectorConstraintsStrategy) {
-    return new ElementCodegenWorldBuilderImpl(
-        _compiler.backend.constants,
-        closedWorld.elementEnvironment,
-        nativeBasicData,
-        closedWorld,
-        selectorConstraintsStrategy);
-  }
-
-  @override
-  OutputUnitData convertOutputUnitData(OutputUnitData data) => data;
-
-  @override
-  WorkItemBuilder createCodegenWorkItemBuilder(ClosedWorld closedWorld) {
-    return new ElementCodegenWorkItemBuilder(
-        _compiler.backend, closedWorld, _compiler.options);
-  }
-
-  @override
-  SsaBuilder createSsaBuilder(CompilerTask task, JavaScriptBackend backend,
-      SourceInformationStrategy sourceInformationStrategy) {
-    return new SsaAstBuilder(task, backend, sourceInformationStrategy);
-  }
-
-  SourceInformationStrategy get sourceInformationStrategy {
-    return _sourceInformationStrategy ??= createSourceInformationStrategy(
-        generateSourceMap: _compiler.options.generateSourceMap,
-        useMultiSourceInfo: _compiler.options.useMultiSourceInfo,
-        useNewSourceInfo: _compiler.options.useNewSourceInfo);
-  }
-
-  static SourceInformationStrategy createSourceInformationStrategy(
-      {bool generateSourceMap: false,
-      bool useMultiSourceInfo: false,
-      bool useNewSourceInfo: false}) {
-    if (!generateSourceMap) return const JavaScriptSourceInformationStrategy();
-    if (useMultiSourceInfo) {
-      if (useNewSourceInfo) {
-        return const MultiSourceInformationStrategy(const [
-          const PositionSourceInformationStrategy(),
-          const StartEndSourceInformationStrategy()
-        ]);
-      } else {
-        return const MultiSourceInformationStrategy(const [
-          const StartEndSourceInformationStrategy(),
-          const PositionSourceInformationStrategy()
-        ]);
-      }
-    } else if (useNewSourceInfo) {
-      return const PositionSourceInformationStrategy();
-    } else {
-      return const StartEndSourceInformationStrategy();
-    }
-  }
-
-  @override
-  TypesInferrer createTypesInferrer(ClosedWorldRefiner closedWorldRefiner,
-      {bool disableTypeInference: false}) {
-    return new AstTypeGraphInferrer(
-        _compiler, closedWorldRefiner.closedWorld, closedWorldRefiner,
-        disableTypeInference: disableTypeInference);
-  }
-}
 
 /// Builder that creates the work item necessary for the code generation of a
 /// [MemberElement].
