@@ -15,6 +15,7 @@ import 'package:compiler/src/compiler.dart' show Compiler;
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/elements.dart'
     show ClassElement, LibraryElement, TypedefElement;
+import 'package:compiler/src/frontend_strategy.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/world.dart' show ClosedWorld;
 import 'memory_compiler.dart' as memory;
@@ -72,7 +73,7 @@ class TypeEnvironment {
               ..addAll(options)),
         diagnosticHandler: collector,
         beforeRun: (compiler) {
-          compiler.impactCacheDeleter.retainCachesForTesting = true;
+          ImpactCacheDeleter.retainCachesForTesting = true;
           compiler.stopAfterTypeInference = stopAfterTypeInference;
         });
     compiler = result.compiler;

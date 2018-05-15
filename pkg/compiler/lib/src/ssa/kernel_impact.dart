@@ -295,9 +295,18 @@ class KernelImpactBuilder extends ir.Visitor {
         isEmpty: literal.entries.isEmpty));
   }
 
+  @override
   void visitMapEntry(ir.MapEntry entry) {
     visitNode(entry.key);
     visitNode(entry.value);
+  }
+
+  @override
+  void visitConditionalExpression(ir.ConditionalExpression node) {
+    visitNode(node.condition);
+    visitNode(node.then);
+    visitNode(node.otherwise);
+    // Don't visit the static type.
   }
 
   List<DartType> _visitArguments(ir.Arguments arguments) {

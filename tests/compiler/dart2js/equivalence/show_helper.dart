@@ -27,6 +27,7 @@ ArgParser createArgParser() {
 
 show(ArgResults argResults, ComputeMemberDataFunction computeKernelData,
     {ComputeClassDataFunction computeKernelClassData,
+    bool testFrontend: false,
     List<String> options: const <String>[]}) async {
   if (argResults.wasParsed('colors')) {
     useColors = argResults['colors'];
@@ -60,6 +61,7 @@ show(ArgResults argResults, ComputeMemberDataFunction computeKernelData,
   CompiledData data = await computeData(entryPoint, const {}, computeKernelData,
       computeClassData: computeKernelClassData,
       options: options,
+      testFrontend: testFrontend,
       forUserLibrariesOnly: false,
       skipUnprocessedMembers: true,
       skipFailedCompilations: true,

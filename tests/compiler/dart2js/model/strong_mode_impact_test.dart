@@ -8,6 +8,7 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/frontend_strategy.dart';
 import 'package:compiler/src/world.dart';
 import 'package:compiler/src/universe/use.dart';
 import 'package:compiler/src/universe/world_impact.dart';
@@ -89,12 +90,10 @@ main() {
         : new Impact(checkedModeChecks: ['int', 'String']),
   };
 
+  ImpactCacheDeleter.retainCachesForTesting = true;
   CompilationResult result = await runCompiler(
       memorySourceFiles: {'main.dart': source},
-      options: strongMode ? [Flags.strongMode] : [],
-      beforeRun: (compiler) {
-        compiler.impactCacheDeleter.retainCachesForTesting = true;
-      });
+      options: strongMode ? [Flags.strongMode] : []);
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler;
 
