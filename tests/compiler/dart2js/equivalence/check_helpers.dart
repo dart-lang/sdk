@@ -6,14 +6,8 @@
 
 library dart2js.equivalence.helpers;
 
-import 'package:compiler/src/constants/expressions.dart';
-import 'package:compiler/src/constants/values.dart';
-import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:expect/expect.dart';
-
-import 'equivalence_helper.dart';
 
 Check currentCheck;
 
@@ -66,66 +60,8 @@ class Check {
   }
 }
 
-/// Strategy for checking equivalence.
-///
-/// Use this strategy to fail early with contextual information in the event of
-/// inequivalence.
-class CheckStrategy extends TestStrategy {
-  const CheckStrategy(
-      {Equivalence<Entity> elementEquivalence: areEntitiesEquivalent,
-      Equivalence<DartType> typeEquivalence: areTypesEquivalent,
-      Equivalence<ConstantExpression> constantEquivalence:
-          areConstantsEquivalent,
-      Equivalence<ConstantValue> constantValueEquivalence:
-          areConstantValuesEquivalent})
-      : super(
-            elementEquivalence: elementEquivalence,
-            typeEquivalence: typeEquivalence,
-            constantEquivalence: constantEquivalence,
-            constantValueEquivalence: constantValueEquivalence);
-
-  TestStrategy get testOnly => new TestStrategy(
-      elementEquivalence: elementEquivalence,
-      typeEquivalence: typeEquivalence,
-      constantEquivalence: constantEquivalence,
-      constantValueEquivalence: constantValueEquivalence);
-
-  @override
-  bool test<T>(var object1, var object2, String property, T value1, T value2,
-      [bool equivalence(T a, T b) = equality]) {
-    return check(object1, object2, property, value1, value2, equivalence);
-  }
-
-  @override
-  bool testLists(
-      Object object1, Object object2, String property, List list1, List list2,
-      [bool elementEquivalence(a, b) = equality]) {
-    return checkListEquivalence(object1, object2, property, list1, list2,
-        (o1, o2, p, v1, v2) {
-      if (!elementEquivalence(v1, v2)) {
-        throw "$o1.$p = '${v1}' <> "
-            "$o2.$p = '${v2}'";
-      }
-    });
-  }
-
-  @override
-  bool testSets<E>(var object1, var object2, String property, Iterable<E> set1,
-      Iterable<E> set2,
-      [bool elementEquivalence(E a, E b) = equality]) {
-    return checkSetEquivalence(
-        object1, object2, property, set1, set2, elementEquivalence);
-  }
-
-  @override
-  bool testMaps<K, V>(
-      var object1, var object2, String property, Map<K, V> map1, Map<K, V> map2,
-      [bool keyEquivalence(K a, K b) = equality,
-      bool valueEquivalence(V a, V b) = equality]) {
-    return checkMapEquivalence(object1, object2, property, map1, map2,
-        keyEquivalence, valueEquivalence);
-  }
-}
+/// Equality based equivalence function.
+bool equality(a, b) => a == b;
 
 /// Check that the values [property] of [object1] and [object2], [value1] and
 /// [value2] respectively, are equal and throw otherwise.
@@ -264,110 +200,6 @@ bool checkMapEquivalence<K, V>(
         map2[pair[1]], sameValue);
   }
   return true;
-}
-
-/// Checks the equivalence of the identity (but not properties) of [element1]
-/// and [element2].
-///
-/// Uses [object1], [object2] and [property] to provide context for failures.
-bool checkElementIdentities(Object object1, Object object2, String property,
-    Entity element1, Entity element2) {
-  if (identical(element1, element2)) return true;
-  return check(
-      object1, object2, property, element1, element2, areEntitiesEquivalent);
-}
-
-/// Checks the pair-wise equivalence of the identity (but not properties) of the
-/// elements in [list] and [list2].
-///
-/// Uses [object1], [object2] and [property] to provide context for failures.
-bool checkElementListIdentities(Object object1, Object object2, String property,
-    Iterable<Entity> list1, Iterable<Entity> list2) {
-  return checkListEquivalence(
-      object1, object2, property, list1, list2, checkElementIdentities);
-}
-
-/// Checks the equivalence of [DartType]s [type1] and [type2].
-///
-/// Uses [object1], [object2] and [property] to provide context for failures.
-bool checkDartTypes(Object object1, Object object2, String property,
-        DartType type1, DartType type2) =>
-    checkTypes(object1, object2, property, type1, type2);
-
-/// Checks the equivalence of [type1] and [type2].
-///
-/// Uses [object1], [object2] and [property] to provide context for failures.
-bool checkTypes(Object object1, Object object2, String property,
-    ResolutionDartType type1, ResolutionDartType type2) {
-  if (identical(type1, type2)) return true;
-  if (type1 == null || type2 == null) {
-    return check(object1, object2, property, type1, type2);
-  } else {
-    return check(object1, object2, property, type1, type2,
-        (a, b) => const TypeEquivalence(const CheckStrategy()).visit(a, b));
-  }
-}
-
-/// Checks the pair-wise equivalence of the types in [list1] and [list2].
-///
-/// Uses [object1], [object2] and [property] to provide context for failures.
-bool checkTypeLists(Object object1, Object object2, String property,
-    List<DartType> list1, List<DartType> list2) {
-  return checkListEquivalence(
-      object1, object2, property, list1, list2, checkDartTypes);
-}
-
-/// Checks the equivalence of [exp1] and [exp2].
-///
-/// Uses [object1], [object2] and [property] to provide context for failures.
-bool checkConstants(Object object1, Object object2, String property,
-    ConstantExpression exp1, ConstantExpression exp2) {
-  if (identical(exp1, exp2)) return true;
-  if (exp1 == null || exp2 == null) {
-    return check(object1, object2, property, exp1, exp2);
-  } else {
-    return check(object1, object2, property, exp1, exp2,
-        (a, b) => const ConstantEquivalence(const CheckStrategy()).visit(a, b));
-  }
-}
-
-/// Checks the equivalence of [value1] and [value2].
-///
-/// Uses [object1], [object2] and [property] to provide context for failures.
-bool checkConstantValues(Object object1, Object object2, String property,
-    ConstantValue value1, ConstantValue value2) {
-  if (identical(value1, value2)) return true;
-  if (value1 == null || value2 == null) {
-    return check(object1, object2, property, value1, value2);
-  } else {
-    return check(
-        object1,
-        object2,
-        property,
-        value1,
-        value2,
-        (a, b) =>
-            const ConstantValueEquivalence(const CheckStrategy()).visit(a, b));
-  }
-}
-
-/// Checks the pair-wise equivalence of the constants in [list1] and [list2].
-///
-/// Uses [object1], [object2] and [property] to provide context for failures.
-bool checkConstantLists(Object object1, Object object2, String property,
-    List<ConstantExpression> list1, List<ConstantExpression> list2) {
-  return checkListEquivalence(
-      object1, object2, property, list1, list2, checkConstants);
-}
-
-/// Checks the pair-wise equivalence of the constants values in [list1] and
-/// [list2].
-///
-/// Uses [object1], [object2] and [property] to provide context for failures.
-bool checkConstantValueLists(Object object1, Object object2, String property,
-    List<ConstantValue> list1, List<ConstantValue> list2) {
-  return checkListEquivalence(
-      object1, object2, property, list1, list2, checkConstantValues);
 }
 
 void checkLists<T>(List<T> list1, List<T> list2, String messagePrefix,

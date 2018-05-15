@@ -20,7 +20,6 @@ import '../constants/constructors.dart';
 import '../constants/evaluation.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
 import '../elements/names.dart';
@@ -2881,7 +2880,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
       } else if (node is ir.FunctionDeclaration) {
         String name = node.variable.name;
         if (name != null && name != "") {
-          parts.add(Elements.operatorNameToIdentifier(name));
+          parts.add(utils.operatorNameToIdentifier(name));
         } else {
           parts.add(anonymous);
           anonymous = '';
@@ -2894,7 +2893,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
         if (node.kind == ir.ProcedureKind.Factory) {
           parts.add(utils.reconstructConstructorName(getMember(node)));
         } else {
-          parts.add(Elements.operatorNameToIdentifier(node.name.name));
+          parts.add(utils.operatorNameToIdentifier(node.name.name));
         }
       } else if (node is ir.Constructor) {
         parts.add(utils.reconstructConstructorName(getMember(node)));

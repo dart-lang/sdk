@@ -11,7 +11,7 @@ import '../compiler.dart';
 import '../common_elements.dart';
 import '../constants/values.dart';
 import '../elements/elements.dart'
-    show ConstructorElement, Elements, MemberElement, ParameterElement;
+    show ConstructorElement, MemberElement, ParameterElement;
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../js_backend/annotations.dart' as optimizerHints;
@@ -1152,7 +1152,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
       } else if (element.isGetter) {
         return returnTypeOfMember(element);
       } else {
-        assert(element is MemberElement && Elements.isUnresolved(element));
+        assert(false, failedAt(element, "Unexpected member $element"));
         return types.dynamicType;
       }
     } else if (element.isGetter || element.isField) {

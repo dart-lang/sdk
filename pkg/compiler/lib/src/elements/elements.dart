@@ -4,8 +4,7 @@
 
 library elements;
 
-import 'package:front_end/src/fasta/scanner.dart'
-    show Token, isUserDefinableOperator, isMinusOperator;
+import 'package:front_end/src/fasta/scanner.dart' show Token;
 
 import '../common.dart';
 import '../common/resolution.dart' show Resolution;
@@ -25,7 +24,6 @@ import 'jumps.dart';
 import 'names.dart';
 import 'resolution_types.dart';
 import 'types.dart';
-import 'visitor.dart' show ElementVisitor;
 
 const int STATE_NOT_STARTED = 0;
 const int STATE_STARTED = 1;
@@ -402,8 +400,6 @@ abstract class Element implements Entity {
   // TODO(johnniwinther): Move this to [AstElement].
   /// Returns the [Element] that holds the [TreeElements] for this element.
   AnalyzableElement get analyzableElement;
-
-  accept(ElementVisitor visitor, arg);
 }
 
 class Elements {
@@ -525,121 +521,6 @@ class Elements {
     if (element == null) return false;
     // foo() with foo a local or a parameter.
     return isLocal(element);
-  }
-
-  static String reconstructConstructorNameSourceString(FunctionEntity element) {
-    if (element.name == '') {
-      return element.enclosingClass.name;
-    } else {
-      return utils.reconstructConstructorName(element);
-    }
-  }
-
-  static String constructorNameForDiagnostics(
-      String className, String constructorName) {
-    String classNameString = className;
-    String constructorNameString = constructorName;
-    return (constructorName == '')
-        ? classNameString
-        : "$classNameString.$constructorNameString";
-  }
-
-  /// Returns `true` if [name] is the name of an operator method.
-  static bool isOperatorName(String name) {
-    return name == 'unary-' || isUserDefinableOperator(name);
-  }
-
-  /**
-   * Map an operator-name to a valid JavaScript identifier.
-   *
-   * For non-operator names, this method just returns its input.
-   *
-   * The results returned from this method are guaranteed to be valid
-   * JavaScript identifiers, except it may include reserved words for
-   * non-operator names.
-   */
-  static String operatorNameToIdentifier(String name) {
-    if (name == null) {
-      return name;
-    } else if (name == '==') {
-      return r'operator$eq';
-    } else if (name == '~') {
-      return r'operator$not';
-    } else if (name == '[]') {
-      return r'operator$index';
-    } else if (name == '[]=') {
-      return r'operator$indexSet';
-    } else if (name == '*') {
-      return r'operator$mul';
-    } else if (name == '/') {
-      return r'operator$div';
-    } else if (name == '%') {
-      return r'operator$mod';
-    } else if (name == '~/') {
-      return r'operator$tdiv';
-    } else if (name == '+') {
-      return r'operator$add';
-    } else if (name == '<<') {
-      return r'operator$shl';
-    } else if (name == '>>') {
-      return r'operator$shr';
-    } else if (name == '>=') {
-      return r'operator$ge';
-    } else if (name == '>') {
-      return r'operator$gt';
-    } else if (name == '<=') {
-      return r'operator$le';
-    } else if (name == '<') {
-      return r'operator$lt';
-    } else if (name == '&') {
-      return r'operator$and';
-    } else if (name == '^') {
-      return r'operator$xor';
-    } else if (name == '|') {
-      return r'operator$or';
-    } else if (name == '-') {
-      return r'operator$sub';
-    } else if (name == 'unary-') {
-      return r'operator$negate';
-    } else {
-      return name;
-    }
-  }
-
-  static String constructOperatorNameOrNull(String op, bool isUnary) {
-    if (isMinusOperator(op)) {
-      return isUnary ? 'unary-' : op;
-    } else if (isUserDefinableOperator(op) || op == '??') {
-      return op;
-    } else {
-      return null;
-    }
-  }
-
-  static String constructOperatorName(String op, bool isUnary) {
-    String operatorName = constructOperatorNameOrNull(op, isUnary);
-    if (operatorName == null)
-      throw 'Unhandled operator: $op';
-    else
-      return operatorName;
-  }
-
-  static String mapToUserOperatorOrNull(String op) {
-    if (identical(op, '!=')) return '==';
-    if (identical(op, '*=')) return '*';
-    if (identical(op, '/=')) return '/';
-    if (identical(op, '%=')) return '%';
-    if (identical(op, '~/=')) return '~/';
-    if (identical(op, '+=')) return '+';
-    if (identical(op, '-=')) return '-';
-    if (identical(op, '<<=')) return '<<';
-    if (identical(op, '>>=')) return '>>';
-    if (identical(op, '&=')) return '&';
-    if (identical(op, '^=')) return '^';
-    if (identical(op, '|=')) return '|';
-    if (identical(op, '??=')) return '??';
-
-    return null;
   }
 
   /// If `true`, members are sorted using their implementation fileUri.

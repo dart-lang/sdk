@@ -15,7 +15,7 @@ import '../common/names.dart' show Identifiers, Names, Selectors;
 import '../constants/values.dart';
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
-import '../elements/elements.dart' show Element, Elements, MemberElement;
+import '../elements/elements.dart' show Element, MemberElement;
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
 import '../elements/jumps.dart';
@@ -769,7 +769,7 @@ class Namer {
   }
 
   String _proposeNameForConstructorBody(ConstructorBodyEntity method) {
-    String name = Elements.reconstructConstructorNameSourceString(method);
+    String name = utils.reconstructConstructorNameSourceString(method);
     // We include the method suffix on constructor bodies. It has no purpose,
     // but this way it produces the same names as previous versions of the
     // Namer class did.

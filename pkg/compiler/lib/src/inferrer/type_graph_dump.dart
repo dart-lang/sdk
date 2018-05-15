@@ -4,8 +4,8 @@
 library dart2js.inferrer.type_graph_dump;
 
 import '../../compiler_new.dart';
-import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/entity_utils.dart' as utils;
 import '../types/types.dart';
 import 'inferrer_engine.dart';
 import 'type_graph_nodes.dart';
@@ -116,9 +116,8 @@ class TypeGraphDump {
         parts.add(element.name);
       }
     } else {
-      parts.add(Elements
-          .operatorNameToIdentifier(element.name)
-          .replaceAll(r'$', '-'));
+      parts.add(
+          utils.operatorNameToIdentifier(element.name).replaceAll(r'$', '-'));
     }
     String filename = parts.where((x) => x != null && x != '').join('.');
     if (usedFilenames.add(filename)) return filename;
