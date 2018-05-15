@@ -284,8 +284,9 @@ abstract class Generator<Arguments> = Accessor<Arguments>
     with FastaAccessor<Arguments>;
 
 class VariableUseGenerator<Arguments> extends Generator<Arguments> {
-  VariableDeclaration variable;
-  DartType promotedType;
+  final VariableDeclaration variable;
+
+  final DartType promotedType;
 
   VariableUseGenerator(BuilderHelper<dynamic, dynamic, Arguments> helper,
       Token token, this.variable,
@@ -331,9 +332,14 @@ class VariableUseGenerator<Arguments> extends Generator<Arguments> {
 
 class PropertyAccessGenerator<Arguments> extends Generator<Arguments> {
   VariableDeclaration _receiverVariable;
-  kernel.Expression receiver;
-  Name name;
-  Member getter, setter;
+
+  final kernel.Expression receiver;
+
+  final Name name;
+
+  final Member getter;
+
+  final Member setter;
 
   PropertyAccessGenerator.internal(
       BuilderHelper<dynamic, dynamic, Arguments> helper,
@@ -419,11 +425,11 @@ class PropertyAccessGenerator<Arguments> extends Generator<Arguments> {
 /// Special case of [_PropertyAccessor] to avoid creating an indirect access to
 /// 'this'.
 class ThisPropertyAccessGenerator<Arguments> extends Generator<Arguments> {
-  Name name;
+  final Name name;
 
-  Member getter;
+  final Member getter;
 
-  Member setter;
+  final Member setter;
 
   ThisPropertyAccessGenerator(BuilderHelper<dynamic, dynamic, Arguments> helper,
       Token token, this.name, this.getter, this.setter)
@@ -478,11 +484,17 @@ class ThisPropertyAccessGenerator<Arguments> extends Generator<Arguments> {
 }
 
 class NullAwarePropertyAccessGenerator<Arguments> extends Generator<Arguments> {
-  VariableDeclaration receiver;
-  kernel.Expression receiverExpression;
-  Name name;
-  Member getter, setter;
-  DartType type;
+  final VariableDeclaration receiver;
+
+  final kernel.Expression receiverExpression;
+
+  final Name name;
+
+  final Member getter;
+
+  final Member setter;
+
+  final DartType type;
 
   NullAwarePropertyAccessGenerator(
       BuilderHelper<dynamic, dynamic, Arguments> helper,
@@ -549,11 +561,11 @@ class NullAwarePropertyAccessGenerator<Arguments> extends Generator<Arguments> {
 }
 
 class SuperPropertyAccessGenerator<Arguments> extends Generator<Arguments> {
-  Name name;
+  final Name name;
 
-  Member getter;
+  final Member getter;
 
-  Member setter;
+  final Member setter;
 
   SuperPropertyAccessGenerator(
       BuilderHelper<dynamic, dynamic, Arguments> helper,
