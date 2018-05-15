@@ -356,7 +356,7 @@ class PropertyAccessGenerator<Arguments> extends Generator<Arguments> {
       return unsupported("ThisExpression", offsetForToken(token), helper.uri);
     } else {
       return isNullAware
-          ? new NullAwarePropertyAccessor(
+          ? new NullAwarePropertyAccessGenerator(
               helper, token, receiver, name, getter, setter, null)
           : new PropertyAccessGenerator.internal(
               helper, token, receiver, name, getter, setter);
@@ -477,25 +477,27 @@ class ThisPropertyAccessGenerator<Arguments> extends Generator<Arguments> {
   String toString() => "ThisPropertyAccessGenerator()";
 }
 
-class _NullAwarePropertyAccessor<Arguments> extends Accessor<Arguments> {
+class NullAwarePropertyAccessGenerator<Arguments> extends Generator<Arguments> {
   VariableDeclaration receiver;
   kernel.Expression receiverExpression;
   Name name;
   Member getter, setter;
   DartType type;
 
-  _NullAwarePropertyAccessor(
+  NullAwarePropertyAccessGenerator(
       BuilderHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
       this.receiverExpression,
       this.name,
       this.getter,
       this.setter,
-      this.type,
-      Token token)
+      this.type)
       : this.receiver = makeOrReuseVariable(receiverExpression),
         super(helper, token);
 
-  receiverAccess() => new VariableGet(receiver);
+  String get plainNameForRead => name.name;
+
+  kernel.Expression receiverAccess() => new VariableGet(receiver);
 
   kernel.Expression _makeRead(ShadowComplexAssignment complexAssignment) {
     var read = new ShadowPropertyGet(receiverAccess(), name, getter)
@@ -534,6 +536,16 @@ class _NullAwarePropertyAccessor<Arguments> extends Accessor<Arguments> {
         ..fileOffset = offset;
     }
   }
+
+  kernel.Expression doInvocation(int offset, Arguments arguments) {
+    return unimplemented("doInvocation", offset, uri);
+  }
+
+  @override
+  ShadowComplexAssignment startComplexAssignment(kernel.Expression rhs) =>
+      new ShadowPropertyAssign(receiverExpression, rhs);
+
+  String toString() => "NullAwarePropertyAccessGenerator()";
 }
 
 class _SuperPropertyAccessor<Arguments> extends Accessor<Arguments> {

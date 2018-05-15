@@ -984,34 +984,6 @@ class SuperIndexAccessor<Arguments> extends _SuperIndexAccessor<Arguments>
       new ShadowIndexAssign(null, index, rhs, isSuper: true);
 }
 
-class NullAwarePropertyAccessor<Arguments>
-    extends _NullAwarePropertyAccessor<Arguments>
-    with FastaAccessor<Arguments> {
-  final BuilderHelper<dynamic, dynamic, Arguments> helper;
-
-  NullAwarePropertyAccessor(
-      this.helper,
-      Token token,
-      kernel.Expression receiver,
-      Name name,
-      Member getter,
-      Member setter,
-      DartType type)
-      : super(helper, receiver, name, getter, setter, type, token);
-
-  String get plainNameForRead => name.name;
-
-  kernel.Expression doInvocation(int offset, Arguments arguments) {
-    return unimplemented("doInvocation", offset, uri);
-  }
-
-  toString() => "NullAwarePropertyAccessor()";
-
-  @override
-  ShadowComplexAssignment startComplexAssignment(kernel.Expression rhs) =>
-      new ShadowPropertyAssign(receiverExpression, rhs);
-}
-
 int adjustForImplicitCall(String name, int offset) {
   // Normally the offset is at the start of the token, but in this case,
   // because we insert a '.call', we want it at the end instead.
