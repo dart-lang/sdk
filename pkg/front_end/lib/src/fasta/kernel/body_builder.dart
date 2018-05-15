@@ -3405,9 +3405,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void endYieldStatement(Token yieldToken, Token starToken, Token endToken) {
     debugEvent("YieldStatement");
-    push(new ShadowYieldStatement(toKernelExpression(popForValue()),
-        isYieldStar: starToken != null)
-      ..fileOffset = yieldToken.charOffset);
+    push(forest.yieldStatement(yieldToken, starToken, popForValue(), endToken));
   }
 
   @override

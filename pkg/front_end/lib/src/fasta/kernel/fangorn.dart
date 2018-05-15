@@ -52,7 +52,8 @@ import 'kernel_shadow_ast.dart'
         ShadowSyntheticExpression,
         ShadowThisExpression,
         ShadowThrow,
-        ShadowTypeLiteral;
+        ShadowTypeLiteral,
+        ShadowYieldStatement;
 
 import 'forest.dart' show Forest;
 
@@ -263,6 +264,13 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   Expression throwExpression(Token throwKeyword, Expression expression) {
     return new ShadowThrow(expression)
       ..fileOffset = offsetForToken(throwKeyword);
+  }
+
+  @override
+  Statement yieldStatement(
+      Token yieldKeyword, Token star, Expression expression, Token semicolon) {
+    return new ShadowYieldStatement(expression, isYieldStar: star != null)
+      ..fileOffset = yieldKeyword.charOffset;
   }
 
   @override

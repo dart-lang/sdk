@@ -172,6 +172,12 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   /// [throwKeyword].
   Expression throwExpression(Location throwKeyword, Expression expression);
 
+  /// Return a representation of a yield statement consisting of the
+  /// [yieldKeyword], [star], [expression], and [semicolon]. The [star] is null
+  /// when no star was included in the source code.
+  Statement yieldStatement(Location yieldKeyword, Location star,
+      Expression expression, Location semicolon);
+
   bool isErroneousNode(Object node);
 
   bool isThisExpression(Object node);

@@ -229,6 +229,11 @@ class AstBuildingForest
   @override
   Expression throwExpression(Token throwKeyword, Expression expression) =>
       astFactory.throwExpression(throwKeyword, expression);
+
+  @override
+  Statement yieldStatement(Token yieldKeyword, Token star,
+          Expression expression, Token semicolon) =>
+      astFactory.yieldStatement(yieldKeyword, star, expression, semicolon);
 }
 
 /// A data holder used to conform to the [Forest] API.
