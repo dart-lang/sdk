@@ -166,7 +166,6 @@ class CodeEmitterTask extends CompilerTask {
           compiler.options,
           compiler.reporter,
           _emitter,
-          backend.constants,
           backend.typeVariableCodegenAnalysis,
           backend.mirrorsData,
           backend.rtiEncoder,

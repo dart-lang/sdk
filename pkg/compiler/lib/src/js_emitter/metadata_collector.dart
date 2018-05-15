@@ -12,7 +12,6 @@ import '../deferred_load.dart' show OutputUnit;
 import '../elements/elements.dart'
     show
         ClassElement,
-        ConstructorElement,
         Element,
         FieldElement,
         FunctionSignature,
@@ -28,7 +27,6 @@ import '../elements/resolution_types.dart' show ResolutionTypedefType;
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
-import '../js_backend/constant_handler_javascript.dart';
 import '../js_backend/mirrors_data.dart';
 import '../js_backend/runtime_types.dart' show RuntimeTypesEncoder;
 import '../js_backend/type_variable_handler.dart'
@@ -142,7 +140,6 @@ class MetadataCollector implements jsAst.TokenFinalizer {
   final CompilerOptions _options;
   final DiagnosticReporter reporter;
   final Emitter _emitter;
-  final JavaScriptConstantCompiler _constants;
   final TypeVariableCodegenAnalysis _typeVariableCodegenAnalysis;
   final MirrorsData _mirrorsData;
   final RuntimeTypesEncoder _rtiEncoder;
@@ -179,7 +176,6 @@ class MetadataCollector implements jsAst.TokenFinalizer {
       this._options,
       this.reporter,
       this._emitter,
-      this._constants,
       this._typeVariableCodegenAnalysis,
       this._mirrorsData,
       this._rtiEncoder,
@@ -234,9 +230,6 @@ class MetadataCollector implements jsAst.TokenFinalizer {
   List<jsAst.DeferredNumber> reifyDefaultArguments(
       FunctionEntity function, OutputUnit outputUnit) {
     // TODO(sra): These are stored on the InstanceMethod or StaticDartMethod.
-    if (function is MethodElement)
-      return reifyDefaultArgumentsAst(function, outputUnit);
-
     List<jsAst.DeferredNumber> defaultValues = <jsAst.DeferredNumber>[];
     _codegenWorldBuilder.forEachParameter(function,
         (_, String name, ConstantValue constant) {
@@ -244,52 +237,6 @@ class MetadataCollector implements jsAst.TokenFinalizer {
       jsAst.Expression expression = _emitter.constantReference(constant);
       defaultValues.add(_addGlobalMetadata(expression, outputUnit));
     });
-    return defaultValues;
-  }
-
-  List<jsAst.DeferredNumber> reifyDefaultArgumentsAst(
-      MethodElement function, OutputUnit outputUnit) {
-    function = function.implementation;
-    FunctionSignature signature = function.functionSignature;
-    if (signature.optionalParameterCount == 0) return const [];
-
-    // Optional parameters of redirecting factory constructors take their
-    // defaults from the corresponding parameters of the redirection target.
-    Map<ParameterElement, ParameterElement> targetParameterMap;
-    if (function is ConstructorElement) {
-      // TODO(sra): dart2js generates a redirecting factory constructor body
-      // that has the signature of the redirecting constructor that calls the
-      // redirection target. This is wrong - it should have the signature of the
-      // target. This would make the reified default arguments trivial.
-
-      ConstructorElement constructor = function;
-      while (constructor.isRedirectingFactory &&
-          !constructor.isCyclicRedirection) {
-        // TODO(sra): Remove the loop once effectiveTarget forwards to patches.
-        constructor = constructor.effectiveTarget.implementation;
-      }
-
-      if (constructor != function) {
-        if (signature.hasOptionalParameters) {
-          targetParameterMap =
-              mapRedirectingFactoryConstructorOptionalParameters(
-                  signature, constructor.functionSignature);
-        }
-      }
-    }
-
-    List<jsAst.DeferredNumber> defaultValues = <jsAst.DeferredNumber>[];
-    for (ParameterElement element in signature.optionalParameters) {
-      ParameterElement parameter =
-          (targetParameterMap == null) ? element : targetParameterMap[element];
-      ConstantValue constant = (parameter == null)
-          ? null
-          : _constants.getConstantValue(parameter.constant);
-      jsAst.Expression expression = (constant == null)
-          ? new jsAst.LiteralNull()
-          : _emitter.constantReference(constant);
-      defaultValues.add(_addGlobalMetadata(expression, outputUnit));
-    }
     return defaultValues;
   }
 

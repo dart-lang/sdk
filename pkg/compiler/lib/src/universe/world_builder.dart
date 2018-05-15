@@ -11,13 +11,9 @@ import '../common/names.dart' show Identifiers, Names;
 import '../common_elements.dart';
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
-import '../elements/elements.dart';
 import '../elements/entities.dart';
-import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../js_backend/backend_usage.dart' show BackendUsageBuilder;
-import '../js_backend/constant_handler_javascript.dart'
-    show JavaScriptConstantCompiler;
 import '../js_backend/interceptor_data.dart' show InterceptorDataBuilder;
 import '../js_backend/native_data.dart' show NativeBasicData, NativeDataBuilder;
 import '../js_backend/no_such_method_registry.dart';

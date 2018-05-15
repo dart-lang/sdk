@@ -204,9 +204,6 @@ CompilerImpl compilerFor(
     compiler.processLoadedLibraries(new MemoryLoadedLibraries(copiedLibraries));
     ResolutionEnqueuer resolutionEnqueuer = compiler.startResolution();
 
-    compiler.backend.constantCompilerTask
-        .copyConstantValues(cachedCompiler.backend.constantCompilerTask);
-
     Iterable<MemberEntity> cachedTreeElements =
         cachedCompiler.enqueuer.resolution.processedEntities;
     cachedTreeElements.forEach((MemberEntity element) {

@@ -7,7 +7,6 @@ library dart2js.mirrors_used;
 import 'common/tasks.dart' show CompilerTask;
 import 'common.dart';
 import 'compiler.dart' show Compiler;
-import 'constants/expressions.dart';
 import 'constants/values.dart'
     show
         ConstantValue,
@@ -24,11 +23,10 @@ import 'elements/elements.dart'
         FieldElement,
         ImportElement,
         LibraryElement,
-        MetadataAnnotation,
         ScopeContainerElement;
 import 'elements/entities.dart';
 import 'resolution/tree_elements.dart' show TreeElements;
-import 'tree/tree.dart' show NewExpression, Node;
+import 'tree/tree.dart' show NewExpression;
 
 /**
  * Compiler task that analyzes MirrorsUsed annotations.
@@ -224,17 +222,6 @@ class MirrorUsageAnalyzer {
       return null;
     }
     List<MirrorUsage> result = <MirrorUsage>[];
-    for (MetadataAnnotation metadata in import.metadata) {
-      metadata.ensureResolved(compiler.resolution);
-      ConstantValue value =
-          compiler.constants.getConstantValue(metadata.constant);
-      ResolutionDartType type =
-          value.getType(compiler.resolution.commonElements);
-      Element element = type.element;
-      if (element == compiler.resolution.commonElements.mirrorsUsedClass) {
-        result.add(buildUsage(value));
-      }
-    }
     return result;
   }
 
@@ -521,32 +508,6 @@ class MirrorUsageBuilder {
 
   /// Attempt to find a [Spannable] corresponding to constant.
   Spannable positionOf(ConstantValue constant) {
-    Node node;
-    elements.forEachConstantNode((Node n, ConstantExpression c) {
-      if (node == null && compiler.constants.getConstantValue(c) == constant) {
-        node = n;
-      }
-    });
-    if (node == null) {
-      // TODO(ahe): Returning [spannable] here leads to confusing error
-      // messages.  For example, consider:
-      // @MirrorsUsed(targets: fisk)
-      // import 'dart:mirrors';
-      //
-      // const fisk = const [main];
-      //
-      // main() {}
-      //
-      // The message is:
-      // example.dart:1:23: Hint: Can't use 'fisk' here because ...
-      // Did you forget to add quotes?
-      // @MirrorsUsed(targets: fisk)
-      //                       ^^^^
-      //
-      // Instead of saying 'fisk' should pretty print the problematic constant
-      // value.
-      return spannable;
-    }
-    return node;
+    return spannable;
   }
 }

@@ -718,7 +718,7 @@ class JavaScriptBackend {
     BackendImpacts impacts =
         new BackendImpacts(compiler.options, commonElements);
     _typeVariableCodegenAnalysis = new TypeVariableCodegenAnalysis(
-        closedWorld.elementEnvironment, this, commonElements, mirrorsData);
+        closedWorld.elementEnvironment, this, mirrorsData);
     _mirrorsCodegenAnalysis = mirrorsResolutionAnalysis.close();
     _customElementsCodegenAnalysis = new CustomElementsCodegenAnalysis(
         constantSystem,

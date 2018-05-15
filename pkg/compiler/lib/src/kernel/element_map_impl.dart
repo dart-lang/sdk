@@ -1884,12 +1884,6 @@ class KernelConstantEnvironment implements ConstantEnvironment {
   @override
   ConstantSystem get constantSystem => const JavaScriptConstantSystem();
 
-  @override
-  ConstantValue getConstantValue(ConstantExpression expression) {
-    return _getConstantValue(CURRENT_ELEMENT_SPANNABLE, expression,
-        constantRequired: true);
-  }
-
   ConstantValue _getConstantValue(
       Spannable spannable, ConstantExpression expression,
       {bool constantRequired}) {
@@ -1899,11 +1893,6 @@ class KernelConstantEnvironment implements ConstantEnvironment {
               constantRequired: constantRequired),
           constantSystem);
     });
-  }
-
-  @override
-  bool hasConstantValue(ConstantExpression expression) {
-    throw new UnimplementedError("KernelConstantEnvironment.hasConstantValue");
   }
 }
 
