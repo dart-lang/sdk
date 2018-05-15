@@ -137,6 +137,7 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   SetFileCallbacks(file_open, file_read, file_write, file_close);
   set_entropy_source_callback(entropy_source);
   OS::InitOnce();
+  NOT_IN_PRODUCT(CodeObservers::InitOnce());
   start_time_micros_ = OS::GetCurrentMonotonicMicros();
   VirtualMemory::InitOnce();
   OSThread::InitOnce();
@@ -152,7 +153,6 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   ForwardingCorpse::InitOnce();
   Api::InitOnce();
   NativeSymbolResolver::InitOnce();
-  NOT_IN_PRODUCT(CodeObservers::InitOnce());
   NOT_IN_PRODUCT(Profiler::InitOnce());
   SemiSpace::InitOnce();
   NOT_IN_PRODUCT(Metric::InitOnce());
