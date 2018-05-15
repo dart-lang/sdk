@@ -7059,6 +7059,7 @@ RawFunction* Function::New(const String& name,
   NOT_IN_PRECOMPILED(result.set_inlining_depth(0));
   NOT_IN_PRECOMPILED(result.set_kernel_offset(0));
   result.set_is_optimizable(is_native ? false : true);
+  result.set_is_background_optimizable(is_native ? false : true);
   result.set_is_inlinable(true);
   result.set_allows_hoisting_check_class(true);
   result.set_allows_bounds_check_generalization(true);

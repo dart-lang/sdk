@@ -2859,6 +2859,18 @@ class Function : public Object {
   FOR_EACH_FUNCTION_KIND_BIT(DEFINE_ACCESSORS)
 #undef DEFINE_ACCESSORS
 
+  // Indicates whether this function can be optimized on the background compiler
+  // thread.
+  bool is_background_optimizable() const {
+    return RawFunction::BackgroundOptimizableBit::decode(
+        raw_ptr()->packed_fields_);
+  }
+
+  void set_is_background_optimizable(bool value) const {
+    set_packed_fields(RawFunction::BackgroundOptimizableBit::update(
+        value, raw_ptr()->packed_fields_));
+  }
+
  private:
   void set_ic_data_array(const Array& value) const;
   void SetInstructionsSafe(const Code& value) const;

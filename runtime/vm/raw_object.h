@@ -888,7 +888,7 @@ class RawFunction : public RawObject {
   };
 
   static constexpr intptr_t kMaxFixedParametersBits = 15;
-  static constexpr intptr_t kMaxOptionalParametersBits = 15;
+  static constexpr intptr_t kMaxOptionalParametersBits = 14;
 
  private:
   // So that the SkippedCodeFunctions::DetachCode can null out the code fields.
@@ -951,8 +951,13 @@ class RawFunction : public RawObject {
   typedef BitField<uint32_t, bool, PackedIsNoSuchMethodForwarder::kNextBit, 1>
       PackedHasNamedOptionalParameters;
   typedef BitField<uint32_t,
-                   uint16_t,
+                   bool,
                    PackedHasNamedOptionalParameters::kNextBit,
+                   1>
+      BackgroundOptimizableBit;
+  typedef BitField<uint32_t,
+                   uint16_t,
+                   BackgroundOptimizableBit::kNextBit,
                    kMaxFixedParametersBits>
       PackedNumFixedParameters;
   typedef BitField<uint32_t,
