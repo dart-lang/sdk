@@ -4,33 +4,11 @@
 
 library dart2js.resolution_strategy;
 
-import '../common.dart';
-import '../common/resolution.dart';
-import '../common/work.dart';
 import '../common_elements.dart';
 import '../compiler.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
-import '../enqueue.dart';
 import '../js_backend/mirrors_data.dart';
-
-/// Builder that creates work item necessary for the resolution of a
-/// [MemberElement].
-class ResolutionWorkItemBuilder extends WorkItemBuilder {
-  final Resolution _resolution;
-
-  ResolutionWorkItemBuilder(this._resolution);
-
-  @override
-  WorkItem createWorkItem(MemberElement element) {
-    assert(element.isDeclaration, failedAt(element));
-    if (element.isMalformed) return null;
-
-    assert(element is AnalyzableElement,
-        failedAt(element, 'Element $element is not analyzable.'));
-    return _resolution.createWorkItem(element);
-  }
-}
 
 class ResolutionMirrorsData extends MirrorsDataImpl {
   ResolutionMirrorsData(Compiler compiler,

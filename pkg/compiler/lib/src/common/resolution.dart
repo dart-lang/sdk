@@ -28,7 +28,6 @@ import '../enqueue.dart' show ResolutionEnqueuer;
 import '../id_generator.dart';
 import '../mirrors_used.dart';
 import '../options.dart' show CompilerOptions;
-import '../resolution/resolution.dart';
 import '../tree/tree.dart' show TypeAnnotation;
 import '../universe/world_impact.dart' show WorldImpact;
 import '../universe/feature.dart';
@@ -103,7 +102,6 @@ abstract class Resolution {
   CommonElements get commonElements;
   Types get types;
   Target get target;
-  ResolverTask get resolver;
   ResolutionEnqueuer get enqueuer;
   CompilerOptions get options;
   IdGenerator get idGenerator;

@@ -27,7 +27,6 @@ import '../elements/elements.dart'
         TypedefElement;
 import '../elements/resolution_types.dart';
 import '../js_backend/js_backend.dart' show JavaScriptBackend;
-import '../resolution/resolution.dart' show AnalyzableElementX;
 import '../resolution/tree_elements.dart' show TreeElements;
 import '../tree/tree.dart' as ast;
 import '../util/util.dart' show Setlet;
@@ -193,13 +192,6 @@ class AstDeferredLoadTask extends DeferredLoadTask {
   void addMirrorElementsForLibrary(
       WorkQueue queue, covariant LibraryElement root, ImportSet newSet) {
     void handleElementIfResolved(Element element) {
-      // If an element is the target of a MirrorsUsed annotation but never used
-      // It will not be resolved, and we should not call isNeededForReflection.
-      // TODO(sigurdm): Unresolved elements should just answer false when
-      // asked isNeededForReflection. Instead an internal error is triggered.
-      // So we have to filter them out here.
-      if (element is AnalyzableElementX && !element.hasTreeElements) return;
-
       bool isAccessibleByReflection(Element element) {
         if (element.isLibrary) {
           return false;

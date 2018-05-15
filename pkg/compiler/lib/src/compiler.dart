@@ -37,7 +37,6 @@ import 'library_loader.dart' show LibraryLoaderTask, LoadedLibraries;
 import 'mirrors_used.dart' show MirrorUsageAnalyzerTask;
 import 'null_compiler_output.dart' show NullCompilerOutput, NullSink;
 import 'options.dart' show CompilerOptions, DiagnosticOptions;
-import 'resolution/resolution.dart' show ResolverTask;
 import 'script.dart' show Script;
 import 'ssa/nodes.dart' show HInstruction;
 import 'package:front_end/src/fasta/scanner.dart' show StringToken, Token;
@@ -109,7 +108,6 @@ abstract class Compiler {
 
   List<CompilerTask> tasks;
   LibraryLoaderTask libraryLoader;
-  ResolverTask resolver;
   GlobalTypeInferenceTask globalInference;
   JavaScriptBackend backend;
   CodegenWorldBuilder _codegenWorldBuilder;
