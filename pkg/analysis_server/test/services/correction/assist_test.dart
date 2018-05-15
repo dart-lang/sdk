@@ -3687,6 +3687,53 @@ class FakeFlutter {
 ''');
   }
 
+  test_flutterWrapCenter_OK_namedConstructor() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  MyWidget.named();
+
+  Widget build(BuildContext context) => null;
+}
+
+main() {
+  return MyWidget./*caret*/named();
+}
+''');
+    _setCaretLocation();
+    if (omitNew) {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_CENTER, '''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  MyWidget.named();
+
+  Widget build(BuildContext context) => null;
+}
+
+main() {
+  return /*caret*/Center(child: MyWidget.named());
+}
+''');
+    } else {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_CENTER, '''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  MyWidget.named();
+
+  Widget build(BuildContext context) => null;
+}
+
+main() {
+  return new Center(child: MyWidget./*caret*/named());
+}
+''');
+    }
+  }
+
   test_flutterWrapColumn_OK_coveredByWidget() async {
     addFlutterPackage();
     await resolveTestUnit('''

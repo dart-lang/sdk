@@ -344,7 +344,10 @@ bool isWidgetExpression(AstNode node) {
   if (node == null) {
     return false;
   }
-  if (node?.parent is TypeName || node?.parent?.parent is TypeName) {
+  if (node.parent is TypeName || node.parent?.parent is TypeName) {
+    return false;
+  }
+  if (node.parent is ConstructorName) {
     return false;
   }
   if (node is NamedExpression) {

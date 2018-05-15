@@ -272,6 +272,7 @@ var b = new Text('bbb');
 import 'package:flutter/widgets.dart';
 
 main() {
+  MyWidget.named(); // use
   var text = new Text('abc');
   text;
   createEmptyText();
@@ -280,8 +281,19 @@ main() {
   intVariable;
 }
 
+class MyWidget extends StatelessWidget {
+  MyWidget.named();
+}
+
 Text createEmptyText() => new Text('');
 ''');
+    {
+      Expression expression = findNodeAtString('named(); // use');
+      expect(isWidgetExpression(expression), isFalse);
+      var creation = expression.parent.parent as InstanceCreationExpression;
+      expect(isWidgetExpression(creation), isTrue);
+    }
+
     {
       Expression expression = findNodeAtString("new Text('abc')");
       expect(isWidgetExpression(expression), isTrue);
