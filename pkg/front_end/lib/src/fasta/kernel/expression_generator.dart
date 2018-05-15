@@ -113,6 +113,7 @@ part 'expression_generator_impl.dart';
 /// generate an invocation of `operator[]` or `operator[]=`, so we generate an
 /// [Accessor] object.  Later, after `= b` is parsed, [buildAssignment] will be
 /// called.
+// TODO(ahe): Move this into [Generator] when all uses have been updated.
 abstract class Accessor<Arguments> {
   final BuilderHelper<dynamic, dynamic, Arguments> helper;
   final Token token;
@@ -278,8 +279,11 @@ abstract class Accessor<Arguments> {
       new ShadowIllegalAssignment(rhs);
 }
 
-class VariableUseGenerator<Arguments> extends Accessor<Arguments>
-    with FastaAccessor<Arguments> {
+// TODO(ahe): Merge classes [Accessor] and [FastaAccessor] into this.
+abstract class Generator<Arguments> = Accessor<Arguments>
+    with FastaAccessor<Arguments>;
+
+class VariableUseGenerator<Arguments> extends Generator<Arguments> {
   VariableDeclaration variable;
   DartType promotedType;
 
@@ -325,8 +329,7 @@ class VariableUseGenerator<Arguments> extends Accessor<Arguments>
   String toString() => "VariableUseGenerator()";
 }
 
-class PropertyAccessGenerator<Arguments> extends Accessor<Arguments>
-    with FastaAccessor<Arguments> {
+class PropertyAccessGenerator<Arguments> extends Generator<Arguments> {
   VariableDeclaration _receiverVariable;
   kernel.Expression receiver;
   Name name;

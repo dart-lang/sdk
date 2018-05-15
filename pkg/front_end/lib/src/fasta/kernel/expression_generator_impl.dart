@@ -140,6 +140,7 @@ class FunctionTypeAccessor {
       this.positionalParameterCount, this._namedParameters);
 }
 
+// TODO(ahe): Merge this into [Generator] when all uses have been updated.
 abstract class FastaAccessor<Arguments> implements Accessor<Arguments> {
   BuilderHelper<dynamic, dynamic, Arguments> get helper;
 
