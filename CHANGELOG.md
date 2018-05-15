@@ -12,6 +12,10 @@
 
 ### Tool Changes
 
+#### dartfmt
+
+  * Support metadata annotations on enum cases.
+
 #### Pub
 
 #### Other Tools
