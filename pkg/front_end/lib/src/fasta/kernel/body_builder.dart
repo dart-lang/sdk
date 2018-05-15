@@ -329,19 +329,29 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       ..fileOffset = offsetForToken(beginToken);
   }
 
-  kernel.Statement popStatementIfNotNull(Object value) {
+  Statement popStatementIfNotNull(Object value) {
     return value == null ? null : popStatement();
   }
 
-  kernel.Statement popStatement() {
+  Statement popStatement() {
     var statement = pop();
     if (statement is List) {
-      return new Block(new List<kernel.Statement>.from(statement));
+      return toStatement(new Block(new List<kernel.Statement>.from(statement)));
     } else if (statement is VariableDeclaration) {
-      return new Block(<kernel.Statement>[statement]);
+      return toStatement(new Block(<kernel.Statement>[statement]));
     } else {
       return statement;
     }
+  }
+
+  // TODO(ahe): Remove this method once Forest API is complete.
+  kernel.Statement toKernelStatement(Statement statement) {
+    return statement as dynamic;
+  }
+
+  // TODO(ahe): Remove this method once Forest API is complete.
+  Statement toStatement(kernel.Statement statement) {
+    return statement as dynamic;
   }
 
   void ignore(Unhandled value) {
@@ -1655,8 +1665,9 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
 
   @override
   void endIfStatement(Token ifToken, Token elseToken) {
-    kernel.Statement elsePart = popStatementIfNotNull(elseToken);
-    kernel.Statement thenPart = popStatement();
+    kernel.Statement elsePart =
+        toKernelStatement(popStatementIfNotNull(elseToken));
+    kernel.Statement thenPart = toKernelStatement(popStatement());
     Expression condition = pop();
     typePromoter.exitConditional();
     push(
@@ -1851,9 +1862,9 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   void endForStatement(Token forKeyword, Token leftParen, Token leftSeparator,
       int updateExpressionCount, Token endToken) {
     debugEvent("ForStatement");
-    kernel.Statement body = popStatement();
+    kernel.Statement body = toKernelStatement(popStatement());
     List<Expression> updates = popListForEffect(updateExpressionCount);
-    kernel.Statement conditionStatement = popStatement();
+    kernel.Statement conditionStatement = toKernelStatement(popStatement());
     Expression condition = null;
     if (conditionStatement is ExpressionStatement) {
       condition = toExpression(conditionStatement.expression);
@@ -2379,9 +2390,10 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
 
   @override
   void endTryStatement(int catchCount, Token tryKeyword, Token finallyKeyword) {
-    kernel.Statement finallyBlock = popStatementIfNotNull(finallyKeyword);
+    kernel.Statement finallyBlock =
+        toKernelStatement(popStatementIfNotNull(finallyKeyword));
     List<Catch> catches = popList(catchCount);
-    kernel.Statement tryBlock = popStatement();
+    kernel.Statement tryBlock = toKernelStatement(popStatement());
     if (compileTimeErrorInTry == null) {
       if (catches != null) {
         tryBlock = new ShadowTryCatch(tryBlock, catches);
@@ -3016,7 +3028,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   }
 
   void pushNamedFunction(Token token, bool isFunctionExpression) {
-    kernel.Statement body = popStatement();
+    kernel.Statement body = toKernelStatement(popStatement());
     AsyncMarker asyncModifier = pop();
     exitLocalScope();
     FormalParameters<Arguments> formals = pop();
@@ -3107,7 +3119,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void endFunctionExpression(Token beginToken, Token token) {
     debugEvent("FunctionExpression");
-    kernel.Statement body = popStatement();
+    kernel.Statement body = toKernelStatement(popStatement());
     AsyncMarker asyncModifier = pop();
     exitLocalScope();
     FormalParameters<Arguments> formals = pop();
@@ -3131,7 +3143,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       Token doKeyword, Token whileKeyword, Token endToken) {
     debugEvent("DoWhileStatement");
     Expression condition = popForValue();
-    kernel.Statement body = popStatement();
+    kernel.Statement body = toKernelStatement(popStatement());
     JumpTarget continueTarget = exitContinueTarget();
     JumpTarget breakTarget = exitBreakTarget();
     if (continueTarget.hasUsers) {
@@ -3165,7 +3177,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   void endForIn(Token awaitToken, Token forToken, Token leftParenthesis,
       Token inKeyword, Token endToken) {
     debugEvent("ForIn");
-    kernel.Statement body = popStatement();
+    kernel.Statement body = toKernelStatement(popStatement());
     Expression expression = popForValue();
     var lvalue = pop();
     exitLocalScope();
@@ -3250,7 +3262,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void endLabeledStatement(int labelCount) {
     debugEvent("LabeledStatement");
-    kernel.Statement statement = popStatement();
+    kernel.Statement statement = toKernelStatement(popStatement());
     LabelTarget target = pop();
     exitLocalScope();
     if (target.breakTarget.hasUsers) {
@@ -3289,7 +3301,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void endWhileStatement(Token whileKeyword, Token endToken) {
     debugEvent("WhileStatement");
-    kernel.Statement body = popStatement();
+    kernel.Statement body = toKernelStatement(popStatement());
     Expression condition = popForValue();
     JumpTarget continueTarget = exitContinueTarget();
     JumpTarget breakTarget = exitBreakTarget();
