@@ -5,7 +5,6 @@
 library dart2js.resolution.registry;
 
 import '../common.dart';
-import '../common/backend_api.dart' show ForeignResolver, NativeRegistry;
 import '../common/resolution.dart' show ResolutionImpact, Target;
 import '../constants/expressions.dart';
 import '../diagnostics/source_span.dart';
@@ -24,7 +23,7 @@ import '../util/util.dart' show Setlet;
 import 'tree_elements.dart' show TreeElementMapping;
 
 class ResolutionWorldImpactBuilder extends WorldImpactBuilderImpl
-    implements NativeRegistry, ResolutionImpact {
+    implements ResolutionImpact {
   final String name;
   EnumSet<Feature> _features;
   Setlet<MapLiteralUse> _mapLiterals;
@@ -383,15 +382,7 @@ class ResolutionRegistry {
   }
 
   void registerForeignCall(
-      Node node, Element element, CallStructure callStructure) {
-    var nativeData = target.resolveForeignCall(
-        node, element, callStructure, new ForeignResolutionResolver(this));
-    if (nativeData != null) {
-      // Split impact from resolution result.
-      mapping.registerNativeData(node, nativeData);
-      impactBuilder.registerNativeData(nativeData);
-    }
-  }
+      Node node, Element element, CallStructure callStructure) {}
 
   void registerDynamicUse(DynamicUse dynamicUse) {
     impactBuilder.registerDynamicUse(dynamicUse);
@@ -423,26 +414,5 @@ class ResolutionRegistry {
 
   void registerSeenClass(ClassEntity seenClass) {
     impactBuilder.registerSeenClass(seenClass);
-  }
-}
-
-class ForeignResolutionResolver implements ForeignResolver {
-  final ResolutionRegistry registry;
-
-  ForeignResolutionResolver(this.registry);
-
-  @override
-  ConstantExpression getConstant(Node node) {
-    return registry.getConstant(node);
-  }
-
-  @override
-  void registerInstantiatedType(ResolutionInterfaceType type) {
-    registry.registerInstantiation(type);
-  }
-
-  @override
-  ResolutionDartType resolveTypeFromString(Node node, String typeName) {
-    return null;
   }
 }

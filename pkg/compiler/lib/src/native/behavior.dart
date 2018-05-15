@@ -3,18 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common.dart';
-import '../common/backend_api.dart' show ForeignResolver;
-import '../common/resolution.dart' show ParsingContext;
 import '../constants/values.dart';
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../elements/entities.dart';
-import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as js;
 import '../js_backend/native_data.dart' show NativeBasicData;
-import '../tree/tree.dart';
 import '../universe/side_effects.dart' show SideEffects;
-import '../util/util.dart';
 import 'js.dart';
 
 typedef dynamic /*DartType|SpecialType*/ TypeLookup(String typeString,
@@ -492,61 +487,6 @@ class NativeBehavior {
     return sideEffects;
   }
 
-  /// Returns a [TypeLookup] that uses [resolver] to perform lookup and [node]
-  /// as position for errors.
-  static TypeLookup _typeLookup(
-      Node node, DiagnosticReporter reporter, ForeignResolver resolver) {
-    ResolutionDartType lookup(String name, {bool required}) {
-      ResolutionDartType type = resolver.resolveTypeFromString(node, name);
-      if (type == null && required) {
-        reporter.reportErrorMessage(
-            node, MessageKind.GENERIC, {'text': "Type '$name' not found."});
-      }
-      return type;
-    }
-
-    return lookup;
-  }
-
-  /// Compute the [NativeBehavior] for a [Send] node calling the 'JS' function.
-  static NativeBehavior ofJsCallSend(
-      Send jsCall,
-      DiagnosticReporter reporter,
-      ParsingContext parsing,
-      CommonElements commonElements,
-      ForeignResolver resolver) {
-    var argNodes = jsCall.arguments;
-    if (argNodes.isEmpty || argNodes.tail.isEmpty) {
-      reporter.reportErrorMessage(jsCall, MessageKind.WRONG_ARGUMENT_FOR_JS);
-      return new NativeBehavior();
-    }
-
-    dynamic specArgument = argNodes.head;
-    if (specArgument is! StringNode || specArgument.isInterpolation) {
-      reporter.reportErrorMessage(
-          specArgument, MessageKind.WRONG_ARGUMENT_FOR_JS_FIRST);
-      return new NativeBehavior();
-    }
-
-    dynamic codeArgument = argNodes.tail.head;
-    if (codeArgument is! StringNode || codeArgument.isInterpolation) {
-      reporter.reportErrorMessage(
-          codeArgument, MessageKind.WRONG_ARGUMENT_FOR_JS_SECOND);
-      return new NativeBehavior();
-    }
-
-    String specString = specArgument.dartString.slowToString();
-    String codeString = codeArgument.dartString.slowToString();
-
-    return ofJsCall(
-        specString,
-        codeString,
-        _typeLookup(specArgument, reporter, resolver),
-        specArgument,
-        reporter,
-        commonElements);
-  }
-
   /// Compute the [NativeBehavior] for a call to the 'JS' function with the
   /// given [specString] and [codeString] (first and second arguments).
   static NativeBehavior ofJsCall(
@@ -633,50 +573,6 @@ class NativeBehavior {
         nullType: commonElements.nullType);
   }
 
-  static NativeBehavior ofJsBuiltinCallSend(
-      Send jsBuiltinCall,
-      DiagnosticReporter reporter,
-      CommonElements commonElements,
-      ForeignResolver resolver) {
-    NativeBehavior behavior = new NativeBehavior();
-    behavior.sideEffects.setTo(new SideEffects());
-
-    // The first argument of a JS-embedded global call is a string encoding
-    // the type of the code.
-    //
-    //  'Type1|Type2'.  A union type.
-    //  '=Object'.      A JavaScript Object, no subtype.
-
-    Link<Node> argNodes = jsBuiltinCall.arguments;
-    if (argNodes.isEmpty) {
-      reporter.internalError(
-          jsBuiltinCall, "JS builtin expression has no type.");
-    }
-
-    // We don't check the given name. That needs to be done at a later point.
-    // This is, because we want to allow non-literals (like references to
-    // enums) as names.
-    if (argNodes.tail.isEmpty) {
-      reporter.internalError(jsBuiltinCall, "JS builtin is missing name.");
-    }
-
-    LiteralString specLiteral = argNodes.head.asLiteralString();
-    if (specLiteral == null) {
-      // TODO(sra): We could accept a type identifier? e.g. JS(bool, '1<2').  It
-      // is not very satisfactory because it does not work for void, dynamic.
-      reporter.internalError(argNodes.head, "Unexpected first argument.");
-    }
-
-    String specString = specLiteral.dartString.slowToString();
-
-    return ofJsBuiltinCall(
-        specString,
-        _typeLookup(jsBuiltinCall, reporter, resolver),
-        jsBuiltinCall,
-        reporter,
-        commonElements);
-  }
-
   static NativeBehavior ofJsBuiltinCall(
       String specString,
       TypeLookup lookupType,
@@ -688,60 +584,6 @@ class NativeBehavior {
     _fillNativeBehaviorOfBuiltinOrEmbeddedGlobal(
         behavior, spannable, specString, lookupType, reporter, commonElements);
     return behavior;
-  }
-
-  static NativeBehavior ofJsEmbeddedGlobalCallSend(
-      Send jsEmbeddedGlobalCall,
-      DiagnosticReporter reporter,
-      CommonElements commonElements,
-      ForeignResolver resolver) {
-    NativeBehavior behavior = new NativeBehavior();
-    // TODO(sra): Allow the use site to override these defaults.
-    // Embedded globals are usually pre-computed data structures or JavaScript
-    // functions that never change.
-    behavior.sideEffects.setTo(new SideEffects.empty());
-    behavior.throwBehavior = NativeThrowBehavior.NEVER;
-
-    // The first argument of a JS-embedded global call is a string encoding
-    // the type of the code.
-    //
-    //  'Type1|Type2'.  A union type.
-    //  '=Object'.      A JavaScript Object, no subtype.
-
-    Link<Node> argNodes = jsEmbeddedGlobalCall.arguments;
-    if (argNodes.isEmpty) {
-      reporter.internalError(
-          jsEmbeddedGlobalCall, "JS embedded global expression has no type.");
-    }
-
-    // We don't check the given name. That needs to be done at a later point.
-    // This is, because we want to allow non-literals (like references to
-    // enums) as names.
-    if (argNodes.tail.isEmpty) {
-      reporter.internalError(
-          jsEmbeddedGlobalCall, "JS embedded global is missing name.");
-    }
-
-    if (!argNodes.tail.tail.isEmpty) {
-      reporter.internalError(argNodes.tail.tail.head,
-          'JS embedded global has more than 2 arguments');
-    }
-
-    LiteralString specLiteral = argNodes.head.asLiteralString();
-    if (specLiteral == null) {
-      // TODO(sra): We could accept a type identifier? e.g. JS(bool, '1<2').  It
-      // is not very satisfactory because it does not work for void, dynamic.
-      reporter.internalError(argNodes.head, "Unexpected first argument.");
-    }
-
-    String specString = specLiteral.dartString.slowToString();
-
-    return ofJsEmbeddedGlobalCall(
-        specString,
-        _typeLookup(jsEmbeddedGlobalCall, reporter, resolver),
-        jsEmbeddedGlobalCall,
-        reporter,
-        commonElements);
   }
 
   static NativeBehavior ofJsEmbeddedGlobalCall(
@@ -766,7 +608,7 @@ class NativeBehavior {
       String typeString, TypeLookup lookupType) {
     if (typeString == '=Object') return SpecialType.JsObject;
     if (typeString == 'dynamic') {
-      return const ResolutionDynamicType();
+      return const DynamicType();
     }
     int index = typeString.indexOf('<');
     var type = lookupType(typeString, required: index == -1);
@@ -779,7 +621,7 @@ class NativeBehavior {
         return type;
       }
     }
-    return const ResolutionDynamicType();
+    return const DynamicType();
   }
 }
 

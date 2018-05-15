@@ -31,11 +31,9 @@ import '../mirrors_used.dart';
 import '../options.dart' show CompilerOptions;
 import '../parser/parser_task.dart';
 import '../resolution/resolution.dart';
-import '../tree/tree.dart' show Send, TypeAnnotation;
-import '../universe/call_structure.dart' show CallStructure;
+import '../tree/tree.dart' show TypeAnnotation;
 import '../universe/world_impact.dart' show WorldImpact;
 import '../universe/feature.dart';
-import 'backend_api.dart';
 import 'work.dart' show WorkItem;
 
 /// [WorkItem] used exclusively by the [ResolutionEnqueuer].
@@ -80,22 +78,6 @@ abstract class Target {
   /// have special treatment, such as being allowed to extends blacklisted
   /// classes or members being eagerly resolved.
   bool isTargetSpecificLibrary(LibraryElement element);
-
-  /// Resolve target specific information for [element] and register it with
-  /// [registry].
-  void resolveNativeMember(MemberElement element, NativeRegistry registry) {}
-
-  /// Processes [element] for resolution and returns the [MethodElement] that
-  /// defines the implementation of [element].
-  MethodElement resolveExternalFunction(MethodElement element) => element;
-
-  /// Called when resolving a call to a foreign function. If a non-null value
-  /// is returned, this is stored as native data for [node] in the resolved
-  /// AST.
-  dynamic resolveForeignCall(Send node, Element element,
-      CallStructure callStructure, ForeignResolver resolver) {
-    return null;
-  }
 
   /// Returns `true` if [element] is a default implementation of `noSuchMethod`
   /// used by the target.

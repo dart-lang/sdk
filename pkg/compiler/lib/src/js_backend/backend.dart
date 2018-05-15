@@ -5,8 +5,7 @@
 library js_backend.backend;
 
 import '../common.dart';
-import '../common/backend_api.dart'
-    show ForeignResolver, NativeRegistry, ImpactTransformer;
+import '../common/backend_api.dart' show ImpactTransformer;
 import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/names.dart' show Uris;
 import '../common/resolution.dart' show Resolution, Target;
@@ -14,14 +13,11 @@ import '../common/tasks.dart' show CompilerTask;
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
-import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../deferred_load.dart' show DeferredLoadTask, OutputUnitData;
 import '../dump_info.dart' show DumpInfoTask;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
-import '../elements/names.dart';
-import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../enqueue.dart'
     show
@@ -41,10 +37,8 @@ import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
 import '../js_emitter/sorter.dart' show Sorter;
 import '../library_loader.dart' show LoadedLibraries;
 import '../native/native.dart' as native;
-import '../native/resolver.dart';
 import '../ssa/ssa.dart' show SsaFunctionCompiler;
 import '../tracer.dart';
-import '../tree/tree.dart';
 import '../types/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/class_hierarchy_builder.dart'
@@ -412,7 +406,6 @@ class JavaScriptBackend {
 
   NativeDataBuilderImpl _nativeDataBuilder;
   NativeDataBuilder get nativeDataBuilder => _nativeDataBuilder;
-  final NativeDataResolver _nativeDataResolver;
   OneShotInterceptorData _oneShotInterceptorData;
   BackendUsageBuilder _backendUsageBuilder;
   MirrorsDataImpl _mirrorsData;
@@ -436,8 +429,7 @@ class JavaScriptBackend {
       bool useNewSourceInfo: false})
       : this.sourceInformationStrategy =
             compiler.backendStrategy.sourceInformationStrategy,
-        constantCompilerTask = new JavaScriptConstantTask(compiler),
-        _nativeDataResolver = new NativeDataResolverImpl(compiler) {
+        constantCompilerTask = new JavaScriptConstantTask(compiler) {
     CommonElements commonElements = compiler.frontendStrategy.commonElements;
     _target = new JavaScriptBackendTarget(this);
     _mirrorsData = compiler.frontendStrategy.createMirrorsDataBuilder();
@@ -562,23 +554,6 @@ class JavaScriptBackend {
     return constantCompilerTask.jsConstantCompiler;
   }
 
-  MethodElement resolveExternalFunction(MethodElement element) {
-    if (isForeign(compiler.frontendStrategy.commonElements, element)) {
-      return element;
-    }
-    if (_nativeDataResolver.isJsInteropMember(element)) {
-      if (element.memberName == const PublicName('[]') ||
-          element.memberName == const PublicName('[]=')) {
-        reporter.reportErrorMessage(
-            element, MessageKind.JS_INTEROP_INDEX_NOT_SUPPORTED);
-      }
-      return element;
-    }
-    return patchResolverTask.measure(() {
-      return patchResolverTask.resolveExternalFunction(element);
-    });
-  }
-
   bool isForeign(CommonElements commonElements, Element element) =>
       element.library == commonElements.foreignLibrary;
 
@@ -650,38 +625,6 @@ class JavaScriptBackend {
 
   void onDeferredLoadComplete(OutputUnitData data) {
     _outputUnitData = compiler.backendStrategy.convertOutputUnitData(data);
-  }
-
-  /// Called when resolving a call to a foreign function.
-  native.NativeBehavior resolveForeignCall(Send node, Element element,
-      CallStructure callStructure, ForeignResolver resolver) {
-    if (element.name == JS) {
-      return _nativeDataResolver.resolveJsCall(node, resolver);
-    } else if (element.name == JS_EMBEDDED_GLOBAL) {
-      return _nativeDataResolver.resolveJsEmbeddedGlobalCall(node, resolver);
-    } else if (element.name == JS_BUILTIN) {
-      return _nativeDataResolver.resolveJsBuiltinCall(node, resolver);
-    } else if (element.name == JS_INTERCEPTOR_CONSTANT) {
-      // The type constant that is an argument to JS_INTERCEPTOR_CONSTANT names
-      // a class that will be instantiated outside the program by attaching a
-      // native class dispatch record referencing the interceptor.
-      if (!node.argumentsNode.isEmpty) {
-        Node argument = node.argumentsNode.nodes.head;
-        ConstantExpression constant = resolver.getConstant(argument);
-        if (constant != null && constant.kind == ConstantExpressionKind.TYPE) {
-          TypeConstantExpression typeConstant = constant;
-          if (typeConstant.type is ResolutionInterfaceType) {
-            resolver.registerInstantiatedType(typeConstant.type);
-            // No native behavior for this call.
-            return null;
-          }
-        }
-      }
-      reporter.reportErrorMessage(
-          node, MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT);
-    }
-    // No native behavior for this call.
-    return null;
   }
 
   ResolutionEnqueuer createResolutionEnqueuer(
@@ -1342,22 +1285,6 @@ class JavaScriptBackendTarget extends Target {
   @override
   bool isTargetSpecificLibrary(LibraryElement element) {
     return _backend.isTargetSpecificLibrary(element);
-  }
-
-  @override
-  void resolveNativeMember(MemberElement element, NativeRegistry registry) {
-    return _backend._nativeDataResolver.resolveNativeMember(element, registry);
-  }
-
-  @override
-  MethodElement resolveExternalFunction(MethodElement element) {
-    return _backend.resolveExternalFunction(element);
-  }
-
-  @override
-  dynamic resolveForeignCall(Send node, Element element,
-      CallStructure callStructure, ForeignResolver resolver) {
-    return _backend.resolveForeignCall(node, element, callStructure, resolver);
   }
 
   @override
