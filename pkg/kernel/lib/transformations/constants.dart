@@ -185,13 +185,17 @@ class ConstantsTransformer extends Transformer {
 
   void transformAnnotations(List<Expression> nodes, TreeNode parent) {
     if (evaluateAnnotations && nodes.length > 0) {
-      constantEvaluator.withNewEnvironment(() {
-        for (int i = 0; i < nodes.length; ++i) {
-          nodes[i] = tryEvaluateAndTransformWithContext(parent, nodes[i])
-            ..parent = parent;
-        }
-      });
+      transformExpressions(nodes, parent);
     }
+  }
+
+  void transformExpressions(List<Expression> nodes, TreeNode parent) {
+    constantEvaluator.withNewEnvironment(() {
+      for (int i = 0; i < nodes.length; ++i) {
+        nodes[i] = tryEvaluateAndTransformWithContext(parent, nodes[i])
+          ..parent = parent;
+      }
+    });
   }
 
   // Handle definition of constants:
@@ -290,6 +294,11 @@ class ConstantsTransformer extends Transformer {
       return tryEvaluateAndTransformWithContext(node, node);
     }
     return super.visitStaticGet(node);
+  }
+
+  visitSwitchCase(SwitchCase node) {
+    transformExpressions(node.expressions, node);
+    return super.visitSwitchCase(node);
   }
 
   visitVariableGet(VariableGet node) {
