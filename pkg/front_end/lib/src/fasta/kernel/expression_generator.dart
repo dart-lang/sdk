@@ -548,13 +548,22 @@ class NullAwarePropertyAccessGenerator<Arguments> extends Generator<Arguments> {
   String toString() => "NullAwarePropertyAccessGenerator()";
 }
 
-class _SuperPropertyAccessor<Arguments> extends Accessor<Arguments> {
+class SuperPropertyAccessGenerator<Arguments> extends Generator<Arguments> {
   Name name;
-  Member getter, setter;
 
-  _SuperPropertyAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      this.name, this.getter, this.setter, Token token)
+  Member getter;
+
+  Member setter;
+
+  SuperPropertyAccessGenerator(
+      BuilderHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      this.name,
+      this.getter,
+      this.setter)
       : super(helper, token);
+
+  String get plainNameForRead => name.name;
 
   kernel.Expression _makeRead(ShadowComplexAssignment complexAssignment) {
     if (getter == null) {
@@ -578,6 +587,31 @@ class _SuperPropertyAccessor<Arguments> extends Accessor<Arguments> {
     complexAssignment?.write = write;
     return write;
   }
+
+  kernel.Expression doInvocation(int offset, Arguments arguments) {
+    if (helper.constantContext != ConstantContext.none) {
+      helper.deprecated_addCompileTimeError(
+          offset, "Not a constant expression.");
+    }
+    if (getter == null || isFieldOrGetter(getter)) {
+      return helper.buildMethodInvocation(
+          buildSimpleRead(), callName, arguments, offset,
+          // This isn't a constant expression, but we have checked if a
+          // constant expression error should be emitted already.
+          isConstantExpression: true,
+          isImplicitCall: true);
+    } else {
+      // TODO(ahe): This could be something like "super.property(...)" where
+      // property is a setter.
+      return unhandled("${getter.runtimeType}", "doInvocation", offset, uri);
+    }
+  }
+
+  @override
+  ShadowComplexAssignment startComplexAssignment(kernel.Expression rhs) =>
+      new ShadowPropertyAssign(null, rhs, isSuper: true);
+
+  String toString() => "SuperPropertyAccessGenerator()";
 }
 
 class _IndexAccessor<Arguments> extends Accessor<Arguments> {

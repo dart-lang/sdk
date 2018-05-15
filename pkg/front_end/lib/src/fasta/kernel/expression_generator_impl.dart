@@ -441,7 +441,7 @@ class ThisAccessor<Arguments> extends FastaAccessor<Arguments>
       Member setter =
           helper.lookupInstanceMember(name, isSuper: isSuper, isSetter: true);
       if (isSuper) {
-        return new SuperPropertyAccessor(
+        return new SuperPropertyAccessGenerator(
             helper, send.token, name, getter, setter);
       } else {
         return new ThisPropertyAccessGenerator(
@@ -902,40 +902,6 @@ class DeferredAccessor<Arguments> extends _DeferredAccessor<Arguments>
     return helper.wrapInDeferredCheck(
         accessor.doInvocation(offset, arguments), builder, token.charOffset);
   }
-}
-
-class SuperPropertyAccessor<Arguments> extends _SuperPropertyAccessor<Arguments>
-    with FastaAccessor<Arguments> {
-  SuperPropertyAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      Token token, Name name, Member getter, Member setter)
-      : super(helper, name, getter, setter, token);
-
-  String get plainNameForRead => name.name;
-
-  kernel.Expression doInvocation(int offset, Arguments arguments) {
-    if (helper.constantContext != ConstantContext.none) {
-      helper.deprecated_addCompileTimeError(
-          offset, "Not a constant expression.");
-    }
-    if (getter == null || isFieldOrGetter(getter)) {
-      return helper.buildMethodInvocation(
-          buildSimpleRead(), callName, arguments, offset,
-          // This isn't a constant expression, but we have checked if a
-          // constant expression error should be emitted already.
-          isConstantExpression: true,
-          isImplicitCall: true);
-    } else {
-      // TODO(ahe): This could be something like "super.property(...)" where
-      // property is a setter.
-      return unhandled("${getter.runtimeType}", "doInvocation", offset, uri);
-    }
-  }
-
-  toString() => "SuperPropertyAccessor()";
-
-  @override
-  ShadowComplexAssignment startComplexAssignment(kernel.Expression rhs) =>
-      new ShadowPropertyAssign(null, rhs, isSuper: true);
 }
 
 class ThisIndexAccessor<Arguments> extends _ThisIndexAccessor<Arguments>
