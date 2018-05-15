@@ -344,16 +344,6 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     }
   }
 
-  // TODO(ahe): Remove this method once Forest API is complete.
-  kernel.Statement toKernelStatement(Statement statement) {
-    return statement as dynamic;
-  }
-
-  // TODO(ahe): Remove this method once Forest API is complete.
-  Statement toStatement(kernel.Statement statement) {
-    return statement as dynamic;
-  }
-
   void ignore(Unhandled value) {
     pop();
   }
@@ -1665,14 +1655,13 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
 
   @override
   void endIfStatement(Token ifToken, Token elseToken) {
-    kernel.Statement elsePart =
-        toKernelStatement(popStatementIfNotNull(elseToken));
-    kernel.Statement thenPart = toKernelStatement(popStatement());
+    Statement elsePart = popStatementIfNotNull(elseToken);
+    Statement thenPart = popStatement();
     Expression condition = pop();
     typePromoter.exitConditional();
-    push(
-        new ShadowIfStatement(toKernelExpression(condition), thenPart, elsePart)
-          ..fileOffset = ifToken.charOffset);
+    push(new ShadowIfStatement(toKernelExpression(condition),
+        toKernelStatement(thenPart), toKernelStatement(elsePart))
+      ..fileOffset = ifToken.charOffset);
   }
 
   @override
@@ -1862,14 +1851,16 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   void endForStatement(Token forKeyword, Token leftParen, Token leftSeparator,
       int updateExpressionCount, Token endToken) {
     debugEvent("ForStatement");
-    kernel.Statement body = toKernelStatement(popStatement());
+    Statement body = popStatement();
     List<Expression> updates = popListForEffect(updateExpressionCount);
-    kernel.Statement conditionStatement = toKernelStatement(popStatement());
+    Statement conditionStatement = popStatement();
+    kernel.Statement kernelConditionStatement =
+        toKernelStatement(conditionStatement);
     Expression condition = null;
-    if (conditionStatement is ExpressionStatement) {
-      condition = toExpression(conditionStatement.expression);
+    if (kernelConditionStatement is ExpressionStatement) {
+      condition = toExpression(kernelConditionStatement.expression);
     } else {
-      assert(conditionStatement is EmptyStatement);
+      assert(kernelConditionStatement is EmptyStatement);
     }
     dynamic variableOrExpression = pop();
     List<VariableDeclaration> variables =
@@ -1881,12 +1872,16 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     exitLocalScope();
     JumpTarget continueTarget = exitContinueTarget();
     JumpTarget breakTarget = exitBreakTarget();
+    kernel.Statement kernelBody = toKernelStatement(body);
     if (continueTarget.hasUsers) {
-      body = new ShadowLabeledStatement(body);
-      continueTarget.resolveContinues(body);
+      kernelBody = new ShadowLabeledStatement(kernelBody);
+      continueTarget.resolveContinues(kernelBody);
     }
-    kernel.Statement result = new ShadowForStatement(variables,
-        toKernelExpression(condition), toKernelExpressionList(updates), body)
+    kernel.Statement result = new ShadowForStatement(
+        variables,
+        toKernelExpression(condition),
+        toKernelExpressionList(updates),
+        kernelBody)
       ..fileOffset = forKeyword.charOffset;
     if (breakTarget.hasUsers) {
       result = new ShadowLabeledStatement(result);
@@ -2390,18 +2385,20 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
 
   @override
   void endTryStatement(int catchCount, Token tryKeyword, Token finallyKeyword) {
-    kernel.Statement finallyBlock =
-        toKernelStatement(popStatementIfNotNull(finallyKeyword));
+    Statement finallyBlock = popStatementIfNotNull(finallyKeyword);
     List<Catch> catches = popList(catchCount);
-    kernel.Statement tryBlock = toKernelStatement(popStatement());
+    Statement tryBlock = popStatement();
+    kernel.Statement kernelFinallyBlock = toKernelStatement(finallyBlock);
+    kernel.Statement kernelTryBlock = toKernelStatement(tryBlock);
     if (compileTimeErrorInTry == null) {
       if (catches != null) {
-        tryBlock = new ShadowTryCatch(tryBlock, catches);
+        kernelTryBlock = new ShadowTryCatch(kernelTryBlock, catches);
       }
-      if (finallyBlock != null) {
-        tryBlock = new ShadowTryFinally(tryBlock, finallyBlock);
+      if (kernelFinallyBlock != null) {
+        kernelTryBlock =
+            new ShadowTryFinally(kernelTryBlock, kernelFinallyBlock);
       }
-      push(tryBlock);
+      push(kernelTryBlock);
     } else {
       push(compileTimeErrorInTry);
       compileTimeErrorInTry = null;
@@ -3028,7 +3025,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   }
 
   void pushNamedFunction(Token token, bool isFunctionExpression) {
-    kernel.Statement body = toKernelStatement(popStatement());
+    Statement body = popStatement();
     AsyncMarker asyncModifier = pop();
     exitLocalScope();
     FormalParameters<Arguments> formals = pop();
@@ -3042,7 +3039,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     if (!isFunctionExpression) {
       annotations = pop(); // Metadata.
     }
-    FunctionNode function = formals.addToFunction(new FunctionNode(body,
+    FunctionNode function = formals.addToFunction(new FunctionNode(
+        toKernelStatement(body),
         typeParameters: typeParameters,
         asyncMarker: asyncModifier,
         returnType: returnType)
@@ -3119,14 +3117,16 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void endFunctionExpression(Token beginToken, Token token) {
     debugEvent("FunctionExpression");
-    kernel.Statement body = toKernelStatement(popStatement());
+    Statement body = popStatement();
     AsyncMarker asyncModifier = pop();
     exitLocalScope();
     FormalParameters<Arguments> formals = pop();
     exitFunction();
     List<TypeParameter> typeParameters = typeVariableBuildersToKernel(pop());
-    FunctionNode function = formals.addToFunction(new FunctionNode(body,
-        typeParameters: typeParameters, asyncMarker: asyncModifier)
+    FunctionNode function = formals.addToFunction(new FunctionNode(
+        toKernelStatement(body),
+        typeParameters: typeParameters,
+        asyncMarker: asyncModifier)
       ..fileOffset = beginToken.charOffset
       ..fileEndOffset = token.charOffset);
     if (constantContext != ConstantContext.none) {
@@ -3143,15 +3143,16 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       Token doKeyword, Token whileKeyword, Token endToken) {
     debugEvent("DoWhileStatement");
     Expression condition = popForValue();
-    kernel.Statement body = toKernelStatement(popStatement());
+    Statement body = popStatement();
     JumpTarget continueTarget = exitContinueTarget();
     JumpTarget breakTarget = exitBreakTarget();
+    kernel.Statement kernelBody = toKernelStatement(body);
     if (continueTarget.hasUsers) {
-      body = new ShadowLabeledStatement(body);
-      continueTarget.resolveContinues(body);
+      kernelBody = new ShadowLabeledStatement(kernelBody);
+      continueTarget.resolveContinues(kernelBody);
     }
     kernel.Statement result =
-        new ShadowDoStatement(body, toKernelExpression(condition))
+        new ShadowDoStatement(kernelBody, toKernelExpression(condition))
           ..fileOffset = doKeyword.charOffset;
     if (breakTarget.hasUsers) {
       result = new ShadowLabeledStatement(result);
@@ -3177,15 +3178,16 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   void endForIn(Token awaitToken, Token forToken, Token leftParenthesis,
       Token inKeyword, Token endToken) {
     debugEvent("ForIn");
-    kernel.Statement body = toKernelStatement(popStatement());
+    Statement body = popStatement();
     Expression expression = popForValue();
     var lvalue = pop();
     exitLocalScope();
     JumpTarget continueTarget = exitContinueTarget();
     JumpTarget breakTarget = exitBreakTarget();
+    kernel.Statement kernelBody = toKernelStatement(body);
     if (continueTarget.hasUsers) {
-      body = new ShadowLabeledStatement(body);
-      continueTarget.resolveContinues(body);
+      kernelBody = new ShadowLabeledStatement(kernelBody);
+      continueTarget.resolveContinues(kernelBody);
     }
     VariableDeclaration variable;
     bool declaresVariable = false;
@@ -3216,8 +3218,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
           new ShadowVariableGet(variable, fact, scope)
             ..fileOffset = inKeyword.offset,
           voidContext: true);
-      body = combineStatements(
-          new ShadowLoopAssignmentStatement(syntheticAssignment), body);
+      kernelBody = combineStatements(
+          new ShadowLoopAssignmentStatement(syntheticAssignment), kernelBody);
     } else {
       variable = new VariableDeclaration.forValue(toKernelExpression(
           deprecated_buildCompileTimeError("Expected lvalue, but got ${lvalue}",
@@ -3226,12 +3228,12 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     kernel.Statement result = new ShadowForInStatement(
         variable,
         toKernelExpression(expression),
-        body,
+        kernelBody,
         declaresVariable,
         syntheticAssignment,
         isAsync: awaitToken != null)
       ..fileOffset = awaitToken?.charOffset ?? forToken.charOffset
-      ..bodyOffset = body.fileOffset;
+      ..bodyOffset = kernelBody.fileOffset;
     if (breakTarget.hasUsers) {
       result = new ShadowLabeledStatement(result);
       breakTarget.resolveBreaks(result);
@@ -3262,22 +3264,23 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void endLabeledStatement(int labelCount) {
     debugEvent("LabeledStatement");
-    kernel.Statement statement = toKernelStatement(popStatement());
+    Statement statement = popStatement();
     LabelTarget target = pop();
     exitLocalScope();
+    kernel.Statement kernelStatement = toKernelStatement(statement);
     if (target.breakTarget.hasUsers) {
-      if (statement is! LabeledStatement) {
-        statement = new ShadowLabeledStatement(statement);
+      if (kernelStatement is! LabeledStatement) {
+        kernelStatement = new ShadowLabeledStatement(kernelStatement);
       }
-      target.breakTarget.resolveBreaks(statement);
+      target.breakTarget.resolveBreaks(kernelStatement);
     }
     if (target.continueTarget.hasUsers) {
-      if (statement is! LabeledStatement) {
-        statement = new ShadowLabeledStatement(statement);
+      if (kernelStatement is! LabeledStatement) {
+        kernelStatement = new ShadowLabeledStatement(kernelStatement);
       }
-      target.continueTarget.resolveContinues(statement);
+      target.continueTarget.resolveContinues(kernelStatement);
     }
-    push(statement);
+    push(kernelStatement);
   }
 
   @override
@@ -3301,16 +3304,17 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void endWhileStatement(Token whileKeyword, Token endToken) {
     debugEvent("WhileStatement");
-    kernel.Statement body = toKernelStatement(popStatement());
+    Statement body = popStatement();
     Expression condition = popForValue();
     JumpTarget continueTarget = exitContinueTarget();
     JumpTarget breakTarget = exitBreakTarget();
+    kernel.Statement kernelBody = toKernelStatement(body);
     if (continueTarget.hasUsers) {
-      body = new ShadowLabeledStatement(body);
-      continueTarget.resolveContinues(body);
+      kernelBody = new ShadowLabeledStatement(kernelBody);
+      continueTarget.resolveContinues(kernelBody);
     }
     kernel.Statement result =
-        new ShadowWhileStatement(toKernelExpression(condition), body)
+        new ShadowWhileStatement(toKernelExpression(condition), kernelBody)
           ..fileOffset = whileKeyword.charOffset;
     if (breakTarget.hasUsers) {
       result = new ShadowLabeledStatement(result);
@@ -4140,6 +4144,16 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
 
   List<kernel.Expression> toKernelExpressionList(List<Expression> expressions) {
     return expressions as dynamic;
+  }
+
+  // TODO(ahe): Remove this method once Forest API is complete.
+  kernel.Statement toKernelStatement(Statement statement) {
+    return statement as dynamic;
+  }
+
+  // TODO(ahe): Remove this method once Forest API is complete.
+  Statement toStatement(kernel.Statement statement) {
+    return statement as dynamic;
   }
 
   bool isErroneousNode(TreeNode node) {
