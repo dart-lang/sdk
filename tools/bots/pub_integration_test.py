@@ -17,12 +17,15 @@ dependencies:
 
 def Main():
   out_dir = 'xcodebuild' if sys.platform == 'darwin' else 'out'
-  pub = os.path.abspath('%s/ReleaseX64/dart-sdk/bin/pub' % out_dir)
+  extension = '' if not sys.platform == 'win32' else '.bat'
+  pub = os.path.abspath(
+    '%s/ReleaseX64/dart-sdk/bin/pub%s' % (out_dir, extension))
 
   working_dir = tempfile.mkdtemp()
   try:
     pub_cache_dir = working_dir + '/pub_cache'
-    env = { 'PUB_CACHE': pub_cache_dir }
+    env = os.environ.copy()
+    env['PUB_CACHE'] = pub_cache_dir
 
     with open(working_dir + '/pubspec.yaml', 'w') as pubspec_yaml:
       pubspec_yaml.write(PUBSPEC)
