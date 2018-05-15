@@ -779,9 +779,10 @@ class RawClass : public RawObject {
     switch (kind) {
       case Snapshot::kFull:
       case Snapshot::kScript:
-      case Snapshot::kFullJIT:
       case Snapshot::kFullAOT:
         return reinterpret_cast<RawObject**>(&ptr()->direct_subclasses_);
+      case Snapshot::kFullJIT:
+        return reinterpret_cast<RawObject**>(&ptr()->dependent_code_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
