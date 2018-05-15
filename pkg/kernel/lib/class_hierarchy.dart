@@ -183,16 +183,16 @@ abstract class ClassHierarchy {
   /// changed too.
   ClassHierarchy applyTreeChanges(
       Iterable<Class> removedClasses, Iterable<Class> addedClasses,
-      {Component reissueOldAmbiguousSupertypesFor});
+      {Component reissueAmbiguousSupertypesFor});
 
   /// This method is invoked by the client after a member change on classes:
   /// Some of the information that this hierarchy might have cached,
   /// is not valid anymore.
   /// Note, that it is the clients responsibility to mark all subclasses as
-  /// changed too, or - if [findDecendants] is true, the ClassHierarchy will
+  /// changed too, or - if [findDescendants] is true, the ClassHierarchy will
   /// spend the time to find them for the caller.
   ClassHierarchy applyMemberChanges(Iterable<Class> classes,
-      {bool findDecendants: false});
+      {bool findDescendants: false});
 
   /// Merges two sorted lists.
   ///
@@ -727,7 +727,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   @override
   ClassHierarchy applyTreeChanges(
       Iterable<Class> removedClasses, Iterable<Class> addedClasses,
-      {Component reissueOldAmbiguousSupertypesFor}) {
+      {Component reissueAmbiguousSupertypesFor}) {
     // Remove all references to the removed classes.
     for (Class class_ in removedClasses) {
       _ClassInfo info = _infoFor[class_];
@@ -752,9 +752,9 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     }
 
     if (_recordedAmbiguousSupertypes.isNotEmpty &&
-        reissueOldAmbiguousSupertypesFor != null) {
+        reissueAmbiguousSupertypesFor != null) {
       Set<Library> libs =
-          new Set<Library>.from(reissueOldAmbiguousSupertypesFor.libraries);
+          new Set<Library>.from(reissueAmbiguousSupertypesFor.libraries);
       for (Class class_ in _recordedAmbiguousSupertypes.keys) {
         if (!libs.contains(class_.enclosingLibrary)) continue;
         List<Supertype> recorded = _recordedAmbiguousSupertypes[class_];
@@ -780,11 +780,11 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
 
   @override
   ClassHierarchy applyMemberChanges(Iterable<Class> classes,
-      {bool findDecendants: false}) {
+      {bool findDescendants: false}) {
     if (classes.isEmpty) return this;
 
     List<_ClassInfo> infos = new List<_ClassInfo>();
-    if (findDecendants) {
+    if (findDescendants) {
       Set<_ClassInfo> processedClasses = new Set<_ClassInfo>();
       List<_ClassInfo> worklist = <_ClassInfo>[];
       for (Class class_ in classes) {

@@ -650,7 +650,7 @@ class SourceLoader<L> extends Loader<L> {
     } else {
       hierarchy.onAmbiguousSupertypes = onAmbiguousSupertypes;
       hierarchy.applyTreeChanges(const [], computeListOfLoaderClasses(),
-          reissueOldAmbiguousSupertypesFor: computeFullComponent());
+          reissueAmbiguousSupertypesFor: computeFullComponent());
     }
     for (List record in ambiguousTypesRecords) {
       handleAmbiguousSupertypes(record[0], record[1], record[2]);
@@ -793,7 +793,7 @@ class SourceLoader<L> extends Loader<L> {
     // to recompute the class hierarchy so that method compilation will properly
     // target those forwarding stubs.
     hierarchy.onAmbiguousSupertypes = ignoreAmbiguousSupertypes;
-    hierarchy.applyMemberChanges(changedClasses, findDecendants: true);
+    hierarchy.applyMemberChanges(changedClasses, findDescendants: true);
     ticker.logMs("Performed top level inference");
   }
 
