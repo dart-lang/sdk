@@ -172,10 +172,13 @@ abstract class ClassHierarchy {
   void forEachOverridePair(Class class_,
       callback(Member declaredMember, Member interfaceMember, bool isSetter));
 
-  /// This method is invoked by the client after a change: removal, adding, or
-  /// modified classes. For modified classes specify a class as both removed and
-  /// added: Some of the information that this hierarchy might have cached,
-  /// is not valid anymore.
+  /// This method is invoked by the client after a change: removal, addition,
+  /// or modification of classes.
+  ///
+  /// For modified classes specify a class as both removed and added: Some of
+  /// the information that this hierarchy might have cached, is not valid
+  /// anymore.
+  ///
   /// Note, that it is the clients responsibility to mark all subclasses as
   /// changed too.
   ClassHierarchy applyTreeChanges(
@@ -762,14 +765,15 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       }
     }
 
-    // Add the new classes
+    // Add the new classes.
     List<Class> addedClassesSorted = new List<Class>();
     int expectedStartIndex = _topSortIndex;
     for (Class class_ in addedClasses) {
       _topologicalSortVisit(class_, new Set<Class>(),
           orderedList: addedClassesSorted);
     }
-    _initialize2(addedClassesSorted, expectedStartIndex);
+    _initializeTopologicallySortedClasses(
+        addedClassesSorted, expectedStartIndex);
 
     return this;
   }
@@ -843,7 +847,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       }
     }
 
-    _initialize2(_infoFor.keys, 0);
+    _initializeTopologicallySortedClasses(_infoFor.keys, 0);
   }
 
   /// - Build index of direct children.
@@ -853,7 +857,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   /// - Perform some sanity checking.
   /// Do this after the topological sort so that super types always occur
   /// before subtypes.
-  void _initialize2(
+  void _initializeTopologicallySortedClasses(
       Iterable<Class> classes, int expectedStartingTopologicalIndex) {
     int i = expectedStartingTopologicalIndex;
     for (Class class_ in classes) {
@@ -867,7 +871,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       for (var supertype in class_.implementedTypes) {
         _infoFor[supertype.classNode].directImplementers.add(info);
       }
-      _topDownVisitClass(class_);
+      _collectSupersForClass(class_);
 
       if (class_.supertype != null) {
         _recordSuperTypes(info, class_.supertype);
@@ -1139,9 +1143,10 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     }
   }
 
-  /// Downwards traversal of the class hierarchy, building lists of super types
-  /// and super classes.
-  void _topDownVisitClass(Class class_) {
+  /// Build lists of super types and super classes.
+  /// Note that the super class and super types of the class must already have
+  /// had their supers collected.
+  void _collectSupersForClass(Class class_) {
     _ClassInfo info = _infoFor[class_];
 
     var superclassSetBuilder = new _IntervalListBuilder()
