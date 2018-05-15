@@ -154,8 +154,7 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
               element.sourcePosition.uri.path
                   .contains('_internal/js_runtime/lib/')) ||
           element.library == _commonElements.jsHelperLibrary ||
-          element.library == _commonElements.interceptorsLibrary ||
-          element.library == _commonElements.isolateHelperLibrary) {
+          element.library == _commonElements.interceptorsLibrary) {
         // TODO(johnniwinther): We should be more precise about these.
         return true;
       } else {

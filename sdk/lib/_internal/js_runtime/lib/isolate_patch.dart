@@ -7,7 +7,6 @@
 import "dart:async";
 import 'dart:_foreign_helper' show JS;
 import 'dart:_js_helper' show patch;
-import 'dart:_isolate_helper' show ReceivePortImpl;
 
 @patch
 class Isolate {
@@ -107,12 +106,23 @@ class Isolate {
 @patch
 class ReceivePort {
   @patch
-  factory ReceivePort() = ReceivePortImpl;
+  factory ReceivePort() = _ReceivePortImpl;
 
   @patch
   factory ReceivePort.fromRawReceivePort(RawReceivePort rawPort) {
     throw new UnsupportedError('new ReceivePort.fromRawReceivePort');
   }
+}
+
+class _ReceivePortImpl extends Stream implements ReceivePort {
+  StreamSubscription listen(void onData(var event),
+      {Function onError, void onDone(), bool cancelOnError}) {
+    throw new UnsupportedError("ReceivePort.listen");
+  }
+
+  void close() {}
+
+  SendPort get sendPort => throw new UnsupportedError("ReceivePort.sendPort");
 }
 
 @patch

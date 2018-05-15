@@ -137,10 +137,6 @@ class CommonElements {
   LibraryEntity get foreignLibrary =>
       _foreignLibrary ??= _env.lookupLibrary(Uris.dart__foreign_helper);
 
-  LibraryEntity _isolateHelperLibrary;
-  LibraryEntity get isolateHelperLibrary =>
-      _isolateHelperLibrary ??= _env.lookupLibrary(Uris.dart__isolate_helper);
-
   /// Reference to the internal library to lookup functions to always inline.
   LibraryEntity _internalLibrary;
   LibraryEntity get internalLibrary => _internalLibrary ??=

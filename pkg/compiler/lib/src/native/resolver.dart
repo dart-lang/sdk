@@ -388,22 +388,16 @@ abstract class NativeClassFinder {
 
 class BaseNativeClassFinder implements NativeClassFinder {
   final ElementEnvironment _elementEnvironment;
-  final CommonElements _commonElements;
   final NativeBasicData _nativeBasicData;
 
   Map<String, ClassEntity> _tagOwner = new Map<String, ClassEntity>();
 
-  BaseNativeClassFinder(
-      this._elementEnvironment, this._commonElements, this._nativeBasicData);
+  BaseNativeClassFinder(this._elementEnvironment, this._nativeBasicData);
 
   Iterable<ClassEntity> computeNativeClasses(
       Iterable<LibraryEntity> libraries) {
     Set<ClassEntity> nativeClasses = new Set<ClassEntity>();
     libraries.forEach((l) => _processNativeClassesInLibrary(l, nativeClasses));
-    if (_commonElements.isolateHelperLibrary != null) {
-      _processNativeClassesInLibrary(
-          _commonElements.isolateHelperLibrary, nativeClasses);
-    }
     _processSubclassesOfNativeClasses(libraries, nativeClasses);
     return nativeClasses;
   }
@@ -512,7 +506,7 @@ class ResolutionNativeClassFinder extends BaseNativeClassFinder {
       ElementEnvironment elementEnvironment,
       CommonElements commonElements,
       NativeBasicData nativeBasicData)
-      : super(elementEnvironment, commonElements, nativeBasicData);
+      : super(elementEnvironment, nativeBasicData);
 
   void _processNativeClass(
       ClassElement classElement, Set<ClassEntity> nativeClasses) {

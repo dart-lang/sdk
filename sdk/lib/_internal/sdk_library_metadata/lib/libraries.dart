@@ -157,11 +157,6 @@ const Map<String, LibraryInfo> libraries = const {
       categories: "",
       documented: false,
       platforms: DART2JS_PLATFORM),
-  "_isolate_helper": const LibraryInfo(
-      "_internal/js_runtime/lib/isolate_helper.dart",
-      categories: "",
-      documented: false,
-      platforms: DART2JS_PLATFORM),
   "_js_names": const LibraryInfo("_internal/js_runtime/lib/js_names.dart",
       categories: "", documented: false, platforms: DART2JS_PLATFORM),
   "_js_primitives": const LibraryInfo(

@@ -13,7 +13,6 @@ async:async/async.dart
 _js_helper:_internal/js_runtime/lib/js_helper.dart
 _interceptors:_internal/js_runtime/lib/interceptors.dart
 _internal:internal/internal.dart
-_isolate_helper:_internal/js_runtime/lib/isolate_helper.dart
 """;
 
 String buildLibrarySource(Map<String, String> elementMap,
@@ -130,7 +129,6 @@ class Symbol implements core.Symbol {
 const String DEFAULT_PATCH_CORE_SOURCE = r'''
 import 'dart:_js_helper';
 import 'dart:_interceptors';
-import 'dart:_isolate_helper';
 import 'dart:async';
 
 @patch
@@ -434,14 +432,6 @@ const Map<String, String> DEFAULT_INTERCEPTORS_LIBRARY = const <String, String>{
   'PlainJavaScriptObject': 'class PlainJavaScriptObject {}',
   'UnknownJavaScriptObject': 'class UnknownJavaScriptObject {}',
   'JavaScriptFunction': 'class JavaScriptFunction {}',
-};
-
-const Map<String, String> DEFAULT_ISOLATE_HELPER_LIBRARY =
-    const <String, String>{
-  'startRootIsolate': 'void startRootIsolate(entry, args) {}',
-  '_currentIsolate': 'var _currentIsolate;',
-  '_callInIsolate': 'var _callInIsolate;',
-  '_WorkerBase': 'class _WorkerBase {}',
 };
 
 const Map<String, String> DEFAULT_ASYNC_LIBRARY = const <String, String>{

@@ -103,8 +103,8 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
 
   @override
   NativeClassFinder createNativeClassFinder(NativeBasicData nativeBasicData) {
-    return new BaseNativeClassFinder(_elementMap.elementEnvironment,
-        elementMap.commonElements, nativeBasicData);
+    return new BaseNativeClassFinder(
+        _elementMap.elementEnvironment, nativeBasicData);
   }
 
   NoSuchMethodResolver createNoSuchMethodResolver() {

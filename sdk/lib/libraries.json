@@ -245,9 +245,6 @@
         "patches": "_internal/js_runtime/lib/convert_patch.dart",
         "uri": "convert/convert.dart"
       },
-      "_isolate_helper": {
-        "uri": "_internal/js_runtime/lib/isolate_helper.dart"
-      },
       "math": {
         "patches": "_internal/js_runtime/lib/math_patch.dart",
         "uri": "math/math.dart"
@@ -341,9 +338,6 @@
       "convert": {
         "patches": "_internal/js_runtime/lib/convert_patch.dart",
         "uri": "convert/convert.dart"
-      },
-      "_isolate_helper": {
-        "uri": "_internal/js_runtime/lib/isolate_helper.dart"
       },
       "math": {
         "patches": "_internal/js_runtime/lib/math_patch.dart",

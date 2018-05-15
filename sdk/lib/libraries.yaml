@@ -242,9 +242,6 @@ dart2js:
     _foreign_helper:
       uri: "_internal/js_runtime/lib/foreign_helper.dart"
 
-    _isolate_helper:
-      uri: "_internal/js_runtime/lib/isolate_helper.dart"
-
     _js_names:
       uri: "_internal/js_runtime/lib/js_names.dart"
 
@@ -333,9 +330,6 @@ dart2js_server:
 
     _foreign_helper:
       uri: "_internal/js_runtime/lib/foreign_helper.dart"
-
-    _isolate_helper:
-      uri: "_internal/js_runtime/lib/isolate_helper.dart"
 
     _js_names:
       uri: "_internal/js_runtime/lib/js_names.dart"

@@ -14,8 +14,6 @@ import 'dart:_js_helper'
         wrapException,
         unwrapException;
 
-import 'dart:_isolate_helper' show TimerImpl;
-
 import 'dart:_foreign_helper' show JS, JS_GET_FLAG;
 
 import 'dart:_async_await_error_codes' as async_error_codes;
@@ -111,7 +109,7 @@ class Timer {
   static Timer _createTimer(Duration duration, void callback()) {
     int milliseconds = duration.inMilliseconds;
     if (milliseconds < 0) milliseconds = 0;
-    return new TimerImpl(milliseconds, callback);
+    return new _TimerImpl(milliseconds, callback);
   }
 
   @patch
@@ -119,8 +117,79 @@ class Timer {
       Duration duration, void callback(Timer timer)) {
     int milliseconds = duration.inMilliseconds;
     if (milliseconds < 0) milliseconds = 0;
-    return new TimerImpl.periodic(milliseconds, callback);
+    return new _TimerImpl.periodic(milliseconds, callback);
   }
+}
+
+class _TimerImpl implements Timer {
+  final bool _once;
+  int _handle;
+  int _tick = 0;
+
+  _TimerImpl(int milliseconds, void callback()) : _once = true {
+    if (_hasTimer()) {
+      void internalCallback() {
+        _handle = null;
+        this._tick = 1;
+        callback();
+      }
+
+      _handle = JS('int', 'self.setTimeout(#, #)',
+          convertDartClosureToJS(internalCallback, 0), milliseconds);
+    } else {
+      throw new UnsupportedError('`setTimeout()` not found.');
+    }
+  }
+
+  _TimerImpl.periodic(int milliseconds, void callback(Timer timer))
+      : _once = false {
+    if (_hasTimer()) {
+      int start = JS('int', 'Date.now()');
+      _handle = JS(
+          'int',
+          'self.setInterval(#, #)',
+          convertDartClosureToJS(() {
+            int tick = this._tick + 1;
+            if (milliseconds > 0) {
+              int duration = JS('int', 'Date.now()') - start;
+              if (duration > (tick + 1) * milliseconds) {
+                tick = duration ~/ milliseconds;
+              }
+            }
+            this._tick = tick;
+            callback(this);
+          }, 0),
+          milliseconds);
+    } else {
+      throw new UnsupportedError('Periodic timer.');
+    }
+  }
+
+  @override
+  bool get isActive => _handle != null;
+
+  @override
+  int get tick => _tick;
+
+  @override
+  void cancel() {
+    if (_hasTimer()) {
+      if (_handle == null) return;
+      if (_once) {
+        JS('void', 'self.clearTimeout(#)', _handle);
+      } else {
+        JS('void', 'self.clearInterval(#)', _handle);
+      }
+      _handle = null;
+    } else {
+      throw new UnsupportedError('Canceling a timer.');
+    }
+  }
+}
+
+bool _hasTimer() {
+  requiresPreamble();
+  return JS('', 'self.setTimeout') != null;
 }
 
 class _AsyncAwaitCompleter<T> implements Completer<T> {

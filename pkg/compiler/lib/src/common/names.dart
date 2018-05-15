@@ -229,10 +229,6 @@ class Uris {
   static final Uri dart__js_embedded_names =
       new Uri(scheme: 'dart', path: '_js_embedded_names');
 
-  /// The URI for 'dart:_isolate_helper'.
-  static final Uri dart__isolate_helper =
-      new Uri(scheme: 'dart', path: '_isolate_helper');
-
   /// The URI for 'package:js'.
   static final Uri package_js = new Uri(scheme: 'package', path: 'js/js.dart');
 }
