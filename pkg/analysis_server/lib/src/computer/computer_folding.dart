@@ -55,20 +55,10 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitClassDeclaration(ClassDeclaration node) {
+    _addRegionForAnnotations(node.metadata);
     _addRegion(
         node.leftBracket.end, node.rightBracket.offset, FoldingKind.CLASS_BODY);
     return super.visitClassDeclaration(node);
-  }
-
-  @override
-  Object visitAnnotation(Annotation node) {
-    if (node.arguments != null &&
-        node.arguments.leftParenthesis != null &&
-        node.arguments.rightParenthesis != null) {
-      _addRegion(node.arguments.leftParenthesis.end,
-          node.arguments.rightParenthesis.offset, FoldingKind.ANNOTATIONS);
-    }
-    return super.visitAnnotation(node);
   }
 
   @override
@@ -80,9 +70,27 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitConstructorDeclaration(ConstructorDeclaration node) {
+    _addRegionForAnnotations(node.metadata);
+    return super.visitConstructorDeclaration(node);
+  }
+
+  @override
   Object visitExportDirective(ExportDirective node) {
     _recordDirective(node);
     return super.visitExportDirective(node);
+  }
+
+  @override
+  Object visitFieldDeclaration(FieldDeclaration node) {
+    _addRegionForAnnotations(node.metadata);
+    return super.visitFieldDeclaration(node);
+  }
+
+  @override
+  Object visitFunctionDeclaration(FunctionDeclaration node) {
+    _addRegionForAnnotations(node.metadata);
+    return super.visitFunctionDeclaration(node);
   }
 
   @override
@@ -95,6 +103,12 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<Object> {
   Object visitLibraryDirective(LibraryDirective node) {
     _recordDirective(node);
     return super.visitLibraryDirective(node);
+  }
+
+  @override
+  Object visitMethodDeclaration(MethodDeclaration node) {
+    _addRegionForAnnotations(node.metadata);
+    return super.visitMethodDeclaration(node);
   }
 
   @override
@@ -117,6 +131,13 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<Object> {
     if (start.lineNumber != end.lineNumber) {
       _computer._foldingRegions
           .add(new FoldingRegion(kind, startOffset, endOffset - startOffset));
+    }
+  }
+
+  _addRegionForAnnotations(List<Annotation> annotations) {
+    if (annotations.isNotEmpty) {
+      _addRegion(annotations.first.name.end, annotations.last.end,
+          FoldingKind.ANNOTATIONS);
     }
   }
 

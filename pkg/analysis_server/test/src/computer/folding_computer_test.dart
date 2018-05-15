@@ -146,15 +146,49 @@ class Person {/*1:INC*/
 
   test_annotations() async {
     String content = """
-@myMultilineAnnotation(/*1:INC*/
+@myMultilineAnnotation/*1:INC*/(
   "this",
   "is a test"
-/*1:INC:ANNOTATIONS*/)
-@another()
-@andAnother
-main() {/*2:INC*/
-  print("Hello, world!");
-/*2:INC:FUNCTION_BODY*/}
+)/*1:EXC:ANNOTATIONS*/
+main() {}
+
+@noFoldNecessary
+main2() {}
+
+@multipleAnnotations1/*2:INC*/(
+  "this",
+  "is a test"
+)
+@multipleAnnotations2()
+@multipleAnnotations3/*2:EXC:ANNOTATIONS*/
+main3() {}
+
+@noFoldsForSingleClassAnnotation
+class MyClass {}
+
+@folded.classAnnotation1/*3:INC*/()
+@foldedClassAnnotation2/*3:EXC:ANNOTATIONS*/
+class MyClass2 {/*4:INC*/
+  @fieldAnnotation1/*5:INC*/
+  @fieldAnnotation2/*5:EXC:ANNOTATIONS*/
+  int myField;
+
+  @getterAnnotation1/*6:INC*/
+  @getterAnnotation2/*6:EXC:ANNOTATIONS*/
+  int get myThing => 1;
+
+  @setterAnnotation1/*7:INC*/
+  @setterAnnotation2/*7:EXC:ANNOTATIONS*/
+  void set myThing(int value) {}
+  
+  @methodAnnotation1/*8:INC*/
+  @methodAnnotation2/*8:EXC:ANNOTATIONS*/
+  void myMethod() {}
+
+  @constructorAnnotation1/*9:INC*/
+  @constructorAnnotation1/*9:EXC:ANNOTATIONS*/
+  MyClass2() {}
+/*4:INC:CLASS_BODY*/}
 """;
 
     final regions = await _computeRegions(content);
