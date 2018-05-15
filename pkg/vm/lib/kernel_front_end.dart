@@ -36,7 +36,8 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
     {bool aot: false,
     bool useGlobalTypeFlowAnalysis: false,
     List<String> entryPoints,
-    bool genBytecode: false}) async {
+    bool genBytecode: false,
+    bool dropAST: false}) async {
   // Replace error handler to detect if there are compilation errors.
   final errorDetector =
       new ErrorDetector(previousErrorHandler: options.onError);
@@ -54,7 +55,8 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
   }
 
   if (genBytecode && component != null) {
-    generateBytecode(component, strongMode: options.strongMode);
+    generateBytecode(component,
+        strongMode: options.strongMode, dropAST: dropAST);
   }
 
   return component;

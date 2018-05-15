@@ -28,7 +28,8 @@ const bool isKernelBytecodeEnabledForPlatform = isKernelBytecodeEnabled;
 
 const bool isTraceEnabled = false;
 
-void generateBytecode(Component component, {bool strongMode: true}) {
+void generateBytecode(Component component,
+    {bool strongMode: true, bool dropAST: false}) {
   final coreTypes = new CoreTypes(component);
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
   final hierarchy = new ClassHierarchy(component,
@@ -39,6 +40,9 @@ void generateBytecode(Component component, {bool strongMode: true}) {
   new BytecodeGenerator(component, coreTypes, hierarchy, typeEnvironment,
           constantsBackend, strongMode)
       .visitComponent(component);
+  if (dropAST) {
+    new DropAST().visitComponent(component);
+  }
 }
 
 class BytecodeGenerator extends RecursiveVisitor<Null> {
@@ -1617,4 +1621,47 @@ class FindTypeParametersVisitor extends DartTypeVisitor<bool> {
       node.typeParameters.isNotEmpty ||
       node.positionalParameters.any((t) => t.accept(this)) ||
       node.namedParameters.any((p) => p.type.accept(this));
+}
+
+// Drop kernel AST for members with bytecode.
+class DropAST extends Transformer {
+  BytecodeMetadataRepository metadata;
+
+  @override
+  TreeNode visitComponent(Component node) {
+    metadata = node.metadata[new BytecodeMetadataRepository().tag];
+    if (metadata != null) {
+      return super.visitComponent(node);
+    }
+    return node;
+  }
+
+  @override
+  TreeNode defaultMember(Member node) {
+    if (_hasBytecode(node)) {
+      if (node is Field) {
+        node.initializer = null;
+      } else if (node is Constructor) {
+        node.initializers = <Initializer>[];
+        node.function.body = null;
+      } else if (node.function != null) {
+        node.function.body = null;
+      }
+    }
+
+    // Instance field initializers do not form separate functions, and bytecode
+    // is not attached to instance fields (it is included into constructors).
+    // When VM reads a constructor from kernel, it also reads and translates
+    // instance field initializers. So, their ASTs can be dropped only if
+    // bytecode was generated for all generative constructors.
+    if (node is Field && !node.isStatic && node.initializer != null) {
+      if (node.enclosingClass.constructors.every(_hasBytecode)) {
+        node.initializer = null;
+      }
+    }
+
+    return node;
+  }
+
+  bool _hasBytecode(Member node) => metadata.mapping.containsKey(node);
 }

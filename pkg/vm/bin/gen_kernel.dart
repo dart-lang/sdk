@@ -39,7 +39,9 @@ final ArgParser _argParser = new ArgParser(allowTrailingOptions: true)
   ..addMultiOption('entry-points',
       help: 'Path to JSON file with the list of entry points')
   ..addFlag('gen-bytecode',
-      help: 'Generate bytecode', defaultsTo: isKernelBytecodeEnabled);
+      help: 'Generate bytecode', defaultsTo: isKernelBytecodeEnabled)
+  ..addFlag('drop-ast',
+      help: 'Drop AST for members with bytecode', defaultsTo: false);
 
 final String _usage = '''
 Usage: dart pkg/vm/bin/gen_kernel.dart --platform vm_platform_strong.dill [options] input.dart
@@ -77,6 +79,7 @@ Future<int> compile(List<String> arguments) async {
   final bool syncAsync = options['sync-async'];
   final bool tfa = options['tfa'];
   final bool genBytecode = options['gen-bytecode'];
+  final bool dropAST = options['drop-ast'];
 
   final List<String> entryPoints = options['entry-points'] ?? <String>[];
   if (entryPoints.isEmpty) {
@@ -107,7 +110,8 @@ Future<int> compile(List<String> arguments) async {
       aot: aot,
       useGlobalTypeFlowAnalysis: tfa,
       entryPoints: entryPoints,
-      genBytecode: genBytecode);
+      genBytecode: genBytecode,
+      dropAST: dropAST);
 
   if (errorDetector.hasCompilationErrors || (component == null)) {
     return _compileTimeErrorExitCode;
