@@ -16,10 +16,11 @@
 namespace dart {
 namespace kernel {
 
-// Keep in sync with package:kernel/lib/binary/tag.dart.
+// Keep in sync with package:kernel/lib/binary/tag.dart,
+// package:kernel/binary.md.
 
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
-static const uint32_t kBinaryFormatVersion = 5;
+static const uint32_t kBinaryFormatVersion = 6;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -156,10 +157,9 @@ enum ConstantTag {
 
 static const int SpecializedIntLiteralBias = 3;
 static const int LibraryCountFieldCountFromEnd = 1;
-static const int SourceTableFieldCountFromFirstLibraryOffset = 4;
+static const int SourceTableFieldCountFromFirstLibraryOffset = 6;
 
 static const int HeaderSize = 8;  // 'magic', 'formatVersion'.
-static const int MetadataPayloadOffset = HeaderSize;  // Right after header.
 
 class Reader : public ValueObject {
  public:

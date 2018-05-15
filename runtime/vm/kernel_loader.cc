@@ -293,27 +293,18 @@ void KernelLoader::initialize_fields() {
     names.SetUint32(i << 2, reader.ReadUInt());
   }
 
-  // Metadata mappings immediately follow names table.
-  const intptr_t metadata_mappings_start = reader.offset();
-
   // Copy metadata payloads into the VM's heap
-  // TODO(alexmarkov): add more info to program index instead of guessing
-  // the end of metadata payloads by offsets of the libraries.
-  intptr_t metadata_payloads_end = program_->source_table_offset();
-  for (intptr_t i = 0; i < program_->library_count(); ++i) {
-    metadata_payloads_end =
-        Utils::Minimum(metadata_payloads_end, library_offset(i));
-  }
-  ASSERT(metadata_payloads_end >= MetadataPayloadOffset);
+  const intptr_t metadata_payloads_start = program_->metadata_payloads_offset();
   const intptr_t metadata_payloads_size =
-      metadata_payloads_end - MetadataPayloadOffset;
+      program_->metadata_mappings_offset() - metadata_payloads_start;
   TypedData& metadata_payloads =
       TypedData::Handle(Z, TypedData::New(kTypedDataUint8ArrayCid,
                                           metadata_payloads_size, Heap::kOld));
-  reader.CopyDataToVMHeap(metadata_payloads, MetadataPayloadOffset,
+  reader.CopyDataToVMHeap(metadata_payloads, metadata_payloads_start,
                           metadata_payloads_size);
 
   // Copy metadata mappings into the VM's heap
+  const intptr_t metadata_mappings_start = program_->metadata_mappings_offset();
   const intptr_t metadata_mappings_size =
       program_->string_table_offset() - metadata_mappings_start;
   TypedData& metadata_mappings =

@@ -26,10 +26,10 @@ class UnreachableNodeMetadataRepository
   final Map<TreeNode, UnreachableNode> mapping = <TreeNode, UnreachableNode>{};
 
   @override
-  void writeToBinary(UnreachableNode metadata, BinarySink sink) {}
+  void writeToBinary(UnreachableNode metadata, Node node, BinarySink sink) {}
 
   @override
-  UnreachableNode readFromBinary(BinarySource source) {
+  UnreachableNode readFromBinary(Node node, BinarySource source) {
     return const UnreachableNode();
   }
 }

@@ -5527,14 +5527,28 @@ abstract class MetadataRepository<T> {
   /// Mutable mapping between nodes and their metadata.
   Map<TreeNode, T> get mapping;
 
-  /// Write the given metadata object into the given [BinarySink].
+  /// Write [metadata] object corresponding to the given [Node] into
+  /// the given [BinarySink].
   ///
-  /// Note: [metadata] must be an object owned by this repository.
-  void writeToBinary(T metadata, BinarySink sink);
+  /// Metadata is serialized immediately before serializing [node],
+  /// so implementation of this method can use serialization context of
+  /// [node]'s parents (such as declared type parameters and variables).
+  /// In order to use scope declared by the [node] itself, implementation of
+  /// this method can use [BinarySink.enterScope] and [BinarySink.leaveScope]
+  /// methods.
+  ///
+  /// [metadata] must be an object owned by this repository.
+  void writeToBinary(T metadata, Node node, BinarySink sink);
 
   /// Construct a metadata object from its binary payload read from the
   /// given [BinarySource].
-  T readFromBinary(BinarySource source);
+  ///
+  /// Metadata is deserialized immediately after deserializing [node],
+  /// so it can use deserialization context of [node]'s parents.
+  /// In order to use scope declared by the [node] itself, implementation of
+  /// this method can use [BinarySource.enterScope] and
+  /// [BinarySource.leaveScope] methods.
+  T readFromBinary(Node node, BinarySource source);
 
   /// Method to check whether a node can have metadata attached to it
   /// or referenced from the metadata payload.
@@ -5557,12 +5571,16 @@ abstract class BinarySink {
 
   void writeCanonicalNameReference(CanonicalName name);
   void writeStringReference(String str);
+  void writeDartType(DartType type);
 
-  /// Write a reference to a given node into the sink.
-  ///
-  /// Note: node must not be [MapEntry] because [MapEntry] and [MapEntry.key]
-  /// have the same offset in the binary and can't be distinguished.
-  void writeNodeReference(Node node);
+  void enterScope(
+      {List<TypeParameter> typeParameters,
+      bool memberScope: false,
+      bool variableScope: false});
+  void leaveScope(
+      {List<TypeParameter> typeParameters,
+      bool memberScope: false,
+      bool variableScope: false});
 }
 
 abstract class BinarySource {
@@ -5578,7 +5596,10 @@ abstract class BinarySource {
 
   CanonicalName readCanonicalNameReference();
   String readStringReference();
-  Node readNodeReference();
+  DartType readDartType();
+
+  void enterScope({List<TypeParameter> typeParameters});
+  void leaveScope({List<TypeParameter> typeParameters});
 }
 
 // ------------------------------------------------------------------------

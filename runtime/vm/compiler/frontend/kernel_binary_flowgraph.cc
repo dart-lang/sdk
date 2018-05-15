@@ -679,7 +679,7 @@ void MetadataHelper::SetMetadataMappings(intptr_t mappings_offset,
       intptr_t node_offset = reader.ReadUInt32();
       intptr_t md_offset = reader.ReadUInt32();
 
-      ASSERT((node_offset > 0) && (md_offset > 0));
+      ASSERT((node_offset > 0) && (md_offset >= 0));
       ASSERT(node_offset > prev_node_offset);
       prev_node_offset = node_offset;
     }
@@ -747,7 +747,7 @@ intptr_t MetadataHelper::GetNextMetadataPayloadOffset(intptr_t node_offset) {
 
   intptr_t index = last_mapping_index_;
   intptr_t mapping_node_offset = 0;
-  intptr_t mapping_md_offset = 0;
+  intptr_t mapping_md_offset = -1;
 
   Reader reader(H.metadata_mappings());
   const intptr_t kUInt32Size = 4;
@@ -766,7 +766,7 @@ intptr_t MetadataHelper::GetNextMetadataPayloadOffset(intptr_t node_offset) {
   last_node_offset_ = node_offset;
 
   if ((index < mappings_num_) && (mapping_node_offset == node_offset)) {
-    ASSERT(mapping_md_offset > 0);
+    ASSERT(mapping_md_offset >= 0);
     return mapping_md_offset;
   } else {
     return -1;
@@ -782,7 +782,7 @@ bool DirectCallMetadataHelper::ReadMetadata(intptr_t node_offset,
   }
 
   AlternativeReadingScope alt(&builder_->reader_, &H.metadata_payloads(),
-                              md_offset - MetadataPayloadOffset);
+                              md_offset);
 
   *target_name = builder_->ReadCanonicalNameReference();
   *check_receiver_for_null = builder_->ReadBool();
@@ -860,7 +860,7 @@ bool ProcedureAttributesMetadataHelper::ReadMetadata(
   }
 
   AlternativeReadingScope alt(&builder_->reader_, &H.metadata_payloads(),
-                              md_offset - MetadataPayloadOffset);
+                              md_offset);
 
   const int kDynamicUsesBit = 1 << 0;
   const int kNonThisUsesBit = 1 << 1;
@@ -890,7 +890,7 @@ InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
   }
 
   AlternativeReadingScope alt(&builder_->reader_, &H.metadata_payloads(),
-                              md_offset - MetadataPayloadOffset);
+                              md_offset);
 
   const NameIndex kernel_name = builder_->ReadCanonicalNameReference();
   const bool nullable = builder_->ReadBool();
@@ -923,7 +923,7 @@ void BytecodeMetadataHelper::CopyBytecode(const Function& function) {
   }
 
   AlternativeReadingScope alt(&builder_->reader_, &H.metadata_payloads(),
-                              md_offset - MetadataPayloadOffset);
+                              md_offset);
 
   // Read bytecode.
   intptr_t bytecode_size = builder_->reader_.ReadUInt();
@@ -1084,12 +1084,10 @@ void BytecodeMetadataHelper::CopyBytecode(const Function& function) {
         obj = H.Canonicalize(Instance::Cast(obj));
         break;
       case ConstantPoolTag::kType:
-        UNIMPLEMENTED();  // Encoding is under discussion with CFE team.
         obj = builder_->type_translator_.BuildType().raw();
         ASSERT(obj.IsAbstractType());
         break;
       case ConstantPoolTag::kTypeArguments:
-        UNIMPLEMENTED();  // Encoding is under discussion with CFE team.
         obj = builder_->type_translator_
                   .BuildTypeArguments(builder_->ReadListLength())
                   .raw();
@@ -10941,51 +10939,39 @@ void StreamingFlowGraphBuilder::EnsureMetadataIsScanned() {
 
   // Read metadataMappings elements.
   for (uint32_t i = 0; i < metadata_num; ++i) {
-    // Read nodeReferences length.
+    // Read nodeOffsetToMetadataOffset length.
     offset -= kUInt32Size;
-    uint32_t node_references_num = reader.ReadUInt32At(offset);
-
-    // Skip nodeReferences and read nodeOffsetToMetadataOffset length.
-    offset -= node_references_num * kUInt32Size + kUInt32Size;
     uint32_t mappings_num = reader.ReadUInt32At(offset);
 
     // Skip nodeOffsetToMetadataOffset and read tag.
     offset -= mappings_num * 2 * kUInt32Size + kUInt32Size;
     StringIndex tag = StringIndex(reader.ReadUInt32At(offset));
 
+    if (mappings_num == 0) {
+      continue;
+    }
+
     // Check recognized metadata
     if (H.StringEquals(tag, DirectCallMetadataHelper::tag())) {
-      ASSERT(node_references_num == 0);
-
-      if (mappings_num > 0) {
-        if (!FLAG_precompiled_mode) {
-          FATAL("DirectCallMetadata is allowed in precompiled mode only");
-        }
-        direct_call_metadata_helper_.SetMetadataMappings(offset + kUInt32Size,
-                                                         mappings_num);
+      if (!FLAG_precompiled_mode) {
+        FATAL("DirectCallMetadata is allowed in precompiled mode only");
       }
+      direct_call_metadata_helper_.SetMetadataMappings(offset + kUInt32Size,
+                                                       mappings_num);
     } else if (H.StringEquals(tag, InferredTypeMetadataHelper::tag())) {
-      ASSERT(node_references_num == 0);
-
-      if (mappings_num > 0) {
-        if (!FLAG_precompiled_mode) {
-          FATAL("InferredTypeMetadata is allowed in precompiled mode only");
-        }
-        inferred_type_metadata_helper_.SetMetadataMappings(offset + kUInt32Size,
-                                                           mappings_num);
+      if (!FLAG_precompiled_mode) {
+        FATAL("InferredTypeMetadata is allowed in precompiled mode only");
       }
+      inferred_type_metadata_helper_.SetMetadataMappings(offset + kUInt32Size,
+                                                         mappings_num);
     } else if (H.StringEquals(tag, ProcedureAttributesMetadataHelper::tag())) {
-      ASSERT(node_references_num == 0);
-
-      if (mappings_num > 0) {
-        if (!FLAG_precompiled_mode) {
-          FATAL(
-              "ProcedureAttributesMetadata is allowed in precompiled mode "
-              "only");
-        }
-        procedure_attributes_metadata_helper_.SetMetadataMappings(
-            offset + kUInt32Size, mappings_num);
+      if (!FLAG_precompiled_mode) {
+        FATAL(
+            "ProcedureAttributesMetadata is allowed in precompiled mode "
+            "only");
       }
+      procedure_attributes_metadata_helper_.SetMetadataMappings(
+          offset + kUInt32Size, mappings_num);
     } else if (H.StringEquals(tag, BytecodeMetadataHelper::tag())) {
       bytecode_metadata_helper_.SetMetadataMappings(offset + kUInt32Size,
                                                     mappings_num);

@@ -14,16 +14,40 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 
 /// Test metadata: to each node we attach a metadata that contains
-/// a reference to this node's parent and this node formatted as string.
+/// * node formatted as string
+/// * reference to its enclosing member
+/// * type representing the first type parameter of its enclosing function
 class Metadata {
-  final TreeNode parent;
-  final String self;
+  final String string;
+  final Reference _memberRef;
+  final DartType type;
+
+  Member get member => _memberRef?.asMember;
 
   Metadata.forNode(TreeNode n)
-      : parent = MetadataRepository.isSupported(n.parent) ? n.parent : null,
-        self = n.toString();
+      : this(n.toString(), getMemberReference(getMemberForMetadata(n)),
+            getTypeForMetadata(n));
 
-  Metadata(this.parent, this.self);
+  Metadata(this.string, this._memberRef, this.type);
+}
+
+Member getMemberForMetadata(TreeNode node) {
+  final parent = node.parent;
+  if (parent == null) return null;
+  if (parent is Member) return parent;
+  return getMemberForMetadata(parent);
+}
+
+DartType getTypeForMetadata(TreeNode node) {
+  final parent = node.parent;
+  if (parent == null) return const VoidType();
+  if (parent is FunctionNode) {
+    if (parent.typeParameters.isEmpty) {
+      return const VoidType();
+    }
+    return new TypeParameterType(parent.typeParameters[0]);
+  }
+  return getTypeForMetadata(parent);
 }
 
 class TestMetadataRepository extends MetadataRepository<Metadata> {
@@ -33,15 +57,21 @@ class TestMetadataRepository extends MetadataRepository<Metadata> {
 
   final Map<TreeNode, Metadata> mapping = <TreeNode, Metadata>{};
 
-  void writeToBinary(Metadata metadata, BinarySink sink) {
-    sink.writeNodeReference(metadata.parent);
-    sink.writeByteList(utf8.encode(metadata.self));
+  void writeToBinary(Metadata metadata, Node node, BinarySink sink) {
+    expect(metadata, equals(mapping[node]));
+    sink.writeByteList(utf8.encode(metadata.string));
+    sink.writeStringReference(metadata.string);
+    sink.writeCanonicalNameReference(metadata.member?.canonicalName);
+    sink.writeDartType(metadata.type);
   }
 
-  Metadata readFromBinary(BinarySource source) {
-    final parent = source.readNodeReference();
-    final string = utf8.decode(source.readByteList());
-    return new Metadata(parent, string);
+  Metadata readFromBinary(Node node, BinarySource source) {
+    final string1 = utf8.decode(source.readByteList());
+    final string2 = source.readStringReference();
+    final memberRef = source.readCanonicalNameReference()?.reference;
+    final type = source.readDartType();
+    expect(string1, equals(string2));
+    return new Metadata(string2, memberRef, type);
   }
 }
 
@@ -92,8 +122,9 @@ class Validator extends RecursiveVisitor<Null> {
       final m = repository.mapping[node];
       final expected = new Metadata.forNode(node);
 
-      expect(m.parent, equals(expected.parent));
-      expect(m.self, equals(expected.self));
+      expect(m.string, equals(expected.string));
+      expect(m.member, equals(expected.member));
+      expect(m.type, equals(expected.type));
     }
   }
 

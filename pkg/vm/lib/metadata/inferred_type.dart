@@ -32,14 +32,14 @@ class InferredTypeMetadataRepository extends MetadataRepository<InferredType> {
   final Map<TreeNode, InferredType> mapping = <TreeNode, InferredType>{};
 
   @override
-  void writeToBinary(InferredType metadata, BinarySink sink) {
+  void writeToBinary(InferredType metadata, Node node, BinarySink sink) {
     sink.writeCanonicalNameReference(
         getCanonicalNameOfClass(metadata.concreteClass));
     sink.writeByte(metadata.nullable ? 1 : 0);
   }
 
   @override
-  InferredType readFromBinary(BinarySource source) {
+  InferredType readFromBinary(Node node, BinarySource source) {
     final concreteClassReference =
         source.readCanonicalNameReference()?.getReference();
     final nullable = (source.readByte() != 0);

@@ -8,6 +8,7 @@ import 'dart:core' hide MapEntry;
 import '../ast.dart';
 import 'tag.dart';
 import 'dart:convert';
+import 'dart:io' show BytesBuilder;
 import 'dart:typed_data';
 
 /// Writes to a binary file.
@@ -28,18 +29,18 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   List<_MetadataSubsection> _metadataSubsections;
 
-  /// Map used to assign reference ids to nodes contained within metadata
-  /// payloads.
-  Map<Node, int> _nodeReferences;
-
-  final BufferedSink _sink;
+  final BufferedSink _mainSink;
+  final BufferedSink _metadataSink;
+  BufferedSink _sink;
 
   List<int> libraryOffsets;
   List<int> classOffsets;
   List<int> procedureOffsets;
   int _binaryOffsetForSourceTable = -1;
-  int _binaryOffsetForStringTable = -1;
   int _binaryOffsetForLinkTable = -1;
+  int _binaryOffsetForMetadataPayloads = -1;
+  int _binaryOffsetForMetadataMappings = -1;
+  int _binaryOffsetForStringTable = -1;
   int _binaryOffsetForConstantTable = -1;
 
   List<CanonicalName> _canonicalNameList;
@@ -55,9 +56,11 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   /// [globalIndexer] may be passed in to avoid rebuilding the same indices
   /// in every printer.
   BinaryPrinter(Sink<List<int>> sink, {StringIndexer stringIndexer})
-      : _sink = new BufferedSink(sink),
+      : _mainSink = new BufferedSink(sink),
+        _metadataSink = new BufferedSink(new BytesSink()),
         stringIndexer = stringIndexer ?? new StringIndexer() {
     _constantIndexer = new ConstantIndexer(this.stringIndexer);
+    _sink = _mainSink;
   }
 
   void _flush() {
@@ -240,7 +243,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   void writeNode(Node node) {
     if (_metadataSubsections != null) {
-      _recordNodeOffsetForMetadataMapping(node);
+      _writeNodeMetadata(node);
     }
     node.accept(this);
   }
@@ -311,11 +314,9 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeUInt32(Tag.BinaryFormatVersion);
     indexLinkTable(component);
     indexUris(component);
-    // Note: must write metadata payloads before any other node in the component
-    // to collect references to nodes contained within metadata payloads.
-    _writeMetadataPayloads(component);
+    _collectMetadata(component);
     if (_metadataSubsections != null) {
-      _recordNodeOffsetForMetadataMappingImpl(component, componentOffset);
+      _writeNodeMetadataImpl(component, componentOffset);
     }
     libraryOffsets = <int>[];
     CanonicalName main = getCanonicalNameOfMember(component.mainMethod);
@@ -325,7 +326,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeLibraries(component);
     writeUriToSource(component.uriToSource);
     writeLinkTable(component);
-    _writeMetadataMappingSection(component);
+    _writeMetadataSection(component);
     writeStringTable(stringIndexer);
     writeConstantTable(_constantIndexer);
     writeComponentIndex(component, component.libraries);
@@ -333,87 +334,95 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     _flush();
   }
 
-  @override
-  void writeNodeReference(Node node) {
-    if (!MetadataRepository.isSupported(node)) {
-      throw "Can't reference nodes of type ${node.runtimeType} from metadata.";
-    }
-
-    if (node == null) {
-      writeUInt30(0);
-    } else {
-      final id =
-          _nodeReferences.putIfAbsent(node, () => _nodeReferences.length);
-      writeUInt30(id + 1);
-    }
-  }
-
-  /// Collect and write out all metadata contained in metadata repositories
-  /// associated with the component.
-  ///
-  /// Non-empty metadata subsections will be collected in [_metadataSubsections]
-  /// and used to generate metadata mappings after all nodes in the component
-  /// are written and all node offsets are known.
-  ///
-  /// Note: must write metadata payloads before any other node in the component
-  /// to collect references to nodes contained within metadata payloads.
-  void _writeMetadataPayloads(Component component) {
+  /// Collect non-empty metadata repositories associated with the component.
+  void _collectMetadata(Component component) {
     component.metadata.forEach((tag, repository) {
       if (repository.mapping.isEmpty) {
         return;
       }
 
-      // Write all payloads collecting outgoing node references and remembering
-      // metadata offset for each node that had associated metadata.
-      _nodeReferences = <Node, int>{};
-      final metadataOffsets = <Node, int>{};
-      repository.mapping.forEach((node, value) {
-        if (!MetadataRepository.isSupported(node)) {
-          throw "Nodes of type ${node.runtimeType} can't have metadata.";
-        }
-
-        metadataOffsets[node] = getBufferOffset();
-        repository.writeToBinary(value, this);
-      });
-
       _metadataSubsections ??= <_MetadataSubsection>[];
-      _metadataSubsections.add(new _MetadataSubsection(
-          repository, metadataOffsets, _nodeReferences));
-
-      _nodeReferences = null;
+      _metadataSubsections.add(new _MetadataSubsection(repository));
     });
   }
 
-  /// If the given [Node] has any metadata associated with it or is referenced
-  /// from some metadata payload then we need to record its offset.
-  void _recordNodeOffsetForMetadataMapping(Node node) {
-    _recordNodeOffsetForMetadataMappingImpl(node, getBufferOffset());
+  /// Writes metadata associated with the given [Node].
+  void _writeNodeMetadata(Node node) {
+    _writeNodeMetadataImpl(node, getBufferOffset());
   }
 
-  void _recordNodeOffsetForMetadataMappingImpl(Node node, int nodeOffset) {
+  void _writeNodeMetadataImpl(Node node, int nodeOffset) {
     for (var subsection in _metadataSubsections) {
-      final metadataOffset = subsection.metadataOffsets[node];
-      if (metadataOffset != null) {
-        subsection.metadataMapping..add(nodeOffset)..add(metadataOffset);
+      final repository = subsection.repository;
+      final value = repository.mapping[node];
+      if (value == null) {
+        continue;
       }
-      if (subsection.nodeToReferenceId != null) {
-        final id = subsection.nodeToReferenceId[node];
-        if (id != null) {
-          subsection.offsetsOfReferencedNodes[id] = nodeOffset;
-        }
+
+      if (!MetadataRepository.isSupported(node)) {
+        throw "Nodes of type ${node.runtimeType} can't have metadata.";
       }
+
+      if (!identical(_sink, _mainSink)) {
+        throw "Node written into metadata can't have metadata "
+            "(metadata: ${repository.tag}, node: ${node.runtimeType} $node)";
+      }
+
+      _sink = _metadataSink;
+      subsection.metadataMapping.add(nodeOffset);
+      subsection.metadataMapping.add(getBufferOffset());
+      repository.writeToBinary(value, node, this);
+      _sink = _mainSink;
     }
   }
 
-  void _writeMetadataMappingSection(Component component) {
+  @override
+  void enterScope(
+      {List<TypeParameter> typeParameters,
+      bool memberScope: false,
+      bool variableScope: false}) {
+    if (typeParameters != null) {
+      _typeParameterIndexer.enter(typeParameters);
+    }
+    if (memberScope) {
+      _variableIndexer = new VariableIndexer();
+    }
+    if (variableScope) {
+      _variableIndexer.pushScope();
+    }
+  }
+
+  @override
+  void leaveScope(
+      {List<TypeParameter> typeParameters,
+      bool memberScope: false,
+      bool variableScope: false}) {
+    if (variableScope) {
+      _variableIndexer.popScope();
+    }
+    if (memberScope) {
+      _variableIndexer = null;
+    }
+    if (typeParameters != null) {
+      _typeParameterIndexer.exit(typeParameters);
+    }
+  }
+
+  void _writeMetadataSection(Component component) {
+    _binaryOffsetForMetadataPayloads = getBufferOffset();
+
     if (_metadataSubsections == null) {
+      _binaryOffsetForMetadataMappings = getBufferOffset();
       writeUInt32(0); // Empty section.
       return;
     }
 
-    _recordNodeOffsetForMetadataMappingImpl(component, 0);
+    assert(identical(_sink, _mainSink));
+    _metadataSink.flushAndDestroy();
+    writeBytes((_metadataSink._sink as BytesSink).builder.takeBytes());
 
     // RList<MetadataMapping> metadataMappings
+    _binaryOffsetForMetadataMappings = getBufferOffset();
     for (var subsection in _metadataSubsections) {
       // UInt32 tag
       writeUInt32(stringIndexer.put(subsection.repository.tag));
@@ -425,32 +434,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
         writeUInt32(subsection.metadataMapping[i + 1]); // metadata offset
       }
       writeUInt32(mappingLength ~/ 2);
-
-      // RList<UInt32> nodeReferences
-      if (subsection.nodeToReferenceId != null) {
-        final offsets = subsection.offsetsOfReferencedNodes;
-        for (int i = 0; i < offsets.length; ++i) {
-          final nodeOffset = offsets[i];
-          if (nodeOffset < 0) {
-            // Dangling reference.
-            // Find a node which was referenced to report meaningful error.
-            Node referencedNode;
-            subsection.nodeToReferenceId.forEach((node, id) {
-              if (id == i) {
-                referencedNode = node;
-              }
-            });
-            throw 'Unable to write reference to node'
-                ' ${referencedNode.runtimeType} $referencedNode'
-                ' from metadata ${subsection.repository.tag}'
-                ' (node is not written into kernel binary)';
-          }
-          writeUInt32(nodeOffset);
-        }
-        writeUInt32(subsection.offsetsOfReferencedNodes.length);
-      } else {
-        writeUInt32(0);
-      }
     }
     writeUInt32(_metadataSubsections.length);
   }
@@ -466,6 +449,10 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeUInt32(_binaryOffsetForSourceTable);
     assert(_binaryOffsetForLinkTable >= 0);
     writeUInt32(_binaryOffsetForLinkTable);
+    assert(_binaryOffsetForMetadataPayloads >= 0);
+    writeUInt32(_binaryOffsetForMetadataPayloads);
+    assert(_binaryOffsetForMetadataMappings >= 0);
+    writeUInt32(_binaryOffsetForMetadataMappings);
     assert(_binaryOffsetForStringTable >= 0);
     writeUInt32(_binaryOffsetForStringTable);
     assert(_binaryOffsetForConstantTable >= 0);
@@ -597,7 +584,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   void writeName(Name node) {
     if (_metadataSubsections != null) {
-      _recordNodeOffsetForMetadataMapping(node);
+      _writeNodeMetadata(node);
     }
     writeStringReference(node.name);
     // TODO: Consider a more compressed format for private names within the
@@ -671,7 +658,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   void writeLibraryDependency(LibraryDependency node) {
     if (_metadataSubsections != null) {
-      _recordNodeOffsetForMetadataMapping(node);
+      _writeNodeMetadata(node);
     }
     writeOffset(node.fileOffset);
     writeByte(node.flags);
@@ -696,7 +683,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   void writeLibraryPart(LibraryPart node) {
     if (_metadataSubsections != null) {
-      _recordNodeOffsetForMetadataMapping(node);
+      _writeNodeMetadata(node);
     }
     writeAnnotationList(node.annotations);
     writeStringReference(node.partUri);
@@ -711,10 +698,10 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeStringReference(node.name);
     writeAnnotationList(node.annotations);
-    _typeParameterIndexer.enter(node.typeParameters);
+    enterScope(typeParameters: node.typeParameters);
     writeNodeList(node.typeParameters);
     writeNode(node.type);
-    _typeParameterIndexer.exit(node.typeParameters);
+    leaveScope(typeParameters: node.typeParameters);
 
     _activeFileUri = activeFileUriSaved;
   }
@@ -767,7 +754,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeStringReference(node.name ?? '');
 
     writeAnnotationList(node.annotations);
-    _typeParameterIndexer.enter(node.typeParameters);
+    enterScope(typeParameters: node.typeParameters);
     writeNodeList(node.typeParameters);
     writeOptionalNode(node.supertype);
     writeOptionalNode(node.mixedInType);
@@ -778,7 +765,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeNodeList(node.procedures);
     procedureOffsets.add(getBufferOffset());
     writeNodeList(node.redirectingFactoryConstructors);
-    _typeParameterIndexer.exit(node.typeParameters);
+    leaveScope(typeParameters: node.typeParameters);
 
     _activeFileUri = activeFileUriSaved;
 
@@ -796,7 +783,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     if (node.canonicalName == null) {
       throw 'Missing canonical name for $node';
     }
-    _variableIndexer = new VariableIndexer();
+    enterScope(memberScope: true);
     writeByte(Tag.Constructor);
     writeCanonicalNameReference(getCanonicalNameOfMember(node));
 
@@ -818,7 +805,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
     _activeFileUri = activeFileUriSaved;
 
-    _variableIndexer = null;
+    leaveScope(memberScope: true);
   }
 
   @override
@@ -828,7 +815,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     if (node.canonicalName == null) {
       throw 'Missing canonical name for $node';
     }
-    _variableIndexer = new VariableIndexer();
+    enterScope(memberScope: true);
     writeByte(Tag.Procedure);
     writeCanonicalNameReference(getCanonicalNameOfMember(node));
 
@@ -847,7 +834,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
     _activeFileUri = activeFileUriSaved;
 
-    _variableIndexer = null;
+    leaveScope(memberScope: true);
 
     assert((node.forwardingStubSuperTarget != null) ||
         !(node.isForwardingStub && node.function.body != null));
@@ -858,7 +845,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     if (node.canonicalName == null) {
       throw 'Missing canonical name for $node';
     }
-    _variableIndexer = new VariableIndexer();
+    enterScope(memberScope: true);
     writeByte(Tag.Field);
     writeCanonicalNameReference(getCanonicalNameOfMember(node));
 
@@ -875,7 +862,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
     _activeFileUri = activeFileUriSaved;
 
-    _variableIndexer = null;
+    leaveScope(memberScope: true);
   }
 
   @override
@@ -884,9 +871,10 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       throw 'Missing canonical name for $node';
     }
     writeByte(Tag.RedirectingFactoryConstructor);
-    _variableIndexer = new VariableIndexer();
-    _variableIndexer.pushScope();
-    _typeParameterIndexer.enter(node.typeParameters);
+    enterScope(
+        typeParameters: node.typeParameters,
+        memberScope: true,
+        variableScope: true);
     writeCanonicalNameReference(getCanonicalNameOfMember(node));
 
     final Uri activeFileUriSaved = _activeFileUri;
@@ -905,12 +893,13 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeUInt30(node.requiredParameterCount);
     writeVariableDeclarationList(node.positionalParameters);
     writeVariableDeclarationList(node.namedParameters);
-    _typeParameterIndexer.exit(node.typeParameters);
 
     _activeFileUri = activeFileUriSaved;
 
-    _variableIndexer.popScope();
-    _variableIndexer = null;
+    leaveScope(
+        typeParameters: node.typeParameters,
+        memberScope: true,
+        variableScope: true);
   }
 
   @override
@@ -960,14 +949,12 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitFunctionNode(FunctionNode node) {
     writeByte(Tag.FunctionNode);
-    assert(_variableIndexer != null);
-    _variableIndexer.pushScope();
+    enterScope(typeParameters: node.typeParameters, variableScope: true);
     var oldLabels = _labelIndexer;
     _labelIndexer = null;
     var oldCases = _switchCaseIndexer;
     _switchCaseIndexer = null;
     // Note: FunctionNode has no tag.
-    _typeParameterIndexer.enter(node.typeParameters);
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
     writeByte(node.asyncMarker.index);
@@ -981,8 +968,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOptionalNode(node.body);
     _labelIndexer = oldLabels;
     _switchCaseIndexer = oldCases;
-    _typeParameterIndexer.exit(node.typeParameters);
-    _variableIndexer.popScope();
+    leaveScope(typeParameters: node.typeParameters, variableScope: true);
   }
 
   @override
@@ -1600,7 +1586,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   void writeVariableDeclaration(VariableDeclaration node) {
     if (_metadataSubsections != null) {
-      _recordNodeOffsetForMetadataMapping(node);
+      _writeNodeMetadata(node);
     }
     node.binaryOffsetNoTag = getBufferOffset();
     writeOffset(node.fileOffset);
@@ -1692,7 +1678,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       writeNode(node.returnType);
     } else {
       writeByte(Tag.FunctionType);
-      _typeParameterIndexer.enter(node.typeParameters);
+      enterScope(typeParameters: node.typeParameters);
       writeNodeList(node.typeParameters);
       writeUInt30(node.requiredParameterCount);
       writeUInt30(
@@ -1702,7 +1688,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       writeStringReferenceList(node.positionalParameterNames);
       writeReference(node.typedefReference);
       writeNode(node.returnType);
-      _typeParameterIndexer.exit(node.typeParameters);
+      leaveScope(typeParameters: node.typeParameters);
     }
   }
 
@@ -2104,9 +2090,11 @@ class TypeParameterIndexer {
 
   void exit(List<TypeParameter> typeParameters) {
     stackHeight -= typeParameters.length;
+    typeParameters.forEach(index.remove);
   }
 
-  int operator [](TypeParameter parameter) => index[parameter];
+  int operator [](TypeParameter parameter) =>
+      index[parameter] ?? (throw 'Type parameter $parameter is not indexed');
 }
 
 class StringIndexer {
@@ -2294,29 +2282,27 @@ class BufferedSink {
 class _MetadataSubsection {
   final MetadataRepository<Object> repository;
 
-  /// Offsets of metadata payloads associated with the nodes.
-  final Map<Node, int> metadataOffsets;
-
   /// List of (nodeOffset, metadataOffset) pairs.
   /// Gradually filled by the writer as writing progresses, which by
   /// construction guarantees that pairs are sorted by first component
   /// (nodeOffset) in ascending order.
   final List<int> metadataMapping = <int>[];
 
-  /// Mapping between nodes that are referenced from inside metadata payloads
-  /// and their ids.
-  final Map<Node, int> nodeToReferenceId;
+  _MetadataSubsection(this.repository);
+}
 
-  /// Mapping between reference ids and offsets of referenced nodes.
-  /// Gradually filled by the writer as writing progresses but is not
-  /// guaranteed to be sorted.
-  final List<int> offsetsOfReferencedNodes;
+/// A [Sink] that directly writes data into a byte builder.
+// TODO(dartbug.com/28316): Remove this wrapper class.
+class BytesSink implements Sink<List<int>> {
+  final BytesBuilder builder = new BytesBuilder();
 
-  _MetadataSubsection(
-      this.repository, this.metadataOffsets, Map<Node, int> nodeToReferenceId)
-      : nodeToReferenceId =
-            nodeToReferenceId.isNotEmpty ? nodeToReferenceId : null,
-        offsetsOfReferencedNodes = nodeToReferenceId.isNotEmpty
-            ? new List<int>.filled(nodeToReferenceId.length, -1)
-            : null;
+  @override
+  void add(List<int> data) {
+    builder.add(data);
+  }
+
+  @override
+  void close() {
+    // Nothing to do.
+  }
 }

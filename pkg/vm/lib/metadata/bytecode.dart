@@ -30,15 +30,16 @@ class BytecodeMetadataRepository extends MetadataRepository<BytecodeMetadata> {
       <TreeNode, BytecodeMetadata>{};
 
   @override
-  void writeToBinary(BytecodeMetadata metadata, BinarySink sink) {
+  void writeToBinary(BytecodeMetadata metadata, Node node, BinarySink sink) {
     sink.writeByteList(metadata.bytecodes);
-    metadata.constantPool.writeToBinary(sink);
+    metadata.constantPool.writeToBinary(node, sink);
   }
 
   @override
-  BytecodeMetadata readFromBinary(BinarySource source) {
+  BytecodeMetadata readFromBinary(Node node, BinarySource source) {
     final List<int> bytecodes = source.readByteList();
-    final ConstantPool constantPool = new ConstantPool.readFromBinary(source);
+    final ConstantPool constantPool =
+        new ConstantPool.readFromBinary(node, source);
     return new BytecodeMetadata(bytecodes, constantPool);
   }
 }

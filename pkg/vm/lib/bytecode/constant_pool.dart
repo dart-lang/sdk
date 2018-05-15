@@ -95,17 +95,17 @@ type ConstantTearOff extends ConstantPoolEntry {
 
 type ConstantType extends ConstantPoolEntry {
   Byte tag = 14;
-  NodeReference type;
+  DartType type;
 }
 
 type ConstantTypeArguments extends ConstantPoolEntry {
   Byte tag = 15;
-  List<NodeReference> types;
+  List<DartType> types;
 }
 
 type ConstantList extends ConstantPoolEntry {
   Byte tag = 16;
-  NodeReference typeArg;
+  DartType typeArg;
   List<ConstantIndex> entries;
 }
 
@@ -641,11 +641,11 @@ class ConstantType extends ConstantPoolEntry {
 
   @override
   void writeValueToBinary(BinarySink sink) {
-    sink.writeNodeReference(type);
+    sink.writeDartType(type);
   }
 
   ConstantType.readFromBinary(BinarySource source)
-      : type = source.readNodeReference() as DartType;
+      : type = source.readDartType();
 
   @override
   String toString() => 'Type $type';
@@ -668,12 +668,12 @@ class ConstantTypeArguments extends ConstantPoolEntry {
   @override
   void writeValueToBinary(BinarySink sink) {
     sink.writeUInt30(typeArgs.length);
-    typeArgs.forEach(sink.writeNodeReference);
+    typeArgs.forEach(sink.writeDartType);
   }
 
   ConstantTypeArguments.readFromBinary(BinarySource source)
       : typeArgs = new List<DartType>.generate(
-            source.readUInt(), (_) => source.readNodeReference() as DartType);
+            source.readUInt(), (_) => source.readDartType());
 
   @override
   String toString() => 'TypeArgs $typeArgs';
@@ -698,13 +698,13 @@ class ConstantList extends ConstantPoolEntry {
 
   @override
   void writeValueToBinary(BinarySink sink) {
-    sink.writeNodeReference(typeArg);
+    sink.writeDartType(typeArg);
     sink.writeUInt30(entries.length);
     entries.forEach(sink.writeUInt30);
   }
 
   ConstantList.readFromBinary(BinarySource source)
-      : typeArg = source.readNodeReference() as DartType,
+      : typeArg = source.readDartType(),
         entries =
             new List<int>.generate(source.readUInt(), (_) => source.readUInt());
 
@@ -868,17 +868,35 @@ class ConstantPool {
     });
   }
 
-  void writeToBinary(BinarySink sink) {
+  void writeToBinary(Node node, BinarySink sink) {
+    final function = (node as Member).function;
+    if (function != null) {
+      sink.enterScope(typeParameters: function.typeParameters);
+    }
+
     sink.writeUInt30(entries.length);
     entries.forEach((e) {
       e.writeToBinary(sink);
     });
+
+    if (function != null) {
+      sink.leaveScope(typeParameters: function.typeParameters);
+    }
   }
 
-  ConstantPool.readFromBinary(BinarySource source) {
+  ConstantPool.readFromBinary(Node node, BinarySource source) {
+    final function = (node as Member).function;
+    if (function != null) {
+      source.enterScope(typeParameters: function.typeParameters);
+    }
+
     int len = source.readUInt();
     for (int i = 0; i < len; i++) {
       entries.add(new ConstantPoolEntry.readFromBinary(source));
+    }
+
+    if (function != null) {
+      source.leaveScope(typeParameters: function.typeParameters);
     }
   }
 

@@ -69,6 +69,8 @@ Program* Program::ReadFrom(Reader* reader, bool take_buffer_ownership) {
           SourceTableFieldCountFromFirstLibraryOffset,
       1, 0);
   program->name_table_offset_ = reader->ReadUInt32();
+  program->metadata_payloads_offset_ = reader->ReadUInt32();
+  program->metadata_mappings_offset_ = reader->ReadUInt32();
   program->string_table_offset_ = reader->ReadUInt32();
   program->constant_table_offset_ = reader->ReadUInt32();
 

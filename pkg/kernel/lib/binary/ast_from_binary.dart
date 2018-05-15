@@ -23,9 +23,13 @@ class ParseError {
 }
 
 class _ComponentIndex {
+  static const numberOfFixedFields = 9;
+
   int binaryOffsetForSourceTable;
-  int binaryOffsetForStringTable;
   int binaryOffsetForCanonicalNames;
+  int binaryOffsetForMetadataPayloads;
+  int binaryOffsetForMetadataMappings;
+  int binaryOffsetForStringTable;
   int binaryOffsetForConstantTable;
   int mainMethodReference;
   List<int> libraryOffsets;
@@ -141,19 +145,16 @@ class BinaryBuilder {
     return string;
   }
 
-  /// Read metadataMappings section from the binary. Return [true] if
-  /// any metadata mapping contains metadata with node references.
-  /// In this case we need to disable lazy loading of the binary.
-  bool _readMetadataSection(Component component) {
+  /// Read metadataMappings section from the binary.
+  void _readMetadataMappings(
+      Component component, int binaryOffsetForMetadataPayloads) {
     // Default reader ignores metadata section entirely.
-    return false;
   }
 
-  /// Process any pending metadata associations. Called once the Component
-  /// is fully deserialized and metadata containing references to nodes can
-  /// be safely parsed.
-  void _processPendingMetadataAssociations(Component component) {
+  /// Reads metadata for the given [node].
+  Node _associateMetadata(Node node, int nodeOffset) {
     // Default reader ignores metadata section entirely.
+    return node;
   }
 
   void readStringTable(List<String> table) {
@@ -445,14 +446,16 @@ class BinaryBuilder {
     }
 
     // Skip to the start of the index.
-    // There are these fields: file size, library count, library count + 1
-    // offsets, main reference, string table offset, canonical name offset and
-    // source table offset. That's 6 fields + number of libraries.
-    _byteOffset -= (result.libraryCount + 8) * 4;
+    _byteOffset -=
+        ((result.libraryCount + 1) + _ComponentIndex.numberOfFixedFields) * 4;
 
     // Now read the component index.
     result.binaryOffsetForSourceTable = _componentStartOffset + readUint32();
     result.binaryOffsetForCanonicalNames = _componentStartOffset + readUint32();
+    result.binaryOffsetForMetadataPayloads =
+        _componentStartOffset + readUint32();
+    result.binaryOffsetForMetadataMappings =
+        _componentStartOffset + readUint32();
     result.binaryOffsetForStringTable = _componentStartOffset + readUint32();
     result.binaryOffsetForConstantTable = _componentStartOffset + readUint32();
     result.mainMethodReference = readUint32();
@@ -489,9 +492,9 @@ class BinaryBuilder {
     _byteOffset = index.binaryOffsetForCanonicalNames;
     readLinkTable(component.root);
 
-    _byteOffset = index.binaryOffsetForStringTable;
-    _disableLazyReading =
-        _readMetadataSection(component) || _disableLazyReading;
+    // TODO(alexmarkov): reverse metadata mappings and read forwards
+    _byteOffset = index.binaryOffsetForStringTable; // Read backwards.
+    _readMetadataMappings(component, index.binaryOffsetForMetadataPayloads);
 
     _byteOffset = index.binaryOffsetForSourceTable;
     Map<Uri, Source> uriToSource = readUriToSource();
@@ -510,7 +513,7 @@ class BinaryBuilder {
         getMemberReferenceFromInt(index.mainMethodReference, allowNull: true);
     component.mainMethodName ??= mainMethod;
 
-    _processPendingMetadataAssociations(component);
+    _associateMetadata(component, _componentStartOffset);
 
     _byteOffset = _componentStartOffset + componentFileSize;
   }
@@ -1847,17 +1850,12 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   /// and are awaiting to be parsed and attached to nodes.
   List<_MetadataSubsection> _subsections;
 
-  /// Current mapping from node references to nodes used by readNodeReference.
-  /// Note: each metadata subsection has its own mapping.
-  List<Node> _referencedNodes;
-
   BinaryBuilderWithMetadata(bytes, [filename])
       : super(bytes, filename: filename);
 
   @override
-  bool _readMetadataSection(Component component) {
-    bool containsNodeReferences = false;
-
+  void _readMetadataMappings(
+      Component component, int binaryOffsetForMetadataPayloads) {
     // At the beginning of this function _byteOffset points right past
     // metadataMappings to string table.
 
@@ -1867,15 +1865,10 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
 
     int endOffset = _byteOffset - 4; // End offset of the current subsection.
     for (var i = 0; i < subSectionCount; i++) {
-      // RList<UInt32> nodeReferences
-      _byteOffset = endOffset - 4;
-      final referencesLength = readUint32();
-      final referencesStart = (endOffset - 4) - 4 * referencesLength;
-
       // RList<Pair<UInt32, UInt32>> nodeOffsetToMetadataOffset
-      _byteOffset = referencesStart - 4;
+      _byteOffset = endOffset - 4;
       final mappingLength = readUint32();
-      final mappingStart = (referencesStart - 4) - 4 * 2 * mappingLength;
+      final mappingStart = (endOffset - 4) - 4 * 2 * mappingLength;
       _byteOffset = mappingStart - 4;
 
       // UInt32 tag (fixed size StringReference)
@@ -1883,73 +1876,49 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
 
       final repository = component.metadata[tag];
       if (repository != null) {
-        // Read nodeReferences (if any).
-        Map<int, int> offsetToReferenceId;
-        List<Node> referencedNodes;
-        if (referencesLength > 0) {
-          offsetToReferenceId = <int, int>{};
-          _byteOffset = referencesStart;
-          for (var j = 0; j < referencesLength; j++) {
-            final nodeOffset = readUint32();
-            offsetToReferenceId[nodeOffset] = j;
-          }
-          referencedNodes =
-              new List<Node>.filled(referencesLength, null, growable: true);
-          containsNodeReferences = true;
-        }
-
         // Read nodeOffsetToMetadataOffset mapping.
         final mapping = <int, int>{};
         _byteOffset = mappingStart;
         for (var j = 0; j < mappingLength; j++) {
           final nodeOffset = readUint32();
-          final metadataOffset = readUint32();
+          final metadataOffset = binaryOffsetForMetadataPayloads + readUint32();
           mapping[nodeOffset] = metadataOffset;
         }
 
         _subsections ??= <_MetadataSubsection>[];
-        _subsections.add(new _MetadataSubsection(
-            repository, mapping, offsetToReferenceId, referencedNodes));
+        _subsections.add(new _MetadataSubsection(repository, mapping));
       }
 
       // Start of the subsection and the end of the previous one.
       endOffset = mappingStart - 4;
     }
-
-    return containsNodeReferences;
   }
 
-  @override
-  void _processPendingMetadataAssociations(Component component) {
-    if (_subsections == null) {
-      return;
-    }
-
-    _associateMetadata(component, _componentStartOffset);
-
-    for (var subsection in _subsections) {
-      if (subsection.pending == null) {
-        continue;
-      }
-
-      _referencedNodes = subsection.referencedNodes;
-      for (var i = 0; i < subsection.pending.length; i += 2) {
-        final Node node = subsection.pending[i];
-        final int metadataOffset = subsection.pending[i + 1];
-        subsection.repository.mapping[node] =
-            _readMetadata(subsection.repository, metadataOffset);
-      }
-    }
-  }
-
-  Object _readMetadata(MetadataRepository repository, int offset) {
+  Object _readMetadata(Node node, MetadataRepository repository, int offset) {
     final int savedOffset = _byteOffset;
     _byteOffset = offset;
-    final metadata = repository.readFromBinary(this);
+
+    final metadata = repository.readFromBinary(node, this);
+
     _byteOffset = savedOffset;
     return metadata;
   }
 
+  @override
+  void enterScope({List<TypeParameter> typeParameters}) {
+    if (typeParameters != null) {
+      typeParameterStack.addAll(typeParameters);
+    }
+  }
+
+  @override
+  void leaveScope({List<TypeParameter> typeParameters}) {
+    if (typeParameters != null) {
+      typeParameterStack.length -= typeParameters.length;
+    }
+  }
+
+  @override
   Node _associateMetadata(Node node, int nodeOffset) {
     if (_subsections == null) {
       return node;
@@ -1959,28 +1928,8 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
       // First check if there is any metadata associated with this node.
       final metadataOffset = subsection.mapping[nodeOffset];
       if (metadataOffset != null) {
-        if (subsection.nodeOffsetToReferenceId == null) {
-          // This subsection does not contain any references to nodes from
-          // inside the payload. In this case we can deserialize metadata
-          // eagerly.
-          subsection.repository.mapping[node] =
-              _readMetadata(subsection.repository, metadataOffset);
-        } else {
-          // Metadata payload might contain references to nodes that
-          // are not yet deserialized. Postpone association of metadata
-          // with this node.
-          subsection.pending ??= <Object>[];
-          subsection.pending..add(node)..add(metadataOffset);
-        }
-      }
-
-      // Check if this node is referenced from this section and update
-      // referencedNodes array if that is the case.
-      if (subsection.nodeOffsetToReferenceId != null) {
-        final id = subsection.nodeOffsetToReferenceId[nodeOffset];
-        if (id != null) {
-          subsection.referencedNodes[id] = node;
-        }
+        subsection.repository.mapping[node] =
+            _readMetadata(node, subsection.repository, metadataOffset);
       }
     }
 
@@ -2146,12 +2095,6 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
 
   @override
   List<int> get bytes => _bytes;
-
-  @override
-  Node readNodeReference() {
-    final id = readUInt();
-    return id == 0 ? null : _referencedNodes[id - 1];
-  }
 }
 
 /// Deserialized MetadataMapping corresponding to the given metadata repository.
@@ -2162,18 +2105,5 @@ class _MetadataSubsection {
   /// Deserialized mapping from node offsets to metadata offsets.
   final Map<int, int> mapping;
 
-  /// Deserialized mapping from node offset to node reference ids.
-  final Map<int, int> nodeOffsetToReferenceId;
-
-  /// Array mapping node reference ids to corresponding nodes.
-  /// Will be gradually filled as nodes are deserialized.
-  final List<Node> referencedNodes;
-
-  /// A list of pairs (Node, int metadataOffset) that describes pending
-  /// metadata associations which will be processed once all nodes
-  /// are parsed.
-  List<Object> pending;
-
-  _MetadataSubsection(this.repository, this.mapping,
-      this.nodeOffsetToReferenceId, this.referencedNodes);
+  _MetadataSubsection(this.repository, this.mapping);
 }

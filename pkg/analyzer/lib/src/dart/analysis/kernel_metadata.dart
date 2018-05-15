@@ -79,14 +79,16 @@ class AnalyzerMetadataRepository
       <kernel.TreeNode, AnalyzerMetadata>{};
 
   @override
-  AnalyzerMetadata readFromBinary(kernel.BinarySource source) {
+  AnalyzerMetadata readFromBinary(
+      kernel.Node node, kernel.BinarySource source) {
     return new AnalyzerMetadata()
       ..constructorNameOffset = _readOffset(source)
       ..documentationComment = _readOptionalString(source);
   }
 
   @override
-  void writeToBinary(AnalyzerMetadata metadata, kernel.BinarySink sink) {
+  void writeToBinary(
+      AnalyzerMetadata metadata, kernel.Node node, kernel.BinarySink sink) {
     _writeOffset(sink, metadata.constructorNameOffset);
     _writeOptionalString(sink, metadata.documentationComment);
   }
