@@ -46,9 +46,6 @@ initializer_super_last_test/cc30: MissingCompileTimeError
 initializer_super_last_test/cc31: MissingCompileTimeError
 initializer_super_last_test/cc32: MissingCompileTimeError
 
-[ $compiler == dart2js && !$strong ]
-initializer_super_last_test: Crash, CompileTimeError # Issue 31321
-
 [ $compiler != dart2js && $compiler != dartdevc && !$fasta && $strong ]
 type_promotion_functions_test: CompileTimeError # Issue 30895: This test requires a complete rewrite for 2.0.
 
@@ -252,12 +249,6 @@ map_literal7_test: RuntimeError # Requires strong mode
 
 [ $checked && !$strong ]
 type_parameter_test/05: Pass
-
-# We no longer expect Dart2 tests to run with the standalone VM without the new
-# common front end, but for now we get better coverage by still running them in
-# checked mode, which is mostly Dart2-compatible.
-[ !$checked && ($compiler == app_jit || $compiler == none || $compiler == precompiler) && ($runtime == dart_precompiled || $runtime == vm) ]
-*: SkipByDesign
 
 [ !$fasta && !$strong ]
 implicit_creation/implicit_const_context_constructor_generic_named_test: Fail # No support for implicit creation.
