@@ -29,7 +29,6 @@ import '../id_generator.dart';
 import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../mirrors_used.dart';
 import '../options.dart' show CompilerOptions;
-import '../parser/element_listener.dart' show ScannerOptions;
 import '../parser/parser_task.dart';
 import '../resolution/resolution.dart';
 import '../tree/tree.dart' show Send, TypeAnnotation;
@@ -224,9 +223,6 @@ abstract class ParsingContext {
   /// Use [parser] and measure directly instead.
   @deprecated
   measure(f());
-
-  /// Get the [ScannerOptions] to scan the given [element].
-  ScannerOptions getScannerOptionsFor(Element element);
 }
 
 class _ParsingContext implements ParsingContext {
@@ -241,8 +237,4 @@ class _ParsingContext implements ParsingContext {
 
   @override
   void parsePatchClass(ClassElement cls) {}
-
-  @override
-  ScannerOptions getScannerOptionsFor(Element element) => new ScannerOptions(
-      canUseNative: backend.canLibraryUseNative(element.library));
 }
