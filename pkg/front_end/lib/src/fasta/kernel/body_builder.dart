@@ -101,7 +101,7 @@ import 'expression_generator.dart'
         StaticAccessor,
         SuperIndexAccessor,
         ThisAccessor,
-        ThisPropertyAccessor,
+        ThisPropertyAccessGenerator,
         TypeDeclarationAccessor,
         UnresolvedAccessor,
         VariableUseGenerator,
@@ -1361,8 +1361,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
 
   /// Look up [name] in [scope] using [token] as location information (both to
   /// report problems and as the file offset in the generated kernel code).
-  /// [isQualified] should be true if [name] is a qualified access
-  /// (which implies that it shouldn't be turned into a [ThisPropertyAccessor]
+  /// [isQualified] should be true if [name] is a qualified access (which
+  /// implies that it shouldn't be turned into a [ThisPropertyAccessGenerator]
   /// if the name doesn't resolve in the scope).
   @override
   scopeLookup(Scope scope, String name, Token token,
@@ -1385,8 +1385,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         if (constantContext != ConstantContext.none || member.isField) {
           return new UnresolvedAccessor(this, n, token);
         }
-        return new ThisPropertyAccessor(this, token, n, lookupInstanceMember(n),
-            lookupInstanceMember(n, isSetter: true));
+        return new ThisPropertyAccessGenerator(this, token, n,
+            lookupInstanceMember(n), lookupInstanceMember(n, isSetter: true));
       } else if (ignoreMainInGetMainClosure &&
           name == "main" &&
           member?.name == "_getMainClosure") {
@@ -1451,7 +1451,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         getter = builder.target;
         setter = lookupInstanceMember(n, isSetter: true);
       }
-      return new ThisPropertyAccessor(this, token, n, getter, setter);
+      return new ThisPropertyAccessGenerator(this, token, n, getter, setter);
     } else if (builder.isRegularMethod) {
       assert(builder.isStatic || builder.isTopLevel);
       StaticAccessor accessor =
@@ -4307,8 +4307,7 @@ class DelayedAssignment<Arguments> extends ContextAccessor<Arguments> {
 
   @override
   Initializer buildFieldInitializer(Map<String, int> initializedFields) {
-    if (!identical("=", assignmentOperator) ||
-        !accessor.isThisPropertyAccessor) {
+    if (!identical("=", assignmentOperator) || !accessor.isThisPropertyAccess) {
       return accessor.buildFieldInitializer(initializedFields);
     }
     return helper.buildFieldInitializer(

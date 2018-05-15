@@ -365,7 +365,7 @@ class PropertyAccessGenerator<Arguments> extends Generator<Arguments> {
 
   String get plainNameForRead => name.name;
 
-  bool get isThisPropertyAccessor => forest.isThisExpression(receiver);
+  bool get isThisPropertyAccess => forest.isThisExpression(receiver);
 
   kernel.Expression _makeSimpleRead() =>
       new ShadowPropertyGet(receiver, name, getter)
@@ -418,13 +418,20 @@ class PropertyAccessGenerator<Arguments> extends Generator<Arguments> {
 
 /// Special case of [_PropertyAccessor] to avoid creating an indirect access to
 /// 'this'.
-class _ThisPropertyAccessor<Arguments> extends Accessor<Arguments> {
+class ThisPropertyAccessGenerator<Arguments> extends Generator<Arguments> {
   Name name;
-  Member getter, setter;
 
-  _ThisPropertyAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      this.name, this.getter, this.setter, Token token)
+  Member getter;
+
+  Member setter;
+
+  ThisPropertyAccessGenerator(BuilderHelper<dynamic, dynamic, Arguments> helper,
+      Token token, this.name, this.getter, this.setter)
       : super(helper, token);
+
+  String get plainNameForRead => name.name;
+
+  bool get isThisPropertyAccess => true;
 
   kernel.Expression _makeRead(ShadowComplexAssignment complexAssignment) {
     if (getter == null) {
@@ -447,6 +454,27 @@ class _ThisPropertyAccessor<Arguments> extends Accessor<Arguments> {
     complexAssignment?.write = write;
     return write;
   }
+
+  kernel.Expression doInvocation(int offset, Arguments arguments) {
+    Member interfaceTarget = getter;
+    if (interfaceTarget == null) {
+      helper.warnUnresolvedMethod(name, offset);
+    }
+    if (interfaceTarget is Field) {
+      // TODO(ahe): In strong mode we should probably rewrite this to
+      // `this.name.call(arguments)`.
+      interfaceTarget = null;
+    }
+    return helper.buildMethodInvocation(
+        forest.thisExpression(null), name, arguments, offset,
+        interfaceTarget: interfaceTarget);
+  }
+
+  @override
+  ShadowComplexAssignment startComplexAssignment(kernel.Expression rhs) =>
+      new ShadowPropertyAssign(null, rhs);
+
+  String toString() => "ThisPropertyAccessGenerator()";
 }
 
 class _NullAwarePropertyAccessor<Arguments> extends Accessor<Arguments> {

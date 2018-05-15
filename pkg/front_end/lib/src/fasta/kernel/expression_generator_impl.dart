@@ -227,7 +227,7 @@ abstract class FastaAccessor<Arguments> implements Accessor<Arguments> {
         argMessage: argMessage);
   }
 
-  bool get isThisPropertyAccessor => false;
+  bool get isThisPropertyAccess => false;
 
   @override
   ShadowComplexAssignment startComplexAssignment(kernel.Expression rhs) =>
@@ -444,7 +444,7 @@ class ThisAccessor<Arguments> extends FastaAccessor<Arguments>
         return new SuperPropertyAccessor(
             helper, send.token, name, getter, setter);
       } else {
-        return new ThisPropertyAccessor(
+        return new ThisPropertyAccessGenerator(
             helper, send.token, name, getter, setter);
       }
     }
@@ -982,40 +982,6 @@ class SuperIndexAccessor<Arguments> extends _SuperIndexAccessor<Arguments>
   @override
   ShadowComplexAssignment startComplexAssignment(kernel.Expression rhs) =>
       new ShadowIndexAssign(null, index, rhs, isSuper: true);
-}
-
-class ThisPropertyAccessor<Arguments> extends _ThisPropertyAccessor<Arguments>
-    with FastaAccessor<Arguments> {
-  final BuilderHelper<dynamic, dynamic, Arguments> helper;
-
-  ThisPropertyAccessor(
-      this.helper, Token token, Name name, Member getter, Member setter)
-      : super(helper, name, getter, setter, token);
-
-  String get plainNameForRead => name.name;
-
-  bool get isThisPropertyAccessor => true;
-
-  kernel.Expression doInvocation(int offset, Arguments arguments) {
-    Member interfaceTarget = getter;
-    if (interfaceTarget == null) {
-      helper.warnUnresolvedMethod(name, offset);
-    }
-    if (interfaceTarget is Field) {
-      // TODO(ahe): In strong mode we should probably rewrite this to
-      // `this.name.call(arguments)`.
-      interfaceTarget = null;
-    }
-    return helper.buildMethodInvocation(
-        forest.thisExpression(null), name, arguments, offset,
-        interfaceTarget: interfaceTarget);
-  }
-
-  toString() => "ThisPropertyAccessor()";
-
-  @override
-  ShadowComplexAssignment startComplexAssignment(kernel.Expression rhs) =>
-      new ShadowPropertyAssign(null, rhs);
 }
 
 class NullAwarePropertyAccessor<Arguments>
