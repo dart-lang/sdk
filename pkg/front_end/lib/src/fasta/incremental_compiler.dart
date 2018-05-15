@@ -140,7 +140,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
 
       Set<Uri> invalidatedUris = this.invalidatedUris.toSet();
-      this.invalidatedUris.clear();
       if (fullComponent) {
         invalidatedUris.add(entryPoint);
       }
@@ -219,6 +218,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             libraries: compiledLibraries, uriToSource: <Uri, Source>{});
       }
       if (componentWithDill != null) {
+        this.invalidatedUris.clear();
         userCodeOld?.loader?.releaseAncillaryResources();
         userCodeOld?.loader?.builders?.clear();
         userCodeOld = null;
