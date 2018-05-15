@@ -10,7 +10,7 @@ import '../compiler_new.dart' as api;
 import 'backend_strategy.dart';
 import 'common/names.dart' show Selectors;
 import 'common/names.dart' show Uris;
-import 'common/resolution.dart' show ParsingContext, Resolution;
+import 'common/resolution.dart' show Resolution;
 import 'common/tasks.dart' show CompilerTask, GenericTask, Measurer;
 import 'common/work.dart' show WorkItem;
 import 'common.dart';
@@ -92,7 +92,6 @@ abstract class Compiler {
   Resolution get resolution => null;
   Map<Entity, WorldImpact> get impactCache => _impactCache;
   ImpactCacheDeleter get impactCacheDeleter => _impactCacheDeleter;
-  ParsingContext get parsingContext => null;
 
   // TODO(zarah): Remove this map and incorporate compile-time errors
   // in the model.

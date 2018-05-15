@@ -304,8 +304,7 @@ class LocalsHandler {
     if (scopeInfo is! ClosureRepresentationInfo) return false;
     FieldEntity redirectTarget = redirectionMapping[local];
     if (redirectTarget == null) return false;
-    return redirectTarget is ClosureFieldElement ||
-        redirectTarget is JClosureField;
+    return redirectTarget is JClosureField;
   }
 
   bool isBoxed(Local local) {
@@ -360,9 +359,7 @@ class LocalsHandler {
       // accessed through a closure-field.
       // Calling [readLocal] makes sure we generate the correct code to get
       // the box.
-      if (redirect is BoxFieldElement) {
-        localBox = redirect.box;
-      } else if (redirect is JRecordField) {
+      if (redirect is JRecordField) {
         localBox = redirect.box;
       }
       assert(localBox != null);
@@ -431,9 +428,7 @@ class LocalsHandler {
       FieldEntity redirect = redirectionMapping[local];
       assert(redirect != null);
       BoxLocal localBox;
-      if (redirect is BoxFieldElement) {
-        localBox = redirect.box;
-      } else if (redirect is JRecordField) {
+      if (redirect is JRecordField) {
         localBox = redirect.box;
       }
       assert(localBox != null);

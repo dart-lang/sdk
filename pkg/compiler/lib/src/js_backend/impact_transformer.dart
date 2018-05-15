@@ -6,7 +6,6 @@ library js_backend.backend.impact_transformer;
 
 import '../universe/class_hierarchy_builder.dart' show ClassHierarchyBuilder;
 
-import '../closure.dart';
 import '../common.dart';
 import '../common_elements.dart';
 import '../common/backend_api.dart' show ImpactTransformer;
@@ -432,11 +431,6 @@ class CodegenImpactTransformer {
         if (_rtiNeed.methodNeedsSignature(callMethod)) {
           _impacts.computeSignature
               .registerImpact(transformed, _elementEnvironment);
-        } else if (callMethod is SynthesizedCallMethodElementX) {
-          if (_rtiNeed.localFunctionNeedsSignature(callMethod.expression)) {
-            _impacts.computeSignature
-                .registerImpact(transformed, _elementEnvironment);
-          }
         }
       }
     }

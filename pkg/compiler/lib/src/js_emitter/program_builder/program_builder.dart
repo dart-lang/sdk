@@ -7,7 +7,7 @@ library dart2js.js_emitter.program_builder;
 import 'dart:io';
 import 'dart:convert' show jsonDecode;
 
-import '../../closure.dart' show ClosureConversionTask, ClosureFieldElement;
+import '../../closure.dart' show ClosureConversionTask;
 import '../../common.dart';
 import '../../common/names.dart' show Names, Selectors;
 import '../../constants/values.dart'

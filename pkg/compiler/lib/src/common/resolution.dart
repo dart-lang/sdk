@@ -26,10 +26,8 @@ import '../elements/elements.dart'
 import '../elements/entities.dart';
 import '../enqueue.dart' show ResolutionEnqueuer;
 import '../id_generator.dart';
-import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../mirrors_used.dart';
 import '../options.dart' show CompilerOptions;
-import '../parser/parser_task.dart';
 import '../resolution/resolution.dart';
 import '../tree/tree.dart' show TypeAnnotation;
 import '../universe/world_impact.dart' show WorldImpact;
@@ -100,7 +98,6 @@ abstract class Target {
 
 // TODO(johnniwinther): Rename to `Resolver` or `ResolverContext`.
 abstract class Resolution {
-  ParsingContext get parsingContext;
   DiagnosticReporter get reporter;
   ElementEnvironment get elementEnvironment;
   CommonElements get commonElements;
@@ -188,35 +185,4 @@ abstract class Resolution {
   // signature.
   @deprecated
   void registerClass(ClassEntity cls);
-}
-
-/// A container of commonly used dependencies for tasks that involve parsing.
-abstract class ParsingContext {
-  factory ParsingContext(DiagnosticReporter reporter, ParserTask parser,
-      JavaScriptBackend backend) = _ParsingContext;
-
-  DiagnosticReporter get reporter;
-  ParserTask get parser;
-
-  /// Use [patchParser] directly instead.
-  @deprecated
-  void parsePatchClass(ClassElement cls);
-
-  /// Use [parser] and measure directly instead.
-  @deprecated
-  measure(f());
-}
-
-class _ParsingContext implements ParsingContext {
-  final DiagnosticReporter reporter;
-  final ParserTask parser;
-  final JavaScriptBackend backend;
-
-  _ParsingContext(this.reporter, this.parser, this.backend);
-
-  @override
-  measure(f()) => parser.measure(f);
-
-  @override
-  void parsePatchClass(ClassElement cls) {}
 }

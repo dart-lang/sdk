@@ -6,7 +6,7 @@
 
 library elements.common;
 
-import '../common/names.dart' show Identifiers, Names, Uris;
+import '../common/names.dart' show Identifiers, Uris;
 import '../common_elements.dart' show CommonElements;
 import '../util/util.dart' show Link;
 import 'entities.dart';
@@ -462,8 +462,7 @@ abstract class ClassElementCommon implements ClassElement {
   }
 
   ResolutionFunctionType get callType {
-    MemberSignature member = lookupInterfaceMember(Names.call);
-    return member != null && member.isMethod ? member.type : null;
+    return null;
   }
 
   @override

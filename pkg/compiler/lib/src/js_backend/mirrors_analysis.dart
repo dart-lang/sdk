@@ -387,9 +387,6 @@ class MirrorsHandler {
         _enqueueReflectiveConstructor(element.declaration,
             enclosingWasIncluded: includeClass);
       });
-      cls.forEachClassMember((Member member) {
-        _enqueueReflectiveMember(member.element, includeClass);
-      });
     }
   }
 

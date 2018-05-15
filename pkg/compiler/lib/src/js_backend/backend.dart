@@ -66,7 +66,6 @@ import 'mirrors_data.dart';
 import 'namer.dart';
 import 'native_data.dart';
 import 'no_such_method_registry.dart';
-import 'patch_resolver.dart';
 import 'resolution_listener.dart';
 import 'runtime_types.dart';
 import 'type_variable_handler.dart';
@@ -354,7 +353,6 @@ class JavaScriptBackend {
   List<CompilerTask> get tasks {
     List<CompilerTask> result = functionCompiler.tasks;
     result.add(emitter);
-    result.add(patchResolverTask);
     return result;
   }
 
@@ -399,8 +397,6 @@ class JavaScriptBackend {
 
   CodegenImpactTransformer _codegenImpactTransformer;
 
-  PatchResolverTask patchResolverTask;
-
   /// The strategy used for collecting and emitting source information.
   SourceInformationStrategy sourceInformationStrategy;
 
@@ -443,7 +439,6 @@ class JavaScriptBackend {
 
     noSuchMethodRegistry = new NoSuchMethodRegistryImpl(
         commonElements, compiler.frontendStrategy.createNoSuchMethodResolver());
-    patchResolverTask = new PatchResolverTask(compiler);
     functionCompiler = new SsaFunctionCompiler(
         this, compiler.measurer, sourceInformationStrategy);
   }

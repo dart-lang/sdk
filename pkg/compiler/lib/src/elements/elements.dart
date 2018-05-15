@@ -13,7 +13,6 @@ import '../common_elements.dart' show CommonElements;
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../ordered_typeset.dart' show OrderedTypeSet;
-import '../resolution/scope.dart' show Scope;
 import '../resolution/tree_elements.dart' show TreeElements;
 import '../script.dart';
 import '../tree/tree.dart' hide AsyncModifier;
@@ -399,8 +398,6 @@ abstract class Element implements Entity {
   bool get isMixinApplication;
 
   bool get isAbstract;
-
-  Scope buildScope();
 
   // TODO(johnniwinther): Move this to [AstElement].
   /// Returns the [Element] that holds the [TreeElements] for this element.
@@ -1624,18 +1621,6 @@ abstract class ClassElement extends TypeDeclarationElement
   void forEachStaticField(void f(ClassElement enclosingClass, Element field));
 
   void forEachConstructorBody(void f(ConstructorBodyElement member));
-
-  /// Looks up the member [name] in this class.
-  Member lookupClassMember(Name name);
-
-  /// Calls [f] with each member of this class.
-  void forEachClassMember(f(Member member));
-
-  /// Looks up the member [name] in the interface of this class.
-  MemberSignature lookupInterfaceMember(Name name);
-
-  /// Calls [f] with each member of the interface of this class.
-  void forEachInterfaceMember(f(MemberSignature member));
 
   /// Returns the type of the 'call' method in the interface of this class, or
   /// `null` if the interface has no 'call' method.

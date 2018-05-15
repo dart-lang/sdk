@@ -173,7 +173,8 @@ class FieldVisitor {
         // knowing that it is there.  Therefore we don't need to use a getter
         // (that will throw if the getter method is missing), but can always
         // access the field directly.
-        field is ClosureFieldElement;
+        // TODO(johnniwinther): Return `true` JClosureField.
+        false;
   }
 
   bool canAvoidGeneratedCheckedSetter(FieldEntity member) {

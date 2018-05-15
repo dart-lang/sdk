@@ -16,7 +16,6 @@ import '../ordered_typeset.dart' show OrderedTypeSet;
 import '../util/util.dart' show equalElements;
 import 'elements.dart';
 import 'entities.dart';
-import 'modelx.dart' show TypeDeclarationElementX;
 import 'names.dart';
 import 'types.dart';
 
@@ -398,10 +397,6 @@ abstract class GenericType extends ResolutionDartType {
             CURRENT_ELEMENT_SPANNABLE, "Missing element for generic type."));
     assert(() {
       if (!checkTypeArgumentCount) return true;
-      if (element is TypeDeclarationElementX) {
-        return element.thisTypeCache == null ||
-            typeArguments.length == element.typeVariables.length;
-      }
       return true;
     }(),
         failedAt(
@@ -545,22 +540,6 @@ class ResolutionInterfaceType extends GenericType implements InterfaceType {
       return new ResolutionInterfaceType(supertype.element, arguments);
     }
     return null;
-  }
-
-  MemberSignature lookupInterfaceMember(Name name) {
-    MemberSignature member = element.lookupInterfaceMember(name);
-    if (member != null && isGeneric) {
-      return new InterfaceMember(this, member);
-    }
-    return member;
-  }
-
-  MemberSignature lookupClassMember(Name name) {
-    MemberSignature member = element.lookupClassMember(name);
-    if (member != null && isGeneric) {
-      return new InterfaceMember(this, member);
-    }
-    return member;
   }
 
   int get hashCode => _hashCode ??= super.hashCode;

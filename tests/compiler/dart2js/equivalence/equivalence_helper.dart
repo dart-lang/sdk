@@ -7,7 +7,6 @@
 
 library dart2js.test.equivalence;
 
-import 'package:compiler/src/closure.dart';
 import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/constants/values.dart';
@@ -390,14 +389,6 @@ class ElementIdentityEquivalence extends BaseElementVisitor<bool, Element> {
   bool visitFieldElement(
       FieldElement element1, covariant FieldElement element2) {
     return checkMembers(element1, element2);
-  }
-
-  @override
-  bool visitBoxFieldElement(
-      BoxFieldElement element1, covariant BoxFieldElement element2) {
-    return element1.box.name == element2.box.name &&
-        visit(element1.box.executableContext, element2.box.executableContext) &&
-        visit(element1.variableElement, element2.variableElement);
   }
 
   @override

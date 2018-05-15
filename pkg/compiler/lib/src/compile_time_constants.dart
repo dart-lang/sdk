@@ -13,7 +13,6 @@ import 'constants/expressions.dart';
 import 'constants/values.dart';
 import 'common_elements.dart' show CommonElements;
 import 'elements/elements.dart';
-import 'elements/modelx.dart' show ConstantVariableMixin;
 import 'elements/resolution_types.dart';
 import 'resolution/tree_elements.dart' show TreeElements;
 import 'tree/tree.dart';
@@ -214,7 +213,7 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
    * error.
    */
   ConstantExpression compileVariableWithDefinitions(
-      ConstantVariableMixin element, TreeElements definitions,
+      VariableElement element, TreeElements definitions,
       {bool isConst: false, bool checkType: true}) {
     Node node = element.node;
     if (pendingVariables.contains(element)) {
@@ -274,7 +273,6 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
       }
     }
     if (expression != null) {
-      element.constant = expression;
       initialVariableValues[element.declaration] = expression;
     } else {
       assert(
