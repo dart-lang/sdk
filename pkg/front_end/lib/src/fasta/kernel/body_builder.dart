@@ -723,7 +723,11 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
             body, fasta.messageSetterWithWrongNumberOfFormals);
       }
     }
-    if (!builder.isExternal) {
+    // No-such-method forwarders get their bodies injected during outline
+    // buliding, so we should skip them here.
+    bool isNoSuchMethodForwarder = (builder.function.parent is Procedure &&
+        (builder.function.parent as Procedure).isNoSuchMethodForwarder);
+    if (!builder.isExternal && !isNoSuchMethodForwarder) {
       builder.body = body;
     } else {
       if (body != null) {

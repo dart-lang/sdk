@@ -12,14 +12,16 @@ abstract class Foo extends core::Object {
 class Bar extends self::Foo implements pri::Fisk {
   synthetic constructor •() → void
     ;
-  abstract no-such-method-forwarder method /* from org-dartlang-testcase:///private_module.dart */ _hest() → void;
+  no-such-method-forwarder method /* from org-dartlang-testcase:///private_module.dart */ _hest() → void
+    return this.{self::Foo::noSuchMethod}(new core::_InvocationMirror::_withoutType("_hest", const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}), false));
 }
 class Baz extends self::Foo implements pri::Fisk {
   synthetic constructor •() → void
     ;
   method _hest() → dynamic
     ;
-  abstract no-such-method-forwarder method /* from org-dartlang-testcase:///private_module.dart */ _hest() → void;
+  no-such-method-forwarder method /* from org-dartlang-testcase:///private_module.dart */ _hest() → void
+    return this.{self::Foo::noSuchMethod}(new core::_InvocationMirror::_withoutType("_hest", const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}), false));
 }
 static method main() → dynamic
   ;

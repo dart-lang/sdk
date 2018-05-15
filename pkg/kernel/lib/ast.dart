@@ -1575,7 +1575,6 @@ class Procedure extends Member {
   }
 
   void set isNoSuchMethodForwarder(bool value) {
-    assert(isAbstract);
     flags = value
         ? (flags | FlagNoSuchMethodForwarder)
         : (flags & ~FlagNoSuchMethodForwarder);
@@ -2564,6 +2563,17 @@ class Arguments extends TreeNode {
       : types = <DartType>[],
         positional = <Expression>[],
         named = <NamedExpression>[];
+
+  factory Arguments.forwarded(FunctionNode function) {
+    return new Arguments(
+        function.positionalParameters.map((p) => new VariableGet(p)).toList(),
+        named: function.namedParameters
+            .map((p) => new NamedExpression(p.name, new VariableGet(p)))
+            .toList(),
+        types: function.typeParameters
+            .map((p) => new TypeParameterType(p))
+            .toList());
+  }
 
   accept(TreeVisitor v) => v.visitArguments(this);
 

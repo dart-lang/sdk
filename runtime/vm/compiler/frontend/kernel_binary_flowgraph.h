@@ -327,9 +327,6 @@ class ProcedureHelper {
   bool IsRedirectingFactoryConstructor() {
     return (flags_ & kRedirectingFactoryConstructor) != 0;
   }
-  bool IsNoSuchMethodForwarder() {
-    return (flags_ & kNoSuchMethodForwarder) != 0;
-  }
 
   NameIndex canonical_name_;
   TokenPosition position_;

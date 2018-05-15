@@ -294,7 +294,6 @@ string_from_environment3_test/03: MissingCompileTimeError
 [ $compiler == dartdevc && $runtime != none ]
 bigint_from_test: CompileTimeError # Issue 32585
 compare_to2_test: CompileTimeError # invalid test
-map_unmodifiable_cast_test: RuntimeError, OK # test will be updated soon for Dart 2 nSM semantics.
 symbol_operator_test: RuntimeError # Issue 29921
 
 [ $compiler != dartdevc && $compiler != dartdevk && $checked && !$strong ]
