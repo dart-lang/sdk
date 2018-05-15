@@ -235,10 +235,6 @@ abstract class TypeBuilder {
     return result;
   }
 
-  /// In checked mode, generate type tests for the parameters of the inlined
-  /// function.
-  void potentiallyCheckInlinedParameterTypes(FunctionEntity function);
-
   bool get checkOrTrustTypes =>
       builder.options.strongMode ||
       builder.options.enableTypeAssertions ||

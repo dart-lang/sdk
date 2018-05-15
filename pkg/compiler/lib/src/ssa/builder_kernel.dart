@@ -1098,6 +1098,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
     // because that is where the type guards will also be inserted.
     // This way we ensure that a type guard will dominate the type
     // check.
+
+    checkTypeVariableBounds(targetElement);
+
     MemberDefinition definition =
         _elementMap.getMemberDefinition(targetElement);
     bool nodeIsConstructorBody = definition.kind == MemberKind.constructorBody;
@@ -1119,8 +1122,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     function.positionalParameters.forEach(_handleParameter);
     function.namedParameters.toList()..forEach(_handleParameter);
-
-    checkTypeVariableBounds(targetElement);
   }
 
   void checkTypeVariableBounds(FunctionEntity method) {
@@ -5276,7 +5277,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   /// Run this builder on the body of the [function] to be inlined.
   void _visitInlinedFunction(FunctionEntity function) {
-    typeBuilder.potentiallyCheckInlinedParameterTypes(function);
+    _potentiallyCheckInlinedParameterTypes(function);
 
     MemberDefinition definition = _elementMap.getMemberDefinition(function);
     switch (definition.kind) {
@@ -5311,6 +5312,21 @@ class KernelSsaGraphBuilder extends ir.Visitor
         break;
     }
     failedAt(function, "Unexpected inlined function: $definition");
+  }
+
+  /// Generates type tests for the parameters of the inlined function.
+  void _potentiallyCheckInlinedParameterTypes(FunctionEntity function) {
+    if (!typeBuilder.checkOrTrustTypes) return;
+
+    checkTypeVariableBounds(function);
+
+    KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(function);
+    forEachOrderedParameter(_globalLocalsMap, _elementMap, function,
+        (Local parameter) {
+      HInstruction argument = localsHandler.readLocal(parameter);
+      typeBuilder.potentiallyCheckOrTrustTypeOfParameter(
+          argument, localsMap.getLocalType(_elementMap, parameter));
+    });
   }
 
   bool get _allInlinedFunctionsCalledOnce {
@@ -5835,21 +5851,6 @@ class KernelTypeBuilder extends TypeBuilder {
 
   ClassTypeVariableAccess computeTypeVariableAccess(MemberEntity member) {
     return _elementMap.getClassTypeVariableAccessForMember(member);
-  }
-
-  /// In checked mode, generate type tests for the parameters of the inlined
-  /// function.
-  void potentiallyCheckInlinedParameterTypes(FunctionEntity function) {
-    if (!checkOrTrustTypes) return;
-
-    KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(function);
-    forEachOrderedParameter(_globalLocalsMap, _elementMap, function,
-        (Local parameter) {
-      HInstruction argument = builder.localsHandler.readLocal(parameter);
-      potentiallyCheckOrTrustTypeOfParameter(
-          argument, localsMap.getLocalType(_elementMap, parameter));
-    });
-    builder.checkTypeVariableBounds(function);
   }
 }
 
