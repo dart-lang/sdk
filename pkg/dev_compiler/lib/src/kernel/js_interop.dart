@@ -110,13 +110,3 @@ bool usesJSInterop(NamedNode n) {
       (n is Procedure && n.isExternal ||
           n is Class && n.annotations.any(isPublicJSAnnotation));
 }
-
-/// Returns the name value of the `JSExportName` annotation (when compiling
-/// the SDK), or `null` if there's none. This is used to control the name
-/// under which functions are compiled and exported.
-String getJSExportName(NamedNode n) {
-  var library = getLibrary(n);
-  if (library == null || library.importUri.scheme != 'dart') return null;
-
-  return getAnnotationName(n, isJSExportNameAnnotation);
-}

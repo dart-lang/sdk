@@ -8,7 +8,8 @@ import 'dart:math' show max, min;
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/kernel.dart' hide ConstantVisitor;
+import 'package:kernel/kernel.dart';
+import 'package:kernel/library_index.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:source_span/source_span.dart' show SourceLocation;
@@ -20,6 +21,7 @@ import '../compiler/shared_compiler.dart';
 import '../js_ast/js_ast.dart' as JS;
 import '../js_ast/js_ast.dart' show js;
 import '../js_ast/source_map_printer.dart' show NodeEnd, NodeSpan, HoverComment;
+import 'constants.dart';
 import 'js_interop.dart';
 import 'js_typerep.dart';
 import 'kernel_helpers.dart';
@@ -33,7 +35,8 @@ class ProgramCompiler extends Object
     implements
         StatementVisitor<JS.Statement>,
         ExpressionVisitor<JS.Expression>,
-        DartTypeVisitor<JS.Expression> {
+        DartTypeVisitor<JS.Expression>,
+        ConstantVisitor<JS.Expression> {
   /// The list of output module items, in the order they need to be emitted in.
   final _moduleItems = <JS.ModuleItem>[];
 
@@ -134,8 +137,6 @@ class ProgramCompiler extends Object
   final bool enableAsserts;
   final bool replCompile;
 
-  final Map<String, String> declaredVariables;
-
   // Compilation of Kernel's [BreakStatement].
   //
   // Kernel represents Dart's `break` and `continue` uniformly as
@@ -199,7 +200,7 @@ class ProgramCompiler extends Object
   /// The dart:async `StreamIterator<T>` type.
   final Class _asyncStreamIteratorClass;
 
-  final ConstantVisitor _constants;
+  final DevCompilerConstants _constants;
 
   final NullableInference _nullableInference;
 
@@ -208,48 +209,36 @@ class ProgramCompiler extends Object
       bool replCompile: false,
       bool enableAsserts: true,
       Map<String, String> declaredVariables: const {}}) {
-    var nativeTypes = new NativeTypeSet(component);
+    var coreTypes = new CoreTypes(component);
     var types = new TypeSchemaEnvironment(
-        nativeTypes.coreTypes, new ClassHierarchy(component), true);
-    return new ProgramCompiler._(
-        nativeTypes, new JSTypeRep(types, nativeTypes.sdk),
+        coreTypes, new ClassHierarchy(component), true);
+    var constants = new DevCompilerConstants(types, declaredVariables);
+    var nativeTypes = new NativeTypeSet(coreTypes, constants);
+    var jsTypeRep = new JSTypeRep(types);
+    return new ProgramCompiler._(coreTypes, coreTypes.index, nativeTypes,
+        constants, types, jsTypeRep, new NullableInference(jsTypeRep),
         emitMetadata: emitMetadata,
         enableAsserts: enableAsserts,
-        replCompile: replCompile,
-        declaredVariables: declaredVariables);
+        replCompile: replCompile);
   }
 
-  ProgramCompiler._(NativeTypeSet nativeTypes, this._typeRep,
-      {this.emitMetadata,
-      this.enableAsserts,
-      this.replCompile,
-      this.declaredVariables})
-      : _extensionTypes = nativeTypes,
-        types = _typeRep.types,
-        coreTypes = nativeTypes.coreTypes,
-        _constants = new ConstantVisitor(nativeTypes.coreTypes),
-        _jsArrayClass =
-            nativeTypes.sdk.getClass('dart:_interceptors', 'JSArray'),
-        _jsBoolClass = nativeTypes.sdk.getClass('dart:_interceptors', 'JSBool'),
-        _jsNumberClass =
-            nativeTypes.sdk.getClass('dart:_interceptors', 'JSNumber'),
-        _jsStringClass =
-            nativeTypes.sdk.getClass('dart:_interceptors', 'JSString'),
+  ProgramCompiler._(this.coreTypes, LibraryIndex sdk, this._extensionTypes,
+      this._constants, this.types, this._typeRep, this._nullableInference,
+      {this.emitMetadata, this.enableAsserts, this.replCompile})
+      : _jsArrayClass = sdk.getClass('dart:_interceptors', 'JSArray'),
+        _jsBoolClass = sdk.getClass('dart:_interceptors', 'JSBool'),
+        _jsNumberClass = sdk.getClass('dart:_interceptors', 'JSNumber'),
+        _jsStringClass = sdk.getClass('dart:_interceptors', 'JSString'),
         _asyncStreamIteratorClass =
-            nativeTypes.sdk.getClass('dart:async', 'StreamIterator'),
-        privateSymbolClass =
-            nativeTypes.sdk.getClass('dart:_js_helper', 'PrivateSymbol'),
-        linkedHashMapImplClass =
-            nativeTypes.sdk.getClass('dart:_js_helper', 'LinkedMap'),
+            sdk.getClass('dart:async', 'StreamIterator'),
+        privateSymbolClass = sdk.getClass('dart:_js_helper', 'PrivateSymbol'),
+        linkedHashMapImplClass = sdk.getClass('dart:_js_helper', 'LinkedMap'),
         identityHashMapImplClass =
-            nativeTypes.sdk.getClass('dart:_js_helper', 'IdentityMap'),
-        linkedHashSetImplClass =
-            nativeTypes.sdk.getClass('dart:collection', '_HashSet'),
+            sdk.getClass('dart:_js_helper', 'IdentityMap'),
+        linkedHashSetImplClass = sdk.getClass('dart:collection', '_HashSet'),
         identityHashSetImplClass =
-            nativeTypes.sdk.getClass('dart:collection', '_IdentityHashSet'),
-        syncIterableClass =
-            nativeTypes.sdk.getClass('dart:_js_helper', 'SyncIterable'),
-        _nullableInference = new NullableInference(_typeRep);
+            sdk.getClass('dart:collection', '_IdentityHashSet'),
+        syncIterableClass = sdk.getClass('dart:_js_helper', 'SyncIterable');
 
   ClassHierarchy get hierarchy => types.hierarchy;
 
@@ -3720,10 +3709,9 @@ class ProgramCompiler extends Object
   @override
   visitInvalidExpression(InvalidExpression node) => defaultExpression(node);
 
-  // [ConstantExpression] is produced by the Kernel constant evaluator, which
-  // we do not use.
   @override
-  visitConstantExpression(ConstantExpression node) => defaultExpression(node);
+  visitConstantExpression(ConstantExpression node) =>
+      node.constant.accept(this);
 
   @override
   visitVariableGet(VariableGet node) {
@@ -3867,6 +3855,11 @@ class ProgramCompiler extends Object
   @override
   visitStaticGet(StaticGet node) {
     var target = node.target;
+    if (target is Field && target.isConst) {
+      var value = _constants.evaluate(target.initializer, cache: true);
+      if (value is PrimitiveConstant) return value.accept(this);
+    }
+
     var result = _emitStaticTarget(target);
     if (_reifyTearoff(target)) {
       // TODO(jmesserly): we could tag static/top-level function types once
@@ -4069,7 +4062,10 @@ class ProgramCompiler extends Object
       if (expr.value >= low && expr.value <= high) return expr.value;
       return null;
     }
-    // TODO(jmesserly): other constant evaluation here once kernel supports it.
+    if (_constants.isConstant(expr)) {
+      var c = _constants.evaluate(expr);
+      if (c is IntConstant && c.value >= low && c.value <= high) return c.value;
+    }
     return null;
   }
 
@@ -4644,31 +4640,11 @@ class ProgramCompiler extends Object
         ? ctorClass.rawType
         : new InterfaceType(ctorClass, args.types);
 
-    if (node.isConst &&
-        ctor.name.name == 'fromEnvironment' &&
-        ctor.enclosingLibrary == coreTypes.coreLibrary &&
-        args.positional.length == 1 &&
-        // TODO(jmesserly): this does not correctly handle when the arguments to
-        // fromEnvironment are constant non-literal values.
-        args.positional[0] is BasicLiteral) {
-      var varName = (args.positional[0] as StringLiteral).value;
-      var value = declaredVariables[varName];
-      var defaultArg = args.named.isNotEmpty ? args.named[0].value : null;
-      if (ctorClass == coreTypes.stringClass) {
-        if (value != null) return js.escapedString(value);
-        return _visitExpression(defaultArg) ?? new JS.LiteralNull();
-      } else if (ctorClass == coreTypes.intClass) {
-        var intValue = int.parse(value ?? '', onError: (_) => null);
-        if (intValue != null) return js.number(intValue);
-        return _visitExpression(defaultArg) ?? new JS.LiteralNull();
-      } else if (ctorClass == coreTypes.boolClass) {
-        if (value == "true") return js.boolean(true);
-        if (value == "false") return js.boolean(false);
-        return _visitExpression(defaultArg) ?? js.boolean(false);
-      } else {
-        return _emitInvalidNode(node, '$ctorClass.fromEnvironment constant');
-      }
+    if (isFromEnvironmentInvocation(coreTypes, node)) {
+      var value = _constants.evaluate(node);
+      if (value is PrimitiveConstant) return value.accept(this);
     }
+
     if (args.positional.isEmpty &&
         args.named.isEmpty &&
         ctorClass.enclosingLibrary.importUri.scheme == 'dart') {
@@ -5161,6 +5137,52 @@ class ProgramCompiler extends Object
   bool _isObjectMemberCall(Expression target, String memberName) {
     return isObjectMember(memberName) && isNullable(target);
   }
+
+  /// Returns the name value of the `JSExportName` annotation (when compiling
+  /// the SDK), or `null` if there's none. This is used to control the name
+  /// under which functions are compiled and exported.
+  String getJSExportName(NamedNode n) {
+    var library = getLibrary(n);
+    if (library == null || library.importUri.scheme != 'dart') return null;
+
+    return getAnnotationName(n, isJSExportNameAnnotation);
+  }
+
+  /// If [node] has annotation matching [test] and the first argument is a
+  /// string, this returns the string value.
+  ///
+  /// Calls [findAnnotation] followed by [getNameFromAnnotation].
+  String getAnnotationName(NamedNode node, bool test(Expression value)) {
+    return _constants.getNameFromAnnotation(findAnnotation(node, test));
+  }
+
+  @override
+  visitNullConstant(NullConstant node) => new JS.LiteralNull();
+  @override
+  visitBoolConstant(BoolConstant node) => js.boolean(node.value);
+  @override
+  visitIntConstant(IntConstant node) => js.number(node.value);
+  @override
+  visitDoubleConstant(DoubleConstant node) => js.number(node.value);
+  @override
+  visitStringConstant(StringConstant node) => js.escapedString(node.value, '"');
+
+  // DDC does not currently use the non-primivite constant nodes; rather these
+  // are emitted via their normal expression nodes.
+  @override
+  defaultConstant(Constant node) => _emitInvalidNode(node);
+  @override
+  visitMapConstant(node) => defaultConstant(node);
+  @override
+  visitListConstant(node) => defaultConstant(node);
+  @override
+  visitInstanceConstant(node) => defaultConstant(node);
+  @override
+  visitTearOffConstant(node) => defaultConstant(node);
+  @override
+  visitTypeLiteralConstant(node) => defaultConstant(node);
+  @override
+  visitPartialInstantiationConstant(node) => defaultConstant(node);
 }
 
 bool isSdkInternalRuntime(Library l) =>

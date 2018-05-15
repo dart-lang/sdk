@@ -89,120 +89,6 @@ bool isBuiltinAnnotation(
   return false;
 }
 
-/// If [node] has annotation matching [test] and the first argument is a
-/// string, this returns the string value.
-///
-/// Calls [findAnnotation] followed by [getNameFromAnnotation].
-String getAnnotationName(NamedNode node, bool test(Expression value)) {
-  return getNameFromAnnotation(findAnnotation(node, test));
-}
-
-/// If [node] is an annotation and the first argument is a string, this returns
-/// the string value.
-///
-/// For example
-///
-///     class MyAnnotation {
-///       final String name;
-///       // ...
-///       const MyAnnotation(this.name/*, ... other params ... */);
-///     }
-///
-///     @MyAnnotation('FooBar')
-///     main() { ... }
-///
-/// Given teh node for `@MyAnnotation('FooBar')` this will return `'FooBar'`.
-String getNameFromAnnotation(ConstructorInvocation node) {
-  if (node != null) {
-    Expression first;
-    if (node.arguments.named.isNotEmpty) {
-      first = node.arguments.named
-          .firstWhere((n) => n.name == 'name', orElse: () => null)
-          ?.value;
-    }
-    if (node.arguments.positional.isNotEmpty) {
-      first ??= node.arguments.positional[0];
-    }
-    if (first != null) {
-      first = _followConstFields(first);
-      if (first is StringLiteral) return first.value;
-    }
-  }
-  return null;
-}
-
-Expression _followConstFields(Expression expr) {
-  if (expr is StaticGet) {
-    var target = expr.target;
-    if (target is Field) {
-      return _followConstFields(target.initializer);
-    }
-  }
-  return expr;
-}
-
-/// Finds constant expressions as defined in Dart language spec 4th ed,
-/// 16.1 Constants
-class ConstantVisitor extends ExpressionVisitor<bool> {
-  final CoreTypes coreTypes;
-  ConstantVisitor(this.coreTypes);
-
-  bool isConstant(Expression e) => e.accept(this) as bool;
-
-  defaultExpression(node) => false;
-  defaultBasicLiteral(node) => true;
-  visitTypeLiteral(node) => true; // TODO(jmesserly): deferred libraries?
-  visitSymbolLiteral(node) => true;
-  visitListLiteral(node) => node.isConst;
-  visitMapLiteral(node) => node.isConst;
-  visitStaticInvocation(node) {
-    return node.isConst ||
-        node.target == coreTypes.identicalProcedure &&
-            node.arguments.positional.every(isConstant);
-  }
-
-  visitDirectMethodInvocation(node) {
-    return node.receiver is BasicLiteral &&
-        isOperatorMethodName(node.name.name) &&
-        node.arguments.positional.every((p) => p is BasicLiteral);
-  }
-
-  visitMethodInvocation(node) {
-    return node.receiver is BasicLiteral &&
-        isOperatorMethodName(node.name.name) &&
-        node.arguments.positional.every((p) => p is BasicLiteral);
-  }
-
-  visitConstructorInvocation(node) => node.isConst;
-  visitStringConcatenation(node) =>
-      node.expressions.every((e) => e is BasicLiteral);
-  visitStaticGet(node) {
-    var target = node.target;
-    return target is Procedure || target is Field && target.isConst;
-  }
-
-  visitVariableGet(node) => node.variable.isConst;
-  visitNot(node) {
-    var operand = node.operand;
-    return operand is BoolLiteral ||
-        operand is DirectMethodInvocation &&
-            visitDirectMethodInvocation(operand) ||
-        operand is MethodInvocation && visitMethodInvocation(operand);
-  }
-
-  visitLogicalExpression(node) =>
-      node.left is BoolLiteral && node.right is BoolLiteral;
-  visitConditionalExpression(node) =>
-      node.condition is BoolLiteral &&
-      node.then is BoolLiteral &&
-      node.otherwise is BoolLiteral;
-
-  visitLet(Let node) {
-    var init = node.variable.initializer;
-    return (init == null || isConstant(init)) && isConstant(node.body);
-  }
-}
-
 /// Returns true if [name] is an operator method that is available on primitive
 /// types (`int`, `double`, `num`, `String`, `bool`).
 ///
@@ -231,6 +117,13 @@ bool isOperatorMethodName(String name) {
       return true;
   }
   return false;
+}
+
+bool isFromEnvironmentInvocation(CoreTypes coreTypes, StaticInvocation node) {
+  var target = node.target;
+  return node.isConst &&
+      target.name.name == 'fromEnvironment' &&
+      target.enclosingLibrary == coreTypes.coreLibrary;
 }
 
 /// Returns true if this class is of the form:

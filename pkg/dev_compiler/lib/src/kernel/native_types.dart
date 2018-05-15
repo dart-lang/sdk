@@ -5,8 +5,7 @@
 import 'dart:collection';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
-import 'package:kernel/library_index.dart';
-import 'kernel_helpers.dart' show getNameFromAnnotation;
+import 'constants.dart';
 
 /// Contains information about native JS types (those types provided by the
 /// implementation) that are also provided by the Dart SDK.
@@ -27,7 +26,7 @@ import 'kernel_helpers.dart' show getNameFromAnnotation;
 /// `first` to the `Array.prototype`.
 class NativeTypeSet {
   final CoreTypes coreTypes;
-  final LibraryIndex sdk;
+  final DevCompilerConstants constants;
 
   // Abstract types that may be implemented by both native and non-native
   // classes.
@@ -37,9 +36,7 @@ class NativeTypeSet {
   final _nativeTypes = new HashSet<Class>.identity();
   final _pendingLibraries = new HashSet<Library>.identity();
 
-  NativeTypeSet(Component component)
-      : sdk = new LibraryIndex.coreLibraries(component),
-        coreTypes = new CoreTypes(component) {
+  NativeTypeSet(this.coreTypes, this.constants) {
     // First, core types:
     // TODO(vsm): If we're analyzing against the main SDK, those
     // types are not explicitly annotated.
@@ -48,6 +45,8 @@ class NativeTypeSet {
     _addExtensionType(coreTypes.doubleClass, true);
     _addExtensionType(coreTypes.boolClass, true);
     _addExtensionType(coreTypes.stringClass, true);
+
+    var sdk = coreTypes.index;
     _addExtensionTypes(sdk.getLibrary('dart:_interceptors'));
     _addExtensionTypes(sdk.getLibrary('dart:_native_typed_data'));
 
@@ -82,6 +81,7 @@ class NativeTypeSet {
   }
 
   void _addExtensionTypesForLibrary(String library, List<String> classNames) {
+    var sdk = coreTypes.index;
     for (var className in classNames) {
       _addExtensionType(sdk.getClass(library, className), true);
     }
@@ -125,7 +125,7 @@ class NativeTypeSet {
   /// referring to the JavaScript built-in `Array` type.
   List<String> getNativePeers(Class c) {
     if (c == coreTypes.objectClass) return ['Object'];
-    var names = getNameFromAnnotation(_getNativeAnnotation(c));
+    var names = constants.getNameFromAnnotation(_getNativeAnnotation(c));
     if (names == null) return const [];
 
     // Omit the special name "!nonleaf" and any future hacks starting with "!"
