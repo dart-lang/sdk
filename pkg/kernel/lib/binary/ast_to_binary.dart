@@ -2019,59 +2019,32 @@ class ConstantIndexer extends RecursiveVisitor {
 
   ConstantIndexer(this.stringIndexer);
 
-  defaultConstantReference(Constant node) {
-    put(node);
-  }
-
   int put(Constant constant) {
-    final int value = index[constant];
-    if (value != null) return value;
+    final int oldIndex = index[constant];
+    if (oldIndex != null) return oldIndex;
 
     // Traverse DAG in post-order to ensure children have their id's assigned
     // before the parent.
-    return constant.accept(this);
-  }
+    constant.visitChildren(this);
 
-  defaultConstant(Constant node) {
-    final int oldIndex = index[node];
-    if (oldIndex != null) return oldIndex;
-
-    if (node is StringConstant) {
-      stringIndexer.put(node.value);
-    } else if (node is DoubleConstant) {
-      stringIndexer.put('${node.value}');
-    } else if (node is IntConstant) {
-      final int value = node.value;
+    if (constant is StringConstant) {
+      stringIndexer.put(constant.value);
+    } else if (constant is DoubleConstant) {
+      stringIndexer.put('${constant.value}');
+    } else if (constant is IntConstant) {
+      final int value = constant.value;
       if ((value.abs() >> 30) != 0) {
         stringIndexer.put('$value');
       }
     }
 
     final int newIndex = entries.length;
-    entries.add(node);
-    return index[node] = newIndex;
+    entries.add(constant);
+    return index[constant] = newIndex;
   }
 
-  visitMapConstant(MapConstant node) {
-    for (final ConstantMapEntry entry in node.entries) {
-      put(entry.key);
-      put(entry.value);
-    }
-    return defaultConstant(node);
-  }
-
-  visitListConstant(ListConstant node) {
-    for (final Constant entry in node.entries) {
-      put(entry);
-    }
-    return defaultConstant(node);
-  }
-
-  visitInstanceConstant(InstanceConstant node) {
-    for (final Constant entry in node.fieldValues.values) {
-      put(entry);
-    }
-    return defaultConstant(node);
+  defaultConstantReference(Constant node) {
+    put(node);
   }
 
   int operator [](Constant node) => index[node];
