@@ -164,6 +164,10 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
 
   Expression thisExpression(Location location);
 
+  /// Return a representation of a throw expression consisting of the
+  /// [throwKeyword].
+  Expression throwExpression(Location throwKeyword, Expression expression);
+
   bool isErroneousNode(Object node);
 
   bool isThisExpression(Object node);

@@ -2169,9 +2169,10 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     if (constantContext != ConstantContext.none) {
       push(deprecated_buildCompileTimeError(
           "Not a constant expression.", throwToken.charOffset));
+      // TODO(brianwilkerson): For analyzer, we need to produce the error above
+      // but then we need to produce the AST as in the `else` clause below.
     } else {
-      push(new ShadowThrow(toKernelExpression(expression))
-        ..fileOffset = offsetForToken(throwToken));
+      push(forest.throwExpression(throwToken, expression));
     }
   }
 

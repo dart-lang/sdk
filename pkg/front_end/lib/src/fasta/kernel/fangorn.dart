@@ -50,6 +50,7 @@ import 'kernel_shadow_ast.dart'
         ShadowSymbolLiteral,
         ShadowSyntheticExpression,
         ShadowThisExpression,
+        ShadowThrow,
         ShadowTypeLiteral;
 
 import 'forest.dart' show Forest;
@@ -249,6 +250,12 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   @override
   Expression thisExpression(Token token) {
     return new ShadowThisExpression()..fileOffset = offsetForToken(token);
+  }
+
+  @override
+  Expression throwExpression(Token throwKeyword, Expression expression) {
+    return new ShadowThrow(expression)
+      ..fileOffset = offsetForToken(throwKeyword);
   }
 
   @override

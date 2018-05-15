@@ -85,12 +85,12 @@ class AstBuildingForest
       astFactory.conditionalExpression(
           condition, question, thenExpression, colon, elseExpression);
 
-  Statement expressionStatement(Expression expression, Token semicolon) =>
-      astFactory.expressionStatement(expression, semicolon);
-
   @override
   Statement emptyStatement(Token semicolon) =>
       astFactory.emptyStatement(semicolon);
+
+  Statement expressionStatement(Expression expression, Token semicolon) =>
+      astFactory.expressionStatement(expression, semicolon);
 
   @override
   kernel.DartType getTypeAt(TypeArgumentList typeArguments, int index) {
@@ -220,6 +220,10 @@ class AstBuildingForest
   @override
   Expression thisExpression(Token thisKeyword) =>
       astFactory.thisExpression(thisKeyword);
+
+  @override
+  Expression throwExpression(Token throwKeyword, Expression expression) =>
+      astFactory.throwExpression(throwKeyword, expression);
 }
 
 /// A data holder used to conform to the [Forest] API.
