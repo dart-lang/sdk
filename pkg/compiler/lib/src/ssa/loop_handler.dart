@@ -7,9 +7,7 @@ import 'package:kernel/ast.dart' as ir;
 import '../closure.dart' show CapturedLoopScope;
 import '../elements/jumps.dart';
 import '../io/source_information.dart';
-import '../tree/tree.dart' as ast;
 
-import 'builder.dart';
 import 'builder_kernel.dart';
 import 'graph_builder.dart';
 import 'jump_handler.dart';
@@ -310,35 +308,6 @@ abstract class LoopHandler<T> {
   /// continue statements from simple switch statements.
   JumpHandler createJumpHandler(T node, JumpTarget jumpTarget,
       {bool isLoopJump});
-}
-
-/// A loop handler for the builder that just uses AST nodes directly.
-class SsaLoopHandler extends LoopHandler<ast.Node> {
-  final SsaAstGraphBuilder builder;
-
-  SsaLoopHandler(SsaAstGraphBuilder builder)
-      : this.builder = builder,
-        super(builder);
-
-  @override
-  int loopKind(ast.Node node) => node.accept(const _SsaLoopTypeVisitor());
-
-  @override
-  JumpHandler createJumpHandler(ast.Node node, JumpTarget jumpTarget,
-          {bool isLoopJump}) =>
-      builder.createJumpHandler(node, jumpTarget, isLoopJump: isLoopJump);
-}
-
-class _SsaLoopTypeVisitor extends ast.Visitor {
-  const _SsaLoopTypeVisitor();
-  int visitNode(ast.Node node) => HLoopBlockInformation.NOT_A_LOOP;
-  int visitWhile(ast.While node) => HLoopBlockInformation.WHILE_LOOP;
-  int visitFor(ast.For node) => HLoopBlockInformation.FOR_LOOP;
-  int visitDoWhile(ast.DoWhile node) => HLoopBlockInformation.DO_WHILE_LOOP;
-  int visitAsyncForIn(ast.AsyncForIn node) => HLoopBlockInformation.FOR_IN_LOOP;
-  int visitSyncForIn(ast.SyncForIn node) => HLoopBlockInformation.FOR_IN_LOOP;
-  int visitSwitchStatement(ast.SwitchStatement node) =>
-      HLoopBlockInformation.SWITCH_CONTINUE_LOOP;
 }
 
 // TODO(het): Since kernel simplifies loop breaks and continues, we should

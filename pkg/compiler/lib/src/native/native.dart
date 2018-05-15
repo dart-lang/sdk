@@ -8,7 +8,6 @@ export 'behavior.dart';
 export 'enqueue.dart';
 export 'js.dart';
 export 'scanner.dart';
-export 'ssa.dart';
 
 const Iterable<String> _allowedDartSchemePaths = const <String>[
   'async',
