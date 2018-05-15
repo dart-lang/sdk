@@ -1613,14 +1613,8 @@
           "tests": ["pkg_tested"]
         },
         {
-          "name": "pub get dependencies",
-          "arguments": [
-            "--use-sdk",
-            "--compiler=none",
-            "--runtime=vm",
-            "--checked"
-          ],
-          "tests": ["pkgbuild"]
+          "name": "pub integration tests",
+          "script": "tools/bots/pub_integration_test.py"
         }
       ]
     },
