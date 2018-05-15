@@ -15034,6 +15034,18 @@ main() {
     expect(statement.elseStatement, isNotNull);
   }
 
+  void test_parseIfStatement_else_emptyStatements() {
+    var statement = parseStatement('if (true) ; else ;') as IfStatement;
+    assertNoErrors();
+    expect(statement.ifKeyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
+    expect(statement.condition, isNotNull);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.thenStatement, isNotNull);
+    expect(statement.elseKeyword, isNotNull);
+    expect(statement.elseStatement, isNotNull);
+  }
+
   void test_parseIfStatement_else_statement() {
     var statement = parseStatement('if (x) f(x); else f(y);') as IfStatement;
     assertNoErrors();

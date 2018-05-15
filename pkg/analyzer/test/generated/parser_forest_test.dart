@@ -5172,6 +5172,11 @@ class StatementParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
+  void test_parseIfStatement_else_emptyStatements() {
+    super.test_parseIfStatement_else_emptyStatements();
+  }
+
+  @failingTest
   void test_parseIfStatement_else_statement() {
     super.test_parseIfStatement_else_statement();
   }

@@ -102,6 +102,19 @@ class AstBuildingForest
       typeArguments.arguments.length;
 
   @override
+  Statement ifStatement(Token ifKeyword, ParenthesizedExpression condition,
+      Statement thenStatement, Token elseKeyword, Statement elseStatement) {
+    return astFactory.ifStatement(
+        ifKeyword,
+        condition.leftParenthesis,
+        condition.expression,
+        condition.rightParenthesis,
+        thenStatement,
+        elseKeyword,
+        elseStatement);
+  }
+
+  @override
   bool isErroneousNode(covariant node) => false /* ??? */;
 
   @override

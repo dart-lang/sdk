@@ -1659,9 +1659,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     Statement thenPart = popStatement();
     Expression condition = pop();
     typePromoter.exitConditional();
-    push(new ShadowIfStatement(toKernelExpression(condition),
-        toKernelStatement(thenPart), toKernelStatement(elsePart))
-      ..fileOffset = ifToken.charOffset);
+    push(forest.ifStatement(ifToken, condition, thenPart, elseToken, elsePart));
   }
 
   @override
