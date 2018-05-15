@@ -111,18 +111,16 @@ void convertChildToChildren2(
  * [newExpr], or `null` if none.
  */
 NamedExpression findChildArgument(InstanceCreationExpression newExpr) =>
-    newExpr.argumentList.arguments.firstWhere(
-        (arg) => arg is NamedExpression && arg.name.label.name == 'child',
-        orElse: () => null);
+    newExpr.argumentList.arguments
+        .firstWhere(isChildArgument, orElse: () => null);
 
 /**
  * Return the named expression representing the `children` argument of the
  * given [newExpr], or `null` if none.
  */
 NamedExpression findChildrenArgument(InstanceCreationExpression newExpr) =>
-    newExpr.argumentList.arguments.firstWhere(
-        (arg) => arg is NamedExpression && arg.name.label.name == 'children',
-        orElse: () => null);
+    newExpr.argumentList.arguments
+        .firstWhere(isChildrenArgument, orElse: () => null);
 
 /**
  * Return the Flutter instance creation expression that is the value of the
@@ -244,6 +242,18 @@ Expression identifyWidgetExpression(AstNode node) {
 }
 
 /**
+ * Return `true` is the given [argument] is the `child` argument.
+ */
+bool isChildArgument(Expression argument) =>
+    argument is NamedExpression && argument.name.label.name == 'child';
+
+/**
+ * Return `true` is the given [argument] is the `child` argument.
+ */
+bool isChildrenArgument(Expression argument) =>
+    argument is NamedExpression && argument.name.label.name == 'children';
+
+/**
  * Return `true` if the given [type] is the Flutter class `StatefulWidget`.
  */
 bool isExactlyStatefulWidgetType(DartType type) {
@@ -331,6 +341,9 @@ bool isWidgetCreation(InstanceCreationExpression expr) {
  * subtype.
  */
 bool isWidgetExpression(AstNode node) {
+  if (node == null) {
+    return false;
+  }
   if (node?.parent is TypeName || node?.parent?.parent is TypeName) {
     return false;
   }

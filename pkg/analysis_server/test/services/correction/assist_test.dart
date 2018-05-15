@@ -3405,6 +3405,7 @@ build() {
   return new Scaffold(
 // start
     body: new Center(
+      key: null,
       child: new /*caret*/GestureDetector(
         onTap: () => startResize(),
         child: new Container(
@@ -3412,13 +3413,64 @@ build() {
           height: 300.0,
         ),
       ),
-      key: null,
     ),
 // end
   );
 }
 startResize() {}
 ''');
+  }
+
+  test_flutterSwapWithChild_OK_notFormatted() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+
+class Foo extends StatefulWidget {
+  @override
+  _State createState() => new _State();
+}
+
+class _State extends State<Foo> {
+  @override
+  Widget build(BuildContext context) {
+    return new /*caret*/Expanded(
+      flex: 2,
+      child: new GestureDetector(
+        child: new Text(
+          'foo',
+        ), onTap: () {
+          print(42);
+      },
+      ),
+    );
+  }
+}''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_SWAP_WITH_CHILD, '''
+import 'package:flutter/material.dart';
+
+class Foo extends StatefulWidget {
+  @override
+  _State createState() => new _State();
+}
+
+class _State extends State<Foo> {
+  @override
+  Widget build(BuildContext context) {
+    return new GestureDetector(
+      onTap: () {
+        print(42);
+    },
+      child: new /*caret*/Expanded(
+        flex: 2,
+        child: new Text(
+          'foo',
+        ),
+      ),
+    );
+  }
+}''');
   }
 
   test_flutterSwapWithParent_OK() async {
@@ -3452,11 +3504,11 @@ build() {
     body: new /*caret*/GestureDetector(
       onTap: () => startResize(),
       child: new Center(
+        key: null,
         child: new Container(
           width: 200.0,
           height: 300.0,
         ),
-        key: null,
       ),
     ),
 // end
@@ -3464,6 +3516,58 @@ build() {
 }
 startResize() {}
 ''');
+  }
+
+  test_flutterSwapWithParent_OK_notFormatted() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+
+class Foo extends StatefulWidget {
+  @override
+  _State createState() => new _State();
+}
+
+class _State extends State<Foo> {
+  @override
+  Widget build(BuildContext context) {
+    return new GestureDetector(
+      child: new /*caret*/Expanded(
+        child: new Text(
+          'foo',
+        ),
+        flex: 2,
+      ), onTap: () {
+        print(42);
+    },
+    );
+  }
+}''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_SWAP_WITH_PARENT, '''
+import 'package:flutter/material.dart';
+
+class Foo extends StatefulWidget {
+  @override
+  _State createState() => new _State();
+}
+
+class _State extends State<Foo> {
+  @override
+  Widget build(BuildContext context) {
+    return new /*caret*/Expanded(
+      flex: 2,
+      child: new GestureDetector(
+        onTap: () {
+          print(42);
+      },
+        child: new Text(
+          'foo',
+        ),
+      ),
+    );
+  }
+}''');
   }
 
   test_flutterSwapWithParent_OK_outerIsInChildren() async {

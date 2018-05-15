@@ -1578,71 +1578,41 @@ class AssistProcessor {
   }
 
   Future<Null> _addProposal_flutterSwapWithChild() async {
-    InstanceCreationExpression exprGoingDown =
-        flutter.identifyNewExpression(node);
-    if (exprGoingDown == null || !flutter.isWidgetCreation(exprGoingDown)) {
+    InstanceCreationExpression parent = flutter.identifyNewExpression(node);
+    if (!flutter.isWidgetCreation(parent)) {
       _coverageMarker();
       return;
     }
-    InstanceCreationExpression exprGoingUp =
-        flutter.findChildWidget(exprGoingDown);
-    if (exprGoingUp == null) {
+
+    NamedExpression childArgument = flutter.findChildArgument(parent);
+    if (childArgument?.expression is! InstanceCreationExpression ||
+        !flutter.isWidgetCreation(childArgument.expression)) {
       _coverageMarker();
       return;
     }
-    NamedExpression stableChild = flutter.findChildArgument(exprGoingUp);
-    if (stableChild == null || stableChild.expression == null) {
-      _coverageMarker();
-      return;
-    }
-    String exprGoingDownSrc = utils.getNodeText(exprGoingDown);
-    int dnNewlineIdx = exprGoingDownSrc.lastIndexOf(eol);
-    if (dnNewlineIdx < 0 || dnNewlineIdx == exprGoingDownSrc.length - 1) {
-      _coverageMarker();
-      return; // Outer new-expr needs to be in multi-line format already.
-    }
-    String exprGoingUpSrc = utils.getNodeText(exprGoingUp);
-    int upNewlineIdx = exprGoingUpSrc.lastIndexOf(eol);
-    if (upNewlineIdx < 0 || upNewlineIdx == exprGoingUpSrc.length - 1) {
-      _coverageMarker();
-      return; // Inner new-expr needs to be in multi-line format already.
-    }
-    await _swapFlutterWidgets(exprGoingDown, exprGoingUp, stableChild,
-        DartAssistKind.FLUTTER_SWAP_WITH_CHILD);
+    InstanceCreationExpression child = childArgument.expression;
+
+    await _swapParentAndChild(
+        parent, child, DartAssistKind.FLUTTER_SWAP_WITH_CHILD);
   }
 
   Future<Null> _addProposal_flutterSwapWithParent() async {
-    InstanceCreationExpression exprGoingUp =
-        flutter.identifyNewExpression(node);
-    if (exprGoingUp == null || !flutter.isWidgetCreation(exprGoingUp)) {
+    InstanceCreationExpression child = flutter.identifyNewExpression(node);
+    if (!flutter.isWidgetCreation(child)) {
       _coverageMarker();
       return;
     }
-    AstNode expr = exprGoingUp.parent?.parent?.parent;
-    if (expr == null || expr is! InstanceCreationExpression) {
+
+    // NamedExpression (child:), ArgumentList, InstanceCreationExpression
+    AstNode expr = child.parent?.parent?.parent;
+    if (expr is! InstanceCreationExpression) {
       _coverageMarker();
       return;
     }
-    InstanceCreationExpression exprGoingDown = expr;
-    NamedExpression stableChild = flutter.findChildArgument(exprGoingUp);
-    if (stableChild == null || stableChild.expression == null) {
-      _coverageMarker();
-      return;
-    }
-    String exprGoingUpSrc = utils.getNodeText(exprGoingUp);
-    int upNewlineIdx = exprGoingUpSrc.lastIndexOf(eol);
-    if (upNewlineIdx < 0 || upNewlineIdx == exprGoingUpSrc.length - 1) {
-      _coverageMarker();
-      return; // Inner new-expr needs to be in multi-line format already.
-    }
-    String exprGoingDownSrc = utils.getNodeText(exprGoingDown);
-    int dnNewlineIdx = exprGoingDownSrc.lastIndexOf(eol);
-    if (dnNewlineIdx < 0 || dnNewlineIdx == exprGoingDownSrc.length - 1) {
-      _coverageMarker();
-      return; // Outer new-expr needs to be in multi-line format already.
-    }
-    await _swapFlutterWidgets(exprGoingDown, exprGoingUp, stableChild,
-        DartAssistKind.FLUTTER_SWAP_WITH_PARENT);
+    InstanceCreationExpression parent = expr;
+
+    await _swapParentAndChild(
+        parent, child, DartAssistKind.FLUTTER_SWAP_WITH_PARENT);
   }
 
   Future<Null> _addProposal_flutterWrapWidget() async {
@@ -2085,7 +2055,8 @@ class AssistProcessor {
     if (node is SimpleIdentifier &&
         node.parent is AssignmentExpression &&
         (node.parent as AssignmentExpression).leftHandSide == node &&
-        node.parent.parent is ExpressionStatement) {} else {
+        node.parent.parent is ExpressionStatement) {
+    } else {
       _coverageMarker();
       return;
     }
@@ -2107,7 +2078,8 @@ class AssistProcessor {
         declNode.parent is VariableDeclaration &&
         (declNode.parent as VariableDeclaration).name == declNode &&
         declNode.parent.parent is VariableDeclarationList &&
-        declNode.parent.parent.parent is VariableDeclarationStatement) {} else {
+        declNode.parent.parent.parent is VariableDeclarationStatement) {
+    } else {
       _coverageMarker();
       return;
     }
@@ -2129,7 +2101,8 @@ class AssistProcessor {
     ExpressionStatement assignStatement =
         node.parent.parent as ExpressionStatement;
     if (assignStatement.parent is Block &&
-        assignStatement.parent == declStatement.parent) {} else {
+        assignStatement.parent == declStatement.parent) {
+    } else {
       _coverageMarker();
       return;
     }
@@ -2137,7 +2110,8 @@ class AssistProcessor {
     // check that "declaration" and "assignment" statements are adjacent
     List<Statement> statements = block.statements;
     if (statements.indexOf(assignStatement) ==
-        statements.indexOf(declStatement) + 1) {} else {
+        statements.indexOf(declStatement) + 1) {
+    } else {
       _coverageMarker();
       return;
     }
@@ -2155,7 +2129,8 @@ class AssistProcessor {
     // prepare enclosing VariableDeclarationList
     VariableDeclarationList declList =
         node.getAncestor((node) => node is VariableDeclarationList);
-    if (declList != null && declList.variables.length == 1) {} else {
+    if (declList != null && declList.variables.length == 1) {
+    } else {
       _coverageMarker();
       return;
     }
@@ -2167,7 +2142,8 @@ class AssistProcessor {
     }
     // prepare VariableDeclarationStatement in Block
     if (declList.parent is VariableDeclarationStatement &&
-        declList.parent.parent is Block) {} else {
+        declList.parent.parent is Block) {
+    } else {
       _coverageMarker();
       return;
     }
@@ -2180,20 +2156,23 @@ class AssistProcessor {
     {
       // declaration should not be last Statement
       int declIndex = statements.indexOf(declStatement);
-      if (declIndex < statements.length - 1) {} else {
+      if (declIndex < statements.length - 1) {
+      } else {
         _coverageMarker();
         return;
       }
       // next Statement should be assignment
       Statement assignStatement = statements[declIndex + 1];
-      if (assignStatement is ExpressionStatement) {} else {
+      if (assignStatement is ExpressionStatement) {
+      } else {
         _coverageMarker();
         return;
       }
       ExpressionStatement expressionStatement =
           assignStatement as ExpressionStatement;
       // expression should be assignment
-      if (expressionStatement.expression is AssignmentExpression) {} else {
+      if (expressionStatement.expression is AssignmentExpression) {
+      } else {
         _coverageMarker();
         return;
       }
@@ -2570,7 +2549,8 @@ class AssistProcessor {
     // prepare DartVariableStatement, should be part of Block
     VariableDeclarationStatement statement =
         node.getAncestor((node) => node is VariableDeclarationStatement);
-    if (statement != null && statement.parent is Block) {} else {
+    if (statement != null && statement.parent is Block) {
+    } else {
       _coverageMarker();
       return;
     }
@@ -3011,87 +2991,84 @@ class AssistProcessor {
     return utils.getRangeText(range);
   }
 
-  Future<Null> _swapFlutterWidgets(
-      InstanceCreationExpression exprGoingDown,
-      InstanceCreationExpression exprGoingUp,
-      NamedExpression stableChild,
-      AssistKind assistKind) async {
-    String currentSource = unitElement.context.getContents(source).data;
-    // TODO(messick) Find a better way to get LineInfo for the source.
-    LineInfo lineInfo = new LineInfo.fromContent(currentSource);
-    int currLn = lineInfo.getLocation(exprGoingUp.offset).lineNumber;
-    int lnOffset = lineInfo.getOffsetOfLine(currLn);
+  Future<void> _swapParentAndChild(InstanceCreationExpression parent,
+      InstanceCreationExpression child, AssistKind kind) async {
+    // The child must have its own child.
+    if (flutter.findChildArgument(child) == null) {
+      _coverageMarker();
+      return;
+    }
 
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addReplacement(range.node(exprGoingDown),
-          (DartEditBuilder builder) {
-        String argSrc =
-            utils.getText(exprGoingUp.offset, lnOffset - exprGoingUp.offset);
-        builder.write(argSrc); // Append child new-expr plus rest of line.
+    var changeBuilder = new DartChangeBuilder(session);
+    await changeBuilder.addFileEdit(file, (builder) {
+      builder.addReplacement(range.node(parent), (builder) {
+        var childArgs = child.argumentList;
+        var parentArgs = parent.argumentList;
+        var childText = _getRangeText(range.startStart(child, childArgs));
+        var parentText = _getRangeText(range.startStart(parent, parentArgs));
 
-        String getSrc(Expression expr) {
-          int startLn = lineInfo.getLocation(expr.offset).lineNumber;
-          int startOffset = lineInfo.getOffsetOfLine(startLn - 1);
-          int endLn =
-              lineInfo.getLocation(expr.offset + expr.length).lineNumber + 1;
-          int curOffset = lineInfo.getOffsetOfLine(endLn - 1);
-          return utils.getText(startOffset, curOffset - startOffset);
+        var parentIndent = utils.getLinePrefix(parent.offset);
+        var childIndent = parentIndent + '  ';
+
+        // Write the beginning of the child.
+        builder.write(childText);
+        builder.writeln('(');
+
+        // Write all the arguments of the parent.
+        // Don't write the "child".
+        Expression stableChild;
+        for (Expression argument in childArgs.arguments) {
+          if (flutter.isChildArgument(argument)) {
+            stableChild = argument;
+          } else {
+            String text = _getNodeText(argument);
+            text = _replaceSourceIndent(text, childIndent, parentIndent);
+            builder.write(parentIndent);
+            builder.write('  ');
+            builder.write(text);
+            builder.writeln(',');
+          }
         }
 
-        String outerIndent = utils.getLinePrefix(exprGoingDown.offset);
-        String innerIndent = utils.getLinePrefix(exprGoingUp.offset);
-        exprGoingUp.argumentList.arguments.forEach((arg) {
-          if (arg is NamedExpression && arg.name.label.name == 'child') {
-            if (stableChild != arg) {
-              _coverageMarker();
-              return;
-            }
-            // Insert exprGoingDown here.
-            // Copy from start of line to offset of exprGoingDown.
-            currLn = lineInfo.getLocation(stableChild.offset).lineNumber;
-            lnOffset = lineInfo.getOffsetOfLine(currLn - 1);
-            argSrc = utils.getText(
-                lnOffset, stableChild.expression.offset - lnOffset);
-            argSrc = _replaceSourceIndent(argSrc, innerIndent, outerIndent);
-            builder.write(argSrc);
-            int nextLn = lineInfo.getLocation(exprGoingDown.offset).lineNumber;
-            lnOffset = lineInfo.getOffsetOfLine(nextLn);
-            argSrc = utils.getText(
-                exprGoingDown.offset, lnOffset - exprGoingDown.offset);
-            builder.write(argSrc);
+        // Write the parent as a new child.
+        builder.write(parentIndent);
+        builder.write('  ');
+        builder.write('child: ');
+        builder.write(parentText);
+        builder.writeln('(');
 
-            exprGoingDown.argumentList.arguments.forEach((val) {
-              if (val is NamedExpression && val.name.label.name == 'child') {
-                // Insert stableChild here at same indent level.
-                builder.write(utils.getNodePrefix(arg.name));
-                argSrc = utils.getNodeText(stableChild);
-                builder.write(argSrc);
-                if (assistKind == DartAssistKind.FLUTTER_SWAP_WITH_PARENT) {
-                  builder.write(',$eol');
-                }
-              } else {
-                argSrc = getSrc(val);
-                argSrc = _replaceSourceIndent(argSrc, outerIndent, innerIndent);
-                builder.write(argSrc);
-              }
-            });
-            if (assistKind == DartAssistKind.FLUTTER_SWAP_WITH_CHILD) {
-              builder.write(',$eol');
-            }
-            builder.write(innerIndent);
-            builder.write('),$eol');
-          } else {
-            argSrc = getSrc(arg);
-            argSrc = _replaceSourceIndent(argSrc, innerIndent, outerIndent);
-            builder.write(argSrc);
+        // Write all arguments of the parent.
+        // Don't write its child.
+        for (Expression argument in parentArgs.arguments) {
+          if (!flutter.isChildArgument(argument)) {
+            String text = _getNodeText(argument);
+            text = _replaceSourceIndent(text, parentIndent, childIndent);
+            builder.write(childIndent);
+            builder.write('  ');
+            builder.write(text);
+            builder.writeln(',');
           }
-        });
-        builder.write(outerIndent);
+        }
+
+        // Write the child of the "child" now, as the child of the "parent".
+        {
+          var text = _getNodeText(stableChild);
+          builder.write(childIndent);
+          builder.write('  ');
+          builder.write(text);
+          builder.writeln(',');
+        }
+
+        // Close the parent expression.
+        builder.write(childIndent);
+        builder.writeln('),');
+
+        // Close the child expression.
+        builder.write(parentIndent);
         builder.write(')');
       });
     });
-    _addAssistFromBuilder(changeBuilder, assistKind);
+    _addAssistFromBuilder(changeBuilder, kind);
   }
 
   /**
