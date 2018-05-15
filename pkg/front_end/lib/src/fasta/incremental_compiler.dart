@@ -8,6 +8,8 @@ import 'dart:async' show Future;
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+
 import '../api_prototype/file_system.dart' show FileSystemEntity;
 
 import 'package:kernel/kernel.dart'
@@ -143,14 +145,29 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         invalidatedUris.add(entryPoint);
       }
 
-      List<LibraryBuilder> reusedLibraries =
-          computeReusedLibraries(invalidatedUris, uriTranslator);
+      ClassHierarchy hierarchy = userCode?.loader?.hierarchy;
+      Set<LibraryBuilder> notReusedLibraries;
+      if (hierarchy != null) {
+        notReusedLibraries = new Set<LibraryBuilder>();
+      }
+      List<LibraryBuilder> reusedLibraries = computeReusedLibraries(
+          invalidatedUris, uriTranslator,
+          notReused: notReusedLibraries);
       Set<Uri> reusedLibraryUris =
           new Set<Uri>.from(reusedLibraries.map((b) => b.uri));
       for (Uri uri in new Set<Uri>.from(dillLoadedData.loader.builders.keys)
         ..removeAll(reusedLibraryUris)) {
         dillLoadedData.loader.builders.remove(uri);
         userBuilders?.remove(uri);
+      }
+
+      if (hierarchy != null) {
+        List<Class> removedClasses = new List<Class>();
+        for (LibraryBuilder builder in notReusedLibraries) {
+          Library lib = builder.target;
+          removedClasses.addAll(lib.classes);
+        }
+        hierarchy.applyTreeChanges(removedClasses, const []);
       }
 
       if (userCode != null) {
@@ -170,6 +187,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           dillLoadedData,
           uriTranslator,
           uriToSource: c.uriToSource);
+      userCode.loader.hierarchy = hierarchy;
 
       for (LibraryBuilder library in reusedLibraries) {
         userCode.loader.builders[library.uri] = library;
@@ -217,9 +235,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       List<Library> outputLibraries;
       if (data.includeUserLoadedLibraries || fullComponent) {
-        outputLibraries = computeTransitiveClosure(
-            compiledLibraries, mainMethod, entryPoint, reusedLibraries, data);
+        outputLibraries = computeTransitiveClosure(compiledLibraries,
+            mainMethod, entryPoint, reusedLibraries, data, hierarchy);
       } else {
+        computeTransitiveClosure(compiledLibraries, mainMethod, entryPoint,
+            reusedLibraries, data, hierarchy);
         outputLibraries = compiledLibraries;
       }
 
@@ -239,7 +259,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       Procedure mainMethod,
       Uri entry,
       List<LibraryBuilder> reusedLibraries,
-      IncrementalCompilerData data) {
+      IncrementalCompilerData data,
+      ClassHierarchy hierarchy) {
     List<Library> result = new List<Library>.from(inputLibraries);
     Map<Uri, Library> libraryMap = <Uri, Library>{};
     for (Library library in inputLibraries) {
@@ -274,10 +295,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
     }
 
+    List<Class> removedClasses = new List<Class>();
     for (Uri uri in potentiallyReferencedLibraries.keys) {
       if (uri.scheme == "package") continue;
-      userCode.loader.builders.remove(uri);
+      LibraryBuilder builder = userCode.loader.builders.remove(uri);
+      if (builder != null) {
+        Library lib = builder.target;
+        removedClasses.addAll(lib.classes);
+      }
     }
+    hierarchy?.applyTreeChanges(removedClasses, const []);
 
     return result;
   }
@@ -459,7 +486,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }
 
   List<LibraryBuilder> computeReusedLibraries(
-      Set<Uri> invalidatedUris, UriTranslator uriTranslator) {
+      Set<Uri> invalidatedUris, UriTranslator uriTranslator,
+      {Set<LibraryBuilder> notReused}) {
     if (userCode == null && userBuilders == null) {
       return <LibraryBuilder>[];
     }
@@ -547,6 +575,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             workList.add(dependency);
           }
         }
+        notReused?.add(current);
       }
     }
 

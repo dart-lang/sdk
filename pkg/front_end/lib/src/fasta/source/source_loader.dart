@@ -20,7 +20,8 @@ import 'package:kernel/ast.dart'
         ProcedureKind,
         Supertype;
 
-import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+import 'package:kernel/class_hierarchy.dart'
+    show ClassHierarchy, HandleAmbiguousSupertypes;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
@@ -619,17 +620,38 @@ class SourceLoader<L> extends Loader<L> {
     return new Component()..libraries.addAll(libraries);
   }
 
+  List<Class> computeListOfLoaderClasses() {
+    List<Class> result = <Class>[];
+    builders.forEach((Uri uri, LibraryBuilder libraryBuilder) {
+      if (!libraryBuilder.isPart &&
+          !libraryBuilder.isPatch &&
+          (libraryBuilder.loader == this)) {
+        Library library = libraryBuilder.target;
+        result.addAll(library.classes);
+      }
+    });
+    return result;
+  }
+
   void computeHierarchy() {
     List<List> ambiguousTypesRecords = [];
-    hierarchy = new ClassHierarchy(computeFullComponent(),
-        onAmbiguousSupertypes: (Class cls, Supertype a, Supertype b) {
+    HandleAmbiguousSupertypes onAmbiguousSupertypes =
+        (Class cls, Supertype a, Supertype b) {
       if (ambiguousTypesRecords != null) {
         ambiguousTypesRecords.add([cls, a, b]);
       }
-    },
-        mixinInferrer: target.strongMode
-            ? new StrongModeMixinInferrer(this)
-            : new LegacyModeMixinInferrer());
+    };
+    if (hierarchy == null) {
+      hierarchy = new ClassHierarchy(computeFullComponent(),
+          onAmbiguousSupertypes: onAmbiguousSupertypes,
+          mixinInferrer: target.strongMode
+              ? new StrongModeMixinInferrer(this)
+              : new LegacyModeMixinInferrer());
+    } else {
+      hierarchy.onAmbiguousSupertypes = onAmbiguousSupertypes;
+      hierarchy.applyTreeChanges(const [], computeListOfLoaderClasses(),
+          reissueOldAmbiguousSupertypesFor: computeFullComponent());
+    }
     for (List record in ambiguousTypesRecords) {
       handleAmbiguousSupertypes(record[0], record[1], record[2]);
     }
@@ -736,11 +758,27 @@ class SourceLoader<L> extends Loader<L> {
   /// assign their types.
   void performTopLevelInference(List<SourceClassBuilder> sourceClasses) {
     typeInferenceEngine.finishTopLevelFields();
+    List<Class> changedClasses = new List<Class>();
     for (var builder in orderedClasses) {
       ShadowClass class_ = builder.target;
+      int memberCount = class_.fields.length +
+          class_.constructors.length +
+          class_.procedures.length +
+          class_.redirectingFactoryConstructors.length;
       class_.finalizeCovariance(interfaceResolver);
       ShadowClass.clearClassInferenceInfo(class_);
+      int newMemberCount = class_.fields.length +
+          class_.constructors.length +
+          class_.procedures.length +
+          class_.redirectingFactoryConstructors.length;
+      if (newMemberCount != memberCount) {
+        // The inference potentially adds new members (but doesn't otherwise
+        // change the classes), so if the member count has changed we need to
+        // update the class in the class hierarchy.
+        changedClasses.add(class_);
+      }
     }
+
     orderedClasses = null;
     typeInferenceEngine.finishTopLevelInitializingFormals();
     if (instrumentation != null) {
@@ -754,11 +792,8 @@ class SourceLoader<L> extends Loader<L> {
     // Since finalization of covariance may have added forwarding stubs, we need
     // to recompute the class hierarchy so that method compilation will properly
     // target those forwarding stubs.
-    // TODO(paulberry): could we make this unnecessary by not clearing class
-    // inference info?
-    typeInferenceEngine.classHierarchy = hierarchy = new ClassHierarchy(
-        computeFullComponent(),
-        onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
+    hierarchy.onAmbiguousSupertypes = ignoreAmbiguousSupertypes;
+    hierarchy.applyMemberChanges(changedClasses, findDecendants: true);
     ticker.logMs("Performed top level inference");
   }
 

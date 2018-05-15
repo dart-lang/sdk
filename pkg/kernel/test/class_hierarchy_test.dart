@@ -23,7 +23,7 @@ class ClosedWorldClassHierarchyTest extends _ClassHierarchyTest {
     return new ClassHierarchy(component);
   }
 
-  void test_applyChanges() {
+  void test_applyTreeChanges() {
     var a = addClass(new Class(name: 'A', supertype: objectSuper));
     var b = addClass(new Class(name: 'B', supertype: a.asThisSupertype));
 
@@ -33,20 +33,65 @@ class B extends self::A {}
 ''');
 
     // No updated classes, the same hierarchy.
-    expect(hierarchy.applyChanges([], []), same(hierarchy));
+    expect(hierarchy.applyTreeChanges([], []), same(hierarchy));
     expect(hierarchy.hasProperSubtypes(a), true);
 
     // Has updated classes, still the same hierarchy (instance). Can answer
     // queries about the new classes.
     var c = new Class(name: 'C', supertype: a.asThisSupertype);
-    expect(hierarchy.applyChanges([b], [c]), same(hierarchy));
+    expect(hierarchy.applyTreeChanges([b], [c]), same(hierarchy));
     expect(hierarchy.isSubclassOf(a, c), false);
     expect(hierarchy.isSubclassOf(c, a), true);
     expect(hierarchy.hasProperSubtypes(a), true);
 
     // Remove so A should no longer be a super of anything.
-    expect(hierarchy.applyChanges([c], []), same(hierarchy));
+    expect(hierarchy.applyTreeChanges([c], []), same(hierarchy));
     expect(hierarchy.hasProperSubtypes(a), false);
+  }
+
+  void test_applyMemberChanges() {
+    var methodA1 = newEmptyMethod('memberA1');
+    var methodA2 = newEmptyMethod('memberA2');
+    var methodA3 = newEmptyMethod('memberA3');
+    var methodB1 = newEmptyMethod('memberB1');
+
+    var a = addClass(new Class(
+        name: 'A', supertype: objectSuper, procedures: [methodA1, methodA2]));
+    var b = addClass(new Class(
+        name: 'B', supertype: a.asThisSupertype, procedures: [methodB1]));
+
+    _assertTestLibraryText('''
+class A {
+  method memberA1() → void {}
+  method memberA2() → void {}
+}
+class B extends self::A {
+  method memberB1() → void {}
+}
+''');
+
+    // No changes: B has memberA1, memberA2 and memberB1;
+    // A has memberA1 and memberA2
+    expect(hierarchy.getDispatchTargets(b),
+        unorderedEquals([methodA1, methodA2, methodB1]));
+    expect(
+        hierarchy.getDispatchTargets(a), unorderedEquals([methodA1, methodA2]));
+
+    // Add a member to A, but only update A.
+    a.addMember(methodA3);
+    hierarchy.applyMemberChanges([a]);
+    expect(hierarchy.getDispatchTargets(b),
+        unorderedEquals([methodA1, methodA2, methodB1]));
+    expect(hierarchy.getDispatchTargets(a),
+        unorderedEquals([methodA1, methodA2, methodA3]));
+
+    // Apply member changes again, this time telling the hierarchy to find
+    // decendants.
+    hierarchy.applyMemberChanges([a], findDecendants: true);
+    expect(hierarchy.getDispatchTargets(b),
+        unorderedEquals([methodA1, methodA2, methodA3, methodB1]));
+    expect(hierarchy.getDispatchTargets(a),
+        unorderedEquals([methodA1, methodA2, methodA3]));
   }
 
   void test_getSingleTargetForInterfaceInvocation() {

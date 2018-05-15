@@ -18,16 +18,10 @@ abstract class MixinInferrer {
 }
 
 /// Interface for answering various subclassing queries.
-/// TODO(scheglov) Several methods are not used, or used only in tests.
-/// Check if these methods are not useful and should be removed .
 abstract class ClassHierarchy {
   factory ClassHierarchy(Component component,
       {HandleAmbiguousSupertypes onAmbiguousSupertypes,
       MixinInferrer mixinInferrer}) {
-    int numberOfClasses = 0;
-    for (var library in component.libraries) {
-      numberOfClasses += library.classes.length;
-    }
     onAmbiguousSupertypes ??= (Class cls, Supertype a, Supertype b) {
       if (!cls.isSyntheticMixinImplementation) {
         // See https://github.com/dart-lang/sdk/issues/32091
@@ -35,9 +29,12 @@ abstract class ClassHierarchy {
       }
     };
     return new ClosedWorldClassHierarchy._internal(
-        numberOfClasses, onAmbiguousSupertypes, mixinInferrer)
+        onAmbiguousSupertypes, mixinInferrer)
       .._initialize(component.libraries);
   }
+
+  void set onAmbiguousSupertypes(
+      HandleAmbiguousSupertypes onAmbiguousSupertypes);
 
   /// Given the [unordered] classes, return them in such order that classes
   /// occur after their superclasses.  If some superclasses are not in
@@ -179,12 +176,20 @@ abstract class ClassHierarchy {
   /// modified classes. For modified classes specify a class as both removed and
   /// added: Some of the information that this hierarchy might have cached,
   /// is not valid anymore.
-  /// Note, that if the changes includes changes to the relationship between
-  /// classes, it is the clients responsibility to mark all subclasses as
+  /// Note, that it is the clients responsibility to mark all subclasses as
   /// changed too.
-  ///
-  ClassHierarchy applyChanges(
-      Iterable<Class> removedClasses, Iterable<Class> addedClasses);
+  ClassHierarchy applyTreeChanges(
+      Iterable<Class> removedClasses, Iterable<Class> addedClasses,
+      {Component reissueOldAmbiguousSupertypesFor});
+
+  /// This method is invoked by the client after a member change on classes:
+  /// Some of the information that this hierarchy might have cached,
+  /// is not valid anymore.
+  /// Note, that it is the clients responsibility to mark all subclasses as
+  /// changed too, or - if [findDecendants] is true, the ClassHierarchy will
+  /// spend the time to find them for the caller.
+  ClassHierarchy applyMemberChanges(Iterable<Class> classes,
+      {bool findDecendants: false});
 
   /// Merges two sorted lists.
   ///
@@ -403,12 +408,33 @@ class _ClosedWorldClassHierarchySubtypes implements ClassHierarchySubtypes {
 
 /// Implementation of [ClassHierarchy] for closed world.
 class ClosedWorldClassHierarchy implements ClassHierarchy {
-  final HandleAmbiguousSupertypes _onAmbiguousSupertypes;
+  HandleAmbiguousSupertypes _onAmbiguousSupertypes;
+  HandleAmbiguousSupertypes _onAmbiguousSupertypesNotWrapped;
   MixinInferrer mixinInferrer;
+
+  void set onAmbiguousSupertypes(
+      HandleAmbiguousSupertypes onAmbiguousSupertypes) {
+    _onAmbiguousSupertypesNotWrapped = onAmbiguousSupertypes;
+    _onAmbiguousSupertypes = (Class class_, Supertype a, Supertype b) {
+      onAmbiguousSupertypes(class_, a, b);
+      List<Supertype> recorded = _recordedAmbiguousSupertypes[class_];
+      if (recorded == null) {
+        recorded = new List<Supertype>();
+        _recordedAmbiguousSupertypes[class_] = recorded;
+      }
+      recorded.add(a);
+      recorded.add(b);
+    };
+  }
 
   /// The insert order is important.
   final Map<Class, _ClassInfo> _infoFor =
       new LinkedHashMap<Class, _ClassInfo>();
+
+  /// Recorded errors for classes we have already calculated the class hierarchy
+  /// for, but will have to be reissued when re-using the calculation.
+  final Map<Class, List<Supertype>> _recordedAmbiguousSupertypes =
+      new LinkedHashMap<Class, List<Supertype>>();
 
   Iterable<Class> get classes => _infoFor.keys;
   int get numberOfClasses => _infoFor.length;
@@ -416,7 +442,9 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   _ClosedWorldClassHierarchySubtypes _cachedClassHierarchySubtypes;
 
   ClosedWorldClassHierarchy._internal(
-      int numberOfClasses, this._onAmbiguousSupertypes, this.mixinInferrer);
+      HandleAmbiguousSupertypes onAmbiguousSupertypes, this.mixinInferrer) {
+    this.onAmbiguousSupertypes = onAmbiguousSupertypes;
+  }
 
   ClassHierarchySubtypes computeSubtypesInformation() {
     _cachedClassHierarchySubtypes ??=
@@ -694,10 +722,9 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   }
 
   @override
-  ClassHierarchy applyChanges(
-      Iterable<Class> removedClasses, Iterable<Class> addedClasses) {
-    if (removedClasses.isEmpty && addedClasses.isEmpty) return this;
-
+  ClassHierarchy applyTreeChanges(
+      Iterable<Class> removedClasses, Iterable<Class> addedClasses,
+      {Component reissueOldAmbiguousSupertypesFor}) {
     // Remove all references to the removed classes.
     for (Class class_ in removedClasses) {
       _ClassInfo info = _infoFor[class_];
@@ -712,12 +739,27 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       }
 
       _infoFor.remove(class_);
+      _recordedAmbiguousSupertypes.remove(class_);
     }
 
     // If we have a cached computation of subtypes, invalidate it and stop
     // caching it.
     if (_cachedClassHierarchySubtypes != null) {
       _cachedClassHierarchySubtypes.invalidated = true;
+    }
+
+    if (_recordedAmbiguousSupertypes.isNotEmpty &&
+        reissueOldAmbiguousSupertypesFor != null) {
+      Set<Library> libs =
+          new Set<Library>.from(reissueOldAmbiguousSupertypesFor.libraries);
+      for (Class class_ in _recordedAmbiguousSupertypes.keys) {
+        if (!libs.contains(class_.enclosingLibrary)) continue;
+        List<Supertype> recorded = _recordedAmbiguousSupertypes[class_];
+        for (int i = 0; i < recorded.length; i += 2) {
+          _onAmbiguousSupertypesNotWrapped(
+              class_, recorded[i], recorded[i + 1]);
+        }
+      }
     }
 
     // Add the new classes
@@ -728,6 +770,53 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
           orderedList: addedClassesSorted);
     }
     _initialize2(addedClassesSorted, expectedStartIndex);
+
+    return this;
+  }
+
+  @override
+  ClassHierarchy applyMemberChanges(Iterable<Class> classes,
+      {bool findDecendants: false}) {
+    if (classes.isEmpty) return this;
+
+    List<_ClassInfo> infos = new List<_ClassInfo>();
+    if (findDecendants) {
+      Set<_ClassInfo> processedClasses = new Set<_ClassInfo>();
+      List<_ClassInfo> worklist = <_ClassInfo>[];
+      for (Class class_ in classes) {
+        _ClassInfo info = _infoFor[class_];
+        worklist.add(info);
+      }
+
+      while (worklist.isNotEmpty) {
+        _ClassInfo info = worklist.removeLast();
+        if (processedClasses.add(info)) {
+          worklist.addAll(info.directExtenders);
+          worklist.addAll(info.directImplementers);
+          worklist.addAll(info.directMixers);
+        }
+      }
+      infos.addAll(processedClasses);
+    } else {
+      for (Class class_ in classes) {
+        _ClassInfo info = _infoFor[class_];
+        infos.add(info);
+      }
+    }
+
+    infos.sort((_ClassInfo a, _ClassInfo b) {
+      return a.topologicalIndex - b.topologicalIndex;
+    });
+
+    for (_ClassInfo info in infos) {
+      Class class_ = info.classNode;
+      _buildDeclaredMembers(class_, info);
+      _buildImplementedMembers(class_, info);
+      info.interfaceSetters = null;
+      info.interfaceGettersAndCalls = null;
+      _buildInterfaceMembers(class_, info, setters: true);
+      _buildInterfaceMembers(class_, info, setters: false);
+    }
 
     return this;
   }
@@ -1083,7 +1172,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   }
 
   /// Creates a histogram such that index `N` contains the number of classes
-  /// that have `N` intervals in itssupertype set.
+  /// that have `N` intervals in its supertype set.
   ///
   /// The more numbers are condensed near the beginning, the more efficient the
   /// internal data structure is.

@@ -235,9 +235,9 @@ void newWorldTest(bool strong, List worlds) async {
       }
     }
     bool gotError = false;
-    List<String> formattedErrors = <String>[];
+    final List<String> formattedErrors = <String>[];
     bool gotWarning = false;
-    List<String> formattedWarnings = <String>[];
+    final List<String> formattedWarnings = <String>[];
 
     options.onProblem = (FormattedMessage problem, Severity severity,
         List<FormattedMessage> context) {
@@ -264,16 +264,8 @@ void newWorldTest(bool strong, List worlds) async {
     Stopwatch stopwatch = new Stopwatch()..start();
     Component component = await compiler.computeDelta(
         fullComponent: brandNewWorld ? false : true);
-    if (world["errors"] == true && !gotError) {
-      throw "Expected error, but didn't get any.";
-    } else if (world["errors"] != true && gotError) {
-      throw "Got unexpected error(s): $formattedErrors.";
-    }
-    if (world["warnings"] == true && !gotWarning) {
-      throw "Expected warning, but didn't get any.";
-    } else if (world["warnings"] != true && gotWarning) {
-      throw "Got unexpected warnings(s): $formattedWarnings.";
-    }
+    performErrorAndWarningCheck(
+        world, gotError, formattedErrors, gotWarning, formattedWarnings);
     util.throwOnEmptyMixinBodies(component);
     print("Compile took ${stopwatch.elapsedMilliseconds} ms");
     newestWholeComponent = serializeComponent(component);
@@ -307,10 +299,34 @@ void newWorldTest(bool strong, List worlds) async {
     }
 
     {
+      gotError = false;
+      formattedErrors.clear();
+      gotWarning = false;
+      formattedWarnings.clear();
       Component component2 = await compiler.computeDelta(fullComponent: true);
+      performErrorAndWarningCheck(
+          world, gotError, formattedErrors, gotWarning, formattedWarnings);
       List<int> thisWholeComponent = serializeComponent(component2);
       checkIsEqual(newestWholeComponent, thisWholeComponent);
     }
+  }
+}
+
+void performErrorAndWarningCheck(
+    Map<String, dynamic> world,
+    bool gotError,
+    List<String> formattedErrors,
+    bool gotWarning,
+    List<String> formattedWarnings) {
+  if (world["errors"] == true && !gotError) {
+    throw "Expected error, but didn't get any.";
+  } else if (world["errors"] != true && gotError) {
+    throw "Got unexpected error(s): $formattedErrors.";
+  }
+  if (world["warnings"] == true && !gotWarning) {
+    throw "Expected warning, but didn't get any.";
+  } else if (world["warnings"] != true && gotWarning) {
+    throw "Got unexpected warnings(s): $formattedWarnings.";
   }
 }
 
