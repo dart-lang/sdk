@@ -2084,10 +2084,14 @@ class ExceptionHandlersSerializationCluster : public SerializationCluster {
       intptr_t length = handlers->ptr()->num_entries_;
       s->WriteUnsigned(length);
       s->WriteRef(handlers->ptr()->handled_types_data_);
-
-      uint8_t* data = reinterpret_cast<uint8_t*>(handlers->ptr()->data());
-      intptr_t length_in_bytes = length * sizeof(ExceptionHandlerInfo);
-      s->WriteBytes(data, length_in_bytes);
+      for (intptr_t j = 0; j < length; j++) {
+        const ExceptionHandlerInfo& info = handlers->ptr()->data()[j];
+        s->Write<uint32_t>(info.handler_pc_offset);
+        s->Write<int16_t>(info.outer_try_index);
+        s->Write<int8_t>(info.needs_stacktrace);
+        s->Write<int8_t>(info.has_catch_all);
+        s->Write<int8_t>(info.is_generated);
+      }
     }
   }
 
@@ -2126,10 +2130,14 @@ class ExceptionHandlersDeserializationCluster : public DeserializationCluster {
       handlers->ptr()->num_entries_ = length;
       handlers->ptr()->handled_types_data_ =
           reinterpret_cast<RawArray*>(d->ReadRef());
-
-      uint8_t* data = reinterpret_cast<uint8_t*>(handlers->ptr()->data());
-      intptr_t length_in_bytes = length * sizeof(ExceptionHandlerInfo);
-      d->ReadBytes(data, length_in_bytes);
+      for (intptr_t j = 0; j < length; j++) {
+        ExceptionHandlerInfo& info = handlers->ptr()->data()[j];
+        info.handler_pc_offset = d->Read<uint32_t>();
+        info.outer_try_index = d->Read<int16_t>();
+        info.needs_stacktrace = d->Read<int8_t>();
+        info.has_catch_all = d->Read<int8_t>();
+        info.is_generated = d->Read<int8_t>();
+      }
     }
   }
 };
