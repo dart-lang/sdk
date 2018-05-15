@@ -21,7 +21,6 @@ import '../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
 import '../universe/world_impact.dart' show WorldImpact, WorldImpactBuilderImpl;
 import '../util/enumset.dart' show EnumSet;
 import '../util/util.dart' show Setlet;
-import 'send_structure.dart';
 import 'tree_elements.dart' show TreeElementMapping;
 
 class ResolutionWorldImpactBuilder extends WorldImpactBuilderImpl
@@ -416,20 +415,6 @@ class ResolutionRegistry {
 
   void registerInstantiation(ResolutionInterfaceType type) {
     impactBuilder.registerTypeUse(new TypeUse.instantiation(type));
-  }
-
-  void registerSendStructure(Send node, SendStructure sendStructure) {
-    mapping.setSendStructure(node, sendStructure);
-  }
-
-  void registerNewStructure(NewExpression node, NewStructure newStructure) {
-    mapping.setNewStructure(node, newStructure);
-  }
-
-  // TODO(johnniwinther): Remove this when [SendStructure]s are part of the
-  // [ResolutionResult].
-  SendStructure getSendStructure(Send node) {
-    return mapping.getSendStructure(node);
   }
 
   void registerTryStatement() {

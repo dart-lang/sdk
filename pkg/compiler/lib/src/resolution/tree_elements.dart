@@ -14,7 +14,6 @@ import '../tree/tree.dart';
 import '../universe/selector.dart' show Selector;
 import '../util/util.dart';
 import 'secret_tree_element.dart' show getTreeElement, setTreeElement;
-import 'send_structure.dart';
 
 abstract class TreeElements {
   AnalyzableElement get analyzedElement;
@@ -24,12 +23,6 @@ abstract class TreeElements {
 
   Element operator [](Node node);
   Map<Node, ResolutionDartType> get typesCache;
-
-  /// Returns the [SendStructure] that describes the semantics of [node].
-  SendStructure getSendStructure(Send node);
-
-  /// Returns the [NewStructure] that describes the semantics of [node].
-  NewStructure getNewStructure(NewExpression node);
 
   // TODO(johnniwinther): Investigate whether [Node] could be a [Send].
   Selector getSelector(Node node);
@@ -107,8 +100,6 @@ class TreeElementMapping extends TreeElements {
   Map<Node, Map<VariableElement, List<Node>>> _potentiallyMutatedIn;
   Map<VariableElement, List<Node>> _potentiallyMutatedInClosure;
   Map<Node, Map<VariableElement, List<Node>>> _accessedByClosureIn;
-  Maplet<Send, SendStructure> _sendStructureMap;
-  Maplet<NewExpression, NewStructure> _newStructureMap;
   bool containsTryStatement = false;
 
   /// Map from nodes to the targets they define.
@@ -151,32 +142,6 @@ class TreeElementMapping extends TreeElements {
 
   @override
   operator [](Node node) => getTreeElement(node);
-
-  @override
-  SendStructure getSendStructure(Send node) {
-    if (_sendStructureMap == null) return null;
-    return _sendStructureMap[node];
-  }
-
-  void setSendStructure(Send node, SendStructure sendStructure) {
-    if (_sendStructureMap == null) {
-      _sendStructureMap = new Maplet<Send, SendStructure>();
-    }
-    _sendStructureMap[node] = sendStructure;
-  }
-
-  @override
-  NewStructure getNewStructure(NewExpression node) {
-    if (_newStructureMap == null) return null;
-    return _newStructureMap[node];
-  }
-
-  void setNewStructure(NewExpression node, NewStructure newStructure) {
-    if (_newStructureMap == null) {
-      _newStructureMap = new Maplet<NewExpression, NewStructure>();
-    }
-    _newStructureMap[node] = newStructure;
-  }
 
   void setType(Node node, ResolutionDartType type) {
     if (_types == null) {

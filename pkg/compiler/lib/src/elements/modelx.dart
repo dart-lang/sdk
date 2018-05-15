@@ -8,7 +8,6 @@ import '../common.dart';
 import '../common/names.dart' show Identifiers;
 import '../common/resolution.dart' show Resolution, ParsingContext;
 import '../compiler.dart' show Compiler;
-import '../constants/constant_constructors.dart';
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../diagnostics/messages.dart' show MessageTemplate;
@@ -2314,9 +2313,6 @@ abstract class ConstantConstructorMixin implements ConstructorElement {
       return originConstructor.constantConstructor;
     }
     if (!isConst || isFromEnvironmentConstructor) return null;
-    if (_constantConstructor == null) {
-      _constantConstructor = computeConstantConstructor(resolvedAst);
-    }
     return _constantConstructor;
   }
 
