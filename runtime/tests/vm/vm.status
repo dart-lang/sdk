@@ -54,6 +54,7 @@ dart/redirection_type_shuffling_test/none: RuntimeError
 [ $compiler != dartk ]
 cc/IsolateReload_KernelIncrementalCompile: SkipByDesign
 cc/IsolateReload_KernelIncrementalCompileAppAndLib: SkipByDesign
+cc/IsolateReload_KernelIncrementalCompileExpression: SkipByDesign
 cc/IsolateReload_KernelIncrementalCompileGenerics: SkipByDesign
 cc/Mixin_PrivateSuperResolution: Skip
 cc/Mixin_PrivateSuperResolutionCrossLibraryShouldFail: Skip

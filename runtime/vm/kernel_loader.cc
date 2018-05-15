@@ -195,7 +195,7 @@ Object& KernelLoader::LoadEntireProgram(Program* program,
                                         bool process_pending_classes) {
   if (program->is_single_program()) {
     KernelLoader loader(program);
-    return loader.LoadProgram(process_pending_classes);
+    return Object::Handle(loader.LoadProgram(process_pending_classes));
   }
 
   kernel::Reader reader(program->kernel_data(), program->kernel_data_size());
@@ -216,7 +216,7 @@ Object& KernelLoader::LoadEntireProgram(Program* program,
     Program* subprogram = Program::ReadFrom(&reader, false);
     ASSERT(subprogram->is_single_program());
     KernelLoader loader(subprogram);
-    Object& load_result = loader.LoadProgram(false);
+    Object& load_result = Object::Handle(loader.LoadProgram(false));
     if (load_result.IsError()) return load_result;
 
     if (library.IsNull() && load_result.IsLibrary()) {
@@ -536,7 +536,7 @@ void KernelLoader::LoadNativeExtensionLibraries(const Array& constant_table) {
   potential_extension_libraries_ = GrowableObjectArray::null();
 }
 
-Object& KernelLoader::LoadProgram(bool process_pending_classes) {
+RawObject* KernelLoader::LoadProgram(bool process_pending_classes) {
   ASSERT(kernel_program_info_.constants() == Array::null());
 
   if (!program_->is_single_program()) {
@@ -548,15 +548,15 @@ Object& KernelLoader::LoadProgram(bool process_pending_classes) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     const intptr_t length = program_->library_count();
+    Object& last_library = Library::Handle(Z);
     for (intptr_t i = 0; i < length; i++) {
-      LoadLibrary(i);
+      last_library = LoadLibrary(i);
     }
 
     if (process_pending_classes) {
       if (!ClassFinalizer::ProcessPendingClasses()) {
         // Class finalization failed -> sticky error would be set.
-        Error& error = Error::Handle(Z);
-        error = H.thread()->sticky_error();
+        RawError* error = H.thread()->sticky_error();
         H.thread()->clear_sticky_error();
         return error;
       }
@@ -577,19 +577,18 @@ Object& KernelLoader::LoadProgram(bool process_pending_classes) {
 
     NameIndex main = program_->main_method();
     if (main == -1) {
-      return Library::Handle(Z);
+      return Library::null();
     }
 
     NameIndex main_library = H.EnclosingName(main);
     Library& library = LookupLibrary(main_library);
 
-    return library;
+    return library.raw();
   }
 
   // Either class finalization failed or we caught a compile error.
   // In both cases sticky error would be set.
-  Error& error = Error::Handle(Z);
-  error = thread_->sticky_error();
+  RawError* error = thread_->sticky_error();
   thread_->clear_sticky_error();
   return error;
 }
@@ -674,7 +673,7 @@ void KernelLoader::CheckForInitializer(const Field& field) {
   field.set_has_initializer(false);
 }
 
-void KernelLoader::LoadLibrary(intptr_t index) {
+RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
   if (!program_->is_single_program()) {
     FATAL(
         "Trying to load a concatenated dill file at a time where that is "
@@ -704,15 +703,16 @@ void KernelLoader::LoadLibrary(intptr_t index) {
       // snapshot so we skip loading 'dart:vmservice_io'.
       skip_vmservice_library_ = library_helper.canonical_name_;
       ASSERT(H.IsLibrary(skip_vmservice_library_));
-      return;
+      return Library::null();
     }
   }
 
-  Library& library = LookupLibrary(library_helper.canonical_name_);
+  Library& library =
+      Library::Handle(Z, LookupLibrary(library_helper.canonical_name_).raw());
 
   // The Kernel library is external implies that it is already loaded.
   ASSERT(!library_helper.IsExternal() || library.Loaded());
-  if (library.Loaded()) return;
+  if (library.Loaded()) return library.raw();
 
   library_kernel_data_ =
       TypedData::New(kTypedDataUint8ArrayCid, library_size, Heap::kOld);
@@ -837,6 +837,8 @@ void KernelLoader::LoadLibrary(intptr_t index) {
   toplevel_class.SetFunctions(Array::Handle(MakeFunctionsArray()));
   classes.Add(toplevel_class, Heap::kOld);
   if (!library.Loaded()) library.SetLoaded();
+
+  return library.raw();
 }
 
 void KernelLoader::LoadLibraryImportsAndExports(Library* library) {

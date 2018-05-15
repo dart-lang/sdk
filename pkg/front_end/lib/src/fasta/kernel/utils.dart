@@ -6,7 +6,10 @@ import 'dart:async' show Future;
 
 import 'dart:io' show BytesBuilder, File, IOSink;
 
-import 'package:kernel/ast.dart' show Library, Component;
+import 'package:kernel/clone.dart' show CloneVisitor;
+
+import 'package:kernel/ast.dart'
+    show Library, Component, Procedure, Class, TypeParameter, Supertype;
 
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
@@ -56,6 +59,39 @@ List<int> serializeComponent(Component component,
           byteSink, filter ?? (_) => true, excludeUriToSource);
   printer.writeComponentFile(component);
   return byteSink.builder.takeBytes();
+}
+
+List<int> serializeProcedure(Procedure procedure) {
+  Library fakeLibrary =
+      new Library(new Uri(scheme: 'evaluate', path: 'source'));
+
+  if (procedure.parent is Class) {
+    Class realClass = procedure.parent;
+
+    CloneVisitor cloner = new CloneVisitor();
+
+    Class fakeClass = new Class(name: realClass.name);
+    for (TypeParameter typeParam in realClass.typeParameters) {
+      fakeClass.typeParameters.add(typeParam.accept(cloner));
+    }
+
+    fakeClass.parent = fakeLibrary;
+    fakeClass.supertype = new Supertype.byReference(
+        realClass.supertype.className,
+        realClass.supertype.typeArguments.map(cloner.visitType).toList());
+
+    // Rebind the type parameters in the procedure.
+    procedure = procedure.accept(cloner);
+    procedure.parent = fakeClass;
+    fakeClass.procedures.add(procedure);
+    fakeLibrary.classes.add(fakeClass);
+  } else {
+    fakeLibrary.procedures.add(procedure);
+    procedure.parent = fakeLibrary;
+  }
+
+  Component program = new Component(libraries: [fakeLibrary]);
+  return serializeComponent(program);
 }
 
 /// A [Sink] that directly writes data into a byte builder.

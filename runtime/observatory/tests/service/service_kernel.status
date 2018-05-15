@@ -11,7 +11,6 @@ async_star_single_step_into_test: RuntimeError # Issue 29158, Async debugging
 async_star_step_out_test: RuntimeError # Issue 29158, Async debugging
 async_step_out_test: RuntimeError # Issue 29158, Async debugging
 awaiter_async_stack_contents_test: RuntimeError # Issue 29158, Async debugging
-eval_internal_class_test: RuntimeError
 evaluate_activation_in_method_class_test: RuntimeError
 evaluate_activation_test/instance: RuntimeError
 evaluate_activation_test/scope: RuntimeError
@@ -109,18 +108,38 @@ step_through_arithmetic_test: RuntimeError
 async_single_step_exception_test: RuntimeError
 
 [ $compiler == dartk && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
+add_breakpoint_rpc_kernel_test: RuntimeError # Issue #33087
 async_generator_breakpoint_test: Pass, RuntimeError
 bad_reload_test: Skip # Times out on sim architectures, also RuntimeError.
+break_on_activation_test: RuntimeError # Issue #33087
 complex_reload_test: Skip # Times out on sim architectures, also RuntimeError.
 coverage_leaf_function_test: RuntimeError # Please triage.
 coverage_optimized_function_test: RuntimeError # Please triage.
+debugger_inspect_test: RuntimeError, Timeout # Issue #33087
+developer_service_get_isolate_id_test: RuntimeError # Issue #33087
+eval_internal_class_test: RuntimeError # Issue #33087
+eval_test: RuntimeError # Issue #33087
+evaluate_activation_test/none: RuntimeError # Issue #33087
+evaluate_async_closure_test: RuntimeError # Issue #33087
+evaluate_in_async_activation_test: RuntimeError # Issue #33087
+evaluate_in_async_star_activation_test: RuntimeError # Issue #33087
+evaluate_in_frame_rpc_test: RuntimeError # Issue #33087
+evaluate_in_frame_with_scope_test: RuntimeError # Issue #33087
+evaluate_with_scope_test: RuntimeError # Issue #33087
+get_instances_rpc_test: RuntimeError # Issue #33087
 get_object_rpc_test: RuntimeError # Please triage.
+get_retaining_path_rpc_test: RuntimeError # Issue #33087
 get_source_report_test: RuntimeError # Please triage.
+get_user_level_retaining_path_rpc_test: RuntimeError # Issue #33087
+instance_field_order_rpc_test: RuntimeError # Issue #33087
+pause_on_exceptions_test: RuntimeError, Timeout # Issue #33087
 positive_token_pos_test: Pass, RuntimeError
 reload_sources_test: Skip # Times out.
+rewind_optimized_out_test: RuntimeError # Issue #33087
 rewind_test: Pass, RuntimeError
 set_name_rpc_test: RuntimeError # Please triage.
 unused_changes_in_last_reload_test: Skip # Times out on sim architectures.
+valid_source_locations_test: Pass, Slow, Timeout # Issue 33087
 
 [ $compiler == fasta && $strong ]
 add_breakpoint_rpc_test: CompileTimeError

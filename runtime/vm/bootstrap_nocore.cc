@@ -100,7 +100,7 @@ RawError* BootstrapFromKernel(Thread* thread,
 
   // The platform binary may contain other libraries (e.g., dart:_builtin or
   // dart:io) that will not be bundled with application.  Load them now.
-  const Object& result = loader.LoadProgram();
+  const Object& result = Object::Handle(loader.LoadProgram());
   delete program;
   if (result.IsError()) {
     return Error::Cast(result).raw();

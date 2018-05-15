@@ -2138,6 +2138,7 @@ class Function : public Object {
   void ZeroEdgeCounters() const;
 
   RawClass* Owner() const;
+  void set_owner(const Object& value) const;
   RawClass* origin() const;
   RawScript* script() const;
   RawObject* RawOwner() const { return raw_ptr()->owner_; }
@@ -2505,6 +2506,10 @@ class Function : public Object {
     if (value > kMaxInstructionCount) value = kMaxInstructionCount;
     set_optimized_call_site_count(value);
   }
+
+  void SetKernelDataAndScript(const Script& script,
+                              const TypedData& data,
+                              intptr_t offset);
 
   intptr_t KernelDataProgramOffset() const;
 
@@ -2918,7 +2923,6 @@ class Function : public Object {
   void set_name(const String& value) const;
   void set_kind(RawFunction::Kind value) const;
   void set_parent_function(const Function& value) const;
-  void set_owner(const Object& value) const;
   RawFunction* implicit_closure_function() const;
   void set_implicit_closure_function(const Function& value) const;
   RawInstance* implicit_static_closure() const;

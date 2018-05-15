@@ -247,6 +247,45 @@ char* TestCase::CompileTestScriptWithDFE(const char* url,
       kernel_buffer, kernel_buffer_size, incrementally);
 }
 
+#if 0
+
+char* TestCase::CompileTestScriptWithDFE(const char* url,
+                                         int sourcefiles_count,
+                                         Dart_SourceFile sourcefiles[],
+                                         void** kernel_pgm,
+                                         bool incrementally) {
+  Zone* zone = Thread::Current()->zone();
+  Dart_KernelCompilationResult compilation_result = Dart_CompileSourcesToKernel(
+      url, FLAG_strong ? platform_strong_dill : platform_dill,
+      FLAG_strong ? platform_strong_dill_size : platform_dill_size,
+      sourcefiles_count, sourcefiles, incrementally, NULL);
+  return ValidateCompilationResult(zone, compilation_result, kernel_pgm);
+}
+
+char* TestCase::ValidateCompilationResult(
+    Zone* zone,
+    Dart_KernelCompilationResult compilation_result,
+    void** kernel_pgm) {
+  if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
+    char* result =
+        OS::SCreate(zone, "Compilation failed %s", compilation_result.error);
+    free(compilation_result.error);
+    return result;
+  }
+  const uint8_t* kernel_file = compilation_result.kernel;
+  intptr_t kernel_length = compilation_result.kernel_size;
+  if (kernel_file == NULL) {
+    return OS::SCreate(zone, "front end generated a NULL kernel file");
+  }
+  *kernel_pgm =
+      Dart_ReadKernelBinary(kernel_file, kernel_length, ReleaseFetchedBytes);
+  if (*kernel_pgm == NULL) {
+    return OS::SCreate(zone, "Failed to read generated kernel binary");
+  }
+  return NULL;
+}
+#endif
+
 char* TestCase::CompileTestScriptWithDFE(const char* url,
                                          int sourcefiles_count,
                                          Dart_SourceFile sourcefiles[],
@@ -258,7 +297,15 @@ char* TestCase::CompileTestScriptWithDFE(const char* url,
       url, FLAG_strong ? platform_strong_dill : platform_dill,
       FLAG_strong ? platform_strong_dill_size : platform_dill_size,
       sourcefiles_count, sourcefiles, incrementally, NULL);
+  return ValidateCompilationResult(zone, compilation_result, kernel_buffer,
+                                   kernel_buffer_size);
+}
 
+char* TestCase::ValidateCompilationResult(
+    Zone* zone,
+    Dart_KernelCompilationResult compilation_result,
+    const uint8_t** kernel_buffer,
+    intptr_t* kernel_buffer_size) {
   if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
     char* result =
         OS::SCreate(zone, "Compilation failed %s", compilation_result.error);

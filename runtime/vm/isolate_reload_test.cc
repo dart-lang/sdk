@@ -8,6 +8,7 @@
 #include "vm/debugger_api_impl_test.h"
 #include "vm/globals.h"
 #include "vm/isolate.h"
+#include "vm/kernel_loader.h"
 #include "vm/lockers.h"
 #include "vm/thread_barrier.h"
 #include "vm/thread_pool.h"

@@ -382,6 +382,11 @@ class TestCase : TestCaseBase {
                                     const char* name,
                                     void* data = NULL);
 
+  static char* ValidateCompilationResult(Zone* zone,
+                                         Dart_KernelCompilationResult result,
+                                         const uint8_t** kernel_buffer,
+                                         intptr_t* kernel_buffer_size);
+
   RunEntry* const run_;
 };
 
