@@ -717,7 +717,9 @@ const char* Dart::FeaturesString(Isolate* isolate,
 }
 
 void Dart::RunShutdownCallback() {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  ASSERT(thread->execution_state() == Thread::kThreadInNative);
+  Isolate* isolate = thread->isolate();
   void* callback_data = isolate->init_callback_data();
   Dart_IsolateShutdownCallback callback = Isolate::ShutdownCallback();
   if (callback != NULL) {

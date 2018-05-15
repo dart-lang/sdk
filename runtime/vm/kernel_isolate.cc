@@ -135,9 +135,6 @@ class RunKernelTask : public ThreadPool::Task {
       OS::Print(DART_KERNEL_ISOLATE_NAME ": ShutdownIsolate\n");
     }
     Isolate* I = reinterpret_cast<Isolate*>(parameter);
-    ASSERT(KernelIsolate::IsKernelIsolate(I));
-    KernelIsolate::SetKernelIsolate(NULL);
-    KernelIsolate::SetLoadPort(ILLEGAL_PORT);
     I->WaitForOutstandingSpawns();
     {
       // Print the error if there is one.  This may execute dart code to
@@ -159,8 +156,14 @@ class RunKernelTask : public ThreadPool::Task {
         OS::PrintErr(DART_KERNEL_ISOLATE_NAME ": Error: %s\n",
                      error.ToErrorCString());
       }
+      TransitionVMToNative transition(T);
       Dart::RunShutdownCallback();
     }
+
+    ASSERT(KernelIsolate::IsKernelIsolate(I));
+    KernelIsolate::SetKernelIsolate(NULL);
+    KernelIsolate::SetLoadPort(ILLEGAL_PORT);
+
     // Shut the isolate down.
     Dart::ShutdownIsolate(I);
     if (FLAG_trace_kernel) {

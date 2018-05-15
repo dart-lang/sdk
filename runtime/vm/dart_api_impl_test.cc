@@ -7176,6 +7176,12 @@ VM_UNIT_TEST_CASE(DartAPI_IsolateShutdownAndCleanup) {
 
 static int64_t add_result = 0;
 static void IsolateShutdownRunDartCodeTestCallback(void* callback_data) {
+  Dart_Isolate isolate = Dart_CurrentIsolate();
+  if (Dart_IsKernelIsolate(isolate) || Dart_IsServiceIsolate(isolate)) {
+    return;
+  } else {
+    ASSERT(add_result == 0);
+  }
   Dart_EnterScope();
   Dart_Handle lib = Dart_RootLibrary();
   EXPECT_VALID(lib);
@@ -7209,12 +7215,10 @@ VM_UNIT_TEST_CASE(DartAPI_IsolateShutdownRunDartCode) {
 
   {
     Dart_EnterScope();
-    Dart_Handle url = NewString(TestCase::url());
-    Dart_Handle source = NewString(kScriptChars);
+    Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+    EXPECT_VALID(lib);
     Dart_Handle result = Dart_SetLibraryTagHandler(TestCase::library_handler);
     EXPECT_VALID(result);
-    Dart_Handle lib = Dart_LoadScript(url, Dart_Null(), source, 0, 0);
-    EXPECT_VALID(lib);
     result = Dart_FinalizeLoading(false);
     EXPECT_VALID(result);
     result = Dart_Invoke(lib, NewString("main"), 0, NULL);
