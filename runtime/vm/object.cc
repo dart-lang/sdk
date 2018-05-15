@@ -3250,7 +3250,8 @@ RawObject* Class::Evaluate(const String& expr,
     return UnhandledException::New(exception, stacktrace);
   }
 
-  if (Library::Handle(library()).kernel_data() == TypedData::null()) {
+  if (Library::Handle(library()).kernel_data() == TypedData::null() ||
+      !FLAG_enable_kernel_expression_compilation) {
     const Function& eval_func = Function::Handle(
         Function::EvaluateHelper(*this, expr, param_names, true));
     return DartEntry::InvokeFunction(eval_func, param_values);
@@ -11403,7 +11404,8 @@ void Library::InitCoreLibrary(Isolate* isolate) {
 RawObject* Library::Evaluate(const String& expr,
                              const Array& param_names,
                              const Array& param_values) const {
-  if (kernel_data() == TypedData::null()) {
+  if (kernel_data() == TypedData::null() ||
+      !FLAG_enable_kernel_expression_compilation) {
     // Evaluate the expression as a static function of the toplevel class.
     Class& top_level_class = Class::Handle(toplevel_class());
     ASSERT(top_level_class.is_finalized());
@@ -15804,16 +15806,16 @@ RawObject* Instance::Evaluate(const Class& method_cls,
   }
 
   const Library& library = Library::Handle(method_cls.library());
-  if (library.kernel_data() == TypedData::null()) {
+  if (library.kernel_data() == TypedData::null() ||
+      !FLAG_enable_kernel_expression_compilation) {
     const Function& eval_func = Function::Handle(
         Function::EvaluateHelper(method_cls, expr, param_names, false));
     return DartEntry::InvokeFunction(eval_func, args);
-  } else {
-    return EvaluateWithDFEHelper(
-        expr, param_names, Array::Handle(Array::New(0)),
-        String::Handle(Library::Handle(method_cls.library()).url()),
-        String::Handle(method_cls.UserVisibleName()), false, args);
   }
+  return EvaluateWithDFEHelper(
+      expr, param_names, Array::Handle(Array::New(0)),
+      String::Handle(Library::Handle(method_cls.library()).url()),
+      String::Handle(method_cls.UserVisibleName()), false, args);
 }
 
 RawObject* Instance::HashCode() const {
