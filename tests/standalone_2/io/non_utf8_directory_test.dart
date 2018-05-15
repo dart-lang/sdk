@@ -21,7 +21,14 @@ Future main() async {
     expect(await asyncDir.exists(), isTrue);
 
     await for (final e in Directory.current.list()) {
-      expect(e.rawPath.last, 182);
+      if (Platform.isWindows) {
+        // Windows replaces invalid characters with � when creating file system
+        // entities.
+        final raw = e.rawPath;
+        expect(raw.sublist(raw.length - 3), [239, 191, 189]);
+      } else {
+        expect(e.rawPath.last, 182);
+      }
     }
     await asyncDir.delete(recursive: true);
   });
@@ -35,9 +42,15 @@ Future main() async {
     expect(syncDir.existsSync(), isTrue);
 
     for (final e in Directory.current.listSync()) {
-      expect(e.rawPath.last, 182);
+      if (Platform.isWindows) {
+        // Windows replaces invalid characters with � when creating file system
+        // entities.
+        final raw = e.rawPath;
+        expect(raw.sublist(raw.length - 3), [239, 191, 189]);
+      } else {
+        expect(e.rawPath.last, 182);
+      }
     }
-
     syncDir.deleteSync(recursive: true);
   });
 

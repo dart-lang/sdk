@@ -20,7 +20,14 @@ Future main() async {
     await asyncFile.create();
     expect(await asyncFile.exists(), isTrue);
     for (final file in Directory.current.listSync()) {
-      expect(file.rawPath.last, 182);
+      if (Platform.isWindows) {
+        // Windows replaces invalid characters with � when creating file system
+        // entities.
+        final raw = file.rawPath;
+        expect(raw.sublist(raw.length - 3), [239, 191, 189]);
+      } else {
+        expect(file.rawPath.last, 182);
+      }
       expect(file.path.endsWith('�'), isTrue);
     }
     await asyncFile.delete();
@@ -34,7 +41,14 @@ Future main() async {
     syncFile.createSync();
     expect(syncFile.existsSync(), isTrue);
     for (final file in Directory.current.listSync()) {
-      expect(file.rawPath.last, 182);
+      if (Platform.isWindows) {
+        // Windows replaces invalid characters with � when creating file system
+        // entities.
+        final raw = file.rawPath;
+        expect(raw.sublist(raw.length - 3), [239, 191, 189]);
+      } else {
+        expect(file.rawPath.last, 182);
+      }
       expect(file.path.endsWith('�'), isTrue);
     }
     syncFile.deleteSync();

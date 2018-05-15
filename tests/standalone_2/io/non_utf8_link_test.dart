@@ -32,7 +32,14 @@ Future main() async {
 
     await for (final e in Directory.current.list()) {
       if (e is Link) {
-        expect(e.rawPath.last, 182);
+        if (Platform.isWindows) {
+          // Windows replaces invalid characters with � when creating file system
+          // entities.
+          final raw = e.rawPath;
+          expect(raw.sublist(raw.length - 3), [239, 191, 189]);
+        } else {
+          expect(e.rawPath.last, 182);
+        }
       }
     }
 
@@ -61,7 +68,14 @@ Future main() async {
 
     for (final e in Directory.current.listSync()) {
       if (e is Link) {
-        expect(e.rawPath.last, 182);
+        if (Platform.isWindows) {
+          // Windows replaces invalid characters with � when creating file system
+          // entities.
+          final raw = e.rawPath;
+          expect(raw.sublist(raw.length - 3), [239, 191, 189]);
+        } else {
+          expect(e.rawPath.last, 182);
+        }
       }
     }
     expect(syncLink.absolute.rawPath, rawPath);
