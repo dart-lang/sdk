@@ -6,6 +6,9 @@
 #define GPERFTOOLS_CONFIG_H_
 
 
+/* Build new/delete operators for overaligned types */
+/* #undef ENABLE_ALIGNED_NEW_DELETE */
+
 /* Build runtime detection for sized delete */
 /* #undef ENABLE_DYNAMIC_SIZED_DELETE */
 
@@ -206,6 +209,9 @@
 /* define if your compiler has __attribute__ */
 #define HAVE___ATTRIBUTE__ 1
 
+/* define if your compiler supports alignment of functions */
+#define HAVE___ATTRIBUTE__ALIGNED_FN 1
+
 /* Define to 1 if compiler supports __environ */
 #if !defined(__ANDROID__)
 #define HAVE___ENVIRON 1
@@ -220,12 +226,8 @@
 /* Define to 1 if int32_t is equivalent to intptr_t */
 /* #undef INT32_EQUALS_INTPTR */
 
-/* Define to the sub-directory in which libtool stores uninstalled libraries.
-   */
+/* Define to the sub-directory where libtool stores uninstalled libraries. */
 #define LT_OBJDIR ".libs/"
-
-/* Define to 'volatile' if __malloc_hook is declared volatile */
-#define MALLOC_HOOK_MAYBE_VOLATILE volatile
 
 /* Name of package */
 #define PACKAGE "gperftools"
@@ -237,7 +239,7 @@
 #define PACKAGE_NAME "gperftools"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "gperftools 2.5"
+#define PACKAGE_STRING "gperftools 2.7"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "gperftools"
@@ -246,7 +248,7 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "2.5"
+#define PACKAGE_VERSION "2.7"
 
 /* How to access the PC from a struct ucontext */
 /* #undef PC_FROM_UCONTEXT */
@@ -293,7 +295,7 @@
 /* #undef TCMALLOC_ALIGN_8BYTES */
 
 /* Version number of package */
-#define VERSION "2.5"
+#define VERSION "2.7"
 
 /* C99 says: define this to get the PRI... macros from stdint.h */
 #ifndef __STDC_FORMAT_MACROS
@@ -312,3 +314,4 @@
 #endif
 
 #endif  /* #ifndef GPERFTOOLS_CONFIG_H_ */
+

@@ -31,6 +31,8 @@ config("internal_config") {
     "-fno-builtin-posix_memalign",
     "-fno-builtin-valloc",
     "-fno-builtin-pvalloc",
+    "-fsized-deallocation",
+    "-faligned-new",
   ]
   if (is_clang) {
     cflags += [ "-Wno-unused-const-variable" ]
