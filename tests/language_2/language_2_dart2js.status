@@ -583,7 +583,6 @@ constructor_named_arguments_test/none: RuntimeError
 constructor_redirect1_negative_test/01: Crash # Stack Overflow
 constructor_redirect2_negative_test: Crash # Stack Overflow
 constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
-covariance_type_parameter_test/02: RuntimeError
 covariant_override/tear_off_type_test: RuntimeError
 covariant_subtyping_test: Crash # Unsupported operation: Unsupported type parameter type node E.
 cyclic_constructor_test/01: Crash # Stack Overflow
@@ -613,7 +612,6 @@ external_test/13: MissingRuntimeError
 external_test/20: MissingRuntimeError
 external_test/21: CompileTimeError
 external_test/24: CompileTimeError
-extract_type_arguments_test: RuntimeError
 f_bounded_quantification4_test: RuntimeError
 fauxverride_test/03: MissingCompileTimeError
 fauxverride_test/05: MissingCompileTimeError
@@ -681,7 +679,6 @@ int64_literal_test/40: RuntimeError
 int64_literal_test/none: RuntimeError
 integer_division_by_zero_test: RuntimeError # Issue 8301
 internal_library_test/02: Crash # NoSuchMethodError: Class 'DillLibraryBuilder' has no instance getter 'mixinApplicationClasses'.
-invocation_mirror2_test: RuntimeError # mirrors not supported
 invocation_mirror_invoke_on2_test: RuntimeError
 invocation_mirror_invoke_on_test: RuntimeError
 issue21079_test: RuntimeError
@@ -693,7 +690,6 @@ library_env_test/has_mirror_support: RuntimeError
 local_function2_test/none: RuntimeError
 local_function3_test/none: RuntimeError
 local_function_test/none: RuntimeError
-many_overridden_no_such_method_test: RuntimeError
 method_override7_test/00: MissingCompileTimeError
 method_override7_test/01: MissingCompileTimeError
 method_override7_test/02: MissingCompileTimeError
@@ -781,14 +777,12 @@ nan_identical_test: RuntimeError # Issue 11551
 nested_generic_closure_test: RuntimeError
 no_main_test/01: CompileTimeError
 no_such_method_mock_test: RuntimeError
-no_such_method_test: RuntimeError
 nosuchmethod_forwarding/nosuchmethod_forwarding_arguments_test: RuntimeError
 nosuchmethod_forwarding/nosuchmethod_forwarding_test/05: RuntimeError
 nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError
 null_no_such_method_test: CompileTimeError
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError, OK # non JS number semantics
-overridden_no_such_method_test: RuntimeError
 override_field_test/01: MissingCompileTimeError
 override_inheritance_field_test/04: CompileTimeError
 override_inheritance_field_test/06: CompileTimeError
