@@ -7,46 +7,45 @@
 @patch
 class _File {
   @patch
-  static _exists(_Namespace namespace, String path) native "File_Exists";
+  static _exists(_Namespace namespace, _Path path) native "File_Exists";
   @patch
-  static _create(_Namespace namespace, String path) native "File_Create";
+  static _create(_Namespace namespace, _Path path) native "File_Create";
   @patch
-  static _createLink(_Namespace namespace, String path, String target)
+  static _createLink(_Namespace namespace, _Path path, String target)
       native "File_CreateLink";
   @patch
-  static _linkTarget(_Namespace namespace, String path)
-      native "File_LinkTarget";
+  static _linkTarget(_Namespace namespace, _Path path) native "File_LinkTarget";
   @patch
-  static _deleteNative(_Namespace namespace, String path) native "File_Delete";
+  static _deleteNative(_Namespace namespace, _Path path) native "File_Delete";
   @patch
-  static _deleteLinkNative(_Namespace namespace, String path)
+  static _deleteLinkNative(_Namespace namespace, _Path path)
       native "File_DeleteLink";
   @patch
-  static _rename(_Namespace namespace, String oldPath, String newPath)
+  static _rename(_Namespace namespace, _Path oldPath, String newPath)
       native "File_Rename";
   @patch
-  static _renameLink(_Namespace namespace, String oldPath, String newPath)
+  static _renameLink(_Namespace namespace, _Path oldPath, String newPath)
       native "File_RenameLink";
   @patch
-  static _copy(_Namespace namespace, String oldPath, String newPath)
+  static _copy(_Namespace namespace, _Path oldPath, String newPath)
       native "File_Copy";
   @patch
-  static _lengthFromPath(_Namespace namespace, String path)
+  static _lengthFromPath(_Namespace namespace, _Path path)
       native "File_LengthFromPath";
   @patch
-  static _lastModified(_Namespace namespace, String path)
+  static _lastModified(_Namespace namespace, _Path path)
       native "File_LastModified";
   @patch
-  static _setLastModified(_Namespace namespace, String path, int millis)
+  static _setLastModified(_Namespace namespace, _Path path, int millis)
       native "File_SetLastModified";
   @patch
-  static _lastAccessed(_Namespace namespace, String path)
+  static _lastAccessed(_Namespace namespace, _Path path)
       native "File_LastAccessed";
   @patch
-  static _setLastAccessed(_Namespace namespace, String path, int millis)
+  static _setLastAccessed(_Namespace namespace, _Path path, int millis)
       native "File_SetLastAccessed";
   @patch
-  static _open(_Namespace namespace, String path, int mode) native "File_Open";
+  static _open(_Namespace namespace, _Path path, int mode) native "File_Open";
   @patch
   static int _openStdio(int fd) native "File_OpenStdio";
 }

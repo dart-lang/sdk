@@ -23,7 +23,7 @@ import "dart:async"
 
 import "dart:collection" show HashMap;
 
-import "dart:convert" show Encoding;
+import "dart:convert" show Encoding, utf8;
 
 import "dart:developer" show registerExtension;
 
@@ -33,7 +33,7 @@ import "dart:math" show min;
 
 import "dart:nativewrappers" show NativeFieldWrapperClass1;
 
-import "dart:typed_data" show Uint8List;
+import "dart:typed_data" show Uint8List, UnmodifiableUint8ListView;
 
 /// These are the additional parts of this patch library:
 // part "directory_patch.dart";
