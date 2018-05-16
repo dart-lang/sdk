@@ -822,8 +822,14 @@ class StreamingScopeBuilder {
                             const char* prefix,
                             intptr_t nesting_depth);
 
+  void FinalizeExceptionVariable(GrowableArray<LocalVariable*>* variables,
+                                 GrowableArray<LocalVariable*>* raw_variables,
+                                 const String& symbol,
+                                 intptr_t nesting_depth);
+
   void AddTryVariables();
   void AddCatchVariables();
+  void FinalizeCatchVariables();
   void AddIteratorVariable();
   void AddSwitchVariable();
 

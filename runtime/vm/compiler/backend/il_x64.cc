@@ -2571,49 +2571,15 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(fp_sp_dist <= 0);
   __ leaq(RSP, Address(RBP, fp_sp_dist));
 
-  // Auxiliary variables introduced by the try catch can be captured if we are
-  // inside a function with yield/resume points. In this case we first need
-  // to restore the context to match the context at entry into the closure.
-  if (should_restore_closure_context()) {
-    const ParsedFunction& parsed_function = compiler->parsed_function();
-    ASSERT(parsed_function.function().IsClosureFunction());
-    LocalScope* scope = parsed_function.node_sequence()->scope();
-
-    LocalVariable* closure_parameter = scope->VariableAt(0);
-    ASSERT(!closure_parameter->is_captured());
-    __ movq(R12, Address(RBP, closure_parameter->index() * kWordSize));
-    __ movq(R12, FieldAddress(R12, Closure::context_offset()));
-
-#ifdef DEBUG
-    Label ok;
-    __ LoadClassId(RBX, R12);
-    __ cmpq(RBX, Immediate(kContextCid));
-    __ j(EQUAL, &ok, Assembler::kNearJump);
-    __ Stop("Incorrect context at entry");
-    __ Bind(&ok);
-#endif
-
-    const intptr_t context_index =
-        parsed_function.current_context_var()->index();
-    __ movq(Address(RBP, context_index * kWordSize), R12);
-  }
-
-  // Initialize exception and stack trace variables.
-  if (exception_var().is_captured()) {
-    ASSERT(stacktrace_var().is_captured());
-    __ StoreIntoObject(
-        R12,
-        FieldAddress(R12, Context::variable_offset(exception_var().index())),
-        kExceptionObjectReg);
-    __ StoreIntoObject(
-        R12,
-        FieldAddress(R12, Context::variable_offset(stacktrace_var().index())),
-        kStackTraceObjectReg);
-  } else {
-    __ movq(Address(RBP, exception_var().index() * kWordSize),
-            kExceptionObjectReg);
-    __ movq(Address(RBP, stacktrace_var().index() * kWordSize),
-            kStackTraceObjectReg);
+  if (!compiler->is_optimizing()) {
+    if (raw_exception_var_ != nullptr) {
+      __ movq(Address(RBP, raw_exception_var_->index() * kWordSize),
+              kExceptionObjectReg);
+    }
+    if (raw_stacktrace_var_ != nullptr) {
+      __ movq(Address(RBP, raw_stacktrace_var_->index() * kWordSize),
+              kStackTraceObjectReg);
+    }
   }
 }
 

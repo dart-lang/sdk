@@ -17,6 +17,7 @@
 #include "vm/instructions.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
+#include "vm/simulator.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
@@ -383,6 +384,12 @@ void ParallelMoveResolver::EmitMove(int index) {
   } else if (source.IsArgsDescRegister()) {
     ASSERT(destination.IsRegister());
     __ LoadArgDescriptorOpt(destination.reg());
+  } else if (source.IsExceptionRegister()) {
+    ASSERT(destination.IsRegister());
+    __ MoveSpecial(destination.reg(), Simulator::kExceptionSpecialIndex);
+  } else if (source.IsStackTraceRegister()) {
+    ASSERT(destination.IsRegister());
+    __ MoveSpecial(destination.reg(), Simulator::kStackTraceSpecialIndex);
   } else if (source.IsConstant() && destination.IsRegister()) {
     if (source.constant_instruction()->representation() == kUnboxedDouble) {
       const Register result = destination.reg();

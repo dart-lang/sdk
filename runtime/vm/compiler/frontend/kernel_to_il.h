@@ -485,7 +485,8 @@ class ScopeBuildingResult : public ZoneAllocated {
         finally_return_variable(NULL),
         setter_value(NULL),
         yield_jump_variable(NULL),
-        yield_context_variable(NULL) {}
+        yield_context_variable(NULL),
+        raw_variable_counter_(0) {}
 
   IntMap<LocalVariable*> locals;
   IntMap<LocalScope*> scopes;
@@ -521,6 +522,12 @@ class ScopeBuildingResult : public ZoneAllocated {
   GrowableArray<LocalVariable*> exception_variables;
   GrowableArray<LocalVariable*> stack_trace_variables;
   GrowableArray<LocalVariable*> catch_context_variables;
+
+  // These are used to access the raw exception/stacktrace variables (and are
+  // used to put them into the captured variables in the context).
+  GrowableArray<LocalVariable*> raw_exception_variables;
+  GrowableArray<LocalVariable*> raw_stack_trace_variables;
+  intptr_t raw_variable_counter_;
 
   // For-in iterators, one per for-in nesting level.
   GrowableArray<LocalVariable*> iterator_variables;
@@ -870,6 +877,12 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   }
   LocalVariable* CurrentStackTrace() {
     return scopes_->stack_trace_variables[catch_depth_ - 1];
+  }
+  LocalVariable* CurrentRawException() {
+    return scopes_->raw_exception_variables[catch_depth_ - 1];
+  }
+  LocalVariable* CurrentRawStackTrace() {
+    return scopes_->raw_stack_trace_variables[catch_depth_ - 1];
   }
   LocalVariable* CurrentCatchContext() {
     return scopes_->catch_context_variables[try_depth_];
