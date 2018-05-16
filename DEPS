@@ -52,10 +52,6 @@ vars = {
   # Revisions of /third_party/* dependencies.
   "args_tag": "1.4.1",
   "async_tag": "2.0.6",
-  "barback-0.13.0_rev": "34853",
-  "barback-0.14.0_rev": "36398",
-  "barback-0.14.1_rev": "38525",
-  "barback_tag" : "0.15.2+14",
   "bazel_worker_tag": "v0.1.9",
   "boolean_selector_tag" : "1.0.3",
   "boringssl_gen_rev": "344f455fd13d46f054726638e76026156ea73aa9",
@@ -135,7 +131,7 @@ vars = {
   "test_process_tag": "1.0.1",
   "term_glyph_tag": "1.0.0",
   "test_reflective_loader_tag": "0.1.4",
-  "test_tag": "0.12.30+1",
+  "test_tag": "0.12.38",
   "tuple_tag": "v1.0.1",
   "typed_data_tag": "1.1.3",
   "usage_tag": "3.3.0",
@@ -200,8 +196,6 @@ Var("dart_root") + "/tests/co19_2/src":
       Var("dart_git") + "args.git" + "@" + Var("args_tag"),
   Var("dart_root") + "/third_party/pkg/async":
       Var("dart_git") + "async.git" + "@" + Var("async_tag"),
-  Var("dart_root") + "/third_party/pkg/barback":
-      Var("dart_git") + "barback.git" + "@" + Var("barback_tag"),
   Var("dart_root") + "/third_party/pkg/bazel_worker":
       Var("dart_git") + "bazel_worker.git" + "@" + Var("bazel_worker_tag"),
   Var("dart_root") + "/third_party/pkg/boolean_selector":
