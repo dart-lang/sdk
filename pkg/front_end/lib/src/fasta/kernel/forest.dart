@@ -176,6 +176,17 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   /// [throwKeyword].
   Expression throwExpression(Location throwKeyword, Expression expression);
 
+  /// Return a representation of a try statement. The statement is introduced by
+  /// the [tryKeyword] and the given [body]. If catch clauses were included,
+  /// then the [catchClauses] will represent them, otherwise it will be `null`.
+  /// Similarly, if a finally block was included, then the [finallyKeyword] and
+  /// [finallyBlock] will be non-`null`, otherwise both will be `null`. If there
+  /// was an error in some part of the try statement, then an [errorReplacement]
+  /// might be provided, in which case it could be returned instead of the
+  /// representation of the try statement.
+  Statement tryStatement(Location tryKeyword, Statement body,
+      covariant catchClauses, Location finallyKeyword, Statement finallyBlock);
+
   /// Return a representation of a yield statement consisting of the
   /// [yieldKeyword], [star], [expression], and [semicolon]. The [star] is null
   /// when no star was included in the source code.

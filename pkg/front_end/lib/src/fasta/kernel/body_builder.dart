@@ -2384,19 +2384,11 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void endTryStatement(int catchCount, Token tryKeyword, Token finallyKeyword) {
     Statement finallyBlock = popStatementIfNotNull(finallyKeyword);
-    List<Catch> catches = popList(catchCount);
+    Object catches = popList(catchCount);
     Statement tryBlock = popStatement();
-    kernel.Statement kernelFinallyBlock = toKernelStatement(finallyBlock);
-    kernel.Statement kernelTryBlock = toKernelStatement(tryBlock);
     if (compileTimeErrorInTry == null) {
-      if (catches != null) {
-        kernelTryBlock = new ShadowTryCatch(kernelTryBlock, catches);
-      }
-      if (kernelFinallyBlock != null) {
-        kernelTryBlock =
-            new ShadowTryFinally(kernelTryBlock, kernelFinallyBlock);
-      }
-      push(kernelTryBlock);
+      push(forest.tryStatement(
+          tryKeyword, tryBlock, catches, finallyKeyword, finallyBlock));
     } else {
       push(compileTimeErrorInTry);
       compileTimeErrorInTry = null;

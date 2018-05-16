@@ -105,8 +105,6 @@ export 'kernel_shadow_ast.dart'
         ShadowSuperPropertyGet,
         ShadowSwitchStatement,
         ShadowSyntheticExpression,
-        ShadowTryCatch,
-        ShadowTryFinally,
         ShadowVariableAssignment,
         ShadowVariableDeclaration,
         ShadowVariableGet,

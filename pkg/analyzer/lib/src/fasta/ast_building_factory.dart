@@ -244,6 +244,16 @@ class AstBuildingForest
       astFactory.throwExpression(throwKeyword, expression);
 
   @override
+  Statement tryStatement(
+          Token tryKeyword,
+          Statement body,
+          List<CatchClause> catchClauses,
+          Token finallyKeyword,
+          Statement finallyBlock) =>
+      astFactory.tryStatement(
+          tryKeyword, body, catchClauses, finallyKeyword, finallyBlock);
+
+  @override
   Statement yieldStatement(Token yieldKeyword, Token star,
           Expression expression, Token semicolon) =>
       astFactory.yieldStatement(yieldKeyword, star, expression, semicolon);

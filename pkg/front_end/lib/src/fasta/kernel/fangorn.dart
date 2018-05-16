@@ -9,6 +9,7 @@ import 'dart:core' hide MapEntry;
 import 'package:kernel/ast.dart'
     show
         Arguments,
+        Catch,
         DartType,
         EmptyStatement,
         Expression,
@@ -53,6 +54,8 @@ import 'kernel_shadow_ast.dart'
         ShadowSyntheticExpression,
         ShadowThisExpression,
         ShadowThrow,
+        ShadowTryCatch,
+        ShadowTryFinally,
         ShadowTypeLiteral,
         ShadowYieldStatement;
 
@@ -272,6 +275,19 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   Expression throwExpression(Token throwKeyword, Expression expression) {
     return new ShadowThrow(expression)
       ..fileOffset = offsetForToken(throwKeyword);
+  }
+
+  @override
+  Statement tryStatement(Token tryKeyword, Statement body,
+      List<Catch> catchClauses, Token finallyKeyword, Statement finallyBlock) {
+    Statement tryStatement = body;
+    if (catchClauses != null) {
+      tryStatement = new ShadowTryCatch(tryStatement, catchClauses);
+    }
+    if (finallyBlock != null) {
+      tryStatement = new ShadowTryFinally(tryStatement, finallyBlock);
+    }
+    return tryStatement;
   }
 
   @override
