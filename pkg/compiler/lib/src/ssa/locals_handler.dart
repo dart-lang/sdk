@@ -12,7 +12,6 @@ import '../js_backend/native_data.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_model/closure.dart' show JRecordField, JClosureField;
 import '../js_model/locals.dart' show JLocal;
-import '../tree/tree.dart' as ast;
 import '../types/types.dart';
 import '../world.dart' show ClosedWorld;
 

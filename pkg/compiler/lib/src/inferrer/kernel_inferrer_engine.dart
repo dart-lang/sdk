@@ -384,27 +384,9 @@ class KernelGlobalTypeInferenceElementData
   }
 
   @override
-  void setOperatorTypeMaskInComplexSendSet(ir.Node node, TypeMask mask) {
-    throw new UnsupportedError(
-        'KernelGlobalTypeInferenceElementData.setOperatorTypeMaskInComplexSendSet');
-  }
-
-  @override
-  void setGetterTypeMaskInComplexSendSet(ir.Node node, TypeMask mask) {
-    throw new UnsupportedError(
-        'KernelGlobalTypeInferenceElementData.setGetterTypeMaskInComplexSendSet');
-  }
-
-  @override
   void setTypeMask(ir.Node node, TypeMask mask) {
     _sendMap ??= <ir.Node, TypeMask>{};
     _sendMap[node] = mask;
-  }
-
-  @override
-  TypeMask typeOfOperator(ir.Node node) {
-    throw new UnsupportedError(
-        'KernelGlobalTypeInferenceElementData.typeOfOperator');
   }
 
   @override

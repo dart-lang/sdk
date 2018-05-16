@@ -32,8 +32,6 @@ import 'package:compiler/src/world.dart';
 
 import 'package:compiler/src/compiler.dart' show Compiler;
 
-export 'package:compiler/src/tree/tree.dart';
-
 import 'memory_compiler.dart';
 
 import 'output_collector.dart';

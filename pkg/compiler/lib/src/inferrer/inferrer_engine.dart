@@ -400,16 +400,6 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
     GlobalTypeInferenceElementData data = dataOfMember(owner);
     assert(validCallType(callType, node));
     switch (callType) {
-      case CallType.complex:
-        if (selector.isSetter || selector.isIndexSet) {
-          data.setTypeMask(node, mask);
-        } else if (selector.isGetter || selector.isIndex) {
-          data.setGetterTypeMaskInComplexSendSet(node, mask);
-        } else {
-          assert(selector.isOperator);
-          data.setOperatorTypeMaskInComplexSendSet(node, mask);
-        }
-        break;
       case CallType.access:
         data.setTypeMask(node, mask);
         break;

@@ -10,11 +10,9 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../common/names.dart' show Identifiers;
 import '../constants/values.dart';
-import '../elements/elements.dart'
-    show ConstructorElement, LocalElement, MemberElement;
+import '../elements/elements.dart' show LocalElement, MemberElement;
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../tree/tree.dart' as ast show ForIn, Node, Send, SendSet;
 import '../types/masks.dart'
     show
         CommonMasks,
@@ -857,18 +855,15 @@ class ParameterTypeInformation extends ElementTypeInformation {
 
 enum CallType {
   access,
-  complex,
   forIn,
 }
 
 bool validCallType(CallType callType, Object call) {
   switch (callType) {
-    case CallType.complex:
-      return call is ast.SendSet;
     case CallType.access:
-      return call is ast.Send || call is ir.Node;
+      return call is ir.Node;
     case CallType.forIn:
-      return call is ast.ForIn || call is ir.ForInStatement;
+      return call is ir.ForInStatement;
   }
   throw new StateError('Unexpected call type $callType.');
 }
@@ -898,8 +893,7 @@ abstract class CallSiteTypeInformation extends TypeInformation
     assert(_checkCaller(caller));
     // [_call] is either an AST node or a constructor element in case of a
     // a forwarding constructor _call.
-    assert(
-        _call is ast.Node || _call is ConstructorElement || _call is ir.Node);
+    assert(_call is ir.Node);
   }
 
   bool _checkCaller(MemberEntity caller) {

@@ -26,7 +26,6 @@ import 'elements/elements.dart'
         ScopeContainerElement;
 import 'elements/entities.dart';
 import 'resolution/tree_elements.dart' show TreeElements;
-import 'tree/tree.dart' show NewExpression;
 
 /**
  * Compiler task that analyzes MirrorsUsed annotations.
@@ -114,11 +113,6 @@ class MirrorUsageAnalyzerTask extends CompilerTask {
     return library.isInternalLibrary ||
         (librariesWithUsage != null && librariesWithUsage.contains(library));
   }
-
-  /// Call-back from the resolver to analyze MirrorsUsed annotations. The result
-  /// is stored in [analyzer] and later used to compute
-  /// [:analyzer.mergedMirrorUsage:].
-  void validate(NewExpression node, TreeElements mapping) {}
 }
 
 class MirrorUsageAnalyzer {

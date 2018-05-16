@@ -10,7 +10,6 @@ import '../options.dart' show CompilerOptions;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../tree/tree.dart' as ast;
 import '../util/util.dart';
 import 'inferrer_engine.dart';
 import 'type_graph_nodes.dart';
@@ -38,11 +37,7 @@ class VariableScope<T> {
   VariableScope(this.block, {VariableScope parent, this.isTry})
       : this.variables = null,
         this.parent = parent {
-    assert(
-        isTry ==
-            (block is ast.TryStatement ||
-                block is ir.TryCatch ||
-                block is ir.TryFinally),
+    assert(isTry == (block is ir.TryCatch || block is ir.TryFinally),
         "Unexpected block $block for isTry=$isTry");
   }
 

@@ -209,7 +209,7 @@ class KernelWorkItemBuilder implements WorkItemBuilder {
   }
 }
 
-class KernelWorkItem implements ResolutionWorkItem {
+class KernelWorkItem implements WorkItem {
   final CompilerTask _compilerTask;
   final KernelToElementMapForImpactImpl _elementMap;
   final ImpactTransformer _impactTransformer;

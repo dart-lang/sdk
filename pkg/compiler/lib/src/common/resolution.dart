@@ -9,7 +9,7 @@ import '../compile_time_constants.dart';
 import '../constants/expressions.dart' show ConstantExpression;
 import '../constants/values.dart' show ConstantValue;
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
-import '../elements/resolution_types.dart' show ResolutionDartType, Types;
+import '../elements/resolution_types.dart' show Types;
 import '../elements/elements.dart'
     show
         ClassElement,
@@ -28,32 +28,9 @@ import '../enqueue.dart' show ResolutionEnqueuer;
 import '../id_generator.dart';
 import '../mirrors_used.dart';
 import '../options.dart' show CompilerOptions;
-import '../tree/tree.dart' show TypeAnnotation;
 import '../universe/world_impact.dart' show WorldImpact;
 import '../universe/feature.dart';
 import 'work.dart' show WorkItem;
-
-/// [WorkItem] used exclusively by the [ResolutionEnqueuer].
-abstract class ResolutionWorkItem implements WorkItem {
-  factory ResolutionWorkItem(Resolution resolution, MemberElement element) =
-      _ResolutionWorkItem;
-}
-
-class _ResolutionWorkItem extends WorkItem implements ResolutionWorkItem {
-  bool _isAnalyzed = false;
-  final MemberElement element;
-  final Resolution resolution;
-
-  _ResolutionWorkItem(this.resolution, this.element);
-
-  WorldImpact run() {
-    assert(!_isAnalyzed,
-        failedAt(element, 'Element ${element} has already been analyzed'));
-    WorldImpact impact = resolution.computeWorldImpact(element);
-    _isAnalyzed = true;
-    return impact;
-  }
-}
 
 class ResolutionImpact extends WorldImpact {
   const ResolutionImpact();
@@ -121,8 +98,6 @@ abstract class Resolution {
   void resolveClass(ClassElement cls);
   void resolveMetadataAnnotation(MetadataAnnotation metadataAnnotation);
   FunctionSignature resolveSignature(FunctionElement function);
-  ResolutionDartType resolveTypeAnnotation(
-      Element element, TypeAnnotation node);
 
   /// Returns `true` if [element] has been resolved.
   bool hasBeenResolved(Element element);
@@ -138,7 +113,7 @@ abstract class Resolution {
   /// The error itself is given in [message].
   void registerCompileTimeError(Element element, DiagnosticMessage message);
 
-  ResolutionWorkItem createWorkItem(MemberElement element);
+  WorkItem createWorkItem(MemberElement element);
 
   /// Returns `true` if [element] as a fully computed [ResolvedAst].
   bool hasResolvedAst(ExecutableElement element);
