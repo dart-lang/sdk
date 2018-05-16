@@ -653,8 +653,6 @@ generic_methods_dynamic_test/02: MissingRuntimeError
 generic_methods_dynamic_test/04: MissingRuntimeError
 generic_methods_generic_class_tearoff_test: RuntimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
-generic_methods_simple_as_expression_test/02: MissingRuntimeError
-generic_methods_type_expression_test: RuntimeError
 generic_methods_unused_parameter_test: RuntimeError
 generic_no_such_method_dispatcher_simple_test: CompileTimeError
 generic_no_such_method_dispatcher_test: CompileTimeError
@@ -871,7 +869,6 @@ const_dynamic_type_literal_test/03: Pass # but it shouldn't until we fix issue 1
 function_propagation_test: RuntimeError
 generic_test/01: MissingCompileTimeError # front end does not validate `extends`
 instantiate_tearoff_of_call_test: RuntimeError
-instantiate_tearoff_test: RuntimeError
 mixin_type_parameter_inference_error_test/none: CompileTimeError
 mixin_type_parameter_inference_previous_mixin_test/01: CompileTimeError
 mixin_type_parameter_inference_previous_mixin_test/02: CompileTimeError
@@ -1057,8 +1054,6 @@ generic_methods_generic_class_tearoff_test: RuntimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_methods_overriding_test/01: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
-generic_methods_simple_as_expression_test/02: MissingRuntimeError
-generic_methods_type_expression_test: RuntimeError
 generic_methods_unused_parameter_test: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
 generic_no_such_method_dispatcher_simple_test: CompileTimeError
 generic_no_such_method_dispatcher_test: CompileTimeError
@@ -1078,7 +1073,6 @@ initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
 instance_creation_in_function_annotation_test: RuntimeError
 instantiate_tearoff_of_call_test: CompileTimeError
-instantiate_tearoff_test: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
 int64_literal_test/01: RuntimeError
 int64_literal_test/02: RuntimeError
 int64_literal_test/03: MissingCompileTimeError
@@ -1605,8 +1599,6 @@ generic_methods_generic_class_tearoff_test: RuntimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_methods_overriding_test/01: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
-generic_methods_simple_as_expression_test/02: MissingRuntimeError
-generic_methods_type_expression_test: RuntimeError
 generic_methods_unused_parameter_test: RuntimeError
 generic_no_such_method_dispatcher_simple_test: CompileTimeError
 generic_no_such_method_dispatcher_test: CompileTimeError

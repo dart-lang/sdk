@@ -250,10 +250,9 @@ abstract class TypeBuilder {
     if (type == null) return original;
     if (type.isTypeVariable) {
       TypeVariableType typeVariable = type;
-      // GENERIC_METHODS: The following statement was added for parsing and
-      // ignoring method type variables; must be generalized for full support of
-      // generic methods.
-      if (typeVariable.element.typeDeclaration is! ClassEntity) {
+      // In Dart 1, method type variables are ignored.
+      if (!builder.options.strongMode &&
+          typeVariable.element.typeDeclaration is! ClassEntity) {
         type = const DynamicType();
       }
     }
