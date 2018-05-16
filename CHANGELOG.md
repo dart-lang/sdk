@@ -11,6 +11,10 @@
 * `dart:core`
   * Deprecated the `NoSuchMethodError` constructor.
 
+* `dart:mirrors`
+  * Marked `MirrorsUsed` as deprecated. The mirrors library is no longer
+    supported by dart2js, and `MirrorsUsed` only affected dart2js.
+
 ### Dart VM
 
 ### Tool Changes
