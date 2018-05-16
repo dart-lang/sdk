@@ -51,18 +51,31 @@ class NsmEmitter extends CodeEmitterHelper {
     List<jsAst.Name> names = addedJsNames.keys.toList()..sort();
     for (jsAst.Name jsName in names) {
       Selector selector = addedJsNames[jsName];
+      String reflectionName =
+          emitter.getReflectionSelectorName(selector, jsName);
+
+      if (reflectionName != null) {
+        emitter.mangledFieldNames[jsName] = reflectionName;
+      }
+
       List<jsAst.Expression> argNames = selector.callStructure
           .getOrderedNamedArguments()
           .map((String name) => js.string(name))
           .toList();
       int type = selector.invocationMirrorKind;
       if (!haveVeryFewNoSuchMemberHandlers &&
-          isTrivialNsmHandler(type, argNames, selector, jsName)) {
+          isTrivialNsmHandler(type, argNames, selector, jsName) &&
+          reflectionName == null) {
         trivialNsmHandlers.add(selector);
       } else {
         StubMethod method =
             generator.generateStubForNoSuchMethod(jsName, selector);
         addProperty(method.name, method.code);
+        if (reflectionName != null) {
+          bool accessible = false;
+          addProperty(
+              namer.asName('+$reflectionName'), js(accessible ? '2' : '0'));
+        }
       }
     }
   }

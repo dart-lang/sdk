@@ -20,6 +20,7 @@ import 'package:js_runtime/shared/embedded_names.dart'
         IS_HUNK_LOADED,
         LEAF_TAGS,
         MANGLED_GLOBAL_NAMES,
+        MANGLED_NAMES,
         METADATA,
         NATIVE_SUPERCLASS_TAG_NAME,
         TYPE_TO_INTERCEPTOR_MAP,

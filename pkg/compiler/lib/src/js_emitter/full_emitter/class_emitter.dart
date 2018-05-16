@@ -12,6 +12,7 @@ import '../../elements/entities.dart';
 import '../../js/js.dart' as jsAst;
 import '../../js/js.dart' show js;
 import '../../js_backend/js_backend.dart' show CompoundName, Namer;
+import '../../universe/selector.dart' show Selector;
 import '../../world.dart' show ClosedWorld;
 import '../js_emitter.dart' hide Emitter, EmitterFactory;
 import '../model.dart';
@@ -116,6 +117,8 @@ class ClassEmitter extends CodeEmitterHelper {
       fields = container.staticFieldsForReflection;
     }
 
+    var fieldMetadata = <jsAst.Expression>[];
+    bool hasMetadata = false;
     bool fieldsAdded = false;
 
     for (Field field in fields) {
@@ -133,6 +136,8 @@ class ClassEmitter extends CodeEmitterHelper {
       // accessors at runtime.
       bool needsFieldsForConstructor = !emitStatics && !classIsNative;
       if (needsFieldsForConstructor || needsAccessor) {
+        dynamic metadata = new jsAst.LiteralNull();
+        fieldMetadata.add(metadata);
         List<jsAst.Literal> fieldNameParts = <jsAst.Literal>[];
         if (!needsAccessor) {
           // Emit field for constructor generation.
@@ -174,6 +179,9 @@ class ClassEmitter extends CodeEmitterHelper {
       }
     }
 
+    if (hasMetadata) {
+      builder.fieldMetadata = fieldMetadata;
+    }
     return fieldsAdded;
   }
 
@@ -188,6 +196,8 @@ class ClassEmitter extends CodeEmitterHelper {
       jsAst.Name setterName = method.name;
       compiler.dumpInfoTask
           .registerEntityAst(member, builder.addProperty(setterName, code));
+      generateReflectionDataForFieldGetterOrSetter(member, setterName, builder,
+          isGetter: false);
     }
   }
 
@@ -336,5 +346,18 @@ class ClassEmitter extends CodeEmitterHelper {
     emitter
         .cspPrecompiledFunctionFor(outputUnit)
         .add(js('#.prototype.# = #', [className, setterName, function]));
+  }
+
+  void generateReflectionDataForFieldGetterOrSetter(
+      MemberEntity member, jsAst.Name name, ClassBuilder builder,
+      {bool isGetter}) {
+    Selector selector = isGetter
+        ? new Selector.getter(member.memberName.getter)
+        : new Selector.setter(member.memberName.setter);
+    String reflectionName = emitter.getReflectionSelectorName(selector, name);
+    if (reflectionName != null) {
+      var reflectable = js('0');
+      builder.addPropertyByName('+$reflectionName', reflectable);
+    }
   }
 }
