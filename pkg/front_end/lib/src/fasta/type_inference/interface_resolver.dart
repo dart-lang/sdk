@@ -13,21 +13,9 @@ import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
-import 'package:kernel/text/ast_to_text.dart';
 import 'package:kernel/transformations/flags.dart' show TransformerFlag;
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
-
-/// Set this flag to `true` to cause debugging information about covariance
-/// checks to be printed to standard output.
-const bool debugCovariance = false;
-
-/// Type of a closure which applies a covariance annotation to a class member.
-///
-/// This is necessary since we need to determine which covariance annotations
-/// need to be added before creating a forwarding stub, but the covariance
-/// annotations themselves need to be applied to the forwarding stub.
-typedef void _CovarianceFix(FunctionNode function);
 
 /// Concrete class derived from [InferenceNode] to represent type inference of
 /// getters, setters, and fields based on inheritance.
@@ -192,41 +180,59 @@ class ForwardingNode extends Procedure {
   /// Does not create forwarding stubs.
   Procedure resolve() => _resolution ??= _resolve();
 
-  /// Determines which covariance fixes need to be applied to the given
-  /// [interfaceMember].
+  /// Tag the parameters of [interfaceMember] that need type checks
   ///
-  /// [substitution] indicates the necessary substitutions to convert types
-  /// named in [interfaceMember] to types in the target class.
+  /// Parameters can need type checks for calls coming from statically typed
+  /// call sites, due to covariant generics and overrides with explicit
+  /// `covariant` parameters.
   ///
-  /// The fixes are not applied immediately (since [interfaceMember] might be
-  /// a member of another class, and a forwarding stub may need to be
-  /// generated).
-  void _computeCovarianceFixes(Substitution substitution,
-      Procedure interfaceMember, List<_CovarianceFix> fixes) {
-    if (debugCovariance) {
-      print('Considering covariance fixes for '
-          '${_printProcedure(interfaceMember, enclosingClass)}');
-      for (int i = _start; i < _end; i++) {
-        print('  Candidate: ${_printProcedure(_candidates[i])}');
-      }
-    }
-    var class_ = enclosingClass;
+  /// Tag parameters of [interfaceMember] that need such checks when the member
+  /// occurs in [enclosingClass]'s interface.  If parameters need checks but
+  /// they would not be checked in an inherited implementation, a forwarding
+  /// stub is introduced as a place to put the checks.
+  Procedure _computeCovarianceFixes(Procedure interfaceMember) {
+    assert(_interfaceResolver.strongMode);
+    var substitution =
+        _interfaceResolver._substitutionFor(interfaceMember, enclosingClass);
+    // We always create a forwarding stub when we've inherited a member from an
+    // interface other than the first override candidate.  This is to work
+    // around a bug in the Kernel type checker where it chooses the first
+    // override candidate.
+    //
+    // TODO(kmillikin): Fix the Kernel type checker and stop creating these
+    // extra stubs.
+    var stub = interfaceMember.enclosingClass == enclosingClass ||
+            interfaceMember == _resolvedCandidate(_start)
+        ? interfaceMember
+        : _createForwardingStub(substitution, interfaceMember);
+
     var interfaceFunction = interfaceMember.function;
     var interfacePositionalParameters = interfaceFunction.positionalParameters;
     var interfaceNamedParameters = interfaceFunction.namedParameters;
     var interfaceTypeParameters = interfaceFunction.typeParameters;
+
+    void createStubIfNeeded() {
+      if (stub != interfaceMember) return;
+      if (interfaceMember.enclosingClass == enclosingClass) return;
+      stub = _createForwardingStub(substitution, interfaceMember);
+    }
+
     bool isImplCreated = false;
     void createImplIfNeeded() {
       if (isImplCreated) return;
-      fixes.add(_createForwardingImplIfNeeded);
+      createStubIfNeeded();
+      _createForwardingImplIfNeeded(stub.function);
       isImplCreated = true;
     }
 
     IncludesTypeParametersCovariantly needsCheckVisitor =
-        class_.typeParameters.isEmpty
+        enclosingClass.typeParameters.isEmpty
             ? null
-            : ShadowClass.getClassInferenceInfo(class_).needsCheckVisitor ??=
-                new IncludesTypeParametersCovariantly(class_.typeParameters);
+            : ShadowClass
+                    .getClassInferenceInfo(enclosingClass)
+                    .needsCheckVisitor ??=
+                new IncludesTypeParametersCovariantly(
+                    enclosingClass.typeParameters);
     bool needsCheck(DartType type) => needsCheckVisitor == null
         ? false
         : substitution.substituteType(type).accept(needsCheckVisitor);
@@ -252,19 +258,23 @@ class ForwardingNode extends Procedure {
           isCovariant = true;
         }
       }
-      if (isGenericCovariantImpl != superParameter.isGenericCovariantImpl) {
-        createImplIfNeeded();
+      if (isGenericCovariantImpl) {
+        if (!superParameter.isGenericCovariantImpl) {
+          createImplIfNeeded();
+        }
+        if (!parameter.isGenericCovariantImpl) {
+          createStubIfNeeded();
+          stub.function.positionalParameters[i].isGenericCovariantImpl = true;
+        }
       }
-      if (isGenericCovariantImpl != parameter.isGenericCovariantImpl) {
-        fixes.add((FunctionNode function) => function.positionalParameters[i]
-            .isGenericCovariantImpl = isGenericCovariantImpl);
-      }
-      if (isCovariant != superParameter.isCovariant) {
-        createImplIfNeeded();
-      }
-      if (isCovariant != parameter.isCovariant) {
-        fixes.add((FunctionNode function) =>
-            function.positionalParameters[i].isCovariant = isCovariant);
+      if (isCovariant) {
+        if (!superParameter.isCovariant) {
+          createImplIfNeeded();
+        }
+        if (!parameter.isCovariant) {
+          createStubIfNeeded();
+          stub.function.positionalParameters[i].isCovariant = true;
+        }
       }
     }
     for (int i = 0; i < interfaceNamedParameters.length; i++) {
@@ -288,19 +298,23 @@ class ForwardingNode extends Procedure {
           isCovariant = true;
         }
       }
-      if (isGenericCovariantImpl != superParameter.isGenericCovariantImpl) {
-        createImplIfNeeded();
+      if (isGenericCovariantImpl) {
+        if (!superParameter.isGenericCovariantImpl) {
+          createImplIfNeeded();
+        }
+        if (!parameter.isGenericCovariantImpl) {
+          createStubIfNeeded();
+          stub.function.namedParameters[i].isGenericCovariantImpl = true;
+        }
       }
-      if (isGenericCovariantImpl != parameter.isGenericCovariantImpl) {
-        fixes.add((FunctionNode function) => function.namedParameters[i]
-            .isGenericCovariantImpl = isGenericCovariantImpl);
-      }
-      if (isCovariant != superParameter.isCovariant) {
-        createImplIfNeeded();
-      }
-      if (isCovariant != parameter.isCovariant) {
-        fixes.add((FunctionNode function) =>
-            function.namedParameters[i].isCovariant = isCovariant);
+      if (isCovariant) {
+        if (!superParameter.isCovariant) {
+          createImplIfNeeded();
+        }
+        if (!parameter.isCovariant) {
+          createStubIfNeeded();
+          stub.function.namedParameters[i].isCovariant = true;
+        }
       }
     }
     for (int i = 0; i < interfaceTypeParameters.length; i++) {
@@ -320,18 +334,17 @@ class ForwardingNode extends Procedure {
           isGenericCovariantImpl = true;
         }
       }
-      if (isGenericCovariantImpl != superTypeParameter.isGenericCovariantImpl) {
-        createImplIfNeeded();
-      }
-      if (isGenericCovariantImpl != typeParameter.isGenericCovariantImpl) {
-        fixes.add((FunctionNode function) => function
-            .typeParameters[i].isGenericCovariantImpl = isGenericCovariantImpl);
+      if (isGenericCovariantImpl) {
+        if (!superTypeParameter.isGenericCovariantImpl) {
+          createImplIfNeeded();
+        }
+        if (!typeParameter.isGenericCovariantImpl) {
+          createStubIfNeeded();
+          stub.function.typeParameters[i].isGenericCovariantImpl = true;
+        }
       }
     }
-
-    if (debugCovariance && fixes.isNotEmpty) {
-      print('  ${fixes.length} fix(es)');
-    }
+    return stub;
   }
 
   void _createForwardingImplIfNeeded(FunctionNode function) {
@@ -467,28 +480,9 @@ class ForwardingNode extends Procedure {
   /// Creates a forwarding stub for this node if necessary, and propagates
   /// covariance information.
   Procedure _finalize() {
-    var member = resolve();
-    var substitution =
-        _interfaceResolver._substitutionFor(member, enclosingClass);
-    bool isDeclaredInThisClass =
-        identical(member.enclosingClass, enclosingClass);
-
-    // Now decide whether we need a forwarding stub or not, and propagate
-    // covariance.
-    var covarianceFixes = <_CovarianceFix>[];
-    if (_interfaceResolver.strongMode) {
-      _computeCovarianceFixes(substitution, member, covarianceFixes);
-    }
-    if (!isDeclaredInThisClass &&
-        (!identical(member, _resolvedCandidate(_start)) ||
-            covarianceFixes.isNotEmpty)) {
-      member = _createForwardingStub(substitution, member);
-    }
-    var function = member.function;
-    for (var fix in covarianceFixes) {
-      fix(function);
-    }
-    return member;
+    return _interfaceResolver.strongMode
+        ? _computeCovarianceFixes(resolve())
+        : resolve();
   }
 
   /// Returns the [i]th element of [_candidates], finalizing it if necessary.
@@ -498,29 +492,6 @@ class ForwardingNode extends Procedure {
             _interfaceResolver.isTypeInferencePrepared
         ? candidate.finalize()
         : candidate;
-  }
-
-  /// Returns a string describing the signature of [procedure], along with the
-  /// class it's in.
-  ///
-  /// Only used if [debugCovariance] is `true`.
-  ///
-  /// If [class_] is provided, it is used instead of [procedure]'s enclosing
-  /// class.
-  String _printProcedure(Procedure procedure, [Class class_]) {
-    class_ ??= procedure.enclosingClass;
-    var buffer = new StringBuffer();
-    if (procedure.function == null) {
-      buffer.write(procedure.toString());
-    } else {
-      procedure.accept(new Printer(buffer));
-    }
-    var text = buffer.toString();
-    var newlineIndex = text.indexOf('\n');
-    if (newlineIndex != -1) {
-      text = text.substring(0, newlineIndex);
-    }
-    return '$class_: $text';
   }
 
   /// Determines which inherited member this node resolves to, and also performs
