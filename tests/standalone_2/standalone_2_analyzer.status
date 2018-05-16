@@ -45,4 +45,3 @@ io/process_invalid_arguments_test: StaticWarning
 io/raw_secure_server_socket_argument_test: StaticWarning
 io/secure_socket_argument_test: StaticWarning
 io/stdout_bad_argument_test: StaticWarning
-

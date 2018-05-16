@@ -54,11 +54,11 @@ main() async {
       context: clientContext);
   List<int> body = <int>[];
   // Close our end, since we're not sending data.
-  socket.shutdown(SocketDirection.SEND);
+  socket.shutdown(SocketDirection.send);
 
   socket.listen((RawSocketEvent event) {
     switch (event) {
-      case RawSocketEvent.READ:
+      case RawSocketEvent.read:
         // NOTE: We have a very low prime number here. The internal
         // ring buffers will not have a size of 3. This means that
         // we'll reach the point where we would like to read 1/2 bytes
@@ -66,9 +66,9 @@ main() async {
         // [This will ensure we trigger the bug.]
         body.addAll(socket.read(3));
         break;
-      case RawSocketEvent.WRITE:
+      case RawSocketEvent.write:
         break;
-      case RawSocketEvent.READ_CLOSED:
+      case RawSocketEvent.readClosed:
         break;
       default:
         throw "Unexpected event $event";

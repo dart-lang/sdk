@@ -9,16 +9,12 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart' as file_system;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/plugin/resolver_provider.dart';
-import 'package:analyzer/source/package_map_provider.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
-import 'package:analyzer/source/path_filter.dart';
-import 'package:analyzer/source/pub_package_map_provider.dart';
-import 'package:analyzer/source/sdk_ext.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
+import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/interner.dart';
@@ -28,12 +24,19 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart'
     show PerformanceTag;
+import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
+import 'package:analyzer/src/source/package_map_provider.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/source/path_filter.dart';
+import 'package:analyzer/src/source/pub_package_map_provider.dart';
+import 'package:analyzer/src/source/sdk_ext.dart';
 import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
 import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/batch_mode.dart';
 import 'package:analyzer_cli/src/build_mode.dart';
@@ -76,9 +79,9 @@ telemetry.Analytics get analytics => (_analytics ??=
     telemetry.createAnalyticsInstance(_analyticsID, 'analyzer-cli'));
 
 /// Test this option map to see if it specifies lint rules.
-bool containsLintRuleEntry(Map<String, YamlNode> options) {
-  var linterNode = options['linter'];
-  return linterNode is YamlMap && linterNode.containsKey('rules');
+bool containsLintRuleEntry(YamlMap options) {
+  YamlNode linterNode = getValue(options, 'linter');
+  return linterNode is YamlMap && getValue(linterNode, 'rules') != null;
 }
 
 /// Make sure that we create an analytics instance that doesn't send for this
@@ -507,7 +510,7 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
         resolvers
             .add(new InSummaryUriResolver(resourceProvider, summaryDataStore));
         resolvers.add(resolver);
-        resolvers.add(new file_system.ResourceUriResolver(resourceProvider));
+        resolvers.add(new ResourceUriResolver(resourceProvider));
         return new SourceFactory(resolvers);
       }
     }
@@ -577,7 +580,7 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
     }
 
     // Finally files.
-    resolvers.add(new file_system.ResourceUriResolver(resourceProvider));
+    resolvers.add(new ResourceUriResolver(resourceProvider));
 
     return new SourceFactory(resolvers, packageInfo.packages);
   }
@@ -700,7 +703,8 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
     _context = AnalysisEngine.instance.createAnalysisContext();
     _context.analysisOptions = analysisOptions;
     _context.sourceFactory = sourceFactory;
-    declareVariables(context.declaredVariables, options);
+    (context as AnalysisContextImpl).declaredVariables =
+        new DeclaredVariables.fromMap(options.definedVariables);
 
     if (options.enableNewAnalysisDriver) {
       PerformanceLog log = new PerformanceLog(null);
@@ -882,17 +886,6 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
       return true;
     } else {
       return false;
-    }
-  }
-
-  /// Copy variables defined in the [options] into [declaredVariables].
-  static void declareVariables(
-      DeclaredVariables declaredVariables, CommandLineOptions options) {
-    Map<String, String> definedVariables = options.definedVariables;
-    if (definedVariables.isNotEmpty) {
-      definedVariables.forEach((String variableName, String value) {
-        declaredVariables.define(variableName, value);
-      });
     }
   }
 

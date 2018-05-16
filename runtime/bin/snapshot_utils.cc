@@ -5,6 +5,7 @@
 #include "bin/snapshot_utils.h"
 
 #include "bin/dartutils.h"
+#include "bin/dfe.h"
 #include "bin/error_exit.h"
 #include "bin/extensions.h"
 #include "bin/file.h"
@@ -241,23 +242,17 @@ AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_name) {
   if (snapshot != NULL) {
     return snapshot;
   }
-#endif  //  defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
   return NULL;
 }
 
 static void WriteSnapshotFile(const char* filename,
-                              bool write_magic_number,
                               const uint8_t* buffer,
                               const intptr_t size) {
   File* file = File::Open(NULL, filename, File::kWriteTruncate);
   if (file == NULL) {
     ErrorExit(kErrorExitCode, "Unable to open file %s for writing snapshot\n",
               filename);
-  }
-
-  if (write_magic_number) {
-    // Write the magic number to indicate file is a script snapshot.
-    DartUtils::WriteSnapshotMagicNumber(file);
   }
 
   if (!file->WriteFully(buffer, size)) {
@@ -323,6 +318,22 @@ static void WriteAppSnapshot(const char* filename,
   file->Release();
 }
 
+void Snapshot::GenerateKernel(const char* snapshot_filename,
+                              const char* script_name,
+                              bool strong,
+                              const char* package_config) {
+#if !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM) && !defined(TESTING)
+  Dart_KernelCompilationResult result =
+      dfe.CompileScript(script_name, strong, false, package_config);
+  if (result.status != Dart_KernelCompilationStatus_Ok) {
+    ErrorExit(kErrorExitCode, "%s\n", result.error);
+  }
+  WriteSnapshotFile(snapshot_filename, result.kernel, result.kernel_size);
+#else
+  UNREACHABLE();
+#endif  // !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM) && !defined(TESTING)
+}
+
 void Snapshot::GenerateScript(const char* snapshot_filename) {
   // First create a snapshot.
   uint8_t* buffer = NULL;
@@ -332,7 +343,7 @@ void Snapshot::GenerateScript(const char* snapshot_filename) {
     ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
   }
 
-  WriteSnapshotFile(snapshot_filename, true, buffer, size);
+  WriteSnapshotFile(snapshot_filename, buffer, size);
 }
 
 void Snapshot::GenerateAppJIT(const char* snapshot_filename) {
@@ -366,7 +377,9 @@ void Snapshot::GenerateAppJIT(const char* snapshot_filename) {
 #endif
 }
 
-void Snapshot::GenerateAppAOTAsBlobs(const char* snapshot_filename) {
+void Snapshot::GenerateAppAOTAsBlobs(const char* snapshot_filename,
+                                     const uint8_t* shared_data,
+                                     const uint8_t* shared_instructions) {
   uint8_t* vm_data_buffer = NULL;
   intptr_t vm_data_size = 0;
   uint8_t* vm_instructions_buffer = NULL;
@@ -378,7 +391,8 @@ void Snapshot::GenerateAppAOTAsBlobs(const char* snapshot_filename) {
   Dart_Handle result = Dart_CreateAppAOTSnapshotAsBlobs(
       &vm_data_buffer, &vm_data_size, &vm_instructions_buffer,
       &vm_instructions_size, &isolate_data_buffer, &isolate_data_size,
-      &isolate_instructions_buffer, &isolate_instructions_size);
+      &isolate_instructions_buffer, &isolate_instructions_size, shared_data,
+      shared_instructions);
   if (Dart_IsError(result)) {
     ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
   }

@@ -9,7 +9,6 @@ import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
-import 'package:kernel/library_index.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:test/test.dart';
 
@@ -223,7 +222,13 @@ void main() {
         s.trim();
         s.trimLeft();
         s.trimRight();
-        s.compareTo(s);
+
+        // compareTo relies on the interface target being String.compareTo
+        // except that method does not exist unless we insert too many
+        // forwarding stubs.
+        //
+        // s.compareTo(s);
+
         s.toString();
         // Pattern methods (allMatches, matchAsPrefix) are not recognized.
       }''');
@@ -413,27 +418,25 @@ void main() {
       useAnnotations = false;
     });
     var imports = "import 'package:meta/meta.dart';";
-    group('(kernel annotation bug)', () {
-      test('variable wihout initializer', () async {
-        await expectNotNull('$imports main() { @notNull var x; print(x); }',
-            ''); // should be: 'x'
+    group('(previously known kernel annotation bug)', () {
+      test('variable without initializer', () async {
+        await expectNotNull(
+            '$imports main() { @notNull var x; print(x); }', 'x');
       });
       test('variable with initializer', () async {
         // TODO(jmesserly): this does not work in the Analyzer backend.
         await expectNotNull(
-            '$imports main() { @notNull var x = null; print(x); }',
-            ''); // should be: 'x'
+            '$imports main() { @notNull var x = null; print(x); }', 'x');
       });
       test('parameters', () async {
         await expectNotNull(
             '$imports f(@notNull x, [@notNull y, @notNull z = 42]) '
             '{ x; y; z; }',
-            '42, z'); // should be: '42, x, y, z'
+            '42, x, y, z');
       });
       test('named parameters', () async {
         await expectNotNull(
-            '$imports f({@notNull x, @notNull y: 42}) { x; y; }',
-            '42, y'); // should be: '42, x, y'
+            '$imports f({@notNull x, @notNull y: 42}) { x; y; }', '42, x, y');
       });
     });
 
@@ -465,9 +468,9 @@ void main() {
 /// to be produced in the set of expressions that cannot be null by DDC's null
 /// inference.
 Future expectNotNull(String code, String expectedNotNull) async {
-  var program = await kernelCompile(code);
+  var component = await kernelCompile(code);
   var collector = new NotNullCollector();
-  program.accept(collector);
+  component.accept(collector);
   var actualNotNull =
       collector.notNullExpressions.map((e) => e.toString()).join(', ');
   expect(actualNotNull, equals(expectedNotNull));
@@ -485,17 +488,17 @@ class _TestRecursiveVisitor extends RecursiveVisitor<void> {
   int _functionNesting = 0;
 
   @override
-  visitProgram(Program node) {
+  visitComponent(Component node) {
     inference ??= new NullableInference(new JSTypeRep(
-        new TypeSchemaEnvironment(
-            new CoreTypes(node), new ClassHierarchy(node), true),
-        new LibraryIndex.coreLibraries(node)));
+      new TypeSchemaEnvironment(
+          new CoreTypes(node), new ClassHierarchy(node), true),
+    ));
 
     if (useAnnotations) {
       inference.allowNotNullDeclarations = useAnnotations;
       inference.allowPackageMetaAnnotations = useAnnotations;
     }
-    super.visitProgram(node);
+    super.visitComponent(node);
   }
 
   @override
@@ -542,7 +545,7 @@ class ExpectAllNotNull extends _TestRecursiveVisitor {
 fe.InitializedCompilerState _compilerState;
 final _fileSystem = new MemoryFileSystem(new Uri.file('/memory/'));
 
-Future<Program> kernelCompile(String code) async {
+Future<Component> kernelCompile(String code) async {
   var succeeded = true;
   void errorHandler(fe.CompilationMessage error) {
     if (error.severity == fe.Severity.error) {
@@ -577,5 +580,5 @@ const nullCheck = const _NullCheck();
   fe.DdcResult result =
       await fe.compile(_compilerState, [mainUri], errorHandler);
   expect(succeeded, true);
-  return result.program;
+  return result.component;
 }

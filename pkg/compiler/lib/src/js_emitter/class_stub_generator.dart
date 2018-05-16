@@ -183,7 +183,8 @@ class ClassStubGenerator {
     // Values match JSInvocationMirror in js-helper library.
     int type = selector.invocationMirrorKind;
     List<String> parameterNames =
-        new List.generate(selector.argumentCount, (i) => '\$$i');
+        new List.generate(selector.argumentCount, (i) => '\$$i') +
+            new List.generate(selector.typeArgumentCount, (i) => '\$T${i + 1}');
 
     List<jsAst.Expression> argNames = selector.callStructure
         .getOrderedNamedArguments()
@@ -200,7 +201,8 @@ class ClassStubGenerator {
                                             #internalName,
                                             #type,
                                             #arguments,
-                                            #namedArguments))''', {
+                                            #namedArguments,
+                                            #typeArgumentCount))''', {
       'receiver': isIntercepted ? r'$receiver' : 'this',
       'noSuchMethodName': _namer.noSuchMethodName,
       'createInvocationMirror':
@@ -210,7 +212,8 @@ class ClassStubGenerator {
       'internalName': js.quoteName(internalName),
       'type': js.number(type),
       'arguments': new jsAst.ArrayInitializer(parameterNames.map(js).toList()),
-      'namedArguments': new jsAst.ArrayInitializer(argNames)
+      'namedArguments': new jsAst.ArrayInitializer(argNames),
+      'typeArgumentCount': js.number(selector.typeArgumentCount)
     });
 
     jsAst.Expression function;

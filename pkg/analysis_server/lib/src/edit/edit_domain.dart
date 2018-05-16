@@ -25,6 +25,7 @@ import 'package:analysis_server/src/services/correction/sort_members.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -168,12 +169,7 @@ class EditDomainHandler extends AbstractRequestHandler {
       CompilationUnitElement compilationUnitElement =
           resolutionMap.elementDeclaredByCompilationUnit(unit);
       DartAssistContext dartAssistContext = new _DartAssistContextForValues(
-          compilationUnitElement.source,
-          offset,
-          length,
-          driver,
-          new AstProviderForDriver(driver),
-          unit);
+          compilationUnitElement.source, offset, length, driver, unit);
       try {
         AssistProcessor processor = new AssistProcessor(dartAssistContext);
         List<Assist> assists = await processor.compute();
@@ -207,11 +203,9 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Future getFixes(Request request) async {
-    var params = new EditGetFixesParams.fromRequest(request);
+    EditGetFixesParams params = new EditGetFixesParams.fromRequest(request);
     String file = params.file;
     int offset = params.offset;
-
-    List<AnalysisErrorFixes> errorFixesList = <AnalysisErrorFixes>[];
     //
     // Allow plugins to start computing fixes.
     //
@@ -228,29 +222,12 @@ class EditDomainHandler extends AbstractRequestHandler {
     //
     // Compute fixes associated with server-generated errors.
     //
-    AnalysisResult result = await server.getAnalysisResult(file);
-    if (result != null) {
-      CompilationUnit unit = result.unit;
-      LineInfo lineInfo = result.lineInfo;
-      int requestLine = lineInfo.getLocation(offset).lineNumber;
-      for (engine.AnalysisError error in result.errors) {
-        int errorLine = lineInfo.getLocation(error.offset).lineNumber;
-        if (errorLine == requestLine) {
-          var context = new _DartFixContextImpl(server.resourceProvider,
-              result.driver, new AstProviderForDriver(driver), unit, error);
-          List<Fix> fixes =
-              await new DefaultFixContributor().internalComputeFixes(context);
-          if (fixes.isNotEmpty) {
-            fixes.sort(Fix.SORT_BY_RELEVANCE);
-            AnalysisError serverError =
-                newAnalysisError_fromEngine(lineInfo, error);
-            AnalysisErrorFixes errorFixes = new AnalysisErrorFixes(serverError);
-            errorFixesList.add(errorFixes);
-            fixes.forEach((fix) {
-              errorFixes.fixes.add(fix.change);
-            });
-          }
-        }
+    List<AnalysisErrorFixes> errorFixesList = null;
+    while (errorFixesList == null) {
+      try {
+        errorFixesList = await _computeServerErrorFixes(driver, file, offset);
+      } on InconsistentAnalysisException {
+        // Loop around to try again to compute the fixes.
       }
     }
     //
@@ -531,6 +508,41 @@ class EditDomainHandler extends AbstractRequestHandler {
         new EditSortMembersResult(fileEdit).toResponse(request.id));
   }
 
+  /**
+   * Compute and return the fixes associated with server-generated errors.
+   */
+  Future<List<AnalysisErrorFixes>> _computeServerErrorFixes(
+      AnalysisDriver driver, String file, int offset) async {
+    List<AnalysisErrorFixes> errorFixesList = <AnalysisErrorFixes>[];
+    AnalysisResult result = await server.getAnalysisResult(file);
+    if (result != null) {
+      CompilationUnit unit = result.unit;
+      LineInfo lineInfo = result.lineInfo;
+      int requestLine = lineInfo.getLocation(offset).lineNumber;
+      for (engine.AnalysisError error in result.errors) {
+        int errorLine = lineInfo.getLocation(error.offset).lineNumber;
+        if (errorLine == requestLine) {
+          AstProvider astProvider = new AstProviderForDriver(driver);
+          DartFixContext context = new _DartFixContextImpl(
+              server.resourceProvider, result.driver, astProvider, unit, error);
+          List<Fix> fixes =
+              await new DefaultFixContributor().internalComputeFixes(context);
+          if (fixes.isNotEmpty) {
+            fixes.sort(Fix.SORT_BY_RELEVANCE);
+            AnalysisError serverError =
+                newAnalysisError_fromEngine(lineInfo, error);
+            AnalysisErrorFixes errorFixes = new AnalysisErrorFixes(serverError);
+            errorFixesList.add(errorFixes);
+            fixes.forEach((fix) {
+              errorFixes.fixes.add(fix.change);
+            });
+          }
+        }
+      }
+    }
+    return errorFixesList;
+  }
+
   Response _getAvailableRefactorings(Request request) {
     _getAvailableRefactoringsImpl(request);
     return Response.DELAYED_RESPONSE;
@@ -544,6 +556,18 @@ class EditDomainHandler extends AbstractRequestHandler {
     int length = params.length;
     // add refactoring kinds
     List<RefactoringKind> kinds = <RefactoringKind>[];
+    // Try EXTRACT_WIDGETS.
+    {
+      var unit = await server.getResolvedCompilationUnit(file);
+      var analysisSession = server.getAnalysisDriver(file)?.currentSession;
+      if (unit != null && analysisSession != null) {
+        var refactoring = new ExtractWidgetRefactoring(
+            searchEngine, analysisSession, unit, offset);
+        if (refactoring.isAvailable()) {
+          kinds.add(RefactoringKind.EXTRACT_WIDGET);
+        }
+      }
+    }
     // try EXTRACT_*
     if (length != 0) {
       kinds.add(RefactoringKind.EXTRACT_LOCAL_VARIABLE);
@@ -623,13 +647,10 @@ class _DartAssistContextForValues implements DartAssistContext {
   final AnalysisDriver analysisDriver;
 
   @override
-  final AstProvider astProvider;
-
-  @override
   final CompilationUnit unit;
 
   _DartAssistContextForValues(this.source, this.selectionOffset,
-      this.selectionLength, this.analysisDriver, this.astProvider, this.unit);
+      this.selectionLength, this.analysisDriver, this.unit);
 }
 
 /**
@@ -711,6 +732,7 @@ class _RefactoringManager {
   bool get _requiresOptions {
     return refactoring is ExtractLocalRefactoring ||
         refactoring is ExtractMethodRefactoring ||
+        refactoring is ExtractWidgetRefactoring ||
         refactoring is InlineMethodRefactoring ||
         refactoring is RenameRefactoring;
   }
@@ -885,6 +907,15 @@ class _RefactoringManager {
             false, <RefactoringMethodParameter>[], <int>[], <int>[]);
       }
     }
+    if (kind == RefactoringKind.EXTRACT_WIDGET) {
+      CompilationUnit unit = await server.getResolvedCompilationUnit(file);
+      if (unit != null) {
+        var analysisSession = server.getAnalysisDriver(file).currentSession;
+        refactoring = new ExtractWidgetRefactoring(
+            searchEngine, analysisSession, unit, offset);
+        feedback = new ExtractWidgetFeedback();
+      }
+    }
     if (kind == RefactoringKind.INLINE_LOCAL_VARIABLE) {
       CompilationUnit unit = await server.getResolvedCompilationUnit(file);
       if (unit != null) {
@@ -912,20 +943,44 @@ class _RefactoringManager {
       AstNode node = await server.getNodeAtOffset(file, offset);
       Element element = server.getElementOfNode(node);
       if (node != null && element != null) {
+        int feedbackOffset = node.offset;
+        int feedbackLength = node.length;
+
         if (element is FieldFormalParameterElement) {
           element = (element as FieldFormalParameterElement).field;
         }
-        // climb from "Class" in "new Class.named()" to "Class.named"
-        if (node.parent is TypeName && node.parent.parent is ConstructorName) {
-          ConstructorName constructor = node.parent.parent;
-          node = constructor;
-          element = constructor.staticElement;
+
+        // Use the prefix offset/length when renaming an import directive.
+        if (node is ImportDirective && element is ImportElement) {
+          if (node.prefix != null) {
+            feedbackOffset = node.prefix.offset;
+            feedbackLength = node.prefix.length;
+          } else {
+            feedbackOffset = -1;
+            feedbackLength = 0;
+          }
         }
+
+        // Canonicalize to ConstructorName.
+        var constructorName = _canonicalizeToConstructorName(node);
+        if (constructorName != null) {
+          node = constructorName;
+          element = constructorName.staticElement;
+          // Use the constructor name offset/length.
+          if (constructorName.name != null) {
+            feedbackOffset = constructorName.name.offset;
+            feedbackLength = constructorName.name.length;
+          } else {
+            feedbackOffset = -1;
+            feedbackLength = 0;
+          }
+        }
+
         // do create the refactoring
         refactoring = new RenameRefactoring(
             searchEngine, server.getAstProvider(file), element);
-        feedback =
-            new RenameFeedback(node.offset, node.length, 'kind', 'oldName');
+        feedback = new RenameFeedback(
+            feedbackOffset, feedbackLength, 'kind', 'oldName');
       }
     }
     if (refactoring == null) {
@@ -1039,6 +1094,12 @@ class _RefactoringManager {
       extractRefactoring.returnType = extractOptions.returnType;
       return extractRefactoring.checkName();
     }
+    if (refactoring is ExtractWidgetRefactoring) {
+      ExtractWidgetRefactoring extractRefactoring = this.refactoring;
+      ExtractWidgetOptions extractOptions = params.options;
+      extractRefactoring.name = extractOptions.name;
+      return extractRefactoring.checkName();
+    }
     if (refactoring is InlineMethodRefactoring) {
       InlineMethodRefactoring inlineRefactoring = this.refactoring;
       InlineMethodOptions inlineOptions = params.options;
@@ -1053,6 +1114,32 @@ class _RefactoringManager {
       return renameRefactoring.checkNewName();
     }
     return new RefactoringStatus();
+  }
+
+  /**
+   * If the [node] is a constructor reference, return the corresponding
+   * [ConstructorName], or `null` otherwise.
+   */
+  static ConstructorName _canonicalizeToConstructorName(AstNode node) {
+    var parent = node.parent;
+    var parent2 = parent?.parent;
+
+    // "named" in "Class.named".
+    if (parent is ConstructorName) {
+      return parent;
+    }
+
+    // "Class" in "Class.named".
+    if (parent is TypeName && parent2 is ConstructorName) {
+      return parent2;
+    }
+
+    // Canonicalize "new Class.named()" to "Class.named".
+    if (node is InstanceCreationExpression) {
+      return node.constructorName;
+    }
+
+    return null;
   }
 }
 

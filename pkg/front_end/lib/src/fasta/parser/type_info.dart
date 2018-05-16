@@ -4,66 +4,116 @@
 
 library fasta.parser.type_info;
 
-import '../../scanner/token.dart' show Token, TokenType;
+import '../../scanner/token.dart' show SyntheticStringToken, Token, TokenType;
 
 import '../scanner/token_constants.dart' show IDENTIFIER_TOKEN, KEYWORD_TOKEN;
 
-import '../util/link.dart' show Link;
-
-import 'identifier_context.dart' show IdentifierContext;
-
-import 'listener.dart' show Listener;
-
-import 'member_kind.dart' show MemberKind;
-
 import 'parser.dart' show Parser;
 
-import 'type_info_impl.dart'
-    show
-        NoTypeInfo,
-        PrefixedTypeInfo,
-        SimpleTypeArgumentsInfo,
-        SimpleTypeInfo,
-        VoidTypeInfo,
-        looksLikeName,
-        skipTypeArguments;
+import 'type_info_impl.dart';
 
 import 'util.dart' show optional;
 
-/// [TypeInfo] provides information that has collected by [computeType]
+/// [TypeInfo] provides information collected by [computeType]
 /// about a particular type reference.
 abstract class TypeInfo {
-  /// Call this function when it's known that the token after [token] is a type.
+  /// Return `true` if the tokens comprising the type represented by the
+  /// receiver could be interpreted as a valid standalone expression.
+  /// For example, `A` or `A.b` could be interpreted as a type references
+  /// or as expressions, while `A<T>` only looks like a type reference.
+  bool get couldBeExpression;
+
+  /// Call this function when the token after [token] must be a type (not void).
   /// This function will call the appropriate event methods on the [Parser]'s
-  /// listener to handle the type.
+  /// listener to handle the type, inserting a synthetic type reference if
+  /// necessary. This may modify the token stream when parsing `>>` in valid
+  /// code or during recovery.
+  Token ensureTypeNotVoid(Token token, Parser parser);
+
+  /// Call this function when the token after [token] must be a type or void.
+  /// This function will call the appropriate event methods on the [Parser]'s
+  /// listener to handle the type, inserting a synthetic type reference if
+  /// necessary. This may modify the token stream when parsing `>>` in valid
+  /// code or during recovery.
+  Token ensureTypeOrVoid(Token token, Parser parser);
+
+  /// Call this function to parse an optional type (not void) after [token].
+  /// This function will call the appropriate event methods on the [Parser]'s
+  /// listener to handle the type. This may modify the token stream
+  /// when parsing `>>` in valid code or during recovery.
+  Token parseTypeNotVoid(Token token, Parser parser);
+
+  /// Call this function to parse an optional type or void after [token].
+  /// This function will call the appropriate event methods on the [Parser]'s
+  /// listener to handle the type. This may modify the token stream
+  /// when parsing `>>` in valid code or during recovery.
   Token parseType(Token token, Parser parser);
 
   /// Call this function with the [token] before the type to obtain
   /// the last token in the type. If there is no type, then this method
-  /// will return [token].
+  /// will return [token]. This does not modify the token stream.
   Token skipType(Token token);
 }
 
-/// [NoTypeInfo] is a specialized [TypeInfo] returned by [computeType] when
+/// [TypeParamOrArgInfo] provides information collected by
+/// [computeTypeParamOrArg] about a particular group of type arguments
+/// or type parameters.
+abstract class TypeParamOrArgInfo {
+  /// Call this function to parse optional type arguments after [token].
+  /// This function will call the appropriate event methods on the [Parser]'s
+  /// listener to handle the arguments. This may modify the token stream
+  /// when parsing `>>` in valid code or during recovery.
+  Token parseArguments(Token token, Parser parser);
+
+  /// Call this function to parse optional type parameters
+  /// (also known as type variables) after [token].
+  /// This function will call the appropriate event methods on the [Parser]'s
+  /// listener to handle the parameters. This may modify the token stream
+  /// when parsing `>>` in valid code or during recovery.
+  Token parseVariables(Token token, Parser parser);
+
+  /// Call this function with the [token] before the type var to obtain
+  /// the last token in the type var. If there is no type var, then this method
+  /// will return [token]. This does not modify the token stream.
+  Token skip(Token token);
+}
+
+/// [NoType] is a specialized [TypeInfo] returned by [computeType] when
 /// there is no type information in the source.
-const TypeInfo noTypeInfo = const NoTypeInfo();
+const TypeInfo noType = const NoType();
 
-/// [VoidTypeInfo] is a specialized [TypeInfo] returned by [computeType] when
+/// [VoidType] is a specialized [TypeInfo] returned by [computeType] when
 /// there is a single identifier as the type reference.
-const TypeInfo voidTypeInfo = const VoidTypeInfo();
+const TypeInfo voidType = const VoidType();
 
-/// [SimpleTypeInfo] is a specialized [TypeInfo] returned by [computeType]
+/// [SimpleType] is a specialized [TypeInfo] returned by [computeType]
 /// when there is a single identifier as the type reference.
-const TypeInfo simpleTypeInfo = const SimpleTypeInfo();
+const TypeInfo simpleType = const SimpleType();
 
-/// [PrefixedTypeInfo] is a specialized [TypeInfo] returned by [computeType]
+/// [PrefixedType] is a specialized [TypeInfo] returned by [computeType]
 /// when the type reference is of the form: identifier `.` identifier.
-const TypeInfo prefixedTypeInfo = const PrefixedTypeInfo();
+const TypeInfo prefixedType = const PrefixedType();
 
-/// [SimpleTypeArgumentsInfo] is a specialized [TypeInfo] returned by
+/// [SimpleTypeWith1Argument] is a specialized [TypeInfo] returned by
 /// [computeType] when the type reference is of the form:
 /// identifier `<` identifier `>`.
-const TypeInfo simpleTypeArgumentsInfo = const SimpleTypeArgumentsInfo();
+const TypeInfo simpleTypeWith1Argument = const SimpleTypeWith1Argument();
+
+/// [NoTypeParamOrArg] is a specialized [TypeParamOrArgInfo] returned by
+/// [computeTypeParamOrArg] when no type parameters or arguments are found.
+const TypeParamOrArgInfo noTypeParamOrArg = const NoTypeParamOrArg();
+
+/// [SimpleTypeArgument1] is a specialized [TypeParamOrArgInfo] returned by
+/// [computeTypeParamOrArg] when the type reference is of the form:
+/// `<` identifier `>`.
+const TypeParamOrArgInfo simpleTypeArgument1 = const SimpleTypeArgument1();
+
+Token insertSyntheticIdentifierAfter(Token token, Parser parser) {
+  Token identifier = new SyntheticStringToken(
+      TokenType.IDENTIFIER, '', token.next.charOffset, 0);
+  parser.rewriter.insertTokenAfter(token, identifier);
+  return identifier;
+}
 
 bool isGeneralizedFunctionType(Token token) {
   return optional('Function', token) &&
@@ -85,269 +135,167 @@ bool isValidTypeReference(Token token) {
 }
 
 /// Called by the parser to obtain information about a possible type reference
-/// that follows [token].
-TypeInfo computeType(final Token token, bool required) {
+/// that follows [token]. This does not modify the token stream.
+///
+/// If this method is called by [computeTypeParamOrArg] and the outer group ends
+/// with `>>`, then then [innerEndGroup] is set to either `>>` if the token
+/// has not been split or the first `>` if the `>>` token has been split.
+TypeInfo computeType(final Token token, bool required, [Token innerEndGroup]) {
   Token next = token.next;
   if (!isValidTypeReference(next)) {
-    return noTypeInfo;
+    if (next.type.isBuiltIn) {
+      TypeParamOrArgInfo typeParamOrArg =
+          computeTypeParamOrArg(next, innerEndGroup);
+      if (typeParamOrArg != noTypeParamOrArg) {
+        // Recovery: built-in `<` ... `>`
+        if (required || looksLikeName(typeParamOrArg.skip(next).next)) {
+          return new ComplexTypeInfo(token, typeParamOrArg)
+              .computeBuiltinAsType(required);
+        }
+      } else if (required || isGeneralizedFunctionType(next.next)) {
+        String value = next.stringValue;
+        if ((!identical('get', value) &&
+            !identical('set', value) &&
+            !identical('factory', value) &&
+            !identical('operator', value) &&
+            !(identical('typedef', value) && next.next.isIdentifier))) {
+          return new ComplexTypeInfo(token, typeParamOrArg)
+              .computeBuiltinAsType(required);
+        }
+      }
+    } else if (required && optional('.', next)) {
+      // Recovery: looks like prefixed type missing the prefix
+      return new ComplexTypeInfo(
+              token, computeTypeParamOrArg(next, innerEndGroup))
+          .computePrefixedType(required);
+    }
+    return noType;
   }
 
   if (optional('void', next)) {
     next = next.next;
     if (isGeneralizedFunctionType(next)) {
       // `void` `Function` ...
-      return new ComplexTypeInfo(token).computeVoidGFT(required);
+      return new ComplexTypeInfo(token, noTypeParamOrArg)
+          .computeVoidGFT(required);
     }
     // `void`
-    return voidTypeInfo;
+    return voidType;
   }
 
   if (isGeneralizedFunctionType(next)) {
     // `Function` ...
-    return new ComplexTypeInfo(token).computeNoTypeGFT(required);
+    return new ComplexTypeInfo(token, noTypeParamOrArg)
+        .computeNoTypeGFT(required);
   }
 
   // We've seen an identifier.
-  next = next.next;
 
-  if (optional('<', next)) {
-    if (next.endGroup != null) {
-      next = next.next;
-      if (isValidTypeReference(next)) {
-        next = next.next;
-        if (optional('>', next)) {
-          // We've seen identifier `<` identifier `>`
-          next = next.next;
-          if (!isGeneralizedFunctionType(next)) {
-            if (required || looksLikeName(next)) {
-              // identifier `<` identifier `>` identifier
-              return simpleTypeArgumentsInfo;
-            } else {
-              // identifier `<` identifier `>` non-identifier
-              return noTypeInfo;
-            }
-          }
+  TypeParamOrArgInfo typeParamOrArg =
+      computeTypeParamOrArg(next, innerEndGroup);
+  if (typeParamOrArg != noTypeParamOrArg) {
+    if (typeParamOrArg == simpleTypeArgument1) {
+      // We've seen identifier `<` identifier `>`
+      next = typeParamOrArg.skip(next).next;
+      if (!isGeneralizedFunctionType(next)) {
+        if (required || looksLikeName(next)) {
+          // identifier `<` identifier `>` identifier
+          return simpleTypeWith1Argument;
+        } else {
+          // identifier `<` identifier `>` non-identifier
+          return noType;
         }
-        // TODO(danrubel): Consider adding a const for
-        // identifier `<` identifier `,` identifier `>`
-        // if that proves to be a common case.
       }
-
-      // identifier `<` ... `>`
-      return new ComplexTypeInfo(token)
-          .computeSimpleWithTypeArguments(required);
     }
-    // identifier `<`
-    return required ? simpleTypeInfo : noTypeInfo;
+    // TODO(danrubel): Consider adding a const for
+    // identifier `<` identifier `,` identifier `>`
+    // if that proves to be a common case.
+
+    // identifier `<` ... `>`
+    return new ComplexTypeInfo(token, typeParamOrArg)
+        .computeSimpleWithTypeArguments(required);
   }
 
+  assert(typeParamOrArg == noTypeParamOrArg);
+  next = next.next;
   if (optional('.', next)) {
     next = next.next;
     if (isValidTypeReference(next)) {
-      next = next.next;
       // We've seen identifier `.` identifier
-      if (!optional('<', next) && !isGeneralizedFunctionType(next)) {
+      typeParamOrArg = computeTypeParamOrArg(next, innerEndGroup);
+      next = next.next;
+      if (typeParamOrArg == noTypeParamOrArg &&
+          !isGeneralizedFunctionType(next)) {
         if (required || looksLikeName(next)) {
           // identifier `.` identifier identifier
-          return prefixedTypeInfo;
+          return prefixedType;
         } else {
           // identifier `.` identifier non-identifier
-          return noTypeInfo;
+          return noType;
         }
       }
       // identifier `.` identifier
-      return new ComplexTypeInfo(token).computePrefixedType(required);
+      return new ComplexTypeInfo(token, typeParamOrArg)
+          .computePrefixedType(required);
     }
     // identifier `.` non-identifier
-    return required ? simpleTypeInfo : noTypeInfo;
+    if (required) {
+      typeParamOrArg = computeTypeParamOrArg(token.next.next, innerEndGroup);
+      return new ComplexTypeInfo(token, typeParamOrArg)
+          .computePrefixedType(required);
+    }
+    return noType;
   }
 
+  assert(typeParamOrArg == noTypeParamOrArg);
   if (isGeneralizedFunctionType(next)) {
-    // `Function`
-    return new ComplexTypeInfo(token).computeIdentifierGFT(required);
+    // identifier `Function`
+    return new ComplexTypeInfo(token, noTypeParamOrArg)
+        .computeIdentifierGFT(required);
   }
 
   if (required || looksLikeName(next)) {
     // identifier identifier
-    return simpleTypeInfo;
+    return simpleType;
   }
-  return noTypeInfo;
+  return noType;
 }
 
-/// Instances of [ComplexTypeInfo] are returned by [computeType] to represent
-/// type references that cannot be represented by the constants above.
-class ComplexTypeInfo implements TypeInfo {
-  final Token start;
-  Token end;
-
-  /// Non-null if type arguments were seen during analysis.
-  Token typeArguments;
-
-  /// The tokens before the start of type variables of function types seen
-  /// during analysis. Notice that the tokens in this list might precede
-  /// either `'<'` or `'('` as not all function types have type parameters.
-  Link<Token> typeVariableStarters = const Link<Token>();
-
-  /// If the receiver represents a generalized function type then this indicates
-  /// whether it has a return type, otherwise this is `null`.
-  bool gftHasReturnType;
-
-  ComplexTypeInfo(Token beforeStart) : this.start = beforeStart.next;
-
-  @override
-  Token parseType(Token token, Parser parser) {
-    assert(identical(token.next, start));
-    Listener listener = parser.listener;
-
-    for (Link<Token> t = typeVariableStarters; t.isNotEmpty; t = t.tail) {
-      parser.parseTypeVariablesOpt(t.head);
-      listener.beginFunctionType(start);
-    }
-
-    if (gftHasReturnType == false) {
-      // A function type without return type.
-      // Push the non-existing return type first. The loop below will
-      // generate the full type.
-      noTypeInfo.parseType(token, parser);
-    } else if (optional('void', token.next)) {
-      token = voidTypeInfo.parseType(token, parser);
-    } else {
-      if (!optional('.', token.next.next)) {
-        token = parser.ensureIdentifier(token, IdentifierContext.typeReference);
-      } else {
-        token = parser.ensureIdentifier(
-            token, IdentifierContext.prefixedTypeReference);
-        token = parser.parseQualifiedRest(
-            token, IdentifierContext.typeReferenceContinuation);
-      }
-      token = parser.parseTypeArgumentsOpt(token);
-      listener.handleType(start, token.next);
-    }
-
-    for (Link<Token> t = typeVariableStarters; t.isNotEmpty; t = t.tail) {
-      token = token.next;
-      assert(optional('Function', token));
-      Token functionToken = token;
-      if (optional("<", token.next)) {
-        // Skip type parameters, they were parsed above.
-        token = token.next.endGroup;
-      }
-      token = parser.parseFormalParametersRequiredOpt(
-          token, MemberKind.GeneralizedFunctionType);
-      listener.endFunctionType(functionToken, token.next);
-    }
-
-    assert(
-        identical(token, end) || (optional('>', token) && optional('>>', end)));
-    return token;
+/// Called by the parser to obtain information about a possible group of type
+/// parameters or type arguments that follow [token].
+/// This does not modify the token stream.
+///
+/// If this method is called by [computeType] and the outer group ends
+/// with `>>`, then then [innerEndGroup] is set to either `>>` if the token
+/// has not been split or the first `>` if the `>>` token has been split.
+TypeParamOrArgInfo computeTypeParamOrArg(Token token, [Token innerEndGroup]) {
+  Token next = token.next;
+  if (!optional('<', next)) {
+    return noTypeParamOrArg;
   }
-
-  @override
-  Token skipType(Token token) {
-    return end;
+  Token endGroup = next.endGroup ?? innerEndGroup;
+  if (endGroup == null) {
+    return noTypeParamOrArg;
   }
-
-  /// Given `Function` non-identifier, compute the type
-  /// and return the receiver or one of the [TypeInfo] constants.
-  TypeInfo computeNoTypeGFT(bool required) {
-    assert(optional('Function', start));
-    computeRest(start, required);
-
-    return gftHasReturnType != null
-        ? this
-        : required ? simpleTypeInfo : noTypeInfo;
+  Token identifier = next.next;
+  // identifier `<` `void` `>` is handled by ComplexTypeInfo.
+  if (isValidTypeReference(identifier) &&
+      !optional('void', identifier) &&
+      identifier.next == endGroup) {
+    return simpleTypeArgument1;
   }
+  // TODO(danrubel): Consider adding additional const for common situations.
+  return new ComplexTypeParamOrArgInfo(token).compute(innerEndGroup);
+}
 
-  /// Given void `Function` non-identifier, compute the type
-  /// and return the receiver or one of the [TypeInfo] constants.
-  TypeInfo computeVoidGFT(bool required) {
-    assert(optional('void', start));
-    assert(optional('Function', start.next));
-    computeRest(start.next, required);
-
-    return gftHasReturnType != null ? this : voidTypeInfo;
-  }
-
-  /// Given identifier `Function` non-identifier, compute the type
-  /// and return the receiver or one of the [TypeInfo] constants.
-  TypeInfo computeIdentifierGFT(bool required) {
-    assert(isValidTypeReference(start));
-    assert(optional('Function', start.next));
-    computeRest(start.next, required);
-
-    return gftHasReturnType != null ? this : simpleTypeInfo;
-  }
-
-  /// Given identifier `<` ... `>`, compute the type
-  /// and return the receiver or one of the [TypeInfo] constants.
-  TypeInfo computeSimpleWithTypeArguments(bool required) {
-    assert(isValidTypeReference(start));
-    typeArguments = start.next;
-    assert(optional('<', typeArguments));
-
-    Token token = skipTypeArguments(typeArguments);
-    if (token == null) {
-      return required ? simpleTypeInfo : noTypeInfo;
-    }
-    end = token;
-    computeRest(token.next, required);
-
-    return required || looksLikeName(end.next) || gftHasReturnType != null
-        ? this
-        : noTypeInfo;
-  }
-
-  /// Given identifier `.` identifier, compute the type
-  /// and return the receiver or one of the [TypeInfo] constants.
-  TypeInfo computePrefixedType(bool required) {
-    assert(isValidTypeReference(start));
-    Token token = start.next;
-    assert(optional('.', token));
-    token = token.next;
-    assert(isValidTypeReference(token));
-
-    end = token;
-    token = token.next;
-    if (optional('<', token)) {
-      typeArguments = token;
-      token = skipTypeArguments(token);
-      if (token == null) {
-        return required ? prefixedTypeInfo : noTypeInfo;
-      }
-      end = token;
-      token = token.next;
-    }
-    computeRest(token, required);
-
-    return required || looksLikeName(end.next) || gftHasReturnType != null
-        ? this
-        : noTypeInfo;
-  }
-
-  void computeRest(Token token, bool required) {
-    while (optional('Function', token)) {
-      Token typeVariableStart = token;
-      token = token.next;
-      if (optional('<', token)) {
-        token = token.endGroup;
-        if (token == null) {
-          break; // Not a function type.
-        }
-        assert(optional('>', token) || optional('>>', token));
-        token = token.next;
-      }
-      if (!optional('(', token)) {
-        break; // Not a function type.
-      }
-      token = token.endGroup;
-      if (token == null) {
-        break; // Not a function type.
-      }
-      assert(optional(')', token));
-      gftHasReturnType ??= typeVariableStart != start;
-      typeVariableStarters = typeVariableStarters.prepend(typeVariableStart);
-      end = token;
-      token = token.next;
-    }
-  }
+/// Called by the parser to obtain information about a possible group of type
+/// type arguments that follow [token] and that are followed by '('.
+/// Returns the type arguments if [token] matches '<' type (',' type)* '>' '(',
+/// and otherwise returns [noTypeParamOrArg]. The final '(' is not part of the
+/// grammar construct `typeArguments`, but it is required here such that type
+/// arguments in generic method invocations can be recognized, and as few as
+/// possible other constructs will pass (e.g., 'a < C, D > 3').
+TypeParamOrArgInfo computeMethodTypeArguments(Token token) {
+  TypeParamOrArgInfo typeArg = computeTypeParamOrArg(token);
+  return optional('(', typeArg.skip(token).next) ? typeArg : noTypeParamOrArg;
 }

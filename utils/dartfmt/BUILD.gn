@@ -7,9 +7,4 @@ import("../application_snapshot.gni")
 application_snapshot("dartfmt") {
   main_dart = "../../third_party/pkg_tested/dart_style/bin/format.dart"
   training_args = [ "--help" ]
-  inputs =
-      exec_script("../../tools/list_dart_files.py",
-                  [ "absolute",
-                    rebase_path("../../third_party/pkg_tested/dart_style") ],
-                  "list lines")
 }

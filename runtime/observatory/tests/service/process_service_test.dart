@@ -33,7 +33,7 @@ Future setupProcesses() async {
 
   Future<ServiceExtensionResponse> cleanup(ignored_a, ignored_b) {
     closeDown();
-    var result = JSON.encode({'type': 'foobar'});
+    var result = jsonEncode({'type': 'foobar'});
     return new Future.value(new ServiceExtensionResponse.result(result));
   }
 
@@ -57,7 +57,7 @@ Future setupProcesses() async {
       throw e;
     }
 
-    var result = JSON.encode({
+    var result = jsonEncode({
       'type': 'foobar',
       'pids': [process1.pid, process2.pid, process3.pid]
     });
@@ -67,7 +67,7 @@ Future setupProcesses() async {
   Future<ServiceExtensionResponse> closeStdin(ignored_a, ignored_b) {
     process3.stdin.close();
     return process3.exitCode.then<ServiceExtensionResponse>((int exit) {
-      var result = JSON.encode({'type': 'foobar'});
+      var result = jsonEncode({'type': 'foobar'});
       return new ServiceExtensionResponse.result(result);
     });
   }

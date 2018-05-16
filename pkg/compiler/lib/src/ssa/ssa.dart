@@ -45,12 +45,13 @@ class SsaFunctionCompiler implements FunctionCompiler {
     optimizer.optimize(work, graph, closedWorld);
     MemberEntity element = work.element;
     js.Expression result = generator.generateCode(work, graph, closedWorld);
-    if (element is FunctionEntity) {
+    if (element is FunctionEntity && !graph.isGeneratorEntry) {
       SourceInformationBuilder sourceInformationBuilder =
           backend.sourceInformationStrategy.createBuilderForContext(element);
-
       result = backend.rewriteAsync(
           closedWorld.commonElements,
+          closedWorld.elementEnvironment,
+          work.registry,
           element,
           result,
           sourceInformationBuilder.buildAsyncBody(),

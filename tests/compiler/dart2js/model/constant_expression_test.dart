@@ -7,8 +7,9 @@ library constant_expression_test;
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:compiler/src/constants/expressions.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/kernel/element_map_impl.dart';
 import 'package:compiler/src/elements/entities.dart';
 import '../memory_compiler.dart';
@@ -21,7 +22,10 @@ class TestData {
   /// Tested constants.
   final List<ConstantData> constants;
 
-  const TestData(this.declarations, this.constants);
+  final bool strongModeOnly;
+
+  const TestData(this.declarations, this.constants,
+      {this.strongModeOnly: false});
 }
 
 class ConstantData {
@@ -34,6 +38,9 @@ class ConstantData {
   /// ConstantExpression.getText() result if different from [code].
   final String text;
 
+  /// ConstantExpression.getText() result if different from [code].
+  final String strongText;
+
   /// The expected instance type for ConstructedConstantExpression.
   final String type;
 
@@ -41,13 +48,29 @@ class ConstantData {
   final Map<String, String> fields;
 
   const ConstantData(String code, this.kind,
-      {String text, this.type, this.fields})
+      {String text, String strongText, this.type, this.fields})
       : this.code = code,
-        this.text = text != null ? text : code;
+        this.text = text ?? code,
+        this.strongText = strongText ?? text ?? code;
 }
 
 const List<TestData> DATA = const [
-  const TestData('', const [
+  const TestData('''
+class Class<T, S> {
+  final a;
+  final b;
+  final c;
+  const Class(this.a, {this.b, this.c: true});
+  const Class.named([this.a, this.b = 0, this.c = 2]);
+
+  static const staticConstant = 0;
+  static staticFunction() {}
+}
+const t = true;
+const f = false;
+const toplevelConstant = 0;
+toplevelFunction() {}
+''', const [
     const ConstantData('null', ConstantExpressionKind.NULL),
     const ConstantData('false', ConstantExpressionKind.BOOL),
     const ConstantData('true', ConstantExpressionKind.BOOL),
@@ -56,8 +79,9 @@ const List<TestData> DATA = const [
     const ConstantData('"foo"', ConstantExpressionKind.STRING),
     const ConstantData('1 + 2', ConstantExpressionKind.BINARY),
     const ConstantData('1 == 2', ConstantExpressionKind.BINARY),
-    // TODO(sigmund): reenable (Issue 32511)
-    // const ConstantData('1 != 2', ConstantExpressionKind.BINARY),
+    const ConstantData('1 != 2', ConstantExpressionKind.UNARY,
+        // a != b is encoded as !(a == b) by CFE.
+        text: '!(1 == 2)'),
     const ConstantData('1 ?? 2', ConstantExpressionKind.BINARY),
     const ConstantData('-(1)', ConstantExpressionKind.UNARY, text: '-1'),
     const ConstantData('"foo".length', ConstantExpressionKind.STRING_LENGTH),
@@ -69,11 +93,24 @@ const List<TestData> DATA = const [
     const ConstantData('proxy', ConstantExpressionKind.FIELD),
     const ConstantData('Object', ConstantExpressionKind.TYPE),
     const ConstantData('#name', ConstantExpressionKind.SYMBOL),
-    const ConstantData('const [0, 1]', ConstantExpressionKind.LIST),
+    const ConstantData('const []', ConstantExpressionKind.LIST),
+    const ConstantData('const [0, 1]', ConstantExpressionKind.LIST,
+        strongText: 'const <int>[0, 1]'),
     const ConstantData('const <int>[0, 1]', ConstantExpressionKind.LIST),
-    const ConstantData('const {0: 1, 2: 3}', ConstantExpressionKind.MAP),
+    const ConstantData('const <dynamic>[0, 1]', ConstantExpressionKind.LIST,
+        text: 'const [0, 1]'),
+    const ConstantData('const {}', ConstantExpressionKind.MAP),
+    const ConstantData('const {0: 1, 2: 3}', ConstantExpressionKind.MAP,
+        strongText: 'const <int, int>{0: 1, 2: 3}'),
     const ConstantData(
         'const <int, int>{0: 1, 2: 3}', ConstantExpressionKind.MAP),
+    const ConstantData(
+        'const <String, int>{"0": 1, "2": 3}', ConstantExpressionKind.MAP),
+    const ConstantData(
+        'const <String, dynamic>{"0": 1, "2": 3}', ConstantExpressionKind.MAP),
+    const ConstantData(
+        'const <dynamic, dynamic>{"0": 1, "2": 3}', ConstantExpressionKind.MAP,
+        text: 'const {"0": 1, "2": 3}'),
     const ConstantData('const bool.fromEnvironment("foo", defaultValue: false)',
         ConstantExpressionKind.BOOL_FROM_ENVIRONMENT),
     const ConstantData('const int.fromEnvironment("foo", defaultValue: 42)',
@@ -81,6 +118,74 @@ const List<TestData> DATA = const [
     const ConstantData(
         'const String.fromEnvironment("foo", defaultValue: "bar")',
         ConstantExpressionKind.STRING_FROM_ENVIRONMENT),
+    const ConstantData('const Class(0)', ConstantExpressionKind.CONSTRUCTED),
+    const ConstantData(
+        'const Class(0, b: 1)', ConstantExpressionKind.CONSTRUCTED),
+    const ConstantData(
+        'const Class(0, c: 2)', ConstantExpressionKind.CONSTRUCTED),
+    const ConstantData(
+        'const Class(0, b: 3, c: 4)', ConstantExpressionKind.CONSTRUCTED),
+    const ConstantData(
+        'const Class.named()', ConstantExpressionKind.CONSTRUCTED),
+    const ConstantData(
+        'const Class.named(0)', ConstantExpressionKind.CONSTRUCTED),
+    const ConstantData(
+        'const Class.named(0, 1)', ConstantExpressionKind.CONSTRUCTED),
+    const ConstantData(
+        'const Class.named(0, 1, 2)', ConstantExpressionKind.CONSTRUCTED),
+    const ConstantData(
+        'const Class<String, int>(0)', ConstantExpressionKind.CONSTRUCTED),
+    const ConstantData(
+        'const Class<String, dynamic>(0)', ConstantExpressionKind.CONSTRUCTED),
+    const ConstantData(
+        'const Class<dynamic, String>(0)', ConstantExpressionKind.CONSTRUCTED),
+    const ConstantData(
+        'const Class<dynamic, dynamic>(0)', ConstantExpressionKind.CONSTRUCTED,
+        text: 'const Class(0)'),
+    const ConstantData('toplevelConstant', ConstantExpressionKind.FIELD),
+    const ConstantData('toplevelFunction', ConstantExpressionKind.FUNCTION),
+    const ConstantData('Class.staticConstant', ConstantExpressionKind.FIELD),
+    const ConstantData('Class.staticFunction', ConstantExpressionKind.FUNCTION),
+    const ConstantData('1 + 2', ConstantExpressionKind.BINARY),
+    const ConstantData('1 + 2 + 3', ConstantExpressionKind.BINARY),
+    const ConstantData('1 + -2', ConstantExpressionKind.BINARY),
+    const ConstantData('-1 + 2', ConstantExpressionKind.BINARY),
+    const ConstantData('(1 + 2) + 3', ConstantExpressionKind.BINARY,
+        text: '1 + 2 + 3'),
+    const ConstantData('1 + (2 + 3)', ConstantExpressionKind.BINARY,
+        text: '1 + 2 + 3'),
+    const ConstantData('1 * 2', ConstantExpressionKind.BINARY),
+    const ConstantData('1 * 2 + 3', ConstantExpressionKind.BINARY),
+    const ConstantData('1 * (2 + 3)', ConstantExpressionKind.BINARY),
+    const ConstantData('1 + 2 * 3', ConstantExpressionKind.BINARY),
+    const ConstantData('(1 + 2) * 3', ConstantExpressionKind.BINARY),
+    const ConstantData(
+        'false || identical(0, 1)', ConstantExpressionKind.BINARY),
+    const ConstantData('!identical(0, 1)', ConstantExpressionKind.UNARY),
+    const ConstantData(
+        '!identical(0, 1) || false', ConstantExpressionKind.BINARY),
+    const ConstantData(
+        '!(identical(0, 1) || false)', ConstantExpressionKind.UNARY),
+    const ConstantData('identical(0, 1) ? 3 * 4 + 5 : 6 + 7 * 8',
+        ConstantExpressionKind.CONDITIONAL),
+    const ConstantData('t ? f ? 0 : 1 : 2', ConstantExpressionKind.CONDITIONAL),
+    const ConstantData(
+        '(t ? t : f) ? f ? 0 : 1 : 2', ConstantExpressionKind.CONDITIONAL),
+    const ConstantData(
+        't ? t : f ? f ? 0 : 1 : 2', ConstantExpressionKind.CONDITIONAL),
+    const ConstantData(
+        't ? t ? t : t : t ? t : t', ConstantExpressionKind.CONDITIONAL),
+    const ConstantData(
+        't ? (t ? t : t) : (t ? t : t)', ConstantExpressionKind.CONDITIONAL,
+        text: 't ? t ? t : t : t ? t : t'),
+    const ConstantData(
+        'const [const <dynamic, dynamic>{0: true, "1": "c" "d"}, '
+        'const Class(const Class<dynamic, dynamic>(toplevelConstant))]',
+        ConstantExpressionKind.LIST,
+        text: 'const [const {0: true, "1": "cd"}, '
+            'const Class(const Class(toplevelConstant))]',
+        strongText: 'const <Object>[const {0: true, "1": "cd"}, '
+            'const Class(const Class(toplevelConstant))]'),
   ]),
   const TestData('''
 class A {
@@ -155,55 +260,102 @@ class C<U> {
     const ConstantData(
         'const A<int>(field1: 87)', ConstantExpressionKind.CONSTRUCTED,
         type: 'A<int>', fields: const {'field(A#field1)': '87'}),
-    // TODO(sigmund): reenable (Issue 32511)
-    //const ConstantData('const B()', ConstantExpressionKind.CONSTRUCTED,
-    //    type: 'A<B<dynamic>>',
-    //    fields: const {
-    //      'field(A#field1)': '42',
-    //    }),
-    //const ConstantData('const B<int>()', ConstantExpressionKind.CONSTRUCTED,
-    //    type: 'A<B<int>>',
-    //    fields: const {
-    //      'field(A#field1)': '42',
-    //    }),
-    //const ConstantData(
-    //    'const B<int>(field1: 87)', ConstantExpressionKind.CONSTRUCTED,
-    //    type: 'A<B<int>>',
-    //    fields: const {
-    //      'field(A#field1)': '87',
-    //    }),
-    //const ConstantData(
-    //    'const C<int>(field1: 87)', ConstantExpressionKind.CONSTRUCTED,
-    //    type: 'A<B<double>>',
-    //    fields: const {
-    //      'field(A#field1)': '87',
-    //    }),
-    //const ConstantData(
-    //    'const B<int>.named()', ConstantExpressionKind.CONSTRUCTED,
-    //    type: 'A<int>',
-    //    fields: const {
-    //      'field(A#field1)': '42',
-    //    }),
+    const ConstantData('const B()', ConstantExpressionKind.CONSTRUCTED,
+        type: 'A<B<dynamic>>',
+        fields: const {
+          'field(A#field1)': '42',
+        },
+        // Redirecting factories are replaced by their effective targets by CFE.
+        text: 'const A<B<dynamic>>()'),
+    const ConstantData('const B<int>()', ConstantExpressionKind.CONSTRUCTED,
+        type: 'A<B<int>>',
+        fields: const {
+          'field(A#field1)': '42',
+        },
+        // Redirecting factories are replaced by their effective targets by CFE.
+        text: 'const A<B<int>>()'),
+    const ConstantData(
+        'const B<int>(field1: 87)', ConstantExpressionKind.CONSTRUCTED,
+        type: 'A<B<int>>',
+        fields: const {
+          'field(A#field1)': '87',
+        },
+        // Redirecting factories are replaced by their effective targets by CFE.
+        text: 'const A<B<int>>(field1: 87)'),
+    const ConstantData(
+        'const C<int>(field1: 87)', ConstantExpressionKind.CONSTRUCTED,
+        type: 'A<B<double>>',
+        fields: const {
+          'field(A#field1)': '87',
+        },
+        // Redirecting factories are replaced by their effective targets by CFE.
+        text: 'const A<B<double>>(field1: 87)'),
+    const ConstantData(
+        'const B<int>.named()', ConstantExpressionKind.CONSTRUCTED,
+        type: 'A<int>',
+        fields: const {
+          'field(A#field1)': '42',
+        },
+        // Redirecting factories are replaced by their effective targets by CFE.
+        text: 'const A<int>()'),
   ]),
+  const TestData('''
+T identity<T>(T t) => t;
+class C<T> {
+  final T defaultValue;
+  final T Function(T t) identityFunction;
+
+  const C(this.defaultValue, this.identityFunction);
+}
+  ''', const <ConstantData>[
+    const ConstantData('identity', ConstantExpressionKind.FUNCTION),
+    const ConstantData(
+        'const C<int>(0, identity)', ConstantExpressionKind.CONSTRUCTED,
+        type: 'C<int>', strongText: 'const C<int>(0, <int>(identity))'),
+    const ConstantData(
+        'const C<double>(0.5, identity)', ConstantExpressionKind.CONSTRUCTED,
+        type: 'C<double>',
+        strongText: 'const C<double>(0.5, <double>(identity))'),
+  ], strongModeOnly: true)
 ];
 
 main() {
-  asyncTest(() => Future.forEach(DATA, testData));
+  asyncTest(() async {
+    print('--test from kernel------------------------------------------------');
+    await runTest(strongMode: false);
+    print('--test from kernel (strong)---------------------------------------');
+    await runTest(strongMode: true);
+  });
 }
 
-Future testData(TestData data) async {
+Future runTest({bool strongMode}) async {
+  for (TestData data in DATA) {
+    await testData(data, strongMode: strongMode);
+  }
+}
+
+Future testData(TestData data, {bool strongMode}) async {
+  if (data.strongModeOnly && !strongMode) return;
+
   StringBuffer sb = new StringBuffer();
-  sb.write('${data.declarations}\n');
+  sb.writeln('${data.declarations}');
   Map<String, ConstantData> constants = {};
+  List<String> names = <String>[];
   data.constants.forEach((ConstantData constantData) {
     String name = 'c${constants.length}';
-    sb.write('const $name = ${constantData.code};\n');
+    names.add(name);
+    sb.writeln('const $name = ${constantData.code};');
     constants[name] = constantData;
   });
-  sb.write('main() {}\n');
+  sb.writeln('main() {');
+  for (String name in names) {
+    sb.writeln('  print($name);');
+  }
+  sb.writeln('}');
   String source = sb.toString();
   CompilationResult result = await runCompiler(
-      memorySourceFiles: {'main.dart': source}, options: ['--analyze-all']);
+      memorySourceFiles: {'main.dart': source},
+      options: strongMode ? [Flags.strongMode] : []);
   Compiler compiler = result.compiler;
   var elementEnvironment = compiler.frontendStrategy.elementEnvironment;
 
@@ -221,11 +373,12 @@ Future testData(TestData data) async {
         constant.kind,
         "Unexpected kind '${constant.kind}' for constant "
         "`${constant.toDartText()}`, expected '${data.kind}'.");
+    String text = strongMode ? data.strongText : data.text;
     Expect.equals(
-        data.text,
+        text,
         constant.toDartText(),
         "Unexpected text '${constant.toDartText()}' for constant, "
-        "expected '${data.text}'.");
+        "expected '${text}'.");
     if (data.type != null) {
       String instanceType =
           constant.computeInstanceType(environment).toString();

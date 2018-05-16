@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/inferrer/type_graph_inferrer.dart';
@@ -12,6 +11,7 @@ import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
 
 import 'type_mask_test_helper.dart';
+import '../helpers/element_lookup.dart';
 import '../memory_compiler.dart';
 
 String generateTest(String mapAllocation) {
@@ -206,42 +206,34 @@ main() {
 }
 
 void main() {
-  runTests({bool useKernel}) async {
+  runTests() async {
     // Test empty literal map
-    await doTest('{}', useKernel: useKernel);
+    await doTest('{}');
     // Test preset map of <String,uint32>
     await doTest('{presetKey : anInt}',
-        keyElementName: "presetKey",
-        valueElementName: "anInt",
-        useKernel: useKernel);
+        keyElementName: "presetKey", valueElementName: "anInt");
     // Test preset map of <Double,uint32>
     await doTest('{aDouble : anInt}',
-        keyElementName: "aDouble",
-        valueElementName: "anInt",
-        useKernel: useKernel);
+        keyElementName: "aDouble", valueElementName: "anInt");
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTests(useKernel: true);
+    await runTests();
   });
 }
 
 doTest(String allocation,
-    {String keyElementName, String valueElementName, bool useKernel}) async {
+    {String keyElementName, String valueElementName}) async {
   String source = generateTest(allocation);
-  var result = await runCompiler(
-      memorySourceFiles: {'main.dart': source},
-      options: useKernel ? [] : [Flags.useOldFrontend]);
+  var result = await runCompiler(memorySourceFiles: {'main.dart': source});
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler;
   TypeMask keyType, valueType;
   TypeGraphInferrer typesInferrer =
       compiler.globalInference.typesInferrerInternal;
   ClosedWorld closedWorld = typesInferrer.closedWorld;
-  CommonMasks commonMasks = closedWorld.commonMasks;
+  CommonMasks commonMasks = closedWorld.abstractValueDomain;
   TypeMask emptyType = new TypeMask.nonNullEmpty();
   MemberEntity aKey = findMember(closedWorld, 'aKey');
   TypeMask aKeyType = typesInferrer.getTypeOfMember(aKey);

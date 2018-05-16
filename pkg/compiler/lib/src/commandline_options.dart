@@ -35,20 +35,20 @@ class Flags {
   static const String generateCodeWithCompileTimeErrors =
       '--generate-code-with-compile-time-errors';
 
-  /// TODO(sigmund): delete this flag.
+  /// TODO(sigmund): delete these flags.
   static const String useKernel = '--use-kernel';
-
-  /// Temporary flag to revert to the old front-end once the new common
-  /// front-end is the default.
   static const String useOldFrontend = '--use-old-frontend';
+
   static const String strongMode = '--strong';
+  static const String previewDart2 = '--preview-dart-2';
+  static const String omitImplicitChecks = '--omit-implicit-checks';
+
   static const String platformBinaries = '--platform-binaries=.+';
 
   static const String minify = '--minify';
   static const String noFrequencyBasedMinification =
       '--no-frequency-based-minification';
   static const String noSourceMaps = '--no-source-maps';
-  static const String preserveComments = '--preserve-comments';
   static const String preserveUris = '--preserve-uris';
   static const String showPackageWarnings = '--show-package-warnings';
   static const String suppressHints = '--suppress-hints';
@@ -64,6 +64,9 @@ class Flags {
   static const String useNewSourceInfo = '--use-new-source-info';
   static const String verbose = '--verbose';
   static const String version = '--version';
+
+  /// Flag for a combination of flags for 'production' mode.
+  static const String benchmarkingProduction = '--benchmarking-production';
 
   static const String conditionalDirectives = '--conditional-directives';
 
@@ -90,10 +93,18 @@ class Flags {
   // https://gist.github.com/eernstg/4353d7b4f669745bed3a5423e04a453c.
   static const String genericMethodSyntax = '--generic-method-syntax';
 
-  // Starts `async` functions synchronously.
+  // Deprecated. This flag is no longer in use for dart2js, but we are keeping
+  // it around for a while longer until all other tools deprecate the same flag.
   //
-  // This is the Dart 2.0 behavior. This flag is only used during the migration.
+  // It was used to start `async` functions synchronously, but now dart2js
+  // switched on this behavior by default.
+  // TODO(sigmund): delete once this is on by default on all of our tools.
   static const String syncAsync = '--sync-async';
+
+  // Starts `async` functions asynchronously.
+  //
+  // This is the old Dart 1.0 behavior. Only used during the migration.
+  static const String noSyncAsync = '--no-sync-async';
 
   // Initializing-formal access is enabled by default and cannot be disabled.
   // For backward compatibility the option is still accepted, but it is ignored.

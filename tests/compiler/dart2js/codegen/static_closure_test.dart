@@ -9,9 +9,8 @@ import "package:async_helper/async_helper.dart";
 import '../compiler_helper.dart';
 
 main() {
-  runTest({bool useKernel}) async {
-    String code = await compileAll(r'''main() { print(main); }''',
-        compileMode: useKernel ? CompileMode.kernel : CompileMode.mock);
+  runTest() async {
+    String code = await compileAll(r'''main() { print(main); }''');
     // At some point, we will have to closurize global functions
     // differently, at which point this test will break. Then it is time
     // to implement a way to call a Dart closure from JS foreign
@@ -21,15 +20,12 @@ main() {
     // toStringWrapper in captureStackTrace in js_helper.dart.
     Expect.isTrue(
         code.contains(
-            new RegExp(r'print\([$A-Z]+\.lib___main\$closure\(\)\);')),
+            new RegExp(r'print\([$A-Z]+\.main__main\$closure\(\)\);')),
         code);
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTest(useKernel: false);
-    // TODO(johnniwinther): This test only works with the mock compiler.
-    //print('--test from kernel----------------------------------------------');
-    //await runTest(useKernel: true);
+    print('--test from kernel----------------------------------------------');
+    await runTest();
   });
 }

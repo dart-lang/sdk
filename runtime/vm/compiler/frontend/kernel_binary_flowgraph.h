@@ -17,6 +17,8 @@
 namespace dart {
 namespace kernel {
 
+class KernelReaderHelper;
+
 // Helper class that reads a kernel FunctionNode from binary.
 //
 // Use ReadUntilExcluding to read up to but not including a field.
@@ -50,8 +52,8 @@ class FunctionNodeHelper {
     kSyncYielding = 4,
   };
 
-  explicit FunctionNodeHelper(StreamingFlowGraphBuilder* builder) {
-    builder_ = builder;
+  explicit FunctionNodeHelper(KernelReaderHelper* helper) {
+    helper_ = helper;
     next_read_ = kStart;
   }
 
@@ -72,15 +74,54 @@ class FunctionNodeHelper {
   intptr_t required_parameter_count_;
 
  private:
-  StreamingFlowGraphBuilder* builder_;
+  KernelReaderHelper* helper_;
   intptr_t next_read_;
 };
 
-struct TypeParameterHelper {
+class TypeParameterHelper {
+ public:
+  enum Field {
+    kStart,  // tag.
+    kFlags,
+    kAnnotations,
+    kName,
+    kBound,
+    kDefaultType,
+    kEnd,
+  };
+
   enum Flag {
     kIsGenericCovariantImpl = 1 << 0,
-    kIsGenericCovariantInterface = 1 << 1
   };
+
+  explicit TypeParameterHelper(KernelReaderHelper* helper) {
+    helper_ = helper;
+    next_read_ = kStart;
+  }
+
+  void ReadUntilIncluding(Field field) {
+    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
+  }
+
+  void ReadUntilExcluding(Field field);
+
+  void SetNext(Field field) { next_read_ = field; }
+  void SetJustRead(Field field) { next_read_ = field + 1; }
+
+  void ReadUntilExcludingAndSetJustRead(Field field) {
+    ReadUntilExcluding(field);
+    SetJustRead(field);
+  }
+
+  void Finish() { ReadUntilExcluding(kEnd); }
+
+  TokenPosition position_;
+  uint8_t flags_;
+  StringIndex name_index_;
+
+ private:
+  KernelReaderHelper* helper_;
+  intptr_t next_read_;
 };
 
 // Helper class that reads a kernel VariableDeclaration from binary.
@@ -108,13 +149,10 @@ class VariableDeclarationHelper {
     kConst = 1 << 1,
     kCovariant = 1 << 3,
     kIsGenericCovariantImpl = 1 << 5,
-    kIsGenericCovariantInterface = 1 << 6
   };
 
-  explicit VariableDeclarationHelper(StreamingFlowGraphBuilder* builder) {
-    builder_ = builder;
-    next_read_ = kPosition;
-  }
+  explicit VariableDeclarationHelper(KernelReaderHelper* helper)
+      : helper_(helper), next_read_(kPosition) {}
 
   void ReadUntilIncluding(Field field) {
     ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
@@ -129,9 +167,6 @@ class VariableDeclarationHelper {
   bool IsFinal() { return (flags_ & kFinal) != 0; }
   bool IsCovariant() { return (flags_ & kCovariant) != 0; }
 
-  bool IsGenericCovariantInterface() {
-    return (flags_ & kIsGenericCovariantInterface) != 0;
-  }
   bool IsGenericCovariantImpl() {
     return (flags_ & kIsGenericCovariantImpl) != 0;
   }
@@ -142,7 +177,7 @@ class VariableDeclarationHelper {
   StringIndex name_index_;
 
  private:
-  StreamingFlowGraphBuilder* builder_;
+  KernelReaderHelper* helper_;
   intptr_t next_read_;
 };
 
@@ -158,12 +193,11 @@ class FieldHelper {
   enum Field {
     kStart,  // tag.
     kCanonicalName,
+    kSourceUriIndex,
     kPosition,
     kEndPosition,
     kFlags,
-    kFlags2,
     kName,
-    kSourceUriIndex,
     kAnnotations,
     kType,
     kInitializer,
@@ -176,15 +210,14 @@ class FieldHelper {
     kStatic = 1 << 2,
     kIsCovariant = 1 << 5,
     kIsGenericCovariantImpl = 1 << 6,
-    kIsGenericCovariantInterface = 1 << 7
   };
 
-  explicit FieldHelper(StreamingFlowGraphBuilder* builder)
-      : builder_(builder),
+  explicit FieldHelper(KernelReaderHelper* helper)
+      : helper_(helper),
         next_read_(kStart),
         has_function_literal_initializer_(false) {}
 
-  FieldHelper(StreamingFlowGraphBuilder* builder, intptr_t offset);
+  FieldHelper(KernelReaderHelper* helper, intptr_t offset);
 
   void ReadUntilIncluding(Field field) {
     ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
@@ -202,9 +235,6 @@ class FieldHelper {
   bool IsCovariant() const { return (flags_ & kIsCovariant) != 0; }
   bool IsGenericCovariantImpl() {
     return (flags_ & kIsGenericCovariantImpl) != 0;
-  }
-  bool IsGenericCovariantInterface() {
-    return (flags_ & kIsGenericCovariantInterface) != 0;
   }
 
   bool FieldHasFunctionLiteralInitializer(TokenPosition* start,
@@ -224,7 +254,7 @@ class FieldHelper {
   intptr_t annotation_count_;
 
  private:
-  StreamingFlowGraphBuilder* builder_;
+  KernelReaderHelper* helper_;
   intptr_t next_read_;
 
   bool has_function_literal_initializer_;
@@ -244,12 +274,12 @@ class ProcedureHelper {
   enum Field {
     kStart,  // tag.
     kCanonicalName,
+    kSourceUriIndex,
     kPosition,
     kEndPosition,
     kKind,
     kFlags,
     kName,
-    kSourceUriIndex,
     kAnnotations,
     kForwardingStubSuperTarget,
     kForwardingStubInterfaceTarget,
@@ -273,13 +303,12 @@ class ProcedureHelper {
     kForwardingStub = 1 << 4,
 
     // TODO(29841): Remove this line after the issue is resolved.
-    kRedirectingFactoryConstructor = 1 << 7,
+    kRedirectingFactoryConstructor = 1 << 6,
+    kNoSuchMethodForwarder = 1 << 7,
   };
 
-  explicit ProcedureHelper(StreamingFlowGraphBuilder* builder) {
-    builder_ = builder;
-    next_read_ = kStart;
-  }
+  explicit ProcedureHelper(KernelReaderHelper* helper)
+      : helper_(helper), next_read_(kStart) {}
 
   void ReadUntilIncluding(Field field) {
     ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
@@ -311,7 +340,7 @@ class ProcedureHelper {
   NameIndex forwarding_stub_super_target_;
 
  private:
-  StreamingFlowGraphBuilder* builder_;
+  KernelReaderHelper* helper_;
   intptr_t next_read_;
 };
 
@@ -327,11 +356,11 @@ class ConstructorHelper {
   enum Field {
     kStart,  // tag.
     kCanonicalName,
+    kSourceUriIndex,
     kPosition,
     kEndPosition,
     kFlags,
     kName,
-    kSourceUriIndex,
     kAnnotations,
     kFunction,
     kInitializers,
@@ -344,10 +373,8 @@ class ConstructorHelper {
     kSynthetic = 1 << 2,
   };
 
-  explicit ConstructorHelper(StreamingFlowGraphBuilder* builder) {
-    builder_ = builder;
-    next_read_ = kStart;
-  }
+  explicit ConstructorHelper(KernelReaderHelper* helper)
+      : helper_(helper), next_read_(kStart) {}
 
   void ReadUntilIncluding(Field field) {
     ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
@@ -370,7 +397,7 @@ class ConstructorHelper {
   intptr_t annotation_count_;
 
  private:
-  StreamingFlowGraphBuilder* builder_;
+  KernelReaderHelper* helper_;
   intptr_t next_read_;
 };
 
@@ -386,11 +413,11 @@ class ClassHelper {
   enum Field {
     kStart,  // tag.
     kCanonicalName,
+    kSourceUriIndex,
     kPosition,
     kEndPosition,
     kFlags,
     kNameIndex,
-    kSourceUriIndex,
     kAnnotations,
     kTypeParameters,
     kSuperClass,
@@ -408,10 +435,8 @@ class ClassHelper {
     kIsEnumClass = 2,
   };
 
-  explicit ClassHelper(StreamingFlowGraphBuilder* builder) {
-    builder_ = builder;
-    next_read_ = kStart;
-  }
+  explicit ClassHelper(KernelReaderHelper* helper)
+      : helper_(helper), next_read_(kStart) {}
 
   void ReadUntilIncluding(Field field) {
     ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
@@ -436,7 +461,7 @@ class ClassHelper {
   uint8_t flags_;
 
  private:
-  StreamingFlowGraphBuilder* builder_;
+  KernelReaderHelper* helper_;
   intptr_t next_read_;
 };
 
@@ -470,10 +495,8 @@ class LibraryHelper {
     kExternal = 1,
   };
 
-  explicit LibraryHelper(StreamingFlowGraphBuilder* builder) {
-    builder_ = builder;
-    next_read_ = kFlags;
-  }
+  explicit LibraryHelper(KernelReaderHelper* helper)
+      : helper_(helper), next_read_(kFlags) {}
 
   void ReadUntilIncluding(Field field) {
     ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
@@ -494,7 +517,7 @@ class LibraryHelper {
   intptr_t procedure_count_;
 
  private:
-  StreamingFlowGraphBuilder* builder_;
+  KernelReaderHelper* helper_;
   intptr_t next_read_;
 };
 
@@ -519,10 +542,8 @@ class LibraryDependencyHelper {
     Show = 1 << 0,
   };
 
-  explicit LibraryDependencyHelper(StreamingFlowGraphBuilder* builder) {
-    builder_ = builder;
-    next_read_ = kFileOffset;
-  }
+  explicit LibraryDependencyHelper(KernelReaderHelper* helper)
+      : helper_(helper), next_read_(kFileOffset) {}
 
   void ReadUntilIncluding(Field field) {
     ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
@@ -535,7 +556,7 @@ class LibraryDependencyHelper {
   NameIndex target_library_canonical_name_;
 
  private:
-  StreamingFlowGraphBuilder* builder_;
+  KernelReaderHelper* helper_;
   intptr_t next_read_;
 };
 
@@ -640,6 +661,19 @@ class ProcedureAttributesMetadataHelper : public MetadataHelper {
                     ProcedureAttributesMetadata* metadata);
 };
 
+// Helper class which provides access to bytecode metadata.
+class BytecodeMetadataHelper : public MetadataHelper {
+ public:
+  static const char* tag() { return "vm.bytecode"; }
+
+  explicit BytecodeMetadataHelper(StreamingFlowGraphBuilder* builder)
+      : MetadataHelper(builder) {}
+
+#if defined(DART_USE_INTERPRETER)
+  void CopyBytecode(const Function& function);
+#endif
+};
+
 class StreamingDartTypeTranslator {
  public:
   StreamingDartTypeTranslator(StreamingFlowGraphBuilder* builder,
@@ -736,7 +770,6 @@ class StreamingScopeBuilder {
   void VisitInterfaceType(bool simple);
   void VisitFunctionType(bool simple);
   void VisitTypeParameterType();
-  void VisitVectorType();
   void HandleLocalFunction(intptr_t parent_kernel_offset);
 
   AbstractType& BuildAndVisitVariableType();
@@ -744,7 +777,7 @@ class StreamingScopeBuilder {
   void EnterScope(intptr_t kernel_offset);
   void ExitScope(TokenPosition start_position, TokenPosition end_position);
 
-  void ReportUnexpectedTag(const char* variant, Tag tag);
+  virtual void ReportUnexpectedTag(const char* variant, Tag tag);
 
   // This enum controls which parameters would be marked as requring type
   // check on the callee side.
@@ -954,19 +987,201 @@ class StreamingConstantEvaluator {
   Instance& result_;
 };
 
-class StreamingFlowGraphBuilder {
+class KernelReaderHelper {
+ public:
+  KernelReaderHelper(Zone* zone,
+                     TranslationHelper* translation_helper,
+                     const Script& script,
+                     const TypedData& data,
+                     intptr_t data_program_offset)
+      : zone_(zone),
+        translation_helper_(*translation_helper),
+        reader_(data),
+        script_(script),
+        data_program_offset_(data_program_offset) {}
+
+  KernelReaderHelper(Zone* zone,
+                     TranslationHelper* translation_helper,
+                     const uint8_t* data_buffer,
+                     intptr_t buffer_length,
+                     intptr_t data_program_offset)
+      : zone_(zone),
+        translation_helper_(*translation_helper),
+        reader_(data_buffer, buffer_length),
+        script_(Script::Handle(zone_)),
+        data_program_offset_(data_program_offset) {}
+
+  virtual ~KernelReaderHelper() {}
+
+  void SetOffset(intptr_t offset);
+
+  intptr_t ReadListLength();
+  virtual void ReportUnexpectedTag(const char* variant, Tag tag);
+
+ protected:
+  const Script& script() const { return script_; }
+
+  virtual void set_current_script_id(intptr_t id) {
+    // Do nothing by default. This is overridden in StreamingFlowGraphBuilder.
+    USE(id);
+  }
+
+  virtual void RecordYieldPosition(TokenPosition position) {
+    // Do nothing by default. This is overridden in StreamingFlowGraphBuilder.
+    USE(position);
+  }
+
+  virtual void RecordTokenPosition(TokenPosition position) {
+    // Do nothing by default. This is overridden in StreamingFlowGraphBuilder.
+    USE(position);
+  }
+
+  intptr_t ReaderOffset() const;
+  void SkipBytes(intptr_t skip);
+  bool ReadBool();
+  uint8_t ReadByte();
+  uint32_t ReadUInt();
+  uint32_t ReadUInt32();
+  uint32_t PeekUInt();
+  double ReadDouble();
+  uint32_t PeekListLength();
+  StringIndex ReadStringReference();
+  NameIndex ReadCanonicalNameReference();
+  StringIndex ReadNameAsStringIndex();
+  const String& ReadNameAsMethodName();
+  const String& ReadNameAsGetterName();
+  const String& ReadNameAsSetterName();
+  const String& ReadNameAsFieldName();
+  void SkipFlags();
+  void SkipStringReference();
+  void SkipConstantReference();
+  void SkipCanonicalNameReference();
+  void SkipDartType();
+  void SkipOptionalDartType();
+  void SkipInterfaceType(bool simple);
+  void SkipFunctionType(bool simple);
+  void SkipStatementList();
+  void SkipListOfExpressions();
+  void SkipListOfDartTypes();
+  void SkipListOfStrings();
+  void SkipListOfVariableDeclarations();
+  void SkipTypeParametersList();
+  void SkipInitializer();
+  void SkipExpression();
+  void SkipStatement();
+  void SkipFunctionNode();
+  void SkipName();
+  void SkipArguments();
+  void SkipVariableDeclaration();
+  void SkipLibraryCombinator();
+  void SkipLibraryDependency();
+  void SkipLibraryPart();
+  void SkipLibraryTypedef();
+  TokenPosition ReadPosition(bool record = true);
+  Tag ReadTag(uint8_t* payload = NULL);
+  Tag PeekTag(uint8_t* payload = NULL);
+  uint8_t ReadFlags() { return reader_.ReadFlags(); }
+
+  Zone* zone_;
+  TranslationHelper& translation_helper_;
+  Reader reader_;
+  const Script& script_;
+  // Some items like variables are specified in the kernel binary as
+  // absolute offsets (as in, offsets within the whole kernel program)
+  // of their declaration nodes. Hence, to cache and/or access them
+  // uniquely from within a function's kernel data, we need to
+  // add/subtract the offset of the kernel data in the over all
+  // kernel program.
+  intptr_t data_program_offset_;
+
+  friend class ClassHelper;
+  friend class ConstantHelper;
+  friend class ConstructorHelper;
+  friend class DirectCallMetadataHelper;
+  friend class ProcedureAttributesMetadataHelper;
+  friend class FieldHelper;
+  friend class FunctionNodeHelper;
+  friend class InferredTypeMetadataHelper;
+  friend class KernelLoader;
+  friend class LibraryDependencyHelper;
+  friend class LibraryHelper;
+  friend class MetadataHelper;
+  friend class ProcedureHelper;
+  friend class SimpleExpressionConverter;
+  friend class StreamingConstantEvaluator;
+  friend class StreamingDartTypeTranslator;
+  friend class StreamingScopeBuilder;
+  friend class VariableDeclarationHelper;
+  friend class TypeParameterHelper;
+};
+
+class KernelFingerprintHelper : public KernelReaderHelper {
+ public:
+  KernelFingerprintHelper(Zone* zone,
+                          TranslationHelper* translation_helper,
+                          const Script& script,
+                          const TypedData& data,
+                          intptr_t data_program_offset)
+      : KernelReaderHelper(zone,
+                           translation_helper,
+                           script,
+                           data,
+                           data_program_offset),
+        hash_(0) {}
+
+  virtual ~KernelFingerprintHelper() {}
+  uint32_t CalculateFieldFingerprint();
+  uint32_t CalculateFunctionFingerprint();
+
+  static uint32_t CalculateHash(uint32_t current, uint32_t val) {
+    return current * 31 + val;
+  }
+
+ private:
+  void BuildHash(uint32_t val);
+  void CalculateConstructorFingerprint();
+  void CalculateArgumentsFingerprint();
+  void CalculateVariableDeclarationFingerprint();
+  void CalculateStatementListFingerprint();
+  void CalculateListOfExpressionsFingerprint();
+  void CalculateListOfDartTypesFingerprint();
+  void CalculateListOfVariableDeclarationsFingerprint();
+  void CalculateStringReferenceFingerprint();
+  void CalculateListOfStringsFingerprint();
+  void CalculateTypeParameterFingerprint();
+  void CalculateTypeParametersListFingerprint();
+  void CalculateCanonicalNameFingerprint();
+  void CalculateInitializerFingerprint();
+  void CalculateDartTypeFingerprint();
+  void CalculateOptionalDartTypeFingerprint();
+  void CalculateInterfaceTypeFingerprint(bool simple);
+  void CalculateFunctionTypeFingerprint(bool simple);
+  void CalculateGetterNameFingerprint();
+  void CalculateSetterNameFingerprint();
+  void CalculateMethodNameFingerprint();
+  void CalculateExpressionFingerprint();
+  void CalculateStatementFingerprint();
+  void CalculateFunctionNodeFingerprint();
+
+  uint32_t hash_;
+};
+
+class StreamingFlowGraphBuilder : public KernelReaderHelper {
  public:
   StreamingFlowGraphBuilder(FlowGraphBuilder* flow_graph_builder,
                             const TypedData& data,
                             intptr_t data_program_offset)
-      : flow_graph_builder_(flow_graph_builder),
-        translation_helper_(flow_graph_builder->translation_helper_),
-        zone_(flow_graph_builder->zone_),
-        reader_(new Reader(data)),
-        script_(Script::Handle(zone_, parsed_function()->function().script())),
+      : KernelReaderHelper(
+            flow_graph_builder->zone_,
+            &flow_graph_builder->translation_helper_,
+            Script::Handle(
+                flow_graph_builder->zone_,
+                flow_graph_builder->parsed_function_->function().script()),
+            data,
+            data_program_offset),
+        flow_graph_builder_(flow_graph_builder),
         constant_evaluator_(this),
         type_translator_(this, /* finalize= */ true),
-        data_program_offset_(data_program_offset),
         current_script_id_(-1),
         record_for_script_id_(-1),
         record_token_positions_into_(NULL),
@@ -974,6 +1189,7 @@ class StreamingFlowGraphBuilder {
         direct_call_metadata_helper_(this),
         inferred_type_metadata_helper_(this),
         procedure_attributes_metadata_helper_(this),
+        bytecode_metadata_helper_(this),
         metadata_scanned_(false) {}
 
   StreamingFlowGraphBuilder(TranslationHelper* translation_helper,
@@ -981,14 +1197,14 @@ class StreamingFlowGraphBuilder {
                             const uint8_t* data_buffer,
                             intptr_t buffer_length,
                             intptr_t data_program_offset)
-      : flow_graph_builder_(NULL),
-        translation_helper_(*translation_helper),
-        zone_(zone),
-        reader_(new Reader(data_buffer, buffer_length)),
-        script_(Script::Handle(zone_)),
+      : KernelReaderHelper(zone,
+                           translation_helper,
+                           data_buffer,
+                           buffer_length,
+                           data_program_offset),
+        flow_graph_builder_(NULL),
         constant_evaluator_(this),
         type_translator_(this, /* finalize= */ true),
-        data_program_offset_(data_program_offset),
         current_script_id_(-1),
         record_for_script_id_(-1),
         record_token_positions_into_(NULL),
@@ -996,6 +1212,7 @@ class StreamingFlowGraphBuilder {
         direct_call_metadata_helper_(this),
         inferred_type_metadata_helper_(this),
         procedure_attributes_metadata_helper_(this),
+        bytecode_metadata_helper_(this),
         metadata_scanned_(false) {}
 
   StreamingFlowGraphBuilder(TranslationHelper* translation_helper,
@@ -1003,14 +1220,14 @@ class StreamingFlowGraphBuilder {
                             Zone* zone,
                             const TypedData& data,
                             intptr_t data_program_offset)
-      : flow_graph_builder_(NULL),
-        translation_helper_(*translation_helper),
-        zone_(zone),
-        reader_(new Reader(data)),
-        script_(script),
+      : KernelReaderHelper(zone,
+                           translation_helper,
+                           script,
+                           data,
+                           data_program_offset),
+        flow_graph_builder_(NULL),
         constant_evaluator_(this),
         type_translator_(this, /* finalize= */ true),
-        data_program_offset_(data_program_offset),
         current_script_id_(-1),
         record_for_script_id_(-1),
         record_token_positions_into_(NULL),
@@ -1018,11 +1235,14 @@ class StreamingFlowGraphBuilder {
         direct_call_metadata_helper_(this),
         inferred_type_metadata_helper_(this),
         procedure_attributes_metadata_helper_(this),
+        bytecode_metadata_helper_(this),
         metadata_scanned_(false) {}
 
-  ~StreamingFlowGraphBuilder() { delete reader_; }
+  virtual ~StreamingFlowGraphBuilder() {}
 
   FlowGraph* BuildGraph(intptr_t kernel_offset);
+
+  void ReportUnexpectedTag(const char* variant, Tag tag) override;
 
   Fragment BuildStatementAt(intptr_t kernel_offset);
   RawObject* BuildParameterDescriptor(intptr_t kernel_offset);
@@ -1037,17 +1257,13 @@ class StreamingFlowGraphBuilder {
   String& SourceTableUriFor(intptr_t index);
   String& GetSourceFor(intptr_t index);
   RawTypedData* GetLineStartsFor(intptr_t index);
-  void SetOffset(intptr_t offset);
 
   // If a 'ParsedFunction' is provided for 'set_forwarding_stub', this method
   // will attach the forwarding stub target reference to the parsed function if
   // it crosses a procedure node for a concrete forwarding stub.
   void ReadUntilFunctionNode(ParsedFunction* set_forwarding_stub = NULL);
-  intptr_t ReadListLength();
 
   enum DispatchCategory { Interface, ViaThis, Closure, DynamicDispatch };
-
-  void ReportUnexpectedTag(const char* variant, Tag tag);
 
  private:
   void LoadAndSetupTypeParameters(ActiveClass* active_class,
@@ -1071,58 +1287,15 @@ class StreamingFlowGraphBuilder {
   Fragment BuildInitializers(const Class& parent_class);
   FlowGraph* BuildGraphOfImplicitClosureFunction(const Function& function);
   FlowGraph* BuildGraphOfFunction(bool constructor);
-  FlowGraph* BuildGraphOfForwardingStub(const Function& function);
+  FlowGraph* BuildGraphOfNoSuchMethodForwarder(
+      const Function& function,
+      bool is_implicit_closure_function,
+      bool throw_no_such_method_error = false);
 
   intptr_t GetOffsetForSourceInfo(intptr_t index);
 
   Fragment BuildExpression(TokenPosition* position = NULL);
   Fragment BuildStatement();
-
-  intptr_t ReaderOffset();
-  void SkipBytes(intptr_t skip);
-  bool ReadBool();
-  uint8_t ReadByte();
-  uint32_t ReadUInt();
-  uint32_t ReadUInt32();
-  uint32_t PeekUInt();
-  uint32_t PeekListLength();
-  StringIndex ReadStringReference();
-  NameIndex ReadCanonicalNameReference();
-  StringIndex ReadNameAsStringIndex();
-  const String& ReadNameAsMethodName();
-  const String& ReadNameAsGetterName();
-  const String& ReadNameAsSetterName();
-  const String& ReadNameAsFieldName();
-  void SkipFlags();
-  void SkipStringReference();
-  void SkipConstantReference();
-  void SkipCanonicalNameReference();
-  void SkipDartType();
-  void SkipOptionalDartType();
-  void SkipInterfaceType(bool simple);
-  void SkipFunctionType(bool simple);
-  void SkipListOfExpressions();
-  void SkipListOfDartTypes();
-  void SkipListOfStrings();
-  void SkipListOfVariableDeclarations();
-  void SkipTypeParametersList();
-  void SkipInitializer();
-  void SkipExpression();
-  void SkipStatement();
-  void SkipFunctionNode();
-  void SkipName();
-  void SkipArguments();
-  void SkipVariableDeclaration();
-  void SkipLibraryCombinator();
-  void SkipLibraryDependency();
-  void SkipLibraryPart();
-  void SkipLibraryTypedef();
-  TokenPosition ReadPosition(bool record = true);
-  void record_token_position(TokenPosition position);
-  void record_yield_position(TokenPosition position);
-  Tag ReadTag(uint8_t* payload = NULL);
-  Tag PeekTag(uint8_t* payload = NULL);
-  uint8_t ReadFlags() { return reader_->ReadFlags(); }
 
   void loop_depth_inc();
   void loop_depth_dec();
@@ -1155,8 +1328,10 @@ class StreamingFlowGraphBuilder {
   const TypeArguments& PeekArgumentsInstantiatedType(const Class& klass);
   intptr_t PeekArgumentsCount();
 
-  LocalVariable* LookupVariable(intptr_t kernel_offset);
+  // See BaseFlowGraphBuilder::MakeTemporary.
   LocalVariable* MakeTemporary();
+
+  LocalVariable* LookupVariable(intptr_t kernel_offset);
   RawFunction* LookupMethodByMember(NameIndex target,
                                     const String& method_name);
   Function& FindMatchingFunctionAnyArgs(const Class& klass, const String& name);
@@ -1180,7 +1355,9 @@ class StreamingFlowGraphBuilder {
   Fragment Constant(const Object& value);
   Fragment IntConstant(int64_t value);
   Fragment LoadStaticField();
-  Fragment CheckNull(TokenPosition position, LocalVariable* receiver);
+  Fragment CheckNull(TokenPosition position,
+                     LocalVariable* receiver,
+                     const String& function_name);
   Fragment StaticCall(TokenPosition position,
                       const Function& target,
                       intptr_t argument_count,
@@ -1236,7 +1413,7 @@ class StreamingFlowGraphBuilder {
   Fragment InstantiateType(const AbstractType& type);
   Fragment CreateArray();
   Fragment StoreIndexed(intptr_t class_id);
-  Fragment CheckStackOverflow();
+  Fragment CheckStackOverflow(TokenPosition position);
   Fragment CloneContext(intptr_t num_context_variables);
   Fragment TranslateFinallyFinalizers(TryFinallyBlock* outer_finally,
                                       intptr_t target_context_depth);
@@ -1251,7 +1428,8 @@ class StreamingFlowGraphBuilder {
                         bool negate = false);
   Fragment CatchBlockEntry(const Array& handler_types,
                            intptr_t handler_index,
-                           bool needs_stacktrace);
+                           bool needs_stacktrace,
+                           bool is_synthesized);
   Fragment TryCatch(int try_handler_index);
   Fragment Drop();
 
@@ -1263,7 +1441,7 @@ class StreamingFlowGraphBuilder {
   JoinEntryInstr* BuildJoinEntry(intptr_t try_index);
   Fragment Goto(JoinEntryInstr* destination);
   Fragment BuildImplicitClosureCreation(const Function& target);
-  Fragment CheckBooleanInCheckedMode();
+  Fragment CheckBoolean();
   Fragment CheckAssignableInCheckedMode(const AbstractType& dst_type,
                                         const String& dst_name);
   Fragment CheckArgumentType(LocalVariable* variable, const AbstractType& type);
@@ -1336,17 +1514,13 @@ class StreamingFlowGraphBuilder {
   Fragment BuildBoolLiteral(bool value, TokenPosition* position);
   Fragment BuildNullLiteral(TokenPosition* position);
   Fragment BuildFutureNullValue(TokenPosition* position);
-  Fragment BuildVectorCreation(TokenPosition* position);
-  Fragment BuildVectorGet(TokenPosition* position);
-  Fragment BuildVectorSet(TokenPosition* position);
-  Fragment BuildVectorCopy(TokenPosition* position);
-  Fragment BuildClosureCreation(TokenPosition* position);
   Fragment BuildConstantExpression(TokenPosition* position);
   Fragment BuildPartialTearoffInstantiation(TokenPosition* position);
 
   Fragment BuildExpressionStatement();
   Fragment BuildBlock();
   Fragment BuildEmptyStatement();
+  Fragment BuildAssertBlock();
   Fragment BuildAssertStatement();
   Fragment BuildLabeledStatement();
   Fragment BuildBreakStatement();
@@ -1372,26 +1546,18 @@ class StreamingFlowGraphBuilder {
                                bool is_closure,
                                FunctionNodeHelper* function_node_helper);
 
-  const Script& script() { return script_; }
+  void set_current_script_id(intptr_t id) override { current_script_id_ = id; }
+
+  void RecordTokenPosition(TokenPosition position) override;
+  void RecordYieldPosition(TokenPosition position) override;
 
   // Scan through metadata mappings section and cache offsets for recognized
   // metadata kinds.
   void EnsureMetadataIsScanned();
 
   FlowGraphBuilder* flow_graph_builder_;
-  TranslationHelper& translation_helper_;
-  Zone* zone_;
-  Reader* reader_;
-  const Script& script_;
   StreamingConstantEvaluator constant_evaluator_;
   StreamingDartTypeTranslator type_translator_;
-  // Some items like variables are specified in the kernel binary as
-  // absolute offsets (as in, offsets within the whole kernel program)
-  // of their declaration nodes. Hence, to cache and/or access them
-  // uniquely from within a function's kernel data, we need to
-  // add/subtract the offset of the kernel data in the over all
-  // kernel program.
-  intptr_t data_program_offset_;
   intptr_t current_script_id_;
   intptr_t record_for_script_id_;
   GrowableArray<intptr_t>* record_token_positions_into_;
@@ -1399,6 +1565,7 @@ class StreamingFlowGraphBuilder {
   DirectCallMetadataHelper direct_call_metadata_helper_;
   InferredTypeMetadataHelper inferred_type_metadata_helper_;
   ProcedureAttributesMetadataHelper procedure_attributes_metadata_helper_;
+  BytecodeMetadataHelper bytecode_metadata_helper_;
   bool metadata_scanned_;
 
   friend class ClassHelper;
@@ -1406,11 +1573,12 @@ class StreamingFlowGraphBuilder {
   friend class ConstructorHelper;
   friend class DirectCallMetadataHelper;
   friend class ProcedureAttributesMetadataHelper;
+  friend class BytecodeMetadataHelper;
   friend class FieldHelper;
   friend class FunctionNodeHelper;
   friend class InferredTypeMetadataHelper;
   friend class KernelLoader;
-  friend class KernelReader;
+  friend class KernelReaderHelper;
   friend class LibraryDependencyHelper;
   friend class LibraryHelper;
   friend class MetadataHelper;
@@ -1420,6 +1588,7 @@ class StreamingFlowGraphBuilder {
   friend class StreamingDartTypeTranslator;
   friend class StreamingScopeBuilder;
   friend class VariableDeclarationHelper;
+  friend class TypeParameterHelper;
 };
 
 class AlternativeScriptScope {
@@ -1509,12 +1678,16 @@ class ConstantHelper {
         zone_(zone),
         temp_type_(AbstractType::Handle(zone)),
         temp_type_arguments_(TypeArguments::Handle(zone)),
+        temp_type_arguments2_(TypeArguments::Handle(zone)),
+        temp_type_arguments3_(TypeArguments::Handle(zone)),
         temp_object_(Object::Handle(zone)),
         temp_array_(Array::Handle(zone)),
         temp_instance_(Instance::Handle(zone)),
         temp_field_(Field::Handle(zone)),
         temp_class_(Class::Handle(zone)),
         temp_function_(Function::Handle(zone)),
+        temp_closure_(Closure::Handle(zone)),
+        temp_context_(Context::Handle(zone)),
         temp_integer_(Integer::Handle(zone)) {}
 
   // Reads the constant table from the binary.
@@ -1527,6 +1700,10 @@ class ConstantHelper {
   void InstantiateTypeArguments(const Class& receiver_class,
                                 TypeArguments* type_arguments);
 
+  // If [index] has `dart:vm_service` as a parent and we are skipping the VM
+  // service library, this method returns `true`, otherwise `false`.
+  bool ShouldSkipConstant(NameIndex index);
+
   NameIndex skip_vmservice_library_;
   ActiveClass* active_class_;
   StreamingFlowGraphBuilder& builder_;
@@ -1536,12 +1713,16 @@ class ConstantHelper {
   Zone* zone_;
   AbstractType& temp_type_;
   TypeArguments& temp_type_arguments_;
+  TypeArguments& temp_type_arguments2_;
+  TypeArguments& temp_type_arguments3_;
   Object& temp_object_;
   Array& temp_array_;
   Instance& temp_instance_;
   Field& temp_field_;
   Class& temp_class_;
   Function& temp_function_;
+  Closure& temp_closure_;
+  Context& temp_context_;
   Integer& temp_integer_;
 };
 

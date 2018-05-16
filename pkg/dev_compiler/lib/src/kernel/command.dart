@@ -3,11 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert' show JSON;
+import 'dart:convert' show json;
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:dev_compiler/src/kernel/target.dart';
 import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:front_end/src/multi_root_file_system.dart';
@@ -17,9 +16,11 @@ import 'package:source_maps/source_maps.dart';
 
 import '../compiler/js_names.dart' as JS;
 import '../compiler/module_builder.dart';
+import '../compiler/shared_command.dart';
 import '../js_ast/js_ast.dart' as JS;
 import '../js_ast/source_map_printer.dart' show SourceMapPrintingContext;
 import 'compiler.dart';
+import 'target.dart';
 
 const _binaryName = 'dartdevk';
 
@@ -106,22 +107,27 @@ class CompilerResult {
 
 Future<CompilerResult> _compile(List<String> args,
     {fe.InitializedCompilerState compilerState}) async {
+  // TODO(jmesserly): refactor options to share code with dartdevc CLI.
   var argParser = new ArgParser(allowTrailingOptions: true)
     ..addFlag('help',
         abbr: 'h', help: 'Display this message.', negatable: false)
     ..addOption('out', abbr: 'o', help: 'Output file (required).')
     ..addOption('packages', help: 'The package spec file to use.')
+    // TODO(jmesserly): add verbose help to show hidden options
     ..addOption('dart-sdk-summary',
         help: 'The path to the Dart SDK summary file.', hide: true)
-    ..addOption('summary',
+    ..addMultiOption('summary',
         abbr: 's',
         help: 'path to a summary of a transitive dependency of this module.\n'
-            'This path should be under a provided summary-input-dir',
-        allowMultiple: true)
+            'This path should be under a provided summary-input-dir')
     ..addFlag('source-map', help: 'emit source mapping', defaultsTo: true)
-    ..addOption('summary-input-dir', allowMultiple: true)
+    ..addMultiOption('summary-input-dir')
     ..addOption('custom-app-scheme', defaultsTo: 'org-dartlang-app')
+    ..addFlag('emit-metadata',
+        help: '(deprecated) enables dart:mirrors for this module', hide: true)
+    ..addFlag('enable-asserts', help: 'enable assertions', defaultsTo: true)
     // Ignore dart2js options that we don't support in DDC.
+    // TODO(jmesserly): add ignore-unrecognized-flag support.
     ..addFlag('enable-enum', hide: true)
     ..addFlag('experimental-trust-js-interop-type-annotations', hide: true)
     ..addFlag('trust-type-annotations', hide: true)
@@ -192,17 +198,29 @@ Future<CompilerResult> _compile(List<String> args,
     return new CompilerResult(compilerState, false);
   }
 
+  var component = result.component;
+  var emitMetadata = argResults['emit-metadata'] as bool;
+  if (!emitMetadata && _checkForDartMirrorsImport(component)) {
+    return new CompilerResult(compilerState, false);
+  }
+
   String output = argResults['out'];
   var file = new File(output);
   if (!file.parent.existsSync()) file.parent.createSync(recursive: true);
 
-  // Useful for debugging:
-  writeProgramToText(result.program, path: output + '.txt');
-
   // TODO(jmesserly): Save .dill file so other modules can link in this one.
-  //await writeProgramToBinary(program, output);
-  var jsModule = compileToJSModule(
-      result.program, result.inputSummaries, summaryUris, declaredVariables);
+  //await writeComponentToBinary(component, output);
+
+  // Useful for debugging:
+  writeComponentToText(component, path: output + '.txt');
+
+  var compiler = new ProgramCompiler(component,
+      declaredVariables: declaredVariables,
+      emitMetadata: emitMetadata,
+      enableAsserts: argResults['enable-asserts'] as bool);
+  var jsModule =
+      compiler.emitModule(component, result.inputSummaries, summaryUris);
+
   var jsCode = jsProgramToCode(jsModule, moduleFormat,
       buildSourceMap: argResults['source-map'] as bool,
       jsUrl: path.toUri(output).toString(),
@@ -213,16 +231,10 @@ Future<CompilerResult> _compile(List<String> args,
   if (jsCode.sourceMap != null) {
     file = new File(output + '.map');
     if (!file.parent.existsSync()) file.parent.createSync(recursive: true);
-    file.writeAsStringSync(JSON.encode(jsCode.sourceMap));
+    file.writeAsStringSync(json.encode(jsCode.sourceMap));
   }
 
   return new CompilerResult(compilerState, true);
-}
-
-JS.Program compileToJSModule(Program p, List<Program> summaries,
-    List<Uri> summaryUris, Map<String, String> declaredVariables) {
-  var compiler = new ProgramCompiler(p, declaredVariables: declaredVariables);
-  return compiler.emitProgram(p, summaries, summaryUris);
 }
 
 /// The output of compiling a JavaScript module in a particular format.
@@ -367,12 +379,7 @@ Map<String, String> parseAndRemoveDeclaredVariables(List<String> args) {
   }
 
   // Add platform defined variables
-  declaredVariables['dart.isVM'] = 'false';
-
-  // TODO(vsm): Should this be hardcoded?
-  declaredVariables['dart.library.html'] = 'true';
-  declaredVariables['dart.library.io'] = 'false';
-  declaredVariables['dart.library.ui'] = 'false';
+  declaredVariables.addAll(sdkLibraryVariables);
 
   return declaredVariables;
 }
@@ -383,3 +390,18 @@ final defaultSdkSummaryPath = path.join(
     'lib',
     '_internal',
     'ddc_sdk.dill');
+
+bool _checkForDartMirrorsImport(Component component) {
+  for (var library in component.libraries) {
+    if (library.isExternal) continue;
+    for (var dep in library.dependencies) {
+      var uri = dep.targetLibrary.importUri;
+      if (uri.scheme == 'dart' && uri.path == 'mirrors') {
+        print('${library.importUri}: Error: Cannot import "dart:mirrors" '
+            'in web applications (https://goo.gl/R1anEs).');
+        return true;
+      }
+    }
+  }
+  return false;
+}

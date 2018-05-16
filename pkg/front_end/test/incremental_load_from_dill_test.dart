@@ -3,429 +3,362 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async' show Future;
+
 import 'dart:io' show Directory, File;
 
 import 'package:expect/expect.dart' show Expect;
+
+import 'package:front_end/src/base/processed_options.dart'
+    show ProcessedOptions;
+
+import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
+
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
-import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
-    show IncrementalKernelGenerator;
-import 'package:front_end/src/compute_platform_binaries_location.dart'
-    show computePlatformBinariesLocation;
-import 'package:front_end/src/fasta/incremental_compiler.dart'
-    show IncrementalCompiler;
-import 'package:front_end/src/fasta/kernel/utils.dart'
-    show writeProgramToFile, serializeProgram;
+
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem;
-import 'package:kernel/kernel.dart'
-    show Class, EmptyStatement, Library, Procedure, Program;
 
-import 'package:front_end/src/fasta/fasta_codes.dart' show LocatedMessage;
+import 'package:front_end/src/compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
+
+import 'package:front_end/src/fasta/fasta_codes.dart' show FormattedMessage;
+
+import 'package:front_end/src/fasta/incremental_compiler.dart'
+    show IncrementalCompiler;
+
+import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
 
 import 'package:front_end/src/fasta/severity.dart' show Severity;
 
-Directory outDir;
+import 'package:kernel/kernel.dart' show Component;
 
-main() async {
-  await runPassingTest(testDart2jsCompile);
-  await runPassingTest(testDisappearingLibrary);
-  await runPassingTest(testDeferredLibrary);
-  await runPassingTest(testStrongModeMixins);
-  await runFailingTest(
-      testStrongModeMixins2,
-      "testStrongModeMixins2_a.dart: Error: "
-      "The parameter 'value' of the method 'A::child' has type");
-  await runPassingTest(testInvalidateExportOfMain);
-  await runPassingTest(testInvalidatePart);
+import "package:testing/testing.dart"
+    show Chain, ChainContext, Result, Step, TestDescription, runMe;
+
+import "package:yaml/yaml.dart" show YamlMap, loadYamlNode;
+
+import "incremental_utils.dart" as util;
+
+main([List<String> arguments = const []]) =>
+    runMe(arguments, createContext, "../testing.json");
+
+Future<Context> createContext(
+    Chain suite, Map<String, String> environment) async {
+  return new Context();
 }
 
-void runFailingTest(dynamic test, String expectContains) async {
-  try {
-    await runPassingTest(test);
-    throw "Expected this to fail.";
-  } catch (e) {
-    if (e.toString().contains(expectContains)) {
-      print("got expected error as this test is currently failing");
+class Context extends ChainContext {
+  final List<Step> steps = const <Step>[
+    const ReadTest(),
+    const RunCompilations(),
+  ];
+
+  @override
+  void cleanUp(TestDescription description, Result result) {
+    cleanupHelper?.outDir?.deleteSync(recursive: true);
+  }
+
+  TestData cleanupHelper;
+}
+
+class TestData {
+  YamlMap map;
+  Directory outDir;
+}
+
+class ReadTest extends Step<TestDescription, TestData, Context> {
+  const ReadTest();
+
+  String get name => "read test";
+
+  Future<Result<TestData>> run(
+      TestDescription description, Context context) async {
+    Uri uri = description.uri;
+    String contents = await new File.fromUri(uri).readAsString();
+    TestData data = new TestData();
+    data.map = loadYamlNode(contents, sourceUrl: uri);
+    data.outDir =
+        Directory.systemTemp.createTempSync("incremental_load_from_dill_test");
+    context.cleanupHelper = data;
+    return pass(data);
+  }
+}
+
+class RunCompilations extends Step<TestData, TestData, Context> {
+  const RunCompilations();
+
+  String get name => "run compilations";
+
+  Future<Result<TestData>> run(TestData data, Context context) async {
+    YamlMap map = data.map;
+    switch (map["type"]) {
+      case "basic":
+        await basicTest(
+          map["sources"],
+          map["entry"],
+          map["strong"],
+          map["invalidate"],
+          data.outDir,
+        );
+        break;
+      case "newworld":
+        await newWorldTest(
+          map["strong"],
+          map["worlds"],
+        );
+        break;
+      default:
+        throw "Unexpected type: ${map['type']}";
+    }
+    return pass(data);
+  }
+}
+
+void basicTest(Map<String, String> sourceFiles, String entryPoint, bool strong,
+    List<String> invalidate, Directory outDir) async {
+  Uri entryPointUri = outDir.uri.resolve(entryPoint);
+  Set<String> invalidateFilenames = invalidate?.toSet() ?? new Set<String>();
+  List<Uri> invalidateUris = <Uri>[];
+  Uri packagesUri;
+  for (String filename in sourceFiles.keys) {
+    Uri uri = outDir.uri.resolve(filename);
+    if (invalidateFilenames.contains(filename)) {
+      invalidateUris.add(uri);
+      invalidateFilenames.remove(filename);
+    }
+    String source = sourceFiles[filename];
+    if (filename == ".packages") {
+      source = substituteVariables(source, outDir.uri);
+      packagesUri = uri;
+    }
+    new File.fromUri(uri).writeAsStringSync(source);
+  }
+  for (String invalidateFilename in invalidateFilenames) {
+    if (invalidateFilename.startsWith('package:')) {
+      invalidateUris.add(Uri.parse(invalidateFilename));
     } else {
-      rethrow;
+      throw "Error in test yaml: $invalidateFilename was not recognized.";
     }
   }
-}
 
-void runPassingTest(dynamic test) async {
-  outDir =
-      Directory.systemTemp.createTempSync("incremental_load_from_dill_test");
-  try {
-    await test();
-    print("----");
-  } finally {
-    outDir.deleteSync(recursive: true);
+  Uri output = outDir.uri.resolve("full.dill");
+  Uri initializedOutput = outDir.uri.resolve("full_from_initialized.dill");
+
+  Stopwatch stopwatch = new Stopwatch()..start();
+  CompilerOptions options = getOptions(strong);
+  if (packagesUri != null) {
+    options.packagesFileUri = packagesUri;
   }
-}
-
-/// Invalidate a part file.
-void testInvalidatePart() async {
-  final Uri a = outDir.uri.resolve("testInvalidatePart_a.dart");
-  final Uri b = outDir.uri.resolve("testInvalidatePart_b.dart");
-  final Uri c = outDir.uri.resolve("testInvalidatePart_c.dart");
-  final Uri d = outDir.uri.resolve("testInvalidatePart_d.dart");
-
-  Uri output = outDir.uri.resolve("testInvalidatePart_full.dill");
-  Uri bootstrappedOutput =
-      outDir.uri.resolve("testInvalidatePart_full_from_bootstrap.dill");
-
-  new File.fromUri(a).writeAsStringSync("""
-    library a;
-    import 'testInvalidatePart_c.dart';
-    part 'testInvalidatePart_b.dart';
-    """);
-  new File.fromUri(b).writeAsStringSync("""
-    part of a;
-    b() { print("b"); }
-    """);
-  new File.fromUri(c).writeAsStringSync("""
-    library c;
-    part 'testInvalidatePart_d.dart';
-    """);
-  new File.fromUri(d).writeAsStringSync("""
-    part of c;
-    d() { print("d"); }
-    """);
-
-  Stopwatch stopwatch = new Stopwatch()..start();
-  await normalCompile(a, output, options: getOptions(true));
+  await normalCompile(entryPointUri, output, options: options);
   print("Normal compile took ${stopwatch.elapsedMilliseconds} ms");
 
   stopwatch.reset();
-  bool bootstrapResult = await bootstrapCompile(
-      a, bootstrappedOutput, output, [b],
-      performSizeTests: true, options: getOptions(true));
-  print("Bootstrapped compile(s) from ${output.pathSegments.last} "
-      "took ${stopwatch.elapsedMilliseconds} ms");
-  Expect.isTrue(bootstrapResult);
-
-  // Compare the two files.
-  List<int> normalDillData = new File.fromUri(output).readAsBytesSync();
-  List<int> bootstrappedDillData =
-      new File.fromUri(bootstrappedOutput).readAsBytesSync();
-  checkBootstrappedIsEqual(normalDillData, bootstrappedDillData);
-}
-
-/// Invalidate the entrypoint which just exports another file (which has main).
-void testInvalidateExportOfMain() async {
-  final Uri a = outDir.uri.resolve("testInvalidateExportOfMain_a.dart");
-  final Uri b = outDir.uri.resolve("testInvalidateExportOfMain_b.dart");
-
-  Uri output = outDir.uri.resolve("testInvalidateExportOfMain_full.dill");
-  Uri bootstrappedOutput =
-      outDir.uri.resolve("testInvalidateExportOfMain_full_from_bootstrap.dill");
-
-  new File.fromUri(a).writeAsStringSync("""
-    export 'testInvalidateExportOfMain_b.dart';
-    """);
-  new File.fromUri(b).writeAsStringSync("""
-    main() { print("hello"); }
-    """);
-
-  Stopwatch stopwatch = new Stopwatch()..start();
-  await normalCompile(a, output, options: getOptions(true));
-  print("Normal compile took ${stopwatch.elapsedMilliseconds} ms");
-
-  stopwatch.reset();
-  bool bootstrapResult = await bootstrapCompile(
-      a, bootstrappedOutput, output, [a],
-      performSizeTests: true, options: getOptions(true));
-  print("Bootstrapped compile(s) from ${output.pathSegments.last} "
-      "took ${stopwatch.elapsedMilliseconds} ms");
-  Expect.isTrue(bootstrapResult);
-
-  // Compare the two files.
-  List<int> normalDillData = new File.fromUri(output).readAsBytesSync();
-  List<int> bootstrappedDillData =
-      new File.fromUri(bootstrappedOutput).readAsBytesSync();
-  checkBootstrappedIsEqual(normalDillData, bootstrappedDillData);
-}
-
-/// Compile in strong mode. Use mixins.
-void testStrongModeMixins2() async {
-  final Uri a = outDir.uri.resolve("testStrongModeMixins2_a.dart");
-  final Uri b = outDir.uri.resolve("testStrongModeMixins2_b.dart");
-
-  Uri output = outDir.uri.resolve("testStrongModeMixins2_full.dill");
-  Uri bootstrappedOutput =
-      outDir.uri.resolve("testStrongModeMixins2_full_from_bootstrap.dill");
-
-  new File.fromUri(a).writeAsStringSync("""
-    import 'testStrongModeMixins2_b.dart';
-    class A extends Object with B<C>, D<Object> {}
-    """);
-  new File.fromUri(b).writeAsStringSync("""
-    abstract class B<ChildType extends Object> extends Object {
-      ChildType get child => null;
-      set child(ChildType value) {}
-    }
-
-    class C extends Object {}
-
-    abstract class D<T extends Object> extends Object with B<T> {}
-    """);
-
-  Stopwatch stopwatch = new Stopwatch()..start();
-  await normalCompile(a, output, options: getOptions(true));
-  print("Normal compile took ${stopwatch.elapsedMilliseconds} ms");
-
-  stopwatch.reset();
-  bool bootstrapResult = await bootstrapCompile(
-      a, bootstrappedOutput, output, [a],
-      performSizeTests: true, options: getOptions(true));
-  print("Bootstrapped compile(s) from ${output.pathSegments.last} "
-      "took ${stopwatch.elapsedMilliseconds} ms");
-  Expect.isTrue(bootstrapResult);
-
-  // Compare the two files.
-  List<int> normalDillData = new File.fromUri(output).readAsBytesSync();
-  List<int> bootstrappedDillData =
-      new File.fromUri(bootstrappedOutput).readAsBytesSync();
-  checkBootstrappedIsEqual(normalDillData, bootstrappedDillData);
-}
-
-/// Compile in strong mode. Invalidate a file so type inferrer starts
-/// on something compiled from source and (potentially) goes into
-/// something loaded from dill.
-void testStrongModeMixins() async {
-  final Uri a = outDir.uri.resolve("testStrongModeMixins_a.dart");
-  final Uri b = outDir.uri.resolve("testStrongModeMixins_b.dart");
-
-  Uri output = outDir.uri.resolve("testStrongModeMixins_full.dill");
-  Uri bootstrappedOutput =
-      outDir.uri.resolve("testStrongModeMixins_full_from_bootstrap.dill");
-
-  new File.fromUri(a).writeAsStringSync("""
-    import 'testStrongModeMixins_b.dart';
-    class A extends Object with B<Object>, C {}
-    """);
-  new File.fromUri(b).writeAsStringSync("""
-    abstract class C<T extends Object> extends Object with B<T> {}
-    abstract class B<ChildType extends Object> extends Object {}
-    """);
-
-  Stopwatch stopwatch = new Stopwatch()..start();
-  await normalCompile(a, output, options: getOptions(true));
-  print("Normal compile took ${stopwatch.elapsedMilliseconds} ms");
-
-  stopwatch.reset();
-  bool bootstrapResult = await bootstrapCompile(
-      a, bootstrappedOutput, output, [a],
-      performSizeTests: true, options: getOptions(true));
-  print("Bootstrapped compile(s) from ${output.pathSegments.last} "
-      "took ${stopwatch.elapsedMilliseconds} ms");
-  Expect.isTrue(bootstrapResult);
-
-  // Compare the two files.
-  List<int> normalDillData = new File.fromUri(output).readAsBytesSync();
-  List<int> bootstrappedDillData =
-      new File.fromUri(bootstrappedOutput).readAsBytesSync();
-  checkBootstrappedIsEqual(normalDillData, bootstrappedDillData);
-}
-
-/// Test loading from a dill file with a deferred library.
-/// This is done by bootstrapping with no changes.
-void testDeferredLibrary() async {
-  final Uri input = outDir.uri.resolve("testDeferredLibrary_main.dart");
-  final Uri b = outDir.uri.resolve("testDeferredLibrary_b.dart");
-  Uri output = outDir.uri.resolve("testDeferredLibrary_full.dill");
-  Uri bootstrappedOutput =
-      outDir.uri.resolve("testDeferredLibrary_full_from_bootstrap.dill");
-  new File.fromUri(input).writeAsStringSync("""
-      import 'testDeferredLibrary_b.dart' deferred as b;
-
-      void main() {
-        print(b.foo());
-      }
-      """);
-  new File.fromUri(b).writeAsStringSync("""
-      String foo() => "hello from foo in b";
-      """);
-
-  Stopwatch stopwatch = new Stopwatch()..start();
-  await normalCompile(input, output);
-  print("Normal compile took ${stopwatch.elapsedMilliseconds} ms");
-
-  stopwatch.reset();
-  bool bootstrapResult = await bootstrapCompile(
-      input, bootstrappedOutput, output, [],
-      performSizeTests: false);
-  print("Bootstrapped compile(s) from ${output.pathSegments.last} "
-      "took ${stopwatch.elapsedMilliseconds} ms");
-  Expect.isTrue(bootstrapResult);
-
-  // Compare the two files.
-  List<int> normalDillData = new File.fromUri(output).readAsBytesSync();
-  List<int> bootstrappedDillData =
-      new File.fromUri(bootstrappedOutput).readAsBytesSync();
-  checkBootstrappedIsEqual(normalDillData, bootstrappedDillData);
-}
-
-void testDart2jsCompile() async {
-  final Uri dart2jsUrl = Uri.base.resolve("pkg/compiler/bin/dart2js.dart");
-  final Uri invalidateUri = Uri.parse("package:compiler/src/filenames.dart");
-  Uri normalDill = outDir.uri.resolve("dart2js.full.dill");
-  Uri bootstrappedDill = outDir.uri.resolve("dart2js.bootstrap.dill");
-  Uri nonexisting = outDir.uri.resolve("dart2js.nonexisting.dill");
-  Uri nonLoadable = outDir.uri.resolve("dart2js.nonloadable.dill");
-
-  // Compile dart2js without bootstrapping.
-  Stopwatch stopwatch = new Stopwatch()..start();
-  await normalCompile(dart2jsUrl, normalDill);
-  print("Normal compile took ${stopwatch.elapsedMilliseconds} ms");
-
-  // Create a file that cannot be (fully) loaded as a dill file.
-  List<int> corruptData = new File.fromUri(normalDill).readAsBytesSync();
-  for (int i = 10 * (corruptData.length ~/ 16);
-      i < 15 * (corruptData.length ~/ 16);
-      ++i) {
-    corruptData[i] = 42;
+  options = getOptions(strong);
+  if (packagesUri != null) {
+    options.packagesFileUri = packagesUri;
   }
-  new File.fromUri(nonLoadable).writeAsBytesSync(corruptData);
+  bool initializedResult = await initializedCompile(
+      entryPointUri, initializedOutput, output, invalidateUris,
+      options: options);
+  print("Initialized compile(s) from ${output.pathSegments.last} "
+      "took ${stopwatch.elapsedMilliseconds} ms");
+  Expect.isTrue(initializedResult);
 
-  // Compile dart2js, bootstrapping from the just-compiled dill,
-  // a nonexisting file and a dill file that isn't valid.
-  for (List<Object> bootstrapData in [
-    [normalDill, true],
-    [nonexisting, false],
-    //  [nonLoadable, false] // disabled for now
-  ]) {
-    Uri bootstrapWith = bootstrapData[0];
-    bool bootstrapExpect = bootstrapData[1];
-    stopwatch.reset();
-    bool bootstrapResult = await bootstrapCompile(
-        dart2jsUrl, bootstrappedDill, bootstrapWith, [invalidateUri]);
-    Expect.equals(bootstrapExpect, bootstrapResult);
-    print("Bootstrapped compile(s) from ${bootstrapWith.pathSegments.last} "
-        "took ${stopwatch.elapsedMilliseconds} ms");
-
-    // Compare the two files.
-    List<int> normalDillData = new File.fromUri(normalDill).readAsBytesSync();
-    List<int> bootstrappedDillData =
-        new File.fromUri(bootstrappedDill).readAsBytesSync();
-    checkBootstrappedIsEqual(normalDillData, bootstrappedDillData);
-  }
+  // Compare the two files.
+  List<int> normalDillData = new File.fromUri(output).readAsBytesSync();
+  List<int> initializedDillData =
+      new File.fromUri(initializedOutput).readAsBytesSync();
+  checkIsEqual(normalDillData, initializedDillData);
 }
 
-void checkBootstrappedIsEqual(
-    List<int> normalDillData, List<int> bootstrappedDillData) {
-  Expect.equals(normalDillData.length, bootstrappedDillData.length);
-  for (int i = 0; i < normalDillData.length; ++i) {
-    if (normalDillData[i] != bootstrappedDillData[i]) {
-      Expect.fail("Normally compiled and bootstrapped compile differs.");
-    }
-  }
-}
-
-/// Compile an application with n libraries, then
-/// compile "the same" application, but with m < n libraries,
-/// where (at least one) of the missing libraries are "in the middle"
-/// of the library list ---  bootstrapping from the dill with n libarries.
-void testDisappearingLibrary() async {
+void newWorldTest(bool strong, List worlds) async {
+  final Uri sdkRoot = computePlatformBinariesLocation();
   final Uri base = Uri.parse("org-dartlang-test:///");
   final Uri sdkSummary = base.resolve("vm_platform.dill");
-  final Uri main = base.resolve("main.dart");
-  final Uri b = base.resolve("b.dart");
-  final Uri bootstrap = base.resolve("bootstrapFrom.dill");
-  final List<int> sdkSummaryData = await new File.fromUri(
-          computePlatformBinariesLocation().resolve("vm_platform.dill"))
-      .readAsBytes();
+  final Uri initializeFrom = base.resolve("initializeFrom.dill");
+  Uri platformUri;
+  if (strong) {
+    platformUri = sdkRoot.resolve("vm_platform_strong.dill");
+  } else {
+    platformUri = sdkRoot.resolve("vm_platform.dill");
+  }
+  final List<int> sdkSummaryData =
+      await new File.fromUri(platformUri).readAsBytes();
 
-  List<int> libCount2;
-  {
-    MemoryFileSystem fs = new MemoryFileSystem(base);
-    fs.entityForUri(sdkSummary).writeAsBytesSync(sdkSummaryData);
-
-    fs.entityForUri(main).writeAsStringSync("""
-      library mainLibrary;
-      import "b.dart" as b;
-
-      main() {
-        b.foo();
-      }
-      """);
-
-    fs.entityForUri(b).writeAsStringSync("""
-      library bLibrary;
-
-      foo() {
-        print("hello from b.dart foo!");
-      }
-      """);
-
-    CompilerOptions options = getOptions(false);
-    options.fileSystem = fs;
-    options.sdkRoot = null;
-    options.sdkSummary = sdkSummary;
-    IncrementalCompiler compiler =
-        new IncrementalKernelGenerator(options, main);
-    Stopwatch stopwatch = new Stopwatch()..start();
-    var program = await compiler.computeDelta();
-    throwOnEmptyMixinBodies(program);
-    print("Normal compile took ${stopwatch.elapsedMilliseconds} ms");
-    libCount2 = serializeProgram(program);
-    if (program.libraries.length != 2) {
-      throw "Expected 2 libraries, got ${program.libraries.length}";
+  List<int> newestWholeComponent;
+  MemoryFileSystem fs;
+  Map<String, String> sourceFiles;
+  CompilerOptions options;
+  TestIncrementalCompiler compiler;
+  for (Map<String, dynamic> world in worlds) {
+    bool brandNewWorld = true;
+    if (world["worldType"] == "updated") {
+      brandNewWorld = false;
     }
-    if (program.libraries[0].fileUri != main) {
-      throw "Expected the first library to have uri $main but was "
-          "${program.libraries[0].fileUri}";
+
+    if (brandNewWorld) {
+      fs = new MemoryFileSystem(base);
+    }
+    fs.entityForUri(sdkSummary).writeAsBytesSync(sdkSummaryData);
+    bool expectInitializeFromDill = false;
+    if (newestWholeComponent != null && newestWholeComponent.isNotEmpty) {
+      fs.entityForUri(initializeFrom).writeAsBytesSync(newestWholeComponent);
+      expectInitializeFromDill = true;
+    }
+    if (world["expectInitializeFromDill"] != null) {
+      expectInitializeFromDill = world["expectInitializeFromDill"];
+    }
+    if (brandNewWorld) {
+      sourceFiles = new Map<String, String>.from(world["sources"]);
+    } else {
+      sourceFiles.addAll(world["sources"]);
+    }
+    Uri packagesUri;
+    for (String filename in sourceFiles.keys) {
+      String data = sourceFiles[filename] ?? "";
+      Uri uri = base.resolve(filename);
+      if (filename == ".packages") {
+        data = substituteVariables(data, base);
+        packagesUri = uri;
+      }
+      fs.entityForUri(uri).writeAsStringSync(data);
+    }
+
+    if (brandNewWorld) {
+      options = getOptions(strong);
+      options.fileSystem = fs;
+      options.sdkRoot = null;
+      options.sdkSummary = sdkSummary;
+      if (packagesUri != null) {
+        options.packagesFileUri = packagesUri;
+      }
+    }
+    bool gotError = false;
+    final List<String> formattedErrors = <String>[];
+    bool gotWarning = false;
+    final List<String> formattedWarnings = <String>[];
+
+    options.onProblem = (FormattedMessage problem, Severity severity,
+        List<FormattedMessage> context) {
+      if (severity == Severity.error) {
+        gotError = true;
+        formattedErrors.add(problem.formatted);
+      } else if (severity == Severity.warning) {
+        gotWarning = true;
+        formattedWarnings.add(problem.formatted);
+      }
+    };
+
+    Uri entry = base.resolve(world["entry"]);
+    if (brandNewWorld) {
+      compiler = new TestIncrementalCompiler(options, entry, initializeFrom);
+    }
+
+    if (world["invalidate"] != null) {
+      for (String filename in world["invalidate"]) {
+        compiler.invalidate(base.resolve(filename));
+      }
+    }
+
+    Stopwatch stopwatch = new Stopwatch()..start();
+    Component component = await compiler.computeDelta(
+        fullComponent: brandNewWorld ? false : true);
+    performErrorAndWarningCheck(
+        world, gotError, formattedErrors, gotWarning, formattedWarnings);
+    util.throwOnEmptyMixinBodies(component);
+    print("Compile took ${stopwatch.elapsedMilliseconds} ms");
+    newestWholeComponent = serializeComponent(component);
+    if (component.libraries.length != world["expectedLibraryCount"]) {
+      throw "Expected ${world["expectedLibraryCount"]} libraries, "
+          "got ${component.libraries.length}";
+    }
+    if (component.libraries[0].importUri != entry) {
+      throw "Expected the first library to have uri $entry but was "
+          "${component.libraries[0].importUri}";
+    }
+    if (compiler.initializedFromDill != expectInitializeFromDill) {
+      throw "Expected that initializedFromDill would be "
+          "$expectInitializeFromDill but was ${compiler.initializedFromDill}";
+    }
+    if (world["checkInvalidatedFiles"] != false) {
+      if (world["invalidate"] != null) {
+        Expect.equals(world["invalidate"].length,
+            compiler.invalidatedImportUrisForTesting?.length ?? 0);
+        List expectedInvalidatedUri = world["expectedInvalidatedUri"];
+        if (expectedInvalidatedUri != null) {
+          Expect.setEquals(
+              expectedInvalidatedUri
+                  .map((s) => Uri.parse(substituteVariables(s, base))),
+              compiler.invalidatedImportUrisForTesting);
+        }
+      } else {
+        Expect.isNull(compiler.invalidatedImportUrisForTesting);
+        Expect.isNull(world["expectedInvalidatedUri"]);
+      }
+    }
+
+    {
+      gotError = false;
+      formattedErrors.clear();
+      gotWarning = false;
+      formattedWarnings.clear();
+      Component component2 = await compiler.computeDelta(fullComponent: true);
+      performErrorAndWarningCheck(
+          world, gotError, formattedErrors, gotWarning, formattedWarnings);
+      List<int> thisWholeComponent = serializeComponent(component2);
+      checkIsEqual(newestWholeComponent, thisWholeComponent);
     }
   }
+}
 
-  {
-    MemoryFileSystem fs = new MemoryFileSystem(base);
-    fs.entityForUri(sdkSummary).writeAsBytesSync(sdkSummaryData);
-    fs.entityForUri(bootstrap).writeAsBytesSync(libCount2);
-    fs.entityForUri(b).writeAsStringSync("""
-      library bLibrary;
+void performErrorAndWarningCheck(
+    Map<String, dynamic> world,
+    bool gotError,
+    List<String> formattedErrors,
+    bool gotWarning,
+    List<String> formattedWarnings) {
+  if (world["errors"] == true && !gotError) {
+    throw "Expected error, but didn't get any.";
+  } else if (world["errors"] != true && gotError) {
+    throw "Got unexpected error(s): $formattedErrors.";
+  }
+  if (world["warnings"] == true && !gotWarning) {
+    throw "Expected warning, but didn't get any.";
+  } else if (world["warnings"] != true && gotWarning) {
+    throw "Got unexpected warnings(s): $formattedWarnings.";
+  }
+}
 
-      main() {
-        print("hello from b!");
-      }
-      """);
-    CompilerOptions options = getOptions(false);
-    options.fileSystem = fs;
-    options.sdkRoot = null;
-    options.sdkSummary = sdkSummary;
-    IncrementalCompiler compiler =
-        new IncrementalKernelGenerator(options, b, bootstrap);
-    compiler.invalidate(main);
-    compiler.invalidate(b);
-    Stopwatch stopwatch = new Stopwatch()..start();
-    var program = await compiler.computeDelta();
-    throwOnEmptyMixinBodies(program);
-    print("Bootstrapped compile took ${stopwatch.elapsedMilliseconds} ms");
-    if (program.libraries.length != 1) {
-      throw "Expected 1 library, got ${program.libraries.length}";
+void checkIsEqual(List<int> a, List<int> b) {
+  int length = a.length;
+  if (b.length < length) {
+    length = b.length;
+  }
+  for (int i = 0; i < length; ++i) {
+    if (a[i] != b[i]) {
+      Expect.fail("Data differs at byte ${i+1}.");
     }
   }
+  Expect.equals(a.length, b.length);
 }
 
 CompilerOptions getOptions(bool strong) {
   final Uri sdkRoot = computePlatformBinariesLocation();
-  var options = new CompilerOptions()
+  CompilerOptions options = new CompilerOptions()
     ..sdkRoot = sdkRoot
     ..librariesSpecificationUri = Uri.base.resolve("sdk/lib/libraries.json")
-    ..onProblem = (LocatedMessage message, Severity severity, String formatted,
-        int line, int column) {
+    ..onProblem = (FormattedMessage problem, Severity severity,
+        List<FormattedMessage> context) {
       if (severity == Severity.error || severity == Severity.warning) {
-        Expect.fail("Unexpected error: $formatted");
+        Expect.fail("Unexpected error: ${problem.formatted}");
       }
     }
     ..strongMode = strong;
   if (strong) {
-    options.sdkSummary =
-        computePlatformBinariesLocation().resolve("vm_platform_strong.dill");
+    options.sdkSummary = sdkRoot.resolve("vm_platform_strong.dill");
   } else {
-    options.sdkSummary =
-        computePlatformBinariesLocation().resolve("vm_platform.dill");
+    options.sdkSummary = sdkRoot.resolve("vm_platform.dill");
   }
   return options;
 }
@@ -433,71 +366,91 @@ CompilerOptions getOptions(bool strong) {
 Future<bool> normalCompile(Uri input, Uri output,
     {CompilerOptions options}) async {
   options ??= getOptions(false);
-  IncrementalCompiler compiler = new IncrementalKernelGenerator(options, input);
-  var program = await compiler.computeDelta();
-  throwOnEmptyMixinBodies(program);
-  await writeProgramToFile(program, output);
+  TestIncrementalCompiler compiler =
+      new TestIncrementalCompiler(options, input);
+  Component component = await compiler.computeDelta();
+  util.throwOnEmptyMixinBodies(component);
+  new File.fromUri(output).writeAsBytesSync(util.postProcess(component));
   return compiler.initializedFromDill;
 }
 
-void throwOnEmptyMixinBodies(Program program) {
-  int empty = countEmptyMixinBodies(program);
-  if (empty != 0) {
-    throw "Expected 0 empty bodies in mixins, but found $empty";
-  }
-}
-
-int countEmptyMixinBodies(Program program) {
-  int empty = 0;
-  for (Library lib in program.libraries) {
-    for (Class c in lib.classes) {
-      if (c.isSyntheticMixinImplementation) {
-        // Assume mixin
-        for (Procedure p in c.procedures) {
-          if (p.function.body is EmptyStatement) {
-            empty++;
-          }
-        }
-      }
-    }
-  }
-  return empty;
-}
-
-Future<bool> bootstrapCompile(
-    Uri input, Uri output, Uri bootstrapWith, List<Uri> invalidateUris,
-    {bool performSizeTests: true, CompilerOptions options}) async {
+Future<bool> initializedCompile(
+    Uri input, Uri output, Uri initializeWith, List<Uri> invalidateUris,
+    {CompilerOptions options}) async {
   options ??= getOptions(false);
-  IncrementalCompiler compiler =
-      new IncrementalKernelGenerator(options, input, bootstrapWith);
+  TestIncrementalCompiler compiler =
+      new TestIncrementalCompiler(options, input, initializeWith);
   for (Uri invalidateUri in invalidateUris) {
     compiler.invalidate(invalidateUri);
   }
-  var bootstrappedProgram = await compiler.computeDelta();
-  throwOnEmptyMixinBodies(bootstrappedProgram);
+  Component initializedComponent = await compiler.computeDelta();
+  util.throwOnEmptyMixinBodies(initializedComponent);
   bool result = compiler.initializedFromDill;
-  await writeProgramToFile(bootstrappedProgram, output);
+  new File.fromUri(output)
+      .writeAsBytesSync(util.postProcess(initializedComponent));
+  int actuallyInvalidatedCount =
+      compiler.invalidatedImportUrisForTesting?.length ?? 0;
+  if (result && actuallyInvalidatedCount < invalidateUris.length) {
+    Expect.fail("Expected at least ${invalidateUris.length} invalidated uris, "
+        "got $actuallyInvalidatedCount");
+  }
+
+  Component initializedFullComponent =
+      await compiler.computeDelta(fullComponent: true);
+  util.throwOnEmptyMixinBodies(initializedFullComponent);
+  Expect.equals(initializedComponent.libraries.length,
+      initializedFullComponent.libraries.length);
+  Expect.equals(initializedComponent.uriToSource.length,
+      initializedFullComponent.uriToSource.length);
+
   for (Uri invalidateUri in invalidateUris) {
     compiler.invalidate(invalidateUri);
   }
 
-  var partialProgram = await compiler.computeDelta();
-  throwOnEmptyMixinBodies(partialProgram);
-  var emptyProgram = await compiler.computeDelta();
-  throwOnEmptyMixinBodies(emptyProgram);
-
-  var fullLibUris =
-      bootstrappedProgram.libraries.map((lib) => lib.importUri).toList();
-  var partialLibUris =
-      partialProgram.libraries.map((lib) => lib.importUri).toList();
-  var emptyLibUris =
-      emptyProgram.libraries.map((lib) => lib.importUri).toList();
-
-  if (performSizeTests) {
-    Expect.isTrue(fullLibUris.length > partialLibUris.length);
-    Expect.isTrue(partialLibUris.isNotEmpty);
-    Expect.isTrue(emptyLibUris.isEmpty);
+  Component partialComponent = await compiler.computeDelta();
+  util.throwOnEmptyMixinBodies(partialComponent);
+  actuallyInvalidatedCount =
+      (compiler.invalidatedImportUrisForTesting?.length ?? 0);
+  if (actuallyInvalidatedCount < invalidateUris.length) {
+    Expect.fail("Expected at least ${invalidateUris.length} invalidated uris, "
+        "got $actuallyInvalidatedCount");
   }
+
+  Component emptyComponent = await compiler.computeDelta();
+  util.throwOnEmptyMixinBodies(emptyComponent);
+
+  List<Uri> fullLibUris =
+      initializedComponent.libraries.map((lib) => lib.importUri).toList();
+  List<Uri> partialLibUris =
+      partialComponent.libraries.map((lib) => lib.importUri).toList();
+  List<Uri> emptyLibUris =
+      emptyComponent.libraries.map((lib) => lib.importUri).toList();
+
+  Expect.isTrue(fullLibUris.length > partialLibUris.length ||
+      partialLibUris.length == invalidateUris.length);
+  Expect.isTrue(partialLibUris.isNotEmpty || invalidateUris.isEmpty);
+
+  Expect.isTrue(emptyLibUris.isEmpty);
 
   return result;
+}
+
+String substituteVariables(String source, Uri base) {
+  return source.replaceAll(r"${outDirUri}", "${base}");
+}
+
+class TestIncrementalCompiler extends IncrementalCompiler {
+  Set<Uri> invalidatedImportUrisForTesting;
+
+  TestIncrementalCompiler(CompilerOptions options, Uri entryPoint,
+      [Uri initializeFrom])
+      : super(
+            new CompilerContext(
+                new ProcessedOptions(options, false, [entryPoint])),
+            initializeFrom);
+
+  @override
+  void recordInvalidatedImportUrisForTesting(List<Uri> uris) {
+    invalidatedImportUrisForTesting = uris.isEmpty ? null : uris.toSet();
+  }
 }

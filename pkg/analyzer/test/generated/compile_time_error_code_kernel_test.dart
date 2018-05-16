@@ -1383,20 +1383,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_invalidAnnotation_getter() async {
-    // Expected 1 errors of type CompileTimeErrorCode.INVALID_ANNOTATION, found 0
-    await super.test_invalidAnnotation_getter();
-  }
-
-  @override
-  @failingTest
-  test_invalidAnnotation_importWithPrefix_getter() async {
-    // Bad state: No reference information for V at 27
-    await super.test_invalidAnnotation_importWithPrefix_getter();
-  }
-
-  @override
-  @failingTest
   test_invalidAnnotation_importWithPrefix_notConstantVariable() async {
     // Bad state: No reference information for V at 27
     await super.test_invalidAnnotation_importWithPrefix_notConstantVariable();
@@ -1431,31 +1417,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_invalidAnnotation_unresolved_identifier() {
-    return super.test_invalidAnnotation_unresolved_identifier();
-  }
-
-  @override
-  @failingTest
-  test_invalidAnnotation_unresolved_invocation() async {
-    // Bad state: No reference information for Unresolved at 1
-    await super.test_invalidAnnotation_unresolved_invocation();
-  }
-
-  @override
-  @failingTest
-  test_invalidAnnotation_unresolved_prefixedIdentifier() {
-    return super.test_invalidAnnotation_unresolved_prefixedIdentifier();
-  }
-
-  @override
-  @failingTest
-  test_invalidAnnotation_useLibraryScope() {
-    return super.test_invalidAnnotation_useLibraryScope();
-  }
-
-  @override
-  @failingTest
   test_invalidAnnotationFromDeferredLibrary() async {
     // Bad state: No reference information for v at 51
     await super.test_invalidAnnotationFromDeferredLibrary();
@@ -1473,6 +1434,20 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   test_invalidAnnotationFromDeferredLibrary_namedConstructor() async {
     // Bad state: No reference information for C at 51
     await super.test_invalidAnnotationFromDeferredLibrary_namedConstructor();
+  }
+
+  @override
+  @failingTest
+  test_invalidAnnotationGetter_getter() async {
+    // Expected 1 errors of type CompileTimeErrorCode.INVALID_ANNOTATION, found 0
+    await super.test_invalidAnnotationGetter_getter();
+  }
+
+  @override
+  @failingTest
+  test_invalidAnnotationGetter_importWithPrefix_getter() async {
+    // Bad state: No reference information for V at 27
+    await super.test_invalidAnnotationGetter_importWithPrefix_getter();
   }
 
   @override
@@ -3000,6 +2975,31 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   test_typeArgumentNotMatchingBounds_const() async {
     // Expected 1 errors of type CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, found 0
     await super.test_typeArgumentNotMatchingBounds_const();
+  }
+
+  @override
+  @failingTest
+  test_undefinedAnnotation_unresolved_identifier() {
+    return super.test_undefinedAnnotation_unresolved_identifier();
+  }
+
+  @override
+  @failingTest
+  test_undefinedAnnotation_unresolved_invocation() async {
+    // Bad state: No reference information for Unresolved at 1
+    await super.test_undefinedAnnotation_unresolved_invocation();
+  }
+
+  @override
+  @failingTest
+  test_undefinedAnnotation_unresolved_prefixedIdentifier() {
+    return super.test_undefinedAnnotation_unresolved_prefixedIdentifier();
+  }
+
+  @override
+  @failingTest
+  test_undefinedAnnotation_useLibraryScope() {
+    return super.test_undefinedAnnotation_useLibraryScope();
   }
 
   @override

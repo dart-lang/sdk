@@ -603,25 +603,6 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
     new _FrozenElementList<T>._wrap(_querySelectorAll(selectors));
 
   /**
-   * Alias for [querySelector]. Note this function is deprecated because its
-   * semantics will be changing in the future.
-   */
-  @deprecated
-  @DomName('Element.querySelector')
-  @Experimental()
-  Element query(String relativeSelectors) => querySelector(relativeSelectors);
-
-  /**
-   * Alias for [querySelectorAll]. Note this function is deprecated because its
-   * semantics will be changing in the future.
-   */
-  @deprecated
-  @DomName('Element.querySelectorAll')
-  @Experimental()
-  ElementList<T> queryAll<T extends Element>(String relativeSelectors) =>
-      querySelectorAll(relativeSelectors);
-
-  /**
    * The set of CSS classes applied to this element.
    *
    * This set makes it easy to add, remove or toggle the classes applied to
@@ -782,6 +763,22 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   @deprecated
   void enteredView() {}
 
+  @DomName('Element.getClientRects')
+  @DocsEditable()
+  List<Rectangle> getClientRects() {
+    var value = _getClientRects();
+
+    // If no prototype we need one for the world to hookup to the proper Dart class.
+    var jsProto = JS('', '#.prototype', value);
+    if (jsProto == null) {
+      JS('', '#.prototype = Object.create(null)', value);
+    }
+
+    applyExtension('DOMRectList', value);
+
+    return value;
+  }
+
   /** *Deprecated*: override [detached] instead. */
   @Experimental()
   @deprecated
@@ -836,31 +833,6 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    * Called by the DOM whenever an attribute on this has been changed.
    */
   void attributeChanged(String name, String oldValue, String newValue) {}
-
-  // Hooks to support custom WebComponents.
-
-  @Creates('Null')  // Set from Dart code; does not instantiate a native type.
-  Element _xtag;
-
-  /**
-   * Experimental support for [web components][wc]. This field stores a
-   * reference to the component implementation. It was inspired by Mozilla's
-   * [x-tags][] project. Please note: in the future it may be possible to
-   * `extend Element` from your class, in which case this field will be
-   * deprecated.
-   *
-   * If xtag has not been set, it will simply return `this` [Element].
-   *
-   * [wc]: http://dvcs.w3.org/hg/webcomponents/raw-file/tip/explainer/index.html
-   * [x-tags]: http://x-tags.org/
-   */
-  // Note: return type is `dynamic` for convenience to suppress warnings when
-  // members of the component are used. The actual type is a subtype of Element.
-  get xtag => _xtag != null ? _xtag : this;
-
-  set xtag(Element value) {
-    _xtag = value;
-  }
 
   @DomName('Element.localName')
   @DocsEditable()

@@ -5,7 +5,7 @@
 /// Handling of native code and entry points.
 library vm.transformations.type_flow.native_code;
 
-import 'dart:convert' show JSON;
+import 'dart:convert' show json;
 import 'dart:core' hide Type;
 import 'dart:io' show File;
 
@@ -33,8 +33,12 @@ class NativeCodeOracle {
   final Map<String, List<Map<String, dynamic>>> _nativeMethods =
       <String, List<Map<String, dynamic>>>{};
   final LibraryIndex _libraryIndex;
+  final Set<Member> _membersReferencedFromNativeCode = new Set<Member>();
 
   NativeCodeOracle(this._libraryIndex);
+
+  bool isMemberReferencedFromNativeCode(Member member) =>
+      _membersReferencedFromNativeCode.contains(member);
 
   /// Simulate the execution of a native method by adding its entry points
   /// using [entryPointsListener]. Returns result type of the native method.
@@ -171,6 +175,8 @@ class NativeCodeOracle {
 
         entryPointsListener.addRawCall(selector);
       }
+
+      _membersReferencedFromNativeCode.add(member);
     } else {
       throw 'Bad entry point: unrecognized action "$action" in $rootDesc';
     }
@@ -183,16 +189,16 @@ class NativeCodeOracle {
   /// 'runtime/vm/compiler/aot/entry_points_json.md'.
   void processEntryPointsJSON(
       String jsonString, EntryPointsListener entryPointsListener) {
-    final json = JSON.decode(jsonString);
+    final jsonObject = json.decode(jsonString);
 
-    final roots = json['roots'];
+    final roots = jsonObject['roots'];
     if (roots != null) {
       for (var root in roots) {
         _addRoot(new Map<String, String>.from(root), entryPointsListener);
       }
     }
 
-    final nativeMethods = json['native-methods'];
+    final nativeMethods = jsonObject['native-methods'];
     if (nativeMethods != null) {
       nativeMethods.forEach((name, actions) {
         _nativeMethods[name] = new List<Map<String, dynamic>>.from(

@@ -51,17 +51,17 @@ var tests = <IsolateTest>[
     await vm.reloadIsolates();
     expect(vm.isolates.length, 2);
 
-    // Find the slave isolate.
-    Isolate slaveIsolate =
+    // Find the spawned isolate.
+    Isolate spawnedIsolate =
         vm.isolates.firstWhere((Isolate i) => i != mainIsolate);
-    expect(slaveIsolate, isNotNull);
+    expect(spawnedIsolate, isNotNull);
 
     // Invoke test in v1.
-    String v1 = await invokeTest(slaveIsolate);
+    String v1 = await invokeTest(spawnedIsolate);
     expect(v1, 'apple');
 
     // Reload to v2.
-    var response = await slaveIsolate.reloadSources(
+    var response = await spawnedIsolate.reloadSources(
       rootLibUri: v2Uri.toString(),
     );
     // Observe that it failed.
@@ -72,9 +72,11 @@ var tests = <IsolateTest>[
     expect(reasonForCancelling['type'], equals('ReasonForCancelling'));
     expect(reasonForCancelling['message'], contains('library_isnt_here_man'));
 
-    // Invoke test in v2.
-    String v2 = await invokeTest(slaveIsolate);
-    expect(v2, 'apple');
+    // TODO(32341): enable in Dart 2
+    if (!Platform.executableArguments.contains("--preview_dart_2")) {
+      String v2 = await invokeTest(spawnedIsolate);
+      expect(v2, 'apple');
+    }
   }
 ];
 

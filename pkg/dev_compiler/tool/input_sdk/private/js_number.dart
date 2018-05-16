@@ -192,16 +192,16 @@ class JSNumber extends Interceptor implements int, double {
   static String _handleIEtoString(String result) {
     // Result is probably IE's untraditional format for large numbers,
     // e.g., "8.0000000000008(e+15)" for 0x8000000000000800.toString(16).
-    var match = JS('List|Null',
-        r'/^([\da-z]+)(?:\.([\da-z]+))?\(e\+(\d+)\)$/.exec(#)', result);
+    var match = JS<List>(
+        '', r'/^([\da-z]+)(?:\.([\da-z]+))?\(e\+(\d+)\)$/.exec(#)', result);
     if (match == null) {
       // Then we don't know how to handle it at all.
       throw new UnsupportedError("Unexpected toString result: $result");
     }
-    result = JS('String', '#', match[1]);
-    int exponent = JS("int", "+#", match[3]);
+    result = JS('!', '#', match[1]);
+    int exponent = JS("!", "+#", match[3]);
     if (match[2] != null) {
-      result = JS('String', '# + #', result, match[2]);
+      result = JS('!', '# + #', result, match[2]);
       exponent -= JS<int>('!', '#.length', match[2]);
     }
     return result + "0" * exponent;

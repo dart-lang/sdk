@@ -14,6 +14,11 @@ void test() {
 
   @Foo(/*@typeArgs=int*/ const [x])
   var /*@type=dynamic*/ y;
+
+  @Foo(/*@typeArgs=int*/ const [x])
+  void bar() {}
+
+  void baz(@Foo(/*@typeArgs=int*/ const [x]) dynamic formal) {}
 }
 
 main() {}

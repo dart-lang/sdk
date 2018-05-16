@@ -13,12 +13,10 @@ class _ImmutableMap<K, V> implements Map<K, V> {
   const _ImmutableMap._create(_ImmutableList keyValuePairs)
       : _kvPairs = keyValuePairs;
 
-  Map<K2, V2> cast<K2, V2>() {
-    Map<Object, Object> self = this;
-    return (self is Map<K2, V2>) ? self : this.retype<K2, V2>();
-  }
+  Map<K2, V2> cast<K2, V2>() => Map.castFrom<K, V, K2, V2>(this);
 
-  Map<K2, V2> retype<K2, V2>() => Map.castFrom<K, V, K2, V2>(this);
+  @Deprecated("Use cast instead.")
+  Map<K2, V2> retype<K2, V2>() => cast<K2, V2>();
 
   V operator [](Object key) {
     // To preserve the key-value order of the map literal, the keys are

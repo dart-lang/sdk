@@ -1,0 +1,24 @@
+# Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Test that invalidating a part of a package works with package URI.
+
+type: basic
+entry: "package:dummy/main.dart"
+strong: false
+invalidate:
+  - "package:dummy/b.dart"
+sources:
+  main.dart: |
+    part "b.dart";
+    main() {
+      print("hello");
+      b();
+    }
+  b.dart: |
+    part of "main.dart";
+    b() {
+      print("b1");
+    }
+  .packages: dummy:${outDirUri}

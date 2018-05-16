@@ -12,25 +12,35 @@ main() {
 }
 
 /*element: dictionaryA1:Map([subclass=JsLinkedHashMap], key: [null|subclass=Object], value: [null|subclass=Object])*/
-var dictionaryA1 = {'string': "aString", 'int': 42, 'double': 21.5, 'list': []};
+dynamic dictionaryA1 = {
+  'string': "aString",
+  'int': 42,
+  'double': 21.5,
+  'list': []
+};
 
 /*element: dictionaryB1:Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: Union([exact=JSDouble], [exact=JSExtendableArray], [exact=JSUInt31], [null|exact=JSString]), map: {string: Value([exact=JSString], value: "aString"), int: [exact=JSUInt31], double: [exact=JSDouble], list: Container([exact=JSExtendableArray], element: [null|subclass=Object], length: null), stringTwo: Value([null|exact=JSString], value: "anotherString"), intTwo: [null|exact=JSUInt31]})*/
-var dictionaryB1 = {'string': "aString", 'int': 42, 'double': 21.5, 'list': []};
+dynamic dictionaryB1 = {
+  'string': "aString",
+  'int': 42,
+  'double': 21.5,
+  'list': []
+};
 
 /*element: otherDict1:Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: Union([exact=JSUInt31], [null|exact=JSString]), map: {stringTwo: Value([exact=JSString], value: "anotherString"), intTwo: [exact=JSUInt31]})*/
-var otherDict1 = {'stringTwo': "anotherString", 'intTwo': 84};
+dynamic otherDict1 = {'stringTwo': "anotherString", 'intTwo': 84};
 
 /*element: int1:[exact=JSUInt31]*/
-var int1 = 0;
+dynamic int1 = 0;
 
 /*element: anotherInt1:[exact=JSUInt31]*/
-var anotherInt1 = 0;
+dynamic anotherInt1 = 0;
 
 /*element: nullOrInt1:[null|exact=JSUInt31]*/
-var nullOrInt1 = 0;
+dynamic nullOrInt1 = 0;
 
 /*element: dynamic1:[null|subclass=Object]*/
-var dynamic1 = 0;
+dynamic dynamic1 = 0;
 
 /*element: test1:[null]*/
 test1() {
@@ -55,19 +65,24 @@ test1() {
 }
 
 /*element: dictionaryA2:Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: Union([exact=JSDouble], [exact=JSExtendableArray], [exact=JSUInt31], [null|exact=JSString]), map: {string: Value([exact=JSString], value: "aString"), int: [exact=JSUInt31], double: [exact=JSDouble], list: Container([exact=JSExtendableArray], element: [empty], length: 0)})*/
-var dictionaryA2 = {'string': "aString", 'int': 42, 'double': 21.5, 'list': []};
+dynamic dictionaryA2 = {
+  'string': "aString",
+  'int': 42,
+  'double': 21.5,
+  'list': []
+};
 
 /*element: dictionaryB2:Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: Union([exact=JSExtendableArray], [exact=JSUInt31], [null|exact=JSString]), map: {string: Value([exact=JSString], value: "aString"), intTwo: [exact=JSUInt31], list: Container([exact=JSExtendableArray], element: [empty], length: 0)})*/
-var dictionaryB2 = {'string': "aString", 'intTwo': 42, 'list': []};
+dynamic dictionaryB2 = {'string': "aString", 'intTwo': 42, 'list': []};
 
 /*element: nullOrInt2:[null|exact=JSUInt31]*/
-var nullOrInt2 = 0;
+dynamic nullOrInt2 = 0;
 
 /*element: aString2:[exact=JSString]*/
-var aString2 = "";
+dynamic aString2 = "";
 
 /*element: doubleOrNull2:[null|exact=JSDouble]*/
-var doubleOrNull2 = 22.2;
+dynamic doubleOrNull2 = 22.2;
 
 /*element: test2:[null]*/
 test2() {
@@ -88,26 +103,31 @@ test2() {
 }
 
 /*element: dictionary3:Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: Union([exact=JSDouble], [exact=JSExtendableArray], [exact=JSUInt31], [null|exact=JSString]), map: {string: Value([exact=JSString], value: "aString"), int: [exact=JSUInt31], double: [exact=JSDouble], list: Container([exact=JSExtendableArray], element: [empty], length: 0)})*/
-var dictionary3 = {'string': "aString", 'int': 42, 'double': 21.5, 'list': []};
+dynamic dictionary3 = {
+  'string': "aString",
+  'int': 42,
+  'double': 21.5,
+  'list': []
+};
 /*element: keyD3:Value([exact=JSString], value: "double")*/
-var keyD3 = 'double';
+dynamic keyD3 = 'double';
 
 /*element: keyI3:Value([exact=JSString], value: "int")*/
-var keyI3 = 'int';
+dynamic keyI3 = 'int';
 
 /*element: keyN3:Value([exact=JSString], value: "notFoundInMap")*/
-var keyN3 = 'notFoundInMap';
+dynamic keyN3 = 'notFoundInMap';
 
 /*element: knownDouble3:[exact=JSDouble]*/
-var knownDouble3 = 42.2;
+dynamic knownDouble3 = 42.2;
 
 /*element: intOrNull3:[null|exact=JSUInt31]*/
-var intOrNull3 = dictionary3
+dynamic intOrNull3 = dictionary3
     /*Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: Union([exact=JSDouble], [exact=JSExtendableArray], [exact=JSUInt31], [null|exact=JSString]), map: {string: Value([exact=JSString], value: "aString"), int: [exact=JSUInt31], double: [exact=JSDouble], list: Container([exact=JSExtendableArray], element: [empty], length: 0)})*/
     [keyI3];
 
 /*element: justNull3:[null]*/
-var justNull3 = dictionary3
+dynamic justNull3 = dictionary3
     /*Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: Union([exact=JSDouble], [exact=JSExtendableArray], [exact=JSUInt31], [null|exact=JSString]), map: {string: Value([exact=JSString], value: "aString"), int: [exact=JSUInt31], double: [exact=JSDouble], list: Container([exact=JSExtendableArray], element: [empty], length: 0)})*/
     [keyN3];
 
@@ -159,13 +179,13 @@ test4() {
 }
 
 /*element: dict5:Map([null|subclass=JsLinkedHashMap], key: [null|subclass=Object], value: [null|subclass=Object])*/
-var dict5 = makeMap5([1, 2]);
+dynamic dict5 = makeMap5([1, 2]);
 
 /*element: notInt5:[null|subclass=Object]*/
-var notInt5 = 0;
+dynamic notInt5 = 0;
 
 /*element: alsoNotInt5:[null|subclass=Object]*/
-var alsoNotInt5 = 0;
+dynamic alsoNotInt5 = 0;
 
 /*element: makeMap5:Map([subclass=JsLinkedHashMap], key: [null|subclass=Object], value: [null|subclass=Object])*/
 makeMap5(

@@ -4,25 +4,19 @@
 
 library fasta.dill_typedef_builder;
 
-import 'package:kernel/ast.dart' show DartType, Typedef, TypeParameter, Class;
-
-import 'package:kernel/type_algebra.dart' show calculateBounds;
+import 'package:kernel/ast.dart' show DartType, Typedef;
 
 import '../kernel/kernel_builder.dart'
     show
         KernelFunctionTypeAliasBuilder,
         KernelFunctionTypeBuilder,
+        KernelTypeBuilder,
         LibraryBuilder,
-        MetadataBuilder,
-        TypeBuilder;
+        MetadataBuilder;
 
 import '../problems.dart' show unimplemented;
 
 import 'dill_library_builder.dart' show DillLibraryBuilder;
-
-import 'dill_class_builder.dart' show DillClassBuilder;
-
-import 'built_type_builder.dart' show BuiltTypeBuilder;
 
 class DillFunctionTypeAliasBuilder extends KernelFunctionTypeAliasBuilder {
   DillFunctionTypeAliasBuilder(Typedef typedef, DillLibraryBuilder parent)
@@ -33,25 +27,8 @@ class DillFunctionTypeAliasBuilder extends KernelFunctionTypeAliasBuilder {
     return unimplemented("metadata", -1, null);
   }
 
-  List<TypeBuilder> get calculatedBounds {
-    if (super.calculatedBounds != null) {
-      return super.calculatedBounds;
-    }
-    DillLibraryBuilder parentLibraryBuilder = parent;
-    DillClassBuilder objectClassBuilder =
-        parentLibraryBuilder.loader.coreLibrary["Object"];
-    Class objectClass = objectClassBuilder.cls;
-    List<TypeParameter> targetTypeParameters = target.typeParameters;
-    List<DartType> calculatedBoundTypes =
-        calculateBounds(targetTypeParameters, objectClass);
-    List<TypeBuilder> result =
-        new List<BuiltTypeBuilder>(targetTypeParameters.length);
-    for (int i = 0; i < result.length; i++) {
-      result[i] = new BuiltTypeBuilder(calculatedBoundTypes[i]);
-    }
-    super.calculatedBounds = result;
-    return super.calculatedBounds;
-  }
+  @override
+  int get typeVariablesCount => target.typeParameters.length;
 
   @override
   KernelFunctionTypeBuilder get type {
@@ -60,4 +37,27 @@ class DillFunctionTypeAliasBuilder extends KernelFunctionTypeAliasBuilder {
 
   @override
   DartType buildThisType(LibraryBuilder library) => thisType ??= target.type;
+
+  @override
+  List<DartType> buildTypeArguments(
+      LibraryBuilder library, List<KernelTypeBuilder> arguments) {
+    // For performance reasons, [typeVariables] aren't restored from [target].
+    // So, if [arguments] is null, the default types should be retrieved from
+    // [cls.typeParameters].
+    if (arguments == null) {
+      List<DartType> result =
+          new List<DartType>.filled(target.typeParameters.length, null);
+      for (int i = 0; i < result.length; ++i) {
+        result[i] = target.typeParameters[i].defaultType;
+      }
+      return result;
+    }
+
+    // [arguments] != null
+    List<DartType> result = new List<DartType>.filled(arguments.length, null);
+    for (int i = 0; i < result.length; ++i) {
+      result[i] = arguments[i].build(library);
+    }
+    return result;
+  }
 }

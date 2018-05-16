@@ -74,7 +74,7 @@ class DartChangeBuilderImplTest extends AbstractContextTest {
 class DartEditBuilderImplTest extends AbstractContextTest
     with BuilderTestMixin {
   test_importLibraries_DP() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'dart:aaa';
 import 'dart:ccc';
 
@@ -92,7 +92,7 @@ import 'package:ccc/ccc.dart';
   }
 
   test_importLibraries_PD() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'dart:aaa';
 import 'dart:ccc';
 
@@ -110,7 +110,7 @@ import 'package:ccc/ccc.dart';
   }
 
   test_importLibrary_afterLibraryDirective_dart() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 library test;
 
 class A {}
@@ -125,7 +125,7 @@ class A {}
   }
 
   test_importLibrary_dart_beforeDart() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'dart:aaa';
 import 'dart:ccc';
 ''', ['dart:bbb'], '''
@@ -136,7 +136,7 @@ import 'dart:ccc';
   }
 
   test_importLibrary_dart_beforeDart_first() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'dart:bbb';
 ''', ['dart:aaa'], '''
 import 'dart:aaa';
@@ -145,7 +145,7 @@ import 'dart:bbb';
   }
 
   test_importLibrary_dart_beforePackage() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'package:foo/foo.dart';
 ''', ['dart:async'], '''
 import 'dart:async';
@@ -154,8 +154,52 @@ import 'package:foo/foo.dart';
 ''');
   }
 
+  test_importLibrary_noDirectives_docComment() async {
+    await _assertImportLibrary('''
+/// Documentation comment.
+/// Continues.
+void main() {}
+''', ['dart:async'], '''
+import 'dart:async';
+
+/// Documentation comment.
+/// Continues.
+void main() {}
+''');
+  }
+
+  test_importLibrary_noDirectives_hashBang() async {
+    await _assertImportLibrary('''
+#!/bin/dart
+
+void main() {}
+''', ['dart:async'], '''
+#!/bin/dart
+
+import 'dart:async';
+
+void main() {}
+''');
+  }
+
+  test_importLibrary_noDirectives_lineComment() async {
+    await _assertImportLibrary('''
+// Not documentation comment.
+// Continues.
+
+void main() {}
+''', ['dart:async'], '''
+// Not documentation comment.
+// Continues.
+
+import 'dart:async';
+
+void main() {}
+''');
+  }
+
   test_importLibrary_package_afterDart() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'dart:async';
 ''', ['package:aaa/aaa.dart'], '''
 import 'dart:async';
@@ -165,7 +209,7 @@ import 'package:aaa/aaa.dart';
   }
 
   test_importLibrary_package_afterPackage() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'package:aaa/a1.dart';
 
 import 'foo.dart';
@@ -178,7 +222,7 @@ import 'foo.dart';
   }
 
   test_importLibrary_package_afterPackage_leadingComment() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 // comment
 import 'package:aaa/a1.dart';
 
@@ -193,7 +237,7 @@ import 'foo.dart';
   }
 
   test_importLibrary_package_afterPackage_trailingComment() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'package:aaa/a1.dart'; // comment
 
 import 'foo.dart';
@@ -206,7 +250,7 @@ import 'foo.dart';
   }
 
   test_importLibrary_package_beforePackage() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'package:aaa/a1.dart';
 import 'package:aaa/a3.dart';
 
@@ -221,7 +265,7 @@ import 'foo.dart';
   }
 
   test_importLibrary_package_beforePackage_first() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'package:aaa/a2.dart';
 
 import 'foo.dart';
@@ -234,14 +278,14 @@ import 'foo.dart';
   }
 
   test_importLibrary_package_beforePackage_leadingComments() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 // comment a2
 import 'package:aaa/a2.dart';
 
 import 'foo.dart';
 ''', ['package:aaa/a1.dart'], '''
-import 'package:aaa/a1.dart';
 // comment a2
+import 'package:aaa/a1.dart';
 import 'package:aaa/a2.dart';
 
 import 'foo.dart';
@@ -249,7 +293,7 @@ import 'foo.dart';
   }
 
   test_importLibrary_package_beforePackage_trailingComments() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'package:aaa/a2.dart'; // comment a2
 
 import 'foo.dart';
@@ -262,7 +306,7 @@ import 'foo.dart';
   }
 
   test_importLibrary_package_beforeRelative() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'foo.dart';
 ''', ['package:aaa/aaa.dart'], '''
 import 'package:aaa/aaa.dart';
@@ -272,7 +316,7 @@ import 'foo.dart';
   }
 
   test_importLibrary_relative_afterDart() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'dart:async';
 ''', ['aaa.dart'], '''
 import 'dart:async';
@@ -282,7 +326,7 @@ import 'aaa.dart';
   }
 
   test_importLibrary_relative_afterPackage() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'package:foo/foo.dart';
 ''', ['aaa.dart'], '''
 import 'package:foo/foo.dart';
@@ -292,7 +336,7 @@ import 'aaa.dart';
   }
 
   test_importLibrary_relative_beforeRelative() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'dart:async';
 
 import 'package:foo/foo.dart';
@@ -311,7 +355,7 @@ import 'ccc.dart';
   }
 
   test_importLibrary_relative_beforeRelative_first() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'dart:async';
 
 import 'package:foo/foo.dart';
@@ -328,7 +372,7 @@ import 'bbb.dart';
   }
 
   test_importLibrary_relative_last() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'dart:async';
 
 import 'package:foo/foo.dart';
@@ -470,6 +514,73 @@ import 'aaa.dart';
     expect(group.positions, hasLength(1));
   }
 
+  test_writeConstructorDeclaration_bodyWriter() async {
+    String path = provider.convertPath('/test.dart');
+    addSource(path, 'class C {}');
+
+    DartChangeBuilderImpl builder = new DartChangeBuilder(session);
+    await builder.addFileEdit(path, (DartFileEditBuilder builder) {
+      builder.addInsertion(9, (DartEditBuilder builder) {
+        builder.writeConstructorDeclaration('A', bodyWriter: () {
+          builder.write(' { print(42); }');
+        });
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('A() { print(42); }'));
+  }
+
+  test_writeConstructorDeclaration_fieldNames() async {
+    String path = provider.convertPath('/test.dart');
+    addSource(path, r'''
+class C {
+  final int a;
+  final bool bb;
+}
+''');
+
+    DartChangeBuilderImpl builder = new DartChangeBuilder(session);
+    await builder.addFileEdit(path, (DartFileEditBuilder builder) {
+      builder.addInsertion(42, (DartEditBuilder builder) {
+        builder.writeConstructorDeclaration('A', fieldNames: ['a', 'bb']);
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('A(this.a, this.bb);'));
+  }
+
+  test_writeConstructorDeclaration_initializerWriter() async {
+    String path = provider.convertPath('/test.dart');
+    addSource(path, 'class C {}');
+
+    DartChangeBuilderImpl builder = new DartChangeBuilder(session);
+    await builder.addFileEdit(path, (DartFileEditBuilder builder) {
+      builder.addInsertion(9, (DartEditBuilder builder) {
+        builder.writeConstructorDeclaration('A', initializerWriter: () {
+          builder.write('super()');
+        });
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('A() : super();'));
+  }
+
+  test_writeConstructorDeclaration_parameterWriter() async {
+    String path = provider.convertPath('/test.dart');
+    addSource(path, 'class C {}');
+
+    DartChangeBuilderImpl builder = new DartChangeBuilder(session);
+    await builder.addFileEdit(path, (DartFileEditBuilder builder) {
+      builder.addInsertion(9, (DartEditBuilder builder) {
+        builder.writeConstructorDeclaration('A', parameterWriter: () {
+          builder.write('int a, {this.b}');
+        });
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('A(int a, {this.b});'));
+  }
+
   test_writeFieldDeclaration_initializerWriter() async {
     String path = provider.convertPath('/test.dart');
     String content = 'class A {}';
@@ -519,6 +630,23 @@ import 'aaa.dart';
     expect(edit.replacement, equalsIgnoringWhitespace('const f;'));
   }
 
+  test_writeFieldDeclaration_isConst_type() async {
+    String path = provider.convertPath('/test.dart');
+    String content = 'class A {}';
+    addSource(path, content);
+    DartType typeA = await _getType(path, 'A');
+
+    DartChangeBuilderImpl builder = new DartChangeBuilder(session);
+    await builder.addFileEdit(path, (FileEditBuilder builder) {
+      builder.addInsertion(content.length - 1, (EditBuilder builder) {
+        (builder as DartEditBuilder)
+            .writeFieldDeclaration('f', isConst: true, type: typeA);
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('const A f;'));
+  }
+
   test_writeFieldDeclaration_isFinal() async {
     String path = provider.convertPath('/test.dart');
     String content = 'class A {}';
@@ -532,6 +660,23 @@ import 'aaa.dart';
     });
     SourceEdit edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('final f;'));
+  }
+
+  test_writeFieldDeclaration_isFinal_type() async {
+    String path = provider.convertPath('/test.dart');
+    String content = 'class A {}';
+    addSource(path, content);
+    DartType typeA = await _getType(path, 'A');
+
+    DartChangeBuilderImpl builder = new DartChangeBuilder(session);
+    await builder.addFileEdit(path, (FileEditBuilder builder) {
+      builder.addInsertion(content.length - 1, (EditBuilder builder) {
+        (builder as DartEditBuilder)
+            .writeFieldDeclaration('f', isFinal: true, type: typeA);
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('final A f;'));
   }
 
   test_writeFieldDeclaration_isStatic() async {
@@ -1243,7 +1388,21 @@ class B extends A {
   }
 
   test_writeOverrideOfInheritedMember_setter_abstract() async {
-    await _assertWriteOverrideOfInheritedAccessor('''
+    if (previewDart2) {
+      await _assertWriteOverrideOfInheritedAccessor('''
+abstract class A {
+  set value(int value);
+}
+class B extends A {
+}
+''', '''
+  @override
+  void set value(int value) {
+    // TODO: implement value
+  }
+''', displayText: 'value(int value) { … }', selection: null);
+    } else {
+      await _assertWriteOverrideOfInheritedAccessor('''
 abstract class A {
   set value(int value);
 }
@@ -1255,10 +1414,28 @@ class B extends A {
     // TODO: implement value
   }
 ''', displayText: 'value(int value) { … }', selection: null);
+    }
   }
 
   test_writeOverrideOfInheritedMember_setter_concrete() async {
-    await _assertWriteOverrideOfInheritedAccessor('''
+    if (previewDart2) {
+      await _assertWriteOverrideOfInheritedAccessor('''
+class A {
+  set value(int value) {}
+}
+class B extends A {
+}
+''', '''
+  @override
+  void set value(int value) {
+    // TODO: implement value
+    super.value = value;
+  }
+''',
+          displayText: 'value(int value) { … }',
+          selection: new SourceRange(133, 20));
+    } else {
+      await _assertWriteOverrideOfInheritedAccessor('''
 class A {
   set value(int value) {}
 }
@@ -1271,8 +1448,40 @@ class B extends A {
     super.value = value;
   }
 ''',
-        displayText: 'value(int value) { … }',
-        selection: new SourceRange(128, 20));
+          displayText: 'value(int value) { … }',
+          selection: new SourceRange(128, 20));
+    }
+  }
+
+  test_writeParameter() async {
+    String path = provider.convertPath('/test.dart');
+    String content = 'class A {}';
+    addSource(path, content);
+
+    DartChangeBuilderImpl builder = new DartChangeBuilder(session);
+    await builder.addFileEdit(path, (FileEditBuilder builder) {
+      builder.addInsertion(content.length - 1, (EditBuilder builder) {
+        (builder as DartEditBuilder).writeParameter('a');
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('a'));
+  }
+
+  test_writeParameter_type() async {
+    String path = provider.convertPath('/test.dart');
+    String content = 'class A {}';
+    addSource(path, content);
+    DartType typeA = await _getType(path, 'A');
+
+    DartChangeBuilderImpl builder = new DartChangeBuilder(session);
+    await builder.addFileEdit(path, (FileEditBuilder builder) {
+      builder.addInsertion(content.length - 1, (EditBuilder builder) {
+        (builder as DartEditBuilder).writeParameter('a', type: typeA);
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('A a'));
   }
 
   test_writeParameterMatchingArgument() async {
@@ -1412,20 +1621,97 @@ f(int i, String s) {
     expect(edit.replacement, equalsIgnoringWhitespace('String s, int i'));
   }
 
-  test_writeParameterSource() async {
+  test_writeReference_method() async {
+    String aPath = provider.convertPath('/a.dart');
+    addSource(aPath, r'''
+class A {
+  void foo() {}
+}
+''');
+
     String path = provider.convertPath('/test.dart');
-    String content = 'class A {}';
+    String content = r'''
+import 'a.dart';
+''';
     addSource(path, content);
-    DartType typeA = await _getType(path, 'A');
+
+    var aElement = await _getClassElement(aPath, 'A');
+    var fooElement = aElement.methods[0];
 
     DartChangeBuilderImpl builder = new DartChangeBuilder(session);
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeParameterSource(typeA, 'a');
+    await builder.addFileEdit(path, (DartFileEditBuilder builder) {
+      builder.addInsertion(content.length - 1, (DartEditBuilder builder) {
+        builder.writeReference(fooElement);
       });
     });
     SourceEdit edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace('A a'));
+    expect(edit.replacement, equalsIgnoringWhitespace('foo'));
+  }
+
+  test_writeReference_topLevel_hasImport_noPrefix() async {
+    String aPath = provider.convertPath('/a.dart');
+    addSource(aPath, 'const a = 42;');
+
+    String path = provider.convertPath('/test.dart');
+    String content = r'''
+import 'a.dart';
+''';
+    addSource(path, content);
+
+    var aElement = await _getTopLevelAccessorElement(aPath, 'a');
+
+    DartChangeBuilderImpl builder = new DartChangeBuilder(session);
+    await builder.addFileEdit(path, (DartFileEditBuilder builder) {
+      builder.addInsertion(content.length - 1, (DartEditBuilder builder) {
+        builder.writeReference(aElement);
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('a'));
+  }
+
+  test_writeReference_topLevel_hasImport_prefix() async {
+    String aPath = provider.convertPath('/a.dart');
+    addSource(aPath, 'const a = 42;');
+
+    String path = provider.convertPath('/test.dart');
+    String content = r'''
+import 'a.dart' as p;
+''';
+    addSource(path, content);
+
+    var aElement = await _getTopLevelAccessorElement(aPath, 'a');
+
+    DartChangeBuilderImpl builder = new DartChangeBuilder(session);
+    await builder.addFileEdit(path, (DartFileEditBuilder builder) {
+      builder.addInsertion(content.length - 1, (DartEditBuilder builder) {
+        builder.writeReference(aElement);
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('p.a'));
+  }
+
+  test_writeReference_topLevel_noImport() async {
+    String aPath = provider.convertPath('/a.dart');
+    addSource(aPath, 'const a = 42;');
+
+    String path = provider.convertPath('/test.dart');
+    String content = '';
+    addSource(path, content);
+
+    var aElement = await _getTopLevelAccessorElement(aPath, 'a');
+
+    DartChangeBuilderImpl builder = new DartChangeBuilder(session);
+    await builder.addFileEdit(path, (DartFileEditBuilder builder) {
+      builder.addInsertion(content.length - 1, (DartEditBuilder builder) {
+        builder.writeReference(aElement);
+      });
+    });
+    List<SourceEdit> edits = getEdits(builder);
+    expect(edits, hasLength(2));
+    expect(edits[0].replacement, equalsIgnoringWhitespace("import 'a.dart';"));
+    expect(edits[1].replacement, equalsIgnoringWhitespace('a'));
   }
 
   test_writeType_dynamic() async {
@@ -1669,18 +1955,15 @@ f(int i, String s) {
     expect(edit.replacement, equalsIgnoringWhitespace('implements A, B'));
   }
 
-  Future<Null> _assertImportLibraries(
+  Future<Null> _assertImportLibrary(
       String initialCode, List<String> newUris, String expectedCode) async {
     String path = provider.convertPath('/test.dart');
     addSource(path, initialCode);
     DartChangeBuilderImpl builder = new DartChangeBuilder(session);
     await builder.addFileEdit(path, (DartFileEditBuilder builder) {
-      Iterable<_MockSource> sources = newUris.map((newUri) {
-        String path =
-            newUri.contains(':') ? null : provider.convertPath('/$newUri');
-        return new _MockSource(path, Uri.parse(newUri));
-      });
-      builder.importLibraries(sources);
+      for (String newUri in newUris) {
+        builder.importLibrary(Uri.parse(newUri));
+      }
     });
 
     String resultCode = initialCode;
@@ -1761,6 +2044,12 @@ f(int i, String s) {
   Future<ClassElement> _getClassElement(String path, String name) async {
     UnitElementResult result = await driver.getUnitElement(path);
     return result.element.getType(name);
+  }
+
+  Future<PropertyAccessorElement> _getTopLevelAccessorElement(
+      String path, String name) async {
+    UnitElementResult result = await driver.getUnitElement(path);
+    return result.element.accessors.firstWhere((v) => v.name == name);
   }
 
   Future<DartType> _getType(String path, String name) async {
@@ -1875,17 +2164,4 @@ class C extends B {}
     expect(suggestions.map((s) => s.value),
         unorderedEquals(['Object', 'A', 'B', 'C']));
   }
-}
-
-class _MockSource implements Source {
-  @override
-  final String fullName;
-
-  @override
-  final Uri uri;
-
-  _MockSource(this.fullName, this.uri);
-
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

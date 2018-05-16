@@ -24,48 +24,6 @@ $!MEMBERS
     return _elementFromPoint(x, y);
   }
 
-  /**
-   * Checks if the getCssCanvasContext API is supported on the current platform.
-   *
-   * See also:
-   *
-   * * [getCssCanvasContext]
-   */
-  static bool get supportsCssCanvasContext =>
-      JS('bool', '!!(document.getCSSCanvasContext)');
-
-
-  /**
-   * Gets a CanvasRenderingContext which can be used as the CSS background of an
-   * element.
-   *
-   * CSS:
-   *
-   *     background: -webkit-canvas(backgroundCanvas)
-   *
-   * Generate the canvas:
-   *
-   *     var context = document.getCssCanvasContext('2d', 'backgroundCanvas',
-   *         100, 100);
-   *     context.fillStyle = 'red';
-   *     context.fillRect(0, 0, 100, 100);
-   *
-   * See also:
-   *
-   * * [supportsCssCanvasContext]
-   * * [CanvasElement.getContext]
-   */
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  @DomName('Document.getCSSCanvasContext')
-  CanvasRenderingContext getCssCanvasContext(String contextId, String name,
-      int width, int height) {
-      if (HtmlDocument.supportsCssCanvasContext)
-        return JS('CanvasRenderingContext', '#.getCSSCanvasContext(#, #, #, #)', this, contextId, name, width, height);
-      throw new UnsupportedError("Not supported");
-  }
-
   @DomName('Document.head')
   HeadElement get head => _head;
 
@@ -158,10 +116,8 @@ $!MEMBERS
    * `<input is="x-bar"></input>`
    *
    */
-  void registerElement(String tag, Type customElementClass,
-      {String extendsTag}) {
-    _registerCustomElement(JS('', 'window'), this, tag, customElementClass,
-        extendsTag);
+  Function registerElement2(String tag, [Map options]) {
+    return _registerCustomElement(JS('', 'window'), this, tag, options);
   }
 
   /** *Deprecated*: use [registerElement] instead. */

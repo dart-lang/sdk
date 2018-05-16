@@ -1830,6 +1830,98 @@ abstract class IntegrationTestMixin {
   }
 
   /**
+   * Request completion suggestions for the given runtime context.
+   *
+   * It might take one or two requests of this type to get completion
+   * suggestions. The first request should have only "code", "offset", and
+   * "variables", but not "expressions". If there are sub-expressions that can
+   * have different runtime types, and are considered to be safe to evaluate at
+   * runtime (e.g. getters), so using their actual runtime types can improve
+   * completion results, the server will not include the "suggestions" field in
+   * the response, and instead will return the "expressions" field. The client
+   * will use debug API to get current runtime types for these sub-expressions
+   * and send another request, this time with "expressions". If there are no
+   * interesting sub-expressions to get runtime types for, or when the
+   * "expressions" field is provided by the client, the server will return
+   * "suggestions" in the response.
+   *
+   * Parameters
+   *
+   * code: String
+   *
+   *   The code to get suggestions in.
+   *
+   * offset: int
+   *
+   *   The offset within the code to get suggestions at.
+   *
+   * contextFile: FilePath
+   *
+   *   The path of the context file, e.g. the file of the current debugger
+   *   frame. The combination of the context file and context offset can be
+   *   used to ensure that all variables of the context are available for
+   *   completion (with their static types).
+   *
+   * contextOffset: int
+   *
+   *   The offset in the context file, e.g. the line offset in the current
+   *   debugger frame.
+   *
+   * variables: List<RuntimeCompletionVariable>
+   *
+   *   The runtime context variables that are potentially referenced in the
+   *   code.
+   *
+   * expressions: List<RuntimeCompletionExpression> (optional)
+   *
+   *   The list of sub-expressions in the code for which the client wants to
+   *   provide runtime types. It does not have to be the full list of
+   *   expressions requested by the server, for missing expressions their
+   *   static types will be used.
+   *
+   *   When this field is omitted, the server will return completion
+   *   suggestions only when there are no interesting sub-expressions in the
+   *   given code. The client may provide an empty list, in this case the
+   *   server will return completion suggestions.
+   *
+   * Returns
+   *
+   * suggestions: List<CompletionSuggestion> (optional)
+   *
+   *   The completion suggestions. In contrast to usual completion request,
+   *   suggestions for private elements also will be provided.
+   *
+   *   If there are sub-expressions that can have different runtime types, and
+   *   are considered to be safe to evaluate at runtime (e.g. getters), so
+   *   using their actual runtime types can improve completion results, the
+   *   server omits this field in the response, and instead will return the
+   *   "expressions" field.
+   *
+   * expressions: List<RuntimeCompletionExpression> (optional)
+   *
+   *   The list of sub-expressions in the code for which the server would like
+   *   to know runtime types to provide better completion suggestions.
+   *
+   *   This field is omitted the field "suggestions" is returned.
+   */
+  Future<ExecutionGetSuggestionsResult> sendExecutionGetSuggestions(
+      String code,
+      int offset,
+      String contextFile,
+      int contextOffset,
+      List<RuntimeCompletionVariable> variables,
+      {List<RuntimeCompletionExpression> expressions}) async {
+    var params = new ExecutionGetSuggestionsParams(
+            code, offset, contextFile, contextOffset, variables,
+            expressions: expressions)
+        .toJson();
+    var result = await server.send("execution.getSuggestions", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new ExecutionGetSuggestionsResult.fromJson(
+        decoder, 'result', result);
+  }
+
+  /**
    * Map a URI from the execution context to the file that it corresponds to,
    * or map a file to the URI that it corresponds to in the execution context.
    *
@@ -2115,6 +2207,40 @@ abstract class IntegrationTestMixin {
     var result = await server.send("kythe.getKytheEntries", params);
     ResponseDecoder decoder = new ResponseDecoder(null);
     return new KytheGetKytheEntriesResult.fromJson(decoder, 'result', result);
+  }
+
+  /**
+   * Return the change that adds the forDesignTime() constructor for the widget
+   * class at the given offset.
+   *
+   * Parameters
+   *
+   * file: FilePath
+   *
+   *   The file containing the code of the class.
+   *
+   * offset: int
+   *
+   *   The offset of the class in the code.
+   *
+   * Returns
+   *
+   * change: SourceChange
+   *
+   *   The change that adds the forDesignTime() constructor. If the change
+   *   cannot be produced, an error is returned.
+   */
+  Future<FlutterGetChangeAddForDesignTimeConstructorResult>
+      sendFlutterGetChangeAddForDesignTimeConstructor(
+          String file, int offset) async {
+    var params =
+        new FlutterGetChangeAddForDesignTimeConstructorParams(file, offset)
+            .toJson();
+    var result = await server.send(
+        "flutter.getChangeAddForDesignTimeConstructor", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new FlutterGetChangeAddForDesignTimeConstructorResult.fromJson(
+        decoder, 'result', result);
   }
 
   /**

@@ -9,64 +9,92 @@ part of dart.io;
  */
 class FileMode {
   /// The mode for opening a file only for reading.
-  static const READ = const FileMode._internal(0);
+  static const read = const FileMode._internal(0);
+  @Deprecated("Use read instead")
+  static const READ = read;
 
   /// Mode for opening a file for reading and writing. The file is
   /// overwritten if it already exists. The file is created if it does not
   /// already exist.
-  static const WRITE = const FileMode._internal(1);
+  static const write = const FileMode._internal(1);
+  @Deprecated("Use write instead")
+  static const WRITE = write;
 
   /// Mode for opening a file for reading and writing to the
   /// end of it. The file is created if it does not already exist.
-  static const APPEND = const FileMode._internal(2);
+  static const append = const FileMode._internal(2);
+  @Deprecated("Use append instead")
+  static const APPEND = append;
 
   /// Mode for opening a file for writing *only*. The file is
   /// overwritten if it already exists. The file is created if it does not
   /// already exist.
-  static const WRITE_ONLY = const FileMode._internal(3);
+  static const writeOnly = const FileMode._internal(3);
+  @Deprecated("Use writeOnly instead")
+  static const WRITE_ONLY = writeOnly;
 
   /// Mode for opening a file for writing *only* to the
   /// end of it. The file is created if it does not already exist.
-  static const WRITE_ONLY_APPEND = const FileMode._internal(4);
+  static const writeOnlyAppend = const FileMode._internal(4);
+  @Deprecated("Use writeOnlyAppend instead")
+  static const WRITE_ONLY_APPEND = writeOnlyAppend;
+
   final int _mode;
 
   const FileMode._internal(this._mode);
 }
 
 /// The mode for opening a file only for reading.
-const READ = FileMode.READ;
+@Deprecated("Use FileMode.read instead")
+const READ = FileMode.read;
 
 /// The mode for opening a file for reading and writing. The file is
 /// overwritten if it already exists. The file is created if it does not
 /// already exist.
-const WRITE = FileMode.WRITE;
+@Deprecated("Use FileMode.write instead")
+const WRITE = FileMode.write;
 
 /// The mode for opening a file for reading and writing to the
 /// end of it. The file is created if it does not already exist.
-const APPEND = FileMode.APPEND;
+@Deprecated("Use FileMode.append instead")
+const APPEND = FileMode.append;
 
 /// Mode for opening a file for writing *only*. The file is
 /// overwritten if it already exists. The file is created if it does not
 /// already exist.
-const WRITE_ONLY = FileMode.WRITE_ONLY;
+@Deprecated("Use FileMode.writeOnly instead")
+const WRITE_ONLY = FileMode.writeOnly;
 
 /// Mode for opening a file for writing *only* to the
 /// end of it. The file is created if it does not already exist.
-const WRITE_ONLY_APPEND = FileMode.WRITE_ONLY_APPEND;
+@Deprecated("Use FileMode.writeOnlyAppend instead")
+const WRITE_ONLY_APPEND = FileMode.writeOnlyAppend;
 
 /// Type of lock when requesting a lock on a file.
-enum FileLock {
+class FileLock {
   /// Shared file lock.
-  SHARED,
+  static const shared = const FileLock._internal(1);
+  @Deprecated("Use shared instead")
+  static const SHARED = shared;
 
   /// Exclusive file lock.
-  EXCLUSIVE,
+  static const exclusive = const FileLock._internal(2);
+  @Deprecated("Use exclusive instead")
+  static const EXCLUSIVE = exclusive;
 
   /// Blocking shared file lock.
-  BLOCKING_SHARED,
+  static const blockingShared = const FileLock._internal(3);
+  @Deprecated("Use blockingShared instead")
+  static const BLOCKING_SHARED = blockingShared;
 
   /// Blocking exclusive file lock.
-  BLOCKING_EXCLUSIVE,
+  static const blockingExclusive = const FileLock._internal(4);
+  @Deprecated("Use blockingExclusive instead")
+  static const BLOCKING_EXCLUSIVE = blockingExclusive;
+
+  final int _type;
+
+  const FileLock._internal(this._type);
 }
 
 /**
@@ -403,16 +431,16 @@ abstract class File implements FileSystemEntity {
    *
    * Files can be opened in three modes:
    *
-   * [FileMode.READ]: open the file for reading.
+   * [FileMode.read]: open the file for reading.
    *
-   * [FileMode.WRITE]: open the file for both reading and writing and
+   * [FileMode.write]: open the file for both reading and writing and
    * truncate the file to length zero. If the file does not exist the
    * file is created.
    *
-   * [FileMode.APPEND]: same as [FileMode.WRITE] except that the file is
+   * [FileMode.append]: same as [FileMode.write] except that the file is
    * not truncated.
    */
-  Future<RandomAccessFile> open({FileMode mode: FileMode.READ});
+  Future<RandomAccessFile> open({FileMode mode: FileMode.read});
 
   /**
    * Synchronously open the file for random access operations. The
@@ -424,7 +452,7 @@ abstract class File implements FileSystemEntity {
    *
    * Throws a [FileSystemException] if the operation fails.
    */
-  RandomAccessFile openSync({FileMode mode: FileMode.READ});
+  RandomAccessFile openSync({FileMode mode: FileMode.read});
 
   /**
    * Create a new independent [Stream] for the contents of this file.
@@ -448,8 +476,8 @@ abstract class File implements FileSystemEntity {
    *
    * An [IOSink] for a file can be opened in two modes:
    *
-   * * [FileMode.WRITE]: truncates the file to length zero.
-   * * [FileMode.APPEND]: sets the initial write position to the end
+   * * [FileMode.write]: truncates the file to length zero.
+   * * [FileMode.append]: sets the initial write position to the end
    *   of the file.
    *
    *  When writing strings through the returned [IOSink] the encoding
@@ -457,7 +485,7 @@ abstract class File implements FileSystemEntity {
    *  has an `encoding` property which can be changed after the
    *  [IOSink] has been created.
    */
-  IOSink openWrite({FileMode mode: FileMode.WRITE, Encoding encoding: utf8});
+  IOSink openWrite({FileMode mode: FileMode.write, Encoding encoding: utf8});
 
   /**
    * Read the entire file contents as a list of bytes. Returns a
@@ -516,13 +544,13 @@ abstract class File implements FileSystemEntity {
    *
    * By default [writeAsBytes] creates the file for writing and truncates the
    * file if it already exists. In order to append the bytes to an existing
-   * file, pass [FileMode.APPEND] as the optional mode parameter.
+   * file, pass [FileMode.append] as the optional mode parameter.
    *
    * If the argument [flush] is set to `true`, the data written will be
    * flushed to the file system before the returned future completes.
    */
   Future<File> writeAsBytes(List<int> bytes,
-      {FileMode mode: FileMode.WRITE, bool flush: false});
+      {FileMode mode: FileMode.write, bool flush: false});
 
   /**
    * Synchronously write a list of bytes to a file.
@@ -531,7 +559,7 @@ abstract class File implements FileSystemEntity {
    *
    * By default [writeAsBytesSync] creates the file for writing and truncates
    * the file if it already exists. In order to append the bytes to an existing
-   * file, pass [FileMode.APPEND] as the optional mode parameter.
+   * file, pass [FileMode.append] as the optional mode parameter.
    *
    * If the [flush] argument is set to `true` data written will be
    * flushed to the file system before returning.
@@ -539,7 +567,7 @@ abstract class File implements FileSystemEntity {
    * Throws a [FileSystemException] if the operation fails.
    */
   void writeAsBytesSync(List<int> bytes,
-      {FileMode mode: FileMode.WRITE, bool flush: false});
+      {FileMode mode: FileMode.write, bool flush: false});
 
   /**
    * Write a string to a file.
@@ -550,14 +578,14 @@ abstract class File implements FileSystemEntity {
    *
    * By default [writeAsString] creates the file for writing and truncates the
    * file if it already exists. In order to append the bytes to an existing
-   * file, pass [FileMode.APPEND] as the optional mode parameter.
+   * file, pass [FileMode.append] as the optional mode parameter.
    *
    * If the argument [flush] is set to `true`, the data written will be
    * flushed to the file system before the returned future completes.
    *
    */
   Future<File> writeAsString(String contents,
-      {FileMode mode: FileMode.WRITE,
+      {FileMode mode: FileMode.write,
       Encoding encoding: utf8,
       bool flush: false});
 
@@ -569,7 +597,7 @@ abstract class File implements FileSystemEntity {
    *
    * By default [writeAsStringSync] creates the file for writing and
    * truncates the file if it already exists. In order to append the bytes
-   * to an existing file, pass [FileMode.APPEND] as the optional mode
+   * to an existing file, pass [FileMode.append] as the optional mode
    * parameter.
    *
    * If the [flush] argument is set to `true` data written will be
@@ -578,7 +606,7 @@ abstract class File implements FileSystemEntity {
    * Throws a [FileSystemException] if the operation fails.
    */
   void writeAsStringSync(String contents,
-      {FileMode mode: FileMode.WRITE,
+      {FileMode mode: FileMode.write,
       Encoding encoding: utf8,
       bool flush: false});
 
@@ -609,10 +637,10 @@ abstract class File implements FileSystemEntity {
  */
 abstract class RandomAccessFile {
   /**
-   * Closes the file. Returns a `Future<RandomAccessFile>` that
-   * completes with this RandomAccessFile when it has been closed.
+   * Closes the file. Returns a `Future` that
+   * completes when it has been closed.
    */
-  Future<RandomAccessFile> close();
+  Future<void> close();
 
   /**
    * Synchronously closes the file.
@@ -805,9 +833,9 @@ abstract class RandomAccessFile {
    *
    * To obtain an exclusive lock on a file it must be opened for writing.
    *
-   * If [mode] is [FileLock.EXCLUSIVE] or [FileLock.SHARED], an error is
+   * If [mode] is [FileLock.exclusive] or [FileLock.shared], an error is
    * signaled if the lock cannot be obtained. If [mode] is
-   * [FileLock.BLOCKING_EXCLUSIVE] or [FileLock.BLOCKING_SHARED], the
+   * [FileLock.blockingExclusive] or [FileLock.blockingShared], the
    * returned [Future] is resolved only when the lock has been obtained.
    *
    * *NOTE* file locking does have slight differences in behavior across
@@ -826,7 +854,7 @@ abstract class RandomAccessFile {
    * already unlocked".
    */
   Future<RandomAccessFile> lock(
-      [FileLock mode = FileLock.EXCLUSIVE, int start = 0, int end = -1]);
+      [FileLock mode = FileLock.exclusive, int start = 0, int end = -1]);
 
   /**
    * Synchronously locks the file or part of the file.
@@ -843,9 +871,9 @@ abstract class RandomAccessFile {
    *
    * To obtain an exclusive lock on a file it must be opened for writing.
    *
-   * If [mode] is [FileLock.EXCLUSIVE] or [FileLock.SHARED], an exception is
+   * If [mode] is [FileLock.exclusive] or [FileLock.shared], an exception is
    * thrown if the lock cannot be obtained. If [mode] is
-   * [FileLock.BLOCKING_EXCLUSIVE] or [FileLock.BLOCKING_SHARED], the
+   * [FileLock.blockingExclusive] or [FileLock.blockingShared], the
    * call returns only after the lock has been obtained.
    *
    * *NOTE* file locking does have slight differences in behavior across
@@ -865,7 +893,7 @@ abstract class RandomAccessFile {
    *
    */
   void lockSync(
-      [FileLock mode = FileLock.EXCLUSIVE, int start = 0, int end = -1]);
+      [FileLock mode = FileLock.exclusive, int start = 0, int end = -1]);
 
   /**
    * Unlocks the file or part of the file.

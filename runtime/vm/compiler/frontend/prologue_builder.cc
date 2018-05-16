@@ -34,8 +34,7 @@ BlockEntryInstr* PrologueBuilder::BuildPrologue(BlockEntryInstr* entry,
   const bool load_optional_arguments = function_.HasOptionalParameters();
   const bool expect_type_args =
       function_.IsGeneric() && isolate->reify_generic_functions();
-  const bool check_arguments =
-      (function_.IsClosureFunction() || function_.IsConvertedClosureFunction());
+  const bool check_arguments = function_.IsClosureFunction();
 
   Fragment prologue = Fragment(entry);
   JoinEntryInstr* nsm = NULL;
@@ -58,7 +57,7 @@ BlockEntryInstr* PrologueBuilder::BuildPrologue(BlockEntryInstr* entry,
     if (!compiling_for_osr_) prologue += f;
   }
   if (expect_type_args) {
-    Fragment f = BuildTypeArgumentsHandling(strong);
+    Fragment f = BuildTypeArgumentsHandling(nsm);
     if (link) prologue += f;
   }
 
@@ -89,11 +88,6 @@ Fragment PrologueBuilder::BuildTypeArgumentsLengthCheck(bool strong,
   TargetEntryInstr *then, *fail;
   check_type_args += LoadArgDescriptor();
   check_type_args += LoadField(ArgumentsDescriptor::type_args_len_offset());
-  if (strong) {
-    check_type_args +=
-        IntConstant(ArgumentsDescriptor::TypeArgsLenField::mask());
-    check_type_args += SmiBinaryOp(Token::kBIT_AND, /* truncate= */ true);
-  }
   if (expect_type_args) {
     JoinEntryInstr* join2 = BuildJoinEntry();
 
@@ -143,12 +137,6 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(bool strong,
   copy_args_prologue += LoadArgDescriptor();
   copy_args_prologue +=
       LoadField(ArgumentsDescriptor::positional_count_offset());
-  if (strong) {
-    copy_args_prologue +=
-        IntConstant(ArgumentsDescriptor::PositionalCountField::mask());
-    copy_args_prologue += SmiBinaryOp(Token::kBIT_AND, /* truncate= */ true);
-  }
-
   LocalVariable* positional_count_var = MakeTemporary();
 
   copy_args_prologue += LoadArgDescriptor();
@@ -298,12 +286,6 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(bool strong,
           good += LoadLocal(tuple_diff);
           good += SmiBinaryOp(Token::kADD, /* truncate= */ true);
           good += LoadIndexed(/* index_scale = */ kWordSize);
-          if (strong) {
-            ASSERT(ArgumentsDescriptor::NamedPositionField::shift() == 0);
-            good +=
-                IntConstant(ArgumentsDescriptor::NamedPositionField::mask());
-            good += SmiBinaryOp(Token::kBIT_AND, /* truncate= */ true);
-          }
         }
         good += SmiBinaryOp(Token::kSUB, /* truncate= */ true);
         good += LoadFpRelativeSlot(kWordSize * kParamEndSlotFromFp);
@@ -383,10 +365,6 @@ Fragment PrologueBuilder::BuildFixedParameterLengthChecks(bool strong,
   Fragment check_len(then);
   check_len += LoadArgDescriptor();
   check_len += LoadField(ArgumentsDescriptor::positional_count_offset());
-  if (strong) {
-    check_len += IntConstant(ArgumentsDescriptor::PositionalCountField::mask());
-    check_len += SmiBinaryOp(Token::kBIT_AND, /* truncate= */ true);
-  }
   check_len += BranchIfEqual(&then2, &fail2);
 
   Fragment(fail) + Goto(nsm);
@@ -412,41 +390,49 @@ Fragment PrologueBuilder::BuildClosureContextHandling() {
   return populate_context;
 }
 
-Fragment PrologueBuilder::BuildTypeArgumentsHandling(bool strong) {
-  Fragment populate_args_desc;
-
+Fragment PrologueBuilder::BuildTypeArgumentsHandling(JoinEntryInstr* nsm) {
   LocalVariable* type_args_var = parsed_function_->RawTypeArgumentsVariable();
 
-  TargetEntryInstr *passed, *not_passed;
-  populate_args_desc += LoadArgDescriptor();
-  populate_args_desc += LoadField(ArgumentsDescriptor::type_args_len_offset());
-  if (strong) {
-    populate_args_desc +=
-        IntConstant(ArgumentsDescriptor::TypeArgsLenField::mask());
-    populate_args_desc += SmiBinaryOp(Token::kBIT_AND, /* truncate= */ true);
-  }
-  populate_args_desc += IntConstant(0);
-  populate_args_desc += BranchIfEqual(&not_passed, &passed);
+  Fragment handling;
 
-  JoinEntryInstr* join = BuildJoinEntry();
-
-  Fragment store_type_args(passed);
+  Fragment store_type_args;
   store_type_args += LoadArgDescriptor();
   store_type_args += LoadField(ArgumentsDescriptor::count_offset());
   store_type_args += LoadFpRelativeSlot(kWordSize * (1 + kParamEndSlotFromFp));
   store_type_args += StoreLocal(TokenPosition::kNoSource, type_args_var);
   store_type_args += Drop();
-  store_type_args += Goto(join);
 
-  Fragment store_null(not_passed);
+  Fragment store_null;
   store_null += NullConstant();
   store_null += StoreLocal(TokenPosition::kNoSource, type_args_var);
   store_null += Drop();
-  store_null += Goto(join);
 
-  populate_args_desc = Fragment(populate_args_desc.entry, join);
+  handling += TestTypeArgsLen(store_null, store_type_args, 0);
 
-  return populate_args_desc;
+  if (parsed_function_->function().IsClosureFunction()) {
+    LocalVariable* closure =
+        parsed_function_->node_sequence()->scope()->VariableAt(0);
+
+    // Currently, delayed type arguments can only be introduced through type
+    // inference in the FE. So if they are present, we can assume they are
+    // correct in number and bound.
+    // clang-format off
+    Fragment use_delayed_type_args = {
+      LoadLocal(closure),
+      LoadField(Closure::delayed_type_arguments_offset()),
+      StoreLocal(TokenPosition::kNoSource, type_args_var),
+      Drop()
+    };
+
+    handling += TestDelayedTypeArgs(
+        closure,
+        /*present=*/TestTypeArgsLen(
+            use_delayed_type_args, Goto(nsm), 0),
+        /*absent=*/Fragment());
+    // clang-format on
+  }
+
+  return handling;
 }
 
 void PrologueBuilder::SortOptionalNamedParametersInto(LocalVariable** opt_param,

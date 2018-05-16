@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-import 'dart:mirrors';
 
 // Test that noSuchMethod calls behave as expected for dynamic object invocations.
 class BaseClass {
@@ -19,7 +18,9 @@ class ReturnInvocationName extends BaseClass {
   ReturnInvocationName(this._bar);
 
   noSuchMethod(Invocation invocation) {
-    return MirrorSystem.getName(invocation.memberName);
+    var name = invocation.memberName.toString();
+    var match = new RegExp(r'Symbol\("([^"]+)"\)').matchAsPrefix(name);
+    return match != null ? match.group(1) : name;
   }
 
   bar() {
@@ -76,4 +77,10 @@ main() {
   Expect.throwsNoSuchMethodError(() => f.toLocaleString);
 
   Expect.throwsNoSuchMethodError(() => f.hasOwnProperty);
+
+  f = (int x) {};
+  // Calls with the wrong number of arguments should be NoSuchMethodErrors.
+  Expect.throwsNoSuchMethodError(() => f());
+  Expect.throwsNoSuchMethodError(() => f('hi', '!'));
+  Expect.throwsNoSuchMethodError(() => f(x: 42));
 }

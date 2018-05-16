@@ -40,8 +40,8 @@ class AnalysisOptionsErrorCode extends ErrorCode {
    * Initialize a newly created error code to have the given [name].
    */
   const AnalysisOptionsErrorCode(String name, String message,
-      [String correction])
-      : super(name, message, correction);
+      {String correction})
+      : super.temporary(name, message, correction: correction);
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;
@@ -117,10 +117,9 @@ class AnalysisOptionsWarningCode extends ErrorCode {
    * 2: legal values
    */
   static const AnalysisOptionsWarningCode UNSUPPORTED_OPTION_WITH_LEGAL_VALUES =
-      const AnalysisOptionsWarningCode(
-          'UNSUPPORTED_OPTION_WITH_LEGAL_VALUES',
+      const AnalysisOptionsWarningCode('UNSUPPORTED_OPTION_WITH_LEGAL_VALUES',
           "The option '{1}' isn't supported by '{0}'.",
-          "Try using one of the supported options: {2}.");
+          correction: "Try using one of the supported options: {2}.");
 
   /**
    * An error code indicating that an option entry is being configured with an
@@ -133,16 +132,15 @@ class AnalysisOptionsWarningCode extends ErrorCode {
    */
   static const AnalysisOptionsWarningCode UNSUPPORTED_VALUE =
       const AnalysisOptionsWarningCode(
-          'UNSUPPORTED_VALUE',
-          "The value '{1}' isn't supported by '{0}'.",
-          "Try using one of the supported options: {2}.");
+          'UNSUPPORTED_VALUE', "The value '{1}' isn't supported by '{0}'.",
+          correction: "Try using one of the supported options: {2}.");
 
   /**
    * Initialize a newly created warning code to have the given [name].
    */
   const AnalysisOptionsWarningCode(String name, String message,
-      [String correction])
-      : super(name, message, correction);
+      {String correction})
+      : super.temporary(name, message, correction: correction);
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.WARNING;
@@ -169,18 +167,18 @@ class AnalysisOptionsHintCode extends ErrorCode {
    * An error code indicating that strong-mode: false is being deprecated.
    */
   static const AnalysisOptionsHintCode SPEC_MODE_DEPRECATED =
-      const AnalysisOptionsHintCode(
-          'SPEC_MODE_DEPRECATED',
+      const AnalysisOptionsHintCode('SPEC_MODE_DEPRECATED',
           "The option 'strong-mode: false' is being deprecated.",
-          "It's recommended to use 'strong-mode: true' and make your code "
-          "strong mode clean.");
+          correction:
+              "It's recommended to use 'strong-mode: true' and make your code "
+              "strong mode clean.");
 
   /**
    * Initialize a newly created hint code to have the given [name].
    */
   const AnalysisOptionsHintCode(String name, String message,
-      [String correction])
-      : super(name, message, correction);
+      {String correction})
+      : super.temporary(name, message, correction: correction);
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.INFO;

@@ -2,7 +2,7 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-abstract class Base<T extends core::Object, U extends core::Object> extends core::Object {
+abstract class Base<T extends core::Object = dynamic, U extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → void
     ;
   operator [](core::String s) → self::Base::T

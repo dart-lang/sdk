@@ -1,0 +1,5 @@
+Errors: {
+  Method not found: 'doit_with_this'. (@0)
+}
+static method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
+  return throw new dart.core::NoSuchMethodError::withInvocation(null, new dart.core::_InvocationMirror::_withType(#doit_with_this, 32, const <dart.core::Type>[], dart.core::List::unmodifiable<dynamic>(<dynamic>[2]), dart.core::Map::unmodifiable<dart.core::Symbol, dynamic>(const <dart.core::Symbol, dynamic>{})));

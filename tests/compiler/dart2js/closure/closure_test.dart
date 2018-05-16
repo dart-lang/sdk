@@ -8,12 +8,10 @@ import 'package:compiler/src/closure.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
-import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
 import 'package:compiler/src/js_model/locals.dart';
-import 'package:compiler/src/tree/nodes.dart' as ast;
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/util/util.dart';
 import 'package:expect/expect.dart';
@@ -26,25 +24,9 @@ const List<String> skipForKernel = const <String>[];
 main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-    await checkTests(dataDir, computeClosureData, computeKernelClosureData,
+    await checkTests(dataDir, computeKernelClosureData,
         skipForKernel: skipForKernel, args: args);
   });
-}
-
-/// Compute closure data mapping for [_member] as a [MemberElement].
-///
-/// Fills [actualMap] with the data and [sourceSpanMap] with the source spans
-/// for the data origin.
-void computeClosureData(
-    Compiler compiler, MemberEntity _member, Map<Id, ActualData> actualMap,
-    {bool verbose: false}) {
-  MemberElement member = _member;
-  ClosureDataLookup<ast.Node> closureDataLookup =
-      compiler.backendStrategy.closureDataLookup as ClosureDataLookup<ast.Node>;
-  new ClosureAstComputer(compiler.reporter, actualMap, member.resolvedAst,
-          closureDataLookup, compiler.codegenWorldBuilder,
-          verbose: verbose)
-      .run();
 }
 
 /// Compute closure data mapping for [member] as a kernel based element.
@@ -73,61 +55,6 @@ void computeKernelClosureData(
           compiler.codegenWorldBuilder,
           verbose: verbose)
       .run(definition.node);
-}
-
-/// Ast visitor for computing closure data.
-class ClosureAstComputer extends AstDataExtractor with ComputeValueMixin {
-  final ClosureDataLookup<ast.Node> closureDataLookup;
-  final CodegenWorldBuilder codegenWorldBuilder;
-  final bool verbose;
-
-  ClosureAstComputer(DiagnosticReporter reporter, Map<Id, ActualData> actualMap,
-      ResolvedAst resolvedAst, this.closureDataLookup, this.codegenWorldBuilder,
-      {this.verbose: false})
-      : super(reporter, actualMap, resolvedAst) {
-    pushMember(resolvedAst.element as MemberElement);
-  }
-
-  visitFunctionExpression(ast.FunctionExpression node) {
-    Entity localFunction = resolvedAst.elements.getFunctionDefinition(node);
-    if (localFunction is LocalFunctionElement) {
-      pushMember(localFunction.callMethod);
-      pushLocalFunction(node);
-      super.visitFunctionExpression(node);
-      popLocalFunction();
-      popMember();
-    } else {
-      super.visitFunctionExpression(node);
-    }
-  }
-
-  visitLoop(ast.Loop node) {
-    pushLoopNode(node);
-    super.visitLoop(node);
-    popLoop();
-  }
-
-  @override
-  String computeNodeValue(Id id, ast.Node node, [AstElement element]) {
-    if (element != null && element.isLocal) {
-      if (element.isFunction) {
-        LocalFunctionElement localFunction = element;
-        return computeObjectValue(localFunction.callMethod);
-      } else {
-        LocalElement local = element;
-        return computeLocalValue(local);
-      }
-    }
-    // TODO(johnniwinther,efortuna): Collect data for other nodes?
-    return null;
-  }
-
-  @override
-  String computeElementValue(Id id, covariant MemberElement element) {
-    // TODO(johnniwinther,efortuna): Collect data for the member
-    // (has thisLocal, has box, etc.).
-    return computeObjectValue(element);
-  }
 }
 
 /// Kernel IR visitor for computing closure data.

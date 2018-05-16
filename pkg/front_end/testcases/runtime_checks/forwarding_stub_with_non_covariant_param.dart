@@ -10,7 +10,7 @@ class B {
 }
 
 abstract class I<T> {
-  void f(T /*@covariance=genericInterface, genericImpl*/ x, int y);
+  void f(T /*@covariance=genericImpl*/ x, int y);
 }
 
 class /*@forwardingStub=void f(covariance=(genericImpl) int x, covariance=() int y)*/ C

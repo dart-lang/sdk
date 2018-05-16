@@ -28,7 +28,7 @@ abstract class SourceFileProvider implements CompilerInput {
   Future<api.Input> readBytesFromUri(Uri resourceUri, api.InputKind inputKind) {
     api.Input input;
     switch (inputKind) {
-      case api.InputKind.utf8:
+      case api.InputKind.UTF8:
         input = utf8SourceFiles[resourceUri];
         break;
       case api.InputKind.binary:
@@ -51,7 +51,7 @@ abstract class SourceFileProvider implements CompilerInput {
     List<int> source;
     try {
       source = readAll(resourceUri.toFilePath(),
-          zeroTerminated: inputKind == api.InputKind.utf8);
+          zeroTerminated: inputKind == api.InputKind.UTF8);
     } on FileSystemException catch (ex) {
       String message = ex.osError?.message;
       String detail = message != null ? ' ($message)' : '';
@@ -60,7 +60,7 @@ abstract class SourceFileProvider implements CompilerInput {
     dartCharactersRead += source.length;
     api.Input input;
     switch (inputKind) {
-      case api.InputKind.utf8:
+      case api.InputKind.UTF8:
         input = utf8SourceFiles[resourceUri] = new CachingUtf8BytesSourceFile(
             resourceUri, relativizeUri(resourceUri), source);
         break;
@@ -76,7 +76,7 @@ abstract class SourceFileProvider implements CompilerInput {
   /// returned.
   api.Input autoReadFromFile(Uri resourceUri) {
     try {
-      return _readFromFileSync(resourceUri, InputKind.utf8);
+      return _readFromFileSync(resourceUri, InputKind.UTF8);
     } catch (e) {
       // Silence the error. The [resourceUri] was not requested by the user and
       // was only needed to give better error messages.
@@ -120,7 +120,7 @@ abstract class SourceFileProvider implements CompilerInput {
       dartCharactersRead += totalLength;
       api.Input input;
       switch (inputKind) {
-        case api.InputKind.utf8:
+        case api.InputKind.UTF8:
           input = utf8SourceFiles[resourceUri] = new CachingUtf8BytesSourceFile(
               resourceUri, resourceUri.toString(), result);
           break;
@@ -175,7 +175,7 @@ class CompilerSourceFileProvider extends SourceFileProvider {
 
   @override
   Future<api.Input<List<int>>> readFromUri(Uri uri,
-          {InputKind inputKind: InputKind.utf8}) =>
+          {InputKind inputKind: InputKind.UTF8}) =>
       readBytesFromUri(uri, inputKind);
 }
 
@@ -311,7 +311,6 @@ typedef void MessageCallback(String message);
 class RandomAccessFileOutputProvider implements CompilerOutput {
   final Uri out;
   final Uri sourceMapOut;
-  final Uri resolutionOutput;
   final MessageCallback onInfo;
   final MessageCallback onFailure;
 
@@ -322,18 +321,7 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
   List<String> allOutputFiles = <String>[];
 
   RandomAccessFileOutputProvider(this.out, this.sourceMapOut,
-      {this.onInfo, this.onFailure, this.resolutionOutput});
-
-  static Uri computePrecompiledUri(Uri out) {
-    String extension = 'precompiled.js';
-    String outPath = out.path;
-    if (outPath.endsWith('.js')) {
-      outPath = outPath.substring(0, outPath.length - 3);
-      return out.resolve('$outPath.$extension');
-    } else {
-      return out.resolve(extension);
-    }
-  }
+      {this.onInfo, this.onFailure});
 
   Uri createUri(String name, String extension, OutputType type) {
     Uri uri;
@@ -356,12 +344,6 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
         break;
       case OutputType.jsPart:
         uri = out.resolve('$name.$extension');
-        break;
-      case OutputType.serializationData:
-        if (resolutionOutput == null) {
-          onFailure('Serialization target unspecified.');
-        }
-        uri = resolutionOutput;
         break;
       case OutputType.info:
         if (name == '') {
@@ -484,7 +466,7 @@ class BazelInputProvider extends SourceFileProvider {
 
   @override
   Future<api.Input> readFromUri(Uri uri,
-      {InputKind inputKind: InputKind.utf8}) async {
+      {InputKind inputKind: InputKind.UTF8}) async {
     var resolvedUri = uri;
     var path = uri.path;
     if (path.startsWith('/bazel-root')) {
@@ -499,7 +481,7 @@ class BazelInputProvider extends SourceFileProvider {
     }
     api.Input result = await readBytesFromUri(resolvedUri, inputKind);
     switch (inputKind) {
-      case InputKind.utf8:
+      case InputKind.UTF8:
         utf8SourceFiles[uri] = utf8SourceFiles[resolvedUri];
         break;
       case InputKind.binary:
@@ -507,5 +489,20 @@ class BazelInputProvider extends SourceFileProvider {
         break;
     }
     return result;
+  }
+
+  @override
+  api.Input autoReadFromFile(Uri resourceUri) {
+    var path = resourceUri.path;
+    if (path.startsWith('/bazel-root')) {
+      path = path.substring('/bazel-root/'.length);
+      for (var dir in dirs) {
+        var file = dir.resolve(path);
+        if (new File.fromUri(file).existsSync()) {
+          return super.autoReadFromFile(file);
+        }
+      }
+    }
+    return null;
   }
 }

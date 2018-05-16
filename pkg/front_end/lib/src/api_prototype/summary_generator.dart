@@ -43,6 +43,6 @@ import '../kernel_generator_impl.dart';
 Future<List<int>> summaryFor(List<Uri> sources, CompilerOptions options,
     {bool truncate: false}) async {
   return (await generateKernel(new ProcessedOptions(options, true, sources),
-          buildSummary: true, buildProgram: false, truncateSummary: truncate))
+          buildSummary: true, buildComponent: false, truncateSummary: truncate))
       ?.summary;
 }

@@ -9,7 +9,6 @@ dependencies:
   analyzer: ^0.27.0
   args: '>=0.13.0 <2.0.0'
   bazel_worker: ^0.1.0
-  cli_util: ^0.1.0
   collection: ^1.14.1
   linter: ^0.1.16
   package_config: '>=0.1.5 <2.0.0'
@@ -19,6 +18,5 @@ dependencies:
   yaml: ^2.1.2
 dev_dependencies:
   test_reflective_loader: ^0.1.0
-  mockito: ^2.0.2
   test: ^0.12.0
   usage: ^3.2.0+1

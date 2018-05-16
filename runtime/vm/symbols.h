@@ -76,6 +76,7 @@ class ObjectPointerVisitor;
   V(CyclicInitializationError, "CyclicInitializationError")                    \
   V(_CompileTimeError, "_CompileTimeError")                                    \
   V(ThrowNew, "_throwNew")                                                     \
+  V(ThrowNewInvocation, "_throwNewInvocation")                                 \
   V(ThrowNewIfNotLoaded, "_throwNewIfNotLoaded")                               \
   V(EvaluateAssertion, "_evaluateAssertion")                                   \
   V(Symbol, "Symbol")                                                          \
@@ -136,6 +137,7 @@ class ObjectPointerVisitor;
   V(AwaitTempVarPrefix, ":await_temp_var_")                                    \
   V(AwaitContextVar, ":await_ctx_var")                                         \
   V(AwaitJumpVar, ":await_jump_var")                                           \
+  V(FutureImpl, "_Future")                                                     \
   V(Future, "Future")                                                          \
   V(FutureOr, "FutureOr")                                                      \
   V(FutureMicrotask, "Future.microtask")                                       \
@@ -323,6 +325,7 @@ class ObjectPointerVisitor;
   V(ForwardingCorpse, "ForwardingCorpse")                                      \
   V(InvocationMirror, "_InvocationMirror")                                     \
   V(AllocateInvocationMirror, "_allocateInvocationMirror")                     \
+  V(AllocateInvocationMirrorForClosure, "_allocateInvocationMirrorForClosure") \
   V(toString, "toString")                                                      \
   V(_lookupHandler, "_lookupHandler")                                          \
   V(_handleMessage, "_handleMessage")                                          \
@@ -448,7 +451,8 @@ class ObjectPointerVisitor;
   V(PrependTypeArguments, "_prependTypeArguments")                             \
   V(DartDeveloperCausalAsyncStacks, "dart.developer.causal_async_stacks")      \
   V(_AsyncStarListenHelper, "_asyncStarListenHelper")                          \
-  V(GrowRegExpStack, "_growRegExpStack")
+  V(GrowRegExpStack, "_growRegExpStack")                                       \
+  V(DebugProcedureName, ":Eval")
 
 // Contains a list of frequently used strings in a canonicalized form. This
 // list is kept in the vm_isolate in order to share the copy across isolates

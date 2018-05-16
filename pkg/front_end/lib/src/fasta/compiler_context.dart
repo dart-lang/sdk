@@ -60,8 +60,9 @@ class CompilerContext {
   }
 
   /// Report [message], for example, by printing it.
-  void report(LocatedMessage message, Severity severity) {
-    options.report(message, severity);
+  void report(LocatedMessage message, Severity severity,
+      {List<LocatedMessage> context}) {
+    options.report(message, severity, context: context);
   }
 
   /// Report [message], for example, by printing it.
@@ -125,7 +126,8 @@ class CompilerContext {
     return current.enableColorsCached ??= computeEnableColors(current);
   }
 
-  static void clear() {
+  void clear() {
     StringToken.canonicalizer.clear();
+    errors.clear();
   }
 }

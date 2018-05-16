@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert' show UTF8;
+import 'dart:convert' show utf8;
 
 import 'package:http/http.dart';
 import 'package:http/testing.dart';
@@ -31,7 +31,7 @@ void main() {
 
       await sender.sendReport('test-error', stackTrace: StackTrace.current);
 
-      String body = UTF8.decode(request.bodyBytes);
+      String body = utf8.decode(request.bodyBytes);
       expect(body, contains('String')); // error.runtimeType
       expect(body, contains(analytics.trackingId));
       expect(body, contains('1.0.0'));

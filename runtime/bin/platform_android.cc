@@ -26,7 +26,7 @@ char** Platform::argv_ = NULL;
 
 static void segv_handler(int signal, siginfo_t* siginfo, void* context) {
   Log::PrintErr(
-      "\n===== DART STANDALONE VM CRASH =====\n"
+      "\n===== CRASH =====\n"
       "version=%s\n"
       "si_signo=%s(%d), si_code=%d, si_addr=%p\n",
       Dart_VersionString(), strsignal(siginfo->si_signo), siginfo->si_signo,
@@ -43,6 +43,17 @@ bool Platform::Initialize() {
   bzero(&act, sizeof(act));
   act.sa_handler = SIG_IGN;
   if (sigaction(SIGPIPE, &act, 0) != 0) {
+    perror("Setting signal handler failed");
+    return false;
+  }
+
+  // tcsetattr raises SIGTTOU if we try to set console attributes when
+  // backgrounded, which suspends the process. Ignoring the signal prevents
+  // us from being suspended and lets us fail gracefully instead.
+  sigset_t signal_mask;
+  sigemptyset(&signal_mask);
+  sigaddset(&signal_mask, SIGTTOU);
+  if (sigprocmask(SIG_BLOCK, &signal_mask, NULL) < 0) {
     perror("Setting signal handler failed");
     return false;
   }

@@ -1,0 +1,14 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/regress/issue_29984.dart:6:16: Error: Getter not found: 'i'.
+  for (int i = i;; false) {}
+               ^"]/* from null */;
+static method bad() → dynamic {
+  for (core::int i = (let final dynamic #t1 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/regress/issue_29984.dart:6:12: Error: Can't declare 'i' because it was already used in this scope.
+  for (int i = i;; false) {}
+           ^" in let final<BottomType> #t2 = let<BottomType> _ = null in throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#i, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) in null) as{TypeError} core::int; ; false) {
+  }
+}
+static method main() → dynamic {}

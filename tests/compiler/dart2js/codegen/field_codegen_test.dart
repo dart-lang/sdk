@@ -20,21 +20,16 @@ main() { return x; }
 """;
 
 main() {
-  runTests({bool useKernel}) async {
-    CompileMode compileMode =
-        useKernel ? CompileMode.kernel : CompileMode.memory;
-
-    String generated1 = await compileAll(TEST_NULL0, compileMode: compileMode);
+  runTests() async {
+    String generated1 = await compileAll(TEST_NULL0);
     Expect.isTrue(generated1.contains("null"));
 
-    String generated2 = await compileAll(TEST_NULL1, compileMode: compileMode);
+    String generated2 = await compileAll(TEST_NULL1);
     Expect.isTrue(generated2.contains("null"));
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTests(useKernel: true);
+    await runTests();
   });
 }

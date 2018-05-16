@@ -47,23 +47,20 @@ List<ModuleFormat> parseModuleFormatOption(ArgResults argResults) {
 /// file.
 void addModuleFormatOptions(ArgParser argParser,
     {bool allowMultiple: false, bool hide: true, bool singleOutFile: true}) {
-  argParser.addOption('modules',
-      help: 'module pattern to emit',
-      allowed: [
-        'es6',
-        'common',
-        'amd',
-        'legacy', // deprecated
-        'node', // renamed to commonjs
-        'all' // to emit all flavors for the SDK
-      ],
-      allowedHelp: {
-        'es6': 'ECMAScript 6 modules',
-        'common': 'CommonJS/Node.js modules',
-        'amd': 'AMD/RequireJS modules'
-      },
-      allowMultiple: allowMultiple,
-      defaultsTo: 'amd');
+  argParser.addMultiOption('modules', help: 'module pattern to emit', allowed: [
+    'es6',
+    'common',
+    'amd',
+    'legacy', // deprecated
+    'node', // renamed to commonjs
+    'all' // to emit all flavors for the SDK
+  ], allowedHelp: {
+    'es6': 'ECMAScript 6 modules',
+    'common': 'CommonJS/Node.js modules',
+    'amd': 'AMD/RequireJS modules'
+  }, defaultsTo: [
+    'amd'
+  ]);
 
   if (singleOutFile) {
     argParser.addFlag('single-out-file',

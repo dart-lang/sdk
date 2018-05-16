@@ -77,11 +77,7 @@ const Map<MessageKind, MessageTemplate> TEMPLATES =
   MessageKind.MISSING_EXPRESSION_IN_THROW: const MessageTemplate(
       MessageKind.MISSING_EXPRESSION_IN_THROW,
       "Missing expression after 'throw'.",
-      howToFix: "Did you mean 'rethrow'?",
-      examples: const [
-        "main() { throw; }",
-        "main() { try { throw 0; } catch(e) { throw; } }",
-      ]), // Generated. Don't edit.
+      howToFix: "Did you mean 'rethrow'?"), // Generated. Don't edit.
   MessageKind.RETHROW_OUTSIDE_CATCH: const MessageTemplate(
       MessageKind.RETHROW_OUTSIDE_CATCH,
       "Rethrow must be inside of catch clause.",

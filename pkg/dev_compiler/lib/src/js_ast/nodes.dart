@@ -8,6 +8,7 @@ abstract class NodeVisitor<T> implements TypeRefVisitor<T> {
   T visitProgram(Program node);
 
   T visitBlock(Block node);
+  T visitDebuggerStatement(DebuggerStatement node);
   T visitExpressionStatement(ExpressionStatement node);
   T visitEmptyStatement(EmptyStatement node);
   T visitIf(If node);
@@ -119,6 +120,7 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitJump(Statement node) => visitStatement(node);
 
   T visitBlock(Block node) => visitStatement(node);
+  T visitDebuggerStatement(node) => visitStatement(node);
   T visitExpressionStatement(ExpressionStatement node) => visitStatement(node);
   T visitEmptyStatement(EmptyStatement node) => visitStatement(node);
   T visitIf(If node) => visitStatement(node);
@@ -329,6 +331,12 @@ abstract class Statement extends ModuleItem {
   /// JavaScript syntax error due to a redeclared identifier.
   bool shadows(Set<String> names) => false;
 
+  /// Whether this statement would always `return` if used as a funtion body.
+  ///
+  /// This is only well defined on the outermost block; it cannot be used for a
+  /// block inside of a loop (because of `break` and `continue`).
+  bool get alwaysReturns => false;
+
   /// If this statement [shadows] any name from [names], this will wrap it in a
   /// new scoped [Block].
   Statement toScopedBlock(Set<String> names) {
@@ -353,6 +361,10 @@ class Block extends Statement {
   Block.empty()
       : statements = <Statement>[],
         isScope = false;
+
+  @override
+  bool get alwaysReturns =>
+      statements.isNotEmpty && statements.last.alwaysReturns;
 
   @override
   Block toBlock() => this;
@@ -410,6 +422,10 @@ class If extends Statement {
 
   If(this.condition, this.then, this.otherwise);
   If.noElse(this.condition, this.then) : this.otherwise = null;
+
+  @override
+  bool get alwaysReturns =>
+      hasElse && then.alwaysReturns && otherwise.alwaysReturns;
 
   bool get hasElse => otherwise != null;
 
@@ -542,6 +558,9 @@ class Return extends Statement {
   final Expression value; // Can be null.
 
   Return([this.value = null]);
+
+  @override
+  bool get alwaysReturns => true;
 
   Statement toReturn() => this;
 
@@ -1867,6 +1886,12 @@ class CommentExpression extends Expression {
   CommentExpression _clone() => new CommentExpression(comment, expression);
 
   void visitChildren(NodeVisitor visitor) => expression.accept(visitor);
+}
+
+class DebuggerStatement extends Statement {
+  T accept<T>(NodeVisitor<T> visitor) => visitor.visitDebuggerStatement(this);
+  DebuggerStatement _clone() => new DebuggerStatement();
+  void visitChildren(NodeVisitor visitor) {}
 }
 
 /**

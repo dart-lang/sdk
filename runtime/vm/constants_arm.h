@@ -40,8 +40,8 @@ namespace dart {
 // Stack alignment: 4 bytes always, 8 bytes at public interfaces
 
 // Linux (Debian armhf) and Android also differ in whether floating point
-// arguments are passed in registers. Linux uses hardfp and Android uses
-// softfp. See TargetCPUFeatures::hardfp_supported().
+// arguments are passed in floating point registers. Linux uses hardfp and
+// Android uses softfp. See TargetCPUFeatures::hardfp_supported().
 
 // iOS ABI
 // See "iOS ABI Function Call Guide"
@@ -56,7 +56,7 @@ namespace dart {
 // R15:   Program counter
 // Stack alignment: 4 bytes always, 4 bytes at public interfaces
 
-// iOS passes floating point arguments in registers (hardfp)
+// iOS passes floating point arguments in integer registers (softfp)
 
 enum Register {
   R0 = 0,
@@ -65,7 +65,7 @@ enum Register {
   R3 = 3,
   R4 = 4,
   R5 = 5,  // PP
-  R6 = 6,  // CTX
+  R6 = 6,
   R7 = 7,  // iOS FP
   R8 = 8,
   R9 = 9,
@@ -264,7 +264,6 @@ const FpuRegister kNoFpuRegister = kNoQRegister;
 // Register aliases.
 const Register TMP = IP;            // Used as scratch register by assembler.
 const Register TMP2 = kNoRegister;  // There is no second assembler temporary.
-const Register CTX = R6;    // Location of current context at method entry.
 const Register PP = R5;     // Caches object pool pointer in generated code.
 const Register SPREG = SP;  // Stack pointer register.
 const Register FPREG = FP;  // Frame pointer register.
@@ -347,7 +346,9 @@ enum Condition {
 
   // Platform-independent variants declared for all platforms
   EQUAL = EQ,
+  ZERO = EQUAL,
   NOT_EQUAL = NE,
+  NOT_ZERO = NOT_EQUAL,
   LESS = LT,
   LESS_EQUAL = LE,
   GREATER_EQUAL = GE,

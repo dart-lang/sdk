@@ -7,6 +7,12 @@ import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'package:async_helper/async_helper.dart';
 
+class FileAndDir {
+  FileEntry file;
+  DirectoryEntry dir;
+  FileAndDir(this.file, this.dir);
+}
+
 FileSystem fs;
 
 main() async {

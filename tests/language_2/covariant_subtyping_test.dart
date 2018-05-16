@@ -202,7 +202,8 @@ testCallMethod() {
   ClassF<int> cc = new ClassF<int>();
   ClassF<Object> ca = cc; // An upcast, per covariance.
   F<Object> f = ca;
-  Expect.equals(f.runtimeType.toString(), 'ClassF<int>');
+  void f2(Object x) {}
+  Expect.equals(f.runtimeType, f2.runtimeType);
   Expect.throwsTypeError(() => f(new Object()));
 }
 

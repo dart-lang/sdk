@@ -6,6 +6,20 @@ part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
+  @DomName('Navigator.getGamepads')
+  List<Gamepad> getGamepads() {
+    var gamepadList = _getGamepads();
+
+    // If no prototype we need one for the world to hookup to the proper Dart class.
+    var jsProto = JS('', '#.prototype', gamepadList);
+    if (jsProto == null) {
+      JS('', '#.prototype = Object.create(null)', gamepadList);
+    }
+
+    applyExtension('GamepadList', gamepadList);
+    return gamepadList;
+  }
+
   @DomName('Navigator.language')
   String get language => JS('String', '#.language || #.userLanguage', this,
       this);

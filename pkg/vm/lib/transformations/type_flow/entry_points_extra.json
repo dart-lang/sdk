@@ -8,6 +8,18 @@
     },
     {
       "library": "dart:core",
+      "class": "Object",
+      "name": "_haveSameRuntimeType",
+      "action": "call"
+    },
+    {
+      "library": "dart:core",
+      "class": "Object",
+      "name": "_instanceOf",
+      "action": "call"
+    },
+    {
+      "library": "dart:core",
       "class": "List",
       "name": "_fromLiteral",
       "action": "call"
@@ -27,6 +39,12 @@
       "library": "dart:core",
       "class": "_ImmutableMap",
       "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "_ImmutableMap",
+      "name": "_create",
+      "action": "call"
     },
     {
       "library": "dart:core",
@@ -51,11 +69,6 @@
       "action": "call"
     },
     {
-      "library": "dart:_internal",
-      "name": "_classRangeCheck",
-      "action": "call"
-    },
-    {
       "library": "dart:core",
       "class": "_AssertionError",
       "name": "_evaluateAssertion",
@@ -66,6 +79,100 @@
       "class": "_AssertionError",
       "name": "_throwNew",
       "action": "call"
+    },
+    {
+      "library": "dart:core",
+      "class": "_Closure",
+      "name": "_instantiator_type_arguments",
+      "action": "get"
+    },
+    {
+      "library": "dart:core",
+      "class": "_Closure",
+      "name": "_function_type_arguments",
+      "action": "get"
+    },
+    {
+      "library": "dart:core",
+      "class": "_Closure",
+      "name": "_delayed_type_arguments",
+      "action": "get"
+    },
+    {
+      "library": "dart:core",
+      "class": "_Closure",
+      "name": "_function",
+      "action": "get"
+    },
+    {
+      "library": "dart:core",
+      "class": "_Closure",
+      "name": "_context",
+      "action": "get"
+    },
+    {
+      "library": "dart:core",
+      "class": "_Closure",
+      "name": "_hash",
+      "action": "get"
+    },
+    {
+      "library": "dart:core",
+      "class": "_CompileTimeError",
+      "action": "create-instance"
+    },
+    {
+      "library": "dart:core",
+      "class": "Object",
+      "name": "_simpleInstanceOf",
+      "action": "call"
+    },
+    {
+      "library": "dart:core",
+      "class": "Object",
+      "name": "_simpleInstanceOfTrue",
+      "action": "call"
+    },
+    {
+      "library": "dart:core",
+      "class": "Object",
+      "name": "_simpleInstanceOfFalse",
+      "action": "call"
+    },
+    {
+      "library": "dart:_internal",
+      "name": "_classRangeCheck",
+      "action": "call"
+    },
+    {
+      "library": "dart:_internal",
+      "name": "_prependTypeArguments",
+      "action": "call"
+    },
+    {
+      "library": "dart:async",
+      "name": "_setAsyncThreadStackTrace",
+      "action": "call"
+    },
+    {
+      "library": "dart:async",
+      "name": "_clearAsyncThreadStackTrace",
+      "action": "call"
+    },
+    {
+      "library": "dart:async",
+      "name": "_asyncStarMoveNextHelper",
+      "action": "call"
+    },
+    {
+      "library": "dart:async",
+      "name": "_completeOnAsyncReturn",
+      "action": "call"
+    },
+    {
+      "library": "dart:async",
+      "class": "_AsyncStarStreamController",
+      "action": "create-instance"
     },
     {
       "library": "dart:math",

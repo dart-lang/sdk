@@ -1029,6 +1029,7 @@ VM_UNIT_TEST_CASE(CanonicalizationInScriptSnapshots) {
     result = Dart_CreateSnapshot(NULL, &vm_isolate_snapshot_size,
                                  &isolate_snapshot, &isolate_snapshot_size);
     EXPECT_VALID(result);
+    EXPECT(Dart_IsSnapshot(isolate_snapshot, isolate_snapshot_size));
     full_snapshot = reinterpret_cast<uint8_t*>(malloc(isolate_snapshot_size));
     memmove(full_snapshot, isolate_snapshot, isolate_snapshot_size);
     Dart_ExitScope();
@@ -1067,6 +1068,7 @@ VM_UNIT_TEST_CASE(CanonicalizationInScriptSnapshots) {
     // Write out the script snapshot.
     result = Dart_CreateScriptSnapshot(&buffer, &size);
     EXPECT_VALID(result);
+    EXPECT(Dart_IsSnapshot(buffer, size));
     script_snapshot = reinterpret_cast<uint8_t*>(malloc(size));
     memmove(script_snapshot, buffer, size);
     Dart_ExitScope();
@@ -1139,6 +1141,7 @@ VM_UNIT_TEST_CASE(ScriptSnapshotsUpdateSubclasses) {
     result = Dart_CreateSnapshot(NULL, &vm_isolate_snapshot_size,
                                  &isolate_snapshot, &isolate_snapshot_size);
     EXPECT_VALID(result);
+    EXPECT(Dart_IsSnapshot(isolate_snapshot, isolate_snapshot_size));
     full_snapshot = reinterpret_cast<uint8_t*>(malloc(isolate_snapshot_size));
     memmove(full_snapshot, isolate_snapshot, isolate_snapshot_size);
     Dart_ExitScope();
@@ -1176,6 +1179,7 @@ VM_UNIT_TEST_CASE(ScriptSnapshotsUpdateSubclasses) {
     // Write out the script snapshot.
     result = Dart_CreateScriptSnapshot(&buffer, &size);
     EXPECT_VALID(result);
+    EXPECT(Dart_IsSnapshot(buffer, size));
     script_snapshot = reinterpret_cast<uint8_t*>(malloc(size));
     memmove(script_snapshot, buffer, size);
     Dart_ExitScope();
@@ -1452,6 +1456,7 @@ VM_UNIT_TEST_CASE(ScriptSnapshot) {
     result = Dart_CreateSnapshot(NULL, &vm_isolate_snapshot_size,
                                  &isolate_snapshot, &isolate_snapshot_size);
     EXPECT_VALID(result);
+    EXPECT(Dart_IsSnapshot(isolate_snapshot, isolate_snapshot_size));
     full_snapshot = reinterpret_cast<uint8_t*>(malloc(isolate_snapshot_size));
     memmove(full_snapshot, isolate_snapshot, isolate_snapshot_size);
     Dart_ExitScope();
@@ -1486,6 +1491,7 @@ VM_UNIT_TEST_CASE(ScriptSnapshot) {
     // Write out the script snapshot.
     result = Dart_CreateScriptSnapshot(&buffer, &size);
     EXPECT_VALID(result);
+    EXPECT(Dart_IsSnapshot(buffer, size));
     script_snapshot = reinterpret_cast<uint8_t*>(malloc(size));
     memmove(script_snapshot, buffer, size);
     Dart_ExitScope();
@@ -1550,6 +1556,7 @@ VM_UNIT_TEST_CASE(ScriptSnapshot1) {
     result = Dart_CreateSnapshot(NULL, &vm_isolate_snapshot_size,
                                  &isolate_snapshot, &isolate_snapshot_size);
     EXPECT_VALID(result);
+    EXPECT(Dart_IsSnapshot(isolate_snapshot, isolate_snapshot_size));
     full_snapshot = reinterpret_cast<uint8_t*>(malloc(isolate_snapshot_size));
     memmove(full_snapshot, isolate_snapshot, isolate_snapshot_size);
     Dart_ExitScope();
@@ -1568,6 +1575,7 @@ VM_UNIT_TEST_CASE(ScriptSnapshot1) {
     // Write out the script snapshot.
     result = Dart_CreateScriptSnapshot(&buffer, &size);
     EXPECT_VALID(result);
+    EXPECT(Dart_IsSnapshot(buffer, size));
     script_snapshot = reinterpret_cast<uint8_t*>(malloc(size));
     memmove(script_snapshot, buffer, size);
     Dart_ExitScope();
@@ -1641,6 +1649,7 @@ VM_UNIT_TEST_CASE(ScriptSnapshot2) {
     result = Dart_CreateSnapshot(NULL, &vm_isolate_snapshot_size,
                                  &isolate_snapshot, &isolate_snapshot_size);
     EXPECT_VALID(result);
+    EXPECT(Dart_IsSnapshot(isolate_snapshot, isolate_snapshot_size));
     full_snapshot = reinterpret_cast<uint8_t*>(malloc(isolate_snapshot_size));
     memmove(full_snapshot, isolate_snapshot, isolate_snapshot_size);
     Dart_ExitScope();
@@ -1669,6 +1678,7 @@ VM_UNIT_TEST_CASE(ScriptSnapshot2) {
     // Write out the script snapshot.
     result = Dart_CreateScriptSnapshot(&buffer, &size);
     EXPECT_VALID(result);
+    EXPECT(Dart_IsSnapshot(buffer, size));
     script_snapshot = reinterpret_cast<uint8_t*>(malloc(size));
     memmove(script_snapshot, buffer, size);
     Dart_ExitScope();
@@ -1733,6 +1743,7 @@ VM_UNIT_TEST_CASE(MismatchedSnapshotKinds) {
     result = Dart_CreateSnapshot(NULL, &vm_isolate_snapshot_size,
                                  &isolate_snapshot, &isolate_snapshot_size);
     EXPECT_VALID(result);
+    EXPECT(Dart_IsSnapshot(isolate_snapshot, isolate_snapshot_size));
     full_snapshot = reinterpret_cast<uint8_t*>(malloc(isolate_snapshot_size));
     memmove(full_snapshot, isolate_snapshot, isolate_snapshot_size);
     Dart_ExitScope();
@@ -1754,6 +1765,7 @@ VM_UNIT_TEST_CASE(MismatchedSnapshotKinds) {
     // Write out the script snapshot.
     result = Dart_CreateScriptSnapshot(&buffer, &size);
     EXPECT_VALID(result);
+    EXPECT(Dart_IsSnapshot(buffer, size));
     script_snapshot = reinterpret_cast<uint8_t*>(malloc(size));
     memmove(script_snapshot, buffer, size);
     Dart_ExitScope();
@@ -1763,8 +1775,9 @@ VM_UNIT_TEST_CASE(MismatchedSnapshotKinds) {
   {
     // Use a script snapshot where a full snapshot is expected.
     char* error = NULL;
-    Dart_Isolate isolate = Dart_CreateIsolate(
-        "script-uri", "main", script_snapshot, NULL, NULL, NULL, &error);
+    Dart_Isolate isolate =
+        Dart_CreateIsolate("script-uri", "main", script_snapshot, NULL, NULL,
+                           NULL, NULL, NULL, &error);
     EXPECT(isolate == NULL);
     EXPECT(error != NULL);
     EXPECT_SUBSTRING(
@@ -3143,6 +3156,20 @@ TEST_CASE(OmittedObjectEncodingLength) {
   EXPECT_EQ(1, writer.BytesWritten());
 
   free(writer.buffer());
+}
+
+TEST_CASE(IsSnapshotNegative) {
+  EXPECT(!Dart_IsSnapshot(NULL, 0));
+
+  uint8_t buffer[4] = {0, 0, 0, 0};
+  EXPECT(!Dart_IsSnapshot(buffer, ARRAY_SIZE(buffer)));
+}
+
+TEST_CASE(IsKernelNegative) {
+  EXPECT(!Dart_IsKernel(NULL, 0));
+
+  uint8_t buffer[4] = {0, 0, 0, 0};
+  EXPECT(!Dart_IsKernel(buffer, ARRAY_SIZE(buffer)));
 }
 
 }  // namespace dart

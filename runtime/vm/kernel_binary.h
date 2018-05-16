@@ -16,10 +16,11 @@
 namespace dart {
 namespace kernel {
 
-// Keep in sync with package:kernel/lib/binary/tag.dart.
+// Keep in sync with package:kernel/lib/binary/tag.dart,
+// package:kernel/binary.md.
 
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
-static const uint32_t kBinaryFormatVersion = 3;
+static const uint32_t kBinaryFormatVersion = 6;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -104,6 +105,7 @@ static const uint32_t kBinaryFormatVersion = 3;
   V(VariableDeclaration, 78)                                                   \
   V(FunctionDeclaration, 79)                                                   \
   V(AsyncForInStatement, 80)                                                   \
+  V(AssertBlock, 81)                                                           \
   V(TypedefType, 87)                                                           \
   V(VectorType, 88)                                                            \
   V(BottomType, 89)                                                            \
@@ -148,24 +150,29 @@ enum ConstantTag {
   kMapConstant = 5,
   kListConstant = 6,
   kInstanceConstant = 7,
-  kTearOffConstant = 8,
-  kTypeLiteralConstant = 9,
+  kPartialInstantiationConstant = 8,
+  kTearOffConstant = 9,
+  kTypeLiteralConstant = 10,
 };
 
 static const int SpecializedIntLiteralBias = 3;
 static const int LibraryCountFieldCountFromEnd = 1;
-static const int SourceTableFieldCountFromFirstLibraryOffset = 4;
+static const int SourceTableFieldCountFromFirstLibraryOffset = 6;
 
 static const int HeaderSize = 8;  // 'magic', 'formatVersion'.
-static const int MetadataPayloadOffset = HeaderSize;  // Right after header.
 
-class Reader {
+class Reader : public ValueObject {
  public:
   Reader(const uint8_t* buffer, intptr_t size)
-      : raw_buffer_(buffer), typed_data_(NULL), size_(size), offset_(0) {}
+      : thread_(NULL),
+        raw_buffer_(buffer),
+        typed_data_(NULL),
+        size_(size),
+        offset_(0) {}
 
   explicit Reader(const TypedData& typed_data)
-      : raw_buffer_(NULL),
+      : thread_(Thread::Current()),
+        raw_buffer_(NULL),
         typed_data_(&typed_data),
         size_(typed_data.IsNull() ? 0 : typed_data.Length()),
         offset_(0) {}
@@ -183,11 +190,13 @@ class Reader {
 
   uint32_t ReadUInt32At(intptr_t offset) const {
     ASSERT((size_ >= 4) && (offset >= 0) && (offset <= size_ - 4));
-
-    const uint8_t* buffer = this->buffer();
-    uint32_t value = (buffer[offset + 0] << 24) | (buffer[offset + 1] << 16) |
-                     (buffer[offset + 2] << 8) | (buffer[offset + 3] << 0);
-    return value;
+    uint32_t value;
+    if (raw_buffer_ != NULL) {
+      value = *reinterpret_cast<const uint32_t*>(raw_buffer_ + offset);
+    } else {
+      value = typed_data_->GetUint32(offset);
+    }
+    return Utils::BigEndianToHost32(value);
   }
 
   uint32_t ReadFromIndexNoReset(intptr_t end_offset,
@@ -201,6 +210,14 @@ class Reader {
   uint32_t ReadUInt32() {
     uint32_t value = ReadUInt32At(offset_);
     offset_ += 4;
+    return value;
+  }
+
+  double ReadDouble() {
+    ASSERT((size_ >= 8) && (offset_ >= 0) && (offset_ <= size_ - 8));
+    double value = ReadUnaligned(
+        reinterpret_cast<const double*>(&this->buffer()[offset_]));
+    offset_ += 8;
     return value;
   }
 
@@ -307,29 +324,29 @@ class Reader {
   // the root name as in the canonical name table.
   NameIndex ReadCanonicalNameReference() { return NameIndex(ReadUInt() - 1); }
 
-  intptr_t offset() { return offset_; }
+  intptr_t offset() const { return offset_; }
   void set_offset(intptr_t offset) { offset_ = offset; }
 
-  intptr_t size() { return size_; }
+  intptr_t size() const { return size_; }
   void set_size(intptr_t size) { size_ = size; }
 
-  const TypedData* typed_data() { return typed_data_; }
+  const TypedData* typed_data() const { return typed_data_; }
   void set_typed_data(const TypedData* typed_data) { typed_data_ = typed_data; }
 
-  const uint8_t* raw_buffer() { return raw_buffer_; }
+  const uint8_t* raw_buffer() const { return raw_buffer_; }
   void set_raw_buffer(const uint8_t* raw_buffer) { raw_buffer_ = raw_buffer; }
 
   void CopyDataToVMHeap(const TypedData& typed_data,
                         intptr_t offset,
                         intptr_t size) {
-    NoSafepointScope no_safepoint;
+    NoSafepointScope no_safepoint(thread_);
     memmove(typed_data.DataAddr(0), buffer() + offset, size);
   }
 
   uint8_t* CopyDataIntoZone(Zone* zone, intptr_t offset, intptr_t length) {
     uint8_t* buffer_ = zone->Alloc<uint8_t>(length);
     {
-      NoSafepointScope no_safepoint;
+      NoSafepointScope no_safepoint(thread_);
       memmove(buffer_, buffer() + offset, length);
     }
     return buffer_;
@@ -340,10 +357,11 @@ class Reader {
     if (raw_buffer_ != NULL) {
       return raw_buffer_;
     }
-    NoSafepointScope no_safepoint;
+    NoSafepointScope no_safepoint(thread_);
     return reinterpret_cast<uint8_t*>(typed_data_->DataAddr(0));
   }
 
+  Thread* thread_;
   const uint8_t* raw_buffer_;
   const TypedData* typed_data_;
   intptr_t size_;

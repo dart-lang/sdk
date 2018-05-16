@@ -4,7 +4,7 @@
 
 import 'dart:async' show Future;
 
-import 'dart:convert' show UTF8;
+import 'dart:convert' show utf8;
 
 import 'dart:io' show File;
 
@@ -39,7 +39,6 @@ class ValidatingInstrumentation implements Instrumentation {
       'target',
     ],
     'checks': const [
-      'callKind',
       'covariance',
       'checkGetterReturn',
       'checkReturn',
@@ -107,7 +106,7 @@ class ValidatingInstrumentation implements Instrumentation {
     var bytes = (await file.readAsBytes()).toList();
     int convertOffset(int offset) {
       if (offsetsCountCharacters) {
-        return UTF8.encode(UTF8.decode(bytes).substring(0, offset)).length;
+        return utf8.encode(utf8.decode(bytes).substring(0, offset)).length;
       } else {
         return offset;
       }
@@ -118,7 +117,7 @@ class ValidatingInstrumentation implements Instrumentation {
     fixes.sort((a, b) => a.offset.compareTo(b.offset));
     for (var fix in fixes.reversed) {
       bytes.replaceRange(convertOffset(fix.offset),
-          convertOffset(fix.offset + fix.length), UTF8.encode(fix.replacement));
+          convertOffset(fix.offset + fix.length), utf8.encode(fix.replacement));
     }
     await file.writeAsBytes(bytes);
   }

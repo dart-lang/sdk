@@ -463,6 +463,9 @@ abstract class CodegenWorldBuilderImpl extends WorldBuilderBase
 
   _MemberUsage _getMemberUsage(
       covariant MemberEntity member, MemberUsedCallback memberUsed) {
+    // TODO(johnniwinther): Change [TypeMask] to not apply to a superclass
+    // member unless the class has been instantiated. Similar to
+    // [StrongModeConstraint].
     return _instanceMemberUsage.putIfAbsent(member, () {
       String memberName = member.name;
       ClassEntity cls = member.enclosingClass;
@@ -470,13 +473,13 @@ abstract class CodegenWorldBuilderImpl extends WorldBuilderBase
       _MemberUsage usage = new _MemberUsage(member, isNative: isNative);
       EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
       useSet.addAll(usage.appliedUse);
-      if (hasInvokedGetter(member, _world)) {
+      if (!usage.hasRead && hasInvokedGetter(member, _world)) {
         useSet.addAll(usage.read());
       }
-      if (hasInvokedSetter(member, _world)) {
+      if (!usage.hasWrite && hasInvokedSetter(member, _world)) {
         useSet.addAll(usage.write());
       }
-      if (hasInvocation(member, _world)) {
+      if (!usage.hasInvoke && hasInvocation(member, _world)) {
         useSet.addAll(usage.invoke());
       }
 
@@ -597,103 +600,40 @@ abstract class CodegenWorldBuilderImpl extends WorldBuilderBase
     _instanceMemberUsage.forEach(processMemberUse);
     return functions;
   }
-}
-
-class ElementCodegenWorldBuilderImpl extends CodegenWorldBuilderImpl {
-  final JavaScriptConstantCompiler _constants;
-
-  ElementCodegenWorldBuilderImpl(
-      this._constants,
-      ElementEnvironment elementEnvironment,
-      NativeBasicData nativeBasicData,
-      ClosedWorld world,
-      SelectorConstraintsStrategy selectorConstraintsStrategy)
-      : super(elementEnvironment, nativeBasicData, world,
-            selectorConstraintsStrategy);
 
   @override
-  bool hasConstantFieldInitializer(FieldElement field) {
-    return field.constant != null;
-  }
+  Iterable<FunctionEntity> get userNoSuchMethods {
+    List<FunctionEntity> functions = <FunctionEntity>[];
 
-  @override
-  ConstantValue getConstantFieldInitializer(FieldElement field) {
-    assert(field.constant != null,
-        failedAt(field, "Field $field doesn't have a constant initial value."));
-    return _constants.getConstantValue(field.constant);
-  }
-
-  /// Calls [f] with every instance field, together with its declarer, in an
-  /// instance of [cls].
-  void forEachInstanceField(
-      ClassElement cls, void f(ClassEntity declarer, FieldEntity field)) {
-    cls.implementation
-        .forEachInstanceField(f, includeSuperAndInjectedMembers: true);
-  }
-
-  /// Calls [f] with every instance field of the immediate class [cls].
-  void forEachDirectInstanceField(ClassElement cls, void f(FieldEntity field)) {
-    cls.implementation.forEachInstanceField((ClassEntity _, FieldEntity field) {
-      f(field);
-    }, includeSuperAndInjectedMembers: false);
-  }
-
-  @override
-  void forEachParameter(MethodElement function,
-      void f(DartType type, String name, ConstantValue defaultValue)) {
-    if (!function.hasFunctionSignature) return;
-    function = function.implementation;
-    FunctionSignature parameters = function.functionSignature;
-    parameters.orderedForEachParameter((_parameter) {
-      ParameterElement parameter = _parameter;
-      ConstantValue value;
-      if (parameter.isOptional) {
-        value = _constants.getConstantValue(parameter.constant);
+    void processMemberUse(MemberEntity member, _MemberUsage memberUsage) {
+      if (member.isInstanceMember &&
+          member is FunctionEntity &&
+          memberUsage.hasUse &&
+          member.name == Identifiers.noSuchMethod_ &&
+          !_world.commonElements.isDefaultNoSuchMethodImplementation(member)) {
+        functions.add(member);
       }
-      f(parameter.type, parameter.name, value);
-    });
+    }
+
+    _instanceMemberUsage.forEach(processMemberUse);
+    return functions;
   }
 
   @override
-  void forEachParameterAsLocal(
-      MethodElement function, void f(Local parameter)) {
-    if (!function.hasFunctionSignature) return;
-    function = function.implementation;
-    FunctionSignature parameters = function.functionSignature;
-    parameters.orderedForEachParameter((_parameter) {
-      ParameterElement parameter = _parameter;
-      f(parameter);
-    });
-  }
+  Iterable<FunctionEntity> get genericMethods {
+    List<FunctionEntity> functions = <FunctionEntity>[];
 
-  @override
-  void _processInstantiatedClassMember(
-      ClassEntity cls, MemberElement member, MemberUsedCallback memberUsed) {
-    assert(member.isDeclaration, failedAt(member));
-    if (member.isMalformed) return;
-    super._processInstantiatedClassMember(cls, member, memberUsed);
-  }
+    void processMemberUse(Entity member, AbstractUsage memberUsage) {
+      if (member is FunctionEntity &&
+          memberUsage.hasUse &&
+          _elementEnvironment.getFunctionTypeVariables(member).isNotEmpty) {
+        functions.add(member);
+      }
+    }
 
-  @override
-  _MemberUsage _getMemberUsage(
-      MemberElement member, MemberUsedCallback memberUsed) {
-    assert(member.isDeclaration, failedAt(member));
-    return super._getMemberUsage(member, memberUsed);
-  }
-
-  void registerStaticUse(StaticUse staticUse, MemberUsedCallback memberUsed) {
-    Element element = staticUse.element;
-    assert(element.isDeclaration,
-        failedAt(element, "Element ${element} is not the declaration."));
-    super.registerStaticUse(staticUse, memberUsed);
-  }
-
-  void registerIsCheck(ResolutionDartType type) {
-    // Even in checked mode, type annotations for return type and argument
-    // types do not imply type checks, so there should never be a check
-    // against the type variable of a typedef.
-    assert(!type.isTypeVariable || !type.element.enclosingElement.isTypedef);
-    super.registerIsCheck(type);
+    _instanceMemberUsage.forEach(processMemberUse);
+    _staticMemberUsage.forEach(processMemberUse);
+    return functions;
   }
 }
 

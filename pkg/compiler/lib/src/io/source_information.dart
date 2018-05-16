@@ -6,16 +6,8 @@ library dart2js.source_information;
 
 import 'package:kernel/ast.dart' show Location;
 import '../common.dart';
-import '../elements/elements.dart'
-    show
-        AstElement,
-        CompilationUnitElement,
-        LocalElement,
-        ResolvedAst,
-        ResolvedAstKind;
 import '../elements/entities.dart';
 import '../js/js.dart' show JavaScriptNodeSourceInformation;
-import '../script.dart';
 import '../universe/call_structure.dart';
 import 'source_file.dart';
 
@@ -279,11 +271,11 @@ class OffsetSourceLocation extends AbstractSourceLocation {
 
 /// Compute the source map name for [element]. If [callStructure] is non-null
 /// it is used to name the parameter stub for [element].
+// TODO(johnniwinther): Merge this with `computeKernelElementNameForSourceMaps`
+// when the old frontend is removed.
 String computeElementNameForSourceMaps(Entity element,
     [CallStructure callStructure]) {
-  if (element is AstElement) {
-    return _computeAstElementNameForSourceMaps(element, callStructure);
-  } else if (element is ClassEntity) {
+  if (element is ClassEntity) {
     return element.name;
   } else if (element is MemberEntity) {
     String suffix = computeStubSuffix(callStructure);
@@ -307,41 +299,6 @@ String computeElementNameForSourceMaps(Entity element,
   return element.name;
 }
 
-String _computeAstElementNameForSourceMaps(
-    AstElement element, CallStructure callStructure) {
-  if (element.isClosure) {
-    return computeElementNameForSourceMaps(
-        element.enclosingElement, callStructure);
-  } else if (element.isClass) {
-    return element.name;
-  } else if (element.isConstructor || element.isGenerativeConstructorBody) {
-    String className = element.enclosingClass.name;
-    if (element.name == '') {
-      return className;
-    }
-    return '$className.${element.name}';
-  } else if (element.isLocal) {
-    LocalElement local = element;
-    String name = local.name;
-    if (name == '') {
-      name = '<anonymous function>';
-    }
-    String enclosingName =
-        computeElementNameForSourceMaps(local.executableContext, callStructure);
-    return '$enclosingName.$name';
-  } else if (element.enclosingClass != null) {
-    String suffix = computeStubSuffix(callStructure);
-    if (element.enclosingClass.isClosure) {
-      return computeElementNameForSourceMaps(
-          element.enclosingClass, callStructure);
-    }
-    return '${element.enclosingClass.name}.${element.name}$suffix';
-  } else {
-    String suffix = computeStubSuffix(callStructure);
-    return '${element.name}$suffix';
-  }
-}
-
 /// Compute the suffix used for a parameter stub for [callStructure].
 String computeStubSuffix(CallStructure callStructure) {
   if (callStructure == null) return '';
@@ -354,35 +311,6 @@ String computeStubSuffix(CallStructure callStructure) {
   }
   sb.write(']');
   return sb.toString();
-}
-
-/// Computes the [SourceFile] for the source code of [resolvedAst].
-SourceFile computeSourceFile(ResolvedAst resolvedAst) {
-  SourceFile sourceFile;
-  if (resolvedAst.kind != ResolvedAstKind.PARSED) {
-    // Synthesized node. Use the enclosing element for the location.
-    sourceFile = resolvedAst.element.compilationUnit.script.file;
-  } else {
-    Uri uri = resolvedAst.sourceUri;
-    AstElement implementation = resolvedAst.element.implementation;
-    Script script = implementation.compilationUnit.script;
-    if (uri == script.resourceUri) {
-      sourceFile = script.file;
-    } else {
-      // Slow path, happens only for deserialized elements.
-      // TODO(johnniwinther): Support a way to get a [SourceFile] from a
-      // [Uri].
-      for (CompilationUnitElement compilationUnit
-          in implementation.library.compilationUnits) {
-        Script script = compilationUnit.script;
-        if (uri == script.resourceUri) {
-          sourceFile = script.file;
-          break;
-        }
-      }
-    }
-  }
-  return sourceFile;
 }
 
 class NoSourceLocationMarker extends SourceLocation {

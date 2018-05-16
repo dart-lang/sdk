@@ -80,7 +80,7 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
   /// If [fileUri] is null, it defaults to `this.fileUri`.
   void addCompileTimeError(
       Message message, int charOffset, int length, Uri fileUri,
-      {bool wasHandled: false, LocatedMessage context}) {
+      {bool wasHandled: false, List<LocatedMessage> context}) {
     fileUri ??= this.fileUri;
     loader.addCompileTimeError(message, charOffset, length, fileUri,
         wasHandled: wasHandled, context: context);
@@ -88,7 +88,7 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
 
   /// Add a problem with a severity determined by the severity of the message.
   void addProblem(Message message, int charOffset, int length, Uri fileUri,
-      {LocatedMessage context}) {
+      {List<LocatedMessage> context}) {
     fileUri ??= this.fileUri;
     loader.addProblem(message, charOffset, length, fileUri, context: context);
   }
@@ -170,7 +170,7 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
         null);
   }
 
-  int finishTypeVariables(ClassBuilder object) => 0;
+  int finishTypeVariables(ClassBuilder object, TypeBuilder dynamicType) => 0;
 
   /// This method instantiates type parameters to their bounds in some cases
   /// where they were omitted by the programmer and not provided by the type

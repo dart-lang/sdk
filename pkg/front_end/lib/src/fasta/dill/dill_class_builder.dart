@@ -4,27 +4,23 @@
 
 library fasta.dill_class_builder;
 
-import 'package:kernel/ast.dart' show Class, Member, TypeParameter, DartType;
-
-import 'package:kernel/type_algebra.dart' show calculateBounds;
+import 'package:kernel/ast.dart' show Class, DartType, Member;
 
 import '../problems.dart' show unimplemented;
 
 import '../kernel/kernel_builder.dart'
     show
-        MemberBuilder,
         KernelClassBuilder,
         KernelTypeBuilder,
-        Scope,
-        TypeBuilder;
+        LibraryBuilder,
+        MemberBuilder,
+        Scope;
 
 import '../modifier.dart' show abstractMask;
 
 import 'dill_member_builder.dart' show DillMemberBuilder;
 
 import 'dill_library_builder.dart' show DillLibraryBuilder;
-
-import 'built_type_builder.dart' show BuiltTypeBuilder;
 
 class DillClassBuilder extends KernelClassBuilder {
   final Class cls;
@@ -60,24 +56,30 @@ class DillClassBuilder extends KernelClassBuilder {
     }
   }
 
-  List<TypeBuilder> get calculatedBounds {
-    if (super.calculatedBounds != null) {
-      return super.calculatedBounds;
+  @override
+  int get typeVariablesCount => cls.typeParameters.length;
+
+  @override
+  List<DartType> buildTypeArguments(
+      LibraryBuilder library, List<KernelTypeBuilder> arguments) {
+    // For performance reasons, [typeVariables] aren't restored from [target].
+    // So, if [arguments] is null, the default types should be retrieved from
+    // [cls.typeParameters].
+    if (arguments == null) {
+      List<DartType> result =
+          new List<DartType>.filled(cls.typeParameters.length, null);
+      for (int i = 0; i < result.length; ++i) {
+        result[i] = cls.typeParameters[i].defaultType;
+      }
+      return result;
     }
-    DillLibraryBuilder parentLibraryBuilder = parent;
-    DillClassBuilder objectClassBuilder =
-        parentLibraryBuilder.loader.coreLibrary["Object"];
-    Class objectClass = objectClassBuilder.cls;
-    List<TypeParameter> targetTypeParameters = target.typeParameters;
-    List<DartType> calculatedBoundTypes =
-        calculateBounds(targetTypeParameters, objectClass);
-    List<TypeBuilder> result =
-        new List<BuiltTypeBuilder>(targetTypeParameters.length);
-    for (int i = 0; i < result.length; i++) {
-      result[i] = new BuiltTypeBuilder(calculatedBoundTypes[i]);
+
+    // [arguments] != null
+    List<DartType> result = new List<DartType>.filled(arguments.length, null);
+    for (int i = 0; i < result.length; ++i) {
+      result[i] = arguments[i].build(library);
     }
-    super.calculatedBounds = result;
-    return super.calculatedBounds;
+    return result;
   }
 
   /// Returns true if this class is the result of applying a mixin to its

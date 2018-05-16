@@ -28,8 +28,11 @@ class SnapshotWriter;
   V(DeoptForRewind)                                                            \
   V(UpdateStoreBuffer)                                                         \
   V(PrintStopMessage)                                                          \
+  V(AllocateArray)                                                             \
+  V(AllocateContext)                                                           \
   V(CallToRuntime)                                                             \
   V(LazyCompile)                                                               \
+  V(InterpretCall)                                                             \
   V(CallBootstrapNative)                                                       \
   V(CallNoScopeNative)                                                         \
   V(CallAutoScopeNative)                                                       \
@@ -37,6 +40,7 @@ class SnapshotWriter;
   V(CallStaticFunction)                                                        \
   V(OptimizeFunction)                                                          \
   V(InvokeDartCode)                                                            \
+  V(InvokeDartCodeFromBytecode)                                                \
   V(DebugStepCheck)                                                            \
   V(UnlinkedCall)                                                              \
   V(MonomorphicMiss)                                                           \
@@ -52,8 +56,6 @@ class SnapshotWriter;
   V(OptimizedIdenticalWithNumberCheck)                                         \
   V(ICCallBreakpoint)                                                          \
   V(RuntimeCallBreakpoint)                                                     \
-  V(AllocateArray)                                                             \
-  V(AllocateContext)                                                           \
   V(OneArgCheckInlineCache)                                                    \
   V(TwoArgsCheckInlineCache)                                                   \
   V(SmiAddInlineCache)                                                         \
@@ -67,6 +69,11 @@ class SnapshotWriter;
   V(Subtype1TestCache)                                                         \
   V(Subtype2TestCache)                                                         \
   V(Subtype4TestCache)                                                         \
+  V(DefaultTypeTest)                                                           \
+  V(TopTypeTypeTest)                                                           \
+  V(TypeRefTypeTest)                                                           \
+  V(UnreachableTypeTest)                                                       \
+  V(SlowTypeTest)                                                              \
   V(CallClosureNoSuchMethod)                                                   \
   V(FrameAwaitingMaterialization)                                              \
   V(AsynchronousGapMarker)
@@ -82,6 +89,11 @@ class SnapshotWriter;
   V(Deoptimize)                                                                \
   V(DeoptimizeLazyFromReturn)                                                  \
   V(DeoptimizeLazyFromThrow)                                                   \
+  V(DefaultTypeTest)                                                           \
+  V(TopTypeTypeTest)                                                           \
+  V(TypeRefTypeTest)                                                           \
+  V(UnreachableTypeTest)                                                       \
+  V(SlowTypeTest)                                                              \
   V(FrameAwaitingMaterialization)                                              \
   V(AsynchronousGapMarker)
 

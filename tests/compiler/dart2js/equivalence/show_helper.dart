@@ -10,7 +10,6 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/source_file_provider.dart';
-import '../kernel/test_helpers.dart';
 import 'id_equivalence_helper.dart';
 
 ArgParser createArgParser() {
@@ -18,22 +17,25 @@ ArgParser createArgParser() {
   argParser.addFlag('verbose', negatable: true, defaultsTo: false);
   argParser.addFlag('colors', negatable: true);
   argParser.addFlag('all', negatable: false, defaultsTo: false);
-  argParser.addFlag('use-kernel', negatable: false, defaultsTo: false);
   argParser.addFlag('strong', negatable: false, defaultsTo: false);
+  argParser.addFlag('omit-implicit-checks',
+      negatable: false, defaultsTo: false);
+  argParser.addFlag('trust-type-annotations',
+      negatable: false, defaultsTo: false);
   return argParser;
 }
 
-show(ArgResults argResults, ComputeMemberDataFunction computeAstData,
-    ComputeMemberDataFunction computeKernelData,
-    {ComputeClassDataFunction computeAstClassData,
-    ComputeClassDataFunction computeKernelClassData,
+show(ArgResults argResults, ComputeMemberDataFunction computeKernelData,
+    {ComputeClassDataFunction computeKernelClassData,
+    bool testFrontend: false,
     List<String> options: const <String>[]}) async {
   if (argResults.wasParsed('colors')) {
     useColors = argResults['colors'];
   }
   bool verbose = argResults['verbose'];
   bool strongMode = argResults['strong'];
-  bool useKernel = argResults['use-kernel'] || strongMode;
+  bool omitImplicitChecks = argResults['omit-implicit-checks'];
+  bool trustTypeAnnotations = argResults['trust-type-annotations'];
 
   String file = argResults.rest.first;
   Uri entryPoint = Uri.base.resolve(nativeToUriPath(file));
@@ -47,17 +49,19 @@ show(ArgResults argResults, ComputeMemberDataFunction computeAstData,
   }
 
   options = new List<String>.from(options);
-  if (!useKernel) {
-    options.add(Flags.useOldFrontend);
-  }
   if (strongMode) {
     options.add(Flags.strongMode);
   }
-  CompiledData data = await computeData(
-      entryPoint, const {}, useKernel ? computeKernelData : computeAstData,
-      computeClassData:
-          useKernel ? computeKernelClassData : computeAstClassData,
+  if (trustTypeAnnotations) {
+    options.add(Flags.trustTypeAnnotations);
+  }
+  if (omitImplicitChecks) {
+    options.add(Flags.omitImplicitChecks);
+  }
+  CompiledData data = await computeData(entryPoint, const {}, computeKernelData,
+      computeClassData: computeKernelClassData,
       options: options,
+      testFrontend: testFrontend,
       forUserLibrariesOnly: false,
       skipUnprocessedMembers: true,
       skipFailedCompilations: true,
@@ -70,7 +74,6 @@ show(ArgResults argResults, ComputeMemberDataFunction computeAstData,
       if (show != null && !show.any((f) => '$uri'.endsWith(f))) {
         continue;
       }
-      uri = resolveFastaUri(uri);
       SourceFile sourceFile = await provider.autoReadFromFile(uri);
       String sourceCode = sourceFile?.slowText();
       if (sourceCode == null) {

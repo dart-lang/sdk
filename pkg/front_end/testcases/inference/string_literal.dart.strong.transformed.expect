@@ -1,0 +1,14 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static field core::int x = 1;
+static field core::String a = "aaa";
+static field core::String b = "b ${self::x} bb";
+static field core::String c = "c ${self::x} ccccc";
+static method main() → dynamic {
+  core::int x = 1;
+  core::String a = "aaa";
+  core::String b = "b ${x} bb";
+  core::String c = "c ${x} ccccc";
+}

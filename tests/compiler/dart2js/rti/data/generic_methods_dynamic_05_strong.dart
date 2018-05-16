@@ -4,18 +4,23 @@
 
 // Test derived from language_2/generic_methods_dynamic_test/05
 
-/*class: global#JSArray:deps=[EmptyIterable,List,ListIterable,SubListIterable],explicit=[JSArray,List<JSArray.E>],implicit=[JSArray.E],indirect,needsArgs*/
-/*class: global#List:deps=[C.bar,EmptyIterable,Iterable,JSArray,ListIterable,makeListFixedLength],explicit=[List,List.E,List<B>,List<JSArray.E>,List<makeListFixedLength.T>],implicit=[List.E],indirect,needsArgs*/
+/*!strong.class: global#JSArray:deps=[EmptyIterable,List,ListIterable,SubListIterable],explicit=[JSArray],needsArgs*/
+/*strong.class: global#JSArray:deps=[ArrayIterator,EmptyIterable,List,ListIterable,SubListIterable],direct,explicit=[Iterable<JSArray.E>,JSArray,JSArray.E,JSArray<ArrayIterator.E>,List<JSArray.E>],implicit=[JSArray.E],needsArgs*/
+
+/*!strong.class: global#List:deps=[C.bar,EmptyIterable,Iterable,JSArray,ListIterable],explicit=[List,List<B>],needsArgs*/
+/*strong.class: global#List:deps=[C.bar,EmptyIterable,Iterable,JSArray,ListIterable,makeListFixedLength],direct,explicit=[List,List.E,List<B>,List<JSArray.E>,List<String>,List<makeListFixedLength.T>],implicit=[List.E],needsArgs*/
 
 import "package:expect/expect.dart";
 
 class A {}
 
-/*class: B:explicit=[List<B>],implicit=[B]*/
+/*!strong.class: B:explicit=[List<B>]*/
+/*strong.class: B:explicit=[List<B>],implicit=[B]*/
 class B {}
 
 class C {
-  /*element: C.bar:implicit=[bar.T],indirect,needsArgs,selectors=[Selector(call, bar, arity=1, types=1)]*/
+  /*!strong.element: C.bar:needsArgs,selectors=[Selector(call, bar, arity=1, types=1)]*/
+  /*strong.element: C.bar:explicit=[Iterable<bar.T>],implicit=[bar.T],indirect,needsArgs,selectors=[Selector(call, bar, arity=1, types=1)]*/
   List<T> bar<T>(Iterable<T> t) => <T>[t.first];
 }
 

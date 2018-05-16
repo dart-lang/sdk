@@ -10,7 +10,7 @@ import 'package:kernel/verifier.dart';
 final String usage = '''
 Usage: verify_bench FILE.dill
 
-Measures the time it takes to run kernel verifier on the given program.
+Measures the time it takes to run kernel verifier on the given component.
 ''';
 
 main(List<String> args) {
@@ -18,18 +18,18 @@ main(List<String> args) {
     print(usage);
     exit(1);
   }
-  var program = loadProgramFromBinary(args[0]);
+  var component = loadComponentFromBinary(args[0]);
   var watch = new Stopwatch()..start();
-  verifyProgram(program);
+  verifyComponent(component);
   print('Cold: ${watch.elapsedMilliseconds} ms');
   const int warmUpTrials = 20;
   for (int i = 0; i < warmUpTrials; ++i) {
-    verifyProgram(program);
+    verifyComponent(component);
   }
   watch.reset();
   const int numberOfTrials = 100;
   for (int i = 0; i < numberOfTrials; ++i) {
-    verifyProgram(program);
+    verifyComponent(component);
   }
   double millisecondsPerRun = watch.elapsedMilliseconds / numberOfTrials;
   print('Hot:  $millisecondsPerRun ms');

@@ -16,7 +16,7 @@ import 'package:kernel/ast.dart';
 /// methods maintain a linked list of [TypePromotionFact] objects tracking what
 /// is known about the state of each variable at the current point in the code,
 /// as well as a linked list of [TypePromotionScope] objects tracking the
-/// program's nesting structure.  Whenever a variable is read, the current
+/// component's nesting structure.  Whenever a variable is read, the current
 /// [TypePromotionFact] and [TypePromotionScope] are recorded for later use.
 ///
 /// During type inference, the [TypeInferrer] calls back into this class to ask
@@ -473,7 +473,7 @@ abstract class TypePromoterImpl extends TypePromoter {
 }
 
 /// A single fact which is known to the type promotion engine about the state of
-/// a variable (or about the flow control of the program).
+/// a variable (or about the flow control of the component).
 ///
 /// The type argument V represents is the class which represents local variable
 /// declarations.
@@ -481,14 +481,14 @@ abstract class TypePromoterImpl extends TypePromoter {
 /// Facts are linked together into linked lists via the [previous] pointer into
 /// a data structure called a "fact chain" (or sometimes a "fact state"), which
 /// represents all facts that are known to hold at a certain point in the
-/// program.
+/// component.
 ///
-/// The fact is said to "apply" to a given point in the execution of the program
+/// The fact is said to "apply" to a given point in the execution of the component
 /// if the fact is part of the current fact state at the point the parser
-/// reaches that point in the program.
+/// reaches that point in the component.
 ///
 /// Note: just because a fact "applies" to a given point in the execution of the
-/// program doesn't mean a type will be promoted--it simply means that the fact
+/// component doesn't mean a type will be promoted--it simply means that the fact
 /// was deduced at a previous point in the straight line execution of the code.
 /// It's possible that the fact will be overshadowed by a later fact, or its
 /// effect will be cancelled by a later assignment.  The final detemination of

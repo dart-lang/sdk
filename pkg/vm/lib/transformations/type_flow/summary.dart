@@ -14,8 +14,8 @@ import 'types.dart';
 import 'utils.dart';
 
 abstract class CallHandler {
-  Type applyCall(
-      Call callSite, Selector selector, Args<Type> args, bool isResultUsed);
+  Type applyCall(Call callSite, Selector selector, Args<Type> args,
+      {bool isResultUsed});
 }
 
 /// Base class for all statements in a summary.
@@ -53,6 +53,7 @@ class StatementVisitor {
   void visitParameter(Parameter expr) => visitDefault(expr);
   void visitNarrow(Narrow expr) => visitDefault(expr);
   void visitJoin(Join expr) => visitDefault(expr);
+  void visitUse(Use expr) => visitDefault(expr);
   void visitCall(Call expr) => visitDefault(expr);
 }
 
@@ -135,6 +136,24 @@ class Join extends Statement {
   }
 }
 
+/// Artificial use of [arg]. Removed during summary normalization.
+class Use extends Statement {
+  TypeExpr arg;
+
+  Use(this.arg);
+
+  @override
+  void accept(StatementVisitor visitor) => visitor.visitUse(this);
+
+  @override
+  String dump() => "$label = _Use ($arg)";
+
+  @override
+  Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,
+          CallHandler callHandler) =>
+      throw 'Use statements should be removed during summary normalization';
+}
+
 /// Call site.
 class Call extends Statement {
   final Selector selector;
@@ -164,8 +183,9 @@ class Call extends Statement {
     if (selector is! DirectSelector) {
       _observeReceiverType(argTypes[0]);
     }
-    final Type result = callHandler.applyCall(this, selector,
-        new Args<Type>(argTypes, names: args.names), isResultUsed);
+    final Type result = callHandler.applyCall(
+        this, selector, new Args<Type>(argTypes, names: args.names),
+        isResultUsed: isResultUsed);
     if (isResultUsed) {
       _observeResultType(result, typeHierarchy);
     }

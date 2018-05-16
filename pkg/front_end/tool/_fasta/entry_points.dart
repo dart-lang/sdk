@@ -6,16 +6,12 @@ library fasta.tool.entry_points;
 
 import 'dart:async' show Future, Stream;
 
-import 'dart:convert' show JSON, LineSplitter, UTF8;
+import 'dart:convert' show jsonDecode, jsonEncode, LineSplitter, utf8;
 
 import 'dart:io' show File, exitCode, stderr, stdin, stdout;
 
-import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
-
 import 'package:kernel/kernel.dart'
-    show CanonicalName, Library, Program, Source, loadProgramFromBytes;
-
-import 'package:kernel/target/targets.dart' show TargetFlags, targets;
+    show CanonicalName, Library, Component, Source, loadComponentFromBytes;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
@@ -34,13 +30,15 @@ import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
 
 import 'package:front_end/src/fasta/kernel/utils.dart'
-    show printProgramText, writeProgramToFile;
+    show printComponentText, writeComponentToFile;
 
 import 'package:front_end/src/fasta/severity.dart' show Severity;
 
 import 'package:front_end/src/fasta/ticker.dart' show Ticker;
 
 import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
+
+import 'additional_targets.dart' show installAdditionalTargets;
 
 import 'command_line.dart' show withGlobalOptions;
 
@@ -49,7 +47,7 @@ const bool summary = const bool.fromEnvironment("summary", defaultValue: false);
 const int iterations = const int.fromEnvironment("iterations", defaultValue: 1);
 
 compileEntryPoint(List<String> arguments) async {
-  targets["dart2js"] = (TargetFlags flags) => new Dart2jsTarget(flags);
+  installAdditionalTargets();
 
   // Timing results for each iteration
   List<double> elapsedTimes = <double>[];
@@ -66,12 +64,14 @@ compileEntryPoint(List<String> arguments) async {
   }
 
   if (summary) {
-    var json = JSON.encode(<String, dynamic>{'elapsedTimes': elapsedTimes});
+    var json = jsonEncode(<String, dynamic>{'elapsedTimes': elapsedTimes});
     print('\nSummary: $json');
   }
 }
 
 outlineEntryPoint(List<String> arguments) async {
+  installAdditionalTargets();
+
   for (int i = 0; i < iterations; i++) {
     if (i > 0) {
       print("\n");
@@ -81,8 +81,10 @@ outlineEntryPoint(List<String> arguments) async {
 }
 
 batchEntryPoint(List<String> arguments) {
+  installAdditionalTargets();
+
   return new BatchCompiler(
-          stdin.transform(UTF8.decoder).transform(new LineSplitter()))
+          stdin.transform(utf8.decoder).transform(new LineSplitter()))
       .run();
 }
 
@@ -91,14 +93,14 @@ class BatchCompiler {
 
   Uri platformUri;
 
-  Program platformComponent;
+  Component platformComponent;
 
   BatchCompiler(this.lines);
 
   run() async {
     await for (String line in lines) {
       try {
-        if (await batchCompileArguments(JSON.decode(line))) {
+        if (await batchCompileArguments(jsonDecode(line))) {
           stdout.writeln(">>> TEST OK");
         } else {
           stdout.writeln(">>> TEST FAIL");
@@ -233,10 +235,10 @@ class CompileTask {
     await dillTarget.buildOutlines();
     var outline = await kernelTarget.buildOutlines();
     if (c.options.debugDump && output != null) {
-      printProgramText(outline, libraryFilter: kernelTarget.isSourceLibrary);
+      printComponentText(outline, libraryFilter: kernelTarget.isSourceLibrary);
     }
     if (output != null) {
-      await writeProgramToFile(outline, output);
+      await writeComponentToFile(outline, output);
       ticker.logMs("Wrote outline to ${output.toFilePath()}");
     }
     return kernelTarget;
@@ -245,35 +247,37 @@ class CompileTask {
   Future<Uri> compile({bool sansPlatform: false}) async {
     KernelTarget kernelTarget = await buildOutline();
     Uri uri = c.options.output;
-    Program program = await kernelTarget.buildProgram(verify: c.options.verify);
+    Component component =
+        await kernelTarget.buildComponent(verify: c.options.verify);
     if (c.options.debugDump) {
-      printProgramText(program, libraryFilter: kernelTarget.isSourceLibrary);
+      printComponentText(component,
+          libraryFilter: kernelTarget.isSourceLibrary);
     }
     if (sansPlatform) {
-      program.computeCanonicalNames();
-      Program userCode = new Program(
-          nameRoot: program.root,
-          uriToSource: new Map<Uri, Source>.from(program.uriToSource));
-      userCode.mainMethodName = program.mainMethodName;
-      for (Library library in program.libraries) {
+      component.computeCanonicalNames();
+      Component userCode = new Component(
+          nameRoot: component.root,
+          uriToSource: new Map<Uri, Source>.from(component.uriToSource));
+      userCode.mainMethodName = component.mainMethodName;
+      for (Library library in component.libraries) {
         if (library.importUri.scheme != "dart") {
           userCode.libraries.add(library);
         }
       }
-      program = userCode;
+      component = userCode;
     }
     if (uri.scheme == "file") {
-      await writeProgramToFile(program, uri);
-      ticker.logMs("Wrote program to ${uri.toFilePath()}");
+      await writeComponentToFile(component, uri);
+      ticker.logMs("Wrote component to ${uri.toFilePath()}");
     }
     return uri;
   }
 }
 
-/// Load the [Program] from the given [uri] and append its libraries
+/// Load the [Component] from the given [uri] and append its libraries
 /// to the [dillTarget].
 void _appendDillForUri(DillTarget dillTarget, Uri uri) {
   var bytes = new File.fromUri(uri).readAsBytesSync();
-  var platformProgram = loadProgramFromBytes(bytes);
-  dillTarget.loader.appendLibraries(platformProgram, byteCount: bytes.length);
+  var platformComponent = loadComponentFromBytes(bytes);
+  dillTarget.loader.appendLibraries(platformComponent, byteCount: bytes.length);
 }

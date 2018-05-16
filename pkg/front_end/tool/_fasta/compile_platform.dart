@@ -8,17 +8,16 @@ import 'dart:async' show Future;
 
 import 'dart:io' show File, Platform, exitCode;
 
-import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
-import 'package:vm/target/runner.dart' show RunnerTarget;
-
-import 'package:kernel/target/targets.dart' show TargetFlags, targets;
+import 'package:vm/bytecode/gen_bytecode.dart'
+    show generateBytecode, isKernelBytecodeEnabledForPlatform;
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/fasta/deprecated_problems.dart'
     show deprecated_InputError;
 
-import 'package:front_end/src/fasta/kernel/utils.dart' show writeProgramToFile;
+import 'package:front_end/src/fasta/kernel/utils.dart'
+    show writeComponentToFile;
 
 import 'package:front_end/src/fasta/severity.dart' show Severity;
 
@@ -29,13 +28,14 @@ import 'package:front_end/src/fasta/util/relativize.dart' show relativizeUri;
 
 import 'package:front_end/src/fasta/get_dependencies.dart' show getDependencies;
 
+import 'additional_targets.dart' show installAdditionalTargets;
+
 import 'command_line.dart' show withGlobalOptions;
 
 const int iterations = const int.fromEnvironment("iterations", defaultValue: 1);
 
 Future main(List<String> arguments) async {
-  targets["dart2js"] = (TargetFlags flags) => new Dart2jsTarget(flags);
-  targets["runner"] = (TargetFlags flags) => new RunnerTarget(flags);
+  installAdditionalTargets();
   for (int i = 0; i < iterations; i++) {
     if (i > 0) {
       print("\n");
@@ -67,7 +67,7 @@ Future compilePlatformInternal(
   }
 
   var result =
-      await generateKernelInternal(buildSummary: true, buildProgram: true);
+      await generateKernelInternal(buildSummary: true, buildComponent: true);
   if (result == null) {
     exitCode = 1;
     // Note: an error should have been reported by now.
@@ -76,10 +76,15 @@ Future compilePlatformInternal(
   }
   new File.fromUri(outlineOutput).writeAsBytesSync(result.summary);
   c.options.ticker.logMs("Wrote outline to ${outlineOutput.toFilePath()}");
-  await writeProgramToFile(result.program, fullOutput,
+
+  if (isKernelBytecodeEnabledForPlatform) {
+    generateBytecode(result.component, strongMode: c.options.strongMode);
+  }
+
+  await writeComponentToFile(result.component, fullOutput,
       filter: (lib) => !lib.isExternal);
 
-  c.options.ticker.logMs("Wrote program to ${fullOutput.toFilePath()}");
+  c.options.ticker.logMs("Wrote component to ${fullOutput.toFilePath()}");
 
   List<Uri> deps = result.deps.toList();
   deps.addAll(await getDependencies(Platform.script,

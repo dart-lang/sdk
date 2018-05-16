@@ -131,14 +131,7 @@ bool parseArgument(String argument, Set<String> configurations,
 }
 
 const Map<String, List<String>> TEST_CONFIGURATIONS = const {
-  'ast': const [
-    '--use-new-source-info',
-    '--use-old-frontend',
-  ],
   'kernel': const [],
-  'old': const [
-    '--use-old-frontend',
-  ],
 };
 
 final Map<String, Uri> TEST_FILES = _computeTestFiles();

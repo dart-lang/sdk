@@ -5,8 +5,9 @@ import 'dart:isolate';
 
 import 'package:args/src/arg_results.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
-import 'package:kernel/ast.dart' show Program;
+import 'package:kernel/ast.dart' show Component;
 import 'package:mockito/mockito.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:vm/incremental_compiler.dart';
 
@@ -32,6 +33,7 @@ Future<int> main() async {
 
   group('batch compile with mocked compiler', () {
     final CompilerInterface compiler = new _MockedCompiler();
+    when(compiler.compile(any, any, generator: any)).thenReturn(true);
 
     test('compile from command line', () async {
       final List<String> args = <String>[
@@ -66,6 +68,27 @@ Future<int> main() async {
       )).captured;
       expect(capturedArgs.single['sdk-root'], equals('sdkroot'));
       expect(capturedArgs.single['strong'], equals(true));
+      expect(capturedArgs.single['sync-async'], equals(false));
+    });
+
+    test('compile from command line (sync-async)', () async {
+      final List<String> args = <String>[
+        'server.dart',
+        '--sdk-root',
+        'sdkroot',
+        '--strong',
+        '--sync-async',
+      ];
+      final int exitcode = await starter(args, compiler: compiler);
+      expect(exitcode, equals(0));
+      final List<ArgResults> capturedArgs = verify(compiler.compile(
+        argThat(equals('server.dart')),
+        captureAny,
+        generator: any,
+      )).captured;
+      expect(capturedArgs.single['sdk-root'], equals('sdkroot'));
+      expect(capturedArgs.single['strong'], equals(true));
+      expect(capturedArgs.single['sync-async'], equals(true));
     });
 
     test('compile from command line with link platform', () async {
@@ -212,6 +235,7 @@ Future<int> main() async {
 
   group('interactive incremental compile with mocked compiler', () {
     final CompilerInterface compiler = new _MockedCompiler();
+    when(compiler.compile(any, any, generator: any)).thenReturn(true);
 
     final List<String> args = <String>[
       '--sdk-root',
@@ -359,7 +383,7 @@ Future<int> main() async {
 
       String boundaryKey;
       stdoutStreamController.stream
-          .transform(UTF8.decoder)
+          .transform(utf8.decoder)
           .transform(const LineSplitter())
           .listen((String s) {
         const String RESULT_OUTPUT_SPACE = 'result ';
@@ -377,8 +401,9 @@ Future<int> main() async {
 
       final _MockedIncrementalCompiler generator =
           new _MockedIncrementalCompiler();
+      when(generator.initialized).thenAnswer((_) => false);
       when(generator.compile())
-          .thenAnswer((_) => new Future<Program>.value(new Program()));
+          .thenAnswer((_) => new Future<Component>.value(new Component()));
       final _MockedBinaryPrinterFactory printerFactory =
           new _MockedBinaryPrinterFactory();
       when(printerFactory.newBinaryPrinter(any))
@@ -405,6 +430,7 @@ Future<int> main() async {
 
     group('compile with output path', () {
       final CompilerInterface compiler = new _MockedCompiler();
+      when(compiler.compile(any, any, generator: any)).thenReturn(true);
 
       test('compile from command line', () async {
         final List<String> args = <String>[
@@ -437,7 +463,7 @@ Future<int> main() async {
     Directory tempDir;
     setUp(() {
       var systemTempDir = Directory.systemTemp;
-      tempDir = systemTempDir.createTempSync('foo');
+      tempDir = systemTempDir.createTempSync('foo bar');
     });
 
     tearDown(() {
@@ -466,7 +492,7 @@ Future<int> main() async {
 
       String boundaryKey;
       stdoutStreamController.stream
-          .transform(UTF8.decoder)
+          .transform(utf8.decoder)
           .transform(const LineSplitter())
           .listen((String s) {
         const String RESULT_OUTPUT_SPACE = 'result ';
@@ -487,11 +513,17 @@ Future<int> main() async {
       streamController.add('compile ${file.path}\n'.codeUnits);
       int count = 0;
       Completer<bool> allDone = new Completer<bool>();
-      receivedResults.stream.listen((String outputFilename) {
+      receivedResults.stream.listen((String outputFilenameAndErrorCount) {
+        int delim = outputFilenameAndErrorCount.lastIndexOf(' ');
+        expect(delim > 0, equals(true));
+        String outputFilename = outputFilenameAndErrorCount.substring(0, delim);
+        int errorsCount =
+            int.parse(outputFilenameAndErrorCount.substring(delim + 1).trim());
         if (count == 0) {
           // First request is to 'compile', which results in full kernel file.
           expect(dillFile.existsSync(), equals(true));
           expect(outputFilename, dillFile.path);
+          expect(errorsCount, 0);
           count += 1;
           streamController.add('accept\n'.codeUnits);
           var file2 = new File('${tempDir.path}/bar.dart')..createSync();
@@ -506,11 +538,147 @@ Future<int> main() async {
           // kernel file.
           var dillIncFile = new File('${dillFile.path}.incremental.dill');
           expect(outputFilename, dillIncFile.path);
+          expect(errorsCount, 0);
           expect(dillIncFile.existsSync(), equals(true));
           allDone.complete(true);
         }
       });
       expect(await allDone.future, true);
+    });
+
+    test('compile and recompile report non-zero error count', () async {
+      var file = new File('${tempDir.path}/foo.dart')..createSync();
+      file.writeAsStringSync("main() { foo(); bar(); }\n");
+      var dillFile = new File('${tempDir.path}/app.dill');
+      expect(dillFile.existsSync(), equals(false));
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--strong',
+        '--incremental',
+        '--platform=${platformKernel.path}',
+        '--output-dill=${dillFile.path}'
+      ];
+
+      final StreamController<List<int>> streamController =
+          new StreamController<List<int>>();
+      final StreamController<List<int>> stdoutStreamController =
+          new StreamController<List<int>>();
+      final IOSink ioSink = new IOSink(stdoutStreamController.sink);
+      StreamController<String> receivedResults = new StreamController<String>();
+
+      String boundaryKey;
+      stdoutStreamController.stream
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .listen((String s) {
+        const String RESULT_OUTPUT_SPACE = 'result ';
+        if (boundaryKey == null) {
+          if (s.startsWith(RESULT_OUTPUT_SPACE)) {
+            boundaryKey = s.substring(RESULT_OUTPUT_SPACE.length);
+          }
+        } else {
+          if (s.startsWith(boundaryKey)) {
+            receivedResults.add(s.substring(boundaryKey.length + 1));
+            boundaryKey = null;
+          }
+        }
+      });
+      int exitcode =
+          await starter(args, input: streamController.stream, output: ioSink);
+      expect(exitcode, equals(0));
+      streamController.add('compile ${file.path}\n'.codeUnits);
+      int count = 0;
+      Completer<bool> allDone = new Completer<bool>();
+      receivedResults.stream.listen((String outputFilenameAndErrorCount) {
+        int delim = outputFilenameAndErrorCount.lastIndexOf(' ');
+        expect(delim > 0, equals(true));
+        String outputFilename = outputFilenameAndErrorCount.substring(0, delim);
+        int errorsCount =
+            int.parse(outputFilenameAndErrorCount.substring(delim + 1).trim());
+        switch (count) {
+          case 0:
+            expect(dillFile.existsSync(), equals(true));
+            expect(outputFilename, dillFile.path);
+            expect(errorsCount, 2);
+            count += 1;
+            streamController.add('accept\n'.codeUnits);
+            var file2 = new File('${tempDir.path}/bar.dart')..createSync();
+            file2.writeAsStringSync("main() { baz(); }\n");
+            streamController.add('recompile ${file2.path} abc\n'
+                '${file2.path}\n'
+                'abc\n'
+                .codeUnits);
+            break;
+          case 1:
+            var dillIncFile = new File('${dillFile.path}.incremental.dill');
+            expect(outputFilename, dillIncFile.path);
+            expect(errorsCount, 1);
+            count += 1;
+            streamController.add('accept\n'.codeUnits);
+            var file2 = new File('${tempDir.path}/bar.dart')..createSync();
+            file2.writeAsStringSync("main() { }\n");
+            streamController.add('recompile ${file2.path} abc\n'
+                '${file2.path}\n'
+                'abc\n'
+                .codeUnits);
+            break;
+          case 2:
+            var dillIncFile = new File('${dillFile.path}.incremental.dill');
+            expect(outputFilename, dillIncFile.path);
+            expect(errorsCount, 0);
+            expect(dillIncFile.existsSync(), equals(true));
+            allDone.complete(true);
+        }
+      });
+      expect(await allDone.future, true);
+    });
+
+    test('compile and recompile with MultiRootFileSystem', () async {
+      var file = new File('${tempDir.path}/foo.dart')..createSync();
+      file.writeAsStringSync("main() {}\n");
+      new File('${tempDir.path}/.packages')
+        ..createSync()
+        ..writeAsStringSync("\n");
+      var dillFile = new File('${tempDir.path}/app.dill');
+      expect(dillFile.existsSync(), equals(false));
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--strong',
+        '--incremental',
+        '--platform=${platformKernel.path}',
+        '--output-dill=${dillFile.path}',
+        '--packages=test-scheme:///.packages',
+        '--filesystem-root=${tempDir.path}',
+        '--filesystem-scheme=test-scheme',
+        'test-scheme:///foo.dart'
+      ];
+      int exitcode = await starter(args);
+      expect(exitcode, equals(0));
+    });
+
+    test('compile and produce deps file', () async {
+      var file = new File('${tempDir.path}/foo.dart')..createSync();
+      file.writeAsStringSync("main() {}\n");
+      var dillFile = new File('${tempDir.path}/app.dill');
+      expect(dillFile.existsSync(), equals(false));
+      var depFile = new File('${tempDir.path}/the depfile');
+      expect(depFile.existsSync(), equals(false));
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--strong',
+        '--platform=${platformKernel.path}',
+        '--output-dill=${dillFile.path}',
+        '--depfile=${depFile.path}',
+        file.path
+      ];
+      int exitcode = await starter(args);
+      expect(exitcode, equals(0));
+
+      expect(depFile.existsSync(), true);
+      var depContents = depFile.readAsStringSync();
+      var depContentsParsed = depContents.split(': ');
+      expect(path.basename(depContentsParsed[0]), path.basename(dillFile.path));
+      expect(depContentsParsed[1], isNotEmpty);
     });
   });
   return 0;

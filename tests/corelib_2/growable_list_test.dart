@@ -37,7 +37,9 @@ class EfficientTestIterable extends TestIterableBase implements Set<int> {
   // Avoid warnings because we don't actually implement Set.
   noSuchMethod(i) => super.noSuchMethod(i);
   Set<R> cast<R>() => throw "not used by test";
-  Set<R> retype<R>() => throw "not used by test";
+
+  @Deprecated("Use cast instead.")
+  Set<R> retype<R>() => cast<R>();
 }
 
 class CallbackIterator implements Iterator<int> {

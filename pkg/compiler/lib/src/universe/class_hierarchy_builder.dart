@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../common.dart';
 import '../common_elements.dart';
-import '../elements/elements.dart' show ClassElement, MixinApplicationElement;
 import '../elements/entities.dart';
 import '../elements/types.dart' show InterfaceType;
 import 'class_set.dart';
@@ -53,11 +53,21 @@ class ClassHierarchyBuilder {
       }
 
       ClassEntity appliedMixin = _classQueries.getAppliedMixin(cls);
-      if (appliedMixin != null) {
-        // TODO(johnniwinther): Store this in the [ClassSet].
+      while (appliedMixin != null) {
+        // TODO(johnniwinther): Use the data stored in [ClassSet].
         registerMixinUse(cls, appliedMixin);
-      }
+        ClassSet mixinSet = _ensureClassSet(appliedMixin);
+        mixinSet.addMixinApplication(node);
 
+        // In case of
+        //
+        //    class A {}
+        //    class B = Object with A;
+        //    class C = Object with B;
+        //
+        // we need to register that C not only mixes in B but also A.
+        appliedMixin = _classQueries.getAppliedMixin(appliedMixin);
+      }
       return classSet;
     });
   }
@@ -78,7 +88,7 @@ class ClassHierarchyBuilder {
 
   void updateClassHierarchyNodeForClass(ClassEntity cls,
       {bool directlyInstantiated: false, bool abstractlyInstantiated: false}) {
-    ClassHierarchyNode node = _ensureClassHierarchyNode(cls);
+    ClassHierarchyNode node = _ensureClassSet(cls).node;
     _updateSuperClassHierarchyNodeForClass(node);
     if (directlyInstantiated) {
       node.isDirectlyInstantiated = true;
@@ -95,6 +105,50 @@ class ClassHierarchyBuilder {
         mixinUses.putIfAbsent(mixin, () => new Set<ClassEntity>());
     users.add(mixinApplication);
   }
+
+  bool _isSubtypeOf(ClassEntity x, ClassEntity y) {
+    assert(
+        classSets.containsKey(x), "ClassSet for $x has not been computed yet.");
+    ClassSet classSet = classSets[y];
+    assert(classSet != null,
+        failedAt(y, "No ClassSet for $y (${y.runtimeType}): ${classSets}"));
+    ClassHierarchyNode classHierarchyNode = classHierarchyNodes[x];
+    assert(classHierarchyNode != null,
+        failedAt(x, "No ClassHierarchyNode for $x"));
+    return classSet.hasSubtype(classHierarchyNode);
+  }
+
+  bool isInheritedInSubtypeOf(ClassEntity x, ClassEntity y) {
+    ClassSet classSet = classSets[x];
+    assert(classSet != null,
+        failedAt(x, "No ClassSet for $x (${x.runtimeType}): ${classSets}"));
+
+    if (_isSubtypeOf(x, y)) {
+      // [x] implements [y] itself, possible through supertypes.
+      return true;
+    }
+
+    /// Returns `true` if any live subclass of [node] implements [y].
+    bool subclassImplements(ClassHierarchyNode node, {bool strict}) {
+      return node.anySubclass((ClassEntity z) => _isSubtypeOf(z, y),
+          ClassHierarchyNode.INSTANTIATED,
+          strict: strict);
+    }
+
+    if (subclassImplements(classSet.node, strict: true)) {
+      // A subclass of [x] implements [y].
+      return true;
+    }
+
+    for (ClassHierarchyNode mixinApplication
+        in classSet.mixinApplicationNodes) {
+      if (subclassImplements(mixinApplication, strict: false)) {
+        // A subclass of [mixinApplication] implements [y].
+        return true;
+      }
+    }
+    return false;
+  }
 }
 
 abstract class ClassQueries {
@@ -105,6 +159,11 @@ abstract class ClassQueries {
   ClassEntity getDeclaration(covariant ClassEntity cls);
 
   /// Returns the class mixed into [cls] if any.
+  // TODO(johnniwinther): Replace this by a `getAppliedMixins` function that
+  // return transitively mixed in classes like in:
+  //     class A {}
+  //     class B = Object with A;
+  //     class C = Object with B;
   ClassEntity getAppliedMixin(covariant ClassEntity cls);
 
   /// Returns the hierarchy depth of [cls].
@@ -119,44 +178,4 @@ abstract class ClassQueries {
 
   /// Returns all supertypes of [cls].
   Iterable<InterfaceType> getSupertypes(covariant ClassEntity cls);
-}
-
-class ElementClassQueries extends ClassQueries {
-  final CommonElements commonElements;
-
-  ElementClassQueries(this.commonElements);
-
-  @override
-  ClassEntity getDeclaration(ClassElement cls) {
-    return cls.declaration;
-  }
-
-  @override
-  ClassEntity getAppliedMixin(ClassElement cls) {
-    if (cls.isMixinApplication) {
-      MixinApplicationElement mixinApplication = cls;
-      // Note: If [mixinApplication] is malformed [mixin] is `null`.
-      return mixinApplication.mixin;
-    }
-    return null;
-  }
-
-  @override
-  int getHierarchyDepth(ClassElement cls) => cls.hierarchyDepth;
-
-  @override
-  bool checkClass(ClassElement cls) => cls.isDeclaration;
-
-  @override
-  bool validateClass(ClassElement cls) => cls.isResolved;
-
-  @override
-  bool implementsFunction(ClassElement cls) =>
-      cls.implementsFunction(commonElements);
-
-  @override
-  ClassEntity getSuperClass(ClassElement cls) => cls.superclass;
-
-  @override
-  Iterable<InterfaceType> getSupertypes(ClassElement cls) => cls.allSupertypes;
 }

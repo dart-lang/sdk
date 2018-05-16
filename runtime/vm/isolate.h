@@ -7,7 +7,7 @@
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
-#include "vm/atomic.h"
+#include "platform/atomic.h"
 #include "vm/base_isolate.h"
 #include "vm/class_table.h"
 #include "vm/exceptions.h"
@@ -38,6 +38,7 @@ class HandleScope;
 class HandleVisitor;
 class Heap;
 class ICData;
+class Interpreter;
 class IsolateProfilerData;
 class IsolateReloadContext;
 class IsolateSpawnState;
@@ -211,6 +212,7 @@ class Isolate : public BaseIsolate {
 
   // Prefers old classes when we are in the middle of a reload.
   RawClass* GetClassForHeapWalkAt(intptr_t cid);
+  intptr_t GetClassSizeForHeapWalkAt(intptr_t cid);
 
   static intptr_t ic_miss_code_offset() {
     return OFFSET_OF(Isolate, ic_miss_code_);
@@ -301,7 +303,7 @@ class Isolate : public BaseIsolate {
                      bool dont_delete_reload_context = false);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
-  bool MakeRunnable();
+  const char* MakeRunnable();
   void Run();
 
   MessageHandler* message_handler() const { return message_handler_; }
@@ -401,6 +403,9 @@ class Isolate : public BaseIsolate {
   }
 
   Random* random() { return &random_; }
+
+  Interpreter* interpreter() const { return interpreter_; }
+  void set_interpreter(Interpreter* value) { interpreter_ = value; }
 
   Simulator* simulator() const { return simulator_; }
   void set_simulator(Simulator* value) { simulator_ = value; }
@@ -623,7 +628,6 @@ class Isolate : public BaseIsolate {
     ASSERT(value >= 0);
     return value > 0;
   }
-
   void IncrTopLevelParsingCount() {
     AtomicOperations::IncrementBy(&top_level_parsing_count_, 1);
   }
@@ -936,6 +940,7 @@ class Isolate : public BaseIsolate {
   Dart_LibraryTagHandler library_tag_handler_;
   ApiState* api_state_;
   Random random_;
+  Interpreter* interpreter_;
   Simulator* simulator_;
   Mutex* mutex_;          // Protects compiler stats.
   Mutex* symbols_mutex_;  // Protects concurrent access to the symbol table.

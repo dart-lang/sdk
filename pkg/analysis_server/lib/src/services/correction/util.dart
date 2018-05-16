@@ -16,20 +16,19 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show SourceChange, SourceEdit;
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as pathos;
 
 /**
  * Adds edits to the given [change] that ensure that all the [libraries] are
  * imported into the given [targetLibrary].
  */
-void addLibraryImports(
-    SourceChange change, LibraryElement targetLibrary, Set<Source> libraries) {
+void addLibraryImports(pathos.Context pathContext, SourceChange change,
+    LibraryElement targetLibrary, Set<Source> libraries) {
   CorrectionUtils libUtils;
   try {
     CompilationUnitElement unitElement = targetLibrary.definingCompilationUnit;
@@ -53,7 +52,8 @@ void addLibraryImports(
 
   // Prepare all URIs to import.
   List<String> uriList = libraries
-      .map((library) => getLibrarySourceUri(targetLibrary, library))
+      .map((library) =>
+          getLibrarySourceUri(pathContext, targetLibrary, library.uri))
       .toList();
   uriList.sort((a, b) => a.compareTo(b));
 
@@ -141,6 +141,16 @@ Expression climbPropertyAccess(AstNode node) {
     }
     return node;
   }
+}
+
+/**
+ * Return references to the [element] inside the [root] node.
+ */
+List<SimpleIdentifier> findLocalElementReferences(
+    AstNode root, LocalElement element) {
+  var collector = new _ElementReferenceCollector(element);
+  root.accept(collector);
+  return collector.references;
 }
 
 /**
@@ -332,26 +342,20 @@ int getExpressionPrecedence(AstNode node) {
  * Returns the namespace of the given [ImportElement].
  */
 Map<String, Element> getImportNamespace(ImportElement imp) {
-  NamespaceBuilder builder = new NamespaceBuilder();
-  Namespace namespace = builder.createImportNamespaceForDirective(imp);
-  return namespace.definedNames;
+  return imp.namespace.definedNames;
 }
 
 /**
  * Computes the best URI to import [what] into [from].
  */
-String getLibrarySourceUri(LibraryElement from, Source what) {
-  String whatPath = what.fullName;
-  // check if an absolute URI (such as 'dart:' or 'package:')
-  Uri whatUri = what.uri;
-  String whatUriScheme = whatUri.scheme;
-  if (whatUriScheme != '' && whatUriScheme != 'file') {
-    return whatUri.toString();
+String getLibrarySourceUri(
+    pathos.Context pathContext, LibraryElement from, Uri what) {
+  if (what.scheme == 'file') {
+    String fromFolder = pathContext.dirname(from.source.fullName);
+    String relativeFile = pathContext.relative(what.path, from: fromFolder);
+    return pathContext.split(relativeFile).join('/');
   }
-  // compute a relative URI
-  String fromFolder = dirname(from.source.fullName);
-  String relativeFile = relative(whatPath, from: fromFolder);
-  return split(relativeFile).join('/');
+  return what.toString();
 }
 
 /**
@@ -1286,8 +1290,8 @@ class CorrectionUtils {
       TokenType operator = expression.operator.type;
       Expression le = expression.leftOperand;
       Expression re = expression.rightOperand;
-      _InvertedCondition ls = _invertCondition0(le);
-      _InvertedCondition rs = _invertCondition0(re);
+      _InvertedCondition ls = _InvertedCondition._simple(getNodeText(le));
+      _InvertedCondition rs = _InvertedCondition._simple(getNodeText(re));
       if (operator == TokenType.LT) {
         return _InvertedCondition._binary2(ls, " >= ", rs);
       }
@@ -1307,10 +1311,14 @@ class CorrectionUtils {
         return _InvertedCondition._binary2(ls, " == ", rs);
       }
       if (operator == TokenType.AMPERSAND_AMPERSAND) {
+        ls = _invertCondition0(le);
+        rs = _invertCondition0(re);
         return _InvertedCondition._binary(
             TokenType.BAR_BAR.precedence, ls, " || ", rs);
       }
       if (operator == TokenType.BAR_BAR) {
+        ls = _invertCondition0(le);
+        rs = _invertCondition0(re);
         return _InvertedCondition._binary(
             TokenType.AMPERSAND_AMPERSAND.precedence, ls, " && ", rs);
       }
@@ -1460,6 +1468,20 @@ class _CollectReferencedUnprefixedNames extends RecursiveAstVisitor {
             parent.realTarget != null ||
         parent is PrefixedIdentifier && parent.identifier == node ||
         parent is PropertyAccess && parent.target == node;
+  }
+}
+
+class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
+  final Element element;
+  final List<SimpleIdentifier> references = [];
+
+  _ElementReferenceCollector(this.element);
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.staticElement == element) {
+      references.add(node);
+    }
   }
 }
 

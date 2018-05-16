@@ -2,10 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*class: global#Map:deps=[Class],indirect,needsArgs*/
-/*class: global#LinkedHashMap:deps=[Map],explicit=[LinkedHashMap<LinkedHashMap.K,LinkedHashMap.V>],implicit=[LinkedHashMap.K,LinkedHashMap.V],indirect,needsArgs*/
-/*class: global#JsLinkedHashMap:deps=[LinkedHashMap],explicit=[JsLinkedHashMap.K,JsLinkedHashMap.V],implicit=[JsLinkedHashMap.K,JsLinkedHashMap.V],indirect,needsArgs*/
-/*class: global#double:explicit=[double],implicit=[double]*/
+/*strong.class: global#Map:deps=[Class,JsLinkedHashMap,MapMixin],explicit=[Map,Map<JsLinkedHashMap.K,JsLinkedHashMap.V>,Map<MapMixin.K,MapMixin.V>],indirect,needsArgs*/
+/*omit.class: global#Map:deps=[Class],needsArgs*/
+
+/*strong.class: global#LinkedHashMap:deps=[Map],explicit=[LinkedHashMap<LinkedHashMap.K,LinkedHashMap.V>],implicit=[LinkedHashMap.K,LinkedHashMap.V],indirect,needsArgs*/
+/*omit.class: global#LinkedHashMap:deps=[Map],needsArgs*/
+
+/*strong.class: global#JsLinkedHashMap:deps=[LinkedHashMap],explicit=[JsLinkedHashMap.K,JsLinkedHashMap.V,Map<JsLinkedHashMap.K,JsLinkedHashMap.V>,void Function(JsLinkedHashMap.K,JsLinkedHashMap.V)],implicit=[JsLinkedHashMap.K,JsLinkedHashMap.V],indirect,needsArgs*/
+/*omit.class: global#JsLinkedHashMap:deps=[LinkedHashMap],implicit=[JsLinkedHashMap.K],needsArgs*/
+
+/*strong.class: global#double:explicit=[double],implicit=[double]*/
+/*omit.class: global#double:explicit=[double]*/
+
 /*class: global#JSDouble:*/
 
 main() {
@@ -15,8 +23,8 @@ main() {
   set is Set<String>;
 }
 
-/*ast.class: Class:needsArgs*/
-/*kernel.class: Class:implicit=[Class.S,Class.T],indirect,needsArgs*/
+/*strong.class: Class:implicit=[Class.S,Class.T],indirect,needsArgs*/
+/*omit.class: Class:needsArgs*/
 class Class<T, S> {
   m() {
     return <T, S>{};

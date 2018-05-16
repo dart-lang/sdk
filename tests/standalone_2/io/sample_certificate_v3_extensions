@@ -1,0 +1,53 @@
+# Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# OpenSSL configuration file giving the v3 extensions for the sample
+# certificates created by create_sample_certificates.sh
+
+default_bits = 2048
+distinguished_name = name_section
+[name_section]
+CN = foo
+
+[localhost]
+subjectAltName = @alt_names
+basicConstraints = critical,CA:false
+subjectKeyIdentifier = hash
+authorityKeyIdentifier=keyid,issuer
+keyUsage=critical, digitalSignature, keyEncipherment, keyAgreement
+extendedKeyUsage=serverAuth
+
+[alt_names]
+DNS.1 = localhost
+DNS.2 = 127.0.0.1
+DNS.3 = ::1
+IP.1 = 127.0.0.1
+IP.2 = ::1
+
+[badlocalhost]
+basicConstraints = critical,CA:false
+subjectKeyIdentifier = hash
+authorityKeyIdentifier=keyid,issuer
+keyUsage=critical, digitalSignature, keyEncipherment, keyAgreement
+extendedKeyUsage=serverAuth
+
+[intermediate_authority]
+basicConstraints = critical, CA:true, pathlen:0
+subjectKeyIdentifier=hash
+authorityKeyIdentifier=keyid:always, issuer
+keyUsage=critical, keyCertSign
+extendedKeyUsage=serverAuth
+
+[client_authority]
+basicConstraints = critical,CA:true,pathlen:0
+subjectKeyIdentifier=hash
+authorityKeyIdentifier=keyid:always, issuer
+keyUsage=critical, keyCertSign
+extendedKeyUsage=clientAuth
+
+[client_certificate]
+basicConstraints = CA:false
+subjectKeyIdentifier=hash
+authorityKeyIdentifier=keyid:always, issuer
+extendedKeyUsage=clientAuth

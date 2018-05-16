@@ -114,8 +114,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginClassDeclaration(Token beginToken, Token name) {
-    super.beginClassDeclaration(beginToken, name);
+  void beginClassDeclaration(
+      Token beginToken, Token abstractToken, Token name) {
+    super.beginClassDeclaration(beginToken, abstractToken, name);
     begin('ClassDeclaration');
   }
 
@@ -206,8 +207,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginFactoryMethod(Token lastConsumed) {
-    super.beginFactoryMethod(lastConsumed);
+  void beginFactoryMethod(
+      Token lastConsumed, Token externalToken, Token constToken) {
+    super.beginFactoryMethod(lastConsumed, externalToken, constToken);
     begin('FactoryMethod');
   }
 
@@ -242,8 +244,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginFormalParameter(Token token, MemberKind kind) {
-    super.beginFormalParameter(token, kind);
+  void beginFormalParameter(Token token, MemberKind kind, Token covariantToken,
+      Token varFinalOrConst) {
+    super.beginFormalParameter(token, kind, covariantToken, varFinalOrConst);
     begin('FormalParameter');
   }
 
@@ -396,8 +399,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginNamedMixinApplication(Token beginToken, Token name) {
-    super.beginNamedMixinApplication(beginToken, name);
+  void beginNamedMixinApplication(
+      Token beginToken, Token abstractToken, Token name) {
+    super.beginNamedMixinApplication(beginToken, abstractToken, name);
     begin('NamedMixinApplication');
   }
 
@@ -480,8 +484,8 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginTopLevelMethod(Token lastConsumed) {
-    super.beginTopLevelMethod(lastConsumed);
+  void beginTopLevelMethod(Token lastConsumed, Token externalToken) {
+    super.beginTopLevelMethod(lastConsumed, externalToken);
     begin('TopLevelMethod');
   }
 
@@ -703,10 +707,12 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endFields(int count, Token beginToken, Token endToken) {
+  void endFields(Token staticToken, Token covariantToken, Token varFinalOrConst,
+      int count, Token beginToken, Token endToken) {
     // beginMember --> endFields, endMember
     expectIn('Member');
-    super.endFields(count, beginToken, endToken);
+    super.endFields(staticToken, covariantToken, varFinalOrConst, count,
+        beginToken, endToken);
   }
 
   @override
@@ -998,9 +1004,11 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endTopLevelFields(int count, Token beginToken, Token endToken) {
+  void endTopLevelFields(Token staticToken, Token covariantToken,
+      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
     end('TopLevelMember');
-    super.endTopLevelFields(count, beginToken, endToken);
+    super.endTopLevelFields(staticToken, covariantToken, varFinalOrConst, count,
+        beginToken, endToken);
   }
 
   @override

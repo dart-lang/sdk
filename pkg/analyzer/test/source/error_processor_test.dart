@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.source.error_processor;
-
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -14,9 +12,10 @@ import 'package:analyzer/src/task/options.dart';
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 import 'package:test/test.dart';
-import 'package:yaml/src/yaml_node.dart';
+import 'package:yaml/yaml.dart';
 
 import '../generated/test_support.dart';
+import '../src/util/yaml_test.dart';
 
 main() {
   AnalysisError invalid_assignment =
@@ -69,7 +68,8 @@ analyzer:
       expect(getProcessor(invalid_assignment).severity, ErrorSeverity.ERROR);
       expect(getProcessor(missing_return).severity, isNull);
       expect(getProcessor(unused_local_variable), isNull);
-      expect(getProcessor(use_of_void_result), isNull);
+      expect(getProcessor(use_of_void_result),
+          context.analysisOptions.strongMode ? isNotNull : isNull);
     });
 
     test('upgrades static type warnings to errors in strong mode', () {
@@ -123,11 +123,11 @@ analyzer:
       });
 
       test('string map', () {
-        var options = {
+        var options = wrap({
           'invalid_assignment': 'unsupported_action', // should be skipped
           'missing_return': 'false',
           'unused_local_variable': 'error'
-        };
+        });
         var errorConfig = new ErrorConfig(options);
         expect(errorConfig.processors, hasLength(2));
 
@@ -169,8 +169,7 @@ AnalysisOptionsProvider optionsProvider = new AnalysisOptionsProvider();
 ErrorProcessor processor;
 
 void configureOptions(String options) {
-  Map<String, YamlNode> optionMap =
-      optionsProvider.getOptionsFromString(options);
+  YamlMap optionMap = optionsProvider.getOptionsFromString(options);
   applyToAnalysisOptions(context.analysisOptions, optionMap);
 }
 

@@ -290,6 +290,10 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
     blockOut(block, true, true);
   }
 
+  visitDebuggerStatement(node) {
+    outIndentLn('debugger;');
+  }
+
   visitExpressionStatement(ExpressionStatement expressionStatement) {
     indent();
     outClosureAnnotation(expressionStatement);
@@ -1186,7 +1190,8 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
       spaceOut();
       out("{}");
     } else {
-      blockBody(fun.body, needsSeparation: false, needsNewline: false);
+      spaceOut();
+      blockOut(fun.body, false, false);
     }
     localNamer.leaveScope();
   }

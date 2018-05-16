@@ -199,7 +199,7 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 10) {
 #if defined(DEBUG)
       Context& ctx = Context::Handle();
       ctx = Closure::Cast(closure).context();
-      ASSERT(ctx.num_variables() == 0);
+      ASSERT(ctx.IsNull());
 #endif
       // Get the parent function so that we get the right function name.
       func = func.parent_function();
@@ -357,10 +357,11 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
   // If we were passed a value then override the default flags state for
   // checked mode.
   if (!checked.IsNull()) {
-    bool val = checked.value();
+    bool is_checked = checked.value();
     Dart_IsolateFlags* flags = state->isolate_flags();
-    flags->enable_asserts = val;
-    flags->enable_type_checks = val;
+    flags->enable_asserts = is_checked;
+    // Do not enable type checks in strong mode.
+    flags->enable_type_checks = is_checked && !flags->strong;
   }
 
   ThreadPool::Task* spawn_task = new SpawnIsolateTask(state);

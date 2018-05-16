@@ -45,7 +45,7 @@ void testOpenNonExistent() {
   Expect.throws(
       () => file.openSync(), (e) => checkOpenNonExistentFileSystemException(e));
 
-  var openFuture = file.open(mode: FileMode.READ);
+  var openFuture = file.open(mode: FileMode.read);
   openFuture.then((raf) => Expect.fail("Unreachable code")).catchError((error) {
     checkOpenNonExistentFileSystemException(error);
     temp.deleteSync(recursive: true);
@@ -228,7 +228,7 @@ createTestFile(callback) {
 
 testWriteByteToReadOnlyFile() {
   createTestFile((file, done) {
-    var openedFile = file.openSync(mode: FileMode.READ);
+    var openedFile = file.openSync(mode: FileMode.read);
 
     // Writing to read only file should throw an exception.
     Expect.throws(() => openedFile.writeByteSync(0),
@@ -244,7 +244,7 @@ testWriteByteToReadOnlyFile() {
 
 testWriteFromToReadOnlyFile() {
   createTestFile((file, done) {
-    var openedFile = file.openSync(mode: FileMode.READ);
+    var openedFile = file.openSync(mode: FileMode.read);
 
     List data = [0, 1, 2, 3];
     // Writing to read only file should throw an exception.
@@ -261,10 +261,10 @@ testWriteFromToReadOnlyFile() {
 
 testTruncateReadOnlyFile() {
   createTestFile((file, done) {
-    var openedFile = file.openSync(mode: FileMode.WRITE);
+    var openedFile = file.openSync(mode: FileMode.write);
     openedFile.writeByteSync(0);
     openedFile.closeSync();
-    openedFile = file.openSync(mode: FileMode.READ);
+    openedFile = file.openSync(mode: FileMode.read);
 
     // Truncating read only file should throw an exception.
     Expect.throws(() => openedFile.truncateSync(0),
@@ -289,7 +289,7 @@ bool checkFileClosedException(e) {
 
 testOperateOnClosedFile() {
   createTestFile((file, done) {
-    var openedFile = file.openSync(mode: FileMode.READ);
+    var openedFile = file.openSync(mode: FileMode.read);
     openedFile.closeSync();
 
     List data = [0, 1, 2, 3];

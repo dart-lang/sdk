@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-import("../build/compiled_action.gni")
+import("../build/dart/dart_action.gni")
 
 _dart_root = get_path_info("..", "abspath")
 
@@ -18,9 +18,9 @@ declare_args() {
 template("application_snapshot") {
   assert(defined(invoker.main_dart), "Must specify 'main_dart'")
   assert(defined(invoker.training_args), "Must specify 'training_args'")
-  vm_args = []
+  snapshot_vm_args = []
   if (defined(invoker.vm_args)) {
-    vm_args = invoker.vm_args
+    snapshot_vm_args = invoker.vm_args
   }
   main_dart = invoker.main_dart
   training_args = invoker.training_args
@@ -45,14 +45,13 @@ template("application_snapshot") {
   if (defined(invoker.output)) {
     output = invoker.output
   }
-  compiled_action(target_name) {
-    tool = "$_dart_root/runtime/bin:dart"
+  dart_action(target_name) {
     deps = extra_deps
     depfile = "$output.d"
 
-    main_file = rebase_path(main_dart)
+    script = main_dart
 
-    inputs = extra_inputs + [ main_file ]
+    inputs = extra_inputs
 
     outputs = [
       output,
@@ -61,26 +60,78 @@ template("application_snapshot") {
     abs_depfile = rebase_path(depfile)
     abs_output = rebase_path(output, root_build_dir)
 
-    args = [
+    vm_args = [
       "--deterministic",
       "--packages=$dot_packages",
       "--snapshot=$abs_output",
       "--snapshot-depfile=$abs_depfile",
-    ] + vm_args
+    ] + snapshot_vm_args
 
     if (dart_snapshot_kind == "script") {
-      args += [
+      vm_args += [
         "--snapshot-kind=script",
-        main_file,
       ]
       assert(training_args != "", "Ignoring unused argument")
+      args = []
     } else if (dart_snapshot_kind == "app-jit") {
-      args += [
-                "--snapshot-kind=app-jit",
-                main_file,
-              ] + training_args
+      vm_args += [ "--snapshot-kind=app-jit" ]
+      args = training_args
     } else {
       assert(false, "Bad dart_snapshot_kind: $dart_snapshot_kind")
     }
+  }
+}
+
+template("aot_assembly") {
+  assert(defined(invoker.main_dart), "Must specify 'main_dart'")
+  aot_vm_args = []
+  if (defined(invoker.vm_args)) {
+    aot_vm_args = invoker.vm_args
+  }
+  main_dart = invoker.main_dart
+  name = target_name
+  if (defined(invoker.name)) {
+    name = invoker.name
+  }
+  extra_deps = []
+  if (defined(invoker.deps)) {
+    extra_deps += invoker.deps
+  }
+  extra_inputs = [ main_dart ]
+  if (defined(invoker.inputs)) {
+    extra_inputs += invoker.inputs
+  }
+  if (defined(invoker.dot_packages)) {
+    dot_packages = invoker.dot_packages
+  } else {
+    dot_packages = rebase_path("$_dart_root/.packages")
+  }
+  output = "$root_gen_dir/$name.dart.S"
+  if (defined(invoker.output)) {
+    output = invoker.output
+  }
+  dart_bootstrap_action(target_name) {
+    deps = extra_deps
+    depfile = "$output.d"
+
+    script = main_dart
+    inputs = extra_inputs
+
+    outputs = [
+      output,
+    ]
+
+    abs_depfile = rebase_path(depfile)
+    abs_output = rebase_path(output, root_build_dir)
+
+    vm_args = [
+      "--deterministic",
+      "--packages=$dot_packages",
+      "--snapshot-kind=app-aot",
+      "--snapshot=$abs_output",
+      "--snapshot-depfile=$abs_depfile",
+    ] + aot_vm_args
+
+    args = []
   }
 }

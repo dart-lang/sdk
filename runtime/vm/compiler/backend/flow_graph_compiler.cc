@@ -7,6 +7,7 @@
 #include "vm/compiler/backend/flow_graph_compiler.h"
 
 #include "vm/bit_vector.h"
+#include "vm/compiler/backend/code_statistics.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/inliner.h"
 #include "vm/compiler/backend/linearscan.h"
@@ -31,6 +32,7 @@
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 #include "vm/timeline.h"
+#include "vm/type_testing_stubs.h"
 
 namespace dart {
 
@@ -100,7 +102,8 @@ FlowGraphCompiler::FlowGraphCompiler(
     SpeculativeInliningPolicy* speculative_policy,
     const GrowableArray<const Function*>& inline_id_to_function,
     const GrowableArray<TokenPosition>& inline_id_to_token_pos,
-    const GrowableArray<intptr_t>& caller_inline_id)
+    const GrowableArray<intptr_t>& caller_inline_id,
+    CodeStatistics* stats /* = NULL */)
     : thread_(Thread::Current()),
       zone_(Thread::Current()->zone()),
       assembler_(assembler),
@@ -120,6 +123,7 @@ FlowGraphCompiler::FlowGraphCompiler(
       speculative_policy_(speculative_policy),
       may_reoptimize_(false),
       intrinsic_mode_(false),
+      stats_(stats),
       double_class_(
           Class::ZoneHandle(isolate()->object_store()->double_class())),
       mint_class_(Class::ZoneHandle(isolate()->object_store()->mint_class())),
@@ -492,12 +496,15 @@ void FlowGraphCompiler::VisitBlocks() {
     BeginCodeSourceRange();
     ASSERT(pending_deoptimization_env_ == NULL);
     pending_deoptimization_env_ = entry->env();
+    StatsBegin(entry);
     entry->EmitNativeCode(this);
+    StatsEnd(entry);
     pending_deoptimization_env_ = NULL;
     EndCodeSourceRange(entry->token_pos());
     // Compile all successors until an exit, branch, or a block entry.
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
       Instruction* instr = it.Current();
+      StatsBegin(instr);
       // Compose intervals.
       code_source_map_builder_->StartInliningInterval(assembler()->CodeSize(),
                                                       instr->inlining_id());
@@ -526,6 +533,7 @@ void FlowGraphCompiler::VisitBlocks() {
         FrameStateUpdateWith(instr);
       }
 #endif
+      StatsEnd(instr);
     }
 
 #if defined(DEBUG) && !defined(TARGET_ARCH_DBC)
@@ -581,9 +589,15 @@ void FlowGraphCompiler::AddSlowPathCode(SlowPathCode* code) {
 
 void FlowGraphCompiler::GenerateDeferredCode() {
   for (intptr_t i = 0; i < slow_path_code_.length(); i++) {
+    SlowPathCode* const slow_path = slow_path_code_[i];
+    const CombinedCodeStatistics::EntryCounter stats_tag =
+        CombinedCodeStatistics::SlowPathCounterFor(
+            slow_path->instruction()->tag());
+    SpecialStatsBegin(stats_tag);
     BeginCodeSourceRange();
-    slow_path_code_[i]->GenerateCode(this);
-    EndCodeSourceRange(TokenPosition::kDeferredSlowPath);
+    slow_path->GenerateCode(this);
+    EndCodeSourceRange(slow_path->instruction()->token_pos());
+    SpecialStatsEnd(stats_tag);
   }
   for (intptr_t i = 0; i < deopt_infos_.length(); i++) {
     BeginCodeSourceRange();
@@ -626,6 +640,13 @@ void FlowGraphCompiler::AddCurrentDescriptor(RawPcDescriptors::Kind kind,
                                              TokenPosition token_pos) {
   AddDescriptor(kind, assembler()->CodeSize(), deopt_id, token_pos,
                 CurrentTryIndex());
+}
+
+void FlowGraphCompiler::AddNullCheck(intptr_t pc_offset,
+                                     TokenPosition token_pos,
+                                     intptr_t null_check_name_idx) {
+  code_source_map_builder_->NoteNullCheck(pc_offset, token_pos,
+                                          null_check_name_idx);
 }
 
 void FlowGraphCompiler::AddStaticCallTarget(const Function& func) {
@@ -1004,7 +1025,9 @@ bool FlowGraphCompiler::TryIntrinsify() {
       // Reading from a mutable double box requires allocating a fresh double.
       if (field.is_instance() &&
           (FLAG_precompiled_mode || !IsPotentialUnboxedField(field))) {
+        SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);
         GenerateInlinedGetter(field.Offset());
+        SpecialStatsEnd(CombinedCodeStatistics::kTagIntrinsics);
         return !isolate()->use_field_guards();
       }
       return false;
@@ -1018,7 +1041,9 @@ bool FlowGraphCompiler::TryIntrinsify() {
 
         if (field.is_instance() &&
             (FLAG_precompiled_mode || field.guarded_cid() == kDynamicCid)) {
+          SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);
           GenerateInlinedSetter(field.Offset());
+          SpecialStatsEnd(CombinedCodeStatistics::kTagIntrinsics);
           return !isolate()->use_field_guards();
         }
         return false;
@@ -1028,7 +1053,9 @@ bool FlowGraphCompiler::TryIntrinsify() {
 
   EnterIntrinsicMode();
 
+  SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);
   bool complete = Intrinsifier::Intrinsify(parsed_function(), this);
+  SpecialStatsEnd(CombinedCodeStatistics::kTagIntrinsics);
 
   ExitIntrinsicMode();
 
@@ -1214,7 +1241,7 @@ bool FlowGraphCompiler::NeedsEdgeCounter(TargetEntryInstr* block) {
            (block == flow_graph().graph_entry()->normal_entry())));
 }
 
-// Allocate a register that is not explicitly blocked.
+// Allocate a register that is not explictly blocked.
 static Register AllocateFreeRegister(bool* blocked_registers) {
   for (intptr_t regno = 0; regno < kNumberOfCpuRegisters; regno++) {
     if (!blocked_registers[regno]) {
@@ -1855,29 +1882,14 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
   }
 }
 
-bool FlowGraphCompiler::GenerateSubclassTypeCheck(Register class_id_reg,
+bool FlowGraphCompiler::GenerateSubtypeRangeCheck(Register class_id_reg,
                                                   const Class& type_class,
                                                   Label* is_subtype) {
   HierarchyInfo* hi = Thread::Current()->hierarchy_info();
   if (hi != NULL) {
-    // We test up to 4 different cid ranges, if we would need to test more in
-    // order to get a definite answer we fall back to the old mechanism (namely
-    // of going into the subtyping cache)
-    static const intptr_t kMaxNumberOfCidRangesToTest = 4;
-
     const CidRangeVector& ranges = hi->SubtypeRangesForClass(type_class);
     if (ranges.length() <= kMaxNumberOfCidRangesToTest) {
-      Label fail;
-      int bias = 0;
-      for (intptr_t i = 0; i < ranges.length(); ++i) {
-        const CidRange& range = ranges[i];
-        if (!range.IsIllegalRange()) {
-          bias = EmitTestAndCallCheckCid(assembler(), is_subtype, class_id_reg,
-                                         range, bias,
-                                         /*jump_on_miss=*/false);
-        }
-      }
-      __ Bind(&fail);
+      GenerateCidRangesCheck(assembler(), class_id_reg, ranges, is_subtype);
       return true;
     }
   }
@@ -1889,6 +1901,117 @@ bool FlowGraphCompiler::GenerateSubclassTypeCheck(Register class_id_reg,
     __ BranchIf(EQUAL, is_subtype);
   }
   return false;
+}
+
+void FlowGraphCompiler::GenerateCidRangesCheck(Assembler* assembler,
+                                               Register class_id_reg,
+                                               const CidRangeVector& cid_ranges,
+                                               Label* inside_range_lbl,
+                                               Label* outside_range_lbl,
+                                               bool fall_through_if_inside) {
+  // If there are no valid class ranges, the check will fail.  If we are
+  // supposed to fall-through in the positive case, we'll explicitly jump to
+  // the [outside_range_lbl].
+  if (cid_ranges.length() == 1 && cid_ranges[0].IsIllegalRange()) {
+    if (fall_through_if_inside) {
+      assembler->Jump(outside_range_lbl);
+    }
+    return;
+  }
+
+  int bias = 0;
+  for (intptr_t i = 0; i < cid_ranges.length(); ++i) {
+    const CidRange& range = cid_ranges[i];
+    RELEASE_ASSERT(!range.IsIllegalRange());
+    const bool last_round = i == (cid_ranges.length() - 1);
+
+    Label* jump_label = last_round && fall_through_if_inside ? outside_range_lbl
+                                                             : inside_range_lbl;
+    const bool jump_on_miss = last_round && fall_through_if_inside;
+
+    bias = EmitTestAndCallCheckCid(assembler, jump_label, class_id_reg, range,
+                                   bias, jump_on_miss);
+  }
+}
+
+void FlowGraphCompiler::GenerateAssertAssignableAOT(
+    const AbstractType& dst_type,
+    const String& dst_name,
+    const Register instance_reg,
+    const Register instantiator_type_args_reg,
+    const Register function_type_args_reg,
+    const Register subtype_cache_reg,
+    const Register dst_type_reg,
+    const Register scratch_reg,
+    Label* done) {
+  TypeUsageInfo* type_usage_info = thread()->type_usage_info();
+
+  // If the int type is assignable to [dst_type] we special case it on the
+  // caller side!
+  const Type& int_type = Type::Handle(zone(), Type::IntType());
+  bool is_non_smi = false;
+  if (int_type.IsSubtypeOf(dst_type, NULL, NULL, Heap::kOld)) {
+    __ BranchIfSmi(instance_reg, done);
+    is_non_smi = true;
+  }
+
+  // We can handle certain types very efficiently on the call site (with a
+  // bailout to the normal stub, which will do a runtime call).
+  if (dst_type.IsTypeParameter()) {
+    const TypeParameter& type_param = TypeParameter::Cast(dst_type);
+    const Register kTypeArgumentsReg = type_param.IsClassTypeParameter()
+                                           ? instantiator_type_args_reg
+                                           : function_type_args_reg;
+
+    // Check if type arguments are null, i.e. equivalent to vector of dynamic.
+    __ CompareObject(kTypeArgumentsReg, Object::null_object());
+    __ BranchIf(EQUAL, done);
+    __ LoadField(dst_type_reg,
+                 FieldAddress(kTypeArgumentsReg, TypeArguments::type_at_offset(
+                                                     type_param.index())));
+    if (type_usage_info != NULL) {
+      type_usage_info->UseTypeInAssertAssignable(dst_type);
+    }
+  } else {
+    HierarchyInfo* hi = Thread::Current()->hierarchy_info();
+    if (hi != NULL) {
+      const Class& type_class = Class::Handle(zone(), dst_type.type_class());
+
+      bool check_handled_at_callsite = false;
+      bool used_cid_range_check = false;
+      const bool can_use_simple_cid_range_test =
+          hi->CanUseSubtypeRangeCheckFor(dst_type);
+      if (can_use_simple_cid_range_test) {
+        const CidRangeVector& ranges = hi->SubtypeRangesForClass(type_class);
+        if (ranges.length() <= kMaxNumberOfCidRangesToTest) {
+          if (is_non_smi) {
+            __ LoadClassId(scratch_reg, instance_reg);
+          } else {
+            __ LoadClassIdMayBeSmi(scratch_reg, instance_reg);
+          }
+          GenerateCidRangesCheck(assembler(), scratch_reg, ranges, done);
+          used_cid_range_check = true;
+          check_handled_at_callsite = true;
+        }
+      }
+
+      if (!used_cid_range_check && can_use_simple_cid_range_test &&
+          IsListClass(type_class)) {
+        __ LoadClassIdMayBeSmi(scratch_reg, instance_reg);
+        GenerateListTypeCheck(scratch_reg, done);
+        used_cid_range_check = true;
+      }
+
+      // If we haven't handled the positive case of the type check on the
+      // call-site, we want an optimized type testing stub and therefore record
+      // it in the [TypeUsageInfo].
+      if (!check_handled_at_callsite) {
+        ASSERT(type_usage_info != NULL);
+        type_usage_info->UseTypeInAssertAssignable(dst_type);
+      }
+    }
+    __ LoadObject(dst_type_reg, dst_type);
+  }
 }
 
 #undef __

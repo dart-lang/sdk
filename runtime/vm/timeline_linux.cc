@@ -9,7 +9,7 @@
 #include <fcntl.h>
 #include <cstdlib>
 
-#include "vm/atomic.h"
+#include "platform/atomic.h"
 #include "vm/isolate.h"
 #include "vm/json_stream.h"
 #include "vm/lockers.h"
@@ -23,8 +23,8 @@ namespace dart {
 
 DECLARE_FLAG(bool, trace_timeline);
 
-TimelineEventSystraceRecorder::TimelineEventSystraceRecorder(intptr_t capacity)
-    : TimelineEventPlatformRecorder(capacity), systrace_fd_(-1) {
+TimelineEventSystraceRecorder::TimelineEventSystraceRecorder()
+    : TimelineEventPlatformRecorder(), systrace_fd_(-1) {
   const char* kSystracePath = "/sys/kernel/debug/tracing/trace_marker";
   systrace_fd_ = open(kSystracePath, O_WRONLY);
   if ((systrace_fd_ < 0) && FLAG_trace_timeline) {
@@ -69,55 +69,25 @@ intptr_t TimelineEventSystraceRecorder::PrintSystrace(TimelineEvent* event,
   return length;
 }
 
-void TimelineEventSystraceRecorder::CompleteEvent(TimelineEvent* event) {
+void TimelineEventSystraceRecorder::OnEvent(TimelineEvent* event) {
   if (event == NULL) {
     return;
   }
-  if (systrace_fd_ >= 0) {
-    // Serialize to the systrace format.
-    const intptr_t kBufferLength = 1024;
-    char buffer[kBufferLength];
-    const intptr_t event_length =
-        PrintSystrace(event, &buffer[0], kBufferLength);
-    if (event_length > 0) {
-      ssize_t result;
-      // Repeatedly attempt the write while we are being interrupted.
-      do {
-        result = write(systrace_fd_, buffer, event_length);
-      } while ((result == -1L) && (errno == EINTR));
-    }
+  if (systrace_fd_ < 0) {
+    return;
   }
-  ThreadBlockCompleteEvent(event);
-}
 
-TimelineEventPlatformRecorder::TimelineEventPlatformRecorder(intptr_t capacity)
-    : TimelineEventFixedBufferRecorder(capacity) {}
-
-TimelineEventPlatformRecorder::~TimelineEventPlatformRecorder() {}
-
-TimelineEventPlatformRecorder*
-TimelineEventPlatformRecorder::CreatePlatformRecorder(intptr_t capacity) {
-  return new TimelineEventSystraceRecorder(capacity);
-}
-
-const char* TimelineEventPlatformRecorder::name() const {
-  return "Systrace";
-}
-
-TimelineEventBlock* TimelineEventPlatformRecorder::GetNewBlockLocked() {
-  // TODO(johnmccutchan): This function should only hand out blocks
-  // which have been marked as finished.
-  if (block_cursor_ == num_blocks_) {
-    block_cursor_ = 0;
+  // Serialize to the systrace format.
+  const intptr_t kBufferLength = 1024;
+  char buffer[kBufferLength];
+  const intptr_t event_length = PrintSystrace(event, &buffer[0], kBufferLength);
+  if (event_length > 0) {
+    ssize_t result;
+    // Repeatedly attempt the write while we are being interrupted.
+    do {
+      result = write(systrace_fd_, buffer, event_length);
+    } while ((result == -1L) && (errno == EINTR));
   }
-  TimelineEventBlock* block = &blocks_[block_cursor_++];
-  block->Reset();
-  block->Open();
-  return block;
-}
-
-void TimelineEventPlatformRecorder::CompleteEvent(TimelineEvent* event) {
-  UNREACHABLE();
 }
 
 }  // namespace dart

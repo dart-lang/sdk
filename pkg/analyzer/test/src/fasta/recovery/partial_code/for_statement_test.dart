@@ -12,32 +12,40 @@ main() {
 
 class ForStatementTest extends PartialCodeTest {
   buildAll() {
+    List<String> allExceptEof =
+        PartialCodeTest.statementSuffixes.map((t) => t.name).toList();
     buildTests(
         'for_statement',
         [
+          new TestDescriptor('keyword', 'for', [ParserErrorCode.EXPECTED_TOKEN],
+              'for (;;) _s_;'),
           new TestDescriptor(
-              'keyword',
-              'for',
+              'emptyParen',
+              'for ()',
               [
+                ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.EXPECTED_TOKEN
               ],
-              'for (;;) {}',
-              allFailing: true),
+              "for (_s_;_s_;) _s_;",
+              failing: allExceptEof),
           new TestDescriptor(
               'leftParen',
               'for (',
               [
+                ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN,
+                ScannerErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.EXPECTED_TOKEN
               ],
-              "for (;;) {}",
-              allFailing: true),
+              "for (_s_;_s_;) _s_;",
+              failing: allExceptEof),
           new TestDescriptor(
               'var',
               'for (var',
@@ -48,61 +56,79 @@ class ForStatementTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN,
                 ParserErrorCode.EXPECTED_TOKEN
               ],
-              "for (var _s_;;) {}",
+              "for (var _s_;;) _s_;",
               allFailing: true),
           new TestDescriptor(
               'varAndIdentifier',
               'for (var i',
               [
                 ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN,
+                ScannerErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.EXPECTED_TOKEN
               ],
-              "for (var i;;) {}",
-              allFailing: true),
+              "for (var i;_s_;) _s_;",
+              failing: allExceptEof),
           new TestDescriptor(
               'equals',
               'for (var i =',
               [
                 ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN,
+                ScannerErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.EXPECTED_TOKEN
               ],
-              "for (var i = _s_;;) {}",
-              allFailing: true),
+              "for (var i = _s_;_s_;) _s_;",
+              failing: allExceptEof),
           new TestDescriptor(
               'initializer',
               'for (var i = 0',
               [
                 ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN,
+                ScannerErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.EXPECTED_TOKEN
               ],
-              "for (var i = 0;;) {}",
-              allFailing: true),
+              "for (var i = 0;_s_;) _s_;",
+              failing: allExceptEof),
           new TestDescriptor(
               'firstSemicolon',
               'for (var i = 0;',
               [
+                ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN,
+                ScannerErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.EXPECTED_TOKEN
               ],
-              "for (var i = 0;;) {}",
-              allFailing: true),
+              "for (var i = 0;_s_;) _s_;",
+              failing: allExceptEof),
           new TestDescriptor(
               'secondSemicolon',
               'for (var i = 0;;',
-              [ParserErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN],
-              "for (var i = 0;;) {}",
-              allFailing: true),
-          new TestDescriptor('rightParen', 'for (var i = 0;;)',
-              [ParserErrorCode.EXPECTED_TOKEN], "for (var i = 0;;) {}",
-              allFailing: true),
+              [
+                ScannerErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.EXPECTED_TOKEN
+              ],
+              "for (var i = 0;;) _s_;",
+              failing: allExceptEof),
+          new TestDescriptor(
+              'rightParen',
+              'for (var i = 0;;)',
+              [
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.EXPECTED_TOKEN
+              ],
+              "for (var i = 0;;) _s_;",
+              failing: allExceptEof),
         ],
         PartialCodeTest.statementSuffixes,
         head: 'f() { ',

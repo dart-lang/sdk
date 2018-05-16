@@ -21,7 +21,12 @@ class ClosureTracerVisitor extends TracerVisitor {
 
   ClosureTracerVisitor(this.tracedElements, ApplyableTypeInformation tracedType,
       InferrerEngine inferrer)
-      : super(tracedType, inferrer);
+      : super(tracedType, inferrer) {
+    assert(
+        tracedElements.every((f) => !f.isAbstract),
+        "Tracing abstract methods: "
+        "${tracedElements.where((f) => f.isAbstract)}");
+  }
 
   ApplyableTypeInformation get tracedType => super.tracedType;
 
@@ -110,13 +115,14 @@ class ClosureTracerVisitor extends TracerVisitor {
     super.visitDynamicCallSiteTypeInformation(info);
     if (info.selector.isCall) {
       if (info.arguments.contains(currentUser)) {
-        if (!info.targets.every((element) => element.isFunction)) {
+        if (info.hasClosureCallTargets ||
+            info.concreteTargets.any((element) => !element.isFunction)) {
           bailout('Passed to a closure');
         }
-        if (info.targets.any(_checkIfFunctionApply)) {
+        if (info.concreteTargets.any(_checkIfFunctionApply)) {
           _tagAsFunctionApplyTarget("dynamic call");
         }
-      } else if (info.targets.any((element) => _checkIfCurrentUser(element))) {
+      } else if (info.concreteTargets.any(_checkIfCurrentUser)) {
         _registerCallForLaterAnalysis(info);
       }
     } else if (info.selector.isGetter &&

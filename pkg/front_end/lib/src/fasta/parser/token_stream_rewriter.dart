@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../scanner/token.dart' show SimpleToken, Token, TokenType;
+import '../../scanner/token.dart'
+    show BeginToken, SimpleToken, Token, TokenType;
+
+import 'util.dart' show optional;
 
 /// Provides the capability of inserting tokens into a token stream. This
 /// implementation does this by rewriting the previous token to point to the
@@ -34,14 +37,25 @@ class TokenStreamRewriter {
   /// after the [previousToken]. Return the [previousToken].
   Token insertTokenAfter(Token previousToken, Token insertedToken) {
     Token afterToken = previousToken.next;
-    previousToken.next = insertedToken;
-    insertedToken.previous = previousToken;
+    previousToken.setNext(insertedToken);
 
     Token lastReplacement = _lastTokenInChain(insertedToken);
-    lastReplacement.next = afterToken;
-    afterToken.previous = lastReplacement;
+    lastReplacement.setNext(afterToken);
 
     return previousToken;
+  }
+
+  /// Move [endGroup] (a synthetic `)`, `]`, `}`, or `>` token) after [token]
+  /// in the token stream and return [endGroup].
+  Token moveSynthetic(Token token, Token endGroup) {
+    assert(endGroup.beforeSynthetic != null);
+
+    Token next = token.next;
+    endGroup.beforeSynthetic.setNext(endGroup.next);
+    token.setNext(endGroup);
+    endGroup.setNext(next);
+    endGroup.offset = next.offset;
+    return endGroup;
   }
 
   /// Replace the single token immediately following the [previousToken] with
@@ -49,17 +63,41 @@ class TokenStreamRewriter {
   /// [replacementToken].
   Token replaceTokenFollowing(Token previousToken, Token replacementToken) {
     Token replacedToken = previousToken.next;
-    previousToken.next = replacementToken;
-    replacementToken.previous = previousToken;
+    previousToken.setNext(replacementToken);
 
     (replacementToken as SimpleToken).precedingComments =
         replacedToken.precedingComments;
 
-    Token lastReplacement = _lastTokenInChain(replacementToken);
-    lastReplacement.next = replacedToken.next;
-    replacedToken.next.previous = lastReplacement;
+    _lastTokenInChain(replacementToken).setNext(replacedToken.next);
 
     return replacementToken;
+  }
+
+  /// Split a `>>` token into two separate `>` tokens and return the first `>`.
+  /// This sets [start].endGroup to the second `>` and updates the token stream,
+  /// but does not set the inner group's endGroup.
+  Token splitGtGt(BeginToken start) {
+    Token gtgt = start.endGroup;
+    assert(gtgt != null);
+    assert(optional('>>', gtgt));
+
+    // A no-op rewriter could simply return `>>` here.
+
+    Token gt1 =
+        new SimpleToken(TokenType.GT, gtgt.charOffset, gtgt.precedingComments);
+    Token gt2 = gt1.setNext(new SimpleToken(TokenType.GT, gt1.charOffset + 1));
+    gt2.setNext(gtgt.next);
+
+    Token token = start;
+    Token next = token.next;
+    while (!identical(next, gtgt)) {
+      token = next;
+      next = token.next;
+    }
+    token.setNext(gt1);
+
+    start.endGroup = gt2;
+    return gt1;
   }
 
   /// Given the [firstToken] in a chain of tokens to be inserted, return the

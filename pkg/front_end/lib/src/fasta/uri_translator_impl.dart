@@ -37,10 +37,19 @@ class UriTranslatorImpl implements UriTranslator {
   // TODO(sigmund, ahe): consider expanding this API to include an error
   // callback, so we can provide an error location when one is available. For
   // example, if the error occurs in an `import`.
-  Uri translate(Uri uri) {
+  Uri translate(Uri uri, [bool reportMessage = true]) {
     if (uri.scheme == "dart") return _translateDartUri(uri);
-    if (uri.scheme == "package") return _translatePackageUri(uri);
+    if (uri.scheme == "package") {
+      return _translatePackageUri(uri, reportMessage);
+    }
     return null;
+  }
+
+  @override
+  bool isLibrarySupported(String libraryName) {
+    // TODO(sigmund): change this to `?? false` when all backends provide the
+    // `libraries.json` file by default (Issue #32657).
+    return dartLibraries.libraryInfoFor(libraryName)?.isSupported ?? true;
   }
 
   /// Return the file URI that corresponds to the given `dart` URI, or `null`
@@ -53,16 +62,21 @@ class UriTranslatorImpl implements UriTranslator {
   /// Return the file URI that corresponds to the given `package` URI, or
   /// `null` if the `package` [uri] format is invalid, or there is no
   /// corresponding package registered.
-  Uri _translatePackageUri(Uri uri) {
+  Uri _translatePackageUri(Uri uri, bool reportMessage) {
     try {
       // TODO(sigmund): once we remove the `parse` API, we can ensure that
       // packages will never be null and get rid of `?` below.
-      return packages?.resolve(uri, notFound: _packageUriNotFound);
+      return packages?.resolve(uri,
+          notFound: reportMessage
+              ? _packageUriNotFound
+              : _packageUriNotFoundNoReport);
     } on ArgumentError catch (e) {
       // TODO(sigmund): catch a more precise error when
       // https://github.com/dart-lang/package_config/issues/40 is fixed.
-      CompilerContext.current.reportWithoutLocation(
-          templateInvalidPackageUri.withArguments(uri, '$e'), Severity.error);
+      if (reportMessage) {
+        CompilerContext.current.reportWithoutLocation(
+            templateInvalidPackageUri.withArguments(uri, '$e'), Severity.error);
+      }
       return null;
     }
   }
@@ -74,6 +88,10 @@ class UriTranslatorImpl implements UriTranslator {
     // TODO(sigmund, ahe): ensure we only report an error once,
     // this null result will likely cause another error further down in the
     // compiler.
+    return null;
+  }
+
+  static Uri _packageUriNotFoundNoReport(Uri uri) {
     return null;
   }
 }

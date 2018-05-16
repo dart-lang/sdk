@@ -7,19 +7,10 @@ import 'dart:collection';
 /// Helpers for Analyzer's Element model and corelib model.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart'
-    show
-        ClassElement,
-        CompilationUnitElement,
-        Element,
-        ExecutableElement,
-        FunctionElement,
-        LibraryElement,
-        PropertyAccessorElement,
-        TypeParameterizedElement;
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart'
     show DartType, InterfaceType, ParameterizedType, FunctionType;
-import 'package:analyzer/src/dart/element/type.dart' show DynamicTypeImpl;
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart'
     show DartObject, DartObjectImpl;
 
@@ -84,9 +75,17 @@ DartType getStaticType(Expression e) =>
 /// Similar to [SimpleIdentifier] inGetterContext, inSetterContext, and
 /// inDeclarationContext, this method returns true if [node] is used in an
 /// invocation context such as a MethodInvocation.
-bool inInvocationContext(SimpleIdentifier node) {
+bool inInvocationContext(Expression node) {
+  if (node == null) return false;
   var parent = node.parent;
-  return parent is MethodInvocation && parent.methodName == node;
+  while (parent is ParenthesizedExpression) {
+    node = parent;
+    parent = node.parent;
+  }
+  return parent is InvocationExpression && identical(node, parent.function) ||
+      parent is MethodInvocation &&
+          parent.methodName.name == 'call' &&
+          identical(node, parent.target);
 }
 
 bool isInlineJS(Element e) {
@@ -96,6 +95,9 @@ bool isInlineJS(Element e) {
   }
   return false;
 }
+
+bool isLibraryPrefix(Expression node) =>
+    node is SimpleIdentifier && node.staticElement is PrefixElement;
 
 ExecutableElement getFunctionBodyElement(FunctionBody body) {
   var f = body.parent;
@@ -204,6 +206,88 @@ bool isCallableClass(ClassElement c) {
       : callMethod != null;
 }
 
+/// Returns true if [x] and [y] are equal, in other words, `x <: y` and `y <: x`
+/// and they have equivalent display form when printed.
+//
+// TODO(jmesserly): this exists to work around broken FunctionTypeImpl.== in
+// Analyzer. It has two bugs:
+// - typeArguments are considered, even though this has no semantic effect.
+//   For example: `int -> int` that resulted from `(<T>(T) -> T)<int>` will not
+//   equal another `int -> int`, even though they are the same type.
+// - named arguments are incorrectly treated as ordered, see
+//   https://github.com/dart-lang/sdk/issues/26126.
+bool typesAreEqual(DartType x, DartType y) {
+  if (identical(x, y)) return true;
+  if (x is FunctionType) {
+    if (y is FunctionType) {
+      if (x.typeFormals.length != y.typeFormals.length) {
+        return false;
+      }
+      // `<T>T -> T` should be equal to `<U>U -> U`
+      // To test this, we instantiate both types with the same (unique) type
+      // variables, and see if the result is equal.
+      if (x.typeFormals.isNotEmpty) {
+        var fresh = FunctionTypeImpl.relateTypeFormals(
+            x, y, (t, s, _, __) => typesAreEqual(t, s));
+        if (fresh == null) return false;
+        return typesAreEqual(x.instantiate(fresh), y.instantiate(fresh));
+      }
+
+      return typesAreEqual(x.returnType, y.returnType) &&
+          _argumentsAreEqual(x.normalParameterTypes, y.normalParameterTypes) &&
+          _argumentsAreEqual(
+              x.optionalParameterTypes, y.optionalParameterTypes) &&
+          _namedArgumentsAreEqual(x.namedParameterTypes, y.namedParameterTypes);
+    } else {
+      return false;
+    }
+  }
+  if (x is InterfaceType) {
+    return y is InterfaceType &&
+        x.element == y.element &&
+        _argumentsAreEqual(x.typeArguments, y.typeArguments);
+  }
+  return x == y;
+}
+
+bool _argumentsAreEqual(List<DartType> first, List<DartType> second) {
+  if (first.length != second.length) return false;
+  for (int i = 0; i < first.length; i++) {
+    if (!typesAreEqual(first[i], second[i])) return false;
+  }
+  return true;
+}
+
+bool _namedArgumentsAreEqual(
+    Map<String, DartType> xArgs, Map<String, DartType> yArgs) {
+  if (yArgs.length != xArgs.length) return false;
+  for (var name in xArgs.keys) {
+    var x = xArgs[name];
+    var y = yArgs[name];
+    if (y == null || !typesAreEqual(x, y)) return false;
+  }
+  return true;
+}
+
+/// Returns a valid hashCode for [t] for use with [typesAreEqual].
+int typeHashCode(DartType t) {
+  if (t is FunctionType) {
+    // TODO(jmesserly): this is from Analyzer; it's not a great hash function.
+    int code = typeHashCode(t.returnType);
+    for (var p in t.normalParameterTypes) {
+      code = (code << 1) + typeHashCode(p);
+    }
+    for (var p in t.optionalParameterTypes) {
+      code = (code << 1) + typeHashCode(p);
+    }
+    for (var p in t.namedParameterTypes.values) {
+      code ^= typeHashCode(p); // xor because named parameters are unordered.
+    }
+    return code;
+  }
+  return t.hashCode;
+}
+
 Uri uriForCompilationUnit(CompilationUnitElement unit) {
   if (unit.source.isInSystemLibrary) {
     return unit.source.uri;
@@ -245,4 +329,13 @@ bool isUnsupportedFactoryConstructor(ConstructorDeclaration node) {
     }
   }
   return false;
+}
+
+bool isBuiltinAnnotation(
+    DartObjectImpl value, String libraryName, String annotationName) {
+  var e = value?.type?.element;
+  if (e?.name != annotationName) return false;
+  var uri = e.source.uri;
+  var path = uri.pathSegments[0];
+  return uri.scheme == 'dart' && path == libraryName;
 }

@@ -50,8 +50,6 @@
     "Run optimizing compilation in background")                                \
   R(background_compilation_stop_alot, false, bool, false,                      \
     "Stress test system: stop background compiler often.")                     \
-  R(break_at_isolate_spawn, false, bool, false,                                \
-    "Insert a one-time breakpoint at the entrypoint for all spawned isolates") \
   P(causal_async_stacks, bool, !USING_PRODUCT, "Improved async stacks")        \
   P(collect_code, bool, true, "Attempt to GC infrequently used code.")         \
   P(collect_dynamic_function_names, bool, true,                                \
@@ -76,6 +74,8 @@
     "Emit DWARF line number and inlining info"                                 \
     "in dylib snapshots and don't symbolize stack traces.")                    \
   R(enable_asserts, false, bool, false, "Enable assert statements.")           \
+  P(enable_kernel_expression_compilation, bool, true,                          \
+    "Compile expressions with the Kernel front-end.")                          \
   P(enable_mirrors, bool, true,                                                \
     "Disable to make importing dart:mirrors an error.")                        \
   R(enable_type_checks, false, bool, false, "Enable type checks.")             \

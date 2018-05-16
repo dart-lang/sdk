@@ -20,24 +20,54 @@
 
 import 'dart:core' hide MapEntry;
 
-import 'package:front_end/src/base/instrumentation.dart';
-import 'package:front_end/src/fasta/fasta_codes.dart';
-import 'package:front_end/src/fasta/kernel/body_builder.dart';
-import 'package:front_end/src/fasta/kernel/fasta_accessors.dart';
-import 'package:front_end/src/fasta/source/source_class_builder.dart';
-import 'package:front_end/src/fasta/source/source_library_builder.dart';
-import 'package:front_end/src/fasta/type_inference/interface_resolver.dart';
-import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
-import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
-import 'package:front_end/src/fasta/type_inference/type_promotion.dart';
-import 'package:front_end/src/fasta/type_inference/type_schema.dart';
-import 'package:front_end/src/fasta/type_inference/type_schema_elimination.dart';
-import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart' hide InvalidExpression, InvalidInitializer;
-import 'package:kernel/frontend/accessors.dart';
-import 'package:kernel/type_algebra.dart';
+
+import 'package:kernel/clone.dart' show CloneVisitor;
+
+import 'package:kernel/type_algebra.dart' show Substitution;
+
+import '../../base/instrumentation.dart'
+    show
+        Instrumentation,
+        InstrumentationValueForMember,
+        InstrumentationValueForType,
+        InstrumentationValueForTypeArgs;
+
+import '../fasta_codes.dart'
+    show templateCantUseSuperBoundedTypeForInstanceCreation;
 
 import '../problems.dart' show unhandled, unsupported;
+
+import '../source/source_class_builder.dart' show SourceClassBuilder;
+
+import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+
+import '../type_inference/interface_resolver.dart' show InterfaceResolver;
+
+import '../type_inference/type_inference_engine.dart'
+    show
+        FieldInitializerInferenceNode,
+        IncludesTypeParametersCovariantly,
+        InferenceNode,
+        TypeInferenceEngine,
+        TypeInferenceEngineImpl;
+
+import '../type_inference/type_inferrer.dart'
+    show TypeInferrer, TypeInferrerDisabled, TypeInferrerImpl;
+
+import '../type_inference/type_promotion.dart'
+    show TypePromoter, TypePromoterImpl, TypePromotionFact, TypePromotionScope;
+
+import '../type_inference/type_schema.dart' show UnknownType;
+
+import '../type_inference/type_schema_elimination.dart' show greatestClosure;
+
+import '../type_inference/type_schema_environment.dart'
+    show TypeSchemaEnvironment, getPositionalParameterType;
+
+import 'body_builder.dart' show combineStatements;
+
+import 'expression_generator.dart' show BuilderHelper, makeLet;
 
 /// Indicates whether type inference involving conditional expressions should
 /// always use least upper bound.
@@ -413,16 +443,18 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
       if (isPreIncDec || isPostIncDec) {
         rhsType = inferrer.coreTypes.intClass.rawType;
       } else {
-        // Analyzer uses a null context for the RHS here.
-        // TODO(paulberry): improve on this.
-        rhsType = inferrer.inferExpression(rhs, const UnknownType(), true);
         // It's not necessary to call _storeLetType for [rhs] because the RHS
         // is always passed directly to the combiner; it's never stored in a
         // temporary variable first.
-        assert(identical(combiner.arguments.positional[0], rhs));
+        assert(identical(combiner.arguments.positional.first, rhs));
+        // Analyzer uses a null context for the RHS here.
+        // TODO(paulberry): improve on this.
+        rhsType = inferrer.inferExpression(rhs, const UnknownType(), true);
+        // Do not use rhs after this point because it may be a Shadow node
+        // that has been replaced in the tree with its desugaring.
         var expectedType = getPositionalParameterType(combinerType, 0);
-        inferrer.ensureAssignable(
-            expectedType, rhsType, rhs, combiner.fileOffset);
+        inferrer.ensureAssignable(expectedType, rhsType,
+            combiner.arguments.positional.first, combiner.fileOffset);
       }
       if (isOverloadedArithmeticOperator) {
         combinedType = inferrer.typeSchemaEnvironment
@@ -877,6 +909,7 @@ class ShadowForInStatement extends ForInStatement implements ShadowStatement {
     }
     inferrer.inferStatement(body);
     if (_declaresVariable) {
+      inferrer.inferMetadataKeepingHelper(variable.annotations);
       var tempVar =
           new VariableDeclaration(null, type: inferredType, isFinal: true);
       var variableGet = new VariableGet(tempVar)
@@ -939,6 +972,7 @@ class ShadowFunctionDeclaration extends FunctionDeclaration
 
   @override
   void _inferStatement(ShadowTypeInferrer inferrer) {
+    inferrer.inferMetadataKeepingHelper(variable.annotations);
     inferrer.inferLocalFunction(
         function,
         null,
@@ -1588,10 +1622,7 @@ class ShadowPropertyAssign extends ShadowComplexAssignmentWithReceiver {
 
   Object _handleWriteContravariance(
       ShadowTypeInferrer inferrer, DartType receiverType) {
-    var writeMember = inferrer.findPropertySetMember(receiverType, write);
-    inferrer.handlePropertySetContravariance(
-        receiver, writeMember, write is PropertySet ? write : null, write);
-    return writeMember;
+    return inferrer.findPropertySetMember(receiverType, write);
   }
 
   @override
@@ -1913,6 +1944,7 @@ class ShadowSyntheticExpression extends Let implements ShadowExpression {
   /// [desugared].
   void _replaceWithDesugared() {
     parent.replaceChild(this, desugared);
+    parent = null;
   }
 
   /// Updates any [Let] nodes in the desugared expression to account for the
@@ -2270,6 +2302,26 @@ class ShadowVariableDeclaration extends VariableDeclaration
 
   @override
   void _inferStatement(ShadowTypeInferrer inferrer) {
+    inferrer.inferMetadataKeepingHelper(annotations);
+
+    // After the inference was done on the annotations, we may clone them for
+    // this instance of VariableDeclaration in order to avoid having the same
+    // annotation node for two VariableDeclaration nodes in a situation like
+    // the following:
+    //
+    //     class Foo { const Foo(List<String> list); }
+    //
+    //     @Foo(const [])
+    //     var x, y;
+    CloneVisitor cloner = new CloneVisitor();
+    for (int i = 0; i < annotations.length; ++i) {
+      Expression annotation = annotations[i];
+      if (annotation.parent != this) {
+        annotations[i] = cloner.clone(annotation);
+        annotations[i].parent = this;
+      }
+    }
+
     var declaredType = _implicitlyTyped ? const UnknownType() : type;
     DartType inferredType;
     DartType initializerType;
@@ -2382,6 +2434,27 @@ class ShadowYieldStatement extends YieldStatement implements ShadowStatement {
     }
     closureContext.handleYield(
         inferrer, isYieldStar, inferredType, expression, fileOffset);
+  }
+}
+
+/// Concrete shadow object representing a deferred load library call.
+class ShadowLoadLibrary extends LoadLibrary implements ShadowExpression {
+  ShadowLoadLibrary(LibraryDependency import) : super(import);
+
+  @override
+  DartType _inferExpression(ShadowTypeInferrer inferrer, DartType typeContext) {
+    return super.getStaticType(inferrer.typeSchemaEnvironment);
+  }
+}
+
+/// Concrete shadow object representing a deferred library-is-loaded check.
+class ShadowCheckLibraryIsLoaded extends CheckLibraryIsLoaded
+    implements ShadowExpression {
+  ShadowCheckLibraryIsLoaded(LibraryDependency import) : super(import);
+
+  @override
+  DartType _inferExpression(ShadowTypeInferrer inferrer, DartType typeContext) {
+    return super.getStaticType(inferrer.typeSchemaEnvironment);
   }
 }
 

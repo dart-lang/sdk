@@ -24,12 +24,12 @@ typed_array_renames = {
 html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames',
                                         dict({
     'Attr': '_Attr',
+    'BudgetService': '_BudgetService',
     'CDATASection': 'CDataSection',
-    'Clipboard': 'DataTransfer',
+    'Clipboard': '_Clipboard', # TODO(terry): Need to remove when ACX Clipboard is renamed to AcxClipboard.
     'Database': 'SqlDatabase', # Avoid conflict with Index DB's Database.
     'DatabaseSync': 'SqlDatabaseSync',
     'DOMFileSystem': 'FileSystem',
-    'DOMRect': '_DomRect',
     'Entity': '_Entity', # Not sure if we want to expose this yet, may conflict with other libs.
     'EntryCallback': '_EntryCallback',
     'EntriesCallback': '_EntriesCallback',
@@ -47,9 +47,11 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames',
     'NavigatorUserMediaErrorCallback': '_NavigatorUserMediaErrorCallback',
     'NavigatorUserMediaSuccessCallback': '_NavigatorUserMediaSuccessCallback',
     'NotificationPermissionCallback': '_NotificationPermissionCallback',
+    'Position': 'Geoposition',
     'PositionCallback': '_PositionCallback',
     'PositionErrorCallback': '_PositionErrorCallback',
     'Request': '_Request',
+    'Report': '_Report',
     'RTCDTMFSender': 'RtcDtmfSender',
     'RTCDTMFToneChangeEvent': 'RtcDtmfToneChangeEvent',
     'RTCErrorCallback': '_RtcErrorCallback',
@@ -68,6 +70,16 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames',
     'XMLHttpRequestEventTarget': 'HttpRequestEventTarget',
 }, **typed_array_renames))
 
+
+# Some callback interfaces are not just a simple callback functions.  If the callback
+# interface is in this list then the interface is exposed as a class.
+_gen_callback_interfaces = [
+  'NodeFilter'
+]
+
+def generateCallbackInterface(id):
+  return id in _gen_callback_interfaces
+
 # Interfaces that are suppressed, but need to still exist for Dartium and to
 # properly wrap DOM objects if/when encountered.
 _removed_html_interfaces = [
@@ -80,7 +92,7 @@ _removed_html_interfaces = [
   'BluetoothRemoteGATTService',
   'BluetoothUUID',
   'Cache', # TODO: Symbol conflicts with Angular: dartbug.com/20937
-  'CanvasPathMethods',
+  'CanvasPath',
   'CDataSection',
   'CSSPrimitiveValue',
   'CSSUnknownRule',
@@ -104,6 +116,11 @@ _removed_html_interfaces = [
   'HTMLFrameSetElement',
   'HTMLMarqueeElement',
   'IDBAny',
+  'Mojo',
+  'MojoHandle',
+  'MojoInterfaceInterceptor',
+  'MojoInterfaceRequestEvent',
+  'MojoWatcher',
   'NFC',
   'Notation',
   'PagePopupController',
@@ -111,7 +128,6 @@ _removed_html_interfaces = [
   'RadioNodeList',  # Folded onto NodeList in dart2js.
   'Rect',
   'Response', # TODO: Symbol conflicts with Angular: dartbug.com/20937
-  'ServiceWorker',
   'SQLTransactionSync', # Workers
   'SQLTransactionSyncCallback', # Workers
   'SVGAltGlyphDefElement', # Webkit only.
@@ -162,7 +178,6 @@ _removed_html_interfaces = [
   'WorkerLocation', # Workers
   'WorkerNavigator', # Workers
   'Worklet', # Rendering Workers
-  'WorkletGlobalScope', # Rendering Workers
   'XMLHttpRequestProgressEvent',
   # Obsolete event for NaCl.
   'ResourceProgressEvent',
@@ -323,6 +338,7 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'Element.children',
   'Element.childElementCount',
   'Element.firstElementChild',
+  'Element.getClientRects',
   'Element.getElementsByTagName',
   'Element.insertAdjacentHTML',
   'Element.scrollIntoView',
@@ -384,6 +400,7 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'MediaKeys.createSession',
   'MediaKeySession.update',
   'MessageEvent.initMessageEvent',
+  'MessagePort.start',
   'MouseEvent.initMouseEvent',
   'MouseEvent.clientX',
   'MouseEvent.clientY',
@@ -394,6 +411,7 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'MouseEvent.screenX',
   'MouseEvent.screenY',
   'MutationObserver.observe',
+  'Navigator.getGamepads',
   'Node.attributes',
   'Node.localName',
   'Node.namespaceURI',
@@ -404,6 +422,7 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'ParentNode.firstElementChild',
   'ParentNode.lastElementChild',
   'ParentNode.querySelectorAll',
+  'Range.getClientRects',
   'RTCPeerConnection.createAnswer',
   'RTCPeerConnection.createOffer',
   'RTCPeerConnection.getStats',
@@ -411,7 +430,6 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'Screen.availLeft',
   'Screen.availTop',
   'Screen.availWidth',
-  'ServiceWorkerGlobalScope.fetch',
   'ShadowRoot.resetStyleInheritance',
   'Storage.clear',
   'Storage.getItem',
@@ -440,7 +458,6 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'Touch.screenY',
   'Touch.radiusX',
   'Touch.radiusY',
-  'TouchEvent.initTouchEvent',
   'UIEvent.initUIEvent',
   'UIEvent.layerX',
   'UIEvent.layerY',
@@ -537,7 +554,6 @@ renamed_overloads = monitored.Dict('htmldartgenerator.renamed_overloads', {
 # number of arguments vary), so we do not rename them as a _raw method.
 keep_overloaded_members = monitored.Set(
     'htmldartgenerator.keep_overloaded_members', [
-  'AudioBufferSourceNode.start',
   'CanvasRenderingContext2D.putImageData',
   'CanvasRenderingContext2D.webkitPutImageDataHD',
   'DataTransferItemList.add',
@@ -707,7 +723,6 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'Element.offsetLeft',
     'Element.offsetWidth',
     'Element.offsetHeight',
-    'Element.on:wheel',
     'Element.outerText',
     'Element.prepend',
     'Element.removeAttributeNode',
@@ -841,8 +856,6 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'MouseEvent.x',
     'MouseEvent.y',
     'Navigator.bluetooth',
-    'Navigator.registerServiceWorker',
-    'Navigator.unregisterServiceWorker',
     'Navigator.isProtocolHandlerRegistered',
     'Navigator.unregisterProtocolHandler',
     'Navigator.usb',
@@ -871,7 +884,6 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'ParentNode.append',
     'ParentNode.prepend',
     'RTCPeerConnection.generateCertificate',
-    'ServiceWorkerMessageEvent.data',
     'ShadowRoot.getElementsByTagNameNS',
     'SVGElement.getPresentationAttribute',
     'SVGElementInstance.on:wheel',
@@ -904,14 +916,24 @@ _library_names = monitored.Dict('htmlrenamer._library_names', {
   'AudioBufferSourceNode': 'web_audio',
   'AudioContext': 'web_audio',
   'AudioDestinationNode': 'web_audio',
+  'AudioElement': 'web_audio',
   'AudioListener': 'web_audio',
   'AudioNode': 'web_audio',
   'AudioParam': 'web_audio',
+  'AudioParamMap': 'web_audio',
   'AudioProcessingEvent': 'web_audio',
+  'AudioScheduledSourceNode': 'web_audio',
   'AudioSourceNode': 'web_audio',
+  'AudioTrack': 'web_audio',
+  'AudioTrackList': 'web_audio',
+  'AudioWorkletGlobalScope': 'web_audio',
+  'AudioWorkletNode': 'web_audio',
+  'AudioWorkletProcessor': 'web_audio',
+  'BaseAudioContext': 'web_audio',
   'BiquadFilterNode': 'web_audio',
   'ChannelMergerNode': 'web_audio',
   'ChannelSplitterNode': 'web_audio',
+  'ConstantSourceNode': 'web_audio',
   'ConvolverNode': 'web_audio',
   'DelayNode': 'web_audio',
   'DynamicsCompressorNode': 'web_audio',

@@ -34,16 +34,16 @@ class C extends self::_C&Object&M1&M2 {
     : super core::Object::•()
     ;
 }
-abstract class G1<T extends core::Object> extends core::Object {
+abstract class G1<T extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
   method m() → dynamic
     return core::print(self::G1::T);
 }
-abstract class _D&Object&G1<S extends core::Object> = core::Object with self::G1<self::_D&Object&G1::S> {
+abstract class _D&Object&G1<S extends core::Object = dynamic> = core::Object with self::G1<self::_D&Object&G1::S> {
 }
-class D<S extends core::Object> extends self::_D&Object&G1<self::D::S> {
+class D<S extends core::Object = dynamic> extends self::_D&Object&G1<self::D::S> {
   synthetic constructor •() → void
     : super core::Object::•()
     ;

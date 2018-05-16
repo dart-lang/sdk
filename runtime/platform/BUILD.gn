@@ -2,34 +2,12 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import("../configs.gni")
 import("platform_sources.gni")
 
-template("build_libdart_platform") {
-  extra_configs = []
-  if (defined(invoker.extra_configs)) {
-    extra_configs += invoker.extra_configs
-  }
-  static_library(target_name) {
-    configs += [
-      "..:dart_arch_config",
-      "..:dart_config",
-      "..:dart_os_config",
-    ] + extra_configs
-    if (is_fuchsia) {
-      configs -= [ "//build/config:symbol_visibility_hidden" ]
-    }
-    public_configs = [ "../vm:libdart_vm_config" ]
-
-    sources = platform_sources
-
-    include_dirs = [ ".." ]
-  }
-}
-
-build_libdart_platform("libdart_platform") {
-  extra_configs = [ "..:dart_maybe_product_config" ]
-}
-
-build_libdart_platform("libdart_platform_product") {
-  extra_configs = [ "..:dart_product_config" ]
+library_for_all_configs("libdart_platform") {
+  target_type = "static_library"
+  public_configs = [ "../vm:libdart_vm_config" ]
+  sources = platform_sources
+  include_dirs = [ ".." ]
 }

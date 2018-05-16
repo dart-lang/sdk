@@ -5,7 +5,8 @@ import "dart:core" as core;
 abstract class A extends core::Object {
   synthetic constructor •() → void
     ;
-  abstract set x(core::double value) → void;
+  set x(core::double value) → void
+    ;
 }
 class B extends self::A {
   final field dynamic x;

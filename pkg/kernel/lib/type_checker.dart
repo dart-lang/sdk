@@ -25,8 +25,8 @@ abstract class TypeChecker {
         new TypeEnvironment(coreTypes, hierarchy, strongMode: strongMode);
   }
 
-  void checkProgram(Program program) {
-    for (var library in program.libraries) {
+  void checkComponent(Component component) {
+    for (var library in component.libraries) {
       if (ignoreSdk && library.importUri.scheme == 'dart') continue;
       for (var class_ in library.classes) {
         hierarchy.forEachOverridePair(class_,
@@ -36,7 +36,7 @@ abstract class TypeChecker {
       }
     }
     var visitor = new TypeCheckingVisitor(this, environment);
-    for (var library in program.libraries) {
+    for (var library in component.libraries) {
       if (ignoreSdk && library.importUri.scheme == 'dart') continue;
       for (var class_ in library.classes) {
         environment.thisType = class_.thisType;
@@ -819,6 +819,11 @@ class TypeCheckingVisitor
 
   @override
   visitBlock(Block node) {
+    node.statements.forEach(visitStatement);
+  }
+
+  @override
+  visitAssertBlock(AssertBlock node) {
     node.statements.forEach(visitStatement);
   }
 

@@ -2,17 +2,17 @@ library test.mixin_library;
 import self as self;
 import "dart:core" as core;
 
-class Mixin<T extends core::Object> extends core::Object {
+class Mixin<T extends core::Object = dynamic> extends core::Object {
   field dynamic x = self::f();
   field dynamic y = null;
   field dynamic z = null;
-  generic-covariant-impl generic-covariant-interface field self::Mixin::T t = null;
+  generic-covariant-impl field self::Mixin::T t = null;
   synthetic constructor •() → void
     : super core::Object::•()
     ;
   method foo() → dynamic
     return super.foo().+(self::f());
-  method g(generic-covariant-impl generic-covariant-interface self::Mixin::T a) → self::Mixin::T
+  method g(generic-covariant-impl self::Mixin::T a) → self::Mixin::T
     return null;
   method h() → dynamic
     return self::V();

@@ -16,13 +16,12 @@ import 'constants/values.dart'
         ConstructedConstantValue,
         DeferredConstantValue,
         DeferredGlobalConstantValue,
+        InstantiationConstantValue,
         TypeConstantValue;
 import 'elements/types.dart';
-import 'elements/elements.dart'
-    show AstElement, ClassElement, Element, MethodElement, LocalFunctionElement;
 import 'elements/entities.dart';
 import 'kernel/kelements.dart' show KLocalFunction;
-import 'universe/use.dart' show StaticUse, StaticUseKind, TypeUse, TypeUseKind;
+import 'universe/use.dart';
 import 'universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitorImpl;
 import 'util/uri_extras.dart' as uri_extras;
@@ -95,9 +94,6 @@ abstract class DeferredLoadTask extends CompilerTask {
 
   /// Will be `true` if the program contains deferred libraries.
   bool isProgramSplit = false;
-
-  /// Whether mirrors have been used in the program.
-  bool _isMirrorsUsed = false;
 
   static const ImpactUseCase IMPACT_USE = const ImpactUseCase('Deferred load');
 
@@ -192,11 +188,6 @@ abstract class DeferredLoadTask extends CompilerTask {
   /// Adds the results to [elements] and [constants].
   void _collectAllElementsAndConstantsResolvedFrom(Entity element,
       Set<Entity> elements, Set<ConstantValue> constants, isMirrorUsage) {
-    if (element is Element && element.isMalformed) {
-      // Malformed elements are ignored.
-      return;
-    }
-
     /// Collects all direct dependencies of [element].
     ///
     /// The collected dependent elements and constants are are added to
@@ -208,23 +199,13 @@ abstract class DeferredLoadTask extends CompilerTask {
         return;
       }
 
-      // TODO(johnniwinther): Remove this when [AbstractFieldElement] has been
-      // removed.
-      if (element is Element && element is! AstElement) return;
-      Entity analyzableElement =
-          element is Element ? element.analyzableElement.declaration : element;
-
       // TODO(sigurdm): We want to be more specific about this - need a better
       // way to query "liveness".
-      if (!compiler.resolutionWorldBuilder.isMemberUsed(analyzableElement)) {
+      if (!compiler.resolutionWorldBuilder.isMemberUsed(element)) {
         return;
       }
-      _collectDependenciesFromImpact(analyzableElement, elements);
-      collectConstantsInBody(analyzableElement, constants);
-    }
-
-    if (_isMirrorsUsed) {
-      collectConstantsFromMetadata(element, constants);
+      _collectDependenciesFromImpact(element, elements);
+      collectConstantsInBody(element, constants);
     }
 
     if (element is FunctionEntity) {
@@ -244,13 +225,12 @@ abstract class DeferredLoadTask extends CompilerTask {
         collectDependencies(element);
       }
 
-      ClassEntity cls = element is ClassElement ? element.declaration : element;
-      ClassEntity impl = cls is ClassElement ? cls.implementation : cls;
+      ClassEntity cls = element;
       elementEnvironment.forEachLocalClassMember(cls, addLiveInstanceMember);
-      elementEnvironment.forEachSupertype(impl, (InterfaceType type) {
+      elementEnvironment.forEachSupertype(cls, (InterfaceType type) {
         _collectTypeDependencies(type, elements);
       });
-      elements.add(impl);
+      elements.add(cls);
     } else if (element is MemberEntity &&
         (element.isStatic || element.isTopLevel || element.isConstructor)) {
       elements.add(element);
@@ -261,10 +241,8 @@ abstract class DeferredLoadTask extends CompilerTask {
       // constructor, not the class itself.  We must add all the
       // instance members of the constructor's class.
       ClassEntity cls = element.enclosingClass;
-      ClassEntity implementation =
-          cls is ClassElement ? cls.implementation : cls;
       _collectAllElementsAndConstantsResolvedFrom(
-          implementation, elements, constants, isMirrorUsage);
+          cls, elements, constants, isMirrorUsage);
     }
 
     // Other elements, in particular instance members, are ignored as
@@ -319,6 +297,18 @@ abstract class DeferredLoadTask extends CompilerTask {
             case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
               _collectTypeDependencies(staticUse.type, elements);
               break;
+            case StaticUseKind.INVOKE:
+            case StaticUseKind.CLOSURE_CALL:
+            case StaticUseKind.DIRECT_INVOKE:
+              // TODO(johnniwinther): Use rti need data to skip unneeded type
+              // arguments.
+              List<DartType> typeArguments = staticUse.typeArguments;
+              if (typeArguments != null) {
+                for (DartType typeArgument in typeArguments) {
+                  _collectTypeDependencies(typeArgument, elements);
+                }
+              }
+              break;
             default:
           }
         }, visitTypeUse: (TypeUse typeUse) {
@@ -341,11 +331,30 @@ abstract class DeferredLoadTask extends CompilerTask {
             case TypeUseKind.CATCH_TYPE:
               _collectTypeDependencies(type, elements);
               break;
-            case TypeUseKind.CHECKED_MODE_CHECK:
-              if (compiler.options.enableTypeAssertions) {
+            case TypeUseKind.IMPLICIT_CAST:
+              if (compiler.options.implicitDowncastCheckPolicy.isEmitted) {
                 _collectTypeDependencies(type, elements);
               }
               break;
+            case TypeUseKind.PARAMETER_CHECK:
+              if (compiler.options.parameterCheckPolicy.isEmitted) {
+                _collectTypeDependencies(type, elements);
+              }
+              break;
+            case TypeUseKind.CHECKED_MODE_CHECK:
+              if (compiler.options.assignmentCheckPolicy.isEmitted) {
+                _collectTypeDependencies(type, elements);
+              }
+              break;
+          }
+        }, visitDynamicUse: (DynamicUse dynamicUse) {
+          // TODO(johnniwinther): Use rti need data to skip unneeded type
+          // arguments.
+          List<DartType> typeArguments = dynamicUse.typeArguments;
+          if (typeArguments != null) {
+            for (DartType typeArgument in typeArguments) {
+              _collectTypeDependencies(typeArgument, elements);
+            }
           }
         }),
         DeferredLoadTask.IMPACT_USE);
@@ -377,6 +386,13 @@ abstract class DeferredLoadTask extends CompilerTask {
         var type = constant.representedType;
         if (type is TypedefType) {
           _updateElementRecursive(type.element, oldSet, newSet, queue);
+        }
+      }
+      if (constant is InstantiationConstantValue) {
+        for (DartType type in constant.typeArguments) {
+          if (type is InterfaceType) {
+            _updateElementRecursive(type.element, oldSet, newSet, queue);
+          }
         }
       }
       constant.getDependencies().forEach((ConstantValue dependency) {
@@ -442,8 +458,6 @@ abstract class DeferredLoadTask extends CompilerTask {
       } else if (element is KLocalFunction) {
         // TODO(sigmund): consider adding `Local.library`
         library = element.memberContext.library;
-      } else if (element is LocalFunctionElement) {
-        library = element.library;
       } else {
         assert(false, "Unexpected entity: ${element.runtimeType}");
       }
@@ -647,8 +661,6 @@ abstract class DeferredLoadTask extends CompilerTask {
 
     work() {
       var queue = new WorkQueue(this.importSets);
-      _isMirrorsUsed =
-          closedWorld.backendUsage.isMirrorsUsed && !compiler.options.useKernel;
 
       // Add `main` and their recursive dependencies to the main output unit.
       // We do this upfront to avoid wasting time visiting these elements when
@@ -657,20 +669,15 @@ abstract class DeferredLoadTask extends CompilerTask {
 
       // Also add "global" dependencies to the main output unit.  These are
       // things that the backend needs but cannot associate with a particular
-      // element, for example, startRootIsolate.  This set also contains
-      // elements for which we lack precise information.
+      // element. This set also contains elements for which we lack precise
+      // information.
       for (MemberEntity element
           in closedWorld.backendUsage.globalFunctionDependencies) {
-        element = element is MethodElement ? element.implementation : element;
         queue.addElement(element, importSets.mainSet);
       }
       for (ClassEntity element
           in closedWorld.backendUsage.globalClassDependencies) {
-        element = element is ClassElement ? element.implementation : element;
         queue.addElement(element, importSets.mainSet);
-      }
-      if (_isMirrorsUsed) {
-        addMirrorElementsForLibrary(queue, main.library, importSets.mainSet);
       }
 
       void emptyQueue() {
@@ -690,10 +697,6 @@ abstract class DeferredLoadTask extends CompilerTask {
       }
 
       emptyQueue();
-      if (_isMirrorsUsed) {
-        addDeferredMirrorElements(queue);
-        emptyQueue();
-      }
     }
 
     reporter.withCurrentElement(main.library, () => measure(work));
@@ -1139,26 +1142,8 @@ class OutputUnitData {
     // TODO(johnniwinther): Support use of entities by splitting maps by
     // entity kind.
     if (!isProgramSplit) return mainOutputUnit;
-    entity = entity is Element ? entity.implementation : entity;
     OutputUnit unit = _entityToUnit[entity];
     if (unit != null) return unit;
-    if (entity is Element) {
-      Element element = entity;
-      while (!_entityToUnit.containsKey(element)) {
-        // TODO(21051): workaround: it looks like we output annotation constants
-        // for classes that we don't include in the output. This seems to happen
-        // when we have reflection but can see that some classes are not needed.
-        // We still add the annotation but don't run through it below (where we
-        // assign every element to its output unit).
-        if (element.enclosingElement == null) {
-          _entityToUnit[element] = mainOutputUnit;
-          break;
-        }
-        element = element.enclosingElement.implementation;
-      }
-      return _entityToUnit[element];
-    }
-
     if (entity is MemberEntity && entity.isInstanceMember) {
       return outputUnitForEntity(entity.enclosingClass);
     }
@@ -1222,5 +1207,13 @@ class OutputUnitData {
     assert(
         _constantToUnit[constant] == null || _constantToUnit[constant] == unit);
     _constantToUnit[constant] = unit;
+  }
+
+  /// Registers [newEntity] to be emitted in the same output unit as
+  /// [existingEntity];
+  void registerColocatedMembers(
+      MemberEntity existingEntity, MemberEntity newEntity) {
+    assert(_entityToUnit[newEntity] == null);
+    _entityToUnit[newEntity] = outputUnitForMember(existingEntity);
   }
 }

@@ -51,7 +51,32 @@ abstract class ContextRoot {
   File get packagesFile;
 
   /**
+   * The resource provider used to access the file system.
+   */
+  ResourceProvider get resourceProvider;
+
+  /**
    * The root directory containing the files to be analyzed.
    */
   Folder get root;
+
+  /**
+   * Return the absolute, normalized paths of all of the files that are
+   * contained in this context. These are all of the files that are included
+   * directly or indirectly by one or more of the [includedPaths] and that are
+   * not excluded by any of the [excludedPaths].
+   *
+   * Note that the list is not filtered based on the file suffix, so non-Dart
+   * files can be returned.
+   */
+  Iterable<String> analyzedFiles();
+
+  /**
+   * Return `true` if the file or directory with the given [path] will be
+   * analyzed in this context. A file (or directory) will be analyzed if it is
+   * either the same as or contained in one of the [includedPaths] and, if it is
+   * contained in one of the [includedPaths], is not the same as or contained
+   * in one of the [excludedPaths].
+   */
+  bool isAnalyzed(String path);
 }

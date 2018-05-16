@@ -18,7 +18,7 @@ import 'compiler_state.dart';
 export 'compiler_state.dart';
 
 export '../api_prototype/standard_file_system.dart' show StandardFileSystem;
-export '../fasta/fasta_codes.dart' show LocatedMessage;
+export '../fasta/fasta_codes.dart' show FormattedMessage;
 export '../fasta/severity.dart' show Severity;
 
 Future<InitializedCompilerState> initializeCompiler(
@@ -56,6 +56,6 @@ Future<List<int>> compile(InitializedCompilerState compilerState,
   processedOpts.inputs.addAll(inputs);
 
   var result = await generateKernel(processedOpts,
-      buildSummary: true, buildProgram: false, truncateSummary: true);
+      buildSummary: true, buildComponent: false, truncateSummary: true);
   return result?.summary;
 }

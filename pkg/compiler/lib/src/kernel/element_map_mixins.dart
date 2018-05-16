@@ -158,7 +158,6 @@ abstract class KernelToElementMapBaseMixin implements KernelToElementMap {
       type ??= findIn(Uris.dart_core);
       type ??= findIn(Uris.dart__js_helper);
       type ??= findIn(Uris.dart__interceptors);
-      type ??= findIn(Uris.dart__isolate_helper);
       type ??= findIn(Uris.dart__native_typed_data);
       type ??= findIn(Uris.dart_collection);
       type ??= findIn(Uris.dart_math);
@@ -347,7 +346,7 @@ abstract class KernelToElementMapBaseMixin implements KernelToElementMap {
       cls = elementEnvironment.getSuperClass(cls);
       MemberEntity member = elementEnvironment.lookupLocalClassMember(
           cls, Identifiers.noSuchMethod_);
-      if (member != null) {
+      if (member != null && !member.isAbstract) {
         if (member.isFunction) {
           FunctionEntity function = member;
           if (function.parameterStructure.positionalParameters >= 1) {
@@ -500,6 +499,7 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
   ConstantExpression visit(ir.Expression node) {
     ConstantExpression constant = node.accept(this);
     if (constant == null && requireConstant) {
+      // TODO(johnniwinther): Support contextual error messages.
       elementMap.reporter.reportErrorMessage(
           computeSourceSpanFromTreeNode(failNode ?? node),
           MessageKind.NOT_A_COMPILE_TIME_CONSTANT);
@@ -687,6 +687,28 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
       return defaultExpression(node);
     }
     return new TypeConstantExpression(type, name);
+  }
+
+  @override
+  ConstantExpression visitAsExpression(ir.AsExpression node) {
+    ConstantExpression expression = visit(node.operand);
+    if (expression == null) return null;
+    DartType type = elementMap.getDartType(node.type);
+    return new AsConstantExpression(expression, type);
+  }
+
+  @override
+  ConstantExpression visitInstantiation(ir.Instantiation node) {
+    List<DartType> typeArguments =
+        node.typeArguments.map(elementMap.getDartType).toList();
+    for (DartType typeArgument in typeArguments) {
+      if (typeArgument.containsTypeVariables) {
+        return null;
+      }
+    }
+    ConstantExpression expression = visit(node.expression);
+    if (expression == null) return null;
+    return new InstantiationConstantExpression(typeArguments, expression);
   }
 
   @override

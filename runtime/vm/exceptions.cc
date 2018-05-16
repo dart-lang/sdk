@@ -619,9 +619,10 @@ static void ThrowExceptionHelper(Thread* thread,
     // object. The C++ code which invoked this dart sequence can check
     // and do the appropriate thing (rethrow the exception to the
     // dart invocation sequence above it, print diagnostics and terminate
-    // the isolate etc.).
+    // the isolate etc.). This can happen in the compiler, which is not
+    // allowed to allocate in new space, so we pass the kOld argument.
     const UnhandledException& unhandled_exception = UnhandledException::Handle(
-        zone, UnhandledException::New(exception, stacktrace));
+        zone, UnhandledException::New(exception, stacktrace, Heap::kOld));
     stacktrace = StackTrace::null();
     JumpToExceptionHandler(thread, handler_pc, handler_sp, handler_fp,
                            unhandled_exception, stacktrace);
@@ -728,25 +729,19 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
         pieces.Add(dst_name);
         pieces.Add(Symbols::SingleQuote());
       }
-      // Print URIs of src and dst types.
-      // Do not print "where" when no URIs get printed.
-      bool printed_where = false;
+      // Print ambiguous URIs of src and dst types.
+      URIs uris(zone, 12);
       if (!src_type.IsNull()) {
-        const String& uris = String::Handle(zone, src_type.EnumerateURIs());
-        if (uris.Length() > Symbols::SpaceIsFromSpace().Length()) {
-          printed_where = true;
-          pieces.Add(Symbols::SpaceWhereNewLine());
-          pieces.Add(uris);
-        }
+        src_type.EnumerateURIs(&uris);
       }
       if (!dst_type.IsDynamicType() && !dst_type.IsVoidType()) {
-        const String& uris = String::Handle(zone, dst_type.EnumerateURIs());
-        if (uris.Length() > Symbols::SpaceIsFromSpace().Length()) {
-          if (!printed_where) {
-            pieces.Add(Symbols::SpaceWhereNewLine());
-          }
-          pieces.Add(uris);
-        }
+        dst_type.EnumerateURIs(&uris);
+      }
+      const String& formatted_uris =
+          String::Handle(zone, AbstractType::PrintURIs(&uris));
+      if (formatted_uris.Length() > 0) {
+        pieces.Add(Symbols::SpaceWhereNewLine());
+        pieces.Add(formatted_uris);
       }
     }
   }

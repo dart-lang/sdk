@@ -1533,10 +1533,10 @@ test(Iterable values) {
 }
  ''');
     await computeAnalysisResult(source);
-    _expectInferenceError(
-        source,
-        [StrongModeCode.COULD_NOT_INFER, StrongModeCode.INVALID_CAST_FUNCTION],
-        r'''
+    _expectInferenceError(source, [
+      StrongModeCode.COULD_NOT_INFER,
+      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    ], r'''
 Couldn't infer type parameter 'T'.
 
 Tried to infer 'dynamic' for 'T' which doesn't work:
@@ -1704,8 +1704,10 @@ abstract class Iterable<T> {
 num test(Iterable values) => values.fold(values.first as num, max);
     ''');
     var analysisResult = await computeAnalysisResult(source);
-    assertErrors(source,
-        [StrongModeCode.COULD_NOT_INFER, StrongModeCode.INVALID_CAST_FUNCTION]);
+    assertErrors(source, [
+      StrongModeCode.COULD_NOT_INFER,
+      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    ]);
     verify([source]);
     var unit = analysisResult.unit;
     var fold = (AstFinder
@@ -2474,6 +2476,68 @@ num test(Iterable values) => values.fold(values.first as num, max);
     Element elementA = AstFinder.getClass(unit, "A").element;
 
     _isInstantiationOf(_hasElement(elementA))([_isNum, _isNum])(type);
+  }
+
+  test_redirectedConstructor_named() async {
+    Source source = addSource(r'''
+class A<T, U> implements B<T, U> {
+  A.named();
+}
+
+class B<T2, U2> {
+  factory B() = A.named;
+}
+   ''');
+    TestAnalysisResult result = await computeAnalysisResult(source);
+    assertNoErrors(source);
+
+    ClassDeclaration b = result.unit.declarations[1];
+    ConstructorDeclaration bConstructor = b.members[0];
+    ConstructorName redirected = bConstructor.redirectedConstructor;
+
+    TypeName typeName = redirected.type;
+    expect(typeName.type.toString(), 'A<T2, U2>');
+    expect(typeName.type.toString(), 'A<T2, U2>');
+
+    var constructorMember = redirected.staticElement;
+    expect(constructorMember.toString(), 'A.named() → A<T2, U2>');
+    expect(redirected.name.staticElement, constructorMember);
+  }
+
+  test_redirectedConstructor_self() async {
+    Source source = addSource(r'''
+class A<T> {
+  A();
+  factory A.redirected() = A;
+}
+   ''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  test_redirectedConstructor_unnamed() async {
+    Source source = addSource(r'''
+class A<T, U> implements B<T, U> {
+  A();
+}
+
+class B<T2, U2> {
+  factory B() = A;
+}
+   ''');
+    TestAnalysisResult result = await computeAnalysisResult(source);
+    assertNoErrors(source);
+
+    ClassDeclaration b = result.unit.declarations[1];
+    ConstructorDeclaration bConstructor = b.members[0];
+    ConstructorName redirected = bConstructor.redirectedConstructor;
+
+    TypeName typeName = redirected.type;
+    expect(typeName.type.toString(), 'A<T2, U2>');
+    expect(typeName.type.toString(), 'A<T2, U2>');
+
+    expect(redirected.name, isNull);
+    expect(redirected.staticElement.toString(), 'A() → A<T2, U2>');
   }
 
   test_redirectingConstructor_propagation() async {
@@ -3837,42 +3901,57 @@ class C<T> {
     expectStaticInvokeType('m();', '() → T');
   }
 
-  test_notInstantiatedBound_direct_class_class() async {
+  test_issue32396() async {
+    await resolveTestUnit(r'''
+class C<E> {
+  static T g<T>(T e) => null;
+  static final h = g;
+}
+''');
+  }
+
+  test_notInstantiatedBound_error_class_argument() async {
     String code = r'''
-class A<T extends int> {}
+class A<K, V extends List<K>> {}
 class C<T extends A> {}
 ''';
     await resolveTestUnit(code, noErrors: false);
     assertErrors(testSource, [StrongModeCode.NOT_INSTANTIATED_BOUND]);
   }
 
-  test_notInstantiatedBound_direct_class_typedef() async {
-    // Check that if the bound of a class is an uninstantiated typedef
-    // we emit an error
+  test_notInstantiatedBound_error_class_argument2() async {
     String code = r'''
-typedef void F<T extends int>();
-class C<T extends F> {}
+class A<K, V extends List<List<K>>> {}
+class C<T extends A> {}
 ''';
     await resolveTestUnit(code, noErrors: false);
     assertErrors(testSource, [StrongModeCode.NOT_INSTANTIATED_BOUND]);
   }
 
-  test_notInstantiatedBound_direct_typedef_class() async {
-    // Check that if the bound of a typeded is an uninstantiated class
-    // we emit an error
+  test_notInstantiatedBound_error_class_direct() async {
     String code = r'''
-class C<T extends int> {}
-typedef void F<T extends C>();
+class A<K, V extends K> {}
+class C<T extends A> {}
 ''';
     await resolveTestUnit(code, noErrors: false);
     assertErrors(testSource, [StrongModeCode.NOT_INSTANTIATED_BOUND]);
   }
 
-  test_notInstantiatedBound_functionType() async {
+  test_notInstantiatedBound_error_class_indirect() async {
+    String code = r'''
+class A<K, V extends K> {}
+class C<T extends List<A>> {}
+''';
+    await resolveTestUnit(code, noErrors: false);
+    assertErrors(testSource, [StrongModeCode.NOT_INSTANTIATED_BOUND]);
+  }
+
+  test_notInstantiatedBound_error_functionType() async {
     await resolveTestUnit(r'''
-class A<T extends int> {}
-class C<T extends Function(A)> {}
-class D<T extends A Function()> {}
+class A<T extends Function(T)> {}
+class B<T extends T Function()> {}
+class C<T extends A> {}
+class D<T extends B> {}
 ''', noErrors: false);
     assertErrors(testSource, [
       StrongModeCode.NOT_INSTANTIATED_BOUND,
@@ -3880,27 +3959,140 @@ class D<T extends A Function()> {}
     ]);
   }
 
-  test_notInstantiatedBound_indirect_class_class() async {
+  @failingTest
+  test_notInstantiatedBound_class_error_recursion() async {
     String code = r'''
-class A<T> {}
-class B<T extends int> {}
-class C<T extends A<B>> {}
+class A<T extends B> {} // points to a
+class B<T extends A> {} // points to b
+class C<T extends A> {} // points to a cyclical type
+''';
+    await resolveTestUnit(code, noErrors: false);
+    assertErrors(testSource, [
+      StrongModeCode.NOT_INSTANTIATED_BOUND,
+      StrongModeCode.NOT_INSTANTIATED_BOUND,
+      StrongModeCode.NOT_INSTANTIATED_BOUND,
+    ]);
+  }
+
+  @failingTest
+  test_notInstantiatedBound_class_error_recursion_less_direct() async {
+    String code = r'''
+class A<T extends B<A>> {}
+class B<T extends A<B>> {}
+''';
+    await resolveTestUnit(code, noErrors: false);
+    assertErrors(testSource, [
+      StrongModeCode.NOT_INSTANTIATED_BOUND,
+      StrongModeCode.NOT_INSTANTIATED_BOUND,
+    ]);
+  }
+
+  test_notInstantiatedBound_error_typedef_argument() async {
+    String code = r'''
+class A<K, V extends List<K>> {}
+typedef void F<T extends A>();
 ''';
     await resolveTestUnit(code, noErrors: false);
     assertErrors(testSource, [StrongModeCode.NOT_INSTANTIATED_BOUND]);
   }
 
-  test_notInstantiatedBound_indirect_class_class2() async {
+  test_notInstantiatedBound_error_typedef_argument2() async {
+    String code = r'''
+class A<K, V extends List<List<K>>> {}
+typedef void F<T extends A>();
+''';
+    await resolveTestUnit(code, noErrors: false);
+    assertErrors(testSource, [StrongModeCode.NOT_INSTANTIATED_BOUND]);
+  }
+
+  test_notInstantiatedBound_error_typedef_direct() async {
+    String code = r'''
+class A<K, V extends K> {}
+typedef void F<T extends A>();
+''';
+    await resolveTestUnit(code, noErrors: false);
+    assertErrors(testSource, [StrongModeCode.NOT_INSTANTIATED_BOUND]);
+  }
+
+  test_notInstantiatedBound_class_error_recursion_typedef() async {
+    String code = r'''
+typedef F(C value);
+class C<T extends F> {}
+class D<T extends C> {}
+''';
+    await resolveTestUnit(code, noErrors: false);
+    assertErrors(testSource, [
+      StrongModeCode.NOT_INSTANTIATED_BOUND,
+      StrongModeCode.NOT_INSTANTIATED_BOUND,
+      CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
+    ]);
+  }
+
+  test_notInstantiatedBound_ok_class() async {
+    String code = r'''
+class A<T extends int> {}
+class C1<T extends A> {}
+class C2<T extends List<A>> {}
+''';
+    await resolveTestUnit(code);
+    assertNoErrors(testSource);
+  }
+
+  test_notInstantiatedBound_ok_class_class2() async {
+    String code = r'''
+class A<T> {}
+class C<T extends A<int>> {}
+class D<T extends C> {}
+''';
+    await resolveTestUnit(code);
+    assertNoErrors(testSource);
+  }
+
+  test_notInstantiatedBound_ok_class_class3() async {
+    String code = r'''
+class A<T> {}
+class B<T extends int> {}
+class C<T extends A<B>> {}
+''';
+    await resolveTestUnit(code);
+    assertNoErrors(testSource);
+  }
+
+  test_notInstantiatedBound_ok_class_class4() async {
     String code = r'''
 class A<K, V> {}
 class B<T extends int> {}
 class C<T extends A<B, B>> {}
 ''';
-    await resolveTestUnit(code, noErrors: false);
-    assertErrors(testSource, [
-      StrongModeCode.NOT_INSTANTIATED_BOUND,
-      StrongModeCode.NOT_INSTANTIATED_BOUND
-    ]);
+    await resolveTestUnit(code);
+    assertNoErrors(testSource);
+  }
+
+  test_notInstantiatedBound_ok_class_typedef() async {
+    String code = r'''
+typedef void F<T extends int>();
+class C<T extends F> {}
+''';
+    await resolveTestUnit(code);
+    assertNoErrors(testSource);
+  }
+
+  test_notInstantiatedBound_ok_typedef_class() async {
+    String code = r'''
+class C<T extends int> {}
+typedef void F<T extends C>();
+''';
+    await resolveTestUnit(code);
+    assertNoErrors(testSource);
+  }
+
+  test_notInstantiatedBound_ok_class_function() async {
+    String code = r'''
+class A<T extends void Function<Z>()> {}
+class B<T extends A> {}
+''';
+    await resolveTestUnit(code);
+    assertNoErrors(testSource);
   }
 
   test_objectMethodOnFunctions_Anonymous() async {

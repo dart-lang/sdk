@@ -75,6 +75,7 @@ abstract class StatementVisitor<R> {
   R visitExpressionStatement(ExpressionStatement node) =>
       defaultStatement(node);
   R visitBlock(Block node) => defaultStatement(node);
+  R visitAssertBlock(AssertBlock node) => defaultStatement(node);
   R visitEmptyStatement(EmptyStatement node) => defaultStatement(node);
   R visitAssertStatement(AssertStatement node) => defaultStatement(node);
   R visitLabeledStatement(LabeledStatement node) => defaultStatement(node);
@@ -196,6 +197,7 @@ class TreeVisitor<R>
   R visitExpressionStatement(ExpressionStatement node) =>
       defaultStatement(node);
   R visitBlock(Block node) => defaultStatement(node);
+  R visitAssertBlock(AssertBlock node) => defaultStatement(node);
   R visitEmptyStatement(EmptyStatement node) => defaultStatement(node);
   R visitAssertStatement(AssertStatement node) => defaultStatement(node);
   R visitLabeledStatement(LabeledStatement node) => defaultStatement(node);
@@ -253,7 +255,7 @@ class TreeVisitor<R>
   R visitSwitchCase(SwitchCase node) => defaultTreeNode(node);
   R visitCatch(Catch node) => defaultTreeNode(node);
   R visitMapEntry(MapEntry node) => defaultTreeNode(node);
-  R visitProgram(Program node) => defaultTreeNode(node);
+  R visitComponent(Component node) => defaultTreeNode(node);
 }
 
 class DartTypeVisitor<R> {
@@ -281,6 +283,8 @@ class ConstantVisitor<R> {
   R visitMapConstant(MapConstant node) => defaultConstant(node);
   R visitListConstant(ListConstant node) => defaultConstant(node);
   R visitInstanceConstant(InstanceConstant node) => defaultConstant(node);
+  R visitPartialInstantiationConstant(PartialInstantiationConstant node) =>
+      defaultConstant(node);
   R visitTearOffConstant(TearOffConstant node) => defaultConstant(node);
   R visitTypeLiteralConstant(TypeLiteralConstant node) => defaultConstant(node);
 }
@@ -332,6 +336,8 @@ class Visitor<R> extends TreeVisitor<R>
   R visitMapConstant(MapConstant node) => defaultConstant(node);
   R visitListConstant(ListConstant node) => defaultConstant(node);
   R visitInstanceConstant(InstanceConstant node) => defaultConstant(node);
+  R visitPartialInstantiationConstant(PartialInstantiationConstant node) =>
+      defaultConstant(node);
   R visitTearOffConstant(TearOffConstant node) => defaultConstant(node);
   R visitTypeLiteralConstant(TypeLiteralConstant node) => defaultConstant(node);
 
@@ -356,6 +362,9 @@ class Visitor<R> extends TreeVisitor<R>
   R visitListConstantReference(ListConstant node) =>
       defaultConstantReference(node);
   R visitInstanceConstantReference(InstanceConstant node) =>
+      defaultConstantReference(node);
+  R visitPartialInstantiationConstantReference(
+          PartialInstantiationConstant node) =>
       defaultConstantReference(node);
   R visitTearOffConstantReference(TearOffConstant node) =>
       defaultConstantReference(node);
@@ -514,6 +523,7 @@ abstract class StatementVisitor1<R, T> {
   R visitExpressionStatement(ExpressionStatement node, T arg) =>
       defaultStatement(node, arg);
   R visitBlock(Block node, T arg) => defaultStatement(node, arg);
+  R visitAssertBlock(AssertBlock node, T arg) => defaultStatement(node, arg);
   R visitEmptyStatement(EmptyStatement node, T arg) =>
       defaultStatement(node, arg);
   R visitAssertStatement(AssertStatement node, T arg) =>

@@ -529,6 +529,9 @@ class B extends A {
     assertNotSuggested('a');
     assertNotSuggested('main');
     assertSuggestClass('A');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('A');
+    }
     assertSuggestClass('Object');
     assertNotSuggested('y');
   }
@@ -618,6 +621,9 @@ class B extends A {
     assertNotSuggested('partT8');
 
     assertSuggestClass('A', elemFile: '/testAB.dart');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('A');
+    }
     assertNotSuggested('_B');
     assertSuggestClass('C');
     assertNotSuggested('partBoo');
@@ -1188,6 +1194,9 @@ class B extends A {
         class Z { }''');
     await computeSuggestions();
     assertSuggestClass('C');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('C');
+    }
     assertNotSuggested('H');
   }
 
@@ -1571,6 +1580,9 @@ class B extends A {
     assertNotSuggested('F2');
     assertNotSuggested('T2');
     assertSuggestClass('A');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('A');
+    }
     assertSuggestFunction('F1', 'dynamic');
     // TODO (danrubel) getter is being suggested instead of top level var
     //assertSuggestImportedTopLevelVar('T1', 'int');
@@ -1617,6 +1629,9 @@ class B extends A {
     assertNotSuggested('F2');
     assertNotSuggested('T2');
     assertSuggestClass('A');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('A');
+    }
     assertSuggestFunction('F1', 'dynamic');
     // TODO (danrubel) getter is being suggested instead of top level var
     //assertSuggestImportedTopLevelVar('T1', 'int');
@@ -1787,6 +1802,9 @@ class A {}
     expect(suggestion.docSummary, 'My class.\nShort description.');
     expect(suggestion.docComplete,
         'My class.\nShort description.\n\nLonger description.');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('A');
+    }
   }
 
   test_doc_function() async {
@@ -1890,6 +1908,9 @@ main() {
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertSuggestClass('A');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('A');
+    }
     assertSuggestFunction('F1', '_B');
     assertNotSuggested('C');
     assertNotSuggested('foo');
@@ -2428,12 +2449,12 @@ main() {
     await computeSuggestions();
 
     assertSuggestClass('A');
-    assertSuggestConstructor('A.a1');
-    assertSuggestConstructor('A.a2');
+    assertNotSuggested('A.a1');
+    assertNotSuggested('A.a2');
 
     assertSuggestClass('B');
-    assertSuggestConstructor('B.b1');
-    assertSuggestConstructor('B.b2');
+    assertNotSuggested('B.b1');
+    assertNotSuggested('B.b2');
   }
 
   test_ImportDirective_dart() async {
@@ -2467,6 +2488,9 @@ main() {
     assertNotSuggested('F2');
     assertNotSuggested('T2');
     assertSuggestClass('A');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('A');
+    }
     assertSuggestFunction('F1', 'dynamic');
     // TODO (danrubel) getter is being suggested instead of top level var
     //assertSuggestImportedTopLevelVar('T1', 'int');
@@ -2605,7 +2629,7 @@ main() {
     assertSuggestConstructor('C',
         elemOffset: -1,
         relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
-    assertNotSuggested('D');
+    assertSuggestConstructor('D', elemOffset: -1);
   }
 
   test_InstanceCreationExpression_imported() async {
@@ -2687,11 +2711,16 @@ main() {
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertNotSuggested('Object');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('Object');
+      assertSuggestConstructor('C1');
+    } else {
+      assertNotSuggested('Object');
+      assertNotSuggested('C1');
+    }
     assertSuggestTopLevelVar('T1', null);
     assertSuggestFunction('F1', null);
     assertNotSuggested('D1');
-    assertNotSuggested('C1');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
     assertNotSuggested('D2');
@@ -2966,6 +2995,9 @@ main() {
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertSuggestClass('Object');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('Object');
+    }
     // Simulate unresolved imported library,
     // in which case suggestions will have null return types (unresolved)
     // The current DartCompletionRequest#resolveExpression resolves
@@ -3214,6 +3246,11 @@ class B {
     assertNotSuggested('f');
     assertNotSuggested('_g');
     assertSuggestClass('bool');
+    if (suggestConstructorsWithoutNew) {
+      // TODO(brianwilkerson) Should not suggest constructors for classes that
+      // cannot be instantiated.
+      assertSuggestConstructor('bool');
+    }
   }
 
   test_MethodDeclaration_parameters_named() async {
@@ -3457,6 +3494,9 @@ class C extends B with M1, M2 {
 
     await computeSuggestions();
     assertSuggestClass('ClassInLocalContext');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('ClassInLocalContext');
+    }
     // Assert contributor does not include results from 2nd context.
     assertNotSuggested('ClassFromAnotherContext');
   }
@@ -3836,6 +3876,9 @@ class B extends A {
     expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
     assertSuggestClass('A');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('A');
+    }
     assertNotSuggested('X');
     assertNotSuggested('foo');
     assertNotSuggested('bar');

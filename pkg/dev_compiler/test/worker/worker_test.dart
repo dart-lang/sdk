@@ -120,7 +120,7 @@ main() {
       var args = executableArgs.toList()..add('@${argsFile.path}');
       var process = await Process.start(Platform.executable, args);
       stderr.addStream(process.stderr);
-      var futureProcessOutput = process.stdout.map(UTF8.decode).toList();
+      var futureProcessOutput = process.stdout.map(utf8.decode).toList();
 
       expect(await process.exitCode, EXIT_CODE_OK);
       expect((await futureProcessOutput).join(), isEmpty);
@@ -370,7 +370,7 @@ Future<WorkResponse> _readResponse(MessageGrouper messageGrouper) async {
     return new WorkResponse.fromBuffer(buffer);
   } catch (_) {
     var bufferAsString =
-        buffer == null ? '' : 'String: ${UTF8.decode(buffer)}\n';
+        buffer == null ? '' : 'String: ${utf8.decode(buffer)}\n';
     throw 'Failed to parse response:\nbytes: $buffer\n$bufferAsString';
   }
 }

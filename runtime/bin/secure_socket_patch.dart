@@ -66,12 +66,13 @@ class _SecureFilterImpl extends NativeFieldWrapperClass1
     implements _SecureFilter {
   // Performance is improved if a full buffer of plaintext fits
   // in the encrypted buffer, when encrypted.
+  // SIZE and ENCRYPTED_SIZE are referenced from C++.
   static final int SIZE = 8 * 1024;
   static final int ENCRYPTED_SIZE = 10 * 1024;
 
   _SecureFilterImpl() {
-    buffers = new List<_ExternalBuffer>(_RawSecureSocket.NUM_BUFFERS);
-    for (int i = 0; i < _RawSecureSocket.NUM_BUFFERS; ++i) {
+    buffers = new List<_ExternalBuffer>(_RawSecureSocket.bufferCount);
+    for (int i = 0; i < _RawSecureSocket.bufferCount; ++i) {
       buffers[i] = new _ExternalBuffer(
           _RawSecureSocket._isBufferEncrypted(i) ? ENCRYPTED_SIZE : SIZE);
     }

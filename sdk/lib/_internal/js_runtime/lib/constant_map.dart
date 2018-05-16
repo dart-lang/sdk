@@ -47,12 +47,10 @@ abstract class ConstantMap<K, V> implements Map<K, V> {
 
   const ConstantMap._();
 
-  Map<RK, RV> cast<RK, RV>() {
-    Map<Object, Object> self = this;
-    return self is Map<RK, RV> ? self : Map.castFrom<K, V, RK, RV>(this);
-  }
+  Map<RK, RV> cast<RK, RV>() => Map.castFrom<K, V, RK, RV>(this);
 
-  Map<RK, RV> retype<RK, RV>() => Map.castFrom<K, V, RK, RV>(this);
+  @Deprecated("Use cast instead.")
+  Map<RK, RV> retype<RK, RV>() => cast<RK, RV>();
 
   bool get isEmpty => length == 0;
 
@@ -127,7 +125,7 @@ class ConstantStringMap<K, V> extends ConstantMap<K, V> {
 
   V operator [](Object key) {
     if (!containsKey(key)) return null;
-    return _fetch(key);
+    return JS('', '#', _fetch(key));
   }
 
   // [_fetch] is the indexer for keys for which `containsKey(key)` is true.

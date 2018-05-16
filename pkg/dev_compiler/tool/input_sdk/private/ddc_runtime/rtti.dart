@@ -44,29 +44,27 @@ part of dart._runtime;
 /// different from the above objects, and are created by calling `wrapType()`
 /// on a runtime type.
 
-/// Tag a closure with a type, using one of two forms:
+/// Tag a closure with a type.
 ///
-/// `dart.fn(cls)` marks cls has having no optional or named
-/// parameters, with all argument and return types as dynamic.
-///
-/// `dart.fn(cls, rType, argsT, extras)` marks cls as having the
-/// runtime type dart.functionType(rType, argsT, extras).
-///
-/// Note that since we are producing a type for a concrete function,
-/// it is sound to use the definite arrow type.
-///
-fn(closure, t) {
-  if (t == null) {
-    // No type arguments, it's all dynamic
-    t = fnType(JS('', '#', dynamic),
-        JS('', 'Array(#.length).fill(#)', closure, dynamic), JS('', 'void 0'));
-  }
-  tag(closure, t);
+/// `dart.fn(closure, type)` marks [closure] with the provided runtime [type].
+fn(closure, type) {
+  JS('', '#[#] = #', closure, _runtimeType, type);
   return closure;
 }
 
-lazyFn(closure, computeType) {
-  tagLazy(closure, computeType);
+/// Tag a closure with a type that's computed lazily.
+///
+/// `dart.fn(closure, type)` marks [closure] with a getter that uses
+/// [computeType] to return the runtime type.
+///
+/// The getter/setter replaces the property with a value property, so the
+/// resulting function is compatible with [fn] and the type can be set again
+/// safely.
+lazyFn(closure, Object Function() computeType) {
+  defineAccessor(closure, _runtimeType,
+      get: () => defineValue(closure, _runtimeType, computeType()),
+      set: (value) => defineValue(closure, _runtimeType, value),
+      configurable: true);
   return closure;
 }
 
@@ -77,7 +75,7 @@ final _moduleName = JS('', 'Symbol("_moduleName")');
 
 getFunctionType(obj) {
   // TODO(vsm): Encode this properly on the function for Dart-generated code.
-  var args = JS('List', 'Array(#.length).fill(#)', obj, dynamic);
+  var args = JS<List>('!', 'Array(#.length).fill(#)', obj, dynamic);
   return fnType(bottom, args, JS('', 'void 0'));
 }
 
@@ -126,27 +124,14 @@ Type wrapType(type) {
   return JS('Type', '#[#] = #', type, _typeObject, new WrappedType(type));
 }
 
+/// The symbol used to store the cached `Type` object associated with a class.
+final _typeObject = JS('', 'Symbol("typeObject")');
+
 /// Given a WrappedType, return the internal runtime type object.
 unwrapType(WrappedType obj) => obj._wrappedType;
 
-/// Assumes that value is non-null
-_getRuntimeType(value) => JS('', '#[#]', value, _runtimeType);
-
 /// Return the module name for a raw library object.
 getModuleName(value) => JS('', '#[#]', value, _moduleName);
-
-/// Tag the runtime type of [value] to be type [t].
-void tag(value, t) {
-  JS('', '#[#] = #', value, _runtimeType, t);
-}
-
-void tagComputed(value, compute) {
-  defineGetter(value, _runtimeType, compute);
-}
-
-void tagLazy(value, compute) {
-  defineLazyGetter(value, _runtimeType, compute);
-}
 
 var _loadedModules = JS('', 'new Map()');
 var _loadedSourceMaps = JS('', 'new Map()');

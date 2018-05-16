@@ -123,12 +123,10 @@ abstract class _IntListMixin implements List<int> {
   Iterable<int> followedBy(Iterable<int> other) =>
       new FollowedByIterable<int>.firstEfficient(this, other);
 
-  List<R> cast<R>() {
-    List<Object> self = this;
-    return self is List<R> ? self : List.castFrom<int, R>(this);
-  }
+  List<R> cast<R>() => List.castFrom<int, R>(this);
 
-  List<R> retype<R>() => List.castFrom<int, R>(this);
+  @Deprecated("Use cast instead.")
+  List<R> retype<R>() => cast<R>();
 
   void set first(int value) {
     if (this.length == 0) throw new RangeError.index(0, this);
@@ -486,12 +484,10 @@ abstract class _DoubleListMixin implements List<double> {
   Iterable<double> followedBy(Iterable<double> other) =>
       new FollowedByIterable<double>.firstEfficient(this, other);
 
-  List<R> cast<R>() {
-    List<Object> self = this;
-    return self is List<R> ? self : List.castFrom<double, R>(this);
-  }
+  List<R> cast<R>() => List.castFrom<double, R>(this);
 
-  List<R> retype<R>() => List.castFrom<double, R>(this);
+  @Deprecated("Use cast instead.")
+  List<R> retype<R>() => cast<R>();
 
   void set first(double value) {
     if (this.length == 0) throw new RangeError.index(0, this);
@@ -852,12 +848,10 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
   Iterable<Float32x4> followedBy(Iterable<Float32x4> other) =>
       new FollowedByIterable<Float32x4>.firstEfficient(this, other);
 
-  List<R> cast<R>() {
-    List<Object> self = this;
-    return self is List<R> ? self : List.castFrom<Float32x4, R>(this);
-  }
+  List<R> cast<R>() => List.castFrom<Float32x4, R>(this);
 
-  List<R> retype<R>() => List.castFrom<Float32x4, R>(this);
+  @Deprecated("Use cast instead.")
+  List<R> retype<R>() => cast<R>();
 
   void set first(Float32x4 value) {
     if (this.length == 0) throw new RangeError.index(0, this);
@@ -1222,12 +1216,10 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
   Iterable<Int32x4> followedBy(Iterable<Int32x4> other) =>
       new FollowedByIterable<Int32x4>.firstEfficient(this, other);
 
-  List<R> cast<R>() {
-    List<Object> self = this;
-    return self is List<R> ? self : List.castFrom<Int32x4, R>(this);
-  }
+  List<R> cast<R>() => List.castFrom<Int32x4, R>(this);
 
-  List<R> retype<R>() => List.castFrom<Int32x4, R>(this);
+  @Deprecated("Use cast instead.")
+  List<R> retype<R>() => cast<R>();
 
   void set first(Int32x4 value) {
     if (this.length == 0) throw new RangeError.index(0, this);
@@ -1591,12 +1583,10 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
   Iterable<Float64x2> followedBy(Iterable<Float64x2> other) =>
       new FollowedByIterable<Float64x2>.firstEfficient(this, other);
 
-  List<R> cast<R>() {
-    List<Object> self = this;
-    return self is List<R> ? self : List.castFrom<Float64x2, R>(this);
-  }
+  List<R> cast<R>() => List.castFrom<Float64x2, R>(this);
 
-  List<R> retype<R>() => List.castFrom<Float64x2, R>(this);
+  @Deprecated("Use cast instead.")
+  List<R> retype<R>() => cast<R>();
 
   void set first(Float64x2 value) {
     if (this.length == 0) throw new RangeError.index(0, this);
@@ -3487,7 +3477,7 @@ class _TypedListIterator<E> implements Iterator<E> {
   E get current => _current;
 }
 
-class _TypedListView extends _TypedListBase implements TypedData {
+abstract class _TypedListView extends _TypedListBase implements TypedData {
   _TypedListView(_ByteBuffer _buffer, int _offset, int _length)
       : _typedData = _buffer._data,
         offsetInBytes = _offset,
@@ -4216,7 +4206,7 @@ class _ByteDataView implements ByteData {
     _typedData._setUint8(_offset + byteOffset, value);
   }
 
-  int getInt16(int byteOffset, [Endianness endian = Endian.big]) {
+  int getInt16(int byteOffset, [Endian endian = Endian.big]) {
     if (byteOffset < 0 || byteOffset + 1 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 2, "byteOffset");
     }
@@ -4227,7 +4217,7 @@ class _ByteDataView implements ByteData {
     return _byteSwap16(result).toSigned(16);
   }
 
-  void setInt16(int byteOffset, int value, [Endianness endian = Endian.big]) {
+  void setInt16(int byteOffset, int value, [Endian endian = Endian.big]) {
     if (byteOffset < 0 || byteOffset + 1 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 2, "byteOffset");
     }
@@ -4235,7 +4225,7 @@ class _ByteDataView implements ByteData {
         identical(endian, Endian.host) ? value : _byteSwap16(value));
   }
 
-  int getUint16(int byteOffset, [Endianness endian = Endian.big]) {
+  int getUint16(int byteOffset, [Endian endian = Endian.big]) {
     if (byteOffset < 0 || byteOffset + 1 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 2, "byteOffset");
     }
@@ -4246,7 +4236,7 @@ class _ByteDataView implements ByteData {
     return _byteSwap16(result);
   }
 
-  void setUint16(int byteOffset, int value, [Endianness endian = Endian.big]) {
+  void setUint16(int byteOffset, int value, [Endian endian = Endian.big]) {
     if (byteOffset < 0 || byteOffset + 1 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 2, "byteOffset");
     }
@@ -4254,7 +4244,7 @@ class _ByteDataView implements ByteData {
         identical(endian, Endian.host) ? value : _byteSwap16(value));
   }
 
-  int getInt32(int byteOffset, [Endianness endian = Endian.big]) {
+  int getInt32(int byteOffset, [Endian endian = Endian.big]) {
     if (byteOffset < 0 || byteOffset + 3 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 4, "byteOffset");
     }
@@ -4265,7 +4255,7 @@ class _ByteDataView implements ByteData {
     return _byteSwap32(result).toSigned(32);
   }
 
-  void setInt32(int byteOffset, int value, [Endianness endian = Endian.big]) {
+  void setInt32(int byteOffset, int value, [Endian endian = Endian.big]) {
     if (byteOffset < 0 || byteOffset + 3 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 4, "byteOffset");
     }
@@ -4273,7 +4263,7 @@ class _ByteDataView implements ByteData {
         identical(endian, Endian.host) ? value : _byteSwap32(value));
   }
 
-  int getUint32(int byteOffset, [Endianness endian = Endian.big]) {
+  int getUint32(int byteOffset, [Endian endian = Endian.big]) {
     if (byteOffset < 0 || byteOffset + 3 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 4, "byteOffset");
     }
@@ -4284,7 +4274,7 @@ class _ByteDataView implements ByteData {
     return _byteSwap32(result);
   }
 
-  void setUint32(int byteOffset, int value, [Endianness endian = Endian.big]) {
+  void setUint32(int byteOffset, int value, [Endian endian = Endian.big]) {
     if (byteOffset < 0 || byteOffset + 3 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 4, "byteOffset");
     }
@@ -4292,7 +4282,7 @@ class _ByteDataView implements ByteData {
         identical(endian, Endian.host) ? value : _byteSwap32(value));
   }
 
-  int getInt64(int byteOffset, [Endianness endian = Endian.big]) {
+  int getInt64(int byteOffset, [Endian endian = Endian.big]) {
     if (byteOffset < 0 || byteOffset + 7 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 8, "byteOffset");
     }
@@ -4303,7 +4293,7 @@ class _ByteDataView implements ByteData {
     return _byteSwap64(result).toSigned(64);
   }
 
-  void setInt64(int byteOffset, int value, [Endianness endian = Endian.big]) {
+  void setInt64(int byteOffset, int value, [Endian endian = Endian.big]) {
     if (byteOffset < 0 || byteOffset + 7 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 8, "byteOffset");
     }
@@ -4311,7 +4301,7 @@ class _ByteDataView implements ByteData {
         identical(endian, Endian.host) ? value : _byteSwap64(value));
   }
 
-  int getUint64(int byteOffset, [Endianness endian = Endian.big]) {
+  int getUint64(int byteOffset, [Endian endian = Endian.big]) {
     if (byteOffset < 0 || byteOffset + 7 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 8, "byteOffset");
     }
@@ -4322,7 +4312,7 @@ class _ByteDataView implements ByteData {
     return _byteSwap64(result);
   }
 
-  void setUint64(int byteOffset, int value, [Endianness endian = Endian.big]) {
+  void setUint64(int byteOffset, int value, [Endian endian = Endian.big]) {
     if (byteOffset < 0 || byteOffset + 7 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 8, "byteOffset");
     }
@@ -4330,7 +4320,7 @@ class _ByteDataView implements ByteData {
         identical(endian, Endian.host) ? value : _byteSwap64(value));
   }
 
-  double getFloat32(int byteOffset, [Endianness endian = Endian.big]) {
+  double getFloat32(int byteOffset, [Endian endian = Endian.big]) {
     if (byteOffset < 0 || byteOffset + 3 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 4, "byteOffset");
     }
@@ -4341,8 +4331,7 @@ class _ByteDataView implements ByteData {
     return _convF32[0];
   }
 
-  void setFloat32(int byteOffset, double value,
-      [Endianness endian = Endian.big]) {
+  void setFloat32(int byteOffset, double value, [Endian endian = Endian.big]) {
     if (byteOffset < 0 || byteOffset + 3 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 4, "byteOffset");
     }
@@ -4354,7 +4343,7 @@ class _ByteDataView implements ByteData {
     _typedData._setUint32(_offset + byteOffset, _byteSwap32(_convU32[0]));
   }
 
-  double getFloat64(int byteOffset, [Endianness endian = Endian.big]) {
+  double getFloat64(int byteOffset, [Endian endian = Endian.big]) {
     if (byteOffset < 0 || byteOffset + 7 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 8, "byteOffset");
     }
@@ -4365,8 +4354,7 @@ class _ByteDataView implements ByteData {
     return _convF64[0];
   }
 
-  void setFloat64(int byteOffset, double value,
-      [Endianness endian = Endian.big]) {
+  void setFloat64(int byteOffset, double value, [Endian endian = Endian.big]) {
     if (byteOffset < 0 || byteOffset + 7 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 8, "byteOffset");
     }
@@ -4378,7 +4366,7 @@ class _ByteDataView implements ByteData {
     _typedData._setUint64(_offset + byteOffset, _byteSwap64(_convU64[0]));
   }
 
-  Float32x4 getFloat32x4(int byteOffset, [Endianness endian = Endian.big]) {
+  Float32x4 getFloat32x4(int byteOffset, [Endian endian = Endian.big]) {
     if (byteOffset < 0 || byteOffset + 3 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 4, "byteOffset");
     }
@@ -4387,7 +4375,7 @@ class _ByteDataView implements ByteData {
   }
 
   void setFloat32x4(int byteOffset, Float32x4 value,
-      [Endianness endian = Endian.big]) {
+      [Endian endian = Endian.big]) {
     if (byteOffset < 0 || byteOffset + 3 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 4, "byteOffset");
     }

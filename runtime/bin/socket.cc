@@ -9,6 +9,7 @@
 #include "bin/io_buffer.h"
 #include "bin/isolate_data.h"
 #include "bin/lockers.h"
+#include "bin/process.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
 
@@ -601,8 +602,16 @@ void FUNCTION_NAME(Socket_GetSocketId)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(Socket_SetSocketId)(Dart_NativeArguments args) {
   intptr_t id = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 1));
+  intptr_t type_flag =
+      DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 2));
+  Socket::SocketFinalizer finalizer;
+  if (Socket::IsSignalSocketFlag(type_flag)) {
+    finalizer = Socket::kFinalizerSignal;
+  } else {
+    finalizer = Socket::kFinalizerNormal;
+  }
   Socket::SetSocketIdNativeField(Dart_GetNativeArgument(args, 0), id,
-                                 Socket::kFinalizerNormal);
+                                 finalizer);
 }
 
 void FUNCTION_NAME(ServerSocket_CreateBindListen)(Dart_NativeArguments args) {
@@ -931,6 +940,21 @@ static void StdioSocketFinalizer(void* isolate_data,
   socket->Release();
 }
 
+static void SignalSocketFinalizer(void* isolate_data,
+                                  Dart_WeakPersistentHandle handle,
+                                  void* data) {
+  Socket* socket = reinterpret_cast<Socket*>(data);
+  if (socket->fd() >= 0) {
+    Process::ClearSignalHandler(socket->fd(), socket->isolate_port());
+    const int64_t flags = 1 << kCloseCommand;
+    socket->Retain();
+    EventHandler::SendFromNative(reinterpret_cast<intptr_t>(socket),
+                                 socket->port(), flags);
+  }
+
+  socket->Release();
+}
+
 void Socket::ReuseSocketIdNativeField(Dart_Handle handle,
                                       Socket* socket,
                                       SocketFinalizer finalizer) {
@@ -949,6 +973,9 @@ void Socket::ReuseSocketIdNativeField(Dart_Handle handle,
       break;
     case kFinalizerStdio:
       callback = StdioSocketFinalizer;
+      break;
+    case kFinalizerSignal:
+      callback = SignalSocketFinalizer;
       break;
     default:
       callback = NULL;

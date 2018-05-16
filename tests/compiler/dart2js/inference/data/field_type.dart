@@ -202,7 +202,8 @@ class A9 {
 
   /*element: A9.:[exact=A9]*/
   A9(/*[exact=JSBool]*/ x) {
-    if (x) {} else {
+    if (x) {
+    } else {
       /*update: [exact=A9]*/ f9 = "1";
     }
   }
@@ -348,9 +349,10 @@ test15() {
 }
 
 class A16 {
-  // TODO(johnniwinther): Investigate with these differ.
-  /*ast.element: A16.f16:Union([exact=JSString], [exact=JSUInt31])*/
+  // TODO(johnniwinther): Investigate why these include `null`. The ast version
+  // didn't.
   /*kernel.element: A16.f16:Union([exact=JSString], [null|exact=JSUInt31])*/
+  /*strong.element: A16.f16:Union([exact=JSString], [null|exact=JSUInt31])*/
   var f16;
 
   /*element: A16.:[exact=A16]*/
@@ -463,13 +465,13 @@ class A20 {
 
   /*element: A20.:[exact=A20]*/
   A20() {
+    dynamic a = this;
     // TODO(johnniwinther): Fix ast equivalence on instance fields in for.
     /*iterator: [exact=A20]*/
     /*current: [exact=A20]*/
     /*moveNext: [exact=A20]*/
-    for (/*kernel.update: [exact=A20]*/ f20 in
-        // ignore: for_in_of_invalid_type
-        this) {}
+    for (/*kernel.update: [exact=A20]*/ /*strong.update: [exact=A20]*/ f20
+        in a) {}
   }
 
   /*element: A20.iterator:[exact=A20]*/
@@ -493,14 +495,13 @@ class A21 {
 
   /*element: A21.:[exact=A21]*/
   A21() {
+    dynamic a = this;
     /*iterator: [exact=A21]*/
     /*current: [null]*/
     /*moveNext: [null]*/
     for (
         // ignore: unused_local_variable
-        var i
-        // ignore: for_in_of_invalid_type
-        in this) {}
+        var i in a) {}
     /*update: [exact=A21]*/ f21 = 42;
   }
   /*element: A21.iterator:[null]*/
@@ -608,7 +609,11 @@ class A24 {
             bar24();
 
   /*element: A24.+:Value([exact=JSString], value: "foo")*/
-  operator +(/*[exact=JSUInt31]*/ other) => 'foo';
+  operator +(
+          /*kernel.[exact=JSUInt31]*/
+          /*strong.[empty]*/
+          other) =>
+      'foo';
 
   /*element: A24.bar24:[exact=JSDouble]*/
   bar24() => 42.5;
@@ -659,10 +664,9 @@ class B26 {
 
 /*element: test26:[null]*/
 test26() {
-  new A26(). /*update: [exact=A26]*/ f26 = [new B26(), new A26()]
+  new A26(). /*update: [exact=A26]*/ f26 = <dynamic>[new B26(), new A26()]
               /*Container([exact=JSExtendableArray], element: Union([exact=A26], [exact=B26]), length: 2)*/
               [0]
-          // ignore: undefined_getter
           . /*Union([exact=A26], [exact=B26])*/ f26
       /*invoke: [subclass=JSPositiveInt]*/ +
       42;
@@ -724,7 +728,8 @@ class A29 {
   /*element: A29.:[exact=A29]*/
   A29(/*[exact=JSUInt31]*/ x) {
     this. /*update: [exact=A29]*/ f29a = x;
-    if (x /*invoke: [exact=JSUInt31]*/ == 0) {} else {
+    if (x /*invoke: [exact=JSUInt31]*/ == 0) {
+    } else {
       return;
     }
     this. /*update: [exact=A29]*/ f29b = x;

@@ -15,7 +15,9 @@ This package contains the Dart part of the implementation and contains:
 - Serialization of kernel code
 
 _Note:_ The APIs in this package are in an early state; developers should be
-careful about depending on this package.
+careful about depending on this package.  In particular, there is no semver
+contract for release versions of this package.  Please depend directly
+on individual versions.
 
 Getting Kernel
 ------------

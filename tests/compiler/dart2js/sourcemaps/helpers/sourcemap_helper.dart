@@ -9,7 +9,6 @@ import 'dart:io';
 import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/apiimpl.dart' as api;
 import 'package:compiler/src/commandline_options.dart';
-import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/io/code_output.dart';
 import 'package:compiler/src/io/source_file.dart';

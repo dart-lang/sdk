@@ -6,6 +6,7 @@ import 'package:expect/expect.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/js_backend/namer.dart';
 import 'package:compiler/src/js_emitter/model.dart';
 import 'package:compiler/src/js/js.dart' as js;
 
@@ -31,9 +32,11 @@ MemberEntity lookupMember(ElementEnvironment elementEnvironment, String name) {
 
 class ProgramLookup {
   final Program program;
+  final Namer namer;
 
   ProgramLookup(Compiler compiler)
-      : this.program = compiler.backend.emitter.emitter.programForTesting;
+      : this.program = compiler.backend.emitter.emitter.programForTesting,
+        this.namer = compiler.backend.namer;
 
   Map<LibraryEntity, LibraryData> libraryMap;
 
@@ -123,19 +126,29 @@ class ClassData {
   }
 }
 
-void forEachCall(js.Node root, void f(js.Call node)) {
-  CallVisitor visitor = new CallVisitor(f);
+void forEachNode(js.Node root,
+    {void Function(js.Call) onCall,
+    void Function(js.PropertyAccess) onPropertyAccess}) {
+  CallbackVisitor visitor =
+      new CallbackVisitor(onCall: onCall, onPropertyAccess: onPropertyAccess);
   root.accept(visitor);
 }
 
-class CallVisitor extends js.BaseVisitor {
-  final void Function(js.Call) callback;
+class CallbackVisitor extends js.BaseVisitor {
+  final void Function(js.Call) onCall;
+  final void Function(js.PropertyAccess) onPropertyAccess;
 
-  CallVisitor(this.callback);
+  CallbackVisitor({this.onCall, this.onPropertyAccess});
 
   @override
   visitCall(js.Call node) {
-    callback(node);
+    if (onCall != null) onCall(node);
     super.visitCall(node);
+  }
+
+  @override
+  visitAccess(js.PropertyAccess node) {
+    if (onPropertyAccess != null) onPropertyAccess(node);
+    super.visitAccess(node);
   }
 }

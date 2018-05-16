@@ -9,11 +9,11 @@ class _StdIOUtils {
   @patch
   static Stdin _getStdioInputStream(int fd) {
     switch (_getStdioHandleType(fd)) {
-      case _STDIO_HANDLE_TYPE_TERMINAL:
-      case _STDIO_HANDLE_TYPE_PIPE:
-      case _STDIO_HANDLE_TYPE_SOCKET:
+      case _stdioHandleTypeTerminal:
+      case _stdioHandleTypePipe:
+      case _stdioHandleTypeSocket:
         return new Stdin._(new _Socket._readPipe(fd), fd);
-      case _STDIO_HANDLE_TYPE_FILE:
+      case _stdioHandleTypeFile:
         return new Stdin._(new _FileStream.forStdin(), fd);
       default:
         throw new FileSystemException(
@@ -24,10 +24,10 @@ class _StdIOUtils {
   @patch
   static _getStdioOutputStream(int fd) {
     switch (_getStdioHandleType(fd)) {
-      case _STDIO_HANDLE_TYPE_TERMINAL:
-      case _STDIO_HANDLE_TYPE_PIPE:
-      case _STDIO_HANDLE_TYPE_SOCKET:
-      case _STDIO_HANDLE_TYPE_FILE:
+      case _stdioHandleTypeTerminal:
+      case _stdioHandleTypePipe:
+      case _stdioHandleTypeSocket:
+      case _stdioHandleTypeFile:
         return new Stdout._(new IOSink(new _StdConsumer(fd)), fd);
       default:
         throw new FileSystemException(

@@ -66,9 +66,7 @@ abstract class Queue<E> implements EfficientLengthIterable<E> {
       new CastQueue<S, T>(source);
 
   /**
-   * Provides a view of this queue as a queue of [R] instances.
-   *
-   * If this queue is already a `Queue<R>`, it is returned unchanged.
+   * Provides a view of this queue as a queue of [R] instances, if necessary.
    *
    * If this queue contains only instances of [R], all read operations
    * will work correctly. If any operation tries to access an element
@@ -81,18 +79,7 @@ abstract class Queue<E> implements EfficientLengthIterable<E> {
    */
   Queue<R> cast<R>();
 
-  /**
-   * Provides a view of this queue as a queue of [R] instances, if necessary.
-   *
-   * If this queue contains only instances of [R], all read operations
-   * will work correctly. If any operation tries to access an element
-   * that is not an instance of [R], the access will throw instead.
-   *
-   * Elements added to the queue (e.g., by using [addFirst] or [addAll])
-   * must be instance of [R] to be valid arguments to the adding function,
-   * and they must be instances of [E] as well to be accepted by
-   * this queue as well.
-   */
+  @Deprecated("Use cast instead.")
   Queue<R> retype<R>();
 
   /**
@@ -356,12 +343,10 @@ class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
   factory DoubleLinkedQueue.of(Iterable<E> elements) =>
       new DoubleLinkedQueue<E>()..addAll(elements);
 
-  Queue<R> cast<R>() {
-    Queue<Object> self = this;
-    return self is Queue<R> ? self : Queue.castFrom<E, R>(this);
-  }
+  Queue<R> cast<R>() => Queue.castFrom<E, R>(this);
 
-  Queue<R> retype<R>() => Queue.castFrom<E, R>(this);
+  @Deprecated("Use cast instead.")
+  Queue<R> retype<R>() => cast<R>();
 
   int get length => _elementCount;
 
@@ -657,12 +642,10 @@ class ListQueue<E> extends ListIterable<E> implements Queue<E> {
 
   // Iterable interface.
 
-  Queue<R> cast<R>() {
-    Queue<Object> self = this;
-    return self is Queue<R> ? self : this.retype<R>();
-  }
+  Queue<R> cast<R>() => Queue.castFrom<E, R>(this);
 
-  Queue<R> retype<R>() => Queue.castFrom<E, R>(this);
+  @Deprecated("Use cast instead.")
+  Queue<R> retype<R>() => cast<R>();
 
   Iterator<E> get iterator => new _ListQueueIterator<E>(this);
 

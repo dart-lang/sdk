@@ -10,7 +10,7 @@ part of touch;
  * touch events are created from the actual mouse events.
  */
 EventListener mouseToTouchCallback(EventListener callback) {
-  return (MouseEvent e) {
+  return (Event e) {
     var touches = <Touch>[];
     var targetTouches = <Touch>[];
     var changedTouches = <Touch>[];
@@ -240,7 +240,7 @@ class MockTouch implements Touch {
 }
 
 class MockTouchEvent implements TouchEvent {
-  MouseEvent wrapped;
+  dynamic /*MouseEvent*/ wrapped;
   // TODO(jacobr): these are currently Lists instead of a TouchList.
   final List<Touch> touches;
   final List<Touch> targetTouches;
@@ -340,7 +340,7 @@ class MockTouchEvent implements TouchEvent {
     throw new UnimplementedError();
   }
 
-  List get path {
+  List<EventTarget> get path {
     throw new UnimplementedError();
   }
 
@@ -357,6 +357,14 @@ class MockTouchEvent implements TouchEvent {
   }
 
   /*InputDevice*/ get sourceDevice {
+    throw new UnimplementedError();
+  }
+
+  bool get composed {
+    throw new UnimplementedError();
+  }
+
+  List<EventTarget> composedPath() {
     throw new UnimplementedError();
   }
 }

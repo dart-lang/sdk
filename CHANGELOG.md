@@ -1,21 +1,271 @@
+## 2.0.0-dev.XX.0
+(Add new changes here, and they will be copied to the
+ change section for the next dev version)
+
+### Language
+
+#### Strong Mode
 
 ### Core library changes
 
 * `dart:core`
-  * Temporarily disabled the `whereType` method until generic methods are
-    enabled on all platforms
-    ([issue 32463](https://github.com/dart-lang/sdk/issues/32463)).
-  * Changed return type of `UriData.dataAsBytes` to `Uint8List`.
-* `dart:convert`
-  * Added `jsonEncode`, `jsonDecode`, `base64Encode`, `base64UrlEncode` and
-    `base64Decode` top-level functions.
-  * Changed return type of `encode` on `AsciiCodec` and `Latin1Codec`,
-    and `convert` on `AsciiEncoder`, `Latin1Encoder`, to `Uint8List`.
+  * Deprecated the `NoSuchMethodError` constructor.
+
+* `dart:mirrors`
+  * Marked `MirrorsUsed` as deprecated. The mirrors library is no longer
+    supported by dart2js, and `MirrorsUsed` only affected dart2js.
+
+### Dart VM
 
 ### Tool Changes
 
-* dart2js
+#### dartfmt
 
+  * Support metadata annotations on enum cases.
+
+#### Pub
+
+#### Other Tools
+
+## 2.0.0-dev.55.0
+
+### Language
+
+* Changed the `cast` method to always change the type.  Deprecated the
+  `retype` method and made it redirect to `cast`.  Applies to all of the
+  following interfaces:
+  * `Stream`:
+  * `StreamTransformer`
+  * `Iterable`
+  * `Map`
+
+### Tool Changes
+
+#### dart2js
+
+* Several fixes to improve support for running output of dart2js as a webworker.
+
+* `dart:isolate` implementation removed. To launch background tasks,
+  please use webworkers instead. APIs for webworkers can be accessed from
+  `dart:html` or JS-interop.
+
+#### Pub
+
+* Use forward-slash paths to Git on Windows
+
+## 2.0.0-dev.54.0
+
+### Core library changes
+
+* `dart:io`
+  * Added Dart-styled constants to  `ZLibOptions`, `FileMode`, `FileLock`,
+    `FileSystemEntityType`, `FileSystemEvent`, `ProcessStartMode`,
+    `ProcessSignal`, `InternetAddressType`, `InternetAddress`,
+    `SocketDirection`, `SocketOption`, `RawSocketEvent`, and `StdioType`, and
+    deprecated the old `SCREAMING_CAPS` constants.
+  * Added the Dart-styled top-level constants `zlib`, `gzip`, and
+    `systemEncoding`, and deprecated the old `SCREAMING_CAPS` top-level
+    constants.
+  * Removed the top-level `FileMode` constants `READ`, `WRITE`, `APPEND`,
+    `WRITE_ONLY`, and `WRITE_ONLY_APPEND`. Please use e.g. `FileMode.read`
+    instead.
+
+### Tool Changes
+
+#### Pub
+
+* Retry on 500 errors from the pub server.
+
+## 2.0.0-dev.53.0
+
+## 2.0.0-dev.52.0
+
+### Tool Changes
+
+#### Dart Dev Compiler
+
+* Failed `as` casts on `Iterable<T>`, `Map<T>`, `Future<T>`, and `Stream<T>`
+  are no longer ignored. These failures were ignored to make it easier to
+  migrate Dart 1 code to strong mode, but ignoring them is a hole in the type
+  system. This closes part of that hole. (We still need to stop ignoring
+  "as" cast failures on function types, and implicit cast failures on the above
+  types and function types.)
+
+* `async` functions now start synchronously by default.  Build tools
+  (e.g., build_runner) may override the default and/or allow
+  developers to configure.
+
+## 2.0.0-dev.51.0
+
+### Tool Changes
+
+#### dartfmt
+  * Fixes a runtime error when dart_style is itself run in Dart 2.
+  * Force splitting an empty block as the then body of an if with an else.
+  * Uses the new lowercase Dart 2 constant names.
+
+#### Pub
+
+* The `build` and `serve` commands will now fail and point users to
+  https://webdev.dartlang.org/dart-2
+
+#### dart2js
+
+* `async` functions now start synchronously. This will be the default behavior
+  across all tools. To temporarily opt-out, use the `--no-sync-async` flag.
+
+## 2.0.0-dev.50.0
+
+## 2.0.0-dev.49.0
+
+### Tool Changes
+
+#### Pub
+
+* Fix another bug where the version solver could crash when resolving a conflict
+  involving pre-release constraints ([`pub_semver` issue 20][]).
+
+[`pub_semver` issue 20]: https://github.com/dart-lang/pub_semver/issues/20
+
+## 2.0.0-dev.48.0
+
+### Core library changes
+
+* `dart:core`
+  * Added `tryParse` static method to `int`, `double`, `num`, `BigInt`,
+    `Uri` and `DateTime`.
+  * Deprecated `onError` parameter on `int.parse`, `double.parse`
+    and `num.parse`.
+
+## 2.0.0-dev.47.0
+
+### Tool Changes
+
+#### Analyzer
+
+* The command line analyzer (dartanalyzer) and the analysis server no longer
+  treat directories named `packages` specially. Previously they had ignored
+  these directories - and their contents - from the point of view of analysis. Now
+  they'll be treated just as regular directories. This special-casing of
+  `packages` directories was to support using symlinks for package: resolution;
+  that functionality is now handled by `.packages` files.
+
+## 2.0.0-dev.46.0
+
+## 2.0.0-dev.45.0
+
+### Core library changes
+
+* `dart:async`
+  * Removed the deprecated `defaultValue` parameter on `Stream.firstWhere` and
+    `Stream.lastWhere`.
+
+### Tool Changes
+
+#### Pub
+
+* Fix a bug where the version solver could loop infinitely when resolving a
+  conflict involving pre-release constraints ([issue 1863][pub#1863]).
+
+[pub#1863]: https://github.com/dart-lang/pub/issues/1863
+
+## 2.0.0-dev.45.0
+
+### Tool Changes
+
+#### Pub
+
+* Fix a bug where the version solver could crash when resolving a conflict
+  involving pre-release constraints ([issue 1856][pub#1856]).
+
+[pub#1856]: https://github.com/dart-lang/pub/issues/1856
+
+
+## 2.0.0-dev.44.0
+
+### Tool Changes
+
+#### Pub
+
+* Pub has a brand new version solver! It supports all the same features as the
+  old version solver, but it's much less likely to stall out on difficult
+  package graphs, and it's much clearer about why a solution can't be found when
+  version solving fails.
+
+## 2.0.0-dev.43.0
+
+## 2.0.0-dev.42.0
+
+### Core library changes
+
+* `dart:collection`
+  * Removed `Maps` class. Extend `MapBase` or mix in `MapMixin` instead to
+    provide map method implementations for a class.
+* `dart:html`
+  * Removed deprecated `query` and `queryAll` use `querySelector` and `queryAllSelector`.
+  * Removed experimental `Document` method `getCSSCanvasContext` and property
+    `supportsCssCanvasContext`.
+  * Removed obsolete `Element` property `xtag` no longer supported in browsers.
+  * Exposed `ServiceWorker` class.
+  * Added constructor to `MessageChannel` and `MessagePort` `addEventListener` automatically calls
+    `start` method to receive queued messages.
+* `dart:io`
+  * Added `IOOverrides.socketConnect`.
+
+### Tool Changes
+
+#### dart2js
+
+* Fixed bug where dart2js crashed when invoked from `pub build` and `pub serve`
+  when given files that contain non-ASCII characters ([issue 32561][sdk#32561]).
+
+* Fixed `--no-frequency-based-minification`, which was not working together with
+  the common front-end ([issue 32600][sdk#32600]).
+
+* Support `--categories=Server` with the common front-end. This included also
+  fixes for the constant value `bool.fromEnvironment("*")` of
+  "dart.libraries.io", "dart.libraries.mirrors", "dart.libraries.isolate", and
+  "dart.libraries.html".
+
+[sdk#32561]: https://github.com/dart-lang/sdk/issues/32561
+[sdk#32600]: https://github.com/dart-lang/sdk/issues/32600
+
+#### Pub
+
+* Pub will now automatically retry HTTP requests that fail with an IO error
+  ([issue 1826][pub#1826]).
+
+* `pub deps` now includes the SDK version. This makes the output more helpful
+  when included in bug reports ([issue 1827][pub#1827]).
+
+* `build` and `serve` now print a deprecation warning pointing users to
+  https://webdev.dartlang.org/dart-2 ([issue 1823][pub#1823]).
+
+[pub#1823]: https://github.com/dart-lang/pub/issues/1823
+[pub#1826]: https://github.com/dart-lang/pub/issues/1826
+[pub#1827]: https://github.com/dart-lang/pub/issues/1827
+
+## 2.0.0-dev.41.0
+
+Not released, due to a failure in the pub tool.
+
+## 2.0.0-dev.40.0
+
+### Core library changes
+
+* The Web libraries were re-genereated using Chrome 63 WebIDLs.
+  See https://github.com/dart-lang/sdk/wiki/Chrome-63-Dart-Web-Libraries for
+  details.
+
+## 2.0.0-dev.39.0
+### Tool Changes
+#### Pub
+
+* Fixed bug in dart2js transformer when using the common front-end.
+
+## 2.0.0-dev.37.0
+### Tool Changes
+#### dart2js
   * The dart2js compiler now uses the common front-end by default. This is a
     step towards supporting Dart 2.0. At this time dart2js has no semantic
     changes: the Dart 2.0 strong-mode semantics are not enabled, so dart2js
@@ -42,6 +292,24 @@
 
     * this is the first version of dart2js that no longer supports
       `--package-root`, which long ago was deprecated in favor of `--packages`.
+
+#### Pub
+
+* dart2js transformer runs with the common front-end.
+
+## 2.0.0-dev.36.0
+
+### Core library changes
+* `dart:core`
+  * Temporarily disabled the `whereType` method until generic methods are
+    enabled on all platforms
+    ([issue 32463](https://github.com/dart-lang/sdk/issues/32463)).
+  * Changed return type of `UriData.dataAsBytes` to `Uint8List`.
+* `dart:convert`
+  * Added `jsonEncode`, `jsonDecode`, `base64Encode`, `base64UrlEncode` and
+    `base64Decode` top-level functions.
+  * Changed return type of `encode` on `AsciiCodec` and `Latin1Codec`,
+    and `convert` on `AsciiEncoder`, `Latin1Encoder`, to `Uint8List`.
 
 ## 2.0.0
 
@@ -217,6 +485,7 @@ Still need entries for all changes to dart:html since 1.x
     `timeout`.
   * `Stdin.hasTerminal` added, which is true if stdin is attached to a terminal.
   * `WebSocket` added static `userAgent` property.
+  * `RandomAccessFile.close` returns `Future<void>`
 
 * `dart:isolate`
 
@@ -264,22 +533,36 @@ Still need entries for all changes to dart:web_audio,web_gl,web_sql since 1.x
 
 ### Tool Changes
 
-* Analyzer
+#### Analyzer
 
-  * The analyzer will no longer issue a warning when a generic type parameter
-    is used as the type in an instance check. For example:
+* The analyzer will no longer issue a warning when a generic type parameter
+  is used as the type in an instance check. For example:
+
+  ```dart
+  test<T>() {
+    print(3 is T); // No warning
+  }
+  ```
+
+* New static checking of `@visibleForTesting` elements. Accessing a method,
+  function, class, etc. annotated with `@visibleForTesting` from a file _not_
+  in a `test/` directory will result in a new hint ([issue 28273]).
+* Static analysis now respects functions annotated with `@alwaysThrows`
+  ([issue 31384]).
+* New hints added:
+  * `NULL_AWARE_BEFORE_OPERATOR` when an operator is used after a null-aware
+    access. For example:
 
     ```dart
-    test<T>() {
-      print(3 is T); // No warning
-    }
+    x?.a - ''; // HINT
     ```
 
-  * New static checking of `@visibleForTesting` elements. Accessing a method,
-    function, class, etc. annotated with `@visibleForTesting` from a file _not_
-    in a `test/` directory will result in a new hint ([issue 28273]).
-  * Static analysis now respects functions annotated with `@alwaysThrows`
-    ([issue 31384]).
+  * `NULL_AWARE_IN_LOGICAL_OPERATOR` when an expression with null-aware access
+    is used as a condition in logical operators. For example:
+
+    ```dart
+    x.a || x?.b; // HINT
+    ```
 
 [issue 28273]: https://github.com/dart-lang/sdk/issues/28273
 [issue 31384]: https://github.com/dart-lang/sdk/issues/31384

@@ -5,6 +5,8 @@
  * For details about the features and syntax of SVG, a W3C standard,
  * refer to the
  * [Scalable Vector Graphics Specification](http://www.w3.org/TR/SVG/).
+ *
+ * {@category Web}
  */
 library dart.dom.svg;
 
@@ -370,7 +372,7 @@ class AnimatedNumber extends Interceptor {
 
   @DomName('SVGAnimatedNumber.animVal')
   @DocsEditable()
-  final double animVal;
+  final num animVal;
 
   @DomName('SVGAnimatedNumber.baseVal')
   @DocsEditable()
@@ -548,10 +550,6 @@ class AnimationElement extends SvgElement implements Tests {
   @DomName('SVGAnimationElement.requiredExtensions')
   @DocsEditable()
   final StringList requiredExtensions;
-
-  @DomName('SVGAnimationElement.requiredFeatures')
-  @DocsEditable()
-  final StringList requiredFeatures;
 
   @DomName('SVGAnimationElement.systemLanguage')
   @DocsEditable()
@@ -2543,6 +2541,21 @@ class GeometryElement extends GraphicsElement {
    */
   GeometryElement.created() : super.created();
 
+  @DomName('SVGGeometryElement.pathLength')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final AnimatedNumber pathLength;
+
+  @DomName('SVGGeometryElement.getPointAtLength')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Point getPointAtLength(num distance) native;
+
+  @DomName('SVGGeometryElement.getTotalLength')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double getTotalLength() native;
+
   @DomName('SVGGeometryElement.isPointInFill')
   @DocsEditable()
   @Experimental() // untriaged
@@ -2612,11 +2625,6 @@ class GraphicsElement extends SvgElement implements Tests {
   @Experimental() // untriaged
   final StringList requiredExtensions;
 
-  @DomName('SVGGraphicsElement.requiredFeatures')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final StringList requiredFeatures;
-
   @DomName('SVGGraphicsElement.systemLanguage')
   @DocsEditable()
   @Experimental() // untriaged
@@ -2647,6 +2655,11 @@ class ImageElement extends GraphicsElement implements UriReference {
    */
   ImageElement.created() : super.created();
 
+  @DomName('SVGImageElement.async')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String async;
+
   @DomName('SVGImageElement.height')
   @DocsEditable()
   final AnimatedLength height;
@@ -2666,6 +2679,11 @@ class ImageElement extends GraphicsElement implements UriReference {
   @DomName('SVGImageElement.y')
   @DocsEditable()
   final AnimatedLength y;
+
+  @DomName('SVGImageElement.decode')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future decode() native;
 
   // From SVGURIReference
 
@@ -3088,10 +3106,6 @@ class MaskElement extends SvgElement implements Tests {
   @DocsEditable()
   final StringList requiredExtensions;
 
-  @DomName('SVGMaskElement.requiredFeatures')
-  @DocsEditable()
-  final StringList requiredFeatures;
-
   @DomName('SVGMaskElement.systemLanguage')
   @DocsEditable()
   final StringList systemLanguage;
@@ -3341,22 +3355,6 @@ class PathElement extends GeometryElement {
    * This can only be called by subclasses from their created constructor.
    */
   PathElement.created() : super.created();
-
-  @DomName('SVGPathElement.pathLength')
-  @DocsEditable()
-  final AnimatedNumber pathLength;
-
-  @DomName('SVGPathElement.getPathSegAtLength')
-  @DocsEditable()
-  int getPathSegAtLength(num distance) native;
-
-  @DomName('SVGPathElement.getPointAtLength')
-  @DocsEditable()
-  Point getPointAtLength(num distance) native;
-
-  @DomName('SVGPathElement.getTotalLength')
-  @DocsEditable()
-  double getTotalLength() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3427,10 +3425,6 @@ class PatternElement extends SvgElement
   @DomName('SVGPatternElement.requiredExtensions')
   @DocsEditable()
   final StringList requiredExtensions;
-
-  @DomName('SVGPatternElement.requiredFeatures')
-  @DocsEditable()
-  final StringList requiredFeatures;
 
   @DomName('SVGPatternElement.systemLanguage')
   @DocsEditable()
@@ -4077,7 +4071,7 @@ class AttributeClassSet extends CssClassSetImpl {
 @DomName('SVGElement')
 @Unstable()
 @Native("SVGElement")
-class SvgElement extends Element implements GlobalEventHandlers {
+class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
   static final _START_TAG_REGEXP = new RegExp('<(\\w+)');
 
   factory SvgElement.tag(String tag) =>
@@ -4528,6 +4522,12 @@ class SvgElement extends Element implements GlobalEventHandlers {
   @Experimental() // untriaged
   static const EventStreamProvider<Event> waitingEvent =
       const EventStreamProvider<Event>('waiting');
+
+  @DomName('SVGElement.wheelEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<WheelEvent> wheelEvent =
+      const EventStreamProvider<WheelEvent>('wheel');
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -4562,6 +4562,13 @@ class SvgElement extends Element implements GlobalEventHandlers {
   @DocsEditable()
   @Experimental() // untriaged
   void focus() native;
+
+  // From NoncedElement
+
+  @DomName('SVGElement.nonce')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String nonce;
 
   @DomName('SVGElement.onabort')
   @DocsEditable()
@@ -4851,6 +4858,11 @@ class SvgElement extends Element implements GlobalEventHandlers {
   @DocsEditable()
   @Experimental() // untriaged
   ElementStream<Event> get onWaiting => waitingEvent.forElement(this);
+
+  @DomName('SVGElement.onwheel')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<WheelEvent> get onWheel => wheelEvent.forElement(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4887,21 +4899,9 @@ class SvgSvgElement extends GraphicsElement
   @DocsEditable()
   final Point currentTranslate;
 
-  @DomName('SVGSVGElement.currentView')
-  @DocsEditable()
-  final ViewSpec currentView;
-
   @DomName('SVGSVGElement.height')
   @DocsEditable()
   final AnimatedLength height;
-
-  @DomName('SVGSVGElement.useCurrentView')
-  @DocsEditable()
-  final bool useCurrentView;
-
-  @DomName('SVGSVGElement.viewport')
-  @DocsEditable()
-  final Rect viewport;
 
   @DomName('SVGSVGElement.width')
   @DocsEditable()
@@ -5134,8 +5134,6 @@ abstract class Tests extends Interceptor {
   }
 
   final StringList requiredExtensions;
-
-  final StringList requiredFeatures;
 
   final StringList systemLanguage;
 }
@@ -5411,7 +5409,7 @@ class Transform extends Interceptor {
 
   @DomName('SVGTransform.angle')
   @DocsEditable()
-  final double angle;
+  final num angle;
 
   @DomName('SVGTransform.matrix')
   @DocsEditable()
@@ -5668,10 +5666,6 @@ class ViewElement extends SvgElement implements FitToViewBox, ZoomAndPan {
    */
   ViewElement.created() : super.created();
 
-  @DomName('SVGViewElement.viewTarget')
-  @DocsEditable()
-  final StringList viewTarget;
-
   // From SVGFitToViewBox
 
   @DomName('SVGViewElement.preserveAspectRatio')
@@ -5686,63 +5680,6 @@ class ViewElement extends SvgElement implements FitToViewBox, ZoomAndPan {
 
   @DomName('SVGViewElement.zoomAndPan')
   @DocsEditable()
-  int zoomAndPan;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-@DocsEditable()
-@DomName('SVGViewSpec')
-@Unstable()
-@Native("SVGViewSpec")
-class ViewSpec extends Interceptor implements FitToViewBox, ZoomAndPan {
-  // To suppress missing implicit constructor warnings.
-  factory ViewSpec._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @DomName('SVGViewSpec.preserveAspectRatioString')
-  @DocsEditable()
-  final String preserveAspectRatioString;
-
-  @DomName('SVGViewSpec.transform')
-  @DocsEditable()
-  final TransformList transform;
-
-  @DomName('SVGViewSpec.transformString')
-  @DocsEditable()
-  final String transformString;
-
-  @DomName('SVGViewSpec.viewBoxString')
-  @DocsEditable()
-  final String viewBoxString;
-
-  @DomName('SVGViewSpec.viewTarget')
-  @DocsEditable()
-  final SvgElement viewTarget;
-
-  @DomName('SVGViewSpec.viewTargetString')
-  @DocsEditable()
-  final String viewTargetString;
-
-  // From SVGFitToViewBox
-
-  @DomName('SVGViewSpec.preserveAspectRatio')
-  @DocsEditable()
-  @Experimental() // nonstandard
-  final AnimatedPreserveAspectRatio preserveAspectRatio;
-
-  @DomName('SVGViewSpec.viewBox')
-  @DocsEditable()
-  @Experimental() // nonstandard
-  final AnimatedRect viewBox;
-
-  // From SVGZoomAndPan
-
-  @DomName('SVGViewSpec.zoomAndPan')
-  @DocsEditable()
-  @Experimental() // nonstandard
   int zoomAndPan;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5771,40 +5708,6 @@ abstract class ZoomAndPan extends Interceptor {
   static const int SVG_ZOOMANDPAN_UNKNOWN = 0;
 
   int zoomAndPan;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-@DocsEditable()
-@DomName('SVGZoomEvent')
-@Unstable()
-@Native("SVGZoomEvent")
-class ZoomEvent extends UIEvent {
-  // To suppress missing implicit constructor warnings.
-  factory ZoomEvent._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @DomName('SVGZoomEvent.newScale')
-  @DocsEditable()
-  final double newScale;
-
-  @DomName('SVGZoomEvent.newTranslate')
-  @DocsEditable()
-  final Point newTranslate;
-
-  @DomName('SVGZoomEvent.previousScale')
-  @DocsEditable()
-  final double previousScale;
-
-  @DomName('SVGZoomEvent.previousTranslate')
-  @DocsEditable()
-  final Point previousTranslate;
-
-  @DomName('SVGZoomEvent.zoomRectScreen')
-  @DocsEditable()
-  final Rect zoomRectScreen;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5880,43 +5783,6 @@ abstract class _SVGComponentTransferFunctionElement extends SvgElement {
    */
   _SVGComponentTransferFunctionElement.created() : super.created();
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-@DocsEditable()
-@DomName('SVGCursorElement')
-@Unstable()
-@Native("SVGCursorElement")
-abstract class _SVGCursorElement extends SvgElement
-    implements UriReference, Tests {
-  // To suppress missing implicit constructor warnings.
-  factory _SVGCursorElement._() {
-    throw new UnsupportedError("Not supported");
-  }
-
-  @DomName('SVGCursorElement.SVGCursorElement')
-  @DocsEditable()
-  factory _SVGCursorElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("cursor");
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  _SVGCursorElement.created() : super.created();
-
-  /// Checks if this type is supported on the current platform.
-  static bool get supported =>
-      SvgElement.isTagSupported('cursor') &&
-      (new SvgElement.tag('cursor') is _SVGCursorElement);
-
-  // From SVGTests
-
-  // From SVGURIReference
-
-}
-
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

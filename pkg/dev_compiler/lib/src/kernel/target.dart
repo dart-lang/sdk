@@ -20,7 +20,6 @@ class DevCompilerTarget extends Target {
         'dart:_interceptors',
         'dart:_internal',
         'dart:_isolate_helper',
-        'dart:_js_embedded_names',
         'dart:_js_helper',
         'dart:_js_mirrors',
         'dart:_js_primitives',
@@ -63,7 +62,7 @@ class DevCompilerTarget extends Target {
       {void logger(String msg)}) {}
 
   @override
-  void performGlobalTransformations(CoreTypes coreTypes, Program program,
+  void performGlobalTransformations(CoreTypes coreTypes, Component component,
       {void logger(String msg)}) {}
 
   @override

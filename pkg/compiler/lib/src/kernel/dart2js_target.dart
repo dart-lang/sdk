@@ -14,38 +14,13 @@ import '../native/native.dart' show maybeEnableNative;
 /// A kernel [Target] to configure the Dart Front End for dart2js.
 class Dart2jsTarget extends Target {
   final TargetFlags flags;
+  final String name;
 
-  Dart2jsTarget(this.flags);
+  Dart2jsTarget(this.name, this.flags);
 
   bool get strongMode => flags.strongMode;
 
-  String get name => 'dart2js';
-
-  List<String> get extraRequiredLibraries => const <String>[
-        'dart:_chrome',
-        'dart:_foreign_helper',
-        'dart:_interceptors',
-        'dart:_internal',
-        'dart:_isolate_helper',
-        'dart:_js_embedded_names',
-        'dart:_js_helper',
-        'dart:_js_mirrors',
-        'dart:_js_names',
-        'dart:_native_typed_data',
-        'dart:async',
-        'dart:collection',
-        'dart:html',
-        'dart:html_common',
-        'dart:indexed_db',
-        'dart:io',
-        'dart:js',
-        'dart:js_util',
-        'dart:mirrors',
-        'dart:svg',
-        'dart:web_audio',
-        'dart:web_gl',
-        'dart:web_sql',
-      ];
+  List<String> get extraRequiredLibraries => _requiredLibraries[name];
 
   @override
   bool mayDefineRestrictedType(Uri uri) =>
@@ -69,7 +44,7 @@ class Dart2jsTarget extends Target {
       {void logger(String msg)}) {}
 
   @override
-  void performGlobalTransformations(CoreTypes coreTypes, Program program,
+  void performGlobalTransformations(CoreTypes coreTypes, Component component,
       {void logger(String msg)}) {}
 
   @override
@@ -96,3 +71,46 @@ class Dart2jsTarget extends Target {
     return new InvalidExpression(null);
   }
 }
+
+// TODO(sigmund): this "extraRequiredLibraries" needs to be removed...
+// compile-platform should just specify which libraries to compile instead.
+const _requiredLibraries = const <String, List<String>>{
+  'dart2js': const <String>[
+    'dart:_chrome',
+    'dart:_foreign_helper',
+    'dart:_interceptors',
+    'dart:_internal',
+    'dart:_js_embedded_names',
+    'dart:_js_helper',
+    'dart:_js_names',
+    'dart:_native_typed_data',
+    'dart:async',
+    'dart:collection',
+    'dart:html',
+    'dart:html_common',
+    'dart:indexed_db',
+    'dart:io',
+    'dart:js',
+    'dart:js_util',
+    'dart:mirrors',
+    'dart:svg',
+    'dart:web_audio',
+    'dart:web_gl',
+    'dart:web_sql',
+  ],
+  'dart2js_server': const <String>[
+    'dart:_foreign_helper',
+    'dart:_interceptors',
+    'dart:_internal',
+    'dart:_js_embedded_names',
+    'dart:_js_helper',
+    'dart:_js_names',
+    'dart:_native_typed_data',
+    'dart:async',
+    'dart:collection',
+    'dart:io',
+    'dart:js',
+    'dart:js_util',
+    'dart:mirrors',
+  ]
+};

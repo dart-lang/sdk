@@ -2,13 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'package:front_end/src/base/instrumentation.dart';
-import 'package:front_end/src/fasta/builder/library_builder.dart';
-import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
-import 'package:front_end/src/fasta/messages.dart';
-import 'package:front_end/src/fasta/source/source_library_builder.dart';
-import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
-import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart'
     show
         Class,
@@ -24,9 +17,22 @@ import 'package:kernel/ast.dart'
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 
+import '../../base/instrumentation.dart';
+
+import '../builder/library_builder.dart';
+
 import '../deprecated_problems.dart' show Crash;
 
-import '../messages.dart' show getLocationFromNode, noLength;
+import '../kernel/kernel_shadow_ast.dart';
+
+import '../messages.dart'
+    show getLocationFromNode, noLength, templateCantInferTypeDueToCircularity;
+
+import '../source/source_library_builder.dart';
+
+import 'type_inferrer.dart';
+
+import 'type_schema_environment.dart';
 
 /// Concrete class derived from [InferenceNode] to represent type inference of a
 /// field based on its initializer.
@@ -229,7 +235,7 @@ abstract class TypeInferenceEngine {
   /// corresponding fields.
   void finishTopLevelInitializingFormals();
 
-  /// Gets ready to do top level type inference for the program having the given
+  /// Gets ready to do top level type inference for the component having the given
   /// [hierarchy], using the given [coreTypes].
   void prepareTopLevel(CoreTypes coreTypes, ClassHierarchy hierarchy);
 

@@ -42,6 +42,7 @@ import 'non_hint_code_kernel_test.dart' as non_hint_code_kernel_test;
 import 'non_hint_code_test.dart' as non_hint_code_test;
 import 'package_test.dart' as package_test;
 import 'parser_fasta_test.dart' as parser_fasta_test;
+import 'parser_forest_test.dart' as parser_forest_test;
 import 'parser_test.dart' as parser_test;
 import 'resolver_driver_test.dart' as resolver_driver_test;
 import 'resolver_kernel_test.dart' as resolver_kernel_test;
@@ -107,6 +108,7 @@ main() {
     non_hint_code_test.main();
     package_test.main();
     parser_fasta_test.main();
+    parser_forest_test.main();
     parser_test.main();
     resolver_driver_test.main();
     resolver_kernel_test.main();

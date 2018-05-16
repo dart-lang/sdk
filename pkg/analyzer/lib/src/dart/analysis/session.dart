@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as driver;
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -32,9 +33,17 @@ class AnalysisSessionImpl implements AnalysisSession {
   TypeSystem _typeSystem;
 
   /**
+   * The cache of libraries for URIs.
+   */
+  final Map<String, LibraryElement> _uriToLibraryCache = {};
+
+  /**
    * Initialize a newly created analysis session.
    */
   AnalysisSessionImpl(this._driver);
+
+  @override
+  ResourceProvider get resourceProvider => _driver.resourceProvider;
 
   @override
   SourceFactory get sourceFactory => _driver.sourceFactory;
@@ -70,15 +79,25 @@ class AnalysisSessionImpl implements AnalysisSession {
   }
 
   @override
-  Future<LibraryElement> getLibraryByUri(String uri) {
+  Future<LibraryElement> getLibraryByUri(String uri) async {
     _checkConsistency();
-    return _driver.getLibraryByUri(uri);
+    var libraryElement = _uriToLibraryCache[uri];
+    if (libraryElement == null) {
+      libraryElement = await _driver.getLibraryByUri(uri);
+      _uriToLibraryCache[uri] = libraryElement;
+    }
+    return libraryElement;
   }
 
   @override
-  Future<ParseResult> getParsedAst(String path) {
+  Future<ParseResult> getParsedAst(String path) async {
+    return getParsedAstSync(path);
+  }
+
+  @override
+  ParseResult getParsedAstSync(String path) {
     _checkConsistency();
-    return _driver.parseFile(path);
+    return _driver.parseFileSync(path);
   }
 
   @override

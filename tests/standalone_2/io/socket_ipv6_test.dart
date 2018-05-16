@@ -9,7 +9,7 @@ import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 import "test_utils.dart" show retry;
 
-const ANY = InternetAddressType.ANY;
+const ANY = InternetAddressType.any;
 
 Future testIPv6toIPv6() {
   asyncStart();
@@ -90,7 +90,7 @@ Future testIPv6Lookup() {
   return InternetAddress.lookup("::0", type: ANY).then((list) {
     if (list.length < 0) throw "no address";
     for (var entry in list) {
-      if (entry.type != InternetAddressType.IP_V6) {
+      if (entry.type != InternetAddressType.IPv6) {
         throw "Wrong IP type";
       }
     }
@@ -103,7 +103,7 @@ Future testIPv4Lookup() {
   return InternetAddress.lookup("127.0.0.1").then((list) {
     if (list.length < 0) throw "no address";
     for (var entry in list) {
-      if (entry.type != InternetAddressType.IP_V4) {
+      if (entry.type != InternetAddressType.IPv4) {
         throw "Wrong IP type";
       }
     }

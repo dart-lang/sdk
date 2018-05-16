@@ -20,10 +20,10 @@ main() {
 </svg>
 ''', validator: new NodeValidatorBuilder()..allowSvg());
 
-      var e = document.query('#svg1');
+      var e = document.querySelector('#svg1');
       expect(e, isNotNull);
 
-      svg.RectElement r = document.query('#rect1');
+      svg.RectElement r = document.querySelector('#rect1');
       expect(r.x.baseVal.value, 10);
       expect(r.y.baseVal.value, 20);
       expect(r.height.baseVal.value, 40);
@@ -72,7 +72,7 @@ main() {
 
     test('rect_isChecks', () {
       var div = insertTestDiv();
-      var r = document.query('#rect1');
+      var r = document.querySelector('#rect1');
 
       // Direct inheritance chain
       expect(r, isSvgElement);
@@ -121,7 +121,7 @@ main() {
     testRect(name, checker) {
       test(name, () {
         var div = insertTestDiv();
-        var r = document.query('#rect1');
+        var r = document.querySelector('#rect1');
         checker(r);
         div.remove();
       });

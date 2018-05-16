@@ -5,7 +5,6 @@
 import '../common.dart';
 import '../elements/jumps.dart';
 import '../io/source_information.dart';
-import '../tree/tree.dart' as ast;
 
 import 'graph_builder.dart';
 import 'locals_handler.dart';
@@ -88,9 +87,11 @@ class TargetJumpHandler implements JumpHandler {
       [LabelDefinition label]) {
     HInstruction breakInstruction;
     if (label == null) {
-      breakInstruction = new HBreak(target, sourceInformation);
+      breakInstruction =
+          new HBreak(builder.abstractValueDomain, target, sourceInformation);
     } else {
-      breakInstruction = new HBreak.toLabel(label, sourceInformation);
+      breakInstruction = new HBreak.toLabel(
+          builder.abstractValueDomain, label, sourceInformation);
     }
     LocalsHandler locals = new LocalsHandler.from(builder.localsHandler);
     builder.close(breakInstruction);
@@ -101,9 +102,11 @@ class TargetJumpHandler implements JumpHandler {
       [LabelDefinition label]) {
     HInstruction continueInstruction;
     if (label == null) {
-      continueInstruction = new HContinue(target, sourceInformation);
+      continueInstruction =
+          new HContinue(builder.abstractValueDomain, target, sourceInformation);
     } else {
-      continueInstruction = new HContinue.toLabel(label, sourceInformation);
+      continueInstruction = new HContinue.toLabel(
+          builder.abstractValueDomain, label, sourceInformation);
       // Switch case continue statements must be handled by the
       // [SwitchCaseJumpHandler].
       assert(!label.target.isSwitchCase);
@@ -171,8 +174,9 @@ abstract class SwitchCaseJumpHandler extends TargetJumpHandler {
       // for a switch statement with continue statements. See
       // [SsaFromAstMixin.buildComplexSwitchStatement] for detail.
 
-      HInstruction breakInstruction =
-          new HBreak(target, sourceInformation, breakSwitchContinueLoop: true);
+      HInstruction breakInstruction = new HBreak(
+          builder.abstractValueDomain, target, sourceInformation,
+          breakSwitchContinueLoop: true);
       LocalsHandler locals = new LocalsHandler.from(builder.localsHandler);
       builder.close(breakInstruction);
       jumps.add(new _JumpHandlerEntry(breakInstruction, locals));
@@ -199,7 +203,7 @@ abstract class SwitchCaseJumpHandler extends TargetJumpHandler {
 
       assert(label.target.labels.contains(label));
       HInstruction continueInstruction =
-          new HContinue(target, sourceInformation);
+          new HContinue(builder.abstractValueDomain, target, sourceInformation);
       LocalsHandler locals = new LocalsHandler.from(builder.localsHandler);
       builder.close(continueInstruction);
       jumps.add(new _JumpHandlerEntry(continueInstruction, locals));
@@ -214,35 +218,5 @@ abstract class SwitchCaseJumpHandler extends TargetJumpHandler {
       builder.jumpTargets.remove(target);
     }
     super.close();
-  }
-}
-
-/// Special [JumpHandler] implementation used to handle continue statements
-/// targeting switch cases.
-class AstSwitchCaseJumpHandler extends SwitchCaseJumpHandler {
-  AstSwitchCaseJumpHandler(
-      GraphBuilder builder, JumpTarget target, ast.SwitchStatement node)
-      : super(builder, target) {
-    // The switch case indices must match those computed in
-    // [SsaFromAstMixin.buildSwitchCaseConstants].
-    // Switch indices are 1-based so we can bypass the synthetic loop when no
-    // cases match simply by branching on the index (which defaults to null).
-    int switchIndex = 1;
-    for (ast.SwitchCase switchCase in node.cases) {
-      for (ast.Node labelOrCase in switchCase.labelsAndCases) {
-        ast.Node label = labelOrCase.asLabel();
-        if (label != null) {
-          LabelDefinition labelElement =
-              builder.elements.getLabelDefinition(label);
-          if (labelElement != null && labelElement.isContinueTarget) {
-            JumpTarget continueTarget = labelElement.target;
-            targetIndexMap[continueTarget] = switchIndex;
-            assert(builder.jumpTargets[continueTarget] == null);
-            builder.jumpTargets[continueTarget] = this;
-          }
-        }
-      }
-      switchIndex++;
-    }
   }
 }

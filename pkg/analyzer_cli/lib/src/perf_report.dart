@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer_cli.src.perf_report;
-
 import 'dart:convert' show JsonEncoder;
 import 'dart:io' show Platform;
 
 import 'package:analyzer/src/generated/utilities_general.dart'
     show PerformanceTag;
-import 'package:analyzer/task/model.dart' show AnalysisTask;
+import 'package:analyzer/src/task/api/model.dart' show AnalysisTask;
 import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:analyzer_cli/src/options.dart' show CommandLineOptions;
 

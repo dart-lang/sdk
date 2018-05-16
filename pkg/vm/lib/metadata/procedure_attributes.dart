@@ -39,7 +39,8 @@ class ProcedureAttributesMetadataRepository
       <TreeNode, ProcedureAttributesMetadata>{};
 
   @override
-  void writeToBinary(ProcedureAttributesMetadata metadata, BinarySink sink) {
+  void writeToBinary(
+      ProcedureAttributesMetadata metadata, Node node, BinarySink sink) {
     int flags = 0;
     if (metadata.hasDynamicUses) {
       flags |= kDynamicUsesBit;
@@ -54,7 +55,7 @@ class ProcedureAttributesMetadataRepository
   }
 
   @override
-  ProcedureAttributesMetadata readFromBinary(BinarySource source) {
+  ProcedureAttributesMetadata readFromBinary(Node node, BinarySource source) {
     final int flags = source.readByte();
 
     final bool hasDynamicUses = (flags & kDynamicUsesBit) == kDynamicUsesBit;

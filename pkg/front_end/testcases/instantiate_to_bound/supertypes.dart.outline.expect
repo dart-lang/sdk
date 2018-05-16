@@ -6,7 +6,7 @@ class B extends core::Object {
   synthetic constructor •() → void
     ;
 }
-class X<T extends self::B> extends core::Object {
+class X<T extends self::B = dynamic> extends core::Object {
   synthetic constructor •() → void
     ;
 }

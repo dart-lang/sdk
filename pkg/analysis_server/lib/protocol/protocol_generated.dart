@@ -9504,6 +9504,422 @@ class ExecutionDeleteContextResult implements ResponseResult {
 }
 
 /**
+ * execution.getSuggestions params
+ *
+ * {
+ *   "code": String
+ *   "offset": int
+ *   "contextFile": FilePath
+ *   "contextOffset": int
+ *   "variables": List<RuntimeCompletionVariable>
+ *   "expressions": optional List<RuntimeCompletionExpression>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class ExecutionGetSuggestionsParams implements RequestParams {
+  String _code;
+
+  int _offset;
+
+  String _contextFile;
+
+  int _contextOffset;
+
+  List<RuntimeCompletionVariable> _variables;
+
+  List<RuntimeCompletionExpression> _expressions;
+
+  /**
+   * The code to get suggestions in.
+   */
+  String get code => _code;
+
+  /**
+   * The code to get suggestions in.
+   */
+  void set code(String value) {
+    assert(value != null);
+    this._code = value;
+  }
+
+  /**
+   * The offset within the code to get suggestions at.
+   */
+  int get offset => _offset;
+
+  /**
+   * The offset within the code to get suggestions at.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
+
+  /**
+   * The path of the context file, e.g. the file of the current debugger frame.
+   * The combination of the context file and context offset can be used to
+   * ensure that all variables of the context are available for completion
+   * (with their static types).
+   */
+  String get contextFile => _contextFile;
+
+  /**
+   * The path of the context file, e.g. the file of the current debugger frame.
+   * The combination of the context file and context offset can be used to
+   * ensure that all variables of the context are available for completion
+   * (with their static types).
+   */
+  void set contextFile(String value) {
+    assert(value != null);
+    this._contextFile = value;
+  }
+
+  /**
+   * The offset in the context file, e.g. the line offset in the current
+   * debugger frame.
+   */
+  int get contextOffset => _contextOffset;
+
+  /**
+   * The offset in the context file, e.g. the line offset in the current
+   * debugger frame.
+   */
+  void set contextOffset(int value) {
+    assert(value != null);
+    this._contextOffset = value;
+  }
+
+  /**
+   * The runtime context variables that are potentially referenced in the code.
+   */
+  List<RuntimeCompletionVariable> get variables => _variables;
+
+  /**
+   * The runtime context variables that are potentially referenced in the code.
+   */
+  void set variables(List<RuntimeCompletionVariable> value) {
+    assert(value != null);
+    this._variables = value;
+  }
+
+  /**
+   * The list of sub-expressions in the code for which the client wants to
+   * provide runtime types. It does not have to be the full list of expressions
+   * requested by the server, for missing expressions their static types will
+   * be used.
+   *
+   * When this field is omitted, the server will return completion suggestions
+   * only when there are no interesting sub-expressions in the given code. The
+   * client may provide an empty list, in this case the server will return
+   * completion suggestions.
+   */
+  List<RuntimeCompletionExpression> get expressions => _expressions;
+
+  /**
+   * The list of sub-expressions in the code for which the client wants to
+   * provide runtime types. It does not have to be the full list of expressions
+   * requested by the server, for missing expressions their static types will
+   * be used.
+   *
+   * When this field is omitted, the server will return completion suggestions
+   * only when there are no interesting sub-expressions in the given code. The
+   * client may provide an empty list, in this case the server will return
+   * completion suggestions.
+   */
+  void set expressions(List<RuntimeCompletionExpression> value) {
+    this._expressions = value;
+  }
+
+  ExecutionGetSuggestionsParams(String code, int offset, String contextFile,
+      int contextOffset, List<RuntimeCompletionVariable> variables,
+      {List<RuntimeCompletionExpression> expressions}) {
+    this.code = code;
+    this.offset = offset;
+    this.contextFile = contextFile;
+    this.contextOffset = contextOffset;
+    this.variables = variables;
+    this.expressions = expressions;
+  }
+
+  factory ExecutionGetSuggestionsParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String code;
+      if (json.containsKey("code")) {
+        code = jsonDecoder.decodeString(jsonPath + ".code", json["code"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "code");
+      }
+      int offset;
+      if (json.containsKey("offset")) {
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "offset");
+      }
+      String contextFile;
+      if (json.containsKey("contextFile")) {
+        contextFile = jsonDecoder.decodeString(
+            jsonPath + ".contextFile", json["contextFile"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "contextFile");
+      }
+      int contextOffset;
+      if (json.containsKey("contextOffset")) {
+        contextOffset = jsonDecoder.decodeInt(
+            jsonPath + ".contextOffset", json["contextOffset"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "contextOffset");
+      }
+      List<RuntimeCompletionVariable> variables;
+      if (json.containsKey("variables")) {
+        variables = jsonDecoder.decodeList(
+            jsonPath + ".variables",
+            json["variables"],
+            (String jsonPath, Object json) =>
+                new RuntimeCompletionVariable.fromJson(
+                    jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "variables");
+      }
+      List<RuntimeCompletionExpression> expressions;
+      if (json.containsKey("expressions")) {
+        expressions = jsonDecoder.decodeList(
+            jsonPath + ".expressions",
+            json["expressions"],
+            (String jsonPath, Object json) =>
+                new RuntimeCompletionExpression.fromJson(
+                    jsonDecoder, jsonPath, json));
+      }
+      return new ExecutionGetSuggestionsParams(
+          code, offset, contextFile, contextOffset, variables,
+          expressions: expressions);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "execution.getSuggestions params", json);
+    }
+  }
+
+  factory ExecutionGetSuggestionsParams.fromRequest(Request request) {
+    return new ExecutionGetSuggestionsParams.fromJson(
+        new RequestDecoder(request), "params", request.params);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["code"] = code;
+    result["offset"] = offset;
+    result["contextFile"] = contextFile;
+    result["contextOffset"] = contextOffset;
+    result["variables"] = variables
+        .map((RuntimeCompletionVariable value) => value.toJson())
+        .toList();
+    if (expressions != null) {
+      result["expressions"] = expressions
+          .map((RuntimeCompletionExpression value) => value.toJson())
+          .toList();
+    }
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return new Request(id, "execution.getSuggestions", toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is ExecutionGetSuggestionsParams) {
+      return code == other.code &&
+          offset == other.offset &&
+          contextFile == other.contextFile &&
+          contextOffset == other.contextOffset &&
+          listEqual(
+              variables,
+              other.variables,
+              (RuntimeCompletionVariable a, RuntimeCompletionVariable b) =>
+                  a == b) &&
+          listEqual(
+              expressions,
+              other.expressions,
+              (RuntimeCompletionExpression a, RuntimeCompletionExpression b) =>
+                  a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, code.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, contextFile.hashCode);
+    hash = JenkinsSmiHash.combine(hash, contextOffset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, variables.hashCode);
+    hash = JenkinsSmiHash.combine(hash, expressions.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * execution.getSuggestions result
+ *
+ * {
+ *   "suggestions": optional List<CompletionSuggestion>
+ *   "expressions": optional List<RuntimeCompletionExpression>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class ExecutionGetSuggestionsResult implements ResponseResult {
+  List<CompletionSuggestion> _suggestions;
+
+  List<RuntimeCompletionExpression> _expressions;
+
+  /**
+   * The completion suggestions. In contrast to usual completion request,
+   * suggestions for private elements also will be provided.
+   *
+   * If there are sub-expressions that can have different runtime types, and
+   * are considered to be safe to evaluate at runtime (e.g. getters), so using
+   * their actual runtime types can improve completion results, the server
+   * omits this field in the response, and instead will return the
+   * "expressions" field.
+   */
+  List<CompletionSuggestion> get suggestions => _suggestions;
+
+  /**
+   * The completion suggestions. In contrast to usual completion request,
+   * suggestions for private elements also will be provided.
+   *
+   * If there are sub-expressions that can have different runtime types, and
+   * are considered to be safe to evaluate at runtime (e.g. getters), so using
+   * their actual runtime types can improve completion results, the server
+   * omits this field in the response, and instead will return the
+   * "expressions" field.
+   */
+  void set suggestions(List<CompletionSuggestion> value) {
+    this._suggestions = value;
+  }
+
+  /**
+   * The list of sub-expressions in the code for which the server would like to
+   * know runtime types to provide better completion suggestions.
+   *
+   * This field is omitted the field "suggestions" is returned.
+   */
+  List<RuntimeCompletionExpression> get expressions => _expressions;
+
+  /**
+   * The list of sub-expressions in the code for which the server would like to
+   * know runtime types to provide better completion suggestions.
+   *
+   * This field is omitted the field "suggestions" is returned.
+   */
+  void set expressions(List<RuntimeCompletionExpression> value) {
+    this._expressions = value;
+  }
+
+  ExecutionGetSuggestionsResult(
+      {List<CompletionSuggestion> suggestions,
+      List<RuntimeCompletionExpression> expressions}) {
+    this.suggestions = suggestions;
+    this.expressions = expressions;
+  }
+
+  factory ExecutionGetSuggestionsResult.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      List<CompletionSuggestion> suggestions;
+      if (json.containsKey("suggestions")) {
+        suggestions = jsonDecoder.decodeList(
+            jsonPath + ".suggestions",
+            json["suggestions"],
+            (String jsonPath, Object json) =>
+                new CompletionSuggestion.fromJson(jsonDecoder, jsonPath, json));
+      }
+      List<RuntimeCompletionExpression> expressions;
+      if (json.containsKey("expressions")) {
+        expressions = jsonDecoder.decodeList(
+            jsonPath + ".expressions",
+            json["expressions"],
+            (String jsonPath, Object json) =>
+                new RuntimeCompletionExpression.fromJson(
+                    jsonDecoder, jsonPath, json));
+      }
+      return new ExecutionGetSuggestionsResult(
+          suggestions: suggestions, expressions: expressions);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "execution.getSuggestions result", json);
+    }
+  }
+
+  factory ExecutionGetSuggestionsResult.fromResponse(Response response) {
+    return new ExecutionGetSuggestionsResult.fromJson(
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        "result",
+        response.result);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    if (suggestions != null) {
+      result["suggestions"] = suggestions
+          .map((CompletionSuggestion value) => value.toJson())
+          .toList();
+    }
+    if (expressions != null) {
+      result["expressions"] = expressions
+          .map((RuntimeCompletionExpression value) => value.toJson())
+          .toList();
+    }
+    return result;
+  }
+
+  @override
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is ExecutionGetSuggestionsResult) {
+      return listEqual(suggestions, other.suggestions,
+              (CompletionSuggestion a, CompletionSuggestion b) => a == b) &&
+          listEqual(
+              expressions,
+              other.expressions,
+              (RuntimeCompletionExpression a, RuntimeCompletionExpression b) =>
+                  a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, suggestions.hashCode);
+    hash = JenkinsSmiHash.combine(hash, expressions.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
  * execution.launchData params
  *
  * {
@@ -10893,6 +11309,132 @@ class ExtractMethodOptions extends RefactoringOptions {
 }
 
 /**
+ * extractWidget feedback
+ *
+ * {
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class ExtractWidgetFeedback extends RefactoringFeedback {
+  ExtractWidgetFeedback();
+
+  factory ExtractWidgetFeedback.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      return new ExtractWidgetFeedback();
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "extractWidget feedback", json);
+    }
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    return result;
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is ExtractWidgetFeedback) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * extractWidget options
+ *
+ * {
+ *   "name": String
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class ExtractWidgetOptions extends RefactoringOptions {
+  String _name;
+
+  /**
+   * The name that the widget class should be given.
+   */
+  String get name => _name;
+
+  /**
+   * The name that the widget class should be given.
+   */
+  void set name(String value) {
+    assert(value != null);
+    this._name = value;
+  }
+
+  ExtractWidgetOptions(String name) {
+    this.name = name;
+  }
+
+  factory ExtractWidgetOptions.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String name;
+      if (json.containsKey("name")) {
+        name = jsonDecoder.decodeString(jsonPath + ".name", json["name"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "name");
+      }
+      return new ExtractWidgetOptions(name);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "extractWidget options", json);
+    }
+  }
+
+  factory ExtractWidgetOptions.fromRefactoringParams(
+      EditGetRefactoringParams refactoringParams, Request request) {
+    return new ExtractWidgetOptions.fromJson(
+        new RequestDecoder(request), "options", refactoringParams.options);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["name"] = name;
+    return result;
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is ExtractWidgetOptions) {
+      return name == other.name;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, name.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
  * FileKind
  *
  * enum {
@@ -10946,12 +11488,218 @@ class FileKind implements Enum {
 }
 
 /**
+ * flutter.getChangeAddForDesignTimeConstructor params
+ *
+ * {
+ *   "file": FilePath
+ *   "offset": int
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class FlutterGetChangeAddForDesignTimeConstructorParams
+    implements RequestParams {
+  String _file;
+
+  int _offset;
+
+  /**
+   * The file containing the code of the class.
+   */
+  String get file => _file;
+
+  /**
+   * The file containing the code of the class.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
+
+  /**
+   * The offset of the class in the code.
+   */
+  int get offset => _offset;
+
+  /**
+   * The offset of the class in the code.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
+
+  FlutterGetChangeAddForDesignTimeConstructorParams(String file, int offset) {
+    this.file = file;
+    this.offset = offset;
+  }
+
+  factory FlutterGetChangeAddForDesignTimeConstructorParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String file;
+      if (json.containsKey("file")) {
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "file");
+      }
+      int offset;
+      if (json.containsKey("offset")) {
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "offset");
+      }
+      return new FlutterGetChangeAddForDesignTimeConstructorParams(
+          file, offset);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath,
+          "flutter.getChangeAddForDesignTimeConstructor params", json);
+    }
+  }
+
+  factory FlutterGetChangeAddForDesignTimeConstructorParams.fromRequest(
+      Request request) {
+    return new FlutterGetChangeAddForDesignTimeConstructorParams.fromJson(
+        new RequestDecoder(request), "params", request.params);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["file"] = file;
+    result["offset"] = offset;
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return new Request(
+        id, "flutter.getChangeAddForDesignTimeConstructor", toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is FlutterGetChangeAddForDesignTimeConstructorParams) {
+      return file == other.file && offset == other.offset;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * flutter.getChangeAddForDesignTimeConstructor result
+ *
+ * {
+ *   "change": SourceChange
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class FlutterGetChangeAddForDesignTimeConstructorResult
+    implements ResponseResult {
+  SourceChange _change;
+
+  /**
+   * The change that adds the forDesignTime() constructor. If the change cannot
+   * be produced, an error is returned.
+   */
+  SourceChange get change => _change;
+
+  /**
+   * The change that adds the forDesignTime() constructor. If the change cannot
+   * be produced, an error is returned.
+   */
+  void set change(SourceChange value) {
+    assert(value != null);
+    this._change = value;
+  }
+
+  FlutterGetChangeAddForDesignTimeConstructorResult(SourceChange change) {
+    this.change = change;
+  }
+
+  factory FlutterGetChangeAddForDesignTimeConstructorResult.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      SourceChange change;
+      if (json.containsKey("change")) {
+        change = new SourceChange.fromJson(
+            jsonDecoder, jsonPath + ".change", json["change"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "change");
+      }
+      return new FlutterGetChangeAddForDesignTimeConstructorResult(change);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath,
+          "flutter.getChangeAddForDesignTimeConstructor result", json);
+    }
+  }
+
+  factory FlutterGetChangeAddForDesignTimeConstructorResult.fromResponse(
+      Response response) {
+    return new FlutterGetChangeAddForDesignTimeConstructorResult.fromJson(
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        "result",
+        response.result);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["change"] = change.toJson();
+    return result;
+  }
+
+  @override
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is FlutterGetChangeAddForDesignTimeConstructorResult) {
+      return change == other.change;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, change.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
  * FlutterOutline
  *
  * {
  *   "kind": FlutterOutlineKind
  *   "offset": int
  *   "length": int
+ *   "codeOffset": int
+ *   "codeLength": int
  *   "label": optional String
  *   "dartElement": optional Element
  *   "attributes": optional List<FlutterOutlineAttribute>
@@ -10960,7 +11708,9 @@ class FileKind implements Enum {
  *   "variableName": optional String
  *   "children": optional List<FlutterOutline>
  *   "id": optional int
+ *   "isWidgetClass": optional bool
  *   "renderConstructor": optional String
+ *   "stateClassName": optional String
  *   "stateOffset": optional int
  *   "stateLength": optional int
  * }
@@ -10973,6 +11723,10 @@ class FlutterOutline implements HasToJson {
   int _offset;
 
   int _length;
+
+  int _codeOffset;
+
+  int _codeLength;
 
   String _label;
 
@@ -10990,7 +11744,11 @@ class FlutterOutline implements HasToJson {
 
   int _id;
 
+  bool _isWidgetClass;
+
   String _renderConstructor;
+
+  String _stateClassName;
 
   int _stateOffset;
 
@@ -11039,6 +11797,34 @@ class FlutterOutline implements HasToJson {
   void set length(int value) {
     assert(value != null);
     this._length = value;
+  }
+
+  /**
+   * The offset of the first character of the element code, which is neither
+   * documentation, nor annotation.
+   */
+  int get codeOffset => _codeOffset;
+
+  /**
+   * The offset of the first character of the element code, which is neither
+   * documentation, nor annotation.
+   */
+  void set codeOffset(int value) {
+    assert(value != null);
+    this._codeOffset = value;
+  }
+
+  /**
+   * The length of the element code.
+   */
+  int get codeLength => _codeLength;
+
+  /**
+   * The length of the element code.
+   */
+  void set codeLength(int value) {
+    assert(value != null);
+    this._codeLength = value;
   }
 
   /**
@@ -11156,6 +11942,22 @@ class FlutterOutline implements HasToJson {
   }
 
   /**
+   * True if the node is a widget class, so it can potentially be rendered,
+   * even if it does not yet have the rendering constructor. This field is
+   * omitted if the node is not a widget class.
+   */
+  bool get isWidgetClass => _isWidgetClass;
+
+  /**
+   * True if the node is a widget class, so it can potentially be rendered,
+   * even if it does not yet have the rendering constructor. This field is
+   * omitted if the node is not a widget class.
+   */
+  void set isWidgetClass(bool value) {
+    this._isWidgetClass = value;
+  }
+
+  /**
    * If the node is a widget class that can be rendered for IDE, the name of
    * the constructor that should be used to instantiate the widget. Empty
    * string for default constructor. Absent if the node is not a widget class
@@ -11174,15 +11976,29 @@ class FlutterOutline implements HasToJson {
   }
 
   /**
-   * If the node is a StatefulWidget that can be rendered, and its State class
-   * is defined in the same file, the offset of the State class code in the
+   * If the node is a StatefulWidget, and its state class is defined in the
+   * same file, the name of the state class.
+   */
+  String get stateClassName => _stateClassName;
+
+  /**
+   * If the node is a StatefulWidget, and its state class is defined in the
+   * same file, the name of the state class.
+   */
+  void set stateClassName(String value) {
+    this._stateClassName = value;
+  }
+
+  /**
+   * If the node is a StatefulWidget that can be rendered, and its state class
+   * is defined in the same file, the offset of the state class code in the
    * file.
    */
   int get stateOffset => _stateOffset;
 
   /**
-   * If the node is a StatefulWidget that can be rendered, and its State class
-   * is defined in the same file, the offset of the State class code in the
+   * If the node is a StatefulWidget that can be rendered, and its state class
+   * is defined in the same file, the offset of the state class code in the
    * file.
    */
   void set stateOffset(int value) {
@@ -11190,15 +12006,15 @@ class FlutterOutline implements HasToJson {
   }
 
   /**
-   * If the node is a StatefulWidget that can be rendered, and its State class
-   * is defined in the same file, the length of the State class code in the
+   * If the node is a StatefulWidget that can be rendered, and its state class
+   * is defined in the same file, the length of the state class code in the
    * file.
    */
   int get stateLength => _stateLength;
 
   /**
-   * If the node is a StatefulWidget that can be rendered, and its State class
-   * is defined in the same file, the length of the State class code in the
+   * If the node is a StatefulWidget that can be rendered, and its state class
+   * is defined in the same file, the length of the state class code in the
    * file.
    */
   void set stateLength(int value) {
@@ -11206,6 +12022,7 @@ class FlutterOutline implements HasToJson {
   }
 
   FlutterOutline(FlutterOutlineKind kind, int offset, int length,
+      int codeOffset, int codeLength,
       {String label,
       Element dartElement,
       List<FlutterOutlineAttribute> attributes,
@@ -11214,12 +12031,16 @@ class FlutterOutline implements HasToJson {
       String variableName,
       List<FlutterOutline> children,
       int id,
+      bool isWidgetClass,
       String renderConstructor,
+      String stateClassName,
       int stateOffset,
       int stateLength}) {
     this.kind = kind;
     this.offset = offset;
     this.length = length;
+    this.codeOffset = codeOffset;
+    this.codeLength = codeLength;
     this.label = label;
     this.dartElement = dartElement;
     this.attributes = attributes;
@@ -11228,7 +12049,9 @@ class FlutterOutline implements HasToJson {
     this.variableName = variableName;
     this.children = children;
     this.id = id;
+    this.isWidgetClass = isWidgetClass;
     this.renderConstructor = renderConstructor;
+    this.stateClassName = stateClassName;
     this.stateOffset = stateOffset;
     this.stateLength = stateLength;
   }
@@ -11257,6 +12080,20 @@ class FlutterOutline implements HasToJson {
         length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "length");
+      }
+      int codeOffset;
+      if (json.containsKey("codeOffset")) {
+        codeOffset =
+            jsonDecoder.decodeInt(jsonPath + ".codeOffset", json["codeOffset"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "codeOffset");
+      }
+      int codeLength;
+      if (json.containsKey("codeLength")) {
+        codeLength =
+            jsonDecoder.decodeInt(jsonPath + ".codeLength", json["codeLength"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "codeLength");
       }
       String label;
       if (json.containsKey("label")) {
@@ -11304,10 +12141,20 @@ class FlutterOutline implements HasToJson {
       if (json.containsKey("id")) {
         id = jsonDecoder.decodeInt(jsonPath + ".id", json["id"]);
       }
+      bool isWidgetClass;
+      if (json.containsKey("isWidgetClass")) {
+        isWidgetClass = jsonDecoder.decodeBool(
+            jsonPath + ".isWidgetClass", json["isWidgetClass"]);
+      }
       String renderConstructor;
       if (json.containsKey("renderConstructor")) {
         renderConstructor = jsonDecoder.decodeString(
             jsonPath + ".renderConstructor", json["renderConstructor"]);
+      }
+      String stateClassName;
+      if (json.containsKey("stateClassName")) {
+        stateClassName = jsonDecoder.decodeString(
+            jsonPath + ".stateClassName", json["stateClassName"]);
       }
       int stateOffset;
       if (json.containsKey("stateOffset")) {
@@ -11319,7 +12166,7 @@ class FlutterOutline implements HasToJson {
         stateLength = jsonDecoder.decodeInt(
             jsonPath + ".stateLength", json["stateLength"]);
       }
-      return new FlutterOutline(kind, offset, length,
+      return new FlutterOutline(kind, offset, length, codeOffset, codeLength,
           label: label,
           dartElement: dartElement,
           attributes: attributes,
@@ -11328,7 +12175,9 @@ class FlutterOutline implements HasToJson {
           variableName: variableName,
           children: children,
           id: id,
+          isWidgetClass: isWidgetClass,
           renderConstructor: renderConstructor,
+          stateClassName: stateClassName,
           stateOffset: stateOffset,
           stateLength: stateLength);
     } else {
@@ -11342,6 +12191,8 @@ class FlutterOutline implements HasToJson {
     result["kind"] = kind.toJson();
     result["offset"] = offset;
     result["length"] = length;
+    result["codeOffset"] = codeOffset;
+    result["codeLength"] = codeLength;
     if (label != null) {
       result["label"] = label;
     }
@@ -11369,8 +12220,14 @@ class FlutterOutline implements HasToJson {
     if (id != null) {
       result["id"] = id;
     }
+    if (isWidgetClass != null) {
+      result["isWidgetClass"] = isWidgetClass;
+    }
     if (renderConstructor != null) {
       result["renderConstructor"] = renderConstructor;
+    }
+    if (stateClassName != null) {
+      result["stateClassName"] = stateClassName;
     }
     if (stateOffset != null) {
       result["stateOffset"] = stateOffset;
@@ -11390,6 +12247,8 @@ class FlutterOutline implements HasToJson {
       return kind == other.kind &&
           offset == other.offset &&
           length == other.length &&
+          codeOffset == other.codeOffset &&
+          codeLength == other.codeLength &&
           label == other.label &&
           dartElement == other.dartElement &&
           listEqual(
@@ -11403,7 +12262,9 @@ class FlutterOutline implements HasToJson {
           listEqual(children, other.children,
               (FlutterOutline a, FlutterOutline b) => a == b) &&
           id == other.id &&
+          isWidgetClass == other.isWidgetClass &&
           renderConstructor == other.renderConstructor &&
+          stateClassName == other.stateClassName &&
           stateOffset == other.stateOffset &&
           stateLength == other.stateLength;
     }
@@ -11416,6 +12277,8 @@ class FlutterOutline implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, kind.hashCode);
     hash = JenkinsSmiHash.combine(hash, offset.hashCode);
     hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    hash = JenkinsSmiHash.combine(hash, codeOffset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, codeLength.hashCode);
     hash = JenkinsSmiHash.combine(hash, label.hashCode);
     hash = JenkinsSmiHash.combine(hash, dartElement.hashCode);
     hash = JenkinsSmiHash.combine(hash, attributes.hashCode);
@@ -11424,7 +12287,9 @@ class FlutterOutline implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, variableName.hashCode);
     hash = JenkinsSmiHash.combine(hash, children.hashCode);
     hash = JenkinsSmiHash.combine(hash, id.hashCode);
+    hash = JenkinsSmiHash.combine(hash, isWidgetClass.hashCode);
     hash = JenkinsSmiHash.combine(hash, renderConstructor.hashCode);
+    hash = JenkinsSmiHash.combine(hash, stateClassName.hashCode);
     hash = JenkinsSmiHash.combine(hash, stateOffset.hashCode);
     hash = JenkinsSmiHash.combine(hash, stateLength.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -14085,12 +14950,14 @@ class RenameFeedback extends RefactoringFeedback {
   String _oldName;
 
   /**
-   * The offset to the beginning of the name selected to be renamed.
+   * The offset to the beginning of the name selected to be renamed, or -1 if
+   * the name does not exist yet.
    */
   int get offset => _offset;
 
   /**
-   * The offset to the beginning of the name selected to be renamed.
+   * The offset to the beginning of the name selected to be renamed, or -1 if
+   * the name does not exist yet.
    */
   void set offset(int value) {
     assert(value != null);
@@ -14773,6 +15640,585 @@ class RequestErrorCode implements Enum {
   String toString() => "RequestErrorCode.$name";
 
   String toJson() => name;
+}
+
+/**
+ * RuntimeCompletionExpression
+ *
+ * {
+ *   "offset": int
+ *   "length": int
+ *   "type": optional RuntimeCompletionExpressionType
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class RuntimeCompletionExpression implements HasToJson {
+  int _offset;
+
+  int _length;
+
+  RuntimeCompletionExpressionType _type;
+
+  /**
+   * The offset of the expression in the code for completion.
+   */
+  int get offset => _offset;
+
+  /**
+   * The offset of the expression in the code for completion.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
+
+  /**
+   * The length of the expression in the code for completion.
+   */
+  int get length => _length;
+
+  /**
+   * The length of the expression in the code for completion.
+   */
+  void set length(int value) {
+    assert(value != null);
+    this._length = value;
+  }
+
+  /**
+   * When the expression is sent from the server to the client, the type is
+   * omitted. The client should fill the type when it sends the request to the
+   * server again.
+   */
+  RuntimeCompletionExpressionType get type => _type;
+
+  /**
+   * When the expression is sent from the server to the client, the type is
+   * omitted. The client should fill the type when it sends the request to the
+   * server again.
+   */
+  void set type(RuntimeCompletionExpressionType value) {
+    this._type = value;
+  }
+
+  RuntimeCompletionExpression(int offset, int length,
+      {RuntimeCompletionExpressionType type}) {
+    this.offset = offset;
+    this.length = length;
+    this.type = type;
+  }
+
+  factory RuntimeCompletionExpression.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      int offset;
+      if (json.containsKey("offset")) {
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "offset");
+      }
+      int length;
+      if (json.containsKey("length")) {
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "length");
+      }
+      RuntimeCompletionExpressionType type;
+      if (json.containsKey("type")) {
+        type = new RuntimeCompletionExpressionType.fromJson(
+            jsonDecoder, jsonPath + ".type", json["type"]);
+      }
+      return new RuntimeCompletionExpression(offset, length, type: type);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "RuntimeCompletionExpression", json);
+    }
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["offset"] = offset;
+    result["length"] = length;
+    if (type != null) {
+      result["type"] = type.toJson();
+    }
+    return result;
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is RuntimeCompletionExpression) {
+      return offset == other.offset &&
+          length == other.length &&
+          type == other.type;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    hash = JenkinsSmiHash.combine(hash, type.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * RuntimeCompletionExpressionType
+ *
+ * {
+ *   "libraryPath": optional FilePath
+ *   "kind": RuntimeCompletionExpressionTypeKind
+ *   "name": optional String
+ *   "typeArguments": optional List<RuntimeCompletionExpressionType>
+ *   "returnType": optional RuntimeCompletionExpressionType
+ *   "parameterTypes": optional List<RuntimeCompletionExpressionType>
+ *   "parameterNames": optional List<String>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class RuntimeCompletionExpressionType implements HasToJson {
+  String _libraryPath;
+
+  RuntimeCompletionExpressionTypeKind _kind;
+
+  String _name;
+
+  List<RuntimeCompletionExpressionType> _typeArguments;
+
+  RuntimeCompletionExpressionType _returnType;
+
+  List<RuntimeCompletionExpressionType> _parameterTypes;
+
+  List<String> _parameterNames;
+
+  /**
+   * The path of the library that has this type. Omitted if the type is not
+   * declared in any library, e.g. "dynamic", or "void".
+   */
+  String get libraryPath => _libraryPath;
+
+  /**
+   * The path of the library that has this type. Omitted if the type is not
+   * declared in any library, e.g. "dynamic", or "void".
+   */
+  void set libraryPath(String value) {
+    this._libraryPath = value;
+  }
+
+  /**
+   * The kind of the type.
+   */
+  RuntimeCompletionExpressionTypeKind get kind => _kind;
+
+  /**
+   * The kind of the type.
+   */
+  void set kind(RuntimeCompletionExpressionTypeKind value) {
+    assert(value != null);
+    this._kind = value;
+  }
+
+  /**
+   * The name of the type. Omitted if the type does not have a name, e.g. an
+   * inline function type.
+   */
+  String get name => _name;
+
+  /**
+   * The name of the type. Omitted if the type does not have a name, e.g. an
+   * inline function type.
+   */
+  void set name(String value) {
+    this._name = value;
+  }
+
+  /**
+   * The type arguments of the type. Omitted if the type does not have type
+   * parameters.
+   */
+  List<RuntimeCompletionExpressionType> get typeArguments => _typeArguments;
+
+  /**
+   * The type arguments of the type. Omitted if the type does not have type
+   * parameters.
+   */
+  void set typeArguments(List<RuntimeCompletionExpressionType> value) {
+    this._typeArguments = value;
+  }
+
+  /**
+   * If the type is a function type, the return type of the function. Omitted
+   * if the type is not a function type.
+   */
+  RuntimeCompletionExpressionType get returnType => _returnType;
+
+  /**
+   * If the type is a function type, the return type of the function. Omitted
+   * if the type is not a function type.
+   */
+  void set returnType(RuntimeCompletionExpressionType value) {
+    this._returnType = value;
+  }
+
+  /**
+   * If the type is a function type, the types of the function parameters of
+   * all kinds - required, optional positional, and optional named. Omitted if
+   * the type is not a function type.
+   */
+  List<RuntimeCompletionExpressionType> get parameterTypes => _parameterTypes;
+
+  /**
+   * If the type is a function type, the types of the function parameters of
+   * all kinds - required, optional positional, and optional named. Omitted if
+   * the type is not a function type.
+   */
+  void set parameterTypes(List<RuntimeCompletionExpressionType> value) {
+    this._parameterTypes = value;
+  }
+
+  /**
+   * If the type is a function type, the names of the function parameters of
+   * all kinds - required, optional positional, and optional named. The names
+   * of positional parameters are empty strings. Omitted if the type is not a
+   * function type.
+   */
+  List<String> get parameterNames => _parameterNames;
+
+  /**
+   * If the type is a function type, the names of the function parameters of
+   * all kinds - required, optional positional, and optional named. The names
+   * of positional parameters are empty strings. Omitted if the type is not a
+   * function type.
+   */
+  void set parameterNames(List<String> value) {
+    this._parameterNames = value;
+  }
+
+  RuntimeCompletionExpressionType(RuntimeCompletionExpressionTypeKind kind,
+      {String libraryPath,
+      String name,
+      List<RuntimeCompletionExpressionType> typeArguments,
+      RuntimeCompletionExpressionType returnType,
+      List<RuntimeCompletionExpressionType> parameterTypes,
+      List<String> parameterNames}) {
+    this.libraryPath = libraryPath;
+    this.kind = kind;
+    this.name = name;
+    this.typeArguments = typeArguments;
+    this.returnType = returnType;
+    this.parameterTypes = parameterTypes;
+    this.parameterNames = parameterNames;
+  }
+
+  factory RuntimeCompletionExpressionType.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String libraryPath;
+      if (json.containsKey("libraryPath")) {
+        libraryPath = jsonDecoder.decodeString(
+            jsonPath + ".libraryPath", json["libraryPath"]);
+      }
+      RuntimeCompletionExpressionTypeKind kind;
+      if (json.containsKey("kind")) {
+        kind = new RuntimeCompletionExpressionTypeKind.fromJson(
+            jsonDecoder, jsonPath + ".kind", json["kind"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "kind");
+      }
+      String name;
+      if (json.containsKey("name")) {
+        name = jsonDecoder.decodeString(jsonPath + ".name", json["name"]);
+      }
+      List<RuntimeCompletionExpressionType> typeArguments;
+      if (json.containsKey("typeArguments")) {
+        typeArguments = jsonDecoder.decodeList(
+            jsonPath + ".typeArguments",
+            json["typeArguments"],
+            (String jsonPath, Object json) =>
+                new RuntimeCompletionExpressionType.fromJson(
+                    jsonDecoder, jsonPath, json));
+      }
+      RuntimeCompletionExpressionType returnType;
+      if (json.containsKey("returnType")) {
+        returnType = new RuntimeCompletionExpressionType.fromJson(
+            jsonDecoder, jsonPath + ".returnType", json["returnType"]);
+      }
+      List<RuntimeCompletionExpressionType> parameterTypes;
+      if (json.containsKey("parameterTypes")) {
+        parameterTypes = jsonDecoder.decodeList(
+            jsonPath + ".parameterTypes",
+            json["parameterTypes"],
+            (String jsonPath, Object json) =>
+                new RuntimeCompletionExpressionType.fromJson(
+                    jsonDecoder, jsonPath, json));
+      }
+      List<String> parameterNames;
+      if (json.containsKey("parameterNames")) {
+        parameterNames = jsonDecoder.decodeList(jsonPath + ".parameterNames",
+            json["parameterNames"], jsonDecoder.decodeString);
+      }
+      return new RuntimeCompletionExpressionType(kind,
+          libraryPath: libraryPath,
+          name: name,
+          typeArguments: typeArguments,
+          returnType: returnType,
+          parameterTypes: parameterTypes,
+          parameterNames: parameterNames);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "RuntimeCompletionExpressionType", json);
+    }
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    if (libraryPath != null) {
+      result["libraryPath"] = libraryPath;
+    }
+    result["kind"] = kind.toJson();
+    if (name != null) {
+      result["name"] = name;
+    }
+    if (typeArguments != null) {
+      result["typeArguments"] = typeArguments
+          .map((RuntimeCompletionExpressionType value) => value.toJson())
+          .toList();
+    }
+    if (returnType != null) {
+      result["returnType"] = returnType.toJson();
+    }
+    if (parameterTypes != null) {
+      result["parameterTypes"] = parameterTypes
+          .map((RuntimeCompletionExpressionType value) => value.toJson())
+          .toList();
+    }
+    if (parameterNames != null) {
+      result["parameterNames"] = parameterNames;
+    }
+    return result;
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is RuntimeCompletionExpressionType) {
+      return libraryPath == other.libraryPath &&
+          kind == other.kind &&
+          name == other.name &&
+          listEqual(
+              typeArguments,
+              other.typeArguments,
+              (RuntimeCompletionExpressionType a,
+                      RuntimeCompletionExpressionType b) =>
+                  a == b) &&
+          returnType == other.returnType &&
+          listEqual(
+              parameterTypes,
+              other.parameterTypes,
+              (RuntimeCompletionExpressionType a,
+                      RuntimeCompletionExpressionType b) =>
+                  a == b) &&
+          listEqual(parameterNames, other.parameterNames,
+              (String a, String b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, libraryPath.hashCode);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, name.hashCode);
+    hash = JenkinsSmiHash.combine(hash, typeArguments.hashCode);
+    hash = JenkinsSmiHash.combine(hash, returnType.hashCode);
+    hash = JenkinsSmiHash.combine(hash, parameterTypes.hashCode);
+    hash = JenkinsSmiHash.combine(hash, parameterNames.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * RuntimeCompletionExpressionTypeKind
+ *
+ * enum {
+ *   DYNAMIC
+ *   FUNCTION
+ *   INTERFACE
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class RuntimeCompletionExpressionTypeKind implements Enum {
+  static const RuntimeCompletionExpressionTypeKind DYNAMIC =
+      const RuntimeCompletionExpressionTypeKind._("DYNAMIC");
+
+  static const RuntimeCompletionExpressionTypeKind FUNCTION =
+      const RuntimeCompletionExpressionTypeKind._("FUNCTION");
+
+  static const RuntimeCompletionExpressionTypeKind INTERFACE =
+      const RuntimeCompletionExpressionTypeKind._("INTERFACE");
+
+  /**
+   * A list containing all of the enum values that are defined.
+   */
+  static const List<RuntimeCompletionExpressionTypeKind> VALUES =
+      const <RuntimeCompletionExpressionTypeKind>[DYNAMIC, FUNCTION, INTERFACE];
+
+  @override
+  final String name;
+
+  const RuntimeCompletionExpressionTypeKind._(this.name);
+
+  factory RuntimeCompletionExpressionTypeKind(String name) {
+    switch (name) {
+      case "DYNAMIC":
+        return DYNAMIC;
+      case "FUNCTION":
+        return FUNCTION;
+      case "INTERFACE":
+        return INTERFACE;
+    }
+    throw new Exception('Illegal enum value: $name');
+  }
+
+  factory RuntimeCompletionExpressionTypeKind.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json is String) {
+      try {
+        return new RuntimeCompletionExpressionTypeKind(json);
+      } catch (_) {
+        // Fall through
+      }
+    }
+    throw jsonDecoder.mismatch(
+        jsonPath, "RuntimeCompletionExpressionTypeKind", json);
+  }
+
+  @override
+  String toString() => "RuntimeCompletionExpressionTypeKind.$name";
+
+  String toJson() => name;
+}
+
+/**
+ * RuntimeCompletionVariable
+ *
+ * {
+ *   "name": String
+ *   "type": RuntimeCompletionExpressionType
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class RuntimeCompletionVariable implements HasToJson {
+  String _name;
+
+  RuntimeCompletionExpressionType _type;
+
+  /**
+   * The name of the variable. The name "this" has a special meaning and is
+   * used as an implicit target for runtime completion, and in explicit "this"
+   * references.
+   */
+  String get name => _name;
+
+  /**
+   * The name of the variable. The name "this" has a special meaning and is
+   * used as an implicit target for runtime completion, and in explicit "this"
+   * references.
+   */
+  void set name(String value) {
+    assert(value != null);
+    this._name = value;
+  }
+
+  /**
+   * The type of the variable.
+   */
+  RuntimeCompletionExpressionType get type => _type;
+
+  /**
+   * The type of the variable.
+   */
+  void set type(RuntimeCompletionExpressionType value) {
+    assert(value != null);
+    this._type = value;
+  }
+
+  RuntimeCompletionVariable(String name, RuntimeCompletionExpressionType type) {
+    this.name = name;
+    this.type = type;
+  }
+
+  factory RuntimeCompletionVariable.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String name;
+      if (json.containsKey("name")) {
+        name = jsonDecoder.decodeString(jsonPath + ".name", json["name"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "name");
+      }
+      RuntimeCompletionExpressionType type;
+      if (json.containsKey("type")) {
+        type = new RuntimeCompletionExpressionType.fromJson(
+            jsonDecoder, jsonPath + ".type", json["type"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "type");
+      }
+      return new RuntimeCompletionVariable(name, type);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "RuntimeCompletionVariable", json);
+    }
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["name"] = name;
+    result["type"] = type.toJson();
+    return result;
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is RuntimeCompletionVariable) {
+      return name == other.name && type == other.type;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, name.hashCode);
+    hash = JenkinsSmiHash.combine(hash, type.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
 }
 
 /**

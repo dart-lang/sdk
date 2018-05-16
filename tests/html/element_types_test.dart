@@ -35,12 +35,6 @@ main() {
     });
   });
 
-  group('supported_keygen', () {
-    test('supported', () {
-      expect(KeygenElement.supported, true);
-    });
-  });
-
   group('supported_meter', () {
     test('supported', () {
       expect(MeterElement.supported, true);

@@ -4,7 +4,6 @@
 
 import 'dart:collection';
 
-import 'package:analyzer/context/context_root.dart' as old;
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/context_locator.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
@@ -13,6 +12,7 @@ import 'package:analyzer/file_system/physical_file_system.dart'
     show PhysicalResourceProvider;
 import 'package:analyzer/src/context/builder.dart'
     show ContextBuilder, ContextBuilderOptions;
+import 'package:analyzer/src/context/context_root.dart' as old;
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart'
     show AnalysisDriver, AnalysisDriverScheduler;
@@ -39,11 +39,6 @@ class ContextLocatorImpl implements ContextLocator {
    * The old name of the analysis options file.
    */
   static const String OLD_ANALYSIS_OPTIONS_NAME = '.analysis_options';
-
-  /**
-   * The name of the packages folder.
-   */
-  static const String PACKAGES_DIR_NAME = 'packages';
 
   /**
    * The name of the packages file.
@@ -109,9 +104,7 @@ class ContextLocatorImpl implements ContextLocator {
           new old.ContextRoot(root.root.path, root.excludedPaths.toList());
       AnalysisDriver driver = builder.buildDriver(contextRoot);
       DriverBasedAnalysisContext context =
-          new DriverBasedAnalysisContext(resourceProvider, driver);
-      context.includedPaths = root.includedPaths.toList();
-      context.excludedPaths = root.excludedPaths.toList();
+          new DriverBasedAnalysisContext(resourceProvider, root, driver);
       contextList.add(context);
     }
     return contextList;
@@ -173,7 +166,7 @@ class ContextLocatorImpl implements ContextLocator {
     }
     List<ContextRoot> roots = <ContextRoot>[];
     for (Folder folder in includedFolders) {
-      ContextRootImpl root = new ContextRootImpl(folder);
+      ContextRootImpl root = new ContextRootImpl(resourceProvider, folder);
       root.packagesFile = defaultPackagesFile ?? _findPackagesFile(folder);
       root.optionsFile = defaultOptionsFile ?? _findOptionsFile(folder);
       root.included.add(folder);
@@ -185,7 +178,7 @@ class ContextLocatorImpl implements ContextLocator {
     for (File file in includedFiles) {
       Folder parent = file.parent;
       ContextRoot root = rootMap.putIfAbsent(parent, () {
-        ContextRootImpl root = new ContextRootImpl(parent);
+        ContextRootImpl root = new ContextRootImpl(resourceProvider, parent);
         root.packagesFile = defaultPackagesFile ?? _findPackagesFile(parent);
         root.optionsFile = defaultOptionsFile ?? _findOptionsFile(parent);
         roots.add(root);
@@ -245,7 +238,7 @@ class ContextLocatorImpl implements ContextLocator {
       if (packagesFile != null) {
         localPackagesFile = packagesFile;
       }
-      ContextRootImpl root = new ContextRootImpl(folder);
+      ContextRootImpl root = new ContextRootImpl(resourceProvider, folder);
       root.packagesFile = localPackagesFile ?? containingRoot.packagesFile;
       root.optionsFile = localOptionsFile ?? containingRoot.optionsFile;
       root.included.add(folder);
@@ -279,8 +272,7 @@ class ContextLocatorImpl implements ContextLocator {
       for (Resource child in folder.getChildren()) {
         if (child is Folder) {
           if (excludedFolders.contains(folder) ||
-              folder.shortName.startsWith('.') ||
-              folder.shortName == PACKAGES_DIR_NAME) {
+              folder.shortName.startsWith('.')) {
             containingRoot.excluded.add(folder);
           } else {
             _createContextRoots(roots, child, excludedFolders, containingRoot,

@@ -8,18 +8,20 @@ import 'package:front_end/src/api_prototype/byte_store.dart';
 import 'package:front_end/src/base/performance_logger.dart';
 import 'package:kernel/target/targets.dart' show Target;
 
-import '../fasta/fasta_codes.dart' show LocatedMessage;
+import '../fasta/fasta_codes.dart' show FormattedMessage;
 import '../fasta/severity.dart' show Severity;
 
 import 'compilation_message.dart';
 import 'file_system.dart';
 import 'standard_file_system.dart';
 
+export '../fasta/fasta_codes.dart' show FormattedMessage;
+
 /// Callback used to report errors encountered during compilation.
 typedef void ErrorHandler(CompilationMessage error);
 
-typedef void ProblemHandler(LocatedMessage problem, Severity severity,
-    String formatted, int line, int column);
+typedef void ProblemHandler(FormattedMessage problem, Severity severity,
+    List<FormattedMessage> context);
 
 /// Front-end options relevant to compiler back ends.
 ///
@@ -83,7 +85,7 @@ class CompilerOptions {
   /// of [inputSummaries] or [sdkSummary].
   List<Uri> inputSummaries = [];
 
-  /// URIs of other kernel programs to link.
+  /// URIs of other kernel components to link.
   ///
   /// Commonly used to link the code for the SDK libraries that was compiled
   /// separately. For example, dart2js needs to link the SDK so it can
@@ -91,8 +93,8 @@ class CompilerOptions {
   /// always embeds the SDK internally and doesn't need it as part of the
   /// program.
   ///
-  /// The programs provided here should be closed and acyclic: any libraries
-  /// that they reference should be defined in a program in [linkedDependencies]
+  /// The components provided here should be closed and acyclic: any libraries
+  /// that they reference should be defined in a component in [linkedDependencies]
   /// or any of the [inputSummaries] or [sdkSummary].
   List<Uri> linkedDependencies = [];
 
@@ -125,7 +127,7 @@ class CompilerOptions {
 
   /// Whether to generate code for the SDK.
   ///
-  /// By default the front end resolves programs using a prebuilt SDK summary.
+  /// By default the front end resolves components using a prebuilt SDK summary.
   /// When this option is `true`, [sdkSummary] must be null.
   bool compileSdk = false;
 
@@ -134,7 +136,7 @@ class CompilerOptions {
   ///
   /// This option has different defaults depending on the API.
   ///
-  /// For modular APIs like `kernelForBuildUnit` and `summaryFor` the default
+  /// For modular APIs like `kernelForComponent` and `summaryFor` the default
   /// behavior is `false`. These APIs want to ensure that builds are hermetic,
   /// where all files that will be compiled are listed explicitly and all other
   /// dependencies are covered by summary files.
@@ -169,7 +171,7 @@ class CompilerOptions {
   ///   * the set of libraries are part of a platform's SDK (e.g. dart:html for
   ///     dart2js, dart:ui for flutter).
   ///
-  ///   * what kernel transformations should be applied to the program
+  ///   * what kernel transformations should be applied to the component
   ///     (async/await, mixin inlining, etc).
   ///
   ///   * how to deal with non-standard features like `native` extensions.
@@ -185,14 +187,14 @@ class CompilerOptions {
   // verbose data (Issue #30056)
   bool verbose = false;
 
-  /// Whether to run extra verification steps to validate that compiled programs
+  /// Whether to run extra verification steps to validate that compiled components
   /// are well formed.
   ///
   /// Errors are reported via the [onError] callback.
   // TODO(sigmund): ensure we don't print errors to stdout (Issue #30056)
   bool verify = false;
 
-  /// Whether to dump generated programs in a text format (also mainly for
+  /// Whether to dump generated components in a text format (also mainly for
   /// debugging).
   ///
   /// Dumped data is printed in stdout.
@@ -202,9 +204,9 @@ class CompilerOptions {
   /// warning, etc.) is encountered during compilation.
   bool setExitCodeOnProblem = false;
 
-  /// Whether to embed the input sources in generated kernel programs.
+  /// Whether to embed the input sources in generated kernel components.
   ///
-  /// The kernel `Program` API includes a `uriToSource` map field that is used
+  /// The kernel `Component` API includes a `uriToSource` map field that is used
   /// to embed the entire contents of the source files. This part of the kernel
   /// API is in flux and it is not necessary for some tools. Today it is used
   /// for translating error locations and stack traces in the VM.

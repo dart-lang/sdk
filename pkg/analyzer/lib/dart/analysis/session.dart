@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/exception/exception.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -21,6 +22,11 @@ import 'package:analyzer/src/generated/source.dart';
  * Clients may not extend, implement or mix-in this class.
  */
 abstract class AnalysisSession {
+  /**
+   * Return the [ResourceProvider] that is used to access the file system.
+   */
+  ResourceProvider get resourceProvider;
+
   /**
    * Return the source factory used to resolve URIs.
    */
@@ -57,6 +63,12 @@ abstract class AnalysisSession {
    * parsing the file with the given absolute, normalized [path].
    */
   Future<ParseResult> getParsedAst(String path);
+
+  /**
+   * Return information about the results of parsing the file with the given
+   * absolute, normalized [path].
+   */
+  ParseResult getParsedAstSync(String path);
 
   /**
    * Return a future that will complete with information about the results of
@@ -105,10 +117,7 @@ abstract class AnalysisSession {
  * might be inconsistent with any previously returned results.
  */
 class InconsistentAnalysisException extends AnalysisException {
-  /**
-   * Initialize a newly created exception to have the given [message] and
-   * [cause].
-   */
-  InconsistentAnalysisException([String message, CaughtException cause])
-      : super(message, cause);
+  InconsistentAnalysisException()
+      : super('Requested result might be inconsistent with previously '
+            'returned results');
 }

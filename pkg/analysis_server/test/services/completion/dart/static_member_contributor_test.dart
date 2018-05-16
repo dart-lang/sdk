@@ -114,8 +114,8 @@ main() {
 ''');
     await computeSuggestions();
 
-    assertSuggestConstructor('foo', elementName: 'foo');
-    assertSuggestConstructor('bar', elementName: 'bar');
+    assertNotSuggested('foo');
+    assertNotSuggested('bar');
   }
 
   test_keyword() async {

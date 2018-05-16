@@ -10,19 +10,6 @@ import 'package:path/path.dart' as path;
 import 'package:expect/expect.dart';
 import 'package:source_maps/source_maps.dart';
 import 'package:compiler/src/apiimpl.dart';
-import 'package:compiler/src/elements/elements.dart'
-    show
-        AstElement,
-        ClassElement,
-        CompilationUnitElement,
-        Element,
-        FunctionElement,
-        LibraryElement,
-        MemberElement;
-import 'package:compiler/src/io/source_file.dart' show SourceFile;
-import 'package:compiler/src/io/source_information.dart'
-    show computeElementNameForSourceMaps;
-import 'package:kernel/ast.dart' show Location;
 
 validateSourceMap(Uri targetUri,
     {Uri mainUri, Position mainPosition, CompilerImpl compiler}) {
@@ -102,6 +89,8 @@ checkRedundancy(SingleMapping sourceMap) {
 
 checkNames(
     Uri targetUri, Uri mapUri, SingleMapping sourceMap, CompilerImpl compiler) {
+  // TODO(johnniwinther): Port this to work on kernel based elements.
+  /*
   Map<Uri, CompilationUnitElement> compilationUnitMap = {};
 
   void mapCompilationUnits(LibraryElement library) {
@@ -142,9 +131,8 @@ checkNames(
         Interval intervalFromElement(AstElement element) {
           if (!element.hasNode) return null;
 
-          var begin = element.node.getBeginToken().charOffset;
-          var endToken = element.node.getEndToken();
-          int end = endToken.charOffset + endToken.charCount;
+          var begin = 0;
+          int end = 0;
           return new Interval(
               positionFromOffset(begin), positionFromOffset(end));
         }
@@ -224,7 +212,7 @@ checkNames(
         });
       }
     }
-  });
+  });*/
 }
 
 RegExp mainSignaturePrefix = new RegExp(r'main: \[?function\(');

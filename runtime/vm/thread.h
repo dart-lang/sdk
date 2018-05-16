@@ -7,8 +7,8 @@
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
+#include "platform/atomic.h"
 #include "platform/safe_stack.h"
-#include "vm/atomic.h"
 #include "vm/bitfield.h"
 #include "vm/globals.h"
 #include "vm/handles.h"
@@ -55,6 +55,7 @@ class String;
 class TimelineStream;
 class TypeArguments;
 class TypeParameter;
+class TypeUsageInfo;
 class Zone;
 
 #define REUSABLE_HANDLE_LIST(V)                                                \
@@ -88,6 +89,8 @@ class Zone;
     StubCode::FixAllocationStubTarget_entry()->code(), NULL)                   \
   V(RawCode*, invoke_dart_code_stub_,                                          \
     StubCode::InvokeDartCode_entry()->code(), NULL)                            \
+  V(RawCode*, invoke_dart_code_from_bytecode_stub_,                            \
+    StubCode::InvokeDartCodeFromBytecode_entry()->code(), NULL)                \
   V(RawCode*, call_to_runtime_stub_, StubCode::CallToRuntime_entry()->code(),  \
     NULL)                                                                      \
   V(RawCode*, monomorphic_miss_stub_,                                          \
@@ -97,7 +100,9 @@ class Zone;
   V(RawCode*, lazy_deopt_from_return_stub_,                                    \
     StubCode::DeoptimizeLazyFromReturn_entry()->code(), NULL)                  \
   V(RawCode*, lazy_deopt_from_throw_stub_,                                     \
-    StubCode::DeoptimizeLazyFromThrow_entry()->code(), NULL)
+    StubCode::DeoptimizeLazyFromThrow_entry()->code(), NULL)                   \
+  V(RawCode*, slow_type_test_stub_, StubCode::SlowTypeTest_entry()->code(),    \
+    NULL)
 
 #endif
 
@@ -284,7 +289,7 @@ class Thread : public BaseThread {
   void IncrementMemoryCapacity(uintptr_t value) {
     current_zone_capacity_ += value;
     if (current_zone_capacity_ > zone_high_watermark_) {
-      zone_high_watermark_ = current_zone_capacity_;
+      SetHighWatermark(current_zone_capacity_);
     }
   }
 
@@ -297,7 +302,9 @@ class Thread : public BaseThread {
 
   uintptr_t zone_high_watermark() const { return zone_high_watermark_; }
 
-  void ResetHighWatermark() { zone_high_watermark_ = current_zone_capacity_; }
+  void ResetHighWatermark() { SetHighWatermark(current_zone_capacity_); }
+
+  void SetHighWatermark(intptr_t value);
 
   // The reusable api local scope for this thread.
   ApiLocalScope* api_reusable_scope() const { return api_reusable_scope_; }
@@ -349,6 +356,18 @@ class Thread : public BaseThread {
     ASSERT((hierarchy_info_ == NULL && value != NULL) ||
            (hierarchy_info_ != NULL && value == NULL));
     hierarchy_info_ = value;
+  }
+
+  TypeUsageInfo* type_usage_info() const {
+    ASSERT(isolate_ != NULL);
+    return type_usage_info_;
+  }
+
+  void set_type_usage_info(TypeUsageInfo* value) {
+    ASSERT(isolate_ != NULL);
+    ASSERT((type_usage_info_ == NULL && value != NULL) ||
+           (type_usage_info_ != NULL && value == NULL));
+    type_usage_info_ = value;
   }
 
   int32_t no_callback_scope_depth() const { return no_callback_scope_depth_; }
@@ -791,6 +810,7 @@ class Thread : public BaseThread {
   // Compiler state:
   CHA* cha_;
   HierarchyInfo* hierarchy_info_;
+  TypeUsageInfo* type_usage_info_;
   intptr_t deopt_id_;  // Compilation specific counter.
   RawGrowableObjectArray* pending_functions_;
 
@@ -853,6 +873,7 @@ class Thread : public BaseThread {
 #undef REUSABLE_FRIEND_DECLARATION
 
   friend class ApiZone;
+  friend class Interpreter;
   friend class InterruptChecker;
   friend class Isolate;
   friend class IsolateTestHelper;

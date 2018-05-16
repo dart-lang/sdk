@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
@@ -25,6 +25,7 @@ class FlutterCorrections {
   final AnalysisSession session;
   final CompilationUnit unit;
 
+  AstNode node;
   CorrectionUtils utils;
 
   FlutterCorrections(
@@ -42,6 +43,7 @@ class FlutterCorrections {
         assert(unit != null),
         selectionEnd = selectionOffset + selectionLength,
         selectionRange = new SourceRange(selectionOffset, selectionLength) {
+    node = new NodeLocator(selectionOffset, selectionEnd).searchWithin(unit);
     utils = new CorrectionUtils(unit, buffer: fileContent);
   }
 
@@ -50,37 +52,34 @@ class FlutterCorrections {
    */
   String get eol => utils.endOfLine;
 
-  /// Wrap the code between [selectionOffset] and [selectionEnd] into a new
-  /// widget with the [parentType].  It is expected that the parent widget has
-  /// the default constructor and the `child` named parameter.
-  Future<SourceChange> wrapWidget(InterfaceType parentType) async {
-    String src = utils.getText(selectionOffset, selectionLength);
-    var changeBuilder = new DartChangeBuilder(session);
-    await changeBuilder.addFileEdit(file, (builder) {
-      builder.addReplacement(selectionRange, (builder) {
-        builder.write('new ');
-        builder.writeType(parentType);
-        builder.write('(');
-        if (src.contains(eol)) {
-          String indentOld = utils.getLinePrefix(selectionOffset);
-          String indentNew = indentOld + utils.getIndent(1);
-          builder.write(eol);
-          builder.write(indentNew);
-          src = _replaceSourceIndent(src, indentOld, indentNew);
-          src += ',$eol$indentOld';
-        }
-        builder.write('child: ');
-        builder.selectHere();
-        builder.write(src);
-        builder.write(')');
-      });
-    });
-    return changeBuilder.sourceChange;
-  }
+  Future<SourceChange> addForDesignTimeConstructor() async {
+    final node = this.node;
+    if (node is ClassDeclaration) {
+      var className = node.name.name;
+      var location = utils.prepareNewConstructorLocation(node);
+      var changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (builder) {
+        builder.addInsertion(location.offset, (builder) {
+          builder.write(location.prefix);
 
-  static String _replaceSourceIndent(
-      String source, String indentOld, String indentNew) {
-    return source.replaceAll(
-        new RegExp('^$indentOld', multiLine: true), indentNew);
+          // If there are no constructors, we need to add also default.
+          bool hasConstructors =
+              node.members.any((m) => m is ConstructorDeclaration);
+          if (!hasConstructors) {
+            builder.writeln('$className();');
+            builder.writeln();
+            builder.write('  ');
+          }
+
+          builder.writeln('factory $className.forDesignTime() {');
+          builder.writeln('    // TODO: add arguments');
+          builder.writeln('    return new $className();');
+          builder.write('  }');
+          builder.write(location.suffix);
+        });
+      });
+      return changeBuilder.sourceChange;
+    }
+    return null;
   }
 }

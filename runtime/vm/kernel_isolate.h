@@ -8,6 +8,7 @@
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
 #include "include/dart_api.h"
+#include "include/dart_native_api.h"
 
 #include "vm/allocation.h"
 #include "vm/dart.h"
@@ -22,6 +23,7 @@ class KernelIsolate : public AllStatic {
   static const int kUpdateSourcesTag;
   static const int kAcceptTag;
   static const int kTrainTag;
+  static const int kCompileExpressionTag;
 
   static void Run();
 
@@ -38,12 +40,21 @@ class KernelIsolate : public AllStatic {
       intptr_t platform_kernel_size,
       int source_files_count = 0,
       Dart_SourceFile source_files[] = NULL,
-      bool incremental_compile = true);
+      bool incremental_compile = true,
+      const char* package_config = NULL);
 
   static Dart_KernelCompilationResult AcceptCompilation();
   static Dart_KernelCompilationResult UpdateInMemorySources(
       int source_files_count,
       Dart_SourceFile source_files[]);
+
+  static Dart_KernelCompilationResult CompileExpressionToKernel(
+      const char* expression,
+      const Array& definitions,
+      const Array& type_definitions,
+      const char* library_url,
+      const char* klass,
+      bool is_static);
 
  protected:
   static Monitor* monitor_;

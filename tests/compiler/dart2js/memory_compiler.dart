@@ -14,7 +14,6 @@ import 'package:compiler/compiler_new.dart'
         CompilerOutput,
         Diagnostic,
         PackagesDiscoveryProvider;
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/diagnostics/messages.dart' show Message;
 import 'package:compiler/src/elements/entities.dart'
     show LibraryEntity, MemberEntity;
@@ -85,7 +84,6 @@ Future<CompilationResult> runCompiler(
     {Map<String, dynamic> memorySourceFiles: const <String, dynamic>{},
     Uri entryPoint,
     List<Uri> entryPoints,
-    List<Uri> resolutionInputs,
     CompilerDiagnostics diagnosticHandler,
     CompilerOutput outputProvider,
     List<String> options: const <String>[],
@@ -100,7 +98,6 @@ Future<CompilationResult> runCompiler(
   }
   CompilerImpl compiler = compilerFor(
       entryPoint: entryPoint,
-      resolutionInputs: resolutionInputs,
       memorySourceFiles: memorySourceFiles,
       diagnosticHandler: diagnosticHandler,
       outputProvider: outputProvider,
@@ -132,7 +129,6 @@ Future<CompilationResult> runCompiler(
 
 CompilerImpl compilerFor(
     {Uri entryPoint,
-    List<Uri> resolutionInputs,
     Map<String, dynamic> memorySourceFiles: const <String, dynamic>{},
     CompilerDiagnostics diagnosticHandler,
     CompilerOutput outputProvider,
@@ -143,10 +139,7 @@ CompilerImpl compilerFor(
     Uri packageConfig,
     PackagesDiscoveryProvider packagesDiscoveryProvider}) {
   Uri libraryRoot = Uri.base.resolve('sdk/');
-  Uri platformBinaries;
-  if (!options.contains(Flags.useOldFrontend)) {
-    platformBinaries = computePlatformBinariesLocation();
-  }
+  Uri platformBinaries = computePlatformBinariesLocation();
 
   if (packageRoot == null &&
       packageConfig == null &&
@@ -182,16 +175,13 @@ CompilerImpl compilerFor(
     outputProvider = const NullCompilerOutput();
   }
 
-  CompilerOptions compilerOptions = new CompilerOptions.parse(
-      entryPoint: entryPoint,
-      resolutionInputs: resolutionInputs,
-      libraryRoot: libraryRoot,
-      packageRoot: packageRoot,
-      options: options,
-      environment: {},
-      platformBinaries: platformBinaries,
-      packageConfig: packageConfig,
-      packagesDiscoveryProvider: packagesDiscoveryProvider);
+  CompilerOptions compilerOptions = CompilerOptions.parse(options,
+      libraryRoot: libraryRoot, platformBinaries: platformBinaries)
+    ..entryPoint = entryPoint
+    ..packageRoot = packageRoot
+    ..environment = {}
+    ..packageConfig = packageConfig
+    ..packagesDiscoveryProvider = packagesDiscoveryProvider;
   if (compilerOptions.strongMode) {
     compilerOptions.kernelInitializedCompilerState =
         strongKernelInitializedCompilerState;
@@ -214,9 +204,6 @@ CompilerImpl compilerFor(
     compiler.processLoadedLibraries(new MemoryLoadedLibraries(copiedLibraries));
     ResolutionEnqueuer resolutionEnqueuer = compiler.startResolution();
 
-    compiler.backend.constantCompilerTask
-        .copyConstantValues(cachedCompiler.backend.constantCompilerTask);
-
     Iterable<MemberEntity> cachedTreeElements =
         cachedCompiler.enqueuer.resolution.processedEntities;
     cachedTreeElements.forEach((MemberEntity element) {
@@ -231,19 +218,12 @@ CompilerImpl compilerFor(
     // One potential problem that can occur when reusing elements is that there
     // is a stale reference to an old compiler object.  By nulling out the old
     // compiler's fields, such stale references are easier to identify.
-    cachedCompiler.scanner = null;
-    cachedCompiler.dietParser = null;
-    cachedCompiler.parser = null;
-    cachedCompiler.patchParser = null;
     cachedCompiler.libraryLoader = null;
-    cachedCompiler.resolver = null;
-    cachedCompiler.checker = null;
     cachedCompiler.globalInference = null;
     cachedCompiler.backend = null;
     // Don't null out the enqueuer as it prevents us from using cachedCompiler
     // more than once.
     cachedCompiler.deferredLoadTask = null;
-    cachedCompiler.mirrorUsageAnalyzerTask = null;
     cachedCompiler.dumpInfoTask = null;
   }
   return compiler;

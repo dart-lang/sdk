@@ -13,14 +13,12 @@ import 'type_test_helper.dart';
 
 main() {
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTest(CompileMode.memory);
     print('--test from kernel------------------------------------------------');
-    await runTest(CompileMode.kernel);
+    await runTest();
   });
 }
 
-Future runTest(CompileMode mode) async {
+Future runTest() async {
   var env = await TypeEnvironment.create("""
     class A {
       call() {}
@@ -38,7 +36,7 @@ Future runTest(CompileMode mode) async {
       localFunction() {}
       () {};
     }
-    """, compileMode: mode, testBackendWorld: true);
+    """, testBackendWorld: true);
 
   Map<String, String> expectedMap = const {
     'A': '[exact=A]',

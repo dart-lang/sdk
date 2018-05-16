@@ -95,26 +95,5 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     this.append(new DocumentFragment.html(text, validator: validator,
         treeSanitizer: treeSanitizer));
   }
-
-  /** 
-   * Alias for [querySelector]. Note this function is deprecated because its
-   * semantics will be changing in the future.
-   */
-  @deprecated
-  @Experimental()
-  @DomName('DocumentFragment.querySelector')
-  Element query(String relativeSelectors) {
-    return querySelector(relativeSelectors);
-  }
-
-  /** 
-   * Alias for [querySelectorAll]. Note this function is deprecated because its
-   * semantics will be changing in the future.
-   */
-  @deprecated
-  @Experimental()
-  @DomName('DocumentFragment.querySelectorAll')
-  ElementList<T> queryAll<T extends Element>(String relativeSelectors) =>
-    querySelectorAll(relativeSelectors);
 $!MEMBERS
 }

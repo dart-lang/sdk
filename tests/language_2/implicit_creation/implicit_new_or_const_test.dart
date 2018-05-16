@@ -6,9 +6,8 @@ import "package:expect/expect.dart";
 
 import "implicit_new_or_const_test.dart" as prefix;
 
-// Test that const constructors with const arguments become const,
-// and non-const constructors or const-constructors with non-const arguments
-// do not (except in a const context, which is tested elsewhere).
+// Test that const constructors with const arguments do not become const
+// if not in a const context.
 
 main() {
   // Various valid object creation expressions.
@@ -43,11 +42,9 @@ main() {
   for (var i = 0; i < instances.length; i++) {
     var c = instances[i];
     Expect.equals(c42, c);
-    if (i % 5 == 2 || i % 5 == 4) {
-      // The cases of C(42) without "new" are all constant.
+    if (i % 5 == 2) {
       Expect.identical(c42, c, "$i");
     } else {
-      // The rest are not.
       Expect.notIdentical(c42, c, "$i");
     }
   }

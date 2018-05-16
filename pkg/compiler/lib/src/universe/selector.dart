@@ -6,8 +6,8 @@ library dart2js.selector;
 
 import '../common.dart';
 import '../common/names.dart' show Names;
-import '../elements/elements.dart' show Elements;
 import '../elements/entities.dart';
+import '../elements/entity_utils.dart' as utils;
 import '../elements/names.dart';
 import '../elements/operators.dart';
 import '../util/util.dart' show Hashing;
@@ -153,12 +153,12 @@ class Selector {
 
   factory Selector.unaryOperator(String name) => new Selector(
       SelectorKind.OPERATOR,
-      new PublicName(Elements.constructOperatorName(name, true)),
+      new PublicName(utils.constructOperatorName(name, true)),
       CallStructure.NO_ARGS);
 
   factory Selector.binaryOperator(String name) => new Selector(
       SelectorKind.OPERATOR,
-      new PublicName(Elements.constructOperatorName(name, false)),
+      new PublicName(utils.constructOperatorName(name, false)),
       CallStructure.ONE_ARG);
 
   factory Selector.index() =>
@@ -170,9 +170,10 @@ class Selector {
   factory Selector.call(Name name, CallStructure callStructure) =>
       new Selector(SelectorKind.CALL, name, callStructure);
 
-  factory Selector.callClosure(int arity, [List<String> namedArguments]) =>
+  factory Selector.callClosure(int arity,
+          [List<String> namedArguments, int typeArgumentCount = 0]) =>
       new Selector(SelectorKind.CALL, Names.call,
-          new CallStructure(arity, namedArguments));
+          new CallStructure(arity, namedArguments, typeArgumentCount));
 
   factory Selector.callClosureFrom(Selector selector) =>
       new Selector(SelectorKind.CALL, Names.call, selector.callStructure);

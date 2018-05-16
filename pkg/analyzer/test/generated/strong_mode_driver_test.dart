@@ -65,6 +65,18 @@ class StrongModeStaticTypeAnalyzer2Test_Driver
   test_genericMethod_functionTypedParameter_tearoff() {
     return super.test_genericMethod_functionTypedParameter_tearoff();
   }
+
+  @override
+  test_notInstantiatedBound_class_error_recursion() {
+    // overridden because not failing
+    return super.test_notInstantiatedBound_class_error_recursion();
+  }
+
+  @override
+  test_notInstantiatedBound_class_error_recursion_less_direct() {
+    // overridden because not failing
+    return super.test_notInstantiatedBound_class_error_recursion_less_direct();
+  }
 }
 
 @reflectiveTest

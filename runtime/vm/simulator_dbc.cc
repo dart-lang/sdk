@@ -950,7 +950,7 @@ DART_FORCE_INLINE void Simulator::PrepareForTailCall(
 // Note: functions below are marked DART_NOINLINE to recover performance on
 // ARM where inlining these functions into the interpreter loop seemed to cause
 // some code quality issues.
-static DART_NOINLINE bool InvokeRuntime(Thread* thread,
+DART_NOINLINE static bool InvokeRuntime(Thread* thread,
                                         Simulator* sim,
                                         RuntimeFunction drt,
                                         const NativeArguments& args) {
@@ -966,7 +966,7 @@ static DART_NOINLINE bool InvokeRuntime(Thread* thread,
   }
 }
 
-static DART_NOINLINE bool InvokeNative(Thread* thread,
+DART_NOINLINE static bool InvokeNative(Thread* thread,
                                        Simulator* sim,
                                        NativeFunctionWrapper wrapper,
                                        Dart_NativeFunction function,

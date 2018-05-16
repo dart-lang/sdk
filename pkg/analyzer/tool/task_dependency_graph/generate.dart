@@ -15,8 +15,6 @@
  *   of exactly one task.
  * - Convert this tool to use package_config to find the package map.
  */
-library analyzer.tool.task_dependency_graph.generate;
-
 import 'dart:async';
 import 'dart:io' hide File;
 import 'dart:io' as io;
@@ -24,19 +22,19 @@ import 'dart:io' as io;
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
+import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:front_end/src/api_prototype/byte_store.dart';
 import 'package:front_end/src/base/performance_logger.dart';
 import 'package:front_end/src/codegen/tools.dart';
@@ -199,8 +197,9 @@ $data
     TypeProvider typeProvider = await driver.currentSession.typeProvider;
 
     String dartDartPath = path.join(rootDir, 'lib', 'src', 'task', 'dart.dart');
-    String taskPath = path.join(rootDir, 'lib', 'plugin', 'task.dart');
-    String modelPath = path.join(rootDir, 'lib', 'task', 'model.dart');
+    String taskPath = path.join(rootDir, 'lib', 'src', 'plugin', 'task.dart');
+    String modelPath =
+        path.join(rootDir, 'lib', 'src', 'task', 'api', 'model.dart');
     String enginePluginPath =
         path.join(rootDir, 'lib', 'src', 'plugin', 'engine_plugin.dart');
 

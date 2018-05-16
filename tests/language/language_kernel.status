@@ -3,6 +3,8 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == fasta ]
+function_type_parameter2_negative_test: Fail
+function_type_parameter_negative_test: Fail
 prefix5_negative_test: Fail
 
 [ $fasta ]
@@ -18,14 +20,11 @@ check_member_static_test/02: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
 config_import_test: Crash
-const_error_multiply_initialized_test/02: MissingCompileTimeError
-const_error_multiply_initialized_test/04: MissingCompileTimeError
 const_instance_field_test/01: MissingCompileTimeError
 const_map2_test/00: MissingCompileTimeError
 const_map3_test/00: MissingCompileTimeError
 const_switch2_test/01: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
-constructor_call_as_function_test/01: CompileTimeError # Issue 32517
 constructor_redirect1_negative_test: Fail
 constructor_redirect2_negative_test: Fail
 constructor_redirect_test/01: MissingCompileTimeError
@@ -154,25 +153,18 @@ closure_call_wrong_argument_count_negative_test: Fail
 compile_time_constant_c_test/02: MissingCompileTimeError
 const_conditional_test/08: MissingCompileTimeError
 const_constructor_nonconst_field_test/01: MissingCompileTimeError
-const_error_multiply_initialized_test/01: MissingCompileTimeError
-const_error_multiply_initialized_test/03: MissingCompileTimeError
 const_native_factory_test/01: MissingCompileTimeError
 const_optional_args_negative_test: Fail
 const_syntax_test/05: MissingCompileTimeError
 const_syntax_test/08: MissingCompileTimeError
-const_syntax_test/09: MissingCompileTimeError
 const_syntax_test/10: MissingCompileTimeError
 constructor3_negative_test: Fail
 constructor_call_wrong_argument_count_negative_test: Fail
-deferred_constraints_constants_test/default_argument2: MissingCompileTimeError
 deopt_inlined_function_lazy_test: CompileTimeError
 duplicate_interface_negative_test: Fail
 export_ambiguous_main_negative_test: Fail
 field3a_negative_test: Fail
 field_method4_negative_test: Fail
-final_syntax_test/09: MissingCompileTimeError
-function_type_parameter2_negative_test: Fail
-function_type_parameter_negative_test: Fail
 guess_cid_test: CompileTimeError
 import_combinators_negative_test: Fail
 instance_call_wrong_argument_count_negative_test: Fail
@@ -196,7 +188,6 @@ private_member1_negative_test: Fail
 private_member2_negative_test: Fail
 private_member3_negative_test: Fail
 static_call_wrong_argument_count_negative_test: Fail
-switch4_negative_test: Crash
 type_variable_static_context_negative_test: Fail
 unresolved_in_factory_negative_test: Fail
 unresolved_top_level_method_negative_test: Fail
@@ -206,4 +197,3 @@ unresolved_top_level_var_negative_test: Fail
 # modes are intended only for Dart 2.0 with strong mode enabled.
 [ $compiler == dartk || $compiler == dartkp ]
 *: Skip
-

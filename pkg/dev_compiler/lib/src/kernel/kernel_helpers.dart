@@ -89,105 +89,6 @@ bool isBuiltinAnnotation(
   return false;
 }
 
-/// If [node] has annotation matching [test] and the first argument is a
-/// string, this returns the string value.
-///
-/// For example
-///
-///     class MyAnnotation {
-///       final String name;
-///       // ...
-///       const MyAnnotation(this.name/*, ... other params ... */);
-///     }
-///
-///     @MyAnnotation('FooBar')
-///     main() { ... }
-///
-/// If we match the annotation for the `@MyAnnotation('FooBar')` this will
-/// return the string `'FooBar'`.
-String getAnnotationName(NamedNode node, bool test(Expression value)) {
-  var match = findAnnotation(node, test);
-  if (match is ConstructorInvocation && match.arguments.positional.isNotEmpty) {
-    var first = _followConstFields(match.arguments.positional[0]);
-    if (first is StringLiteral) {
-      return first.value;
-    }
-  }
-  return null;
-}
-
-Expression _followConstFields(Expression expr) {
-  if (expr is StaticGet) {
-    var target = expr.target;
-    if (target is Field) {
-      return _followConstFields(target.initializer);
-    }
-  }
-  return expr;
-}
-
-/// Finds constant expressions as defined in Dart language spec 4th ed,
-/// 16.1 Constants
-class ConstantVisitor extends ExpressionVisitor<bool> {
-  final CoreTypes coreTypes;
-  ConstantVisitor(this.coreTypes);
-
-  bool isConstant(Expression e) => e.accept(this) as bool;
-
-  defaultExpression(node) => false;
-  defaultBasicLiteral(node) => true;
-  visitTypeLiteral(node) => true; // TODO(jmesserly): deferred libraries?
-  visitSymbolLiteral(node) => true;
-  visitListLiteral(node) => node.isConst;
-  visitMapLiteral(node) => node.isConst;
-  visitStaticInvocation(node) {
-    return node.isConst ||
-        node.target == coreTypes.identicalProcedure &&
-            node.arguments.positional.every(isConstant);
-  }
-
-  visitDirectMethodInvocation(node) {
-    return node.receiver is BasicLiteral &&
-        isOperatorMethodName(node.name.name) &&
-        node.arguments.positional.every((p) => p is BasicLiteral);
-  }
-
-  visitMethodInvocation(node) {
-    return node.receiver is BasicLiteral &&
-        isOperatorMethodName(node.name.name) &&
-        node.arguments.positional.every((p) => p is BasicLiteral);
-  }
-
-  visitConstructorInvocation(node) => node.isConst;
-  visitStringConcatenation(node) =>
-      node.expressions.every((e) => e is BasicLiteral);
-  visitStaticGet(node) {
-    var target = node.target;
-    return target is Procedure || target is Field && target.isConst;
-  }
-
-  visitVariableGet(node) => node.variable.isConst;
-  visitNot(node) {
-    var operand = node.operand;
-    return operand is BoolLiteral ||
-        operand is DirectMethodInvocation &&
-            visitDirectMethodInvocation(operand) ||
-        operand is MethodInvocation && visitMethodInvocation(operand);
-  }
-
-  visitLogicalExpression(node) =>
-      node.left is BoolLiteral && node.right is BoolLiteral;
-  visitConditionalExpression(node) =>
-      node.condition is BoolLiteral &&
-      node.then is BoolLiteral &&
-      node.otherwise is BoolLiteral;
-
-  visitLet(Let node) {
-    var init = node.variable.initializer;
-    return (init == null || isConstant(init)) && isConstant(node.body);
-  }
-}
-
 /// Returns true if [name] is an operator method that is available on primitive
 /// types (`int`, `double`, `num`, `String`, `bool`).
 ///
@@ -216,6 +117,13 @@ bool isOperatorMethodName(String name) {
       return true;
   }
   return false;
+}
+
+bool isFromEnvironmentInvocation(CoreTypes coreTypes, StaticInvocation node) {
+  var target = node.target;
+  return node.isConst &&
+      target.name.name == 'fromEnvironment' &&
+      target.enclosingLibrary == coreTypes.coreLibrary;
 }
 
 /// Returns true if this class is of the form:
@@ -291,4 +199,36 @@ bool isUnsupportedFactoryConstructor(Procedure node) {
     }
   }
   return false;
+}
+
+/// Returns the redirecting factory constructors for the enclosing class,
+/// if the field [f] is storing that information, otherwise returns `null`.
+Iterable<Member> getRedirectingFactories(Field f) {
+  // TODO(jmesserly): this relies on implementation details in Kernel
+  if (f.name.name == "_redirecting#") {
+    assert(f.isStatic);
+    var list = f.initializer as ListLiteral;
+    return list.expressions.map((e) => (e as StaticGet).target);
+  }
+  return null;
+}
+
+/// Gets the real supertype of [c] and the list of [mixins] in reverse
+/// application order (mixins will appear before ones they override).
+///
+/// This is used to ignore synthetic mixin application classes.
+///
+// TODO(jmesserly): consider replacing this with Kernel's mixin unrolling once
+// we don't have the Analyzer backend to maintain.
+Class getSuperclassAndMixins(Class c, List<Class> mixins) {
+  assert(mixins.isEmpty);
+
+  var mixedInClass = c.mixedInClass;
+  if (mixedInClass != null) mixins.add(mixedInClass);
+
+  var sc = c.superclass;
+  for (; sc.isSyntheticMixinImplementation; sc = sc.superclass) {
+    mixins.add(sc.mixedInClass);
+  }
+  return sc;
 }

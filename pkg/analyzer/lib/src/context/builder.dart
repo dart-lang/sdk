@@ -2,26 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.context.context_builder;
-
 import 'dart:collection';
 import 'dart:core';
 
-import 'package:analyzer/context/context_root.dart';
-import 'package:analyzer/context/declared_variables.dart';
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/plugin/resolver_provider.dart';
-import 'package:analyzer/source/analysis_options_provider.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/command_line/arguments.dart'
     show
         applyAnalysisOptionFlags,
         bazelAnalysisOptionsPath,
         flutterAnalysisOptionsPath;
+import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart'
     show AnalysisDriver, AnalysisDriverScheduler;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
+import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/bazel.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/gn.dart';
@@ -29,7 +27,8 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/workspace.dart';
 import 'package:analyzer/src/lint/registry.dart';
-import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/plugin/resolver_provider.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/sdk.dart';
@@ -294,13 +293,10 @@ class ContextBuilder {
    * Add any [declaredVariables] to the list of declared variables used by the
    * given [context].
    */
-  void declareVariables(InternalAnalysisContext context) {
+  void declareVariables(AnalysisContextImpl context) {
     Map<String, String> variables = builderOptions.declaredVariables;
     if (variables != null && variables.isNotEmpty) {
-      DeclaredVariables contextVariables = context.declaredVariables;
-      variables.forEach((String variableName, String value) {
-        contextVariables.define(variableName, value);
-      });
+      context.declaredVariables = new DeclaredVariables.fromMap(variables);
     }
   }
 
@@ -311,10 +307,7 @@ class ContextBuilder {
   void declareVariablesInDriver(AnalysisDriver driver) {
     Map<String, String> variables = builderOptions.declaredVariables;
     if (variables != null && variables.isNotEmpty) {
-      DeclaredVariables contextVariables = driver.declaredVariables;
-      variables.forEach((String variableName, String value) {
-        contextVariables.define(variableName, value);
-      });
+      driver.declaredVariables = new DeclaredVariables.fromMap(variables);
     }
   }
 
@@ -332,8 +325,15 @@ class ContextBuilder {
     Resource location = _findPackagesLocation(path);
     if (location is File) {
       List<int> fileBytes = location.readAsBytesSync();
-      Map<String, Uri> map =
-          parse(fileBytes, resourceProvider.pathContext.toUri(location.path));
+      Map<String, Uri> map;
+      try {
+        map =
+            parse(fileBytes, resourceProvider.pathContext.toUri(location.path));
+      } catch (exception) {
+        // If we cannot read the file, then we respond as if the file did not
+        // exist.
+        return Packages.noPackages;
+      }
       resolveSymbolicLinks(map);
       return new MapPackages(map);
     } else if (location is Folder) {
@@ -435,7 +435,7 @@ class ContextBuilder {
 
     AnalysisOptionsImpl options = createDefaultOptions();
     File optionsFile = getOptionsFile(path);
-    Map<String, YamlNode> optionMap;
+    YamlMap optionMap;
 
     if (optionsFile != null) {
       try {
@@ -484,17 +484,6 @@ class ContextBuilder {
         if (options.lint && options.lintRules.isEmpty) {
           options.lintRules = Registry.ruleRegistry.defaultRules;
           verbose('Using default lint rules');
-        }
-      }
-      if (ContextBuilderOptions.flutterRepo) {
-        const lintName = 'public_member_api_docs';
-        Linter rule = options.lintRules.firstWhere(
-            (Linter lint) => lint.name == lintName,
-            orElse: () => null);
-        if (rule == null) {
-          rule = Registry.ruleRegistry
-              .firstWhere((Linter lint) => lint.name == lintName);
-          options.lintRules = new List.from(options.lintRules)..add(rule);
         }
       }
     } else {
@@ -653,12 +642,6 @@ class ContextBuilder {
  * Options used by a [ContextBuilder].
  */
 class ContextBuilderOptions {
-  /**
-   * A flag indicating that the flutter repository is being analyzed.
-   * See comments in source for `flutter analyze --watch`.
-   */
-  static bool flutterRepo = false;
-
   /**
    * The results of parsing the command line arguments as defined by
    * [defineAnalysisArguments] or `null` if none.

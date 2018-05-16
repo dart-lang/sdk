@@ -20,12 +20,9 @@ const MEMORY_SOURCE_FILES = const {
         }'''
 };
 
-Future test({bool useKernel, bool minify}) async {
+Future test({bool minify}) async {
   OutputCollector collector = new OutputCollector();
   List<String> options = <String>[];
-  if (!useKernel) {
-    options.add(Flags.useOldFrontend);
-  }
   if (minify) {
     options.add(Flags.minify);
   }
@@ -56,15 +53,13 @@ Future test({bool useKernel, bool minify}) async {
 }
 
 main() {
-  runTest({bool useKernel}) async {
-    await test(useKernel: useKernel, minify: true);
-    await test(useKernel: useKernel, minify: false);
+  runTest() async {
+    await test(minify: true);
+    await test(minify: false);
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTest(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTest(useKernel: true);
+    await runTest();
   });
 }

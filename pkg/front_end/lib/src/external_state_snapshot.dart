@@ -4,15 +4,15 @@
 
 // TODO(ahe): Remove this file.
 
-import 'package:kernel/kernel.dart' show Library, Program;
+import 'package:kernel/kernel.dart' show Library, Component;
 
 /// Helper class to work around modifications in [kernel_generator_impl.dart].
 class ExternalStateSnapshot {
   final List<ExternalState> snapshots;
 
-  ExternalStateSnapshot(Program program)
+  ExternalStateSnapshot(Component component)
       : snapshots = new List<ExternalState>.from(
-            program.libraries.map((l) => new ExternalState(l, l.isExternal)));
+            component.libraries.map((l) => new ExternalState(l, l.isExternal)));
 
   void restore() {
     for (ExternalState state in snapshots) {

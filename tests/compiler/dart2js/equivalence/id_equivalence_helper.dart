@@ -11,16 +11,12 @@ import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/elements/elements.dart';
-import 'package:compiler/src/io/source_file.dart';
-import 'package:compiler/src/source_file_provider.dart';
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
 import 'package:sourcemap_testing/src/annotated_code_helper.dart';
 
 import '../memory_compiler.dart';
 import '../equivalence/id_equivalence.dart';
-import '../kernel/test_helpers.dart';
 
 /// `true` if ANSI colors are supported by stdout.
 bool useColors = stdout.supportsAnsiEscapes;
@@ -43,25 +39,44 @@ String colorizeSingle(String text) {
   }
 }
 
-/// Colorize diffs [left] and [right] and [delimiter], if ANSI colors are
-/// supported.
-String colorizeDiff(String left, String delimiter, String right) {
+/// Colorize the actual annotation [text], if ANSI colors are supported.
+String colorizeActual(String text) {
   if (useColors) {
-    return '${colors.green(left)}'
-        '${colors.yellow(delimiter)}${colors.red(right)}';
+    return '${colors.red(text)}';
   } else {
-    return '$left$delimiter$right';
+    return text;
   }
+}
+
+/// Colorize an expected annotation [text], if ANSI colors are supported.
+String colorizeExpected(String text) {
+  if (useColors) {
+    return '${colors.green(text)}';
+  } else {
+    return text;
+  }
+}
+
+/// Colorize delimiter [text], if ANSI colors are supported.
+String colorizeDelimiter(String text) {
+  if (useColors) {
+    return '${colors.yellow(text)}';
+  } else {
+    return text;
+  }
+}
+
+/// Colorize diffs [expected] and [actual] and [delimiter], if ANSI colors are
+/// supported.
+String colorizeDiff(String expected, String delimiter, String actual) {
+  return '${colorizeExpected(expected)}'
+      '${colorizeDelimiter(delimiter)}${colorizeActual(actual)}';
 }
 
 /// Colorize annotation delimiters [start] and [end] surrounding [text], if
 /// ANSI colors are supported.
 String colorizeAnnotation(String start, String text, String end) {
-  if (useColors) {
-    return '${colors.yellow(start)}$text${colors.yellow(end)}';
-  } else {
-    return '$start$text$end';
-  }
+  return '${colorizeDelimiter(start)}$text${colorizeDelimiter(end)}';
 }
 
 /// Function that computes a data mapping for [member].
@@ -80,7 +95,44 @@ typedef void ComputeClassDataFunction(
     Compiler compiler, ClassEntity cls, Map<Id, ActualData> actualMap,
     {bool verbose});
 
+abstract class DataComputer {
+  void setup();
+
+  /// Function that computes a data mapping for [member].
+  ///
+  /// Fills [actualMap] with the data and [sourceSpanMap] with the source spans
+  /// for the data origin.
+  void computeMemberData(
+      Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
+      {bool verbose});
+
+  /// Function that computes a data mapping for [cls].
+  ///
+  /// Fills [actualMap] with the data and [sourceSpanMap] with the source spans
+  /// for the data origin.
+  void computeClassData(
+      Compiler compiler, ClassEntity cls, Map<Id, ActualData> actualMap,
+      {bool verbose});
+}
+
 const String stopAfterTypeInference = 'stopAfterTypeInference';
+
+/// Reports [message] as an error using [spannable] as error location.
+void reportError(
+    DiagnosticReporter reporter, Spannable spannable, String message) {
+  reporter
+      .reportErrorMessage(spannable, MessageKind.GENERIC, {'text': message});
+}
+
+/// Display name used for compilation using the new common frontend.
+const String kernelName = 'kernel';
+
+/// Display name used for strong mode compilation using the new common frontend.
+const String strongName = 'strong mode';
+
+/// Display name used for strong mode compilation without implicit checks using
+/// the new common frontend.
+const String trustName = 'strong mode without implicit checks';
 
 /// Compute actual data for all members defined in the program with the
 /// [entryPoint] and [memorySourceFiles].
@@ -92,6 +144,7 @@ Future<CompiledData> computeData(
     ComputeMemberDataFunction computeMemberData,
     {List<String> options: const <String>[],
     bool verbose: false,
+    bool testFrontend: false,
     bool forUserLibrariesOnly: true,
     bool skipUnprocessedMembers: false,
     bool skipFailedCompilations: false,
@@ -110,7 +163,9 @@ Future<CompiledData> computeData(
     Expect.isTrue(result.isSuccess, "Unexpected compilation error.");
   }
   Compiler compiler = result.compiler;
-  ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+  ClosedWorld closedWorld = testFrontend
+      ? compiler.resolutionWorldBuilder.closedWorldForTesting
+      : compiler.backendClosedWorldForTesting;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   CommonElements commonElements = closedWorld.commonElements;
 
@@ -118,23 +173,14 @@ Future<CompiledData> computeData(
   Map<Id, ActualData> globalData = <Id, ActualData>{};
 
   Map<Id, ActualData> actualMapFor(Entity entity) {
-    if (entity is Element) {
-      // TODO(johnniwinther): Remove this when patched members from kernel are
-      // no longer ascribed to the patch file.
-      Element element = entity;
-      entity = element.implementation;
-    }
     SourceSpan span =
         compiler.backendStrategy.spanFromSpannable(entity, entity);
-    Uri uri = resolveFastaUri(span.uri);
+    Uri uri = span.uri;
     return actualMaps.putIfAbsent(uri, () => <Id, ActualData>{});
   }
 
   void processMember(MemberEntity member, Map<Id, ActualData> actualMap) {
     if (member.isAbstract) {
-      return;
-    }
-    if (member is ConstructorElement && member.isRedirectingFactory) {
       return;
     }
     if (skipUnprocessedMembers &&
@@ -188,6 +234,7 @@ Future<CompiledData> computeData(
     elementEnvironment.lookupLibrary(Uri.parse('dart:collection')),
     commonElements.interceptorsLibrary,
     commonElements.jsHelperLibrary,
+    commonElements.asyncLibrary,
   ];
 
   ClassEntity getGlobalClass(String className) {
@@ -209,7 +256,7 @@ Future<CompiledData> computeData(
     }
     Expect.isNotNull(
         member,
-        "Global member '$member' not found in the global "
+        "Global member '$memberName' not found in the global "
         "libraries: ${globalLibraries.map((l) => l.canonicalUri).join(', ')}");
     return member;
   }
@@ -258,7 +305,7 @@ class CompiledData {
       String value1 = '${data1.value}';
       annotations
           .putIfAbsent(data1.offset, () => [])
-          .add(colorizeSingle(value1));
+          .add(colorizeActual(value1));
     });
     return annotations;
   }
@@ -423,20 +470,22 @@ typedef void Callback();
 /// [setUpFunction] is called once for every test that is executed.
 /// If [forUserSourceFilesOnly] is true, we examine the elements in the main
 /// file and any supporting libraries.
-Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
-    ComputeMemberDataFunction computeFromKernel,
-    {List<String> skipForAst: const <String>[],
+Future checkTests(
+    Directory dataDir, ComputeMemberDataFunction computeFromKernel,
+    {bool testStrongMode: true,
     List<String> skipForKernel: const <String>[],
+    List<String> skipForStrong: const <String>[],
     bool filterActualData(IdValue idValue, ActualData actualData),
     List<String> options: const <String>[],
     List<String> args: const <String>[],
     Directory libDirectory: null,
+    bool testFrontend: false,
     bool forUserLibrariesOnly: true,
     Callback setUpFunction,
-    ComputeClassDataFunction computeClassDataFromAst,
     ComputeClassDataFunction computeClassDataFromKernel,
     int shards: 1,
-    int shardIndex: 0}) async {
+    int shardIndex: 0,
+    bool testOmit: false}) async {
   args = args.toList();
   bool verbose = args.remove('-v');
   bool shouldContinue = args.remove('-c');
@@ -458,17 +507,25 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
     if (shouldContinue) continued = true;
     List<String> testOptions = options.toList();
     bool strongModeOnlyTest = false;
+    bool trustTypeAnnotations = false;
     if (name.endsWith('_ea.dart')) {
       testOptions.add(Flags.enableAsserts);
-    } else if (name.endsWith('_strong.dart')) {
+    }
+    if (name.contains('_strong')) {
       strongModeOnlyTest = true;
-      testOptions.add(Flags.strongMode);
-    } else if (name.endsWith('_checked.dart')) {
+      if (!testStrongMode) {
+        testOptions.add(Flags.strongMode);
+      }
+    }
+    if (name.endsWith('_checked.dart')) {
       testOptions.add(Flags.enableCheckedMode);
+    }
+    if (name.contains('_trust')) {
+      trustTypeAnnotations = true;
     }
 
     print('----------------------------------------------------------------');
-    print('Test: $name');
+    print('Test file: ${entity.uri}');
     // Pretend this is a dart2js_native test to allow use of 'native' keyword
     // and import of private libraries.
     String commonTestPath = 'sdk/tests/compiler';
@@ -481,8 +538,9 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
           new AnnotatedCode.fromText(annotatedCode, commentStart, commentEnd)
     };
     Map<String, MemberAnnotations<IdValue>> expectedMaps = {
-      astMarker: new MemberAnnotations<IdValue>(),
-      kernelMarker: new MemberAnnotations<IdValue>()
+      kernelMarker: new MemberAnnotations<IdValue>(),
+      strongMarker: new MemberAnnotations<IdValue>(),
+      omitMarker: new MemberAnnotations<IdValue>(),
     };
     computeExpectedMap(entryPoint, code[entryPoint], expectedMaps);
     Map<String, String> memorySourceFiles = {
@@ -511,39 +569,79 @@ Future checkTests(Directory dataDir, ComputeMemberDataFunction computeFromAst,
 
     if (setUpFunction != null) setUpFunction();
 
-    if (skipForAst.contains(name) || strongModeOnlyTest) {
-      print('--skipped for ast-----------------------------------------------');
-    } else {
-      print('--from ast------------------------------------------------------');
-      MemberAnnotations<IdValue> annotations = expectedMaps[astMarker];
-      CompiledData compiledData1 = await computeData(
-          entryPoint, memorySourceFiles, computeFromAst,
-          computeClassData: computeClassDataFromAst,
-          options: [Flags.useOldFrontend]..addAll(testOptions),
-          verbose: verbose,
-          forUserLibrariesOnly: forUserLibrariesOnly,
-          globalIds: annotations.globalData.keys);
-      if (await checkCode(code, annotations, compiledData1,
-          fatalErrors: !testAfterFailures)) {
-        hasFailures = true;
-      }
-    }
-    if (skipForKernel.contains(name)) {
+    if (skipForKernel.contains(name) ||
+        (testStrongMode && strongModeOnlyTest)) {
       print('--skipped for kernel--------------------------------------------');
     } else {
       print('--from kernel---------------------------------------------------');
+      List<String> options = []..addAll(testOptions);
+      if (trustTypeAnnotations) {
+        options.add(Flags.trustTypeAnnotations);
+      }
       MemberAnnotations<IdValue> annotations = expectedMaps[kernelMarker];
       CompiledData compiledData2 = await computeData(
           entryPoint, memorySourceFiles, computeFromKernel,
           computeClassData: computeClassDataFromKernel,
-          options: testOptions,
+          options: options,
           verbose: verbose,
+          testFrontend: testFrontend,
           forUserLibrariesOnly: forUserLibrariesOnly,
           globalIds: annotations.globalData.keys);
-      if (await checkCode(code, annotations, compiledData2,
+      if (await checkCode(
+          kernelName, entity.uri, code, annotations, compiledData2,
           filterActualData: filterActualData,
           fatalErrors: !testAfterFailures)) {
         hasFailures = true;
+      }
+    }
+    if (testStrongMode) {
+      if (skipForStrong.contains(name)) {
+        print('--skipped for kernel (strong mode)----------------------------');
+      } else {
+        print('--from kernel (strong mode)-----------------------------------');
+        List<String> options = [Flags.strongMode]..addAll(testOptions);
+        if (trustTypeAnnotations && !testOmit) {
+          options.add(Flags.omitImplicitChecks);
+        }
+        MemberAnnotations<IdValue> annotations = expectedMaps[strongMarker];
+        CompiledData compiledData2 = await computeData(
+            entryPoint, memorySourceFiles, computeFromKernel,
+            computeClassData: computeClassDataFromKernel,
+            options: options,
+            verbose: verbose,
+            testFrontend: testFrontend,
+            forUserLibrariesOnly: forUserLibrariesOnly,
+            globalIds: annotations.globalData.keys);
+        if (await checkCode(
+            strongName, entity.uri, code, annotations, compiledData2,
+            filterActualData: filterActualData,
+            fatalErrors: !testAfterFailures)) {
+          hasFailures = true;
+        }
+      }
+    }
+    if (testOmit) {
+      if (skipForStrong.contains(name)) {
+        print('--skipped for kernel (strong mode, omit-implicit-checks)------');
+      } else {
+        print('--from kernel (strong mode, omit-implicit-checks)-------------');
+        List<String> options = [Flags.strongMode, Flags.omitImplicitChecks]
+          ..addAll(testOptions);
+        MemberAnnotations<IdValue> annotations = expectedMaps[omitMarker];
+        CompiledData compiledData2 = await computeData(
+            entryPoint, memorySourceFiles, computeFromKernel,
+            computeClassData: computeClassDataFromKernel,
+            options: options,
+            verbose: verbose,
+            testFrontend: testFrontend,
+            forUserLibrariesOnly: forUserLibrariesOnly,
+            globalIds: annotations.globalData.keys);
+        if (await checkCode(
+            trustName, entity.uri, code, annotations, compiledData2,
+            filterActualData: filterActualData,
+            fatalErrors: !testAfterFailures)) {
+          hasFailures = true;
+        }
       }
     }
   }
@@ -554,12 +652,17 @@ final Set<String> userFiles = new Set<String>();
 
 /// Checks [compiledData] against the expected data in [expectedMap] derived
 /// from [code].
-Future<bool> checkCode(Map<Uri, AnnotatedCode> code,
-    MemberAnnotations<IdValue> expectedMaps, CompiledData compiledData,
+Future<bool> checkCode(
+    String mode,
+    Uri mainFileUri,
+    Map<Uri, AnnotatedCode> code,
+    MemberAnnotations<IdValue> expectedMaps,
+    CompiledData compiledData,
     {bool filterActualData(IdValue expected, ActualData actualData),
     bool fatalErrors: true}) async {
   IdData data = new IdData(code, expectedMaps, compiledData);
   bool hasFailure = false;
+  Set<Uri> neededDiffs = new Set<Uri>();
 
   void checkActualMap(
       Map<Id, ActualData> actualMap, Map<Id, IdValue> expectedMap,
@@ -567,14 +670,15 @@ Future<bool> checkCode(Map<Uri, AnnotatedCode> code,
     bool hasLocalFailure = false;
     actualMap.forEach((Id id, ActualData actualData) {
       IdValue actual = actualData.value;
+
       if (!expectedMap.containsKey(id)) {
         if (actual.value != '') {
-          reportHere(
+          reportError(
               data.compiler.reporter,
               actualData.sourceSpan,
-              'Id $id = ${colors.red('$actual')} for ${actualData.object} '
-              '(${actualData.object.runtimeType}) '
-              'not expected in ${expectedMap.keys}');
+              'EXTRA $mode DATA for ${id.descriptor} = '
+              '${colorizeActual('$actual')} for ${actualData.objectText}. '
+              'Data was expected for these ids: ${expectedMap.keys}');
           if (filterActualData == null || filterActualData(null, actualData)) {
             hasLocalFailure = true;
           }
@@ -582,13 +686,13 @@ Future<bool> checkCode(Map<Uri, AnnotatedCode> code,
       } else {
         IdValue expected = expectedMap[id];
         if (actual != expected) {
-          reportHere(
+          reportError(
               data.compiler.reporter,
               actualData.sourceSpan,
-              'Object: ${actualData.object} '
-              '(${actualData.object.runtimeType})\n '
-              'expected: ${colors.green('$expected')}\n '
-              'actual: ${colors.red('$actual')}');
+              'UNEXPECTED $mode DATA for ${id.descriptor}: '
+              'Object: ${actualData.objectText}\n '
+              'expected: ${colorizeExpected('$expected')}\n '
+              'actual: ${colorizeActual('$actual')}');
           if (filterActualData == null ||
               filterActualData(expected, actualData)) {
             hasLocalFailure = true;
@@ -599,9 +703,7 @@ Future<bool> checkCode(Map<Uri, AnnotatedCode> code,
     if (hasLocalFailure) {
       hasFailure = true;
       if (uri != null) {
-        print('--annotations diff [${uri.pathSegments.last}]-------------');
-        print(data.diffCode(uri));
-        print('----------------------------------------------------------');
+        neededDiffs.add(uri);
       }
     }
   }
@@ -612,29 +714,23 @@ Future<bool> checkCode(Map<Uri, AnnotatedCode> code,
   checkActualMap(data.actualMaps.globalData, data.expectedMaps.globalData);
 
   Set<Id> missingIds = new Set<Id>();
-  StringBuffer combinedAnnotationsDiff = new StringBuffer();
   void checkMissing(Map<Id, IdValue> expectedMap, Map<Id, ActualData> actualMap,
       [Uri uri]) {
     expectedMap.forEach((Id id, IdValue expected) {
       if (!actualMap.containsKey(id)) {
         missingIds.add(id);
-        StringBuffer sb = new StringBuffer();
-        for (Id id in actualMap.keys.where((d) => d.kind == id.kind)) {
-          sb.write('\n  $id');
-        }
+        String message = 'MISSING $mode DATA for ${id.descriptor}: '
+            'Expected ${colors.green('$expected')}';
         if (uri != null) {
-          reportHere(
-              data.compiler.reporter,
-              computeSpannable(data.elementEnvironment, uri, id),
-              'Expected $expected for id $id missing in${sb}');
+          reportError(data.compiler.reporter,
+              computeSpannable(data.elementEnvironment, uri, id), message);
         } else {
-          print('Expected $expected for id $id missing in${sb}');
+          print(message);
         }
       }
     });
     if (missingIds.isNotEmpty && uri != null) {
-      combinedAnnotationsDiff.write('Missing in $uri:\n');
-      combinedAnnotationsDiff.write('${data.diffCode(uri)}\n');
+      neededDiffs.add(uri);
     }
   }
 
@@ -642,13 +738,13 @@ Future<bool> checkCode(Map<Uri, AnnotatedCode> code,
     checkMissing(expectedMap, data.actualMaps[uri], uri);
   });
   checkMissing(data.expectedMaps.globalData, data.actualMaps.globalData);
-  if (combinedAnnotationsDiff.isNotEmpty) {
-    print('--annotations diff--------------------------------------------');
-    print(combinedAnnotationsDiff.toString());
-    print('--------------------------------------------------------------');
+  for (Uri uri in neededDiffs) {
+    print('--annotations diff [${uri.pathSegments.last}]-------------');
+    print(data.diffCode(uri));
+    print('----------------------------------------------------------');
   }
   if (missingIds.isNotEmpty) {
-    print("Ids not found: ${missingIds}.");
+    print("MISSING ids: ${missingIds}.");
     hasFailure = true;
   }
   if (hasFailure && fatalErrors) {
@@ -665,7 +761,7 @@ Spannable computeSpannable(
   } else if (id is ElementId) {
     String memberName = id.memberName;
     bool isSetter = false;
-    if (memberName != '[]=' && memberName.endsWith('=')) {
+    if (memberName != '[]=' && memberName != '==' && memberName.endsWith('=')) {
       isSetter = true;
       memberName = memberName.substring(0, memberName.length - 1);
     }
@@ -707,26 +803,31 @@ Spannable computeSpannable(
   throw new UnsupportedError('Unsupported id $id.');
 }
 
-const String astMarker = 'ast.';
 const String kernelMarker = 'kernel.';
+const String strongMarker = 'strong.';
+const String omitMarker = 'omit.';
 
-/// Compute two [MemberAnnotations] objects from [code] specifying the expected
-/// annotations we anticipate encountering; one corresponding to the old
-/// implementation, one for the new implementation.
+/// Compute three [MemberAnnotations] objects from [code] specifying the
+/// expected annotations we anticipate encountering; one corresponding to the
+/// old implementation, one for the new implementation, and one for the new
+/// implementation using strong mode.
 ///
 /// If an annotation starts with 'ast.' it is only expected for the old
-/// implementation and if it starts with 'kernel.' it is only expected for the
-/// new implementation. Otherwise it is expected for both implementations.
+/// implementation, if it starts with 'kernel.' it is only expected for the
+/// new implementation, and if it starts with 'strong.' it is only expected for
+/// strong mode (using the common frontend). Otherwise it is expected for all
+/// implementations.
 ///
 /// Most nodes have the same and expectations should match this by using
 /// annotations without prefixes.
 void computeExpectedMap(Uri sourceUri, AnnotatedCode code,
     Map<String, MemberAnnotations<IdValue>> maps) {
-  List<String> mapKeys = [astMarker, kernelMarker];
+  List<String> mapKeys = [kernelMarker, strongMarker, omitMarker];
   Map<String, AnnotatedCode> split = splitByPrefixes(code, mapKeys);
 
   split.forEach((String marker, AnnotatedCode code) {
     MemberAnnotations<IdValue> fileAnnotations = maps[marker];
+    assert(fileAnnotations != null, "No annotations for $marker in $maps");
     Map<Id, IdValue> expectedValues = fileAnnotations[sourceUri];
     for (Annotation annotation in code.annotations) {
       String text = annotation.text;
@@ -734,134 +835,18 @@ void computeExpectedMap(Uri sourceUri, AnnotatedCode code,
       if (idValue.id.isGlobal) {
         Expect.isFalse(
             fileAnnotations.globalData.containsKey(idValue.id),
-            "Duplicate annotations for ${idValue.id}: ${idValue} and "
-            "${fileAnnotations.globalData[idValue.id]}.");
+            "Duplicate annotations for ${idValue.id} in $marker: "
+            "${idValue} and ${fileAnnotations.globalData[idValue.id]}.");
         fileAnnotations.globalData[idValue.id] = idValue;
       } else {
         Expect.isFalse(
             expectedValues.containsKey(idValue.id),
-            "Duplicate annotations for ${idValue.id}: ${idValue} and "
-            "${expectedValues[idValue.id]}.");
+            "Duplicate annotations for ${idValue.id} in $marker: "
+            "${idValue} and ${expectedValues[idValue.id]}.");
         expectedValues[idValue.id] = idValue;
       }
     }
   });
-}
-
-Future<bool> compareData(
-    Uri entryPoint,
-    Map<String, String> memorySourceFiles,
-    ComputeMemberDataFunction computeAstData,
-    ComputeMemberDataFunction computeIrData,
-    {List<String> options: const <String>[],
-    bool forUserLibrariesOnly: true,
-    bool skipUnprocessedMembers: false,
-    bool skipFailedCompilations: false,
-    bool verbose: false,
-    bool whiteList(Uri uri, Id id)}) async {
-  print('--from ast----------------------------------------------------------');
-  CompiledData data1 = await computeData(
-      entryPoint, memorySourceFiles, computeAstData,
-      options: [Flags.useOldFrontend]..addAll(options),
-      forUserLibrariesOnly: forUserLibrariesOnly,
-      skipUnprocessedMembers: skipUnprocessedMembers,
-      skipFailedCompilations: skipFailedCompilations);
-  if (data1 == null) return false;
-  print('--from kernel-------------------------------------------------------');
-  CompiledData data2 = await computeData(
-      entryPoint, memorySourceFiles, computeIrData,
-      options: options,
-      forUserLibrariesOnly: forUserLibrariesOnly,
-      skipUnprocessedMembers: skipUnprocessedMembers,
-      skipFailedCompilations: skipFailedCompilations);
-  if (data2 == null) return false;
-  await compareCompiledData(data1, data2,
-      whiteList: whiteList,
-      skipMissingUris: !forUserLibrariesOnly,
-      verbose: verbose);
-  return true;
-}
-
-Future compareCompiledData(CompiledData data1, CompiledData data2,
-    {bool skipMissingUris: false,
-    bool verbose: false,
-    bool whiteList(Uri uri, Id id)}) async {
-  if (whiteList == null) {
-    whiteList = (uri, id) => false;
-  }
-  bool hasErrors = false;
-  String libraryRoot1;
-
-  SourceFileProvider provider1 = data1.compiler.provider;
-  SourceFileProvider provider2 = data2.compiler.provider;
-  for (Uri uri1 in data1.actualMaps.keys) {
-    Uri uri2 = uri1;
-    bool hasErrorsInUri = false;
-    Map<Id, ActualData> actualMap1 = data1.actualMaps[uri1];
-    Map<Id, ActualData> actualMap2 = data2.actualMaps[uri2];
-    if (actualMap2 == null && skipMissingUris) {
-      libraryRoot1 ??= '${data1.compiler.options.libraryRoot}';
-      String uriText = '$uri1';
-      if (uriText.startsWith(libraryRoot1)) {
-        String relativePath = uriText.substring(libraryRoot1.length);
-        uri2 =
-            resolveFastaUri(Uri.parse('patched_dart2js_sdk/${relativePath}'));
-        actualMap2 = data2.actualMaps[uri2];
-      }
-      if (actualMap2 == null) {
-        continue;
-      }
-    }
-    Expect.isNotNull(actualMap2,
-        "No data for $uri1 in:\n ${data2.actualMaps.keys.join('\n ')}");
-    SourceFile sourceFile1 = await provider1.getUtf8SourceFile(uri1) ??
-        await provider1.autoReadFromFile(uri1);
-    Expect.isNotNull(sourceFile1, 'No source file for $uri1');
-    String sourceCode1 = sourceFile1.slowText();
-    if (uri1 != uri2) {
-      SourceFile sourceFile2 = await provider2.getUtf8SourceFile(uri2) ??
-          await provider2.autoReadFromFile(uri2);
-      Expect.isNotNull(sourceFile2, 'No source file for $uri2');
-      String sourceCode2 = sourceFile2.slowText();
-      if (sourceCode1.length != sourceCode2.length) {
-        continue;
-      }
-    }
-
-    actualMap1.forEach((Id id, ActualData actualData1) {
-      IdValue value1 = actualData1.value;
-      IdValue value2 = actualMap2[id]?.value;
-      if (value1 != value2) {
-        reportHere(data1.compiler.reporter, actualData1.sourceSpan,
-            '$id: from source:${value1},from dill:${value2}');
-        if (!whiteList(uri1, id)) {
-          hasErrors = hasErrorsInUri = true;
-        }
-      }
-    });
-    actualMap2.forEach((Id id, ActualData actualData2) {
-      IdValue value2 = actualData2.value;
-      IdValue value1 = actualMap1[id]?.value;
-      if (value1 != value2) {
-        reportHere(data2.compiler.reporter, actualData2.sourceSpan,
-            '$id: from source:${value1},from dill:${value2}');
-        if (!whiteList(uri1, id)) {
-          hasErrors = hasErrorsInUri = true;
-        }
-      }
-    });
-    if (hasErrorsInUri) {
-      print('--annotations diff $uri1---------------------------------------');
-      print(withAnnotations(
-          sourceCode1,
-          data1.computeDiffAnnotationsAgainst(actualMap1, actualMap2, uri1,
-              includeMatches: verbose)));
-      print('----------------------------------------------------------');
-    }
-  }
-  if (hasErrors) {
-    Expect.fail('Annotations mismatch');
-  }
 }
 
 /// Set of features used in annotations.

@@ -8,6 +8,7 @@
 #include "vm/allocation.h"
 #include "vm/code_descriptors.h"
 #include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/backend/code_statistics.h"
 #include "vm/compiler/backend/il.h"
 #include "vm/runtime_entry.h"
 
@@ -206,9 +207,11 @@ class CompilerDeoptInfoWithStub : public CompilerDeoptInfo {
 
 class SlowPathCode : public ZoneAllocated {
  public:
-  SlowPathCode() : entry_label_(), exit_label_() {}
+  explicit SlowPathCode(Instruction* instruction)
+      : instruction_(instruction), entry_label_(), exit_label_() {}
   virtual ~SlowPathCode() {}
 
+  Instruction* instruction() const { return instruction_; }
   Label* entry_label() { return &entry_label_; }
   Label* exit_label() { return &exit_label_; }
 
@@ -220,10 +223,21 @@ class SlowPathCode : public ZoneAllocated {
  private:
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) = 0;
 
+  Instruction* instruction_;
   Label entry_label_;
   Label exit_label_;
 
   DISALLOW_COPY_AND_ASSIGN(SlowPathCode);
+};
+
+template <typename T>
+class TemplateSlowPathCode : public SlowPathCode {
+ public:
+  explicit TemplateSlowPathCode(T* instruction) : SlowPathCode(instruction) {}
+
+  T* instruction() const {
+    return static_cast<T*>(SlowPathCode::instruction());
+  }
 };
 
 class FlowGraphCompiler : public ValueObject {
@@ -271,7 +285,8 @@ class FlowGraphCompiler : public ValueObject {
                     SpeculativeInliningPolicy* speculative_policy,
                     const GrowableArray<const Function*>& inline_id_to_function,
                     const GrowableArray<TokenPosition>& inline_id_to_token_pos,
-                    const GrowableArray<intptr_t>& caller_inline_id);
+                    const GrowableArray<intptr_t>& caller_inline_id,
+                    CodeStatistics* stats = NULL);
 
   ~FlowGraphCompiler();
 
@@ -287,6 +302,7 @@ class FlowGraphCompiler : public ValueObject {
   // Accessors.
   Assembler* assembler() const { return assembler_; }
   const ParsedFunction& parsed_function() const { return parsed_function_; }
+  const Function& function() const { return parsed_function_.function(); }
   const GrowableArray<BlockEntryInstr*>& block_order() const {
     return block_order_;
   }
@@ -313,6 +329,22 @@ class FlowGraphCompiler : public ValueObject {
     return &parallel_move_resolver_;
   }
 
+  void StatsBegin(Instruction* instr) {
+    if (stats_ != NULL) stats_->Begin(instr);
+  }
+
+  void StatsEnd(Instruction* instr) {
+    if (stats_ != NULL) stats_->End(instr);
+  }
+
+  void SpecialStatsBegin(intptr_t tag) {
+    if (stats_ != NULL) stats_->SpecialBegin(tag);
+  }
+
+  void SpecialStatsEnd(intptr_t tag) {
+    if (stats_ != NULL) stats_->SpecialEnd(tag);
+  }
+
   // Constructor is lighweight, major initialization work should occur here.
   // This makes it easier to measure time spent in the compiler.
   void InitCompiler();
@@ -332,6 +364,21 @@ class FlowGraphCompiler : public ValueObject {
                                 const AbstractType& dst_type,
                                 const String& dst_name,
                                 LocationSummary* locs);
+  void GenerateAssertAssignableAOT(TokenPosition token_pos,
+                                   intptr_t deopt_id,
+                                   const AbstractType& dst_type,
+                                   const String& dst_name,
+                                   LocationSummary* locs);
+
+  void GenerateAssertAssignableAOT(const AbstractType& dst_type,
+                                   const String& dst_name,
+                                   const Register instance_reg,
+                                   const Register instantiator_type_args_reg,
+                                   const Register function_type_args_reg,
+                                   const Register subtype_cache_reg,
+                                   const Register dst_type_reg,
+                                   const Register scratch_reg,
+                                   Label* done);
 
 // DBC emits calls very differently from all other architectures due to its
 // interpreted nature.
@@ -400,9 +447,24 @@ class FlowGraphCompiler : public ValueObject {
   // Returns true if no further checks are necessary but the code coming after
   // the emitted code here is still required do a runtime call (for the negative
   // case of throwing an exception).
-  bool GenerateSubclassTypeCheck(Register class_id_reg,
+  bool GenerateSubtypeRangeCheck(Register class_id_reg,
                                  const Class& type_class,
                                  Label* is_subtype_lbl);
+
+  // We test up to 4 different cid ranges, if we would need to test more in
+  // order to get a definite answer we fall back to the old mechanism (namely
+  // of going into the subtyping cache)
+  static const intptr_t kMaxNumberOfCidRangesToTest = 4;
+
+  // If [fall_through_if_inside] is `true`, then [outside_range_lbl] must be
+  // supplied, since it will be jumped to in the last case if the cid is outside
+  // the range.
+  static void GenerateCidRangesCheck(Assembler* assembler,
+                                     Register class_id_reg,
+                                     const CidRangeVector& cid_ranges,
+                                     Label* inside_range_lbl,
+                                     Label* outside_range_lbl = NULL,
+                                     bool fall_through_if_inside = false);
 
   void EmitOptimizedInstanceCall(const StubEntry& stub_entry,
                                  const ICData& ic_data,
@@ -509,6 +571,10 @@ class FlowGraphCompiler : public ValueObject {
                      intptr_t deopt_id,
                      TokenPosition token_pos,
                      intptr_t try_index);
+
+  void AddNullCheck(intptr_t pc_offset,
+                    TokenPosition token_pos,
+                    intptr_t null_check_name_idx);
 
   void RecordSafepoint(LocationSummary* locs,
                        intptr_t slow_path_argument_count = 0);
@@ -827,6 +893,7 @@ class FlowGraphCompiler : public ValueObject {
   // True while emitting intrinsic code.
   bool intrinsic_mode_;
   Label intrinsic_slow_path_label_;
+  CodeStatistics* stats_;
 
   const Class& double_class_;
   const Class& mint_class_;

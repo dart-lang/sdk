@@ -19,7 +19,7 @@ check(String path, int start, int end, FileLock mode, {bool locked}) {
     ..addAll(Platform.executableArguments)
     ..add(Platform.script.resolve('file_lock_script.dart').toFilePath())
     ..add(path)
-    ..add(mode == FileLock.EXCLUSIVE ? 'EXCLUSIVE' : 'SHARED')
+    ..add(mode == FileLock.exclusive ? 'EXCLUSIVE' : 'SHARED')
     ..add('$start')
     ..add('$end');
   return Process
@@ -39,18 +39,18 @@ check(String path, int start, int end, FileLock mode, {bool locked}) {
 }
 
 checkLocked(String path,
-        [int start = 0, int end = -1, FileLock mode = FileLock.EXCLUSIVE]) =>
+        [int start = 0, int end = -1, FileLock mode = FileLock.exclusive]) =>
     check(path, start, end, mode, locked: true);
 
 checkNotLocked(String path,
-        [int start = 0, int end = -1, FileLock mode = FileLock.EXCLUSIVE]) =>
+        [int start = 0, int end = -1, FileLock mode = FileLock.exclusive]) =>
     check(path, start, end, mode, locked: false);
 
 void testLockWholeFile() {
   Directory directory = Directory.systemTemp.createTempSync('dart_file_lock');
   File file = new File(join(directory.path, "file"));
   file.writeAsBytesSync(new List.filled(10, 0));
-  var raf = file.openSync(mode: WRITE);
+  var raf = file.openSync(mode: FileMode.write);
   raf.lockSync();
   asyncStart();
   checkLocked(file.path).then((_) {
@@ -69,7 +69,7 @@ void testLockWholeFileAsync() {
   Directory directory = Directory.systemTemp.createTempSync('dart_file_lock');
   File file = new File(join(directory.path, "file"));
   file.writeAsBytesSync(new List.filled(10, 0));
-  var raf = file.openSync(mode: WRITE);
+  var raf = file.openSync(mode: FileMode.write);
   asyncStart();
   Future.forEach([
     () => raf.lock(),
@@ -88,12 +88,12 @@ void testLockRange() {
   Directory directory = Directory.systemTemp.createTempSync('dart_file_lock');
   File file = new File(join(directory.path, "file"));
   file.writeAsBytesSync(new List.filled(10, 0));
-  var raf1 = file.openSync(mode: WRITE);
-  var raf2 = file.openSync(mode: WRITE);
+  var raf1 = file.openSync(mode: FileMode.write);
+  var raf2 = file.openSync(mode: FileMode.write);
   asyncStart();
   var tests = [
-    () => raf1.lockSync(FileLock.EXCLUSIVE, 2, 3),
-    () => raf2.lockSync(FileLock.EXCLUSIVE, 5, 7),
+    () => raf1.lockSync(FileLock.exclusive, 2, 3),
+    () => raf2.lockSync(FileLock.exclusive, 5, 7),
     () => checkNotLocked(file.path, 0, 2),
     () => checkLocked(file.path, 0, 3),
     () => checkNotLocked(file.path, 4, 5),
@@ -132,12 +132,12 @@ void testLockRangeAsync() {
   Directory directory = Directory.systemTemp.createTempSync('dart_file_lock');
   File file = new File(join(directory.path, "file"));
   file.writeAsBytesSync(new List.filled(10, 0));
-  var raf1 = file.openSync(mode: WRITE);
-  var raf2 = file.openSync(mode: WRITE);
+  var raf1 = file.openSync(mode: FileMode.write);
+  var raf2 = file.openSync(mode: FileMode.write);
   asyncStart();
   var tests = [
-    () => raf1.lock(FileLock.EXCLUSIVE, 2, 3),
-    () => raf2.lock(FileLock.EXCLUSIVE, 5, 7),
+    () => raf1.lock(FileLock.exclusive, 2, 3),
+    () => raf2.lock(FileLock.exclusive, 5, 7),
     () => checkNotLocked(file.path, 0, 2),
     () => checkLocked(file.path, 0, 3),
     () => checkNotLocked(file.path, 4, 5),
@@ -175,10 +175,10 @@ void testLockEnd() {
   Directory directory = Directory.systemTemp.createTempSync('dart_file_lock');
   File file = new File(join(directory.path, "file"));
   file.writeAsBytesSync(new List.filled(10, 0));
-  var raf = file.openSync(mode: APPEND);
+  var raf = file.openSync(mode: FileMode.append);
   asyncStart();
   Future.forEach([
-    () => raf.lockSync(FileLock.EXCLUSIVE, 2),
+    () => raf.lockSync(FileLock.exclusive, 2),
     () => checkNotLocked(file.path, 0, 2),
     () => checkLocked(file.path, 0, 3),
     () => checkLocked(file.path, 9),
@@ -198,10 +198,10 @@ void testLockEndAsync() {
   Directory directory = Directory.systemTemp.createTempSync('dart_file_lock');
   File file = new File(join(directory.path, "file"));
   file.writeAsBytesSync(new List.filled(10, 0));
-  var raf = file.openSync(mode: APPEND);
+  var raf = file.openSync(mode: FileMode.append);
   asyncStart();
   Future.forEach([
-    () => raf.lock(FileLock.EXCLUSIVE, 2),
+    () => raf.lock(FileLock.exclusive, 2),
     () => checkNotLocked(file.path, 0, 2),
     () => checkLocked(file.path, 0, 3),
     () => checkLocked(file.path, 9),
@@ -224,10 +224,10 @@ void testLockShared() {
   var raf = file.openSync();
   asyncStart();
   Future.forEach([
-    () => raf.lock(FileLock.SHARED),
+    () => raf.lock(FileLock.shared),
     () => checkLocked(file.path),
     () => checkLocked(file.path, 0, 2),
-    () => checkNotLocked(file.path, 0, 2, FileLock.SHARED)
+    () => checkNotLocked(file.path, 0, 2, FileLock.shared)
   ], (f) => f()).then((_) {
     raf.closeSync();
     directory.deleteSync(recursive: true);
@@ -242,10 +242,10 @@ void testLockSharedAsync() {
   var raf = file.openSync();
   asyncStart();
   Future.forEach([
-    () => raf.lock(FileLock.SHARED),
+    () => raf.lock(FileLock.shared),
     () => checkLocked(file.path),
     () => checkLocked(file.path, 0, 2),
-    () => checkNotLocked(file.path, 0, 2, FileLock.SHARED)
+    () => checkNotLocked(file.path, 0, 2, FileLock.shared)
   ], (f) => f()).whenComplete(() {
     raf.closeSync();
     directory.deleteSync(recursive: true);
@@ -257,10 +257,10 @@ void testLockAfterLength() {
   Directory directory = Directory.systemTemp.createTempSync('dart_file_lock');
   File file = new File(join(directory.path, "file"));
   file.writeAsBytesSync(new List.filled(10, 0));
-  var raf = file.openSync(mode: APPEND);
+  var raf = file.openSync(mode: FileMode.append);
   asyncStart();
   Future.forEach([
-    () => raf.lockSync(FileLock.EXCLUSIVE, 2, 15),
+    () => raf.lockSync(FileLock.exclusive, 2, 15),
     () => checkNotLocked(file.path, 0, 2),
     () => checkLocked(file.path, 0, 3),
     () => checkLocked(file.path, 9),
@@ -281,10 +281,10 @@ void testLockAfterLengthAsync() {
   Directory directory = Directory.systemTemp.createTempSync('dart_file_lock');
   File file = new File(join(directory.path, "file"));
   file.writeAsBytesSync(new List.filled(10, 0));
-  var raf = file.openSync(mode: APPEND);
+  var raf = file.openSync(mode: FileMode.append);
   asyncStart();
   Future.forEach([
-    () => raf.lock(FileLock.EXCLUSIVE, 2, 15),
+    () => raf.lock(FileLock.exclusive, 2, 15),
     () => checkNotLocked(file.path, 0, 2),
     () => checkLocked(file.path, 0, 3),
     () => checkLocked(file.path, 9),

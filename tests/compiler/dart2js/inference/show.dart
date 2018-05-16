@@ -19,21 +19,16 @@ main(List<String> args) async {
   argParser.addFlag('callers', defaultsTo: false);
   ArgResults results = argParser.parse(args);
 
-  ComputeMemberDataFunction astFunction;
   ComputeMemberDataFunction kernelFunction;
   if (results['side-effects']) {
-    astFunction = computeMemberAstSideEffects;
     kernelFunction = computeMemberIrSideEffects;
   }
   if (results['callers']) {
     InferrerEngineImpl.retainDataForTesting = true;
-    astFunction = computeMemberAstCallers;
     kernelFunction = computeMemberIrCallers;
   } else {
     InferrerEngineImpl.useSorterForTesting = true;
-    astFunction = computeMemberAstTypeMasks;
     kernelFunction = computeMemberIrTypeMasks;
   }
-  await show(results, astFunction, kernelFunction,
-      options: [stopAfterTypeInference]);
+  await show(results, kernelFunction, options: [/*stopAfterTypeInference*/]);
 }

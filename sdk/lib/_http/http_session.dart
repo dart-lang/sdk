@@ -79,7 +79,8 @@ class _HttpSession implements HttpSession {
 
   Map<K, V> cast<K, V>() => _data.cast<K, V>();
 
-  Map<K, V> retype<K, V>() => _data.retype<K, V>();
+  @Deprecated("Use cast instead.")
+  Map<K, V> retype<K, V>() => cast<K, V>();
 
   update(key, update(value), {ifAbsent()}) =>
       _data.update(key, update, ifAbsent: ifAbsent);

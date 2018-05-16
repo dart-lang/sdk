@@ -1,0 +1,12 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static field core::bool a_not = !true;
+static field core::int a_complement = 1.{core::int::~}();
+static field core::int a_negate = 1.{core::int::unary-}();
+static method main() → dynamic {
+  self::a_not;
+  self::a_complement;
+  self::a_negate;
+}

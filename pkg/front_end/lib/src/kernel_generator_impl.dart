@@ -8,7 +8,7 @@ library front_end.kernel_generator_impl;
 import 'dart:async' show Future;
 import 'dart:async';
 
-import 'package:kernel/kernel.dart' show Program, CanonicalName;
+import 'package:kernel/kernel.dart' show Component, CanonicalName;
 
 import 'base/processed_options.dart';
 import 'fasta/severity.dart' show Severity;
@@ -25,19 +25,19 @@ import 'fasta/uri_translator.dart' show UriTranslator;
 /// `package:front_end/src/api_prototype/summary_generator.dart` APIs.
 Future<CompilerResult> generateKernel(ProcessedOptions options,
     {bool buildSummary: false,
-    bool buildProgram: true,
+    bool buildComponent: true,
     bool truncateSummary: false}) async {
   return await CompilerContext.runWithOptions(options, (_) async {
     return await generateKernelInternal(
         buildSummary: buildSummary,
-        buildProgram: buildProgram,
+        buildComponent: buildComponent,
         truncateSummary: truncateSummary);
   });
 }
 
 Future<CompilerResult> generateKernelInternal(
     {bool buildSummary: false,
-    bool buildProgram: true,
+    bool buildComponent: true,
     bool truncateSummary: false}) async {
   var options = CompilerContext.current.options;
   var fs = options.fileSystem;
@@ -50,8 +50,8 @@ Future<CompilerResult> generateKernelInternal(
     var dillTarget =
         new DillTarget(options.ticker, uriTranslator, options.target);
 
-    Set<Uri> externalLibs(Program program) {
-      return program.libraries
+    Set<Uri> externalLibs(Component component) {
+      return component.libraries
           .where((lib) => lib.isExternal)
           .map((lib) => lib.importUri)
           .toSet();
@@ -82,7 +82,7 @@ Future<CompilerResult> generateKernelInternal(
       lib.isExternal = true;
     });
 
-    // Linked dependencies are meant to be part of the program so they are not
+    // Linked dependencies are meant to be part of the component so they are not
     // marked external.
     for (var dependency in await options.loadLinkDependencies(nameRoot)) {
       var excluded = externalLibs(dependency);
@@ -94,54 +94,56 @@ Future<CompilerResult> generateKernelInternal(
 
     var kernelTarget = new KernelTarget(fs, false, dillTarget, uriTranslator);
     options.inputs.forEach(kernelTarget.read);
-    Program summaryProgram =
+    Component summaryComponent =
         await kernelTarget.buildOutlines(nameRoot: nameRoot);
     List<int> summary = null;
     if (buildSummary) {
       if (options.verify) {
-        for (var error in verifyProgram(summaryProgram)) {
+        for (var error in verifyComponent(summaryComponent)) {
           options.report(error, Severity.error);
         }
       }
       if (options.debugDump) {
-        printProgramText(summaryProgram,
+        printComponentText(summaryComponent,
             libraryFilter: kernelTarget.isSourceLibrary);
       }
 
-      // Copy the program to exclude the uriToSource map from the summary.
+      // Copy the component to exclude the uriToSource map from the summary.
       //
       // Note: we don't pass the library argument to the constructor to
       // preserve the the libraries parent pointer (it should continue to point
-      // to the program within KernelTarget).
-      var trimmedSummaryProgram = new Program(nameRoot: summaryProgram.root)
-        ..libraries.addAll(truncateSummary
-            ? kernelTarget.loader.libraries
-            : summaryProgram.libraries);
-      trimmedSummaryProgram.metadata.addAll(summaryProgram.metadata);
+      // to the component within KernelTarget).
+      var trimmedSummaryComponent =
+          new Component(nameRoot: summaryComponent.root)
+            ..libraries.addAll(truncateSummary
+                ? kernelTarget.loader.libraries
+                : summaryComponent.libraries);
+      trimmedSummaryComponent.metadata.addAll(summaryComponent.metadata);
 
       // As documented, we only run outline transformations when we are building
-      // summaries without building a full program (at this time, that's
+      // summaries without building a full component (at this time, that's
       // the only need we have for these transformations).
-      if (!buildProgram) {
-        options.target.performOutlineTransformations(trimmedSummaryProgram);
+      if (!buildComponent) {
+        options.target.performOutlineTransformations(trimmedSummaryComponent);
         options.ticker.logMs("Transformed outline");
       }
-      summary = serializeProgram(trimmedSummaryProgram);
+      summary = serializeComponent(trimmedSummaryComponent);
       options.ticker.logMs("Generated outline");
     }
 
-    Program program;
-    if (buildProgram && kernelTarget.errors.isEmpty) {
-      program = await kernelTarget.buildProgram(verify: options.verify);
+    Component component;
+    if (buildComponent && kernelTarget.errors.isEmpty) {
+      component = await kernelTarget.buildComponent(verify: options.verify);
       if (options.debugDump) {
-        printProgramText(program, libraryFilter: kernelTarget.isSourceLibrary);
+        printComponentText(component,
+            libraryFilter: kernelTarget.isSourceLibrary);
       }
-      options.ticker.logMs("Generated program");
+      options.ticker.logMs("Generated component");
     }
 
     return new CompilerResult(
         summary: summary,
-        program: program,
+        component: component,
         deps: kernelTarget.loader.getDependencies());
   } on deprecated_InputError catch (e) {
     options.report(
@@ -157,8 +159,8 @@ class CompilerResult {
   /// The generated summary bytes, if it was requested.
   final List<int> summary;
 
-  /// The generated program, if it was requested.
-  final Program program;
+  /// The generated component, if it was requested.
+  final Component component;
 
   /// Dependencies traversed by the compiler. Used only for generating
   /// dependency .GN files in the dart-sdk build system.
@@ -166,5 +168,5 @@ class CompilerResult {
   /// using the compiler itself.
   final List<Uri> deps;
 
-  CompilerResult({this.summary, this.program, this.deps});
+  CompilerResult({this.summary, this.component, this.deps});
 }

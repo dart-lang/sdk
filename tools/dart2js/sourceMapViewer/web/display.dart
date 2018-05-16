@@ -51,8 +51,6 @@ Future fetchFile(String path) {
 displaySource(String filename, List<String> source, TargetEntry entry) {
   int line = entry.sourceLine;
   int column = entry.sourceColumn;
-  int nameId = entry.sourceNameId;
-  String id = nameId == null ? null : sourceMap.names[nameId];
   selectedSource.children.clear();
   SpanElement marker = new SpanElement()
     ..className = "marker"
@@ -308,7 +306,7 @@ void main() {
 
   getMap().then((mapFileName) {
     load(mapFileName).then((mapFileContent) {
-      sourceMap = new SingleMapping.fromJson(JSON.decode(mapFileContent));
+      sourceMap = new SingleMapping.fromJson(jsonDecode(mapFileContent));
       displayMap(mapFileContent);
       targetFileName.text = sourceMap.targetUrl;
       load(targetFileName.text).then((targetFileContent) {

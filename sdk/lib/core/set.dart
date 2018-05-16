@@ -40,7 +40,7 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
    * Creates an empty [Set].
    *
    * The created [Set] is a plain [LinkedHashSet].
-   * As such, it considers elements that are equal (using [==]) to be
+   * As such, it considers elements that are equal (using [operator ==]) to be
    * indistinguishable, and requires them to have a compatible
    * [Object.hashCode] implementation.
    *
@@ -70,7 +70,7 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
    *         new Set<SubType>.from(superSet.where((e) => e is SubType));
    *
    * The created [Set] is a [LinkedHashSet]. As such, it considers elements that
-   * are equal (using [==]) to be indistinguishable, and requires them to
+   * are equal (using [operator ==]) to be indistinguishable, and requires them to
    * have a compatible [Object.hashCode] implementation.
    *
    * The set is equivalent to one created by
@@ -82,7 +82,7 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
    * Creates a [Set] from [elements].
    *
    * The created [Set] is a [LinkedHashSet]. As such, it considers elements that
-   * are equal (using [==]) to be indistinguishable, and requires them to
+   * are equal (using [operator ==]) to be indistinguishable, and requires them to
    * have a compatible [Object.hashCode] implementation.
    *
    * The set is equivalent to one created by
@@ -114,9 +114,7 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
       new CastSet<S, T>(source, newSet);
 
   /**
-   * Provides a view of this set as a set of [R] instances, if necessary.
-   *
-   * If this set is already a `Set<R>`, it is returned unchanged.
+   * Provides a view of this set as a set of [R] instances.
    *
    * If this set contains only instances of [R], all read operations
    * will work correctly. If any operation tries to access an element
@@ -129,18 +127,7 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
    */
   Set<R> cast<R>();
 
-  /**
-   * Provides a view of this set as a set of [R] instances.
-   *
-   * If this set contains only instances of [R], all read operations
-   * will work correctly. If any operation tries to access an element
-   * that is not an instance of [R], the access will throw instead.
-   *
-   * Elements added to the set (e.g., by using [add] or [addAll])
-   * must be instance of [R] to be valid arguments to the adding function,
-   * and they must be instances of [E] as well to be accepted by
-   * this set as well.
-   */
+  @Deprecated("Use cast instead.")
   Set<R> retype<R>();
 
   /**

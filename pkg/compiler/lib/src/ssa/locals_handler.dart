@@ -4,7 +4,6 @@
 
 import '../closure.dart';
 import '../common.dart';
-import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../io/source_information.dart';
@@ -12,7 +11,6 @@ import '../js_backend/native_data.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_model/closure.dart' show JRecordField, JClosureField;
 import '../js_model/locals.dart' show JLocal;
-import '../tree/tree.dart' as ast;
 import '../types/types.dart';
 import '../world.dart' show ClosedWorld;
 
@@ -68,7 +66,7 @@ class LocalsHandler {
 
   ClosedWorld get closedWorld => builder.closedWorld;
 
-  CommonMasks get commonMasks => closedWorld.commonMasks;
+  CommonMasks get commonMasks => closedWorld.abstractValueDomain;
 
   GlobalTypeInferenceResults get _globalInferenceResults =>
       builder.globalInferenceResults;
@@ -148,12 +146,8 @@ class LocalsHandler {
     closureInfo.forEachBoxedVariable((Local from, FieldEntity to) {
       // The [from] can only be a parameter for function-scopes and not
       // loop scopes.
-      bool isParameter;
-      if (from is JLocal) {
-        isParameter = from.isRegularParameter;
-      } else if (from is LocalVariableElement) {
-        isParameter = from.isRegularParameter;
-      }
+      JLocal jFrom = from;
+      bool isParameter = jFrom.isRegularParameter;
       assert(isParameter != null);
       if (isParameter && !forGenerativeConstructorBody) {
         // Now that the redirection is set up, the update to the local will
@@ -201,8 +195,6 @@ class LocalsHandler {
       Map<Local, TypeMask> parameters,
       SourceInformation sourceInformation,
       {bool isGenerativeConstructorBody}) {
-    assert(!(element is MemberElement && !element.isImplementation),
-        failedAt(element));
     this.scopeInfo = scopeInfo;
 
     parameters.forEach((Local local, TypeMask typeMask) {
@@ -304,8 +296,7 @@ class LocalsHandler {
     if (scopeInfo is! ClosureRepresentationInfo) return false;
     FieldEntity redirectTarget = redirectionMapping[local];
     if (redirectTarget == null) return false;
-    return redirectTarget is ClosureFieldElement ||
-        redirectTarget is JClosureField;
+    return redirectTarget is JClosureField;
   }
 
   bool isBoxed(Local local) {
@@ -360,9 +351,7 @@ class LocalsHandler {
       // accessed through a closure-field.
       // Calling [readLocal] makes sure we generate the correct code to get
       // the box.
-      if (redirect is BoxFieldElement) {
-        localBox = redirect.box;
-      } else if (redirect is JRecordField) {
+      if (redirect is JRecordField) {
         localBox = redirect.box;
       }
       assert(localBox != null);
@@ -431,9 +420,7 @@ class LocalsHandler {
       FieldEntity redirect = redirectionMapping[local];
       assert(redirect != null);
       BoxLocal localBox;
-      if (redirect is BoxFieldElement) {
-        localBox = redirect.box;
-      } else if (redirect is JRecordField) {
+      if (redirect is JRecordField) {
         localBox = redirect.box;
       }
       assert(localBox != null);
@@ -443,13 +430,15 @@ class LocalsHandler {
       // Inside the closure the box is stored in a closure-field and cannot
       // be accessed directly.
       HInstruction box = readLocal(localBox);
-      builder.add(new HFieldSet(redirect, box, value)
-        ..sourceInformation = sourceInformation);
+      builder.add(
+          new HFieldSet(builder.abstractValueDomain, redirect, box, value)
+            ..sourceInformation = sourceInformation);
     } else {
       assert(_isUsedInTryOrGenerator(local));
       HLocalValue localValue = getLocal(local);
-      builder.add(new HLocalSet(local, localValue, value)
-        ..sourceInformation = sourceInformation);
+      builder.add(
+          new HLocalSet(builder.abstractValueDomain, local, localValue, value)
+            ..sourceInformation = sourceInformation);
     }
   }
 

@@ -12,7 +12,7 @@ import 'package:front_end/src/fasta/util/bytes_sink.dart' show BytesSink;
 import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 import 'package:kernel/kernel.dart'
-    show CanonicalName, Library, Program, loadProgramFromBytes;
+    show CanonicalName, Library, Component, loadComponentFromBytes;
 import 'package:package_config/packages.dart' show Packages;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -30,9 +30,9 @@ class ProcessedOptionsTest {
   MemoryFileSystem fileSystem =
       new MemoryFileSystem(Uri.parse('org-dartlang-test:///'));
 
-  Program _mockOutline;
+  Component _mockOutline;
 
-  Program get mockSummary => _mockOutline ??= new Program(
+  Component get mockSummary => _mockOutline ??= new Component(
       libraries: [new Library(Uri.parse('org-dartlang-test:///a/b.dart'))]);
 
   test_compileSdk_false() {
@@ -50,7 +50,7 @@ class ProcessedOptionsTest {
       ..sdkRoot = Uri.parse('org-dartlang-test:///sdk/dir/')
       ..compileSdk = false;
     expect(new ProcessedOptions(raw).sdkSummary,
-        Uri.parse('org-dartlang-test:///sdk/dir/vm_outline.dill'));
+        Uri.parse('org-dartlang-test:///sdk/dir/vm_platform.dill'));
 
     // But it is left null when compile-sdk is true
     raw = new CompilerOptions()
@@ -80,7 +80,7 @@ class ProcessedOptionsTest {
     var bytes = await processed.loadSdkSummaryBytes();
     expect(bytes, isNotEmpty);
 
-    var sdkSummary = loadProgramFromBytes(bytes);
+    var sdkSummary = loadComponentFromBytes(bytes);
     expect(sdkSummary.libraries.single.importUri,
         mockSummary.libraries.single.importUri);
   }
@@ -95,7 +95,7 @@ class ProcessedOptionsTest {
 
   void writeMockSummaryTo(Uri uri) {
     var sink = new BytesSink();
-    new BinaryPrinter(sink).writeProgramFile(mockSummary);
+    new BinaryPrinter(sink).writeComponentFile(mockSummary);
     fileSystem.entityForUri(uri).writeAsBytesSync(sink.builder.takeBytes());
   }
 
@@ -357,7 +357,7 @@ class ProcessedOptionsTest {
         .entityForUri(sdkRoot)
         .writeAsStringSync('\n');
     fileSystem
-        .entityForUri(sdkRoot.resolve('vm_outline.dill'))
+        .entityForUri(sdkRoot.resolve('vm_platform.dill'))
         .writeAsStringSync('\n');
     fileSystem
         .entityForUri(Uri.parse('org-dartlang-test:///foo.dart'))
@@ -427,7 +427,8 @@ class ProcessedOptionsTest {
 
   test_validateOptions_inferred_summary_exists() async {
     var sdkRoot = Uri.parse('org-dartlang-test:///sdk/root/');
-    var sdkSummary = Uri.parse('org-dartlang-test:///sdk/root/vm_outline.dill');
+    var sdkSummary =
+        Uri.parse('org-dartlang-test:///sdk/root/vm_platform.dill');
     fileSystem.entityForUri(sdkRoot).writeAsStringSync('\n');
     fileSystem.entityForUri(sdkSummary).writeAsStringSync('\n');
     fileSystem

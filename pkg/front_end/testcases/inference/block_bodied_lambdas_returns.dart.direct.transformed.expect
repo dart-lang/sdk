@@ -1,0 +1,88 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  dynamic a = () → dynamic {};
+  dynamic b = () → dynamic {
+    return;
+  };
+  dynamic c = () → dynamic {
+    return null;
+  };
+  dynamic d = () → dynamic {
+    return 0;
+  };
+  dynamic e = (core::bool b) → dynamic {
+    if(b) {
+      return;
+    }
+    else {
+      return;
+    }
+  };
+  dynamic f = (core::bool b) → dynamic {
+    if(b) {
+      return;
+    }
+    else {
+      return null;
+    }
+  };
+  dynamic g = (core::bool b) → dynamic {
+    if(b) {
+      return;
+    }
+    else {
+      return 0;
+    }
+  };
+  dynamic h = (core::bool b) → dynamic {
+    if(b) {
+      return null;
+    }
+    else {
+      return;
+    }
+  };
+  dynamic i = (core::bool b) → dynamic {
+    if(b) {
+      return null;
+    }
+    else {
+      return null;
+    }
+  };
+  dynamic j = (core::bool b) → dynamic {
+    if(b) {
+      return null;
+    }
+    else {
+      return 0;
+    }
+  };
+  dynamic k = (core::bool b) → dynamic {
+    if(b) {
+      return 0;
+    }
+    else {
+      return;
+    }
+  };
+  dynamic l = (core::bool b) → dynamic {
+    if(b) {
+      return 0;
+    }
+    else {
+      return null;
+    }
+  };
+  dynamic m = (core::bool b) → dynamic {
+    if(b) {
+      return 0;
+    }
+    else {
+      return 0;
+    }
+  };
+}

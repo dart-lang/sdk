@@ -4,13 +4,15 @@
 
 library dart2js.scanner.string_scanner;
 
-import '../../scanner/token.dart' show SyntheticStringToken, TokenType;
+import '../../scanner/token.dart' show Token, SyntheticStringToken, TokenType;
 
 import '../../scanner/token.dart' as analyzer show StringToken;
 
 import 'array_based_scanner.dart' show ArrayBasedScanner;
 
 import 'token.dart' show CommentToken, DartDocToken, StringToken;
+
+import 'error_token.dart' show ErrorToken;
 
 /**
  * Scanner that reads from a String and creates tokens that points to
@@ -35,6 +37,12 @@ class StringScanner extends ArrayBasedScanner {
         // TODO(lry): abort instead of copying the array, or warn?
         ? string + '\x00'
         : string;
+  }
+
+  static bool isLegalIdentifier(String identifier) {
+    StringScanner scanner = new StringScanner(identifier);
+    Token startToken = scanner.tokenize();
+    return startToken is! ErrorToken && startToken.next.isEof;
   }
 
   int advance() => string.codeUnitAt(++scanOffset);
@@ -80,21 +88,4 @@ class StringScanner extends ArrayBasedScanner {
   }
 
   bool atEndOfFile() => scanOffset >= string.length - 1;
-}
-
-/**
- * Scanner that creates tokens for a part of a larger [String], where the part
- * starts at the [baseOffset].
- */
-class SubStringScanner extends StringScanner {
-  final int baseOffset;
-
-  SubStringScanner(this.baseOffset, String string,
-      {bool includeComments: false})
-      : super(string, includeComments: includeComments);
-
-  @override
-  void beginToken() {
-    tokenStart = baseOffset + stringOffset;
-  }
 }

@@ -109,12 +109,8 @@ class _Visitor extends LocalDeclarationVisitor {
 
     ClassElement classElement =
         resolutionMap.elementDeclaredByClassDeclaration(classDecl);
-    int relevance = optype.constructorSuggestionsFilter(
+    int relevance = optype.returnValueSuggestionsFilter(
         classElement?.type, DART_RELEVANCE_DEFAULT);
-    if (relevance == null) {
-      return;
-    }
-
     if (constructorDecl != null) {
       // Build a suggestion for explicitly declared constructor
       ConstructorElement element = constructorDecl.element;

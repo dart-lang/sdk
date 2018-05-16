@@ -26,18 +26,15 @@ main() {
 """;
 
 void main() {
-  runTest({bool useKernel}) async {
-    String generated = await compileAll(TEST,
-        compileMode: useKernel ? CompileMode.kernel : CompileMode.memory);
+  runTest() async {
+    String generated = await compileAll(TEST);
     Expect.isTrue(generated.contains('return 42'));
     Expect.isTrue(generated.contains('return 54'));
     Expect.isFalse(generated.contains('return 68'));
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTest(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTest(useKernel: true);
+    await runTest();
   });
 }

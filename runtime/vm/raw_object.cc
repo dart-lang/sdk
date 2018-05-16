@@ -49,6 +49,9 @@ void RawObject::Validate(Isolate* isolate) const {
   }
 }
 
+// Can't look at the class object because it can be called during
+// compaction when the class objects are moving. Can use the class
+// id in the header and the sizes in the Class Table.
 intptr_t RawObject::SizeFromClass() const {
   // Only reasonable to be called on heap objects.
   ASSERT(IsHeapObject());
@@ -187,9 +190,7 @@ intptr_t RawObject::SizeFromClass() const {
                ptr()->tags_);
       }
 #endif  // DEBUG
-      RawClass* raw_class = isolate->GetClassForHeapWalkAt(class_id);
-      instance_size = raw_class->ptr()->instance_size_in_words_
-                      << kWordSizeLog2;
+      instance_size = isolate->GetClassSizeForHeapWalkAt(class_id);
     }
   }
   ASSERT(instance_size != 0);
@@ -555,9 +556,8 @@ intptr_t RawInstance::VisitInstancePointers(RawInstance* raw_obj,
   uint32_t tags = raw_obj->ptr()->tags_;
   intptr_t instance_size = SizeTag::decode(tags);
   if (instance_size == 0) {
-    RawClass* cls =
-        visitor->isolate()->GetClassForHeapWalkAt(raw_obj->GetClassId());
-    instance_size = cls->ptr()->instance_size_in_words_ << kWordSizeLog2;
+    instance_size =
+        visitor->isolate()->GetClassSizeForHeapWalkAt(raw_obj->GetClassId());
   }
 
   // Calculate the first and last raw object pointer fields.

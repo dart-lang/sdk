@@ -8,16 +8,13 @@ import 'dart:_js_helper'
     show
         patch,
         ExceptionAndStackTrace,
-        Primitives,
         convertDartClosureToJS,
         getTraceFromException,
         requiresPreamble,
         wrapException,
         unwrapException;
-import 'dart:_isolate_helper'
-    show IsolateNatives, TimerImpl, leaveJsAsync, enterJsAsync, isWorker;
 
-import 'dart:_foreign_helper' show JS;
+import 'dart:_foreign_helper' show JS, JS_GET_FLAG;
 
 import 'dart:_async_await_error_codes' as async_error_codes;
 
@@ -47,13 +44,10 @@ class _AsyncRun {
       var storedCallback;
 
       internalCallback(_) {
-        leaveJsAsync();
         var f = storedCallback;
         storedCallback = null;
         f();
       }
-
-      ;
 
       var observer = JS('', 'new self.MutationObserver(#)',
           convertDartClosureToJS(internalCallback, 1));
@@ -61,7 +55,6 @@ class _AsyncRun {
 
       return (void callback()) {
         assert(storedCallback == null);
-        enterJsAsync();
         storedCallback = callback;
         // Because of a broken shadow-dom polyfill we have to change the
         // children instead a cheap property.
@@ -78,24 +71,20 @@ class _AsyncRun {
 
   static void _scheduleImmediateJsOverride(void callback()) {
     internalCallback() {
-      leaveJsAsync();
       callback();
     }
 
     ;
-    enterJsAsync();
     JS('void', 'self.scheduleImmediate(#)',
         convertDartClosureToJS(internalCallback, 0));
   }
 
   static void _scheduleImmediateWithSetImmediate(void callback()) {
     internalCallback() {
-      leaveJsAsync();
       callback();
     }
 
     ;
-    enterJsAsync();
     JS('void', 'self.setImmediate(#)',
         convertDartClosureToJS(internalCallback, 0));
   }
@@ -120,7 +109,7 @@ class Timer {
   static Timer _createTimer(Duration duration, void callback()) {
     int milliseconds = duration.inMilliseconds;
     if (milliseconds < 0) milliseconds = 0;
-    return new TimerImpl(milliseconds, callback);
+    return new _TimerImpl(milliseconds, callback);
   }
 
   @patch
@@ -128,8 +117,79 @@ class Timer {
       Duration duration, void callback(Timer timer)) {
     int milliseconds = duration.inMilliseconds;
     if (milliseconds < 0) milliseconds = 0;
-    return new TimerImpl.periodic(milliseconds, callback);
+    return new _TimerImpl.periodic(milliseconds, callback);
   }
+}
+
+class _TimerImpl implements Timer {
+  final bool _once;
+  int _handle;
+  int _tick = 0;
+
+  _TimerImpl(int milliseconds, void callback()) : _once = true {
+    if (_hasTimer()) {
+      void internalCallback() {
+        _handle = null;
+        this._tick = 1;
+        callback();
+      }
+
+      _handle = JS('int', 'self.setTimeout(#, #)',
+          convertDartClosureToJS(internalCallback, 0), milliseconds);
+    } else {
+      throw new UnsupportedError('`setTimeout()` not found.');
+    }
+  }
+
+  _TimerImpl.periodic(int milliseconds, void callback(Timer timer))
+      : _once = false {
+    if (_hasTimer()) {
+      int start = JS('int', 'Date.now()');
+      _handle = JS(
+          'int',
+          'self.setInterval(#, #)',
+          convertDartClosureToJS(() {
+            int tick = this._tick + 1;
+            if (milliseconds > 0) {
+              int duration = JS('int', 'Date.now()') - start;
+              if (duration > (tick + 1) * milliseconds) {
+                tick = duration ~/ milliseconds;
+              }
+            }
+            this._tick = tick;
+            callback(this);
+          }, 0),
+          milliseconds);
+    } else {
+      throw new UnsupportedError('Periodic timer.');
+    }
+  }
+
+  @override
+  bool get isActive => _handle != null;
+
+  @override
+  int get tick => _tick;
+
+  @override
+  void cancel() {
+    if (_hasTimer()) {
+      if (_handle == null) return;
+      if (_once) {
+        JS('void', 'self.clearTimeout(#)', _handle);
+      } else {
+        JS('void', 'self.clearInterval(#)', _handle);
+      }
+      _handle = null;
+    } else {
+      throw new UnsupportedError('Canceling a timer.');
+    }
+  }
+}
+
+bool _hasTimer() {
+  requiresPreamble();
+  return JS('', 'self.setTimeout') != null;
 }
 
 class _AsyncAwaitCompleter<T> implements Completer<T> {
@@ -162,6 +222,20 @@ class _AsyncAwaitCompleter<T> implements Completer<T> {
 
   Future<T> get future => _completer.future;
   bool get isCompleted => _completer.isCompleted;
+}
+
+/// Creates a Completer for an `async` function.
+///
+/// Used as part of the runtime support for the async/await transformation.
+Completer<T> _makeAsyncAwaitCompleter<T>() {
+  return new _AsyncAwaitCompleter<T>();
+}
+
+/// Creates a Completer for an `async` function.
+///
+/// Used as part of the runtime support for the async/await transformation.
+Completer<T> _makeSyncCompleter<T>() {
+  return new Completer<T>.sync();
 }
 
 /// Initiates the computation of an `async` function and starts the body
@@ -403,8 +477,8 @@ Stream _streamOfController(_AsyncStarStreamController controller) {
 ///
 /// If yielding while the subscription is paused it will become suspended. And
 /// only resume after the subscription is resumed or canceled.
-class _AsyncStarStreamController {
-  StreamController controller;
+class _AsyncStarStreamController<T> {
+  StreamController<T> controller;
   Stream get stream => controller.stream;
 
   /// True when the async* function has yielded while being paused.
@@ -424,7 +498,7 @@ class _AsyncStarStreamController {
 
   add(event) => controller.add(event);
 
-  addStream(Stream stream) {
+  addStream(Stream<T> stream) {
     return controller.addStream(stream, cancelOnError: false);
   }
 
@@ -439,7 +513,7 @@ class _AsyncStarStreamController {
       });
     }
 
-    controller = new StreamController(onListen: () {
+    controller = new StreamController<T>(onListen: () {
       _resumeBody();
     }, onResume: () {
       // Only schedule again if the async* function actually is suspended.
@@ -466,8 +540,11 @@ class _AsyncStarStreamController {
   }
 }
 
-_makeAsyncStarController(body) {
-  return new _AsyncStarStreamController(body);
+/// Creates a stream controller for an `async*` function.
+///
+/// Used as part of the runtime support for the async/await transformation.
+_makeAsyncStarStreamController<T>(_WrappedAsyncBody body) {
+  return new _AsyncStarStreamController<T>(body);
 }
 
 class _IterationMarker {
@@ -500,7 +577,7 @@ class _IterationMarker {
   toString() => "IterationMarker($state, $value)";
 }
 
-class _SyncStarIterator implements Iterator {
+class _SyncStarIterator<T> implements Iterator<T> {
   // _SyncStarIterator handles stepping a sync* generator body state machine.
   //
   // It also handles the stepping over 'nested' iterators to flatten yield*
@@ -515,9 +592,11 @@ class _SyncStarIterator implements Iterator {
   dynamic _body;
 
   // The current value, unless iterating a non-sync* nested iterator.
-  dynamic _current = null;
+  T _current = null;
 
   // This is the nested iterator when iterating a yield* of a non-sync iterator.
+  // TODO(32956): In strong-mode, yield* takes an Iterable<T> (possibly checked
+  // with an implicit downcast), so change type to Iterator<T>.
   Iterator _nestedIterator = null;
 
   // Stack of suspended state machines when iterating a yield* of a sync*
@@ -526,7 +605,10 @@ class _SyncStarIterator implements Iterator {
 
   _SyncStarIterator(this._body);
 
-  get current => _nestedIterator == null ? _current : _nestedIterator.current;
+  T get current {
+    if (_nestedIterator == null) return _current;
+    return _nestedIterator.current;
+  }
 
   _runBody() {
     // TODO(sra): Find a way to hard-wire SUCCESS and ERROR codes.
@@ -594,11 +676,20 @@ class _SyncStarIterator implements Iterator {
             continue;
           } else {
             _nestedIterator = inner;
+            // TODO(32956): Change to the following when strong-mode is the only
+            // option:
+            //
+            //     _nestedIterator = JS<Iterator<T>>('','#', inner);
             continue;
           }
         }
       } else {
-        _current = value;
+        // TODO(32956): Remove this test.
+        if (JS_GET_FLAG('STRONG_MODE')) {
+          _current = JS<T>('', '#', value);
+        } else {
+          _current = value;
+        }
         return true;
       }
     }
@@ -606,10 +697,17 @@ class _SyncStarIterator implements Iterator {
   }
 }
 
+/// Creates an Iterable for a `sync*` function.
+///
+/// Used as part of the runtime support for the async/await transformation.
+_SyncStarIterable<T> _makeSyncStarIterable<T>(body) {
+  return new _SyncStarIterable<T>(body);
+}
+
 /// An Iterable corresponding to a sync* method.
 ///
 /// Each invocation of a sync* method will return a new instance of this class.
-class _SyncStarIterable extends IterableBase {
+class _SyncStarIterable<T> extends IterableBase<T> {
   // This is a function that will return a helper function that does the
   // iteration of the sync*.
   //
@@ -618,7 +716,8 @@ class _SyncStarIterable extends IterableBase {
 
   _SyncStarIterable(this._outerHelper);
 
-  Iterator get iterator => new _SyncStarIterator(JS('', '#()', _outerHelper));
+  Iterator<T> get iterator =>
+      new _SyncStarIterator<T>(JS('', '#()', _outerHelper));
 }
 
 @patch

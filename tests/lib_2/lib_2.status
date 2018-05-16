@@ -15,7 +15,6 @@ isolate/issue_24243_parent_isolate_test: Skip # Requires checked mode
 
 [ $runtime == chrome ]
 html/element_animate_test/timing_dict: RuntimeError # Issue 26730
-html/touchevent_test: Fail # Touch events are only supported on touch devices
 
 [ $runtime == drt ]
 html/webgl_extensions_test: Skip # webgl does not work properly on DRT, which is 'headless'.
@@ -99,7 +98,6 @@ html/notification_test: Fail # Safari doesn't let us access the fields of the No
 html/rtc_test: Fail
 html/shadow_dom_test: Fail
 html/speechrecognition_test: Fail
-html/touchevent_test: Fail # Safari does not support TouchEvents
 html/webgl_1_test: Pass, Fail # Issue 8219
 html/worker_api_test: Skip # Issue 13221
 typed_data/float32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).
@@ -130,6 +128,9 @@ mirrors/redirecting_factory_different_type_test/02: MissingCompileTimeError
 typed_data/setRange_2_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 typed_data/setRange_3_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 typed_data/setRange_4_test: Fail # Safari doesn't fully implement spec for TypedArray.set
+
+[ $compiler != dart2analyzer && $compiler != fasta && !$strong ]
+async/future_or_type_test: Fail # Strong mode implements FutureOr, non-strong treats it as dynamic.
 
 [ $compiler != dartdevc && $checked && !$strong ]
 async/future_or_only_in_async_test/00: MissingCompileTimeError
@@ -162,6 +163,7 @@ html/transition_event_test: Skip # Times out. Issue 22167
 [ !$checked && !$strong ]
 async/future_or_only_in_async_test/00: MissingCompileTimeError
 async/multiple_timer_test: Pass, Fail # Timing related
+isolate/issue_24243_parent_isolate_test: SkipByDesign # Requires type checks.
 
 [ !$fasta && $strong ]
 mirrors/redirecting_factory_test: CompileTimeError # Issue 30855
@@ -248,6 +250,7 @@ isolate/issue_21398_parent_isolate2_test: Crash # Requires deferred libraries
 isolate/message3_test/fun: Pass, Fail # Closure identity
 isolate/spawn_uri_nested_vm_test: Pass, Crash # Issue 28192
 mirrors/closurization_equivalence_test: SkipByDesign # Method equality
+mirrors/deferred_constraints_constants_test: Crash # Requires deferred libraries
 mirrors/deferred_mirrors_metadata_test: Crash # Deferred loading
 mirrors/deferred_mirrors_metatarget_test: Crash # Deferred loading
 mirrors/deferred_mirrors_update_test: Crash # Deferred loading
@@ -256,4 +259,3 @@ mirrors/library_import_deferred_loading_test: Crash # Deferred loading
 mirrors/library_imports_deferred_test: Crash # Deferred loading
 mirrors/load_library_test: Crash # Deferred loading
 mirrors/typedef_deferred_library_test: Crash # Deferred loading
-

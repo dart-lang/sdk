@@ -12,7 +12,6 @@ import 'package:kernel/ast.dart'
         ConditionalExpression,
         ConstructorInvocation,
         DartType,
-        DispatchCategory,
         DynamicType,
         Expression,
         Field,
@@ -59,15 +58,12 @@ import '../../base/instrumentation.dart'
         Instrumentation,
         InstrumentationValueForMember,
         InstrumentationValueForType,
-        InstrumentationValueForTypeArgs,
-        InstrumentationValueLiteral;
+        InstrumentationValueForTypeArgs;
 
 import '../fasta_codes.dart';
 
-import '../kernel/fasta_accessors.dart'
-    show BuilderHelper, CalleeDesignation, FunctionTypeAccessor;
-
-import '../kernel/frontend_accessors.dart' show buildIsNull;
+import '../kernel/expression_generator.dart'
+    show BuilderHelper, CalleeDesignation, FunctionTypeAccessor, buildIsNull;
 
 import '../kernel/kernel_shadow_ast.dart'
     show
@@ -91,7 +87,8 @@ import 'interface_resolver.dart' show ForwardingNode, SyntheticAccessor;
 
 import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
 
-import 'type_inference_engine.dart' show TypeInferenceEngineImpl;
+import 'type_inference_engine.dart'
+    show IncludesTypeParametersCovariantly, TypeInferenceEngineImpl;
 
 import 'type_promotion.dart' show TypePromoter, TypePromoterDisabled;
 
@@ -221,7 +218,7 @@ class ClosureContext {
         !_analyzerSubtypeOf(inferrer, inferredType, returnOrYieldContext)) {
       // If the inferred return type isn't a subtype of the context, we use the
       // context.
-      inferredType = returnOrYieldContext;
+      inferredType = greatestClosure(inferrer.coreTypes, returnOrYieldContext);
     }
 
     return _wrapAsyncOrGenerator(inferrer, inferredType);
@@ -338,6 +335,10 @@ abstract class TypeInferrer {
   /// Performs type inference on the given metadata annotations.
   void inferMetadata(BuilderHelper helper, List<Expression> annotations);
 
+  /// Performs type inference on the given metadata annotations keeping the
+  /// existing helper if possible.
+  void inferMetadataKeepingHelper(List<Expression> annotations);
+
   /// Performs type inference on the given function parameter initializer
   /// expression.
   void inferParameterInitializer(
@@ -373,6 +374,9 @@ class TypeInferrerDisabled extends TypeInferrer {
 
   @override
   void inferMetadata(BuilderHelper helper, List<Expression> annotations) {}
+
+  @override
+  void inferMetadataKeepingHelper(List<Expression> annotations) {}
 
   @override
   void inferParameterInitializer(
@@ -490,14 +494,14 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           var parent = expression.parent;
           var t = new VariableDeclaration.forValue(expression, type: actualType)
             ..fileOffset = fileOffset;
-          var nullCheck = buildIsNull(new VariableGet(t), fileOffset);
+          var nullCheck = buildIsNull(new VariableGet(t), fileOffset, helper);
           var tearOff =
               new PropertyGet(new VariableGet(t), callName, callMember)
                 ..fileOffset = fileOffset;
           actualType = getCalleeType(callMember, actualType);
           var conditional = new ConditionalExpression(nullCheck,
               new NullLiteral()..fileOffset = fileOffset, tearOff, actualType);
-          var let = new Let(t, conditional);
+          var let = new Let(t, conditional)..fileOffset = fileOffset;
           parent?.replaceChild(expression, let);
           expression = let;
         }
@@ -853,8 +857,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     return expressionToReplace;
   }
 
-  /// Determines the dispatch category of a [PropertyGet] and adds an "as" check
-  /// if necessary due to contravariance.
+  /// Add an "as" check if necessary due to contravariance.
   ///
   /// Returns the "as" check if it was added; otherwise returns the original
   /// expression.
@@ -865,21 +868,17 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       Expression expression,
       DartType inferredType,
       int fileOffset) {
-    DispatchCategory callKind;
-    if (receiver is ThisExpression || receiver == null) {
-      callKind = DispatchCategory.viaThis;
-    } else if (interfaceMember == null) {
-      callKind = DispatchCategory.dynamicDispatch;
-    } else {
-      callKind = DispatchCategory.interface;
-    }
-    desugaredGet?.dispatchCategory = callKind;
     bool checkReturn = false;
-    if (callKind == DispatchCategory.interface) {
+    if (receiver != null &&
+        interfaceMember != null &&
+        receiver is! ThisExpression) {
       if (interfaceMember is Procedure) {
-        checkReturn = interfaceMember.isGenericContravariant;
+        checkReturn = typeParametersOccurNegatively(
+            interfaceMember.enclosingClass,
+            interfaceMember.function.returnType);
       } else if (interfaceMember is Field) {
-        checkReturn = interfaceMember.isGenericContravariant;
+        checkReturn = typeParametersOccurNegatively(
+            interfaceMember.enclosingClass, interfaceMember.type);
       }
     }
     var replacedExpression = desugaredGet ?? expression;
@@ -891,55 +890,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         ..fileOffset = fileOffset;
       parent.replaceChild(expressionToReplace, replacedExpression);
     }
-    if (instrumentation != null) {
-      int offset = expression.fileOffset;
-      switch (callKind) {
-        case DispatchCategory.dynamicDispatch:
-          instrumentation.record(uri, offset, 'callKind',
-              new InstrumentationValueLiteral('dynamic'));
-          break;
-        case DispatchCategory.viaThis:
-          instrumentation.record(
-              uri, offset, 'callKind', new InstrumentationValueLiteral('this'));
-          break;
-        default:
-          break;
-      }
-      if (checkReturn) {
-        instrumentation.record(uri, offset, 'checkReturn',
-            new InstrumentationValueForType(inferredType));
-      }
+    if (instrumentation != null && checkReturn) {
+      instrumentation.record(uri, expression.fileOffset, 'checkReturn',
+          new InstrumentationValueForType(inferredType));
     }
     return replacedExpression;
-  }
-
-  /// Determines the dispatch category of a [PropertySet].
-  void handlePropertySetContravariance(Expression receiver,
-      Object interfaceMember, PropertySet desugaredSet, Expression expression) {
-    DispatchCategory callKind;
-    if (receiver is ThisExpression || receiver == null) {
-      callKind = DispatchCategory.viaThis;
-    } else if (interfaceMember == null) {
-      callKind = DispatchCategory.dynamicDispatch;
-    } else {
-      callKind = DispatchCategory.interface;
-    }
-    desugaredSet?.dispatchCategory = callKind;
-    if (instrumentation != null) {
-      int offset = expression.fileOffset;
-      switch (callKind) {
-        case DispatchCategory.dynamicDispatch:
-          instrumentation.record(uri, offset, 'callKind',
-              new InstrumentationValueLiteral('dynamic'));
-          break;
-        case DispatchCategory.viaThis:
-          instrumentation.record(
-              uri, offset, 'callKind', new InstrumentationValueLiteral('this'));
-          break;
-        default:
-          break;
-      }
-    }
   }
 
   /// Modifies a type as appropriate when inferring a declared variable's type.
@@ -1150,6 +1105,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       var positionalParameters = function.positionalParameters;
       for (var i = 0; i < positionalParameters.length; i++) {
         var parameter = positionalParameters[i];
+        inferMetadataKeepingHelper(parameter.annotations);
         if (i >= function.requiredParameterCount &&
             parameter.initializer == null) {
           parameter.initializer = new ShadowNullLiteral()..parent = parameter;
@@ -1159,6 +1115,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         }
       }
       for (var parameter in function.namedParameters) {
+        inferMetadataKeepingHelper(parameter.annotations);
         if (parameter.initializer == null) {
           parameter.initializer = new ShadowNullLiteral()..parent = parameter;
         }
@@ -1289,14 +1246,25 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   void inferMetadata(BuilderHelper helper, List<Expression> annotations) {
     if (annotations != null) {
       this.helper = helper;
+      inferMetadataKeepingHelper(annotations);
+      this.helper = null;
+    }
+  }
+
+  @override
+  void inferMetadataKeepingHelper(List<Expression> annotations) {
+    if (annotations != null) {
       // Place annotations in a temporary list literal so that they will have a
       // parent.  This is necessary in case any of the annotations need to get
       // replaced during type inference.
+      var parents = annotations.map((e) => e.parent).toList();
       new ListLiteral(annotations);
       for (var annotation in annotations) {
         inferExpression(annotation, const UnknownType(), false);
       }
-      this.helper = null;
+      for (int i = 0; i < annotations.length; ++i) {
+        annotations[i].parent = parents[i];
+      }
     }
   }
 
@@ -1389,7 +1357,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           receiverType, propertyName, fileOffset,
           errorTemplate: templateUndefinedGetter,
           expression: expression,
-          receiver: desugaredGet.receiver);
+          receiver: receiver);
       if (interfaceMember is Member) {
         desugaredGet.interfaceTarget = interfaceMember;
       }
@@ -1451,6 +1419,19 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     return tearoffType;
   }
 
+  /// True if [type] has negative occurrences of any of [class_]'s type
+  /// parameters.
+  ///
+  /// A negative occurrence of a type parameter is one that is to the left of
+  /// an odd number of arrows.  For example, T occurs negatively in T -> T0,
+  /// T0 -> (T -> T1), (T0 -> T) -> T1 but not in (T -> T0) -> T1.
+  static bool typeParametersOccurNegatively(Class class_, DartType type) {
+    if (class_.typeParameters.isEmpty) return false;
+    var checker = new IncludesTypeParametersCovariantly(class_.typeParameters)
+      ..inCovariantContext = false;
+    return type.accept(checker);
+  }
+
   /// Determines the dispatch category of a [MethodInvocation] and returns a
   /// boolean indicating whether an "as" check will need to be added due to
   /// contravariance.
@@ -1461,62 +1442,31 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       MethodInvocation desugaredInvocation,
       Arguments arguments,
       Expression expression) {
-    DispatchCategory callKind;
-    var checkKind = MethodContravarianceCheckKind.none;
     if (interfaceMember is Field ||
         interfaceMember is Procedure &&
             interfaceMember.kind == ProcedureKind.Getter) {
       var getType = getCalleeType(interfaceMember, receiverType);
       if (getType is DynamicType) {
-        callKind = DispatchCategory.dynamicDispatch;
-      } else {
-        callKind = DispatchCategory.closure;
-        if (receiver is! ThisExpression && receiver != null) {
-          if (interfaceMember is Field &&
-              interfaceMember.isGenericContravariant) {
-            checkKind = MethodContravarianceCheckKind.checkGetterReturn;
-          } else if (interfaceMember is Procedure &&
-              interfaceMember.isGenericContravariant) {
-            checkKind = MethodContravarianceCheckKind.checkGetterReturn;
-          }
+        return MethodContravarianceCheckKind.none;
+      }
+      if (receiver != null && receiver is! ThisExpression) {
+        if ((interfaceMember is Field &&
+                typeParametersOccurNegatively(
+                    interfaceMember.enclosingClass, interfaceMember.type)) ||
+            (interfaceMember is Procedure &&
+                typeParametersOccurNegatively(interfaceMember.enclosingClass,
+                    interfaceMember.function.returnType))) {
+          return MethodContravarianceCheckKind.checkGetterReturn;
         }
       }
-    } else if (receiver is ThisExpression || receiver == null) {
-      callKind = DispatchCategory.viaThis;
-    } else if (identical(interfaceMember, 'call')) {
-      callKind = DispatchCategory.closure;
-    } else if (interfaceMember == null) {
-      callKind = DispatchCategory.dynamicDispatch;
-    } else {
-      callKind = DispatchCategory.interface;
-      if (interfaceMember is Procedure &&
-          interfaceMember.isGenericContravariant) {
-        checkKind = MethodContravarianceCheckKind.checkMethodReturn;
-      }
+    } else if (receiver != null &&
+        receiver is! ThisExpression &&
+        interfaceMember is Procedure &&
+        typeParametersOccurNegatively(interfaceMember.enclosingClass,
+            interfaceMember.function.returnType)) {
+      return MethodContravarianceCheckKind.checkMethodReturn;
     }
-    desugaredInvocation?.dispatchCategory = callKind;
-    if (instrumentation != null) {
-      int offset = arguments.fileOffset == -1
-          ? expression.fileOffset
-          : arguments.fileOffset;
-      switch (callKind) {
-        case DispatchCategory.closure:
-          instrumentation.record(uri, offset, 'callKind',
-              new InstrumentationValueLiteral('closure'));
-          break;
-        case DispatchCategory.dynamicDispatch:
-          instrumentation.record(uri, offset, 'callKind',
-              new InstrumentationValueLiteral('dynamic'));
-          break;
-        case DispatchCategory.viaThis:
-          instrumentation.record(
-              uri, offset, 'callKind', new InstrumentationValueLiteral('this'));
-          break;
-        default:
-          break;
-      }
-    }
-    return checkKind;
+    return MethodContravarianceCheckKind.none;
   }
 
   /// If the given [type] is a [TypeParameterType], resolve it to its bound.

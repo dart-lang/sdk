@@ -21,6 +21,6 @@ void usage() {
 
 main(List<String> args) {
   CommandLineHelper.requireExactlyOneArgument(true, args, usage);
-  Program program = CommandLineHelper.tryLoadDill(args[0], usage);
-  new Interpreter(program).run();
+  Component component = CommandLineHelper.tryLoadDill(args[0], usage);
+  new Interpreter(component).run();
 }

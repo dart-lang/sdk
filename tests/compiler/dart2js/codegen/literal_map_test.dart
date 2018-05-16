@@ -15,9 +15,8 @@ foo() {
 """;
 
 main() {
-  runTest({bool useKernel}) async {
-    await compile(TEST, entry: 'foo', useKernel: useKernel,
-        check: (String generated) {
+  runTest() async {
+    await compile(TEST, entry: 'foo', check: (String generated) {
       // Make sure we have all the type information we need.
       Expect.isFalse(generated.contains('bailout'));
       Expect.isFalse(generated.contains('interceptor'));
@@ -28,9 +27,7 @@ main() {
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTest(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTest(useKernel: true);
+    await runTest();
   });
 }

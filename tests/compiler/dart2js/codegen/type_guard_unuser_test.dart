@@ -41,7 +41,7 @@ foo(int a, int b) {
 """;
 
 main() {
-  runTests({bool useKernel}) async {
+  runTests() async {
     await compile(TEST_ONE, entry: 'foo', check: (String generated) {
       RegExp regexp = new RegExp(getIntTypeCheck(anyIdentifier));
       Iterator<Match> matches = regexp.allMatches(generated).iterator;
@@ -70,9 +70,7 @@ main() {
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTests(useKernel: true);
+    await runTests();
   });
 }

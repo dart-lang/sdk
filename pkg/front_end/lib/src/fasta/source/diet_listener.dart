@@ -24,10 +24,9 @@ import '../deprecated_problems.dart'
 import '../fasta_codes.dart'
     show Message, messageExpectedBlockToSkip, templateInternalProblemNotFound;
 
-import '../kernel/body_builder.dart' show BodyBuilder;
+import '../kernel/kernel_body_builder.dart' show KernelBodyBuilder;
 
-import '../parser.dart'
-    show IdentifierContext, MemberKind, Parser, closeBraceTokenFor, optional;
+import '../parser.dart' show IdentifierContext, MemberKind, Parser, optional;
 
 import '../problems.dart' show internalProblem, unexpected;
 
@@ -110,11 +109,6 @@ class DietListener extends StackListener {
   @override
   void handleNoArguments(Token token) {
     debugEvent("NoArguments");
-  }
-
-  @override
-  void handleModifiers(int count) {
-    debugEvent("Modifiers");
   }
 
   @override
@@ -220,7 +214,8 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endFields(int count, Token beginToken, Token endToken) {
+  void endFields(Token staticToken, Token covariantToken, Token varFinalOrConst,
+      int count, Token beginToken, Token endToken) {
     debugEvent("Fields");
     buildFields(count, beginToken, false);
   }
@@ -247,7 +242,8 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endTopLevelFields(int count, Token beginToken, Token endToken) {
+  void endTopLevelFields(Token staticToken, Token covariantToken,
+      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
     debugEvent("TopLevelFields");
     buildFields(count, beginToken, true);
   }
@@ -456,11 +452,6 @@ class DietListener extends StackListener {
   }
 
   @override
-  void handleModifier(Token token) {
-    debugEvent("Modifier");
-  }
-
-  @override
   void endConstructorReference(
       Token start, Token periodBeforeName, Token endToken) {
     debugEvent("ConstructorReference");
@@ -475,8 +466,7 @@ class DietListener extends StackListener {
     Object name = pop();
     Token metadata = pop();
     checkEmpty(beginToken.charOffset);
-    if (bodyToken == null ||
-        optional("=", closeBraceTokenFor(bodyToken).next)) {
+    if (bodyToken == null || optional("=", bodyToken.endGroup.next)) {
       // TODO(ahe): Don't skip this. We need to compile metadata and
       // redirecting factory bodies.
       return;
@@ -537,21 +527,26 @@ class DietListener extends StackListener {
   StackListener createListener(
       ModifierBuilder builder, Scope memberScope, bool isInstanceMember,
       [Scope formalParameterScope]) {
-    InterfaceType thisType;
-    if (builder.isClassMember) {
-      // Note: we set thisType regardless of whether we are building a static
-      // member, since that provides better error recovery.
-      Class cls = builder.parent.target;
-      thisType = cls.thisType;
-    }
+    // Note: we set thisType regardless of whether we are building a static
+    // member, since that provides better error recovery.
+    InterfaceType thisType = currentClass?.target?.thisType;
     var typeInferrer = library.disableTypeInference
         ? typeInferenceEngine.createDisabledTypeInferrer()
         : typeInferenceEngine.createLocalTypeInferrer(uri, thisType, library);
     ConstantContext constantContext = builder.isConstructor && builder.isConst
         ? ConstantContext.inferred
         : ConstantContext.none;
-    return new BodyBuilder(library, builder, memberScope, formalParameterScope,
-        hierarchy, coreTypes, currentClass, isInstanceMember, uri, typeInferrer)
+    return new KernelBodyBuilder(
+        library,
+        builder,
+        memberScope,
+        formalParameterScope,
+        hierarchy,
+        coreTypes,
+        currentClass,
+        isInstanceMember,
+        uri,
+        typeInferrer)
       ..constantContext = constantContext;
   }
 

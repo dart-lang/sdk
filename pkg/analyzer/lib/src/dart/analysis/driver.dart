@@ -6,8 +6,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:typed_data';
 
-import 'package:analyzer/context/context_root.dart';
-import 'package:analyzer/context/declared_variables.dart';
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart' as results;
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -17,6 +16,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/file_tracker.dart';
 import 'package:analyzer/src/dart/analysis/frontend_resolution.dart';
@@ -28,6 +28,7 @@ import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show
         AnalysisContext,
@@ -94,7 +95,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 50;
+  static const int DATA_VERSION = 58;
 
   /**
    * The number of exception contexts allowed to write. Once this field is
@@ -170,7 +171,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /**
    * The declared environment variables.
    */
-  final DeclaredVariables declaredVariables = new DeclaredVariables();
+  DeclaredVariables declaredVariables = new DeclaredVariables();
 
   /**
    * Information about the context root being analyzed by this driver.
@@ -326,11 +327,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   /**
    * The current analysis session.
-   *
-   * TODO(brianwilkerson) Create a new session when the current session might
-   * produce inconsistent results.
    */
-  AnalysisSession _currentSession;
+  AnalysisSessionImpl _currentSession;
 
   /**
    * Create a new instance of [AnalysisDriver].
@@ -356,7 +354,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         _sourceFactory = sourceFactory.clone(),
         _sdkBundle = sdkBundle,
         _externalSummaries = externalSummaries {
-    _currentSession = new AnalysisSessionImpl(this);
+    _createNewSession();
     _onResults = _resultController.stream.asBroadcastStream();
     _testView = new AnalysisDriverTestView(this);
     _createFileTracker();
@@ -431,6 +429,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     _priorityFiles.addAll(priorityPaths);
     _scheduler.notify(this);
   }
+
+  /**
+   * Return the [ResourceProvider] that is used to access the file system.
+   */
+  ResourceProvider get resourceProvider => _resourceProvider;
 
   /**
    * Return the [Stream] that produces [AnalysisResult]s for added files.
@@ -857,6 +860,21 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * resolved unit).
    */
   Future<ParseResult> parseFile(String path) async {
+    return parseFileSync(path);
+  }
+
+  /**
+   * Return a [ParseResult] for the file with the given [path].
+   *
+   * The [path] must be absolute and normalized.
+   *
+   * The [path] can be any file - explicitly or implicitly analyzed, or neither.
+   *
+   * The parsing is performed in the method itself, and the result is not
+   * produced through the [results] stream (just because it is not a fully
+   * resolved unit).
+   */
+  ParseResult parseFileSync(String path) {
     _throwIfNotAbsolutePath(path);
     FileState file = _fileTracker.verifyApiSignature(path);
     RecordingErrorListener listener = new RecordingErrorListener();
@@ -1122,6 +1140,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * of state.
    */
   void _changeHook() {
+    _createNewSession();
     _priorityResults.clear();
     _scheduler.notify(this);
   }
@@ -1203,6 +1222,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
                 useCFE: _analysisOptions.useFastaParser,
                 frontEndCompiler: _frontEndCompiler);
           } else {
+            if (!_fsState.getFileForUri(Uri.parse('dart:core')).exists) {
+              return _newMissingDartLibraryResult(file, 'dart:core');
+            }
+            if (!_fsState.getFileForUri(Uri.parse('dart:async')).exists) {
+              return _newMissingDartLibraryResult(file, 'dart:async');
+            }
             libraryContext = await _createLibraryContext(library);
             analyzer = new LibraryAnalyzer(
                 _logger,
@@ -1385,6 +1410,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   /**
+   * Create a new analysis session, so invalidating the current one.
+   */
+  void _createNewSession() {
+    _currentSession = new AnalysisSessionImpl(this);
+  }
+
+  /**
    * Fill [_salt] with data.
    */
   void _fillSalt() {
@@ -1496,6 +1528,30 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     }
 
     return null;
+  }
+
+  /**
+   * We detected that one of the required `dart` libraries is missing.
+   * Return the empty analysis result with the error.
+   */
+  AnalysisResult _newMissingDartLibraryResult(
+      FileState file, String missingUri) {
+    // TODO(scheglov) Find a better way to report this.
+    return new AnalysisResult(
+        this,
+        _sourceFactory,
+        file.path,
+        file.uri,
+        file.exists,
+        null,
+        file.lineInfo,
+        null,
+        null,
+        [
+          new AnalysisError(file.source, 0, 0,
+              CompileTimeErrorCode.MISSING_DART_LIBRARY, [missingUri])
+        ],
+        null);
   }
 
   void _reportException(String path, exception, StackTrace stackTrace) {

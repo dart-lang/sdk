@@ -69,39 +69,29 @@ void main() {
 """;
 
 main() {
-  runTests({bool useKernel}) async {
-    await compileAndMatchFuzzy(TEST_ONE, 'foo', "var x = x === true \\? 2 : 3;",
-        useKernel: useKernel);
-    await compileAndMatchFuzzy(TEST_ONE, 'foo', "print\\(x\\);",
-        useKernel: useKernel);
+  runTests() async {
+    await compileAndMatchFuzzy(
+        TEST_ONE, 'foo', "var x = x === true \\? 2 : 3;");
+    await compileAndMatchFuzzy(TEST_ONE, 'foo', "print\\(x\\);");
 
-    await compileAndMatchFuzzy(TEST_TWO, 'main', "x \\+= 10",
-        useKernel: useKernel);
-    await compileAndMatchFuzzy(TEST_TWO, 'main', "\\+\\+x",
-        useKernel: useKernel);
+    await compileAndMatchFuzzy(TEST_TWO, 'main', "x \\+= 10");
+    await compileAndMatchFuzzy(TEST_TWO, 'main', "\\+\\+x");
 
     // Check that we don't have 'd = d' (using regexp back references).
-    await compileAndDoNotMatchFuzzy(TEST_THREE, 'foo', '(x) = \1',
-        useKernel: useKernel);
-    await compileAndMatchFuzzy(TEST_THREE, 'foo', 'return x',
-        useKernel: useKernel);
+    await compileAndDoNotMatchFuzzy(TEST_THREE, 'foo', '(x) = \1');
+    await compileAndMatchFuzzy(TEST_THREE, 'foo', 'return x');
 
     // Check that a store just after the declaration of the local
     // only generates one instruction.
-    await compileAndMatchFuzzy(TEST_THREE, 'foo', 'x = 42',
-        useKernel: useKernel);
+    await compileAndMatchFuzzy(TEST_THREE, 'foo', 'x = 42');
 
-    await compileAndDoNotMatchFuzzy(TEST_FOUR, 'foo', '(x) = \1;',
-        useKernel: useKernel);
+    await compileAndDoNotMatchFuzzy(TEST_FOUR, 'foo', '(x) = \1;');
 
-    await compileAndDoNotMatch(TEST_FIVE, 'main', new RegExp('hash0'),
-        useKernel: useKernel);
+    await compileAndDoNotMatch(TEST_FIVE, 'main', new RegExp('hash0'));
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTests(useKernel: true);
+    await runTests();
   });
 }

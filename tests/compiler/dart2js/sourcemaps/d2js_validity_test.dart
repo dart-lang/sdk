@@ -21,7 +21,6 @@ void main() {
           mainFile,
           '-o${tmpDir.path}/out.js',
           '--library-root=sdk',
-          '--use-old-frontend'
         ]);
         return result.then((CompilationResult result) {
           CompilerImpl compiler = result.compiler;

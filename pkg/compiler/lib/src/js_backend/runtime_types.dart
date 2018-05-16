@@ -6,30 +6,21 @@ library js_backend.runtime_types;
 
 import '../common/names.dart' show Identifiers;
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
-import '../elements/elements.dart' show ClassElement;
 import '../elements/entities.dart';
 import '../elements/names.dart';
-import '../elements/resolution_types.dart'
-    show
-        MalformedType,
-        MethodTypeVariableType,
-        ResolutionDartTypeVisitor,
-        ResolutionTypedefType;
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_emitter/js_emitter.dart' show Emitter;
+import '../options.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
 import '../world.dart' show ClosedWorld;
 import 'backend_usage.dart';
 import 'namer.dart';
+import 'native_data.dart';
 
 bool cacheRtiDataForTesting = false;
-
-// TODO(johnniwinther): Remove this when local signatures are optimized for
-// Dart 2.
-const bool optimizeLocalSignaturesForStrongMode = false;
 
 /// For each class, stores the possible class subtype tests that could succeed.
 abstract class TypeChecks {
@@ -41,7 +32,7 @@ abstract class TypeChecks {
 }
 
 typedef jsAst.Expression OnVariableCallback(TypeVariableType variable);
-typedef bool ShouldEncodeTypedefCallback(ResolutionTypedefType variable);
+typedef bool ShouldEncodeTypedefCallback(TypedefType variable);
 
 /// Interface for the classes and methods that need runtime types.
 abstract class RuntimeTypesNeed {
@@ -142,8 +133,9 @@ abstract class RuntimeTypesNeedBuilder {
 
   /// Computes the [RuntimeTypesNeed] for the data registered with this builder.
   RuntimeTypesNeed computeRuntimeTypesNeed(
-      ResolutionWorldBuilder resolutionWorldBuilder, ClosedWorld closedWorld,
-      {bool enableTypeAssertions, bool strongMode});
+      ResolutionWorldBuilder resolutionWorldBuilder,
+      ClosedWorld closedWorld,
+      CompilerOptions options);
 }
 
 class TrivialRuntimeTypesNeedBuilder implements RuntimeTypesNeedBuilder {
@@ -160,8 +152,9 @@ class TrivialRuntimeTypesNeedBuilder implements RuntimeTypesNeedBuilder {
 
   @override
   RuntimeTypesNeed computeRuntimeTypesNeed(
-      ResolutionWorldBuilder resolutionWorldBuilder, ClosedWorld closedWorld,
-      {bool enableTypeAssertions, bool strongMode}) {
+      ResolutionWorldBuilder resolutionWorldBuilder,
+      ClosedWorld closedWorld,
+      CompilerOptions options) {
     return const TrivialRuntimeTypesNeed();
   }
 }
@@ -203,8 +196,7 @@ abstract class RuntimeTypesChecksBuilder {
 
   /// Computes the [RuntimeTypesChecks] for the data in this builder.
   RuntimeTypesChecks computeRequiredChecks(
-      CodegenWorldBuilder codegenWorldBuilder,
-      {bool strongMode});
+      CodegenWorldBuilder codegenWorldBuilder, CompilerOptions options);
 
   bool get rtiChecksBuilderClosed;
 }
@@ -224,8 +216,7 @@ class TrivialRuntimeTypesChecksBuilder implements RuntimeTypesChecksBuilder {
 
   @override
   RuntimeTypesChecks computeRequiredChecks(
-      CodegenWorldBuilder codegenWorldBuilder,
-      {bool strongMode}) {
+      CodegenWorldBuilder codegenWorldBuilder, CompilerOptions options) {
     rtiChecksBuilderClosed = true;
 
     Map<ClassEntity, ClassUse> classUseMap = <ClassEntity, ClassUse>{};
@@ -238,7 +229,7 @@ class TrivialRuntimeTypesChecksBuilder implements RuntimeTypesChecksBuilder {
         ..typeArgument = true
         ..checkedTypeArgument = true
         ..functionType = _computeFunctionType(_elementEnvironment, cls,
-            strongMode: strongMode);
+            strongMode: options.strongMode);
       classUseMap[cls] = classUse;
     }
     TypeChecks typeChecks = _substitutions._requiredChecks =
@@ -328,9 +319,10 @@ abstract class RuntimeTypesSubstitutionsMixin
       bool isNativeClass = _closedWorld.nativeData.isNativeClass(cls);
       if (classUse.typeArgument ||
           (isNativeClass && classUse.checkedInstance)) {
+        Substitution substitution = computeSubstitution(cls, cls);
         // We need [cls] at runtime - even if [cls] is not instantiated. Either
         // as a type argument or for an is-test if [cls] is native.
-        checks.add(new TypeCheck(cls, null, needsIs: isNativeClass));
+        checks.add(new TypeCheck(cls, substitution, needsIs: isNativeClass));
       }
 
       // Compute the set of classes that [cls] inherited properties from.
@@ -518,9 +510,19 @@ abstract class RuntimeTypesSubstitutionsMixin
       return true;
     }
 
-    // If there are no type variables or the type is the same, we do not need
-    // a substitution.
-    if (!_elementEnvironment.isGenericClass(check) || cls == check) {
+    // If there are no type variables, we do not need a substitution.
+    if (!_elementEnvironment.isGenericClass(check)) {
+      return true;
+    }
+
+    // JS-interop classes need an explicit substitution to mark the type
+    // arguments as `any` type.
+    if (_closedWorld.nativeData.isJsInteropClass(cls)) {
+      return false;
+    }
+
+    // If the type is the same, we do not need a substitution.
+    if (cls == check) {
       return true;
     }
 
@@ -569,7 +571,12 @@ abstract class RuntimeTypesSubstitutionsMixin
     InterfaceType type = _elementEnvironment.getThisType(cls);
     InterfaceType target = _types.asInstanceOf(type, check);
     List<DartType> typeVariables = type.typeArguments;
-    if (typeVariables.isEmpty && !alwaysGenerateFunction) {
+    if (_closedWorld.nativeData.isJsInteropClass(cls)) {
+      int typeArguments = target.typeArguments.length;
+      // Generic JS-interop class need an explicit substitution to mark
+      // the type arguments as `any` type.
+      return new Substitution.jsInterop(typeArguments);
+    } else if (typeVariables.isEmpty && !alwaysGenerateFunction) {
       return new Substitution.list(target.typeArguments);
     } else {
       return new Substitution.function(target.typeArguments, typeVariables);
@@ -615,6 +622,22 @@ abstract class RuntimeTypesEncoder {
   /// Returns the JavaScript template to determine at runtime if a type object
   /// is a function type.
   jsAst.Template get templateForIsFunctionType;
+
+  /// Returns the JavaScript template to determine at runtime if a type object
+  /// is a FutureOr type.
+  jsAst.Template get templateForIsFutureOrType;
+
+  /// Returns the JavaScript template to determine at runtime if a type object
+  /// is the void type.
+  jsAst.Template get templateForIsVoidType;
+
+  /// Returns the JavaScript template to determine at runtime if a type object
+  /// is the dynamic type.
+  jsAst.Template get templateForIsDynamicType;
+
+  /// Returns the JavaScript template to determine at runtime if a type object
+  /// is a type argument of js-interop class.
+  jsAst.Template get templateForIsJsInteropTypeArgument;
 
   jsAst.Name get getFunctionThatReturnsNullName;
 
@@ -728,29 +751,6 @@ class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
   }
 }
 
-class _ResolutionRuntimeTypesNeed extends RuntimeTypesNeedImpl {
-  _ResolutionRuntimeTypesNeed(
-      ElementEnvironment elementEnvironment,
-      BackendUsage backendUsage,
-      Set<ClassEntity> classesNeedingTypeArguments,
-      Set<FunctionEntity> methodsNeedingSignature,
-      Set<FunctionEntity> methodsNeedingTypeArguments,
-      Set<Local> localFunctionsNeedingSignature,
-      Set<Local> localFunctionsNeedingTypeArguments,
-      Set<Selector> selectorsNeedingTypeArguments)
-      : super(
-            elementEnvironment,
-            backendUsage,
-            classesNeedingTypeArguments,
-            methodsNeedingSignature,
-            methodsNeedingTypeArguments,
-            localFunctionsNeedingSignature,
-            localFunctionsNeedingTypeArguments,
-            selectorsNeedingTypeArguments);
-
-  bool checkClass(ClassElement cls) => cls.isDeclaration;
-}
-
 class TypeVariableTests {
   List<RtiNode> _nodes = <RtiNode>[];
   Map<ClassEntity, ClassNode> _classes = <ClassEntity, ClassNode>{};
@@ -768,11 +768,11 @@ class TypeVariableTests {
       {bool forRtiNeeds: true})
       : explicitIsChecks = new Set<DartType>.from(worldBuilder.isChecks) {
     _setupDependencies(elementEnvironment, commonElements, worldBuilder);
-    _propagateTests(elementEnvironment, worldBuilder);
+    _propagateTests(commonElements, elementEnvironment, worldBuilder);
     if (forRtiNeeds) {
       _propagateLiterals(elementEnvironment, worldBuilder);
     }
-    _collectResults(elementEnvironment, types, worldBuilder,
+    _collectResults(commonElements, elementEnvironment, types, worldBuilder,
         forRtiNeeds: forRtiNeeds);
   }
 
@@ -882,14 +882,19 @@ class TypeVariableTests {
       if (function is FunctionEntity) {
         Name instanceName;
         bool isCallTarget;
+        bool isNoSuchMethod;
         if (function.isInstanceMember) {
           isCallTarget = worldBuilder.closurizedMembers.contains(function);
           instanceName = function.memberName;
+          isNoSuchMethod = instanceName.text == Identifiers.noSuchMethod_;
         } else {
           isCallTarget = worldBuilder.closurizedStatics.contains(function);
+          isNoSuchMethod = false;
         }
         node = new MethodNode(function, function.parameterStructure,
-            isCallTarget: isCallTarget, instanceName: instanceName);
+            isCallTarget: isCallTarget,
+            instanceName: instanceName,
+            isNoSuchMethod: isNoSuchMethod);
       } else {
         ParameterStructure parameterStructure = new ParameterStructure.fromType(
             elementEnvironment.getLocalFunctionType(function));
@@ -902,6 +907,14 @@ class TypeVariableTests {
 
   void _setupDependencies(ElementEnvironment elementEnvironment,
       CommonElements commonElements, WorldBuilder worldBuilder) {
+    /// Register that if `node.entity` needs type arguments then so do entities
+    /// whose type variables occur in [type].
+    ///
+    /// For instance if `A` needs type arguments then so does `B` in:
+    ///
+    ///   class A<T> {}
+    ///   class B<T> { m() => new A<T>(); }
+    ///
     void registerDependencies(RtiNode node, DartType type) {
       type.forEachTypeVariable((TypeVariableType typeVariable) {
         Entity typeDeclaration = typeVariable.element.typeDeclaration;
@@ -943,18 +956,40 @@ class TypeVariableTests {
           .addDependency(_getClassNode(commonElements.mapClass));
     }
 
-    worldBuilder.isChecks.forEach((DartType type) {
+    void processCheckedType(DartType type) {
       if (type is InterfaceType) {
-        registerDependencies(_getClassNode(type.element), type);
+        // Register that if [cls] needs type arguments then so do the entities
+        // that declare type variables occurring in [type].
+        ClassEntity cls = type.element;
+        registerDependencies(_getClassNode(cls), type);
       }
-    });
+      if (type is FutureOrType) {
+        // [type] is `FutureOr<X>`.
+
+        // For the implied `is Future<X>` test, register that if `Future` needs
+        // type arguments then so do the entities that declare type variables
+        // occurring in `type.typeArgument`.
+        registerDependencies(
+            _getClassNode(commonElements.futureClass), type.typeArgument);
+        // Process `type.typeArgument` for the implied `is X` test.
+        processCheckedType(type.typeArgument);
+      }
+    }
+
+    worldBuilder.isChecks.forEach(processCheckedType);
+
     worldBuilder.instantiatedTypes.forEach((InterfaceType type) {
-      registerDependencies(_getClassNode(type.element), type);
+      // Register that if [cls] needs type arguments then so do the entities
+      // that declare type variables occurring in [type].
+      ClassEntity cls = type.element;
+      registerDependencies(_getClassNode(cls), type);
     });
 
     worldBuilder.forEachStaticTypeArgument(
         (Entity entity, Iterable<DartType> typeArguments) {
       for (DartType type in typeArguments) {
+        // Register that if [entity] needs type arguments then so do the
+        // entities that declare type variables occurring in [type].
         registerDependencies(
             _getMethodNode(elementEnvironment, worldBuilder, entity), type);
       }
@@ -971,6 +1006,8 @@ class TypeVariableTests {
             _getMethodNode(elementEnvironment, worldBuilder, entity);
         if (node.selectorApplies(selector)) {
           for (DartType type in typeArguments) {
+            // Register that if `node.entity` needs type arguments then so do
+            // the entities that declare type variables occurring in [type].
             registerDependencies(node, type);
           }
         }
@@ -979,24 +1016,30 @@ class TypeVariableTests {
       genericInstanceMethods.forEach(processEntity);
       worldBuilder.genericLocalFunctions.forEach(processEntity);
       worldBuilder.closurizedStatics.forEach(processEntity);
+      worldBuilder.userNoSuchMethods.forEach(processEntity);
     });
   }
 
-  void _propagateTests(
+  void _propagateTests(CommonElements commonElements,
       ElementEnvironment elementEnvironment, WorldBuilder worldBuilder) {
-    worldBuilder.isChecks.forEach((DartType type) {
+    void processType(DartType type, {bool direct: true}) {
       if (type.isTypeVariable) {
         TypeVariableType typeVariableType = type;
         TypeVariableEntity variable = typeVariableType.element;
         if (variable.typeDeclaration is ClassEntity) {
-          _getClassNode(variable.typeDeclaration).markDirectTest();
+          _getClassNode(variable.typeDeclaration).markTest(direct: direct);
         } else {
           _getMethodNode(
                   elementEnvironment, worldBuilder, variable.typeDeclaration)
-              .markDirectTest();
+              .markTest(direct: direct);
         }
+      } else if (type is FutureOrType) {
+        _getClassNode(commonElements.futureClass).markIndirectTest();
+        processType(type.typeArgument, direct: false);
       }
-    });
+    }
+
+    worldBuilder.isChecks.forEach(processType);
   }
 
   void _propagateLiterals(
@@ -1014,9 +1057,36 @@ class TypeVariableTests {
     });
   }
 
-  void _collectResults(ElementEnvironment elementEnvironment, DartTypes types,
+  void _collectResults(
+      CommonElements commonElements,
+      ElementEnvironment elementEnvironment,
+      DartTypes types,
       WorldBuilder worldBuilder,
       {bool forRtiNeeds: true}) {
+    /// Register the implicit is-test of [type].
+    ///
+    /// If [type] is of the form `FutureOr<X>`, also register the implicit
+    /// is-tests of `Future<X>` and `X`.
+    void addImplicitCheck(DartType type) {
+      if (implicitIsChecks.add(type)) {
+        if (type is FutureOrType) {
+          addImplicitCheck(commonElements.futureType(type.typeArgument));
+          addImplicitCheck(type.typeArgument);
+        }
+      }
+    }
+
+    void addImplicitChecks(Iterable<DartType> types) {
+      types.forEach(addImplicitCheck);
+    }
+
+    worldBuilder.isChecks.forEach((DartType type) {
+      if (type is FutureOrType) {
+        addImplicitCheck(commonElements.futureType(type.typeArgument));
+        addImplicitCheck(type.typeArgument);
+      }
+    });
+
     // Compute type arguments of classes that use one of their type variables in
     // is-checks and add the is-checks that they imply.
     _classes.forEach((ClassEntity cls, ClassNode node) {
@@ -1031,7 +1101,7 @@ class TypeVariableTests {
         InterfaceType instance = types.asInstanceOf(type, cls);
         if (instance != null) {
           for (DartType argument in instance.typeArguments) {
-            implicitIsChecks.add(argument.unaliased);
+            addImplicitCheck(argument.unaliased);
           }
         }
       }
@@ -1042,7 +1112,7 @@ class TypeVariableTests {
       if (!_getMethodNode(elementEnvironment, worldBuilder, function).hasTest) {
         return;
       }
-      implicitIsChecks.addAll(typeArguments);
+      addImplicitChecks(typeArguments);
     });
 
     if (forRtiNeeds) {
@@ -1059,7 +1129,7 @@ class TypeVariableTests {
                 .add(node.entity);
           }
           if (node.hasTest) {
-            implicitIsChecks.addAll(typeArguments);
+            addImplicitChecks(typeArguments);
           }
         }
       }
@@ -1135,6 +1205,7 @@ abstract class RtiNode {
 
   bool get hasUse => hasTest || hasLiteral;
 
+  /// Register that if [entity] needs type arguments then so does `node.entity`.
   bool addDependency(RtiNode node) {
     if (entity == node.entity) {
       // Skip trivial dependencies; if [entity] needs type arguments so does
@@ -1143,6 +1214,10 @@ abstract class RtiNode {
     }
     _dependencies ??= new Set<RtiNode>();
     return _dependencies.add(node);
+  }
+
+  void markTest({bool direct}) {
+    setTestState(direct ? 1 : 2);
   }
 
   void markDirectTest() {
@@ -1217,13 +1292,15 @@ class MethodNode extends RtiNode {
   final ParameterStructure parameterStructure;
   final bool isCallTarget;
   final Name instanceName;
+  final bool isNoSuchMethod;
 
   MethodNode(this.function, this.parameterStructure,
-      {this.isCallTarget, this.instanceName});
+      {this.isCallTarget, this.instanceName, this.isNoSuchMethod: false});
 
   Entity get entity => function;
 
   bool selectorApplies(Selector selector) {
+    if (isNoSuchMethod) return true;
     return (isCallTarget && selector.isClosureCall ||
             instanceName == selector.memberName) &&
         selector.callStructure.signatureApplies(parameterStructure);
@@ -1262,8 +1339,6 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
   RuntimeTypesNeedBuilderImpl(this._elementEnvironment, DartTypes types)
       : super(types);
 
-  bool checkClass(covariant ClassEntity cls) => true;
-
   @override
   void registerClassUsingTypeVariableLiteral(ClassEntity cls) {
     classesUsingTypeVariableLiterals.add(cls);
@@ -1281,8 +1356,9 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
 
   @override
   RuntimeTypesNeed computeRuntimeTypesNeed(
-      ResolutionWorldBuilder resolutionWorldBuilder, ClosedWorld closedWorld,
-      {bool enableTypeAssertions, bool strongMode}) {
+      ResolutionWorldBuilder resolutionWorldBuilder,
+      ClosedWorld closedWorld,
+      CompilerOptions options) {
     TypeVariableTests typeVariableTests = new TypeVariableTests(
         closedWorld.elementEnvironment,
         closedWorld.commonElements,
@@ -1309,7 +1385,6 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
       processedEntities.add(entity);
       if (entity is ClassEntity) {
         ClassEntity cls = entity;
-        assert(checkClass(cls));
         if (!_elementEnvironment.isGenericClass(cls)) return;
         if (classesNeedingTypeArguments.contains(cls)) return;
         classesNeedingTypeArguments.add(cls);
@@ -1331,6 +1406,12 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
       });
     }
 
+    Set<Local> localFunctions = options.strongMode
+        ? resolutionWorldBuilder.localFunctions.toSet()
+        : resolutionWorldBuilder.localFunctionsWithFreeTypeVariables.toSet();
+    Set<FunctionEntity> closurizedMembers =
+        resolutionWorldBuilder.closurizedMembersWithFreeTypeVariables.toSet();
+
     // Check local functions and closurized members.
     void checkClosures({DartType potentialSubtypeOf}) {
       bool checkFunctionType(FunctionType functionType) {
@@ -1345,31 +1426,50 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
         return false;
       }
 
-      if (strongMode) {
-        assert(!optimizeLocalSignaturesForStrongMode);
-        // TODO(johnniwinther): Optimize generation of signatures for Dart 2.
-        for (Local function in resolutionWorldBuilder.localFunctions) {
+      Set<Local> localFunctionsToRemove;
+      Set<FunctionEntity> closurizedMembersToRemove;
+      if (options.strongMode) {
+        for (Local function in localFunctions) {
           FunctionType functionType =
               _elementEnvironment.getLocalFunctionType(function);
-          functionType.forEachTypeVariable((TypeVariableType typeVariable) {
-            potentiallyNeedTypeArguments(typeVariable.element.typeDeclaration);
-          });
-          localFunctionsNeedingSignature.add(function);
+          if (potentialSubtypeOf == null ||
+              closedWorld.dartTypes.isPotentialSubtype(
+                  functionType, potentialSubtypeOf,
+                  assumeInstantiations:
+                      closedWorld.backendUsage.isGenericInstantiationUsed)) {
+            functionType.forEachTypeVariable((TypeVariableType typeVariable) {
+              Entity typeDeclaration = typeVariable.element.typeDeclaration;
+              if (!processedEntities.contains(typeDeclaration)) {
+                potentiallyNeedTypeArguments(typeDeclaration);
+              }
+            });
+            localFunctionsNeedingSignature.add(function);
+            localFunctionsToRemove ??= new Set<Local>();
+            localFunctionsToRemove.add(function);
+          }
         }
       } else {
-        for (Local function
-            in resolutionWorldBuilder.localFunctionsWithFreeTypeVariables) {
+        for (Local function in localFunctions) {
           if (checkFunctionType(
               _elementEnvironment.getLocalFunctionType(function))) {
             localFunctionsNeedingSignature.add(function);
+            localFunctionsToRemove ??= new Set<Local>();
+            localFunctionsToRemove.add(function);
           }
         }
       }
-      for (FunctionEntity function
-          in resolutionWorldBuilder.closurizedMembersWithFreeTypeVariables) {
+      for (FunctionEntity function in closurizedMembers) {
         if (checkFunctionType(_elementEnvironment.getFunctionType(function))) {
           methodsNeedingSignature.add(function);
+          closurizedMembersToRemove ??= new Set<FunctionEntity>();
+          closurizedMembersToRemove.add(function);
         }
+      }
+      if (localFunctionsToRemove != null) {
+        localFunctions.removeAll(localFunctionsToRemove);
+      }
+      if (closurizedMembersToRemove != null) {
+        closurizedMembers.removeAll(closurizedMembersToRemove);
       }
     }
 
@@ -1393,6 +1493,10 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
           if (type.isFunctionType) {
             checkClosures(potentialSubtypeOf: type);
           }
+          if (type is FutureOrType) {
+            potentiallyNeedTypeArguments(
+                closedWorld.commonElements.futureClass);
+          }
         }
       });
     }
@@ -1400,7 +1504,7 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
     processChecks(typeVariableTests.explicitIsChecks);
     processChecks(typeVariableTests.implicitIsChecks);
 
-    if (enableTypeAssertions) {
+    if (options.enableTypeAssertions) {
       checkClosures();
     }
 
@@ -1410,6 +1514,38 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
     methodsUsingTypeVariableLiterals.forEach(potentiallyNeedTypeArguments);
     localFunctionsUsingTypeVariableLiterals
         .forEach(potentiallyNeedTypeArguments);
+
+    if (resolutionWorldBuilder.isMemberUsed(
+        closedWorld.commonElements.invocationTypeArgumentGetter)) {
+      // If `Invocation.typeArguments` is live, mark all user-defined
+      // implementations of `noSuchMethod` as needing type arguments.
+      for (MemberEntity member in resolutionWorldBuilder.userNoSuchMethods) {
+        potentiallyNeedTypeArguments(member);
+      }
+    }
+
+    if (options.parameterCheckPolicy.isEmitted) {
+      void checkFunction(Entity function, FunctionType type) {
+        for (FunctionTypeVariable typeVariable in type.typeVariables) {
+          DartType bound = typeVariable.bound;
+          if (!bound.isDynamic &&
+              !bound.isVoid &&
+              bound != closedWorld.commonElements.objectType) {
+            potentiallyNeedTypeArguments(function);
+            break;
+          }
+        }
+      }
+
+      for (FunctionEntity method in resolutionWorldBuilder.genericMethods) {
+        checkFunction(method, _elementEnvironment.getFunctionType(method));
+      }
+
+      for (Local function in resolutionWorldBuilder.genericLocalFunctions) {
+        checkFunction(
+            function, _elementEnvironment.getLocalFunctionType(function));
+      }
+    }
 
     Set<Selector> selectorsNeedingTypeArguments = new Set<Selector>();
     typeVariableTests
@@ -1456,35 +1592,6 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
       Set<Local> localFunctionsNeedingTypeArguments,
       Set<Selector> selectorsNeedingTypeArguments) {
     return new RuntimeTypesNeedImpl(
-        _elementEnvironment,
-        backendUsage,
-        classesNeedingTypeArguments,
-        methodsNeedingSignature,
-        methodsNeedingTypeArguments,
-        localFunctionsNeedingSignature,
-        localFunctionsNeedingTypeArguments,
-        selectorsNeedingTypeArguments);
-  }
-}
-
-class ResolutionRuntimeTypesNeedBuilderImpl
-    extends RuntimeTypesNeedBuilderImpl {
-  ResolutionRuntimeTypesNeedBuilderImpl(
-      ElementEnvironment elementEnvironment, DartTypes types)
-      : super(elementEnvironment, types);
-
-  bool checkClass(ClassElement cls) => cls.isDeclaration;
-
-  RuntimeTypesNeed _createRuntimeTypesNeed(
-      ElementEnvironment elementEnvironment,
-      BackendUsage backendUsage,
-      Set<ClassEntity> classesNeedingTypeArguments,
-      Set<FunctionEntity> methodsNeedingSignature,
-      Set<FunctionEntity> methodsNeedingTypeArguments,
-      Set<Local> localFunctionsNeedingSignature,
-      Set<Local> localFunctionsNeedingTypeArguments,
-      Set<Selector> selectorsNeedingTypeArguments) {
-    return new _ResolutionRuntimeTypesNeed(
         _elementEnvironment,
         backendUsage,
         classesNeedingTypeArguments,
@@ -1548,8 +1655,7 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
   }
 
   RuntimeTypesChecks computeRequiredChecks(
-      CodegenWorldBuilder codegenWorldBuilder,
-      {bool strongMode}) {
+      CodegenWorldBuilder codegenWorldBuilder, CompilerOptions options) {
     TypeVariableTests typeVariableTests = new TypeVariableTests(
         _elementEnvironment, _commonElements, _types, codegenWorldBuilder,
         forRtiNeeds: false);
@@ -1561,7 +1667,6 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
       classUseMapForTesting = classUseMap;
     }
 
-    Set<ClassEntity> checkedClasses = new Set<ClassEntity>();
     Set<FunctionType> checkedFunctionTypes = new Set<FunctionType>();
 
     TypeVisitor liveTypeVisitor =
@@ -1583,20 +1688,16 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
       }
     });
 
-    codegenWorldBuilder.instantiatedTypes.forEach((t) {
-      liveTypeVisitor.visitType(t, false);
+    codegenWorldBuilder.instantiatedTypes.forEach((InterfaceType type) {
+      liveTypeVisitor.visitType(type, false);
       ClassUse classUse =
-          classUseMap.putIfAbsent(t.element, () => new ClassUse());
+          classUseMap.putIfAbsent(type.element, () => new ClassUse());
       classUse.instance = true;
-    });
-
-    for (InterfaceType instantiatedType
-        in codegenWorldBuilder.instantiatedTypes) {
-      FunctionType callType = _types.getCallType(instantiatedType);
+      FunctionType callType = _types.getCallType(type);
       if (callType != null) {
         testedTypeVisitor.visitType(callType, false);
       }
-    }
+    });
 
     for (FunctionEntity element
         in codegenWorldBuilder.staticFunctionsNeedingGetter) {
@@ -1618,11 +1719,14 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
     codegenWorldBuilder.forEachStaticTypeArgument(processMethodTypeArguments);
     codegenWorldBuilder.forEachDynamicTypeArgument(processMethodTypeArguments);
 
+    bool isFunctionChecked = false;
+
     void processCheckedType(DartType t) {
       if (t is FunctionType) {
         checkedFunctionTypes.add(t);
       } else if (t is InterfaceType) {
-        checkedClasses.add(t.element);
+        isFunctionChecked =
+            isFunctionChecked || t.element == _commonElements.functionClass;
       }
       testedTypeVisitor.visitType(t, false);
     }
@@ -1638,14 +1742,13 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
     // In Dart 2, a closure class implements the function type of its `call`
     // method and needs a signature function for testing its function type
     // against typedefs and function types that are used in is-checks.
-    if (checkedClasses.contains(_commonElements.functionClass) ||
-        checkedFunctionTypes.isNotEmpty) {
+    if (isFunctionChecked || checkedFunctionTypes.isNotEmpty) {
       Set<ClassEntity> processedClasses = new Set<ClassEntity>();
 
       void processClass(ClassEntity cls) {
         ClassFunctionType functionType = _computeFunctionType(
             _elementEnvironment, cls,
-            strongMode: strongMode);
+            strongMode: options.strongMode);
         if (functionType != null) {
           ClassUse classUse =
               classUseMap.putIfAbsent(cls, () => new ClassUse());
@@ -1671,6 +1774,20 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
       liveClasses.forEach(processSuperClasses);
     }
 
+    if (options.parameterCheckPolicy.isEmitted) {
+      for (FunctionEntity method in codegenWorldBuilder.genericMethods) {
+        if (_rtiNeed.methodNeedsTypeArguments(method)) {
+          for (TypeVariableType typeVariable
+              in _elementEnvironment.getFunctionTypeVariables(method)) {
+            DartType bound =
+                _elementEnvironment.getTypeVariableBound(typeVariable.element);
+            processCheckedType(bound);
+            liveTypeVisitor.visit(bound, true);
+          }
+        }
+      }
+    }
+
     cachedRequiredChecks = _computeChecks(classUseMap);
     rtiChecksBuilderClosed = true;
     return new _RuntimeTypesChecks(this, cachedRequiredChecks);
@@ -1684,13 +1801,26 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
 ClassFunctionType _computeFunctionType(
     ElementEnvironment _elementEnvironment, ClassEntity cls,
     {bool strongMode}) {
-  if (strongMode && !cls.isClosure) return null;
+  FunctionEntity signatureFunction;
+  if (cls.isClosure) {
+    // Use signature function if available.
+    signatureFunction =
+        _elementEnvironment.lookupLocalClassMember(cls, Identifiers.signature);
+    if (signatureFunction == null && strongMode) {
+      // In Dart 2, a closure only needs its function type if it has a
+      // signature function.
+      return null;
+    }
+  } else if (strongMode) {
+    // Only closures have function type in Dart 2.
+    return null;
+  }
   MemberEntity call =
       _elementEnvironment.lookupLocalClassMember(cls, Identifiers.call);
   if (call != null && call.isFunction) {
     FunctionEntity callFunction = call;
     FunctionType callType = _elementEnvironment.getFunctionType(callFunction);
-    return new ClassFunctionType(callFunction, callType);
+    return new ClassFunctionType(callFunction, callType, signatureFunction);
   }
   return null;
 }
@@ -1701,10 +1831,11 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
   final CommonElements commonElements;
   final TypeRepresentationGenerator _representationGenerator;
 
-  RuntimeTypesEncoderImpl(this.namer, this._elementEnvironment,
-      this.commonElements, bool strongMode)
-      : _representationGenerator =
-            new TypeRepresentationGenerator(namer, strongMode);
+  RuntimeTypesEncoderImpl(this.namer, NativeBasicData nativeData,
+      this._elementEnvironment, this.commonElements, {bool strongMode})
+      : _representationGenerator = new TypeRepresentationGenerator(
+            namer, nativeData,
+            strongMode: strongMode);
 
   @override
   bool isSimpleFunctionType(FunctionType type) {
@@ -1722,6 +1853,32 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
   @override
   jsAst.Template get templateForIsFunctionType {
     return _representationGenerator.templateForIsFunctionType;
+  }
+
+  /// Returns the JavaScript template to determine at runtime if a type object
+  /// is a FutureOr type.
+  @override
+  jsAst.Template get templateForIsFutureOrType {
+    return _representationGenerator.templateForIsFutureOrType;
+  }
+
+  /// Returns the JavaScript template to determine at runtime if a type object
+  /// is the void type.
+  @override
+  jsAst.Template get templateForIsVoidType {
+    return _representationGenerator.templateForIsVoidType;
+  }
+
+  /// Returns the JavaScript template to determine at runtime if a type object
+  /// is the dynamic type.
+  @override
+  jsAst.Template get templateForIsDynamicType {
+    return _representationGenerator.templateForIsDynamicType;
+  }
+
+  @override
+  jsAst.Template get templateForIsJsInteropTypeArgument {
+    return _representationGenerator.templateForIsJsInteropTypeArgument;
   }
 
   @override
@@ -1813,6 +1970,13 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
       return new jsAst.LiteralNull();
     }
 
+    if (substitution.isJsInterop) {
+      return js(
+          'function() { return # }',
+          _representationGenerator
+              .getJsInteropTypeArguments(substitution.length));
+    }
+
     jsAst.Expression declaration(TypeVariableType variable) {
       return new jsAst.Parameter(getVariableName(variable.element.name));
     }
@@ -1879,8 +2043,9 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
 }
 
 class TypeRepresentationGenerator
-    implements ResolutionDartTypeVisitor<jsAst.Expression, Emitter> {
+    implements DartTypeVisitor<jsAst.Expression, Emitter> {
   final Namer namer;
+  final NativeBasicData _nativeData;
   // If true, compile using strong mode.
   final bool _strongMode;
   OnVariableCallback onVariable;
@@ -1888,7 +2053,8 @@ class TypeRepresentationGenerator
   Map<TypeVariableType, jsAst.Expression> typedefBindings;
   List<FunctionTypeVariable> functionTypeVariables = <FunctionTypeVariable>[];
 
-  TypeRepresentationGenerator(this.namer, this._strongMode);
+  TypeRepresentationGenerator(this.namer, this._nativeData, {bool strongMode})
+      : _strongMode = strongMode;
 
   /**
    * Creates a type representation for [type]. [onVariable] is called to provide
@@ -1901,9 +2067,8 @@ class TypeRepresentationGenerator
       ShouldEncodeTypedefCallback encodeTypedef) {
     assert(typedefBindings == null);
     this.onVariable = onVariable;
-    this.shouldEncodeTypedef = (encodeTypedef != null)
-        ? encodeTypedef
-        : (ResolutionTypedefType type) => false;
+    this.shouldEncodeTypedef =
+        (encodeTypedef != null) ? encodeTypedef : (TypedefType type) => false;
     jsAst.Expression representation = visit(type, emitter);
     this.onVariable = null;
     this.shouldEncodeTypedef = null;
@@ -1917,6 +2082,9 @@ class TypeRepresentationGenerator
 
   jsAst.Expression getDynamicValue() => js('null');
 
+  jsAst.Expression getVoidValue() => js('-1');
+
+  jsAst.Expression getJsInteropTypeArgumentValue() => js('-2');
   @override
   jsAst.Expression visit(DartType type, Emitter emitter) =>
       type.accept(this, emitter);
@@ -1944,8 +2112,23 @@ class TypeRepresentationGenerator
     return getDynamicValue();
   }
 
+  jsAst.Expression getJsInteropTypeArguments(int count,
+      {jsAst.Expression name}) {
+    List<jsAst.Expression> elements = <jsAst.Expression>[];
+    if (name != null) {
+      elements.add(name);
+    }
+    for (int i = 0; i < count; i++) {
+      elements.add(getJsInteropTypeArgumentValue());
+    }
+    return new jsAst.ArrayInitializer(elements);
+  }
+
   jsAst.Expression visitInterfaceType(InterfaceType type, Emitter emitter) {
     jsAst.Expression name = getJavaScriptClassName(type.element, emitter);
+    if (_nativeData.isJsInteropClass(type.element)) {
+      return getJsInteropTypeArguments(type.typeArguments.length, name: name);
+    }
     return type.treatAsRaw
         ? name
         : visitList(type.typeArguments, emitter, head: name);
@@ -1974,6 +2157,28 @@ class TypeRepresentationGenerator
     return jsAst.js.expressionTemplateFor("'${namer.functionTypeTag}' in #");
   }
 
+  /// Returns the JavaScript template to determine at runtime if a type object
+  /// is a FutureOr type.
+  jsAst.Template get templateForIsFutureOrType {
+    return jsAst.js.expressionTemplateFor("'${namer.futureOrTag}' in #");
+  }
+
+  /// Returns the JavaScript template to determine at runtime if a type object
+  /// is the void type.
+  jsAst.Template get templateForIsVoidType {
+    return jsAst.js.expressionTemplateFor("# === -1");
+  }
+
+  /// Returns the JavaScript template to determine at runtime if a type object
+  /// is the dynamic type.
+  jsAst.Template get templateForIsDynamicType {
+    return jsAst.js.expressionTemplateFor("# == null");
+  }
+
+  jsAst.Template get templateForIsJsInteropTypeArgument {
+    return jsAst.js.expressionTemplateFor("# === -2");
+  }
+
   jsAst.Expression visitFunctionType(FunctionType type, Emitter emitter) {
     List<jsAst.Property> properties = <jsAst.Property>[];
 
@@ -1998,7 +2203,7 @@ class TypeRepresentationGenerator
           visitList(type.typeVariables.map((v) => v.bound).toList(), emitter));
     }
 
-    if (type.returnType.isVoid) {
+    if (!_strongMode && type.returnType.isVoid) {
       addProperty(namer.functionTypeVoidReturnTag, js('true'));
     } else if (!type.returnType.treatAsDynamic) {
       addProperty(
@@ -2034,18 +2239,11 @@ class TypeRepresentationGenerator
     return new jsAst.ObjectInitializer(properties);
   }
 
-  jsAst.Expression visitMalformedType(MalformedType type, Emitter emitter) {
-    // Treat malformed types as dynamic at runtime.
-    return js('null');
-  }
-
   jsAst.Expression visitVoidType(VoidType type, Emitter emitter) {
-    // TODO(ahe): Reify void type ("null" means "dynamic").
-    return js('null');
+    return _strongMode ? getVoidValue() : getDynamicValue();
   }
 
-  jsAst.Expression visitTypedefType(
-      ResolutionTypedefType type, Emitter emitter) {
+  jsAst.Expression visitTypedefType(TypedefType type, Emitter emitter) {
     bool shouldEncode = shouldEncodeTypedef(type);
     DartType unaliasedType = type.unaliased;
 
@@ -2073,9 +2271,7 @@ class TypeRepresentationGenerator
       // inputs to correspond to type variables AND typedefs.
       typedefBindings = <TypeVariableType, jsAst.Expression>{};
       type.forEachTypeVariable((TypeVariableType variable) {
-        if (variable is! MethodTypeVariableType) {
-          typedefBindings[variable] = onVariable(variable);
-        }
+        typedefBindings[variable] = onVariable(variable);
       });
     }
 
@@ -2099,6 +2295,24 @@ class TypeRepresentationGenerator
     } else {
       return finish(visit(unaliasedType, emitter));
     }
+  }
+
+  @override
+  jsAst.Expression visitFutureOrType(FutureOrType type, Emitter emitter) {
+    List<jsAst.Property> properties = <jsAst.Property>[];
+
+    void addProperty(String name, jsAst.Expression value) {
+      properties.add(new jsAst.Property(js.string(name), value));
+    }
+
+    // Type representations for FutureOr have a property which is a tag marking
+    // them as FutureOr types. The value is not used, so '1' is just a dummy.
+    addProperty(namer.futureOrTag, js.number(1));
+    if (!type.typeArgument.treatAsDynamic) {
+      addProperty(namer.futureOrTypeTag, visit(type.typeArgument, emitter));
+    }
+
+    return new jsAst.ObjectInitializer(properties);
   }
 }
 
@@ -2127,7 +2341,7 @@ class TypeCheckMapping implements TypeChecks {
   }
 }
 
-class ArgumentCollector extends ResolutionDartTypeVisitor<dynamic, bool> {
+class ArgumentCollector extends DartTypeVisitor<dynamic, bool> {
   final Set<ClassEntity> classes = new Set<ClassEntity>();
 
   void addClass(ClassEntity cls) {
@@ -2146,7 +2360,7 @@ class ArgumentCollector extends ResolutionDartTypeVisitor<dynamic, bool> {
     }
   }
 
-  visitTypedefType(ResolutionTypedefType type, bool isTypeArgument) {
+  visitTypedefType(TypedefType type, bool isTypeArgument) {
     collect(type.unaliased, isTypeArgument: isTypeArgument);
   }
 
@@ -2163,8 +2377,7 @@ class ArgumentCollector extends ResolutionDartTypeVisitor<dynamic, bool> {
   }
 }
 
-class FunctionArgumentCollector
-    extends ResolutionDartTypeVisitor<dynamic, bool> {
+class FunctionArgumentCollector extends DartTypeVisitor<dynamic, bool> {
   final Set<ClassEntity> classes = new Set<ClassEntity>();
 
   FunctionArgumentCollector();
@@ -2173,13 +2386,13 @@ class FunctionArgumentCollector
     visit(type, inFunctionType);
   }
 
-  collectAll(List<DartType> types, {bool inFunctionType: false}) {
+  collectAll(Iterable<DartType> types, {bool inFunctionType: false}) {
     for (DartType type in types) {
       visit(type, inFunctionType);
     }
   }
 
-  visitTypedefType(ResolutionTypedefType type, bool inFunctionType) {
+  visitTypedefType(TypedefType type, bool inFunctionType) {
     collect(type.unaliased, inFunctionType: inFunctionType);
   }
 
@@ -2195,6 +2408,8 @@ class FunctionArgumentCollector
     collectAll(type.parameterTypes, inFunctionType: true);
     collectAll(type.optionalParameterTypes, inFunctionType: true);
     collectAll(type.namedParameterTypes, inFunctionType: true);
+    collectAll(type.typeVariables.map((type) => type.bound),
+        inFunctionType: true);
   }
 }
 
@@ -2210,24 +2425,37 @@ class Substitution {
   final bool isFunction;
   final List<DartType> arguments;
   final List<DartType> parameters;
+  final int length;
 
   const Substitution.trivial()
       : isTrivial = true,
         isFunction = false,
+        length = null,
         arguments = const <DartType>[],
         parameters = const <DartType>[];
 
   Substitution.list(this.arguments)
       : isTrivial = false,
         isFunction = false,
+        length = null,
         parameters = const <DartType>[];
 
   Substitution.function(this.arguments, this.parameters)
       : isTrivial = false,
-        isFunction = true;
+        isFunction = true,
+        length = null;
+
+  Substitution.jsInterop(this.length)
+      : isTrivial = false,
+        isFunction = false,
+        arguments = const <DartType>[],
+        parameters = const <DartType>[];
+
+  bool get isJsInterop => length != null;
 
   String toString() => 'Substitution(isTrivial=$isTrivial,'
-      'isFunction=$isFunction,arguments=$arguments,parameters=$parameters)';
+      'isFunction=$isFunction,isJsInterop=$isJsInterop,arguments=$arguments,'
+      'parameters=$parameters,length=$length)';
 }
 
 /**
@@ -2247,7 +2475,10 @@ class TypeCheck {
       'TypeCheck(cls=$cls,needsIs=$needsIs,substitution=$substitution)';
 }
 
-class TypeVisitor extends ResolutionDartTypeVisitor<void, bool> {
+class TypeVisitor extends DartTypeVisitor<void, bool> {
+  Set<FunctionTypeVariable> _visitedFunctionTypeVariables =
+      new Set<FunctionTypeVariable>();
+
   final void Function(ClassEntity entity, {bool inTypeArgument}) onClass;
   final void Function(TypeVariableEntity entity, {bool inTypeArgument})
       onTypeVariable;
@@ -2290,6 +2521,7 @@ class TypeVisitor extends ResolutionDartTypeVisitor<void, bool> {
     visitTypes(type.parameterTypes, true);
     visitTypes(type.optionalParameterTypes, true);
     visitTypes(type.namedParameterTypes, true);
+    _visitedFunctionTypeVariables.removeAll(type.typeVariables);
   }
 
   @override
@@ -2299,7 +2531,9 @@ class TypeVisitor extends ResolutionDartTypeVisitor<void, bool> {
 
   @override
   visitFunctionTypeVariable(FunctionTypeVariable type, bool inTypeArgument) {
-    visitType(type.bound, inTypeArgument);
+    if (_visitedFunctionTypeVariables.add(type)) {
+      visitType(type.bound, inTypeArgument);
+    }
   }
 }
 
@@ -2334,12 +2568,17 @@ class ClassChecks {
 /// a class.
 class ClassFunctionType {
   /// The `call` function that defines the function type.
-  final MemberEntity callFunction;
+  final FunctionEntity callFunction;
 
   /// The type of the `call` function.
   final FunctionType callType;
 
-  ClassFunctionType(this.callFunction, this.callType);
+  /// The signature function for the function type.
+  ///
+  /// This is used for Dart 2.
+  final FunctionEntity signatureFunction;
+
+  ClassFunctionType(this.callFunction, this.callType, this.signatureFunction);
 }
 
 /// Runtime type usage for a class.

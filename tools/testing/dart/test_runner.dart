@@ -34,6 +34,7 @@ import 'utils.dart';
 const int browserCrashExitCode = -10;
 const int parseFailExitCode = 245;
 const int slowTimeoutMultiplier = 4;
+const int extraSlowTimeoutMultiplier = 8;
 const int nonUtfFakeExitCode = 0xFFFD;
 
 const cannotOpenDisplayMessage = 'Gtk-WARNING **: cannot open display';
@@ -175,6 +176,8 @@ class TestCase extends UniqueObject {
     var result = configuration.timeout;
     if (expectedOutcomes.contains(Expectation.slow)) {
       result *= slowTimeoutMultiplier;
+    } else if (expectedOutcomes.contains(Expectation.extraSlow)) {
+      result *= extraSlowTimeoutMultiplier;
     }
     return result;
   }
@@ -253,13 +256,13 @@ class OutputLog {
 
   void _checkUtf8(List<int> data) {
     try {
-      UTF8.decode(data, allowMalformed: false);
+      utf8.decode(data, allowMalformed: false);
     } on FormatException {
       hasNonUtf8 = true;
-      String malformed = UTF8.decode(data, allowMalformed: true);
+      String malformed = utf8.decode(data, allowMalformed: true);
       data
         ..clear()
-        ..addAll(UTF8.encode(malformed))
+        ..addAll(utf8.encode(malformed))
         ..addAll("""
 
   *****************************************************************************
@@ -671,7 +674,7 @@ class BatchRunnerProcess {
 
   String _createArgumentsLine(List<String> arguments, int timeout) {
     if (_useJson) {
-      return "${JSON.encode(arguments)}\n";
+      return "${jsonEncode(arguments)}\n";
     } else {
       return arguments.join(' ') + '\n';
     }
@@ -739,7 +742,7 @@ class BatchRunnerProcess {
       _process = p;
 
       Stream<String> _stdoutStream =
-          _process.stdout.transform(UTF8.decoder).transform(new LineSplitter());
+          _process.stdout.transform(utf8.decoder).transform(new LineSplitter());
       _stdoutSubscription = _stdoutStream.listen((String line) {
         if (line.startsWith('>>> TEST')) {
           _status = line;
@@ -760,7 +763,7 @@ class BatchRunnerProcess {
       _stdoutSubscription.pause();
 
       Stream<String> _stderrStream =
-          _process.stderr.transform(UTF8.decoder).transform(new LineSplitter());
+          _process.stderr.transform(utf8.decoder).transform(new LineSplitter());
       _stderrSubscription = _stderrStream.listen((String line) {
         if (line.startsWith('>>> EOF STDERR')) {
           _stderrSubscription.pause();
@@ -1271,7 +1274,7 @@ class CommandExecutorImpl implements CommandExecutor {
       if (result.exitCode != 0) break;
     }
     return createCommandOutput(command, result.exitCode, result.timedOut,
-        UTF8.encode('$writer'), [], stopwatch.elapsed, false);
+        utf8.encode('$writer'), [], stopwatch.elapsed, false);
   }
 
   BatchRunnerProcess _getBatchRunner(String identifier) {

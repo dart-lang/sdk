@@ -69,7 +69,9 @@ void StackResource::UnwindAbove(Thread* thread, StackResource* new_top) {
 }
 
 #if defined(DEBUG)
-NoSafepointScope::NoSafepointScope() : StackResource(Thread::Current()) {
+NoSafepointScope::NoSafepointScope(Thread* current_thread)
+    : StackResource(current_thread != nullptr ? current_thread
+                                              : Thread::Current()) {
   thread()->IncrementNoSafepointScopeDepth();
 }
 

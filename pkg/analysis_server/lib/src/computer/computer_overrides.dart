@@ -160,7 +160,7 @@ class _OverriddenElementsFinder {
    */
   OverriddenElements find() {
     _visited.clear();
-    _addSuperOverrides(_class.supertype);
+    _addSuperOverrides(_class.type, withThisType: false);
     _visited.clear();
     _addInterfaceOverrides(_class.type, false);
     _superElements.forEach(_interfaceElements.remove);
@@ -189,20 +189,23 @@ class _OverriddenElementsFinder {
     _addInterfaceOverrides(type.superclass, checkType);
   }
 
-  void _addSuperOverrides(InterfaceType type) {
+  void _addSuperOverrides(InterfaceType type, {bool withThisType: true}) {
     if (type == null) {
       return;
     }
     if (!_visited.add(type)) {
       return;
     }
-    // this type
-    Element element = _lookupMember(type.element);
-    if (element != null && !_superElements.contains(element)) {
-      _superElements.add(element);
+
+    if (withThisType) {
+      Element element = _lookupMember(type.element);
+      if (element != null && !_superElements.contains(element)) {
+        _superElements.add(element);
+      }
     }
-    // super
+
     _addSuperOverrides(type.superclass);
+    type.mixins.forEach(_addSuperOverrides);
   }
 
   Element _lookupMember(ClassElement classElement) {

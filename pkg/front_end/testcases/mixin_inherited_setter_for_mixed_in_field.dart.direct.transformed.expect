@@ -1,42 +1,46 @@
+library;
+import self as self;
+import "dart:core" as core;
+
 class A extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
 }
-class C<T extends mix::A> extends core::Object {
-  field mix::C::T _field = null;
+class C<T extends self::A = dynamic> extends core::Object {
+  field self::C::T _field = null;
   synthetic constructor •() → void
     : super core::Object::•()
     ;
-  method foo(mix::C::T x) → dynamic {
-    this.{mix::C::_field} = x;
+  method foo(self::C::T x) → dynamic {
+    this.{self::C::_field} = x;
   }
 }
-class D extends mix::C<mix::B> {
+class D extends self::C<self::B> {
   synthetic constructor •() → void
-    : super mix::C::•()
+    : super self::C::•()
     ;
 }
-abstract class _Foo&Object&C extends core::Object implements mix::C<mix::B> {
-  field mix::B _field = null;
+abstract class _Foo&Object&C extends core::Object implements self::C<self::B> {
+  field self::B _field = null;
   synthetic constructor •() → void
     : super core::Object::•()
     ;
-  method foo(mix::B x) → dynamic {
-    this.{mix::C::_field} = x;
+  method foo(self::B x) → dynamic {
+    this.{self::C::_field} = x;
   }
 }
-class Foo extends mix::_Foo&Object&C {
+class Foo extends self::_Foo&Object&C {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
 }
-class B extends mix::A {
+class B extends self::A {
   synthetic constructor •() → void
-    : super mix::A::•()
+    : super self::A::•()
     ;
 }
 static method main() → dynamic {
-  dynamic foo = new mix::Foo::•();
-  foo.foo(new mix::B::•());
+  dynamic foo = new self::Foo::•();
+  foo.foo(new self::B::•());
 }

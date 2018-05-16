@@ -27,6 +27,10 @@ void defineTests() {
     });
 
     for (String benchmarkId in benchmarks) {
+      if (benchmarkId == 'analysis-flutter-analyze') {
+        continue;
+      }
+
       test(benchmarkId, () {
         ProcessResult r = Process.runSync(
           Platform.resolvedExecutable,

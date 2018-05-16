@@ -13,30 +13,30 @@ class TypeMaskFactory {
   static TypeMask inferredReturnTypeForElement(
       FunctionEntity element, GlobalTypeInferenceResults results) {
     return results.resultOfMember(element).returnType ??
-        results.closedWorld.commonMasks.dynamicType;
+        results.closedWorld.abstractValueDomain.dynamicType;
   }
 
   static TypeMask inferredTypeForMember(
       MemberEntity element, GlobalTypeInferenceResults results) {
     return results.resultOfMember(element).type ??
-        results.closedWorld.commonMasks.dynamicType;
+        results.closedWorld.abstractValueDomain.dynamicType;
   }
 
   static TypeMask inferredTypeForParameter(
       Local element, GlobalTypeInferenceResults results) {
     return results.resultOfParameter(element).type ??
-        results.closedWorld.commonMasks.dynamicType;
+        results.closedWorld.abstractValueDomain.dynamicType;
   }
 
   static TypeMask inferredTypeForSelector(
       Selector selector, TypeMask mask, GlobalTypeInferenceResults results) {
     return results.typeOfSelector(selector, mask) ??
-        results.closedWorld.commonMasks.dynamicType;
+        results.closedWorld.abstractValueDomain.dynamicType;
   }
 
   static TypeMask fromNativeBehavior(
       native.NativeBehavior nativeBehavior, ClosedWorld closedWorld) {
-    CommonMasks commonMasks = closedWorld.commonMasks;
+    CommonMasks commonMasks = closedWorld.abstractValueDomain;
     var typesReturned = nativeBehavior.typesReturned;
     if (typesReturned.isEmpty) return commonMasks.dynamicType;
 

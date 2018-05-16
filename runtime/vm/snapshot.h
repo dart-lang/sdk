@@ -161,19 +161,36 @@ class Snapshot {
   };
   static const char* KindToCString(Kind kind);
 
-  static const int kHeaderSize = 2 * sizeof(int64_t);
-  static const int kLengthIndex = 0;
-  static const int kSnapshotFlagIndex = 1;
-
   static const Snapshot* SetupFromBuffer(const void* raw_memory);
 
-  // Getters.
-  const uint8_t* content() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
-  intptr_t length() const {
-    return static_cast<intptr_t>(ReadUnaligned(&unaligned_length_));
+  static const int32_t kMagicValue = 0xdcdcf5f5;
+  static const intptr_t kMagicOffset = 0;
+  static const intptr_t kMagicSize = sizeof(int32_t);
+  static const intptr_t kLengthOffset = kMagicOffset + kMagicSize;
+  static const intptr_t kLengthSize = sizeof(int64_t);
+  static const intptr_t kKindOffset = kLengthOffset + kLengthSize;
+  static const intptr_t kKindSize = sizeof(int64_t);
+  static const intptr_t kHeaderSize = kKindOffset + kKindSize;
+
+  // Accessors.
+  bool check_magic() const {
+    return Read<int32_t>(kMagicOffset) == kMagicValue;
   }
-  Kind kind() const {
-    return static_cast<Kind>(ReadUnaligned(&unaligned_kind_));
+  void set_magic() { return Write<int32_t>(kMagicOffset, kMagicValue); }
+  // Excluding the magic value from the size written in the buffer is needed
+  // so we give a proper version mismatch error for snapshots create before
+  // magic value was written by the VM instead of the embedder.
+  int64_t large_length() const {
+    return Read<int64_t>(kLengthOffset) + kMagicSize;
+  }
+  intptr_t length() const { return static_cast<intptr_t>(large_length()); }
+  void set_length(intptr_t value) {
+    return Write<int64_t>(kLengthOffset, value - kMagicSize);
+  }
+  Kind kind() const { return static_cast<Kind>(Read<int64_t>(kKindOffset)); }
+  void set_kind(Kind value) { return Write<int64_t>(kKindOffset, value); }
+  const uint8_t* content() const {
+    return reinterpret_cast<const uint8_t*>(this) + kHeaderSize;
   }
 
   static bool IsFull(Kind kind) {
@@ -185,20 +202,29 @@ class Snapshot {
 
   const uint8_t* Addr() const { return reinterpret_cast<const uint8_t*>(this); }
 
-  static intptr_t length_offset() {
-    return OFFSET_OF(Snapshot, unaligned_length_);
+  const uint8_t* DataImage() const {
+    if (!IncludesCode(kind())) {
+      return NULL;
+    }
+    uword offset = Utils::RoundUp(length(), OS::kMaxPreferredCodeAlignment);
+    return Addr() + offset;
   }
-  static intptr_t kind_offset() { return OFFSET_OF(Snapshot, unaligned_kind_); }
 
  private:
   // Prevent Snapshot from ever being allocated directly.
   Snapshot();
 
-  // The following fields are potentially unaligned.
-  int64_t unaligned_length_;  // Stream length.
-  int64_t unaligned_kind_;    // Kind of snapshot.
+  template <typename T>
+  T Read(intptr_t offset) const {
+    return ReadUnaligned(
+        reinterpret_cast<const T*>(reinterpret_cast<uword>(this) + offset));
+  }
 
-  // Variable length data follows here.
+  template <typename T>
+  void Write(intptr_t offset, T value) {
+    return StoreUnaligned(
+        reinterpret_cast<T*>(reinterpret_cast<uword>(this) + offset), value);
+  }
 
   DISALLOW_COPY_AND_ASSIGN(Snapshot);
 };
@@ -308,6 +334,7 @@ class SnapshotReader : public BaseReader {
   PassiveObject* PassiveObjectHandle() { return &pobj_; }
   Array* ArrayHandle() { return &array_; }
   Class* ClassHandle() { return &cls_; }
+  Code* CodeHandle() { return &code_; }
   String* StringHandle() { return &str_; }
   AbstractType* TypeHandle() { return &type_; }
   TypeArguments* TypeArgumentsHandle() { return &type_arguments_; }
@@ -353,6 +380,9 @@ class SnapshotReader : public BaseReader {
   PageSpace* old_space() const { return old_space_; }
 
  private:
+  void EnqueueTypePostprocessing(const AbstractType& type);
+  void RunDelayedTypePostprocessing();
+
   void EnqueueRehashingOfMap(const LinkedHashMap& map);
   RawObject* RunDelayedRehashingOfMaps();
 
@@ -416,6 +446,7 @@ class SnapshotReader : public BaseReader {
   Heap* heap_;            // Heap of the current isolate.
   PageSpace* old_space_;  // Old space of the current isolate.
   Class& cls_;            // Temporary Class handle.
+  Code& code_;            // Temporary Code handle.
   Object& obj_;           // Temporary Object handle.
   PassiveObject& pobj_;   // Temporary PassiveObject handle.
   Array& array_;          // Temporary Array handle.
@@ -432,6 +463,7 @@ class SnapshotReader : public BaseReader {
   UnhandledException& error_;      // Error handle.
   intptr_t max_vm_isolate_object_id_;
   ZoneGrowableArray<BackRefNode>* backward_references_;
+  GrowableObjectArray& types_to_postprocess_;
   GrowableObjectArray& objects_to_rehash_;
 
   friend class ApiError;
@@ -570,9 +602,10 @@ class BaseWriter : public StackResource {
   }
 
   void FillHeader(Snapshot::Kind kind) {
-    int64_t* data = reinterpret_cast<int64_t*>(stream_.buffer());
-    data[Snapshot::kLengthIndex] = stream_.bytes_written();
-    data[Snapshot::kSnapshotFlagIndex] = kind;
+    Snapshot* header = reinterpret_cast<Snapshot*>(stream_.buffer());
+    header->set_magic();
+    header->set_length(stream_.bytes_written());
+    header->set_kind(kind);
   }
 
   void FreeBuffer() {
@@ -751,6 +784,8 @@ class SnapshotWriter : public BaseWriter {
   friend class RawSubtypeTestCache;
   friend class RawTokenStream;
   friend class RawType;
+  friend class RawTypeRef;
+  friend class RawBoundedType;
   friend class RawTypeArguments;
   friend class RawTypeParameter;
   friend class RawUserTag;

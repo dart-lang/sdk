@@ -7,7 +7,7 @@ import "dart:io";
 import "package:expect/expect.dart";
 
 main() {
-  var ps = ProcessSignal.SIGINT.watch().listen((signal) {
+  var ps = ProcessSignal.sigint.watch().listen((signal) {
     Expect.fail("Unreachable");
   });
   throw "Death"; //# 01: runtime error

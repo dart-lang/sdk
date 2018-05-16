@@ -6,7 +6,6 @@ library js_backend.backend.impact_transformer;
 
 import '../universe/class_hierarchy_builder.dart' show ClassHierarchyBuilder;
 
-import '../closure.dart';
 import '../common.dart';
 import '../common_elements.dart';
 import '../common/backend_api.dart' show ImpactTransformer;
@@ -29,7 +28,6 @@ import 'backend_usage.dart';
 import 'checked_mode_helpers.dart';
 import 'custom_elements_analysis.dart';
 import 'interceptor_data.dart';
-import 'mirrors_data.dart';
 import 'namer.dart';
 import 'native_data.dart';
 import 'runtime_types.dart';
@@ -41,8 +39,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
   final BackendImpacts _impacts;
   final NativeBasicData _nativeBasicData;
   final NativeResolutionEnqueuer _nativeResolutionEnqueuer;
-  final BackendUsageBuilder _backendUsageBuider;
-  final MirrorsDataBuilder _mirrorsDataBuilder;
+  final BackendUsageBuilder _backendUsageBuilder;
   final CustomElementsResolutionAnalysis _customElementsResolutionAnalysis;
   final RuntimeTypesNeedBuilder _rtiNeedBuilder;
   final ClassHierarchyBuilder _classHierarchyBuilder;
@@ -54,8 +51,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       this._impacts,
       this._nativeBasicData,
       this._nativeResolutionEnqueuer,
-      this._backendUsageBuider,
-      this._mirrorsDataBuilder,
+      this._backendUsageBuilder,
       this._customElementsResolutionAnalysis,
       this._rtiNeedBuilder,
       this._classHierarchyBuilder);
@@ -67,7 +63,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
 
     void registerImpact(BackendImpact impact) {
       impact.registerImpact(transformed, _elementEnvironment);
-      _backendUsageBuider.processBackendImpact(impact);
+      _backendUsageBuilder.processBackendImpact(impact);
     }
 
     for (Feature feature in worldImpact.features) {
@@ -110,6 +106,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           break;
         case Feature.GENERIC_INSTANTIATION:
           registerImpact(_impacts.genericInstantiation);
+          _backendUsageBuilder.isGenericInstantiationUsed = true;
           break;
         case Feature.LAZY_FIELD:
           registerImpact(_impacts.lazyField);
@@ -150,6 +147,9 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
         case Feature.TYPE_VARIABLE_BOUNDS_CHECK:
           registerImpact(_impacts.typeVariableBoundCheck);
           break;
+        case Feature.LOAD_LIBRARY:
+          registerImpact(_impacts.loadLibrary);
+          break;
       }
     }
 
@@ -169,8 +169,18 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           onIsCheck(type, transformed);
           hasAsCast = true;
           break;
+        case TypeUseKind.IMPLICIT_CAST:
+          if (_options.implicitDowncastCheckPolicy.isEmitted) {
+            onIsCheck(type, transformed);
+          }
+          break;
+        case TypeUseKind.PARAMETER_CHECK:
+          if (_options.parameterCheckPolicy.isEmitted) {
+            onIsCheck(type, transformed);
+          }
+          break;
         case TypeUseKind.CHECKED_MODE_CHECK:
-          if (_options.enableTypeAssertions) {
+          if (_options.assignmentCheckPolicy.isEmitted) {
             onIsCheck(type, transformed);
           }
           break;
@@ -229,9 +239,6 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
 
     if (worldImpact.constSymbolNames.isNotEmpty) {
       registerImpact(_impacts.constSymbol);
-      for (String constSymbolName in worldImpact.constSymbolNames) {
-        _mirrorsDataBuilder.registerConstSymbol(constSymbolName);
-      }
     }
 
     for (StaticUse staticUse in worldImpact.staticUses) {
@@ -241,7 +248,9 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           Local closure = staticUse.element;
           FunctionType type = _elementEnvironment.getLocalFunctionType(closure);
           if (type.containsTypeVariables ||
-              (_options.strongMode && !optimizeLocalSignaturesForStrongMode)) {
+              // TODO(johnniwinther): Can we avoid the need for signatures in
+              // Dart 2?
+              _options.strongMode) {
             registerImpact(_impacts.computeSignature);
           }
           break;
@@ -290,7 +299,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
   void onIsCheck(DartType type, TransformedWorldImpact transformed) {
     void registerImpact(BackendImpact impact) {
       impact.registerImpact(transformed, _elementEnvironment);
-      _backendUsageBuider.processBackendImpact(impact);
+      _backendUsageBuilder.processBackendImpact(impact);
     }
 
     type = _elementEnvironment.getUnaliasedType(type);
@@ -320,6 +329,9 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     }
     if (type is InterfaceType && _nativeBasicData.isNativeClass(type.element)) {
       registerImpact(_impacts.nativeTypeCheck);
+    }
+    if (type is FutureOrType) {
+      registerImpact(_impacts.futureOrTypeCheck);
     }
   }
 }
@@ -413,11 +425,6 @@ class CodegenImpactTransformer {
         if (_rtiNeed.methodNeedsSignature(callMethod)) {
           _impacts.computeSignature
               .registerImpact(transformed, _elementEnvironment);
-        } else if (callMethod is SynthesizedCallMethodElementX) {
-          if (_rtiNeed.localFunctionNeedsSignature(callMethod.expression)) {
-            _impacts.computeSignature
-                .registerImpact(transformed, _elementEnvironment);
-          }
         }
       }
     }

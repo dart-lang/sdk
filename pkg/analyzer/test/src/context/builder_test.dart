@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.src.context.context_builder_test;
-
-import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/command_line/arguments.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/context/source.dart';
+import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/bazel.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -18,6 +16,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:args/args.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/src/packages_impl.dart';
@@ -631,7 +630,11 @@ b:${pathContext.toUri(packageB)}
   }
 
   void test_findSdk_noPackageMap_html_spec() {
-    DartSdk sdk = builder.findSdk(null, new AnalysisOptionsImpl());
+    DartSdk sdk = builder.findSdk(
+        null,
+        new AnalysisOptionsImpl()
+          ..previewDart2 = false
+          ..strongMode = false);
     expect(sdk, isNotNull);
     Source htmlSource = sdk.mapDartUri('dart:html');
     expect(
@@ -730,34 +733,6 @@ linter:
 ''');
     String projPath = resourceProvider.convertPath('/some/directory/path');
     AnalysisOptions options = builder.getAnalysisOptions(projPath);
-    _expectEqualOptions(options, expected);
-  }
-
-  void test_getAnalysisOptions_default_flutter_repo() {
-    _defineMockLintRules();
-    AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
-    builderOptions.defaultOptions = defaultOptions;
-    AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
-    expected.lint = true;
-    expected.lintRules = <Linter>[_mockLintRule, _mockPublicMemberApiDocs];
-    String packagesFilePath =
-        resourceProvider.convertPath('/some/directory/path/.packages');
-    createFile(packagesFilePath, 'flutter:/pkg/flutter/lib/');
-    String optionsFilePath = resourceProvider
-        .convertPath('/pkg/flutter/lib/analysis_options_user.yaml');
-    createFile(optionsFilePath, '''
-linter:
-  rules:
-    - mock_lint_rule
-''');
-    String projPath = resourceProvider.convertPath('/some/directory/path');
-    AnalysisOptions options;
-    try {
-      ContextBuilderOptions.flutterRepo = true;
-      options = builder.getAnalysisOptions(projPath);
-    } finally {
-      ContextBuilderOptions.flutterRepo = false;
-    }
     _expectEqualOptions(options, expected);
   }
 

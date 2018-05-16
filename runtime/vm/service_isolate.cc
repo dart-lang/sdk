@@ -330,8 +330,6 @@ class RunServiceTask : public ThreadPool::Task {
     }
     Isolate* I = reinterpret_cast<Isolate*>(parameter);
     ASSERT(ServiceIsolate::IsServiceIsolate(I));
-    ServiceIsolate::SetServiceIsolate(NULL);
-    ServiceIsolate::SetServicePort(ILLEGAL_PORT);
     I->WaitForOutstandingSpawns();
     {
       // Print the error if there is one.  This may execute dart code to
@@ -351,8 +349,13 @@ class RunServiceTask : public ThreadPool::Task {
       if (!error.IsNull() && !error.IsUnwindError()) {
         OS::PrintErr("vm-service: Error: %s\n", error.ToErrorCString());
       }
+      TransitionVMToNative transition(T);
       Dart::RunShutdownCallback();
     }
+    ASSERT(ServiceIsolate::IsServiceIsolate(I));
+    ServiceIsolate::SetServiceIsolate(NULL);
+    ServiceIsolate::SetServicePort(ILLEGAL_PORT);
+
     // Shut the isolate down.
     Dart::ShutdownIsolate(I);
     if (FLAG_trace_service) {

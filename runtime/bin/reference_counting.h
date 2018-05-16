@@ -5,7 +5,7 @@
 #ifndef RUNTIME_BIN_REFERENCE_COUNTING_H_
 #define RUNTIME_BIN_REFERENCE_COUNTING_H_
 
-#include "vm/atomic.h"
+#include "platform/atomic.h"
 
 namespace dart {
 namespace bin {

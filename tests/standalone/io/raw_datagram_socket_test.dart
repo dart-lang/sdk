@@ -33,8 +33,8 @@ testDatagramBroadcastOptions() {
     });
   }
 
-  test(InternetAddress.LOOPBACK_IP_V4);
-  test(InternetAddress.ANY_IP_V4);
+  test(InternetAddress.loopbackIPv4);
+  test(InternetAddress.anyIPv4);
 }
 
 testDatagramMulticastOptions() {
@@ -61,10 +61,10 @@ testDatagramMulticastOptions() {
     });
   }
 
-  test(InternetAddress.LOOPBACK_IP_V4);
-  test(InternetAddress.ANY_IP_V4);
-  test(InternetAddress.LOOPBACK_IP_V6);
-  test(InternetAddress.ANY_IP_V6);
+  test(InternetAddress.loopbackIPv4);
+  test(InternetAddress.anyIPv4);
+  test(InternetAddress.loopbackIPv6);
+  test(InternetAddress.anyIPv6);
 }
 
 testDatagramSocketReuseAddress() {
@@ -86,10 +86,10 @@ testDatagramSocketReuseAddress() {
     });
   }
 
-  test(InternetAddress.LOOPBACK_IP_V4, true);
-  test(InternetAddress.LOOPBACK_IP_V4, false);
-  test(InternetAddress.LOOPBACK_IP_V6, true);
-  test(InternetAddress.LOOPBACK_IP_V6, false);
+  test(InternetAddress.loopbackIPv4, true);
+  test(InternetAddress.loopbackIPv4, false);
+  test(InternetAddress.loopbackIPv6, true);
+  test(InternetAddress.loopbackIPv6, false);
 }
 
 testBroadcast() {
@@ -107,7 +107,7 @@ testBroadcast() {
       receiver.broadcastEnabled = enabled;
       sender.broadcastEnabled = enabled;
       receiver.listen((event) {
-        if (event == RawSocketEvent.READ) {
+        if (event == RawSocketEvent.read) {
           Expect.isTrue(enabled);
           sender.close();
           receiver.close();
@@ -135,8 +135,8 @@ testBroadcast() {
   }
 
   var broadcast = new InternetAddress("255.255.255.255");
-  test(InternetAddress.ANY_IP_V4, broadcast, false);
-  test(InternetAddress.ANY_IP_V4, broadcast, true);
+  test(InternetAddress.anyIPv4, broadcast, false);
+  test(InternetAddress.anyIPv4, broadcast, true);
 }
 
 testLoopbackMulticast() {
@@ -158,7 +158,7 @@ testLoopbackMulticast() {
       sender.multicastLoopback = enabled;
 
       receiver.listen((event) {
-        if (event == RawSocketEvent.READ) {
+        if (event == RawSocketEvent.read) {
           if (!enabled) {
             var data = receiver.receive();
             print(data.port);
@@ -190,17 +190,17 @@ testLoopbackMulticast() {
     });
   }
 
-  test(InternetAddress.ANY_IP_V4, new InternetAddress("228.0.0.4"), true);
-  test(InternetAddress.ANY_IP_V4, new InternetAddress("224.0.0.0"), false);
+  test(InternetAddress.anyIPv4, new InternetAddress("228.0.0.4"), true);
+  test(InternetAddress.anyIPv4, new InternetAddress("224.0.0.0"), false);
   // TODO(30306): Reenable for Linux
   if (!Platform.isMacOS && !Platform.isLinux) {
-    test(InternetAddress.ANY_IP_V6, new InternetAddress("ff11::0"), true);
-    test(InternetAddress.ANY_IP_V6, new InternetAddress("ff11::0"), false);
+    test(InternetAddress.anyIPv6, new InternetAddress("ff11::0"), true);
+    test(InternetAddress.anyIPv6, new InternetAddress("ff11::0"), false);
   }
 }
 
 testLoopbackMulticastError() {
-  var bindAddress = InternetAddress.ANY_IP_V4;
+  var bindAddress = InternetAddress.anyIPv4;
   var multicastAddress = new InternetAddress("228.0.0.4");
   asyncStart();
   Future.wait([
@@ -275,7 +275,7 @@ testSendReceive(InternetAddress bindAddress, int dataSize) {
 
     sender.listen((event) {
       switch (event) {
-        case RawSocketEvent.READ:
+        case RawSocketEvent.read:
           var datagram = sender.receive();
           if (datagram != null) {
             Expect.equals(datagram.port, receiver.port);
@@ -293,11 +293,11 @@ testSendReceive(InternetAddress bindAddress, int dataSize) {
             }
           }
           break;
-        case RawSocketEvent.WRITE:
+        case RawSocketEvent.write:
           // Send the next package.
           sendData(ackSeq + 1);
           break;
-        case RawSocketEvent.CLOSED:
+        case RawSocketEvent.closed:
           break;
         default:
           throw "Unexpected event $event";
@@ -307,7 +307,7 @@ testSendReceive(InternetAddress bindAddress, int dataSize) {
     receiver.writeEventsEnabled = false;
     receiver.listen((event) {
       switch (event) {
-        case RawSocketEvent.READ:
+        case RawSocketEvent.read:
           var datagram = receiver.receive();
           if (datagram != null) {
             Expect.equals(datagram.port, sender.port);
@@ -322,10 +322,10 @@ testSendReceive(InternetAddress bindAddress, int dataSize) {
             }
           }
           break;
-        case RawSocketEvent.WRITE:
-          throw "Unexpected WRITE";
+        case RawSocketEvent.write:
+          throw "Unexpected.write";
           break;
-        case RawSocketEvent.CLOSED:
+        case RawSocketEvent.closed:
           break;
         default:
           throw "Unexpected event $event";
@@ -343,12 +343,12 @@ main() {
   testBroadcast();
   testLoopbackMulticast();
   testLoopbackMulticastError();
-  testSendReceive(InternetAddress.LOOPBACK_IP_V4, 1000);
-  testSendReceive(InternetAddress.LOOPBACK_IP_V6, 1000);
+  testSendReceive(InternetAddress.loopbackIPv4, 1000);
+  testSendReceive(InternetAddress.loopbackIPv6, 1000);
   if (!Platform.isMacOS) {
-    testSendReceive(InternetAddress.LOOPBACK_IP_V4, 32 * 1024);
-    testSendReceive(InternetAddress.LOOPBACK_IP_V6, 32 * 1024);
-    testSendReceive(InternetAddress.LOOPBACK_IP_V4, 64 * 1024 - 32);
-    testSendReceive(InternetAddress.LOOPBACK_IP_V6, 64 * 1024 - 32);
+    testSendReceive(InternetAddress.loopbackIPv4, 32 * 1024);
+    testSendReceive(InternetAddress.loopbackIPv6, 32 * 1024);
+    testSendReceive(InternetAddress.loopbackIPv4, 64 * 1024 - 32);
+    testSendReceive(InternetAddress.loopbackIPv6, 64 * 1024 - 32);
   }
 }

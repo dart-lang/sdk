@@ -21,7 +21,7 @@ void testArguments() {
 
 void testSimpleBind() {
   asyncStart();
-  RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((s) {
+  RawServerSocket.bind(InternetAddress.loopbackIPv4, 0).then((s) {
     Expect.isTrue(s.port > 0);
     s.close();
     asyncEnd();
@@ -49,8 +49,8 @@ void testInvalidBind() {
 
   // Bind to a port already in use.
   asyncStart();
-  RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((s) {
-    RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, s.port).then((t) {
+  RawServerSocket.bind(InternetAddress.loopbackIPv4, 0).then((s) {
+    RawServerSocket.bind(InternetAddress.loopbackIPv4, s.port).then((t) {
       Expect.fail("Multiple listens on same port");
     }).catchError((error) {
       Expect.isTrue(error is SocketException);
@@ -62,7 +62,7 @@ void testInvalidBind() {
 
 void testSimpleConnect() {
   asyncStart();
-  RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
+  RawServerSocket.bind(InternetAddress.loopbackIPv4, 0).then((server) {
     server.listen((socket) {
       socket.close();
     });
@@ -86,10 +86,10 @@ void testCloseOneEnd(String toClose) {
   ]).then((_) {
     asyncEnd();
   });
-  RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
+  RawServerSocket.bind(InternetAddress.loopbackIPv4, 0).then((server) {
     server.listen((serverConnection) {
       serverConnection.listen((event) {
-        if (toClose == "server" || event == RawSocketEvent.READ_CLOSED) {
+        if (toClose == "server" || event == RawSocketEvent.readClosed) {
           serverConnection.shutdown(SocketDirection.SEND);
         }
       }, onDone: () {
@@ -100,7 +100,7 @@ void testCloseOneEnd(String toClose) {
     });
     RawSocket.connect("127.0.0.1", server.port).then((clientConnection) {
       clientConnection.listen((event) {
-        if (toClose == "client" || event == RawSocketEvent.READ_CLOSED) {
+        if (toClose == "client" || event == RawSocketEvent.readClosed) {
           clientConnection.shutdown(SocketDirection.SEND);
         }
       }, onDone: () {
@@ -113,7 +113,7 @@ void testCloseOneEnd(String toClose) {
 
 void testServerListenAfterConnect() {
   asyncStart();
-  RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
+  RawServerSocket.bind(InternetAddress.loopbackIPv4, 0).then((server) {
     Expect.isTrue(server.port > 0);
     RawSocket.connect("127.0.0.1", server.port).then((client) {
       server.listen((socket) {
@@ -149,7 +149,7 @@ void testSimpleReadWrite({bool dropReads}) {
     }
   }
 
-  RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
+  RawServerSocket.bind(InternetAddress.loopbackIPv4, 0).then((server) {
     server.listen((client) {
       int bytesRead = 0;
       int bytesWritten = 0;
@@ -159,7 +159,7 @@ void testSimpleReadWrite({bool dropReads}) {
       client.writeEventsEnabled = false;
       client.listen((event) {
         switch (event) {
-          case RawSocketEvent.READ:
+          case RawSocketEvent.read:
             if (dropReads) {
               if (serverReadCount != 10) {
                 serverReadCount++;
@@ -178,7 +178,7 @@ void testSimpleReadWrite({bool dropReads}) {
               client.writeEventsEnabled = true;
             }
             break;
-          case RawSocketEvent.WRITE:
+          case RawSocketEvent.write:
             Expect.isFalse(client.writeEventsEnabled);
             bytesWritten +=
                 client.write(data, bytesWritten, data.length - bytesWritten);
@@ -189,10 +189,10 @@ void testSimpleReadWrite({bool dropReads}) {
               client.shutdown(SocketDirection.SEND);
             }
             break;
-          case RawSocketEvent.READ_CLOSED:
+          case RawSocketEvent.readClosed:
             server.close();
             break;
-          case RawSocketEvent.CLOSED:
+          case RawSocketEvent.closed:
             Expect.isFalse(closedEventReceived);
             closedEventReceived = true;
             break;
@@ -210,7 +210,7 @@ void testSimpleReadWrite({bool dropReads}) {
 
       socket.listen((event) {
         switch (event) {
-          case RawSocketEvent.READ:
+          case RawSocketEvent.read:
             Expect.isTrue(socket.available() > 0);
             if (dropReads) {
               if (clientReadCount != 10) {
@@ -224,7 +224,7 @@ void testSimpleReadWrite({bool dropReads}) {
             data.setRange(bytesRead, bytesRead + buffer.length, buffer);
             bytesRead += buffer.length;
             break;
-          case RawSocketEvent.WRITE:
+          case RawSocketEvent.write:
             Expect.isTrue(bytesRead == 0);
             Expect.isFalse(socket.writeEventsEnabled);
             bytesWritten +=
@@ -235,11 +235,11 @@ void testSimpleReadWrite({bool dropReads}) {
               data = new List<int>(messageSize);
             }
             break;
-          case RawSocketEvent.READ_CLOSED:
+          case RawSocketEvent.readClosed:
             verifyTestData(data);
             socket.close();
             break;
-          case RawSocketEvent.CLOSED:
+          case RawSocketEvent.closed:
             Expect.isFalse(closedEventReceived);
             closedEventReceived = true;
             break;
@@ -260,7 +260,7 @@ testPauseServerSocket() {
   var resumed = false;
 
   asyncStart();
-  RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
+  RawServerSocket.bind(InternetAddress.loopbackIPv4, 0).then((server) {
     Expect.isTrue(server.port > 0);
     var subscription = server.listen((socket) {
       socket.close();
@@ -304,16 +304,16 @@ void testPauseSocket() {
   var readSubscription;
 
   asyncStart();
-  RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
+  RawServerSocket.bind(InternetAddress.loopbackIPv4, 0).then((server) {
     Expect.isTrue(server.port > 0);
     server.listen((client) {
       bool closedEventReceived = false;
       List<int> data = new List<int>.filled(messageSize, 0);
       writeSubscription = client.listen((event) {
         switch (event) {
-          case RawSocketEvent.READ:
+          case RawSocketEvent.read:
             throw "Unexpected read event";
-          case RawSocketEvent.WRITE:
+          case RawSocketEvent.write:
             if (pauseResumeCount == loopCount) return;
             Expect.isFalse(client.writeEventsEnabled);
             Expect.equals(0, bytesRead); // Checks that reader is paused.
@@ -330,11 +330,11 @@ void testPauseSocket() {
             }
             client.writeEventsEnabled = true;
             break;
-          case RawSocketEvent.READ_CLOSED:
+          case RawSocketEvent.readClosed:
             client.close();
             server.close();
             break;
-          case RawSocketEvent.CLOSED:
+          case RawSocketEvent.closed:
             Expect.isFalse(closedEventReceived);
             closedEventReceived = true;
             break;
@@ -349,7 +349,7 @@ void testPauseSocket() {
       socket.writeEventsEnabled = false;
       readSubscription = socket.listen((event) {
         switch (event) {
-          case RawSocketEvent.READ:
+          case RawSocketEvent.read:
             Expect.equals(0, bytesWritten); // Checks that writer is paused.
             Expect.isTrue(socket.available() > 0);
             var buffer = socket.read();
@@ -368,11 +368,11 @@ void testPauseSocket() {
               writeSubscription.resume();
             }
             break;
-          case RawSocketEvent.WRITE:
+          case RawSocketEvent.write:
             throw "Unexpected write event";
-          case RawSocketEvent.READ_CLOSED:
+          case RawSocketEvent.readClosed:
             throw "Unexpected read closed event";
-          case RawSocketEvent.CLOSED:
+          case RawSocketEvent.closed:
             Expect.isFalse(closedEventReceived);
             closedEventReceived = true;
             break;
@@ -388,19 +388,19 @@ void testPauseSocket() {
 
 void testSocketZone() {
   asyncStart();
-  Expect.equals(Zone.ROOT, Zone.current);
+  Expect.equals(Zone.root, Zone.current);
   runZoned(() {
-    Expect.notEquals(Zone.ROOT, Zone.current);
-    RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
-      Expect.notEquals(Zone.ROOT, Zone.current);
+    Expect.notEquals(Zone.root, Zone.current);
+    RawServerSocket.bind(InternetAddress.loopbackIPv4, 0).then((server) {
+      Expect.notEquals(Zone.root, Zone.current);
       server.listen((socket) {
-        Expect.notEquals(Zone.ROOT, Zone.current);
+        Expect.notEquals(Zone.root, Zone.current);
         socket.close();
         server.close();
       });
       RawSocket.connect("127.0.0.1", server.port).then((socket) {
         socket.listen((event) {
-          if (event == RawSocketEvent.READ_CLOSED) {
+          if (event == RawSocketEvent.readClosed) {
             socket.close();
             asyncEnd();
           }
@@ -412,13 +412,13 @@ void testSocketZone() {
 
 void testSocketZoneError() {
   asyncStart();
-  Expect.equals(Zone.ROOT, Zone.current);
+  Expect.equals(Zone.root, Zone.current);
   runZoned(() {
-    Expect.notEquals(Zone.ROOT, Zone.current);
-    RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
-      Expect.notEquals(Zone.ROOT, Zone.current);
+    Expect.notEquals(Zone.root, Zone.current);
+    RawServerSocket.bind(InternetAddress.loopbackIPv4, 0).then((server) {
+      Expect.notEquals(Zone.root, Zone.current);
       server.listen((socket) {
-        Expect.notEquals(Zone.ROOT, Zone.current);
+        Expect.notEquals(Zone.root, Zone.current);
         var timer;
         void write() {
           socket.write(const [0]);
@@ -428,7 +428,7 @@ void testSocketZoneError() {
         write();
         socket.listen((_) {}, onError: (error) {
           timer.cancel();
-          Expect.notEquals(Zone.ROOT, Zone.current);
+          Expect.notEquals(Zone.root, Zone.current);
           socket.close();
           server.close();
           throw error;
@@ -445,7 +445,7 @@ void testSocketZoneError() {
 
 void testClosedError() {
   asyncStart();
-  RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
+  RawServerSocket.bind(InternetAddress.loopbackIPv4, 0).then((server) {
     server.listen((socket) {
       socket.close();
     });

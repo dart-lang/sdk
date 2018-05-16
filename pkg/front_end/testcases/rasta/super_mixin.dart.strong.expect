@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 import "./mixin_library.dart" as mix;
 
-class Super<S extends core::Object> extends core::Object {
+class Super<S extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
@@ -12,24 +12,21 @@ class Super<S extends core::Object> extends core::Object {
   method f() → dynamic
     return 3;
 }
-abstract class _C&Super&Mixin<V extends core::Object> = self::Super<self::_C&Super&Mixin::V> with mix::Mixin<self::_C&Super&Mixin::V> {
+abstract class _C&Super&Mixin<V extends core::Object = dynamic> = self::Super<self::_C&Super&Mixin::V> with mix::Mixin<self::_C&Super&Mixin::V> {
 }
-class C<V extends core::Object> extends self::_C&Super&Mixin<self::C::V> {
+class C<V extends core::Object = dynamic> extends self::_C&Super&Mixin<self::C::V> {
   synthetic constructor •() → void
     : super self::Super::•()
     ;
 }
 abstract class _D&Super&Mixin = self::Super<dynamic> with mix::Mixin<dynamic> {
-  abstract forwarding-stub method g(generic-covariant-impl dynamic a) → dynamic;
-  abstract forwarding-stub set t(generic-covariant-impl dynamic _) → void;
 }
 class D extends self::_D&Super&Mixin {
   synthetic constructor •() → void
     : super self::Super::•()
     ;
-  abstract forwarding-stub set t(generic-covariant-impl dynamic _) → void;
 }
-class C2<V extends core::Object> = self::Super<self::C2::V> with mix::Mixin<self::C2::V> {
+class C2<V extends core::Object = dynamic> = self::Super<self::C2::V> with mix::Mixin<self::C2::V> {
   synthetic constructor •() → void
     : super self::Super::•()
     ;
@@ -38,8 +35,6 @@ class D2 = self::Super<dynamic> with mix::Mixin<dynamic> {
   synthetic constructor •() → void
     : super self::Super::•()
     ;
-  abstract forwarding-stub method g(generic-covariant-impl dynamic a) → dynamic;
-  abstract forwarding-stub set t(generic-covariant-impl dynamic _) → void;
 }
 static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/rasta/mixin_library.dart:16:18: Error: Superclass has no method named 'foo'.
   foo() => super.foo() + f();

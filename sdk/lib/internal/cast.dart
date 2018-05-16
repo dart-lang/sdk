@@ -115,7 +115,8 @@ abstract class _CastListBase<S, T> extends _CastIterableBase<S, T>
   }
 
   void sort([int compare(T v1, T v2)]) {
-    _source.sort((S v1, S v2) => compare(v1 as T, v2 as T));
+    _source.sort(
+        compare == null ? null : (S v1, S v2) => compare(v1 as T, v2 as T));
   }
 
   void shuffle([Random random]) {
@@ -187,13 +188,10 @@ class CastSet<S, T> extends _CastIterableBase<S, T> implements Set<T> {
 
   static Set<R> _defaultEmptySet<R>() => new Set<R>();
 
-  Set<R> cast<R>() {
-    Set<Object> self = this;
-    if (self is Set<R>) return self;
-    return this.retype<R>();
-  }
+  Set<R> cast<R>() => new CastSet<S, R>(_source, _emptySet);
 
-  Set<R> retype<R>() => new CastSet<S, R>(_source, _emptySet);
+  @Deprecated("Use cast instead.")
+  Set<R> retype<R>() => cast<R>();
 
   bool add(T value) => _source.add(value as S);
 
@@ -369,13 +367,10 @@ class CastQueue<S, T> extends _CastIterableBase<S, T>
     with _CastQueueMixin<S, T> {
   final Queue<S> _source;
   CastQueue(this._source);
-  Queue<R> cast<R>() {
-    Queue<Object> self = this;
-    if (self is Queue<R>) return self;
-    return retype<R>();
-  }
+  Queue<R> cast<R>() => new CastQueue<S, R>(_source);
 
-  Queue<R> retype<R>() => new CastQueue<S, R>(_source);
+  @Deprecated("Use cast instead.")
+  Queue<R> retype<R>() => cast<R>();
 }
 
 // TODO(lrn): Use when ListQueue implements List.

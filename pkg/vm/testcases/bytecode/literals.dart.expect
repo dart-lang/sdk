@@ -1,0 +1,677 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  final field core::int index;
+  final field core::String _name;
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  PushConstant         CP#13
+  ReturnTOS
+}
+ConstantPool {
+  [0] = TypeArgs []
+  [1] = Int 0
+  [2] = String 'A.elem1'
+  [3] = Instance #lib::A type-args CP#0 {index: 1, _name: 2}
+  [4] = Int 1
+  [5] = String 'A.elem2'
+  [6] = Instance #lib::A type-args CP#0 {index: 4, _name: 5}
+  [7] = Int 2
+  [8] = String 'A.elem3'
+  [9] = Instance #lib::A type-args CP#0 {index: 7, _name: 8}
+  [10] = Int 3
+  [11] = String 'A.elem4'
+  [12] = Instance #lib::A type-args CP#0 {index: 10, _name: 11}
+  [13] = List type-arg #lib::A, entries CP# [3, 6, 9, 12]
+}
+]  static const field core::List<self::A> values = const <self::A>[self::A::elem1, self::A::elem2, self::A::elem3, self::A::elem4];
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  PushConstant         CP#3
+  ReturnTOS
+}
+ConstantPool {
+  [0] = TypeArgs []
+  [1] = Int 0
+  [2] = String 'A.elem1'
+  [3] = Instance #lib::A type-args CP#0 {index: 1, _name: 2}
+}
+]  static const field self::A elem1 = const self::A::•(0, "A.elem1");
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  PushConstant         CP#3
+  ReturnTOS
+}
+ConstantPool {
+  [0] = TypeArgs []
+  [1] = Int 1
+  [2] = String 'A.elem2'
+  [3] = Instance #lib::A type-args CP#0 {index: 1, _name: 2}
+}
+]  static const field self::A elem2 = const self::A::•(1, "A.elem2");
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  PushConstant         CP#3
+  ReturnTOS
+}
+ConstantPool {
+  [0] = TypeArgs []
+  [1] = Int 2
+  [2] = String 'A.elem3'
+  [3] = Instance #lib::A type-args CP#0 {index: 1, _name: 2}
+}
+]  static const field self::A elem3 = const self::A::•(2, "A.elem3");
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  PushConstant         CP#3
+  ReturnTOS
+}
+ConstantPool {
+  [0] = TypeArgs []
+  [1] = Int 3
+  [2] = String 'A.elem4'
+  [3] = Instance #lib::A type-args CP#0 {index: 1, _name: 2}
+}
+]  static const field self::A elem4 = const self::A::•(3, "A.elem4");
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  Push                 FP[-7]
+  Push                 FP[-6]
+  StoreFieldTOS        CP#0
+  Push                 FP[-7]
+  Push                 FP[-5]
+  StoreFieldTOS        CP#1
+  Push                 FP[-7]
+  PushConstant         CP#3
+  IndirectStaticCall   1, CP#2
+  Drop1
+  PushConstant         CP#4
+  ReturnTOS
+}
+ConstantPool {
+  [0] = FieldOffset #lib::A::index
+  [1] = FieldOffset #lib::A::_name
+  [2] = ArgDesc num-args 1, num-type-args 0, names []
+  [3] = StaticICData target 'dart.core::Object::', arg-desc CP#2
+  [4] = Null
+}
+]  const constructor •(core::int index, core::String _name) → void
+    : self::A::index = index, self::A::_name = _name, super core::Object::•()
+    ;
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  Push                 FP[-5]
+  PushConstant         CP#1
+  IndirectStaticCall   1, CP#0
+  ReturnTOS
+  PushConstant         CP#2
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ArgDesc num-args 1, num-type-args 0, names []
+  [1] = StaticICData target '#lib::A::_name', arg-desc CP#0
+  [2] = Null
+}
+]  method toString() → core::String
+    return this.{=self::A::_name};
+}
+class B extends core::Object {
+  final field core::int i;
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  Push                 FP[-6]
+  Push                 FP[-5]
+  StoreFieldTOS        CP#0
+  Push                 FP[-6]
+  PushConstant         CP#2
+  IndirectStaticCall   1, CP#1
+  Drop1
+  PushConstant         CP#3
+  ReturnTOS
+}
+ConstantPool {
+  [0] = FieldOffset #lib::B::i
+  [1] = ArgDesc num-args 1, num-type-args 0, names []
+  [2] = StaticICData target 'dart.core::Object::', arg-desc CP#1
+  [3] = Null
+}
+]  const constructor •(core::int i) → void
+    : self::B::i = i, super core::Object::•()
+    ;
+}
+class C extends self::B {
+  final field core::int j;
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  Push                 FP[-8]
+  Push                 FP[-7]
+  Push                 FP[-6]
+  InstanceCall1        2, CP#1
+  StoreFieldTOS        CP#2
+  Push                 FP[-8]
+  Push                 FP[-5]
+  PushConstant         CP#3
+  InstanceCall1        2, CP#4
+  PushConstant         CP#5
+  IndirectStaticCall   2, CP#0
+  Drop1
+  PushConstant         CP#6
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ArgDesc num-args 2, num-type-args 0, names []
+  [1] = ICData target-name '+', arg-desc CP#0
+  [2] = FieldOffset #lib::C::j
+  [3] = Int 5
+  [4] = ICData target-name '*', arg-desc CP#0
+  [5] = StaticICData target '#lib::B::', arg-desc CP#0
+  [6] = Null
+}
+]  const constructor •(core::int a, core::int b, core::int c) → void
+    : self::C::j = a.{core::num::+}(b), super self::B::•(c.{core::num::*}(5))
+    ;
+}
+class D extends core::Object {
+  final field dynamic x;
+  final field dynamic y;
+[@vm.bytecode=
+Bytecode {
+  EntryOptional        2, 1, 0
+  LoadConstant         r2, CP#0
+  Frame                0
+  CheckStack
+  Push                 r0
+  Push                 r1
+  StoreFieldTOS        CP#1
+  Push                 r0
+  Push                 r2
+  StoreFieldTOS        CP#2
+  Push                 r0
+  PushConstant         CP#4
+  IndirectStaticCall   1, CP#3
+  Drop1
+  PushConstant         CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = Null
+  [1] = FieldOffset #lib::D::x
+  [2] = FieldOffset #lib::D::y
+  [3] = ArgDesc num-args 1, num-type-args 0, names []
+  [4] = StaticICData target 'dart.core::Object::', arg-desc CP#3
+}
+]  const constructor •(dynamic x, [dynamic y = null]) → void
+    : self::D::x = x, self::D::y = y, super core::Object::•()
+    ;
+}
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  PushConstant         CP#3
+  ReturnTOS
+}
+ConstantPool {
+  [0] = TypeArgs []
+  [1] = Int 2
+  [2] = String 'A.elem3'
+  [3] = Instance #lib::A type-args CP#0 {index: 1, _name: 2}
+}
+]static const field self::A c1 = self::A::elem3;
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  PushConstant         CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = String 'hello!'
+}
+]static const field core::String c2 = "hello!";
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  PushConstant         CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = Int 6
+}
+]static const field core::int c3 = self::c2.{core::String::length};
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  PushConstant         CP#3
+  ReturnTOS
+}
+ConstantPool {
+  [0] = TypeArgs []
+  [1] = Int 3
+  [2] = Int 15
+  [3] = Instance #lib::C type-args CP#0 {j: 1, i: 2}
+}
+]static const field self::C c4 = const self::C::•(1, 2, 3);
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  PushConstant         CP#4
+  ReturnTOS
+}
+ConstantPool {
+  [0] = TypeArgs []
+  [1] = Int 4
+  [2] = Instance #lib::B type-args CP#0 {i: 1}
+  [3] = Null
+  [4] = Instance #lib::D type-args CP#0 {x: 2, y: 3}
+}
+]static const field self::D c5 = const self::D::•(const self::B::•(4));
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  PushConstant         CP#3
+  PushConstant         CP#5
+  IndirectStaticCall   1, CP#4
+  Drop1
+  PushConstant         CP#6
+  PushConstant         CP#7
+  IndirectStaticCall   1, CP#4
+  Drop1
+  PushConstant         CP#8
+  PushConstant         CP#9
+  IndirectStaticCall   1, CP#4
+  Drop1
+  PushConstant         CP#12
+  PushConstant         CP#13
+  IndirectStaticCall   1, CP#4
+  Drop1
+  PushConstant         CP#17
+  PushConstant         CP#18
+  IndirectStaticCall   1, CP#4
+  Drop1
+  PushConstant         CP#16
+  ReturnTOS
+}
+ConstantPool {
+  [0] = TypeArgs []
+  [1] = Int 2
+  [2] = String 'A.elem3'
+  [3] = Instance #lib::A type-args CP#0 {index: 1, _name: 2}
+  [4] = ArgDesc num-args 1, num-type-args 0, names []
+  [5] = StaticICData target 'dart.core::print', arg-desc CP#4
+  [6] = String 'hello!'
+  [7] = StaticICData target 'dart.core::print', arg-desc CP#4
+  [8] = Int 6
+  [9] = StaticICData target 'dart.core::print', arg-desc CP#4
+  [10] = Int 3
+  [11] = Int 15
+  [12] = Instance #lib::C type-args CP#0 {j: 10, i: 11}
+  [13] = StaticICData target 'dart.core::print', arg-desc CP#4
+  [14] = Int 4
+  [15] = Instance #lib::B type-args CP#0 {i: 14}
+  [16] = Null
+  [17] = Instance #lib::D type-args CP#0 {x: 15, y: 16}
+  [18] = StaticICData target 'dart.core::print', arg-desc CP#4
+}
+]static method test_constants1() → void {
+  core::print(self::c1);
+  core::print(self::c2);
+  core::print(self::c3);
+  core::print(self::c4);
+  core::print(self::c5);
+}
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  PushConstant         CP#0
+  PushConstant         CP#2
+  IndirectStaticCall   1, CP#1
+  Drop1
+  PushConstant         CP#3
+  PushConstant         CP#4
+  IndirectStaticCall   1, CP#1
+  Drop1
+  PushConstant         CP#8
+  PushConstant         CP#9
+  IndirectStaticCall   1, CP#1
+  Drop1
+  PushConstant         CP#10
+  PushConstant         CP#11
+  IndirectStaticCall   1, CP#1
+  Drop1
+  PushConstant         CP#19
+  PushConstant         CP#20
+  IndirectStaticCall   1, CP#1
+  Drop1
+  PushConstant         CP#30
+  PushConstant         CP#31
+  IndirectStaticCall   1, CP#1
+  Drop1
+  PushConstant         CP#32
+  ReturnTOS
+}
+ConstantPool {
+  [0] = Int 42
+  [1] = ArgDesc num-args 1, num-type-args 0, names []
+  [2] = StaticICData target 'dart.core::print', arg-desc CP#1
+  [3] = String 'foo'
+  [4] = StaticICData target 'dart.core::print', arg-desc CP#1
+  [5] = TypeArgs []
+  [6] = Int 1
+  [7] = String 'A.elem2'
+  [8] = Instance #lib::A type-args CP#5 {index: 6, _name: 7}
+  [9] = StaticICData target 'dart.core::print', arg-desc CP#1
+  [10] = List type-arg dart.core::Object, entries CP# [0, 3]
+  [11] = StaticICData target 'dart.core::print', arg-desc CP#1
+  [12] = TypeArgs [dart.core::String, #lib::A]
+  [13] = String 'E2'
+  [14] = String 'E4'
+  [15] = Int 3
+  [16] = String 'A.elem4'
+  [17] = Instance #lib::A type-args CP#5 {index: 15, _name: 16}
+  [18] = List type-arg dynamic, entries CP# [13, 8, 14, 17]
+  [19] = Instance dart.core::_ImmutableMap type-args CP#12 {_kvPairs: 18}
+  [20] = StaticICData target 'dart.core::print', arg-desc CP#1
+  [21] = Int 9
+  [22] = Int 30
+  [23] = Instance #lib::C type-args CP#5 {j: 21, i: 22}
+  [24] = TypeArgs [dart.core::String, dart.core::Object]
+  [25] = String 'bar'
+  [26] = Int 6
+  [27] = Instance #lib::B type-args CP#5 {i: 26}
+  [28] = List type-arg dynamic, entries CP# [3, 0, 25, 27]
+  [29] = Instance dart.core::_ImmutableMap type-args CP#24 {_kvPairs: 28}
+  [30] = Instance #lib::D type-args CP#5 {x: 23, y: 29}
+  [31] = StaticICData target 'dart.core::print', arg-desc CP#1
+  [32] = Null
+}
+]static method test_constants2() → void {
+  core::print(42);
+  core::print("foo");
+  core::print(self::A::elem2);
+  core::print(const <core::Object>[42, "foo"]);
+  core::print(const <core::String, self::A>{"E2": self::A::elem2, "E4": self::A::elem4});
+  core::print(const self::D::•(const self::C::•(4, 5, 6), const <core::String, core::Object>{"foo": 42, "bar": const self::B::•(self::c2.{core::String::length})}));
+}
+[@vm.bytecode=
+Bytecode {
+  Entry                1
+  CheckStack
+  PushConstant         CP#0
+  StoreLocal           r0
+  Push                 r0
+  PushConstant         CP#1
+  CreateArrayTOS
+  StoreLocal           r0
+  Push                 r0
+  PushConstant         CP#2
+  PushConstant         CP#3
+  StoreIndexedTOS
+  Push                 r0
+  PushConstant         CP#3
+  Push                 FP[-5]
+  StoreIndexedTOS
+  Push                 r0
+  PushConstant         CP#4
+  PushConstant         CP#1
+  StoreIndexedTOS
+  PushConstant         CP#6
+  IndirectStaticCall   2, CP#5
+  PushConstant         CP#8
+  IndirectStaticCall   1, CP#7
+  Drop1
+  PushConstant         CP#9
+  StoreLocal           r0
+  Push                 r0
+  PushConstant         CP#1
+  CreateArrayTOS
+  StoreLocal           r0
+  Push                 r0
+  PushConstant         CP#2
+  PushConstant         CP#10
+  StoreIndexedTOS
+  Push                 r0
+  PushConstant         CP#3
+  Push                 FP[-5]
+  InstanceCall1        1, CP#11
+  StoreIndexedTOS
+  Push                 r0
+  PushConstant         CP#4
+  PushConstant         CP#12
+  StoreIndexedTOS
+  PushConstant         CP#13
+  IndirectStaticCall   2, CP#5
+  PushConstant         CP#14
+  IndirectStaticCall   1, CP#7
+  Drop1
+  PushConstant         CP#15
+  ReturnTOS
+}
+ConstantPool {
+  [0] = TypeArgs [dart.core::int]
+  [1] = Int 3
+  [2] = Int 0
+  [3] = Int 1
+  [4] = Int 2
+  [5] = ArgDesc num-args 1, num-type-args 1, names []
+  [6] = StaticICData target 'dart.core::List::_fromLiteral', arg-desc CP#5
+  [7] = ArgDesc num-args 1, num-type-args 0, names []
+  [8] = StaticICData target 'dart.core::print', arg-desc CP#7
+  [9] = TypeArgs [dart.core::String]
+  [10] = String 'a'
+  [11] = ICData target-name 'toString', arg-desc CP#7
+  [12] = String 'b'
+  [13] = StaticICData target 'dart.core::List::_fromLiteral', arg-desc CP#5
+  [14] = StaticICData target 'dart.core::print', arg-desc CP#7
+  [15] = Null
+}
+]static method test_list_literal(core::int a) → void {
+  core::print(<core::int>[1, a, 3]);
+  core::print(<core::String>["a", a.{core::int::toString}(), "b"]);
+}
+[@vm.bytecode=
+Bytecode {
+  Entry                1
+  CheckStack
+  PushConstant         CP#0
+  PushConstant         CP#1
+  PushConstant         CP#2
+  CreateArrayTOS
+  StoreLocal           r0
+  Push                 r0
+  PushConstant         CP#3
+  PushConstant         CP#4
+  StoreIndexedTOS
+  Push                 r0
+  PushConstant         CP#4
+  Push                 FP[-7]
+  StoreIndexedTOS
+  Push                 r0
+  PushConstant         CP#5
+  Push                 FP[-6]
+  StoreIndexedTOS
+  Push                 r0
+  PushConstant         CP#6
+  PushConstant         CP#5
+  StoreIndexedTOS
+  PushConstant         CP#8
+  IndirectStaticCall   2, CP#7
+  PushConstant         CP#10
+  IndirectStaticCall   1, CP#9
+  Drop1
+  PushConstant         CP#11
+  PushConstant         CP#1
+  PushConstant         CP#2
+  CreateArrayTOS
+  StoreLocal           r0
+  Push                 r0
+  PushConstant         CP#3
+  PushConstant         CP#12
+  StoreIndexedTOS
+  Push                 r0
+  PushConstant         CP#4
+  Push                 FP[-7]
+  StoreIndexedTOS
+  Push                 r0
+  PushConstant         CP#5
+  Push                 FP[-6]
+  InstanceCall1        1, CP#13
+  StoreIndexedTOS
+  Push                 r0
+  PushConstant         CP#6
+  PushConstant         CP#6
+  StoreIndexedTOS
+  PushConstant         CP#14
+  IndirectStaticCall   2, CP#7
+  PushConstant         CP#15
+  IndirectStaticCall   1, CP#9
+  Drop1
+  PushConstant         CP#17
+  Push                 FP[-8]
+  InstantiateTypeArgumentsTOS 1, CP#16
+  PushConstant         CP#18
+  PushConstant         CP#19
+  IndirectStaticCall   2, CP#7
+  PushConstant         CP#20
+  IndirectStaticCall   1, CP#9
+  Drop1
+  PushConstant         CP#17
+  Push                 FP[-8]
+  InstantiateTypeArgumentsTOS 1, CP#21
+  PushConstant         CP#1
+  PushConstant         CP#5
+  CreateArrayTOS
+  StoreLocal           r0
+  Push                 r0
+  PushConstant         CP#3
+  Push                 FP[-5]
+  StoreIndexedTOS
+  Push                 r0
+  PushConstant         CP#4
+  PushConstant         CP#2
+  StoreIndexedTOS
+  PushConstant         CP#22
+  IndirectStaticCall   2, CP#7
+  PushConstant         CP#23
+  IndirectStaticCall   1, CP#9
+  Drop1
+  PushConstant         CP#17
+  ReturnTOS
+}
+ConstantPool {
+  [0] = TypeArgs [dart.core::int, dart.core::int]
+  [1] = TypeArgs [dynamic]
+  [2] = Int 4
+  [3] = Int 0
+  [4] = Int 1
+  [5] = Int 2
+  [6] = Int 3
+  [7] = ArgDesc num-args 1, num-type-args 1, names []
+  [8] = StaticICData target 'dart.core::Map::_fromLiteral', arg-desc CP#7
+  [9] = ArgDesc num-args 1, num-type-args 0, names []
+  [10] = StaticICData target 'dart.core::print', arg-desc CP#9
+  [11] = TypeArgs [dart.core::String, dart.core::int]
+  [12] = String 'foo'
+  [13] = ICData target-name 'toString', arg-desc CP#9
+  [14] = StaticICData target 'dart.core::Map::_fromLiteral', arg-desc CP#7
+  [15] = StaticICData target 'dart.core::print', arg-desc CP#9
+  [16] = TypeArgs [dart.core::String, #lib::test_map_literal::T]
+  [17] = Null
+  [18] = List type-arg dynamic, entries CP# []
+  [19] = StaticICData target 'dart.core::Map::_fromLiteral', arg-desc CP#7
+  [20] = StaticICData target 'dart.core::print', arg-desc CP#9
+  [21] = TypeArgs [#lib::test_map_literal::T, dart.core::int]
+  [22] = StaticICData target 'dart.core::Map::_fromLiteral', arg-desc CP#7
+  [23] = StaticICData target 'dart.core::print', arg-desc CP#9
+}
+]static method test_map_literal<T extends core::Object = dynamic>(core::int a, core::int b, self::test_map_literal::T c) → void {
+  core::print(<core::int, core::int>{1: a, b: 2});
+  core::print(<core::String, core::int>{"foo": a, b.{core::int::toString}(): 3});
+  core::print(<core::String, self::test_map_literal::T>{});
+  core::print(<self::test_map_literal::T, core::int>{c: 4});
+}
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  PushConstant         CP#0
+  PushConstant         CP#2
+  IndirectStaticCall   1, CP#1
+  Drop1
+  PushConstant         CP#3
+  ReturnTOS
+}
+ConstantPool {
+  [0] = Symbol 'test_symbol'
+  [1] = ArgDesc num-args 1, num-type-args 0, names []
+  [2] = StaticICData target 'dart.core::print', arg-desc CP#1
+  [3] = Null
+}
+]static method test_symbol() → void {
+  core::print(#test_symbol);
+}
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  PushConstant         CP#0
+  PushConstant         CP#2
+  IndirectStaticCall   1, CP#1
+  Drop1
+  PushConstant         CP#4
+  Push                 FP[-5]
+  InstantiateType      CP#3
+  PushConstant         CP#5
+  IndirectStaticCall   1, CP#1
+  Drop1
+  PushConstant         CP#4
+  ReturnTOS
+}
+ConstantPool {
+  [0] = Type dart.core::String
+  [1] = ArgDesc num-args 1, num-type-args 0, names []
+  [2] = StaticICData target 'dart.core::print', arg-desc CP#1
+  [3] = Type #lib::test_type_literal::T
+  [4] = Null
+  [5] = StaticICData target 'dart.core::print', arg-desc CP#1
+}
+]static method test_type_literal<T extends core::Object = dynamic>() → void {
+  core::print(core::String);
+  core::print(self::test_type_literal::T);
+}
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  PushConstant         CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = Null
+}
+]static method main() → dynamic {}

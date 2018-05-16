@@ -55,13 +55,15 @@ class EnqueueTask extends CompilerTask {
   }
 
   ResolutionEnqueuer createResolutionEnqueuer() {
-    return _resolution ??=
-        compiler.backend.createResolutionEnqueuer(this, compiler);
+    return _resolution ??= compiler.backend
+        .createResolutionEnqueuer(this, compiler)
+          ..onEmptyForTesting = compiler.onResolutionQueueEmptyForTesting;
   }
 
   Enqueuer createCodegenEnqueuer(ClosedWorld closedWorld) {
-    return codegenEnqueuerForTesting =
-        compiler.backend.createCodegenEnqueuer(this, compiler, closedWorld);
+    return codegenEnqueuerForTesting = compiler.backend
+        .createCodegenEnqueuer(this, compiler, closedWorld)
+          ..onEmptyForTesting = compiler.onCodegenQueueEmptyForTesting;
   }
 }
 
@@ -213,6 +215,10 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   /// has been emptied.
   final Queue<DeferredAction> _deferredQueue = new Queue<DeferredAction>();
 
+  // If not `null` this is called when the queue has been emptied. It allows for
+  // applying additional impacts before re-emptying the queue.
+  void Function() onEmptyForTesting;
+
   ResolutionEnqueuer(this.task, this._options, this._reporter, this.strategy,
       this.listener, this._worldBuilder, this._workItemBuilder,
       [this.name = 'resolution enqueuer']) {
@@ -356,8 +362,18 @@ class ResolutionEnqueuer extends EnqueuerImpl {
       case TypeUseKind.CATCH_TYPE:
         _registerIsCheck(type);
         break;
+      case TypeUseKind.IMPLICIT_CAST:
+        if (_options.implicitDowncastCheckPolicy.isEmitted) {
+          _registerIsCheck(type);
+        }
+        break;
+      case TypeUseKind.PARAMETER_CHECK:
+        if (_options.parameterCheckPolicy.isEmitted) {
+          _registerIsCheck(type);
+        }
+        break;
       case TypeUseKind.CHECKED_MODE_CHECK:
-        if (_options.enableTypeAssertions) {
+        if (_options.assignmentCheckPolicy.isEmitted) {
           _registerIsCheck(type);
         }
         break;
@@ -386,7 +402,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
     _worldBuilder.registerClosurizedMember(element);
   }
 
-  void forEach(void f(WorkItem work)) {
+  void _forEach(void f(WorkItem work)) {
     do {
       while (_queue.isNotEmpty) {
         // TODO(johnniwinther): Find an optimal process order.
@@ -406,6 +422,14 @@ class ResolutionEnqueuer extends EnqueuerImpl {
         _recentClasses.isNotEmpty ||
         _deferredQueue.isNotEmpty ||
         _recentConstants);
+  }
+
+  void forEach(void f(WorkItem work)) {
+    _forEach(f);
+    if (onEmptyForTesting != null) {
+      onEmptyForTesting();
+      _forEach(f);
+    }
   }
 
   void logSummary(void log(String message)) {

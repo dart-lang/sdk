@@ -40,22 +40,22 @@ main() {
 
   test('is', () {
     expect(() {
-      var list = document.query('#browsers');
+      var list = document.querySelector('#browsers');
       expect(list, isDataListElement);
     }, expectation);
   });
 
   test('list', () {
     expect(() {
-      var list = document.query('#browsers');
-      var input = document.query('#input');
+      var list = document.querySelector('#browsers');
+      var input = document.querySelector('#input');
       expect(input.list, list);
     }, expectation);
   });
 
   test('options', () {
     expect(() {
-      var options = document.query('#browsers').options;
+      var options = document.querySelector('#browsers').options;
       expect(options.length, 5);
     }, expectation);
   });

@@ -47,7 +47,7 @@ void emitJson() {
 ///
 /// The parameter [str] may be `null` in which case the result is "null".
 String escapeString(String str) {
-  return JSON.encode(str);
+  return jsonEncode(str);
 }
 
 /// Emits the messages in dart2js format.

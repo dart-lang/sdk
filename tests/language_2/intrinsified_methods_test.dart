@@ -24,7 +24,7 @@ testIsNaN() {
 }
 
 testTrigonometric() {
-  Expect.approxEquals(1.0, sin(PI / 2.0), 0.0001);
+  Expect.approxEquals(1.0, sin(pi / 2.0), 0.0001);
   Expect.approxEquals(1.0, cos(0), 0.0001);
   Expect.approxEquals(1.0, cos(0.0), 0.0001);
 }

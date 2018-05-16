@@ -17,11 +17,11 @@ import '../problems.dart' show unimplemented, unsupported;
 /// the included libraries. Only outlines are serialized, even for included
 /// libraries, all function bodies are ignored.
 void serializeTrimmedOutline(
-    Sink<List<int>> sink, Program program, bool isIncluded(Uri uri)) {
+    Sink<List<int>> sink, Component component, bool isIncluded(Uri uri)) {
   var data = new _RetainedDataBuilder();
-  data._markRequired(program);
+  data._markRequired(component);
 
-  for (var library in program.libraries) {
+  for (var library in component.libraries) {
     if (!isIncluded(library.importUri)) continue;
     data.markAdditionalExports(library);
     for (var clazz in library.classes) {
@@ -42,35 +42,36 @@ void serializeTrimmedOutline(
     }
   }
 
-  new _TrimmedBinaryPrinter(sink, isIncluded, data).writeProgramFile(program);
+  new _TrimmedBinaryPrinter(sink, isIncluded, data)
+      .writeComponentFile(component);
 }
 
-/// Removes unnecessary libraries, classes, and members from [program].
+/// Removes unnecessary libraries, classes, and members from [component].
 ///
 /// This applies a simple "tree-shaking" technique: the full body of libraries
 /// whose URI match [isIncluded] is preserved, and so is the outline of the
 /// members and classes which are transitively visible from the
 /// included libraries.
 ///
-/// The intent is that the resulting program has the entire code that is meant
+/// The intent is that the resulting component has the entire code that is meant
 /// to be included and the minimum required to prevent dangling references and
 /// allow modular program transformations.
 ///
-/// Note that the resulting program may include libraries not in [isIncluded],
+/// Note that the resulting component may include libraries not in [isIncluded],
 /// but those will be marked as external. There should be no method bodies for
 /// any members of those libraries.
-void trimProgram(Program program, bool isIncluded(Uri uri)) {
+void trimProgram(Component component, bool isIncluded(Uri uri)) {
   var data = new _RetainedDataBuilder();
-  data._markRequired(program);
+  data._markRequired(component);
 
-  data.markMember(program.mainMethod);
-  for (var library in program.libraries) {
+  data.markMember(component.mainMethod);
+  for (var library in component.libraries) {
     if (isIncluded(library.importUri)) {
       library.accept(data);
     }
   }
 
-  new _KernelOutlineShaker(isIncluded, data).transform(program);
+  new _KernelOutlineShaker(isIncluded, data).transform(component);
 }
 
 /// Transformer that trims everything in the excluded libraries that is not
@@ -109,9 +110,9 @@ class _KernelOutlineShaker extends Transformer {
   @override
   TreeNode defaultTreeNode(TreeNode node) => node;
 
-  void transform(Program program) {
+  void transform(Component component) {
     var toRemove = new Set<Library>();
-    for (var library in program.libraries) {
+    for (var library in component.libraries) {
       if (!isIncluded(library.importUri)) {
         if (!data.isLibraryUsed(library)) {
           toRemove.add(library);
@@ -121,7 +122,7 @@ class _KernelOutlineShaker extends Transformer {
         }
       }
     }
-    program.libraries.removeWhere(toRemove.contains);
+    component.libraries.removeWhere(toRemove.contains);
   }
 
   @override
@@ -530,8 +531,8 @@ class _RetainedDataBuilder extends RecursiveVisitor implements _RetainedData {
   /// transformers.
   // TODO(sigmund): consider being more fine-grained and only marking what is
   // seen and used.
-  void _markRequired(Program program) {
-    var coreTypes = new CoreTypes(program);
+  void _markRequired(Component component) {
+    var coreTypes = new CoreTypes(component);
     coreTypes.objectClass.members.forEach(markMember);
 
     // These are assumed to be available by fasta:
@@ -660,8 +661,8 @@ class _TrimmedBinaryPrinter extends BinaryPrinter {
   }
 
   @override
-  void writeLibraries(Program program) {
-    for (var library in program.libraries) {
+  void writeLibraries(Component component) {
+    for (var library in component.libraries) {
       if (isIncluded(library.importUri) || data.isLibraryUsed(library)) {
         librariesToWrite.add(library);
       }
@@ -697,8 +698,8 @@ class _TrimmedBinaryPrinter extends BinaryPrinter {
   }
 
   @override
-  void writeProgramIndex(Program program, List<Library> libraries) {
-    super.writeProgramIndex(program, librariesToWrite);
+  void writeComponentIndex(Component component, List<Library> libraries) {
+    super.writeComponentIndex(component, librariesToWrite);
   }
 
   @override

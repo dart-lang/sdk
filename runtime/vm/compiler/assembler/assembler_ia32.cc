@@ -1834,50 +1834,45 @@ void Assembler::CompareObject(Register reg, const Object& object) {
 }
 
 // Destroys the value register.
-void Assembler::StoreIntoObjectFilterNoSmi(Register object,
-                                           Register value,
-                                           Label* no_update) {
-  COMPILE_ASSERT((kNewObjectAlignmentOffset == kWordSize) &&
-                 (kOldObjectAlignmentOffset == 0));
-
-  // Write-barrier triggers if the value is in the new space (has bit set) and
-  // the object is in the old space (has bit cleared).
-  // To check that we could compute value & ~object and skip the write barrier
-  // if the bit is not set. However we can't destroy the object.
-  // However to preserve the object we compute negated expression
-  // ~value | object instead and skip the write barrier if the bit is set.
-  notl(value);
-  orl(value, object);
-  testl(value, Immediate(kNewObjectAlignmentOffset));
-  j(NOT_ZERO, no_update, Assembler::kNearJump);
-}
-
-// Destroys the value register.
 void Assembler::StoreIntoObjectFilter(Register object,
                                       Register value,
-                                      Label* no_update) {
-  ASSERT(kNewObjectAlignmentOffset == 4);
-  ASSERT(kHeapObjectTag == 1);
-  // Detect value being ...101 and object being ...001.
-  andl(value, Immediate(7));
-  leal(value, Address(value, object, TIMES_2, 9));
-  testl(value, Immediate(0xf));
-  j(NOT_ZERO, no_update, Assembler::kNearJump);
+                                      Label* label,
+                                      CanBeSmi can_be_smi,
+                                      BarrierFilterMode how_to_jump) {
+  if (can_be_smi == kValueIsNotSmi) {
+    COMPILE_ASSERT((kNewObjectAlignmentOffset == kWordSize) &&
+                   (kOldObjectAlignmentOffset == 0));
+    // Write-barrier triggers if the value is in the new space (has bit set) and
+    // the object is in the old space (has bit cleared).
+    // To check that we could compute value & ~object and skip the write barrier
+    // if the bit is not set. However we can't destroy the object.
+    // However to preserve the object we compute negated expression
+    // ~value | object instead and skip the write barrier if the bit is set.
+    notl(value);
+    orl(value, object);
+    testl(value, Immediate(kNewObjectAlignmentOffset));
+  } else {
+    ASSERT(kNewObjectAlignmentOffset == 4);
+    ASSERT(kHeapObjectTag == 1);
+    // Detect value being ...101 and object being ...001.
+    andl(value, Immediate(7));
+    leal(value, Address(value, object, TIMES_2, 9));
+    testl(value, Immediate(0xf));
+  }
+  Condition condition = how_to_jump == kJumpToNoUpdate ? NOT_ZERO : ZERO;
+  bool distance = how_to_jump == kJumpToNoUpdate ? kNearJump : kFarJump;
+  j(condition, label, distance);
 }
 
 // Destroys the value register.
 void Assembler::StoreIntoObject(Register object,
                                 const Address& dest,
                                 Register value,
-                                bool can_value_be_smi) {
+                                CanBeSmi can_be_smi) {
   ASSERT(object != value);
   movl(dest, value);
   Label done;
-  if (can_value_be_smi) {
-    StoreIntoObjectFilter(object, value, &done);
-  } else {
-    StoreIntoObjectFilterNoSmi(object, value, &done);
-  }
+  StoreIntoObjectFilter(object, value, &done, can_be_smi, kJumpToNoUpdate);
   // A store buffer update is required.
   if (value != EDX) {
     pushl(EDX);  // Preserve EDX.
@@ -1899,7 +1894,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
 #if defined(DEBUG)
   Label done;
   pushl(value);
-  StoreIntoObjectFilter(object, value, &done);
+  StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
   Stop("Store buffer update is required");
   Bind(&done);
   popl(value);
@@ -2430,7 +2425,8 @@ void Assembler::LoadClassById(Register result, Register class_id) {
   const intptr_t offset =
       Isolate::class_table_offset() + ClassTable::table_offset();
   movl(result, Address(result, offset));
-  movl(result, Address(result, class_id, TIMES_4, 0));
+  ASSERT(kSizeOfClassPairLog2 == 3);
+  movl(result, Address(result, class_id, TIMES_8, 0));
 }
 
 void Assembler::LoadClass(Register result, Register object, Register scratch) {

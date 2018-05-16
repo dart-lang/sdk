@@ -11,6 +11,7 @@
 #include <fcntl.h>
 #include <fdio/namespace.h>
 #include <fdio/private.h>
+#include <zircon/status.h>
 
 #include "bin/file.h"
 #include "platform/signal_blocker.h"
@@ -42,7 +43,9 @@ class NamespaceImpl {
   ~NamespaceImpl() {
     if (fdio_ns_ != NULL) {
       zx_status_t status = fdio_ns_destroy(fdio_ns_);
-      ASSERT(status == ZX_OK);
+      if (status != ZX_OK) {
+        Log::PrintErr("fdio_ns_destroy: %s\n", zx_status_get_string(status));
+      }
     }
     NO_RETRY_EXPECTED(close(rootfd_));
     free(cwd_);

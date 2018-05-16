@@ -14,13 +14,12 @@
 #include <zircon/syscalls/object.h>
 #include <zircon/types.h>
 
+#include <fuchsia/cpp/time_zone.h>
+
 #include "lib/app/cpp/environment_services.h"
-#include "lib/time_service/fidl/time_service.fidl.h"
 
 #include "platform/assert.h"
 #include "vm/zone.h"
-
-static constexpr char kTimeServiceName[] = "time_service::TimeService";
 
 namespace dart {
 
@@ -41,39 +40,29 @@ intptr_t OS::ProcessId() {
   return static_cast<intptr_t>(getpid());
 }
 
-static zx_status_t GetTimeServicePtr(
-    time_service::TimeServiceSyncPtr* time_svc) {
-  zx::channel service_root = app::subtle::CreateStaticServiceRootHandle();
-  zx::channel time_svc_channel = GetSynchronousProxy(time_svc).TakeChannel();
-  return fdio_service_connect_at(service_root.get(), kTimeServiceName,
-                                 time_svc_channel.release());
-}
-
 static zx_status_t GetLocalAndDstOffsetInSeconds(int64_t seconds_since_epoch,
                                                  int32_t* local_offset,
                                                  int32_t* dst_offset) {
-  time_service::TimeServiceSyncPtr time_svc;
-  zx_status_t status = GetTimeServicePtr(&time_svc);
-  if (status == ZX_OK) {
-    time_svc->GetTimezoneOffsetMinutes(seconds_since_epoch * 1000, local_offset,
-                                       dst_offset);
-    *local_offset *= 60;
-    *dst_offset *= 60;
-  }
-  return status;
+  time_zone::TimezoneSyncPtr time_svc;
+  component::ConnectToEnvironmentService(time_svc.NewRequest());
+  if (!time_svc->GetTimezoneOffsetMinutes(seconds_since_epoch * 1000,
+                                          local_offset, dst_offset))
+    return ZX_ERR_UNAVAILABLE;
+  *local_offset *= 60;
+  *dst_offset *= 60;
+  return ZX_OK;
 }
 
 const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
-  time_service::TimeServiceSyncPtr time_svc;
-  if (GetTimeServicePtr(&time_svc) == ZX_OK) {
-    f1dl::String res;
-    time_svc->GetTimezoneId(&res);
-    char* tz_name = Thread::Current()->zone()->Alloc<char>(res->size() + 1);
-    memmove(tz_name, res->data(), res->size());
-    tz_name[res->size()] = '\0';
-    return tz_name;
-  }
-  return "";
+  // TODO(abarth): Handle time zone changes.
+  static const auto* tz_name = new std::string([] {
+    time_zone::TimezoneSyncPtr time_svc;
+    component::ConnectToEnvironmentService(time_svc.NewRequest());
+    fidl::StringPtr result;
+    time_svc->GetTimezoneId(&result);
+    return *result;
+  }());
+  return tz_name->c_str();
 }
 
 int OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch) {
@@ -171,7 +160,7 @@ void OS::DebugBreak() {
   UNIMPLEMENTED();
 }
 
-uintptr_t DART_NOINLINE OS::GetProgramCounter() {
+DART_NOINLINE uintptr_t OS::GetProgramCounter() {
   return reinterpret_cast<uintptr_t>(
       __builtin_extract_return_addr(__builtin_return_address(0)));
 }

@@ -27,15 +27,6 @@ class OpType {
   bool includeConstructorSuggestions = false;
 
   /**
-   * If [includeConstructorSuggestions] is set to true, then this function may
-   * be set to a non-default function to filter out potential suggestions (null)
-   * based on their static [DartType], or change the relative relevance by
-   * returning a higher or lower relevance.
-   */
-  SuggestionsFilter constructorSuggestionsFilter =
-      (DartType _, int relevance) => relevance;
-
-  /**
    * Indicates whether type names should be suggested.
    */
   bool includeTypeNameSuggestions = false;
@@ -130,16 +121,6 @@ class OpType {
     optype.inStaticMethodBody =
         mthDecl is MethodDeclaration && mthDecl.isStatic;
 
-    // If a value should be suggested, suggest also constructors.
-    if (optype.includeReturnValueSuggestions) {
-      // Careful: in angular plugin, `target.unit` may be null!
-      CompilationUnitElement unitElement = target.unit?.element;
-      if (unitElement != null &&
-          unitElement.context.analysisOptions.previewDart2) {
-        optype.includeConstructorSuggestions = true;
-      }
-    }
-
     // Compute the type required by the context and set filters.
     optype._computeRequiredTypeAndFilters(target);
 
@@ -219,20 +200,6 @@ class OpType {
       _requiredType = null;
       return;
     }
-
-    constructorSuggestionsFilter = (DartType dartType, int relevance) {
-      if (dartType != null) {
-        if (dartType == _requiredType) {
-          return relevance + DART_RELEVANCE_BOOST_TYPE;
-        } else if (dartType.isSubtypeOf(_requiredType)) {
-          return relevance + DART_RELEVANCE_BOOST_SUBTYPE;
-        }
-        if (target.containingNode is InstanceCreationExpression) {
-          return null;
-        }
-      }
-      return relevance;
-    };
 
     returnValueSuggestionsFilter = (DartType dartType, int relevance) {
       if (dartType != null) {
@@ -335,7 +302,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
         index = 0;
       } else if (entity == node.rightParenthesis) {
         // Parser ignores trailing commas
-        if (node.rightParenthesis.previous?.lexeme == ',') {
+        Token previous = node.findPrevious(node.rightParenthesis);
+        if (previous?.lexeme == ',') {
           index = node.arguments.length;
         } else {
           index = node.arguments.length - 1;
@@ -598,10 +566,13 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   @override
   void visitFormalParameterList(FormalParameterList node) {
     dynamic entity = this.entity;
-    if (entity is Token && entity.previous != null) {
-      TokenType type = entity.previous.type;
-      if (type == TokenType.OPEN_PAREN || type == TokenType.COMMA) {
-        optype.includeTypeNameSuggestions = true;
+    if (entity is Token) {
+      Token previous = node.findPrevious(entity);
+      if (previous != null) {
+        TokenType type = previous.type;
+        if (type == TokenType.OPEN_PAREN || type == TokenType.COMMA) {
+          optype.includeTypeNameSuggestions = true;
+        }
       }
     }
     // Handle default normal parameter just as a normal parameter.
@@ -844,7 +815,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
         // identifier to be a keyword and inserts a synthetic identifier
         (node.identifier != null &&
             node.identifier.isSynthetic &&
-            identical(entity, node.identifier.beginToken.previous))) {
+            identical(entity, node.findPrevious(node.identifier.beginToken)))) {
       optype.isPrefixed = true;
       if (node.parent is TypeName && node.parent.parent is ConstructorName) {
         optype.includeConstructorSuggestions = true;
@@ -1031,9 +1002,11 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   bool _isEntityPrevTokenSynthetic() {
     Object entity = this.entity;
-    if (entity is AstNode &&
-        (entity.beginToken.previous?.isSynthetic ?? false)) {
-      return true;
+    if (entity is AstNode) {
+      Token previous = entity.findPrevious(entity.beginToken);
+      if (previous?.isSynthetic ?? false) {
+        return true;
+      }
     }
     return false;
   }

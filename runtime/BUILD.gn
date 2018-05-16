@@ -2,7 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-import("../build/dart_host_sdk_toolchain.gni")
+import("../build/dart/dart_host_sdk_toolchain.gni")
+import("configs.gni")
 import("runtime_args.gni")
 
 config("dart_public_config") {
@@ -48,7 +49,7 @@ config("dart_precompiler_config") {
   defines += [ "DART_PRECOMPILER" ]
 }
 
-config("dart_no_snapshot_config") {
+config("dart_nosnapshot_config") {
   defines = []
   defines += [ "DART_NO_SNAPSHOT" ]
 }
@@ -79,6 +80,13 @@ config("dart_os_config") {
       assert(false)
     }
   }
+}
+
+# We need to build gen_snapshot targeting Fuchsia during a build of the SDK
+# targeting Mac and Linux. This configuration is used to unconditionally target
+# Fuchsia. It should not be combined with dart_os_config.
+config("dart_os_fuchsia_config") {
+  defines = [ "TARGET_OS_FUCHSIA" ]
 }
 
 config("dart_arch_config") {
@@ -113,6 +121,17 @@ config("dart_arch_config") {
   }
 }
 
+config("dart_interpreter_config") {
+  defines = [ "DART_USE_INTERPRETER" ]
+}
+
+config("dart_maybe_interpreter_config") {
+  defines = []
+  if (dart_use_interpreter) {
+    defines += [ "DART_USE_INTERPRETER" ]
+  }
+}
+
 config("dart_config") {
   defines = []
 
@@ -129,11 +148,14 @@ config("dart_config") {
   }
 
   if (is_fuchsia) {
-    defines += [ "DART_USE_JEMALLOC" ]
+    import("//build/config/scudo/scudo.gni")
     include_dirs += [
       "//zircon/system/ulib/zx/include",
-      "//zircon/third_party/ulib/jemalloc/include",
     ]
+    if (!use_scudo) {
+      defines += [ "DART_USE_JEMALLOC" ]
+      include_dirs += [ "//zircon/third_party/ulib/jemalloc/include" ]
+    }
   }
 
   if (!is_win) {
@@ -177,141 +199,34 @@ source_set("dart_api") {
   public_configs = [ ":dart_public_config" ]
   sources = [
     "include/dart_api.h",
-    "include/dart_mirrors_api.h",
     "include/dart_native_api.h",
     "include/dart_tools_api.h",
   ]
 }
 
-template("libdart_library") {
-  extra_configs = []
-  if (defined(invoker.extra_configs)) {
-    extra_configs += invoker.extra_configs
-  }
-  extra_deps = []
-  if (defined(invoker.extra_deps)) {
-    extra_deps += invoker.extra_deps
-  }
-  static_library(target_name) {
-    configs += [
-                 ":dart_arch_config",
-                 ":dart_config",
-                 ":dart_os_config",
-               ] + extra_configs
-    if (is_fuchsia) {
-      configs -= [ "//build/config:symbol_visibility_hidden" ]
-    }
-    deps = [
-             "third_party/double-conversion/src:libdouble_conversion",
-             ":generate_version_cc_file",
-           ] + extra_deps
-    include_dirs = [ "." ]
-    public_configs = [ ":dart_public_config" ]
-    sources = [
-      "$target_gen_dir/version.cc",
-      "include/dart_api.h",
-      "include/dart_mirrors_api.h",
-      "include/dart_native_api.h",
-      "include/dart_tools_api.h",
-      "vm/dart_api_impl.cc",
-      "vm/mirrors_api_impl.cc",
-      "vm/native_api_impl.cc",
-      "vm/version.h",
-    ]
-    defines = [ "DART_SHARED_LIB" ]
-  }
-}
-
-libdart_library("libdart_jit") {
-  extra_configs = [ ":dart_maybe_product_config" ]
+library_for_all_configs("libdart") {
+  target_type = dart_component_kind
   extra_deps = [
+    "third_party/double-conversion/src:libdouble_conversion",
+    ":generate_version_cc_file",
+  ]
+  configurable_deps = [
     "platform:libdart_platform",
-    "vm:libdart_lib_jit",
-    "vm:libdart_vm_jit",
+    "vm:libdart_lib",
+    "vm:libdart_vm",
   ]
-}
-
-libdart_library("libdart_jit_product") {
-  extra_configs = [ ":dart_product_config" ]
-  extra_deps = [
-    "platform:libdart_platform_product",
-    "vm:libdart_lib_jit_product",
-    "vm:libdart_vm_jit_product",
+  include_dirs = [ "." ]
+  public_configs = [ ":dart_public_config" ]
+  sources = [
+    "$target_gen_dir/version.cc",
+    "include/dart_api.h",
+    "include/dart_native_api.h",
+    "include/dart_tools_api.h",
+    "vm/dart_api_impl.cc",
+    "vm/native_api_impl.cc",
+    "vm/version.h",
   ]
-}
-
-libdart_library("libdart_precompiled_runtime") {
-  extra_configs = [
-    ":dart_maybe_product_config",
-    ":dart_precompiled_runtime_config",
-  ]
-  extra_deps = [
-    "platform:libdart_platform",
-    "vm:libdart_lib_precompiled_runtime",
-    "vm:libdart_vm_precompiled_runtime",
-  ]
-}
-
-libdart_library("libdart_precompiled_runtime_product") {
-  extra_configs = [
-    ":dart_product_config",
-    ":dart_precompiled_runtime_config",
-  ]
-  extra_deps = [
-    "platform:libdart_platform_product",
-    "vm:libdart_lib_precompiled_runtime_product",
-    "vm:libdart_vm_precompiled_runtime_product",
-  ]
-}
-
-libdart_library("libdart_nosnapshot_with_precompiler") {
-  extra_configs = [
-    ":dart_maybe_product_config",
-    ":dart_no_snapshot_config",
-    ":dart_precompiler_config",
-  ]
-  extra_deps = [
-    "platform:libdart_platform",
-    "vm:libdart_lib_nosnapshot_with_precompiler",
-    "vm:libdart_vm_nosnapshot_with_precompiler",
-  ]
-}
-
-libdart_library("libdart_nosnapshot_with_precompiler_product") {
-  extra_configs = [
-    ":dart_product_config",
-    ":dart_no_snapshot_config",
-    ":dart_precompiler_config",
-  ]
-  extra_deps = [
-    "platform:libdart_platform_product",
-    "vm:libdart_lib_nosnapshot_with_precompiler_product",
-    "vm:libdart_vm_nosnapshot_with_precompiler_product",
-  ]
-}
-
-libdart_library("libdart_with_precompiler") {
-  extra_configs = [
-    ":dart_maybe_product_config",
-    ":dart_precompiler_config",
-  ]
-  extra_deps = [
-    "platform:libdart_platform",
-    "vm:libdart_lib_with_precompiler",
-    "vm:libdart_vm_with_precompiler",
-  ]
-}
-
-libdart_library("libdart_with_precompiler_product") {
-  extra_configs = [
-    ":dart_product_config",
-    ":dart_precompiler_config",
-  ]
-  extra_deps = [
-    "platform:libdart_platform_product",
-    "vm:libdart_lib_with_precompiler_product",
-    "vm:libdart_vm_with_precompiler_product",
-  ]
+  defines = [ "DART_SHARED_LIB" ]
 }
 
 action("generate_version_cc_file") {

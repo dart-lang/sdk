@@ -156,7 +156,7 @@ void testWatchOnlyModifyFile() {
   var dir = Directory.systemTemp.createTempSync('dart_file_system_watcher');
   var file = new File(join(dir.path, 'file'));
 
-  var watcher = dir.watch(events: FileSystemEvent.MODIFY);
+  var watcher = dir.watch(events: FileSystemEvent.modify);
 
   asyncStart();
   var sub;
@@ -188,19 +188,19 @@ void testMultipleEvents() {
   sub = watcher.listen((event) {
     int newState = 0;
     switch (event.type) {
-      case FileSystemEvent.CREATE:
+      case FileSystemEvent.create:
         newState = 1;
         break;
 
-      case FileSystemEvent.MODIFY:
+      case FileSystemEvent.modify:
         newState = 2;
         break;
 
-      case FileSystemEvent.MOVE:
+      case FileSystemEvent.move:
         newState = 3;
         break;
 
-      case FileSystemEvent.DELETE:
+      case FileSystemEvent.delete:
         newState = 4;
         sub.cancel();
         asyncEnd();

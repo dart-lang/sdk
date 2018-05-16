@@ -19,6 +19,10 @@ void return2(int i) {
 
 return3() => new T();
 
+void return4() {
+  return;
+}
+
 expr1() {
   new T();
 }
@@ -98,13 +102,15 @@ if2(bool c) {
 }
 
 if3(bool c) {
-  if (c) {} else {
+  if (c) {
+  } else {
     throw 'Error!';
   }
 }
 
 if4(bool c) {
-  if (c) {} else {}
+  if (c) {
+  } else {}
 }
 
 void if5(bool c) {

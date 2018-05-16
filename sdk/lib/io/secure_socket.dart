@@ -364,21 +364,21 @@ class _FilterStatus {
 class _RawSecureSocket extends Stream<RawSocketEvent>
     implements RawSecureSocket {
   // Status states
-  static const int HANDSHAKE = 201;
-  static const int CONNECTED = 202;
-  static const int CLOSED = 203;
+  static const int handshakeStatus = 201;
+  static const int connectedStatus = 202;
+  static const int closedStatus = 203;
 
   // Buffer identifiers.
   // These must agree with those in the native C++ implementation.
-  static const int READ_PLAINTEXT = 0;
-  static const int WRITE_PLAINTEXT = 1;
-  static const int READ_ENCRYPTED = 2;
-  static const int WRITE_ENCRYPTED = 3;
-  static const int NUM_BUFFERS = 4;
+  static const int readPlaintextId = 0;
+  static const int writePlaintextId = 1;
+  static const int readEncryptedId = 2;
+  static const int writeEncryptedId = 3;
+  static const int bufferCount = 4;
 
   // Is a buffer identifier for an encrypted buffer?
   static bool _isBufferEncrypted(int identifier) =>
-      identifier >= READ_ENCRYPTED;
+      identifier >= readEncryptedId;
 
   RawSocket _socket;
   final Completer<_RawSecureSocket> _handshakeComplete =
@@ -395,7 +395,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   final bool requireClientCertificate;
   final Function onBadCertificate;
 
-  var _status = HANDSHAKE;
+  var _status = handshakeStatus;
   bool _writeEventsEnabled = true;
   bool _readEventsEnabled = true;
   int _pauseCount = 0;
@@ -491,10 +491,10 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         throw new ArgumentError("Subscription passed to TLS upgrade is paused");
       }
       // If we are upgrading a socket that is already closed for read,
-      // report an error as if we received READ_CLOSED during the handshake.
+      // report an error as if we received readClosed during the handshake.
       dynamic s = _socket; // Cast to dynamic to avoid warning.
       if (s._socket.closedReadEventSent) {
-        _eventDispatcher(RawSocketEvent.READ_CLOSED);
+        _eventDispatcher(RawSocketEvent.readClosed);
       }
       _socketSubscription
         ..onData(_eventDispatcher)
@@ -562,13 +562,13 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   }
 
   int available() {
-    return _status != CONNECTED
+    return _status != connectedStatus
         ? 0
-        : _secureFilter.buffers[READ_PLAINTEXT].length;
+        : _secureFilter.buffers[readPlaintextId].length;
   }
 
   Future<RawSecureSocket> close() {
-    shutdown(SocketDirection.BOTH);
+    shutdown(SocketDirection.both);
     return _closeCompleter.future;
   }
 
@@ -594,26 +594,26 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       _socketSubscription.cancel();
     }
     _controller.close();
-    _status = CLOSED;
+    _status = closedStatus;
   }
 
   void shutdown(SocketDirection direction) {
-    if (direction == SocketDirection.SEND ||
-        direction == SocketDirection.BOTH) {
+    if (direction == SocketDirection.send ||
+        direction == SocketDirection.both) {
       _closedWrite = true;
       if (_filterStatus.writeEmpty) {
-        _socket.shutdown(SocketDirection.SEND);
+        _socket.shutdown(SocketDirection.send);
         _socketClosedWrite = true;
         if (_closedRead) {
           _close();
         }
       }
     }
-    if (direction == SocketDirection.RECEIVE ||
-        direction == SocketDirection.BOTH) {
+    if (direction == SocketDirection.receive ||
+        direction == SocketDirection.both) {
       _closedRead = true;
       _socketClosedRead = true;
-      _socket.shutdown(SocketDirection.RECEIVE);
+      _socket.shutdown(SocketDirection.receive);
       if (_socketClosedWrite) {
         _close();
       }
@@ -644,10 +644,10 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     if (_closedRead) {
       throw new SocketException("Reading from a closed socket");
     }
-    if (_status != CONNECTED) {
+    if (_status != connectedStatus) {
       return null;
     }
-    var result = _secureFilter.buffers[READ_PLAINTEXT].read(length);
+    var result = _secureFilter.buffers[readPlaintextId].read(length);
     _scheduleFilter();
     return result;
   }
@@ -666,12 +666,12 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       _controller.addError(new SocketException("Writing to a closed socket"));
       return 0;
     }
-    if (_status != CONNECTED) return 0;
+    if (_status != connectedStatus) return 0;
     if (offset == null) offset = 0;
     if (bytes == null) bytes = data.length - offset;
 
     int written =
-        _secureFilter.buffers[WRITE_PLAINTEXT].write(data, offset, bytes);
+        _secureFilter.buffers[writePlaintextId].write(data, offset, bytes);
     if (written > 0) {
       _filterStatus.writeEmpty = false;
     }
@@ -698,11 +698,11 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
 
   void _eventDispatcher(RawSocketEvent event) {
     try {
-      if (event == RawSocketEvent.READ) {
+      if (event == RawSocketEvent.read) {
         _readHandler();
-      } else if (event == RawSocketEvent.WRITE) {
+      } else if (event == RawSocketEvent.write) {
         _writeHandler();
-      } else if (event == RawSocketEvent.READ_CLOSED) {
+      } else if (event == RawSocketEvent.readClosed) {
         _closeHandler();
       }
     } catch (e, stackTrace) {
@@ -727,7 +727,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   }
 
   void _reportError(e, [StackTrace stackTrace]) {
-    if (_status == CLOSED) {
+    if (_status == closedStatus) {
       return;
     } else if (_connectPending) {
       // _connectPending is true until the handshake has completed, and the
@@ -741,19 +741,19 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   }
 
   void _closeHandler() {
-    if (_status == CONNECTED) {
+    if (_status == connectedStatus) {
       if (_closedRead) return;
       _socketClosedRead = true;
       if (_filterStatus.readEmpty) {
         _closedRead = true;
-        _controller.add(RawSocketEvent.READ_CLOSED);
+        _controller.add(RawSocketEvent.readClosed);
         if (_socketClosedWrite) {
           _close();
         }
       } else {
         _scheduleFilter();
       }
-    } else if (_status == HANDSHAKE) {
+    } else if (_status == handshakeStatus) {
       _socketClosedRead = true;
       if (_filterStatus.readEmpty) {
         _reportError(
@@ -781,19 +781,19 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       {bool useSessionCache: true,
       bool requestClientCertificate: false,
       bool requireClientCertificate: false}) {
-    if (_status != CONNECTED) {
+    if (_status != connectedStatus) {
       throw new HandshakeException(
           "Called renegotiate on a non-connected socket");
     }
     _secureFilter.renegotiate(
         useSessionCache, requestClientCertificate, requireClientCertificate);
-    _status = HANDSHAKE;
+    _status = handshakeStatus;
     _filterStatus.writeEmpty = false;
     _scheduleFilter();
   }
 
   void _secureHandshakeCompleteHandler() {
-    _status = CONNECTED;
+    _status = connectedStatus;
     if (_connectPending) {
       _connectPending = false;
       try {
@@ -838,7 +838,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   }
 
   void _tryFilter() {
-    if (_status == CLOSED) {
+    if (_status == closedStatus) {
       return;
     }
     if (_filterPending && !_filterActive) {
@@ -847,7 +847,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       _pushAllFilterStages().then((status) {
         _filterStatus = status;
         _filterActive = false;
-        if (_status == CLOSED) {
+        if (_status == closedStatus) {
           _secureFilter.destroy();
           _secureFilter = null;
           return;
@@ -855,22 +855,22 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         _socket.readEventsEnabled = true;
         if (_filterStatus.writeEmpty && _closedWrite && !_socketClosedWrite) {
           // Checks for and handles all cases of partially closed sockets.
-          shutdown(SocketDirection.SEND);
-          if (_status == CLOSED) {
+          shutdown(SocketDirection.send);
+          if (_status == closedStatus) {
             return;
           }
         }
         if (_filterStatus.readEmpty && _socketClosedRead && !_closedRead) {
-          if (_status == HANDSHAKE) {
+          if (_status == handshakeStatus) {
             _secureFilter.handshake();
-            if (_status == HANDSHAKE) {
+            if (_status == handshakeStatus) {
               throw new HandshakeException(
                   'Connection terminated during handshake');
             }
           }
           _closeHandler();
         }
-        if (_status == CLOSED) {
+        if (_status == closedStatus) {
           return;
         }
         if (_filterStatus.progress) {
@@ -887,7 +887,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
           if (_filterStatus.readPlaintextNoLongerEmpty) {
             _scheduleReadEvent();
           }
-          if (_status == HANDSHAKE) {
+          if (_status == handshakeStatus) {
             _secureHandshake();
           }
         }
@@ -916,8 +916,8 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   }
 
   void _readSocket() {
-    if (_status == CLOSED) return;
-    var buffer = _secureFilter.buffers[READ_ENCRYPTED];
+    if (_status == closedStatus) return;
+    var buffer = _secureFilter.buffers[readEncryptedId];
     if (buffer.writeFromSource(_readSocketOrBufferedData) > 0) {
       _filterStatus.readEmpty = false;
     } else {
@@ -927,7 +927,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
 
   void _writeSocket() {
     if (_socketClosedWrite) return;
-    var buffer = _secureFilter.buffers[WRITE_ENCRYPTED];
+    var buffer = _secureFilter.buffers[writeEncryptedId];
     if (buffer.readToSocket(_socket)) {
       // Returns true if blocked
       _socket.writeEventsEnabled = true;
@@ -940,7 +940,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         _readEventsEnabled &&
         _pauseCount == 0 &&
         _secureFilter != null &&
-        !_secureFilter.buffers[READ_PLAINTEXT].isEmpty) {
+        !_secureFilter.buffers[readPlaintextId].isEmpty) {
       _pendingReadEvent = true;
       Timer.run(_sendReadEvent);
     }
@@ -948,12 +948,12 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
 
   _sendReadEvent() {
     _pendingReadEvent = false;
-    if (_status != CLOSED &&
+    if (_status != closedStatus &&
         _readEventsEnabled &&
         _pauseCount == 0 &&
         _secureFilter != null &&
-        !_secureFilter.buffers[READ_PLAINTEXT].isEmpty) {
-      _controller.add(RawSocketEvent.READ);
+        !_secureFilter.buffers[readPlaintextId].isEmpty) {
+      _controller.add(RawSocketEvent.read);
       _scheduleReadEvent();
     }
   }
@@ -964,24 +964,26 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         _writeEventsEnabled &&
         _pauseCount == 0 &&
         _secureFilter != null &&
-        _secureFilter.buffers[WRITE_PLAINTEXT].free > 0) {
+        _secureFilter.buffers[writePlaintextId].free > 0) {
       _writeEventsEnabled = false;
-      _controller.add(RawSocketEvent.WRITE);
+      _controller.add(RawSocketEvent.write);
     }
   }
 
   Future<_FilterStatus> _pushAllFilterStages() {
-    bool wasInHandshake = _status != CONNECTED;
-    List args = new List(2 + NUM_BUFFERS * 2);
+    bool wasInHandshake = _status != connectedStatus;
+    List args = new List(2 + bufferCount * 2);
     args[0] = _secureFilter._pointer();
     args[1] = wasInHandshake;
     var bufs = _secureFilter.buffers;
-    for (var i = 0; i < NUM_BUFFERS; ++i) {
+    for (var i = 0; i < bufferCount; ++i) {
       args[2 * i + 2] = bufs[i].start;
       args[2 * i + 3] = bufs[i].end;
     }
 
-    return _IOService._dispatch(_SSL_PROCESS_FILTER, args).then((response) {
+    return _IOService
+        ._dispatch(_IOService.sslProcessFilter, args)
+        .then((response) {
       if (response.length == 2) {
         if (wasInHandshake) {
           // If we're in handshake, throw a handshake error.
@@ -1000,19 +1002,19 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       _FilterStatus status = new _FilterStatus();
       // Compute writeEmpty as "write plaintext buffer and write encrypted
       // buffer were empty when we started and are empty now".
-      status.writeEmpty = bufs[WRITE_PLAINTEXT].isEmpty &&
-          start(WRITE_ENCRYPTED) == end(WRITE_ENCRYPTED);
+      status.writeEmpty = bufs[writePlaintextId].isEmpty &&
+          start(writeEncryptedId) == end(writeEncryptedId);
       // If we were in handshake when this started, _writeEmpty may be false
       // because the handshake wrote data after we checked.
       if (wasInHandshake) status.writeEmpty = false;
 
       // Compute readEmpty as "both read buffers were empty when we started
       // and are empty now".
-      status.readEmpty = bufs[READ_ENCRYPTED].isEmpty &&
-          start(READ_PLAINTEXT) == end(READ_PLAINTEXT);
+      status.readEmpty = bufs[readEncryptedId].isEmpty &&
+          start(readPlaintextId) == end(readPlaintextId);
 
-      _ExternalBuffer buffer = bufs[WRITE_PLAINTEXT];
-      int new_start = start(WRITE_PLAINTEXT);
+      _ExternalBuffer buffer = bufs[writePlaintextId];
+      int new_start = start(writePlaintextId);
       if (new_start != buffer.start) {
         status.progress = true;
         if (buffer.free == 0) {
@@ -1020,8 +1022,8 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         }
         buffer.start = new_start;
       }
-      buffer = bufs[READ_ENCRYPTED];
-      new_start = start(READ_ENCRYPTED);
+      buffer = bufs[readEncryptedId];
+      new_start = start(readEncryptedId);
       if (new_start != buffer.start) {
         status.progress = true;
         if (buffer.free == 0) {
@@ -1029,8 +1031,8 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         }
         buffer.start = new_start;
       }
-      buffer = bufs[WRITE_ENCRYPTED];
-      int new_end = end(WRITE_ENCRYPTED);
+      buffer = bufs[writeEncryptedId];
+      int new_end = end(writeEncryptedId);
       if (new_end != buffer.end) {
         status.progress = true;
         if (buffer.length == 0) {
@@ -1038,8 +1040,8 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         }
         buffer.end = new_end;
       }
-      buffer = bufs[READ_PLAINTEXT];
-      new_end = end(READ_PLAINTEXT);
+      buffer = bufs[readPlaintextId];
+      new_end = end(readPlaintextId);
       if (new_end != buffer.end) {
         status.progress = true;
         if (buffer.length == 0) {

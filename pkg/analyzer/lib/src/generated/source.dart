@@ -2,15 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.generated.source;
-
 import 'dart:collection';
-import "dart:math" as math;
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart' show JavaFile;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source_io.dart' show FileBasedSource;
@@ -19,6 +15,8 @@ import 'package:front_end/src/base/uri_kind.dart';
 import 'package:package_config/packages.dart';
 import 'package:path/path.dart' as pathos;
 
+export 'package:analyzer/source/line_info.dart' show LineInfo;
+export 'package:analyzer/source/source_range.dart';
 export 'package:front_end/src/base/source.dart' show Source;
 export 'package:front_end/src/base/uri_kind.dart' show UriKind;
 
@@ -199,113 +197,10 @@ class DartUriResolver extends UriResolver {
 }
 
 /**
- * Information about line and column information within a source file.
- */
-class LineInfo {
-  /**
-   * A list containing the offsets of the first character of each line in the
-   * source code.
-   */
-  final List<int> lineStarts;
-
-  /**
-   * The zero-based [lineStarts] index resulting from the last call to
-   * [getLocation].
-   */
-  int _previousLine = 0;
-
-  /**
-   * Initialize a newly created set of line information to represent the data
-   * encoded in the given list of [lineStarts].
-   */
-  factory LineInfo(List<int> lineStarts) => new LineInfoWithCount(lineStarts);
-
-  /**
-   * Initialize a newly created set of line information corresponding to the
-   * given file [content].
-   */
-  factory LineInfo.fromContent(String content) =>
-      new LineInfoWithCount(StringUtilities.computeLineStarts(content));
-
-  /**
-   * Initialize a newly created set of line information to represent the data
-   * encoded in the given list of [lineStarts].
-   */
-  LineInfo._(this.lineStarts) {
-    if (lineStarts == null) {
-      throw new ArgumentError("lineStarts must be non-null");
-    } else if (lineStarts.length < 1) {
-      throw new ArgumentError("lineStarts must be non-empty");
-    }
-  }
-
-  /**
-   * The number of lines.
-   */
-  int get lineCount => lineStarts.length;
-
-  /**
-   * Return the location information for the character at the given [offset].
-   */
-  LineInfo_Location getLocation(int offset) {
-    var min = 0;
-    var max = lineStarts.length - 1;
-
-    // Subsequent calls to [getLocation] are often for offsets near each other.
-    // To take advantage of that, we cache the index of the line start we found
-    // when this was last called. If the current offset is on that line or
-    // later, we'll skip those early indices completely when searching.
-    if (offset >= lineStarts[_previousLine]) {
-      min = _previousLine;
-
-      // Before kicking off a full binary search, do a quick check here to see
-      // if the new offset is on that exact line.
-      if (min == lineStarts.length - 1 || offset < lineStarts[min + 1]) {
-        return new LineInfo_Location(min + 1, offset - lineStarts[min] + 1);
-      }
-    }
-
-    // Binary search to fine the line containing this offset.
-    while (min < max) {
-      var midpoint = (max - min + 1) ~/ 2 + min;
-
-      if (lineStarts[midpoint] > offset) {
-        max = midpoint - 1;
-      } else {
-        min = midpoint;
-      }
-    }
-
-    _previousLine = min;
-
-    return new LineInfo_Location(min + 1, offset - lineStarts[min] + 1);
-  }
-
-  /**
-   * Return the offset of the first character on the line with the given
-   * [lineNumber].
-   */
-  int getOffsetOfLine(int lineNumber) {
-    if (lineNumber < 0 || lineNumber >= lineCount) {
-      throw new ArgumentError(
-          'Invalid line number: $lineNumber; must be between 0 and ${lineCount - 1}');
-    }
-    return lineStarts[lineNumber];
-  }
-
-  /**
-   * Return the offset of the first character on the line following the line
-   * containing the given [offset].
-   */
-  int getOffsetOfLineAfter(int offset) {
-    return getOffsetOfLine(getLocation(offset).lineNumber + 1);
-  }
-}
-
-/**
  * Instances of the class `Location` represent the location of a character as a line and
  * column pair.
  */
+@deprecated
 class LineInfo_Location {
   /**
    * The one-based index of the line containing the character.
@@ -318,31 +213,13 @@ class LineInfo_Location {
   final int columnNumber;
 
   /**
-   * Initialize a newly created location to represent the location of the character at the given
-   * line and column position.
-   *
-   * @param lineNumber the one-based index of the line containing the character
-   * @param columnNumber the one-based index of the column containing the character
+   * Initialize a newly created location to represent the location of the
+   * character at the given [lineNumber] and [columnNumber].
    */
   LineInfo_Location(this.lineNumber, this.columnNumber);
 
   @override
   String toString() => '$lineNumber:$columnNumber';
-}
-
-/**
- * Information about line and column information within a source file,
- * including a count of the total number of lines.
- *
- * TODO(paulberry): in the next major version roll of analyzer, merge this
- * class into [LineInfo].
- */
-class LineInfoWithCount extends LineInfo {
-  /**
-   * Initialize a newly created set of line information to represent the data
-   * encoded in the given list of [lineStarts].
-   */
-  LineInfoWithCount(List<int> lineStarts) : super._(lineStarts);
 }
 
 /**
@@ -625,131 +502,6 @@ class SourceKind implements Comparable<SourceKind> {
 
   @override
   String toString() => name;
-}
-
-/**
- * A source range defines an [Element]'s source coordinates relative to its [Source].
- */
-class SourceRange {
-  /**
-   * An empty [SourceRange] with offset `0` and length `0`.
-   */
-  static SourceRange EMPTY = new SourceRange(0, 0);
-
-  /**
-   * The 0-based index of the first character of the source code for this element, relative to the
-   * source buffer in which this element is contained.
-   */
-  final int offset;
-
-  /**
-   * The number of characters of the source code for this element, relative to the source buffer in
-   * which this element is contained.
-   */
-  final int length;
-
-  /**
-   * Initialize a newly created source range using the given offset and the given length.
-   *
-   * @param offset the given offset
-   * @param length the given length
-   */
-  SourceRange(this.offset, this.length);
-
-  /**
-   * @return the 0-based index of the after-last character of the source code for this element,
-   *         relative to the source buffer in which this element is contained.
-   */
-  int get end => offset + length;
-
-  @override
-  int get hashCode => 31 * offset + length;
-
-  @override
-  bool operator ==(Object other) {
-    return other is SourceRange &&
-        other.offset == offset &&
-        other.length == length;
-  }
-
-  /**
-   * @return `true` if <code>x</code> is in [offset, offset + length) interval.
-   */
-  bool contains(int x) => offset <= x && x < offset + length;
-
-  /**
-   * @return `true` if <code>x</code> is in (offset, offset + length) interval.
-   */
-  bool containsExclusive(int x) => offset < x && x < offset + length;
-
-  /**
-   * @return `true` if <code>otherRange</code> covers this [SourceRange].
-   */
-  bool coveredBy(SourceRange otherRange) => otherRange.covers(this);
-
-  /**
-   * @return `true` if this [SourceRange] covers <code>otherRange</code>.
-   */
-  bool covers(SourceRange otherRange) =>
-      offset <= otherRange.offset && otherRange.end <= end;
-
-  /**
-   * @return `true` if this [SourceRange] ends in <code>otherRange</code>.
-   */
-  bool endsIn(SourceRange otherRange) {
-    int thisEnd = end;
-    return otherRange.contains(thisEnd);
-  }
-
-  /**
-   * @return the expanded instance of [SourceRange], which has the same center.
-   */
-  SourceRange getExpanded(int delta) =>
-      new SourceRange(offset - delta, delta + length + delta);
-
-  /**
-   * @return the instance of [SourceRange] with end moved on "delta".
-   */
-  SourceRange getMoveEnd(int delta) => new SourceRange(offset, length + delta);
-
-  /**
-   * @return the expanded translated of [SourceRange], with moved start and the same length.
-   */
-  SourceRange getTranslated(int delta) =>
-      new SourceRange(offset + delta, length);
-
-  /**
-   * @return the minimal [SourceRange] that cover this and the given [SourceRange]s.
-   */
-  SourceRange getUnion(SourceRange other) {
-    int newOffset = math.min(offset, other.offset);
-    int newEnd = math.max(offset + length, other.offset + other.length);
-    return new SourceRange(newOffset, newEnd - newOffset);
-  }
-
-  /**
-   * @return `true` if this [SourceRange] intersects with given.
-   */
-  bool intersects(SourceRange other) {
-    if (other == null) {
-      return false;
-    }
-    if (end <= other.offset) {
-      return false;
-    }
-    if (offset >= other.end) {
-      return false;
-    }
-    return true;
-  }
-
-  /**
-   * Return `true` if this [SourceRange] starts in the [otherRange].
-   */
-  bool startsIn(SourceRange otherRange) => otherRange.contains(offset);
-
-  @override
-  String toString() => '[offset=$offset, length=$length]';
 }
 
 /**

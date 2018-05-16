@@ -31,20 +31,6 @@ class String;
 // positional argument count; a sequence of (name, position) pairs, sorted
 // by name, for each named optional argument; and a terminating null to
 // simplify iterating in generated code.
-//
-// To efficiently implement strong-mode argument checks, the arguments
-// descriptor also holds a bitvector with up to <word size>/2 bits for arguments
-// of the invocation, including positional and named arguments, in order from
-// least to most significant position. The first bit, which corresponds to the
-// receiver in the arguments descriptor, is treated specially and controls how
-// the other bits are interpreted.
-//
-// When the first bit is false, the other bits are interpreted as indicating
-// whether their corresponding argument needs to checked (although checks are
-// always performed for parameters defined with the 'covariant' keyword). When
-// the first bit is true, the other bits are set to true if their corresponding
-// arguments need to be checked if their parameters are marked
-// 'isGenericCovariantImpl' in the callee.
 class ArgumentsDescriptor : public ValueObject {
  public:
   explicit ArgumentsDescriptor(const Array& array);
@@ -74,28 +60,15 @@ class ArgumentsDescriptor : public ValueObject {
   // positional and the remaining ones are named optional arguments.
   // The presence of a type argument vector as first argument (not counted in
   // num_arguments) is indicated by a non-zero type_args_len.
-  //
-  // 'arg_bits' is a bitvector holding the strong-mode argument checking bits
-  // for all arguments from least to most significant position. The bit for the
-  // receiver is interpreted as the dispatch bit.
   static RawArray* New(intptr_t type_args_len,
                        intptr_t num_arguments,
-                       const Array& optional_arguments_names,
-                       intptr_t arg_check_bits = 0,
-                       intptr_t type_arg_check_bits = 0);
+                       const Array& optional_arguments_names);
 
   // Allocate and return an arguments descriptor that has no optional
   // arguments. All arguments are positional. The presence of a type argument
   // vector as first argument (not counted in num_arguments) is indicated
   // by a non-zero type_args_len.
-  //
-  // 'arg_bits' is a bitvector holding the strong-mode argument checking bits
-  // for all arguments from least to most significant position. The bit for the
-  // receiver is interpreted as the dispatch bit.
-  static RawArray* New(intptr_t type_args_len,
-                       intptr_t num_arguments,
-                       intptr_t arg_check_bits = 0,
-                       intptr_t type_arg_check_bits = 0);
+  static RawArray* New(intptr_t type_args_len, intptr_t num_arguments);
 
   // Initialize the preallocated fixed length arguments descriptors cache.
   static void InitOnce();
@@ -109,45 +82,9 @@ class ArgumentsDescriptor : public ValueObject {
     kTypeArgsLenIndex,
     kCountIndex,
 
-    // To implement the argument checks associated with strong mode each call
-    // has an "argument bit" associated with each argument. The argument bits of
-    // positional arguments are packed into the positional count entry as
-    // follows. `S` is the information in an `Smi` (`kSmiBits + 1` bits), which
-    // is odd on all platforms.
-    //
-    // most significant                   least significant
-    // ----------------------------------------------------
-    // <ceil(S / 2) bits>             <floor(S / 2)>
-    //   argument bits     |  number of positional arguments
-    //
-    // The positional argument bits are arranged so that bits for lower index
-    // parameters are in less significant positions. All the bits for strong
-    // mode are stored in more significant bits than the actual argument count
-    // so that when strong mode is disabled, all the strong-mode associated bits
-    // will happen to be 0 and the entry won't require any extra interpretation
-    // in generated code.
-    //
-    // The bits for type arguments are packed in the same way into
-    // 'kTypeArgsLenIndex'. The named argument bits are attached to the
-    // corresponding entry in the array (see below).
-    //
-    // Ideally we would use a struct with bitfields, but the order of bitfields
-    // is implementation-dependent and we need to manipulate them in generated
-    // code.
     kPositionalCountIndex,
     kFirstNamedEntryIndex,
   };
-
- public:
-  // The Smi at kPositionalCountIndex holds these two bitfields.
-  typedef BitField<intptr_t, intptr_t, 0, kSmiBits / 2> PositionalCountField;
-  typedef BitField<intptr_t, intptr_t, kSmiBits / 2, kSmiBits / 2 + 1>
-      PositionalArgumentsChecksField;
-
-  // The Smi at kTypeArgsLenIndex holds these two bitfields.
-  typedef BitField<intptr_t, intptr_t, 0, kSmiBits / 2> TypeArgsLenField;
-  typedef BitField<intptr_t, intptr_t, kSmiBits / 2, kSmiBits / 2 + 1>
-      TypeArgsChecksField;
 
  private:
   // Relative indexes into each named argument entry.
@@ -160,17 +97,7 @@ class ArgumentsDescriptor : public ValueObject {
     kNamedEntrySize,
   };
 
-  static RawSmi* PackBitFieldsToSmi(intptr_t value) {
-    ASSERT(((value >> (kSmiBits + 1)) & 1) == 0);
-    // Sign extend the value.
-    return Smi::New((value << kSmiTagShift) >> kSmiTagShift);
-  }
-
  public:
-  // The Smis at kPositionOffset hold these two bitfields.
-  typedef BitField<intptr_t, intptr_t, 0, kSmiBits> NamedPositionField;
-  typedef BitField<intptr_t, intptr_t, kSmiBits, 1> NamedCheckField;
-
   static intptr_t LengthFor(intptr_t num_named_arguments) {
     // Add 1 for the terminating null.
     return kFirstNamedEntryIndex + (kNamedEntrySize * num_named_arguments) + 1;
@@ -178,8 +105,6 @@ class ArgumentsDescriptor : public ValueObject {
 
   static RawArray* NewNonCached(intptr_t type_args_len,
                                 intptr_t num_arguments,
-                                intptr_t pos_arg_bits,
-                                intptr_t type_arg_bits,
                                 bool canonicalize);
 
   // Used by Simulator to parse argument descriptors.
@@ -200,6 +125,8 @@ class ArgumentsDescriptor : public ValueObject {
   friend class SnapshotWriter;
   friend class Serializer;
   friend class Deserializer;
+  friend class Interpreter;
+  friend class InterpreterHelpers;
   friend class Simulator;
   friend class SimulatorHelpers;
   DISALLOW_COPY_AND_ASSIGN(ArgumentsDescriptor);

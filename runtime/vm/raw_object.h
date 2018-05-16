@@ -6,7 +6,7 @@
 #define RUNTIME_VM_RAW_OBJECT_H_
 
 #include "platform/assert.h"
-#include "vm/atomic.h"
+#include "platform/atomic.h"
 #include "vm/exceptions.h"
 #include "vm/globals.h"
 #include "vm/snapshot.h"
@@ -149,6 +149,7 @@ class Isolate;
 #define DEFINE_FORWARD_DECLARATION(clazz) class Raw##clazz;
 CLASS_LIST(DEFINE_FORWARD_DECLARATION)
 #undef DEFINE_FORWARD_DECLARATION
+class CodeStatistics;
 
 enum ClassId {
   // Illegal class id.
@@ -187,12 +188,10 @@ enum ClassId {
       kByteBufferCid,
 
   // The following entries do not describe a predefined class, but instead
-  // are class indexes for pre-allocated instances (Null, dynamic, Void and
-  // Vector).
+  // are class indexes for pre-allocated instances (Null, dynamic and Void).
   kNullCid,
   kDynamicCid,
   kVoidCid,
-  kVectorCid,
 
   kNumPredefinedCids,
 };
@@ -261,6 +260,8 @@ enum TypedDataElementType {
   friend class object;                                                         \
   friend class RawObject;                                                      \
   friend class Heap;                                                           \
+  friend class Interpreter;                                                    \
+  friend class InterpreterHelpers;                                             \
   friend class Simulator;                                                      \
   friend class SimulatorHelpers;                                               \
   DISALLOW_ALLOCATION();                                                       \
@@ -398,7 +399,7 @@ class RawObject {
     UpdateTagBit<MarkBit>(false);
   }
   // Returns false if the bit was already set.
-  // TODO(koda): Add "must use result" annotation here, after we add support.
+  DART_WARN_UNUSED_RESULT
   bool TryAcquireMarkBit() { return TryAcquireTagBit<MarkBit>(); }
 
   // Support for object tags.
@@ -425,7 +426,7 @@ class RawObject {
     ptr()->tags_ = RememberedBit::update(false, tags);
   }
   // Returns false if the bit was already set.
-  // TODO(koda): Add "must use result" annotation here, after we add support.
+  DART_WARN_UNUSED_RESULT
   bool TryAcquireRememberedBit() { return TryAcquireTagBit<RememberedBit>(); }
 
 #define DEFINE_IS_CID(clazz)                                                   \
@@ -498,6 +499,9 @@ class RawObject {
   void Validate(Isolate* isolate) const;
   bool FindObject(FindObjectVisitor* visitor);
 
+  // This function may access the class-ID in the header, but it cannot access
+  // the actual class object, because the sliding compactor uses this function
+  // while the class objects are being moved.
   intptr_t VisitPointers(ObjectPointerVisitor* visitor) {
     // Fall back to virtual variant for predefined classes
     intptr_t class_id = GetClassId();
@@ -723,6 +727,8 @@ class RawObject {
   friend class CodeLookupTableBuilder;  // profiler
   friend class NativeEntry;             // GetClassId
   friend class WritePointerVisitor;     // GetClassId
+  friend class Interpreter;
+  friend class InterpreterHelpers;
   friend class Simulator;
   friend class SimulatorHelpers;
   friend class ObjectLocator;
@@ -730,6 +736,7 @@ class RawObject {
   friend class VerifyCanonicalVisitor;
   friend class ObjectGraph::Stack;  // GetClassId
   friend class Precompiler;         // GetClassId
+  friend class ObjectOffsetTrait;   // GetClassId
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(RawObject);
@@ -772,9 +779,10 @@ class RawClass : public RawObject {
     switch (kind) {
       case Snapshot::kFull:
       case Snapshot::kScript:
-      case Snapshot::kFullJIT:
       case Snapshot::kFullAOT:
         return reinterpret_cast<RawObject**>(&ptr()->direct_subclasses_);
+      case Snapshot::kFullJIT:
+        return reinterpret_cast<RawObject**>(&ptr()->dependent_code_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
@@ -857,7 +865,6 @@ class RawFunction : public RawObject {
     kRegularFunction,
     kClosureFunction,
     kImplicitClosureFunction,
-    kConvertedClosureFunction,
     kSignatureFunction,  // represents a signature only without actual code.
     kGetterFunction,     // represents getter functions e.g: get foo() { .. }.
     kSetterFunction,     // represents setter functions e.g: set foo(..) { .. }.
@@ -880,6 +887,9 @@ class RawFunction : public RawObject {
     kSyncGen = kGeneratorBit,
     kAsyncGen = kAsyncBit | kGeneratorBit,
   };
+
+  static constexpr intptr_t kMaxFixedParametersBits = 15;
+  static constexpr intptr_t kMaxOptionalParametersBits = 14;
 
  private:
   // So that the SkippedCodeFunctions::DetachCode can null out the code fields.
@@ -921,6 +931,9 @@ class RawFunction : public RawObject {
   RawObject** to_no_code() {
     return reinterpret_cast<RawObject**>(&ptr()->ic_data_array_);
   }
+#if defined(DART_USE_INTERPRETER)
+  RawCode* bytecode_;
+#endif
   RawCode* code_;  // Currently active code. Accessed from generated code.
   NOT_IN_PRECOMPILED(RawCode* unoptimized_code_);  // Unoptimized code, keep it
                                                    // after optimization.
@@ -933,8 +946,29 @@ class RawFunction : public RawObject {
   NOT_IN_PRECOMPILED(TokenPosition token_pos_);
   NOT_IN_PRECOMPILED(TokenPosition end_token_pos_);
   uint32_t kind_tag_;                          // See Function::KindTagBits.
-  int16_t num_fixed_parameters_;
-  int16_t num_optional_parameters_;  // > 0: positional; < 0: named.
+  uint32_t packed_fields_;
+
+  typedef BitField<uint32_t, bool, 0, 1> PackedIsNoSuchMethodForwarder;
+  typedef BitField<uint32_t, bool, PackedIsNoSuchMethodForwarder::kNextBit, 1>
+      PackedHasNamedOptionalParameters;
+  typedef BitField<uint32_t,
+                   bool,
+                   PackedHasNamedOptionalParameters::kNextBit,
+                   1>
+      BackgroundOptimizableBit;
+  typedef BitField<uint32_t,
+                   uint16_t,
+                   BackgroundOptimizableBit::kNextBit,
+                   kMaxFixedParametersBits>
+      PackedNumFixedParameters;
+  typedef BitField<uint32_t,
+                   uint16_t,
+                   PackedNumFixedParameters::kNextBit,
+                   kMaxOptionalParametersBits>
+      PackedNumOptionalParameters;
+  static_assert(PackedNumOptionalParameters::kNextBit <=
+                    kBitsPerWord * sizeof(decltype(packed_fields_)),
+                "RawFunction::packed_fields_ bitfields don't align.");
 
 #define JIT_FUNCTION_COUNTERS(F)                                               \
   F(intptr_t, intptr_t, kernel_offset)                                         \
@@ -1305,6 +1339,16 @@ class RawInstructions : public RawObject {
   // Instructions size in bytes and flags.
   // Currently, only flag indicates 1 or 2 entry points.
   uint32_t size_and_flags_;
+
+#if defined(DART_PRECOMPILER)
+  // There is a gap between size_and_flags_ and the entry point
+  // because we align entry point by 4 words on all platforms.
+  // This allows us to have a free field here without affecting
+  // the aligned size of the Instructions object header.
+  // This also means that entry point offset is the same
+  // whether this field is included or excluded.
+  CodeStatistics* stats_;
+#endif
 
   // Variable length data follows here.
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
@@ -1767,11 +1811,13 @@ class RawAbstractType : public RawInstance {
     kFinalizedInstantiated,    // Instantiated type ready for use.
     kFinalizedUninstantiated,  // Uninstantiated type ready for use.
   };
+  uword type_test_stub_entry_point_;  // Accessed from generated code.
 
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(AbstractType);
 
   friend class ObjectStore;
+  friend class StubCode;
 };
 
 class RawType : public RawAbstractType {
@@ -1862,17 +1908,21 @@ class RawClosure : public RawInstance {
   VISIT_FROM(RawCompressed, instantiator_type_arguments_)
   RawTypeArguments* instantiator_type_arguments_;
   RawTypeArguments* function_type_arguments_;
+  RawTypeArguments* delayed_type_arguments_;
   RawFunction* function_;
   RawContext* context_;
   RawSmi* hash_;
+
   VISIT_TO(RawCompressed, hash_)
 
-  // Note that instantiator_type_arguments_ and function_type_arguments_ are
-  // used to instantiate the signature of function_ when this closure is
-  // involved in a type test. In other words, these fields define the function
-  // type of this closure instance, but they are not used when invoking it.
-  // Whereas the source frontend will save a copy of the function's type
-  // arguments in the closure's context and only use the
+  // Note that instantiator_type_arguments_, function_type_arguments_ and
+  // delayed_type_arguments_ are used to instantiate the signature of function_
+  // when this closure is involved in a type test. In other words, these fields
+  // define the function type of this closure instance.
+  //
+  // function_type_arguments_ and delayed_type_arguments_ may also be used when
+  // invoking the closure. Whereas the source frontend will save a copy of the
+  // function's type arguments in the closure's context and only use the
   // function_type_arguments_ field for type tests, the kernel frontend will use
   // the function_type_arguments_ vector here directly.
   //
@@ -1881,6 +1931,12 @@ class RawClosure : public RawInstance {
   // if the generic closure function_ has a generic parent function, the
   // passed-in function type arguments get concatenated to the function type
   // arguments of the parent that are found in the context_.
+  //
+  // delayed_type_arguments_ is used to support the parital instantiation
+  // feature. When this field is set to any value other than
+  // Object::empty_type_arguments(), the types in this vector will be passed as
+  // type arguments to the closure when invoked. In this case there may not be
+  // any type arguments passed directly (or NSM will be invoked instead).
 };
 
 class RawNumber : public RawInstance {

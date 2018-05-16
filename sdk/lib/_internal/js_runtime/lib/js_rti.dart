@@ -114,13 +114,25 @@ getRuntimeTypeInfo(Object target) {
   return JS('var', r'#[#]', target, rtiName);
 }
 
-/**
- * Returns the type arguments of [target] as an instance of [substitutionName].
- */
-getRuntimeTypeArguments(target, substitutionName) {
-  var substitution = getField(
-      target, '${JS_GET_NAME(JsGetName.OPERATOR_AS_PREFIX)}$substitutionName');
-  return substitute(substitution, getRuntimeTypeInfo(target));
+/// Returns the type arguments of [object] as an instance of [substitutionName].
+getRuntimeTypeArguments(interceptor, object, substitutionName) {
+  var substitution = getField(interceptor,
+      '${JS_GET_NAME(JsGetName.OPERATOR_AS_PREFIX)}$substitutionName');
+  return substitute(substitution, getRuntimeTypeInfo(object));
+}
+
+/// Returns the [index]th type argument of [target] as an instance of
+/// [substitutionName].
+///
+/// Called from generated code.
+@NoThrows()
+@NoSideEffects()
+@NoInline()
+getRuntimeTypeArgumentIntercepted(
+    interceptor, Object target, String substitutionName, int index) {
+  var arguments =
+      getRuntimeTypeArguments(interceptor, target, substitutionName);
+  return arguments == null ? null : getIndex(arguments, index);
 }
 
 /// Returns the [index]th type argument of [target] as an instance of
@@ -131,7 +143,7 @@ getRuntimeTypeArguments(target, substitutionName) {
 @NoSideEffects()
 @NoInline()
 getRuntimeTypeArgument(Object target, String substitutionName, int index) {
-  var arguments = getRuntimeTypeArguments(target, substitutionName);
+  var arguments = getRuntimeTypeArguments(target, target, substitutionName);
   return arguments == null ? null : getIndex(arguments, index);
 }
 
@@ -215,8 +227,11 @@ String runtimeTypeToStringV1(var rti, {String onTypeVariable(int i)}) {
 }
 
 String runtimeTypeToStringV2(var rti, List<String> genericContext) {
-  if (rti == null) {
+  if (isDartDynamicTypeRti(rti)) {
     return 'dynamic';
+  }
+  if (isDartVoidTypeRti(rti)) {
+    return 'void';
   }
   if (isJsArray(rti)) {
     // A list representing a type with arguments.
@@ -233,10 +248,16 @@ String runtimeTypeToStringV2(var rti, List<String> genericContext) {
     }
     return '${genericContext[genericContext.length - index - 1]}';
   }
-  String functionPropertyName = JS_GET_NAME(JsGetName.FUNCTION_TYPE_TAG);
-  if (JS('bool', 'typeof #[#] != "undefined"', rti, functionPropertyName)) {
+  if (isDartFunctionType(rti)) {
     // TODO(sra): If there is a typedef tag, use the typedef name.
     return _functionRtiToStringV2(rti, genericContext);
+  }
+  if (isDartFutureOrType(rti)) {
+    var typeArgument = getFutureOrArgument(rti);
+    return 'FutureOr<${runtimeTypeToStringV2(typeArgument, genericContext)}>';
+  }
+  if (isDartJsInteropTypeArgumentRti(rti)) {
+    return 'dynamic';
   }
   // We should not get here.
   return 'unknown-reified-type';
@@ -554,7 +575,6 @@ bool checkSubtypeV1(
   // Interceptor is needed for JSArray and native classes.
   // TODO(sra): It could be a more specialized interceptor since [object] is not
   // `null` or a primitive.
-  // TODO(9586): Move type info for static functions onto an interceptor.
   var interceptor = getInterceptor(object);
   var isSubclass = getField(interceptor, isField);
   // When we read the field and it is not there, [isSubclass] will be `null`.
@@ -571,7 +591,6 @@ bool checkSubtypeV2(
   // Interceptor is needed for JSArray and native classes.
   // TODO(sra): It could be a more specialized interceptor since [object] is not
   // `null` or a primitive.
-  // TODO(9586): Move type info for static functions onto an interceptor.
   var interceptor = getInterceptor(object);
   var isSubclass = getField(interceptor, isField);
   // When we read the field and it is not there, [isSubclass] will be `null`.
@@ -609,11 +628,16 @@ Object assertSubtype(
 }
 
 /// Checks that the type represented by [subtype] is a subtype of [supertype].
-/// If not a type error with [message] is thrown.
+/// If not a type error is thrown using [prefix], [infix], [suffix] and the
+/// runtime types [subtype] and [supertype] to generate the error message.
 ///
 /// Called from generated code.
-assertIsSubtype(var subtype, var supertype, String message) {
+assertIsSubtype(
+    var subtype, var supertype, String prefix, String infix, String suffix) {
   if (!isSubtype(subtype, supertype)) {
+    String message = "TypeError: "
+        "$prefix${runtimeTypeToString(subtype)}$infix"
+        "${runtimeTypeToString(supertype)}$suffix";
     throwTypeError(message);
   }
 }
@@ -699,17 +723,100 @@ bool areSubtypesV2(var s, var sEnv, var t, var tEnv) {
  * instance of [contextName] to the signature function [signature].
  */
 computeSignature(var signature, var context, var contextName) {
-  var typeArguments = getRuntimeTypeArguments(context, contextName);
+  var interceptor = getInterceptor(context);
+  var typeArguments =
+      getRuntimeTypeArguments(interceptor, context, contextName);
   return invokeOn(signature, context, typeArguments);
 }
 
-/**
- * Returns `true` if the runtime type representation [type] is a supertype of
- * [Null].
- */
+/// Returns `true` if the runtime type representation [type] is a top type.
+///
+/// For Dart 1 this is either `dynamic` or `Object`. For Dart 2 this is either
+/// `dynamic`, `void` or `Object`.
+@ForceInline()
+bool isTopType(var type) {
+  return JS_GET_FLAG('STRONG_MODE') ? isTopTypeV2(type) : isTopTypeV1(type);
+}
+
+/// Returns `true` if the runtime type representation [type] is a top type for
+/// Dart 1. That is, either `dynamic` or `Object`.
+@ForceInline()
+bool isTopTypeV1(var type) {
+  return isDartDynamicTypeRti(type) || isDartObjectTypeRti(type);
+}
+
+/// Returns `true` if the runtime type representation [type] is a top type for
+/// Dart 2. That is, either `dynamic`, `void` or `Object`.
+@ForceInline()
+bool isTopTypeV2(var type) {
+  return isDartDynamicTypeRti(type) ||
+      isDartVoidTypeRti(type) ||
+      isDartObjectTypeRti(type) ||
+      isDartJsInteropTypeArgumentRti(type);
+}
+
+/// Returns `true` if the runtime type representation [type] is a supertype of
+/// [Null].
+@ForceInline()
 bool isSupertypeOfNull(var type) {
-  // `null` means `dynamic`.
-  return type == null || isDartObjectTypeRti(type) || isNullTypeRti(type);
+  return JS_GET_FLAG('STRONG_MODE')
+      ? isSupertypeOfNullBaseV2(type) || isSupertypeOfNullRecursive(type)
+      : isSupertypeOfNullBaseV1(type);
+}
+
+/// Returns `true` if the runtime type representation [type] is a simple
+/// supertype of [Null].
+@ForceInline()
+bool isSupertypeOfNullBaseV1(var type) {
+  return isDartDynamicTypeRti(type) ||
+      isDartObjectTypeRti(type) ||
+      isNullTypeRti(type);
+}
+
+/// Returns `true` if the runtime type representation [type] is a simple
+/// supertype of [Null].
+///
+/// This method doesn't handle `FutureOr<Null>`. This is handle by
+/// [isSupertypeOfNullRecursive] because it requires a recursive check.
+@ForceInline()
+bool isSupertypeOfNullBaseV2(var type) {
+  return isDartDynamicTypeRti(type) ||
+      isDartObjectTypeRti(type) ||
+      isNullTypeRti(type) ||
+      isDartVoidTypeRti(type) ||
+      isDartJsInteropTypeArgumentRti(type);
+}
+
+/// Returns `true` if the runtime type representation [type] is a `FutureOr`
+/// type that is a supertype of [Null].
+///
+/// This method is recursive to be able to handle both `FutureOr<Null>` and
+/// `FutureOr<FutureOr<Null>>` etc.
+bool isSupertypeOfNullRecursive(var type) {
+  if (isGenericFunctionTypeParameter(type)) {
+    // We need to check for function type variables because `isDartFutureOrType`
+    // doesn't work on numbers.
+    return false;
+  }
+  if (isDartFutureOrType(type)) {
+    var typeArgument = getFutureOrArgument(type);
+    return isSupertypeOfNullBaseV2(type) ||
+        isSupertypeOfNullRecursive(typeArgument);
+  }
+  return false;
+}
+
+/// Returns the type argument of the `FutureOr` runtime type representation
+/// [type].
+///
+/// For instance `num` of `FutureOr<num>`.
+@ForceInline()
+Object getFutureOrArgument(var type) {
+  assert(isDartFutureOrType(type));
+  var typeArgumentTag = JS_GET_NAME(JsGetName.FUTURE_OR_TYPE_ARGUMENT_TAG);
+  return hasField(type, typeArgumentTag)
+      ? getField(type, typeArgumentTag)
+      : null;
 }
 
 /**
@@ -721,7 +828,7 @@ bool isSupertypeOfNull(var type) {
  */
 bool checkSubtypeOfRuntimeType(o, t) {
   if (o == null) return isSupertypeOfNull(t);
-  if (t == null) return true;
+  if (isTopType(t)) return true;
   // Get the runtime type information from the object here, because we may
   // overwrite o with the interceptor below.
   var rti = getRuntimeTypeInfo(o);
@@ -791,7 +898,7 @@ bool isSubtypeV1(var s, var t) {
   // Subtyping is reflexive.
   if (isIdentical(s, t)) return true;
   // If either type is dynamic, [s] is a subtype of [t].
-  if (s == null || t == null) return true;
+  if (isDartDynamicTypeRti(s) || isDartDynamicTypeRti(t)) return true;
 
   // Generic function type parameters must match exactly, which would have
   // exited earlier. The de Bruijn indexing ensures the representation as a
@@ -845,12 +952,24 @@ bool isSubtypeV2(var s, var sEnv, var t, var tEnv) {
   if (isIdentical(s, t)) return true;
 
   // [t] is a top type?
-  if (t == null) return true;
-  if (isDartObjectTypeRti(t)) return true;
-  // TODO(sra): void is a top type.
+  if (isTopTypeV2(t)) return true;
+
+  if (isDartJsInteropTypeArgumentRti(s)) return true;
 
   // [s] is a top type?
-  if (s == null) return false;
+  if (isTopTypeV2(s)) {
+    if (isGenericFunctionTypeParameter(t)) {
+      // We need to check for function type variables because
+      // `isDartFutureOrType` doesn't work on numbers.
+      return false;
+    }
+    if (isDartFutureOrType(t)) {
+      // [t] is FutureOr<T>. Check [s] <: T.
+      var tTypeArgument = getFutureOrArgument(t);
+      return isSubtypeV2(s, sEnv, tTypeArgument, tEnv);
+    }
+    return false;
+  }
 
   // Generic function type parameters must match exactly, which would have
   // exited earlier. The de Bruijn indexing ensures the representation as a
@@ -874,8 +993,39 @@ bool isSubtypeV2(var s, var sEnv, var t, var tEnv) {
   }
 
   // Get the object describing the class and check for the subtyping flag
-  // constructed from the type of [t].
+  // constructed from the type of [s].
   var typeOfS = isJsArray(s) ? getIndex(s, 0) : s;
+
+  if (isDartFutureOrType(t)) {
+    // [t] is FutureOr<T>
+    var tTypeArgument = getFutureOrArgument(t);
+    if (isDartFutureOrType(s)) {
+      // [S] is FutureOr<S>. Check S <: T
+      var sTypeArgument = getFutureOrArgument(s);
+      return isSubtypeV2(sTypeArgument, sEnv, tTypeArgument, tEnv);
+    } else if (isSubtypeV2(s, sEnv, tTypeArgument, tEnv)) {
+      // `true` because [s] <: T.
+      return true;
+    } else {
+      // Check [s] <: Future<T>.
+      String futureClass = JS_GET_NAME(JsGetName.FUTURE_CLASS_TYPE_NAME);
+      if (!builtinIsSubtype(typeOfS, futureClass)) {
+        // [s] doesn't implement Future.
+        return false;
+      }
+      var typeOfSPrototype = JS('', '#.prototype', typeOfS);
+      var field = '${JS_GET_NAME(JsGetName.OPERATOR_AS_PREFIX)}${futureClass}';
+      var futureSubstitution = getField(typeOfSPrototype, field);
+      var futureArguments = substitute(futureSubstitution, getArguments(s));
+      var futureArgument =
+          isJsArray(futureArguments) ? getIndex(futureArguments, 0) : null;
+      // [s] implements Future<S>. Check S <: T.
+      return isSubtypeV2(futureArgument, sEnv, tTypeArgument, tEnv);
+    }
+  }
+
+  // Get the object describing the class and check for the subtyping flag
+  // constructed from the type of [t].
   var typeOfT = isJsArray(t) ? getIndex(t, 0) : t;
 
   // Check for a subtyping flag.
@@ -890,11 +1040,9 @@ bool isSubtypeV2(var s, var sEnv, var t, var tEnv) {
     var field = '${JS_GET_NAME(JsGetName.OPERATOR_AS_PREFIX)}${typeOfTString}';
     substitution = getField(typeOfSPrototype, field);
   }
-  // The class of [s] is a subclass of the class of [t].  If [s] has no type
-  // arguments and no substitution, it is used as raw type.  If [t] has no
-  // type arguments, it used as a raw type.  In both cases, [s] is a subtype
-  // of [t].
-  if ((!isJsArray(s) && substitution == null) || !isJsArray(t)) {
+  // The class of [s] is a subclass of the class of [t]. If [t] has no
+  // type arguments, it used as a raw type and [s] is a subtype of [t].
+  if (!isJsArray(t)) {
     return true;
   }
   // Recursively check the type arguments.
@@ -1079,12 +1227,8 @@ bool isFunctionSubtypeV2(var s, var sEnv, var t, var tEnv) {
     return false;
   }
 
-  // 'void' is a top type, so use `null` (dynamic) in its place.
-  // TODO(sra): Create a void type that can be used in all positions.
-  var sReturnType =
-      hasField(s, voidReturnTag) ? null : getField(s, returnTypeTag);
-  var tReturnType =
-      hasField(t, voidReturnTag) ? null : getField(t, returnTypeTag);
+  var sReturnType = getField(s, returnTypeTag);
+  var tReturnType = getField(t, returnTypeTag);
   if (!isSubtypeV2(sReturnType, sEnv, tReturnType, tEnv)) return false;
 
   var requiredParametersTag =
@@ -1128,8 +1272,8 @@ bool isFunctionSubtypeV2(var s, var sEnv, var t, var tEnv) {
   // Check the remaining parameters of [t] with the first optional parameters
   // of [s].
   for (; tPos < tParametersLen; sPos++, tPos++) {
-    if (!isSubtypeV2(getIndex(tOptionalParameterTypes, tPos), tEnv,
-        getIndex(sParameterTypes, sPos), sEnv)) {
+    if (!isSubtypeV2(getIndex(tParameterTypes, tPos), tEnv,
+        getIndex(sOptionalParameterTypes, sPos), sEnv)) {
       return false;
     }
   }
@@ -1172,12 +1316,14 @@ bool namedParametersSubtypeCheckV2(var s, var sEnv, var t, var tEnv) {
   return true;
 }
 
-/**
- * Returns whether [type] is the representation of a generic function type
- * parameter. Generic function type parameters are represented de Bruijn
- * indexes.
- */
+/// Returns whether [type] is the representation of a generic function type
+/// parameter. Generic function type parameters are represented de Bruijn
+/// indexes.
+///
+/// This test is only valid if [type] is known _not_ to be the void rti, whose
+/// runtime representation is -1.
 bool isGenericFunctionTypeParameter(var type) {
+  assert(!isDartVoidTypeRti(type));
   return type is num; // Actually int, but 'is num' is faster.
 }
 
@@ -1283,7 +1429,8 @@ finishBindInstantiatedFunctionType(rti, result, parameters, int depth) {
 /// scope. This is subtracted off the de Bruijn index for the type parameter to
 /// arrive at an potential index into [parameters].
 bindInstantiatedType(rti, parameters, int depth) {
-  if (rti == null) return rti; // dynamic.
+  if (isDartDynamicTypeRti(rti)) return rti; // dynamic.
+  if (isDartVoidTypeRti(rti)) return rti; // void.
   // Functions are constructors denoting the class of the constructor.
   if (isJsFunction(rti)) return rti;
 

@@ -42,7 +42,7 @@ class TypeConstraintGatherer {
 
   /// Tries to match [subtype] against [supertype].
   ///
-  /// If the match suceeds, the resulting type constraints are recorded for
+  /// If the match succeeds, the resulting type constraints are recorded for
   /// later use by [computeConstraints].  If the match fails, the set of type
   /// constraints is unchanged.
   bool trySubtypeMatch(DartType subtype, DartType supertype) {

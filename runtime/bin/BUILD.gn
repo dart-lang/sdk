@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-import("../../build/compiled_action.gni")
+import("../../build/dart/dart_action.gni")
 import("../../sdk/lib/_http/http_sources.gni")
 import("../../sdk/lib/io/io_sources.gni")
 import("../../sdk/lib/cli/cli_sources.gni")
@@ -246,8 +246,8 @@ template("build_libdart_builtin") {
   static_library(target_name) {
     configs += [
                  "..:dart_arch_config",
+                 "..:dart_maybe_interpreter_config",
                  "..:dart_config",
-                 "..:dart_os_config",
                ] + extra_configs
     if (is_fuchsia) {
       configs -= [ "//build/config:symbol_visibility_hidden" ]
@@ -293,11 +293,31 @@ template("build_libdart_builtin") {
 }
 
 build_libdart_builtin("libdart_builtin") {
-  extra_configs = [ "..:dart_maybe_product_config" ]
+  extra_configs = [
+    "..:dart_maybe_product_config",
+    "..:dart_os_config",
+  ]
 }
 
 build_libdart_builtin("libdart_builtin_product") {
-  extra_configs = [ "..:dart_product_config" ]
+  extra_configs = [
+    "..:dart_product_config",
+    "..:dart_os_config",
+  ]
+}
+
+build_libdart_builtin("libdart_builtin_fuchsia") {
+  extra_configs = [
+    "..:dart_maybe_product_config",
+    "..:dart_os_fuchsia_config",
+  ]
+}
+
+build_libdart_builtin("libdart_builtin_product_fuchsia") {
+  extra_configs = [
+    "..:dart_product_config",
+    "..:dart_os_fuchsia_config",
+  ]
 }
 
 template("build_gen_snapshot") {
@@ -313,7 +333,7 @@ template("build_gen_snapshot") {
     configs += [
                  "..:dart_arch_config",
                  "..:dart_config",
-                 "..:dart_os_config",
+                 "..:dart_maybe_interpreter_config",
                  "..:dart_precompiler_config",
                ] + extra_configs
     if (is_fuchsia) {
@@ -391,7 +411,10 @@ template("build_gen_snapshot") {
 }
 
 build_gen_snapshot("gen_snapshot") {
-  extra_configs = [ "..:dart_maybe_product_config" ]
+  extra_configs = [
+    "..:dart_maybe_product_config",
+    "..:dart_os_config",
+  ]
   extra_deps = [
     ":gen_snapshot_dart_io",
     ":libdart_builtin",
@@ -400,11 +423,38 @@ build_gen_snapshot("gen_snapshot") {
 }
 
 build_gen_snapshot("gen_snapshot_product") {
-  extra_configs = [ "..:dart_product_config" ]
+  extra_configs = [
+    "..:dart_product_config",
+    "..:dart_os_config",
+  ]
   extra_deps = [
     ":gen_snapshot_dart_io_product",
     ":libdart_builtin_product",
     "..:libdart_nosnapshot_with_precompiler_product",
+  ]
+}
+
+build_gen_snapshot("gen_snapshot_fuchsia") {
+  extra_configs = [
+    "..:dart_maybe_product_config",
+    "..:dart_os_fuchsia_config",
+  ]
+  extra_deps = [
+    ":gen_snapshot_dart_io_fuchsia",
+    ":libdart_builtin_fuchsia",
+    "..:libdart_nosnapshot_with_precompiler_fuchsia",
+  ]
+}
+
+build_gen_snapshot("gen_snapshot_product_fuchsia") {
+  extra_configs = [
+    "..:dart_product_config",
+    "..:dart_os_fuchsia_config",
+  ]
+  extra_deps = [
+    ":gen_snapshot_dart_io_product_fuchsia",
+    ":libdart_builtin_product_fuchsia",
+    "..:libdart_nosnapshot_with_precompiler_product_fuchsia",
   ]
 }
 
@@ -419,7 +469,7 @@ template("build_gen_snapshot_dart_io") {
     configs += [
                  "..:dart_arch_config",
                  "..:dart_config",
-                 "..:dart_os_config",
+                 "..:dart_maybe_interpreter_config",
                  "..:dart_precompiler_config",
                ] + extra_configs
     deps = []
@@ -466,11 +516,31 @@ template("build_gen_snapshot_dart_io") {
 }
 
 build_gen_snapshot_dart_io("gen_snapshot_dart_io") {
-  extra_configs = [ "..:dart_maybe_product_config" ]
+  extra_configs = [
+    "..:dart_maybe_product_config",
+    "..:dart_os_config",
+  ]
 }
 
 build_gen_snapshot_dart_io("gen_snapshot_dart_io_product") {
-  extra_configs = [ "..:dart_product_config" ]
+  extra_configs = [
+    "..:dart_product_config",
+    "..:dart_os_config",
+  ]
+}
+
+build_gen_snapshot_dart_io("gen_snapshot_dart_io_fuchsia") {
+  extra_configs = [
+    "..:dart_maybe_product_config",
+    "..:dart_os_fuchsia_config",
+  ]
+}
+
+build_gen_snapshot_dart_io("gen_snapshot_dart_io_product_fuchsia") {
+  extra_configs = [
+    "..:dart_product_config",
+    "..:dart_os_fuchsia_config",
+  ]
 }
 
 # A source set for the implementation of 'dart:io' library.
@@ -487,6 +557,7 @@ template("dart_io") {
     configs += [
                  "..:dart_arch_config",
                  "..:dart_config",
+                 "..:dart_maybe_interpreter_config",
                  "..:dart_os_config",
                ] + extra_configs
     if (is_fuchsia) {
@@ -584,7 +655,7 @@ dart_io("standalone_dart_io") {
   extra_sources = []
 }
 
-compiled_action("generate_snapshot_bin") {
+gen_snapshot_action("generate_snapshot_bin") {
   vm_snapshot_data = "$target_gen_dir/vm_snapshot_data.bin"
   vm_snapshot_instructions = "$target_gen_dir/vm_snapshot_instructions.bin"
   isolate_snapshot_data = "$target_gen_dir/isolate_snapshot_data.bin"
@@ -598,7 +669,6 @@ compiled_action("generate_snapshot_bin") {
     isolate_snapshot_data,
     isolate_snapshot_instructions,
   ]
-  tool = ":gen_snapshot"
   args = [
     "--deterministic",
     "--snapshot_kind=" + dart_core_snapshot_kind,
@@ -793,11 +863,16 @@ template("dart_executable") {
   if (defined(invoker.extra_sources)) {
     extra_sources += invoker.extra_sources
   }
-  executable(target_name) {
+  target_type = "executable"
+  if (defined(invoker.target_type)) {
+    target_type = invoker.target_type
+  }
+  target(target_type, target_name) {
     configs += [
                  "..:dart_arch_config",
                  "..:dart_config",
                  "..:dart_os_config",
+                 "..:dart_maybe_interpreter_config",
                  "..:dart_maybe_product_config",
                ] + extra_configs
     if (is_fuchsia) {
@@ -917,10 +992,31 @@ dart_executable("dart_precompiled_runtime") {
   }
 }
 
+dart_executable("dart_precompiled_runtime_for_linking") {
+  extra_configs = [ "..:dart_precompiled_runtime_config" ]
+  extra_deps = [ "..:libdart_precompiled_runtime" ]
+  if (dart_runtime_mode != "release") {
+    extra_deps += [ "../observatory:standalone_observatory_archive" ]
+  }
+  extra_sources = [
+    "builtin_nolib.cc",
+    "snapshot_empty.cc",
+    "loader.cc",
+    "loader.h",
+    "gzip.cc",
+    "gzip.h",
+  ]
+  if (dart_runtime_mode == "release") {
+    extra_sources += [ "observatory_assets_empty.cc" ]
+  }
+  extra_defines = [ "DART_LINK_APP_SNAPSHOT" ]
+  target_type = "static_library"
+}
+
 dart_executable("dart_bootstrap") {
   extra_configs = [
     "..:dart_precompiler_config",
-    "..:dart_no_snapshot_config",
+    "..:dart_nosnapshot_config",
   ]
   extra_deps = [
     ":gen_resources_cc",
@@ -979,99 +1075,6 @@ dart_executable("dart_bootstrap") {
   ]
 }
 
-if (is_fuchsia) {
-  hello_fuchsia_source = rebase_path("../tests/vm/dart/hello_fuchsia_test.dart")
-
-  copy("hello_fuchsia") {
-    sources = [
-      hello_fuchsia_source,
-    ]
-    outputs = [
-      "$root_out_dir/hello_fuchsia.dart",
-    ]
-  }
-
-  hello_fuchsia_assembly = "$target_gen_dir/hello_fuchsia.S"
-
-  compiled_action("hello_fuchsia_assembly") {
-    inputs = [
-      hello_fuchsia_source,
-    ]
-    outputs = [
-      hello_fuchsia_assembly,
-    ]
-    tool = ":dart_bootstrap"
-    args = [
-      "--snapshot-kind=app-aot",
-      "--snapshot=" + rebase_path(hello_fuchsia_assembly),
-      hello_fuchsia_source,
-    ]
-  }
-
-  shared_library("hello_fuchsia_dylib") {
-    deps = [
-      ":hello_fuchsia_assembly",
-    ]
-    sources = [
-      hello_fuchsia_assembly,
-    ]
-    cflags = [
-      "-nostdlib",
-      "-nostartfiles",
-    ]
-    output_name = "hello_fuchsia"
-  }
-
-  # Uncomment after https://fuchsia-review.googlesource.com/#/c/build/+/37541/
-  # lands.
-  # copy("copy_hello_fuchsia_dylib") {
-  #   sources = [
-  #     get_label_info(":hello_fuchsia_lib($shlib_toolchain)", "root_out_dir") +
-  #         "/libhello_fuchsia.so",
-  #   ]
-  #   outputs = [
-  #     "$root_build_dir/{{source_file_part}}",
-  #   ]
-  #   deps = [
-  #     ":hello_fuchsia_dylib($shlib_toolchain)",
-  #   ]
-  # }
-
-  import("//build/package.gni")
-
-  package("package") {
-    system_image = true
-
-    package_name = "dart"
-
-    deps = [
-      ":dart",
-      ":dart_precompiled_runtime",
-    ]
-
-    binaries = [
-      {
-        name = "dart"
-      },
-      {
-        name = "dart_precompiled_runtime"
-      },
-    ]
-  }
-
-  package("dart_tests") {
-    system_image = true
-
-    deps = [
-      ":hello_fuchsia",
-    ]
-
-    binaries = [ {
-          name = "hello_fuchsia.dart"
-        } ]
-  }
-}
-
 executable("process_test") {
   sources = [
     "process_test.cc",
@@ -1115,6 +1118,7 @@ executable("run_vm_tests") {
     "..:dart_arch_config",
     "..:dart_config",
     "..:dart_os_config",
+    "..:dart_maybe_interpreter_config",
     "..:dart_maybe_product_config",
   ]
   if (is_fuchsia) {

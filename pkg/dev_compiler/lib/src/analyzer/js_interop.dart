@@ -18,6 +18,8 @@ bool _isJsLib(LibraryElement e) {
   var uri = e.source.uri;
   if (uri.scheme == 'package' && uri.path.startsWith('js/')) return true;
   if (uri.scheme == 'dart') {
+    // TODO(jmesserly): this needs cleanup: many of the annotations don't exist
+    // in these libraries.
     return uri.path == '_js_helper' || uri.path == '_foreign_helper';
   }
   return false;
@@ -47,15 +49,6 @@ bool isPublicJSAnnotation(DartObjectImpl value) =>
 bool isJSAnonymousAnnotation(DartObjectImpl value) =>
     _isJsLibType('_Anonymous', value.type.element);
 
-bool isBuiltinAnnotation(
-    DartObjectImpl value, String libraryName, String annotationName) {
-  var e = value?.type?.element;
-  if (e?.name != annotationName) return false;
-  var uri = e.source.uri;
-  var path = uri.pathSegments[0];
-  return uri.scheme == 'dart' && path == libraryName;
-}
-
 /// Whether [value] is a `@JSExportName` (internal annotation used in SDK
 /// instead of `@JS` from `package:js`).
 bool isJSExportNameAnnotation(DartObjectImpl value) =>
@@ -63,12 +56,6 @@ bool isJSExportNameAnnotation(DartObjectImpl value) =>
 
 bool isJSName(DartObjectImpl value) =>
     isBuiltinAnnotation(value, '_js_helper', 'JSName');
-
-bool isJsPeerInterface(DartObjectImpl value) =>
-    isBuiltinAnnotation(value, '_js_helper', 'JsPeerInterface');
-
-bool isNativeAnnotation(DartObjectImpl value) =>
-    isBuiltinAnnotation(value, '_js_helper', 'Native');
 
 bool isNotNullAnnotation(DartObjectImpl value) =>
     isBuiltinAnnotation(value, '_js_helper', '_NotNull');

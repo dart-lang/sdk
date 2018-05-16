@@ -15,7 +15,10 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/type_algebra.dart' show substitute;
 
-import '../fasta_codes.dart' show noLength, templateCyclicTypedef;
+import '../fasta_codes.dart'
+    show noLength, templateCyclicTypedef, templateTypeArgumentMismatch;
+
+import '../problems.dart' show unhandled;
 
 import 'kernel_builder.dart'
     show
@@ -25,18 +28,13 @@ import 'kernel_builder.dart'
         KernelTypeVariableBuilder,
         LibraryBuilder,
         MetadataBuilder,
-        TypeVariableBuilder,
-        TypeBuilder,
-        computeDefaultTypeArguments;
+        TypeVariableBuilder;
 
 class KernelFunctionTypeAliasBuilder
     extends FunctionTypeAliasBuilder<KernelFunctionTypeBuilder, DartType> {
   final Typedef target;
 
   DartType thisType;
-
-  @override
-  List<TypeBuilder> calculatedBounds;
 
   KernelFunctionTypeAliasBuilder(
       List<MetadataBuilder> metadata,
@@ -88,8 +86,6 @@ class KernelFunctionTypeAliasBuilder
     if (const DynamicType() == thisType) return thisType;
     FunctionType result = thisType;
     if (target.typeParameters.isEmpty && arguments == null) return result;
-    arguments =
-        computeDefaultTypeArguments(library, target.typeParameters, arguments);
     Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
     for (int i = 0; i < target.typeParameters.length; i++) {
       substitution[target.typeParameters[i]] = arguments[i];
@@ -97,21 +93,53 @@ class KernelFunctionTypeAliasBuilder
     return substitute(result, substitution);
   }
 
+  List<DartType> buildTypeArguments(
+      LibraryBuilder library, List<KernelTypeBuilder> arguments) {
+    if (arguments == null && typeVariables == null) {
+      return <DartType>[];
+    }
+
+    if (arguments == null && typeVariables != null) {
+      List<DartType> result =
+          new List<DartType>.filled(typeVariables.length, null);
+      for (int i = 0; i < result.length; ++i) {
+        result[i] = typeVariables[i].defaultType.build(library);
+      }
+      return result;
+    }
+
+    if (arguments != null && arguments.length != (typeVariables?.length ?? 0)) {
+      // That should be caught and reported as a compile-time error earlier.
+      return unhandled(
+          templateTypeArgumentMismatch
+              .withArguments(name, typeVariables.length.toString())
+              .message,
+          "buildTypeArguments",
+          -1,
+          null);
+    }
+
+    // arguments.length == typeVariables.length
+    List<DartType> result = new List<DartType>.filled(arguments.length, null);
+    for (int i = 0; i < result.length; ++i) {
+      result[i] = arguments[i].build(library);
+    }
+    return result;
+  }
+
+  /// If [arguments] are null, the default types for the variables are used.
+  @override
+  int get typeVariablesCount => typeVariables?.length ?? 0;
+
   @override
   DartType buildType(
       LibraryBuilder library, List<KernelTypeBuilder> arguments) {
-    arguments ??= calculatedBounds;
     var thisType = buildThisType(library);
     if (thisType is DynamicType) return thisType;
     FunctionType result = thisType;
     if (target.typeParameters.isEmpty && arguments == null) return result;
     // Otherwise, substitute.
-    List<DartType> builtArguments = <DartType>[];
-    if (arguments != null) {
-      for (int i = 0; i < arguments.length; i++) {
-        builtArguments.add(arguments[i].build(library));
-      }
-    }
-    return buildTypesWithBuiltArguments(library, builtArguments);
+    return buildTypesWithBuiltArguments(
+        library, buildTypeArguments(library, arguments));
   }
 }

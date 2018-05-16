@@ -8,11 +8,13 @@ import "package:expect/expect.dart";
 class Cat {
   bool eatFood(String food) => true;
   String scratch(String furniture) => 'purr';
+  String mood;
 }
 
 class MockCat implements Cat {
   dynamic noSuchMethod(Invocation invocation) {
-    return (invocation.positionalArguments[0] as String).isNotEmpty;
+    var arg = invocation.positionalArguments[0];
+    return arg is String && arg.isNotEmpty;
   }
 }
 
@@ -64,6 +66,11 @@ void main() {
   MockCat mock = new MockCat();
   Expect.isTrue((mock as dynamic).eatFood("cat food"));
   Expect.isFalse(mock.eatFood(""));
+  mock.mood = 'sleepy';
+  (mock as dynamic).mood = 'playful';
+  Expect.throwsTypeError(() {
+    (mock as dynamic).mood = 42;
+  });
 
   // In strong mode this will be a runtime type error:
   // bool is not a String. VM will fail with noSuchMethod +.
@@ -75,7 +82,7 @@ void main() {
   var mock3 = new MockCat3();
   Expect.isTrue(mock3.eatFood("cat food", amount: 0.9));
   Expect.isFalse(mock3.eatFood("cat food", amount: 0.3));
-  Expect.equals("chair", mock3.scratch("chair"));
+  Expect.equals("chair,null", mock3.scratch("chair"));
   Expect.equals("chair,couch", mock3.scratch("chair", "couch"));
   Expect.equals("chair,null", mock3.scratch("chair", null));
   Expect.equals("chair,", mock3.scratch("chair", ""));
@@ -99,9 +106,7 @@ void main() {
 
   testMockTearoffs();
   testMockCallable();
-
-  // TODO(jmesserly): enable these tests once we have implicit call tearoff.
-  // testMockCallableTearoff();
+  testMockCallableTearoff();
 }
 
 testMockCallable() {
@@ -154,7 +159,15 @@ testMockTearoffs() {
   Expect.listEquals([String], doStuff('hi'));
 
   // no inference happens because `doStuff2` is dynamic.
-  Expect.listEquals([dynamic], doStuff2(42));
   Expect.listEquals([num], doStuff2<num>(42));
-  Expect.listEquals([dynamic], doStuff2('hi'));
+  expectIsDynamicOrObject(List types) {
+    Expect.equals(1, types.length);
+    var t = types[0];
+    // TODO(jmesserly): allows either type because of
+    // https://github.com/dart-lang/sdk/issues/32483
+    Expect.isTrue(t == dynamic || t == Object, '$t == dynamic || $t == Object');
+  }
+
+  expectIsDynamicOrObject(doStuff2(42));
+  expectIsDynamicOrObject(doStuff2('hi'));
 }

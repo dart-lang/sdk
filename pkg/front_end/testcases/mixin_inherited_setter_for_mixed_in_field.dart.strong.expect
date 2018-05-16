@@ -7,12 +7,12 @@ class A extends core::Object {
     : super core::Object::•()
     ;
 }
-class C<T extends self::A> extends core::Object {
-  generic-covariant-impl generic-covariant-interface field self::C::T _field = null;
+class C<T extends self::A = self::A> extends core::Object {
+  generic-covariant-impl field self::C::T _field = null;
   synthetic constructor •() → void
     : super core::Object::•()
     ;
-  method foo(generic-covariant-impl generic-covariant-interface self::C::T x) → dynamic {
+  method foo(generic-covariant-impl self::C::T x) → dynamic {
     this.{self::C::_field} = x;
   }
 }
@@ -20,18 +20,13 @@ class D extends self::C<self::B> {
   synthetic constructor •() → void
     : super self::C::•()
     ;
-  abstract forwarding-stub method foo(generic-covariant-impl self::B x) → dynamic;
-  abstract forwarding-stub set _field(generic-covariant-impl self::B _) → void;
 }
 abstract class _Foo&Object&C = core::Object with self::C<self::B> {
-  abstract forwarding-stub method foo(generic-covariant-impl self::B x) → dynamic;
-  abstract forwarding-stub set _field(generic-covariant-impl self::B _) → void;
 }
 class Foo extends self::_Foo&Object&C {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
-  abstract forwarding-stub set _field(generic-covariant-impl self::B _) → void;
 }
 class B extends self::A {
   synthetic constructor •() → void

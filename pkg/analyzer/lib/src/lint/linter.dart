@@ -16,12 +16,15 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/lint/analysis.dart';
 import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/io.dart';
+import 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
 import 'package:analyzer/src/lint/project.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/services/lint.dart' show Linter;
 import 'package:glob/glob.dart';
 import 'package:path/path.dart' as p;
+
+export 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
 
 typedef Printer(String msg);
 
@@ -208,7 +211,7 @@ class LinterOptions extends DriverOptions {
   }
 }
 
-/// Filtered lints are ommitted from linter output.
+/// Filtered lints are omitted from linter output.
 abstract class LintFilter {
   bool filter(AnalysisError lint);
 }
@@ -317,6 +320,14 @@ class Maturity implements Comparable<Maturity> {
 
   @override
   int compareTo(Maturity other) => this.ordinal - other.ordinal;
+}
+
+/// [LintRule]s that implement this interface want to process only some types
+/// of AST nodes, and will register their processors in the registry.
+abstract class NodeLintRule {
+  /// This method is invoked to let the [LintRule] register node processors
+  /// in the given [registry].
+  void registerNodeProcessors(NodeLintRegistry registry);
 }
 
 class PrintingReporter implements Reporter, Logger {

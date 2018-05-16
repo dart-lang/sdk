@@ -4,7 +4,6 @@
 
 import '../common.dart';
 import '../common_elements.dart';
-import '../elements/elements.dart' show Element;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../util/util.dart' show Setlet;
@@ -36,9 +35,6 @@ abstract class BackendUsage {
   /// `true` of `Object.runtimeType` is used.
   bool get isRuntimeTypeUsed;
 
-  /// `true` if the `dart:isolate` library is in use.
-  bool get isIsolateInUse;
-
   /// `true` if `Function.apply` is used.
   bool get isFunctionApplyUsed;
 
@@ -47,6 +43,9 @@ abstract class BackendUsage {
 
   /// `true` if `noSuchMethod` is used.
   bool get isNoSuchMethodUsed;
+
+  /// `true` if generic instantiation is used.
+  bool get isGenericInstantiationUsed;
 }
 
 abstract class BackendUsageBuilder {
@@ -78,14 +77,14 @@ abstract class BackendUsageBuilder {
   /// `true` of `Object.runtimeType` is used.
   bool isRuntimeTypeUsed;
 
-  /// `true` if the `dart:isolate` library is in use.
-  bool isIsolateInUse;
-
   /// `true` if `Function.apply` is used.
   bool isFunctionApplyUsed;
 
   /// `true` if `noSuchMethod` is used.
   bool isNoSuchMethodUsed;
+
+  /// `true` if generic instantiation is used.
+  bool isGenericInstantiationUsed;
 
   BackendUsage close();
 }
@@ -114,9 +113,6 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
   /// `true` of `Object.runtimeType` is used.
   bool isRuntimeTypeUsed = false;
 
-  /// `true` if the `dart:isolate` library is in use.
-  bool isIsolateInUse = false;
-
   /// `true` if `Function.apply` is used.
   bool isFunctionApplyUsed = false;
 
@@ -125,6 +121,9 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
 
   /// `true` if `noSuchMethod` is used.
   bool isNoSuchMethodUsed = false;
+
+  /// `true` if generic instantiation is used.
+  bool isGenericInstantiationUsed = false;
 
   BackendUsageBuilderImpl(this._commonElements);
 
@@ -144,7 +143,8 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
 
   bool _isValidBackendUse(Entity element) {
     if (_isValidEntity(element)) return true;
-    if (element is Element) {
+    // TODO(redemption): Support these checks on kernel based elements:
+    /*if (element is Element) {
       assert(element.isDeclaration,
           failedAt(element, "Backend use $element must be the declaration."));
       if (element.implementationLibrary.isPatch ||
@@ -154,15 +154,13 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
               element.sourcePosition.uri.path
                   .contains('_internal/js_runtime/lib/')) ||
           element.library == _commonElements.jsHelperLibrary ||
-          element.library == _commonElements.interceptorsLibrary ||
-          element.library == _commonElements.isolateHelperLibrary) {
+          element.library == _commonElements.interceptorsLibrary) {
         // TODO(johnniwinther): We should be more precise about these.
         return true;
       } else {
         return false;
       }
-    }
-    // TODO(redemption): Support remaining checks on [Entity]s.
+    }*/
     return true;
   }
 
@@ -170,8 +168,7 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
     if (element is ConstructorEntity &&
         (element == _commonElements.streamIteratorConstructor ||
             _commonElements.isSymbolConstructor(element) ||
-            _commonElements.isSymbolValidatedConstructor(element) ||
-            element == _commonElements.syncCompleterConstructor)) {
+            _commonElements.isSymbolValidatedConstructor(element))) {
       // TODO(johnniwinther): These are valid but we could be more precise.
       return true;
     } else if (element == _commonElements.symbolImplementationClass ||
@@ -281,10 +278,10 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
         requiresPreamble: requiresPreamble,
         isInvokeOnUsed: isInvokeOnUsed,
         isRuntimeTypeUsed: isRuntimeTypeUsed,
-        isIsolateInUse: isIsolateInUse,
         isFunctionApplyUsed: isFunctionApplyUsed,
         isMirrorsUsed: isMirrorsUsed,
-        isNoSuchMethodUsed: isNoSuchMethodUsed);
+        isNoSuchMethodUsed: isNoSuchMethodUsed,
+        isGenericInstantiationUsed: isGenericInstantiationUsed);
   }
 }
 
@@ -311,9 +308,6 @@ class BackendUsageImpl implements BackendUsage {
   /// `true` of `Object.runtimeType` is used.
   final bool isRuntimeTypeUsed;
 
-  /// `true` if the `dart:isolate` library is in use.
-  final bool isIsolateInUse;
-
   /// `true` if `Function.apply` is used.
   final bool isFunctionApplyUsed;
 
@@ -322,6 +316,9 @@ class BackendUsageImpl implements BackendUsage {
 
   /// `true` if `noSuchMethod` is used.
   final bool isNoSuchMethodUsed;
+
+  /// `true` if generic instantiation is used.
+  final bool isGenericInstantiationUsed;
 
   BackendUsageImpl(
       {Set<FunctionEntity> globalFunctionDependencies,
@@ -333,10 +330,10 @@ class BackendUsageImpl implements BackendUsage {
       this.requiresPreamble,
       this.isInvokeOnUsed,
       this.isRuntimeTypeUsed,
-      this.isIsolateInUse,
       this.isFunctionApplyUsed,
       this.isMirrorsUsed,
-      this.isNoSuchMethodUsed})
+      this.isNoSuchMethodUsed,
+      this.isGenericInstantiationUsed})
       : this._globalFunctionDependencies = globalFunctionDependencies,
         this._globalClassDependencies = globalClassDependencies,
         this._helperFunctionsUsed = helperFunctionsUsed,

@@ -27,7 +27,7 @@ main(List<String> args) {
   CommandLineHelper.requireVariableArgumentCount([1, 2], args, usage);
   CommandLineHelper.requireFileExists(args[0], usage);
   var binary = CommandLineHelper.tryLoadDill(args[0], usage);
-  writeProgramToText(binary,
+  writeComponentToText(binary,
       path: args.length > 1 ? args[1] : null,
       showOffsets: const bool.fromEnvironment("showOffsets"));
 }

@@ -120,9 +120,9 @@ class OS {
   // Shut down the OS class.
   static void Shutdown();
 
-  static void Abort();
+  static DART_NORETURN void Abort();
 
-  static void Exit(int code);
+  static DART_NORETURN void Exit(int code);
 };
 
 }  // namespace dart

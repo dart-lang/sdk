@@ -1,0 +1,47 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → void
+    : super self::A::•()
+    ;
+}
+class C extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  set x(self::A value) → void {}
+  get y() → self::B
+    return null;
+}
+class D extends self::C {
+  synthetic constructor •() → void
+    : super self::C::•()
+    ;
+  set x(dynamic value) → void {}
+  get y() → dynamic
+    return null;
+}
+class E extends self::D {
+  synthetic constructor •() → void
+    : super self::D::•()
+    ;
+  set x(self::A value) → void {}
+  get y() → self::B
+    return null;
+}
+class F extends self::D {
+  synthetic constructor •() → void
+    : super self::D::•()
+    ;
+  set x(self::B value) → void {}
+  get y() → self::A
+    return null;
+}
+static method main() → dynamic {}

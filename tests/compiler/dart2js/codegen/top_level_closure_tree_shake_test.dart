@@ -26,17 +26,14 @@ use(x) {
 """;
 
 main() {
-  runTest({bool useKernel}) async {
-    String generated = await compileAll(TEST_ONE,
-        compileMode: useKernel ? CompileMode.kernel : CompileMode.memory);
+  runTest() async {
+    String generated = await compileAll(TEST_ONE);
     Expect.isFalse(generated.contains('Tarantula!'), "failed to remove 'foo'");
     Expect.isTrue(generated.contains('Coelacanth!'));
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTest(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTest(useKernel: true);
+    await runTest();
   });
 }

@@ -10,7 +10,7 @@ import 'dart:io';
 import 'dart:isolate' show RawReceivePort;
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:convert' show JSON;
+import 'dart:convert' show jsonEncode;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -23,12 +23,12 @@ import 'package:front_end/src/kernel_generator_impl.dart';
 import 'package:front_end/src/fasta/util/relativize.dart' show relativizeUri;
 
 import 'package:front_end/src/fasta/get_dependencies.dart' show getDependencies;
-import 'package:front_end/src/fasta/kernel/utils.dart' show writeProgramToFile;
+import 'package:front_end/src/fasta/kernel/utils.dart'
+    show writeComponentToFile;
 
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/target/vm.dart' show VmTarget;
 import 'package:kernel/target/flutter.dart' show FlutterTarget;
-import 'package:vm/target/runner.dart' show RunnerTarget;
 import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
 
 /// Set of input files that were read by this script to generate patched SDK.
@@ -133,17 +133,13 @@ Future _main(List<String> argv) async {
       target = new VmTarget(flags);
       break;
 
-    case 'runner':
-      target = new RunnerTarget(flags);
-      break;
-
     case 'flutter':
     case 'flutter_release':
       target = new FlutterTarget(flags);
       break;
 
     case 'dart2js':
-      target = new Dart2jsTarget(flags);
+      target = new Dart2jsTarget("dart2js", flags);
       break;
 
     default:
@@ -152,7 +148,7 @@ Future _main(List<String> argv) async {
 
   await _writeSync(
       librariesJson.toFilePath(),
-      JSON.encode({
+      jsonEncode({
         mode: {"libraries": locations}
       }));
 
@@ -216,8 +212,8 @@ Future<List<Uri>> compilePlatform(
           false,
           inputs),
       buildSummary: true,
-      buildProgram: true);
-  await writeProgramToFile(result.program, output);
+      buildComponent: true);
+  await writeComponentToFile(result.component, output);
   return result.deps;
 }
 

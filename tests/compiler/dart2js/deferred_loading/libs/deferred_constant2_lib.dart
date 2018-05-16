@@ -4,6 +4,7 @@
 
 library deferred_constants2_lib;
 
+/*class: Constant:OutputUnit(1, {lib})*/
 class Constant {
   /*element: Constant.value:OutputUnit(1, {lib})*/
   final value;

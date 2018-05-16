@@ -11,10 +11,26 @@ import 'dart:io' as io;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/source/source_resource.dart';
-import 'package:analyzer/src/util/absolute_path.dart';
-import 'package:isolate/isolate_runner.dart';
 import 'package:path/path.dart';
 import 'package:watcher/watcher.dart';
+
+/**
+ * The name of the directory containing plugin specific subfolders used to
+ * store data across sessions.
+ */
+const String _SERVER_DIR = ".dartServer";
+
+/**
+ * Returns the path to the user's home directory.
+ */
+String _getStandardStateLocation() {
+  final home = io.Platform.isWindows
+      ? io.Platform.environment['LOCALAPPDATA']
+      : io.Platform.environment['HOME'];
+  return home != null && io.FileSystemEntity.isDirectorySync(home)
+      ? join(home, _SERVER_DIR)
+      : null;
+}
 
 /**
  * Return modification times for every file path in [paths].
@@ -40,28 +56,10 @@ List<int> _pathsToTimes(List<String> paths) {
 }
 
 /**
-* The name of the directory containing plugin specific subfolders used to
-* store data across sessions.
-*/
-const String _SERVER_DIR = ".dartServer";
-
-/**
- * Returns the path to the user's home directory.
- */
-String _getStandardStateLocation() {
-  final home = io.Platform.isWindows
-      ? io.Platform.environment['LOCALAPPDATA']
-      : io.Platform.environment['HOME'];
-  return home != null && io.FileSystemEntity.isDirectorySync(home)
-      ? join(home, _SERVER_DIR)
-      : null;
-}
-
-/**
  * A `dart:io` based implementation of [ResourceProvider].
  */
 class PhysicalResourceProvider implements ResourceProvider {
-  static final FileReadMode NORMALIZE_EOL_ALWAYS =
+  static final String Function(String) NORMALIZE_EOL_ALWAYS =
       (String string) => string.replaceAll(new RegExp('\r\n?'), '\n');
 
   static final PhysicalResourceProvider INSTANCE =
@@ -72,13 +70,8 @@ class PhysicalResourceProvider implements ResourceProvider {
    */
   final String _stateLocation;
 
-  static Future<IsolateRunner> pathsToTimesIsolate = IsolateRunner.spawn();
-
-  @override
-  final AbsolutePathContext absolutePathContext =
-      new AbsolutePathContext(io.Platform.isWindows);
-
-  PhysicalResourceProvider(FileReadMode fileReadMode, {String stateLocation})
+  PhysicalResourceProvider(String Function(String) fileReadMode,
+      {String stateLocation})
       : _stateLocation = stateLocation ?? _getStandardStateLocation() {
     if (fileReadMode != null) {
       FileBasedSource.fileReadMode = fileReadMode;
@@ -103,8 +96,7 @@ class PhysicalResourceProvider implements ResourceProvider {
   @override
   Future<List<int>> getModificationTimes(List<Source> sources) async {
     List<String> paths = sources.map((source) => source.fullName).toList();
-    IsolateRunner runner = await pathsToTimesIsolate;
-    return runner.run(_pathsToTimes, paths);
+    return _pathsToTimes(paths);
   }
 
   @override
@@ -260,7 +252,7 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
 
   @override
   bool contains(String path) {
-    return absolutePathContext.isWithin(this.path, path);
+    return pathContext.isWithin(this.path, path);
   }
 
   @override
@@ -349,9 +341,6 @@ abstract class _PhysicalResource implements Resource {
 
   _PhysicalResource(this._entry);
 
-  AbsolutePathContext get absolutePathContext =>
-      PhysicalResourceProvider.INSTANCE.absolutePathContext;
-
   @override
   bool get exists => _entry.existsSync();
 
@@ -360,7 +349,7 @@ abstract class _PhysicalResource implements Resource {
 
   @override
   Folder get parent {
-    String parentPath = absolutePathContext.dirname(path);
+    String parentPath = pathContext.dirname(path);
     if (parentPath == path) {
       return null;
     }
@@ -376,7 +365,7 @@ abstract class _PhysicalResource implements Resource {
   Context get pathContext => io.Platform.isWindows ? windows : posix;
 
   @override
-  String get shortName => absolutePathContext.basename(path);
+  String get shortName => pathContext.basename(path);
 
   @override
   bool operator ==(other) {

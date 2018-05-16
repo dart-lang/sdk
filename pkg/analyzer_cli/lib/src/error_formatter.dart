@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer_cli.src.error_formatter;
-
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_cli/src/ansi.dart';
@@ -263,7 +262,7 @@ class HumanErrorFormatter extends ErrorFormatter {
   void formatError(
       Map<AnalysisError, LineInfo> errorToLine, AnalysisError error) {
     Source source = error.source;
-    LineInfo_Location location = errorToLine[error].getLocation(error.offset);
+    CharacterLocation location = errorToLine[error].getLocation(error.offset);
 
     ErrorSeverity severity = _severityProcessor(error);
 
@@ -324,7 +323,7 @@ class MachineErrorFormatter extends ErrorFormatter {
   void formatError(
       Map<AnalysisError, LineInfo> errorToLine, AnalysisError error) {
     Source source = error.source;
-    LineInfo_Location location = errorToLine[error].getLocation(error.offset);
+    CharacterLocation location = errorToLine[error].getLocation(error.offset);
     int length = error.length;
 
     ErrorSeverity severity = _severityProcessor(error);

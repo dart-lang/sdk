@@ -5,7 +5,8 @@
 import 'package:expect/expect.dart';
 import 'package:meta/dart2js.dart';
 
-/*class: A:needsArgs*/
+/*!strong.class: A:needsArgs*/
+/*strong.class: A:direct,explicit=[A.T],needsArgs*/
 class A<T> {
   /*element: A.call:needsSignature*/
   call(T t) {}

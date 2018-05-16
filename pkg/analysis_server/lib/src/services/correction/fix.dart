@@ -45,6 +45,7 @@ bool hasFix(ErrorCode errorCode) =>
     errorCode == CompileTimeErrorCode.INVALID_ANNOTATION ||
     errorCode == CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT ||
     errorCode == CompileTimeErrorCode.PART_OF_NON_PART ||
+    errorCode == CompileTimeErrorCode.UNDEFINED_ANNOTATION ||
     errorCode ==
         CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT ||
     errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST ||
@@ -89,12 +90,16 @@ bool hasFix(ErrorCode errorCode) =>
 class DartFixKind {
   static const ADD_ASYNC =
       const FixKind('ADD_ASYNC', 50, "Add 'async' modifier");
+  static const ADD_EXPLICIT_CAST =
+      const FixKind('ADD_EXPLICIT_CAST', 50, "Add cast");
   static const ADD_FIELD_FORMAL_PARAMETERS = const FixKind(
       'ADD_FIELD_FORMAL_PARAMETERS', 30, "Add final field formal parameters");
   static const ADD_MISSING_PARAMETER_POSITIONAL = const FixKind(
       'ADD_MISSING_PARAMETER_POSITIONAL',
       31,
       "Add optional positional parameter");
+  static const ADD_MISSING_PARAMETER_NAMED = const FixKind(
+      'ADD_MISSING_PARAMETER_NAMED', 30, "Add named parameter '{0}'");
   static const ADD_MISSING_PARAMETER_REQUIRED = const FixKind(
       'ADD_MISSING_PARAMETER_REQUIRED', 30, "Add required parameter");
   static const ADD_MISSING_REQUIRED_ARGUMENT = const FixKind(
@@ -139,8 +144,6 @@ class DartFixKind {
       const FixKind('CREATE_LOCAL_VARIABLE', 50, "Create local variable '{0}'");
   static const CREATE_METHOD =
       const FixKind('CREATE_METHOD', 50, "Create method '{0}'");
-  static const CREATE_MISSING_METHOD_CALL =
-      const FixKind('CREATE_MISSING_METHOD_CALL', 49, "Create method 'call'.");
   static const CREATE_MISSING_OVERRIDES = const FixKind(
       'CREATE_MISSING_OVERRIDES', 49, "Create {0} missing override(s)");
   static const CREATE_NO_SUCH_METHOD = const FixKind(
@@ -211,6 +214,8 @@ class DartFixKind {
       'REMOVE_UNUSED_CATCH_STACK', 50, "Remove unused stack trace variable");
   static const REMOVE_UNUSED_IMPORT =
       const FixKind('REMOVE_UNUSED_IMPORT', 50, "Remove unused import");
+  static const RENAME_TO_CAMEL_CASE =
+      const FixKind('RENAME_TO_CAMEL_CASE', 50, "Rename to '{0}'");
   static const REPLACE_BOOLEAN_WITH_BOOL = const FixKind(
       'REPLACE_BOOLEAN_WITH_BOOL', 50, "Replace 'boolean' with 'bool'");
   static const REPLACE_FINAL_WITH_CONST = const FixKind(

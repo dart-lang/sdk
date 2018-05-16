@@ -14,6 +14,7 @@ import 'package:kernel/ast.dart'
         Class,
         Constructor,
         DartType,
+        Procedure,
         DynamicType,
         EmptyStatement,
         Expression,
@@ -28,9 +29,8 @@ import 'package:kernel/ast.dart'
         Name,
         NamedExpression,
         NullLiteral,
-        Procedure,
         ProcedureKind,
-        Program,
+        Component,
         Source,
         Statement,
         StringLiteral,
@@ -92,7 +92,7 @@ import 'kernel_builder.dart'
 
 import 'metadata_collector.dart' show MetadataCollector;
 
-import 'verifier.dart' show verifyProgram;
+import 'verifier.dart' show verifyComponent;
 
 class KernelTarget extends TargetImplementation {
   /// The [FileSystem] which should be used to access files.
@@ -111,7 +111,7 @@ class KernelTarget extends TargetImplementation {
 
   SourceLoader<Library> loader;
 
-  Program program;
+  Component component;
 
   final List<LocatedMessage> errors = <LocatedMessage>[];
 
@@ -220,17 +220,17 @@ class KernelTarget extends TargetImplementation {
     builder.mixedInType = null;
   }
 
-  void handleInputError(deprecated_InputError error, {bool isFullProgram}) {
+  void handleInputError(deprecated_InputError error, {bool isFullComponent}) {
     if (error != null) {
       LocatedMessage message = deprecated_InputError.toMessage(error);
       context.report(message, Severity.error);
       errors.add(message);
     }
-    program = erroneousProgram(isFullProgram);
+    component = erroneousComponent(isFullComponent);
   }
 
   @override
-  Future<Program> buildOutlines({CanonicalName nameRoot}) async {
+  Future<Component> buildOutlines({CanonicalName nameRoot}) async {
     if (loader.first == null) return null;
     try {
       loader.createTypeInferenceEngine();
@@ -242,20 +242,18 @@ class KernelTarget extends TargetImplementation {
       objectType.bind(loader.coreLibrary["Object"]);
       bottomType.bind(loader.coreLibrary["Null"]);
       loader.resolveTypes();
-      if (loader.target.strongMode) {
-        loader.instantiateToBound(dynamicType, bottomType, objectClassBuilder);
-      }
+      loader.instantiateToBound(dynamicType, bottomType, objectClassBuilder);
       List<SourceClassBuilder> myClasses = collectMyClasses();
       loader.checkSemantics(myClasses);
-      loader.finishTypeVariables(objectClassBuilder);
-      loader.buildProgram();
+      loader.finishTypeVariables(objectClassBuilder, dynamicType);
+      loader.buildComponent();
       installDefaultSupertypes();
       installDefaultConstructors(myClasses);
       loader.resolveConstructors();
-      program =
+      component =
           link(new List<Library>.from(loader.libraries), nameRoot: nameRoot);
       if (metadataCollector != null) {
-        program.addMetadataRepository(metadataCollector.repository);
+        component.addMetadataRepository(metadataCollector.repository);
       }
       computeCoreTypes();
       loader.computeHierarchy();
@@ -264,32 +262,34 @@ class KernelTarget extends TargetImplementation {
         loader.performTopLevelInference(myClasses);
       }
       loader.checkOverrides(myClasses);
+      loader.checkAbstractMembers(myClasses);
+      loader.addNoSuchMethodForwarders(myClasses);
     } on deprecated_InputError catch (e) {
       ticker.logMs("Got deprecated_InputError");
-      handleInputError(e, isFullProgram: false);
+      handleInputError(e, isFullComponent: false);
     } catch (e, s) {
       return reportCrash(e, s, loader?.currentUriForCrashReporting);
     }
-    return program;
+    return component;
   }
 
-  /// Build the kernel representation of the program loaded by this target. The
-  /// program will contain full bodies for the code loaded from sources, and
+  /// Build the kernel representation of the component loaded by this target. The
+  /// component will contain full bodies for the code loaded from sources, and
   /// only references to the code loaded by the [DillTarget], which may or may
   /// not include method bodies (depending on what was loaded into that target,
-  /// an outline or a full kernel program).
+  /// an outline or a full kernel component).
   ///
-  /// If [verify], run the default kernel verification on the resulting program.
+  /// If [verify], run the default kernel verification on the resulting component.
   @override
-  Future<Program> buildProgram({bool verify: false}) async {
+  Future<Component> buildComponent({bool verify: false}) async {
     if (loader.first == null) return null;
     if (errors.isNotEmpty) {
-      handleInputError(null, isFullProgram: true);
-      return program;
+      handleInputError(null, isFullComponent: true);
+      return component;
     }
 
     try {
-      ticker.logMs("Building program");
+      ticker.logMs("Building component");
       await loader.buildBodies();
       loader.finishDeferredLoadTearoffs();
       List<SourceClassBuilder> myClasses = collectMyClasses();
@@ -300,16 +300,16 @@ class KernelTarget extends TargetImplementation {
 
       if (verify) this.verify();
       if (errors.isNotEmpty) {
-        handleInputError(null, isFullProgram: true);
+        handleInputError(null, isFullComponent: true);
       }
       handleRecoverableErrors(loader.unhandledErrors);
     } on deprecated_InputError catch (e) {
       ticker.logMs("Got deprecated_InputError");
-      handleInputError(e, isFullProgram: true);
+      handleInputError(e, isFullComponent: true);
     } catch (e, s) {
       return reportCrash(e, s, loader?.currentUriForCrashReporting);
     }
-    return program;
+    return component;
   }
 
   /// Adds a synthetic field named `#errors` to the main library that contains
@@ -317,13 +317,13 @@ class KernelTarget extends TargetImplementation {
   ///
   /// If [recoverableErrors] is empty, this method does nothing.
   ///
-  /// If there's no main library, this method uses [erroneousProgram] to
-  /// replace [program].
+  /// If there's no main library, this method uses [erroneousComponent] to
+  /// replace [component].
   void handleRecoverableErrors(List<LocatedMessage> recoverableErrors) {
     if (recoverableErrors.isEmpty) return;
     KernelLibraryBuilder mainLibrary = loader.first;
     if (mainLibrary == null) {
-      program = erroneousProgram(true);
+      component = erroneousComponent(true);
       return;
     }
     List<Expression> expressions = <Expression>[];
@@ -337,13 +337,13 @@ class KernelTarget extends TargetImplementation {
         isStatic: true));
   }
 
-  Program erroneousProgram(bool isFullProgram) {
+  Component erroneousComponent(bool isFullComponent) {
     Uri uri = loader.first?.uri ?? Uri.parse("error:error");
     Uri fileUri = loader.first?.fileUri ?? uri;
     KernelLibraryBuilder library =
         new KernelLibraryBuilder(uri, fileUri, loader, null);
     loader.first = library;
-    if (isFullProgram) {
+    if (isFullComponent) {
       // If this is an outline, we shouldn't add an executable main
       // method. Similarly considerations apply to separate compilation. It
       // could also make sense to add a way to mark .dill files as having
@@ -355,14 +355,21 @@ class KernelTarget extends TargetImplementation {
           (LocatedMessage message) => new ExpressionStatement(new Throw(
               new StringLiteral(context.format(message, Severity.error)))))));
     }
+
+    // Clear libraries to avoid having 'the same' library added in both outline
+    // and body building. As loader.libraries is used in the incremental
+    // compiler that will causes problems (i.e. it cannot serialize because 2
+    // libraries has the same URI).
+    loader.libraries.clear();
+
     loader.libraries.add(library.library);
     library.build(loader.coreLibrary);
     return link(<Library>[library.library]);
   }
 
-  /// Creates a program by combining [libraries] with the libraries of
-  /// `dillTarget.loader.program`.
-  Program link(List<Library> libraries, {CanonicalName nameRoot}) {
+  /// Creates a component by combining [libraries] with the libraries of
+  /// `dillTarget.loader.component`.
+  Component link(List<Library> libraries, {CanonicalName nameRoot}) {
     libraries.addAll(dillTarget.loader.libraries);
 
     Map<Uri, Source> uriToSource = new Map<Uri, Source>();
@@ -374,22 +381,22 @@ class KernelTarget extends TargetImplementation {
     this.uriToSource.forEach(copySource);
     dillTarget.loader.uriToSource.forEach(copySource);
 
-    Program program = new Program(
+    Component component = new Component(
         nameRoot: nameRoot, libraries: libraries, uriToSource: uriToSource);
     if (loader.first != null) {
       // TODO(sigmund): do only for full program
       Builder builder = loader.first.exportScope.lookup("main", -1, null);
       if (builder is KernelProcedureBuilder) {
-        program.mainMethod = builder.procedure;
+        component.mainMethod = builder.procedure;
       } else if (builder is DillMemberBuilder) {
         if (builder.member is Procedure) {
-          program.mainMethod = builder.member;
+          component.mainMethod = builder.member;
         }
       }
     }
 
-    ticker.logMs("Linked program");
-    return program;
+    ticker.logMs("Linked component");
+    return component;
   }
 
   void installDefaultSupertypes() {
@@ -575,7 +582,7 @@ class KernelTarget extends TargetImplementation {
         libraries.add(library.target);
       }
     }
-    Program plaformLibraries = new Program();
+    Component plaformLibraries = new Component();
     // Add libraries directly to prevent that their parents are changed.
     plaformLibraries.libraries.addAll(libraries);
     loader.computeCoreTypes(plaformLibraries);
@@ -655,15 +662,11 @@ class KernelTarget extends TargetImplementation {
         fieldInitializers[constructor] = myFieldInitializers;
         if (constructor.isConst && nonFinalFields.isNotEmpty) {
           builder.addCompileTimeError(messageConstConstructorNonFinalField,
-              constructor.fileOffset, noLength);
-          // TODO(askesc): Put as context argument when multiple contexts
-          // are supported.
-          for (Field field in nonFinalFields) {
-            builder.addCompileTimeError(
-                messageConstConstructorNonFinalFieldCause,
-                field.fileOffset,
-                noLength);
-          }
+              constructor.fileOffset, noLength,
+              context: nonFinalFields
+                  .map((field) => messageConstConstructorNonFinalFieldCause
+                      .withLocation(field.fileUri, field.fileOffset, noLength))
+                  .toList());
           nonFinalFields.clear();
         }
       }
@@ -710,9 +713,15 @@ class KernelTarget extends TargetImplementation {
         logger: (String msg) => ticker.logMs(msg));
   }
 
+  void runProcedureTransformations(Procedure procedure) {
+    backendTarget.performTransformationsOnProcedure(
+        loader.coreTypes, loader.hierarchy, procedure,
+        logger: (String msg) => ticker.logMs(msg));
+  }
+
   void verify() {
-    errors.addAll(verifyProgram(program));
-    ticker.logMs("Verified program");
+    errors.addAll(verifyComponent(component));
+    ticker.logMs("Verified component");
   }
 
   /// Return `true` if the given [library] was built by this [KernelTarget]

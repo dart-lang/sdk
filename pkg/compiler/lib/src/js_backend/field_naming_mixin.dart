@@ -19,9 +19,7 @@ abstract class _MinifiedFieldNamer implements Namer {
     }
 
     _FieldNamingScope names;
-    if (element is BoxFieldElement) {
-      names = new _FieldNamingScope.forBox(element.box, fieldRegistry);
-    } else if (element is JRecordField) {
+    if (element is JRecordField) {
       names = new _FieldNamingScope.forBox(element.box, fieldRegistry);
     } else {
       ClassEntity cls = element.enclosingClass;
@@ -207,10 +205,10 @@ class _MixinFieldNamingScope extends _FieldNamingScope {
   @override
   Map<Entity, jsAst.Name> get names => registry.globalNames;
 
-  _MixinFieldNamingScope.mixin(ClassElement cls, _FieldNamingRegistry registry)
+  _MixinFieldNamingScope.mixin(ClassEntity cls, _FieldNamingRegistry registry)
       : super.rootScope(cls, registry);
 
-  _MixinFieldNamingScope.mixedIn(MixinApplicationElement container,
+  _MixinFieldNamingScope.mixedIn(ClassEntity container,
       _FieldNamingScope superScope, _FieldNamingRegistry registry)
       : super.inherit(container, superScope, registry);
 

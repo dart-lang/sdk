@@ -310,14 +310,15 @@ static void EmitAssertBoolean(Register reg,
   // Call the runtime if the object is not bool::true or bool::false.
   ASSERT(locs->always_calls());
   Label done;
+  Isolate* isolate = Isolate::Current();
 
-  if (Isolate::Current()->type_checks()) {
+  if (isolate->type_checks()) {
     __ CompareObject(reg, Bool::True());
     __ j(EQUAL, &done, Assembler::kNearJump);
     __ CompareObject(reg, Bool::False());
     __ j(EQUAL, &done, Assembler::kNearJump);
   } else {
-    ASSERT(Isolate::Current()->asserts());
+    ASSERT(isolate->asserts() || isolate->strong());
     __ CompareObject(reg, Object::null_instance());
     __ j(NOT_EQUAL, &done, Assembler::kNearJump);
   }
@@ -1649,16 +1650,16 @@ void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-class BoxAllocationSlowPath : public SlowPathCode {
+class BoxAllocationSlowPath : public TemplateSlowPathCode<Instruction> {
  public:
   BoxAllocationSlowPath(Instruction* instruction,
                         const Class& cls,
                         Register result)
-      : instruction_(instruction), cls_(cls), result_(result) {}
+      : TemplateSlowPathCode(instruction), cls_(cls), result_(result) {}
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
     if (Assembler::EmittingComments()) {
-      __ Comment("%s slow path allocation of %s", instruction_->DebugName(),
+      __ Comment("%s slow path allocation of %s", instruction()->DebugName(),
                  String::Handle(cls_.ScrubbedName()).ToCString());
     }
     __ Bind(entry_label());
@@ -1666,7 +1667,7 @@ class BoxAllocationSlowPath : public SlowPathCode {
         compiler->zone(), StubCode::GetAllocationStubForClass(cls_));
     const StubEntry stub_entry(stub);
 
-    LocationSummary* locs = instruction_->locs();
+    LocationSummary* locs = instruction()->locs();
 
     locs->live_registers()->Remove(Location::RegisterLocation(result_));
 
@@ -1699,7 +1700,6 @@ class BoxAllocationSlowPath : public SlowPathCode {
   }
 
  private:
-  Instruction* instruction_;
   const Class& cls_;
   const Register result_;
 };
@@ -2335,35 +2335,33 @@ LocationSummary* AllocateUninitializedContextInstr::MakeLocationSummary(
   return locs;
 }
 
-class AllocateContextSlowPath : public SlowPathCode {
+class AllocateContextSlowPath
+    : public TemplateSlowPathCode<AllocateUninitializedContextInstr> {
  public:
   explicit AllocateContextSlowPath(
       AllocateUninitializedContextInstr* instruction)
-      : instruction_(instruction) {}
+      : TemplateSlowPathCode(instruction) {}
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
     __ Comment("AllocateContextSlowPath");
     __ Bind(entry_label());
 
-    LocationSummary* locs = instruction_->locs();
+    LocationSummary* locs = instruction()->locs();
     ASSERT(!locs->live_registers()->Contains(locs->out(0)));
 
     compiler->SaveLiveRegisters(locs);
 
-    __ movl(EDX, Immediate(instruction_->num_context_variables()));
+    __ movl(EDX, Immediate(instruction()->num_context_variables()));
     const Code& stub = Code::ZoneHandle(
         compiler->zone(), StubCode::AllocateContext_entry()->code());
     compiler->AddStubCallTarget(stub);
-    compiler->GenerateCall(instruction_->token_pos(),
+    compiler->GenerateCall(instruction()->token_pos(),
                            *StubCode::AllocateContext_entry(),
                            RawPcDescriptors::kOther, locs);
-    ASSERT(instruction_->locs()->out(0).reg() == EAX);
-    compiler->RestoreLiveRegisters(instruction_->locs());
+    ASSERT(instruction()->locs()->out(0).reg() == EAX);
+    compiler->RestoreLiveRegisters(instruction()->locs());
     __ jmp(exit_label());
   }
-
- private:
-  AllocateUninitializedContextInstr* instruction_;
 };
 
 void AllocateUninitializedContextInstr::EmitNativeCode(
@@ -2508,12 +2506,12 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     LocalVariable* closure_parameter = scope->VariableAt(0);
     ASSERT(!closure_parameter->is_captured());
-    __ movl(CTX, Address(EBP, closure_parameter->index() * kWordSize));
-    __ movl(CTX, FieldAddress(CTX, Closure::context_offset()));
+    __ movl(EDI, Address(EBP, closure_parameter->index() * kWordSize));
+    __ movl(EDI, FieldAddress(EDI, Closure::context_offset()));
 
 #ifdef DEBUG
     Label ok;
-    __ LoadClassId(EBX, CTX);
+    __ LoadClassId(EBX, EDI);
     __ cmpl(EBX, Immediate(kContextCid));
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Incorrect context at entry");
@@ -2522,19 +2520,19 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     const intptr_t context_index =
         parsed_function.current_context_var()->index();
-    __ movl(Address(EBP, context_index * kWordSize), CTX);
+    __ movl(Address(EBP, context_index * kWordSize), EDI);
   }
 
   // Initialize exception and stack trace variables.
   if (exception_var().is_captured()) {
     ASSERT(stacktrace_var().is_captured());
     __ StoreIntoObject(
-        CTX,
-        FieldAddress(CTX, Context::variable_offset(exception_var().index())),
+        EDI,
+        FieldAddress(EDI, Context::variable_offset(exception_var().index())),
         kExceptionObjectReg);
     __ StoreIntoObject(
-        CTX,
-        FieldAddress(CTX, Context::variable_offset(stacktrace_var().index())),
+        EDI,
+        FieldAddress(EDI, Context::variable_offset(stacktrace_var().index())),
         kStackTraceObjectReg);
   } else {
     // Restore stack and initialize the two exception variables:
@@ -2558,10 +2556,11 @@ LocationSummary* CheckStackOverflowInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-class CheckStackOverflowSlowPath : public SlowPathCode {
+class CheckStackOverflowSlowPath
+    : public TemplateSlowPathCode<CheckStackOverflowInstr> {
  public:
   explicit CheckStackOverflowSlowPath(CheckStackOverflowInstr* instruction)
-      : instruction_(instruction) {}
+      : TemplateSlowPathCode(instruction) {}
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
     if (compiler->isolate()->use_osr() && osr_entry_label()->IsLinked()) {
@@ -2572,25 +2571,25 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
     }
     __ Comment("CheckStackOverflowSlowPath");
     __ Bind(entry_label());
-    compiler->SaveLiveRegisters(instruction_->locs());
+    compiler->SaveLiveRegisters(instruction()->locs());
     // pending_deoptimization_env_ is needed to generate a runtime call that
     // may throw an exception.
     ASSERT(compiler->pending_deoptimization_env_ == NULL);
-    Environment* env = compiler->SlowPathEnvironmentFor(instruction_);
+    Environment* env = compiler->SlowPathEnvironmentFor(instruction());
     compiler->pending_deoptimization_env_ = env;
     compiler->GenerateRuntimeCall(
-        instruction_->token_pos(), instruction_->deopt_id(),
-        kStackOverflowRuntimeEntry, 0, instruction_->locs());
+        instruction()->token_pos(), instruction()->deopt_id(),
+        kStackOverflowRuntimeEntry, 0, instruction()->locs());
 
     if (compiler->isolate()->use_osr() && !compiler->is_optimizing() &&
-        instruction_->in_loop()) {
+        instruction()->in_loop()) {
       // In unoptimized code, record loop stack checks as possible OSR entries.
       compiler->AddCurrentDescriptor(RawPcDescriptors::kOsrEntry,
-                                     instruction_->deopt_id(),
+                                     instruction()->deopt_id(),
                                      TokenPosition::kNoSource);
     }
     compiler->pending_deoptimization_env_ = NULL;
-    compiler->RestoreLiveRegisters(instruction_->locs());
+    compiler->RestoreLiveRegisters(instruction()->locs());
     __ jmp(exit_label());
   }
 
@@ -2600,7 +2599,6 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
   }
 
  private:
-  CheckStackOverflowInstr* instruction_;
   Label osr_entry_label_;
 };
 

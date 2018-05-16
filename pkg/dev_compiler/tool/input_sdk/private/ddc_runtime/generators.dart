@@ -11,10 +11,11 @@
 /// stepping stone for proposed ES7 async/await, and uses ES6 Promises.
 part of dart._runtime;
 
-// TODO(vsm): Remove once this flag is the default.
-bool startAsyncSynchronously = false;
-void setStartAsyncSynchronously() {
-  startAsyncSynchronously = true;
+// TODO(vsm): Remove once this flag we've removed the ability to
+// whitelist / fallback on the old behavior.
+bool startAsyncSynchronously = true;
+void setStartAsyncSynchronously([bool value = true]) {
+  startAsyncSynchronously = value;
 }
 
 final _jsIterator = JS('', 'Symbol("_jsIterator")');

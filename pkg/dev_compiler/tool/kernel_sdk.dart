@@ -4,17 +4,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert' show JSON;
+import 'dart:convert' show json;
 import 'dart:io';
 import 'package:args/args.dart' show ArgParser;
 import 'package:dev_compiler/src/compiler/module_builder.dart';
 import 'package:dev_compiler/src/kernel/target.dart';
 import 'package:dev_compiler/src/kernel/command.dart';
+import 'package:dev_compiler/src/kernel/compiler.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/kernel_generator.dart';
 import 'package:kernel/kernel.dart';
 import 'package:path/path.dart' as path;
-import 'patch_sdk.dart' as patch_sdk;
 
 Future main(List<String> args) async {
   // Parse flags.
@@ -27,9 +27,7 @@ Future main(List<String> args) async {
   var outputPath =
       path.absolute(rest.length > 0 ? rest[0] : 'gen/sdk/kernel/ddc_sdk.dill');
 
-  patch_sdk.main(['../..', 'tool/input_sdk', 'gen/patched_sdk']);
-
-  var inputPath = path.absolute('gen/patched_sdk');
+  var inputPath = path.absolute('tool/input_sdk');
   var target = new DevCompilerTarget();
   var options = new CompilerOptions()
     ..compileSdk = true
@@ -39,13 +37,14 @@ Future main(List<String> args) async {
     ..target = target;
 
   var inputs = target.extraRequiredLibraries.map(Uri.parse).toList();
-  var program = await kernelForBuildUnit(inputs, options);
+  var component = await kernelForComponent(inputs, options);
 
   var outputDir = path.dirname(outputPath);
   await new Directory(outputDir).create(recursive: true);
-  await writeProgramToBinary(program, outputPath);
+  await writeComponentToBinary(component, outputPath);
 
-  var jsModule = compileToJSModule(program, [], [], {});
+  var jsModule = new ProgramCompiler(component, declaredVariables: {})
+      .emitModule(component, [], []);
   var moduleFormats = {
     'amd': ModuleFormat.amd,
     'common': ModuleFormat.common,
@@ -60,6 +59,6 @@ Future main(List<String> args) async {
     await new Directory(jsDir).create();
     var jsCode = jsProgramToCode(jsModule, format);
     await new File(jsPath).writeAsString(jsCode.code);
-    await new File('$jsPath.map').writeAsString(JSON.encode(jsCode.sourceMap));
+    await new File('$jsPath.map').writeAsString(json.encode(jsCode.sourceMap));
   }
 }

@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-import("build/dart_host_sdk_toolchain.gni")
+import("build/dart/dart_host_sdk_toolchain.gni")
 
 targetting_fuchsia = target_os == "fuchsia"
 
@@ -13,7 +13,7 @@ group("default") {
     testonly = true
   }
   deps = [
-    ":runtime",
+    ":runtime_kernel",
   ]
 }
 
@@ -80,7 +80,7 @@ group("runtime_precompiled") {
 }
 
 group("create_sdk") {
-  deps = [
+  public_deps = [
     "sdk:create_sdk",
   ]
 }

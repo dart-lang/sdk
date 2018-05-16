@@ -378,7 +378,6 @@ abstract class ResolutionWorldBuilderBase extends WorldBuilderBase
   final ClassQueries classQueries;
 
   bool hasRuntimeTypeSupport = false;
-  bool hasIsolateSupport = false;
   bool hasFunctionApplySupport = false;
 
   bool _closed = false;
@@ -428,6 +427,19 @@ abstract class ResolutionWorldBuilderBase extends WorldBuilderBase
       if (member.isInstanceMember &&
           member.isFunction &&
           _elementEnvironment.getFunctionTypeVariables(member).isNotEmpty) {
+        functions.add(member);
+      }
+    }
+    return functions;
+  }
+
+  Iterable<FunctionEntity> get userNoSuchMethods {
+    List<FunctionEntity> functions = <FunctionEntity>[];
+    for (MemberEntity member in processedMembers) {
+      if (member.isInstanceMember &&
+          member.isFunction &&
+          member.name == Identifiers.noSuchMethod_ &&
+          !_commonElements.isDefaultNoSuchMethodImplementation(member)) {
         functions.add(member);
       }
     }
@@ -520,10 +532,17 @@ abstract class ResolutionWorldBuilderBase extends WorldBuilderBase
       } else {
         kind = Instantiation.DIRECTLY_INSTANTIATED;
       }
-      _processInstantiatedClass(cls, classUsed);
     }
     info.addInstantiation(constructor, type, kind,
         isRedirection: isRedirection);
+    if (kind != Instantiation.UNINSTANTIATED) {
+      if (_options.strongMode) {
+        classHierarchyBuilder.updateClassHierarchyNodeForClass(cls,
+            directlyInstantiated: info.isDirectlyInstantiated,
+            abstractlyInstantiated: info.isAbstractlyInstantiated);
+      }
+      _processInstantiatedClass(cls, classUsed);
+    }
 
     // TODO(johnniwinther): Use [_instantiationInfo] to compute this information
     // instead.
@@ -617,14 +636,14 @@ abstract class ResolutionWorldBuilderBase extends WorldBuilderBase
       Map<String, Map<Selector, SelectorConstraints>> selectorMap) {
     Selector selector = dynamicUse.selector;
     String name = selector.name;
-    ReceiverConstraint mask = dynamicUse.mask;
+    ReceiverConstraint constraint = dynamicUse.mask;
     Map<Selector, SelectorConstraints> selectors = selectorMap.putIfAbsent(
         name, () => new Maplet<Selector, SelectorConstraints>());
     UniverseSelectorConstraints constraints =
         selectors.putIfAbsent(selector, () {
       return selectorConstraintsStrategy.createSelectorConstraints(selector);
     });
-    return constraints.addReceiverConstraint(mask);
+    return constraints.addReceiverConstraint(constraint);
   }
 
   void registerIsCheck(covariant DartType type) {
@@ -799,10 +818,12 @@ abstract class ResolutionWorldBuilderBase extends WorldBuilderBase
     // its metadata parsed and analyzed.
     // Note: this assumes that there are no non-native fields on native
     // classes, which may not be the case when a native class is subclassed.
-    _memberUsage.putIfAbsent(member, () {
+    bool newUsage = false;
+    _MemberUsage usage = _memberUsage.putIfAbsent(member, () {
+      newUsage = true;
       bool isNative = _nativeBasicData.isNativeClass(cls);
-      _MemberUsage usage = new _MemberUsage(member, isNative: isNative);
       EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
+      _MemberUsage usage = new _MemberUsage(member, isNative: isNative);
       useSet.addAll(usage.appliedUse);
       if (member.isField && isNative) {
         registerUsedElement(member);
@@ -813,13 +834,13 @@ abstract class ResolutionWorldBuilderBase extends WorldBuilderBase
         closurizedMembersWithFreeTypeVariables.add(member);
       }
 
-      if (_hasInvokedGetter(member)) {
+      if (!usage.hasRead && _hasInvokedGetter(member)) {
         useSet.addAll(usage.read());
       }
-      if (_hasInvocation(member)) {
+      if (!usage.hasInvoke && _hasInvocation(member)) {
         useSet.addAll(usage.invoke());
       }
-      if (hasInvokedSetter(member)) {
+      if (!usage.hasWrite && hasInvokedSetter(member)) {
         useSet.addAll(usage.write());
       }
 
@@ -837,10 +858,28 @@ abstract class ResolutionWorldBuilderBase extends WorldBuilderBase
             .putIfAbsent(memberName, () => new Set<_MemberUsage>())
             .add(usage);
       }
-
       memberUsed(usage.entity, useSet);
       return usage;
     });
+    if (!newUsage) {
+      EnumSet<MemberUse> useSet = new EnumSet<MemberUse>();
+      if (!usage.hasRead && _hasInvokedGetter(member)) {
+        useSet.addAll(usage.read());
+      }
+      if (!usage.hasInvoke && _hasInvocation(member)) {
+        useSet.addAll(usage.invoke());
+      }
+      if (!usage.hasWrite && hasInvokedSetter(member)) {
+        useSet.addAll(usage.write());
+      }
+      if (!usage.pendingUse.contains(MemberUse.NORMAL)) {
+        _instanceMembersByName[memberName]?.remove(usage);
+      }
+      if (!usage.pendingUse.contains(MemberUse.CLOSURIZE_INSTANCE)) {
+        _instanceFunctionsByName[memberName]?.remove(usage);
+      }
+      memberUsed(usage.entity, useSet);
+    }
   }
 
   /// Returns an iterable over all mixin applications that mixin [cls].
@@ -925,6 +964,31 @@ abstract class ResolutionWorldBuilderBase extends WorldBuilderBase
 
   void registerClass(ClassEntity cls) {
     classHierarchyBuilder.registerClass(cls);
+  }
+
+  bool isInheritedInSubtypeOf(MemberEntity member, ClassEntity type) {
+    // TODO(johnniwinther): Use the [member] itself to avoid enqueueing members
+    // that are overridden.
+    classHierarchyBuilder.registerClass(member.enclosingClass);
+    classHierarchyBuilder.registerClass(type);
+    return classHierarchyBuilder.isInheritedInSubtypeOf(
+        member.enclosingClass, type);
+  }
+
+  @override
+  Iterable<FunctionEntity> get genericMethods {
+    List<FunctionEntity> functions = <FunctionEntity>[];
+
+    void processMemberUse(Entity member, AbstractUsage memberUsage) {
+      if (member is FunctionEntity &&
+          memberUsage.hasUse &&
+          _elementEnvironment.getFunctionTypeVariables(member).isNotEmpty) {
+        functions.add(member);
+      }
+    }
+
+    _memberUsage.forEach(processMemberUse);
+    return functions;
   }
 }
 

@@ -90,15 +90,15 @@ returnInt8() {
 /*element: returnEmpty1:[empty]*/
 returnEmpty1() {
   // Ensure that we don't intrisify a wrong call to [int.remainder].
-  // ignore: not_enough_required_arguments
-  return 42. /*invoke: [exact=JSUInt31]*/ remainder();
+  dynamic a = 42;
+  return a. /*invoke: [exact=JSUInt31]*/ remainder();
 }
 
 /*element: returnEmpty2:[empty]*/
 returnEmpty2() {
   // Ensure that we don't intrisify a wrong call to [int.abs].
-  // ignore: extra_positional_arguments
-  return 42. /*invoke: [exact=JSUInt31]*/ abs(42);
+  dynamic a = 42;
+  return a. /*invoke: [exact=JSUInt31]*/ abs(42);
 }
 
 /*element: testIsCheck1:[subclass=JSInt]*/
@@ -212,7 +212,7 @@ testIsCheck14(/*[null|subclass=Object]*/ a) {
 // TODO(29309): Change to [subclass=JSInt] when 29309 is fixed.
 /*element: testIsCheck15:[null|subclass=Object]*/
 testIsCheck15(/*[null|subclass=Object]*/ a) {
-  var c = 42;
+  dynamic c = 42;
   do {
     if (a) return c;
     c = topLevelGetter();
@@ -222,7 +222,7 @@ testIsCheck15(/*[null|subclass=Object]*/ a) {
 
 /*element: testIsCheck16:[null|subclass=Object]*/
 testIsCheck16(/*[null|subclass=Object]*/ a) {
-  var c = 42;
+  dynamic c = 42;
   do {
     if (a) return c;
     c = topLevelGetter();
@@ -232,7 +232,7 @@ testIsCheck16(/*[null|subclass=Object]*/ a) {
 
 /*element: testIsCheck17:[subclass=JSInt]*/
 testIsCheck17(/*[null|subclass=Object]*/ a) {
-  var c = 42;
+  dynamic c = 42;
   for (; c is int;) {
     if (a) return c;
     c = topLevelGetter();
@@ -242,7 +242,7 @@ testIsCheck17(/*[null|subclass=Object]*/ a) {
 
 /*element: testIsCheck18:[null|subclass=Object]*/
 testIsCheck18(/*[null|subclass=Object]*/ a) {
-  var c = 42;
+  dynamic c = 42;
   for (; c is int;) {
     if (a) return c;
     c = topLevelGetter();
@@ -252,7 +252,7 @@ testIsCheck18(/*[null|subclass=Object]*/ a) {
 
 /*element: testIsCheck19:[null|subclass=Object]*/
 testIsCheck19(/*[null|subclass=Object]*/ a) {
-  var c = 42;
+  dynamic c = 42;
   for (; c is! int;) {
     if (a) return c;
     c = topLevelGetter();
@@ -306,7 +306,8 @@ testIsCheck25(/*[null|subclass=Object]*/ a) {
 
 /*element: testIsCheck26:[subclass=JSInt]*/
 testIsCheck26(/*[null|subclass=Object]*/ a) {
-  if (a is int) {} else {
+  if (a is int) {
+  } else {
     throw 42;
   }
   return a;
@@ -314,7 +315,8 @@ testIsCheck26(/*[null|subclass=Object]*/ a) {
 
 /*element: testIsCheck27:[subclass=JSInt]*/
 testIsCheck27(/*[null|subclass=Object]*/ a) {
-  if (a is int) {} else {
+  if (a is int) {
+  } else {
     return 42;
   }
   return a;
@@ -322,7 +324,8 @@ testIsCheck27(/*[null|subclass=Object]*/ a) {
 
 /*element: testIsCheck28:[null|subclass=Object]*/
 testIsCheck28(/*[null|subclass=Object]*/ a) {
-  if (a is int) {} else {}
+  if (a is int) {
+  } else {}
   return a;
 }
 
@@ -344,7 +347,8 @@ testIf1(/*[null|subclass=Object]*/ a) {
 /*element: testIf2:[null|exact=JSUInt31]*/
 testIf2(/*[null|subclass=Object]*/ a) {
   var c = null;
-  if (a) {} else {
+  if (a) {
+  } else {
     c = 10;
   }
   return c;
@@ -357,8 +361,8 @@ returnAsString() {
 
 /*element: returnIntAsNum:[exact=JSUInt31]*/
 returnIntAsNum() {
-  // ignore: unnecessary_cast
-  return 0 as num;
+  dynamic a = 0;
+  return a as num;
 }
 
 typedef int Foo();
@@ -589,7 +593,9 @@ testSpecialization2() {
   var a = topLevelGetter();
   // Make [a] a captured variable. This should disable receiver
   // specialization on [a].
-  (/*[null|subclass=Object]*/ () => a.toString())();
+  (/*kernel.[null|subclass=Object]*/
+      /*strong.[null|exact=JSString]*/
+      () => a.toString())();
   a - 42;
   return a;
 }
@@ -664,9 +670,12 @@ returnTopLevelGetter() => topLevelGetter;
 
 class A {
   factory A() = A.generative;
+
   /*element: A.generative:[exact=A]*/
   A.generative();
-  /*element: A.==:Union([exact=JSBool], [exact=JSUInt31])*/
+
+  /*kernel.element: A.==:Union([exact=JSBool], [exact=JSUInt31])*/
+  /*strong.element: A.==:[exact=JSBool]*/
   operator ==(/*Union([exact=JSString], [exact=JSUInt31])*/ other) =>
       42 as dynamic;
 

@@ -2,12 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.generated.bazel_test;
-
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/bazel.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -669,7 +666,14 @@ class _BaseTest {
   String _p(String path) => provider.convertPath(path);
 }
 
-class _MockSource extends Mock implements Source {
+class _MockSource implements Source {
+  @override
   final String fullName;
+
   _MockSource(this.fullName);
+
+  @override
+  noSuchMethod(Invocation invocation) {
+    throw new StateError('Unexpected invocation of ${invocation.memberName}');
+  }
 }

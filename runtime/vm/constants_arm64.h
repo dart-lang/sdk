@@ -38,7 +38,7 @@ enum Register {
   R25 = 25,
   R26 = 26,  // THR
   R27 = 27,  // PP
-  R28 = 28,  // CTX
+  R28 = 28,
   R29 = 29,  // FP
   R30 = 30,  // LR
   R31 = 31,  // ZR, CSP
@@ -107,7 +107,6 @@ const FpuRegister kNoFpuRegister = kNoVRegister;
 // Register aliases.
 const Register TMP = R16;  // Used as scratch register by assembler.
 const Register TMP2 = R17;
-const Register CTX = R28;  // Location of current context at method entry.
 const Register PP = R27;   // Caches object pool pointer in generated code.
 const Register CODE_REG = R24;
 const Register FPREG = FP;          // Frame pointer register.
@@ -151,12 +150,12 @@ const VRegister kAbiFirstPreservedFpuReg = V8;
 const VRegister kAbiLastPreservedFpuReg = V15;
 const int kAbiPreservedFpuRegCount = 8;
 
-const intptr_t kReservedCpuRegisters =
-    (1 << SPREG) |  // Dart SP
-    (1 << FPREG) | (1 << TMP) | (1 << TMP2) | (1 << PP) | (1 << THR) |
-    (1 << LR) | (1 << R31) |  // C++ SP
-    (1 << CTX) | (1 << R18);  // iOS platform register.
-                              // TODO(rmacnak): Only reserve on Mac & iOS.
+const intptr_t kReservedCpuRegisters = (1 << SPREG) |  // Dart SP
+                                       (1 << FPREG) | (1 << TMP) | (1 << TMP2) |
+                                       (1 << PP) | (1 << THR) | (1 << LR) |
+                                       (1 << R31) |  // C++ SP
+                                       (1 << R18);   // iOS platform register.
+// TODO(rmacnak): Only reserve on Mac & iOS.
 // CPU registers available to Dart allocator.
 const RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
@@ -195,7 +194,9 @@ enum Condition {
 
   // Platform-independent variants declared for all platforms
   EQUAL = EQ,
+  ZERO = EQUAL,
   NOT_EQUAL = NE,
+  NOT_ZERO = NOT_EQUAL,
   LESS = LT,
   LESS_EQUAL = LE,
   GREATER_EQUAL = GE,

@@ -4,10 +4,7 @@
 
 library dart2js.js_emitter.full_emitter.container_builder;
 
-import '../../constants/values.dart';
 import '../../deferred_load.dart' show OutputUnit;
-import '../../elements/elements.dart'
-    show Element, MetadataAnnotation, MethodElement;
 import '../../elements/entities.dart';
 import '../../elements/entity_utils.dart' as utils;
 import '../../elements/names.dart';
@@ -42,6 +39,11 @@ class ContainerBuilder extends CodeEmitterHelper {
     bool needStructuredInfo =
         canTearOff || canBeReflected || canBeApplied || hasSuperAlias;
 
+    bool isIntercepted = false;
+    if (method is InstanceMethod) {
+      isIntercepted = method.isIntercepted;
+    }
+
     emitter.interceptorEmitter.recordMangledNameOfMemberMethod(member, name);
 
     if (!needStructuredInfo) {
@@ -73,7 +75,8 @@ class ContainerBuilder extends CodeEmitterHelper {
     // M+1. Call name of first stub.
     // ...
     // N.   Getter name for tearOff.
-    // N+1. (Required parameter count << 1) + (member.isAccessor ? 1 : 0).
+    // N+1. (Required parameter count << 2) + (member.isAccessor ? 2 : 0) +
+    //        (isIntercepted ? 1 : 0)
     // N+2. (Optional parameter count << 1) +
     //                      (parameters.optionalParametersAreNamed ? 1 : 0).
     // N+3. Index to function type in constant pool.
@@ -116,8 +119,9 @@ class ContainerBuilder extends CodeEmitterHelper {
 
     // On [requiredParameterCount], the lower bit is set if this method can be
     // called reflectively.
-    int requiredParameterCount = parameters.requiredParameters << 1;
-    if (member.isGetter || member.isSetter) requiredParameterCount++;
+    int requiredParameterCount = parameters.requiredParameters << 2;
+    if (member.isGetter || member.isSetter) requiredParameterCount += 2;
+    if (isIntercepted) requiredParameterCount += 1;
 
     int optionalParameterCount = parameters.optionalParameters << 1;
     if (parameters.namedParameters.isNotEmpty) optionalParameterCount++;
@@ -152,29 +156,9 @@ class ContainerBuilder extends CodeEmitterHelper {
       expressions.addAll(
           task.metadataCollector.reifyDefaultArguments(member, outputUnit));
 
-      if (member is MethodElement) {
-        member.functionSignature.forEachParameter((Element parameter) {
-          expressions.add(
-              task.metadataCollector.reifyName(parameter.name, outputUnit));
-          if (backend.mirrorsData.mustRetainMetadata) {
-            Iterable<jsAst.Expression> metadataIndices =
-                parameter.metadata.map((MetadataAnnotation annotation) {
-              ConstantValue constant =
-                  backend.constants.getConstantValueForMetadata(annotation);
-              codegenWorldBuilder.addCompileTimeConstantForEmission(constant);
-              return task.metadataCollector
-                  .reifyMetadata(annotation, outputUnit);
-            });
-            expressions
-                .add(new jsAst.ArrayInitializer(metadataIndices.toList()));
-          }
-        });
-      } else {
-        codegenWorldBuilder.forEachParameter(member, (_, String name, _2) {
-          expressions.add(task.metadataCollector.reifyName(name, outputUnit));
-        });
-        // TODO(redemption): Support retaining mirrors metadata.
-      }
+      codegenWorldBuilder.forEachParameter(member, (_, String name, _2) {
+        expressions.add(task.metadataCollector.reifyName(name, outputUnit));
+      });
     }
     Name memberName = member.memberName;
     if (canBeReflected) {
@@ -188,9 +172,7 @@ class ContainerBuilder extends CodeEmitterHelper {
       } else {
         reflectionName = js.string(namer.privateName(memberName));
       }
-      expressions
-        ..add(reflectionName)
-        ..addAll(task.metadataCollector.computeMetadata(member, outputUnit));
+      expressions..add(reflectionName);
     } else if (isClosure && canBeApplied) {
       expressions.add(js.string(namer.privateName(memberName)));
     }

@@ -43,6 +43,10 @@
 % - Update mixin application forwarding constructors to correctly handle
 %   optional parameters and const constructors.
 % - Specify `call` for Dart 2 (no function type given to enclosing class).
+% - Clarify that an identifier reference denoting a top-level, static, or
+%   local function evaluates to the closurization of that declaration.
+% - Make `mixin` and `interface` built-in identifiers.
+% - Make `async` *not* a reserved word inside async functions.
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -1128,11 +1132,11 @@ One cannot assume, based on the above, that given a function \code{f}, \code{f.r
 }
 
 \rationale{
-It is up to the implementation to choose an appropriate representation for functions.
-For example, consider that a closure produced via property extraction treats equality different from ordinary closures, and is therefore likely a different class.
-Implementations may also use different classes for functions based on arity and or type.
+It is up to the implementation to choose an appropriate representation for function objects.
+For example, consider that a function object produced via property extraction treats equality differently from other function objects, and is therefore likely a different class.
+Implementations may also use different classes for function objects based on arity and or type.
 Arity may be implicitly affected by whether a function is an instance method (with an implicit receiver parameter) or not.
-The variations are manifold, and so this specification only guarantees that function objects are instances of some class that is considered to implement \FUNCTION{}.
+The variations are manifold, and so this specification only guarantees that function objects are instances of some class that implements \FUNCTION{}.
 }
 
 
@@ -2593,7 +2597,8 @@ A mixin application of the form \code{$S$ \WITH{} $M_1,\ \ldots, M_k$;} for the 
 \rationale{The name of the resulting class is necessary because it is part of the names of the introduced constructors.}
 
 \LMHash{}
-In both cases above, $C$ declares the same instance members as $M$ (respectively, $M_k$).
+In both cases above, $C$ declares the same instance members as $M$ (respectively, $M_k$),
+and it does not declare any static members.
 If any of the instance variables of $M$ (respectively, $M_k$) have initializers,
 they are executed in the instance scope of $M$ (respectively, $M_k$)
 to initialize the corresponding instance variables of $C$.
@@ -2735,21 +2740,26 @@ For any non-generic declaration, the corresponding type parameters may be elided
 An {\em enumerated type}, or {\em enum}, is used to represent a fixed number of constant values.
 
 \begin{grammar}
-{\bf enumType:}metadata \ENUM{} id `\{' id [\gcomma{} id]* [\gcomma{}] `\}'
+{\bf enumType:}metadata \ENUM{} identifier
+  \gnewline{} `\{' enumEntry (\gcomma{} enumEntry)* (\gcomma{})? `\}'
+  .
+
+{\bf enumEntry:}metadata identifier
   .
 \end{grammar}
 
 \LMHash{}
-The declaration of an enum of the form \code{metadata \ENUM{} E \{ id$_0$, \ldots,\ id$_{n-1}$\};}
+The declaration of an enum of the form
+\code{$m$ \ENUM{} E \{$m_0\,\,id_0, \ldots,\ m_{n-1}\,\,id_{n-1}$\}}
 has the same effect as a class declaration
 
 \begin{dartCode}
-metadata \CLASS{} E \{
+$m$ \CLASS{} E \{
   \FINAL{} int index;
   \CONST{} E(\THIS{}.index);
-  \STATIC{} \CONST{} E id$_0$ = \CONST{} E(0);
+  $m_0$ \STATIC{} \CONST{} E id$_0$ = \CONST{} E(0);
   $\ldots$
-  \STATIC{} \CONST{} E id$_{n-1}$ = const E(n - 1);
+  $m_{n-1}$ \STATIC{} \CONST{} E id$_{n-1}$ = const E(n - 1);
   \STATIC{} \CONST{} List<E> values = const <E>[id$_0, \ldots, $ id$_{n-1}$];
   String toString() => \{ 0: `E.id$_0$', $\ldots$, n-1: `E.id$_{n-1}$'\}[index]
 \}
@@ -3870,6 +3880,8 @@ The static type of a throw expression is $\bot$.
 \LMLabel{functionExpressions}
 
 \LMHash{}
+%% TODO(eernst): A function literal is a syntactic construct, and we may use
+%% function closurization to obtain a corresponding function object.
 A {\em function literal} is an object that encapsulates an executable unit of code.
 
 \begin{grammar}
@@ -4914,6 +4926,45 @@ Otherwise, the static type of $i$ is the return type
 $[A_1/X_1, \ldots, A_r/X_s]T_0$ of $F$.
 
 
+\subsection{Function Closurization}
+\LMLabel{functionClosurization}
+
+\LMHash{}
+Let $f$ be an expression denoting
+a declaration of a local function, a static method, or a top-level function
+(\ref{identifierReference})
+or let $f$ be a function literal
+(\ref{functionExpressions}).
+Evaluation of $f$ yields a function object
+which is the outcome of a {\em function closurization}
+applied to the declaration denoted by $f$
+respectively to the function literal $f$ considered as a function declaration.
+% Note that we do not promise that this will be a fresh function object,
+% such that constant expressions are covered as well, and others may be
+% identical even if not required, e.g., local functions with no free variables.
+{\em Closurization} denotes instance method closurization
+(\ref{ordinaryMemberClosurization})
+as well as function closurization,
+and it is also used as a shorthand for either of them when there is no ambiguity.
+
+\LMHash{}
+Function closurization applied to a function declaration $f$
+amounts to the creation of a function object $o$
+which is an instance of a class whose interface is a subtype of the actual type
+(\ref{actualTypeOfADeclaration})
+corresponding to the signature in the function declaration $f$,
+using the current bindings of type variables, if any.
+%
+An invocation of $o$ with a given argument list will bind actuals to formals
+in the same way as an invocation of $f$
+(\ref{bindingActualsToFormals}),
+and then execute the body of $f$
+in the captured scope amended with the bound parameter scope,
+yielding the same completion
+(\ref{completion})
+as the invocation of $f$ would have yielded.
+
+
 \subsection{Lookup}
 \LMLabel{lookup}
 
@@ -5379,16 +5430,19 @@ In other words, the methods supporting sending messages embody primitives of Dar
 \LMLabel{propertyExtraction}
 
 \LMHash{}
-{\em Property extraction} allows for a member or constructor to be accessed as a property rather than a function.
+{\em Property extraction} allows for a member to be accessed as a property rather than a function.
 A property extraction can be either:
 \begin{enumerate}
-\item A {\em closurization} which converts a method or constructor into a closure.
+\item An instance method closurization,
+which converts a method into a function object
+(\ref{ordinaryMemberClosurization}).
 Or
-\item A {\em getter invocation} which returns the result of invoking of a getter method.
+\item A getter invocation, which returns the result of invoking of a getter method
+(\ref{getterAccessAndMethodExtraction}).
 \end{enumerate}
 
 \commentary{
-Closures derived from members via closurization are colloquially known as tear-offs.
+Function objects derived via closurization are colloquially known as tear-offs.
 }
 
 Property extraction can be either {\em conditional} or {\em unconditional}.
@@ -5560,8 +5614,14 @@ in which case the type parameter declarations are omitted (\ref{generics}).
 }
 
 \LMHash{}
+An {\em instance method closurization}
+is a closurization of some method on some object, defined below,
+or a super closurization (\ref{superClosurization}).
+
+\LMHash{}
 Let $o$ be an object, and let $u$ be a fresh final variable bound to $o$.
-The {\em closurization of method $f$ on object $o$} is defined to be equivalent to:
+The {\em closurization of method $f$ on object $o$} is defined to be equivalent
+(\commentary{except for equality, as noted below}) to:
 \begin{itemize}
 %\item $(a) \{\RETURN{}$ $u$ $op$ $a;$\} if $f$ is named $op$ and $op$ is one of \code{<, >, <=, >=, ==, -, +, /, \~{}/, *, \%, $|$, \^{}, \&, $<<$, $>>$} (this precludes closurization of unary -).
 %\item $() \{\RETURN{}$ \~{} $u;$\} if $f$ is named \~{}.
@@ -5637,8 +5697,13 @@ where $S_j$ is the type annotation of the corresponding parameter in $D$.
 If that parameter declaration has no type annotation then $T_j$ is \DYNAMIC{}.
 
 \LMHash{}
-There is one way in which the closurization differs from the function literal:
-\code{$o_1.m$ == $o_2.m$} is equal to \code{identical($o_1, o_2$)}.
+There is one way in which
+the function object yielded by the instance method closurization differs from
+the function object obtained by function closurization on the above mentioned function literal:
+Assume that $o_1$ and $o_2$ are objects, $m$ is an identifier,
+and $c_1$ and $c_2$ are function objects
+obtained by closurization of $m$ on $o_1$ respectively $o_2$.
+Then \code{$c_1$ == $c_2$} evaluates to true if and only if $o_1$ and $o_2$ is the same object.
 
 %\item The static type of the property extraction is the static type of function $T.m$, where $T$ is the static type of $e$, if $T.m$ is defined. Otherwise the static type of $e.m$ is \DYNAMIC{}.
 
@@ -5647,12 +5712,12 @@ There is one way in which the closurization differs from the function literal:
 % and for the closurizations.
 In particular, two closurizations of a method $m$ from the same object are equal,
 and two closurizations of a method $m$ from non-identical objects are not equal.
-It also follows that \code{identical($o_1.m, o_2.m$)} must be false when $o_1$ and $o_2$ are not identical.
-However, Dart implementations are not required to canonicalize closures,
-which means that \code{identical($o_1.m, o_2.m$)} is not guaranteed to be true,
-even when it is known that $o_1$ and $o_2$ are identical.
+Assuming that $v_i$ is a fresh variable bound to an object, $i \in 1 .. 2$,
+it also follows that \code{identical($v_1.m, v_2.m$)} must be false when $v_1$ and $v_2$ are not bound to the same object.
+However, Dart implementations are not required to canonicalize function objects,
+which means that \code{identical($v_1.m, v_2.m$)} is not guaranteed to be true,
+even when it is known that $v_1$ and $v_2$ are bound to the same object.
 }
-% local functions that have a closure extracted are always different
 
 \rationale{
 The special treatment of equality in this case facilitates the use of extracted property functions in APIs where callbacks such as event listeners must often be registered and later unregistered.
@@ -5678,7 +5743,11 @@ In short, consider a situation where a superinvocation of $f$ will execute $f$ a
 }
 
 \LMHash{}
-The {\em closurization of method $f$ with respect to $S$} is defined to be equivalent to:
+A {\em super closurization}
+is a closurization of a method with respect to a class, as defined next.
+The {\em closurization of the method $f$ with respect to the class $S$}
+is defined to be equivalent
+(\commentary{except for equality, as noted below}) to:
 
 \LMHash{}
 \begin{itemize}
@@ -5709,6 +5778,11 @@ $X_1\ \EXTENDS\ B_1$, \ldots,\ $X_s\ \EXTENDS\ B_s$,
 required parameters $r_1, \ldots, r_n$,
 and optional positional parameters $p_1, \ldots, p_k$ with defaults $d_1, \ldots, d_k$.
 \end{itemize}
+
+\commentary{
+Note that a super closurization is an {\em instance method closurization},
+as defined in (\ref{ordinaryMemberClosurization}).
+}
 
 \LMHash{}
 $B'_j, j \in 1 .. s$, are determined as follows:
@@ -5751,10 +5825,13 @@ where $S_j$ is the type annotation of the corresponding parameter in $D$.
 If that parameter declaration has no type annotation then $T_j$ is \DYNAMIC{}.
 
 \LMHash{}
-There is one way in which the closurization differs from the function literal:
-Assume that an occurrence of the expression \SUPER{}.$m$ in a given class is evaluated on two occasions where \THIS{} is $o_1$ respectively $o_2$,
-and the resulting closurization is $c_1$ respectively $c_2$:
-\code{$c_1$ == $c_2$} is then equal to \code{identical($o_1, o_2$)}.
+There is one way in which
+the function object yielded by the super closurization differs from
+the function object obtained by function closurization on the above mentioned function literal:
+Assume that an occurrence of the expression \SUPER{}.$m$ in a given class
+is evaluated on two occasions where \THIS{} is bound to $o_1$ respectively $o_2$,
+and the resulting function objects are $c_1$ respectively $c_2$:
+\code{$c_1$ == $c_2$} is then true if and only if $o_1$ and $o_2$ is the same object.
 
 
 \subsection{Assignment}
@@ -6120,8 +6197,8 @@ Otherwise the value of $c$ is the result of evaluating the expression $e_3$.
 If all of the following hold:
 \begin{itemize}
 \item $e_1$ shows that a variable $v$ has type $T$.
-\item $v$ is not potentially mutated in $e_2$ or within a closure.
-\item If the variable $v$ is accessed by a closure in $e_2$ then the variable $v$ is not potentially mutated anywhere in the scope of $v$.
+\item $v$ is not potentially mutated in $e_2$ or within a function.
+\item If the variable $v$ is accessed by a function in $e_2$ then the variable $v$ is not potentially mutated anywhere in the scope of $v$.
 \end{itemize}
 
 then the type of $v$ is known to be $T$ in $e_2$.
@@ -6185,15 +6262,15 @@ $T$ if all of the following conditions hold:
 \begin{itemize}
 \item Either $e_1$ shows that $v$ has type $T$ or $e_2$ shows that $v$ has type $T$.
 \item $v$ is a local variable or formal parameter.
-\item The variable $v$ is not mutated in $e_2$ or within a closure.
+\item The variable $v$ is not mutated in $e_2$ or within a function.
 \end{itemize}
 
 \LMHash{}
 Furthermore, if all of the following hold:
 \begin{itemize}
 \item $e_1$ shows that $v$ has type $T$.
-\item $v$ is not mutated in either $e_1$, $e_2$ or within a closure.
-\item If the variable $v$ is accessed by a closure in $e_2$ then the variable $v$ is not potentially mutated anywhere in the scope of $v$.
+\item $v$ is not mutated in either $e_1$, $e_2$ or within a function.
+\item If the variable $v$ is accessed by a function in $e_2$ then the variable $v$ is not potentially mutated anywhere in the scope of $v$.
 \end{itemize}
 then the type of $v$ is known to be $T$ in $e_2$.
 
@@ -6415,11 +6492,9 @@ A multiplicative expression of the form \SUPER{} $op$ $e_2$ is equivalent to the
 
 \LMHash{}
 The static type of an multiplicative expression is usually determined by the signature given in the declaration of the operator used.
-However, invocations of the operators \code{*}, \code{\%} and \code{\~{}/} of class \code{int} are treated specially by the typechecker.
+However, invocations of the operators \code{*} and \code{\%} of class \code{int} are treated specially by the typechecker.
 The static type of an expression $e_1 * e_2$ where $e_1$ has static type \code{int} is \code{int} if the static type of $e_2$ is \code{int}, and \code{double} if the static type of $e_2$ is \code{double}.
 The static type of an expression $e_1 \% e_2$ where $e_1$ has static type \code{int} is \code{int} if the static type of $e_2$ is \code{int}, and \code{double} if the static type of $e_2$ is \code{double}.
-The static type of an expression \code{$e_1$ \~{}/ $e_2$} where $e_1$ has static type \code{int} is \code{int} if the static type of $e_2$ is \code{int}.
-
 
 \subsection{Unary Expressions}
 \LMLabel{unaryExpressions}
@@ -6774,8 +6849,10 @@ An {\em identifier expression} consists of a single identifier; it provides acce
   \GET{};
   \IMPLEMENTS{};
   \IMPORT{};
+  \INTERFACE{};
   \LIBRARY{};
   \OPERATOR{};
+  \MIXIN{};
   \PART{};
   \SET{};
   \STATIC{};
@@ -6818,7 +6895,7 @@ Furthermore, types should begin with an uppercase letter (see the appendix) and 
 }
 
 \LMHash{}
-It is a compile-time error if any of the identifiers \ASYNC, \AWAIT{} or \YIELD{} is used as an identifier in a function body marked with either \ASYNC{}, \ASYNC* or \SYNC*.
+It is a compile-time error if either of the identifiers \AWAIT{} or \YIELD{} is used as an identifier in a function body marked with either \ASYNC{}, \ASYNC* or \SYNC*.
 
 \rationale{
 For compatibility reasons, new constructs cannot rely upon new reserved words or even built-in identifiers.
@@ -6850,7 +6927,7 @@ If, however, $e$ occurs inside a static member, a compile-time error occurs.
 %  \end{itemize}
 \item If $d$ is a local variable or formal parameter then $e$ evaluates to the current binding of $id$.
 %\item If $d$ is a library variable, local variable, or formal parameter, then $e$ evaluates to the current binding of $id$. \commentary{This case also applies if d is a library or local function declaration, as these are equivalent to function-valued variable declarations.}
-\item If $d$ is a static method, top-level function or local function then $e$ evaluates to the function defined by $d$.
+\item If $d$ is a static method, top-level function or local function then $e$ evaluates to the function object obtained by closurization (\ref{functionClosurization}) of the declaration denoted by $d$.
 \item If $d$ is the declaration of a static variable, static getter or static setter declared in class $C$, then evaluation of $e$ is equivalent to evaluation of the property extraction (\ref{propertyExtraction}) $C.id$.
 \item If $d$ is the declaration of a library variable, top-level getter or top-level setter, then evaluation of $e$ is equivalent to evaluation of the top level getter invocation (\ref{topLevelGetterInvocation}) $id$.
 \item Otherwise, if $e$ occurs inside a top level or static function (be it function, method, getter, or setter) or variable initializer, evaluation of $e$ causes a \code{NoSuchMethod} to be thrown.
@@ -7156,7 +7233,7 @@ top() \{ // another top level function
 
 \commentary{
 There is no way to write a pair of mutually recursive local functions, because one always has to come before the other is declared.
-These cases are quite rare, and can always be managed by defining a pair of variables first, then assigning them appropriate closures:
+These cases are quite rare, and can always be managed by defining a pair of variables first, then assigning them appropriate function literals:
 }
 
 \begin{dartCode}
@@ -7172,8 +7249,6 @@ The rules for local functions differ slightly from those for local variables in 
 This is because recursive functions are useful whereas recursively defined variables are almost always errors.
 It therefore makes sense to harmonize the rules for local functions with those for functions in general rather than with the rules for local variables.
 }
-
-% elaborate on function identity and equality, run-time type. Likewsie in function expressions (closures) and declarations
 
 
 \subsection{If}
@@ -7226,8 +7301,8 @@ It is a static type warning if the type of the expression $b$ may not be assigne
 If:
 \begin{itemize}
 \item $b$ shows that a variable $v$ has type $T$.
-\item $v$ is not potentially mutated in $s_1$ or within a closure.
-\item If the variable $v$ is accessed by a closure in $s_1$ then the variable $v$ is not potentially mutated anywhere in the scope of $v$.
+\item $v$ is not potentially mutated in $s_1$ or within a function.
+\item If the variable $v$ is accessed by a function in $s_1$ then the variable $v$ is not potentially mutated anywhere in the scope of $v$.
 \end{itemize}
 then the type of $v$ is known to be $T$ in $s_1$.
 
@@ -7296,7 +7371,9 @@ The expression $[v''/v]e$ is evaluated, and the process recurses at step \ref{be
 \end{enumerate}
 
 \rationale{
-The definition above is intended to prevent the common error where users create a closure inside a for loop, intending to close over the current binding of the loop variable, and find (usually after a painful process of debugging and learning) that all the created closures have captured the same value - the one current in the last iteration executed.
+The definition above is intended to prevent the common error where users create a function object inside a for loop,
+intending to close over the current binding of the loop variable,
+and find (usually after a painful process of debugging and learning) that all the created function objects have captured the same value---the one current in the last iteration executed.
 
 Instead, each iteration has its own distinct variable.
 The first iteration uses the variable created by the initial declaration.

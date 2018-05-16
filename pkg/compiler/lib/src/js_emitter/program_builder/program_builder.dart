@@ -5,9 +5,9 @@
 library dart2js.js_emitter.program_builder;
 
 import 'dart:io';
-import 'dart:convert' show JSON;
+import 'dart:convert' show jsonDecode;
 
-import '../../closure.dart' show ClosureConversionTask, ClosureFieldElement;
+import '../../closure.dart' show ClosureConversionTask;
 import '../../common.dart';
 import '../../common/names.dart' show Names, Selectors;
 import '../../constants/values.dart'
@@ -15,8 +15,6 @@ import '../../constants/values.dart'
 import '../../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../../deferred_load.dart'
     show DeferredLoadTask, OutputUnit, OutputUnitData;
-import '../../elements/elements.dart'
-    show ClassElement, FieldElement, LibraryElement, MethodElement;
 import '../../elements/entities.dart';
 import '../../elements/types.dart';
 import '../../io/source_information.dart';
@@ -29,7 +27,6 @@ import '../../js_backend/custom_elements_analysis.dart';
 import '../../js_backend/namer.dart' show Namer, StringBackedName;
 import '../../js_backend/native_data.dart';
 import '../../js_backend/interceptor_data.dart';
-import '../../js_backend/mirrors_data.dart';
 import '../../js_backend/js_interop_analysis.dart';
 import '../../js_backend/runtime_types.dart'
     show RuntimeTypesChecks, RuntimeTypesNeed, RuntimeTypesEncoder;
@@ -75,7 +72,6 @@ class ProgramBuilder {
   final JavaScriptConstantCompiler _constantHandler;
   final NativeData _nativeData;
   final RuntimeTypesNeed _rtiNeed;
-  final MirrorsData _mirrorsData;
   final InterceptorData _interceptorData;
   final SuperMemberData _superMemberData;
   final RuntimeTypesChecks _rtiChecks;
@@ -102,7 +98,6 @@ class ProgramBuilder {
   final Registry _registry;
 
   final FunctionEntity _mainFunction;
-  final bool _isMockCompilation;
 
   /// True if the program should store function types in the metadata.
   bool _storeFunctionTypesInMetadata = false;
@@ -122,7 +117,6 @@ class ProgramBuilder {
       this._constantHandler,
       this._nativeData,
       this._rtiNeed,
-      this._mirrorsData,
       this._interceptorData,
       this._superMemberData,
       this._rtiChecks,
@@ -137,10 +131,8 @@ class ProgramBuilder {
       this._sourceInformationStrategy,
       this._sorter,
       Set<ClassEntity> rtiNeededClasses,
-      this._mainFunction,
-      {bool isMockCompilation})
-      : this._isMockCompilation = isMockCompilation,
-        this.collector = new Collector(
+      this._mainFunction)
+      : this.collector = new Collector(
             _options,
             _commonElements,
             _elementEnvironment,
@@ -152,7 +144,6 @@ class ProgramBuilder {
             _nativeData,
             _interceptorData,
             _oneShotInterceptorData,
-            _mirrorsData,
             _closedWorld,
             rtiNeededClasses,
             _generatedCode,
@@ -277,7 +268,6 @@ class ProgramBuilder {
         _buildTypeToInterceptorMap(), _task.metadataCollector, finalizers,
         needsNativeSupport: needsNativeSupport,
         outputContainsConstantList: collector.outputContainsConstantList,
-        hasIsolateSupport: _backendUsage.isIsolateInUse,
         hasSoftDeferredClasses: _notSoftDeferred != null);
   }
 
@@ -315,7 +305,7 @@ class ProgramBuilder {
       }
 
       String data = new File(allocatedClassesPath).readAsStringSync();
-      Set<String> allocatedClassesKeys = JSON.decode(data).keys.toSet();
+      Set<String> allocatedClassesKeys = jsonDecode(data).keys.toSet();
       Set<ClassEntity> allocatedClasses = new Set<ClassEntity>();
 
       // Collects all super and mixin classes of a class.
@@ -390,11 +380,8 @@ class ProgramBuilder {
   }
 
   js.Statement _buildInvokeMain() {
-    if (_isMockCompilation) return js.js.comment("Mock compilation");
-
-    MainCallStubGenerator generator = new MainCallStubGenerator(
-        _commonElements, _task.emitter, _backendUsage);
-    return generator.generateInvokeMain(_mainFunction);
+    return MainCallStubGenerator.generateInvokeMain(
+        _task.emitter, _mainFunction);
   }
 
   DeferredFragment _buildDeferredFragment(LibrariesMap librariesMap) {
@@ -635,6 +622,7 @@ class ProgramBuilder {
 
     List<StaticMethod> statics = memberElements
         .where((e) => !e.isField)
+        .cast<FunctionEntity>()
         .map(_buildStaticMethod)
         .toList();
 
@@ -678,7 +666,6 @@ class ProgramBuilder {
         _task.emitter, _commonElements, _namer, _worldBuilder, _closedWorld,
         enableMinification: _options.enableMinification);
     RuntimeTypeGenerator runtimeTypeGenerator = new RuntimeTypeGenerator(
-        _elementEnvironment,
         _commonElements,
         _closureDataLookup,
         _outputUnitData,
@@ -687,9 +674,7 @@ class ProgramBuilder {
         _rtiChecks,
         _rtiEncoder,
         _jsInteropAnalysis,
-        _options.useKernel,
-        _options.strongMode,
-        _options.disableRtiOptimization);
+        _options.strongMode);
 
     void visitMember(MemberEntity member) {
       if (member.isInstanceMember && !member.isAbstract && !member.isField) {
@@ -719,9 +704,6 @@ class ProgramBuilder {
         // If the program contains `const Symbol` names we have to retain them.
         String selectorName = selector.name;
         if (selector.isSetter) selectorName = "$selectorName=";
-        if (_mirrorsData.symbolsUsed.contains(selectorName)) {
-          _symbolsMap[name] = selectorName;
-        }
         noSuchMethodStubs.add(
             classStubGenerator.generateStubForNoSuchMethod(name, selector));
       });
@@ -745,6 +727,7 @@ class ProgramBuilder {
     if (!onlyForRti && !_elementEnvironment.isMixinApplication(cls)) {
       List<MemberEntity> members = <MemberEntity>[];
       _elementEnvironment.forEachLocalClassMember(cls, members.add);
+      _elementEnvironment.forEachInjectedClassMember(cls, members.add);
       _elementEnvironment.forEachConstructorBody(cls, members.add);
       _sorter.sortMembers(members).forEach(visitMember);
     }
@@ -769,6 +752,10 @@ class ProgramBuilder {
     List<StubMethod> checkedSetters = <StubMethod>[];
     List<StubMethod> isChecks = <StubMethod>[];
     if (_nativeData.isJsInteropClass(cls)) {
+      // TODO(johnniwinther): Instead of generating all stubs for each
+      // js-interop class we should generate a stub for each implemented class.
+      // Currently we generate duplicates if a class is implemented by multiple
+      // js-interop classes.
       typeTests.forEachProperty(_sorter, (js.Name name, js.Node code) {
         _classes[_commonElements.jsJavaScriptObjectClass]
             .isChecks
@@ -847,10 +834,6 @@ class ProgramBuilder {
         method.parameterStructure.typeParameters != 0;
   }
 
-  bool _methodCanBeReflected(FunctionEntity method) {
-    return _mirrorsData.isMemberAccessibleByReflection(method);
-  }
-
   bool _methodCanBeApplied(FunctionEntity method) {
     return _backendUsage.isFunctionApplyUsed &&
         _closedWorld.getMightBePassedToApply(method);
@@ -883,7 +866,6 @@ class ProgramBuilder {
   }
 
   DartMethod _buildMethod(FunctionEntity element) {
-    assert(!(element is MethodElement && !element.isDeclaration));
     js.Name name = _namer.methodPropertyName(element);
     js.Expression code = _generatedCode[element];
 
@@ -896,7 +878,7 @@ class ProgramBuilder {
     bool isNotApplyTarget =
         !element.isFunction || element.isGetter || element.isSetter;
 
-    bool canBeReflected = _methodCanBeReflected(element);
+    bool canBeReflected = false;
     bool canBeApplied = _methodCanBeApplied(element);
 
     js.Name aliasName = _superMemberData.isAliasedSuperMember(element)
@@ -923,6 +905,9 @@ class ProgramBuilder {
       assert(element is! ConstructorEntity, failedAt(element));
       assert(element is! ConstructorBodyEntity, failedAt(element));
     }
+
+    bool isIntercepted =
+        _closedWorld.interceptorData.isInterceptedMethod(element);
 
     js.Name callName = null;
     if (canTearOff) {
@@ -953,6 +938,7 @@ class ProgramBuilder {
         needsTearOff: canTearOff,
         tearOffName: tearOffName,
         isClosureCallMethod: isClosureCallMethod,
+        isIntercepted: isIntercepted,
         aliasName: aliasName,
         canBeApplied: canBeApplied,
         canBeReflected: canBeReflected,
@@ -978,6 +964,7 @@ class ProgramBuilder {
     ParameterStubGenerator generator = new ParameterStubGenerator(
         _task,
         _namer,
+        _rtiEncoder,
         _nativeData,
         _interceptorData,
         _worldBuilder,
@@ -1058,8 +1045,6 @@ class ProgramBuilder {
 
     void visitField(FieldEntity field, js.Name name, js.Name accessorName,
         bool needsGetter, bool needsSetter, bool needsCheckedSetter) {
-      assert(!(field is FieldElement && !field.isDeclaration), failedAt(field));
-
       int getterFlags = 0;
       if (needsGetter) {
         if (visitStatics ||
@@ -1092,15 +1077,8 @@ class ProgramBuilder {
           needsCheckedSetter));
     }
 
-    FieldVisitor visitor = new FieldVisitor(
-        _options,
-        _elementEnvironment,
-        _commonElements,
-        _worldBuilder,
-        _nativeData,
-        _mirrorsData,
-        _namer,
-        _closedWorld);
+    FieldVisitor visitor = new FieldVisitor(_options, _elementEnvironment,
+        _commonElements, _worldBuilder, _nativeData, _namer, _closedWorld);
     visitor.visitFields(visitField,
         visitStatics: visitStatics, library: library, cls: cls);
 
@@ -1140,7 +1118,7 @@ class ProgramBuilder {
     bool isApplyTarget =
         !element.isConstructor && !element.isGetter && !element.isSetter;
     bool canBeApplied = _methodCanBeApplied(element);
-    bool canBeReflected = _methodCanBeReflected(element);
+    bool canBeReflected = false;
 
     bool needsTearOff = isApplyTarget &&
         (canBeReflected ||

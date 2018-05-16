@@ -4,19 +4,20 @@
 
 import 'dart:async';
 
-import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:front_end/src/api_prototype/byte_store.dart';
 import 'package:front_end/src/base/performance_logger.dart';
@@ -57,7 +58,10 @@ class AbstractContextTest extends Object with ResourceProviderMixin {
 
   AnalysisDriver get driver => _driver;
 
+  bool get previewDart2 => driver.analysisOptions.previewDart2;
+
   void addFlutterPackage() {
+    addMetaPackageSource();
     Folder libFolder = configureFlutterPackage(resourceProvider);
     packageMap['flutter'] = [libFolder];
   }
@@ -65,11 +69,23 @@ class AbstractContextTest extends Object with ResourceProviderMixin {
   Source addMetaPackageSource() => addPackageSource('meta', 'meta.dart', r'''
 library meta;
 
+const _IsTest isTest = const _IsTest();
+
+const _IsTestGroup isTestGroup = const _IsTestGroup();
+
 const Required required = const Required();
 
 class Required {
   final String reason;
   const Required([this.reason]);
+}
+
+class _IsTest {
+  const _IsTest();
+}
+
+class _IsTestGroup {
+  const _IsTestGroup();
 }
 ''');
 

@@ -7,18 +7,20 @@ library vm.transformations.cha_devirtualization;
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/class_hierarchy.dart'
-    show ClassHierarchy, ClosedWorldClassHierarchy;
+    show ClassHierarchy, ClassHierarchySubtypes, ClosedWorldClassHierarchy;
 
 import '../metadata/direct_call.dart';
 
 /// Devirtualization of method invocations based on the class hierarchy
 /// analysis. Assumes strong mode and closed world.
-Program transformProgram(CoreTypes coreTypes, Program program) {
+Component transformComponent(CoreTypes coreTypes, Component component) {
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
-  final hierarchy = new ClassHierarchy(program,
+  ClosedWorldClassHierarchy hierarchy = new ClassHierarchy(component,
       onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
-  new CHADevirtualization(coreTypes, program, hierarchy).visitProgram(program);
-  return program;
+  final hierarchySubtypes = hierarchy.computeSubtypesInformation();
+  new CHADevirtualization(coreTypes, component, hierarchy, hierarchySubtypes)
+      .visitComponent(component);
+  return component;
 }
 
 /// Base class for implementing devirtualization of method invocations.
@@ -33,12 +35,12 @@ abstract class Devirtualization extends RecursiveVisitor<Null> {
   Set<Name> _objectMemberNames;
 
   Devirtualization(
-      CoreTypes coreTypes, Program program, ClassHierarchy hierarchy)
+      CoreTypes coreTypes, Component component, ClassHierarchy hierarchy)
       : _metadata = new DirectCallMetadataRepository() {
     _objectMemberNames = new Set<Name>.from(hierarchy
         .getInterfaceMembers(coreTypes.objectClass)
         .map((Member m) => m.name));
-    program.addMetadataRepository(_metadata);
+    component.addMetadataRepository(_metadata);
   }
 
   bool isMethod(Member member) => (member is Procedure) && !member.isGetter;
@@ -139,15 +141,16 @@ abstract class Devirtualization extends RecursiveVisitor<Null> {
 
 /// Devirtualization based on the closed-world class hierarchy analysis.
 class CHADevirtualization extends Devirtualization {
-  final ClosedWorldClassHierarchy _hierarchy;
+  final ClassHierarchySubtypes _hierarchySubtype;
 
-  CHADevirtualization(CoreTypes coreTypes, Program program, this._hierarchy)
-      : super(coreTypes, program, _hierarchy);
+  CHADevirtualization(CoreTypes coreTypes, Component component,
+      ClosedWorldClassHierarchy hierarchy, this._hierarchySubtype)
+      : super(coreTypes, component, hierarchy);
 
   @override
   DirectCallMetadata getDirectCall(TreeNode node, Member target,
       {bool setter = false}) {
-    Member singleTarget = _hierarchy
+    Member singleTarget = _hierarchySubtype
         .getSingleTargetForInterfaceInvocation(target, setter: setter);
     if (singleTarget == null) {
       return null;

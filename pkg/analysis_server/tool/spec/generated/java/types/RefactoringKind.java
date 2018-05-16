@@ -23,6 +23,8 @@ public class RefactoringKind {
 
   public static final String EXTRACT_METHOD = "EXTRACT_METHOD";
 
+  public static final String EXTRACT_WIDGET = "EXTRACT_WIDGET";
+
   public static final String INLINE_LOCAL_VARIABLE = "INLINE_LOCAL_VARIABLE";
 
   public static final String INLINE_METHOD = "INLINE_METHOD";
@@ -30,7 +32,5 @@ public class RefactoringKind {
   public static final String MOVE_FILE = "MOVE_FILE";
 
   public static final String RENAME = "RENAME";
-
-  public static final String SORT_MEMBERS = "SORT_MEMBERS";
 
 }

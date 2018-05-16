@@ -23,25 +23,27 @@ import 'element_map_impl.dart';
 import 'element_map_mixins.dart';
 import 'kelements.dart' show KImport;
 
-/// Environment for fast lookup of program libraries.
+/// Environment for fast lookup of component libraries.
 class ProgramEnv {
-  final Set<ir.Program> _programs = new Set<ir.Program>();
+  final Set<ir.Component> _components = new Set<ir.Component>();
 
   Map<Uri, LibraryEnv> _libraryMap;
 
   /// TODO(johnniwinther): Handle arbitrary load order if needed.
-  ir.Member get mainMethod => _programs.first?.mainMethod;
+  ir.Member get mainMethod => _components.first?.mainMethod;
 
-  void addProgram(ir.Program program) {
-    if (_programs.add(program)) {
+  ir.Component get mainComponent => _components.first;
+
+  void addComponent(ir.Component component) {
+    if (_components.add(component)) {
       if (_libraryMap != null) {
-        _addLibraries(program);
+        _addLibraries(component);
       }
     }
   }
 
-  void _addLibraries(ir.Program program) {
-    for (ir.Library library in program.libraries) {
+  void _addLibraries(ir.Component component) {
+    for (ir.Library library in component.libraries) {
       _libraryMap[library.importUri] = new LibraryEnv(library);
     }
   }
@@ -49,8 +51,8 @@ class ProgramEnv {
   void _ensureLibraryMap() {
     if (_libraryMap == null) {
       _libraryMap = <Uri, LibraryEnv>{};
-      for (ir.Program program in _programs) {
-        _addLibraries(program);
+      for (ir.Component component in _components) {
+        _addLibraries(component);
       }
     }
   }
@@ -83,6 +85,9 @@ class LibraryEnv {
   Map<String, ir.Member> _setterMap;
 
   LibraryEnv(this.library);
+
+  LibraryEnv.internal(
+      this.library, this._classMap, this._memberMap, this._setterMap);
 
   void _ensureClassMap() {
     if (_classMap == null) {
@@ -150,6 +155,45 @@ class LibraryEnv {
       }
     }
   }
+
+  /// Creates a new [LibraryEnv] containing only the members in [liveMembers].
+  ///
+  /// Currently all classes are copied.
+  // TODO(johnniwinther): Filter unused classes.
+  LibraryEnv copyLive(
+      KernelToElementMap elementMap, Iterable<MemberEntity> liveMembers) {
+    Map<String, ClassEnv> classMap;
+    Map<String, ir.Member> memberMap;
+    Map<String, ir.Member> setterMap;
+    if (_classMap == null) {
+      classMap = const <String, ClassEnv>{};
+    } else {
+      classMap = _classMap;
+    }
+    if (_memberMap == null) {
+      memberMap = const <String, ir.Member>{};
+    } else {
+      memberMap = <String, ir.Member>{};
+      _memberMap.forEach((String name, ir.Member node) {
+        MemberEntity member = elementMap.getMember(node);
+        if (liveMembers.contains(member)) {
+          memberMap[name] = node;
+        }
+      });
+    }
+    if (_setterMap == null) {
+      setterMap = const <String, ir.Member>{};
+    } else {
+      setterMap = <String, ir.Member>{};
+      _setterMap.forEach((String name, ir.Member node) {
+        MemberEntity member = elementMap.getMember(node);
+        if (liveMembers.contains(member)) {
+          setterMap[name] = node;
+        }
+      });
+    }
+    return new LibraryEnv.internal(library, classMap, memberMap, setterMap);
+  }
 }
 
 class LibraryData {
@@ -196,6 +240,9 @@ abstract class ClassEnv {
   /// Whether the class is an unnamed mixin application.
   bool get isUnnamedMixinApplication;
 
+  /// Ensures that all members have been computed for [cls].
+  void ensureMembers(KernelToElementMapBase elementMap);
+
   /// Return the [MemberEntity] for the member [name] in the class. If [setter]
   /// is `true`, the setter or assignable field corresponding to [name] is
   /// returned.
@@ -217,6 +264,10 @@ abstract class ClassEnv {
   /// Calls [f] for each constructor body for the live constructors in the
   /// class.
   void forEachConstructorBody(void f(ConstructorBodyEntity constructor));
+
+  /// Creates a new [ClassEnv] containing only the members in [liveMembers].
+  ClassEnv copyLive(
+      KernelToElementMap elementMap, Iterable<MemberEntity> liveMembers);
 }
 
 int orderByFileOffset(ir.TreeNode a, ir.TreeNode b) {
@@ -242,6 +293,9 @@ class ClassEnvImpl implements ClassEnv {
   List<ConstructorBodyEntity> _constructorBodyList;
 
   ClassEnvImpl(this.cls);
+
+  ClassEnvImpl.internal(this.cls, this._constructorMap, this._memberMap,
+      this._setterMap, this._members);
 
   bool get isUnnamedMixinApplication => cls.isSyntheticMixinImplementation;
 
@@ -291,6 +345,10 @@ class ClassEnvImpl implements ClassEnv {
         initializers: <ir.Initializer>[superInitializer]);
   }
 
+  void ensureMembers(KernelToElementMapBase elementMap) {
+    _ensureMaps(elementMap);
+  }
+
   void _ensureMaps(KernelToElementMapBase elementMap) {
     if (_memberMap != null) return;
 
@@ -317,6 +375,21 @@ class ClassEnvImpl implements ClassEnv {
 
     void addProcedures(ir.Class c, {bool includeStatic}) {
       for (ir.Procedure member in c.procedures) {
+        if (member.isForwardingStub && member.isAbstract) {
+          // Skip abstract forwarding stubs. These are never emitted but they
+          // might shadow the inclusion of a mixed in method in code like:
+          //
+          //     class Super {}
+          //     class Mixin<T> {
+          //       void method(T t) {}
+          //     }
+          //     class Class extends Super with Mixin<int> {}
+          //     main() => new Class().method();
+          //
+          // Here a stub is created for `Super&Mixin.method` hiding that
+          // `Mixin.method` is inherited by `Class`.
+          continue;
+        }
         if (!includeStatic && member.isStatic) continue;
         var name = member.name.name;
         assert(!name.contains('#'));
@@ -349,6 +422,7 @@ class ClassEnvImpl implements ClassEnv {
 
     int mixinMemberCount = 0;
     if (cls.mixedInClass != null) {
+      elementMap.ensureClassMembers(cls.mixedInClass);
       addFields(cls.mixedInClass.mixin, includeStatic: false);
       addProcedures(cls.mixedInClass.mixin, includeStatic: false);
       mergeSort(members, compare: orderByFileOffset);
@@ -431,6 +505,60 @@ class ClassEnvImpl implements ClassEnv {
   void forEachConstructorBody(void f(ConstructorBodyEntity constructor)) {
     _constructorBodyList?.forEach(f);
   }
+
+  ClassEnv copyLive(
+      KernelToElementMap elementMap, Iterable<MemberEntity> liveMembers) {
+    Map<String, ir.Member> constructorMap;
+    Map<String, ir.Member> memberMap;
+    Map<String, ir.Member> setterMap;
+    List<ir.Member> members;
+    if (_constructorMap == null) {
+      constructorMap = const <String, ir.Member>{};
+    } else {
+      constructorMap = <String, ir.Member>{};
+      _constructorMap.forEach((String name, ir.Member node) {
+        MemberEntity member = elementMap.getMember(node);
+        if (liveMembers.contains(member)) {
+          constructorMap[name] = node;
+        }
+      });
+    }
+    if (_memberMap == null) {
+      memberMap = const <String, ir.Member>{};
+    } else {
+      memberMap = <String, ir.Member>{};
+      _memberMap.forEach((String name, ir.Member node) {
+        MemberEntity member = elementMap.getMember(node);
+        if (liveMembers.contains(member)) {
+          memberMap[name] = node;
+        }
+      });
+    }
+    if (_setterMap == null) {
+      setterMap = const <String, ir.Member>{};
+    } else {
+      setterMap = <String, ir.Member>{};
+      _setterMap.forEach((String name, ir.Member node) {
+        MemberEntity member = elementMap.getMember(node);
+        if (liveMembers.contains(member)) {
+          setterMap[name] = node;
+        }
+      });
+    }
+    if (_members == null) {
+      members = const <ir.Member>[];
+    } else {
+      members = <ir.Member>[];
+      _members.forEach((ir.Member node) {
+        MemberEntity member = elementMap.getMember(node);
+        if (liveMembers.contains(member)) {
+          members.add(node);
+        }
+      });
+    }
+    return new ClassEnvImpl.internal(
+        cls, constructorMap, memberMap, setterMap, members);
+  }
 }
 
 class ClosureClassEnv extends RecordEnv {
@@ -445,12 +573,22 @@ class ClosureClassEnv extends RecordEnv {
     }
     return super.lookupMember(elementMap, name, setter: setter);
   }
+
+  @override
+  ClassEnv copyLive(
+          KernelToElementMap elementMap, Iterable<MemberEntity> liveMembers) =>
+      this;
 }
 
 class RecordEnv implements ClassEnv {
   final Map<String, MemberEntity> _memberMap;
 
   RecordEnv(this._memberMap);
+
+  @override
+  void ensureMembers(KernelToElementMapBase elementMap) {
+    // All members have been computed at creation.
+  }
 
   @override
   void forEachConstructorBody(void f(ConstructorBodyEntity constructor)) {
@@ -487,6 +625,12 @@ class RecordEnv implements ClassEnv {
 
   @override
   ir.Class get cls => null;
+
+  @override
+  ClassEnv copyLive(
+      KernelToElementMap elementMap, Iterable<MemberEntity> liveMembers) {
+    return this;
+  }
 }
 
 class ClassData {
@@ -683,6 +827,44 @@ class SignatureFunctionData implements FunctionData {
   InterfaceType getMemberThisType(KernelToElementMapForBuilding elementMap) {
     return memberThisType;
   }
+}
+
+abstract class DelegatedFunctionData implements FunctionData {
+  final FunctionData baseData;
+
+  DelegatedFunctionData(this.baseData);
+
+  FunctionType getFunctionType(covariant KernelToElementMapBase elementMap) {
+    return baseData.getFunctionType(elementMap);
+  }
+
+  List<TypeVariableType> getFunctionTypeVariables(
+      KernelToElementMap elementMap) {
+    return baseData.getFunctionTypeVariables(elementMap);
+  }
+
+  void forEachParameter(KernelToElementMapForBuilding elementMap,
+      void f(DartType type, String name, ConstantValue defaultValue)) {
+    return baseData.forEachParameter(elementMap, f);
+  }
+
+  @override
+  Iterable<ConstantValue> getMetadata(KernelToElementMap elementMap) {
+    return const <ConstantValue>[];
+  }
+
+  InterfaceType getMemberThisType(KernelToElementMapForBuilding elementMap) {
+    return baseData.getMemberThisType(elementMap);
+  }
+
+  ClassTypeVariableAccess get classTypeVariableAccess =>
+      baseData.classTypeVariableAccess;
+}
+
+class GeneratorBodyFunctionData extends DelegatedFunctionData {
+  final MemberDefinition definition;
+  GeneratorBodyFunctionData(FunctionData baseData, this.definition)
+      : super(baseData);
 }
 
 abstract class ConstructorData extends FunctionData {

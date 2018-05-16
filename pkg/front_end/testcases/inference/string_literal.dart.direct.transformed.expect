@@ -1,0 +1,13 @@
+library test;
+import self as self;
+
+static field dynamic x = 1;
+static field dynamic a = "aaa";
+static field dynamic b = "b ${self::x} bb";
+static field dynamic c = "c ${self::x} ccccc";
+static method main() → dynamic {
+  dynamic x = 1;
+  dynamic a = "aaa";
+  dynamic b = "b ${x} bb";
+  dynamic c = "c ${x} ccccc";
+}

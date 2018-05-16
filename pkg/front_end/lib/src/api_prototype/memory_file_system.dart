@@ -97,7 +97,7 @@ class MemoryFileSystemEntity implements FileSystemEntity {
   Future<String> readAsString() async {
     List<int> bytes = await readAsBytes();
     try {
-      return UTF8.decode(bytes);
+      return utf8.decode(bytes);
     } on FormatException catch (e) {
       throw new FileSystemException(uri, e.message);
     }
@@ -118,10 +118,10 @@ class MemoryFileSystemEntity implements FileSystemEntity {
   /// If no file exists, one is created.  If a file exists already, it is
   /// overwritten.
   void writeAsStringSync(String s) {
-    // Note: the return type of UTF8.encode is List<int>, but in practice it
+    // Note: the return type of utf8.encode is List<int>, but in practice it
     // always returns Uint8List.  We rely on that for efficiency, so that we
     // don't have to make an extra copy.
-    _update(uri, UTF8.encode(s) as Uint8List);
+    _update(uri, utf8.encode(s) as Uint8List);
   }
 
   void _update(Uri uri, Uint8List data) {

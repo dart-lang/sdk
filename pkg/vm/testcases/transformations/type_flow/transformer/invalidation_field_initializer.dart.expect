@@ -13,9 +13,6 @@ class T2 extends core::Object {
     ;
 }
 abstract class A extends core::Object {
-[@vm.unreachable.metadata=]  synthetic constructor •() → void
-    : super core::Object::•()
-    throw "TFA Error: #lib::A::";
   abstract method foo() → core::Object;
 }
 class B extends core::Object implements self::A {
@@ -37,13 +34,13 @@ class DeepCaller1 extends core::Object {
     : super core::Object::•()
     ;
   method barL1() → dynamic
-    return [@vm.direct-call.metadata=#lib::DeepCaller1::barL2] [@vm.inferred-type.metadata=!] this.{self::DeepCaller1::barL2}();
+    return [@vm.direct-call.metadata=#lib::DeepCaller1::barL2] this.{self::DeepCaller1::barL2}();
   method barL2() → dynamic
-    return [@vm.direct-call.metadata=#lib::DeepCaller1::barL3] [@vm.inferred-type.metadata=!] this.{self::DeepCaller1::barL3}();
+    return [@vm.direct-call.metadata=#lib::DeepCaller1::barL3] this.{self::DeepCaller1::barL3}();
   method barL3() → dynamic
-    return [@vm.direct-call.metadata=#lib::DeepCaller1::barL4] [@vm.inferred-type.metadata=!] this.{self::DeepCaller1::barL4}();
+    return [@vm.direct-call.metadata=#lib::DeepCaller1::barL4] this.{self::DeepCaller1::barL4}();
   method barL4() → dynamic
-    return [@vm.inferred-type.metadata=!] self::field1;
+    return self::field1;
 }
 class D extends core::Object {
 [@vm.inferred-type.metadata=!]  field core::Object field2 = [@vm.inferred-type.metadata=!] self::getValue();
@@ -65,7 +62,7 @@ class DeepCaller2 extends core::Object {
     return [@vm.direct-call.metadata=#lib::D::field2] [@vm.inferred-type.metadata=!] dd.{self::D::field2};
 }
 [@vm.inferred-type.metadata=dart.core::Null?]static field core::Function unknown;
-[@vm.inferred-type.metadata=!]static field core::Object field1 = [@vm.inferred-type.metadata=!] self::getValue();
+static field core::Object field1 = [@vm.inferred-type.metadata=!] self::getValue();
 static method getDynamic() → dynamic
   return self::unknown.call();
 static method getValue() → core::Object {
@@ -73,7 +70,7 @@ static method getValue() → core::Object {
   return [@vm.inferred-type.metadata=!] aa.{self::A::foo}();
 }
 static method use1([@vm.inferred-type.metadata=#lib::DeepCaller1] self::DeepCaller1 x) → dynamic
-  return [@vm.direct-call.metadata=#lib::DeepCaller1::barL1] [@vm.inferred-type.metadata=!] x.{self::DeepCaller1::barL1}();
+  return [@vm.direct-call.metadata=#lib::DeepCaller1::barL1] x.{self::DeepCaller1::barL1}();
 static method use2([@vm.inferred-type.metadata=#lib::DeepCaller2] self::DeepCaller2 x) → dynamic
   return [@vm.direct-call.metadata=#lib::DeepCaller2::barL1] [@vm.inferred-type.metadata=!] x.{self::DeepCaller2::barL1}(new self::D::•());
 static method createC() → dynamic {

@@ -4,11 +4,12 @@
 
 library dart2js.io.source_file;
 
-import 'dart:convert' show UTF8;
+import 'dart:convert' show utf8;
 import 'dart:math';
 import 'dart:typed_data' show Uint8List;
 
 import 'package:kernel/ast.dart' as kernel show Location, Source;
+
 import 'location_provider.dart' show LocationProvider;
 import '../../compiler_new.dart';
 
@@ -18,7 +19,7 @@ abstract class SourceFile<T> implements Input<T>, LocationProvider {
   /// The absolute URI of the source file.
   Uri get uri;
 
-  InputKind get inputKind => InputKind.utf8;
+  InputKind get inputKind => InputKind.UTF8;
 
   kernel.Source cachedKernelSource;
 
@@ -102,10 +103,6 @@ abstract class SourceFile<T> implements Input<T>, LocationProvider {
     if (colorize == null) {
       colorize = (text) => text;
     }
-    if (end > length) {
-      start = length - 1;
-      end = length;
-    }
 
     kernel.Location startLocation = kernelSource.getLocation(null, start);
     kernel.Location endLocation = kernelSource.getLocation(null, end);
@@ -142,9 +139,15 @@ abstract class SourceFile<T> implements Input<T>, LocationProvider {
         for (int line = lineStart; line <= lineEnd; line++) {
           String textLine = kernelSource.getTextLine(line + 1);
           if (line == lineStart) {
+            if (columnStart > textLine.length) {
+              columnStart = textLine.length;
+            }
             buf.write(textLine.substring(0, columnStart));
             buf.writeln(colorize(textLine.substring(columnStart)));
           } else if (line == lineEnd) {
+            if (columnEnd > textLine.length) {
+              columnEnd = textLine.length;
+            }
             buf.write(colorize(textLine.substring(0, columnEnd)));
             buf.writeln(textLine.substring(columnEnd));
           } else {
@@ -185,7 +188,7 @@ class Utf8BytesSourceFile extends SourceFile<List<int>> {
 
   String slowText() {
     // Don't convert the trailing zero byte.
-    return UTF8.decoder
+    return utf8.decoder
         .convert(zeroTerminatedContent, 0, zeroTerminatedContent.length - 1);
   }
 
@@ -245,7 +248,7 @@ class StringSourceFile extends SourceFile<String> {
   String slowText() => text;
 
   List<int> slowUtf8ZeroTerminatedBytes() {
-    return _zeroTerminateIfNecessary(UTF8.encode(text));
+    return _zeroTerminateIfNecessary(utf8.encode(text));
   }
 
   String slowSubstring(int start, int end) => text.substring(start, end);

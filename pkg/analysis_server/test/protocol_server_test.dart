@@ -4,7 +4,6 @@
 
 import 'dart:mirrors';
 
-import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/ast/ast.dart' as engine;
@@ -14,10 +13,10 @@ import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/src/error/codes.dart' as engine;
 import 'package:analyzer/src/generated/source.dart' as engine;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'constants.dart';
 import 'mocks.dart';
 
 main() {
@@ -27,26 +26,20 @@ main() {
   });
 }
 
-class AnalysisErrorMock extends Mock implements engine.AnalysisError {}
-
 @reflectiveTest
 class AnalysisErrorTest {
-  engine.Source source = new MockSource();
+  MockSource source = new MockSource();
   engine.LineInfo lineInfo;
-  engine.AnalysisError engineError = new AnalysisErrorMock();
+  MockAnalysisError engineError;
 
   void setUp() {
     // prepare Source
-    when(source.fullName).thenReturn('foo.dart');
+    source.fullName = 'foo.dart';
     // prepare LineInfo
     lineInfo = new engine.LineInfo([0, 5, 9, 20]);
     // prepare AnalysisError
-    when(engineError.source).thenReturn(source);
-    when(engineError.errorCode)
-        .thenReturn(engine.CompileTimeErrorCode.AMBIGUOUS_EXPORT);
-    when(engineError.message).thenReturn('my message');
-    when(engineError.offset).thenReturn(10);
-    when(engineError.length).thenReturn(20);
+    engineError = new MockAnalysisError(source,
+        engine.CompileTimeErrorCode.AMBIGUOUS_EXPORT, 10, 20, 'my message');
   }
 
   void tearDown() {
@@ -55,7 +48,7 @@ class AnalysisErrorTest {
   }
 
   void test_fromEngine_hasCorrection() {
-    when(engineError.correction).thenReturn('my correction');
+    engineError.correction = 'my correction';
     AnalysisError error = newAnalysisError_fromEngine(lineInfo, engineError);
     expect(error.toJson(), {
       SEVERITY: 'ERROR',
@@ -75,7 +68,7 @@ class AnalysisErrorTest {
   }
 
   void test_fromEngine_noCorrection() {
-    when(engineError.correction).thenReturn(null);
+    engineError.correction = null;
     AnalysisError error = newAnalysisError_fromEngine(lineInfo, engineError);
     expect(error.toJson(), {
       SEVERITY: 'ERROR',
@@ -94,7 +87,7 @@ class AnalysisErrorTest {
   }
 
   void test_fromEngine_noLineInfo() {
-    when(engineError.correction).thenReturn(null);
+    engineError.correction = null;
     AnalysisError error = newAnalysisError_fromEngine(null, engineError);
     expect(error.toJson(), {
       SEVERITY: 'ERROR',
@@ -193,4 +186,30 @@ class EnumTester<EngineEnum, ApiEnum> {
       }
     });
   }
+}
+
+class MockAnalysisError implements engine.AnalysisError {
+  @override
+  MockSource source;
+
+  @override
+  engine.ErrorCode errorCode;
+
+  @override
+  int offset;
+
+  @override
+  String message;
+
+  @override
+  String correction = null;
+
+  @override
+  bool isStaticOnly;
+
+  @override
+  int length;
+
+  MockAnalysisError(
+      this.source, this.errorCode, this.offset, this.length, this.message);
 }

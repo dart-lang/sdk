@@ -40,7 +40,7 @@ class SimpleExpressionConverter {
         builder_(builder) {}
 
   bool IsSimple(intptr_t kernel_offset) {
-    AlternativeReadingScope alt(builder_->reader_, kernel_offset);
+    AlternativeReadingScope alt(&builder_->reader_, kernel_offset);
     uint8_t payload = 0;
     Tag tag = builder_->ReadTag(&payload);  // read tag.
     switch (tag) {
@@ -82,8 +82,7 @@ class SimpleExpressionConverter {
         return true;
       case kDoubleLiteral:
         simple_value_ = &Double::ZoneHandle(
-            Z, Double::New(H.DartString(builder_->ReadStringReference()),
-                           Heap::kOld));  // read string reference.
+            Z, Double::New(builder_->ReadDouble(), Heap::kOld));  // read value.
         *simple_value_ = H.Canonicalize(*simple_value_);
         return true;
       case kTrueLiteral:
@@ -192,49 +191,50 @@ KernelLoader::KernelLoader(Program* program)
   initialize_fields();
 }
 
-Object& KernelLoader::LoadEntireProgram(Program* program) {
+Object& KernelLoader::LoadEntireProgram(Program* program,
+                                        bool process_pending_classes) {
   if (program->is_single_program()) {
     KernelLoader loader(program);
-    return loader.LoadProgram();
-  } else {
-    kernel::Reader reader(program->kernel_data(), program->kernel_data_size());
-    GrowableArray<intptr_t> subprogram_file_starts;
-    index_programs(&reader, &subprogram_file_starts);
-
-    Thread* thread = Thread::Current();
-    Zone* zone = thread->zone();
-    Library& library = Library::Handle(zone);
-    // Create "fake programs" for each sub-program.
-    intptr_t subprogram_count = subprogram_file_starts.length() - 1;
-    for (intptr_t i = 0; i < subprogram_count; ++i) {
-      intptr_t subprogram_start = subprogram_file_starts.At(i);
-      intptr_t subprogram_end = subprogram_file_starts.At(i + 1);
-      reader.set_raw_buffer(program->kernel_data() + subprogram_start);
-      reader.set_size(subprogram_end - subprogram_start);
-      reader.set_offset(0);
-      Program* subprogram = Program::ReadFrom(&reader, false);
-      ASSERT(subprogram->is_single_program());
-      KernelLoader loader(subprogram);
-      Object& load_result = loader.LoadProgram(false);
-      if (load_result.IsError()) return load_result;
-
-      if (library.IsNull() && load_result.IsLibrary()) {
-        library ^= load_result.raw();
-      }
-
-      delete subprogram;
-    }
-
-    if (!ClassFinalizer::ProcessPendingClasses()) {
-      // Class finalization failed -> sticky error would be set.
-      Error& error = Error::Handle(zone);
-      error = thread->sticky_error();
-      thread->clear_sticky_error();
-      return error;
-    }
-
-    return library;
+    return Object::Handle(loader.LoadProgram(process_pending_classes));
   }
+
+  kernel::Reader reader(program->kernel_data(), program->kernel_data_size());
+  GrowableArray<intptr_t> subprogram_file_starts;
+  index_programs(&reader, &subprogram_file_starts);
+
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Library& library = Library::Handle(zone);
+  // Create "fake programs" for each sub-program.
+  intptr_t subprogram_count = subprogram_file_starts.length() - 1;
+  for (intptr_t i = 0; i < subprogram_count; ++i) {
+    intptr_t subprogram_start = subprogram_file_starts.At(i);
+    intptr_t subprogram_end = subprogram_file_starts.At(i + 1);
+    reader.set_raw_buffer(program->kernel_data() + subprogram_start);
+    reader.set_size(subprogram_end - subprogram_start);
+    reader.set_offset(0);
+    Program* subprogram = Program::ReadFrom(&reader, false);
+    ASSERT(subprogram->is_single_program());
+    KernelLoader loader(subprogram);
+    Object& load_result = Object::Handle(loader.LoadProgram(false));
+    if (load_result.IsError()) return load_result;
+
+    if (library.IsNull() && load_result.IsLibrary()) {
+      library ^= load_result.raw();
+    }
+
+    delete subprogram;
+  }
+
+  if (process_pending_classes && !ClassFinalizer::ProcessPendingClasses()) {
+    // Class finalization failed -> sticky error would be set.
+    Error& error = Error::Handle(zone);
+    error = thread->sticky_error();
+    thread->clear_sticky_error();
+    return error;
+  }
+
+  return library;
 }
 
 void KernelLoader::index_programs(
@@ -293,27 +293,18 @@ void KernelLoader::initialize_fields() {
     names.SetUint32(i << 2, reader.ReadUInt());
   }
 
-  // Metadata mappings immediately follow names table.
-  const intptr_t metadata_mappings_start = reader.offset();
-
   // Copy metadata payloads into the VM's heap
-  // TODO(alexmarkov): add more info to program index instead of guessing
-  // the end of metadata payloads by offsets of the libraries.
-  intptr_t metadata_payloads_end = program_->source_table_offset();
-  for (intptr_t i = 0; i < program_->library_count(); ++i) {
-    metadata_payloads_end =
-        Utils::Minimum(metadata_payloads_end, library_offset(i));
-  }
-  ASSERT(metadata_payloads_end >= MetadataPayloadOffset);
+  const intptr_t metadata_payloads_start = program_->metadata_payloads_offset();
   const intptr_t metadata_payloads_size =
-      metadata_payloads_end - MetadataPayloadOffset;
+      program_->metadata_mappings_offset() - metadata_payloads_start;
   TypedData& metadata_payloads =
       TypedData::Handle(Z, TypedData::New(kTypedDataUint8ArrayCid,
                                           metadata_payloads_size, Heap::kOld));
-  reader.CopyDataToVMHeap(metadata_payloads, MetadataPayloadOffset,
+  reader.CopyDataToVMHeap(metadata_payloads, metadata_payloads_start,
                           metadata_payloads_size);
 
   // Copy metadata mappings into the VM's heap
+  const intptr_t metadata_mappings_start = program_->metadata_mappings_offset();
   const intptr_t metadata_mappings_size =
       program_->string_table_offset() - metadata_mappings_start;
   TypedData& metadata_mappings =
@@ -545,7 +536,7 @@ void KernelLoader::LoadNativeExtensionLibraries(const Array& constant_table) {
   potential_extension_libraries_ = GrowableObjectArray::null();
 }
 
-Object& KernelLoader::LoadProgram(bool process_pending_classes) {
+RawObject* KernelLoader::LoadProgram(bool process_pending_classes) {
   ASSERT(kernel_program_info_.constants() == Array::null());
 
   if (!program_->is_single_program()) {
@@ -557,15 +548,15 @@ Object& KernelLoader::LoadProgram(bool process_pending_classes) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     const intptr_t length = program_->library_count();
+    Object& last_library = Library::Handle(Z);
     for (intptr_t i = 0; i < length; i++) {
-      LoadLibrary(i);
+      last_library = LoadLibrary(i);
     }
 
     if (process_pending_classes) {
       if (!ClassFinalizer::ProcessPendingClasses()) {
         // Class finalization failed -> sticky error would be set.
-        Error& error = Error::Handle(Z);
-        error = H.thread()->sticky_error();
+        RawError* error = H.thread()->sticky_error();
         H.thread()->clear_sticky_error();
         return error;
       }
@@ -586,19 +577,18 @@ Object& KernelLoader::LoadProgram(bool process_pending_classes) {
 
     NameIndex main = program_->main_method();
     if (main == -1) {
-      return Library::Handle(Z);
+      return Library::null();
     }
 
     NameIndex main_library = H.EnclosingName(main);
     Library& library = LookupLibrary(main_library);
 
-    return library;
+    return library.raw();
   }
 
   // Either class finalization failed or we caught a compile error.
   // In both cases sticky error would be set.
-  Error& error = Error::Handle(Z);
-  error = thread_->sticky_error();
+  RawError* error = thread_->sticky_error();
   thread_->clear_sticky_error();
   return error;
 }
@@ -662,7 +652,7 @@ void KernelLoader::walk_incremental_kernel(BitVector* modified_libs) {
     builder_.SetOffset(kernel_offset);
     LibraryHelper library_helper(&builder_);
     library_helper.ReadUntilIncluding(LibraryHelper::kCanonicalName);
-    dart::Library& lib = LookupLibrary(library_helper.canonical_name_);
+    dart::Library& lib = LookupLibraryOrNull(library_helper.canonical_name_);
     if (!lib.IsNull() && !lib.is_dart_scheme()) {
       // This is a library that already exists so mark it as being modified.
       modified_libs->Add(lib.index());
@@ -683,7 +673,7 @@ void KernelLoader::CheckForInitializer(const Field& field) {
   field.set_has_initializer(false);
 }
 
-void KernelLoader::LoadLibrary(intptr_t index) {
+RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
   if (!program_->is_single_program()) {
     FATAL(
         "Trying to load a concatenated dill file at a time where that is "
@@ -713,20 +703,21 @@ void KernelLoader::LoadLibrary(intptr_t index) {
       // snapshot so we skip loading 'dart:vmservice_io'.
       skip_vmservice_library_ = library_helper.canonical_name_;
       ASSERT(H.IsLibrary(skip_vmservice_library_));
-      return;
+      return Library::null();
     }
   }
 
-  Library& library = LookupLibrary(library_helper.canonical_name_);
+  Library& library =
+      Library::Handle(Z, LookupLibrary(library_helper.canonical_name_).raw());
 
   // The Kernel library is external implies that it is already loaded.
   ASSERT(!library_helper.IsExternal() || library.Loaded());
-  if (library.Loaded()) return;
+  if (library.Loaded()) return library.raw();
 
   library_kernel_data_ =
       TypedData::New(kTypedDataUint8ArrayCid, library_size, Heap::kOld);
-  builder_.reader_->CopyDataToVMHeap(library_kernel_data_,
-                                     library_kernel_offset_, library_size);
+  builder_.reader_.CopyDataToVMHeap(library_kernel_data_,
+                                    library_kernel_offset_, library_size);
   library.set_kernel_data(library_kernel_data_);
   library.set_kernel_offset(library_kernel_offset_);
 
@@ -824,7 +815,7 @@ void KernelLoader::LoadLibrary(intptr_t index) {
     field_helper.ReadUntilExcluding(FieldHelper::kEnd);
     {
       // GenerateFieldAccessors reads (some of) the initializer.
-      AlternativeReadingScope alt(builder_.reader_, field_initializer_offset);
+      AlternativeReadingScope alt(&builder_.reader_, field_initializer_offset);
       GenerateFieldAccessors(toplevel_class, field, &field_helper);
     }
     if (FLAG_enable_mirrors && field_helper.annotation_count_ > 0) {
@@ -846,6 +837,8 @@ void KernelLoader::LoadLibrary(intptr_t index) {
   toplevel_class.SetFunctions(Array::Handle(MakeFunctionsArray()));
   classes.Add(toplevel_class, Heap::kOld);
   if (!library.Loaded()) library.SetLoaded();
+
+  return library.raw();
 }
 
 void KernelLoader::LoadLibraryImportsAndExports(Library* library) {
@@ -983,9 +976,29 @@ void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,
 // dart:-scheme libraries to look like they looked like in legacy pipeline:
 //
 //               dart:libname/filename.dart
+//               dart:libname/runtime/lib/filename.dart
+//               dart:libname/runtime/bin/filename.dart
 //
 void KernelLoader::FixCoreLibraryScriptUri(const Library& library,
                                            const Script& script) {
+  struct Helper {
+    static bool EndsWithCString(const String& haystack,
+                                const char* needle,
+                                intptr_t needle_length,
+                                intptr_t end_pos) {
+      const intptr_t start = end_pos - needle_length + 1;
+      if (start >= 0) {
+        for (intptr_t i = 0; i < needle_length; i++) {
+          if (haystack.CharAt(start + i) != needle[i]) {
+            return false;
+          }
+        }
+        return true;
+      }
+      return false;
+    }
+  };
+
   if (library.is_dart_scheme()) {
     String& url = String::Handle(zone_, script.url());
     if (!url.StartsWith(Symbols::DartScheme())) {
@@ -997,9 +1010,28 @@ void KernelLoader::FixCoreLibraryScriptUri(const Library& library,
         pos--;
       }
 
+      static const char* kRuntimeLib = "runtime/lib/";
+      static const intptr_t kRuntimeLibLen = strlen(kRuntimeLib);
+      const bool inside_runtime_lib =
+          Helper::EndsWithCString(url, kRuntimeLib, kRuntimeLibLen, pos);
+
+      static const char* kRuntimeBin = "runtime/bin/";
+      static const intptr_t kRuntimeBinLen = strlen(kRuntimeBin);
+      const bool inside_runtime_bin =
+          Helper::EndsWithCString(url, kRuntimeBin, kRuntimeBinLen, pos);
+
+      String& tmp = String::Handle(zone_);
       url = String::SubString(url, pos + 1);
+      if (inside_runtime_lib) {
+        tmp = String::New("runtime/lib", Heap::kNew);
+        url = String::Concat(tmp, url);
+      } else if (inside_runtime_bin) {
+        tmp = String::New("runtime/bin", Heap::kNew);
+        url = String::Concat(tmp, url);
+      }
+      tmp = library.url();
       url = String::Concat(Symbols::Slash(), url);
-      url = String::Concat(String::Handle(zone_, library.url()), url);
+      url = String::Concat(tmp, url);
       script.set_url(url);
     }
   }
@@ -1017,9 +1049,6 @@ Class& KernelLoader::LoadClass(const Library& library,
   Class& klass = LookupClass(class_helper.canonical_name_);
   klass.set_kernel_offset(class_offset - correction_offset_);
 
-  class_helper.ReadUntilIncluding(ClassHelper::kFlags);
-  if (class_helper.is_enum_class()) klass.set_is_enum_class();
-
   // The class needs to have a script because all the functions in the class
   // will inherit it.  The predicate Function::IsOptimizable uses the absence of
   // a script to detect test functions that should not be optimized.
@@ -1034,6 +1063,9 @@ Class& KernelLoader::LoadClass(const Library& library,
     class_helper.ReadUntilIncluding(ClassHelper::kPosition);
     klass.set_token_pos(class_helper.position_);
   }
+
+  class_helper.ReadUntilIncluding(ClassHelper::kFlags);
+  if (class_helper.is_enum_class()) klass.set_is_enum_class();
 
   class_helper.ReadUntilIncluding(ClassHelper::kAnnotations);
   class_helper.ReadUntilExcluding(ClassHelper::kTypeParameters);
@@ -1088,16 +1120,18 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       intptr_t field_offset = builder_.ReaderOffset() - correction_offset_;
       ActiveMemberScope active_member(&active_class_, NULL);
       FieldHelper field_helper(&builder_);
-      field_helper.ReadUntilExcluding(FieldHelper::kName);
 
+      field_helper.ReadUntilIncluding(FieldHelper::kSourceUriIndex);
+      const Object& script_class =
+          ClassForScriptAt(klass, field_helper.source_uri_index_);
+
+      field_helper.ReadUntilExcluding(FieldHelper::kName);
       const String& name = builder_.ReadNameAsFieldName();
       field_helper.SetJustRead(FieldHelper::kName);
       field_helper.ReadUntilExcluding(FieldHelper::kType);
       const AbstractType& type =
           T.BuildTypeWithoutFinalization();  // read type.
       field_helper.SetJustRead(FieldHelper::kType);
-      const Object& script_class =
-          ClassForScriptAt(klass, field_helper.source_uri_index_);
 
       const bool is_reflectable =
           field_helper.position_.IsReal() &&
@@ -1117,7 +1151,8 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       field_helper.ReadUntilExcluding(FieldHelper::kEnd);
       {
         // GenerateFieldAccessors reads (some of) the initializer.
-        AlternativeReadingScope alt(builder_.reader_, field_initializer_offset);
+        AlternativeReadingScope alt(&builder_.reader_,
+                                    field_initializer_offset);
         GenerateFieldAccessors(klass, field, &field_helper);
       }
       if (FLAG_enable_mirrors && field_helper.annotation_count_ > 0) {
@@ -1127,7 +1162,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     }
     class_helper->SetJustRead(ClassHelper::kFields);
 
-    if (I->use_dart_frontend() && klass.is_enum_class()) {
+    if (klass.is_enum_class()) {
       // Add static field 'const _deleted_enum_sentinel'.
       // This field does not need to be of type E.
       Field& deleted_enum_sentinel = Field::ZoneHandle(Z);
@@ -1153,6 +1188,16 @@ void KernelLoader::FinishClassLoading(const Class& klass,
 
     const String& name =
         H.DartConstructorName(constructor_helper.canonical_name_);
+
+    // We can have synthetic constructors, which will not have a source uri
+    // attached to them (which means the index into the source uri table is 0,
+    // see `package:kernel/binary/ast_to_binary::writeUriReference`.
+    const Object* owner = &klass;
+    const intptr_t source_uri_index = constructor_helper.source_uri_index_;
+    if (source_uri_index != 0) {
+      owner = &ClassForScriptAt(klass, source_uri_index);
+    }
+
     Function& function = Function::ZoneHandle(
         Z, Function::New(name, RawFunction::kConstructor,
                          false,  // is_static
@@ -1160,7 +1205,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
                          false,  // is_abstract
                          constructor_helper.IsExternal(),
                          false,  // is_native
-                         klass, constructor_helper.position_));
+                         *owner, constructor_helper.position_));
     function.set_end_token_pos(constructor_helper.end_position_);
     functions_.Add(&function);
     function.set_kernel_offset(constructor_offset);
@@ -1325,8 +1370,9 @@ void KernelLoader::LoadProcedure(const Library& library,
   }
   const Object& script_class =
       ClassForScriptAt(owner, procedure_helper.source_uri_index_);
+  RawFunction::Kind kind = GetFunctionType(procedure_helper.kind_);
   Function& function = Function::ZoneHandle(
-      Z, Function::New(name, GetFunctionType(procedure_helper.kind_),
+      Z, Function::New(name, kind,
                        !is_method,  // is_static
                        false,       // is_const
                        is_abstract, is_external,
@@ -1551,6 +1597,18 @@ void KernelLoader::SetupFieldAccessorFunction(const Class& klass,
     function.SetParameterNameAt(pos, Symbols::Value());
     pos++;
   }
+}
+
+Library& KernelLoader::LookupLibraryOrNull(NameIndex library) {
+  Library* handle = NULL;
+  if (!libraries_.Lookup(library, &handle)) {
+    const String& url = H.DartString(H.CanonicalNameString(library));
+    handle = &Library::Handle(Z, Library::LookupLibrary(thread_, url));
+    if (!handle->IsNull()) {
+      libraries_.Insert(library, handle);
+    }
+  }
+  return *handle;
 }
 
 Library& KernelLoader::LookupLibrary(NameIndex library) {

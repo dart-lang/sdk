@@ -16,8 +16,10 @@ class _KernelDartTypes extends DartTypes {
             new _KernelPotentialSubtypeVisitor(elementMap);
 
   @override
-  bool isPotentialSubtype(DartType t, DartType s) {
-    return potentialSubtypeVisitor.isSubtype(t, s);
+  bool isPotentialSubtype(DartType t, DartType s,
+      {bool assumeInstantiations: true}) {
+    return potentialSubtypeVisitor.isPotentialSubtype(t, s,
+        assumeInstantiations: assumeInstantiations);
   }
 
   @override
@@ -67,23 +69,20 @@ class _KernelDartTypes extends DartTypes {
   }
 
   @override
-  void checkTypeVariableBounds(
-      InterfaceType instantiatedType,
-      void checkTypeVariableBound(InterfaceType type, DartType typeArgument,
+  void checkTypeVariableBounds<T>(
+      T context,
+      List<DartType> typeArguments,
+      List<DartType> typeVariables,
+      void checkTypeVariableBound(T context, DartType typeArgument,
           TypeVariableType typeVariable, DartType bound)) {
-    InterfaceType declaredType = getThisType(instantiatedType.element);
-    List<DartType> typeArguments = instantiatedType.typeArguments;
-    List<DartType> typeVariables = declaredType.typeArguments;
     assert(typeVariables.length == typeArguments.length);
     for (int index = 0; index < typeArguments.length; index++) {
       DartType typeArgument = typeArguments[index];
       TypeVariableType typeVariable = typeVariables[index];
-      DartType bound = substByContext(
-          elementMap.elementEnvironment
-              .getTypeVariableBound(typeVariable.element),
-          instantiatedType);
-      checkTypeVariableBound(
-          instantiatedType, typeArgument, typeVariable, bound);
+      DartType bound = elementMap.elementEnvironment
+          .getTypeVariableBound(typeVariable.element)
+          .subst(typeArguments, typeVariables);
+      checkTypeVariableBound(context, typeArgument, typeVariable, bound);
     }
   }
 
@@ -95,9 +94,8 @@ class _KernelOrderedTypeSetBuilder extends OrderedTypeSetBuilderBase {
   final KernelToElementMapBase elementMap;
 
   _KernelOrderedTypeSetBuilder(this.elementMap, ClassEntity cls)
-      : super(cls,
-            reporter: elementMap.reporter,
-            objectType: elementMap.commonElements.objectType);
+      : super(cls, elementMap.commonElements.objectType,
+            reporter: elementMap.reporter);
 
   // TODO(sigmund): delete once Issue #31118 is fixed.
   @override
@@ -146,6 +144,7 @@ abstract class _AbstractTypeRelationMixin
 class _KernelSubtypeVisitor extends SubtypeVisitor<DartType>
     with _AbstractTypeRelationMixin {
   final KernelToElementMapBase elementMap;
+  bool get strongMode => elementMap.options.strongMode;
 
   _KernelSubtypeVisitor(this.elementMap);
 }
@@ -153,6 +152,7 @@ class _KernelSubtypeVisitor extends SubtypeVisitor<DartType>
 class _KernelPotentialSubtypeVisitor extends PotentialSubtypeVisitor<DartType>
     with _AbstractTypeRelationMixin {
   final KernelToElementMapBase elementMap;
+  bool get strongMode => elementMap.options.strongMode;
 
   _KernelPotentialSubtypeVisitor(this.elementMap);
 }

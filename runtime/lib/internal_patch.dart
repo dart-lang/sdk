@@ -93,11 +93,12 @@ class Lists {
   }
 }
 
-// Prepend the parent type arguments (maybe null) to the function type
-// arguments (may be null). The result is null if both input vectors are null
-// or is a newly allocated and canonicalized vector of length 'len'.
-_prependTypeArguments(functionTypeArguments, parentTypeArguments, len)
-    native "Internal_prependTypeArguments";
+// Prepend the parent type arguments (maybe null) of length 'parentLen' to the
+// function type arguments (may be null). The result is null if both input
+// vectors are null or is a newly allocated and canonicalized vector of length
+// 'totalLen'.
+_prependTypeArguments(functionTypeArguments, parentTypeArguments, parentLen,
+    totalLen) native "Internal_prependTypeArguments";
 
 // Called by IRRegExpMacroAssembler::GrowStack.
 Int32List _growRegExpStack(Int32List stack) {

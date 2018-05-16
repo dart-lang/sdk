@@ -403,11 +403,10 @@ DEFINE_NATIVE_ENTRY(VMService_DecodeAssets, 1) {
         FilenameFinalizer);
     ASSERT(!Dart_IsError(dart_filename));
 
-    Dart_Handle dart_contents = Dart_NewExternalTypedData(
-        Dart_TypedData_kUint8, contents, contents_length);
+    Dart_Handle dart_contents = Dart_NewExternalTypedDataWithFinalizer(
+        Dart_TypedData_kUint8, contents, contents_length, contents,
+        contents_length, ContentsFinalizer);
     ASSERT(!Dart_IsError(dart_contents));
-    Dart_NewWeakPersistentHandle(dart_contents, contents, contents_length,
-                                 ContentsFinalizer);
 
     Dart_ListSetAt(result_list, idx, dart_filename);
     Dart_ListSetAt(result_list, (idx + 1), dart_contents);

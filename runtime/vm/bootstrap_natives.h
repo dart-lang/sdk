@@ -315,11 +315,8 @@ namespace dart {
   V(Internal_makeFixedListUnmodifiable, 1)                                     \
   V(Internal_inquireIs64Bit, 0)                                                \
   V(Internal_extractTypeArguments, 2)                                          \
-  V(Internal_prependTypeArguments, 3)                                          \
-  V(InvocationMirror_decodePositionalCountEntry, 1)                            \
-  V(InvocationMirror_decodeTypeArgsLenEntry, 1)                                \
-  V(InvocationMirror_decodePositionEntry, 1)                                   \
-  V(InvocationMirror_unpackTypeArguments, 1)                                   \
+  V(Internal_prependTypeArguments, 4)                                          \
+  V(InvocationMirror_unpackTypeArguments, 2)                                   \
   V(NoSuchMethodError_existingMethodSignature, 3)                              \
   V(LinkedHashMap_getIndex, 1)                                                 \
   V(LinkedHashMap_setIndex, 2)                                                 \
@@ -360,7 +357,6 @@ namespace dart {
 
 // List of bootstrap native entry points used in the dart:mirror library.
 #define MIRRORS_BOOTSTRAP_NATIVE_LIST(V)                                       \
-  V(Mirrors_evalInLibraryWithPrivateKey, 2)                                    \
   V(Mirrors_makeLocalClassMirror, 1)                                           \
   V(Mirrors_makeLocalTypeMirror, 1)                                            \
   V(Mirrors_instantiateGenericType, 2)                                         \

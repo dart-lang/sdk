@@ -17,7 +17,6 @@ import 'common_elements.dart';
 import 'compiler.dart' show Compiler;
 import 'constants/values.dart' show ConstantValue, InterceptorConstantValue;
 import 'deferred_load.dart' show OutputUnit;
-import 'elements/elements.dart';
 import 'elements/entities.dart';
 import 'js/js.dart' as jsAst;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
@@ -127,14 +126,22 @@ class ElementInfoCollector {
   GlobalTypeInferenceElementResult _resultOfParameter(Local e) =>
       compiler.globalInference.results.resultOfParameter(e);
 
-  FieldInfo visitField(FieldEntity field) {
-    if (!_hasBeenResolved(field)) return null;
+  FieldInfo visitField(FieldEntity field, {ClassEntity containingClass}) {
+    var isInInstantiatedClass = false;
+    if (containingClass != null) {
+      isInInstantiatedClass = closedWorld.isInstantiated(containingClass);
+    }
+    if (!isInInstantiatedClass && !_hasBeenResolved(field)) {
+      return null;
+    }
     TypeMask inferredType = _resultOfMember(field).type;
     // If a field has an empty inferred type it is never used.
     if (inferredType == null || inferredType.isEmpty) return null;
 
     int size = compiler.dumpInfoTask.sizeOf(field);
     String code = compiler.dumpInfoTask.codeOf(field);
+
+    // TODO(het): Why doesn't `size` account for the code size already?
     if (code != null) size += code.length;
 
     FieldInfo info = new FieldInfo(
@@ -163,10 +170,14 @@ class ElementInfoCollector {
     return info;
   }
 
+  bool _hasBeenResolved(MemberEntity entity) {
+    return compiler.globalInference.typesInferrerInternal.inferrer.types
+        .memberTypeInformations
+        .containsKey(entity);
+  }
+
   ClassInfo visitClass(ClassEntity clazz) {
     // Omit class if it is not needed.
-    if (!_hasClassBeenResolved(clazz)) return null;
-
     ClassInfo classInfo = new ClassInfo(
         name: clazz.name,
         isAbstract: clazz.isAbstract,
@@ -185,7 +196,7 @@ class ElementInfoCollector {
           }
         }
       } else if (member.isField) {
-        FieldInfo fieldInfo = visitField(member);
+        FieldInfo fieldInfo = visitField(member, containingClass: clazz);
         if (fieldInfo != null) {
           classInfo.fields.add(fieldInfo);
           fieldInfo.parent = classInfo;
@@ -371,15 +382,6 @@ class ElementInfoCollector {
     }
     return _infoFromOutputUnit(outputUnit);
   }
-
-  bool _hasBeenResolved(Entity entity) {
-    return compiler.enqueuer.codegenEnqueuerForTesting.processedEntities
-        .contains(entity);
-  }
-
-  bool _hasClassBeenResolved(ClassEntity cls) {
-    return compiler.backend.mirrorsData.isClassResolved(cls);
-  }
 }
 
 class Selection {
@@ -442,9 +444,6 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   }
 
   void reportInlined(FunctionEntity element, MemberEntity inlinedFrom) {
-    assert(!(element is MethodElement && !element.isDeclaration));
-    assert(!(inlinedFrom is MemberElement && !inlinedFrom.isDeclaration));
-
     inlineCount.putIfAbsent(element, () => 0);
     inlineCount[element] += 1;
     inlineMap.putIfAbsent(inlinedFrom, () => new List<Entity>());
@@ -474,6 +473,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         impact,
         new WorldImpactVisitorImpl(visitDynamicUse: (dynamicUse) {
           selections.addAll(closedWorld
+              // TODO(het): Handle `call` on `Closure` through
+              // `world.includesClosureCall`.
               .locateMembers(dynamicUse.selector, dynamicUse.mask)
               .map((MemberEntity e) => new Selection(e, dynamicUse.mask)));
         }, visitStaticUse: (staticUse) {
@@ -532,11 +533,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     }
   }
 
-  int sizeOfNode(jsAst.Node node) {
-    // TODO(sigmund): switch back to null aware operators (issue #24136)
-    var size = _nodeToSize[node];
-    return size == null ? 0 : size;
-  }
+  int sizeOfNode(jsAst.Node node) => _nodeToSize[node] ?? 0;
 
   String codeOf(Entity entity) {
     List<jsAst.Node> code = _entityToNodes[entity];
@@ -629,6 +626,10 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
             new Duration(milliseconds: stopwatch.elapsedMilliseconds),
         dumpInfoDuration: new Duration(milliseconds: this.timing),
         noSuchMethodEnabled: closedWorld.backendUsage.isNoSuchMethodUsed,
+        isRuntimeTypeUsed: closedWorld.backendUsage.isRuntimeTypeUsed,
+        isIsolateInUse: false,
+        isFunctionApplyUsed: closedWorld.backendUsage.isFunctionApplyUsed,
+        isMirrorsUsed: closedWorld.backendUsage.isMirrorsUsed,
         minified: compiler.options.enableMinification);
 
     ChunkedConversionSink<Object> sink = encoder.startChunkedConversion(

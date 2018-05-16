@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.context.context;
-
 import 'dart:async';
 import 'dart:collection';
 
@@ -11,8 +9,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
-import 'package:analyzer/plugin/resolver_provider.dart';
-import 'package:analyzer/plugin/task.dart';
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
 import 'package:analyzer/src/context/cache.dart';
@@ -23,14 +19,16 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
+import 'package:analyzer/src/plugin/resolver_provider.dart';
+import 'package:analyzer/src/plugin/task.dart';
+import 'package:analyzer/src/task/api/dart.dart';
+import 'package:analyzer/src/task/api/general.dart';
+import 'package:analyzer/src/task/api/html.dart';
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/dart_work_manager.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/manager.dart';
-import 'package:analyzer/task/dart.dart';
-import 'package:analyzer/task/general.dart';
-import 'package:analyzer/task/html.dart';
-import 'package:analyzer/task/model.dart';
 import 'package:html/dom.dart' show Document;
 
 /**
@@ -368,6 +366,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   DeclaredVariables get declaredVariables => _declaredVariables;
+
+  /**
+   * Set the declared variables to the give collection of declared [variables].
+   */
+  void set declaredVariables(DeclaredVariables variables) {
+    _declaredVariables = variables;
+  }
 
   @deprecated
   @override

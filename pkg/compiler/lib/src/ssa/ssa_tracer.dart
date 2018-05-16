@@ -7,6 +7,7 @@ library ssa.tracer;
 import '../../compiler_new.dart' show OutputSink;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../js_backend/namer.dart' show Namer;
+import '../types/abstract_value_domain.dart';
 import '../tracer.dart';
 import '../world.dart' show ClosedWorld;
 import 'nodes.dart';
@@ -118,35 +119,38 @@ class HInstructionStringifier implements HVisitor<String> {
 
   HInstructionStringifier(this.currentBlock, this.closedWorld, this.namer);
 
+  AbstractValueDomain get _abstractValueDomain =>
+      closedWorld.abstractValueDomain;
+
   visit(HInstruction node) => '${node.accept(this)} ${node.instructionType}';
 
   String temporaryId(HInstruction instruction) {
     String prefix;
-    if (instruction.isNull()) {
+    if (instruction.isNull(_abstractValueDomain)) {
       prefix = 'u';
-    } else if (instruction.isConflicting()) {
+    } else if (instruction.isConflicting(_abstractValueDomain)) {
       prefix = 'c';
-    } else if (instruction.isExtendableArray(closedWorld)) {
+    } else if (instruction.isExtendableArray(_abstractValueDomain)) {
       prefix = 'e';
-    } else if (instruction.isFixedArray(closedWorld)) {
+    } else if (instruction.isFixedArray(_abstractValueDomain)) {
       prefix = 'f';
-    } else if (instruction.isMutableArray(closedWorld)) {
+    } else if (instruction.isMutableArray(_abstractValueDomain)) {
       prefix = 'm';
-    } else if (instruction.isReadableArray(closedWorld)) {
+    } else if (instruction.isArray(_abstractValueDomain)) {
       prefix = 'a';
-    } else if (instruction.isString(closedWorld)) {
+    } else if (instruction.isString(_abstractValueDomain)) {
       prefix = 's';
-    } else if (instruction.isIndexablePrimitive(closedWorld)) {
+    } else if (instruction.isIndexablePrimitive(_abstractValueDomain)) {
       prefix = 'r';
-    } else if (instruction.isBoolean(closedWorld)) {
+    } else if (instruction.isBoolean(_abstractValueDomain)) {
       prefix = 'b';
-    } else if (instruction.isInteger(closedWorld)) {
+    } else if (instruction.isInteger(_abstractValueDomain)) {
       prefix = 'i';
-    } else if (instruction.isDouble(closedWorld)) {
+    } else if (instruction.isDouble(_abstractValueDomain)) {
       prefix = 'd';
-    } else if (instruction.isNumber(closedWorld)) {
+    } else if (instruction.isNumber(_abstractValueDomain)) {
       prefix = 'n';
-    } else if (instruction.instructionType.containsAll(closedWorld)) {
+    } else if (_abstractValueDomain.containsAll(instruction.instructionType)) {
       prefix = 'v';
     } else {
       prefix = 'U';
@@ -346,6 +350,11 @@ class HInstructionStringifier implements HVisitor<String> {
     return handleGenericInvoke("InvokeConstructorBody", target, invoke.inputs);
   }
 
+  String visitInvokeGeneratorBody(HInvokeGeneratorBody invoke) {
+    String target = invoke.element.name;
+    return handleGenericInvoke("InvokeGeneratorBody", target, invoke.inputs);
+  }
+
   String visitForeignCode(HForeignCode node) {
     var template = node.codeTemplate;
     String code = '${template.ast}';
@@ -508,7 +517,24 @@ class HInstructionStringifier implements HVisitor<String> {
       assert(node.inputs.length == 1);
       rest = "";
     }
-    return "TypeConversion: $checkedInput to ${node.instructionType}$rest";
+    String kind = _typeConversionKind(node);
+    return "TypeConversion: $kind $checkedInput to ${node.instructionType}$rest";
+  }
+
+  String _typeConversionKind(HTypeConversion node) {
+    switch (node.kind) {
+      case HTypeConversion.CHECKED_MODE_CHECK:
+        return 'CHECKED_MODE';
+      case HTypeConversion.ARGUMENT_TYPE_CHECK:
+        return 'ARGUMENT';
+      case HTypeConversion.CAST_TYPE_CHECK:
+        return 'CAST';
+      case HTypeConversion.BOOLEAN_CONVERSION_CHECK:
+        return 'BOOLEAN_CONVERSION';
+      case HTypeConversion.RECEIVER_TYPE_CHECK:
+        return 'RECEIVER';
+    }
+    return '?';
   }
 
   String visitTypeKnown(HTypeKnown node) {
@@ -531,8 +557,8 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   String visitTypeInfoReadVariable(HTypeInfoReadVariable node) {
-    return "TypeInfoReadVariable: "
-        "${temporaryId(node.inputs.single)}.${node.variable}";
+    var inputs = node.inputs.map(temporaryId).join(', ');
+    return "TypeInfoReadVariable: ${node.variable}  $inputs";
   }
 
   String visitTypeInfoExpression(HTypeInfoExpression node) {

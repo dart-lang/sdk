@@ -1,0 +1,24 @@
+# Update if observatory dependencies change
+args:../../third_party/observatory_pub_packages/packages/args/lib
+async:../../third_party/observatory_pub_packages/packages/async/lib
+barback:../../third_party/observatory_pub_packages/packages/barback/lib
+browser:../../third_party/observatory_pub_packages/packages/browser/lib
+charcode:../../third_party/observatory_pub_packages/packages/charcode/lib
+charted:../../third_party/observatory_pub_packages/packages/charted/lib
+collection:../../third_party/observatory_pub_packages/packages/collection/lib
+csslib:../../third_party/observatory_pub_packages/packages/csslib/lib
+html:../../third_party/observatory_pub_packages/packages/html/lib
+intl:../../third_party/observatory_pub_packages/packages/intl/lib
+logging:../../third_party/observatory_pub_packages/packages/logging/lib
+matcher:../../third_party/observatory_pub_packages/packages/matcher/lib
+meta:../../third_party/observatory_pub_packages/packages/meta/lib
+observable:../../third_party/observatory_pub_packages/packages/observable/lib
+path:../../third_party/observatory_pub_packages/packages/path/lib
+pool:../../third_party/observatory_pub_packages/packages/pool/lib
+quiver:../../third_party/observatory_pub_packages/packages/quiver/lib
+source_span:../../third_party/observatory_pub_packages/packages/source_span/lib
+stack_trace:../../third_party/observatory_pub_packages/packages/stack_trace/lib
+unittest:../../third_party/observatory_pub_packages/packages/unittest/lib
+usage:../../third_party/observatory_pub_packages/packages/usage/lib
+utf:../../third_party/observatory_pub_packages/packages/utf/lib
+observatory:lib/

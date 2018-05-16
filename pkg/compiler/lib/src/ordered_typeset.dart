@@ -6,9 +6,7 @@ library ordered_typeset;
 
 import 'common.dart';
 import 'diagnostics/diagnostic_listener.dart' show DiagnosticReporter;
-import 'elements/elements.dart' show ClassElement;
 import 'elements/entities.dart';
-import 'elements/resolution_types.dart';
 import 'elements/types.dart';
 import 'util/util.dart' show Link, LinkBuilder;
 import 'package:front_end/src/fasta/util/link_implementation.dart'
@@ -36,8 +34,7 @@ class OrderedTypeSet {
   final Link<InterfaceType> types;
   final Link<InterfaceType> _supertypes;
 
-  OrderedTypeSet.internal(List<Link<InterfaceType>> this._levels,
-      Link<InterfaceType> this.types, Link<InterfaceType> this._supertypes);
+  OrderedTypeSet.internal(this._levels, this.types, this._supertypes);
 
   factory OrderedTypeSet.singleton(InterfaceType type) {
     Link<InterfaceType> types =
@@ -164,12 +161,9 @@ abstract class OrderedTypeSetBuilderBase implements OrderedTypeSetBuilder {
 
   final DiagnosticReporter reporter;
   final ClassEntity cls;
-  InterfaceType _objectType;
+  final InterfaceType _objectType;
 
-  // TODO(johnniwinther): Provide access to `Object` in deserialization and
-  // make [objectType] mandatory.
-  OrderedTypeSetBuilderBase(this.cls, {this.reporter, InterfaceType objectType})
-      : this._objectType = objectType;
+  OrderedTypeSetBuilderBase(this.cls, this._objectType, {this.reporter});
 
   InterfaceType getThisType(covariant ClassEntity cls);
   InterfaceType substByContext(
@@ -307,37 +301,5 @@ abstract class OrderedTypeSetBuilderBase implements OrderedTypeSetBuilder {
       sb.write('\n');
     }
     return sb.toString();
-  }
-}
-
-class ResolutionOrderedTypeSetBuilder extends OrderedTypeSetBuilderBase {
-  ResolutionOrderedTypeSetBuilder(ClassElement cls,
-      {DiagnosticReporter reporter, InterfaceType objectType})
-      : super(cls, reporter: reporter, objectType: objectType);
-
-  InterfaceType getThisType(ClassElement cls) => cls.thisType;
-
-  ResolutionInterfaceType substByContext(
-      ResolutionInterfaceType type, ResolutionInterfaceType context) {
-    return type.substByContext(context);
-  }
-
-  int getHierarchyDepth(ClassElement cls) => cls.hierarchyDepth;
-
-  OrderedTypeSet getOrderedTypeSet(ClassElement cls) =>
-      cls.allSupertypesAndSelf;
-
-  OrderedTypeSet createOrderedTypeSet(
-      InterfaceType supertype, Link<DartType> interfaces) {
-    if (_objectType == null) {
-      // Find `Object` through in hierarchy. This is used for serialization
-      // where it is assumed that the hierarchy is valid.
-      ResolutionInterfaceType objectType = supertype;
-      while (!objectType.isObject) {
-        objectType = objectType.element.supertype;
-      }
-      _objectType = objectType;
-    }
-    return super.createOrderedTypeSet(supertype, interfaces);
   }
 }

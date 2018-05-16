@@ -6,26 +6,7 @@
 browser/typed_data_message_test: StaticWarning
 
 [ $compiler == dart2js ]
-browser/issue_12474_test: CompileTimeError # Issue 22529
-enum_const_test/02: RuntimeError # Issue 21817
-error_at_spawnuri_test: SkipByDesign # Test uses a ".dart" URI.
-error_exit_at_spawnuri_test: SkipByDesign # Test uses a ".dart" URI.
-exit_at_spawnuri_test: SkipByDesign # Test uses a ".dart" URI.
-function_send1_test: SkipByDesign # Test uses a ".dart" URI.
-issue_21398_parent_isolate1_test: SkipByDesign # Test uses a ".dart" URI.
-issue_21398_parent_isolate2_test: SkipByDesign # Test uses a ".dart" URI.
-issue_21398_parent_isolate_test: SkipByDesign # Test uses a ".dart" URI.
-issue_24243_parent_isolate_test: SkipByDesign # Test uses a ".dart" URI.
-kill_self_synchronously_test: SkipByDesign #  Unsupported operation: Platform._resolvedExecutable
-message3_test/constInstance: RuntimeError # Issue 21817
-message3_test/constList: RuntimeError # Issue 21817
-message3_test/constList_identical: RuntimeError # Issue 21817
-message3_test/constMap: RuntimeError # Issue 21817
-non_fatal_exception_in_timer_callback_test: Skip # Issue 23876
-spawn_uri_exported_main_test: SkipByDesign # Test uses a ".dart" URI.
-spawn_uri_nested_vm_test: SkipByDesign # Test uses a ".dart" URI.
-spawn_uri_vm_test: SkipByDesign # Test uses a ".dart" URI.
-stacktrace_message_test: RuntimeError # Fails to send stacktrace object.
+*: SkipByDesign
 
 [ $compiler == fasta ]
 browser/compute_this_script_browser_test: CompileTimeError # TODO(ahe): Support dart:html in Fasta.
@@ -60,91 +41,6 @@ spawn_uri_multi_test/none: RuntimeError # Issue 13544
 
 [ $compiler == dart2analyzer && $strong ]
 *: Skip # Issue 28649
-
-[ $compiler == dart2js && $runtime == chrome ]
-function_send_test: Skip # Crashes Chrome 62: https://bugs.chromium.org/p/chromium/issues/detail?id=775506
-
-[ $compiler == dart2js && $runtime == chromeOnAndroid ]
-isolate_stress_test: Pass, Slow # TODO(kasperl): Please triage.
-mandel_isolate_test: Pass, Timeout # TODO(kasperl): Please triage.
-unresolved_ports_test: Pass, Timeout # Issue 15610
-
-[ $compiler == dart2js && $runtime == d8 && $fasta ]
-isolate_stress_test: RuntimeError
-
-[ $compiler == dart2js && $runtime != d8 ]
-error_at_spawn_test: Skip # Issue 23876
-error_exit_at_spawn_test: Skip # Issue 23876
-exit_at_spawn_test: Skip # Issue 23876
-message4_test: Skip # Issue 30247
-
-[ $compiler == dart2js && $runtime == jsshell ]
-pause_test: Fail, OK # non-zero timer not supported.
-timer_isolate_test: Fail, OK # Needs Timer to run.
-
-[ $compiler == dart2js && $runtime == safari ]
-cross_isolate_message_test: Skip # Issue 12627
-message_test: Skip # Issue 12627
-
-[ $compiler == dart2js && !$browser && $fast_startup ]
-isolate_current_test: Fail # please triage
-
-[ $compiler == dart2js && $fast_startup ]
-browser/compute_this_script_browser_test: Fail # mirrors not supported
-browser/typed_data_message_test: Fail # mirrors not supported
-count_test: Fail # mirrors not supported
-cross_isolate_message_test: Fail # mirrors not supported
-illegal_msg_function_test: Fail # mirrors not supported
-illegal_msg_mirror_test: Fail # mirrors not supported
-isolate_complex_messages_test: Fail # mirrors not supported
-mandel_isolate_test: Fail # mirrors not supported
-message2_test: Fail # mirrors not supported
-message_test: Fail # mirrors not supported
-mint_maker_test: Fail # mirrors not supported
-nested_spawn2_test: Fail # mirrors not supported
-nested_spawn_test: Fail # mirrors not supported
-raw_port_test: Fail # mirrors not supported
-remote_unittest_helper: Fail # mirrors not supported
-request_reply_test: Fail # mirrors not supported
-spawn_function_custom_class_test: Fail # mirrors not supported
-spawn_function_test: Fail # mirrors not supported
-stacktrace_message_test: Fail # mirrors not supported
-static_function_test: Fail # mirrors not supported
-unresolved_ports_test: Fail # mirrors not supported
-
-[ $compiler == dart2js && $fasta ]
-browser/compute_this_script_browser_test: RuntimeError # mirrors not supported
-browser/typed_data_message_test: RuntimeError # mirrors not supported
-compile_time_error_test/01: Crash
-count_test: RuntimeError # mirrors not supported
-cross_isolate_message_test: RuntimeError # mirrors not supported
-illegal_msg_function_test: RuntimeError # mirrors not supported
-illegal_msg_mirror_test: RuntimeError # mirrors not supported
-isolate_complex_messages_test: RuntimeError # mirrors not supported
-mandel_isolate_test: RuntimeError # mirrors not supported
-message2_test: RuntimeError # mirrors not supported
-message_test: RuntimeError # mirrors not supported
-mint_maker_test: RuntimeError # mirrors not supported
-nested_spawn2_test: RuntimeError # mirrors not supported
-nested_spawn_test: RuntimeError # mirrors not supported
-raw_port_test: RuntimeError # mirrors not supported
-remote_unittest_helper: RuntimeError # mirrors not supported
-request_reply_test: RuntimeError # mirrors not supported
-spawn_function_custom_class_test: RuntimeError # mirrors not supported
-spawn_function_test: RuntimeError # mirrors not supported
-stacktrace_message_test: RuntimeError # mirrors not supported
-static_function_test: RuntimeError # mirrors not supported
-unresolved_ports_test: RuntimeError # mirrors not supported
-
-[ $compiler == dart2js && $fasta && $host_checked ]
-deferred_in_isolate2_test: Crash
-
-[ $compiler == dart2js && $jscl ]
-browser/*: SkipByDesign # Browser specific tests
-spawn_uri_test: SkipByDesign # Loading another file is not supported in JS shell
-
-[ $compiler == dart2js && ($runtime == chrome || $runtime == chromeOnAndroid || $runtime == drt || $runtime == ff || $runtime == safari) ]
-isolate_stress_test: Pass, Slow # Issue 10697
 
 [ $compiler == none && $runtime == vm && $system == fuchsia ]
 *: Skip # Not yet triaged.
@@ -238,4 +134,3 @@ function_send_test: Pass, Fail # Closure identity
 issue_21398_parent_isolate2_test: Crash # Requires deferred libraries
 message3_test/fun: Pass, Fail # Closure identity
 spawn_uri_nested_vm_test: Pass, Crash # Issue 28192
-

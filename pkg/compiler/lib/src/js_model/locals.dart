@@ -14,6 +14,8 @@ import '../elements/types.dart';
 import '../kernel/element_map.dart';
 import '../kernel/indexed.dart';
 
+import '../js_model/elements.dart' show JGeneratorBody;
+
 class GlobalLocalsMap {
   Map<MemberEntity, KernelToLocalsMap> _localsMaps =
       <MemberEntity, KernelToLocalsMap>{};
@@ -223,6 +225,29 @@ class JumpVisitor extends ir.Visitor {
     JJumpTarget target;
     ir.TreeNode body = node.target.body;
     ir.TreeNode parent = node.target.parent;
+
+    // TODO(johnniwinther): Coordinate with CFE-team to avoid such arbitrary
+    // reverse engineering mismatches:
+    if (parent is ir.Block && parent.statements.last == node.target) {
+      // In strong mode for code like this:
+      //
+      //     for (int i in list) {
+      //       continue;
+      //     }
+      //
+      // an implicit cast may be inserted before the label statement, resulting
+      // in code like this:
+      //
+      //     for (var i in list) {
+      //       var #1 = i as int;
+      //       l1: {
+      //          break l1:
+      //       }
+      //     }
+      //
+      // for which we should still use the for loop as a continue target.
+      parent = parent.parent;
+    }
     if (canBeBreakTarget(body)) {
       // We have code like
       //
@@ -396,7 +421,9 @@ class JLocal extends IndexedLocal {
   /// True if this local represents a local parameter.
   final bool isRegularParameter;
 
-  JLocal(this.name, this.memberContext, {this.isRegularParameter: false});
+  JLocal(this.name, this.memberContext, {this.isRegularParameter: false}) {
+    assert(memberContext is! JGeneratorBody);
+  }
 
   String get _kind => 'local';
 

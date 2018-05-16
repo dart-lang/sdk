@@ -184,13 +184,19 @@ dart2js:
     io:
       uri: "io/io.dart"
       patches: "_internal/js_runtime/lib/io_patch.dart"
+      supported: false
 
     isolate:
       uri: "isolate/isolate.dart"
       patches: "_internal/js_runtime/lib/isolate_patch.dart"
+      supported: false
 
     js:
       uri: "js/dart2js/js_dart2js.dart"
+
+    _js:
+      uri: "js/_js.dart"
+      patches: "js/_js_client.dart"
 
     js_util:
       uri: "js_util/dart2js/js_util_dart2js.dart"
@@ -201,7 +207,8 @@ dart2js:
 
     mirrors:
       uri: "mirrors/mirrors.dart"
-      patches: "_internal/js_runtime/lib/mirrors_patch.dart"
+      patches: "_internal/js_runtime/lib/mirrors_patch_cfe.dart"
+      supported: false
 
     typed_data:
       uri: "typed_data/typed_data.dart"
@@ -235,12 +242,6 @@ dart2js:
     _foreign_helper:
       uri: "_internal/js_runtime/lib/foreign_helper.dart"
 
-    _isolate_helper:
-      uri: "_internal/js_runtime/lib/isolate_helper.dart"
-
-    _js_mirrors:
-      uri: "_internal/js_runtime/lib/js_mirrors.dart"
-
     _js_names:
       uri: "_internal/js_runtime/lib/js_names.dart"
 
@@ -255,3 +256,89 @@ dart2js:
 
     _metadata:
       uri: "html/html_common/metadata.dart"
+
+dart2js_server:
+  libraries:
+    async:
+      uri: "async/async.dart"
+      patches: "_internal/js_runtime/lib/async_patch.dart"
+
+    collection:
+      uri: "collection/collection.dart"
+      patches: "_internal/js_runtime/lib/collection_patch.dart"
+
+    convert:
+      uri: "convert/convert.dart"
+      patches: "_internal/js_runtime/lib/convert_patch.dart"
+
+    core:
+      uri: "core/core.dart"
+      patches: "_internal/js_runtime/lib/core_patch.dart"
+
+    developer:
+      uri: "developer/developer.dart"
+      patches: "_internal/js_runtime/lib/developer_patch.dart"
+
+    _http:
+      uri: "_http/http.dart"
+
+    io:
+      uri: "io/io.dart"
+      patches: "_internal/js_runtime/lib/io_patch.dart"
+      supported: false
+
+    isolate:
+      uri: "isolate/isolate.dart"
+      patches: "_internal/js_runtime/lib/isolate_patch.dart"
+      supported: false
+
+    js:
+      uri: "js/dart2js/js_dart2js.dart"
+
+    _js:
+      uri: "js/_js.dart"
+      patches: "js/_js_server.dart"
+
+    js_util:
+      uri: "js_util/dart2js/js_util_dart2js.dart"
+
+    math:
+      uri: "math/math.dart"
+      patches: "_internal/js_runtime/lib/math_patch.dart"
+
+    mirrors:
+      uri: "mirrors/mirrors.dart"
+      patches: "_internal/js_runtime/lib/mirrors_patch_cfe.dart"
+      supported: false
+
+    typed_data:
+      uri: "typed_data/typed_data.dart"
+      patches: "_internal/js_runtime/lib/typed_data_patch.dart"
+
+    _native_typed_data:
+      uri: "_internal/js_runtime/lib/native_typed_data.dart"
+
+    _internal:
+      uri: "internal/internal.dart"
+      patches: "_internal/js_runtime/lib/internal_patch.dart"
+
+    _js_helper:
+      uri: "_internal/js_runtime/lib/js_helper.dart"
+
+    _interceptors:
+      uri: "_internal/js_runtime/lib/interceptors.dart"
+
+    _foreign_helper:
+      uri: "_internal/js_runtime/lib/foreign_helper.dart"
+
+    _js_names:
+      uri: "_internal/js_runtime/lib/js_names.dart"
+
+    _js_primitives:
+      uri: "_internal/js_runtime/lib/js_primitives.dart"
+
+    _js_embedded_names:
+      uri: "_internal/js_runtime/lib/shared/embedded_names.dart"
+
+    _async_await_error_codes:
+      uri: "_internal/js_runtime/lib/shared/async_await_error_codes.dart"

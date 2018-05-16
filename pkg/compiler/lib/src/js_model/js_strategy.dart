@@ -72,15 +72,14 @@ class JsBackendStrategy implements KernelBackendStrategy {
   ClosedWorldRefiner createClosedWorldRefiner(ClosedWorld closedWorld) {
     KernelFrontEndStrategy strategy = _compiler.frontendStrategy;
     _elementMap = new JsKernelToElementMap(
-        _compiler.reporter, _compiler.environment, strategy.elementMap);
+        _compiler.reporter,
+        _compiler.environment,
+        strategy.elementMap,
+        closedWorld.processedMembers);
     _elementEnvironment = _elementMap.elementEnvironment;
     _commonElements = _elementMap.commonElements;
     _closureDataLookup = new KernelClosureConversionTask(
-        _compiler.measurer,
-        _elementMap,
-        _globalLocalsMap,
-        _compiler.options.enableTypeAssertions,
-        _compiler.options.strongMode);
+        _compiler.measurer, _elementMap, _globalLocalsMap, _compiler.options);
     JsClosedWorldBuilder closedWorldBuilder = new JsClosedWorldBuilder(
         _elementMap, _closureDataLookup, _compiler.options);
     return closedWorldBuilder._convertClosedWorld(
@@ -115,7 +114,12 @@ class JsBackendStrategy implements KernelBackendStrategy {
           result[closureInfo.closureClassEntity] = unit;
           result[closureInfo.callMethod] = unit;
         } else {
-          result[toBackendEntity(entity)] = unit;
+          Entity backendEntity = toBackendEntity(entity);
+          if (backendEntity != null) {
+            // If [entity] isn't used it doesn't have a corresponding backend
+            // entity.
+            result[backendEntity] = unit;
+          }
         }
       });
       return result;
@@ -281,11 +285,9 @@ class JsClosedWorldBuilder {
     if (_options.disableRtiOptimization) {
       rtiNeed = new TrivialRuntimeTypesNeed();
       callMethods = _closureConversionTask.createClosureEntities(
-          this, map.toBackendMemberMap(closureModels, identity),
-          localFunctionNeedsSignature: (_) => true,
-          classNeedsTypeArguments: (_) => true,
-          methodNeedsTypeArguments: (_) => true,
-          localFunctionNeedsTypeArguments: (_) => true);
+          this,
+          map.toBackendMemberMap(closureModels, identity),
+          const TrivialClosureRtiNeed());
     } else {
       RuntimeTypesNeedImpl kernelRtiNeed = closedWorld.rtiNeed;
       Set<ir.Node> localFunctionsNodesNeedingSignature = new Set<ir.Node>();
@@ -308,23 +310,14 @@ class JsClosedWorldBuilder {
       RuntimeTypesNeedImpl jRtiNeed =
           _convertRuntimeTypesNeed(map, backendUsage, kernelRtiNeed);
       callMethods = _closureConversionTask.createClosureEntities(
-          this, map.toBackendMemberMap(closureModels, identity),
-          localFunctionNeedsSignature: (ir.Node node) {
-            assert(node is ir.FunctionDeclaration ||
-                node is ir.FunctionExpression);
-            return backendUsage.isRuntimeTypeUsed
-                ? true
-                : localFunctionsNodesNeedingSignature.contains(node);
-          },
-          classNeedsTypeArguments: jRtiNeed.classNeedsTypeArguments,
-          methodNeedsTypeArguments: jRtiNeed.methodNeedsTypeArguments,
-          localFunctionNeedsTypeArguments: (ir.Node node) {
-            assert(node is ir.FunctionDeclaration ||
-                node is ir.FunctionExpression);
-            return backendUsage.isRuntimeTypeUsed
-                ? true
-                : localFunctionsNodesNeedingTypeArguments.contains(node);
-          });
+          this,
+          map.toBackendMemberMap(closureModels, identity),
+          new JsClosureRtiNeed(
+            backendUsage,
+            jRtiNeed,
+            localFunctionsNodesNeedingTypeArguments,
+            localFunctionsNodesNeedingSignature,
+          ));
 
       List<FunctionEntity> callMethodsNeedingSignature = <FunctionEntity>[];
       for (ir.Node node in localFunctionsNodesNeedingSignature) {
@@ -398,7 +391,6 @@ class JsClosedWorldBuilder {
         requiresPreamble: backendUsage.requiresPreamble,
         isInvokeOnUsed: backendUsage.isInvokeOnUsed,
         isRuntimeTypeUsed: backendUsage.isRuntimeTypeUsed,
-        isIsolateInUse: backendUsage.isIsolateInUse,
         isFunctionApplyUsed: backendUsage.isFunctionApplyUsed,
         isMirrorsUsed: backendUsage.isMirrorsUsed,
         isNoSuchMethodUsed: backendUsage.isNoSuchMethodUsed);
@@ -463,8 +455,12 @@ class JsClosedWorldBuilder {
         <FunctionEntity, NativeBehavior>{};
     nativeData.nativeMethodBehavior
         .forEach((FunctionEntity method, NativeBehavior behavior) {
-      nativeMethodBehavior[map.toBackendMember(method)] =
-          convertNativeBehavior(behavior);
+      FunctionEntity backendMethod = map.toBackendMember(method);
+      if (backendMethod != null) {
+        // If [method] isn't used it doesn't have a corresponding backend
+        // method.
+        nativeMethodBehavior[backendMethod] = convertNativeBehavior(behavior);
+      }
     });
     Map<MemberEntity, NativeBehavior> nativeFieldLoadBehavior =
         map.toBackendMemberMap(
@@ -702,6 +698,13 @@ class ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
     return new DeferredGlobalConstantValue(referenced, constant.unit);
   }
 
+  ConstantValue visitInstantiation(InstantiationConstantValue constant, _) {
+    ConstantValue function = constant.function.accept(this, null);
+    List<DartType> typeArguments =
+        typeConverter.convertTypes(constant.typeArguments);
+    return new InstantiationConstantValue(typeArguments, function);
+  }
+
   List<ConstantValue> _handleValues(List<ConstantValue> values) {
     List<ConstantValue> result;
     for (int i = 0; i < values.length; i++) {
@@ -724,6 +727,8 @@ class TypeConverter extends DartTypeVisitor<DartType, Null> {
       <FunctionTypeVariable, FunctionTypeVariable>{};
 
   DartType convert(DartType type) => type.accept(this, null);
+
+  List<DartType> convertTypes(List<DartType> types) => _visitList(types);
 
   DartType visitVoidType(VoidType type, _) => type;
   DartType visitDynamicType(DynamicType type, _) => type;
@@ -772,4 +777,54 @@ class TypeConverter extends DartTypeVisitor<DartType, Null> {
 
   List<DartType> _visitList(List<DartType> list) =>
       list.map<DartType>((t) => t.accept(this, null)).toList();
+}
+
+class TrivialClosureRtiNeed implements ClosureRtiNeed {
+  const TrivialClosureRtiNeed();
+
+  bool localFunctionNeedsSignature(ir.Node node) => true;
+  bool classNeedsTypeArguments(ClassEntity cls) => true;
+  bool methodNeedsTypeArguments(FunctionEntity method) => true;
+  bool localFunctionNeedsTypeArguments(ir.Node node) => true;
+  bool selectorNeedsTypeArguments(Selector selector) => true;
+  bool methodNeedsSignature(MemberEntity method) => true;
+}
+
+class JsClosureRtiNeed implements ClosureRtiNeed {
+  final BackendUsage backendUsage;
+  final RuntimeTypesNeed rtiNeed;
+  final Set<ir.Node> localFunctionsNodesNeedingTypeArguments;
+  final Set<ir.Node> localFunctionsNodesNeedingSignature;
+
+  JsClosureRtiNeed(
+      this.backendUsage,
+      this.rtiNeed,
+      this.localFunctionsNodesNeedingTypeArguments,
+      this.localFunctionsNodesNeedingSignature);
+
+  bool localFunctionNeedsSignature(ir.Node node) {
+    assert(node is ir.FunctionDeclaration || node is ir.FunctionExpression);
+    return backendUsage.isRuntimeTypeUsed
+        ? true
+        : localFunctionsNodesNeedingSignature.contains(node);
+  }
+
+  bool classNeedsTypeArguments(ClassEntity cls) =>
+      rtiNeed.classNeedsTypeArguments(cls);
+
+  bool methodNeedsTypeArguments(FunctionEntity method) =>
+      rtiNeed.methodNeedsTypeArguments(method);
+
+  bool localFunctionNeedsTypeArguments(ir.Node node) {
+    assert(node is ir.FunctionDeclaration || node is ir.FunctionExpression);
+    return backendUsage.isRuntimeTypeUsed
+        ? true
+        : localFunctionsNodesNeedingTypeArguments.contains(node);
+  }
+
+  bool selectorNeedsTypeArguments(Selector selector) =>
+      rtiNeed.selectorNeedsTypeArguments(selector);
+
+  bool methodNeedsSignature(MemberEntity method) =>
+      rtiNeed.methodNeedsSignature(method);
 }

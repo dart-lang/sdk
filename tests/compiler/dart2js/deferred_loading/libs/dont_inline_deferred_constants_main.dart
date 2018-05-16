@@ -8,6 +8,7 @@ import 'dont_inline_deferred_constants_lib2.dart' deferred as lib2;
 /*element: c:OutputUnit(main, {})*/
 const c = "string3";
 
+/*class: C:OutputUnit(main, {})*/
 class C {
   /*element: C.p:OutputUnit(main, {})*/
   final p;

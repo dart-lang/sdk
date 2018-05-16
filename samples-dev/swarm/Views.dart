@@ -686,7 +686,7 @@ class FixedSizeListViewLayout<D> implements ListViewLayout<D> {
     return getPageLength(viewLength) ~/ _itemLength * page;
   }
 
-  int getSnapIndex(num offset, int viewLength) {
+  int getSnapIndex(num offset, num viewLength) {
     int index = (-offset / _itemLength).round();
     if (_paginate) {
       index = getPageStartIndex(getPage(index, viewLength), viewLength);
@@ -863,7 +863,7 @@ class VariableSizeListViewLayout<D> implements ListViewLayout<D> {
     throw 'Not implemented';
   }
 
-  int getSnapIndex(num offset, int viewLength) {
+  int getSnapIndex(num offset, num viewLength) {
     for (int i = 1; i < _data.length; i++) {
       if (getOffset(i) + getOffset(i - 1) > -offset * 2) {
         return i - 1;

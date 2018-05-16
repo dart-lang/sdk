@@ -46,11 +46,14 @@ enum Feature {
   /// A generic instantiation (application of type parameters).
   GENERIC_INSTANTIATION,
 
+  /// A field whose initialization is not a constant.
+  LAZY_FIELD,
+
   /// A local variable without an initializer.
   LOCAL_WITHOUT_INITIALIZER,
 
-  /// A field whose initialization is not a constant.
-  LAZY_FIELD,
+  /// Access to `loadLibrary` on a deferred import.
+  LOAD_LIBRARY,
 
   /// A catch clause with a variable for the stack trace.
   STACK_TRACE_IN_CATCH,

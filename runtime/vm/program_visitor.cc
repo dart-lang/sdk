@@ -311,9 +311,7 @@ class TypedDataKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) {
-    return key->ComputeCanonicalTableHash();
-  }
+  static inline intptr_t Hashcode(Key key) { return key->CanonicalizeHash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->CanonicalizeEquals(*key);

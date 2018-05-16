@@ -280,6 +280,33 @@ testSmiOverflow() {
   Expect.equals(-BigInt.parse("1000000001000000000"), a * b);
 }
 
+testBigintAnd() {
+  var a = BigInt.parse("0x55555555555555555555");
+  var b = BigInt.parse("0x33333333333333333333");
+  var c = BigInt.parse("0x11111111111111111111");
+  Expect.equals(BigInt.zero, BigInt.zero & a);
+  Expect.equals(BigInt.zero, a & BigInt.zero);
+  Expect.equals(c, a & b);
+}
+
+testBigintOr() {
+  var a = BigInt.parse("0x33333333333333333333");
+  var b = BigInt.parse("0x55555555555555555555");
+  var c = BigInt.parse("0x77777777777777777777");
+  Expect.equals(a, BigInt.zero | a);
+  Expect.equals(a, a | BigInt.zero);
+  Expect.equals(c, a | b);
+}
+
+testBigintXor() {
+  var a = BigInt.parse("0x33333333333333333333");
+  var b = BigInt.parse("0x55555555555555555555");
+  var c = BigInt.parse("0x66666666666666666666");
+  Expect.equals(a, BigInt.zero ^ a);
+  Expect.equals(a, a ^ BigInt.zero);
+  Expect.equals(c, a ^ b);
+}
+
 testBigintAdd() {
   // Bigint and Smi.
   var a = BigInt.parse("12345678901234567890");
@@ -289,6 +316,8 @@ testBigintAdd() {
   // Bigint and Bigint.
   a = BigInt.parse("10000000000000000001");
   Expect.equals(BigInt.parse("20000000000000000002"), a + a);
+  Expect.equals(a, BigInt.zero + a);
+  Expect.equals(a, a + BigInt.zero);
 }
 
 testBigintSub() {
@@ -300,6 +329,8 @@ testBigintSub() {
   // Bigint and Bigint.
   a = BigInt.parse("10000000000000000001");
   Expect.equals(BigInt.parse("20000000000000000002"), a + a);
+  Expect.equals(-a, BigInt.zero - a);
+  Expect.equals(a, a - BigInt.zero);
 }
 
 testBigintMul() {
@@ -365,6 +396,10 @@ testBigintModulo() {
   b = BigInt.parse("10000000000000000000");
   Expect.equals(BigInt.one, a % b);
   Expect.equals(BigInt.parse("10000000000000000000"), b % a);
+  a = BigInt.parse("2432363650");
+  b = BigInt.parse("2201792050");
+  Expect.equals(BigInt.parse("230571600"), a % b);
+  Expect.equals(BigInt.parse("2201792050"), b % a);
 }
 
 testBigintModPow() {
@@ -449,6 +484,29 @@ testBigintModPow() {
   e = BigInt.parse("123456789012345678901234567890");
   m = BigInt.parse("123456789012345678901234567899");
   Expect.equals(BigInt.parse("40128068573873018143207285483"), x.modPow(e, m));
+  x = BigInt.parse(
+      "142223781135477974841804437037182877109549636480215350570761436386728140"
+      "00321219503871352719175100865184619168128345594681547640115731246638");
+  e = BigInt.parse(
+      "688057170495263083245752731085731160016625265771524738691797062279575950"
+      "919479651156310413084174304361991240273181430924411258203766946639349880"
+      "404106504114953688890200429043051936362182997575167191584461538746041795"
+      "019663740246921124383173799957296515067912829778249931473903780958741032"
+      "64534184571632120755");
+  m = BigInt.parse(
+      "144173682842817587002196172066264549138375068078359231382946906898412792"
+      "452632726597279520229873489736777248181678202636100459215718497240474064"
+      "366927544074501134727745837254834206456400508719134610847814227274992298"
+      "238973375146473350157304285346424982280927848339601514720098577525635486"
+      "320547905945936448443");
+  Expect.equals(
+      BigInt.parse(
+          "41228476947144730491819644448449646627743926889389391986712371102685"
+          "14984467753960109321610008533258676279344318597060690521027646613453"
+          "25674994677820913027869835916005689276806408148698486814119894325284"
+          "18918299321385420296108046942018595594076729397423805685944237555128"
+          "652606412065971965116137839721723231"),
+      x.modPow(e, m));
 }
 
 testBigintModInverse() {
@@ -634,6 +692,12 @@ testBigintNegate() {
 }
 
 testShiftAmount() {
+  Expect.equals(BigInt.zero, BigInt.zero << 0);
+  Expect.equals(BigInt.zero, BigInt.zero >> 0);
+  Expect.equals(BigInt.zero, BigInt.zero << 1234567890);
+  Expect.equals(BigInt.zero, BigInt.zero >> 1234567890);
+  Expect.equals(BigInt.two.pow(999), BigInt.one << 999);
+  Expect.equals(BigInt.one, BigInt.two.pow(999) >> 999);
   Expect.equals(BigInt.zero, new BigInt.from(12) >> 0x7FFFFFFFFFFFFFFF);
   Expect.equals(-BigInt.one, -new BigInt.from(12) >> 0x7FFFFFFFFFFFFFFF);
   bool exceptionCaught = false;
@@ -910,6 +974,9 @@ main() {
     testModInverse();
     testGcd();
     testSmiOverflow();
+    testBigintAnd();
+    testBigintOr();
+    testBigintXor();
     testBigintAdd();
     testBigintSub();
     testBigintMul();

@@ -17,7 +17,14 @@ typedef int Biz<T>(T a, int b);
 /*class: C:explicit=[int Function(C.T),int Function(C.T,[String]),int Function(C.T,int),int Function(C.T,{,b:String})],needsArgs*/
 class C<T> {
   void test(String nameOfT, bool expectedResult) {
+    // TODO(johnniwinther): Optimize local function type signature need.
+    /*kernel.*/
+    /*strong.needsSignature*/
+    /*omit.needsSignature*/
     int foo(bool a, [String b]) => null;
+    /*kernel.*/
+    /*strong.needsSignature*/
+    /*omit.needsSignature*/
     int baz(bool a, {String b}) => null;
 
     Expect.equals(expectedResult, foo is Foo<T>, 'foo is Foo<$nameOfT>');

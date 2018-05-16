@@ -533,6 +533,11 @@ abstract class AstNode implements SyntacticEntity {
   E getProperty<E>(String name);
 
   /**
+   * Return the token before [target] or `null` if it cannot be found.
+   */
+  Token findPrevious(Token target);
+
+  /**
    * Set the value of the property with the given [name] to the given [value].
    * If the value is `null`, the property will effectively be removed.
    */

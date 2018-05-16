@@ -18,13 +18,10 @@
       },
       "_internal": {
         "uri": "../../../../../sdk/lib/internal/internal.dart",
-        "patch": "../patch/internal_patch.dart"
+        "patches": "../patch/internal_patch.dart"
       },
       "_isolate_helper": {
         "uri": "../private/isolate_helper.dart"
-      },
-      "_js_embedded_names": {
-        "uri": "../private/shared/embedded_names.dart"
       },
       "_js_helper": {
         "uri": "../private/js_helper.dart"
@@ -43,43 +40,43 @@
       },
       "async": {
         "uri": "../../../../../sdk/lib/async/async.dart",
-        "patch": "../patch/async_patch.dart"
+        "patches": "../patch/async_patch.dart"
       },
       "collection": {
         "uri": "../../../../../sdk/lib/collection/collection.dart",
-        "patch": "../patch/collection_patch.dart"
+        "patches": "../patch/collection_patch.dart"
       },
       "convert": {
         "uri": "../../../../../sdk/lib/convert/convert.dart",
-        "patch": "../patch/convert_patch.dart"
+        "patches": "../patch/convert_patch.dart"
       },
       "core": {
         "uri": "../../../../../sdk/lib/core/core.dart",
-        "patch": "../patch/core_patch.dart"
+        "patches": "../patch/core_patch.dart"
       },
       "developer": {
         "uri": "../../../../../sdk/lib/developer/developer.dart",
-        "patch": "../patch/developer_patch.dart"
+        "patches": "../patch/developer_patch.dart"
       },
       "io": {
         "uri": "../../../../../sdk/lib/io/io.dart",
-        "patch": "../patch/io_patch.dart"
+        "patches": "../patch/io_patch.dart"
       },
       "isolate": {
         "uri": "../../../../../sdk/lib/isolate/isolate.dart",
-        "patch": "../patch/isolate_patch.dart"
+        "patches": "../patch/isolate_patch.dart"
       },
       "mirrors": {
         "uri": "../../../../../sdk/lib/mirrors/mirrors.dart",
-        "patch": "../patch/mirrors_patch.dart"
+        "patches": "../patch/mirrors_patch.dart"
       },
       "math": {
         "uri": "../../../../../sdk/lib/math/math.dart",
-        "patch": "../patch/math_patch.dart"
+        "patches": "../patch/math_patch.dart"
       },
       "typed_data": {
         "uri": "../../../../../sdk/lib/typed_data/typed_data.dart",
-        "patch": "../patch/typed_data_patch.dart"
+        "patches": "../patch/typed_data_patch.dart"
       },
       "html": {
         "uri": "../../../../../sdk/lib/html/dart2js/html_dart2js.dart"

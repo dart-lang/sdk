@@ -239,17 +239,19 @@ static void Finish(Thread* thread) {
 #if defined(DEBUG)
   // Verify that closure field offsets are identical in Dart and C++.
   const Array& fields = Array::Handle(zone, cls.fields());
-  ASSERT(fields.Length() == 5);
+  ASSERT(fields.Length() == 6);
   Field& field = Field::Handle(zone);
   field ^= fields.At(0);
   ASSERT(field.Offset() == Closure::instantiator_type_arguments_offset());
   field ^= fields.At(1);
   ASSERT(field.Offset() == Closure::function_type_arguments_offset());
   field ^= fields.At(2);
-  ASSERT(field.Offset() == Closure::function_offset());
+  ASSERT(field.Offset() == Closure::delayed_type_arguments_offset());
   field ^= fields.At(3);
-  ASSERT(field.Offset() == Closure::context_offset());
+  ASSERT(field.Offset() == Closure::function_offset());
   field ^= fields.At(4);
+  ASSERT(field.Offset() == Closure::context_offset());
+  field ^= fields.At(5);
   ASSERT(field.Offset() == Closure::hash_offset());
 #endif  // defined(DEBUG)
 
@@ -308,8 +310,12 @@ static RawError* BootstrapFromSource(Thread* thread) {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-static RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
+static RawError* BootstrapFromKernel(Thread* thread,
+                                     const uint8_t* kernel_buffer,
+                                     intptr_t kernel_buffer_size) {
   Zone* zone = thread->zone();
+  kernel::Program* program =
+      kernel::Program::ReadFromBuffer(kernel_buffer, kernel_buffer_size, false);
   kernel::KernelLoader loader(program);
   Isolate* isolate = thread->isolate();
 
@@ -334,7 +340,8 @@ static RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
 
   // The platform binary may contain other libraries (e.g., dart:_builtin or
   // dart:io) that will not be bundled with application.  Load them now.
-  const Object& result = loader.LoadProgram();
+  const Object& result = Object::Handle(zone, loader.LoadProgram());
+  delete program;
   if (result.IsError()) {
     return Error::Cast(result).raw();
   }
@@ -347,13 +354,16 @@ static RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
   return Error::null();
 }
 #else
-static RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
+static RawError* BootstrapFromKernel(Thread* thread,
+                                     const uint8_t* kernel_buffer,
+                                     intptr_t kernel_buffer_size) {
   UNREACHABLE();
   return Error::null();
 }
 #endif
 
-RawError* Bootstrap::DoBootstrapping(kernel::Program* kernel_program) {
+RawError* Bootstrap::DoBootstrapping(const uint8_t* kernel_buffer,
+                                     intptr_t kernel_buffer_size) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
@@ -376,8 +386,9 @@ RawError* Bootstrap::DoBootstrapping(kernel::Program* kernel_program) {
     }
   }
 
-  return (kernel_program == NULL) ? BootstrapFromSource(thread)
-                                  : BootstrapFromKernel(thread, kernel_program);
+  return (kernel_buffer == NULL)
+             ? BootstrapFromSource(thread)
+             : BootstrapFromKernel(thread, kernel_buffer, kernel_buffer_size);
 }
 
 }  // namespace dart

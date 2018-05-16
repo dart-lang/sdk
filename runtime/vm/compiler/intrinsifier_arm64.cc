@@ -1702,7 +1702,7 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
   __ ret();
 
   __ Bind(&use_canonical_type);
-  __ LoadClassById(R2, R1);
+  __ LoadClassById(R2, R1);  // Overwrites R1.
   __ ldr(R3, FieldAddress(R2, Class::num_type_arguments_offset()), kHalfword);
   __ CompareImmediate(R3, 0);
   __ b(&fall_through, NE);
@@ -1736,7 +1736,7 @@ void Intrinsifier::ObjectHaveSameRuntimeType(Assembler* assembler) {
   // Objects have the same class and neither is a closure.
   // Check if there are no type arguments. In this case we can return true.
   // Otherwise fall through into the runtime to handle comparison.
-  __ LoadClassById(R3, R1);
+  __ LoadClassById(R3, R1);  // Overwrites R1.
   __ ldr(R3, FieldAddress(R3, Class::num_type_arguments_offset()), kHalfword);
   __ CompareImmediate(R3, 0);
   __ b(&fall_through, NE);

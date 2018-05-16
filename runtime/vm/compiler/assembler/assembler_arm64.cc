@@ -898,59 +898,56 @@ void Assembler::VRSqrts(VRegister vd, VRegister vn) {
   vmuls(vd, vd, VTMP);
 }
 
-// Store into object.
 // Preserves object and value registers.
-void Assembler::StoreIntoObjectFilterNoSmi(Register object,
-                                           Register value,
-                                           Label* no_update) {
+void Assembler::StoreIntoObjectFilter(Register object,
+                                      Register value,
+                                      Label* label,
+                                      CanBeSmi value_can_be_smi,
+                                      BarrierFilterMode how_to_jump) {
   COMPILE_ASSERT((kNewObjectAlignmentOffset == kWordSize) &&
                  (kOldObjectAlignmentOffset == 0));
 
   // Write-barrier triggers if the value is in the new space (has bit set) and
   // the object is in the old space (has bit cleared).
-  // To check that, we compute value & ~object and skip the write barrier
-  // if the bit is not set. We can't destroy the object.
-  bic(TMP, value, Operand(object));
-  tbz(no_update, TMP, kNewObjectBitPosition);
-}
-
-// Preserves object and value registers.
-void Assembler::StoreIntoObjectFilter(Register object,
-                                      Register value,
-                                      Label* no_update) {
-  // For the value we are only interested in the new/old bit and the tag bit.
-  // And the new bit with the tag bit. The resulting bit will be 0 for a Smi.
-  and_(TMP, value, Operand(value, LSL, kNewObjectBitPosition));
-  // And the result with the negated space bit of the object.
-  bic(TMP, TMP, Operand(object));
-  tbz(no_update, TMP, kNewObjectBitPosition);
+  if (value_can_be_smi == kValueIsNotSmi) {
+    // To check that, we compute value & ~object and skip the write barrier
+    // if the bit is not set. We can't destroy the object.
+    bic(TMP, value, Operand(object));
+  } else {
+    // For the value we are only interested in the new/old bit and the tag bit.
+    // And the new bit with the tag bit. The resulting bit will be 0 for a Smi.
+    and_(TMP, value, Operand(value, LSL, kNewObjectBitPosition));
+    // And the result with the negated space bit of the object.
+    bic(TMP, TMP, Operand(object));
+  }
+  if (how_to_jump == kJumpToNoUpdate) {
+    tbz(label, TMP, kNewObjectBitPosition);
+  } else {
+    tbnz(label, TMP, kNewObjectBitPosition);
+  }
 }
 
 void Assembler::StoreIntoObjectOffset(Register object,
                                       int32_t offset,
                                       Register value,
-                                      bool can_value_be_smi) {
+                                      CanBeSmi value_can_be_smi) {
   if (Address::CanHoldOffset(offset - kHeapObjectTag)) {
     StoreIntoObject(object, FieldAddress(object, offset), value,
-                    can_value_be_smi);
+                    value_can_be_smi);
   } else {
     AddImmediate(TMP, object, offset - kHeapObjectTag);
-    StoreIntoObject(object, Address(TMP), value, can_value_be_smi);
+    StoreIntoObject(object, Address(TMP), value, value_can_be_smi);
   }
 }
 
 void Assembler::StoreIntoObject(Register object,
                                 const Address& dest,
                                 Register value,
-                                bool can_value_be_smi) {
+                                CanBeSmi can_be_smi) {
   ASSERT(object != value);
   str(value, dest);
   Label done;
-  if (can_value_be_smi) {
-    StoreIntoObjectFilter(object, value, &done);
-  } else {
-    StoreIntoObjectFilterNoSmi(object, value, &done);
-  }
+  StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
   // A store buffer update is required.
   if (value != R0) {
     // Preserve R0.
@@ -977,7 +974,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   str(value, dest);
 #if defined(DEBUG)
   Label done;
-  StoreIntoObjectFilter(object, value, &done);
+  StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
   Stop("Store buffer update is required");
   Bind(&done);
 #endif  // defined(DEBUG)
@@ -1033,6 +1030,8 @@ void Assembler::LoadClassById(Register result, Register class_id) {
   const intptr_t offset =
       Isolate::class_table_offset() + ClassTable::table_offset();
   LoadFromOffset(result, result, offset);
+  ASSERT(kSizeOfClassPairLog2 == 4);
+  add(class_id, class_id, Operand(class_id));
   ldr(result, Address(result, class_id, UXTX, Address::Scaled));
 }
 

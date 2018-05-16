@@ -49,6 +49,7 @@ final subpackageRules = {
     'lib/src/base',
     'lib/src/byte_store',
     'lib/src/fasta',
+    'lib/src/fasta/scanner'
   ]),
   'lib/src/api_unstable': new SubpackageRules(allowedDependencies: [
     'lib/src',
@@ -160,6 +161,7 @@ final subpackageRules = {
   'lib/src/testing': new SubpackageRules(allowedDependencies: [
     'lib/src',
     'lib/src/api_prototype',
+    'lib/src/fasta',
   ]),
 };
 

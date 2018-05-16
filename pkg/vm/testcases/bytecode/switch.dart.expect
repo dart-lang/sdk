@@ -1,0 +1,328 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+[@vm.bytecode=
+Bytecode {
+  Entry                2
+  CheckStack
+  PushConstant         CP#0
+  PopLocal             r0
+  Push                 FP[-5]
+  PopLocal             r1
+  Push                 r1
+  PushConstant         CP#2
+  InstanceCall2        2, CP#3
+  PushConstant         CP#4
+  IfEqStrictTOS
+  Jump                 L1
+  Push                 r1
+  PushConstant         CP#5
+  InstanceCall2        2, CP#6
+  PushConstant         CP#4
+  IfEqStrictTOS
+  Jump                 L2
+  Push                 r1
+  PushConstant         CP#7
+  InstanceCall2        2, CP#8
+  PushConstant         CP#4
+  IfEqStrictTOS
+  Jump                 L3
+  Jump                 L4
+L1:
+  PushConstant         CP#9
+  StoreLocal           r0
+  Drop1
+  Jump                 L4
+L2:
+  PushConstant         CP#10
+  StoreLocal           r0
+  Drop1
+  Jump                 L4
+L3:
+  PushConstant         CP#11
+  StoreLocal           r0
+  Drop1
+  Jump                 L4
+L4:
+  Push                 r0
+  ReturnTOS
+  PushConstant         CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = Null
+  [1] = ArgDesc num-args 2, num-type-args 0, names []
+  [2] = Int 1
+  [3] = ICData target-name '==', arg-desc CP#1
+  [4] = Bool true
+  [5] = Int 2
+  [6] = ICData target-name '==', arg-desc CP#1
+  [7] = Int 3
+  [8] = ICData target-name '==', arg-desc CP#1
+  [9] = Int 11
+  [10] = Int 22
+  [11] = Int 33
+}
+]static method foo1(core::int x) → core::int {
+  core::int y;
+  #L1:
+  switch(x) {
+    #L2:
+    case 1:
+      {
+        y = 11;
+        break #L1;
+      }
+    #L3:
+    case 2:
+      {
+        y = 22;
+        break #L1;
+      }
+    #L4:
+    case 3:
+      {
+        y = 33;
+        break #L1;
+      }
+  }
+  return y;
+}
+[@vm.bytecode=
+Bytecode {
+  Entry                2
+  CheckStack
+  PushConstant         CP#0
+  PopLocal             r0
+  Push                 FP[-5]
+  PopLocal             r1
+  Push                 r1
+  PushConstant         CP#2
+  InstanceCall2        2, CP#3
+  PushConstant         CP#4
+  IfEqStrictTOS
+  Jump                 L1
+  Push                 r1
+  PushConstant         CP#5
+  InstanceCall2        2, CP#6
+  PushConstant         CP#4
+  IfEqStrictTOS
+  Jump                 L1
+  Push                 r1
+  PushConstant         CP#7
+  InstanceCall2        2, CP#8
+  PushConstant         CP#4
+  IfEqStrictTOS
+  Jump                 L1
+  Push                 r1
+  PushConstant         CP#9
+  InstanceCall2        2, CP#10
+  PushConstant         CP#4
+  IfEqStrictTOS
+  Jump                 L2
+  Push                 r1
+  PushConstant         CP#11
+  InstanceCall2        2, CP#12
+  PushConstant         CP#4
+  IfEqStrictTOS
+  Jump                 L2
+  Push                 r1
+  PushConstant         CP#13
+  InstanceCall2        2, CP#14
+  PushConstant         CP#4
+  IfEqStrictTOS
+  Jump                 L2
+  Jump                 L3
+L1:
+  PushConstant         CP#15
+  StoreLocal           r0
+  Drop1
+  Jump                 L4
+L2:
+  PushConstant         CP#16
+  StoreLocal           r0
+  Drop1
+  Jump                 L4
+L3:
+  PushConstant         CP#17
+  StoreLocal           r0
+  Drop1
+L4:
+  Push                 r0
+  ReturnTOS
+  PushConstant         CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = Null
+  [1] = ArgDesc num-args 2, num-type-args 0, names []
+  [2] = Int 1
+  [3] = ICData target-name '==', arg-desc CP#1
+  [4] = Bool true
+  [5] = Int 2
+  [6] = ICData target-name '==', arg-desc CP#1
+  [7] = Int 3
+  [8] = ICData target-name '==', arg-desc CP#1
+  [9] = Int 4
+  [10] = ICData target-name '==', arg-desc CP#1
+  [11] = Int 5
+  [12] = ICData target-name '==', arg-desc CP#1
+  [13] = Int 6
+  [14] = ICData target-name '==', arg-desc CP#1
+  [15] = Int 11
+  [16] = Int 22
+  [17] = Int 33
+}
+]static method foo2(core::int x) → core::int {
+  core::int y;
+  #L5:
+  switch(x) {
+    #L6:
+    case 1:
+    case 2:
+    case 3:
+      {
+        y = 11;
+        break #L5;
+      }
+    #L7:
+    case 4:
+    case 5:
+    case 6:
+      {
+        y = 22;
+        break #L5;
+      }
+    #L8:
+    default:
+      {
+        y = 33;
+      }
+  }
+  return y;
+}
+[@vm.bytecode=
+Bytecode {
+  Entry                2
+  CheckStack
+  PushConstant         CP#0
+  PopLocal             r0
+  Push                 FP[-5]
+  PopLocal             r1
+  Push                 r1
+  PushConstant         CP#2
+  InstanceCall2        2, CP#3
+  PushConstant         CP#4
+  IfEqStrictTOS
+  Jump                 L1
+  Push                 r1
+  PushConstant         CP#5
+  InstanceCall2        2, CP#6
+  PushConstant         CP#4
+  IfEqStrictTOS
+  Jump                 L1
+  Push                 r1
+  PushConstant         CP#7
+  InstanceCall2        2, CP#8
+  PushConstant         CP#4
+  IfEqStrictTOS
+  Jump                 L1
+  Push                 r1
+  PushConstant         CP#9
+  InstanceCall2        2, CP#10
+  PushConstant         CP#4
+  IfEqStrictTOS
+  Jump                 L2
+  Push                 r1
+  PushConstant         CP#11
+  InstanceCall2        2, CP#12
+  PushConstant         CP#4
+  IfEqStrictTOS
+  Jump                 L2
+  Push                 r1
+  PushConstant         CP#13
+  InstanceCall2        2, CP#14
+  PushConstant         CP#4
+  IfEqStrictTOS
+  Jump                 L2
+  Jump                 L3
+L1:
+  PushConstant         CP#15
+  StoreLocal           r0
+  Drop1
+  Jump                 L2
+L2:
+  PushConstant         CP#16
+  StoreLocal           r0
+  Drop1
+  PushConstant         CP#17
+  ReturnTOS
+L3:
+  PushConstant         CP#18
+  StoreLocal           r0
+  Drop1
+  Push                 r0
+  ReturnTOS
+  PushConstant         CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = Null
+  [1] = ArgDesc num-args 2, num-type-args 0, names []
+  [2] = Int 1
+  [3] = ICData target-name '==', arg-desc CP#1
+  [4] = Bool true
+  [5] = Int 2
+  [6] = ICData target-name '==', arg-desc CP#1
+  [7] = Int 3
+  [8] = ICData target-name '==', arg-desc CP#1
+  [9] = Int 4
+  [10] = ICData target-name '==', arg-desc CP#1
+  [11] = Int 5
+  [12] = ICData target-name '==', arg-desc CP#1
+  [13] = Int 6
+  [14] = ICData target-name '==', arg-desc CP#1
+  [15] = Int 11
+  [16] = Int 22
+  [17] = Int 42
+  [18] = Int 33
+}
+]static method foo3(core::int x) → core::int {
+  core::int y;
+  switch(x) {
+    #L9:
+    case 1:
+    case 2:
+    case 3:
+      {
+        y = 11;
+        continue #L10;
+      }
+    #L10:
+    case 4:
+    case 5:
+    case 6:
+      {
+        y = 22;
+        return 42;
+      }
+    #L11:
+    default:
+      {
+        y = 33;
+      }
+  }
+  return y;
+}
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  PushConstant         CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = Null
+}
+]static method main() → dynamic {}

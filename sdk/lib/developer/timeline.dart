@@ -328,7 +328,7 @@ class _SyncBlock {
 
 String _argumentsAsJson(Map arguments) {
   if ((arguments == null) || (arguments.length == 0)) {
-    // Fast path no arguments. Avoid calling JSON.encode.
+    // Fast path no arguments. Avoid calling jsonEncode.
     return '{}';
   }
   return json.encode(arguments);

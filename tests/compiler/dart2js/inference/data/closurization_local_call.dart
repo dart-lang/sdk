@@ -18,20 +18,26 @@ class Class {
   call() => true;
 }
 
-// TODO(johnniwinther): Fix the refined type. Missing call methods in the closed
-// world leads to concluding [exact=Class].
 /*element: closurizedCallToString:[exact=JSString]*/
 closurizedCallToString() {
   var c = new Class();
   c.call(); // Make `Class.call` live.
   var local = /*[exact=JSUInt31]*/ () => 42;
-  local. /*invoke: [subtype=Function]*/ toString();
+  local
+      .
+      /*kernel.invoke: [subtype=Function]*/
+      /*strong.invoke: [subclass=Closure]*/
+      toString();
   local();
   local
-      . /*invoke: [exact=Class]*/
+      .
+      /*kernel.invoke: [subtype=Function]*/
+      /*strong.invoke: [subclass=Closure]*/
       toString();
   local.call();
   return local
-      . /*invoke: [exact=Class]*/
+      .
+      /*kernel.invoke: [subtype=Function]*/
+      /*strong.invoke: [subclass=Closure]*/
       toString();
 }

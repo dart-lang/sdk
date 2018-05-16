@@ -8,10 +8,10 @@ import 'dart:convert';
 import 'dart:io' show Platform, Process, ProcessResult;
 
 import 'package:analysis_server/src/plugin/notification_manager.dart';
-import 'package:analyzer/context/context_root.dart' as analyzer;
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/src/context/context_root.dart' as analyzer;
 import 'package:analyzer/src/generated/bazel.dart';
 import 'package:analyzer/src/generated/gn.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -301,6 +301,11 @@ class PluginManager {
    */
   static Map<PluginInfo, Map<String, List<int>>> pluginResponseTimes =
       <PluginInfo, Map<String, List<int>>>{};
+
+  /**
+   * The console environment key used by the pub tool.
+   */
+  static const String _pubEnvironmentKey = 'PUB_ENVIRONMENT';
 
   /**
    * The resource provider used to access the file system.
@@ -679,33 +684,36 @@ class PluginManager {
     }
     String reason;
     File packagesFile = pluginFolder.getChildAssumingFile('.packages');
-    if (!packagesFile.exists) {
-      if (runPub) {
-        String vmPath = Platform.executable;
-        String pubPath = path.join(path.dirname(vmPath), 'pub');
-        if (Platform.isWindows) {
-          // Process.run requires the `.bat` suffix on Windows
-          pubPath = '$pubPath.bat';
-        }
-        ProcessResult result = Process.runSync(pubPath, <String>['get'],
-            stderrEncoding: utf8,
-            stdoutEncoding: utf8,
-            workingDirectory: pluginFolder.path);
-        if (result.exitCode != 0) {
-          StringBuffer buffer = new StringBuffer();
-          buffer.writeln('Failed to run pub get');
-          buffer.writeln('  pluginFolder = ${pluginFolder.path}');
-          buffer.writeln('  exitCode = ${result.exitCode}');
-          buffer.writeln('  stdout = ${result.stdout}');
-          buffer.writeln('  stderr = ${result.stderr}');
-          reason = buffer.toString();
-          instrumentationService.logError(reason);
-        }
-        if (!packagesFile.exists) {
-          reason ??= 'File "${packagesFile.path}" does not exist.';
-          packagesFile = null;
-        }
-      } else if (workspace != null) {
+    bool packagesFilePreExists = packagesFile.exists;
+    if (runPub) {
+      String vmPath = Platform.executable;
+      String pubPath = path.join(path.dirname(vmPath), 'pub');
+      if (Platform.isWindows) {
+        // Process.run requires the `.bat` suffix on Windows
+        pubPath = '$pubPath.bat';
+      }
+      String pubSubcommand = packagesFilePreExists ? 'upgrade' : 'get';
+      ProcessResult result = Process.runSync(pubPath, <String>[pubSubcommand],
+          stderrEncoding: utf8,
+          stdoutEncoding: utf8,
+          workingDirectory: pluginFolder.path,
+          environment: {_pubEnvironmentKey: _getPubEnvironmentValue()});
+      if (result.exitCode != 0) {
+        StringBuffer buffer = new StringBuffer();
+        buffer.writeln('Failed to run pub get');
+        buffer.writeln('  pluginFolder = ${pluginFolder.path}');
+        buffer.writeln('  exitCode = ${result.exitCode}');
+        buffer.writeln('  stdout = ${result.stdout}');
+        buffer.writeln('  stderr = ${result.stderr}');
+        reason = buffer.toString();
+        instrumentationService.logError(reason);
+      }
+      if (!packagesFile.exists) {
+        reason ??= 'File "${packagesFile.path}" does not exist.';
+        packagesFile = null;
+      }
+    } else if (!packagesFilePreExists) {
+      if (workspace != null) {
         packagesFile =
             _createPackagesFile(pluginFolder, workspace.packageUriResolver);
         if (packagesFile == null) {
@@ -805,7 +813,7 @@ class PluginManager {
     if (contents is YamlMap) {
       YamlNode dependencies = contents['dependencies'];
       if (dependencies is YamlMap) {
-        return dependencies.keys;
+        return dependencies.keys.cast<String>();
       }
     }
     return const <String>[];
@@ -828,6 +836,28 @@ class PluginManager {
         .putIfAbsent(plugin, () => <String, List<int>>{})
         .putIfAbsent(method, () => <int>[])
         .add(time);
+  }
+
+  /**
+   * Returns the environment value that should be used when running pub.
+   *
+   * Includes any existing environment value, if one exists.
+   */
+  static String _getPubEnvironmentValue() {
+    // DO NOT update this function without contacting kevmoo.
+    // We have server-side tooling that assumes the values are consistent.
+    var values = <String>[];
+
+    var existing = Platform.environment[_pubEnvironmentKey];
+
+    // If there is an existing value for this var, make sure to include it.
+    if ((existing != null) && existing.isNotEmpty) {
+      values.add(existing);
+    }
+
+    values.add('analysis_server.plugin_manager');
+
+    return values.join(':');
   }
 }
 
@@ -1069,7 +1099,7 @@ class PluginSession {
     sendRequest(new PluginShutdownParams());
     new Future.delayed(WAIT_FOR_SHUTDOWN_DURATION, () {
       if (channel != null) {
-        channel.kill();
+        channel?.kill();
         channel = null;
       }
     });

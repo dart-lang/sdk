@@ -11,7 +11,7 @@
 #include <fcntl.h>
 #include <cstdlib>
 
-#include "vm/atomic.h"
+#include "platform/atomic.h"
 #include "vm/isolate.h"
 #include "vm/json_stream.h"
 #include "vm/lockers.h"
@@ -112,7 +112,17 @@ static TimelineEventRecorder* CreateTimelineRecorder() {
       if (FLAG_trace_timeline) {
         THR_Print("Using the Systrace timeline recorder.\n");
       }
-      return TimelineEventPlatformRecorder::CreatePlatformRecorder();
+
+#if defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
+      return new TimelineEventSystraceRecorder();
+#elif defined(HOST_OS_FUCHSIA)
+      return new TimelineEventFuchsiaRecorder();
+#else
+      OS::PrintErr(
+          "Warning: The systrace timeline recorder is equivalent to the"
+          "ring recorder on this platform.");
+      return new TimelineEventRingRecorder();
+#endif
     }
   }
 
@@ -1338,6 +1348,42 @@ TimelineEvent* TimelineEventCallbackRecorder::StartEvent() {
 }
 
 void TimelineEventCallbackRecorder::CompleteEvent(TimelineEvent* event) {
+  OnEvent(event);
+  delete event;
+}
+
+TimelineEventPlatformRecorder::TimelineEventPlatformRecorder() {}
+
+TimelineEventPlatformRecorder::~TimelineEventPlatformRecorder() {}
+
+void TimelineEventPlatformRecorder::PrintJSON(JSONStream* js,
+                                              TimelineEventFilter* filter) {
+  if (!FLAG_support_service) {
+    return;
+  }
+  JSONObject topLevel(js);
+  topLevel.AddProperty("type", "_Timeline");
+  {
+    JSONArray events(&topLevel, "traceEvents");
+    PrintJSONMeta(&events);
+  }
+}
+
+void TimelineEventPlatformRecorder::PrintTraceEvent(
+    JSONStream* js,
+    TimelineEventFilter* filter) {
+  if (!FLAG_support_service) {
+    return;
+  }
+  JSONArray events(js);
+}
+
+TimelineEvent* TimelineEventPlatformRecorder::StartEvent() {
+  TimelineEvent* event = new TimelineEvent();
+  return event;
+}
+
+void TimelineEventPlatformRecorder::CompleteEvent(TimelineEvent* event) {
   OnEvent(event);
   delete event;
 }

@@ -46,6 +46,7 @@
 #include "vm/timeline.h"
 #include "vm/timer.h"
 #include "vm/type_table.h"
+#include "vm/type_testing_stubs.h"
 #include "vm/unicode.h"
 #include "vm/version.h"
 
@@ -81,6 +82,7 @@ DECLARE_FLAG(int, inlining_depth_threshold);
 DECLARE_FLAG(int, inlining_caller_size_threshold);
 DECLARE_FLAG(int, inlining_constant_arguments_max_size_threshold);
 DECLARE_FLAG(int, inlining_constant_arguments_min_size_threshold);
+DECLARE_FLAG(bool, print_instruction_stats);
 
 #ifdef DART_PRECOMPILER
 
@@ -181,7 +183,8 @@ class PrecompileParsedFunctionHelper : public ValueObject {
 
   void FinalizeCompilation(Assembler* assembler,
                            FlowGraphCompiler* graph_compiler,
-                           FlowGraph* flow_graph);
+                           FlowGraph* flow_graph,
+                           CodeStatistics* stats);
 
   Precompiler* precompiler_;
   ParsedFunction* parsed_function_;
@@ -271,6 +274,10 @@ void Precompiler::DoCompileAll(
 
       ClassFinalizer::SortClasses();
 
+      // Collects type usage information which allows us to decide when/how to
+      // optimize runtime type tests.
+      TypeUsageInfo type_usage_info(T);
+
       // The cid-ranges of subclasses of a class are e.g. used for is/as checks
       // as well as other type checks.
       HierarchyInfo hierarchy_info(T);
@@ -310,6 +317,10 @@ void Precompiler::DoCompileAll(
         // Compile newly found targets and add their callees until we reach a
         // fixed point.
         Iterate();
+
+        // Replace the default type testing stubs installed on [Type]s with new
+        // [Type]-specialized stubs.
+        AttachOptimizedTypeTestingStub();
       }
 
       I->set_compilation_allowed(false);
@@ -499,6 +510,7 @@ static Dart_QualifiedFunctionName vm_entry_points[] = {
     {"dart:core", "_CastError", "_CastError._create"},
     {"dart:core", "_InternalError", "_InternalError."},
     {"dart:core", "_InvocationMirror", "_allocateInvocationMirror"},
+    {"dart:core", "_InvocationMirror", "_allocateInvocationMirrorForClosure"},
     {"dart:core", "_TypeError", "_TypeError._create"},
     {"dart:collection", "::", "_rehashObjects"},
     {"dart:isolate", "IsolateSpawnException", "IsolateSpawnException."},
@@ -1856,6 +1868,74 @@ void Precompiler::DropFields() {
   }
 }
 
+void Precompiler::AttachOptimizedTypeTestingStub() {
+  Isolate::Current()->heap()->CollectAllGarbage();
+  GrowableHandlePtrArray<const AbstractType> types(Z, 200);
+  {
+    class TypesCollector : public ObjectVisitor {
+     public:
+      explicit TypesCollector(Zone* zone,
+                              GrowableHandlePtrArray<const AbstractType>* types)
+          : type_(AbstractType::Handle(zone)), types_(types) {}
+
+      void VisitObject(RawObject* obj) {
+        if (obj->GetClassId() == kTypeCid || obj->GetClassId() == kTypeRefCid) {
+          type_ ^= obj;
+          types_->Add(type_);
+        }
+      }
+
+     private:
+      AbstractType& type_;
+      GrowableHandlePtrArray<const AbstractType>* types_;
+    };
+
+    HeapIterationScope his(T);
+    TypesCollector visitor(Z, &types);
+
+    // Find all type objects in this isolate.
+    I->heap()->VisitObjects(&visitor);
+
+    // Find all type objects in the vm-isolate.
+    Dart::vm_isolate()->heap()->VisitObjects(&visitor);
+  }
+
+  TypeUsageInfo* type_usage_info = Thread::Current()->type_usage_info();
+
+  // At this point we're not generating any new code, so we build a picture of
+  // which types we might type-test against.
+  type_usage_info->BuildTypeUsageInformation();
+
+  TypeTestingStubGenerator type_testing_stubs;
+  Instructions& instr = Instructions::Handle();
+  for (intptr_t i = 0; i < types.length(); i++) {
+    const AbstractType& type = types.At(i);
+
+    if (!type.IsResolved()) {
+      continue;
+    }
+
+    if (type.InVMHeap()) {
+      // The only important types in the vm isolate are "dynamic"/"void", which
+      // will get their optimized top-type testing stub installed at creation.
+      continue;
+    }
+
+    if (type.IsResolved() && !type.IsMalformedOrMalbounded()) {
+      if (type_usage_info->IsUsedInTypeTest(type)) {
+        instr = type_testing_stubs.OptimizedCodeForType(type);
+        type.SetTypeTestingStub(instr);
+
+        // Ensure we retain the type.
+        AddType(type);
+      }
+    }
+  }
+
+  ASSERT(Object::dynamic_type().type_test_stub_entry_point() !=
+         StubCode::DefaultTypeTest_entry()->EntryPoint());
+}
+
 void Precompiler::DropTypes() {
   ObjectStore* object_store = I->object_store();
   GrowableObjectArray& retained_types =
@@ -2600,7 +2680,8 @@ void Precompiler::ResetPrecompilerState() {
 void PrecompileParsedFunctionHelper::FinalizeCompilation(
     Assembler* assembler,
     FlowGraphCompiler* graph_compiler,
-    FlowGraph* flow_graph) {
+    FlowGraph* flow_graph,
+    CodeStatistics* stats) {
   const Function& function = parsed_function()->function();
   Zone* const zone = thread()->zone();
 
@@ -2614,7 +2695,7 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
   // Allocates instruction object. Since this occurs only at safepoint,
   // there can be no concurrent access to the instruction page.
   const Code& code =
-      Code::Handle(Code::FinalizeCode(function, assembler, optimized()));
+      Code::Handle(Code::FinalizeCode(function, assembler, optimized(), stats));
   code.set_is_optimized(optimized());
   code.set_owner(function);
   if (!function.IsOptimizable()) {
@@ -2747,10 +2828,19 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       ASSERT(pass_state.inline_id_to_function.length() ==
              pass_state.caller_inline_id.length());
       Assembler assembler(use_far_branches);
+
+      CodeStatistics* function_stats = NULL;
+      if (FLAG_print_instruction_stats) {
+        // At the moment we are leaking CodeStatistics objects for
+        // simplicity because this is just a development mode flag.
+        function_stats = new CodeStatistics(&assembler);
+      }
+
       FlowGraphCompiler graph_compiler(
           &assembler, flow_graph, *parsed_function(), optimized(),
           &speculative_policy, pass_state.inline_id_to_function,
-          pass_state.inline_id_to_token_pos, pass_state.caller_inline_id);
+          pass_state.inline_id_to_token_pos, pass_state.caller_inline_id,
+          function_stats);
       {
         CSTAT_TIMER_SCOPE(thread(), graphcompiler_timer);
 #ifndef PRODUCT
@@ -2765,7 +2855,8 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
                                   "FinalizeCompilation");
 #endif  // !PRODUCT
         ASSERT(thread()->IsMutatorThread());
-        FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
+        FinalizeCompilation(&assembler, &graph_compiler, flow_graph,
+                            function_stats);
       }
       // Exit the loop and the function with the correct result value.
       is_compiled = true;

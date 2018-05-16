@@ -4,7 +4,6 @@
 
 import 'graph_builder.dart';
 import 'nodes.dart';
-import '../common.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../io/source_information.dart';
@@ -55,7 +54,6 @@ abstract class TypeBuilder {
 
   /// Create an instruction to simply trust the provided type.
   HInstruction _trustType(HInstruction original, DartType type) {
-    assert(builder.options.trustTypeAnnotations);
     assert(type != null);
     TypeMask mask = trustTypeMask(type);
     if (mask == null) return original;
@@ -65,7 +63,6 @@ abstract class TypeBuilder {
   /// Produces code that checks the runtime type is actually the type specified
   /// by attempting a type conversion.
   HInstruction _checkType(HInstruction original, DartType type, int kind) {
-    assert(builder.options.enableTypeAssertions);
     assert(type != null);
     type = builder.localsHandler.substInContext(type);
     HInstruction other = buildTypeConversion(original, type, kind);
@@ -78,16 +75,32 @@ abstract class TypeBuilder {
     return other;
   }
 
+  HInstruction potentiallyCheckOrTrustTypeOfParameter(
+      HInstruction original, DartType type) {
+    if (type == null) return original;
+    HInstruction checkedOrTrusted = original;
+    if (builder.options.parameterCheckPolicy.isTrusted) {
+      checkedOrTrusted = _trustType(original, type);
+    } else if (builder.options.parameterCheckPolicy.isEmitted) {
+      checkedOrTrusted =
+          _checkType(original, type, HTypeConversion.CHECKED_MODE_CHECK);
+    }
+    if (checkedOrTrusted == original) return original;
+    builder.add(checkedOrTrusted);
+    return checkedOrTrusted;
+  }
+
   /// Depending on the context and the mode, wrap the given type in an
   /// instruction that checks the type is what we expect or automatically
   /// trusts the written type.
-  HInstruction potentiallyCheckOrTrustType(HInstruction original, DartType type,
+  HInstruction potentiallyCheckOrTrustTypeOfAssignment(
+      HInstruction original, DartType type,
       {int kind: HTypeConversion.CHECKED_MODE_CHECK}) {
     if (type == null) return original;
     HInstruction checkedOrTrusted = original;
-    if (builder.options.trustTypeAnnotations) {
+    if (builder.options.assignmentCheckPolicy.isTrusted) {
       checkedOrTrusted = _trustType(original, type);
-    } else if (builder.options.enableTypeAssertions) {
+    } else if (builder.options.assignmentCheckPolicy.isEmitted) {
       checkedOrTrusted = _checkType(original, type, kind);
     }
     if (checkedOrTrusted == original) return original;
@@ -101,9 +114,8 @@ abstract class TypeBuilder {
   HInstruction addTypeVariableReference(
       TypeVariableType type, MemberEntity member,
       {SourceInformation sourceInformation}) {
-    assert(assertTypeInContext(type));
     if (type.element.typeDeclaration is! ClassEntity &&
-        (!builder.options.strongMode || !builder.options.useKernel)) {
+        !builder.options.strongMode) {
       // GENERIC_METHODS:  We currently don't reify method type variables.
       return builder.graph.addConstantNull(builder.closedWorld);
     }
@@ -158,8 +170,12 @@ abstract class TypeBuilder {
     assert(variable.element.typeDeclaration is ClassEntity);
     HInstruction target =
         builder.localsHandler.readThis(sourceInformation: sourceInformation);
-    builder.push(new HTypeInfoReadVariable(
-        variable, target, builder.commonMasks.dynamicType)
+    HInstruction interceptor =
+        new HInterceptor(target, builder.abstractValueDomain.nonNullType)
+          ..sourceInformation = sourceInformation;
+    builder.add(interceptor);
+    builder.push(new HTypeInfoReadVariable.intercepted(
+        variable, interceptor, target, builder.abstractValueDomain.dynamicType)
       ..sourceInformation = sourceInformation);
     return builder.pop();
   }
@@ -181,30 +197,14 @@ abstract class TypeBuilder {
         TypeInfoExpressionKind.INSTANCE,
         builder.closedWorld.elementEnvironment.getThisType(interface.element),
         inputs,
-        builder.commonMasks.dynamicType)
+        builder.abstractValueDomain.dynamicType)
       ..sourceInformation = sourceInformation;
     return representation;
-  }
-
-  /// Check that [type] is valid in the context of `localsHandler.contextClass`.
-  /// This should only be called in assertions.
-  bool assertTypeInContext(DartType type, [Spannable spannable]) {
-    if (builder.compiler.options.useKernel) return true;
-    ClassEntity contextClass = DartTypes.getClassContext(type);
-    assert(
-        contextClass == null ||
-            contextClass == builder.localsHandler.instanceType?.element,
-        failedAt(
-            spannable ?? CURRENT_ELEMENT_SPANNABLE,
-            "Type '$type' is not valid context of "
-            "${builder.localsHandler.instanceType?.element}."));
-    return true;
   }
 
   HInstruction analyzeTypeArgument(
       DartType argument, MemberEntity sourceElement,
       {SourceInformation sourceInformation}) {
-    assert(assertTypeInContext(argument));
     argument = argument.unaliased;
     if (argument.treatAsDynamic) {
       // Represent [dynamic] as [null].
@@ -219,7 +219,7 @@ abstract class TypeBuilder {
     List<HInstruction> inputs = <HInstruction>[];
     argument.forEachTypeVariable((TypeVariableType variable) {
       if (variable.element.typeDeclaration is ClassEntity ||
-          (builder.options.strongMode && builder.options.useKernel)) {
+          builder.options.strongMode) {
         // TODO(johnniwinther): Also make this conditional on whether we have
         // calculated we need that particular method signature.
         inputs.add(analyzeTypeArgument(variable, sourceElement));
@@ -229,17 +229,14 @@ abstract class TypeBuilder {
         TypeInfoExpressionKind.COMPLETE,
         argument,
         inputs,
-        builder.commonMasks.dynamicType)
+        builder.abstractValueDomain.dynamicType)
       ..sourceInformation = sourceInformation;
     builder.add(result);
     return result;
   }
 
-  /// In checked mode, generate type tests for the parameters of the inlined
-  /// function.
-  void potentiallyCheckInlinedParameterTypes(FunctionEntity function);
-
   bool get checkOrTrustTypes =>
+      builder.options.strongMode ||
       builder.options.enableTypeAssertions ||
       builder.options.trustTypeAnnotations;
 
@@ -261,7 +258,6 @@ abstract class TypeBuilder {
       }
     }
     type = type.unaliased;
-    assert(assertTypeInContext(type, original));
     if (type.isInterfaceType && !type.treatAsRaw) {
       InterfaceType interfaceType = type;
       TypeMask subtype =
@@ -279,10 +275,10 @@ abstract class TypeBuilder {
       return new HTypeConversion.withTypeRepresentation(
           type, kind, subtype, original, typeVariable)
         ..sourceInformation = sourceInformation;
-    } else if (type.isFunctionType) {
+    } else if (type.isFunctionType || type.isFutureOr) {
       HInstruction reifiedType =
           analyzeTypeArgument(type, builder.sourceElement);
-      // TypeMasks don't encode function types.
+      // TypeMasks don't encode function types or FutureOr types.
       TypeMask refinedMask = original.instructionType;
       return new HTypeConversion.withTypeRepresentation(
           type, kind, refinedMask, original, reifiedType)

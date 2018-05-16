@@ -70,9 +70,6 @@ class Class3 {
     this;
     /*update: [exact=Class3]*/ field = 42;
   }
-
-  /*element: Class3.method:[null]*/
-  method() {}
 }
 
 /*element: exposeThis3:[exact=Class3]*/

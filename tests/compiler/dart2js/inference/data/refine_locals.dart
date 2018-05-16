@@ -112,9 +112,18 @@ _refineToEmptySet(/*Union([exact=Class1], [exact=Class2])*/ o) {
 /*element: _refineToClass1InvokeIfNotNull:[null]*/
 _refineToClass1InvokeIfNotNull(
     /*Union([exact=Class2], [null|exact=Class1])*/ o) {
-  o?. /*ast.invoke: Union([exact=Class2], [null|exact=Class1])*/ /*kernel.invoke: Union([exact=Class1], [exact=Class2])*/ method1();
-  o?. /*ast.invoke: [null|exact=Class1]*/ /*kernel.invoke: [exact=Class1]*/ method0();
-  o?. /*ast.invoke: [null|exact=Class1]*/ /*kernel.invoke: [exact=Class1]*/ method2();
+  o
+      ?.
+      /*invoke: Union([exact=Class1], [exact=Class2])*/
+      method1();
+  o
+      ?.
+      /*invoke: [exact=Class1]*/
+      method0();
+  o
+      ?.
+      /*invoke: [exact=Class1]*/
+      method2();
   return o;
 }
 
@@ -163,16 +172,14 @@ refineToClass() {
 // Refine the type of a local variable through a sequence of invocations.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _refineToClosureLocal:[empty]*/
+/*element: _refineToClosureLocal:[subclass=Closure]*/
 _refineToClosureLocal() {
   var f = /*[null]*/ ({/*[exact=JSUInt31]*/ a}) {};
   f(a: 0);
   return f;
 }
 
-// TODO(johnniwinther): Fix the refined type. Missing call methods in the closed
-// world leads to concluding [empty].
-/*element: _refineToClosureLocalCall:[empty]*/
+/*element: _refineToClosureLocalCall:[subclass=Closure]*/
 _refineToClosureLocalCall() {
   var f = /*[null]*/ ({/*[exact=JSUInt31]*/ b}) {};
   f.call(b: 0);

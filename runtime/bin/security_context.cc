@@ -661,7 +661,6 @@ Dart_Handle X509Helper::GetSubject(Dart_NativeArguments args) {
 }
 
 Dart_Handle X509Helper::GetIssuer(Dart_NativeArguments args) {
-  fprintf(stdout, "Getting issuer!\n");
   X509* certificate = GetX509Certificate(args);
   X509_NAME* issuer = X509_get_issuer_name(certificate);
   char* issuer_string = X509_NAME_oneline(issuer, NULL, 0);

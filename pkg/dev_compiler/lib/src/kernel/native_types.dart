@@ -5,7 +5,7 @@
 import 'dart:collection';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
-import 'package:kernel/library_index.dart';
+import 'constants.dart';
 
 /// Contains information about native JS types (those types provided by the
 /// implementation) that are also provided by the Dart SDK.
@@ -26,7 +26,7 @@ import 'package:kernel/library_index.dart';
 /// `first` to the `Array.prototype`.
 class NativeTypeSet {
   final CoreTypes coreTypes;
-  final LibraryIndex sdk;
+  final DevCompilerConstants constants;
 
   // Abstract types that may be implemented by both native and non-native
   // classes.
@@ -36,9 +36,7 @@ class NativeTypeSet {
   final _nativeTypes = new HashSet<Class>.identity();
   final _pendingLibraries = new HashSet<Library>.identity();
 
-  NativeTypeSet(Program program)
-      : sdk = new LibraryIndex.coreLibraries(program),
-        coreTypes = new CoreTypes(program) {
+  NativeTypeSet(this.coreTypes, this.constants) {
     // First, core types:
     // TODO(vsm): If we're analyzing against the main SDK, those
     // types are not explicitly annotated.
@@ -47,6 +45,8 @@ class NativeTypeSet {
     _addExtensionType(coreTypes.doubleClass, true);
     _addExtensionType(coreTypes.boolClass, true);
     _addExtensionType(coreTypes.stringClass, true);
+
+    var sdk = coreTypes.index;
     _addExtensionTypes(sdk.getLibrary('dart:_interceptors'));
     _addExtensionTypes(sdk.getLibrary('dart:_native_typed_data'));
 
@@ -62,18 +62,6 @@ class NativeTypeSet {
     _addPendingExtensionTypes(sdk.getLibrary('dart:web_audio'));
     _addPendingExtensionTypes(sdk.getLibrary('dart:web_gl'));
     _addPendingExtensionTypes(sdk.getLibrary('dart:web_sql'));
-  }
-
-  bool _isNative(Class c) {
-    for (var annotation in c.annotations) {
-      if (annotation is ConstructorInvocation) {
-        var c = annotation.target.enclosingClass;
-        if (c.name == 'Native' || c.name == 'JsPeerInterface') {
-          if (c.enclosingLibrary.importUri.scheme == 'dart') return true;
-        }
-      }
-    }
-    return false;
   }
 
   void _addExtensionType(Class c, [bool mustBeNative = false]) {
@@ -93,6 +81,7 @@ class NativeTypeSet {
   }
 
   void _addExtensionTypesForLibrary(String library, List<String> classNames) {
+    var sdk = coreTypes.index;
     for (var className in classNames) {
       _addExtensionType(sdk.getClass(library, className), true);
     }
@@ -129,4 +118,32 @@ class NativeTypeSet {
       _processPending(c) && _extensibleTypes.contains(c);
 
   bool hasNativeSubtype(Class c) => isNativeInterface(c) || isNativeClass(c);
+
+  /// Gets the JS peer for this Dart type if any, otherwise null.
+  ///
+  /// For example for dart:_interceptors `JSArray` this will return "Array",
+  /// referring to the JavaScript built-in `Array` type.
+  List<String> getNativePeers(Class c) {
+    if (c == coreTypes.objectClass) return ['Object'];
+    var names = constants.getNameFromAnnotation(_getNativeAnnotation(c));
+    if (names == null) return const [];
+
+    // Omit the special name "!nonleaf" and any future hacks starting with "!"
+    return names.split(',').where((peer) => !peer.startsWith("!")).toList();
+  }
+}
+
+bool _isNative(Class c) => _getNativeAnnotation(c) != null;
+
+ConstructorInvocation _getNativeAnnotation(Class c) {
+  for (var annotation in c.annotations) {
+    if (annotation is ConstructorInvocation) {
+      var c = annotation.target.enclosingClass;
+      if ((c.name == 'Native' || c.name == 'JsPeerInterface') &&
+          c.enclosingLibrary.importUri.scheme == 'dart') {
+        return annotation;
+      }
+    }
+  }
+  return null;
 }

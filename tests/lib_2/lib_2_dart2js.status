@@ -8,6 +8,8 @@ convert/base64_test/01: Fail, OK # Uses bit-wise operations to detect invalid va
 convert/chunked_conversion_utf88_test: Slow, Pass
 convert/utf85_test: Slow, Pass
 developer/timeline_test: Skip # Not supported
+html/async_spawnuri_test: SkipByDesign
+html/async_test: SkipByDesign
 html/custom/document_register_type_extensions_test/construction: Pass, Timeout # Roll 50 failure
 html/custom/document_register_type_extensions_test/registration: Pass, Timeout # Roll 50 failure
 html/custom/element_upgrade_failure_test: MissingCompileTimeError
@@ -19,32 +21,15 @@ html/indexeddb_2_test: Pass, Timeout # Roll 50 failure
 html/indexeddb_3_test: Pass, Timeout # Roll 50 failure
 html/indexeddb_4_test: Pass, Timeout # Roll 50 failure
 html/indexeddb_5_test: Pass, Timeout # Roll 50 failure
+html/isolates_test: SkipByDesign
 html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue #25759
 html/js_typed_interop_side_cast_exp_test: Pass, RuntimeError # Roll 50 failure
 html/mirrors_js_typed_interop_test: Pass, Slow
 html/svgelement_test/PathElement: Pass, RuntimeError # Roll 50 failure
+html/worker_api_test: SkipByDesign
 html/wrapping_collections_test: SkipByDesign # Testing an issue that is only relevant to Dartium
 html/xhr_test: Pass, Slow
-isolate/browser/issue_12474_test: CompileTimeError # Issue 22529
-isolate/enum_const_test/02: RuntimeError # Issue 21817
-isolate/error_at_spawnuri_test: SkipByDesign # Test uses a ".dart" URI.
-isolate/error_exit_at_spawnuri_test: SkipByDesign # Test uses a ".dart" URI.
-isolate/exit_at_spawnuri_test: SkipByDesign # Test uses a ".dart" URI.
-isolate/function_send1_test: SkipByDesign # Test uses a ".dart" URI.
-isolate/issue_21398_parent_isolate1_test: SkipByDesign # Test uses a ".dart" URI.
-isolate/issue_21398_parent_isolate2_test: SkipByDesign # Test uses a ".dart" URI.
-isolate/issue_21398_parent_isolate_test: SkipByDesign # Test uses a ".dart" URI.
-isolate/issue_24243_parent_isolate_test: SkipByDesign # Test uses a ".dart" URI.
-isolate/kill_self_synchronously_test: SkipByDesign #  Unsupported operation: Platform._resolvedExecutable
-isolate/message3_test/constInstance: RuntimeError # Issue 21817
-isolate/message3_test/constList: RuntimeError # Issue 21817
-isolate/message3_test/constList_identical: RuntimeError # Issue 21817
-isolate/message3_test/constMap: RuntimeError # Issue 21817
-isolate/non_fatal_exception_in_timer_callback_test: Skip # Issue 23876
-isolate/spawn_uri_exported_main_test: SkipByDesign # Test uses a ".dart" URI.
-isolate/spawn_uri_nested_vm_test: SkipByDesign # Test uses a ".dart" URI.
-isolate/spawn_uri_vm_test: SkipByDesign # Test uses a ".dart" URI.
-isolate/stacktrace_message_test: RuntimeError # Fails to send stacktrace object.
+isolate/*: SkipByDesign # No support for dart:isolate in dart4web (http://dartbug.com/30538)
 math/double_pow_test: RuntimeError
 math/low_test: RuntimeError
 math/random_big_test: RuntimeError # Using bigint seeds for random.
@@ -83,8 +68,6 @@ html/file_sample_test: Pass, RuntimeError
 html/fileapi_entry_test: Pass, RuntimeError
 html/media_stream_test: RuntimeError # Please triage.
 html/speechrecognition_test: RuntimeError # Please triage.
-isolate/function_send_test: Skip # Crashes Chrome 62: https://bugs.chromium.org/p/chromium/issues/detail?id=775506
-isolate/kill_self_synchronously_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == chrome && $csp ]
 html/canvas_pixel_array_type_alias_test: RuntimeError
@@ -119,8 +102,6 @@ html/media_stream_test: Fail # TODO(dart2js-team): Please triage this failure.
 html/rtc_test: Fail # TODO(dart2js-team): Please triage this failure.
 html/speechrecognition_test: Fail # TODO(dart2js-team): Please triage this failure.
 html/xhr_test/json: Fail # TODO(dart2js-team): Please triage this failure.
-isolate/mandel_isolate_test: Pass, Timeout # TODO(kasperl): Please triage.
-isolate/unresolved_ports_test: Pass, Timeout # Issue 15610
 typed_data/setRange_2_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
 typed_data/setRange_3_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
 
@@ -252,7 +233,6 @@ html/js_dispatch_property_test: RuntimeError
 html/js_extend_class_test: RuntimeError
 html/js_function_getter_test: RuntimeError
 html/js_function_getter_trust_types_test: RuntimeError
-html/js_function_getter_trust_types_test: CompileTimeError
 html/js_identity_test: RuntimeError
 html/js_interop_1_test: RuntimeError
 html/js_interop_constructor_name_div_test: RuntimeError
@@ -289,6 +269,7 @@ html/localstorage_test: RuntimeError
 html/location_test: RuntimeError
 html/media_stream_test: RuntimeError
 html/mediasource_test: RuntimeError
+html/message_channel_test: RuntimeError
 html/messageevent_test: RuntimeError
 html/mirrors_js_typed_interop_test: RuntimeError
 html/mouse_event_test: RuntimeError
@@ -350,24 +331,18 @@ html/worker_test: RuntimeError
 html/xhr_cross_origin_test: RuntimeError
 html/xhr_test: RuntimeError
 html/xsltprocessor_test: RuntimeError
-isolate/browser/package_resolve_browser_hook2_test: RuntimeError
-isolate/browser/package_resolve_browser_hook_test: RuntimeError
-isolate/browser/package_resolve_browser_test: RuntimeError
-isolate/isolate_stress_test: RuntimeError
 js/null_test: RuntimeError
 js/prototype_access_test: RuntimeError
 
-[ $compiler == dart2js && $runtime != d8 ]
-isolate/error_at_spawn_test: Skip # Issue 23876
-isolate/error_exit_at_spawn_test: Skip # Issue 23876
-isolate/exit_at_spawn_test: Skip # Issue 23876
-isolate/message4_test: Skip # Issue 30247
+[ $compiler == dart2js && $runtime == d8 && $fasta && $minified ]
+collection/list_test: RuntimeError
 
 [ $compiler == dart2js && $runtime != d8 && $runtime != jsshell ]
 html/fontface_loaded_test: RuntimeError
 html/html_mock_test: RuntimeError # Issue 31038
 html/input_element_attributes_test: RuntimeError
 html/interactive_media_test: RuntimeError
+html/js_dart_functions_test: RuntimeError # does not implement Dart 2 implicit `.call` tearoff
 html/js_extend_class_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == drt && !$checked ]
@@ -403,10 +378,7 @@ html/serialized_script_value_test: Pass, RuntimeError # Issue 28983
 html/shadow_dom_test: Fail
 html/speechrecognition_test: RuntimeError # Please triage.
 html/text_event_test: Fail # Issue 17893
-html/touchevent_test: Fail
 html/webgl_1_test: Pass, Fail # Issue 8219
-html/websql_test: Fail
-isolate/kill_self_synchronously_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == ie11 ]
 html/element_types_content_test: RuntimeError # Issue 29922
@@ -473,14 +445,13 @@ async/zone_bind_test: Fail # Timer interface not supported: Issue 7728.
 async/zone_create_periodic_timer_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/zone_create_timer2_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/zone_empty_description2_test: RuntimeError # Timer interface not supported: Issue 7728.
-isolate/pause_test: Fail, OK # non-zero timer not supported.
-isolate/timer_isolate_test: Fail, OK # Needs Timer to run.
 
 [ $compiler == dart2js && $runtime != jsshell ]
 async/timer_not_available_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == safari ]
 html/audiobuffersourcenode_test: RuntimeError
+html/css_test/functional/functional: RuntimeError # Issue 32576
 html/custom/attribute_changed_callback_test: RuntimeError, Timeout
 html/custom/constructor_calls_created_synchronously_test: Pass, Timeout
 html/custom/created_callback_test: Pass, Timeout
@@ -492,8 +463,6 @@ html/file_sample_test: Skip # FileSystem not supported on Safari.
 html/fileapi_supported_throws_test: Skip # FileSystem not supported on Safari
 html/js_mock_test: RuntimeError # Issue 32286
 html/xhr_test: RuntimeError
-isolate/cross_isolate_message_test: Skip # Issue 12627
-isolate/message_test: Skip # Issue 12627
 
 [ $compiler == dart2js && $system == linux ]
 html/interactive_geolocation_test: Skip # Requires allowing geo location.
@@ -507,19 +476,24 @@ html/fontface_loaded_test: Fail # Support for promises.
 html/js_typed_interop_lazy_test/01: RuntimeError
 html/notification_permission_test: Timeout, Pass # Issue 32002
 html/private_extension_member_test: RuntimeError
-isolate/isolate_stress_test: Pass, Slow # Issue 10697
 js/null_test: RuntimeError # Issue 30652
 
 [ $compiler == dart2js && $browser && $csp ]
 html/custom/element_upgrade_test: Fail # Issue 17298
 html/custom/js_custom_test: Fail # Issue 14643
 
-[ $compiler == dart2js && !$browser && $fast_startup ]
-isolate/isolate_current_test: Fail # please triage
-
 [ $compiler == dart2js && $checked ]
 convert/utf85_test: Pass, Slow # Issue 12029.
 html/js_function_getter_trust_types_test: Skip # --trust-type-annotations incompatible with --checked
+
+[ $compiler == dart2js && $checked && $fasta ]
+async/stream_listen_zone_test: RuntimeError
+
+[ $compiler == dart2js && !$checked ]
+async/async_await_sync_completer_test: RuntimeError
+
+[ $compiler == dart2js && $csp && $fasta && $minified ]
+collection/list_test: RuntimeError
 
 [ $compiler == dart2js && $csp && ($runtime == chrome || $runtime == chromeOnAndroid || $runtime == ff || $runtime == safari) ]
 html/event_customevent_test: SkipByDesign
@@ -540,109 +514,19 @@ html/js_util_test: SkipByDesign
 html/mirrors_js_typed_interop_test: SkipByDesign
 html/postmessage_structured_test: SkipByDesign
 
-[ $compiler == dart2js && $fast_startup ]
-html/custom/constructor_calls_created_synchronously_test: Fail # mirrors not supported
-html/custom/document_register_basic_test: Pass, Slow, RuntimeError # Slow and sometimes times out
-html/custom/js_custom_test: Fail # mirrors not supported
-html/custom/mirrors_2_test: Fail # mirrors not supported
-html/custom/mirrors_test: Fail # mirrors not supported
-html/mirrors_js_typed_interop_test: Fail # mirrors not supported
-isolate/browser/compute_this_script_browser_test: Fail # mirrors not supported
-isolate/browser/typed_data_message_test: Fail # mirrors not supported
-isolate/count_test: Fail # mirrors not supported
-isolate/cross_isolate_message_test: Fail # mirrors not supported
-isolate/illegal_msg_mirror_test: Fail # mirrors not supported
-isolate/mandel_isolate_test: Fail # mirrors not supported
-isolate/message2_test: Fail # mirrors not supported
-isolate/message_test: Fail # mirrors not supported
-isolate/mint_maker_test: Fail # mirrors not supported
-isolate/nested_spawn2_test: Fail # mirrors not supported
-isolate/nested_spawn_test: Fail # mirrors not supported
-isolate/raw_port_test: Fail # mirrors not supported
-isolate/remote_unittest_helper: Fail # mirrors not supported
-isolate/request_reply_test: Fail # mirrors not supported
-isolate/spawn_function_custom_class_test: Fail # mirrors not supported
-isolate/spawn_function_test: Fail # mirrors not supported
-isolate/stacktrace_message_test: Fail # mirrors not supported
-isolate/static_function_test: Fail # mirrors not supported
-isolate/unresolved_ports_test: Fail # mirrors not supported
-mirrors/regress_16321_test/01: Pass # expects failure, but if fails for the wrong reason
-
-[ $compiler == dart2js && $fasta ]
-html/custom/mirrors_2_test: RuntimeError
-html/custom/mirrors_test: RuntimeError
-html/indexeddb_1_test/functional: RuntimeError
-html/indexeddb_3_test: RuntimeError
-html/indexeddb_5_test: RuntimeError
-html/js_typed_interop_default_arg_test/explicit_argument: RuntimeError
-html/js_typed_interop_test: RuntimeError
-isolate/browser/compute_this_script_browser_test: RuntimeError # mirrors not supported
-isolate/browser/typed_data_message_test: RuntimeError # mirrors not supported
-isolate/compile_time_error_test/01: Crash
-isolate/count_test: RuntimeError # mirrors not supported
-isolate/cross_isolate_message_test: RuntimeError # mirrors not supported
-isolate/illegal_msg_mirror_test: RuntimeError # mirrors not supported
-isolate/mandel_isolate_test: RuntimeError # mirrors not supported
-isolate/message2_test: RuntimeError # mirrors not supported
-isolate/message_test: RuntimeError # mirrors not supported
-isolate/mint_maker_test: RuntimeError # mirrors not supported
-isolate/nested_spawn2_test: RuntimeError # mirrors not supported
-isolate/nested_spawn_test: RuntimeError # mirrors not supported
-isolate/raw_port_test: RuntimeError # mirrors not supported
-isolate/remote_unittest_helper: RuntimeError # mirrors not supported
-isolate/request_reply_test: RuntimeError # mirrors not supported
-isolate/spawn_function_custom_class_test: RuntimeError # mirrors not supported
-isolate/spawn_function_test: RuntimeError # mirrors not supported
-isolate/stacktrace_message_test: RuntimeError # mirrors not supported
-isolate/static_function_test: RuntimeError # mirrors not supported
-isolate/unresolved_ports_test: RuntimeError # mirrors not supported
-
-[ $compiler == dart2js && $fasta && $host_checked ]
-async/stream_controller_async_test: Crash
-html/custom/mirrors_2_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
-html/custom/mirrors_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
-html/fontface_loaded_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
-html/indexeddb_3_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
-html/indexeddb_5_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
-html/js_array_test: CompileTimeError
-html/js_dispatch_property_test: CompileTimeError
-html/js_function_getter_test/call getter as function: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
-html/js_function_getter_trust_types_test: CompileTimeError
-html/js_typed_interop_default_arg_test/explicit_argument: CompileTimeError
-html/js_typed_interop_side_cast_exp_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
-html/js_typed_interop_test: CompileTimeError
-isolate/deferred_in_isolate2_test: Crash
-isolate/mint_maker_test: Crash
-typed_data/typed_data_list_test: Crash
-typed_data/typed_list_iterable_test: Crash
-
-[ $compiler == dart2js && $fasta && $minified ]
+[ $compiler == dart2js && !$csp && $fasta && $minified ]
 html/async_spawnuri_test: RuntimeError
 html/async_test: RuntimeError
 html/audiobuffersourcenode_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/audiobuffersourcenode_test/functional: RuntimeError
-html/audiobuffersourcenode_test/supported: RuntimeError
 html/audiocontext_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/audiocontext_test/supported: RuntimeError
 html/audioelement_test: RuntimeError
 html/b_element_test: RuntimeError
 html/blob_constructor_test: RuntimeError
 html/cache_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/cache_test/ApplicationCache: RuntimeError
-html/cache_test/supported: RuntimeError
 html/callbacks_test: RuntimeError
-html/canvas_pixel_array_type_alias_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/canvas_pixel_array_type_alias_test/basic: RuntimeError
-html/canvas_pixel_array_type_alias_test/typed_data: RuntimeError
-html/canvas_pixel_array_type_alias_test/types1: RuntimeError
-html/canvas_pixel_array_type_alias_test/types2: RuntimeError
-html/custom/mirrors_2_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/custom/mirrors_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/custom/regress_194523002_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/custom_element_method_clash_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/custom_element_name_clash_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/custom_elements_23127_test: Crash # Assertion failure: Cannot find value local(B2T.created#a) in (type_variable_local(B2T.T), local(C2T.created#a), local(C2T.created#b), local(C2T.created#c), BoxLocal(_box_0)) for j:constructor(C2T.created).
-html/custom_elements_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/custom_tags_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/dart_object_local_storage_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/datalistelement_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
@@ -653,11 +537,9 @@ html/domparser_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance 
 html/element_add_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/element_animate_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/element_classes_svg_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/element_classes_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/element_constructor_1_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/element_dimensions_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/element_offset_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/element_offset_test/offset: RuntimeError
 html/element_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/element_test/ElementList: RuntimeError
 html/element_test/_ElementList: RuntimeError
@@ -673,21 +555,14 @@ html/element_test/position: RuntimeError
 html/element_test/queryAll: RuntimeError
 html/element_types_constructors1_test: RuntimeError
 html/element_types_constructors2_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/element_types_constructors2_test/constructors: RuntimeError
 html/element_types_constructors3_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/element_types_constructors3_test/constructors: RuntimeError
 html/element_types_constructors4_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/element_types_constructors4_test/constructors: RuntimeError
 html/element_types_constructors5_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/element_types_constructors5_test/constructors: RuntimeError
 html/element_types_constructors6_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/element_types_constructors6_test/constructors: RuntimeError
-html/element_types_constructors6_test/ul: RuntimeError
 html/element_types_content_test: RuntimeError # Issue 29922
 html/element_types_datalist_test: RuntimeError # Issue 29922
 html/element_types_details_test: RuntimeError # Issue 29922
 html/element_types_embed_test: RuntimeError # Issue 29922
-html/element_types_keygen_test: RuntimeError # Issue 29922
 html/element_types_meter_test: RuntimeError # Issue 29922
 html/element_types_object_test: RuntimeError # Issue 29922
 html/element_types_output_test: RuntimeError # Issue 29922
@@ -695,15 +570,11 @@ html/element_types_progress_test: RuntimeError # Issue 29922
 html/element_types_shadow_test: RuntimeError # Issue 29922
 html/element_types_template_test: RuntimeError # Issue 29922
 html/element_types_track_test: RuntimeError # Issue 29922
-html/event_customevent_test: RuntimeError
 html/event_test: RuntimeError
 html/exceptions_test: RuntimeError
-html/file_sample_test: RuntimeError
-html/fileapi_entry_test: RuntimeError
 html/fileapi_supported_test: RuntimeError
 html/filereader_test: RuntimeError
 html/filteredelementlist_test: RuntimeError
-html/fontface_loaded_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/fontface_test: RuntimeError
 html/form_data_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/form_data_test/functional: RuntimeError
@@ -722,13 +593,8 @@ html/htmlelement_test: RuntimeError
 html/htmloptionscollection_test: RuntimeError
 html/indexeddb_1_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/indexeddb_1_test/dynamic: RuntimeError
-html/indexeddb_1_test/functional: RuntimeError
 html/indexeddb_1_test/supported: RuntimeError
 html/indexeddb_1_test/typed: RuntimeError
-html/indexeddb_2_test: RuntimeError
-html/indexeddb_3_test: RuntimeError
-html/indexeddb_4_test: RuntimeError
-html/indexeddb_5_test: RuntimeError
 html/input_element_constructor_test: RuntimeError
 html/input_element_date_test: RuntimeError
 html/input_element_datetime_test: RuntimeError
@@ -743,67 +609,20 @@ html/input_element_url_test: RuntimeError
 html/input_element_week_test: RuntimeError
 html/instance_of_test: RuntimeError
 html/isolates_test: RuntimeError
-html/js_array_test: RuntimeError
-html/js_browser_test: RuntimeError
-html/js_caching_test: RuntimeError
-html/js_context_test: RuntimeError
-html/js_dart_functions_tests: RuntimeError
-html/js_dart_js_test: RuntimeError
-html/js_dart_to_string_test: RuntimeError
 html/js_dispatch_property_test: RuntimeError
-html/js_function_getter_test: CompileTimeError
-html/js_function_getter_test/call getter as function: RuntimeError
-html/js_function_getter_trust_types_test: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'isObject'.
-html/js_function_getter_trust_types_test: CompileTimeError
-html/js_identity_test: RuntimeError
-html/js_interop_1_test: RuntimeError
-html/js_interop_constructor_name_div_test: RuntimeError
-html/js_interop_constructor_name_method_test: RuntimeError
 html/js_javascript_function_test: RuntimeError
-html/js_jsarray_test: RuntimeError
-html/js_jsfunc_callmethod_test: RuntimeError
-html/js_jsify_test: RuntimeError
-html/js_jsobject_test: RuntimeError
-html/js_transferrables_test: RuntimeError
-html/js_typed_interop_anonymous2_exp_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/js_typed_interop_anonymous2_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/js_typed_interop_anonymous_exp_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/js_typed_interop_anonymous_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/js_typed_interop_anonymous_unreachable_exp_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/js_typed_interop_anonymous_unreachable_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/js_typed_interop_bind_this_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/js_typed_interop_callable_object_test: CompileTimeError
-html/js_typed_interop_default_arg_test/explicit_argument: CompileTimeError
-html/js_typed_interop_default_arg_test/none: CompileTimeError
-html/js_typed_interop_side_cast_exp_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/js_typed_interop_side_cast_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/js_typed_interop_test: CompileTimeError
-html/js_typed_interop_type1_test/01: RuntimeError
-html/js_typed_interop_type1_test/none: RuntimeError
-html/js_typed_interop_type2_test/01: RuntimeError
-html/js_typed_interop_type2_test/none: RuntimeError
-html/js_typed_interop_type3_test/01: RuntimeError
-html/js_typed_interop_type3_test/02: RuntimeError
-html/js_typed_interop_type3_test/none: RuntimeError
-html/js_typed_interop_type_test: RuntimeError
-html/js_typed_interop_window_property_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/js_util_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/keyboard_event_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/localstorage_test: RuntimeError
 html/location_test: RuntimeError
-html/media_stream_test: RuntimeError, Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/mediasource_test: RuntimeError, Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/mirrors_js_typed_interop_test: RuntimeError
 html/mouse_event_test: RuntimeError
 html/mutationobserver_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/native_gc_test: RuntimeError
 html/navigator_test: RuntimeError
 html/node_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/node_validator_important_if_you_suppress_make_the_bug_critical_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/non_instantiated_is_test: RuntimeError
 html/notification_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/performance_api_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/postmessage_structured_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/query_test: RuntimeError
 html/queryall_test: RuntimeError
 html/range_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
@@ -812,23 +631,17 @@ html/rtc_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter
 html/selectelement_test: RuntimeError
 html/shadow_dom_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/shadowroot_test: RuntimeError
-html/speechrecognition_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/storage_test: RuntimeError
 html/streams_test: RuntimeError
 html/svg_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/svgelement_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/table_test: RuntimeError
 html/text_event_test: RuntimeError
-html/touchevent_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/track_element_constructor_test: RuntimeError
 html/transferables_test: RuntimeError
 html/transition_event_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/trusted_html_tree_sanitizer_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/trusted_html_tree_sanitizer_test/not_create_document_fragment: RuntimeError
-html/trusted_html_tree_sanitizer_test/untrusted: RuntimeError
 html/typed_arrays_1_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/typed_arrays_1_test/arrays: RuntimeError
-html/typed_arrays_1_test/supported: RuntimeError
 html/typed_arrays_2_test: RuntimeError
 html/typed_arrays_3_test: RuntimeError
 html/typed_arrays_4_test: RuntimeError
@@ -841,7 +654,6 @@ html/typing_test: RuntimeError
 html/unknownelement_test: RuntimeError
 html/uri_test: RuntimeError
 html/url_test: RuntimeError
-html/webgl_1_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/webgl_extensions_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/websocket_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/websql_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
@@ -850,11 +662,123 @@ html/window_eq_test: RuntimeError
 html/window_mangling_test: RuntimeError
 html/window_nosuchmethod_test: RuntimeError
 
+[ $compiler == dart2js && $fast_startup ]
+html/custom/document_register_basic_test: Pass, Slow, RuntimeError # Slow and sometimes times out
+html/custom/js_custom_test: Fail # mirrors not supported
+html/custom/mirrors_2_test: Fail # mirrors not supported
+html/custom/mirrors_test: Fail # mirrors not supported
+html/mirrors_js_typed_interop_test: Fail # mirrors not supported
+mirrors/regress_16321_test/01: Pass # expects failure, but if fails for the wrong reason
+
+[ $compiler == dart2js && $fast_startup && $fasta ]
+html/notification_permission_test: RuntimeError
+html/xhr_test: RuntimeError
+
+[ $compiler == dart2js && $fast_startup && !$fasta ]
+html/custom/constructor_calls_created_synchronously_test: Fail
+
+[ $compiler == dart2js && $fasta ]
+html/custom/mirrors_2_test: RuntimeError
+html/custom/mirrors_test: RuntimeError
+html/indexeddb_1_test/functional: RuntimeError
+html/indexeddb_3_test: RuntimeError
+html/indexeddb_5_test: RuntimeError
+html/js_typed_interop_default_arg_test/explicit_argument: RuntimeError
+html/js_typed_interop_test: RuntimeError
+
+[ $compiler == dart2js && $fasta && $host_checked ]
+async/stream_controller_async_test: Crash
+html/custom/mirrors_2_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/custom/mirrors_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/fontface_loaded_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/indexeddb_3_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/indexeddb_5_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/js_array_test: CompileTimeError
+html/js_dispatch_property_test: CompileTimeError
+html/js_function_getter_test/call getter as function: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
+html/js_function_getter_trust_types_test: CompileTimeError
+html/js_typed_interop_default_arg_test/explicit_argument: CompileTimeError
+html/js_typed_interop_side_cast_exp_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/js_typed_interop_test: CompileTimeError
+
+[ $compiler == dart2js && $fasta && $minified ]
+html/audiobuffersourcenode_test/functional: RuntimeError
+html/audiobuffersourcenode_test/supported: RuntimeError
+html/audiocontext_test/supported: RuntimeError
+html/cache_test/ApplicationCache: RuntimeError
+html/cache_test/supported: RuntimeError
+html/canvas_pixel_array_type_alias_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/canvas_pixel_array_type_alias_test/basic: RuntimeError
+html/canvas_pixel_array_type_alias_test/typed_data: RuntimeError
+html/canvas_pixel_array_type_alias_test/types1: RuntimeError
+html/canvas_pixel_array_type_alias_test/types2: RuntimeError
+html/custom/mirrors_2_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/custom/mirrors_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/custom_elements_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/element_classes_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/element_offset_test/offset: RuntimeError
+html/element_types_constructors2_test/constructors: RuntimeError
+html/element_types_constructors3_test/constructors: RuntimeError
+html/element_types_constructors4_test/constructors: RuntimeError
+html/element_types_constructors5_test/constructors: RuntimeError
+html/element_types_constructors6_test/constructors: RuntimeError
+html/element_types_constructors6_test/ul: RuntimeError
+html/element_types_keygen_test: RuntimeError # Issue 29922
+html/event_customevent_test: RuntimeError
+html/file_sample_test: RuntimeError
+html/fileapi_entry_test: RuntimeError
+html/fontface_loaded_test: RuntimeError
+html/indexeddb_1_test/functional: RuntimeError
+html/indexeddb_2_test: RuntimeError
+html/indexeddb_3_test: RuntimeError
+html/indexeddb_4_test: RuntimeError
+html/indexeddb_5_test: RuntimeError
+html/js_array_test: RuntimeError
+html/js_browser_test: RuntimeError
+html/js_caching_test: RuntimeError
+html/js_context_test: RuntimeError
+html/js_dart_functions_tests: RuntimeError
+html/js_dart_js_test: RuntimeError
+html/js_dart_to_string_test: RuntimeError
+html/js_function_getter_test: CompileTimeError
+html/js_function_getter_test/call getter as function: RuntimeError
+html/js_function_getter_trust_types_test: Crash # NoSuchMethodError: Class 'InterfaceType' has no instance getter 'isObject'.
+html/js_function_getter_trust_types_test: CompileTimeError
+html/js_identity_test: RuntimeError
+html/js_interop_1_test: RuntimeError
+html/js_interop_constructor_name_div_test: RuntimeError
+html/js_interop_constructor_name_method_test: RuntimeError
+html/js_jsarray_test: RuntimeError
+html/js_jsfunc_callmethod_test: RuntimeError
+html/js_jsify_test: RuntimeError
+html/js_jsobject_test: RuntimeError
+html/js_transferrables_test: RuntimeError
+html/js_typed_interop_bind_this_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/js_typed_interop_callable_object_test: CompileTimeError
+html/js_typed_interop_default_arg_test/explicit_argument: CompileTimeError
+html/js_typed_interop_default_arg_test/none: CompileTimeError
+html/js_typed_interop_side_cast_exp_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/js_typed_interop_test: CompileTimeError
+html/js_typed_interop_type1_test/01: RuntimeError
+html/js_typed_interop_type1_test/none: RuntimeError
+html/js_typed_interop_type3_test/01: RuntimeError
+html/js_typed_interop_type3_test/02: RuntimeError
+html/js_typed_interop_type3_test/none: RuntimeError
+html/js_typed_interop_type_test: RuntimeError
+html/js_typed_interop_window_property_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/js_util_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/media_stream_test: RuntimeError, Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/mirrors_js_typed_interop_test: RuntimeError
+html/postmessage_structured_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/speechrecognition_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+html/trusted_html_tree_sanitizer_test/not_create_document_fragment: RuntimeError
+html/trusted_html_tree_sanitizer_test/untrusted: RuntimeError
+html/typed_arrays_1_test/arrays: RuntimeError
+html/typed_arrays_1_test/supported: RuntimeError
+html/webgl_1_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
+
 [ $compiler == dart2js && !$fasta ]
 async/future_or_bad_type_test: MissingCompileTimeError
-
-[ $compiler == dart2js && $jscl ]
-isolate/spawn_uri_test: SkipByDesign # Loading another file is not supported in JS shell
 
 [ $compiler == dart2js && $minified ]
 html/canvas_pixel_array_type_alias_test/types2_runtimeTypeName: Fail, OK # Issue 12605
@@ -864,14 +788,8 @@ async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_json_utf8_decode_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_json_utf8_encode_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out. Issue 22050
-isolate/kill_self_synchronously_test: RuntimeError
-
-[ $compiler == dart2js && ($runtime == d8 || $runtime == jsshell) ]
-isolate/browser/issue_12474_test: RuntimeError # packageRoot not implemented.
-isolate/large_byte_data_leak_test: RuntimeError
 
 [ $compiler == dart2js && ($runtime == ff || $runtime == safari || $ie) ]
 html/custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Polyfill does not support
 html/custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
 html/fontface_test: Fail # Fontface not supported on these.
-

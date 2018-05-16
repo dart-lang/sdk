@@ -8,6 +8,7 @@ main() {
   forInReturn();
   forInReturnMulti();
   forInReturnRefined();
+  forInReturnRefinedDynamic();
   testInForIn();
   operatorInForIn();
   updateInForIn();
@@ -31,7 +32,8 @@ forInDirect() {
 // Return element from a for-in loop on a list literal.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: forInReturn:[null|subclass=Object]*/
+/*kernel.element: forInReturn:[null|subclass=Object]*/
+/*strong.element: forInReturn:[null|subclass=JSInt]*/
 forInReturn() {
   /*iterator: Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 3)*/
   /*current: [exact=ArrayIterator]*/
@@ -75,6 +77,25 @@ forInReturnRefined() {
   /*current: [exact=ArrayIterator]*/
   /*moveNext: [exact=ArrayIterator]*/
   for (var a in [1, 2, 3]) {
+    // TODO(johnniwinther): We should know the type of [a] here. Even if [a] has
+    // type `dynamic`.
+    a. /*strong.[null|subclass=JSInt]*/ isEven;
+    a. /*[subclass=JSInt]*/ isEven;
+    return a;
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Sequentially refine element and return it from a for-in loop on known list
+// type with a dynamic variable.
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: forInReturnRefinedDynamic:[null|subclass=JSInt]*/
+forInReturnRefinedDynamic() {
+  /*iterator: Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 3)*/
+  /*current: [exact=ArrayIterator]*/
+  /*moveNext: [exact=ArrayIterator]*/
+  for (dynamic a in [1, 2, 3]) {
     // TODO(johnniwinther): We should know the type of [a] here.
     a.isEven;
     a. /*[subclass=JSInt]*/ isEven;

@@ -4,7 +4,7 @@
 
 import 'dart:async' show Future;
 
-import 'dart:convert' show UTF8;
+import 'dart:convert' show utf8;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
@@ -52,7 +52,7 @@ class BulkCompiler {
         (CompilerContext context) async {
       (await context.options.loadSdkSummary(null))?.computeCanonicalNames();
       CompilerResult result = await generateKernelInternal();
-      result?.program?.unbindCanonicalNames();
+      result?.component?.unbindCanonicalNames();
       return null;
     });
   }
@@ -63,7 +63,7 @@ class BulkCompiler {
     }
     Uri uri = new Uri(scheme: customScheme, host: "", path: path);
     MemoryFileSystemEntity entity = options.fileSystem.entityForUri(uri);
-    entity.bytes = UTF8.encode(source);
+    entity.bytes = utf8.encode(source);
   }
 }
 

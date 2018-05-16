@@ -883,12 +883,13 @@ class StandardTestSuite extends TestSuite {
     var compilerConfiguration = configuration.compilerConfiguration;
     var sharedOptions = info.optionsFromFile['sharedOptions'] as List<String>;
     var dart2jsOptions = info.optionsFromFile['dart2jsOptions'] as List<String>;
+    var ddcOptions = info.optionsFromFile['ddcOptions'] as List<String>;
 
     var compileTimeArguments = <String>[];
     String tempDir;
     if (compilerConfiguration.hasCompiler) {
       compileTimeArguments = compilerConfiguration.computeCompilerArguments(
-          vmOptions, sharedOptions, dart2jsOptions, args);
+          vmOptions, sharedOptions, dart2jsOptions, ddcOptions, args);
       // Avoid doing this for analyzer.
       var path = info.filePath;
       if (vmOptionsVariant != 0) {
@@ -1052,17 +1053,18 @@ class StandardTestSuite extends TestSuite {
           '%TEST_SCRIPTS%', '<script src="$nameNoExt.js"></script>');
     } else {
       // Synthesize an HTML file for the test.
-      var scriptPath = _createUrlPathFromFile(new Path(jsWrapperFileName));
-
       if (configuration.compiler == Compiler.dart2js) {
+        var scriptPath = _createUrlPathFromFile(new Path(jsWrapperFileName));
         content = dart2jsHtml(fileName, scriptPath);
       } else {
         var jsDir =
             new Path(compilationTempDir).relativeTo(Repository.dir).toString();
+        jsWrapperFileName =
+            new Path('$compilationTempDir/$nameNoExt.js').toNativePath();
         // Always run with synchronous starts of `async` functions.
         // If we want to make this dependent on other parameters or flags,
         // this flag could be become conditional.
-        content = dartdevcHtml(nameNoExt, jsDir, buildDir, syncAsync: true);
+        content = dartdevcHtml(nameNoExt, jsDir, buildDir);
       }
     }
 
@@ -1094,48 +1096,34 @@ class StandardTestSuite extends TestSuite {
     // browser test. For running Dart in DRT, this will be noop commands.
     var commands = <Command>[];
 
-    switch (configuration.compiler) {
-      case Compiler.dart2js:
-        commands.add(_dart2jsCompileCommand(
-            fileName, jsWrapperFileName, tempDir, optionsFromFile));
-        break;
-
-      case Compiler.dartdevc:
-      case Compiler.dartdevk:
-        var toPath =
-            new Path('$compilationTempDir/$nameNoExt.js').toNativePath();
-        commands.add(configuration.compilerConfiguration.createCommand(
-            fileName,
-            toPath,
-            optionsFromFile["sharedOptions"] as List<String>,
-            environmentOverrides));
-        break;
-
-      default:
-        assert(false);
-    }
-
-    // Some tests require compiling multiple input scripts.
-    for (var name in optionsFromFile['otherScripts'] as List<String>) {
-      var namePath = new Path(name);
-      var fromPath = info.filePath.directoryPath.join(namePath);
-      var toPath = new Path('$tempDir/${namePath.filename}.js').toNativePath();
-
+    void addCompileCommand(String fileName, String toPath) {
       switch (configuration.compiler) {
         case Compiler.dart2js:
           commands.add(_dart2jsCompileCommand(
-              fromPath.toNativePath(), toPath, tempDir, optionsFromFile));
+              fileName, toPath, tempDir, optionsFromFile));
           break;
 
         case Compiler.dartdevc:
         case Compiler.dartdevk:
+          var ddcOptions = optionsFromFile["sharedOptions"] as List<String>;
+          ddcOptions.addAll(optionsFromFile["ddcOptions"] as List<String>);
           commands.add(configuration.compilerConfiguration.createCommand(
-              fromPath.toNativePath(),
-              toPath,
-              optionsFromFile["sharedOptions"] as List<String>,
-              environmentOverrides));
+              fileName, toPath, ddcOptions, environmentOverrides));
           break;
+
+        default:
+          assert(false);
       }
+    }
+
+    addCompileCommand(fileName, jsWrapperFileName);
+
+    // Some tests require compiling multiple input scripts.
+    for (var name in optionsFromFile['otherScripts'] as List<String>) {
+      var namePath = new Path(name);
+      var fromPath = info.filePath.directoryPath.join(namePath).toNativePath();
+      var toPath = new Path('$tempDir/${namePath.filename}.js').toNativePath();
+      addCompileCommand(fromPath, toPath);
     }
 
     if (info.optionsFromFile['isMultiHtmlTest'] as bool) {
@@ -1325,6 +1313,7 @@ class StandardTestSuite extends TestSuite {
       args.add('--format=machine');
       args.add('--no-hints');
       if (configuration.previewDart2) args.add("--preview-dart-2");
+      if (configuration.noPreviewDart2) args.add("--no-preview-dart-2");
 
       if (filePath.filename.contains("dart2js") ||
           filePath.directoryPath.segments().last.contains('html_common')) {
@@ -1459,6 +1448,7 @@ class StandardTestSuite extends TestSuite {
     List<String> dartOptions;
     List<String> sharedOptions;
     List<String> dart2jsOptions;
+    List<String> ddcOptions;
     Map<String, String> environment;
     String packageRoot;
     String packages;
@@ -1488,6 +1478,7 @@ class StandardTestSuite extends TestSuite {
     dartOptions = singleListOfOptions('DartOptions');
     sharedOptions = singleListOfOptions('SharedOptions');
     dart2jsOptions = singleListOfOptions('dart2jsOptions');
+    ddcOptions = singleListOfOptions('dartdevcOptions');
 
     matches = environmentRegExp.allMatches(contents);
     for (var match in matches) {
@@ -1586,6 +1577,7 @@ class StandardTestSuite extends TestSuite {
       "vmOptions": result,
       "sharedOptions": sharedOptions ?? <String>[],
       "dart2jsOptions": dart2jsOptions ?? <String>[],
+      "ddcOptions": ddcOptions ?? <String>[],
       "dartOptions": dartOptions,
       "environment": environment,
       "packageRoot": packageRoot,

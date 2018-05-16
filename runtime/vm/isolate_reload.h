@@ -169,6 +169,7 @@ class IsolateReloadContext {
 
   // Prefers old classes when we are in the middle of a reload.
   RawClass* GetClassForHeapWalkAt(intptr_t cid);
+  intptr_t GetClassSizeForHeapWalkAt(intptr_t cid);
 
   void RegisterClass(const Class& new_cls);
 
@@ -239,8 +240,9 @@ class IsolateReloadContext {
 
   void CheckpointLibraries();
 
-  // Transforms the heap based on instance_morphers_.
-  void MorphInstances();
+  // Transforms the heap based on instance_morphers_. Return whether there was
+  // any morphing.
+  bool MorphInstances();
 
   void RunNewFieldInitializers();
 
@@ -279,7 +281,7 @@ class IsolateReloadContext {
   JSONStream* js_;
 
   intptr_t saved_num_cids_;
-  RawClass** saved_class_table_;
+  ClassAndSize* saved_class_table_;
   intptr_t num_saved_libs_;
 
   // Collect the necessary instance transformation for schema changes.

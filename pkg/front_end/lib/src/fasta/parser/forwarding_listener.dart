@@ -66,8 +66,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginClassDeclaration(Token beginToken, Token name) {
-    listener?.beginClassDeclaration(beginToken, name);
+  void beginClassDeclaration(Token begin, Token abstractToken, Token name) {
+    listener?.beginClassDeclaration(begin, abstractToken, name);
   }
 
   @override
@@ -141,8 +141,9 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginFactoryMethod(Token lastConsumed) {
-    listener?.beginFactoryMethod(lastConsumed);
+  void beginFactoryMethod(
+      Token lastConsumed, Token externalToken, Token constToken) {
+    listener?.beginFactoryMethod(lastConsumed, externalToken, constToken);
   }
 
   @override
@@ -171,8 +172,10 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginFormalParameter(Token token, MemberKind kind) {
-    listener?.beginFormalParameter(token, kind);
+  void beginFormalParameter(Token token, MemberKind kind, Token covariantToken,
+      Token varFinalOrConst) {
+    listener?.beginFormalParameter(
+        token, kind, covariantToken, varFinalOrConst);
   }
 
   @override
@@ -298,8 +301,9 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginNamedMixinApplication(Token beginToken, Token name) {
-    listener?.beginNamedMixinApplication(beginToken, name);
+  void beginNamedMixinApplication(
+      Token begin, Token abstractToken, Token name) {
+    listener?.beginNamedMixinApplication(begin, abstractToken, name);
   }
 
   @override
@@ -368,8 +372,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginTopLevelMethod(Token lastConsumed) {
-    listener?.beginTopLevelMethod(lastConsumed);
+  void beginTopLevelMethod(Token lastConsumed, Token externalToken) {
+    listener?.beginTopLevelMethod(lastConsumed, externalToken);
   }
 
   @override
@@ -563,8 +567,10 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endFields(int count, Token beginToken, Token endToken) {
-    listener?.endFields(count, beginToken, endToken);
+  void endFields(Token staticToken, Token covariantToken, Token varFinalOrConst,
+      int count, Token beginToken, Token endToken) {
+    listener?.endFields(staticToken, covariantToken, varFinalOrConst, count,
+        beginToken, endToken);
   }
 
   @override
@@ -809,8 +815,10 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endTopLevelFields(int count, Token beginToken, Token endToken) {
-    listener?.endTopLevelFields(count, beginToken, endToken);
+  void endTopLevelFields(Token staticToken, Token covariantToken,
+      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
+    listener?.endTopLevelFields(staticToken, covariantToken, varFinalOrConst,
+        count, beginToken, endToken);
   }
 
   @override
@@ -943,6 +951,16 @@ class ForwardingListener implements Listener {
   @override
   void handleDottedName(int count, Token firstIdentifier) {
     listener?.handleDottedName(count, firstIdentifier);
+  }
+
+  @override
+  void beginImplicitCreationExpression(Token token) {
+    listener?.beginImplicitCreationExpression(token);
+  }
+
+  @override
+  void endImplicitCreationExpression(Token token) {
+    listener?.endImplicitCreationExpression(token);
   }
 
   @override
@@ -1080,16 +1098,6 @@ class ForwardingListener implements Listener {
   @override
   void handleLiteralNull(Token token) {
     listener?.handleLiteralNull(token);
-  }
-
-  @override
-  void handleModifier(Token token) {
-    listener?.handleModifier(token);
-  }
-
-  @override
-  void handleModifiers(int count) {
-    listener?.handleModifiers(count);
   }
 
   @override
@@ -1283,6 +1291,16 @@ class ForwardingListener implements Listener {
   @override
   Token handleUnrecoverableError(Token token, Message message) {
     return listener?.handleUnrecoverableError(token, message);
+  }
+
+  @override
+  void beginFormalParameterDefaultValueExpression() {
+    listener?.beginFormalParameterDefaultValueExpression();
+  }
+
+  @override
+  void endFormalParameterDefaultValueExpression() {
+    listener?.endFormalParameterDefaultValueExpression();
   }
 
   @override

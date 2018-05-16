@@ -69,4 +69,16 @@ declare_args() {
   # revision. The short git hash can be omitted by setting
   # dart_version_git_info=false
   dart_custom_version_for_pub = ""
+
+  # Controls whether the VM is built as a static library or a shared library.
+  if (is_fuchsia) {
+    # Allow for deduping the VM between standalone, flutter_runner and dart_runner.
+    dart_component_kind = "shared_library"
+  } else {
+    dart_component_kind = "static_library"
+  }
+
+  # Whether the runtime should interpret called functions for which bytecode
+  # is provided by kernel, rather than compile them before execution.
+  dart_use_interpreter = false
 }

@@ -75,6 +75,14 @@ class Zone {
 
   Zone* previous() const { return previous_; }
 
+  bool ContainsNestedZone(Zone* other) const {
+    while (other != NULL) {
+      if (this == other) return true;
+      other = other->previous_;
+    }
+    return false;
+  }
+
  private:
   Zone();
   ~Zone();  // Delete all memory associated with the zone.

@@ -63,17 +63,6 @@ class _CacheTable {
 
   bool isNamed(DartType type) => _names.containsKey(type);
 
-  /// If [type] is not already in the table, choose a new canonical
-  /// variable to contain it. Emit an expression which uses [typeRep] to
-  /// lazily initialize the cache in place.
-  JS.Expression nameType(DartType type, JS.Expression typeRep) {
-    var temp = _names[type];
-    if (temp == null) {
-      _names[type] = temp = chooseTypeName(type);
-    }
-    return js.call('# || (# = #)', [temp, temp, typeRep]);
-  }
-
   String _typeString(DartType type, {bool flat: false}) {
     if (type is InterfaceType) {
       var name = type.classNode.name;
@@ -140,14 +129,14 @@ class _GeneratorTable extends _CacheTable {
 
   /// If [type] does not already have a generator name chosen for it,
   /// assign it one, using [typeRep] as the initializer for it.
-  /// Emit an expression which calls the generator name.
-  JS.Expression nameType(DartType type, JS.Expression typeRep) {
+  /// Emit the generator name.
+  JS.TemporaryId _nameType(DartType type, JS.Expression typeRep) {
     var temp = _names[type];
     if (temp == null) {
       _names[type] = temp = chooseTypeName(type);
       _defs[type] = typeRep;
     }
-    return js.call('#()', [temp]);
+    return temp;
   }
 }
 
@@ -197,10 +186,25 @@ class TypeTable {
   /// add the type and its representation to the table, returning an
   /// expression which implements the type (but which caches the value).
   JS.Expression nameType(DartType type, JS.Expression typeRep) {
-    var table = _generators;
-    if (!table.isNamed(type)) {
-      if (recordScopeDependencies(type)) return typeRep;
+    if (!_generators.isNamed(type) && recordScopeDependencies(type)) {
+      return typeRep;
     }
-    return table.nameType(type, typeRep);
+    var name = _generators._nameType(type, typeRep);
+    return js.call('#()', [name]);
+  }
+
+  /// Like [nameType] but for function types.
+  ///
+  /// The boolean parameter [lazy] indicates that the resulting expression
+  /// should be a function that is invoked to compute the type, rather than the
+  /// type itself. This allows better integration with `lazyFn`, avoiding an
+  /// extra level of indirection.
+  JS.Expression nameFunctionType(FunctionType type, JS.Expression typeRep,
+      {bool lazy: false}) {
+    if (!_generators.isNamed(type) && recordScopeDependencies(type)) {
+      return lazy ? new JS.ArrowFun([], typeRep) : typeRep;
+    }
+    var name = _generators._nameType(type, typeRep);
+    return lazy ? name : js.call('#()', [name]);
   }
 }

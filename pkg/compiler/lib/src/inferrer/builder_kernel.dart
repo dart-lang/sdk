@@ -129,27 +129,33 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       // We already consider `this` to have been exposed.
       return;
     }
-    _inferrer.forEachElementMatching(selector, mask, (MemberEntity element) {
-      if (element.isField) {
-        FieldEntity field = element;
-        if (!selector.isSetter &&
-            _isInClassOrSubclass(field) &&
-            field.isAssignable &&
-            _locals.fieldScope.readField(field) == null &&
-            getFieldInitializer(_elementMap, field) == null) {
-          // If the field is being used before this constructor
-          // actually had a chance to initialize it, say it can be
-          // null.
-          _inferrer.recordTypeOfField(field, _types.nullType);
-        }
-        // Accessing a field does not expose `this`.
-        return true;
-      }
+    if (_inferrer.closedWorld.includesClosureCall(selector, mask)) {
       // TODO(ngeoffray): We could do better here if we knew what we
       // are calling does not expose this.
       _markThisAsExposed();
-      return false;
-    });
+    } else {
+      _inferrer.forEachElementMatching(selector, mask, (MemberEntity element) {
+        if (element != null && element.isField) {
+          FieldEntity field = element;
+          if (!selector.isSetter &&
+              _isInClassOrSubclass(field) &&
+              field.isAssignable &&
+              _locals.fieldScope.readField(field) == null &&
+              getFieldInitializer(_elementMap, field) == null) {
+            // If the field is being used before this constructor
+            // actually had a chance to initialize it, say it can be
+            // null.
+            _inferrer.recordTypeOfField(field, _types.nullType);
+          }
+          // Accessing a field does not expose `this`.
+          return true;
+        }
+        // TODO(ngeoffray): We could do better here if we knew what we
+        // are calling does not expose this.
+        _markThisAsExposed();
+        return false;
+      });
+    }
   }
 
   TypeInformation run() {
@@ -1209,16 +1215,19 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     }
 
     if (_inGenerativeConstructor && node.receiver is ir.ThisExpression) {
-      Iterable<MemberEntity> targets = _closedWorld.locateMembers(
-          selector, _types.newTypedSelector(receiverType, mask));
-      // We just recognized a field initialization of the form:
-      // `this.foo = 42`. If there is only one target, we can update
-      // its type.
-      if (targets.length == 1) {
-        MemberEntity single = targets.first;
-        if (single.isField) {
-          FieldEntity field = single;
-          _locals.updateField(field, rhsType);
+      TypeMask typedMask = _types.newTypedSelector(receiverType, mask);
+      if (!_closedWorld.includesClosureCall(selector, typedMask)) {
+        Iterable<MemberEntity> targets =
+            _closedWorld.locateMembers(selector, typedMask);
+        // We just recognized a field initialization of the form:
+        // `this.foo = 42`. If there is only one target, we can update
+        // its type.
+        if (targets.length == 1) {
+          MemberEntity single = targets.first;
+          if (single.isField) {
+            FieldEntity field = single;
+            _locals.updateField(field, rhsType);
+          }
         }
       }
     }
@@ -1527,7 +1536,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   @override
   visitTryCatch(ir.TryCatch node) {
     LocalsHandler saved = _locals;
-    _locals = new LocalsHandler.from(_locals, node, useOtherTryBlock: false);
+    _locals = new LocalsHandler.from(_locals, node,
+        isTry: true, useOtherTryBlock: false);
     initializationIsIndefinite();
     visit(node.body);
     saved.mergeDiamondFlow(_locals, null);
@@ -1544,7 +1554,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   @override
   visitTryFinally(ir.TryFinally node) {
     LocalsHandler saved = _locals;
-    _locals = new LocalsHandler.from(_locals, node, useOtherTryBlock: false);
+    _locals = new LocalsHandler.from(_locals, node,
+        isTry: true, useOtherTryBlock: false);
     initializationIsIndefinite();
     visit(node.body);
     saved.mergeDiamondFlow(_locals, null);
@@ -1625,7 +1636,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
     TypeInformation rhsType = visit(node.value);
     MemberEntity member = _elementMap.getSuperMember(
-        _analyzedMember, node.name, node.interfaceTarget);
+        _analyzedMember, node.name, node.interfaceTarget,
+        setter: true);
     TypeMask mask = _memberData.typeOfSend(node);
     Selector selector = new Selector.setter(_elementMap.getName(node.name));
     ArgumentsTypes arguments = new ArgumentsTypes([rhsType], null);

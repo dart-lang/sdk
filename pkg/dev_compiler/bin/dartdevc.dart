@@ -54,7 +54,7 @@ runBatch(List<String> batchArgs) async {
   var watch = new Stopwatch()..start();
   print('>>> BATCH START');
   String line;
-  while ((line = stdin.readLineSync(encoding: UTF8)).isNotEmpty) {
+  while ((line = stdin.readLineSync(encoding: utf8)).isNotEmpty) {
     totalTests++;
     var args = batchArgs.toList()..addAll(line.split(new RegExp(r'\s+')));
 

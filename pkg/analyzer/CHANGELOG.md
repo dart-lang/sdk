@@ -1,3 +1,112 @@
+## 0.32.0
+
+* Allow annotations on enum constants.
+* Analyzer fully supports being run on the VM with --preview-dart-2.
+* Fix heap usage regression by not storing bytes in the file cache.
+* Add AnalysisSessionHelper.getTopLevelPropertyAccessor().
+* Don't infer types when there's an irreconcilable type mismatch (#32305)
+* Many fasta parser improvements.
+* Use @isTest and @isTestGroup to understand executable element as a
+  test/group.  To use, add `@isTest` annotations (from package:meta)
+  to the methods in their package which define a test.
+```dart
+@isTest
+void myMagicTest(String name, FutureOr Function() body) {
+  test(name, body);
+}
+```
+  When subscribed to [notifications for outlines of a test file](https://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/master/pkg/analysis_server/doc/api.html#notification_analysis.outline),
+  they will include elements for UNIT_TEST_GROUP and UNIT_TEST_TEST.
+* Improve guess for type name identifier. (#32765)
+* Fix LineInfo.getOffsetOfLineAfter().
+* Remove some flutter specific analysis code.
+* Fix resolution tests when run locally.
+
+## 0.31.2-alpha.2
+
+* Refactoring to make element model logic sharable with
+  linker. (#32525, #32674)
+* Gracefully handle an invalid packages file. (#32560)
+* Fix silent inconsistency in top level inference. (#32394)
+* Fix test to determine whether a library is in the SDK. (#32707)
+* Fix for type inference from instance creation arguments.
+* Make GenericFunctionTypeElementForLink implement
+  GenericFunctionTypeElementImpl (#32708)
+* Check for missing required libraries dart:core and dart:async. (#32686)
+* Add callable object support. (#32156, #32157, #32426)
+* Avoid putting libraries of all analyzed units in the current
+  session. (too expensive)
+* Deprecate the option to enable using a URI in a part-of directive.
+* Support implicit call() invocation in top-level inference. (#32740)
+* Don't emit errors for lint rule names.
+* Allow empty flutter: sections in pubspec files.
+* Remove the special casing of 'packages' files from the analyzer and analysis
+  server.
+* Initial implementation of API to build analysis contexts (replacing
+  ContextLocator.locateContexts).
+* Fix regression in Analyzer callable function support. (#32769)
+* Several performance enhancements, including:
+  * Add a shared cache of FileState contents (making flutter repo analysis
+    ~12% faster).
+  * Replace SourceFactory.resolveUri() with resolveRelativeUri() in
+    resynthesizer.  (10% faster flutter repo analysis)
+  * Optimize computing exported namespaces in FileState.
+  * Optimize computing exported namespaces in prelinker. (8% faster
+    flutter repo analysis)
+  * Add NodeLintRule and UnitLintRule that replace AstVisitor in lints.
+    (6% faster flutter repo analysis)
+* Remove fuzzy arrow support from analyzer. (#31637)
+* More fixes for running the analyzer with Dart 2.
+* Add isXYZ accessors to ParameterElementForLink_VariableSetter. (#32896)
+* Demote IMPORT_DUPLICATED_LIBRARY_NAMED to a warning.
+* Deprecated/removed some unused classes and libraries from the public API.
+* Instantiate bounds to bounds.
+* Use package:path instead of AbsolutePathContext.
+* Check that argument is assignable to parameter in call() (#27098)
+* preview-dart-2 is now the default for the command line analyzer, also
+  implying strong.  Use --no-strong and --no-preview-dart-2 to handle
+  Dart 1 code.
+* Export SyntheticBeginToken and SyntheticToken from the analyzer for
+  angular_analyzer_plugin.
+* Improve error messages for annotations involving undefined names (#27788)
+* Add support for getting parse results synchronously.
+* Change linter subscriptions from functions to AstVisitor(s).
+
+## 0.31.2-alpha.1
+
+* Don't expect type arguments for class type parameters of static methods.
+  (#32396)
+* Beginnings of changes to make analyzer code --preview-dart-2 safe, though
+  this version is not vetted for that.
+* Infer type arguments in constructor redirections (#30855)
+* Report errors on "as void" and "is void".
+* Fix instantiating typedefs to bounds (#32114)
+* preview-dart-2 implies strong-mode now and other preview-dart-2 fixes.
+* Store method invocation arguments in summaries when needed for inference (partial fix for #32394)
+* Fix top-level inference and implicit creation (#32397)
+* Do not hint when only a responsive asset exists (#32250)
+* Do not hint when using a deprecated parameter in the defining function
+  (#32468)
+* Fix parsing of super expressions (#32393)
+* Disable conflicting generics test in the task model (#32421)
+* Change how we find analysis roots (#31343, #31344)
+* Fix problem with AST re-writing interacting poorly with inference (#32342)
+* Disallow if a class inconsistently implements a generic interface.
+* Infer void for operator[]= return in task mode for DDC (#32241)
+* Finish and improve mixin type inference in the analyzer (#32146, #32353, #32372)
+* Many enhancements to getElementDeclarations() (#29510, #32495)
+* Remove hint when there's no return from a Future<void> and async method.
+* Add a code range to ElementDeclaration (#29510)
+* Many, many fasta parser changes and improvements.
+* Add missing void annotation (#32161)
+* Add more null-aware hints (#32239)
+* Fix implicit new/const computation (#32221)
+* Treat invocations on dynamic as unknown, except for return type of == (#32173)
+* Fix crash in generic function type argument of unresolved class (#32162)
+* Fix path formatting on windows (#32095)
+* front_end implementation of mixin type inference (#31984)
+* analysis_options no longer breaks some properties (#31345)
+
 ## 0.31.2-alpha.0
 
 * front_end handling of callable classes (#32064)

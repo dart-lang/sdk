@@ -290,18 +290,6 @@ MessageHandler::MessageStatus MessageHandler::HandleNextMessage() {
   return HandleMessages(&ml, true, false);
 }
 
-MessageHandler::MessageStatus MessageHandler::HandleAllMessages() {
-  // We can only call HandleAllMessages when this handler is not
-  // assigned to a thread pool.
-  MonitorLocker ml(&monitor_);
-  ASSERT(pool_ == NULL);
-  ASSERT(!delete_me_);
-#if defined(DEBUG)
-  CheckAccess();
-#endif
-  return HandleMessages(&ml, true, true);
-}
-
 MessageHandler::MessageStatus MessageHandler::PauseAndHandleAllMessages(
     int64_t timeout_millis) {
   MonitorLocker ml(&monitor_);

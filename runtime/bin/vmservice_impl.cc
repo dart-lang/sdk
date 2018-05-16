@@ -174,7 +174,8 @@ bool VmService::Setup(const char* server_ip,
                       intptr_t server_port,
                       bool running_precompiled,
                       bool dev_mode_server,
-                      bool trace_loading) {
+                      bool trace_loading,
+                      bool deterministic) {
   Dart_Isolate isolate = Dart_CurrentIsolate();
   ASSERT(isolate != NULL);
   SetServerAddress("");
@@ -210,11 +211,10 @@ bool VmService::Setup(const char* server_ip,
   // Make runnable.
   Dart_ExitScope();
   Dart_ExitIsolate();
-  bool retval = Dart_IsolateMakeRunnable(isolate);
-  if (!retval) {
+  error_msg_ = Dart_IsolateMakeRunnable(isolate);
+  if (error_msg_ != NULL) {
     Dart_EnterIsolate(isolate);
     Dart_ShutdownIsolate();
-    error_msg_ = "Invalid isolate state - Unable to make it runnable.";
     return false;
   }
   Dart_EnterIsolate(isolate);
@@ -263,6 +263,12 @@ bool VmService::Setup(const char* server_ip,
 
   if (trace_loading) {
     result = Dart_SetField(library, DartUtils::NewString("_traceLoading"),
+                           Dart_True());
+    SHUTDOWN_ON_ERROR(result);
+  }
+
+  if (deterministic) {
+    result = Dart_SetField(library, DartUtils::NewString("_deterministic"),
                            Dart_True());
     SHUTDOWN_ON_ERROR(result);
   }

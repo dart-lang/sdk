@@ -477,6 +477,8 @@ final Matcher isFilePath = isString;
  *   "kind": FlutterOutlineKind
  *   "offset": int
  *   "length": int
+ *   "codeOffset": int
+ *   "codeLength": int
  *   "label": optional String
  *   "dartElement": optional Element
  *   "attributes": optional List<FlutterOutlineAttribute>
@@ -485,7 +487,9 @@ final Matcher isFilePath = isString;
  *   "variableName": optional String
  *   "children": optional List<FlutterOutline>
  *   "id": optional int
+ *   "isWidgetClass": optional bool
  *   "renderConstructor": optional String
+ *   "stateClassName": optional String
  *   "stateOffset": optional int
  *   "stateLength": optional int
  * }
@@ -494,7 +498,9 @@ final Matcher isFlutterOutline =
     new LazyMatcher(() => new MatchesJsonObject("FlutterOutline", {
           "kind": isFlutterOutlineKind,
           "offset": isInt,
-          "length": isInt
+          "length": isInt,
+          "codeOffset": isInt,
+          "codeLength": isInt
         }, optionalFields: {
           "label": isString,
           "dartElement": isElement,
@@ -504,7 +510,9 @@ final Matcher isFlutterOutline =
           "variableName": isString,
           "children": isListOf(isFlutterOutline),
           "id": isInt,
+          "isWidgetClass": isBool,
           "renderConstructor": isString,
+          "stateClassName": isString,
           "stateOffset": isInt,
           "stateLength": isInt
         }));
@@ -564,19 +572,21 @@ final Matcher isFlutterService = new MatchesEnum("FlutterService", ["OUTLINE"]);
  * FoldingKind
  *
  * enum {
- *   COMMENT
- *   CLASS_MEMBER
+ *   ANNOTATIONS
+ *   CLASS_BODY
  *   DIRECTIVES
  *   DOCUMENTATION_COMMENT
- *   TOP_LEVEL_DECLARATION
+ *   FILE_HEADER
+ *   FUNCTION_BODY
  * }
  */
 final Matcher isFoldingKind = new MatchesEnum("FoldingKind", [
-  "COMMENT",
-  "CLASS_MEMBER",
+  "ANNOTATIONS",
+  "CLASS_BODY",
   "DIRECTIVES",
   "DOCUMENTATION_COMMENT",
-  "TOP_LEVEL_DECLARATION"
+  "FILE_HEADER",
+  "FUNCTION_BODY"
 ]);
 
 /**
@@ -1094,11 +1104,11 @@ final Matcher isRefactoringFeedback =
  *   CONVERT_METHOD_TO_GETTER
  *   EXTRACT_LOCAL_VARIABLE
  *   EXTRACT_METHOD
+ *   EXTRACT_WIDGET
  *   INLINE_LOCAL_VARIABLE
  *   INLINE_METHOD
  *   MOVE_FILE
  *   RENAME
- *   SORT_MEMBERS
  * }
  */
 final Matcher isRefactoringKind = new MatchesEnum("RefactoringKind", [
@@ -1106,11 +1116,11 @@ final Matcher isRefactoringKind = new MatchesEnum("RefactoringKind", [
   "CONVERT_METHOD_TO_GETTER",
   "EXTRACT_LOCAL_VARIABLE",
   "EXTRACT_METHOD",
+  "EXTRACT_WIDGET",
   "INLINE_LOCAL_VARIABLE",
   "INLINE_METHOD",
   "MOVE_FILE",
-  "RENAME",
-  "SORT_MEMBERS"
+  "RENAME"
 ]);
 
 /**
@@ -1267,6 +1277,70 @@ final Matcher isRequestErrorCode = new MatchesEnum("RequestErrorCode", [
   "UNKNOWN_SOURCE",
   "UNSUPPORTED_FEATURE"
 ]);
+
+/**
+ * RuntimeCompletionExpression
+ *
+ * {
+ *   "offset": int
+ *   "length": int
+ *   "type": optional RuntimeCompletionExpressionType
+ * }
+ */
+final Matcher isRuntimeCompletionExpression = new LazyMatcher(() =>
+    new MatchesJsonObject(
+        "RuntimeCompletionExpression", {"offset": isInt, "length": isInt},
+        optionalFields: {"type": isRuntimeCompletionExpressionType}));
+
+/**
+ * RuntimeCompletionExpressionType
+ *
+ * {
+ *   "libraryPath": optional FilePath
+ *   "kind": RuntimeCompletionExpressionTypeKind
+ *   "name": optional String
+ *   "typeArguments": optional List<RuntimeCompletionExpressionType>
+ *   "returnType": optional RuntimeCompletionExpressionType
+ *   "parameterTypes": optional List<RuntimeCompletionExpressionType>
+ *   "parameterNames": optional List<String>
+ * }
+ */
+final Matcher isRuntimeCompletionExpressionType = new LazyMatcher(
+    () => new MatchesJsonObject("RuntimeCompletionExpressionType", {
+          "kind": isRuntimeCompletionExpressionTypeKind
+        }, optionalFields: {
+          "libraryPath": isFilePath,
+          "name": isString,
+          "typeArguments": isListOf(isRuntimeCompletionExpressionType),
+          "returnType": isRuntimeCompletionExpressionType,
+          "parameterTypes": isListOf(isRuntimeCompletionExpressionType),
+          "parameterNames": isListOf(isString)
+        }));
+
+/**
+ * RuntimeCompletionExpressionTypeKind
+ *
+ * enum {
+ *   DYNAMIC
+ *   FUNCTION
+ *   INTERFACE
+ * }
+ */
+final Matcher isRuntimeCompletionExpressionTypeKind = new MatchesEnum(
+    "RuntimeCompletionExpressionTypeKind",
+    ["DYNAMIC", "FUNCTION", "INTERFACE"]);
+
+/**
+ * RuntimeCompletionVariable
+ *
+ * {
+ *   "name": String
+ *   "type": RuntimeCompletionExpressionType
+ * }
+ */
+final Matcher isRuntimeCompletionVariable = new LazyMatcher(() =>
+    new MatchesJsonObject("RuntimeCompletionVariable",
+        {"name": isString, "type": isRuntimeCompletionExpressionType}));
 
 /**
  * SearchId
@@ -2321,6 +2395,44 @@ final Matcher isExecutionDeleteContextParams = new LazyMatcher(() =>
 final Matcher isExecutionDeleteContextResult = isNull;
 
 /**
+ * execution.getSuggestions params
+ *
+ * {
+ *   "code": String
+ *   "offset": int
+ *   "contextFile": FilePath
+ *   "contextOffset": int
+ *   "variables": List<RuntimeCompletionVariable>
+ *   "expressions": optional List<RuntimeCompletionExpression>
+ * }
+ */
+final Matcher isExecutionGetSuggestionsParams = new LazyMatcher(
+    () => new MatchesJsonObject("execution.getSuggestions params", {
+          "code": isString,
+          "offset": isInt,
+          "contextFile": isFilePath,
+          "contextOffset": isInt,
+          "variables": isListOf(isRuntimeCompletionVariable)
+        }, optionalFields: {
+          "expressions": isListOf(isRuntimeCompletionExpression)
+        }));
+
+/**
+ * execution.getSuggestions result
+ *
+ * {
+ *   "suggestions": optional List<CompletionSuggestion>
+ *   "expressions": optional List<RuntimeCompletionExpression>
+ * }
+ */
+final Matcher isExecutionGetSuggestionsResult = new LazyMatcher(() =>
+    new MatchesJsonObject("execution.getSuggestions result", null,
+        optionalFields: {
+          "suggestions": isListOf(isCompletionSuggestion),
+          "expressions": isListOf(isRuntimeCompletionExpression)
+        }));
+
+/**
  * execution.launchData params
  *
  * {
@@ -2457,6 +2569,50 @@ final Matcher isExtractMethodOptions =
           "parameters": isListOf(isRefactoringMethodParameter),
           "extractAll": isBool
         }));
+
+/**
+ * extractWidget feedback
+ *
+ * {
+ * }
+ */
+final Matcher isExtractWidgetFeedback = new LazyMatcher(
+    () => new MatchesJsonObject("extractWidget feedback", null));
+
+/**
+ * extractWidget options
+ *
+ * {
+ *   "name": String
+ * }
+ */
+final Matcher isExtractWidgetOptions = new LazyMatcher(
+    () => new MatchesJsonObject("extractWidget options", {"name": isString}));
+
+/**
+ * flutter.getChangeAddForDesignTimeConstructor params
+ *
+ * {
+ *   "file": FilePath
+ *   "offset": int
+ * }
+ */
+final Matcher isFlutterGetChangeAddForDesignTimeConstructorParams =
+    new LazyMatcher(() => new MatchesJsonObject(
+        "flutter.getChangeAddForDesignTimeConstructor params",
+        {"file": isFilePath, "offset": isInt}));
+
+/**
+ * flutter.getChangeAddForDesignTimeConstructor result
+ *
+ * {
+ *   "change": SourceChange
+ * }
+ */
+final Matcher isFlutterGetChangeAddForDesignTimeConstructorResult =
+    new LazyMatcher(() => new MatchesJsonObject(
+        "flutter.getChangeAddForDesignTimeConstructor result",
+        {"change": isSourceChange}));
 
 /**
  * flutter.outline params

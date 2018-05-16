@@ -8,8 +8,7 @@ import "package:expect/expect.dart";
 
 class A {}
 
-/*ast.class: B:explicit=[dynamic Function({a:B})]*/
-/*kernel.class: B:explicit=[dynamic Function({a:B}),dynamic Function({f:dynamic Function({a:B})})]*/
+/*class: B:explicit=[dynamic Function({a:B}),dynamic Function({f:dynamic Function({a:B})})]*/
 class B implements A {}
 
 /*class: C:explicit=[dynamic Function({c:C})]*/

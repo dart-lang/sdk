@@ -9,17 +9,12 @@ import 'dart:math' show Random;
 
 import 'package:js_runtime/shared/embedded_names.dart'
     show
-        CLASS_FIELDS_EXTRACTOR,
-        CLASS_ID_EXTRACTOR,
-        CREATE_NEW_ISOLATE,
         DEFERRED_INITIALIZED,
         DEFERRED_LIBRARY_PARTS,
         DEFERRED_PART_URIS,
         DEFERRED_PART_HASHES,
         GET_TYPE_FROM_NAME,
-        INITIALIZE_EMPTY_INSTANCE,
         INITIALIZE_LOADED_HUNK,
-        INSTANCE_FROM_CLASS_ID,
         INTERCEPTORS_BY_TAG,
         IS_HUNK_INITIALIZED,
         IS_HUNK_LOADED,
@@ -28,7 +23,6 @@ import 'package:js_runtime/shared/embedded_names.dart'
         MANGLED_NAMES,
         METADATA,
         NATIVE_SUPERCLASS_TAG_NAME,
-        STATIC_FUNCTION_NAME_TO_CLOSURE,
         TYPE_TO_INTERCEPTOR_MAP,
         TYPES;
 
@@ -37,7 +31,6 @@ import '../../common.dart';
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart' show ConstantValue, FunctionConstantValue;
 import '../../common_elements.dart' show CommonElements;
-import '../../elements/elements.dart' show ClassElement;
 import '../../elements/entities.dart';
 import '../../hash/sha1.dart' show Hasher;
 import '../../io/code_output.dart';
@@ -46,7 +39,6 @@ import '../../io/source_map_builder.dart' show SourceMapBuilder;
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart'
     show JavaScriptBackend, Namer, ConstantEmitter, StringBackedName;
-import '../../js_backend/interceptor_data.dart';
 import '../../world.dart';
 import '../code_emitter_task.dart';
 import '../constant_ordering.dart' show ConstantOrdering;
@@ -229,11 +221,11 @@ class ModelEmitter {
   /// Generates a simple header that provides the compiler's build id.
   js.Comment buildGeneratedBy() {
     StringBuffer flavor = new StringBuffer();
-    flavor.write(compiler.options.useKernel ? 'kernel FE' : 'ast FE');
+    flavor.write('fast startup emitter');
     if (compiler.options.strongMode) flavor.write(', strong');
     if (compiler.options.trustPrimitives) flavor.write(', trust primitives');
     if (compiler.options.trustTypeAnnotations) flavor.write(', trust types');
-    flavor.write(', fast startup emitter');
+    if (compiler.options.omitImplicitChecks) flavor.write(', omit checks');
     if (compiler.options.useContentSecurityPolicy) flavor.write(', CSP');
     return new js.Comment(generatedBy(compiler, flavor: '$flavor'));
   }

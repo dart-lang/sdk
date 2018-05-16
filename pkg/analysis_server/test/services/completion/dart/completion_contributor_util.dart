@@ -43,6 +43,12 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
    */
   bool get isNullExpectedReturnTypeConsideredDynamic => true;
 
+  /**
+   * Return `true` if contributors should suggest constructors in contexts where
+   * there is no `new` or `const` keyword.
+   */
+  bool get suggestConstructorsWithoutNew => false;
+
   bool get usingFastaParser => analyzer.Parser.useFasta;
 
   void addTestSource(String content) {
@@ -169,6 +175,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
         importUri: importUri,
         isDeprecated: isDeprecated,
         elemFile: elemFile,
+        elemKind: ElementKind.CLASS,
         elemOffset: elemOffset);
     Element element = cs.element;
     expect(element, isNotNull);
@@ -205,6 +212,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     CompletionSuggestion cs = assertSuggest(name,
         relevance: relevance,
         importUri: importUri,
+        elemKind: ElementKind.CONSTRUCTOR,
         elemOffset: elemOffset,
         defaultArgListString: defaultArgListString,
         defaultArgumentListTextRanges: defaultArgumentListTextRanges);

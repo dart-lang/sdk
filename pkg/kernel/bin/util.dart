@@ -93,9 +93,9 @@ class CommandLineHelper {
     }
   }
 
-  static Program tryLoadDill(String file, void Function() usage) {
+  static Component tryLoadDill(String file, void Function() usage) {
     try {
-      return loadProgramFromBinary(file);
+      return loadComponentFromBinary(file);
     } catch (e) {
       print("Argument '$file' isn't a dill file that can be loaded.");
       usage();

@@ -22,18 +22,18 @@ import 'text/ast_to_text.dart';
 
 export 'ast.dart';
 
-Program loadProgramFromBinary(String path, [Program program]) {
+Component loadComponentFromBinary(String path, [Component component]) {
   List<int> bytes = new File(path).readAsBytesSync();
-  return loadProgramFromBytes(bytes, program);
+  return loadComponentFromBytes(bytes, component);
 }
 
-Program loadProgramFromBytes(List<int> bytes, [Program program]) {
-  program ??= new Program();
-  new BinaryBuilder(bytes).readProgram(program);
-  return program;
+Component loadComponentFromBytes(List<int> bytes, [Component component]) {
+  component ??= new Component();
+  new BinaryBuilder(bytes).readComponent(component);
+  return component;
 }
 
-Future writeProgramToBinary(Program program, String path) {
+Future writeComponentToBinary(Component component, String path) {
   var sink;
   if (path == 'null' || path == 'stdout') {
     sink = stdout.nonBlocking;
@@ -43,7 +43,7 @@ Future writeProgramToBinary(Program program, String path) {
 
   var future;
   try {
-    new BinaryPrinter(sink).writeProgramFile(program);
+    new BinaryPrinter(sink).writeComponentFile(component);
   } finally {
     if (sink == stdout.nonBlocking) {
       future = sink.flush();
@@ -65,7 +65,7 @@ void writeLibraryToText(Library library, {String path}) {
   }
 }
 
-void writeProgramToText(Program program,
+void writeComponentToText(Component component,
     {String path,
     bool showExternal: false,
     bool showOffsets: false,
@@ -75,7 +75,7 @@ void writeProgramToText(Program program,
           showExternal: showExternal,
           showOffsets: showOffsets,
           showMetadata: showMetadata)
-      .writeProgramFile(program);
+      .writeComponentFile(component);
   if (path == null) {
     print(buffer);
   } else {

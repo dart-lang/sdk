@@ -24,8 +24,8 @@ main(args) {
   CommandLineHelper.requireExactlyOneArgument(true, args, usage);
   List<int> bytes = new File(args[0]).readAsBytesSync();
   try {
-    Program p = new Program();
-    new WrappedBinaryBuilder(bytes).readProgram(p);
+    Component p = new Component();
+    new WrappedBinaryBuilder(bytes).readComponent(p);
   } catch (e) {
     print("Argument given isn't a dill file that can be loaded.");
     usage();
@@ -64,9 +64,9 @@ class WrappedBinaryBuilder extends BinaryBuilder {
     print("Constant table: ${_bytesToReadable(size)}.");
   }
 
-  Library readLibrary(Program program, int endOffset) {
+  Library readLibrary(Component component, int endOffset) {
     int size = -byteOffset;
-    var result = super.readLibrary(program, endOffset);
+    var result = super.readLibrary(component, endOffset);
     size += super.byteOffset;
     print("Library '${result.importUri}': ${_bytesToReadable(size)}.");
     return result;

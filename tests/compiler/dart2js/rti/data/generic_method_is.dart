@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: method:direct,explicit=[method.T]*/
+/*kernel.element: method:direct,explicit=[method.T]*/
+/*strong.element: method:direct,explicit=[method.T],needsArgs*/
+/*omit.element: method:direct,explicit=[method.T],needsArgs*/
 method<T>(T t) => t is T;
 
 main() {

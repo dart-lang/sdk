@@ -64,7 +64,7 @@ class KernelDriver {
   /// Options used by the kernel compiler.
   final ProcessedOptions _options;
 
-  /// The optional SDK outline as a serialized program.
+  /// The optional SDK outline as a serialized component.
   /// If provided, the driver will not attempt to read SDK files.
   final List<int> _sdkOutlineBytes;
 
@@ -93,7 +93,7 @@ class KernelDriver {
 
   /// The optional SDK outline loaded from [_sdkOutlineBytes].
   /// Might be `null` if the bytes are not provided, or if not loaded yet.
-  Program _sdkOutline;
+  Component _sdkOutline;
 
   /// The salt to mix into all hashes used as keys for serialized data.
   List<int> _salt;
@@ -368,9 +368,9 @@ class KernelDriver {
       CanonicalName nameRoot, List<LibraryCycleResult> results) {
     var coreLibraries =
         results.first.libraryResults.map((l) => l.library).toList();
-    var program = new Program(nameRoot: nameRoot, libraries: coreLibraries);
+    var component = new Component(nameRoot: nameRoot, libraries: coreLibraries);
     return new TypeEnvironment(
-        new CoreTypes(program), new ClassHierarchy(program));
+        new CoreTypes(component), new ClassHierarchy(component));
   }
 
   /// Ensure that [dillTarget] includes the [cycle] libraries.  It already
@@ -405,9 +405,9 @@ class KernelDriver {
         }
       }
 
-      Future<Null> appendNewDillLibraries(Program program) async {
+      Future<Null> appendNewDillLibraries(Component component) async {
         dillTarget.loader
-            .appendLibraries(program, filter: libraryUris.contains);
+            .appendLibraries(component, filter: libraryUris.contains);
         await dillTarget.buildOutlines();
       }
 
@@ -417,15 +417,15 @@ class KernelDriver {
         List<int> bytes = _byteStore.get(kernelKey);
         if (bytes != null) {
           return _logger.runAsync('Read serialized libraries', () async {
-            var program = new Program(nameRoot: nameRoot);
-            _readProgram(program, bytes);
-            await appendNewDillLibraries(program);
+            var component = new Component(nameRoot: nameRoot);
+            _readComponent(component, bytes);
+            await appendNewDillLibraries(component);
 
             return new LibraryCycleResult(
                 cycle,
                 signature,
-                program.uriToSource,
-                program.libraries
+                component.uriToSource,
+                component.libraries
                     // TODO report errors here
                     .map((l) => new LibraryResult(l, []))
                     .toList());
@@ -441,19 +441,19 @@ class KernelDriver {
         kernelTarget.read(library.uri);
       }
 
-      // Compile the cycle libraries into a new full program.
-      Program program = await _logger
+      // Compile the cycle libraries into a new full component.
+      Component component = await _logger
           .runAsync('Compile ${cycle.libraries.length} libraries', () async {
         await kernelTarget.buildOutlines(nameRoot: nameRoot);
-        return await kernelTarget.buildProgram();
+        return await kernelTarget.buildComponent();
       });
 
       _testView.compiledCycles.add(cycle);
 
       // Add newly compiled libraries into DILL.
-      await appendNewDillLibraries(program);
+      await appendNewDillLibraries(component);
 
-      List<Library> kernelLibraries = program.libraries
+      List<Library> kernelLibraries = component.libraries
           .where((library) => libraryUris.contains(library.importUri))
           .toList();
 
@@ -469,23 +469,23 @@ class KernelDriver {
       // Remove source for libraries outside of the cycle.
       {
         var urisToRemoveSources = <Uri>[];
-        for (var uri in program.uriToSource.keys) {
+        for (var uri in component.uriToSource.keys) {
           if (!cycleFileUris.contains(uri)) {
             urisToRemoveSources.add(uri);
           }
         }
-        urisToRemoveSources.forEach(program.uriToSource.remove);
+        urisToRemoveSources.forEach(component.uriToSource.remove);
       }
 
       _logger.run('Serialize ${kernelLibraries.length} libraries', () {
         List<int> bytes =
-            serializeProgram(program, filter: kernelLibraries.contains);
+            serializeComponent(component, filter: kernelLibraries.contains);
         _byteStore.put(kernelKey, bytes);
         _logger.writeln('Stored ${bytes.length} bytes.');
       });
 
       return new LibraryCycleResult(
-          cycle, signature, program.uriToSource, kernelLibrariesResults);
+          cycle, signature, component.uriToSource, kernelLibrariesResults);
     });
   }
 
@@ -544,7 +544,7 @@ class KernelDriver {
   Future<Null> _loadSdkOutline() async {
     if (_sdkOutlineBytes != null && _sdkOutline == null) {
       await _logger.runAsync('Load SDK outline from bytes', () async {
-        _sdkOutline = loadProgramFromBytes(_sdkOutlineBytes);
+        _sdkOutline = loadComponentFromBytes(_sdkOutlineBytes);
         // Configure the file system state to skip the outline libraries.
         for (var outlineLibrary in _sdkOutline.libraries) {
           _fsState.skipSdkLibraries.add(outlineLibrary.importUri);
@@ -553,17 +553,17 @@ class KernelDriver {
     }
   }
 
-  /// Read libraries from the given [bytes] into the [program], using the
-  /// configured metadata factory.  The [program] must be ready to read these
-  /// libraries, i.e. either the [bytes] represent a full program with all
-  /// dependencies, or the [program] already has all required dependencies.
-  void _readProgram(Program program, List<int> bytes) {
+  /// Read libraries from the given [bytes] into the [component], using the
+  /// configured metadata factory.  The [component] must be ready to read these
+  /// libraries, i.e. either the [bytes] represent a full component with all
+  /// dependencies, or the [component] already has all required dependencies.
+  void _readComponent(Component component, List<int> bytes) {
     if (_metadataFactory != null) {
       var repository = _metadataFactory.newRepositoryForReading();
-      program.addMetadataRepository(repository);
-      new BinaryBuilderWithMetadata(bytes).readSingleFileProgram(program);
+      component.addMetadataRepository(repository);
+      new BinaryBuilderWithMetadata(bytes).readSingleFileComponent(component);
     } else {
-      new BinaryBuilder(bytes).readProgram(program);
+      new BinaryBuilder(bytes).readComponent(component);
     }
   }
 
@@ -662,7 +662,7 @@ abstract class MetadataFactory {
   MetadataCollector newCollector();
 
   /// Return a new [MetadataRepository] instance to read metadata while
-  /// reading a [Program] for a library cycle.
+  /// reading a [Component] for a library cycle.
   MetadataRepository newRepositoryForReading();
 }
 

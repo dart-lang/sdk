@@ -26,22 +26,22 @@ class RawSocket {
 class InternetAddress {
   @patch
   static InternetAddress get LOOPBACK_IP_V4 {
-    return _InternetAddress.LOOPBACK_IP_V4;
+    return _InternetAddress.loopbackIPv4;
   }
 
   @patch
   static InternetAddress get LOOPBACK_IP_V6 {
-    return _InternetAddress.LOOPBACK_IP_V6;
+    return _InternetAddress.loopbackIPv6;
   }
 
   @patch
   static InternetAddress get ANY_IP_V4 {
-    return _InternetAddress.ANY_IP_V4;
+    return _InternetAddress.anyIPv4;
   }
 
   @patch
   static InternetAddress get ANY_IP_V6 {
-    return _InternetAddress.ANY_IP_V6;
+    return _InternetAddress.anyIPv6;
   }
 
   @patch
@@ -51,7 +51,7 @@ class InternetAddress {
 
   @patch
   static Future<List<InternetAddress>> lookup(String host,
-      {InternetAddressType type: InternetAddressType.ANY}) {
+      {InternetAddressType type: InternetAddressType.any}) {
     return _NativeSocket.lookup(host, type: type);
   }
 
@@ -73,7 +73,7 @@ class NetworkInterface {
   static Future<List<NetworkInterface>> list(
       {bool includeLoopback: false,
       bool includeLinkLocal: false,
-      InternetAddressType type: InternetAddressType.ANY}) {
+      InternetAddressType type: InternetAddressType.any}) {
     return _NativeSocket.listInterfaces(
         includeLoopback: includeLoopback,
         includeLinkLocal: includeLinkLocal,
@@ -90,29 +90,27 @@ void _throwOnBadPort(int port) {
 }
 
 class _InternetAddress implements InternetAddress {
-  static const int _ADDRESS_LOOPBACK_IP_V4 = 0;
-  static const int _ADDRESS_LOOPBACK_IP_V6 = 1;
-  static const int _ADDRESS_ANY_IP_V4 = 2;
-  static const int _ADDRESS_ANY_IP_V6 = 3;
-  static const int _IPV4_ADDR_LENGTH = 4;
-  static const int _IPV6_ADDR_LENGTH = 16;
+  static const int _addressLoopbackIPv4 = 0;
+  static const int _addressLoopbackIPv6 = 1;
+  static const int _addressAnyIPv4 = 2;
+  static const int _addressAnyIPv6 = 3;
+  static const int _IPv4AddrLength = 4;
+  static const int _IPv6AddrLength = 16;
 
-  static _InternetAddress LOOPBACK_IP_V4 =
-      new _InternetAddress.fixed(_ADDRESS_LOOPBACK_IP_V4);
-  static _InternetAddress LOOPBACK_IP_V6 =
-      new _InternetAddress.fixed(_ADDRESS_LOOPBACK_IP_V6);
-  static _InternetAddress ANY_IP_V4 =
-      new _InternetAddress.fixed(_ADDRESS_ANY_IP_V4);
-  static _InternetAddress ANY_IP_V6 =
-      new _InternetAddress.fixed(_ADDRESS_ANY_IP_V6);
+  static _InternetAddress loopbackIPv4 =
+      new _InternetAddress.fixed(_addressLoopbackIPv4);
+  static _InternetAddress loopbackIPv6 =
+      new _InternetAddress.fixed(_addressLoopbackIPv6);
+  static _InternetAddress anyIPv4 = new _InternetAddress.fixed(_addressAnyIPv4);
+  static _InternetAddress anyIPv6 = new _InternetAddress.fixed(_addressAnyIPv6);
 
   final String address;
   final String _host;
   final Uint8List _in_addr;
 
-  InternetAddressType get type => _in_addr.length == _IPV4_ADDR_LENGTH
-      ? InternetAddressType.IP_V4
-      : InternetAddressType.IP_V6;
+  InternetAddressType get type => _in_addr.length == _IPv4AddrLength
+      ? InternetAddressType.IPv4
+      : InternetAddressType.IPv6;
 
   String get host => _host != null ? _host : address;
 
@@ -120,24 +118,24 @@ class _InternetAddress implements InternetAddress {
 
   bool get isLoopback {
     switch (type) {
-      case InternetAddressType.IP_V4:
+      case InternetAddressType.IPv4:
         return _in_addr[0] == 127;
 
-      case InternetAddressType.IP_V6:
-        for (int i = 0; i < _IPV6_ADDR_LENGTH - 1; i++) {
+      case InternetAddressType.IPv6:
+        for (int i = 0; i < _IPv6AddrLength - 1; i++) {
           if (_in_addr[i] != 0) return false;
         }
-        return _in_addr[_IPV6_ADDR_LENGTH - 1] == 1;
+        return _in_addr[_IPv6AddrLength - 1] == 1;
     }
   }
 
   bool get isLinkLocal {
     switch (type) {
-      case InternetAddressType.IP_V4:
+      case InternetAddressType.IPv4:
         // Checking for 169.254.0.0/16.
         return _in_addr[0] == 169 && _in_addr[1] == 254;
 
-      case InternetAddressType.IP_V6:
+      case InternetAddressType.IPv6:
         // Checking for fe80::/10.
         return _in_addr[0] == 0xFE && (_in_addr[1] & 0xB0) == 0x80;
     }
@@ -145,11 +143,11 @@ class _InternetAddress implements InternetAddress {
 
   bool get isMulticast {
     switch (type) {
-      case InternetAddressType.IP_V4:
+      case InternetAddressType.IPv4:
         // Checking for 224.0.0.0 through 239.255.255.255.
         return _in_addr[0] >= 224 && _in_addr[0] < 240;
 
-      case InternetAddressType.IP_V6:
+      case InternetAddressType.IPv6:
         // Checking for ff00::/8.
         return _in_addr[0] == 0xFF;
     }
@@ -172,20 +170,20 @@ class _InternetAddress implements InternetAddress {
 
   factory _InternetAddress.fixed(int id) {
     switch (id) {
-      case _ADDRESS_LOOPBACK_IP_V4:
-        var in_addr = new Uint8List(_IPV4_ADDR_LENGTH);
+      case _addressLoopbackIPv4:
+        var in_addr = new Uint8List(_IPv4AddrLength);
         in_addr[0] = 127;
-        in_addr[_IPV4_ADDR_LENGTH - 1] = 1;
+        in_addr[_IPv4AddrLength - 1] = 1;
         return new _InternetAddress("127.0.0.1", null, in_addr);
-      case _ADDRESS_LOOPBACK_IP_V6:
-        var in_addr = new Uint8List(_IPV6_ADDR_LENGTH);
-        in_addr[_IPV6_ADDR_LENGTH - 1] = 1;
+      case _addressLoopbackIPv6:
+        var in_addr = new Uint8List(_IPv6AddrLength);
+        in_addr[_IPv6AddrLength - 1] = 1;
         return new _InternetAddress("::1", null, in_addr);
-      case _ADDRESS_ANY_IP_V4:
-        var in_addr = new Uint8List(_IPV4_ADDR_LENGTH);
+      case _addressAnyIPv4:
+        var in_addr = new Uint8List(_IPv4AddrLength);
         return new _InternetAddress("0.0.0.0", "0.0.0.0", in_addr);
-      case _ADDRESS_ANY_IP_V6:
-        var in_addr = new Uint8List(_IPV6_ADDR_LENGTH);
+      case _addressAnyIPv6:
+        var in_addr = new Uint8List(_IPv6AddrLength);
         return new _InternetAddress("::", "::", in_addr);
       default:
         assert(false);
@@ -251,58 +249,63 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   // eventhandler. COMMAND flags are never received from the
   // eventhandler. Additional flags are used to communicate other
   // information.
-  static const int READ_EVENT = 0;
-  static const int WRITE_EVENT = 1;
-  static const int ERROR_EVENT = 2;
-  static const int CLOSED_EVENT = 3;
-  static const int DESTROYED_EVENT = 4;
-  static const int FIRST_EVENT = READ_EVENT;
-  static const int LAST_EVENT = DESTROYED_EVENT;
-  static const int EVENT_COUNT = LAST_EVENT - FIRST_EVENT + 1;
+  static const int readEvent = 0;
+  static const int writeEvent = 1;
+  static const int errorEvent = 2;
+  static const int closedEvent = 3;
+  static const int destroyedEvent = 4;
+  static const int firstEvent = readEvent;
+  static const int lastEvent = destroyedEvent;
+  static const int eventCount = lastEvent - firstEvent + 1;
 
-  static const int CLOSE_COMMAND = 8;
-  static const int SHUTDOWN_READ_COMMAND = 9;
-  static const int SHUTDOWN_WRITE_COMMAND = 10;
-  // The lower bits of RETURN_TOKEN_COMMAND messages contains the number
+  static const int closeCommand = 8;
+  static const int shutdownReadCommand = 9;
+  static const int shutdownWriteCommand = 10;
+  // The lower bits of returnTokenCommand messages contains the number
   // of tokens returned.
-  static const int RETURN_TOKEN_COMMAND = 11;
-  static const int SET_EVENT_MASK_COMMAND = 12;
-  static const int FIRST_COMMAND = CLOSE_COMMAND;
-  static const int LAST_COMMAND = SET_EVENT_MASK_COMMAND;
+  static const int returnTokenCommand = 11;
+  static const int setEventMaskCommand = 12;
+  static const int firstCommand = closeCommand;
+  static const int lastCommand = setEventMaskCommand;
 
   // Type flag send to the eventhandler providing additional
   // information on the type of the file descriptor.
-  static const int LISTENING_SOCKET = 16;
-  static const int PIPE_SOCKET = 17;
-  static const int TYPE_NORMAL_SOCKET = 0;
-  static const int TYPE_LISTENING_SOCKET = 1 << LISTENING_SOCKET;
-  static const int TYPE_PIPE = 1 << PIPE_SOCKET;
-  static const int TYPE_TYPE_MASK = TYPE_LISTENING_SOCKET | PIPE_SOCKET;
+  static const int listeningSocket = 16;
+  static const int pipeSocket = 17;
+  static const int typeNormalSocket = 0;
+  static const int typeListeningSocket = 1 << listeningSocket;
+  static const int typePipe = 1 << pipeSocket;
+  static const int typeTypeMask = typeListeningSocket | pipeSocket;
 
   // Protocol flags.
-  static const int TCP_SOCKET = 18;
-  static const int UDP_SOCKET = 19;
-  static const int INTERNAL_SOCKET = 20;
-  static const int TYPE_TCP_SOCKET = 1 << TCP_SOCKET;
-  static const int TYPE_UDP_SOCKET = 1 << UDP_SOCKET;
-  static const int TYPE_INTERNAL_SOCKET = 1 << INTERNAL_SOCKET;
-  static const int TYPE_PROTOCOL_MASK =
-      TYPE_TCP_SOCKET | TYPE_UDP_SOCKET | TYPE_INTERNAL_SOCKET;
+  // Keep in sync with SocketType enum in socket.h.
+  static const int tcpSocket = 18;
+  static const int udpSocket = 19;
+  static const int internalSocket = 20;
+  static const int internalSignalSocket = 21;
+  static const int typeTcpSocket = 1 << tcpSocket;
+  static const int typeUdpSocket = 1 << udpSocket;
+  static const int typeInternalSocket = 1 << internalSocket;
+  static const int typeInternalSignalSocket = 1 << internalSignalSocket;
+  static const int typeProtocolMask = typeTcpSocket |
+      typeUdpSocket |
+      typeInternalSocket |
+      typeInternalSignalSocket;
 
   // Native port messages.
-  static const HOST_NAME_LOOKUP = 0;
-  static const LIST_INTERFACES = 1;
-  static const REVERSE_LOOKUP = 2;
+  static const hostNameLookupMessage = 0;
+  static const listInterfacesMessage = 1;
+  static const reverseLookupMessage = 2;
 
   // Protocol flags.
-  static const int PROTOCOL_IPV4 = 1 << 0;
-  static const int PROTOCOL_IPV6 = 1 << 1;
+  static const int protocolIPv4 = 1 << 0;
+  static const int protocolIPv6 = 1 << 1;
 
-  static const int NORMAL_TOKEN_BATCH_SIZE = 8;
-  static const int LISTENING_TOKEN_BATCH_SIZE = 2;
+  static const int normalTokenBatchSize = 8;
+  static const int listeningTokenBatchSize = 2;
 
-  static const Duration _RETRY_DURATION = const Duration(milliseconds: 250);
-  static const Duration _RETRY_DURATION_LOOPBACK =
+  static const Duration _retryDuration = const Duration(milliseconds: 250);
+  static const Duration _retryDurationLoopback =
       const Duration(milliseconds: 25);
 
   // Socket close state
@@ -314,7 +317,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   Completer closeCompleter = new Completer.sync();
 
   // Handlers and receive port for socket events from the event handler.
-  final List eventHandlers = new List(EVENT_COUNT + 1);
+  final List eventHandlers = new List(eventCount + 1);
   RawReceivePort eventPort;
   bool flagsSent = false;
 
@@ -346,9 +349,9 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   Object owner;
 
   static Future<List<InternetAddress>> lookup(String host,
-      {InternetAddressType type: InternetAddressType.ANY}) {
-    return _IOService
-        ._dispatch(_SOCKET_LOOKUP, [host, type._value]).then((response) {
+      {InternetAddressType type: InternetAddressType.any}) {
+    return _IOService._dispatch(
+        _IOService.socketLookup, [host, type._value]).then((response) {
       if (isErrorResponse(response)) {
         throw createError(response, "Failed host lookup: '$host'");
       } else {
@@ -361,7 +364,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   }
 
   static Future<InternetAddress> reverseLookup(InternetAddress addr) {
-    return _IOService._dispatch(_SOCKET_REVERSE_LOOKUP,
+    return _IOService._dispatch(_IOService.socketReverseLookup,
         [(addr as _InternetAddress)._in_addr]).then((response) {
       if (isErrorResponse(response)) {
         throw createError(response, "Failed reverse host lookup", addr);
@@ -374,9 +377,9 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   static Future<List<NetworkInterface>> listInterfaces(
       {bool includeLoopback: false,
       bool includeLinkLocal: false,
-      InternetAddressType type: InternetAddressType.ANY}) {
-    return _IOService
-        ._dispatch(_SOCKET_LIST_INTERFACES, [type._value]).then((response) {
+      InternetAddressType type: InternetAddressType.any}) {
+    return _IOService._dispatch(
+        _IOService.socketListInterfaces, [type._value]).then((response) {
       if (isErrorResponse(response)) {
         throw createError(response, "Failed listing interfaces");
       } else {
@@ -478,7 +481,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
           // Set up timer for when we should retry the next address
           // (if any).
           var duration =
-              address.isLoopback ? _RETRY_DURATION_LOOPBACK : _RETRY_DURATION;
+              address.isLoopback ? _retryDurationLoopback : _retryDuration;
           var timer = new Timer(duration, connectNext);
           setupResourceInfo(socket);
 
@@ -571,27 +574,33 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   }
 
   _NativeSocket.datagram(this.localAddress)
-      : typeFlags = TYPE_NORMAL_SOCKET | TYPE_UDP_SOCKET;
+      : typeFlags = typeNormalSocket | typeUdpSocket;
 
-  _NativeSocket.normal() : typeFlags = TYPE_NORMAL_SOCKET | TYPE_TCP_SOCKET;
+  _NativeSocket.normal() : typeFlags = typeNormalSocket | typeTcpSocket;
 
-  _NativeSocket.listen() : typeFlags = TYPE_LISTENING_SOCKET | TYPE_TCP_SOCKET {
+  _NativeSocket.listen() : typeFlags = typeListeningSocket | typeTcpSocket {
     isClosedWrite = true;
   }
 
-  _NativeSocket.pipe() : typeFlags = TYPE_PIPE;
+  _NativeSocket.pipe() : typeFlags = typePipe;
 
-  _NativeSocket.watch(int id)
-      : typeFlags = TYPE_NORMAL_SOCKET | TYPE_INTERNAL_SOCKET {
+  _NativeSocket._watchCommon(int id, int type)
+      : typeFlags = typeNormalSocket | type {
     isClosedWrite = true;
-    nativeSetSocketId(id);
+    nativeSetSocketId(id, typeFlags);
   }
 
-  bool get isListening => (typeFlags & TYPE_LISTENING_SOCKET) != 0;
-  bool get isPipe => (typeFlags & TYPE_PIPE) != 0;
-  bool get isInternal => (typeFlags & TYPE_INTERNAL_SOCKET) != 0;
-  bool get isTcp => (typeFlags & TYPE_TCP_SOCKET) != 0;
-  bool get isUdp => (typeFlags & TYPE_UDP_SOCKET) != 0;
+  _NativeSocket.watchSignal(int id)
+      : this._watchCommon(id, typeInternalSignalSocket);
+
+  _NativeSocket.watch(int id) : this._watchCommon(id, typeInternalSocket);
+
+  bool get isListening => (typeFlags & typeListeningSocket) != 0;
+  bool get isPipe => (typeFlags & typePipe) != 0;
+  bool get isInternal => (typeFlags & typeInternalSocket) != 0;
+  bool get isInternalSignal => (typeFlags & typeInternalSignalSocket) != 0;
+  bool get isTcp => (typeFlags & typeTcpSocket) != 0;
+  bool get isUdp => (typeFlags & typeUdpSocket) != 0;
 
   Map _toJSON(bool ref) => throw new UnimplementedError();
   String get _serviceTypePath => throw new UnimplementedError();
@@ -612,13 +621,13 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     if (result != null) {
       available -= result.length;
       // TODO(ricow): Remove when we track internal and pipe uses.
-      assert(resourceInfo != null || isPipe || isInternal);
+      assert(resourceInfo != null || isPipe || isInternal || isInternalSignal);
       if (resourceInfo != null) {
         resourceInfo.totalRead += result.length;
       }
     }
     // TODO(ricow): Remove when we track internal and pipe uses.
-    assert(resourceInfo != null || isPipe || isInternal);
+    assert(resourceInfo != null || isPipe || isInternal || isInternalSignal);
     if (resourceInfo != null) {
       resourceInfo.didRead();
     }
@@ -639,13 +648,13 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       // emit read events.
       available = nativeAvailable();
       // TODO(ricow): Remove when we track internal and pipe uses.
-      assert(resourceInfo != null || isPipe || isInternal);
+      assert(resourceInfo != null || isPipe || isInternal || isInternalSignal);
       if (resourceInfo != null) {
         resourceInfo.totalRead += result.data.length;
       }
     }
     // TODO(ricow): Remove when we track internal and pipe uses.
-    assert(resourceInfo != null || isPipe || isInternal);
+    assert(resourceInfo != null || isPipe || isInternal || isInternalSignal);
     if (resourceInfo != null) {
       resourceInfo.didRead();
     }
@@ -689,7 +698,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     // Negate the result, as stated above.
     if (result < 0) result = -result;
     // TODO(ricow): Remove when we track internal and pipe uses.
-    assert(resourceInfo != null || isPipe || isInternal);
+    assert(resourceInfo != null || isPipe || isInternal || isInternalSignal);
     if (resourceInfo != null) {
       resourceInfo.addWrite(result);
     }
@@ -710,7 +719,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       result = 0;
     }
     // TODO(ricow): Remove when we track internal and pipe uses.
-    assert(resourceInfo != null || isPipe || isInternal);
+    assert(resourceInfo != null || isPipe || isInternal || isInternalSignal);
     if (resourceInfo != null) {
       resourceInfo.addWrite(result);
     }
@@ -723,14 +732,14 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     assert(available > 0);
     available--;
     tokens++;
-    returnTokens(LISTENING_TOKEN_BATCH_SIZE);
+    returnTokens(listeningTokenBatchSize);
     var socket = new _NativeSocket.normal();
     if (nativeAccept(socket) != true) return null;
     socket.localPort = localPort;
     socket.localAddress = address;
     setupResourceInfo(socket);
     // TODO(ricow): Remove when we track internal and pipe uses.
-    assert(resourceInfo != null || isPipe || isInternal);
+    assert(resourceInfo != null || isPipe || isInternal || isInternalSignal);
     if (resourceInfo != null) {
       // We track this as read one byte.
       resourceInfo.addRead(1);
@@ -775,14 +784,14 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       if (available == 0) {
         if (isClosedRead && !closedReadEventSent) {
           if (isClosedWrite) close();
-          var handler = eventHandlers[CLOSED_EVENT];
+          var handler = eventHandlers[closedEvent];
           if (handler == null) return;
           closedReadEventSent = true;
           handler();
         }
         return;
       }
-      var handler = eventHandlers[READ_EVENT];
+      var handler = eventHandlers[readEvent];
       if (handler == null) return;
       readEventIssued = true;
       handler();
@@ -801,7 +810,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       if (isClosing) return;
       if (!sendWriteEvents) return;
       sendWriteEvents = false;
-      var handler = eventHandlers[WRITE_EVENT];
+      var handler = eventHandlers[writeEvent];
       if (handler == null) return;
       handler();
     }
@@ -819,23 +828,23 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     // TODO(paulberry): when issue #31305 is fixed, we should be able to simply
     // declare `events` as a `covariant int` parameter.
     int events = eventsObj;
-    for (int i = FIRST_EVENT; i <= LAST_EVENT; i++) {
+    for (int i = firstEvent; i <= lastEvent; i++) {
       if (((events & (1 << i)) != 0)) {
-        if ((i == CLOSED_EVENT || i == READ_EVENT) && isClosedRead) continue;
-        if (isClosing && i != DESTROYED_EVENT) continue;
-        if (i == CLOSED_EVENT && !isListening && !isClosing && !isClosed) {
+        if ((i == closedEvent || i == readEvent) && isClosedRead) continue;
+        if (isClosing && i != destroyedEvent) continue;
+        if (i == closedEvent && !isListening && !isClosing && !isClosed) {
           isClosedRead = true;
           issueReadEvent();
           continue;
         }
 
-        if (i == WRITE_EVENT) {
+        if (i == writeEvent) {
           writeAvailable = true;
           issueWriteEvent(delayed: false);
           continue;
         }
 
-        if (i == READ_EVENT) {
+        if (i == readEvent) {
           if (isListening) {
             available++;
           } else {
@@ -846,11 +855,12 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         }
 
         var handler = eventHandlers[i];
-        if (i == DESTROYED_EVENT) {
+        if (i == destroyedEvent) {
           assert(isClosing);
           assert(!isClosed);
           // TODO(ricow): Remove/update when we track internal and pipe uses.
-          assert(resourceInfo != null || isPipe || isInternal);
+          assert(
+              resourceInfo != null || isPipe || isInternal || isInternalSignal);
           if (resourceInfo != null) {
             _SocketResourceInfo.SocketClosed(resourceInfo);
           }
@@ -861,7 +871,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
           continue;
         }
 
-        if (i == ERROR_EVENT) {
+        if (i == errorEvent) {
           if (!isClosing) {
             reportError(nativeGetError(), "");
           }
@@ -874,7 +884,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     }
     if (!isListening) {
       tokens++;
-      returnTokens(NORMAL_TOKEN_BATCH_SIZE);
+      returnTokens(normalTokenBatchSize);
     }
   }
 
@@ -883,19 +893,19 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       assert(eventPort != null);
       // Return in batches.
       if (tokens == tokenBatchSize) {
-        assert(tokens < (1 << FIRST_COMMAND));
-        sendToEventHandler((1 << RETURN_TOKEN_COMMAND) | tokens);
+        assert(tokens < (1 << firstCommand));
+        sendToEventHandler((1 << returnTokenCommand) | tokens);
         tokens = 0;
       }
     }
   }
 
   void setHandlers({read, write, error, closed, destroyed}) {
-    eventHandlers[READ_EVENT] = read;
-    eventHandlers[WRITE_EVENT] = write;
-    eventHandlers[ERROR_EVENT] = error;
-    eventHandlers[CLOSED_EVENT] = closed;
-    eventHandlers[DESTROYED_EVENT] = destroyed;
+    eventHandlers[readEvent] = read;
+    eventHandlers[writeEvent] = write;
+    eventHandlers[errorEvent] = error;
+    eventHandlers[closedEvent] = closed;
+    eventHandlers[destroyedEvent] = destroyed;
   }
 
   void setListening({read: true, write: true}) {
@@ -905,16 +915,16 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     if (write) issueWriteEvent();
     if (!flagsSent && !isClosing) {
       flagsSent = true;
-      int flags = 1 << SET_EVENT_MASK_COMMAND;
-      if (!isClosedRead) flags |= 1 << READ_EVENT;
-      if (!isClosedWrite) flags |= 1 << WRITE_EVENT;
+      int flags = 1 << setEventMaskCommand;
+      if (!isClosedRead) flags |= 1 << readEvent;
+      if (!isClosedWrite) flags |= 1 << writeEvent;
       sendToEventHandler(flags);
     }
   }
 
   Future close() {
     if (!isClosing && !isClosed) {
-      sendToEventHandler(1 << CLOSE_COMMAND);
+      sendToEventHandler(1 << closeCommand);
       isClosing = true;
     }
     return closeCompleter.future;
@@ -923,13 +933,13 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   void shutdown(SocketDirection direction) {
     if (!isClosing && !isClosed) {
       switch (direction) {
-        case SocketDirection.RECEIVE:
+        case SocketDirection.receive:
           shutdownRead();
           break;
-        case SocketDirection.SEND:
+        case SocketDirection.send:
           shutdownWrite();
           break;
-        case SocketDirection.BOTH:
+        case SocketDirection.both:
           close();
           break;
         default:
@@ -943,7 +953,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       if (closedReadEventSent) {
         close();
       } else {
-        sendToEventHandler(1 << SHUTDOWN_WRITE_COMMAND);
+        sendToEventHandler(1 << shutdownWriteCommand);
       }
       isClosedWrite = true;
     }
@@ -954,14 +964,14 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       if (isClosedWrite) {
         close();
       } else {
-        sendToEventHandler(1 << SHUTDOWN_READ_COMMAND);
+        sendToEventHandler(1 << shutdownReadCommand);
       }
       isClosedRead = true;
     }
   }
 
   void sendToEventHandler(int data) {
-    int fullData = (typeFlags & TYPE_TYPE_MASK) | data;
+    int fullData = (typeFlags & typeTypeMask) | data;
     assert(!isClosing);
     connectToEventHandler();
     _EventHandler._sendData(this, eventPort.sendPort, fullData);
@@ -993,7 +1003,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
 
   // Check whether this is an error response from a native port call.
   static bool isErrorResponse(response) {
-    return response is List && response[0] != _SUCCESS_RESPONSE;
+    return response is List && response[0] != _successResponse;
   }
 
   // Create the appropriate error/exception from different returned
@@ -1006,9 +1016,9 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     } else if (error is List) {
       assert(isErrorResponse(error));
       switch (error[0]) {
-        case _ILLEGAL_ARGUMENT_RESPONSE:
+        case _illegalArgumentResponse:
           return new ArgumentError();
-        case _OSERROR_RESPONSE:
+        case _osErrorResponse:
           return new SocketException(message,
               osError: new OSError(error[2], error[1]),
               address: address,
@@ -1024,8 +1034,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   void reportError(error, String message) {
     var e = createError(error, message, address, localPort);
     // Invoke the error handler if any.
-    if (eventHandlers[ERROR_EVENT] != null) {
-      eventHandlers[ERROR_EVENT](e);
+    if (eventHandlers[errorEvent] != null) {
+      eventHandlers[errorEvent](e);
     }
     // For all errors we close the socket
     close();
@@ -1048,10 +1058,10 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       InternetAddress addr, NetworkInterface interface) {
     // On Mac OS using the interface index for joining IPv4 multicast groups
     // is not supported. Here the IP address of the interface is needed.
-    if (Platform.isMacOS && addr.type == InternetAddressType.IP_V4) {
+    if (Platform.isMacOS && addr.type == InternetAddressType.IPv4) {
       if (interface != null) {
         for (int i = 0; i < interface.addresses.length; i++) {
-          if (interface.addresses[i].type == InternetAddressType.IP_V4) {
+          if (interface.addresses[i].type == InternetAddressType.IPv4) {
             return interface.addresses[i];
           }
         }
@@ -1061,7 +1071,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
             "of the same family as the multicast address");
       } else {
         // Default to the ANY address if no interface is specified.
-        return InternetAddress.ANY_IP_V4;
+        return InternetAddress.anyIPv4;
       }
     } else {
       return null;
@@ -1084,7 +1094,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     if (result is OSError) throw result;
   }
 
-  void nativeSetSocketId(int id) native "Socket_SetSocketId";
+  void nativeSetSocketId(int id, int typeFlags) native "Socket_SetSocketId";
   nativeAvailable() native "Socket_Available";
   nativeRead(int len) native "Socket_Read";
   nativeRecvFrom() native "Socket_RecvFrom";
@@ -1232,16 +1242,16 @@ class _RawSocket extends Stream<RawSocketEvent> implements RawSocket {
         onPause: _onPauseStateChange,
         onResume: _onPauseStateChange);
     _socket.setHandlers(
-        read: () => _controller.add(RawSocketEvent.READ),
+        read: () => _controller.add(RawSocketEvent.read),
         write: () {
           // The write event handler is automatically disabled by the
           // event handler when it fires.
           writeEventsEnabled = false;
-          _controller.add(RawSocketEvent.WRITE);
+          _controller.add(RawSocketEvent.write);
         },
-        closed: () => _controller.add(RawSocketEvent.READ_CLOSED),
+        closed: () => _controller.add(RawSocketEvent.readClosed),
         destroyed: () {
-          _controller.add(RawSocketEvent.CLOSED);
+          _controller.add(RawSocketEvent.closed);
           _controller.close();
         },
         error: zone.bindUnaryCallbackGuarded((e) {
@@ -1265,7 +1275,7 @@ class _RawSocket extends Stream<RawSocketEvent> implements RawSocket {
     if (fd != null) {
       var socketType = _StdIOUtils._nativeSocketType(result._socket);
       result._isMacOSTerminalInput =
-          Platform.isMacOS && socketType == _STDIO_HANDLE_TYPE_TERMINAL;
+          Platform.isMacOS && socketType == _stdioHandleTypeTerminal;
     }
     return result;
   }
@@ -1286,7 +1296,7 @@ class _RawSocket extends Stream<RawSocketEvent> implements RawSocket {
       if (data == null || data.length < available) {
         // Reading less than available from a Mac OS terminal indicate Ctrl-D.
         // This is interpreted as read closed.
-        scheduleMicrotask(() => _controller.add(RawSocketEvent.READ_CLOSED));
+        scheduleMicrotask(() => _controller.add(RawSocketEvent.readClosed));
       }
       return data;
     } else {
@@ -1402,7 +1412,7 @@ class _ServerSocket extends Stream<Socket> implements ServerSocket {
 @patch
 class Socket {
   @patch
-  static Future<Socket> connect(host, int port,
+  static Future<Socket> _connect(host, int port,
       {sourceAddress, Duration timeout}) {
     return RawSocket
         .connect(host, port, sourceAddress: sourceAddress, timeout: timeout)
@@ -1644,7 +1654,7 @@ class _Socket extends Stream<List<int>> implements Socket {
     } else {
       _controllerClosed = true;
       if (_raw != null) {
-        _raw.shutdown(SocketDirection.RECEIVE);
+        _raw.shutdown(SocketDirection.receive);
       }
     }
   }
@@ -1657,14 +1667,14 @@ class _Socket extends Stream<List<int>> implements Socket {
 
   void _onData(event) {
     switch (event) {
-      case RawSocketEvent.READ:
+      case RawSocketEvent.read:
         var buffer = _raw.read();
         if (buffer != null) _controller.add(buffer);
         break;
-      case RawSocketEvent.WRITE:
+      case RawSocketEvent.write:
         _consumer.write();
         break;
-      case RawSocketEvent.READ_CLOSED:
+      case RawSocketEvent.readClosed:
         _controllerClosed = true;
         _controller.close();
         break;
@@ -1706,7 +1716,7 @@ class _Socket extends Stream<List<int>> implements Socket {
       _detachReady.complete(null);
     } else {
       if (_raw != null) {
-        _raw.shutdown(SocketDirection.SEND);
+        _raw.shutdown(SocketDirection.send);
         _disableWriteEvent();
       }
     }
@@ -1744,16 +1754,16 @@ class _RawDatagramSocket extends Stream<RawSocketEvent>
         onPause: _onPauseStateChange,
         onResume: _onPauseStateChange);
     _socket.setHandlers(
-        read: () => _controller.add(RawSocketEvent.READ),
+        read: () => _controller.add(RawSocketEvent.read),
         write: () {
           // The write event handler is automatically disabled by the
           // event handler when it fires.
           writeEventsEnabled = false;
-          _controller.add(RawSocketEvent.WRITE);
+          _controller.add(RawSocketEvent.write);
         },
-        closed: () => _controller.add(RawSocketEvent.READ_CLOSED),
+        closed: () => _controller.add(RawSocketEvent.readClosed),
         destroyed: () {
-          _controller.add(RawSocketEvent.CLOSED);
+          _controller.add(RawSocketEvent.closed);
           _controller.close();
         },
         error: zone.bindUnaryCallbackGuarded((e) {
@@ -1809,21 +1819,21 @@ class _RawDatagramSocket extends Stream<RawSocketEvent>
   }
 
   bool get multicastLoopback =>
-      _socket.getOption(SocketOption._IP_MULTICAST_LOOP);
+      _socket.getOption(SocketOption._ipMulticastLoop);
   void set multicastLoopback(bool value) =>
-      _socket.setOption(SocketOption._IP_MULTICAST_LOOP, value);
+      _socket.setOption(SocketOption._ipMulticastLoop, value);
 
-  int get multicastHops => _socket.getOption(SocketOption._IP_MULTICAST_HOPS);
+  int get multicastHops => _socket.getOption(SocketOption._ipMulticastHops);
   void set multicastHops(int value) =>
-      _socket.setOption(SocketOption._IP_MULTICAST_HOPS, value);
+      _socket.setOption(SocketOption._ipMulticastHops, value);
 
   NetworkInterface get multicastInterface => throw "Not implemented";
   void set multicastInterface(NetworkInterface value) =>
       throw "Not implemented";
 
-  bool get broadcastEnabled => _socket.getOption(SocketOption._IP_BROADCAST);
+  bool get broadcastEnabled => _socket.getOption(SocketOption._ipBroadcast);
   void set broadcastEnabled(bool value) =>
-      _socket.setOption(SocketOption._IP_BROADCAST, value);
+      _socket.setOption(SocketOption._ipBroadcast, value);
 
   int get port => _socket.port;
 

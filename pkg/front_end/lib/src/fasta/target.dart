@@ -12,7 +12,7 @@ import 'ticker.dart' show Ticker;
 /// A compilation target.
 ///
 /// A target reads source files with [read], builds outlines when
-/// [buildOutlines] is called and builds the full program when [buildProgram]
+/// [buildOutlines] is called and builds the full component when [buildComponent]
 /// is called.
 abstract class Target {
   final Ticker ticker;
@@ -23,8 +23,8 @@ abstract class Target {
   void read(Uri uri);
 
   /// Build and return outlines for all libraries.
-  Future<Program> buildOutlines();
+  Future<Component> buildOutlines();
 
-  /// Build and return the full program for all libraries.
-  Future<Program> buildProgram();
+  /// Build and return the full component for all libraries.
+  Future<Component> buildComponent();
 }

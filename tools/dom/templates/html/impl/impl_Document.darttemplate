@@ -28,25 +28,6 @@ $!MEMBERS
   ElementList<T> querySelectorAll<T extends Element>(String selectors) =>
     new _FrozenElementList<T>._wrap(_querySelectorAll(selectors));
 
-  /**
-   * Alias for [querySelector]. Note this function is deprecated because its
-   * semantics will be changing in the future.
-   */
-  @deprecated
-  @Experimental()
-  @DomName('Document.querySelector')
-  Element query(String relativeSelectors) => querySelector(relativeSelectors);
-
-  /**
-   * Alias for [querySelectorAll]. Note this function is deprecated because its
-   * semantics will be changing in the future.
-   */
-  @deprecated
-  @Experimental()
-  @DomName('Document.querySelectorAll')
-  ElementList<T> queryAll<T extends Element>(String relativeSelectors) =>
-      querySelectorAll(relativeSelectors);
-
   /// Checks if [registerElement] is supported on the current platform.
   bool get supportsRegisterElement {
     return JS('bool', '("registerElement" in #)', this);
@@ -55,6 +36,11 @@ $!MEMBERS
   /// *Deprecated*: use [supportsRegisterElement] instead.
   @deprecated
   bool get supportsRegister => supportsRegisterElement;
+
+  void registerElement(String tag, Type customElementClass,
+      {String extendsTag}) {
+        registerElement2(tag, {'prototype': customElementClass, 'extends': extendsTag});
+  }
 
   @DomName('Document.createElement')
   @ForceInline() // Almost all call sites have one argument.

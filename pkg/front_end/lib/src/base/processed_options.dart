@@ -6,7 +6,7 @@ import 'dart:async' show Future;
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
-import 'package:kernel/kernel.dart' show CanonicalName, Location, Program;
+import 'package:kernel/kernel.dart' show CanonicalName, Component, Location;
 
 import 'package:kernel/target/targets.dart' show Target, TargetFlags;
 
@@ -38,6 +38,7 @@ import '../fasta/deprecated_problems.dart' show deprecated_InputError;
 
 import '../fasta/fasta_codes.dart'
     show
+        FormattedMessage,
         LocatedMessage,
         Message,
         messageCantInferPackagesFromManyInputs,
@@ -92,29 +93,34 @@ class ProcessedOptions {
   /// not been computed yet.
   Packages _packages;
 
+  /// The uri for .packages derived from the options, or `null` if the package
+  /// map has not been computed yet or there is no .packages in effect.
+  Uri _packagesUri;
+  Uri get packagesUri => _packagesUri;
+
   /// The object that knows how to resolve "package:" and "dart:" URIs,
   /// or `null` if it has not been computed yet.
   UriTranslatorImpl _uriTranslator;
 
   /// The SDK summary, or `null` if it has not been read yet.
   ///
-  /// A summary, also referred to as "outline" internally, is a [Program] where
+  /// A summary, also referred to as "outline" internally, is a [Component] where
   /// all method bodies are left out. In essence, it contains just API
   /// signatures and constants. When strong-mode is enabled, the summary already
   /// includes inferred types.
-  Program _sdkSummaryProgram;
+  Component _sdkSummaryComponent;
 
   /// The summary for each uri in `options.inputSummaries`.
   ///
-  /// A summary, also referred to as "outline" internally, is a [Program] where
+  /// A summary, also referred to as "outline" internally, is a [Component] where
   /// all method bodies are left out. In essence, it contains just API
   /// signatures and constants. When strong-mode is enabled, the summary already
   /// includes inferred types.
-  List<Program> _inputSummariesPrograms;
+  List<Component> _inputSummariesComponents;
 
-  /// Other programs that are meant to be linked and compiled with the input
+  /// Other components that are meant to be linked and compiled with the input
   /// sources.
-  List<Program> _linkedDependencies;
+  List<Component> _linkedDependencies;
 
   /// The location of the SDK, or `null` if the location hasn't been determined
   /// yet.
@@ -204,32 +210,46 @@ class ProcessedOptions {
         (_raw.reportMessages ?? (_raw.onError == null));
   }
 
-  void report(LocatedMessage message, Severity severity) {
+  FormattedMessage format(LocatedMessage message, Severity severity) {
+    int offset = message.charOffset;
+    Uri uri = message.uri;
+    Location location = offset == -1 ? null : getLocation(uri, offset);
+    String formatted =
+        command_line_reporting.format(message, severity, location: location);
+    return message.withFormatting(
+        formatted, location?.line ?? -1, location?.column ?? -1);
+  }
+
+  void report(LocatedMessage message, Severity severity,
+      {List<LocatedMessage> context}) {
+    context ??= [];
     if (_raw.onProblem != null) {
-      int offset = message.charOffset;
-      Uri uri = message.uri;
-      Location location = offset == -1 ? null : getLocation(uri, offset);
-      _raw.onProblem(
-          message,
-          severity,
-          command_line_reporting.format(message, severity, location: location),
-          location?.line ?? -1,
-          location?.column ?? -1);
+      _raw.onProblem(format(message, severity), severity,
+          context.map((message) => format(message, Severity.context)).toList());
       if (command_line_reporting.shouldThrowOn(severity)) {
         if (verbose) print(StackTrace.current);
         throw new deprecated_InputError(
-            uri,
-            offset,
+            message.uri,
+            message.charOffset,
             "Compilation aborted due to fatal "
             "${command_line_reporting.severityName(severity)}.");
       }
       return;
     }
+
+    // Deprecated reporting mechanisms
     if (_raw.onError != null) {
       _raw.onError(new _CompilationMessage(message, severity));
+      for (LocatedMessage message in context) {
+        _raw.onError(new _CompilationMessage(message, Severity.context));
+      }
     }
-
-    if (_reportMessages) command_line_reporting.report(message, severity);
+    if (_reportMessages) {
+      command_line_reporting.report(message, severity);
+      for (LocatedMessage message in context) {
+        command_line_reporting.report(message, Severity.context);
+      }
+    }
   }
 
   // TODO(askesc): Remove this and direct callers directly to report.
@@ -282,6 +302,14 @@ class ProcessedOptions {
           Severity.internalProblem);
       return false;
     }
+
+    for (Uri source in _raw.linkedDependencies) {
+      if (!await fileSystem.entityForUri(source).exists()) {
+        reportWithoutLocation(
+            templateInputFileNotFound.withArguments(source), Severity.error);
+        return false;
+      }
+    }
     return true;
   }
 
@@ -306,70 +334,74 @@ class ProcessedOptions {
   Target get target => _target ??=
       _raw.target ?? new VmTarget(new TargetFlags(strongMode: strongMode));
 
-  /// Get an outline program that summarizes the SDK, if any.
+  /// Get an outline component that summarizes the SDK, if any.
   // TODO(sigmund): move, this doesn't feel like an "option".
-  Future<Program> loadSdkSummary(CanonicalName nameRoot) async {
-    if (_sdkSummaryProgram == null) {
+  Future<Component> loadSdkSummary(CanonicalName nameRoot) async {
+    if (_sdkSummaryComponent == null) {
       if (sdkSummary == null) return null;
       var bytes = await loadSdkSummaryBytes();
-      _sdkSummaryProgram = loadProgram(bytes, nameRoot);
+      _sdkSummaryComponent = loadComponent(bytes, nameRoot);
     }
-    return _sdkSummaryProgram;
+    return _sdkSummaryComponent;
   }
 
-  void set sdkSummaryComponent(Program platform) {
-    if (_sdkSummaryProgram != null) {
+  void set sdkSummaryComponent(Component platform) {
+    if (_sdkSummaryComponent != null) {
       throw new StateError("sdkSummary already loaded.");
     }
-    _sdkSummaryProgram = platform;
+    _sdkSummaryComponent = platform;
   }
 
   /// Get the summary programs for each of the underlying `inputSummaries`
   /// provided via [CompilerOptions].
   // TODO(sigmund): move, this doesn't feel like an "option".
-  Future<List<Program>> loadInputSummaries(CanonicalName nameRoot) async {
-    if (_inputSummariesPrograms == null) {
+  Future<List<Component>> loadInputSummaries(CanonicalName nameRoot) async {
+    if (_inputSummariesComponents == null) {
       var uris = _raw.inputSummaries;
-      if (uris == null || uris.isEmpty) return const <Program>[];
+      if (uris == null || uris.isEmpty) return const <Component>[];
       // TODO(sigmund): throttle # of concurrent opreations.
       var allBytes = await Future
           .wait(uris.map((uri) => fileSystem.entityForUri(uri).readAsBytes()));
-      _inputSummariesPrograms =
-          allBytes.map((bytes) => loadProgram(bytes, nameRoot)).toList();
+      _inputSummariesComponents =
+          allBytes.map((bytes) => loadComponent(bytes, nameRoot)).toList();
     }
-    return _inputSummariesPrograms;
+    return _inputSummariesComponents;
   }
 
-  /// Load each of the [CompilerOptions.linkedDependencies] programs.
+  /// Load each of the [CompilerOptions.linkedDependencies] components.
   // TODO(sigmund): move, this doesn't feel like an "option".
-  Future<List<Program>> loadLinkDependencies(CanonicalName nameRoot) async {
+  Future<List<Component>> loadLinkDependencies(CanonicalName nameRoot) async {
     if (_linkedDependencies == null) {
       var uris = _raw.linkedDependencies;
-      if (uris == null || uris.isEmpty) return const <Program>[];
+      if (uris == null || uris.isEmpty) return const <Component>[];
       // TODO(sigmund): throttle # of concurrent opreations.
       var allBytes = await Future
           .wait(uris.map((uri) => fileSystem.entityForUri(uri).readAsBytes()));
       _linkedDependencies =
-          allBytes.map((bytes) => loadProgram(bytes, nameRoot)).toList();
+          allBytes.map((bytes) => loadComponent(bytes, nameRoot)).toList();
     }
     return _linkedDependencies;
   }
 
   /// Helper to load a .dill file from [uri] using the existing [nameRoot].
-  Program loadProgram(List<int> bytes, CanonicalName nameRoot) {
-    Program program = new Program(nameRoot: nameRoot);
+  Component loadComponent(List<int> bytes, CanonicalName nameRoot) {
+    Component component = new Component(nameRoot: nameRoot);
     // TODO(ahe): Pass file name to BinaryBuilder.
     // TODO(ahe): Control lazy loading via an option.
     new BinaryBuilder(bytes, filename: null, disableLazyReading: false)
-        .readProgram(program);
-    return program;
+        .readComponent(component);
+    return component;
   }
 
   /// Get the [UriTranslator] which resolves "package:" and "dart:" URIs.
   ///
   /// This is an asynchronous method since file system operations may be
   /// required to locate/read the packages file as well as SDK metadata.
-  Future<UriTranslatorImpl> getUriTranslator() async {
+  Future<UriTranslatorImpl> getUriTranslator({bool bypassCache: false}) async {
+    if (bypassCache) {
+      _uriTranslator = null;
+      _packages = null;
+    }
     if (_uriTranslator == null) {
       ticker.logMs("Started building UriTranslator");
       var libraries = await _computeLibrarySpecification();
@@ -418,6 +450,7 @@ class ProcessedOptions {
   /// required to locate/read the packages file.
   Future<Packages> _getPackages() async {
     if (_packages != null) return _packages;
+    _packagesUri = null;
     if (_raw.packagesFileUri != null) {
       return _packages = await createPackagesFromFile(_raw.packagesFileUri);
     }
@@ -451,8 +484,10 @@ class ProcessedOptions {
     try {
       List<int> contents = await fileSystem.entityForUri(file).readAsBytes();
       Map<String, Uri> map = package_config.parse(contents, file);
+      _packagesUri = file;
       return new MapPackages(map);
     } catch (e) {
+      _packagesUri = null;
       report(
           templateCannotReadPackagesFile
               .withArguments("$e")
@@ -550,7 +585,7 @@ class ProcessedOptions {
       // Infer based on the sdkRoot, but only when `compileSdk` is false,
       // otherwise the default intent was to compile the sdk from sources and
       // not to load an sdk summary file.
-      _sdkSummary = root?.resolve("vm_outline.dill");
+      _sdkSummary = root?.resolve("vm_platform.dill");
     }
 
     if (_raw.librariesSpecificationUri != null) {

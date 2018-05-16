@@ -19,6 +19,7 @@ import '../universe/call_structure.dart';
 import '../universe/feature.dart';
 import '../universe/selector.dart';
 import '../universe/use.dart';
+import '../universe/world_builder.dart';
 
 ResolutionImpact buildKernelImpact(
     ir.Member member,
@@ -55,10 +56,28 @@ class KernelImpactBuilder extends ir.Visitor {
   CommonElements get commonElements => elementMap.commonElements;
 
   /// Add a checked-mode type use of [type] if it is not `dynamic`.
-  DartType checkType(ir.DartType irType) {
+  DartType checkType(ir.DartType irType, TypeUseKind kind) {
     DartType type = elementMap.getDartType(irType);
-    if (!type.isDynamic) {
-      impactBuilder.registerTypeUse(new TypeUse.checkedModeCheck(type));
+    if (kind != null && !type.isDynamic) {
+      switch (kind) {
+        case TypeUseKind.CHECKED_MODE_CHECK:
+          if (!_options.strongMode) {
+            impactBuilder.registerTypeUse(new TypeUse.checkedModeCheck(type));
+          }
+          break;
+        case TypeUseKind.PARAMETER_CHECK:
+          if (!_options.strongMode) {
+            impactBuilder.registerTypeUse(new TypeUse.checkedModeCheck(type));
+          } else {
+            impactBuilder.registerTypeUse(new TypeUse.parameterCheck(type));
+          }
+          break;
+        case TypeUseKind.IMPLICIT_CAST:
+          impactBuilder.registerTypeUse(new TypeUse.implicitCast(type));
+          break;
+        default:
+          throw new UnsupportedError("Unexpected type check kind: $kind");
+      }
     }
     return type;
   }
@@ -71,7 +90,7 @@ class KernelImpactBuilder extends ir.Visitor {
   /// Add checked-mode type use for the parameter type and constant for the
   /// default value of [parameter].
   void handleParameter(ir.VariableDeclaration parameter) {
-    checkType(parameter.type);
+    checkType(parameter.type, TypeUseKind.PARAMETER_CHECK);
     registerSeenClasses(parameter.type);
     visitNode(parameter.initializer);
   }
@@ -80,15 +99,20 @@ class KernelImpactBuilder extends ir.Visitor {
   /// constants for default values.
   void handleSignature(ir.FunctionNode node, {bool checkReturnType: true}) {
     if (checkReturnType) {
-      checkType(node.returnType);
+      checkType(node.returnType, TypeUseKind.CHECKED_MODE_CHECK);
     }
     registerSeenClasses(node.returnType);
     node.positionalParameters.forEach(handleParameter);
     node.namedParameters.forEach(handleParameter);
+    if (_options.strongMode) {
+      for (ir.TypeParameter parameter in node.typeParameters) {
+        checkType(parameter.bound, TypeUseKind.PARAMETER_CHECK);
+      }
+    }
   }
 
   ResolutionImpact buildField(ir.Field field) {
-    checkType(field.type);
+    checkType(field.type, TypeUseKind.PARAMETER_CHECK);
     registerSeenClasses(field.type);
     if (field.initializer != null) {
       visitNode(field.initializer);
@@ -127,19 +151,42 @@ class KernelImpactBuilder extends ir.Visitor {
     return impactBuilder;
   }
 
-  void handleAsyncMarker(ir.AsyncMarker asyncMarker) {
+  void handleAsyncMarker(ir.FunctionNode function) {
+    ir.AsyncMarker asyncMarker = function.asyncMarker;
+    if (asyncMarker == ir.AsyncMarker.Sync) return;
+
+    DartType elementType =
+        elementMap.getFunctionAsyncOrSyncStarElementType(function);
+
     switch (asyncMarker) {
-      case ir.AsyncMarker.Sync:
-        break;
       case ir.AsyncMarker.SyncStar:
         impactBuilder.registerFeature(Feature.SYNC_STAR);
+        impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
+            commonElements.syncStarIterableFactory,
+            const CallStructure.unnamed(1, 1),
+            <DartType>[elementType]));
         break;
+
       case ir.AsyncMarker.Async:
         impactBuilder.registerFeature(Feature.ASYNC);
+        var completerFactory = _options.startAsyncSynchronously
+            ? commonElements.asyncAwaitCompleterFactory
+            : commonElements.syncCompleterFactory;
+        impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
+            completerFactory,
+            const CallStructure.unnamed(0, 1),
+            <DartType>[elementType]));
         break;
+
       case ir.AsyncMarker.AsyncStar:
         impactBuilder.registerFeature(Feature.ASYNC_STAR);
+        impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
+            commonElements.asyncStarStreamControllerFactory,
+            const CallStructure.unnamed(1, 1),
+            <DartType>[elementType]));
         break;
+
+      case ir.AsyncMarker.Sync:
       case ir.AsyncMarker.SyncYielding:
         failedAt(CURRENT_ELEMENT_SPANNABLE,
             "Unexpected async marker: ${asyncMarker}");
@@ -149,7 +196,7 @@ class KernelImpactBuilder extends ir.Visitor {
   ResolutionImpact buildProcedure(ir.Procedure procedure) {
     handleSignature(procedure.function);
     visitNode(procedure.function.body);
-    handleAsyncMarker(procedure.function.asyncMarker);
+    handleAsyncMarker(procedure.function);
     if (procedure.isExternal &&
         !elementMap.isForeignLibrary(procedure.enclosingLibrary)) {
       MemberEntity member = elementMap.getMember(procedure);
@@ -223,7 +270,8 @@ class KernelImpactBuilder extends ir.Visitor {
   @override
   void visitListLiteral(ir.ListLiteral literal) {
     visitNodes(literal.expressions);
-    DartType elementType = checkType(literal.typeArgument);
+    DartType elementType =
+        checkType(literal.typeArgument, TypeUseKind.CHECKED_MODE_CHECK);
     registerSeenClasses(literal.typeArgument);
 
     impactBuilder.registerListLiteral(new ListLiteralUse(
@@ -235,8 +283,10 @@ class KernelImpactBuilder extends ir.Visitor {
   @override
   void visitMapLiteral(ir.MapLiteral literal) {
     visitNodes(literal.entries);
-    DartType keyType = checkType(literal.keyType);
-    DartType valueType = checkType(literal.valueType);
+    DartType keyType =
+        checkType(literal.keyType, TypeUseKind.CHECKED_MODE_CHECK);
+    DartType valueType =
+        checkType(literal.valueType, TypeUseKind.CHECKED_MODE_CHECK);
     registerSeenClasses(literal.keyType);
     registerSeenClasses(literal.valueType);
     impactBuilder.registerMapLiteral(new MapLiteralUse(
@@ -245,9 +295,18 @@ class KernelImpactBuilder extends ir.Visitor {
         isEmpty: literal.entries.isEmpty));
   }
 
+  @override
   void visitMapEntry(ir.MapEntry entry) {
     visitNode(entry.key);
     visitNode(entry.value);
+  }
+
+  @override
+  void visitConditionalExpression(ir.ConditionalExpression node) {
+    visitNode(node.condition);
+    visitNode(node.then);
+    visitNode(node.otherwise);
+    // Don't visit the static type.
   }
 
   List<DartType> _visitArguments(ir.Arguments arguments) {
@@ -347,6 +406,11 @@ class KernelImpactBuilder extends ir.Visitor {
       handleNew(node, node.target, isConst: node.isConst);
     } else {
       FunctionEntity target = elementMap.getMethod(node.target);
+      if (_options.strongMode &&
+          target == commonElements.extractTypeArguments) {
+        _handleExtractTypeArguments(node, target);
+        return;
+      }
       List<DartType> typeArguments = _visitArguments(node.arguments);
       impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
           target, elementMap.getCallStructure(node.arguments), typeArguments));
@@ -374,6 +438,35 @@ class KernelImpactBuilder extends ir.Visitor {
       case ForeignKind.NONE:
         break;
     }
+  }
+
+  void _handleExtractTypeArguments(
+      ir.StaticInvocation node, FunctionEntity target) {
+    // extractTypeArguments<Map>(obj, fn) has additional impacts:
+    //
+    //   1. All classes implementing Map need to carry type arguments (similar
+    //      to checking `o is Map<K, V>`).
+    //
+    //   2. There is an invocation of fn with some number of type arguments.
+    //
+    List<DartType> typeArguments = _visitArguments(node.arguments);
+    impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
+        target, elementMap.getCallStructure(node.arguments), typeArguments));
+
+    if (typeArguments.length != 1) return;
+    DartType matchedType = typeArguments.first;
+
+    if (matchedType is! InterfaceType) return;
+    InterfaceType interfaceType = matchedType;
+    ClassEntity cls = interfaceType.element;
+    InterfaceType thisType = elementMap.elementEnvironment.getThisType(cls);
+
+    impactBuilder.registerTypeUse(new TypeUse.isCheck(thisType));
+
+    Selector selector = new Selector.callClosure(
+        0, const <String>[], thisType.typeArguments.length);
+    impactBuilder.registerDynamicUse(
+        new ConstrainedDynamicUse(selector, null, thisType.typeArguments));
   }
 
   @override
@@ -417,9 +510,16 @@ class KernelImpactBuilder extends ir.Visitor {
     List<DartType> typeArguments = _visitArguments(node.arguments);
     // TODO(johnniwinther): Restrict the dynamic use to only match the known
     // target.
-    impactBuilder.registerDynamicUse(new GenericDynamicUse(
-        new Selector.call(elementMap.getMember(node.target).memberName,
-            elementMap.getCallStructure(node.arguments)),
+    ReceiverConstraint constraint;
+    MemberEntity member = elementMap.getMember(node.target);
+    if (_options.strongMode && useStrongModeWorldStrategy) {
+      // TODO(johnniwinther): Restrict this to subclasses?
+      constraint = new StrongModeConstraint(member.enclosingClass);
+    }
+    impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
+        new Selector.call(
+            member.memberName, elementMap.getCallStructure(node.arguments)),
+        constraint,
         typeArguments));
   }
 
@@ -493,10 +593,10 @@ class KernelImpactBuilder extends ir.Visitor {
   }
 
   @override
-  void visitMethodInvocation(ir.MethodInvocation invocation) {
-    Selector selector = elementMap.getSelector(invocation);
-    List<DartType> typeArguments = _visitArguments(invocation.arguments);
-    var receiver = invocation.receiver;
+  void visitMethodInvocation(ir.MethodInvocation node) {
+    Selector selector = elementMap.getSelector(node);
+    List<DartType> typeArguments = _visitArguments(node.arguments);
+    var receiver = node.receiver;
     if (receiver is ir.VariableGet &&
         receiver.variable.isFinal &&
         receiver.variable.parent is ir.FunctionDeclaration) {
@@ -509,25 +609,49 @@ class KernelImpactBuilder extends ir.Visitor {
             localFunction, selector.callStructure, typeArguments));
       }
     } else {
-      visitNode(invocation.receiver);
-      impactBuilder
-          .registerDynamicUse(new GenericDynamicUse(selector, typeArguments));
+      visitNode(node.receiver);
+      ReceiverConstraint constraint;
+      if (_options.strongMode && useStrongModeWorldStrategy) {
+        DartType receiverType = elementMap.getStaticType(node.receiver);
+        if (receiverType is InterfaceType) {
+          constraint = new StrongModeConstraint(receiverType.element);
+        }
+      }
+
+      impactBuilder.registerDynamicUse(
+          new ConstrainedDynamicUse(selector, constraint, typeArguments));
     }
   }
 
   @override
   void visitPropertyGet(ir.PropertyGet node) {
     visitNode(node.receiver);
-    impactBuilder.registerDynamicUse(
-        new DynamicUse(new Selector.getter(elementMap.getName(node.name))));
+    ReceiverConstraint constraint;
+    if (_options.strongMode && useStrongModeWorldStrategy) {
+      DartType receiverType = elementMap.getStaticType(node.receiver);
+      if (receiverType is InterfaceType) {
+        constraint = new StrongModeConstraint(receiverType.element);
+      }
+    }
+    impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
+        new Selector.getter(elementMap.getName(node.name)),
+        constraint, const <DartType>[]));
   }
 
   @override
   void visitPropertySet(ir.PropertySet node) {
     visitNode(node.receiver);
     visitNode(node.value);
-    impactBuilder.registerDynamicUse(
-        new DynamicUse(new Selector.setter(elementMap.getName(node.name))));
+    ReceiverConstraint constraint;
+    if (_options.strongMode && useStrongModeWorldStrategy) {
+      DartType receiverType = elementMap.getStaticType(node.receiver);
+      if (receiverType is InterfaceType) {
+        constraint = new StrongModeConstraint(receiverType.element);
+      }
+    }
+    impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
+        new Selector.setter(elementMap.getName(node.name)),
+        constraint, const <DartType>[]));
   }
 
   @override
@@ -540,6 +664,7 @@ class KernelImpactBuilder extends ir.Visitor {
 
   @override
   void visitInstantiation(ir.Instantiation node) {
+    // TODO(johnniwinther): Track which arities are used in instantiation.
     impactBuilder.registerFeature(Feature.GENERIC_INSTANTIATION);
     node.visitChildren(this);
   }
@@ -553,25 +678,25 @@ class KernelImpactBuilder extends ir.Visitor {
 
   @override
   void visitFunctionDeclaration(ir.FunctionDeclaration node) {
-    impactBuilder.registerStaticUse(
-        new StaticUse.closure(elementMap.getLocalFunction(node)));
+    Local function = elementMap.getLocalFunction(node);
+    impactBuilder.registerStaticUse(new StaticUse.closure(function));
     handleSignature(node.function);
-    handleAsyncMarker(node.function.asyncMarker);
+    handleAsyncMarker(node.function);
     visitNode(node.function.body);
   }
 
   @override
   void visitFunctionExpression(ir.FunctionExpression node) {
-    impactBuilder.registerStaticUse(
-        new StaticUse.closure(elementMap.getLocalFunction(node)));
+    Local function = elementMap.getLocalFunction(node);
+    impactBuilder.registerStaticUse(new StaticUse.closure(function));
     handleSignature(node.function);
-    handleAsyncMarker(node.function.asyncMarker);
+    handleAsyncMarker(node.function);
     visitNode(node.function.body);
   }
 
   @override
   void visitVariableDeclaration(ir.VariableDeclaration node) {
-    checkType(node.type);
+    checkType(node.type, TypeUseKind.CHECKED_MODE_CHECK);
     registerSeenClasses(node.type);
     if (node.initializer != null) {
       visitNode(node.initializer);
@@ -590,8 +715,12 @@ class KernelImpactBuilder extends ir.Visitor {
 
   @override
   void visitAsExpression(ir.AsExpression node) {
-    impactBuilder
-        .registerTypeUse(new TypeUse.asCast(elementMap.getDartType(node.type)));
+    DartType type = elementMap.getDartType(node.type);
+    if (node.isTypeError) {
+      impactBuilder.registerTypeUse(new TypeUse.implicitCast(type));
+    } else {
+      impactBuilder.registerTypeUse(new TypeUse.asCast(type));
+    }
     registerSeenClasses(node.type);
     visitNode(node.operand);
   }
@@ -607,8 +736,11 @@ class KernelImpactBuilder extends ir.Visitor {
     visitNode(node.variable);
     visitNode(node.iterable);
     visitNode(node.body);
+    // TODO(johnniwinther): Use receiver constraints for the dynamic uses in
+    // strong mode.
     if (node.isAsync) {
       impactBuilder.registerFeature(Feature.ASYNC_FOR_IN);
+      impactBuilder.registerDynamicUse(new DynamicUse(Selectors.cancel));
     } else {
       impactBuilder.registerFeature(Feature.SYNC_FOR_IN);
       impactBuilder.registerDynamicUse(new DynamicUse(Selectors.iterator));
@@ -667,6 +799,7 @@ class KernelImpactBuilder extends ir.Visitor {
   void visitLoadLibrary(ir.LoadLibrary node) {
     impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
         commonElements.loadDeferredLibrary, CallStructure.ONE_ARG));
+    impactBuilder.registerFeature(Feature.LOAD_LIBRARY);
   }
 
   // TODO(johnniwinther): Make this throw and visit child nodes explicitly

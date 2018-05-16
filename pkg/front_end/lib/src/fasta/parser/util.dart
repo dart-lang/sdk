@@ -17,12 +17,6 @@ bool optional(String value, Token token) {
   return identical(value, token.stringValue);
 }
 
-/// Returns the close brace, bracket, or parenthesis of [left]. For '<', it may
-/// return null.
-Token closeBraceTokenFor(Token token) {
-  return token is BeginToken ? token.endGroup : null;
-}
-
 /// Returns the token before the close brace, bracket, or parenthesis
 /// associated with [left]. For '<', it may return `null`.
 Token beforeCloseBraceTokenFor(BeginToken left) {
@@ -58,4 +52,27 @@ int lengthOfSpan(Token begin, Token end) {
   if (begin == null) return lengthForToken(end);
   if (end == null) return lengthForToken(begin);
   return end.offset + end.length - begin.offset;
+}
+
+Token skipMetadata(Token token) {
+  token = token.next;
+  assert(optional('@', token));
+  Token next = token.next;
+  if (next.isIdentifier) {
+    token = next;
+    next = token.next;
+    while (optional('.', next)) {
+      token = next;
+      next = token.next;
+      if (next.isIdentifier) {
+        token = next;
+        next = token.next;
+      }
+    }
+    if (optional('(', next)) {
+      token = next.endGroup;
+      next = token.next;
+    }
+  }
+  return token;
 }

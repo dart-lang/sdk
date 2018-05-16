@@ -13,6 +13,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
 import '../mocks.dart';
+import '../src/utilities/flutter_util.dart' as flutter;
 
 main() {
   defineReflectiveSuite(() {
@@ -789,6 +790,15 @@ void res(int a, int b) {
 class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
   List<RefactoringKind> kinds;
 
+  void addFlutterPackage() {
+    var libFolder = flutter.configureFlutterPackage(resourceProvider);
+    packageMapProvider.packageMap['flutter'] = [libFolder];
+    // Create .packages in the project.
+    newFile(join(projectPath, '.packages'), content: '''
+flutter:${libFolder.toUri()}
+''');
+  }
+
   /**
    * Tests that there is refactoring of the given [kind] is available at the
    * [search] offset.
@@ -864,6 +874,23 @@ main() {
     await getRefactoringsForString('1 + 2');
     expect(kinds, contains(RefactoringKind.EXTRACT_LOCAL_VARIABLE));
     expect(kinds, contains(RefactoringKind.EXTRACT_METHOD));
+  }
+
+  Future test_extractWidget() async {
+    addFlutterPackage();
+    addTestFile('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Text('AAA');
+  }
+}
+''');
+    await waitForTasksFinished();
+    await getRefactoringsForString('new Text');
+    expect(kinds, contains(RefactoringKind.EXTRACT_WIDGET));
   }
 
   Future test_rename_hasElement_class() {
@@ -1562,16 +1589,24 @@ class B {
   B() {}
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('B;', 'newName');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('B;', 'newName');
+      },
+      '''
 class A {
   A() = B.newName;
 }
 class B {
   B.newName() {}
 }
-''');
+''',
+      feedbackValidator: (feedback) {
+        RenameFeedback renameFeedback = feedback;
+        expect(renameFeedback.offset, -1);
+        expect(renameFeedback.length, 0);
+      },
+    );
   }
 
   test_constructor_fromInstanceCreation() {
@@ -1583,16 +1618,24 @@ main() {
   new A.test();
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('test();', 'newName');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('test();', 'newName');
+      },
+      '''
 class A {
   A.newName() {}
 }
 main() {
   new A.newName();
 }
-''');
+''',
+      feedbackValidator: (feedback) {
+        RenameFeedback renameFeedback = feedback;
+        expect(renameFeedback.offset, 43);
+        expect(renameFeedback.length, 4);
+      },
+    );
   }
 
   test_constructor_fromInstanceCreation_default_onClassName() {
@@ -1604,16 +1647,24 @@ main() {
   new A();
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('A();', 'newName');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('A();', 'newName');
+      },
+      '''
 class A {
   A.newName() {}
 }
 main() {
   new A.newName();
 }
-''');
+''',
+      feedbackValidator: (feedback) {
+        RenameFeedback renameFeedback = feedback;
+        expect(renameFeedback.offset, -1);
+        expect(renameFeedback.length, 0);
+      },
+    );
   }
 
   test_constructor_fromInstanceCreation_default_onNew() {
@@ -1625,16 +1676,24 @@ main() {
   new A();
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('new A();', 'newName');
-    }, '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('new A();', 'newName');
+      },
+      '''
 class A {
   A.newName() {}
 }
 main() {
   new A.newName();
 }
-''');
+''',
+      feedbackValidator: (feedback) {
+        RenameFeedback renameFeedback = feedback;
+        expect(renameFeedback.offset, -1);
+        expect(renameFeedback.length, 0);
+      },
+    );
   }
 
   test_feedback() {
@@ -1682,16 +1741,23 @@ main() {
   Future f;
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest("import 'dart:async';", 'new_name');
-    }, '''
+    return assertSuccessfulRefactoring(
+        () {
+          return sendRenameRequest("import 'dart:async';", 'new_name');
+        },
+        '''
 import 'dart:math';
 import 'dart:async' as new_name;
 main() {
   Random r;
   new_name.Future f;
 }
-''');
+''',
+        feedbackValidator: (feedback) {
+          RenameFeedback renameFeedback = feedback;
+          expect(renameFeedback.offset, -1);
+          expect(renameFeedback.length, 0);
+        });
   }
 
   test_importPrefix_remove() {
@@ -1703,16 +1769,23 @@ main() {
   test.Future f;
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest("import 'dart:async' as test;", '');
-    }, '''
+    return assertSuccessfulRefactoring(
+        () {
+          return sendRenameRequest("import 'dart:async' as test;", '');
+        },
+        '''
 import 'dart:math' as test;
 import 'dart:async';
 main() {
   test.Random r;
   Future f;
 }
-''');
+''',
+        feedbackValidator: (feedback) {
+          RenameFeedback renameFeedback = feedback;
+          expect(renameFeedback.offset, 51);
+          expect(renameFeedback.length, 4);
+        });
   }
 
   test_init_fatalError_noElement() {
@@ -1970,9 +2043,13 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
   }
 
   Future assertSuccessfulRefactoring(
-      Future<Response> requestSender(), String expectedCode) async {
+      Future<Response> requestSender(), String expectedCode,
+      {void Function(RefactoringFeedback) feedbackValidator}) async {
     EditGetRefactoringResult result = await getRefactoringResult(requestSender);
     assertResultProblemsOK(result);
+    if (feedbackValidator != null) {
+      feedbackValidator(result.feedback);
+    }
     assertTestRefactoringResult(result, expectedCode);
   }
 

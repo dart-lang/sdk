@@ -16,5 +16,6 @@ test1() async {
 
 @NoInline()
 test2() async {
+  await null;
   /*1:test2*/ throw '>ExceptionMarker<';
 }

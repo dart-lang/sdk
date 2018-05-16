@@ -47,10 +47,9 @@ class ScannerErrorCode extends ErrorCode {
 
   static const ScannerErrorCode UNTERMINATED_MULTI_LINE_COMMENT =
       const ScannerErrorCode(
-          'UNTERMINATED_MULTI_LINE_COMMENT',
-          "Unterminated multi-line comment.",
-          "Try terminating the comment with '*/', or "
-          "removing any unbalanced occurances of '/*' (because comments nest in Dart).");
+          'UNTERMINATED_MULTI_LINE_COMMENT', "Unterminated multi-line comment.",
+          correction: "Try terminating the comment with '*/', or "
+              "removing any unbalanced occurances of '/*' (because comments nest in Dart).");
 
   static const ScannerErrorCode UNTERMINATED_STRING_LITERAL =
       const ScannerErrorCode(
@@ -62,8 +61,8 @@ class ScannerErrorCode extends ErrorCode {
    * template. The correction associated with the error will be created from the
    * given [correction] template.
    */
-  const ScannerErrorCode(String name, String message, [String correction])
-      : super(name, message, correction);
+  const ScannerErrorCode(String name, String message, {String correction})
+      : super.temporary(name, message, correction: correction);
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;

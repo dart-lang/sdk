@@ -113,6 +113,11 @@ class CompilerPass {
   CompilerPass(Id id, const char* name) : name_(name), flags_(0) {
     ASSERT(passes_[id] == NULL);
     passes_[id] = this;
+
+    // By default print the final flow-graph after the register allocation.
+    if (id == kAllocateRegisters) {
+      flags_ = kTraceAfter;
+    }
   }
   virtual ~CompilerPass() {}
 

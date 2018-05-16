@@ -18,13 +18,73 @@ class ImportDirectivesTest extends PartialCodeTest {
           new TestDescriptor(
               'keyword',
               'import',
-              [/*ParserErrorCode.MISSING_URI,*/ ParserErrorCode.EXPECTED_TOKEN],
-              "import '';",
-              allFailing: true),
+              [
+                // TODO(danrubel): Consider an improved error message
+                // ParserErrorCode.MISSING_URI,
+                ParserErrorCode.EXPECTED_STRING_LITERAL,
+                ParserErrorCode.EXPECTED_TOKEN
+              ],
+              "import '';"),
           new TestDescriptor('emptyUri', "import ''",
               [ParserErrorCode.EXPECTED_TOKEN], "import '';"),
           new TestDescriptor('fullUri', "import 'a.dart'",
               [ParserErrorCode.EXPECTED_TOKEN], "import 'a.dart';"),
+          new TestDescriptor(
+              'if',
+              "import 'a.dart' if",
+              [
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_STRING_LITERAL
+              ],
+              "import 'a.dart' if (_s_) '';"),
+          new TestDescriptor(
+              'ifParen',
+              "import 'a.dart' if (",
+              [
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ScannerErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_STRING_LITERAL,
+                ParserErrorCode.EXPECTED_TOKEN
+              ],
+              "import 'a.dart' if (_s_) '';",
+              failing: ['functionNonVoid', 'getter', 'setter']),
+          new TestDescriptor(
+              'ifId',
+              "import 'a.dart' if (b",
+              [
+                ScannerErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_STRING_LITERAL
+              ],
+              "import 'a.dart' if (b) '';"),
+          new TestDescriptor(
+              'ifEquals',
+              "import 'a.dart' if (b ==",
+              [
+                ParserErrorCode.EXPECTED_STRING_LITERAL,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ScannerErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_STRING_LITERAL
+              ],
+              "import 'a.dart' if (b == '') '';"),
+          new TestDescriptor(
+              'ifCondition',
+              "import 'a.dart' if (b)",
+              [
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_STRING_LITERAL
+              ],
+              "import 'a.dart' if (b) '';"),
+          new TestDescriptor(
+              'as',
+              "import 'a.dart' as",
+              [
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.EXPECTED_TOKEN
+              ],
+              "import 'a.dart' as _s_;",
+              failing: ['functionNonVoid', 'getter']),
         ],
         PartialCodeTest.prePartSuffixes);
   }

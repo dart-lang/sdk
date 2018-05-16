@@ -281,11 +281,10 @@ class _Annotation {
   }
 }
 
-// Find all relative imports and copy them into the dir that contains
-// the generated tests.
+/// Finds all relative imports and copies them into the directory with the
+/// generated tests.
 Set<String> _findAllRelativeImports(Path topLibrary) {
-  var toSearch = [topLibrary].toSet();
-  var foundImports = new Set<String>();
+  var found = new Set<String>();
   var libraryDir = topLibrary.directoryPath;
   var relativeImportRegExp = new RegExp(
       '^(?:@.*\\s+)?' // Allow for a meta-data annotation.
@@ -294,36 +293,36 @@ Set<String> _findAllRelativeImports(Path topLibrary) {
       '(?!(dart:|dart-ext:|data:|package:|/))' // Look-ahead: not in package.
       '([^"\']*)' // The path to the imported file.
       '["\']');
-  while (!toSearch.isEmpty) {
-    var thisPass = toSearch;
-    toSearch = new Set<Path>();
-    for (var filename in thisPass) {
-      var f = new File(filename.toNativePath());
-      for (var line in f.readAsLinesSync()) {
-        var match = relativeImportRegExp.firstMatch(line);
 
-        if (match != null) {
-          var relativePath = new Path(match.group(3));
-          if (foundImports.contains(relativePath.toString())) {
-            continue;
-          }
+  processFile(Path filePath) {
+    var file = new File(filePath.toNativePath());
+    for (var line in file.readAsLinesSync()) {
+      var match = relativeImportRegExp.firstMatch(line);
+      if (match == null) continue;
+      var relativePath = match.group(3);
 
-          if (relativePath.toString().contains('..')) {
-            // This is just for safety reasons, we don't want
-            // to unintentionally clobber files relative to the destination
-            // dir when copying them over.
-            print("relative paths containing '..' are not allowed.");
-            exit(1);
-          }
+      // If a multitest deliberately imports a non-existent file, don't try to
+      // include it.
+      if (relativePath.contains("nonexistent")) continue;
 
-          foundImports.add(relativePath.toString());
-          toSearch.add(libraryDir.join(relativePath));
-        }
+      // Handle import cycles.
+      if (!found.add(relativePath)) continue;
+
+      if (relativePath.contains("..")) {
+        // This is just for safety reasons, we don't want to unintentionally
+        // clobber files relative to the destination dir when copying them
+        // over.
+        print("Relative import in multitest containing '..' is not allowed.");
+        exit(1);
       }
+
+      processFile(libraryDir.append(relativePath));
     }
   }
 
-  return foundImports;
+  processFile(topLibrary);
+
+  return found;
 }
 
 String _suiteNameFromPath(Path suiteDir) {

@@ -732,17 +732,21 @@ main() {
         <String>["1+fooConst", "1-fooNotConst", "1-bar"],
         failingTests: '1');
 
-    buildTests('testCompletion_annotation_type', '''
+    buildTests(
+        'testCompletion_annotation_type',
+        '''
 class AAA {
   const AAA({int a, int b});
   const AAA.nnn(int c, int d);
 }
 @AAA!1
 main() {
-}''', <String>[
-      "1+AAA" /*":" + ProposalKind.CONSTRUCTOR*/,
-      "1+AAA.nnn" /*":" + ProposalKind.CONSTRUCTOR*/
-    ]);
+}''',
+        <String>[
+          "1+AAA" /*":" + ProposalKind.CONSTRUCTOR*/,
+          "1+AAA.nnn" /*":" + ProposalKind.CONSTRUCTOR*/
+        ],
+        failingTests: '1');
 
     buildTests('testCompletion_annotation_type_inClass_withoutMember', '''
 class AAA {
@@ -1602,25 +1606,17 @@ main() {
         extraFiles: sources,
         failingTests: '1');
 
-    buildTests(
-        'test_importPrefix_hideCombinator',
-        '''
+    buildTests('test_importPrefix_hideCombinator', '''
 import 'dart:math' as math hide PI;
 main() {
   math.!1
-}''',
-        <String>["1-PI", "1+LN10"],
-        failingTests: '1');
+}''', <String>["1-PI", "1+LN10"]);
 
-    buildTests(
-        'test_importPrefix_showCombinator',
-        '''
+    buildTests('test_importPrefix_showCombinator', '''
 import 'dart:math' as math show PI;
 main() {
   math.!1
-}''',
-        <String>["1+PI", "1-LN10"],
-        failingTests: '1');
+}''', <String>["1+PI", "1-LN10"]);
 
     sources.clear();
     sources["/lib.dart"] = '''

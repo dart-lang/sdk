@@ -163,9 +163,8 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
       script_uri, package_root, packages_config, app_snapshot);
   Dart_Isolate isolate = Dart_CreateIsolate(
       DART_KERNEL_ISOLATE_NAME, main, isolate_snapshot_data,
-      isolate_snapshot_instructions, flags, isolate_data, error);
+      isolate_snapshot_instructions, NULL, NULL, flags, isolate_data, error);
   if (isolate == NULL) {
-    *error = strdup("Failed to create isolate");
     delete isolate_data;
     return NULL;
   }
@@ -173,13 +172,12 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
   Dart_EnterScope();
 
   if (isolate_run_script_snapshot) {
-    const uint8_t* payload;
+    uint8_t* payload;
     intptr_t payload_length;
     void* file = bin::DartUtils::OpenFile(script_uri, false);
     bin::DartUtils::ReadFile(&payload, &payload_length, file);
     bin::DartUtils::CloseFile(file);
 
-    bin::DartUtils::SkipSnapshotMagicNumber(&payload, &payload_length);
     Dart_Handle result = Dart_LoadScriptFromSnapshot(payload, payload_length);
     CHECK_RESULT(result);
   }
@@ -191,15 +189,20 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
 
   Dart_ExitScope();
   Dart_ExitIsolate();
-  bool retval = Dart_IsolateMakeRunnable(isolate);
-  if (!retval) {
-    *error = strdup("Invalid isolate state - Unable to make it runnable");
+  *error = Dart_IsolateMakeRunnable(isolate);
+  if (*error != NULL) {
     Dart_EnterIsolate(isolate);
     Dart_ShutdownIsolate();
     return NULL;
   }
 
   return isolate;
+}
+
+static void CleanupIsolate(void* callback_data) {
+  bin::IsolateData* isolate_data =
+      reinterpret_cast<bin::IsolateData*>(callback_data);
+  delete isolate_data;
 }
 
 static int Main(int argc, const char** argv) {
@@ -265,26 +268,26 @@ static int Main(int argc, const char** argv) {
   bin::TimerUtils::InitOnce();
   bin::EventHandler::Start();
 
-  bool set_vm_flags_success =
-      Flags::ProcessCommandLineFlags(dart_argc, dart_argv);
-  ASSERT(set_vm_flags_success);
-  const char* err_msg = Dart::InitOnce(
+  const char* error = Flags::ProcessCommandLineFlags(dart_argc, dart_argv);
+  ASSERT(error == NULL);
+
+  error = Dart::InitOnce(
       dart::bin::vm_snapshot_data, dart::bin::vm_snapshot_instructions,
       CreateIsolateAndSetup /* create */, NULL /* shutdown */,
-      NULL /* cleanup */, NULL /* thread_exit */,
+      CleanupIsolate /* cleanup */, NULL /* thread_exit */,
       dart::bin::DartUtils::OpenFile, dart::bin::DartUtils::ReadFile,
       dart::bin::DartUtils::WriteFile, dart::bin::DartUtils::CloseFile,
       NULL /* entropy_source */, NULL /* get_service_assets */,
       start_kernel_isolate);
+  ASSERT(error == NULL);
 
-  ASSERT(err_msg == NULL);
   // Apply the filter to all registered tests.
   TestCaseBase::RunAll();
   // Apply the filter to all registered benchmarks.
   Benchmark::RunAll(argv[0]);
 
-  err_msg = Dart::Cleanup();
-  ASSERT(err_msg == NULL);
+  error = Dart::Cleanup();
+  ASSERT(error == NULL);
 
   bin::EventHandler::Stop();
 
@@ -294,7 +297,7 @@ static int Main(int argc, const char** argv) {
     OS::PrintErr("No tests matched: %s\n", run_filter);
     return 1;
   }
-  if (DynamicAssertionHelper::failed()) {
+  if (Expect::failed()) {
     return 255;
   }
   return 0;

@@ -146,9 +146,9 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     double value = constant.doubleValue;
     if (value.isNaN) {
       return js("0/0");
-    } else if (value == double.INFINITY) {
+    } else if (value == double.infinity) {
       return js("1/0");
-    } else if (value == -double.INFINITY) {
+    } else if (value == -double.infinity) {
       return js("-1/0");
     } else {
       String shortened = _shortenExponentialRepresentation("$value");
@@ -188,7 +188,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
         .toList(growable: false);
     jsAst.ArrayInitializer array = new jsAst.ArrayInitializer(elements);
     jsAst.Expression value = makeConstantList(array);
-    return maybeAddTypeArguments(constant.type, value);
+    return maybeAddTypeArguments(constant, constant.type, value);
   }
 
   @override
@@ -262,7 +262,8 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     }
 
     if (_rtiNeed.classNeedsTypeArguments(classElement)) {
-      arguments.add(_reifiedTypeArguments(constant.type));
+      arguments
+          .add(_reifiedTypeArguments(constant, constant.type.typeArguments));
     }
 
     jsAst.Expression constructor = _emitter.constructorAccess(classElement);
@@ -327,10 +328,38 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
       fields.add(constantReferenceGenerator(constant.fields[field]));
     });
     if (_rtiNeed.classNeedsTypeArguments(constant.type.element)) {
-      fields.add(_reifiedTypeArguments(constant.type));
+      fields.add(_reifiedTypeArguments(constant, constant.type.typeArguments));
     }
-    jsAst.New instantiation = new jsAst.New(constructor, fields);
-    return instantiation;
+    return new jsAst.New(constructor, fields);
+  }
+
+  @override
+  jsAst.Expression visitInstantiation(InstantiationConstantValue constant,
+      [_]) {
+    // TODO(johnniwinther,sra): Support arbitrary type argument count.
+    ClassEntity cls;
+    switch (constant.typeArguments.length) {
+      case 1:
+        cls = _commonElements.instantiation1Class;
+        break;
+      case 2:
+        cls = _commonElements.instantiation2Class;
+        break;
+      case 3:
+        cls = _commonElements.instantiation3Class;
+        break;
+      default:
+        failedAt(
+            NO_LOCATION_SPANNABLE,
+            "Unsupported instantiation argument count: "
+            "${constant.typeArguments.length}");
+    }
+    List<jsAst.Expression> fields = <jsAst.Expression>[
+      constantReferenceGenerator(constant.function),
+      _reifiedTypeArguments(constant, constant.typeArguments)
+    ];
+    jsAst.Expression constructor = _emitter.constructorAccess(cls);
+    return new jsAst.New(constructor, fields);
   }
 
   String stripComments(String rawJavaScript) {
@@ -338,28 +367,29 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
   }
 
   jsAst.Expression maybeAddTypeArguments(
-      InterfaceType type, jsAst.Expression value) {
+      ConstantValue constant, InterfaceType type, jsAst.Expression value) {
     if (type is InterfaceType &&
         !type.treatAsRaw &&
         _rtiNeed.classNeedsTypeArguments(type.element)) {
       return new jsAst.Call(
           getHelperProperty(_commonElements.setRuntimeTypeInfo),
-          [value, _reifiedTypeArguments(type)]);
+          [value, _reifiedTypeArguments(constant, type.typeArguments)]);
     }
     return value;
   }
 
-  jsAst.Expression _reifiedTypeArguments(InterfaceType type) {
+  jsAst.Expression _reifiedTypeArguments(
+      ConstantValue constant, List<DartType> typeArguments) {
     jsAst.Expression unexpected(TypeVariableType _variable) {
       TypeVariableType variable = _variable;
       throw failedAt(
           NO_LOCATION_SPANNABLE,
           "Unexpected type variable '${variable}'"
-          " in constant type '${type}'");
+          " in constant '${constant.toDartText()}'");
     }
 
     List<jsAst.Expression> arguments = <jsAst.Expression>[];
-    for (DartType argument in type.typeArguments) {
+    for (DartType argument in typeArguments) {
       arguments.add(
           _rtiEncoder.getTypeRepresentation(_emitter, argument, unexpected));
     }

@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer_cli.starter;
-
 import 'dart:async';
 
-import 'package:analyzer/plugin/resolver_provider.dart';
+import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:plugin/plugin.dart';
 

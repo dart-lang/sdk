@@ -32,9 +32,6 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
     extends TypeDeclarationBuilder<T, R> {
   final List<TypeVariableBuilder> typeVariables;
 
-  /// List of type arguments provided by instantiate to bound.
-  List<TypeBuilder> get calculatedBounds => null;
-
   T supertype;
 
   List<T> interfaces;
@@ -218,13 +215,15 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
   }
 
   void addCompileTimeError(Message message, int charOffset, int length,
-      {LocatedMessage context}) {
+      {List<LocatedMessage> context}) {
     library.addCompileTimeError(message, charOffset, length, fileUri,
         context: context);
   }
 
   void addProblem(Message message, int charOffset, int length,
-      {LocatedMessage context}) {
+      {List<LocatedMessage> context}) {
     library.addProblem(message, charOffset, length, fileUri, context: context);
   }
+
+  int get typeVariablesCount;
 }

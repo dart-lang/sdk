@@ -10,75 +10,94 @@ import '../compiler_helper.dart';
 // Test that the compiler handles string literals containing line terminators.
 
 main() {
-  runTests({bool useKernel}) async {
+  runTests() async {
     Future<String> compileExpression(String expression) {
       var source = "foo() { return $expression; }";
-      return compile(source, entry: "foo", useKernel: useKernel);
+      return compile(source, entry: "foo");
     }
 
     await compileExpression("''' \n\r\u2028\u2029'''").then((String generated) {
-      Expect.isTrue(generated.contains(r'"\r\u2028\u2029"') ||
-          generated.contains(r"'\r\u2028\u2029'"));
+      Expect.isTrue(
+          generated.contains(r'"\r\u2028\u2029"') ||
+              generated.contains(r"'\r\u2028\u2029'"),
+          generated);
     });
     await compileExpression("r''' \n\r\u2028\u2029'''")
         .then((String generated) {
-      Expect.isTrue(generated.contains(r'"\r\u2028\u2029"') ||
-          generated.contains(r"'\r\u2028\u2029'"));
+      Expect.isTrue(
+          generated.contains(r'"\r\u2028\u2029"') ||
+              generated.contains(r"'\r\u2028\u2029'"),
+          generated);
     });
     await compileExpression("r''' \r\n\u2028\u2029'''")
         .then((String generated) {
-      Expect.isTrue(generated.contains(r'"\u2028\u2029"') ||
-          generated.contains(r"'\u2028\u2029'"));
+      Expect.isTrue(
+          generated.contains(r'"\u2028\u2029"') ||
+              generated.contains(r"'\u2028\u2029'"),
+          generated);
     });
     await compileExpression("r''' \r\u2028\u2029'''").then((String generated) {
-      Expect.isTrue(generated.contains(r'"\u2028\u2029"') ||
-          generated.contains(r"'\u2028\u2029'"));
+      Expect.isTrue(
+          generated.contains(r'"\u2028\u2029"') ||
+              generated.contains(r"'\u2028\u2029'"),
+          generated);
     });
     await compileExpression("r''' \n\u2028\u2029'''").then((String generated) {
-      Expect.isTrue(generated.contains(r'"\u2028\u2029"') ||
-          generated.contains(r"'\u2028\u2029'"));
+      Expect.isTrue(
+          generated.contains(r'"\u2028\u2029"') ||
+              generated.contains(r"'\u2028\u2029'"),
+          generated);
     });
     await compileExpression(
             "r'''\t\t      \t\t  \t\t  \t \t \n\r\u2028\u2029'''")
         .then((String generated) {
-      Expect.isTrue(generated.contains(r'"\r\u2028\u2029"') ||
-          generated.contains(r"'\r\u2028\u2029'"));
+      Expect.isTrue(
+          generated.contains(r'"\r\u2028\u2029"') ||
+              generated.contains(r"'\r\u2028\u2029'"),
+          generated);
     });
     await compileExpression(
             "r'''\\\t\\\t \\   \\  \t\\\t  \t \\\n\r\u2028\u2029'''")
         .then((String generated) {
-      Expect.isTrue(generated.contains(r'"\r\u2028\u2029"') ||
-          generated.contains(r"'\r\u2028\u2029'"));
+      Expect.isTrue(
+          generated.contains(r'"\r\u2028\u2029"') ||
+              generated.contains(r"'\r\u2028\u2029'"),
+          generated);
     });
     await compileExpression(
             "r'''\t\t      \t\t  \t\t  \t \t \\\n\r\u2028\u2029'''")
         .then((String generated) {
-      Expect.isTrue(generated.contains(r'"\r\u2028\u2029"') ||
-          generated.contains(r"'\r\u2028\u2029'"));
+      Expect.isTrue(
+          generated.contains(r'"\r\u2028\u2029"') ||
+              generated.contains(r"'\r\u2028\u2029'"),
+          generated);
     });
     await compileExpression(
             "r'''\\\t\\\t \\   \\  \t\\\t   \\\r\n\u2028\u2029'''")
         .then((String generated) {
-      Expect.isTrue(generated.contains(r'"\u2028\u2029"') ||
-          generated.contains(r"'\u2028\u2029'"));
+      Expect.isTrue(
+          generated.contains(r'"\u2028\u2029"') ||
+              generated.contains(r"'\u2028\u2029'"),
+          generated);
     });
     await compileExpression(
             "r'''\\\t\\\t \\   \\  \t\\\t   \\\r\u2028\u2029'''")
         .then((String generated) {
-      Expect.isTrue(generated.contains(r'"\u2028\u2029"') ||
-          generated.contains(r"'\u2028\u2029'"));
+      Expect.isTrue(
+          generated.contains(r'"\u2028\u2029"') ||
+              generated.contains(r"'\u2028\u2029'"),
+          generated);
     });
     await compileExpression("'\u2028\u2029'").then((String generated) {
-      Expect.isTrue(generated.contains(r'"\u2028\u2029"') ||
-          generated.contains(r"'\u2028\u2029'"));
+      Expect.isTrue(
+          generated.contains(r'"\u2028\u2029"') ||
+              generated.contains(r"'\u2028\u2029'"),
+          generated);
     });
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useKernel: false);
-    // TODO(johnniwinther): This test doesn't work with kernel.
-    //print('--test from kernel----------------------------------------------');
-    //await runTests(useKernel: true);
+    print('--test from kernel----------------------------------------------');
+    await runTests();
   });
 }

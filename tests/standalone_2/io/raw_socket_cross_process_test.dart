@@ -7,11 +7,11 @@ import 'dart:async';
 import 'dart:io';
 import "package:expect/expect.dart";
 
-const int NUM_SERVERS = 10;
+const int serversCount = 10;
 
 void main(List<String> args) {
   if (args.isEmpty) {
-    for (int i = 0; i < NUM_SERVERS; ++i) {
+    for (int i = 0; i < serversCount; ++i) {
       makeServer().then((server) {
         runClientProcess(server.port).then((_) => server.close());
       });
@@ -25,18 +25,18 @@ void main(List<String> args) {
 }
 
 Future makeServer() {
-  return RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
+  return RawServerSocket.bind(InternetAddress.loopbackIPv4, 0).then((server) {
     server.listen((connection) {
       connection.writeEventsEnabled = false;
       connection.listen((event) {
         switch (event) {
-          case RawSocketEvent.READ:
+          case RawSocketEvent.read:
             Expect.fail("No read event expected");
             break;
-          case RawSocketEvent.READ_CLOSED:
-            connection.shutdown(SocketDirection.SEND);
+          case RawSocketEvent.readClosed:
+            connection.shutdown(SocketDirection.send);
             break;
-          case RawSocketEvent.WRITE:
+          case RawSocketEvent.write:
             Expect.fail("No write event expected");
             break;
         }
@@ -68,8 +68,8 @@ Future runClientProcess(int port) {
 }
 
 runClient(int port) {
-  RawSocket.connect(InternetAddress.LOOPBACK_IP_V4, port).then((connection) {
+  RawSocket.connect(InternetAddress.loopbackIPv4, port).then((connection) {
     connection.listen((_) {}, onDone: () => print('SUCCESS'));
-    connection.shutdown(SocketDirection.SEND);
+    connection.shutdown(SocketDirection.send);
   });
 }

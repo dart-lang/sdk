@@ -8,7 +8,6 @@ import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import '../compiler_helper.dart';
 import 'package:compiler/compiler_new.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/universe/selector.dart' show Selector;
@@ -29,12 +28,11 @@ main() {
 """;
 
 main() {
-  runTests({bool useKernel}) async {
+  runTests() async {
     OutputCollector outputCollector = new OutputCollector();
     CompilationResult result = await runCompiler(
         memorySourceFiles: {'main.dart': TEST},
-        outputProvider: outputCollector,
-        options: useKernel ? [] : [Flags.useOldFrontend]);
+        outputProvider: outputCollector);
     Compiler compiler = result.compiler;
     ClosedWorldBase closedWorld =
         compiler.resolutionWorldBuilder.closedWorldForTesting;
@@ -55,9 +53,7 @@ main() {
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTests(useKernel: true);
+    await runTests();
   });
 }

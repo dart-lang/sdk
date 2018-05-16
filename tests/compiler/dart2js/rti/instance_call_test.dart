@@ -99,7 +99,8 @@ main() {
 main() {
   asyncTest(() async {
     CompilationResult result = await runCompiler(
-        memorySourceFiles: {'main.dart': code}, options: [Flags.strongMode]);
+        memorySourceFiles: {'main.dart': code},
+        options: [Flags.strongMode, Flags.omitImplicitChecks]);
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
     ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
@@ -151,7 +152,7 @@ main() {
 
       js.Name selector = getName(targetName, expectedTypeArguments);
       bool callFound = false;
-      forEachCall(fun, (js.Call node) {
+      forEachNode(fun, onCall: (js.Call node) {
         js.Expression target = node.target;
         if (target is js.PropertyAccess && target.selector == selector) {
           callFound = true;

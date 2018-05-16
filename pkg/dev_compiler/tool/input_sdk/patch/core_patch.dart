@@ -17,17 +17,18 @@ import 'dart:_js_helper'
         notNull,
         nullCheck,
         Primitives,
+        PrivateSymbol,
         quoteStringForRegExp;
-
 import 'dart:_runtime' as dart;
-
 import 'dart:_foreign_helper' show JS;
-
 import 'dart:_native_typed_data' show NativeUint8List;
-
+import 'dart:collection' show UnmodifiableMapView;
+import 'dart:convert' show Encoding, utf8;
 import 'dart:typed_data' show Endian, Uint8List, Uint16List;
 
-String _symbolToString(Symbol symbol) => _symbol_dev.Symbol.getName(symbol);
+String _symbolToString(Symbol symbol) => symbol is PrivateSymbol
+    ? PrivateSymbol.getName(symbol)
+    : _symbol_dev.Symbol.getName(symbol);
 
 @patch
 int identityHashCode(Object object) {
@@ -83,10 +84,9 @@ class Function {
       namedArguments.forEach((symbol, arg) {
         JS('', '#[#] = #', map, _symbolToString(symbol), arg);
       });
-      positionalArguments = new List.from(positionalArguments)..add(map);
+      return dart.dcall(f, positionalArguments, map);
     }
-    return JS(
-        '', '#.apply(null, [#].concat(#))', dart.dcall, f, positionalArguments);
+    return dart.dcall(f, positionalArguments);
   }
 
   static Map<String, dynamic> _toMangledNames(
@@ -136,11 +136,19 @@ class Expando<T> {
   static int _keyCount = 0;
 }
 
+Null _kNull(_) => null;
+
 @patch
 class int {
   @patch
-  static int parse(String source, {int radix, int onError(String source)}) {
+  static int parse(String source,
+      {int radix, @deprecated int onError(String source)}) {
     return Primitives.parseInt(source, radix, onError);
+  }
+
+  @patch
+  static int tryParse(String source, {int radix}) {
+    return Primitives.parseInt(source, radix, _kNull);
   }
 
   @patch
@@ -154,8 +162,14 @@ class int {
 @patch
 class double {
   @patch
-  static double parse(String source, [double onError(String source)]) {
+  static double parse(String source,
+      [@deprecated double onError(String source)]) {
     return Primitives.parseDouble(source, onError);
+  }
+
+  @patch
+  static double tryParse(String source) {
+    return Primitives.parseDouble(source, _kNull);
   }
 }
 
@@ -171,6 +185,10 @@ class BigInt implements Comparable<BigInt> {
   @patch
   static BigInt parse(String source, {int radix}) =>
       _BigIntImpl.parse(source, radix: radix);
+
+  @patch
+  static BigInt tryParse(String source, {int radix}) =>
+      _BigIntImpl._tryParse(source, radix: radix);
 
   @patch
   factory BigInt.from(num value) = _BigIntImpl.from;
@@ -189,7 +207,7 @@ class Error {
   }
 
   @patch
-  StackTrace get stackTrace => Primitives.extractStackTrace(this);
+  StackTrace get stackTrace => getTraceFromException(this);
 }
 
 @patch
@@ -351,7 +369,7 @@ class List<E> {
     if (JS('bool', '# === void 0', _length)) {
       list = JS('', '[]');
     } else {
-      var length = JS('int', '#', _length);
+      int length = JS('!', '#', _length);
       if (_length == null || length < 0) {
         throw new ArgumentError(
             "Length must be a non-negative integer: $_length");
@@ -584,6 +602,12 @@ class _CompileTimeError extends Error {
 
 @patch
 class NoSuchMethodError {
+  final Object _receiver;
+  final Symbol _memberName;
+  final List _arguments;
+  final Map<Symbol, dynamic> _namedArguments;
+  final List _existingArgumentNames;
+
   @patch
   NoSuchMethodError(Object receiver, Symbol memberName,
       List positionalArguments, Map<Symbol, dynamic> namedArguments,
@@ -1118,7 +1142,7 @@ class _BigIntImpl implements BigInt {
     unshiftedDigits[3] = 0x10 | (bits[6] & 0xF);
 
     var unshiftedBig = new _BigIntImpl._normalized(false, 4, unshiftedDigits);
-    _BigIntImpl absResult;
+    _BigIntImpl absResult = unshiftedBig;
     if (exponent < 0) {
       absResult = unshiftedBig >> -exponent;
     } else if (exponent > 0) {
@@ -1219,6 +1243,7 @@ class _BigIntImpl implements BigInt {
   /// Does *not* clear digits below ds.
   static void _lsh(
       Uint16List xDigits, int xUsed, int n, Uint16List resultDigits) {
+    assert(xUsed > 0);
     final digitShift = n ~/ _digitBits;
     final bitShift = n % _digitBits;
     final carryBitShift = _digitBits - bitShift;
@@ -1248,6 +1273,7 @@ class _BigIntImpl implements BigInt {
     if (shiftAmount < 0) {
       throw new ArgumentError("shift-amount must be posititve $shiftAmount");
     }
+    if (_isZero) return this;
     final digitShift = shiftAmount ~/ _digitBits;
     final bitShift = shiftAmount % _digitBits;
     if (bitShift == 0) {
@@ -1283,6 +1309,7 @@ class _BigIntImpl implements BigInt {
   // resultDigits[0..resultUsed-1] = xDigits[0..xUsed-1] >> n.
   static void _rsh(
       Uint16List xDigits, int xUsed, int n, Uint16List resultDigits) {
+    assert(xUsed > 0);
     final digitsShift = n ~/ _digitBits;
     final bitShift = n % _digitBits;
     final carryBitShift = _digitBits - bitShift;
@@ -1310,6 +1337,7 @@ class _BigIntImpl implements BigInt {
     if (shiftAmount < 0) {
       throw new ArgumentError("shift-amount must be posititve $shiftAmount");
     }
+    if (_isZero) return this;
     final digitShift = shiftAmount ~/ _digitBits;
     final bitShift = shiftAmount % _digitBits;
     if (bitShift == 0) {
@@ -1552,6 +1580,7 @@ class _BigIntImpl implements BigInt {
    */
   _BigIntImpl operator &(BigInt bigInt) {
     _BigIntImpl other = bigInt;
+    if (_isZero || other._isZero) return zero;
     if (_isNegative == other._isNegative) {
       if (_isNegative) {
         // (-this) & (-other) == ~(this-1) & ~(other-1)
@@ -1591,6 +1620,8 @@ class _BigIntImpl implements BigInt {
    */
   _BigIntImpl operator |(BigInt bigInt) {
     _BigIntImpl other = bigInt;
+    if (_isZero) return other;
+    if (other._isZero) return this;
     if (_isNegative == other._isNegative) {
       if (_isNegative) {
         // (-this) | (-other) == ~(this-1) | ~(other-1)
@@ -1631,6 +1662,8 @@ class _BigIntImpl implements BigInt {
    */
   _BigIntImpl operator ^(BigInt bigInt) {
     _BigIntImpl other = bigInt;
+    if (_isZero) return other;
+    if (other._isZero) return this;
     if (_isNegative == other._isNegative) {
       if (_isNegative) {
         // (-this) ^ (-other) == ~(this-1) ^ ~(other-1) == (this-1) ^ (other-1)
@@ -1665,6 +1698,7 @@ class _BigIntImpl implements BigInt {
    * This maps any integer `x` to `-x - 1`.
    */
   _BigIntImpl operator ~() {
+    if (_isZero) return _minusOne;
     if (_isNegative) {
       // ~(-this) == ~(~(this-1)) == this-1
       return _absSubSetSign(one, false);
@@ -1677,6 +1711,8 @@ class _BigIntImpl implements BigInt {
   /// Addition operator.
   _BigIntImpl operator +(BigInt bigInt) {
     _BigIntImpl other = bigInt;
+    if (_isZero) return other;
+    if (other._isZero) return this;
     var isNegative = _isNegative;
     if (isNegative == other._isNegative) {
       // this + other == this + other
@@ -1694,6 +1730,8 @@ class _BigIntImpl implements BigInt {
   /// Subtraction operator.
   _BigIntImpl operator -(BigInt bigInt) {
     _BigIntImpl other = bigInt;
+    if (_isZero) return -other;
+    if (other._isZero) return this;
     var isNegative = _isNegative;
     if (isNegative != other._isNegative) {
       // this - (-other) == this + other
@@ -2572,7 +2610,7 @@ class _BigIntImpl implements BigInt {
     var resultBits = new Uint8List(8);
 
     var length = _digitBits * (_used - 1) + _digits[_used - 1].bitLength;
-    if (length - 53 > maxDoubleExponent) return double.INFINITY;
+    if (length - 53 > maxDoubleExponent) return double.infinity;
 
     // The most significant bit is for the sign.
     if (_isNegative) resultBits[7] = 0x80;

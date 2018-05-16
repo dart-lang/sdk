@@ -11,16 +11,17 @@ import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/element_search.dart';
-import 'package:analyzer/src/dart/analysis/performance_logger.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
 
 import 'mock_sdk.dart';
 
@@ -61,7 +62,14 @@ class AbstractContextTest {
   /**
    * Return `true` if strong mode should be enabled for this test.
    */
-  bool get enableStrongMode => false;
+  bool get enableStrongMode => true;
+
+  /**
+   * Return `true` if previewDart2 should be enabled for this test.
+   */
+  bool get enablePreviewDart2 => true;
+
+  bool get previewDart2 => driver.analysisOptions.previewDart2;
 
   /**
    * Return the analysis session associated with the driver.
@@ -129,7 +137,8 @@ class Required {
     PerformanceLog log = new PerformanceLog(_logBuffer);
     AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
     AnalysisOptionsImpl options = new AnalysisOptionsImpl()
-      ..strongMode = enableStrongMode;
+      ..strongMode = enableStrongMode
+      ..previewDart2 = enablePreviewDart2;
     _driver = new AnalysisDriver(
         scheduler,
         log,

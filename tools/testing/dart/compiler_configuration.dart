@@ -39,6 +39,7 @@ abstract class CompilerConfiguration {
   bool get _isStrong => _configuration.isStrong;
   bool get _isHostChecked => _configuration.isHostChecked;
   bool get _useSdk => _configuration.useSdk;
+  bool get _useEnableAsserts => _configuration.useEnableAsserts;
 
   /// Only some subclasses support this check, but we statically allow calling
   /// it on [CompilerConfiguration].
@@ -134,6 +135,7 @@ abstract class CompilerConfiguration {
       List<String> vmOptions,
       List<String> sharedOptions,
       List<String> dart2jsOptions,
+      List<String> ddcOptions,
       List<String> args) {
     return sharedOptions.toList()..addAll(args);
   }
@@ -189,6 +191,9 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
     if (_isChecked) {
       args.add('--enable_asserts');
       args.add('--enable_type_checks');
+    }
+    if (_useEnableAsserts) {
+      args.add('--enable_asserts');
     }
     if (_configuration.hotReload) {
       args.add('--hot-reload-test-mode');
@@ -249,6 +254,9 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
     if (_isChecked) {
       args.add('--enable_asserts');
       args.add('--enable_type_checks');
+    }
+    if (_useEnableAsserts) {
+      args.add('--enable_asserts');
     }
     if (_configuration.hotReload) {
       args.add('--hot-reload-test-mode');
@@ -343,7 +351,7 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
   }
 
   List<String> computeCompilerArguments(
-      vmOptions, sharedOptions, dart2jsOptions, args) {
+      vmOptions, sharedOptions, dart2jsOptions, ddcOptions, args) {
     // The result will be passed as an input to [extractArguments]
     // (i.e. the arguments to the [PipelineCommand]).
     return <String>[]..addAll(vmOptions)..addAll(sharedOptions)..addAll(args);
@@ -439,6 +447,7 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
       List<String> vmOptions,
       List<String> sharedOptions,
       List<String> dart2jsOptions,
+      List<String> ddcOptions,
       List<String> args) {
     return <String>[]
       ..addAll(sharedOptions)
@@ -486,9 +495,9 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       List<String> vmOptions,
       List<String> sharedOptions,
       List<String> dart2jsOptions,
+      List<String> ddcOptions,
       List<String> args) {
-    var result = sharedOptions.toList();
-
+    var result = sharedOptions.toList()..addAll(ddcOptions);
     // The file being compiled is the last argument.
     result.add(args.last);
 
@@ -573,8 +582,9 @@ class DevKernelCompilerConfiguration extends CompilerConfiguration {
       List<String> vmOptions,
       List<String> sharedOptions,
       List<String> dart2jsOptions,
+      List<String> ddcOptions,
       List<String> args) {
-    var result = sharedOptions.toList();
+    var result = sharedOptions.toList()..addAll(ddcOptions);
 
     // The file being compiled is the last argument.
     result.add(args.last);
@@ -856,7 +866,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   }
 
   List<String> computeCompilerArguments(
-      vmOptions, sharedOptions, dart2jsOptions, originalArguments) {
+      vmOptions, sharedOptions, dart2jsOptions, ddcOptions, originalArguments) {
     List<String> args = [];
     if (_isChecked) {
       args.add('--enable_asserts');
@@ -932,7 +942,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
   }
 
   List<String> computeCompilerArguments(
-      vmOptions, sharedOptions, dart2jsOptions, originalArguments) {
+      vmOptions, sharedOptions, dart2jsOptions, ddcOptions, originalArguments) {
     var args = <String>[];
     if (_isChecked) {
       args.add('--enable_asserts');
@@ -997,6 +1007,8 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
     }
     if (_isStrong) {
       arguments.add('--strong');
+    } else {
+      arguments.add('--no-strong');
     }
 
     // Since this is not a real compilation, no artifacts are produced.
@@ -1049,6 +1061,8 @@ abstract class VMKernelCompilerMixin {
   bool get _useSdk;
   bool get _isStrong;
   bool get _isAot;
+  bool get _isChecked;
+  bool get _useEnableAsserts;
 
   String get executableScriptSuffix;
 
@@ -1094,6 +1108,10 @@ abstract class VMKernelCompilerMixin {
     }
 
     args.add(arguments.where((name) => name.endsWith('.dart')).single);
+    args.addAll(arguments.where((name) => name.startsWith('-D')));
+    if (_isChecked || _useEnableAsserts) {
+      args.add('--enable_asserts');
+    }
 
     // Pass environment variable to the gen_kernel script as
     // arguments are not passed if gen_kernel runs in batch mode.
@@ -1185,6 +1203,7 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
       List<String> vmOptions,
       List<String> sharedOptions,
       List<String> dart2jsOptions,
+      List<String> ddcOptions,
       List<String> args) {
     var arguments = <String>[];
     for (var argument in args) {

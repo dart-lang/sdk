@@ -33,4 +33,3 @@ sample_extension/test/sample_extension_app_snapshot_test: Pass, RuntimeError # I
 build_dart/*: Skip
 build_dart_simple/*: Skip
 sample_extension/*: Skip
-

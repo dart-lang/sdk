@@ -50,11 +50,8 @@ main () {
 """;
 
 void main() {
-  runTest({bool useKernel}) async {
+  runTest() async {
     var options = [Flags.trustTypeAnnotations];
-    if (!useKernel) {
-      options.add(Flags.useOldFrontend);
-    }
     var result = await runCompiler(
         memorySourceFiles: {'main.dart': TEST}, options: options);
     var compiler = result.compiler;
@@ -89,9 +86,7 @@ void main() {
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTest(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTest(useKernel: true);
+    await runTest();
   });
 }

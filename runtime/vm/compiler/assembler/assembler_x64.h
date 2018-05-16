@@ -651,6 +651,7 @@ class Assembler : public ValueObject {
   }
 
   // Methods for High-level operations and implemented on all architectures.
+  void Ret() { ret(); }
   void CompareRegisters(Register a, Register b);
   void BranchIf(Condition condition, Label* label) { j(condition, label); }
 
@@ -704,11 +705,16 @@ class Assembler : public ValueObject {
   void PushObject(const Object& object);
   void CompareObject(Register reg, const Object& object);
 
+  enum CanBeSmi {
+    kValueIsNotSmi,
+    kValueCanBeSmi,
+  };
+
   // Destroys value.
   void StoreIntoObject(Register object,      // Object we are storing into.
                        const Address& dest,  // Where we are storing into.
                        Register value,       // Value we are storing.
-                       bool can_value_be_smi = true);
+                       CanBeSmi can_be_smi = kValueCanBeSmi);
 
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
@@ -760,6 +766,7 @@ class Assembler : public ValueObject {
   // Loading and comparing classes of objects.
   void LoadClassId(Register result, Register object);
 
+  // Overwrites class_id register.
   void LoadClassById(Register result, Register class_id);
 
   void LoadClass(Register result, Register object);
@@ -793,6 +800,12 @@ class Assembler : public ValueObject {
   void Align(int alignment, intptr_t offset);
   void Bind(Label* label);
   void Jump(Label* label) { jmp(label); }
+
+  void LoadField(Register dst, FieldAddress address) { movq(dst, address); }
+
+  void CompareWithFieldValue(Register value, FieldAddress address) {
+    cmpq(value, address);
+  }
 
   void Comment(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   static bool EmittingComments();
@@ -1037,12 +1050,22 @@ class Assembler : public ValueObject {
   void EmitGenericShift(bool wide, int rm, Register reg, const Immediate& imm);
   void EmitGenericShift(bool wide, int rm, Register operand, Register shifter);
 
-  void StoreIntoObjectFilter(Register object, Register value, Label* no_update);
+  enum BarrierFilterMode {
+    // Filter falls through into the barrier update code. Target label
+    // is a "after-store" label.
+    kJumpToNoUpdate,
 
-  // Shorter filtering sequence that assumes that value is not a smi.
-  void StoreIntoObjectFilterNoSmi(Register object,
-                                  Register value,
-                                  Label* no_update);
+    // Filter falls through to the "after-store" code. Target label
+    // is barrier update code label.
+    kJumpToBarrier,
+  };
+
+  void StoreIntoObjectFilter(Register object,
+                             Register value,
+                             Label* label,
+                             CanBeSmi can_be_smi,
+                             BarrierFilterMode barrier_filter_mode);
+
   // Unaware of write barrier (use StoreInto* methods for storing to objects).
   void MoveImmediate(const Address& dst, const Immediate& imm);
 

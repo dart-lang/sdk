@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.generated.engine;
-
 import 'dart:async';
 import 'dart:collection';
 import 'dart:typed_data';
@@ -14,7 +12,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
@@ -26,15 +23,16 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/plugin/engine_plugin.dart';
+import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/task/api/dart.dart';
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/task/yaml.dart';
-import 'package:analyzer/task/dart.dart';
-import 'package:analyzer/task/model.dart';
 import 'package:front_end/src/base/api_signature.dart';
 import 'package:front_end/src/base/timestamped_data.dart';
 import 'package:front_end/src/fasta/scanner/token.dart';
@@ -1236,6 +1234,7 @@ abstract class AnalysisOptions {
   /**
    * Return `true` to enable the use of URIs in part-of directives.
    */
+  @deprecated
   bool get enableUriInPartOf;
 
   /**
@@ -1419,9 +1418,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   List<String> _excludePatterns;
 
   @override
-  bool enableUriInPartOf = true;
-
-  @override
   bool generateImplicitErrors = true;
 
   @override
@@ -1444,7 +1440,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   bool preserveComments = true;
 
-  bool _strongMode = false;
+  bool _strongMode = true;
 
   /**
    * A flag indicating whether strong-mode inference hints should be
@@ -1461,7 +1457,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool useFastaParser = false;
 
   @override
-  bool previewDart2 = false;
+  bool previewDart2 = true;
 
   @override
   bool disableCacheFlushing = false;
@@ -1605,6 +1601,13 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @deprecated
   void set enableInitializingFormalAccess(bool enable) {}
 
+  @deprecated
+  @override
+  bool get enableUriInPartOf => true;
+
+  @deprecated
+  void set enableUriInPartOf(bool enable) {}
+
   @override
   List<ErrorProcessor> get errorProcessors =>
       _errorProcessors ??= const <ErrorProcessor>[];
@@ -1648,7 +1651,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       buffer.addBool(declarationCasts);
       buffer.addBool(enableLazyAssignmentOperators);
       buffer.addBool(enableSuperMixins);
-      buffer.addBool(enableUriInPartOf);
       buffer.addBool(implicitCasts);
       buffer.addBool(implicitDynamic);
       buffer.addBool(strongMode);
@@ -1696,7 +1698,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     enableLazyAssignmentOperators = false;
     enableSuperMixins = false;
     enableTiming = false;
-    enableUriInPartOf = true;
     _errorProcessors = null;
     _excludePatterns = null;
     generateImplicitErrors = true;

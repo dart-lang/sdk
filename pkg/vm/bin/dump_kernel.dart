@@ -4,10 +4,11 @@
 
 import 'dart:io';
 
-import 'package:kernel/kernel.dart' show Program, writeProgramToText;
+import 'package:kernel/kernel.dart' show Component, writeComponentToText;
 import 'package:kernel/binary/ast_from_binary.dart'
     show BinaryBuilderWithMetadata;
 
+import 'package:vm/metadata/bytecode.dart' show BytecodeMetadataRepository;
 import 'package:vm/metadata/direct_call.dart' show DirectCallMetadataRepository;
 import 'package:vm/metadata/inferred_type.dart'
     show InferredTypeMetadataRepository;
@@ -30,17 +31,18 @@ main(List<String> arguments) async {
   final input = arguments[0];
   final output = arguments[1];
 
-  final program = new Program();
+  final component = new Component();
 
   // Register VM-specific metadata.
-  program.addMetadataRepository(new DirectCallMetadataRepository());
-  program.addMetadataRepository(new InferredTypeMetadataRepository());
-  program.addMetadataRepository(new ProcedureAttributesMetadataRepository());
-  program.addMetadataRepository(new UnreachableNodeMetadataRepository());
+  component.addMetadataRepository(new DirectCallMetadataRepository());
+  component.addMetadataRepository(new InferredTypeMetadataRepository());
+  component.addMetadataRepository(new ProcedureAttributesMetadataRepository());
+  component.addMetadataRepository(new UnreachableNodeMetadataRepository());
+  component.addMetadataRepository(new BytecodeMetadataRepository());
 
   final List<int> bytes = new File(input).readAsBytesSync();
-  new BinaryBuilderWithMetadata(bytes).readProgram(program);
+  new BinaryBuilderWithMetadata(bytes).readComponent(component);
 
-  writeProgramToText(program,
+  writeComponentToText(component,
       path: output, showExternal: true, showMetadata: true);
 }

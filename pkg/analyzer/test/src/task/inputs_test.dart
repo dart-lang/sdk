@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.src.task.inputs_test;
-
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/inputs.dart';
 import 'package:analyzer/src/task/model.dart';
-import 'package:analyzer/task/model.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -141,30 +139,30 @@ class ListTaskInputImplTest extends EngineTestCase {
 
   test_toList() {
     var input = new ListTaskInputImpl<AnalysisTarget>(target, result1);
-    TaskInput<List> input2 =
-        input.toList((target) => new SimpleTaskInput(target, null));
+    ListTaskInput<String> input2 =
+        input.toList((target) => new SimpleTaskInput<String>(target, null));
     expect(input2,
         new isInstanceOf<ListToListTaskInput<AnalysisTarget, String>>());
   }
 
   test_toListOf() {
     var input = new ListTaskInputImpl<AnalysisTarget>(target, result1);
-    TaskInput<List> input2 = input.toListOf(result2);
+    ListTaskInput<int> input2 = input.toListOf(result2);
     expect(
         input2, new isInstanceOf<ListToListTaskInput<AnalysisTarget, int>>());
   }
 
   test_toMap() {
     var input = new ListTaskInputImpl<AnalysisTarget>(target, result1);
-    TaskInput<Map> input2 =
-        input.toMap((target) => new SimpleTaskInput(target, null));
+    MapTaskInput<AnalysisTarget, String> input2 =
+        input.toMap((target) => new SimpleTaskInput<String>(target, null));
     expect(
         input2, new isInstanceOf<ListToMapTaskInput<AnalysisTarget, String>>());
   }
 
   test_toMapOf() {
     var input = new ListTaskInputImpl<AnalysisTarget>(target, result1);
-    TaskInput<Map> input2 = input.toMapOf(result2);
+    MapTaskInput<AnalysisTarget, int> input2 = input.toMapOf(result2);
     expect(input2, new isInstanceOf<ListToMapTaskInput<AnalysisTarget, int>>());
   }
 }

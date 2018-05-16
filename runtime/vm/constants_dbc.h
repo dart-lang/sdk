@@ -310,7 +310,7 @@ namespace dart {
 //    this instruction does so, and skips the following instruction. Otherwise,
 //    the following instruction is not skipped.
 //
-//  - StoreStaticT`OS D
+//  - StoreStaticTOS D
 //
 //    Stores TOS into the static field PP[D].
 //
@@ -908,7 +908,7 @@ namespace dart {
   V(Entry,                                 D, num, ___, ___) \
   V(EntryOptimized,                      A_D, num, num, ___) \
   V(Frame,                                 D, num, ___, ___) \
-  V(SetFrame,                              A, num, ___, num) \
+  V(SetFrame,                              A, num, ___, ___) \
   V(AllocateContext,                       D, num, ___, ___) \
   V(AllocateUninitializedContext,        A_D, reg, num, ___) \
   V(CloneContext,                          0, ___, ___, ___) \
@@ -953,7 +953,7 @@ class Bytecode {
     const char* names[] = {
 #define NAME(name, encoding, op1, op2, op3) #name,
         BYTECODES_LIST(NAME)
-#undef DECLARE_BYTECODE
+#undef NAME
     };
     return names[DecodeOpcode(instr)];
   }
@@ -1080,7 +1080,6 @@ const intptr_t ARGS_DESC_REG = 0;
 const intptr_t CODE_REG = 0;
 const intptr_t kExceptionObjectReg = 0;
 const intptr_t kStackTraceObjectReg = 0;
-const intptr_t CTX = 0;
 
 enum FpuRegister {
   kNoFpuRegister = -1,

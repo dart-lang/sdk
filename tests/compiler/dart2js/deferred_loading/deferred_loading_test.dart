@@ -7,7 +7,6 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/deferred_load.dart';
-import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
@@ -32,12 +31,13 @@ const List<String> compilerOptions = const <String>[];
 main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-    await checkTests(
-        dataDir, computeAstOutputUnitData, computeKernelOutputUnitData,
+    await checkTests(dataDir, computeKernelOutputUnitData,
+        computeClassDataFromKernel: computeKernelClassOutputUnitData,
         libDirectory: new Directory.fromUri(Platform.script.resolve('libs')),
         skipForKernel: skipForKernel,
         options: compilerOptions,
-        args: args, setUpFunction: () {
+        args: args,
+        testOmit: true, setUpFunction: () {
       importPrefixes.clear();
     });
   });
@@ -76,35 +76,6 @@ String outputUnitString(OutputUnit unit) {
     importPrefixes[import.name] = import.enclosingLibrary.canonicalUri;
   }
   return 'OutputUnit(${unit.name}, {$sb})';
-}
-
-/// Compute closure data mapping for [member] as a [MemberElement].
-///
-/// Fills [actualMap] with the data computed about what the resulting OutputUnit
-/// is.
-void computeAstOutputUnitData(
-    Compiler compiler, MemberEntity _member, Map<Id, ActualData> actualMap,
-    {bool verbose: false}) {
-  MemberElement member = _member;
-  OutputUnitData data = compiler.backend.outputUnitData;
-  String value = outputUnitString(data.outputUnitForEntity(member));
-
-  _registerValue(computeElementId(member), value, member, member.sourcePosition,
-      actualMap, compiler.reporter);
-
-  if (member is FieldElement && member.isConst) {
-    var node = member.initializer;
-    var constant = compiler.constants.getConstantValue(member.constant);
-    if (constant.isPrimitive) return;
-    _registerValue(
-        new NodeId(node.getBeginToken().charOffset, IdKind.node),
-        outputUnitString(data.outputUnitForConstant(constant)),
-        member,
-        new SourceSpan(member.resolvedAst.sourceUri,
-            node.getBeginToken().charOffset, node.getEndToken().charEnd),
-        actualMap,
-        compiler.reporter);
-  }
 }
 
 /// OutputData for [member] as a kernel based element.
@@ -155,6 +126,25 @@ void computeKernelOutputUnitData(
         actualMap,
         compiler.reporter);
   }
+}
+
+void computeKernelClassOutputUnitData(
+    Compiler compiler, ClassEntity cls, Map<Id, ActualData> actualMap,
+    {bool verbose: false}) {
+  OutputUnitData data = compiler.backend.outputUnitData;
+  String value = outputUnitString(data.outputUnitForEntity(cls));
+
+  KernelBackendStrategy backendStrategy = compiler.backendStrategy;
+  KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
+  ClassDefinition definition = elementMap.getClassDefinition(cls);
+
+  _registerValue(
+      new ClassId(cls.name),
+      value,
+      cls,
+      computeSourceSpanFromTreeNode(definition.node),
+      actualMap,
+      compiler.reporter);
 }
 
 /// Set [actualMap] to hold a key of [id] with the computed data [value]

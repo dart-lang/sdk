@@ -57,12 +57,6 @@ main() async {
   await setup();
 
   group('Database', () {
-    test('supported', () {
-      expect(SqlDatabase.supported, true);
-    });
-  });
-
-  group('Database', () {
     test('Open/Transaction', () async {
       if (!SqlDatabase.supported) return;
 

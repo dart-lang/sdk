@@ -12,27 +12,22 @@ import 'self_check_util.dart';
 
 main(List<String> args) {
   runSelfCheck(args, (String filename) {
-    testClassHierarchyOnProgram(loadProgramFromBinary(filename));
+    testClassHierarchyOnComponent(loadComponentFromBinary(filename));
   });
 }
 
-void testClassHierarchyOnProgram(Program program, {bool verbose: false}) {
-  BasicClassHierarchy basic = new BasicClassHierarchy(program);
-  ClosedWorldClassHierarchy classHierarchy = new ClassHierarchy(program);
-  int total = classHierarchy.classes.length;
+void testClassHierarchyOnComponent(Component component, {bool verbose: false}) {
+  BasicClassHierarchy basic = new BasicClassHierarchy(component);
+  ClosedWorldClassHierarchy classHierarchy = new ClassHierarchy(component);
+  int total = classHierarchy.numberOfClasses;
   int progress = 0;
   for (var class1 in classHierarchy.classes) {
     for (var class2 in classHierarchy.classes) {
       bool isSubclass = classHierarchy.isSubclassOf(class1, class2);
-      bool isSubmixture = classHierarchy.isSubmixtureOf(class1, class2);
       bool isSubtype = classHierarchy.isSubtypeOf(class1, class2);
       var asInstance = classHierarchy.getClassAsInstanceOf(class1, class2);
       if (isSubclass != basic.isSubclassOf(class1, class2)) {
         fail('isSubclassOf(${class1.name}, ${class2.name}) returned '
-            '$isSubclass but should be ${!isSubclass}');
-      }
-      if (isSubmixture != basic.isSubmixtureOf(class1, class2)) {
-        fail('isSubmixtureOf(${class1.name}, ${class2.name}) returned '
             '$isSubclass but should be ${!isSubclass}');
       }
       if (isSubtype != basic.isSubtypeOf(class1, class2)) {

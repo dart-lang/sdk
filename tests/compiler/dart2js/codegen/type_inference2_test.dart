@@ -14,14 +14,12 @@ sum(param0, param1) {
 """;
 
 main() {
-  runTest({bool useKernel}) async {
-    await compileAndMatchFuzzy(TEST_ONE, 'sum', r"\+\+x", useKernel: useKernel);
+  runTest() async {
+    await compileAndMatchFuzzy(TEST_ONE, 'sum', r"\+\+x");
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTest(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTest(useKernel: true);
+    await runTest();
   });
 }

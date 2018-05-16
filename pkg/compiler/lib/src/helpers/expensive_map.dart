@@ -68,12 +68,10 @@ class ExpensiveMap<K, V> extends MapBase<K, V> {
     }
   }
 
-  Map<KR, VR> cast<KR, VR>() {
-    Map<Object, Object> self = this;
-    return self is Map<KR, VR> ? self : Map.castFrom<K, V, KR, VR>(this);
-  }
+  Map<KR, VR> cast<KR, VR>() => Map.castFrom<K, V, KR, VR>(this);
 
-  Map<KR, VR> retype<KR, VR>() => Map.castFrom<K, V, KR, VR>(this);
+  @Deprecated("Use cast instead.")
+  Map<KR, VR> retype<KR, VR>() => cast<KR, VR>();
 
   Iterable<MapEntry<K, V>> get entries => _maps[0].entries;
 

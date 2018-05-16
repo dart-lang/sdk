@@ -493,6 +493,14 @@ class SimpleToken implements Token {
   int get charEnd => end;
 
   @override
+  Token get beforeSynthetic => null;
+
+  @override
+  set beforeSynthetic(Token previous) {
+    // ignored
+  }
+
+  @override
   int get end => offset + length;
 
   @override
@@ -581,6 +589,7 @@ class SimpleToken implements Token {
   Token setNext(Token token) {
     next = token;
     token.previous = this;
+    token.beforeSynthetic = this;
     return token;
   }
 
@@ -712,6 +721,12 @@ class SyntheticToken extends SimpleToken {
   SyntheticToken(TokenType type, int offset) : super(type, offset);
 
   @override
+  Token beforeSynthetic;
+
+  @override
+  bool get isSynthetic => true;
+
+  @override
   int get length => 0;
 
   @override
@@ -756,6 +771,18 @@ abstract class Token implements SyntacticEntity {
    * The character offset of the end of this token within the source text.
    */
   int get charEnd;
+
+  /**
+   * The token before this synthetic token,
+   * or `null` if this is not a synthetic `)`, `]`, `}`, or `>` token.
+   */
+  Token get beforeSynthetic;
+
+  /**
+   * Set token before this synthetic `)`, `]`, `}`, or `>` token,
+   * and ignored otherwise.
+   */
+  set beforeSynthetic(Token previous);
 
   @override
   int get end;

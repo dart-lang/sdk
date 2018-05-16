@@ -24,7 +24,7 @@ class Process {
       Map<String, String> environment,
       bool includeParentEnvironment: true,
       bool runInShell: false,
-      ProcessStartMode mode: ProcessStartMode.NORMAL}) {
+      ProcessStartMode mode: ProcessStartMode.normal}) {
     _ProcessImpl process = new _ProcessImpl(
         executable,
         arguments,
@@ -42,8 +42,8 @@ class Process {
       Map<String, String> environment,
       bool includeParentEnvironment: true,
       bool runInShell: false,
-      Encoding stdoutEncoding: SYSTEM_ENCODING,
-      Encoding stderrEncoding: SYSTEM_ENCODING}) {
+      Encoding stdoutEncoding: systemEncoding,
+      Encoding stderrEncoding: systemEncoding}) {
     return _runNonInteractiveProcess(
         executable,
         arguments,
@@ -61,8 +61,8 @@ class Process {
       Map<String, String> environment,
       bool includeParentEnvironment: true,
       bool runInShell: false,
-      Encoding stdoutEncoding: SYSTEM_ENCODING,
-      Encoding stderrEncoding: SYSTEM_ENCODING}) {
+      Encoding stdoutEncoding: systemEncoding,
+      Encoding stderrEncoding: systemEncoding}) {
     return _runNonInteractiveProcessSync(
         executable,
         arguments,
@@ -75,7 +75,7 @@ class Process {
   }
 
   @patch
-  static bool killPid(int pid, [ProcessSignal signal = ProcessSignal.SIGTERM]) {
+  static bool killPid(int pid, [ProcessSignal signal = ProcessSignal.sigterm]) {
     if (signal is! ProcessSignal) {
       throw new ArgumentError("Argument 'signal' must be a ProcessSignal");
     }
@@ -106,9 +106,9 @@ class _SignalController {
       return;
     }
     _id = id;
-    var socket = new _RawSocket(new _NativeSocket.watch(id));
+    var socket = new _RawSocket(new _NativeSocket.watchSignal(id));
     socket.listen((event) {
-      if (event == RawSocketEvent.READ) {
+      if (event == RawSocketEvent.read) {
         var bytes = socket.read();
         for (int i = 0; i < bytes.length; i++) {
           _controller.add(signal);
@@ -146,13 +146,13 @@ class _ProcessUtils {
   static bool _killPid(int pid, int signal) native "Process_KillPid";
   @patch
   static Stream<ProcessSignal> _watchSignal(ProcessSignal signal) {
-    if (signal != ProcessSignal.SIGHUP &&
-        signal != ProcessSignal.SIGINT &&
-        signal != ProcessSignal.SIGTERM &&
+    if (signal != ProcessSignal.sighup &&
+        signal != ProcessSignal.sigint &&
+        signal != ProcessSignal.sigterm &&
         (Platform.isWindows ||
-            (signal != ProcessSignal.SIGUSR1 &&
-                signal != ProcessSignal.SIGUSR2 &&
-                signal != ProcessSignal.SIGWINCH))) {
+            (signal != ProcessSignal.sigusr1 &&
+                signal != ProcessSignal.sigusr2 &&
+                signal != ProcessSignal.sigwinch))) {
       throw new SignalException(
           "Listening for signal $signal is not supported");
     }
@@ -304,13 +304,13 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
       (_stderr._stream as _Socket)._nativeSocket;
 
   static bool _modeIsAttached(ProcessStartMode mode) {
-    return (mode == ProcessStartMode.NORMAL) ||
-        (mode == ProcessStartMode.INHERIT_STDIO);
+    return (mode == ProcessStartMode.normal) ||
+        (mode == ProcessStartMode.inheritStdio);
   }
 
   static bool _modeHasStdio(ProcessStartMode mode) {
-    return (mode == ProcessStartMode.NORMAL) ||
-        (mode == ProcessStartMode.DETACHED_WITH_STDIO);
+    return (mode == ProcessStartMode.normal) ||
+        (mode == ProcessStartMode.detachedWithStdio);
   }
 
   static String _getShellCommand() {
@@ -413,7 +413,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
           _arguments,
           _workingDirectory,
           _environment,
-          _mode.index,
+          _mode._mode,
           _modeHasStdio(_mode) ? _stdinNativeSocket : null,
           _modeHasStdio(_mode) ? _stdoutNativeSocket : null,
           _modeHasStdio(_mode) ? _stderrNativeSocket : null,
@@ -475,7 +475,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
         _arguments,
         _workingDirectory,
         _environment,
-        ProcessStartMode.NORMAL.index,
+        ProcessStartMode.normal._mode,
         _stdinNativeSocket,
         _stdoutNativeSocket,
         _stderrNativeSocket,
@@ -535,7 +535,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
 
   Future<int> get exitCode => _exitCode != null ? _exitCode.future : null;
 
-  bool kill([ProcessSignal signal = ProcessSignal.SIGTERM]) {
+  bool kill([ProcessSignal signal = ProcessSignal.sigterm]) {
     if (signal is! ProcessSignal) {
       throw new ArgumentError("Argument 'signal' must be a ProcessSignal");
     }
@@ -627,6 +627,6 @@ ProcessResult _runNonInteractiveProcessSync(
       environment,
       includeParentEnvironment,
       runInShell,
-      ProcessStartMode.NORMAL);
+      ProcessStartMode.normal);
   return process._runAndWait(stdoutEncoding, stderrEncoding);
 }

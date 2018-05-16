@@ -34,10 +34,7 @@
  * statements declares a local variable then the local variable will be
  * represented by an element.
  */
-library analyzer.dart.element.element;
-
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/resolution_base_classes.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
@@ -45,8 +42,8 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/task/api/model.dart' show AnalysisTarget;
 import 'package:analyzer/src/task/dart.dart';
-import 'package:analyzer/task/model.dart' show AnalysisTarget;
 
 /**
  * An element that represents a class.
@@ -564,7 +561,7 @@ abstract class ConstructorElement
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class Element implements AnalysisTarget, ResolutionTarget {
+abstract class Element implements AnalysisTarget {
   /**
    * A comparator that can be used to sort elements by their name offset.
    * Elements with a smaller offset will be sorted to be before elements with a
@@ -619,6 +616,16 @@ abstract class Element implements AnalysisTarget, ResolutionTarget {
    * Return `true` if this element has an annotation of the form `@factory`.
    */
   bool get hasFactory;
+
+  /**
+   * Return `true` if this element has an annotation of the form `@isTest`.
+   */
+  bool get hasIsTest;
+
+  /**
+   * Return `true` if this element has an annotation of the form `@isTestGroup`.
+   */
+  bool get hasIsTestGroup;
 
   /**
    * Return `true` if this element has an annotation of the form `@JS(..)`.
@@ -848,8 +855,7 @@ abstract class Element implements AnalysisTarget, ResolutionTarget {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ElementAnnotation
-    implements ConstantEvaluationTarget, ResolutionTarget {
+abstract class ElementAnnotation implements ConstantEvaluationTarget {
   /**
    * An empty list of annotations.
    */
@@ -891,6 +897,18 @@ abstract class ElementAnnotation
    * subclasses as being immutable.
    */
   bool get isImmutable;
+
+  /**
+   * Return `true` if this annotation marks the associated member as running
+   * a single test.
+   */
+  bool get isIsTest;
+
+  /**
+   * Return `true` if this annotation marks the associated member as running
+   * a test group.
+   */
+  bool get isIsTestGroup;
 
   /**
    * Return `true` if this annotation marks the associated element with the `JS`
@@ -1438,6 +1456,11 @@ abstract class ImportElement implements Element, UriReferencedElement {
    * Return `true` if this import is for a deferred library.
    */
   bool get isDeferred;
+
+  /**
+   * The [Namespace] that this directive contributes to the containing library.
+   */
+  Namespace get namespace;
 
   /**
    * Return the prefix that was specified as part of the import directive, or

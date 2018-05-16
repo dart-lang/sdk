@@ -96,17 +96,47 @@ class UnknownJavaScriptObject extends JavaScriptObject {
   String toString() => JS('String', 'String(#)', this);
 }
 
+class NativeError extends Interceptor {
+  String dartStack() => JS('String', '#.stack', this);
+}
+
 // Note that this needs to be in interceptors.dart in order for
 // it to be picked up as an extension type.
 @JsPeerInterface(name: 'TypeError')
-class NullError extends Interceptor implements NoSuchMethodError {
-  StackTrace get stackTrace => Primitives.extractStackTrace(this);
+class NullError extends NativeError implements NoSuchMethodError {
+  static RegExp _nullError =
+      new RegExp(r"^Cannot read property '(.+)' of null$");
+  static RegExp _extensionName = new RegExp(r"^Symbol\(dartx\.(.+)\)$");
+  static RegExp _privateName = new RegExp(r"^Symbol\((_.+)\)$");
+
+  String _fieldName() {
+    var message = JS('String', '#.message', this);
+    var match = _nullError.firstMatch(message);
+    if (match == null) return null;
+    var name = match[1];
+    match = _extensionName.firstMatch(name) ?? _privateName.firstMatch(name);
+    return match != null ? match[1] : name;
+  }
+
+  String dartStack() {
+    var stack = super.dartStack();
+    // Strip TypeError from first line.
+    stack = toString() + '\n' + stack.split('\n').sublist(1).join('\n');
+    return stack;
+  }
+
+  StackTrace get stackTrace => getTraceFromException(this);
 
   String toString() {
     // TODO(vsm): Distinguish between null reference errors and other
     // TypeErrors.  We should not get non-null TypeErrors from DDC code,
     // but we may from native JavaScript.
-    return "NullError: ${JS('String', '#.message', this)}";
+    var name = _fieldName();
+    if (name == null) {
+      // Not a Null NSM error: fallback to JS.
+      return JS('String', '#.toString()', this);
+    }
+    return "NullError: invalid member on null: '$name'";
   }
 }
 
@@ -114,8 +144,9 @@ class NullError extends Interceptor implements NoSuchMethodError {
 class JSFunction extends Interceptor {
   toString() {
     // If the function is a Type object, we should just display the type name.
+    //
     // Regular Dart code should typically get wrapped type objects instead of
-    // raw type (aka JS constructor) objects however raw type objects can be
+    // raw type (aka JS constructor) objects, however raw type objects can be
     // exposed to Dart code via JS interop or debugging tools.
     if (dart.isType(this)) return dart.typeName(this);
 
@@ -126,7 +157,7 @@ class JSFunction extends Interceptor {
   // TODO(jmesserly): remove these once we canonicalize tearoffs.
   operator ==(other) {
     if (other == null) return false;
-    var boundObj = JS('Object|Null', '#._boundObject', this);
+    var boundObj = JS<Object>('', '#._boundObject', this);
     if (boundObj == null) return JS('bool', '# === #', this, other);
     return JS(
         'bool',
@@ -138,10 +169,10 @@ class JSFunction extends Interceptor {
   }
 
   get hashCode {
-    var boundObj = JS('Object|Null', '#._boundObject', this);
+    var boundObj = JS<Object>('', '#._boundObject', this);
     if (boundObj == null) return identityHashCode(this);
 
-    var boundMethod = JS('Object', '#._boundMethod', this);
+    var boundMethod = JS<Object>('!', '#._boundMethod', this);
     int hash = (17 * 31 + boundObj.hashCode) & 0x1fffffff;
     return (hash * 31 + identityHashCode(boundMethod)) & 0x1fffffff;
   }
@@ -161,7 +192,7 @@ final Object jsNull = new JSNull();
 // it to be picked up as an extension type.
 @JsPeerInterface(name: 'RangeError')
 class JSRangeError extends Interceptor implements ArgumentError {
-  StackTrace get stackTrace => Primitives.extractStackTrace(this);
+  StackTrace get stackTrace => getTraceFromException(this);
 
   get invalidValue => null;
   get name => null;

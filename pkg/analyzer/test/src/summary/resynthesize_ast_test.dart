@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.src.summary.resynthesize_ast_test;
-
 import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
@@ -22,8 +20,8 @@ import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart'
     show PackageBundleAssembler;
-import 'package:analyzer/task/dart.dart' show PARSED_UNIT;
-import 'package:analyzer/task/general.dart';
+import 'package:analyzer/src/task/api/dart.dart' show PARSED_UNIT;
+import 'package:analyzer/src/task/api/general.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -47,61 +45,9 @@ class ApplyCheckElementTextReplacements {
   }
 }
 
-@reflectiveTest
-class ResynthesizeAstSpecTest extends _ResynthesizeAstTest {
-  @override
-  bool get isStrongMode => false;
-}
-
-@reflectiveTest
-class ResynthesizeAstStrongTest extends _ResynthesizeAstTest {
-  @override
-  bool get isStrongMode => true;
-
-  @override
-  AnalysisOptionsImpl createOptions() =>
-      super.createOptions()..strongMode = true;
-
-  @failingTest // See dartbug.com/32290
-  test_const_constructor_inferred_args() =>
-      test_const_constructor_inferred_args();
-
-  @override
-  @failingTest
-  test_instantiateToBounds_functionTypeAlias_simple() async {
-    await super.test_instantiateToBounds_functionTypeAlias_simple();
-  }
-
-  @override
-  @failingTest
-  test_syntheticFunctionType_genericClosure() async {
-    await super.test_syntheticFunctionType_genericClosure();
-  }
-
-  @override
-  @failingTest
-  test_syntheticFunctionType_inGenericClass() async {
-    await super.test_syntheticFunctionType_inGenericClass();
-  }
-
-  @override
-  @failingTest
-  test_syntheticFunctionType_noArguments() async {
-    await super.test_syntheticFunctionType_noArguments();
-  }
-
-  @override
-  @failingTest
-  test_syntheticFunctionType_withArguments() async {
-    await super.test_syntheticFunctionType_withArguments();
-  }
-}
-
-/**
- * Abstract mixin for serializing ASTs and resynthesizing elements from it.
- */
-abstract class _AstResynthesizeTestMixin
-    implements _AstResynthesizeTestMixinInterface {
+/// Mixin for serializing ASTs during testing.
+abstract class AstSerializeTestMixin
+    implements _AstSerializeTestMixinInterface {
   final Set<Source> serializedSources = new Set<Source>();
   PackageBundleAssembler bundleAssembler = new PackageBundleAssembler();
   final Map<String, UnlinkedUnitBuilder> uriToUnit =
@@ -109,12 +55,7 @@ abstract class _AstResynthesizeTestMixin
 
   AnalysisContext get context;
 
-  LibraryElementImpl _encodeDecodeLibraryElement(Source source) {
-    SummaryResynthesizer resynthesizer = _encodeLibrary(source);
-    return resynthesizer.getLibraryElement(source.uri.toString());
-  }
-
-  TestSummaryResynthesizer _encodeLibrary(Source source) {
+  TestSummaryResynthesizer encodeLibrary(Source source) {
     _serializeLibrary(source);
 
     PackageBundle bundle =
@@ -229,13 +170,68 @@ abstract class _AstResynthesizeTestMixin
   }
 }
 
+@reflectiveTest
+class ResynthesizeAstSpecTest extends _ResynthesizeAstTest {
+  @override
+  bool get isStrongMode => false;
+}
+
+@reflectiveTest
+class ResynthesizeAstStrongTest extends _ResynthesizeAstTest {
+  @override
+  bool get isStrongMode => true;
+
+  @failingTest // See dartbug.com/32290
+  test_const_constructor_inferred_args() =>
+      test_const_constructor_inferred_args();
+
+  @override
+  @failingTest
+  test_syntheticFunctionType_genericClosure() async {
+    await super.test_syntheticFunctionType_genericClosure();
+  }
+
+  @override
+  @failingTest
+  test_syntheticFunctionType_inGenericClass() async {
+    await super.test_syntheticFunctionType_inGenericClass();
+  }
+
+  @override
+  @failingTest
+  test_syntheticFunctionType_noArguments() async {
+    await super.test_syntheticFunctionType_noArguments();
+  }
+
+  @override
+  @failingTest
+  test_syntheticFunctionType_withArguments() async {
+    await super.test_syntheticFunctionType_withArguments();
+  }
+}
+
 /**
- * Interface that [_AstResynthesizeTestMixin] requires of classes it's mixed
- * into.  We can't place the getter below into [_AstResynthesizeTestMixin]
+ * Abstract mixin for serializing ASTs and resynthesizing elements from it.
+ */
+abstract class _AstResynthesizeTestMixin
+    implements _AstSerializeTestMixinInterface {
+  AnalysisContext get context;
+
+  TestSummaryResynthesizer encodeLibrary(Source source);
+
+  LibraryElementImpl _encodeDecodeLibraryElement(Source source) {
+    SummaryResynthesizer resynthesizer = encodeLibrary(source);
+    return resynthesizer.getLibraryElement(source.uri.toString());
+  }
+}
+
+/**
+ * Interface that [_AstSerializeTestMixin] requires of classes it's mixed
+ * into.  We can't place the getter below into [_AstSerializeTestMixin]
  * directly, because then it would be overriding a field at the site where the
  * mixin is instantiated.
  */
-abstract class _AstResynthesizeTestMixinInterface {
+abstract class _AstSerializeTestMixinInterface {
   /**
    * A test should return `true` to indicate that a missing file at the time of
    * summary resynthesis shouldn't trigger an error.
@@ -244,9 +240,7 @@ abstract class _AstResynthesizeTestMixinInterface {
 }
 
 abstract class _ResynthesizeAstTest extends ResynthesizeTest
-    with _AstResynthesizeTestMixin {
-  bool get isStrongMode;
-
+    with _AstResynthesizeTestMixin, AstSerializeTestMixin {
   bool get shouldCompareLibraryElements;
 
   @override
@@ -271,8 +265,17 @@ abstract class _ResynthesizeAstTest extends ResynthesizeTest
   DartSdk createDartSdk() => AbstractContextTest.SHARED_MOCK_SDK;
 
   @override
-  AnalysisOptionsImpl createOptions() =>
-      super.createOptions()..strongMode = isStrongMode;
+  AnalysisOptionsImpl createOptions() {
+    if (isStrongMode) {
+      return super.createOptions()
+        ..previewDart2 = true
+        ..strongMode = true;
+    } else {
+      return super.createOptions()
+        ..previewDart2 = false
+        ..strongMode = false;
+    }
+  }
 
   test_getElement_constructor_named() async {
     String text = 'class C { C.named(); }';
@@ -357,21 +360,12 @@ abstract class _ResynthesizeAstTest extends ResynthesizeTest
   }
 
   /**
-   * Return a [SummaryResynthesizer] to resynthesize the library with the
-   * given [Source].
-   */
-  TestSummaryResynthesizer _encodeDecodeLibrarySource(Source source) {
-    return _encodeLibrary(source);
-  }
-
-  /**
    * Encode the library containing [original] into a summary and then use
    * [TestSummaryResynthesizer.getElement] to retrieve just the original
    * element from the resynthesized summary.
    */
   Element _validateGetElement(String text, Element original) {
-    SummaryResynthesizer resynthesizer =
-        _encodeDecodeLibrarySource(original.library.source);
+    SummaryResynthesizer resynthesizer = encodeLibrary(original.library.source);
     ElementLocationImpl location = original.location;
     Element result = resynthesizer.getElement(location);
     checkMinimalResynthesisWork(resynthesizer, original.library);

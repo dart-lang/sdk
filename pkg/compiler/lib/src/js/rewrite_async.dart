@@ -159,6 +159,9 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   js.VariableUse get self => new js.VariableUse(selfName);
   String selfName;
 
+  /// The rewritten code can take type arguments. These are added if needed.
+  List<String> typeArgumentNames = <String>[];
+
   final DiagnosticReporter reporter;
   // For error reporting only.
   Spannable get spannable {
@@ -243,6 +246,15 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     }
     analysis.usedNames.add(result);
     return result;
+  }
+
+  List<js.Expression> processTypeArguments(List<js.Expression> types) {
+    if (types == null) {
+      String name = freshName('type');
+      typeArgumentNames.add(name);
+      return <js.Expression>[new js.VariableUse(name)];
+    }
+    return types;
   }
 
   /// All the pieces are collected in this map, to create a switch with a case
@@ -403,6 +415,9 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     // Note that RegExes, js.ArrayInitializer and js.ObjectInitializer are not
     // [js.Literal]s.
     if (result is js.Literal) return result;
+    if (result is js.VariableUse) {
+      if (result.name == selfName) return result;
+    }
 
     js.Expression tempVar = useTempVar(allocateTempVar());
     addStatement(js.js.statement('# = #;', [tempVar, result]));
@@ -532,6 +547,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   /// Returns the rewritten function.
   js.Fun finishFunction(
       List<js.Parameter> parameters,
+      List<js.Parameter> typeParameters,
       js.Statement rewrittenBody,
       js.VariableDeclarationList variableDeclarations,
       SourceInformation functionSourceInformation,
@@ -738,8 +754,11 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     js.VariableDeclarationList variableDeclarations =
         new js.VariableDeclarationList(variables);
 
-    return finishFunction(node.params, rewrittenBody, variableDeclarations,
-        node.sourceInformation, bodySourceInformation);
+    // Names are already safe when added.
+    List<js.Parameter> typeParameters =
+        typeArgumentNames.map((name) => new js.Parameter(name)).toList();
+    return finishFunction(node.params, typeParameters, rewrittenBody,
+        variableDeclarations, node.sourceInformation, bodySourceInformation);
   }
 
   @override
@@ -1739,6 +1758,7 @@ class AsyncRewriter extends AsyncRewriterBase {
   ///
   /// Specific to async methods.
   final js.Expression completerFactory;
+  List<js.Expression> completerFactoryTypeArguments;
 
   final js.Expression wrapBody;
 
@@ -1748,6 +1768,7 @@ class AsyncRewriter extends AsyncRewriterBase {
       this.asyncReturn,
       this.asyncRethrow,
       this.completerFactory,
+      this.completerFactoryTypeArguments,
       this.wrapBody,
       String safeVariableName(String proposedName),
       js.Name bodyName})
@@ -1799,8 +1820,10 @@ class AsyncRewriter extends AsyncRewriterBase {
     List<js.VariableInitialization> variables = <js.VariableInitialization>[];
     variables.add(_makeVariableInitializer(
         completer,
-        new js.Call(completerFactory, [])
-            .withSourceInformation(sourceInformation),
+        js.js('#(#)', [
+          completerFactory,
+          completerFactoryTypeArguments
+        ]).withSourceInformation(sourceInformation),
         sourceInformation));
     if (analysis.hasExplicitReturns) {
       variables
@@ -1812,6 +1835,8 @@ class AsyncRewriter extends AsyncRewriterBase {
   @override
   void initializeNames() {
     completerName = freshName("completer");
+    completerFactoryTypeArguments =
+        processTypeArguments(completerFactoryTypeArguments);
   }
 
   @override
@@ -1829,6 +1854,7 @@ class AsyncRewriter extends AsyncRewriterBase {
   @override
   js.Fun finishFunction(
       List<js.Parameter> parameters,
+      List<js.Parameter> typeParameters,
       js.Statement rewrittenBody,
       js.VariableDeclarationList variableDeclarations,
       SourceInformation functionSourceInformation,
@@ -1880,12 +1906,13 @@ class AsyncRewriter extends AsyncRewriterBase {
       "innerFunction": innerFunction,
     }).withSourceInformation(bodySourceInformation);
     return js.js("""
-        function (#parameters) {
+        function (#parameters, #typeParameters) {
           #variableDeclarations;
           var #bodyName = #wrapBodyCall;
           #returnAsyncStart;
         }""", {
       "parameters": parameters,
+      "typeParameters": typeParameters,
       "variableDeclarations": variableDeclarations,
       "bodyName": bodyName,
       "wrapBodyCall": wrapBodyCall,
@@ -1900,6 +1927,7 @@ class SyncStarRewriter extends AsyncRewriterBase {
   /// Constructor creating the Iterable for a sync* method. Called with
   /// [bodyName].
   final js.Expression iterableFactory;
+  List<js.Expression> iterableFactoryTypeArguments;
 
   /// A JS Expression that creates a marker showing that iteration is over.
   ///
@@ -1917,6 +1945,7 @@ class SyncStarRewriter extends AsyncRewriterBase {
   SyncStarRewriter(DiagnosticReporter diagnosticListener, spannable,
       {this.endOfIteration,
       this.iterableFactory,
+      this.iterableFactoryTypeArguments,
       this.yieldStarExpression,
       this.uncaughtErrorExpression,
       String safeVariableName(String proposedName),
@@ -1943,6 +1972,7 @@ class SyncStarRewriter extends AsyncRewriterBase {
   @override
   js.Fun finishFunction(
       List<js.Parameter> parameters,
+      List<js.Parameter> typeParameters,
       js.Statement rewrittenBody,
       js.VariableDeclarationList variableDeclarations,
       SourceInformation functionSourceInformation,
@@ -2009,20 +2039,22 @@ class SyncStarRewriter extends AsyncRewriterBase {
       "returnInnerInnerFunction": returnInnerInnerFunction,
     }).withSourceInformation(functionSourceInformation);
     js.Expression callIterableFactory =
-        js.js("#iterableFactory(#innerFunction)", {
+        js.js("#iterableFactory(#innerFunction, #type)", {
       "iterableFactory": iterableFactory,
+      "type": iterableFactoryTypeArguments,
       "innerFunction": innerFunction,
     }).withSourceInformation(bodySourceInformation);
     js.Statement returnCallIterableFactory = new js.Return(callIterableFactory)
         .withSourceInformation(bodySourceInformation);
     return js.js("""
-          function (#renamedParameters) {
+          function (#renamedParameters, #typeParameters) {
             if (#needsThis)
               var #self = this;
             #returnCallIterableFactory;
           }
           """, {
       "renamedParameters": renamedParameters,
+      "typeParameters": typeParameters,
       "needsThis": analysis.hasThis,
       "self": selfName,
       "returnCallIterableFactory": returnCallIterableFactory,
@@ -2068,7 +2100,10 @@ class SyncStarRewriter extends AsyncRewriterBase {
   }
 
   @override
-  void initializeNames() {}
+  void initializeNames() {
+    iterableFactoryTypeArguments =
+        processTypeArguments(iterableFactoryTypeArguments);
+  }
 }
 
 class AsyncStarRewriter extends AsyncRewriterBase {
@@ -2108,6 +2143,7 @@ class AsyncStarRewriter extends AsyncRewriterBase {
   ///
   /// Specific to async* methods.
   final js.Expression newController;
+  List<js.Expression> newControllerTypeArguments;
 
   /// Used to get the `Stream` out of the [controllerName] variable.
   final js.Expression streamOfController;
@@ -2128,6 +2164,7 @@ class AsyncStarRewriter extends AsyncRewriterBase {
       {this.asyncStarHelper,
       this.streamOfController,
       this.newController,
+      this.newControllerTypeArguments,
       this.yieldExpression,
       this.yieldStarExpression,
       this.wrapBody,
@@ -2175,6 +2212,7 @@ class AsyncStarRewriter extends AsyncRewriterBase {
   @override
   js.Fun finishFunction(
       List<js.Parameter> parameters,
+      List<js.Parameter> typeParameters,
       js.Statement rewrittenBody,
       js.VariableDeclarationList variableDeclarations,
       SourceInformation functionSourceInformation,
@@ -2268,12 +2306,13 @@ class AsyncStarRewriter extends AsyncRewriterBase {
         new js.Return(streamOfControllerCall)
             .withSourceInformation(bodySourceInformation);
     return js.js("""
-        function (#parameters) {
+        function (#parameters, #typeParameters) {
           #declareBodyName;
           #variableDeclarations;
           #returnStreamOfControllerCall;
         }""", {
       "parameters": parameters,
+      "typeParameters": typeParameters,
       "declareBodyName": declareBodyName,
       "variableDeclarations": variableDeclarations,
       "returnStreamOfControllerCall": returnStreamOfControllerCall,
@@ -2317,8 +2356,11 @@ class AsyncStarRewriter extends AsyncRewriterBase {
     List<js.VariableInitialization> variables = <js.VariableInitialization>[];
     variables.add(_makeVariableInitializer(
         controller,
-        js.js('#(#)', [newController, bodyName]).withSourceInformation(
-            sourceInformation),
+        js.js('#(#, #)', [
+          newController,
+          bodyName,
+          newControllerTypeArguments
+        ]).withSourceInformation(sourceInformation),
         sourceInformation));
     if (analysis.hasYield) {
       variables.add(
@@ -2331,6 +2373,8 @@ class AsyncStarRewriter extends AsyncRewriterBase {
   void initializeNames() {
     controllerName = freshName("controller");
     nextWhenCanceledName = freshName("nextWhenCanceled");
+    newControllerTypeArguments =
+        processTypeArguments(newControllerTypeArguments);
   }
 
   @override

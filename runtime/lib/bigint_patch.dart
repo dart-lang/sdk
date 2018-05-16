@@ -54,6 +54,10 @@ class BigInt implements Comparable<BigInt> {
       _BigIntImpl.parse(source, radix: radix);
 
   @patch
+  static BigInt tryParse(String source, {int radix}) =>
+      _BigIntImpl._tryParse(source, radix: radix);
+
+  @patch
   factory BigInt.from(num value) => new _BigIntImpl.from(value);
 }
 
@@ -412,7 +416,7 @@ class _BigIntImpl implements BigInt {
         ((0x10 | (bits[6] & 0xF)) << 16) + (bits[5] << 8) + bits[4];
 
     var unshiftedBig = new _BigIntImpl._normalized(false, 2, unshiftedDigits);
-    _BigIntImpl absResult;
+    _BigIntImpl absResult = unshiftedBig;
     if (exponent < 0) {
       absResult = unshiftedBig >> -exponent;
     } else if (exponent > 0) {
@@ -540,6 +544,7 @@ class _BigIntImpl implements BigInt {
   /// Note: This function may be intrinsified.
   static void _lsh(
       Uint32List xDigits, int xUsed, int n, Uint32List resultDigits) {
+    assert(xUsed > 0);
     final digitShift = n ~/ _digitBits;
     final bitShift = n % _digitBits;
     final carryBitShift = _digitBits - bitShift;
@@ -569,6 +574,7 @@ class _BigIntImpl implements BigInt {
     if (shiftAmount < 0) {
       throw new ArgumentError("shift-amount must be positive $shiftAmount");
     }
+    if (_isZero) return this;
     final digitShift = shiftAmount ~/ _digitBits;
     final bitShift = shiftAmount % _digitBits;
     if (bitShift == 0) {
@@ -611,6 +617,7 @@ class _BigIntImpl implements BigInt {
   /// Note: This function may be intrinsified.
   static void _rsh(
       Uint32List xDigits, int xUsed, int n, Uint32List resultDigits) {
+    assert(xUsed > 0);
     final digitsShift = n ~/ _digitBits;
     final bitShift = n % _digitBits;
     final carryBitShift = _digitBits - bitShift;
@@ -638,6 +645,7 @@ class _BigIntImpl implements BigInt {
     if (shiftAmount < 0) {
       throw new ArgumentError("shift-amount must be positive $shiftAmount");
     }
+    if (_isZero) return this;
     final digitShift = shiftAmount ~/ _digitBits;
     final bitShift = shiftAmount % _digitBits;
     if (bitShift == 0) {
@@ -902,6 +910,7 @@ class _BigIntImpl implements BigInt {
    */
   _BigIntImpl operator &(BigInt bigInt) {
     _BigIntImpl other = bigInt;
+    if (_isZero || other._isZero) return zero;
     if (_isNegative == other._isNegative) {
       if (_isNegative) {
         // (-this) & (-other) == ~(this-1) & ~(other-1)
@@ -941,6 +950,8 @@ class _BigIntImpl implements BigInt {
    */
   _BigIntImpl operator |(BigInt bigInt) {
     _BigIntImpl other = bigInt;
+    if (_isZero) return other;
+    if (other._isZero) return this;
     if (_isNegative == other._isNegative) {
       if (_isNegative) {
         // (-this) | (-other) == ~(this-1) | ~(other-1)
@@ -981,6 +992,8 @@ class _BigIntImpl implements BigInt {
    */
   _BigIntImpl operator ^(BigInt bigInt) {
     _BigIntImpl other = bigInt;
+    if (_isZero) return other;
+    if (other._isZero) return this;
     if (_isNegative == other._isNegative) {
       if (_isNegative) {
         // (-this) ^ (-other) == ~(this-1) ^ ~(other-1) == (this-1) ^ (other-1)
@@ -1015,6 +1028,7 @@ class _BigIntImpl implements BigInt {
    * This maps any integer `x` to `-x - 1`.
    */
   _BigIntImpl operator ~() {
+    if (_isZero) return _minusOne;
     if (_isNegative) {
       // ~(-this) == ~(~(this-1)) == this-1
       return _absSubSetSign(one, false);
@@ -1027,6 +1041,8 @@ class _BigIntImpl implements BigInt {
   /// Addition operator.
   _BigIntImpl operator +(BigInt bigInt) {
     _BigIntImpl other = bigInt;
+    if (_isZero) return other;
+    if (other._isZero) return this;
     var isNegative = _isNegative;
     if (isNegative == other._isNegative) {
       // this + other == this + other
@@ -1044,6 +1060,8 @@ class _BigIntImpl implements BigInt {
   /// Subtraction operator.
   _BigIntImpl operator -(BigInt bigInt) {
     _BigIntImpl other = bigInt;
+    if (_isZero) return -other;
+    if (other._isZero) return this;
     var isNegative = _isNegative;
     if (isNegative != other._isNegative) {
       // this - (-other) == this + other
@@ -1338,11 +1356,11 @@ class _BigIntImpl implements BigInt {
     Uint32List yDigits;
     int yUsed;
     if (nsh > 0) {
-      // Extra digits for normalization.
-      yDigits = _newDigits(other._used + (nsh % _digitBits) + 1);
-      yUsed = _lShiftDigits(other._digits, other._used, nsh, yDigits);
       // Extra digits for normalization, also used for possible _mulAdd carry.
-      resultDigits = _newDigits(_used + (nsh % _digitBits) + 1);
+      var numExtraDigits = (nsh + _digitBits - 1) ~/ _digitBits + 1;
+      yDigits = _newDigits(other._used + numExtraDigits);
+      yUsed = _lShiftDigits(other._digits, other._used, nsh, yDigits);
+      resultDigits = _newDigits(_used + numExtraDigits);
       resultUsed = _lShiftDigits(_digits, _used, nsh, resultDigits);
     } else {
       yDigits = other._digits;
@@ -2289,7 +2307,7 @@ class _BigIntImpl implements BigInt {
     var resultBits = new Uint8List(8);
 
     var length = _digitBits * (_used - 1) + _digits[_used - 1].bitLength;
-    if (length - 53 > maxDoubleExponent) return double.INFINITY;
+    if (length - 53 > maxDoubleExponent) return double.infinity;
 
     // The most significant bit is for the sign.
     if (_isNegative) resultBits[7] = 0x80;
@@ -2610,7 +2628,8 @@ class _BigIntMontgomeryReduction implements _BigIntReduction {
   }
 
   _BigIntImpl _revert(Uint32List xDigits, int xUsed) {
-    var resultDigits = _newDigits(2 * _normModulusUsed);
+    // Reserve enough digits for modulus squaring and accumulator carry.
+    var resultDigits = _newDigits(2 * _normModulusUsed + 2);
     var i = xUsed + (xUsed & 1);
     while (--i >= 0) {
       resultDigits[i] = xDigits[i];
@@ -2622,8 +2641,8 @@ class _BigIntMontgomeryReduction implements _BigIntReduction {
   // x = x/R mod _modulus.
   // Returns xUsed.
   int _reduce(Uint32List xDigits, int xUsed) {
-    while (xUsed < 2 * _normModulusUsed) {
-      // Pad x so _mulAdd has enough room later.
+    while (xUsed < 2 * _normModulusUsed + 2) {
+      // Pad x so _mulAdd has enough room later for a possible carry.
       xDigits[xUsed++] = 0;
     }
     var i = 0;

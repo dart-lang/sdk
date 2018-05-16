@@ -149,7 +149,7 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
   TypeMask typeOfListLiteral(
       MemberEntity owner, ir.ListLiteral listLiteral, ClosedWorld closedWorld) {
     return _resultOf(owner).typeOfListLiteral(listLiteral) ??
-        closedWorld.commonMasks.dynamicType;
+        closedWorld.abstractValueDomain.dynamicType;
   }
 
   TypeMask typeOfIterator(ir.ForInStatement node) {
@@ -183,7 +183,7 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
         mask.containsOnly(
             closedWorld.commonElements.jsUnmodifiableArrayClass) ||
         mask.containsOnlyString(closedWorld) ||
-        closedWorld.commonMasks.isTypedArray(mask)) {
+        closedWorld.abstractValueDomain.isTypedArray(mask)) {
       return true;
     }
     return false;
@@ -238,7 +238,7 @@ class KernelSorter implements Sorter {
   }
 
   @override
-  Iterable<MemberEntity> sortMembers(Iterable<MemberEntity> members) {
+  Iterable<T> sortMembers<T extends MemberEntity>(Iterable<T> members) {
     return members.toList()..sort(compareMembersByLocation);
   }
 

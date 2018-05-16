@@ -6,8 +6,8 @@ library kernel.deferred_load_data;
 
 import 'package:kernel/ast.dart' as ir;
 
-import '../compiler.dart' show Compiler;
 import '../common_elements.dart';
+import '../compiler.dart' show Compiler;
 import '../constants/values.dart' show ConstantValue;
 import '../deferred_load.dart';
 import '../elements/entities.dart';
@@ -141,8 +141,13 @@ class ConstantCollector extends ir.RecursiveVisitor {
 
   CommonElements get commonElements => elementMap.commonElements;
 
-  void add(ir.Expression node) =>
-      constants.add(elementMap.getConstantValue(node));
+  void add(ir.Expression node, {bool required: true}) {
+    ConstantValue constant =
+        elementMap.getConstantValue(node, requireConstant: required);
+    if (constant != null) {
+      constants.add(constant);
+    }
+  }
 
   @override
   void visitIntLiteral(ir.IntLiteral literal) {}
@@ -192,5 +197,12 @@ class ConstantCollector extends ir.RecursiveVisitor {
   @override
   void visitTypeLiteral(ir.TypeLiteral node) {
     if (node.type is! ir.TypeParameterType) add(node);
+  }
+
+  @override
+  void visitInstantiation(ir.Instantiation node) {
+    // TODO(johnniwinther): The CFE should mark constant instantiations as
+    // constant.
+    add(node, required: false);
   }
 }

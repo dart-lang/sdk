@@ -4,7 +4,7 @@
 
 import 'dart:collection';
 
-import 'package:analyzer/context/declared_variables.dart';
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -1633,6 +1633,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         element is PropertyAccessorElement ? element.variable : element;
     if (variableElement is VariableElementImpl) {
       evaluationEngine.validator.beforeGetEvaluationResult(variableElement);
+      variableElement.computeConstantValue();
       EvaluationResultImpl value = variableElement.evaluationResult;
       if (variableElement.isConst && value != null) {
         return value.value;

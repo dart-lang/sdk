@@ -2,8 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-import("../../build/dart_action.gni")
-import("../../build/prebuilt_dart_sdk.gni")
+import("../../build/dart/dart_action.gni")
 import("../application_snapshot.gni")
 import("../create_timestamp.gni")
 
@@ -23,7 +22,6 @@ application_snapshot("dartdevc") {
     rebase_path("../../pkg/dev_compiler"),
     "-o",
     "dartdevc.js",
-    "--unsafe-force-compile",
     rebase_path("../../pkg/dev_compiler/bin/dartdevc.dart"),
   ]
 
@@ -31,25 +29,18 @@ application_snapshot("dartdevc") {
     ":dartdevc_sdk",
   ]
 
-  inputs = exec_script("../../tools/list_dart_files.py",
-                       [
-                         "absolute",
-                         rebase_path("../../pkg/dev_compiler/bin"),
-                       ],
-                       "list lines")
-  inputs += [ sdk_summary ]
+  inputs = [ sdk_summary ]
 }
 
 application_snapshot("dartdevk") {
   main_dart = "../../pkg/dev_compiler/bin/dartdevk.dart"
 
-  # TODO(vsm): Train this on real input.
   training_args = [
     "--dart-sdk-summary",
     rebase_path(sdk_dill),
     "-o",
     "dartdevk.js",
-    rebase_path("../../pkg/dev_compiler/test/codegen/sunflower/sunflower.dart"),
+    rebase_path("../../pkg/dev_compiler/bin/dartdevk.dart"),
   ]
 
   deps = [
@@ -57,13 +48,7 @@ application_snapshot("dartdevk") {
     ":dartdevc_sdk_kernel_summary",
   ]
 
-  inputs = exec_script("../../tools/list_dart_files.py",
-                       [
-                         "absolute",
-                         rebase_path("../../pkg/dev_compiler/bin"),
-                       ],
-                       "list lines")
-  inputs += [ sdk_dill ]
+  inputs = [ sdk_dill ]
 }
 
 sdk_lib_files = exec_script("../../tools/list_dart_files.py",
@@ -95,20 +80,26 @@ template("dart2js_compile") {
   abs_main = rebase_path(main)
   abs_output = rebase_path(out)
 
-  compiled_action(target_name) {
-    tool = "../../runtime/bin:dart"
-    inputs = sdk_lib_files + compiler_files + dev_compiler_files
+  dart_action(target_name) {
+    deps = [
+      "../compiler:compile_dart2js_platform",
+      "../compiler:compile_dart2js_platform_strong",
+    ]
+    inputs = sdk_lib_files + compiler_files + dev_compiler_files + [
+               "$root_out_dir/dart2js_platform.dill",
+               "$root_out_dir/dart2js_outline.dill",
+               "$root_out_dir/dart2js_platform_strong.dill",
+               "$root_out_dir/dart2js_outline_strong.dill",
+             ]
     outputs = [
       out,
     ]
 
-    dot_packages = rebase_path("../../.packages")
-    compiler = rebase_path("../../pkg/compiler/lib/src/dart2js.dart")
+    script = "../../pkg/compiler/lib/src/dart2js.dart"
+
+    packages = "../../.packages"
 
     args = [
-      "--packages=$dot_packages",
-      compiler,
-      "--packages=$dot_packages",
       "$abs_main",
       "-m",
       "-o$abs_output",
@@ -128,7 +119,7 @@ dart2js_compile("stack_trace_mapper") {
 
 # Apply dev_compiler's patch files to create the Dart version of the dartdevc
 # SDK.
-dart_action("dartdevc_patch_sdk") {
+prebuilt_dart_action("dartdevc_patch_sdk") {
   # TODO(rnystrom): Unfork DDC's patch_sdk.dart script with the
   # tools/patch_sdk.dart and then change this to use generate_patch_sdk().
   deps = [
@@ -168,7 +159,7 @@ dart_action("dartdevc_patch_sdk") {
 
 # Compiles the Dart core libraries and DDC runtime to an analyzer summary and
 # JS.
-dart_action("dartdevc_sdk") {
+prebuilt_dart_action("dartdevc_sdk") {
   deps = [
     ":dartdevc_files_stamp",
     ":dartdevc_patch_sdk",
@@ -233,10 +224,10 @@ dart_action("dartdevc_sdk") {
 group("dartdevc_test") {
   deps = [
     ":dartdevc",
-    ":dartdevk",
     ":dartdevc_sdk",
     ":dartdevc_sdk_kernel_summary",
     ":dartdevc_test_pkg",
+    ":dartdevk",
     "../../sdk:create_sdk",
   ]
 }
@@ -248,9 +239,7 @@ create_timestamp_file("dartdevc_files_stamp") {
 
 # Compiles the packages used by the tests to JS with dartdevc so that they are
 # available for loading by the tests.
-compiled_action("dartdevc_test_pkg") {
-  tool = "../../runtime/bin:dart"
-
+dart_action("dartdevc_test_pkg") {
   deps = [
     ":dartdevc_files_stamp",
     ":dartdevc_sdk",
@@ -298,8 +287,9 @@ compiled_action("dartdevc_test_pkg") {
     "$target_gen_dir/pkg/unittest.sum",
   ]
 
+  script = "../../pkg/dev_compiler/tool/build_pkgs.dart"
+
   args = [
-    rebase_path("../../pkg/dev_compiler/tool/build_pkgs.dart"),
     "--analyzer-sdk",
     rebase_path(sdk_summary),
     "--kernel-sdk",
@@ -310,9 +300,7 @@ compiled_action("dartdevc_test_pkg") {
 }
 
 # Compiles the DDC SDK's kernel summary and JS code.
-compiled_action("dartdevc_sdk_kernel_summary") {
-  tool = "../../runtime/bin:dart"
-
+dart_action("dartdevc_sdk_kernel_summary") {
   deps = [
     ":dartdevc_files_stamp",
   ]
@@ -333,8 +321,9 @@ compiled_action("dartdevc_sdk_kernel_summary") {
     "$target_gen_dir/kernel/legacy/dart_sdk.js.map",
   ]
 
+  script = "../../pkg/dev_compiler/tool/kernel_sdk.dart"
+
   args = [
-    rebase_path("../../pkg/dev_compiler/tool/kernel_sdk.dart"),
     rebase_path(sdk_dill),
   ]
 }

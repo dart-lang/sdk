@@ -9,7 +9,7 @@ import 'package:compiler/src/js_backend/runtime_types.dart';
 import '../equivalence/id_equivalence_helper.dart';
 import '../equivalence/show_helper.dart';
 import 'rti_emission_test.dart';
-import 'rti_need_test.dart';
+import 'rti_need_test_helper.dart';
 
 main(List<String> args) async {
   cacheRtiDataForTesting = true;
@@ -18,23 +18,16 @@ main(List<String> args) async {
   argParser.addFlag('emission');
   ArgResults results = argParser.parse(args);
 
-  ComputeMemberDataFunction computeAstData;
   ComputeMemberDataFunction computeKernelData;
-  ComputeClassDataFunction computeAstClassData;
   ComputeClassDataFunction computeKernelClassData;
   if (results['emission']) {
-    computeAstData = computeAstRtiMemberEmission;
     computeKernelData = computeKernelRtiMemberEmission;
-    computeAstClassData = computeAstRtiClassEmission;
     computeKernelClassData = computeKernelRtiClassEmission;
   } else {
-    computeAstData = computeAstRtiMemberNeed;
     computeKernelData = computeKernelRtiMemberNeed;
-    computeAstClassData = computeAstRtiClassNeed;
     computeKernelClassData = computeKernelRtiClassNeed;
   }
 
-  await show(results, computeAstData, computeKernelData,
-      computeAstClassData: computeAstClassData,
+  await show(results, computeKernelData,
       computeKernelClassData: computeKernelClassData);
 }

@@ -9,7 +9,7 @@ library front_end.incremental.hot_reload_e2e_test;
 
 import 'dart:async' show Completer, Future;
 
-import 'dart:convert' show LineSplitter, UTF8;
+import 'dart:convert' show LineSplitter, utf8;
 
 import 'dart:io' show Directory, File, Platform, Process;
 
@@ -17,7 +17,7 @@ import 'package:async_helper/async_helper.dart' show asyncTest;
 
 import 'package:expect/expect.dart' show Expect;
 
-import 'package:kernel/ast.dart' show Program;
+import 'package:kernel/ast.dart' show Component;
 
 import 'package:kernel/binary/limited_ast_to_binary.dart'
     show LimitedBinaryPrinter;
@@ -36,7 +36,7 @@ import 'package:front_end/src/api_prototype/memory_file_system.dart'
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 
-import 'package:front_end/src/testing/hybrid_file_system.dart'
+import 'package:front_end/src/fasta/hybrid_file_system.dart'
     show HybridFileSystem;
 
 import '../../tool/reload.dart' show RemoteVm;
@@ -118,14 +118,14 @@ abstract class TestCase {
     var completers =
         new List.generate(expectedLines, (_) => new Completer<String>());
     lines = completers.map((c) => c.future).toList();
-    vm.stdout.transform(UTF8.decoder).transform(splitter).listen((line) {
+    vm.stdout.transform(utf8.decoder).transform(splitter).listen((line) {
       Expect.isTrue(i < expectedLines);
       completers[i++].complete(line);
     }, onDone: () {
       Expect.equals(expectedLines, i);
     });
 
-    vm.stderr.transform(UTF8.decoder).transform(splitter).toList().then((err) {
+    vm.stderr.transform(utf8.decoder).transform(splitter).toList().then((err) {
       Expect.isTrue(err.isEmpty, err.join('\n'));
     });
 
@@ -308,21 +308,21 @@ Future<bool> rebuild(IncrementalKernelGenerator compiler, Uri outputUri) async {
   compiler.invalidate(Uri.parse("org-dartlang-test:///a.dart"));
   compiler.invalidate(Uri.parse("org-dartlang-test:///b.dart"));
   compiler.invalidate(Uri.parse("org-dartlang-test:///c.dart"));
-  var program = await compiler.computeDelta();
-  if (program != null && !program.libraries.isEmpty) {
-    await writeProgram(program, outputUri);
+  var component = await compiler.computeDelta();
+  if (component != null && !component.libraries.isEmpty) {
+    await writeProgram(component, outputUri);
     return true;
   }
   return false;
 }
 
-Future<Null> writeProgram(Program program, Uri outputUri) async {
+Future<Null> writeProgram(Component component, Uri outputUri) async {
   var sink = new File.fromUri(outputUri).openWrite();
   // TODO(sigmund): the incremental generator should always filter these
   // libraries instead.
   new LimitedBinaryPrinter(
           sink, (library) => library.importUri.scheme != 'dart', false)
-      .writeProgramFile(program);
+      .writeComponentFile(component);
   await sink.close();
 }
 

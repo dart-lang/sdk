@@ -7,8 +7,8 @@
 #include "include/dart_api.h"
 #include "include/dart_native_api.h"
 #include "platform/assert.h"
+#include "platform/atomic.h"
 #include "platform/text_buffer.h"
-#include "vm/atomic.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_observers.h"
 #include "vm/compiler/jit/compiler.h"
@@ -21,6 +21,7 @@
 #include "vm/flags.h"
 #include "vm/heap.h"
 #include "vm/image_snapshot.h"
+#include "vm/interpreter.h"
 #include "vm/isolate_reload.h"
 #include "vm/kernel_isolate.h"
 #include "vm/lockers.h"
@@ -905,6 +906,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       library_tag_handler_(NULL),
       api_state_(NULL),
       random_(),
+      interpreter_(NULL),
       simulator_(NULL),
       mutex_(new Mutex(NOT_IN_PRODUCT("Isolate::mutex_"))),
       symbols_mutex_(new Mutex(NOT_IN_PRODUCT("Isolate::symbols_mutex_"))),
@@ -956,6 +958,11 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
 #undef REUSABLE_HANDLE_INITIALIZERS
 
 Isolate::~Isolate() {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  // TODO(32796): Re-enable assertion.
+  // RELEASE_ASSERT(reload_context_ == NULL);
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
   delete background_compiler_;
   background_compiler_ = NULL;
 
@@ -975,6 +982,9 @@ Isolate::~Isolate() {
   delete heap_;
   delete object_store_;
   delete api_state_;
+#if defined(DART_USE_INTERPRETER)
+  delete interpreter_;
+#endif
 #if defined(USING_SIMULATOR)
   delete simulator_;
 #endif
@@ -1239,13 +1249,13 @@ void Isolate::DoneFinalizing() {
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 }
 
-bool Isolate::MakeRunnable() {
+const char* Isolate::MakeRunnable() {
   ASSERT(Isolate::Current() == NULL);
 
   MutexLocker ml(mutex_);
   // Check if we are in a valid state to make the isolate runnable.
   if (is_runnable() == true) {
-    return false;  // Already runnable.
+    return "Isolate is already runnable";
   }
   // Set the isolate as runnable and if we are being spawned schedule
   // isolate on thread pool for execution.
@@ -1289,7 +1299,7 @@ bool Isolate::MakeRunnable() {
     GetRunnableHeapSizeMetric()->set_value(heap_size);
   }
 #endif  // !PRODUCT
-  return true;
+  return NULL;
 }
 
 bool Isolate::VerifyPauseCapability(const Object& capability) const {
@@ -1536,18 +1546,6 @@ static MessageHandler::MessageStatus RunIsolate(uword parameter) {
     Function& func = Function::Handle(thread->zone());
     func ^= result.raw();
 
-    // TODO(turnidge): Currently we need a way to force a one-time
-    // breakpoint for all spawned isolates to support isolate
-    // debugging.  Remove this once the vmservice becomes the standard
-    // way to debug. Set the breakpoint on the static function instead
-    // of its implicit closure function because that latter is merely
-    // a dispatcher that is marked as undebuggable.
-#if !defined(PRODUCT)
-    if (FLAG_break_at_isolate_spawn) {
-      isolate->debugger()->OneTimeBreakAtEntry(func);
-    }
-#endif
-
     func = func.ImplicitClosureFunction();
 
     const Array& capabilities = Array::Handle(Array::New(2));
@@ -1613,6 +1611,7 @@ static void ShutdownIsolate(uword parameter) {
     if (!error.IsNull() && !error.IsUnwindError()) {
       OS::PrintErr("in ShutdownIsolate: %s\n", error.ToErrorCString());
     }
+    TransitionVMToNative transition(thread);
     Dart::RunShutdownCallback();
   }
   // Shut the isolate down.
@@ -1945,6 +1944,12 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
+#if defined(DART_USE_INTERPRETER)
+  if (interpreter() != NULL) {
+    interpreter()->VisitObjectPointers(visitor);
+  }
+#endif  // defined(DART_USE_INTERPRETER)
+
 #if defined(TARGET_ARCH_DBC)
   if (simulator() != NULL) {
     simulator()->VisitObjectPointers(visitor);
@@ -1984,6 +1989,18 @@ RawClass* Isolate::GetClassForHeapWalkAt(intptr_t cid) {
   ASSERT(raw_class != NULL);
   ASSERT(remapping_cids() || raw_class->ptr()->id_ == cid);
   return raw_class;
+}
+
+intptr_t Isolate::GetClassSizeForHeapWalkAt(intptr_t cid) {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  if (IsReloading()) {
+    return reload_context()->GetClassSizeForHeapWalkAt(cid);
+  } else {
+    return class_table()->SizeAt(cid);
+  }
+#else
+  return class_table()->SizeAt(cid);
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 void Isolate::AddPendingDeopt(uword fp, uword pc) {
@@ -2709,8 +2726,6 @@ Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
     thread = thread_registry()->GetFreeThreadLocked(this, is_mutator);
     ASSERT(thread != NULL);
 
-    thread->ResetHighWatermark();
-
     // Set up other values and set the TLS value.
     thread->isolate_ = this;
     ASSERT(heap() != NULL);
@@ -2731,6 +2746,8 @@ Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
     }
     Thread::SetCurrent(thread);
     os_thread->EnableThreadInterrupts();
+
+    thread->ResetHighWatermark();
   }
   return thread;
 }

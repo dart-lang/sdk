@@ -11,7 +11,7 @@ import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler.dart';
 
-import '../dart2js/old_frontend/mock_libraries.dart';
+import 'mock_libraries.dart';
 
 String libProvider(Uri uri) {
   if (uri.path.endsWith(".platform")) {
@@ -27,8 +27,6 @@ String libProvider(Uri uri) {
     return buildLibrarySource(DEFAULT_INTERCEPTORS_LIBRARY);
   } else if (uri.path.endsWith('js_helper.dart')) {
     return buildLibrarySource(DEFAULT_JS_HELPER_LIBRARY);
-  } else if (uri.path.endsWith('isolate_helper.dart')) {
-    return buildLibrarySource(DEFAULT_ISOLATE_HELPER_LIBRARY);
   } else if (uri.path.endsWith('/async.dart')) {
     return buildLibrarySource(DEFAULT_ASYNC_LIBRARY);
   } else {

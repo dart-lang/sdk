@@ -44,9 +44,7 @@ class IncreasingTypeMaskSet extends UniverseSelectorConstraints {
       _masks = null;
       return true;
     }
-    if (_masks == null) {
-      _masks = new Setlet<TypeMask>();
-    }
+    _masks ??= new Set<TypeMask>();
     return _masks.add(mask);
   }
 
@@ -336,9 +334,7 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
    */
   bool contains(ClassEntity cls, ClosedWorld closedWorld);
 
-  /**
-   * Returns whether or not this type mask contains all types.
-   */
+  /// Returns whether or not this type mask contains all types.
   bool containsAll(ClosedWorld closedWorld);
 
   /// Returns the [ClassEntity] if this type represents a single class,
@@ -370,5 +366,5 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
    * on this mask. Returns null if there is none.
    */
   // TODO(johnniwinther): Move this method to [World].
-  MemberEntity locateSingleElement(Selector selector, ClosedWorld closedWorld);
+  MemberEntity locateSingleMember(Selector selector, ClosedWorld closedWorld);
 }

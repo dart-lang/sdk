@@ -30,7 +30,7 @@ main() {
     return customElementsReady.then((_) {
       if (!registered) {
         registered = true;
-        document.registerElement(A.tag, A);
+        document.registerElement2(A.tag, {'prototype': A});
       }
     });
   });
@@ -51,8 +51,8 @@ main() {
   });
 
   test("can extend elements that don't have special prototypes", () {
-    document.registerElement('fancy-section', FancySection,
-        extendsTag: 'section');
+    document.registerElement2(
+        'fancy-section', {'prototype': FancySection, 'extends': 'section'});
     var fancy = document.createElement('section', 'fancy-section');
     expect(fancy is FancySection, true, reason: 'fancy-section was registered');
     expect((fancy as FancySection).wasCreated, true,

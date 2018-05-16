@@ -112,14 +112,13 @@ Future<CompilationResult> compile(Uri script, Uri libraryRoot, Uri packageRoot,
     Map<String, dynamic> environment = const {},
     Uri packageConfig,
     PackagesDiscoveryProvider packagesDiscoveryProvider]) {
-  CompilerOptions compilerOptions = new CompilerOptions.parse(
-      entryPoint: script,
-      libraryRoot: libraryRoot,
-      packageRoot: packageRoot,
-      packageConfig: packageConfig,
-      packagesDiscoveryProvider: packagesDiscoveryProvider,
-      options: options,
-      environment: environment);
+  CompilerOptions compilerOptions =
+      CompilerOptions.parse(options, libraryRoot: libraryRoot)
+        ..entryPoint = script
+        ..packageRoot = packageRoot
+        ..packageConfig = packageConfig
+        ..packagesDiscoveryProvider = packagesDiscoveryProvider
+        ..environment = environment;
 
   new_api.CompilerInput compilerInput = new LegacyCompilerInput(inputProvider);
   new_api.CompilerDiagnostics compilerDiagnostics =

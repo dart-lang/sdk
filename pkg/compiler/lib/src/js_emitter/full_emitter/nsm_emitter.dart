@@ -72,9 +72,7 @@ class NsmEmitter extends CodeEmitterHelper {
             generator.generateStubForNoSuchMethod(jsName, selector);
         addProperty(method.name, method.code);
         if (reflectionName != null) {
-          bool accessible = closedWorld
-              .locateMembers(selector, null)
-              .any(backend.mirrorsData.isMemberAccessibleByReflection);
+          bool accessible = false;
           addProperty(
               namer.asName('+$reflectionName'), js(accessible ? '2' : '0'));
         }
@@ -89,6 +87,7 @@ class NsmEmitter extends CodeEmitterHelper {
     if (!generateTrivialNsmHandlers) return false;
     // Check for named arguments.
     if (argNames.length != 0) return false;
+    if (selector.typeArgumentCount > 0) return false;
     // Check for unexpected name (this doesn't really happen).
     if (internalName is GetterName) return type == 1;
     if (internalName is SetterName) return type == 2;
@@ -261,7 +260,7 @@ class NsmEmitter extends CodeEmitterHelper {
           // Generate call to:
           //
           //     createInvocationMirror(String name, internalName, type,
-          //         arguments, argumentNames)
+          //         arguments, argumentNames, typeArgumentCount)
           //
 
           // This 'if' is either a static choice or dynamic choice depending on
@@ -276,7 +275,8 @@ class NsmEmitter extends CodeEmitterHelper {
                           // Create proper Array with all arguments except first
                           // (receiver).
                           Array.prototype.slice.call(arguments, 1),
-                          []));
+                          [],
+                          0));
                   }
                  })(#names[j], shortName, type);
           } else {
@@ -290,7 +290,8 @@ class NsmEmitter extends CodeEmitterHelper {
                       #createInvocationMirror(name, shortName, type,
                           // Create proper Array with all arguments.
                           Array.prototype.slice.call(arguments, 0),
-                          []));
+                          [],
+                          0));
                   }
                  })(#names[j], shortName, type);
           }

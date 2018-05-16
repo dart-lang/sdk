@@ -1207,49 +1207,44 @@ void Assembler::MoveImmediate(const Address& dst, const Immediate& imm) {
 }
 
 // Destroys the value register.
-void Assembler::StoreIntoObjectFilterNoSmi(Register object,
-                                           Register value,
-                                           Label* no_update) {
+void Assembler::StoreIntoObjectFilter(Register object,
+                                      Register value,
+                                      Label* label,
+                                      CanBeSmi can_be_smi,
+                                      BarrierFilterMode how_to_jump) {
   COMPILE_ASSERT((kNewObjectAlignmentOffset == kWordSize) &&
                  (kOldObjectAlignmentOffset == 0));
 
-  // Write-barrier triggers if the value is in the new space (has bit set) and
-  // the object is in the old space (has bit cleared).
-  // To check that we could compute value & ~object and skip the write barrier
-  // if the bit is not set. However we can't destroy the object.
-  // However to preserve the object we compute negated expression
-  // ~value | object instead and skip the write barrier if the bit is set.
-  notl(value);
-  orl(value, object);
-  testl(value, Immediate(kNewObjectAlignmentOffset));
-  j(NOT_ZERO, no_update, Assembler::kNearJump);
-}
-
-// Destroys the value register.
-void Assembler::StoreIntoObjectFilter(Register object,
-                                      Register value,
-                                      Label* no_update) {
-  ASSERT(kNewObjectAlignmentOffset == 8);
-  ASSERT(kHeapObjectTag == 1);
-  // Detect value being ...1001 and object being ...0001.
-  andl(value, Immediate(0xf));
-  leal(value, Address(value, object, TIMES_2, 0x15));
-  testl(value, Immediate(0x1f));
-  j(NOT_ZERO, no_update, Assembler::kNearJump);
+  if (can_be_smi == kValueIsNotSmi) {
+    // Write-barrier triggers if the value is in the new space (has bit set) and
+    // the object is in the old space (has bit cleared).
+    // To check that we could compute value & ~object and skip the write barrier
+    // if the bit is not set. However we can't destroy the object.
+    // However to preserve the object we compute negated expression
+    // ~value | object instead and skip the write barrier if the bit is set.
+    notl(value);
+    orl(value, object);
+    testl(value, Immediate(kNewObjectAlignmentOffset));
+  } else {
+    ASSERT(kHeapObjectTag == 1);
+    // Detect value being ...1001 and object being ...0001.
+    andl(value, Immediate(0xf));
+    leal(value, Address(value, object, TIMES_2, 0x15));
+    testl(value, Immediate(0x1f));
+  }
+  Condition condition = how_to_jump == kJumpToNoUpdate ? NOT_ZERO : ZERO;
+  bool distance = how_to_jump == kJumpToNoUpdate ? kNearJump : kFarJump;
+  j(condition, label, distance);
 }
 
 void Assembler::StoreIntoObject(Register object,
                                 const Address& dest,
                                 Register value,
-                                bool can_value_be_smi) {
+                                CanBeSmi can_be_smi) {
   ASSERT(object != value);
   movq(dest, value);
   Label done;
-  if (can_value_be_smi) {
-    StoreIntoObjectFilter(object, value, &done);
-  } else {
-    StoreIntoObjectFilterNoSmi(object, value, &done);
-  }
+  StoreIntoObjectFilter(object, value, &done, can_be_smi, kJumpToNoUpdate);
   // A store buffer update is required.
   if (value != RDX) pushq(RDX);
   if (object != RDX) {
@@ -1272,7 +1267,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
 #if defined(DEBUG)
   Label done;
   pushq(value);
-  StoreIntoObjectFilter(object, value, &done);
+  StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
   Stop("Store buffer update is required");
   Bind(&done);
   popq(value);
@@ -1892,6 +1887,10 @@ void Assembler::LoadClassById(Register result, Register class_id) {
   const intptr_t offset =
       Isolate::class_table_offset() + ClassTable::table_offset();
   movq(result, Address(result, offset));
+  ASSERT(kSizeOfClassPairLog2 == 4);
+  // TIMES_16 is not a real scale factor on x64, so we double the class id
+  // and use TIMES_8.
+  addq(class_id, class_id);
   movq(result, Address(result, class_id, TIMES_8, 0));
 }
 

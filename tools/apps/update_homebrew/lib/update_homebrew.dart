@@ -33,7 +33,7 @@ Future<String> getHash256(
         'channels/$channel/release/$revision/$download.sha256sum',
         downloadOptions: DownloadOptions.FullMedia);
 
-    var hashLine = await ASCII.decodeStream(media.stream);
+    var hashLine = await ascii.decodeStream(media.stream);
     return new RegExp('[0-9a-fA-F]*').stringMatch(hashLine);
   } finally {
     client.close();
@@ -49,7 +49,7 @@ Future<String> getVersion(String channel, String revision) async {
         'dart-archive', 'channels/$channel/release/$revision/VERSION',
         downloadOptions: DownloadOptions.FullMedia);
 
-    var versionObject = await JSON.fuse(ASCII).decoder.bind(media.stream).first;
+    var versionObject = await json.fuse(ascii).decoder.bind(media.stream).first;
     return versionObject['version'];
   } finally {
     client.close();
@@ -157,12 +157,18 @@ class Dart < Formula
     bin.write_exec_script Dir["#{libexec}/bin/{pub,dart?*}"]
 
     if build.with? "dartium"
+      if build.devel?
+        odie "dartium is no longer supported with --devel builds. Remove --with-dartium and try again."
+      end
       dartium_binary = "Chromium.app/Contents/MacOS/Chromium"
       prefix.install resource("dartium")
       (bin+"dartium").write shim_script dartium_binary
     end
 
     if build.with? "content-shell"
+      if build.devel?
+        odie "content-shell is no longer supported with --devel builds. Remove --with-content-shell and try again."
+      end
       content_shell_binary = "Content Shell.app/Contents/MacOS/Content Shell"
       prefix.install resource("content_shell")
       (bin+"content_shell").write shim_script content_shell_binary
@@ -179,10 +185,6 @@ class Dart < Formula
   def caveats; <<~EOS
     Please note the path to the Dart SDK:
       #{opt_libexec}
-
-    --with-dartium:
-      To use with IntelliJ, set the Dartium execute home to:
-        #{opt_prefix}/Chromium.app
     EOS
   end
 

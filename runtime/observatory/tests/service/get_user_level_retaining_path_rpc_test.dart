@@ -40,7 +40,7 @@ var tests = <IsolateTest>[
   // Expect a simple path through variable x instead of long path filled
   // with VM objects
   (Isolate isolate) async {
-    var target1 = await eval(isolate, 'x;');
+    var target1 = await eval(isolate, 'x');
     var params = {
       'targetId': target1['id'],
       'limit': 100,
@@ -56,7 +56,7 @@ var tests = <IsolateTest>[
   // Expect a simple path through variable fn instead of long path filled
   // with VM objects
   (Isolate isolate) async {
-    var target2 = await eval(isolate, 'fn;');
+    var target2 = await eval(isolate, 'fn');
     var params = {
       'targetId': target2['id'],
       'limit': 100,

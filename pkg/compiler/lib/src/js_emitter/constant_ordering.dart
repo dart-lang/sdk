@@ -5,15 +5,8 @@
 library dart2js.js_emitter.constant_ordering;
 
 import '../constants/values.dart';
-import '../elements/elements.dart' show Elements;
 import '../elements/entities.dart'
-    show Entity, ClassEntity, FieldEntity, MemberEntity, TypedefEntity;
-import '../elements/resolution_types.dart'
-    show
-        GenericType,
-        ResolutionDartType,
-        ResolutionFunctionType,
-        ResolutionTypeKind;
+    show ClassEntity, FieldEntity, LibraryEntity, MemberEntity, TypedefEntity;
 import '../elements/types.dart';
 import '../js_backend/js_backend.dart' show SyntheticConstantKind;
 import 'sorter.dart' show Sorter;
@@ -60,10 +53,8 @@ class _ConstantOrdering
     return 0;
   }
 
-  static int compareElements(Entity a, Entity b) {
-    int r = a.name.compareTo(b.name);
-    if (r != 0) return r;
-    return Elements.compareByPosition(a, b);
+  int compareLibraries(LibraryEntity a, LibraryEntity b) {
+    return _sorter.compareLibrariesByLocation(a, b);
   }
 
   int compareClasses(ClassEntity a, ClassEntity b) {
@@ -84,45 +75,7 @@ class _ConstantOrdering
     return _sorter.compareTypedefsByLocation(a, b);
   }
 
-  static int _compareResolutionDartTypes(
-      ResolutionDartType a, ResolutionDartType b) {
-    if (a == b) return 0;
-    int r = a.kind.index.compareTo(b.kind.index);
-    if (r != 0) return r;
-    r = compareNullable(compareElements, a.element, b.element);
-    if (r != 0) return r;
-
-    if (a is GenericType) {
-      GenericType aGeneric = a;
-      GenericType bGeneric = b;
-      r = compareLists(_compareResolutionDartTypes, aGeneric.typeArguments,
-          bGeneric.typeArguments);
-      if (r != 0) return r;
-    }
-    if (a is ResolutionFunctionType && b is ResolutionFunctionType) {
-      int r = compareLists(
-          _compareResolutionDartTypes, a.parameterTypes, b.parameterTypes);
-      if (r != 0) return r;
-      r = compareLists(_compareResolutionDartTypes, a.optionalParameterTypes,
-          b.optionalParameterTypes);
-      if (r != 0) return r;
-      r = _ConstantOrdering.compareLists((String a, String b) => a.compareTo(b),
-          a.namedParameters, b.namedParameters);
-      if (r != 0) return r;
-      r = compareLists(_compareResolutionDartTypes, a.namedParameterTypes,
-          b.namedParameterTypes);
-      if (r != 0) return r;
-      return _compareResolutionDartTypes(a.returnType, b.returnType);
-    }
-
-    throw 'unexpected compareDartTypes  $a  $b';
-  }
-
   int compareDartTypes(DartType a, DartType b) {
-    if (a is ResolutionDartType && b is ResolutionDartType) {
-      // TODO(redemption): Remove this path.
-      return _compareResolutionDartTypes(a, b);
-    }
     return _dartTypeOrdering.compare(a, b);
   }
 
@@ -230,8 +183,10 @@ class _ConstantOrdering
   int visitDeferred(DeferredConstantValue a, DeferredConstantValue b) {
     int r = compareValues(a.referenced, b.referenced);
     if (r != 0) return r;
-    // TODO(sra): What kind of Entity is `prefix`?
-    return compareElements(a.import, b.import);
+    r = a.import.name.compareTo(b.import.name);
+    if (r != 0) return r;
+    return compareLibraries(
+        a.import.enclosingLibrary, b.import.enclosingLibrary);
   }
 
   int visitDeferredGlobal(
@@ -239,6 +194,13 @@ class _ConstantOrdering
     int r = compareValues(a.referenced, b.referenced);
     if (r != 0) return r;
     return a.unit.compareTo(b.unit);
+  }
+
+  int visitInstantiation(
+      InstantiationConstantValue a, InstantiationConstantValue b) {
+    int r = compareValues(a.function, b.function);
+    if (r != 0) return r;
+    return compareLists(compareDartTypes, a.typeArguments, b.typeArguments);
   }
 }
 
@@ -259,7 +221,8 @@ class _KindVisitor implements ConstantValueVisitor<int, Null> {
   static const int SYNTHETIC = 12;
   static const int DEFERRED = 13;
   static const int DEFERRED_GLOBAL = 14;
-  static const int NONCONSTANT = 13;
+  static const int NONCONSTANT = 15;
+  static const int INSTANTIATION = 16;
 
   static int kind(ConstantValue constant) =>
       constant.accept(const _KindVisitor(), null);
@@ -279,6 +242,7 @@ class _KindVisitor implements ConstantValueVisitor<int, Null> {
   int visitSynthetic(SyntheticConstantValue a, _) => SYNTHETIC;
   int visitDeferred(DeferredConstantValue a, _) => DEFERRED;
   int visitDeferredGlobal(DeferredGlobalConstantValue a, _) => DEFERRED_GLOBAL;
+  int visitInstantiation(InstantiationConstantValue a, _) => INSTANTIATION;
 }
 
 /// Visitor for distinguishing types by kind.
@@ -286,7 +250,6 @@ class _DartTypeKindVisitor extends DartTypeVisitor<int, Null> {
   const _DartTypeKindVisitor();
 
   static int kind(DartType type) {
-    assert(_usesLegacyOrder);
     return type.accept(const _DartTypeKindVisitor(), null);
   }
 
@@ -296,24 +259,6 @@ class _DartTypeKindVisitor extends DartTypeVisitor<int, Null> {
   int visitInterfaceType(covariant InterfaceType type, _) => 1;
   int visitTypedefType(covariant TypedefType type, _) => 2;
   int visitDynamicType(covariant DynamicType type, _) => 5;
-
-  // Check that the ordering of different kinds of type is consistent with
-  // ResolutionDartTypes.
-  // TODO(redemption): Remove this check.
-  static bool _usesLegacyOrder = () {
-    var v = const _DartTypeKindVisitor();
-    assert(
-        v.visitFunctionType(null, null) == ResolutionTypeKind.FUNCTION.index);
-    assert(
-        v.visitInterfaceType(null, null) == ResolutionTypeKind.INTERFACE.index);
-    assert(v.visitTypedefType(null, null) == ResolutionTypeKind.TYPEDEF.index);
-    assert(v.visitTypeVariableType(null, null) ==
-        ResolutionTypeKind.TYPE_VARIABLE.index);
-    // There is no analogue of ResolutionTypeKind.MALFORMED_TYPE.
-    assert(v.visitDynamicType(null, null) == ResolutionTypeKind.DYNAMIC.index);
-    assert(v.visitVoidType(null, null) == ResolutionTypeKind.VOID.index);
-    return true;
-  }();
 }
 
 class _DartTypeOrdering extends DartTypeVisitor<int, DartType> {

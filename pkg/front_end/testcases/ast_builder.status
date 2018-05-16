@@ -6,19 +6,12 @@
 # generating analyzer ASTs and connecting up type inference information.
 annotation_top: Crash
 argument_mismatch: Fail
+bug32629: Fail
 dynamic_and_void: Fail
-illegal_named_function_expression: Crash
-illegal_named_function_expression_scope: Crash
 inference/abstract_class_instantiation: Fail
 inference/constructors_too_many_positional_arguments: Fail
 inference/downwards_inference_annotations: Crash
-inference/downwards_inference_annotations_for_loop_variable: Fail
-inference/downwards_inference_annotations_locals: Fail
-inference/downwards_inference_annotations_locals_referring_to_locals: Fail
-inference/downwards_inference_annotations_parameter: Fail
-inference/downwards_inference_annotations_parameter_local: Fail
 inference/downwards_inference_annotations_type_variable: Fail
-inference/downwards_inference_annotations_type_variable_local: Fail
 inference/downwards_inference_annotations_typedef: Crash
 inference/downwards_inference_on_function_of_t_using_the_t: Fail
 inference/downwards_inference_yield_yield_star: Fail
@@ -47,16 +40,11 @@ override_check_two_substitutions: Fail
 override_check_with_covariant_modifier: Fail
 rasta/bad_default_constructor: VerificationError
 rasta/issue_000039: VerificationError
-rasta/issue_000042: Crash
 rasta/mandatory_parameter_initializer: VerificationError
 rasta/parser_error: VerificationError
 rasta/unresolved_for_in: Crash
-regress/issue_29937: Crash
 regress/issue_29941: Crash
-regress/issue_29942: Crash
 regress/issue_29943: Crash
-regress/issue_29978: Crash
-regress/issue_29979: Crash
 regress/issue_29983: Crash # 'package:analyzer/src/fasta/ast_builder.dart': Failed assertion: line 478 pos 12: 'star == null': is not true.
 regress/issue_31155: Crash # Issue 31155.
 regress/issue_31157: Crash

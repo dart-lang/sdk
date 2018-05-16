@@ -15,6 +15,7 @@
 #include "vm/heap.h"
 #include "vm/object.h"
 #include "vm/snapshot.h"
+#include "vm/type_testing_stubs.h"
 #include "vm/version.h"
 
 #if defined(DEBUG)
@@ -135,8 +136,7 @@ class Serializer : public StackResource {
   ~Serializer();
 
   intptr_t WriteVMSnapshot(const Array& symbols,
-                           ZoneGrowableArray<Object*>* seed_objects,
-                           ZoneGrowableArray<Code*>* seed_code);
+                           ZoneGrowableArray<Object*>* seeds);
   void WriteIsolateSnapshot(intptr_t num_base_objects,
                             ObjectStore* object_store);
 
@@ -190,9 +190,10 @@ class Serializer : public StackResource {
   }
 
   void FillHeader(Snapshot::Kind kind) {
-    int64_t* data = reinterpret_cast<int64_t*>(stream_.buffer());
-    data[Snapshot::kLengthIndex] = stream_.bytes_written();
-    data[Snapshot::kSnapshotFlagIndex] = kind;
+    Snapshot* header = reinterpret_cast<Snapshot*>(stream_.buffer());
+    header->set_magic();
+    header->set_length(stream_.bytes_written());
+    header->set_kind(kind);
   }
 
   void WriteVersionAndFeatures(bool is_vm_snapshot);
@@ -207,7 +208,7 @@ class Serializer : public StackResource {
   void Write(T value) {
     WriteStream::Raw<sizeof(T), T>::Write(&stream_, value);
   }
-
+  void WriteUnsigned(intptr_t value) { stream_.WriteUnsigned(value); }
   void WriteBytes(const uint8_t* addr, intptr_t len) {
     stream_.WriteBytes(addr, len);
   }
@@ -219,7 +220,7 @@ class Serializer : public StackResource {
       if (id == 0) {
         FATAL("Missing ref");
       }
-      Write<int32_t>(id);
+      WriteUnsigned(id);
       return;
     }
 
@@ -240,7 +241,7 @@ class Serializer : public StackResource {
       }
       FATAL("Missing ref");
     }
-    Write<int32_t>(id);
+    WriteUnsigned(id);
   }
 
   void WriteTokenPosition(TokenPosition pos) {
@@ -252,15 +253,19 @@ class Serializer : public StackResource {
     Write<int32_t>(cid);
   }
 
-  int32_t GetTextOffset(RawInstructions* instr, RawCode* code) const;
-  int32_t GetDataOffset(RawObject* object) const;
+  void WriteInstructions(RawInstructions* instr, RawCode* code);
+  bool GetSharedDataOffset(RawObject* object, uint32_t* offset) const;
+  uint32_t GetDataOffset(RawObject* object) const;
   intptr_t GetDataSize() const;
   intptr_t GetTextSize() const;
 
   Snapshot::Kind kind() const { return kind_; }
   intptr_t next_ref_index() const { return next_ref_index_; }
 
+  void DumpCombinedCodeStatistics();
+
  private:
+  TypeTestingStubFinder type_testing_stubs_;
   Heap* heap_;
   Zone* zone_;
   Snapshot::Kind kind_;
@@ -288,8 +293,10 @@ class Deserializer : public StackResource {
                Snapshot::Kind kind,
                const uint8_t* buffer,
                intptr_t size,
+               const uint8_t* data_buffer,
                const uint8_t* instructions_buffer,
-               const uint8_t* data_buffer);
+               const uint8_t* shared_data_buffer,
+               const uint8_t* shared_instructions_buffer);
   ~Deserializer();
 
   void ReadIsolateSnapshot(ObjectStore* object_store);
@@ -309,7 +316,7 @@ class Deserializer : public StackResource {
   T Read() {
     return ReadStream::Raw<sizeof(T), T>::Read(&stream_);
   }
-
+  intptr_t ReadUnsigned() { return stream_.ReadUnsigned(); }
   void ReadBytes(uint8_t* addr, intptr_t len) { stream_.ReadBytes(addr, len); }
 
   const uint8_t* CurrentBufferAddress() const {
@@ -334,10 +341,7 @@ class Deserializer : public StackResource {
     return refs_->ptr()->data()[index];
   }
 
-  RawObject* ReadRef() {
-    int32_t index = Read<int32_t>();
-    return Ref(index);
-  }
+  RawObject* ReadRef() { return Ref(ReadUnsigned()); }
 
   TokenPosition ReadTokenPosition() {
     return TokenPosition::SnapshotDecode(Read<int32_t>());
@@ -348,8 +352,9 @@ class Deserializer : public StackResource {
     return Read<int32_t>();
   }
 
-  RawInstructions* GetInstructionsAt(int32_t offset) const;
-  RawObject* GetObjectAt(int32_t offset) const;
+  RawInstructions* ReadInstructions();
+  RawObject* GetObjectAt(uint32_t offset) const;
+  RawObject* GetSharedObjectAt(uint32_t offset) const;
 
   RawApiError* VerifyVersionAndFeatures(Isolate* isolate);
 
@@ -421,8 +426,7 @@ class FullSnapshotWriter {
   ForwardList* forward_list_;
   ImageWriter* vm_image_writer_;
   ImageWriter* isolate_image_writer_;
-  ZoneGrowableArray<Object*>* seed_objects_;
-  ZoneGrowableArray<Code*>* seed_code_;
+  ZoneGrowableArray<Object*>* seeds_;
   Array& saved_symbol_table_;
   Array& new_vm_symbol_table_;
 
@@ -439,6 +443,8 @@ class FullSnapshotReader {
  public:
   FullSnapshotReader(const Snapshot* snapshot,
                      const uint8_t* instructions_buffer,
+                     const uint8_t* shared_data,
+                     const uint8_t* shared_instructions,
                      Thread* thread);
   ~FullSnapshotReader() {}
 
@@ -450,8 +456,10 @@ class FullSnapshotReader {
   Thread* thread_;
   const uint8_t* buffer_;
   intptr_t size_;
-  const uint8_t* instructions_buffer_;
-  const uint8_t* data_buffer_;
+  const uint8_t* data_image_;
+  const uint8_t* instructions_image_;
+  const uint8_t* shared_data_image_;
+  const uint8_t* shared_instructions_image_;
 
   DISALLOW_COPY_AND_ASSIGN(FullSnapshotReader);
 };

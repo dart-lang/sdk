@@ -945,7 +945,7 @@ BlockEntryInstr* TestGraphVisitor::CreateFalseSuccessor() const {
 
 void TestGraphVisitor::ReturnValue(Value* value) {
   Isolate* isolate = Isolate::Current();
-  if (isolate->type_checks() || isolate->asserts()) {
+  if (isolate->strong() || isolate->type_checks() || isolate->asserts()) {
     value = Bind(new (Z) AssertBooleanInstr(condition_token_pos(), value,
                                             owner()->GetNextDeoptId()));
   }
@@ -1290,7 +1290,7 @@ void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
     node->left()->Visit(&for_left);
     EffectGraphVisitor empty(owner());
     Isolate* isolate = Isolate::Current();
-    if (isolate->type_checks() || isolate->asserts()) {
+    if (isolate->strong() || isolate->type_checks() || isolate->asserts()) {
       ValueGraphVisitor for_right(owner());
       node->right()->Visit(&for_right);
       Value* right_value = for_right.value();
@@ -1354,7 +1354,7 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
     node->right()->Visit(&for_right);
     Value* right_value = for_right.value();
     Isolate* isolate = Isolate::Current();
-    if (isolate->type_checks() || isolate->asserts()) {
+    if (isolate->strong() || isolate->type_checks() || isolate->asserts()) {
       right_value = for_right.Bind(new (Z) AssertBooleanInstr(
           node->right()->token_pos(), right_value, owner()->GetNextDeoptId()));
     }
@@ -1626,7 +1626,7 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
         owner()->ic_data_array(), owner()->GetNextDeoptId());
     if (node->kind() == Token::kNE) {
       Isolate* isolate = Isolate::Current();
-      if (isolate->type_checks() || isolate->asserts()) {
+      if (isolate->strong() || isolate->type_checks() || isolate->asserts()) {
         Value* value = Bind(result);
         result = new (Z) AssertBooleanInstr(node->token_pos(), value,
                                             owner()->GetNextDeoptId());
@@ -1670,7 +1670,7 @@ void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
     Append(for_value);
     Value* value = for_value.value();
     Isolate* isolate = Isolate::Current();
-    if (isolate->type_checks() || isolate->asserts()) {
+    if (isolate->strong() || isolate->type_checks() || isolate->asserts()) {
       value = Bind(new (Z) AssertBooleanInstr(
           node->operand()->token_pos(), value, owner()->GetNextDeoptId()));
     }
@@ -2315,6 +2315,17 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
       Value* type_arguments = BuildFunctionTypeArguments(node->token_pos());
       Do(new (Z) StoreInstanceFieldInstr(
           Closure::function_type_arguments_offset(), closure_tmp_val,
+          type_arguments, kEmitStoreBarrier, node->token_pos()));
+    }
+
+    // Mark that there are no delayed type arguments.
+    {
+      Value* closure_tmp_val =
+          Bind(new (Z) LoadLocalInstr(*closure_tmp_var, node->token_pos()));
+      Value* type_arguments =
+          Bind(new (Z) ConstantInstr(Object::empty_type_arguments()));
+      Do(new (Z) StoreInstanceFieldInstr(
+          Closure::delayed_type_arguments_offset(), closure_tmp_val,
           type_arguments, kEmitStoreBarrier, node->token_pos()));
     }
 
@@ -3786,15 +3797,18 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
         ASSERT(parent_type_args_var->owner() != scope);
         // Call the runtime to concatenate both vectors.
         ZoneGrowableArray<PushArgumentInstr*>* arguments =
-            new (Z) ZoneGrowableArray<PushArgumentInstr*>(3);
+            new (Z) ZoneGrowableArray<PushArgumentInstr*>(4);
         arguments->Add(PushArgument(type_args_val));
         Value* parent_type_args_val =
             Bind(BuildLoadLocal(*parent_type_args_var, node->token_pos()));
         arguments->Add(PushArgument(parent_type_args_val));
-        Value* len_const = Bind(new (Z) ConstantInstr(
+        Value* parent_len = Bind(new (Z) ConstantInstr(
+            Smi::ZoneHandle(Z, Smi::New(function.NumParentTypeParameters()))));
+        arguments->Add(PushArgument(parent_len));
+        Value* total_len = Bind(new (Z) ConstantInstr(
             Smi::ZoneHandle(Z, Smi::New(function.NumTypeParameters() +
                                         function.NumParentTypeParameters()))));
-        arguments->Add(PushArgument(len_const));
+        arguments->Add(PushArgument(total_len));
         const Library& dart_internal =
             Library::Handle(Z, Library::InternalLibrary());
         const Function& prepend_function =
@@ -3872,12 +3886,9 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     // if we inline or not.
     if (!function.IsImplicitGetterFunction() &&
         !function.IsImplicitSetterFunction()) {
-      // We want the stack overlow error to be reported at the opening '{' or
-      // at the '=>' location. So, we get the sequence node corresponding to the
-      // body inside |node| and use its token position.
-      ASSERT(node->length() > 0);
+      // Stack overflow error is reported at the function token position.
       CheckStackOverflowInstr* check = new (Z) CheckStackOverflowInstr(
-          node->NodeAt(0)->token_pos(), 0, owner()->GetNextDeoptId());
+          function.token_pos(), 0, owner()->GetNextDeoptId());
       // If we are inlining don't actually attach the stack check. We must still
       // create the stack check in order to allocate a deopt id.
       if (!owner()->IsInlining()) {

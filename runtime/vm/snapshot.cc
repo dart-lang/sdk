@@ -15,8 +15,10 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/snapshot_ids.h"
+#include "vm/stub_code.h"
 #include "vm/symbols.h"
 #include "vm/timeline.h"
+#include "vm/type_testing_stubs.h"
 #include "vm/version.h"
 
 // We currently only expect the Dart mutator to read snapshots.
@@ -152,19 +154,16 @@ const char* Snapshot::KindToCString(Kind kind) {
   }
 }
 
-// TODO(5411462): Temporary setup of snapshot for testing purposes,
-// the actual creation of a snapshot maybe done differently.
 const Snapshot* Snapshot::SetupFromBuffer(const void* raw_memory) {
   ASSERT(raw_memory != NULL);
-  ASSERT(kHeaderSize == sizeof(Snapshot));
-  ASSERT(kLengthIndex == length_offset());
-  ASSERT((kSnapshotFlagIndex * sizeof(int64_t)) == kind_offset());
-  ASSERT((kHeapObjectTag & kInlined));
   const Snapshot* snapshot = reinterpret_cast<const Snapshot*>(raw_memory);
+  if (!snapshot->check_magic()) {
+    return NULL;
+  }
   // If the raw length is negative or greater than what the local machine can
   // handle, then signal an error.
-  int64_t snapshot_length = ReadUnaligned(&snapshot->unaligned_length_);
-  if ((snapshot_length < 0) || (snapshot_length > kIntptrMax)) {
+  int64_t length = snapshot->large_length();
+  if ((length < 0) || (length > kIntptrMax)) {
     return NULL;
   }
   return snapshot;
@@ -192,6 +191,7 @@ SnapshotReader::SnapshotReader(const uint8_t* buffer,
       heap_(isolate()->heap()),
       old_space_(thread_->isolate()->heap()->old_space()),
       cls_(Class::Handle(zone_)),
+      code_(Code::Handle(zone_)),
       obj_(Object::Handle(zone_)),
       pobj_(PassiveObject::Handle(zone_)),
       array_(Array::Handle(zone_)),
@@ -211,6 +211,7 @@ SnapshotReader::SnapshotReader(const uint8_t* buffer,
               ? Object::vm_isolate_snapshot_object_table().Length()
               : 0),
       backward_references_(backward_refs),
+      types_to_postprocess_(GrowableObjectArray::Handle(zone_)),
       objects_to_rehash_(GrowableObjectArray::Handle(zone_)) {}
 
 RawObject* SnapshotReader::ReadObject() {
@@ -218,6 +219,7 @@ RawObject* SnapshotReader::ReadObject() {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     objects_to_rehash_ = GrowableObjectArray::New(HEAP_SPACE(kind_));
+    types_to_postprocess_ = GrowableObjectArray::New(HEAP_SPACE(kind_));
 
     PassiveObject& obj =
         PassiveObject::Handle(zone(), ReadObjectImpl(kAsInlinedObject));
@@ -237,6 +239,7 @@ RawObject* SnapshotReader::ReadObject() {
     } else {
       result = obj.raw();
     }
+    RunDelayedTypePostprocessing();
     const Object& ok = Object::Handle(zone_, RunDelayedRehashingOfMaps());
     objects_to_rehash_ = GrowableObjectArray::null();
     if (!ok.IsNull()) {
@@ -248,6 +251,22 @@ RawObject* SnapshotReader::ReadObject() {
     const Error& err = Error::Handle(thread()->sticky_error());
     thread()->clear_sticky_error();
     return err.raw();
+  }
+}
+
+void SnapshotReader::EnqueueTypePostprocessing(const AbstractType& type) {
+  types_to_postprocess_.Add(type, HEAP_SPACE(kind_));
+}
+
+void SnapshotReader::RunDelayedTypePostprocessing() {
+  if (types_to_postprocess_.Length() > 0) {
+    AbstractType& type = AbstractType::Handle();
+    Instructions& instr = Instructions::Handle();
+    for (intptr_t i = 0; i < types_to_postprocess_.Length(); ++i) {
+      type ^= types_to_postprocess_.At(i);
+      instr = TypeTestingStubGenerator::DefaultCodeForType(type);
+      type.SetTypeTestingStub(instr);
+    }
   }
 }
 
@@ -732,13 +751,14 @@ RawObject* SnapshotReader::ReadVMIsolateObject(intptr_t header_value) {
   READ_VM_SINGLETON_OBJ(kZeroArrayObject, Object::zero_array().raw());
   READ_VM_SINGLETON_OBJ(kDynamicType, Object::dynamic_type().raw());
   READ_VM_SINGLETON_OBJ(kVoidType, Object::void_type().raw());
+  READ_VM_SINGLETON_OBJ(kEmptyTypeArguments,
+                        Object::empty_type_arguments().raw());
   READ_VM_SINGLETON_OBJ(kTrueValue, Bool::True().raw());
   READ_VM_SINGLETON_OBJ(kFalseValue, Bool::False().raw());
   READ_VM_SINGLETON_OBJ(kExtractorParameterTypes,
                         Object::extractor_parameter_types().raw());
   READ_VM_SINGLETON_OBJ(kExtractorParameterNames,
                         Object::extractor_parameter_names().raw());
-  READ_VM_SINGLETON_OBJ(kEmptyContextObject, Object::empty_context().raw());
   READ_VM_SINGLETON_OBJ(kEmptyContextScopeObject,
                         Object::empty_context_scope().raw());
   READ_VM_SINGLETON_OBJ(kEmptyObjectPool, Object::empty_object_pool().raw());
@@ -999,13 +1019,14 @@ bool SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
   WRITE_VM_SINGLETON_OBJ(Object::zero_array().raw(), kZeroArrayObject);
   WRITE_VM_SINGLETON_OBJ(Object::dynamic_type().raw(), kDynamicType);
   WRITE_VM_SINGLETON_OBJ(Object::void_type().raw(), kVoidType);
+  WRITE_VM_SINGLETON_OBJ(Object::empty_type_arguments().raw(),
+                         kEmptyTypeArguments);
   WRITE_VM_SINGLETON_OBJ(Bool::True().raw(), kTrueValue);
   WRITE_VM_SINGLETON_OBJ(Bool::False().raw(), kFalseValue);
   WRITE_VM_SINGLETON_OBJ(Object::extractor_parameter_types().raw(),
                          kExtractorParameterTypes);
   WRITE_VM_SINGLETON_OBJ(Object::extractor_parameter_names().raw(),
                          kExtractorParameterNames);
-  WRITE_VM_SINGLETON_OBJ(Object::empty_context().raw(), kEmptyContextObject);
   WRITE_VM_SINGLETON_OBJ(Object::empty_context_scope().raw(),
                          kEmptyContextScopeObject);
   WRITE_VM_SINGLETON_OBJ(Object::empty_object_pool().raw(), kEmptyObjectPool);

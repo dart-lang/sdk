@@ -13,7 +13,7 @@ class B extends self::A {
     : super self::A::•()
     ;
 }
-static method f<T extends core::Object>() → self::f::T
+static method f<T extends core::Object = dynamic>() → self::f::T
   return null;
 static method test() → dynamic async {
   core::Iterable<self::A> iterable;
@@ -34,22 +34,22 @@ static method test() → dynamic async {
     b = #t4 as{TypeError} self::B;
   }
   for (final self::A #t5 in iterable) {
-    i = let final dynamic #t6 = #t5 in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:26:39: Error: A value of type 'test::A' can't be assigned to a variable of type 'dart.core::int'.
+    i = let final dynamic #t6 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:26:39: Error: A value of type 'test::A' can't be assigned to a variable of type 'dart.core::int'.
 Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
   for (i /*@error=InvalidAssignment*/ in iterable) {}
-                                      ^";
+                                      ^" in let final dynamic #t7 = #t5 in null;
   }
-  await for (final self::A #t7 in stream) {
-    i = let final dynamic #t8 = #t7 in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:27:45: Error: A value of type 'test::A' can't be assigned to a variable of type 'dart.core::int'.
+  await for (final self::A #t8 in stream) {
+    i = let final dynamic #t9 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:27:45: Error: A value of type 'test::A' can't be assigned to a variable of type 'dart.core::int'.
 Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
   await for (i /*@error=InvalidAssignment*/ in stream) {}
-                                            ^";
+                                            ^" in let final dynamic #t10 = #t8 in null;
   }
-  for (final self::A #t9 in self::f<core::Iterable<self::A>>()) {
-    a = #t9;
+  for (final self::A #t11 in self::f<core::Iterable<self::A>>()) {
+    a = #t11;
   }
-  await for (final self::A #t10 in self::f<asy::Stream<self::A>>()) {
-    a = #t10;
+  await for (final self::A #t12 in self::f<asy::Stream<self::A>>()) {
+    a = #t12;
   }
 }
 static method main() → dynamic {}

@@ -6,7 +6,9 @@ library analyzer.test.generated.compile_time_error_code_test;
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
@@ -32,10 +34,15 @@ class A<T> {
   const A();
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
-      StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC
-    ]);
+    if (previewDart2) {
+      assertErrors(
+          source, [StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
+        StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC
+      ]);
+    }
     verify([source]);
   }
 
@@ -46,10 +53,15 @@ class A<T> {
   const A();
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
-      StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC
-    ]);
+    if (previewDart2) {
+      assertErrors(
+          source, [StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
+        StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC
+      ]);
+    }
     verify([source]);
   }
 
@@ -61,8 +73,12 @@ class A<E> {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST]);
+    if (previewDart2) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST]);
+    }
     verify([source]);
   }
 
@@ -74,8 +90,12 @@ class A<E> {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP]);
+    if (previewDart2) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP]);
+    }
     verify([source]);
   }
 
@@ -84,14 +104,23 @@ class A<E> {
 class A {}
 class C = A with String, num;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      useCFE
-          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
-          : CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
-      useCFE
-          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
-          : CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
-    ]);
+    if (previewDart2) {
+      assertErrors(source, [
+        StrongModeCode.INVALID_METHOD_OVERRIDE_FROM_MIXIN,
+        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
+        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
+      ]);
+    } else if (useCFE) {
+      assertErrors(source, [
+        CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+        CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+      ]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
+        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
+      ]);
+    }
     verify([source]);
   }
 }
@@ -1360,16 +1389,26 @@ class Foo {
   test_constInitializedWithNonConstValue_missingConstInListLiteral() async {
     Source source = addSource("const List L = [0];");
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
+    if ((analysisContext?.analysisOptions ?? driver.analysisOptions)
+        .previewDart2) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source,
+          [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
+    }
     verify([source]);
   }
 
   test_constInitializedWithNonConstValue_missingConstInMapLiteral() async {
     Source source = addSource("const Map M = {'a' : 0};");
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
+    if ((analysisContext?.analysisOptions ?? driver.analysisOptions)
+        .previewDart2) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source,
+          [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
+    }
     verify([source]);
   }
 
@@ -2560,9 +2599,10 @@ var b2 = const bool.fromEnvironment('x', defaultValue: 1);''');
     // The type of the defaultValue needs to be correct even when the default
     // value isn't used (because the variable is defined in the environment).
     if (enableNewAnalysisDriver) {
-      driver.declaredVariables.define("x", "true");
+      driver.declaredVariables = new DeclaredVariables.fromMap({'x': 'true'});
     } else {
-      analysisContext2.declaredVariables.define("x", "true");
+      (analysisContext2 as AnalysisContextImpl).declaredVariables =
+          new DeclaredVariables.fromMap({'x': 'true'});
     }
     Source source =
         addSource("var b = const bool.fromEnvironment('x', defaultValue: 1);");
@@ -3290,31 +3330,6 @@ E e(String name) {
     assertErrors(source, [CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE]);
   }
 
-  test_invalidAnnotation_getter() async {
-    Source source = addSource(r'''
-get V => 0;
-@V
-main() {
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_ANNOTATION]);
-    verify([source]);
-  }
-
-  test_invalidAnnotation_importWithPrefix_getter() async {
-    addNamedSource("/lib.dart", r'''
-library lib;
-get V => 0;''');
-    Source source = addSource(r'''
-import 'lib.dart' as p;
-@p.V
-main() {
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_ANNOTATION]);
-    verify([source]);
-  }
-
   test_invalidAnnotation_importWithPrefix_notConstantVariable() async {
     addNamedSource("/lib.dart", r'''
 library lib;
@@ -3378,44 +3393,6 @@ main() {
     verify([source]);
   }
 
-  test_invalidAnnotation_unresolved_identifier() async {
-    Source source = addSource(r'''
-@unresolved
-main() {
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_ANNOTATION]);
-  }
-
-  test_invalidAnnotation_unresolved_invocation() async {
-    Source source = addSource(r'''
-@Unresolved()
-main() {
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_ANNOTATION]);
-  }
-
-  test_invalidAnnotation_unresolved_prefixedIdentifier() async {
-    Source source = addSource(r'''
-import 'dart:math' as p;
-@p.unresolved
-main() {
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_ANNOTATION]);
-  }
-
-  test_invalidAnnotation_useLibraryScope() async {
-    Source source = addSource(r'''
-@foo
-class A {
-  static const foo = null;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_ANNOTATION]);
-  }
-
   test_invalidAnnotationFromDeferredLibrary() async {
     // See test_invalidAnnotation_notConstantVariable
     await resolveWithErrors(<String>[
@@ -3460,6 +3437,31 @@ import 'lib1.dart' deferred as a;
     ], <ErrorCode>[
       CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY
     ]);
+  }
+
+  test_invalidAnnotationGetter_getter() async {
+    Source source = addSource(r'''
+get V => 0;
+@V
+main() {
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_ANNOTATION_GETTER]);
+    verify([source]);
+  }
+
+  test_invalidAnnotationGetter_importWithPrefix_getter() async {
+    addNamedSource("/lib.dart", r'''
+library lib;
+get V => 0;''');
+    Source source = addSource(r'''
+import 'lib.dart' as p;
+@p.V
+main() {
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_ANNOTATION_GETTER]);
+    verify([source]);
   }
 
   test_invalidConstructorName_notEnclosingClassName_defined() async {
@@ -6735,6 +6737,44 @@ f() { return const G<B>(); }''');
     assertErrors(
         source, [CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
     verify([source]);
+  }
+
+  test_undefinedAnnotation_unresolved_identifier() async {
+    Source source = addSource(r'''
+@unresolved
+main() {
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.UNDEFINED_ANNOTATION]);
+  }
+
+  test_undefinedAnnotation_unresolved_invocation() async {
+    Source source = addSource(r'''
+@Unresolved()
+main() {
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.UNDEFINED_ANNOTATION]);
+  }
+
+  test_undefinedAnnotation_unresolved_prefixedIdentifier() async {
+    Source source = addSource(r'''
+import 'dart:math' as p;
+@p.unresolved
+main() {
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.UNDEFINED_ANNOTATION]);
+  }
+
+  test_undefinedAnnotation_useLibraryScope() async {
+    Source source = addSource(r'''
+@foo
+class A {
+  static const foo = null;
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.UNDEFINED_ANNOTATION]);
   }
 
   test_undefinedClass_const() async {

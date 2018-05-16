@@ -3,25 +3,21 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartdevc ]
+html/element_types_keygen_test: CompileTimeError # Chrome 57 keygen removed
 html/xhr_test: Pass, Slow
 
 [ $compiler == dartdevk ]
 async/slow_consumer_test: CompileTimeError
-collection/list_test: RuntimeError
-convert/chunked_conversion1_test: RuntimeError
 convert/chunked_conversion_utf82_test: RuntimeError
 convert/chunked_conversion_utf86_test: RuntimeError
 convert/chunked_conversion_utf87_test: RuntimeError
-convert/codec1_test: RuntimeError
 convert/utf82_test: RuntimeError
 html/debugger_test: CompileTimeError
-js/prototype_access_test: RuntimeError
 
 [ $runtime == chrome && ($compiler == dartdevc || $compiler == dartdevk) ]
 html/element_animate_test/timing_dict: RuntimeError # Issue 29922
-html/element_types_keygen_test: RuntimeError # Issue 29055
+html/element_types_keygen_test: CompileTimeError # Issue 29055
 html/js_dispatch_property_test: Skip # Timeout Issue 31030
-html/touchevent_test: RuntimeError # Issue 29922
 
 [ $runtime == drt && ($compiler == dartdevc || $compiler == dartdevk) ]
 html/svg_test: RuntimeError # Issue 29922
@@ -61,7 +57,6 @@ convert/streamed_conversion_utf8_encode_test: Pass, Timeout # Issue 29922
 convert/utf85_test: Slow, Pass
 html/async_spawnuri_test: RuntimeError # Issue 29922
 html/async_test: RuntimeError # Issue 29922
-html/client_rect_test: RuntimeError # Issue 29922, seems to be a reified type problem with DOMClientRect
 html/custom/attribute_changed_callback_test: Skip # Issue 31577
 html/custom/constructor_calls_created_synchronously_test: Skip # Issue 31577
 html/custom/created_callback_test: RuntimeError
@@ -90,7 +85,6 @@ html/deferred_multi_app_htmltest: Skip # Issue 29919
 html/element_classes_svg_test: RuntimeError # Issue 29922
 html/element_classes_test: RuntimeError # Issue 29922
 html/fontface_loaded_test: RuntimeError
-html/gamepad_test: RuntimeError # Issue 31029
 html/interactive_media_test: Skip # requests interactive permissions (camera, geolocation)
 html/isolates_test: RuntimeError # Issue 29922
 html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue 29922
@@ -103,12 +97,10 @@ html/mediasource_test: RuntimeError # Issue 29922
 html/no_linked_scripts_htmltest: Skip # Issue 29919
 html/notification_permission_test: Timeout # Issue 32002
 html/scripts_htmltest: Skip # Issue 29919
-html/transferables_test: CompileTimeError # Issue 30975
 html/transition_event_test: Pass, RuntimeError, Timeout # Issue 29922, this test seems flaky
 html/two_scripts_htmltest: Skip # Issue 29919
 html/webgl_extensions_test: RuntimeError # Issue 31017
 html/worker_api_test: RuntimeError # Issue 29922
-html/xhr_cross_origin_test/functional: RuntimeError # Issue 29922
 isolate/*: SkipByDesign # No support for dart:isolate in dart4web (http://dartbug.com/30538)
 js/null_test: RuntimeError # Issue 30652
 math/double_pow_test: RuntimeError # Issue 29922

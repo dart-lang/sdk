@@ -5,16 +5,19 @@
 /*class: A1:implicit=[A1]*/
 class A1 {}
 
+/*strong.class: A2:implicit=[A2]*/
 class A2 {}
 
 /*class: B1:implicit=[B1]*/
 class B1 {}
 
+/*strong.class: B2:implicit=[B2]*/
 class B2 {}
 
 /*class: C1:implicit=[C1]*/
 class C1 {}
 
+/*strong.class: C2:implicit=[C2]*/
 class C2 {}
 
 /*class: C3:implicit=[C3]*/
@@ -23,16 +26,19 @@ class C3 {}
 /*class: D1:implicit=[D1]*/
 class D1 {}
 
+/*strong.class: D2:implicit=[D2]*/
 class D2 {}
 
 /*class: E1:implicit=[E1]*/
 class E1 {}
 
+/*strong.class: E2:implicit=[E2]*/
 class E2 {}
 
 /*class: F1:implicit=[F1]*/
 class F1 {}
 
+/*strong.class: F2:implicit=[F2]*/
 class F2 {}
 
 /*class: F3:implicit=[F3]*/
@@ -42,6 +48,7 @@ class F3 {}
 // Calls to this imply a check of the passed type arguments.
 bool topLevelMethod1<T>(T t, {a1}) => t is T;
 
+/*strong.element: topLevelMethod2:direct,explicit=[topLevelMethod2.T],needsArgs,selectors=[Selector(call, call, arity=2, named=[a2], types=1)]*/
 // Calls to this does _not_ imply a check of the passed type arguments.
 T topLevelMethod2<T>(T t, {a2}) => t;
 
@@ -50,6 +57,7 @@ class Class {
   // Calls to this imply a check of the passed type arguments.
   bool instanceMethod1<S>(S s, {b1}) => s is S;
 
+  /*strong.element: Class.instanceMethod2:direct,explicit=[instanceMethod2.S],needsArgs,selectors=[Selector(call, call, arity=2, named=[b2], types=1),Selector(call, instanceMethod2, arity=2, named=[b2], types=1)]*/
   // Calls to this does _not_ imply a check of the passed type arguments.
   S instanceMethod2<S>(S s, {b2}) => s;
 }
@@ -60,11 +68,13 @@ main() {
   bool localFunction1<U>(U u, {c1}) => u is U;
 
   // Calls to this does _not_ imply a check of the passed type arguments.
+  /*strong.direct,explicit=[localFunction2.U],needsArgs,selectors=[Selector(call, call, arity=2, named=[c2], types=1)]*/
   U localFunction2<U>(U u, {c2}) => u;
 
   // Calls to this does _not_ imply a check of the passed type arguments. A
   // call to the .call function on this will, though, since it has the same
   // signature as [localFunction1] which needs its type arguments.
+  /*strong.direct,explicit=[localFunction3.U],needsArgs,selectors=[Selector(call, call, arity=2, named=[c1], types=1)]*/
   localFunction3<U>(U u, {c1}) => u;
 
   var c = new Class();

@@ -154,20 +154,6 @@ abstract class Iterable<E> {
   Iterator<E> get iterator;
 
   /**
-   * Makes this iterable useful as an `Iterable<R>`, if necessary.
-   *
-   * Like [retype] except that this iterable is returned as-is
-   * if it is already an `Iterable<R>`.
-   *
-   * It means that `someIterable.cast<Object>().toList()` is not guaranteed
-   * to return precisley a `List<Object>`, but it may return a subtype.
-   */
-  Iterable<R> cast<R>() {
-    Iterable<Object> self = this;
-    return self is Iterable<R> ? self : Iterable.castFrom<E, R>(this);
-  }
-
-  /**
    * Provides a view of this iterable as an iterable of [R] instances.
    *
    * If this iterable only contains instances of [R], all operations
@@ -177,7 +163,10 @@ abstract class Iterable<E> {
    * When the returned iterable creates a new object that depends on
    * the type [R], e.g., from [toList], it will have exactly the type [R].
    */
-  Iterable<R> retype<R>() => Iterable.castFrom<E, R>(this);
+  Iterable<R> cast<R>() => Iterable.castFrom<E, R>(this);
+
+  @Deprecated("Use cast instead.")
+  Iterable<R> retype<R>() => cast<R>();
 
   /**
    * Returns the lazy concatentation of this iterable and [other].

@@ -26,4 +26,7 @@ main() {
   dynamic d2 = c2;
   // Implicitly invokes d2.call(1)
   Expect.equals(d2(1), 2); //# 04: ok
+  // Cannot invoke with the wrong signature.
+  c2(); //# 05: compile-time error
+  c2(3, 4); //# 05: compile-time error
 }

@@ -175,6 +175,13 @@ class AbstractClassInstantiationError {
 
 @patch
 class NoSuchMethodError {
+  // Deprecated members to be removed.
+  final Object _receiver;
+  final Symbol _memberName;
+  final List _arguments;
+  final Map<Symbol, dynamic> _namedArguments;
+  final List _existingArgumentNames;
+
   // TODO(regis): Move _receiver declaration here:
   // final Object _receiver;
   final _InvocationMirror _invocation;
@@ -183,6 +190,10 @@ class NoSuchMethodError {
   NoSuchMethodError.withInvocation(Object receiver, Invocation invocation)
       : _receiver = receiver,
         _invocation = invocation as _InvocationMirror;
+
+  static void _throwNewInvocation(Object receiver, Invocation invocation) {
+    throw new NoSuchMethodError.withInvocation(receiver, invocation);
+  }
 
   // The compiler emits a call to _throwNew when it cannot resolve a static
   // method at compile time. The receiver is actually the literal class of the
@@ -252,7 +263,8 @@ class NoSuchMethodError {
             new Symbol(memberName),
             invocation_type,
             typeArguments != null
-                ? _InvocationMirror._unpackTypeArguments(typeArguments)
+                // TODO(33073): Use actual count of type arguments in place of 0.
+                ? _InvocationMirror._unpackTypeArguments(typeArguments, 0)
                 : null,
             argumentNames != null
                 ? arguments.sublist(0, arguments.length - argumentNames.length)

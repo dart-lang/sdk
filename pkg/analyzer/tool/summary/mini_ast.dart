@@ -379,7 +379,8 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void endTopLevelFields(int count, Token beginToken, Token endToken) {
+  void endTopLevelFields(Token staticToken, Token covariantToken,
+      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
     // We ignore top level variable declarations; they are present just to make
     // the IDL analyze without warnings.
     debugEvent("TopLevelFields");
@@ -454,16 +455,6 @@ class MiniAstBuilder extends StackListener {
   void handleLiteralNull(Token token) {
     debugEvent("LiteralNull");
     push(new UnknownExpression());
-  }
-
-  @override
-  void handleModifier(Token token) {
-    debugEvent("Modifier");
-  }
-
-  @override
-  void handleModifiers(int count) {
-    debugEvent("Modifiers");
   }
 
   @override

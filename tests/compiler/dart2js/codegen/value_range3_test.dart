@@ -5,7 +5,6 @@
 // Test that global analysis in dart2js propagates positive integers.
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:expect/expect.dart';
 import '../memory_compiler.dart';
 
@@ -24,10 +23,8 @@ main() {
 };
 
 main() {
-  runTest({bool useKernel}) async {
-    var result = await runCompiler(
-        memorySourceFiles: MEMORY_SOURCE_FILES,
-        options: useKernel ? [] : [Flags.useOldFrontend]);
+  runTest() async {
+    var result = await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
     var compiler = result.compiler;
     var element =
         compiler.backendClosedWorldForTesting.elementEnvironment.mainFunction;
@@ -36,9 +33,7 @@ main() {
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTest(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTest(useKernel: true);
+    await runTest();
   });
 }

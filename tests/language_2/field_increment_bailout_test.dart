@@ -4,7 +4,6 @@
 
 // dart2js regression test for issue 8781.
 
-import "dart:mirrors" show reflect;
 import "package:expect/expect.dart";
 
 class N {
@@ -37,17 +36,17 @@ class A {
   }
 }
 
-class L {
-  final list;
-  L(this.list);
-  // Use noSuchMethod to defeat type inferencing.
-  noSuchMethod(mirror) => reflect(list).delegate(mirror);
-}
-
 main() {
-  var o = new A(new N(new L([1]), new L([2])));
+  var o = new A(new N(confuse([1]), confuse([2])));
 
   for (var i = 1; i <= 2; i++) Expect.equals(i, o.next());
 
   Expect.equals(null, o.list);
+}
+
+// Use confuse to defeat type inferencing.
+@NoInline()
+@AssumeDynamic()
+confuse(x) {
+  return x;
 }

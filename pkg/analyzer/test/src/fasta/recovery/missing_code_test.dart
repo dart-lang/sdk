@@ -294,6 +294,19 @@ f(x) {
   }
 
   @failingTest
+  void test_missingGet() {
+    testRecovery('''
+class Bar {
+  int foo => 0;
+}
+''', [ParserErrorCode.MISSING_GET], '''
+class Bar {
+  int get foo => 0;
+}
+''');
+  }
+
+  @failingTest
   void test_parameterList_leftParen() {
     // https://github.com/dart-lang/sdk/issues/22938
     testRecovery('''
@@ -425,7 +438,6 @@ f({a, _s_}) {}
 ''');
   }
 
-  @failingTest
   void test_extraComma_named_noLast() {
     testRecovery('''
 f({a, , b}) {}
@@ -443,7 +455,6 @@ f([a, _s_]) {}
 ''');
   }
 
-  @failingTest
   void test_extraComma_positional_noLast() {
     testRecovery('''
 f([a, , b]) {}
@@ -461,7 +472,6 @@ f(a, _s_) {}
 ''');
   }
 
-  @failingTest
   void test_extraComma_required_noLast() {
     testRecovery('''
 f(a, , b) {}

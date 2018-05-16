@@ -12,7 +12,7 @@ import '../core_types.dart';
 import '../transformations/mixin_full_resolution.dart' as transformMixins
     show transformLibraries;
 import '../transformations/continuation.dart' as transformAsync
-    show transformLibraries;
+    show transformLibraries, transformProcedure;
 
 import 'targets.dart';
 
@@ -24,6 +24,9 @@ class VmTarget extends Target {
 
   @override
   bool get strongMode => flags.strongMode;
+
+  @override
+  bool get enableNoSuchMethodForwarders => true;
 
   @override
   String get name => 'vm';
@@ -68,8 +71,16 @@ class VmTarget extends Target {
   }
 
   @override
-  void performGlobalTransformations(CoreTypes coreTypes, Program program,
+  void performGlobalTransformations(CoreTypes coreTypes, Component component,
       {void logger(String msg)}) {}
+
+  @override
+  void performTransformationsOnProcedure(
+      CoreTypes coreTypes, ClassHierarchy hierarchy, Procedure procedure,
+      {void logger(String msg)}) {
+    transformAsync.transformProcedure(coreTypes, procedure, flags.syncAsync);
+    logger?.call("Transformed async functions");
+  }
 
   @override
   Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,
@@ -87,11 +98,12 @@ class VmTarget extends Target {
         new Arguments(<Expression>[
           new StringLiteral(name)..fileOffset = offset,
           _fixedLengthList(
+              coreTypes,
               coreTypes.typeClass.rawType,
               arguments.types.map((t) => new TypeLiteral(t)).toList(),
               arguments.fileOffset),
-          _fixedLengthList(
-              const DynamicType(), arguments.positional, arguments.fileOffset),
+          _fixedLengthList(coreTypes, const DynamicType(), arguments.positional,
+              arguments.fileOffset),
           new StaticInvocation(
               coreTypes.mapUnmodifiable,
               new Arguments([
@@ -104,6 +116,9 @@ class VmTarget extends Target {
                 })), keyType: coreTypes.symbolClass.rawType)
                   ..isConst = (arguments.named.length == 0)
                   ..fileOffset = arguments.fileOffset
+              ], types: [
+                coreTypes.symbolClass.rawType,
+                new DynamicType()
               ]))
             ..fileOffset = arguments.fileOffset,
           new BoolLiteral(isSuper)..fileOffset = arguments.fileOffset
@@ -145,11 +160,12 @@ class VmTarget extends Target {
                 new SymbolLiteral(name)..fileOffset = offset,
                 new IntLiteral(type)..fileOffset = offset,
                 _fixedLengthList(
+                    coreTypes,
                     coreTypes.typeClass.rawType,
                     arguments.types.map((t) => new TypeLiteral(t)).toList(),
                     arguments.fileOffset),
-                _fixedLengthList(const DynamicType(), arguments.positional,
-                    arguments.fileOffset),
+                _fixedLengthList(coreTypes, const DynamicType(),
+                    arguments.positional, arguments.fileOffset),
                 new StaticInvocation(
                     coreTypes.mapUnmodifiable,
                     new Arguments([
@@ -241,8 +257,8 @@ class VmTarget extends Target {
     return type;
   }
 
-  Expression _fixedLengthList(
-      DartType typeArgument, List<Expression> elements, int offset) {
+  Expression _fixedLengthList(CoreTypes coreTypes, DartType typeArgument,
+      List<Expression> elements, int offset) {
     // TODO(ahe): It's possible that it would be better to create a fixed-length
     // list first, and then populate it. That would create fewer objects. But as
     // this is currently only used in (statically resolved) no-such-method
@@ -253,12 +269,13 @@ class VmTarget extends Target {
       return new ListLiteral([], typeArgument: typeArgument)..isConst = true;
     }
 
-    return new MethodInvocation(
-        new ListLiteral(elements, typeArgument: typeArgument)
-          ..fileOffset = offset,
-        new Name("toList"),
-        new Arguments(<Expression>[], named: <NamedExpression>[
-          new NamedExpression("growable", new BoolLiteral(false))
+    return new StaticInvocation(
+        coreTypes.listUnmodifiableConstructor,
+        new Arguments([
+          new ListLiteral(elements, typeArgument: typeArgument)
+            ..fileOffset = offset
+        ], types: [
+          new DynamicType()
         ]));
   }
 

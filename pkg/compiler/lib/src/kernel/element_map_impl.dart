@@ -5,6 +5,9 @@
 library dart2js.kernel.element_map;
 
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/class_hierarchy.dart' as ir;
+import 'package:kernel/core_types.dart' as ir;
+import 'package:kernel/type_environment.dart' as ir;
 
 import '../closure.dart' show BoxLocal, ThisLocal;
 import '../common.dart';
@@ -17,7 +20,6 @@ import '../constants/constructors.dart';
 import '../constants/evaluation.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
 import '../elements/names.dart';
@@ -202,6 +204,10 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
     });
   }
 
+  void ensureClassMembers(ir.Class node) {
+    _classes.getEnv(_getClass(node)).ensureMembers(this);
+  }
+
   MemberEntity lookupClassMember(IndexedClass cls, String name,
       {bool setter: false}) {
     assert(checkFamily(cls));
@@ -342,17 +348,24 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   MemberEntity getSuperMember(
       MemberEntity context, ir.Name name, ir.Member target,
       {bool setter: false}) {
-    if (target != null) {
+    if (target != null && !target.isAbstract && target.isInstanceMember) {
       return getMember(target);
     }
     ClassEntity cls = context.enclosingClass;
+    assert(
+        cls != null,
+        failedAt(context,
+            "No enclosing class for super member access in $context."));
     IndexedClass superclass = _getSuperType(cls)?.element;
     while (superclass != null) {
       ClassEnv env = _classes.getEnv(superclass);
       MemberEntity superMember =
           env.lookupMember(this, name.name, setter: setter);
-      if (superMember != null && !superMember.isAbstract) {
-        return superMember;
+      if (superMember != null) {
+        if (!superMember.isInstanceMember) return null;
+        if (!superMember.isAbstract) {
+          return superMember;
+        }
       }
       superclass = _getSuperType(superclass)?.element;
     }
@@ -732,6 +745,13 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
     env.forEachMember(this, (MemberEntity member) {
       f(member);
     });
+  }
+
+  void _forEachInjectedClassMember(
+      IndexedClass cls, void f(MemberEntity member)) {
+    assert(checkFamily(cls));
+    throw new UnsupportedError(
+        'KernelToElementMapBase._forEachInjectedClassMember');
   }
 
   void _forEachClassMember(
@@ -1187,10 +1207,36 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
         KElementCreatorMixin {
   native.BehaviorBuilder _nativeBehaviorBuilder;
   FrontendStrategy _frontendStrategy;
+  ir.TypeEnvironment _typeEnvironment;
+  bool _isStaticTypePrepared = false;
 
   KernelToElementMapForImpactImpl(DiagnosticReporter reporter,
       Environment environment, this._frontendStrategy, CompilerOptions options)
       : super(options, reporter, environment);
+
+  DartType getStaticType(ir.Expression node) {
+    if (!_isStaticTypePrepared) {
+      _isStaticTypePrepared = true;
+      try {
+        _typeEnvironment ??= new ir.TypeEnvironment(
+            new ir.CoreTypes(_env.mainComponent),
+            new ir.ClassHierarchy(_env.mainComponent),
+            strongMode: options.strongMode);
+      } catch (e) {}
+    }
+    if (_typeEnvironment == null) {
+      // The class hierarchy crashes on multiple inheritance. Use `dynamic`
+      // as static type.
+      return commonElements.dynamicType;
+    }
+    ir.TreeNode enclosingClass = node;
+    while (enclosingClass != null && enclosingClass is! ir.Class) {
+      enclosingClass = enclosingClass.parent;
+    }
+    _typeEnvironment.thisType =
+        enclosingClass is ir.Class ? enclosingClass.thisType : null;
+    return getDartType(node.getStaticType(_typeEnvironment));
+  }
 
   @override
   bool checkFamily(Entity entity) {
@@ -1216,12 +1262,12 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
   @override
   NativeBasicData get nativeBasicData => _frontendStrategy.nativeBasicData;
 
-  /// Adds libraries in [program] to the set of libraries.
+  /// Adds libraries in [component] to the set of libraries.
   ///
-  /// The main method of the first program is used as the main method for the
+  /// The main method of the first component is used as the main method for the
   /// compilation.
-  void addProgram(ir.Program program) {
-    _env.addProgram(program);
+  void addComponent(ir.Component component) {
+    _env.addComponent(component);
   }
 
   @override
@@ -1329,6 +1375,27 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
   ClassDefinition getClassDefinition(ClassEntity cls) {
     return _getClassDefinition(cls);
   }
+
+  /// Returns the element type of a async/sync*/async* function.
+  @override
+  DartType getFunctionAsyncOrSyncStarElementType(ir.FunctionNode functionNode) {
+    DartType returnType = getDartType(functionNode.returnType);
+    switch (functionNode.asyncMarker) {
+      case ir.AsyncMarker.SyncStar:
+        return elementEnvironment.getAsyncOrSyncStarElementType(
+            AsyncMarker.SYNC_STAR, returnType);
+      case ir.AsyncMarker.Async:
+        return elementEnvironment.getAsyncOrSyncStarElementType(
+            AsyncMarker.ASYNC, returnType);
+      case ir.AsyncMarker.AsyncStar:
+        return elementEnvironment.getAsyncOrSyncStarElementType(
+            AsyncMarker.ASYNC_STAR, returnType);
+      default:
+        failedAt(CURRENT_ELEMENT_SPANNABLE,
+            "Unexpected ir.AsyncMarker: ${functionNode.asyncMarker}");
+    }
+    return null;
+  }
 }
 
 class KernelElementEnvironment extends ElementEnvironment {
@@ -1409,6 +1476,46 @@ class KernelElementEnvironment extends ElementEnvironment {
   }
 
   @override
+  DartType getFunctionAsyncOrSyncStarElementType(FunctionEntity function) {
+    // TODO(sra): Should be getting the DartType from the node.
+    DartType returnType = getFunctionType(function).returnType;
+    return getAsyncOrSyncStarElementType(function.asyncMarker, returnType);
+  }
+
+  @override
+  DartType getAsyncOrSyncStarElementType(
+      AsyncMarker asyncMarker, DartType returnType) {
+    switch (asyncMarker) {
+      case AsyncMarker.SYNC:
+        return returnType;
+      case AsyncMarker.SYNC_STAR:
+        if (returnType is InterfaceType) {
+          if (returnType.element == elementMap.commonElements.iterableClass) {
+            return returnType.typeArguments.first;
+          }
+        }
+        return dynamicType;
+      case AsyncMarker.ASYNC:
+        if (returnType is FutureOrType) return returnType.typeArgument;
+        if (returnType is InterfaceType) {
+          if (returnType.element == elementMap.commonElements.futureClass) {
+            return returnType.typeArguments.first;
+          }
+        }
+        return dynamicType;
+      case AsyncMarker.ASYNC_STAR:
+        if (returnType is InterfaceType) {
+          if (returnType.element == elementMap.commonElements.streamClass) {
+            return returnType.typeArguments.first;
+          }
+        }
+        return dynamicType;
+    }
+    assert(false, 'Unexpected marker ${asyncMarker}');
+    return null;
+  }
+
+  @override
   DartType getFieldType(FieldEntity field) {
     return elementMap._getFieldType(field);
   }
@@ -1478,6 +1585,12 @@ class KernelElementEnvironment extends ElementEnvironment {
   @override
   void forEachLocalClassMember(ClassEntity cls, void f(MemberEntity member)) {
     elementMap._forEachLocalClassMember(cls, f);
+  }
+
+  @override
+  void forEachInjectedClassMember(
+      ClassEntity cls, void f(MemberEntity member)) {
+    elementMap._forEachInjectedClassMember(cls, f);
   }
 
   @override
@@ -1706,10 +1819,12 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
   @override
   DartType visitInterfaceType(ir.InterfaceType node) {
     ClassEntity cls = elementMap.getClass(node.classNode);
-    // TODO(johnniwinther): We currently encode 'FutureOr' as a dynamic type.
-    // Update the subtyping implementations to handle 'FutureOr' correctly.
     if (cls.name == 'FutureOr' &&
         cls.library == elementMap.commonElements.asyncLibrary) {
+      if (elementMap.options.strongMode) {
+        return new FutureOrType(visitTypes(node.typeArguments).single);
+      }
+      // In Dart 1 we encode 'FutureOr' as a dynamic type.
       return const DynamicType();
     }
     return new InterfaceType(cls, visitTypes(node.typeArguments));
@@ -1730,6 +1845,11 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
     // Root uses such a `o is Unresolved` and `o as Unresolved` must be special
     // cased in the builder, nested invalid types are treated as `dynamic`.
     return const DynamicType();
+  }
+
+  @override
+  DartType visitBottomType(ir.BottomType node) {
+    return elementMap.commonElements.nullType;
   }
 }
 
@@ -1763,18 +1883,6 @@ class KernelConstantEnvironment implements ConstantEnvironment {
   @override
   ConstantSystem get constantSystem => const JavaScriptConstantSystem();
 
-  @override
-  ConstantValue getConstantValueForVariable(VariableElement element) {
-    throw new UnimplementedError(
-        "KernelConstantEnvironment.getConstantValueForVariable");
-  }
-
-  @override
-  ConstantValue getConstantValue(ConstantExpression expression) {
-    return _getConstantValue(CURRENT_ELEMENT_SPANNABLE, expression,
-        constantRequired: true);
-  }
-
   ConstantValue _getConstantValue(
       Spannable spannable, ConstantExpression expression,
       {bool constantRequired}) {
@@ -1784,11 +1892,6 @@ class KernelConstantEnvironment implements ConstantEnvironment {
               constantRequired: constantRequired),
           constantSystem);
     });
-  }
-
-  @override
-  bool hasConstantValue(ConstantExpression expression) {
-    throw new UnimplementedError("KernelConstantEnvironment.hasConstantValue");
   }
 }
 
@@ -1807,7 +1910,10 @@ class KernelEvaluationEnvironment extends EvaluationEnvironmentBase {
   CommonElements get commonElements => _elementMap.commonElements;
 
   @override
-  InterfaceType substByContext(InterfaceType base, InterfaceType target) {
+  DartTypes get types => _elementMap.types;
+
+  @override
+  DartType substByContext(DartType base, InterfaceType target) {
     return _elementMap._substByContext(base, target);
   }
 
@@ -2003,9 +2109,7 @@ class KernelClosedWorld extends ClosedWorldBase
             typesImplementedBySubclasses,
             classHierarchyNodes,
             classSets) {
-    computeRtiNeed(resolutionWorldBuilder, rtiNeedBuilder,
-        enableTypeAssertions: options.enableTypeAssertions,
-        strongMode: options.strongMode);
+    computeRtiNeed(resolutionWorldBuilder, rtiNeedBuilder, options);
   }
 
   @override
@@ -2149,8 +2253,17 @@ class JsKernelToElementMap extends KernelToElementMapBase
 
   NativeBasicData nativeBasicData;
 
-  JsKernelToElementMap(DiagnosticReporter reporter, Environment environment,
-      KernelToElementMapForImpactImpl _elementMap)
+  Map<FunctionEntity, JGeneratorBody> _generatorBodies =
+      <FunctionEntity, JGeneratorBody>{};
+
+  Map<ClassEntity, List<MemberEntity>> _injectedClassMembers =
+      <ClassEntity, List<MemberEntity>>{};
+
+  JsKernelToElementMap(
+      DiagnosticReporter reporter,
+      Environment environment,
+      KernelToElementMapForImpactImpl _elementMap,
+      Iterable<MemberEntity> liveMembers)
       : super(_elementMap.options, reporter, environment) {
     _env = _elementMap._env;
     for (int libraryIndex = 0;
@@ -2163,7 +2276,11 @@ class JsKernelToElementMap extends KernelToElementMapBase
       IndexedLibrary newLibrary = convertLibrary(oldLibrary);
       _libraryMap[env.library] =
           _libraries.register<IndexedLibrary, LibraryData, LibraryEnv>(
-              newLibrary, data.copy(), env);
+              newLibrary,
+              data.copy(),
+              options.strongMode && useStrongModeWorldStrategy
+                  ? env.copyLive(_elementMap, liveMembers)
+                  : env);
       assert(newLibrary.libraryIndex == oldLibrary.libraryIndex);
     }
     for (int classIndex = 0;
@@ -2175,7 +2292,12 @@ class JsKernelToElementMap extends KernelToElementMapBase
       IndexedLibrary oldLibrary = oldClass.library;
       LibraryEntity newLibrary = _libraries.getEntity(oldLibrary.libraryIndex);
       IndexedClass newClass = convertClass(newLibrary, oldClass);
-      _classMap[env.cls] = _classes.register(newClass, data.copy(), env);
+      _classMap[env.cls] = _classes.register(
+          newClass,
+          data.copy(),
+          options.strongMode && useStrongModeWorldStrategy
+              ? env.copyLive(_elementMap, liveMembers)
+              : env);
       assert(newClass.classIndex == oldClass.classIndex);
     }
     for (int typedefIndex = 0;
@@ -2201,6 +2323,12 @@ class JsKernelToElementMap extends KernelToElementMapBase
         memberIndex < _elementMap._members.length;
         memberIndex++) {
       IndexedMember oldMember = _elementMap._members.getEntity(memberIndex);
+      if (options.strongMode &&
+          useStrongModeWorldStrategy &&
+          !liveMembers.contains(oldMember)) {
+        _members.skipIndex(oldMember.memberIndex);
+        continue;
+      }
       MemberDataImpl data = _elementMap._members.getData(oldMember);
       IndexedLibrary oldLibrary = oldMember.library;
       IndexedClass oldClass = oldMember.enclosingClass;
@@ -2386,6 +2514,11 @@ class JsKernelToElementMap extends KernelToElementMapBase
       IndexedClass cls, void f(ConstructorBodyEntity member)) {
     ClassEnv env = _classes.getEnv(cls);
     env.forEachConstructorBody(f);
+  }
+
+  void _forEachInjectedClassMember(
+      IndexedClass cls, void f(MemberEntity member)) {
+    _injectedClassMembers[cls]?.forEach(f);
   }
 
   JRecordField _constructRecordFieldEntry(
@@ -2687,7 +2820,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
         closureClassInfo.closureClassEntity,
         // SignatureMethod takes no arguments.
         const ParameterStructure(0, 0, const [], 0),
-        getAsyncMarker(closureSourceNode));
+        AsyncMarker.SYNC);
     _members.register<IndexedFunction, FunctionData>(
         signatureMethod,
         new SignatureFunctionData(
@@ -2747,7 +2880,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
       } else if (node is ir.FunctionDeclaration) {
         String name = node.variable.name;
         if (name != null && name != "") {
-          parts.add(Elements.operatorNameToIdentifier(name));
+          parts.add(utils.operatorNameToIdentifier(name));
         } else {
           parts.add(anonymous);
           anonymous = '';
@@ -2760,7 +2893,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
         if (node.kind == ir.ProcedureKind.Factory) {
           parts.add(utils.reconstructConstructorName(getMember(node)));
         } else {
-          parts.add(Elements.operatorNameToIdentifier(node.name.name));
+          parts.add(utils.operatorNameToIdentifier(node.name.name));
         }
       } else if (node is ir.Constructor) {
         parts.add(utils.reconstructConstructorName(getMember(node)));
@@ -2785,6 +2918,31 @@ class JsKernelToElementMap extends KernelToElementMapBase
   String _getClosureVariableName(String name, int id) {
     return "_captured_${name}_$id";
   }
+
+  JGeneratorBody getGeneratorBody(covariant IndexedFunction function) {
+    FunctionData functionData = _members.getData(function);
+    ir.TreeNode node = functionData.definition.node;
+    // TODO(sra): Maybe store this in the FunctionData.
+    JGeneratorBody generatorBody = _generatorBodies[function];
+    if (generatorBody == null) {
+      generatorBody = createGeneratorBody(function);
+      _members.register<IndexedFunction, FunctionData>(
+          generatorBody,
+          new GeneratorBodyFunctionData(
+              functionData,
+              new SpecialMemberDefinition(
+                  generatorBody, node, MemberKind.generatorBody)));
+
+      if (function.enclosingClass != null) {
+        // TODO(sra): Integrate this with ClassEnvImpl.addConstructorBody ?
+        (_injectedClassMembers[function.enclosingClass] ??= <MemberEntity>[])
+            .add(generatorBody);
+      }
+    }
+    return generatorBody;
+  }
+
+  JGeneratorBody createGeneratorBody(FunctionEntity function);
 }
 
 class KernelClassQueries extends ClassQueries {

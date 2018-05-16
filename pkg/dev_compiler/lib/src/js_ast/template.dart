@@ -154,14 +154,14 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   static Instantiator<T> same<T extends Node>(T node) => (arguments) => node;
   static Null makeNull(arguments) => null;
 
-  Instantiator visit(Node node) {
+  Instantiator visit<T extends Node>(T node) {
     if (forceCopy || analysis.containsInterpolatedNodes(node)) {
       return node.accept(this);
     }
-    return same(node);
+    return same<T>(node);
   }
 
-  Instantiator visitNullable(Node node) {
+  Instantiator visitNullable<T extends Node>(T node) {
     return node == null ? makeNull : visit(node);
   }
 
@@ -352,6 +352,9 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     return (a) => makeExpression(a).toStatement();
   }
 
+  Instantiator<DebuggerStatement> visitDebuggerStatement(node) =>
+      (a) => new DebuggerStatement();
+
   Instantiator<EmptyStatement> visitEmptyStatement(EmptyStatement node) =>
       (a) => new EmptyStatement();
 
@@ -495,7 +498,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
         node.keyword, declarationMakers.map((m) => m(a)).toList());
   }
 
-  Instantiator visitAssignment(Assignment node) {
+  Instantiator<Expression> visitAssignment(Assignment node) {
     Instantiator makeLeftHandSide = visit(node.leftHandSide);
     String op = node.op;
     Instantiator makeValue = visitNullable(node.value);

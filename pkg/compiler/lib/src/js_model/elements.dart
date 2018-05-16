@@ -18,31 +18,42 @@ import '../kernel/indexed.dart';
 ///
 /// Querying for the frontend element for a backend-only element throws an
 /// exception.
-class JsToFrontendMap {
-  LibraryEntity toBackendLibrary(LibraryEntity library) => library;
+abstract class JsToFrontendMap {
+  LibraryEntity toBackendLibrary(LibraryEntity library);
 
-  ClassEntity toBackendClass(ClassEntity cls) => cls;
+  ClassEntity toBackendClass(ClassEntity cls);
 
-  MemberEntity toBackendMember(MemberEntity member) => member;
+  /// Returns the backend member corresponding to [member]. If a member isn't
+  /// live, it doesn't have a corresponding backend member and `null` is
+  /// returned instead.
+  MemberEntity toBackendMember(MemberEntity member);
 
-  DartType toBackendType(DartType type) => type;
+  DartType toBackendType(DartType type);
 
   Set<LibraryEntity> toBackendLibrarySet(Iterable<LibraryEntity> set) {
     return set.map(toBackendLibrary).toSet();
   }
 
   Set<ClassEntity> toBackendClassSet(Iterable<ClassEntity> set) {
+    // TODO(johnniwinther): Filter unused classes.
     return set.map(toBackendClass).toSet();
   }
 
   Set<MemberEntity> toBackendMemberSet(Iterable<MemberEntity> set) {
-    return set.map(toBackendMember).toSet();
+    return set.map(toBackendMember).where((MemberEntity member) {
+      // Members that are not live don't have a corresponding backend member.
+      return member != null;
+    }).toSet();
   }
 
   Set<FunctionEntity> toBackendFunctionSet(Iterable<FunctionEntity> set) {
     Set<FunctionEntity> newSet = new Set<FunctionEntity>();
     for (FunctionEntity element in set) {
-      newSet.add(toBackendMember(element));
+      FunctionEntity backendFunction = toBackendMember(element);
+      if (backendFunction != null) {
+        // Members that are not live don't have a corresponding backend member.
+        newSet.add(backendFunction);
+      }
     }
     return newSet;
   }
@@ -69,7 +80,12 @@ Map<K, V> convertMap<K, V>(
     Map<K, V> map, K convertKey(K key), V convertValue(V value)) {
   Map<K, V> newMap = <K, V>{};
   map.forEach((K key, V value) {
-    newMap[convertKey(key)] = convertValue(value);
+    K newKey = convertKey(key);
+    V newValue = convertValue(value);
+    if (newKey != null && newValue != null) {
+      // Entities that are not used don't have a corresponding backend entity.
+      newMap[newKey] = newValue;
+    }
   });
   return newMap;
 }
@@ -125,6 +141,10 @@ class JsElementCreatorMixin {
 
   JConstructorBody createConstructorBody(ConstructorEntity constructor) {
     return new JConstructorBody(constructor);
+  }
+
+  JGeneratorBody createGeneratorBody(FunctionEntity function) {
+    return new JGeneratorBody(function);
   }
 
   IndexedFunction createGetter(LibraryEntity library,
@@ -284,6 +304,11 @@ class TypeConverter implements DartTypeVisitor<DartType, EntityConverter> {
   @override
   DartType visitVoidType(VoidType type, EntityConverter converter) {
     return const VoidType();
+  }
+
+  @override
+  DartType visitFutureOrType(FutureOrType type, EntityConverter converter) {
+    return new FutureOrType(visit(type.typeArgument, converter));
   }
 }
 
@@ -475,6 +500,19 @@ class JMethod extends JFunction {
   bool get isFunction => true;
 
   String get _kind => 'method';
+}
+
+class JGeneratorBody extends JFunction {
+  final FunctionEntity function;
+  final int hashCode;
+
+  JGeneratorBody(this.function)
+      : hashCode = function.hashCode + 1, // Hack stabilize sort order.
+        super(function.library, function.enclosingClass, function.memberName,
+            function.parameterStructure, function.asyncMarker,
+            isStatic: function.isStatic, isExternal: false);
+
+  String get _kind => 'generator_body';
 }
 
 class JGetter extends JFunction {

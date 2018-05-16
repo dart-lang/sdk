@@ -35,7 +35,7 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
    * for keys in order to place them in the hash table. If it is omitted, the
    * key's own [Object.hashCode] is used.
    *
-   * If using methods like [[]], [remove] and [containsKey] together
+   * If using methods like [operator []], [remove] and [containsKey] together
    * with a custom equality and hashcode, an extra `isValidKey` function
    * can be supplied. This function is called before calling [equals] or
    * [hashCode] with an argument that may not be a [K] instance, and if the
@@ -121,7 +121,7 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
   factory LinkedHashMap.fromIterable(Iterable iterable,
       {K key(element), V value(element)}) {
     LinkedHashMap<K, V> map = new LinkedHashMap<K, V>();
-    Maps._fillMapWithMappedIterable(map, iterable, key, value);
+    MapBase._fillMapWithMappedIterable(map, iterable, key, value);
     return map;
   }
 
@@ -138,7 +138,7 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
    */
   factory LinkedHashMap.fromIterables(Iterable<K> keys, Iterable<V> values) {
     LinkedHashMap<K, V> map = new LinkedHashMap<K, V>();
-    Maps._fillMapWithIterables(map, keys, values);
+    MapBase._fillMapWithIterables(map, keys, values);
     return map;
   }
 }

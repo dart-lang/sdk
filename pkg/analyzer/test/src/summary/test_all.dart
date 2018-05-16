@@ -4,6 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'expr_builder_test.dart' as expr_builder_test;
 import 'in_summary_source_test.dart' as in_summary_source_test;
 import 'linker_test.dart' as linker_test;
 import 'name_filter_test.dart' as name_filter_test;
@@ -17,6 +18,7 @@ import 'top_level_inference_test.dart' as top_level_inference_test;
 
 main() {
   defineReflectiveSuite(() {
+    expr_builder_test.main();
     in_summary_source_test.main();
     linker_test.main();
     name_filter_test.main();

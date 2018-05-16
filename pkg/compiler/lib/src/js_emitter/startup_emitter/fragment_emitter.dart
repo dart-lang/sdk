@@ -483,8 +483,6 @@ class FragmentEmitter {
   FragmentEmitter(this.compiler, this.namer, this.backend, this.constantEmitter,
       this.modelEmitter, this._closedWorld);
 
-  InterceptorData get _interceptorData => _closedWorld.interceptorData;
-
   js.Expression generateEmbeddedGlobalAccess(String global) =>
       modelEmitter.generateEmbeddedGlobalAccess(global);
 
@@ -737,17 +735,10 @@ class FragmentEmitter {
 
     // If there are many references to `this`, cache it in a local.
     if (cls.fields.length + (cls.hasRtiField ? 1 : 0) >= 4) {
-      // TODO(29455): Fix js_ast printer and minifier to avoid conflicts between
-      // js.Name and string-named variables, then use '_' in the js template
-      // text.
-
-      // We pick '_' in minified mode because no field minifies to '_'. This
-      // avoids a conflict with one of the parameters which are named the same
-      // as the fields.  Unminified, a field might have the name '_', so we pick
-      // '$_', which is an impossible member name since we escape '$'s in names.
-      js.Name underscore = compiler.options.enableMinification
-          ? new StringBackedName('_')
-          : new StringBackedName(r'$_');
+      // Parameters are named t0, t1, etc, so '_' will not conflict. Forcing '_'
+      // in minified mode works because no parameter or local also minifies to
+      // '_' (the minifier doesn't know '_' is available).
+      js.Name underscore = new StringBackedName('_');
       statements.add(js.js.statement('var # = this;', underscore));
       thisRef = underscore;
     } else {
@@ -1110,8 +1101,7 @@ class FragmentEmitter {
 
     bool isIntercepted = false;
     if (method is InstanceMethod) {
-      FunctionEntity element = method.element;
-      isIntercepted = _interceptorData.isInterceptedMethod(element);
+      isIntercepted = method.isIntercepted;
     }
     int requiredParameterCount = 0;
     js.Expression optionalParameterDefaultValues = new js.LiteralNull();
@@ -1346,7 +1336,7 @@ class FragmentEmitter {
     CommonElements commonElements = _closedWorld.commonElements;
     // We want to keep the original names for the most common core classes when
     // calling toString on them.
-    List<ClassElement> nativeClassesNeedingUnmangledName = [
+    List<ClassEntity> nativeClassesNeedingUnmangledName = [
       commonElements.intClass,
       commonElements.doubleClass,
       commonElements.numClass,
@@ -1407,75 +1397,6 @@ class FragmentEmitter {
     if (program.typeToInterceptorMap != null) {
       globals.add(new js.Property(
           js.string(TYPE_TO_INTERCEPTOR_MAP), program.typeToInterceptorMap));
-    }
-
-    if (program.hasIsolateSupport) {
-      String staticStateName = namer.staticStateHolder;
-      // TODO(floitsch): this doesn't create a new isolate, but just reuses
-      // the current static state. Since we don't run multiple isolates in the
-      // same JavaScript context (except for testing) this shouldn't have any
-      // impact on real-world programs, though.
-      globals.add(new js.Property(js.string(CREATE_NEW_ISOLATE),
-          js.js('function () { return $staticStateName; }')));
-
-      js.Expression nameToClosureFunction = js.js('''
-        // First fetch the static function. From there we can execute its
-        // getter function which builds a Dart closure.
-        function(name) {
-           var staticFunction = getGlobalFromName(name);
-           var getterFunction = staticFunction.$tearOffPropertyName;
-           return getterFunction();
-         }''');
-      globals.add(new js.Property(
-          js.string(STATIC_FUNCTION_NAME_TO_CLOSURE), nameToClosureFunction));
-
-      globals.add(new js.Property(js.string(CLASS_ID_EXTRACTOR),
-          js.js('function(o) { return o.constructor.name; }')));
-
-      js.Expression extractFieldsFunction = js.js('''
-      function(o) {
-        var constructor = o.constructor;
-        var fieldNames = constructor.$cachedClassFieldNames;
-        if (!fieldNames) {
-          // Extract the fields from an empty unmodified object.
-          var empty = new constructor();
-          // This gives us the keys that the constructor sets.
-          fieldNames = constructor.$cachedClassFieldNames = Object.keys(empty);
-        }
-        var result = new Array(fieldNames.length);
-        for (var i = 0; i < fieldNames.length; i++) {
-          result[i] = o[fieldNames[i]];
-        }
-        return result;
-      }''');
-      globals.add(new js.Property(
-          js.string(CLASS_FIELDS_EXTRACTOR), extractFieldsFunction));
-
-      js.Expression createInstanceFromClassIdFunction = js.js('''
-        function(name) {
-          var constructor = getGlobalFromName(name);
-          return new constructor();
-        }
-      ''');
-      globals.add(new js.Property(js.string(INSTANCE_FROM_CLASS_ID),
-          createInstanceFromClassIdFunction));
-
-      js.Expression initializeEmptyInstanceFunction = js.js('''
-      function(name, o, fields) {
-        var constructor = o.constructor;
-        // By construction the object `o` is an empty object with the same
-        // keys as the one we used in the extract-fields function.
-        var fieldNames = Object.keys(o);
-        if (fieldNames.length != fields.length) {
-          throw new Error("Mismatch during deserialization.");
-        }
-        for (var i = 0; i < fields.length; i++) {
-          o[fieldNames[i]] = fields[i];
-        }
-        return o;
-      }''');
-      globals.add(new js.Property(js.string(INITIALIZE_EMPTY_INSTANCE),
-          initializeEmptyInstanceFunction));
     }
 
     globals.add(emitMangledGlobalNames());

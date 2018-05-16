@@ -8,7 +8,7 @@ import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart'
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/testing/mock_sdk_program.dart';
+import 'package:kernel/testing/mock_sdk_component.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -23,7 +23,7 @@ main() {
 class InterfaceResolverTest {
   final Library testLib;
 
-  final Program program;
+  final Component component;
 
   final CoreTypes coreTypes;
 
@@ -35,14 +35,14 @@ class InterfaceResolverTest {
 
   InterfaceResolverTest()
       : this._(new Library(Uri.parse('org-dartlang:///test.dart'), name: 'lib'),
-            createMockSdkProgram());
+            createMockSdkComponent());
 
-  InterfaceResolverTest._(this.testLib, Program program)
-      : program = program..libraries.add(testLib..parent = program),
-        coreTypes = new CoreTypes(program);
+  InterfaceResolverTest._(this.testLib, Component component)
+      : component = component..libraries.add(testLib..parent = component),
+        coreTypes = new CoreTypes(component);
 
   ClassHierarchy get classHierarchy {
-    return cachedClassHierarchy ??= new ClassHierarchy(program);
+    return cachedClassHierarchy ??= new ClassHierarchy(component);
   }
 
   TypeSchemaEnvironment get typeEnvironment {
@@ -84,7 +84,7 @@ class InterfaceResolverTest {
       expect(interfaceMember, same(member));
     }
 
-    check(new ClassHierarchy(program));
+    check(new ClassHierarchy(component));
   }
 
   Procedure getCandidate(Class class_, bool setter) {
@@ -609,12 +609,9 @@ class InterfaceResolverTest {
     var resolvedMethod = node.finalize();
     expect(resolvedMethod, same(method));
     expect(u.isGenericCovariantImpl, isTrue);
-    expect(u.isGenericCovariantInterface, isTrue);
     expect(x.isGenericCovariantImpl, isTrue);
-    expect(x.isGenericCovariantInterface, isTrue);
     expect(x.isCovariant, isFalse);
     expect(y.isGenericCovariantImpl, isTrue);
-    expect(y.isGenericCovariantInterface, isTrue);
     expect(y.isCovariant, isFalse);
   }
 
@@ -627,7 +624,6 @@ class InterfaceResolverTest {
     var resolvedAccessor = node.finalize() as SyntheticAccessor;
     expect(SyntheticAccessor.getField(resolvedAccessor), same(field));
     expect(field.isGenericCovariantImpl, isTrue);
-    expect(field.isGenericCovariantInterface, isTrue);
     expect(field.isCovariant, isFalse);
   }
 
@@ -641,14 +637,12 @@ class InterfaceResolverTest {
     var resolvedAccessor = node.finalize() as SyntheticAccessor;
     expect(SyntheticAccessor.getField(resolvedAccessor), same(fieldB));
     expect(fieldB.isGenericCovariantImpl, isFalse);
-    expect(fieldB.isGenericCovariantInterface, isFalse);
     expect(fieldB.isCovariant, isTrue);
   }
 
   void test_field_isGenericCovariantImpl_inherited() {
     var typeParameter = new TypeParameter('T', objectType);
     var fieldA = makeField(type: new TypeParameterType(typeParameter))
-      ..isGenericCovariantInterface = true
       ..isGenericCovariantImpl = true;
     var fieldB = makeField(type: numType);
     var a =
@@ -662,7 +656,6 @@ class InterfaceResolverTest {
     var resolvedAccessor = node.finalize() as SyntheticAccessor;
     expect(SyntheticAccessor.getField(resolvedAccessor), same(fieldB));
     expect(fieldB.isGenericCovariantImpl, isTrue);
-    expect(fieldB.isGenericCovariantInterface, isFalse);
     expect(fieldB.isCovariant, isFalse);
   }
 
@@ -734,11 +727,9 @@ class InterfaceResolverTest {
     var stub = node.finalize();
     var x = stub.function.positionalParameters[0];
     expect(x.isGenericCovariantImpl, isFalse);
-    expect(x.isGenericCovariantInterface, isFalse);
     expect(x.isCovariant, isTrue);
     var y = stub.function.namedParameters[0];
     expect(y.isGenericCovariantImpl, isFalse);
-    expect(y.isGenericCovariantInterface, isFalse);
     expect(y.isCovariant, isTrue);
     expect(stub.forwardingStubInterfaceTarget, same(methodA));
     expect(getStubTarget(stub), same(methodA));
@@ -756,17 +747,14 @@ class InterfaceResolverTest {
     var methodB = makeEmptyMethod(typeParameters: [
       new TypeParameter('U', new TypeParameterType(typeParameterB))
         ..isGenericCovariantImpl = true
-        ..isGenericCovariantInterface = true
     ], positionalParameters: [
       new ShadowVariableDeclaration('x', 0,
           type: new TypeParameterType(typeParameterB))
         ..isGenericCovariantImpl = true
-        ..isGenericCovariantInterface = true
     ], namedParameters: [
       new ShadowVariableDeclaration('y', 0,
           type: new TypeParameterType(typeParameterB))
         ..isGenericCovariantImpl = true
-        ..isGenericCovariantInterface = true
     ]);
     var a = makeClass(name: 'A', procedures: [methodA]);
     var b = makeClass(
@@ -779,14 +767,11 @@ class InterfaceResolverTest {
     var stub = node.finalize();
     var u = stub.function.typeParameters[0];
     expect(u.isGenericCovariantImpl, isTrue);
-    expect(u.isGenericCovariantInterface, isFalse);
     var x = stub.function.positionalParameters[0];
     expect(x.isGenericCovariantImpl, isTrue);
-    expect(x.isGenericCovariantInterface, isFalse);
     expect(x.isCovariant, isFalse);
     var y = stub.function.namedParameters[0];
     expect(y.isGenericCovariantImpl, isTrue);
-    expect(y.isGenericCovariantInterface, isFalse);
     expect(y.isCovariant, isFalse);
     expect(stub.forwardingStubInterfaceTarget, same(methodA));
     expect(getStubTarget(stub), same(methodA));
@@ -1008,7 +993,6 @@ class InterfaceResolverTest {
     var methodB = makeEmptyMethod(positionalParameters: [
       new ShadowVariableDeclaration('x', 0,
           type: new TypeParameterType(typeParamB))
-        ..isGenericCovariantInterface = true
         ..isGenericCovariantImpl = true
     ]);
     var methodC = makeEmptyMethod(positionalParameters: [

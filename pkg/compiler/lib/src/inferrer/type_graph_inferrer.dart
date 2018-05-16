@@ -6,15 +6,12 @@ library type_graph_inferrer;
 
 import 'dart:collection' show Queue;
 
-import '../compiler.dart' show Compiler;
 import '../elements/entities.dart';
-import '../tree/tree.dart' as ast show Node;
 import '../types/masks.dart'
     show CommonMasks, ContainerTypeMask, MapTypeMask, TypeMask;
 import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
 import '../world.dart' show ClosedWorld, ClosedWorldRefiner;
-import 'ast_inferrer_engine.dart';
 import 'inferrer_engine.dart';
 import 'type_graph_nodes.dart';
 
@@ -61,7 +58,7 @@ abstract class TypeGraphInferrer<T> implements TypesInferrer<T> {
 
   String get name => 'Graph inferrer';
 
-  CommonMasks get commonMasks => closedWorld.commonMasks;
+  CommonMasks get commonMasks => closedWorld.abstractValueDomain;
 
   TypeMask get _dynamicType => commonMasks.dynamicType;
 
@@ -131,11 +128,16 @@ abstract class TypeGraphInferrer<T> implements TypesInferrer<T> {
     }
 
     TypeMask result = const TypeMask.nonNullEmpty();
-    Iterable<MemberEntity> elements =
-        inferrer.closedWorld.locateMembers(selector, mask);
-    for (MemberEntity element in elements) {
-      TypeMask type = inferrer.typeOfMemberWithSelector(element, selector).type;
-      result = result.union(type, inferrer.closedWorld);
+    if (inferrer.closedWorld.includesClosureCall(selector, mask)) {
+      result = inferrer.commonMasks.dynamicType;
+    } else {
+      Iterable<MemberEntity> elements =
+          inferrer.closedWorld.locateMembers(selector, mask);
+      for (MemberEntity element in elements) {
+        TypeMask type =
+            inferrer.typeOfMemberWithSelector(element, selector).type;
+        result = result.union(type, inferrer.closedWorld);
+      }
     }
     return result;
   }
@@ -157,26 +159,5 @@ abstract class TypeGraphInferrer<T> implements TypesInferrer<T> {
 
   void clear() {
     inferrer.clear();
-  }
-}
-
-class AstTypeGraphInferrer extends TypeGraphInferrer<ast.Node> {
-  final Compiler _compiler;
-
-  AstTypeGraphInferrer(
-      this._compiler, ClosedWorld closedWorld, closedWorldRefiner,
-      {bool disableTypeInference: false})
-      : super(closedWorld, closedWorldRefiner,
-            disableTypeInference: disableTypeInference);
-
-  @override
-  InferrerEngine<ast.Node> createInferrerEngineFor(FunctionEntity main) {
-    return new AstInferrerEngine(
-        _compiler, closedWorld, closedWorldRefiner, main);
-  }
-
-  @override
-  GlobalTypeInferenceResults createResults() {
-    return new AstGlobalTypeInferenceResults(this, closedWorld);
   }
 }

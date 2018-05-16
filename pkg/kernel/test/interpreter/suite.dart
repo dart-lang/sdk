@@ -11,7 +11,7 @@ import 'dart:io' show File;
 import 'package:testing/testing.dart'
     show Chain, ChainContext, Result, Step, runMe;
 
-import 'package:kernel/ast.dart' show Program, Library;
+import 'package:kernel/ast.dart' show Component, Library;
 
 import 'package:kernel/target/targets.dart' show Target;
 
@@ -42,20 +42,20 @@ class InterpreterContext extends ChainContext implements CompileContext {
   }
 }
 
-class Interpret extends Step<Program, EvaluationLog, InterpreterContext> {
+class Interpret extends Step<Component, EvaluationLog, InterpreterContext> {
   const Interpret();
 
   String get name => "interpret";
 
-  Future<Result<EvaluationLog>> run(Program program, _) async {
-    Library library = program.libraries
+  Future<Result<EvaluationLog>> run(Component component, _) async {
+    Library library = component.libraries
         .firstWhere((Library library) => library.importUri.scheme != "dart");
     Uri uri = library.importUri;
 
     StringBuffer buffer = new StringBuffer();
     log.onRecord.listen((LogRecord rec) => buffer.write(rec.message));
     try {
-      new Interpreter(program).run();
+      new Interpreter(component).run();
     } catch (e, s) {
       return crash(e, s);
     }

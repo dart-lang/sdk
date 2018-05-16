@@ -23,19 +23,14 @@ main() {
  */
 @reflectiveTest
 class AnnotationTest extends AbstractRecoveryTest {
-  @failingTest
   void test_typeArgument() {
-    // https://github.com/dart-lang/sdk/issues/22314
-    // Parser crashes
-    // 'package:analyzer/src/fasta/ast_builder.dart': Failed assertion:
-    //     line 256 pos 12: 'token.isKeywordOrIdentifier': is not true.
     testRecovery('''
 const annotation = null;
 class A<E> {}
 class C {
   m() => new A<@annotation C>();
 }
-''', [ParserErrorCode.UNEXPECTED_TOKEN, ParserErrorCode.UNEXPECTED_TOKEN], '''
+''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
 const annotation = null;
 class A<E> {}
 class C {

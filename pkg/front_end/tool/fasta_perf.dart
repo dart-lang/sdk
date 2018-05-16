@@ -259,7 +259,7 @@ generateKernel(Uri entryUri,
     Uri.parse('dart:mirrors'),
     Uri.parse('dart:typed_data'),
   ];
-  var program = await kernelForBuildUnit(entrypoints, options);
+  var program = await kernelForComponent(entrypoints, options);
 
   timer.stop();
   var name = 'kernel_gen_e2e${compileSdk ? "" : "_sum"}';

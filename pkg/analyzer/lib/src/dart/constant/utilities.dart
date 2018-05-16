@@ -69,8 +69,12 @@ class ConstantAstCloner extends AstCloner {
       InstanceCreationExpression node) {
     InstanceCreationExpression expression =
         super.visitInstanceCreationExpression(node);
-    if (previewDart2 && node.keyword == null && node.isConst) {
-      expression.keyword = new KeywordToken(Keyword.CONST, node.offset);
+    if (previewDart2 && node.keyword == null) {
+      if (node.isConst) {
+        expression.keyword = new KeywordToken(Keyword.CONST, node.offset);
+      } else {
+        expression.keyword = new KeywordToken(Keyword.NEW, node.offset);
+      }
     }
     expression.staticElement = node.staticElement;
     return expression;

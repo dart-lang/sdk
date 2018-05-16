@@ -19,9 +19,9 @@ void usage() {
 
 main(List<String> args) {
   CommandLineHelper.requireExactlyOneArgument(true, args, usage);
-  Program program = CommandLineHelper.tryLoadDill(args[0], usage);
+  Component component = CommandLineHelper.tryLoadDill(args[0], usage);
   TypeCounter counter = new TypeCounter();
-  program.accept(counter);
+  component.accept(counter);
   counter.printStats();
 }
 

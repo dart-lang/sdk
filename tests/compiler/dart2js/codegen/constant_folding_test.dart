@@ -57,14 +57,11 @@ foo() {
 """;
 
 main() {
-  runTests({bool useKernel}) async {
-    await compileAndMatch(NUMBER_FOLDING, 'main', new RegExp(r"print\(7\)"),
-        useKernel: useKernel);
+  runTests() async {
+    await compileAndMatch(NUMBER_FOLDING, 'main', new RegExp(r"print\(7\)"));
     await compileAndMatch(
-        NEGATIVE_NUMBER_FOLDING, 'main', new RegExp(r"print\(1\)"),
-        useKernel: useKernel);
-    await compile(NULL_EQUALS_FOLDING, useKernel: useKernel, entry: 'foo',
-        check: (String generated) {
+        NEGATIVE_NUMBER_FOLDING, 'main', new RegExp(r"print\(1\)"));
+    await compile(NULL_EQUALS_FOLDING, entry: 'foo', check: (String generated) {
       RegExp regexp = new RegExp(r'a == null');
       Expect.isTrue(regexp.hasMatch(generated));
 
@@ -77,23 +74,17 @@ main() {
       regexp = new RegExp('"foo" === d');
       Expect.isTrue(regexp.hasMatch(generated));
     });
-    await compileAndMatch(LIST_LENGTH_FOLDING, 'foo', new RegExp(r"return 3"),
-        useKernel: useKernel);
-    await compileAndMatch(LIST_INDEX_FOLDING, 'foo', new RegExp(r"return 1"),
-        useKernel: useKernel);
-    await compileAndDoNotMatch(LIST_INDEX_FOLDING, 'foo', new RegExp(r"ioore"),
-        useKernel: useKernel);
-    await compileAndMatch(STRING_LENGTH_FOLDING, 'foo', new RegExp(r"return 3"),
-        useKernel: useKernel);
+    await compileAndMatch(LIST_LENGTH_FOLDING, 'foo', new RegExp(r"return 3"));
+    await compileAndMatch(LIST_INDEX_FOLDING, 'foo', new RegExp(r"return 1"));
+    await compileAndDoNotMatch(LIST_INDEX_FOLDING, 'foo', new RegExp(r"ioore"));
     await compileAndMatch(
-        RANGE_ERROR_INDEX_FOLDING, 'foo', new RegExp(r"ioore"),
-        useKernel: useKernel);
+        STRING_LENGTH_FOLDING, 'foo', new RegExp(r"return 3"));
+    await compileAndMatch(
+        RANGE_ERROR_INDEX_FOLDING, 'foo', new RegExp(r"ioore"));
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTests(useKernel: true);
+    await runTests();
   });
 }

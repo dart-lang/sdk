@@ -18,9 +18,7 @@ import '../universe/world_impact.dart'
 import 'backend_impact.dart';
 import 'backend_usage.dart';
 import 'custom_elements_analysis.dart';
-import 'mirrors_analysis.dart';
 import 'runtime_types.dart';
-import 'type_variable_handler.dart';
 
 class CodegenEnqueuerListener extends EnqueuerListener {
   final ElementEnvironment _elementEnvironment;
@@ -31,8 +29,6 @@ class CodegenEnqueuerListener extends EnqueuerListener {
   final RuntimeTypesNeed _rtiNeed;
 
   final CustomElementsCodegenAnalysis _customElementsAnalysis;
-  final TypeVariableCodegenAnalysis _typeVariableCodegenAnalysis;
-  final MirrorsCodegenAnalysis _mirrorsAnalysis;
 
   final NativeCodegenEnqueuer _nativeEnqueuer;
 
@@ -45,8 +41,6 @@ class CodegenEnqueuerListener extends EnqueuerListener {
       this._backendUsage,
       this._rtiNeed,
       this._customElementsAnalysis,
-      this._typeVariableCodegenAnalysis,
-      this._mirrorsAnalysis,
       this._nativeEnqueuer);
 
   @override
@@ -78,26 +72,6 @@ class CodegenEnqueuerListener extends EnqueuerListener {
     }
   }
 
-  /// Called to enable support for isolates. Any backend specific [WorldImpact]
-  /// of this is returned.
-  WorldImpact _enableIsolateSupport(FunctionEntity mainMethod) {
-    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
-    // TODO(floitsch): We should also ensure that the class IsolateMessage is
-    // instantiated. Currently, just enabling isolate support works.
-    if (mainMethod != null) {
-      // The JavaScript backend implements [Isolate.spawn] by looking up
-      // top-level functions by name. So all top-level function tear-off
-      // closures have a private name field.
-      //
-      // The JavaScript backend of [Isolate.spawnUri] uses the same internal
-      // implementation as [Isolate.spawn], and fails if it cannot look main up
-      // by name.
-      impactBuilder.registerStaticUse(new StaticUse.staticTearOff(mainMethod));
-    }
-    _impacts.isolateSupport.registerImpact(impactBuilder, _elementEnvironment);
-    return impactBuilder;
-  }
-
   /// Computes the [WorldImpact] of calling [mainMethod] as the entry point.
   WorldImpact _computeMainImpact(FunctionEntity mainMethod) {
     WorldImpactBuilderImpl mainImpact = new WorldImpactBuilderImpl();
@@ -107,11 +81,6 @@ class CodegenEnqueuerListener extends EnqueuerListener {
           .registerImpact(mainImpact, _elementEnvironment);
       mainImpact.registerStaticUse(
           new StaticUse.staticInvoke(mainMethod, callStructure));
-      // If the main method takes arguments, this compilation could be the
-      // target of Isolate.spawnUri. Strictly speaking, that can happen also if
-      // main takes no arguments, but in this case the spawned isolate can't
-      // communicate with the spawning isolate.
-      mainImpact.addImpact(_enableIsolateSupport(mainMethod));
     }
     mainImpact.registerStaticUse(
         new StaticUse.staticInvoke(mainMethod, CallStructure.NO_ARGS));
@@ -125,9 +94,6 @@ class CodegenEnqueuerListener extends EnqueuerListener {
     if (mainMethod != null) {
       enqueuer.applyImpact(_computeMainImpact(mainMethod));
     }
-    if (_backendUsage.isIsolateInUse) {
-      enqueuer.applyImpact(_enableIsolateSupport(mainMethod));
-    }
   }
 
   @override
@@ -138,7 +104,6 @@ class CodegenEnqueuerListener extends EnqueuerListener {
     // Return early if any elements are added to avoid counting the elements as
     // due to mirrors.
     enqueuer.applyImpact(_customElementsAnalysis.flush());
-    enqueuer.applyImpact(_typeVariableCodegenAnalysis.flush());
 
     if (_backendUsage.isNoSuchMethodUsed && !_isNoSuchMethodUsed) {
       enqueuer.applyImpact(
@@ -148,7 +113,6 @@ class CodegenEnqueuerListener extends EnqueuerListener {
 
     if (!enqueuer.queueIsEmpty) return false;
 
-    _mirrorsAnalysis.onQueueEmpty(enqueuer, recentClasses);
     return true;
   }
 
@@ -190,6 +154,19 @@ class CodegenEnqueuerListener extends EnqueuerListener {
         InterfaceType representedType = type.representedType;
         _customElementsAnalysis.registerTypeConstant(representedType.element);
       }
+    } else if (constant is InstantiationConstantValue) {
+      impactBuilder.registerTypeUse(new TypeUse.instantiation(
+          _elementEnvironment
+              .getThisType(_commonElements.instantiation1Class)));
+      impactBuilder.registerTypeUse(new TypeUse.instantiation(
+          _elementEnvironment
+              .getThisType(_commonElements.instantiation2Class)));
+      impactBuilder.registerTypeUse(new TypeUse.instantiation(
+          _elementEnvironment
+              .getThisType(_commonElements.instantiation2Class)));
+      impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
+          _commonElements.instantiatedGenericFunctionType,
+          CallStructure.TWO_ARGS));
     }
   }
 
@@ -241,9 +218,6 @@ class CodegenEnqueuerListener extends EnqueuerListener {
 
   WorldImpact _processClass(ClassEntity cls) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
-    if (_elementEnvironment.isGenericClass(cls)) {
-      _typeVariableCodegenAnalysis.registerClassWithTypeVariables(cls);
-    }
     if (cls == _commonElements.closureClass) {
       _impacts.closureClass.registerImpact(impactBuilder, _elementEnvironment);
     }

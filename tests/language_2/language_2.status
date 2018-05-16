@@ -2,6 +2,11 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+mixin_constructor_forwarding/const_constructor_test/none: CompileTimeError # Issue 32223
+mixin_constructor_forwarding/const_constructor_with_field_test/none: CompileTimeError # Issue 32223
+mixin_constructor_forwarding/optional_named_parameters_test/none: CompileTimeError # Issue 31543
+mixin_constructor_forwarding/optional_positional_parameters_test/none: CompileTimeError # Issue 31543
+
 [ $compiler == app_jit ]
 deferred_inheritance_constraints_test/redirecting_constructor: Crash
 
@@ -41,11 +46,26 @@ initializer_super_last_test/cc30: MissingCompileTimeError
 initializer_super_last_test/cc31: MissingCompileTimeError
 initializer_super_last_test/cc32: MissingCompileTimeError
 
-[ $compiler == dart2js && !$strong ]
-initializer_super_last_test: Crash, CompileTimeError # Issue 31321
-
 [ $compiler != dart2js && $compiler != dartdevc && !$fasta && $strong ]
 type_promotion_functions_test: CompileTimeError # Issue 30895: This test requires a complete rewrite for 2.0.
+
+# Detection of compile-time errors that are related to constants can't be fully
+# done at the front end, because constants are evaluated at back ends.  So, some
+# errors aren't detected by fasta, but reported by back ends as compile-time
+# errors.
+[ $compiler != dart2js && $runtime != dart_precompiled && $runtime != vm && $fasta ]
+function_type_parameter2_negative_test: Fail
+function_type_parameter_negative_test: Fail
+implicit_creation/implicit_const_not_default_values_test/e12: MissingCompileTimeError
+implicit_creation/implicit_const_not_default_values_test/e15: MissingCompileTimeError
+implicit_creation/implicit_const_not_default_values_test/e18: MissingCompileTimeError
+implicit_creation/implicit_const_not_default_values_test/e21: MissingCompileTimeError
+implicit_creation/implicit_const_not_default_values_test/e24: MissingCompileTimeError
+implicit_creation/implicit_const_not_default_values_test/e27: MissingCompileTimeError
+implicit_creation/implicit_const_not_default_values_test/e3: MissingCompileTimeError
+implicit_creation/implicit_const_not_default_values_test/e30: MissingCompileTimeError
+implicit_creation/implicit_const_not_default_values_test/e6: MissingCompileTimeError
+implicit_creation/implicit_const_not_default_values_test/e9: MissingCompileTimeError
 
 [ $compiler != dart2js && !$fasta && $strong ]
 compile_time_constant_static5_test/11: CompileTimeError # Issue 30546
@@ -230,12 +250,6 @@ map_literal7_test: RuntimeError # Requires strong mode
 [ $checked && !$strong ]
 type_parameter_test/05: Pass
 
-# We no longer expect Dart2 tests to run with the standalone VM without the new
-# common front end, but for now we get better coverage by still running them in
-# checked mode, which is mostly Dart2-compatible.
-[ !$checked && ($compiler == app_jit || $compiler == none || $compiler == precompiler) && ($runtime == dart_precompiled || $runtime == vm) ]
-*: SkipByDesign
-
 [ !$fasta && !$strong ]
 implicit_creation/implicit_const_context_constructor_generic_named_test: Fail # No support for implicit creation.
 implicit_creation/implicit_const_context_constructor_generic_test: Fail # No support for implicit creation.
@@ -255,6 +269,7 @@ implicit_creation/implicit_new_or_const_generic_test: Fail # No support for impl
 implicit_creation/implicit_new_or_const_test: Fail # No support for implicit creation.
 implicit_creation/implicit_new_prefix_constructor_generic_named_test: Fail # No support for implicit creation.
 implicit_creation/implicit_new_prefix_constructor_named_test: Fail # No support for implicit creation.
+setter_override2_test/02: MissingCompileTimeError # Issue 14736
 
 [ $compiler == app_jit || $compiler == none ]
 library_env_test/has_no_mirror_support: RuntimeError, OK
@@ -291,7 +306,6 @@ deferred_shared_and_unshared_classes_test: Crash # Requires deferred libraries
 deferred_static_seperate_test: Crash # Requires deferred libraries
 deferred_super_dependency_test: Pass, Crash # Requires deferred libraries
 deferred_type_dependency_test: Crash # Requires deferred libraries
-issue21159_test: Pass, Crash # Issue 29094
 issue_1751477_test: Crash # Requires deferred libraries
 issue_22780_test/01: Pass, Crash # Issue 29094
 regress_22443_test: Crash # Requires deferred libraries
@@ -300,4 +314,3 @@ regress_28278_test: Crash # Requires deferred libraries
 static_closure_identical_test: Pass, Fail # Closure identity
 vm/optimized_stacktrace_test: Pass, Slow
 vm/regress_27201_test: Pass, Crash # Requires deferred libraries
-

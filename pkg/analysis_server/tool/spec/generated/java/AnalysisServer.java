@@ -576,6 +576,38 @@ public interface AnalysisServer {
   public void execution_deleteContext(String id);
 
   /**
+   * {@code execution.getSuggestions}
+   *
+   * Request completion suggestions for the given runtime context.
+   *
+   * It might take one or two requests of this type to get completion suggestions. The first request
+   * should have only "code", "offset", and "variables", but not "expressions". If there are
+   * sub-expressions that can have different runtime types, and are considered to be safe to evaluate
+   * at runtime (e.g. getters), so using their actual runtime types can improve completion results,
+   * the server will not include the "suggestions" field in the response, and instead will return the
+   * "expressions" field. The client will use debug API to get current runtime types for these
+   * sub-expressions and send another request, this time with "expressions". If there are no
+   * interesting sub-expressions to get runtime types for, or when the "expressions" field is
+   * provided by the client, the server will return "suggestions" in the response.
+   *
+   * @param code The code to get suggestions in.
+   * @param offset The offset within the code to get suggestions at.
+   * @param contextFile The path of the context file, e.g. the file of the current debugger frame.
+   *         The combination of the context file and context offset can be used to ensure that all
+   *         variables of the context are available for completion (with their static types).
+   * @param contextOffset The offset in the context file, e.g. the line offset in the current
+   *         debugger frame.
+   * @param variables The runtime context variables that are potentially referenced in the code.
+   * @param expressions The list of sub-expressions in the code for which the client wants to provide
+   *         runtime types. It does not have to be the full list of expressions requested by the
+   *         server, for missing expressions their static types will be used. When this field is
+   *         omitted, the server will return completion suggestions only when there are no
+   *         interesting sub-expressions in the given code. The client may provide an empty list, in
+   *         this case the server will return completion suggestions.
+   */
+  public void execution_getSuggestions(String code, int offset, String contextFile, int contextOffset, List<RuntimeCompletionVariable> variables, List<RuntimeCompletionExpression> expressions, GetSuggestionsConsumer consumer);
+
+  /**
    * {@code execution.mapUri}
    *
    * Map a URI from the execution context to the file that it corresponds to, or map a file to the
@@ -617,6 +649,17 @@ public interface AnalysisServer {
    * @deprecated
    */
   public void execution_setSubscriptions(List<String> subscriptions);
+
+  /**
+   * {@code flutter.getChangeAddForDesignTimeConstructor}
+   *
+   * Return the change that adds the forDesignTime() constructor for the widget class at the given
+   * offset.
+   *
+   * @param file The file containing the code of the class.
+   * @param offset The offset of the class in the code.
+   */
+  public void flutter_getChangeAddForDesignTimeConstructor(String file, int offset, GetChangeAddForDesignTimeConstructorConsumer consumer);
 
   /**
    * {@code flutter.setSubscriptions}

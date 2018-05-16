@@ -66,18 +66,26 @@ abstract class DartEditBuilder implements EditBuilder {
    * as being a `const` constructor. If a [constructorName] is provided, then
    * the constructor will have the given name. If both a constructor name and a
    * [constructorNameGroupName] is provided, then the name of the constructor
-   * will be included in the linked edit group with that name. If an
+   * will be included in the linked edit group with that name. If a
+   * [parameterWriter] is provided then it is used to write the constructor
+   * parameters (enclosing parenthesis are written for you). Otherwise, if an
    * [argumentList] is provided then the constructor will have parameters that
    * match the given arguments. If no argument list is given, but a list of
    * [fieldNames] is provided, then field formal parameters will be created for
-   * each of the field names.
+   * each of the field names. If an [initializerWriter] is provided then it is
+   * used to write the constructor initializers (the ` : ` prefix is written
+   * for you). If a [bodyWriter] is provided then it is used to write the
+   * constructor body, otherwise an empty body is written.
    */
   void writeConstructorDeclaration(String className,
       {ArgumentList argumentList,
+      void bodyWriter(),
       SimpleIdentifier constructorName,
       String constructorNameGroupName,
       List<String> fieldNames,
-      bool isConst: false});
+      void initializerWriter(),
+      bool isConst: false,
+      void parameterWriter()});
 
   /**
    * Write the code for a declaration of a field with the given [name]. If an
@@ -176,6 +184,18 @@ abstract class DartEditBuilder implements EditBuilder {
       {StringBuffer displayTextBuffer});
 
   /**
+   * Write the code for a single parameter with the given [name].
+   *
+   * If a [methodBeingCopied] is provided, then type parameters defined by that
+   * method are assumed to be part of what is being written and hence valid
+   * types.
+   *
+   * If a [type] is provided, then it will be used as the type of the parameter.
+   */
+  void writeParameter(String name,
+      {ExecutableElement methodBeingCopied, DartType type});
+
+  /**
    * Write the code for a parameter that would match the given [argument]. The
    * name of the parameter will be generated based on the type of the argument,
    * but if the argument type is not known the [index] will be used to compose
@@ -203,15 +223,11 @@ abstract class DartEditBuilder implements EditBuilder {
   void writeParametersMatchingArguments(ArgumentList arguments);
 
   /**
-   * Write the code for a single parameter with the given [type] and [name].
-   * The [type] can be `null` if no type is to be specified for the parameter.
-   *
-   * If a [methodBeingCopied] is provided, then type parameters defined by that
-   * method are assumed to be part of what is being written and hence valid
-   * types.
+   * Write the code that references the [element]. If the [element] is a
+   * top-level element that has not been imported into the current library,
+   * imports will be updated.
    */
-  void writeParameterSource(DartType type, String name,
-      {ExecutableElement methodBeingCopied});
+  void writeReference(Element element);
 
   /**
    * Write the code for a type annotation for the given [type]. If the [type] is
@@ -289,9 +305,12 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
       FunctionBody body, TypeProvider typeProvider);
 
   /**
-   * Arrange to have imports added for each of the given [libraries].
+   * Arrange to have an import added for the given [library].
+   *
+   * Returns the text of the URI that will be used in the import directive.
+   * It can be different than the given [Uri].
    */
-  void importLibraries(Iterable<Source> libraries);
+  String importLibrary(Uri library);
 
   /**
    * Optionally create an edit to replace the given [typeAnnotation] with the

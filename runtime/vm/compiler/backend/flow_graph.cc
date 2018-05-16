@@ -426,7 +426,7 @@ bool FlowGraph::InstanceCallNeedsClassCheck(InstanceCallInstr* call,
     // may later add overriding methods.
     return true;
   }
-  Definition* callee_receiver = call->ArgumentAt(0);
+  Definition* callee_receiver = call->Receiver()->definition();
   ASSERT(callee_receiver != NULL);
   if (function().IsDynamicFunction() && IsReceiver(callee_receiver)) {
     const String& name =
@@ -1191,8 +1191,19 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
 
           if ((phi != NULL) && isolate()->strong() &&
               FLAG_use_strong_mode_types) {
-            phi->UpdateType(
-                CompileType::FromAbstractType(load->local().type()));
+            // Assign type to Phi if it doesn't have a type yet.
+            // For a Phi to appear in the local variable it either was placed
+            // there as incoming value by renaming or it was stored there by
+            // StoreLocal which took this Phi from another local via LoadLocal,
+            // to which this reasoning applies recursively.
+            // This means that we are guaranteed to process LoadLocal for a
+            // matching variable first.
+            if (!phi->HasType()) {
+              ASSERT((index < phi->block()->phis()->length()) &&
+                     ((*phi->block()->phis())[index] == phi));
+              phi->UpdateType(
+                  CompileType::FromAbstractType(load->local().type()));
+            }
           }
         } else if (drop != NULL) {
           // Drop temps from the environment.

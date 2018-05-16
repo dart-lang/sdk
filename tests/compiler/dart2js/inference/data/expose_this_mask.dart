@@ -42,7 +42,7 @@ class OtherClass1 {
 
 /*element: otherGetter:[null]*/
 otherGetter() {
-  new OtherClass1();
+  new OtherClass1(). /*[exact=OtherClass1]*/ field1a;
   new Class1();
 }
 
@@ -70,7 +70,7 @@ class OtherClass2 {
 
 /*element: otherMethod:[null]*/
 otherMethod() {
-  new OtherClass2();
+  new OtherClass2(). /*[exact=OtherClass2]*/ field2a;
   new Class2();
 }
 
@@ -167,8 +167,7 @@ subclassFieldRead() {
 class Class6 {
   /*element: Class6.field6a:[exact=JSUInt31]*/
   var field6a;
-  /*ast.element: Class6.field6b:[exact=JSUInt31]*/
-  /*kernel.element: Class6.field6b:[null|exact=JSUInt31]*/
+  /*element: Class6.field6b:[null|exact=JSUInt31]*/
   var field6b;
 
   /*element: Class6.:[exact=Class6]*/
@@ -184,13 +183,11 @@ class SubClass6 extends Class6 {
   /*element: SubClass6.:[exact=SubClass6]*/
   SubClass6() : field6b = 42;
 
-  /*ast.element: SubClass6.access:[exact=JSUInt31]*/
-  /*kernel.element: SubClass6.access:[null|exact=JSUInt31]*/
+  /*element: SubClass6.access:[null|exact=JSUInt31]*/
   get access => super.field6b;
 }
 
-/*ast.element: subclassFieldWrite:[exact=JSUInt31]*/
-/*kernel.element: subclassFieldWrite:[null|exact=JSUInt31]*/
+/*element: subclassFieldWrite:[null|exact=JSUInt31]*/
 subclassFieldWrite() {
   new Class6();
   return new SubClass6(). /*[exact=SubClass6]*/ access;
@@ -204,8 +201,7 @@ subclassFieldWrite() {
 class Class9 {
   /*element: Class9.field9a:[exact=JSUInt31]*/
   var field9a;
-  /*ast.element: Class9.field9b:[exact=JSUInt31]*/
-  /*kernel.element: Class9.field9b:[null|exact=JSUInt31]*/
+  /*element: Class9.field9b:[null|exact=JSUInt31]*/
   var field9b;
 
   /*element: Class9.:[exact=Class9]*/
@@ -221,16 +217,14 @@ class SubClass9a extends Class9 {
   /*element: SubClass9a.:[exact=SubClass9a]*/
   SubClass9a() : field9b = 42;
 
-  /*ast.element: SubClass9a.access:[exact=JSUInt31]*/
-  /*kernel.element: SubClass9a.access:[null|exact=JSUInt31]*/
+  /*element: SubClass9a.access:[null|exact=JSUInt31]*/
   get access => super.field9b;
 }
 
 /*element: SubClass9b.:[exact=SubClass9b]*/
 class SubClass9b extends Class9 {}
 
-/*ast.element: subclassesFieldWrite:[exact=JSUInt31]*/
-/*kernel.element: subclassesFieldWrite:[null|exact=JSUInt31]*/
+/*element: subclassesFieldWrite:[null|exact=JSUInt31]*/
 subclassesFieldWrite() {
   new Class9();
   new SubClass9b();

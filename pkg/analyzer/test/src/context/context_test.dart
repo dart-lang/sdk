@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.src.context.context_test;
-
 import 'dart:async';
 import 'dart:collection';
 
@@ -16,7 +14,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
@@ -25,10 +22,11 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/task/api/dart.dart';
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/html.dart';
-import 'package:analyzer/task/dart.dart';
-import 'package:analyzer/task/model.dart';
 import 'package:html/dom.dart' show Document;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -733,19 +731,16 @@ library lib;
     expect(errors, hasLength(0));
   }
 
+  @failingTest
   void test_computeErrors_dart_part() {
     Source librarySource =
         addSource("/lib.dart", "library lib; part 'part.dart';");
     Source partSource = addSource("/part.dart", "part of 'lib';");
     context.parseCompilationUnit(librarySource);
     List<AnalysisError> errors = context.computeErrors(partSource);
-    if (context.analysisOptions.enableUriInPartOf) {
-      // TODO(28522)
-      // Should report that 'lib' isn't the correct URI.
-    } else {
-      expect(errors, isNotNull);
-      expect(errors.length > 0, isTrue);
-    }
+    expect(errors, isNotNull);
+    // TODO(28522)
+    fail("Should report that 'lib' isn't the correct URI.");
   }
 
   void test_computeErrors_dart_some() {

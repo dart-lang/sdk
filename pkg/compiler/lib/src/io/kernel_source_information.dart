@@ -90,7 +90,7 @@ class KernelSourceInformationBuilder
     ir.Location location;
     if (offset != null) {
       location = node.location;
-      location = node.enclosingProgram.getLocation(location.file, offset);
+      location = node.enclosingComponent.getLocation(location.file, offset);
     } else {
       while (node != null && node.fileOffset == ir.TreeNode.noOffset) {
         node = node.parent;
@@ -144,6 +144,7 @@ class KernelSourceInformationBuilder
           return _buildFunction(name, base ?? node, node.function);
         }
         break;
+      // TODO(sra): generatorBody
       default:
     }
     return _buildTreeNode(base ?? node, name: name);
@@ -206,6 +207,16 @@ class KernelSourceInformationBuilder
         if (node is ir.FunctionDeclaration) {
           return _buildBody(node, node.function.body);
         } else if (node is ir.FunctionExpression) {
+          return _buildBody(node, node.function.body);
+        }
+        break;
+      case MemberKind.generatorBody:
+        ir.Node node = definition.node;
+        if (node is ir.FunctionDeclaration) {
+          return _buildBody(node, node.function.body);
+        } else if (node is ir.FunctionExpression) {
+          return _buildBody(node, node.function.body);
+        } else if (node is ir.Member && node.function != null) {
           return _buildBody(node, node.function.body);
         }
         break;

@@ -8,6 +8,7 @@
 
 #include "vm/bit_vector.h"
 #include "vm/bootstrap.h"
+#include "vm/compiler/backend/code_statistics.h"
 #include "vm/compiler/backend/constant_propagator.h"
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/linearscan.h"
@@ -26,6 +27,7 @@
 #include "vm/scopes.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
+#include "vm/type_testing_stubs.h"
 
 #include "vm/compiler/backend/il_printer.h"
 
@@ -45,23 +47,28 @@ DEFINE_FLAG(bool,
             "Support unboxed double and float32x4 fields.");
 DECLARE_FLAG(bool, eliminate_type_checks);
 
-const CidRangeVector& HierarchyInfo::SubtypeRangesForClass(const Class& klass) {
-  ClassTable* table = thread_->isolate()->class_table();
+const CidRangeVector& HierarchyInfo::SubtypeRangesForClass(
+    const Class& klass,
+    bool include_abstract) {
+  ClassTable* table = thread()->isolate()->class_table();
   const intptr_t cid_count = table->NumCids();
-  if (cid_subtype_ranges_ == NULL) {
-    cid_subtype_ranges_ = new CidRangeVector[cid_count];
+  CidRangeVector** cid_ranges =
+      include_abstract ? &cid_subtype_ranges_abstract_ : &cid_subtype_ranges_;
+  if (*cid_ranges == NULL) {
+    *cid_ranges = new CidRangeVector[cid_count];
   }
 
-  CidRangeVector& ranges = cid_subtype_ranges_[klass.id()];
+  CidRangeVector& ranges = (*cid_ranges)[klass.id()];
   if (ranges.length() == 0) {
-    BuildRangesFor(table, &ranges, klass, /*use_subtype_test=*/true);
+    BuildRangesFor(table, &ranges, klass, /*use_subtype_test=*/true,
+                   include_abstract);
   }
   return ranges;
 }
 
 const CidRangeVector& HierarchyInfo::SubclassRangesForClass(
     const Class& klass) {
-  ClassTable* table = thread_->isolate()->class_table();
+  ClassTable* table = thread()->isolate()->class_table();
   const intptr_t cid_count = table->NumCids();
   if (cid_subclass_ranges_ == NULL) {
     cid_subclass_ranges_ = new CidRangeVector[cid_count];
@@ -77,8 +84,9 @@ const CidRangeVector& HierarchyInfo::SubclassRangesForClass(
 void HierarchyInfo::BuildRangesFor(ClassTable* table,
                                    CidRangeVector* ranges,
                                    const Class& klass,
-                                   bool use_subtype_test) {
-  Zone* zone = thread_->zone();
+                                   bool use_subtype_test,
+                                   bool include_abstract) {
+  Zone* zone = thread()->zone();
   Class& cls = Class::Handle(zone);
 
   // Only really used if `use_subtype_test == true`.
@@ -91,8 +99,8 @@ void HierarchyInfo::BuildRangesFor(ClassTable* table,
   for (intptr_t cid = kInstanceCid; cid < cid_count; ++cid) {
     // Create local zone because deep hierarchies may allocate lots of handles
     // within one iteration of this loop.
-    StackZone stack_zone(thread_);
-    HANDLESCOPE(thread_);
+    StackZone stack_zone(thread());
+    HANDLESCOPE(thread());
 
     if (!table->HasValidClassAt(cid)) continue;
     if (cid == kTypeArgumentsCid) continue;
@@ -100,7 +108,7 @@ void HierarchyInfo::BuildRangesFor(ClassTable* table,
     if (cid == kDynamicCid) continue;
     if (cid == kNullCid) continue;
     cls = table->At(cid);
-    if (cls.is_abstract()) continue;
+    if (!include_abstract && cls.is_abstract()) continue;
     if (cls.is_patch()) continue;
     if (cls.IsTopLevel()) continue;
 
@@ -143,13 +151,25 @@ void HierarchyInfo::BuildRangesFor(ClassTable* table,
 bool HierarchyInfo::CanUseSubtypeRangeCheckFor(const AbstractType& type) {
   ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
 
-  if (!type.IsInstantiated() || type.IsFunctionType() ||
+  if (!type.IsInstantiated() || !type.IsType() || type.IsFunctionType() ||
       type.IsDartFunctionType()) {
     return false;
   }
 
-  Zone* zone = thread_->zone();
+  Zone* zone = thread()->zone();
   const Class& type_class = Class::Handle(zone, type.type_class());
+
+  // The FutureOr<T> type cannot be handled by checking whether the instance is
+  // a subtype of FutureOr and then checking whether the type argument `T`
+  // matches.
+  //
+  // Instead we would need to perform multiple checks:
+  //
+  //    instance is Null || instance is T || instance is Future<T>
+  //
+  if (type_class.IsFutureOrClass()) {
+    return false;
+  }
 
   // We can use class id range checks only if we don't have to test type
   // arguments.
@@ -174,7 +194,7 @@ bool HierarchyInfo::CanUseGenericSubtypeRangeCheckFor(
     const AbstractType& type) {
   ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
 
-  if (type.IsFunctionType() || type.IsDartFunctionType()) {
+  if (!type.IsType() || type.IsFunctionType() || type.IsDartFunctionType()) {
     return false;
   }
 
@@ -182,10 +202,22 @@ bool HierarchyInfo::CanUseGenericSubtypeRangeCheckFor(
   // [CanUseSubtypeRangeCheckFor], since we handle type parameters in the type
   // expression in some cases (see below).
 
-  Zone* zone = thread_->zone();
+  Zone* zone = thread()->zone();
   const Class& type_class = Class::Handle(zone, type.type_class());
   const intptr_t num_type_parameters = type_class.NumTypeParameters();
   const intptr_t num_type_arguments = type_class.NumTypeArguments();
+
+  // The FutureOr<T> type cannot be handled by checking whether the instance is
+  // a subtype of FutureOr and then checking whether the type argument `T`
+  // matches.
+  //
+  // Instead we would need to perform multiple checks:
+  //
+  //    instance is Null || instance is T || instance is Future<T>
+  //
+  if (type_class.IsFutureOrClass()) {
+    return false;
+  }
 
   // This function should only be called for generic classes.
   ASSERT(type_class.NumTypeParameters() > 0 &&
@@ -224,7 +256,8 @@ bool HierarchyInfo::InstanceOfHasClassRange(const AbstractType& type,
                                             intptr_t* lower_limit,
                                             intptr_t* upper_limit) {
   if (CanUseSubtypeRangeCheckFor(type)) {
-    const Class& type_class = Class::Handle(thread_->zone(), type.type_class());
+    const Class& type_class =
+        Class::Handle(thread()->zone(), type.type_class());
     const CidRangeVector& ranges = SubtypeRangesForClass(type_class);
     if (ranges.length() == 1) {
       const CidRange& range = ranges[0];
@@ -1601,7 +1634,7 @@ static bool ToIntegerConstant(Value* value, int64_t* result) {
   const Object& constant = value->BoundConstant();
   if (constant.IsDouble()) {
     const Double& double_constant = Double::Cast(constant);
-    *result = static_cast<int64_t>(double_constant.value());
+    *result = Utils::SafeDoubleToInt<int64_t>(double_constant.value());
     return (static_cast<double>(*result) == double_constant.value());
   } else if (constant.IsSmi()) {
     *result = Smi::Cast(constant).Value();
@@ -2317,8 +2350,16 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 Definition* AssertBooleanInstr::Canonicalize(FlowGraph* flow_graph) {
-  if (FLAG_eliminate_type_checks && (value()->Type()->ToCid() == kBoolCid)) {
-    return value()->definition();
+  if (FLAG_eliminate_type_checks) {
+    if (value()->Type()->ToCid() == kBoolCid) {
+      return value()->definition();
+    }
+
+    // In strong mode type is already verified either by static analysis
+    // or runtime checks, so AssertBoolean just ensures that value is not null.
+    if (Isolate::Current()->strong() && !value()->Type()->is_nullable()) {
+      return value()->definition();
+    }
   }
 
   return this;
@@ -3658,7 +3699,7 @@ RawType* PolymorphicInstanceCallInstr::ComputeRuntimeType(
 }
 
 Definition* InstanceCallInstr::Canonicalize(FlowGraph* flow_graph) {
-  const intptr_t receiver_cid = PushArgumentAt(0)->value()->Type()->ToCid();
+  const intptr_t receiver_cid = Receiver()->Type()->ToCid();
 
   // TODO(erikcorry): Even for cold call sites we could still try to look up
   // methods when we know the receiver cid. We don't currently do this because
@@ -3757,6 +3798,14 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ArgumentsInfo args_info(type_args_len(), ArgumentCount(), argument_names());
   compiler->GenerateStaticCall(deopt_id(), token_pos(), function(), args_info,
                                locs(), *call_ic_data, rebind_rule_);
+  if (function().IsFactory()) {
+    TypeUsageInfo* type_usage_info = compiler->thread()->type_usage_info();
+    if (type_usage_info != nullptr) {
+      const Class& klass = Class::Handle(function().Owner());
+      RegisterTypeArgumentsUse(compiler->function(), type_usage_info, klass,
+                               ArgumentAt(0));
+    }
+  }
 #else
   const Array& arguments_descriptor = Array::Handle(
       zone, (ic_data() == NULL) ? GetArgumentsDescriptor()
@@ -3781,6 +3830,21 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     compiler->RecordAfterCall(this, FlowGraphCompiler::kHasResult);
   }
 #endif  // !defined(TARGET_ARCH_DBC)
+}
+
+intptr_t AssertAssignableInstr::statistics_tag() const {
+  switch (kind_) {
+    case kParameterCheck:
+      return CombinedCodeStatistics::kTagAssertAssignableParameterCheck;
+    case kInsertedByFrontend:
+      return CombinedCodeStatistics::kTagAssertAssignableInsertedByFrontend;
+    case kFromSource:
+      return CombinedCodeStatistics::kTagAssertAssignableFromSource;
+    case kUnknown:
+      break;
+  }
+
+  return tag();
 }
 
 void AssertAssignableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
@@ -3893,25 +3957,27 @@ LocationSummary* GenericCheckBoundInstr::MakeLocationSummary(Zone* zone,
   return locs;
 }
 
-class ThrowErrorSlowPathCode : public SlowPathCode {
+class ThrowErrorSlowPathCode : public TemplateSlowPathCode<Instruction> {
  public:
   ThrowErrorSlowPathCode(Instruction* instruction,
                          const RuntimeEntry& runtime_entry,
                          intptr_t num_args,
                          intptr_t try_index)
-      : instruction_(instruction),
+      : TemplateSlowPathCode(instruction),
         runtime_entry_(runtime_entry),
         num_args_(num_args),
         try_index_(try_index) {}
 
   virtual const char* name() = 0;
 
+  virtual void AddMetadataForRuntimeCall(FlowGraphCompiler* compiler) {}
+
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
     if (Assembler::EmittingComments()) {
       __ Comment("slow path %s operation", name());
     }
     __ Bind(entry_label());
-    LocationSummary* locs = instruction_->locs();
+    LocationSummary* locs = instruction()->locs();
     // Save registers as they are needed for lazy deopt / exception handling.
     compiler->SaveLiveRegisters(locs);
     for (intptr_t i = 0; i < num_args_; ++i) {
@@ -3920,15 +3986,15 @@ class ThrowErrorSlowPathCode : public SlowPathCode {
     __ CallRuntime(runtime_entry_, num_args_);
     compiler->AddDescriptor(
         RawPcDescriptors::kOther, compiler->assembler()->CodeSize(),
-        instruction_->deopt_id(), instruction_->token_pos(), try_index_);
+        instruction()->deopt_id(), instruction()->token_pos(), try_index_);
+    AddMetadataForRuntimeCall(compiler);
     compiler->RecordSafepoint(locs, num_args_);
-    Environment* env = compiler->SlowPathEnvironmentFor(instruction_);
+    Environment* env = compiler->SlowPathEnvironmentFor(instruction());
     compiler->EmitCatchEntryState(env, try_index_);
     __ Breakpoint();
   }
 
  private:
-  Instruction* instruction_;
   const RuntimeEntry& runtime_entry_;
   const intptr_t num_args_;
   const intptr_t try_index_;
@@ -3975,7 +4041,6 @@ LocationSummary* CheckNullInstr::MakeLocationSummary(Zone* zone,
 
 class NullErrorSlowPath : public ThrowErrorSlowPathCode {
  public:
-  // TODO(dartbug.com/30480): Pass arguments for NoSuchMethodError.
   static const intptr_t kNumberOfArguments = 0;
 
   NullErrorSlowPath(CheckNullInstr* instruction, intptr_t try_index)
@@ -3984,7 +4049,15 @@ class NullErrorSlowPath : public ThrowErrorSlowPathCode {
                                kNumberOfArguments,
                                try_index) {}
 
-  virtual const char* name() { return "check null"; }
+  const char* name() override { return "check null"; }
+
+  void AddMetadataForRuntimeCall(FlowGraphCompiler* compiler) override {
+    const String& function_name = instruction()->AsCheckNull()->function_name();
+    const intptr_t name_index =
+        compiler->assembler()->object_pool_wrapper().FindObject(function_name);
+    compiler->AddNullCheck(compiler->assembler()->CodeSize(),
+                           instruction()->token_pos(), name_index);
+  }
 };
 
 void CheckNullInstr::EmitNativeCode(FlowGraphCompiler* compiler) {

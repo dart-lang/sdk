@@ -316,12 +316,14 @@ class TestCase : TestCaseBase {
 
   static char* CompileTestScriptWithDFE(const char* url,
                                         const char* source,
-                                        void** kernel_pgm,
+                                        const uint8_t** kernel_buffer,
+                                        intptr_t* kernel_buffer_size,
                                         bool incrementally = true);
   static char* CompileTestScriptWithDFE(const char* url,
                                         int sourcefiles_count,
                                         Dart_SourceFile sourcefiles[],
-                                        void** kernel_pgm,
+                                        const uint8_t** kernel_buffer,
+                                        intptr_t* kernel_buffer_size,
                                         bool incrementally = true);
   static Dart_Handle LoadTestScript(const char* script,
                                     Dart_NativeEntryResolver resolver,
@@ -355,18 +357,15 @@ class TestCase : TestCaseBase {
   virtual void Run();
 
   // Sets |script| to be the source used at next reload.
-  static void SetReloadTestScript(const char* script);
+  static Dart_Handle SetReloadTestScript(const char* script);
 
   // Initiates the reload.
   static Dart_Handle TriggerReload();
 
-  // Returns the root library if the last reload was successful, otherwise
-  // returns Dart_Null().
-  static Dart_Handle GetReloadLibrary();
-
   // Helper function which reloads the current isolate using |script|.
   static Dart_Handle ReloadTestScript(const char* script);
-  static Dart_Handle ReloadTestKernel(const void* kernel);
+  static Dart_Handle ReloadTestKernel(const uint8_t* kernel_buffer,
+                                      intptr_t kernel_buffer_size);
 
   static void AddTestLib(const char* url, const char* source);
   static const char* GetTestLib(const char* url);
@@ -383,10 +382,10 @@ class TestCase : TestCaseBase {
                                     const char* name,
                                     void* data = NULL);
 
-  // Gets the result of a reload. This touches state in IsolateReloadContext
-  // that is zone allocated and should not be used if a reload is triggered
-  // using reloadTest() from package:isolate_reload_helper.
-  static Dart_Handle GetReloadErrorOrRootLibrary();
+  static char* ValidateCompilationResult(Zone* zone,
+                                         Dart_KernelCompilationResult result,
+                                         const uint8_t** kernel_buffer,
+                                         intptr_t* kernel_buffer_size);
 
   RunEntry* const run_;
 };

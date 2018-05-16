@@ -804,6 +804,9 @@ class StatementCompletionProcessor {
       if (_isSyntheticExpression(statement.condition)) {
         exitPosition = _newPosition(statement.leftParenthesis.offset + 1);
         sb = new SourceBuilder(file, statement.rightParenthesis.offset + 1);
+      } else if (statement.rightParenthesis.isSynthetic) {
+        sb = new SourceBuilder(file, statement.condition.end);
+        sb.append(')');
       } else {
         int afterParen = statement.rightParenthesis.offset + 1;
         if (utils

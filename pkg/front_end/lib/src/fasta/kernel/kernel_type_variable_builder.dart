@@ -29,10 +29,18 @@ class KernelTypeVariableBuilder
 
   KernelTypeVariableBuilder(
       String name, KernelLibraryBuilder compilationUnit, int charOffset,
-      [KernelTypeBuilder bound])
-      : actualParameter = new TypeParameter(name, null)
-          ..fileOffset = charOffset,
+      [KernelTypeBuilder bound, TypeParameter actual])
+      // TODO(32378): We would like to use '??' here instead, but in conjuction
+      // with '..', it crashes Dart2JS.
+      : actualParameter = actual != null
+            ? (actual..fileOffset = charOffset)
+            : (new TypeParameter(name, null)..fileOffset = charOffset),
         super(name, bound, compilationUnit, charOffset);
+
+  KernelTypeVariableBuilder.fromKernel(
+      TypeParameter parameter, KernelLibraryBuilder compilationUnit)
+      : actualParameter = parameter,
+        super(parameter.name, null, compilationUnit, parameter.fileOffset);
 
   @override
   KernelTypeVariableBuilder get origin => actualOrigin ?? this;
@@ -69,10 +77,13 @@ class KernelTypeVariableBuilder
     return new KernelNamedTypeBuilder(name, null)..bind(this);
   }
 
-  void finish(LibraryBuilder library, KernelClassBuilder object) {
+  void finish(LibraryBuilder library, KernelClassBuilder object,
+      TypeBuilder dynamicType) {
     if (isPatch) return;
     parameter.bound ??=
         bound?.build(library) ?? object.buildType(library, null);
+    parameter.defaultType ??=
+        defaultType?.build(library) ?? dynamicType.build(library);
   }
 
   void applyPatch(covariant KernelTypeVariableBuilder patch) {

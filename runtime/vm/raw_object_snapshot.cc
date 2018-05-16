@@ -70,6 +70,8 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
                        kAsReference);
     cls.StorePointer(&cls.raw_ptr()->dependent_code_, Array::null());
     ASSERT(!cls.IsInFullSnapshot());
+    // Also sets instance size in class table.
+    reader->isolate()->class_table()->SetAt(cls.id(), cls.raw());
   } else {
     cls ^= reader->ReadClassId(object_id);
     ASSERT((kind == Snapshot::kMessage) || cls.IsInFullSnapshot());
@@ -218,6 +220,9 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
   type.set_token_pos(TokenPosition::SnapshotDecode(reader->Read<int32_t>()));
   type.set_type_state(reader->Read<int8_t>());
 
+  // Read the code object for the type testing stub and set its entrypoint.
+  reader->EnqueueTypePostprocessing(type);
+
   // Set all the object fields.
   READ_OBJECT_FIELDS(type, type.raw()->from(), type.raw()->to(), kAsReference);
 
@@ -294,6 +299,9 @@ RawTypeRef* TypeRef::ReadFrom(SnapshotReader* reader,
   TypeRef& type_ref = TypeRef::ZoneHandle(reader->zone(), TypeRef::New());
   reader->AddBackRef(object_id, &type_ref, kIsDeserialized);
 
+  // Read the code object for the type testing stub and set its entrypoint.
+  reader->EnqueueTypePostprocessing(type_ref);
+
   // Set all the object fields.
   READ_OBJECT_FIELDS(type_ref, type_ref.raw()->from(), type_ref.raw()->to(),
                      kAsReference);
@@ -336,6 +344,9 @@ RawTypeParameter* TypeParameter::ReadFrom(SnapshotReader* reader,
       TokenPosition::SnapshotDecode(reader->Read<int32_t>()));
   type_parameter.set_index(reader->Read<int16_t>());
   type_parameter.set_type_state(reader->Read<int8_t>());
+
+  // Read the code object for the type testing stub and set its entrypoint.
+  reader->EnqueueTypePostprocessing(type_parameter);
 
   // Set all the object fields.
   READ_OBJECT_FIELDS(type_parameter, type_parameter.raw()->from(),
@@ -391,6 +402,9 @@ RawBoundedType* BoundedType::ReadFrom(SnapshotReader* reader,
   BoundedType& bounded_type =
       BoundedType::ZoneHandle(reader->zone(), BoundedType::New());
   reader->AddBackRef(object_id, &bounded_type, kIsDeserialized);
+
+  // Read the code object for the type testing stub and set its entrypoint.
+  reader->EnqueueTypePostprocessing(bounded_type);
 
   // Set all the object fields.
   READ_OBJECT_FIELDS(bounded_type, bounded_type.raw()->from(),
@@ -738,8 +752,7 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
 #if !defined(DART_PRECOMPILED_RUNTIME)
     kernel_offset = reader->Read<int32_t>();
 #endif
-    func.set_num_fixed_parameters(reader->Read<int16_t>());
-    func.set_num_optional_parameters(reader->Read<int16_t>());
+    func.set_packed_fields(reader->Read<uint32_t>());
     func.set_kind_tag(reader->Read<uint32_t>());
     func.set_token_pos(TokenPosition::SnapshotDecode(token_pos));
     func.set_end_token_pos(TokenPosition::SnapshotDecode(end_token_pos));
@@ -809,8 +822,7 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
     writer->Write<int32_t>(ptr()->end_token_pos_.SnapshotEncode());
     writer->Write<int32_t>(ptr()->kernel_offset_);
 #endif
-    writer->Write<int16_t>(ptr()->num_fixed_parameters_);
-    writer->Write<int16_t>(ptr()->num_optional_parameters_);
+    writer->Write<uint32_t>(ptr()->packed_fields_);
     writer->Write<uint32_t>(ptr()->kind_tag_);
 #if !defined(DART_PRECOMPILED_RUNTIME)
     if (is_optimized) {
@@ -1468,9 +1480,7 @@ RawContext* Context::ReadFrom(SnapshotReader* reader,
   int32_t num_vars = reader->Read<int32_t>();
   Context& context = Context::ZoneHandle(reader->zone());
   reader->AddBackRef(object_id, &context, kIsDeserialized);
-  if (num_vars == 0) {
-    context ^= Object::empty_context().raw();
-  } else {
+  if (num_vars != 0) {
     context ^= Context::New(num_vars);
 
     // Set all the object fields.

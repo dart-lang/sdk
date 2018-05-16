@@ -6,7 +6,3 @@ null_interceptor_field: Crash
 throw_in_constructor_from_async: Crash
 throw_in_instance_method: Crash
 throw_in_static_method: Crash # Test works, but DDC's hover support means the expected column in the test is wrong
-
-throw_in_async: Crash # dartbug.com/31451
-throw_in_awaited_async: Crash # dartbug.com/31451
-throw_in_top_level_method_from_async: Crash # dartbug.com/31451

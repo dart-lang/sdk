@@ -8,21 +8,21 @@ library test;
 typedef void F<T>(T x);
 
 class C<T> {
-  F<T> get /*@genericContravariant=true*/ f1 => null;
-  List<F<T>> get /*@genericContravariant=true*/ f2 {
-    return [this. /*@callKind=this*/ f1];
+  F<T> get f1 => null;
+  List<F<T>> get f2 {
+    return [this.f1];
   }
 }
 
 void g1(C<num> c) {
   var x = c. /*@checkReturn=(num) -> void*/ f1;
   print('hello');
-  x /*@callKind=closure*/ (1.5);
+  x(1.5);
 }
 
 void g2(C<num> c) {
   F<int> x = c. /*@checkReturn=(num) -> void*/ f1;
-  x /*@callKind=closure*/ (1);
+  x(1);
 }
 
 void g3(C<num> c) {

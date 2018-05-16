@@ -6,10 +6,11 @@ import 'dart:convert';
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import 'constants.dart';
 
 main() {
   defineReflectiveSuite(() {

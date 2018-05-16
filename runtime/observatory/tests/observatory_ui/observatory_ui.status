@@ -8,8 +8,8 @@ heap_snapshot/element_test: RuntimeError # Issue 27925
 [ $runtime == drt || !$browser || $fast_startup ]
 *: SkipByDesign
 
-[ $runtime == ff || $runtime == safari ]
-allocation_profile: Skip
-cpu_profile_table: Skip
-persistent_handles_page: Skip
-
+# custom elements are not supported on old browsers, we don't
+# intend for observatory to work on old browser versions, so
+# skipping.
+[ $runtime == ff || $runtime == ie10 || $runtime == ie11 || $runtime == safari ]
+*: SkipByDesign

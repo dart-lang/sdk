@@ -120,14 +120,15 @@ class ClassIndex {
   DISALLOW_COPY_AND_ASSIGN(ClassIndex);
 };
 
-class KernelLoader {
+class KernelLoader : public ValueObject {
  public:
   explicit KernelLoader(Program* program);
-  static Object& LoadEntireProgram(Program* program);
+  static Object& LoadEntireProgram(Program* program,
+                                   bool process_pending_classes = true);
 
   // Returns the library containing the main procedure, null if there
   // was no main procedure, or a failure object if there was an error.
-  Object& LoadProgram(bool process_pending_classes = true);
+  RawObject* LoadProgram(bool process_pending_classes = true);
 
   // Finds all libraries that have been modified in this incremental
   // version of the kernel program file.
@@ -136,7 +137,7 @@ class KernelLoader {
                                     BitVector* modified_libs,
                                     bool force_reload);
 
-  void LoadLibrary(intptr_t index);
+  RawLibrary* LoadLibrary(intptr_t index);
 
   static void FinishLoading(const Class& klass);
 
@@ -234,6 +235,7 @@ class KernelLoader {
 
   void LoadLibraryImportsAndExports(Library* library);
 
+  Library& LookupLibraryOrNull(NameIndex library);
   Library& LookupLibrary(NameIndex library);
   Class& LookupClass(NameIndex klass);
 
@@ -299,11 +301,6 @@ class KernelLoader {
 
   GrowableArray<const Function*> functions_;
   GrowableArray<const Field*> fields_;
-};
-
-class ClassLoader {
- public:
-  void LoadClassMembers();
 };
 
 }  // namespace kernel

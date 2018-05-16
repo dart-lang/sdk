@@ -1,0 +1,18 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static field dynamic a = <core::int, core::String>{0: "aaa", 1: "bbb"};
+static field dynamic b = <core::double, core::int>{1.1: 1, 2.2: 2};
+static field dynamic c = <core::List<core::int>, core::Map<core::String, core::double>>{};
+static field dynamic d = <core::int, dynamic>{};
+static field dynamic e = <dynamic, core::int>{};
+static field dynamic f = <dynamic, dynamic>{};
+static method main() → dynamic {
+  self::a;
+  self::b;
+  self::c;
+  self::d;
+  self::e;
+  self::f;
+}

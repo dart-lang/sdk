@@ -7,6 +7,9 @@
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
+#include <functional>
+#include <initializer_list>
+
 #include "vm/growable_array.h"
 #include "vm/hash_map.h"
 
@@ -169,6 +172,12 @@ class Fragment {
 
   Fragment() : entry(NULL), current(NULL) {}
 
+  Fragment(std::initializer_list<Fragment> list) : entry(NULL), current(NULL) {
+    for (Fragment i : list) {
+      *this += i;
+    }
+  }
+
   explicit Fragment(Instruction* instruction)
       : entry(instruction), current(instruction) {}
 
@@ -177,6 +186,8 @@ class Fragment {
 
   bool is_open() { return entry == NULL || current != NULL; }
   bool is_closed() { return !is_open(); }
+
+  void Prepend(Instruction* start);
 
   Fragment& operator+=(const Fragment& other);
   Fragment& operator<<=(Instruction* next);
@@ -396,6 +407,7 @@ class TranslationHelper {
   const String& DartGetterName(NameIndex getter);
   const String& DartGetterName(NameIndex parent, StringIndex getter);
 
+  const String& DartFieldName(NameIndex field);
   const String& DartFieldName(NameIndex parent, StringIndex field);
 
   const String& DartMethodName(NameIndex method);
@@ -562,6 +574,25 @@ class BaseFlowGraphBuilder {
   // Drop given number of temps from the stack but preserve top of the stack.
   Fragment DropTempsPreserveTop(intptr_t num_temps_to_drop);
 
+  // Create a pseudo-local variable for a location on the expression stack.
+  // Note: SSA construction currently does not support inserting Phi functions
+  // for expression stack locations - only real local variables are supported.
+  // This means that you can't use MakeTemporary in a way that would require
+  // a Phi in SSA form. For example example below will be miscompiled or
+  // will crash debug VM with assertion when building SSA for optimizing
+  // compiler:
+  //
+  //     t = MakeTemporary()
+  //     Branch B1 or B2
+  //     B1:
+  //       StoreLocal(t, v0)
+  //       goto B3
+  //     B2:
+  //       StoreLocal(t, v1)
+  //       goto B3
+  //     B3:
+  //       LoadLocal(t)
+  //
   LocalVariable* MakeTemporary();
 
   Fragment PushArgument();
@@ -611,6 +642,14 @@ class BaseFlowGraphBuilder {
     return LoadLocal(parsed_function_->arg_desc_var());
   }
 
+  Fragment TestTypeArgsLen(Fragment eq_branch,
+                           Fragment neq_branch,
+                           intptr_t num_type_args);
+  Fragment TestDelayedTypeArgs(LocalVariable* closure,
+                               Fragment present,
+                               Fragment absent);
+  Fragment TestAnyTypeArgs(std::function<Fragment()> present, Fragment absent);
+
   JoinEntryInstr* BuildThrowNoSuchMethod();
 
  protected:
@@ -636,6 +675,7 @@ class BaseFlowGraphBuilder {
   intptr_t pending_argument_count_;
 
   friend class TryCatchBlock;
+  friend class KernelReaderHelper;
   friend class StreamingFlowGraphBuilder;
   friend class FlowGraphBuilder;
   friend class PrologueBuilder;
@@ -693,10 +733,11 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment BooleanNegate();
   Fragment CatchBlockEntry(const Array& handler_types,
                            intptr_t handler_index,
-                           bool needs_stacktrace);
+                           bool needs_stacktrace,
+                           bool is_synthesized);
   Fragment TryCatch(int try_handler_index);
-  Fragment CheckStackOverflowInPrologue();
-  Fragment CheckStackOverflow();
+  Fragment CheckStackOverflowInPrologue(TokenPosition position);
+  Fragment CheckStackOverflow(TokenPosition position);
   Fragment CloneContext(intptr_t num_context_variables);
   Fragment CreateArray();
   Fragment InstanceCall(TokenPosition position,
@@ -725,7 +766,9 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment LoadStaticField();
   Fragment NativeCall(const String* name, const Function* function);
   Fragment Return(TokenPosition position);
-  Fragment CheckNull(TokenPosition position, LocalVariable* receiver);
+  Fragment CheckNull(TokenPosition position,
+                     LocalVariable* receiver,
+                     const String& function_name);
   void SetResultTypeForStaticCall(StaticCallInstr* call,
                                   const Function& target,
                                   intptr_t argument_count,
@@ -764,14 +807,18 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment EvaluateAssertion();
   Fragment CheckVariableTypeInCheckedMode(const AbstractType& dst_type,
                                           const String& name_symbol);
-  Fragment CheckBooleanInCheckedMode();
-  Fragment CheckAssignable(const AbstractType& dst_type,
-                           const String& dst_name);
+  Fragment CheckBoolean();
+  Fragment CheckAssignable(
+      const AbstractType& dst_type,
+      const String& dst_name,
+      AssertAssignableInstr::Kind kind = AssertAssignableInstr::kUnknown);
 
   Fragment AssertBool();
-  Fragment AssertAssignable(TokenPosition position,
-                            const AbstractType& dst_type,
-                            const String& dst_name);
+  Fragment AssertAssignable(
+      TokenPosition position,
+      const AbstractType& dst_type,
+      const String& dst_name,
+      AssertAssignableInstr::Kind kind = AssertAssignableInstr::kUnknown);
   Fragment AssertSubtype(TokenPosition position,
                          const AbstractType& sub_type,
                          const AbstractType& super_type,
@@ -851,6 +898,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   friend class BreakableBlock;
   friend class CatchBlock;
   friend class ConstantEvaluator;
+  friend class KernelReaderHelper;
   friend class StreamingFlowGraphBuilder;
   friend class ScopeBuilder;
   friend class SwitchBlock;

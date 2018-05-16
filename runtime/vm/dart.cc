@@ -50,7 +50,6 @@ ThreadPool* Dart::thread_pool_ = NULL;
 DebugInfo* Dart::pprof_symbol_generator_ = NULL;
 ReadOnlyHandles* Dart::predefined_handles_ = NULL;
 Snapshot::Kind Dart::vm_snapshot_kind_ = Snapshot::kInvalid;
-const uint8_t* Dart::vm_snapshot_instructions_ = NULL;
 Dart_ThreadExitCallback Dart::thread_exit_callback_ = NULL;
 Dart_FileOpenCallback Dart::file_open_callback_ = NULL;
 Dart_FileReadCallback Dart::file_read_callback_ = NULL;
@@ -138,6 +137,7 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   SetFileCallbacks(file_open, file_read, file_write, file_close);
   set_entropy_source_callback(entropy_source);
   OS::InitOnce();
+  NOT_IN_PRODUCT(CodeObservers::InitOnce());
   start_time_micros_ = OS::GetCurrentMonotonicMicros();
   VirtualMemory::InitOnce();
   OSThread::InitOnce();
@@ -153,7 +153,6 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   ForwardingCorpse::InitOnce();
   Api::InitOnce();
   NativeSymbolResolver::InitOnce();
-  NOT_IN_PRODUCT(CodeObservers::InitOnce());
   NOT_IN_PRODUCT(Profiler::InitOnce());
   SemiSpace::InitOnce();
   NOT_IN_PRODUCT(Metric::InitOnce());
@@ -217,6 +216,7 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
         return strdup("Precompiled runtime requires a precompiled snapshot");
 #else
         StubCode::InitOnce();
+        Object::FinishInitOnce(vm_isolate_);
         // MallocHooks can't be initialized until StubCode has been since stack
         // trace generation relies on stub methods that are generated in
         // StubCode::InitOnce().
@@ -228,12 +228,13 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
       } else {
         return strdup("Invalid vm isolate snapshot seen");
       }
-      FullSnapshotReader reader(snapshot, instructions_snapshot, T);
+      FullSnapshotReader reader(snapshot, instructions_snapshot, NULL, NULL, T);
       const Error& error = Error::Handle(reader.ReadVMSnapshot());
       if (!error.IsNull()) {
         // Must copy before leaving the zone.
         return strdup(error.ToErrorCString());
       }
+      Object::FinishInitOnce(vm_isolate_);
 #if !defined(PRODUCT)
       if (tds.enabled()) {
         tds.SetNumArguments(2);
@@ -262,6 +263,7 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
 #else
       vm_snapshot_kind_ = Snapshot::kNone;
       StubCode::InitOnce();
+      Object::FinishInitOnce(vm_isolate_);
       // MallocHooks can't be initialized until StubCode has been since stack
       // trace generation relies on stub methods that are generated in
       // StubCode::InitOnce().
@@ -500,8 +502,10 @@ static bool IsSnapshotCompatible(Snapshot::Kind vm_kind,
 
 RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
                                   const uint8_t* snapshot_instructions,
-                                  intptr_t snapshot_length,
-                                  kernel::Program* kernel_program,
+                                  const uint8_t* shared_data,
+                                  const uint8_t* shared_instructions,
+                                  const uint8_t* kernel_buffer,
+                                  intptr_t kernel_buffer_size,
                                   void* data) {
   // Initialize the new isolate.
   Thread* T = Thread::Current();
@@ -520,11 +524,11 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
   }
 
   Error& error = Error::Handle(T->zone());
-  error = Object::Init(I, kernel_program);
+  error = Object::Init(I, kernel_buffer, kernel_buffer_size);
   if (!error.IsNull()) {
     return error.raw();
   }
-  if ((snapshot_data != NULL) && kernel_program == NULL) {
+  if ((snapshot_data != NULL) && kernel_buffer == NULL) {
     // Read the snapshot and setup the initial state.
     NOT_IN_PRODUCT(TimelineDurationScope tds(T, Timeline::GetIsolateStream(),
                                              "IsolateSnapshotReader"));
@@ -544,7 +548,8 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
     if (FLAG_trace_isolates) {
       OS::Print("Size of isolate snapshot = %" Pd "\n", snapshot->length());
     }
-    FullSnapshotReader reader(snapshot, snapshot_instructions, T);
+    FullSnapshotReader reader(snapshot, snapshot_instructions, shared_data,
+                              shared_instructions, T);
     const Error& error = Error::Handle(reader.ReadIsolateSnapshot());
     if (!error.IsNull()) {
       return error.raw();
@@ -562,7 +567,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
       MegamorphicCacheTable::PrintSizes(I);
     }
   } else {
-    if ((vm_snapshot_kind_ != Snapshot::kNone) && kernel_program == NULL) {
+    if ((vm_snapshot_kind_ != Snapshot::kNone) && kernel_buffer == NULL) {
       const String& message =
           String::Handle(String::New("Missing isolate snapshot"));
       return ApiError::New(message);
@@ -587,7 +592,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
       Code::Handle(I->object_store()->megamorphic_miss_code());
   I->set_ic_miss_code(miss_code);
 
-  if ((snapshot_data == NULL) || (kernel_program != NULL)) {
+  if ((snapshot_data == NULL) || (kernel_buffer != NULL)) {
     const Error& error = Error::Handle(I->object_store()->PreallocateObjects());
     if (!error.IsNull()) {
       return error.raw();
@@ -712,7 +717,9 @@ const char* Dart::FeaturesString(Isolate* isolate,
 }
 
 void Dart::RunShutdownCallback() {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  ASSERT(thread->execution_state() == Thread::kThreadInNative);
+  Isolate* isolate = thread->isolate();
   void* callback_data = isolate->init_callback_data();
   Dart_IsolateShutdownCallback callback = Isolate::ShutdownCallback();
   if (callback != NULL) {

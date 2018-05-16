@@ -20,6 +20,9 @@ interface Document {
   [Custom] Element createElement(DOMString localName, DOMString typeExtension);
   [Custom] Element createElementNS(DOMString namespaceURI, DOMString qualifiedName);
   [Custom] Element createElementNS(DOMString namespaceURI, DOMString qualifiedName, DOMString typeExtension);
+  [DartName=registerElement2] CustomElementConstructor registerElement(DOMString type, optional ElementRegistrationOptions options);
+  [DartSuppress] readonly attribute (HTMLScriptElement or SVGScriptElement)? currentScript;
+  readonly attribute HTMLScriptElement? currentScript;
 };
 
 [DartSupplemental]
@@ -82,8 +85,8 @@ interface CanvasRenderingContext2D {
 };
 
 interface HTMLCanvasElement {
-  [DartSuppress] DOMString toDataURL([TreatNullAs=NullString, TreatUndefinedAs=NullString,Default=Undefined] DOMString type);
-  [Custom] DOMString toDataURL([TreatNullAs=NullString, TreatUndefinedAs=NullString,Default=Undefined] DOMString type, optional float quality);
+  [DartSuppress] DOMString toDataURL([TreatNullAs=NullString, Default=Undefined] DOMString type);
+  [Custom] DOMString toDataURL([TreatNullAs=NullString, Default=Undefined] DOMString type, optional float quality);
 };
 
 [DartSupplemental]
@@ -124,6 +127,7 @@ interface HTMLMediaElement {
   attribute EventListener ontimeupdate;
   attribute EventListener onvolumechange;
   attribute EventListener onwaiting;
+  attribute EventListener onwheel;
 };
 
 [DartSupplemental]
@@ -131,10 +135,108 @@ interface RTCPeerConnection {
   [DartSuppress, RaisesException] void addIceCandidate(RTCIceCandidate candidate);
 };
 
+// See implementation in tools/dom/templates for canvas and offscreenCanvas.
+interface WebGLCanvas {
+};
+
+[DartSupplemental]
+interface WebGL2RenderingContext {
+    [DartSuppress] readonly attribute (HTMLCanvasElement or OffscreenCanvas) canvas;
+    readonly attribute WebGLCanvas canvas;
+};
+
+[DartSupplemental]
+interface WebGLRenderingContext {
+    [DartSuppress] readonly attribute (HTMLCanvasElement or OffscreenCanvas) canvas;
+    readonly attribute HTMLCanvasElement canvas;
+};
+
 [DartSupplemental]
 interface WebGL2RenderingContextBase {
+    [DartSuppress] readonly attribute (HTMLCanvasElement or OffscreenCanvas) canvas;
+    readonly attribute WebGLCanvas canvas;
+    [DartName=bufferData2] void bufferData(GLenum target, [AllowShared] ArrayBufferView srcData, GLenum usage, GLuint srcOffset, optional GLuint length = 0);
+    [DartName=bufferSubData2] void bufferSubData(GLenum target, GLintptr dstByteOffset, [AllowShared] ArrayBufferView srcData, GLuint srcOffset, optional GLuint length = 0);
+    [DartName=compressedTexImage2D2] void compressedTexImage2D(GLenum target, GLint level, GLenum internalformat,
+                              GLsizei width, GLsizei height, GLint border,
+                              [AllowShared] ArrayBufferView data, GLuint srcOffset,
+                              optional GLuint srcLengthOverride = 0);
+    [DartName=compressedTexImage2D3] void compressedTexImage2D(GLenum target, GLint level, GLenum internalformat,
+                              GLsizei width, GLsizei height, GLint border,
+                              GLsizei imageSize, GLintptr offset);
+    [DartName=compressedTexSubImage2D2] void compressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
+                                 GLsizei width, GLsizei height, GLenum format,
+                                 [AllowShared] ArrayBufferView data, GLuint srcOffset,
+                                 optional GLuint srcLengthOverride = 0);
+    [DartName=compressedTexSubImage2D3] void compressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
+                                 GLsizei width, GLsizei height, GLenum format,
+                                 GLsizei imageSize, GLintptr offset);
+    [DartName=compressedTexImage3D2] void compressedTexImage3D(GLenum target, GLint level, GLenum internalformat,
+                              GLsizei width, GLsizei height, GLsizei depth, GLint border,
+                              GLsizei imageSize, GLintptr offset);
+    [DartName=compressedTexSubImage3D2] void compressedTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset,
+                                 GLsizei width, GLsizei height, GLsizei depth, GLenum format,
+                                 GLsizei imageSize, GLintptr offset);
+    [DartName=readPixels2] void readPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, ArrayBufferView dstData, GLintptr offset);
     [DartName=readPixels2] void readPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLintptr offset);
     [DartName=texImage2D2] void texImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, GLintptr offset);
+    [DartName=texImage2D2] void texImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, ImageData data);
+    [DartName=texImage2D2] void texImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, HTMLImageElement image);
+    [DartName=texImage2D2] void texImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, HTMLCanvasElement canvas);
+    [DartName=texImage2D2] void texImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, HTMLVideoElement video);
+    [DartName=texImage2D2] void texImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, ImageBitmap bitmap);
+    [DartName=texImage2D2] void texImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, [AllowShared] ArrayBufferView srcData, GLuint srcOffset);
+    [DartName=texSubImage2D2] void texSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, GLintptr offset);
+    [DartName=texSubImage2D2] void texSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, ImageData data);
+    [DartName=texSubImage2D2] void texSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, HTMLImageElement image);
+    [DartName=texSubImage2D2] void texSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, HTMLCanvasElement canvas);
+    [DartName=texSubImage2D2] void texSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, HTMLVideoElement video);
+    [DartName=texSubImage2D2] void texSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, ImageBitmap bitmap);
+    [DartName=texSubImage2D2] void texSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, [AllowShared] ArrayBufferView srcData, GLuint srcOffset);
+    [DartName=uniform1fv2] void uniform1fv(WebGLUniformLocation? location, [FlexibleArrayBufferView] Float32Array v,
+                    GLuint srcOffset, optional GLuint srcLength = 0);
+    [DartName=uniform1fv2] void uniform1fv(WebGLUniformLocation? location, sequence<GLfloat> v,
+                    GLuint srcOffset, optional GLuint srcLength = 0);
+    [DartName=uniform2fv2] void uniform2fv(WebGLUniformLocation? location, [FlexibleArrayBufferView] Float32Array v,
+                    GLuint srcOffset, optional GLuint srcLength = 0);
+    [DartName=uniform2fv2] void uniform2fv(WebGLUniformLocation? location, sequence<GLfloat> v,
+                    GLuint srcOffset, optional GLuint srcLength = 0);
+    [DartName=uniform3fv2] void uniform3fv(WebGLUniformLocation? location, [FlexibleArrayBufferView] Float32Array v,
+                    GLuint srcOffset, optional GLuint srcLength = 0);
+    [DartName=uniform3fv2] void uniform3fv(WebGLUniformLocation? location, sequence<GLfloat> v,
+                    GLuint srcOffset, optional GLuint srcLength = 0);
+    [DartName=uniform4fv2] void uniform4fv(WebGLUniformLocation? location, [FlexibleArrayBufferView] Float32Array v,
+                    GLuint srcOffset, optional GLuint srcLength = 0);
+    [DartName=uniform4fv2] void uniform4fv(WebGLUniformLocation? location, sequence<GLfloat> v,
+                    GLuint srcOffset, optional GLuint srcLength = 0);
+    [DartName=uniform1iv2] void uniform1iv(WebGLUniformLocation? location, [FlexibleArrayBufferView] Int32Array v,
+                    GLuint srcOffset, optional GLuint srcLength = 0);
+    [DartName=uniform1iv2] void uniform1iv(WebGLUniformLocation? location, sequence<GLint> v,
+                    GLuint srcOffset, optional GLuint srcLength = 0);
+    [DartName=uniform2iv2] void uniform2iv(WebGLUniformLocation? location, [FlexibleArrayBufferView] Int32Array v,
+                    GLuint srcOffset, optional GLuint srcLength = 0);
+    [DartName=uniform2iv2] void uniform2iv(WebGLUniformLocation? location, sequence<GLint> v,
+                    GLuint srcOffset, optional GLuint srcLength = 0);
+    [DartName=uniform3iv2] void uniform3iv(WebGLUniformLocation? location, [FlexibleArrayBufferView] Int32Array v,
+                    GLuint srcOffset, optional GLuint srcLength = 0);
+    [DartName=uniform3iv2] void uniform3iv(WebGLUniformLocation? location, sequence<GLint> v,
+                    GLuint srcOffset, optional GLuint srcLength = 0);
+    [DartName=uniform4iv2] void uniform4iv(WebGLUniformLocation? location, [FlexibleArrayBufferView] Int32Array v,
+                    GLuint srcOffset, optional GLuint srcLength = 0);
+    [DartName=uniform4iv2] void uniform4iv(WebGLUniformLocation? location, sequence<GLint> v,
+                    GLuint srcOffset, optional GLuint srcLength = 0);
+    [DartName=uniformMatrix2fv2] void uniformMatrix2fv(WebGLUniformLocation? location, GLboolean transpose, [AllowShared] Float32Array array,
+                          GLuint srcOffset, optional GLuint srcLength = 0);
+    [DartName=uniformMatrix2fv2] void uniformMatrix2fv(WebGLUniformLocation? location, GLboolean transpose, sequence<GLfloat> array,
+                          GLuint srcOffset, optional GLuint srcLength = 0);
+    [DartName=uniformMatrix3fv2] void uniformMatrix3fv(WebGLUniformLocation? location, GLboolean transpose, [AllowShared] Float32Array array,
+                          GLuint srcOffset, optional GLuint srcLength = 0);
+    [DartName=uniformMatrix3fv2] void uniformMatrix3fv(WebGLUniformLocation? location, GLboolean transpose, sequence<GLfloat> array,
+                          GLuint srcOffset, optional GLuint srcLength = 0);
+    [DartName=uniformMatrix4fv2] void uniformMatrix4fv(WebGLUniformLocation? location, GLboolean transpose, [AllowShared] Float32Array array,
+                          GLuint srcOffset, optional GLuint srcLength = 0);
+    [DartName=uniformMatrix4fv2] void uniformMatrix4fv(WebGLUniformLocation? location, GLboolean transpose, sequence<GLfloat> array,
+                          GLuint srcOffset, optional GLuint srcLength = 0);
 };
 
 [DartSupplemental]
@@ -158,7 +260,7 @@ interface IDBIndex {
 
 [DartSupplemental]
 interface HTMLMediaElement {
-  DOMString canPlayType([Default=Undefined] optional DOMString type, [Default=Undefined, TreatNullAs=NullString, TreatUndefinedAs=NullString, DartForceOptional] optional DOMString keySystem);
+  DOMString canPlayType([Default=Undefined] optional DOMString type, [Default=Undefined, TreatNullAs=NullString, DartForceOptional] optional DOMString keySystem);
 };
 
 [DartSupplemental]
@@ -208,17 +310,16 @@ interface SVGNumber {
   [DartStrictTypeChecking, Custom] attribute float value;
 };
 
-// Keep it in to generate Dart code, C++ implementation is filterd out in generator.
-[Callback]
-interface MutationCallback {
-  [Custom] boolean handleEvent(MutationRecordArray mutations, MutationObserver observer);
+[DartSupplemental]
+interface MediaDevices {
+  [DartSuppress] Promise<MediaStream> getUserMedia(optional MediaStreamConstraints constraints);
 };
 
-[DartSupplemental,
-  CustomConstructor,
-  // Provide missing constructor signature.
-  Constructor(MutationCallback callback)]
-interface MutationObserver {
+[DartSupplemental]
+interface Navigator {
+  [DartSuppress] void getUserMedia(MediaStreamConstraints constraints,
+                                   NavigatorUserMediaSuccessCallback successCallback,
+                                   NavigatorUserMediaErrorCallback errorCallback);
 };
 
 [DartSupplemental,
@@ -245,34 +346,14 @@ interface XMLHttpRequest {
 [DartSuppress]
 interface AbstractView {};
 
-interface InjectedScriptHost {
-    [Custom] void inspect(any objectId, any hints);
-    [DartSuppress, Custom] any inspectedObject(long num);
-    [DartSuppress, Custom] any internalConstructorName(any obj);
-    [DartSuppress, Custom] boolean isHTMLAllCollection(any obj);
-    [DartSuppress, Custom] DOMString type(any obj);
-    [DartSuppress, Custom] any functionDetails(any obj);
-    [DartSuppress, Custom] any[] getInternalProperties(any obj);
-    [DartSuppress, Custom] EventListener[] getEventListeners(EventTarget target);
-    [DartSuppress, Custom] any evaluate(DOMString text);
-    [DartSuppress, Custom] void debugFunction(any fn);
-    [DartSuppress, Custom] void undebugFunction(any fn);
-    [DartSuppress, Custom] void monitorFunction(any fn);
-    [DartSuppress, Custom] void unmonitorFunction(any fn);
-
-    // Only declarative scope (local, with and catch) is accepted. Returns undefined.
-    [DartSuppress, Custom] any setFunctionVariableValue(any functionObject, long scopeIndex, DOMString variableName, any newValue);
-};
-
-
-
 [DartSuppress]
 interface JavaScriptCallFrame {};
 
-
 [DartSupplemental]
 interface Location {
+  [DartSuppress] attribute URLString href;
   [Custom=Setter] attribute DOMString href;
+  [Custom=Setter] attribute TrustedURL trustedHref;
 
   [Custom] void assign(optional DOMString url);
   [Custom] void replace([Default=Undefined] optional DOMString url);
@@ -291,6 +372,21 @@ interface Location {
 // TODO(jacobr): reenable these new Blink features.
 [DartSuppress]
 interface ImageBitmapFactories {};
+
+[DartSupplemental]
+interface ImageData {
+    [DartSuppress] ImageDataColorSettings getColorSettings();
+    // Below needs 'any' because ImageDataArray is union of (Uint8ClampedArray
+    // or Uint16Array or Float32Array) 
+    [DartSuppress] readonly attribute any dataUnion;
+};
+
+[DartSupplemental,
+  CustomConstructor,
+  Constructor()
+]
+interface MessageChannel {
+};
 
 // See https://chromiumcodereview.appspot.com/15901002 for the V8 implementation of
 // TextEncoder/TextDecoder
@@ -370,9 +466,15 @@ interface SVGElementInstance {
 
 [DartSupplemental]
 interface DOMImplementation {
-    [DartSuppress]
-    CSSStyleSheet createCSSStyleSheet([Default=Undefined] optional DOMString title,
+    [DartSuppress] CSSStyleSheet createCSSStyleSheet([Default=Undefined] optional DOMString title,
                                       [Default=Undefined] optional DOMString media);
+    [DartSuppress] Document createHTMLDocument(optional DOMString title);
+    HTMLDocument createHTMLDocument(optional DOMString title);
+};
+
+[DartSupplemental]
+interface DOMRect {
+    [DartSuppress] static DOMRect fromRect(optional DOMRectInit other);
 };
 
 [DartSupplemental]
@@ -403,8 +505,8 @@ interface AudioBufferSourceNode {
 };
 
 [DartSupplemental]
-interface AudioBufferSourceNode : AudioSourceNode {
-    [DartSuppress] readonly attribute AudioParam gain;
+interface AudioScheduledSourceNode {
+    [DartName=start2] void start(optional double when);
 };
 
 // Remove operations webkitRequestFullscreen replaced w/ requestFullscreen.
@@ -412,6 +514,11 @@ interface AudioBufferSourceNode : AudioSourceNode {
 interface Element : Node {
     [DartSuppress] void webkitRequestFullScreen([Default=Undefined] optional unsigned short flags);
     [DartSuppress] void webkitRequestFullscreen();
+};
+
+[DartSupplemental]
+interface CSS {
+  [DartName=inch] static CSSUnitValue in(double value);
 };
 
 [DartSupplemental]
@@ -482,10 +589,14 @@ interface CSSCharsetRule : CSSRule {
     [MeasureAs=CSSCharsetRuleEncoding] attribute DOMString encoding;
 };
 
+[DartSupplemental]
+interface Event {
+  [DartSuppress] readonly attribute object path;
+};
 
 [DartSupplemental]
 interface EventTarget {
-    [DartSuppress] void addEventListener(DOMString type, EventListener? listener, optional (EventListenerOptions or boolean) options);
+    [DartSuppress] void addEventListener(DOMString type, EventListener? listener, optional (AddEventListenerOptions or boolean) options);
     [DartSuppress] void removeEventListener(DOMString type, EventListener? listener, optional (EventListenerOptions or boolean) options);
     [Custom] void addEventListener(DOMString type, EventListener? listener, optional boolean options);
     [Custom] void removeEventListener(DOMString type, EventListener? listener, optional boolean options);

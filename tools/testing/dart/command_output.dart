@@ -330,7 +330,7 @@ class BrowserTestJsonResult {
     }
 
     try {
-      var events = JSON.decode(content);
+      var events = jsonDecode(content);
       if (events != null) {
         validate("Message must be a List", events is List);
 

@@ -1,0 +1,26 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  final field core::int bar;
+  const constructor •(core::int bar) → void
+    : self::A::bar = bar, super core::Object::•()
+    ;
+}
+class B extends core::Object {
+  final field self::A baz;
+  const constructor •(self::A baz) → void
+    : self::B::baz = baz, super core::Object::•()
+    ;
+}
+class C extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method fun() → dynamic {
+    new self::B::•(new self::A::•(self::foo));
+  }
+}
+static const field core::int foo = const core::int::fromEnvironment("fisk");
+static method main() → dynamic {}

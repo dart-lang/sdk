@@ -12,13 +12,16 @@ import 'package:kernel/ast.dart'
     show
         Arguments,
         Class,
+        Component,
         Expression,
+        FunctionNode,
         Library,
         LibraryDependency,
-        Program,
+        ProcedureKind,
         Supertype;
 
-import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+import 'package:kernel/class_hierarchy.dart'
+    show ClassHierarchy, HandleAmbiguousSupertypes;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
@@ -64,13 +67,17 @@ import '../fasta_codes.dart' as fasta_codes;
 import '../kernel/kernel_shadow_ast.dart'
     show ShadowClass, ShadowTypeInferenceEngine;
 
+import '../kernel/kernel_builder.dart' show KernelProcedureBuilder;
+
 import '../kernel/kernel_target.dart' show KernelTarget;
+
+import '../kernel/body_builder.dart' show BodyBuilder;
 
 import '../loader.dart' show Loader;
 
 import '../parser/class_member_parser.dart' show ClassMemberParser;
 
-import '../parser.dart' show lengthForToken, offsetForToken;
+import '../parser.dart' show Parser, lengthForToken, offsetForToken;
 
 import '../problems.dart' show internalProblem;
 
@@ -205,6 +212,37 @@ class SourceLoader<L> extends Loader<L> {
         }
       }
     }
+  }
+
+  Future<Expression> buildExpression(
+      SourceLibraryBuilder library,
+      String enclosingClass,
+      bool isInstanceMember,
+      FunctionNode parameters) async {
+    Token token = await tokenize(library, suppressLexicalErrors: false);
+    if (token == null) return null;
+    DietListener dietListener = createDietListener(library);
+
+    Builder parent = library;
+    if (enclosingClass != null) {
+      Builder cls = dietListener.memberScope.lookup(enclosingClass, -1, null);
+      if (cls is ClassBuilder) {
+        parent = cls;
+        dietListener
+          ..currentClass = cls
+          ..memberScope = cls.scope.copyWithParent(
+              dietListener.memberScope.withTypeVariables(cls.typeVariables),
+              "debugExpression in $enclosingClass");
+      }
+    }
+    KernelProcedureBuilder builder = new KernelProcedureBuilder(null, 0, null,
+        "debugExpr", null, null, ProcedureKind.Method, library, 0, -1, -1)
+      ..parent = parent;
+    BodyBuilder listener = dietListener.createListener(
+        builder, dietListener.memberScope, isInstanceMember);
+
+    return listener.parseSingleExpression(
+        new Parser(listener), token, parameters);
   }
 
   KernelTarget get target => super.target;
@@ -348,11 +386,11 @@ class SourceLoader<L> extends Loader<L> {
     ticker.logMs("Resolved $count constructors");
   }
 
-  void finishTypeVariables(ClassBuilder object) {
+  void finishTypeVariables(ClassBuilder object, TypeBuilder dynamicType) {
     int count = 0;
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == this) {
-        count += library.finishTypeVariables(object);
+        count += library.finishTypeVariables(object, dynamicType);
       }
     });
     ticker.logMs("Resolved $count type-variable bounds");
@@ -525,10 +563,12 @@ class SourceLoader<L> extends Loader<L> {
                         .withArguments(builder.fullNameForErrors),
                     cls.charOffset,
                     noLength,
-                    context: templateIllegalMixinDueToConstructorsCause
-                        .withArguments(builder.fullNameForErrors)
-                        .withLocation(constructory.fileUri,
-                            constructory.charOffset, noLength));
+                    context: [
+                      templateIllegalMixinDueToConstructorsCause
+                          .withArguments(builder.fullNameForErrors)
+                          .withLocation(constructory.fileUri,
+                              constructory.charOffset, noLength)
+                    ]);
               }
             }
           }
@@ -544,7 +584,7 @@ class SourceLoader<L> extends Loader<L> {
     ticker.logMs("Checked restricted supertypes");
   }
 
-  void buildProgram() {
+  void buildComponent() {
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == this) {
         SourceLibraryBuilder sourceLibrary = library;
@@ -554,14 +594,16 @@ class SourceLoader<L> extends Loader<L> {
         }
       }
     });
-    ticker.logMs("Built program");
+    ticker.logMs("Built component");
   }
 
-  Program computeFullProgram() {
+  Component computeFullComponent() {
     Set<Library> libraries = new Set<Library>();
     List<Library> workList = <Library>[];
     builders.forEach((Uri uri, LibraryBuilder library) {
-      if (!library.isPart && !library.isPatch) {
+      if (!library.isPart &&
+          !library.isPatch &&
+          (library.loader == this || library.fileUri.scheme == "dart")) {
         if (libraries.add(library.target)) {
           workList.add(library.target);
         }
@@ -575,20 +617,41 @@ class SourceLoader<L> extends Loader<L> {
         }
       }
     }
-    return new Program()..libraries.addAll(libraries);
+    return new Component()..libraries.addAll(libraries);
+  }
+
+  List<Class> computeListOfLoaderClasses() {
+    List<Class> result = <Class>[];
+    builders.forEach((Uri uri, LibraryBuilder libraryBuilder) {
+      if (!libraryBuilder.isPart &&
+          !libraryBuilder.isPatch &&
+          (libraryBuilder.loader == this)) {
+        Library library = libraryBuilder.target;
+        result.addAll(library.classes);
+      }
+    });
+    return result;
   }
 
   void computeHierarchy() {
     List<List> ambiguousTypesRecords = [];
-    hierarchy = new ClassHierarchy(computeFullProgram(),
-        onAmbiguousSupertypes: (Class cls, Supertype a, Supertype b) {
+    HandleAmbiguousSupertypes onAmbiguousSupertypes =
+        (Class cls, Supertype a, Supertype b) {
       if (ambiguousTypesRecords != null) {
         ambiguousTypesRecords.add([cls, a, b]);
       }
-    },
-        mixinInferrer: target.strongMode
-            ? new StrongModeMixinInferrer(this)
-            : new LegacyModeMixinInferrer());
+    };
+    if (hierarchy == null) {
+      hierarchy = new ClassHierarchy(computeFullComponent(),
+          onAmbiguousSupertypes: onAmbiguousSupertypes,
+          mixinInferrer: target.strongMode
+              ? new StrongModeMixinInferrer(this)
+              : new LegacyModeMixinInferrer());
+    } else {
+      hierarchy.onAmbiguousSupertypes = onAmbiguousSupertypes;
+      hierarchy.applyTreeChanges(const [], computeListOfLoaderClasses(),
+          reissueAmbiguousSupertypesFor: computeFullComponent());
+    }
     for (List record in ambiguousTypesRecords) {
       handleAmbiguousSupertypes(record[0], record[1], record[2]);
     }
@@ -614,8 +677,8 @@ class SourceLoader<L> extends Loader<L> {
 
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
 
-  void computeCoreTypes(Program program) {
-    coreTypes = new CoreTypes(program);
+  void computeCoreTypes(Component component) {
+    coreTypes = new CoreTypes(component);
     ticker.logMs("Computed core types");
   }
 
@@ -628,6 +691,28 @@ class SourceLoader<L> extends Loader<L> {
       }
     }
     ticker.logMs("Checked overrides");
+  }
+
+  void checkAbstractMembers(List<SourceClassBuilder> sourceClasses) {
+    if (!target.strongMode) return;
+    assert(hierarchy != null);
+    for (SourceClassBuilder builder in sourceClasses) {
+      if (builder.library.loader == this) {
+        builder.checkAbstractMembers(coreTypes, hierarchy);
+      }
+    }
+    ticker.logMs("Checked abstract members");
+  }
+
+  void addNoSuchMethodForwarders(List<SourceClassBuilder> sourceClasses) {
+    if (!target.backendTarget.enableNoSuchMethodForwarders) return;
+
+    for (SourceClassBuilder builder in sourceClasses) {
+      if (builder.library.loader == this) {
+        builder.addNoSuchMethodForwarders(target, hierarchy);
+      }
+    }
+    ticker.logMs("Added noSuchMethod forwarders");
   }
 
   void createTypeInferenceEngine() {
@@ -673,11 +758,27 @@ class SourceLoader<L> extends Loader<L> {
   /// assign their types.
   void performTopLevelInference(List<SourceClassBuilder> sourceClasses) {
     typeInferenceEngine.finishTopLevelFields();
+    List<Class> changedClasses = new List<Class>();
     for (var builder in orderedClasses) {
       ShadowClass class_ = builder.target;
+      int memberCount = class_.fields.length +
+          class_.constructors.length +
+          class_.procedures.length +
+          class_.redirectingFactoryConstructors.length;
       class_.finalizeCovariance(interfaceResolver);
       ShadowClass.clearClassInferenceInfo(class_);
+      int newMemberCount = class_.fields.length +
+          class_.constructors.length +
+          class_.procedures.length +
+          class_.redirectingFactoryConstructors.length;
+      if (newMemberCount != memberCount) {
+        // The inference potentially adds new members (but doesn't otherwise
+        // change the classes), so if the member count has changed we need to
+        // update the class in the class hierarchy.
+        changedClasses.add(class_);
+      }
     }
+
     orderedClasses = null;
     typeInferenceEngine.finishTopLevelInitializingFormals();
     if (instrumentation != null) {
@@ -691,11 +792,8 @@ class SourceLoader<L> extends Loader<L> {
     // Since finalization of covariance may have added forwarding stubs, we need
     // to recompute the class hierarchy so that method compilation will properly
     // target those forwarding stubs.
-    // TODO(paulberry): could we make this unnecessary by not clearing class
-    // inference info?
-    typeInferenceEngine.classHierarchy = hierarchy = new ClassHierarchy(
-        computeFullProgram(),
-        onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
+    hierarchy.onAmbiguousSupertypes = ignoreAmbiguousSupertypes;
+    hierarchy.applyMemberChanges(changedClasses, findDescendants: true);
     ticker.logMs("Performed top level inference");
   }
 
@@ -746,7 +844,7 @@ class SourceLoader<L> extends Loader<L> {
 
   void recordMessage(Severity severity, Message message, int charOffset,
       int length, Uri fileUri,
-      {LocatedMessage context}) {
+      {List<LocatedMessage> context}) {
     if (instrumentation == null) return;
 
     if (charOffset == -1 &&
@@ -796,8 +894,18 @@ class SourceLoader<L> extends Loader<L> {
         // TODO(ahe): Should I add an InstrumentationValue for Message?
         new InstrumentationValueLiteral(message.code.name));
     if (context != null) {
-      instrumentation.record(context.uri, context.charOffset, "context",
-          new InstrumentationValueLiteral(context.code.name));
+      for (LocatedMessage contextMessage in context) {
+        instrumentation.record(
+            contextMessage.uri,
+            contextMessage.charOffset,
+            "context",
+            new InstrumentationValueLiteral(contextMessage.code.name));
+      }
     }
+  }
+
+  void releaseAncillaryResources() {
+    hierarchy = null;
+    typeInferenceEngine = null;
   }
 }

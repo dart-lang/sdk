@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'dart:io';
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
@@ -19,11 +20,9 @@ import 'package:analysis_server/src/status/ast_writer.dart';
 import 'package:analysis_server/src/status/element_writer.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analysis_server/src/utilities/profiling.dart';
-import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
-import 'package:analyzer/source/sdk_ext.dart';
+import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -35,6 +34,8 @@ import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/source/sdk_ext.dart';
 import 'package:path/path.dart' as pathPackage;
 
 final String kCustomCss = '''
@@ -214,7 +215,7 @@ class CommunicationsPage extends DiagnosticPageWithNav {
                 'Latency statistics for analysis server communications.');
 
   @override
-  void generateContent(Map<String, String> params) {
+  Future generateContent(Map<String, String> params) async {
     void writeRow(List<String> data, {List<String> classes}) {
       buf.write("<tr>");
       for (int i = 0; i < data.length; i++) {
@@ -302,7 +303,7 @@ class CompletionPage extends DiagnosticPageWithNav {
             description: 'Latency statistics for code completion.');
 
   @override
-  void generateContent(Map<String, String> params) {
+  Future generateContent(Map<String, String> params) async {
     CompletionDomainHandler completionDomain = server.handlers
         .firstWhere((handler) => handler is CompletionDomainHandler);
 
@@ -391,7 +392,7 @@ class ContextsPage extends DiagnosticPageWithNav {
   }
 
   @override
-  void generateContent(Map<String, String> params) {
+  Future generateContent(Map<String, String> params) async {
     Map<Folder, AnalysisDriver> driverMap = server.driverMap;
     if (driverMap.isEmpty) {
       blankslate('No contexts.');
@@ -583,7 +584,7 @@ abstract class DiagnosticPage extends Page {
     buf.writeln('</div>');
   }
 
-  void generateContent(Map<String, String> params);
+  Future generateContent(Map<String, String> params);
 
   void generateFooter() {
     buf.writeln('''
@@ -790,7 +791,7 @@ class EnvironmentVariablesPage extends DiagnosticPageWithNav {
                 'System environment variables as seen from the analysis server.');
 
   @override
-  void generateContent(Map<String, String> params) {
+  Future generateContent(Map<String, String> params) async {
     buf.writeln('<table>');
     buf.writeln('<tr><th>Variable</th><th>Value</th></tr>');
     for (String key in Platform.environment.keys.toList()..sort()) {
@@ -807,7 +808,7 @@ class ExceptionPage extends DiagnosticPage {
   ExceptionPage(Site site, String message, this.trace)
       : super(site, '', '500 Oops', description: message);
 
-  void generateContent(Map<String, String> params) {
+  Future generateContent(Map<String, String> params) async {
     p(trace.toString(), style: 'white-space: pre');
   }
 }
@@ -822,7 +823,7 @@ class ExceptionsPage extends DiagnosticPageWithNav {
   String get navDetail => printInteger(exceptions.length);
 
   @override
-  void generateContent(Map<String, String> params) {
+  Future generateContent(Map<String, String> params) async {
     if (exceptions.isEmpty) {
       blankslate('No exceptions encountered!');
     } else {
@@ -844,7 +845,7 @@ class FeedbackPage extends DiagnosticPage {
             description: 'Providing feedback and filing issues.');
 
   @override
-  void generateContent(Map<String, String> params) {
+  Future generateContent(Map<String, String> params) async {
     final String issuesUrl = 'https://github.com/dart-lang/sdk/issues';
     p(
       'To file issues or feature requests, see our '
@@ -887,7 +888,7 @@ class InstrumentationPage extends DiagnosticPageWithNav {
                 'Verbose instrumentation data from the analysis server.');
 
   @override
-  void generateContent(Map<String, String> params) {
+  Future generateContent(Map<String, String> params) async {
     p(
         'Instrumentation can be enabled by starting the analysis server with the '
         '<code>--instrumentation-log-file=path/to/file</code> flag.',
@@ -929,15 +930,59 @@ class MemoryAndCpuPage extends DiagnosticPageWithNav {
   }
 
   @override
-  void generateContent(Map<String, String> params) {
-    UsageInfo usage = profiler.getProcessUsageSync(pid);
+  Future generateContent(Map<String, String> params) async {
+    UsageInfo usage = await profiler.getProcessUsage(pid);
+
+    developer.ServiceProtocolInfo serviceProtocolInfo =
+        await developer.Service.getInfo();
+
     if (usage != null) {
       buf.writeln(
           writeOption('CPU', printPercentage(usage.cpuPercentage / 100.0)));
       buf.writeln(
           writeOption('Memory', '${printInteger(usage.memoryMB.round())} MB'));
+
+      h3('VM');
+
+      if (serviceProtocolInfo.serverUri == null) {
+        p('Service protocol not enabled.');
+      } else {
+        p(serviceProtocolInfo.toString());
+
+        // http://127.0.0.1:8181/ ==> ws://127.0.0.1:8181/ws
+        Uri uri = serviceProtocolInfo.serverUri;
+        uri = uri.replace(scheme: 'ws', path: 'ws');
+
+        final ServiceProtocol service = await ServiceProtocol.connect(uri);
+        final Map vm = await service.call('getVM');
+
+        h3('Isolates');
+
+        List isolateRefs = vm['isolates'];
+        for (Map isolateRef in isolateRefs) {
+          Map isolate =
+              await service.call('getIsolate', {'isolateId': isolateRef['id']});
+
+          Map _heaps = isolate['_heaps'];
+
+          int used = 0;
+          used = _heaps['new']['used'] + _heaps['new']['external'];
+          used = _heaps['old']['used'] + _heaps['old']['external'];
+          double usedMB = used / (1024.0 * 1024.0);
+
+          int capacity = 0;
+          capacity = _heaps['new']['capacity'] + _heaps['new']['external'];
+          capacity = _heaps['old']['capacity'] + _heaps['old']['external'];
+          double capacityMB = capacity / (1024.0 * 1024.0);
+
+          buf.writeln(writeOption(isolate['name'],
+              '${usedMB.round()} MB of ${capacityMB.round()} MB'));
+        }
+
+        service.dispose();
+      }
     } else {
-      p('Error retreiving the memory and cpu usage information.');
+      p('Error retrieving the memory and cpu usage information.');
     }
   }
 }
@@ -948,7 +993,7 @@ class NotFoundPage extends DiagnosticPage {
   NotFoundPage(Site site, this.path)
       : super(site, '', '404 Not found', description: "'$path' not found.");
 
-  void generateContent(Map<String, String> params) {}
+  Future generateContent(Map<String, String> params) async {}
 }
 
 class OverlaysPage extends DiagnosticPageWithNav {
@@ -957,7 +1002,7 @@ class OverlaysPage extends DiagnosticPageWithNav {
             description: 'Editing overlays - unsaved file changes.');
 
   @override
-  void generateContent(Map<String, String> params) {
+  Future generateContent(Map<String, String> params) async {
     FileContentOverlay overlays = server.fileContentOverlay;
     List<String> paths = overlays.paths.toList()..sort();
 
@@ -1000,7 +1045,7 @@ class PluginsPage extends DiagnosticPageWithNav {
       : super(site, 'plugins', 'Plugins', description: 'Plugins in use.');
 
   @override
-  void generateContent(Map<String, String> params) {
+  Future generateContent(Map<String, String> params) async {
     h3('Analysis plugins');
     List<PluginInfo> analysisPlugins = server.pluginManager.plugins;
 
@@ -1061,7 +1106,7 @@ class ProfilePage extends DiagnosticPageWithNav {
             description: 'Profiling performance tag data.');
 
   @override
-  void generateContent(Map<String, String> params) {
+  Future generateContent(Map<String, String> params) async {
     h3('Profiling performance tag data');
 
     // prepare sorted tags
@@ -1155,6 +1200,52 @@ class ProfilePage extends DiagnosticPageWithNav {
   }
 }
 
+class ServiceProtocol {
+  final WebSocket socket;
+
+  int _id = 0;
+  Map<String, Completer> _completers = {};
+
+  ServiceProtocol._(this.socket) {
+    socket.listen(_handleMessage);
+  }
+
+  Future<Map> call(String method, [Map args]) {
+    String id = '${++_id}';
+    Completer completer = new Completer();
+    _completers[id] = completer;
+    Map m = {'id': id, 'method': method};
+    if (args != null) m['params'] = args;
+    String message = jsonEncode(m);
+    socket.add(message);
+    return completer.future;
+  }
+
+  Future dispose() => socket.close();
+
+  void _handleMessage(dynamic message) {
+    if (message is! String) {
+      return;
+    }
+
+    try {
+      dynamic json = jsonDecode(message);
+      if (json.containsKey('id')) {
+        dynamic id = json['id'];
+        _completers[id]?.complete(json['result']);
+        _completers.remove(id);
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  static Future<ServiceProtocol> connect(Uri uri) async {
+    WebSocket socket = await WebSocket.connect(uri.toString());
+    return new ServiceProtocol._(socket);
+  }
+}
+
 class StatusPage extends DiagnosticPageWithNav {
   StatusPage(DiagnosticsSite site)
       : super(site, 'status', 'Status',
@@ -1162,7 +1253,7 @@ class StatusPage extends DiagnosticPageWithNav {
                 'General status and diagnostics for the analysis server.');
 
   @override
-  void generateContent(Map<String, String> params) {
+  Future generateContent(Map<String, String> params) async {
     DiagnosticsSite diagnosticsSite = site;
 
     buf.writeln('<div class="columns">');
@@ -1200,7 +1291,7 @@ class SubscriptionsPage extends DiagnosticPageWithNav {
             description: 'Registered subscriptions to analysis server events.');
 
   @override
-  void generateContent(Map<String, String> params) {
+  Future generateContent(Map<String, String> params) async {
     // server domain
     h3('Server domain subscriptions');
     ul(ServerService.VALUES, (item) {
@@ -1219,19 +1310,5 @@ class SubscriptionsPage extends DiagnosticPageWithNav {
         buf.write('$item');
       });
     }
-
-    // execution domain
-    ExecutionDomainHandler domain = server.handlers.firstWhere(
-        (handler) => handler is ExecutionDomainHandler,
-        orElse: () => null);
-
-    h3('Execution domain');
-    ul(ExecutionService.VALUES, (item) {
-      if (domain.onFileAnalyzed != null) {
-        buf.write('$item (has subscriptions)');
-      } else {
-        buf.write('$item (no subscriptions)');
-      }
-    });
   }
 }

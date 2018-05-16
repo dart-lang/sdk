@@ -11,5 +11,6 @@ main() {
 
 @NoInline()
 test() async {
-  /*1:test*/ throw '>ExceptionMarker<';
+  await null;
+  /*9:test*/ throw '>ExceptionMarker<';
 }

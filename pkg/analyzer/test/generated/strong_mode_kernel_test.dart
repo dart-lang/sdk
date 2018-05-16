@@ -392,48 +392,6 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
 
   @override
   @failingTest
-  test_notInstantiatedBound_direct_class_class() async {
-    // Expected 1 errors of type StrongModeCode.STRONG_MODE_NOT_INSTANTIATED_BOUND, found 0
-    await super.test_notInstantiatedBound_direct_class_class();
-  }
-
-  @override
-  @failingTest
-  test_notInstantiatedBound_direct_class_typedef() async {
-    // Expected 1 errors of type StrongModeCode.STRONG_MODE_NOT_INSTANTIATED_BOUND, found 0
-    await super.test_notInstantiatedBound_direct_class_typedef();
-  }
-
-  @override
-  @failingTest
-  test_notInstantiatedBound_direct_typedef_class() async {
-    // Expected 1 errors of type StrongModeCode.STRONG_MODE_NOT_INSTANTIATED_BOUND, found 0
-    await super.test_notInstantiatedBound_direct_typedef_class();
-  }
-
-  @override
-  @failingTest
-  test_notInstantiatedBound_functionType() async {
-    // Expected 2 errors of type StrongModeCode.STRONG_MODE_NOT_INSTANTIATED_BOUND, found 0
-    await super.test_notInstantiatedBound_functionType();
-  }
-
-  @override
-  @failingTest
-  test_notInstantiatedBound_indirect_class_class() async {
-    // Expected 1 errors of type StrongModeCode.STRONG_MODE_NOT_INSTANTIATED_BOUND, found 0
-    await super.test_notInstantiatedBound_indirect_class_class();
-  }
-
-  @override
-  @failingTest
-  test_notInstantiatedBound_indirect_class_class2() async {
-    // Expected 2 errors of type StrongModeCode.STRONG_MODE_NOT_INSTANTIATED_BOUND, found 0
-    await super.test_notInstantiatedBound_indirect_class_class2();
-  }
-
-  @override
-  @failingTest
   test_setterWithDynamicTypeIsError() async {
     // Expected 2 errors of type StaticWarningCode.NON_VOID_RETURN_FOR_SETTER, found 0
     await super.test_setterWithDynamicTypeIsError();

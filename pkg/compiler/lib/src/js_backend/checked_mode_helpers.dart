@@ -4,9 +4,7 @@
 
 import '../common.dart';
 import '../common_elements.dart';
-import '../elements/elements.dart' show ErroneousElement;
 import '../elements/entities.dart';
-import '../elements/resolution_types.dart' show MalformedType;
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
@@ -33,20 +31,6 @@ class CheckedModeHelper {
   void generateAdditionalArguments(SsaCodeGenerator codegen, Namer namer,
       HTypeConversion node, List<jsAst.Expression> arguments) {
     // No additional arguments needed.
-  }
-}
-
-class MalformedCheckedModeHelper extends CheckedModeHelper {
-  const MalformedCheckedModeHelper(String name) : super(name);
-
-  CallStructure get callStructure => CallStructure.TWO_ARGS;
-
-  void generateAdditionalArguments(SsaCodeGenerator codegen, Namer namer,
-      HTypeConversion node, List<jsAst.Expression> arguments) {
-    // TODO(redemption): Support malformed types in [types.dart].
-    MalformedType type = node.typeExpression;
-    ErroneousElement element = type.element;
-    arguments.add(js.escapedString(element.message));
   }
 }
 
@@ -89,6 +73,19 @@ class FunctionTypeRepresentationCheckedModeHelper extends CheckedModeHelper {
   }
 }
 
+class FutureOrRepresentationCheckedModeHelper extends CheckedModeHelper {
+  const FutureOrRepresentationCheckedModeHelper(String name) : super(name);
+
+  CallStructure get callStructure => CallStructure.TWO_ARGS;
+
+  void generateAdditionalArguments(SsaCodeGenerator codegen, Namer namer,
+      HTypeConversion node, List<jsAst.Expression> arguments) {
+    assert(node.typeExpression.isFutureOr);
+    codegen.use(node.typeRepresentation);
+    arguments.add(codegen.pop());
+  }
+}
+
 class SubtypeCheckedModeHelper extends CheckedModeHelper {
   const SubtypeCheckedModeHelper(String name) : super(name);
 
@@ -114,7 +111,6 @@ class CheckedModeHelpers {
 
   /// All the checked mode helpers.
   static const List<CheckedModeHelper> helpers = const <CheckedModeHelper>[
-    const MalformedCheckedModeHelper('checkMalformedType'),
     const CheckedModeHelper('stringTypeCast'),
     const CheckedModeHelper('stringTypeCheck'),
     const CheckedModeHelper('doubleTypeCast'),
@@ -149,6 +145,8 @@ class CheckedModeHelpers {
     const PropertyCheckedModeHelper('propertyTypeCheck'),
     const FunctionTypeRepresentationCheckedModeHelper('functionTypeCast'),
     const FunctionTypeRepresentationCheckedModeHelper('functionTypeCheck'),
+    const FutureOrRepresentationCheckedModeHelper('futureOrCast'),
+    const FutureOrRepresentationCheckedModeHelper('futureOrCheck'),
   ];
 
   // Checked mode helpers indexed by name.
@@ -200,11 +198,6 @@ class CheckedModeHelpers {
       DartType type, CommonElements commonElements,
       {bool typeCast, bool nativeCheckOnly}) {
     assert(!type.isTypedef);
-    if (type.isMalformed) {
-      // The same error is thrown for type test and type cast of a malformed
-      // type so we only need one check method.
-      return 'checkMalformedType';
-    }
 
     if (type.isTypeVariable) {
       return typeCast
@@ -214,6 +207,10 @@ class CheckedModeHelpers {
 
     if (type.isFunctionType) {
       return typeCast ? 'functionTypeCast' : 'functionTypeCheck';
+    }
+
+    if (type.isFutureOr) {
+      return typeCast ? 'futureOrCast' : 'futureOrCheck';
     }
 
     assert(type.isInterfaceType,
@@ -277,7 +274,7 @@ class CheckedModeHelpers {
       return 'list$suffix';
     }
 
-    if (commonElements.isListSupertype(element)) {
+    if (commonElements.isListSupertype(element) && type.treatAsRaw) {
       return nativeCheck ? 'listSuperNative$suffix' : 'listSuper$suffix';
     }
 

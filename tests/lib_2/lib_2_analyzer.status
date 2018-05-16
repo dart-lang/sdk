@@ -4,6 +4,7 @@
 
 [ $compiler == dart2analyzer ]
 html/debugger_test: CompileTimeError # Issue 28969
+html/element_types_keygen_test: CompileTimeError # Chrome 57 keygen removed
 html/js_function_getter_trust_types_test: Skip # dart2js specific flags.
 html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue #25759
 mirrors/deferred_mirrors_metadata_test: Fail # Issue 17522
@@ -19,15 +20,16 @@ mirrors/repeated_private_anon_mixin_app_test: StaticWarning, OK # Intentional li
 [ $compiler == dart2analyzer && !$preview_dart_2 ]
 mirrors/metadata_nested_constructor_call_test/none: CompileTimeError
 
+[ $compiler == dart2analyzer && !$preview_dart_2 && !$strong ]
+mirrors/metadata_allowed_values_test/16: MissingCompileTimeError
+
 [ $compiler == dart2analyzer && $strong ]
-html/transferables_test: CompileTimeError # Issue 30975
 mirrors/deferred_mirrors_metadata_test: StaticWarning # Issue 28969
 mirrors/deferred_type_test: CompileTimeError, OK # Deliberately refers to a deferred type in a declaration.
 mirrors/generic_f_bounded_mixin_application_test: CompileTimeError
 mirrors/mirrors_nsm_mismatch_test: CompileTimeError, OK
 mirrors/mirrors_nsm_test: CompileTimeError, OK
 mirrors/mirrors_nsm_test/dart2js: CompileTimeError, OK
-mirrors/relation_subclass_test: CompileTimeError, OK
 mirrors/repeated_private_anon_mixin_app_test: CompileTimeError, OK # Intentional library name conflict.
 
 [ $compiler == dart2analyzer && !$strong ]
@@ -37,6 +39,7 @@ mirrors/generic_bounded_test/01: MissingCompileTimeError
 mirrors/generic_bounded_test/02: MissingCompileTimeError
 mirrors/generic_interface_test/01: MissingCompileTimeError
 mirrors/generics_test/01: MissingCompileTimeError
+mirrors/metadata_allowed_values_test/16: MissingCompileTimeError
 mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError
 mirrors/reflect_class_test/01: MissingCompileTimeError
 mirrors/reflect_class_test/02: MissingCompileTimeError
@@ -47,4 +50,3 @@ mirrors/reflected_type_test/01: MissingCompileTimeError
 mirrors/reflected_type_test/02: MissingCompileTimeError
 mirrors/reflected_type_test/03: MissingCompileTimeError
 mirrors/regress_16321_test/01: MissingCompileTimeError
-

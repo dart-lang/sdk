@@ -128,8 +128,8 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
     assertSuggestConstructor('C',
         elemOffset: -1,
         relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
-    // D is sorted out
-    assertNotSuggested('D');
+    // D has the default relevance
+    assertSuggestConstructor('D', elemOffset: -1);
 
     // Suggested by ConstructorContributor
     assertNotSuggested('Local');
@@ -179,8 +179,8 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
     assertSuggestConstructor('C',
         elemOffset: -1,
         relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
-    // D is sorted out
-    assertNotSuggested('D');
+    // D has the default relevance
+    assertSuggestConstructor('D', elemOffset: -1);
 
     // Suggested by ConstructorContributor
     assertNotSuggested('Local');
@@ -219,6 +219,9 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertSuggestClass('A');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('A');
+    }
     assertSuggestFunction('af', 'int',
         relevance: DART_RELEVANCE_LOCAL_FUNCTION);
     assertSuggestTopLevelVar('m', null,
@@ -263,6 +266,9 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertSuggestClass('B');
+    if (suggestConstructorsWithoutNew) {
+      assertSuggestConstructor('B');
+    }
     assertSuggestFunction('bf', 'int',
         relevance: DART_RELEVANCE_LOCAL_FUNCTION);
     assertSuggestTopLevelVar('n', null,

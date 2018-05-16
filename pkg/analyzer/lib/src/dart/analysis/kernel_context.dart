@@ -4,7 +4,7 @@
 
 import 'dart:async';
 
-import 'package:analyzer/context/declared_variables.dart';
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/element/element.dart' show CompilationUnitElement;
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -88,7 +88,7 @@ class KernelContext {
       // This is probably OK, because we consume them lazily.
       var libraryMap = <String, kernel.Library>{};
       var libraryExistMap = <String, bool>{};
-      for (var library in compilationResult.program.libraries) {
+      for (var library in compilationResult.component.libraries) {
         String uriStr = library.importUri.toString();
         libraryMap[uriStr] = library;
         FileState file = fsState.getFileForUri(library.importUri);
@@ -107,7 +107,7 @@ class KernelContext {
           AnalysisEngine.instance.createAnalysisContext();
       analysisContext.useSdkCachePartition = false;
       analysisContext.analysisOptions = analysisOptions;
-      analysisContext.declaredVariables.addAll(declaredVariables);
+      analysisContext.declaredVariables = declaredVariables;
       analysisContext.sourceFactory = sourceFactory.clone();
       analysisContext.contentCache = new _ContentCacheWrapper(fsState);
 

@@ -13,10 +13,10 @@ main() {
 }
 
 /*element: aDouble1:[null|exact=JSDouble]*/
-double aDouble1 = 42.5;
+dynamic aDouble1 = 42.5;
 
 /*element: aList1:Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/
-List aList1 = [42];
+dynamic aList1 = [42];
 
 /*element: consume1:Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/
 consume1(
@@ -44,10 +44,10 @@ test1() {
 }
 
 /*element: aDouble2:[null|exact=JSDouble]*/
-double aDouble2 = 42.5;
+dynamic aDouble2 = 42.5;
 
 /*element: aList2:Container([exact=JSExtendableArray], element: [null|subclass=Object], length: null)*/
-List aList2 = [42];
+dynamic aList2 = [42];
 
 /*element: consume2:Container([exact=JSExtendableArray], element: [null|subclass=Object], length: null)*/
 consume2(
@@ -75,10 +75,10 @@ test2() {
 }
 
 /*element: aDouble3:Union([exact=JSDouble], [null|exact=JSExtendableArray])*/
-double aDouble3 = 42.5;
+dynamic aDouble3 = 42.5;
 
 /*element: aList3:Container([exact=JSExtendableArray], element: [null|subclass=Object], length: null)*/
-List aList3 = [42];
+dynamic aList3 = [42];
 
 /*element: consume3:Container([exact=JSExtendableArray], element: [null|subclass=Object], length: null)*/
 consume3(
@@ -106,10 +106,10 @@ test3() {
 }
 
 /*element: aDouble4:[null|exact=JSDouble]*/
-double aDouble4 = 42.5;
+dynamic aDouble4 = 42.5;
 
 /*element: aList4:Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/
-List aList4 = [42];
+dynamic aList4 = [42];
 
 /*element: consume4:Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/
 consume4(
@@ -134,10 +134,10 @@ test4() {
 }
 
 /*element: aDouble5:[null|exact=JSDouble]*/
-double aDouble5 = 42.5;
+dynamic aDouble5 = 42.5;
 
 /*element: aList5:Container([exact=JSExtendableArray], element: [null|subclass=Object], length: null)*/
-List aList5 = [42];
+dynamic aList5 = [42];
 
 /*element: consume5:Container([exact=JSExtendableArray], element: [null|subclass=Object], length: null)*/
 consume5(
@@ -162,9 +162,9 @@ test5() {
 }
 
 /*element: aDouble6:Union([null|exact=JSDouble], [null|exact=JSExtendableArray])*/
-double aDouble6 = 42.5;
+dynamic aDouble6 = 42.5;
 /*element: aList6:Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/
-List aList6 = [42];
+dynamic aList6 = [42];
 
 /*element: consume6:Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/
 consume6(

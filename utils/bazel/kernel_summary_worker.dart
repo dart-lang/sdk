@@ -16,7 +16,7 @@ import 'package:args/args.dart';
 import 'package:bazel_worker/bazel_worker.dart';
 import 'package:front_end/src/api_unstable/summary_worker.dart' as fe;
 import 'package:front_end/src/multi_root_file_system.dart';
-import 'package:kernel/ast.dart' show Program, Library;
+import 'package:kernel/ast.dart' show Component, Library;
 import 'package:kernel/target/targets.dart';
 
 main(List<String> args) async {
@@ -131,11 +131,12 @@ Future<bool> computeSummary(List<String> args,
           new TargetFlags(strongMode: true)),
       fileSystem);
 
-  void onProblem(problem, severity, String formatted, line, column) {
-    if (outputBuffer != null) {
-      outputBuffer.writeln(formatted);
-    } else {
-      stderr.writeln(formatted);
+  void onProblem(fe.FormattedMessage message, severity,
+      List<fe.FormattedMessage> context) {
+    dynamic out = outputBuffer ?? stderr;
+    out.println(message.formatted);
+    for (fe.FormattedMessage message in context) {
+      out.println(message.formatted);
     }
     if (severity != fe.Severity.nit) {
       succeeded = false;
@@ -175,21 +176,21 @@ class SummaryTarget extends NoneTarget {
       : super(flags);
 
   @override
-  void performOutlineTransformations(Program program) {
+  void performOutlineTransformations(Component component) {
     if (!excludeNonSources) return;
 
-    List<Library> libraries = new List.from(program.libraries);
-    program.libraries.clear();
+    List<Library> libraries = new List.from(component.libraries);
+    component.libraries.clear();
     Set<Uri> include = sources.toSet();
     for (var lib in libraries) {
       if (include.contains(lib.importUri)) {
-        program.libraries.add(lib);
+        component.libraries.add(lib);
       } else {
         // Excluding the library also means that their canonical names will not
         // be computed as part of serialization, so we need to do that
         // preemtively here to avoid errors when serializing references to
         // elements of these libraries.
-        program.root.getChildFromUri(lib.importUri).bindTo(lib.reference);
+        component.root.getChildFromUri(lib.importUri).bindTo(lib.reference);
         lib.computeCanonicalNames();
       }
     }

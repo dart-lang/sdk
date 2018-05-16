@@ -7,65 +7,65 @@ import 'dart:io';
 import "package:expect/expect.dart";
 
 void testDefaultAddresses() {
-  var loopback4 = InternetAddress.LOOPBACK_IP_V4;
+  var loopback4 = InternetAddress.loopbackIPv4;
   Expect.isNotNull(loopback4);
-  Expect.equals(InternetAddressType.IP_V4, loopback4.type);
+  Expect.equals(InternetAddressType.IPv4, loopback4.type);
   Expect.equals("127.0.0.1", loopback4.host);
   Expect.equals("127.0.0.1", loopback4.address);
   Expect.listEquals([127, 0, 0, 1], loopback4.rawAddress);
 
-  var loopback6 = InternetAddress.LOOPBACK_IP_V6;
+  var loopback6 = InternetAddress.loopbackIPv6;
   Expect.isNotNull(loopback6);
-  Expect.equals(InternetAddressType.IP_V6, loopback6.type);
+  Expect.equals(InternetAddressType.IPv6, loopback6.type);
   Expect.equals("::1", loopback6.host);
   Expect.equals("::1", loopback6.address);
   Expect.listEquals(
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], loopback6.rawAddress);
 
-  var any4 = InternetAddress.ANY_IP_V4;
+  var any4 = InternetAddress.anyIPv4;
   Expect.isNotNull(any4);
-  Expect.equals(InternetAddressType.IP_V4, any4.type);
+  Expect.equals(InternetAddressType.IPv4, any4.type);
   Expect.equals("0.0.0.0", any4.host);
   Expect.equals("0.0.0.0", any4.address);
 
-  var any6 = InternetAddress.ANY_IP_V6;
+  var any6 = InternetAddress.anyIPv6;
   Expect.isNotNull(any6);
-  Expect.equals(InternetAddressType.IP_V6, any6.type);
+  Expect.equals(InternetAddressType.IPv6, any6.type);
   Expect.equals("::", any6.host);
   Expect.equals("::", any6.address);
 }
 
 void testConstructor() {
   var loopback4 = new InternetAddress("127.0.0.1");
-  Expect.equals(InternetAddressType.IP_V4, loopback4.type);
+  Expect.equals(InternetAddressType.IPv4, loopback4.type);
   Expect.equals("127.0.0.1", loopback4.host);
   Expect.equals("127.0.0.1", loopback4.address);
   Expect.isFalse(loopback4.isMulticast);
 
   var loopback6 = new InternetAddress("::1");
-  Expect.equals(InternetAddressType.IP_V6, loopback6.type);
+  Expect.equals(InternetAddressType.IPv6, loopback6.type);
   Expect.equals("::1", loopback6.host);
   Expect.equals("::1", loopback6.address);
   Expect.isFalse(loopback6.isMulticast);
 
   var ip4 = new InternetAddress("10.20.30.40");
-  Expect.equals(InternetAddressType.IP_V4, ip4.type);
+  Expect.equals(InternetAddressType.IPv4, ip4.type);
   Expect.equals("10.20.30.40", ip4.host);
   Expect.equals("10.20.30.40", ip4.address);
   Expect.isFalse(ip4.isMulticast);
 
   var ip6 = new InternetAddress("10:20::30:40");
-  Expect.equals(InternetAddressType.IP_V6, ip6.type);
+  Expect.equals(InternetAddressType.IPv6, ip6.type);
   Expect.equals("10:20::30:40", ip6.host);
   Expect.equals("10:20::30:40", ip6.address);
   Expect.isFalse(ip6.isMulticast);
 
   var multicast4 = new InternetAddress("224.1.2.3");
-  Expect.equals(InternetAddressType.IP_V4, multicast4.type);
+  Expect.equals(InternetAddressType.IPv4, multicast4.type);
   Expect.isTrue(multicast4.isMulticast);
 
   var multicast6 = new InternetAddress("FF00::1:2:3");
-  Expect.equals(InternetAddressType.IP_V6, multicast6.type);
+  Expect.equals(InternetAddressType.IPv6, multicast6.type);
   Expect.isTrue(multicast6.isMulticast);
 
   Expect.throwsArgumentError(() => new InternetAddress("1.2.3"));
@@ -75,10 +75,9 @@ void testConstructor() {
 void testEquality() {
   Expect.equals(
       new InternetAddress("127.0.0.1"), new InternetAddress("127.0.0.1"));
-  Expect.equals(
-      new InternetAddress("127.0.0.1"), InternetAddress.LOOPBACK_IP_V4);
+  Expect.equals(new InternetAddress("127.0.0.1"), InternetAddress.loopbackIPv4);
   Expect.equals(new InternetAddress("::1"), new InternetAddress("::1"));
-  Expect.equals(new InternetAddress("::1"), InternetAddress.LOOPBACK_IP_V6);
+  Expect.equals(new InternetAddress("::1"), InternetAddress.loopbackIPv6);
   Expect.equals(new InternetAddress("1:2:3:4:5:6:7:8"),
       new InternetAddress("1:2:3:4:5:6:7:8"));
   Expect.equals(
@@ -91,10 +90,10 @@ void testEquality() {
   set.add(new InternetAddress("::1"));
   set.add(new InternetAddress("1:2:3:4:5:6:7:8"));
   Expect.isTrue(set.contains(new InternetAddress("127.0.0.1")));
-  Expect.isTrue(set.contains(InternetAddress.LOOPBACK_IP_V4));
+  Expect.isTrue(set.contains(InternetAddress.loopbackIPv4));
   Expect.isFalse(set.contains(new InternetAddress("127.0.0.2")));
   Expect.isTrue(set.contains(new InternetAddress("::1")));
-  Expect.isTrue(set.contains(InternetAddress.LOOPBACK_IP_V6));
+  Expect.isTrue(set.contains(InternetAddress.loopbackIPv6));
   Expect.isFalse(set.contains(new InternetAddress("::2")));
   Expect.isTrue(set.contains(new InternetAddress("1:2:3:4:5:6:7:8")));
   Expect.isFalse(set.contains(new InternetAddress("1:2:3:4:5:6:7:9")));

@@ -800,6 +800,10 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ ret();
 }
 
+void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
+  __ Unimplemented("Interpreter not yet supported");
+}
+
 // Called for inline allocation of contexts.
 // Input:
 // EDX: number of context variables.
@@ -1606,6 +1610,10 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
   __ jmp(EAX);
 }
 
+void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
+  __ Unimplemented("Interpreter not yet supported");
+}
+
 // ECX: Contains an ICData.
 void StubCode::GenerateICCallBreakpointStub(Assembler* assembler) {
   __ EnterStubFrame();
@@ -1777,6 +1785,31 @@ void StubCode::GenerateSubtype2TestCacheStub(Assembler* assembler) {
 // Result in ECX: null -> not found, otherwise result (true or false).
 void StubCode::GenerateSubtype4TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 4);
+}
+
+void StubCode::GenerateDefaultTypeTestStub(Assembler* assembler) {
+  // Only used in AOT and therefore not on ia32.
+  __ Breakpoint();
+}
+
+void StubCode::GenerateTopTypeTypeTestStub(Assembler* assembler) {
+  // Only used in AOT and therefore not on ia32.
+  __ Breakpoint();
+}
+
+void StubCode::GenerateTypeRefTypeTestStub(Assembler* assembler) {
+  // Only used in AOT and therefore not on ia32.
+  __ Breakpoint();
+}
+
+void StubCode::GenerateUnreachableTypeTestStub(Assembler* assembler) {
+  // Only used in AOT and therefore not on ia32.
+  __ Breakpoint();
+}
+
+void StubCode::GenerateSlowTypeTestStub(Assembler* assembler) {
+  // Only used in AOT and therefore not on ia32.
+  __ Breakpoint();
 }
 
 // Return the current stack pointer address, used to do stack alignment checks.

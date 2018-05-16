@@ -2741,13 +2741,22 @@ void LoadIndexedInstr::InferRange(RangeAnalysis* analysis, Range* range) {
 
 void LoadCodeUnitsInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   ASSERT(RawObject::IsStringClassId(class_id()));
+  RangeBoundary zero = RangeBoundary::FromConstant(0);
+  // Take the number of loaded characters into account when determining the
+  // range of the result.
+  ASSERT(element_count_ > 0);
   switch (class_id()) {
     case kOneByteStringCid:
-    case kTwoByteStringCid:
     case kExternalOneByteStringCid:
+      ASSERT(element_count_ <= 4);
+      *range = Range(zero, RangeBoundary::FromConstant(
+                               Utils::NBitMask(kBitsPerByte * element_count_)));
+      break;
+    case kTwoByteStringCid:
     case kExternalTwoByteStringCid:
-      *range = Range(RangeBoundary::FromConstant(0),
-                     RangeBoundary::FromConstant(kMaxUint32));
+      ASSERT(element_count_ <= 2);
+      *range = Range(zero, RangeBoundary::FromConstant(Utils::NBitMask(
+                               2 * kBitsPerByte * element_count_)));
       break;
     default:
       UNREACHABLE();

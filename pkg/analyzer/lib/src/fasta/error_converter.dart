@@ -29,10 +29,6 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.ABSTRACT_CLASS_MEMBER, offset, length);
         return;
-      case "ANNOTATION_ON_ENUM_CONSTANT":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.ANNOTATION_ON_ENUM_CONSTANT, offset, length);
-        return;
       case "ASYNC_FOR_IN_WRONG_CONTEXT":
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT, offset, length);
@@ -52,6 +48,10 @@ class FastaErrorReporter {
             length,
             [lexeme()]);
         return;
+      case "CATCH_SYNTAX":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.CATCH_SYNTAX, offset, length);
+        return;
       case "CLASS_IN_CLASS":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.CLASS_IN_CLASS, offset, length);
@@ -59,6 +59,12 @@ class FastaErrorReporter {
       case "COLON_IN_PLACE_OF_IN":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.COLON_IN_PLACE_OF_IN, offset, length);
+        return;
+      case "CONCRETE_CLASS_WITH_ABSTRACT_MEMBER":
+        errorReporter?.reportErrorForOffset(
+            StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
+            offset,
+            length);
         return;
       case "CONST_AFTER_FACTORY":
         errorReporter?.reportErrorForOffset(
@@ -130,7 +136,14 @@ class FastaErrorReporter {
             ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT,
             offset,
             length,
-            [arguments['string']]);
+            [arguments['name']]);
+        return;
+      case "LABEL_UNDEFINED":
+        errorReporter?.reportErrorForOffset(
+            CompileTimeErrorCode.LABEL_UNDEFINED,
+            offset,
+            length,
+            [arguments['name']]);
         return;
       case "COVARIANT_MEMBER":
         errorReporter?.reportErrorForOffset(
@@ -379,6 +392,14 @@ class FastaErrorReporter {
       case "MISSING_DIGIT":
         errorReporter?.reportErrorForOffset(
             ScannerErrorCode.MISSING_DIGIT, offset, length);
+        return;
+      case "MISSING_EXPRESSION_IN_THROW":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MISSING_EXPRESSION_IN_THROW, offset, length);
+        return;
+      case "MISSING_ENUM_BODY":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MISSING_ENUM_BODY, offset, length);
         return;
       case "MISSING_FUNCTION_BODY":
         errorReporter?.reportErrorForOffset(

@@ -20,6 +20,7 @@ import 'messages.dart'
         SummaryTemplate,
         Template,
         messagePlatformPrivateLibraryAccess,
+        templateInternalProblemContextSeverity,
         templateInternalProblemMissingSeverity,
         templateSourceBodySummary;
 
@@ -178,8 +179,7 @@ abstract class Loader<L> {
       builders.forEach((Uri uri, LibraryBuilder library) {
         if (library.loader == this) libraryCount++;
       });
-      double ms =
-          elapsed.inMicroseconds / Duration.MICROSECONDS_PER_MILLISECOND;
+      double ms = elapsed.inMicroseconds / Duration.microsecondsPerMillisecond;
       Message message = template.withArguments(
           libraryCount,
           byteCount,
@@ -201,7 +201,7 @@ abstract class Loader<L> {
   /// otherwise it is added to [unhandledErrors].
   void addCompileTimeError(
       Message message, int charOffset, int length, Uri fileUri,
-      {bool wasHandled: false, LocatedMessage context}) {
+      {bool wasHandled: false, List<LocatedMessage> context}) {
     addMessage(message, charOffset, length, fileUri, Severity.error,
         wasHandled: wasHandled, context: context);
   }
@@ -209,7 +209,7 @@ abstract class Loader<L> {
   /// Register [message] as a problem with a severity determined by the
   /// intrinsic severity of the message.
   void addProblem(Message message, int charOffset, int length, Uri fileUri,
-      {LocatedMessage context}) {
+      {List<LocatedMessage> context}) {
     Severity severity = message.code.severity;
     if (severity == null) {
       addMessage(message, charOffset, length, fileUri, Severity.error,
@@ -236,7 +236,7 @@ abstract class Loader<L> {
   /// three times by `OutlineBuilder`, `DietListener`, and `BodyBuilder`.
   bool addMessage(Message message, int charOffset, int length, Uri fileUri,
       Severity severity,
-      {bool wasHandled: false, LocatedMessage context}) {
+      {bool wasHandled: false, List<LocatedMessage> context}) {
     String trace = """
 message: ${message.message}
 charOffset: $charOffset
@@ -244,11 +244,16 @@ fileUri: $fileUri
 severity: $severity
 """;
     if (!seenMessages.add(trace)) return false;
-    target.context
-        .report(message.withLocation(fileUri, charOffset, length), severity);
-    if (context != null) {
-      target.context.report(context, Severity.context);
+    if (message.code.severity == Severity.context) {
+      internalProblem(
+          templateInternalProblemContextSeverity
+              .withArguments(message.code.name),
+          charOffset,
+          fileUri);
     }
+    target.context.report(
+        message.withLocation(fileUri, charOffset, length), severity,
+        context: context);
     recordMessage(severity, message, charOffset, length, fileUri,
         context: context);
     if (severity == Severity.error) {
@@ -272,7 +277,7 @@ severity: $severity
 
   void recordMessage(Severity severity, Message message, int charOffset,
       int length, Uri fileUri,
-      {LocatedMessage context}) {}
+      {List<LocatedMessage> context}) {}
 }
 
 String format(double d, int fractionDigits, int width) {

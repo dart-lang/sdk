@@ -7,12 +7,9 @@ library types;
 import '../common.dart' show failedAt;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
-import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../inferrer/type_graph_inferrer.dart' show TypeGraphInferrer;
-import '../tree/tree.dart';
 import '../universe/selector.dart' show Selector;
-import '../util/util.dart' show Maplet;
 import '../world.dart' show ClosedWorld, ClosedWorldRefiner;
 
 import 'masks.dart';
@@ -52,10 +49,6 @@ abstract class GlobalTypeInferenceElementResult<T> {
   /// Returns the type of the getter in a complex send-set [node], for example,
   /// the type of the `a.f` getter in `a.f += b`.
   TypeMask typeOfGetter(T node);
-
-  /// Returns the type of the operator of a complex send-set [node], for
-  /// example, the type of `+` in `a += b`.
-  TypeMask typeOfOperator(T node);
 
   /// Returns the type of the iterator in a [loop].
   TypeMask typeOfIterator(T node);
@@ -102,7 +95,6 @@ abstract class GlobalTypeInferenceElementResultImpl<T>
 
   TypeMask typeOfSend(T node) => _data?.typeOfSend(node);
   TypeMask typeOfGetter(T node) => _data?.typeOfGetter(node);
-  TypeMask typeOfOperator(T node) => _data?.typeOfOperator(node);
   TypeMask typeOfIterator(T node) => _data?.typeOfIterator(node);
   TypeMask typeOfIteratorMoveNext(T node) =>
       _data?.typeOfIteratorMoveNext(node);
@@ -155,13 +147,8 @@ abstract class GlobalTypeInferenceElementData<T> {
   // TODO(johnniwinther): Remove this. Maybe split by access/invoke.
   TypeMask typeOfSend(T node);
   TypeMask typeOfGetter(T node);
-  TypeMask typeOfOperator(T node);
 
   void setTypeMask(T node, TypeMask mask);
-
-  void setGetterTypeMaskInComplexSendSet(T node, TypeMask mask);
-
-  void setOperatorTypeMaskInComplexSendSet(T node, TypeMask mask);
 
   TypeMask typeOfIterator(T node);
 
@@ -174,60 +161,6 @@ abstract class GlobalTypeInferenceElementData<T> {
   void setMoveNextTypeMask(T node, TypeMask mask);
 
   void setCurrentTypeMask(T node, TypeMask mask);
-}
-
-class AstGlobalTypeInferenceElementData
-    extends GlobalTypeInferenceElementData<Node> {
-  Map<Object, TypeMask> _typeMasks;
-
-  TypeMask _get(Object node) => _typeMasks != null ? _typeMasks[node] : null;
-  void _set(Object node, TypeMask mask) {
-    _typeMasks ??= new Maplet<Object, TypeMask>();
-    _typeMasks[node] = mask;
-  }
-
-  TypeMask typeOfSend(covariant Send node) => _get(node);
-  TypeMask typeOfGetter(covariant SendSet node) => _get(node.selector);
-  TypeMask typeOfOperator(covariant SendSet node) =>
-      _get(node.assignmentOperator);
-
-  void setTypeMask(covariant Send node, TypeMask mask) {
-    _set(node, mask);
-  }
-
-  void setGetterTypeMaskInComplexSendSet(
-      covariant SendSet node, TypeMask mask) {
-    _set(node.selector, mask);
-  }
-
-  void setOperatorTypeMaskInComplexSendSet(
-      covariant SendSet node, TypeMask mask) {
-    _set(node.assignmentOperator, mask);
-  }
-
-  // TODO(sigmund): clean up. We store data about 3 selectors for "for in"
-  // nodes: the iterator, move-next, and current element. Because our map keys
-  // are nodes, we need to fabricate different keys to keep these selectors
-  // separate. The current implementation does this by using
-  // children of the for-in node (these children were picked arbitrarily).
-
-  TypeMask typeOfIterator(covariant ForIn node) => _get(node);
-
-  TypeMask typeOfIteratorMoveNext(covariant ForIn node) => _get(node.forToken);
-
-  TypeMask typeOfIteratorCurrent(covariant ForIn node) => _get(node.inToken);
-
-  void setIteratorTypeMask(covariant ForIn node, TypeMask mask) {
-    _set(node, mask);
-  }
-
-  void setMoveNextTypeMask(covariant ForIn node, TypeMask mask) {
-    _set(node.forToken, mask);
-  }
-
-  void setCurrentTypeMask(covariant ForIn node, TypeMask mask) {
-    _set(node.inToken, mask);
-  }
 }
 
 /// API to interact with the global type-inference engine.
@@ -293,7 +226,7 @@ abstract class GlobalTypeInferenceResults<T> {
         parameter, () => createParameterResult(_inferrer, parameter));
   }
 
-  TypeMask get dynamicType => closedWorld.commonMasks.dynamicType;
+  TypeMask get dynamicType => closedWorld.abstractValueDomain.dynamicType;
 
   /// Returns the type of a [selector] when applied to a receiver with the given
   /// type [mask].
@@ -306,56 +239,6 @@ abstract class GlobalTypeInferenceResults<T> {
   // constructor call.
   bool isFixedArrayCheckedForGrowable(T ctorCall) =>
       _inferrer.isFixedArrayCheckedForGrowable(ctorCall);
-}
-
-/// Mixin that assert the types of the nodes used for querying type masks.
-abstract class AstGlobalTypeInferenceElementResultMixin
-    implements GlobalTypeInferenceElementResultImpl<Node> {
-  TypeMask typeOfNewList(covariant Send node) =>
-      _inferrer.getTypeForNewList(node);
-
-  TypeMask typeOfListLiteral(covariant LiteralList node) =>
-      _inferrer.getTypeForNewList(node);
-
-  TypeMask typeOfSend(covariant Send node) => _data?.typeOfSend(node);
-  TypeMask typeOfGetter(covariant SendSet node) => _data?.typeOfGetter(node);
-  TypeMask typeOfOperator(covariant SendSet node) =>
-      _data?.typeOfOperator(node);
-  TypeMask typeOfIterator(covariant ForIn node) => _data?.typeOfIterator(node);
-  TypeMask typeOfIteratorMoveNext(covariant ForIn node) =>
-      _data?.typeOfIteratorMoveNext(node);
-  TypeMask typeOfIteratorCurrent(covariant ForIn node) =>
-      _data?.typeOfIteratorCurrent(node);
-}
-
-class AstMemberResult = GlobalTypeInferenceMemberResultImpl<Node>
-    with AstGlobalTypeInferenceElementResultMixin;
-
-class AstParameterResult = GlobalTypeInferenceParameterResultImpl<Node>
-    with AstGlobalTypeInferenceElementResultMixin;
-
-class AstGlobalTypeInferenceResults extends GlobalTypeInferenceResults<Node> {
-  AstGlobalTypeInferenceResults(
-      TypesInferrer<Node> inferrer, ClosedWorld closedWorld)
-      : super(inferrer, closedWorld);
-
-  GlobalTypeInferenceMemberResult<Node> createMemberResult(
-      TypeGraphInferrer<Node> inferrer, covariant MemberElement member,
-      {bool isJsInterop: false}) {
-    return new AstMemberResult(
-        member,
-        // We store data in the context of the enclosing method, even
-        // for closure elements.
-        inferrer.inferrer.lookupDataOfMember(member.memberContext),
-        inferrer,
-        isJsInterop,
-        dynamicType);
-  }
-
-  GlobalTypeInferenceParameterResult<Node> createParameterResult(
-      TypeGraphInferrer<Node> inferrer, Local parameter) {
-    return new AstParameterResult(parameter, inferrer, dynamicType);
-  }
 }
 
 /// Global analysis that infers concrete types.

@@ -40,8 +40,6 @@ CantInferTypeDueToInconsistentOverrides/analyzerCode: Fail
 CantInferTypeDueToInconsistentOverrides/example: Fail
 CantUseSuperBoundedTypeForInstanceCreation/analyzerCode: Fail
 CantUseSuperBoundedTypeForInstanceCreation/example: Fail
-CatchSyntax/analyzerCode: Fail
-CatchSyntax/example: Fail
 ColonInPlaceOfIn/example: Fail
 ConflictsWithConstructor/analyzerCode: Fail
 ConflictsWithConstructor/example: Fail
@@ -63,6 +61,26 @@ ConstAndFinal/script1: Fail
 ConstAndVar/script1: Fail
 ConstConstructorNonFinalField/analyzerCode: Fail
 ConstConstructorNonFinalField/example: Fail
+ConstEvalContext/analyzerCode: Fail # This is just used for displaying the context.
+ConstEvalContext/example: Fail # This is just used for displaying the context.
+ConstEvalDuplicateKey/dart2jsCode: Fail
+ConstEvalDuplicateKey/example: Fail
+ConstEvalFailedAssertion/dart2jsCode: Fail
+ConstEvalFailedAssertion/example: Fail
+ConstEvalFailedAssertionWithMessage/dart2jsCode: Fail
+ConstEvalFailedAssertionWithMessage/example: Fail
+ConstEvalInvalidBinaryOperandType/analyzerCode: Fail # CONST_EVAL_TYPE_NUM / CONST_EVAL_TYPE_BOOL
+ConstEvalInvalidBinaryOperandType/example: Fail
+ConstEvalInvalidMethodInvocation/dart2jsCode: Fail
+ConstEvalInvalidMethodInvocation/example: Fail
+ConstEvalInvalidStaticInvocation/dart2jsCode: Fail
+ConstEvalInvalidStaticInvocation/example: Fail
+ConstEvalInvalidStringInterpolationOperand/dart2jsCode: Fail
+ConstEvalInvalidStringInterpolationOperand/example: Fail
+ConstEvalInvalidType/analyzerCode: Fail # CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH / CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH / CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH / ...
+ConstEvalInvalidType/example: Fail
+ConstEvalNonConstantLiteral/dart2jsCode: Fail
+ConstEvalNonConstantLiteral/example: Fail
 ConstFieldWithoutInitializer/example: Fail
 ConstructorHasNoSuchNamedParameter/analyzerCode: Fail
 ConstructorHasNoSuchNamedParameter/example: Fail
@@ -82,6 +100,7 @@ CyclicClassHierarchy/analyzerCode: Fail
 CyclicClassHierarchy/example: Fail
 CyclicTypedef/analyzerCode: Fail
 CyclicTypedef/example: Fail
+DeclaredMemberConflictsWithInheritedMember/analyzerCode: Fail
 DeferredAfterPrefix/example: Fail
 DeferredPrefixDuplicated/analyzerCode: Fail
 DeferredPrefixDuplicated/example: Fail
@@ -120,6 +139,8 @@ ExpectedClassBody/example: Fail
 ExpectedClassMember/example: Fail
 ExpectedDeclaration/example: Fail
 ExpectedFunctionBody/example: Fail
+ExpectedOneExpression/analyzerCode: Fail
+ExpectedOneExpression/example: Fail
 ExpectedOpenParens/analyzerCode: Fail
 ExpectedOpenParens/example: Fail
 ExpectedStatement/statement: Fail
@@ -191,6 +212,7 @@ ImplicitCallOfNonMethod/example: Fail
 ImportAfterPart/script1: Fail
 ImportHidesImport/analyzerCode: Fail
 ImportHidesImport/example: Fail
+InheritedMembersConflict/analyzerCode: Fail
 InputFileNotFound/analyzerCode: Fail
 InputFileNotFound/example: Fail
 IntegerLiteralIsOutOfRange/example: Fail
@@ -413,4 +435,3 @@ UnterminatedToken/analyzerCode: Fail
 UnterminatedToken/example: Fail
 YieldAsIdentifier/example: Fail
 YieldNotGenerator/example: Fail
-

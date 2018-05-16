@@ -6,7 +6,8 @@
 
 library analyzer.test.generated.type_system_test;
 
-import 'package:analyzer/analyzer.dart' show ErrorReporter, StrongModeCode;
+import 'package:analyzer/analyzer.dart'
+    show ErrorReporter, ParameterKind, StrongModeCode;
 import 'package:analyzer/dart/ast/standard_ast_factory.dart' show astFactory;
 import 'package:analyzer/dart/ast/token.dart' show Keyword;
 import 'package:analyzer/dart/element/element.dart';
@@ -28,6 +29,7 @@ import 'analysis_context_factory.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ConstraintMatchingTest);
     defineReflectiveTests(StrongAssignabilityTest);
     defineReflectiveTests(StrongSubtypingTest);
     defineReflectiveTests(StrongGenericFunctionInferenceTest);
@@ -49,13 +51,13 @@ abstract class BoundTestBase {
   InterfaceType get doubleType => typeProvider.doubleType;
   DartType get dynamicType => typeProvider.dynamicType;
   InterfaceType get functionType => typeProvider.functionType;
+  InterfaceType get futureOrType => typeProvider.futureOrType;
   InterfaceType get intType => typeProvider.intType;
   InterfaceType get iterableType => typeProvider.iterableType;
   InterfaceType get listType => typeProvider.listType;
   InterfaceType get numType => typeProvider.numType;
   InterfaceType get objectType => typeProvider.objectType;
   InterfaceType get stringType => typeProvider.stringType;
-  InterfaceType get futureOrType => typeProvider.futureOrType;
   StrongTypeSystemImpl get strongTypeSystem =>
       typeSystem as StrongTypeSystemImpl;
 
@@ -133,6 +135,354 @@ abstract class BoundTestBase {
   }
 }
 
+@reflectiveTest
+class ConstraintMatchingTest {
+  TypeProvider typeProvider;
+  TypeSystem typeSystem;
+  TypeParameterType T;
+
+  DartType get dynamicType => DynamicTypeImpl.instance;
+
+  InterfaceType get functionType => typeProvider.functionType;
+
+  InterfaceType get intType => typeProvider.intType;
+
+  InterfaceType get nullType => typeProvider.nullType;
+
+  InterfaceType get objectType => typeProvider.objectType;
+
+  InterfaceType get stringType => typeProvider.stringType;
+
+  DartType get voidType => VoidTypeImpl.instance;
+
+  DartType fn(DartType paramType, DartType returnType) =>
+      new FunctionElementImpl.synthetic([
+        new ParameterElementImpl.synthetic(
+            'value', paramType, ParameterKind.REQUIRED)
+      ], returnType)
+          .type;
+
+  DartType future(DartType T) => typeProvider.futureType.instantiate([T]);
+
+  DartType futureOr(DartType T) => typeProvider.futureOrType.instantiate([T]);
+
+  DartType iterable(DartType T) => typeProvider.iterableType.instantiate([T]);
+
+  DartType list(DartType T) => typeProvider.listType.instantiate([T]);
+
+  void setUp() {
+    typeProvider = AnalysisContextFactory.contextWithCore().typeProvider;
+    typeSystem = new StrongTypeSystemImpl(typeProvider);
+    T = _newTypeParameter('T');
+  }
+
+  void test_function_coreFunction() {
+    _checkOrdinarySubtypeMatch(fn(intType, stringType), functionType, [T],
+        covariant: true);
+  }
+
+  void test_function_parameter_types() {
+    _checkIsSubtypeMatchOf(
+        fn(T, intType), fn(stringType, intType), [T], ['String <: T'],
+        covariant: true);
+  }
+
+  void test_function_return_types() {
+    _checkIsSubtypeMatchOf(
+        fn(intType, T), fn(intType, stringType), [T], ['T <: String'],
+        covariant: true);
+  }
+
+  void test_futureOr_futureOr() {
+    _checkIsSubtypeMatchOf(
+        futureOr(T), futureOr(stringType), [T], ['T <: String'],
+        covariant: true);
+  }
+
+  void test_futureOr_x_fail_future_branch() {
+    // FutureOr<List<T>> <: List<String> can't be satisfied because
+    // Future<List<T>> <: List<String> can't be satisfied
+    _checkIsNotSubtypeMatchOf(futureOr(list(T)), list(stringType), [T],
+        covariant: true);
+  }
+
+  void test_futureOr_x_fail_nonFuture_branch() {
+    // FutureOr<List<T>> <: Future<List<String>> can't be satisfied because
+    // List<T> <: Future<List<String>> can't be satisfied
+    _checkIsNotSubtypeMatchOf(futureOr(list(T)), future(list(stringType)), [T],
+        covariant: true);
+  }
+
+  void test_futureOr_x_success() {
+    // FutureOr<T> <: Future<T> can be satisfied by T=Null.  At this point in
+    // the type inference algorithm all we figure out is that T must be a
+    // subtype of both String and Future<String>.
+    _checkIsSubtypeMatchOf(futureOr(T), future(stringType), [T],
+        ['T <: String', 'T <: Future<String>'],
+        covariant: true);
+  }
+
+  void test_lhs_null() {
+    // Null <: T is trivially satisfied by the constraint Null <: T.
+    _checkIsSubtypeMatchOf(nullType, T, [T], ['Null <: T'], covariant: false);
+    // For any other type X, Null <: X is satisfied without the need for any
+    // constraints.
+    _checkOrdinarySubtypeMatch(nullType, list(T), [T], covariant: false);
+    _checkOrdinarySubtypeMatch(nullType, stringType, [T], covariant: false);
+    _checkOrdinarySubtypeMatch(nullType, voidType, [T], covariant: false);
+    _checkOrdinarySubtypeMatch(nullType, dynamicType, [T], covariant: false);
+    _checkOrdinarySubtypeMatch(nullType, objectType, [T], covariant: false);
+    _checkOrdinarySubtypeMatch(nullType, nullType, [T], covariant: false);
+    _checkOrdinarySubtypeMatch(nullType, fn(intType, stringType), [T],
+        covariant: false);
+  }
+
+  void test_param_on_lhs_contravariant_direct() {
+    // When doing a contravariant match, the type parameters we're trying to
+    // find types for are on the right hand side.  Is a type parameter also
+    // appears on the left hand side, there is a condition in which the
+    // constraint can be satisfied without consulting the bound of the LHS type
+    // parameter: the condition where both parameters appear at corresponding
+    // locations in the type tree.
+    //
+    // In other words, List<S> <: List<T> is satisfied provided that
+    // S <: T.
+    var S = _newTypeParameter('S');
+    _checkIsSubtypeMatchOf(list(S), list(T), [T], ['S <: T'], covariant: false);
+  }
+
+  void test_param_on_lhs_contravariant_via_bound() {
+    // When doing a contravariant match, the type parameters we're trying to
+    // find types for are on the right hand side.  Is a type parameter also
+    // appears on the left hand side, we may have to constrain the RHS type
+    // parameter using the bounds of the LHS type parameter.
+    //
+    // In other words, S <: List<T> is satisfied provided that
+    // bound(S) <: List<T>.
+    var S = _newTypeParameter('S', list(stringType));
+    _checkIsSubtypeMatchOf(S, list(T), [T], ['String <: T'], covariant: false);
+  }
+
+  void test_param_on_lhs_covariant() {
+    // When doing a covariant match, the type parameters we're trying to find
+    // types for are on the left hand side.
+    _checkIsSubtypeMatchOf(T, stringType, [T], ['T <: String'],
+        covariant: true);
+  }
+
+  void test_param_on_rhs_contravariant() {
+    // When doing a contravariant match, the type parameters we're trying to
+    // find types for are on the right hand side.
+    _checkIsSubtypeMatchOf(stringType, T, [T], ['String <: T'],
+        covariant: false);
+  }
+
+  void test_param_on_rhs_covariant_match() {
+    // When doing a covariant match, the type parameters we're trying to find
+    // types for are on the left hand side.  If a type parameter appears on the
+    // right hand side, there is a condition in which the constraint can be
+    // satisfied: where both parameters appear at corresponding locations in the
+    // type tree.
+    //
+    // In other words, T <: S can be satisfied trivially by the constraint
+    // T <: S.
+    var S = _newTypeParameter('S');
+    _checkIsSubtypeMatchOf(T, S, [T], ['T <: S'], covariant: true);
+  }
+
+  void test_param_on_rhs_covariant_no_match() {
+    // When doing a covariant match, the type parameters we're trying to find
+    // types for are on the left hand side.  If a type parameter appears on the
+    // right hand side, it's probable that the constraint can't be satisfied,
+    // because there is no possible type for the LHS (other than bottom)
+    // that's guaranteed to satisfy the relation for all possible assignments of
+    // the RHS type parameter.
+    //
+    // In other words, no match can be found for List<T> <: S because regardless
+    // of T, we can't guarantee that List<T> <: S for all S.
+    var S = _newTypeParameter('S');
+    _checkIsNotSubtypeMatchOf(list(T), S, [T], covariant: true);
+  }
+
+  void test_related_interface_types_failure() {
+    _checkIsNotSubtypeMatchOf(iterable(T), list(stringType), [T],
+        covariant: true);
+  }
+
+  void test_related_interface_types_success() {
+    _checkIsSubtypeMatchOf(list(T), iterable(stringType), [T], ['T <: String'],
+        covariant: true);
+  }
+
+  void test_rhs_dynamic() {
+    // T <: dynamic is trivially satisfied by the constraint T <: dynamic.
+    _checkIsSubtypeMatchOf(T, dynamicType, [T], ['T <: dynamic'],
+        covariant: true);
+    // For any other type X, X <: dynamic is satisfied without the need for any
+    // constraints.
+    _checkOrdinarySubtypeMatch(list(T), dynamicType, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(stringType, dynamicType, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(voidType, dynamicType, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(dynamicType, dynamicType, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(objectType, dynamicType, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(nullType, dynamicType, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(fn(intType, stringType), dynamicType, [T],
+        covariant: true);
+  }
+
+  void test_rhs_object() {
+    // T <: Object is trivially satisfied by the constraint T <: Object.
+    _checkIsSubtypeMatchOf(T, objectType, [T], ['T <: Object'],
+        covariant: true);
+    // For any other type X, X <: Object is satisfied without the need for any
+    // constraints.
+    _checkOrdinarySubtypeMatch(list(T), objectType, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(stringType, objectType, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(voidType, objectType, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(dynamicType, objectType, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(objectType, objectType, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(nullType, objectType, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(fn(intType, stringType), objectType, [T],
+        covariant: true);
+  }
+
+  void test_rhs_void() {
+    // T <: void is trivially satisfied by the constraint T <: void.
+    _checkIsSubtypeMatchOf(T, voidType, [T], ['T <: void'], covariant: true);
+    // For any other type X, X <: void is satisfied without the need for any
+    // constraints.
+    _checkOrdinarySubtypeMatch(list(T), voidType, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(stringType, voidType, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(voidType, voidType, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(dynamicType, voidType, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(objectType, voidType, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(nullType, voidType, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(fn(intType, stringType), voidType, [T],
+        covariant: true);
+  }
+
+  void test_same_interface_types() {
+    _checkIsSubtypeMatchOf(list(T), list(stringType), [T], ['T <: String'],
+        covariant: true);
+  }
+
+  void test_x_futureOr_fail_both_branches() {
+    // List<T> <: FutureOr<String> can't be satisfied because neither
+    // List<T> <: Future<String> nor List<T> <: int can be satisfied
+    _checkIsNotSubtypeMatchOf(list(T), futureOr(stringType), [T],
+        covariant: true);
+  }
+
+  void test_x_futureOr_pass_both_branches_constraints_from_both_branches() {
+    // Future<String> <: FutureOr<T> can be satisfied because both
+    // Future<String> <: Future<T> and Future<String> <: T can be satisfied.
+    // Trying to match Future<String> <: Future<T> generates the constraint
+    // String <: T, whereas trying to match Future<String> <: T generates the
+    // constraint Future<String> <: T.  We keep the constraint based on trying
+    // to match Future<String> <: Future<T>, so String <: T.
+    _checkIsSubtypeMatchOf(
+        future(stringType), futureOr(T), [T], ['String <: T'],
+        covariant: false);
+  }
+
+  void test_x_futureOr_pass_both_branches_constraints_from_future_branch() {
+    // Future<T> <: FutureOr<Object> can be satisfied because both
+    // Future<T> <: Future<Object> and Future<T> <: Object can be satisfied.
+    // Trying to match Future<T> <: Future<Object> generates the constraint
+    // T <: Object, whereas trying to match Future<T> <: Object generates no
+    // constraints, so we keep the constraint T <: Object.
+    _checkIsSubtypeMatchOf(
+        future(T), futureOr(objectType), [T], ['T <: Object'],
+        covariant: true);
+  }
+
+  void test_x_futureOr_pass_both_branches_constraints_from_nonFuture_branch() {
+    // Null <: FutureOr<T> can be satisfied because both
+    // Null <: Future<T> and Null <: T can be satisfied.
+    // Trying to match Null <: FutureOr<T> generates no constraints, whereas
+    // trying to match Null <: T generates the constraint Null <: T,
+    // so we keep the constraint Null <: T.
+    _checkIsSubtypeMatchOf(nullType, futureOr(T), [T], ['Null <: T'],
+        covariant: false);
+  }
+
+  void test_x_futureOr_pass_both_branches_no_constraints() {
+    // Future<String> <: FutureOr<Object> is satisfied because both
+    // Future<String> <: Future<Object> and Future<String> <: Object.
+    // No constraints are recorded.
+    _checkIsSubtypeMatchOf(future(stringType), futureOr(objectType), [T], [],
+        covariant: true);
+  }
+
+  void test_x_futureOr_pass_future_branch() {
+    // Future<T> <: FutureOr<String> can be satisfied because
+    // Future<T> <: Future<String> can be satisfied
+    _checkIsSubtypeMatchOf(
+        future(T), futureOr(stringType), [T], ['T <: String'],
+        covariant: true);
+  }
+
+  void test_x_futureOr_pass_nonFuture_branch() {
+    // List<T> <: FutureOr<List<String>> can be satisfied because
+    // List<T> <: List<String> can be satisfied
+    _checkIsSubtypeMatchOf(
+        list(T), futureOr(list(stringType)), [T], ['T <: String'],
+        covariant: true);
+  }
+
+  void _checkIsNotSubtypeMatchOf(
+      DartType t1, DartType t2, Iterable<TypeParameterType> typeFormals,
+      {bool covariant}) {
+    var inferrer = new GenericInferrer(
+        typeProvider, typeSystem, typeFormals.map((t) => t.element));
+    var success =
+        inferrer.tryMatchSubtypeOf(t1, t2, null, covariant: covariant);
+    expect(success, isFalse);
+    inferrer.constraints.forEach((typeParameter, constraintsForTypeParameter) {
+      expect(constraintsForTypeParameter, isEmpty);
+    });
+  }
+
+  void _checkIsSubtypeMatchOf(
+      DartType t1,
+      DartType t2,
+      Iterable<TypeParameterType> typeFormals,
+      Iterable<String> expectedConstraints,
+      {bool covariant}) {
+    var inferrer = new GenericInferrer(
+        typeProvider, typeSystem, typeFormals.map((t) => t.element));
+    var success =
+        inferrer.tryMatchSubtypeOf(t1, t2, null, covariant: covariant);
+    expect(success, isTrue);
+    var formattedConstraints = <String>[];
+    inferrer.constraints.forEach((typeParameter, constraintsForTypeParameter) {
+      for (var constraint in constraintsForTypeParameter) {
+        formattedConstraints.add(constraint.format(typeParameter.toString()));
+      }
+    });
+    expect(formattedConstraints, unorderedEquals(expectedConstraints));
+  }
+
+  void _checkOrdinarySubtypeMatch(
+      DartType t1, DartType t2, Iterable<TypeParameterType> typeFormals,
+      {bool covariant}) {
+    bool expectSuccess = typeSystem.isSubtypeOf(t1, t2);
+    if (expectSuccess) {
+      _checkIsSubtypeMatchOf(t1, t2, typeFormals, [], covariant: covariant);
+    } else {
+      _checkIsNotSubtypeMatchOf(t1, t2, typeFormals);
+    }
+  }
+
+  TypeParameterType _newTypeParameter(String name, [DartType bound]) {
+    var element = new TypeParameterElementImpl(name, 0);
+    if (bound != null) {
+      element.bound = bound;
+    }
+    return new TypeParameterTypeImpl(element);
+  }
+}
+
 /**
  * Tests LUB in spec mode.
  *
@@ -187,6 +537,15 @@ class LeastUpperBoundTest extends LeastUpperBoundTestBase {
       ])
     ]);
     _checkLeastUpperBound(type1, type2, expected);
+  }
+
+  void test_typeParam_class_implements_Function() {
+    DartType typeA = ElementFactory.classElement('A', functionType).type;
+    TypeParameterElementImpl typeParamElement =
+        ElementFactory.typeParameterElement('T');
+    typeParamElement.bound = typeA;
+    DartType typeParam = typeParamElement.type;
+    _checkLeastUpperBound(typeParam, simpleFunctionType, functionType);
   }
 
   /// Check least upper bound of the same class with different type parameters.
@@ -501,10 +860,9 @@ abstract class LeastUpperBoundTestBase extends BoundTestBase {
   }
 
   void test_typeParam_function_bounded() {
-    DartType typeA = ElementFactory.classElement('A', functionType).type;
     TypeParameterElementImpl typeParamElement =
         ElementFactory.typeParameterElement('T');
-    typeParamElement.bound = typeA;
+    typeParamElement.bound = functionType;
     DartType typeParam = typeParamElement.type;
     _checkLeastUpperBound(typeParam, simpleFunctionType, functionType);
   }
@@ -1036,13 +1394,13 @@ class StrongGenericFunctionInferenceTest {
   }
 
   void test_returnFunctionWithGenericParameterAndContext() {
-    // <T>(T -> T) -> (T -> void)
+    // <T>(T -> T) -> (T -> Null)
     var t = TypeBuilder.variable('T');
     var f = TypeBuilder.function(types: [
       t
     ], required: [
       TypeBuilder.function(required: [t], result: t)
-    ], result: TypeBuilder.function(required: [t], result: voidType));
+    ], result: TypeBuilder.function(required: [t], result: nullType));
     expect(
         _inferCall(f, [],
             returnType:
@@ -1181,68 +1539,6 @@ class StrongGreatestLowerBoundTest extends BoundTestBase {
     _checkGreatestLowerBound(bottomType, typeParam, bottomType);
   }
 
-  void test_classAndSuperclass() {
-    // class A
-    // class B extends A
-    // class C extends B
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
-    ClassElementImpl classC = ElementFactory.classElement("C", classB.type);
-    _checkGreatestLowerBound(classA.type, classC.type, classC.type);
-  }
-
-  void test_classAndSuperinterface() {
-    // class A
-    // class B implements A
-    // class C implements B
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement2("B");
-    ClassElementImpl classC = ElementFactory.classElement2("C");
-    classB.interfaces = <InterfaceType>[classA.type];
-    classC.interfaces = <InterfaceType>[classB.type];
-    _checkGreatestLowerBound(classA.type, classC.type, classC.type);
-  }
-
-  void test_dynamic_bottom() {
-    _checkGreatestLowerBound(dynamicType, bottomType, bottomType);
-  }
-
-  void test_dynamic_function() {
-    _checkGreatestLowerBound(
-        dynamicType, simpleFunctionType, simpleFunctionType);
-  }
-
-  void test_dynamic_interface() {
-    DartType interfaceType = ElementFactory.classElement2('A', []).type;
-    _checkGreatestLowerBound(dynamicType, interfaceType, interfaceType);
-  }
-
-  void test_dynamic_typeParam() {
-    DartType typeParam = ElementFactory.typeParameterElement('T').type;
-    _checkGreatestLowerBound(dynamicType, typeParam, typeParam);
-  }
-
-  void test_dynamic_void() {
-    // Note: _checkGreatestLowerBound tests `GLB(x, y)` as well as `GLB(y, x)`
-    _checkGreatestLowerBound(dynamicType, voidType, voidType);
-  }
-
-  void test_bounds_of_top_types_sanity() {
-    final futureOrDynamicType = futureOrType.instantiate([dynamicType]);
-    final futureOrFutureOrDynamicType =
-        futureOrType.instantiate([futureOrDynamicType]);
-
-    // Sanity check specific cases of top for GLB/LUB.
-    _checkLeastUpperBound(objectType, dynamicType, dynamicType);
-    _checkGreatestLowerBound(objectType, dynamicType, objectType);
-    _checkLeastUpperBound(objectType, voidType, objectType);
-    _checkLeastUpperBound(futureOrDynamicType, dynamicType, dynamicType);
-    _checkGreatestLowerBound(
-        futureOrDynamicType, objectType, futureOrDynamicType);
-    _checkGreatestLowerBound(futureOrDynamicType, futureOrFutureOrDynamicType,
-        futureOrFutureOrDynamicType);
-  }
-
   void test_bounds_of_top_types_complete() {
     // Test every combination of a subset of Tops programatically.
     final futureOrDynamicType = futureOrType.instantiate([dynamicType]);
@@ -1287,6 +1583,68 @@ class StrongGreatestLowerBoundTest extends BoundTestBase {
             orderedTops[i], orderedTops[greater], orderedTops[i]);
       }
     }
+  }
+
+  void test_bounds_of_top_types_sanity() {
+    final futureOrDynamicType = futureOrType.instantiate([dynamicType]);
+    final futureOrFutureOrDynamicType =
+        futureOrType.instantiate([futureOrDynamicType]);
+
+    // Sanity check specific cases of top for GLB/LUB.
+    _checkLeastUpperBound(objectType, dynamicType, dynamicType);
+    _checkGreatestLowerBound(objectType, dynamicType, objectType);
+    _checkLeastUpperBound(objectType, voidType, objectType);
+    _checkLeastUpperBound(futureOrDynamicType, dynamicType, dynamicType);
+    _checkGreatestLowerBound(
+        futureOrDynamicType, objectType, futureOrDynamicType);
+    _checkGreatestLowerBound(futureOrDynamicType, futureOrFutureOrDynamicType,
+        futureOrFutureOrDynamicType);
+  }
+
+  void test_classAndSuperclass() {
+    // class A
+    // class B extends A
+    // class C extends B
+    ClassElementImpl classA = ElementFactory.classElement2("A");
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
+    ClassElementImpl classC = ElementFactory.classElement("C", classB.type);
+    _checkGreatestLowerBound(classA.type, classC.type, classC.type);
+  }
+
+  void test_classAndSuperinterface() {
+    // class A
+    // class B implements A
+    // class C implements B
+    ClassElementImpl classA = ElementFactory.classElement2("A");
+    ClassElementImpl classB = ElementFactory.classElement2("B");
+    ClassElementImpl classC = ElementFactory.classElement2("C");
+    classB.interfaces = <InterfaceType>[classA.type];
+    classC.interfaces = <InterfaceType>[classB.type];
+    _checkGreatestLowerBound(classA.type, classC.type, classC.type);
+  }
+
+  void test_dynamic_bottom() {
+    _checkGreatestLowerBound(dynamicType, bottomType, bottomType);
+  }
+
+  void test_dynamic_function() {
+    _checkGreatestLowerBound(
+        dynamicType, simpleFunctionType, simpleFunctionType);
+  }
+
+  void test_dynamic_interface() {
+    DartType interfaceType = ElementFactory.classElement2('A', []).type;
+    _checkGreatestLowerBound(dynamicType, interfaceType, interfaceType);
+  }
+
+  void test_dynamic_typeParam() {
+    DartType typeParam = ElementFactory.typeParameterElement('T').type;
+    _checkGreatestLowerBound(dynamicType, typeParam, typeParam);
+  }
+
+  void test_dynamic_void() {
+    // Note: _checkGreatestLowerBound tests `GLB(x, y)` as well as `GLB(y, x)`
+    _checkGreatestLowerBound(dynamicType, voidType, voidType);
   }
 
   void test_functionsDifferentNamedTakeUnion() {
@@ -1551,6 +1909,15 @@ class StrongLeastUpperBoundTest extends LeastUpperBoundTestBase {
     _checkLeastUpperBound(typeParamT, typeParamS, typeParamS);
   }
 
+  void test_typeParam_class_implements_Function_ignored() {
+    DartType typeA = ElementFactory.classElement('A', functionType).type;
+    TypeParameterElementImpl typeParamElement =
+        ElementFactory.typeParameterElement('T');
+    typeParamElement.bound = typeA;
+    DartType typeParam = typeParamElement.type;
+    _checkLeastUpperBound(typeParam, simpleFunctionType, objectType);
+  }
+
   void test_typeParam_fBounded() {
     ClassElementImpl AClass = ElementFactory.classElement2('A', ["Q"]);
     InterfaceType AType = AClass.type;
@@ -1596,6 +1963,7 @@ class StrongSubtypingTest {
   InterfaceType get doubleType => typeProvider.doubleType;
   DartType get dynamicType => typeProvider.dynamicType;
   InterfaceType get functionType => typeProvider.functionType;
+  InterfaceType get futureOrType => typeProvider.futureOrType;
   InterfaceType get intType => typeProvider.intType;
   InterfaceType get listType => typeProvider.listType;
   InterfaceType get numType => typeProvider.numType;
@@ -1604,7 +1972,7 @@ class StrongSubtypingTest {
   DartType get voidType => VoidTypeImpl.instance;
 
   void setUp() {
-    typeProvider = new TestTypeProvider();
+    typeProvider = AnalysisContextFactory.contextWithCore().typeProvider;
     typeSystem = new StrongTypeSystemImpl(typeProvider);
   }
 
@@ -1634,7 +2002,7 @@ class StrongSubtypingTest {
         TypeBuilder.function(required: <DartType>[intType], result: objectType);
     InterfaceType bottom = classBottom.type;
 
-    _checkIsStrictSubtypeOf(bottom, top);
+    _checkIsNotSubtypeOf(bottom, top);
   }
 
   void test_classes() {
@@ -1674,19 +2042,24 @@ class StrongSubtypingTest {
     _checkGroups(dynamicType, equivalents: equivalents, subtypes: subtypes);
   }
 
-  void test_void_isTop() {
-    DartType interfaceType = ElementFactory.classElement2('A', []).type;
-    List<DartType> equivalents = <DartType>[dynamicType, objectType, voidType];
-    List<DartType> subtypes = <DartType>[
-      intType,
-      doubleType,
-      numType,
-      stringType,
-      functionType,
-      interfaceType,
-      bottomType
-    ];
-    _checkGroups(voidType, equivalents: equivalents, subtypes: subtypes);
+  void test_function_subtypes_itself_top_types() {
+    var tops = [dynamicType, objectType, voidType];
+    // Add FutureOr<T> for T := dynamic, object, void
+    tops.addAll(tops.map((t) => futureOrType.instantiate([t])).toList());
+    // Add FutureOr<FutureOr<T>> for T := dynamic, object, void
+    tops.addAll(
+        tops.skip(3).map((t) => futureOrType.instantiate([t])).toList());
+
+    // Function should subtype all of those top types.
+    _checkGroups(functionType, supertypes: [
+      dynamicType,
+      objectType,
+      voidType,
+    ]);
+
+    // Create a non-identical but equal copy of Function, and verify subtyping
+    var copyOfFunction = new InterfaceTypeImpl(functionType.element, null);
+    _checkEquivalent(functionType, copyOfFunction);
   }
 
   void test_genericFunction_generic_monomorphic() {
@@ -1918,6 +2291,21 @@ class StrongSubtypingTest {
         TypeBuilder.function(required: <DartType>[objectType], result: intType);
 
     _checkIsStrictSubtypeOf(bottom, top);
+  }
+
+  void test_void_isTop() {
+    DartType interfaceType = ElementFactory.classElement2('A', []).type;
+    List<DartType> equivalents = <DartType>[dynamicType, objectType, voidType];
+    List<DartType> subtypes = <DartType>[
+      intType,
+      doubleType,
+      numType,
+      stringType,
+      functionType,
+      interfaceType,
+      bottomType
+    ];
+    _checkGroups(voidType, equivalents: equivalents, subtypes: subtypes);
   }
 
   void _checkEquivalent(DartType type1, DartType type2) {

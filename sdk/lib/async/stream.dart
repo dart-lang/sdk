@@ -935,22 +935,13 @@ abstract class Stream<T> {
   /**
    * Adapt this stream to be a `Stream<R>`.
    *
-   * If this stream already has the desired type, its returned directly.
-   * Otherwise it is wrapped as a `Stream<R>` which checks at run-time that
-   * each data event emitted by this stream is also an instance of [R].
-   */
-  Stream<R> cast<R>() {
-    Stream<Object> self = this;
-    return self is Stream<R> ? self : retype<R>();
-  }
-
-  /**
-   * Adapt this stream to be a `Stream<R>`.
-   *
    * This stream is wrapped as a `Stream<R>` which checks at run-time that
    * each data event emitted by this stream is also an instance of [R].
    */
-  Stream<R> retype<R>() => Stream.castFrom<T, R>(this);
+  Stream<R> cast<R>() => Stream.castFrom<T, R>(this);
+
+  @Deprecated("Use cast instead.")
+  Stream<R> retype<R>() => cast<R>();
 
   /**
    * Collects all elements of this stream in a [List].
@@ -1273,12 +1264,8 @@ abstract class Stream<T> {
    * If an error occurs, or if this stream ends without finding a match and
    * with no [orElse] function provided,
    * the returned future is completed with an error.
-   *
-   * The [defaultValue] parameter is deprecated, and [orElse] should be used
-   * instead.
    */
-  Future<T> firstWhere(bool test(T element),
-      {@deprecated dynamic defaultValue(), T orElse()}) {
+  Future<T> firstWhere(bool test(T element), {T orElse()}) {
     _Future<T> future = new _Future();
     StreamSubscription subscription;
     subscription = this.listen(
@@ -1291,9 +1278,6 @@ abstract class Stream<T> {
         },
         onError: future._completeError,
         onDone: () {
-          if (orElse == null && defaultValue != null) {
-            orElse = () => defaultValue() as T;
-          }
           if (orElse != null) {
             _runUserCode(orElse, future._complete, future._completeError);
             return;
@@ -1318,12 +1302,8 @@ abstract class Stream<T> {
    * instead of the first.
    * That means that a non-error result cannot be provided before this stream
    * is done.
-   *
-   * The [defaultValue] parameter is deprecated, and [orElse] should be used
-   * instead.
    */
-  Future<T> lastWhere(bool test(T element),
-      {@deprecated dynamic defaultValue(), T orElse()}) {
+  Future<T> lastWhere(bool test(T element), {T orElse()}) {
     _Future<T> future = new _Future();
     T result = null;
     bool foundResult = false;
@@ -1342,9 +1322,6 @@ abstract class Stream<T> {
           if (foundResult) {
             future._complete(result);
             return;
-          }
-          if (orElse == null && defaultValue != null) {
-            orElse = () => defaultValue() as T;
           }
           if (orElse != null) {
             _runUserCode(orElse, future._complete, future._completeError);
@@ -2035,15 +2012,6 @@ abstract class StreamTransformer<S, T> {
   Stream<T> bind(Stream<S> stream);
 
   /**
-   * Provides a `StreamTransformer<RS, RT>` view of this stream transformer.
-   *
-   * If this transformer already has the desired type, or a subtype,
-   * it is returned directly,
-   * otherwise returns the result of `retype<RS, RT>()`.
-   */
-  StreamTransformer<RS, RT> cast<RS, RT>();
-
-  /**
    * Provides a `StreamTrasformer<RS, RT>` view of this stream transformer.
    *
    * The resulting transformer will check at run-time that all data events
@@ -2051,6 +2019,9 @@ abstract class StreamTransformer<S, T> {
    * and it will check that all data events produced by this transformer
    * are acually instances of [RT].
    */
+  StreamTransformer<RS, RT> cast<RS, RT>();
+
+  @Deprecated("Use cast instead.")
   StreamTransformer<RS, RT> retype<RS, RT>();
 }
 
@@ -2062,13 +2033,11 @@ abstract class StreamTransformer<S, T> {
 abstract class StreamTransformerBase<S, T> implements StreamTransformer<S, T> {
   const StreamTransformerBase();
 
-  StreamTransformer<RS, RT> cast<RS, RT>() {
-    StreamTransformer<Object, Object> self = this;
-    return self is StreamTransformer<RS, RT> ? self : retype<RS, RT>();
-  }
-
-  StreamTransformer<RS, RT> retype<RS, RT>() =>
+  StreamTransformer<RS, RT> cast<RS, RT>() =>
       StreamTransformer.castFrom<S, T, RS, RT>(this);
+
+  @Deprecated("Use cast instead.")
+  StreamTransformer<RS, RT> retype<RS, RT>() => cast<RS, RT>();
 }
 
 /**

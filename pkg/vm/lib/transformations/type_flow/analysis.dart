@@ -7,6 +7,7 @@ library kernel.transformations.analysis;
 
 import 'dart:collection';
 import 'dart:core' hide Type;
+import 'dart:math' show max;
 
 import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
 import 'package:kernel/class_hierarchy.dart' show ClosedWorldClassHierarchy;
@@ -55,6 +56,12 @@ class _DependencyTracker {
 
   void invalidateDependentInvocations(_WorkList workList) {
     if (_dependentInvocations != null) {
+      if (kPrintTrace) {
+        tracePrint('   - CHANGED: $this');
+        for (var di in _dependentInvocations) {
+          tracePrint('     - invalidating $di');
+        }
+      }
       _dependentInvocations.forEach(workList.invalidateInvocation);
     }
   }
@@ -76,6 +83,13 @@ abstract class _Invocation extends _DependencyTracker
   /// Used to check if the re-analysis of the invocation yields the same
   /// result or not (to avoid invalidation of callers if result hasn't changed).
   Type invalidatedResult;
+
+  /// Number of times result of this invocation was invalidated.
+  int invalidationCounter = 0;
+
+  /// If an invocation is invalidated more than [invalidationLimit] times,
+  /// its result is saturated in order to guarantee convergence.
+  static const int invalidationLimit = 1000;
 
   Type process(TypeFlowAnalysis typeFlowAnalysis);
 
@@ -161,16 +175,30 @@ class _DirectInvocation extends _Invocation {
         // Call via field.
         // TODO(alexmarkov): support function types and use inferred type
         // to get more precise return type.
+        final receiver = fieldValue.getValue(typeFlowAnalysis);
+        if (receiver != const EmptyType()) {
+          typeFlowAnalysis.applyCall(/* callSite = */ null,
+              DynamicSelector.kCall, new Args.withReceiver(args, receiver),
+              isResultUsed: false, processImmediately: false);
+        }
         return new Type.nullableAny();
 
       case CallKind.FieldInitializer:
         assertx(args.values.isEmpty);
         assertx(args.names.isEmpty);
-        fieldValue.setValue(
-            typeFlowAnalysis
-                .getSummary(field)
-                .apply(args, typeFlowAnalysis.hierarchyCache, typeFlowAnalysis),
-            typeFlowAnalysis);
+        Type initializerResult = typeFlowAnalysis
+            .getSummary(field)
+            .apply(args, typeFlowAnalysis.hierarchyCache, typeFlowAnalysis);
+        if (field.isStatic &&
+            !field.isConst &&
+            initializerResult is! NullableType) {
+          // If initializer of a static field throws an exception,
+          // then field is initialized with null value.
+          // TODO(alexmarkov): Try to prove that static field initializer
+          // does not throw exception.
+          initializerResult = new Type.nullable(initializerResult);
+        }
+        fieldValue.setValue(initializerResult, typeFlowAnalysis);
         return const EmptyType();
     }
 
@@ -204,6 +232,9 @@ class _DirectInvocation extends _Invocation {
             member.isGetter);
         typeFlowAnalysis.addRawCall(
             new DirectSelector(member, callKind: CallKind.PropertyGet));
+        typeFlowAnalysis.applyCall(/* callSite = */ null, DynamicSelector.kCall,
+            new Args.withReceiver(args, new Type.nullableAny()),
+            isResultUsed: false, processImmediately: false);
         return new Type.nullableAny();
       }
     }
@@ -303,6 +334,9 @@ class _DispatchableInvocation extends _Invocation {
               .getInvocation(directSelector, directArgs);
 
           type = typeFlowAnalysis.workList.processInvocation(directInvocation);
+          if (kPrintTrace) {
+            tracePrint('Dispatch: $directInvocation, result: $type');
+          }
 
           // Result of this invocation depends on the results of direct
           // invocations corresponding to each target.
@@ -655,7 +689,9 @@ class _FieldValue extends _DependencyTracker {
         newValue.intersection(staticType, typeFlowAnalysis.hierarchyCache),
         typeFlowAnalysis.hierarchyCache);
     if (newType != value) {
-      tracePrint("Set field $field value $newType");
+      if (kPrintTrace) {
+        tracePrint("Set field $field value $newType");
+      }
       invalidateDependentInvocations(typeFlowAnalysis.workList);
       value = newType;
     }
@@ -849,7 +885,9 @@ class _ClassHierarchyCache implements TypeHierarchy {
 
   @override
   Type specializeTypeCone(DartType base) {
-    tracePrint("specializeTypeCone for $base");
+    if (kPrintTrace) {
+      tracePrint("specializeTypeCone for $base");
+    }
     Statistics.typeConeSpecializations++;
 
     // TODO(alexmarkov): handle function types properly
@@ -992,7 +1030,7 @@ class _WorkList {
       callStack.add(invocation);
       pending.remove(invocation);
 
-      final Type result = invocation.process(_typeFlowAnalysis);
+      Type result = invocation.process(_typeFlowAnalysis);
 
       assertx(result != null);
       invocation.result = result;
@@ -1000,6 +1038,21 @@ class _WorkList {
       if (invocation.invalidatedResult != null) {
         if (invocation.invalidatedResult != result) {
           invocation.invalidateDependentInvocations(this);
+
+          invocation.invalidationCounter++;
+          Statistics.maxInvalidationsPerInvocation = max(
+              Statistics.maxInvalidationsPerInvocation,
+              invocation.invalidationCounter);
+          // In rare cases, loops in dependencies and approximation of
+          // recursive invocations may cause infinite bouncing of result
+          // types. To prevent infinite looping and guarantee convergence of
+          // the analysis, result is saturated after invocation is invalidated
+          // at least [_Invocation.invalidationLimit] times.
+          if (invocation.invalidationCounter > _Invocation.invalidationLimit) {
+            result = result.union(
+                invocation.invalidatedResult, _typeFlowAnalysis.hierarchyCache);
+            invocation.result = result;
+          }
         }
         invocation.invalidatedResult = null;
       }
@@ -1017,14 +1070,20 @@ class _WorkList {
       processing.remove(invocation);
 
       Statistics.invocationsProcessed++;
+      if (kPrintTrace) {
+        tracePrint('END PROCESSING $invocation, RESULT $result');
+      }
       return result;
     } else {
       // Recursive invocation, approximate with static type.
       Statistics.recursiveInvocationsApproximated++;
       final staticType =
           new Type.fromStatic(invocation.selector.staticReturnType);
-      tracePrint(
-          "Approximated recursive invocation with static type $staticType");
+      if (kPrintTrace) {
+        tracePrint(
+            "Approximated recursive invocation with static type $staticType");
+        tracePrint('END PROCESSING $invocation, RESULT $staticType');
+      }
       return staticType;
     }
   }
@@ -1079,6 +1138,8 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
     }
   }
 
+  bool isClassAllocated(Class c) => hierarchyCache.allocatedClasses.contains(c);
+
   Call callSite(TreeNode node) => summaryCollector.callSites[node];
 
   Type fieldType(Field field) => _fieldValues[field]?.value;
@@ -1088,9 +1149,8 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
   /// ---- Implementation of [CallHandler] interface. ----
 
   @override
-  Type applyCall(
-      Call callSite, Selector selector, Args<Type> args, bool isResultUsed,
-      {bool processImmediately: true}) {
+  Type applyCall(Call callSite, Selector selector, Args<Type> args,
+      {bool isResultUsed: true, bool processImmediately: true}) {
     _Invocation invocation = _invocationsCache.getInvocation(selector, args);
 
     // Test if tracing is enabled to avoid expensive message formatting.
@@ -1127,16 +1187,20 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
 
   @override
   void addRawCall(Selector selector) {
-    debugPrint("ADD RAW CALL: $selector");
+    if (kPrintDebug) {
+      debugPrint("ADD RAW CALL: $selector");
+    }
     assertx(selector is! DynamicSelector); // TODO(alexmarkov)
 
-    applyCall(null, selector, summaryCollector.rawArguments(selector), false,
-        processImmediately: false);
+    applyCall(null, selector, summaryCollector.rawArguments(selector),
+        isResultUsed: false, processImmediately: false);
   }
 
   @override
   ConcreteType addAllocatedClass(Class c) {
-    debugPrint("ADD ALLOCATED CLASS: $c");
+    if (kPrintDebug) {
+      debugPrint("ADD ALLOCATED CLASS: $c");
+    }
     return hierarchyCache.addAllocatedClass(c);
   }
 }

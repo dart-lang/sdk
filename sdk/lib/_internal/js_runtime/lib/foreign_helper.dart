@@ -177,24 +177,6 @@ external T JS<T>(String typeDescription, String codeTemplate,
     arg19]);
 
 /**
- * Returns the isolate in which this code is running.
- */
-external IsolateContext JS_CURRENT_ISOLATE_CONTEXT();
-
-abstract class IsolateContext {
-  int get id;
-
-  /// Holds a (native) JavaScript instance of Isolate, see
-  /// finishIsolateConstructorFunction in emitter.dart.
-  get isolateStatics;
-}
-
-/**
- * Invokes [function] in the context of [isolate].
- */
-external JS_CALL_IN_ISOLATE(isolate, Function function);
-
-/**
  * Converts the Dart closure [function] into a JavaScript closure.
  *
  * Warning: This is no different from [RAW_DART_FUNCTION_REF] which means care

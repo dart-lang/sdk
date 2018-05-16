@@ -2,14 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.generated.engine_test;
-
 import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
 import 'package:analyzer/src/context/cache.dart';
@@ -19,8 +16,9 @@ import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/string_source.dart';
-import 'package:analyzer/task/model.dart';
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:html/dom.dart' show Document;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -44,7 +42,6 @@ class AnalysisOptionsImplTest {
     modifiedOptions.enableLazyAssignmentOperators = true;
     modifiedOptions.enableSuperMixins = true;
     modifiedOptions.enableTiming = true;
-    modifiedOptions.enableUriInPartOf = true;
     modifiedOptions.errorProcessors = [null];
     modifiedOptions.excludePatterns = ['a'];
     modifiedOptions.generateImplicitErrors = false;
@@ -69,7 +66,6 @@ class AnalysisOptionsImplTest {
         defaultOptions.enableLazyAssignmentOperators);
     expect(modifiedOptions.enableSuperMixins, defaultOptions.enableSuperMixins);
     expect(modifiedOptions.enableTiming, defaultOptions.enableTiming);
-    expect(modifiedOptions.enableUriInPartOf, defaultOptions.enableUriInPartOf);
     expect(modifiedOptions.errorProcessors, defaultOptions.errorProcessors);
     expect(modifiedOptions.excludePatterns, defaultOptions.excludePatterns);
     expect(modifiedOptions.generateImplicitErrors,

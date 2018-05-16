@@ -7,12 +7,12 @@ import 'dart:async';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
-import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -180,24 +180,6 @@ test_pack:lib/''');
     expect(sourceFactory.forUri('dart:typed_data'), isNotNull);
   }
 
-  test_ignoreFilesInPackagesFolder() {
-    // create a context with a pubspec.yaml file
-    String pubspecPath = path.posix.join(projPath, 'pubspec.yaml');
-    resourceProvider.newFile(pubspecPath, 'pubspec');
-    // create a file in the "packages" folder
-    String filePath1 = path.posix.join(projPath, 'packages', 'file1.dart');
-    resourceProvider.newFile(filePath1, 'contents');
-    // "packages" files are ignored initially
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
-    expect(callbacks.currentFilePaths, isEmpty);
-    // "packages" files are ignored during watch
-    String filePath2 = path.posix.join(projPath, 'packages', 'file2.dart');
-    resourceProvider.newFile(filePath2, 'contents');
-    return pumpEventQueue().then((_) {
-      expect(callbacks.currentFilePaths, isEmpty);
-    });
-  }
-
   void test_isInAnalysisRoot_excluded() {
     // prepare paths
     String project = convertPath('/project');
@@ -236,6 +218,23 @@ test_pack:lib/''');
   void test_isInAnalysisRoot_notInRoot() {
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     expect(manager.isInAnalysisRoot('/test.dart'), isFalse);
+  }
+
+  test_packagesFolder_areAnalyzed() {
+    // create a context with a pubspec.yaml file
+    String pubspecPath = path.posix.join(projPath, 'pubspec.yaml');
+    resourceProvider.newFile(pubspecPath, 'pubspec');
+    // create a file in the "packages" folder
+    String filePath1 = path.posix.join(projPath, 'packages', 'file1.dart');
+    File file1 = resourceProvider.newFile(filePath1, 'contents');
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    expect(callbacks.currentFilePaths, unorderedEquals([file1.path]));
+    String filePath2 = path.posix.join(projPath, 'packages', 'file2.dart');
+    File file2 = resourceProvider.newFile(filePath2, 'contents');
+    return pumpEventQueue().then((_) {
+      expect(callbacks.currentFilePaths,
+          unorderedEquals([file1.path, file2.path]));
+    });
   }
 
   test_path_filter() async {
@@ -943,16 +942,6 @@ test_pack:lib/''');
     expect(callbacks.currentFilePaths, hasLength(0));
   }
 
-  void test_setRoots_noContext_inPackagesFolder() {
-    String pubspecPath = path.posix.join(projPath, 'packages', 'pubspec.yaml');
-    resourceProvider.newFile(pubspecPath, 'name: test');
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
-    // verify
-    expect(callbacks.currentContextRoots, hasLength(1));
-    expect(callbacks.currentContextRoots, contains(projPath));
-    expect(callbacks.currentFilePaths, hasLength(0));
-  }
-
   void test_setRoots_packageResolver() {
     String filePath = join(projPath, 'lib', 'foo.dart');
     newFile('$projPath/${ContextManagerImpl.PACKAGE_SPEC_NAME}',
@@ -966,6 +955,16 @@ test_pack:lib/''');
     expect(drivers[0], isNotNull);
     Source result = sourceFactory.forUri('package:foo/foo.dart');
     expect(result.fullName, filePath);
+  }
+
+  void test_setRoots_packagesFolder_hasContext() {
+    String pubspecPath = path.posix.join(projPath, 'packages', 'pubspec.yaml');
+    resourceProvider.newFile(pubspecPath, 'name: test');
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    // verify
+    expect(callbacks.currentContextRoots, hasLength(2));
+    expect(callbacks.currentContextRoots, contains(projPath));
+    expect(callbacks.currentFilePaths, hasLength(0));
   }
 
   void test_setRoots_pathContainsDotFile() {
@@ -1816,6 +1815,12 @@ abstract class ContextManagerTest extends Object with ResourceProviderMixin {
 @reflectiveTest
 class ContextManagerWithNewOptionsTest extends ContextManagerWithOptionsTest {
   String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
+
+  @failingTest
+  test_analysis_options_parse_failure() async {
+    // We have lost the ability to detect errors of this form.
+    return super.test_analysis_options_parse_failure();
+  }
 }
 
 @reflectiveTest
@@ -2172,6 +2177,27 @@ analyzer:
     expect(errorProcessors, isEmpty);
   }
 
+  test_non_analyzable_files_not_considered() async {
+    // Set up project and get a reference to the driver.
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    Folder projectFolder = resourceProvider.newFolder(projPath);
+    var drivers = manager.getDriversInAnalysisRoot(projectFolder);
+    expect(drivers, hasLength(1));
+
+    // Add the driver to the manager so that it will receive the events.
+    manager.driverMap[projectFolder] = drivers[0];
+
+    // Ensure adding a file that shouldn't be analyzed is not picked up.
+    newFile('$projPath/test.txt');
+    await pumpEventQueue();
+    expect(drivers[0].hasFilesToAnalyze, false);
+
+    // Ensure modifying a file that shouldn't be analyzed is not picked up.
+    modifyFile('$projPath/test.txt', 'new content');
+    await pumpEventQueue();
+    expect(drivers[0].hasFilesToAnalyze, false);
+  }
+
   @failingTest
   test_optionsFile_update_strongMode() async {
     // It appears that this fails because we are not correctly updating the
@@ -2431,27 +2457,6 @@ analyzer:
     newFile('$libPath/main.dart');
     await new Future.delayed(new Duration(milliseconds: 1));
     expect(callbacks.watchEvents, hasLength(1));
-  }
-
-  test_non_analyzable_files_not_considered() async {
-    // Set up project and get a reference to the driver.
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
-    Folder projectFolder = resourceProvider.newFolder(projPath);
-    var drivers = manager.getDriversInAnalysisRoot(projectFolder);
-    expect(drivers, hasLength(1));
-
-    // Add the driver to the manager so that it will receive the events.
-    manager.driverMap[projectFolder] = drivers[0];
-
-    // Ensure adding a file that shouldn't be analyzed is not picked up.
-    newFile('$projPath/test.txt');
-    await pumpEventQueue();
-    expect(drivers[0].hasFilesToAnalyze, false);
-
-    // Ensure modifying a file that shouldn't be analyzed is not picked up.
-    modifyFile('$projPath/test.txt', 'new content');
-    await pumpEventQueue();
-    expect(drivers[0].hasFilesToAnalyze, false);
   }
 }
 

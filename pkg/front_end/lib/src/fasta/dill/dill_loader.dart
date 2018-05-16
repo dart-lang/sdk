@@ -6,7 +6,7 @@ library fasta.dill_loader;
 
 import 'dart:async' show Future;
 
-import 'package:kernel/ast.dart' show Library, Program, Source;
+import 'package:kernel/ast.dart' show Library, Component, Source;
 
 import '../fasta_codes.dart'
     show SummaryTemplate, Template, templateDillOutlineSummary;
@@ -25,7 +25,7 @@ class DillLoader extends Loader<Library> {
   /// Source targets are compiled against these binary libraries.
   final libraries = <Library>[];
 
-  /// Sources for all appended programs.
+  /// Sources for all appended components.
   final Map<Uri, Source> uriToSource = <Uri, Source>{};
 
   DillLoader(TargetImplementation target) : super(target);
@@ -33,12 +33,12 @@ class DillLoader extends Loader<Library> {
   Template<SummaryTemplate> get outlineSummaryTemplate =>
       templateDillOutlineSummary;
 
-  /// Append compiled libraries from the given [program]. If the [filter] is
+  /// Append compiled libraries from the given [component]. If the [filter] is
   /// provided, append only libraries whose [Uri] is accepted by the [filter].
-  List<DillLibraryBuilder> appendLibraries(Program program,
+  List<DillLibraryBuilder> appendLibraries(Component component,
       {bool filter(Uri uri), int byteCount: 0}) {
     var builders = <DillLibraryBuilder>[];
-    for (Library library in program.libraries) {
+    for (Library library in component.libraries) {
       if (filter == null || filter(library.importUri)) {
         libraries.add(library);
         DillLibraryBuilder builder = read(library.importUri, -1);
@@ -46,7 +46,7 @@ class DillLoader extends Loader<Library> {
         builders.add(builder);
       }
     }
-    uriToSource.addAll(program.uriToSource);
+    uriToSource.addAll(component.uriToSource);
     this.byteCount += byteCount;
     return builders;
   }

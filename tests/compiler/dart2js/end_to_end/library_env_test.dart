@@ -55,7 +55,7 @@ class DummyCompilerInput implements CompilerInput {
   const DummyCompilerInput();
 
   Future<Input> readFromUri(Uri uri,
-      {InputKind inputKind: InputKind.utf8}) async {
+      {InputKind inputKind: InputKind.UTF8}) async {
     if (uri.toString().endsWith("dart_client.platform")) {
       return new Binary(uri, clientPlatform.codeUnits);
     } else if (uri.toString().endsWith("dart_server.platform")) {
@@ -84,10 +84,10 @@ class CustomCompiler extends CompilerImpl {
             const DummyCompilerInput(),
             const NullCompilerOutput(),
             const DummyCompilerDiagnostics(),
-            new CompilerOptions.parse(
-                libraryRoot: Uri.base.resolve("sdk/"),
-                options: ['--platform-binaries=$platformDir']..addAll(options),
-                environment: environment));
+            CompilerOptions.parse(
+                ['--platform-binaries=$platformDir']..addAll(options),
+                libraryRoot: Uri.base.resolve("sdk/"))
+              ..environment = environment);
 }
 
 runTest() async {

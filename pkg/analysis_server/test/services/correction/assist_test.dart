@@ -11,9 +11,7 @@ import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/analysis/ast_provider_driver.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -39,6 +37,8 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
   SourceChange change;
   String resultCode;
   LinkedEditGroup linkedPositionGroup;
+
+  bool get omitNew => false;
 
   /**
    * Asserts that there is an [Assist] of the given [kind] at [offset] which
@@ -2564,6 +2564,33 @@ class A {
     await assertNoAssistAt('test =', DartAssistKind.ENCAPSULATE_FIELD);
   }
 
+  test_encapsulateField_OK_documentation() async {
+    await resolveTestUnit('''
+class A {
+  /// AAA
+  /// BBB
+  int test;
+}
+''');
+    await assertHasAssistAt('test;', DartAssistKind.ENCAPSULATE_FIELD, '''
+class A {
+  /// AAA
+  /// BBB
+  int _test;
+
+  /// AAA
+  /// BBB
+  int get test => _test;
+
+  /// AAA
+  /// BBB
+  set test(int test) {
+    _test = test;
+  }
+}
+''');
+  }
+
   test_encapsulateField_OK_hasType() async {
     await resolveTestUnit('''
 class A {
@@ -2580,7 +2607,7 @@ class A {
 
   int get test => _test;
 
-  void set test(int test) {
+  set test(int test) {
     _test = test;
   }
   A(this._test);
@@ -2606,7 +2633,7 @@ class A {
 
   get test => _test;
 
-  void set test(test) {
+  set test(test) {
     _test = test;
   }
 }
@@ -3378,6 +3405,7 @@ build() {
   return new Scaffold(
 // start
     body: new Center(
+      key: null,
       child: new /*caret*/GestureDetector(
         onTap: () => startResize(),
         child: new Container(
@@ -3385,13 +3413,64 @@ build() {
           height: 300.0,
         ),
       ),
-      key: null,
     ),
 // end
   );
 }
 startResize() {}
 ''');
+  }
+
+  test_flutterSwapWithChild_OK_notFormatted() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+
+class Foo extends StatefulWidget {
+  @override
+  _State createState() => new _State();
+}
+
+class _State extends State<Foo> {
+  @override
+  Widget build(BuildContext context) {
+    return new /*caret*/Expanded(
+      flex: 2,
+      child: new GestureDetector(
+        child: new Text(
+          'foo',
+        ), onTap: () {
+          print(42);
+      },
+      ),
+    );
+  }
+}''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_SWAP_WITH_CHILD, '''
+import 'package:flutter/material.dart';
+
+class Foo extends StatefulWidget {
+  @override
+  _State createState() => new _State();
+}
+
+class _State extends State<Foo> {
+  @override
+  Widget build(BuildContext context) {
+    return new GestureDetector(
+      onTap: () {
+        print(42);
+    },
+      child: new /*caret*/Expanded(
+        flex: 2,
+        child: new Text(
+          'foo',
+        ),
+      ),
+    );
+  }
+}''');
   }
 
   test_flutterSwapWithParent_OK() async {
@@ -3425,11 +3504,11 @@ build() {
     body: new /*caret*/GestureDetector(
       onTap: () => startResize(),
       child: new Center(
+        key: null,
         child: new Container(
           width: 200.0,
           height: 300.0,
         ),
-        key: null,
       ),
     ),
 // end
@@ -3437,6 +3516,58 @@ build() {
 }
 startResize() {}
 ''');
+  }
+
+  test_flutterSwapWithParent_OK_notFormatted() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+
+class Foo extends StatefulWidget {
+  @override
+  _State createState() => new _State();
+}
+
+class _State extends State<Foo> {
+  @override
+  Widget build(BuildContext context) {
+    return new GestureDetector(
+      child: new /*caret*/Expanded(
+        child: new Text(
+          'foo',
+        ),
+        flex: 2,
+      ), onTap: () {
+        print(42);
+    },
+    );
+  }
+}''');
+    _setCaretLocation();
+    await assertHasAssist(DartAssistKind.FLUTTER_SWAP_WITH_PARENT, '''
+import 'package:flutter/material.dart';
+
+class Foo extends StatefulWidget {
+  @override
+  _State createState() => new _State();
+}
+
+class _State extends State<Foo> {
+  @override
+  Widget build(BuildContext context) {
+    return new /*caret*/Expanded(
+      flex: 2,
+      child: new GestureDetector(
+        onTap: () {
+          print(42);
+      },
+        child: new Text(
+          'foo',
+        ),
+      ),
+    );
+  }
+}''');
   }
 
   test_flutterSwapWithParent_OK_outerIsInChildren() async {
@@ -3513,6 +3644,39 @@ class FakeFlutter {
 }
 ''');
     _setCaretLocation();
+    if (omitNew) {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_CENTER, '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    return /*caret*/Center(child: new Container());
+  }
+}
+''');
+    } else {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_CENTER, '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    return /*caret*/new Center(child: new Container());
+  }
+}
+''');
+    }
+  }
+
+  test_flutterWrapCenter_OK_implicitNew() async {
+    configurePreviewDart2();
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    return /*caret*/new Container();
+  }
+}
+''');
+    _setCaretLocation();
     await assertHasAssist(DartAssistKind.FLUTTER_WRAP_CENTER, '''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
@@ -3523,26 +3687,51 @@ class FakeFlutter {
 ''');
   }
 
-  test_flutterWrapCenter_OK_implicitNew() async {
-    configurePreviewDart2();
+  test_flutterWrapCenter_OK_namedConstructor() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
-class FakeFlutter {
-  main() {
-    return /*caret*/Container();
-  }
+
+class MyWidget extends StatelessWidget {
+  MyWidget.named();
+
+  Widget build(BuildContext context) => null;
+}
+
+main() {
+  return MyWidget./*caret*/named();
 }
 ''');
     _setCaretLocation();
-    await assertHasAssist(DartAssistKind.FLUTTER_WRAP_CENTER, '''
+    if (omitNew) {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_CENTER, '''
 import 'package:flutter/widgets.dart';
-class FakeFlutter {
-  main() {
-    return /*caret*/Center(child: Container());
-  }
+
+class MyWidget extends StatelessWidget {
+  MyWidget.named();
+
+  Widget build(BuildContext context) => null;
+}
+
+main() {
+  return /*caret*/Center(child: MyWidget.named());
 }
 ''');
+    } else {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_CENTER, '''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  MyWidget.named();
+
+  Widget build(BuildContext context) => null;
+}
+
+main() {
+  return new Center(child: MyWidget./*caret*/named());
+}
+''');
+    }
   }
 
   test_flutterWrapColumn_OK_coveredByWidget() async {
@@ -3559,7 +3748,24 @@ class FakeFlutter {
 }
 ''');
     _setCaretLocation();
-    await assertHasAssist(DartAssistKind.FLUTTER_WRAP_COLUMN, '''
+    if (omitNew) {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_COLUMN, '''
+import 'package:flutter/widgets.dart';
+
+class FakeFlutter {
+  main() {
+    return new Container(
+      child: Column(
+        children: <Widget>[
+          new /*caret*/Text('aaa'),
+        ],
+      ),
+    );
+  }
+}
+''');
+    } else {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_COLUMN, '''
 import 'package:flutter/widgets.dart';
 
 class FakeFlutter {
@@ -3574,6 +3780,7 @@ class FakeFlutter {
   }
 }
 ''');
+    }
   }
 
   test_flutterWrapColumn_OK_coversWidgets() async {
@@ -3595,7 +3802,29 @@ class FakeFlutter {
 }
 ''');
     _setStartEndSelection();
-    await assertHasAssist(DartAssistKind.FLUTTER_WRAP_COLUMN, '''
+    if (omitNew) {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_COLUMN, '''
+import 'package:flutter/widgets.dart';
+
+class FakeFlutter {
+  main() {
+    return new Row(children: [
+      new Text('aaa'),
+// start
+      Column(
+        children: <Widget>[
+          new Text('bbb'),
+          new Text('ccc'),
+        ],
+      ),
+// end
+      new Text('ddd'),
+    ]);
+  }
+}
+''');
+    } else {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_COLUMN, '''
 import 'package:flutter/widgets.dart';
 
 class FakeFlutter {
@@ -3615,6 +3844,7 @@ class FakeFlutter {
   }
 }
 ''');
+    }
   }
 
   test_flutterWrapColumn_OK_implicitNew() async {
@@ -3625,7 +3855,7 @@ import 'package:flutter/widgets.dart';
 
 main() {
   return Container(
-    child: /*caret*/Text('aaa'),
+    child: /*caret*/new Text('aaa'),
   );
 }
 ''');
@@ -3635,9 +3865,9 @@ import 'package:flutter/widgets.dart';
 
 main() {
   return Container(
-    child: /*caret*/Column(
+    child: /*caret*/new Column(
       children: <Widget>[
-        Text('aaa'),
+        new Text('aaa'),
       ],
     ),
   );
@@ -3670,7 +3900,20 @@ class FakeFlutter {
 }
 ''');
     _setCaretLocation();
-    await assertHasAssist(DartAssistKind.FLUTTER_WRAP_PADDING, '''
+    if (omitNew) {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_PADDING, '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    return /*caret*/Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: new Container(),
+    );
+  }
+}
+''');
+    } else {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_PADDING, '''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
@@ -3681,6 +3924,7 @@ class FakeFlutter {
   }
 }
 ''');
+    }
   }
 
   test_flutterWrapRow_OK() async {
@@ -3702,7 +3946,29 @@ class FakeFlutter {
 }
 ''');
     _setStartEndSelection();
-    await assertHasAssist(DartAssistKind.FLUTTER_WRAP_ROW, '''
+    if (omitNew) {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_ROW, '''
+import 'package:flutter/widgets.dart';
+
+class FakeFlutter {
+  main() {
+    return new Column(children: [
+      new Text('aaa'),
+// start
+      Row(
+        children: <Widget>[
+          new Text('bbb'),
+          new Text('ccc'),
+        ],
+      ),
+// end
+      new Text('ddd'),
+    ]);
+  }
+}
+''');
+    } else {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_ROW, '''
 import 'package:flutter/widgets.dart';
 
 class FakeFlutter {
@@ -3722,6 +3988,7 @@ class FakeFlutter {
   }
 }
 ''');
+    }
   }
 
   test_flutterWrapWidget_BAD_minimal() async {
@@ -3764,7 +4031,7 @@ class FakeFlutter {
   main() {
   var obj;
 // start
-    return new Row(children: [/*caret*/ new Transform()]);
+    return new Row(children: [/*caret*/ new Container()]);
 // end
   }
 }
@@ -3782,9 +4049,9 @@ build() {
     child: new Row(
 // start
       children: [/*caret*/
-        new Transform(),
-        new Transform(),
-        new AspectRatio(),
+        new Text('111'),
+        new Text('222'),
+        new Container(),
       ],
 // end
     ),
@@ -3801,9 +4068,9 @@ build() {
       children: [
         new widget(
           children: [/*caret*/
-            new Transform(),
-            new Transform(),
-            new AspectRatio(),
+            new Text('111'),
+            new Text('222'),
+            new Container(),
           ],
         ),
       ],
@@ -3836,7 +4103,30 @@ class FakeFlutter {
 }
 ''');
     _setCaretLocation();
-    await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
+    if (omitNew) {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    return new Container(
+// start
+      child: widget(
+        child: new /*caret*/DefaultTextStyle(
+          child: new Row(
+            children: <Widget>[
+              new Container(
+              ),
+            ],
+          ),
+        ),
+      ),
+// end
+    );
+  }
+}
+''');
+    } else {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
@@ -3857,6 +4147,7 @@ class FakeFlutter {
   }
 }
 ''');
+    }
   }
 
   test_flutterWrapWidget_OK_multiLines_eol2() async {
@@ -3881,7 +4172,30 @@ class FakeFlutter {\r
 }\r
 ''');
     _setCaretLocation();
-    await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
+    if (omitNew) {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {\r
+  main() {\r
+    return new Container(\r
+// start\r
+      child: widget(\r
+        child: new /*caret*/DefaultTextStyle(\r
+          child: new Row(\r
+            children: <Widget>[\r
+              new Container(\r
+              ),\r
+            ],\r
+          ),\r
+        ),\r
+      ),\r
+// end\r
+    );\r
+  }\r
+}\r
+''');
+    } else {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {\r
   main() {\r
@@ -3902,6 +4216,7 @@ class FakeFlutter {\r
   }\r
 }\r
 ''');
+    }
   }
 
   test_flutterWrapWidget_OK_singleLine1() async {
@@ -3917,7 +4232,19 @@ class FakeFlutter {
 }
 ''');
     _setCaretLocation();
-    await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
+    if (omitNew) {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+// start
+    return /*caret*/widget(child: new Container());
+// end
+  }
+}
+''');
+    } else {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
@@ -3927,6 +4254,7 @@ class FakeFlutter {
   }
 }
 ''');
+    }
   }
 
   test_flutterWrapWidget_OK_singleLine2() async {
@@ -3940,7 +4268,17 @@ class FakeFlutter {
 }
 ''');
     _setCaretLocation();
-    await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
+    if (omitNew) {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    return widget(child: new ClipRect./*caret*/rect());
+  }
+}
+''');
+    } else {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
@@ -3948,6 +4286,7 @@ class FakeFlutter {
   }
 }
 ''');
+    }
   }
 
   test_flutterWrapWidget_OK_variable() async {
@@ -3962,7 +4301,18 @@ class FakeFlutter {
 }
 ''');
     _setCaretLocation();
-    await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
+    if (omitNew) {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() {
+    var container = new Container();
+    return /*caret*/widget(child: container);
+  }
+}
+''');
+    } else {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_GENERIC, '''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
@@ -3971,6 +4321,7 @@ class FakeFlutter {
   }
 }
 ''');
+    }
   }
 
   test_importAddShow_BAD_hasShow() async {
@@ -5596,8 +5947,8 @@ main() {
     CompilationUnitElement testUnitElement =
         resolutionMap.elementDeclaredByCompilationUnit(testUnit);
     DartAssistContext assistContext;
-    assistContext = new _DartAssistContextForValues(testUnitElement.source,
-        offset, length, driver, new AstProviderForDriver(driver), testUnit);
+    assistContext = new _DartAssistContextForValues(
+        testUnitElement.source, offset, length, driver, testUnit);
     AssistProcessor processor = new AssistProcessor(assistContext);
     return await processor.compute();
   }
@@ -5636,11 +5987,8 @@ class _DartAssistContextForValues implements DartAssistContext {
   final AnalysisDriver analysisDriver;
 
   @override
-  final AstProvider astProvider;
-
-  @override
   final CompilationUnit unit;
 
   _DartAssistContextForValues(this.source, this.selectionOffset,
-      this.selectionLength, this.analysisDriver, this.astProvider, this.unit);
+      this.selectionLength, this.analysisDriver, this.unit);
 }

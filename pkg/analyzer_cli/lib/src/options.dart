@@ -153,9 +153,6 @@ class CommandLineOptions {
   /// Whether to treat lints as fatal
   final bool lintsAreFatal;
 
-  /// Whether to use memory byte store for analysis driver.
-  final bool useAnalysisDriverMemoryByteStore;
-
   /// Emit output in a verbose mode.
   final bool verbose;
 
@@ -192,8 +189,7 @@ class CommandLineOptions {
         machineFormat = args['format'] == 'machine',
         perfReport = args['x-perf-report'],
         useCFE = args['use-cfe'],
-        previewDart2 =
-            args.wasParsed('preview-dart-2') ? args['preview-dart-2'] : null,
+        previewDart2 = args['preview-dart-2'],
         batchMode = args['batch'],
         showPackageWarnings = args['show-package-warnings'] ||
             args['package-warnings'] ||
@@ -207,8 +203,6 @@ class CommandLineOptions {
         strongMode = args['strong'],
         implicitCasts = args[implicitCastsFlag],
         implicitDynamic = !args['no-implicit-dynamic'],
-        useAnalysisDriverMemoryByteStore =
-            args['use-analysis-driver-memory-byte-store'],
         verbose = args['verbose'],
         color = args['color'];
 
@@ -384,24 +378,22 @@ class CommandLineOptions {
           negatable: false,
           hide: hide)
       ..addOption('build-analysis-output',
-          help:
-              'Specifies the path to the file where analysis results should be written.',
+          help: 'Specifies the path to the file where analysis results should '
+              'be written.',
           hide: hide)
       ..addFlag('build-mode',
-          // TODO(paulberry): add more documentation.
-          help: 'Enable build mode.',
+          help: 'Run in build mode; '
+              'this is used to generate analyzer summaries for build systems.',
           defaultsTo: false,
           negatable: false,
           hide: hide)
-      ..addOption('build-summary-input',
+      ..addMultiOption('build-summary-input',
           help: 'Path to a linked summary file that contains information from '
               'a previous analysis run; may be specified multiple times.',
-          allowMultiple: true,
           hide: hide)
-      ..addOption('build-summary-unlinked-input',
+      ..addMultiOption('build-summary-unlinked-input',
           help: 'Path to an unlinked summary file that contains information '
               'from a previous analysis run; may be specified multiple times.',
-          allowMultiple: true,
           hide: hide)
       ..addOption('build-summary-output',
           help: 'Specifies the path to the file where the full summary '
@@ -453,7 +445,7 @@ class CommandLineOptions {
           hide: hide)
       ..addOption('x-package-warnings-prefix',
           help:
-              'Show warnings from package: imports that match the given prefix.',
+              'Show warnings from package: imports that match the given prefix (deprecated).',
           hide: hide)
       ..addFlag('enable-conditional-directives',
           help:
@@ -467,7 +459,7 @@ class CommandLineOptions {
           negatable: false,
           hide: hide)
       ..addFlag('sdk-warnings',
-          help: 'Show warnings from SDK imports.',
+          help: 'Show warnings from SDK imports (deprecated).',
           defaultsTo: false,
           negatable: false,
           hide: hide)
@@ -484,7 +476,8 @@ class CommandLineOptions {
       // TODO(brianwilkerson) Remove the following option after we're sure that
       // it's no longer being used.
       ..addFlag('enable-assert-initializers',
-          help: 'Enable parsing of asserts in constructor initializers.',
+          help:
+              'Enable parsing of asserts in constructor initializers (deprecated).',
           defaultsTo: null,
           negatable: false,
           hide: hide)
@@ -504,24 +497,27 @@ class CommandLineOptions {
           negatable: false,
           hide: hide)
       ..addFlag('package-warnings',
-          help: 'Show warnings from package: imports.',
+          help: 'Show warnings from package: imports (deprecated).',
           defaultsTo: false,
           negatable: false,
           hide: hide)
-      ..addOption('url-mapping',
+      ..addMultiOption('url-mapping',
           help: '--url-mapping=libraryUri,/path/to/library.dart directs the '
               'analyzer to use "library.dart" as the source for an import '
               'of "libraryUri".',
-          allowMultiple: true,
           splitCommas: false,
           hide: hide)
       ..addFlag('use-cfe',
-          help: 'Enable the Dart 2.0 Common Front End implementation.',
+          help:
+              'Enable the Dart 2.0 Common Front End implementation (experimental).',
           defaultsTo: false,
           negatable: false,
           hide: hide)
       ..addFlag('preview-dart-2',
-          help: 'Enable the Dart 2.0 preview.', hide: hide);
+          help: 'Enable the Dart 2.0 preview.',
+          defaultsTo: true,
+          hide: hide,
+          negatable: true);
 
     try {
       if (args.contains('--$ignoreUnrecognizedFlagsFlag')) {

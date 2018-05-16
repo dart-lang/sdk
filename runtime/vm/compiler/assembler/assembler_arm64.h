@@ -438,6 +438,13 @@ class Assembler : public ValueObject {
   void Bind(Label* label);
   void Jump(Label* label) { b(label); }
 
+  void LoadField(Register dst, FieldAddress address) { ldr(dst, address); }
+
+  void CompareWithFieldValue(Register value, FieldAddress address) {
+    ldr(TMP, address);
+    cmp(value, Operand(TMP));
+  }
+
   // Misc. functionality
   intptr_t CodeSize() const { return buffer_.Size(); }
   intptr_t prologue_offset() const { return prologue_offset_; }
@@ -1439,15 +1446,20 @@ class Assembler : public ValueObject {
     StoreQToOffset(src, base, offset - kHeapObjectTag);
   }
 
+  enum CanBeSmi {
+    kValueIsNotSmi,
+    kValueCanBeSmi,
+  };
+
   // Storing into an object.
   void StoreIntoObject(Register object,
                        const Address& dest,
                        Register value,
-                       bool can_value_be_smi = true);
+                       CanBeSmi can_value_be_smi = kValueCanBeSmi);
   void StoreIntoObjectOffset(Register object,
                              int32_t offset,
                              Register value,
-                             bool can_value_be_smi = true);
+                             CanBeSmi can_value_be_smi = kValueCanBeSmi);
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
                                 Register value);
@@ -1488,6 +1500,7 @@ class Assembler : public ValueObject {
   void CompareObject(Register reg, const Object& object);
 
   void LoadClassId(Register result, Register object);
+  // Overwrites class_id register.
   void LoadClassById(Register result, Register class_id);
   void LoadClass(Register result, Register object);
   void CompareClassId(Register object,
@@ -1501,6 +1514,7 @@ class Assembler : public ValueObject {
 
   void EnterFrame(intptr_t frame_size);
   void LeaveFrame();
+  void Ret() { ret(LR); }
 
   void CheckCodePointer();
   void RestoreCodePointer();
@@ -2206,12 +2220,21 @@ class Assembler : public ValueObject {
     Emit(encoding);
   }
 
-  void StoreIntoObjectFilter(Register object, Register value, Label* no_update);
+  enum BarrierFilterMode {
+    // Filter falls through into the barrier update code. Target label
+    // is a "after-store" label.
+    kJumpToNoUpdate,
 
-  // Shorter filtering sequence that assumes that value is not a smi.
-  void StoreIntoObjectFilterNoSmi(Register object,
-                                  Register value,
-                                  Label* no_update);
+    // Filter falls through to the "after-store" code. Target label
+    // is barrier update code label.
+    kJumpToBarrier,
+  };
+
+  void StoreIntoObjectFilter(Register object,
+                             Register value,
+                             Label* label,
+                             CanBeSmi can_be_smi,
+                             BarrierFilterMode barrier_filter_mode);
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Assembler);

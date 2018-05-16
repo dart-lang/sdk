@@ -9,31 +9,38 @@ part of dart.io;
  * IP version 4 (IPv4) and IP version 6 (IPv6) are supported.
  */
 class InternetAddressType {
-  static const InternetAddressType IP_V4 = const InternetAddressType._(0);
-  static const InternetAddressType IP_V6 = const InternetAddressType._(1);
-  static const InternetAddressType ANY = const InternetAddressType._(-1);
+  static const InternetAddressType IPv4 = const InternetAddressType._(0);
+  static const InternetAddressType IPv6 = const InternetAddressType._(1);
+  static const InternetAddressType any = const InternetAddressType._(-1);
+
+  @Deprecated("Use IPv4 instead")
+  static const InternetAddressType IP_V4 = IPv4;
+  @Deprecated("Use IPv6 instead")
+  static const InternetAddressType IP_V6 = IPv6;
+  @Deprecated("Use any instead")
+  static const InternetAddressType ANY = any;
 
   final int _value;
 
   const InternetAddressType._(this._value);
 
   factory InternetAddressType._from(int value) {
-    if (value == 0) return IP_V4;
-    if (value == 1) return IP_V6;
+    if (value == 0) return IPv4;
+    if (value == 1) return IPv6;
     throw new ArgumentError("Invalid type: $value");
   }
 
   /**
-   * Get the name of the type, e.g. "IP_V4" or "IP_V6".
+   * Get the name of the type, e.g. "IPv4" or "IPv6".
    */
   String get name {
     switch (_value) {
       case -1:
         return "ANY";
       case 0:
-        return "IP_V4";
+        return "IPv4";
       case 1:
-        return "IP_V6";
+        return "IPv6";
       default:
         throw new ArgumentError("Invalid InternetAddress");
     }
@@ -57,24 +64,32 @@ abstract class InternetAddress {
    * IP version 4 loopback address. Use this address when listening on
    * or connecting to the loopback adapter using IP version 4 (IPv4).
    */
+  static InternetAddress get loopbackIPv4 => LOOPBACK_IP_V4;
+  @Deprecated("Use loopbackIPv4 instead")
   external static InternetAddress get LOOPBACK_IP_V4;
 
   /**
    * IP version 6 loopback address. Use this address when listening on
    * or connecting to the loopback adapter using IP version 6 (IPv6).
    */
+  static InternetAddress get loopbackIPv6 => LOOPBACK_IP_V6;
+  @Deprecated("Use loopbackIPv6 instead")
   external static InternetAddress get LOOPBACK_IP_V6;
 
   /**
    * IP version 4 any address. Use this address when listening on
    * all adapters IP addresses using IP version 4 (IPv4).
    */
+  static InternetAddress get anyIPv4 => ANY_IP_V4;
+  @Deprecated("Use anyIPv4 instead")
   external static InternetAddress get ANY_IP_V4;
 
   /**
    * IP version 6 any address. Use this address when listening on
    * all adapters IP addresses using IP version 6 (IPv6).
    */
+  static InternetAddress get anyIPv6 => ANY_IP_V6;
+  @Deprecated("Use anyIPv6 instead")
   external static InternetAddress get ANY_IP_V6;
 
   /**
@@ -136,13 +151,13 @@ abstract class InternetAddress {
    * Lookup a host, returning a Future of a list of
    * [InternetAddress]s. If [type] is [InternetAddressType.ANY], it
    * will lookup both IP version 4 (IPv4) and IP version 6 (IPv6)
-   * addresses. If [type] is either [InternetAddressType.IP_V4] or
-   * [InternetAddressType.IP_V6] it will only lookup addresses of the
+   * addresses. If [type] is either [InternetAddressType.IPv4] or
+   * [InternetAddressType.IPv6] it will only lookup addresses of the
    * specified type. The order of the list can, and most likely will,
    * change over time.
    */
   external static Future<List<InternetAddress>> lookup(String host,
-      {InternetAddressType type: InternetAddressType.ANY});
+      {InternetAddressType type: InternetAddressType.any});
 
   /**
    * Clones the given [address] with the new [host].
@@ -192,14 +207,14 @@ abstract class NetworkInterface {
    * If [includeLinkLocal] is `true`, the list of addresses of the returned
    * [NetworkInterface]s, may include link local addresses. Default is `false`.
    *
-   * If [type] is either [InternetAddressType.IP_V4] or
-   * [InternetAddressType.IP_V6] it will only lookup addresses of the
-   * specified type. Default is [InternetAddressType.ANY].
+   * If [type] is either [InternetAddressType.IPv4] or
+   * [InternetAddressType.IPv6] it will only lookup addresses of the
+   * specified type. Default is [InternetAddressType.any].
    */
   external static Future<List<NetworkInterface>> list(
       {bool includeLoopback: false,
       bool includeLinkLocal: false,
-      InternetAddressType type: InternetAddressType.ANY});
+      InternetAddressType type: InternetAddressType.any});
 }
 
 /**
@@ -220,10 +235,10 @@ abstract class RawServerSocket implements Stream<RawSocket> {
    * perform a [InternetAddress.lookup] and use the first value in the
    * list. To listen on the loopback adapter, which will allow only
    * incoming connections from the local host, use the value
-   * [InternetAddress.LOOPBACK_IP_V4] or
-   * [InternetAddress.LOOPBACK_IP_V6]. To allow for incoming
+   * [InternetAddress.loopbackIPv4] or
+   * [InternetAddress.loopbackIPv6]. To allow for incoming
    * connection from the network use either one of the values
-   * [InternetAddress.ANY_IP_V4] or [InternetAddress.ANY_IP_V6] to
+   * [InternetAddress.anyIPv4] or [InternetAddress.anyIPv6] to
    * bind to all interfaces or the IP address of a specific interface.
    *
    * If an IP version 6 (IPv6) address is used, both IP version 6
@@ -285,10 +300,10 @@ abstract class ServerSocket implements Stream<Socket> {
    * perform a [InternetAddress.lookup] and use the first value in the
    * list. To listen on the loopback adapter, which will allow only
    * incoming connections from the local host, use the value
-   * [InternetAddress.LOOPBACK_IP_V4] or
-   * [InternetAddress.LOOPBACK_IP_V6]. To allow for incoming
+   * [InternetAddress.loopbackIPv4] or
+   * [InternetAddress.loopbackIPv6]. To allow for incoming
    * connection from the network use either one of the values
-   * [InternetAddress.ANY_IP_V4] or [InternetAddress.ANY_IP_V6] to
+   * [InternetAddress.anyIPv4] or [InternetAddress.anyIPv6] to
    * bind to all interfaces or the IP address of a specific interface.
    *
    * If an IP version 6 (IPv6) address is used, both IP version 6
@@ -337,9 +352,17 @@ abstract class ServerSocket implements Stream<Socket> {
  * [RawSocket.close] to close a socket in the specified direction(s).
  */
 class SocketDirection {
-  static const SocketDirection RECEIVE = const SocketDirection._(0);
-  static const SocketDirection SEND = const SocketDirection._(1);
-  static const SocketDirection BOTH = const SocketDirection._(2);
+  static const SocketDirection receive = const SocketDirection._(0);
+  static const SocketDirection send = const SocketDirection._(1);
+  static const SocketDirection both = const SocketDirection._(2);
+
+  @Deprecated("Use receive instead")
+  static const SocketDirection RECEIVE = receive;
+  @Deprecated("Use send instead")
+  static const SocketDirection SEND = send;
+  @Deprecated("Use both instead")
+  static const SocketDirection BOTH = both;
+
   final _value;
 
   const SocketDirection._(this._value);
@@ -352,18 +375,21 @@ class SocketDirection {
  */
 class SocketOption {
   /**
-   * Enable or disable no-delay on the socket. If TCP_NODELAY is enabled, the
+   * Enable or disable no-delay on the socket. If tcpNoDelay is enabled, the
    * socket will not buffer data internally, but instead write each data chunk
    * as an individual TCP packet.
    *
-   * TCP_NODELAY is disabled by default.
+   * tcpNoDelay is disabled by default.
    */
-  static const SocketOption TCP_NODELAY = const SocketOption._(0);
+  static const SocketOption tcpNoDelay = const SocketOption._(0);
+  @Deprecated("Use tcpNoDelay instead")
+  static const SocketOption TCP_NODELAY = tcpNoDelay;
 
-  static const SocketOption _IP_MULTICAST_LOOP = const SocketOption._(1);
-  static const SocketOption _IP_MULTICAST_HOPS = const SocketOption._(2);
-  static const SocketOption _IP_MULTICAST_IF = const SocketOption._(3);
-  static const SocketOption _IP_BROADCAST = const SocketOption._(4);
+  static const SocketOption _ipMulticastLoop = const SocketOption._(1);
+  static const SocketOption _ipMulticastHops = const SocketOption._(2);
+  static const SocketOption _ipMulticastIf = const SocketOption._(3);
+  static const SocketOption _ipBroadcast = const SocketOption._(4);
+
   final _value;
 
   const SocketOption._(this._value);
@@ -373,19 +399,29 @@ class SocketOption {
  * Events for the [RawSocket].
  */
 class RawSocketEvent {
-  static const RawSocketEvent READ = const RawSocketEvent._(0);
-  static const RawSocketEvent WRITE = const RawSocketEvent._(1);
-  static const RawSocketEvent READ_CLOSED = const RawSocketEvent._(2);
-  static const RawSocketEvent CLOSED = const RawSocketEvent._(3);
+  static const RawSocketEvent read = const RawSocketEvent._(0);
+  static const RawSocketEvent write = const RawSocketEvent._(1);
+  static const RawSocketEvent readClosed = const RawSocketEvent._(2);
+  static const RawSocketEvent closed = const RawSocketEvent._(3);
+
+  @Deprecated("Use read instead")
+  static const RawSocketEvent READ = read;
+  @Deprecated("Use write instead")
+  static const RawSocketEvent WRITE = write;
+  @Deprecated("Use readClosed instead")
+  static const RawSocketEvent READ_CLOSED = readClosed;
+  @Deprecated("Use closed instead")
+  static const RawSocketEvent CLOSED = closed;
+
   final int _value;
 
   const RawSocketEvent._(this._value);
   String toString() {
     return const [
-      'RawSocketEvent:READ',
-      'RawSocketEvent:WRITE',
-      'RawSocketEvent:READ_CLOSED',
-      'RawSocketEvent:CLOSED'
+      'RawSocketEvent.read',
+      'RawSocketEvent.write',
+      'RawSocketEvent.readClosed',
+      'RawSocketEvent.closed'
     ][_value];
   }
 }
@@ -396,13 +432,13 @@ class RawSocketEvent {
  */
 abstract class RawSocket implements Stream<RawSocketEvent> {
   /**
-   * Set or get, if the [RawSocket] should listen for [RawSocketEvent.READ]
+   * Set or get, if the [RawSocket] should listen for [RawSocketEvent.read]
    * events. Default is [:true:].
    */
   bool readEventsEnabled;
 
   /**
-   * Set or get, if the [RawSocket] should listen for [RawSocketEvent.WRITE]
+   * Set or get, if the [RawSocket] should listen for [RawSocketEvent.write]
    * events. Default is [:true:].
    * This is a one-shot listener, and writeEventsEnabled must be set
    * to true again to receive another write event.
@@ -486,15 +522,15 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
    *
    * Calling [close] will never throw an exception
    * and calling it several times is supported. Calling [close] can result in
-   * a [RawSocketEvent.READ_CLOSED] event.
+   * a [RawSocketEvent.readClosed] event.
    */
   Future<RawSocket> close();
 
   /**
    * Shutdown the socket in the [direction]. Calling [shutdown] will never
    * throw an exception and calling it several times is supported. Calling
-   * shutdown with either [SocketDirection.BOTH] or [SocketDirection.RECEIVE]
-   * can result in a [RawSocketEvent.READ_CLOSED] event.
+   * shutdown with either [SocketDirection.both] or [SocketDirection.receive]
+   * can result in a [RawSocketEvent.readClosed] event.
    */
   void shutdown(SocketDirection direction);
 
@@ -536,7 +572,18 @@ abstract class Socket implements Stream<List<int>>, IOSink {
    * [timeout]. On timeout, a [SocketException] is thrown and all ongoing
    * connection attempts to [host] are cancelled.
    */
-  external static Future<Socket> connect(host, int port,
+  static Future<Socket> connect(host, int port,
+      {sourceAddress, Duration timeout}) {
+    final IOOverrides overrides = IOOverrides.current;
+    if (overrides == null) {
+      return Socket._connect(host, port,
+          sourceAddress: sourceAddress, timeout: timeout);
+    }
+    return overrides.socketConnect(host, port,
+        sourceAddress: sourceAddress, timeout: timeout);
+  }
+
+  external static Future<Socket> _connect(host, int port,
       {sourceAddress, Duration timeout});
 
   /**
@@ -600,19 +647,19 @@ class Datagram {
  * exposing the raw events signaled by the system. It's a [Stream] of
  * [RawSocketEvent]s.
  *
- * Note that the event [RawSocketEvent.READ_CLOSED] will never be
+ * Note that the event [RawSocketEvent.readClosed] will never be
  * received as an UDP socket cannot be closed by a remote peer.
  */
 abstract class RawDatagramSocket extends Stream<RawSocketEvent> {
   /**
    * Set or get, if the [RawDatagramSocket] should listen for
-   * [RawSocketEvent.READ] events. Default is [:true:].
+   * [RawSocketEvent.read] events. Default is [:true:].
    */
   bool readEventsEnabled;
 
   /**
    * Set or get, if the [RawDatagramSocket] should listen for
-   * [RawSocketEvent.WRITE] events. Default is [:true:].  This is a
+   * [RawSocketEvent.write] events. Default is [:true:].  This is a
    * one-shot listener, and writeEventsEnabled must be set to true
    * again to receive another write event.
    */

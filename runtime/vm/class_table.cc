@@ -4,7 +4,7 @@
 
 #include "vm/class_table.h"
 
-#include "vm/atomic.h"
+#include "platform/atomic.h"
 #include "vm/flags.h"
 #include "vm/freelist.h"
 #include "vm/growable_array.h"
@@ -21,27 +21,27 @@ ClassTable::ClassTable()
     : top_(kNumPredefinedCids),
       capacity_(0),
       table_(NULL),
-      old_tables_(new MallocGrowableArray<RawClass**>()) {
+      old_tables_(new MallocGrowableArray<ClassAndSize*>()) {
   NOT_IN_PRODUCT(class_heap_stats_table_ = NULL);
   NOT_IN_PRODUCT(predefined_class_heap_stats_table_ = NULL);
   if (Dart::vm_isolate() == NULL) {
     capacity_ = initial_capacity_;
-    table_ = reinterpret_cast<RawClass**>(
-        calloc(capacity_, sizeof(RawClass*)));  // NOLINT
+    table_ = reinterpret_cast<ClassAndSize*>(
+        calloc(capacity_, sizeof(ClassAndSize)));  // NOLINT
   } else {
     // Duplicate the class table from the VM isolate.
     ClassTable* vm_class_table = Dart::vm_isolate()->class_table();
     capacity_ = vm_class_table->capacity_;
-    table_ = reinterpret_cast<RawClass**>(
-        calloc(capacity_, sizeof(RawClass*)));  // NOLINT
+    table_ = reinterpret_cast<ClassAndSize*>(
+        calloc(capacity_, sizeof(ClassAndSize)));  // NOLINT
     for (intptr_t i = kObjectCid; i < kInstanceCid; i++) {
-      table_[i] = vm_class_table->At(i);
+      table_[i] = vm_class_table->PairAt(i);
     }
-    table_[kTypeArgumentsCid] = vm_class_table->At(kTypeArgumentsCid);
-    table_[kFreeListElement] = vm_class_table->At(kFreeListElement);
-    table_[kForwardingCorpse] = vm_class_table->At(kForwardingCorpse);
-    table_[kDynamicCid] = vm_class_table->At(kDynamicCid);
-    table_[kVoidCid] = vm_class_table->At(kVoidCid);
+    table_[kTypeArgumentsCid] = vm_class_table->PairAt(kTypeArgumentsCid);
+    table_[kFreeListElement] = vm_class_table->PairAt(kFreeListElement);
+    table_[kForwardingCorpse] = vm_class_table->PairAt(kForwardingCorpse);
+    table_[kDynamicCid] = vm_class_table->PairAt(kDynamicCid);
+    table_[kVoidCid] = vm_class_table->PairAt(kVoidCid);
 
 #ifndef PRODUCT
     class_heap_stats_table_ = reinterpret_cast<ClassHeapStats*>(
@@ -83,7 +83,7 @@ ClassTable::~ClassTable() {
   }
 }
 
-void ClassTable::AddOldTable(RawClass** old_table) {
+void ClassTable::AddOldTable(ClassAndSize* old_table) {
   ASSERT(Thread::Current()->IsMutatorThread());
   old_tables_->Add(old_table);
 }
@@ -112,9 +112,9 @@ void ClassTable::Register(const Class& cls) {
   if (index != kIllegalCid) {
     ASSERT(index > 0);
     ASSERT(index < kNumPredefinedCids);
-    ASSERT(table_[index] == 0);
+    ASSERT(table_[index].class_ == NULL);
     ASSERT(index < capacity_);
-    table_[index] = cls.raw();
+    table_[index] = ClassAndSize(cls.raw(), Class::instance_size(cls.raw()));
     // Add the vtable for this predefined class into the static vtable registry
     // if it has not been setup yet.
     cpp_vtable cls_vtable = cls.handle_vtable();
@@ -128,16 +128,16 @@ void ClassTable::Register(const Class& cls) {
       // Grow the capacity of the class table.
       // TODO(koda): Add ClassTable::Grow to share code.
       intptr_t new_capacity = capacity_ + capacity_increment_;
-      RawClass** new_table = reinterpret_cast<RawClass**>(
-          malloc(new_capacity * sizeof(RawClass*)));  // NOLINT
-      memmove(new_table, table_, capacity_ * sizeof(RawClass*));
+      ClassAndSize* new_table = reinterpret_cast<ClassAndSize*>(
+          malloc(new_capacity * sizeof(ClassAndSize)));  // NOLINT
+      memmove(new_table, table_, capacity_ * sizeof(ClassAndSize));
 #ifndef PRODUCT
       ClassHeapStats* new_stats_table = reinterpret_cast<ClassHeapStats*>(
           realloc(class_heap_stats_table_,
                   new_capacity * sizeof(ClassHeapStats)));  // NOLINT
 #endif
       for (intptr_t i = capacity_; i < new_capacity; i++) {
-        new_table[i] = NULL;
+        new_table[i] = ClassAndSize(NULL, 0);
         NOT_IN_PRODUCT(new_stats_table[i].Initialize());
       }
       capacity_ = new_capacity;
@@ -151,7 +151,7 @@ void ClassTable::Register(const Class& cls) {
              top_);
     }
     cls.set_id(top_);
-    table_[top_] = cls.raw();
+    table_[top_] = ClassAndSize(cls.raw());
     top_++;  // Increment next index.
   }
 }
@@ -165,16 +165,16 @@ void ClassTable::AllocateIndex(intptr_t index) {
       FATAL1("Fatal error in ClassTable::Register: invalid index %" Pd "\n",
              index);
     }
-    RawClass** new_table = reinterpret_cast<RawClass**>(
-        malloc(new_capacity * sizeof(RawClass*)));  // NOLINT
-    memmove(new_table, table_, capacity_ * sizeof(RawClass*));
+    ClassAndSize* new_table = reinterpret_cast<ClassAndSize*>(
+        malloc(new_capacity * sizeof(ClassAndSize)));  // NOLINT
+    memmove(new_table, table_, capacity_ * sizeof(ClassAndSize));
 #ifndef PRODUCT
     ClassHeapStats* new_stats_table = reinterpret_cast<ClassHeapStats*>(
         realloc(class_heap_stats_table_,
                 new_capacity * sizeof(ClassHeapStats)));  // NOLINT
 #endif
     for (intptr_t i = capacity_; i < new_capacity; i++) {
-      new_table[i] = NULL;
+      new_table[i] = ClassAndSize(NULL);
       NOT_IN_PRODUCT(new_stats_table[i].Initialize());
     }
     capacity_ = new_capacity;
@@ -184,7 +184,7 @@ void ClassTable::AllocateIndex(intptr_t index) {
     ASSERT(capacity_increment_ >= 1);
   }
 
-  ASSERT(table_[index] == 0);
+  ASSERT(table_[index].class_ == NULL);
   if (index >= top_) {
     top_ = index + 1;
   }
@@ -192,14 +192,14 @@ void ClassTable::AllocateIndex(intptr_t index) {
 
 #if defined(DEBUG)
 void ClassTable::Unregister(intptr_t index) {
-  table_[index] = 0;
+  table_[index] = ClassAndSize(NULL);
 }
 #endif
 
 void ClassTable::Remap(intptr_t* old_to_new_cid) {
   ASSERT(Thread::Current()->IsAtSafepoint());
   intptr_t num_cids = NumCids();
-  RawClass** cls_by_old_cid = new RawClass*[num_cids];
+  ClassAndSize* cls_by_old_cid = new ClassAndSize[num_cids];
   for (intptr_t i = 0; i < num_cids; i++) {
     cls_by_old_cid[i] = table_[i];
   }
@@ -211,7 +211,16 @@ void ClassTable::Remap(intptr_t* old_to_new_cid) {
 
 void ClassTable::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   ASSERT(visitor != NULL);
-  visitor->VisitPointers(reinterpret_cast<RawObject**>(&table_[0]), top_);
+  for (intptr_t i = 0; i < top_; i++) {
+    visitor->VisitPointer(reinterpret_cast<RawObject**>(&(table_[i].class_)));
+  }
+}
+
+void ClassTable::CopySizesFromClassObjects() {
+  ASSERT(kIllegalCid == 0);
+  for (intptr_t i = 1; i < top_; i++) {
+    SetAt(i, At(i));
+  }
 }
 
 void ClassTable::Validate() {
@@ -246,6 +255,19 @@ void ClassTable::Print() {
       OS::Print("%" Pd ": %s\n", i, name.ToCString());
     }
   }
+}
+
+void ClassTable::SetAt(intptr_t index, RawClass* raw_cls) {
+  ASSERT(index < capacity_);
+  if (raw_cls == NULL) {
+    table_[index] = ClassAndSize(raw_cls, 0);
+  } else {
+    table_[index] = ClassAndSize(raw_cls, Class::instance_size(raw_cls));
+  }
+}
+
+ClassAndSize::ClassAndSize(RawClass* clazz) : class_(clazz) {
+  size_ = clazz == NULL ? 0 : Class::instance_size(clazz);
 }
 
 #ifndef PRODUCT

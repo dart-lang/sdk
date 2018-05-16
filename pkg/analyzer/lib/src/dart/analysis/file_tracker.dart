@@ -144,6 +144,7 @@ class FileTracker {
    * Adds the given [path] to the set of "added files".
    */
   void addFile(String path) {
+    _fsState.markFileForReading(path);
     addedFiles.add(path);
     _pendingFiles.add(path);
     _changeHook();
@@ -166,6 +167,7 @@ class FileTracker {
     if (addedFiles.contains(path)) {
       _pendingChangedFiles.add(path);
     }
+    _fsState.markFileForReading(path);
     _changeHook();
   }
 

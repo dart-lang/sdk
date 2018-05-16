@@ -9,11 +9,22 @@ class C {
   // illegal: var cannot follow final
   final var a = 0;// //# 00: syntax error
   // illegal: final field declaration, must be initialized
-  final a; // //# 01: compile-time error
-  final a = 0; // //# none: ok
+  final b; // //# 01: compile-time error
+  final c; // //# 02: compile-time error
+  final d; // //# 03: ok
+  final e; // //# 04: ok
+  final f = 0; // //# 05: ok
+
+  C() {} //# 02: continued
+  C(this.d) {} //# 03: continued
+  C(x) : e = x {} //# 04: continued
 }
 
 main() {
-  var val = new C();
-  Expect.equals(val.a, 0);
+  var val = new C(); //# 00: continued
+  var val = new C(); //# 01: continued
+  var val = new C(); //# 02: continued
+  var val = new C(0); //# 03: continued
+  var val = new C(0); //# 04: continued
+  var val = new C(); //# 05: continued
 }

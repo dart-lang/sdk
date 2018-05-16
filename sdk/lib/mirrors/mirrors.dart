@@ -52,6 +52,8 @@
  * result of user feedback. This library is platform dependent and therefore it
  * has implementations for both dart2js and the Dart VM. Both are under
  * development and may not support all operations yet.
+ *
+ * {@category VM}
  */
 library dart.mirrors;
 
@@ -1239,6 +1241,7 @@ class Comment {
  * will ensure that the target `Bar` from the current library and from library
  * `foo` is available for reflection. See also [override].
  */
+@Deprecated("No longer has any effect. Will be removed in a later release.")
 class MirrorsUsed {
   // Note: the fields of this class are untyped.  This is because the most
   // convenient way to specify symbols today is using a single string. In

@@ -18,11 +18,8 @@ main(arg) {}
 ''';
 
 main() {
-  runTest({bool useKernel}) async {
+  runTest() async {
     List<String> options = [Flags.enableCheckedMode];
-    if (!useKernel) {
-      options.add(Flags.useOldFrontend);
-    }
     CompilationResult result = await runCompiler(
         memorySourceFiles: {'main.dart': SOURCE}, options: options);
     Expect.isTrue(result.isSuccess);
@@ -44,9 +41,7 @@ main() {
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTest(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTest(useKernel: true);
+    await runTest();
   });
 }

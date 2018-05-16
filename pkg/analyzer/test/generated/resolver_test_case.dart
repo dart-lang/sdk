@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.generated.resolver_test_case;
-
 import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
@@ -14,12 +12,12 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -27,6 +25,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:front_end/src/api_prototype/byte_store.dart';
 import 'package:front_end/src/base/performance_logger.dart';
 import 'package:test/test.dart';
@@ -341,6 +340,9 @@ class ResolverTestCase extends EngineTestCase {
 
   AnalysisContext get analysisContext => analysisContext2;
 
+  AnalysisOptions get analysisOptions =>
+      analysisContext?.analysisOptions ?? driver?.analysisOptions;
+
   /**
    * The default [AnalysisOptions] that should be used by [reset].
    */
@@ -350,7 +352,7 @@ class ResolverTestCase extends EngineTestCase {
 
   bool get enableNewAnalysisDriver => false;
 
-  bool get useCFE => false;
+  bool get previewDart2 => analysisOptions.previewDart2;
 
   /**
    * Return a type provider that can be used to test the results of resolution.
@@ -375,6 +377,8 @@ class ResolverTestCase extends EngineTestCase {
    * @return a type system
    */
   TypeSystem get typeSystem => analysisContext2.typeSystem;
+
+  bool get useCFE => false;
 
   /**
    * Add a source file with the given [filePath] in the root of the file system.
@@ -440,11 +444,14 @@ class ResolverTestCase extends EngineTestCase {
    * Like [assertErrors], but takes a string of source code.
    */
   // TODO(rnystrom): Use this in more tests that have the same structure.
-  Future<Null> assertErrorsInCode(String code, List<ErrorCode> errors) async {
+  Future<Null> assertErrorsInCode(String code, List<ErrorCode> errors,
+      {bool verify: true}) async {
     Source source = addSource(code);
     await computeAnalysisResult(source);
     assertErrors(source, errors);
-    verify([source]);
+    if (verify) {
+      this.verify([source]);
+    }
   }
 
   /**

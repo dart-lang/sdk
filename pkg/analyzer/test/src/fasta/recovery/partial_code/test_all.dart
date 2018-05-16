@@ -10,6 +10,7 @@ import 'break_statement_test.dart' as break_statement;
 import 'class_declaration_test.dart' as class_declaration;
 import 'continue_statement_test.dart' as continue_statement;
 import 'do_statement_test.dart' as do_statement;
+import 'enum_declaration_test.dart' as enum_declaration;
 import 'export_directive_test.dart' as export_directive;
 import 'field_declaration_test.dart' as field_declaration;
 import 'forEach_statement_test.dart' as forEach_statement;
@@ -26,6 +27,7 @@ import 'return_statement_test.dart' as return_statement;
 import 'switch_statement_test.dart' as switch_statement;
 import 'top_level_variable_test.dart' as top_level_variable;
 import 'try_statement_test.dart' as try_statement;
+import 'typedef_test.dart' as typedef_declaration;
 import 'while_statement_test.dart' as while_statement;
 import 'yield_statement_test.dart' as yield_statement;
 
@@ -37,6 +39,7 @@ main() {
     class_declaration.main();
     continue_statement.main();
     do_statement.main();
+    enum_declaration.main();
     export_directive.main();
     field_declaration.main();
     for_statement.main();
@@ -53,6 +56,7 @@ main() {
     switch_statement.main();
     top_level_variable.main();
     try_statement.main();
+    typedef_declaration.main();
     while_statement.main();
     yield_statement.main();
   });

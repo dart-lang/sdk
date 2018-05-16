@@ -9,11 +9,11 @@ import 'dart:io' as io;
 import 'package:analyzer/file_system/file_system.dart'
     show File, Folder, ResourceProvider, ResourceUriResolver;
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
+import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -23,6 +23,7 @@ import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/project.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/util/sdk.dart';
 import 'package:front_end/src/api_prototype/byte_store.dart';
 import 'package:front_end/src/base/performance_logger.dart';
@@ -49,6 +50,7 @@ AnalysisOptions _buildAnalyzerOptions(LinterOptions options) {
   AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
   analysisOptions.strongMode = options.strongMode;
   analysisOptions.hint = false;
+  analysisOptions.previewDart2 = options.previewDart2;
   analysisOptions.lint = options.enableLints;
   analysisOptions.generateSdkErrors = options.showSdkWarnings;
   analysisOptions.enableTiming = options.enableTiming;
@@ -81,6 +83,9 @@ class DriverOptions {
 
   /// Whether to use Dart's Strong Mode analyzer.
   bool strongMode = true;
+
+  /// Whether to use Dart 2.0 features.
+  bool previewDart2 = false;
 
   /// The mock SDK (to speed up testing) or `null` to use the actual SDK.
   DartSdk mockSdk;

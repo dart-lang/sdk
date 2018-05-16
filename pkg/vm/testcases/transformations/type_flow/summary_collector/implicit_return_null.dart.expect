@@ -25,6 +25,9 @@ RESULT: t2
 ------------ #lib::return3 ------------
 t0 = _Call direct [#lib::T::] (_T (#lib::T))
 RESULT: _T (#lib::T)
+------------ #lib::return4 ------------
+
+RESULT: _T {}?
 ------------ #lib::expr1 ------------
 t0 = _Call direct [#lib::T::] (_T (#lib::T))
 RESULT: _T {}?

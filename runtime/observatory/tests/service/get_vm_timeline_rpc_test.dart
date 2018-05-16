@@ -71,8 +71,13 @@ int timeDuration(List events, int timeOrigin) {
 
 void allEventsHaveIsolateNumber(List events) {
   for (Map event in events) {
+    print(event);
     if (event['ph'] == 'M') {
       // Skip meta-data events.
+      continue;
+    }
+    if (event['ph'] == 'C') {
+      // Skip counter events, where an isolate id makes Catapult hard to read.
       continue;
     }
     if (event['name'] == 'Runnable' && event['ph'] == 'i') {
@@ -85,6 +90,11 @@ void allEventsHaveIsolateNumber(List events) {
     }
     if (event['cat'] == 'API') {
       // Skip API category events which sometimes don't have an isolate.
+      continue;
+    }
+    if (event['cat'] == 'Embedder' &&
+        (event['name'] == 'DFE::ReadScript' ||
+            event['name'] == 'CreateIsolateAndSetupHelper')) {
       continue;
     }
     Map arguments = event['args'];

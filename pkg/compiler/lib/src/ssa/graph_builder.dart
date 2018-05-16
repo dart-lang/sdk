@@ -20,11 +20,10 @@ import '../js_backend/namer.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/js_interop_analysis.dart';
 import '../js_backend/interceptor_data.dart';
-import '../js_backend/mirrors_data.dart';
 import '../js_backend/runtime_types.dart';
 import '../js_emitter/code_emitter_task.dart';
 import '../options.dart';
-import '../resolution/tree_elements.dart';
+import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
 import '../world.dart' show ClosedWorld;
 import 'jump_handler.dart';
@@ -49,9 +48,6 @@ abstract class GraphBuilder {
   /// breaks.
   bool inTryStatement = false;
 
-  /// The tree elements for the element being built into an SSA graph.
-  TreeElements get elements;
-
   /// The JavaScript backend we are targeting in this compilation.
   JavaScriptBackend get backend;
 
@@ -59,7 +55,8 @@ abstract class GraphBuilder {
 
   ClosedWorld get closedWorld;
 
-  CommonMasks get commonMasks => closedWorld.commonMasks;
+  AbstractValueDomain get abstractValueDomain =>
+      closedWorld.abstractValueDomain;
 
   DiagnosticReporter get reporter => backend.reporter;
 
@@ -92,8 +89,6 @@ abstract class GraphBuilder {
   RuntimeTypesEncoder get rtiEncoder => backend.rtiEncoder;
 
   FunctionInlineCache get inlineCache => backend.inlineCache;
-
-  MirrorsData get mirrorsData => backend.mirrorsData;
 
   JsInteropAnalysis get jsInteropAnalysis => backend.jsInteropAnalysis;
 
@@ -135,7 +130,7 @@ abstract class GraphBuilder {
   /// Pushes a boolean checking [expression] against null.
   pushCheckNull(HInstruction expression) {
     push(new HIdentity(expression, graph.addConstantNull(closedWorld), null,
-        closedWorld.commonMasks.boolType));
+        closedWorld.abstractValueDomain.boolType));
   }
 
   void dup() {
@@ -198,7 +193,7 @@ abstract class GraphBuilder {
   }
 
   void goto(HBasicBlock from, HBasicBlock to) {
-    from.close(new HGoto());
+    from.close(new HGoto(abstractValueDomain));
     from.addSuccessor(to);
   }
 
@@ -246,7 +241,7 @@ abstract class GraphBuilder {
   MemberEntity get sourceElement;
 
   HLiteralList buildLiteralList(List<HInstruction> inputs) {
-    return new HLiteralList(inputs, commonMasks.extendableArrayType);
+    return new HLiteralList(inputs, abstractValueDomain.growableListType);
   }
 
   HInstruction callSetRuntimeTypeInfoWithTypeArguments(
@@ -262,7 +257,7 @@ abstract class GraphBuilder {
         TypeInfoExpressionKind.INSTANCE,
         closedWorld.elementEnvironment.getThisType(type.element),
         rtiInputs,
-        closedWorld.commonMasks.dynamicType);
+        abstractValueDomain.dynamicType);
     add(typeInfo);
     return callSetRuntimeTypeInfo(typeInfo, newObject, sourceInformation);
   }
@@ -271,7 +266,7 @@ abstract class GraphBuilder {
   /// specify special successors if we are already in a try/catch/finally block.
   void handleInTryStatement() {
     if (!inTryStatement) return;
-    HBasicBlock block = close(new HExitTry());
+    HBasicBlock block = close(new HExitTry(abstractValueDomain));
     HBasicBlock newBlock = graph.addNewBlock();
     block.addSuccessor(newBlock);
     open(newBlock);
@@ -294,7 +289,7 @@ abstract class GraphBuilder {
   bool getFlagValue(String flagName) {
     switch (flagName) {
       case 'MUST_RETAIN_METADATA':
-        return mirrorsData.mustRetainMetadata;
+        return false;
       case 'USE_CONTENT_SECURITY_POLICY':
         return options.useContentSecurityPolicy;
       case 'IS_FULL_EMITTER':

@@ -213,7 +213,7 @@ void* DartUtils::OpenFileUri(const char* uri, bool write) {
   return reinterpret_cast<void*>(file);
 }
 
-void DartUtils::ReadFile(const uint8_t** data, intptr_t* len, void* stream) {
+void DartUtils::ReadFile(uint8_t** data, intptr_t* len, void* stream) {
   ASSERT(data != NULL);
   ASSERT(len != NULL);
   ASSERT(stream != NULL);
@@ -225,14 +225,16 @@ void DartUtils::ReadFile(const uint8_t** data, intptr_t* len, void* stream) {
     return;
   }
   *len = static_cast<intptr_t>(file_len);
-  uint8_t* text_buffer = reinterpret_cast<uint8_t*>(malloc(*len));
-  ASSERT(text_buffer != NULL);
-  if (!file_stream->ReadFully(text_buffer, *len)) {
+  *data = reinterpret_cast<uint8_t*>(malloc(*len));
+  if (*data == NULL) {
+    OUT_OF_MEMORY();
+  }
+  if (!file_stream->ReadFully(*data, *len)) {
+    free(*data);
     *data = NULL;
     *len = -1;  // Indicates read was not successful.
     return;
   }
-  *data = text_buffer;
 }
 
 void DartUtils::WriteFile(const void* buffer,
@@ -270,16 +272,16 @@ static Dart_Handle SingleArgDart_Invoke(Dart_Handle lib,
   snprintf(msg, len + 1, format, __VA_ARGS__);                                 \
   *error_msg = msg
 
-static const uint8_t* ReadFileFully(const char* filename,
-                                    intptr_t* file_len,
-                                    const char** error_msg) {
+static uint8_t* ReadFileFully(const char* filename,
+                              intptr_t* file_len,
+                              const char** error_msg) {
   *file_len = -1;
   void* stream = DartUtils::OpenFile(filename, false);
   if (stream == NULL) {
     SET_ERROR_MSG(error_msg, "Unable to open file: %s", filename);
     return NULL;
   }
-  const uint8_t* text_buffer = NULL;
+  uint8_t* text_buffer = NULL;
   DartUtils::ReadFile(&text_buffer, file_len, stream);
   if (text_buffer == NULL || *file_len == -1) {
     *error_msg = "Unable to read file contents";
@@ -292,12 +294,12 @@ static const uint8_t* ReadFileFully(const char* filename,
 Dart_Handle DartUtils::ReadStringFromFile(const char* filename) {
   const char* error_msg = NULL;
   intptr_t len;
-  const uint8_t* text_buffer = ReadFileFully(filename, &len, &error_msg);
+  uint8_t* text_buffer = ReadFileFully(filename, &len, &error_msg);
   if (text_buffer == NULL) {
     return Dart_NewApiError(error_msg);
   }
   Dart_Handle str = Dart_NewStringFromUTF8(text_buffer, len);
-  free(const_cast<uint8_t*>(text_buffer));
+  free(text_buffer);
   return str;
 }
 
@@ -368,6 +370,7 @@ DartUtils::MagicNumber DartUtils::SniffForMagicNumber(const char* filename) {
   if (File::GetType(NULL, filename, true) == File::kIsFile) {
     File* file = File::Open(NULL, filename, File::kRead);
     if (file != NULL) {
+      RefCntReleaseScope<File> rs(file);
       intptr_t max_magic_length = 0;
       max_magic_length =
           Utils::Maximum(max_magic_length, snapshot_magic_number.length);
@@ -382,7 +385,6 @@ DartUtils::MagicNumber DartUtils::SniffForMagicNumber(const char* filename) {
       if (file->ReadFully(&header, max_magic_length)) {
         magic_number = DartUtils::SniffForMagicNumber(header, sizeof(header));
       }
-      file->Close();
     }
   }
   return magic_number;
@@ -411,19 +413,6 @@ DartUtils::MagicNumber DartUtils::SniffForMagicNumber(const uint8_t* buffer,
   }
 
   return kUnknownMagicNumber;
-}
-
-void DartUtils::WriteSnapshotMagicNumber(File* file) {
-  // Write a magic number and version information into the snapshot file.
-  bool bytes_written = file->WriteFully(snapshot_magic_number.bytes,
-                                        snapshot_magic_number.length);
-  ASSERT(bytes_written);
-}
-
-void DartUtils::SkipSnapshotMagicNumber(const uint8_t** buffer,
-                                        intptr_t* buffer_length) {
-  *buffer += snapshot_magic_number.length;
-  *buffer_length -= snapshot_magic_number.length;
 }
 
 Dart_Handle DartUtils::PrepareBuiltinLibrary(Dart_Handle builtin_lib,
@@ -509,28 +498,28 @@ Dart_Handle DartUtils::SetupServiceLoadPort() {
 
 Dart_Handle DartUtils::SetupPackageRoot(const char* package_root,
                                         const char* packages_config) {
+  Dart_Handle result = Dart_Null();
+
   // Set up package root if specified.
   if (package_root != NULL) {
     ASSERT(packages_config == NULL);
-    Dart_Handle result = NewString(package_root);
+    result = NewString(package_root);
     RETURN_IF_ERROR(result);
     const int kNumArgs = 1;
     Dart_Handle dart_args[kNumArgs];
     dart_args[0] = result;
     result = Dart_Invoke(DartUtils::BuiltinLib(), NewString("_setPackageRoot"),
                          kNumArgs, dart_args);
-    RETURN_IF_ERROR(result);
   } else if (packages_config != NULL) {
-    Dart_Handle result = NewString(packages_config);
+    result = NewString(packages_config);
     RETURN_IF_ERROR(result);
     const int kNumArgs = 1;
     Dart_Handle dart_args[kNumArgs];
     dart_args[0] = result;
     result = Dart_Invoke(DartUtils::BuiltinLib(), NewString("_setPackagesMap"),
                          kNumArgs, dart_args);
-    RETURN_IF_ERROR(result);
   }
-  return Dart_True();
+  return result;
 }
 
 Dart_Handle DartUtils::PrepareForScriptLoading(bool is_service_isolate,

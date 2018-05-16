@@ -11,6 +11,7 @@
 #include <fcntl.h>         // NOLINT
 #include <limits.h>        // NOLINT
 #include <malloc.h>        // NOLINT
+#include <sys/mman.h>      // NOLINT
 #include <sys/resource.h>  // NOLINT
 #include <sys/stat.h>      // NOLINT
 #include <sys/syscall.h>   // NOLINT
@@ -38,7 +39,21 @@ DEFINE_FLAG(bool,
             false,
             "Generate events symbols for profiling with perf");
 
+DEFINE_FLAG(bool,
+            generate_perf_jitdump,
+            false,
+            "Generate jitdump file to use with perf-inject");
+
+DECLARE_FLAG(bool, write_protect_code);
+
 // Linux CodeObservers.
+
+// Simple perf support: generate /tmp/perf-<pid>.map file that maps
+// memory ranges to symbol names for JIT generated code. This allows
+// perf-report to resolve addresses falling into JIT generated code.
+// However perf-annotate does not work in this mode because JIT code
+// is transient and does not exist anymore at the moment when you
+// invoke perf-report.
 class PerfCodeObserver : public CodeObserver {
  public:
   PerfCodeObserver() : out_file_(NULL) {
@@ -87,6 +102,197 @@ class PerfCodeObserver : public CodeObserver {
   void* out_file_;
 
   DISALLOW_COPY_AND_ASSIGN(PerfCodeObserver);
+};
+
+// Code observer that generates a JITDUMP[1] file that can be interpreted by
+// perf-inject to generate ELF images for JIT generated code objects, which
+// allows both perf-report and perf-annotate to recognize them.
+//
+// Usage:
+//
+//   $ perf record -k mono dart --generate-perf-jitdump benchmark.dart
+//   $ perf inject -j -i perf.data -o perf.data.jitted
+//   $ perf report -i perf.data.jitted
+//
+// [1] see linux/tools/perf/Documentation/jitdump-specification.txt for
+//     JITDUMP binary format.
+class JitDumpCodeObserver : public CodeObserver {
+ public:
+  JitDumpCodeObserver()
+      : out_file_(nullptr), mapped_(nullptr), mapped_size_(0), code_id_(0) {
+    const intptr_t pid = getpid();
+    char* const filename = OS::SCreate(nullptr, "/tmp/jit-%" Pd ".dump", pid);
+    const int fd = open(filename, O_CREAT | O_TRUNC | O_RDWR);
+    free(filename);
+
+    if (fd == -1) {
+      return;
+    }
+
+    // Map JITDUMP file, this mapping will be recorded by perf. This allows
+    // perf-inject to find this file later.
+    const long page_size = sysconf(_SC_PAGESIZE);  // NOLINT(runtime/int)
+    if (page_size == -1) {
+      close(fd);
+      return;
+    }
+
+    mapped_ =
+        mmap(nullptr, page_size, PROT_READ | PROT_EXEC, MAP_PRIVATE, fd, 0);
+    if (mapped_ == nullptr) {
+      close(fd);
+      return;
+    }
+    mapped_size_ = page_size;
+
+    out_file_ = fdopen(fd, "w+");
+    if (out_file_ == nullptr) {
+      close(fd);
+      return;
+    }
+
+    // Buffer the output to avoid high IO overheads - we are going to be
+    // writing all JIT generated code out.
+    setvbuf(out_file_, nullptr, _IOFBF, 2 * MB);
+
+    // Disable code write protection, constant flickering of page attributes
+    // confuses perf.
+    FLAG_write_protect_code = false;
+
+    // Write JITDUMP header.
+    WriteHeader();
+  }
+
+  ~JitDumpCodeObserver() {
+    if (mapped_ != nullptr) {
+      munmap(mapped_, mapped_size_);
+      mapped_ = nullptr;
+    }
+
+    if (out_file_ != nullptr) {
+      fclose(out_file_);
+      out_file_ = nullptr;
+    }
+  }
+
+  virtual bool IsActive() const {
+    return FLAG_generate_perf_jitdump && (out_file_ != nullptr);
+  }
+
+  virtual void Notify(const char* name,
+                      uword base,
+                      uword prologue_offset,
+                      uword size,
+                      bool optimized) {
+    const char* marker = optimized ? "*" : "";
+    char* buffer = OS::SCreate(Thread::Current()->zone(), "%s%s", marker, name);
+    const size_t name_length = strlen(buffer);
+
+    CodeLoadEvent ev;
+    ev.event = BaseEvent::kLoad;
+    ev.size = sizeof(ev) + (name_length + 1) + size;
+    ev.time_stamp = OS::GetCurrentMonotonicTicks();
+    ev.process_id = getpid();
+    ev.thread_id = syscall(SYS_gettid);
+    ev.vma = base;
+    ev.code_address = base;
+    ev.code_size = size;
+
+    {
+      MutexLocker ml(CodeObservers::mutex());
+      ev.code_id = code_id_++;
+
+      WriteFully(&ev, sizeof(ev));
+      WriteFully(buffer, name_length + 1);
+      WriteFully(reinterpret_cast<void*>(base), size);
+    }
+  }
+
+ private:
+  struct Header {
+    const uint32_t magic = 0x4A695444;
+    const uint32_t version = 1;
+    const uint32_t size = sizeof(Header);
+    uint32_t elf_mach_target;
+    const uint32_t reserved = 0xDEADBEEF;
+    uint32_t process_id;
+    uint64_t time_stamp;
+    const uint64_t flags = 0;
+  };
+
+  struct BaseEvent {
+    enum Event {
+      kLoad = 0,
+      kMove = 1,
+      kDebugInfo = 2,
+      kClose = 3,
+      kUnwindingInfo = 4
+    };
+
+    uint32_t event;
+    uint32_t size;
+    uint64_t time_stamp;
+  };
+
+  struct CodeLoadEvent : BaseEvent {
+    uint32_t process_id;
+    uint32_t thread_id;
+    uint64_t vma;
+    uint64_t code_address;
+    uint64_t code_size;
+    uint64_t code_id;
+  };
+
+  // ELF machine architectures
+  // From linux/include/uapi/linux/elf-em.h
+  static const uint32_t EM_386 = 3;
+  static const uint32_t EM_X86_64 = 62;
+  static const uint32_t EM_ARM = 40;
+  static const uint32_t EM_AARCH64 = 183;
+
+  static uint32_t GetElfMachineArchitecture() {
+#if TARGET_ARCH_IA32
+    return EM_386;
+#elif TARGET_ARCH_X64
+    return EM_X86_64;
+#elif TARGET_ARCH_ARM
+    return EM_ARM;
+#elif TARGET_ARCH_ARM64
+    return EM_AARCH64;
+#else
+    UNREACHABLE();
+    return 0;
+#endif
+  }
+
+  void WriteHeader() {
+    Header header;
+    header.elf_mach_target = GetElfMachineArchitecture();
+    header.process_id = getpid();
+    header.time_stamp = OS::GetCurrentTimeMicros();
+    WriteFully(&header, sizeof(header));
+  }
+
+  void WriteFully(void* buffer, size_t size) {
+    const char* ptr = static_cast<char*>(buffer);
+    while (size > 0) {
+      const size_t written = fwrite(ptr, 1, size, out_file_);
+      if (written == 0) {
+        UNREACHABLE();
+        break;
+      }
+      size -= written;
+      ptr += written;
+    }
+  }
+
+  FILE* out_file_;
+  void* mapped_;
+  long mapped_size_;  // NOLINT(runtime/int)
+
+  intptr_t code_id_;
+
+  DISALLOW_COPY_AND_ASSIGN(JitDumpCodeObserver);
 };
 
 #endif  // !PRODUCT
@@ -253,7 +459,7 @@ void OS::DebugBreak() {
   __builtin_trap();
 }
 
-uintptr_t DART_NOINLINE OS::GetProgramCounter() {
+DART_NOINLINE uintptr_t OS::GetProgramCounter() {
   return reinterpret_cast<uintptr_t>(
       __builtin_extract_return_addr(__builtin_return_address(0)));
 }
@@ -328,6 +534,10 @@ void OS::RegisterCodeObservers() {
 #ifndef PRODUCT
   if (FLAG_generate_perf_events_symbols) {
     CodeObservers::Register(new PerfCodeObserver);
+  }
+
+  if (FLAG_generate_perf_jitdump) {
+    CodeObservers::Register(new JitDumpCodeObserver);
   }
 #endif  // !PRODUCT
 }

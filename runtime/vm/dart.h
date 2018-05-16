@@ -48,8 +48,10 @@ class Dart : public AllStatic {
   // from_kernel.  Otherwise, initialize from sources.
   static RawError* InitializeIsolate(const uint8_t* snapshot_data,
                                      const uint8_t* snapshot_instructions,
-                                     intptr_t snapshot_length,
-                                     kernel::Program* kernel_program,
+                                     const uint8_t* shared_data,
+                                     const uint8_t* shared_instructions,
+                                     const uint8_t* kernel_buffer,
+                                     intptr_t kernel_buffer_size,
                                      void* data);
   static void RunShutdownCallback();
   static void ShutdownIsolate(Isolate* isolate);
@@ -78,12 +80,6 @@ class Dart : public AllStatic {
                                     bool is_vm_snapshot,
                                     Snapshot::Kind kind);
   static Snapshot::Kind vm_snapshot_kind() { return vm_snapshot_kind_; }
-  static const uint8_t* vm_snapshot_instructions() {
-    return vm_snapshot_instructions_;
-  }
-  static void set_vm_snapshot_instructions(const uint8_t* buffer) {
-    vm_snapshot_instructions_ = buffer;
-  }
 
   static Dart_ThreadExitCallback thread_exit_callback() {
     return thread_exit_callback_;
@@ -131,7 +127,6 @@ class Dart : public AllStatic {
   static DebugInfo* pprof_symbol_generator_;
   static ReadOnlyHandles* predefined_handles_;
   static Snapshot::Kind vm_snapshot_kind_;
-  static const uint8_t* vm_snapshot_instructions_;
   static Dart_ThreadExitCallback thread_exit_callback_;
   static Dart_FileOpenCallback file_open_callback_;
   static Dart_FileReadCallback file_read_callback_;

@@ -15,6 +15,7 @@ mirrors/*: Skip # Issue 27929: Triage
 *: Skip
 
 [ $compiler == dart2js ]
+async/async_await_sync_completer_test: RuntimeError # sync-async is on by default.
 async/schedule_microtask6_test: RuntimeError # global error handling is not supported. Issue 5958
 convert/base64_test/01: Fail, OK # Uses bit-wise operations to detect invalid values. Some large invalid values accepted by dart2js.
 convert/chunked_conversion_utf88_test: Slow, Pass
@@ -116,7 +117,6 @@ typed_data/int64_list_load_store_test: RuntimeError # Issue 10275
 typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 10275
 
 [ $compiler == fasta ]
-mirrors/library_imports_bad_metadata_test/01: Crash
 mirrors/metadata_allowed_values_test/02: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/27: MissingCompileTimeError
 mirrors/metadata_constructor_arguments_test/04: MissingCompileTimeError
@@ -164,7 +164,6 @@ mirrors/metadata_allowed_values_test/13: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/14: MissingCompileTimeError
 mirrors/metadata_nested_constructor_call_test/03: MissingCompileTimeError
 mirrors/metadata_nested_constructor_call_test/04: MissingCompileTimeError
-mirrors/metadata_nested_constructor_call_test/06: MissingCompileTimeError # Issue 32517
 mirrors/native_class_test: CompileTimeError
 mirrors/variable_is_const_test/01: MissingCompileTimeError
 typed_data/int32x4_bigint_test: CompileTimeError
@@ -176,6 +175,9 @@ mirrors/generic_bounded_test/02: Fail # Type equality - Issue 26869
 
 [ $strong ]
 *: SkipByDesign # tests/lib_2 has the strong mode versions of these tests.
+
+[ $arch == arm64 && $runtime == vm ]
+mirrors/immutable_collections_test: Pass, Slow # http://dartbug.com/33057
 
 [ $arch == ia32 && $mode == debug && $system == windows ]
 convert/streamed_conversion_json_utf8_decode_test: Skip # Verification OOM.
@@ -248,6 +250,12 @@ mirrors/mirrors_reader_test: Skip # Running in v8 suffices. Issue 16589 - Runtim
 
 [ $compiler == dart2js && $checked ]
 convert/utf85_test: Pass, Slow # Issue 12029.
+
+[ $compiler == dart2js && $checked && $fast_startup && $fasta && $minified ]
+async/stream_listen_zone_test: RuntimeError
+
+[ $compiler == dart2js && $checked && $fasta && $host_checked ]
+async/stream_listen_zone_test: RuntimeError
 
 [ $compiler == dart2js && $fast_startup ]
 mirrors/*: Fail # mirrors not supported
@@ -394,4 +402,3 @@ mirrors/library_import_deferred_loading_test: Crash # Deferred loading
 mirrors/library_imports_deferred_test: Crash # Deferred loading
 mirrors/load_library_test: Crash # Deferred loading
 mirrors/typedef_deferred_library_test: Crash # Deferred loading
-

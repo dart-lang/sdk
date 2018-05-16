@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer_cli.test.driver;
-
 import 'dart:async';
 import 'dart:io';
 
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -36,7 +34,8 @@ main() {
     // defineReflectiveTests(ExitCodesTest_UseCFE);
     defineReflectiveTests(LinterTest);
     defineReflectiveTests(LinterTest_PreviewDart2);
-    defineReflectiveTests(LinterTest_UseCFE);
+    // Disabled until integration with the CFE has been restarted.
+//    defineReflectiveTests(LinterTest_UseCFE);
     defineReflectiveTests(NonDartFilesTest);
     defineReflectiveTests(OptionsTest);
     defineReflectiveTests(OptionsTest_PreviewDart2);
@@ -699,8 +698,7 @@ class LinterTest extends BaseTest {
   String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
 
   test_containsLintRuleEntry() async {
-    Map<String, YamlNode> options;
-    options = _parseOptions('''
+    YamlMap options = _parseOptions('''
 linter:
   rules:
     - foo
@@ -772,7 +770,7 @@ linter:
     expect(getLints(driver.context), isEmpty);
   }
 
-  Map<String, YamlNode> _parseOptions(String src) =>
+  YamlMap _parseOptions(String src) =>
       new AnalysisOptionsProvider().getOptionsFromString(src);
 
   Future<Null> _runLinter_defaultLints() async {
@@ -854,7 +852,7 @@ class OptionsTest extends BaseTest {
   test_analysisOptions_excludes() async {
     await drive('data/exclude_test_project',
         options: 'data/exclude_test_project/$optionsFileName');
-    _expectUndefinedClassErrorsWithoutExclusions(usePreviewDart2);
+    _expectUndefinedClassErrorsWithoutExclusions();
   }
 
   test_analysisOptions_excludesRelativeToAnalysisOptions_explicit() async {
@@ -862,7 +860,7 @@ class OptionsTest extends BaseTest {
     // has to then understand that.
     await drive('data/exclude_test_project',
         options: 'data/exclude_test_project/$optionsFileName');
-    _expectUndefinedClassErrorsWithoutExclusions(usePreviewDart2);
+    _expectUndefinedClassErrorsWithoutExclusions();
   }
 
   test_analysisOptions_excludesRelativeToAnalysisOptions_inferred() async {
@@ -870,7 +868,7 @@ class OptionsTest extends BaseTest {
     // analysis_options above lib. The exclude is relative to the project, not
     // the analyzed path, and it has to then understand that.
     await drive('data/exclude_test_project/lib', options: null);
-    _expectUndefinedClassErrorsWithoutExclusions(usePreviewDart2);
+    _expectUndefinedClassErrorsWithoutExclusions();
   }
 
   test_analyzeFilesInDifferentContexts() async {
@@ -962,9 +960,11 @@ class OptionsTest extends BaseTest {
 
   @failingTest
   test_useCFE() async {
-    await drive('data/options_tests_project/test_file.dart',
-        args: ['--use-cfe']);
-    expect(driver.context.analysisOptions.useFastaParser, isTrue);
+    // Disabled until integration with the CFE has been restarted.
+    fail('Times out when run on a VM with --preview-dart-2 enabled');
+//    await drive('data/options_tests_project/test_file.dart',
+//        args: ['--use-cfe']);
+//    expect(driver.context.analysisOptions.useFastaParser, isTrue);
   }
 
   test_withFlags_overrideFatalWarning() async {
@@ -989,7 +989,8 @@ class OptionsTest extends BaseTest {
         options: 'data/options_tests_project/$optionsFileName');
   }
 
-  void _expectUndefinedClassErrorsWithoutExclusions(bool isStrong) {
+  void _expectUndefinedClassErrorsWithoutExclusions() {
+    bool isStrong = usePreviewDart2 || new AnalysisOptionsImpl().previewDart2;
     final String issueType = isStrong ? 'error' : 'warning';
     expect(bulletToDash(outSink),
         contains("$issueType - Undefined class 'IncludedUndefinedClass'"));

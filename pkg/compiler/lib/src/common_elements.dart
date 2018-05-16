@@ -18,6 +18,8 @@ import 'constants/expressions.dart' show ConstantExpression;
 import 'universe/call_structure.dart' show CallStructure;
 import 'universe/selector.dart' show Selector;
 import 'universe/call_structure.dart';
+import 'universe/world_builder.dart';
+import 'world.dart';
 
 /// The common elements and types in Dart.
 class CommonElements {
@@ -135,10 +137,6 @@ class CommonElements {
   LibraryEntity get foreignLibrary =>
       _foreignLibrary ??= _env.lookupLibrary(Uris.dart__foreign_helper);
 
-  LibraryEntity _isolateHelperLibrary;
-  LibraryEntity get isolateHelperLibrary =>
-      _isolateHelperLibrary ??= _env.lookupLibrary(Uris.dart__isolate_helper);
-
   /// Reference to the internal library to lookup functions to always inline.
   LibraryEntity _internalLibrary;
   LibraryEntity get internalLibrary => _internalLibrary ??=
@@ -160,11 +158,39 @@ class CommonElements {
         _findConstructor(symbolImplementationClass, '');
   }
 
+  bool _computedSymbolConstructorDependencies = false;
+  ConstructorEntity _symbolConstructorImplementationTarget;
+
+  void _ensureSymbolConstructorDependencies() {
+    if (_computedSymbolConstructorDependencies) return;
+    _computedSymbolConstructorDependencies = true;
+    if (_symbolConstructorTarget == null) {
+      if (_symbolImplementationClass == null) {
+        _symbolImplementationClass =
+            _findClass(internalLibrary, 'Symbol', required: false);
+      }
+      if (_symbolImplementationClass != null) {
+        _symbolConstructorTarget =
+            _findConstructor(_symbolImplementationClass, '', required: false);
+      }
+    }
+    if (_symbolClass == null) {
+      _symbolClass = _findClass(coreLibrary, 'Symbol', required: false);
+    }
+    if (_symbolClass == null) {
+      return;
+    }
+    _symbolConstructorImplementationTarget =
+        _findConstructor(symbolClass, '', required: false);
+  }
+
   /// Whether [element] is the same as [symbolConstructor]. Used to check
   /// for the constructor without computing it until it is likely to be seen.
   bool isSymbolConstructor(ConstructorEntity element) {
-    return element == symbolConstructorTarget ||
-        element == _findConstructor(symbolClass, '', required: false);
+    assert(element != null);
+    _ensureSymbolConstructorDependencies();
+    return element == _symbolConstructorImplementationTarget ||
+        element == _symbolConstructorTarget;
   }
 
   /// The `MirrorSystem` class in dart:mirrors.
@@ -546,39 +572,28 @@ class CommonElements {
   ClassEntity get controllerStream =>
       _findAsyncHelperClass("_ControllerStream");
 
-  ConstructorEntity get syncStarIterableConstructor =>
-      _env.lookupConstructor(syncStarIterable, "");
-
-  ConstructorEntity get syncCompleterConstructor =>
-      _env.lookupConstructor(_findAsyncHelperClass("Completer"), "sync");
-
-  ConstructorEntity get asyncAwaitCompleterConstructor =>
-      _env.lookupConstructor(asyncAwaitCompleter, "");
-
-  ClassEntity get asyncAwaitCompleter =>
-      _findAsyncHelperClass("_AsyncAwaitCompleter");
-
-  ClassEntity get asyncStarController =>
-      _findAsyncHelperClass("_AsyncStarStreamController");
-
-  ConstructorEntity get asyncStarControllerConstructor =>
-      _env.lookupConstructor(asyncStarController, "", required: true);
+  ClassEntity get streamIterator => _findAsyncHelperClass("StreamIterator");
 
   ConstructorEntity get streamIteratorConstructor =>
-      _env.lookupConstructor(_findAsyncHelperClass("StreamIterator"), "");
+      _env.lookupConstructor(streamIterator, "");
 
-  // From dart:mirrors
-  FunctionEntity _findMirrorsFunction(String name) {
-    LibraryEntity library = _env.lookupLibrary(Uris.dart__js_mirrors);
-    if (library == null) return null;
-    return _env.lookupLibraryMember(library, name, required: true);
-  }
+  FunctionEntity _syncStarIterableFactory;
+  FunctionEntity get syncStarIterableFactory => _syncStarIterableFactory ??=
+      _findAsyncHelperFunction('_makeSyncStarIterable');
 
-  /// Holds the method "disableTreeShaking" in js_mirrors when
-  /// dart:mirrors has been loaded.
-  FunctionEntity _disableTreeShakingMarker;
-  FunctionEntity get disableTreeShakingMarker =>
-      _disableTreeShakingMarker ??= _findMirrorsFunction('disableTreeShaking');
+  FunctionEntity _asyncAwaitCompleterFactory;
+  FunctionEntity get asyncAwaitCompleterFactory =>
+      _asyncAwaitCompleterFactory ??=
+          _findAsyncHelperFunction('_makeAsyncAwaitCompleter');
+
+  FunctionEntity _syncCompleterFactory;
+  FunctionEntity get syncCompleterFactory =>
+      _syncCompleterFactory ??= _findAsyncHelperFunction('_makeSyncCompleter');
+
+  FunctionEntity _asyncStarStreamControllerFactory;
+  FunctionEntity get asyncStarStreamControllerFactory =>
+      _asyncStarStreamControllerFactory ??=
+          _findAsyncHelperFunction('_makeAsyncStarStreamController');
 
   /// Holds the method "preserveNames" in js_mirrors when
   /// dart:mirrors has been loaded.
@@ -592,25 +607,6 @@ class CommonElements {
     }
     return _preserveNamesMarker;
   }
-
-  /// Holds the method "preserveMetadata" in js_mirrors when
-  /// dart:mirrors has been loaded.
-  FunctionEntity _preserveMetadataMarker;
-  FunctionEntity get preserveMetadataMarker =>
-      _preserveMetadataMarker ??= _findMirrorsFunction('preserveMetadata');
-
-  /// Holds the method "preserveUris" in js_mirrors when
-  /// dart:mirrors has been loaded.
-  FunctionEntity _preserveUrisMarker;
-  FunctionEntity get preserveUrisMarker =>
-      _preserveUrisMarker ??= _findMirrorsFunction('preserveUris');
-
-  /// Holds the method "preserveLibraryNames" in js_mirrors when
-  /// dart:mirrors has been loaded.
-  FunctionEntity _preserveLibraryNamesMarker;
-  FunctionEntity get preserveLibraryNamesMarker =>
-      _preserveLibraryNamesMarker ??=
-          _findMirrorsFunction('preserveLibraryNames');
 
   // From dart:_interceptors
   ClassEntity _findInterceptorsClass(String name) =>
@@ -704,10 +700,13 @@ class CommonElements {
   ClassEntity get jsUInt31Class =>
       _jsUInt31Class ??= _findInterceptorsClass('JSUInt31');
 
-  FunctionEntity _findIndexForNativeSubclassType;
-  FunctionEntity get findIndexForNativeSubclassType =>
-      _findIndexForNativeSubclassType ??= _findLibraryMember(
-          interceptorsLibrary, 'findIndexForNativeSubclassType');
+  /// Returns `true` member is the 'findIndexForNativeSubclassType' method
+  /// declared in `dart:_interceptors`.
+  bool isFindIndexForNativeSubclassType(MemberEntity member) {
+    return member.name == 'findIndexForNativeSubclassType' &&
+        member.isTopLevel &&
+        member.library == interceptorsLibrary;
+  }
 
   FunctionEntity _getInterceptorMethod;
   FunctionEntity get getInterceptorMethod =>
@@ -718,9 +717,10 @@ class CommonElements {
       _getNativeInterceptorMethod ??=
           _findInterceptorsFunction('getNativeInterceptor');
 
-  MemberEntity _jsIndexableLength;
-  MemberEntity get jsIndexableLength =>
-      _jsIndexableLength ??= _findClassMember(jsIndexableClass, 'length');
+  /// Returns `true` if [selector] applies to `JSIndexable.length`.
+  bool appliesToJsIndexableLength(Selector selector) {
+    return selector.name == 'length' && (selector.isGetter || selector.isCall);
+  }
 
   ConstructorEntity _jsArrayTypedConstructor;
   ConstructorEntity get jsArrayTypedConstructor =>
@@ -733,6 +733,33 @@ class CommonElements {
   FunctionEntity _jsArrayAdd;
   FunctionEntity get jsArrayAdd =>
       _jsArrayAdd ??= _findClassMember(jsArrayClass, 'add');
+
+  bool isJsStringClass(ClassEntity cls) {
+    return cls.name == 'JSString' && cls.library == interceptorsLibrary;
+  }
+
+  bool isJsStringSplit(MemberEntity member) {
+    return member.name == 'split' &&
+        member.isInstanceMember &&
+        isJsStringClass(member.enclosingClass);
+  }
+
+  /// Returns `true` if [selector] applies to `JSString.split` on [receiver]
+  /// in the given [world].
+  ///
+  /// Returns `false` if `JSString.split` is not available.
+  bool appliesToJsStringSplit(
+      Selector selector, ReceiverConstraint receiver, World world) {
+    if (_jsStringSplit == null) {
+      ClassEntity cls =
+          _findClass(interceptorsLibrary, 'JSString', required: false);
+      if (cls == null) return false;
+      _jsStringSplit = _findClassMember(cls, 'split', required: false);
+      if (_jsStringSplit == null) return false;
+    }
+    return selector.applies(_jsStringSplit) &&
+        (receiver == null || receiver.canHit(jsStringSplit, selector, world));
+  }
 
   FunctionEntity _jsStringSplit;
   FunctionEntity get jsStringSplit =>
@@ -823,6 +850,11 @@ class CommonElements {
   ClassEntity _jsInvocationMirrorClass;
   ClassEntity get jsInvocationMirrorClass =>
       _jsInvocationMirrorClass ??= _findHelperClass('JSInvocationMirror');
+
+  MemberEntity _invocationTypeArgumentGetter;
+  MemberEntity get invocationTypeArgumentGetter =>
+      _invocationTypeArgumentGetter ??=
+          _findClassMember(jsInvocationMirrorClass, 'typeArguments');
 
   /// Interface used to determine if an object has the JavaScript
   /// indexing behavior. The interface is only visible to specific libraries.
@@ -1016,6 +1048,9 @@ class CommonElements {
   FunctionEntity get getRuntimeTypeArgument =>
       _findHelperFunction('getRuntimeTypeArgument');
 
+  FunctionEntity get getRuntimeTypeArgumentIntercepted =>
+      _findHelperFunction('getRuntimeTypeArgumentIntercepted');
+
   FunctionEntity get runtimeTypeToString =>
       _findHelperFunction('runtimeTypeToString');
 
@@ -1029,6 +1064,8 @@ class CommonElements {
 
   FunctionEntity get functionTypeTest =>
       _findHelperFunction('functionTypeTest');
+
+  FunctionEntity get futureOrTest => _findHelperFunction('futureOrTest');
 
   FunctionEntity get checkSubtypeOfRuntimeType =>
       _findHelperFunction('checkSubtypeOfRuntimeType');
@@ -1061,6 +1098,10 @@ class CommonElements {
 
   FunctionEntity get convertRtiToRuntimeType =>
       _findHelperFunction('convertRtiToRuntimeType');
+
+  FunctionEntity _extractTypeArguments;
+  FunctionEntity get extractTypeArguments => _extractTypeArguments ??=
+      _findLibraryMember(internalLibrary, 'extractTypeArguments');
 
   FunctionEntity get toStringForNativeObject =>
       _findHelperFunction('toStringForNativeObject');
@@ -1123,6 +1164,12 @@ class CommonElements {
       _env.lookupLibrary(Uris.dart__native_typed_data, required: true),
       'NativeTypedArrayOfInt');
 
+  ClassEntity _typedArrayOfDoubleClass;
+  ClassEntity get typedArrayOfDoubleClass =>
+      _typedArrayOfDoubleClass ??= _findClass(
+          _env.lookupLibrary(Uris.dart__native_typed_data, required: true),
+          'NativeTypedArrayOfDouble');
+
   // From dart:_js_embedded_names
 
   /// Holds the class for the [JsGetName] enum.
@@ -1136,17 +1183,6 @@ class CommonElements {
   ClassEntity get jsBuiltinEnum => _jsBuiltinEnum ??= _findClass(
       _env.lookupLibrary(Uris.dart__js_embedded_names, required: true),
       'JsBuiltin');
-
-  // From dart:_isolate_helper
-
-  FunctionEntity get startRootIsolate =>
-      _findLibraryMember(isolateHelperLibrary, 'startRootIsolate');
-
-  FunctionEntity get currentIsolate =>
-      _findLibraryMember(isolateHelperLibrary, '_currentIsolate');
-
-  FunctionEntity get callInIsolate =>
-      _findLibraryMember(isolateHelperLibrary, '_callInIsolate');
 
   static final Uri PACKAGE_EXPECT =
       new Uri(scheme: 'package', path: 'expect/expect.dart');
@@ -1320,6 +1356,9 @@ abstract class ElementEnvironment {
   /// Calls [f] for each class member declared in [cls].
   void forEachLocalClassMember(ClassEntity cls, void f(MemberEntity member));
 
+  /// Calls [f] for each class member added to [cls] during compilation.
+  void forEachInjectedClassMember(ClassEntity cls, void f(MemberEntity member));
+
   /// Calls [f] for each class member declared or inherited in [cls] together
   /// with the class that declared the member.
   ///
@@ -1420,6 +1459,16 @@ abstract class ElementEnvironment {
 
   /// Returns the function type variables defined on [function].
   List<TypeVariableType> getFunctionTypeVariables(FunctionEntity function);
+
+  /// Returns the 'element' type of a function with an async, async* or sync*
+  /// marker. The return type of the method is inspected to determine the type
+  /// parameter of the Future, Stream or Iterable.
+  DartType getFunctionAsyncOrSyncStarElementType(FunctionEntity function);
+
+  /// Returns the 'element' type of a function with the async, async* or sync*
+  /// marker [marker]. [returnType] is the return type marked function.
+  DartType getAsyncOrSyncStarElementType(
+      AsyncMarker marker, DartType returnType);
 
   /// Returns the type of [field].
   DartType getFieldType(FieldEntity field);

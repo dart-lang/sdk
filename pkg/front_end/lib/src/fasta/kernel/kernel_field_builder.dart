@@ -22,7 +22,7 @@ import '../problems.dart' show internalProblem;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
-import 'body_builder.dart' show BodyBuilder;
+import 'kernel_body_builder.dart' show KernelBodyBuilder;
 
 import 'kernel_builder.dart'
     show Builder, FieldBuilder, KernelTypeBuilder, MetadataBuilder;
@@ -95,7 +95,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       var typeInferrer = typeInferenceEngine.createTopLevelTypeInferrer(
           field.enclosingClass?.thisType, field);
       if (hasInitializer) {
-        var bodyBuilder = new BodyBuilder(
+        KernelBodyBuilder bodyBuilder = new KernelBodyBuilder(
             library,
             this,
             memberScope,

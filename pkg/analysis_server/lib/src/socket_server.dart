@@ -9,9 +9,9 @@ import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/plugin/resolver_provider.dart';
-import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer/src/plugin/resolver_provider.dart';
+import 'package:analyzer/src/source/pub_package_map_provider.dart';
 
 /**
  * Instances of the class [SocketServer] implement the common parts of

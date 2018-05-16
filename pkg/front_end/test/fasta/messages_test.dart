@@ -24,12 +24,12 @@ import 'package:front_end/src/api_prototype/memory_file_system.dart'
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 
-import 'package:front_end/src/fasta/fasta_codes.dart' show LocatedMessage;
+import 'package:front_end/src/fasta/fasta_codes.dart' show FormattedMessage;
 
 import 'package:front_end/src/fasta/severity.dart'
     show Severity, severityEnumValues;
 
-import 'package:front_end/src/testing/hybrid_file_system.dart'
+import 'package:front_end/src/fasta/hybrid_file_system.dart'
     show HybridFileSystem;
 
 import "../../tool/_fasta/entry_points.dart" show BatchCompiler;
@@ -83,6 +83,8 @@ class MessageTestSuite extends ChainContext {
 
       List<String> unknownKeys = <String>[];
       List<Example> examples = <Example>[];
+      String externalTest;
+      bool frontendInternal = false;
       String analyzerCode;
       String dart2jsCode;
       Severity severity;
@@ -101,6 +103,10 @@ class MessageTestSuite extends ChainContext {
             if (severity == null) {
               badSeverity = node;
             }
+            break;
+
+          case "frontendInternal":
+            frontendInternal = value;
             break;
 
           case "analyzerCode":
@@ -170,6 +176,10 @@ class MessageTestSuite extends ChainContext {
             }
             break;
 
+          case "external":
+            externalTest = node.value;
+            break;
+
           default:
             unknownKeys.add(key);
         }
@@ -213,16 +223,29 @@ class MessageTestSuite extends ChainContext {
           severity != Severity.internalProblem);
 
       yield createDescription(
+          "externalexample",
+          null,
+          exampleAndAnalyzerCodeRequired &&
+                  externalTest != null &&
+                  !(new File(externalTest).existsSync())
+              ? "Given external example for $name points to a nonexisting file."
+              : null);
+
+      yield createDescription(
           "example",
           null,
-          exampleAndAnalyzerCodeRequired && examples.isEmpty
+          exampleAndAnalyzerCodeRequired &&
+                  examples.isEmpty &&
+                  externalTest == null
               ? "No example for $name, please add at least one example."
               : null);
 
       yield createDescription(
           "analyzerCode",
           null,
-          exampleAndAnalyzerCodeRequired && analyzerCode == null
+          exampleAndAnalyzerCodeRequired &&
+                  !frontendInternal &&
+                  analyzerCode == null
               ? "No analyzer code for $name."
                   "\nTry running"
                   " <BUILDDIR>/dart-sdk/bin/dartanalyzer --format=machine"
@@ -234,6 +257,7 @@ class MessageTestSuite extends ChainContext {
           "dart2jsCode",
           null,
           exampleAndAnalyzerCodeRequired &&
+                  !frontendInternal &&
                   analyzerCode != null &&
                   dart2jsCode == null
               ? "No dart2js code for $name."
@@ -255,9 +279,9 @@ class MessageTestSuite extends ChainContext {
       ..write(message);
     buffer.write("\n${span.text}");
     for (List problem in problems) {
-      LocatedMessage messsage = problem[0];
-      String formatted = problem[2];
-      buffer.write("\nCode: ${messsage.code.name}");
+      FormattedMessage message = problem[0];
+      String formatted = message.formatted;
+      buffer.write("\nCode: ${message.code.name}");
       buffer.write("\n  > ");
       buffer.write(formatted.replaceAll("\n", "\n  > "));
     }
@@ -402,9 +426,9 @@ class Compile extends Step<Example, Null, MessageTestSuite> {
           ..sdkSummary = computePlatformBinariesLocation()
               .resolve("vm_platform_strong.dill")
           ..fileSystem = new HybridFileSystem(suite.fileSystem)
-          ..onProblem = (LocatedMessage problem, Severity severity,
-              String formatted, int line, int column) {
-            problems.add([problem, severity, formatted, line, column]);
+          ..onProblem = (FormattedMessage problem, Severity severity,
+              List<FormattedMessage> context) {
+            problems.add([problem, severity]);
           }
           ..strongMode = true,
         uri,
@@ -412,7 +436,7 @@ class Compile extends Step<Example, Null, MessageTestSuite> {
 
     List<List> unexpectedProblems = <List>[];
     for (List problem in problems) {
-      LocatedMessage message = problem[0];
+      FormattedMessage message = problem[0];
       if (message.code.name != example.expectedCode) {
         unexpectedProblems.add(problem);
       }

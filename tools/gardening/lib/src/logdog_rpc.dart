@@ -17,17 +17,17 @@ class LogdogRpc {
         scheme: "https", host: LOGDOG_HOST, path: "prpc/logdog.Logs/Get");
     var body = {"project": project, "path": path};
     return withCache(
-            () => _makePostRequest(uri, JSON.encode(body), {
+            () => _makePostRequest(uri, jsonEncode(body), {
                   HttpHeaders.CONTENT_TYPE: "application/json",
                   HttpHeaders.ACCEPT: "application/json"
                 }),
             "logdog-get-$path")
-        .then(JSON.decode)
+        .then(jsonDecode)
         .then((json) {
       StringBuffer buffer = new StringBuffer();
       json["logs"].forEach((log) {
         log["text"]["lines"].forEach((line) {
-          buffer.write(line["value"]);
+          buffer.writeln(line["value"]);
         });
       });
       return buffer.toString();
@@ -41,12 +41,12 @@ class LogdogRpc {
         scheme: "https", host: LOGDOG_HOST, path: "prpc/logdog.Logs/Query");
     var body = {"project": project, "path": path, "maxResults": maxResults};
     return withCache(
-            () => _makePostRequest(uri, JSON.encode(body), {
+            () => _makePostRequest(uri, jsonEncode(body), {
                   HttpHeaders.CONTENT_TYPE: "application/json",
                   HttpHeaders.ACCEPT: "application/json"
                 }),
             "logdog-query-$path")
-        .then(JSON.decode)
+        .then(jsonDecode)
         .then((json) {
       if (json["streams"] == null) {
         return <LogdogStream>[];

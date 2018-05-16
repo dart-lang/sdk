@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:mirrors" show reflect;
 import "package:expect/expect.dart";
 
 // Checks that noSuchMethod is resolved in the super class and not in the
@@ -16,50 +15,26 @@ class C {
   bool baz({int b});
   bool boz(int a, {int c});
 
-  bool noSuchMethod(Invocation im) {
-    if (im.memberName == const Symbol('foo')) {
-      return im.positionalArguments.isEmpty &&
-          im.namedArguments.isEmpty &&
-          reflect(e).delegate(im);
-    }
-    if (im.memberName == const Symbol('bar')) {
-      return im.positionalArguments.length == 1 &&
-          im.namedArguments.isEmpty &&
-          reflect(e).delegate(im);
-    }
-    if (im.memberName == const Symbol('baz')) {
-      return im.positionalArguments.isEmpty &&
-          im.namedArguments.length == 1 &&
-          reflect(e).delegate(im);
-    }
-    if (im.memberName == const Symbol('boz')) {
-      return im.positionalArguments.length == 1 &&
-          im.namedArguments.length == 1 &&
-          reflect(e).delegate(im);
-    }
-    return false;
-  }
+  bool noSuchMethod(Invocation im) => true;
 }
 
 class D extends C {
-  bool noSuchMethod(Invocation im) {
-    return false;
-  }
+  bool noSuchMethod(Invocation im) => false;
 
   test1() {
-    return super.foo();
+    return super.foo(); //# 01: compile-time error
   }
 
   test2() {
-    return super.bar(1);
+    return super.bar(1); //# 01: compile-time error
   }
 
   test3() {
-    return super.baz(b: 2);
+    return super.baz(b: 2); //# 01: compile-time error
   }
 
   test4() {
-    return super.boz(1, c: 2);
+    return super.boz(1, c: 2); //# 01: compile-time error
   }
 }
 
@@ -72,8 +47,8 @@ class E {
 
 main() {
   var d = new D();
-  Expect.isTrue(d.test1());
-  Expect.isTrue(d.test2());
-  Expect.isTrue(d.test3());
-  Expect.isTrue(d.test4());
+  Expect.isNull(d.test1());
+  Expect.isNull(d.test2());
+  Expect.isNull(d.test3());
+  Expect.isNull(d.test4());
 }

@@ -24,7 +24,7 @@ void main(List<String> args) {
   CommandLineHelper.requireExactlyOneArgument(true, args, usage);
   final binary = CommandLineHelper.tryLoadDill(args[0], usage);
   ErrorFormatter errorFormatter = new ErrorFormatter();
-  new StrongModeTypeChecker(errorFormatter, binary)..checkProgram(binary);
+  new StrongModeTypeChecker(errorFormatter, binary)..checkComponent(binary);
   if (errorFormatter.numberOfFailures > 0) {
     errorFormatter.failures.forEach(print);
     print('------- Found ${errorFormatter.numberOfFailures} errors -------');

@@ -3,18 +3,21 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection' show HashSet, Queue;
-import 'dart:convert' show JSON;
+import 'dart:convert' show json;
 import 'dart:io' show File;
 
 import 'package:analyzer/analyzer.dart'
-    show AnalysisError, CompilationUnit, ErrorSeverity;
-import 'package:analyzer/dart/element/element.dart' show LibraryElement;
+    show AnalysisError, CompilationUnit, ErrorSeverity, ErrorType;
+import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/element/element.dart'
+    show LibraryElement, UriReferencedElement;
 import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
 import 'package:analyzer/file_system/physical_file_system.dart'
     show PhysicalResourceProvider;
 import 'package:analyzer/src/context/builder.dart' show ContextBuilder;
 import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
-import 'package:analyzer/src/error/codes.dart' show StaticTypeWarningCode;
+import 'package:analyzer/src/error/codes.dart'
+    show StaticTypeWarningCode, StrongModeCode;
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdkManager;
@@ -33,6 +36,7 @@ import 'package:source_maps/source_maps.dart';
 import '../compiler/js_names.dart' as JS;
 import '../compiler/module_builder.dart'
     show transformModuleFormat, ModuleFormat;
+import '../compiler/shared_command.dart';
 import '../js_ast/js_ast.dart' as JS;
 import '../js_ast/js_ast.dart' show js;
 import '../js_ast/source_map_printer.dart' show SourceMapPrintingContext;
@@ -112,14 +116,10 @@ class ModuleCompiler {
       context.resultProvider =
           new InputPackagesResultProvider(context, summaryData);
     }
-    options.declaredVariables.forEach(context.declaredVariables.define);
-    context.declaredVariables.define('dart.isVM', 'false');
+    var variables = new Map<String, String>.from(options.declaredVariables)
+      ..addAll(sdkLibraryVariables);
 
-    // TODO(vsm): Should this be hardcoded?
-    context.declaredVariables.define('dart.library.html', 'true');
-    context.declaredVariables.define('dart.library.io', 'false');
-    context.declaredVariables.define('dart.library.ui', 'false');
-
+    context.declaredVariables = new DeclaredVariables.fromMap(variables);
     if (!context.analysisOptions.strongMode) {
       throw new ArgumentError('AnalysisContext must be strong mode');
     }
@@ -194,6 +194,16 @@ class ModuleCompiler {
       librariesToCompile.addAll(library.importedLibraries);
       librariesToCompile.addAll(library.exportedLibraries);
 
+      // TODO(jmesserly): remove "dart:mirrors" from DDC's SDK, and then remove
+      // this special case error message.
+      if (!compilingSdk && !options.emitMetadata) {
+        var node = _getDartMirrorsImport(library);
+        if (node != null) {
+          errors.add(new AnalysisError(library.source, node.uriOffset,
+              node.uriEnd, invalidImportDartMirrors));
+        }
+      }
+
       var tree = context.resolveCompilationUnit(library.source, library);
       trees.add(tree);
       errors.addAll(context.computeErrors(library.source));
@@ -233,6 +243,15 @@ class ModuleCompiler {
   }
 }
 
+UriReferencedElement _getDartMirrorsImport(LibraryElement library) {
+  return library.imports.firstWhere(_isDartMirrorsImort, orElse: () => null) ??
+      library.exports.firstWhere(_isDartMirrorsImort, orElse: () => null);
+}
+
+bool _isDartMirrorsImort(UriReferencedElement import) {
+  return import.uri == 'dart:mirrors';
+}
+
 class CompilerOptions {
   /// Whether to emit the source mapping file.
   ///
@@ -257,6 +276,9 @@ class CompilerOptions {
 
   /// Whether to preserve metdata only accessible via mirrors.
   final bool emitMetadata;
+
+  // Whether to enable assertions.
+  final bool enableAsserts;
 
   /// Whether to force compilation of code with static errors.
   final bool unsafeForceCompile;
@@ -285,6 +307,7 @@ class CompilerOptions {
       this.unsafeForceCompile: false,
       this.replCompile: false,
       this.emitMetadata: false,
+      this.enableAsserts: true,
       this.closure: false,
       this.bazelMapping: const {},
       this.summaryOutPath});
@@ -298,6 +321,7 @@ class CompilerOptions {
         unsafeForceCompile = args['unsafe-force-compile'] as bool,
         replCompile = args['repl-compile'] as bool,
         emitMetadata = args['emit-metadata'] as bool,
+        enableAsserts = args['enable-asserts'] as bool,
         closure = args['closure-experimental'] as bool,
         bazelMapping =
             _parseBazelMappings(args['bazel-mapping'] as List<String>),
@@ -321,28 +345,24 @@ class CompilerOptions {
       ..addFlag('inline-source-map',
           help: 'emit source mapping inline', defaultsTo: false, hide: hide)
       ..addFlag('emit-metadata',
-          help: 'emit metadata annotations queriable via mirrors',
-          defaultsTo: false,
-          hide: hide)
+          help: 'emit metadata annotations queriable via mirrors', hide: hide)
+      ..addFlag('enable-asserts',
+          help: 'enable assertions', defaultsTo: true, hide: hide)
       ..addFlag('closure-experimental',
           help: 'emit Closure Compiler-friendly code (experimental)',
-          defaultsTo: false,
           hide: hide)
       ..addFlag('unsafe-force-compile',
           help: 'Compile code even if it has errors. ಠ_ಠ\n'
               'This has undefined behavior!',
-          defaultsTo: false,
           hide: hide)
       ..addFlag('repl-compile',
           help: 'Compile code more permissively when in REPL mode\n'
               'allowing access to private members across library boundaries.',
-          defaultsTo: false,
           hide: hide)
-      ..addOption('bazel-mapping',
+      ..addMultiOption('bazel-mapping',
           help:
               '--bazel-mapping=genfiles/to/library.dart,to/library.dart uses \n'
               'to/library.dart as the path for library.dart in source maps.',
-          allowMultiple: true,
           splitCommas: false,
           hide: hide)
       ..addOption('summary-out',
@@ -471,7 +491,7 @@ class JSModuleFile {
 
     var text = printer.getText();
     var rawSourceMap = options.inlineSourceMap
-        ? js.escapedString(JSON.encode(builtMap), "'").value
+        ? js.escapedString(json.encode(builtMap), "'").value
         : 'null';
     text = text.replaceFirst(sourceMapHoleID, rawSourceMap);
 
@@ -498,7 +518,7 @@ class JSModuleFile {
       // to sources in the original sourcemap. The name of this file is bogus
       // anyways, so it has very little effect on things.
       c += '\n//# sourceURL=${name.replaceAll("/", ".")}.js\n';
-      c = 'eval(${JSON.encode(c)});\n';
+      c = 'eval(${json.encode(c)});\n';
     }
 
     var file = new File(jsPath);
@@ -512,7 +532,7 @@ class JSModuleFile {
     if (code.sourceMap != null) {
       file = new File(mapPath);
       if (!file.parent.existsSync()) file.parent.createSync(recursive: true);
-      file.writeAsStringSync(JSON.encode(code.sourceMap));
+      file.writeAsStringSync(json.encode(code.sourceMap));
     }
   }
 }
@@ -589,3 +609,8 @@ Uri _sourceToUri(String source) {
       return new Uri.file(path.absolute(source));
   }
 }
+
+const invalidImportDartMirrors = const StrongModeCode(
+    ErrorType.COMPILE_TIME_ERROR,
+    'IMPORT_DART_MIRRORS',
+    'Cannot import "dart:mirrors" in web applications (https://goo.gl/R1anEs).');

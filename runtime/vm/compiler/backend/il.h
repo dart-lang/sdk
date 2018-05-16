@@ -37,6 +37,7 @@ class Range;
 class RangeAnalysis;
 class RangeBoundary;
 class UnboxIntegerInstr;
+class TypeUsageInfo;
 
 // CompileType describes type of the value produced by the definition.
 //
@@ -351,23 +352,27 @@ class HierarchyInfo : public StackResource {
  public:
   explicit HierarchyInfo(Thread* thread)
       : StackResource(thread),
-        thread_(thread),
         cid_subtype_ranges_(NULL),
+        cid_subtype_ranges_abstract_(NULL),
         cid_subclass_ranges_(NULL) {
     thread->set_hierarchy_info(this);
   }
 
   ~HierarchyInfo() {
-    thread_->set_hierarchy_info(NULL);
+    thread()->set_hierarchy_info(NULL);
 
     delete[] cid_subtype_ranges_;
     cid_subtype_ranges_ = NULL;
+
+    delete[] cid_subtype_ranges_abstract_;
+    cid_subtype_ranges_abstract_ = NULL;
 
     delete[] cid_subclass_ranges_;
     cid_subclass_ranges_ = NULL;
   }
 
-  const CidRangeVector& SubtypeRangesForClass(const Class& klass);
+  const CidRangeVector& SubtypeRangesForClass(const Class& klass,
+                                              bool include_abstract = false);
   const CidRangeVector& SubclassRangesForClass(const Class& klass);
 
   bool InstanceOfHasClassRange(const AbstractType& type,
@@ -396,10 +401,11 @@ class HierarchyInfo : public StackResource {
   void BuildRangesFor(ClassTable* table,
                       CidRangeVector* ranges,
                       const Class& klass,
-                      bool use_subtype_test);
+                      bool use_subtype_test,
+                      bool include_abstract = false);
 
-  Thread* thread_;
   CidRangeVector* cid_subtype_ranges_;
+  CidRangeVector* cid_subtype_ranges_abstract_;
   CidRangeVector* cid_subclass_ranges_;
 };
 
@@ -748,6 +754,8 @@ class Instruction : public ZoneAllocated {
   virtual ~Instruction() {}
 
   virtual Tag tag() const = 0;
+
+  virtual intptr_t statistics_tag() const { return tag(); }
 
   intptr_t deopt_id() const {
     ASSERT(ComputeCanDeoptimize() || CanBecomeDeoptimizationTarget());
@@ -1797,6 +1805,8 @@ class Definition : public Instruction {
     }
     return type_;
   }
+
+  bool HasType() const { return (type_ != NULL); }
 
   // Does this define a mint?
   inline bool IsMintDefinition();
@@ -2893,17 +2903,21 @@ class AssertSubtypeInstr : public TemplateInstruction<2, Throws, Pure> {
 
 class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
  public:
+  enum Kind { kParameterCheck, kInsertedByFrontend, kFromSource, kUnknown };
+
   AssertAssignableInstr(TokenPosition token_pos,
                         Value* value,
                         Value* instantiator_type_arguments,
                         Value* function_type_arguments,
                         const AbstractType& dst_type,
                         const String& dst_name,
-                        intptr_t deopt_id)
+                        intptr_t deopt_id,
+                        Kind kind = kUnknown)
       : TemplateDefinition(deopt_id),
         token_pos_(token_pos),
         dst_type_(AbstractType::ZoneHandle(dst_type.raw())),
-        dst_name_(dst_name) {
+        dst_name_(dst_name),
+        kind_(kind) {
     ASSERT(!dst_type.IsNull());
     ASSERT(!dst_type.IsTypeRef());
     ASSERT(!dst_name.IsNull());
@@ -2911,6 +2925,8 @@ class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
     SetInputAt(1, instantiator_type_arguments);
     SetInputAt(2, function_type_arguments);
   }
+
+  virtual intptr_t statistics_tag() const;
 
   DECLARE_INSTRUCTION(AssertAssignable)
   virtual CompileType ComputeType() const;
@@ -2946,6 +2962,7 @@ class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
   const TokenPosition token_pos_;
   AbstractType& dst_type_;
   const String& dst_name_;
+  const Kind kind_;
 
   DISALLOW_COPY_AND_ASSIGN(AssertAssignableInstr);
 };
@@ -3060,6 +3077,9 @@ class TemplateDartCall : public TemplateDefinition<kInputCount, Throws> {
   }
 
   intptr_t FirstArgIndex() const { return type_args_len_ > 0 ? 1 : 0; }
+  Value* Receiver() const {
+    return this->PushArgumentAt(FirstArgIndex())->value();
+  }
   intptr_t ArgumentCountWithoutTypeArgs() const {
     return arguments_->length() - FirstArgIndex();
   }
@@ -3246,7 +3266,10 @@ class InstanceCallInstr : public TemplateDartCall<0> {
   CompileType* result_type() const { return result_type_; }
 
   intptr_t result_cid() const {
-    return (result_type_ != NULL) ? result_type_->ToCid() : kDynamicCid;
+    if (result_type_ == NULL) {
+      return kDynamicCid;
+    }
+    return result_type_->ToCid();
   }
 
   PRINT_OPERANDS_TO_SUPPORT
@@ -3303,6 +3326,8 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
     return instance_call()->argument_names();
   }
   intptr_t type_args_len() const { return instance_call()->type_args_len(); }
+
+  Value* Receiver() const { return instance_call()->Receiver(); }
 
   bool HasOnlyDispatcherOrImplicitAccessorTargets() const;
 
@@ -3742,7 +3767,10 @@ class StaticCallInstr : public TemplateDartCall<0> {
   CompileType* result_type() const { return result_type_; }
 
   intptr_t result_cid() const {
-    return (result_type_ != NULL) ? result_type_->ToCid() : kDynamicCid;
+    if (result_type_ == NULL) {
+      return kDynamicCid;
+    }
+    return result_type_->ToCid();
   }
 
   bool is_known_list_constructor() const { return is_known_list_constructor_; }
@@ -4050,11 +4078,12 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
  private:
   friend class JitCallSpecializer;  // For ASSERT(initialization_).
 
-  bool CanValueBeSmi() const {
+  Assembler::CanBeSmi CanValueBeSmi() const {
     const intptr_t cid = value()->Type()->ToNullableCid();
     // Write barrier is skipped for nullable and non-nullable smis.
     ASSERT(cid != kSmiCid);
-    return (cid == kDynamicCid);
+    return cid == kDynamicCid ? Assembler::kValueCanBeSmi
+                              : Assembler::kValueIsNotSmi;
   }
 
   const Field& field_;
@@ -4191,11 +4220,12 @@ class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
-  bool CanValueBeSmi() const {
+  Assembler::CanBeSmi CanValueBeSmi() const {
     const intptr_t cid = value()->Type()->ToNullableCid();
     // Write barrier is skipped for nullable and non-nullable smis.
     ASSERT(cid != kSmiCid);
-    return (cid == kDynamicCid);
+    return cid == kDynamicCid ? Assembler::kValueCanBeSmi
+                              : Assembler::kValueIsNotSmi;
   }
 
   const Field& field_;
@@ -6801,13 +6831,20 @@ class CheckSmiInstr : public TemplateInstruction<1, NoThrow, Pure> {
 // execution proceeds to the next instruction.
 class CheckNullInstr : public TemplateInstruction<1, Throws, NoCSE> {
  public:
-  CheckNullInstr(Value* value, intptr_t deopt_id, TokenPosition token_pos)
-      : TemplateInstruction(deopt_id), token_pos_(token_pos) {
+  CheckNullInstr(Value* value,
+                 const String& function_name,
+                 intptr_t deopt_id,
+                 TokenPosition token_pos)
+      : TemplateInstruction(deopt_id),
+        token_pos_(token_pos),
+        function_name_(function_name) {
+    ASSERT(function_name.IsNotTemporaryScopedHandle());
     SetInputAt(0, value);
   }
 
   Value* value() const { return inputs_[0]; }
   virtual TokenPosition token_pos() const { return token_pos_; }
+  const String& function_name() const { return function_name_; }
 
   DECLARE_INSTRUCTION(CheckNull)
 
@@ -6823,6 +6860,7 @@ class CheckNullInstr : public TemplateInstruction<1, Throws, NoCSE> {
 
  private:
   const TokenPosition token_pos_;
+  const String& function_name_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckNullInstr);
 };

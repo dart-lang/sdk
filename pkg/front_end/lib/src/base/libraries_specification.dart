@@ -30,6 +30,10 @@
 ///             "convert": {
 ///                "uri": "convert/convert.dart",
 ///             }
+///             "mirrors": {
+///                "uri": "mirrors/mirrors.dart",
+///                "supported": false
+///             }
 ///         }
 ///       }
 ///     }
@@ -38,9 +42,8 @@
 ///   - a top level entry for each target. Keys are target names (e.g. "vm"
 ///     above), and values contain the entire specification of a target.
 ///
-///   - each target specification is a map. Today only one key ("libraries") is
-///     supported, but this may be extended in the future to add more
-///     information on each target.
+///   - each target specification is a map. Today, only one key is supported on
+///     this map: "libraries".
 ///
 ///   - The "libraries" entry contains details for how each platform library is
 ///     implemented. The entry is a map, where keys are the name of the platform
@@ -58,6 +61,21 @@
 ///     which will be resolved relative to the location of the library
 ///     specification file.
 ///
+///   - The "supported" entry on the library information is optional. The value
+///     is a boolean indicating whether the library is supported in the
+///     underlying target.  However, since the libraries are assumed to be
+///     supported by default, we only expect users to use `false`.
+///
+///     The purpose of this value is to configure conditional imports and
+///     environment constants. By default every platform library that is
+///     available in the "libraries" section implicitly defines an environment
+///     variable `dart.library.name` as `"true"`, to indicate that the library
+///     is supported.  Some backends allow imports to an unsupported platform
+///     library (turning a static error into a runtime error when the library is
+///     eventually accessed). These backends can use `supported: false` to
+///     report that such library is still not supported in conditional imports
+///     and const `fromEnvironment` expressions.
+///
 ///
 /// Note: we currently have several different files that need to be updated
 /// when changing libraries, sources, and patch files:
@@ -70,7 +88,7 @@
 /// close attention to change them consistently.
 
 // TODO(sigmund): move this file to a shared package.
-import 'dart:convert' show JSON;
+import 'dart:convert' show jsonDecode, jsonEncode;
 
 import '../fasta/util/relativize.dart';
 
@@ -84,10 +102,16 @@ class LibrariesSpecification {
   const LibrariesSpecification(
       [this._targets = const <String, TargetLibrariesSpecification>{}]);
 
-  /// The library specification for a given [target], or null if none is
+  /// The library specification for a given [target], or throws if none is
   /// available.
-  TargetLibrariesSpecification specificationFor(String target) =>
-      _targets[target];
+  TargetLibrariesSpecification specificationFor(String target) {
+    var targetSpec = _targets[target];
+    if (targetSpec == null) {
+      throw new LibrariesSpecificationException(
+          'No library specification for target "$target"');
+    }
+    return targetSpec;
+  }
 
   /// Parse the given [json] as a library specification, resolving any relative
   /// paths from [baseUri].
@@ -98,7 +122,7 @@ class LibrariesSpecification {
     if (json == null) return const LibrariesSpecification();
     var jsonData;
     try {
-      var data = JSON.decode(json);
+      var data = jsonDecode(json);
       if (data is! Map) {
         return _reportError('top-level specification is not a map');
       }
@@ -151,7 +175,14 @@ class LibrariesSpecification {
           return _reportError(
               "patches entry for '$name' is not a list or a string");
         }
-        libraries[name] = new LibraryInfo(name, uri, patches);
+
+        var supported = data['supported'] ?? true;
+        if (supported is! bool) {
+          return _reportError("\"supported\" entry: expected a 'bool' but "
+              "got a '${supported.runtimeType}' ('$supported')");
+        }
+        libraries[name] =
+            new LibraryInfo(name, uri, patches, isSupported: supported);
       });
       targets[targetName] =
           new TargetLibrariesSpecification(targetName, libraries);
@@ -165,7 +196,7 @@ class LibrariesSpecification {
   /// Serialize this specification to json.
   ///
   /// If possible serializes paths relative to [outputUri].
-  String toJsonString(Uri outputUri) => JSON.encode(toJsonMap(outputUri));
+  String toJsonString(Uri outputUri) => jsonEncode(toJsonMap(outputUri));
 
   Map toJsonMap(Uri outputUri) {
     var result = {};
@@ -178,6 +209,9 @@ class LibrariesSpecification {
           'uri': pathFor(lib.uri),
           'patches': lib.patches.map(pathFor).toList(),
         };
+        if (!lib.isSupported) {
+          libraries[name]['supported'] = false;
+        }
       });
       result[targetName] = {'libraries': libraries};
     });
@@ -211,7 +245,12 @@ class LibraryInfo {
   /// Patch files used for this library in the target platform, if any.
   final List<Uri> patches;
 
-  const LibraryInfo(this.name, this.uri, this.patches);
+  /// Whether the library is supported and thus `dart.library.name` is "true"
+  /// for conditional imports and fromEnvironment constants.
+  final bool isSupported;
+
+  const LibraryInfo(this.name, this.uri, this.patches,
+      {this.isSupported: true});
 }
 
 class LibrariesSpecificationException {

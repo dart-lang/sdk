@@ -14,22 +14,20 @@ import 'package:compiler/src/world.dart' show ClassQuery, ClosedWorld;
 import '../type_test_helper.dart';
 
 void main() {
-  runTests(CompileMode compileMode) async {
-    await testClassSets(compileMode);
-    await testProperties(compileMode);
-    await testNativeClasses(compileMode);
-    await testCommonSubclasses(compileMode);
+  runTests() async {
+    await testClassSets();
+    await testProperties();
+    await testNativeClasses();
+    await testCommonSubclasses();
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTests(CompileMode.memory);
     print('--test from kernel------------------------------------------------');
-    await runTests(CompileMode.kernel);
+    await runTests();
   });
 }
 
-testClassSets(CompileMode compileMode) async {
+testClassSets() async {
   var env = await TypeEnvironment.create(r"""
       class A implements X {}
       class B {}
@@ -53,7 +51,7 @@ testClassSets(CompileMode compileMode) async {
         html.window;
         new html.Worker('');
       }
-      """, compileMode: compileMode);
+      """);
   ClosedWorld closedWorld = env.closedWorld;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
 
@@ -189,7 +187,7 @@ testClassSets(CompileMode compileMode) async {
   testMixinUses(X, []);
 }
 
-testProperties(CompileMode compileMode) async {
+testProperties() async {
   var env = await TypeEnvironment.create(r"""
       class A {}
       class A1 extends A {}
@@ -244,7 +242,7 @@ testProperties(CompileMode compileMode) async {
         new G3();
         new H4();
       }
-      """, compileMode: compileMode);
+      """);
   ClosedWorld closedWorld = env.closedWorld;
 
   check(String name, {bool hasStrictSubtype, bool hasOnlySubclasses}) {
@@ -310,9 +308,8 @@ testProperties(CompileMode compileMode) async {
   check("H4", hasStrictSubtype: false, hasOnlySubclasses: true);
 }
 
-testNativeClasses(CompileMode compileMode) async {
-  var env = await TypeEnvironment.create('',
-      mainSource: r"""
+testNativeClasses() async {
+  var env = await TypeEnvironment.create('', mainSource: r"""
       import 'dart:html' as html;
       main() {
         html.window; // Creates 'Window'.
@@ -320,8 +317,7 @@ testNativeClasses(CompileMode compileMode) async {
         new html.CanvasElement() // Creates CanvasElement
             ..getContext(''); // Creates CanvasRenderingContext2D
       }
-      """,
-      compileMode: compileMode);
+      """);
   ClosedWorld closedWorld = env.closedWorld;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   LibraryEntity dart_html = elementEnvironment.lookupLibrary(Uris.dart_html);
@@ -520,9 +516,8 @@ testNativeClasses(CompileMode compileMode) async {
       instantiatedSubtypeCount: 0);
 }
 
-testCommonSubclasses(CompileMode compileMode) async {
-  var env = await TypeEnvironment.create('',
-      mainSource: r"""
+testCommonSubclasses() async {
+  var env = await TypeEnvironment.create('', mainSource: r"""
       class A {}
       class B {}
       class C extends A {}
@@ -545,8 +540,7 @@ testCommonSubclasses(CompileMode compileMode) async {
         new I();
         new J();
       }
-      """,
-      compileMode: compileMode);
+      """);
   ClosedWorld closedWorld = env.closedWorld;
 
   ClassEntity A = env.getElement("A");

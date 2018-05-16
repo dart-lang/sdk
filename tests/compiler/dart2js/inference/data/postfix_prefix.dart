@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/*element: index:[empty]*/
+dynamic get index => throw '';
+
 /*element: A.:[exact=A]*/
 class A {
   /*element: A.foo:Value([exact=JSString], value: "string")*/
@@ -15,9 +18,7 @@ class A {
   /*element: A.[]=:[null]*/
   operator []=(/*[empty]*/ index, /*[subclass=JSNumber]*/ value) {}
 
-  // TODO(johnniwinther): Investigate why these differ.
-  /*ast.element: A.returnDynamic1:Union([exact=JSString], [exact=JSUInt31])*/
-  /*kernel.element: A.returnDynamic1:[exact=JSUInt31]*/
+  /*element: A.returnDynamic1:[exact=JSUInt31]*/
   returnDynamic1() => /*[subclass=A]*/ /*update: [subclass=A]*/ foo
       /*invoke: Union([exact=JSString], [exact=JSUInt31])*/ --;
 
@@ -29,41 +30,43 @@ class A {
   returnNum2() => /*[subclass=A]*/ /*update: [subclass=A]*/ foo
       /*invoke: Union([exact=JSString], [exact=JSUInt31])*/ -= 42;
 
-  // TODO(johnniwinther): Investigate why these differ.
-  /*ast.element: A.returnDynamic2:Union([exact=JSString], [exact=JSUInt31])*/
-  /*kernel.element: A.returnDynamic2:[exact=JSUInt31]*/
+  /*element: A.returnDynamic2:[exact=JSUInt31]*/
   returnDynamic2() => this
-          // ignore: undefined_identifier
-          /*[subclass=A]*/ /*update: [subclass=A]*/ [/*[subclass=A]*/ index]
+          /*[subclass=A]*/ /*update: [subclass=A]*/ [index]
       /*invoke: Union([exact=JSString], [exact=JSUInt31])*/ --;
 
   /*element: A.returnNum3:[subclass=JSNumber]*/
   returnNum3() => /*invoke: Union([exact=JSString], [exact=JSUInt31])*/ --this
-      // ignore: undefined_identifier
-      /*[subclass=A]*/ /*update: [subclass=A]*/ [/*[subclass=A]*/ index];
+      /*[subclass=A]*/ /*update: [subclass=A]*/ [index];
 
   /*element: A.returnNum4:[subclass=JSNumber]*/
   returnNum4() => this
-          // ignore: undefined_identifier
-          /*[subclass=A]*/ /*update: [subclass=A]*/ [/*[subclass=A]*/ index]
+          /*[subclass=A]*/ /*update: [subclass=A]*/ [index]
       /*invoke: Union([exact=JSString], [exact=JSUInt31])*/ -= 42;
 
+  // TODO(johnniwinther): Investigate why implementations differ on update.
   /*element: A.returnEmpty3:[empty]*/
-  returnEmpty3() =>
-      // ignore: undefined_setter
-      this. /*[subclass=A]*/ /*update: [subclass=A]*/ bar
-      /*invoke: [empty]*/ --;
+  returnEmpty3() {
+    dynamic a = this;
+    return a. /*[subclass=A]*/
+            /*update: [empty]*/
+            bar
+        /*invoke: [empty]*/ --;
+  }
 
   /*element: A.returnEmpty1:[empty]*/
-  returnEmpty1() => /*invoke: [empty]*/ --this
-      // ignore: undefined_setter
-      . /*[subclass=A]*/ /*update: [subclass=A]*/ bar;
+  returnEmpty1() {
+    dynamic a = this;
+    return /*invoke: [empty]*/ --a
+        . /*[subclass=A]*/ /*update: [subclass=A]*/ bar;
+  }
 
   /*element: A.returnEmpty2:[empty]*/
-  returnEmpty2() => this
-          // ignore: undefined_setter
-          . /*[subclass=A]*/ /*update: [subclass=A]*/ bar
-      /*invoke: [empty]*/ -= 42;
+  returnEmpty2() {
+    dynamic a = this;
+    return a. /*[subclass=A]*/ /*update: [subclass=A]*/ bar
+        /*invoke: [empty]*/ -= 42;
+  }
 }
 
 /*element: B.:[exact=B]*/
@@ -73,9 +76,7 @@ class B extends A {
   /*element: B.[]:[exact=JSUInt31]*/
   operator [](/*[empty]*/ index) => 42;
 
-  // TODO(johnniwinther): Investigate why these differ.
-  /*ast.element: B.returnString1:Value([exact=JSString], value: "string")*/
-  /*kernel.element: B.returnString1:[empty]*/
+  /*element: B.returnString1:[empty]*/
   returnString1() =>
       super.foo /*invoke: Value([exact=JSString], value: "string")*/ --;
 
@@ -88,26 +89,18 @@ class B extends A {
   returnDynamic2() =>
       super.foo /*invoke: Value([exact=JSString], value: "string")*/ -= 42;
 
-  // TODO(johnniwinther): Investigate why these differ.
-  /*ast.element: B.returnString2:Value([exact=JSString], value: "string")*/
-  /*kernel.element: B.returnString2:[empty]*/
-  returnString2() =>
-      // ignore: undefined_identifier
-      super[/*[exact=B]*/ index]
+  /*element: B.returnString2:[empty]*/
+  returnString2() => super[index]
       /*invoke: Value([exact=JSString], value: "string")*/ --;
 
   /*element: B.returnDynamic3:[empty]*/
   returnDynamic3() =>
       /*invoke: Value([exact=JSString], value: "string")*/
-      --super
-          // ignore: undefined_identifier
-          [/*[exact=B]*/ index];
+      --super[index];
 
   /*element: B.returnDynamic4:[empty]*/
-  returnDynamic4() =>
-      // ignore: undefined_identifier
-      super[/*[exact=B]*/ index]
-          /*invoke: Value([exact=JSString], value: "string")*/ -= 42;
+  returnDynamic4() => super[index]
+      /*invoke: Value([exact=JSString], value: "string")*/ -= 42;
 }
 
 /*element: main:[null]*/

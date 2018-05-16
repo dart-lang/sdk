@@ -111,6 +111,15 @@ Fragment& Fragment::operator<<=(Instruction* next) {
   return *this;
 }
 
+void Fragment::Prepend(Instruction* start) {
+  if (entry == NULL) {
+    entry = current = start;
+  } else {
+    start->LinkTo(entry);
+    entry = start;
+  }
+}
+
 Fragment Fragment::closed() {
   ASSERT(entry != NULL);
   return Fragment(entry, NULL);
@@ -545,6 +554,10 @@ const String& TranslationHelper::DartGetterName(NameIndex parent,
   ManglePrivateName(parent, &name);
   name = Field::GetterSymbol(name);
   return name;
+}
+
+const String& TranslationHelper::DartFieldName(NameIndex field) {
+  return DartFieldName(CanonicalNameParent(field), CanonicalNameString(field));
 }
 
 const String& TranslationHelper::DartFieldName(NameIndex parent,
@@ -1001,17 +1014,9 @@ Fragment FlowGraphBuilder::LoadFunctionTypeArguments() {
 
   const Function& function = parsed_function_->function();
 
-  if (function.IsClosureFunction() && !function.IsGeneric()) {
-    LocalScope* scope = parsed_function_->node_sequence()->scope();
-    LocalVariable* closure = scope->VariableAt(0);
-    ASSERT(closure != NULL);
-    instructions += LoadLocal(closure);
-    instructions += LoadField(Closure::function_type_arguments_offset());
-
-  } else if (function.IsGeneric()) {
+  if (function.IsGeneric() || function.HasGenericParent()) {
     ASSERT(parsed_function_->function_type_arguments() != NULL);
     instructions += LoadLocal(parsed_function_->function_type_arguments());
-
   } else {
     instructions += NullConstant();
   }
@@ -1171,14 +1176,15 @@ Fragment BaseFlowGraphBuilder::BranchIfStrictEqual(
 
 Fragment FlowGraphBuilder::CatchBlockEntry(const Array& handler_types,
                                            intptr_t handler_index,
-                                           bool needs_stacktrace) {
+                                           bool needs_stacktrace,
+                                           bool is_synthesized) {
   ASSERT(CurrentException()->is_captured() ==
          CurrentStackTrace()->is_captured());
   const bool should_restore_closure_context =
       CurrentException()->is_captured() || CurrentCatchContext()->is_captured();
   CatchBlockEntryInstr* entry = new (Z) CatchBlockEntryInstr(
       TokenPosition::kNoSource,  // Token position of catch block.
-      false,                     // Not an artifact of compilation.
+      is_synthesized,  // whether catch block was synthesized by FE compiler
       AllocateBlockId(), CurrentTryIndex(), graph_entry_, handler_types,
       handler_index, *CurrentException(), *CurrentStackTrace(),
       needs_stacktrace, GetNextDeoptId(), should_restore_closure_context);
@@ -1219,19 +1225,20 @@ Fragment FlowGraphBuilder::TryCatch(int try_handler_index) {
   return Fragment(body.entry, entry);
 }
 
-Fragment FlowGraphBuilder::CheckStackOverflowInPrologue() {
+Fragment FlowGraphBuilder::CheckStackOverflowInPrologue(
+    TokenPosition position) {
   if (IsInlining()) {
     // If we are inlining don't actually attach the stack check.  We must still
     // create the stack check in order to allocate a deopt id.
-    CheckStackOverflow();
+    CheckStackOverflow(position);
     return Fragment();
   }
-  return CheckStackOverflow();
+  return CheckStackOverflow(position);
 }
 
-Fragment FlowGraphBuilder::CheckStackOverflow() {
-  return Fragment(new (Z) CheckStackOverflowInstr(
-      TokenPosition::kNoSource, loop_depth_, GetNextDeoptId()));
+Fragment FlowGraphBuilder::CheckStackOverflow(TokenPosition position) {
+  return Fragment(
+      new (Z) CheckStackOverflowInstr(position, loop_depth_, GetNextDeoptId()));
 }
 
 Fragment FlowGraphBuilder::CloneContext(intptr_t num_context_variables) {
@@ -1330,6 +1337,65 @@ Fragment BaseFlowGraphBuilder::TailCall(const Code& code) {
   Fragment instructions;
   Value* arg_desc = Pop();
   return Fragment(new (Z) TailCallInstr(code, arg_desc));
+}
+
+Fragment BaseFlowGraphBuilder::TestTypeArgsLen(Fragment eq_branch,
+                                               Fragment neq_branch,
+                                               intptr_t num_type_args) {
+  Fragment test;
+
+  TargetEntryInstr* eq_entry;
+  TargetEntryInstr* neq_entry;
+
+  test += LoadArgDescriptor();
+  test += LoadField(ArgumentsDescriptor::type_args_len_offset());
+  test += IntConstant(num_type_args);
+  test += BranchIfEqual(&eq_entry, &neq_entry);
+
+  eq_branch.Prepend(eq_entry);
+  neq_branch.Prepend(neq_entry);
+
+  JoinEntryInstr* join = BuildJoinEntry();
+  eq_branch += Goto(join);
+  neq_branch += Goto(join);
+
+  return Fragment(test.entry, join);
+}
+
+Fragment BaseFlowGraphBuilder::TestDelayedTypeArgs(LocalVariable* closure,
+                                                   Fragment present,
+                                                   Fragment absent) {
+  Fragment test;
+
+  TargetEntryInstr* absent_entry;
+  TargetEntryInstr* present_entry;
+
+  test += LoadLocal(closure);
+  test += LoadField(Closure::delayed_type_arguments_offset());
+  test += Constant(Object::empty_type_arguments());
+  test += BranchIfEqual(&absent_entry, &present_entry);
+
+  present.Prepend(present_entry);
+  absent.Prepend(absent_entry);
+
+  JoinEntryInstr* join = BuildJoinEntry();
+  absent += Goto(join);
+  present += Goto(join);
+
+  return Fragment(test.entry, join);
+}
+
+Fragment BaseFlowGraphBuilder::TestAnyTypeArgs(
+    std::function<Fragment()> present,
+    Fragment absent) {
+  if (parsed_function_->function().IsClosureFunction()) {
+    LocalVariable* closure =
+        parsed_function_->node_sequence()->scope()->VariableAt(0);
+    return TestTypeArgsLen(TestDelayedTypeArgs(closure, present(), absent),
+                           present(), 0);
+  } else {
+    return TestTypeArgsLen(absent, present(), 0);
+  }
 }
 
 Fragment FlowGraphBuilder::RethrowException(TokenPosition position,
@@ -1457,7 +1523,7 @@ Fragment FlowGraphBuilder::NativeCall(const String* name,
   ArgumentArray arguments = GetArguments(num_args);
   NativeCallInstr* call =
       new (Z) NativeCallInstr(name, function, FLAG_link_natives_lazily,
-                              TokenPosition::kNoSource, arguments);
+                              function->end_token_pos(), arguments);
   Push(call);
   return Fragment(call);
 }
@@ -1513,11 +1579,12 @@ Fragment FlowGraphBuilder::Return(TokenPosition position) {
 }
 
 Fragment FlowGraphBuilder::CheckNull(TokenPosition position,
-                                     LocalVariable* receiver) {
+                                     LocalVariable* receiver,
+                                     const String& function_name) {
   Fragment instructions = LoadLocal(receiver);
 
   CheckNullInstr* check_null =
-      new (Z) CheckNullInstr(Pop(), GetNextDeoptId(), position);
+      new (Z) CheckNullInstr(Pop(), function_name, GetNextDeoptId(), position);
 
   instructions <<= check_null;
 
@@ -2155,6 +2222,11 @@ Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
   fragment +=
       StoreInstanceField(TokenPosition::kNoSource, Closure::context_offset());
 
+  fragment += LoadLocal(closure);
+  fragment += Constant(Object::empty_type_arguments());
+  fragment += StoreInstanceField(TokenPosition::kNoSource,
+                                 Closure::delayed_type_arguments_offset());
+
   // The context is on top of the operand stack.  Store `this`.  The context
   // doesn't need a parent pointer because it doesn't close over anything
   // else.
@@ -2222,9 +2294,9 @@ Fragment FlowGraphBuilder::EvaluateAssertion() {
                     ICData::kStatic);
 }
 
-Fragment FlowGraphBuilder::CheckBooleanInCheckedMode() {
+Fragment FlowGraphBuilder::CheckBoolean() {
   Fragment instructions;
-  if (I->type_checks()) {
+  if (I->strong() || I->type_checks() || I->asserts()) {
     LocalVariable* top_of_stack = MakeTemporary();
     instructions += LoadLocal(top_of_stack);
     instructions += AssertBool();
@@ -2234,7 +2306,8 @@ Fragment FlowGraphBuilder::CheckBooleanInCheckedMode() {
 }
 
 Fragment FlowGraphBuilder::CheckAssignable(const AbstractType& dst_type,
-                                           const String& dst_name) {
+                                           const String& dst_name,
+                                           AssertAssignableInstr::Kind kind) {
   Fragment instructions;
   if (dst_type.IsMalformed()) {
     return ThrowTypeError();
@@ -2244,7 +2317,7 @@ Fragment FlowGraphBuilder::CheckAssignable(const AbstractType& dst_type,
     LocalVariable* top_of_stack = MakeTemporary();
     instructions += LoadLocal(top_of_stack);
     instructions +=
-        AssertAssignable(TokenPosition::kNoSource, dst_type, dst_name);
+        AssertAssignable(TokenPosition::kNoSource, dst_type, dst_name, kind);
     instructions += Drop();
   }
   return instructions;
@@ -2260,7 +2333,8 @@ Fragment FlowGraphBuilder::AssertBool() {
 
 Fragment FlowGraphBuilder::AssertAssignable(TokenPosition position,
                                             const AbstractType& dst_type,
-                                            const String& dst_name) {
+                                            const String& dst_name,
+                                            AssertAssignableInstr::Kind kind) {
   Fragment instructions;
   Value* value = Pop();
 
@@ -2280,7 +2354,7 @@ Fragment FlowGraphBuilder::AssertAssignable(TokenPosition position,
 
   AssertAssignableInstr* instr = new (Z) AssertAssignableInstr(
       position, value, instantiator_type_args, function_type_args, dst_type,
-      dst_name, GetNextDeoptId());
+      dst_name, GetNextDeoptId(), kind);
   Push(instr);
 
   instructions += Fragment(instr);
@@ -2331,7 +2405,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfMethodExtractor(
   graph_entry_ = new (Z)
       GraphEntryInstr(*parsed_function_, normal_entry, Compiler::kNoOSRDeoptId);
   Fragment body(normal_entry);
-  body += CheckStackOverflowInPrologue();
+  body += CheckStackOverflowInPrologue(method.token_pos());
   body += BuildImplicitClosureCreation(function);
   body += Return(TokenPosition::kNoSource);
 
@@ -2368,7 +2442,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
   parsed_function_->set_default_parameter_values(default_values);
 
   Fragment body(instruction_cursor);
-  body += CheckStackOverflowInPrologue();
+  body += CheckStackOverflowInPrologue(function.token_pos());
 
   // The receiver is the first argument to noSuchMethod, and it is the first
   // argument passed to the dispatcher function.
@@ -2503,7 +2577,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
       GraphEntryInstr(*parsed_function_, normal_entry, Compiler::kNoOSRDeoptId);
 
   Fragment body(instruction_cursor);
-  body += CheckStackOverflowInPrologue();
+  body += CheckStackOverflowInPrologue(function.token_pos());
 
   LocalScope* scope = parsed_function_->node_sequence()->scope();
 
@@ -2724,7 +2798,7 @@ static RawArray* AsSortedDuplicateFreeArray(GrowableArray<intptr_t>* source) {
 }
 
 static void ProcessTokenPositionsEntry(
-    const TypedData& data,
+    const TypedData& kernel_data,
     const Script& script,
     const Script& entry_script,
     intptr_t kernel_offset,
@@ -2733,24 +2807,22 @@ static void ProcessTokenPositionsEntry(
     TranslationHelper* helper,
     GrowableArray<intptr_t>* token_positions,
     GrowableArray<intptr_t>* yield_positions) {
-  if (data.IsNull() ||
-      script.kernel_string_offsets() != entry_script.kernel_string_offsets()) {
+  if (kernel_data.IsNull()) {
     return;
   }
 
   StreamingFlowGraphBuilder streaming_flow_graph_builder(
-      helper, script, zone_, data, data_kernel_offset);
+      helper, script, zone_, kernel_data, data_kernel_offset);
   streaming_flow_graph_builder.CollectTokenPositionsFor(
       script.kernel_script_index(), entry_script.kernel_script_index(),
       kernel_offset, token_positions, yield_positions);
 }
 
-void CollectTokenPositionsFor(const Script& const_script) {
+void CollectTokenPositionsFor(const Script& interesting_script) {
   Thread* thread = Thread::Current();
   Zone* zone_ = thread->zone();
-  Script& script = Script::Handle(Z, const_script.raw());
   TranslationHelper helper(thread);
-  helper.InitFromScript(script);
+  helper.InitFromScript(interesting_script);
 
   GrowableArray<intptr_t> token_positions(10);
   GrowableArray<intptr_t> yield_positions(1);
@@ -2759,9 +2831,13 @@ void CollectTokenPositionsFor(const Script& const_script) {
   const GrowableObjectArray& libs =
       GrowableObjectArray::Handle(Z, isolate->object_store()->libraries());
   Library& lib = Library::Handle(Z);
-  Object& entry = Object::Handle();
+  Object& entry = Object::Handle(Z);
   Script& entry_script = Script::Handle(Z);
   TypedData& data = TypedData::Handle(Z);
+
+  auto& temp_array = Array::Handle(Z);
+  auto& temp_field = Field::Handle(Z);
+  auto& temp_function = Function::Handle(Z);
   for (intptr_t i = 0; i < libs.Length(); i++) {
     lib ^= libs.At(i);
     DictionaryIterator it(lib);
@@ -2770,40 +2846,41 @@ void CollectTokenPositionsFor(const Script& const_script) {
       data = TypedData::null();
       if (entry.IsClass()) {
         const Class& klass = Class::Cast(entry);
-        entry_script = klass.script();
-        if (!entry_script.IsNull() &&
-            (script.kernel_script_index() ==
-             entry_script.kernel_script_index()) &&
-            (script.kernel_string_offsets() ==
-             entry_script.kernel_string_offsets())) {
+        if (klass.script() == interesting_script.raw()) {
           token_positions.Add(klass.token_pos().value());
         }
         if (klass.is_finalized()) {
-          Array& array = Array::Handle(Z, klass.fields());
-          Field& field = Field::Handle(Z);
-          for (intptr_t i = 0; i < array.Length(); ++i) {
-            field ^= array.At(i);
-            if (field.kernel_offset() <= 0) {
+          temp_array = klass.fields();
+          for (intptr_t i = 0; i < temp_array.Length(); ++i) {
+            temp_field ^= temp_array.At(i);
+            if (temp_field.kernel_offset() <= 0) {
               // Skip artificially injected fields.
               continue;
             }
-            data = field.KernelData();
-            entry_script = field.Script();
-            ProcessTokenPositionsEntry(
-                data, script, entry_script, field.kernel_offset(),
-                field.KernelDataProgramOffset(), Z, &helper, &token_positions,
-                &yield_positions);
+            entry_script = temp_field.Script();
+            if (entry_script.raw() != interesting_script.raw()) {
+              continue;
+            }
+            data = temp_field.KernelData();
+            ProcessTokenPositionsEntry(data, interesting_script, entry_script,
+                                       temp_field.kernel_offset(),
+                                       temp_field.KernelDataProgramOffset(), Z,
+                                       &helper, &token_positions,
+                                       &yield_positions);
           }
-          array = klass.functions();
-          Function& function = Function::Handle(Z);
-          for (intptr_t i = 0; i < array.Length(); ++i) {
-            function ^= array.At(i);
-            data = function.KernelData();
-            entry_script = function.script();
-            ProcessTokenPositionsEntry(
-                data, script, entry_script, function.kernel_offset(),
-                function.KernelDataProgramOffset(), Z, &helper,
-                &token_positions, &yield_positions);
+          temp_array = klass.functions();
+          for (intptr_t i = 0; i < temp_array.Length(); ++i) {
+            temp_function ^= temp_array.At(i);
+            entry_script = temp_function.script();
+            if (entry_script.raw() != interesting_script.raw()) {
+              continue;
+            }
+            data = temp_function.KernelData();
+            ProcessTokenPositionsEntry(data, interesting_script, entry_script,
+                                       temp_function.kernel_offset(),
+                                       temp_function.KernelDataProgramOffset(),
+                                       Z, &helper, &token_positions,
+                                       &yield_positions);
           }
         } else {
           // Class isn't finalized yet: read the data attached to it.
@@ -2815,17 +2892,24 @@ void CollectTokenPositionsFor(const Script& const_script) {
           const intptr_t class_offset = klass.kernel_offset();
 
           entry_script = klass.script();
-          ProcessTokenPositionsEntry(data, script, entry_script, class_offset,
-                                     library_kernel_offset, Z, &helper,
-                                     &token_positions, &yield_positions);
+          if (entry_script.raw() != interesting_script.raw()) {
+            continue;
+          }
+          ProcessTokenPositionsEntry(data, interesting_script, entry_script,
+                                     class_offset, library_kernel_offset, Z,
+                                     &helper, &token_positions,
+                                     &yield_positions);
         }
       } else if (entry.IsFunction()) {
-        const Function& function = Function::Cast(entry);
-        data = function.KernelData();
-        entry_script = function.script();
-        ProcessTokenPositionsEntry(data, script, entry_script,
-                                   function.kernel_offset(),
-                                   function.KernelDataProgramOffset(), Z,
+        temp_function ^= entry.raw();
+        entry_script = temp_function.script();
+        if (entry_script.raw() != interesting_script.raw()) {
+          continue;
+        }
+        data = temp_function.KernelData();
+        ProcessTokenPositionsEntry(data, interesting_script, entry_script,
+                                   temp_function.kernel_offset(),
+                                   temp_function.KernelDataProgramOffset(), Z,
                                    &helper, &token_positions, &yield_positions);
       } else if (entry.IsField()) {
         const Field& field = Field::Cast(entry);
@@ -2833,9 +2917,12 @@ void CollectTokenPositionsFor(const Script& const_script) {
           // Skip artificially injected fields.
           continue;
         }
-        data = field.KernelData();
         entry_script = field.Script();
-        ProcessTokenPositionsEntry(data, script, entry_script,
+        if (entry_script.raw() != interesting_script.raw()) {
+          continue;
+        }
+        data = field.KernelData();
+        ProcessTokenPositionsEntry(data, interesting_script, entry_script,
                                    field.kernel_offset(),
                                    field.KernelDataProgramOffset(), Z, &helper,
                                    &token_positions, &yield_positions);
@@ -2843,6 +2930,7 @@ void CollectTokenPositionsFor(const Script& const_script) {
     }
   }
 
+  Script& script = Script::Handle(Z, interesting_script.raw());
   Array& array_object = Array::Handle(Z);
   array_object = AsSortedDuplicateFreeArray(&token_positions);
   script.set_debug_positions(array_object);

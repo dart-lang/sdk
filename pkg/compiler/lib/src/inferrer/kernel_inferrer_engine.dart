@@ -13,7 +13,6 @@ import '../compiler.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../js_backend/mirrors_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../js_emitter/sorter.dart';
 import '../js_model/locals.dart';
@@ -56,7 +55,6 @@ class KernelTypeGraphInferrer extends TypeGraphInferrer<ir.Node> {
         _closureDataLookup,
         closedWorld,
         closedWorldRefiner,
-        _compiler.backend.mirrorsData,
         _compiler.backend.noSuchMethodRegistry,
         main,
         _compiler.backendStrategy.sorter);
@@ -109,7 +107,6 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
       this._closureDataLookup,
       ClosedWorld closedWorld,
       ClosedWorldRefiner closedWorldRefiner,
-      MirrorsData mirrorsData,
       NoSuchMethodRegistry noSuchMethodRegistry,
       FunctionEntity mainElement,
       Sorter sorter)
@@ -120,7 +117,6 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
             compilerOutput,
             closedWorld,
             closedWorldRefiner,
-            mirrorsData,
             noSuchMethodRegistry,
             mainElement,
             sorter,
@@ -174,7 +170,7 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
   FunctionEntity lookupCallMethod(ClassEntity cls) {
     FunctionEntity function =
         _elementEnvironment.lookupClassMember(cls, Identifiers.call);
-    if (function == null) {
+    if (function == null || function.isAbstract) {
       function =
           _elementEnvironment.lookupClassMember(cls, Identifiers.noSuchMethod_);
     }
@@ -212,8 +208,8 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
         }
         break;
       case MemberKind.closureField:
-        break;
       case MemberKind.signature:
+      case MemberKind.generatorBody:
         break;
     }
     failedAt(member, 'Unexpected member definition: $definition.');
@@ -384,27 +380,9 @@ class KernelGlobalTypeInferenceElementData
   }
 
   @override
-  void setOperatorTypeMaskInComplexSendSet(ir.Node node, TypeMask mask) {
-    throw new UnsupportedError(
-        'KernelGlobalTypeInferenceElementData.setOperatorTypeMaskInComplexSendSet');
-  }
-
-  @override
-  void setGetterTypeMaskInComplexSendSet(ir.Node node, TypeMask mask) {
-    throw new UnsupportedError(
-        'KernelGlobalTypeInferenceElementData.setGetterTypeMaskInComplexSendSet');
-  }
-
-  @override
   void setTypeMask(ir.Node node, TypeMask mask) {
     _sendMap ??= <ir.Node, TypeMask>{};
     _sendMap[node] = mask;
-  }
-
-  @override
-  TypeMask typeOfOperator(ir.Node node) {
-    throw new UnsupportedError(
-        'KernelGlobalTypeInferenceElementData.typeOfOperator');
   }
 
   @override

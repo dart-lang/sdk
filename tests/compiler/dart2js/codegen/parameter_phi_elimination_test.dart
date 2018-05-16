@@ -19,14 +19,12 @@ bool baz(int a, int b) {
 """;
 
 main() {
-  runTest({bool useKernel}) async {
-    await compile(SOURCE, entry: "baz", useKernel: useKernel);
+  runTest() async {
+    await compile(SOURCE, entry: "baz");
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTest(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTest(useKernel: true);
+    await runTest();
   });
 }

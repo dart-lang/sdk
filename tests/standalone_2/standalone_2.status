@@ -105,7 +105,6 @@ io/socket_many_connections_test: Skip # This test fails with "Too many open file
 io/dependency_graph_test: CompileTimeError
 io/directory_test: RuntimeError
 io/file_error_test: RuntimeError
-io/file_system_watcher_test: RuntimeError
 io/file_test: RuntimeError
 io/http_auth_digest_test: RuntimeError
 io/http_auth_test: RuntimeError
@@ -141,7 +140,7 @@ io/secure_server_socket_test: Skip # Flaky.
 io/web_socket_error_test: Skip # Flaky
 io/web_socket_ping_test: Skip # Flaky.
 io/web_socket_test: Skip # Flaky.
-map_insert_remove_oom_test: Skip # Crashes
+map_insert_remove_oom_test: Skip # Heap limit too low.
 no_support_debugger_test: Skip # kernel-service snapshot not compatible with flag disabled
 package/package1_test: CompileTimeError
 package/package_test: CompileTimeError
@@ -176,4 +175,3 @@ io/raw_datagram_read_all_test: Pass, Fail # Timing dependent.
 io/skipping_dart2js_compilations_test: Pass, Slow # Slow.
 io/test_runner_test: Pass, Slow # Slow.
 package/*: SkipByDesign # Launches VMs in interesting ways.
-

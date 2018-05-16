@@ -87,6 +87,7 @@ bad_override_test/06: MissingCompileTimeError
 bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
 bug31436_test: RuntimeError
+bug32305_test: MissingCompileTimeError
 bug32372_test: RuntimeError
 built_in_identifier_prefix_test: CompileTimeError
 call_constructor_on_unresolvable_class_test/01: MissingCompileTimeError
@@ -247,7 +248,7 @@ covariant_override/runtime_check_test: RuntimeError
 covariant_subtyping_tearoff1_test: RuntimeError
 covariant_subtyping_tearoff2_test: RuntimeError
 covariant_subtyping_tearoff3_test: RuntimeError
-covariant_subtyping_test: CompileTimeError
+covariant_subtyping_test: RuntimeError
 covariant_subtyping_unsafe_call1_test: RuntimeError
 covariant_subtyping_unsafe_call2_test: RuntimeError
 covariant_subtyping_unsafe_call3_test: RuntimeError
@@ -366,9 +367,11 @@ for_in3_test: MissingCompileTimeError
 for_in_side_effects_test/01: MissingCompileTimeError
 function_malformed_result_type_test/00: MissingCompileTimeError
 function_propagation_test: RuntimeError
+function_subtype3_test: RuntimeError
 function_subtype_bound_closure3_test: RuntimeError
 function_subtype_bound_closure4_test: RuntimeError
 function_subtype_bound_closure7_test: RuntimeError
+function_subtype_call0_test: RuntimeError
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
 function_subtype_cast0_test: RuntimeError
@@ -761,6 +764,7 @@ override_field_test/03: MissingCompileTimeError
 override_inheritance_abstract_test/02: MissingCompileTimeError
 override_inheritance_abstract_test/03: MissingCompileTimeError
 override_inheritance_abstract_test/04: MissingCompileTimeError
+override_inheritance_abstract_test/07: MissingCompileTimeError
 override_inheritance_abstract_test/08: MissingCompileTimeError
 override_inheritance_abstract_test/09: MissingCompileTimeError
 override_inheritance_abstract_test/10: MissingCompileTimeError
@@ -777,7 +781,6 @@ override_inheritance_abstract_test/23: MissingCompileTimeError
 override_inheritance_abstract_test/24: MissingCompileTimeError
 override_inheritance_abstract_test/25: MissingCompileTimeError
 override_inheritance_abstract_test/26: MissingCompileTimeError
-override_inheritance_abstract_test/28: MissingCompileTimeError
 override_inheritance_field_test/05: MissingCompileTimeError
 override_inheritance_field_test/07: MissingCompileTimeError
 override_inheritance_field_test/08: MissingCompileTimeError
@@ -822,7 +825,6 @@ override_inheritance_mixed_test/07: MissingCompileTimeError
 override_inheritance_mixed_test/08: MissingCompileTimeError
 override_inheritance_mixed_test/09: MissingCompileTimeError
 override_inheritance_no_such_method_test/01: MissingCompileTimeError
-override_inheritance_no_such_method_test/02: MissingCompileTimeError
 override_inheritance_no_such_method_test/06: MissingCompileTimeError
 override_inheritance_no_such_method_test/07: MissingCompileTimeError
 override_inheritance_no_such_method_test/09: MissingCompileTimeError
@@ -909,8 +911,6 @@ string_test/01: MissingCompileTimeError
 substring_test/01: MissingCompileTimeError
 super_assign_test/01: MissingCompileTimeError
 super_bound_closure_test/01: MissingCompileTimeError
-super_call4_test: CompileTimeError
-super_getter_setter_test: CompileTimeError
 super_operator_index_test/01: MissingCompileTimeError
 super_operator_index_test/02: MissingCompileTimeError
 super_operator_index_test/03: MissingCompileTimeError
@@ -1186,4 +1186,3 @@ vm/no_such_args_error_message_vm_test: Skip
 vm/no_such_method_error_message_callable_vm_test: Skip
 vm/no_such_method_error_message_vm_test: Skip
 vm/regress_28325_test: Skip
-

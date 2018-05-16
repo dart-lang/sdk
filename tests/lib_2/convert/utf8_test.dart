@@ -67,7 +67,7 @@ void testErrorOffset() {
 
     var typed = new Uint8List.fromList(input);
     Expect.throws(() {
-      UTF8.decoder.convert(typed);
+      utf8.decoder.convert(typed);
     }, (e) => e is FormatException && typed == e.source && offset == e.offset);
   }
 

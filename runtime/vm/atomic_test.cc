@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/atomic.h"
+#include "platform/atomic.h"
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/globals.h"

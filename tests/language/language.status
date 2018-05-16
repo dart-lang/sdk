@@ -12,11 +12,11 @@ config_import_corelib_test: StaticWarning, OK
 vm/regress_27201_test: SkipByDesign # Loads bad library, so will always crash.
 
 [ $compiler == precompiler ]
-deferred_global_test: Fail # Deferred loading happens eagerly. Issue #27587
+deferred_global_test: Skip # Deferred loading happens eagerly.
 deopt_inlined_function_lazy_test: Skip # Incompatible flag: --deoptimize-alot
 implicit_closure_test: Skip # Incompatible flag: --use_slow_path
 regress_23408_test: RuntimeError
-vm/regress_27201_test: Fail # Deferred loading happens eagerly. Issue #27587
+vm/regress_27201_test: Skip # Deferred loading happens eagerly.
 
 [ $mode == product ]
 assertion_test: SkipByDesign # Requires checked mode.
@@ -314,6 +314,13 @@ vm/regress_24517_test: Pass, Fail # Issue 24517.
 assertion_initializer_const_error_test/01: MissingCompileTimeError
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 
+# Detection of compile-time errors that are related to constants can't be fully
+# done at the front end, because constants are evaluated at back ends.  So, some
+# errors aren't detected by fasta, but reported by back ends as compile-time
+# errors.
+[ $compiler != dart2js && $runtime != vm && $fasta ]
+deferred_constraints_constants_test/default_argument2: MissingCompileTimeError
+
 [ $compiler != dartk && $compiler != dartkp && ($runtime == dart_precompiled || $runtime == flutter || $runtime == vm) ]
 abstract_beats_arguments2_test/01: Crash # Issue 29171
 
@@ -441,10 +448,10 @@ multiline_strings_test: Fail # Issue 23020
 redirecting_constructor_initializer_test: RuntimeError # Issue 23488
 
 [ $compiler == app_jit || $compiler == precompiler || $mode == product ]
-deferred_load_constants_test/02: Fail # Deferred loading happens eagerly. Issue #27587
-deferred_load_constants_test/03: Fail # Deferred loading happens eagerly. Issue #27587
-deferred_load_constants_test/05: Fail # Deferred loading happens eagerly. Issue #27587
-deferred_not_loaded_check_test: Fail # Deferred loading happens eagerly. Issue #27587
+deferred_load_constants_test/02: Skip # Deferred loading happens eagerly.
+deferred_load_constants_test/03: Skip # Deferred loading happens eagerly.
+deferred_load_constants_test/05: Skip # Deferred loading happens eagerly.
+deferred_not_loaded_check_test: Skip # Deferred loading happens eagerly.
 vm/regress_27201_test: Fail
 
 [ $compiler == app_jit || $runtime == dart_precompiled ]
@@ -517,4 +524,3 @@ vm/regress_27201_test: Pass, Crash # Requires deferred libraries
 
 [ $compiler != dartk && $compiler != dartkp && $compiler != none || $compiler != dartk && $compiler != dartkp && $runtime != vm ]
 assert_initializer_test/*: Skip # not implemented yet, experiment is VM only.
-

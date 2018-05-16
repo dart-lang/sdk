@@ -64,30 +64,30 @@ class FileMock extends FileSystemEntity implements File {
   DateTime lastModifiedSync() => null;
   Future setLastModified(DateTime time) => null;
   void setLastModifiedSync(DateTime time) {}
-  Future<RandomAccessFile> open({FileMode mode: FileMode.READ}) => null;
-  RandomAccessFile openSync({FileMode mode: FileMode.READ}) => null;
+  Future<RandomAccessFile> open({FileMode mode: FileMode.read}) => null;
+  RandomAccessFile openSync({FileMode mode: FileMode.read}) => null;
   Stream<List<int>> openRead([int start, int end]) => null;
-  IOSink openWrite({FileMode mode: FileMode.WRITE, Encoding encoding: UTF8}) =>
+  IOSink openWrite({FileMode mode: FileMode.write, Encoding encoding: utf8}) =>
       null;
   Future<List<int>> readAsBytes() => null;
   List<int> readAsBytesSync() => null;
-  Future<String> readAsString({Encoding encoding: UTF8}) => null;
-  String readAsStringSync({Encoding encoding: UTF8}) => null;
-  Future<List<String>> readAsLines({Encoding encoding: UTF8}) => null;
-  List<String> readAsLinesSync({Encoding encoding: UTF8}) => null;
+  Future<String> readAsString({Encoding encoding: utf8}) => null;
+  String readAsStringSync({Encoding encoding: utf8}) => null;
+  Future<List<String>> readAsLines({Encoding encoding: utf8}) => null;
+  List<String> readAsLinesSync({Encoding encoding: utf8}) => null;
   Future<File> writeAsBytes(List<int> bytes,
-          {FileMode mode: FileMode.WRITE, bool flush: false}) =>
+          {FileMode mode: FileMode.write, bool flush: false}) =>
       null;
   void writeAsBytesSync(List<int> bytes,
-      {FileMode mode: FileMode.WRITE, bool flush: false}) {}
+      {FileMode mode: FileMode.write, bool flush: false}) {}
   Future<File> writeAsString(String contents,
-          {FileMode mode: FileMode.WRITE,
-          Encoding encoding: UTF8,
+          {FileMode mode: FileMode.write,
+          Encoding encoding: utf8,
           bool flush: false}) =>
       null;
   void writeAsStringSync(String contents,
-      {FileMode mode: FileMode.WRITE,
-      Encoding encoding: UTF8,
+      {FileMode mode: FileMode.write,
+      Encoding encoding: utf8,
       bool flush: false}) {}
 }
 
@@ -118,11 +118,11 @@ class FileSystemEntityMock {
   static bool identicalSync(String path1, String path2) => false;
 
   static Future<FileSystemEntityType> getType(String path, bool followLinks) {
-    return new Future.value(FileSystemEntityType.FILE);
+    return new Future.value(FileSystemEntityType.file);
   }
 
   static FileSystemEntityType getTypeSync(String path, bool followLinks) {
-    return FileSystemEntityType.FILE;
+    return FileSystemEntityType.file;
   }
 }
 
@@ -157,6 +157,11 @@ class LinkMock extends FileSystemEntity implements Link {
   String targetSync() => null;
 }
 
+Future<Socket> socketConnect(host, int port,
+    {sourceAddress, Duration timeout}) {
+  return null;
+}
+
 Future<Null> ioOverridesRunTest() async {
   Future<Null> f = IOOverrides.runZoned(
     () async {
@@ -169,12 +174,13 @@ Future<Null> ioOverridesRunTest() async {
       Expect.isFalse(await FileSystemEntity.identical("file", "file"));
       Expect.isFalse(FileSystemEntity.identicalSync("file", "file"));
       Expect.equals(
-          await FileSystemEntity.type("file"), FileSystemEntityType.FILE);
+          await FileSystemEntity.type("file"), FileSystemEntityType.file);
       Expect.equals(
-          FileSystemEntity.typeSync("file"), FileSystemEntityType.FILE);
+          FileSystemEntity.typeSync("file"), FileSystemEntityType.file);
       Expect.isFalse(FileSystemEntity.isWatchSupported);
       Expect.isNull(new Directory("directory").watch());
       Expect.isTrue(new Link("link") is LinkMock);
+      Expect.isNull(Socket.connect(null, 0));
     },
     createDirectory: DirectoryMock.createDirectory,
     getCurrentDirectory: DirectoryMock.getCurrent,
@@ -190,6 +196,7 @@ Future<Null> ioOverridesRunTest() async {
     fsWatch: FileSystemWatcherMock.watch,
     fsWatchIsSupported: FileSystemWatcherMock.watchSupported,
     createLink: LinkMock.createLink,
+    socketConnect: socketConnect,
   );
   Expect.isFalse(new Directory("directory") is DirectoryMock);
   Expect.isTrue(new Directory("directory") is Directory);

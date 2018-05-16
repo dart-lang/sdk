@@ -16,6 +16,7 @@ import '../kernel/element_map.dart';
 import '../kernel/env.dart';
 import '../options.dart';
 import '../ssa/type_builder.dart';
+import '../universe/selector.dart';
 import '../world.dart';
 import 'elements.dart';
 import 'closure_visitors.dart';
@@ -77,10 +78,15 @@ class KernelClosureAnalysis {
 class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   final KernelToElementMapForBuilding _elementMap;
   final GlobalLocalsMap _globalLocalsMap;
+  final CompilerOptions _options;
 
   /// Map of the scoping information that corresponds to a particular entity.
   Map<MemberEntity, ScopeInfo> _scopeMap = <MemberEntity, ScopeInfo>{};
   Map<ir.Node, CapturedScope> _capturedScopesMap = <ir.Node, CapturedScope>{};
+  // Indicates the type variables (if any) that are captured in a given
+  // Signature function.
+  Map<MemberEntity, CapturedScope> _capturedScopeForSignatureMap =
+      <MemberEntity, CapturedScope>{};
 
   Map<MemberEntity, ClosureRepresentationInfo> _memberClosureRepresentationMap =
       <MemberEntity, ClosureRepresentationInfo>{};
@@ -89,19 +95,8 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   Map<ir.TreeNode, ClosureRepresentationInfo> _localClosureRepresentationMap =
       <ir.TreeNode, ClosureRepresentationInfo>{};
 
-  /// If true add type assertions to assert that at runtime the type is in line
-  /// with the stated type.
-  final bool _addTypeChecks;
-
-  /// If true, we are compiling using strong mode, and therefore we will create
-  /// a "signatureMethod" for a closure that can output the type. In this
-  /// instance, we may need access to a type variable that has not otherwise
-  /// been captured, and therefore we need to mark it as being used so that the
-  /// RTI optimization doesn't optimize it away..
-  final bool _strongMode;
-
-  KernelClosureConversionTask(Measurer measurer, this._elementMap,
-      this._globalLocalsMap, this._addTypeChecks, this._strongMode)
+  KernelClosureConversionTask(
+      Measurer measurer, this._elementMap, this._globalLocalsMap, this._options)
       : super(measurer);
 
   /// The combined steps of generating our intermediate representation of
@@ -114,68 +109,127 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   void convertClosures(Iterable<MemberEntity> processedEntities,
       ClosedWorldRefiner closedWorldRefiner) {}
 
-  void _updateScopeBasedOnRtiNeed(
-      KernelScopeInfo scope,
-      bool Function(ClassEntity) classNeedsTypeArguments,
-      bool Function(MemberEntity) methodNeedsTypeArguments,
-      bool Function(ir.Node) localFunctionNeedsTypeArguments,
+  void _updateScopeBasedOnRtiNeed(KernelScopeInfo scope, ClosureRtiNeed rtiNeed,
       MemberEntity outermostEntity) {
-    if (scope.thisUsedAsFreeVariableIfNeedsRti &&
-        (classNeedsTypeArguments(outermostEntity.enclosingClass) ||
-            // TODO(johnniwinther): Instead of _strongMode, make this branch test
-            // if an added signature method needs type arguments (see comment in
-            // TypeVariableKind.method branch below.
-            _strongMode)) {
-      scope.thisUsedAsFreeVariable = true;
-    }
-    if (_addTypeChecks) {
-      scope.freeVariables.addAll(scope.freeVariablesForRti);
-    } else {
-      for (TypeVariableTypeWithContext typeVariable
-          in scope.freeVariablesForRti) {
-        switch (typeVariable.kind) {
-          case TypeVariableKind.cls:
-            if (classNeedsTypeArguments(
-                _elementMap.getClass(typeVariable.typeDeclaration))) {
-              scope.freeVariables.add(typeVariable);
+    bool includeForRti(Set<VariableUse> useSet) {
+      for (VariableUse usage in useSet) {
+        switch (usage.kind) {
+          case VariableUseKind.explicit:
+            return true;
+            break;
+          case VariableUseKind.implicitCast:
+            if (_options.implicitDowncastCheckPolicy.isEmitted) {
+              return true;
             }
             break;
-          case TypeVariableKind.method:
-            if (methodNeedsTypeArguments(
-                    _elementMap.getMember(typeVariable.typeDeclaration)) ||
-                // In Dart 2, we have the notion of generic methods. This is
-                // partly implemented by adding a "method signature" function to
-                // closure classes. This signature reports the type of the
-                // method, and therefore may access the type variable of the
-                // parameter, which might otherwise not be used (and therefore
-                // isn't captured in the set that `methodNeedsTypeArguments`
-                // compares against.
-                // TODO(johnniwinther): Include this reasoning inside
-                // [methodNeedsTypeArguments] rather than an add on here.
-                _strongMode &&
-                    scope.freeVariablesForRti.contains(typeVariable)) {
-              scope.freeVariables.add(typeVariable);
+          case VariableUseKind.localType:
+            if (_options.assignmentCheckPolicy.isEmitted) {
+              return true;
             }
             break;
-          case TypeVariableKind.local:
-            if (localFunctionNeedsTypeArguments(typeVariable.typeDeclaration)) {
-              scope.freeVariables.add(typeVariable);
+
+          case VariableUseKind.constructorTypeArgument:
+            ConstructorEntity constructor =
+                _elementMap.getConstructor(usage.member);
+            if (rtiNeed.classNeedsTypeArguments(constructor.enclosingClass)) {
+              return true;
             }
             break;
-          case TypeVariableKind.function:
+          case VariableUseKind.staticTypeArgument:
+            FunctionEntity method = _elementMap.getMethod(usage.member);
+            if (rtiNeed.methodNeedsTypeArguments(method)) {
+              return true;
+            }
+            break;
+          case VariableUseKind.instanceTypeArgument:
+            Selector selector = _elementMap.getSelector(usage.invocation);
+            if (rtiNeed.selectorNeedsTypeArguments(selector)) {
+              return true;
+            }
+            break;
+          case VariableUseKind.localTypeArgument:
+            // TODO(johnniwinther): We should be able to track direct local
+            // function invocations and not have to use the selector here.
+            Selector selector = _elementMap.getSelector(usage.invocation);
+            if (rtiNeed.localFunctionNeedsTypeArguments(usage.localFunction) ||
+                rtiNeed.selectorNeedsTypeArguments(selector)) {
+              return true;
+            }
+            break;
+          case VariableUseKind.memberParameter:
+            if (_options.parameterCheckPolicy.isEmitted) {
+              return true;
+            } else {
+              FunctionEntity method = _elementMap.getMethod(usage.member);
+              if (rtiNeed.methodNeedsSignature(method)) {
+                return true;
+              }
+            }
+            break;
+          case VariableUseKind.localParameter:
+            if (_options.parameterCheckPolicy.isEmitted) {
+              return true;
+            } else if (rtiNeed
+                .localFunctionNeedsSignature(usage.localFunction)) {
+              return true;
+            }
+            break;
+          case VariableUseKind.memberReturnType:
+            if (_options.assignmentCheckPolicy.isEmitted) {
+              return true;
+            } else {
+              FunctionEntity method = _elementMap.getMethod(usage.member);
+              if (rtiNeed.methodNeedsSignature(method)) {
+                return true;
+              }
+            }
+            break;
+          case VariableUseKind.localReturnType:
+            if (_options.assignmentCheckPolicy.isEmitted) {
+              return true;
+            } else if (rtiNeed
+                .localFunctionNeedsSignature(usage.localFunction)) {
+              return true;
+            }
+            break;
+          case VariableUseKind.fieldType:
+            if (_options.assignmentCheckPolicy.isEmitted ||
+                _options.parameterCheckPolicy.isEmitted) {
+              return true;
+            }
+            break;
+          case VariableUseKind.listLiteral:
+            if (rtiNeed.classNeedsTypeArguments(
+                _elementMap.commonElements.jsArrayClass)) {
+              return true;
+            }
+            break;
+          case VariableUseKind.mapLiteral:
+            if (rtiNeed.classNeedsTypeArguments(
+                _elementMap.commonElements.mapLiteralClass)) {
+              return true;
+            }
             break;
         }
       }
+      return false;
     }
+
+    if (includeForRti(scope.thisUsedAsFreeVariableIfNeedsRti)) {
+      scope.thisUsedAsFreeVariable = true;
+    }
+    scope.freeVariablesForRti.forEach(
+        (TypeVariableTypeWithContext typeVariable, Set<VariableUse> useSet) {
+      if (includeForRti(useSet)) {
+        scope.freeVariables.add(typeVariable);
+      }
+    });
   }
 
   Iterable<FunctionEntity> createClosureEntities(
       JsClosedWorldBuilder closedWorldBuilder,
       Map<MemberEntity, ScopeModel> closureModels,
-      {bool Function(ir.Node) localFunctionNeedsSignature,
-      bool Function(ClassEntity) classNeedsTypeArguments,
-      bool Function(FunctionEntity) methodNeedsTypeArguments,
-      bool Function(ir.Node) localFunctionNeedsTypeArguments}) {
+      ClosureRtiNeed rtiNeed) {
     List<FunctionEntity> callMethods = <FunctionEntity>[];
     closureModels.forEach((MemberEntity member, ScopeModel model) {
       KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(member);
@@ -188,8 +242,7 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
           .forEach((ir.Node node, KernelCapturedScope scope) {
         Map<Local, JRecordField> boxedVariables =
             _elementMap.makeRecordContainer(scope, member, localsMap);
-        _updateScopeBasedOnRtiNeed(scope, classNeedsTypeArguments,
-            methodNeedsTypeArguments, localFunctionNeedsTypeArguments, member);
+        _updateScopeBasedOnRtiNeed(scope, rtiNeed, member);
 
         if (scope is KernelCapturedLoopScope) {
           _capturedScopesMap[node] = new JsCapturedLoopScope.from(
@@ -218,14 +271,28 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
             functionNode,
             closuresToGenerate[node],
             allBoxedVariables,
-            classNeedsTypeArguments,
-            methodNeedsTypeArguments,
-            localFunctionNeedsTypeArguments,
+            rtiNeed,
             createSignatureMethod:
-                localFunctionNeedsSignature(functionNode.parent));
+                rtiNeed.localFunctionNeedsSignature(functionNode.parent));
         // Add also for the call method.
         _scopeMap[closureClassInfo.callMethod] = closureClassInfo;
         _scopeMap[closureClassInfo.signatureMethod] = closureClassInfo;
+
+        // Set up capturedScope for signature method. This is distinct from
+        // _capturedScopesMap because there is no corresponding ir.Node for the
+        // signature.
+        if (rtiNeed.localFunctionNeedsSignature(functionNode.parent) &&
+            model.capturedScopesMap[functionNode] != null) {
+          KernelCapturedScope capturedScope =
+              model.capturedScopesMap[functionNode];
+          assert(capturedScope is! KernelCapturedLoopScope);
+          KernelCapturedScope signatureCapturedScope =
+              new KernelCapturedScope.forSignature(capturedScope);
+          _updateScopeBasedOnRtiNeed(signatureCapturedScope, rtiNeed, member);
+          _capturedScopeForSignatureMap[closureClassInfo.signatureMethod] =
+              new JsCapturedScope.from(
+                  {}, signatureCapturedScope, localsMap, _elementMap);
+        }
         callMethods.add(closureClassInfo.callMethod);
       }
     });
@@ -244,12 +311,9 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       ir.FunctionNode node,
       KernelScopeInfo info,
       Map<Local, JRecordField> boxedVariables,
-      bool Function(ClassEntity) classNeedsTypeArguments,
-      bool Function(FunctionEntity) methodNeedsTypeArguments,
-      bool Function(ir.Node) localFunctionNeedsTypeArguments,
+      ClosureRtiNeed rtiNeed,
       {bool createSignatureMethod}) {
-    _updateScopeBasedOnRtiNeed(info, classNeedsTypeArguments,
-        methodNeedsTypeArguments, localFunctionNeedsTypeArguments, member);
+    _updateScopeBasedOnRtiNeed(info, rtiNeed, member);
     KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(member);
     KernelClosureClassInfo closureClassInfo =
         closedWorldBuilder.buildClosureClass(
@@ -304,8 +368,9 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       case MemberKind.constructor:
       case MemberKind.constructorBody:
       case MemberKind.closureCall:
-      case MemberKind.signature:
         return _capturedScopesMap[definition.node] ?? const CapturedScope();
+      case MemberKind.signature:
+        return _capturedScopeForSignatureMap[entity] ?? const CapturedScope();
       default:
         throw failedAt(entity, "Unexpected member definition $definition");
     }
@@ -329,6 +394,150 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   }
 }
 
+enum VariableUseKind {
+  /// An explicit variable use.
+  ///
+  /// For type variable this is an explicit as-cast, an is-test or a type
+  /// literal.
+  explicit,
+
+  /// A type variable used in the type of a local variable.
+  localType,
+
+  /// A type variable used in an implicit cast.
+  implicitCast,
+
+  /// A type variable passed as the type argument of a list literal.
+  listLiteral,
+
+  /// A type variable passed as the type argument of a map literal.
+  mapLiteral,
+
+  /// A type variable passed as a type argument to a constructor.
+  constructorTypeArgument,
+
+  /// A type variable passed as a type argument to a static method.
+  staticTypeArgument,
+
+  /// A type variable passed as a type argument to an instance method.
+  instanceTypeArgument,
+
+  /// A type variable passed as a type argument to a local function.
+  localTypeArgument,
+
+  /// A type variable in a parameter type of a member.
+  memberParameter,
+
+  /// A type variable in a parameter type of a local function.
+  localParameter,
+
+  /// A type variable used in a return type of a member.
+  memberReturnType,
+
+  /// A type variable used in a return type of a local function.
+  localReturnType,
+
+  /// A type variable in a field type.
+  fieldType,
+}
+
+class VariableUse {
+  final VariableUseKind kind;
+  final ir.Member member;
+  final ir.TreeNode /*ir.FunctionDeclaration|ir.FunctionExpression*/
+      localFunction;
+  final ir.MethodInvocation invocation;
+
+  const VariableUse._simple(this.kind)
+      : this.member = null,
+        this.localFunction = null,
+        this.invocation = null;
+
+  VariableUse.memberParameter(this.member)
+      : this.kind = VariableUseKind.memberParameter,
+        this.localFunction = null,
+        this.invocation = null;
+
+  VariableUse.localParameter(this.localFunction)
+      : this.kind = VariableUseKind.localParameter,
+        this.member = null,
+        this.invocation = null {
+    assert(localFunction is ir.FunctionDeclaration ||
+        localFunction is ir.FunctionExpression);
+  }
+
+  VariableUse.memberReturnType(this.member)
+      : this.kind = VariableUseKind.memberReturnType,
+        this.localFunction = null,
+        this.invocation = null;
+
+  VariableUse.localReturnType(this.localFunction)
+      : this.kind = VariableUseKind.localReturnType,
+        this.member = null,
+        this.invocation = null {
+    assert(localFunction is ir.FunctionDeclaration ||
+        localFunction is ir.FunctionExpression);
+  }
+
+  VariableUse.constructorTypeArgument(this.member)
+      : this.kind = VariableUseKind.constructorTypeArgument,
+        this.localFunction = null,
+        this.invocation = null;
+
+  VariableUse.staticTypeArgument(this.member)
+      : this.kind = VariableUseKind.staticTypeArgument,
+        this.localFunction = null,
+        this.invocation = null;
+
+  VariableUse.instanceTypeArgument(this.invocation)
+      : this.kind = VariableUseKind.instanceTypeArgument,
+        this.member = null,
+        this.localFunction = null;
+
+  VariableUse.localTypeArgument(this.localFunction, this.invocation)
+      : this.kind = VariableUseKind.localTypeArgument,
+        this.member = null {
+    assert(localFunction is ir.FunctionDeclaration ||
+        localFunction is ir.FunctionExpression);
+  }
+
+  static const VariableUse explicit =
+      const VariableUse._simple(VariableUseKind.explicit);
+
+  static const VariableUse localType =
+      const VariableUse._simple(VariableUseKind.localType);
+
+  static const VariableUse implicitCast =
+      const VariableUse._simple(VariableUseKind.implicitCast);
+
+  static const VariableUse listLiteral =
+      const VariableUse._simple(VariableUseKind.listLiteral);
+
+  static const VariableUse mapLiteral =
+      const VariableUse._simple(VariableUseKind.mapLiteral);
+
+  static const VariableUse fieldType =
+      const VariableUse._simple(VariableUseKind.fieldType);
+
+  int get hashCode =>
+      kind.hashCode * 11 +
+      member.hashCode * 13 +
+      localFunction.hashCode * 17 +
+      invocation.hashCode * 19;
+
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! VariableUse) return false;
+    return kind == other.kind &&
+        member == other.member &&
+        localFunction == other.localFunction &&
+        invocation == other.invocation;
+  }
+
+  String toString() => 'VariableUse(kind=$kind,member=$member,'
+      'localFunction=$localFunction,invocation=$invocation)';
+}
+
 class KernelScopeInfo {
   final Set<ir.VariableDeclaration> localsUsedInTryOrSync;
   final bool hasThisLocal;
@@ -349,8 +558,8 @@ class KernelScopeInfo {
   /// freeVariables set. Whether these variables are actually used as
   /// freeVariables will be set by the time this structure is converted to a
   /// JsScopeInfo, so JsScopeInfo does not need to use them.
-  Set<TypeVariableTypeWithContext> freeVariablesForRti =
-      new Set<TypeVariableTypeWithContext>();
+  Map<TypeVariableTypeWithContext, Set<VariableUse>> freeVariablesForRti =
+      <TypeVariableTypeWithContext, Set<VariableUse>>{};
 
   /// If true, `this` is used as a free variable, in this scope. It is stored
   /// separately from [freeVariables] because there is no single
@@ -361,7 +570,7 @@ class KernelScopeInfo {
   /// performing runtime type checks. It is stored
   /// separately from [thisUsedAsFreeVariable] because we don't know at this
   /// stage if we will be needing type checks for this scope.
-  bool thisUsedAsFreeVariableIfNeedsRti = false;
+  Set<VariableUse> thisUsedAsFreeVariableIfNeedsRti = new Set<VariableUse>();
 
   KernelScopeInfo(this.hasThisLocal)
       : localsUsedInTryOrSync = new Set<ir.VariableDeclaration>(),
@@ -385,10 +594,16 @@ class KernelScopeInfo {
 
   String toString() {
     StringBuffer sb = new StringBuffer();
-    sb.write('this=$hasThisLocal,');
+    sb.write('KernelScopeInfo(this=$hasThisLocal,');
     sb.write('freeVriables=$freeVariables,');
     sb.write('localsUsedInTryOrSync={${localsUsedInTryOrSync.join(', ')}}');
-    sb.write('freeVariablesForRti={${freeVariablesForRti.join(', ')}}');
+    String comma = '';
+    sb.write('freeVariablesForRti={');
+    freeVariablesForRti.forEach((key, value) {
+      sb.write('$comma$key:$value');
+      comma = ',';
+    });
+    sb.write('})');
     return sb.toString();
   }
 }
@@ -456,11 +671,11 @@ class KernelCapturedScope extends KernelScopeInfo {
       Set<ir.VariableDeclaration> boxedVariables,
       NodeBox capturedVariablesAccessor,
       Set<ir.VariableDeclaration> localsUsedInTryOrSync,
-      Set<ir.Node /* VariableDeclaration | TypeParameterTypeWithContext */ >
+      Set<ir.Node /* VariableDeclaration | TypeVariableTypeWithContext */ >
           freeVariables,
-      Set<TypeVariableTypeWithContext> freeVariablesForRti,
+      Map<TypeVariableTypeWithContext, Set<VariableUse>> freeVariablesForRti,
       bool thisUsedAsFreeVariable,
-      bool thisUsedAsFreeVariableIfNeedsRti,
+      Set<VariableUse> thisUsedAsFreeVariableIfNeedsRti,
       bool hasThisLocal)
       : super.withBoxedVariables(
             boxedVariables,
@@ -471,6 +686,23 @@ class KernelCapturedScope extends KernelScopeInfo {
             thisUsedAsFreeVariable,
             thisUsedAsFreeVariableIfNeedsRti,
             hasThisLocal);
+
+  // Loops through the free variables of an existing KernelCapturedScope and
+  // creates a new KernelCapturedScope that only captures type variables.
+  KernelCapturedScope.forSignature(KernelCapturedScope scope)
+      : this(
+            _empty,
+            null,
+            _empty,
+            scope.freeVariables.where(
+                (ir.Node variable) => variable is TypeVariableTypeWithContext),
+            scope.freeVariablesForRti,
+            scope.thisUsedAsFreeVariable,
+            scope.thisUsedAsFreeVariableIfNeedsRti,
+            scope.hasThisLocal);
+
+  // Silly hack because we don't have const sets.
+  static final Set<ir.VariableDeclaration> _empty = new Set();
 
   bool get requiresContextBox => boxedVariables.isNotEmpty;
 }
@@ -498,11 +730,11 @@ class KernelCapturedLoopScope extends KernelCapturedScope {
       NodeBox capturedVariablesAccessor,
       this.boxedLoopVariables,
       Set<ir.VariableDeclaration> localsUsedInTryOrSync,
-      Set<ir.Node /* VariableDeclaration | TypeParameterTypeWithContext */ >
+      Set<ir.Node /* VariableDeclaration | TypeVariableTypeWithContext */ >
           freeVariables,
-      Set<TypeVariableTypeWithContext> freeVariablesForRti,
+      Map<TypeVariableTypeWithContext, Set<VariableUse>> freeVariablesForRti,
       bool thisUsedAsFreeVariable,
-      bool thisUsedAsFreeVariableIfNeedsRti,
+      Set<VariableUse> thisUsedAsFreeVariableIfNeedsRti,
       bool hasThisLocal)
       : super(
             boxedVariables,
@@ -915,4 +1147,18 @@ class TypeVariableTypeWithContext implements ir.Node {
   String toString() =>
       'TypeVariableTypeWithContext(type=$type,context=$context,'
       'kind=$kind,typeDeclaration=$typeDeclaration)';
+}
+
+abstract class ClosureRtiNeed {
+  bool classNeedsTypeArguments(ClassEntity cls);
+
+  bool methodNeedsTypeArguments(FunctionEntity method);
+
+  bool methodNeedsSignature(MemberEntity method);
+
+  bool localFunctionNeedsTypeArguments(ir.Node node);
+
+  bool localFunctionNeedsSignature(ir.Node node);
+
+  bool selectorNeedsTypeArguments(Selector selector);
 }

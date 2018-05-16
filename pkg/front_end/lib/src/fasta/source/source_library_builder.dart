@@ -109,9 +109,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   bool canAddImplementationBuilders = false;
 
-  SourceLibraryBuilder(SourceLoader loader, Uri fileUri)
+  SourceLibraryBuilder(SourceLoader loader, Uri fileUri, Scope scope)
       : this.fromScopes(loader, fileUri, new DeclarationBuilder<T>.library(),
-            new Scope.top());
+            scope ?? new Scope.top());
 
   SourceLibraryBuilder.fromScopes(
       this.loader, this.fileUri, this.libraryDeclaration, this.importScope)
@@ -244,6 +244,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     const String prefix = "dart.library.";
     if (!dottedName.startsWith(prefix)) return "";
     dottedName = dottedName.substring(prefix.length);
+    if (!loader.target.uriTranslator.isLibrarySupported(dottedName)) return "";
 
     LibraryBuilder imported =
         loader.builders[new Uri(scheme: "dart", path: dottedName)];
@@ -485,9 +486,11 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
             deferred.charOffset,
             noLength,
             fileUri,
-            context: templateDeferredPrefixDuplicatedCause
-                .withArguments(name)
-                .withLocation(fileUri, other.charOffset, noLength));
+            context: [
+              templateDeferredPrefixDuplicatedCause
+                  .withArguments(name)
+                  .withLocation(fileUri, other.charOffset, noLength)
+            ]);
       }
       return existing
         ..exportScope.merge(builder.exportScope,
@@ -684,6 +687,11 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     int typeCount = types.length;
     for (UnresolvedType<T> t in types) {
       t.resolveIn(scope);
+      if (loader.target.strongMode) {
+        t.checkType();
+      } else {
+        t.normalizeType();
+      }
     }
     types.clear();
     return typeCount;

@@ -12,17 +12,17 @@ import 'package:test/test.dart';
 main() {
   test('summary has no source-info by default', () async {
     var summary = await summarize(['a.dart'], allSources);
-    var program = loadProgramFromBytes(summary);
+    var component = loadComponentFromBytes(summary);
 
-    // Note: the kernel representation always has an empty '' key in the map,
+    // Note: the kernel representation always has a null key in the map,
     // but otherwise no other data is included here.
-    expect(program.uriToSource.keys.single, Uri.parse(""));
+    expect(component.uriToSource.keys.single, null);
   });
 
   test('summary includes declarations, but no method bodies', () async {
     var summary = await summarize(['a.dart'], allSources);
-    var program = loadProgramFromBytes(summary);
-    var aLib = findLibrary(program, 'a.dart');
+    var component = loadComponentFromBytes(summary);
+    var aLib = findLibrary(component, 'a.dart');
     expect(aLib.importUri.path, '/a/b/c/a.dart');
     var classA = aLib.classes.first;
     expect(classA.name, 'A');
@@ -33,8 +33,8 @@ main() {
 
   test('summarized libraries are not marked external', () async {
     var summary = await summarize(['a.dart'], allSources);
-    var program = loadProgramFromBytes(summary);
-    var aLib = findLibrary(program, 'a.dart');
+    var component = loadComponentFromBytes(summary);
+    var aLib = findLibrary(component, 'a.dart');
     expect(aLib.importUri.path, '/a/b/c/a.dart');
     expect(aLib.isExternal, isFalse);
   });
@@ -42,8 +42,8 @@ main() {
   test('sdk dependencies are marked external', () async {
     // Note: by default this test is loading the SDK from summaries.
     var summary = await summarize(['a.dart'], allSources);
-    var program = loadProgramFromBytes(summary);
-    var coreLib = findLibrary(program, 'core');
+    var component = loadComponentFromBytes(summary);
+    var coreLib = findLibrary(component, 'core');
     expect(coreLib.isExternal, isTrue);
   });
 
@@ -54,9 +54,9 @@ main() {
     var summaryB =
         await summarize(['b.dart'], sourcesWithA, inputSummaries: ['a.dill']);
 
-    var program = loadProgramFromBytes(summaryB);
-    var aLib = findLibrary(program, 'a.dart');
-    var bLib = findLibrary(program, 'b.dart');
+    var component = loadComponentFromBytes(summaryB);
+    var aLib = findLibrary(component, 'a.dart');
+    var bLib = findLibrary(component, 'b.dart');
     expect(aLib.isExternal, isTrue);
     expect(bLib.isExternal, isFalse);
   });
@@ -103,17 +103,19 @@ main() {
   test('dependencies not included in truncated summaries', () async {
     // Note: by default this test is loading the SDK from summaries.
     var summaryA = await summarize(['a.dart'], allSources, truncate: true);
-    var program = loadProgramFromBytes(summaryA);
-    expect(program.libraries.length, 1);
-    expect(program.libraries.single.importUri.path.endsWith('a.dart'), isTrue);
+    var component = loadComponentFromBytes(summaryA);
+    expect(component.libraries.length, 1);
+    expect(
+        component.libraries.single.importUri.path.endsWith('a.dart'), isTrue);
 
     var sourcesWithA = new Map.from(allSources);
     sourcesWithA['a.dill'] = summaryA;
     var summaryB = await summarize(['b.dart'], sourcesWithA,
         inputSummaries: ['a.dill'], truncate: true);
-    program = loadProgramFromBytes(summaryB);
-    expect(program.libraries.length, 1);
-    expect(program.libraries.single.importUri.path.endsWith('b.dart'), isTrue);
+    component = loadComponentFromBytes(summaryB);
+    expect(component.libraries.length, 1);
+    expect(
+        component.libraries.single.importUri.path.endsWith('b.dart'), isTrue);
   });
 
   test('summarization by default is hermetic', () async {
@@ -143,11 +145,11 @@ var allSources = {
 
 /// Helper function to check that some expectations from the summary of D.
 checkDSummary(List<int> summary) {
-  var program = loadProgramFromBytes(summary);
-  var aLib = findLibrary(program, 'a.dart');
-  var bLib = findLibrary(program, 'b.dart');
-  var cLib = findLibrary(program, 'c.dart');
-  var dLib = findLibrary(program, 'd.dart');
+  var component = loadComponentFromBytes(summary);
+  var aLib = findLibrary(component, 'a.dart');
+  var bLib = findLibrary(component, 'b.dart');
+  var cLib = findLibrary(component, 'c.dart');
+  var dLib = findLibrary(component, 'd.dart');
 
   // All libraries but `d.dart` are marked external.
   expect(aLib.isExternal, isTrue);

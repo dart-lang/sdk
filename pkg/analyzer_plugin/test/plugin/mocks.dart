@@ -7,6 +7,7 @@ import 'dart:collection';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/timestamped_data.dart';
@@ -22,8 +23,15 @@ class MockAnalysisDriver extends AnalysisDriver {
   Set<String> addedFiles = new HashSet<String>();
 
   MockAnalysisDriver()
-      : super(new AnalysisDriverScheduler(null), null, null, null, null, null,
-            new SourceFactory([]), new AnalysisOptionsImpl());
+      : super(
+            new AnalysisDriverScheduler(null),
+            null,
+            new MockResourceProvider(),
+            null,
+            new FileContentOverlay(),
+            null,
+            new SourceFactory([]),
+            new AnalysisOptionsImpl());
 
   @override
   bool get hasFilesToAnalyze => false;
@@ -113,6 +121,11 @@ class MockChannel implements PluginCommunicationChannel {
     Completer<Response> completer = completers.remove(response.id);
     completer.complete(response);
   }
+}
+
+class MockResourceProvider implements ResourceProvider {
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /**

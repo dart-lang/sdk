@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.src.task.dart_test;
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -21,12 +19,12 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/task/api/dart.dart';
+import 'package:analyzer/src/task/api/general.dart';
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/strong/ast_properties.dart' as strong_ast;
-import 'package:analyzer/task/dart.dart';
-import 'package:analyzer/task/general.dart';
-import 'package:analyzer/task/model.dart';
 import 'package:front_end/src/scanner/scanner.dart' as fe;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -351,8 +349,8 @@ library libB;
   }
 
   test_perform_configurations_export() {
-    context.declaredVariables.define('dart.library.io', 'true');
-    context.declaredVariables.define('dart.library.html', 'true');
+    context.declaredVariables = new DeclaredVariables.fromMap(
+        {'dart.library.io': 'true', 'dart.library.html': 'true'});
     newSource('/foo.dart', '');
     var foo_io = newSource('/foo_io.dart', '');
     newSource('/foo_html.dart', '');
@@ -371,8 +369,8 @@ export 'foo.dart'
   }
 
   test_perform_configurations_import() {
-    context.declaredVariables.define('dart.library.io', 'true');
-    context.declaredVariables.define('dart.library.html', 'true');
+    context.declaredVariables = new DeclaredVariables.fromMap(
+        {'dart.library.io': 'true', 'dart.library.html': 'true'});
     newSource('/foo.dart', '');
     var foo_io = newSource('/foo_io.dart', '');
     newSource('/foo_html.dart', '');
@@ -767,7 +765,6 @@ class BuildLibraryElementTaskTest extends _AbstractDartTaskTest {
   LibraryElement libraryElement;
 
   test_perform() {
-    enableUriInPartOf();
     _performBuildTask({
       '/lib.dart': '''
 library lib;
@@ -822,6 +819,7 @@ part of 'lib.dart';
         (libraryUnit.directives[2] as PartDirective).element, same(secondPart));
   }
 
+  @failingTest
   test_perform_error_missingLibraryDirectiveWithPart() {
     _performBuildTask({
       '/lib.dart': '''
@@ -835,15 +833,11 @@ part of my_lib;
 part of my_lib;
 '''
     });
-    if (context.analysisOptions.enableUriInPartOf) {
-      // TODO(28522)
-      // Should report that names are wrong.
-    } else {
-      _assertErrorsWithCodes(
-          [ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART]);
-    }
+    // TODO(28522)
+    fail('Should report that names are wrong.');
   }
 
+  @failingTest
   test_perform_error_missingLibraryDirectiveWithPart_noCommon() {
     _performBuildTask({
       '/lib.dart': '''
@@ -857,13 +851,8 @@ part of libA;
 part of libB;
 '''
     });
-    if (context.analysisOptions.enableUriInPartOf) {
-      // TODO(28522)
-      // Should report that names are wrong.
-    } else {
-      _assertErrorsWithCodes(
-          [ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART]);
-    }
+    // TODO(28522)
+    fail('Should report that names are wrong.');
   }
 
   test_perform_error_partDoesNotExist() {
@@ -3050,7 +3039,8 @@ class A {''');
   }
 
   test_perform_library_configurations_bool1() {
-    context.declaredVariables.define('dart.library.io', 'true');
+    context.declaredVariables =
+        new DeclaredVariables.fromMap({'dart.library.io': 'true'});
     newSource('/foo.dart', '');
     newSource('/foo_io.dart', '');
     newSource('/foo_html.dart', '');
@@ -3097,7 +3087,8 @@ export 'bar.dart'
   }
 
   test_perform_library_configurations_bool2() {
-    context.declaredVariables.define('dart.library.html', 'true');
+    context.declaredVariables =
+        new DeclaredVariables.fromMap({'dart.library.html': 'true'});
     newSource('/foo.dart', '');
     newSource('/foo_io.dart', '');
     newSource('/foo_html.dart', '');
@@ -3111,7 +3102,8 @@ import 'foo.dart'
   }
 
   test_perform_library_configurations_default() {
-    context.declaredVariables.define('dart.library.io', 'false');
+    context.declaredVariables =
+        new DeclaredVariables.fromMap({'dart.library.io': 'false'});
     newSource('/foo.dart', '');
     newSource('/foo_io.dart', '');
     newSource('/foo_html.dart', '');
@@ -3125,8 +3117,8 @@ import 'foo.dart'
   }
 
   test_perform_library_configurations_preferFirst() {
-    context.declaredVariables.define('dart.library.io', 'true');
-    context.declaredVariables.define('dart.library.html', 'true');
+    context.declaredVariables = new DeclaredVariables.fromMap(
+        {'dart.library.io': 'true', 'dart.library.html': 'true'});
     newSource('/foo.dart', '');
     newSource('/foo_io.dart', '');
     newSource('/foo_html.dart', '');
@@ -3148,7 +3140,8 @@ import 'foo.dart'
   }
 
   test_perform_library_configurations_value() {
-    context.declaredVariables.define('dart.platform', 'Windows');
+    context.declaredVariables =
+        new DeclaredVariables.fromMap({'dart.platform': 'Windows'});
     newSource('/foo.dart', '');
     newSource('/foo_posix.dart', '');
     newSource('/foo_windows.dart', '');
@@ -3764,8 +3757,13 @@ class B<T2 extends A> {}
     // validate
     CompilationUnit unit = outputs[RESOLVED_UNIT4];
     ClassDeclaration nodeB = unit.declarations[1];
-    _assertTypeParameterBound(
-        nodeB.typeParameters.typeParameters[0], 'A<dynamic>', 'A');
+    if (context.analysisOptions.strongMode) {
+      _assertTypeParameterBound(
+          nodeB.typeParameters.typeParameters[0], 'A<num>', 'A');
+    } else {
+      _assertTypeParameterBound(
+          nodeB.typeParameters.typeParameters[0], 'A<dynamic>', 'A');
+    }
   }
 
   test_perform_outputs() {
@@ -4959,16 +4957,6 @@ class _AbstractDartTaskTest extends AbstractContextTest {
   void enableStrongMode() {
     AnalysisOptionsImpl options = context.analysisOptions;
     options.strongMode = true;
-    context.analysisOptions = options;
-  }
-
-  /**
-   * Enable the use of URIs in part-of directives in the current analysis
-   * context.
-   */
-  void enableUriInPartOf() {
-    AnalysisOptionsImpl options = context.analysisOptions;
-    options.enableUriInPartOf = true;
     context.analysisOptions = options;
   }
 

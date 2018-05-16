@@ -6,7 +6,6 @@
 class_test: Fail
 constant_javascript_semantics4_test: Fail, OK
 generic_class_is_test: Fail # Issue 32004
-local_function_call_test: RuntimeError # Issue 31879
 mirror_printer_test: Pass, Slow # Issue 25940, 16473
 mirrors_used_closure_test: Fail # Issue 17939
 no_such_method_test: Fail # Wrong Invocation.memberName.
@@ -44,7 +43,7 @@ no_such_method_mirrors_test: Pass, Slow # TODO(kasperl): Please triage.
 
 [ $compiler == dart2js && $runtime == d8 && $fasta ]
 deferred_fail_and_retry_test: RuntimeError # Uses XHR in dart:html
-deferred_fail_and_retry_worker_test: Fail # Uses XHR in dart:html
+deferred_with_csp_nonce_test: RuntimeError # Uses dart:html
 unconditional_dartio_import_test: RuntimeError # Uses dart:io
 
 [ $compiler == dart2js && $runtime == ff && $system == windows ]
@@ -53,34 +52,15 @@ consistent_index_error_string_test: Pass, Slow # Issue 25940
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
-[ $compiler == dart2js && $runtime == safari ]
-deferred_fail_and_retry_worker_test: Timeout # Issue 22106
-
 [ $compiler == dart2js && $checked ]
 variable_type_test/01: Fail, OK
 variable_type_test/03: Fail, OK
 
 [ $compiler == dart2js && $checked && $fasta ]
-deferred/default_arg_is_tearoff_test: RuntimeError
-deferred/deferred_class_test: RuntimeError
-deferred/deferred_constant2_test: RuntimeError
-deferred/deferred_constant3_test: RuntimeError
-deferred/deferred_constant4_test: RuntimeError
-deferred/deferred_function_test: RuntimeError
-deferred/deferred_metadata_test: RuntimeError
 deferred/deferred_mirrors1_test: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred/deferred_mirrors2_test: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
-deferred/deferred_overlapping_test: RuntimeError
-deferred/interface_type_variable_test: RuntimeError
-deferred/load_in_correct_order_test: RuntimeError
-deferred/multiple_default_arg_test: RuntimeError
 deferred/reflect_multiple_annotations_test: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred/reflect_multiple_default_arg_test: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
-deferred/shared_constant_test: RuntimeError
-deferred/uninstantiated_type_variable_test: RuntimeError
-deferred_custom_loader_test: RuntimeError
-deferred_inheritance_test: RuntimeError
-deferred_split_test: RuntimeError
 dummy_compiler_test: Crash
 local_signature_test: Crash
 minus_zero_test/01: MissingCompileTimeError
@@ -94,7 +74,7 @@ closure_signature_unneeded_test: RuntimeError # Too eager signature generation.
 [ $compiler == dart2js && $csp ]
 deferred_custom_loader_test: SkipByDesign # Issue 25683
 deferred_fail_and_retry_test: SkipByDesign # Uses eval to simulate failed loading.
-deferred_fail_and_retry_worker_test: SkipByDesign # Uses eval to simulate failed loading.
+js_interop_optional_arg_test: RuntimeError # Issue 31082
 js_interop_test: RuntimeError # Issue 31082
 
 [ $compiler == dart2js && $fast_startup ]
@@ -210,7 +190,11 @@ to_string_test: Fail # Issue 7179.
 typevariable_typedef_test: Fail, OK # Tests expected output of Type.toString().
 
 [ $compiler == dart2js && !$strong ]
+extract_type_arguments_1_test: RuntimeError # Uses function type variables
+extract_type_arguments_2_test: RuntimeError # Uses function type variables
+extract_type_arguments_3_test: RuntimeError # Uses function type variables
 generic_method_dynamic_is_test: RuntimeError # Test against function type variables is only supported in strong mode.
+generic_method_dynamic_type_test: SkipByDesign # Requires strong mode support for function type variables.
 generic_method_static_is_test: RuntimeError # Test against function type variables is only supported in strong mode.
 local_signature_test: RuntimeError # Test against function type variables is only supported in strong mode.
 
@@ -230,4 +214,3 @@ dummy_compiler_test: SkipByDesign # Issue 30773. Test should be migrated as a un
 invalid_annotation_test/01: MissingCompileTimeError, OK # vm is lazy
 new_from_env_test: SkipByDesign # dart2js only test
 unconditional_dartio_import_test: SkipByDesign # dart2js only test
-

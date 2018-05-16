@@ -130,7 +130,7 @@ class Template {
  * trees. [arguments] is a List for positional templates, or Map for
  * named templates.
  */
-typedef Node Instantiator(var arguments);
+typedef /*Node|Iterable<Node>*/ Instantiator(var arguments);
 
 /**
  * InstantiatorGeneratorVisitor compiles a template.  This class compiles a tree
@@ -300,7 +300,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   }
 
   Instantiator visitProgram(Program node) {
-    List instantiators = node.body.map(visitSplayableStatement).toList();
+    List<Instantiator> instantiators =
+        node.body.map(visitSplayableStatement).toList();
     return (arguments) {
       List<Statement> statements = <Statement>[];
       void add(node) {
@@ -320,7 +321,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   }
 
   Instantiator visitBlock(Block node) {
-    List instantiators = node.statements.map(visitSplayableStatement).toList();
+    List<Instantiator> instantiators =
+        node.statements.map(visitSplayableStatement).toList();
     return (arguments) {
       List<Statement> statements = <Statement>[];
       void add(node) {

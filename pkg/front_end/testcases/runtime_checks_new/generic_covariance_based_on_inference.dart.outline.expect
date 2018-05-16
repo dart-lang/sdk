@@ -2,20 +2,20 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-class B<T extends core::Object> extends core::Object {
+class B<T extends core::Object = dynamic> extends core::Object {
   field self::B::T x;
   field self::B::T y;
   synthetic constructor •() → void
     ;
 }
-class C<T extends core::Object> extends core::Object implements self::B<core::num> {
+abstract class C<T extends core::Object = dynamic> extends core::Object implements self::B<core::num> {
   field dynamic x;
   synthetic constructor •() → void
     ;
   abstract get y() → dynamic;
   abstract set y(dynamic value) → dynamic;
 }
-class D<T extends core::Object> extends core::Object implements self::B<self::D::T> {
+abstract class D<T extends core::Object = dynamic> extends core::Object implements self::B<self::D::T> {
   field dynamic x;
   synthetic constructor •() → void
     ;

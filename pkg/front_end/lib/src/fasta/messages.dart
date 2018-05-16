@@ -4,7 +4,7 @@
 
 library fasta.messages;
 
-import 'package:kernel/ast.dart' show Library, Location, Program, TreeNode;
+import 'package:kernel/ast.dart' show Library, Location, Component, TreeNode;
 
 import 'compiler_context.dart' show CompilerContext;
 
@@ -28,18 +28,18 @@ String getSourceLine(Location location) {
 }
 
 Location getLocationFromNode(TreeNode node) {
-  if (node.enclosingProgram == null) {
+  if (node.enclosingComponent == null) {
     TreeNode parent = node;
     while (parent != null && parent is! Library) {
       parent = parent.parent;
     }
     if (parent is Library) {
-      Program program =
-          new Program(uriToSource: CompilerContext.current.uriToSource);
-      program.libraries.add(parent);
-      parent.parent = program;
+      Component component =
+          new Component(uriToSource: CompilerContext.current.uriToSource);
+      component.libraries.add(parent);
+      parent.parent = component;
       Location result = node.location;
-      program.libraries.clear();
+      component.libraries.clear();
       parent.parent = null;
       return result;
     } else {

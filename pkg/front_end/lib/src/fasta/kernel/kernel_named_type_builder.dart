@@ -6,6 +6,8 @@ library fasta.kernel_interface_type_builder;
 
 import 'package:kernel/ast.dart' show DartType, Supertype;
 
+import '../fasta_codes.dart' show Message;
+
 import '../messages.dart'
     show noLength, templateSupertypeIsIllegal, templateSupertypeIsTypeVariable;
 
@@ -17,6 +19,7 @@ import 'kernel_builder.dart'
         LibraryBuilder,
         NamedTypeBuilder,
         TypeBuilder,
+        TypeDeclarationBuilder,
         TypeVariableBuilder;
 
 class KernelNamedTypeBuilder
@@ -25,10 +28,11 @@ class KernelNamedTypeBuilder
   KernelNamedTypeBuilder(Object name, List<KernelTypeBuilder> arguments)
       : super(name, arguments);
 
-  KernelInvalidTypeBuilder buildInvalidType(int charOffset, Uri fileUri) {
+  KernelInvalidTypeBuilder buildInvalidType(int charOffset, Uri fileUri,
+      [Message message]) {
     // TODO(ahe): Consider if it makes sense to pass a QualifiedName to
     // KernelInvalidTypeBuilder?
-    return new KernelInvalidTypeBuilder("$name", charOffset, fileUri);
+    return new KernelInvalidTypeBuilder("$name", charOffset, fileUri, message);
   }
 
   Supertype handleInvalidSupertype(
@@ -47,9 +51,16 @@ class KernelNamedTypeBuilder
 
   Supertype buildSupertype(
       LibraryBuilder library, int charOffset, Uri fileUri) {
-    if (builder is KernelClassBuilder) {
-      KernelClassBuilder builder = this.builder;
-      return builder.buildSupertype(library, arguments);
+    TypeDeclarationBuilder declaration = builder;
+    if (declaration is KernelClassBuilder) {
+      return declaration.buildSupertype(library, arguments);
+    } else if (declaration is KernelInvalidTypeBuilder) {
+      library.addCompileTimeError(
+          declaration.message.messageObject,
+          declaration.message.charOffset,
+          declaration.message.length,
+          declaration.message.uri);
+      return null;
     } else {
       return handleInvalidSupertype(library, charOffset, fileUri);
     }
@@ -57,9 +68,16 @@ class KernelNamedTypeBuilder
 
   Supertype buildMixedInType(
       LibraryBuilder library, int charOffset, Uri fileUri) {
-    if (builder is KernelClassBuilder) {
-      KernelClassBuilder builder = this.builder;
-      return builder.buildMixedInType(library, arguments);
+    TypeDeclarationBuilder declaration = builder;
+    if (declaration is KernelClassBuilder) {
+      return declaration.buildMixedInType(library, arguments);
+    } else if (declaration is KernelInvalidTypeBuilder) {
+      library.addCompileTimeError(
+          declaration.message.messageObject,
+          declaration.message.charOffset,
+          declaration.message.length,
+          declaration.message.uri);
+      return null;
     } else {
       return handleInvalidSupertype(library, charOffset, fileUri);
     }

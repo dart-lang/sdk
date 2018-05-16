@@ -17,10 +17,15 @@ import 'package:args/args.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/file_system.dart'
     show FileSystemEntity;
+import 'package:front_end/src/api_prototype/front_end.dart';
+// Use of multi_root_file_system.dart directly from front_end package is a
+// temporarily solution while we are looking for better home for that
+// functionality.
+import 'package:front_end/src/multi_root_file_system.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/binary/limited_ast_to_binary.dart';
-import 'package:kernel/kernel.dart' show Program, loadProgramFromBytes;
+import 'package:kernel/kernel.dart' show Component, loadComponentFromBytes;
 import 'package:kernel/target/targets.dart';
 import 'package:path/path.dart' as path;
 import 'package:usage/uuid/uuid.dart';
@@ -43,13 +48,14 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
   ..addFlag('strong',
       help: 'Run compiler in strong mode (uses strong mode semantics)',
       defaultsTo: false)
+  ..addFlag('sync-async',
+      help: 'Start `async` functions synchronously.', defaultsTo: false)
   ..addFlag('tfa',
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',
       defaultsTo: false)
-  ..addOption('entry-points',
-      help: 'Path to JSON file with the list of entry points',
-      allowMultiple: true)
+  ..addMultiOption('entry-points',
+      help: 'Path to JSON file with the list of entry points')
   ..addFlag('link-platform',
       help:
           'When in batch mode, link platform kernel file into result kernel file.'
@@ -57,6 +63,8 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
           ' by gen_snapshot(which needs platform embedded) vs'
           ' Flutter engine(which does not)',
       defaultsTo: true)
+  ..addOption('import-dill',
+      help: 'Import libraries from existing dill file', defaultsTo: null)
   ..addOption('output-dill',
       help: 'Output path for the generated dill', defaultsTo: null)
   ..addOption('output-incremental-dill',
@@ -68,7 +76,19 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
   ..addOption('target',
       help: 'Target model that determines what core libraries are available',
       allowed: <String>['vm', 'flutter'],
-      defaultsTo: 'vm');
+      defaultsTo: 'vm')
+  ..addMultiOption('filesystem-root',
+      help: 'File path that is used as a root in virtual filesystem used in'
+          ' compiled kernel files. When used --output-dill should be provided'
+          ' as well.',
+      hide: true)
+  ..addOption('filesystem-scheme',
+      help:
+          'Scheme that is used in virtual filesystem set up via --filesystem-root'
+          ' option',
+      defaultsTo: 'org-dartlang-root',
+      hide: true)
+  ..addFlag('verbose', help: 'Enables verbose output from the compiler.');
 
 String usage = '''
 Usage: server [options] [input.dart]
@@ -105,7 +125,8 @@ abstract class CompilerInterface {
   /// `options`. When `generator` parameter is omitted, new instance of
   /// `IncrementalKernelGenerator` is created by this method. Main use for this
   /// parameter is for mocking in tests.
-  Future<Null> compile(
+  /// Returns [true] if compilation was successful and produced no errors.
+  Future<bool> compile(
     String filename,
     ArgResults options, {
     IncrementalCompiler generator,
@@ -128,7 +149,7 @@ abstract class CompilerInterface {
 }
 
 abstract class ProgramTransformer {
-  void transform(Program program);
+  void transform(Component component);
 }
 
 /// Class that for test mocking purposes encapsulates creation of [BinaryPrinter].
@@ -161,13 +182,15 @@ class FrontendCompiler implements CompilerInterface {
 
   final ProgramTransformer transformer;
 
+  final List<String> errors = new List<String>();
+
   void setMainSourceFilename(String filename) {
-    final Uri filenameUri = Uri.base.resolveUri(new Uri.file(filename));
+    final Uri filenameUri = _getFileOrUri(filename);
     _mainSource = filenameUri;
   }
 
   @override
-  Future<Null> compile(
+  Future<bool> compile(
     String filename,
     ArgResults options, {
     IncrementalCompiler generator,
@@ -187,24 +210,70 @@ class FrontendCompiler implements CompilerInterface {
         (options['strong'] ? 'platform_strong.dill' : 'platform.dill');
     final CompilerOptions compilerOptions = new CompilerOptions()
       ..sdkRoot = sdkRoot
-      ..packagesFileUri = options['packages'] != null
-          ? Uri.base.resolveUri(new Uri.file(options['packages']))
-          : null
+      ..packagesFileUri = _getFileOrUri(_options['packages'])
       ..strongMode = options['strong']
       ..sdkSummary = sdkRoot.resolve(platformKernelDill)
-      ..reportMessages = true;
+      ..verbose = options['verbose']
+      ..onProblem =
+          (message, Severity severity, List<FormattedMessage> context) {
+        bool printMessage;
+        switch (severity) {
+          case Severity.error:
+          case Severity.internalProblem:
+            printMessage = true;
+            errors.add(message.formatted);
+            break;
+          case Severity.nit:
+            printMessage = false;
+            break;
+          case Severity.warning:
+            printMessage = true;
+            break;
+          case Severity.errorLegacyWarning:
+          case Severity.context:
+            throw "Unexpected severity: $severity";
+        }
+        if (printMessage) {
+          _outputStream.writeln(message.formatted);
+          for (FormattedMessage message in context) {
+            _outputStream.writeln(message.formatted);
+          }
+        }
+      };
+    if (options.wasParsed('filesystem-root')) {
+      List<Uri> rootUris = <Uri>[];
+      for (String root in options['filesystem-root']) {
+        rootUris.add(Uri.base.resolveUri(new Uri.file(root)));
+      }
+      compilerOptions.fileSystem = new MultiRootFileSystem(
+          options['filesystem-scheme'], rootUris, compilerOptions.fileSystem);
 
-    final TargetFlags targetFlags =
-        new TargetFlags(strongMode: options['strong']);
+      if (_options['output-dill'] == null) {
+        print("When --filesystem-root is specified it is required to specify"
+            " --output-dill option that points to physical file system location"
+            " of a target dill file.");
+        return false;
+      }
+    }
+
+    final TargetFlags targetFlags = new TargetFlags(
+        strongMode: options['strong'], syncAsync: options['sync-async']);
     compilerOptions.target = getTarget(options['target'], targetFlags);
 
-    Program program;
+    final String importDill = options['import-dill'];
+    if (importDill != null) {
+      compilerOptions.inputSummaries = <Uri>[
+        Uri.base.resolveUri(new Uri.file(importDill))
+      ];
+    }
+
+    Component component;
     if (options['incremental']) {
       _compilerOptions = compilerOptions;
       _generator = generator ??
           _createGenerator(new Uri.file(_kernelBinaryFilenameFull));
       await invalidateIfBootstrapping();
-      program = await _runWithPrintRedirection(() => _generator.compile());
+      component = await _runWithPrintRedirection(() => _generator.compile());
     } else {
       if (options['link-platform']) {
         // TODO(aam): Remove linkedDependencies once platform is directly embedded
@@ -213,46 +282,61 @@ class FrontendCompiler implements CompilerInterface {
           sdkRoot.resolve(platformKernelDill)
         ];
       }
-      program = await _runWithPrintRedirection(() => compileToKernel(
+      component = await _runWithPrintRedirection(() => compileToKernel(
           _mainSource, compilerOptions,
           aot: options['aot'],
           useGlobalTypeFlowAnalysis: options['tfa'],
           entryPoints: options['entry-points']));
     }
-    if (program != null) {
+    if (component != null) {
       if (transformer != null) {
-        transformer.transform(program);
+        transformer.transform(component);
       }
 
-      final IOSink sink = new File(_kernelBinaryFilename).openWrite();
-      final BinaryPrinter printer = printerFactory.newBinaryPrinter(sink);
-      printer.writeProgramFile(program);
-      await sink.close();
-      _outputStream.writeln('$boundaryKey $_kernelBinaryFilename');
+      await writeDillFile(component, _kernelBinaryFilename,
+          filterExternal: importDill != null);
 
+      _outputStream
+          .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
       final String depfile = options['depfile'];
       if (depfile != null) {
-        await _writeDepfile(program, _kernelBinaryFilename, depfile);
+        await _writeDepfile(component, _kernelBinaryFilename, depfile);
       }
 
       _kernelBinaryFilename = _kernelBinaryFilenameIncremental;
     } else
       _outputStream.writeln(boundaryKey);
-    return null;
+    return errors.isEmpty;
+  }
+
+  writeDillFile(Component component, String filename,
+      {bool filterExternal: false}) async {
+    final IOSink sink = new File(filename).openWrite();
+    final BinaryPrinter printer = filterExternal
+        ? new LimitedBinaryPrinter(
+            sink, (lib) => !lib.isExternal, true /* excludeUriToSource */)
+        : printerFactory.newBinaryPrinter(sink);
+
+    printer.writeComponentFile(component);
+    await sink.close();
   }
 
   Future<Null> invalidateIfBootstrapping() async {
     if (_kernelBinaryFilename != _kernelBinaryFilenameFull) return null;
+    // If the generator is initialized bootstrapping is not in effect anyway,
+    // so there's no reason to spend time invalidating what should be
+    // invalidated by the normal approach anyway.
+    if (_generator.initialized) return null;
 
     try {
       final File f = new File(_kernelBinaryFilenameFull);
       if (!f.existsSync()) return null;
 
-      final Program program = loadProgramFromBytes(f.readAsBytesSync());
-      for (Uri uri in program.uriToSource.keys) {
+      final Component component = loadComponentFromBytes(f.readAsBytesSync());
+      for (Uri uri in component.uriToSource.keys) {
         if ('$uri' == '') continue;
 
-        final List<int> oldBytes = program.uriToSource[uri].source;
+        final List<int> oldBytes = component.uriToSource[uri].source;
         final FileSystemEntity entity =
             _compilerOptions.fileSystem.entityForUri(uri);
         if (!await entity.exists()) {
@@ -287,7 +371,8 @@ class FrontendCompiler implements CompilerInterface {
     if (filename != null) {
       setMainSourceFilename(filename);
     }
-    final Program deltaProgram =
+    errors.clear();
+    final Component deltaProgram =
         await _generator.compile(entryPoint: _mainSource);
 
     if (deltaProgram != null && transformer != null) {
@@ -296,9 +381,10 @@ class FrontendCompiler implements CompilerInterface {
 
     final IOSink sink = new File(_kernelBinaryFilename).openWrite();
     final BinaryPrinter printer = printerFactory.newBinaryPrinter(sink);
-    printer.writeProgramFile(deltaProgram);
+    printer.writeComponentFile(deltaProgram);
     await sink.close();
-    _outputStream.writeln('$boundaryKey $_kernelBinaryFilename');
+    _outputStream
+        .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
     _kernelBinaryFilename = _kernelBinaryFilenameIncremental;
     return null;
   }
@@ -315,8 +401,24 @@ class FrontendCompiler implements CompilerInterface {
 
   @override
   void resetIncrementalCompiler() {
-    _generator = _createGenerator(new Uri.file(_kernelBinaryFilenameFull));
+    _generator.resetDeltaState();
     _kernelBinaryFilename = _kernelBinaryFilenameFull;
+  }
+
+  Uri _getFileOrUri(String fileOrUri) {
+    if (fileOrUri == null) {
+      return null;
+    }
+    if (_options.wasParsed('filesystem-root')) {
+      // This is a hack.
+      // Only expect uri when filesystem-root option is specified. It has to
+      // be uri for filesystem-root use case because mapping is done on
+      // scheme-basis.
+      // This is so that we don't deal with Windows files paths that can not
+      // be processed as uris.
+      return Uri.base.resolve(fileOrUri);
+    }
+    return Uri.base.resolveUri(new Uri.file(fileOrUri));
   }
 
   IncrementalCompiler _createGenerator(Uri bootstrapDill) {
@@ -347,11 +449,12 @@ String _escapePath(String path) {
 }
 
 // https://ninja-build.org/manual.html#_depfile
-void _writeDepfile(Program program, String output, String depfile) async {
+void _writeDepfile(Component component, String output, String depfile) async {
   final IOSink file = new File(depfile).openWrite();
   file.write(_escapePath(output));
   file.write(':');
-  for (Uri dep in program.uriToSource.keys) {
+  for (Uri dep in component.uriToSource.keys) {
+    if (dep == null) continue;
     file.write(' ');
     file.write(_escapePath(dep.toFilePath()));
   }
@@ -368,7 +471,7 @@ void listenAndCompile(CompilerInterface compiler, Stream<List<int>> input,
   String boundaryKey;
   String recompileFilename;
   input
-      .transform(UTF8.decoder)
+      .transform(utf8.decoder)
       .transform(const LineSplitter())
       .listen((String string) async {
     switch (state) {
@@ -473,8 +576,10 @@ Future<int> starter(
   );
 
   if (options.rest.isNotEmpty) {
-    await compiler.compile(options.rest[0], options, generator: generator);
-    return 0;
+    return await compiler.compile(options.rest[0], options,
+            generator: generator)
+        ? 0
+        : 254;
   }
 
   listenAndCompile(compiler, input ?? stdin, options, () {

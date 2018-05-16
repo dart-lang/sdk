@@ -61,13 +61,6 @@ class MessageHandler {
   // Returns true on success.
   MessageStatus HandleNextMessage();
 
-  // Handles all messages for this message handler.  Should only
-  // be used when not running the handler on the thread pool (via Run
-  // or RunBlocking).
-  //
-  // Returns true on success.
-  MessageStatus HandleAllMessages();
-
   // Handles any OOB messages for this message handler.  Can be used
   // even if the message handler is running on the thread pool.
   //

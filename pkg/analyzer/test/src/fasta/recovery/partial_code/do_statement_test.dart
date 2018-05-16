@@ -35,7 +35,7 @@ class DoStatementTest extends PartialCodeTest {
               'leftBrace',
               'do {',
               [
-                ParserErrorCode.EXPECTED_TOKEN,
+                ScannerErrorCode.EXPECTED_TOKEN,
                 ParserErrorCode.EXPECTED_TOKEN,
                 ParserErrorCode.EXPECTED_TOKEN,
                 ParserErrorCode.MISSING_IDENTIFIER,
@@ -43,7 +43,7 @@ class DoStatementTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               "do {} while (_s_);",
-              allFailing: true),
+              failing: allExceptEof),
           new TestDescriptor(
               'rightBrace',
               'do {}',
@@ -55,7 +55,7 @@ class DoStatementTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               "do {} while (_s_);",
-              allFailing: true),
+              failing: ['while']),
           new TestDescriptor(
               'while',
               'do {} while',

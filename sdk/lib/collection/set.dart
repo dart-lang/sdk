@@ -23,10 +23,6 @@ part of dart.collection;
  * Implementations of `Set` using this mixin should consider also implementing
  * `clear` in constant time. The default implementation works by removing every
  * element.
- *
- * The [cast] implementation uses [retype] to do the actual cast, so if
- * the cast operation wants to pass a custom `newSet` to [Set.castFrom],
- * it only needs to override [retype].
  */
 abstract class SetMixin<E> implements Set<E> {
   // This class reimplements all of [IterableMixin].
@@ -51,12 +47,10 @@ abstract class SetMixin<E> implements Set<E> {
 
   bool get isNotEmpty => length != 0;
 
-  Set<R> cast<R>() {
-    Set<Object> self = this;
-    return self is Set<R> ? self : this.retype<R>();
-  }
+  Set<R> cast<R>() => Set.castFrom<E, R>(this);
 
-  Set<R> retype<R>() => Set.castFrom<E, R>(this);
+  @Deprecated("Use cast instead.")
+  Set<R> retype<R>() => cast<R>();
 
   Iterable<E> followedBy(Iterable<E> other) =>
       new FollowedByIterable<E>.firstEfficient(this, other);

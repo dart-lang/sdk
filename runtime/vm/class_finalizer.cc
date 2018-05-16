@@ -18,6 +18,7 @@
 #include "vm/symbols.h"
 #include "vm/timeline.h"
 #include "vm/type_table.h"
+#include "vm/type_testing_stubs.h"
 
 namespace dart {
 
@@ -589,6 +590,10 @@ void ClassFinalizer::ResolveType(const Class& cls, const AbstractType& type) {
       }
     }
   }
+
+  // After resolving, we re-initialize the type testing stub.
+  type.SetTypeTestingStub(
+      Instructions::Handle(TypeTestingStubGenerator::DefaultCodeForType(type)));
 }
 
 void ClassFinalizer::FinalizeTypeParameters(const Class& cls,
@@ -2692,8 +2697,9 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   // Every class should have at least a constructor, unless it is a top level
   // class or a typedef class. The Kernel frontend does not create an implicit
   // constructor for abstract classes.
-  ASSERT(cls.IsTopLevel() || cls.IsTypedefClass() || cls.is_abstract() ||
-         (Array::Handle(cls.functions()).Length() > 0));
+  // Moreover, Dart 2 precompiler (TFA) can tree shake all members if unused.
+  ASSERT(FLAG_precompiled_mode || cls.IsTopLevel() || cls.IsTypedefClass() ||
+         cls.is_abstract() || (Array::Handle(cls.functions()).Length() > 0));
   // Resolve and finalize all member types.
   ResolveAndFinalizeMemberTypes(cls);
   // Run additional checks after all types are finalized.
@@ -2706,6 +2712,7 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     CollectImmediateSuperInterfaces(cls, &cids);
     RemoveCHAOptimizedCode(cls, cids);
   }
+
   if (cls.is_enum_class()) {
     AllocateEnumValues(cls);
   }
@@ -2751,7 +2758,7 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
   sentinel.SetStaticValue(enum_value, true);
   sentinel.RecordStore(enum_value);
 
-  if (thread->isolate()->use_dart_frontend()) {
+  if (enum_cls.kernel_offset() > 0) {
     Object& result = Object::Handle(zone);
     for (intptr_t i = 0; i < fields.Length(); i++) {
       field = Field::RawCast(fields.At(i));
@@ -2759,11 +2766,15 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
           (sentinel.raw() == field.raw())) {
         continue;
       }
-      field.SetStaticValue(Object::transition_sentinel());
-      result = Compiler::EvaluateStaticInitializer(field);
-      ASSERT(!result.IsError());
-      field.SetStaticValue(Instance::Cast(result), true);
-      field.RecordStore(Instance::Cast(result));
+      // The eager evaluation of the enum values is required for hot-reload (see
+      // commit e3ecc87).
+      if (!FLAG_precompiled_mode) {
+        field.SetStaticValue(Object::transition_sentinel());
+        result = Compiler::EvaluateStaticInitializer(field);
+        ASSERT(!result.IsError());
+        field.SetStaticValue(Instance::Cast(result), true);
+        field.RecordStore(Instance::Cast(result));
+      }
     }
   } else {
     const String& name_prefix =

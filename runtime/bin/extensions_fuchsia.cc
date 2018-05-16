@@ -30,7 +30,7 @@ void* Extensions::LoadExtensionLibrary(const char* library_file) {
     return NULL;
   }
   zx_handle_t vmo;
-  zx_status_t status = fdio_get_vmo(fd, &vmo);
+  zx_status_t status = fdio_get_vmo_clone(fd, &vmo);
   close(fd);
   if (status != ZX_OK) {
     return NULL;

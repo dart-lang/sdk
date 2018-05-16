@@ -93,6 +93,7 @@ Thread::Thread(Isolate* isolate)
       stack_overflow_count_(0),
       cha_(NULL),
       hierarchy_info_(NULL),
+      type_usage_info_(NULL),
       deopt_id_(0),
       pending_functions_(GrowableObjectArray::null()),
       active_exception_(Object::null()),
@@ -455,6 +456,25 @@ bool Thread::ZoneIsOwnedByThread(Zone* zone) const {
     current = current->previous();
   }
   return false;
+}
+
+void Thread::SetHighWatermark(intptr_t value) {
+  zone_high_watermark_ = value;
+
+#if !defined(PRODUCT)
+  if ((isolate()->name() != NULL)) {
+    TimelineEvent* event = Timeline::GetZoneStream()->StartEvent();
+    if (event != NULL) {
+      event->Counter(strdup(isolate()->name()));
+      event->set_owns_label(true);
+      // Prevent Catapult from showing "isolateId" as another series.
+      event->set_isolate_id(ILLEGAL_PORT);
+      event->SetNumArguments(1);
+      event->FormatArgument(0, "zoneHighWatermark", "%" Pd, value);
+      event->Complete();
+    }
+  }
+#endif
 }
 
 void Thread::DeferOOBMessageInterrupts() {

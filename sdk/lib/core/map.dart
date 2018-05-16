@@ -181,20 +181,6 @@ abstract class Map<K, V> {
    * Provides a view of this map as having [RK] keys and [RV] instances,
    * if necessary.
    *
-   * If this set contains only keys of type [RK] and values of type [RV],
-   * all read operations will work correctly.
-   * If any operation exposes a non-[RK] key or non-[RV] value,
-   * the operation will throw instead.
-   *
-   * Entries added to the map must be valid for both a `Map<K, V>` and a
-   * `Map<RK, RV>`.
-   */
-  Map<RK, RV> cast<RK, RV>();
-
-  /**
-   * Provides a view of this map as having [RK] keys and [RV] instances,
-   * if necessary.
-   *
    * If this map is already a `Map<RK, RV>`, it is returned unchanged.
    *
    * If this set contains only keys of type [RK] and values of type [RV],
@@ -205,6 +191,9 @@ abstract class Map<K, V> {
    * Entries added to the map must be valid for both a `Map<K, V>` and a
    * `Map<RK, RV>`.
    */
+  Map<RK, RV> cast<RK, RV>();
+
+  @Deprecated("Use cast instead.")
   Map<RK, RV> retype<RK, RV>();
 
   /**
@@ -226,11 +215,10 @@ abstract class Map<K, V> {
   /**
    * Returns the value for the given [key] or null if [key] is not in the map.
    *
-   * Some maps allows keys to have `null` as a value,
-   * For those maps, a lookup using this operator does cannot be used to
-   * distinguish between a key not being in the map, and the key having a null
-   * value.
-   * Methods like [containsKey] or [putIfAbsent] can be use if the distinction
+   * Some maps allow keys to have `null` as a value.
+   * For those maps, a lookup using this operator cannot distinguish between a
+   * key not being in the map and the key having a `null` value.
+   * Methods like [containsKey] or [putIfAbsent] can be used if the distinction
    * is important.
    */
   V operator [](Object key);

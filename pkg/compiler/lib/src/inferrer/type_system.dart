@@ -99,7 +99,7 @@ class TypeSystem<T> {
     nonNullEmptyType = getConcreteTypeFor(commonMasks.emptyType);
   }
 
-  CommonMasks get commonMasks => closedWorld.commonMasks;
+  CommonMasks get commonMasks => closedWorld.abstractValueDomain;
 
   /// Used to group [TypeInformation] nodes by the element that triggered their
   /// creation.
@@ -334,6 +334,9 @@ class TypeSystem<T> {
       }
     } else if (annotation.isTypedef || annotation.isFunctionType) {
       otherType = functionType.type;
+    } else if (annotation.isFutureOr) {
+      // TODO(johnniwinther): Support narrowing of FutureOr.
+      return type;
     } else {
       assert(annotation.isTypeVariable);
       // TODO(ngeoffray): Narrow to bound.
@@ -373,6 +376,8 @@ class TypeSystem<T> {
   }
 
   MemberTypeInformation getInferredTypeOfMember(MemberEntity member) {
+    assert(!member.isAbstract,
+        failedAt(member, "Unexpected abstract member $member."));
     return memberTypeInformations.putIfAbsent(member, () {
       MemberTypeInformation typeInformation =
           strategy.createMemberTypeInformation(member);

@@ -262,14 +262,14 @@ test17() {
   new A17(). /*invoke: [exact=A17]*/ x17(1);
   new A17(). /*invoke: [exact=A17]*/ x17(1, 2);
   new A17(). /*invoke: [exact=A17]*/ x17(1, 2, "x");
-  // ignore: undefined_named_parameter
-  new A17(). /*invoke: [exact=A17]*/ x17(1, p2: 2);
-  // ignore: undefined_named_parameter
-  new A17(). /*invoke: [exact=A17]*/ x17(1, p3: "x");
-  // ignore: undefined_named_parameter
-  new A17(). /*invoke: [exact=A17]*/ x17(1, p3: "x", p2: 2);
-  // ignore: undefined_named_parameter
-  new A17(). /*invoke: [exact=A17]*/ x17(1, p2: 2, p3: "x");
+  dynamic a = new A17();
+  a. /*invoke: [exact=A17]*/ x17(1, p2: 2);
+  dynamic b = new A17();
+  b. /*invoke: [exact=A17]*/ x17(1, p3: "x");
+  dynamic c = new A17();
+  c. /*invoke: [exact=A17]*/ x17(1, p3: "x", p2: 2);
+  dynamic d = new A17();
+  d. /*invoke: [exact=A17]*/ x17(1, p2: 2, p3: "x");
 }
 
 /*element: A18.:[exact=A18]*/
@@ -284,10 +284,10 @@ class A18 {
 test18() {
   new A18(). /*invoke: [exact=A18]*/ x18(1, true, 1.1);
   new A18(). /*invoke: [exact=A18]*/ x18(1, false, 2.2);
-  // ignore: undefined_named_parameter
-  new A18(). /*invoke: [exact=A18]*/ x18(1, p3: 3.3, p2: true);
-  // ignore: undefined_named_parameter
-  new A18(). /*invoke: [exact=A18]*/ x18(1, p2: false, p3: 4.4);
+  dynamic a = new A18();
+  a. /*invoke: [exact=A18]*/ x18(1, p3: 3.3, p2: true);
+  dynamic b = new A18();
+  b. /*invoke: [exact=A18]*/ x18(1, p2: false, p3: 4.4);
 }
 
 /*element: A19.:[exact=A19]*/

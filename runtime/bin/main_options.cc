@@ -63,16 +63,20 @@ ENUM_OPTIONS_LIST(ENUM_OPTION_DEFINITION)
 CB_OPTIONS_LIST(CB_OPTION_DEFINITION)
 #undef CB_OPTION_DEFINITION
 
-static void SetPreviewDart2Options(CommandLineOptions* vm_options) {
+void Options::SetPreviewDart2Options(CommandLineOptions* vm_options) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   Options::dfe()->set_use_dfe();
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  OPTION_FIELD(preview_dart_2) = true;
   vm_options->AddArgument("--strong");
   vm_options->AddArgument("--reify-generic-functions");
   vm_options->AddArgument("--limit-ints-to-64-bits");
+  vm_options->AddArgument("--sync-async");
 }
 
-DEFINE_BOOL_OPTION_CB(preview_dart_2, { SetPreviewDart2Options(vm_options); });
+bool OPTION_FIELD(preview_dart_2) = false;
+DEFINE_BOOL_OPTION_CB(preview_dart_2,
+                      { Options::SetPreviewDart2Options(vm_options); });
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 DFE* Options::dfe_ = NULL;
@@ -125,7 +129,10 @@ void Options::PrintUsage() {
     Log::PrintErr(
 "Common options:\n"
 "--checked or -c\n"
-"  Insert runtime type checks and enable assertions (checked mode).\n"
+"  Insert runtime type checks and enable assertions (checked mode, not\n"
+"  compatible with --preview-dart-2).\n"
+"--enable-asserts\n"
+"  Enable assert statements.\n"
 "--help or -h\n"
 "  Display this message (add -v or --verbose for information about\n"
 "  all VM options).\n"
@@ -156,7 +163,10 @@ void Options::PrintUsage() {
     Log::PrintErr(
 "Supported options:\n"
 "--checked or -c\n"
-"  Insert runtime type checks and enable assertions (checked mode).\n"
+"  Insert runtime type checks and enable assertions (checked mode, not\n"
+"  compatible with --preview-dart-2).\n"
+"--enable-asserts\n"
+"  Enable assert statements.\n"
 "--help or -h\n"
 "  Display this message (add -v or --verbose for information about\n"
 "  all VM options).\n"
@@ -208,7 +218,8 @@ void Options::PrintUsage() {
 "The following options are only used for VM development and may\n"
 "be changed in any future version:\n");
     const char* print_flags = "--print_flags";
-    Dart_SetVMFlags(1, &print_flags);
+    char* error = Dart_SetVMFlags(1, &print_flags);
+    ASSERT(error == NULL);
   }
 }
 // clang-format on
@@ -315,6 +326,8 @@ bool Options::ProcessObserveOption(const char* arg,
   return true;
 }
 
+static bool checked_set = false;
+
 int Options::ParseArguments(int argc,
                             char** argv,
                             bool vm_run_app_snapshot,
@@ -339,6 +352,7 @@ int Options::ParseArguments(int argc,
     } else {
       // Check if this flag is a potentially valid VM flag.
       const char* kChecked = "-c";
+      const char* kCheckedFull = "--checked";
       const char* kPackageRoot = "-p";
       if (strncmp(argv[i], kPackageRoot, strlen(kPackageRoot)) == 0) {
         // If argv[i] + strlen(kPackageRoot) is \0, then look in argv[i + 1]
@@ -356,8 +370,10 @@ int Options::ParseArguments(int argc,
         package_root_ = opt;
         i++;
         continue;  // '-p' is not a VM flag so don't add to vm options.
-      } else if (strncmp(argv[i], kChecked, strlen(kChecked)) == 0) {
-        vm_options->AddArgument("--checked");
+      } else if ((strncmp(argv[i], kChecked, strlen(kChecked)) == 0) ||
+                 (strncmp(argv[i], kCheckedFull, strlen(kCheckedFull)) == 0)) {
+        checked_set = true;
+        vm_options->AddArgument(kCheckedFull);
         i++;
         continue;  // '-c' is not a VM flag so don't add to vm options.
       } else if (!OptionProcessor::IsValidFlag(argv[i], kPrefix, kPrefixLen)) {
@@ -383,6 +399,11 @@ int Options::ParseArguments(int argc,
     }
   }
 
+  if (Options::deterministic()) {
+    // Both an embedder and VM flag.
+    vm_options->AddArgument("--deterministic");
+  }
+
   Socket::set_short_socket_read(Options::short_socket_read());
   Socket::set_short_socket_write(Options::short_socket_write());
 #if !defined(DART_IO_SECURE_SOCKET_DISABLED)
@@ -393,6 +414,9 @@ int Options::ParseArguments(int argc,
   // The arguments to the VM are at positions 1 through i-1 in argv.
   Platform::SetExecutableArguments(i, argv);
 
+#if defined(DART_LINK_APP_SNAPSHOT)
+  *script_name = argv[0];
+#else
   // Get the script name.
   if (i < argc) {
     *script_name = argv[i];
@@ -400,6 +424,7 @@ int Options::ParseArguments(int argc,
   } else {
     return -1;
   }
+#endif
 
   // Parse out options to be passed to dart main.
   while (i < argc) {
@@ -432,6 +457,10 @@ int Options::ParseArguments(int argc,
     Log::PrintErr(
         "Specifying an option to generate a snapshot and"
         " run using a snapshot is invalid.\n");
+    return -1;
+  }
+  if (checked_set && Options::preview_dart_2()) {
+    Log::PrintErr("Flags --checked and --preview-dart-2 are not compatible.\n");
     return -1;
   }
 

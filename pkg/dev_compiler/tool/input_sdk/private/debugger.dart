@@ -89,7 +89,7 @@ void addPropertiesFromSignature(
       var value = safeGetProperty(object, symbol);
       // Tag the function with its runtime type.
       if (tagTypes && _typeof(value) == 'function') {
-        dart.tag(value, JS('', '#[#]', sig, symbol));
+        dart.fn(value, JS('', '#[#]', sig, symbol));
       }
       properties.add(new NameValuePair(name: dartName, value: value));
     }
@@ -99,7 +99,7 @@ void addPropertiesFromSignature(
       if (skippedNames.contains(name)) continue;
       // Tag the function with its runtime type.
       if (tagTypes && _typeof(value) == 'function') {
-        dart.tag(value, JS('', '#[#]', sig, name));
+        dart.fn(value, JS('', '#[#]', sig, name));
       }
       properties.add(new NameValuePair(name: name, value: value));
     }
@@ -135,14 +135,10 @@ String getObjectTypeName(object) {
 }
 
 String getTypeName(type) {
-  var name = dart.typeName(type);
-  // Hack to cleanup names for List<dynamic>
   // TODO(jacobr): it would be nice if there was a way we could distinguish
   // between a List<dynamic> created from Dart and an Array passed in from
   // JavaScript.
-  if (name == 'JSArray<dynamic>' || name == 'JSObject<Array>')
-    return 'List<dynamic>';
-  return name;
+  return dart.typeName(type);
 }
 
 String safePreview(object, config) {
@@ -884,7 +880,6 @@ class ClassFormatter implements Formatter {
         ..addAll(sortProperties(instanceMethods));
     }
 
-    var typeName = getTypeName(type);
     var mixin = dart.getMixin(type);
     if (mixin != null) {
       // TODO(jmesserly): this can only be one value.

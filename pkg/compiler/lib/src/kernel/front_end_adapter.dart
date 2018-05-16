@@ -37,7 +37,7 @@ class _CompilerFileSystemEntity implements fe.FileSystemEntity {
     api.Input input;
     try {
       input = await fs.inputProvider
-          .readFromUri(uri, inputKind: api.InputKind.utf8);
+          .readFromUri(uri, inputKind: api.InputKind.UTF8);
     } catch (e) {
       throw new fe.FileSystemException(uri, '$e');
     }
@@ -83,7 +83,7 @@ void reportFrontEndMessage(
   Spannable span;
   if (message.span != null) {
     span = new SourceSpan(message.span.start.sourceUrl,
-        message.span.start.offset, message.span.start.offset + 1);
+        message.span.start.offset, message.span.end.offset);
   } else {
     span = NO_LOCATION_SPANNABLE;
   }

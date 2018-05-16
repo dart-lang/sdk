@@ -112,7 +112,7 @@ class FileTest extends _BaseTest {
   test_readAsBytes_exists() async {
     var s = 'contents';
     new io.File(path).writeAsStringSync(s);
-    expect(await file.readAsBytes(), UTF8.encode(s));
+    expect(await file.readAsBytes(), utf8.encode(s));
   }
 
   test_readAsString_badUtf8() {

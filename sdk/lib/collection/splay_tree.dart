@@ -273,7 +273,7 @@ Comparator<K> _defaultCompare<K>() {
  * Non-comparable objects (including `null`) will not work as keys
  * in that case.
  *
- * To allow calling [[]], [remove] or [containsKey] with objects
+ * To allow calling [operator []], [remove] or [containsKey] with objects
  * that are not supported by the `compare` function, an extra `isValidKey`
  * predicate function can be supplied. This function is tested before
  * using the `compare` function on an argument value that may not be a [K]
@@ -334,7 +334,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
       int compare(K key1, K key2),
       bool isValidKey(potentialKey)}) {
     SplayTreeMap<K, V> map = new SplayTreeMap<K, V>(compare, isValidKey);
-    Maps._fillMapWithMappedIterable(map, iterable, key, value);
+    MapBase._fillMapWithMappedIterable(map, iterable, key, value);
     return map;
   }
 
@@ -352,7 +352,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
   factory SplayTreeMap.fromIterables(Iterable<K> keys, Iterable<V> values,
       [int compare(K key1, K key2), bool isValidKey(potentialKey)]) {
     SplayTreeMap<K, V> map = new SplayTreeMap<K, V>(compare, isValidKey);
-    Maps._fillMapWithIterables(map, keys, values);
+    MapBase._fillMapWithIterables(map, keys, values);
     return map;
   }
 
@@ -765,12 +765,10 @@ class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeNode<E>>
   Set<T> _newSet<T>() =>
       new SplayTreeSet<T>((T a, T b) => _comparator(a as E, b as E), _validKey);
 
-  Set<R> cast<R>() {
-    Set<Object> self = this;
-    return self is Set<R> ? self : Set.castFrom<E, R>(this, newSet: _newSet);
-  }
+  Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newSet);
 
-  Set<R> retype<R>() => Set.castFrom<E, R>(this, newSet: _newSet);
+  @Deprecated("Use cast instead.")
+  Set<R> retype<R>() => cast<R>();
 
   int _compare(E e1, E e2) => _comparator(e1, e2);
 

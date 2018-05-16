@@ -7,10 +7,10 @@ import 'dart:io' as io;
 
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
-import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
@@ -213,19 +213,20 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
   test_addPluginToContextRoot_pubspec() async {
     // We can't successfully run pub until after the analyzer_plugin package has
     // been published.
-    io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
-    String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
-    await withPubspecPlugin(test: (String pluginPath) async {
-      ContextRoot contextRoot = new ContextRoot(pkgPath, []);
-      await manager.addPluginToContextRoot(contextRoot, pluginPath);
-      String packagesPath =
-          resourceProvider.pathContext.join(pluginPath, '.packages');
-      File packagesFile = resourceProvider.getFile(packagesPath);
-      bool exists = packagesFile.exists;
-      await manager.stopAll();
-      expect(exists, isTrue, reason: '.packages file was not created');
-    });
-    pkg1Dir.deleteSync(recursive: true);
+    fail('Cannot run pub');
+//    io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
+//    String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
+//    await withPubspecPlugin(test: (String pluginPath) async {
+//      ContextRoot contextRoot = new ContextRoot(pkgPath, []);
+//      await manager.addPluginToContextRoot(contextRoot, pluginPath);
+//      String packagesPath =
+//          resourceProvider.pathContext.join(pluginPath, '.packages');
+//      File packagesFile = resourceProvider.getFile(packagesPath);
+//      bool exists = packagesFile.exists;
+//      await manager.stopAll();
+//      expect(exists, isTrue, reason: '.packages file was not created');
+//    });
+//    pkg1Dir.deleteSync(recursive: true);
   }
 
   test_broadcastRequest_many() async {
@@ -774,9 +775,11 @@ abstract class PluginTestSupport {
    */
   String _defaultPluginContent() {
     return r'''
+import 'dart:async';
 import 'dart:isolate';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/plugin/plugin.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/starter.dart';
@@ -800,8 +803,11 @@ class MinimalPlugin extends ServerPlugin {
   String get version => '0.0.1';
 
   @override
-  AnalysisHandleWatchEventsResult handleAnalysisHandleWatchEvents(
-          AnalysisHandleWatchEventsParams parameters) =>
+  AnalysisDriverGeneric createAnalysisDriver(ContextRoot contextRoot) => null;
+
+  @override
+  Future<AnalysisHandleWatchEventsResult> handleAnalysisHandleWatchEvents(
+      AnalysisHandleWatchEventsParams parameters) async =>
     new AnalysisHandleWatchEventsResult();
 
   @override

@@ -17,6 +17,7 @@ const C2 = 1010;
 /*element: C2b:OutputUnit(1, {lib1})*/
 const C2b = /*OutputUnit(1, {lib1})*/ const C(1010);
 
+/*class: D:OutputUnit(main, {})*/
 class D {
   /*element: D.C3:OutputUnit(1, {lib1})*/
   static const C3 = "string2";

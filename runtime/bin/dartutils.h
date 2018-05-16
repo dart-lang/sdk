@@ -122,7 +122,7 @@ class DartUtils {
   static void* MapExecutable(const char* name, intptr_t* file_len);
   static void* OpenFile(const char* name, bool write);
   static void* OpenFileUri(const char* uri, bool write);
-  static void ReadFile(const uint8_t** data, intptr_t* file_len, void* stream);
+  static void ReadFile(uint8_t** data, intptr_t* file_len, void* stream);
   static void WriteFile(const void* buffer, intptr_t num_bytes, void* stream);
   static void CloseFile(void* stream);
   static bool EntropySource(uint8_t* buffer, intptr_t length);
@@ -216,10 +216,6 @@ class DartUtils {
   // Checks if the buffer is a script snapshot, kernel file, or gzip file.
   static MagicNumber SniffForMagicNumber(const uint8_t* text_buffer,
                                          intptr_t buffer_len);
-
-  // Write a magic number to indicate a script snapshot file.
-  static void WriteSnapshotMagicNumber(File* file);
-  static void SkipSnapshotMagicNumber(const uint8_t** buffer, intptr_t* length);
 
   // Global state that stores the original working directory..
   static const char* original_working_directory;

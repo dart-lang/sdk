@@ -2,9 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-import("../../build/compiled_action.gni")
-import("../../build/dart_host_sdk_toolchain.gni")
-import("../../build/prebuilt_dart_sdk.gni")
 import("../../utils/compile_platform.gni")
 import("../../utils/generate_patch_sdk.gni")
 import("../create_timestamp.gni")
@@ -25,32 +22,30 @@ create_timestamp_file("dartdoc_files_stamp") {
   output = "$target_gen_dir/dartdoc_files.stamp"
 }
 
-compiled_action("dart2js_create_snapshot_entry") {
-  tool = "../../runtime/bin:dart"
+dart_action("dart2js_create_snapshot_entry") {
   deps = [
     ":dart2js_files_stamp",
     ":dartdoc_files_stamp",
     ":runtime_lib_files_stamp",
   ]
 
-  dot_packages = rebase_path("../../.packages")
-  create_snapshot_entry = rebase_path("create_snapshot_entry.dart")
   output_dir = rebase_path(target_gen_dir)
+
+  script = "create_snapshot_entry.dart"
 
   inputs = [
     "../../sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart",
-    create_snapshot_entry,
     "$target_gen_dir/dart2js_files.stamp",
     "../../tools/VERSION",
   ]
 
   outputs = [
-    "$target_gen_dir/dart2js.dart"
+    "$target_gen_dir/dart2js.dart",
   ]
 
+  packages = "../../.packages"
+
   args = [
-    "--packages=$dot_packages",
-    create_snapshot_entry,
     "--output_dir=$output_dir",
     "--dart2js_main=pkg/compiler/lib/src/dart2js.dart",
   ]
@@ -58,9 +53,17 @@ compiled_action("dart2js_create_snapshot_entry") {
 
 application_snapshot("dart2js") {
   deps = [
+    ":compile_dart2js_platform",
+    ":compile_dart2js_platform_strong",
     ":dart2js_create_snapshot_entry",
   ]
-  vm_args = ["--no_limit_ints_to_64_bits"]
+  inputs = [
+    "$root_out_dir/dart2js_platform.dill",
+    "$root_out_dir/dart2js_outline.dill",
+    "$root_out_dir/dart2js_platform_strong.dill",
+    "$root_out_dir/dart2js_outline_strong.dill",
+  ]
+  vm_args = [ "--no_limit_ints_to_64_bits" ]
   main_dart = "$target_gen_dir/dart2js.dart"
   training_args = [
     "--packages=" + rebase_path("../../.packages"),
@@ -98,6 +101,39 @@ compile_platform("compile_dart2js_platform_strong") {
 
   args = [
     "--target=dart2js",
+    "--strong",
+    "dart:core",
+  ]
+}
+
+compile_platform("compile_dart2js_server_platform") {
+  sources = [
+    "../../sdk/lib/libraries.json",
+  ]
+
+  outputs = [
+    "$root_out_dir/dart2js_server_platform.dill",
+    "$root_out_dir/dart2js_server_outline.dill",
+  ]
+
+  args = [
+    "--target=dart2js_server",
+    "dart:core",
+  ]
+}
+
+compile_platform("compile_dart2js_server_platform_strong") {
+  sources = [
+    "../../sdk/lib/libraries.json",
+  ]
+
+  outputs = [
+    "$root_out_dir/dart2js_server_platform_strong.dill",
+    "$root_out_dir/dart2js_server_outline_strong.dill",
+  ]
+
+  args = [
+    "--target=dart2js_server",
     "--strong",
     "dart:core",
   ]

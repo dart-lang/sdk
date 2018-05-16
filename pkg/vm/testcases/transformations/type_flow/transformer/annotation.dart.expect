@@ -1,0 +1,47 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+@self::TypedefAnnotation::•(const <core::int>[1, 2, 3])
+typedef SomeType<T extends core::Object = dynamic> = (core::List<T>) → void;
+abstract class ClassAnnotation2 extends core::Object {
+[@vm.unreachable.metadata=]  const constructor •() → void
+    throw "Attempt to execute method removed by Dart AOT compiler (TFA)";
+}
+abstract class MethodAnnotation extends core::Object {
+[@vm.unreachable.metadata=]  const constructor •(core::int x) → void
+    throw "Attempt to execute method removed by Dart AOT compiler (TFA)";
+}
+abstract class TypedefAnnotation extends core::Object {
+[@vm.unreachable.metadata=]  const constructor •(core::List<core::int> list) → void
+    throw "Attempt to execute method removed by Dart AOT compiler (TFA)";
+}
+abstract class VarAnnotation extends core::Object {
+[@vm.unreachable.metadata=]  const constructor •() → void
+    throw "Attempt to execute method removed by Dart AOT compiler (TFA)";
+}
+abstract class ParametrizedAnnotation<T extends core::Object = dynamic> extends core::Object {
+[@vm.unreachable.metadata=]  const constructor •(self::ParametrizedAnnotation::T foo) → void
+    throw "Attempt to execute method removed by Dart AOT compiler (TFA)";
+}
+abstract class A extends core::Object {
+  static method staticMethod() → void {}
+}
+@self::ClassAnnotation2::•()
+class B extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  @self::MethodAnnotation::•(42)
+  method instanceMethod() → void {}
+}
+static method foo([@vm.inferred-type.metadata=dart.core::Null?] (core::List<core::int>) → void a) → core::int {
+  @self::VarAnnotation::•() core::int x = 2;
+  return x.{core::num::+}(2);
+}
+@self::ParametrizedAnnotation::•<core::Null>(null)
+static method main(core::List<core::String> args) → dynamic {
+  self::A::staticMethod();
+  [@vm.direct-call.metadata=#lib::B::instanceMethod] new self::B::•().{self::B::instanceMethod}();
+  self::foo(null);
+}

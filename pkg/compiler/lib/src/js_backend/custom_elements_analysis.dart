@@ -73,7 +73,7 @@ abstract class CustomElementsAnalysisBase {
 
   void registerStaticUse(MemberEntity element) {
     assert(element != null);
-    if (element == _commonElements.findIndexForNativeSubclassType) {
+    if (_commonElements.isFindIndexForNativeSubclassType(element)) {
       join.demanded = true;
     }
   }

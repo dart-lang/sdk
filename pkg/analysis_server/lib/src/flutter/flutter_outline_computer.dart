@@ -67,7 +67,8 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
     unit.accept(new _FlutterOutlineBuilder(this));
 
     // Compute instrumented code.
-    if (widgets.isNotEmpty) {
+    if (widgets.values.any((w) => w.hasDesignTimeConstructor)) {
+      _rewriteRelativeDirectives();
       instrumentationEdits.sort((a, b) => b.offset - a.offset);
       instrumentedCode =
           SourceEdit.applySequence(content, instrumentationEdits);
@@ -135,6 +136,8 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
         protocol.FlutterOutlineKind.DART_ELEMENT,
         dartOutline.offset,
         dartOutline.length,
+        dartOutline.codeOffset,
+        dartOutline.codeLength,
         dartElement: dartOutline.element);
     if (dartOutline.children != null) {
       flutterOutline.children = dartOutline.children.map(_convert).toList();
@@ -144,7 +147,11 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
     if (dartOutline.element.kind == protocol.ElementKind.CLASS) {
       var widget = widgets[dartOutline.element.location.offset];
       if (widget != null) {
-        flutterOutline.renderConstructor = CONSTRUCTOR_NAME;
+        flutterOutline.isWidgetClass = true;
+        if (widget.hasDesignTimeConstructor) {
+          flutterOutline.renderConstructor = CONSTRUCTOR_NAME;
+        }
+        flutterOutline.stateClassName = widget.state?.name?.name;
         flutterOutline.stateOffset = widget.state?.offset;
         flutterOutline.stateLength = widget.state?.length;
       }
@@ -206,7 +213,11 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
       }
 
       return new protocol.FlutterOutline(
-          protocol.FlutterOutlineKind.NEW_INSTANCE, node.offset, node.length,
+          protocol.FlutterOutlineKind.NEW_INSTANCE,
+          node.offset,
+          node.length,
+          node.offset,
+          node.length,
           className: className,
           attributes: attributes,
           children: children,
@@ -229,7 +240,8 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
       }
 
       int id = _addInstrumentationEdits(node);
-      return new protocol.FlutterOutline(kind, node.offset, node.length,
+      return new protocol.FlutterOutline(
+          kind, node.offset, node.length, node.offset, node.length,
           className: className,
           variableName: variableName,
           label: label,
@@ -294,17 +306,17 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
         int nameOffset = widget.name.offset;
 
         var designTimeConstructor = widget.getConstructor(CONSTRUCTOR_NAME);
-        if (designTimeConstructor == null) {
-          continue;
-        }
+        bool hasDesignTimeConstructor = designTimeConstructor != null;
 
         InterfaceType superType = widget.element.supertype;
         if (isExactlyStatelessWidgetType(superType)) {
-          widgets[nameOffset] = new _WidgetClass(nameOffset);
+          widgets[nameOffset] =
+              new _WidgetClass(nameOffset, hasDesignTimeConstructor);
         } else if (isExactlyStatefulWidgetType(superType)) {
           ClassDeclaration state = _findState(widget);
           if (state != null) {
-            widgets[nameOffset] = new _WidgetClass(nameOffset, state);
+            widgets[nameOffset] =
+                new _WidgetClass(nameOffset, hasDesignTimeConstructor, state);
           }
         }
       }
@@ -331,6 +343,25 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
       return buffer.toString();
     }
     return node.toString();
+  }
+
+  /// The instrumented code is put into a temporary directory for Dart VM to
+  /// run. So, any relative URIs must be changed to corresponding absolute URIs.
+  void _rewriteRelativeDirectives() {
+    for (var directive in unit.directives) {
+      if (directive is UriBasedDirective) {
+        String uriContent = directive.uriContent;
+        Source source = directive.uriSource;
+        if (uriContent != null && source != null) {
+          try {
+            if (!Uri.parse(uriContent).isAbsolute) {
+              instrumentationEdits.add(new SourceEdit(directive.uri.offset,
+                  directive.uri.length, "'${source.uri}'"));
+            }
+          } on FormatException {}
+        }
+      }
+    }
   }
 }
 
@@ -361,8 +392,11 @@ class _FlutterOutlineBuilder extends GeneralizingAstVisitor<void> {
 class _WidgetClass {
   final int nameOffset;
 
+  /// Is `true` if has `forDesignTime` constructor, so can be rendered.
+  final bool hasDesignTimeConstructor;
+
   /// If a `StatefulWidget` with the `State` in the same file.
   final ClassDeclaration state;
 
-  _WidgetClass(this.nameOffset, [this.state]);
+  _WidgetClass(this.nameOffset, this.hasDesignTimeConstructor, [this.state]);
 }

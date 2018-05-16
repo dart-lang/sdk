@@ -10,7 +10,9 @@
 # 2. A suggestion for how to correct the problem (tip).
 #
 # 3. Examples that produce the message (one of expression, statement,
-#    declaration, member, script, or bytes).
+#    declaration, member, script, bytes or external). Note that 'external'
+#    should be the path to an external test. The external test will not be run,
+#    but the existance of the file will be verified.
 #
 # A message shouldn't indicate which kind of diagnostic it is, for example,
 # warning or error. Tools are expected to prepend "Warning: ", or "Error: ",
@@ -43,6 +45,9 @@
 # Long term, the analyzer and front-end need to share the same error codes. So
 # eventually all error codes should have an `analyzerCode` field.
 #
+# In some cases a mesage is internal to the frontend, and no meaningful dart2js
+# nor analyzer code can be provided. In such cases set `frontendInternal: true`.
+#
 # ## Parameter Substitution in Template and Tip
 #
 # The fields `template` and `tip` are subject to parameter substitution. When
@@ -71,6 +76,43 @@ AsciiControlCharacter:
   dart2jsCode: BAD_INPUT_CHARACTER
   analyzerCode: ILLEGAL_CHARACTER
   expression: "\x1b 1"
+
+ConstEvalContext:
+  template: "While analyzing:"
+
+ConstEvalDuplicateKey:
+  template: "The key '#constant' conflicts with another existing key in the map."
+  analyzerCode: EQUAL_KEYS_IN_MAP
+
+ConstEvalNonConstantLiteral:
+  template: "Can't have a non-constant #string literal within a const context."
+  analyzerCode: NON_CONSTANT_DEFAULT_VALUE
+
+ConstEvalInvalidType:
+  template: "Expected constant '#constant' to be of type '#type', but was of type '#type2'."
+
+ConstEvalInvalidBinaryOperandType:
+  template: "Binary operator '#string' on '#constant' requires operand of type '#type', but was of type '#type2'."
+
+ConstEvalInvalidMethodInvocation:
+  template: "The method '#string' can't be invoked on '#constant' within a const context."
+  analyzerCode: UNDEFINED_OPERATOR
+
+ConstEvalInvalidStringInterpolationOperand:
+  template: "The '#constant' can't be used as part of a string interpolation within a const context, only values of type 'null', 'bool', 'int', 'double', or 'String' can be used."
+  analyzerCode: CONST_EVAL_TYPE_BOOL_NUM_STRING
+
+ConstEvalInvalidStaticInvocation:
+  template: "The invocation of '#name' is not allowed within a const context."
+  analyzerCode: CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+
+ConstEvalFailedAssertion:
+  template: "This assertion failed."
+  analyzerCode: CONST_EVAL_THROWS_EXCEPTION
+
+ConstEvalFailedAssertionWithMessage:
+  template: "This assertion failed with message: #string"
+  analyzerCode: CONST_EVAL_THROWS_EXCEPTION
 
 NonAsciiIdentifier:
   template: "The non-ASCII character '#character' (#unicode) can't be used in identifiers, only in strings and comments."
@@ -277,6 +319,14 @@ ExpectedType:
   analyzerCode: EXPECTED_TYPE_NAME
   dart2jsCode: "*fatal*"
 
+MissingExpressionInThrow:
+  template: "Missing expression after 'throw'."
+  tip: "Add an expression after 'throw' or use 'rethrow' to throw a caught exception"
+  analyzerCode: MISSING_EXPRESSION_IN_THROW
+  dart2jsCode: "*fatal*"
+  statement:
+    - "throw;"
+
 MissingConstFinalVarOrType:
   template: "Variables must be declared using the keywords 'const', 'final', 'var' or a type name."
   tip: "Try adding the name of the type of the variable or the keyword 'var'."
@@ -330,7 +380,7 @@ TypedefInClass:
   analyzerCode: TYPEDEF_IN_CLASS
   dart2jsCode: "*fatal*"
   script:
-    - "class C { typedef int F(int x); }"
+    - "abstract class C { typedef int F(int x); }"
 
 CovariantMember:
   template: "Getters, setters and methods can't be declared to be 'covariant'."
@@ -529,13 +579,9 @@ ExtraneousModifier:
     - "external foo; main(){}"
     - "final class C {}"
     - "abstract enum foo {bar}"
-    - "const enum foo {bar}"
-    - "final enum foo {bar}"
     - "abstract void foo() {}"
     - "static void foo() {}"
     - "abstract typedef foo();"
-    - "const typedef foo();"
-    - "final typedef foo();"
     - "static typedef foo();"
 
 FinalAndCovariant:
@@ -622,12 +668,20 @@ ContinueWithoutLabelInCase:
     - "main() { switch (x) {case 1: continue;} }"
 
 DuplicateLabelInSwitchStatement:
-  template: "The label '#string' was already used in this switch statement."
+  template: "The label '#name' was already used in this switch statement."
   tip: "Try choosing a different name for this label."
   analyzerCode: DUPLICATE_LABEL_IN_SWITCH_STATEMENT
   dart2jsCode: "*fatal*"
   statement:
     - "switch (0) {l1: case 0: break; l1: case 1: break;}"
+
+LabelNotFound:
+  template: "Can't find label '#name'."
+  tip: "Try defining the label, or correcting the name to match an existing label."
+  analyzerCode: LABEL_UNDEFINED
+  dart2jsCode: "*fatal*"
+  statement:
+    - "switch (0) {case 0: continue L;}"
 
 InitializedVariableInForEach:
   template: "The loop variable in a for-each loop can't be initialized."
@@ -927,7 +981,12 @@ SetterWithWrongNumberOfFormals:
 CatchSyntax:
   template: "'catch' must be followed by '(identifier)' or '(identifier, identifier)'."
   tip: "No types are needed, the first is given by 'on', the second is always 'StackTrace'."
+  analyzerCode: CATCH_SYNTAX
   dart2jsCode: "*ignored*"
+  statement:
+    - "try {} catch {}"
+    - "try {} catch () {}"
+    - "try {} catch (e,) {}"
 
 SuperNullAware:
   template: "'super' can't be null."
@@ -1050,6 +1109,26 @@ AbstractRedirectedClassInstantiation:
   template: "Factory redirects to class '#name', which is abstract and can't be instantiated."
   severity: ERROR_LEGACY_WARNING
 
+MissingImplementationNotAbstract:
+  template: |
+    The non-abstract class '#name' is missing implementations for these members:
+      #string.
+  tip: |
+    Try to either
+     - provide an implementation,
+     - inherit an implementation from a superclass or mixin,
+     - mark the class as abstract, or
+     - provide a 'noSuchMethod' implementation.
+  severity: ERROR_LEGACY_WARNING
+  analyzerCode: CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+  dart2jsCode: "*fatal*"
+  script:
+    - "class C {foo();}"
+
+MissingImplementationCause:
+  template: "'#name' is defined here."
+  severity: CONTEXT
+
 ListLiteralTooManyTypeArguments:
   template: "Too many type arguments on List literal."
   severity: ERROR_LEGACY_WARNING
@@ -1123,7 +1202,7 @@ FastaUsageLong:
         Read the SDK platform from <file>, which should be in Dill/Kernel IR format
         and contain the Dart SDK.
 
-      --target=none|vm|vmcc|vmreify|flutter
+      --target=dart2js|dart2js_server|dart_runner|flutter|flutter_runner|none|vm
         Specify the target configuration.
 
       --verify
@@ -1244,10 +1323,19 @@ InternalProblemMissingSeverity:
   template: "Message code missing severity: #string"
   severity: INTERNAL_PROBLEM
 
+InternalProblemContextSeverity:
+  template: "Non-context message has context severity: #string"
+  severity: INTERNAL_PROBLEM
+
 InternalVerificationError:
   template: |
     Verification of the generated program failed:
     #string
+
+InternalVisitorUnsupportedDefault:
+  template: "Trying to invoke a default visiting method of a visitor on a node #string."
+  tip: "Try invoking one of the specialized 'visit' methods instead."
+  severity: INTERNAL_PROBLEM
 
 LocalDefinitionHidesExport:
   template: "Local definition of '#name' hides export from '#uri'."
@@ -1373,6 +1461,80 @@ ConflictsWithTypeVariableCause:
   template: "This is the type variable."
   severity: CONTEXT
 
+DeclaredMemberConflictsWithInheritedMember:
+  template: "Can't declare a member that conflicts with an inherited one."
+  severity: ERROR_LEGACY_WARNING
+  script:
+    - >-
+      class A {
+        var foo;
+      }
+      class B extends A {
+        foo() {}
+      }
+    - >-
+      abstract class A {
+        get foo;
+      }
+      class B implements A {
+        foo() {}
+      }
+    - >-
+      class A {
+        foo() {}
+      }
+      class B extends A {
+        var foo;
+      }
+    - >-
+      abstract class A {
+        foo();
+      }
+      class B implements A {
+        var foo;
+      }
+
+DeclaredMemberConflictsWithInheritedMemberCause:
+  template: "This is the inherited member."
+  severity: CONTEXT
+
+InheritedMembersConflict:
+  template: "Can't inherit members that conflict with each other."
+  severity: ERROR_LEGACY_WARNING
+  script:
+    - >-
+      class A {
+        foo() {}
+      }
+      abstract class B {
+        get foo;
+      }
+      class C extends A implements B {}
+    - >-
+      class A {
+        var foo;
+      }
+      abstract class B {
+        foo();
+      }
+      class C extends A implements B {}
+    - >-
+      class A {
+        get foo => 0;
+      }
+      abstract class B {
+        foo();
+      }
+      class C extends A implements B {}
+
+InheritedMembersConflictCause1:
+  template: "This is one inherited member."
+  severity: CONTEXT
+
+InheritedMembersConflictCause2:
+  template: "This is the other inherited member."
+  severity: CONTEXT
+
 IllegalMixin:
   template: "The type '#name' can't be mixed in."
 
@@ -1428,6 +1590,14 @@ TypeVariableDuplicatedNameCause:
 
 TypeVariableSameNameAsEnclosing:
   template: "A type variable can't have the same name as its enclosing declaration."
+
+ExpectedEnumBody:
+  template: "Expected a enum body, but got '#lexeme'."
+  tip: "An enum definition must have a body with at least one constant name."
+  analyzerCode: MISSING_ENUM_BODY
+  dart2jsCode: "*fatal*"
+  script:
+    - "enum E"
 
 EnumDeclarationEmpty:
   template: "An enum declaration can't be empty."
@@ -1609,7 +1779,24 @@ DuplicatedDefinition:
   template: "Duplicated definition of '#name'."
 
 DuplicatedName:
-  template: "Duplicated name: '#name'."
+  template: "'#name' is already declared in this scope."
+  severity: ERROR
+
+DuplicatedNameCause:
+  template: "Previous declaration of '#name'."
+  severity: CONTEXT
+
+DuplicatedNamePreviouslyUsed:
+  template: "Can't declare '#name' because it was already used in this scope."
+  severity: ERROR
+  analyzerCode: REFERENCED_BEFORE_DECLARATION
+  dart2jsCode: "*ignored*"
+  script:
+    - "main(arguments) { arguments; var arguments; }"
+
+DuplicatedNamePreviouslyUsedCause:
+  template: "Previous use of '#name'."
+  severity: CONTEXT
 
 DuplicatedParameterName:
   template: "Duplicated parameter name '#name'."
@@ -1771,9 +1958,6 @@ ConstConstructorNonFinalFieldCause:
 
 AccessError:
   template: "Access error: '#name'."
-
-PreviousUseOfName:
-  template: "Previous use of '#name'."
 
 ExpressionNotMetadata:
   template: "This can't be used as metadata; metadata should be a reference to a compile-time constant variable, or a call to a constant constructor."
@@ -2032,10 +2216,6 @@ ImplicitCallOfNonMethod:
   tip: "Change .call to a method or explicitly invoke .call."
   severity: ERROR
 
-# TODO(ahe): Remove this message when the underlying issue is fixed.
-CantDetermineConstness:
-  template: "The keyword 'const' or 'new' is required here. Due to an implementation limit, the compiler isn't able to infer 'const' or 'new' here."
+ExpectedOneExpression:
+  template: "Expected one expression, but found additional input."
   severity: ERROR
-  expression:
-    - "Object()"
-    - "bool.fromEnvironment('fisk')"

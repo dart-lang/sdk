@@ -1,0 +1,11 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  field dynamic x = 1;
+  constructor •([dynamic x = "1"]) → void
+    : self::Foo::x = x, super core::Object::•()
+    ;
+}
+static method main() → dynamic {}

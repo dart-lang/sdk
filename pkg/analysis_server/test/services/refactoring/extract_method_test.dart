@@ -779,6 +779,22 @@ main() {
     assertRefactoringStatus(
         refactoring.checkName(), RefactoringProblemSeverity.FATAL,
         expectedMessage: "Method name must not be empty.");
+    // incorrect casing
+    refactoring.name = 'Aaa';
+    assertRefactoringStatus(
+        refactoring.checkName(), RefactoringProblemSeverity.WARNING,
+        expectedMessage: "Method name should start with a lowercase letter.");
+    // starts with digit
+    refactoring.name = '0aa';
+    assertRefactoringStatus(
+        refactoring.checkName(), RefactoringProblemSeverity.FATAL,
+        expectedMessage:
+            "Method name must begin with a lowercase letter or underscore.");
+    // invalid name (quote)
+    refactoring.name = '"';
+    assertRefactoringStatus(
+        refactoring.checkName(), RefactoringProblemSeverity.FATAL,
+        expectedMessage: "Method name must not contain '\"'.");
     // OK
     refactoring.name = 'res';
     assertRefactoringStatusOK(refactoring.checkName());

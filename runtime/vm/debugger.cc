@@ -2807,16 +2807,6 @@ void Debugger::SyncBreakpointLocation(BreakpointLocation* loc) {
   }
 }
 
-RawError* Debugger::OneTimeBreakAtEntry(const Function& target_function) {
-  LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
-    SetBreakpointAtEntry(target_function, true);
-    return Error::null();
-  } else {
-    return Thread::Current()->sticky_error();
-  }
-}
-
 Breakpoint* Debugger::SetBreakpointAtEntry(const Function& target_function,
                                            bool single_shot) {
   ASSERT(!target_function.IsNull());

@@ -58,17 +58,11 @@
  *
  * The following types are transferred directly and not proxied:
  *
- * * "Basic" types: `null`, `bool`, `num`, `String`, `DateTime`
- * * `Blob`
- * * `Event`
- * * `HtmlCollection`
- * * `ImageData`
- * * `KeyRange`
- * * `Node`
- * * `NodeList`
- * * `TypedData`, including its subclasses like `Int32List`, but _not_
- *   `ByteBuffer`
- * * `Window`
+ *   * Basic types: `null`, `bool`, `num`, `String`, `DateTime`
+ *   * `TypedData`, including its subclasses like `Int32List`, but _not_
+ *     `ByteBuffer`
+ *   * When compiling for the web, also: `Blob`, `Event`, `ImageData`,
+ *     `KeyRange`, `Node`, and `Window`.
  *
  * ## Converting collections with JsObject.jsify()
  *
@@ -84,12 +78,12 @@
  * This expression creates a JavaScript array:
  *
  *     var jsArray = new JsObject.jsify([1, 2, 3]);
+ *
+ * {@category Web}
  */
 library dart.js;
 
-import 'dart:html' show Blob, Event, ImageData, Node, Window;
 import 'dart:collection' show HashMap, ListMixin;
-import 'dart:indexed_db' show KeyRange;
 import 'dart:typed_data' show TypedData;
 
 import 'dart:_foreign_helper' show JS, JS_CONST, DART_CLOSURE_TO_JS;
@@ -97,6 +91,7 @@ import 'dart:_interceptors'
     show JavaScriptObject, UnknownJavaScriptObject, DART_CLOSURE_PROPERTY_NAME;
 import 'dart:_js_helper'
     show Primitives, convertDartClosureToJS, getIsolateAffinityTag;
+import 'dart:_js' show isBrowserObject, convertFromBrowserObject;
 
 export 'dart:_interceptors' show JavaScriptObject;
 
@@ -568,13 +563,10 @@ dynamic _convertToJS(dynamic o) {
   if (o is JsObject) {
     return o._jsObject;
   }
-  if (o is Blob ||
-      o is Event ||
-      o is KeyRange ||
-      o is ImageData ||
-      o is Node ||
-      o is TypedData ||
-      o is Window) {
+  if (isBrowserObject(o)) {
+    return o;
+  }
+  if (o is TypedData) {
     return o;
   }
   if (o is DateTime) {
@@ -610,16 +602,10 @@ Object _convertToDart(o) {
       JS('bool', 'typeof # == "number"', o) ||
       JS('bool', 'typeof # == "boolean"', o)) {
     return o;
-  } else if (_isLocalObject(o) &&
-      (o is Blob ||
-          o is Event ||
-          o is KeyRange ||
-          o is ImageData ||
-          o is Node ||
-          o is TypedData ||
-          o is Window)) {
-    // long line: dart2js doesn't allow string concatenation in the JS() form
-    return JS('Blob|Event|KeyRange|ImageData|Node|TypedData|Window', '#', o);
+  } else if (_isLocalObject(o) && isBrowserObject(o)) {
+    return convertFromBrowserObject(o);
+  } else if (_isLocalObject(o) && o is TypedData) {
+    return JS('TypedData', '#', o);
   } else if (JS('bool', '# instanceof Date', o)) {
     var ms = JS('num', '#.getTime()', o);
     return new DateTime.fromMillisecondsSinceEpoch(ms);

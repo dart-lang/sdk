@@ -19,11 +19,9 @@ class _WrappedEvent implements Event {
 
   bool get cancelable => wrapped.cancelable;
 
-  EventTarget get currentTarget => wrapped.currentTarget;
+  bool get composed => wrapped.composed;
 
-  List<EventTarget> deepPath() {
-    return wrapped.deepPath();
-  }
+  EventTarget get currentTarget => wrapped.currentTarget;
 
   bool get defaultPrevented => wrapped.defaultPrevented;
 
@@ -31,15 +29,13 @@ class _WrappedEvent implements Event {
 
   bool get isTrusted => wrapped.isTrusted;
 
-  bool get scoped => wrapped.scoped;
-
   EventTarget get target => wrapped.target;
 
   double get timeStamp => wrapped.timeStamp;
 
   String get type => wrapped.type;
 
-  void _initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) {
+  void _initEvent(String type, [bool bubbles, bool cancelable]) {
     throw new UnsupportedError('Cannot initialize this Event.');
   }
 
@@ -54,6 +50,8 @@ class _WrappedEvent implements Event {
   void stopPropagation() {
     wrapped.stopPropagation();
   }
+
+  List<EventTarget> composedPath() => wrapped.composedPath();
 
   /**
    * A pointer to the element whose CSS selector matched within which an event

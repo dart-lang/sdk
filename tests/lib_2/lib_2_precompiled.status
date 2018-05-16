@@ -39,4 +39,3 @@ isolate/unresolved_ports_test: SkipByDesign
 js/datetime_roundtrip_test: CompileTimeError
 js/null_test: CompileTimeError
 js/prototype_access_test: CompileTimeError
-

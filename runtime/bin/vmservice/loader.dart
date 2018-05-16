@@ -63,6 +63,7 @@ class FileRequest {
 }
 
 bool _traceLoading = false;
+bool _deterministic = false;
 
 // State associated with the isolate that is used for loading.
 class IsolateLoaderState extends IsolateEmbedderData {
@@ -137,7 +138,7 @@ class IsolateLoaderState extends IsolateEmbedderData {
   // We issue only 16 concurrent calls to File.readAsBytes() to stay within
   // platform-specific resource limits (e.g. max open files). The rest go on
   // _fileRequestQueue and are processed when we can safely issue them.
-  static const int _maxFileRequests = 16;
+  static final int _maxFileRequests = _deterministic ? 1 : 16;
   int currentFileRequests = 0;
   final List<FileRequest> _fileRequestQueue = new List<FileRequest>();
 

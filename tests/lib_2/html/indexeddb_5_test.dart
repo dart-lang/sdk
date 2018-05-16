@@ -29,14 +29,6 @@ main() {
     });
   });
 
-  if (html.window.indexedDB.supportsDatabaseNames) {
-    test('getDatabaseNames', () {
-      return html.window.indexedDB.getDatabaseNames().then((names) {
-        expect(names.contains(dbName), isTrue);
-      });
-    });
-  }
-
   var value = {'name_index': 'one', 'value': 'add_value'};
   test('add/delete', () {
     var transaction = db.transaction(storeName, 'readwrite');

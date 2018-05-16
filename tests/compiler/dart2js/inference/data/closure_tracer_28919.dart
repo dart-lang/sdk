@@ -56,7 +56,7 @@ foo2(int /*[exact=JSUInt31]*/ choice) {
     methods. /*invoke: [exact=JSExtendableArray]*/ add(
         /*[null]*/ (int /*[null|subclass=Object]*/ x) {
       res = x;
-      sum = x + i;
+      sum = x /*strong.invoke: [null|subclass=JSInt]*/ + i;
     });
   }
   methods /*[exact=JSExtendableArray]*/ [0](499);
@@ -64,8 +64,13 @@ foo2(int /*[exact=JSUInt31]*/ choice) {
   probe2methods(methods);
 }
 
-/*element: probe2res:[null|subclass=Object]*/
-probe2res(/*[null|subclass=Object]*/ x) => x;
+/*kernel.element: probe2res:[null|subclass=Object]*/
+/*strong.element: probe2res:[null|subclass=JSInt]*/
+probe2res(
+        /*kernel.[null|subclass=Object]*/
+        /*strong.[null|subclass=JSInt]*/
+        x) =>
+    x;
 
 /*element: probe2methods:[exact=JSExtendableArray]*/
 probe2methods(/*[exact=JSExtendableArray]*/ x) => x;

@@ -16,7 +16,6 @@ class Program {
   final List<Holder> holders;
   final bool outputContainsConstantList;
   final bool needsNativeSupport;
-  final bool hasIsolateSupport;
   final bool hasSoftDeferredClasses;
 
   /// A map from load id to the list of fragments that need to be loaded.
@@ -40,11 +39,9 @@ class Program {
       this.typeToInterceptorMap, this._metadataCollector, this.finalizers,
       {this.needsNativeSupport,
       this.outputContainsConstantList,
-      this.hasIsolateSupport,
       this.hasSoftDeferredClasses}) {
     assert(needsNativeSupport != null);
     assert(outputContainsConstantList != null);
-    assert(hasIsolateSupport != null);
   }
 
   /// Accessor for the list of metadata entries for a given [OutputUnit].
@@ -486,6 +483,9 @@ class InstanceMethod extends DartMethod {
   /// functions that can be torn off.
   final bool isClosureCallMethod;
 
+  /// True if the interceptor calling convention is used for this method.
+  final bool isIntercepted;
+
   InstanceMethod(FunctionEntity element, js.Name name, js.Expression code,
       List<ParameterStubMethod> parameterStubs, js.Name callName,
       {bool needsTearOff,
@@ -496,6 +496,7 @@ class InstanceMethod extends DartMethod {
       int requiredParameterCount,
       /* List | Map */ optionalParameterDefaultValues,
       this.isClosureCallMethod,
+      this.isIntercepted,
       js.Expression functionType})
       : super(element, name, code, parameterStubs, callName,
             needsTearOff: needsTearOff,

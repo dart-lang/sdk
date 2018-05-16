@@ -14,6 +14,7 @@
 *.yaml text
 
 # Files that should not be converted.
+tests/compiler/dart2js_extra/eof_line_ending_test.dart -text
 tests/compiler/dart2js_extra/string_interpolation_test.dart -text
 tests/compiler/dart2js_extra/string_interpolation_dynamic_test.dart -text
 tests/compiler/dart2js_extra/literal_string_juxtaposition_test.dart -text

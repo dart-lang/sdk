@@ -10,12 +10,9 @@ import '../common/names.dart';
 import '../compiler.dart';
 import '../common_elements.dart';
 import '../constants/values.dart';
-import '../elements/elements.dart'
-    show ConstructorElement, Elements, MemberElement, ParameterElement;
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../js_backend/annotations.dart' as optimizerHints;
-import '../js_backend/mirrors_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../js_emitter/sorter.dart';
 import '../native/behavior.dart' as native;
@@ -32,7 +29,6 @@ import 'debug.dart' as debug;
 import 'locals_handler.dart';
 import 'list_tracer.dart';
 import 'map_tracer.dart';
-import 'builder.dart';
 import 'type_graph_dump.dart';
 import 'type_graph_inferrer.dart';
 import 'type_graph_nodes.dart';
@@ -60,7 +56,7 @@ abstract class InferrerEngine<T> {
   ClosedWorld get closedWorld;
   ClosedWorldRefiner get closedWorldRefiner;
   DiagnosticReporter get reporter;
-  CommonMasks get commonMasks => closedWorld.commonMasks;
+  CommonMasks get commonMasks => closedWorld.abstractValueDomain;
   CommonElements get commonElements => closedWorld.commonElements;
 
   // TODO(johnniwinther): This should be part of [ClosedWorld] or
@@ -79,8 +75,7 @@ abstract class InferrerEngine<T> {
   void analyzeMapAndEnqueue(MapTypeInformation info);
 
   /// Notifies to the inferrer that [analyzedElement] can have return type
-  /// [newType]. [currentType] is the type the [ElementGraphBuilder] currently
-  /// found.
+  /// [newType]. [currentType] is the type the inference has currently found.
   ///
   /// Returns the new type for [analyzedElement].
   TypeInformation addReturnTypeForMethod(
@@ -288,9 +283,6 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
   final Map<MemberEntity, GlobalTypeInferenceElementData> _memberData =
       new Map<MemberEntity, GlobalTypeInferenceElementData>();
 
-  // TODO(johnniwinther): This should be accessible throught [closedWorld].
-  final MirrorsData mirrorsData;
-
   final NoSuchMethodRegistry noSuchMethodRegistry;
 
   final Sorter sorter;
@@ -302,7 +294,6 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
       this._compilerOutput,
       this.closedWorld,
       this.closedWorldRefiner,
-      this.mirrorsData,
       this.noSuchMethodRegistry,
       this.mainElement,
       this.sorter,
@@ -332,7 +323,6 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
    */
   void updateSideEffects(SideEffectsBuilder sideEffectsBuilder,
       Selector selector, MemberEntity callee) {
-    assert(!(callee is MemberElement && !callee.isDeclaration));
     if (callee.isField) {
       if (callee.isInstanceMember) {
         if (selector.isSetter) {
@@ -402,16 +392,6 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
     GlobalTypeInferenceElementData data = dataOfMember(owner);
     assert(validCallType(callType, node));
     switch (callType) {
-      case CallType.complex:
-        if (selector.isSetter || selector.isIndexSet) {
-          data.setTypeMask(node, mask);
-        } else if (selector.isGetter || selector.isIndex) {
-          data.setGetterTypeMaskInComplexSendSet(node, mask);
-        } else {
-          assert(selector.isOperator);
-          data.setOperatorTypeMaskInComplexSendSet(node, mask);
-        }
-        break;
       case CallType.access:
         data.setTypeMask(node, mask);
         break;
@@ -429,12 +409,10 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
   }
 
   bool checkIfExposesThis(ConstructorEntity element) {
-    assert(!(element is ConstructorElement && !element.isDeclaration));
     return generativeConstructorsExposingThis.contains(element);
   }
 
   void recordExposesThis(ConstructorEntity element, bool exposesThis) {
-    assert(!(element is ConstructorElement && !element.isDeclaration));
     if (exposesThis) {
       generativeConstructorsExposingThis.add(element);
     }
@@ -635,13 +613,16 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
           print('${info.getInferredSignature(types)} for '
               '${info.debugName}');
         } else if (info is DynamicCallSiteTypeInformation) {
-          for (MemberEntity target in info.targets) {
+          if (info.hasClosureCallTargets) {
+            print('<Closure.call>');
+          }
+          for (MemberEntity target in info.concreteTargets) {
             if (target is FunctionEntity) {
-              print(
-                  '${types.getInferredSignatureOfMethod(target)} for ${target}');
+              print('${types.getInferredSignatureOfMethod(target)} '
+                  'for ${target}');
             } else {
-              print(
-                  '${types.getInferredTypeOfMember(target).type} for ${target}');
+              print('${types.getInferredTypeOfMember(target).type} '
+                  'for ${target}');
             }
           }
         } else if (info is StaticCallSiteTypeInformation) {
@@ -697,7 +678,6 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
   FunctionEntity lookupCallMethod(ClassEntity cls);
 
   void analyze(MemberEntity element) {
-    assert(!(element is MemberElement && !element.isDeclaration));
     if (analyzedElements.contains(element)) return;
     analyzedElements.add(element);
 
@@ -898,7 +878,6 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
 
   void setDefaultTypeOfParameter(Local parameter, TypeInformation type,
       {bool isInstanceMember}) {
-    assert(!(parameter is ParameterElement && !parameter.isImplementation));
     assert(
         type != null, failedAt(parameter, "No default type for $parameter."));
     TypeInformation existing = defaultTypeOfParameter[parameter];
@@ -925,14 +904,12 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
   }
 
   TypeInformation getDefaultTypeOfParameter(Local parameter) {
-    assert(!(parameter is ParameterElement && !parameter.isImplementation));
     return defaultTypeOfParameter.putIfAbsent(parameter, () {
       return new PlaceholderTypeInformation(types.currentMember);
     });
   }
 
   bool hasAlreadyComputedTypeOfParameterDefault(Local parameter) {
-    assert(!(parameter is ParameterElement && !parameter.isImplementation));
     TypeInformation seen = defaultTypeOfParameter[parameter];
     return (seen != null && seen is! PlaceholderTypeInformation);
   }
@@ -1034,6 +1011,9 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
           inLoop: inLoop);
     }
 
+    if (closedWorld.includesClosureCall(selector, mask)) {
+      sideEffectsBuilder.setAllSideEffectsAndDependsOnSomething();
+    }
     closedWorld.locateMembers(selector, mask).forEach((callee) {
       updateSideEffects(sideEffectsBuilder, selector, callee);
     });
@@ -1148,7 +1128,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
       } else if (element.isGetter) {
         return returnTypeOfMember(element);
       } else {
-        assert(element is MemberElement && Elements.isUnresolved(element));
+        assert(false, failedAt(element, "Unexpected member $element"));
         return types.dynamicType;
       }
     } else if (element.isGetter || element.isField) {
@@ -1171,7 +1151,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
     if ((element.isTopLevel || element.isStatic) && !element.isAssignable) {
       return true;
     }
-    return !mirrorsData.isMemberAccessibleByReflection(element);
+    return true;
   }
 
   /// Returns true if global optimizations such as type inferencing can apply to
@@ -1181,8 +1161,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
   /// backend calls, but the optimizations don't see those calls.
   bool canFunctionParametersBeUsedForGlobalOptimizations(
       FunctionEntity function) {
-    return !closedWorld.backendUsage.isFunctionUsedByBackend(function) &&
-        !mirrorsData.isMemberAccessibleByReflection(function);
+    return !closedWorld.backendUsage.isFunctionUsedByBackend(function);
   }
 
   @override

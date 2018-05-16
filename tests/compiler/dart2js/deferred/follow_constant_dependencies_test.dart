@@ -5,17 +5,15 @@
 // Test that constants depended on by other constants are correctly deferred.
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/constants/values.dart';
 import 'package:expect/expect.dart';
 import '../memory_compiler.dart';
 
 void main() {
-  runTest({bool useKernel}) async {
-    CompilationResult result = await runCompiler(
-        memorySourceFiles: MEMORY_SOURCE_FILES,
-        options: useKernel ? [] : [Flags.useOldFrontend]);
+  runTest() async {
+    CompilationResult result =
+        await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
     Compiler compiler = result.compiler;
     var outputUnitForConstant =
         compiler.backend.outputUnitData.outputUnitForConstant;
@@ -46,10 +44,8 @@ void main() {
   }
 
   asyncTest(() async {
-    print('--test from ast---------------------------------------------------');
-    await runTest(useKernel: false);
     print('--test from kernel------------------------------------------------');
-    await runTest(useKernel: true);
+    await runTest();
   });
 }
 

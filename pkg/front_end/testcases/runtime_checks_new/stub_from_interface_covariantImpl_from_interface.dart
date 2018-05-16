@@ -10,7 +10,7 @@ class B {
 }
 
 abstract class I<T> {
-  void f(T /*@covariance=genericInterface, genericImpl*/ x, Object y);
+  void f(T /*@covariance=genericImpl*/ x, Object y);
 }
 
 class

@@ -15,14 +15,12 @@ main() {
 // Explicit .call on a local variable.
 ////////////////////////////////////////////////////////////////////////////////
 
-// TODO(johnniwinther): Fix the refined type. Missing call methods in the closed
-// world leads to concluding [empty].
-/*element: closureCallToString:[empty]*/
+/*element: closureCallToString:[exact=JSString]*/
 closureCallToString() {
   var local = /*[null]*/ () {};
   local.call();
   return local
       .
-      /*invoke: [empty]*/
+      /*invoke: [subclass=Closure]*/
       toString();
 }

@@ -4,7 +4,7 @@
 
 library fasta.kernel_library_builder;
 
-import 'dart:convert' show JSON;
+import 'dart:convert' show jsonEncode;
 
 import 'package:kernel/ast.dart';
 
@@ -111,9 +111,11 @@ class KernelLibraryBuilder
   /// the error message is the corresponding value in the map.
   Map<String, String> unserializableExports;
 
-  KernelLibraryBuilder(Uri uri, Uri fileUri, Loader loader, this.actualOrigin)
-      : library = actualOrigin?.library ?? new Library(uri, fileUri: fileUri),
-        super(loader, fileUri);
+  KernelLibraryBuilder(Uri uri, Uri fileUri, Loader loader, this.actualOrigin,
+      [Scope scope, Library target])
+      : library = target ??
+            (actualOrigin?.library ?? new Library(uri, fileUri: fileUri)),
+        super(loader, fileUri, scope);
 
   @override
   KernelLibraryBuilder get origin => actualOrigin ?? this;
@@ -201,8 +203,10 @@ class KernelLibraryBuilder
               templateConflictsWithTypeVariable.withArguments(name),
               member.charOffset,
               name.length,
-              context: messageConflictsWithTypeVariableCause.withLocation(
-                  tv.fileUri, tv.charOffset, name.length));
+              context: [
+                messageConflictsWithTypeVariableCause.withLocation(
+                    tv.fileUri, tv.charOffset, name.length)
+              ]);
         }
       }
       setParent(name, member);
@@ -226,10 +230,12 @@ class KernelLibraryBuilder
       if (existing != null) {
         addCompileTimeError(messageTypeVariableDuplicatedName, tv.charOffset,
             tv.name.length, fileUri,
-            context: templateTypeVariableDuplicatedNameCause
-                .withArguments(tv.name)
-                .withLocation(
-                    fileUri, existing.charOffset, existing.name.length));
+            context: [
+              templateTypeVariableDuplicatedNameCause
+                  .withArguments(tv.name)
+                  .withLocation(
+                      fileUri, existing.charOffset, existing.name.length)
+            ]);
       } else {
         typeVariablesByName[tv.name] = tv;
         if (owner is ClassBuilder) {
@@ -810,25 +816,36 @@ class KernelLibraryBuilder
     }
 
     for (KernelLibraryBuilder part in parts) {
-      library.addPart(new LibraryPart(<Expression>[], part.fileUri));
       part.addDependencies(library, seen);
     }
   }
 
   @override
-  Library build(LibraryBuilder coreLibrary) {
+  void addPart(List<MetadataBuilder> metadata, String uri, int charOffset) {
+    super.addPart(metadata, uri, charOffset);
+    // TODO(ahe): [metadata] should be stored, evaluated, and added to [part].
+    LibraryPart part = new LibraryPart(<Expression>[], uri)
+      ..fileOffset = charOffset;
+    library.addPart(part);
+  }
+
+  @override
+  Library build(LibraryBuilder coreLibrary, {bool modifyTarget}) {
     super.build(coreLibrary);
+
+    if (modifyTarget == false) return library;
 
     addDependencies(library, new Set<KernelLibraryBuilder>());
 
     loader.target.metadataCollector
         ?.setDocumentationComment(library, documentationComment);
+
     library.name = name;
     library.procedures.sort(compareProcedures);
 
     if (unserializableExports != null) {
       library.addMember(new Field(new Name("_exports#", library),
-          initializer: new StringLiteral(JSON.encode(unserializableExports)),
+          initializer: new StringLiteral(jsonEncode(unserializableExports)),
           isStatic: true,
           isConst: true));
     }
@@ -964,10 +981,10 @@ class KernelLibraryBuilder
     return copy;
   }
 
-  int finishTypeVariables(ClassBuilder object) {
+  int finishTypeVariables(ClassBuilder object, TypeBuilder dynamicType) {
     int count = boundlessTypeVariables.length;
     for (KernelTypeVariableBuilder builder in boundlessTypeVariables) {
-      builder.finish(this, object);
+      builder.finish(this, object, dynamicType);
     }
     boundlessTypeVariables.clear();
     return count;
@@ -977,24 +994,42 @@ class KernelLibraryBuilder
       ClassBuilder objectClass) {
     int count = 0;
 
-    for (var declarationBuilder in libraryDeclaration.members.values) {
-      if (declarationBuilder is KernelClassBuilder) {
-        if (declarationBuilder.typeVariables != null) {
-          declarationBuilder.calculatedBounds = calculateBounds(
-              declarationBuilder.typeVariables,
-              dynamicType,
-              bottomType,
-              objectClass);
-          count += declarationBuilder.calculatedBounds.length;
+    for (var declaration in libraryDeclaration.members.values) {
+      if (declaration is KernelClassBuilder) {
+        if (declaration.typeVariables != null) {
+          List<KernelTypeBuilder> calculatedBounds;
+          if (loader.target.strongMode) {
+            calculatedBounds = calculateBounds(declaration.typeVariables,
+                dynamicType, bottomType, objectClass);
+          } else {
+            calculatedBounds =
+                new List<KernelTypeBuilder>(declaration.typeVariables.length);
+            for (int i = 0; i < calculatedBounds.length; ++i) {
+              calculatedBounds[i] = dynamicType;
+            }
+          }
+          for (int i = 0; i < calculatedBounds.length; ++i) {
+            declaration.typeVariables[i].defaultType = calculatedBounds[i];
+          }
+          count += calculatedBounds.length;
         }
-      } else if (declarationBuilder is KernelFunctionTypeAliasBuilder) {
-        if (declarationBuilder.typeVariables != null) {
-          declarationBuilder.calculatedBounds = calculateBounds(
-              declarationBuilder.typeVariables,
-              dynamicType,
-              bottomType,
-              objectClass);
-          count += declarationBuilder.calculatedBounds.length;
+      } else if (declaration is KernelFunctionTypeAliasBuilder) {
+        if (declaration.typeVariables != null) {
+          List<KernelTypeBuilder> calculatedBounds;
+          if (loader.target.strongMode) {
+            calculatedBounds = calculateBounds(declaration.typeVariables,
+                dynamicType, bottomType, objectClass);
+          } else {
+            calculatedBounds =
+                new List<KernelTypeBuilder>(declaration.typeVariables.length);
+            for (int i = 0; i < calculatedBounds.length; ++i) {
+              calculatedBounds[i] = dynamicType;
+            }
+          }
+          for (int i = 0; i < calculatedBounds.length; ++i) {
+            declaration.typeVariables[i].defaultType = calculatedBounds[i];
+          }
+          count += calculatedBounds.length;
         }
       }
     }
