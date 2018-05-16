@@ -38,7 +38,7 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
   String resultCode;
   LinkedEditGroup linkedPositionGroup;
 
-  bool get omitNew => false;
+  bool get omitNew => true;
 
   /**
    * Asserts that there is an [Assist] of the given [kind] at [offset] which
@@ -3672,7 +3672,7 @@ class FakeFlutter {
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
-    return /*caret*/new Container();
+    return /*caret*/Container();
   }
 }
 ''');
@@ -3681,7 +3681,7 @@ class FakeFlutter {
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
-    return /*caret*/new Center(child: new Container());
+    return /*caret*/Center(child: Container());
   }
 }
 ''');
@@ -3714,7 +3714,7 @@ class MyWidget extends StatelessWidget {
 }
 
 main() {
-  return /*caret*/Center(child: MyWidget.named());
+  return Center(child: MyWidget./*caret*/named());
 }
 ''');
     } else {
@@ -3855,7 +3855,7 @@ import 'package:flutter/widgets.dart';
 
 main() {
   return Container(
-    child: /*caret*/new Text('aaa'),
+    child: /*caret*/Text('aaa'),
   );
 }
 ''');
@@ -3865,9 +3865,9 @@ import 'package:flutter/widgets.dart';
 
 main() {
   return Container(
-    child: /*caret*/new Column(
+    child: /*caret*/Column(
       children: <Widget>[
-        new Text('aaa'),
+        Text('aaa'),
       ],
     ),
   );

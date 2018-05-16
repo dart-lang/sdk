@@ -47,7 +47,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
    * Return `true` if contributors should suggest constructors in contexts where
    * there is no `new` or `const` keyword.
    */
-  bool get suggestConstructorsWithoutNew => false;
+  bool get suggestConstructorsWithoutNew => true;
 
   bool get usingFastaParser => analyzer.Parser.useFasta;
 
