@@ -94,13 +94,14 @@ void resetCrashReporting() {
   hasCrashed = false;
 }
 
-Future reportCrash(error, StackTrace trace, [Uri uri, int charOffset]) async {
+Future<T> reportCrash<T>(error, StackTrace trace,
+    [Uri uri, int charOffset]) async {
   note(String note) async {
     stderr.write(note);
     await stderr.flush();
   }
 
-  if (hasCrashed) return new Future.error(error, trace);
+  if (hasCrashed) return new Future<T>.error(error, trace);
   if (error is Crash) {
     trace = error.trace ?? trace;
     uri = error.uri ?? uri;
@@ -126,7 +127,8 @@ Future reportCrash(error, StackTrace trace, [Uri uri, int charOffset]) async {
     } on SocketException {
       // Assume the crash logger isn't running.
       await client.close(force: true);
-      return new Future.error(new Crash(uri, charOffset, error, trace), trace);
+      return new Future<T>.error(
+          new Crash(uri, charOffset, error, trace), trace);
     }
     if (request != null) {
       await note("\nSending crash report data");
@@ -147,7 +149,7 @@ Future reportCrash(error, StackTrace trace, [Uri uri, int charOffset]) async {
   }
   await client.close(force: true);
   await note("\n");
-  return new Future.error(error, trace);
+  return new Future<T>.error(error, trace);
 }
 
 String safeToString(Object object) {
