@@ -45,6 +45,8 @@
 % - Specify `call` for Dart 2 (no function type given to enclosing class).
 % - Clarify that an identifier reference denoting a top-level, static, or
 %   local function evaluates to the closurization of that declaration.
+% - Make `mixin` and `interface` built-in identifiers.
+% - Make `async` *not* a reserved word inside async functions.
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -6847,8 +6849,10 @@ An {\em identifier expression} consists of a single identifier; it provides acce
   \GET{};
   \IMPLEMENTS{};
   \IMPORT{};
+  \INTERFACE{};
   \LIBRARY{};
   \OPERATOR{};
+  \MIXIN{};
   \PART{};
   \SET{};
   \STATIC{};
@@ -6891,7 +6895,7 @@ Furthermore, types should begin with an uppercase letter (see the appendix) and 
 }
 
 \LMHash{}
-It is a compile-time error if any of the identifiers \ASYNC, \AWAIT{} or \YIELD{} is used as an identifier in a function body marked with either \ASYNC{}, \ASYNC* or \SYNC*.
+It is a compile-time error if either of the identifiers \AWAIT{} or \YIELD{} is used as an identifier in a function body marked with either \ASYNC{}, \ASYNC* or \SYNC*.
 
 \rationale{
 For compatibility reasons, new constructs cannot rely upon new reserved words or even built-in identifiers.
