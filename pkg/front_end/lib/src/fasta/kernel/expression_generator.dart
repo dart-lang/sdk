@@ -422,8 +422,8 @@ class PropertyAccessGenerator<Arguments> extends Generator<Arguments> {
   String toString() => "PropertyAccessGenerator()";
 }
 
-/// Special case of [_PropertyAccessor] to avoid creating an indirect access to
-/// 'this'.
+/// Special case of [PropertyAccessGenerator] to avoid creating an indirect
+/// access to 'this'.
 class ThisPropertyAccessGenerator<Arguments> extends Generator<Arguments> {
   final Name name;
 
@@ -656,7 +656,8 @@ class IndexedAccessGenerator<Arguments> extends Generator<Arguments> {
       Procedure getter,
       Procedure setter) {
     if (helper.forest.isThisExpression(receiver)) {
-      return new ThisIndexAccessor(helper, token, index, getter, setter);
+      return new ThisIndexedAccessGenerator(
+          helper, token, index, getter, setter);
     } else {
       return new IndexedAccessGenerator.internal(
           helper, token, receiver, index, getter, setter);
@@ -773,16 +774,24 @@ class IndexedAccessGenerator<Arguments> extends Generator<Arguments> {
   String toString() => "IndexedAccessGenerator()";
 }
 
-/// Special case of [_IndexAccessor] to avoid creating an indirect access to
-/// 'this'.
-class _ThisIndexAccessor<Arguments> extends Accessor<Arguments> {
-  kernel.Expression index;
-  VariableDeclaration indexVariable;
-  Procedure getter, setter;
+/// Special case of [IndexedAccessGenerator] to avoid creating an indirect
+/// access to 'this'.
+class ThisIndexedAccessGenerator<Arguments> extends Generator<Arguments> {
+  final kernel.Expression index;
 
-  _ThisIndexAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      this.index, this.getter, this.setter, Token token)
+  final Procedure getter;
+
+  final Procedure setter;
+
+  VariableDeclaration indexVariable;
+
+  ThisIndexedAccessGenerator(BuilderHelper<dynamic, dynamic, Arguments> helper,
+      Token token, this.index, this.getter, this.setter)
       : super(helper, token);
+
+  String get plainNameForRead => "[]";
+
+  String get plainNameForWrite => "[]=";
 
   kernel.Expression _makeSimpleRead() {
     return new ShadowMethodInvocation(
@@ -860,6 +869,18 @@ class _ThisIndexAccessor<Arguments> extends Accessor<Arguments> {
       kernel.Expression body, ShadowComplexAssignment complexAssignment) {
     return super._finish(makeLet(indexVariable, body), complexAssignment);
   }
+
+  kernel.Expression doInvocation(int offset, Arguments arguments) {
+    return helper.buildMethodInvocation(
+        buildSimpleRead(), callName, arguments, offset,
+        isImplicitCall: true);
+  }
+
+  @override
+  ShadowComplexAssignment startComplexAssignment(kernel.Expression rhs) =>
+      new ShadowIndexAssign(null, index, rhs);
+
+  String toString() => "ThisIndexedAccessGenerator()";
 }
 
 class _SuperIndexAccessor<Arguments> extends Accessor<Arguments> {

@@ -864,29 +864,6 @@ class DeferredAccessor<Arguments> extends _DeferredAccessor<Arguments>
   }
 }
 
-class ThisIndexAccessor<Arguments> extends _ThisIndexAccessor<Arguments>
-    with FastaAccessor<Arguments> {
-  ThisIndexAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      Token token, kernel.Expression index, Procedure getter, Procedure setter)
-      : super(helper, index, getter, setter, token);
-
-  String get plainNameForRead => "[]";
-
-  String get plainNameForWrite => "[]=";
-
-  kernel.Expression doInvocation(int offset, Arguments arguments) {
-    return helper.buildMethodInvocation(
-        buildSimpleRead(), callName, arguments, offset,
-        isImplicitCall: true);
-  }
-
-  toString() => "ThisIndexAccessor()";
-
-  @override
-  ShadowComplexAssignment startComplexAssignment(kernel.Expression rhs) =>
-      new ShadowIndexAssign(null, index, rhs);
-}
-
 class SuperIndexAccessor<Arguments> extends _SuperIndexAccessor<Arguments>
     with FastaAccessor<Arguments> {
   SuperIndexAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
