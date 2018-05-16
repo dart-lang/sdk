@@ -1469,8 +1469,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     if (what.scheme == 'file') {
       var session = (changeBuilder as DartChangeBuilderImpl).session;
       var pathContext = session.resourceProvider.pathContext;
+      String whatPath = pathContext.fromUri(what);
       String fromFolder = pathContext.dirname(from.source.fullName);
-      String relativeFile = pathContext.relative(what.path, from: fromFolder);
+      String relativeFile = pathContext.relative(whatPath, from: fromFolder);
       return pathContext.split(relativeFile).join('/');
     }
     return what.toString();
