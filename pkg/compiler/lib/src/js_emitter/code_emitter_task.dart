@@ -165,7 +165,7 @@ class CodeEmitterTask extends CompilerTask {
       metadataCollector = new MetadataCollector(compiler.options,
           compiler.reporter, _emitter, backend.rtiEncoder, codegenWorldBuilder);
       typeTestRegistry = new TypeTestRegistry(compiler.options,
-          codegenWorldBuilder, closedWorld, closedWorld.elementEnvironment);
+          codegenWorldBuilder, closedWorld.elementEnvironment);
     });
   }
 

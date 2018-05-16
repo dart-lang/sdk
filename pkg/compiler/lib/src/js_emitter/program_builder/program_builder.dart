@@ -167,13 +167,6 @@ class ProgramBuilder {
   /// update field-initializers to point to the ConstantModel.
   final Map<ConstantValue, Constant> _constants = <ConstantValue, Constant>{};
 
-  /// Mapping from names to strings.
-  ///
-  /// This mapping is used to support `const Symbol` expressions.
-  ///
-  /// This map is filled when building classes.
-  final Map<js.Name, String> _symbolsMap = <js.Name, String>{};
-
   Set<Class> _unneededNativeClasses;
 
   /// Classes that have been allocated during a profile run.
@@ -269,7 +262,7 @@ class ProgramBuilder {
       finalizers.add(namingFinalizer as js.TokenFinalizer);
     }
 
-    return new Program(fragments, holders, _buildLoadMap(), _symbolsMap,
+    return new Program(fragments, holders, _buildLoadMap(),
         _buildTypeToInterceptorMap(), _task.metadataCollector, finalizers,
         needsNativeSupport: needsNativeSupport,
         outputContainsConstantList: collector.outputContainsConstantList,
@@ -885,7 +878,6 @@ class ProgramBuilder {
     bool isNotApplyTarget =
         !element.isFunction || element.isGetter || element.isSetter;
 
-    bool canBeReflected = false;
     bool canBeApplied = _methodCanBeApplied(element);
 
     js.Name aliasName = _superMemberData.isAliasedSuperMember(element)
@@ -900,8 +892,7 @@ class ProgramBuilder {
         isClosureCallMethod = true;
       } else {
         // Careful with operators.
-        canTearOff = _worldBuilder.hasInvokedGetter(element, _closedWorld) ||
-            (canBeReflected && !Selector.isOperatorName(element.name));
+        canTearOff = _worldBuilder.hasInvokedGetter(element, _closedWorld);
         assert(canTearOff ||
             !_worldBuilder.methodsNeedingSuperGetter.contains(element));
         tearOffName = _namer.getterForElement(element);
@@ -925,14 +916,14 @@ class ProgramBuilder {
 
     DartType memberType = _elementEnvironment.getFunctionType(element);
     js.Expression functionType;
-    if (canTearOff || canBeReflected) {
+    if (canTearOff) {
       OutputUnit outputUnit = _outputUnitData.outputUnitForMember(element);
       functionType = _generateFunctionType(memberType, outputUnit);
     }
 
     int requiredParameterCount;
     var /* List | Map */ optionalParameterDefaultValues;
-    if (canBeApplied || canBeReflected) {
+    if (canBeApplied) {
       // TODO(redemption): Handle function entities.
       FunctionEntity method = element;
       ParameterStructure parameterStructure = method.parameterStructure;
@@ -948,7 +939,6 @@ class ProgramBuilder {
         isIntercepted: isIntercepted,
         aliasName: aliasName,
         canBeApplied: canBeApplied,
-        canBeReflected: canBeReflected,
         requiredParameterCount: requiredParameterCount,
         optionalParameterDefaultValues: optionalParameterDefaultValues,
         functionType: functionType);
@@ -1127,11 +1117,9 @@ class ProgramBuilder {
     bool isApplyTarget =
         !element.isConstructor && !element.isGetter && !element.isSetter;
     bool canBeApplied = _methodCanBeApplied(element);
-    bool canBeReflected = false;
 
     bool needsTearOff = isApplyTarget &&
-        (canBeReflected ||
-            _worldBuilder.staticFunctionsNeedingGetter.contains(element));
+        _worldBuilder.staticFunctionsNeedingGetter.contains(element);
 
     js.Name tearOffName =
         needsTearOff ? _namer.staticClosureName(element) : null;
@@ -1144,14 +1132,14 @@ class ProgramBuilder {
     }
     js.Expression functionType;
     DartType type = _elementEnvironment.getFunctionType(element);
-    if (needsTearOff || canBeReflected) {
+    if (needsTearOff) {
       OutputUnit outputUnit = _outputUnitData.outputUnitForMember(element);
       functionType = _generateFunctionType(type, outputUnit);
     }
 
     int requiredParameterCount;
     var /* List | Map */ optionalParameterDefaultValues;
-    if (canBeApplied || canBeReflected) {
+    if (canBeApplied) {
       // TODO(redemption): Support entities;
       FunctionEntity method = element;
       ParameterStructure parameterStructure = method.parameterStructure;
@@ -1166,7 +1154,6 @@ class ProgramBuilder {
         needsTearOff: needsTearOff,
         tearOffName: tearOffName,
         canBeApplied: canBeApplied,
-        canBeReflected: canBeReflected,
         requiredParameterCount: requiredParameterCount,
         optionalParameterDefaultValues: optionalParameterDefaultValues,
         functionType: functionType);

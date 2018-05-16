@@ -1401,17 +1401,6 @@ class FragmentEmitter {
 
     globals.add(emitMangledGlobalNames());
 
-    // The [MANGLED_NAMES] table must contain the mapping for const symbols.
-    // Without const symbols, the table is only relevant for reflection and
-    // therefore unused in this emitter.
-    List<js.Property> mangledNamesProperties = <js.Property>[];
-    program.symbolsMap.forEach((js.Name mangledName, String unmangledName) {
-      mangledNamesProperties
-          .add(new js.Property(mangledName, js.string(unmangledName)));
-    });
-    globals.add(new js.Property(js.string(MANGLED_NAMES),
-        new js.ObjectInitializer(mangledNamesProperties)));
-
     globals.add(emitGetTypeFromName());
 
     globals.addAll(emitMetadata(program));

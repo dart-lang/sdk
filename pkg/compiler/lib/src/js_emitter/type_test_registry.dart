@@ -7,7 +7,6 @@ library dart2js.js_emitter.type_test_registry;
 import '../common.dart';
 import '../common_elements.dart';
 import '../elements/entities.dart';
-import '../elements/types.dart';
 import '../js_backend/runtime_types.dart'
     show
         RuntimeTypesChecks,
@@ -15,7 +14,6 @@ import '../js_backend/runtime_types.dart'
         RuntimeTypesSubstitutions;
 import '../options.dart';
 import '../universe/world_builder.dart';
-import '../world.dart' show ClosedWorld;
 
 class TypeTestRegistry {
   final ElementEnvironment _elementEnvironment;
@@ -26,12 +24,11 @@ class TypeTestRegistry {
 
   final CompilerOptions _options;
   final CodegenWorldBuilder _codegenWorldBuilder;
-  final ClosedWorld _closedWorld;
 
   RuntimeTypesChecks _rtiChecks;
 
-  TypeTestRegistry(this._options, this._codegenWorldBuilder, this._closedWorld,
-      this._elementEnvironment);
+  TypeTestRegistry(
+      this._options, this._codegenWorldBuilder, this._elementEnvironment);
 
   RuntimeTypesChecks get rtiChecks {
     assert(
@@ -68,46 +65,9 @@ class TypeTestRegistry {
       }
     }
 
-    // 1.  Add classes that are referenced by type arguments or substitutions in
-    //     argument checks.
+    // Add classes that are referenced by type arguments or substitutions in
+    // argument checks.
     addClassesWithSuperclasses(rtiChecks.requiredClasses);
-
-    bool canTearOff(MemberEntity function) {
-      if (!function.isFunction ||
-          function.isConstructor ||
-          function.isGetter ||
-          function.isSetter) {
-        return false;
-      } else if (function.isInstanceMember) {
-        if (!function.enclosingClass.isClosure) {
-          return _codegenWorldBuilder.hasInvokedGetter(function, _closedWorld);
-        }
-      }
-      return false;
-    }
-
-    bool canBeReflectedAsFunction(MemberEntity element) {
-      return !element.isField;
-    }
-
-    bool canBeReified(MemberEntity element) {
-      return canTearOff(element);
-    }
-
-    // 2. Find all types referenced from the types of elements that can be
-    // reflected on 'as functions'.
-    liveMembers.where((MemberEntity element) {
-      return canBeReflectedAsFunction(element) && canBeReified(element);
-    }).forEach((_function) {
-      FunctionEntity function = _function;
-      FunctionType type = _elementEnvironment.getFunctionType(function);
-      for (ClassEntity cls in _rtiChecks.getReferencedClasses(type)) {
-        while (cls != null) {
-          _rtiNeededClasses.add(cls);
-          cls = _elementEnvironment.getSuperClass(cls);
-        }
-      }
-    });
   }
 
   void computeRequiredTypeChecks(RuntimeTypesChecksBuilder rtiChecksBuilder) {

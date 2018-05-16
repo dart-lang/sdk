@@ -289,7 +289,6 @@ bit_operations_test/03: RuntimeError
 bit_operations_test/04: RuntimeError
 bit_operations_test/none: RuntimeError
 branch_canonicalization_test: RuntimeError
-call_function_apply_test: RuntimeError
 call_nonexistent_constructor_test/01: RuntimeError
 call_type_literal_test/01: RuntimeError
 canonical_const2_test: RuntimeError
@@ -611,7 +610,6 @@ bad_constructor_test/05: CompileTimeError # Issue 13639
 bad_typedef_test/00: Crash # Issue 28214
 bit_operations_test: RuntimeError, OK # Issue 1533
 branch_canonicalization_test: RuntimeError # Issue 638.
-call_function_apply_test: RuntimeError # Issue 23873
 canonical_const2_test: RuntimeError, OK # Issue 1533
 closure_in_field_test/01: RuntimeError # Issue 30467
 closure_in_field_test/02: RuntimeError # Issue 30467

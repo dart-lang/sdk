@@ -279,14 +279,8 @@ class Collector {
         // TODO(johnniwinther): This should be accessed from a codegen closed
         // world.
         _worldBuilder.allReferencedStaticFields.where((FieldEntity field) {
-      if (!field.isConst) {
-        return field.isAssignable &&
-            _worldBuilder.hasConstantFieldInitializer(field);
-      } else {
-        // We also need to emit static const fields if they are available for
-        // reflection.
-        return false;
-      }
+      return field.isAssignable &&
+          _worldBuilder.hasConstantFieldInitializer(field);
     });
 
     _sorter.sortMembers(fields).forEach((MemberEntity e) => addToOutputUnit(e));
