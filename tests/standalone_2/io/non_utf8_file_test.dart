@@ -17,6 +17,16 @@ Future main() async {
     final rawPath = new Uint8List.fromList([182]);
     asyncFile = new File.fromRawPath(rawPath);
 
+    if (Platform.isMacOS || Platform.isIOS) {
+      try {
+        await asyncFile.create();
+      } on FileSystemException catch (e) {
+        // Macos doesn't support non-UTF-8 paths.
+        return;
+      }
+      fail('Macos should not accept non-UTF-8 paths!');
+    }
+
     await asyncFile.create();
     expect(await asyncFile.exists(), isTrue);
     for (final file in Directory.current.listSync()) {
@@ -37,6 +47,16 @@ Future main() async {
     Directory.current = Directory.systemTemp.createTempSync();
     final rawPath = new Uint8List.fromList([182]);
     syncFile = new File.fromRawPath(rawPath);
+
+    if (Platform.isMacOS || Platform.isIOS) {
+      try {
+        syncFile.createSync();
+      } on FileSystemException catch (e) {
+        // Macos doesn't support non-UTF-8 paths.
+        return;
+      }
+      fail('Macos should not accept non-UTF-8 paths!');
+    }
 
     syncFile.createSync();
     expect(syncFile.existsSync(), isTrue);
