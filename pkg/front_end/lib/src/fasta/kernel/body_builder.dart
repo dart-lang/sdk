@@ -94,7 +94,7 @@ import 'expression_generator.dart'
         IncompleteSend,
         IndexedAccessGenerator,
         LargeIntAccessor,
-        LoadLibraryAccessor,
+        LoadLibraryGenerator,
         ParenthesizedExpression,
         ReadOnlyAccessor,
         SendAccessor,
@@ -1475,7 +1475,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       }
       return builder;
     } else if (builder is LoadLibraryBuilder) {
-      return new LoadLibraryAccessor(this, token, builder);
+      return new LoadLibraryGenerator(this, token, builder);
     } else {
       if (builder.hasProblem && builder is! AccessErrorBuilder) return builder;
       Builder setter;

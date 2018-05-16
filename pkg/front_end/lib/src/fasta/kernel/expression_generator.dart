@@ -1095,12 +1095,14 @@ class StaticAccessGenerator<Arguments> extends Generator<Arguments> {
   String toString() => "StaticAccessGenerator()";
 }
 
-abstract class _LoadLibraryAccessor<Arguments> extends Accessor<Arguments> {
+class LoadLibraryGenerator<Arguments> extends Generator<Arguments> {
   final LoadLibraryBuilder builder;
 
-  _LoadLibraryAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
+  LoadLibraryGenerator(BuilderHelper<dynamic, dynamic, Arguments> helper,
       Token token, this.builder)
       : super(helper, token);
+
+  String get plainNameForRead => 'loadLibrary';
 
   kernel.Expression _makeRead(ShadowComplexAssignment complexAssignment) {
     var read =
@@ -1115,6 +1117,17 @@ abstract class _LoadLibraryAccessor<Arguments> extends Accessor<Arguments> {
     write.fileOffset = offsetForToken(token);
     return write;
   }
+
+  kernel.Expression doInvocation(int offset, Arguments arguments) {
+    if (forest.argumentsPositional(arguments).length > 0 ||
+        forest.argumentsNamed(arguments).length > 0) {
+      helper.addProblemErrorIfConst(
+          messageLoadLibraryTakesNoArguments, offset, 'loadLibrary'.length);
+    }
+    return builder.createLoadLibrary(offset, forest);
+  }
+
+  String toString() => "LoadLibraryGenerator()";
 }
 
 abstract class _DeferredAccessor<Arguments> extends Accessor<Arguments> {

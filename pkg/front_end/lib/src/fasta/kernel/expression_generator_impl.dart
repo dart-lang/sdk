@@ -741,24 +741,6 @@ class IncompletePropertyAccessor<Arguments> extends IncompleteSend<Arguments> {
   }
 }
 
-class LoadLibraryAccessor<Arguments> extends _LoadLibraryAccessor<Arguments>
-    with FastaAccessor<Arguments> {
-  LoadLibraryAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      Token token, LoadLibraryBuilder builder)
-      : super(helper, token, builder);
-
-  String get plainNameForRead => 'loadLibrary';
-
-  kernel.Expression doInvocation(int offset, Arguments arguments) {
-    if (forest.argumentsPositional(arguments).length > 0 ||
-        forest.argumentsNamed(arguments).length > 0) {
-      helper.addProblemErrorIfConst(
-          messageLoadLibraryTakesNoArguments, offset, 'loadLibrary'.length);
-    }
-    return builder.createLoadLibrary(offset, forest);
-  }
-}
-
 class DeferredAccessor<Arguments> extends _DeferredAccessor<Arguments>
     with FastaAccessor<Arguments> {
   DeferredAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
