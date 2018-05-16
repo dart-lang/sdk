@@ -24,7 +24,6 @@ import '../js_backend/mirrors_data.dart';
 import '../js_backend/runtime_types.dart';
 import '../js_emitter/code_emitter_task.dart';
 import '../options.dart';
-import '../resolution/tree_elements.dart';
 import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
 import '../world.dart' show ClosedWorld;
@@ -49,9 +48,6 @@ abstract class GraphBuilder {
   /// important for generating control flow out of a try block like returns or
   /// breaks.
   bool inTryStatement = false;
-
-  /// The tree elements for the element being built into an SSA graph.
-  TreeElements get elements;
 
   /// The JavaScript backend we are targeting in this compilation.
   JavaScriptBackend get backend;

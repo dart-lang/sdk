@@ -25,7 +25,6 @@ import 'elements/elements.dart'
         LibraryElement,
         ScopeContainerElement;
 import 'elements/entities.dart';
-import 'resolution/tree_elements.dart' show TreeElements;
 
 /**
  * Compiler task that analyzes MirrorsUsed annotations.
@@ -313,10 +312,9 @@ class MirrorUsageBuilder {
   final LibraryElement enclosingLibrary;
   final Spannable spannable;
   final ConstantValue constant;
-  final TreeElements elements;
 
-  MirrorUsageBuilder(this.analyzer, this.enclosingLibrary, this.spannable,
-      this.constant, this.elements);
+  MirrorUsageBuilder(
+      this.analyzer, this.enclosingLibrary, this.spannable, this.constant);
 
   Compiler get compiler => analyzer.compiler;
 

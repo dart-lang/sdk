@@ -139,12 +139,12 @@ checkNames(
           return new Position(line, column);
         }
 
+        // TODO(johnniwinther): Port this to work on kernel based elements.
         Interval intervalFromElement(AstElement element) {
           if (!element.hasNode) return null;
 
-          var begin = element.node.getBeginToken().charOffset;
-          var endToken = element.node.getEndToken();
-          int end = endToken.charOffset + endToken.charCount;
+          var begin = 0;
+          int end = 0;
           return new Interval(
               positionFromOffset(begin), positionFromOffset(end));
         }

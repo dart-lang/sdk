@@ -34,7 +34,6 @@ import '../js_model/elements.dart' show JGeneratorBody;
 import '../kernel/element_map.dart';
 import '../kernel/kernel_backend_strategy.dart';
 import '../native/native.dart' as native;
-import '../resolution/tree_elements.dart';
 import '../types/masks.dart';
 import '../types/types.dart';
 import '../universe/call_structure.dart';
@@ -96,10 +95,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   @override
   JavaScriptBackend get backend => compiler.backend;
-
-  @override
-  TreeElements get elements =>
-      throw new UnsupportedError('KernelSsaGraphBuilder.elements');
 
   final SourceInformationStrategy<ir.Node> _sourceInformationStrategy;
   final KernelToElementMapForBuilding _elementMap;

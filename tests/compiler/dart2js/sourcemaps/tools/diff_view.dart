@@ -904,10 +904,6 @@ CodeSource codeSourceFromElement(Entity _element) {
     kind = CodeKind.MEMBER;
     uri = astElement.compilationUnit.script.resourceUri;
     name = computeElementNameForSourceMaps(astElement);
-    if (astElement.hasNode) {
-      begin = astElement.node.getBeginToken().charOffset;
-      end = astElement.node.getEndToken().charEnd;
-    }
   }
   return new CodeSource(kind, uri, name, begin, end);
 }

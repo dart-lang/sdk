@@ -12,15 +12,11 @@ import '../common_elements.dart' show CommonElements;
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../ordered_typeset.dart' show OrderedTypeSet;
-import '../resolution/tree_elements.dart' show TreeElements;
 import '../script.dart';
-import '../tree/tree.dart' hide AsyncModifier;
-import '../universe/call_structure.dart';
 import '../util/util.dart';
 import '../world.dart' show ClosedWorld;
 import 'entities.dart';
 import 'entity_utils.dart' as utils;
-import 'jumps.dart';
 import 'names.dart';
 import 'resolution_types.dart';
 import 'types.dart';
@@ -502,27 +498,6 @@ class Elements {
         (identical(element.kind, ElementKind.FUNCTION));
   }
 
-  static bool isInstanceSend(Send send, TreeElements elements) {
-    Element element = elements[send];
-    if (element == null) return !isClosureSend(send, element);
-    return isInstanceMethod(element) ||
-        isInstanceField(element) ||
-        (send.isConditional && !element.isStatic);
-  }
-
-  static bool isClosureSend(Send send, Element element) {
-    if (send.isPropertyAccess) return false;
-    if (send.receiver != null) return false;
-    Node selector = send.selector;
-    // this().
-    if (selector.isThis()) return true;
-    // (o)() or foo()().
-    if (element == null && selector.asIdentifier() == null) return true;
-    if (element == null) return false;
-    // foo() with foo a local or a parameter.
-    return isLocal(element);
-  }
-
   /// If `true`, members are sorted using their implementation fileUri.
   ///
   /// This is used for ensuring equivalent output order when testing against
@@ -557,30 +532,6 @@ class Elements {
     return elements.toList()..sort(compareByPosition);
   }
 
-  static bool isFixedListConstructorCall(
-      ConstructorEntity element, Send node, CommonElements commonElements) {
-    return commonElements.isUnnamedListConstructor(element) &&
-        node.isCall &&
-        !node.arguments.isEmpty &&
-        node.arguments.tail.isEmpty;
-  }
-
-  static bool isGrowableListConstructorCall(
-      ConstructorEntity element, Send node, CommonElements commonElements) {
-    return commonElements.isUnnamedListConstructor(element) &&
-        node.isCall &&
-        node.arguments.isEmpty;
-  }
-
-  static bool isFilledListConstructorCall(
-      ConstructorEntity element, Send node, CommonElements commonElements) {
-    return commonElements.isFilledListConstructor(element) &&
-        node.isCall &&
-        !node.arguments.isEmpty &&
-        !node.arguments.tail.isEmpty &&
-        node.arguments.tail.tail.isEmpty;
-  }
-
   static bool isConstructorOfTypedArraySubclass(
       Element element, ClosedWorld closedWorld) {
     if (closedWorld.commonElements.typedDataLibrary == null) return false;
@@ -594,165 +545,6 @@ class Elements {
             cls, closedWorld.commonElements.typedDataClass) &&
         closedWorld.isSubtypeOf(cls, closedWorld.commonElements.listClass) &&
         constructor.name == '';
-  }
-
-  static bool switchStatementHasContinue(
-      SwitchStatement node, TreeElements elements) {
-    for (SwitchCase switchCase in node.cases) {
-      for (Node labelOrCase in switchCase.labelsAndCases) {
-        Node label = labelOrCase.asLabel();
-        if (label != null) {
-          LabelDefinition labelElement = elements.getLabelDefinition(label);
-          if (labelElement != null && labelElement.isContinueTarget) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
-  }
-
-  static bool isUnusedLabel(LabeledStatement node, TreeElements elements) {
-    Node body = node.statement;
-    JumpTarget element = elements.getTargetDefinition(body);
-    // Labeled statements with no element on the body have no breaks.
-    // A different target statement only happens if the body is itself
-    // a break or continue for a different target. In that case, this
-    // label is also always unused.
-    return element == null || element.statement != body;
-  }
-
-  /**
-   * Returns a `List` with the evaluated arguments in the normalized order.
-   *
-   * [compileDefaultValue] is a function that returns a compiled constant
-   * of an optional argument that is not in [compiledArguments].
-   *
-   * Precondition: `callStructure.signatureApplies(element.type)`.
-   *
-   * Invariant: [element] must be the implementation element.
-   */
-  static List<T> makeArgumentsList<T>(
-      CallStructure callStructure,
-      Link<Node> arguments,
-      FunctionElement element,
-      T compileArgument(Node argument),
-      T compileDefaultValue(ParameterElement element)) {
-    assert(element.isImplementation, failedAt(element));
-    List<T> result = <T>[];
-
-    FunctionSignature parameters = element.functionSignature;
-    parameters.forEachRequiredParameter((_) {
-      result.add(compileArgument(arguments.head));
-      arguments = arguments.tail;
-    });
-
-    if (!parameters.optionalParametersAreNamed) {
-      parameters.forEachOptionalParameter((_element) {
-        ParameterElement element = _element;
-        if (!arguments.isEmpty) {
-          result.add(compileArgument(arguments.head));
-          arguments = arguments.tail;
-        } else {
-          result.add(compileDefaultValue(element));
-        }
-      });
-    } else {
-      // Visit named arguments and add them into a temporary list.
-      List compiledNamedArguments = [];
-      for (; !arguments.isEmpty; arguments = arguments.tail) {
-        NamedArgument namedArgument = arguments.head;
-        compiledNamedArguments.add(compileArgument(namedArgument.expression));
-      }
-      // Iterate over the optional parameters of the signature, and try to
-      // find them in [compiledNamedArguments]. If found, we use the
-      // value in the temporary list, otherwise the default value.
-      parameters.orderedOptionalParameters.forEach((_element) {
-        ParameterElement element = _element;
-        int foundIndex = callStructure.namedArguments.indexOf(element.name);
-        if (foundIndex != -1) {
-          result.add(compiledNamedArguments[foundIndex]);
-        } else {
-          result.add(compileDefaultValue(element));
-        }
-      });
-    }
-    return result;
-  }
-
-  /**
-   * Fills [list] with the arguments in the order expected by
-   * [callee], and where [caller] is a synthesized element
-   *
-   * [compileArgument] is a function that returns a compiled version
-   * of a parameter of [callee].
-   *
-   * [compileConstant] is a function that returns a compiled constant
-   * of an optional argument that is not in the parameters of [callee].
-   *
-   * Returns [:true:] if the signature of the [caller] matches the
-   * signature of the [callee], [:false:] otherwise.
-   */
-  static bool addForwardingElementArgumentsToList<T>(
-      ConstructorElement caller,
-      List<T> list,
-      ConstructorElement callee,
-      T compileArgument(ParameterElement element),
-      T compileConstant(ParameterElement element)) {
-    assert(
-        !callee.isMalformed,
-        failedAt(
-            caller,
-            "Cannot compute arguments to malformed constructor: "
-            "$caller calling $callee."));
-
-    FunctionSignature signature = caller.functionSignature;
-    Map<Node, ParameterElement> mapping = <Node, ParameterElement>{};
-
-    // TODO(ngeoffray): This is a hack that fakes up AST nodes, so
-    // that we can call [addArgumentsToList].
-    Link<Node> computeCallNodesFromParameters() {
-      LinkBuilder<Node> builder = new LinkBuilder<Node>();
-      signature.forEachRequiredParameter((_element) {
-        ParameterElement element = _element;
-        Node node = element.node;
-        mapping[node] = element;
-        builder.addLast(node);
-      });
-      if (signature.optionalParametersAreNamed) {
-        signature.forEachOptionalParameter((_element) {
-          ParameterElement element = _element;
-          mapping[element.initializer] = element;
-          builder.addLast(new NamedArgument(null, null, element.initializer));
-        });
-      } else {
-        signature.forEachOptionalParameter((_element) {
-          ParameterElement element = _element;
-          Node node = element.node;
-          mapping[node] = element;
-          builder.addLast(node);
-        });
-      }
-      return builder.toLink();
-    }
-
-    T internalCompileArgument(Node node) {
-      return compileArgument(mapping[node]);
-    }
-
-    Link<Node> nodes = computeCallNodesFromParameters();
-
-    // Synthesize a structure for the call.
-    // TODO(ngeoffray): Should the resolver do it instead?
-    CallStructure callStructure = new CallStructure(
-        signature.parameterCount, signature.type.namedParameters);
-    if (!callStructure.signatureApplies(signature.parameterStructure)) {
-      return false;
-    }
-    list.addAll(makeArgumentsList<T>(callStructure, nodes, callee,
-        internalCompileArgument, compileConstant));
-
-    return true;
   }
 }
 
@@ -830,15 +622,11 @@ abstract class ImportElement extends Element implements ImportEntity {
   bool get isDeferred;
   PrefixElement get prefix;
   String get name;
-  // TODO(johnniwinther): Remove this when no longer needed in source mirrors.
-  Import get node;
 }
 
 abstract class ExportElement extends Element {
   Uri get uri;
   LibraryElement get exportedLibrary;
-  // TODO(johnniwinther): Remove this when no longer needed in source mirrors.
-  Export get node;
 }
 
 abstract class LibraryElement extends Element
@@ -1006,11 +794,6 @@ abstract class LocalElement extends Element
 
 /// A top level, static or instance field, a formal parameter or local variable.
 abstract class VariableElement extends ExecutableElement {
-  @override
-  VariableDefinitions get node;
-
-  Expression get initializer;
-
   bool get hasConstant;
 
   /// The constant expression defining the (initial) value of the variable.
@@ -1050,8 +833,6 @@ abstract class FormalElement extends Element
   /// The function, typedef or inline function-typed parameter on which
   /// this parameter is declared.
   FunctionTypedElement get functionDeclaration;
-
-  VariableDefinitions get node;
 
   /// Whether the parameter is unnamed in a function type.
   bool get isUnnamed;
@@ -1141,8 +922,6 @@ abstract class FunctionElement extends Element
         FunctionTypedElement,
         ExecutableElement,
         GenericElement {
-  FunctionExpression get node;
-
   FunctionElement get patch;
   FunctionElement get origin;
 
@@ -1564,7 +1343,6 @@ abstract class MetadataAnnotation implements Spannable {
   SourceSpan get sourcePosition;
 
   bool get hasNode;
-  Node get node;
 
   MetadataAnnotation ensureResolved(Resolution resolution);
 }
@@ -1595,10 +1373,6 @@ abstract class AnalyzableElement extends Element {
   /// Return `true` if [treeElements] have been (partially) computed for this
   /// element.
   bool get hasTreeElements;
-
-  /// Returns the [TreeElements] that hold the resolution information for the
-  /// AST nodes of this element.
-  TreeElements get treeElements;
 }
 
 /// An [Element] that (potentially) has a node.
@@ -1607,9 +1381,6 @@ abstract class AnalyzableElement extends Element {
 abstract class AstElement extends AnalyzableElement {
   /// `true` if [node] is available and non-null.
   bool get hasNode;
-
-  /// The AST node of this element.
-  Node get node;
 
   /// `true` if [resolvedAst] is available.
   bool get hasResolvedAst;
@@ -1646,23 +1417,6 @@ abstract class ResolvedAst {
   /// The kind of semantics definition used for this object.
   ResolvedAstKind get kind;
 
-  /// The root AST node for the declaration of [element]. This only available if
-  /// [kind] is `ResolvedAstKind.PARSED`.
-  Node get node;
-
-  /// The AST node for the 'body' of [element].
-  ///
-  /// For functions and constructors this is the root AST node of the method
-  /// body, and for variables this is the root AST node of the initializer, if
-  /// available.
-  ///
-  /// This only available if [kind] is `ResolvedAstKind.PARSED`.
-  Node get body;
-
-  /// The [TreeElements] containing the resolution data for [node]. This only
-  /// available of [kind] is `ResolvedAstKind.PARSED`.
-  TreeElements get elements;
-
   /// Returns the uri for the source file defining [node] and [body]. This
   /// only available if [kind] is `ResolvedAstKind.PARSED`.
   Uri get sourceUri;
@@ -1672,17 +1426,13 @@ abstract class ResolvedAst {
 /// terms an AST and a [TreeElements].
 class ParsedResolvedAst implements ResolvedAst {
   final Element element;
-  final Node node;
-  final Node body;
-  final TreeElements elements;
   final Uri sourceUri;
 
-  ParsedResolvedAst(
-      this.element, this.node, this.body, this.elements, this.sourceUri);
+  ParsedResolvedAst(this.element, this.sourceUri);
 
   ResolvedAstKind get kind => ResolvedAstKind.PARSED;
 
-  String toString() => '$kind:$element:$node';
+  String toString() => '$kind:$element';
 }
 
 /// [ResolvedAst] implementation used for synthesized elements whose semantics
@@ -1692,21 +1442,6 @@ class SynthesizedResolvedAst implements ResolvedAst {
   final ResolvedAstKind kind;
 
   SynthesizedResolvedAst(this.element, this.kind);
-
-  @override
-  TreeElements get elements {
-    throw new UnsupportedError('$this does not provide a TreeElements');
-  }
-
-  @override
-  Node get node {
-    throw new UnsupportedError('$this does not have a root AST node');
-  }
-
-  @override
-  Node get body {
-    throw new UnsupportedError('$this does not have a body AST node');
-  }
 
   @override
   Uri get sourceUri {
