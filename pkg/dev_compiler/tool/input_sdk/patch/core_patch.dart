@@ -602,6 +602,12 @@ class _CompileTimeError extends Error {
 
 @patch
 class NoSuchMethodError {
+  final Object _receiver;
+  final Symbol _memberName;
+  final List _arguments;
+  final Map<Symbol, dynamic> _namedArguments;
+  final List _existingArgumentNames;
+
   @patch
   NoSuchMethodError(Object receiver, Symbol memberName,
       List positionalArguments, Map<Symbol, dynamic> namedArguments,

@@ -175,6 +175,13 @@ class AbstractClassInstantiationError {
 
 @patch
 class NoSuchMethodError {
+  // Deprecated members to be removed.
+  final Object _receiver;
+  final Symbol _memberName;
+  final List _arguments;
+  final Map<Symbol, dynamic> _namedArguments;
+  final List _existingArgumentNames;
+
   // TODO(regis): Move _receiver declaration here:
   // final Object _receiver;
   final _InvocationMirror _invocation;

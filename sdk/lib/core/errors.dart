@@ -430,13 +430,6 @@ class AbstractClassInstantiationError extends Error {
  * Error thrown by the default implementation of [:noSuchMethod:] on [Object].
  */
 class NoSuchMethodError extends Error {
-  // Deprecated members to be removed.
-  final Object _receiver;
-  final Symbol _memberName;
-  final List _arguments;
-  final Map<Symbol, dynamic> _namedArguments;
-  final List _existingArgumentNames;
-
   /**
    * Create a [NoSuchMethodError] corresponding to a failed method call.
    *
@@ -446,7 +439,6 @@ class NoSuchMethodError extends Error {
    * The [invocation] represents the method call that failed. It
    * should not be `null`.
    */
-  @Deprecated("Dart 2.0. Will be renamed to become default constructor")
   external NoSuchMethodError.withInvocation(
       Object receiver, Invocation invocation);
 
@@ -469,14 +461,14 @@ class NoSuchMethodError extends Error {
    * The [namedArguments] is a map from [Symbol]s to the values of named
    * arguments that the method was called with.
    *
-   * The optional [existingArgumentNames] is the expected parameters of a
-   * method with the same name on the receiver, if available. This is
-   * the signature of the method that would have been called if the parameters
-   * had matched.
+   * This constructor does not handle type arguments.
+   * To include type variables, create an [Invocation] and use
+   * [NoSuchMethodError.withInvocation].
    */
+  @Deprecated("Use NoSuchMethod.withInvocation instead")
   external NoSuchMethodError(Object receiver, Symbol memberName,
       List positionalArguments, Map<Symbol, dynamic> namedArguments,
-      [List existingArgumentNames = null]);
+      [@deprecated List existingArgumentNames = null]);
 
   external String toString();
 }

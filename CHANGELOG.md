@@ -8,6 +8,9 @@
 
 ### Core library changes
 
+* `dart:core`
+  * Deprecated the `NoSuchMethodError` constructor.
+
 ### Dart VM
 
 ### Tool Changes
