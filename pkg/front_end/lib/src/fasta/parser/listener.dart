@@ -1113,6 +1113,10 @@ class Listener {
     logEvent("InvalidOperatorName");
   }
 
+  void handleParenthesizedCondition(Token token) {
+    logEvent("ParenthesizedCondition");
+  }
+
   void handleParenthesizedExpression(Token token) {
     logEvent("ParenthesizedExpression");
   }

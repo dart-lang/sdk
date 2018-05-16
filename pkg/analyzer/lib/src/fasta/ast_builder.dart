@@ -173,6 +173,12 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
+  void handleParenthesizedCondition(Token leftParenthesis) {
+    // TODO(danrubel): Implement rather than forwarding.
+    handleParenthesizedExpression(leftParenthesis);
+  }
+
+  @override
   void handleParenthesizedExpression(Token leftParenthesis) {
     assert(optional('(', leftParenthesis));
     debugEvent("ParenthesizedExpression");

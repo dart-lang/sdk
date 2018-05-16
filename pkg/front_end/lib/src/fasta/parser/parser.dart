@@ -4444,20 +4444,36 @@ class Parser {
     return token;
   }
 
-  Token parseParenthesizedExpression(Token token) {
-    Token previousToken = token;
-    token = token.next;
-    if (!optional('(', token)) {
+  Token parseParenthesizedCondition(Token token) {
+    if (!optional('(', token.next)) {
       // Recover
+      Token next = token.next;
       reportRecoverableError(
-          token, fasta.templateExpectedToken.withArguments('('));
+          next, fasta.templateExpectedToken.withArguments('('));
+      // TODO(danrubel): Consider removing the 2nd error message.
       reportRecoverableError(
-          token, fasta.templateExpectedToken.withArguments(')'));
+          next, fasta.templateExpectedToken.withArguments(')'));
       BeginToken replacement = link(
-          new SyntheticBeginToken(TokenType.OPEN_PAREN, token.charOffset),
-          new SyntheticToken(TokenType.CLOSE_PAREN, token.charOffset));
-      token = rewriter.insertTokenAfter(previousToken, replacement).next;
+          new SyntheticBeginToken(TokenType.OPEN_PAREN, next.charOffset),
+          new SyntheticToken(TokenType.CLOSE_PAREN, next.charOffset));
+      rewriter.insertTokenAfter(token, replacement).next;
     }
+    Token begin = token.next;
+    token = parseExpressionInParenthesis(token);
+    listener.handleParenthesizedCondition(begin);
+    return token;
+  }
+
+  Token parseParenthesizedExpression(Token token) {
+    Token begin = token.next;
+    token = parseExpressionInParenthesis(token);
+    listener.handleParenthesizedExpression(begin);
+    return token;
+  }
+
+  Token parseExpressionInParenthesis(Token token) {
+    token = token.next;
+    assert(optional('(', token));
     BeginToken begin = token;
     token = parseExpression(token).next;
     if (!identical(begin.endGroup, token)) {
@@ -4465,8 +4481,7 @@ class Parser {
           token, fasta.templateExpectedButGot.withArguments(')'));
       token = begin.endGroup;
     }
-    listener.handleParenthesizedExpression(begin);
-    expect(')', token);
+    assert(optional(')', token));
     return token;
   }
 
@@ -5274,7 +5289,7 @@ class Parser {
     Token ifToken = token.next;
     assert(optional('if', ifToken));
     listener.beginIfStatement(ifToken);
-    token = parseParenthesizedExpression(ifToken);
+    token = parseParenthesizedCondition(ifToken);
     listener.beginThenStatement(token.next);
     token = parseStatement(token);
     listener.endThenStatement(token);
@@ -5494,7 +5509,7 @@ class Parser {
     Token whileToken = token.next;
     assert(optional('while', whileToken));
     listener.beginWhileStatement(whileToken);
-    token = parseParenthesizedExpression(whileToken);
+    token = parseParenthesizedCondition(whileToken);
     listener.beginWhileStatementBody(token.next);
     LoopState savedLoopState = loopState;
     loopState = LoopState.InsideLoop;
@@ -5529,7 +5544,7 @@ class Parser {
               new SyntheticKeywordToken(Keyword.WHILE, whileToken.charOffset))
           .next;
     }
-    token = parseParenthesizedExpression(whileToken);
+    token = parseParenthesizedCondition(whileToken);
     token = ensureSemicolon(token);
     listener.endDoWhileStatement(doToken, whileToken, token);
     return token;
@@ -5757,7 +5772,7 @@ class Parser {
     Token switchKeyword = token.next;
     assert(optional('switch', switchKeyword));
     listener.beginSwitchStatement(switchKeyword);
-    token = parseParenthesizedExpression(switchKeyword);
+    token = parseParenthesizedCondition(switchKeyword);
     LoopState savedLoopState = loopState;
     if (loopState == LoopState.OutsideLoop) {
       loopState = LoopState.InsideSwitch;
