@@ -550,7 +550,7 @@ const char* File::LinkTarget(Namespace* namespc, const char* name) {
   // target. For some filesystems, e.g. procfs, this value is always
   // 0. Also the link might have changed before the readlink call.
   const int kBufferSize = PATH_MAX + 1;
-  char* target = (char*) malloc(kBufferSize);
+  char target[kBufferSize];
   const int target_size =
       TEMP_FAILURE_RETRY(readlinkat(ns.fd(), ns.path(), target, kBufferSize));
   if (target_size <= 0) {
@@ -560,7 +560,6 @@ const char* File::LinkTarget(Namespace* namespc, const char* name) {
   ASSERT(target_name != NULL);
   memmove(target_name, target, target_size);
   target_name[target_size] = '\0';
-  free(target);
   return target_name;
 }
 
