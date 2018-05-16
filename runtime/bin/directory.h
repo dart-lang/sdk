@@ -211,7 +211,6 @@ class SyncDirectoryListing : public DirectoryListing {
         results_(results),
         dart_error_(Dart_Null()) {
     add_string_ = DartUtils::NewString("add");
-    from_raw_path_string_ = DartUtils::NewString("fromRawPath");
     directory_type_ = DartUtils::GetDartType(DartUtils::kIOLibURL, "Directory");
     file_type_ = DartUtils::GetDartType(DartUtils::kIOLibURL, "File");
     link_type_ = DartUtils::GetDartType(DartUtils::kIOLibURL, "Link");
@@ -227,7 +226,6 @@ class SyncDirectoryListing : public DirectoryListing {
  private:
   Dart_Handle results_;
   Dart_Handle add_string_;
-  Dart_Handle from_raw_path_string_;
   Dart_Handle directory_type_;
   Dart_Handle file_type_;
   Dart_Handle link_type_;

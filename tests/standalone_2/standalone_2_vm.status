@@ -46,11 +46,6 @@ io/secure_socket_alpn_test: Skip # Issue 27638
 io/secure_socket_test: Skip # Issue 27638
 io/socket_upgrade_to_secure_test: Skip # Issue 27638
 
-[ $system == macos ]
-io/non_utf8_directory_test: RuntimeError # Macos doesn't support non-UTF8 paths.
-io/non_utf8_file_test: RuntimeError # Macos doesn't support non-UTF8 paths.
-io/non_utf8_link_test: RuntimeError, Pass # Works on some Macos configurations.
-
 [ $system == windows ]
 io/process_sync_test: Pass, Timeout # Issue 24596
 io/skipping_dart2js_compilations_test: Skip # Issue 19551.

@@ -255,10 +255,8 @@ FileStat: type $type
  *   files and directories.
  */
 abstract class FileSystemEntity {
-  _Path _path;
-
   String get path;
-  UnmodifiableUint8ListView get rawPath;
+
   /**
    * Returns a [Uri] representing the file system entity's location.
    *
@@ -352,8 +350,8 @@ abstract class FileSystemEntity {
    * behavior.
    */
   Future<String> resolveSymbolicLinks() {
-    return _File._dispatchWithNamespace(_IOService.fileResolveSymbolicLinks,
-        [null, _path._rawPath]).then((response) {
+    return _File._dispatchWithNamespace(
+        _IOService.fileResolveSymbolicLinks, [null, path]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(
             response, "Cannot resolve symbolic links", path);
@@ -392,7 +390,7 @@ abstract class FileSystemEntity {
    * behavior.
    */
   String resolveSymbolicLinksSync() {
-    var result = _resolveSymbolicLinks(_Namespace._namespace, _path);
+    var result = _resolveSymbolicLinks(_Namespace._namespace, path);
     _throwIfError(result, "Cannot resolve symbolic links", path);
     return result;
   }
@@ -497,7 +495,6 @@ abstract class FileSystemEntity {
    */
   Stream<FileSystemEvent> watch(
       {int events: FileSystemEvent.all, bool recursive: false}) {
-    // FIXME(bkonyi): find a way to do this using the raw path.
     final String trimmedPath = _trimTrailingPathSeparators(path);
     final IOOverrides overrides = IOOverrides.current;
     if (overrides == null) {
@@ -582,20 +579,6 @@ abstract class FileSystemEntity {
     }
   }
 
-  Uint8List get _rawAbsolutePath {
-    if (isAbsolute) return rawPath;
-    final current = Directory.current.rawPath.toList();
-    if ((current.last == '/'.codeUnitAt(0)) ||
-        (Platform.isWindows && (current.last == '\\'.codeUnitAt(0)))) {
-      current.addAll(rawPath);
-      return new Uint8List.fromList(current);
-    } else {
-      current.add(Platform.pathSeparator.codeUnitAt(0));
-      current.addAll(rawPath);
-      return new Uint8List.fromList(current);
-    }
-  }
-
   static bool _identicalSync(String path1, String path2) {
     var result = _identicalNative(_Namespace._namespace, path1, path2);
     _throwIfError(result, 'Error in FileSystemEntity.identicalSync');
@@ -635,16 +618,6 @@ abstract class FileSystemEntity {
     return overrides.fsWatchIsSupported();
   }
 
-  // The native methods which determine type of the FileSystemEntity require
-  // that the buffer provided is null terminated. Since we do not have access
-  // to a _Path instance in our static methods, we can't just use
-  // _Path._rawPath, which is an already null-terminated Uint8List.
-  static Uint8List _toUtf8Array(String s) {
-    final a = utf8.encode(s).toList();
-    a.add(0); // Add null terminator.
-    return new Uint8List.fromList(a);
-  }
-
   /**
    * Finds the type of file system object that a path points to.
    *
@@ -660,7 +633,7 @@ abstract class FileSystemEntity {
    */
   static Future<FileSystemEntityType> type(String path,
       {bool followLinks: true}) {
-    return _getType(_toUtf8Array(path), followLinks);
+    return _getType(path, followLinks);
   }
 
   /**
@@ -677,59 +650,53 @@ abstract class FileSystemEntity {
    * caused by passing the wrong type of arguments to the function.
    */
   static FileSystemEntityType typeSync(String path, {bool followLinks: true}) {
-    return _getTypeSync(_toUtf8Array(path), followLinks);
+    return _getTypeSync(path, followLinks);
   }
 
   /**
    * Checks if type(path, followLinks: false) returns FileSystemEntityType.link.
    */
-  static Future<bool> isLink(String path) => _isLinkRaw(_toUtf8Array(path));
-
-  static Future<bool> _isLinkRaw(Uint8List rawPath) => _getType(rawPath, false)
-      .then((type) => (type == FileSystemEntityType.link));
+  static Future<bool> isLink(String path) =>
+      _getType(path, false).then((type) => (type == FileSystemEntityType.link));
 
   /**
    * Checks if type(path) returns FileSystemEntityType.file.
    */
-  static Future<bool> isFile(String path) => _getType(_toUtf8Array(path), true)
-      .then((type) => (type == FileSystemEntityType.file));
+  static Future<bool> isFile(String path) =>
+      _getType(path, true).then((type) => (type == FileSystemEntityType.file));
 
   /**
    * Checks if type(path) returns FileSystemEntityType.directory.
    */
-  static Future<bool> isDirectory(String path) =>
-      _getType(_toUtf8Array(path), true)
-          .then((type) => (type == FileSystemEntityType.directory));
+  static Future<bool> isDirectory(String path) => _getType(path, true)
+      .then((type) => (type == FileSystemEntityType.directory));
 
   /**
    * Synchronously checks if typeSync(path, followLinks: false) returns
    * FileSystemEntityType.link.
    */
-  static bool isLinkSync(String path) => _isLinkRawSync(_toUtf8Array(path));
-
-  static bool _isLinkRawSync(rawPath) =>
-      (_getTypeSync(rawPath, false) == FileSystemEntityType.link);
+  static bool isLinkSync(String path) =>
+      (_getTypeSync(path, false) == FileSystemEntityType.link);
 
   /**
    * Synchronously checks if typeSync(path) returns
    * FileSystemEntityType.file.
    */
   static bool isFileSync(String path) =>
-      (_getTypeSync(_toUtf8Array(path), true) == FileSystemEntityType.file);
+      (_getTypeSync(path, true) == FileSystemEntityType.file);
 
   /**
    * Synchronously checks if typeSync(path) returns
    * FileSystemEntityType.directory.
    */
   static bool isDirectorySync(String path) =>
-      (_getTypeSync(_toUtf8Array(path), true) ==
-          FileSystemEntityType.directory);
+      (_getTypeSync(path, true) == FileSystemEntityType.directory);
 
   external static _getTypeNative(
-      _Namespace namespace, Uint8List rawPath, bool followLinks);
+      _Namespace namespace, String path, bool followLinks);
   external static _identicalNative(
       _Namespace namespace, String path1, String path2);
-  external static _resolveSymbolicLinks(_Namespace namespace, _Path path);
+  external static _resolveSymbolicLinks(_Namespace namespace, String path);
 
   // Finds the next-to-last component when dividing at path separators.
   static final RegExp _parentRegExp = Platform.isWindows
@@ -775,42 +742,37 @@ abstract class FileSystemEntity {
   Directory get parent => new Directory(parentOf(path));
 
   static FileSystemEntityType _getTypeSyncHelper(
-      Uint8List rawPath, bool followLinks) {
-    var result = _getTypeNative(_Namespace._namespace, rawPath, followLinks);
+      String path, bool followLinks) {
+    var result = _getTypeNative(_Namespace._namespace, path, followLinks);
     _throwIfError(result, 'Error getting type of FileSystemEntity');
     return FileSystemEntityType._lookup(result);
   }
 
-  static FileSystemEntityType _getTypeSync(
-      Uint8List rawPath, bool followLinks) {
+  static FileSystemEntityType _getTypeSync(String path, bool followLinks) {
     IOOverrides overrides = IOOverrides.current;
     if (overrides == null) {
-      return _getTypeSyncHelper(rawPath, followLinks);
+      return _getTypeSyncHelper(path, followLinks);
     }
-    return overrides.fseGetTypeSync(
-        utf8.decode(rawPath, allowMalformed: true), followLinks);
+    return overrides.fseGetTypeSync(path, followLinks);
   }
 
   static Future<FileSystemEntityType> _getTypeRequest(
-      Uint8List rawPath, bool followLinks) {
+      String path, bool followLinks) {
     return _File._dispatchWithNamespace(
-        _IOService.fileType, [null, rawPath, followLinks]).then((response) {
+        _IOService.fileType, [null, path, followLinks]).then((response) {
       if (_isErrorResponse(response)) {
-        throw _exceptionFromResponse(response, "Error getting type",
-            utf8.decode(rawPath, allowMalformed: true));
+        throw _exceptionFromResponse(response, "Error getting type", path);
       }
       return FileSystemEntityType._lookup(response);
     });
   }
 
-  static Future<FileSystemEntityType> _getType(
-      Uint8List rawPath, bool followLinks) {
+  static Future<FileSystemEntityType> _getType(String path, bool followLinks) {
     IOOverrides overrides = IOOverrides.current;
     if (overrides == null) {
-      return _getTypeRequest(rawPath, followLinks);
+      return _getTypeRequest(path, followLinks);
     }
-    return overrides.fseGetType(
-        utf8.decode(rawPath, allowMalformed: true), followLinks);
+    return overrides.fseGetType(path, followLinks);
   }
 
   static _throwIfError(Object result, String msg, [String path]) {
@@ -821,7 +783,6 @@ abstract class FileSystemEntity {
     }
   }
 
-  // TODO(bkonyi): find a way to do this with raw paths.
   static String _trimTrailingPathSeparators(String path) {
     // Don't handle argument errors here.
     if (path is! String) return path;
@@ -838,7 +799,6 @@ abstract class FileSystemEntity {
     return path;
   }
 
-  // TODO(bkonyi): find a way to do this with raw paths.
   static String _ensureTrailingPathSeparators(String path) {
     // Don't handle argument errors here.
     if (path is! String) return path;
@@ -988,12 +948,4 @@ class _FileSystemWatcher {
   external static Stream<FileSystemEvent> _watch(
       String path, int events, bool recursive);
   external static bool get isSupported;
-}
-
-abstract class _Path {
-  external factory _Path.fromRawPath(Uint8List rawPath);
-  external factory _Path(String path);
-
-  UnmodifiableUint8ListView get rawPath;
-  String get path;
 }

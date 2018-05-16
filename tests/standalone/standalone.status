@@ -63,6 +63,7 @@ io/raw_secure_server_socket_test: Pass, Crash # Issue 29524
 io/directory_fuzz_test: Skip # These test have type errors on purpose and take very long to run in checked mode with no benefit. Skip.
 io/directory_invalid_arguments_test: Fail, OK # These tests have type errors on purpose.
 io/file_fuzz_test: Skip # These test have type errors on purpose and take very long to run in checked mode with no benefit. Skip.
+io/file_invalid_arguments_test: Fail, OK # These tests have type errors on purpose.
 io/internet_address_invalid_arguments_test: Fail, OK # These tests have type errors on purpose.
 io/process_invalid_arguments_test: Fail, OK # These tests have type errors on purpose.
 io/socket_invalid_arguments_test: Fail, OK # These tests have type errors on purpose.

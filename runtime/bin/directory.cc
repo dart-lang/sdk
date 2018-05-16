@@ -5,10 +5,8 @@
 #include "bin/directory.h"
 
 #include "bin/dartutils.h"
-#include "bin/io_buffer.h"
 #include "bin/log.h"
 #include "bin/namespace.h"
-#include "bin/path.h"
 #include "include/dart_api.h"
 #include "platform/assert.h"
 
@@ -30,13 +28,11 @@ void FUNCTION_NAME(Directory_Current)(Dart_NativeArguments args) {
 void FUNCTION_NAME(Directory_SetCurrent)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
   Dart_Handle path = Dart_GetNativeArgument(args, 1);
-  if (Dart_IsError(path)) {
+  if (Dart_IsError(path) || !Dart_IsString(path)) {
     Dart_SetReturnValue(args, DartUtils::NewDartArgumentError(NULL));
     return;
   }
-  const char* name = Path::GetPath(path)->raw_path();
-
-  if (Directory::SetCurrent(namespc, name)) {
+  if (Directory::SetCurrent(namespc, DartUtils::GetStringValue(path))) {
     Dart_SetBooleanReturnValue(args, true);
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
@@ -48,10 +44,8 @@ void FUNCTION_NAME(Directory_Exists)(Dart_NativeArguments args) {
   static const int kDoesNotExist = 0;
   Namespace* namespc = Namespace::GetNamespace(args, 0);
   Dart_Handle path = Dart_GetNativeArgument(args, 1);
-
-  const char* name = Path::GetPath(path)->raw_path();
-
-  Directory::ExistsResult result = Directory::Exists(namespc, name);
+  Directory::ExistsResult result =
+      Directory::Exists(namespc, DartUtils::GetStringValue(path));
   if (result == Directory::EXISTS) {
     Dart_SetIntegerReturnValue(args, kExists);
   } else if (result == Directory::DOES_NOT_EXIST) {
@@ -64,10 +58,7 @@ void FUNCTION_NAME(Directory_Exists)(Dart_NativeArguments args) {
 void FUNCTION_NAME(Directory_Create)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
   Dart_Handle path = Dart_GetNativeArgument(args, 1);
-
-  const char* name = Path::GetPath(path)->raw_path();
-
-  if (Directory::Create(namespc, name)) {
+  if (Directory::Create(namespc, DartUtils::GetStringValue(path))) {
     Dart_SetBooleanReturnValue(args, true);
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
@@ -83,8 +74,14 @@ void FUNCTION_NAME(Directory_SystemTemp)(Dart_NativeArguments args) {
 void FUNCTION_NAME(Directory_CreateTemp)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
   Dart_Handle path = Dart_GetNativeArgument(args, 1);
-  const char* name = Path::GetPath(path)->raw_path();
-  const char* result = Directory::CreateTemp(namespc, name);
+  if (!Dart_IsString(path)) {
+    Dart_SetReturnValue(
+        args, DartUtils::NewDartArgumentError(
+                  "Prefix argument of CreateSystemTempSync is not a String"));
+    return;
+  }
+  const char* result =
+      Directory::CreateTemp(namespc, DartUtils::GetStringValue(path));
   if (result != NULL) {
     Dart_SetReturnValue(args, DartUtils::NewString(result));
   } else {
@@ -96,10 +93,8 @@ void FUNCTION_NAME(Directory_Delete)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
   Dart_Handle path = Dart_GetNativeArgument(args, 1);
   Dart_Handle recursive = Dart_GetNativeArgument(args, 2);
-
-  const char* name = Path::GetPath(path)->raw_path();
-
-  if (Directory::Delete(namespc, name, DartUtils::GetBooleanValue(recursive))) {
+  if (Directory::Delete(namespc, DartUtils::GetStringValue(path),
+                        DartUtils::GetBooleanValue(recursive))) {
     Dart_SetBooleanReturnValue(args, true);
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
@@ -110,10 +105,8 @@ void FUNCTION_NAME(Directory_Rename)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
   Dart_Handle path = Dart_GetNativeArgument(args, 1);
   Dart_Handle newPath = Dart_GetNativeArgument(args, 2);
-
-  const char* name = Path::GetPath(path)->raw_path();
-
-  if (Directory::Rename(namespc, name, DartUtils::GetStringValue(newPath))) {
+  if (Directory::Rename(namespc, DartUtils::GetStringValue(path),
+                        DartUtils::GetStringValue(newPath))) {
     Dart_SetBooleanReturnValue(args, true);
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
@@ -129,13 +122,12 @@ void FUNCTION_NAME(Directory_FillWithDirectoryListing)(
   Dart_Handle recursive = Dart_GetNativeArgument(args, 3);
   Dart_Handle follow_links = Dart_GetNativeArgument(args, 4);
 
-  const char* name = Path::GetPath(path)->raw_path();
-
   Dart_Handle dart_error;
   {
     // Pass the list that should hold the directory listing to the
     // SyncDirectoryListing object, which adds elements to it.
-    SyncDirectoryListing sync_listing(results, namespc, name,
+    SyncDirectoryListing sync_listing(results, namespc,
+                                      DartUtils::GetStringValue(path),
                                       DartUtils::GetBooleanValue(recursive),
                                       DartUtils::GetBooleanValue(follow_links));
     Directory::List(&sync_listing);
@@ -214,14 +206,12 @@ CObject* Directory::CreateRequest(const CObjectArray& request) {
   }
   Namespace* namespc = CObjectToNamespacePointer(request[0]);
   RefCntReleaseScope<Namespace> rs(namespc);
-  if ((request.Length() != 2) || !request[1]->IsUint8Array()) {
+  if ((request.Length() != 2) || !request[1]->IsString()) {
     return CObject::IllegalArgumentError();
   }
-  CObjectUint8Array path(request[1]);
-  return Directory::Create(namespc,
-                           reinterpret_cast<const char*>(path.Buffer()))
-             ? CObject::True()
-             : CObject::NewOSError();
+  CObjectString path(request[1]);
+  return Directory::Create(namespc, path.CString()) ? CObject::True()
+                                                    : CObject::NewOSError();
 }
 
 CObject* Directory::DeleteRequest(const CObjectArray& request) {
@@ -230,15 +220,13 @@ CObject* Directory::DeleteRequest(const CObjectArray& request) {
   }
   Namespace* namespc = CObjectToNamespacePointer(request[0]);
   RefCntReleaseScope<Namespace> rs(namespc);
-  if ((request.Length() != 3) || !request[1]->IsUint8Array() ||
+  if ((request.Length() != 3) || !request[1]->IsString() ||
       !request[2]->IsBool()) {
     return CObject::IllegalArgumentError();
   }
-  CObjectUint8Array path(request[1]);
+  CObjectString path(request[1]);
   CObjectBool recursive(request[2]);
-  return Directory::Delete(namespc,
-                           reinterpret_cast<const char*>(path.Buffer()),
-                           recursive.Value())
+  return Directory::Delete(namespc, path.CString(), recursive.Value())
              ? CObject::True()
              : CObject::NewOSError();
 }
@@ -251,12 +239,11 @@ CObject* Directory::ExistsRequest(const CObjectArray& request) {
   }
   Namespace* namespc = CObjectToNamespacePointer(request[0]);
   RefCntReleaseScope<Namespace> rs(namespc);
-  if ((request.Length() != 2) || !request[1]->IsUint8Array()) {
+  if ((request.Length() != 2) || !request[1]->IsString()) {
     return CObject::IllegalArgumentError();
   }
-  CObjectUint8Array path(request[1]);
-  Directory::ExistsResult result =
-      Directory::Exists(namespc, reinterpret_cast<const char*>(path.Buffer()));
+  CObjectString path(request[1]);
+  Directory::ExistsResult result = Directory::Exists(namespc, path.CString());
   if (result == Directory::EXISTS) {
     return new CObjectInt32(CObject::NewInt32(kExists));
   } else if (result == Directory::DOES_NOT_EXIST) {
@@ -272,12 +259,11 @@ CObject* Directory::CreateTempRequest(const CObjectArray& request) {
   }
   Namespace* namespc = CObjectToNamespacePointer(request[0]);
   RefCntReleaseScope<Namespace> rs(namespc);
-  if ((request.Length() != 2) || !request[1]->IsUint8Array()) {
+  if ((request.Length() != 2) || !request[1]->IsString()) {
     return CObject::IllegalArgumentError();
   }
-  CObjectUint8Array path(request[1]);
-  const char* result = Directory::CreateTemp(
-      namespc, reinterpret_cast<const char*>(path.Buffer()));
+  CObjectString path(request[1]);
+  const char* result = Directory::CreateTemp(namespc, path.CString());
   if (result == NULL) {
     return CObject::NewOSError();
   }
@@ -300,16 +286,15 @@ CObject* Directory::ListStartRequest(const CObjectArray& request) {
   }
   Namespace* namespc = CObjectToNamespacePointer(request[0]);
   RefCntReleaseScope<Namespace> rs(namespc);
-  if ((request.Length() != 4) || !request[1]->IsUint8Array() ||
+  if ((request.Length() != 4) || !request[1]->IsString() ||
       !request[2]->IsBool() || !request[3]->IsBool()) {
     return CreateIllegalArgumentError();
   }
-  CObjectUint8Array path(request[1]);
+  CObjectString path(request[1]);
   CObjectBool recursive(request[2]);
   CObjectBool follow_links(request[3]);
   AsyncDirectoryListing* dir_listing = new AsyncDirectoryListing(
-      namespc, reinterpret_cast<const char*>(path.Buffer()), recursive.Value(),
-      follow_links.Value());
+      namespc, path.CString(), recursive.Value(), follow_links.Value());
   if (dir_listing->error()) {
     // Report error now, so we capture the correct OSError.
     CObject* err = CObject::NewOSError();
@@ -372,15 +357,13 @@ CObject* Directory::RenameRequest(const CObjectArray& request) {
   }
   Namespace* namespc = CObjectToNamespacePointer(request[0]);
   RefCntReleaseScope<Namespace> rs(namespc);
-  if ((request.Length() != 3) || !request[1]->IsUint8Array() ||
+  if ((request.Length() != 3) || !request[1]->IsString() ||
       !request[2]->IsString()) {
     return CObject::IllegalArgumentError();
   }
-  CObjectUint8Array path(request[1]);
+  CObjectString path(request[1]);
   CObjectString new_path(request[2]);
-  return Directory::Rename(namespc,
-                           reinterpret_cast<const char*>(path.Buffer()),
-                           new_path.CString())
+  return Directory::Rename(namespc, path.CString(), new_path.CString())
              ? CObject::True()
              : CObject::NewOSError();
 }
@@ -389,14 +372,7 @@ bool AsyncDirectoryListing::AddFileSystemEntityToResponse(Response type,
                                                           const char* arg) {
   array_->SetAt(index_++, new CObjectInt32(CObject::NewInt32(type)));
   if (arg != NULL) {
-    size_t len = strlen(arg);
-    Dart_CObject* io_buffer = CObject::NewIOBuffer(len);
-    uint8_t* data = io_buffer->value.as_external_typed_data.data;
-    strncpy(reinterpret_cast<char*>(data), arg, len);
-
-    CObjectExternalUint8Array* external_array =
-        new CObjectExternalUint8Array(io_buffer);
-    array_->SetAt(index_++, external_array);
+    array_->SetAt(index_++, new CObjectString(CObject::NewString(arg)));
   } else {
     array_->SetAt(index_++, CObject::Null());
   }
@@ -434,25 +410,8 @@ bool AsyncDirectoryListing::HandleError() {
 }
 
 bool SyncDirectoryListing::HandleDirectory(const char* dir_name) {
-  // Allocates a Uint8List for dir_name, and invokes the Directory.fromRawPath
-  // constructor. This avoids/delays interpreting the utf8 bytes in dir_name.
-  // Later, client code may either choose to access FileSystemEntity.path
-  // or FileSystemEntity.rawPath. FileSystemEntity.path will trigger
-  // UTF8 decoding and throw an exception if invalid bytes are found,
-  // whereas FileSystemEntity.rawPath returns the bytes exactly as they
-  // came from the OS (same as what's in dir_name here).
-
-  size_t dir_name_length = strlen(dir_name);
-  uint8_t* buffer = NULL;
-  Dart_Handle dir_name_dart = IOBuffer::Allocate(dir_name_length, &buffer);
-  if (Dart_IsNull(dir_name_dart)) {
-    dart_error_ = DartUtils::NewDartOSError();
-    return false;
-  }
-  memmove(buffer, dir_name, dir_name_length);
-  Dart_Handle constructor_name = from_raw_path_string_;
-  Dart_Handle dir =
-      Dart_New(directory_type_, constructor_name, 1, &dir_name_dart);
+  Dart_Handle dir_name_dart = DartUtils::NewString(dir_name);
+  Dart_Handle dir = Dart_New(directory_type_, Dart_Null(), 1, &dir_name_dart);
   Dart_Handle result = Dart_Invoke(results_, add_string_, 1, &dir);
   if (Dart_IsError(result)) {
     dart_error_ = result;
@@ -462,24 +421,8 @@ bool SyncDirectoryListing::HandleDirectory(const char* dir_name) {
 }
 
 bool SyncDirectoryListing::HandleLink(const char* link_name) {
-  // Allocates a Uint8List for link_name, and invokes the Link.fromRawPath
-  // constructor. This avoids/delays interpreting the utf8 bytes in link_name.
-  // Later, client code may either choose to access FileSystemEntity.path
-  // or FileSystemEntity.rawPath. FileSystemEntity.path will trigger
-  // UTF8 decoding and throw an exception if invalid bytes are found,
-  // whereas FileSystemEntity.rawPath returns the bytes exactly as they
-  // came from the OS (same as what's in link_name here).
-
-  size_t link_name_length = strlen(link_name);
-  uint8_t* buffer = NULL;
-  Dart_Handle link_name_dart = IOBuffer::Allocate(link_name_length, &buffer);
-  if (Dart_IsNull(link_name_dart)) {
-    dart_error_ = DartUtils::NewDartOSError();
-    return false;
-  }
-  memmove(buffer, link_name, link_name_length);
-  Dart_Handle constructor_name = from_raw_path_string_;
-  Dart_Handle link = Dart_New(link_type_, constructor_name, 1, &link_name_dart);
+  Dart_Handle link_name_dart = DartUtils::NewString(link_name);
+  Dart_Handle link = Dart_New(link_type_, Dart_Null(), 1, &link_name_dart);
   Dart_Handle result = Dart_Invoke(results_, add_string_, 1, &link);
   if (Dart_IsError(result)) {
     dart_error_ = result;
@@ -489,24 +432,8 @@ bool SyncDirectoryListing::HandleLink(const char* link_name) {
 }
 
 bool SyncDirectoryListing::HandleFile(const char* file_name) {
-  // Allocates a Uint8List for file_name, and invokes the File.fromRawPath
-  // constructor. This avoids/delays interpreting the utf8 bytes in file_name.
-  // Later, client code may either choose to access FileSystemEntity.path
-  // or FileSystemEntity.rawPath. FileSystemEntity.path will trigger
-  // UTF8 decoding and throw an exception if invalid bytes are found,
-  // whereas FileSystemEntity.rawPath returns the bytes exactly as they
-  // came from the OS (same as what's in file_name here).
-
-  size_t file_name_length = strlen(file_name);
-  uint8_t* buffer = NULL;
-  Dart_Handle file_name_dart = IOBuffer::Allocate(file_name_length, &buffer);
-  if (Dart_IsNull(file_name_dart)) {
-    dart_error_ = DartUtils::NewDartOSError();
-    return false;
-  }
-  memmove(buffer, file_name, file_name_length);
-  Dart_Handle constructor_name = from_raw_path_string_;
-  Dart_Handle file = Dart_New(file_type_, constructor_name, 1, &file_name_dart);
+  Dart_Handle file_name_dart = DartUtils::NewString(file_name);
+  Dart_Handle file = Dart_New(file_type_, Dart_Null(), 1, &file_name_dart);
   Dart_Handle result = Dart_Invoke(results_, add_string_, 1, &file);
   if (Dart_IsError(result)) {
     dart_error_ = result;

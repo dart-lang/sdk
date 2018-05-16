@@ -11,7 +11,6 @@
 #include "bin/embedded_dart_io.h"
 #include "bin/io_buffer.h"
 #include "bin/namespace.h"
-#include "bin/path.h"
 #include "bin/utils.h"
 #include "include/dart_api.h"
 #include "include/dart_tools_api.h"
@@ -88,7 +87,7 @@ void FUNCTION_NAME(File_SetPointer)(Dart_NativeArguments args) {
 void FUNCTION_NAME(File_Open)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
   const char* filename =
-      Path::GetPath(Dart_GetNativeArgument(args, 1))->raw_path();
+      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
   int64_t mode = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
   File::DartFileOpenMode dart_file_mode =
       static_cast<File::DartFileOpenMode>(mode);
@@ -108,7 +107,7 @@ void FUNCTION_NAME(File_Open)(Dart_NativeArguments args) {
 void FUNCTION_NAME(File_Exists)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
   const char* filename =
-      Path::GetPath(Dart_GetNativeArgument(args, 1))->raw_path();
+      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
   bool exists = File::Exists(namespc, filename);
   Dart_SetBooleanReturnValue(args, exists);
 }
@@ -347,7 +346,7 @@ void FUNCTION_NAME(File_Length)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_LengthFromPath)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
-  const char* path = Path::GetPath(Dart_GetNativeArgument(args, 1))->raw_path();
+  const char* path = DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
   int64_t return_value = File::LengthFromPath(namespc, path);
   if (return_value >= 0) {
     Dart_SetIntegerReturnValue(args, return_value);
@@ -358,9 +357,8 @@ void FUNCTION_NAME(File_LengthFromPath)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_LastModified)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
-  const char* raw_name =
-      Path::GetPath(Dart_GetNativeArgument(args, 1))->raw_path();
-  int64_t return_value = File::LastModified(namespc, raw_name);
+  const char* name = DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
+  int64_t return_value = File::LastModified(namespc, name);
   if (return_value >= 0) {
     Dart_SetIntegerReturnValue(args, return_value * kMillisecondsPerSecond);
   } else {
@@ -370,7 +368,7 @@ void FUNCTION_NAME(File_LastModified)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_SetLastModified)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
-  const char* name = Path::GetPath(Dart_GetNativeArgument(args, 1))->raw_path();
+  const char* name = DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
   int64_t millis;
   if (!DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 2), &millis)) {
     Dart_ThrowException(DartUtils::NewDartArgumentError(
@@ -383,7 +381,7 @@ void FUNCTION_NAME(File_SetLastModified)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_LastAccessed)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
-  const char* name = Path::GetPath(Dart_GetNativeArgument(args, 1))->raw_path();
+  const char* name = DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
   int64_t return_value = File::LastAccessed(namespc, name);
   if (return_value >= 0) {
     Dart_SetIntegerReturnValue(args, return_value * kMillisecondsPerSecond);
@@ -394,7 +392,7 @@ void FUNCTION_NAME(File_LastAccessed)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_SetLastAccessed)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
-  const char* name = Path::GetPath(Dart_GetNativeArgument(args, 1))->raw_path();
+  const char* name = DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
   int64_t millis;
   if (!DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 2), &millis)) {
     Dart_ThrowException(DartUtils::NewDartArgumentError(
@@ -440,7 +438,7 @@ void FUNCTION_NAME(File_Lock)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_Create)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
-  const char* str = Path::GetPath(Dart_GetNativeArgument(args, 1))->raw_path();
+  const char* str = DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
   bool result = File::Create(namespc, str);
   if (result) {
     Dart_SetBooleanReturnValue(args, result);
@@ -451,9 +449,10 @@ void FUNCTION_NAME(File_Create)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_CreateLink)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
-  if (Dart_IsString(Dart_GetNativeArgument(args, 2))) {
+  if (Dart_IsString(Dart_GetNativeArgument(args, 1)) &&
+      Dart_IsString(Dart_GetNativeArgument(args, 2))) {
     const char* name =
-        Path::GetPath(Dart_GetNativeArgument(args, 1))->raw_path();
+        DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
     const char* target =
         DartUtils::GetStringValue(Dart_GetNativeArgument(args, 2));
     if (!File::CreateLink(namespc, name, target)) {
@@ -468,18 +467,25 @@ void FUNCTION_NAME(File_CreateLink)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_LinkTarget)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
-  const char* name = Path::GetPath(Dart_GetNativeArgument(args, 1))->raw_path();
-  const char* target = File::LinkTarget(namespc, name);
-  if (target == NULL) {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+  if (Dart_IsString(Dart_GetNativeArgument(args, 1))) {
+    const char* name =
+        DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
+    const char* target = File::LinkTarget(namespc, name);
+    if (target == NULL) {
+      Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+    } else {
+      Dart_SetReturnValue(args, DartUtils::NewString(target));
+    }
   } else {
-    Dart_SetReturnValue(args, DartUtils::NewString(target));
+    Dart_Handle err =
+        DartUtils::NewDartArgumentError("Non-string argument to Link.target");
+    Dart_SetReturnValue(args, err);
   }
 }
 
 void FUNCTION_NAME(File_Delete)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
-  const char* str = Path::GetPath(Dart_GetNativeArgument(args, 1))->raw_path();
+  const char* str = DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
   bool result = File::Delete(namespc, str);
   if (result) {
     Dart_SetBooleanReturnValue(args, result);
@@ -490,7 +496,7 @@ void FUNCTION_NAME(File_Delete)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_DeleteLink)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
-  const char* str = Path::GetPath(Dart_GetNativeArgument(args, 1))->raw_path();
+  const char* str = DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
   bool result = File::DeleteLink(namespc, str);
   if (result) {
     Dart_SetBooleanReturnValue(args, result);
@@ -502,7 +508,7 @@ void FUNCTION_NAME(File_DeleteLink)(Dart_NativeArguments args) {
 void FUNCTION_NAME(File_Rename)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
   const char* old_path =
-      Path::GetPath(Dart_GetNativeArgument(args, 1))->raw_path();
+      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
   const char* new_path =
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 2));
   bool result = File::Rename(namespc, old_path, new_path);
@@ -516,7 +522,7 @@ void FUNCTION_NAME(File_Rename)(Dart_NativeArguments args) {
 void FUNCTION_NAME(File_RenameLink)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
   const char* old_path =
-      Path::GetPath(Dart_GetNativeArgument(args, 1))->raw_path();
+      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
   const char* new_path =
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 2));
   bool result = File::RenameLink(namespc, old_path, new_path);
@@ -530,7 +536,7 @@ void FUNCTION_NAME(File_RenameLink)(Dart_NativeArguments args) {
 void FUNCTION_NAME(File_Copy)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
   const char* old_path =
-      Path::GetPath(Dart_GetNativeArgument(args, 1))->raw_path();
+      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
   const char* new_path =
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 2));
   bool result = File::Copy(namespc, old_path, new_path);
@@ -543,7 +549,7 @@ void FUNCTION_NAME(File_Copy)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_ResolveSymbolicLinks)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
-  const char* str = Path::GetPath(Dart_GetNativeArgument(args, 1))->raw_path();
+  const char* str = DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
   const char* path = File::GetCanonicalPath(namespc, str);
   if (path != NULL) {
     Dart_SetReturnValue(args, DartUtils::NewString(path));
@@ -569,10 +575,10 @@ void FUNCTION_NAME(File_GetStdioHandleType)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_GetType)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
-  if (Dart_IsList(Dart_GetNativeArgument(args, 1)) &&
+  if (Dart_IsString(Dart_GetNativeArgument(args, 1)) &&
       Dart_IsBoolean(Dart_GetNativeArgument(args, 2))) {
     const char* str =
-        DartUtils::GetRawStringValue(Dart_GetNativeArgument(args, 1));
+        DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
     bool follow_links =
         DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 2));
     File::Type type = File::GetType(namespc, str, follow_links);
@@ -755,12 +761,11 @@ CObject* File::ExistsRequest(const CObjectArray& request) {
   }
   Namespace* namespc = CObjectToNamespacePointer(request[0]);
   RefCntReleaseScope<Namespace> rs(namespc);
-  if ((request.Length() != 2) || !request[1]->IsUint8Array()) {
+  if ((request.Length() != 2) || !request[1]->IsString()) {
     return CObject::IllegalArgumentError();
   }
-  CObjectUint8Array filename(request[1]);
-  return CObject::Bool(
-      File::Exists(namespc, reinterpret_cast<const char*>(filename.Buffer())));
+  CObjectString filename(request[1]);
+  return CObject::Bool(File::Exists(namespc, filename.CString()));
 }
 
 CObject* File::CreateRequest(const CObjectArray& request) {
@@ -769,13 +774,12 @@ CObject* File::CreateRequest(const CObjectArray& request) {
   }
   Namespace* namespc = CObjectToNamespacePointer(request[0]);
   RefCntReleaseScope<Namespace> rs(namespc);
-  if ((request.Length() != 2) || !request[1]->IsUint8Array()) {
+  if ((request.Length() != 2) || !request[1]->IsString()) {
     return CObject::IllegalArgumentError();
   }
-  CObjectUint8Array filename(request[1]);
-  return File::Create(namespc, reinterpret_cast<const char*>(filename.Buffer()))
-             ? CObject::True()
-             : CObject::NewOSError();
+  CObjectString filename(request[1]);
+  return File::Create(namespc, filename.CString()) ? CObject::True()
+                                                   : CObject::NewOSError();
 }
 
 CObject* File::OpenRequest(const CObjectArray& request) {
@@ -784,17 +788,16 @@ CObject* File::OpenRequest(const CObjectArray& request) {
   }
   Namespace* namespc = CObjectToNamespacePointer(request[0]);
   RefCntReleaseScope<Namespace> rs(namespc);
-  if ((request.Length() != 3) || !request[1]->IsUint8Array() ||
+  if ((request.Length() != 3) || !request[1]->IsString() ||
       !request[2]->IsInt32()) {
     return CObject::IllegalArgumentError();
   }
-  CObjectUint8Array filename(request[1]);
+  CObjectString filename(request[1]);
   CObjectInt32 mode(request[2]);
   File::DartFileOpenMode dart_file_mode =
       static_cast<File::DartFileOpenMode>(mode.Value());
   File::FileOpenMode file_mode = File::DartModeToFileMode(dart_file_mode);
-  File* file = File::Open(
-      namespc, reinterpret_cast<const char*>(filename.Buffer()), file_mode);
+  File* file = File::Open(namespc, filename.CString(), file_mode);
   if (file == NULL) {
     return CObject::NewOSError();
   }
@@ -808,13 +811,12 @@ CObject* File::DeleteRequest(const CObjectArray& request) {
   }
   Namespace* namespc = CObjectToNamespacePointer(request[0]);
   RefCntReleaseScope<Namespace> rs(namespc);
-  if ((request.Length() != 2) || !request[1]->IsUint8Array()) {
+  if ((request.Length() != 2) || !request[1]->IsString()) {
     return CObject::False();
   }
-  CObjectUint8Array filename(request[1]);
-  return File::Delete(namespc, reinterpret_cast<const char*>(filename.Buffer()))
-             ? CObject::True()
-             : CObject::NewOSError();
+  CObjectString filename(request[1]);
+  return File::Delete(namespc, filename.CString()) ? CObject::True()
+                                                   : CObject::NewOSError();
 }
 
 CObject* File::RenameRequest(const CObjectArray& request) {
@@ -823,14 +825,13 @@ CObject* File::RenameRequest(const CObjectArray& request) {
   }
   Namespace* namespc = CObjectToNamespacePointer(request[0]);
   RefCntReleaseScope<Namespace> rs(namespc);
-  if ((request.Length() != 3) || !request[1]->IsUint8Array() ||
+  if ((request.Length() != 3) || !request[1]->IsString() ||
       !request[2]->IsString()) {
     return CObject::IllegalArgumentError();
   }
-  CObjectUint8Array old_path(request[1]);
+  CObjectString old_path(request[1]);
   CObjectString new_path(request[2]);
-  return File::Rename(namespc, reinterpret_cast<const char*>(old_path.Buffer()),
-                      new_path.CString())
+  return File::Rename(namespc, old_path.CString(), new_path.CString())
              ? CObject::True()
              : CObject::NewOSError();
 }
@@ -841,14 +842,13 @@ CObject* File::CopyRequest(const CObjectArray& request) {
   }
   Namespace* namespc = CObjectToNamespacePointer(request[0]);
   RefCntReleaseScope<Namespace> rs(namespc);
-  if ((request.Length() != 3) || !request[1]->IsUint8Array() ||
+  if ((request.Length() != 3) || !request[1]->IsString() ||
       !request[2]->IsString()) {
     return CObject::IllegalArgumentError();
   }
-  CObjectUint8Array old_path(request[1]);
+  CObjectString old_path(request[1]);
   CObjectString new_path(request[2]);
-  return File::Copy(namespc, reinterpret_cast<const char*>(old_path.Buffer()),
-                    new_path.CString())
+  return File::Copy(namespc, old_path.CString(), new_path.CString())
              ? CObject::True()
              : CObject::NewOSError();
 }
@@ -859,12 +859,11 @@ CObject* File::ResolveSymbolicLinksRequest(const CObjectArray& request) {
   }
   Namespace* namespc = CObjectToNamespacePointer(request[0]);
   RefCntReleaseScope<Namespace> rs(namespc);
-  if ((request.Length() != 2) || !request[1]->IsUint8Array()) {
+  if ((request.Length() != 2) || !request[1]->IsString()) {
     return CObject::IllegalArgumentError();
   }
-  CObjectUint8Array filename(request[1]);
-  const char* result = File::GetCanonicalPath(
-      namespc, reinterpret_cast<const char*>(filename.Buffer()));
+  CObjectString filename(request[1]);
+  const char* result = File::GetCanonicalPath(namespc, filename.CString());
   if (result == NULL) {
     return CObject::NewOSError();
   }
@@ -961,12 +960,12 @@ CObject* File::LengthFromPathRequest(const CObjectArray& request) {
   }
   Namespace* namespc = CObjectToNamespacePointer(request[0]);
   RefCntReleaseScope<Namespace> rs(namespc);
-  if ((request.Length() != 2) || !request[1]->IsUint8Array()) {
+  if ((request.Length() != 2) || !request[1]->IsString()) {
     return CObject::IllegalArgumentError();
   }
-  CObjectUint8Array filepath(request[1]);
-  const int64_t return_value = File::LengthFromPath(
-      namespc, reinterpret_cast<const char*>(filepath.Buffer()));
+  CObjectString filepath(request[1]);
+  const int64_t return_value =
+      File::LengthFromPath(namespc, filepath.CString());
   if (return_value < 0) {
     return CObject::NewOSError();
   }
@@ -979,12 +978,11 @@ CObject* File::LastAccessedRequest(const CObjectArray& request) {
   }
   Namespace* namespc = CObjectToNamespacePointer(request[0]);
   RefCntReleaseScope<Namespace> rs(namespc);
-  if ((request.Length() != 2) || !request[1]->IsUint8Array()) {
+  if ((request.Length() != 2) || !request[1]->IsString()) {
     return CObject::IllegalArgumentError();
   }
-  CObjectUint8Array filepath(request[1]);
-  const int64_t return_value = File::LastAccessed(
-      namespc, reinterpret_cast<const char*>(filepath.Buffer()));
+  CObjectString filepath(request[1]);
+  const int64_t return_value = File::LastAccessed(namespc, filepath.CString());
   if (return_value < 0) {
     return CObject::NewOSError();
   }
@@ -998,14 +996,13 @@ CObject* File::SetLastAccessedRequest(const CObjectArray& request) {
   }
   Namespace* namespc = CObjectToNamespacePointer(request[0]);
   RefCntReleaseScope<Namespace> rs(namespc);
-  if ((request.Length() != 3) || !request[1]->IsUint8Array() ||
+  if ((request.Length() != 3) || !request[1]->IsString() ||
       !request[2]->IsInt32OrInt64()) {
     return CObject::IllegalArgumentError();
   }
-  CObjectUint8Array filepath(request[1]);
+  CObjectString filepath(request[1]);
   const int64_t millis = CObjectInt32OrInt64ToInt64(request[2]);
-  return File::SetLastAccessed(
-             namespc, reinterpret_cast<const char*>(filepath.Buffer()), millis)
+  return File::SetLastAccessed(namespc, filepath.CString(), millis)
              ? CObject::Null()
              : CObject::NewOSError();
 }
@@ -1016,12 +1013,11 @@ CObject* File::LastModifiedRequest(const CObjectArray& request) {
   }
   Namespace* namespc = CObjectToNamespacePointer(request[0]);
   RefCntReleaseScope<Namespace> rs(namespc);
-  if ((request.Length() != 2) || !request[1]->IsUint8Array()) {
+  if ((request.Length() != 2) || !request[1]->IsString()) {
     return CObject::IllegalArgumentError();
   }
-  CObjectUint8Array filepath(request[1]);
-  const int64_t return_value = File::LastModified(
-      namespc, reinterpret_cast<const char*>(filepath.Buffer()));
+  CObjectString filepath(request[1]);
+  const int64_t return_value = File::LastModified(namespc, filepath.CString());
   if (return_value < 0) {
     return CObject::NewOSError();
   }
@@ -1035,14 +1031,13 @@ CObject* File::SetLastModifiedRequest(const CObjectArray& request) {
   }
   Namespace* namespc = CObjectToNamespacePointer(request[0]);
   RefCntReleaseScope<Namespace> rs(namespc);
-  if ((request.Length() != 3) || !request[1]->IsUint8Array() ||
+  if ((request.Length() != 3) || !request[1]->IsString() ||
       !request[2]->IsInt32OrInt64()) {
     return CObject::IllegalArgumentError();
   }
-  CObjectUint8Array filepath(request[1]);
+  CObjectString filepath(request[1]);
   const int64_t millis = CObjectInt32OrInt64ToInt64(request[2]);
-  return File::SetLastModified(
-             namespc, reinterpret_cast<const char*>(filepath.Buffer()), millis)
+  return File::SetLastModified(namespc, filepath.CString(), millis)
              ? CObject::Null()
              : CObject::NewOSError();
 }
@@ -1235,14 +1230,12 @@ CObject* File::CreateLinkRequest(const CObjectArray& request) {
   }
   Namespace* namespc = CObjectToNamespacePointer(request[0]);
   RefCntReleaseScope<Namespace> rs(namespc);
-  if (!request[1]->IsUint8Array() || !request[2]->IsString()) {
+  if (!request[1]->IsString() || !request[2]->IsString()) {
     return CObject::IllegalArgumentError();
   }
-  CObjectUint8Array link_name(request[1]);
+  CObjectString link_name(request[1]);
   CObjectString target_name(request[2]);
-  return File::CreateLink(namespc,
-                          reinterpret_cast<const char*>(link_name.Buffer()),
-                          target_name.CString())
+  return File::CreateLink(namespc, link_name.CString(), target_name.CString())
              ? CObject::True()
              : CObject::NewOSError();
 }
@@ -1253,14 +1246,12 @@ CObject* File::DeleteLinkRequest(const CObjectArray& request) {
   }
   Namespace* namespc = CObjectToNamespacePointer(request[0]);
   RefCntReleaseScope<Namespace> rs(namespc);
-  if (!request[1]->IsUint8Array()) {
+  if (!request[1]->IsString()) {
     return CObject::IllegalArgumentError();
   }
-  CObjectUint8Array link_path(request[1]);
-  return File::DeleteLink(namespc,
-                          reinterpret_cast<const char*>(link_path.Buffer()))
-             ? CObject::True()
-             : CObject::NewOSError();
+  CObjectString link_path(request[1]);
+  return File::DeleteLink(namespc, link_path.CString()) ? CObject::True()
+                                                        : CObject::NewOSError();
 }
 
 CObject* File::RenameLinkRequest(const CObjectArray& request) {
@@ -1269,14 +1260,12 @@ CObject* File::RenameLinkRequest(const CObjectArray& request) {
   }
   Namespace* namespc = CObjectToNamespacePointer(request[0]);
   RefCntReleaseScope<Namespace> rs(namespc);
-  if (!request[1]->IsUint8Array() || !request[2]->IsString()) {
+  if (!request[1]->IsString() || !request[2]->IsString()) {
     return CObject::IllegalArgumentError();
   }
-  CObjectUint8Array old_path(request[1]);
+  CObjectString old_path(request[1]);
   CObjectString new_path(request[2]);
-  return File::RenameLink(namespc,
-                          reinterpret_cast<const char*>(old_path.Buffer()),
-                          new_path.CString())
+  return File::RenameLink(namespc, old_path.CString(), new_path.CString())
              ? CObject::True()
              : CObject::NewOSError();
 }
@@ -1287,12 +1276,11 @@ CObject* File::LinkTargetRequest(const CObjectArray& request) {
   }
   Namespace* namespc = CObjectToNamespacePointer(request[0]);
   RefCntReleaseScope<Namespace> rs(namespc);
-  if (!request[1]->IsUint8Array()) {
+  if (!request[1]->IsString()) {
     return CObject::IllegalArgumentError();
   }
-  CObjectUint8Array link_path(request[1]);
-  const char* target = File::LinkTarget(
-      namespc, reinterpret_cast<const char*>(link_path.Buffer()));
+  CObjectString link_path(request[1]);
+  const char* target = File::LinkTarget(namespc, link_path.CString());
   if (target == NULL) {
     return CObject::NewOSError();
   }
@@ -1305,14 +1293,13 @@ CObject* File::TypeRequest(const CObjectArray& request) {
   }
   Namespace* namespc = CObjectToNamespacePointer(request[0]);
   RefCntReleaseScope<Namespace> rs(namespc);
-  if (!request[1]->IsUint8Array() || !request[2]->IsBool()) {
+  if (!request[1]->IsString() || !request[2]->IsBool()) {
     return CObject::IllegalArgumentError();
   }
-  CObjectUint8Array path(request[1]);
+  CObjectString path(request[1]);
   CObjectBool follow_links(request[2]);
   File::Type type =
-      File::GetType(namespc, reinterpret_cast<const char*>(path.Buffer()),
-                    follow_links.Value());
+      File::GetType(namespc, path.CString(), follow_links.Value());
   return new CObjectInt32(CObject::NewInt32(type));
 }
 

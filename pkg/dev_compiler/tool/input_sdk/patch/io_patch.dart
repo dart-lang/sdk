@@ -21,7 +21,7 @@ class _Directory {
   }
 
   @patch
-  static _createTemp(_Namespace namespace, _Path path) {
+  static _createTemp(_Namespace namespace, String path) {
     throw new UnsupportedError("Directory._createTemp");
   }
 
@@ -31,22 +31,22 @@ class _Directory {
   }
 
   @patch
-  static _exists(_Namespace namespace, _Path path) {
+  static _exists(_Namespace namespace, String path) {
     throw new UnsupportedError("Directory._exists");
   }
 
   @patch
-  static _create(_Namespace namespace, _Path path) {
+  static _create(_Namespace namespace, String path) {
     throw new UnsupportedError("Directory._create");
   }
 
   @patch
-  static _deleteNative(_Namespace namespace, _Path path, bool recursive) {
+  static _deleteNative(_Namespace namespace, String path, bool recursive) {
     throw new UnsupportedError("Directory._deleteNative");
   }
 
   @patch
-  static _rename(_Namespace namespace, _Path path, String newPath) {
+  static _rename(_Namespace namespace, String path, String newPath) {
     throw new UnsupportedError("Directory._rename");
   }
 
@@ -54,7 +54,7 @@ class _Directory {
   static void _fillWithDirectoryListing(
       _Namespace namespace,
       List<FileSystemEntity> list,
-      _Path path,
+      String path,
       bool recursive,
       bool followLinks) {
     throw new UnsupportedError("Directory._fillWithDirectoryListing");
@@ -88,8 +88,7 @@ class FileStat {
 @patch
 class FileSystemEntity {
   @patch
-  static _getTypeNative(
-      _Namespace namespace, Uint8List path, bool followLinks) {
+  static _getTypeNative(_Namespace namespace, String path, bool followLinks) {
     throw new UnsupportedError("FileSystemEntity._getType");
   }
 
@@ -99,7 +98,7 @@ class FileSystemEntity {
   }
 
   @patch
-  static _resolveSymbolicLinks(_Namespace namespace, _Path path) {
+  static _resolveSymbolicLinks(_Namespace namespace, String path) {
     throw new UnsupportedError("FileSystemEntity._resolveSymbolicLinks");
   }
 }
@@ -107,77 +106,77 @@ class FileSystemEntity {
 @patch
 class _File {
   @patch
-  static _exists(_Namespace namespace, _Path path) {
+  static _exists(_Namespace namespace, String path) {
     throw new UnsupportedError("File._exists");
   }
 
   @patch
-  static _create(_Namespace namespace, _Path path) {
+  static _create(_Namespace namespace, String path) {
     throw new UnsupportedError("File._create");
   }
 
   @patch
-  static _createLink(_Namespace namespace, _Path path, String target) {
+  static _createLink(_Namespace namespace, String path, String target) {
     throw new UnsupportedError("File._createLink");
   }
 
   @patch
-  static _linkTarget(_Namespace namespace, _Path path) {
+  static _linkTarget(_Namespace namespace, String path) {
     throw new UnsupportedError("File._linkTarget");
   }
 
   @patch
-  static _deleteNative(_Namespace namespace, _Path path) {
+  static _deleteNative(_Namespace namespace, String path) {
     throw new UnsupportedError("File._deleteNative");
   }
 
   @patch
-  static _deleteLinkNative(_Namespace namespace, _Path path) {
+  static _deleteLinkNative(_Namespace namespace, String path) {
     throw new UnsupportedError("File._deleteLinkNative");
   }
 
   @patch
-  static _rename(_Namespace namespace, _Path oldPath, String newPath) {
+  static _rename(_Namespace namespace, String oldPath, String newPath) {
     throw new UnsupportedError("File._rename");
   }
 
   @patch
-  static _renameLink(_Namespace namespace, _Path oldPath, String newPath) {
+  static _renameLink(_Namespace namespace, String oldPath, String newPath) {
     throw new UnsupportedError("File._renameLink");
   }
 
   @patch
-  static _copy(_Namespace namespace, _Path oldPath, String newPath) {
+  static _copy(_Namespace namespace, String oldPath, String newPath) {
     throw new UnsupportedError("File._copy");
   }
 
   @patch
-  static _lengthFromPath(_Namespace namespace, _Path path) {
+  static _lengthFromPath(_Namespace namespace, String path) {
     throw new UnsupportedError("File._lengthFromPath");
   }
 
   @patch
-  static _lastModified(_Namespace namespace, _Path path) {
+  static _lastModified(_Namespace namespace, String path) {
     throw new UnsupportedError("File._lastModified");
   }
 
   @patch
-  static _lastAccessed(_Namespace namespace, _Path path) {
+  static _lastAccessed(_Namespace namespace, String path) {
     throw new UnsupportedError("File._lastAccessed");
   }
 
   @patch
-  static _setLastModified(_Namespace namespace, _Path path, int millis) {
+  static _setLastModified(_Namespace namespace, String path, int millis) {
     throw new UnsupportedError("File._setLastModified");
   }
 
   @patch
-  static _setLastAccessed(_Namespace namespace, _Path path, int millis) {
+  static _setLastAccessed(_Namespace namespace, String path, int millis) {
     throw new UnsupportedError("File._setLastAccessed");
   }
 
   @patch
-  static _open(_Namespace namespace, _Path path, int mode) {
+  static _open(_Namespace namespace, String path, int mode) {
     throw new UnsupportedError("File._open");
   }
 
@@ -658,21 +657,6 @@ class _FileSystemWatcher {
   static bool get isSupported {
     throw new UnsupportedError("_FileSystemWatcher.isSupported");
   }
-}
-
-@patch
-class _Path {
-  @patch
-  factory _Path.fromRawPath(Uint8List rawPath) {
-    throw new UnsupportedError("_Path.fromRawPath");
-  }
-
-  @patch
-  factory _Path(String path) {
-    throw new UnsupportedError("_Path");
-  }
-
-  Uint8List get _rawPath;
 }
 
 @patch

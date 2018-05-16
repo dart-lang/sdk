@@ -9,28 +9,27 @@ class _Directory {
   @patch
   static _current(_Namespace namespace) native "Directory_Current";
   @patch
-  static _setCurrent(_Namespace namespace, _Path path)
-      native "Directory_SetCurrent";
+  static _setCurrent(_Namespace namespace, path) native "Directory_SetCurrent";
   @patch
-  static _createTemp(_Namespace namespace, _Path path)
+  static _createTemp(_Namespace namespace, String path)
       native "Directory_CreateTemp";
   @patch
   static String _systemTemp(_Namespace namespace) native "Directory_SystemTemp";
   @patch
-  static _exists(_Namespace namespace, _Path path) native "Directory_Exists";
+  static _exists(_Namespace namespace, String path) native "Directory_Exists";
   @patch
-  static _create(_Namespace namespace, _Path path) native "Directory_Create";
+  static _create(_Namespace namespace, String path) native "Directory_Create";
   @patch
-  static _deleteNative(_Namespace namespace, _Path path, bool recursive)
+  static _deleteNative(_Namespace namespace, String path, bool recursive)
       native "Directory_Delete";
   @patch
-  static _rename(_Namespace namespace, _Path path, String newPath)
+  static _rename(_Namespace namespace, String path, String newPath)
       native "Directory_Rename";
   @patch
   static void _fillWithDirectoryListing(
       _Namespace namespace,
       List<FileSystemEntity> list,
-      _Path path,
+      String path,
       bool recursive,
       bool followLinks) native "Directory_FillWithDirectoryListing";
 }
