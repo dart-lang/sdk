@@ -4,7 +4,7 @@
 
 declare_args() {
   # The optimization level to use for debug builds.
-  if (is_android) {
+  if (is_android || is_chromecast) {
     # On Android we kind of optimize some things that don't affect debugging
     # much even when optimization is disabled to get the binary size down.
     debug_optimization_level = "s"
@@ -396,6 +396,15 @@ config("compiler_arm_thumb") {
   }
 }
 
+config("compiler_arm") {
+  if (current_cpu == "arm" && is_chromeos) {
+    # arm is normally the default mode for clang, but on chromeos, a wrapper
+    # is used to pass -mthumb, making the default thumb. Need to pass -marm
+    # explicity to override this.
+    cflags = [ "-marm" ]
+  }
+}
+
 # runtime_library -------------------------------------------------------------
 #
 # Sets the runtime library and associated options.
@@ -522,7 +531,7 @@ if (is_win) {
     "-Wno-unused-parameter",  # Unused function parameters.
   ]
 
-  if (is_clang) {
+  if (is_clang && !is_chromeos) {
     default_warning_flags += [ "-Wno-tautological-constant-compare" ]
   }
 
@@ -710,7 +719,7 @@ config("optimize") {
     # Favor size over speed, /O1 must be before the common flags. The GYP
     # build also specifies /Os and /GF but these are implied by /O1.
     cflags = [ "/O2" ] + common_optimize_on_cflags + [ "/Oi" ]
-  } else if (is_android) {
+  } else if (is_android || is_chromecast) {
     cflags = [ "-Os" ] + common_optimize_on_cflags  # Favor size over speed.
   } else {
     cflags = [ "-O3" ] + common_optimize_on_cflags
