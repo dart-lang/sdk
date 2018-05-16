@@ -240,8 +240,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         ignoreMainInGetMainClosure = library.uri.scheme == 'dart' &&
             (library.uri.path == "_builtin" || library.uri.path == "ui"),
         needsImplicitSuperInitializer =
-            coreTypes.objectClass != classBuilder?.cls,
-        typePromoter = _typeInferrer.typePromoter,
+            coreTypes?.objectClass != classBuilder?.cls,
+        typePromoter = _typeInferrer?.typePromoter,
         super(scope);
 
   bool get hasParserError => recoverableErrors.isNotEmpty;
@@ -454,7 +454,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       if (expression is Identifier) {
         Identifier identifier = expression;
         expression = new UnresolvedAccessor(
-            this, new Name(identifier.name, library.library), identifier.token);
+            this, identifier.token, new Name(identifier.name, library.library));
       }
       if (name?.isNotEmpty ?? false) {
         Token period = periodBeforeName ?? beginToken.next;
@@ -919,7 +919,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   void handleParenthesizedExpression(Token token) {
     debugEvent("ParenthesizedExpression");
     push(new ParenthesizedExpression(
-        this, toKernelExpression(popForValue()), token.endGroup));
+        this, token.endGroup, toKernelExpression(popForValue())));
   }
 
   @override
@@ -1387,7 +1387,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       if (!isQualified && isInstanceContext) {
         assert(builder == null);
         if (constantContext != ConstantContext.none || member.isField) {
-          return new UnresolvedAccessor(this, n, token);
+          return new UnresolvedAccessor(this, token, n);
         }
         return new ThisPropertyAccessGenerator(this, token, n,
             lookupInstanceMember(n), lookupInstanceMember(n, isSetter: true));
@@ -1396,7 +1396,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
           member?.name == "_getMainClosure") {
         return storeOffset(forest.literalNull(null), charOffset);
       } else {
-        return new UnresolvedAccessor(this, n, token);
+        return new UnresolvedAccessor(this, token, n);
       }
     } else if (builder.isTypeDeclaration) {
       if (constantContext != ConstantContext.none &&
@@ -1406,7 +1406,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
             charOffset, "Not a constant expression.");
       }
       TypeDeclarationAccessor accessor = new TypeDeclarationAccessor(
-          this, prefix, charOffset, builder, name, token);
+          this, token, prefix, charOffset, builder, name);
       return (prefix?.deferred == true)
           ? new DeferredAccessor(this, token, prefix, accessor)
           : accessor;
@@ -1427,10 +1427,10 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         var scope = typePromoter.currentScope;
         return new ReadOnlyAccessor(
             this,
+            token,
             new ShadowVariableGet(builder.target, fact, scope)
               ..fileOffset = charOffset,
-            name,
-            token);
+            name);
       } else {
         return new VariableUseGenerator(this, token, builder.target);
       }
@@ -2560,7 +2560,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
             ? "${prefix.plainNameForRead}.${identifier.name}"
             : "${prefix.plainNameForRead}.${identifier.name}.$suffix";
         type = new UnresolvedAccessor(
-            this, new Name(name, library.library), prefix.token);
+            this, prefix.token, new Name(name, library.library));
       } else {
         unhandled("${prefix.runtimeType}", "pushQualifiedReference",
             start.charOffset, uri);
@@ -4273,6 +4273,8 @@ class DelayedAssignment<Arguments> extends ContextAccessor<Arguments> {
       Token token, FastaAccessor accessor, this.value, this.assignmentOperator)
       : super(helper, token, accessor);
 
+  String get debugName => "DelayedAssignment";
+
   kernel.Expression buildSimpleRead() {
     return handleAssignment(false);
   }
@@ -4339,6 +4341,14 @@ class DelayedAssignment<Arguments> extends ContextAccessor<Arguments> {
     return helper.buildFieldInitializer(
         false, accessor.plainNameForRead, offsetForToken(token), value);
   }
+
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", value: ");
+    printNodeOn(value, sink);
+    sink.write(", assignmentOperator: ");
+    sink.write(assignmentOperator);
+  }
 }
 
 class DelayedPostfixIncrement<Arguments> extends ContextAccessor<Arguments> {
@@ -4354,6 +4364,8 @@ class DelayedPostfixIncrement<Arguments> extends ContextAccessor<Arguments> {
       this.interfaceTarget)
       : super(helper, token, accessor);
 
+  String get debugName => "DelayedPostfixIncrement";
+
   kernel.Expression buildSimpleRead() {
     return accessor.buildPostfixIncrement(binaryOperator,
         offset: offsetForToken(token),
@@ -4366,6 +4378,14 @@ class DelayedPostfixIncrement<Arguments> extends ContextAccessor<Arguments> {
         offset: offsetForToken(token),
         voidContext: true,
         interfaceTarget: interfaceTarget);
+  }
+
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", binaryOperator: ");
+    sink.write(binaryOperator.name);
+    sink.write(", interfaceTarget: ");
+    printQualifiedNameOn(interfaceTarget, sink);
   }
 }
 

@@ -150,6 +150,8 @@ abstract class FastaAccessor<Arguments> implements Accessor<Arguments> {
 
   String get plainNameForRead;
 
+  String get debugName;
+
   Uri get uri => helper.uri;
 
   String get plainNameForWrite => plainNameForRead;
@@ -232,6 +234,18 @@ abstract class FastaAccessor<Arguments> implements Accessor<Arguments> {
   @override
   ShadowComplexAssignment startComplexAssignment(kernel.Expression rhs) =>
       new ShadowIllegalAssignment(rhs);
+
+  void printOn(StringSink sink);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer();
+    buffer.write(debugName);
+    buffer.write("(offset: ");
+    buffer.write("${offsetForToken(token)}");
+    printOn(buffer);
+    buffer.write(")");
+    return "$buffer";
+  }
 }
 
 abstract class GeneratorImpl {
@@ -395,6 +409,8 @@ class ThisAccessor<Arguments> extends FastaAccessor<Arguments>
         offsetForToken(token), uri);
   }
 
+  String get debugName => "ThisAccessor";
+
   kernel.Expression buildSimpleRead() {
     if (!isSuper) {
       return forest.thisExpression(token);
@@ -532,9 +548,12 @@ class ThisAccessor<Arguments> extends FastaAccessor<Arguments>
         message, offsetForToken(token));
   }
 
-  toString() {
-    int offset = offsetForToken(token);
-    return "ThisAccessor($offset${isSuper ? ', super' : ''})";
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", isInitializer: ");
+    sink.write(isInitializer);
+    sink.write(", isSuper: ");
+    sink.write(isSuper);
   }
 }
 
@@ -552,6 +571,12 @@ abstract class IncompleteSend<Arguments> extends FastaAccessor<Arguments>
   withReceiver(Object receiver, int operatorOffset, {bool isNullAware});
 
   Arguments get arguments => null;
+
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", name: ");
+    sink.write(name.name);
+  }
 }
 
 class IncompleteError<Arguments> extends IncompleteSend<Arguments>
@@ -561,6 +586,8 @@ class IncompleteError<Arguments> extends IncompleteSend<Arguments>
   IncompleteError(BuilderHelper<dynamic, dynamic, Arguments> helper,
       Token token, this.message)
       : super(helper, token, null);
+
+  String get debugName => "IncompleteError";
 
   @override
   kernel.Expression buildError(Arguments arguments,
@@ -585,6 +612,12 @@ class IncompleteError<Arguments> extends IncompleteSend<Arguments>
 
   @override
   doInvocation(int offset, Arguments arguments) => this;
+
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", message: ");
+    sink.write(message.code.name);
+  }
 }
 
 class SendAccessor<Arguments> extends IncompleteSend<Arguments> {
@@ -598,6 +631,8 @@ class SendAccessor<Arguments> extends IncompleteSend<Arguments> {
   }
 
   String get plainNameForRead => name.name;
+
+  String get debugName => "SendAccessor";
 
   kernel.Expression buildSimpleRead() {
     return unsupported("buildSimpleRead", offsetForToken(token), uri);
@@ -661,9 +696,16 @@ class SendAccessor<Arguments> extends IncompleteSend<Arguments> {
     return unsupported("doInvocation", offset, uri);
   }
 
-  toString() {
-    int offset = offsetForToken(token);
-    return "SendAccessor($offset, $name, $arguments)";
+  @override
+  void printOn(StringSink sink) {
+    super.printOn(sink);
+    sink.write(", arguments: ");
+    var node = arguments;
+    if (node is kernel.Node) {
+      printNodeOn(node, sink);
+    } else {
+      sink.write(node);
+    }
   }
 }
 
@@ -673,6 +715,8 @@ class IncompletePropertyAccessor<Arguments> extends IncompleteSend<Arguments> {
       : super(helper, token, name);
 
   String get plainNameForRead => name.name;
+
+  String get debugName => "IncompletePropertyAccessor";
 
   kernel.Expression buildSimpleRead() {
     return unsupported("buildSimpleRead", offsetForToken(token), uri);
@@ -734,11 +778,6 @@ class IncompletePropertyAccessor<Arguments> extends IncompleteSend<Arguments> {
   kernel.Expression doInvocation(int offset, Arguments arguments) {
     return unsupported("doInvocation", offset, uri);
   }
-
-  toString() {
-    int offset = offsetForToken(token);
-    return "IncompletePropertyAccessor($offset, $name)";
-  }
 }
 
 class DeferredAccessor<Arguments> extends _DeferredAccessor<Arguments>
@@ -751,6 +790,8 @@ class DeferredAccessor<Arguments> extends _DeferredAccessor<Arguments>
     return unsupported(
         "deferredAccessor.plainNameForRead", offsetForToken(token), uri);
   }
+
+  String get debugName => "DeferredAccessor";
 
   FastaAccessor get accessor => super.accessor;
 
@@ -783,6 +824,14 @@ class DeferredAccessor<Arguments> extends _DeferredAccessor<Arguments>
     return helper.wrapInDeferredCheck(
         accessor.doInvocation(offset, arguments), builder, token.charOffset);
   }
+
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", builder: ");
+    sink.write(builder);
+    sink.write(", accessor: ");
+    sink.write(accessor);
+  }
 }
 
 int adjustForImplicitCall(String name, int offset) {
@@ -796,23 +845,34 @@ class ReadOnlyAccessor<Arguments> extends _ReadOnlyAccessor<Arguments>
   final String plainNameForRead;
 
   ReadOnlyAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      kernel.Expression expression, this.plainNameForRead, Token token)
+      Token token, kernel.Expression expression, this.plainNameForRead)
       : super(helper, expression, token);
+
+  String get debugName => "ReadOnlyAccessor";
 
   kernel.Expression doInvocation(int offset, Arguments arguments) {
     return helper.buildMethodInvocation(buildSimpleRead(), callName, arguments,
         adjustForImplicitCall(plainNameForRead, offset),
         isImplicitCall: true);
   }
+
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", plainNameForRead: ");
+    sink.write(plainNameForRead);
+  }
 }
 
 class LargeIntAccessor<Arguments> extends _DelayedErrorAccessor<Arguments>
     with FastaAccessor<Arguments> {
-  final String plainNameForRead = null;
-
   LargeIntAccessor(
       BuilderHelper<dynamic, dynamic, Arguments> helper, Token token)
       : super(helper, token);
+
+  // TODO(ahe): This should probably be calling unhandled.
+  String get plainNameForRead => null;
+
+  String get debugName => "LargeIntAccessor";
 
   @override
   kernel.Expression buildError() {
@@ -824,12 +884,17 @@ class LargeIntAccessor<Arguments> extends _DelayedErrorAccessor<Arguments>
 
   kernel.Expression doInvocation(int offset, Arguments arguments) =>
       buildError();
+
+  @override
+  void printOn(StringSink sink) {}
 }
 
 class ParenthesizedExpression<Arguments> extends ReadOnlyAccessor<Arguments> {
   ParenthesizedExpression(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      kernel.Expression expression, Token token)
-      : super(helper, expression, null, token);
+      Token token, kernel.Expression expression)
+      : super(helper, token, expression, null);
+
+  String get debugName => "ParenthesizedExpression";
 
   kernel.Expression makeInvalidWrite(kernel.Expression value) {
     return helper.deprecated_buildCompileTimeError(
@@ -850,12 +915,14 @@ class TypeDeclarationAccessor<Arguments> extends ReadOnlyAccessor<Arguments> {
 
   TypeDeclarationAccessor(
       BuilderHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
       this.prefix,
       this.declarationReferenceOffset,
       this.declaration,
-      String plainNameForRead,
-      Token token)
-      : super(helper, null, plainNameForRead, token);
+      String plainNameForRead)
+      : super(helper, token, null, plainNameForRead);
+
+  String get debugName => "TypeDeclarationAccessor";
 
   kernel.Expression get expression {
     if (super.expression == null) {
@@ -903,7 +970,7 @@ class TypeDeclarationAccessor<Arguments> extends ReadOnlyAccessor<Arguments> {
       if (builder == null) {
         // If we find a setter, [builder] is an [AccessErrorBuilder], not null.
         if (send is IncompletePropertyAccessor) {
-          accessor = new UnresolvedAccessor(helper, name, send.token);
+          accessor = new UnresolvedAccessor(helper, send.token, name);
         } else {
           return helper.buildConstructorInvocation(declaration, send.token,
               arguments, name.name, null, token.charOffset, Constness.implicit);
@@ -1001,7 +1068,9 @@ class UnresolvedAccessor<Arguments> extends FastaAccessor<Arguments>
   @override
   final Name name;
 
-  UnresolvedAccessor(this.helper, this.name, this.token);
+  UnresolvedAccessor(this.helper, this.token, this.name);
+
+  String get debugName => "UnresolvedAccessor";
 
   kernel.Expression doInvocation(int charOffset, Arguments arguments) {
     return buildError(arguments, offset: charOffset);
@@ -1028,6 +1097,12 @@ class UnresolvedAccessor<Arguments> extends FastaAccessor<Arguments>
         offset,
         isGetter: isGetter,
         isSetter: isSetter);
+  }
+
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", name: ");
+    sink.write(name.name);
   }
 }
 

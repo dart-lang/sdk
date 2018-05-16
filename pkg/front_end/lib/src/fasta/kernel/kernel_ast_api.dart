@@ -38,6 +38,7 @@ export 'package:kernel/ast.dart'
         Name,
         NamedExpression,
         NamedType,
+        Node,
         Procedure,
         ProcedureKind,
         PropertySet,

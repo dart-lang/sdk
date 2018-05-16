@@ -43,6 +43,8 @@ import 'forest.dart' show Forest;
 
 import 'kernel_builder.dart' show LoadLibraryBuilder, PrefixBuilder;
 
+import 'kernel_api.dart' show NameSystem, printNodeOn, printQualifiedNameOn;
+
 import 'kernel_ast_api.dart'
     show
         Constructor,
@@ -82,7 +84,7 @@ import 'kernel_ast_api.dart'
         VariableGet,
         VariableSet;
 
-import 'kernel_ast_api.dart' as kernel show Expression, Statement;
+import 'kernel_ast_api.dart' as kernel show Expression, Node, Statement;
 
 import 'kernel_builder.dart'
     show
@@ -295,6 +297,8 @@ class VariableUseGenerator<Arguments> extends Generator<Arguments> {
 
   String get plainNameForRead => variable.name;
 
+  String get debugName => "VariableUseGenerator";
+
   kernel.Expression _makeRead(ShadowComplexAssignment complexAssignment) {
     var fact = helper.typePromoter
         .getFactForAccess(variable, helper.functionNestingLevel);
@@ -327,12 +331,17 @@ class VariableUseGenerator<Arguments> extends Generator<Arguments> {
   ShadowComplexAssignment startComplexAssignment(kernel.Expression rhs) =>
       new ShadowVariableAssignment(rhs);
 
-  String toString() => "VariableUseGenerator()";
+  @override
+  void printOn(StringSink sink) {
+    NameSystem syntheticNames = new NameSystem();
+    sink.write(", variable: ");
+    printNodeOn(variable, sink, syntheticNames: syntheticNames);
+    sink.write(", promotedType: ");
+    printNodeOn(promotedType, sink, syntheticNames: syntheticNames);
+  }
 }
 
 class PropertyAccessGenerator<Arguments> extends Generator<Arguments> {
-  VariableDeclaration _receiverVariable;
-
   final kernel.Expression receiver;
 
   final Name name;
@@ -340,6 +349,8 @@ class PropertyAccessGenerator<Arguments> extends Generator<Arguments> {
   final Member getter;
 
   final Member setter;
+
+  VariableDeclaration _receiverVariable;
 
   PropertyAccessGenerator.internal(
       BuilderHelper<dynamic, dynamic, Arguments> helper,
@@ -370,6 +381,8 @@ class PropertyAccessGenerator<Arguments> extends Generator<Arguments> {
   }
 
   String get plainNameForRead => name.name;
+
+  String get debugName => "PropertyAccessGenerator";
 
   bool get isThisPropertyAccess => forest.isThisExpression(receiver);
 
@@ -419,7 +432,20 @@ class PropertyAccessGenerator<Arguments> extends Generator<Arguments> {
   ShadowComplexAssignment startComplexAssignment(kernel.Expression rhs) =>
       new ShadowPropertyAssign(receiver, rhs);
 
-  String toString() => "PropertyAccessGenerator()";
+  @override
+  void printOn(StringSink sink) {
+    NameSystem syntheticNames = new NameSystem();
+    sink.write(", _receiverVariable: ");
+    printNodeOn(_receiverVariable, sink, syntheticNames: syntheticNames);
+    sink.write(", receiver: ");
+    printNodeOn(receiver, sink, syntheticNames: syntheticNames);
+    sink.write(", name: ");
+    sink.write(name.name);
+    sink.write(", getter: ");
+    printQualifiedNameOn(getter, sink, syntheticNames: syntheticNames);
+    sink.write(", setter: ");
+    printQualifiedNameOn(setter, sink, syntheticNames: syntheticNames);
+  }
 }
 
 /// Special case of [PropertyAccessGenerator] to avoid creating an indirect
@@ -436,6 +462,8 @@ class ThisPropertyAccessGenerator<Arguments> extends Generator<Arguments> {
       : super(helper, token);
 
   String get plainNameForRead => name.name;
+
+  String get debugName => "ThisPropertyAccessGenerator";
 
   bool get isThisPropertyAccess => true;
 
@@ -480,7 +508,16 @@ class ThisPropertyAccessGenerator<Arguments> extends Generator<Arguments> {
   ShadowComplexAssignment startComplexAssignment(kernel.Expression rhs) =>
       new ShadowPropertyAssign(null, rhs);
 
-  String toString() => "ThisPropertyAccessGenerator()";
+  @override
+  void printOn(StringSink sink) {
+    NameSystem syntheticNames = new NameSystem();
+    sink.write(", name: ");
+    sink.write(name.name);
+    sink.write(", getter: ");
+    printQualifiedNameOn(getter, sink, syntheticNames: syntheticNames);
+    sink.write(", setter: ");
+    printQualifiedNameOn(setter, sink, syntheticNames: syntheticNames);
+  }
 }
 
 class NullAwarePropertyAccessGenerator<Arguments> extends Generator<Arguments> {
@@ -508,6 +545,8 @@ class NullAwarePropertyAccessGenerator<Arguments> extends Generator<Arguments> {
         super(helper, token);
 
   String get plainNameForRead => name.name;
+
+  String get debugName => "NullAwarePropertyAccessGenerator";
 
   kernel.Expression receiverAccess() => new VariableGet(receiver);
 
@@ -557,7 +596,22 @@ class NullAwarePropertyAccessGenerator<Arguments> extends Generator<Arguments> {
   ShadowComplexAssignment startComplexAssignment(kernel.Expression rhs) =>
       new ShadowPropertyAssign(receiverExpression, rhs);
 
-  String toString() => "NullAwarePropertyAccessGenerator()";
+  @override
+  void printOn(StringSink sink) {
+    NameSystem syntheticNames = new NameSystem();
+    sink.write(", receiver: ");
+    printNodeOn(receiver, sink, syntheticNames: syntheticNames);
+    sink.write(", receiverExpression: ");
+    printNodeOn(receiverExpression, sink, syntheticNames: syntheticNames);
+    sink.write(", name: ");
+    sink.write(name.name);
+    sink.write(", getter: ");
+    printQualifiedNameOn(getter, sink, syntheticNames: syntheticNames);
+    sink.write(", setter: ");
+    printQualifiedNameOn(setter, sink, syntheticNames: syntheticNames);
+    sink.write(", type: ");
+    printNodeOn(type, sink, syntheticNames: syntheticNames);
+  }
 }
 
 class SuperPropertyAccessGenerator<Arguments> extends Generator<Arguments> {
@@ -576,6 +630,8 @@ class SuperPropertyAccessGenerator<Arguments> extends Generator<Arguments> {
       : super(helper, token);
 
   String get plainNameForRead => name.name;
+
+  String get debugName => "SuperPropertyAccessGenerator";
 
   kernel.Expression _makeRead(ShadowComplexAssignment complexAssignment) {
     if (getter == null) {
@@ -623,7 +679,16 @@ class SuperPropertyAccessGenerator<Arguments> extends Generator<Arguments> {
   ShadowComplexAssignment startComplexAssignment(kernel.Expression rhs) =>
       new ShadowPropertyAssign(null, rhs, isSuper: true);
 
-  String toString() => "SuperPropertyAccessGenerator()";
+  @override
+  void printOn(StringSink sink) {
+    NameSystem syntheticNames = new NameSystem();
+    sink.write(", name: ");
+    sink.write(name.name);
+    sink.write(", getter: ");
+    printQualifiedNameOn(getter, sink, syntheticNames: syntheticNames);
+    sink.write(", setter: ");
+    printQualifiedNameOn(setter, sink, syntheticNames: syntheticNames);
+  }
 }
 
 class IndexedAccessGenerator<Arguments> extends Generator<Arguments> {
@@ -667,6 +732,8 @@ class IndexedAccessGenerator<Arguments> extends Generator<Arguments> {
   String get plainNameForRead => "[]";
 
   String get plainNameForWrite => "[]=";
+
+  String get debugName => "IndexedAccessGenerator";
 
   kernel.Expression _makeSimpleRead() {
     var read = new ShadowMethodInvocation(
@@ -771,7 +838,22 @@ class IndexedAccessGenerator<Arguments> extends Generator<Arguments> {
   ShadowComplexAssignment startComplexAssignment(kernel.Expression rhs) =>
       new ShadowIndexAssign(receiver, index, rhs);
 
-  String toString() => "IndexedAccessGenerator()";
+  @override
+  void printOn(StringSink sink) {
+    NameSystem syntheticNames = new NameSystem();
+    sink.write(", receiver: ");
+    printNodeOn(receiver, sink, syntheticNames: syntheticNames);
+    sink.write(", index: ");
+    printNodeOn(index, sink, syntheticNames: syntheticNames);
+    sink.write(", getter: ");
+    printQualifiedNameOn(getter, sink, syntheticNames: syntheticNames);
+    sink.write(", setter: ");
+    printQualifiedNameOn(setter, sink, syntheticNames: syntheticNames);
+    sink.write(", receiverVariable: ");
+    printNodeOn(receiverVariable, sink, syntheticNames: syntheticNames);
+    sink.write(", indexVariable: ");
+    printNodeOn(indexVariable, sink, syntheticNames: syntheticNames);
+  }
 }
 
 /// Special case of [IndexedAccessGenerator] to avoid creating an indirect
@@ -792,6 +874,8 @@ class ThisIndexedAccessGenerator<Arguments> extends Generator<Arguments> {
   String get plainNameForRead => "[]";
 
   String get plainNameForWrite => "[]=";
+
+  String get debugName => "ThisIndexedAccessGenerator";
 
   kernel.Expression _makeSimpleRead() {
     return new ShadowMethodInvocation(
@@ -880,7 +964,18 @@ class ThisIndexedAccessGenerator<Arguments> extends Generator<Arguments> {
   ShadowComplexAssignment startComplexAssignment(kernel.Expression rhs) =>
       new ShadowIndexAssign(null, index, rhs);
 
-  String toString() => "ThisIndexedAccessGenerator()";
+  @override
+  void printOn(StringSink sink) {
+    NameSystem syntheticNames = new NameSystem();
+    sink.write(", index: ");
+    printNodeOn(index, sink, syntheticNames: syntheticNames);
+    sink.write(", getter: ");
+    printQualifiedNameOn(getter, sink, syntheticNames: syntheticNames);
+    sink.write(", setter: ");
+    printQualifiedNameOn(setter, sink, syntheticNames: syntheticNames);
+    sink.write(", indexVariable: ");
+    printNodeOn(indexVariable, sink, syntheticNames: syntheticNames);
+  }
 }
 
 class SuperIndexedAccessGenerator<Arguments> extends Generator<Arguments> {
@@ -899,6 +994,8 @@ class SuperIndexedAccessGenerator<Arguments> extends Generator<Arguments> {
   String get plainNameForRead => "[]";
 
   String get plainNameForWrite => "[]=";
+
+  String get debugName => "SuperIndexedAccessGenerator";
 
   indexAccess() {
     indexVariable ??= new VariableDeclaration.forValue(index);
@@ -999,11 +1096,22 @@ class SuperIndexedAccessGenerator<Arguments> extends Generator<Arguments> {
         isImplicitCall: true);
   }
 
-  String toString() => "SuperIndexedAccessGenerator()";
-
   @override
   ShadowComplexAssignment startComplexAssignment(kernel.Expression rhs) =>
       new ShadowIndexAssign(null, index, rhs, isSuper: true);
+
+  @override
+  void printOn(StringSink sink) {
+    NameSystem syntheticNames = new NameSystem();
+    sink.write(", index: ");
+    printNodeOn(index, sink, syntheticNames: syntheticNames);
+    sink.write(", getter: ");
+    printQualifiedNameOn(getter, sink, syntheticNames: syntheticNames);
+    sink.write(", setter: ");
+    printQualifiedNameOn(setter, sink, syntheticNames: syntheticNames);
+    sink.write(", indexVariable: ");
+    printNodeOn(indexVariable, sink, syntheticNames: syntheticNames);
+  }
 }
 
 class StaticAccessGenerator<Arguments> extends Generator<Arguments> {
@@ -1045,6 +1153,8 @@ class StaticAccessGenerator<Arguments> extends Generator<Arguments> {
   }
 
   String get plainNameForRead => (readTarget ?? writeTarget).name.name;
+
+  String get debugName => "StaticAccessGenerator";
 
   kernel.Expression _makeRead(ShadowComplexAssignment complexAssignment) {
     if (readTarget == null) {
@@ -1092,7 +1202,14 @@ class StaticAccessGenerator<Arguments> extends Generator<Arguments> {
   ShadowComplexAssignment startComplexAssignment(kernel.Expression rhs) =>
       new ShadowStaticAssignment(rhs);
 
-  String toString() => "StaticAccessGenerator()";
+  @override
+  void printOn(StringSink sink) {
+    NameSystem syntheticNames = new NameSystem();
+    sink.write(", readTarget: ");
+    printQualifiedNameOn(readTarget, sink, syntheticNames: syntheticNames);
+    sink.write(", writeTarget: ");
+    printQualifiedNameOn(writeTarget, sink, syntheticNames: syntheticNames);
+  }
 }
 
 class LoadLibraryGenerator<Arguments> extends Generator<Arguments> {
@@ -1103,6 +1220,8 @@ class LoadLibraryGenerator<Arguments> extends Generator<Arguments> {
       : super(helper, token);
 
   String get plainNameForRead => 'loadLibrary';
+
+  String get debugName => "LoadLibraryGenerator";
 
   kernel.Expression _makeRead(ShadowComplexAssignment complexAssignment) {
     var read =
@@ -1127,7 +1246,11 @@ class LoadLibraryGenerator<Arguments> extends Generator<Arguments> {
     return builder.createLoadLibrary(offset, forest);
   }
 
-  String toString() => "LoadLibraryGenerator()";
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", builder: ");
+    sink.write(builder);
+  }
 }
 
 abstract class _DeferredAccessor<Arguments> extends Accessor<Arguments> {
@@ -1157,7 +1280,7 @@ abstract class _DeferredAccessor<Arguments> extends Accessor<Arguments> {
   }
 }
 
-class _ReadOnlyAccessor<Arguments> extends Accessor<Arguments> {
+abstract class _ReadOnlyAccessor<Arguments> extends Accessor<Arguments> {
   kernel.Expression expression;
   VariableDeclaration value;
 
