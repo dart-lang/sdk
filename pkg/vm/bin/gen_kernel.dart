@@ -43,7 +43,7 @@ final ArgParser _argParser = new ArgParser(allowTrailingOptions: true)
       help: 'Whether asserts will be enabled.', defaultsTo: false)
   ..addFlag('enable-constant-evaluation',
       help: 'Whether kernel constant evaluation will be enabled.',
-      defaultsTo: false)
+      defaultsTo: true)
   ..addMultiOption('entry-points',
       help: 'Path to JSON file with the list of entry points')
   ..addFlag('gen-bytecode',

@@ -58,7 +58,7 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
     bool genBytecode: false,
     bool dropAST: false,
     bool enableAsserts: false,
-    bool enableConstantEvaluation: false}) async {
+    bool enableConstantEvaluation: true}) async {
   // Replace error handler to detect if there are compilation errors.
   final errorDetector =
       new ErrorDetector(previousErrorHandler: options.onProblem);
