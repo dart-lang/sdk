@@ -196,7 +196,6 @@ class MyClass2 {/*4:INC*/
     _compareRegions(regions, content);
   }
 
-  @failingTest
   test_file_header() async {
     String content = """
 // Copyright some year by some people/*1:EXC*/
@@ -211,7 +210,46 @@ main() {}
     _compareRegions(regions, content);
   }
 
-  @failingTest
+  test_file_header_with_no_function_comment() async {
+    String content = """
+// Copyright some year by some people/*1:EXC*/
+// See LICENCE etc./*1:INC:FILE_HEADER*/
+
+main() {}
+""";
+
+    final regions = await _computeRegions(content);
+    _compareRegions(regions, content);
+  }
+
+  test_file_header_with_non_end_of_line_comment() async {
+    String content = """
+// Copyright some year by some people/*1:EXC*/
+// See LICENCE etc./*1:INC:FILE_HEADER*/
+/* This shouldn't be part of the file header */
+
+main() {}
+""";
+
+    final regions = await _computeRegions(content);
+    _compareRegions(regions, content);
+  }
+
+  test_file_header_does_not_include_block_comments() async {
+    String content = """
+/*
+ * Copyright some year by some people
+ * See LICENCE etc.
+ */
+/* This shouldn't be part of the file header */
+
+main() {}
+""";
+
+    final regions = await _computeRegions(content);
+    expect(regions, hasLength(0));
+  }
+
   test_file_header_with_script_prefix() async {
     String content = """
 #! /usr/bin/dart
