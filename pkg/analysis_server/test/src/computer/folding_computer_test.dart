@@ -35,6 +35,7 @@ main() {}
 """;
 
     // Since there are no region comment markers above
+    // just check the length instead of the contents
     final regions = await _computeRegions(content);
     expect(regions, hasLength(0));
   }
@@ -193,6 +194,50 @@ class MyClass2 {/*4:INC*/
 
     final regions = await _computeRegions(content);
     _compareRegions(regions, content);
+  }
+
+  @failingTest
+  test_file_header() async {
+    String content = """
+// Copyright some year by some people/*1:EXC*/
+// See LICENCE etc./*1:INC:FILE_HEADER*/
+
+// This is not the file header
+// It's just a comment
+main() {}
+""";
+
+    final regions = await _computeRegions(content);
+    _compareRegions(regions, content);
+  }
+
+  @failingTest
+  test_file_header_with_script_prefix() async {
+    String content = """
+#! /usr/bin/dart
+// Copyright some year by some people/*1:EXC*/
+// See LICENCE etc./*1:INC:FILE_HEADER*/
+
+// This is not the file header
+// It's just a comment
+main() {}
+""";
+
+    final regions = await _computeRegions(content);
+    _compareRegions(regions, content);
+  }
+
+  test_comment_is_not_considered_file_header() async {
+    String content = """
+// This is not the file header
+// It's just a comment
+main() {}
+""";
+
+    // Since there are no region comment markers above
+    // just check the length instead of the contents
+    final regions = await _computeRegions(content);
+    expect(regions, hasLength(0));
   }
 
   /// Compares provided folding regions with expected
