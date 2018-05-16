@@ -1821,6 +1821,56 @@ import 'a.dart' as p;
     expect(edit.replacement, equalsIgnoringWhitespace(''));
   }
 
+  test_writeType_prefixGenerator() async {
+    String aPath = provider.convertPath('/a.dart');
+    String bPath = provider.convertPath('/b.dart');
+
+    addSource(aPath, r'''
+class A1 {}
+class A2 {}
+''');
+    addSource(bPath, r'''
+class B {}
+''');
+
+    String path = provider.convertPath('/test.dart');
+    String content = '';
+    addSource(path, content);
+
+    ClassElement a1 = await _getClassElement(aPath, 'A1');
+    ClassElement a2 = await _getClassElement(aPath, 'A2');
+    ClassElement b = await _getClassElement(bPath, 'B');
+
+    int nextPrefixIndex = 0;
+    String prefixGenerator(_) {
+      return '_prefix${nextPrefixIndex++}';
+    }
+
+    var builder = new DartChangeBuilder(session);
+    await builder.addFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeType(a1.type);
+        builder.write(' a1; ');
+
+        builder.writeType(a2.type);
+        builder.write(' a2; ');
+
+        builder.writeType(b.type);
+        builder.write(' b;');
+      });
+    }, importPrefixGenerator: prefixGenerator);
+    List<SourceEdit> edits = getEdits(builder);
+    expect(edits, hasLength(2));
+    expect(
+        edits[0].replacement,
+        equalsIgnoringWhitespace(
+            "import 'a.dart' as _prefix0; import 'b.dart' as _prefix1;"));
+    expect(
+        edits[1].replacement,
+        equalsIgnoringWhitespace(
+            '_prefix0.A1 a1; _prefix0.A2 a2; _prefix1.B b;'));
+  }
+
   test_writeType_required_dynamic() async {
     String path = provider.convertPath('/test.dart');
     String content = 'class A {}';

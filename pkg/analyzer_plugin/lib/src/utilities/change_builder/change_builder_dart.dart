@@ -42,8 +42,14 @@ class DartChangeBuilderImpl extends ChangeBuilderImpl
 
   @override
   Future<Null> addFileEdit(
-          String path, void buildFileEdit(DartFileEditBuilder builder)) =>
-      super.addFileEdit(path, (builder) => buildFileEdit(builder));
+      String path, void buildFileEdit(DartFileEditBuilder builder),
+      {ImportPrefixGenerator importPrefixGenerator}) {
+    return super.addFileEdit(path, (builder) {
+      DartFileEditBuilderImpl dartBuilder = builder;
+      dartBuilder.importPrefixGenerator = importPrefixGenerator;
+      buildFileEdit(dartBuilder);
+    });
+  }
 
   @override
   Future<DartFileEditBuilderImpl> createFileEditBuilder(String path) async {
@@ -86,13 +92,6 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
    * Returns the indentation with the given [level].
    */
   String getIndent(int level) => '  ' * level;
-
-  /**
-   * Arrange to have an import added for the given [library].
-   */
-  void importLibrary(Uri library) {
-    dartFileEditBuilder.importLibrary(library);
-  }
 
   @override
   void writeClassDeclaration(String name,
@@ -595,7 +594,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           write('.');
         }
       } else {
-        importLibrary(definingLibrary.source.uri);
+        _importLibrary(definingLibrary.source.uri);
       }
     }
 
@@ -612,8 +611,11 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       _EnclosingElementFinder finder = new _EnclosingElementFinder();
       finder.find(dartFileEditBuilder.unit, offset);
       String typeSource = _getTypeSource(
-          type, finder.enclosingClass, finder.enclosingExecutable,
-          methodBeingCopied: methodBeingCopied);
+        type,
+        finder.enclosingClass,
+        finder.enclosingExecutable,
+        methodBeingCopied: methodBeingCopied,
+      );
       if (typeSource.isNotEmpty && typeSource != 'dynamic') {
         if (groupName != null) {
           addLinkedEdit(groupName, (LinkedEditBuilder builder) {
@@ -1021,7 +1023,11 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           buffer.write(".");
         }
       } else {
-        importLibrary(definingLibrary.source.uri);
+        _LibraryToImport import = _importLibrary(definingLibrary.source.uri);
+        if (import.prefix != null) {
+          buffer.write(import.prefix);
+          buffer.write('.');
+        }
       }
     }
     // append simple name
@@ -1168,6 +1174,13 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
     return type;
   }
+
+  /**
+   * Arrange to have an import added for the library with the given [uri].
+   */
+  _LibraryToImport _importLibrary(Uri uri) {
+    return dartFileEditBuilder._importLibrary(uri);
+  }
 }
 
 /**
@@ -1181,10 +1194,15 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   CompilationUnit unit;
 
   /**
-   * The set of absolute or relative URIs of the libraries that need to be
-   * imported in order to make visible the names used in generated code.
+   * The optional generator of prefixes for new imports.
    */
-  Set<String> librariesToImport = new Set<String>();
+  ImportPrefixGenerator importPrefixGenerator;
+
+  /**
+   * A mapping from libraries that need to be imported in order to make visible
+   * the names used in generated code, to information about these imports.
+   */
+  Map<Uri, _LibraryToImport> librariesToImport = {};
 
   /**
    * Initialize a newly created builder to build a source file edit within the
@@ -1230,23 +1248,20 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       CompilationUnitElement definingUnitElement =
           libraryElement.definingCompilationUnit;
       if (definingUnitElement == unitElement) {
-        _addLibraryImports(librariesToImport);
+        _addLibraryImports(librariesToImport.values);
       } else {
         await (changeBuilder as DartChangeBuilder).addFileEdit(
             definingUnitElement.source.fullName, (DartFileEditBuilder builder) {
           (builder as DartFileEditBuilderImpl)
-              ._addLibraryImports(librariesToImport);
+              ._addLibraryImports(librariesToImport.values);
         });
       }
     }
   }
 
   @override
-  String importLibrary(Uri library) {
-    LibraryElement targetLibrary = unit.element.library;
-    String uriText = _getLibrarySourceUri(targetLibrary, library);
-    librariesToImport.add(uriText);
-    return uriText;
+  String importLibrary(Uri uri) {
+    return _importLibrary(uri).uriText;
   }
 
   @override
@@ -1276,9 +1291,10 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   }
 
   /**
-   * Adds edits ensure that all the [libraries] are imported.
+   * Adds edits ensure that all the [imports] are imported into the given
+   * [targetLibrary].
    */
-  void _addLibraryImports(Set<String> libraries) {
+  void _addLibraryImports(Iterable<_LibraryToImport> imports) {
     // Prepare information about existing imports.
     LibraryDirective libraryDirective;
     List<ImportDirective> importDirectives = <ImportDirective>[];
@@ -1290,21 +1306,31 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       }
     }
 
-    // Prepare all URIs to import.
-    List<String> uriList = libraries.toList();
-    uriList.sort((a, b) => a.compareTo(b));
+    // Sort imports by URIs.
+    List<_LibraryToImport> importList = imports.toList();
+    importList.sort((a, b) => a.uriText.compareTo(b.uriText));
+
+    void writeImport(EditBuilder builder, _LibraryToImport import) {
+      builder.write("import '");
+      builder.write(import.uriText);
+      builder.write("'");
+      if (import.prefix != null) {
+        builder.write(' as ');
+        builder.write(import.prefix);
+      }
+      builder.write(';');
+    }
 
     // Insert imports: between existing imports.
     if (importDirectives.isNotEmpty) {
-      for (String importUri in uriList) {
-        bool isDart = importUri.startsWith('dart:');
-        bool isPackage = importUri.startsWith('package:');
+      for (var import in importList) {
+        bool isDart = import.uriText.startsWith('dart:');
+        bool isPackage = import.uriText.startsWith('package:');
         bool inserted = false;
 
         void insert(
             {ImportDirective prev,
             ImportDirective next,
-            String uri,
             bool trailingNewLine: false}) {
           LineInfo lineInfo = unit.lineInfo;
           if (prev != null) {
@@ -1319,16 +1345,13 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
             }
             addInsertion(offset, (EditBuilder builder) {
               builder.writeln();
-              builder.write("import '");
-              builder.write(uri);
-              builder.write("';");
+              writeImport(builder, import);
             });
           } else {
             int offset = next.offset;
             addInsertion(offset, (EditBuilder builder) {
-              builder.write("import '");
-              builder.write(uri);
-              builder.writeln("';");
+              writeImport(builder, import);
+              builder.writeln();
               if (trailingNewLine) {
                 builder.writeln();
               }
@@ -1349,14 +1372,13 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
           bool isExistingPackage = existingUri.startsWith('package:');
           bool isExistingRelative = !existingUri.contains(':');
 
-          bool isNewBeforeExisting = importUri.compareTo(existingUri) < 0;
+          bool isNewBeforeExisting = import.uriText.compareTo(existingUri) < 0;
 
           if (isDart) {
             if (!isExistingDart || isNewBeforeExisting) {
               insert(
                   prev: lastExistingDart,
                   next: existingImport,
-                  uri: importUri,
                   trailingNewLine: !isExistingDart);
               break;
             }
@@ -1365,13 +1387,12 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
               insert(
                   prev: lastExistingPackage,
                   next: existingImport,
-                  uri: importUri,
                   trailingNewLine: isExistingRelative);
               break;
             }
           } else {
             if (!isExistingDart && !isExistingPackage && isNewBeforeExisting) {
-              insert(next: existingImport, uri: importUri);
+              insert(next: existingImport);
               break;
             }
           }
@@ -1397,9 +1418,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
               }
             }
             builder.writeln();
-            builder.write("import '");
-            builder.write(importUri);
-            builder.write("';");
+            writeImport(builder, import);
           });
         }
       }
@@ -1408,18 +1427,17 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
     // Insert imports: after the library directive.
     if (libraryDirective != null) {
-      for (int i = 0; i < uriList.length; i++) {
-        String importUri = uriList[i];
-        addInsertion(libraryDirective.end, (EditBuilder builder) {
+      addInsertion(libraryDirective.end, (EditBuilder builder) {
+        for (int i = 0; i < importList.length; i++) {
+          var import = importList[i];
           if (i == 0) {
             builder.writeln();
           }
           builder.writeln();
-          builder.write("import '");
-          builder.write(importUri);
-          builder.writeln("';");
-        });
-      }
+          writeImport(builder, import);
+          builder.writeln();
+        }
+      });
       return;
     }
 
@@ -1432,17 +1450,16 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     } else {
       offset = unit.end;
     }
-    for (int i = 0; i < uriList.length; i++) {
-      String importUri = uriList[i];
-      addInsertion(offset, (EditBuilder builder) {
-        builder.write("import '");
-        builder.write(importUri);
-        builder.writeln("';");
-        if (i == uriList.length - 1 && insertEmptyLineAfter) {
+    addInsertion(offset, (EditBuilder builder) {
+      for (int i = 0; i < importList.length; i++) {
+        var import = importList[i];
+        writeImport(builder, import);
+        builder.writeln();
+        if (i == importList.length - 1 && insertEmptyLineAfter) {
           builder.writeln();
         }
-      });
-    }
+      }
+    });
   }
 
   /**
@@ -1457,6 +1474,22 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       return pathContext.split(relativeFile).join('/');
     }
     return what.toString();
+  }
+
+  /**
+   * Arrange to have an import added for the library with the given [uri].
+   */
+  _LibraryToImport _importLibrary(Uri uri) {
+    var import = librariesToImport[uri];
+    if (import == null) {
+      LibraryElement targetLibrary = unit.element.library;
+      String uriText = _getLibrarySourceUri(targetLibrary, uri);
+      String prefix =
+          importPrefixGenerator != null ? importPrefixGenerator(uri) : null;
+      import = new _LibraryToImport(uriText, prefix);
+      librariesToImport[uri] = import;
+    }
+    return import;
   }
 
   /**
@@ -1620,5 +1653,25 @@ class _InheritanceChain {
       return supertype.typeArguments[index];
     }
     return null;
+  }
+}
+
+/**
+ * Information about a new library to import.
+ */
+class _LibraryToImport {
+  final String uriText;
+  final String prefix;
+
+  _LibraryToImport(this.uriText, this.prefix);
+
+  @override
+  int get hashCode => uriText.hashCode;
+
+  @override
+  bool operator ==(other) {
+    return other is _LibraryToImport &&
+        other.uriText == uriText &&
+        other.prefix == prefix;
   }
 }
