@@ -92,7 +92,7 @@ import 'expression_generator.dart'
         IncompleteError,
         IncompletePropertyAccessor,
         IncompleteSend,
-        IndexAccessor,
+        IndexedAccessGenerator,
         LargeIntAccessor,
         LoadLibraryAccessor,
         ParenthesizedExpression,
@@ -2423,7 +2423,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
           lookupInstanceMember(indexGetName, isSuper: true),
           lookupInstanceMember(indexSetName, isSuper: true)));
     } else {
-      push(IndexAccessor.make<Arguments>(
+      push(IndexedAccessGenerator.make<Arguments>(
           this,
           openSquareBracket,
           toKernelExpression(toValue(receiver)),

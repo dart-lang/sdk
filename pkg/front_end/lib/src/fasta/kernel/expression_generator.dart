@@ -626,31 +626,46 @@ class SuperPropertyAccessGenerator<Arguments> extends Generator<Arguments> {
   String toString() => "SuperPropertyAccessGenerator()";
 }
 
-class _IndexAccessor<Arguments> extends Accessor<Arguments> {
-  kernel.Expression receiver;
-  kernel.Expression index;
-  VariableDeclaration receiverVariable;
-  VariableDeclaration indexVariable;
-  Procedure getter, setter;
+class IndexedAccessGenerator<Arguments> extends Generator<Arguments> {
+  final kernel.Expression receiver;
 
-  static Accessor<Arguments> make<Arguments>(
+  final kernel.Expression index;
+
+  final Procedure getter;
+
+  final Procedure setter;
+
+  VariableDeclaration receiverVariable;
+
+  VariableDeclaration indexVariable;
+
+  IndexedAccessGenerator.internal(
       BuilderHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      this.receiver,
+      this.index,
+      this.getter,
+      this.setter)
+      : super(helper, token);
+
+  static FastaAccessor<Arguments> make<Arguments>(
+      BuilderHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
       kernel.Expression receiver,
       kernel.Expression index,
       Procedure getter,
-      Procedure setter,
-      {Token token}) {
+      Procedure setter) {
     if (helper.forest.isThisExpression(receiver)) {
-      return new _ThisIndexAccessor(helper, index, getter, setter, token);
+      return new ThisIndexAccessor(helper, token, index, getter, setter);
     } else {
-      return new _IndexAccessor.internal(
-          helper, receiver, index, getter, setter, token);
+      return new IndexedAccessGenerator.internal(
+          helper, token, receiver, index, getter, setter);
     }
   }
 
-  _IndexAccessor.internal(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      this.receiver, this.index, this.getter, this.setter, Token token)
-      : super(helper, token);
+  String get plainNameForRead => "[]";
+
+  String get plainNameForWrite => "[]=";
 
   kernel.Expression _makeSimpleRead() {
     var read = new ShadowMethodInvocation(
@@ -744,6 +759,18 @@ class _IndexAccessor<Arguments> extends Accessor<Arguments> {
         makeLet(receiverVariable, makeLet(indexVariable, body)),
         complexAssignment);
   }
+
+  kernel.Expression doInvocation(int offset, Arguments arguments) {
+    return helper.buildMethodInvocation(
+        buildSimpleRead(), callName, arguments, forest.readOffset(arguments),
+        isImplicitCall: true);
+  }
+
+  @override
+  ShadowComplexAssignment startComplexAssignment(kernel.Expression rhs) =>
+      new ShadowIndexAssign(receiver, index, rhs);
+
+  String toString() => "IndexedAccessGenerator()";
 }
 
 /// Special case of [_IndexAccessor] to avoid creating an indirect access to

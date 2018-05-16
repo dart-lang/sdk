@@ -741,46 +741,6 @@ class IncompletePropertyAccessor<Arguments> extends IncompleteSend<Arguments> {
   }
 }
 
-class IndexAccessor<Arguments> extends _IndexAccessor<Arguments>
-    with FastaAccessor<Arguments> {
-  final BuilderHelper<dynamic, dynamic, Arguments> helper;
-
-  IndexAccessor.internal(this.helper, Token token, kernel.Expression receiver,
-      kernel.Expression index, Procedure getter, Procedure setter)
-      : super.internal(helper, receiver, index, getter, setter, token);
-
-  String get plainNameForRead => "[]";
-
-  String get plainNameForWrite => "[]=";
-
-  kernel.Expression doInvocation(int offset, Arguments arguments) {
-    return helper.buildMethodInvocation(
-        buildSimpleRead(), callName, arguments, forest.readOffset(arguments),
-        isImplicitCall: true);
-  }
-
-  toString() => "IndexAccessor()";
-
-  static FastaAccessor<Arguments> make<Arguments>(
-      BuilderHelper<dynamic, dynamic, Arguments> helper,
-      Token token,
-      kernel.Expression receiver,
-      kernel.Expression index,
-      Procedure getter,
-      Procedure setter) {
-    if (helper.forest.isThisExpression(receiver)) {
-      return new ThisIndexAccessor(helper, token, index, getter, setter);
-    } else {
-      return new IndexAccessor.internal(
-          helper, token, receiver, index, getter, setter);
-    }
-  }
-
-  @override
-  ShadowComplexAssignment startComplexAssignment(kernel.Expression rhs) =>
-      new ShadowIndexAssign(receiver, index, rhs);
-}
-
 class StaticAccessor<Arguments> extends _StaticAccessor<Arguments>
     with FastaAccessor<Arguments> {
   StaticAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper, Token token,
