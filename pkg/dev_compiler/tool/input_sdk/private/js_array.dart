@@ -20,7 +20,9 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
    */
   factory JSArray.of(list) {
     // TODO(sra): Move this to core.List for better readability.
-    // Capture the parameterized ES6 'JSArray' class.
+    //
+    // TODO(jmesserly): this uses special compiler magic to close over the
+    // parameterized ES6 'JSArray' class.
     JS('', '#.__proto__ = JSArray.prototype', list);
     return JS('-dynamic', '#', list);
   }

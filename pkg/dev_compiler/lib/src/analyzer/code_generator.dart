@@ -918,14 +918,17 @@ class CodeGenerator extends Object
     var jsTypeDef = _emitJSType(classElem);
     if (jsTypeDef != null) return jsTypeDef;
 
-    JS.Expression className;
-    if (classElem.typeParameters.isNotEmpty) {
-      // Generic classes will be defined inside a function that closes over the
-      // type parameter. So we can use their local variable name directly.
-      className = new JS.Identifier(classElem.name);
-    } else {
-      className = _emitTopLevelName(classElem);
-    }
+    // Generic classes will be defined inside a function that closes over the
+    // type parameter. So we can use their local variable name directly.
+    //
+    // TODO(jmesserly): the special case for JSArray is to support its special
+    // type-tagging factory constructors. Those will go away once we fix:
+    // https://github.com/dart-lang/sdk/issues/31003
+    var className = classElem.typeParameters.isNotEmpty
+        ? (classElem == _jsArray
+            ? new JS.Identifier(classElem.name)
+            : new JS.TemporaryId(classElem.name))
+        : _emitTopLevelName(classElem);
 
     var savedClassProperties = _classProperties;
     _classProperties = new ClassPropertyModel.build(
@@ -1275,20 +1278,21 @@ class CodeGenerator extends Object
       JS.Expression className,
       JS.Expression heritage,
       List<JS.Method> methods) {
-    String name = classElem.name;
     var typeParams = _emitTypeFormals(classElem.typeParameters);
 
     var jsFields = options.closure
         ? classElem.fields.map(_emitTypeScriptField).toList()
         : null;
-    var classExpr = new JS.ClassExpression(
-        new JS.Identifier(name), heritage, methods,
-        typeParams: typeParams, fields: jsFields);
     if (classElem.typeParameters.isNotEmpty) {
-      return classExpr.toStatement();
-    } else {
-      return js.statement('# = #;', [className, classExpr]);
+      return new JS.ClassExpression(
+              className as JS.Identifier, heritage, methods,
+              typeParams: typeParams, fields: jsFields)
+          .toStatement();
     }
+    var classExpr = new JS.ClassExpression(
+        new JS.TemporaryId(classElem.name), heritage, methods,
+        typeParams: typeParams, fields: jsFields);
+    return js.statement('# = #;', [className, classExpr]);
   }
 
   void _defineClass(
@@ -4052,33 +4056,10 @@ class CodeGenerator extends Object
       source = (code as StringLiteral).stringValue;
     }
 
-    // TODO(vsm): Constructors in dart:html and friends are trying to
-    // allocate a type defined on window/self, but this often conflicts a
-    // with the generated extension class in scope.  We really should
-    // qualify explicitly in dart:html itself.
-    var constructorPattern = new RegExp("new [A-Z][A-Za-z]+\\(");
-    if (constructorPattern.matchAsPrefix(source) != null) {
-      var containingClass = node.parent;
-      while (containingClass != null && containingClass is! ClassDeclaration) {
-        containingClass = containingClass.parent;
-      }
-      if (containingClass is ClassDeclaration &&
-          _extensionTypes.isNativeClass(containingClass.element)) {
-        var constructorName = source.substring(4, source.indexOf('('));
-        var className = containingClass.name.name;
-        if (className == constructorName) {
-          source =
-              source.replaceFirst('new $className(', 'new self.$className(');
-        }
-      }
-    }
-
-    // TODO(rnystrom): The JS() calls are almost never nested, and probably
-    // really shouldn't be, but there are at least a couple of calls in the
-    // HTML library where an argument to JS() is itself a JS() call. If those
-    // go away, this can just assert(!_isInForeignJS).
-    // Inside JS(), type names evaluate to the raw runtime type, not the
-    // wrapped Type object.
+    // TODO(jmesserly): arguments to JS() that contain type literals evaluate to
+    // the raw runtime type instead of the wrapped Type object.
+    // We can clean this up by switching to `unwrapType(<type literal>)`, which
+    // the compiler will then optimize.
     var wasInForeignJS = _isInForeignJS;
     _isInForeignJS = true;
     var jsArgs = templateArgs.map(_visitExpression).toList();

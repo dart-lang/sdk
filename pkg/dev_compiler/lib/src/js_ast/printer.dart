@@ -1130,6 +1130,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
   }
 
   visitClassExpression(ClassExpression node) {
+    localNamer.enterScope(node);
     out('class ');
     visit(node.name);
     outTypeParams(node.typeParams);
@@ -1161,6 +1162,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
     } else {
       out('{}');
     }
+    localNamer.leaveScope();
   }
 
   visitMethod(Method node) {
@@ -1545,13 +1547,13 @@ class DanglingElseVisitor extends BaseVisitor<bool> {
 
 abstract class LocalNamer {
   String getName(Identifier node);
-  void enterScope(FunctionExpression node);
+  void enterScope(Node node);
   void leaveScope();
 }
 
 class IdentityNamer implements LocalNamer {
   String getName(Identifier node) => node.name;
-  void enterScope(FunctionExpression node) {}
+  void enterScope(Node node) {}
   void leaveScope() {}
 }
 
@@ -1562,7 +1564,7 @@ class MinifyRenamer implements LocalNamer {
   int parameterNumber = 0;
   int variableNumber = 0;
 
-  void enterScope(FunctionExpression node) {
+  void enterScope(Node node) {
     var vars = new VarCollector();
     node.accept(vars);
     maps.add(new Map<String, String>());
@@ -1688,10 +1690,11 @@ abstract class VariableDeclarationVisitor<T> extends BaseVisitor<T> {
   }
 
   _scanVariableBinding(VariableBinding d) {
-    if (d is Identifier)
+    if (d is Identifier) {
       declare(d);
-    else
+    } else {
       d.accept(this);
+    }
   }
 
   visitRestParameter(RestParameter node) {

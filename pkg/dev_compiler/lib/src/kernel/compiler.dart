@@ -537,14 +537,17 @@ class ProgramCompiler extends Object
     var jsTypeDef = _emitJSType(c);
     if (jsTypeDef != null) return jsTypeDef;
 
-    JS.Expression className;
-    if (c.typeParameters.isNotEmpty) {
-      // Generic classes will be defined inside a function that closes over the
-      // type parameter. So we can use their local variable name directly.
-      className = new JS.Identifier(getLocalClassName(c));
-    } else {
-      className = _emitTopLevelName(c);
-    }
+    // Generic classes will be defined inside a function that closes over the
+    // type parameter. So we can use their local variable name directly.
+    //
+    // TODO(jmesserly): the special case for JSArray is to support its special
+    // type-tagging factory constructors. Those will go away once we fix:
+    // https://github.com/dart-lang/sdk/issues/31003
+    var className = c.typeParameters.isNotEmpty
+        ? (c == _jsArrayClass
+            ? new JS.Identifier(c.name)
+            : new JS.TemporaryId(getLocalClassName(c)))
+        : _emitTopLevelName(c);
 
     var savedClassProperties = _classProperties;
     _classProperties =
@@ -625,14 +628,14 @@ class ProgramCompiler extends Object
 
   JS.Statement _emitClassStatement(Class c, JS.Expression className,
       JS.Expression heritage, List<JS.Method> methods) {
-    var name = getLocalClassName(c);
-    var classExpr =
-        new JS.ClassExpression(new JS.Identifier(name), heritage, methods);
     if (c.typeParameters.isNotEmpty) {
-      return classExpr.toStatement();
-    } else {
-      return js.statement('# = #;', [className, classExpr]);
+      return new JS.ClassExpression(
+              className as JS.Identifier, heritage, methods)
+          .toStatement();
     }
+    var classExpr = new JS.ClassExpression(
+        new JS.TemporaryId(getLocalClassName(c)), heritage, methods);
+    return js.statement('# = #;', [className, classExpr]);
   }
 
   void _defineClass(Class c, JS.Expression className, List<JS.Method> methods,
@@ -4516,33 +4519,10 @@ class ProgramCompiler extends Object
       source = (code as StringLiteral).value;
     }
 
-    // TODO(vsm): Constructors in dart:html and friends are trying to
-    // allocate a type defined on window/self, but this often conflicts a
-    // with the generated extension class in scope.  We really should
-    // qualify explicitly in dart:html itself.
-    var constructorPattern = new RegExp("new [A-Z][A-Za-z]+\\(");
-    if (constructorPattern.matchAsPrefix(source) != null) {
-      var enclosingClass = node.parent;
-      while (enclosingClass != null && enclosingClass is! Class) {
-        enclosingClass = enclosingClass.parent;
-      }
-      if (enclosingClass is Class &&
-          _extensionTypes.isNativeClass(enclosingClass)) {
-        var constructorName = source.substring(4, source.indexOf('('));
-        var className = enclosingClass.name;
-        if (className == constructorName) {
-          source =
-              source.replaceFirst('new $className(', 'new self.$className(');
-        }
-      }
-    }
-
-    // TODO(rnystrom): The JS() calls are almost never nested, and probably
-    // really shouldn't be, but there are at least a couple of calls in the
-    // HTML library where an argument to JS() is itself a JS() call. If those
-    // go away, this can just assert(!_isInForeignJS).
-    // Inside JS(), type names evaluate to the raw runtime type, not the
-    // wrapped Type object.
+    // TODO(jmesserly): arguments to JS() that contain type literals evaluate to
+    // the raw runtime type instead of the wrapped Type object.
+    // We can clean this up by switching to `unwrapType(<type literal>)`, which
+    // the compiler will then optimize.
     var wasInForeignJS = _isInForeignJS;
     _isInForeignJS = true;
     var jsArgs = templateArgs.map(_visitExpression).toList();
