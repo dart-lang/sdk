@@ -1081,34 +1081,10 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
         }
       }
     }
-  } else if (CatchBlockEntryInstr* catch_entry =
-                 block_entry->AsCatchBlockEntry()) {
-    const intptr_t raw_exception_var_envindex =
-        catch_entry->raw_exception_var() != nullptr
-            ? catch_entry->raw_exception_var()->BitIndexIn(
-                  num_direct_parameters_)
-            : -1;
-    const intptr_t raw_stacktrace_var_envindex =
-        catch_entry->raw_stacktrace_var() != nullptr
-            ? catch_entry->raw_stacktrace_var()->BitIndexIn(
-                  num_direct_parameters_)
-            : -1;
-
+  } else if (block_entry->IsCatchBlockEntry()) {
     // Add real definitions for all locals and parameters.
     for (intptr_t i = 0; i < env->length(); ++i) {
-      // Replace usages of the raw exception/stacktrace variables with
-      // [SpecialParameterInstr]s.
-      Definition* param = nullptr;
-      if (raw_exception_var_envindex == i) {
-        param = new SpecialParameterInstr(SpecialParameterInstr::kException,
-                                          Thread::kNoDeoptId);
-      } else if (raw_stacktrace_var_envindex == i) {
-        param = new SpecialParameterInstr(SpecialParameterInstr::kStackTrace,
-                                          Thread::kNoDeoptId);
-      } else {
-        param = new (zone()) ParameterInstr(i, block_entry);
-      }
-
+      ParameterInstr* param = new (zone()) ParameterInstr(i, block_entry);
       param->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
       (*env)[i] = param;
       block_entry->AsCatchBlockEntry()->initial_definitions()->Add(param);
@@ -1129,30 +1105,6 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
 
   // Attach environment to the block entry.
   AttachEnvironment(block_entry, env);
-
-#if defined(TARGET_ARCH_DBC)
-  // On DBC the exception/stacktrace variables are in special registers when
-  // entering the catch block.  The only usage of those special registers is
-  // within the catch block.  A possible lazy-deopt at the beginning of the
-  // catch does not need to move those around, since the registers will be
-  // up-to-date when arriving in the unoptimized code and unoptimized code will
-  // take care of moving them to appropriate slots.
-  if (CatchBlockEntryInstr* catch_entry = block_entry->AsCatchBlockEntry()) {
-    Environment* deopt_env = catch_entry->env();
-    const LocalVariable* raw_exception_var = catch_entry->raw_exception_var();
-    const LocalVariable* raw_stacktrace_var = catch_entry->raw_stacktrace_var();
-    if (raw_exception_var != nullptr) {
-      Value* value = deopt_env->ValueAt(
-          raw_exception_var->BitIndexIn(num_direct_parameters_));
-      value->BindToEnvironment(constant_null());
-    }
-    if (raw_stacktrace_var != nullptr) {
-      Value* value = deopt_env->ValueAt(
-          raw_stacktrace_var->BitIndexIn(num_direct_parameters_));
-      value->BindToEnvironment(constant_null());
-    }
-  }
-#endif  // defined(TARGET_ARCH_DBC)
 
   // 2. Process normal instructions.
   for (ForwardInstructionIterator it(block_entry); !it.Done(); it.Advance()) {

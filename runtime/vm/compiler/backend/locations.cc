@@ -180,17 +180,8 @@ const char* Location::Name() const {
       }
       UNREACHABLE();
 #if TARGET_ARCH_DBC
-    case kSpecialDbcRegister:
-      switch (payload()) {
-        case kArgsDescriptorReg:
-          return "ArgDescReg";
-        case kExceptionReg:
-          return "ExceptionReg";
-        case kStackTraceReg:
-          return "StackTraceReg";
-        default:
-          UNREACHABLE();
-      }
+    case kArgsDescRegister:
+      return "ArgDesc";
 #endif
     default:
       if (IsConstant()) {

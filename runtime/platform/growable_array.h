@@ -70,16 +70,6 @@ class BaseGrowableArray : public B {
     }
   }
 
-  void EnsureLength(intptr_t new_length, const T& default_value) {
-    const intptr_t old_length = length_;
-    if (old_length < new_length) {
-      Resize(new_length);
-      for (intptr_t i = old_length; i < new_length; ++i) {
-        (*this)[i] = default_value;
-      }
-    }
-  }
-
   const T& At(intptr_t index) const { return operator[](index); }
 
   T& Last() const {

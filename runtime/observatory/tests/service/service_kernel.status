@@ -30,6 +30,7 @@ get_isolate_after_language_error_test: CompileTimeError
 complex_reload_test: RuntimeError
 
 [ $arch == simdbc64 && $compiler == dartk ]
+coverage_optimized_function_test: Crash # Please triage
 get_cpu_profile_timeline_rpc_test: Pass, RuntimeError # http://dartbug.com/31794
 pause_on_unhandled_async_exceptions_test: RuntimeError, Timeout # Issue 31765
 

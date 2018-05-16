@@ -1051,10 +1051,6 @@ CompileType SpecialParameterInstr::ComputeType() const {
       return CompileType::FromCid(kTypeArgumentsCid);
     case kArgDescriptor:
       return CompileType::FromCid(kImmutableArrayCid);
-    case kException:
-      return CompileType::Dynamic();
-    case kStackTrace:
-      return CompileType::FromCid(kStackTraceCid);
   }
   UNREACHABLE();
   return CompileType::Dynamic();
