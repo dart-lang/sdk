@@ -77,6 +77,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   Map<Uri, LibraryBuilder> userBuilders;
   final Uri initializeFromDillUri;
   bool initializedFromDill = false;
+  bool hasToCheckPackageUris = false;
 
   KernelIncrementalTarget userCode;
 
@@ -95,6 +96,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       if (this.invalidatedUris.contains(c.options.packagesUri)) {
         bypassCache = true;
       }
+      hasToCheckPackageUris = hasToCheckPackageUris || bypassCache;
       UriTranslator uriTranslator =
           await c.options.getUriTranslator(bypassCache: bypassCache);
       ticker.logMs("Read packages file");
@@ -219,6 +221,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
       if (componentWithDill != null) {
         this.invalidatedUris.clear();
+        hasToCheckPackageUris = false;
         userCodeOld?.loader?.releaseAncillaryResources();
         userCodeOld?.loader?.builders?.clear();
         userCodeOld = null;
@@ -505,7 +508,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           (importUri != fileUri && invalidatedUris.contains(fileUri))) {
         return true;
       }
-      if (importUri.scheme == "package" &&
+      if (hasToCheckPackageUris &&
+          importUri.scheme == "package" &&
           uriTranslator.translate(importUri, false) != fileUri) {
         return true;
       }
