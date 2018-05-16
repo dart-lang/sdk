@@ -15,8 +15,6 @@ import '../../constants/values.dart'
 import '../../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../../deferred_load.dart'
     show DeferredLoadTask, OutputUnit, OutputUnitData;
-import '../../elements/elements.dart'
-    show ClassElement, FieldElement, LibraryElement, MethodElement;
 import '../../elements/entities.dart';
 import '../../elements/types.dart';
 import '../../io/source_information.dart';
@@ -100,7 +98,6 @@ class ProgramBuilder {
   final Registry _registry;
 
   final FunctionEntity _mainFunction;
-  final bool _isMockCompilation;
 
   /// True if the program should store function types in the metadata.
   bool _storeFunctionTypesInMetadata = false;
@@ -134,10 +131,8 @@ class ProgramBuilder {
       this._sourceInformationStrategy,
       this._sorter,
       Set<ClassEntity> rtiNeededClasses,
-      this._mainFunction,
-      {bool isMockCompilation})
-      : this._isMockCompilation = isMockCompilation,
-        this.collector = new Collector(
+      this._mainFunction)
+      : this.collector = new Collector(
             _options,
             _commonElements,
             _elementEnvironment,
@@ -378,7 +373,6 @@ class ProgramBuilder {
   }
 
   js.Statement _buildInvokeMain() {
-    if (_isMockCompilation) return js.js.comment("Mock compilation");
     return MainCallStubGenerator.generateInvokeMain(
         _task.emitter, _mainFunction);
   }
@@ -865,7 +859,6 @@ class ProgramBuilder {
   }
 
   DartMethod _buildMethod(FunctionEntity element) {
-    assert(!(element is MethodElement && !element.isDeclaration));
     js.Name name = _namer.methodPropertyName(element);
     js.Expression code = _generatedCode[element];
 
@@ -1042,8 +1035,6 @@ class ProgramBuilder {
 
     void visitField(FieldEntity field, js.Name name, js.Name accessorName,
         bool needsGetter, bool needsSetter, bool needsCheckedSetter) {
-      assert(!(field is FieldElement && !field.isDeclaration), failedAt(field));
-
       int getterFlags = 0;
       if (needsGetter) {
         if (visitStatics ||

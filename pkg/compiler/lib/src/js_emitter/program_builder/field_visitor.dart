@@ -61,10 +61,6 @@ class FieldVisitor {
    */
   void visitFields(AcceptField f,
       {bool visitStatics: false, LibraryEntity library, ClassEntity cls}) {
-    assert(!(library is LibraryElement && !library.isDeclaration),
-        failedAt(library));
-    assert(!(cls is ClassElement && !cls.isDeclaration), failedAt(cls));
-
     bool isNativeClass = false;
     bool isLibrary = false;
     bool isInstantiated = false;
@@ -84,8 +80,6 @@ class FieldVisitor {
     }
 
     void visitField(FieldEntity field, {ClassEntity holder}) {
-      assert(!(field is FieldElement && !field.isDeclaration), failedAt(field));
-
       bool isMixinNativeField =
           isNativeClass && _elementEnvironment.isMixinApplication(holder);
 

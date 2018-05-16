@@ -10,8 +10,6 @@ import '../common/names.dart';
 import '../compiler.dart';
 import '../common_elements.dart';
 import '../constants/values.dart';
-import '../elements/elements.dart'
-    show ConstructorElement, MemberElement, ParameterElement;
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../js_backend/annotations.dart' as optimizerHints;
@@ -325,7 +323,6 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
    */
   void updateSideEffects(SideEffectsBuilder sideEffectsBuilder,
       Selector selector, MemberEntity callee) {
-    assert(!(callee is MemberElement && !callee.isDeclaration));
     if (callee.isField) {
       if (callee.isInstanceMember) {
         if (selector.isSetter) {
@@ -412,12 +409,10 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
   }
 
   bool checkIfExposesThis(ConstructorEntity element) {
-    assert(!(element is ConstructorElement && !element.isDeclaration));
     return generativeConstructorsExposingThis.contains(element);
   }
 
   void recordExposesThis(ConstructorEntity element, bool exposesThis) {
-    assert(!(element is ConstructorElement && !element.isDeclaration));
     if (exposesThis) {
       generativeConstructorsExposingThis.add(element);
     }
@@ -683,7 +678,6 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
   FunctionEntity lookupCallMethod(ClassEntity cls);
 
   void analyze(MemberEntity element) {
-    assert(!(element is MemberElement && !element.isDeclaration));
     if (analyzedElements.contains(element)) return;
     analyzedElements.add(element);
 
@@ -884,7 +878,6 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
 
   void setDefaultTypeOfParameter(Local parameter, TypeInformation type,
       {bool isInstanceMember}) {
-    assert(!(parameter is ParameterElement && !parameter.isImplementation));
     assert(
         type != null, failedAt(parameter, "No default type for $parameter."));
     TypeInformation existing = defaultTypeOfParameter[parameter];
@@ -911,14 +904,12 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
   }
 
   TypeInformation getDefaultTypeOfParameter(Local parameter) {
-    assert(!(parameter is ParameterElement && !parameter.isImplementation));
     return defaultTypeOfParameter.putIfAbsent(parameter, () {
       return new PlaceholderTypeInformation(types.currentMember);
     });
   }
 
   bool hasAlreadyComputedTypeOfParameterDefault(Local parameter) {
-    assert(!(parameter is ParameterElement && !parameter.isImplementation));
     TypeInformation seen = defaultTypeOfParameter[parameter];
     return (seen != null && seen is! PlaceholderTypeInformation);
   }

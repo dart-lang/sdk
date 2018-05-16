@@ -7,7 +7,6 @@ library locals_handler;
 import 'dart:collection' show IterableMixin;
 import 'package:kernel/ast.dart' as ir;
 import '../options.dart' show CompilerOptions;
-import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../util/util.dart';
@@ -303,7 +302,6 @@ class LocalsHandler<T> {
         options = other.options;
 
   TypeInformation use(Local local) {
-    assert(!(local is LocalElement && !local.isImplementation));
     if (_capturedAndBoxed.containsKey(local)) {
       FieldEntity field = _capturedAndBoxed[local];
       return inferrer.typeOfMember(field);

@@ -653,8 +653,6 @@ class Emitter extends js_emitter.EmitterBase {
   }
 
   buildMain(jsAst.Statement invokeMain) {
-    if (compiler.isMockCompilation) return js.comment("Mock compilation");
-
     List<jsAst.Statement> parts = <jsAst.Statement>[];
 
     if (NativeGenerator

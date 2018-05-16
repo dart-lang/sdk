@@ -10,7 +10,6 @@ import 'common/names.dart';
 import 'common_elements.dart' show CommonElements, ElementEnvironment;
 import 'constants/constant_system.dart';
 import 'elements/entities.dart';
-import 'elements/elements.dart' show ClassElement;
 import 'elements/types.dart';
 import 'js_backend/backend_usage.dart' show BackendUsage;
 import 'js_backend/interceptor_data.dart' show InterceptorData;
@@ -1260,10 +1259,6 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
 
   @override
   String dump([ClassEntity cls]) {
-    if (cls is! ClassElement) {
-      // TODO(johnniwinther): Support [cls] as a [ClassEntity].
-      cls = null;
-    }
     StringBuffer sb = new StringBuffer();
     if (cls != null) {
       sb.write("Classes in the closed world related to $cls:\n");

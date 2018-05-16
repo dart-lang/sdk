@@ -17,7 +17,6 @@ import 'common_elements.dart';
 import 'compiler.dart' show Compiler;
 import 'constants/values.dart' show ConstantValue, InterceptorConstantValue;
 import 'deferred_load.dart' show OutputUnit;
-import 'elements/elements.dart';
 import 'elements/entities.dart';
 import 'js/js.dart' as jsAst;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
@@ -445,9 +444,6 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   }
 
   void reportInlined(FunctionEntity element, MemberEntity inlinedFrom) {
-    assert(!(element is MethodElement && !element.isDeclaration));
-    assert(!(inlinedFrom is MemberElement && !inlinedFrom.isDeclaration));
-
     inlineCount.putIfAbsent(element, () => 0);
     inlineCount[element] += 1;
     inlineMap.putIfAbsent(inlinedFrom, () => new List<Entity>());

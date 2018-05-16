@@ -3491,11 +3491,6 @@ functionTypeCast(value, functionTypeRti) {
   throw new CastErrorImplementation(value, self);
 }
 
-checkMalformedType(value, message) {
-  if (value == null) return value;
-  throw new TypeErrorImplementation.fromMessage(message);
-}
-
 futureOrTest(o, futureOrRti) => checkSubtypeOfRuntimeType(o, futureOrRti);
 
 futureOrCheck(o, futureOrRti) => assertSubtypeOfRuntimeType(o, futureOrRti);

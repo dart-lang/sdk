@@ -22,21 +22,18 @@ import 'diagnostics/diagnostic_listener.dart' show DiagnosticReporter;
 import 'diagnostics/invariant.dart' show REPORT_EXCESS_RESOLUTION;
 import 'diagnostics/messages.dart' show Message, MessageTemplate;
 import 'dump_info.dart' show DumpInfoTask;
-import 'elements/elements.dart';
 import 'elements/entities.dart';
 import 'enqueue.dart' show Enqueuer, EnqueueTask, ResolutionEnqueuer;
 import 'environment.dart';
 import 'frontend_strategy.dart';
 import 'id_generator.dart';
 import 'io/source_information.dart' show SourceInformation;
-import 'io/source_file.dart' show Binary;
 import 'js_backend/backend.dart' show JavaScriptBackend;
 import 'kernel/kernel_backend_strategy.dart';
 import 'kernel/kernel_strategy.dart';
 import 'library_loader.dart' show LibraryLoaderTask, LoadedLibraries;
 import 'null_compiler_output.dart' show NullCompilerOutput, NullSink;
 import 'options.dart' show CompilerOptions, DiagnosticOptions;
-import 'script.dart' show Script;
 import 'ssa/nodes.dart' show HInstruction;
 import 'package:front_end/src/fasta/scanner.dart' show StringToken, Token;
 import 'types/types.dart' show GlobalTypeInferenceTask;
@@ -46,7 +43,6 @@ import 'universe/world_builder.dart'
 import 'universe/use.dart' show StaticUse, TypeUse;
 import 'universe/world_impact.dart'
     show ImpactStrategy, WorldImpact, WorldImpactBuilderImpl;
-import 'util/util.dart' show Link;
 import 'world.dart' show ClosedWorld, ClosedWorldRefiner;
 
 typedef CompilerDiagnosticReporter MakeReporterFunction(
@@ -230,63 +226,6 @@ abstract class Compiler {
         });
       });
 
-  /// Compute the set of distinct import chains to the library at [uri] within
-  /// [loadedLibraries].
-  ///
-  /// The chains are strings of the form
-  ///
-  ///       <main-uri> => <intermediate-uri1> => <intermediate-uri2> => <uri>
-  ///
-  Set<String> computeImportChainsFor(LoadedLibraries loadedLibraries, Uri uri) {
-    // TODO(johnniwinther): Move computation of dependencies to the library
-    // loader.
-    Set<String> importChains = new Set<String>();
-    // The maximum number of full imports chains to process.
-    final int chainLimit = 10000;
-    // The maximum number of imports chains to show.
-    final int compactChainLimit = options.verbose ? 20 : 10;
-    int chainCount = 0;
-    loadedLibraries.forEachImportChain(uri,
-        callback: (Link<Uri> importChainReversed) {
-      Link<CodeLocation> compactImportChain = const Link<CodeLocation>();
-      CodeLocation currentCodeLocation =
-          new UriLocation(importChainReversed.head);
-      compactImportChain = compactImportChain.prepend(currentCodeLocation);
-      for (Link<Uri> link = importChainReversed.tail;
-          !link.isEmpty;
-          link = link.tail) {
-        Uri uri = link.head;
-        if (!currentCodeLocation.inSameLocation(uri)) {
-          currentCodeLocation =
-              options.verbose ? new UriLocation(uri) : new CodeLocation(uri);
-          compactImportChain = compactImportChain.prepend(currentCodeLocation);
-        }
-      }
-      String importChain = compactImportChain.map((CodeLocation codeLocation) {
-        return codeLocation.relativize(
-            (loadedLibraries.rootLibrary as LibraryElement).canonicalUri);
-      }).join(' => ');
-
-      if (!importChains.contains(importChain)) {
-        if (importChains.length > compactChainLimit) {
-          importChains.add('...');
-          return false;
-        } else {
-          importChains.add(importChain);
-        }
-      }
-
-      chainCount++;
-      if (chainCount > chainLimit) {
-        // Assume there are more import chains.
-        importChains.add('...');
-        return false;
-      }
-      return true;
-    });
-    return importChains;
-  }
-
   /// This method is called when all new libraries loaded through
   /// [LibraryLoader.loadLibrary] has been loaded and their imports/exports
   /// have been computed.
@@ -359,30 +298,6 @@ abstract class Compiler {
       mainApp = libraries.rootLibrary;
     }
     compileLoadedLibraries(mainApp);
-  }
-
-  /// Analyze all members of the library in [libraryUri].
-  ///
-  /// If [skipLibraryWithPartOfTag] is `true`, member analysis is skipped if the
-  /// library has a `part of` tag, assuming it is a part and not a library.
-  ///
-  /// This operation assumes an unclosed resolution queue and is only supported
-  /// when the '--analyze-main' option is used.
-  Future<LibraryElement> analyzeUri(Uri libraryUri,
-      {bool skipLibraryWithPartOfTag: true}) async {
-    phase = PHASE_RESOLVING;
-    assert(options.analyzeMain);
-    reporter.log('Analyzing $libraryUri (${options.buildId})');
-    LoadedLibraries loadedLibraries = await libraryLoader
-        .loadLibrary(libraryUri, skipFileWithPartOfTag: true);
-    if (loadedLibraries == null) return null;
-    processLoadedLibraries(loadedLibraries);
-    LibraryElement library = loadedLibraries.rootLibrary;
-    ResolutionEnqueuer resolutionEnqueuer = startResolution();
-    resolutionEnqueuer.applyImpact(computeImpactForLibrary(library));
-    emptyQueue(resolutionEnqueuer, onProgress: showResolutionProgress);
-    resolutionEnqueuer.logSummary(reporter.log);
-    return library;
   }
 
   /// Starts the resolution phase, creating the [ResolutionEnqueuer] if not
@@ -537,64 +452,15 @@ abstract class Compiler {
       impactBuilder.registerStaticUse(new StaticUse.directUse(element));
     }
 
-    void registerStaticElementUse(Element element) {
-      MemberElement member = element;
-      impactBuilder.registerStaticUse(new StaticUse.directUse(member));
-    }
+    ElementEnvironment elementEnvironment = frontendStrategy.elementEnvironment;
 
-    void registerElement(Element element) {
-      if (element.isClass) {
-        ClassElement cls = element;
-        cls.ensureResolved(resolution);
-        cls.forEachLocalMember(registerStaticElementUse);
-        impactBuilder.registerTypeUse(new TypeUse.instantiation(cls.rawType));
-      } else if (element.isTypedef) {
-        TypedefElement typedef = element;
-        typedef.ensureResolved(resolution);
-      } else {
-        registerStaticElementUse(element);
-      }
-    }
-
-    if (library is LibraryElement) {
-      library.implementation.forEachLocalMember(registerElement);
-
-      library.imports.forEach((ImportElement import) {
-        if (import.isDeferred) {
-          // `import.prefix` and `loadLibrary` may be `null` when the deferred
-          // import has compile-time errors.
-          GetterElement loadLibrary = import.prefix?.loadLibrary;
-          if (loadLibrary != null) {
-            registerStaticUse(loadLibrary);
-          }
-        }
-      });
-    } else {
-      ElementEnvironment elementEnvironment =
-          frontendStrategy.elementEnvironment;
-
-      elementEnvironment.forEachLibraryMember(library, registerStaticUse);
-      elementEnvironment.forEachClass(library, (ClassEntity cls) {
-        impactBuilder.registerTypeUse(
-            new TypeUse.instantiation(elementEnvironment.getRawType(cls)));
-        elementEnvironment.forEachLocalClassMember(cls, registerStaticUse);
-      });
-    }
+    elementEnvironment.forEachLibraryMember(library, registerStaticUse);
+    elementEnvironment.forEachClass(library, (ClassEntity cls) {
+      impactBuilder.registerTypeUse(
+          new TypeUse.instantiation(elementEnvironment.getRawType(cls)));
+      elementEnvironment.forEachLocalClassMember(cls, registerStaticUse);
+    });
     return impactBuilder;
-  }
-
-  // Resolves metadata on library elements.  This is necessary in order to
-  // resolve metadata classes referenced only from metadata on library tags.
-  // TODO(ahe): Figure out how to do this lazily.
-  void resolveLibraryMetadata() {
-    assert(frontendStrategy.commonElements.mirrorsLibrary != null);
-    for (LibraryElement library in libraryLoader.libraries) {
-      if (library.metadata != null) {
-        for (MetadataAnnotation metadata in library.metadata) {
-          metadata.ensureResolved(resolution);
-        }
-      }
-    }
   }
 
   /**
@@ -711,29 +577,6 @@ abstract class Compiler {
     registerCompileTimeError(currentElement, message);
   }
 
-  /**
-   * Reads the script specified by the [readableUri].
-   *
-   * See [LibraryLoader] for terminology on URIs.
-   */
-  Future<Script> readScript(Uri readableUri, [Spannable node]) {
-    throw failedAt(node, 'Compiler.readScript not implemented.');
-  }
-
-  Future<Binary> readBinary(Uri readableUri, [Spannable node]) {
-    throw failedAt(node, 'Compiler.readBinary not implemented.');
-  }
-
-  Element lookupElementIn(ScopeContainerElement container, String name) {
-    Element element = container.localLookup(name);
-    if (element == null) {
-      throw 'Could not find $name in $container';
-    }
-    return element;
-  }
-
-  bool get isMockCompilation => false;
-
   /// Helper for determining whether the current element is declared within
   /// 'user code'.
   ///
@@ -810,8 +653,6 @@ abstract class Compiler {
     } else if (element is ClassEntity) {
       return element.library.canonicalUri;
     } else if (element is MemberEntity) {
-      return element.library.canonicalUri;
-    } else if (element is Element) {
       return element.library.canonicalUri;
     }
     return null;
@@ -1057,12 +898,6 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
     throw 'No error location.';
   }
 
-  Element _elementFromHInstruction(HInstruction instruction) {
-    return instruction.sourceElement is Element
-        ? instruction.sourceElement
-        : null;
-  }
-
   internalError(Spannable spannable, reason) {
     String message = tryToString(reason);
     reportDiagnosticInternal(
@@ -1092,9 +927,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
     if (node is Entity) {
       element = node;
     } else if (node is HInstruction) {
-      element = _elementFromHInstruction(node);
-    } else if (node is MetadataAnnotation) {
-      element = node.annotatedElement;
+      element = node.sourceElement;
     }
     return element != null ? element : currentElement;
   }

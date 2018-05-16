@@ -17,11 +17,8 @@ import '../constants/values.dart'
         StringConstantValue,
         TypeConstantValue;
 import '../dump_info.dart';
-import '../elements/elements.dart' show ErroneousElement;
 import '../elements/entities.dart';
 import '../elements/jumps.dart';
-import '../elements/resolution_types.dart'
-    show MalformedType, MethodTypeVariableType;
 import '../elements/types.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
@@ -1999,17 +1996,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
 
     DartType type = _elementMap.getDartType(node.type);
-    if (type.isMalformed) {
-      // TODO(johnniwinther): This branch is no longer needed.
-      if (type is MalformedType) {
-        ErroneousElement element = type.element;
-        generateTypeError(element.message, sourceInformation);
-      } else {
-        assert(type is MethodTypeVariableType);
-        stack.add(expressionInstruction);
-      }
-    } else if (!node.isTypeError ||
-        options.implicitDowncastCheckPolicy.isEmitted) {
+    if (!node.isTypeError || options.implicitDowncastCheckPolicy.isEmitted) {
       HInstruction converted = typeBuilder.buildTypeConversion(
           expressionInstruction,
           localsHandler.substInContext(type),

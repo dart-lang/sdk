@@ -5,7 +5,6 @@
 library dart2js.js_emitter.full_emitter.container_builder;
 
 import '../../deferred_load.dart' show OutputUnit;
-import '../../elements/elements.dart' show Element, MethodElement;
 import '../../elements/entities.dart';
 import '../../elements/names.dart';
 import '../../js/js.dart' as jsAst;
@@ -152,17 +151,9 @@ class ContainerBuilder extends CodeEmitterHelper {
       expressions.addAll(
           task.metadataCollector.reifyDefaultArguments(member, outputUnit));
 
-      if (member is MethodElement) {
-        member.functionSignature.forEachParameter((Element parameter) {
-          expressions.add(
-              task.metadataCollector.reifyName(parameter.name, outputUnit));
-        });
-      } else {
-        codegenWorldBuilder.forEachParameter(member, (_, String name, _2) {
-          expressions.add(task.metadataCollector.reifyName(name, outputUnit));
-        });
-        // TODO(redemption): Support retaining mirrors metadata.
-      }
+      codegenWorldBuilder.forEachParameter(member, (_, String name, _2) {
+        expressions.add(task.metadataCollector.reifyName(name, outputUnit));
+      });
     }
     Name memberName = member.memberName;
     expressions.add(js.string(namer.privateName(memberName)));

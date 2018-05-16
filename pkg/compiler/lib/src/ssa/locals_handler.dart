@@ -4,7 +4,6 @@
 
 import '../closure.dart';
 import '../common.dart';
-import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../io/source_information.dart';
@@ -147,12 +146,8 @@ class LocalsHandler {
     closureInfo.forEachBoxedVariable((Local from, FieldEntity to) {
       // The [from] can only be a parameter for function-scopes and not
       // loop scopes.
-      bool isParameter;
-      if (from is JLocal) {
-        isParameter = from.isRegularParameter;
-      } else if (from is LocalVariableElement) {
-        isParameter = from.isRegularParameter;
-      }
+      JLocal jFrom = from;
+      bool isParameter = jFrom.isRegularParameter;
       assert(isParameter != null);
       if (isParameter && !forGenerativeConstructorBody) {
         // Now that the redirection is set up, the update to the local will
@@ -200,8 +195,6 @@ class LocalsHandler {
       Map<Local, TypeMask> parameters,
       SourceInformation sourceInformation,
       {bool isGenerativeConstructorBody}) {
-    assert(!(element is MemberElement && !element.isImplementation),
-        failedAt(element));
     this.scopeInfo = scopeInfo;
 
     parameters.forEach((Local local, TypeMask typeMask) {

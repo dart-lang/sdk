@@ -4,7 +4,6 @@
 
 import '../common.dart';
 import '../common_elements.dart';
-import '../elements/elements.dart' show ClassElement, MixinApplicationElement;
 import '../elements/entities.dart';
 import '../elements/types.dart' show InterfaceType;
 import 'class_set.dart';
@@ -179,44 +178,4 @@ abstract class ClassQueries {
 
   /// Returns all supertypes of [cls].
   Iterable<InterfaceType> getSupertypes(covariant ClassEntity cls);
-}
-
-class ElementClassQueries extends ClassQueries {
-  final CommonElements commonElements;
-
-  ElementClassQueries(this.commonElements);
-
-  @override
-  ClassEntity getDeclaration(ClassElement cls) {
-    return cls.declaration;
-  }
-
-  @override
-  ClassEntity getAppliedMixin(ClassElement cls) {
-    if (cls.isMixinApplication) {
-      MixinApplicationElement mixinApplication = cls;
-      // Note: If [mixinApplication] is malformed [mixin] is `null`.
-      return mixinApplication.mixin;
-    }
-    return null;
-  }
-
-  @override
-  int getHierarchyDepth(ClassElement cls) => cls.hierarchyDepth;
-
-  @override
-  bool checkClass(ClassElement cls) => cls.isDeclaration;
-
-  @override
-  bool validateClass(ClassElement cls) => cls.isResolved;
-
-  @override
-  bool implementsFunction(ClassElement cls) =>
-      cls.implementsFunction(commonElements);
-
-  @override
-  ClassEntity getSuperClass(ClassElement cls) => cls.superclass;
-
-  @override
-  Iterable<InterfaceType> getSupertypes(ClassElement cls) => cls.allSupertypes;
 }

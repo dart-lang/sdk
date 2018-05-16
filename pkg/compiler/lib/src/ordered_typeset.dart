@@ -6,9 +6,7 @@ library ordered_typeset;
 
 import 'common.dart';
 import 'diagnostics/diagnostic_listener.dart' show DiagnosticReporter;
-import 'elements/elements.dart' show ClassElement;
 import 'elements/entities.dart';
-import 'elements/resolution_types.dart';
 import 'elements/types.dart';
 import 'util/util.dart' show Link, LinkBuilder;
 import 'package:front_end/src/fasta/util/link_implementation.dart'
@@ -304,22 +302,4 @@ abstract class OrderedTypeSetBuilderBase implements OrderedTypeSetBuilder {
     }
     return sb.toString();
   }
-}
-
-class ResolutionOrderedTypeSetBuilder extends OrderedTypeSetBuilderBase {
-  ResolutionOrderedTypeSetBuilder(ClassElement cls, InterfaceType objectType,
-      {DiagnosticReporter reporter})
-      : super(cls, objectType, reporter: reporter);
-
-  InterfaceType getThisType(ClassElement cls) => cls.thisType;
-
-  ResolutionInterfaceType substByContext(
-      ResolutionInterfaceType type, ResolutionInterfaceType context) {
-    return type.substByContext(context);
-  }
-
-  int getHierarchyDepth(ClassElement cls) => cls.hierarchyDepth;
-
-  OrderedTypeSet getOrderedTypeSet(ClassElement cls) =>
-      cls.allSupertypesAndSelf;
 }

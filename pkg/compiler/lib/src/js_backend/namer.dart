@@ -15,7 +15,6 @@ import '../common/names.dart' show Identifiers, Names, Selectors;
 import '../constants/values.dart';
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
-import '../elements/elements.dart' show Element, MemberElement;
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
 import '../elements/jumps.dart';
@@ -1118,12 +1117,6 @@ class Namer {
       Entity element, String proposeName(Entity element)) {
     // TODO(asgerf): We can reuse more short names if we disambiguate with
     // a separate namespace for each of the global holder objects.
-    if (element is Element) {
-      // Ensures we only work on declarations. Non-[Element] entities do not
-      // have the declaration/implementation separation.
-      Element e = element;
-      element = e.declaration;
-    }
     jsAst.Name newName = userGlobals[element];
     if (newName == null) {
       String proposedName = proposeName(element);
@@ -1562,21 +1555,6 @@ class Namer {
   bool _isPropertyOfStaticStateHolder(MemberEntity element) {
     // TODO(ahe): Make sure this method's documentation is always true and
     // remove the word "intend".
-    if (element is MemberElement) {
-      // TODO(johnniwinther): Clean up this method to have a single semantics on
-      // entities.
-      return
-          // TODO(ahe): Re-write these tests to be positive (so it only returns
-          // true for static/top-level mutable fields). Right now, a number of
-          // other elements, such as bound closures also live in
-          // [staticStateHolder].
-          !element.isAccessor &&
-              !element.isClass &&
-              !element.isTypedef &&
-              !element.isConstructor &&
-              !element.isFunction &&
-              !element.isLibrary;
-    }
     return element.isField;
   }
 

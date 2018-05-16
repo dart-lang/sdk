@@ -6,15 +6,8 @@ library js_backend.runtime_types;
 
 import '../common/names.dart' show Identifiers;
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
-import '../elements/elements.dart' show ClassElement;
 import '../elements/entities.dart';
 import '../elements/names.dart';
-import '../elements/resolution_types.dart'
-    show
-        MalformedType,
-        MethodTypeVariableType,
-        ResolutionDartTypeVisitor,
-        ResolutionTypedefType;
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
@@ -39,7 +32,7 @@ abstract class TypeChecks {
 }
 
 typedef jsAst.Expression OnVariableCallback(TypeVariableType variable);
-typedef bool ShouldEncodeTypedefCallback(ResolutionTypedefType variable);
+typedef bool ShouldEncodeTypedefCallback(TypedefType variable);
 
 /// Interface for the classes and methods that need runtime types.
 abstract class RuntimeTypesNeed {
@@ -758,29 +751,6 @@ class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
   }
 }
 
-class _ResolutionRuntimeTypesNeed extends RuntimeTypesNeedImpl {
-  _ResolutionRuntimeTypesNeed(
-      ElementEnvironment elementEnvironment,
-      BackendUsage backendUsage,
-      Set<ClassEntity> classesNeedingTypeArguments,
-      Set<FunctionEntity> methodsNeedingSignature,
-      Set<FunctionEntity> methodsNeedingTypeArguments,
-      Set<Local> localFunctionsNeedingSignature,
-      Set<Local> localFunctionsNeedingTypeArguments,
-      Set<Selector> selectorsNeedingTypeArguments)
-      : super(
-            elementEnvironment,
-            backendUsage,
-            classesNeedingTypeArguments,
-            methodsNeedingSignature,
-            methodsNeedingTypeArguments,
-            localFunctionsNeedingSignature,
-            localFunctionsNeedingTypeArguments,
-            selectorsNeedingTypeArguments);
-
-  bool checkClass(ClassElement cls) => cls.isDeclaration;
-}
-
 class TypeVariableTests {
   List<RtiNode> _nodes = <RtiNode>[];
   Map<ClassEntity, ClassNode> _classes = <ClassEntity, ClassNode>{};
@@ -1369,8 +1339,6 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
   RuntimeTypesNeedBuilderImpl(this._elementEnvironment, DartTypes types)
       : super(types);
 
-  bool checkClass(covariant ClassEntity cls) => true;
-
   @override
   void registerClassUsingTypeVariableLiteral(ClassEntity cls) {
     classesUsingTypeVariableLiterals.add(cls);
@@ -1417,7 +1385,6 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
       processedEntities.add(entity);
       if (entity is ClassEntity) {
         ClassEntity cls = entity;
-        assert(checkClass(cls));
         if (!_elementEnvironment.isGenericClass(cls)) return;
         if (classesNeedingTypeArguments.contains(cls)) return;
         classesNeedingTypeArguments.add(cls);
@@ -1625,35 +1592,6 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
       Set<Local> localFunctionsNeedingTypeArguments,
       Set<Selector> selectorsNeedingTypeArguments) {
     return new RuntimeTypesNeedImpl(
-        _elementEnvironment,
-        backendUsage,
-        classesNeedingTypeArguments,
-        methodsNeedingSignature,
-        methodsNeedingTypeArguments,
-        localFunctionsNeedingSignature,
-        localFunctionsNeedingTypeArguments,
-        selectorsNeedingTypeArguments);
-  }
-}
-
-class ResolutionRuntimeTypesNeedBuilderImpl
-    extends RuntimeTypesNeedBuilderImpl {
-  ResolutionRuntimeTypesNeedBuilderImpl(
-      ElementEnvironment elementEnvironment, DartTypes types)
-      : super(elementEnvironment, types);
-
-  bool checkClass(ClassElement cls) => cls.isDeclaration;
-
-  RuntimeTypesNeed _createRuntimeTypesNeed(
-      ElementEnvironment elementEnvironment,
-      BackendUsage backendUsage,
-      Set<ClassEntity> classesNeedingTypeArguments,
-      Set<FunctionEntity> methodsNeedingSignature,
-      Set<FunctionEntity> methodsNeedingTypeArguments,
-      Set<Local> localFunctionsNeedingSignature,
-      Set<Local> localFunctionsNeedingTypeArguments,
-      Set<Selector> selectorsNeedingTypeArguments) {
-    return new _ResolutionRuntimeTypesNeed(
         _elementEnvironment,
         backendUsage,
         classesNeedingTypeArguments,
@@ -2105,7 +2043,7 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
 }
 
 class TypeRepresentationGenerator
-    implements ResolutionDartTypeVisitor<jsAst.Expression, Emitter> {
+    implements DartTypeVisitor<jsAst.Expression, Emitter> {
   final Namer namer;
   final NativeBasicData _nativeData;
   // If true, compile using strong mode.
@@ -2129,9 +2067,8 @@ class TypeRepresentationGenerator
       ShouldEncodeTypedefCallback encodeTypedef) {
     assert(typedefBindings == null);
     this.onVariable = onVariable;
-    this.shouldEncodeTypedef = (encodeTypedef != null)
-        ? encodeTypedef
-        : (ResolutionTypedefType type) => false;
+    this.shouldEncodeTypedef =
+        (encodeTypedef != null) ? encodeTypedef : (TypedefType type) => false;
     jsAst.Expression representation = visit(type, emitter);
     this.onVariable = null;
     this.shouldEncodeTypedef = null;
@@ -2302,17 +2239,11 @@ class TypeRepresentationGenerator
     return new jsAst.ObjectInitializer(properties);
   }
 
-  jsAst.Expression visitMalformedType(MalformedType type, Emitter emitter) {
-    // Treat malformed types as dynamic at runtime.
-    return getDynamicValue();
-  }
-
   jsAst.Expression visitVoidType(VoidType type, Emitter emitter) {
     return _strongMode ? getVoidValue() : getDynamicValue();
   }
 
-  jsAst.Expression visitTypedefType(
-      ResolutionTypedefType type, Emitter emitter) {
+  jsAst.Expression visitTypedefType(TypedefType type, Emitter emitter) {
     bool shouldEncode = shouldEncodeTypedef(type);
     DartType unaliasedType = type.unaliased;
 
@@ -2340,9 +2271,7 @@ class TypeRepresentationGenerator
       // inputs to correspond to type variables AND typedefs.
       typedefBindings = <TypeVariableType, jsAst.Expression>{};
       type.forEachTypeVariable((TypeVariableType variable) {
-        if (variable is! MethodTypeVariableType) {
-          typedefBindings[variable] = onVariable(variable);
-        }
+        typedefBindings[variable] = onVariable(variable);
       });
     }
 
@@ -2412,7 +2341,7 @@ class TypeCheckMapping implements TypeChecks {
   }
 }
 
-class ArgumentCollector extends ResolutionDartTypeVisitor<dynamic, bool> {
+class ArgumentCollector extends DartTypeVisitor<dynamic, bool> {
   final Set<ClassEntity> classes = new Set<ClassEntity>();
 
   void addClass(ClassEntity cls) {
@@ -2431,7 +2360,7 @@ class ArgumentCollector extends ResolutionDartTypeVisitor<dynamic, bool> {
     }
   }
 
-  visitTypedefType(ResolutionTypedefType type, bool isTypeArgument) {
+  visitTypedefType(TypedefType type, bool isTypeArgument) {
     collect(type.unaliased, isTypeArgument: isTypeArgument);
   }
 
@@ -2448,8 +2377,7 @@ class ArgumentCollector extends ResolutionDartTypeVisitor<dynamic, bool> {
   }
 }
 
-class FunctionArgumentCollector
-    extends ResolutionDartTypeVisitor<dynamic, bool> {
+class FunctionArgumentCollector extends DartTypeVisitor<dynamic, bool> {
   final Set<ClassEntity> classes = new Set<ClassEntity>();
 
   FunctionArgumentCollector();
@@ -2464,7 +2392,7 @@ class FunctionArgumentCollector
     }
   }
 
-  visitTypedefType(ResolutionTypedefType type, bool inFunctionType) {
+  visitTypedefType(TypedefType type, bool inFunctionType) {
     collect(type.unaliased, inFunctionType: inFunctionType);
   }
 
@@ -2547,7 +2475,7 @@ class TypeCheck {
       'TypeCheck(cls=$cls,needsIs=$needsIs,substitution=$substitution)';
 }
 
-class TypeVisitor extends ResolutionDartTypeVisitor<void, bool> {
+class TypeVisitor extends DartTypeVisitor<void, bool> {
   Set<FunctionTypeVariable> _visitedFunctionTypeVariables =
       new Set<FunctionTypeVariable>();
 

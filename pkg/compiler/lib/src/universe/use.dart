@@ -19,7 +19,6 @@ library dart2js.universe.use;
 import '../common.dart';
 import '../constants/values.dart';
 import '../elements/types.dart';
-import '../elements/elements.dart' show Element;
 import '../elements/entities.dart';
 import '../js_model/closure.dart';
 import '../util/util.dart' show equalElements, Hashing;
@@ -171,12 +170,7 @@ class StaticUse {
       {this.type, this.callStructure, typeArgumentsHash: 0})
       : this.element = element,
         this.hashCode = Hashing.objectsHash(
-            element, kind, type, typeArgumentsHash, callStructure) {
-    assert(
-        !(element is Element && !element.isDeclaration),
-        failedAt(element,
-            "Static use element $element must be the declaration element."));
-  }
+            element, kind, type, typeArgumentsHash, callStructure);
 
   /// Short textual representation use for testing.
   String get shortText {

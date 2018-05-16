@@ -6,10 +6,8 @@ library dart2js.js_emitter.runtime_type_generator;
 
 import '../closure.dart'
     show ClosureRepresentationInfo, ClosureConversionTask, ScopeInfo;
-import '../common.dart';
 import '../common_elements.dart' show CommonElements;
 import '../deferred_load.dart' show OutputUnit, OutputUnitData;
-import '../elements/elements.dart' show ClassElement, MethodElement;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
@@ -138,14 +136,10 @@ class RuntimeTypeGenerator {
       {bool storeFunctionTypeInMetadata: true}) {
     TypeTestProperties result = new TypeTestProperties();
 
-    assert(!(classElement is ClassElement && !classElement.isDeclaration),
-        failedAt(classElement));
-
     // TODO(johnniwinther): Include function signatures in [ClassChecks].
     void generateFunctionTypeSignature(ClassFunctionType classFunctionType) {
       FunctionEntity method = classFunctionType.callFunction;
       FunctionType type = classFunctionType.callType;
-      assert(!(method is MethodElement && !method.isImplementation));
 
       // TODO(johnniwinther): Avoid unneeded function type indices or
       // signatures. We either need them for mirrors or because [type] is

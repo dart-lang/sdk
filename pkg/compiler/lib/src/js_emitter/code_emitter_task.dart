@@ -201,8 +201,7 @@ class CodeEmitterTask extends CompilerTask {
           backend.sourceInformationStrategy,
           compiler.backendStrategy.sorter,
           typeTestRegistry.rtiNeededClasses,
-          closedWorld.elementEnvironment.mainFunction,
-          isMockCompilation: compiler.isMockCompilation);
+          closedWorld.elementEnvironment.mainFunction);
       int size = emitter.emitProgram(programBuilder);
       // TODO(floitsch): we shouldn't need the `neededClasses` anymore.
       neededClasses = programBuilder.collector.neededClasses;
