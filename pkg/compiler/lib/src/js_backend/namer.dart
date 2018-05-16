@@ -19,7 +19,6 @@ import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
 import '../elements/jumps.dart';
 import '../elements/names.dart';
-import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
 import '../js_model/closure.dart';
@@ -1647,12 +1646,12 @@ class Namer {
 
   String get futureOrTypeTag => r'type';
 
-  Map<ResolutionFunctionType, jsAst.Name> functionTypeNameMap =
-      new HashMap<ResolutionFunctionType, jsAst.Name>();
+  Map<FunctionType, jsAst.Name> functionTypeNameMap =
+      new HashMap<FunctionType, jsAst.Name>();
 
   FunctionTypeNamer _functionTypeNamer;
 
-  jsAst.Name getFunctionTypeName(ResolutionFunctionType functionType) {
+  jsAst.Name getFunctionTypeName(FunctionType functionType) {
     return functionTypeNameMap.putIfAbsent(functionType, () {
       _functionTypeNamer ??= new FunctionTypeNamer(rtiEncoder);
       String proposedName = _functionTypeNamer.computeName(functionType);
@@ -2238,39 +2237,49 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   }
 }
 
-class FunctionTypeNamer extends BaseResolutionDartTypeVisitor {
+class FunctionTypeNamer extends BaseDartTypeVisitor {
   final RuntimeTypesEncoder rtiEncoder;
   StringBuffer sb;
 
   FunctionTypeNamer(this.rtiEncoder);
 
-  String computeName(ResolutionDartType type) {
+  String computeName(DartType type) {
     sb = new StringBuffer();
     visit(type);
     return sb.toString();
   }
 
-  visit(covariant ResolutionDartType type, [_]) {
+  visit(DartType type, [_]) {
     type.accept(this, null);
   }
 
-  visitType(covariant ResolutionDartType type, _) {
-    sb.write(type.name);
+  visitType(DartType type, _) {}
+
+  visitInterfaceType(InterfaceType type, _) {
+    sb.write(type.element.name);
   }
 
-  visitFunctionType(covariant ResolutionFunctionType type, _) {
+  visitTypedefType(TypedefType type, _) {
+    sb.write(type.element.name);
+  }
+
+  visitTypeVariableType(TypeVariableType type, _) {
+    sb.write(type.element.name);
+  }
+
+  visitFunctionType(FunctionType type, _) {
     if (rtiEncoder.isSimpleFunctionType(type)) {
       sb.write('args${type.parameterTypes.length}');
       return;
     }
     visit(type.returnType);
     sb.write('_');
-    for (ResolutionDartType parameter in type.parameterTypes) {
+    for (DartType parameter in type.parameterTypes) {
       sb.write('_');
       visit(parameter);
     }
     bool first = false;
-    for (ResolutionDartType parameter in type.optionalParameterTypes) {
+    for (DartType parameter in type.optionalParameterTypes) {
       if (!first) {
         sb.write('_');
       }
@@ -2280,7 +2289,7 @@ class FunctionTypeNamer extends BaseResolutionDartTypeVisitor {
     }
     if (!type.namedParameterTypes.isEmpty) {
       first = false;
-      for (ResolutionDartType parameter in type.namedParameterTypes) {
+      for (DartType parameter in type.namedParameterTypes) {
         if (!first) {
           sb.write('_');
         }

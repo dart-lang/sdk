@@ -8,7 +8,6 @@ import 'dart:async';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/commandline_options.dart';
-import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/compiler.dart' show Compiler;
 import 'package:compiler/src/elements/entities.dart';
@@ -192,36 +191,6 @@ class TypeEnvironment {
 
   bool isPotentialSubtype(DartType T, DartType S) {
     return types.isPotentialSubtype(T, S);
-  }
-
-  bool isMoreSpecific(ResolutionDartType T, ResolutionDartType S) {
-    return (types as Types).isMoreSpecific(T, S);
-  }
-
-  ResolutionDartType computeLeastUpperBound(
-      ResolutionDartType T, ResolutionDartType S) {
-    return (types as Types).computeLeastUpperBound(T, S);
-  }
-
-  ResolutionDartType flatten(ResolutionDartType T) {
-    return (types as Types).flatten(T);
-  }
-
-  ResolutionFunctionType functionType(
-      ResolutionDartType returnType, List<ResolutionDartType> parameters,
-      {List<ResolutionDartType> optionalParameters:
-          const <ResolutionDartType>[],
-      Map<String, ResolutionDartType> namedParameters}) {
-    List<String> namedParameterNames = <String>[];
-    List<ResolutionDartType> namedParameterTypes = <ResolutionDartType>[];
-    if (namedParameters != null) {
-      namedParameters.forEach((String name, ResolutionDartType type) {
-        namedParameterNames.add(name);
-        namedParameterTypes.add(type);
-      });
-    }
-    return new ResolutionFunctionType.synthesized(returnType, parameters,
-        optionalParameters, namedParameterNames, namedParameterTypes);
   }
 
   ClosedWorld get closedWorld {

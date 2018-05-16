@@ -9,7 +9,6 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart' show ClassEntity;
 import 'package:compiler/src/elements/types.dart';
-import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:expect/expect.dart';
 import '../type_test_helper.dart';
 
@@ -43,10 +42,6 @@ void testTypes(TypeEnvironment env, DartType subtype, DartType supertype,
   if (expectSubtype) {
     Expect.isTrue(env.isPotentialSubtype(subtype, supertype),
         '$subtype <: $supertype (potential)');
-  }
-  if (env.types is Types) {
-    Expect.equals(expectMoreSpecific, env.isMoreSpecific(subtype, supertype),
-        '$subtype << $supertype');
   }
 }
 
