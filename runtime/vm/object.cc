@@ -12903,6 +12903,10 @@ RawStackMap* StackMap::New(intptr_t pc_offset,
   }
   ASSERT(pc_offset >= 0);
   result.SetPcOffset(pc_offset);
+  if (payload_size > 0) {
+    // Ensure leftover bits are deterministic.
+    result.raw()->ptr()->data()[payload_size - 1] = 0;
+  }
   for (intptr_t i = 0; i < length; ++i) {
     result.SetBit(i, bmap->Get(i));
   }
