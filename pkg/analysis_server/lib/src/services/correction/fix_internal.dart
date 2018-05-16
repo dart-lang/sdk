@@ -1955,13 +1955,13 @@ class FixProcessor {
     _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_RETURN_TYPE_FUTURE);
   }
 
-  Future<Null> _addFix_importLibrary(FixKind kind, Source library) async {
-    String libraryUri = getLibrarySourceUri(unitLibraryElement, library);
+  Future<Null> _addFix_importLibrary(FixKind kind, Uri library) async {
+    String uriText;
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.importLibraries([library]);
+      uriText = builder.importLibrary(library);
     });
-    _addFixFromBuilder(changeBuilder, kind, args: [libraryUri]);
+    _addFixFromBuilder(changeBuilder, kind, args: [uriText]);
   }
 
   Future<Null> _addFix_importLibrary_withElement(String name,
@@ -2061,7 +2061,7 @@ class FixProcessor {
           fixKind = DartFixKind.IMPORT_LIBRARY_PROJECT1;
         }
         // Add the fix.
-        await _addFix_importLibrary(fixKind, librarySource);
+        await _addFix_importLibrary(fixKind, librarySource.uri);
       }
     }
   }
@@ -2821,7 +2821,8 @@ class FixProcessor {
 
   Future<Null> _addFix_undefinedFunction_create() async {
     // should be the name of the invocation
-    if (node is SimpleIdentifier && node.parent is MethodInvocation) {} else {
+    if (node is SimpleIdentifier && node.parent is MethodInvocation) {
+    } else {
       return;
     }
     String name = (node as SimpleIdentifier).name;

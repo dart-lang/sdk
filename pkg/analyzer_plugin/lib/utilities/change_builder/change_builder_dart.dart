@@ -305,9 +305,12 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
       FunctionBody body, TypeProvider typeProvider);
 
   /**
-   * Arrange to have imports added for each of the given [libraries].
+   * Arrange to have an import added for the given [library].
+   *
+   * Returns the text of the URI that will be used in the import directive.
+   * It can be different than the given [Uri].
    */
-  void importLibraries(Iterable<Source> libraries);
+  String importLibrary(Uri library);
 
   /**
    * Optionally create an edit to replace the given [typeAnnotation] with the

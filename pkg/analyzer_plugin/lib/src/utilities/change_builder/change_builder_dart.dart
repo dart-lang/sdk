@@ -24,7 +24,6 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:charcode/ascii.dart';
 import 'package:meta/meta.dart';
-import 'package:path/path.dart' as path;
 
 /**
  * A [ChangeBuilder] used to build changes in Dart files.
@@ -91,8 +90,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   /**
    * Arrange to have an import added for the given [library].
    */
-  void importLibrary(Source library) {
-    dartFileEditBuilder.librariesToImport.add(library);
+  void importLibrary(Uri library) {
+    dartFileEditBuilder.importLibrary(library);
   }
 
   @override
@@ -596,7 +595,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           write('.');
         }
       } else {
-        importLibrary(definingLibrary.source);
+        importLibrary(definingLibrary.source.uri);
       }
     }
 
@@ -1022,7 +1021,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           buffer.write(".");
         }
       } else {
-        importLibrary(definingLibrary.source);
+        importLibrary(definingLibrary.source.uri);
       }
     }
     // append simple name
@@ -1182,10 +1181,10 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   CompilationUnit unit;
 
   /**
-   * A set containing the sources of the libraries that need to be imported in
-   * order to make visible the names used in generated code.
+   * The set of absolute or relative URIs of the libraries that need to be
+   * imported in order to make visible the names used in generated code.
    */
-  Set<Source> librariesToImport = new Set<Source>();
+  Set<String> librariesToImport = new Set<String>();
 
   /**
    * Initialize a newly created builder to build a source file edit within the
@@ -1231,20 +1230,23 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       CompilationUnitElement definingUnitElement =
           libraryElement.definingCompilationUnit;
       if (definingUnitElement == unitElement) {
-        _addLibraryImports(libraryElement, librariesToImport);
+        _addLibraryImports(librariesToImport);
       } else {
         await (changeBuilder as DartChangeBuilder).addFileEdit(
             definingUnitElement.source.fullName, (DartFileEditBuilder builder) {
           (builder as DartFileEditBuilderImpl)
-              ._addLibraryImports(libraryElement, librariesToImport);
+              ._addLibraryImports(librariesToImport);
         });
       }
     }
   }
 
   @override
-  void importLibraries(Iterable<Source> libraries) {
-    librariesToImport.addAll(libraries);
+  String importLibrary(Uri library) {
+    LibraryElement targetLibrary = unit.element.library;
+    String uriText = _getLibrarySourceUri(targetLibrary, library);
+    librariesToImport.add(uriText);
+    return uriText;
   }
 
   @override
@@ -1274,10 +1276,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   }
 
   /**
-   * Adds edits ensure that all the [libraries] are imported into the given
-   * [targetLibrary].
+   * Adds edits ensure that all the [libraries] are imported.
    */
-  void _addLibraryImports(LibraryElement targetLibrary, Set<Source> libraries) {
+  void _addLibraryImports(Set<String> libraries) {
     // Prepare information about existing imports.
     LibraryDirective libraryDirective;
     List<ImportDirective> importDirectives = <ImportDirective>[];
@@ -1290,9 +1291,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     }
 
     // Prepare all URIs to import.
-    List<String> uriList = libraries
-        .map((library) => _getLibrarySourceUri(targetLibrary, library))
-        .toList();
+    List<String> uriList = libraries.toList();
     uriList.sort((a, b) => a.compareTo(b));
 
     // Insert imports: between existing imports.
@@ -1449,18 +1448,15 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /**
    * Computes the best URI to import [what] into [from].
    */
-  String _getLibrarySourceUri(LibraryElement from, Source what) {
-    String whatPath = what.fullName;
-    // check if an absolute URI (such as 'dart:' or 'package:')
-    Uri whatUri = what.uri;
-    String whatUriScheme = whatUri.scheme;
-    if (whatUriScheme != '' && whatUriScheme != 'file') {
-      return whatUri.toString();
+  String _getLibrarySourceUri(LibraryElement from, Uri what) {
+    if (what.scheme == 'file') {
+      var session = (changeBuilder as DartChangeBuilderImpl).session;
+      var pathContext = session.resourceProvider.pathContext;
+      String fromFolder = pathContext.dirname(from.source.fullName);
+      String relativeFile = pathContext.relative(what.path, from: fromFolder);
+      return pathContext.split(relativeFile).join('/');
     }
-    // compute a relative URI
-    String fromFolder = path.dirname(from.source.fullName);
-    String relativeFile = path.relative(whatPath, from: fromFolder);
-    return path.split(relativeFile).join('/');
+    return what.toString();
   }
 
   /**

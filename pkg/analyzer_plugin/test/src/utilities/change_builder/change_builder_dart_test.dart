@@ -74,7 +74,7 @@ class DartChangeBuilderImplTest extends AbstractContextTest {
 class DartEditBuilderImplTest extends AbstractContextTest
     with BuilderTestMixin {
   test_importLibraries_DP() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'dart:aaa';
 import 'dart:ccc';
 
@@ -92,7 +92,7 @@ import 'package:ccc/ccc.dart';
   }
 
   test_importLibraries_PD() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'dart:aaa';
 import 'dart:ccc';
 
@@ -110,7 +110,7 @@ import 'package:ccc/ccc.dart';
   }
 
   test_importLibrary_afterLibraryDirective_dart() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 library test;
 
 class A {}
@@ -125,7 +125,7 @@ class A {}
   }
 
   test_importLibrary_dart_beforeDart() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'dart:aaa';
 import 'dart:ccc';
 ''', ['dart:bbb'], '''
@@ -136,7 +136,7 @@ import 'dart:ccc';
   }
 
   test_importLibrary_dart_beforeDart_first() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'dart:bbb';
 ''', ['dart:aaa'], '''
 import 'dart:aaa';
@@ -145,7 +145,7 @@ import 'dart:bbb';
   }
 
   test_importLibrary_dart_beforePackage() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'package:foo/foo.dart';
 ''', ['dart:async'], '''
 import 'dart:async';
@@ -155,7 +155,7 @@ import 'package:foo/foo.dart';
   }
 
   test_importLibrary_noDirectives_docComment() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 /// Documentation comment.
 /// Continues.
 void main() {}
@@ -169,7 +169,7 @@ void main() {}
   }
 
   test_importLibrary_noDirectives_hashBang() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 #!/bin/dart
 
 void main() {}
@@ -183,7 +183,7 @@ void main() {}
   }
 
   test_importLibrary_noDirectives_lineComment() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 // Not documentation comment.
 // Continues.
 
@@ -199,7 +199,7 @@ void main() {}
   }
 
   test_importLibrary_package_afterDart() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'dart:async';
 ''', ['package:aaa/aaa.dart'], '''
 import 'dart:async';
@@ -209,7 +209,7 @@ import 'package:aaa/aaa.dart';
   }
 
   test_importLibrary_package_afterPackage() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'package:aaa/a1.dart';
 
 import 'foo.dart';
@@ -222,7 +222,7 @@ import 'foo.dart';
   }
 
   test_importLibrary_package_afterPackage_leadingComment() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 // comment
 import 'package:aaa/a1.dart';
 
@@ -237,7 +237,7 @@ import 'foo.dart';
   }
 
   test_importLibrary_package_afterPackage_trailingComment() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'package:aaa/a1.dart'; // comment
 
 import 'foo.dart';
@@ -250,7 +250,7 @@ import 'foo.dart';
   }
 
   test_importLibrary_package_beforePackage() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'package:aaa/a1.dart';
 import 'package:aaa/a3.dart';
 
@@ -265,7 +265,7 @@ import 'foo.dart';
   }
 
   test_importLibrary_package_beforePackage_first() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'package:aaa/a2.dart';
 
 import 'foo.dart';
@@ -278,7 +278,7 @@ import 'foo.dart';
   }
 
   test_importLibrary_package_beforePackage_leadingComments() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 // comment a2
 import 'package:aaa/a2.dart';
 
@@ -293,7 +293,7 @@ import 'foo.dart';
   }
 
   test_importLibrary_package_beforePackage_trailingComments() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'package:aaa/a2.dart'; // comment a2
 
 import 'foo.dart';
@@ -306,7 +306,7 @@ import 'foo.dart';
   }
 
   test_importLibrary_package_beforeRelative() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'foo.dart';
 ''', ['package:aaa/aaa.dart'], '''
 import 'package:aaa/aaa.dart';
@@ -316,7 +316,7 @@ import 'foo.dart';
   }
 
   test_importLibrary_relative_afterDart() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'dart:async';
 ''', ['aaa.dart'], '''
 import 'dart:async';
@@ -326,7 +326,7 @@ import 'aaa.dart';
   }
 
   test_importLibrary_relative_afterPackage() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'package:foo/foo.dart';
 ''', ['aaa.dart'], '''
 import 'package:foo/foo.dart';
@@ -336,7 +336,7 @@ import 'aaa.dart';
   }
 
   test_importLibrary_relative_beforeRelative() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'dart:async';
 
 import 'package:foo/foo.dart';
@@ -355,7 +355,7 @@ import 'ccc.dart';
   }
 
   test_importLibrary_relative_beforeRelative_first() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'dart:async';
 
 import 'package:foo/foo.dart';
@@ -372,7 +372,7 @@ import 'bbb.dart';
   }
 
   test_importLibrary_relative_last() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'dart:async';
 
 import 'package:foo/foo.dart';
@@ -1955,18 +1955,15 @@ import 'a.dart' as p;
     expect(edit.replacement, equalsIgnoringWhitespace('implements A, B'));
   }
 
-  Future<Null> _assertImportLibraries(
+  Future<Null> _assertImportLibrary(
       String initialCode, List<String> newUris, String expectedCode) async {
     String path = provider.convertPath('/test.dart');
     addSource(path, initialCode);
     DartChangeBuilderImpl builder = new DartChangeBuilder(session);
     await builder.addFileEdit(path, (DartFileEditBuilder builder) {
-      Iterable<_MockSource> sources = newUris.map((newUri) {
-        String path =
-            newUri.contains(':') ? null : provider.convertPath('/$newUri');
-        return new _MockSource(path, Uri.parse(newUri));
-      });
-      builder.importLibraries(sources);
+      for (String newUri in newUris) {
+        builder.importLibrary(Uri.parse(newUri));
+      }
     });
 
     String resultCode = initialCode;
@@ -2167,17 +2164,4 @@ class C extends B {}
     expect(suggestions.map((s) => s.value),
         unorderedEquals(['Object', 'A', 'B', 'C']));
   }
-}
-
-class _MockSource implements Source {
-  @override
-  final String fullName;
-
-  @override
-  final Uri uri;
-
-  _MockSource(this.fullName, this.uri);
-
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
