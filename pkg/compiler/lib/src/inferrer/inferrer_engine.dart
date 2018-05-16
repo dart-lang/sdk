@@ -15,7 +15,6 @@ import '../elements/elements.dart'
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../js_backend/annotations.dart' as optimizerHints;
-import '../js_backend/mirrors_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../js_emitter/sorter.dart';
 import '../native/behavior.dart' as native;
@@ -286,9 +285,6 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
   final Map<MemberEntity, GlobalTypeInferenceElementData> _memberData =
       new Map<MemberEntity, GlobalTypeInferenceElementData>();
 
-  // TODO(johnniwinther): This should be accessible throught [closedWorld].
-  final MirrorsData mirrorsData;
-
   final NoSuchMethodRegistry noSuchMethodRegistry;
 
   final Sorter sorter;
@@ -300,7 +296,6 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
       this._compilerOutput,
       this.closedWorld,
       this.closedWorldRefiner,
-      this.mirrorsData,
       this.noSuchMethodRegistry,
       this.mainElement,
       this.sorter,
@@ -1165,7 +1160,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
     if ((element.isTopLevel || element.isStatic) && !element.isAssignable) {
       return true;
     }
-    return !mirrorsData.isMemberAccessibleByReflection(element);
+    return true;
   }
 
   /// Returns true if global optimizations such as type inferencing can apply to
@@ -1175,8 +1170,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
   /// backend calls, but the optimizations don't see those calls.
   bool canFunctionParametersBeUsedForGlobalOptimizations(
       FunctionEntity function) {
-    return !closedWorld.backendUsage.isFunctionUsedByBackend(function) &&
-        !mirrorsData.isMemberAccessibleByReflection(function);
+    return !closedWorld.backendUsage.isFunctionUsedByBackend(function);
   }
 
   @override

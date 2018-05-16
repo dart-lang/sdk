@@ -19,7 +19,6 @@ import '../../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../../deferred_load.dart' show OutputUnit, OutputUnitData;
 import '../../elements/entities.dart';
 import '../../elements/entity_utils.dart' as utils;
-import '../../elements/types.dart';
 import '../../elements/names.dart';
 import '../../hash/sha1.dart' show Hasher;
 import '../../io/code_output.dart';
@@ -28,12 +27,7 @@ import '../../io/source_map_builder.dart' show SourceMapBuilder;
 import '../../js/js.dart' as jsAst;
 import '../../js/js.dart' show js;
 import '../../js_backend/js_backend.dart'
-    show
-        ConstantEmitter,
-        JavaScriptBackend,
-        Namer,
-        SetterName,
-        TypeVariableCodegenAnalysis;
+    show ConstantEmitter, JavaScriptBackend, Namer, SetterName;
 import '../../js_backend/native_data.dart';
 import '../../universe/call_structure.dart' show CallStructure;
 import '../../universe/selector.dart' show Selector;
@@ -90,7 +84,6 @@ class Emitter extends js_emitter.EmitterBase {
   // collector.
   Map<OutputUnit, List<FieldEntity>> outputStaticNonFinalFieldLists;
   Map<OutputUnit, Set<LibraryEntity>> outputLibraryLists;
-  List<TypedefEntity> typedefsNeededForReflection;
 
   final ContainerBuilder containerBuilder;
   final ClassEmitter classEmitter;
@@ -131,8 +124,6 @@ class Emitter extends js_emitter.EmitterBase {
   final Set<jsAst.Name> recordedMangledNames = new Set<jsAst.Name>();
 
   JavaScriptBackend get backend => compiler.backend;
-  TypeVariableCodegenAnalysis get typeVariableCodegenAnalysis =>
-      backend.typeVariableCodegenAnalysis;
 
   String get _ => space;
   String get space => compiler.options.enableMinification ? "" : " ";
@@ -418,8 +409,7 @@ class Emitter extends js_emitter.EmitterBase {
   /// This is used by js_mirrors.dart.
   String getReflectionClassName(ClassEntity cls, jsAst.Name mangledName) {
     String name = cls.name;
-    if (backend.mirrorsData.shouldRetainName(name) ||
-        // Make sure to retain names of common native types.
+    if ( // Make sure to retain names of common native types.
         _isNativeTypeNeedingReflectionName(cls)) {
       // TODO(ahe): Enable the next line when I can tell the difference between
       // an instance method and a global.  They may have the same mangled name.
@@ -449,17 +439,6 @@ class Emitter extends js_emitter.EmitterBase {
   ///
   /// This is used by js_mirrors.dart.
   String getReflectionMemberName(MemberEntity member, jsAst.Name mangledName) {
-    String name = member.name;
-    if (backend.mirrorsData.shouldRetainName(name) ||
-        // Make sure to retain names of unnamed constructors.
-        (name == '' &&
-            backend.mirrorsData.isMemberAccessibleByReflection(member))) {
-      // TODO(ahe): Enable the next line when I can tell the difference between
-      // an instance method and a global.  They may have the same mangled name.
-      // if (recordedMangledNames.contains(mangledName)) return null;
-      recordedMangledNames.add(mangledName);
-      return getReflectionMemberNameInternal(member, mangledName);
-    }
     return null;
   }
 
@@ -496,21 +475,6 @@ class Emitter extends js_emitter.EmitterBase {
   ///
   /// This is used by js_mirrors.dart.
   String getReflectionSelectorName(Selector selector, jsAst.Name mangledName) {
-    String name = selector.name;
-    if (backend.mirrorsData.shouldRetainName(name)) {
-      // TODO(ahe): Enable the next line when I can tell the difference between
-      // an instance method and a global.  They may have the same mangled name.
-      // if (recordedMangledNames.contains(mangledName)) return null;
-      recordedMangledNames.add(mangledName);
-      if (selector.isGetter) {
-        return _getReflectionGetterName(selector.memberName);
-      } else if (selector.isSetter) {
-        return _getReflectionSetterName(selector.memberName, mangledName);
-      } else {
-        return _getReflectionFunctionName(
-            selector.memberName, selector.callStructure);
-      }
-    }
     return null;
   }
 
@@ -521,14 +485,6 @@ class Emitter extends js_emitter.EmitterBase {
   /// This is used by js_mirrors.dart.
   String getReflectionTypedefName(
       TypedefEntity typedef, jsAst.Name mangledName) {
-    String name = typedef.name;
-    if (backend.mirrorsData.shouldRetainName(name)) {
-      // TODO(ahe): Enable the next line when I can tell the difference between
-      // an instance method and a global.  They may have the same mangled name.
-      // if (recordedMangledNames.contains(mangledName)) return null;
-      recordedMangledNames.add(mangledName);
-      return typedef.name;
-    }
     return null;
   }
 
@@ -1057,13 +1013,11 @@ class Emitter extends js_emitter.EmitterBase {
       }
     }
 
-    String libraryName = (!compiler.options.enableMinification ||
-            backend.mirrorsData.mustRetainLibraryNames)
+    String libraryName = !compiler.options.enableMinification
         ? _elementEnvironment.getLibraryName(library)
         : "";
 
-    jsAst.Fun metadata =
-        task.metadataCollector.buildLibraryMetadataFunction(library);
+    jsAst.Fun metadata = null;
 
     ClassBuilder descriptor = libraryDescriptors[fragment][library];
 
@@ -1118,47 +1072,6 @@ class Emitter extends js_emitter.EmitterBase {
     }));
 
     cspPrecompiledConstructorNamesFor(outputUnit).add(js('#', constructorName));
-  }
-
-  void assembleTypedefs(Program program) {
-    Fragment mainFragment = program.mainFragment;
-    OutputUnit mainOutputUnit = mainFragment.outputUnit;
-
-    // Emit all required typedef declarations into the main output unit.
-    // TODO(karlklose): unify required classes and typedefs to declarations
-    // and have builders for each kind.
-    for (TypedefEntity typedef in typedefsNeededForReflection) {
-      LibraryEntity library = typedef.library;
-      // TODO(karlklose): add a TypedefBuilder and move this code there.
-      FunctionType type = _elementEnvironment.getFunctionTypeOfTypedef(typedef);
-      // TODO(zarah): reify type variables once reflection on type arguments of
-      // typedefs is supported.
-      jsAst.Expression typeIndex = task.metadataCollector
-          .reifyType(type, mainOutputUnit, ignoreTypeVariables: true);
-      ClassBuilder builder = new ClassBuilder.forStatics(typedef, namer);
-      builder.addPropertyByName(
-          embeddedNames.TYPEDEF_TYPE_PROPERTY_NAME, typeIndex);
-      builder.addPropertyByName(
-          embeddedNames.TYPEDEF_PREDICATE_PROPERTY_NAME, js.boolean(true));
-
-      // We can be pretty sure that the objectClass is initialized, since
-      // typedefs are only emitted with reflection, which requires lots of
-      // classes.
-      assert(commonElements.objectClass != null);
-      builder.superName = namer.className(commonElements.objectClass);
-      jsAst.Node declaration = builder.toObjectInitializer();
-      jsAst.Name mangledName = namer.globalPropertyNameForType(typedef);
-      String reflectionName = getReflectionTypedefName(typedef, mangledName);
-      getLibraryDescriptor(library, mainFragment)
-        ..addProperty(mangledName, declaration)
-        ..addPropertyByName("+$reflectionName", js.string(''));
-      // Also emit a trivial constructor for CSP mode.
-      jsAst.Name constructorName = mangledName;
-      jsAst.Expression constructorAst = js('function() {}');
-      List<jsAst.Name> fieldNames = [];
-      assemblePrecompiledConstructor(
-          mainOutputUnit, constructorName, constructorAst, fieldNames);
-    }
   }
 
   jsAst.Statement buildGlobalObjectSetup(bool isProgramSplit) {
@@ -1314,7 +1227,6 @@ class Emitter extends js_emitter.EmitterBase {
         assembleLibrary(library, fragment);
       }
     }
-    assembleTypedefs(program);
   }
 
   jsAst.Statement buildDeferredHeader() {
@@ -1598,8 +1510,6 @@ class Emitter extends js_emitter.EmitterBase {
     outputStaticNonFinalFieldLists =
         programBuilder.collector.outputStaticNonFinalFieldLists;
     outputLibraryLists = programBuilder.collector.outputLibraryLists;
-    typedefsNeededForReflection =
-        programBuilder.collector.typedefsNeededForReflection;
 
     assembleProgram(program);
 

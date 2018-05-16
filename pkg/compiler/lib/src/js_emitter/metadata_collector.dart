@@ -9,28 +9,13 @@ import 'package:js_ast/src/precedence.dart' as js_precedence;
 import '../common.dart';
 import '../constants/values.dart';
 import '../deferred_load.dart' show OutputUnit;
-import '../elements/elements.dart'
-    show
-        ClassElement,
-        Element,
-        FieldElement,
-        FunctionSignature,
-        LibraryElement,
-        MemberElement,
-        MethodElement,
-        MetadataAnnotation,
-        ParameterElement;
 import '../elements/entities.dart' show FunctionEntity;
 
 import '../elements/entities.dart';
-import '../elements/resolution_types.dart' show ResolutionTypedefType;
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
-import '../js_backend/mirrors_data.dart';
 import '../js_backend/runtime_types.dart' show RuntimeTypesEncoder;
-import '../js_backend/type_variable_handler.dart'
-    show TypeVariableCodegenAnalysis;
 import '../options.dart';
 import '../universe/world_builder.dart' show CodegenWorldBuilder;
 
@@ -140,8 +125,6 @@ class MetadataCollector implements jsAst.TokenFinalizer {
   final CompilerOptions _options;
   final DiagnosticReporter reporter;
   final Emitter _emitter;
-  final TypeVariableCodegenAnalysis _typeVariableCodegenAnalysis;
-  final MirrorsData _mirrorsData;
   final RuntimeTypesEncoder _rtiEncoder;
   final CodegenWorldBuilder _codegenWorldBuilder;
 
@@ -172,60 +155,15 @@ class MetadataCollector implements jsAst.TokenFinalizer {
   Map<OutputUnit, Map<DartType, _BoundMetadataEntry>> _typesMap =
       <OutputUnit, Map<DartType, _BoundMetadataEntry>>{};
 
-  MetadataCollector(
-      this._options,
-      this.reporter,
-      this._emitter,
-      this._typeVariableCodegenAnalysis,
-      this._mirrorsData,
-      this._rtiEncoder,
-      this._codegenWorldBuilder);
+  /**
+   *  Maps a TypeVariableType to the index pointing to the constant representing
+   *  the corresponding type variable at runtime.
+   */
+  Map<TypeVariableEntity, jsAst.Expression> _typeVariableConstants =
+      new Map<TypeVariableEntity, jsAst.Expression>();
 
-  jsAst.Fun buildLibraryMetadataFunction(LibraryEntity element) {
-    if (!_mirrorsData.mustRetainMetadata ||
-        !_mirrorsData.isLibraryReferencedFromMirrorSystem(element)) {
-      return null;
-    }
-    return _buildMetadataFunction(element as LibraryElement);
-  }
-
-  jsAst.Fun buildClassMetadataFunction(ClassEntity cls) {
-    if (!_mirrorsData.mustRetainMetadata ||
-        !_mirrorsData.isClassReferencedFromMirrorSystem(cls)) {
-      return null;
-    }
-    // TODO(redemption): Handle class entities.
-    ClassElement element = cls;
-    return _buildMetadataFunction(element);
-  }
-
-  bool _mustEmitMetadataForMember(MemberEntity member) {
-    if (!_mirrorsData.mustRetainMetadata) {
-      return false;
-    }
-    // TODO(redemption): Handle member entities.
-    MemberElement element = member;
-    return _mirrorsData.isMemberReferencedFromMirrorSystem(element);
-  }
-
-  jsAst.Fun buildFieldMetadataFunction(FieldEntity field) {
-    if (!_mustEmitMetadataForMember(field)) return null;
-    // TODO(redemption): Handle field entities.
-    FieldElement element = field;
-    return _buildMetadataFunction(element);
-  }
-
-  /// The metadata function returns the metadata associated with
-  /// [element] in generated code.  The metadata needs to be wrapped
-  /// in a function as it refers to constants that may not have been
-  /// constructed yet.  For example, a class is allowed to be
-  /// annotated with itself.  The metadata function is used by
-  /// mirrors_patch to implement DeclarationMirror.metadata.
-  jsAst.Fun _buildMetadataFunction(Element element) {
-    return reporter.withCurrentElement(element, () {
-      return null;
-    });
-  }
+  MetadataCollector(this._options, this.reporter, this._emitter,
+      this._rtiEncoder, this._codegenWorldBuilder);
 
   List<jsAst.DeferredNumber> reifyDefaultArguments(
       FunctionEntity function, OutputUnit outputUnit) {
@@ -238,45 +176,6 @@ class MetadataCollector implements jsAst.TokenFinalizer {
       defaultValues.add(_addGlobalMetadata(expression, outputUnit));
     });
     return defaultValues;
-  }
-
-  Map<ParameterElement, ParameterElement>
-      mapRedirectingFactoryConstructorOptionalParameters(
-          FunctionSignature source, FunctionSignature target) {
-    var map = <ParameterElement, ParameterElement>{};
-
-    if (source.optionalParametersAreNamed !=
-        target.optionalParametersAreNamed) {
-      // No legal optional arguments due to mismatch between named vs positional
-      // optional arguments.
-      return map;
-    }
-
-    if (source.optionalParametersAreNamed) {
-      for (ParameterElement element in source.optionalParameters) {
-        for (ParameterElement redirectedElement in target.optionalParameters) {
-          if (element.name == redirectedElement.name) {
-            map[element] = redirectedElement;
-            break;
-          }
-        }
-      }
-    } else {
-      int i = source.requiredParameterCount;
-      for (ParameterElement element in source.orderedOptionalParameters) {
-        if (i >= target.requiredParameterCount && i < target.parameterCount) {
-          map[element] = target
-              .orderedOptionalParameters[i - target.requiredParameterCount];
-        }
-        ++i;
-      }
-    }
-    return map;
-  }
-
-  jsAst.Expression reifyMetadata(
-      MetadataAnnotation annotation, OutputUnit outputUnit) {
-    return null;
   }
 
   jsAst.Expression reifyType(DartType type, OutputUnit outputUnit,
@@ -294,8 +193,24 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     return _addGlobalMetadata(expression, outputUnit);
   }
 
-  Placeholder getMetadataPlaceholder([debug]) {
+  Placeholder _getMetadataPlaceholder([debug]) {
     return new _ForwardingMetadataEntry(debug);
+  }
+
+  /**
+   * Returns the index pointing to the constant in [emitter.metadataCollector]
+   * representing this type variable.
+   *
+   * If the constant has not yet been constructed, an entry is  allocated in
+   * the global metadata list and the index pointing to this entry is returned.
+   * When the corresponding constant is constructed later,
+   * [reifyTypeVariableConstant] will be called and the constant will be added
+   * on the allocated entry.
+   */
+  jsAst.Expression _reifyTypeVariable(TypeVariableEntity variable) {
+    return _typeVariableConstants.putIfAbsent(variable, () {
+      return _getMetadataPlaceholder(variable);
+    });
   }
 
   _MetadataEntry _addGlobalMetadata(jsAst.Node node, OutputUnit outputUnit) {
@@ -314,9 +229,9 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     jsAst.Expression representation =
         _rtiEncoder.getTypeRepresentation(_emitter, type, (variable) {
       if (ignoreTypeVariables) return new jsAst.LiteralNull();
-      return _typeVariableCodegenAnalysis.reifyTypeVariable(variable.element);
-    }, (ResolutionTypedefType typedef) {
-      return _mirrorsData.isTypedefAccessibleByReflection(typedef.element);
+      return _reifyTypeVariable(variable.element);
+    }, (TypedefType typedef) {
+      return false;
     });
 
     if (representation is jsAst.LiteralString) {
@@ -335,19 +250,6 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     return _typesMap[outputUnit].putIfAbsent(type, () {
       return new _BoundMetadataEntry(_computeTypeRepresentation(type,
           ignoreTypeVariables: ignoreTypeVariables));
-    });
-  }
-
-  List<jsAst.DeferredNumber> computeMetadata(
-      MethodElement element, OutputUnit outputUnit) {
-    return reporter.withCurrentElement(element, () {
-      if (!_mustEmitMetadataForMember(element))
-        return const <jsAst.DeferredNumber>[];
-      List<jsAst.DeferredNumber> metadata = <jsAst.DeferredNumber>[];
-      for (MetadataAnnotation annotation in element.metadata) {
-        metadata.add(reifyMetadata(annotation, outputUnit));
-      }
-      return metadata;
     });
   }
 

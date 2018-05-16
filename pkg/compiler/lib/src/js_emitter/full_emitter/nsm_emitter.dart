@@ -72,9 +72,7 @@ class NsmEmitter extends CodeEmitterHelper {
             generator.generateStubForNoSuchMethod(jsName, selector);
         addProperty(method.name, method.code);
         if (reflectionName != null) {
-          bool accessible = closedWorld
-              .locateMembers(selector, null)
-              .any(backend.mirrorsData.isMemberAccessibleByReflection);
+          bool accessible = false;
           addProperty(
               namer.asName('+$reflectionName'), js(accessible ? '2' : '0'));
         }

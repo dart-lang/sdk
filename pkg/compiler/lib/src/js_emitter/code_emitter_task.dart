@@ -150,8 +150,8 @@ class CodeEmitterTask extends CompilerTask {
     // 'is$' method.
     typeTestRegistry.computeRequiredTypeChecks(backend.rtiChecksBuilder);
     // Compute the classes needed by RTI.
-    typeTestRegistry.computeRtiNeededClasses(backend.rtiSubstitutions,
-        backend.mirrorsData, backend.generatedCode.keys);
+    typeTestRegistry.computeRtiNeededClasses(
+        backend.rtiSubstitutions, backend.generatedCode.keys);
   }
 
   /// Creates the [Emitter] for this task.
@@ -162,14 +162,8 @@ class CodeEmitterTask extends CompilerTask {
           backend.nativeCodegenEnqueuer);
       _emitter =
           _emitterFactory.createEmitter(this, namer, closedWorld, sorter);
-      metadataCollector = new MetadataCollector(
-          compiler.options,
-          compiler.reporter,
-          _emitter,
-          backend.typeVariableCodegenAnalysis,
-          backend.mirrorsData,
-          backend.rtiEncoder,
-          codegenWorldBuilder);
+      metadataCollector = new MetadataCollector(compiler.options,
+          compiler.reporter, _emitter, backend.rtiEncoder, codegenWorldBuilder);
       typeTestRegistry = new TypeTestRegistry(compiler.options,
           codegenWorldBuilder, closedWorld, closedWorld.elementEnvironment);
     });
@@ -193,7 +187,6 @@ class CodeEmitterTask extends CompilerTask {
           backend.constants,
           closedWorld.nativeData,
           closedWorld.rtiNeed,
-          backend.mirrorsData,
           closedWorld.interceptorData,
           backend.superMemberData,
           typeTestRegistry.rtiChecks,

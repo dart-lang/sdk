@@ -16,7 +16,6 @@ import 'elements/types.dart';
 import 'enqueue.dart';
 import 'js_backend/backend_usage.dart';
 import 'js_backend/interceptor_data.dart';
-import 'js_backend/mirrors_data.dart';
 import 'js_backend/native_data.dart';
 import 'js_backend/no_such_method_registry.dart';
 import 'js_backend/runtime_types.dart';
@@ -89,11 +88,6 @@ abstract class FrontendStrategy {
   /// impact to [impactBuilder].
   FunctionEntity computeMain(
       LibraryEntity mainLibrary, WorldImpactBuilder impactBuilder);
-
-  // TODO(johnniwinther): Reuse the following classes between strategies:
-
-  /// Creates the [MirrorsDataBuilder] for this strategy.
-  MirrorsDataBuilder createMirrorsDataBuilder();
 
   /// Creates the [RuntimeTypesNeedBuilder] for this strategy.
   RuntimeTypesNeedBuilder createRuntimeTypesNeedBuilder();

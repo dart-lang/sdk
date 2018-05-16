@@ -23,7 +23,6 @@ class Collector {
   final NativeData _nativeData;
   final InterceptorData _interceptorData;
   final OneShotInterceptorData _oneShotInterceptorData;
-  final MirrorsData _mirrorsData;
   final ClosedWorld _closedWorld;
   final Set<ClassEntity> _rtiNeededClasses;
   final Map<MemberEntity, js.Expression> _generatedCode;
@@ -50,8 +49,6 @@ class Collector {
 
   final List<ClassEntity> nativeClassesAndSubclasses = <ClassEntity>[];
 
-  List<TypedefEntity> typedefsNeededForReflection;
-
   Collector(
       this._options,
       this._commonElements,
@@ -64,7 +61,6 @@ class Collector {
       this._nativeData,
       this._interceptorData,
       this._oneShotInterceptorData,
-      this._mirrorsData,
       this._closedWorld,
       this._rtiNeededClasses,
       this._generatedCode,
@@ -87,10 +83,6 @@ class Collector {
    * that needs to be emitted.
    */
   Function computeClassFilter(Iterable<ClassEntity> backendTypeHelpers) {
-    if (_mirrorsData.isTreeShakingDisabled) {
-      return (ClassEntity cls) => true;
-    }
-
     Set<ClassEntity> unneededClasses = new Set<ClassEntity>();
     // The [Bool] class is not marked as abstract, but has a factory
     // constructor that always throws. We never need to emit it.
@@ -141,46 +133,6 @@ class Collector {
    * Compute all the constants that must be emitted.
    */
   void computeNeededConstants() {
-    // Make sure we retain all metadata of all elements. This could add new
-    // constants to the handler.
-    if (_mirrorsData.mustRetainMetadata) {
-      // TODO(floitsch): verify that we don't run through the same elements
-      // multiple times.
-      for (MemberEntity element in _generatedCode.keys) {
-        if (_mirrorsData.isMemberAccessibleByReflection(element)) {
-          _mirrorsData.retainMetadataOfMember(element);
-        }
-      }
-      for (ClassEntity cls in neededClasses) {
-        final onlyForRti = classesOnlyNeededForRti.contains(cls);
-        if (!onlyForRti) {
-          _mirrorsData.retainMetadataOfClass(cls);
-          new FieldVisitor(
-                  _options,
-                  _elementEnvironment,
-                  _commonElements,
-                  _worldBuilder,
-                  _nativeData,
-                  _mirrorsData,
-                  _namer,
-                  _closedWorld)
-              .visitFields((FieldEntity member,
-                  js.Name name,
-                  js.Name accessorName,
-                  bool needsGetter,
-                  bool needsSetter,
-                  bool needsCheckedSetter) {
-            bool needsAccessor = needsGetter || needsSetter;
-            if (needsAccessor &&
-                _mirrorsData.isMemberAccessibleByReflection(member)) {
-              _mirrorsData.retainMetadataOfMember(member);
-            }
-          }, cls: cls);
-        }
-      }
-      typedefsNeededForReflection.forEach(_mirrorsData.retainMetadataOfTypedef);
-    }
-
     List<ConstantValue> constants =
         _worldBuilder.getConstantsForEmission(_emitter.compareConstants);
     for (ConstantValue constant in constants) {
@@ -205,11 +157,6 @@ class Collector {
   void computeNeededDeclarations() {
     Set<ClassEntity> backendTypeHelpers =
         getBackendTypeHelpers(_commonElements).toSet();
-
-    // Compute needed typedefs.
-    typedefsNeededForReflection = _sorter.sortTypedefs(_closedWorld.allTypedefs
-        .where(_mirrorsData.isTypedefAccessibleByReflection)
-        .toList());
 
     // Compute needed classes.
     Set<ClassEntity> instantiatedClasses =
@@ -338,7 +285,7 @@ class Collector {
       } else {
         // We also need to emit static const fields if they are available for
         // reflection.
-        return _mirrorsData.isMemberAccessibleByReflection(field);
+        return false;
       }
     });
 

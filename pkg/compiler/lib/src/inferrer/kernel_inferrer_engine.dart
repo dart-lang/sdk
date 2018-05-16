@@ -13,7 +13,6 @@ import '../compiler.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../js_backend/mirrors_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../js_emitter/sorter.dart';
 import '../js_model/locals.dart';
@@ -56,7 +55,6 @@ class KernelTypeGraphInferrer extends TypeGraphInferrer<ir.Node> {
         _closureDataLookup,
         closedWorld,
         closedWorldRefiner,
-        _compiler.backend.mirrorsData,
         _compiler.backend.noSuchMethodRegistry,
         main,
         _compiler.backendStrategy.sorter);
@@ -109,7 +107,6 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
       this._closureDataLookup,
       ClosedWorld closedWorld,
       ClosedWorldRefiner closedWorldRefiner,
-      MirrorsData mirrorsData,
       NoSuchMethodRegistry noSuchMethodRegistry,
       FunctionEntity mainElement,
       Sorter sorter)
@@ -120,7 +117,6 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
             compilerOutput,
             closedWorld,
             closedWorldRefiner,
-            mirrorsData,
             noSuchMethodRegistry,
             mainElement,
             sorter,

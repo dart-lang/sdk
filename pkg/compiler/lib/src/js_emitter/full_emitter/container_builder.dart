@@ -181,9 +181,7 @@ class ContainerBuilder extends CodeEmitterHelper {
       } else {
         reflectionName = js.string(namer.privateName(memberName));
       }
-      expressions
-        ..add(reflectionName)
-        ..addAll(task.metadataCollector.computeMetadata(member, outputUnit));
+      expressions..add(reflectionName);
     } else if (isClosure && canBeApplied) {
       expressions.add(js.string(namer.privateName(memberName)));
     }

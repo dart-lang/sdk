@@ -65,7 +65,7 @@ jsAst.Statement buildSetupProgram(
   String defaultValuesField = namer.defaultValuesField;
   String methodsWithOptionalArgumentsField =
       namer.methodsWithOptionalArgumentsField;
-  bool retainMetadata = backend.mirrorsData.mustRetainMetadata;
+  bool retainMetadata = false;
   String unmangledNameIndex = retainMetadata
       ? ' 3 * optionalParameterCount + 2 * requiredParameterCount + 3'
       : ' 2 * optionalParameterCount + requiredParameterCount + 3';
@@ -104,7 +104,7 @@ jsAst.Statement buildSetupProgram(
     'deferredAction': namer.deferredAction,
     'allClasses': allClassesAccess,
     'debugFastObjects': DEBUG_FAST_OBJECTS,
-    'isTreeShakingDisabled': backend.mirrorsData.isTreeShakingDisabled,
+    'isTreeShakingDisabled': false,
     'precompiled': precompiledAccess,
     'finishedClassesAccess': finishedClassesAccess,
     'needsMixinSupport': emitter.needsMixinSupport,
@@ -116,7 +116,7 @@ jsAst.Statement buildSetupProgram(
     'isObject': namer.operatorIs(closedWorld.commonElements.objectClass),
     'specProperty': js.string(namer.nativeSpecProperty),
     'trivialNsmHandlers': emitter.buildTrivialNsmHandlers(),
-    'hasRetainedMetadata': backend.mirrorsData.hasRetainedMetadata,
+    'hasRetainedMetadata': false,
     'types': typesAccess,
     'objectClassName': js.quoteName(
         namer.runtimeTypeName(closedWorld.commonElements.objectClass)),

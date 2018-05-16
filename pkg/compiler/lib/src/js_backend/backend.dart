@@ -61,13 +61,11 @@ import 'enqueuer.dart';
 import 'impact_transformer.dart';
 import 'interceptor_data.dart';
 import 'js_interop_analysis.dart' show JsInteropAnalysis;
-import 'mirrors_data.dart';
 import 'namer.dart';
 import 'native_data.dart';
 import 'no_such_method_registry.dart';
 import 'resolution_listener.dart';
 import 'runtime_types.dart';
-import 'type_variable_handler.dart';
 
 const VERBOSE_OPTIMIZER_HINTS = false;
 
@@ -364,9 +362,6 @@ class JavaScriptBackend {
   /// True if the html library has been loaded.
   bool htmlLibraryIsLoaded = false;
 
-  /// Codegen handler for reflective access to type variables.
-  TypeVariableCodegenAnalysis _typeVariableCodegenAnalysis;
-
   /// Resolution support for generating table of interceptors and
   /// constructors for custom elements.
   CustomElementsResolutionAnalysis _customElementsResolutionAnalysis;
@@ -397,7 +392,6 @@ class JavaScriptBackend {
   NativeDataBuilder get nativeDataBuilder => _nativeDataBuilder;
   OneShotInterceptorData _oneShotInterceptorData;
   BackendUsageBuilder _backendUsageBuilder;
-  MirrorsDataImpl _mirrorsData;
   OutputUnitData _outputUnitData;
 
   CheckedModeHelpers _checkedModeHelpers;
@@ -421,7 +415,6 @@ class JavaScriptBackend {
         constantCompilerTask = new JavaScriptConstantTask(compiler) {
     CommonElements commonElements = compiler.frontendStrategy.commonElements;
     _target = new JavaScriptBackendTarget(this);
-    _mirrorsData = compiler.frontendStrategy.createMirrorsDataBuilder();
     _backendUsageBuilder = new BackendUsageBuilderImpl(commonElements);
     _checkedModeHelpers = new CheckedModeHelpers();
     emitter =
@@ -465,19 +458,6 @@ class JavaScriptBackend {
             "CustomElementsCodegenAnalysis has not been created yet."));
     return _customElementsCodegenAnalysis;
   }
-
-  /// Codegen handler for reflective access to type variables.
-  TypeVariableCodegenAnalysis get typeVariableCodegenAnalysis {
-    assert(
-        _typeVariableCodegenAnalysis != null,
-        failedAt(NO_LOCATION_SPANNABLE,
-            "TypeVariableHandler has not been created yet."));
-    return _typeVariableCodegenAnalysis;
-  }
-
-  MirrorsData get mirrorsData => _mirrorsData;
-
-  MirrorsDataBuilder get mirrorsDataBuilder => _mirrorsData;
 
   OutputUnitData get outputUnitData => _outputUnitData;
 
@@ -591,8 +571,6 @@ class JavaScriptBackend {
   void onResolutionClosedWorld(
       ClosedWorld closedWorld, ClosedWorldRefiner closedWorldRefiner) {
     processAnnotations(closedWorldRefiner);
-    mirrorsDataBuilder.computeMembersNeededForReflection(
-        compiler.enqueuer.resolution.worldBuilder, closedWorld);
   }
 
   void onDeferredLoadComplete(OutputUnitData data) {
@@ -609,11 +587,6 @@ class JavaScriptBackend {
         compiler.frontendStrategy.createRuntimeTypesNeedBuilder();
     BackendImpacts impacts =
         new BackendImpacts(compiler.options, commonElements);
-    TypeVariableResolutionAnalysis typeVariableResolutionAnalysis =
-        new TypeVariableResolutionAnalysis(
-            compiler.frontendStrategy.elementEnvironment,
-            impacts,
-            _backendUsageBuilder);
     _nativeResolutionEnqueuer = new native.NativeResolutionEnqueuer(
         compiler.options,
         elementEnvironment,
@@ -638,7 +611,6 @@ class JavaScriptBackend {
         nativeBasicData,
         _nativeResolutionEnqueuer,
         _backendUsageBuilder,
-        mirrorsDataBuilder,
         customElementsResolutionAnalysis,
         rtiNeedBuilder,
         classHierarchyBuilder);
@@ -660,10 +632,8 @@ class JavaScriptBackend {
             nativeBasicData,
             interceptorDataBuilder,
             _backendUsageBuilder,
-            mirrorsDataBuilder,
             noSuchMethodRegistry,
             customElementsResolutionAnalysis,
-            typeVariableResolutionAnalysis,
             _nativeResolutionEnqueuer,
             compiler.deferredLoadTask),
         compiler.frontendStrategy.createResolutionWorldBuilder(
@@ -693,8 +663,6 @@ class JavaScriptBackend {
     CommonElements commonElements = closedWorld.commonElements;
     BackendImpacts impacts =
         new BackendImpacts(compiler.options, commonElements);
-    _typeVariableCodegenAnalysis = new TypeVariableCodegenAnalysis(
-        closedWorld.elementEnvironment, this, mirrorsData);
     _customElementsCodegenAnalysis = new CustomElementsCodegenAnalysis(
         constantSystem,
         commonElements,
@@ -722,7 +690,6 @@ class JavaScriptBackend {
             closedWorld.backendUsage,
             closedWorld.rtiNeed,
             customElementsCodegenAnalysis,
-            typeVariableCodegenAnalysis,
             nativeCodegenEnqueuer));
   }
 

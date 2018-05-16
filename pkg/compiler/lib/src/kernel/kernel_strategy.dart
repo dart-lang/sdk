@@ -15,7 +15,6 @@ import '../common/work.dart';
 import '../common_elements.dart';
 import '../compiler.dart';
 import '../deferred_load.dart' show DeferredLoadTask;
-import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../enqueue.dart';
@@ -23,7 +22,6 @@ import '../environment.dart' as env;
 import '../frontend_strategy.dart';
 import '../js_backend/backend_usage.dart';
 import '../js_backend/interceptor_data.dart';
-import '../js_backend/mirrors_data.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/runtime_types.dart';
@@ -35,7 +33,6 @@ import '../options.dart';
 import '../universe/class_hierarchy_builder.dart';
 import '../universe/world_builder.dart';
 import '../universe/world_impact.dart';
-import '../world.dart';
 import 'deferred_load.dart';
 import 'element_map.dart';
 import 'element_map_impl.dart';
@@ -114,10 +111,6 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
   FunctionEntity computeMain(
       LibraryEntity mainLibrary, WorldImpactBuilder impactBuilder) {
     return elementEnvironment.mainFunction;
-  }
-
-  MirrorsDataBuilder createMirrorsDataBuilder() {
-    return new MirrorsDataBuilderImpl(elementEnvironment, commonElements);
   }
 
   RuntimeTypesNeedBuilder createRuntimeTypesNeedBuilder() {
@@ -241,32 +234,4 @@ class KernelWorkItem implements WorkItem {
       });
     });
   }
-}
-
-/// Mock implementation of [MirrorsDataImpl].
-class MirrorsDataBuilderImpl extends MirrorsDataImpl {
-  MirrorsDataBuilderImpl(
-      ElementEnvironment elementEnvironment, CommonElements commonElements)
-      : super(null, elementEnvironment, commonElements);
-
-  @override
-  void registerUsedMember(MemberEntity member) {}
-
-  @override
-  void computeMembersNeededForReflection(
-      ResolutionWorldBuilder worldBuilder, ClosedWorld closedWorld) {
-    // TODO(redemption): Support dart:mirrors.
-    createImmutableSets();
-  }
-
-  @override
-  void maybeMarkClosureAsNeededForReflection(ClassEntity closureClass,
-      FunctionEntity callMethod, Local localFunction) {}
-
-  @override
-  void registerConstSymbol(String name) {}
-
-  @override
-  void registerMirrorUsage(
-      Set<String> symbols, Set<Element> targets, Set<Element> metaTargets) {}
 }

@@ -28,7 +28,6 @@ import 'backend_usage.dart';
 import 'checked_mode_helpers.dart';
 import 'custom_elements_analysis.dart';
 import 'interceptor_data.dart';
-import 'mirrors_data.dart';
 import 'namer.dart';
 import 'native_data.dart';
 import 'runtime_types.dart';
@@ -41,7 +40,6 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
   final NativeBasicData _nativeBasicData;
   final NativeResolutionEnqueuer _nativeResolutionEnqueuer;
   final BackendUsageBuilder _backendUsageBuilder;
-  final MirrorsDataBuilder _mirrorsDataBuilder;
   final CustomElementsResolutionAnalysis _customElementsResolutionAnalysis;
   final RuntimeTypesNeedBuilder _rtiNeedBuilder;
   final ClassHierarchyBuilder _classHierarchyBuilder;
@@ -54,7 +52,6 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       this._nativeBasicData,
       this._nativeResolutionEnqueuer,
       this._backendUsageBuilder,
-      this._mirrorsDataBuilder,
       this._customElementsResolutionAnalysis,
       this._rtiNeedBuilder,
       this._classHierarchyBuilder);
@@ -242,9 +239,6 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
 
     if (worldImpact.constSymbolNames.isNotEmpty) {
       registerImpact(_impacts.constSymbol);
-      for (String constSymbolName in worldImpact.constSymbolNames) {
-        _mirrorsDataBuilder.registerConstSymbol(constSymbolName);
-      }
     }
 
     for (StaticUse staticUse in worldImpact.staticUses) {

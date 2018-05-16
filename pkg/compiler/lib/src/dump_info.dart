@@ -179,8 +179,6 @@ class ElementInfoCollector {
 
   ClassInfo visitClass(ClassEntity clazz) {
     // Omit class if it is not needed.
-    if (!_hasClassBeenResolved(clazz)) return null;
-
     ClassInfo classInfo = new ClassInfo(
         name: clazz.name,
         isAbstract: clazz.isAbstract,
@@ -384,10 +382,6 @@ class ElementInfoCollector {
       return null;
     }
     return _infoFromOutputUnit(outputUnit);
-  }
-
-  bool _hasClassBeenResolved(ClassEntity cls) {
-    return compiler.backend.mirrorsData.isClassResolved(cls);
   }
 }
 

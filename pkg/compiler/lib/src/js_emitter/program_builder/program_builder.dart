@@ -29,7 +29,6 @@ import '../../js_backend/custom_elements_analysis.dart';
 import '../../js_backend/namer.dart' show Namer, StringBackedName;
 import '../../js_backend/native_data.dart';
 import '../../js_backend/interceptor_data.dart';
-import '../../js_backend/mirrors_data.dart';
 import '../../js_backend/js_interop_analysis.dart';
 import '../../js_backend/runtime_types.dart'
     show RuntimeTypesChecks, RuntimeTypesNeed, RuntimeTypesEncoder;
@@ -75,7 +74,6 @@ class ProgramBuilder {
   final JavaScriptConstantCompiler _constantHandler;
   final NativeData _nativeData;
   final RuntimeTypesNeed _rtiNeed;
-  final MirrorsData _mirrorsData;
   final InterceptorData _interceptorData;
   final SuperMemberData _superMemberData;
   final RuntimeTypesChecks _rtiChecks;
@@ -122,7 +120,6 @@ class ProgramBuilder {
       this._constantHandler,
       this._nativeData,
       this._rtiNeed,
-      this._mirrorsData,
       this._interceptorData,
       this._superMemberData,
       this._rtiChecks,
@@ -152,7 +149,6 @@ class ProgramBuilder {
             _nativeData,
             _interceptorData,
             _oneShotInterceptorData,
-            _mirrorsData,
             _closedWorld,
             rtiNeededClasses,
             _generatedCode,
@@ -714,9 +710,6 @@ class ProgramBuilder {
         // If the program contains `const Symbol` names we have to retain them.
         String selectorName = selector.name;
         if (selector.isSetter) selectorName = "$selectorName=";
-        if (_mirrorsData.symbolsUsed.contains(selectorName)) {
-          _symbolsMap[name] = selectorName;
-        }
         noSuchMethodStubs.add(
             classStubGenerator.generateStubForNoSuchMethod(name, selector));
       });
@@ -847,10 +840,6 @@ class ProgramBuilder {
         method.parameterStructure.typeParameters != 0;
   }
 
-  bool _methodCanBeReflected(FunctionEntity method) {
-    return _mirrorsData.isMemberAccessibleByReflection(method);
-  }
-
   bool _methodCanBeApplied(FunctionEntity method) {
     return _backendUsage.isFunctionApplyUsed &&
         _closedWorld.getMightBePassedToApply(method);
@@ -896,7 +885,7 @@ class ProgramBuilder {
     bool isNotApplyTarget =
         !element.isFunction || element.isGetter || element.isSetter;
 
-    bool canBeReflected = _methodCanBeReflected(element);
+    bool canBeReflected = false;
     bool canBeApplied = _methodCanBeApplied(element);
 
     js.Name aliasName = _superMemberData.isAliasedSuperMember(element)
@@ -1097,15 +1086,8 @@ class ProgramBuilder {
           needsCheckedSetter));
     }
 
-    FieldVisitor visitor = new FieldVisitor(
-        _options,
-        _elementEnvironment,
-        _commonElements,
-        _worldBuilder,
-        _nativeData,
-        _mirrorsData,
-        _namer,
-        _closedWorld);
+    FieldVisitor visitor = new FieldVisitor(_options, _elementEnvironment,
+        _commonElements, _worldBuilder, _nativeData, _namer, _closedWorld);
     visitor.visitFields(visitField,
         visitStatics: visitStatics, library: library, cls: cls);
 
@@ -1145,7 +1127,7 @@ class ProgramBuilder {
     bool isApplyTarget =
         !element.isConstructor && !element.isGetter && !element.isSetter;
     bool canBeApplied = _methodCanBeApplied(element);
-    bool canBeReflected = _methodCanBeReflected(element);
+    bool canBeReflected = false;
 
     bool needsTearOff = isApplyTarget &&
         (canBeReflected ||

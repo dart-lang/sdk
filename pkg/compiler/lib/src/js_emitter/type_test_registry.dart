@@ -13,7 +13,6 @@ import '../js_backend/runtime_types.dart'
         RuntimeTypesChecks,
         RuntimeTypesChecksBuilder,
         RuntimeTypesSubstitutions;
-import '../js_backend/mirrors_data.dart';
 import '../options.dart';
 import '../universe/world_builder.dart';
 import '../world.dart' show ClosedWorld;
@@ -51,7 +50,7 @@ class TypeTestRegistry {
   }
 
   void computeRtiNeededClasses(RuntimeTypesSubstitutions rtiSubstitutions,
-      MirrorsData mirrorsData, Iterable<MemberEntity> liveMembers) {
+      Iterable<MemberEntity> liveMembers) {
     _rtiNeededClasses = new Set<ClassEntity>();
 
     void addClassWithSuperclasses(ClassEntity cls) {
@@ -92,8 +91,7 @@ class TypeTestRegistry {
     }
 
     bool canBeReified(MemberEntity element) {
-      return (canTearOff(element) ||
-          mirrorsData.isMemberAccessibleByReflection(element));
+      return canTearOff(element);
     }
 
     // 2. Find all types referenced from the types of elements that can be

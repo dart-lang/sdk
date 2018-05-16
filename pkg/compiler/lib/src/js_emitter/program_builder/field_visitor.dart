@@ -31,7 +31,6 @@ class FieldVisitor {
   final CommonElements _commonElements;
   final CodegenWorldBuilder _codegenWorldBuilder;
   final NativeData _nativeData;
-  final MirrorsData _mirrorsData;
   final Namer _namer;
   final ClosedWorld _closedWorld;
 
@@ -41,7 +40,6 @@ class FieldVisitor {
       this._commonElements,
       this._codegenWorldBuilder,
       this._nativeData,
-      this._mirrorsData,
       this._namer,
       this._closedWorld);
 
@@ -153,7 +151,6 @@ class FieldVisitor {
   bool fieldNeedsGetter(FieldEntity field) {
     assert(field.isField);
     if (fieldAccessNeverThrows(field)) return false;
-    if (_mirrorsData.shouldRetainGetter(field)) return true;
     return field.enclosingClass != null &&
         _codegenWorldBuilder.hasInvokedGetter(field, _closedWorld);
   }
@@ -162,7 +159,6 @@ class FieldVisitor {
     assert(field.isField);
     if (fieldAccessNeverThrows(field)) return false;
     if (!field.isAssignable) return false;
-    if (_mirrorsData.shouldRetainSetter(field)) return true;
     return field.enclosingClass != null &&
         _codegenWorldBuilder.hasInvokedSetter(field, _closedWorld);
   }
