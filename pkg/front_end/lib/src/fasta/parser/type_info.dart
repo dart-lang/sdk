@@ -65,6 +65,13 @@ abstract class TypeParamOrArgInfo {
   /// when parsing `>>` in valid code or during recovery.
   Token parseArguments(Token token, Parser parser);
 
+  /// Call this function to parse optional type parameters
+  /// (also known as type variables) after [token].
+  /// This function will call the appropriate event methods on the [Parser]'s
+  /// listener to handle the parameters. This may modify the token stream
+  /// when parsing `>>` in valid code or during recovery.
+  Token parseVariables(Token token, Parser parser);
+
   /// Call this function with the [token] before the type var to obtain
   /// the last token in the type var. If there is no type var, then this method
   /// will return [token]. This does not modify the token stream.

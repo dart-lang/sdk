@@ -12,9 +12,6 @@ main() {
 
 class EnumDeclarationTest extends PartialCodeTest {
   buildAll() {
-    List<String> allExceptEof = PartialCodeTest.declarationSuffixes
-        .map((TestSuffix t) => t.name)
-        .toList();
     buildTests(
         'enum_declaration',
         [
