@@ -18,7 +18,6 @@ import '../universe/world_impact.dart'
 import 'backend_impact.dart';
 import 'backend_usage.dart';
 import 'custom_elements_analysis.dart';
-import 'mirrors_analysis.dart';
 import 'runtime_types.dart';
 import 'type_variable_handler.dart';
 
@@ -32,7 +31,6 @@ class CodegenEnqueuerListener extends EnqueuerListener {
 
   final CustomElementsCodegenAnalysis _customElementsAnalysis;
   final TypeVariableCodegenAnalysis _typeVariableCodegenAnalysis;
-  final MirrorsCodegenAnalysis _mirrorsAnalysis;
 
   final NativeCodegenEnqueuer _nativeEnqueuer;
 
@@ -46,7 +44,6 @@ class CodegenEnqueuerListener extends EnqueuerListener {
       this._rtiNeed,
       this._customElementsAnalysis,
       this._typeVariableCodegenAnalysis,
-      this._mirrorsAnalysis,
       this._nativeEnqueuer);
 
   @override
@@ -120,7 +117,6 @@ class CodegenEnqueuerListener extends EnqueuerListener {
 
     if (!enqueuer.queueIsEmpty) return false;
 
-    _mirrorsAnalysis.onQueueEmpty(enqueuer, recentClasses);
     return true;
   }
 

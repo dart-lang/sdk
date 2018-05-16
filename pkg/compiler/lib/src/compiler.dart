@@ -34,7 +34,6 @@ import 'js_backend/backend.dart' show JavaScriptBackend;
 import 'kernel/kernel_backend_strategy.dart';
 import 'kernel/kernel_strategy.dart';
 import 'library_loader.dart' show LibraryLoaderTask, LoadedLibraries;
-import 'mirrors_used.dart' show MirrorUsageAnalyzerTask;
 import 'null_compiler_output.dart' show NullCompilerOutput, NullSink;
 import 'options.dart' show CompilerOptions, DiagnosticOptions;
 import 'script.dart' show Script;
@@ -120,7 +119,6 @@ abstract class Compiler {
 
   EnqueueTask enqueuer;
   DeferredLoadTask deferredLoadTask;
-  MirrorUsageAnalyzerTask mirrorUsageAnalyzerTask;
   DumpInfoTask dumpInfoTask;
 
   bool get hasCrashed => _reporter.hasCrashed;
@@ -177,7 +175,6 @@ abstract class Compiler {
       globalInference = new GlobalTypeInferenceTask(this),
       constants = backend.constantCompilerTask,
       deferredLoadTask = frontendStrategy.createDeferredLoadTask(this),
-      mirrorUsageAnalyzerTask = new MirrorUsageAnalyzerTask(this),
       // [enqueuer] is created earlier because it contains the resolution world
       // objects needed by other tasks.
       enqueuer,

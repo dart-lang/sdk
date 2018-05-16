@@ -61,7 +61,6 @@ import 'enqueuer.dart';
 import 'impact_transformer.dart';
 import 'interceptor_data.dart';
 import 'js_interop_analysis.dart' show JsInteropAnalysis;
-import 'mirrors_analysis.dart';
 import 'mirrors_data.dart';
 import 'namer.dart';
 import 'native_data.dart';
@@ -382,12 +381,6 @@ class JavaScriptBackend {
   /// Support for classifying `noSuchMethod` implementations.
   NoSuchMethodRegistry noSuchMethodRegistry;
 
-  /// Resolution support for computing reflectable elements.
-  MirrorsResolutionAnalysis _mirrorsResolutionAnalysis;
-
-  /// Codegen support for computing reflectable elements.
-  MirrorsCodegenAnalysis _mirrorsCodegenAnalysis;
-
   /// The compiler task responsible for the compilation of constants for both
   /// the frontend and the backend.
   final JavaScriptConstantTask constantCompilerTask;
@@ -434,8 +427,6 @@ class JavaScriptBackend {
     emitter =
         new CodeEmitterTask(compiler, generateSourceMap, useStartupEmitter);
     jsInteropAnalysis = new JsInteropAnalysis(this);
-    _mirrorsResolutionAnalysis =
-        compiler.frontendStrategy.createMirrorsResolutionAnalysis(this);
 
     noSuchMethodRegistry = new NoSuchMethodRegistryImpl(
         commonElements, compiler.frontendStrategy.createNoSuchMethodResolver());
@@ -489,19 +480,6 @@ class JavaScriptBackend {
   MirrorsDataBuilder get mirrorsDataBuilder => _mirrorsData;
 
   OutputUnitData get outputUnitData => _outputUnitData;
-
-  /// Resolution support for computing reflectable elements.
-  MirrorsResolutionAnalysis get mirrorsResolutionAnalysis =>
-      _mirrorsResolutionAnalysis;
-
-  /// Codegen support for computing reflectable elements.
-  MirrorsCodegenAnalysis get mirrorsCodegenAnalysis {
-    assert(
-        _mirrorsCodegenAnalysis != null,
-        failedAt(NO_LOCATION_SPANNABLE,
-            "MirrorsCodegenAnalysis has not been created yet."));
-    return _mirrorsCodegenAnalysis;
-  }
 
   OneShotInterceptorData get oneShotInterceptorData {
     assert(
@@ -615,7 +593,6 @@ class JavaScriptBackend {
     processAnnotations(closedWorldRefiner);
     mirrorsDataBuilder.computeMembersNeededForReflection(
         compiler.enqueuer.resolution.worldBuilder, closedWorld);
-    mirrorsResolutionAnalysis.onResolutionComplete();
   }
 
   void onDeferredLoadComplete(OutputUnitData data) {
@@ -686,7 +663,6 @@ class JavaScriptBackend {
             mirrorsDataBuilder,
             noSuchMethodRegistry,
             customElementsResolutionAnalysis,
-            mirrorsResolutionAnalysis,
             typeVariableResolutionAnalysis,
             _nativeResolutionEnqueuer,
             compiler.deferredLoadTask),
@@ -719,7 +695,6 @@ class JavaScriptBackend {
         new BackendImpacts(compiler.options, commonElements);
     _typeVariableCodegenAnalysis = new TypeVariableCodegenAnalysis(
         closedWorld.elementEnvironment, this, mirrorsData);
-    _mirrorsCodegenAnalysis = mirrorsResolutionAnalysis.close();
     _customElementsCodegenAnalysis = new CustomElementsCodegenAnalysis(
         constantSystem,
         commonElements,
@@ -748,7 +723,6 @@ class JavaScriptBackend {
             closedWorld.rtiNeed,
             customElementsCodegenAnalysis,
             typeVariableCodegenAnalysis,
-            mirrorsCodegenAnalysis,
             nativeCodegenEnqueuer));
   }
 
@@ -815,39 +789,6 @@ class JavaScriptBackend {
   int assembleProgram(ClosedWorld closedWorld) {
     int programSize = emitter.assembleProgram(namer, closedWorld);
     closedWorld.noSuchMethodData.emitDiagnostic(reporter);
-    int totalMethodCount = generatedCode.length;
-    // TODO(redemption): Support `preMirrorsMethodCount` for entities.
-    if (mirrorsCodegenAnalysis.preMirrorsMethodCount != null &&
-        totalMethodCount != mirrorsCodegenAnalysis.preMirrorsMethodCount) {
-      int mirrorCount =
-          totalMethodCount - mirrorsCodegenAnalysis.preMirrorsMethodCount;
-      double percentage = (mirrorCount / totalMethodCount) * 100;
-      DiagnosticMessage hint = reporter.createMessage(
-          closedWorld.elementEnvironment.mainLibrary,
-          MessageKind.MIRROR_BLOAT, {
-        'count': mirrorCount,
-        'total': totalMethodCount,
-        'percentage': percentage.round()
-      });
-
-      List<DiagnosticMessage> infos = <DiagnosticMessage>[];
-      for (LibraryElement library in compiler.libraryLoader.libraries) {
-        if (library.isInternalLibrary) continue;
-        for (ImportElement import in library.imports) {
-          LibraryElement importedLibrary = import.importedLibrary;
-          if (importedLibrary != closedWorld.commonElements.mirrorsLibrary)
-            continue;
-          MessageKind kind =
-              compiler.mirrorUsageAnalyzerTask.hasMirrorUsage(library)
-                  ? MessageKind.MIRROR_IMPORT
-                  : MessageKind.MIRROR_IMPORT_NO_USAGE;
-          reporter.withCurrentElement(library, () {
-            infos.add(reporter.createMessage(import, kind));
-          });
-        }
-      }
-      reporter.reportHint(hint, infos);
-    }
     return programSize;
   }
 

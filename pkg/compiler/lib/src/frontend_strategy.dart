@@ -14,10 +14,8 @@ import 'deferred_load.dart' show DeferredLoadTask;
 import 'elements/entities.dart';
 import 'elements/types.dart';
 import 'enqueue.dart';
-import 'js_backend/backend.dart';
 import 'js_backend/backend_usage.dart';
 import 'js_backend/interceptor_data.dart';
-import 'js_backend/mirrors_analysis.dart';
 import 'js_backend/mirrors_data.dart';
 import 'js_backend/native_data.dart';
 import 'js_backend/no_such_method_registry.dart';
@@ -96,11 +94,6 @@ abstract class FrontendStrategy {
 
   /// Creates the [MirrorsDataBuilder] for this strategy.
   MirrorsDataBuilder createMirrorsDataBuilder();
-
-  /// Creates the [MirrorsResolutionAnalysis] for this strategy.
-  // TODO(johnniwinther): Avoid passing [JavaScriptBackend].
-  MirrorsResolutionAnalysis createMirrorsResolutionAnalysis(
-      JavaScriptBackend backend);
 
   /// Creates the [RuntimeTypesNeedBuilder] for this strategy.
   RuntimeTypesNeedBuilder createRuntimeTypesNeedBuilder();

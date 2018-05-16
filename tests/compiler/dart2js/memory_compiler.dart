@@ -224,7 +224,6 @@ CompilerImpl compilerFor(
     // Don't null out the enqueuer as it prevents us from using cachedCompiler
     // more than once.
     cachedCompiler.deferredLoadTask = null;
-    cachedCompiler.mirrorUsageAnalyzerTask = null;
     cachedCompiler.dumpInfoTask = null;
   }
   return compiler;

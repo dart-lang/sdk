@@ -23,7 +23,6 @@ import 'backend_usage.dart';
 import 'checked_mode_helpers.dart';
 import 'custom_elements_analysis.dart';
 import 'interceptor_data.dart';
-import 'mirrors_analysis.dart';
 import 'mirrors_data.dart';
 import 'native_data.dart' show NativeBasicData;
 import 'no_such_method_registry.dart';
@@ -45,7 +44,6 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
 
   final NoSuchMethodRegistry _noSuchMethodRegistry;
   final CustomElementsResolutionAnalysis _customElementsAnalysis;
-  final MirrorsResolutionAnalysis _mirrorsAnalysis;
   final TypeVariableResolutionAnalysis _typeVariableResolutionAnalysis;
 
   final NativeResolutionEnqueuer _nativeEnqueuer;
@@ -64,7 +62,6 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       this._mirrorsDataBuilder,
       this._noSuchMethodRegistry,
       this._customElementsAnalysis,
-      this._mirrorsAnalysis,
       this._typeVariableResolutionAnalysis,
       this._nativeEnqueuer,
       this._deferredLoadTask);
@@ -191,7 +188,6 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
 
     if (!enqueuer.queueIsEmpty) return false;
 
-    _mirrorsAnalysis.onQueueEmpty(enqueuer, recentClasses);
     return true;
   }
 

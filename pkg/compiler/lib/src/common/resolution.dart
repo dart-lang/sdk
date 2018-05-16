@@ -26,7 +26,6 @@ import '../elements/elements.dart'
 import '../elements/entities.dart';
 import '../enqueue.dart' show ResolutionEnqueuer;
 import '../id_generator.dart';
-import '../mirrors_used.dart';
 import '../options.dart' show CompilerOptions;
 import '../universe/world_impact.dart' show WorldImpact;
 import '../universe/feature.dart';
@@ -83,7 +82,6 @@ abstract class Resolution {
   CompilerOptions get options;
   IdGenerator get idGenerator;
   ConstantEnvironment get constants;
-  MirrorUsageAnalyzerTask get mirrorUsageAnalyzerTask;
 
   /// Whether internally we computed the constant for the [proxy] variable
   /// defined in dart:core (used only for testing).

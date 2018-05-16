@@ -21,10 +21,8 @@ import '../elements/types.dart';
 import '../enqueue.dart';
 import '../environment.dart' as env;
 import '../frontend_strategy.dart';
-import '../js_backend/backend.dart';
 import '../js_backend/backend_usage.dart';
 import '../js_backend/interceptor_data.dart';
-import '../js_backend/mirrors_analysis.dart';
 import '../js_backend/mirrors_data.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
@@ -120,11 +118,6 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
 
   MirrorsDataBuilder createMirrorsDataBuilder() {
     return new MirrorsDataBuilderImpl(elementEnvironment, commonElements);
-  }
-
-  MirrorsResolutionAnalysis createMirrorsResolutionAnalysis(
-      JavaScriptBackend backend) {
-    return new MirrorsResolutionAnalysisImpl();
   }
 
   RuntimeTypesNeedBuilder createRuntimeTypesNeedBuilder() {
@@ -276,32 +269,4 @@ class MirrorsDataBuilderImpl extends MirrorsDataImpl {
   @override
   void registerMirrorUsage(
       Set<String> symbols, Set<Element> targets, Set<Element> metaTargets) {}
-}
-
-/// Mock implementation of [MirrorsResolutionAnalysis].
-class MirrorsResolutionAnalysisImpl implements MirrorsResolutionAnalysis {
-  @override
-  void onQueueEmpty(Enqueuer enqueuer, Iterable<ClassEntity> recentClasses) {}
-
-  @override
-  MirrorsCodegenAnalysis close() {
-    // TODO(redemption): Implement this.
-    return new MirrorsCodegenAnalysisImpl();
-  }
-
-  @override
-  void onResolutionComplete() {}
-}
-
-class MirrorsCodegenAnalysisImpl implements MirrorsCodegenAnalysis {
-  @override
-  int get preMirrorsMethodCount {
-    // TODO(redemption): Implement this.
-    return null;
-  }
-
-  @override
-  void onQueueEmpty(Enqueuer enqueuer, Iterable<ClassEntity> recentClasses) {
-    // TODO(redemption): Implement this.
-  }
 }
