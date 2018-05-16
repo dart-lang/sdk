@@ -7,7 +7,6 @@ library elements;
 import 'package:front_end/src/fasta/scanner.dart' show Token;
 
 import '../common.dart';
-import '../common/resolution.dart' show Resolution;
 import '../common_elements.dart' show CommonElements;
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
@@ -739,8 +738,6 @@ abstract class TypedefElement extends Element
   ///
   /// For instance `(int)->void` for `typedef void F(int)`.
   ResolutionDartType get alias;
-
-  void checkCyclicReference(Resolution resolution);
 }
 
 /// An executable element is an element that can hold code.
@@ -1099,14 +1096,6 @@ abstract class ConstructorBodyElement extends MethodElement
 /// [GenericElement] defines the common interface for generic functions and
 /// [TypeDeclarationElement].
 abstract class GenericElement extends Element implements AstElement {
-  /// Do not use [computeType] outside of the resolver.
-  ///
-  /// Trying to access a type that has not been computed in resolution is an
-  /// error and calling [computeType] covers that error.
-  /// This method will go away!
-  @deprecated
-  ResolutionDartType computeType(Resolution resolution);
-
   /**
    * The type variables declared on this declaration. The type variables are not
    * available until the type of the element has been computed through
@@ -1120,15 +1109,6 @@ abstract class GenericElement extends Element implements AstElement {
 abstract class TypeDeclarationElement extends GenericElement {
   /// The name of this type declaration, taking privacy into account.
   Name get memberName;
-
-  /// Do not use [computeType] outside of the resolver; instead retrieve the
-  /// type from the [thisType] or [rawType], depending on the use case.
-  ///
-  /// Trying to access a type that has not been computed in resolution is an
-  /// error and calling [computeType] covers that error.
-  /// This method will go away!
-  @deprecated
-  GenericType computeType(Resolution resolution);
 
   /**
    * The `this type` for this type declaration.
@@ -1160,8 +1140,6 @@ abstract class TypeDeclarationElement extends GenericElement {
   GenericType get rawType;
 
   bool get isResolved;
-
-  void ensureResolved(Resolution resolution);
 }
 
 abstract class ClassElement extends TypeDeclarationElement
@@ -1343,21 +1321,10 @@ abstract class MetadataAnnotation implements Spannable {
   SourceSpan get sourcePosition;
 
   bool get hasNode;
-
-  MetadataAnnotation ensureResolved(Resolution resolution);
 }
 
 /// An [Element] that has a type.
 abstract class TypedElement extends Element {
-  /// Do not use [computeType] outside of the resolver; instead retrieve the
-  /// type from  [type] property.
-  ///
-  /// Trying to access a type that has not been computed in resolution is an
-  /// error and calling [computeType] covers that error.
-  /// This method will go away!
-  @deprecated
-  ResolutionDartType computeType(Resolution resolution);
-
   ResolutionDartType get type;
 }
 

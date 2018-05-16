@@ -9,7 +9,6 @@ import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
-import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/elements/types.dart';
@@ -165,10 +164,6 @@ abstract class ComputeValueMixin<T> {
       }
 
       if (frontendClosure != null) {
-        if (frontendClosure is LocalFunctionElement &&
-            rtiNeed.localFunctionNeedsSignature(frontendClosure)) {
-          features.add(Tags.needsSignature);
-        }
         addFrontendData(frontendClosure);
         if (rtiNeedBuilder.localFunctionsUsingTypeVariableLiterals
             .contains(frontendClosure)) {

@@ -4,32 +4,10 @@
 
 library dart2js.common.resolution;
 
-import '../common.dart';
-import '../compile_time_constants.dart';
 import '../constants/expressions.dart' show ConstantExpression;
-import '../constants/values.dart' show ConstantValue;
-import '../common_elements.dart' show CommonElements, ElementEnvironment;
-import '../elements/resolution_types.dart' show Types;
-import '../elements/elements.dart'
-    show
-        ClassElement,
-        Element,
-        ExecutableElement,
-        FunctionElement,
-        FunctionSignature,
-        LibraryElement,
-        MemberElement,
-        MetadataAnnotation,
-        MethodElement,
-        ResolvedAst,
-        TypedefElement;
 import '../elements/entities.dart';
-import '../enqueue.dart' show ResolutionEnqueuer;
-import '../id_generator.dart';
-import '../options.dart' show CompilerOptions;
 import '../universe/world_impact.dart' show WorldImpact;
 import '../universe/feature.dart';
-import 'work.dart' show WorkItem;
 
 class ResolutionImpact extends WorldImpact {
   const ResolutionImpact();
@@ -43,117 +21,4 @@ class ResolutionImpact extends WorldImpact {
   Iterable<ClassEntity> get seenClasses => const <ClassEntity>[];
 
   Iterable<dynamic> get nativeData => const <dynamic>[];
-}
-
-/// Interface defining target-specific behavior for resolution.
-abstract class Target {
-  /// Returns `true` if [library] is a target specific library whose members
-  /// have special treatment, such as being allowed to extends blacklisted
-  /// classes or members being eagerly resolved.
-  bool isTargetSpecificLibrary(LibraryElement element);
-
-  /// Returns `true` if [element] is a default implementation of `noSuchMethod`
-  /// used by the target.
-  bool isDefaultNoSuchMethod(MethodElement element);
-
-  /// Returns the default superclass for the given [element] in this target.
-  ClassElement defaultSuperclass(ClassElement element);
-
-  /// Returns `true` if [element] is a native class, that is, that the
-  /// corresponding entity already exists in the target language.
-  bool isNativeClass(ClassEntity element) => false;
-
-  /// Returns `true` if [element] is a foreign element, that is, that the
-  /// backend has specialized handling for the element.
-  bool isForeign(Element element) => false;
-
-  /// Returns `true` if this target supports async/await.
-  bool get supportsAsyncAwait => true;
-}
-
-// TODO(johnniwinther): Rename to `Resolver` or `ResolverContext`.
-abstract class Resolution {
-  DiagnosticReporter get reporter;
-  ElementEnvironment get elementEnvironment;
-  CommonElements get commonElements;
-  Types get types;
-  Target get target;
-  ResolutionEnqueuer get enqueuer;
-  CompilerOptions get options;
-  IdGenerator get idGenerator;
-  ConstantEnvironment get constants;
-
-  /// Whether internally we computed the constant for the [proxy] variable
-  /// defined in dart:core (used only for testing).
-  // TODO(sigmund): delete, we need a better way to test this.
-  bool get wasProxyConstantComputedTestingOnly;
-
-  /// If set to `true` resolution caches will not be cleared. Use this only for
-  /// testing.
-  bool retainCachesForTesting;
-
-  void resolveTypedef(TypedefElement typdef);
-  void resolveClass(ClassElement cls);
-  void resolveMetadataAnnotation(MetadataAnnotation metadataAnnotation);
-  FunctionSignature resolveSignature(FunctionElement function);
-
-  /// Returns `true` if [element] has been resolved.
-  bool hasBeenResolved(Element element);
-
-  /// Resolve [element] if it has not already been resolved.
-  void ensureResolved(Element element);
-
-  /// Ensure the resolution of all members of [element].
-  void ensureClassMembers(ClassElement element);
-
-  /// Registers that [element] has a compile time error.
-  ///
-  /// The error itself is given in [message].
-  void registerCompileTimeError(Element element, DiagnosticMessage message);
-
-  WorkItem createWorkItem(MemberElement element);
-
-  /// Returns `true` if [element] as a fully computed [ResolvedAst].
-  bool hasResolvedAst(ExecutableElement element);
-
-  /// Returns the `ResolvedAst` for the [element].
-  ResolvedAst getResolvedAst(ExecutableElement element);
-
-  /// Returns `true` if the [ResolutionImpact] for [element] is cached.
-  bool hasResolutionImpact(MemberElement element);
-
-  /// Returns the precomputed [ResolutionImpact] for [element].
-  ResolutionImpact getResolutionImpact(MemberElement element);
-
-  /// Returns the [ResolvedAst] for [element], computing it if necessary.
-  ResolvedAst computeResolvedAst(MemberElement element);
-
-  /// Returns the precomputed [WorldImpact] for [element].
-  WorldImpact getWorldImpact(MemberElement element);
-
-  /// Computes the [WorldImpact] for [element].
-  WorldImpact computeWorldImpact(MemberElement element);
-
-  WorldImpact transformResolutionImpact(
-      MemberElement element, ResolutionImpact resolutionImpact);
-
-  /// Removes the [WorldImpact] for [element] from the resolution cache. Later
-  /// calls to [getWorldImpact] or [computeWorldImpact] returns an empty impact.
-  void uncacheWorldImpact(MemberElement element);
-
-  /// Removes the [WorldImpact]s for all [Element]s in the resolution cache. ,
-  /// Later calls to [getWorldImpact] or [computeWorldImpact] returns an empty
-  /// impact.
-  void emptyCache();
-
-  /// Returns `true` if [value] is the top-level [proxy] annotation from the
-  /// core library.
-  bool isProxyConstant(ConstantValue value);
-
-  // TODO(het): Remove this once we move to the kernel-based frontend. This is
-  // an escape hatch for types that can't be added to an impact. For example,
-  // resolving a method signature will register the classes seen in the
-  // signature.
-  @deprecated
-  void registerClass(ClassEntity cls);
 }

@@ -8,7 +8,6 @@ import '../common.dart';
 import '../common/backend_api.dart' show ImpactTransformer;
 import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/names.dart' show Uris;
-import '../common/resolution.dart' show Resolution, Target;
 import '../common/tasks.dart' show CompilerTask;
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../compiler.dart' show Compiler;
@@ -16,7 +15,6 @@ import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../deferred_load.dart' show DeferredLoadTask, OutputUnitData;
 import '../dump_info.dart' show DumpInfoTask;
-import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../enqueue.dart'
@@ -104,11 +102,7 @@ class FunctionInlineCache {
   ///
   /// For a [MethodElement] this means it must be the declaration element.
   bool checkFunction(FunctionEntity method) {
-    if (method is MethodElement) {
-      return method.isDeclaration;
-    } else {
-      return '$method'.startsWith(jsElementPrefix);
-    }
+    return '$method'.startsWith(jsElementPrefix);
   }
 
   /// Returns the current cache decision. This should only be used for testing.
@@ -401,8 +395,6 @@ class JavaScriptBackend {
   native.NativeResolutionEnqueuer _nativeResolutionEnqueuer;
   native.NativeCodegenEnqueuer _nativeCodegenEnqueuer;
 
-  Target _target;
-
   Tracer tracer;
 
   JavaScriptBackend(this.compiler,
@@ -414,7 +406,6 @@ class JavaScriptBackend {
             compiler.backendStrategy.sourceInformationStrategy,
         constantCompilerTask = new JavaScriptConstantTask(compiler) {
     CommonElements commonElements = compiler.frontendStrategy.commonElements;
-    _target = new JavaScriptBackendTarget(this);
     _backendUsageBuilder = new BackendUsageBuilderImpl(commonElements);
     _checkedModeHelpers = new CheckedModeHelpers();
     emitter =
@@ -433,11 +424,7 @@ class JavaScriptBackend {
 
   DiagnosticReporter get reporter => compiler.reporter;
 
-  Resolution get resolution => compiler.resolution;
-
   ImpactCacheDeleter get impactCacheDeleter => compiler.impactCacheDeleter;
-
-  Target get target => _target;
 
   /// Resolution support for generating table of interceptors and
   /// constructors for custom elements.
@@ -505,14 +492,6 @@ class JavaScriptBackend {
   /// constants.
   JavaScriptConstantCompiler get constants {
     return constantCompilerTask.jsConstantCompiler;
-  }
-
-  bool isForeign(CommonElements commonElements, Element element) =>
-      element.library == commonElements.foreignLibrary;
-
-  bool isBackendLibrary(CommonElements commonElements, LibraryElement library) {
-    return library == commonElements.interceptorsLibrary ||
-        library == commonElements.jsHelperLibrary;
   }
 
   Namer determineNamer(
@@ -746,8 +725,6 @@ class JavaScriptBackend {
    * Invariant: [element] must be a declaration element.
    */
   String getGeneratedCode(MemberEntity element) {
-    assert(!(element is MemberElement && !element.isDeclaration),
-        failedAt(element));
     return jsAst.prettyPrint(generatedCode[element],
         enableMinification: compiler.options.enableMinification);
   }
@@ -858,21 +835,9 @@ class JavaScriptBackend {
     tracer.close();
   }
 
-  // Does this element belong in the output
-  bool shouldOutput(Element element) => true;
-
   /// Returns `true` if the `native` pseudo keyword is supported for [library].
   bool canLibraryUseNative(LibraryEntity library) =>
       native.maybeEnableNative(library.canonicalUri);
-
-  bool isTargetSpecificLibrary(LibraryElement library) {
-    Uri canonicalUri = library.canonicalUri;
-    if (canonicalUri == Uris.dart__js_helper ||
-        canonicalUri == Uris.dart__interceptors) {
-      return true;
-    }
-    return false;
-  }
 
   /// Process backend specific annotations.
   // TODO(johnniwinther): Merge this with [AnnotationProcessor] and use
@@ -894,12 +859,6 @@ class JavaScriptBackend {
       CommonElements commonElements,
       MemberEntity element,
       ClosedWorldRefiner closedWorldRefiner) {
-    if (element is MemberElement && element.isMalformed) {
-      // Elements that are marked as malformed during parsing or resolution
-      // might be registered here. These should just be ignored.
-      return;
-    }
-
     bool hasNoInline = false;
     bool hasForceInline = false;
 
@@ -1154,9 +1113,6 @@ class JavaScriptImpactStrategy extends ImpactStrategy {
         impact.apply(visitor);
       } else {
         impact.apply(visitor);
-        if (impactSource is Element) {
-          impactCacheDeleter.uncacheWorldImpact(impactSource);
-        }
       }
     } else if (impactUse == DeferredLoadTask.IMPACT_USE) {
       impact.apply(visitor);
@@ -1175,39 +1131,6 @@ class JavaScriptImpactStrategy extends ImpactStrategy {
       impactCacheDeleter.emptyCache();
     }
   }
-}
-
-class JavaScriptBackendTarget extends Target {
-  final JavaScriptBackend _backend;
-
-  JavaScriptBackendTarget(this._backend);
-
-  CommonElements get _commonElements =>
-      _backend.compiler.frontendStrategy.commonElements;
-
-  @override
-  bool isTargetSpecificLibrary(LibraryElement element) {
-    return _backend.isTargetSpecificLibrary(element);
-  }
-
-  @override
-  bool isDefaultNoSuchMethod(MethodElement element) {
-    return _commonElements.isDefaultNoSuchMethodImplementation(element);
-  }
-
-  @override
-  ClassElement defaultSuperclass(ClassElement element) {
-    return _commonElements.getDefaultSuperclass(
-        element, _backend.frontendStrategy.nativeBasicData);
-  }
-
-  @override
-  bool isNativeClass(ClassEntity element) =>
-      _backend.compiler.frontendStrategy.nativeBasicData.isNativeClass(element);
-
-  @override
-  bool isForeign(Element element) =>
-      _backend.isForeign(_commonElements, element);
 }
 
 class SuperMemberData {

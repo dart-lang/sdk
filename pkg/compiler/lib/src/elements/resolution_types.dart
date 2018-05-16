@@ -10,7 +10,6 @@ library resolution_types;
 import 'dart:math' show min;
 
 import '../common.dart';
-import '../common/resolution.dart' show Resolution;
 import '../common_elements.dart';
 import '../ordered_typeset.dart' show OrderedTypeSet;
 import '../util/util.dart' show equalElements;
@@ -66,17 +65,6 @@ abstract class ResolutionDartType implements DartType {
   ResolutionDartType substByContext(GenericType type) {
     return subst(type.typeArguments, type.element.typeVariables);
   }
-
-  /// Computes the unaliased type of this type.
-  ///
-  /// The unaliased type of a typedef'd type is the unaliased type to which its
-  /// name is bound. The unaliased version of any other type is the type itself.
-  ///
-  /// For example, the unaliased type of `typedef A Func<A,B>(B b)` is the
-  /// function type `(B) -> A` and the unaliased type of `Func<int,String>`
-  /// is the function type `(String) -> int`.
-  // TODO(johnniwinther): Maybe move this to [TypedefType].
-  void computeUnaliased(Resolution resolution) {}
 
   /// Returns the unaliased type of this type.
   ///
@@ -894,19 +882,6 @@ class ResolutionTypedefType extends GenericType implements TypedefType {
     return super.subst(arguments, parameters);
   }
 
-  void computeUnaliased(Resolution resolution) {
-    if (_unaliased == null) {
-      element.ensureResolved(resolution);
-      if (element.isMalformed) {
-        _unaliased = const ResolutionDynamicType();
-        return;
-      }
-      element.checkCyclicReference(resolution);
-      element.alias.computeUnaliased(resolution);
-      _unaliased = element.alias.unaliased.substByContext(this);
-    }
-  }
-
   ResolutionDartType get unaliased {
     if (_unaliased == null) {
       ResolutionDartType definition = element.alias.unaliased;
@@ -1025,21 +1000,14 @@ abstract class AbstractTypeRelationMixin
     implements
         AbstractTypeRelation<ResolutionDartType>,
         ResolutionDartTypeVisitor<bool, ResolutionDartType> {
-  Resolution get resolution;
-
   @override
-  CommonElements get commonElements => resolution.commonElements;
+  CommonElements get commonElements => null;
 
   /// Ensures that the super hierarchy of [type] is computed.
-  void ensureResolved(covariant ResolutionInterfaceType type) {
-    // TODO(johnniwinther): Currently needed since literal types like int,
-    // double, bool etc. might not have been resolved yet.
-    type.element.ensureResolved(resolution);
-  }
+  void ensureResolved(covariant ResolutionInterfaceType type) {}
 
   /// Returns the unaliased version of [type].
   ResolutionDartType getUnaliased(covariant ResolutionDartType type) {
-    type.computeUnaliased(resolution);
     return type.unaliased;
   }
 
@@ -1068,27 +1036,24 @@ abstract class AbstractTypeRelationMixin
 class ResolutionMoreSpecificVisitor
     extends MoreSpecificVisitor<ResolutionDartType>
     with AbstractTypeRelationMixin {
-  final Resolution resolution;
   bool get strongMode => false;
 
-  ResolutionMoreSpecificVisitor(this.resolution);
+  ResolutionMoreSpecificVisitor();
 }
 
 class ResolutionSubtypeVisitor extends SubtypeVisitor<ResolutionDartType>
     with AbstractTypeRelationMixin {
-  final Resolution resolution;
   bool get strongMode => false;
 
-  ResolutionSubtypeVisitor(this.resolution);
+  ResolutionSubtypeVisitor();
 }
 
 class ResolutionPotentialSubtypeVisitor
     extends PotentialSubtypeVisitor<ResolutionDartType>
     with AbstractTypeRelationMixin {
-  final Resolution resolution;
   bool get strongMode => false;
 
-  ResolutionPotentialSubtypeVisitor(this.resolution);
+  ResolutionPotentialSubtypeVisitor();
 }
 
 /**
@@ -1100,25 +1065,21 @@ typedef void CheckTypeVariableBound<T>(T context, DartType typeArgument,
     TypeVariableType typeVariable, DartType bound);
 
 class Types extends DartTypes {
-  final Resolution resolution;
   final ResolutionMoreSpecificVisitor moreSpecificVisitor;
   final ResolutionSubtypeVisitor subtypeVisitor;
   final ResolutionPotentialSubtypeVisitor potentialSubtypeVisitor;
 
-  CommonElements get commonElements => resolution.commonElements;
+  CommonElements get commonElements => null;
 
-  DiagnosticReporter get reporter => resolution.reporter;
+  DiagnosticReporter get reporter => null;
 
-  Types(Resolution resolution)
-      : this.resolution = resolution,
-        this.moreSpecificVisitor =
-            new ResolutionMoreSpecificVisitor(resolution),
-        this.subtypeVisitor = new ResolutionSubtypeVisitor(resolution),
-        this.potentialSubtypeVisitor =
-            new ResolutionPotentialSubtypeVisitor(resolution);
+  Types()
+      : this.moreSpecificVisitor = new ResolutionMoreSpecificVisitor(),
+        this.subtypeVisitor = new ResolutionSubtypeVisitor(),
+        this.potentialSubtypeVisitor = new ResolutionPotentialSubtypeVisitor();
 
-  Types copy(Resolution resolution) {
-    return new Types(resolution);
+  Types copy() {
+    return new Types();
   }
 
   @override
@@ -1534,9 +1495,7 @@ class Types extends DartTypes {
       return computeLeastUpperBoundTypeVariableTypes(a, b);
     }
 
-    a.computeUnaliased(resolution);
     a = a.unaliased;
-    b.computeUnaliased(resolution);
     b = b.unaliased;
 
     if (a.treatAsDynamic || b.treatAsDynamic)
@@ -1560,95 +1519,6 @@ class Types extends DartTypes {
       return computeLeastUpperBoundInterfaces(a, b);
     }
     return const ResolutionDynamicType();
-  }
-
-  /// Computes the unaliased type of the first non type variable bound of
-  /// [type].
-  ///
-  /// This is used to normalize malformed types, type variables and typedef
-  /// before use in typechecking.
-  ///
-  /// Malformed types are normalized to `dynamic`. Typedefs are normalized to
-  /// their alias, or `dynamic` if cyclic. Type variables are normalized to the
-  /// normalized type of their bound, or `Object` if cyclic.
-  ///
-  /// For instance for these types:
-  ///
-  ///     class Foo<T extends Bar, S extends T, U extends Baz> {}
-  ///     class Bar<X extends Y, Y extends X> {}
-  ///     typedef Baz();
-  ///
-  /// the unaliased bounds types are:
-  ///
-  ///     unaliasedBound(Foo) = Foo
-  ///     unaliasedBound(Bar) = Bar
-  ///     unaliasedBound(Unresolved) = `dynamic`
-  ///     unaliasedBound(Baz) = ()->dynamic
-  ///     unaliasedBound(T) = Bar
-  ///     unaliasedBound(S) = unaliasedBound(T) = Bar
-  ///     unaliasedBound(U) = unaliasedBound(Baz) = ()->dynamic
-  ///     unaliasedBound(X) = unaliasedBound(Y) = `Object`
-  ///
-  static ResolutionDartType computeUnaliasedBound(
-      Resolution resolution, ResolutionDartType type) {
-    ResolutionDartType originalType = type;
-    while (type.isTypeVariable) {
-      ResolutionTypeVariableType variable = type;
-      type = variable.element.bound;
-      if (type == originalType) {
-        ResolutionInterfaceType objectType =
-            resolution.commonElements.objectType;
-        type = objectType;
-      }
-    }
-    if (type.isMalformed) {
-      return const ResolutionDynamicType();
-    }
-    type.computeUnaliased(resolution);
-    return type.unaliased;
-  }
-
-  /// Computes the interface type of [type], which is the type that defines
-  /// the property of [type].
-  ///
-  /// For an interface type it is the type itself, for a type variable it is the
-  /// interface type of the bound, for function types and typedefs it is the
-  /// `Function` type. For other types, like `dynamic`, `void` and malformed
-  /// types, there is no interface type and `null` is returned.
-  ///
-  /// For instance for these types:
-  ///
-  ///     class Foo<T extends Bar, S extends T, U extends Baz> {}
-  ///     class Bar {}
-  ///     typedef Baz();
-  ///
-  /// the interface types are:
-  ///
-  ///     interfaceType(Foo) = Foo
-  ///     interfaceType(Bar) = Bar
-  ///     interfaceType(Baz) = interfaceType(()->dynamic) = Function
-  ///     interfaceType(T) = interfaceType(Bar) = Bar
-  ///     interfaceType(S) = interfaceType(T) = interfaceType(Bar) = Bar
-  ///     interfaceType(U) = interfaceType(Baz)
-  ///                      = intefaceType(()->dynamic) = Function
-  ///
-  /// When typechecking `o.foo` the interface type of the static type of `o` is
-  /// used to lookup the existence and type of `foo`.
-  ///
-  static ResolutionInterfaceType computeInterfaceType(
-      Resolution resolution, ResolutionDartType type) {
-    type = computeUnaliasedBound(resolution, type);
-    if (type.treatAsDynamic) {
-      return null;
-    }
-    if (type.isFunctionType) {
-      ResolutionInterfaceType functionType =
-          resolution.commonElements.functionType;
-      type = functionType;
-    }
-    assert(type.isInterfaceType,
-        failedAt(NO_LOCATION_SPANNABLE, "unexpected type kind ${type.kind}."));
-    return type;
   }
 }
 

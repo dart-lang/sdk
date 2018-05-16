@@ -10,7 +10,6 @@ import '../compiler_new.dart' as api;
 import 'backend_strategy.dart';
 import 'common/names.dart' show Selectors;
 import 'common/names.dart' show Uris;
-import 'common/resolution.dart' show Resolution;
 import 'common/tasks.dart' show CompilerTask, GenericTask, Measurer;
 import 'common/work.dart' show WorkItem;
 import 'common.dart';
@@ -19,7 +18,6 @@ import 'common_elements.dart' show ElementEnvironment;
 import 'deferred_load.dart' show DeferredLoadTask, OutputUnitData;
 import 'diagnostics/code_location.dart';
 import 'diagnostics/diagnostic_listener.dart' show DiagnosticReporter;
-import 'diagnostics/invariant.dart' show REPORT_EXCESS_RESOLUTION;
 import 'diagnostics/messages.dart' show Message, MessageTemplate;
 import 'dump_info.dart' show DumpInfoTask;
 import 'elements/entities.dart';
@@ -83,7 +81,6 @@ abstract class Compiler {
   ClosedWorld backendClosedWorldForTesting;
 
   DiagnosticReporter get reporter => _reporter;
-  Resolution get resolution => null;
   Map<Entity, WorldImpact> get impactCache => _impactCache;
   ImpactCacheDeleter get impactCacheDeleter => _impactCacheDeleter;
 
@@ -509,27 +506,6 @@ abstract class Compiler {
   checkQueues(Enqueuer resolutionEnqueuer, Enqueuer codegenEnqueuer) {
     for (Enqueuer enqueuer in [resolutionEnqueuer, codegenEnqueuer]) {
       enqueuer.checkQueueIsEmpty();
-    }
-    if (!REPORT_EXCESS_RESOLUTION) return;
-    var resolved = new Set.from(resolutionEnqueuer.processedEntities);
-    for (MemberEntity e in codegenEnqueuer.processedEntities) {
-      resolved.remove(e);
-    }
-    for (MemberEntity e in new Set.from(resolved)) {
-      if (e.isField) {
-        resolved.remove(e);
-      }
-      if (e.isConstructor && (e as ConstructorEntity).isGenerativeConstructor) {
-        resolved.remove(e);
-      }
-      if (backend.isTargetSpecificLibrary(e.library)) {
-        resolved.remove(e);
-      }
-    }
-    reporter.log('Excess resolution work: ${resolved.length}.');
-    for (MemberEntity e in resolved) {
-      reporter.reportWarningMessage(e, MessageKind.GENERIC,
-          {'text': 'Warning: $e resolved but not compiled.'});
     }
   }
 

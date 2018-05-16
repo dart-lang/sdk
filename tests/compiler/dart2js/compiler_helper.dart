@@ -11,9 +11,7 @@ import 'package:compiler/compiler_new.dart';
 
 import 'package:compiler/src/common_elements.dart';
 
-import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
-export 'package:compiler/src/elements/elements.dart';
 
 import 'package:compiler/src/js_backend/js_backend.dart' as js;
 
@@ -125,17 +123,6 @@ Future<String> compileAll(String code,
       'Unexpected compilation error(s): '
       '${diagnosticCollector.errors}');
   return outputCollector.getOutput('', OutputType.js);
-}
-
-Element findElement(compiler, String name, [Uri library]) {
-  LibraryElement lib = compiler.frontendStrategy.elementEnvironment.mainLibrary;
-  if (library != null) {
-    lib = compiler.libraryLoader.lookupLibrary(library);
-    Expect.isNotNull(lib, 'Could not locate library $library.');
-  }
-  var element = lib.find(name);
-  Expect.isNotNull(element, 'Could not locate $name.');
-  return element;
 }
 
 String anyIdentifier = "[a-zA-Z][a-zA-Z0-9]*";

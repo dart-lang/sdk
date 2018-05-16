@@ -6,36 +6,24 @@ library type_test_helper;
 
 import 'dart:async';
 import 'package:expect/expect.dart';
-import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/compiler.dart' show Compiler;
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/elements/elements.dart'
-    show ClassElement, LibraryElement, TypedefElement;
 import 'package:compiler/src/frontend_strategy.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/world.dart' show ClosedWorld;
 import 'memory_compiler.dart' as memory;
 
-DartType instantiate(Entity element, List<DartType> arguments) {
-  if (element is ClassElement) {
-    return new ResolutionInterfaceType(element, arguments);
-  } else if (element is ClassEntity) {
-    return new InterfaceType(element, arguments);
-  } else {
-    assert(element is TypedefElement);
-    return new ResolutionTypedefType(element, arguments);
-  }
+DartType instantiate(ClassEntity element, List<DartType> arguments) {
+  return new InterfaceType(element, arguments);
 }
 
 class TypeEnvironment {
   final Compiler compiler;
   final bool testBackendWorld;
-
-  Resolution get resolution => compiler.resolution;
 
   static Future<TypeEnvironment> create(String source,
       {bool expectNoErrors: false,
@@ -107,15 +95,11 @@ class TypeEnvironment {
   }
 
   DartTypes get types {
-    if (resolution != null) {
-      return resolution.types;
+    if (testBackendWorld) {
+      return compiler.backendClosedWorldForTesting.dartTypes;
     } else {
-      if (testBackendWorld) {
-        return compiler.backendClosedWorldForTesting.dartTypes;
-      } else {
-        KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
-        return frontendStrategy.elementMap.types;
-      }
+      KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
+      return frontendStrategy.elementMap.types;
     }
   }
 
@@ -125,15 +109,7 @@ class TypeEnvironment {
     element ??= elementEnvironment.lookupClass(mainLibrary, name);
     element ??=
         elementEnvironment.lookupClass(commonElements.coreLibrary, name);
-    if (element == null && mainLibrary is LibraryElement) {
-      element = mainLibrary.find(name);
-    }
     Expect.isNotNull(element, "No element named '$name' found.");
-    if (element is ClassElement) {
-      element.ensureResolved(compiler.resolution);
-    } else if (element is TypedefElement) {
-      element.computeType(compiler.resolution);
-    }
     return element;
   }
 
@@ -141,9 +117,6 @@ class TypeEnvironment {
     LibraryEntity mainLibrary = elementEnvironment.mainLibrary;
     ClassEntity element = elementEnvironment.lookupClass(mainLibrary, name);
     Expect.isNotNull(element, "No class named '$name' found.");
-    if (element is ClassElement) {
-      element.ensureResolved(compiler.resolution);
-    }
     return element;
   }
 
@@ -156,25 +129,16 @@ class TypeEnvironment {
     } else if (element is ClassEntity) {
       return elementEnvironment.getThisType(element);
     } else {
-      /// ignore: undefined_method
-      return element.computeType(compiler.resolution);
+      throw 'Unexpected element $element';
     }
   }
 
   DartType operator [](String name) {
     if (name == 'dynamic') {
-      if (resolution != null) {
-        return const ResolutionDynamicType();
-      } else {
-        return const DynamicType();
-      }
+      return const DynamicType();
     }
     if (name == 'void') {
-      if (resolution != null) {
-        return const ResolutionVoidType();
-      } else {
-        return const VoidType();
-      }
+      return const VoidType();
     }
     return getElementType(name);
   }

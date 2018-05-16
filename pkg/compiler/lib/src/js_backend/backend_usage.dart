@@ -4,7 +4,6 @@
 
 import '../common.dart';
 import '../common_elements.dart';
-import '../elements/elements.dart' show Element;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../util/util.dart' show Setlet;
@@ -144,7 +143,8 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
 
   bool _isValidBackendUse(Entity element) {
     if (_isValidEntity(element)) return true;
-    if (element is Element) {
+    // TODO(redemption): Support these checks on kernel based elements:
+    /*if (element is Element) {
       assert(element.isDeclaration,
           failedAt(element, "Backend use $element must be the declaration."));
       if (element.implementationLibrary.isPatch ||
@@ -160,8 +160,7 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
       } else {
         return false;
       }
-    }
-    // TODO(redemption): Support remaining checks on [Entity]s.
+    }*/
     return true;
   }
 
