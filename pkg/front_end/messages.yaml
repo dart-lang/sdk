@@ -77,6 +77,43 @@ AsciiControlCharacter:
   analyzerCode: ILLEGAL_CHARACTER
   expression: "\x1b 1"
 
+ConstEvalContext:
+  template: "While analyzing:"
+
+ConstEvalDuplicateKey:
+  template: "The key '#constant' conflicts with another existing key in the map."
+  analyzerCode: EQUAL_KEYS_IN_MAP
+
+ConstEvalNonConstantLiteral:
+  template: "Can't have a non-constant #string literal within a const context."
+  analyzerCode: NON_CONSTANT_DEFAULT_VALUE
+
+ConstEvalInvalidType:
+  template: "Expected constant '#constant' to be of type '#type', but was of type '#type2'."
+
+ConstEvalInvalidBinaryOperandType:
+  template: "Binary operator '#string' on '#constant' requires operand of type '#type', but was of type '#type2'."
+
+ConstEvalInvalidMethodInvocation:
+  template: "The method '#string' can't be invoked on '#constant' within a const context."
+  analyzerCode: UNDEFINED_OPERATOR
+
+ConstEvalInvalidStringInterpolationOperand:
+  template: "The '#constant' can't be used as part of a string interpolation within a const context, only values of type 'null', 'bool', 'int', 'double', or 'String' can be used."
+  analyzerCode: CONST_EVAL_TYPE_BOOL_NUM_STRING
+
+ConstEvalInvalidStaticInvocation:
+  template: "The invocation of '#name' is not allowed within a const context."
+  analyzerCode: CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+
+ConstEvalFailedAssertion:
+  template: "This assertion failed."
+  analyzerCode: CONST_EVAL_THROWS_EXCEPTION
+
+ConstEvalFailedAssertionWithMessage:
+  template: "This assertion failed with message: #string"
+  analyzerCode: CONST_EVAL_THROWS_EXCEPTION
+
 NonAsciiIdentifier:
   template: "The non-ASCII character '#character' (#unicode) can't be used in identifiers, only in strings and comments."
   tip: "Try using an US-ASCII letter, a digit, '_' (an underscore), or '$' (a dollar sign)."

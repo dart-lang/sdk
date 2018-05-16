@@ -61,6 +61,26 @@ ConstAndFinal/script1: Fail
 ConstAndVar/script1: Fail
 ConstConstructorNonFinalField/analyzerCode: Fail
 ConstConstructorNonFinalField/example: Fail
+ConstEvalContext/analyzerCode: Fail # This is just used for displaying the context.
+ConstEvalContext/example: Fail # This is just used for displaying the context.
+ConstEvalDuplicateKey/dart2jsCode: Fail
+ConstEvalDuplicateKey/example: Fail
+ConstEvalFailedAssertion/dart2jsCode: Fail
+ConstEvalFailedAssertion/example: Fail
+ConstEvalFailedAssertionWithMessage/dart2jsCode: Fail
+ConstEvalFailedAssertionWithMessage/example: Fail
+ConstEvalInvalidBinaryOperandType/analyzerCode: Fail # CONST_EVAL_TYPE_NUM / CONST_EVAL_TYPE_BOOL
+ConstEvalInvalidBinaryOperandType/example: Fail
+ConstEvalInvalidMethodInvocation/dart2jsCode: Fail
+ConstEvalInvalidMethodInvocation/example: Fail
+ConstEvalInvalidStaticInvocation/dart2jsCode: Fail
+ConstEvalInvalidStaticInvocation/example: Fail
+ConstEvalInvalidStringInterpolationOperand/dart2jsCode: Fail
+ConstEvalInvalidStringInterpolationOperand/example: Fail
+ConstEvalInvalidType/analyzerCode: Fail # CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH / CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH / CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH / ...
+ConstEvalInvalidType/example: Fail
+ConstEvalNonConstantLiteral/dart2jsCode: Fail
+ConstEvalNonConstantLiteral/example: Fail
 ConstFieldWithoutInitializer/example: Fail
 ConstructorHasNoSuchNamedParameter/analyzerCode: Fail
 ConstructorHasNoSuchNamedParameter/example: Fail
