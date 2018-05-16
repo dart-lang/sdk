@@ -6,6 +6,8 @@ import 'dart:async';
 
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
@@ -93,6 +95,12 @@ class AnalysisSessionImplTest {
     expect(await session.getUnitElementSignature('path'), signature);
   }
 
+  test_resourceProvider() {
+    ResourceProvider resourceProvider = new MemoryResourceProvider();
+    driver.resourceProvider = resourceProvider;
+    expect(session.resourceProvider, resourceProvider);
+  }
+
   test_sourceFactory() {
     SourceFactory sourceFactory = new SourceFactory([]);
     driver.sourceFactory = sourceFactory;
@@ -155,6 +163,7 @@ class MockAnalysisDriver implements AnalysisDriver {
   ErrorsResult errorsResult;
   Map<String, LibraryElement> libraryMap = <String, LibraryElement>{};
   ParseResult parseResult;
+  ResourceProvider resourceProvider;
   AnalysisResult result;
   SourceFactory sourceFactory;
   SourceKind sourceKind;
