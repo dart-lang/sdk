@@ -28,17 +28,6 @@ Future main() async {
     final rawName = new Uint8List.fromList(rawPath);
     asyncLink = new Link.fromRawPath(rawName);
 
-    if (Platform.isMacOS || Platform.isIOS) {
-      try {
-        await asyncLink.create(path);
-      } on FileSystemException catch (e) {
-        // Macos doesn't support non-UTF-8 paths.
-        return;
-      }
-      // If we don't get an exception, this Macos configuration works properly.
-      // Continue with the test.
-    }
-
     asyncLink = await asyncLink.create(path);
     expect(await asyncLink.exists(), isTrue);
 
@@ -75,17 +64,6 @@ Future main() async {
 
     final rawName = new Uint8List.fromList(rawPath);
     syncLink = new Link.fromRawPath(rawName);
-
-    if (Platform.isMacOS || Platform.isIOS) {
-      try {
-        syncLink.createSync(path);
-      } on FileSystemException catch (e) {
-        // Macos doesn't support non-UTF-8 paths.
-        return;
-      }
-      // If we don't get an exception, this Macos configuration works properly.
-      // Continue with the test.
-    }
 
     syncLink.createSync(path);
     expect(syncLink.existsSync(), isTrue);
