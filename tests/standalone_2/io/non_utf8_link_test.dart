@@ -14,7 +14,8 @@ Future main() async {
   var syncLink;
 
   test('Non-UTF8 Link', () async {
-    Directory.current = await Directory.systemTemp.createTemp();
+    Directory tmp = await Directory.systemTemp.createTemp();
+    Directory.current = await tmp.resolveSymbolicLinks();
     final path = join(Directory.current.path, 'foobar');
     final rawPath = Directory.current.rawPath.toList();
     rawPath.add(47);
@@ -50,7 +51,8 @@ Future main() async {
   });
 
   test('Non-UTF8 Link Sync', () {
-    Directory.current = Directory.systemTemp.createTempSync();
+    Directory tmp = Directory.systemTemp.createTempSync();
+    Directory.current = tmp.resolveSymbolicLinksSync();
     final path = join(Directory.current.path, 'foobar');
     final rawPath = Directory.current.rawPath.toList();
     rawPath.add(47); // '/'
