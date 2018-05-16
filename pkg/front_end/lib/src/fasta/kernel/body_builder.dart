@@ -99,7 +99,7 @@ import 'expression_generator.dart'
         ReadOnlyAccessor,
         SendAccessor,
         StaticAccessor,
-        SuperIndexAccessor,
+        SuperIndexedAccessGenerator,
         ThisAccessor,
         ThisPropertyAccessGenerator,
         TypeDeclarationAccessor,
@@ -2416,7 +2416,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     Expression index = popForValue();
     var receiver = pop();
     if (receiver is ThisAccessor && receiver.isSuper) {
-      push(new SuperIndexAccessor(
+      push(new SuperIndexedAccessGenerator(
           this,
           openSquareBracket,
           toKernelExpression(index),

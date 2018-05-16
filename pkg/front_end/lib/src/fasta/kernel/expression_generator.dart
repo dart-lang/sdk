@@ -883,14 +883,22 @@ class ThisIndexedAccessGenerator<Arguments> extends Generator<Arguments> {
   String toString() => "ThisIndexedAccessGenerator()";
 }
 
-class _SuperIndexAccessor<Arguments> extends Accessor<Arguments> {
-  kernel.Expression index;
-  VariableDeclaration indexVariable;
-  Member getter, setter;
+class SuperIndexedAccessGenerator<Arguments> extends Generator<Arguments> {
+  final kernel.Expression index;
 
-  _SuperIndexAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      this.index, this.getter, this.setter, Token token)
+  final Member getter;
+
+  final Member setter;
+
+  VariableDeclaration indexVariable;
+
+  SuperIndexedAccessGenerator(BuilderHelper<dynamic, dynamic, Arguments> helper,
+      Token token, this.index, this.getter, this.setter)
       : super(helper, token);
+
+  String get plainNameForRead => "[]";
+
+  String get plainNameForWrite => "[]=";
 
   indexAccess() {
     indexVariable ??= new VariableDeclaration.forValue(index);
@@ -984,6 +992,18 @@ class _SuperIndexAccessor<Arguments> extends Accessor<Arguments> {
       kernel.Expression body, ShadowComplexAssignment complexAssignment) {
     return super._finish(makeLet(indexVariable, body), complexAssignment);
   }
+
+  kernel.Expression doInvocation(int offset, Arguments arguments) {
+    return helper.buildMethodInvocation(
+        buildSimpleRead(), callName, arguments, offset,
+        isImplicitCall: true);
+  }
+
+  String toString() => "SuperIndexedAccessGenerator()";
+
+  @override
+  ShadowComplexAssignment startComplexAssignment(kernel.Expression rhs) =>
+      new ShadowIndexAssign(null, index, rhs, isSuper: true);
 }
 
 class _StaticAccessor<Arguments> extends Accessor<Arguments> {

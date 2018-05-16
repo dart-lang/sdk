@@ -864,29 +864,6 @@ class DeferredAccessor<Arguments> extends _DeferredAccessor<Arguments>
   }
 }
 
-class SuperIndexAccessor<Arguments> extends _SuperIndexAccessor<Arguments>
-    with FastaAccessor<Arguments> {
-  SuperIndexAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      Token token, kernel.Expression index, Member getter, Member setter)
-      : super(helper, index, getter, setter, token);
-
-  String get plainNameForRead => "[]";
-
-  String get plainNameForWrite => "[]=";
-
-  kernel.Expression doInvocation(int offset, Arguments arguments) {
-    return helper.buildMethodInvocation(
-        buildSimpleRead(), callName, arguments, offset,
-        isImplicitCall: true);
-  }
-
-  toString() => "SuperIndexAccessor()";
-
-  @override
-  ShadowComplexAssignment startComplexAssignment(kernel.Expression rhs) =>
-      new ShadowIndexAssign(null, index, rhs, isSuper: true);
-}
-
 int adjustForImplicitCall(String name, int offset) {
   // Normally the offset is at the start of the token, but in this case,
   // because we insert a '.call', we want it at the end instead.
