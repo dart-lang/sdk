@@ -741,67 +741,6 @@ class IncompletePropertyAccessor<Arguments> extends IncompleteSend<Arguments> {
   }
 }
 
-class StaticAccessor<Arguments> extends _StaticAccessor<Arguments>
-    with FastaAccessor<Arguments> {
-  StaticAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper, Token token,
-      Member readTarget, Member writeTarget)
-      : super(helper, readTarget, writeTarget, token) {
-    assert(readTarget != null || writeTarget != null);
-  }
-
-  factory StaticAccessor.fromBuilder(
-      BuilderHelper<dynamic, dynamic, Arguments> helper,
-      Builder builder,
-      Token token,
-      Builder builderSetter) {
-    if (builder is AccessErrorBuilder) {
-      AccessErrorBuilder error = builder;
-      builder = error.builder;
-      // We should only see an access error here if we've looked up a setter
-      // when not explicitly looking for a setter.
-      assert(builder.isSetter);
-    } else if (builder.target == null) {
-      return unhandled("${builder.runtimeType}", "StaticAccessor.fromBuilder",
-          offsetForToken(token), helper.uri);
-    }
-    Member getter = builder.target.hasGetter ? builder.target : null;
-    Member setter = builder.target.hasSetter ? builder.target : null;
-    if (setter == null) {
-      if (builderSetter?.target?.hasSetter ?? false) {
-        setter = builderSetter.target;
-      }
-    }
-    return new StaticAccessor(helper, token, getter, setter);
-  }
-
-  String get plainNameForRead => (readTarget ?? writeTarget).name.name;
-
-  kernel.Expression doInvocation(int offset, Arguments arguments) {
-    if (helper.constantContext != ConstantContext.none &&
-        !helper.isIdentical(readTarget)) {
-      helper.deprecated_addCompileTimeError(
-          offset, "Not a constant expression.");
-    }
-    if (readTarget == null || isFieldOrGetter(readTarget)) {
-      return helper.buildMethodInvocation(buildSimpleRead(), callName,
-          arguments, offset + (readTarget?.name?.name?.length ?? 0),
-          // This isn't a constant expression, but we have checked if a
-          // constant expression error should be emitted already.
-          isConstantExpression: true,
-          isImplicitCall: true);
-    } else {
-      return helper.buildStaticInvocation(readTarget, arguments,
-          charOffset: offset);
-    }
-  }
-
-  toString() => "StaticAccessor()";
-
-  @override
-  ShadowComplexAssignment startComplexAssignment(kernel.Expression rhs) =>
-      new ShadowStaticAssignment(rhs);
-}
-
 class LoadLibraryAccessor<Arguments> extends _LoadLibraryAccessor<Arguments>
     with FastaAccessor<Arguments> {
   LoadLibraryAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
@@ -998,8 +937,8 @@ class TypeDeclarationAccessor<Arguments> extends ReadOnlyAccessor<Arguments> {
         } else if (builder.isField && !builder.isFinal) {
           setter = builder;
         }
-        accessor =
-            new StaticAccessor.fromBuilder(helper, builder, send.token, setter);
+        accessor = new StaticAccessGenerator.fromBuilder(
+            helper, builder, send.token, setter);
       }
 
       return arguments == null

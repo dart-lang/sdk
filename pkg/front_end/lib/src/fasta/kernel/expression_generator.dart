@@ -1006,13 +1006,45 @@ class SuperIndexedAccessGenerator<Arguments> extends Generator<Arguments> {
       new ShadowIndexAssign(null, index, rhs, isSuper: true);
 }
 
-class _StaticAccessor<Arguments> extends Accessor<Arguments> {
-  Member readTarget;
-  Member writeTarget;
+class StaticAccessGenerator<Arguments> extends Generator<Arguments> {
+  final Member readTarget;
 
-  _StaticAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      this.readTarget, this.writeTarget, Token token)
-      : super(helper, token);
+  final Member writeTarget;
+
+  StaticAccessGenerator(BuilderHelper<dynamic, dynamic, Arguments> helper,
+      Token token, this.readTarget, this.writeTarget)
+      : assert(readTarget != null || writeTarget != null),
+        super(helper, token);
+
+  factory StaticAccessGenerator.fromBuilder(
+      BuilderHelper<dynamic, dynamic, Arguments> helper,
+      Builder builder,
+      Token token,
+      Builder builderSetter) {
+    if (builder is AccessErrorBuilder) {
+      AccessErrorBuilder error = builder;
+      builder = error.builder;
+      // We should only see an access error here if we've looked up a setter
+      // when not explicitly looking for a setter.
+      assert(builder.isSetter);
+    } else if (builder.target == null) {
+      return unhandled(
+          "${builder.runtimeType}",
+          "StaticAccessGenerator.fromBuilder",
+          offsetForToken(token),
+          helper.uri);
+    }
+    Member getter = builder.target.hasGetter ? builder.target : null;
+    Member setter = builder.target.hasSetter ? builder.target : null;
+    if (setter == null) {
+      if (builderSetter?.target?.hasSetter ?? false) {
+        setter = builderSetter.target;
+      }
+    }
+    return new StaticAccessGenerator(helper, token, getter, setter);
+  }
+
+  String get plainNameForRead => (readTarget ?? writeTarget).name.name;
 
   kernel.Expression _makeRead(ShadowComplexAssignment complexAssignment) {
     if (readTarget == null) {
@@ -1036,6 +1068,31 @@ class _StaticAccessor<Arguments> extends Accessor<Arguments> {
     write.fileOffset = offsetForToken(token);
     return write;
   }
+
+  kernel.Expression doInvocation(int offset, Arguments arguments) {
+    if (helper.constantContext != ConstantContext.none &&
+        !helper.isIdentical(readTarget)) {
+      helper.deprecated_addCompileTimeError(
+          offset, "Not a constant expression.");
+    }
+    if (readTarget == null || isFieldOrGetter(readTarget)) {
+      return helper.buildMethodInvocation(buildSimpleRead(), callName,
+          arguments, offset + (readTarget?.name?.name?.length ?? 0),
+          // This isn't a constant expression, but we have checked if a
+          // constant expression error should be emitted already.
+          isConstantExpression: true,
+          isImplicitCall: true);
+    } else {
+      return helper.buildStaticInvocation(readTarget, arguments,
+          charOffset: offset);
+    }
+  }
+
+  @override
+  ShadowComplexAssignment startComplexAssignment(kernel.Expression rhs) =>
+      new ShadowStaticAssignment(rhs);
+
+  String toString() => "StaticAccessGenerator()";
 }
 
 abstract class _LoadLibraryAccessor<Arguments> extends Accessor<Arguments> {

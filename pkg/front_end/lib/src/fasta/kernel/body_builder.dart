@@ -98,7 +98,7 @@ import 'expression_generator.dart'
         ParenthesizedExpression,
         ReadOnlyAccessor,
         SendAccessor,
-        StaticAccessor,
+        StaticAccessGenerator,
         SuperIndexedAccessGenerator,
         ThisAccessor,
         ThisPropertyAccessGenerator,
@@ -467,7 +467,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       }
 
       ConstantContext savedConstantContext = pop();
-      if (expression is! StaticAccessor) {
+      if (expression is! StaticAccessGenerator) {
         push(wrapInCompileTimeError(
             toValue(expression), fasta.messageExpressionNotMetadata));
       } else {
@@ -1458,8 +1458,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       return new ThisPropertyAccessGenerator(this, token, n, getter, setter);
     } else if (builder.isRegularMethod) {
       assert(builder.isStatic || builder.isTopLevel);
-      StaticAccessor accessor =
-          new StaticAccessor(this, token, builder.target, null);
+      StaticAccessGenerator accessor =
+          new StaticAccessGenerator(this, token, builder.target, null);
       return (prefix?.deferred == true)
           ? new DeferredAccessor(this, token, prefix, accessor)
           : accessor;
@@ -1486,8 +1486,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       } else if (builder.isField && !builder.isFinal) {
         setter = builder;
       }
-      StaticAccessor accessor =
-          new StaticAccessor.fromBuilder(this, builder, token, setter);
+      StaticAccessGenerator accessor =
+          new StaticAccessGenerator.fromBuilder(this, builder, token, setter);
       if (constantContext != ConstantContext.none) {
         Member readTarget = accessor.readTarget;
         if (!(readTarget is Field && readTarget.isConst ||
