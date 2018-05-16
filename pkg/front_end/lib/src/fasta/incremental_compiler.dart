@@ -496,6 +496,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       return <LibraryBuilder>[];
     }
 
+    List<LibraryBuilder> result = <LibraryBuilder>[];
+
     // Maps all non-platform LibraryBuilders from their import URI.
     Map<Uri, LibraryBuilder> builders = <Uri, LibraryBuilder>{};
 
@@ -517,6 +519,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
 
     addBuilderAndInvalidateUris(Uri uri, LibraryBuilder library) {
+      if (uri.scheme == "dart") {
+        result.add(library);
+        return;
+      }
       builders[uri] = library;
       if (isInvalidated(uri, library.target.fileUri)) {
         invalidatedImportUris.add(uri);
@@ -587,7 +593,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     // Builders contain mappings from part uri to builder, meaning the same
     // builder can exist multiple times in the values list.
     Set<Uri> seenUris = new Set<Uri>();
-    List<LibraryBuilder> result = <LibraryBuilder>[];
     for (LibraryBuilder builder in builders.values) {
       if (builder.isPart) continue;
       // TODO(jensj/ahe): This line can probably go away once
