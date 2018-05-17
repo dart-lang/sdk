@@ -549,10 +549,6 @@ async_star_test/none: RuntimeError
 bad_override_test/03: MissingCompileTimeError
 bit_operations_test: RuntimeError
 branch_canonicalization_test: RuntimeError
-call_method_implicit_tear_off_implements_function_test/02: RuntimeError
-call_method_implicit_tear_off_implements_function_test/04: RuntimeError
-call_method_implicit_tear_off_test/02: RuntimeError
-call_method_implicit_tear_off_test/04: RuntimeError
 canonical_const2_test: RuntimeError, OK # non JS number semantics
 check_member_static_test/02: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
@@ -920,10 +916,6 @@ bad_override_test/02: MissingCompileTimeError
 bad_override_test/03: MissingCompileTimeError
 bit_operations_test: RuntimeError
 branch_canonicalization_test: RuntimeError
-call_method_implicit_tear_off_implements_function_test/02: RuntimeError
-call_method_implicit_tear_off_implements_function_test/04: RuntimeError
-call_method_implicit_tear_off_test/02: RuntimeError
-call_method_implicit_tear_off_test/04: RuntimeError
 call_non_method_field_test/01: MissingCompileTimeError
 call_non_method_field_test/02: MissingCompileTimeError
 canonical_const2_test: RuntimeError, OK # non JS number semantics
@@ -1471,10 +1463,6 @@ bad_override_test/02: MissingCompileTimeError
 bad_override_test/03: MissingCompileTimeError
 bit_operations_test: RuntimeError
 branch_canonicalization_test: RuntimeError
-call_method_implicit_tear_off_implements_function_test/02: RuntimeError
-call_method_implicit_tear_off_implements_function_test/04: RuntimeError
-call_method_implicit_tear_off_test/02: RuntimeError
-call_method_implicit_tear_off_test/04: RuntimeError
 call_non_method_field_test/01: MissingCompileTimeError
 call_non_method_field_test/02: MissingCompileTimeError
 call_with_no_such_method_test: RuntimeError

@@ -75,6 +75,14 @@ abstract class TypeBuilder {
     return other;
   }
 
+  HInstruction trustTypeOfParameter(HInstruction original, DartType type) {
+    if (type == null) return original;
+    HInstruction trusted = _trustType(original, type);
+    if (trusted == original) return original;
+    builder.add(trusted);
+    return trusted;
+  }
+
   HInstruction potentiallyCheckOrTrustTypeOfParameter(
       HInstruction original, DartType type) {
     if (type == null) return original;

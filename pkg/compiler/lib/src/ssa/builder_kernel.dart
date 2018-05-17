@@ -5300,14 +5300,37 @@ class KernelSsaGraphBuilder extends ir.Visitor
   void _potentiallyCheckInlinedParameterTypes(FunctionEntity function) {
     if (!typeBuilder.checkOrTrustTypes) return;
 
-    checkTypeVariableBounds(function);
+    // TODO(sra): Incorporate properties of call site to help determine which
+    // type parameters and value parameters need to be checked.
+    bool trusted = false;
+    if (options.strongMode) {
+      if (function.isStatic ||
+          function.isTopLevel ||
+          function.isConstructor ||
+          function is ConstructorBodyEntity) {
+        // We inline static methods, top-level methods, constructors and
+        // constructor bodies only from direct call sites.
+        trusted = true;
+      }
+    }
+
+    if (!trusted) {
+      checkTypeVariableBounds(function);
+    }
 
     KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(function);
     forEachOrderedParameter(_globalLocalsMap, _elementMap, function,
         (Local parameter) {
       HInstruction argument = localsHandler.readLocal(parameter);
-      typeBuilder.potentiallyCheckOrTrustTypeOfParameter(
-          argument, localsMap.getLocalType(_elementMap, parameter));
+      DartType type = localsMap.getLocalType(_elementMap, parameter);
+      HInstruction checkedOrTrusted;
+      if (trusted) {
+        checkedOrTrusted = typeBuilder.trustTypeOfParameter(argument, type);
+      } else {
+        checkedOrTrusted =
+            typeBuilder.potentiallyCheckOrTrustTypeOfParameter(argument, type);
+      }
+      localsHandler.updateLocal(parameter, checkedOrTrusted);
     });
   }
 
