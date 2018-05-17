@@ -102,10 +102,8 @@ class IdentifierContext {
 
   /// Identifier is the name of a type variable being declared (e.g. `Foo` in
   /// `class C<Foo extends num> {}`).
-  static const typeVariableDeclaration = const IdentifierContext(
-      'typeVariableDeclaration',
-      inDeclaration: true,
-      isBuiltInIdentifierAllowed: false);
+  static const typeVariableDeclaration =
+      const TypeVariableDeclarationIdentifierContext();
 
   /// Identifier is the start of a reference to a type that starts with prefix.
   static const prefixedTypeReference =

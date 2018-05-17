@@ -546,6 +546,38 @@ class TypeReferenceIdentifierContext extends IdentifierContext {
   }
 }
 
+// See [IdentifierContext.typeVariableDeclaration].
+class TypeVariableDeclarationIdentifierContext extends IdentifierContext {
+  const TypeVariableDeclarationIdentifierContext()
+      : super('typeVariableDeclaration',
+            inDeclaration: true, isBuiltInIdentifierAllowed: false);
+
+  @override
+  Token ensureIdentifier(Token token, Parser parser) {
+    Token identifier = token.next;
+    assert(identifier.kind != IDENTIFIER_TOKEN);
+    if (identifier.type.isPseudo) {
+      return identifier;
+    }
+
+    // Recovery
+    parser.reportRecoverableErrorWithToken(
+        identifier, fasta.templateExpectedIdentifier);
+    const followingValues = const ['<', '>', ';', '}', 'extends', 'super'];
+    if (looksLikeStartOfNextTopLevelDeclaration(identifier) ||
+        looksLikeStartOfNextClassMember(identifier) ||
+        looksLikeStartOfNextStatement(identifier) ||
+        isOneOfOrEof(identifier, followingValues)) {
+      identifier = insertSyntheticIdentifierAfter(token, parser);
+    } else {
+      // When in doubt, consume the token to ensure we make progress
+      // but insert a synthetic identifier to satisfy listeners.
+      identifier = insertSyntheticIdentifierAfter(identifier, parser);
+    }
+    return identifier;
+  }
+}
+
 void checkAsyncAwaitYieldAsIdentifier(Token identifier, Parser parser) {
   if (!parser.inPlainSync && identifier.type.isPseudo) {
     if (optional('await', identifier)) {

@@ -2020,8 +2020,6 @@ class Parser {
       followingValues = ['.', '(', '{', '=>'];
     } else if (context == IdentifierContext.topLevelFunctionDeclaration) {
       followingValues = ['(', '{', '=>'];
-    } else if (context == IdentifierContext.typeVariableDeclaration) {
-      followingValues = ['<', '>', ';', '}'];
     } else {
       return false;
     }
@@ -2090,10 +2088,6 @@ class Parser {
       initialKeywords = statementKeywords();
     } else if (context == IdentifierContext.topLevelFunctionDeclaration) {
       initialKeywords = topLevelKeywords();
-    } else if (context == IdentifierContext.typeVariableDeclaration) {
-      initialKeywords = topLevelKeywords()
-        ..addAll(classMemberKeywords())
-        ..addAll(statementKeywords());
     } else {
       return false;
     }
