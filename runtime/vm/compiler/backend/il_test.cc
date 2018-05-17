@@ -13,9 +13,10 @@ TEST_CASE(InstructionTests) {
   EXPECT(target_instr->IsBlockEntry());
   EXPECT(!target_instr->IsDefinition());
   SpecialParameterInstr* context = new SpecialParameterInstr(
-      SpecialParameterInstr::kContext, Thread::kNoDeoptId);
+      SpecialParameterInstr::kContext, Thread::kNoDeoptId, target_instr);
   EXPECT(context->IsDefinition());
   EXPECT(!context->IsBlockEntry());
+  EXPECT(context->GetBlock() == target_instr);
 }
 
 TEST_CASE(OptimizationTests) {

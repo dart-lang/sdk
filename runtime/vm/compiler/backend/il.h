@@ -3008,10 +3008,15 @@ class SpecialParameterInstr : public TemplateDefinition<0, NoThrow> {
     kStackTrace
   };
 
-  SpecialParameterInstr(SpecialParameterKind kind, intptr_t deopt_id)
-      : TemplateDefinition(deopt_id), kind_(kind) {}
+  SpecialParameterInstr(SpecialParameterKind kind,
+                        intptr_t deopt_id,
+                        BlockEntryInstr* block)
+      : TemplateDefinition(deopt_id), kind_(kind), block_(block) {}
 
   DECLARE_INSTRUCTION(SpecialParameter)
+
+  virtual BlockEntryInstr* GetBlock() { return block_; }
+
   virtual CompileType ComputeType() const;
 
   virtual bool ComputeCanDeoptimize() const { return false; }
@@ -3046,6 +3051,7 @@ class SpecialParameterInstr : public TemplateDefinition<0, NoThrow> {
 
  private:
   const SpecialParameterKind kind_;
+  BlockEntryInstr* block_;
   DISALLOW_COPY_AND_ASSIGN(SpecialParameterInstr);
 };
 

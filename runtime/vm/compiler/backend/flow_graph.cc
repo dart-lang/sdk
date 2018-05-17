@@ -1020,8 +1020,9 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
 
       // Replace the argument descriptor slot with a special parameter.
       if (parsed_function().has_arg_desc_var()) {
-        Definition* defn = new SpecialParameterInstr(
-            SpecialParameterInstr::kArgDescriptor, Thread::kNoDeoptId);
+        Definition* defn =
+            new SpecialParameterInstr(SpecialParameterInstr::kArgDescriptor,
+                                      Thread::kNoDeoptId, graph_entry_);
         AllocateSSAIndexes(defn);
         AddToInitialDefinitions(defn);
         env[ArgumentDescriptorEnvIndex()] = defn;
@@ -1101,10 +1102,10 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
       Definition* param = nullptr;
       if (raw_exception_var_envindex == i) {
         param = new SpecialParameterInstr(SpecialParameterInstr::kException,
-                                          Thread::kNoDeoptId);
+                                          Thread::kNoDeoptId, catch_entry);
       } else if (raw_stacktrace_var_envindex == i) {
         param = new SpecialParameterInstr(SpecialParameterInstr::kStackTrace,
-                                          Thread::kNoDeoptId);
+                                          Thread::kNoDeoptId, catch_entry);
       } else {
         param = new (zone()) ParameterInstr(i, block_entry);
       }
