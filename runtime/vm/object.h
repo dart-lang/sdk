@@ -1365,14 +1365,19 @@ class Class : public Object {
   // Return true on success, or false and error otherwise.
   bool ApplyPatch(const Class& patch, Error* error) const;
 
-  // Evaluate the given expression as if it appeared in a static
-  // method of this class and return the resulting value, or an
-  // error object if evaluating the expression fails. The method has
-  // the formal parameters given in param_names, and is invoked with
-  // the argument values given in param_values.
+  // Evaluate the given expression as if it appeared in a static method of this
+  // class and return the resulting value, or an error object if evaluating the
+  // expression fails. The method has the formal (type) parameters given in
+  // (type_)param_names, and is invoked with the (type)argument values given in
+  // (type_)param_values.
   RawObject* Evaluate(const String& expr,
                       const Array& param_names,
                       const Array& param_values) const;
+  RawObject* Evaluate(const String& expr,
+                      const Array& param_names,
+                      const Array& param_values,
+                      const Array& type_param_names,
+                      const TypeArguments& type_param_values) const;
 
   RawError* EnsureIsFinalized(Thread* thread) const;
 
@@ -3713,14 +3718,20 @@ class Library : public Object {
 
   static RawLibrary* New(const String& url);
 
-  // Evaluate the given expression as if it appeared in an top-level
-  // method of this library and return the resulting value, or an
-  // error object if evaluating the expression fails. The method has
-  // the formal parameters given in param_names, and is invoked with
-  // the argument values given in param_values.
+  // Evaluate the given expression as if it appeared in an top-level method of
+  // this library and return the resulting value, or an error object if
+  // evaluating the expression fails. The method has the formal (type)
+  // parameters given in (type_)param_names, and is invoked with the (type)
+  // argument values given in (type_)param_values.
   RawObject* Evaluate(const String& expr,
                       const Array& param_names,
                       const Array& param_values) const;
+
+  RawObject* Evaluate(const String& expr,
+                      const Array& param_names,
+                      const Array& param_values,
+                      const Array& type_param_names,
+                      const TypeArguments& type_arguments) const;
 
   // Library scope name dictionary.
   //
@@ -5579,15 +5590,22 @@ class Instance : public Object {
   // (if not NULL) to call.
   bool IsCallable(Function* function) const;
 
-  // Evaluate the given expression as if it appeared in an instance
-  // method of this instance and return the resulting value, or an
-  // error object if evaluating the expression fails. The method has
-  // the formal parameters given in param_names, and is invoked with
-  // the argument values given in param_values.
+  // Evaluate the given expression as if it appeared in an instance method of
+  // this instance and return the resulting value, or an error object if
+  // evaluating the expression fails. The method has the formal (type)
+  // parameters given in (type_)param_names, and is invoked with the (type)
+  // argument values given in (type_)param_values.
   RawObject* Evaluate(const Class& method_cls,
                       const String& expr,
                       const Array& param_names,
                       const Array& param_values) const;
+
+  RawObject* Evaluate(const Class& method_cls,
+                      const String& expr,
+                      const Array& param_names,
+                      const Array& param_values,
+                      const Array& type_param_names,
+                      const TypeArguments& type_param_values) const;
 
   // Equivalent to invoking hashCode on this instance.
   virtual RawObject* HashCode() const;

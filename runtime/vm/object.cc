@@ -3205,7 +3205,8 @@ static RawObject* EvaluateWithDFEHelper(const String& expression,
                                         const String& library_url,
                                         const String& klass,
                                         bool is_static,
-                                        const Array& arguments);
+                                        const Array& arguments,
+                                        const TypeArguments& type_arguments);
 
 RawFunction* Function::EvaluateHelper(const Class& cls,
                                       const String& expr,
@@ -3242,6 +3243,15 @@ static void ReleaseFetchedBytes(uint8_t* buffer) {
 RawObject* Class::Evaluate(const String& expr,
                            const Array& param_names,
                            const Array& param_values) const {
+  return Evaluate(expr, param_names, param_values, Object::empty_array(),
+                  Object::null_type_arguments());
+}
+
+RawObject* Class::Evaluate(const String& expr,
+                           const Array& param_names,
+                           const Array& param_values,
+                           const Array& type_param_names,
+                           const TypeArguments& type_param_values) const {
   ASSERT(Thread::Current()->IsMutatorThread());
   if (id() < kInstanceCid) {
     const Instance& exception = Instance::Handle(
@@ -3258,10 +3268,10 @@ RawObject* Class::Evaluate(const String& expr,
   }
 
   return EvaluateWithDFEHelper(
-      expr, param_names, Array::Handle(Array::New(0)),
+      expr, param_names, type_param_names,
       String::Handle(Library::Handle(library()).url()),
       IsTopLevel() ? String::Handle() : String::Handle(UserVisibleName()),
-      !IsTopLevel(), param_values);
+      !IsTopLevel(), param_values, type_param_values);
 }
 
 // Ensure that top level parsing of the class has been done.
@@ -11404,6 +11414,15 @@ void Library::InitCoreLibrary(Isolate* isolate) {
 RawObject* Library::Evaluate(const String& expr,
                              const Array& param_names,
                              const Array& param_values) const {
+  return Evaluate(expr, param_names, param_values, Array::empty_array(),
+                  TypeArguments::null_type_arguments());
+}
+
+RawObject* Library::Evaluate(const String& expr,
+                             const Array& param_names,
+                             const Array& param_values,
+                             const Array& type_param_names,
+                             const TypeArguments& type_param_values) const {
   if (kernel_data() == TypedData::null() ||
       !FLAG_enable_kernel_expression_compilation) {
     // Evaluate the expression as a static function of the toplevel class.
@@ -11411,9 +11430,9 @@ RawObject* Library::Evaluate(const String& expr,
     ASSERT(top_level_class.is_finalized());
     return top_level_class.Evaluate(expr, param_names, param_values);
   }
-  return EvaluateWithDFEHelper(expr, param_names, Array::Handle(Array::New(0)),
+  return EvaluateWithDFEHelper(expr, param_names, type_param_names,
                                String::Handle(url()), String::Handle(), false,
-                               param_values);
+                               param_values, type_param_values);
 }
 
 void Library::InitNativeWrappersLibrary(Isolate* isolate, bool is_kernel) {
@@ -11476,7 +11495,8 @@ static RawObject* EvaluateWithDFEHelper(const String& expression,
                                         const String& library_url,
                                         const String& klass,
                                         bool is_static,
-                                        const Array& arguments) {
+                                        const Array& arguments,
+                                        const TypeArguments& type_arguments) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   const String& error_str = String::Handle(
       String::New("Kernel service isolate not available in precompiled mode."));
@@ -11581,7 +11601,21 @@ static RawObject* EvaluateWithDFEHelper(const String& expression,
   ASSERT(removed);
   I->object_store()->set_libraries_map(libraries_map.Release());
 
-  return DartEntry::InvokeFunction(callee, arguments);
+  if (type_definitions.Length() == 0) {
+    return DartEntry::InvokeFunction(callee, arguments);
+  }
+
+  intptr_t num_type_args = type_arguments.Length();
+  Array& real_arguments = Array::Handle(Array::New(arguments.Length() + 1));
+  real_arguments.SetAt(0, type_arguments);
+  Object& arg = Object::Handle();
+  for (intptr_t i = 0; i < arguments.Length(); ++i) {
+    arg = arguments.At(i);
+    real_arguments.SetAt(i + 1, arg);
+  }
+  const Array& args_desc = Array::Handle(
+      ArgumentsDescriptor::New(num_type_args, real_arguments.Length()));
+  return DartEntry::InvokeFunction(callee, real_arguments, args_desc);
 #endif
 }
 
@@ -15801,6 +15835,16 @@ RawObject* Instance::Evaluate(const Class& method_cls,
                               const String& expr,
                               const Array& param_names,
                               const Array& param_values) const {
+  return Evaluate(method_cls, expr, param_names, param_values,
+                  Object::empty_array(), TypeArguments::null_type_arguments());
+}
+
+RawObject* Instance::Evaluate(const Class& method_cls,
+                              const String& expr,
+                              const Array& param_names,
+                              const Array& param_values,
+                              const Array& type_param_names,
+                              const TypeArguments& type_param_values) const {
   const Array& args = Array::Handle(Array::New(1 + param_values.Length()));
   PassiveObject& param = PassiveObject::Handle();
   args.SetAt(0, *this);
@@ -15817,9 +15861,10 @@ RawObject* Instance::Evaluate(const Class& method_cls,
     return DartEntry::InvokeFunction(eval_func, args);
   }
   return EvaluateWithDFEHelper(
-      expr, param_names, Array::Handle(Array::New(0)),
+      expr, param_names, type_param_names,
       String::Handle(Library::Handle(method_cls.library()).url()),
-      String::Handle(method_cls.UserVisibleName()), false, args);
+      String::Handle(method_cls.UserVisibleName()), false, args,
+      type_param_values);
 }
 
 RawObject* Instance::HashCode() const {

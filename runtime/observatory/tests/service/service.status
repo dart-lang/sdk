@@ -43,6 +43,7 @@ get_isolate_after_language_error_test: SkipByDesign
 # Kernel version of tests
 [ $compiler != dartk ]
 add_breakpoint_rpc_kernel_test: SkipByDesign # kernel specific version of add_breakpoint_rpc_test
+evaluate_function_type_parameters_test: SkipByDesign # only supported in kernel
 
 [ $compiler == precompiler ]
 *: Skip # Issue 24651

@@ -121,6 +121,8 @@ eval_internal_class_test: RuntimeError # Issue #33087
 eval_test: RuntimeError # Issue #33087
 evaluate_activation_test/none: RuntimeError # Issue #33087
 evaluate_async_closure_test: RuntimeError # Issue #33087
+evaluate_class_type_parameters_test: RuntimeError # Issue 33087
+evaluate_function_type_parameters_test: RuntimeError # Issue 33087
 evaluate_in_async_activation_test: RuntimeError # Issue #33087
 evaluate_in_async_star_activation_test: RuntimeError # Issue #33087
 evaluate_in_frame_rpc_test: RuntimeError # Issue #33087
