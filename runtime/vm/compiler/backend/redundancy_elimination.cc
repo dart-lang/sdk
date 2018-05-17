@@ -3157,12 +3157,9 @@ void TryCatchAnalyzer::Optimize(FlowGraph* flow_graph) {
     // not tracked in the environment anyway.
 
     const intptr_t parameter_count = flow_graph->num_direct_parameters();
-    if (!catch_entry->exception_var().is_captured()) {
-      cdefs[catch_entry->exception_var().BitIndexIn(parameter_count)] = NULL;
-    }
-    if (!catch_entry->stacktrace_var().is_captured()) {
-      cdefs[catch_entry->stacktrace_var().BitIndexIn(parameter_count)] = NULL;
-    }
+    cdefs[catch_entry->raw_exception_var()->BitIndexIn(parameter_count)] = NULL;
+    cdefs[catch_entry->raw_stacktrace_var()->BitIndexIn(parameter_count)] =
+        NULL;
 
     for (BlockIterator block_it = flow_graph->reverse_postorder_iterator();
          !block_it.Done(); block_it.Advance()) {
