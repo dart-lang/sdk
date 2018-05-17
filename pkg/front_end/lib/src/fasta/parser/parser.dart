@@ -2017,9 +2017,6 @@ class Parser {
       followingValues = ['.', ';'];
     } else if (context == IdentifierContext.localAccessorDeclaration) {
       followingValues = ['(', '{', '=>'];
-    } else if (context == IdentifierContext.localFunctionDeclaration ||
-        context == IdentifierContext.localFunctionDeclarationContinuation) {
-      followingValues = ['.', '(', '{', '=>'];
     } else {
       return false;
     }
@@ -2080,8 +2077,6 @@ class Parser {
     } else if (context == IdentifierContext.labelDeclaration) {
       initialKeywords = statementKeywords();
     } else if (context == IdentifierContext.localAccessorDeclaration) {
-      initialKeywords = statementKeywords();
-    } else if (context == IdentifierContext.localFunctionDeclaration) {
       initialKeywords = statementKeywords();
     } else if (context ==
         IdentifierContext.localFunctionDeclarationContinuation) {

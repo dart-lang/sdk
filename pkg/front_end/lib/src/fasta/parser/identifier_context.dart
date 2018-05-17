@@ -119,14 +119,16 @@ class IdentifierContext {
 
   /// Identifier is a name being declared by a top level variable declaration.
   static const topLevelVariableDeclaration =
-      const TopLevelVariableIdentifierContext();
+      const TopLevelDeclarationIdentifierContext(
+          'topLevelVariableDeclaration', const [';', '=', ',']);
 
   /// Identifier is a name being declared by a field declaration.
   static const fieldDeclaration = const FieldDeclarationIdentifierContext();
 
   /// Identifier is the name being declared by a top level function declaration.
   static const topLevelFunctionDeclaration =
-      const TopLevelFunctionDeclarationIdentifierContext();
+      const TopLevelDeclarationIdentifierContext(
+          'topLevelFunctionDeclaration', const ['<', '(', '{', '=>']);
 
   /// Identifier is the start of the name being declared by a method
   /// declaration.
@@ -146,7 +148,8 @@ class IdentifierContext {
   /// TODO(paulberry,ahe): Does this ever occur in valid Dart, or does it only
   /// occur as part of error recovery?  If it's only as part of error recovery,
   /// perhaps we should just re-use methodDeclaration.
-  static const operatorName = const IdentifierContext('operatorName');
+  static const operatorName =
+      const MethodDeclarationIdentifierContext.continuation();
 
   /// Identifier is the name being declared by a local function declaration that
   /// uses a "get" or "set" keyword.
@@ -160,17 +163,15 @@ class IdentifierContext {
   /// Identifier is the start of the name being declared by a local function
   /// declaration.
   static const localFunctionDeclaration =
-      const IdentifierContext('localFunctionDeclaration', inDeclaration: true);
+      const LocalFunctionDeclarationIdentifierContext();
 
   /// Identifier is part of the name being declared by a local function
   /// declaration, but it's not the first identifier of the name.
   ///
   /// TODO(paulberry,ahe): Does this ever occur in valid Dart, or does it only
   /// occur as part of error recovery?
-  static const localFunctionDeclarationContinuation = const IdentifierContext(
-      'localFunctionDeclarationContinuation',
-      inDeclaration: true,
-      isContinuation: true);
+  static const localFunctionDeclarationContinuation =
+      const LocalFunctionDeclarationIdentifierContext.continuation();
 
   /// Identifier is the name appearing in a function expression.
   ///

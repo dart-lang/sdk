@@ -298,6 +298,43 @@ class ImportPrefixIdentifierContext extends IdentifierContext {
   }
 }
 
+/// See [IdentifierContext.localFunctionDeclaration]
+/// and [IdentifierContext.localFunctionDeclarationContinuation].
+class LocalFunctionDeclarationIdentifierContext extends IdentifierContext {
+  const LocalFunctionDeclarationIdentifierContext()
+      : super('localFunctionDeclaration', inDeclaration: true);
+
+  const LocalFunctionDeclarationIdentifierContext.continuation()
+      : super('localFunctionDeclarationContinuation',
+            inDeclaration: true, isContinuation: true);
+
+  @override
+  Token ensureIdentifier(Token token, Parser parser) {
+    Token identifier = token.next;
+    assert(identifier.kind != IDENTIFIER_TOKEN);
+    if (identifier.isIdentifier) {
+      checkAsyncAwaitYieldAsIdentifier(identifier, parser);
+      return identifier;
+    }
+
+    // Recovery
+    if (isOneOfOrEof(identifier, const ['.', '(', '{', '=>']) ||
+        looksLikeStartOfNextStatement(identifier)) {
+      identifier = parser.insertSyntheticIdentifier(token, this,
+          message: fasta.templateExpectedIdentifier.withArguments(identifier));
+    } else {
+      parser.reportRecoverableErrorWithToken(
+          identifier, fasta.templateExpectedIdentifier);
+      if (!identifier.isKeywordOrIdentifier) {
+        // When in doubt, consume the token to ensure we make progress
+        // but insert a synthetic identifier to satisfy listeners.
+        identifier = insertSyntheticIdentifierAfter(identifier, parser);
+      }
+    }
+    return identifier;
+  }
+}
+
 /// See [IdentifierContext.libraryName].
 class LibraryIdentifierContext extends IdentifierContext {
   const LibraryIdentifierContext()
@@ -374,7 +411,9 @@ class LocalVariableDeclarationIdentifierContext extends IdentifierContext {
   }
 }
 
-/// See [IdentifierContext.methodDeclaration].
+/// See [IdentifierContext.methodDeclaration],
+/// and [IdentifierContext.methodDeclarationContinuation],
+/// and [IdentifierContext.operatorName].
 class MethodDeclarationIdentifierContext extends IdentifierContext {
   const MethodDeclarationIdentifierContext()
       : super('methodDeclaration', inDeclaration: true);
@@ -382,6 +421,9 @@ class MethodDeclarationIdentifierContext extends IdentifierContext {
   const MethodDeclarationIdentifierContext.continuation()
       : super('methodDeclarationContinuation',
             inDeclaration: true, isContinuation: true);
+
+  const MethodDeclarationIdentifierContext.operatorName()
+      : super('operatorName', inDeclaration: true);
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
@@ -413,10 +455,12 @@ class MethodDeclarationIdentifierContext extends IdentifierContext {
   }
 }
 
-class TopLevelIdentifierContext extends IdentifierContext {
+/// See [IdentifierContext.topLevelFunctionDeclaration]
+/// and [IdentifierContext.topLevelVariableDeclaration].
+class TopLevelDeclarationIdentifierContext extends IdentifierContext {
   final List<String> followingValues;
 
-  const TopLevelIdentifierContext(String name, this.followingValues)
+  const TopLevelDeclarationIdentifierContext(String name, this.followingValues)
       : super(name, inDeclaration: true);
 
   @override
@@ -454,19 +498,6 @@ class TopLevelIdentifierContext extends IdentifierContext {
     }
     return identifier;
   }
-}
-
-/// See [IdentifierContext.topLevelFunctionDeclaration].
-class TopLevelFunctionDeclarationIdentifierContext
-    extends TopLevelIdentifierContext {
-  const TopLevelFunctionDeclarationIdentifierContext()
-      : super('topLevelFunctionDeclaration', const ['<', '(', '{', '=>']);
-}
-
-/// See [IdentifierContext.topLevelVariableDeclaration].
-class TopLevelVariableIdentifierContext extends TopLevelIdentifierContext {
-  const TopLevelVariableIdentifierContext()
-      : super('topLevelVariableDeclaration', const [';', '=', ',']);
 }
 
 /// See [IdentifierContext.typedefDeclaration].
