@@ -229,9 +229,8 @@ class EditBuilderImpl implements EditBuilder {
   }
 
   @override
-  void write(String string, {StringBuffer displayTextBuffer}) {
+  void write(String string) {
     _buffer.write(string);
-    displayTextBuffer?.write(string);
   }
 
   @override
