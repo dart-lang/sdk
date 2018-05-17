@@ -2021,7 +2021,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       value = symbolPartToString(part);
       push(forest.literalSymbolSingluar(value, hashToken, part));
     } else {
-      List<Identifier> parts = popList(identifierCount);
+      List<Identifier> parts = popList(identifierCount,
+          new List<Identifier>.filled(identifierCount, null, growable: true));
       value = symbolPartToString(parts.first);
       for (int i = 1; i < parts.length; i++) {
         value += ".${symbolPartToString(parts[i])}";
