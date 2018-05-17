@@ -2496,15 +2496,51 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(fp_sp_dist <= 0);
   __ leal(ESP, Address(EBP, fp_sp_dist));
 
-  if (!compiler->is_optimizing()) {
-    if (raw_exception_var_ != nullptr) {
-      __ movl(Address(EBP, raw_exception_var_->index() * kWordSize),
-              kExceptionObjectReg);
-    }
-    if (raw_stacktrace_var_ != nullptr) {
-      __ movl(Address(EBP, raw_stacktrace_var_->index() * kWordSize),
-              kStackTraceObjectReg);
-    }
+  // Auxiliary variables introduced by the try catch can be captured if we are
+  // inside a function with yield/resume points. In this case we first need
+  // to restore the context to match the context at entry into the closure.
+  if (should_restore_closure_context()) {
+    const ParsedFunction& parsed_function = compiler->parsed_function();
+    ASSERT(parsed_function.function().IsClosureFunction());
+    LocalScope* scope = parsed_function.node_sequence()->scope();
+
+    LocalVariable* closure_parameter = scope->VariableAt(0);
+    ASSERT(!closure_parameter->is_captured());
+    __ movl(EDI, Address(EBP, closure_parameter->index() * kWordSize));
+    __ movl(EDI, FieldAddress(EDI, Closure::context_offset()));
+
+#ifdef DEBUG
+    Label ok;
+    __ LoadClassId(EBX, EDI);
+    __ cmpl(EBX, Immediate(kContextCid));
+    __ j(EQUAL, &ok, Assembler::kNearJump);
+    __ Stop("Incorrect context at entry");
+    __ Bind(&ok);
+#endif
+
+    const intptr_t context_index =
+        parsed_function.current_context_var()->index();
+    __ movl(Address(EBP, context_index * kWordSize), EDI);
+  }
+
+  // Initialize exception and stack trace variables.
+  if (exception_var().is_captured()) {
+    ASSERT(stacktrace_var().is_captured());
+    __ StoreIntoObject(
+        EDI,
+        FieldAddress(EDI, Context::variable_offset(exception_var().index())),
+        kExceptionObjectReg);
+    __ StoreIntoObject(
+        EDI,
+        FieldAddress(EDI, Context::variable_offset(stacktrace_var().index())),
+        kStackTraceObjectReg);
+  } else {
+    // Restore stack and initialize the two exception variables:
+    // exception and stack trace variables.
+    __ movl(Address(EBP, exception_var().index() * kWordSize),
+            kExceptionObjectReg);
+    __ movl(Address(EBP, stacktrace_var().index() * kWordSize),
+            kStackTraceObjectReg);
   }
 }
 

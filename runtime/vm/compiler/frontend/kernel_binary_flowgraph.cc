@@ -2155,9 +2155,6 @@ void StreamingScopeBuilder::VisitStatement() {
         ExitScope(builder_->reader_.min_position(),
                   builder_->reader_.max_position());
       }
-
-      FinalizeCatchVariables();
-
       --depth_.catch_;
       return;
     }
@@ -2174,8 +2171,6 @@ void StreamingScopeBuilder::VisitStatement() {
       AddCatchVariables();
 
       VisitStatement();  // read finalizer.
-
-      FinalizeCatchVariables();
 
       --depth_.catch_;
       return;
@@ -2601,30 +2596,6 @@ void StreamingScopeBuilder::AddExceptionVariable(
   variables->Add(v);
 }
 
-void StreamingScopeBuilder::FinalizeExceptionVariable(
-    GrowableArray<LocalVariable*>* variables,
-    GrowableArray<LocalVariable*>* raw_variables,
-    const String& symbol,
-    intptr_t nesting_depth) {
-  // No need to create variables for try/catch-statements inside
-  // nested functions.
-  if (depth_.function_ > 0) return;
-
-  LocalVariable* variable = (*variables)[nesting_depth - 1];
-  LocalVariable* raw_variable;
-  if (variable->is_captured()) {
-    raw_variable =
-        new LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
-                          symbol, AbstractType::dynamic_type());
-    const bool ok = scope_->AddVariable(raw_variable);
-    ASSERT(ok);
-  } else {
-    raw_variable = variable;
-  }
-  raw_variables->EnsureLength(nesting_depth, nullptr);
-  (*raw_variables)[nesting_depth - 1] = raw_variable;
-}
-
 void StreamingScopeBuilder::AddTryVariables() {
   AddExceptionVariable(&result_->catch_context_variables,
                        ":saved_try_context_var", depth_.try_);
@@ -2635,16 +2606,6 @@ void StreamingScopeBuilder::AddCatchVariables() {
                        depth_.catch_);
   AddExceptionVariable(&result_->stack_trace_variables, ":stack_trace",
                        depth_.catch_);
-}
-
-void StreamingScopeBuilder::FinalizeCatchVariables() {
-  const intptr_t unique_id = result_->raw_variable_counter_++;
-  FinalizeExceptionVariable(
-      &result_->exception_variables, &result_->raw_exception_variables,
-      GenerateName(":raw_exception", unique_id), depth_.catch_);
-  FinalizeExceptionVariable(
-      &result_->stack_trace_variables, &result_->raw_stack_trace_variables,
-      GenerateName(":raw_stacktrace", unique_id), depth_.catch_);
 }
 
 void StreamingScopeBuilder::AddIteratorVariable() {
