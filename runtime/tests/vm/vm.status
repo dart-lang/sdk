@@ -284,7 +284,7 @@ cc/RegExp_OneByteString: Skip # TODO(vegorov) These tests don't seem to work if 
 cc/RegExp_TwoByteString: Skip # TODO(vegorov) These tests don't seem to work if FLAG_interpret_irregexp is switched on by default because they attempt to call regexp functions directly instead of going through JSSyntaxRegExp_ExecuteMatch.
 cc/RegenerateAllocStubs: Skip # This test is meaningless for DBC as allocation stubs are not used.
 
-[ $arch == simdbc64 || $compiler != none ]
+[ $arch == simdbc64 || $builder_tag == optimization_counter_threshold || $compiler != none ]
 dart/appjit_test: Skip
 
 [ $compiler == dart2analyzer || $compiler == dart2js ]
