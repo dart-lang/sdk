@@ -2018,8 +2018,6 @@ class Parser {
     } else if (context == IdentifierContext.localFunctionDeclaration ||
         context == IdentifierContext.localFunctionDeclarationContinuation) {
       followingValues = ['.', '(', '{', '=>'];
-    } else if (context == IdentifierContext.topLevelFunctionDeclaration) {
-      followingValues = ['(', '{', '=>'];
     } else {
       return false;
     }
@@ -2086,8 +2084,6 @@ class Parser {
     } else if (context ==
         IdentifierContext.localFunctionDeclarationContinuation) {
       initialKeywords = statementKeywords();
-    } else if (context == IdentifierContext.topLevelFunctionDeclaration) {
-      initialKeywords = topLevelKeywords();
     } else {
       return false;
     }

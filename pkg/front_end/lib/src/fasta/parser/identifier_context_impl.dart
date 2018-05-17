@@ -261,7 +261,7 @@ class FieldInitializerIdentifierContext extends IdentifierContext {
   }
 }
 
-/// See [IdentifierContext].importPrefixDeclaration
+/// See [IdentifierContext.importPrefixDeclaration].
 class ImportPrefixIdentifierContext extends IdentifierContext {
   const ImportPrefixIdentifierContext()
       : super('importPrefixDeclaration',
@@ -413,16 +413,16 @@ class MethodDeclarationIdentifierContext extends IdentifierContext {
   }
 }
 
-/// See [IdentifierContext.topLevelVariableDeclaration].
-class TopLevelVariableIdentifierContext extends IdentifierContext {
-  const TopLevelVariableIdentifierContext()
-      : super('topLevelVariableDeclaration', inDeclaration: true);
+class TopLevelIdentifierContext extends IdentifierContext {
+  final List<String> followingValues;
+
+  const TopLevelIdentifierContext(String name, this.followingValues)
+      : super(name, inDeclaration: true);
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
     Token identifier = token.next;
     assert(identifier.kind != IDENTIFIER_TOKEN);
-    const followingValues = const [';', '=', ','];
 
     if (identifier.isIdentifier) {
       Token next = identifier.next;
@@ -430,9 +430,9 @@ class TopLevelVariableIdentifierContext extends IdentifierContext {
           isOneOfOrEof(next, followingValues)) {
         return identifier;
       }
-      // Although this is a valid top level var name, the var declaration
+      // Although this is a valid top level name, the declaration
       // is invalid and this looks like the start of the next declaration.
-      // In this situation, fall through to insert a synthetic var name.
+      // In this situation, fall through to insert a synthetic name.
     }
 
     // Recovery
@@ -456,7 +456,20 @@ class TopLevelVariableIdentifierContext extends IdentifierContext {
   }
 }
 
-/// See [IdentifierContext].typedefDeclaration
+/// See [IdentifierContext.topLevelFunctionDeclaration].
+class TopLevelFunctionDeclarationIdentifierContext
+    extends TopLevelIdentifierContext {
+  const TopLevelFunctionDeclarationIdentifierContext()
+      : super('topLevelFunctionDeclaration', const ['<', '(', '{', '=>']);
+}
+
+/// See [IdentifierContext.topLevelVariableDeclaration].
+class TopLevelVariableIdentifierContext extends TopLevelIdentifierContext {
+  const TopLevelVariableIdentifierContext()
+      : super('topLevelVariableDeclaration', const [';', '=', ',']);
+}
+
+/// See [IdentifierContext.typedefDeclaration].
 class TypedefDeclarationIdentifierContext extends IdentifierContext {
   const TypedefDeclarationIdentifierContext()
       : super('typedefDeclaration',

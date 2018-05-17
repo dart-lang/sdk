@@ -125,9 +125,8 @@ class IdentifierContext {
   static const fieldDeclaration = const FieldDeclarationIdentifierContext();
 
   /// Identifier is the name being declared by a top level function declaration.
-  static const topLevelFunctionDeclaration = const IdentifierContext(
-      'topLevelFunctionDeclaration',
-      inDeclaration: true);
+  static const topLevelFunctionDeclaration =
+      const TopLevelFunctionDeclarationIdentifierContext();
 
   /// Identifier is the start of the name being declared by a method
   /// declaration.
