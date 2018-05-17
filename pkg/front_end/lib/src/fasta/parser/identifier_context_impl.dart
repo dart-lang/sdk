@@ -467,11 +467,15 @@ class TypedefDeclarationIdentifierContext extends IdentifierContext {
     Token identifier = token.next;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     if (identifier.type.isPseudo) {
+      if (optional('Function', identifier)) {
+        parser.reportRecoverableErrorWithToken(
+            identifier, fasta.templateExpectedIdentifier);
+      }
       return identifier;
     }
 
     // Recovery
-    const followingValues = const ['(', '<', '=', ';', 'var'];
+    const followingValues = const ['(', '<', '=', ';'];
     if (identifier.type.isBuiltIn &&
         isOneOfOrEof(identifier.next, followingValues)) {
       parser.reportRecoverableErrorWithToken(
@@ -585,4 +589,5 @@ bool looksLikeStartOfNextStatement(Token token) => isOneOfOrEof(token, const [
 
 bool looksLikeStartOfNextTopLevelDeclaration(Token token) =>
     token.isTopLevelKeyword ||
-    isOneOfOrEof(token, const ['const', 'get', 'final', 'set', 'var', 'void']);
+    isOneOfOrEof(
+        token, const ['class', 'const', 'get', 'final', 'set', 'var', 'void']);

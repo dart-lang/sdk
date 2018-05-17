@@ -1666,6 +1666,11 @@ class ErrorParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
+  void test_invalidTypedef2() {
+    super.test_invalidTypedef2();
+  }
+
+  @failingTest
   void test_invalidUnicodeEscape_incomplete_noDigits() {
     super.test_invalidUnicodeEscape_incomplete_noDigits();
   }

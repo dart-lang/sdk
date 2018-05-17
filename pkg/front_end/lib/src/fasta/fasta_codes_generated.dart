@@ -5908,6 +5908,8 @@ const Code<Null> codeTypedefNotFunction = messageTypedefNotFunction;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageTypedefNotFunction = const MessageCode(
     "TypedefNotFunction",
+    analyzerCode: "INVALID_GENERIC_FUNCTION_TYPE",
+    dart2jsCode: "*fatal*",
     message: r"""Can't create typedef from non-function type.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

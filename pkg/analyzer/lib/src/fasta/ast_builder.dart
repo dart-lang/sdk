@@ -45,6 +45,7 @@ import 'package:front_end/src/fasta/messages.dart'
         messageMissingAssignableSelector,
         messageNativeClauseShouldBeAnnotation,
         messageStaticConstructor,
+        messageTypedefNotFunction,
         templateDuplicateLabelInSwitchStatement,
         templateExpectedType;
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
@@ -2416,8 +2417,8 @@ class AstBuilder extends ScopeListener {
       List<Annotation> metadata = pop();
       Comment comment = _findComment(metadata, typedefKeyword);
       if (type is! GenericFunctionType) {
-        // TODO(paulberry) Generate an error and recover (better than
-        // this).
+        // This error is also reported in the OutlineBuilder.
+        handleRecoverableError(messageTypedefNotFunction, equals, equals);
         type = null;
       }
       declarations.add(ast.genericTypeAlias(

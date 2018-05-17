@@ -1648,6 +1648,8 @@ PlatformPrivateLibraryAccess:
 
 TypedefNotFunction:
   template: "Can't create typedef from non-function type."
+  analyzerCode: INVALID_GENERIC_FUNCTION_TYPE
+  dart2jsCode: "*fatal*"
 
 LibraryDirectiveNotFirst:
   template: "The library directive must appear before all other directives."

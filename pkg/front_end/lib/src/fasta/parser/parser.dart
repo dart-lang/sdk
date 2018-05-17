@@ -546,18 +546,14 @@ class Parser {
       directiveState?.checkDeclaration();
       return parseEnum(previous);
     } else if (identical(value, 'typedef')) {
-      Token next = token.next;
+      String nextValue = token.next.stringValue;
       directiveState?.checkDeclaration();
-      if (next.isIdentifier || optional("void", next)) {
-        return parseTypedef(previous);
-      } else if (next.isTopLevelKeyword ||
-          optional('var', next) ||
-          optional('=', next) ||
-          next.isEof) {
-        // Recovery
-        return parseTypedef(previous);
-      } else {
+      if (identical('(', nextValue) ||
+          identical('<', nextValue) ||
+          identical('.', nextValue)) {
         return parseTopLevelMemberImpl(previous);
+      } else {
+        return parseTypedef(previous);
       }
     } else {
       // The remaining top level keywords are built-in keywords
@@ -1045,8 +1041,12 @@ class Parser {
 
   /// ```
   /// typeAlias:
-  ///   metadata 'typedef' typeAliasBody
+  ///   metadata 'typedef' typeAliasBody |
+  ///   metadata 'typedef' identifier typeParameters? '=' functionType ';'
   /// ;
+  ///
+  /// functionType:
+  ///   returnType? 'Function' typeParameters? parameterTypeList
   ///
   /// typeAliasBody:
   ///   functionTypeAlias
@@ -1064,18 +1064,21 @@ class Parser {
     Token typedefKeyword = token.next;
     assert(optional('typedef', typedefKeyword));
     listener.beginFunctionTypeAlias(typedefKeyword);
+    TypeInfo typeInfo = computeType(typedefKeyword, false);
+    token = typeInfo.skipType(typedefKeyword).next;
     Token equals;
-    Token afterType = parseType(typedefKeyword, TypeContinuation.Typedef);
-    if (afterType == null) {
-      token = ensureIdentifier(
-          typedefKeyword, IdentifierContext.typedefDeclaration);
-      token = parseTypeVariablesOpt(token).next;
-      equals = token;
-      expect('=', token);
-      token = parseType(token);
+    TypeParamOrArgInfo typeParam = computeTypeParamOrArg(token);
+    if (typeInfo == noType &&
+        (token.kind == IDENTIFIER_TOKEN || token.type.isPseudo) &&
+        optional('=', typeParam.skip(token).next)) {
+      listener.handleIdentifier(token, IdentifierContext.typedefDeclaration);
+      equals = typeParam.parseVariables(token, this).next;
+      assert(optional('=', equals));
+      token = computeType(equals, true).ensureTypeOrVoid(equals, this);
     } else {
-      token = ensureIdentifier(afterType, IdentifierContext.typedefDeclaration);
-      token = parseTypeVariablesOpt(token);
+      token = typeInfo.parseType(typedefKeyword, this);
+      token = ensureIdentifier(token, IdentifierContext.typedefDeclaration);
+      token = typeParam.parseVariables(token, this);
       token =
           parseFormalParametersRequiredOpt(token, MemberKind.FunctionTypeAlias);
     }
@@ -2368,12 +2371,6 @@ class Parser {
 
       case TypeContinuation.OptionalAfterVar:
         hasVar = true;
-        continue optional;
-
-      case TypeContinuation.Typedef:
-        if (optional('=', token)) {
-          return null; // This isn't a type, it's a new-style typedef.
-        }
         continue optional;
 
       case TypeContinuation.SendOrFunctionLiteral:

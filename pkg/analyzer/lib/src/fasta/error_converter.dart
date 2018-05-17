@@ -349,6 +349,10 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             StrongModeCode.INVALID_CAST_NEW_EXPR, offset, length);
         return;
+      case "INVALID_GENERIC_FUNCTION_TYPE":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.INVALID_GENERIC_FUNCTION_TYPE, offset, length);
+        return;
       case "INVALID_METHOD_OVERRIDE":
         errorReporter?.reportErrorForOffset(
             StrongModeCode.INVALID_METHOD_OVERRIDE, offset, length);

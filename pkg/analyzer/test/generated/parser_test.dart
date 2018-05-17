@@ -4163,17 +4163,42 @@ class Wrong<T> {
     parseCompilationUnit("typedef var Function(var arg);",
         errors: usingFastaParser
             ? [
-                expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 8, 3),
-                expectedError(ParserErrorCode.VAR_AND_TYPE, 21, 3),
-                expectedError(ParserErrorCode.MISSING_IDENTIFIER, 29, 1),
-                expectedError(
-                    ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, 29, 1),
+                expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 3),
+                expectedError(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, 8, 3),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 8, 3),
+                expectedError(ParserErrorCode.VAR_RETURN_TYPE, 8, 3),
+                expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 29, 1),
               ]
             : [
                 expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 3),
                 expectedError(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, 8, 3),
                 expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 29, 2),
                 expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 29, 2),
+              ]);
+  }
+
+  void test_invalidTypedef2() {
+    // https://github.com/dart-lang/sdk/issues/31171
+    parseCompilationUnit(
+        "typedef T = typedef F = Map<String, dynamic> Function();",
+        errors: usingFastaParser
+            ? [
+                expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 12, 7),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 12, 7),
+                expectedError(
+                    ParserErrorCode.INVALID_GENERIC_FUNCTION_TYPE, 10, 1),
+              ]
+            : [
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 12, 7),
+                expectedError(
+                    ParserErrorCode.INVALID_GENERIC_FUNCTION_TYPE, 20, 1),
+                expectedError(
+                    ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 20, 1),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 36, 7),
+                expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 43, 1),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 43, 1),
+                expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 55, 1),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 55, 1),
               ]);
   }
 
@@ -5501,13 +5526,9 @@ main() {
   }
 
   void test_typedef_namedFunction() {
-    // TODO(brianwilkerson) Improve recovery for this case.
     parseCompilationUnit('typedef void Function();',
         codes: usingFastaParser
-            ? [
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_TYPEDEF_PARAMETERS
-              ]
+            ? [ParserErrorCode.MISSING_IDENTIFIER]
             : [
                 ParserErrorCode.UNEXPECTED_TOKEN,
                 ParserErrorCode.MISSING_IDENTIFIER,
