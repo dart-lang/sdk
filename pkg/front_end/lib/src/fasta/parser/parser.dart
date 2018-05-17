@@ -1651,7 +1651,7 @@ class Parser {
     Token abstractToken = beforeAbstractToken?.next;
     Token begin = abstractToken ?? token;
     Token classKeyword = token;
-    expect("class", token);
+    assert(optional('class', token));
     Token name =
         ensureIdentifier(token, IdentifierContext.classOrNamedMixinDeclaration);
     token = parseTypeVariablesOpt(name);
@@ -1668,7 +1668,7 @@ class Parser {
       Token token, Token begin, Token classKeyword) {
     Token equals = token = token.next;
     assert(optional('=', equals));
-    token = parseType(token);
+    token = computeType(token, true).ensureTypeNotVoid(token, this);
     token = parseMixinApplicationRest(token);
     Token implementsKeyword = null;
     if (optional('implements', token.next)) {

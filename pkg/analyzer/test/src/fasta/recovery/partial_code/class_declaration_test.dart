@@ -130,6 +130,36 @@ class ClassDeclarationTest extends PartialCodeTest {
               'class A implements B, {}',
               [ParserErrorCode.EXPECTED_TYPE_NAME],
               'class A implements B, _s_ {}'),
+          new TestDescriptor(
+              'equals',
+              'class A =',
+              [
+                ParserErrorCode.EXPECTED_TYPE_NAME,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_TOKEN
+              ],
+              'class A = _s_ with _s_;',
+              failing: ['functionVoid', 'functionNonVoid', 'getter']),
+          new TestDescriptor(
+              'equalsName',
+              'class A = B',
+              [ParserErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN],
+              'class A = B with _s_;',
+              failing: ['functionVoid', 'functionNonVoid', 'getter']),
+          new TestDescriptor(
+              'equalsNameWith',
+              'class A = B with',
+              [
+                ParserErrorCode.EXPECTED_TYPE_NAME,
+                ParserErrorCode.EXPECTED_TOKEN
+              ],
+              'class A = B with _s_;',
+              failing: ['functionVoid', 'functionNonVoid', 'getter']),
+          new TestDescriptor(
+              'equalsNameName',
+              'class A = B C',
+              [ParserErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN],
+              'class A = B with C;'),
         ],
         PartialCodeTest.declarationSuffixes);
   }

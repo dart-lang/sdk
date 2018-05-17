@@ -2601,11 +2601,16 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
   void test_classTypeAlias_abstractAfterEq() {
     // This syntax has been removed from the language in favor of
     // "abstract class A = B with C;" (issue 18098).
-    createParser('class A = abstract B with C;');
+    createParser('class A = abstract B with C;', expectedEndOffset: 21);
     CompilationUnitMember member = parseFullCompilationUnitMember();
     expectNotNullIfNoErrors(member);
     listener.assertErrors(usingFastaParser
-        ? [expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 10, 8)]
+        ? [
+            expectedError(
+                CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 10, 8),
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 19, 1),
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 21, 4)
+          ]
         : [
             expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 0),
             expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 0)
