@@ -668,8 +668,9 @@ Dart_Handle X509Helper::GetDer(Dart_NativeArguments args) {
   // i2d_X509 fills that buffer with the DER encoded cert data and increments
   // the buffer pointer.
   unsigned char* tmp = static_cast<unsigned char*>(dart_cert_bytes);
-  length = i2d_X509(certificate, &tmp);
-  if (length < 0) {
+  const intptr_t written_length = i2d_X509(certificate, &tmp);
+  ASSERT(written_length <= length);
+  if (written_length < 0) {
     Dart_TypedDataReleaseData(cert_handle);
     SecureSocketUtils::ThrowIOException(
         -1, "TlsException", "Failed to get certificate bytes", NULL);
