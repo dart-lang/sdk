@@ -8,7 +8,7 @@ class B<T extends core::Object = dynamic> extends core::Object {
     ;
   method f(generic-covariant-impl self::B::T x) → void {}
   method g({generic-covariant-impl self::B::T x = null}) → void {}
-  method h<generic-covariant-impl U extends self::B::T = dynamic>() → void {}
+  method h<generic-covariant-impl U extends self::B::T = self::B::T>() → void {}
 }
 class C extends self::B<core::int> {
   synthetic constructor •() → void

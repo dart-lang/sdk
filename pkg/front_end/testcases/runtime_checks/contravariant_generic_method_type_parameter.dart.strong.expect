@@ -7,7 +7,7 @@ class C<T extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
-  method f<U extends (self::C::T) → void = dynamic>(self::C::f::U x) → void {}
+  method f<U extends (self::C::T) → void = (self::C::T) → void>(self::C::f::U x) → void {}
 }
 static method g(self::C<core::num> c) → void {
   c.{self::C::f}<(core::Object) → void>((core::Object o) → core::Null {});

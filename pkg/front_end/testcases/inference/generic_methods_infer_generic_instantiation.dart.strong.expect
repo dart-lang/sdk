@@ -7,7 +7,7 @@ class C extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
-  method m<T extends core::num = dynamic>(self::C::m::T x, self::C::m::T y) → self::C::m::T
+  method m<T extends core::num = core::num>(self::C::m::T x, self::C::m::T y) → self::C::m::T
     return null;
 }
 static method test() → dynamic {

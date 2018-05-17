@@ -10,11 +10,11 @@ class A extends core::Object {
     return null;
 }
 static method main() → dynamic {
-  function bar<T extends self::A = dynamic>(T t) → void {
+  function bar<T extends self::A = self::A>(T t) → void {
     core::print("t.foo()=${t.{self::A::foo}()}");
   }
   bar.call<self::A>(new self::A::•());
-  (<S extends self::A = dynamic>(S s) → core::Null {
+  (<S extends self::A = self::A>(S s) → core::Null {
     core::print("s.foo()=${s.{self::A::foo}()}");
   }).call<self::A>(new self::A::•());
 }
