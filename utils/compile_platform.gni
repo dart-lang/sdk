@@ -5,6 +5,12 @@
 import("../build/dart/dart_host_sdk_toolchain.gni")
 import("../build/dart/prebuilt_dart_sdk.gni")
 
+_is_fuchsia = defined(is_fuchsia_tree) && is_fuchsia_tree
+
+if (_is_fuchsia) {
+  import("//build/dart/dart.gni")
+}
+
 _dart_root = get_path_info("..", "abspath")
 
 template("compile_platform") {
@@ -35,7 +41,12 @@ template("compile_platform") {
 
     depfile = outputs[0] + ".d"
 
-    if (!prebuilt_dart_exe_works) {
+    if (_is_fuchsia) {
+      args += [
+        "--dart-executable",
+        rebase_path(prebuilt_dart),
+      ]
+    } else if (!prebuilt_dart_exe_works) {
       deps += [ "$_dart_root/runtime/bin:dart_bootstrap($dart_host_toolchain)" ]
       dart_out_dir = get_label_info(
               "$_dart_root/runtime/bin:dart_bootstrap($dart_host_toolchain)",
