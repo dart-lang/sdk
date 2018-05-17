@@ -24,7 +24,6 @@ import 'elements/entities.dart';
 import 'enqueue.dart' show Enqueuer, EnqueueTask, ResolutionEnqueuer;
 import 'environment.dart';
 import 'frontend_strategy.dart';
-import 'id_generator.dart';
 import 'io/source_information.dart' show SourceInformation;
 import 'js_backend/backend.dart' show JavaScriptBackend;
 import 'kernel/kernel_backend_strategy.dart';
@@ -51,7 +50,6 @@ abstract class Compiler {
 
   api.CompilerInput get provider;
 
-  final IdGenerator idGenerator = new IdGenerator();
   FrontendStrategy frontendStrategy;
   BackendStrategy backendStrategy;
   CompilerDiagnosticReporter _reporter;
@@ -165,6 +163,7 @@ abstract class Compiler {
     tasks = [
       libraryLoader =
           frontendStrategy.createLibraryLoader(provider, reporter, measurer),
+      kernelFrontEndTask,
       globalInference = new GlobalTypeInferenceTask(this),
       constants = backend.constantCompilerTask,
       deferredLoadTask = frontendStrategy.createDeferredLoadTask(this),
@@ -174,7 +173,6 @@ abstract class Compiler {
       dumpInfoTask = new DumpInfoTask(this),
       selfTask,
     ];
-    tasks.add(kernelFrontEndTask);
 
     tasks.addAll(backend.tasks);
   }
@@ -192,6 +190,7 @@ abstract class Compiler {
 
   ResolutionWorldBuilder get resolutionWorldBuilder =>
       enqueuer.resolution.worldBuilder;
+
   CodegenWorldBuilder get codegenWorldBuilder {
     assert(
         _codegenWorldBuilder != null,
@@ -247,12 +246,6 @@ abstract class Compiler {
     backend.onLibrariesLoaded(frontendStrategy.commonElements, loadedLibraries);
     return loadedLibraries;
   }
-
-  /**
-   * Get an [Uri] pointing to a patch for the dart: library with
-   * the given path. Returns null if there is no patch.
-   */
-  Uri resolvePatchUri(String dartLibraryPath);
 
   Future runInternal(Uri uri) async {
     mainLibraryUri = uri;

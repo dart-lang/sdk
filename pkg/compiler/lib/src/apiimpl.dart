@@ -18,7 +18,6 @@ import 'common.dart';
 import 'compiler.dart';
 import 'diagnostics/messages.dart' show Message;
 import 'environment.dart';
-import 'library_loader.dart';
 import 'io/source_file.dart';
 import 'options.dart' show CompilerOptions;
 import 'platform_configuration.dart' as platform_configuration;
@@ -242,11 +241,6 @@ class CompilerImpl extends Compiler {
       reportCrashInUserCode('Uncaught exception in package discovery', ex, s);
       rethrow;
     }
-  }
-
-  Uri resolvePatchUri(String libraryName) {
-    return LibraryLoaderTask.resolvePatchUri(
-        libraryName, options.platformConfigUri);
   }
 }
 
