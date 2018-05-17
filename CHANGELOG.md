@@ -15,6 +15,10 @@
   * Marked `MirrorsUsed` as deprecated. The mirrors library is no longer
     supported by dart2js, and `MirrorsUsed` only affected dart2js.
 
+* `dart:io`
+  * Added `X509Certificate.der`, `X509Certificate.pem`, and
+    `X509Certificate.sha1`.
+
 ### Dart VM
 
 ### Tool Changes

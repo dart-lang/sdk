@@ -169,6 +169,9 @@ namespace bin {
   V(SynchronousSocket_ReadList, 4)                                             \
   V(SynchronousSocket_WriteList, 4)                                            \
   V(SystemEncodingToString, 1)                                                 \
+  V(X509_Der, 1)                                                               \
+  V(X509_Pem, 1)                                                               \
+  V(X509_Sha1, 1)                                                              \
   V(X509_Subject, 1)                                                           \
   V(X509_Issuer, 1)                                                            \
   V(X509_StartValidity, 1)                                                     \

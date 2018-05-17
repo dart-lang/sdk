@@ -647,6 +647,101 @@ static X509* GetX509Certificate(Dart_NativeArguments args) {
   return certificate;
 }
 
+Dart_Handle X509Helper::GetDer(Dart_NativeArguments args) {
+  X509* certificate = GetX509Certificate(args);
+  // When the second argument is NULL, i2d_X509() returns the length of the
+  // DER encoded cert in bytes.
+  intptr_t length = i2d_X509(certificate, NULL);
+  Dart_Handle cert_handle = Dart_NewTypedData(Dart_TypedData_kUint8, length);
+  if (Dart_IsError(cert_handle)) {
+    Dart_PropagateError(cert_handle);
+  }
+  Dart_TypedData_Type typ;
+  void* dart_cert_bytes = NULL;
+  Dart_Handle status =
+      Dart_TypedDataAcquireData(cert_handle, &typ, &dart_cert_bytes, &length);
+  if (Dart_IsError(status)) {
+    Dart_PropagateError(status);
+  }
+
+  // When the the second argument points to a non-NULL buffer address,
+  // i2d_X509 fills that buffer with the DER encoded cert data and increments
+  // the buffer pointer.
+  unsigned char* tmp = static_cast<unsigned char*>(dart_cert_bytes);
+  length = i2d_X509(certificate, &tmp);
+  if (length < 0) {
+    Dart_TypedDataReleaseData(cert_handle);
+    SecureSocketUtils::ThrowIOException(
+        -1, "TlsException", "Failed to get certificate bytes", NULL);
+    // SecureSocketUtils::ThrowIOException() does not return.
+  }
+
+  status = Dart_TypedDataReleaseData(cert_handle);
+  if (Dart_IsError(status)) {
+    Dart_PropagateError(status);
+  }
+  return cert_handle;
+}
+
+Dart_Handle X509Helper::GetPem(Dart_NativeArguments args) {
+  X509* certificate = GetX509Certificate(args);
+  BIO* cert_bio = BIO_new(BIO_s_mem());
+  intptr_t status = PEM_write_bio_X509(cert_bio, certificate);
+  if (status == 0) {
+    BIO_free(cert_bio);
+    SecureSocketUtils::ThrowIOException(
+        -1, "TlsException", "Failed to write certificate to PEM", NULL);
+    // SecureSocketUtils::ThrowIOException() does not return.
+  }
+
+  BUF_MEM* mem = NULL;
+  BIO_get_mem_ptr(cert_bio, &mem);
+  Dart_Handle pem_string = Dart_NewStringFromUTF8(
+      reinterpret_cast<const uint8_t*>(mem->data), mem->length);
+  BIO_free(cert_bio);
+  if (Dart_IsError(pem_string)) {
+    Dart_PropagateError(pem_string);
+  }
+
+  return pem_string;
+}
+
+Dart_Handle X509Helper::GetSha1(Dart_NativeArguments args) {
+  unsigned char sha1_bytes[EVP_MAX_MD_SIZE];
+  X509* certificate = GetX509Certificate(args);
+  const EVP_MD* hash_type = EVP_sha1();
+
+  unsigned int sha1_size;
+  intptr_t status = X509_digest(certificate, hash_type, sha1_bytes, &sha1_size);
+  if (status == 0) {
+    SecureSocketUtils::ThrowIOException(
+        -1, "TlsException", "Failed to compute certificate's sha1", NULL);
+    // SecureSocketUtils::ThrowIOException() does not return.
+  }
+
+  Dart_Handle sha1_handle = Dart_NewTypedData(Dart_TypedData_kUint8, sha1_size);
+  if (Dart_IsError(sha1_handle)) {
+    Dart_PropagateError(sha1_handle);
+  }
+
+  Dart_TypedData_Type typ;
+  void* dart_sha1_bytes;
+  intptr_t length;
+  Dart_Handle result =
+      Dart_TypedDataAcquireData(sha1_handle, &typ, &dart_sha1_bytes, &length);
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
+
+  memmove(dart_sha1_bytes, sha1_bytes, length);
+
+  result = Dart_TypedDataReleaseData(sha1_handle);
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
+  return sha1_handle;
+}
+
 Dart_Handle X509Helper::GetSubject(Dart_NativeArguments args) {
   X509* certificate = GetX509Certificate(args);
   X509_NAME* subject = X509_get_subject_name(certificate);
@@ -782,6 +877,18 @@ void FUNCTION_NAME(SecurityContext_TrustBuiltinRoots)(
   ASSERT(context != NULL);
 
   context->TrustBuiltinRoots();
+}
+
+void FUNCTION_NAME(X509_Der)(Dart_NativeArguments args) {
+  Dart_SetReturnValue(args, X509Helper::GetDer(args));
+}
+
+void FUNCTION_NAME(X509_Pem)(Dart_NativeArguments args) {
+  Dart_SetReturnValue(args, X509Helper::GetPem(args));
+}
+
+void FUNCTION_NAME(X509_Sha1)(Dart_NativeArguments args) {
+  Dart_SetReturnValue(args, X509Helper::GetSha1(args));
 }
 
 void FUNCTION_NAME(X509_Subject)(Dart_NativeArguments args) {
