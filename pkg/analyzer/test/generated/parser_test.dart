@@ -13544,6 +13544,33 @@ class C<@Foo.bar(const [], const [1], const{"":r""}, 0xFF + 2, .3, 4.5) T> {}
     expect(arguments, hasLength(3));
   }
 
+  void test_parseArgumentList_typeArguments() {
+    createParser('(a<b,c>(d))');
+    ArgumentList argumentList = parser.parseArgumentList();
+    expectNotNullIfNoErrors(argumentList);
+    listener.assertNoErrors();
+    NodeList<Expression> arguments = argumentList.arguments;
+    expect(arguments, hasLength(1));
+  }
+
+  void test_parseArgumentList_typeArguments_prefixed() {
+    createParser('(a<b,p.c>(d))');
+    ArgumentList argumentList = parser.parseArgumentList();
+    expectNotNullIfNoErrors(argumentList);
+    listener.assertNoErrors();
+    NodeList<Expression> arguments = argumentList.arguments;
+    expect(arguments, hasLength(1));
+  }
+
+  void test_parseArgumentList_typeArguments_none() {
+    createParser('(a<b,p.q.c>(d))');
+    ArgumentList argumentList = parser.parseArgumentList();
+    expectNotNullIfNoErrors(argumentList);
+    listener.assertNoErrors();
+    NodeList<Expression> arguments = argumentList.arguments;
+    expect(arguments, hasLength(2));
+  }
+
   void test_parseCombinators_h() {
     createParser('hide a');
     List<Combinator> combinators = parser.parseCombinators();
