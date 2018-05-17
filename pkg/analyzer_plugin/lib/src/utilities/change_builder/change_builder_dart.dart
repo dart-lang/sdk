@@ -70,6 +70,23 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   List<String> _KNOWN_METHOD_NAME_PREFIXES = ['get', 'is', 'to'];
 
   /**
+   * Whether [_enclosingClass] and [_enclosingExecutable] have been initialized.
+   */
+  bool _hasEnclosingElementsInitialized = false;
+
+  /**
+   * The enclosing class element, possibly `null`.
+   * This field is lazily initialized in [_initializeEnclosingElements].
+   */
+  ClassElement _enclosingClass;
+
+  /**
+   * The enclosing executable element, possibly `null`.
+   * This field is lazily initialized in [_initializeEnclosingElements].
+   */
+  ExecutableElement _enclosingExecutable;
+
+  /**
    * If not `null`, [write] will copy everything into this buffer.
    */
   StringBuffer _carbonCopyBuffer;
@@ -489,13 +506,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   void writeParameter(String name,
       {ExecutableElement methodBeingCopied, DartType type}) {
     if (type != null) {
-      _EnclosingElementFinder finder = _findEnclosingElements();
-      bool hasType = _writeType(
-        type,
-        finder.enclosingClass,
-        finder.enclosingExecutable,
-        methodBeingCopied: methodBeingCopied,
-      );
+      bool hasType = _writeType(type, methodBeingCopied: methodBeingCopied);
       if (name.isNotEmpty) {
         if (hasType) {
           write(' ');
@@ -616,29 +627,18 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       ExecutableElement methodBeingCopied,
       bool required: false}) {
     if (type != null && !type.isDynamic) {
-      _EnclosingElementFinder finder = _findEnclosingElements();
       if (groupName != null) {
         bool wroteType;
         addLinkedEdit(groupName, (LinkedEditBuilder builder) {
           // TODO(scheglov) ensure that no linked edit if nothing written
-          wroteType = _writeType(
-            type,
-            finder.enclosingClass,
-            finder.enclosingExecutable,
-            methodBeingCopied: methodBeingCopied,
-          );
+          wroteType = _writeType(type, methodBeingCopied: methodBeingCopied);
           if (wroteType && addSupertypeProposals) {
             _addSuperTypeProposals(builder, type, new Set<DartType>());
           }
         });
         return wroteType;
       } else {
-        return _writeType(
-          type,
-          finder.enclosingClass,
-          finder.enclosingExecutable,
-          methodBeingCopied: methodBeingCopied,
-        );
+        return _writeType(type, methodBeingCopied: methodBeingCopied);
       }
     }
     if (required) {
@@ -653,11 +653,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       {ExecutableElement methodBeingCopied}) {
     write(typeParameter.name);
     if (typeParameter.bound != null) {
-      _EnclosingElementFinder finder = _findEnclosingElements();
       write(' extends ');
-      _writeType(typeParameter.bound, finder.enclosingClass,
-          finder.enclosingExecutable,
-          methodBeingCopied: methodBeingCopied);
+      _writeType(typeParameter.bound, methodBeingCopied: methodBeingCopied);
     }
   }
 
@@ -749,13 +746,6 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         _addSuperTypeProposals(builder, interfaceType, alreadyAdded);
       }
     }
-  }
-
-  _EnclosingElementFinder _findEnclosingElements() {
-    // TODO(scheglov) Stop searching for enclosing class multiple times.
-    _EnclosingElementFinder finder = new _EnclosingElementFinder();
-    finder.find(dartFileEditBuilder.unit, offset);
-    return finder;
   }
 
   String _getBaseNameFromExpression(Expression expression) {
@@ -860,28 +850,6 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   /**
-   * Return the import element used to import the given [element] into the given
-   * [library], or `null` if the element was not imported, such as when the
-   * element is declared in the same library.
-   */
-  ImportElement _getImportElement(Element element, LibraryElement library) {
-    for (ImportElement importElement in library.imports) {
-      Map<String, Element> definedNames = _getImportNamespace(importElement);
-      if (definedNames.containsValue(element)) {
-        return importElement;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Return the namespace added by the given import [element].
-   */
-  Map<String, Element> _getImportNamespace(ImportElement element) {
-    return element.namespace.definedNames;
-  }
-
-  /**
    * Return a list containing the suggested names for a parameter with the given
    * [type] whose value in one location is computed by the given [expression].
    * The list will not contain any names in the set of [excluded] names. The
@@ -939,15 +907,15 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   /**
-   * If the given [type] is visible in either the [enclosingExecutable] or
-   * [enclosingClass], or if there is a local equivalent to the type (such as in
-   * the case of a type parameter from a superclass), then return the type that
-   * is locally visible. Otherwise, return `null`.
+   * If the given [type] is visible in either the [_enclosingExecutable] or
+   * [_enclosingClass], or if there is a local equivalent to the type (such as
+   * in the case of a type parameter from a superclass), then return the type
+   * that is locally visible. Otherwise, return `null`.
    */
-  DartType _getVisibleType(DartType type, ClassElement enclosingClass,
-      ExecutableElement enclosingExecutable,
+  DartType _getVisibleType(DartType type,
       {ExecutableElement methodBeingCopied}) {
     if (type is TypeParameterType) {
+      _initializeEnclosingElements();
       TypeParameterElement parameterElement = type.element;
       Element parameterParent = parameterElement.enclosingElement;
       while (parameterParent is GenericFunctionTypeElement ||
@@ -955,24 +923,24 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         parameterParent = parameterParent.enclosingElement;
       }
       // TODO(brianwilkerson) This needs to compare the parameterParent with
-      // each of the parents of the enclosingExecutable. (That means that we
+      // each of the parents of the _enclosingExecutable. (That means that we
       // only need the most closely enclosing element.)
-      if (parameterParent == enclosingExecutable ||
-          parameterParent == enclosingClass ||
+      if (parameterParent == _enclosingExecutable ||
+          parameterParent == _enclosingClass ||
           parameterParent == methodBeingCopied) {
         return type;
       }
-      if (enclosingClass != null &&
+      if (_enclosingClass != null &&
           methodBeingCopied != null &&
           parameterParent is ClassElement &&
           parameterParent == methodBeingCopied.enclosingElement) {
         // The parameter is from the class enclosing the methodBeingCopied. That
         // means that somewhere along the inheritance chain there must be a type
         // argument corresponding to the type parameter (either a concrete type
-        // or a type parameter of the enclosingClass). That's the visible type
+        // or a type parameter of the _enclosingClass). That's the visible type
         // that needs to be returned.
         _InheritanceChain chain = new _InheritanceChain(
-            subtype: enclosingClass, supertype: parameterParent);
+            subtype: _enclosingClass, supertype: parameterParent);
         while (chain != null) {
           DartType mappedType = chain.mapParameter(parameterElement);
           if (mappedType is TypeParameterType) {
@@ -990,41 +958,48 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (element == null) {
       return type;
     }
-    LibraryElement definingLibrary = element.library;
-    LibraryElement importingLibrary = dartFileEditBuilder.unit.element.library;
-    if (definingLibrary != null &&
-        definingLibrary != importingLibrary &&
-        element.isPrivate) {
+    if (element.isPrivate && !dartFileEditBuilder._isDefinedLocally(element)) {
       return null;
     }
     return type;
   }
 
   /**
-   * Arrange to have an import added for the library with the given [uri].
+   * Initialize the [_enclosingClass] and [_enclosingExecutable].
    */
-  _LibraryToImport _importLibrary(Uri uri) {
-    return dartFileEditBuilder._importLibrary(uri);
+  void _initializeEnclosingElements() {
+    if (!_hasEnclosingElementsInitialized) {
+      _EnclosingElementFinder finder = new _EnclosingElementFinder();
+      finder.find(dartFileEditBuilder.unit, offset);
+      _enclosingClass = finder.enclosingClass;
+      _enclosingExecutable = finder.enclosingExecutable;
+      _hasEnclosingElementsInitialized = true;
+    }
   }
 
   /**
    * Write the import prefix to reference the [element], if needed.
    *
-   * The prefix is not needed if there is already an import without prefix
-   * that exports the [element].  If there there are no existing import
-   * that exports the [element], a library that exports the [element] is
-   * scheduled for import, possibly with a prefix.
+   * The prefix is not needed if the [element] is defined in the target library,
+   * or there is already an import without prefix that exports the [element].
+   * If there there are no existing import that exports the [element], a library
+   * that exports the [element] is scheduled for import, possibly with a prefix.
    */
   void _writeLibraryReference(Element element) {
-    LibraryElement importingLibrary = dartFileEditBuilder.unit.element.library;
-    ImportElement importElement = _getImportElement(element, importingLibrary);
-    if (importElement != null) {
-      if (importElement.prefix != null) {
-        write(importElement.prefix.displayName);
+    // If the element is defined in the library, then no prefix needed.
+    if (dartFileEditBuilder._isDefinedLocally(element)) {
+      return;
+    }
+
+    ImportElement import = dartFileEditBuilder._getImportElement(element);
+    if (import != null) {
+      if (import.prefix != null) {
+        write(import.prefix.displayName);
         write('.');
       }
     } else {
-      _LibraryToImport import = _importLibrary(element.library.source.uri);
+      Uri library = element.library.source.uri;
+      _LibraryToImport import = dartFileEditBuilder._importLibrary(library);
       if (import.prefix != null) {
         write(import.prefix);
         write('.');
@@ -1035,25 +1010,14 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   /**
    * Write the code to reference [type] in this compilation unit.
    *
-   * If an [enclosingClass] is provided then the reference is being generated
-   * within the class and the type parameters of the class will be considered to
-   * be visible.
-   *
-   * If an [enclosingExecutable] is provided, then the reference is being
-   * generated within the class and the type parameters of the method will be
-   * considered to be visible.
-   *
    * If a [methodBeingCopied] is provided, then the type parameters of that
    * method will be duplicated in the copy and will therefore be visible.
    *
    * Causes any libraries whose elements are used by the generated code, to be
    * imported.
    */
-  bool _writeType(DartType type, ClassElement enclosingClass,
-      ExecutableElement enclosingExecutable,
-      {ExecutableElement methodBeingCopied}) {
-    type = _getVisibleType(type, enclosingClass, enclosingExecutable,
-        methodBeingCopied: methodBeingCopied);
+  bool _writeType(DartType type, {ExecutableElement methodBeingCopied}) {
+    type = _getVisibleType(type, methodBeingCopied: methodBeingCopied);
 
     // If not a useful type, don't write it.
     if (type == null || type.isDynamic || type.isBottom) {
@@ -1079,12 +1043,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (type is FunctionType &&
         element is FunctionTypedElement &&
         element is! FunctionTypeAliasElement) {
-      if (_writeType(
-        type.returnType,
-        enclosingClass,
-        enclosingExecutable,
-        methodBeingCopied: methodBeingCopied,
-      )) {
+      if (_writeType(type.returnType, methodBeingCopied: methodBeingCopied)) {
         write(' ');
       }
       write('Function');
@@ -1094,14 +1053,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       return true;
     }
 
-    // If the element is not local, ensure that it is imported.
-    // TODO(scheglov) Remember importing library in the edit class.
-    // TODO(scheglov) Check for local element in _writeLibraryReference()?
-    LibraryElement definingLibrary = element.library;
-    LibraryElement importingLibrary = dartFileEditBuilder.unit.element.library;
-    if (definingLibrary != null && definingLibrary != importingLibrary) {
-      _writeLibraryReference(element);
-    }
+    // Ensure that the element is imported.
+    _writeLibraryReference(element);
 
     // Write the simple name.
     String name = element.displayName;
@@ -1116,8 +1069,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       for (DartType argument in arguments) {
         hasArguments = hasArguments || !argument.isDynamic;
         allArgumentsVisible = allArgumentsVisible &&
-            _getVisibleType(argument, enclosingClass, enclosingExecutable,
-                    methodBeingCopied: methodBeingCopied) !=
+            _getVisibleType(argument, methodBeingCopied: methodBeingCopied) !=
                 null;
       }
       // Write type arguments only if they are useful.
@@ -1128,8 +1080,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           if (i != 0) {
             write(', ');
           }
-          _writeType(argument, enclosingClass, enclosingExecutable,
-              methodBeingCopied: methodBeingCopied);
+          _writeType(argument, methodBeingCopied: methodBeingCopied);
         }
         write('>');
       }
@@ -1147,7 +1098,12 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /**
    * The compilation unit to which the code will be added.
    */
-  CompilationUnit unit;
+  final CompilationUnit unit;
+
+  /**
+   * The target library, which contains the [unit].
+   */
+  final LibraryElement libraryElement;
 
   /**
    * The optional generator of prefixes for new imports.
@@ -1163,11 +1119,12 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /**
    * Initialize a newly created builder to build a source file edit within the
    * change being built by the given [changeBuilder]. The file being edited has
-   * the given [source] and [timeStamp], and the given fully resolved [unit].
+   * the given [path] and [timeStamp], and the given fully resolved [unit].
    */
   DartFileEditBuilderImpl(DartChangeBuilderImpl changeBuilder, String path,
       int timeStamp, this.unit)
-      : super(changeBuilder, path, timeStamp);
+      : libraryElement = unit.element.library,
+        super(changeBuilder, path, timeStamp);
 
   @override
   void addInsertion(int offset, void buildEdit(DartEditBuilder builder)) =>
@@ -1199,11 +1156,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   @override
   Future<Null> finalize() async {
     if (librariesToImport.isNotEmpty) {
-      CompilationUnitElement unitElement = unit.element;
-      LibraryElement libraryElement = unitElement.library;
       CompilationUnitElement definingUnitElement =
           libraryElement.definingCompilationUnit;
-      if (definingUnitElement == unitElement) {
+      if (definingUnitElement == unit.element) {
         _addLibraryImports(librariesToImport.values);
       } else {
         await (changeBuilder as DartChangeBuilder).addFileEdit(
@@ -1247,8 +1202,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   }
 
   /**
-   * Adds edits ensure that all the [imports] are imported into the given
-   * [targetLibrary].
+   * Adds edits ensure that all the [imports] are imported into the library.
    */
   void _addLibraryImports(Iterable<_LibraryToImport> imports) {
     // Prepare information about existing imports.
@@ -1419,15 +1373,31 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   }
 
   /**
-   * Computes the best URI to import [what] into [from].
+   * Return the import element used to import the given [element] into the
+   * target library, or `null` if the element was not imported, such as when
+   * the element is declared in the same library.
    */
-  String _getLibrarySourceUri(LibraryElement from, Uri what) {
+  ImportElement _getImportElement(Element element) {
+    for (ImportElement import in libraryElement.imports) {
+      Map<String, Element> definedNames = import.namespace.definedNames;
+      if (definedNames.containsValue(element)) {
+        return import;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Computes the best URI to import [what] into the target library.
+   */
+  String _getLibraryUriText(Uri what) {
     if (what.scheme == 'file') {
       var session = (changeBuilder as DartChangeBuilderImpl).session;
       var pathContext = session.resourceProvider.pathContext;
       String whatPath = pathContext.fromUri(what);
-      String fromFolder = pathContext.dirname(from.source.fullName);
-      String relativeFile = pathContext.relative(whatPath, from: fromFolder);
+      String libraryPath = libraryElement.source.fullName;
+      String libraryFolder = pathContext.dirname(libraryPath);
+      String relativeFile = pathContext.relative(whatPath, from: libraryFolder);
       return pathContext.split(relativeFile).join('/');
     }
     return what.toString();
@@ -1439,14 +1409,20 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   _LibraryToImport _importLibrary(Uri uri) {
     var import = librariesToImport[uri];
     if (import == null) {
-      LibraryElement targetLibrary = unit.element.library;
-      String uriText = _getLibrarySourceUri(targetLibrary, uri);
+      String uriText = _getLibraryUriText(uri);
       String prefix =
           importPrefixGenerator != null ? importPrefixGenerator(uri) : null;
       import = new _LibraryToImport(uriText, prefix);
       librariesToImport[uri] = import;
     }
     return import;
+  }
+
+  /**
+   * Return `true` if the [element] is defined in the target library.
+   */
+  bool _isDefinedLocally(Element element) {
+    return element.library == libraryElement;
   }
 
   /**
