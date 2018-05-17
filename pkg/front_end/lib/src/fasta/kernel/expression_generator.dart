@@ -1376,22 +1376,53 @@ class ReadOnlyAccessGenerator<Arguments> extends Generator<Arguments> {
   }
 }
 
-abstract class _DelayedErrorAccessor<Arguments> extends Accessor<Arguments> {
-  _DelayedErrorAccessor(
+class LargeIntAccessGenerator<Arguments> extends Generator<Arguments> {
+  LargeIntAccessGenerator(
       BuilderHelper<dynamic, dynamic, Arguments> helper, Token token)
       : super(helper, token);
 
-  kernel.Expression buildError();
+  // TODO(ahe): This should probably be calling unhandled.
+  String get plainNameForRead => null;
 
+  String get debugName => "LargeIntAccessGenerator";
+
+  @override
   kernel.Expression _makeSimpleRead() => buildError();
+
+  @override
   kernel.Expression _makeSimpleWrite(kernel.Expression value, bool voidContext,
-          ShadowComplexAssignment complexAssignment) =>
-      buildError();
-  kernel.Expression _makeRead(ShadowComplexAssignment complexAssignment) =>
-      buildError();
+      ShadowComplexAssignment complexAssignment) {
+    return buildError();
+  }
+
+  @override
+  kernel.Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+    return buildError();
+  }
+
+  @override
   kernel.Expression _makeWrite(kernel.Expression value, bool voidContext,
-          ShadowComplexAssignment complexAssignment) =>
-      buildError();
+      ShadowComplexAssignment complexAssignment) {
+    return buildError();
+  }
+
+  kernel.Expression buildError() {
+    return helper.buildCompileTimeError(
+        templateIntegerLiteralIsOutOfRange.withArguments(token),
+        offsetForToken(token),
+        lengthForToken(token));
+  }
+
+  @override
+  kernel.Expression doInvocation(int offset, Arguments arguments) {
+    return buildError();
+  }
+
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", lexeme: ");
+    sink.write(token.lexeme);
+  }
 }
 
 kernel.Expression makeLet(

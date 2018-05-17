@@ -786,32 +786,6 @@ int adjustForImplicitCall(String name, int offset) {
   return offset + (name?.length ?? 0);
 }
 
-class LargeIntAccessor<Arguments> extends _DelayedErrorAccessor<Arguments>
-    with FastaAccessor<Arguments> {
-  LargeIntAccessor(
-      BuilderHelper<dynamic, dynamic, Arguments> helper, Token token)
-      : super(helper, token);
-
-  // TODO(ahe): This should probably be calling unhandled.
-  String get plainNameForRead => null;
-
-  String get debugName => "LargeIntAccessor";
-
-  @override
-  kernel.Expression buildError() {
-    return helper.buildCompileTimeError(
-        templateIntegerLiteralIsOutOfRange.withArguments(token),
-        offsetForToken(token),
-        lengthForToken(token));
-  }
-
-  kernel.Expression doInvocation(int offset, Arguments arguments) =>
-      buildError();
-
-  @override
-  void printOn(StringSink sink) {}
-}
-
 class ParenthesizedExpression<Arguments>
     extends ReadOnlyAccessGenerator<Arguments> {
   ParenthesizedExpression(BuilderHelper<dynamic, dynamic, Arguments> helper,

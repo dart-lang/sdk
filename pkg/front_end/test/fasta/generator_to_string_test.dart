@@ -51,7 +51,7 @@ import 'package:front_end/src/fasta/kernel/expression_generator.dart'
         IncompleteError,
         IncompletePropertyAccessor,
         IndexedAccessGenerator,
-        LargeIntAccessor,
+        LargeIntAccessGenerator,
         LoadLibraryGenerator,
         NullAwarePropertyAccessGenerator,
         ParenthesizedExpression,
@@ -213,8 +213,8 @@ main() {
         " plainNameForRead: foo, value: null)",
         new ReadOnlyAccessGenerator<Arguments>(
             helper, token, expression, "foo"));
-    check("LargeIntAccessor(offset: 4)",
-        new LargeIntAccessor<Arguments>(helper, token));
+    check("LargeIntAccessGenerator(offset: 4, lexeme: myToken)",
+        new LargeIntAccessGenerator<Arguments>(helper, token));
     check(
         "ParenthesizedExpression(offset: 4, expression: expression,"
         " plainNameForRead: null, value: null)",

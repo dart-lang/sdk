@@ -93,7 +93,7 @@ import 'expression_generator.dart'
         IncompletePropertyAccessor,
         IncompleteSend,
         IndexedAccessGenerator,
-        LargeIntAccessor,
+        LargeIntAccessGenerator,
         LoadLibraryGenerator,
         ParenthesizedExpression,
         ReadOnlyAccessGenerator,
@@ -1614,7 +1614,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     debugEvent("LiteralInt");
     int value = int.parse(token.lexeme, onError: (_) => null);
     if (value == null) {
-      push(new LargeIntAccessor(this, token));
+      push(new LargeIntAccessGenerator(this, token));
     } else {
       push(forest.literalInt(value, token));
     }
@@ -2443,7 +2443,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       if (optional("-", token)) {
         operator = "unary-";
 
-        if (receiver is LargeIntAccessor) {
+        if (receiver is LargeIntAccessGenerator) {
           int value =
               int.parse("-" + receiver.token.lexeme, onError: (_) => null);
           if (value != null) {
