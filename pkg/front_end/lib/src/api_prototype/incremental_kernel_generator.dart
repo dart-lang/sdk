@@ -19,10 +19,10 @@ import 'compiler_options.dart' show CompilerOptions;
 
 abstract class IncrementalKernelGenerator {
   factory IncrementalKernelGenerator(CompilerOptions options, Uri entryPoint,
-      [Uri bootstrapDill]) {
+      [Uri initializeFromDillUri]) {
     return new IncrementalCompiler(
         new CompilerContext(new ProcessedOptions(options, false, [entryPoint])),
-        bootstrapDill);
+        initializeFromDillUri);
   }
 
   /// Returns a component whose libraries are the recompiled libraries,

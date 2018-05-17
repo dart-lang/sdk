@@ -33,6 +33,12 @@ Component loadComponentFromBytes(List<int> bytes, [Component component]) {
   return component;
 }
 
+Component loadComponentSourceFromBytes(List<int> bytes, [Component component]) {
+  component ??= new Component();
+  new BinaryBuilder(bytes).readComponentSource(component);
+  return component;
+}
+
 Future writeComponentToBinary(Component component, String path) {
   var sink;
   if (path == 'null' || path == 'stdout') {

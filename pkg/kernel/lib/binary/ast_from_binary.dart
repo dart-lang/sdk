@@ -402,6 +402,22 @@ class BinaryBuilder {
     }
   }
 
+  /// Deserializes the source and stores it in [component].
+  ///
+  /// The input bytes may contain multiple files concatenated.
+  void readComponentSource(Component component) {
+    List<int> componentFileSizes = _indexComponents();
+    if (componentFileSizes.length > 1) {
+      _disableLazyReading = true;
+    }
+    int componentFileIndex = 0;
+    while (_byteOffset < _bytes.length) {
+      _readOneComponentSource(
+          component, componentFileSizes[componentFileIndex]);
+      ++componentFileIndex;
+    }
+  }
+
   /// Reads a single component file from the input and loads it into [component],
   /// overwriting and reusing any existing data in the component.
   ///
@@ -466,6 +482,31 @@ class BinaryBuilder {
     _byteOffset = savedByteIndex;
 
     return result;
+  }
+
+  void _readOneComponentSource(Component component, int componentFileSize) {
+    _componentStartOffset = _byteOffset;
+
+    final int magic = readUint32();
+    if (magic != Tag.ComponentFile) {
+      throw fail('This is not a binary dart file. '
+          'Magic number was: ${magic.toRadixString(16)}');
+    }
+
+    final int formatVersion = readUint32();
+    if (formatVersion != Tag.BinaryFormatVersion) {
+      throw fail('Invalid kernel binary format version '
+          '(found ${formatVersion}, expected ${Tag.BinaryFormatVersion})');
+    }
+
+    // Read component index from the end of this ComponentFiles serialized data.
+    _ComponentIndex index = _readComponentIndex(componentFileSize);
+
+    _byteOffset = index.binaryOffsetForSourceTable;
+    Map<Uri, Source> uriToSource = readUriToSource();
+    component.uriToSource.addAll(uriToSource);
+
+    _byteOffset = _componentStartOffset + componentFileSize;
   }
 
   void _readOneComponent(Component component, int componentFileSize) {

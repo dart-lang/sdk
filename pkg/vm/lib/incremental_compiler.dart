@@ -21,11 +21,12 @@ class IncrementalCompiler {
   CompilerOptions _compilerOptions;
   bool initialized = false;
   bool fullComponent = false;
+  Uri initializeFromDillUri;
 
   IncrementalCompiler(this._compilerOptions, Uri entryPoint,
-      {Uri bootstrapDill}) {
+      {this.initializeFromDillUri}) {
     _generator = new IncrementalKernelGenerator(
-        _compilerOptions, entryPoint, bootstrapDill);
+        _compilerOptions, entryPoint, initializeFromDillUri);
     _pendingDeltas = <Component>[];
   }
 
