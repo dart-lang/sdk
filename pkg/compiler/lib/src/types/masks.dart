@@ -66,6 +66,19 @@ class CommonMasks implements AbstractValueDomain {
   TypeMask _unmodifiableArrayType;
   TypeMask _interceptorType;
 
+  /// Cache of [FlatTypeMask]s grouped by the 8 possible values of the
+  /// `FlatTypeMask.flags` property.
+  final List<Map<ClassEntity, TypeMask>> _canonicalizedTypeMasks =
+      new List<Map<ClassEntity, TypeMask>>.filled(8, null);
+
+  /// Return the cached mask for [base] with the given flags, or
+  /// calls [createMask] to create the mask and cache it.
+  TypeMask getCachedMask(ClassEntity base, int flags, TypeMask createMask()) {
+    Map<ClassEntity, TypeMask> cachedMasks =
+        _canonicalizedTypeMasks[flags] ??= <ClassEntity, TypeMask>{};
+    return cachedMasks.putIfAbsent(base, createMask);
+  }
+
   TypeMask get dynamicType => _dynamicType ??= new TypeMask.subclass(
       _closedWorld.commonElements.objectClass, _closedWorld);
 

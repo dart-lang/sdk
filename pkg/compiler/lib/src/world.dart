@@ -20,7 +20,7 @@ import 'js_backend/runtime_types.dart'
 import 'ordered_typeset.dart';
 import 'options.dart';
 import 'types/abstract_value_domain.dart';
-import 'types/masks.dart' show CommonMasks, FlatTypeMask, TypeMask;
+import 'types/masks.dart' show CommonMasks, TypeMask;
 import 'universe/class_set.dart';
 import 'universe/function_set.dart' show FunctionSet;
 import 'universe/selector.dart' show Selector;
@@ -279,11 +279,6 @@ abstract class ClosedWorld implements World {
   /// methods defined in [ClosedWorld].
   ClassSet getClassSet(ClassEntity cls);
 
-  /// Return the cached mask for [base] with the given flags, or
-  /// calls [createMask] to create the mask and cache it.
-  // TODO(johnniwinther): Find a better strategy for caching these?
-  TypeMask getCachedMask(ClassEntity base, int flags, TypeMask createMask());
-
   /// Returns `true` if the field [element] is known to be effectively final.
   bool fieldNeverChanges(MemberEntity element);
 
@@ -514,19 +509,8 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   @override
   ClosedWorld get closedWorld => this;
 
-  /// Cache of [FlatTypeMask]s grouped by the 8 possible values of the
-  /// `FlatTypeMask.flags` property.
-  final List<Map<ClassEntity, TypeMask>> _canonicalizedTypeMasks =
-      new List<Map<ClassEntity, TypeMask>>.filled(8, null);
-
   CommonMasks get abstractValueDomain {
     return _commonMasks;
-  }
-
-  TypeMask getCachedMask(ClassEntity base, int flags, TypeMask createMask()) {
-    Map<ClassEntity, TypeMask> cachedMasks =
-        _canonicalizedTypeMasks[flags] ??= <ClassEntity, TypeMask>{};
-    return cachedMasks.putIfAbsent(base, createMask);
   }
 
   bool checkEntity(covariant Entity element);
