@@ -1734,6 +1734,32 @@ import 'a.dart' as p;
     expect(edit.replacement, equalsIgnoringWhitespace(''));
   }
 
+  test_writeType_function() async {
+    await _assertWriteType('int Function(double a, String b)');
+  }
+
+  @failingTest
+  test_writeType_function_generic() async {
+    // TODO(scheglov) Fails because T/U are considered invisible.
+    await _assertWriteType('T Function<T, U>(T a, U b)');
+  }
+
+  test_writeType_function_noReturnType() async {
+    await _assertWriteType('Function()');
+  }
+
+  test_writeType_function_parameters_named() async {
+    await _assertWriteType('int Function(int a, {int b, int c})');
+  }
+
+  test_writeType_function_parameters_noName() async {
+    await _assertWriteType('int Function(double, String)');
+  }
+
+  test_writeType_function_parameters_positional() async {
+    await _assertWriteType('int Function(int a, [int b, int c])');
+  }
+
   test_writeType_genericType() async {
     String path = provider.convertPath('/test.dart');
     String content = 'class A {} class B<E> {}';
@@ -1804,6 +1830,14 @@ import 'a.dart' as p;
     expect(values, contains('A'));
     expect(values, contains('B'));
     expect(values, contains('C'));
+  }
+
+  test_writeType_interface_typeArguments() async {
+    await _assertWriteType('Map<int, List<String>>');
+  }
+
+  test_writeType_interface_typeArguments_allDynamic() async {
+    await _assertWriteType('Map');
   }
 
   test_writeType_null() async {
@@ -1938,6 +1972,15 @@ class B {}
     });
     SourceEdit edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('A'));
+  }
+
+  test_writeType_typedef_typeArguments() async {
+    await _assertWriteType('F<int, String>',
+        declarations: 'typedef void F<T, U>(T t, U u);');
+  }
+
+  test_writeType_void() async {
+    await _assertWriteType('void Function()');
   }
 
   test_writeTypes_empty() async {
@@ -2089,6 +2132,23 @@ class B {}
     if (selection != null) {
       expect(builder.selectionRange, selection);
     }
+  }
+
+  Future<void> _assertWriteType(String typeCode, {String declarations}) async {
+    String path = provider.convertPath('/test.dart');
+    String content = (declarations ?? '') + '$typeCode v;';
+    addSource(path, content);
+
+    var f = await _getTopLevelAccessorElement(path, 'v');
+
+    var builder = new DartChangeBuilder(session);
+    await builder.addFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeType(f.returnType);
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, typeCode);
   }
 
   Future<ClassElement> _getClassElement(String path, String name) async {

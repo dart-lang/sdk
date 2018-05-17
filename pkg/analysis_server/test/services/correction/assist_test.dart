@@ -518,7 +518,7 @@ main() {
 ''');
     await assertHasAssistAt('v =', DartAssistKind.ADD_TYPE_ANNOTATION, '''
 main() {
-  Function v = () => 1;
+  int Function() v = () => 1;
 }
 ''');
   }
