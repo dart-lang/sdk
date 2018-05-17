@@ -51,10 +51,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   ///
   /// The BinaryPrinter will use its own buffer, so the [sink] does not need
   /// one.
-  ///
-  /// If multiple binaries are to be written based on the same IR, a shared
-  /// [globalIndexer] may be passed in to avoid rebuilding the same indices
-  /// in every printer.
   BinaryPrinter(Sink<List<int>> sink, {StringIndexer stringIndexer})
       : _mainSink = new BufferedSink(sink),
         _metadataSink = new BufferedSink(new BytesSink()),
@@ -2105,53 +2101,6 @@ class UriIndexer {
       index[uri] = result;
     }
     return result;
-  }
-}
-
-/// Computes and stores the index of a library, class, or member within its
-/// parent list.
-class GlobalIndexer extends TreeVisitor {
-  final Map<TreeNode, int> indices = <TreeNode, int>{};
-
-  void buildIndexForContainer(TreeNode libraryOrClass) {
-    libraryOrClass.accept(this);
-  }
-
-  void buildIndexForList(List<TreeNode> list) {
-    for (int i = 0; i < list.length; ++i) {
-      TreeNode child = list[i];
-      if (child != null) {
-        indices[child] = i;
-      }
-    }
-  }
-
-  visitComponent(Component node) {
-    buildIndexForList(node.libraries);
-  }
-
-  visitLibrary(Library node) {
-    buildIndexForList(node.classes);
-    buildIndexForList(node.fields);
-    buildIndexForList(node.procedures);
-  }
-
-  visitClass(Class node) {
-    buildIndexForList(node.fields);
-    buildIndexForList(node.constructors);
-    buildIndexForList(node.procedures);
-  }
-
-  int operator [](TreeNode memberOrLibraryOrClass) {
-    var node = memberOrLibraryOrClass;
-    assert(node is Member || node is Library || node is Class);
-    int index = indices[node];
-    if (index == null) {
-      buildIndexForContainer(node.parent);
-      return indices[node];
-    } else {
-      return index;
-    }
   }
 }
 
