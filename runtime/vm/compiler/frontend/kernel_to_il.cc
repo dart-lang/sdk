@@ -1178,18 +1178,53 @@ Fragment FlowGraphBuilder::CatchBlockEntry(const Array& handler_types,
                                            intptr_t handler_index,
                                            bool needs_stacktrace,
                                            bool is_synthesized) {
-  ASSERT(CurrentException()->is_captured() ==
-         CurrentStackTrace()->is_captured());
-  const bool should_restore_closure_context =
-      CurrentException()->is_captured() || CurrentCatchContext()->is_captured();
+  LocalVariable* exception_var = CurrentException();
+  LocalVariable* stacktrace_var = CurrentStackTrace();
+  LocalVariable* raw_exception_var = CurrentRawException();
+  LocalVariable* raw_stacktrace_var = CurrentRawStackTrace();
+
   CatchBlockEntryInstr* entry = new (Z) CatchBlockEntryInstr(
       TokenPosition::kNoSource,  // Token position of catch block.
       is_synthesized,  // whether catch block was synthesized by FE compiler
       AllocateBlockId(), CurrentTryIndex(), graph_entry_, handler_types,
-      handler_index, *CurrentException(), *CurrentStackTrace(),
-      needs_stacktrace, GetNextDeoptId(), should_restore_closure_context);
+      handler_index, *exception_var, *stacktrace_var, needs_stacktrace,
+      GetNextDeoptId(), raw_exception_var, raw_stacktrace_var);
   graph_entry_->AddCatchEntry(entry);
+
   Fragment instructions(entry);
+
+  // Auxiliary variables introduced by the try catch can be captured if we are
+  // inside a function with yield/resume points. In this case we first need
+  // to restore the context to match the context at entry into the closure.
+  const bool should_restore_closure_context =
+      CurrentException()->is_captured() || CurrentCatchContext()->is_captured();
+  LocalVariable* context_variable = parsed_function_->current_context_var();
+  if (should_restore_closure_context) {
+    ASSERT(parsed_function_->function().IsClosureFunction());
+    LocalScope* scope = parsed_function_->node_sequence()->scope();
+
+    LocalVariable* closure_parameter = scope->VariableAt(0);
+    ASSERT(!closure_parameter->is_captured());
+    instructions += LoadLocal(closure_parameter);
+    instructions += LoadField(Closure::context_offset());
+    instructions += StoreLocal(TokenPosition::kNoSource, context_variable);
+    instructions += Drop();
+  }
+
+  if (exception_var->is_captured()) {
+    instructions += LoadLocal(context_variable);
+    instructions += LoadLocal(raw_exception_var);
+    instructions +=
+        StoreInstanceField(TokenPosition::kNoSource,
+                           Context::variable_offset(exception_var->index()));
+  }
+  if (stacktrace_var->is_captured()) {
+    instructions += LoadLocal(context_variable);
+    instructions += LoadLocal(raw_stacktrace_var);
+    instructions +=
+        StoreInstanceField(TokenPosition::kNoSource,
+                           Context::variable_offset(stacktrace_var->index()));
+  }
 
   // :saved_try_context_var can be captured in the context of
   // of the closure, in this case CatchBlockEntryInstr restores
