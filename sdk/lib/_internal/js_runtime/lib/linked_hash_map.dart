@@ -197,7 +197,9 @@ class JsLinkedHashMap<K, V> extends MapBase<K, V>
     LinkedHashMapCell cell = _first;
     int modifications = _modifications;
     while (cell != null) {
-      action(cell.hashMapCellKey, cell.hashMapCellValue);
+      K key = JS('', '#', cell.hashMapCellKey);
+      V value = JS('', '#', cell.hashMapCellValue);
+      action(key, value);
       if (modifications != _modifications) {
         throw new ConcurrentModificationError(this);
       }
@@ -398,7 +400,7 @@ class LinkedHashMapKeyIterable<E> extends EfficientLengthIterable<E> {
     LinkedHashMapCell cell = _map._first;
     int modifications = _map._modifications;
     while (cell != null) {
-      f(cell.hashMapCellKey);
+      f(JS('', '#', cell.hashMapCellKey));
       if (modifications != _map._modifications) {
         throw new ConcurrentModificationError(_map);
       }
@@ -426,7 +428,7 @@ class LinkedHashMapKeyIterator<E> implements Iterator<E> {
       _current = null;
       return false;
     } else {
-      _current = _cell.hashMapCellKey;
+      _current = JS('', '#', _cell.hashMapCellKey);
       _cell = _cell._next;
       return true;
     }
