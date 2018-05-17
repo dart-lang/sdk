@@ -12,17 +12,6 @@ main() {
 
 class ClassDeclarationTest extends PartialCodeTest {
   buildAll() {
-    List<String> allExceptEof = <String>[
-      'class',
-      'typedef',
-      'functionVoid',
-      'functionNonVoid',
-      'var',
-      'const',
-      'final',
-      'getter',
-      'setter'
-    ];
     buildTests(
         'class_declaration',
         [
@@ -45,15 +34,14 @@ class ClassDeclarationTest extends PartialCodeTest {
                 ParserErrorCode.MISSING_CLASS_BODY
               ],
               'class A extends _s_ {}',
-              failing: allExceptEof),
+              failing: ['functionVoid', 'functionNonVoid', 'getter']),
           new TestDescriptor('extendsBody', 'class A extends {}',
               [ParserErrorCode.EXPECTED_TYPE_NAME], 'class A extends _s_ {}'),
           new TestDescriptor(
               'extendsWithNameBody',
               'class A extends with B {}',
               [ParserErrorCode.EXPECTED_TYPE_NAME],
-              'class A extends _s_ with B {}',
-              allFailing: true),
+              'class A extends _s_ with B {}'),
           new TestDescriptor(
               'extendsImplementsNameBody',
               'class A extends implements B {}',
@@ -82,7 +70,7 @@ class ClassDeclarationTest extends PartialCodeTest {
                 ParserErrorCode.MISSING_CLASS_BODY
               ],
               'class A extends B implements _s_ {}',
-              failing: allExceptEof),
+              failing: ['functionVoid', 'functionNonVoid', 'getter']),
           new TestDescriptor(
               'extendsNameImplementsBody',
               'class A extends B implements {}',
@@ -96,7 +84,7 @@ class ClassDeclarationTest extends PartialCodeTest {
                 ParserErrorCode.MISSING_CLASS_BODY
               ],
               'class A extends B with C implements _s_ {}',
-              failing: allExceptEof),
+              failing: ['functionVoid', 'functionNonVoid', 'getter']),
           new TestDescriptor(
               'extendsNameWithNameImplementsBody',
               'class A extends B with C implements {}',
@@ -110,7 +98,7 @@ class ClassDeclarationTest extends PartialCodeTest {
                 ParserErrorCode.MISSING_CLASS_BODY
               ],
               'class A implements _s_ {}',
-              failing: allExceptEof),
+              failing: ['functionVoid', 'functionNonVoid', 'getter']),
           new TestDescriptor(
               'implementsBody',
               'class A implements {}',
@@ -124,7 +112,7 @@ class ClassDeclarationTest extends PartialCodeTest {
                 ParserErrorCode.MISSING_CLASS_BODY
               ],
               'class A implements B, _s_ {}',
-              failing: allExceptEof),
+              failing: ['functionVoid', 'functionNonVoid', 'getter']),
           new TestDescriptor(
               'implementsNameCommaBody',
               'class A implements B, {}',

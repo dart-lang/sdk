@@ -1756,7 +1756,8 @@ class Parser {
             TokenType.IDENTIFIER, 'Object', next.offset, 0);
         rewriter.insertTokenAfter(token, extendsKeyword);
         rewriter.insertTokenAfter(extendsKeyword, superclassToken);
-        token = parseType(extendsKeyword);
+        token = computeType(extendsKeyword, true)
+            .ensureTypeNotVoid(extendsKeyword, this);
         token = parseMixinApplicationRest(token);
         listener.handleClassExtends(extendsKeyword);
       } else {
@@ -1820,7 +1821,7 @@ class Parser {
     Token next = token.next;
     if (optional('extends', next)) {
       Token extendsKeyword = next;
-      token = parseType(next);
+      token = computeType(next, true).ensureTypeNotVoid(next, this);
       if (optional('with', token.next)) {
         token = parseMixinApplicationRest(token);
       } else {
@@ -1845,7 +1846,8 @@ class Parser {
     if (optional('implements', token.next)) {
       implementsKeyword = token.next;
       do {
-        token = parseType(token.next);
+        token =
+            computeType(token.next, true).ensureTypeNotVoid(token.next, this);
         ++interfacesCount;
       } while (optional(',', token.next));
     }
