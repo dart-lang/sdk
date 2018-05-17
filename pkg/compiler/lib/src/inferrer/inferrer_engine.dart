@@ -17,6 +17,7 @@ import '../js_backend/no_such_method_registry.dart';
 import '../js_emitter/sorter.dart';
 import '../native/behavior.dart' as native;
 import '../options.dart';
+import '../types/abstract_value_domain.dart';
 import '../types/constants.dart';
 import '../types/types.dart';
 import '../universe/call_structure.dart';
@@ -56,7 +57,8 @@ abstract class InferrerEngine<T> {
   ClosedWorld get closedWorld;
   ClosedWorldRefiner get closedWorldRefiner;
   DiagnosticReporter get reporter;
-  CommonMasks get commonMasks => closedWorld.abstractValueDomain;
+  AbstractValueDomain get abstractValueDomain =>
+      closedWorld.abstractValueDomain;
   CommonElements get commonElements => closedWorld.commonElements;
 
   // TODO(johnniwinther): This should be part of [ClosedWorld] or
@@ -438,7 +440,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
 
     info.bailedOut = false;
     info.elementType.inferred = true;
-    TypeMask fixedListType = commonMasks.fixedListType;
+    TypeMask fixedListType = abstractValueDomain.fixedListType;
     if (info.originalType.forwardTo == fixedListType) {
       info.checksGrowable = tracer.callsGrowableMethod;
     }

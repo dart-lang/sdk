@@ -371,4 +371,29 @@ class CommonMasks implements AbstractValueDomain {
   AbstractValue computeAbstractValueForConstant(ConstantValue value) {
     return computeTypeMask(_closedWorld, value);
   }
+
+  @override
+  AbstractValue getMapValueType(AbstractValue value) {
+    if (value is MapTypeMask) {
+      return value.valueType ?? dynamicType;
+    }
+    return dynamicType;
+  }
+
+  @override
+  AbstractValue getContainerElementType(AbstractValue value) {
+    if (value is ContainerTypeMask) {
+      return value.elementType ?? dynamicType;
+    }
+    return dynamicType;
+  }
+
+  @override
+  AbstractValue unionOfMany(List<AbstractValue> values) {
+    TypeMask result = const TypeMask.nonNullEmpty();
+    for (TypeMask value in values) {
+      result = result.union(value, _closedWorld);
+    }
+    return result;
+  }
 }

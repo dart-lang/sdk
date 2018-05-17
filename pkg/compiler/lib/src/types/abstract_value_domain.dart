@@ -230,6 +230,10 @@ abstract class AbstractValueDomain {
   /// [b].
   AbstractValue union(covariant AbstractValue a, covariant AbstractValue b);
 
+  /// Returns [AbstractValue] for the runtime values contained in at least one
+  /// of [values].
+  AbstractValue unionOfMany(List<AbstractValue> values);
+
   /// Returns [AbstractValue] for the runtime values that [a] and [b] have in
   /// common.
   AbstractValue intersection(
@@ -243,4 +247,12 @@ abstract class AbstractValueDomain {
 
   /// Computes the [AbstractValue] corresponding to the constant [value].
   AbstractValue computeAbstractValueForConstant(ConstantValue value);
+
+  /// Returns the element type of [value] if it represents a container value
+  /// at runtime. Returns [dynamicType] otherwise.
+  AbstractValue getContainerElementType(AbstractValue value);
+
+  /// Returns the value type of [value] if it represents a map value at runtime.
+  /// Returns [dynamicType] otherwise.
+  AbstractValue getMapValueType(AbstractValue value);
 }

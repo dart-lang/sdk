@@ -18,6 +18,7 @@ import '../js_emitter/sorter.dart';
 import '../js_model/locals.dart';
 import '../kernel/element_map.dart';
 import '../options.dart';
+import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
 import '../world.dart';
 import 'builder_kernel.dart';
@@ -81,14 +82,13 @@ class KernelGlobalTypeInferenceResults
         // for closure elements.
         inferrer.inferrer.lookupDataOfMember(member),
         inferrer,
-        isJsInterop,
-        dynamicType);
+        isJsInterop);
   }
 
   GlobalTypeInferenceParameterResult<ir.Node> createParameterResult(
       TypeGraphInferrer<ir.Node> inferrer, Local parameter) {
     return new GlobalTypeInferenceParameterResultImpl<ir.Node>(
-        parameter, inferrer, dynamicType);
+        parameter, inferrer);
   }
 }
 
@@ -331,62 +331,65 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy<ir.Node> {
 class KernelGlobalTypeInferenceElementData
     extends GlobalTypeInferenceElementData<ir.Node> {
   // TODO(johnniwinther): Rename this together with [typeOfSend].
-  Map<ir.Node, TypeMask> _sendMap;
+  Map<ir.Node, AbstractValue> _sendMap;
 
-  Map<ir.ForInStatement, TypeMask> _iteratorMap;
-  Map<ir.ForInStatement, TypeMask> _currentMap;
-  Map<ir.ForInStatement, TypeMask> _moveNextMap;
+  Map<ir.ForInStatement, AbstractValue> _iteratorMap;
+  Map<ir.ForInStatement, AbstractValue> _currentMap;
+  Map<ir.ForInStatement, AbstractValue> _moveNextMap;
 
   @override
-  TypeMask typeOfSend(ir.Node node) {
+  AbstractValue typeOfSend(ir.Node node) {
     if (_sendMap == null) return null;
     return _sendMap[node];
   }
 
   @override
-  void setCurrentTypeMask(covariant ir.ForInStatement node, TypeMask mask) {
-    _currentMap ??= <ir.ForInStatement, TypeMask>{};
+  void setCurrentTypeMask(
+      covariant ir.ForInStatement node, AbstractValue mask) {
+    _currentMap ??= <ir.ForInStatement, AbstractValue>{};
     _currentMap[node] = mask;
   }
 
   @override
-  void setMoveNextTypeMask(covariant ir.ForInStatement node, TypeMask mask) {
-    _moveNextMap ??= <ir.ForInStatement, TypeMask>{};
+  void setMoveNextTypeMask(
+      covariant ir.ForInStatement node, AbstractValue mask) {
+    _moveNextMap ??= <ir.ForInStatement, AbstractValue>{};
     _moveNextMap[node] = mask;
   }
 
   @override
-  void setIteratorTypeMask(covariant ir.ForInStatement node, TypeMask mask) {
-    _iteratorMap ??= <ir.ForInStatement, TypeMask>{};
+  void setIteratorTypeMask(
+      covariant ir.ForInStatement node, AbstractValue mask) {
+    _iteratorMap ??= <ir.ForInStatement, AbstractValue>{};
     _iteratorMap[node] = mask;
   }
 
   @override
-  TypeMask typeOfIteratorCurrent(covariant ir.ForInStatement node) {
+  AbstractValue typeOfIteratorCurrent(covariant ir.ForInStatement node) {
     if (_currentMap == null) return null;
     return _currentMap[node];
   }
 
   @override
-  TypeMask typeOfIteratorMoveNext(covariant ir.ForInStatement node) {
+  AbstractValue typeOfIteratorMoveNext(covariant ir.ForInStatement node) {
     if (_moveNextMap == null) return null;
     return _moveNextMap[node];
   }
 
   @override
-  TypeMask typeOfIterator(covariant ir.ForInStatement node) {
+  AbstractValue typeOfIterator(covariant ir.ForInStatement node) {
     if (_iteratorMap == null) return null;
     return _iteratorMap[node];
   }
 
   @override
-  void setTypeMask(ir.Node node, TypeMask mask) {
-    _sendMap ??= <ir.Node, TypeMask>{};
+  void setTypeMask(ir.Node node, AbstractValue mask) {
+    _sendMap ??= <ir.Node, AbstractValue>{};
     _sendMap[node] = mask;
   }
 
   @override
-  TypeMask typeOfGetter(ir.Node node) {
+  AbstractValue typeOfGetter(ir.Node node) {
     if (_sendMap == null) return null;
     return _sendMap[node];
   }

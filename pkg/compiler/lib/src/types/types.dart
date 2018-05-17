@@ -11,8 +11,8 @@ import '../elements/entities.dart';
 import '../inferrer/type_graph_inferrer.dart' show TypeGraphInferrer;
 import '../universe/selector.dart' show Selector;
 import '../world.dart' show ClosedWorld, ClosedWorldRefiner;
+import 'abstract_value_domain.dart';
 
-import 'masks.dart';
 export 'masks.dart';
 
 /// Results about a single element (e.g. a method, parameter, or field)
@@ -31,33 +31,33 @@ abstract class GlobalTypeInferenceElementResult<T> {
 
   /// The inferred type when this result belongs to a parameter or field
   /// element, null otherwise.
-  TypeMask get type;
+  AbstractValue get type;
 
   /// The inferred return type when this result belongs to a function element.
-  TypeMask get returnType;
+  AbstractValue get returnType;
 
   /// Returns the type of a list new expression [node].
-  TypeMask typeOfNewList(T node);
+  AbstractValue typeOfNewList(T node);
 
   /// Returns the type of a list literal [node].
-  TypeMask typeOfListLiteral(T node);
+  AbstractValue typeOfListLiteral(T node);
 
   /// Returns the type of a send [node].
   // TODO(johnniwinther): Rename this.
-  TypeMask typeOfSend(T node);
+  AbstractValue typeOfSend(T node);
 
   /// Returns the type of the getter in a complex send-set [node], for example,
   /// the type of the `a.f` getter in `a.f += b`.
-  TypeMask typeOfGetter(T node);
+  AbstractValue typeOfGetter(T node);
 
   /// Returns the type of the iterator in a [loop].
-  TypeMask typeOfIterator(T node);
+  AbstractValue typeOfIterator(T node);
 
   /// Returns the type of the `moveNext` call of an iterator in a [loop].
-  TypeMask typeOfIteratorMoveNext(T node);
+  AbstractValue typeOfIteratorMoveNext(T node);
 
   /// Returns the type of the `current` getter of an iterator in a [loop].
-  TypeMask typeOfIteratorCurrent(T node);
+  AbstractValue typeOfIteratorCurrent(T node);
 }
 
 abstract class GlobalTypeInferenceMemberResult<T>
@@ -78,27 +78,27 @@ abstract class GlobalTypeInferenceElementResultImpl<T>
   // TODO(sigmund): store relevant data & drop reference to inference engine.
   final TypesInferrer<T> _inferrer;
   final bool _isJsInterop;
-  final TypeMask _dynamic;
 
   GlobalTypeInferenceElementResultImpl(
-      this._data, this._inferrer, this._isJsInterop, this._dynamic);
+      this._data, this._inferrer, this._isJsInterop);
 
   bool get throwsAlways {
-    TypeMask mask = this.returnType;
+    AbstractValue mask = this.returnType;
     // Always throws if the return type was inferred to be non-null empty.
-    return mask != null && mask.isEmpty;
+    return mask != null && _inferrer.abstractValueDomain.isEmpty(mask);
   }
 
-  TypeMask typeOfNewList(T node) => _inferrer.getTypeForNewList(node);
+  AbstractValue typeOfNewList(T node) => _inferrer.getTypeForNewList(node);
 
-  TypeMask typeOfListLiteral(T node) => _inferrer.getTypeForNewList(node);
+  AbstractValue typeOfListLiteral(T node) => _inferrer.getTypeForNewList(node);
 
-  TypeMask typeOfSend(T node) => _data?.typeOfSend(node);
-  TypeMask typeOfGetter(T node) => _data?.typeOfGetter(node);
-  TypeMask typeOfIterator(T node) => _data?.typeOfIterator(node);
-  TypeMask typeOfIteratorMoveNext(T node) =>
+  AbstractValue typeOfSend(T node) => _data?.typeOfSend(node);
+  AbstractValue typeOfGetter(T node) => _data?.typeOfGetter(node);
+  AbstractValue typeOfIterator(T node) => _data?.typeOfIterator(node);
+  AbstractValue typeOfIteratorMoveNext(T node) =>
       _data?.typeOfIteratorMoveNext(node);
-  TypeMask typeOfIteratorCurrent(T node) => _data?.typeOfIteratorCurrent(node);
+  AbstractValue typeOfIteratorCurrent(T node) =>
+      _data?.typeOfIteratorCurrent(node);
 }
 
 class GlobalTypeInferenceMemberResultImpl<T>
@@ -111,17 +111,18 @@ class GlobalTypeInferenceMemberResultImpl<T>
       this._owner,
       GlobalTypeInferenceElementData data,
       TypesInferrer inferrer,
-      bool isJsInterop,
-      TypeMask _dynamic)
-      : super(data, inferrer, isJsInterop, _dynamic);
+      bool isJsInterop)
+      : super(data, inferrer, isJsInterop);
 
   bool get isCalledOnce => _inferrer.isMemberCalledOnce(_owner);
 
-  TypeMask get returnType =>
-      _isJsInterop ? _dynamic : _inferrer.getReturnTypeOfMember(_owner);
+  AbstractValue get returnType => _isJsInterop
+      ? _inferrer.abstractValueDomain.dynamicType
+      : _inferrer.getReturnTypeOfMember(_owner);
 
-  TypeMask get type =>
-      _isJsInterop ? _dynamic : _inferrer.getTypeOfMember(_owner);
+  AbstractValue get type => _isJsInterop
+      ? _inferrer.abstractValueDomain.dynamicType
+      : _inferrer.getTypeOfMember(_owner);
 }
 
 class GlobalTypeInferenceParameterResultImpl<T>
@@ -130,48 +131,50 @@ class GlobalTypeInferenceParameterResultImpl<T>
   // TODO(sigmund): delete, store data directly here.
   final Local _owner;
 
-  GlobalTypeInferenceParameterResultImpl(
-      this._owner, TypesInferrer inferrer, TypeMask _dynamic)
-      : super(null, inferrer, false, _dynamic);
+  GlobalTypeInferenceParameterResultImpl(this._owner, TypesInferrer inferrer)
+      : super(null, inferrer, false);
 
-  TypeMask get returnType =>
-      _isJsInterop ? _dynamic : _inferrer.getReturnTypeOfParameter(_owner);
+  AbstractValue get returnType => _isJsInterop
+      ? _inferrer.abstractValueDomain.dynamicType
+      : _inferrer.getReturnTypeOfParameter(_owner);
 
-  TypeMask get type =>
-      _isJsInterop ? _dynamic : _inferrer.getTypeOfParameter(_owner);
+  AbstractValue get type => _isJsInterop
+      ? _inferrer.abstractValueDomain.dynamicType
+      : _inferrer.getTypeOfParameter(_owner);
 }
 
 /// Internal data used during type-inference to store intermediate results about
 /// a single element.
 abstract class GlobalTypeInferenceElementData<T> {
   // TODO(johnniwinther): Remove this. Maybe split by access/invoke.
-  TypeMask typeOfSend(T node);
-  TypeMask typeOfGetter(T node);
+  AbstractValue typeOfSend(T node);
+  AbstractValue typeOfGetter(T node);
 
-  void setTypeMask(T node, TypeMask mask);
+  void setTypeMask(T node, AbstractValue mask);
 
-  TypeMask typeOfIterator(T node);
+  AbstractValue typeOfIterator(T node);
 
-  TypeMask typeOfIteratorMoveNext(T node);
+  AbstractValue typeOfIteratorMoveNext(T node);
 
-  TypeMask typeOfIteratorCurrent(T node);
+  AbstractValue typeOfIteratorCurrent(T node);
 
-  void setIteratorTypeMask(T node, TypeMask mask);
+  void setIteratorTypeMask(T node, AbstractValue mask);
 
-  void setMoveNextTypeMask(T node, TypeMask mask);
+  void setMoveNextTypeMask(T node, AbstractValue mask);
 
-  void setCurrentTypeMask(T node, TypeMask mask);
+  void setCurrentTypeMask(T node, AbstractValue mask);
 }
 
 /// API to interact with the global type-inference engine.
 abstract class TypesInferrer<T> {
+  AbstractValueDomain get abstractValueDomain;
   void analyzeMain(FunctionEntity element);
-  TypeMask getReturnTypeOfMember(MemberEntity element);
-  TypeMask getReturnTypeOfParameter(Local element);
-  TypeMask getTypeOfMember(MemberEntity element);
-  TypeMask getTypeOfParameter(Local element);
-  TypeMask getTypeForNewList(T node);
-  TypeMask getTypeOfSelector(Selector selector, TypeMask mask);
+  AbstractValue getReturnTypeOfMember(MemberEntity element);
+  AbstractValue getReturnTypeOfParameter(Local element);
+  AbstractValue getTypeOfMember(MemberEntity element);
+  AbstractValue getTypeOfParameter(Local element);
+  AbstractValue getTypeForNewList(T node);
+  AbstractValue getTypeOfSelector(Selector selector, AbstractValue receiver);
   void clear();
   bool isMemberCalledOnce(MemberEntity element);
   bool isFixedArrayCheckedForGrowable(T node);
@@ -226,11 +229,9 @@ abstract class GlobalTypeInferenceResults<T> {
         parameter, () => createParameterResult(_inferrer, parameter));
   }
 
-  TypeMask get dynamicType => closedWorld.abstractValueDomain.dynamicType;
-
   /// Returns the type of a [selector] when applied to a receiver with the given
   /// type [mask].
-  TypeMask typeOfSelector(Selector selector, TypeMask mask) =>
+  AbstractValue typeOfSelector(Selector selector, AbstractValue mask) =>
       _inferrer.getTypeOfSelector(selector, mask);
 
   /// Returns whether a fixed-length constructor call goes through a growable

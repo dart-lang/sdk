@@ -610,19 +610,19 @@ class FactoryConstructorTypeInformation extends MemberTypeInformation {
       : super._internal(element);
 
   TypeMask handleSpecialCases(InferrerEngine inferrer) {
-    CommonMasks commonMasks = inferrer.commonMasks;
+    CommonMasks abstractValueDomain = inferrer.abstractValueDomain;
     if (_constructor.isFromEnvironmentConstructor) {
       if (_constructor.enclosingClass == inferrer.commonElements.intClass) {
         giveUp(inferrer);
-        return commonMasks.intType.nullable();
+        return abstractValueDomain.intType.nullable();
       } else if (_constructor.enclosingClass ==
           inferrer.commonElements.boolClass) {
         giveUp(inferrer);
-        return commonMasks.boolType.nullable();
+        return abstractValueDomain.boolType.nullable();
       } else if (_constructor.enclosingClass ==
           inferrer.commonElements.stringClass) {
         giveUp(inferrer);
-        return commonMasks.stringType.nullable();
+        return abstractValueDomain.stringType.nullable();
       }
     }
     return _handleFunctionCase(_constructor, inferrer);
@@ -1020,7 +1020,7 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
     TypeMask receiverType = receiver.type;
 
     if (mask != receiverType) {
-      return receiverType == inferrer.commonMasks.dynamicType
+      return receiverType == inferrer.abstractValueDomain.dynamicType
           ? null
           : receiverType;
     } else {
@@ -1198,7 +1198,7 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
     // for all these targets.
     TypeMask result;
     if (_hasClosureCallTargets) {
-      result = inferrer.commonMasks.dynamicType;
+      result = inferrer.abstractValueDomain.dynamicType;
     } else {
       result = inferrer.types
           .joinTypeMasks(_concreteTargets.map((MemberEntity element) {
