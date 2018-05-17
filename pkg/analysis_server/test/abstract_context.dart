@@ -53,7 +53,7 @@ class AbstractContextTest extends Object with ResourceProviderMixin {
   UriResolver resourceResolver;
 
   StringBuffer _logBuffer = new StringBuffer();
-  FileContentOverlay _fileContentOverlay = new FileContentOverlay();
+  FileContentOverlay fileContentOverlay = new FileContentOverlay();
   AnalysisDriver _driver;
 
   AnalysisDriver get driver => _driver;
@@ -101,7 +101,7 @@ class _IsTestGroup {
     Source source = file.createSource(uri);
     driver.addFile(file.path);
     driver.changeFile(file.path);
-    _fileContentOverlay[file.path] = content;
+    fileContentOverlay[file.path] = content;
     return source;
   }
 
@@ -136,7 +136,7 @@ class _IsTestGroup {
         log,
         resourceProvider,
         new MemoryByteStore(),
-        _fileContentOverlay,
+        fileContentOverlay,
         new ContextRoot(resourceProvider.convertPath('/project'), []),
         sourceFactory,
         new AnalysisOptionsImpl()..strongMode = true);

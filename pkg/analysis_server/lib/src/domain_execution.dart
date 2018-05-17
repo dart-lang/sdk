@@ -9,6 +9,7 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/domains/execution/completion.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -58,6 +59,30 @@ class ExecutionDomainHandler implements RequestHandler {
     return new ExecutionDeleteContextResult().toResponse(request.id);
   }
 
+  /**
+   * Implement the 'execution.getSuggestions' request.
+   */
+  void getSuggestions(Request request) async {
+    var params = new ExecutionGetSuggestionsParams.fromRequest(request);
+    var computer = new RuntimeCompletionComputer(
+        server.resourceProvider,
+        server.fileContentOverlay,
+        server.getAnalysisDriver(params.contextFile),
+        params.code,
+        params.offset,
+        params.contextFile,
+        params.contextOffset,
+        params.variables,
+        params.expressions);
+    RuntimeCompletionResult completionResult = await computer.compute();
+
+    // Send the response.
+    var result = new ExecutionGetSuggestionsResult(
+        suggestions: completionResult.suggestions,
+        expressions: completionResult.expressions);
+    server.sendResponse(result.toResponse(request.id));
+  }
+
   @override
   Response handleRequest(Request request) {
     try {
@@ -66,6 +91,9 @@ class ExecutionDomainHandler implements RequestHandler {
         return createContext(request);
       } else if (requestName == EXECUTION_REQUEST_DELETE_CONTEXT) {
         return deleteContext(request);
+      } else if (requestName == EXECUTION_REQUEST_GET_SUGGESTIONS) {
+        getSuggestions(request);
+        return Response.DELAYED_RESPONSE;
       } else if (requestName == EXECUTION_REQUEST_MAP_URI) {
         return mapUri(request);
       } else if (requestName == EXECUTION_REQUEST_SET_SUBSCRIPTIONS) {

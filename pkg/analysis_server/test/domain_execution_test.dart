@@ -6,6 +6,7 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_execution.dart';
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -175,6 +176,38 @@ class ExecutionDomainTest extends AbstractAnalysisTest {
   void tearDown() {
     _disposeExecutionContext();
     super.tearDown();
+  }
+
+  test_getSuggestions() async {
+    var code = r'''
+class A {
+  int foo;
+}
+
+void contextFunction() {
+  var a = new A();
+  // context line
+}
+''';
+
+    String path = newFile('/test.dart').path;
+    newFile(path, content: code);
+
+    Request request = new ExecutionGetSuggestionsParams(
+        'a.',
+        2,
+        path,
+        code.indexOf('// context line'),
+        <RuntimeCompletionVariable>[]).toRequest('0');
+    Response response = await waitResponse(request);
+
+    var result = new ExecutionGetSuggestionsResult.fromResponse(response);
+    expect(result.suggestions, isNotEmpty);
+
+    expect(
+        result.suggestions,
+        contains(
+            predicate<CompletionSuggestion>((s) => s.completion == 'foo')));
   }
 
   void test_mapUri_file() {

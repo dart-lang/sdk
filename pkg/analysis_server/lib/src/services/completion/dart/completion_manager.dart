@@ -57,7 +57,7 @@ class DartCompletionManager implements CompletionContributor {
   Future<List<CompletionSuggestion>> computeSuggestions(
       CompletionRequest request) async {
     request.checkAborted();
-    if (!AnalysisEngine.isDartFileName(request.source.shortName)) {
+    if (!AnalysisEngine.isDartFileName(request.result.path)) {
       return EMPTY_LIST;
     }
 
