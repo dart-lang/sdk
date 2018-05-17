@@ -65,10 +65,8 @@ jsAst.Statement buildSetupProgram(
   String defaultValuesField = namer.defaultValuesField;
   String methodsWithOptionalArgumentsField =
       namer.methodsWithOptionalArgumentsField;
-  bool retainMetadata = false;
-  String unmangledNameIndex = retainMetadata
-      ? ' 3 * optionalParameterCount + 2 * requiredParameterCount + 3'
-      : ' 2 * optionalParameterCount + requiredParameterCount + 3';
+  String unmangledNameIndex =
+      ' 2 * optionalParameterCount + requiredParameterCount + 3';
   String receiverParamName =
       compiler.options.enableMinification ? "r" : "receiver";
   String valueParamName = compiler.options.enableMinification ? "v" : "value";
@@ -104,7 +102,6 @@ jsAst.Statement buildSetupProgram(
     'deferredAction': namer.deferredAction,
     'allClasses': allClassesAccess,
     'debugFastObjects': DEBUG_FAST_OBJECTS,
-    'isTreeShakingDisabled': false,
     'precompiled': precompiledAccess,
     'finishedClassesAccess': finishedClassesAccess,
     'needsMixinSupport': emitter.needsMixinSupport,
@@ -116,7 +113,6 @@ jsAst.Statement buildSetupProgram(
     'isObject': namer.operatorIs(closedWorld.commonElements.objectClass),
     'specProperty': js.string(namer.nativeSpecProperty),
     'trivialNsmHandlers': emitter.buildTrivialNsmHandlers(),
-    'hasRetainedMetadata': false,
     'types': typesAccess,
     'objectClassName': js.quoteName(
         namer.runtimeTypeName(closedWorld.commonElements.objectClass)),
@@ -309,8 +305,6 @@ function $setupProgramName(programData, metadataOffset, typesOffset) {
         var desc = processedClasses.collected[cls];
         var globalObject = desc[0];
         desc = desc[1];
-        if (#isTreeShakingDisabled)
-          constructor["${namer.metadataField}"] = desc;
         allClasses[cls] = constructor;
         globalObject[cls] = constructor;
       }
@@ -520,11 +514,6 @@ function $setupProgramName(programData, metadataOffset, typesOffset) {
       var classData = descriptor["${namer.classDescriptorProperty}"],
           split, supr, fields = classData;
 
-      if (#hasRetainedMetadata)
-        if (typeof classData == "object" &&
-            classData instanceof Array) {
-          classData = fields = classData[0];
-        }
       // ${ClassBuilder.fieldEncodingDescription}.
       var s = fields.split(";");
       fields = s[1] ? s[1].split(",") : [];
@@ -664,14 +653,6 @@ function $setupProgramName(programData, metadataOffset, typesOffset) {
           ${readInt("array", "position")} =
               ${readInt("array", "position")} + metadataOffset;
           position++;
-          if ($retainMetadata) {
-            var metaArray = ${readInt("array", "position")};
-            for (var j = 0; j < metaArray.length; j++) {
-              ${readInt("metaArray", "j")} =
-                ${readInt("metaArray", "j")} + metadataOffset;
-            }
-            position++;
-          }
         }
       }
       var unmangledNameIndex = $unmangledNameIndex;

@@ -21,11 +21,6 @@ class Program {
   /// A map from load id to the list of fragments that need to be loaded.
   final Map<String, List<Fragment>> loadMap;
 
-  /// A map from names to strings.
-  ///
-  /// This map is needed to support `const Symbol` expressions;
-  final Map<js.Name, String> symbolsMap;
-
   // If this field is not `null` then its value must be emitted in the embedded
   // global `TYPE_TO_INTERCEPTOR_MAP`. The map references constants and classes.
   final js.Expression typeToInterceptorMap;
@@ -35,8 +30,8 @@ class Program {
   final MetadataCollector _metadataCollector;
   final Iterable<js.TokenFinalizer> finalizers;
 
-  Program(this.fragments, this.holders, this.loadMap, this.symbolsMap,
-      this.typeToInterceptorMap, this._metadataCollector, this.finalizers,
+  Program(this.fragments, this.holders, this.loadMap, this.typeToInterceptorMap,
+      this._metadataCollector, this.finalizers,
       {this.needsNativeSupport,
       this.outputContainsConstantList,
       this.hasSoftDeferredClasses}) {
@@ -430,9 +425,8 @@ abstract class DartMethod extends Method {
   final js.Name tearOffName;
   final List<ParameterStubMethod> parameterStubs;
   final bool canBeApplied;
-  final bool canBeReflected;
 
-  // Is non-null if [needsTearOff] or [canBeReflected].
+  // Is non-null if [needsTearOff].
   //
   // If the type is encoded in the metadata table this field contains an index
   // into the table. Otherwise the type contains type variables in which case
@@ -440,7 +434,7 @@ abstract class DartMethod extends Method {
   final js.Expression functionType;
 
   // Signature information for this method. This is only required and stored
-  // here if the method [canBeApplied] or [canBeReflected]
+  // here if the method [canBeApplied].
   final int requiredParameterCount;
   final /* Map | List */ optionalParameterDefaultValues;
 
@@ -454,7 +448,6 @@ abstract class DartMethod extends Method {
       {this.needsTearOff,
       this.tearOffName,
       this.canBeApplied,
-      this.canBeReflected,
       this.requiredParameterCount,
       this.optionalParameterDefaultValues,
       this.functionType})
@@ -462,8 +455,7 @@ abstract class DartMethod extends Method {
     assert(needsTearOff != null);
     assert(!needsTearOff || tearOffName != null);
     assert(canBeApplied != null);
-    assert(canBeReflected != null);
-    assert((!canBeReflected && !canBeApplied) ||
+    assert(!canBeApplied ||
         (requiredParameterCount != null &&
             optionalParameterDefaultValues != null));
   }
@@ -492,7 +484,6 @@ class InstanceMethod extends DartMethod {
       js.Name tearOffName,
       this.aliasName,
       bool canBeApplied,
-      bool canBeReflected,
       int requiredParameterCount,
       /* List | Map */ optionalParameterDefaultValues,
       this.isClosureCallMethod,
@@ -502,7 +493,6 @@ class InstanceMethod extends DartMethod {
             needsTearOff: needsTearOff,
             tearOffName: tearOffName,
             canBeApplied: canBeApplied,
-            canBeReflected: canBeReflected,
             requiredParameterCount: requiredParameterCount,
             optionalParameterDefaultValues: optionalParameterDefaultValues,
             functionType: functionType) {
@@ -573,7 +563,6 @@ class StaticDartMethod extends DartMethod implements StaticMethod {
       {bool needsTearOff,
       js.Name tearOffName,
       bool canBeApplied,
-      bool canBeReflected,
       int requiredParameterCount,
       /* List | Map */ optionalParameterDefaultValues,
       js.Expression functionType})
@@ -581,7 +570,6 @@ class StaticDartMethod extends DartMethod implements StaticMethod {
             needsTearOff: needsTearOff,
             tearOffName: tearOffName,
             canBeApplied: canBeApplied,
-            canBeReflected: canBeReflected,
             requiredParameterCount: requiredParameterCount,
             optionalParameterDefaultValues: optionalParameterDefaultValues,
             functionType: functionType);

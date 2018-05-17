@@ -67,43 +67,6 @@ class _BoundMetadataEntry extends _MetadataEntry {
   int compareTo(covariant _MetadataEntry other) => other._rc - this._rc;
 }
 
-abstract class Placeholder implements jsAst.DeferredNumber {
-  bind(_MetadataEntry entry);
-}
-
-class _ForwardingMetadataEntry extends _MetadataEntry implements Placeholder {
-  _MetadataEntry _forwardTo;
-  var debug;
-
-  bool get isBound => _forwardTo != null;
-
-  _ForwardingMetadataEntry([this.debug]);
-
-  _MetadataEntry get forwardTo {
-    assert(isBound, 'unbound $this $debug');
-    return _forwardTo;
-  }
-
-  jsAst.Expression get entry {
-    return forwardTo.entry;
-  }
-
-  int get value {
-    return forwardTo.value;
-  }
-
-  int get _rc => forwardTo._rc;
-
-  markSeen(jsAst.BaseVisitor visitor) => forwardTo.markSeen(visitor);
-
-  int compareTo(other) => forwardTo.compareTo(other);
-
-  bind(_MetadataEntry entry) {
-    assert(!isBound);
-    _forwardTo = entry;
-  }
-}
-
 class _MetadataList extends jsAst.DeferredExpression {
   jsAst.Expression _value;
 
@@ -155,13 +118,6 @@ class MetadataCollector implements jsAst.TokenFinalizer {
   Map<OutputUnit, Map<DartType, _BoundMetadataEntry>> _typesMap =
       <OutputUnit, Map<DartType, _BoundMetadataEntry>>{};
 
-  /**
-   *  Maps a TypeVariableType to the index pointing to the constant representing
-   *  the corresponding type variable at runtime.
-   */
-  Map<TypeVariableEntity, jsAst.Expression> _typeVariableConstants =
-      new Map<TypeVariableEntity, jsAst.Expression>();
-
   MetadataCollector(this._options, this.reporter, this._emitter,
       this._rtiEncoder, this._codegenWorldBuilder);
 
@@ -178,10 +134,8 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     return defaultValues;
   }
 
-  jsAst.Expression reifyType(DartType type, OutputUnit outputUnit,
-      {ignoreTypeVariables: false}) {
-    return addTypeInOutputUnit(type, outputUnit,
-        ignoreTypeVariables: ignoreTypeVariables);
+  jsAst.Expression reifyType(DartType type, OutputUnit outputUnit) {
+    return addTypeInOutputUnit(type, outputUnit);
   }
 
   jsAst.Expression reifyName(String name, OutputUnit outputUnit) {
@@ -191,26 +145,6 @@ class MetadataCollector implements jsAst.TokenFinalizer {
   jsAst.Expression reifyExpression(
       jsAst.Expression expression, OutputUnit outputUnit) {
     return _addGlobalMetadata(expression, outputUnit);
-  }
-
-  Placeholder _getMetadataPlaceholder([debug]) {
-    return new _ForwardingMetadataEntry(debug);
-  }
-
-  /**
-   * Returns the index pointing to the constant in [emitter.metadataCollector]
-   * representing this type variable.
-   *
-   * If the constant has not yet been constructed, an entry is  allocated in
-   * the global metadata list and the index pointing to this entry is returned.
-   * When the corresponding constant is constructed later,
-   * [reifyTypeVariableConstant] will be called and the constant will be added
-   * on the allocated entry.
-   */
-  jsAst.Expression _reifyTypeVariable(TypeVariableEntity variable) {
-    return _typeVariableConstants.putIfAbsent(variable, () {
-      return _getMetadataPlaceholder(variable);
-    });
   }
 
   _MetadataEntry _addGlobalMetadata(jsAst.Node node, OutputUnit outputUnit) {
@@ -224,12 +158,14 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     });
   }
 
-  jsAst.Expression _computeTypeRepresentation(DartType type,
-      {ignoreTypeVariables: false}) {
+  jsAst.Expression _computeTypeRepresentation(DartType type) {
     jsAst.Expression representation =
         _rtiEncoder.getTypeRepresentation(_emitter, type, (variable) {
-      if (ignoreTypeVariables) return new jsAst.LiteralNull();
-      return _reifyTypeVariable(variable.element);
+      failedAt(
+          NO_LOCATION_SPANNABLE,
+          "Type representation for type variable $variable in "
+          "$type is not supported.");
+      return jsAst.LiteralNull();
     }, (TypedefType typedef) {
       return false;
     });
@@ -244,28 +180,15 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     return representation;
   }
 
-  jsAst.Expression addTypeInOutputUnit(DartType type, OutputUnit outputUnit,
-      {ignoreTypeVariables: false}) {
+  jsAst.Expression addTypeInOutputUnit(DartType type, OutputUnit outputUnit) {
     _typesMap[outputUnit] ??= new Map<DartType, _BoundMetadataEntry>();
     return _typesMap[outputUnit].putIfAbsent(type, () {
-      return new _BoundMetadataEntry(_computeTypeRepresentation(type,
-          ignoreTypeVariables: ignoreTypeVariables));
+      return new _BoundMetadataEntry(_computeTypeRepresentation(type));
     });
   }
 
   @override
   void finalizeTokens() {
-    bool checkTokensInTypes(OutputUnit outputUnit, entries) {
-      UnBoundDebugger debugger = new UnBoundDebugger(outputUnit);
-      for (_BoundMetadataEntry entry in entries) {
-        if (!entry.isUsed) continue;
-        if (debugger.findUnboundPlaceholders(entry.entry)) {
-          return false;
-        }
-      }
-      return true;
-    }
-
     void countTokensInTypes(Iterable<_BoundMetadataEntry> entries) {
       jsAst.TokenCounter counter = new jsAst.TokenCounter();
       entries
@@ -304,31 +227,11 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     _typesTokens.forEach((OutputUnit outputUnit, _MetadataList token) {
       Map typesMap = _typesMap[outputUnit];
       if (typesMap != null) {
-        assert(checkTokensInTypes(outputUnit, typesMap.values));
         countTokensInTypes(typesMap.values);
         token.setExpression(finalizeMap(typesMap));
       } else {
         token.setExpression(new jsAst.ArrayInitializer([]));
       }
     });
-  }
-}
-
-class UnBoundDebugger extends jsAst.BaseVisitor {
-  OutputUnit outputUnit;
-  bool _foundUnboundToken = false;
-
-  UnBoundDebugger(this.outputUnit);
-
-  @override
-  visitDeferredNumber(jsAst.DeferredNumber token) {
-    if (token is _ForwardingMetadataEntry && !token.isBound) {
-      _foundUnboundToken = true;
-    }
-  }
-
-  bool findUnboundPlaceholders(jsAst.Node node) {
-    node.accept(this);
-    return _foundUnboundToken;
   }
 }
