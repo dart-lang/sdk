@@ -242,7 +242,7 @@ class KernelTarget extends TargetImplementation {
       objectType.bind(loader.coreLibrary["Object"]);
       bottomType.bind(loader.coreLibrary["Null"]);
       loader.resolveTypes();
-      loader.instantiateToBound(dynamicType, bottomType, objectClassBuilder);
+      loader.computeDefaultTypes(dynamicType, bottomType, objectClassBuilder);
       List<SourceClassBuilder> myClasses = collectMyClasses();
       loader.checkSemantics(myClasses);
       loader.finishTypeVariables(objectClassBuilder, dynamicType);

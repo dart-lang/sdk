@@ -122,6 +122,8 @@ import 'kernel_ast_api.dart' as kernel show Expression, Statement;
 
 import 'kernel_builder.dart';
 
+import 'type_algorithms.dart' show calculateBounds;
+
 // TODO(ahe): Remove this and ensure all nodes have a location.
 const noLocation = null;
 
@@ -3641,9 +3643,25 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   void beginTypeVariables(Token token) {
     debugEvent("beginTypeVariables");
     OutlineBuilder listener = new OutlineBuilder(library);
+    // TODO(dmitryas):  [ClassMemberParser] shouldn't be used to parse and build
+    // the type variables for the local function.  It also causes the unresolved
+    // types from the bounds of the type variables to appear in [library.types].
+    // See the code that resolves them below.
     new ClassMemberParser(listener)
         .parseTypeVariablesOpt(new Token.eof(-1)..next = token);
     enterFunctionTypeScope(listener.pop());
+
+    // The invocation of [enterFunctionTypeScope] above has put the type
+    // variables into the scope, and now the possibly unresolved types from
+    // the bounds of the variables can be resolved.  This is needed to apply
+    // instantiate-to-bound later.
+    // TODO(dmitryas):  Move the resolution to the appropriate place once
+    // [ClassMemberParser] is not used to build the type variables for the local
+    // function.  See the comment above.
+    for (UnresolvedType t in library.types) {
+      t.resolveIn(scope);
+    }
+    library.types.clear();
   }
 
   @override
@@ -3676,15 +3694,40 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         variable.parameter.addAnnotation(toKernelExpression(annotation));
       }
     }
-    push(variable
-      ..finish(library, library.loader.target.objectClassBuilder,
-          library.loader.target.dynamicType));
+    push(variable);
   }
 
   @override
   void endTypeVariables(int count, Token beginToken, Token endToken) {
     debugEvent("TypeVariables");
-    push(popList(count) ?? NullValue.TypeVariables);
+    List<KernelTypeVariableBuilder> typeVariables = popList(count);
+    if (typeVariables != null) {
+      if (library.loader.target.strongMode) {
+        List<KernelTypeBuilder> calculatedBounds = calculateBounds(
+            typeVariables,
+            library.loader.target.dynamicType,
+            library.loader.target.bottomType,
+            library.loader.target.objectClassBuilder);
+        for (int i = 0; i < typeVariables.length; ++i) {
+          typeVariables[i].defaultType = calculatedBounds[i];
+          typeVariables[i].defaultType.resolveIn(
+              scope, typeVariables[i].charOffset, typeVariables[i].fileUri);
+          typeVariables[i].finish(
+              library,
+              library.loader.target.objectClassBuilder,
+              library.loader.target.dynamicType);
+        }
+      } else {
+        for (int i = 0; i < typeVariables.length; ++i) {
+          typeVariables[i].defaultType = library.loader.target.dynamicType;
+          typeVariables[i].finish(
+              library,
+              library.loader.target.objectClassBuilder,
+              library.loader.target.dynamicType);
+        }
+      }
+    }
+    push(typeVariables ?? NullValue.TypeVariables);
   }
 
   List<TypeParameter> typeVariableBuildersToKernel(List typeVariableBuilders) {
