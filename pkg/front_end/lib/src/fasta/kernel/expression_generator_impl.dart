@@ -780,60 +780,6 @@ class IncompletePropertyAccessor<Arguments> extends IncompleteSend<Arguments> {
   }
 }
 
-class DeferredAccessor<Arguments> extends _DeferredAccessor<Arguments>
-    with FastaAccessor<Arguments> {
-  DeferredAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      Token token, PrefixBuilder builder, FastaAccessor expression)
-      : super(helper, token, builder, expression);
-
-  String get plainNameForRead {
-    return unsupported(
-        "deferredAccessor.plainNameForRead", offsetForToken(token), uri);
-  }
-
-  String get debugName => "DeferredAccessor";
-
-  FastaAccessor get accessor => super.accessor;
-
-  buildPropertyAccess(
-      IncompleteSend send, int operatorOffset, bool isNullAware) {
-    var propertyAccess =
-        accessor.buildPropertyAccess(send, operatorOffset, isNullAware);
-    if (propertyAccess is FastaAccessor) {
-      return new DeferredAccessor(helper, token, builder, propertyAccess);
-    } else {
-      kernel.Expression expression = propertyAccess;
-      return helper.wrapInDeferredCheck(expression, builder, token.charOffset);
-    }
-  }
-
-  @override
-  DartType buildTypeWithBuiltArguments(List<DartType> arguments,
-      {bool nonInstanceAccessIsError: false}) {
-    helper.addProblem(
-        templateDeferredTypeAnnotation.withArguments(
-            accessor.buildTypeWithBuiltArguments(arguments,
-                nonInstanceAccessIsError: nonInstanceAccessIsError),
-            builder.name),
-        offsetForToken(token),
-        lengthForToken(token));
-    return const InvalidType();
-  }
-
-  kernel.Expression doInvocation(int offset, Arguments arguments) {
-    return helper.wrapInDeferredCheck(
-        accessor.doInvocation(offset, arguments), builder, token.charOffset);
-  }
-
-  @override
-  void printOn(StringSink sink) {
-    sink.write(", builder: ");
-    sink.write(builder);
-    sink.write(", accessor: ");
-    sink.write(accessor);
-  }
-}
-
 int adjustForImplicitCall(String name, int offset) {
   // Normally the offset is at the start of the token, but in this case,
   // because we insert a '.call', we want it at the end instead.

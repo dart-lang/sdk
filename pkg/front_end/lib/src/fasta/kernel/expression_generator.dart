@@ -1253,13 +1253,21 @@ class LoadLibraryGenerator<Arguments> extends Generator<Arguments> {
   }
 }
 
-abstract class _DeferredAccessor<Arguments> extends Accessor<Arguments> {
+class DeferredAccessGenerator<Arguments> extends Generator<Arguments> {
   final PrefixBuilder builder;
-  final Accessor accessor;
 
-  _DeferredAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
+  final FastaAccessor accessor;
+
+  DeferredAccessGenerator(BuilderHelper<dynamic, dynamic, Arguments> helper,
       Token token, this.builder, this.accessor)
       : super(helper, token);
+
+  String get plainNameForRead {
+    return unsupported(
+        "deferredAccessor.plainNameForRead", offsetForToken(token), uri);
+  }
+
+  String get debugName => "DeferredAccessGenerator";
 
   kernel.Expression _makeSimpleRead() {
     return helper.wrapInDeferredCheck(
@@ -1277,6 +1285,45 @@ abstract class _DeferredAccessor<Arguments> extends Accessor<Arguments> {
         accessor._makeWrite(value, voidContext, complexAssignment),
         builder,
         token.charOffset);
+  }
+
+  buildPropertyAccess(
+      IncompleteSend send, int operatorOffset, bool isNullAware) {
+    var propertyAccess =
+        accessor.buildPropertyAccess(send, operatorOffset, isNullAware);
+    if (propertyAccess is FastaAccessor) {
+      return new DeferredAccessGenerator(
+          helper, token, builder, propertyAccess);
+    } else {
+      kernel.Expression expression = propertyAccess;
+      return helper.wrapInDeferredCheck(expression, builder, token.charOffset);
+    }
+  }
+
+  @override
+  DartType buildTypeWithBuiltArguments(List<DartType> arguments,
+      {bool nonInstanceAccessIsError: false}) {
+    helper.addProblem(
+        templateDeferredTypeAnnotation.withArguments(
+            accessor.buildTypeWithBuiltArguments(arguments,
+                nonInstanceAccessIsError: nonInstanceAccessIsError),
+            builder.name),
+        offsetForToken(token),
+        lengthForToken(token));
+    return const InvalidType();
+  }
+
+  kernel.Expression doInvocation(int offset, Arguments arguments) {
+    return helper.wrapInDeferredCheck(
+        accessor.doInvocation(offset, arguments), builder, token.charOffset);
+  }
+
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", builder: ");
+    sink.write(builder);
+    sink.write(", accessor: ");
+    sink.write(accessor);
   }
 }
 

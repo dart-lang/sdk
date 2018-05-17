@@ -84,7 +84,7 @@ import 'expression_generator.dart'
     show
         BuilderHelper,
         CalleeDesignation,
-        DeferredAccessor,
+        DeferredAccessGenerator,
         ErrorAccessor,
         FastaAccessor,
         FunctionTypeAccessor,
@@ -1415,7 +1415,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       TypeDeclarationAccessor accessor = new TypeDeclarationAccessor(
           this, token, prefix, charOffset, builder, name);
       return (prefix?.deferred == true)
-          ? new DeferredAccessor(this, token, prefix, accessor)
+          ? new DeferredAccessGenerator(this, token, prefix, accessor)
           : accessor;
     } else if (builder.isLocal) {
       if (constantContext != ConstantContext.none &&
@@ -1468,7 +1468,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       StaticAccessGenerator accessor =
           new StaticAccessGenerator(this, token, builder.target, null);
       return (prefix?.deferred == true)
-          ? new DeferredAccessor(this, token, prefix, accessor)
+          ? new DeferredAccessGenerator(this, token, prefix, accessor)
           : accessor;
     } else if (builder is PrefixBuilder) {
       if (constantContext != ConstantContext.none && builder.deferred) {
@@ -1505,7 +1505,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         }
       }
       return (prefix?.deferred == true)
-          ? new DeferredAccessor(this, token, prefix, accessor)
+          ? new DeferredAccessGenerator(this, token, prefix, accessor)
           : accessor;
     }
   }
@@ -2780,8 +2780,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     var type = pop();
     PrefixBuilder deferredPrefix;
     int checkOffset;
-    if (type is DeferredAccessor) {
-      DeferredAccessor accessor = type;
+    if (type is DeferredAccessGenerator) {
+      DeferredAccessGenerator accessor = type;
       type = accessor.accessor;
       deferredPrefix = accessor.builder;
       checkOffset = accessor.token.charOffset;

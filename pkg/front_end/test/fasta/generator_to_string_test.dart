@@ -46,7 +46,7 @@ import 'package:front_end/src/fasta/fasta_codes.dart'
 
 import 'package:front_end/src/fasta/kernel/expression_generator.dart'
     show
-        DeferredAccessor,
+        DeferredAccessGenerator,
         FastaAccessor,
         IncompleteError,
         IncompletePropertyAccessor,
@@ -202,10 +202,11 @@ main() {
     check("IncompletePropertyAccessor(offset: 4, name: bar)",
         new IncompletePropertyAccessor<Arguments>(helper, token, name));
     check(
-        "DeferredAccessor(offset: 4, builder: Instance of 'PrefixBuilder',"
+        "DeferredAccessGenerator(offset: 4, "
+        "builder: Instance of 'PrefixBuilder',"
         " accessor: ThisAccessor(offset: 4, isInitializer: false,"
         " isSuper: false))",
-        new DeferredAccessor<Arguments>(
+        new DeferredAccessGenerator<Arguments>(
             helper, token, prefixBuilder, accessor));
     check("ReadOnlyAccessor(offset: 4, plainNameForRead: foo)",
         new ReadOnlyAccessor<Arguments>(helper, token, expression, "foo"));
