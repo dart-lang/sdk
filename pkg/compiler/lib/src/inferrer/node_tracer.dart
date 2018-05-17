@@ -6,7 +6,7 @@ library compiler.src.inferrer.node_tracer;
 
 import '../common/names.dart' show Identifiers;
 import '../elements/entities.dart';
-import '../types/types.dart' show ContainerTypeMask, MapTypeMask;
+import '../types/masks.dart' show ContainerTypeMask, MapTypeMask;
 import '../util/util.dart' show Setlet;
 import 'debug.dart' as debug;
 import 'inferrer_engine.dart';

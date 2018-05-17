@@ -6,7 +6,7 @@ library dart2js.inferrer.type_graph_dump;
 import '../../compiler_new.dart';
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
-import '../types/types.dart';
+import '../types/masks.dart';
 import 'inferrer_engine.dart';
 import 'type_graph_nodes.dart';
 import 'debug.dart';

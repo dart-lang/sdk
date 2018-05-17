@@ -25,6 +25,7 @@ import '../ssa/builder_kernel.dart';
 import '../ssa/nodes.dart';
 import '../ssa/ssa.dart';
 import '../ssa/types.dart';
+import '../types/masks.dart';
 import '../types/types.dart';
 import '../universe/selector.dart';
 import '../universe/world_impact.dart';
@@ -173,7 +174,7 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
         !mask.satisfies(closedWorld.commonElements.jsStringClass, closedWorld);
   }
 
-  bool isFixedLength(TypeMask mask, ClosedWorld closedWorld) {
+  bool isFixedLength(covariant TypeMask mask, ClosedWorld closedWorld) {
     if (mask.isContainer && (mask as ContainerTypeMask).length != null) {
       // A container on which we have inferred the length.
       return true;
@@ -204,7 +205,7 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
         parameter, _globalInferenceResults);
   }
 
-  TypeMask selectorTypeOf(Selector selector, TypeMask mask) {
+  TypeMask selectorTypeOf(Selector selector, covariant TypeMask mask) {
     return TypeMaskFactory.inferredTypeForSelector(
         selector, mask, _globalInferenceResults);
   }

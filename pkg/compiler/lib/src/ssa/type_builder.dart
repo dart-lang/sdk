@@ -7,7 +7,7 @@ import 'nodes.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../io/source_information.dart';
-import '../types/types.dart';
+import '../types/masks.dart';
 import '../universe/use.dart' show TypeUse;
 
 /// Enum that defines how a member has access to the current type variables.

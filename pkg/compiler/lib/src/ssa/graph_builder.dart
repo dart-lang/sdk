@@ -24,6 +24,7 @@ import '../js_backend/runtime_types.dart';
 import '../js_emitter/code_emitter_task.dart';
 import '../options.dart';
 import '../types/abstract_value_domain.dart';
+import '../types/masks.dart';
 import '../types/types.dart';
 import '../world.dart' show ClosedWorld;
 import 'jump_handler.dart';

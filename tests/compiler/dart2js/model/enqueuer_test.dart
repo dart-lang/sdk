@@ -13,7 +13,7 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/enqueue.dart';
-import 'package:compiler/src/types/types.dart';
+import 'package:compiler/src/types/masks.dart';
 import 'package:compiler/src/universe/call_structure.dart';
 import 'package:compiler/src/universe/selector.dart';
 import 'package:compiler/src/universe/world_impact.dart';

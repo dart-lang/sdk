@@ -6,7 +6,7 @@ library universe.function_set;
 
 import '../common/names.dart' show Identifiers, Selectors;
 import '../elements/entities.dart';
-import '../types/types.dart';
+import '../types/masks.dart';
 import '../util/util.dart' show Hashing, Setlet;
 import '../world.dart' show ClosedWorld;
 import 'selector.dart' show Selector;

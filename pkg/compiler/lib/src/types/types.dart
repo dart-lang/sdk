@@ -13,8 +13,6 @@ import '../universe/selector.dart' show Selector;
 import '../world.dart' show ClosedWorld, ClosedWorldRefiner;
 import 'abstract_value_domain.dart';
 
-export 'masks.dart';
-
 /// Results about a single element (e.g. a method, parameter, or field)
 /// produced by the global type-inference algorithm.
 ///

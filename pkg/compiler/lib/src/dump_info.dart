@@ -20,11 +20,9 @@ import 'deferred_load.dart' show OutputUnit;
 import 'elements/entities.dart';
 import 'js/js.dart' as jsAst;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
+import 'types/masks.dart';
 import 'types/types.dart'
-    show
-        GlobalTypeInferenceElementResult,
-        GlobalTypeInferenceMemberResult,
-        TypeMask;
+    show GlobalTypeInferenceElementResult, GlobalTypeInferenceMemberResult;
 import 'universe/world_builder.dart'
     show CodegenWorldBuilder, ReceiverConstraint;
 import 'universe/world_impact.dart'

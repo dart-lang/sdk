@@ -19,6 +19,7 @@ import '../native/behavior.dart' as native;
 import '../options.dart';
 import '../types/abstract_value_domain.dart';
 import '../types/constants.dart';
+import '../types/masks.dart';
 import '../types/types.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';

@@ -21,8 +21,6 @@ export 'package:compiler/src/diagnostics/messages.dart';
 export 'package:compiler/src/diagnostics/source_span.dart';
 export 'package:compiler/src/diagnostics/spannable.dart';
 
-export 'package:compiler/src/types/types.dart' show TypeMask;
-
 import 'package:compiler/src/util/util.dart';
 export 'package:compiler/src/util/util.dart';
 

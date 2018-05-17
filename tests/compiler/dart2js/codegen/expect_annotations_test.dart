@@ -7,6 +7,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_backend/annotations.dart' as optimizerHints;
+import 'package:compiler/src/types/masks.dart';
 import 'package:compiler/src/types/types.dart';
 import 'package:compiler/src/world.dart' show ClosedWorld;
 import '../inference/type_mask_test_helper.dart';

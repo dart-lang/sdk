@@ -8,7 +8,7 @@ import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../js_backend/interceptor_data.dart';
 import '../types/abstract_value_domain.dart';
-import '../types/types.dart';
+import '../types/masks.dart';
 import '../universe/selector.dart' show Selector;
 import '../world.dart' show ClosedWorld;
 import 'nodes.dart';

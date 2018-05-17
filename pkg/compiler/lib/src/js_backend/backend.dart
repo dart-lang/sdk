@@ -37,7 +37,7 @@ import '../library_loader.dart' show LoadedLibraries;
 import '../native/native.dart' as native;
 import '../ssa/ssa.dart' show SsaFunctionCompiler;
 import '../tracer.dart';
-import '../types/types.dart';
+import '../types/masks.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/class_hierarchy_builder.dart'
     show ClassHierarchyBuilder, ClassQueries;

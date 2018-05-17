@@ -7,7 +7,7 @@ import 'package:expect/expect.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/types/types.dart';
+import 'package:compiler/src/types/masks.dart';
 import 'package:compiler/src/world.dart';
 
 import '../memory_compiler.dart';
