@@ -266,13 +266,13 @@ class BuildMode extends Object with HasContextMixin {
           if (options.buildSummaryOutput != null) {
             io.File file = new io.File(options.buildSummaryOutput);
             file.writeAsBytesSync(bundle.toBuffer(),
-                mode: io.FileMode.WRITE_ONLY);
+                mode: io.FileMode.writeOnly);
           }
           if (options.buildSummaryOutputSemantic != null) {
             bundle.flushInformative();
             io.File file = new io.File(options.buildSummaryOutputSemantic);
             file.writeAsBytesSync(bundle.toBuffer(),
-                mode: io.FileMode.WRITE_ONLY);
+                mode: io.FileMode.writeOnly);
           }
         });
       } else {

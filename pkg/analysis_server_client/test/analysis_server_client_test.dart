@@ -105,7 +105,7 @@ class MockProcess implements Process {
   int get pid => null;
 
   @override
-  bool kill([ProcessSignal signal = ProcessSignal.SIGTERM]) => null;
+  bool kill([ProcessSignal signal = ProcessSignal.sigterm]) => null;
 }
 
 class MockStdin implements IOSink {

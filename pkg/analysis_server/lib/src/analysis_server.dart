@@ -382,7 +382,7 @@ class AnalysisServer {
           sink = io.stdout;
         } else if (name.startsWith('file:')) {
           String path = name.substring('file:'.length);
-          sink = new io.File(path).openWrite(mode: io.FileMode.APPEND);
+          sink = new io.File(path).openWrite(mode: io.FileMode.append);
         }
       }
       _analysisPerformanceLogger = new PerformanceLog(sink);

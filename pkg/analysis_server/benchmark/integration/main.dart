@@ -121,7 +121,7 @@ Stream<Operation> openInput(PerfArgs args) {
   }
   logger.log(Level.INFO, 'tmpSrcDir: ${args.tmpSrcDirPath}');
   return inputRaw
-      .transform(SYSTEM_ENCODING.decoder)
+      .transform(systemEncoding.decoder)
       .transform(new LineSplitter())
       .transform(new InputConverter(args.tmpSrcDirPath, args.srcPathMap));
 }
