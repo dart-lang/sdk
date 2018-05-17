@@ -96,7 +96,7 @@ import 'expression_generator.dart'
         LargeIntAccessor,
         LoadLibraryGenerator,
         ParenthesizedExpression,
-        ReadOnlyAccessor,
+        ReadOnlyAccessGenerator,
         SendAccessor,
         StaticAccessGenerator,
         SuperIndexedAccessGenerator,
@@ -1432,7 +1432,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         var fact =
             typePromoter.getFactForAccess(builder.target, functionNestingLevel);
         var scope = typePromoter.currentScope;
-        return new ReadOnlyAccessor(
+        return new ReadOnlyAccessGenerator(
             this,
             token,
             new ShadowVariableGet(builder.target, fact, scope)

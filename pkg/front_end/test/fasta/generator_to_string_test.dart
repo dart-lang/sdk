@@ -56,7 +56,7 @@ import 'package:front_end/src/fasta/kernel/expression_generator.dart'
         NullAwarePropertyAccessGenerator,
         ParenthesizedExpression,
         PropertyAccessGenerator,
-        ReadOnlyAccessor,
+        ReadOnlyAccessGenerator,
         SendAccessor,
         StaticAccessGenerator,
         SuperIndexedAccessGenerator,
@@ -208,14 +208,20 @@ main() {
         " isSuper: false))",
         new DeferredAccessGenerator<Arguments>(
             helper, token, prefixBuilder, accessor));
-    check("ReadOnlyAccessor(offset: 4, plainNameForRead: foo)",
-        new ReadOnlyAccessor<Arguments>(helper, token, expression, "foo"));
+    check(
+        "ReadOnlyAccessGenerator(offset: 4, expression: expression,"
+        " plainNameForRead: foo, value: null)",
+        new ReadOnlyAccessGenerator<Arguments>(
+            helper, token, expression, "foo"));
     check("LargeIntAccessor(offset: 4)",
         new LargeIntAccessor<Arguments>(helper, token));
-    check("ParenthesizedExpression(offset: 4, plainNameForRead: null)",
+    check(
+        "ParenthesizedExpression(offset: 4, expression: expression,"
+        " plainNameForRead: null, value: null)",
         new ParenthesizedExpression<Arguments>(helper, token, expression));
     check(
-        "TypeDeclarationAccessor(offset: 4, plainNameForRead: foo)",
+        "TypeDeclarationAccessor(offset: 4, expression: T,"
+        " plainNameForRead: foo, value: null)",
         new TypeDeclarationAccessor<Arguments>(
             helper, token, prefixBuilder, -1, declaration, "foo"));
     check("UnresolvedAccessor(offset: 4, name: bar)",

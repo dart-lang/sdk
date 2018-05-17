@@ -786,29 +786,6 @@ int adjustForImplicitCall(String name, int offset) {
   return offset + (name?.length ?? 0);
 }
 
-class ReadOnlyAccessor<Arguments> extends _ReadOnlyAccessor<Arguments>
-    with FastaAccessor<Arguments> {
-  final String plainNameForRead;
-
-  ReadOnlyAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      Token token, kernel.Expression expression, this.plainNameForRead)
-      : super(helper, expression, token);
-
-  String get debugName => "ReadOnlyAccessor";
-
-  kernel.Expression doInvocation(int offset, Arguments arguments) {
-    return helper.buildMethodInvocation(buildSimpleRead(), callName, arguments,
-        adjustForImplicitCall(plainNameForRead, offset),
-        isImplicitCall: true);
-  }
-
-  @override
-  void printOn(StringSink sink) {
-    sink.write(", plainNameForRead: ");
-    sink.write(plainNameForRead);
-  }
-}
-
 class LargeIntAccessor<Arguments> extends _DelayedErrorAccessor<Arguments>
     with FastaAccessor<Arguments> {
   LargeIntAccessor(
@@ -835,7 +812,8 @@ class LargeIntAccessor<Arguments> extends _DelayedErrorAccessor<Arguments>
   void printOn(StringSink sink) {}
 }
 
-class ParenthesizedExpression<Arguments> extends ReadOnlyAccessor<Arguments> {
+class ParenthesizedExpression<Arguments>
+    extends ReadOnlyAccessGenerator<Arguments> {
   ParenthesizedExpression(BuilderHelper<dynamic, dynamic, Arguments> helper,
       Token token, kernel.Expression expression)
       : super(helper, token, expression, null);
@@ -848,7 +826,8 @@ class ParenthesizedExpression<Arguments> extends ReadOnlyAccessor<Arguments> {
   }
 }
 
-class TypeDeclarationAccessor<Arguments> extends ReadOnlyAccessor<Arguments> {
+class TypeDeclarationAccessor<Arguments>
+    extends ReadOnlyAccessGenerator<Arguments> {
   /// The import prefix preceding the [declaration] reference, or `null` if
   /// the reference is not prefixed.
   final PrefixBuilder prefix;

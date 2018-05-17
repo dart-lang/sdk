@@ -1327,13 +1327,18 @@ class DeferredAccessGenerator<Arguments> extends Generator<Arguments> {
   }
 }
 
-abstract class _ReadOnlyAccessor<Arguments> extends Accessor<Arguments> {
+class ReadOnlyAccessGenerator<Arguments> extends Generator<Arguments> {
+  final String plainNameForRead;
+
   kernel.Expression expression;
+
   VariableDeclaration value;
 
-  _ReadOnlyAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      this.expression, Token token)
+  ReadOnlyAccessGenerator(BuilderHelper<dynamic, dynamic, Arguments> helper,
+      Token token, this.expression, this.plainNameForRead)
       : super(helper, token);
+
+  String get debugName => "ReadOnlyAccessGenerator";
 
   kernel.Expression _makeSimpleRead() => expression;
 
@@ -1352,6 +1357,23 @@ abstract class _ReadOnlyAccessor<Arguments> extends Accessor<Arguments> {
   kernel.Expression _finish(
           kernel.Expression body, ShadowComplexAssignment complexAssignment) =>
       super._finish(makeLet(value, body), complexAssignment);
+
+  kernel.Expression doInvocation(int offset, Arguments arguments) {
+    return helper.buildMethodInvocation(buildSimpleRead(), callName, arguments,
+        adjustForImplicitCall(plainNameForRead, offset),
+        isImplicitCall: true);
+  }
+
+  @override
+  void printOn(StringSink sink) {
+    NameSystem syntheticNames = new NameSystem();
+    sink.write(", expression: ");
+    printNodeOn(expression, sink, syntheticNames: syntheticNames);
+    sink.write(", plainNameForRead: ");
+    sink.write(plainNameForRead);
+    sink.write(", value: ");
+    printNodeOn(value, sink, syntheticNames: syntheticNames);
+  }
 }
 
 abstract class _DelayedErrorAccessor<Arguments> extends Accessor<Arguments> {
