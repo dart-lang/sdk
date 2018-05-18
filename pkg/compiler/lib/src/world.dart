@@ -1054,18 +1054,18 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
     if (includesClosureCall(selector, mask)) {
       return abstractValueDomain.dynamicType;
     }
-    return _allFunctions.receiverType(selector, mask, this);
+    return _allFunctions.receiverType(selector, mask, abstractValueDomain);
   }
 
   Iterable<MemberEntity> locateMembers(Selector selector, TypeMask mask) {
     _ensureFunctionSet();
-    return _allFunctions.filter(selector, mask, this);
+    return _allFunctions.filter(selector, mask, abstractValueDomain);
   }
 
   bool hasAnyUserDefinedGetter(Selector selector, TypeMask mask) {
     _ensureFunctionSet();
     return _allFunctions
-        .filter(selector, mask, this)
+        .filter(selector, mask, abstractValueDomain)
         .any((each) => each.isGetter);
   }
 
@@ -1117,7 +1117,8 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
     }
     SideEffects sideEffects = new SideEffects.empty();
     _ensureFunctionSet();
-    for (MemberEntity e in _allFunctions.filter(selector, mask, this)) {
+    for (MemberEntity e
+        in _allFunctions.filter(selector, mask, abstractValueDomain)) {
       if (e.isField) {
         if (selector.isGetter) {
           if (!fieldNeverChanges(e)) {

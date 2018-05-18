@@ -6,6 +6,7 @@ library dart2js.abstract_value_domain;
 
 import '../constants/values.dart' show ConstantValue;
 import '../elements/entities.dart';
+import '../universe/selector.dart';
 
 /// A value in an abstraction of runtime values.
 abstract class AbstractValue {}
@@ -255,4 +256,16 @@ abstract class AbstractValueDomain {
   /// Returns the value type of [value] if it represents a map value at runtime.
   /// Returns [dynamicType] otherwise.
   AbstractValue getMapValueType(AbstractValue value);
+
+  /// Compute the type of all potential receivers of the set of live [members].
+  AbstractValue computeReceiver(Iterable<MemberEntity> members);
+
+  /// Returns whether [member] is a potential target when being
+  /// invoked on a [receiver]. [selector] is used to ensure library privacy is
+  /// taken into account.
+  bool canHit(AbstractValue receiver, MemberEntity member, Selector selector);
+
+  /// Returns whether [selector] invoked on a [receiver] can hit a
+  /// [noSuchMethod].
+  bool needsNoSuchMethodHandling(AbstractValue receiver, Selector selector);
 }

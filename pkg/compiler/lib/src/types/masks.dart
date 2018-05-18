@@ -409,4 +409,37 @@ class CommonMasks implements AbstractValueDomain {
     }
     return result;
   }
+
+  @override
+  AbstractValue computeReceiver(Iterable<MemberEntity> members) {
+    assert(_closedWorld
+        .hasAnyStrictSubclass(_closedWorld.commonElements.objectClass));
+    return new TypeMask.unionOf(
+        members.expand((MemberEntity element) {
+          ClassEntity cls = element.enclosingClass;
+          return [cls]..addAll(_closedWorld.mixinUsesOf(cls));
+        }).map((cls) {
+          if (_closedWorld.commonElements.jsNullClass == cls) {
+            return const TypeMask.empty();
+          } else if (_closedWorld.isInstantiated(cls)) {
+            return new TypeMask.nonNullSubclass(cls, _closedWorld);
+          } else {
+            // TODO(johnniwinther): Avoid the need for this case.
+            return const TypeMask.empty();
+          }
+        }),
+        _closedWorld);
+  }
+
+  @override
+  bool canHit(
+      covariant TypeMask receiver, MemberEntity member, Selector selector) {
+    return receiver.canHit(member, selector, _closedWorld);
+  }
+
+  @override
+  bool needsNoSuchMethodHandling(
+      covariant TypeMask receiver, Selector selector) {
+    return receiver.needsNoSuchMethodHandling(selector, _closedWorld);
+  }
 }
