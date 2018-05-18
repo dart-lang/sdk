@@ -107,5 +107,4 @@ export 'kernel_shadow_ast.dart'
         ShadowVariableAssignment,
         ShadowVariableDeclaration,
         ShadowVariableGet,
-        ShadowWhileStatement,
         ShadowYieldStatement;

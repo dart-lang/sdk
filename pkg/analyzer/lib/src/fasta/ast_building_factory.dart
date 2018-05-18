@@ -239,6 +239,21 @@ class AstBuildingForest
   int readOffset(AstNode node) => node.offset;
 
   @override
+  void resolveBreak(Statement target, BreakStatement user) {
+    user.target = target;
+  }
+
+  @override
+  void resolveContinue(Statement target, ContinueStatement user) {
+    user.target = target;
+  }
+
+  @override
+  void resolveContinueInSwitch(SwitchStatement target, ContinueStatement user) {
+    user.target = target;
+  }
+
+  @override
   Statement rethrowStatement(Token rethrowKeyword, Token semicolon) =>
       astFactory.expressionStatement(
           astFactory.rethrowExpression(rethrowKeyword), semicolon);
@@ -247,6 +262,9 @@ class AstBuildingForest
   Expression stringConcatenationExpression(
           List<Expression> strings, Token location) =>
       astFactory.adjacentStrings(strings.cast<StringLiteral>());
+
+  @override
+  Statement syntheticLabeledStatement(Statement statement) => statement;
 
   @override
   Expression thisExpression(Token thisKeyword) =>
@@ -278,6 +296,12 @@ class AstBuildingForest
       VariableDeclarationStatement variablesDeclaration) {
     return variablesDeclaration.variables.variables;
   }
+
+  @override
+  Statement whileStatement(Token whileKeyword,
+          ParenthesizedExpression condition, Statement body) =>
+      astFactory.whileStatement(whileKeyword, condition.leftParenthesis,
+          condition.expression, condition.rightParenthesis, body);
 
   @override
   Statement wrapVariables(Statement statement) => statement;

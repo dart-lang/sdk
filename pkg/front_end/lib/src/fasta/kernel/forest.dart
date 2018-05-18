@@ -4,9 +4,10 @@
 
 library fasta.forest;
 
-import 'body_builder.dart' show Identifier;
 // TODO(ahe): Remove this import.
 import 'package:kernel/ast.dart' as kernel show Arguments, DartType;
+
+import 'body_builder.dart' show Identifier;
 
 /// A tree factory.
 ///
@@ -175,6 +176,11 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   Expression stringConcatenationExpression(
       List<Expression> expressions, Location location);
 
+  /// The given [statement] is being used as the target of either a break or
+  /// continue statement. Return the statement that should be used as the actual
+  /// target.
+  Statement syntheticLabeledStatement(Statement statement);
+
   Expression thisExpression(Location location);
 
   /// Return a representation of a throw expression consisting of the
@@ -199,6 +205,11 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
 
   Statement wrapVariables(Statement statement);
 
+  /// Return a representation of a while statement introduced by the
+  /// [whileKeyword] and consisting of the given [condition] and [body].
+  Statement whileStatement(
+      Location whileKeyword, covariant Expression condition, Statement body);
+
   /// Return a representation of a yield statement consisting of the
   /// [yieldKeyword], [star], [expression], and [semicolon]. The [star] is null
   /// when no star was included in the source code.
@@ -212,6 +223,19 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   bool isThisExpression(Object node);
 
   bool isVariablesDeclaration(Object node);
+
+  /// Record that the [user] (a break statement) is associated with the [target]
+  /// statement.
+  void resolveBreak(covariant Statement target, covariant Statement user);
+
+  /// Record that the [user] (a continue statement) is associated with the
+  /// [target] statement.
+  void resolveContinue(covariant Statement target, covariant Statement user);
+
+  /// Record that the [user] (a continue statement inside a switch case) is
+  /// associated with the [target] statement.
+  void resolveContinueInSwitch(
+      covariant Object target, covariant Statement user);
 
   // TODO(ahe): Remove this method when all users are moved here.
   kernel.Arguments castArguments(Arguments arguments) {

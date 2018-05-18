@@ -9,18 +9,22 @@ import 'dart:core' hide MapEntry;
 import 'package:kernel/ast.dart'
     show
         Arguments,
+        BreakStatement,
         Block,
         Catch,
+        ContinueSwitchStatement,
         DartType,
         EmptyStatement,
         Expression,
         ExpressionStatement,
         InvalidExpression,
+        LabeledStatement,
         Let,
         LibraryDependency,
         MapEntry,
         NamedExpression,
         Statement,
+        SwitchCase,
         ThisExpression,
         TreeNode,
         VariableDeclaration,
@@ -47,6 +51,7 @@ import 'kernel_shadow_ast.dart'
         ShadowIntLiteral,
         ShadowIsExpression,
         ShadowIsNotExpression,
+        ShadowLabeledStatement,
         ShadowListLiteral,
         ShadowLoadLibrary,
         ShadowMapLiteral,
@@ -62,6 +67,7 @@ import 'kernel_shadow_ast.dart'
         ShadowTryCatch,
         ShadowTryFinally,
         ShadowTypeLiteral,
+        ShadowWhileStatement,
         ShadowYieldStatement;
 
 import 'forest.dart' show Forest;
@@ -289,6 +295,11 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
+  Statement syntheticLabeledStatement(Statement statement) {
+    return new ShadowLabeledStatement(statement);
+  }
+
+  @override
   Expression thisExpression(Token token) {
     return new ShadowThisExpression()..fileOffset = offsetForToken(token);
   }
@@ -338,6 +349,13 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
+  Statement whileStatement(
+      Token whileKeyword, Expression condition, Statement body) {
+    return new ShadowWhileStatement(condition, body)
+      ..fileOffset = whileKeyword.charOffset;
+  }
+
+  @override
   Statement yieldStatement(
       Token yieldKeyword, Token star, Expression expression, Token semicolon) {
     return new ShadowYieldStatement(expression, isYieldStar: star != null)
@@ -373,6 +391,22 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
 
   @override
   bool isVariablesDeclaration(Object node) => node is _VariablesDeclaration;
+
+  @override
+  void resolveBreak(LabeledStatement target, BreakStatement user) {
+    user.target = target;
+  }
+
+  @override
+  void resolveContinue(LabeledStatement target, BreakStatement user) {
+    user.target = target;
+  }
+
+  @override
+  void resolveContinueInSwitch(
+      SwitchCase target, ContinueSwitchStatement user) {
+    user.target = target;
+  }
 }
 
 class _VariablesDeclaration extends Statement {

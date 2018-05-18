@@ -12,6 +12,8 @@ import '../fasta_codes.dart' as fasta;
 
 import '../fasta_codes.dart' show LocatedMessage, Message, noLength, Template;
 
+import 'forest.dart' show Forest;
+
 import '../messages.dart' as messages show getLocationFromUri;
 
 import '../modifier.dart' show Modifier, constMask, covariantMask, finalMask;
@@ -408,7 +410,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
 
   @override
   JumpTarget createJumpTarget(JumpTargetKind kind, int charOffset) {
-    return new JumpTarget(kind, functionNestingLevel, member, charOffset);
+    return new JumpTarget<Statement>(
+        kind, functionNestingLevel, member, charOffset);
   }
 
   @override
@@ -1810,7 +1813,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     }
   }
 
-  void exitLoopOrSwitch(kernel.Statement statement) {
+  void exitLoopOrSwitch(Statement statement) {
     if (compileTimeErrorInLoopOrSwitch != null) {
       push(compileTimeErrorInLoopOrSwitch);
       compileTimeErrorInLoopOrSwitch = null;
@@ -1876,7 +1879,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     kernel.Statement kernelBody = toKernelStatement(body);
     if (continueTarget.hasUsers) {
       kernelBody = new ShadowLabeledStatement(kernelBody);
-      continueTarget.resolveContinues(kernelBody);
+      continueTarget.resolveContinues(forest, kernelBody);
     }
     kernel.Statement result = new ShadowForStatement(
         variables,
@@ -1886,9 +1889,9 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       ..fileOffset = forKeyword.charOffset;
     if (breakTarget.hasUsers) {
       result = new ShadowLabeledStatement(result);
-      breakTarget.resolveBreaks(result);
+      breakTarget.resolveBreaks(forest, result);
     }
-    exitLoopOrSwitch(result);
+    exitLoopOrSwitch(toStatement(result));
   }
 
   @override
@@ -3152,16 +3155,16 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     kernel.Statement kernelBody = toKernelStatement(body);
     if (continueTarget.hasUsers) {
       kernelBody = new ShadowLabeledStatement(kernelBody);
-      continueTarget.resolveContinues(kernelBody);
+      continueTarget.resolveContinues(forest, kernelBody);
     }
     kernel.Statement result =
         new ShadowDoStatement(kernelBody, toKernelExpression(condition))
           ..fileOffset = doKeyword.charOffset;
     if (breakTarget.hasUsers) {
       result = new ShadowLabeledStatement(result);
-      breakTarget.resolveBreaks(result);
+      breakTarget.resolveBreaks(forest, result);
     }
-    exitLoopOrSwitch(result);
+    exitLoopOrSwitch(toStatement(result));
   }
 
   @override
@@ -3190,7 +3193,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     kernel.Statement kernelBody = toKernelStatement(body);
     if (continueTarget.hasUsers) {
       kernelBody = new ShadowLabeledStatement(kernelBody);
-      continueTarget.resolveContinues(kernelBody);
+      continueTarget.resolveContinues(forest, kernelBody);
     }
     VariableDeclaration variable;
     bool declaresVariable = false;
@@ -3243,9 +3246,9 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       ..bodyOffset = kernelBody.fileOffset;
     if (breakTarget.hasUsers) {
       result = new ShadowLabeledStatement(result);
-      breakTarget.resolveBreaks(result);
+      breakTarget.resolveBreaks(forest, result);
     }
-    exitLoopOrSwitch(result);
+    exitLoopOrSwitch(toStatement(result));
   }
 
   @override
@@ -3260,8 +3263,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     debugEvent("beginLabeledStatement");
     List<Label> labels = popList(labelCount);
     enterLocalScope(null, scope.createNestedLabelScope());
-    LabelTarget target =
-        new LabelTarget(member, functionNestingLevel, token.charOffset);
+    LabelTarget target = new LabelTarget<Statement>(
+        member, functionNestingLevel, token.charOffset);
     for (Label label in labels) {
       scope.declareLabel(label.name, target);
     }
@@ -3279,13 +3282,13 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       if (kernelStatement is! LabeledStatement) {
         kernelStatement = new ShadowLabeledStatement(kernelStatement);
       }
-      target.breakTarget.resolveBreaks(kernelStatement);
+      target.breakTarget.resolveBreaks(forest, kernelStatement);
     }
     if (target.continueTarget.hasUsers) {
       if (kernelStatement is! LabeledStatement) {
         kernelStatement = new ShadowLabeledStatement(kernelStatement);
       }
-      target.continueTarget.resolveContinues(kernelStatement);
+      target.continueTarget.resolveContinues(forest, kernelStatement);
     }
     push(kernelStatement);
   }
@@ -3315,17 +3318,14 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     Expression condition = popForValue();
     JumpTarget continueTarget = exitContinueTarget();
     JumpTarget breakTarget = exitBreakTarget();
-    kernel.Statement kernelBody = toKernelStatement(body);
     if (continueTarget.hasUsers) {
-      kernelBody = new ShadowLabeledStatement(kernelBody);
-      continueTarget.resolveContinues(kernelBody);
+      body = forest.syntheticLabeledStatement(body);
+      continueTarget.resolveContinues(forest, body);
     }
-    kernel.Statement result =
-        new ShadowWhileStatement(toKernelExpression(condition), kernelBody)
-          ..fileOffset = whileKeyword.charOffset;
+    Statement result = forest.whileStatement(whileKeyword, condition, body);
     if (breakTarget.hasUsers) {
-      result = new ShadowLabeledStatement(result);
-      breakTarget.resolveBreaks(result);
+      result = forest.syntheticLabeledStatement(result);
+      breakTarget.resolveBreaks(forest, result);
     }
     exitLoopOrSwitch(result);
   }
@@ -3500,9 +3500,9 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
           ..fileOffset = switchKeyword.charOffset;
     if (target.hasUsers) {
       result = new ShadowLabeledStatement(result);
-      target.resolveBreaks(result);
+      target.resolveBreaks(forest, result);
     }
-    exitLoopOrSwitch(result);
+    exitLoopOrSwitch(toStatement(result));
   }
 
   @override
@@ -3516,7 +3516,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       for (Label label in labels) {
         JumpTarget target = switchScope.lookupLabel(label.name);
         if (target != null) {
-          target.resolveGotos(current);
+          target.resolveGotos(forest, current);
         }
       }
     }
@@ -4442,8 +4442,8 @@ class DelayedPostfixIncrement<Arguments> extends ContextAccessor<Arguments> {
   }
 }
 
-class JumpTarget extends Builder {
-  final List<kernel.Statement> users = <kernel.Statement>[];
+class JumpTarget<Statement> extends Builder {
+  final List<Statement> users = <Statement>[];
 
   final JumpTargetKind kind;
 
@@ -4461,41 +4461,44 @@ class JumpTarget extends Builder {
 
   bool get hasUsers => users.isNotEmpty;
 
-  void addBreak(BreakStatement statement) {
+  void addBreak(Statement statement) {
     assert(isBreakTarget);
     users.add(statement);
   }
 
-  void addContinue(BreakStatement statement) {
+  void addContinue(Statement statement) {
     assert(isContinueTarget);
     users.add(statement);
   }
 
-  void addGoto(ContinueSwitchStatement statement) {
+  void addGoto(Statement statement) {
     assert(isGotoTarget);
     users.add(statement);
   }
 
-  void resolveBreaks(LabeledStatement target) {
+  void resolveBreaks(
+      Forest<dynamic, Statement, dynamic, dynamic> forest, Statement target) {
     assert(isBreakTarget);
-    for (BreakStatement user in users) {
-      user.target = target;
+    for (Statement user in users) {
+      forest.resolveBreak(target, user);
     }
     users.clear();
   }
 
-  void resolveContinues(LabeledStatement target) {
+  void resolveContinues(
+      Forest<dynamic, Statement, dynamic, dynamic> forest, Statement target) {
     assert(isContinueTarget);
-    for (BreakStatement user in users) {
-      user.target = target;
+    for (Statement user in users) {
+      forest.resolveContinue(target, user);
     }
     users.clear();
   }
 
-  void resolveGotos(SwitchCase target) {
+  void resolveGotos(
+      Forest<dynamic, Statement, dynamic, dynamic> forest, Object target) {
     assert(isGotoTarget);
-    for (ContinueSwitchStatement user in users) {
-      user.target = target;
+    for (Statement user in users) {
+      forest.resolveContinueInSwitch(target, user);
     }
     users.clear();
   }
@@ -4504,7 +4507,7 @@ class JumpTarget extends Builder {
   String get fullNameForErrors => "<jump-target>";
 }
 
-class LabelTarget extends Builder implements JumpTarget {
+class LabelTarget<Statement> extends Builder implements JumpTarget<Statement> {
   final JumpTarget breakTarget;
 
   final JumpTarget continueTarget;
@@ -4512,15 +4515,15 @@ class LabelTarget extends Builder implements JumpTarget {
   final int functionNestingLevel;
 
   LabelTarget(MemberBuilder member, this.functionNestingLevel, int charOffset)
-      : breakTarget = new JumpTarget(
+      : breakTarget = new JumpTarget<Statement>(
             JumpTargetKind.Break, functionNestingLevel, member, charOffset),
-        continueTarget = new JumpTarget(
+        continueTarget = new JumpTarget<Statement>(
             JumpTargetKind.Continue, functionNestingLevel, member, charOffset),
         super(member, charOffset, member.fileUri);
 
   bool get hasUsers => breakTarget.hasUsers || continueTarget.hasUsers;
 
-  List<kernel.Statement> get users => unsupported("users", charOffset, fileUri);
+  List<Statement> get users => unsupported("users", charOffset, fileUri);
 
   JumpTargetKind get kind => unsupported("kind", charOffset, fileUri);
 
@@ -4530,27 +4533,30 @@ class LabelTarget extends Builder implements JumpTarget {
 
   bool get isGotoTarget => false;
 
-  void addBreak(BreakStatement statement) {
+  void addBreak(Statement statement) {
     breakTarget.addBreak(statement);
   }
 
-  void addContinue(BreakStatement statement) {
+  void addContinue(Statement statement) {
     continueTarget.addContinue(statement);
   }
 
-  void addGoto(ContinueSwitchStatement statement) {
+  void addGoto(Statement statement) {
     unsupported("addGoto", charOffset, fileUri);
   }
 
-  void resolveBreaks(LabeledStatement target) {
-    breakTarget.resolveBreaks(target);
+  void resolveBreaks(
+      Forest<dynamic, Statement, dynamic, dynamic> forest, Statement target) {
+    breakTarget.resolveBreaks(forest, target);
   }
 
-  void resolveContinues(LabeledStatement target) {
-    continueTarget.resolveContinues(target);
+  void resolveContinues(
+      Forest<dynamic, Statement, dynamic, dynamic> forest, Statement target) {
+    continueTarget.resolveContinues(forest, target);
   }
 
-  void resolveGotos(SwitchCase target) {
+  void resolveGotos(
+      Forest<dynamic, Statement, dynamic, dynamic> forest, Object target) {
     unsupported("resolveGotos", charOffset, fileUri);
   }
 
