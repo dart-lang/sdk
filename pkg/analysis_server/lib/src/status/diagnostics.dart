@@ -350,12 +350,14 @@ class CompletionPage extends DiagnosticPageWithNav {
     buf.writeln('<table>');
     buf.writeln(
         '<tr><th>Time</th><th>Results</th><th>Source</th><th>Snippet</th></tr>');
+    var pathContext = completionDomain.server.resourceProvider.pathContext;
     for (CompletionPerformance completion in completions) {
+      String shortName = pathContext.basename(completion.path);
       buf.writeln('<tr>'
           '<td class="pre right">${printMilliseconds(
           completion.elapsedInMilliseconds)}</td>'
           '<td class="right">${completion.suggestionCount}</td>'
-          '<td>${escape(completion.source.shortName)}</td>'
+          '<td>${escape(shortName)}</td>'
           '<td><code>${escape(completion.snippet)}</code></td>'
           '</tr>');
     }

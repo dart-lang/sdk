@@ -16,7 +16,6 @@ import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
@@ -176,7 +175,6 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     int offset = params.offset;
 
     AnalysisResult result = await server.getAnalysisResult(filePath);
-    Source source;
 
     if (result == null || !result.exists) {
       if (server.onNoAnalysisCompletion != null) {
@@ -185,7 +183,6 @@ class CompletionDomainHandler extends AbstractRequestHandler {
             request, this, params, performance, completionId);
         return;
       }
-      source = server.resourceProvider.getFile(filePath).createSource();
     } else {
       if (offset < 0 || offset > result.content.length) {
         server.sendResponse(new Response.invalidParameter(
@@ -195,13 +192,11 @@ class CompletionDomainHandler extends AbstractRequestHandler {
             ' but found $offset'));
         return;
       }
-      source =
-          server.resourceProvider.getFile(result.path).createSource(result.uri);
 
-      recordRequest(performance, source, result.content, offset);
+      recordRequest(performance, filePath, result.content, offset);
     }
-    CompletionRequestImpl completionRequest = new CompletionRequestImpl(
-        result, server.resourceProvider, source, offset, performance);
+    CompletionRequestImpl completionRequest =
+        new CompletionRequestImpl(result, offset, performance);
 
     String completionId = (_nextCompletionId++).toString();
 
@@ -233,10 +228,10 @@ class CompletionDomainHandler extends AbstractRequestHandler {
    * If tracking code completion performance over time, then
    * record addition information about the request in the performance record.
    */
-  void recordRequest(CompletionPerformance performance, Source source,
+  void recordRequest(CompletionPerformance performance, String path,
       String content, int offset) {
-    performance.source = source;
-    if (performanceListMaxLength == 0 || source == null) {
+    performance.path = path;
+    if (performanceListMaxLength == 0) {
       return;
     }
     performance.setContentsAndOffset(content, offset);

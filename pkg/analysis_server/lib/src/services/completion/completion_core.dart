@@ -16,9 +16,6 @@ class CompletionRequestImpl implements CompletionRequest {
   final AnalysisResult result;
 
   @override
-  final Source source;
-
-  @override
   final int offset;
 
   /**
@@ -39,9 +36,6 @@ class CompletionRequestImpl implements CompletionRequest {
    */
   int replacementLength;
 
-  @override
-  final ResourceProvider resourceProvider;
-
   bool _aborted = false;
 
   final CompletionPerformance performance;
@@ -49,12 +43,16 @@ class CompletionRequestImpl implements CompletionRequest {
   /**
    * Initialize a newly created completion request based on the given arguments.
    */
-  CompletionRequestImpl(this.result, this.resourceProvider, Source source,
-      int offset, this.performance)
-      : this.source = source,
-        this.offset = offset,
+  CompletionRequestImpl(this.result, int offset, this.performance)
+      : this.offset = offset,
         replacementOffset = offset,
         replacementLength = 0;
+
+  @override
+  ResourceProvider get resourceProvider => result.session.resourceProvider;
+
+  @override
+  Source get source => result.unit.element.source;
 
   @override
   String get sourceContents => result?.content;

@@ -11,7 +11,6 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
     show DartCompletionRequestImpl;
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 
@@ -26,7 +25,6 @@ int suggestionComparator(CompletionSuggestion s1, CompletionSuggestion s2) {
 abstract class DartCompletionContributorTest extends AbstractContextTest {
   static const String _UNCHECKED = '__UNCHECKED__';
   String testFile;
-  Source testSource;
   int completionOffset;
   int replacementOffset;
   int replacementLength;
@@ -59,7 +57,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     expect(nextOffset, equals(-1), reason: 'too many ^');
     content = content.substring(0, completionOffset) +
         content.substring(completionOffset + 1);
-    testSource = addSource(testFile, content);
+    addSource(testFile, content);
   }
 
   void assertHasNoParameterInfo(CompletionSuggestion suggestion) {
@@ -473,13 +471,8 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   Future computeSuggestions({int times = 200}) async {
     AnalysisResult analysisResult =
         await driver.getResult(convertPath(testFile));
-    testSource = analysisResult.unit.element.source;
     CompletionRequestImpl baseRequest = new CompletionRequestImpl(
-        analysisResult,
-        resourceProvider,
-        testSource,
-        completionOffset,
-        new CompletionPerformance());
+        analysisResult, completionOffset, new CompletionPerformance());
 
     // Build the request
     Completer<DartCompletionRequest> requestCompleter =

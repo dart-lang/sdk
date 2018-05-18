@@ -108,11 +108,8 @@ library _runtimeCompletion;
     }
 
     CompletionContributor contributor = new DartCompletionManager();
-    // TODO(scheglov) Stop requiring Source, it has it in AnalysisResult.
     CompletionRequestImpl request = new CompletionRequestImpl(
       targetResult,
-      resourceProvider,
-      targetResult.unit.element.source,
       targetOffset,
       new CompletionPerformance(),
     );
