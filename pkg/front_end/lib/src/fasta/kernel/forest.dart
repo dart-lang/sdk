@@ -169,6 +169,11 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
 
   Expression notExpression(Expression operand, Location location);
 
+  /// Return a representation of a parenthesized condition consisting of the
+  /// given [expression] between the [leftParenthesis] and [rightParenthesis].
+  Object parenthesizedCondition(Location leftParenthesis, Expression expression,
+      Location rightParenthesis);
+
   /// Return a representation of a rethrow statement consisting of the
   /// [rethrowKeyword] followed by the [semicolon].
   Statement rethrowStatement(Location rethrowKeyword, Location semicolon);

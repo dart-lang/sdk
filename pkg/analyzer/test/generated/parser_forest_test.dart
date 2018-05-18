@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/fasta/body_builder_test_helper.dart';
@@ -5184,6 +5185,8 @@ class StatementParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_parseIfStatement_else_emptyStatements() {
     super.test_parseIfStatement_else_emptyStatements();
+    fail(
+        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
   }
 
   @failingTest

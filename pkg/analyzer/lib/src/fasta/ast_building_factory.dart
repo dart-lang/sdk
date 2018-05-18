@@ -236,6 +236,12 @@ class AstBuildingForest
         ..staticType = _typeProvider?.boolType;
 
   @override
+  Object parenthesizedCondition(Token leftParenthesis, Expression expression,
+          Token rightParenthesis) =>
+      astFactory.parenthesizedExpression(
+          leftParenthesis, expression, rightParenthesis);
+
+  @override
   int readOffset(AstNode node) => node.offset;
 
   @override

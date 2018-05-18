@@ -903,8 +903,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void handleParenthesizedCondition(Token token) {
     debugEvent("ParenthesizedCondition");
-    push(new ParenthesizedExpression(
-        this, token.endGroup, toKernelExpression(popForValue())));
+    push(forest.parenthesizedCondition(token, popForValue(), token.endGroup));
   }
 
   @override

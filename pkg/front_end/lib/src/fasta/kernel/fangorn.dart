@@ -282,6 +282,12 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
+  Object parenthesizedCondition(
+      Token leftParenthesis, Expression expression, Token rightParenthesis) {
+    return expression;
+  }
+
+  @override
   Statement rethrowStatement(Token rethrowKeyword, Token semicolon) {
     return new ShadowExpressionStatement(
         new ShadowRethrow()..fileOffset = offsetForToken(rethrowKeyword));
