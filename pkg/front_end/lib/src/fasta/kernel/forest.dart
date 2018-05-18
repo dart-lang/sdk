@@ -134,6 +134,11 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
 
   Expression awaitExpression(Expression operand, Location location);
 
+  /// Return a representation of a block of [statements] enclosed between the
+  /// [openBracket] and [closeBracket].
+  Statement block(
+      Location openBrace, List<Statement> statements, Location closeBrace);
+
   /// Return a representation of a conditional expression. The [condition] is
   /// the expression preceding the question mark. The [question] is the `?`. The
   /// [thenExpression] is the expression following the question mark. The
@@ -187,15 +192,26 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   Statement tryStatement(Location tryKeyword, Statement body,
       covariant catchClauses, Location finallyKeyword, Statement finallyBlock);
 
+  Statement variablesDeclaration(covariant List declarations, Uri uri);
+
+  Object variablesDeclarationExtractDeclarations(
+      covariant Statement variablesDeclaration);
+
+  Statement wrapVariables(Statement statement);
+
   /// Return a representation of a yield statement consisting of the
   /// [yieldKeyword], [star], [expression], and [semicolon]. The [star] is null
   /// when no star was included in the source code.
   Statement yieldStatement(Location yieldKeyword, Location star,
       Expression expression, Location semicolon);
 
+  bool isBlock(Object node);
+
   bool isErroneousNode(Object node);
 
   bool isThisExpression(Object node);
+
+  bool isVariablesDeclaration(Object node);
 
   // TODO(ahe): Remove this method when all users are moved here.
   kernel.Arguments castArguments(Arguments arguments) {

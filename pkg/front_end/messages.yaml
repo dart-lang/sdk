@@ -2221,3 +2221,19 @@ ImplicitCallOfNonMethod:
 ExpectedOneExpression:
   template: "Expected one expression, but found additional input."
   severity: ERROR
+
+ForInLoopNotAssignable:
+  template: "Can't assign to this, so it can't be used in a for-in loop."
+  severity: ERROR
+  statement: "for (1 in []) {}"
+  script: |
+    import "dart:core" as prefix;
+
+    main() {
+      for (prefix in []) {}
+    }
+
+ForInLoopExactlyOneVariable:
+  template: "A for-in loop can't have more than one loop variable."
+  severity: ERROR
+  statement: "for (var x, y in []) {}"

@@ -2539,6 +2539,26 @@ Message _withArgumentsFinalInstanceVariableAlreadyInitializedCause(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeForInLoopExactlyOneVariable =
+    messageForInLoopExactlyOneVariable;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageForInLoopExactlyOneVariable = const MessageCode(
+    "ForInLoopExactlyOneVariable",
+    severity: Severity.error,
+    message: r"""A for-in loop can't have more than one loop variable.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeForInLoopNotAssignable = messageForInLoopNotAssignable;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageForInLoopNotAssignable = const MessageCode(
+    "ForInLoopNotAssignable",
+    severity: Severity.error,
+    message:
+        r"""Can't assign to this, so it can't be used in a for-in loop.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
         Message Function(String name)> templateFunctionHasNoSuchNamedParameter =
     const Template<Message Function(String name)>(

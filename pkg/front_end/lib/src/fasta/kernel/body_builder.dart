@@ -312,39 +312,18 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     return list;
   }
 
-  Block popBlock(int count, Token beginToken) {
-    List<dynamic /*kernel.Statement | List<kernel.Statement>*/ > statements =
-        popList(count) ?? <kernel.Statement>[];
-    List<kernel.Statement> copy;
-    for (int i = 0; i < statements.length; i++) {
-      var statement = statements[i];
-      if (statement is List) {
-        copy ??= new List<kernel.Statement>.from(statements.getRange(0, i));
-        // TODO(sigmund): remove this assignment (issue #28651)
-        Iterable subStatements = statement;
-        copy.addAll(subStatements);
-      } else if (copy != null) {
-        copy.add(statement);
-      }
-    }
-    return new ShadowBlock(copy ?? statements)
-      ..fileOffset = offsetForToken(beginToken);
+  Statement popBlock(int count, Token openBrace, Token closeBrace) {
+    List<Statement> statements =
+        new List<Statement>.filled(count, null, growable: true);
+    popList(count, statements);
+    return forest.block(openBrace, statements, closeBrace);
   }
 
   Statement popStatementIfNotNull(Object value) {
     return value == null ? null : popStatement();
   }
 
-  Statement popStatement() {
-    var statement = pop();
-    if (statement is List) {
-      return toStatement(new Block(new List<kernel.Statement>.from(statement)));
-    } else if (statement is VariableDeclaration) {
-      return toStatement(new Block(<kernel.Statement>[statement]));
-    } else {
-      return statement;
-    }
-  }
+  Statement popStatement() => forest.wrapVariables(pop());
 
   void ignore(Unhandled value) {
     pop();
@@ -553,13 +532,13 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   }
 
   @override
-  void endBlockFunctionBody(int count, Token beginToken, Token endToken) {
+  void endBlockFunctionBody(int count, Token openBrace, Token closeBrace) {
     debugEvent("BlockFunctionBody");
-    if (beginToken == null) {
+    if (openBrace == null) {
       assert(count == 0);
       push(NullValue.Block);
     } else {
-      Block block = popBlock(count, beginToken);
+      Statement block = popBlock(count, openBrace, closeBrace);
       exitLocalScope();
       push(block);
     }
@@ -714,12 +693,13 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         if (builder.formals != null) {
           // Illegal parameters were removed by the function builder.
           // Add them as local variable to put them in scope of the body.
-          List<kernel.Statement> statements = <kernel.Statement>[];
+          List<Statement> statements = <Statement>[];
           for (KernelFormalParameterBuilder parameter in builder.formals) {
-            statements.add(parameter.target);
+            statements.add(toStatement(parameter.target));
           }
-          statements.add(body);
-          body = new Block(statements)..fileOffset = charOffset;
+          statements.add(toStatement(body));
+          body = toKernelStatement(
+              storeOffset(forest.block(null, statements, null), charOffset));
         }
         body = wrapInCompileTimeErrorStatement(
             body, fasta.messageSetterWithWrongNumberOfFormals);
@@ -1760,29 +1740,40 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void endVariablesDeclaration(int count, Token endToken) {
     debugEvent("VariablesDeclaration");
-    List<VariableDeclaration> variables = popList(count);
-    constantContext = pop();
-    currentLocalVariableType = pop();
-    currentLocalVariableModifiers = pop();
-    List<Expression> annotations = pop();
-    if (annotations != null) {
-      for (VariableDeclaration variable in variables) {
+    if (count == 1) {
+      VariableDeclaration variable = pop();
+      constantContext = pop();
+      currentLocalVariableType = pop();
+      currentLocalVariableModifiers = pop();
+      List<Expression> annotations = pop();
+      if (annotations != null) {
         for (Expression annotation in annotations) {
           variable.addAnnotation(toKernelExpression(annotation));
         }
       }
-    }
-    if (variables.length != 1) {
-      push(variables);
+      push(variable);
     } else {
-      push(variables.single);
+      List<VariableDeclaration> variables = popList(count,
+          new List<VariableDeclaration>.filled(count, null, growable: true));
+      constantContext = pop();
+      currentLocalVariableType = pop();
+      currentLocalVariableModifiers = pop();
+      List<Expression> annotations = pop();
+      if (annotations != null) {
+        for (VariableDeclaration variable in variables) {
+          for (Expression annotation in annotations) {
+            variable.addAnnotation(toKernelExpression(annotation));
+          }
+        }
+      }
+      push(forest.variablesDeclaration(variables, uri));
     }
   }
 
   @override
-  void endBlock(int count, Token beginToken, Token endToken) {
+  void endBlock(int count, Token openBrace, Token closeBrace) {
     debugEvent("Block");
-    Block block = popBlock(count, beginToken);
+    Statement block = popBlock(count, openBrace, closeBrace);
     exitLocalScope();
     push(block);
   }
@@ -1834,14 +1825,6 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     }
     if (variableOrExpression is VariableDeclaration) {
       return <VariableDeclaration>[variableOrExpression];
-    } else if (variableOrExpression is List) {
-      List<VariableDeclaration> variables = <VariableDeclaration>[];
-      for (var v in variableOrExpression) {
-        variables.addAll(buildVariableDeclarations(v));
-      }
-      return variables;
-    } else if (variableOrExpression == null) {
-      return <VariableDeclaration>[];
     } else if (variableOrExpression is Expression) {
       VariableDeclaration variable = new ShadowVariableDeclaration.forEffect(
           toKernelExpression(variableOrExpression), functionNestingLevel);
@@ -1850,6 +1833,17 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       VariableDeclaration variable = new ShadowVariableDeclaration.forEffect(
           variableOrExpression.expression, functionNestingLevel);
       return <VariableDeclaration>[variable];
+    } else if (forest.isVariablesDeclaration(variableOrExpression)) {
+      return forest
+          .variablesDeclarationExtractDeclarations(variableOrExpression);
+    } else if (variableOrExpression is List) {
+      List<VariableDeclaration> variables = <VariableDeclaration>[];
+      for (var v in variableOrExpression) {
+        variables.addAll(buildVariableDeclarations(v));
+      }
+      return variables;
+    } else if (variableOrExpression == null) {
+      return <VariableDeclaration>[];
     }
     return null;
   }
@@ -2381,10 +2375,14 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       }
       if (catchParameters.required.length > 2 ||
           catchParameters.optional != null) {
-        body = new Block(<kernel.Statement>[
-          compileTimeErrorInTry ??= deprecated_buildCompileTimeErrorStatement(
-              "Invalid catch arguments.", catchKeyword.next.charOffset)
-        ]);
+        body = toKernelStatement(forest.block(
+            catchKeyword,
+            <Statement>[
+              toStatement(compileTimeErrorInTry ??=
+                  deprecated_buildCompileTimeErrorStatement(
+                      "Invalid catch arguments.", catchKeyword.next.charOffset))
+            ],
+            null));
       }
     }
     push(new Catch(exception, body, guard: type, stackTrace: stackTrace)
@@ -3086,11 +3084,16 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
           // This must have been a compile-time error.
           assert(isErroneousNode(variable.initializer));
 
-          push(new Block(<kernel.Statement>[
-            new ExpressionStatement(variable.initializer),
-            declaration
-          ])
-            ..fileOffset = declaration.fileOffset);
+          push(storeOffset(
+              forest.block(
+                  null,
+                  <Statement>[
+                    forest.expressionStatement(
+                        toExpression(variable.initializer), token),
+                    toStatement(declaration)
+                  ],
+                  null),
+              declaration.fileOffset));
           variable.initializer = null;
         } else {
           push(declaration);
@@ -3221,9 +3224,13 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       kernelBody = combineStatements(
           new ShadowLoopAssignmentStatement(syntheticAssignment), kernelBody);
     } else {
+      Message message = forest.isVariablesDeclaration(lvalue)
+          ? fasta.messageForInLoopExactlyOneVariable
+          : fasta.messageForInLoopNotAssignable;
+      Token token = forToken.next.next;
       variable = new VariableDeclaration.forValue(toKernelExpression(
-          deprecated_buildCompileTimeError("Expected lvalue, but got ${lvalue}",
-              forToken.next.next.charOffset)));
+          buildCompileTimeError(
+              message, offsetForToken(token), lengthForToken(token))));
     }
     kernel.Statement result = new ShadowForInStatement(
         variable,
@@ -3464,7 +3471,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     // We always create a block here so that we later know that there's always
     // one synthetic block when we finish compiling the switch statement and
     // check this switch case to see if it falls through to the next case.
-    Block block = popBlock(statementCount, firstToken);
+    Statement block = popBlock(statementCount, firstToken, null);
     exitLocalScope();
     List<Label> labels = pop();
     List<Expression> expressions = pop();
@@ -3472,8 +3479,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     for (Expression expression in expressions) {
       expressionOffsets.add(forest.readOffset(expression));
     }
-    push(new SwitchCase(
-        toKernelExpressionList(expressions), expressionOffsets, block,
+    push(new SwitchCase(toKernelExpressionList(expressions), expressionOffsets,
+        toKernelStatement(block),
         isDefault: defaultKeyword != null)
       ..fileOffset = firstToken.charOffset);
     push(labels);
@@ -3520,7 +3527,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       // declarations in the switch case.
       TreeNode lastNode =
           block.statements.isEmpty ? null : block.statements.last;
-      if (lastNode is Block) {
+      if (forest.isBlock(lastNode)) {
         // This is a non-synthetic block.
         Block block = lastNode;
         lastNode = block.statements.isEmpty ? null : block.statements.last;
@@ -4001,10 +4008,13 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     if (member.isNative) {
       push(NullValue.FunctionBody);
     } else {
-      push(new Block(<kernel.Statement>[
-        deprecated_buildCompileTimeErrorStatement(
-            "Expected '{'.", token.charOffset)
-      ]));
+      push(forest.block(
+          token,
+          <Statement>[
+            toStatement(deprecated_buildCompileTimeErrorStatement(
+                "Expected '{'.", token.charOffset))
+          ],
+          null));
     }
   }
 

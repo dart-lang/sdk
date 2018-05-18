@@ -9,6 +9,7 @@ import 'dart:core' hide MapEntry;
 import 'package:kernel/ast.dart'
     show
         Arguments,
+        Block,
         Catch,
         DartType,
         EmptyStatement,
@@ -22,9 +23,12 @@ import 'package:kernel/ast.dart'
         Statement,
         ThisExpression,
         TreeNode,
-        VariableDeclaration;
+        VariableDeclaration,
+        setParents;
 
 import '../parser.dart' show offsetForToken;
+
+import '../problems.dart' show unsupported;
 
 import '../scanner.dart' show Token;
 
@@ -33,6 +37,7 @@ import 'kernel_shadow_ast.dart'
         ShadowArguments,
         ShadowAsExpression,
         ShadowAwaitExpression,
+        ShadowBlock,
         ShadowBoolLiteral,
         ShadowCheckLibraryIsLoaded,
         ShadowConditionalExpression,
@@ -215,6 +220,23 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
+  Statement block(
+      Token openBrace, List<Statement> statements, Token closeBrace) {
+    List<Statement> copy;
+    for (int i = 0; i < statements.length; i++) {
+      Statement statement = statements[i];
+      if (statement is _VariablesDeclaration) {
+        copy ??= new List<Statement>.from(statements.getRange(0, i));
+        copy.addAll(statement.declarations);
+      } else if (copy != null) {
+        copy.add(statement);
+      }
+    }
+    return new ShadowBlock(copy ?? statements)
+      ..fileOffset = offsetForToken(openBrace);
+  }
+
+  @override
   Expression conditionalExpression(Expression condition, Token question,
       Expression thenExpression, Token colon, Expression elseExpression) {
     return new ShadowConditionalExpression(
@@ -291,11 +313,39 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
+  _VariablesDeclaration variablesDeclaration(
+      List<VariableDeclaration> declarations, Uri uri) {
+    return new _VariablesDeclaration(declarations, uri);
+  }
+
+  @override
+  List<VariableDeclaration> variablesDeclarationExtractDeclarations(
+      _VariablesDeclaration variablesDeclaration) {
+    return variablesDeclaration.declarations;
+  }
+
+  @override
+  Statement wrapVariables(Statement statement) {
+    if (statement is _VariablesDeclaration) {
+      return new ShadowBlock(statement.declarations)
+        ..fileOffset = statement.fileOffset;
+    } else if (statement is VariableDeclaration) {
+      return new ShadowBlock(<Statement>[statement])
+        ..fileOffset = statement.fileOffset;
+    } else {
+      return statement;
+    }
+  }
+
+  @override
   Statement yieldStatement(
       Token yieldKeyword, Token star, Expression expression, Token semicolon) {
     return new ShadowYieldStatement(expression, isYieldStar: star != null)
       ..fileOffset = yieldKeyword.charOffset;
   }
+
+  @override
+  bool isBlock(Object node) => node is Block;
 
   @override
   bool isErroneousNode(Object node) {
@@ -320,4 +370,36 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
 
   @override
   bool isThisExpression(Object node) => node is ThisExpression;
+
+  @override
+  bool isVariablesDeclaration(Object node) => node is _VariablesDeclaration;
+}
+
+class _VariablesDeclaration extends Statement {
+  final List<VariableDeclaration> declarations;
+  final Uri uri;
+
+  _VariablesDeclaration(this.declarations, this.uri) {
+    setParents(declarations, this);
+  }
+
+  @override
+  accept(v) {
+    unsupported("accept", fileOffset, uri);
+  }
+
+  @override
+  accept1(v, arg) {
+    unsupported("accept1", fileOffset, uri);
+  }
+
+  @override
+  visitChildren(v) {
+    unsupported("visitChildren", fileOffset, uri);
+  }
+
+  @override
+  transformChildren(v) {
+    unsupported("transformChildren", fileOffset, uri);
+  }
 }

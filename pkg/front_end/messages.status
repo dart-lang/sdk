@@ -1,6 +1,7 @@
 # Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
+
 AbstractClassInstantiation/analyzerCode: Fail
 AbstractClassInstantiation/example: Fail
 AbstractClassMember/script5: Fail
@@ -190,6 +191,10 @@ FinalAndCovariant/script2: Fail
 FinalFieldWithoutInitializer/example: Fail
 FinalInstanceVariableAlreadyInitialized/analyzerCode: Fail
 FinalInstanceVariableAlreadyInitialized/example: Fail
+ForInLoopExactlyOneVariable/analyzerCode: Fail # The analyzer doesn't recover well.
+ForInLoopExactlyOneVariable/statement: Fail # Fasta reports too many errors.
+ForInLoopNotAssignable/analyzerCode: Fail # The analyzer reports a different error.
+ForInLoopNotAssignable/statement: Fail
 FunctionHasNoSuchNamedParameter/analyzerCode: Fail
 FunctionHasNoSuchNamedParameter/example: Fail
 FunctionTypeDefaultValue/example: Fail

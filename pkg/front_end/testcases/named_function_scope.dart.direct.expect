@@ -64,7 +64,7 @@ static method test() → dynamic {
   {
     self::T t;
     {
-      let dynamic _ = null in invalid-expression "pkg/front_end/testcases/named_function_scope.dart:68:47: Error: Can't declare 'T' because it was already used in this scope.
+      invalid-expression "pkg/front_end/testcases/named_function_scope.dart:68:47: Error: Can't declare 'T' because it was already used in this scope.
     T /*@error=DuplicatedNamePreviouslyUsed*/ T() {}
                                               ^";
       function T() → self::T {}
@@ -72,7 +72,7 @@ static method test() → dynamic {
   }
   {
     {
-      let dynamic _ = null in invalid-expression "pkg/front_end/testcases/named_function_scope.dart:72:47: Error: Can't declare 'T' because it was already used in this scope.
+      invalid-expression "pkg/front_end/testcases/named_function_scope.dart:72:47: Error: Can't declare 'T' because it was already used in this scope.
     T /*@error=DuplicatedNamePreviouslyUsed*/ T() {}
                                               ^";
       function T() → self::T {}
@@ -81,7 +81,7 @@ static method test() → dynamic {
   {
     self::T t;
     {
-      let dynamic _ = null in invalid-expression "pkg/front_end/testcases/named_function_scope.dart:77:47: Error: Can't declare 'T' because it was already used in this scope.
+      invalid-expression "pkg/front_end/testcases/named_function_scope.dart:77:47: Error: Can't declare 'T' because it was already used in this scope.
     T /*@error=DuplicatedNamePreviouslyUsed*/ T(T t) {}
                                               ^";
       function T(self::T t) → self::T {}
@@ -89,7 +89,7 @@ static method test() → dynamic {
   }
   {
     {
-      let dynamic _ = null in invalid-expression "pkg/front_end/testcases/named_function_scope.dart:81:47: Error: Can't declare 'T' because it was already used in this scope.
+      invalid-expression "pkg/front_end/testcases/named_function_scope.dart:81:47: Error: Can't declare 'T' because it was already used in this scope.
     T /*@error=DuplicatedNamePreviouslyUsed*/ T(T t) {}
                                               ^";
       function T(self::T t) → self::T {}

@@ -68,6 +68,11 @@ class AstBuildingForest
   }
 
   @override
+  Block block(Token openBrace, List<Statement> statements, Token closeBrace) {
+    return astFactory.block(openBrace, statements, closeBrace);
+  }
+
+  @override
   kernel.Arguments castArguments(_Arguments arguments) {
     // TODO(brianwilkerson) Implement this or remove it from the API.
     throw new UnimplementedError();
@@ -115,7 +120,10 @@ class AstBuildingForest
   }
 
   @override
-  bool isErroneousNode(covariant node) => false /* ??? */;
+  bool isBlock(Object node) => node is Block;
+
+  @override
+  bool isErroneousNode(Object node) => false /* ??? */;
 
   @override
   Expression isExpression(Expression expression, Token isOperator,
@@ -124,6 +132,11 @@ class AstBuildingForest
 
   @override
   bool isThisExpression(Object node) => node is ThisExpression;
+
+  @override
+  bool isVariablesDeclaration(Object node) {
+    return node is VariableDeclarationStatement && node.variables != 1;
+  }
 
   @override
   Expression literalBool(bool value, Token location) =>
@@ -252,6 +265,22 @@ class AstBuildingForest
           Statement finallyBlock) =>
       astFactory.tryStatement(
           tryKeyword, body, catchClauses, finallyKeyword, finallyBlock);
+
+  @override
+  VariableDeclarationStatement variablesDeclaration(
+      List<VariableDeclaration> declarations, Uri uri) {
+    // TODO(brianwilkerson) Implement this.
+    throw new UnimplementedError();
+  }
+
+  @override
+  NodeList<VariableDeclaration> variablesDeclarationExtractDeclarations(
+      VariableDeclarationStatement variablesDeclaration) {
+    return variablesDeclaration.variables.variables;
+  }
+
+  @override
+  Statement wrapVariables(Statement statement) => statement;
 
   @override
   Statement yieldStatement(Token yieldKeyword, Token star,
