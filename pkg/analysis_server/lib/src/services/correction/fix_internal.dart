@@ -2349,9 +2349,11 @@ class FixProcessor {
     } else {
       DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addSimpleReplacement(
-            range.endEnd(emptyStatement.beginToken.previous, emptyStatement),
-            ' {}');
+        Token previous = emptyStatement.findPrevious(emptyStatement.beginToken);
+        if (previous != null) {
+          builder.addSimpleReplacement(
+              range.endEnd(previous, emptyStatement), ' {}');
+        }
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_WITH_BRACKETS);
     }
