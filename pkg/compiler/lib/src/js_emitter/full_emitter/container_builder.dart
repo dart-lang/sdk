@@ -30,6 +30,7 @@ class ContainerBuilder extends CodeEmitterHelper {
     bool canBeApplied = method.canBeApplied;
     bool canTearOff = method.needsTearOff;
     jsAst.Name tearOffName = method.tearOffName;
+    bool isClosure = method is InstanceMethod && method.isClosureCallMethod;
     jsAst.Name superAlias = method is InstanceMethod ? method.aliasName : null;
     bool hasSuperAlias = superAlias != null;
     jsAst.Expression memberTypeExpression = method.functionType;
@@ -156,7 +157,9 @@ class ContainerBuilder extends CodeEmitterHelper {
       });
     }
     Name memberName = member.memberName;
-    expressions.add(js.string(namer.privateName(memberName)));
+    if (isClosure && canBeApplied) {
+      expressions.add(js.string(namer.privateName(memberName)));
+    }
 
     jsAst.ArrayInitializer arrayInit =
         new jsAst.ArrayInitializer(expressions.toList());

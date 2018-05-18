@@ -235,7 +235,6 @@ f_bounded_quantification5_test: RuntimeError
 f_bounded_quantification5_test: Fail, OK # Issue 12605
 
 [ $compiler == dart2js && $fast_startup && $fasta ]
-call_function_apply_test: RuntimeError # Issue 23873
 constructor_redirect1_negative_test: Crash # Stack Overflow
 constructor_redirect2_negative_test: Crash # Stack Overflow
 cyclic_constructor_test/01: Crash # Stack Overflow
@@ -290,6 +289,7 @@ bit_operations_test/03: RuntimeError
 bit_operations_test/04: RuntimeError
 bit_operations_test/none: RuntimeError
 branch_canonicalization_test: RuntimeError
+call_function_apply_test: RuntimeError # Issue 23873
 call_nonexistent_constructor_test/01: RuntimeError
 call_type_literal_test/01: RuntimeError
 canonical_const2_test: RuntimeError
