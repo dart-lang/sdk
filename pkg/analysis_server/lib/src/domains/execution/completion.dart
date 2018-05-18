@@ -57,6 +57,7 @@ class RuntimeCompletionComputer {
     var contextDir = pathContext.dirname(contextFile);
     var targetPath = pathContext.join(contextDir, '_runtimeCompletion.dart');
 
+    // TODO(scheglov) Use variables.
     await _initContext();
 
     String baseTargetCode = r'''
@@ -156,23 +157,15 @@ class _Context {
   }
 
   void _appendLocals(AstNode node) {
-    void appendParameters(FormalParameterList parameters) {
-      if (parameters != null) {
-        for (var parameter in parameters.parameters) {
-          VariableElement element = parameter.element;
-          locals[element.name] ??= element;
-        }
-      }
-    }
-
     if (node is Block) {
       for (var statement in node.statements) {
+        if (statement.offset > contextOffset) {
+          break;
+        }
         if (statement is VariableDeclarationStatement) {
           for (var variable in statement.variables.variables) {
             VariableElement element = variable.element;
-            if (element.nameOffset < contextOffset) {
-              locals[element.name] ??= element;
-            }
+            locals[element.name] ??= element;
           }
         }
       }
@@ -182,14 +175,19 @@ class _Context {
     } else if (node is CompilationUnit) {
       return;
     } else if (node is FunctionDeclaration) {
-      // TODO(scheglov) test
-      appendParameters(node.functionExpression.parameters);
+      _appendParameters(node.functionExpression.parameters);
     } else if (node is MethodDeclaration) {
-      // TODO(scheglov) test
-      appendParameters(node.parameters);
-    } else {
-      _appendLocals(node.parent);
+      _appendParameters(node.parameters);
     }
-    // TODO(scheglov) support method/function/class
+    _appendLocals(node.parent);
+  }
+
+  void _appendParameters(FormalParameterList parameters) {
+    if (parameters != null) {
+      for (var parameter in parameters.parameters) {
+        VariableElement element = parameter.element;
+        locals[element.name] ??= element;
+      }
+    }
   }
 }

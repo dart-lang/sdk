@@ -33,14 +33,21 @@ class RuntimeCompletionComputerTest extends AbstractContextTest {
         reason: "Not found '// context line'.");
   }
 
-  void assertSuggest(String completion) {
-    expect(result.suggestions, isNotNull);
-    for (var suggestion in result.suggestions) {
-      if (suggestion.completion == completion) {
-        return;
-      }
+  void assertNotSuggested(String completion) {
+    CompletionSuggestion suggestion = getSuggest(completion);
+    if (suggestion != null) {
+      failedCompletion('unexpected $completion');
     }
-    failedCompletion('expected $completion');
+  }
+
+  void assertSuggested(String completion, {String returnType}) {
+    CompletionSuggestion suggestion = getSuggest(completion);
+    if (suggestion == null) {
+      failedCompletion('expected $completion');
+    }
+    if (returnType != null) {
+      expect(suggestion.returnType, returnType);
+    }
   }
 
   Future<void> computeCompletion(
@@ -78,6 +85,16 @@ class RuntimeCompletionComputerTest extends AbstractContextTest {
     fail(sb.toString());
   }
 
+  CompletionSuggestion getSuggest(String completion) {
+    expect(result.suggestions, isNotNull);
+    for (var suggestion in result.suggestions) {
+      if (suggestion.completion == completion) {
+        return suggestion;
+      }
+    }
+    return null;
+  }
+
   test_locals_block() async {
     addContextFile(r'''
 class A {
@@ -90,12 +107,12 @@ void contextFunction() {
 }
 ''');
     await computeCompletion('a.^');
-    assertSuggest('foo');
+    assertSuggested('foo');
 
     // There was an issue with cleaning up
     // Check that the second time it works too.
     await computeCompletion('a.^');
-    assertSuggest('foo');
+    assertSuggested('foo');
   }
 
   test_locals_block_codeWithClosure() async {
@@ -106,6 +123,94 @@ main() {
 }
 ''');
     await computeCompletion('items.forEach((e) => e.^)');
-    assertSuggest('toUpperCase');
+    assertSuggested('toUpperCase');
+  }
+
+  test_locals_nested() async {
+    addContextFile(r'''
+void main() {
+  var a = 0;
+  var b = 0.0;
+  {
+    var a = '';
+    // context line
+  }
+  var c = 0;
+}
+''');
+    await computeCompletion('^');
+    assertSuggested('a', returnType: 'String');
+    assertSuggested('b', returnType: 'double');
+
+    // "c" is defined after the context offset, so is not visible.
+    assertNotSuggested('c');
+  }
+
+  test_parameters_function() async {
+    addContextFile(r'''
+void main(int a, double b) {
+  // context line
+}
+''');
+    await computeCompletion('^');
+    assertSuggested('a', returnType: 'int');
+    assertSuggested('b', returnType: 'double');
+  }
+
+  test_parameters_function_locals() async {
+    addContextFile(r'''
+void main(int a, int b) {
+  String a;
+  double c;
+  // context line
+}
+''');
+    await computeCompletion('^');
+    assertSuggested('a', returnType: 'String');
+    assertSuggested('b', returnType: 'int');
+    assertSuggested('c', returnType: 'double');
+  }
+
+  test_parameters_function_nested() async {
+    addContextFile(r'''
+void foo(int a, double b) {
+  void bar(String a, bool c) {
+    // context line
+  }
+}
+''');
+    await computeCompletion('^');
+    assertSuggested('a', returnType: 'String');
+    assertSuggested('b', returnType: 'double');
+    assertSuggested('c', returnType: 'bool');
+  }
+
+  test_parameters_method() async {
+    addContextFile(r'''
+class C {
+  void main(int a, double b) {
+    // context line
+  }
+}
+''');
+    await computeCompletion('^');
+    assertSuggested('a', returnType: 'int');
+    assertSuggested('b', returnType: 'double');
+  }
+
+  test_parameters_method_locals() async {
+    addContextFile(r'''
+class C {
+  void main(int a, int b) {
+    String a;
+    double c;
+    // context line
+  }
+}
+''');
+    await computeCompletion('^');
+    assertSuggested('a', returnType: 'String');
+    assertSuggested('b', returnType: 'int');
+    assertSuggested('c', returnType: 'double');
   }
 }
