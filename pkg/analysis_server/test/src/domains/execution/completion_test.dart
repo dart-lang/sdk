@@ -269,4 +269,22 @@ class C {
     assertSuggested('b', returnType: 'int');
     assertSuggested('c', returnType: 'double');
   }
+
+  test_syntheticImportPrefix() async {
+    newFile('/test/lib/a.dart', content: 'class A {}');
+    newFile('/test/lib/b.dart', content: 'class B {}');
+    addContextFile(r'''
+import 'a.dart';
+impoty 'b.dart';
+main() {
+  var a = new A();
+  var b = new B();
+  // context line
+}
+''');
+    await computeCompletion('^');
+    for (var suggestion in result.suggestions) {
+      expect(suggestion.completion, isNot(startsWith('__prefix')));
+    }
+  }
 }

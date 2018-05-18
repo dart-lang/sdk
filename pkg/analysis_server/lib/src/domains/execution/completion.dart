@@ -115,6 +115,9 @@ library _runtimeCompletion;
     );
     var suggestions = await contributor.computeSuggestions(request);
 
+    // Remove completions with synthetic import prefixes.
+    suggestions.removeWhere((s) => s.completion.startsWith('__prefix'));
+
     // TODO(scheglov) Add support for expressions.
     var expressions = <RuntimeCompletionExpression>[];
     return new RuntimeCompletionResult(expressions, suggestions);
