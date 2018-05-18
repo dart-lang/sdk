@@ -34,14 +34,14 @@ main() {
   ]);
 
   asyncStart();
-  lib.loadLibrary().then((_) {
+  lib.loadLibrary().then(/*OutputUnit(main, {})*/ (_) {
     Expect.fail("Library should not have loaded");
-  }, onError: (error) {
-    lib.loadLibrary().then((_) {
+  }, onError: /*OutputUnit(main, {})*/ (error) {
+    lib.loadLibrary().then(/*OutputUnit(main, {})*/ (_) {
       Expect.equals("loaded", lib.foo());
-    }, onError: (error) {
+    }, onError: /*OutputUnit(main, {})*/ (error) {
       Expect.fail("Library should have loaded this time");
-    }).whenComplete(() {
+    }).whenComplete(/*OutputUnit(main, {})*/ () {
       asyncEnd();
     });
   });

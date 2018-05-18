@@ -14,7 +14,7 @@ readFoo() {
 
 /*element: main:OutputUnit(main, {})*/
 main() {
-  lib.loadLibrary().then((_) {
+  lib.loadLibrary().then(/*OutputUnit(main, {})*/ (_) {
     lib.foo('b');
     readFoo();
   });

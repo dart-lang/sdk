@@ -6,7 +6,7 @@ import '../libs/deferred_class_library.dart' deferred as lib;
 
 /*element: main:OutputUnit(main, {})*/
 main() {
-  lib.loadLibrary().then((_) {
+  lib.loadLibrary().then(/*OutputUnit(main, {})*/ (_) {
     return new lib.MyClass().foo(87);
   });
 }

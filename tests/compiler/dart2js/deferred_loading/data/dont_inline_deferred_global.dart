@@ -6,7 +6,7 @@ import '../libs/dont_inline_deferred_global_lib.dart' deferred as lib;
 
 /*element: main:OutputUnit(main, {})*/
 void main() {
-  lib.loadLibrary().then((_) {
+  lib.loadLibrary().then(/*OutputUnit(main, {})*/ (_) {
     print(lib.finalVar);
     print(lib.globalVar);
     lib.globalVar = "foobar";

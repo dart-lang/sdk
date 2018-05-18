@@ -9,7 +9,7 @@ import '../libs/deferred_constant1_lib2.dart' deferred as lib2;
 main() async {
   C1.value;
   print(const C(4));
-  () => print(const C(5));
+  /*OutputUnit(main, {})*/ () => print(const C(5));
   await lib2.loadLibrary();
   lib2.C2.value;
   lib2.C3.value;

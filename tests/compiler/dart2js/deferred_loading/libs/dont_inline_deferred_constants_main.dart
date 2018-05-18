@@ -22,8 +22,8 @@ foo() => print("main");
 
 /*element: main:OutputUnit(main, {})*/
 void main() {
-  lib1.loadLibrary().then((_) {
-    lib2.loadLibrary().then((_) {
+  lib1.loadLibrary().then(/*OutputUnit(main, {})*/ (_) {
+    lib2.loadLibrary().then(/*OutputUnit(main, {})*/ (_) {
       lib1.foo();
       lib2.foo();
       print(lib1.C1);

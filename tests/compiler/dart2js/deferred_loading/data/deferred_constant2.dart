@@ -8,7 +8,7 @@ import '../libs/deferred_constant2_lib.dart' deferred as lib;
 
 /*element: main:OutputUnit(main, {})*/
 main() {
-  lib.loadLibrary().then((_) {
+  lib.loadLibrary().then(/*OutputUnit(main, {})*/ (_) {
     Expect.equals(499, lib.C1.value);
   });
 }

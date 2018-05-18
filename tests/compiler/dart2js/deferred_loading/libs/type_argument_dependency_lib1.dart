@@ -5,4 +5,4 @@
 import 'type_argument_dependency_lib2.dart';
 
 /*element: doCast:OutputUnit(main, {})*/
-doCast(List<dynamic> l) => l.cast<B>().map((x) => 1);
+doCast(List<dynamic> l) => l.cast<B>().map(/*OutputUnit(main, {})*/ (x) => 1);

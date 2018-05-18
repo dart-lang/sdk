@@ -106,7 +106,7 @@ void computeMemberIrTypeMasks(
       .run(definition.node);
 }
 
-/// AST visitor for computing inference data for a member.
+/// IR visitor for computing inference data for a member.
 class TypeMaskIrComputer extends IrDataExtractor
     with ComputeValueMixin<ir.Node> {
   final GlobalTypeInferenceResults<ir.Node> results;

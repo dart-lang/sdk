@@ -4,6 +4,6 @@
 import '../libs/basic_deferred_lib.dart' deferred as lib;
 
 /*element: main:OutputUnit(main, {})*/
-main() => lib.loadLibrary().then((_) {
+main() => lib.loadLibrary().then(/*OutputUnit(main, {})*/ (_) {
       (lib.funky)();
     });
