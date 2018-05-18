@@ -677,6 +677,10 @@ const char* Dart::FeaturesString(Isolate* isolate,
              FLAG_error_on_bad_type);
     ADD_FLAG(error_on_bad_override, enable_error_on_bad_override,
              FLAG_error_on_bad_override);
+    // sync-async and reify_generic_functions also affect deopt_ids.
+    ADD_FLAG(sync_async, sync_async, FLAG_sync_async);
+    ADD_FLAG(reify_generic_functions, reify_generic_functions,
+             FLAG_reify_generic_functions);
     if (kind == Snapshot::kFullJIT) {
       ADD_FLAG(use_field_guards, use_field_guards, FLAG_use_field_guards);
       ADD_FLAG(use_osr, use_osr, FLAG_use_osr);

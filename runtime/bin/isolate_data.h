@@ -69,6 +69,18 @@ class IsolateData {
     packages_file = strdup(packages_file_);
   }
 
+  const char* resolved_packages_config() const {
+    return resolved_packages_config_;
+  }
+
+  void set_resolved_packages_config(const char* packages_config) {
+    if (resolved_packages_config_ != NULL) {
+      free(resolved_packages_config_);
+      resolved_packages_config_ = NULL;
+    }
+    resolved_packages_config_ = strdup(packages_config);
+  }
+
   // While loading a loader is associated with the isolate.
   bool HasLoader() const { return loader_ != NULL; }
   Loader* loader() const {
@@ -91,6 +103,7 @@ class IsolateData {
   Loader* loader_;
   AppSnapshot* app_snapshot_;
   MallocGrowableArray<char*>* dependencies_;
+  char* resolved_packages_config_;
   uint8_t* kernel_buffer_;
   intptr_t kernel_buffer_size_;
   bool owns_kernel_buffer_;

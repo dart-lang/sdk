@@ -88,6 +88,7 @@ class RunKernelTask : public ThreadPool::Task {
     api_flags.enable_error_on_bad_override = false;
     api_flags.reify_generic_functions = false;
     api_flags.strong = false;
+    api_flags.sync_async = false;
 #if !defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC)
     api_flags.use_field_guards = true;
 #endif
@@ -426,7 +427,7 @@ class KernelCompilationRequest : public ValueObject {
 
     Dart_CObject dart_sync_async;
     dart_sync_async.type = Dart_CObject_kBool;
-    dart_sync_async.value.as_bool = FLAG_sync_async;
+    dart_sync_async.value.as_bool = isolate->sync_async();
 
     Dart_CObject* message_arr[] = {&tag,
                                    &send_port,
@@ -544,7 +545,7 @@ class KernelCompilationRequest : public ValueObject {
 
     Dart_CObject dart_sync_async;
     dart_sync_async.type = Dart_CObject_kBool;
-    dart_sync_async.value.as_bool = FLAG_sync_async;
+    dart_sync_async.value.as_bool = isolate->sync_async();
 
     Dart_CObject package_config_uri;
     if (package_config != NULL) {

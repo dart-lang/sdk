@@ -254,6 +254,9 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
     result = Dart_StringToCString(result, &resolved_packages_config);
     CHECK_RESULT(result);
     ASSERT(resolved_packages_config != NULL);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    isolate_data->set_resolved_packages_config(resolved_packages_config);
+#endif
   }
 
   result = Dart_SetEnvironmentCallback(EnvironmentCallback);
@@ -905,6 +908,8 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
 
   Dart_EnterScope();
 
+  IsolateData* isolate_data =
+      reinterpret_cast<IsolateData*>(Dart_IsolateData(isolate));
   if (Options::gen_snapshot_kind() == kScript) {
     if (vm_run_app_snapshot) {
       Log::PrintErr("Cannot create a script snapshot from an app snapshot.\n");
@@ -914,7 +919,8 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
     }
     if (Options::preview_dart_2()) {
       Snapshot::GenerateKernel(Options::snapshot_filename(), script_name,
-                               flags.strong, Options::packages_file());
+                               flags.strong,
+                               isolate_data->resolved_packages_config());
     } else {
       Snapshot::GenerateScript(Options::snapshot_filename());
     }
@@ -923,8 +929,6 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
     Dart_Handle root_lib = Dart_RootLibrary();
     // Import the root library into the builtin library so that we can easily
     // lookup the main entry point exported from the root library.
-    IsolateData* isolate_data =
-        reinterpret_cast<IsolateData*>(Dart_IsolateData(isolate));
     result = Dart_LibraryImportLibrary(isolate_data->builtin_lib(), root_lib,
                                        Dart_Null());
 #if !defined(DART_PRECOMPILED_RUNTIME)

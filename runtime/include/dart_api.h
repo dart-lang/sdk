@@ -571,6 +571,7 @@ typedef struct {
   bool reify_generic_functions;
   bool strong;
   bool load_vmservice_library;
+  bool sync_async;
 } Dart_IsolateFlags;
 
 /**
