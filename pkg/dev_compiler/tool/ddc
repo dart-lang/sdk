@@ -74,7 +74,7 @@ if [ "$KERNEL" = true ]; then
     exit 1
   fi
 
-  dart -c $SDK_DIR/pkg/dev_compiler/bin/dartdevk.dart --modules=node \
+  $SDK_DIR/sdk/bin/dartdevk --modules=node \
       --dart-sdk-summary=$GEN_DIR/kernel/ddc_sdk.dill \
       -o $LIBROOT/$BASENAME.js $*
 else
@@ -86,7 +86,7 @@ else
     exit 1
   fi
 
-  dart -c $SDK_DIR/pkg/dev_compiler/bin/dartdevc.dart --modules=node \
+  $SDK_DIR/sdk/bin/dartdevc --modules=node \
       --library-root=$LIBROOT --dart-sdk-summary=$GEN_DIR/ddc_sdk.sum \
       -o $LIBROOT/$BASENAME.js $*
 fi

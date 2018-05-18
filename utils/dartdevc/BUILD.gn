@@ -11,6 +11,10 @@ sdk_summary = "$target_gen_dir/ddc_sdk.sum"
 sdk_dill = "$target_gen_dir/kernel/ddc_sdk.dill"
 
 application_snapshot("dartdevc") {
+  vm_args = [
+    "--preview-dart-2",
+  ]
+
   main_dart = "../../pkg/dev_compiler/bin/dartdevc.dart"
 
   training_args = [
