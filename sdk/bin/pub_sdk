@@ -15,13 +15,20 @@ function follow_links() {
   echo "$file"
 }
 
+function array_contains() {
+  local needle="$1"
+  local element
+  shift
+  for element; do [ "$element" = "$needle" ] && return 0; done
+  return 1
+}
+
 # Unlike $0, $BASH_SOURCE points to the absolute path of this file.
 PROG_NAME="$(follow_links "$BASH_SOURCE")"
 
 # Handle the case where dart-sdk/bin has been symlinked to.
 BIN_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
 
-SNAPSHOT="$BIN_DIR/snapshots/pub.dart.snapshot"
 
 unset VM_OPTIONS
 declare -a VM_OPTIONS
@@ -34,4 +41,10 @@ fi
 
 # Run the pub snapshot.
 DART="$BIN_DIR/dart"
-exec "$DART" "${VM_OPTIONS[@]}" "$SNAPSHOT" "$@"
+if array_contains "--preview-dart-2" "${VM_OPTIONS[@]}"; then
+  SNAPSHOT="$BIN_DIR/snapshots/pub2.dart.snapshot"
+  exec "$DART" "${VM_OPTIONS[@]}" "$SNAPSHOT" "$@"
+else
+  SNAPSHOT="$BIN_DIR/snapshots/pub.dart.snapshot"
+  exec "$DART" "${VM_OPTIONS[@]}" "$SNAPSHOT" "$@"
+fi
