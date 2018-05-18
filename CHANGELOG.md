@@ -1,3 +1,7 @@
+# 0.1.51-dev
+
+* unrelated_type_equality_checks now allows comparison between `Int64` or `Int32` and `int`
+
 # 0.1.50
 
 * migration of rules to use analyzer package `NodeLintRule` and `UnitLintRule` yielding significant performance gains all around

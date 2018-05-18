@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 
@@ -18,6 +19,9 @@ const _details = r'''
 
 Comparing references of a type where neither is a subtype of the other most
 likely will return `false` and might not reflect programmer's intent.
+
+`Int64` and `Int32` from `package:fixnum` allow comparing to `int` provided
+the `int` is on the right hand side. The lint allows this as a special case. 
 
 **BAD:**
 ```
@@ -126,11 +130,25 @@ class DerivedClass2 extends ClassBase with Mixin {}
 
 ''';
 
-bool _hasNonComparableOperands(BinaryExpression node) =>
-    !DartTypeUtilities.isNullLiteral(node.leftOperand) &&
-    !DartTypeUtilities.isNullLiteral(node.rightOperand) &&
-    DartTypeUtilities.unrelatedTypes(
-        node.leftOperand.bestType, node.rightOperand.bestType);
+const String _dartCoreLibraryName = 'dart.core';
+
+bool _isCoreInt(DartType type) =>
+    type.name == 'int' && type.element?.library?.name == _dartCoreLibraryName;
+
+bool _isFixNumIntX(DartType type) =>
+    (type.name == 'Int32' || type.name == 'Int64') &&
+    type.element?.library?.name == 'fixnum';
+
+bool _hasNonComparableOperands(BinaryExpression node) {
+  var left = node.leftOperand;
+  var leftType = left.bestType;
+  var right = node.rightOperand;
+  var rightType = right.bestType;
+  return !DartTypeUtilities.isNullLiteral(left) &&
+      !DartTypeUtilities.isNullLiteral(right) &&
+      DartTypeUtilities.unrelatedTypes(leftType, rightType) &&
+      !(_isFixNumIntX(leftType) && _isCoreInt(rightType));
+}
 
 class UnrelatedTypeEqualityChecks extends LintRule implements NodeLintRule {
   UnrelatedTypeEqualityChecks()
@@ -148,7 +166,6 @@ class UnrelatedTypeEqualityChecks extends LintRule implements NodeLintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  static const String _dartCoreLibraryName = 'dart.core';
   static const String _boolClassName = 'bool';
 
   final LintRule rule;
