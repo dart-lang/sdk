@@ -1633,7 +1633,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void beginThenStatement(Token token) {
     Expression condition = popForValue();
-    typePromoter.enterThen(toKernelExpression(condition));
+    enterThenForTypePromotion(condition);
     push(condition);
     super.beginThenStatement(token);
   }
@@ -4203,6 +4203,10 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   Statement toStatement(kernel.Statement statement) {
     return statement as dynamic;
   }
+
+  /// TODO(ahe): This method is temporarily implemented by subclasses. Once type
+  /// promotion is independent of shadow nodes, remove this method.
+  void enterThenForTypePromotion(Expression condition);
 
   bool isErroneousNode(TreeNode node) {
     return library.loader.handledErrors.isNotEmpty &&
