@@ -1412,8 +1412,6 @@ abstract class ElementEnvironment {
       ClassEntity cls, List<DartType> typeArguments);
 
   /// Returns the `dynamic` type.
-  // TODO(johnniwinther): Remove this when `ResolutionDynamicType` is no longer
-  // needed.
   DartType get dynamicType;
 
   /// Returns the 'raw type' of [cls]. That is, the instantiation of [cls]

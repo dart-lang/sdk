@@ -32,7 +32,7 @@ import 'library_loader.dart' show LibraryLoaderTask, LoadedLibraries;
 import 'null_compiler_output.dart' show NullCompilerOutput, NullSink;
 import 'options.dart' show CompilerOptions, DiagnosticOptions;
 import 'ssa/nodes.dart' show HInstruction;
-import 'package:front_end/src/fasta/scanner.dart' show StringToken, Token;
+import 'package:front_end/src/fasta/scanner.dart' show StringToken;
 import 'types/types.dart' show GlobalTypeInferenceTask;
 import 'universe/selector.dart' show Selector;
 import 'universe/world_builder.dart'
@@ -859,12 +859,6 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
     } else {
       return _spanFromStrategy(spannable);
     }
-  }
-
-  // TODO(johnniwinther): Move this to the parser listeners.
-  @override
-  SourceSpan spanFromToken(Token token) {
-    throw 'No error location.';
   }
 
   internalError(Spannable spannable, reason) {
