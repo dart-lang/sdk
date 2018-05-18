@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:core' hide MapEntry;
 import 'package:kernel/kernel.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -57,6 +58,9 @@ class DevCompilerTarget extends Target {
   bool get nativeExtensionExpectsString => false;
 
   @override
+  bool get enableNoSuchMethodForwarders => true;
+
+  @override
   void performModularTransformationsOnLibraries(
       CoreTypes coreTypes, ClassHierarchy hierarchy, List<Library> libraries,
       {void logger(String msg)}) {}
@@ -68,8 +72,40 @@ class DevCompilerTarget extends Target {
   @override
   Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,
       String name, Arguments arguments, int offset, bool isSuper) {
-    // TODO(sigmund): implement;
-    return new InvalidExpression(null);
+    // TODO(jmesserly): preserve source information?
+    // (These method are synthetic. Also unclear if the offset will correspond
+    // to the file where the class resides, or the file where the method we're
+    // mocking resides).
+    Expression createInvocation(String name, List<Expression> positional) {
+      var ctor = coreTypes.invocationClass.procedures
+          .firstWhere((c) => c.name.name == name);
+      return new StaticInvocation(ctor, new Arguments(positional));
+    }
+
+    if (name.startsWith('get:')) {
+      return createInvocation('getter', [new SymbolLiteral(name.substring(4))]);
+    }
+    if (name.startsWith('set:')) {
+      return createInvocation('setter', [
+        new SymbolLiteral(name.substring(4) + '='),
+        arguments.positional.single
+      ]);
+    }
+    var ctorArgs = <Expression>[new SymbolLiteral(name)];
+    bool isGeneric = arguments.types.isNotEmpty;
+    if (isGeneric) {
+      ctorArgs.add(new ListLiteral(
+          arguments.types.map((t) => new TypeLiteral(t)).toList()));
+    }
+    ctorArgs.add(new ListLiteral(arguments.positional));
+    if (arguments.named.isNotEmpty) {
+      ctorArgs.add(new MapLiteral(
+          arguments.named
+              .map((n) => new MapEntry(new SymbolLiteral(n.name), n.value))
+              .toList(),
+          keyType: coreTypes.symbolClass.rawType));
+    }
+    return createInvocation(isGeneric ? 'genericMethod' : 'method', ctorArgs);
   }
 
   @override

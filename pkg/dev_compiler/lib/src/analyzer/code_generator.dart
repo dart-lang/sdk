@@ -77,7 +77,7 @@ class CodeGenerator extends Object
         ClosureAnnotator,
         JSTypeRefCodegen,
         NullableTypeInference,
-        SharedCompiler
+        SharedCompiler<LibraryElement>
     implements AstVisitor<JS.Node> {
   final AnalysisContext context;
   final SummaryDataStore summaryData;
@@ -100,9 +100,6 @@ class CodeGenerator extends Object
   /// in the SDK to be generated before anything else.
   final _internalSdkFunctions = <JS.ModuleItem>[];
 
-  /// The list of output module items, in the order they need to be emitted in.
-  final _moduleItems = <JS.ModuleItem>[];
-
   /// Table of named and possibly hoisted types.
   TypeTable _typeTable;
 
@@ -121,9 +118,6 @@ class CodeGenerator extends Object
   /// In an async* function, this represents the stream controller parameter.
   JS.TemporaryId _asyncStarController;
 
-  // TODO(jmesserly): fuse this with notNull check.
-  final _privateNames =
-      new HashMap<LibraryElement, HashMap<String, JS.TemporaryId>>();
   final _initializingFormalTemps =
       new HashMap<ParameterElement, JS.TemporaryId>();
 
@@ -320,7 +314,7 @@ class CodeGenerator extends Object
   }
 
   JS.Program _emitModule(List<CompilationUnit> compilationUnits, String name) {
-    if (_moduleItems.isNotEmpty) {
+    if (moduleItems.isNotEmpty) {
       throw new StateError('Can only call emitModule once.');
     }
 
@@ -424,7 +418,7 @@ class CodeGenerator extends Object
     items.addAll(_internalSdkFunctions);
 
     // Add the module's code (produced by visiting compilation units, above)
-    _copyAndFlattenBlocks(items, _moduleItems);
+    _copyAndFlattenBlocks(items, moduleItems);
 
     // Build the module.
     return new JS.Program(items, name: _buildUnit.name);
@@ -442,7 +436,7 @@ class CodeGenerator extends Object
 
     // Track the module name for each library in the module.
     // This data is only required for debugging.
-    _moduleItems.add(js
+    moduleItems.add(js
         .statement('#.trackLibraries(#, #, ${JSModuleFile.sourceMapHoleID});', [
       runtimeModule,
       js.string(name),
@@ -604,7 +598,7 @@ class CodeGenerator extends Object
     // only run this on the outermost function, and not any closures.
     inferNullableTypes(node);
 
-    _moduleItems.add(node.accept(this) as JS.ModuleItem);
+    moduleItems.add(node.accept(this) as JS.ModuleItem);
 
     _currentElement = savedElement;
   }
@@ -667,7 +661,7 @@ class CodeGenerator extends Object
       if (isInternalSdk && element is FunctionElement) {
         _internalSdkFunctions.add(item);
       } else {
-        _moduleItems.add(item);
+        moduleItems.add(item);
       }
     }
 
@@ -728,7 +722,7 @@ class CodeGenerator extends Object
       if (currentNames.containsKey(export.name)) return null;
 
       var name = _emitTopLevelName(export);
-      _moduleItems.add(js.statement(
+      moduleItems.add(js.statement(
           '#.# = #;', [emitLibraryName(currentLibrary), name.selector, name]));
     }
   }
@@ -1187,7 +1181,7 @@ class CodeGenerator extends Object
       // TODO(jmesserly): we could export these symbols, if we want to mark
       // implemented interfaces for user-defined classes.
       var id = new JS.TemporaryId("_is_${classElem.name}_default");
-      _moduleItems.add(
+      moduleItems.add(
           js.statement('const # = Symbol(#);', [id, js.string(id.name, "'")]));
       isClassSymbol = id;
     }
@@ -4284,7 +4278,7 @@ class CodeGenerator extends Object
 
   /// Emits a list of top-level field.
   void _emitTopLevelFields(List<VariableDeclaration> fields) {
-    _moduleItems.add(_emitLazyFields(
+    moduleItems.add(_emitLazyFields(
         emitLibraryName(currentLibrary), fields, _emitTopLevelMemberName));
   }
 
@@ -4304,7 +4298,7 @@ class CodeGenerator extends Object
           _isJSInvocation(init) ||
           init is InstanceCreationExpression &&
               isSdkInternalRuntime(init.staticElement.library)) {
-        _moduleItems.add(closureAnnotate(
+        moduleItems.add(closureAnnotate(
             js.statement('# = #;', [
               _emitTopLevelName(field.element),
               _visitInitializer(field.initializer, field.element)
@@ -4986,7 +4980,7 @@ class CodeGenerator extends Object
     if (_currentFunction == null || usesTypeParams) return jsExpr;
 
     var temp = new JS.TemporaryId('const');
-    _moduleItems.add(js.statement('let #;', [temp]));
+    moduleItems.add(js.statement('let #;', [temp]));
     return js.call('# || (# = #)', [temp, temp, jsExpr]);
   }
 
@@ -5726,7 +5720,7 @@ class CodeGenerator extends Object
     var last = name.substring(name.lastIndexOf('.') + 1);
     var jsName = js.string(name, "'");
     if (last.startsWith('_')) {
-      var nativeSymbol = _emitPrivateNameSymbol(currentLibrary, last);
+      var nativeSymbol = emitPrivateNameSymbol(currentLibrary, last);
       return js.call('new #.new(#, #)', [
         _emitConstructorAccess(privateSymbolClass.type),
         jsName,
@@ -6083,7 +6077,7 @@ class CodeGenerator extends Object
     }
 
     if (name.startsWith('_')) {
-      return _emitPrivateNameSymbol(currentLibrary, name);
+      return emitPrivateNameSymbol(currentLibrary, name);
     }
 
     useExtension ??= _isSymbolizedMember(type, name);
@@ -6203,17 +6197,6 @@ class CodeGenerator extends Object
       return true;
     }
     return false;
-  }
-
-  JS.TemporaryId _emitPrivateNameSymbol(LibraryElement library, String name) {
-    return _privateNames
-        .putIfAbsent(library, () => new HashMap())
-        .putIfAbsent(name, () {
-      var id = new JS.TemporaryId(name);
-      _moduleItems.add(
-          js.statement('const # = Symbol(#);', [id, js.string(id.name, "'")]));
-      return id;
-    });
   }
 
   /// Returns the canonical name to refer to the Dart library.

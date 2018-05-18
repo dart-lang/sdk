@@ -521,12 +521,13 @@ mixin_supertype_subclass_test/02: MissingCompileTimeError
 mixin_supertype_subclass_test/05: MissingCompileTimeError
 mixin_type_parameters_errors_test/03: MissingCompileTimeError
 mixin_type_parameters_errors_test/04: MissingCompileTimeError
+mock_writable_final_field_test: RuntimeError # Issue 30847
 mock_writable_final_private_field_test: RuntimeError
 multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/06r: MissingCompileTimeError
 named_constructor_test/01: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
-no_such_method_mock_test: RuntimeError # Issue 33103, switch DDK to kernel stubs
+no_such_method_mock_test: RuntimeError # Issue 31426 - Kernel does not introduce nSM for implemented fields.
 null2_test: RuntimeError # Issue 32194
 null_method_test: RuntimeError # Issue 32194
 null_no_such_method_test: CompileTimeError # Issue 31533
@@ -617,7 +618,6 @@ void_type_usage_test/conditional2_return_to_void: MissingCompileTimeError, Crash
 void_type_usage_test/conditional3_return_to_void: MissingCompileTimeError, Crash
 void_type_usage_test/conditional_return_to_void: MissingCompileTimeError, Crash
 wrong_number_type_arguments_test/01: MissingCompileTimeError
-nosuchmethod_forwarding/nosuchmethod_forwarding_arguments_test: RuntimeError
 
 [ $compiler == dartdevk && $checked ]
 assertion_initializer_const_error2_test/*: MissingCompileTimeError
