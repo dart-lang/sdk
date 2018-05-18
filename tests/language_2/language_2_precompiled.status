@@ -3,18 +3,12 @@
 # BSD-style license that can be found in the LICENSE file.
 # Sections in this file should start with "$runtime == dart_precompiled".
 
-[ $arch != arm && $arch != simarm64 && $arch != x64 && $compiler == precompiler && $runtime == dart_precompiled ]
-built_in_identifier_type_annotation_test/15: Crash
-
 [ $arch == arm64 && $runtime == dart_precompiled ]
 large_class_declaration_test: SkipSlow # Uses too much memory.
 setter4_test: MissingCompileTimeError
 
 [ $arch == ia32 && $runtime == dart_precompiled ]
 vm/regress_24517_test: Pass, Fail # Issue 24517.
-
-[ $arch == x64 && $compiler == precompiler && $mode == debug && $runtime == dart_precompiled ]
-built_in_identifier_type_annotation_test/15: Crash
 
 [ $compiler == precompiler && $mode == debug && $runtime == dart_precompiled ]
 regress_29025_test: Crash # Issue dartbug.com/29331

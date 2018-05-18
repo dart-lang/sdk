@@ -9,7 +9,7 @@ abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError # Is
 abstract_override_adds_optional_args_supercall_test: MissingCompileTimeError # Issue #30568
 bad_initializer2_negative_test: Fail # Issue 14880
 built_in_identifier_prefix_test: CompileTimeError
-built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/dynamic-gen: MissingCompileTimeError # Issue 28813
 cascade_test/none: Fail # Issue 11577
 config_import_corelib_test: StaticWarning, OK
 conflicting_type_variable_and_setter_test: CompileTimeError # Issue 25525
@@ -1209,26 +1209,34 @@ async_congruence_unnamed_test/01: MissingCompileTimeError
 async_congruence_unnamed_test/02: MissingCompileTimeError
 black_listed_test/none: Fail # Issue 14228
 bug32305_test: MissingCompileTimeError
-built_in_identifier_type_annotation_test/35: MissingCompileTimeError # Issue 28813
-built_in_identifier_type_annotation_test/36: MissingCompileTimeError # Issue 28813
-built_in_identifier_type_annotation_test/37: MissingCompileTimeError # Issue 28813
-built_in_identifier_type_annotation_test/38: MissingCompileTimeError # Issue 28813
-built_in_identifier_type_annotation_test/40: MissingCompileTimeError # Issue 28813
-built_in_identifier_type_annotation_test/41: MissingCompileTimeError # Issue 28813
-built_in_identifier_type_annotation_test/42: MissingCompileTimeError # Issue 28813
-built_in_identifier_type_annotation_test/43: MissingCompileTimeError # Issue 28813
-built_in_identifier_type_annotation_test/44: MissingCompileTimeError # Issue 28813
-built_in_identifier_type_annotation_test/45: MissingCompileTimeError # Issue 28813
-built_in_identifier_type_annotation_test/46: MissingCompileTimeError # Issue 28813
-built_in_identifier_type_annotation_test/47: MissingCompileTimeError # Issue 28813
-built_in_identifier_type_annotation_test/48: MissingCompileTimeError # Issue 28813
-built_in_identifier_type_annotation_test/49: MissingCompileTimeError # Issue 28813
-built_in_identifier_type_annotation_test/50: MissingCompileTimeError # Issue 28813
-built_in_identifier_type_annotation_test/51: MissingCompileTimeError # Issue 28813
-built_in_identifier_type_annotation_test/70: MissingCompileTimeError # Issue 28813
-built_in_identifier_type_annotation_test/72: MissingCompileTimeError # Issue 28813
-built_in_identifier_type_annotation_test/78: MissingCompileTimeError # Issue 28813
-built_in_identifier_type_annotation_test/81: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/abstract-list: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/as-funret: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/as-list: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/covariant-list: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/deferred-funret: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/deferred-list: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/export-funret: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/export-list: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/external-list: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/factory-list: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/get-list: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/implements-funret: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/implements-list: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/import-funret: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/import-list: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/interface-funret: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/interface-list: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/library-funret: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/library-list: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/mixin-funret: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/mixin-list: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/operator-funret: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/operator-list: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/part-funret: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/part-list: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/set-list: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/static-list: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/typedef-list: MissingCompileTimeError # Issue 28813
 call_method_implicit_invoke_local_test/05: MissingCompileTimeError
 call_method_implicit_tear_off_assignable_test: StaticWarning
 call_method_implicit_tear_off_implements_function_test/03: StaticWarning

@@ -118,7 +118,7 @@ initializer_super_last_test/cc32: MissingCompileTimeError # Was valid in Dart 1.
 function_type/*: Skip # Needs checked mode.
 
 [ $compiler != dartk && $compiler != dartkp && $mode == debug && $runtime == vm ]
-built_in_identifier_type_annotation_test/15: Crash # Not supported by legacy VM front-end.
+built_in_identifier_type_annotation_test/set: Crash # Not supported by legacy VM front-end.
 
 [ $compiler == none && $runtime == drt && !$checked ]
 assertion_initializer_const_error_test/01: Fail

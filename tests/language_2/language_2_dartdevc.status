@@ -22,7 +22,10 @@ await_future_test: Pass, Timeout # Issue 29920
 bit_operations_test: RuntimeError # No bigints on web.
 bug32372_test: RuntimeError
 built_in_identifier_prefix_test: CompileTimeError
-built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Issue 28816
+built_in_identifier_type_annotation_test/dynamic-funarg: RuntimeError # Issue 28816
+built_in_identifier_type_annotation_test/dynamic-funret: RuntimeError # Issue 28816
+built_in_identifier_type_annotation_test/dynamic-gen: MissingCompileTimeError # Issue 28816
+built_in_identifier_type_annotation_test/dynamic-list: RuntimeError # Issue 28816
 cascaded_forwarding_stubs_generic_test: RuntimeError
 cascaded_forwarding_stubs_test: CompileTimeError
 conflicting_generic_interfaces_hierarchy_loop_infinite_test: Skip # Crashes or times out
@@ -296,7 +299,10 @@ async_return_types_test/wrongReturnType: MissingCompileTimeError
 bad_override_test/01: MissingCompileTimeError
 bad_override_test/02: MissingCompileTimeError
 bad_override_test/03: MissingCompileTimeError
-built_in_identifier_type_annotation_test/05: RuntimeError # Issue 32194
+built_in_identifier_type_annotation_test/dynamic: RuntimeError # Issue 32194
+built_in_identifier_type_annotation_test/dynamic-funarg: RuntimeError # Issue 32194
+built_in_identifier_type_annotation_test/dynamic-funret: RuntimeError # Issue 32194
+built_in_identifier_type_annotation_test/dynamic-list: RuntimeError # Issue 32194
 built_in_identifier_type_annotation_test/none: RuntimeError # Issue 32194
 call_method_as_cast_test/06: RuntimeError # Kernel allows classes to subtype `Function` so DDK elides the explicit cast.
 call_method_implicit_tear_off_implements_function_test/05: RuntimeError # Kernel is missing the implicit `call` tearoff for assignment `Function`

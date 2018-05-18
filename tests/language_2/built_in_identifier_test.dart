@@ -17,9 +17,11 @@ class PseudoKWTest {
     var external = 0; //# 01: ok
     var factory = 0;
     var get = 0;
+    var interface = 0;
     var implements = 0;
     var import = 0;
     var library = 0;
+    var mixin = 0;
     var operator = 0;
     var part = 0;
     var set = 0;
