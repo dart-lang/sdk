@@ -63,14 +63,12 @@ class AstBuildingForest
   Expression asLiteralString(Expression value) => value;
 
   @override
-  Expression awaitExpression(Expression operand, Token awaitKeyword) {
-    return astFactory.awaitExpression(awaitKeyword, operand);
-  }
+  Expression awaitExpression(Expression operand, Token awaitKeyword) =>
+      astFactory.awaitExpression(awaitKeyword, operand);
 
   @override
-  Block block(Token openBrace, List<Statement> statements, Token closeBrace) {
-    return astFactory.block(openBrace, statements, closeBrace);
-  }
+  Block block(Token openBrace, List<Statement> statements, Token closeBrace) =>
+      astFactory.block(openBrace, statements, closeBrace);
 
   @override
   kernel.Arguments castArguments(_Arguments arguments) {
@@ -91,6 +89,18 @@ class AstBuildingForest
           condition, question, thenExpression, colon, elseExpression);
 
   @override
+  Statement doStatement(Token doKeyword, Statement body, Token whileKeyword,
+          ParenthesizedExpression condition, Token semicolon) =>
+      astFactory.doStatement(
+          doKeyword,
+          body,
+          whileKeyword,
+          condition.leftParenthesis,
+          condition.expression,
+          condition.rightParenthesis,
+          semicolon);
+
+  @override
   Statement emptyStatement(Token semicolon) =>
       astFactory.emptyStatement(semicolon);
 
@@ -107,17 +117,20 @@ class AstBuildingForest
       typeArguments.arguments.length;
 
   @override
-  Statement ifStatement(Token ifKeyword, ParenthesizedExpression condition,
-      Statement thenStatement, Token elseKeyword, Statement elseStatement) {
-    return astFactory.ifStatement(
-        ifKeyword,
-        condition.leftParenthesis,
-        condition.expression,
-        condition.rightParenthesis,
-        thenStatement,
-        elseKeyword,
-        elseStatement);
-  }
+  Statement ifStatement(
+          Token ifKeyword,
+          ParenthesizedExpression condition,
+          Statement thenStatement,
+          Token elseKeyword,
+          Statement elseStatement) =>
+      astFactory.ifStatement(
+          ifKeyword,
+          condition.leftParenthesis,
+          condition.expression,
+          condition.rightParenthesis,
+          thenStatement,
+          elseKeyword,
+          elseStatement);
 
   @override
   bool isBlock(Object node) => node is Block;
@@ -134,9 +147,8 @@ class AstBuildingForest
   bool isThisExpression(Object node) => node is ThisExpression;
 
   @override
-  bool isVariablesDeclaration(Object node) {
-    return node is VariableDeclarationStatement && node.variables != 1;
-  }
+  bool isVariablesDeclaration(Object node) =>
+      node is VariableDeclarationStatement && node.variables != 1;
 
   @override
   Expression literalBool(bool value, Token location) =>
@@ -189,11 +201,10 @@ class AstBuildingForest
 
   @override
   Expression literalSymbolMultiple(
-      String value, Token hash, List<Identifier> components) {
-    return astFactory.symbolLiteral(
-        hash, components.map((identifier) => identifier.token).toList())
-      ..staticType = _typeProvider?.symbolType;
-  }
+          String value, Token hash, List<Identifier> components) =>
+      astFactory.symbolLiteral(
+          hash, components.map((identifier) => identifier.token).toList())
+        ..staticType = _typeProvider?.symbolType;
 
   @override
   Expression literalSymbolSingluar(String value, Token hash, Object component) {
@@ -299,9 +310,8 @@ class AstBuildingForest
 
   @override
   NodeList<VariableDeclaration> variablesDeclarationExtractDeclarations(
-      VariableDeclarationStatement variablesDeclaration) {
-    return variablesDeclaration.variables.variables;
-  }
+          VariableDeclarationStatement variablesDeclaration) =>
+      variablesDeclaration.variables.variables;
 
   @override
   Statement whileStatement(Token whileKeyword,

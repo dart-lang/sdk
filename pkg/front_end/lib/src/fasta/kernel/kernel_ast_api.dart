@@ -72,7 +72,6 @@ export 'kernel_shadow_ast.dart'
         ShadowConstructorInvocation,
         ShadowContinueSwitchStatement,
         ShadowDeferredCheck,
-        ShadowDoStatement,
         ShadowExpressionStatement,
         ShadowFactoryConstructorInvocation,
         ShadowFieldInitializer,

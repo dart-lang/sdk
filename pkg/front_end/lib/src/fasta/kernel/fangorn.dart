@@ -45,6 +45,7 @@ import 'kernel_shadow_ast.dart'
         ShadowBoolLiteral,
         ShadowCheckLibraryIsLoaded,
         ShadowConditionalExpression,
+        ShadowDoStatement,
         ShadowDoubleLiteral,
         ShadowExpressionStatement,
         ShadowIfStatement,
@@ -248,6 +249,13 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
     return new ShadowConditionalExpression(
         condition, thenExpression, elseExpression)
       ..fileOffset = offsetForToken(question);
+  }
+
+  @override
+  Statement doStatement(Token doKeyword, Statement body, Token whileKeyword,
+      Expression condition, Token semicolon) {
+    return new ShadowDoStatement(body, condition)
+      ..fileOffset = doKeyword.charOffset;
   }
 
   Statement expressionStatement(Expression expression, Token semicolon) {

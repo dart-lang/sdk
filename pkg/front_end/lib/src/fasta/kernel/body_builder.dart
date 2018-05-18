@@ -3151,19 +3151,17 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     Statement body = popStatement();
     JumpTarget continueTarget = exitContinueTarget();
     JumpTarget breakTarget = exitBreakTarget();
-    kernel.Statement kernelBody = toKernelStatement(body);
     if (continueTarget.hasUsers) {
-      kernelBody = new ShadowLabeledStatement(kernelBody);
-      continueTarget.resolveContinues(forest, kernelBody);
+      body = forest.syntheticLabeledStatement(body);
+      continueTarget.resolveContinues(forest, body);
     }
-    kernel.Statement result =
-        new ShadowDoStatement(kernelBody, toKernelExpression(condition))
-          ..fileOffset = doKeyword.charOffset;
+    Statement result =
+        forest.doStatement(doKeyword, body, whileKeyword, condition, endToken);
     if (breakTarget.hasUsers) {
-      result = new ShadowLabeledStatement(result);
+      result = forest.syntheticLabeledStatement(result);
       breakTarget.resolveBreaks(forest, result);
     }
-    exitLoopOrSwitch(toStatement(result));
+    exitLoopOrSwitch(result);
   }
 
   @override

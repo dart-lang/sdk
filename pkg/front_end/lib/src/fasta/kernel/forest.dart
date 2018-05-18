@@ -148,6 +148,14 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   Expression conditionalExpression(Expression condition, Location question,
       Expression thenExpression, Location colon, Expression elseExpression);
 
+  /// Return a representation of a do statement.
+  Statement doStatement(
+      Location doKeyword,
+      Statement body,
+      Location whileKeyword,
+      covariant Expression condition,
+      Location semicolon);
+
   /// Return a representation of an expression statement composed from the
   /// [expression] and [semicolon].
   Statement expressionStatement(Expression expression, Location semicolon);
