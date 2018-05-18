@@ -305,6 +305,30 @@ main() {
     assertHasResult(SearchResultKind.INVOCATION, 'mmm(20)');
   }
 
+  test_hierarchy_namedParameter() async {
+    addTestFile('''
+class A {
+  m({p}) {} // in A
+}
+class B extends A {
+  m({p}) {} // in B
+}
+class C extends B {
+  m({p}) {} // in C
+}
+main(A a, B b, C c) {
+  a.m(p: 1);
+  b.m(p: 2);
+  c.m(p: 3);
+}
+''');
+    await findElementReferences('p}) {} // in B', false);
+    expect(searchElement.kind, ElementKind.PARAMETER);
+    assertHasResult(SearchResultKind.REFERENCE, 'p: 1');
+    assertHasResult(SearchResultKind.REFERENCE, 'p: 2');
+    assertHasResult(SearchResultKind.REFERENCE, 'p: 3');
+  }
+
   test_label() async {
     addTestFile('''
 main() {
