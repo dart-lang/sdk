@@ -126,7 +126,7 @@ main() {
     assertSuggested('toUpperCase');
   }
 
-  test_locals_nested() async {
+  test_locals_block_nested() async {
     addContextFile(r'''
 void main() {
   var a = 0;
@@ -144,6 +144,47 @@ void main() {
 
     // "c" is defined after the context offset, so is not visible.
     assertNotSuggested('c');
+  }
+
+  test_locals_for() async {
+    addContextFile(r'''
+void main(List<int> intItems, List<double> doubleItems) {
+  for (var a = 0, b = 0.0; a < 5; a++) {
+    // context line
+  }
+}
+''');
+    await computeCompletion('^');
+    assertSuggested('a', returnType: 'int');
+    assertSuggested('b', returnType: 'double');
+  }
+
+  test_locals_forEach() async {
+    addContextFile(r'''
+void main(List<int> intItems, List<double> doubleItems) {
+  for (var a in intItems) {
+    for (var b in doubleItems) {
+      // context line
+    }
+  }
+}sosol
+''');
+    await computeCompletion('^');
+    assertSuggested('a', returnType: 'int');
+    assertSuggested('b', returnType: 'double');
+  }
+
+  test_parameters_constructor() async {
+    addContextFile(r'''
+class C {
+  C(int a, double b) {
+    // context line
+  }
+}
+''');
+    await computeCompletion('^');
+    assertSuggested('a', returnType: 'int');
+    assertSuggested('b', returnType: 'double');
   }
 
   test_parameters_function() async {
@@ -183,6 +224,21 @@ void foo(int a, double b) {
     assertSuggested('a', returnType: 'String');
     assertSuggested('b', returnType: 'double');
     assertSuggested('c', returnType: 'bool');
+  }
+
+  test_parameters_functionExpression() async {
+    addContextFile(r'''
+void main(List<int> intItems, List<double> doubleItems) {
+  intItems.forEach((a) {
+    doubleItems.forEach((b) {
+      // context line
+    });
+  });
+}
+''');
+    await computeCompletion('^');
+    assertSuggested('a', returnType: 'int');
+    assertSuggested('b', returnType: 'double');
   }
 
   test_parameters_method() async {

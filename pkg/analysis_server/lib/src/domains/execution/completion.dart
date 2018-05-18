@@ -160,10 +160,7 @@ class _Context {
           break;
         }
         if (statement is VariableDeclarationStatement) {
-          for (var variable in statement.variables.variables) {
-            VariableElement element = variable.element;
-            locals[element.name] ??= element;
-          }
+          _appendVariables(statement.variables);
         }
       }
     } else if (node is ClassDeclaration) {
@@ -171,8 +168,19 @@ class _Context {
       return;
     } else if (node is CompilationUnit) {
       return;
+    } else if (node is ConstructorDeclaration) {
+      _appendParameters(node.parameters);
     } else if (node is FunctionDeclaration) {
       _appendParameters(node.functionExpression.parameters);
+    } else if (node is FunctionExpression) {
+      _appendParameters(node.parameters);
+    } else if (node is ForEachStatement) {
+      LocalVariableElement element = node.loopVariable?.element;
+      if (element != null) {
+        locals[element.name] ??= element;
+      }
+    } else if (node is ForStatement) {
+      _appendVariables(node.variables);
     } else if (node is MethodDeclaration) {
       _appendParameters(node.parameters);
     }
@@ -183,6 +191,15 @@ class _Context {
     if (parameters != null) {
       for (var parameter in parameters.parameters) {
         VariableElement element = parameter.element;
+        locals[element.name] ??= element;
+      }
+    }
+  }
+
+  void _appendVariables(VariableDeclarationList variables) {
+    if (variables != null) {
+      for (var variable in variables.variables) {
+        VariableElement element = variable.element;
         locals[element.name] ??= element;
       }
     }
