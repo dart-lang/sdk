@@ -1832,6 +1832,25 @@ import 'a.dart' as p;
     expect(values, contains('C'));
   }
 
+  test_writeType_groupName_invalidType() async {
+    String path = provider.convertPath('/test.dart');
+    String content = 'class A<T> {}';
+    addSource(path, content);
+
+    InterfaceType typeA = await _getType(path, 'A');
+    DartType typeT = typeA.typeParameters.single.type;
+
+    var builder = new DartChangeBuilder(session);
+    await builder.addFileEdit(path, (builder) {
+      builder.addInsertion(content.length, (builder) {
+        // "T" cannot be written, because we are outside of "A".
+        // So, we also should not create linked groups.
+        builder.writeType(typeT, groupName: 'type');
+      });
+    });
+    expect(builder.sourceChange.linkedEditGroups, isEmpty);
+  }
+
   test_writeType_interface_typeArguments() async {
     await _assertWriteType('Map<int, List<String>>');
   }
@@ -2162,7 +2181,7 @@ class B {}
     return result.element.accessors.firstWhere((v) => v.name == name);
   }
 
-  Future<DartType> _getType(String path, String name) async {
+  Future<InterfaceType> _getType(String path, String name) async {
     ClassElement classElement = await _getClassElement(path, name);
     return classElement.type;
   }

@@ -184,13 +184,15 @@ class EditBuilderImpl implements EditBuilder {
     } finally {
       int end = offset + _buffer.length;
       int length = end - start;
-      Position position = new Position(fileEditBuilder.fileEdit.file, start);
-      fileEditBuilder.changeBuilder._lockedPositions.add(position);
-      LinkedEditGroup group =
-          fileEditBuilder.changeBuilder.getLinkedEditGroup(groupName);
-      group.addPosition(position, length);
-      for (LinkedEditSuggestion suggestion in builder.suggestions) {
-        group.addSuggestion(suggestion);
+      if (length != 0) {
+        Position position = new Position(fileEditBuilder.fileEdit.file, start);
+        fileEditBuilder.changeBuilder._lockedPositions.add(position);
+        LinkedEditGroup group =
+            fileEditBuilder.changeBuilder.getLinkedEditGroup(groupName);
+        group.addPosition(position, length);
+        for (LinkedEditSuggestion suggestion in builder.suggestions) {
+          group.addSuggestion(suggestion);
+        }
       }
     }
   }

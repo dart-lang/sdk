@@ -626,26 +626,24 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       String groupName,
       ExecutableElement methodBeingCopied,
       bool required: false}) {
+    bool wroteType = false;
     if (type != null && !type.isDynamic) {
       if (groupName != null) {
-        bool wroteType;
         addLinkedEdit(groupName, (LinkedEditBuilder builder) {
-          // TODO(scheglov) ensure that no linked edit if nothing written
           wroteType = _writeType(type, methodBeingCopied: methodBeingCopied);
           if (wroteType && addSupertypeProposals) {
             _addSuperTypeProposals(builder, type, new Set<DartType>());
           }
         });
-        return wroteType;
       } else {
-        return _writeType(type, methodBeingCopied: methodBeingCopied);
+        wroteType = _writeType(type, methodBeingCopied: methodBeingCopied);
       }
     }
-    if (required) {
+    if (!wroteType && required) {
       write(Keyword.VAR.lexeme);
       return true;
     }
-    return false;
+    return wroteType;
   }
 
   @override

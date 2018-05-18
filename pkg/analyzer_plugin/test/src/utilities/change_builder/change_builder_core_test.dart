@@ -337,7 +337,8 @@ class LinkedEditBuilderImplTest {
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(10, (EditBuilder builder) {
         builder.addLinkedEdit(groupName, (LinkedEditBuilder builder) {
-          builder.addSuggestion(LinkedEditSuggestionKind.TYPE, 'A');
+          builder.write('A');
+          builder.addSuggestion(LinkedEditSuggestionKind.TYPE, 'B');
         });
       });
     });
@@ -346,13 +347,28 @@ class LinkedEditBuilderImplTest {
     expect(group.suggestions, hasLength(1));
   }
 
+  test_addSuggestion_zeroLength() async {
+    String groupName = 'a';
+    ChangeBuilderImpl builder = new ChangeBuilderImpl();
+    await builder.addFileEdit(path, (FileEditBuilder builder) {
+      builder.addInsertion(10, (EditBuilder builder) {
+        builder.addLinkedEdit(groupName, (LinkedEditBuilder builder) {
+          builder.addSuggestion(LinkedEditSuggestionKind.TYPE, 'A');
+        });
+      });
+    });
+
+    expect(builder.sourceChange.linkedEditGroups, isEmpty);
+  }
+
   test_addSuggestions() async {
     String groupName = 'a';
     ChangeBuilderImpl builder = new ChangeBuilderImpl();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(10, (EditBuilder builder) {
         builder.addLinkedEdit(groupName, (LinkedEditBuilder builder) {
-          builder.addSuggestions(LinkedEditSuggestionKind.TYPE, ['A', 'B']);
+          builder.write('A');
+          builder.addSuggestions(LinkedEditSuggestionKind.TYPE, ['B', 'C']);
         });
       });
     });
