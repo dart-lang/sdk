@@ -655,7 +655,7 @@ class BaseFlowGraphBuilder {
   Fragment TestDelayedTypeArgs(LocalVariable* closure,
                                Fragment present,
                                Fragment absent);
-  Fragment TestAnyTypeArgs(std::function<Fragment()> present, Fragment absent);
+  Fragment TestAnyTypeArgs(Fragment present, Fragment absent);
 
   JoinEntryInstr* BuildThrowNoSuchMethod();
 

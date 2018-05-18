@@ -1420,16 +1420,25 @@ Fragment BaseFlowGraphBuilder::TestDelayedTypeArgs(LocalVariable* closure,
   return Fragment(test.entry, join);
 }
 
-Fragment BaseFlowGraphBuilder::TestAnyTypeArgs(
-    std::function<Fragment()> present,
-    Fragment absent) {
+Fragment BaseFlowGraphBuilder::TestAnyTypeArgs(Fragment present,
+                                               Fragment absent) {
   if (parsed_function_->function().IsClosureFunction()) {
     LocalVariable* closure =
         parsed_function_->node_sequence()->scope()->VariableAt(0);
-    return TestTypeArgsLen(TestDelayedTypeArgs(closure, present(), absent),
-                           present(), 0);
+
+    JoinEntryInstr* complete = BuildJoinEntry();
+    JoinEntryInstr* present_entry = BuildJoinEntry();
+
+    Fragment test = TestTypeArgsLen(
+        TestDelayedTypeArgs(closure, Goto(present_entry), absent),
+        Goto(present_entry), 0);
+    test += Goto(complete);
+
+    Fragment(present_entry) + present + Goto(complete);
+
+    return Fragment(test.entry, complete);
   } else {
-    return TestTypeArgsLen(absent, present(), 0);
+    return TestTypeArgsLen(absent, present, 0);
   }
 }
 

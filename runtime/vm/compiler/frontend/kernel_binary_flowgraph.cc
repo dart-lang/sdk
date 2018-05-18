@@ -5228,6 +5228,46 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
   return instructions;
 }
 
+// If no type arguments are passed to a generic function, we need to fill the
+// type arguments in with the default types stored on the TypeParameter nodes
+// in Kernel.
+Fragment StreamingFlowGraphBuilder::BuildDefaultTypeHandling(
+    const Function& function,
+    intptr_t type_parameters_offset) {
+  if (function.IsGeneric() && I->reify_generic_functions()) {
+    AlternativeReadingScope alt(&reader_);
+    SetOffset(type_parameters_offset);
+    intptr_t num_type_params = ReadListLength();
+    ASSERT(num_type_params == function.NumTypeParameters());
+    TypeArguments& default_types =
+        TypeArguments::ZoneHandle(TypeArguments::New(num_type_params));
+    for (intptr_t i = 0; i < num_type_params; ++i) {
+      TypeParameterHelper helper(this);
+      helper.ReadUntilExcludingAndSetJustRead(
+          TypeParameterHelper::kDefaultType);
+      if (ReadTag() == kSomething) {
+        default_types.SetTypeAt(i, T.BuildType());
+      } else {
+        default_types.SetTypeAt(i, Object::dynamic_type());
+      }
+      helper.Finish();
+    }
+    default_types = default_types.Canonicalize();
+
+    if (!default_types.IsNull()) {
+      // clang-format off
+      return B->TestAnyTypeArgs(/*then=*/{}, /*else=*/{
+          TranslateInstantiatedTypeArguments(default_types),
+          StoreLocal(TokenPosition::kNoSource,
+                     parsed_function()->function_type_arguments()),
+          Drop()
+        });
+      // clang-format on
+    }
+  }
+  return Fragment();
+}
+
 FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
     const Function& function) {
   const Function& parent = Function::ZoneHandle(Z, function.parent_function());
@@ -5264,6 +5304,11 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
   body +=
       flow_graph_builder_->CheckStackOverflowInPrologue(function.token_pos());
 
+  FunctionNodeHelper function_node_helper(this);
+  function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
+
+  body += BuildDefaultTypeHandling(function, ReaderOffset());
+
   intptr_t type_args_len = 0;
   if (I->reify_generic_functions() && function.IsGeneric()) {
     type_args_len = function.NumTypeParameters();
@@ -5271,9 +5316,6 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
     body += LoadLocal(parsed_function()->function_type_arguments());
     body += PushArgument();
   }
-
-  FunctionNodeHelper function_node_helper(this);
-  function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
 
   if (I->argument_type_checks()) {
     if (!target.NeedsArgumentTypeChecks(I)) {
@@ -5413,14 +5455,13 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
   body += StoreLocal(TokenPosition::kNoSource, argument_count_var);
   body += Drop();
   if (function.IsGeneric() && Isolate::Current()->reify_generic_functions()) {
-    body += flow_graph_builder_->TestAnyTypeArgs(
-        [&]() {
-          return Fragment(
-              {IntConstant(1),
-               StoreLocal(TokenPosition::kNoSource, argument_count_var),
-               Drop()});
-        },
-        Fragment());
+    // clang-format off
+    body += flow_graph_builder_->TestAnyTypeArgs(/*then=*/{
+        IntConstant(1),
+        StoreLocal(TokenPosition::kNoSource, argument_count_var),
+        Drop()
+      }, /*else=*/{});
+    // clang-format on
   }
 
   if (function.HasOptionalParameters()) {
@@ -5465,8 +5506,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
     // }
     if (function.IsGeneric() && Isolate::Current()->reify_generic_functions()) {
       // clang-format off
-      std::function<Fragment()> store_type_arguments = [&]() {
-        return Fragment({
+      Fragment store_type_arguments = {
             LoadLocal(arguments),
             IntConstant(0),
             LoadFunctionTypeArguments(),
@@ -5475,10 +5515,9 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
             IntConstant(1),
             StoreLocal(TokenPosition::kNoSource, index),
             Drop()
-          });
-      };
+          };
       // clang-format on
-      body += B->TestAnyTypeArgs(store_type_arguments, Fragment());
+      body += B->TestAnyTypeArgs(store_type_arguments, {});
     }
 
     TargetEntryInstr* body_entry;
@@ -5978,6 +6017,9 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
   // body because it needs to be executed everytime we enter the function -
   // even if we are resuming from the yield.
   Fragment prologue;
+
+  prologue += BuildDefaultTypeHandling(dart_function, type_parameters_offset);
+
   if (dart_function.IsClosureFunction() &&
       dart_function.NumParentTypeParameters() > 0 &&
       I->reify_generic_functions()) {

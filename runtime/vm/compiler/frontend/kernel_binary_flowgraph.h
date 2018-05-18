@@ -1395,6 +1395,10 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
     kTypeChecksForNoDynamicInvocationsTearOff
   };
 
+  // Does not move the cursor.
+  Fragment BuildDefaultTypeHandling(const Function& function,
+                                    intptr_t type_parameters_offset);
+
   Fragment BuildArgumentTypeChecks(TypeChecksToBuild mode = kDefaultTypeChecks);
 
   Fragment ThrowException(TokenPosition position);
