@@ -1,6 +1,7 @@
-# 0.1.51-dev
+# 0.1.51
 
-* unrelated_type_equality_checks now allows comparison between `Int64` or `Int32` and `int`
+* `unrelated_type_equality_checks` now allows comparison between `Int64` or `Int32` and `int`
+* `unnecessary_parenthesis` improved to handle cascades _in_ cascades
 
 # 0.1.50
 
