@@ -58,6 +58,13 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
+    // a..b=(c..d) is OK
+    if (node.expression is CascadeExpression &&
+        node.getAncestor((n) => n is Statement || n is CascadeExpression)
+            is CascadeExpression) {
+      return;
+    }
+
     if (parent is Expression) {
       if (parent is BinaryExpression) return;
       if (parent is ConditionalExpression) return;
