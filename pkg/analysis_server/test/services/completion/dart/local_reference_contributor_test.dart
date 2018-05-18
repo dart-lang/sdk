@@ -330,7 +330,7 @@ void main() {boo(){} bar(^);}''');
     assertSuggestFunction('bar', 'String',
         kind: CompletionSuggestionKind.IDENTIFIER,
         relevance: DART_RELEVANCE_LOCAL_FUNCTION);
-    assertSuggestFunction('boo', 'dynamic',
+    assertSuggestFunction('boo', 'Null',
         kind: CompletionSuggestionKind.IDENTIFIER,
         relevance: DART_RELEVANCE_LOCAL_FUNCTION);
     assertNotSuggested('hasLength');
@@ -365,7 +365,7 @@ void main() {boo(){} bar(inc: ^);}''');
         kind: CompletionSuggestionKind.IDENTIFIER,
         relevance:
             DART_RELEVANCE_LOCAL_FUNCTION + DART_RELEVANCE_BOOST_SUBTYPE);
-    assertSuggestFunction('boo', 'dynamic',
+    assertSuggestFunction('boo', 'Null',
         kind: CompletionSuggestionKind.IDENTIFIER,
         relevance:
             DART_RELEVANCE_LOCAL_FUNCTION + DART_RELEVANCE_BOOST_SUBTYPE);
@@ -871,7 +871,7 @@ class Z { }''');
     assertSuggestMethod('a', 'X', null, relevance: DART_RELEVANCE_LOCAL_METHOD);
     assertSuggestMethod('b', 'X', 'void',
         relevance: DART_RELEVANCE_LOCAL_METHOD);
-    assertSuggestFunction('localF', null,
+    assertSuggestFunction('localF', 'Null',
         relevance: DART_RELEVANCE_LOCAL_FUNCTION);
     assertSuggestLocalVariable('f', null);
     // Don't suggest locals out of scope
@@ -2352,7 +2352,7 @@ class C {foo(){^} void bar() {}}''');
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertSuggestLocalVariable('values', 'List');
+    assertSuggestLocalVariable('values', 'List<int>');
     assertNotSuggested('index');
   }
 
@@ -2363,7 +2363,7 @@ class C {foo(){^} void bar() {}}''');
 
     expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
-    assertSuggestLocalVariable('values', 'List');
+    assertSuggestLocalVariable('values', 'List<int>');
     assertNotSuggested('index');
   }
 
@@ -2374,7 +2374,7 @@ class C {foo(){^} void bar() {}}''');
 
     expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
-    assertSuggestLocalVariable('values', 'List');
+    assertSuggestLocalVariable('values', 'List<int>');
     assertNotSuggested('index');
   }
 
@@ -2742,7 +2742,7 @@ class C2 { }
     }
     assertSuggestFunction('bar', 'void',
         relevance: DART_RELEVANCE_LOCAL_FUNCTION);
-    assertSuggestParameter('args', 'List');
+    assertSuggestParameter('args', 'List<dynamic>');
     assertSuggestParameter('b', 'R');
     assertNotSuggested('Object');
   }
@@ -4200,6 +4200,12 @@ class X {foo(){A^.bar}}''');
     await computeSuggestions();
     assertSuggestLocalVariable('ab', null);
     assertSuggestLocalVariable('_ab', null);
+  }
+
+  test_inferredType() async {
+    addTestSource('main() { var v = 42; ^ }');
+    await computeSuggestions();
+    assertSuggestLocalVariable('v', 'int');
   }
 
   test_prioritization_public() async {
