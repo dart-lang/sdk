@@ -61,7 +61,7 @@ import 'package:front_end/src/fasta/kernel/expression_generator.dart'
         StaticAccessGenerator,
         SuperIndexedAccessGenerator,
         SuperPropertyAccessGenerator,
-        ThisAccessor,
+        ThisAccessGenerator,
         ThisIndexedAccessGenerator,
         ThisPropertyAccessGenerator,
         TypeDeclarationAccessor,
@@ -123,7 +123,8 @@ main() {
     KernelBodyBuilder helper = new KernelBodyBuilder(
         libraryBuilder, null, null, null, null, null, null, false, uri, null);
 
-    FastaAccessor accessor = new ThisAccessor<Arguments>(helper, token, false);
+    FastaAccessor accessor =
+        new ThisAccessGenerator<Arguments>(helper, token, false);
 
     Library library = new Library(uri);
     Class cls = new Class();
@@ -193,8 +194,9 @@ main() {
         "LoadLibraryGenerator(offset: 4,"
         " builder: Instance of 'LoadLibraryBuilder')",
         new LoadLibraryGenerator<Arguments>(helper, token, loadLibraryBuilder));
-    check("ThisAccessor(offset: 4, isInitializer: false, isSuper: false)",
-        new ThisAccessor<Arguments>(helper, token, false));
+    check(
+        "ThisAccessGenerator(offset: 4, isInitializer: false, isSuper: false)",
+        new ThisAccessGenerator<Arguments>(helper, token, false));
     check("IncompleteError(offset: 4, message: Unspecified)",
         new IncompleteError<Arguments>(helper, token, message));
     check("SendAccessor(offset: 4, name: bar, arguments: (\"arg\"))",
@@ -204,7 +206,7 @@ main() {
     check(
         "DeferredAccessGenerator(offset: 4, "
         "builder: Instance of 'PrefixBuilder',"
-        " accessor: ThisAccessor(offset: 4, isInitializer: false,"
+        " accessor: ThisAccessGenerator(offset: 4, isInitializer: false,"
         " isSuper: false))",
         new DeferredAccessGenerator<Arguments>(
             helper, token, prefixBuilder, accessor));

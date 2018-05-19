@@ -102,7 +102,7 @@ import 'expression_generator.dart'
         SendAccessor,
         StaticAccessGenerator,
         SuperIndexedAccessGenerator,
-        ThisAccessor,
+        ThisAccessGenerator,
         ThisPropertyAccessGenerator,
         TypeDeclarationAccessor,
         UnresolvedAccessor,
@@ -1014,8 +1014,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     Expression argument = popForValue();
     var receiver = pop();
     bool isSuper = false;
-    if (receiver is ThisAccessor && receiver.isSuper) {
-      ThisAccessor thisAccessorReceiver = receiver;
+    if (receiver is ThisAccessGenerator && receiver.isSuper) {
+      ThisAccessGenerator thisAccessorReceiver = receiver;
       isSuper = true;
       receiver = forest.thisExpression(thisAccessorReceiver.token);
     }
@@ -2417,7 +2417,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     debugEvent("IndexedExpression");
     Expression index = popForValue();
     var receiver = pop();
-    if (receiver is ThisAccessor && receiver.isSuper) {
+    if (receiver is ThisAccessGenerator && receiver.isSuper) {
       push(new SuperIndexedAccessGenerator(
           this,
           openSquareBracket,
@@ -2457,7 +2457,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       }
       bool isSuper = false;
       Expression receiverValue;
-      if (receiver is ThisAccessor && receiver.isSuper) {
+      if (receiver is ThisAccessGenerator && receiver.isSuper) {
         isSuper = true;
         receiverValue = forest.thisExpression(receiver.token);
       } else {
@@ -2935,7 +2935,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   void handleThisExpression(Token token, IdentifierContext context) {
     debugEvent("ThisExpression");
     if (context.isScopeReference && isInstanceContext) {
-      push(new ThisAccessor(this, token, inInitializer));
+      push(new ThisAccessGenerator(this, token, inInitializer));
     } else {
       push(new IncompleteError(this, token, fasta.messageThisAsIdentifier));
     }
@@ -2947,7 +2947,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     if (context.isScopeReference && isInstanceContext) {
       Member member = this.member.target;
       member.transformerFlags |= TransformerFlag.superCalls;
-      push(new ThisAccessor(this, token, inInitializer, isSuper: true));
+      push(new ThisAccessGenerator(this, token, inInitializer, isSuper: true));
     } else {
       push(new IncompleteError(this, token, fasta.messageSuperAsIdentifier));
     }
@@ -4679,7 +4679,7 @@ String getNodeName(Object node) {
     return node.name;
   } else if (node is Builder) {
     return node.fullNameForErrors;
-  } else if (node is ThisAccessor) {
+  } else if (node is ThisAccessGenerator) {
     return node.isSuper ? "super" : "this";
   } else if (node is FastaAccessor) {
     return node.plainNameForRead;

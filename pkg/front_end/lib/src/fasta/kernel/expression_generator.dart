@@ -1540,6 +1540,180 @@ abstract class ErroneousExpressionGenerator<Arguments>
   }
 }
 
+class ThisAccessGenerator<Arguments> extends Generator<Arguments> {
+  final bool isInitializer;
+
+  final bool isSuper;
+
+  ThisAccessGenerator(BuilderHelper<dynamic, dynamic, Arguments> helper,
+      Token token, this.isInitializer,
+      {this.isSuper: false})
+      : super(helper, token);
+
+  String get plainNameForRead {
+    return unsupported("${isSuper ? 'super' : 'this'}.plainNameForRead",
+        offsetForToken(token), uri);
+  }
+
+  String get debugName => "ThisAccessGenerator";
+
+  kernel.Expression buildSimpleRead() {
+    if (!isSuper) {
+      return forest.thisExpression(token);
+    } else {
+      return helper.buildCompileTimeError(messageSuperAsExpression,
+          offsetForToken(token), lengthForToken(token));
+    }
+  }
+
+  @override
+  Initializer buildFieldInitializer(Map<String, int> initializedFields) {
+    String keyword = isSuper ? "super" : "this";
+    int offset = offsetForToken(token);
+    return helper.buildInvalidInitializer(
+        helper.deprecated_buildCompileTimeError(
+            "Can't use '$keyword' here, did you mean '$keyword()'?", offset),
+        offset);
+  }
+
+  buildPropertyAccess(
+      IncompleteSend send, int operatorOffset, bool isNullAware) {
+    Name name = send.name;
+    Arguments arguments = send.arguments;
+    int offset = offsetForToken(send.token);
+    if (isInitializer && send is SendAccessor) {
+      if (isNullAware) {
+        helper.deprecated_addCompileTimeError(
+            operatorOffset, "Expected '.'\nTry removing '?'.");
+      }
+      return buildConstructorInitializer(offset, name, arguments);
+    }
+    Member getter = helper.lookupInstanceMember(name, isSuper: isSuper);
+    if (send is SendAccessor) {
+      // Notice that 'this' or 'super' can't be null. So we can ignore the
+      // value of [isNullAware].
+      if (getter == null) {
+        helper.warnUnresolvedMethod(name, offsetForToken(send.token),
+            isSuper: isSuper);
+      }
+      return helper.buildMethodInvocation(forest.thisExpression(null), name,
+          send.arguments, offsetForToken(send.token),
+          isSuper: isSuper, interfaceTarget: getter);
+    } else {
+      Member setter =
+          helper.lookupInstanceMember(name, isSuper: isSuper, isSetter: true);
+      if (isSuper) {
+        return new SuperPropertyAccessGenerator(
+            helper, send.token, name, getter, setter);
+      } else {
+        return new ThisPropertyAccessGenerator(
+            helper, send.token, name, getter, setter);
+      }
+    }
+  }
+
+  doInvocation(int offset, Arguments arguments) {
+    if (isInitializer) {
+      return buildConstructorInitializer(offset, new Name(""), arguments);
+    } else if (isSuper) {
+      return helper.buildCompileTimeError(
+          messageSuperAsExpression, offset, noLength);
+    } else {
+      return helper.buildMethodInvocation(
+          forest.thisExpression(null), callName, arguments, offset,
+          isImplicitCall: true);
+    }
+  }
+
+  Initializer buildConstructorInitializer(
+      int offset, Name name, Arguments arguments) {
+    Constructor constructor = helper.lookupConstructor(name, isSuper: isSuper);
+    LocatedMessage argMessage;
+    if (constructor != null) {
+      argMessage = helper.checkArguments(
+          new FunctionTypeAccessor.fromNode(constructor.function),
+          arguments,
+          CalleeDesignation.Constructor,
+          offset, <TypeParameter>[]);
+    }
+    if (constructor == null || argMessage != null) {
+      return helper.buildInvalidInitializer(
+          buildThrowNoSuchMethodError(
+              storeOffset(forest.literalNull(null), offset), arguments,
+              isSuper: isSuper,
+              name: name.name,
+              offset: offset,
+              argMessage: argMessage),
+          offset);
+    } else if (isSuper) {
+      return helper.buildSuperInitializer(
+          false, constructor, arguments, offset);
+    } else {
+      return helper.buildRedirectingInitializer(constructor, arguments, offset);
+    }
+  }
+
+  kernel.Expression buildAssignment(kernel.Expression value,
+      {bool voidContext: false}) {
+    return buildAssignmentError();
+  }
+
+  kernel.Expression buildNullAwareAssignment(
+      kernel.Expression value, DartType type, int offset,
+      {bool voidContext: false}) {
+    return buildAssignmentError();
+  }
+
+  kernel.Expression buildCompoundAssignment(
+      Name binaryOperator, kernel.Expression value,
+      {int offset: TreeNode.noOffset,
+      bool voidContext: false,
+      Procedure interfaceTarget,
+      bool isPreIncDec: false}) {
+    return buildAssignmentError();
+  }
+
+  kernel.Expression buildPrefixIncrement(Name binaryOperator,
+      {int offset: TreeNode.noOffset,
+      bool voidContext: false,
+      Procedure interfaceTarget}) {
+    return buildAssignmentError();
+  }
+
+  kernel.Expression buildPostfixIncrement(Name binaryOperator,
+      {int offset: TreeNode.noOffset,
+      bool voidContext: false,
+      Procedure interfaceTarget}) {
+    return buildAssignmentError();
+  }
+
+  kernel.Expression buildAssignmentError() {
+    String message =
+        isSuper ? "Can't assign to 'super'." : "Can't assign to 'this'.";
+    return helper.deprecated_buildCompileTimeError(
+        message, offsetForToken(token));
+  }
+
+  @override
+  kernel.Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+    return unimplemented("_makeRead", offsetForToken(token), uri);
+  }
+
+  @override
+  kernel.Expression _makeWrite(kernel.Expression value, bool voidContext,
+      ShadowComplexAssignment complexAssignment) {
+    return unimplemented("_makeWrite", offsetForToken(token), uri);
+  }
+
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", isInitializer: ");
+    sink.write(isInitializer);
+    sink.write(", isSuper: ");
+    sink.write(isSuper);
+  }
+}
+
 kernel.Expression makeLet(
     VariableDeclaration variable, kernel.Expression body) {
   if (variable == null) return body;
