@@ -87,7 +87,7 @@ import 'expression_generator.dart'
         BuilderHelper,
         CalleeDesignation,
         DeferredAccessGenerator,
-        ErrorAccessor,
+        ErroneousExpressionGenerator,
         FastaAccessor,
         FunctionTypeAccessor,
         GeneratorImpl,
@@ -2044,7 +2044,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       if (prefix is PrefixBuilder) {
         name = scopeLookup(prefix.exportScope, suffix.name, beginToken,
             isQualified: true, prefix: prefix);
-      } else if (prefix is ErrorAccessor) {
+      } else if (prefix is ErroneousExpressionGenerator) {
         push(prefix.buildErroneousTypeNotAPrefix(suffix));
         return;
       } else {
@@ -2805,7 +2805,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       push(deferredPrefix != null
           ? wrapInDeferredCheck(expression, deferredPrefix, checkOffset)
           : expression);
-    } else if (type is ErrorAccessor) {
+    } else if (type is ErroneousExpressionGenerator) {
       push(type.buildError(arguments));
     } else {
       push(throwNoSuchMethodError(storeOffset(forest.literalNull(null), offset),

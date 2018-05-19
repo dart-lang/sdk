@@ -277,120 +277,6 @@ abstract class GeneratorImpl {
   }
 }
 
-abstract class ErrorAccessor<Arguments> implements FastaAccessor<Arguments> {
-  /// Pass [arguments] that must be evaluated before throwing an error.  At
-  /// most one of [isGetter] and [isSetter] should be true and they're passed
-  /// to [BuilderHelper.buildThrowNoSuchMethodError] if it is used.
-  kernel.Expression buildError(Arguments arguments,
-      {bool isGetter: false, bool isSetter: false, int offset});
-
-  DartType buildErroneousTypeNotAPrefix(Identifier suffix);
-
-  Name get name => unsupported("name", offsetForToken(token), uri);
-
-  @override
-  String get plainNameForRead => name.name;
-
-  withReceiver(Object receiver, int operatorOffset, {bool isNullAware}) => this;
-
-  @override
-  Initializer buildFieldInitializer(Map<String, int> initializedFields) {
-    return helper.buildInvalidInitializer(
-        buildError(forest.argumentsEmpty(noLocation), isSetter: true));
-  }
-
-  @override
-  doInvocation(int offset, Arguments arguments) {
-    return buildError(arguments, offset: offset);
-  }
-
-  @override
-  buildPropertyAccess(
-      IncompleteSend send, int operatorOffset, bool isNullAware) {
-    return this;
-  }
-
-  @override
-  buildThrowNoSuchMethodError(kernel.Expression receiver, Arguments arguments,
-      {bool isSuper: false,
-      bool isGetter: false,
-      bool isSetter: false,
-      bool isStatic: false,
-      String name,
-      int offset,
-      LocatedMessage argMessage}) {
-    return this;
-  }
-
-  @override
-  kernel.Expression buildAssignment(kernel.Expression value,
-      {bool voidContext: false}) {
-    return buildError(forest.arguments(<kernel.Expression>[value], noLocation),
-        isSetter: true);
-  }
-
-  @override
-  kernel.Expression buildCompoundAssignment(
-      Name binaryOperator, kernel.Expression value,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      Procedure interfaceTarget,
-      bool isPreIncDec: false}) {
-    return buildError(forest.arguments(<kernel.Expression>[value], token),
-        isGetter: true);
-  }
-
-  @override
-  kernel.Expression buildPrefixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      Procedure interfaceTarget}) {
-    // TODO(ahe): For the Analyzer, we probably need to build a prefix
-    // increment node that wraps an error.
-    return buildError(
-        forest.arguments(<kernel.Expression>[
-          storeOffset(forest.literalInt(1, null), offset)
-        ], noLocation),
-        isGetter: true);
-  }
-
-  @override
-  kernel.Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      Procedure interfaceTarget}) {
-    // TODO(ahe): For the Analyzer, we probably need to build a post increment
-    // node that wraps an error.
-    return buildError(
-        forest.arguments(<kernel.Expression>[
-          storeOffset(forest.literalInt(1, null), offset)
-        ], noLocation),
-        isGetter: true);
-  }
-
-  @override
-  kernel.Expression buildNullAwareAssignment(
-      kernel.Expression value, DartType type, int offset,
-      {bool voidContext: false}) {
-    return buildError(forest.arguments(<kernel.Expression>[value], noLocation),
-        isSetter: true);
-  }
-
-  @override
-  kernel.Expression buildSimpleRead() =>
-      buildError(forest.argumentsEmpty(noLocation), isGetter: true);
-
-  @override
-  kernel.Expression makeInvalidRead() =>
-      buildError(forest.argumentsEmpty(noLocation), isGetter: true);
-
-  @override
-  kernel.Expression makeInvalidWrite(kernel.Expression value) {
-    return buildError(forest.arguments(<kernel.Expression>[value], noLocation),
-        isSetter: true);
-  }
-}
-
 class ThisAccessor<Arguments> extends FastaAccessor<Arguments>
     with GeneratorImpl {
   final BuilderHelper<dynamic, dynamic, Arguments> helper;
@@ -580,7 +466,7 @@ abstract class IncompleteSend<Arguments> extends FastaAccessor<Arguments>
 }
 
 class IncompleteError<Arguments> extends IncompleteSend<Arguments>
-    with ErrorAccessor<Arguments> {
+    with ErroneousExpressionGenerator<Arguments> {
   final Message message;
 
   IncompleteError(BuilderHelper<dynamic, dynamic, Arguments> helper,
@@ -957,7 +843,7 @@ class TypeDeclarationAccessor<Arguments>
 }
 
 class UnresolvedAccessor<Arguments> extends FastaAccessor<Arguments>
-    with GeneratorImpl, ErrorAccessor<Arguments> {
+    with GeneratorImpl, ErroneousExpressionGenerator<Arguments> {
   @override
   final Token token;
 
