@@ -4568,13 +4568,13 @@ class SimpleParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_parseArgumentList_typeArguments_prefixed() {
-    super.test_parseArgumentList_typeArguments_prefixed();
+  void test_parseArgumentList_typeArguments_none() {
+    super.test_parseArgumentList_typeArguments_none();
   }
 
   @failingTest
-  void test_parseArgumentList_typeArguments_none() {
-    super.test_parseArgumentList_typeArguments_none();
+  void test_parseArgumentList_typeArguments_prefixed() {
+    super.test_parseArgumentList_typeArguments_prefixed();
   }
 
   @failingTest

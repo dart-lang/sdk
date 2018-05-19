@@ -2326,7 +2326,11 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       count--;
     }
     FormalParameters<Arguments> formals = new FormalParameters(
-        popList(count) ?? <VariableDeclaration>[],
+        popList(
+                count,
+                new List<VariableDeclaration>.filled(count, null,
+                    growable: true)) ??
+            <VariableDeclaration>[],
         optional,
         beginToken.charOffset);
     constantContext = pop();

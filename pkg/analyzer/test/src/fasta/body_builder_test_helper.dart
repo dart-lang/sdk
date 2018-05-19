@@ -373,7 +373,15 @@ class FastaBodyBuilderTestCase extends Object
 
   @override
   VariableDeclarationList parseVariableDeclarationList(String source) {
-    throw new UnimplementedError();
+    CompilationUnit unit = parseCompilationUnit('''
+f() {
+  $source;
+}
+''');
+    FunctionDeclaration function = unit.declarations[0];
+    BlockFunctionBody body = function.functionExpression.body;
+    VariableDeclarationStatement statement = body.block.statements[0];
+    return statement.variables;
   }
 
   Future setUp() async {
