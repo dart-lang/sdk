@@ -95,6 +95,68 @@ class RuntimeCompletionComputerTest extends AbstractContextTest {
     return null;
   }
 
+  test_class_fields() async {
+    addContextFile(r'''
+class A {
+  int a;
+}
+class B extends A {
+  double b, c;
+  void foo() {
+    // context line
+  }
+}
+''');
+    await computeCompletion('^');
+    assertSuggested('a', returnType: 'int');
+    assertSuggested('b', returnType: 'double');
+    assertSuggested('c', returnType: 'double');
+  }
+
+  test_class_methods() async {
+    addContextFile(r'''
+class A {
+  int a() => null;
+}
+class B extends A {
+  double b() => null;
+  void foo() {
+    // context line
+  }
+}
+''');
+    await computeCompletion('^');
+    assertSuggested('a', returnType: 'int');
+    assertSuggested('b', returnType: 'double');
+  }
+
+  test_inPart() async {
+    addSource('/test/lib/a.dart', r'''
+part 'b.dart';
+part 'context.dart';
+
+int a;
+''');
+    addSource('/test/lib/b.dart', r'''
+part of 'a.dart';
+
+double b;
+''');
+    addContextFile(r'''
+part of 'a.dart';
+
+String c;
+
+void main() {
+  // context line
+}
+''');
+    await computeCompletion('^');
+    assertSuggested('a', returnType: 'int');
+    assertSuggested('b', returnType: 'double');
+    assertSuggested('c', returnType: 'String');
+  }
+
   test_locals_block() async {
     addContextFile(r'''
 class A {
@@ -286,5 +348,32 @@ main() {
     for (var suggestion in result.suggestions) {
       expect(suggestion.completion, isNot(startsWith('__prefix')));
     }
+  }
+
+  test_topLevelFunctions() async {
+    addContextFile(r'''
+int a() => null;
+double b() => null;
+void main() {
+  // context line
+}
+''');
+    await computeCompletion('^');
+    assertSuggested('a', returnType: 'int');
+    assertSuggested('b', returnType: 'double');
+  }
+
+  test_topLevelVariables() async {
+    addContextFile(r'''
+int a;
+double b;
+
+void main() {
+  // context line
+}
+''');
+    await computeCompletion('^');
+    assertSuggested('a', returnType: 'int');
+    assertSuggested('b', returnType: 'double');
   }
 }
