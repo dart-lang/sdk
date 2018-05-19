@@ -51,7 +51,7 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "args_tag": "1.4.1",
-  "async_tag": "2.0.6",
+  "async_tag": "2.0.7",
   "bazel_worker_tag": "v0.1.9",
   "boolean_selector_tag" : "1.0.3",
   "boringssl_gen_rev": "344f455fd13d46f054726638e76026156ea73aa9",
@@ -59,7 +59,7 @@ vars = {
   "charcode_tag": "v1.1.1",
   "chrome_rev" : "19997",
   "cli_util_tag" : "0.1.2+1",
-  "collection_tag": "1.14.6",
+  "collection_tag": "1.14.9",
   "convert_tag": "2.0.1",
   "crypto_tag" : "2.0.2+1",
   "csslib_tag" : "0.14.1",
@@ -89,7 +89,7 @@ vars = {
   "http_parser_tag" : "3.1.1",
   "http_retry_tag": "0.1.1",
   "http_tag" : "0.11.3+16",
-  "http_throttle_tag" : "1.0.1",
+  "http_throttle_tag" : "1.0.2",
   "idl_parser_rev": "5fb1ebf49d235b5a70c9f49047e83b0654031eb7",
   "intl_tag": "0.15.2",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
