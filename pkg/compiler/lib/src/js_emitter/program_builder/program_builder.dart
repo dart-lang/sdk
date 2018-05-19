@@ -30,7 +30,7 @@ import '../../js_backend/interceptor_data.dart';
 import '../../js_backend/js_interop_analysis.dart';
 import '../../js_backend/runtime_types.dart'
     show RuntimeTypesChecks, RuntimeTypesNeed, RuntimeTypesEncoder;
-import '../../js_model/elements.dart' show JSignatureMethod;
+import '../../js_model/elements.dart' show JGeneratorBody, JSignatureMethod;
 import '../../native/enqueue.dart' show NativeCodegenEnqueuer;
 import '../../options.dart';
 import '../../universe/selector.dart' show Selector;
@@ -823,6 +823,8 @@ class ProgramBuilder {
   }
 
   bool _methodNeedsStubs(FunctionEntity method) {
+    if (method is JGeneratorBody) return false;
+    if (method is ConstructorBodyEntity) return false;
     return method.parameterStructure.optionalParameters != 0 ||
         method.parameterStructure.typeParameters != 0;
   }
