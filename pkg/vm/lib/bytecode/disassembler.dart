@@ -7,6 +7,7 @@ library vm.bytecode.disassembler;
 import 'dart:typed_data';
 
 import 'package:vm/bytecode/dbc.dart';
+import 'package:vm/bytecode/exceptions.dart';
 
 class _Instruction {
   final Opcode opcode;
@@ -20,11 +21,13 @@ class BytecodeDisassembler {
 
   List<_Instruction> _instructions;
   int _labelCount;
-  Map<int, int> _labels;
+  Map<int, String> _labels;
+  Map<int, List<String>> _markers;
 
-  String disassemble(List<int> bytecode) {
+  String disassemble(List<int> bytecode, ExceptionsTable exceptionsTable) {
     _init(bytecode);
     _scanForJumpTargets();
+    _markTryBlocks(exceptionsTable);
     return _disasm();
   }
 
@@ -39,7 +42,8 @@ class BytecodeDisassembler {
     }
 
     _labelCount = 0;
-    _labels = <int, int>{};
+    _labels = <int, String>{};
+    _markers = <int, List<String>>{};
   }
 
   _Instruction _decodeInstruction(int word) {
@@ -94,17 +98,35 @@ class BytecodeDisassembler {
       if (instr.opcode == Opcode.kJump) {
         final target = i + instr.operands[0];
         assert(0 <= target && target < _instructions.length);
-        _labels[target] ??= (++_labelCount);
+        if (!_labels.containsKey(target)) {
+          final label = 'L${++_labelCount}';
+          _labels[target] = label;
+          _addMarker(target, '$label:');
+        }
       }
     }
+  }
+
+  void _markTryBlocks(ExceptionsTable exceptionsTable) {
+    for (var tryBlock in exceptionsTable.blocks) {
+      final int tryIndex = tryBlock.tryIndex;
+      _addMarker(tryBlock.startPC, 'Try #$tryIndex start:');
+      _addMarker(tryBlock.endPC, 'Try #$tryIndex end:');
+      _addMarker(tryBlock.handlerPC, 'Try #$tryIndex handler:');
+    }
+  }
+
+  void _addMarker(int pc, String marker) {
+    final markers = (_markers[pc] ??= <String>[]);
+    markers.add(marker);
   }
 
   String _disasm() {
     StringBuffer out = new StringBuffer();
     for (int i = 0; i < _instructions.length; i++) {
-      int label = _labels[i];
-      if (label != null) {
-        out.writeln('L$label:');
+      List<String> markers = _markers[i];
+      if (markers != null) {
+        markers.forEach(out.writeln);
       }
       _writeInstruction(out, i, _instructions[i]);
     }
@@ -158,7 +180,11 @@ class BytecodeDisassembler {
       case Operand.xeg:
         return (value < 0) ? 'FP[$value]' : 'r$value';
       case Operand.tgt:
-        return 'L${_labels[bci + value] ?? (throw 'Label not found')}';
+        return _labels[bci + value] ?? (throw 'Label not found');
+      case Operand.spe:
+        return SpecialIndex.values[value]
+            .toString()
+            .substring('SpecialIndex.'.length);
     }
     throw 'Unexpected operand format $fmt';
   }

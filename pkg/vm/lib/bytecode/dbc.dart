@@ -235,6 +235,7 @@ enum Operand {
   reg, // register (unsigned FP relative local)
   xeg, // x-register (signed FP relative local)
   tgt, // jump target relative to the PC of the current instruction
+  spe, // SpecialIndex
 }
 
 class Format {
@@ -589,7 +590,7 @@ const Map<Opcode, Format> BytecodeFormats = const {
   Opcode.kCloneContext: const Format(
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
   Opcode.kMoveSpecial: const Format(
-      Encoding.kAD, const [Operand.reg, Operand.imm, Operand.none]),
+      Encoding.kAD, const [Operand.reg, Operand.spe, Operand.none]),
   Opcode.kInstantiateType: const Format(
       Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
   Opcode.kInstantiateTypeArgumentsTOS: const Format(
@@ -650,3 +651,8 @@ const String kGetterPrefix = 'get:';
 // Prefix used to distinguish setters in ICData target names.
 // Should match constant in runtime/vm/object.cc.
 const String kSetterPrefix = 'set:';
+
+enum SpecialIndex {
+  exception,
+  stackTrace,
+}

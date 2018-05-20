@@ -13,7 +13,7 @@ class LocalVariables {
   final Map<TreeNode, Scope> _scopes = <TreeNode, Scope>{};
   final Map<VariableDeclaration, VarDesc> _vars =
       <VariableDeclaration, VarDesc>{};
-  final Map<TreeNode, int> _temps = <TreeNode, int>{};
+  final Map<TreeNode, List<int>> _temps = <TreeNode, List<int>>{};
 
   Scope _currentScope;
   Frame _currentFrame;
@@ -43,9 +43,13 @@ class LocalVariables {
       _getVarDesc(variable).originalParamSlotIndex ??
       (throw 'Variablie $variable does not have originalParamSlotIndex');
 
-  int tempIndexInFrame(TreeNode node) =>
-      _temps[node] ??
-      (throw 'Temp is not allocated for node ${node.runtimeType} $node');
+  int tempIndexInFrame(TreeNode node, {int tempIndex: 0}) {
+    final temps = _temps[node];
+    if (temps == null) {
+      throw 'Temp is not allocated for node ${node.runtimeType} $node';
+    }
+    return temps[tempIndex];
+  }
 
   int get currentContextSize => _currentScope.contextSize;
   int get currentContextLevel => _currentScope.contextLevel;
@@ -63,6 +67,8 @@ class LocalVariables {
   int get contextVarIndexInFrame => getVarIndexInFrame(_currentFrame
           .contextVar ??
       (throw 'Context variable is not declared in ${_currentFrame.function}'));
+
+  bool get hasContextVar => _currentFrame.contextVar != null;
 
   int get scratchVarIndexInFrame => getVarIndexInFrame(_currentFrame
           .scratchVar ??
@@ -452,23 +458,31 @@ class _Allocator extends RecursiveVisitor<Null> {
         max(_currentFrame.frameSize, _currentScope.localsUsed);
   }
 
-  void _allocateTemp(TreeNode node) {
+  void _allocateTemp(TreeNode node, {int count: 1}) {
     assert(locals._temps[node] == null);
-    if (_currentScope.tempsUsed >= _currentFrame.temporaries.length) {
-      // Allocate a new local slot for temporary variable.
-      int local = _currentScope.localsUsed++;
+    if (_currentScope.tempsUsed + count > _currentFrame.temporaries.length) {
+      // Allocate new local slots for temporary variables.
+      final int newSlots =
+          (_currentScope.tempsUsed + count) - _currentFrame.temporaries.length;
+      int local = _currentScope.localsUsed;
+      _currentScope.localsUsed += newSlots;
       _updateFrameSize();
-      _currentFrame.temporaries.add(local);
+      for (int i = 0; i < newSlots; i++) {
+        _currentFrame.temporaries.add(local + i);
+      }
     }
-    int index = _currentFrame.temporaries[_currentScope.tempsUsed++];
-    locals._temps[node] = index;
+    locals._temps[node] = _currentFrame.temporaries
+        .sublist(_currentScope.tempsUsed, _currentScope.tempsUsed + count);
+    _currentScope.tempsUsed += count;
   }
 
-  void _freeTemp(TreeNode node) {
-    assert(_currentScope.tempsUsed > 0);
-    assert(locals._temps[node] ==
-        _currentFrame.temporaries[_currentScope.tempsUsed - 1]);
-    --_currentScope.tempsUsed;
+  void _freeTemp(TreeNode node, {int count: 1}) {
+    assert(_currentScope.tempsUsed >= count);
+    _currentScope.tempsUsed -= count;
+    assert(listEquals(
+        locals._temps[node],
+        _currentFrame.temporaries.sublist(
+            _currentScope.tempsUsed, _currentScope.tempsUsed + count)));
   }
 
   void _allocateVariable(VariableDeclaration variable, {int paramSlotIndex}) {
@@ -598,18 +612,18 @@ class _Allocator extends RecursiveVisitor<Null> {
     _leaveScope();
   }
 
-  void _visit(TreeNode node, {scope: false, temp: false}) {
+  void _visit(TreeNode node, {bool scope: false, int temps: 0}) {
     if (scope) {
       _enterScope(node);
     }
-    if (temp) {
-      _allocateTemp(node);
+    if (temps > 0) {
+      _allocateTemp(node, count: temps);
     }
 
     node.visitChildren(this);
 
-    if (temp) {
-      _freeTemp(node);
+    if (temps > 0) {
+      _freeTemp(node, count: temps);
     }
     if (scope) {
       _leaveScope();
@@ -688,7 +702,7 @@ class _Allocator extends RecursiveVisitor<Null> {
     if (node.isConst) {
       return;
     }
-    _visit(node, temp: true);
+    _visit(node, temps: 1);
   }
 
   @override
@@ -696,7 +710,7 @@ class _Allocator extends RecursiveVisitor<Null> {
     if (node.isConst) {
       return;
     }
-    _visit(node, temp: true);
+    _visit(node, temps: 1);
   }
 
   @override
@@ -704,42 +718,52 @@ class _Allocator extends RecursiveVisitor<Null> {
     if (node.isConst) {
       return;
     }
-    _visit(node, temp: true);
+    _visit(node, temps: 1);
   }
 
   @override
   visitStringConcatenation(StringConcatenation node) {
-    _visit(node, temp: true);
+    _visit(node, temps: 1);
   }
 
   @override
   visitConditionalExpression(ConditionalExpression node) {
-    _visit(node, temp: true);
+    _visit(node, temps: 1);
   }
 
   @override
   visitLogicalExpression(LogicalExpression node) {
-    _visit(node, temp: true);
+    _visit(node, temps: 1);
   }
 
   @override
   visitPropertySet(PropertySet node) {
-    _visit(node, temp: true);
+    _visit(node, temps: 1);
   }
 
   @override
   visitSwitchStatement(SwitchStatement node) {
-    _visit(node, temp: true);
+    _visit(node, temps: 1);
   }
 
   @override
   visitVariableSet(VariableSet node) {
-    _visit(node, temp: locals.isCaptured(node.variable));
+    _visit(node, temps: locals.isCaptured(node.variable) ? 1 : 0);
   }
 
   @override
   visitStaticSet(StaticSet node) {
     _allocateTemp(node);
     super.visitStaticSet(node);
+  }
+
+  @override
+  visitTryCatch(TryCatch node) {
+    _visit(node, temps: 2);
+  }
+
+  @override
+  visitTryFinally(TryFinally node) {
+    _visit(node, temps: 2);
   }
 }

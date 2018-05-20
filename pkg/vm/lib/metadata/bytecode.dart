@@ -7,6 +7,7 @@ library vm.metadata.bytecode;
 import 'package:kernel/ast.dart';
 import 'package:vm/bytecode/constant_pool.dart' show ConstantPool;
 import 'package:vm/bytecode/disassembler.dart' show BytecodeDisassembler;
+import 'package:vm/bytecode/exceptions.dart' show ExceptionsTable;
 
 /// Metadata containing bytecode.
 ///
@@ -14,6 +15,7 @@ import 'package:vm/bytecode/disassembler.dart' show BytecodeDisassembler;
 ///
 /// type BytecodeMetadata {
 ///   List<Byte> bytecodes
+///   ExceptionsTable exceptionsTable
 ///   ConstantPool constantPool
 ///   List<ClosureBytecode> closures
 /// }
@@ -21,22 +23,29 @@ import 'package:vm/bytecode/disassembler.dart' show BytecodeDisassembler;
 /// type ClosureBytecode {
 ///   ConstantIndex closureFunction
 ///   List<Byte> bytecodes
+///   ExceptionsTable exceptionsTable
 /// }
+///
+/// Encoding of ExceptionsTable is described in
+/// pkg/vm/lib/bytecode/exceptions.dart.
 ///
 /// Encoding of ConstantPool is described in
 /// pkg/vm/lib/bytecode/constant_pool.dart.
 ///
 class BytecodeMetadata {
   final List<int> bytecodes;
+  final ExceptionsTable exceptionsTable;
   final ConstantPool constantPool;
   final List<ClosureBytecode> closures;
 
-  BytecodeMetadata(this.bytecodes, this.constantPool, this.closures);
+  BytecodeMetadata(
+      this.bytecodes, this.exceptionsTable, this.constantPool, this.closures);
 
   @override
   String toString() => "\n"
       "Bytecode {\n"
-      "${new BytecodeDisassembler().disassemble(bytecodes)}}\n"
+      "${new BytecodeDisassembler().disassemble(bytecodes, exceptionsTable)}}\n"
+      "$exceptionsTable"
       "$constantPool"
       "${closures.join('\n')}";
 }
@@ -46,25 +55,31 @@ class BytecodeMetadata {
 class ClosureBytecode {
   final int closureFunctionConstantIndex;
   final List<int> bytecodes;
+  final ExceptionsTable exceptionsTable;
 
-  ClosureBytecode(this.closureFunctionConstantIndex, this.bytecodes);
+  ClosureBytecode(
+      this.closureFunctionConstantIndex, this.bytecodes, this.exceptionsTable);
 
   void writeToBinary(BinarySink sink) {
     sink.writeUInt30(closureFunctionConstantIndex);
     sink.writeByteList(bytecodes);
+    exceptionsTable.writeToBinary(sink);
   }
 
   factory ClosureBytecode.readFromBinary(BinarySource source) {
     final closureFunctionConstantIndex = source.readUInt();
     final List<int> bytecodes = source.readByteList();
-    return new ClosureBytecode(closureFunctionConstantIndex, bytecodes);
+    final exceptionsTable = new ExceptionsTable.readFromBinary(source);
+    return new ClosureBytecode(
+        closureFunctionConstantIndex, bytecodes, exceptionsTable);
   }
 
   @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.writeln('Closure CP#$closureFunctionConstantIndex {');
-    sb.writeln(new BytecodeDisassembler().disassemble(bytecodes));
+    sb.writeln(
+        new BytecodeDisassembler().disassemble(bytecodes, exceptionsTable));
     sb.writeln('}');
     return sb.toString();
   }
@@ -82,6 +97,7 @@ class BytecodeMetadataRepository extends MetadataRepository<BytecodeMetadata> {
   @override
   void writeToBinary(BytecodeMetadata metadata, Node node, BinarySink sink) {
     sink.writeByteList(metadata.bytecodes);
+    metadata.exceptionsTable.writeToBinary(sink);
     metadata.constantPool.writeToBinary(node, sink);
     sink.writeUInt30(metadata.closures.length);
     metadata.closures.forEach((c) => c.writeToBinary(sink));
@@ -90,10 +106,12 @@ class BytecodeMetadataRepository extends MetadataRepository<BytecodeMetadata> {
   @override
   BytecodeMetadata readFromBinary(Node node, BinarySource source) {
     final List<int> bytecodes = source.readByteList();
+    final exceptionsTable = new ExceptionsTable.readFromBinary(source);
     final ConstantPool constantPool =
         new ConstantPool.readFromBinary(node, source);
     final List<ClosureBytecode> closures = new List<ClosureBytecode>.generate(
         source.readUInt(), (_) => new ClosureBytecode.readFromBinary(source));
-    return new BytecodeMetadata(bytecodes, constantPool, closures);
+    return new BytecodeMetadata(
+        bytecodes, exceptionsTable, constantPool, closures);
   }
 }
