@@ -2,8 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/fasta/util/link.dart';
+
 import '../../scanner/token.dart'
-    show BeginToken, SimpleToken, Token, TokenType;
+    show
+        BeginToken,
+        SimpleToken,
+        SyntheticStringToken,
+        SyntheticToken,
+        Token,
+        TokenType;
 
 import 'util.dart' show optional;
 
@@ -32,6 +40,61 @@ class TokenStreamRewriter {
 
   /// Initialize a newly created re-writer.
   TokenStreamRewriter();
+
+  /// For every `<` in [unbalancedLt] append a synthetic `>`.
+  /// Return the first `<`.
+  ///
+  /// [unbalancedLt] is a collection of `<` without closing `>` in the reverse
+  /// order from which they were encountered in the token stream.
+  Token balanceLt(final Token beforeLt, Token end, Link<Token> unbalancedLt) {
+    assert(optional('<', beforeLt.next));
+    assert(unbalancedLt.isNotEmpty);
+
+    BeginToken lt;
+    while (unbalancedLt.isNotEmpty) {
+      lt = unbalancedLt.head;
+      unbalancedLt = unbalancedLt.tail;
+      Token next = end.next;
+      Token gt;
+
+      if (optional('>', next)) {
+        gt = next;
+      } else if (optional('>>', next)) {
+        gt = new SimpleToken(TokenType.GT, next.charOffset)
+          ..setNext(new SimpleToken(TokenType.GT, next.charOffset + 1)
+            ..setNext(next.next));
+      } else if (optional('>=', next)) {
+        gt = new SimpleToken(TokenType.GT, next.charOffset)
+          ..setNext(new SimpleToken(TokenType.EQ, next.charOffset + 1)
+            ..setNext(next.next));
+      } else if (optional('>>=', next)) {
+        gt = new SimpleToken(TokenType.GT, next.charOffset)
+          ..setNext(new SimpleToken(TokenType.GT, next.charOffset + 1)
+            ..setNext(new SimpleToken(TokenType.EQ, next.charOffset + 2)
+              ..setNext(next.next)));
+      } else {
+        gt = new SyntheticToken(TokenType.GT, next.charOffset)..setNext(next);
+      }
+
+      lt.endGroup = gt;
+      end.setNext(gt);
+      end = gt;
+    }
+    assert(beforeLt.next == lt);
+    return lt;
+  }
+
+  /// Insert a synthetic identifier after [token] and return the new identifier.
+  Token insertSyntheticIdentifier(Token token) {
+    Token identifier = new SyntheticStringToken(
+        TokenType.IDENTIFIER, '', token.next.charOffset, 0)
+      ..setNext(token.next);
+
+    // A no-op rewriter could simply return the synthetic identifier here.
+
+    token.setNext(identifier);
+    return identifier;
+  }
 
   /// Insert the chain of tokens starting at the [insertedToken] immediately
   /// after the [previousToken]. Return the [previousToken].

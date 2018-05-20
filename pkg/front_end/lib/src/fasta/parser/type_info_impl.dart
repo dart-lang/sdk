@@ -22,7 +22,7 @@ import 'parser.dart' show Parser;
 
 import 'type_info.dart';
 
-import 'util.dart' show optional, skipMetadata;
+import 'util.dart' show isOneOf, optional, skipMetadata;
 
 /// See documentation on the [noType] const.
 class NoType implements TypeInfo {
@@ -35,7 +35,7 @@ class NoType implements TypeInfo {
   Token ensureTypeNotVoid(Token token, Parser parser) {
     parser.reportRecoverableErrorWithToken(
         token.next, fasta.templateExpectedType);
-    insertSyntheticIdentifierAfter(token, parser);
+    parser.rewriter.insertSyntheticIdentifier(token);
     return simpleType.parseType(token, parser);
   }
 
@@ -563,6 +563,10 @@ class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
   /// `>>` for the outer group and the token before `>>` for the inner group.
   Token end;
 
+  /// A collection of `<` without closing `>` in the reverse order from which
+  /// they were encountered in the token stream.
+  Link<Token> unbalancedLt = const Link<Token>();
+
   ComplexTypeParamOrArgInfo(Token token)
       : assert(optional('<', token.next)),
         start = token.next;
@@ -618,12 +622,60 @@ class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
     return this;
   }
 
+  /// Parse the tokens and return the receiver or [noTypeParamOrArg] if there
+  /// are no type parameters or arguments. This does not modify the token
+  /// stream.
+  ///
+  /// This is called when parsing type parameters in a top level
+  /// or class member declaration. It assumes that a leading `<` cannot be part
+  /// of an expression, and thus tries to more aggressively recover
+  /// given an unmatched '<'.
+  ///
+  TypeParamOrArgInfo computeRecovery() {
+    assert(start.endGroup == null);
+    unbalancedLt = unbalancedLt.prepend(start);
+    Token token = start;
+    Token next = token.next;
+    while (!next.isEof) {
+      if (optional('Function', next)) {
+        next = next.next;
+        if (optional('<', next)) {
+          next = skipTypeVariables(next);
+          if (next == null) {
+            break;
+          }
+          next = next.next;
+        }
+        if (optional('(', next)) {
+          next = next.endGroup;
+        } else {
+          break;
+        }
+      } else if (optional('<', next)) {
+        Token endGroup = skipTypeVariables(next);
+        if (endGroup != null) {
+          next = endGroup;
+        } else {
+          unbalancedLt = unbalancedLt.prepend(next);
+        }
+      } else if (!isValidTypeReference(next) &&
+          !isOneOf(next, const ['.', ',', 'extends', 'super'])) {
+        break;
+      }
+      token = next;
+      next = token.next;
+    }
+
+    end = token;
+    return this;
+  }
+
   @override
   Token parseArguments(Token token, Parser parser) {
-    assert(identical(start, token.next));
-    Token next = start;
-    Token innerEndGroup = processBeginGroup(start, parser);
-    parser.listener.beginTypeArguments(start);
+    Token begin = balanceLt(token, parser);
+    Token next = begin;
+    Token innerEndGroup = processBeginGroup(begin, parser);
+    parser.listener.beginTypeArguments(begin);
     int count = 0;
     do {
       TypeInfo typeInfo = computeType(next, true, innerEndGroup);
@@ -641,17 +693,17 @@ class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
       next = token.next;
       ++count;
     } while (optional(',', next));
-    end = processEndGroup(token, start, parser);
-    parser.listener.endTypeArguments(count, start, end);
+    end = processEndGroup(token, begin, parser);
+    parser.listener.endTypeArguments(count, begin, end);
     return end;
   }
 
   @override
   Token parseVariables(Token token, Parser parser) {
-    assert(identical(start, token.next));
-    Token next = start;
-    Token innerEndGroup = processBeginGroup(start, parser);
-    parser.listener.beginTypeVariables(start);
+    Token begin = balanceLt(token, parser);
+    Token next = begin;
+    Token innerEndGroup = processBeginGroup(begin, parser);
+    parser.listener.beginTypeVariables(begin);
     int count = 0;
     do {
       parser.listener.beginTypeVariable(next.next);
@@ -671,13 +723,28 @@ class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
       parser.listener.endTypeVariable(next, extendsOrSuper);
       ++count;
     } while (optional(',', next));
-    end = processEndGroup(token, start, parser);
-    parser.listener.endTypeVariables(count, start, end);
+    end = processEndGroup(token, begin, parser);
+    parser.listener.endTypeVariables(count, begin, end);
     return end;
   }
 
   @override
   Token skip(Token token) => end;
+
+  /// For every unbalanced `<` append a synthetic `>`. Return the first `<`
+  Token balanceLt(Token token, Parser parser) {
+    assert(identical(start, token.next));
+    if (unbalancedLt.isEmpty) {
+      return start;
+    }
+    Token begin = parser.rewriter.balanceLt(token, end, unbalancedLt);
+    assert(begin.endGroup != null);
+    if (begin.endGroup.isSynthetic) {
+      parser.reportRecoverableError(
+          begin.endGroup.next, fasta.templateExpectedButGot.withArguments('>'));
+    }
+    return begin;
+  }
 }
 
 Token processBeginGroup(BeginToken start, Parser parser) {

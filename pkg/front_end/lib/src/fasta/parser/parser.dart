@@ -89,6 +89,7 @@ import 'type_info.dart'
         TypeParamOrArgInfo,
         computeMethodTypeArguments,
         computeType,
+        computeTypeParam,
         computeTypeParamOrArg,
         isGeneralizedFunctionType,
         isValidTypeReference,
@@ -501,8 +502,11 @@ class Parser {
       // and continue parsing as a top level function.
       rewriter.insertTokenAfter(
           next,
-          new SyntheticStringToken(TokenType.IDENTIFIER,
-              '#synthetic_function_${next.charOffset}', token.charOffset, 0));
+          new SyntheticStringToken(
+              TokenType.IDENTIFIER,
+              '#synthetic_function_${next.charOffset}',
+              next.next.charOffset,
+              0));
       return parseTopLevelMemberImpl(next);
     }
     // Ignore any preceding modifiers and just report the unexpected token
@@ -1354,7 +1358,8 @@ class Parser {
 
     Token endInlineFunctionType;
     if (beforeInlineFunctionType != null) {
-      endInlineFunctionType = parseTypeVariablesOpt(beforeInlineFunctionType);
+      endInlineFunctionType = computeTypeParamOrArg(beforeInlineFunctionType)
+          .parseVariables(beforeInlineFunctionType, this);
       listener.beginFunctionTypedFormalParameter(beforeInlineFunctionType.next);
       token = typeInfo.parseType(beforeType, this);
       endInlineFunctionType = parseFormalParametersRequiredOpt(
@@ -1654,7 +1659,7 @@ class Parser {
     assert(optional('class', token));
     Token name =
         ensureIdentifier(token, IdentifierContext.classOrNamedMixinDeclaration);
-    token = parseTypeVariablesOpt(name);
+    token = computeTypeParam(name).parseVariables(name, this);
     if (optional('=', token.next)) {
       listener.beginNamedMixinApplication(begin, abstractToken, name);
       return parseNamedMixinApplication(token, begin, classKeyword);
@@ -2677,7 +2682,7 @@ class Parser {
     Token token;
     bool isGetter = false;
     if (getOrSet == null) {
-      token = parseTypeVariablesOpt(name);
+      token = computeTypeParam(name).parseVariables(name, this);
     } else {
       isGetter = optional("get", getOrSet);
       token = name;

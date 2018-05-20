@@ -12,10 +12,9 @@ import 'identifier_context.dart';
 
 import 'parser.dart' show Parser;
 
-import 'type_info.dart'
-    show insertSyntheticIdentifierAfter, isValidTypeReference;
+import 'type_info.dart' show isValidTypeReference;
 
-import 'util.dart' show optional;
+import 'util.dart' show isOneOfOrEof, optional;
 
 /// See [IdentifierContext.classOrNamedMixinDeclaration].
 class ClassOrNamedMixinIdentifierContext extends IdentifierContext {
@@ -46,7 +45,7 @@ class ClassOrNamedMixinIdentifierContext extends IdentifierContext {
       if (!identifier.isKeywordOrIdentifier) {
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
-        identifier = insertSyntheticIdentifierAfter(identifier, parser);
+        identifier = parser.rewriter.insertSyntheticIdentifier(identifier);
       }
     }
     return identifier;
@@ -88,7 +87,7 @@ class DottedNameIdentifierContext extends IdentifierContext {
       if (!identifier.isKeywordOrIdentifier) {
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
-        identifier = insertSyntheticIdentifierAfter(identifier, parser);
+        identifier = parser.rewriter.insertSyntheticIdentifier(identifier);
       }
     }
     return identifier;
@@ -123,7 +122,7 @@ class EnumDeclarationIdentifierContext extends IdentifierContext {
       if (!identifier.isKeywordOrIdentifier) {
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
-        identifier = insertSyntheticIdentifierAfter(identifier, parser);
+        identifier = parser.rewriter.insertSyntheticIdentifier(identifier);
       }
     }
     return identifier;
@@ -148,11 +147,11 @@ class EnumValueDeclarationIdentifierContext extends IdentifierContext {
         identifier, fasta.templateExpectedIdentifier);
     if (looksLikeStartOfNextTopLevelDeclaration(identifier) ||
         isOneOfOrEof(identifier, const [',', '}'])) {
-      return insertSyntheticIdentifierAfter(token, parser);
+      return parser.rewriter.insertSyntheticIdentifier(token);
     } else if (!identifier.isKeywordOrIdentifier) {
       // When in doubt, consume the token to ensure we make progress
       // but insert a synthetic identifier to satisfy listeners.
-      return insertSyntheticIdentifierAfter(identifier, parser);
+      return parser.rewriter.insertSyntheticIdentifier(identifier);
     }
     return identifier;
   }
@@ -204,7 +203,7 @@ class ExpressionIdentifierContext extends IdentifierContext {
       identifier = token.next;
     }
     // Insert a synthetic identifier to satisfy listeners.
-    return insertSyntheticIdentifierAfter(token, parser);
+    return parser.rewriter.insertSyntheticIdentifier(token);
   }
 }
 
@@ -257,7 +256,7 @@ class FieldInitializerIdentifierContext extends IdentifierContext {
     parser.reportRecoverableErrorWithToken(
         identifier, fasta.templateExpectedIdentifier);
     // Insert a synthetic identifier to satisfy listeners.
-    return insertSyntheticIdentifierAfter(token, parser);
+    return parser.rewriter.insertSyntheticIdentifier(token);
   }
 }
 
@@ -291,7 +290,7 @@ class ImportPrefixIdentifierContext extends IdentifierContext {
       if (!identifier.isKeywordOrIdentifier) {
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
-        identifier = insertSyntheticIdentifierAfter(identifier, parser);
+        identifier = parser.rewriter.insertSyntheticIdentifier(identifier);
       }
     }
     return identifier;
@@ -328,7 +327,7 @@ class LocalFunctionDeclarationIdentifierContext extends IdentifierContext {
       if (!identifier.isKeywordOrIdentifier) {
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
-        identifier = insertSyntheticIdentifierAfter(identifier, parser);
+        identifier = parser.rewriter.insertSyntheticIdentifier(identifier);
       }
     }
     return identifier;
@@ -372,7 +371,7 @@ class LibraryIdentifierContext extends IdentifierContext {
       if (!identifier.isKeywordOrIdentifier) {
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
-        identifier = insertSyntheticIdentifierAfter(identifier, parser);
+        identifier = parser.rewriter.insertSyntheticIdentifier(identifier);
       }
     }
     return identifier;
@@ -404,7 +403,7 @@ class LocalVariableDeclarationIdentifierContext extends IdentifierContext {
       if (!identifier.isKeywordOrIdentifier) {
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
-        identifier = insertSyntheticIdentifierAfter(identifier, parser);
+        identifier = parser.rewriter.insertSyntheticIdentifier(identifier);
       }
     }
     return identifier;
@@ -493,7 +492,7 @@ class TopLevelDeclarationIdentifierContext extends IdentifierContext {
       if (!identifier.isKeywordOrIdentifier) {
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
-        identifier = insertSyntheticIdentifierAfter(identifier, parser);
+        identifier = parser.rewriter.insertSyntheticIdentifier(identifier);
       }
     }
     return identifier;
@@ -534,7 +533,7 @@ class TypedefDeclarationIdentifierContext extends IdentifierContext {
       if (!identifier.isKeywordOrIdentifier) {
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
-        identifier = insertSyntheticIdentifierAfter(identifier, parser);
+        identifier = parser.rewriter.insertSyntheticIdentifier(identifier);
       }
     }
     return identifier;
@@ -586,7 +585,7 @@ class TypeReferenceIdentifierContext extends IdentifierContext {
       next = token.next;
     }
     // Insert a synthetic identifier to satisfy listeners.
-    return insertSyntheticIdentifierAfter(token, parser);
+    return parser.rewriter.insertSyntheticIdentifier(token);
   }
 }
 
@@ -612,11 +611,11 @@ class TypeVariableDeclarationIdentifierContext extends IdentifierContext {
         looksLikeStartOfNextClassMember(identifier) ||
         looksLikeStartOfNextStatement(identifier) ||
         isOneOfOrEof(identifier, followingValues)) {
-      identifier = insertSyntheticIdentifierAfter(token, parser);
+      identifier = parser.rewriter.insertSyntheticIdentifier(token);
     } else {
       // When in doubt, consume the token to ensure we make progress
       // but insert a synthetic identifier to satisfy listeners.
-      identifier = insertSyntheticIdentifierAfter(identifier, parser);
+      identifier = parser.rewriter.insertSyntheticIdentifier(identifier);
     }
     return identifier;
   }
@@ -632,15 +631,6 @@ void checkAsyncAwaitYieldAsIdentifier(Token identifier, Parser parser) {
       parser.reportRecoverableError(identifier, fasta.messageAsyncAsIdentifier);
     }
   }
-}
-
-bool isOneOfOrEof(Token token, Iterable<String> followingValues) {
-  for (String tokenValue in followingValues) {
-    if (optional(tokenValue, token)) {
-      return true;
-    }
-  }
-  return token.isEof;
 }
 
 bool looksLikeStartOfNextClassMember(Token token) =>

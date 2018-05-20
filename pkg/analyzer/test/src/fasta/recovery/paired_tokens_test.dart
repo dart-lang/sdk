@@ -22,6 +22,66 @@ main() {
  */
 @reflectiveTest
 class AngleBracketsTest extends AbstractRecoveryTest {
+  void test_typeParameters_extraGt() {
+    testRecovery('''
+f<T>>() => null;
+''', [
+      ParserErrorCode.TOP_LEVEL_OPERATOR,
+      ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
+      ParserErrorCode.MISSING_FUNCTION_BODY
+    ], '''
+f<T> > () => null;
+''', expectedErrorsInValidCode: [
+      ParserErrorCode.TOP_LEVEL_OPERATOR,
+      ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
+      ParserErrorCode.MISSING_FUNCTION_BODY
+    ]);
+  }
+
+  void test_typeParameters_funct() {
+    testRecovery('''
+f<T extends Function()() => null;
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+f<T extends Function()>() => null;
+''');
+  }
+
+  void test_typeParameters_funct2() {
+    testRecovery('''
+f<T extends Function<X>()() => null;
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+f<T extends Function<X>()>() => null;
+''');
+  }
+
+  void test_typeParameters_gtEq() {
+    testRecovery('''
+f<T>=() => null;
+''', [
+      ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
+      ParserErrorCode.MISSING_FUNCTION_BODY
+    ], '''
+f<T> = () => null;
+''', expectedErrorsInValidCode: [
+      ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
+      ParserErrorCode.MISSING_FUNCTION_BODY
+    ]);
+  }
+
+  void test_typeParameters_gtGtEq() {
+    testRecovery('''
+f<T extends List<int>>=() => null;
+''', [
+      ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
+      ParserErrorCode.MISSING_FUNCTION_BODY
+    ], '''
+f<T extends List<int>> = () => null;
+''', expectedErrorsInValidCode: [
+      ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
+      ParserErrorCode.MISSING_FUNCTION_BODY
+    ]);
+  }
+
   @failingTest
   void test_typeArguments_inner_last() {
     // Parser crashes
@@ -49,6 +109,22 @@ Map<List<int>, List<String>> _s_;
 List<int
 ''', [ScannerErrorCode.EXPECTED_TOKEN], '''
 List<int> _s_;
+''');
+  }
+
+  void test_typeParameters_last() {
+    testRecovery('''
+f<T() => null;
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+f<T>() => null;
+''');
+  }
+
+  void test_typeParameters_outer_last() {
+    testRecovery('''
+f<T extends List<int>() => null;
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+f<T extends List<int>>() => null;
 ''');
   }
 }
