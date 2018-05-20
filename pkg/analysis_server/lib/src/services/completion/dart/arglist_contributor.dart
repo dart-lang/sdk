@@ -22,7 +22,7 @@ int _argCount(DartCompletionRequest request) {
   if (node is ArgumentList) {
     if (request.target.entity == node.rightParenthesis) {
       // Parser ignores trailing commas
-      if (node.rightParenthesis.previous?.lexeme == ',') {
+      if (node.findPrevious(node.rightParenthesis)?.lexeme == ',') {
         return node.arguments.length + 1;
       }
     }
