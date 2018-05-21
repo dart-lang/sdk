@@ -3220,6 +3220,21 @@ static bool Resume(Thread* thread, JSONStream* js) {
   return true;
 }
 
+static const MethodParameter* kill_params[] = {
+    RUNNABLE_ISOLATE_PARAMETER,
+    NULL,
+};
+
+static bool Kill(Thread* thread, JSONStream* js) {
+  const String& msg =
+      String::Handle(String::New("isolate terminated by Kill service request"));
+  const UnwindError& error = UnwindError::Handle(UnwindError::New(msg));
+  error.set_is_user_initiated(true);
+  Thread::Current()->set_sticky_error(error);
+  PrintSuccess(js);
+  return true;
+}
+
 static const MethodParameter* pause_params[] = {
     RUNNABLE_ISOLATE_PARAMETER, NULL,
 };
@@ -4347,6 +4362,7 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_vm_timeline_params },
   { "_getVMTimelineFlags", GetVMTimelineFlags,
     get_vm_timeline_flags_params },
+  { "kill", Kill, kill_params },
   { "pause", Pause,
     pause_params },
   { "removeBreakpoint", RemoveBreakpoint,
