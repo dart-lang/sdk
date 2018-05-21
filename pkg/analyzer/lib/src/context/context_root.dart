@@ -12,6 +12,11 @@ import 'package:path/path.dart' as path;
  */
 class ContextRoot {
   /**
+   * The path context to use when manipulating paths.
+   */
+  final path.Context pathContext;
+
+  /**
    * The absolute path of the root directory containing the files to be
    * analyzed.
    */
@@ -33,7 +38,7 @@ class ContextRoot {
   /**
    * Initialize a newly created context root.
    */
-  ContextRoot(this.root, this.exclude);
+  ContextRoot(this.pathContext, this.root, this.exclude);
 
   @override
   int get hashCode {
@@ -59,11 +64,11 @@ class ContextRoot {
    * directories.
    */
   bool containsFile(String filePath) {
-    if (!path.isWithin(root, filePath)) {
+    if (!pathContext.isWithin(root, filePath)) {
       return false;
     }
     for (String excluded in exclude) {
-      if (filePath == excluded || path.isWithin(excluded, filePath)) {
+      if (filePath == excluded || pathContext.isWithin(excluded, filePath)) {
         return false;
       }
     }

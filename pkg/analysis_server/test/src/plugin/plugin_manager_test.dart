@@ -33,6 +33,10 @@ main() {
   });
 }
 
+ContextRoot _newContextRoot(String root, {List<String> exclude: const []}) {
+  return new ContextRoot(path.context, root, exclude);
+}
+
 @reflectiveTest
 class BuiltInPluginInfoTest {
   TestNotificationManager notificationManager;
@@ -45,7 +49,7 @@ class BuiltInPluginInfoTest {
   }
 
   test_addContextRoot() {
-    ContextRoot contextRoot1 = new ContextRoot('/pkg1', []);
+    ContextRoot contextRoot1 = _newContextRoot('/pkg1');
     plugin.addContextRoot(contextRoot1);
     expect(plugin.contextRoots, [contextRoot1]);
     plugin.addContextRoot(contextRoot1);
@@ -60,8 +64,8 @@ class BuiltInPluginInfoTest {
   }
 
   test_removeContextRoot() {
-    ContextRoot contextRoot1 = new ContextRoot('/pkg1', []);
-    ContextRoot contextRoot2 = new ContextRoot('/pkg2', []);
+    ContextRoot contextRoot1 = _newContextRoot('/pkg1');
+    ContextRoot contextRoot2 = _newContextRoot('/pkg2');
     plugin.addContextRoot(contextRoot1);
     expect(plugin.contextRoots, unorderedEquals([contextRoot1]));
     plugin.addContextRoot(contextRoot2);
@@ -119,7 +123,7 @@ class DiscoveredPluginInfoTest {
 
   test_addContextRoot() {
     String optionsFilePath = '/pkg1/analysis_options.yaml';
-    ContextRoot contextRoot1 = new ContextRoot('/pkg1', []);
+    ContextRoot contextRoot1 = _newContextRoot('/pkg1');
     contextRoot1.optionsFilePath = optionsFilePath;
     PluginSession session = new PluginSession(plugin);
     TestServerCommunicationChannel channel =
@@ -144,8 +148,8 @@ class DiscoveredPluginInfoTest {
   }
 
   test_removeContextRoot() {
-    ContextRoot contextRoot1 = new ContextRoot('/pkg1', []);
-    ContextRoot contextRoot2 = new ContextRoot('/pkg2', []);
+    ContextRoot contextRoot1 = _newContextRoot('/pkg1');
+    ContextRoot contextRoot2 = _newContextRoot('/pkg2');
     plugin.addContextRoot(contextRoot1);
     expect(plugin.contextRoots, unorderedEquals([contextRoot1]));
     plugin.addContextRoot(contextRoot2);
@@ -202,7 +206,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
     io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
     String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
     await withPlugin(test: (String pluginPath) async {
-      ContextRoot contextRoot = new ContextRoot(pkgPath, []);
+      ContextRoot contextRoot = _newContextRoot(pkgPath);
       await manager.addPluginToContextRoot(contextRoot, pluginPath);
       await manager.stopAll();
     });
@@ -217,7 +221,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
 //    io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
 //    String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
 //    await withPubspecPlugin(test: (String pluginPath) async {
-//      ContextRoot contextRoot = new ContextRoot(pkgPath, []);
+//      ContextRoot contextRoot = _newContextRoot(pkgPath);
 //      await manager.addPluginToContextRoot(contextRoot, pluginPath);
 //      String packagesPath =
 //          resourceProvider.pathContext.join(pluginPath, '.packages');
@@ -238,7 +242,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
           await withPlugin(
               pluginName: 'plugin2',
               test: (String plugin2Path) async {
-                ContextRoot contextRoot = new ContextRoot(pkgPath, []);
+                ContextRoot contextRoot = _newContextRoot(pkgPath);
                 await manager.addPluginToContextRoot(contextRoot, plugin1Path);
                 await manager.addPluginToContextRoot(contextRoot, plugin2Path);
 
@@ -264,7 +268,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
           await withPlugin(
               pluginName: 'plugin2',
               test: (String plugin2Path) async {
-                ContextRoot contextRoot = new ContextRoot(pkgPath, []);
+                ContextRoot contextRoot = _newContextRoot(pkgPath);
                 await manager.addPluginToContextRoot(contextRoot, plugin1Path);
                 await manager.addPluginToContextRoot(contextRoot, plugin2Path);
 
@@ -285,7 +289,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
     await withPlugin(
         pluginName: 'plugin1',
         test: (String plugin1Path) async {
-          ContextRoot contextRoot = new ContextRoot(pkgPath, []);
+          ContextRoot contextRoot = _newContextRoot(pkgPath);
           await manager.addPluginToContextRoot(contextRoot, plugin1Path);
           List<PluginInfo> plugins = manager.pluginsForContextRoot(contextRoot);
           expect(plugins, hasLength(1));
@@ -311,7 +315,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
           await withPlugin(
               pluginName: 'plugin2',
               test: (String plugin2Path) async {
-                ContextRoot contextRoot = new ContextRoot(pkgPath, []);
+                ContextRoot contextRoot = _newContextRoot(pkgPath);
                 await manager.addPluginToContextRoot(contextRoot, plugin1Path);
                 await manager.addPluginToContextRoot(contextRoot, plugin2Path);
 
@@ -333,7 +337,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
     io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
     String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
     await withPlugin(test: (String pluginPath) async {
-      ContextRoot contextRoot = new ContextRoot(pkgPath, []);
+      ContextRoot contextRoot = _newContextRoot(pkgPath);
       await manager.addPluginToContextRoot(contextRoot, pluginPath);
 
       List<PluginInfo> plugins = manager.pluginsForContextRoot(contextRoot);
@@ -349,7 +353,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
     io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
     String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
     await withPlugin(test: (String pluginPath) async {
-      ContextRoot contextRoot = new ContextRoot(pkgPath, []);
+      ContextRoot contextRoot = _newContextRoot(pkgPath);
       await manager.addPluginToContextRoot(contextRoot, pluginPath);
 
       manager.removedContextRoot(contextRoot);
@@ -370,8 +374,8 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
           await withPlugin(
               pluginName: 'plugin2',
               test: (String plugin2Path) async {
-                ContextRoot contextRoot1 = new ContextRoot(pkg1Path, []);
-                ContextRoot contextRoot2 = new ContextRoot(pkg2Path, []);
+                ContextRoot contextRoot1 = _newContextRoot(pkg1Path);
+                ContextRoot contextRoot2 = _newContextRoot(pkg2Path);
                 await manager.addPluginToContextRoot(contextRoot1, plugin1Path);
                 await manager.addPluginToContextRoot(contextRoot1, plugin2Path);
                 await manager.addPluginToContextRoot(contextRoot2, plugin1Path);
@@ -415,7 +419,7 @@ class PluginManagerTest extends Object with ResourceProviderMixin {
   }
 
   void test_broadcastRequest_none() {
-    ContextRoot contextRoot = new ContextRoot('/pkg1', []);
+    ContextRoot contextRoot = _newContextRoot('/pkg1');
     Map<PluginInfo, Future<Response>> responses = manager.broadcastRequest(
         new CompletionGetSuggestionsParams('/pkg1/lib/pkg1.dart', 100),
         contextRoot: contextRoot);
@@ -498,7 +502,7 @@ class PluginManagerTest extends Object with ResourceProviderMixin {
   }
 
   void test_pluginsForContextRoot_none() {
-    ContextRoot contextRoot = new ContextRoot('/pkg1', []);
+    ContextRoot contextRoot = _newContextRoot('/pkg1');
     expect(manager.pluginsForContextRoot(contextRoot), isEmpty);
   }
 
