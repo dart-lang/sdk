@@ -1680,6 +1680,34 @@ class B extends A {
 ''');
   }
 
+  test_convertToFinalField_OK_noReturnType() async {
+    await resolveTestUnit('''
+class A {
+  get foo => 42;
+}
+''');
+    await assertHasAssistAt(
+        'get foo', DartAssistKind.CONVERT_INTO_FINAL_FIELD, '''
+class A {
+  final foo = 42;
+}
+''');
+  }
+
+  test_convertToFinalField_OK_noReturnType_static() async {
+    await resolveTestUnit('''
+class A {
+  static get foo => 42;
+}
+''');
+    await assertHasAssistAt(
+        'get foo', DartAssistKind.CONVERT_INTO_FINAL_FIELD, '''
+class A {
+  static final foo = 42;
+}
+''');
+  }
+
   test_convertToFinalField_OK_notNull() async {
     await resolveTestUnit('''
 class A {
