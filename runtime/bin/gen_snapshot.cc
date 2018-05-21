@@ -187,7 +187,7 @@ static bool IsSnapshottingForPrecompilation() {
 }
 
 static bool SnapshotKindAllowedFromKernel() {
-  return IsSnapshottingForPrecompilation() || (snapshot_kind == kCore);
+  return snapshot_kind != kScript;
 }
 
 // clang-format off
@@ -1454,30 +1454,43 @@ static int GenerateSnapshotFromKernel(const uint8_t* kernel_buffer,
   Dart_Handle result = Dart_SetEnvironmentCallback(EnvironmentCallback);
   CHECK_RESULT(result);
 
-  if (IsSnapshottingForPrecompilation()) {
-    // The root library has to be set to generate AOT snapshots.
-    // If the input dill file has a root library, then Dart_LoadScript will
-    // ignore this dummy uri and set the root library to the one reported in
-    // the dill file. Since dill files are not dart script files,
-    // trying to resolve the root library URI based on the dill file name
-    // would not help.
-    //
-    // If the input dill file does not have a root library, then
-    // Dart_LoadScript will error.
-    Dart_Handle library =
-        Dart_LoadScriptFromKernel(kernel_buffer, kernel_buffer_size);
-    if (Dart_IsError(library)) {
-      Log::PrintErr("Unable to load root library from the input dill file.\n");
-      return kErrorExitCode;
+  switch (snapshot_kind) {
+    case kAppAOTBlobs:
+    case kAppAOTAssembly: {
+      // The root library has to be set to generate AOT snapshots.
+      // If the input dill file has a root library, then Dart_LoadScript will
+      // ignore this dummy uri and set the root library to the one reported in
+      // the dill file. Since dill files are not dart script files,
+      // trying to resolve the root library URI based on the dill file name
+      // would not help.
+      //
+      // If the input dill file does not have a root library, then
+      // Dart_LoadScript will error.
+      Dart_Handle library =
+          Dart_LoadScriptFromKernel(kernel_buffer, kernel_buffer_size);
+      if (Dart_IsError(library)) {
+        Log::PrintErr(
+            "Unable to load root library from the input dill file.\n");
+        return kErrorExitCode;
+      }
+
+      CreateAndWritePrecompiledSnapshot(entry_points);
+
+      CreateAndWriteDependenciesFile();
+
+      CleanupEntryPointsCollection(entry_points);
+
+      break;
     }
-
-    CreateAndWritePrecompiledSnapshot(entry_points);
-
-    CreateAndWriteDependenciesFile();
-
-    CleanupEntryPointsCollection(entry_points);
-  } else {
-    CreateAndWriteCoreSnapshot();
+    case kCore:
+      CreateAndWriteCoreSnapshot();
+      break;
+    case kCoreJIT:
+      LoadCompilationTrace();
+      CreateAndWriteCoreJITSnapshot();
+      break;
+    default:
+      UNREACHABLE();
   }
 
   Dart_ExitScope();
