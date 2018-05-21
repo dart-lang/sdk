@@ -86,6 +86,11 @@ class FastaBodyBuilderTestCase extends Object
     this.expectedEndOffset = expectedEndOffset;
   }
 
+  @override
+  void expectNotNullIfNoErrors(Object result) {
+    // TODO(brianwilkerson) Implement this.
+  }
+
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
