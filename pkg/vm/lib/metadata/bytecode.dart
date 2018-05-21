@@ -14,9 +14,9 @@ import 'package:vm/bytecode/exceptions.dart' show ExceptionsTable;
 /// In kernel binary, bytecode metadata is encoded as following:
 ///
 /// type BytecodeMetadata {
+///   ConstantPool constantPool
 ///   List<Byte> bytecodes
 ///   ExceptionsTable exceptionsTable
-///   ConstantPool constantPool
 ///   List<ClosureBytecode> closures
 /// }
 ///
@@ -33,14 +33,15 @@ import 'package:vm/bytecode/exceptions.dart' show ExceptionsTable;
 /// pkg/vm/lib/bytecode/constant_pool.dart.
 ///
 class BytecodeMetadata {
+  final ConstantPool constantPool;
   final List<int> bytecodes;
   final ExceptionsTable exceptionsTable;
-  final ConstantPool constantPool;
   final List<ClosureBytecode> closures;
 
   BytecodeMetadata(
-      this.bytecodes, this.exceptionsTable, this.constantPool, this.closures);
+      this.constantPool, this.bytecodes, this.exceptionsTable, this.closures);
 
+  // TODO(alexmarkov): Consider printing constant pool before bytecode.
   @override
   String toString() => "\n"
       "Bytecode {\n"
@@ -96,22 +97,22 @@ class BytecodeMetadataRepository extends MetadataRepository<BytecodeMetadata> {
 
   @override
   void writeToBinary(BytecodeMetadata metadata, Node node, BinarySink sink) {
+    metadata.constantPool.writeToBinary(node, sink);
     sink.writeByteList(metadata.bytecodes);
     metadata.exceptionsTable.writeToBinary(sink);
-    metadata.constantPool.writeToBinary(node, sink);
     sink.writeUInt30(metadata.closures.length);
     metadata.closures.forEach((c) => c.writeToBinary(sink));
   }
 
   @override
   BytecodeMetadata readFromBinary(Node node, BinarySource source) {
-    final List<int> bytecodes = source.readByteList();
-    final exceptionsTable = new ExceptionsTable.readFromBinary(source);
     final ConstantPool constantPool =
         new ConstantPool.readFromBinary(node, source);
+    final List<int> bytecodes = source.readByteList();
+    final exceptionsTable = new ExceptionsTable.readFromBinary(source);
     final List<ClosureBytecode> closures = new List<ClosureBytecode>.generate(
         source.readUInt(), (_) => new ClosureBytecode.readFromBinary(source));
     return new BytecodeMetadata(
-        bytecodes, exceptionsTable, constantPool, closures);
+        constantPool, bytecodes, exceptionsTable, closures);
   }
 }
