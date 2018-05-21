@@ -529,7 +529,6 @@ Future<int> main() async {
           expect(dillFile.existsSync(), equals(true));
           expect(outputFilename, dillFile.path);
           expect(errorsCount, equals(0));
-          count += 1;
           streamController.add('accept\n'.codeUnits);
 
           // 'compile-expression <boundarykey>
@@ -546,16 +545,27 @@ Future<int> main() async {
           streamController.add(
               'compile-expression abc\n2+2\nabc\nabc\n${file.uri}\n\n\n'
                   .codeUnits);
+          count += 1;
         } else if (count == 1) {
+          // Previous request should have failed because isStatic was blank
+          expect(outputFilenameAndErrorCount, isNull);
+
+          streamController.add(
+              'compile-expression abc\n2+2\nabc\nabc\n${file.uri}\n\nfalse\n'
+                  .codeUnits);
+          count += 1;
+        } else if (count == 2) {
           // Second request is to 'compile-expression', which results in
           // kernel file with a function that wraps compiled expression.
           expect(outputFilenameAndErrorCount, isNotNull);
+          File outputFile = new File(outputFilenameAndErrorCount);
+          expect(outputFile.existsSync(), equals(true));
+          expect(outputFile.lengthSync(), isPositive);
 
-          outputFilenameAndErrorCount = null;
           streamController.add('compile foo.bar\n'.codeUnits);
           count += 1;
         } else {
-          expect(count, 2);
+          expect(count, 3);
           // Third request is to 'compile' non-existent file, that should fail.
           int delim = outputFilenameAndErrorCount.lastIndexOf(' ');
           expect(delim > 0, equals(true));
