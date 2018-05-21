@@ -444,7 +444,7 @@ bool instanceOf(obj, type) {
 }
 
 @JSExportName('as')
-cast(obj, type, bool isExplicit) {
+cast(obj, type, @js_helper.notNull bool isImplicit) {
   if (obj == null) return obj;
   var actual = getReifiedType(obj);
   var result = isSubtype(actual, type);
@@ -454,13 +454,13 @@ cast(obj, type, bool isExplicit) {
       'dart.__ignoreWhitelistedErrors && #(#, #)',
       result,
       result,
-      isExplicit,
+      isImplicit,
       _ignoreTypeFailure,
       actual,
       type)) {
     return obj;
   }
-  return castError(obj, type, isExplicit);
+  return castError(obj, type, isImplicit);
 }
 
 bool test(bool obj) {
