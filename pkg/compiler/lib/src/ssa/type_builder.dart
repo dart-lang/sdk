@@ -66,6 +66,9 @@ abstract class TypeBuilder {
     assert(type != null);
     type = builder.localsHandler.substInContext(type);
     HInstruction other = buildTypeConversion(original, type, kind);
+    if (other is HTypeConversion && other.isRedundant(builder.closedWorld)) {
+      return original;
+    }
     // TODO(johnniwinther): This operation on `registry` may be inconsistent.
     // If it is needed then it seems likely that similar invocations of
     // `buildTypeConversion` in `SsaBuilder.visitAs` should also be followed by
@@ -79,6 +82,9 @@ abstract class TypeBuilder {
     if (type == null) return original;
     HInstruction trusted = _trustType(original, type);
     if (trusted == original) return original;
+    if (trusted is HTypeKnown && trusted.isRedundant(builder.closedWorld)) {
+      return original;
+    }
     builder.add(trusted);
     return trusted;
   }

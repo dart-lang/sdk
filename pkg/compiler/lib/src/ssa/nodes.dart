@@ -16,6 +16,7 @@ import '../js/js.dart' as js;
 import '../js_backend/js_backend.dart';
 import '../native/native.dart' as native;
 import '../types/abstract_value_domain.dart';
+import '../types/masks.dart' show TypeMask;
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
 import '../util/util.dart';
@@ -3164,6 +3165,42 @@ class HTypeConversion extends HCheck {
         receiverTypeCheckSelector == other.receiverTypeCheckSelector;
   }
 
+  bool isRedundant(ClosedWorld closedWorld) {
+    AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
+    DartType type = typeExpression;
+    if (type != null) {
+      if (type.isMalformed) {
+        // Malformed types are treated as dynamic statically, but should
+        // throw a type error at runtime.
+        return false;
+      }
+      if (type.isTypeVariable) {
+        return false;
+      }
+      if (type.isFutureOr) {
+        // `null` always passes type conversion.
+        if (checkedInput.isNull(abstractValueDomain)) return true;
+        // TODO(johnniwinther): Optimize FutureOr type conversions.
+        return false;
+      }
+      if (!type.treatAsRaw) {
+        // `null` always passes type conversion.
+        if (checkedInput.isNull(abstractValueDomain)) return true;
+        return false;
+      }
+      if (type.isFunctionType) {
+        // `null` always passes type conversion.
+        if (checkedInput.isNull(abstractValueDomain)) return true;
+        // TODO(johnniwinther): Optimize function type conversions.
+        return false;
+      }
+    }
+    // Type is refined from `dynamic`, so it might become non-redundant.
+    if (abstractValueDomain.containsAll(checkedType)) return false;
+    TypeMask inputType = checkedInput.instructionType;
+    return inputType.isInMask(checkedType, closedWorld);
+  }
+
   String toString() => 'HTypeConversion(type=$typeExpression, kind=$kind, '
       '${hasTypeRepresentation ? 'representation=$typeRepresentation, ' : ''}'
       'checkedInput=$checkedInput)';
@@ -3204,6 +3241,13 @@ class HTypeKnown extends HCheck {
   bool dataEquals(HTypeKnown other) {
     return knownType == other.knownType &&
         instructionType == other.instructionType;
+  }
+
+  bool isRedundant(ClosedWorld closedWorld) {
+    AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
+    if (abstractValueDomain.containsAll(knownType)) return false;
+    TypeMask inputType = checkedInput.instructionType;
+    return inputType.isInMask(knownType, closedWorld);
   }
 }
 

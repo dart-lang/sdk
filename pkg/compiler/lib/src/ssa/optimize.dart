@@ -925,54 +925,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction visitTypeConversion(HTypeConversion node) {
-    DartType type = node.typeExpression;
-    if (type != null) {
-      if (type.isMalformed) {
-        // Malformed types are treated as dynamic statically, but should
-        // throw a type error at runtime.
-        return node;
-      }
-      if (type.isTypeVariable) {
-        return node;
-      }
-      if (type.isFutureOr) {
-        HInstruction input = node.checkedInput;
-        // `null` always passes type conversion.
-        if (input.isNull(_abstractValueDomain)) return input;
-        // TODO(johnniwinther): Optimize FutureOr type conversions.
-        return node;
-      }
-      if (!type.treatAsRaw) {
-        HInstruction input = node.checkedInput;
-        // `null` always passes type conversion.
-        if (input.isNull(_abstractValueDomain)) return input;
-        // TODO(sra): We can statically check [input] if it is a constructor.
-        // TODO(sra): We can statically check [input] if it is load from a field
-        // of the same ground type, or load from a field of a parameterized type
-        // with the same receiver.
-        return node;
-      }
-      if (type.isFunctionType) {
-        HInstruction input = node.checkedInput;
-        // `null` always passes type conversion.
-        if (input.isNull(_abstractValueDomain)) return input;
-        // TODO(johnniwinther): Optimize function type conversions.
-        // TODO(sra): We can statically check [input] if it is a closure getter.
-        return node;
-      }
-    }
-    return removeIfCheckAlwaysSucceeds(node, node.checkedType);
+    return node.isRedundant(_closedWorld) ? node.checkedInput : node;
   }
 
   HInstruction visitTypeKnown(HTypeKnown node) {
-    return removeIfCheckAlwaysSucceeds(node, node.knownType);
-  }
-
-  HInstruction removeIfCheckAlwaysSucceeds(HCheck node, TypeMask checkedType) {
-    if (checkedType.containsAll(_closedWorld)) return node;
-    HInstruction input = node.checkedInput;
-    TypeMask inputType = input.instructionType;
-    return inputType.isInMask(checkedType, _closedWorld) ? input : node;
+    return node.isRedundant(_closedWorld) ? node.checkedInput : node;
   }
 
   FieldEntity findConcreteFieldForDynamicAccess(
