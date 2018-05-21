@@ -11,6 +11,6 @@ abstract class NotificationChangeEvent {
 abstract class NotificationRepository {
   Stream<NotificationChangeEvent> get onChange;
   Iterable<Notification> list();
-  void delete(Notification);
+  void delete(Notification notification);
   void deleteAll();
 }
