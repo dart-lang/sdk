@@ -63,8 +63,15 @@ type ConstantICData extends ConstantPoolEntry {
   ConstantIndex argDesc;
 }
 
+enum InvocationKind {
+  method, // x.foo(...) or foo(...)
+  getter, // x.foo
+  setter  // x.foo = ...
+}
+
 type ConstantStaticICData extends ConstantPoolEntry {
   Byte tag = 8;
+  Byte invocationKind; // Index in InvocationKind enum.
   CanonicalNameReference target;
   ConstantIndex argDesc;
 }
@@ -468,13 +475,20 @@ class ConstantICData extends ConstantPoolEntry {
   bool operator ==(other) => identical(this, other);
 }
 
+enum InvocationKind { method, getter, setter }
+
 class ConstantStaticICData extends ConstantPoolEntry {
+  final InvocationKind invocationKind;
   final Reference _reference;
   final int argDescConstantIndex;
 
-  ConstantStaticICData(Member member, int argDescConstantIndex)
-      : this.byReference(member.reference, argDescConstantIndex);
-  ConstantStaticICData.byReference(this._reference, this.argDescConstantIndex);
+  ConstantStaticICData(
+      InvocationKind invocationKind, Member member, int argDescConstantIndex)
+      : this.byReference(
+            invocationKind, member.reference, argDescConstantIndex);
+
+  ConstantStaticICData.byReference(
+      this.invocationKind, this._reference, this.argDescConstantIndex);
 
   Member get target => _reference.asMember;
 
@@ -483,17 +497,23 @@ class ConstantStaticICData extends ConstantPoolEntry {
 
   @override
   void writeValueToBinary(BinarySink sink) {
+    sink.writeByte(invocationKind.index);
     sink.writeCanonicalNameReference(getCanonicalNameOfMember(target));
     sink.writeUInt30(argDescConstantIndex);
   }
 
   ConstantStaticICData.readFromBinary(BinarySource source)
-      : _reference = source.readCanonicalNameReference().getReference(),
+      : invocationKind = InvocationKind.values[source.readByte()],
+        _reference = source.readCanonicalNameReference().getReference(),
         argDescConstantIndex = source.readUInt();
 
   @override
   String toString() =>
-      'StaticICData target \'$target\', arg-desc CP#$argDescConstantIndex';
+      'StaticICData ' +
+      (invocationKind == InvocationKind.getter
+          ? 'get '
+          : (invocationKind == InvocationKind.setter ? 'set ' : '')) +
+      'target \'$target\', arg-desc CP#$argDescConstantIndex';
 
   // ConstantStaticICData entries are created per call site and should not be
   // merged, so ConstantStaticICData class uses identity [hashCode] and
