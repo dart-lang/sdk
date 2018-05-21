@@ -186,6 +186,10 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   /// [rethrowKeyword] followed by the [semicolon].
   Statement rethrowStatement(Location rethrowKeyword, Location semicolon);
 
+  /// Return a representation of a return statement.
+  Statement returnStatement(
+      Location returnKeyword, Expression expression, Location semicolon);
+
   Expression stringConcatenationExpression(
       List<Expression> expressions, Location location);
 

@@ -276,6 +276,11 @@ class AstBuildingForest
           astFactory.rethrowExpression(rethrowKeyword), semicolon);
 
   @override
+  Statement returnStatement(
+          Token returnKeyword, Expression expression, Token semicolon) =>
+      astFactory.returnStatement(returnKeyword, expression, semicolon);
+
+  @override
   Expression stringConcatenationExpression(
           List<Expression> strings, Token location) =>
       astFactory.adjacentStrings(strings.cast<StringLiteral>());

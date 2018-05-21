@@ -4803,11 +4803,6 @@ class SimpleParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_parseReturnStatement_noValue() {
-    super.test_parseReturnStatement_noValue();
-  }
-
-  @failingTest
   void test_parseReturnStatement_value() {
     super.test_parseReturnStatement_value();
   }
@@ -4815,16 +4810,6 @@ class SimpleParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_parseStatement_function_noReturnType() {
     super.test_parseStatement_function_noReturnType();
-  }
-
-  @failingTest
-  void test_parseStatements_multiple() {
-    super.test_parseStatements_multiple();
-  }
-
-  @failingTest
-  void test_parseStatements_single() {
-    super.test_parseStatements_single();
   }
 
   @failingTest

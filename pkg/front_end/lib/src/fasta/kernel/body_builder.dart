@@ -1625,8 +1625,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       push(deprecated_buildCompileTimeErrorStatement(
           "Can't return from a constructor.", beginToken.charOffset));
     } else {
-      push(new ShadowReturnStatement(toKernelExpression(expression))
-        ..fileOffset = beginToken.charOffset);
+      push(forest.returnStatement(beginToken, expression, endToken));
     }
   }
 
