@@ -13558,15 +13558,6 @@ class C<@Foo.bar(const [], const [1], const{"":r""}, 0xFF + 2, .3, 4.5) T> {}
     expect(arguments, hasLength(1));
   }
 
-  void test_parseArgumentList_typeArguments_prefixed() {
-    createParser('(a<b,p.c>(d))');
-    ArgumentList argumentList = parser.parseArgumentList();
-    expectNotNullIfNoErrors(argumentList);
-    assertNoErrors();
-    NodeList<Expression> arguments = argumentList.arguments;
-    expect(arguments, hasLength(1));
-  }
-
   void test_parseArgumentList_typeArguments_none() {
     createParser('(a<b,p.q.c>(d))');
     ArgumentList argumentList = parser.parseArgumentList();
@@ -13574,6 +13565,15 @@ class C<@Foo.bar(const [], const [1], const{"":r""}, 0xFF + 2, .3, 4.5) T> {}
     assertNoErrors();
     NodeList<Expression> arguments = argumentList.arguments;
     expect(arguments, hasLength(2));
+  }
+
+  void test_parseArgumentList_typeArguments_prefixed() {
+    createParser('(a<b,p.c>(d))');
+    ArgumentList argumentList = parser.parseArgumentList();
+    expectNotNullIfNoErrors(argumentList);
+    assertNoErrors();
+    NodeList<Expression> arguments = argumentList.arguments;
+    expect(arguments, hasLength(1));
   }
 
   void test_parseCombinators_h() {
@@ -14716,7 +14716,10 @@ main() {
   }
 
   void test_parseBreakStatement_label() {
-    var statement = parseStatement('break foo;') as BreakStatement;
+    LabeledStatement labeledStatement =
+        parseStatement('foo: while (true) { break foo; }');
+    WhileStatement whileStatement = labeledStatement.statement;
+    BreakStatement statement = (whileStatement.body as Block).statements[0];
     assertNoErrors();
     expect(statement.breakKeyword, isNotNull);
     expect(statement.label, isNotNull);
@@ -14724,24 +14727,30 @@ main() {
   }
 
   void test_parseBreakStatement_noLabel() {
-    var statement = parseStatement('break;') as BreakStatement;
-    assertErrorsWithCodes([ParserErrorCode.BREAK_OUTSIDE_OF_LOOP]);
+    WhileStatement whileStatement = parseStatement('while (true) { break; }');
+    BreakStatement statement = (whileStatement.body as Block).statements[0];
+    assertNoErrors();
     expect(statement.breakKeyword, isNotNull);
     expect(statement.label, isNull);
     expect(statement.semicolon, isNotNull);
   }
 
   void test_parseContinueStatement_label() {
-    var statement = parseStatement('continue foo;') as ContinueStatement;
-    assertErrorsWithCodes([ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP]);
+    LabeledStatement labeledStatement =
+        parseStatement('foo: while (true) { continue foo; }');
+    WhileStatement whileStatement = labeledStatement.statement;
+    ContinueStatement statement = (whileStatement.body as Block).statements[0];
+    assertNoErrors();
     expect(statement.continueKeyword, isNotNull);
     expect(statement.label, isNotNull);
     expect(statement.semicolon, isNotNull);
   }
 
   void test_parseContinueStatement_noLabel() {
-    var statement = parseStatement('continue;') as ContinueStatement;
-    assertErrorsWithCodes([ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP]);
+    WhileStatement whileStatement =
+        parseStatement('while (true) { continue; }');
+    ContinueStatement statement = (whileStatement.body as Block).statements[0];
+    assertNoErrors();
     expect(statement.continueKeyword, isNotNull);
     expect(statement.label, isNull);
     expect(statement.semicolon, isNotNull);

@@ -140,6 +140,10 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   Statement block(
       Location openBrace, List<Statement> statements, Location closeBrace);
 
+  /// Return a representation of a break statement.
+  Statement breakStatement(
+      Location breakKeyword, Identifier label, Location semicolon);
+
   /// Return a representation of a conditional expression. The [condition] is
   /// the expression preceding the question mark. The [question] is the `?`. The
   /// [thenExpression] is the expression following the question mark. The
@@ -147,6 +151,10 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   /// colon.
   Expression conditionalExpression(Expression condition, Location question,
       Expression thenExpression, Location colon, Expression elseExpression);
+
+  /// Return a representation of a continue statement.
+  Statement continueStatement(
+      Location continueKeyword, Identifier label, Location semicolon);
 
   /// Return a representation of a do statement.
   Statement doStatement(

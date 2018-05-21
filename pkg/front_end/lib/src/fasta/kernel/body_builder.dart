@@ -3261,7 +3261,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void beginLabeledStatement(Token token, int labelCount) {
     debugEvent("beginLabeledStatement");
-    List<Label> labels = popList(labelCount);
+    List<Label> labels = popList(
+        labelCount, new List<Label>.filled(labelCount, null, growable: true));
     enterLocalScope(null, scope.createNestedLabelScope());
     LabelTarget target = new LabelTarget<Statement>(
         member, functionNestingLevel, token.charOffset);
@@ -3277,20 +3278,22 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     Statement statement = popStatement();
     LabelTarget target = pop();
     exitLocalScope();
-    kernel.Statement kernelStatement = toKernelStatement(statement);
     if (target.breakTarget.hasUsers) {
-      if (kernelStatement is! LabeledStatement) {
-        kernelStatement = new ShadowLabeledStatement(kernelStatement);
+      if (statement is! LabeledStatement) {
+        statement = forest.syntheticLabeledStatement(statement);
       }
-      target.breakTarget.resolveBreaks(forest, kernelStatement);
+      target.breakTarget.resolveBreaks(forest, statement);
     }
+    // TODO(brianwilkerson): Figure out how to get the labels that are part of
+    // the statement.
+//    statement = forest.labeledStatement(labels, statement);
     if (target.continueTarget.hasUsers) {
-      if (kernelStatement is! LabeledStatement) {
-        kernelStatement = new ShadowLabeledStatement(kernelStatement);
+      if (statement is! LabeledStatement) {
+        statement = forest.syntheticLabeledStatement(statement);
       }
-      target.continueTarget.resolveContinues(forest, kernelStatement);
+      target.continueTarget.resolveContinues(forest, statement);
     }
-    push(kernelStatement);
+    push(statement);
   }
 
   @override
@@ -3560,11 +3563,12 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       bool hasTarget, Token breakKeyword, Token endToken) {
     debugEvent("BreakStatement");
     var target = breakTarget;
+    Identifier identifier;
     String name;
     if (hasTarget) {
-      Identifier identifier = pop();
+      identifier = pop();
       name = identifier.name;
-      target = scope.lookupLabel(identifier.name);
+      target = scope.lookupLabel(name);
     }
     if (target == null && name == null) {
       push(compileTimeErrorInLoopOrSwitch =
@@ -3582,8 +3586,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
               "Can't break to '$name' in a different function.",
               breakKeyword.next.charOffset));
     } else {
-      BreakStatement statement = new ShadowBreakStatement(null)
-        ..fileOffset = breakKeyword.charOffset;
+      Statement statement =
+          forest.breakStatement(breakKeyword, identifier, endToken);
       target.addBreak(statement);
       push(statement);
     }
@@ -3594,9 +3598,10 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       bool hasTarget, Token continueKeyword, Token endToken) {
     debugEvent("ContinueStatement");
     var target = continueTarget;
+    Identifier identifier;
     String name;
     if (hasTarget) {
-      Identifier identifier = pop();
+      identifier = pop();
       name = identifier.name;
       target = scope.lookupLabel(identifier.name);
       if (target != null && target is! JumpTarget) {
@@ -3639,8 +3644,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
               "Can't continue at '$name' in a different function.",
               continueKeyword.next.charOffset));
     } else {
-      BreakStatement statement = new ShadowBreakStatement(null)
-        ..fileOffset = continueKeyword.charOffset;
+      Statement statement =
+          forest.continueStatement(continueKeyword, identifier, endToken);
       target.addContinue(statement);
       push(statement);
     }

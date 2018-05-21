@@ -71,6 +71,12 @@ class AstBuildingForest
       astFactory.block(openBrace, statements, closeBrace);
 
   @override
+  Statement breakStatement(
+          Token breakKeyword, Identifier label, Token semicolon) =>
+      astFactory.breakStatement(
+          breakKeyword, astFactory.simpleIdentifier(label.token), semicolon);
+
+  @override
   kernel.Arguments castArguments(_Arguments arguments) {
     // TODO(brianwilkerson) Implement this or remove it from the API.
     throw new UnimplementedError();
@@ -87,6 +93,12 @@ class AstBuildingForest
           Expression thenExpression, Token colon, Expression elseExpression) =>
       astFactory.conditionalExpression(
           condition, question, thenExpression, colon, elseExpression);
+
+  @override
+  Statement continueStatement(
+          Token continueKeyword, Identifier label, Token semicolon) =>
+      astFactory.continueStatement(
+          continueKeyword, astFactory.simpleIdentifier(label.token), semicolon);
 
   @override
   Statement doStatement(Token doKeyword, Statement body, Token whileKeyword,
