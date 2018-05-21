@@ -26,7 +26,7 @@ class FlagsRepository implements M.FlagsRepository {
     return flags.map(_toFlag);
   }
 
-  static _toFlag(Map map) {
+  static Flag _toFlag(Map map) {
     return new Flag(
         map['name'], map['comment'], map['modified'], map['valueAsString']);
   }
