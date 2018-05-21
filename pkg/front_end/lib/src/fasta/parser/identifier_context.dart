@@ -35,7 +35,7 @@ class IdentifierContext {
 
   /// Identifier is one of the shown/hidden names in an import/export
   /// combinator.
-  static const combinator = const IdentifierContext('combinator');
+  static const combinator = const CombinatorIdentifierContext();
 
   /// Identifier is the start of a name in an annotation that precedes a
   /// declaration (i.e. it appears directly after an `@`).

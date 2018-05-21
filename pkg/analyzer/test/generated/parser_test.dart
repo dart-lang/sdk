@@ -10787,6 +10787,25 @@ class B = Object with A {}''',
             : [ParserErrorCode.EXPECTED_TOKEN]);
   }
 
+  void test_combinator_badIdentifier() {
+    createParser('import "/testB.dart" show @');
+    parser.parseCompilationUnit2();
+    listener.assertErrors(usingFastaParser
+        ? [
+            expectedError(ParserErrorCode.MISSING_IDENTIFIER, 26, 1),
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 27, 0),
+            expectedError(
+                ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 27, 0),
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 27, 0)
+          ]
+        : [
+            expectedError(ParserErrorCode.MISSING_IDENTIFIER, 26, 1),
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 26, 1),
+            expectedError(ParserErrorCode.MISSING_IDENTIFIER, 26, 1),
+            expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 27, 1)
+          ]);
+  }
+
   void test_combinator_missingIdentifier() {
     createParser('import "/testB.dart" show ;');
     parser.parseCompilationUnit2();

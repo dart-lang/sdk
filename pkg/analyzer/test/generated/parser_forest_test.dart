@@ -4017,6 +4017,11 @@ class RecoveryParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
+  void test_combinator_badIdentifier() {
+    super.test_combinator_badIdentifier();
+  }
+
+  @failingTest
   void test_combinator_missingIdentifier() {
     super.test_combinator_missingIdentifier();
   }

@@ -52,6 +52,44 @@ class ClassOrNamedMixinIdentifierContext extends IdentifierContext {
   }
 }
 
+/// See [IdentifierContext.combinator].
+class CombinatorIdentifierContext extends IdentifierContext {
+  const CombinatorIdentifierContext() : super('combinator');
+
+  @override
+  Token ensureIdentifier(Token token, Parser parser) {
+    Token identifier = token.next;
+    assert(identifier.kind != IDENTIFIER_TOKEN);
+    const followingValues = const [';', ',', 'if', 'as', 'show', 'hide'];
+
+    if (identifier.isIdentifier) {
+      if (!looksLikeStartOfNextTopLevelDeclaration(identifier) ||
+          isOneOfOrEof(identifier.next, followingValues)) {
+        return identifier;
+      }
+      // Although this is a valid identifier name, the import declaration
+      // is invalid and this looks like the start of the next declaration.
+      // In this situation, fall through to insert a synthetic identifier.
+    }
+
+    // Recovery
+    if (isOneOfOrEof(identifier, followingValues) ||
+        looksLikeStartOfNextTopLevelDeclaration(identifier)) {
+      identifier = parser.insertSyntheticIdentifier(token, this,
+          message: fasta.templateExpectedIdentifier.withArguments(identifier));
+    } else {
+      parser.reportRecoverableErrorWithToken(
+          identifier, fasta.templateExpectedIdentifier);
+      if (!identifier.isKeywordOrIdentifier) {
+        // When in doubt, consume the token to ensure we make progress
+        // but insert a synthetic identifier to satisfy listeners.
+        identifier = parser.rewriter.insertSyntheticIdentifier(identifier);
+      }
+    }
+    return identifier;
+  }
+}
+
 /// See [IdentifierContext.dottedName].
 class DottedNameIdentifierContext extends IdentifierContext {
   const DottedNameIdentifierContext() : super('dottedName');
@@ -655,5 +693,4 @@ bool looksLikeStartOfNextStatement(Token token) => isOneOfOrEof(token, const [
 
 bool looksLikeStartOfNextTopLevelDeclaration(Token token) =>
     token.isTopLevelKeyword ||
-    isOneOfOrEof(
-        token, const ['class', 'const', 'get', 'final', 'set', 'var', 'void']);
+    isOneOfOrEof(token, const ['const', 'get', 'final', 'set', 'var', 'void']);

@@ -1158,7 +1158,9 @@ class ForwardingTestListener extends ForwardingListener {
 
   @override
   void handleImportPrefix(Token deferredKeyword, Token asKeyword) {
-    expectIn('Import');
+    // This event normally happens within "Import",
+    // but happens within "CompilationUnit" during recovery.
+    expectInOneOf(const ['Import', 'CompilationUnit']);
     listener.handleImportPrefix(deferredKeyword, asKeyword);
   }
 
