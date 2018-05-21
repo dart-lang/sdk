@@ -52,7 +52,7 @@ const char* CanonicalFunction(const char* func);
 #define CHECK_API_SCOPE(thread)                                                \
   do {                                                                         \
     Thread* tmpT = (thread);                                                   \
-    Isolate* tmpI = tmpT->isolate();                                           \
+    Isolate* tmpI = tmpT == NULL ? NULL : tmpT->isolate();                     \
     CHECK_ISOLATE(tmpI);                                                       \
     if (tmpT->api_top_scope() == NULL) {                                       \
       FATAL1(                                                                  \
