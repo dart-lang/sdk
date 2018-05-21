@@ -48,7 +48,7 @@ class BinaryBuilder {
   int _byteOffset = 0;
   final List<String> _stringTable = <String>[];
   final List<Uri> _sourceUriTable = <Uri>[];
-  List<Constant> _constantTable;
+  Map<int, Constant> _constantTable = <int, Constant>{};
   List<CanonicalName> _linkTable;
   int _transformerFlags = 0;
   Library _currentLibrary;
@@ -175,9 +175,9 @@ class BinaryBuilder {
 
   void readConstantTable() {
     final int length = readUInt();
-    _constantTable = new List<Constant>(length);
+    final int startOffset = byteOffset;
     for (int i = 0; i < length; i++) {
-      _constantTable[i] = readConstantTableEntry();
+      _constantTable[byteOffset - startOffset] = readConstantTableEntry();
     }
   }
 
@@ -252,8 +252,8 @@ class BinaryBuilder {
   }
 
   Constant readConstantReference() {
-    final int index = readUInt();
-    Constant constant = _constantTable[index];
+    final int offset = readUInt();
+    Constant constant = _constantTable[offset];
     assert(constant != null);
     return constant;
   }

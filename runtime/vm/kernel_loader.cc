@@ -376,7 +376,8 @@ const Array& KernelLoader::ReadConstantTable() {
   return helper.ReadConstantTable();
 }
 
-void KernelLoader::AnnotateNativeProcedures(const Array& constant_table) {
+void KernelLoader::AnnotateNativeProcedures(const Array& constant_table_array) {
+  KernelConstantsMap constant_table(constant_table_array.raw());
   potential_natives_ = kernel_program_info_.potential_natives();
   const intptr_t length =
       !potential_natives_.IsNull() ? potential_natives_.Length() : 0;
@@ -407,8 +408,8 @@ void KernelLoader::AnnotateNativeProcedures(const Array& constant_table) {
 
           // We have a candiate.  Let's look if it's an instance of the
           // ExternalName class.
-          const intptr_t constant_table_index = builder_.ReadUInt();
-          constant ^= constant_table.At(constant_table_index);
+          const intptr_t constant_table_offset = builder_.ReadUInt();
+          constant ^= constant_table.GetOrDie(constant_table_offset);
           if (constant.clazz() == external_name_class_.raw()) {
             // We found the annotation, let's flag the function as native and
             // set the native name!
@@ -428,6 +429,7 @@ void KernelLoader::AnnotateNativeProcedures(const Array& constant_table) {
     potential_natives_ = GrowableObjectArray::null();
     kernel_program_info_.set_potential_natives(potential_natives_);
   }
+  ASSERT(constant_table.Release().raw() == constant_table_array.raw());
 }
 
 RawString* KernelLoader::DetectExternalName() {
@@ -469,11 +471,14 @@ RawString* KernelLoader::DetectExternalName() {
   return result.raw();
 }
 
-void KernelLoader::LoadNativeExtensionLibraries(const Array& constant_table) {
+void KernelLoader::LoadNativeExtensionLibraries(
+    const Array& constant_table_array) {
   const intptr_t length = !potential_extension_libraries_.IsNull()
                               ? potential_extension_libraries_.Length()
                               : 0;
   if (length == 0) return;
+
+  KernelConstantsMap constant_table(constant_table_array.raw());
 
   // Obtain `dart:_internal::ExternalName.name`.
   EnsureExternalClassIsLookedUp();
@@ -499,7 +504,7 @@ void KernelLoader::LoadNativeExtensionLibraries(const Array& constant_table) {
         builder_.ReadByte();  // Skip the tag.
 
         const intptr_t constant_table_index = builder_.ReadUInt();
-        constant ^= constant_table.At(constant_table_index);
+        constant ^= constant_table.GetOrDie(constant_table_index);
         if (constant.clazz() == external_name_class_.raw()) {
           uri_path ^= constant.GetField(external_name_field_);
         }
@@ -534,6 +539,7 @@ void KernelLoader::LoadNativeExtensionLibraries(const Array& constant_table) {
     }
   }
   potential_extension_libraries_ = GrowableObjectArray::null();
+  ASSERT(constant_table.Release().raw() == constant_table_array.raw());
 }
 
 RawObject* KernelLoader::LoadProgram(bool process_pending_classes) {
@@ -1334,14 +1340,16 @@ void KernelLoader::LoadProcedure(const Library& library,
           // Obtain `dart:_internal::ExternalName.name`.
           EnsureExternalClassIsLookedUp();
 
-          const Array& constant_table =
+          const Array& constant_table_array =
               Array::Handle(kernel_program_info_.constants());
+          KernelConstantsMap constant_table(constant_table_array.raw());
 
           // We have a candiate.  Let's look if it's an instance of the
           // ExternalName class.
           const intptr_t constant_table_index = builder_.ReadUInt();
           const Object& constant =
-              Object::Handle(constant_table.At(constant_table_index));
+              Object::Handle(constant_table.GetOrDie(constant_table_index));
+          ASSERT(constant_table.Release().raw() == constant_table_array.raw());
           if (constant.clazz() == external_name_class_.raw()) {
             const Instance& instance =
                 Instance::Handle(Instance::RawCast(constant.raw()));

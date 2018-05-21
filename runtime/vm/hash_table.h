@@ -544,6 +544,12 @@ class HashMap : public BaseIterTable {
     }
     return (entry == -1) ? Object::null() : BaseIterTable::GetPayload(entry, 0);
   }
+  template <typename Key>
+  RawObject* GetOrDie(const Key& key) const {
+    intptr_t entry = BaseIterTable::FindKey(key);
+    if (entry == -1) UNREACHABLE();
+    return BaseIterTable::GetPayload(entry, 0);
+  }
   bool UpdateOrInsert(const Object& key, const Object& value) const {
     EnsureCapacity();
     intptr_t entry = -1;

@@ -3914,7 +3914,9 @@ void StreamingConstantEvaluator::EvaluateNullLiteral() {
 }
 
 void StreamingConstantEvaluator::EvaluateConstantExpression() {
-  result_ ^= H.constants().At(builder_->ReadUInt());
+  KernelConstantsMap constant_map(H.constants().raw());
+  result_ ^= constant_map.GetOrDie(builder_->ReadUInt());
+  ASSERT(constant_map.Release().raw() == H.constants().raw());
 }
 
 // This depends on being about to read the list of positionals on arguments.
@@ -9411,8 +9413,12 @@ Fragment StreamingFlowGraphBuilder::BuildFutureNullValue(
 Fragment StreamingFlowGraphBuilder::BuildConstantExpression(
     TokenPosition* position) {
   if (position != NULL) *position = TokenPosition::kNoSource;
-  const intptr_t constant_index = ReadUInt();
-  return Constant(Object::ZoneHandle(Z, H.constants().At(constant_index)));
+  const intptr_t constant_offset = ReadUInt();
+  KernelConstantsMap constant_map(H.constants().raw());
+  Fragment result =
+      Constant(Object::ZoneHandle(Z, constant_map.GetOrDie(constant_offset)));
+  ASSERT(constant_map.Release().raw() == H.constants().raw());
+  return result;
 }
 
 Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
@@ -11076,9 +11082,13 @@ const Array& ConstantHelper::ReadConstantTable() {
   temp_object_ = temp_class_.EnsureIsFinalized(H.thread());
   ASSERT(temp_object_.IsNull());
 
-  const Array& constants =
-      Array::Handle(Z, Array::New(number_of_constants, Heap::kOld));
+  KernelConstantsMap constants(
+      HashTables::New<KernelConstantsMap>(number_of_constants, Heap::kOld));
+
+  const intptr_t start_offset = builder_.ReaderOffset();
+
   for (intptr_t i = 0; i < number_of_constants; ++i) {
+    const intptr_t offset = builder_.ReaderOffset();
     const intptr_t constant_tag = builder_.ReadByte();
     switch (constant_tag) {
       case kNullConstant:
@@ -11115,9 +11125,9 @@ const Array& ConstantHelper::ReadConstantTable() {
         temp_array_ = ImmutableArray::New(length, Heap::kOld);
         temp_array_.SetTypeArguments(temp_type_arguments_);
         for (intptr_t j = 0; j < length; ++j) {
-          const intptr_t entry_index = builder_.ReadUInt();
-          ASSERT(entry_index < i);  // We have a DAG!
-          temp_object_ = constants.At(entry_index);
+          const intptr_t entry_offset = builder_.ReadUInt();
+          ASSERT(entry_offset < offset);  // We have a DAG!
+          temp_object_ = constants.GetOrDie(entry_offset);
           temp_array_.SetAt(j, temp_object_);
         }
 
@@ -11154,9 +11164,9 @@ const Array& ConstantHelper::ReadConstantTable() {
         for (intptr_t j = 0; j < number_of_fields; ++j) {
           temp_field_ =
               H.LookupFieldByKernelField(builder_.ReadCanonicalNameReference());
-          const intptr_t entry_index = builder_.ReadUInt();
-          ASSERT(entry_index < i);  // We have a DAG!
-          temp_object_ = constants.At(entry_index);
+          const intptr_t entry_offset = builder_.ReadUInt();
+          ASSERT(entry_offset < offset);  // We have a DAG!
+          temp_object_ = constants.GetOrDie(entry_offset);
           temp_instance_.SetField(temp_field_, temp_object_);
         }
 
@@ -11164,8 +11174,8 @@ const Array& ConstantHelper::ReadConstantTable() {
         break;
       }
       case kPartialInstantiationConstant: {
-        const intptr_t entry_index = builder_.ReadUInt();
-        temp_object_ = constants.At(entry_index);
+        const intptr_t entry_offset = builder_.ReadUInt();
+        temp_object_ = constants.GetOrDie(entry_offset);
 
         // Happens if the tearoff was in the vmservice library and we have
         // [skip_vm_service_library] enabled.
@@ -11219,9 +11229,9 @@ const Array& ConstantHelper::ReadConstantTable() {
       default:
         UNREACHABLE();
     }
-    constants.SetAt(i, temp_instance_);
+    constants.InsertNewOrGetValue(offset - start_offset, temp_instance_);
   }
-  return constants;
+  return Array::Handle(Z, constants.Release().raw());
 }
 
 void ConstantHelper::InstantiateTypeArguments(const Class& receiver_class,

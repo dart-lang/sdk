@@ -31,6 +31,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   final BufferedSink _mainSink;
   final BufferedSink _metadataSink;
+  final BytesSink _constantsBytesSink;
+  BufferedSink _constantsSink;
   BufferedSink _sink;
 
   List<int> libraryOffsets;
@@ -54,8 +56,10 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   BinaryPrinter(Sink<List<int>> sink, {StringIndexer stringIndexer})
       : _mainSink = new BufferedSink(sink),
         _metadataSink = new BufferedSink(new BytesSink()),
+        _constantsBytesSink = new BytesSink(),
         stringIndexer = stringIndexer ?? new StringIndexer() {
-    _constantIndexer = new ConstantIndexer(this.stringIndexer);
+    _constantsSink = new BufferedSink(_constantsBytesSink);
+    _constantIndexer = new ConstantIndexer(this.stringIndexer, this);
     _sink = _mainSink;
   }
 
@@ -94,7 +98,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   int getBufferOffset() {
-    return _sink.flushedLength + _sink.length;
+    return _sink.offset;
   }
 
   void writeStringTable(StringIndexer indexer) {
@@ -137,12 +141,15 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     _binaryOffsetForConstantTable = getBufferOffset();
 
     writeUInt30(indexer.entries.length);
-    for (final entry in indexer.entries) {
-      writeConstantTableEntry(entry);
-    }
+    assert(identical(_sink, _mainSink));
+    _constantsSink.flushAndDestroy();
+    writeBytes(_constantsBytesSink.builder.takeBytes());
   }
 
-  void writeConstantTableEntry(Constant constant) {
+  int writeConstantTableEntry(Constant constant) {
+    BufferedSink oldSink = _sink;
+    _sink = _constantsSink;
+    int initialOffset = _sink.offset;
     if (constant is NullConstant) {
       writeByte(ConstantTag.NullConstant);
     } else if (constant is BoolConstant) {
@@ -198,6 +205,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     } else {
       throw 'Unsupported constant $constant';
     }
+    _sink = oldSink;
+    return _constantsSink.offset - initialOffset;
   }
 
   void writeDartType(DartType type) {
@@ -2011,15 +2020,18 @@ class ConstantIndexer extends RecursiveVisitor {
   final StringIndexer stringIndexer;
 
   final List<Constant> entries = <Constant>[];
-  final Map<Constant, int> index = <Constant, int>{};
+  final Map<Constant, int> offsets = <Constant, int>{};
+  int nextOffset = 0;
 
-  ConstantIndexer(this.stringIndexer);
+  final BinaryPrinter _printer;
+
+  ConstantIndexer(this.stringIndexer, this._printer);
 
   int put(Constant constant) {
-    final int oldIndex = index[constant];
-    if (oldIndex != null) return oldIndex;
+    final int oldOffset = offsets[constant];
+    if (oldOffset != null) return oldOffset;
 
-    // Traverse DAG in post-order to ensure children have their id's assigned
+    // Traverse DAG in post-order to ensure children have their offsets assigned
     // before the parent.
     constant.visitChildren(this);
 
@@ -2034,16 +2046,17 @@ class ConstantIndexer extends RecursiveVisitor {
       }
     }
 
-    final int newIndex = entries.length;
+    final int newOffset = nextOffset;
     entries.add(constant);
-    return index[constant] = newIndex;
+    nextOffset += _printer.writeConstantTableEntry(constant);
+    return offsets[constant] = newOffset;
   }
 
   defaultConstantReference(Constant node) {
     put(node);
   }
 
-  int operator [](Constant node) => index[node];
+  int operator [](Constant node) => offsets[node];
 }
 
 class TypeParameterIndexer {
@@ -2116,6 +2129,8 @@ class BufferedSink {
 
   Float64List _doubleBuffer = new Float64List(1);
   Uint8List _doubleBufferUint8;
+
+  int get offset => length + flushedLength;
 
   BufferedSink(this._sink);
 
