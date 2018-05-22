@@ -127,6 +127,7 @@ from_environment_const_type_undefined_test/16: MissingCompileTimeError
 int_parse_radix_bad_handler_test: Pass
 
 [ $compiler == dart2analyzer && !$strong ]
+regress_33166_test: StaticWarning # Not a Dart 1 test
 symbol_reserved_word_test/05: MissingCompileTimeError # Issue 30245
 
 [ $compiler != dart2analyzer && $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk ]
