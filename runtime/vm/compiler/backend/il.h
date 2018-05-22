@@ -488,6 +488,7 @@ class EmbeddedArray<T, 0> {
   M(StaticCall)                                                                \
   M(LoadLocal)                                                                 \
   M(DropTemps)                                                                 \
+  M(MakeTemp)                                                                  \
   M(StoreLocal)                                                                \
   M(StrictCompare)                                                             \
   M(EqualityCompare)                                                           \
@@ -872,6 +873,11 @@ class Instruction : public ZoneAllocated {
 
 #undef INSTRUCTION_TYPE_CHECK
 #undef DECLARE_INSTRUCTION_TYPE_CHECK
+
+  template <typename T>
+  T* Cast() {
+    return static_cast<T*>(this);
+  }
 
   // Returns structure describing location constraints required
   // to emit native code for this instruction.
@@ -3896,6 +3902,51 @@ class DropTempsInstr : public Definition {
   Value* value_;
 
   DISALLOW_COPY_AND_ASSIGN(DropTempsInstr);
+};
+
+// This instruction is used to reserve a space on the expression stack
+// that later would be filled with StoreLocal. Reserved space would be
+// filled with a null value initially.
+//
+// Note: One must not use Constant(#null) to reserve expression stack space
+// because it would lead to an incorrectly compiled unoptimized code. Graph
+// builder would set Constant(#null) as an input definition to the instruction
+// that consumes this value from the expression stack - not knowing that
+// this value represents a placeholder - which might lead issues if instruction
+// has specialization for constant inputs (see https://dartbug.com/33195).
+class MakeTempInstr : public TemplateDefinition<0, NoThrow, Pure> {
+ public:
+  explicit MakeTempInstr(Zone* zone)
+      : null_(new (zone) ConstantInstr(Object::ZoneHandle())) {
+    // Note: We put ConstantInstr inside MakeTemp to simplify code generation:
+    // having ConstantInstr allows us to use Location::Contant(null_) as an
+    // output location for this instruction.
+  }
+
+  DECLARE_INSTRUCTION(MakeTemp)
+
+  virtual CompileType ComputeType() const { return CompileType::Dynamic(); }
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+
+  virtual bool HasUnknownSideEffects() const {
+    UNREACHABLE();  // Eliminated by SSA construction.
+    return false;
+  }
+
+  virtual bool MayThrow() const {
+    UNREACHABLE();
+    return false;
+  }
+
+  virtual TokenPosition token_pos() const { return TokenPosition::kTempMove; }
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+ private:
+  ConstantInstr* null_;
+
+  DISALLOW_COPY_AND_ASSIGN(MakeTempInstr);
 };
 
 class StoreLocalInstr : public TemplateDefinition<1, NoThrow> {

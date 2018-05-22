@@ -1455,6 +1455,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   // Drop given number of temps from the stack but preserve top of the stack.
   Fragment DropTempsPreserveTop(intptr_t num_temps_to_drop);
 
+  Fragment MakeTemp();
   Fragment NullConstant();
   JoinEntryInstr* BuildJoinEntry();
   JoinEntryInstr* BuildJoinEntry(intptr_t try_index);

@@ -2040,6 +2040,12 @@ Fragment BaseFlowGraphBuilder::DropTempsPreserveTop(
   return Fragment(drop_temps);
 }
 
+Fragment BaseFlowGraphBuilder::MakeTemp() {
+  MakeTempInstr* make_temp = new (Z) MakeTempInstr(Z);
+  Push(make_temp);
+  return Fragment(make_temp);
+}
+
 void FlowGraphBuilder::InlineBailout(const char* reason) {
   bool is_inlining = exit_collector_ != NULL;
   if (is_inlining) {

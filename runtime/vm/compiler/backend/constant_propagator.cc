@@ -386,6 +386,11 @@ void ConstantPropagator::VisitDropTemps(DropTempsInstr* instr) {
   UNREACHABLE();
 }
 
+void ConstantPropagator::VisitMakeTemp(MakeTempInstr* instr) {
+  // Instruction is eliminated when translating to SSA.
+  UNREACHABLE();
+}
+
 void ConstantPropagator::VisitStoreLocal(StoreLocalInstr* instr) {
   // Instruction is eliminated when translating to SSA.
   UNREACHABLE();

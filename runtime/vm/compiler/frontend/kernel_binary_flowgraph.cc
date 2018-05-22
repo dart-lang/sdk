@@ -5669,7 +5669,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
   function_node_helper.ReadUntilExcluding(
       FunctionNodeHelper::kPositionalParameters);
 
-  body += NullConstant();
+  body += MakeTemp();
   LocalVariable* result = MakeTemporary();
 
   // Do "++argument_count" if any type arguments were passed.
@@ -7796,6 +7796,10 @@ Fragment StreamingFlowGraphBuilder::DropTempsPreserveTop(
   return flow_graph_builder_->DropTempsPreserveTop(num_temps_to_drop);
 }
 
+Fragment StreamingFlowGraphBuilder::MakeTemp() {
+  return flow_graph_builder_->MakeTemp();
+}
+
 Fragment StreamingFlowGraphBuilder::NullConstant() {
   return flow_graph_builder_->NullConstant();
 }
@@ -8067,7 +8071,7 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
   const DirectCallMetadata direct_call =
       direct_call_metadata_helper_.GetDirectTargetForPropertySet(offset);
 
-  Fragment instructions(NullConstant());
+  Fragment instructions(MakeTemp());
   LocalVariable* variable = MakeTemporary();
 
   const TokenPosition position = ReadPosition();  // read position.
@@ -8285,7 +8289,7 @@ Fragment StreamingFlowGraphBuilder::BuildSuperPropertySet(TokenPosition* p) {
 
   Function& function = FindMatchingFunctionAnyArgs(klass, setter_name);
 
-  Fragment instructions(NullConstant());
+  Fragment instructions(MakeTemp());
   LocalVariable* value = MakeTemporary();  // this holds RHS value
 
   if (function.IsNull()) {
@@ -8395,7 +8399,7 @@ Fragment StreamingFlowGraphBuilder::BuildDirectPropertySet(TokenPosition* p) {
   const TokenPosition position = ReadPosition();  // read position.
   if (p != NULL) *p = position;
 
-  Fragment instructions(NullConstant());
+  Fragment instructions(MakeTemp());
   LocalVariable* value = MakeTemporary();
 
   instructions += BuildExpression();  // read receiver.

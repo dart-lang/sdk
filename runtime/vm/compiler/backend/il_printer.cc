@@ -447,6 +447,8 @@ const char* RangeBoundary::ToCString() const {
   return Thread::Current()->zone()->MakeCopyOfString(buffer);
 }
 
+void MakeTempInstr::PrintOperandsTo(BufferFormatter* f) const {}
+
 void DropTempsInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%" Pd "", num_temps());
   if (value() != NULL) {
