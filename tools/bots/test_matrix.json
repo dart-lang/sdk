@@ -1,4 +1,7 @@
 {
+  "global": {
+    "chrome": "65.0.3325.146"
+  },
   "filesets": {
     "analyzer": [
       "out/ReleaseX64/",
