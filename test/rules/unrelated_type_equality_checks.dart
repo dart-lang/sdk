@@ -4,7 +4,7 @@
 
 // test w/ `pub run test -N unrelated_type_equality_checks`
 
-import '../util/fake_fixnum.dart';
+import 'package:fixnum/fixnum.dart';
 
 void someFunction() {
   var x = '1';
