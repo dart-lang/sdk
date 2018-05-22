@@ -1979,7 +1979,7 @@ class AstBuilder extends ScopeListener {
       push(prefix);
     } else if (prefix is SimpleIdentifier) {
       // TODO(paulberry): resolve [identifier].  Note that BodyBuilder handles
-      // this situation using SendAccessor.
+      // this situation using SendAccessGenerator.
       push(ast.prefixedIdentifier(prefix, period, identifier));
     } else {
       // TODO(paulberry): implement.

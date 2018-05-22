@@ -69,7 +69,7 @@ import 'body_builder.dart' show combineStatements;
 
 import 'expression_generator.dart' show makeLet;
 
-import 'expression_generator_helper.dart' show BuilderHelper;
+import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
 
 /// Indicates whether type inference involving conditional expressions should
 /// always use least upper bound.
@@ -2082,8 +2082,8 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
     // with another, and we can only replace a node if it has a parent pointer.
     assert(expression.parent != null);
 
-    // For full (non-top level) inference, we need access to the BuilderHelper
-    // so that we can perform error recovery.
+    // For full (non-top level) inference, we need access to the
+    // ExpressionGeneratorHelper so that we can perform error recovery.
     assert(isTopLevel || helper != null);
 
     // When doing top level inference, we skip subexpressions whose type isn't
@@ -2114,7 +2114,8 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
   }
 
   @override
-  void inferInitializer(BuilderHelper helper, Initializer initializer) {
+  void inferInitializer(
+      ExpressionGeneratorHelper helper, Initializer initializer) {
     assert(initializer is ShadowInitializer);
     this.helper = helper;
     // Use polymorphic dispatch on [KernelInitializer] to perform whatever
@@ -2129,8 +2130,8 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
 
   @override
   void inferStatement(Statement statement) {
-    // For full (non-top level) inference, we need access to the BuilderHelper
-    // so that we can perform error recovery.
+    // For full (non-top level) inference, we need access to the
+    // ExpressionGeneratorHelper so that we can perform error recovery.
     if (!isTopLevel) assert(helper != null);
 
     if (statement is ShadowStatement) {

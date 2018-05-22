@@ -43,8 +43,7 @@ import 'kernel_builder.dart'
         PrefixBuilder,
         TypeDeclarationBuilder;
 
-// TODO(ahe): Rename to ExpressionGeneratorHelper.
-abstract class BuilderHelper<Expression, Statement, Arguments> {
+abstract class ExpressionGeneratorHelper<Expression, Statement, Arguments> {
   LibraryBuilder get library;
 
   Uri get uri;

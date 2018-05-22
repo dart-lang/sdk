@@ -87,25 +87,25 @@ import 'expression_generator.dart'
         DeferredAccessGenerator,
         ErroneousExpressionGenerator,
         Generator,
-        IncompleteError,
-        IncompletePropertyAccessor,
+        IncompleteErrorGenerator,
+        IncompletePropertyAccessGenerator,
         IncompleteSendGenerator,
         IndexedAccessGenerator,
         LargeIntAccessGenerator,
         LoadLibraryGenerator,
-        ParenthesizedExpression,
+        ParenthesizedExpressionGenerator,
         ReadOnlyAccessGenerator,
-        SendAccessor,
+        SendAccessGenerator,
         StaticAccessGenerator,
         SuperIndexedAccessGenerator,
         ThisAccessGenerator,
         ThisPropertyAccessGenerator,
-        TypeDeclarationAccessor,
+        TypeDeclarationAccessGenerator,
         UnresolvedNameGenerator,
         VariableUseGenerator,
         buildIsNull;
 
-import 'expression_generator_helper.dart' show BuilderHelper;
+import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
 
 import 'redirecting_factory_body.dart'
     show
@@ -129,7 +129,7 @@ const noLocation = null;
 
 abstract class BodyBuilder<Expression, Statement, Arguments>
     extends ScopeListener<JumpTarget>
-    implements BuilderHelper<Expression, Statement, Arguments> {
+    implements ExpressionGeneratorHelper<Expression, Statement, Arguments> {
   @override
   final KernelLibraryBuilder library;
 
@@ -442,7 +442,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         Token period = periodBeforeName ?? beginToken.next;
         Generator generator = expression;
         expression = generator.buildPropertyAccess(
-            new IncompletePropertyAccessor(
+            new IncompletePropertyAccessGenerator(
                 this, period.next, new Name(name, library.library)),
             period.next.offset,
             false);
@@ -904,7 +904,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void handleParenthesizedExpression(Token token) {
     debugEvent("ParenthesizedExpression");
-    push(new ParenthesizedExpression(
+    push(new ParenthesizedExpressionGenerator(
         this, token.endGroup, toKernelExpression(popForValue())));
   }
 
@@ -923,9 +923,9 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     if (receiver is Identifier) {
       Name name = new Name(receiver.name, library.library);
       if (arguments == null) {
-        push(new IncompletePropertyAccessor(this, beginToken, name));
+        push(new IncompletePropertyAccessGenerator(this, beginToken, name));
       } else {
-        push(new SendAccessor(this, beginToken, name, arguments));
+        push(new SendAccessGenerator(this, beginToken, name, arguments));
       }
     } else if (arguments == null) {
       push(receiver);
@@ -1365,7 +1365,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
           classBuilder.origin.findStaticBuilder(name, charOffset, uri, library);
     }
     if (builder != null && member.isField && builder.isInstanceMember) {
-      return new IncompleteError(this, token,
+      return new IncompleteErrorGenerator(this, token,
           fasta.templateThisAccessInFieldInitializer.withArguments(name));
     }
     if (builder == null || (!isInstanceContext && builder.isInstanceMember)) {
@@ -1391,8 +1391,9 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         deprecated_addCompileTimeError(
             charOffset, "Not a constant expression.");
       }
-      TypeDeclarationAccessor generator = new TypeDeclarationAccessor(
-          this, token, prefix, charOffset, builder, name);
+      TypeDeclarationAccessGenerator generator =
+          new TypeDeclarationAccessGenerator(
+              this, token, prefix, charOffset, builder, name);
       return (prefix?.deferred == true)
           ? new DeferredAccessGenerator(this, token, prefix, generator)
           : generator;
@@ -2555,7 +2556,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
             prefix.exportScope, identifier.name, identifier.token,
             isQualified: true, prefix: prefix);
         identifier = null;
-      } else if (prefix is TypeDeclarationAccessor) {
+      } else if (prefix is TypeDeclarationAccessGenerator) {
         type = prefix;
       } else if (prefix is Generator) {
         String name = suffix == null
@@ -2780,8 +2781,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       checkOffset = generator.token.charOffset;
     }
 
-    if (type is TypeDeclarationAccessor) {
-      TypeDeclarationAccessor generator = type;
+    if (type is TypeDeclarationAccessGenerator) {
+      TypeDeclarationAccessGenerator generator = type;
       if (generator.prefix != null) {
         nameToken = nameToken.next.next;
       }
@@ -2927,7 +2928,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     if (context.isScopeReference && isInstanceContext) {
       push(new ThisAccessGenerator(this, token, inInitializer));
     } else {
-      push(new IncompleteError(this, token, fasta.messageThisAsIdentifier));
+      push(new IncompleteErrorGenerator(
+          this, token, fasta.messageThisAsIdentifier));
     }
   }
 
@@ -2939,7 +2941,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       member.transformerFlags |= TransformerFlag.superCalls;
       push(new ThisAccessGenerator(this, token, inInitializer, isSuper: true));
     } else {
-      push(new IncompleteError(this, token, fasta.messageSuperAsIdentifier));
+      push(new IncompleteErrorGenerator(
+          this, token, fasta.messageSuperAsIdentifier));
     }
   }
 
@@ -3678,7 +3681,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     List<Expression> annotations = pop();
     KernelTypeVariableBuilder variable;
     Object inScope = scopeLookup(scope, name.name, token);
-    if (inScope is TypeDeclarationAccessor) {
+    if (inScope is TypeDeclarationAccessGenerator) {
       variable = inScope.declaration;
     } else {
       // Something went wrong when pre-parsing the type variables.
@@ -4249,8 +4252,10 @@ class Label {
 abstract class ContextAwareGenerator<Arguments> extends Generator<Arguments> {
   final Generator generator;
 
-  ContextAwareGenerator(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      Token token, this.generator)
+  ContextAwareGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      this.generator)
       : super(helper, token);
 
   String get plainNameForRead {
@@ -4315,8 +4320,12 @@ class DelayedAssignment<Arguments> extends ContextAwareGenerator<Arguments> {
 
   final String assignmentOperator;
 
-  DelayedAssignment(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      Token token, Generator generator, this.value, this.assignmentOperator)
+  DelayedAssignment(
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      Generator generator,
+      this.value,
+      this.assignmentOperator)
       : super(helper, token, generator);
 
   String get debugName => "DelayedAssignment";
@@ -4405,7 +4414,7 @@ class DelayedPostfixIncrement<Arguments>
   final Procedure interfaceTarget;
 
   DelayedPostfixIncrement(
-      BuilderHelper<dynamic, dynamic, Arguments> helper,
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
       Token token,
       Generator generator,
       this.binaryOperator,
@@ -4619,7 +4628,7 @@ class FormalParameters<Arguments> {
   }
 
   Scope computeFormalParameterScope(Scope parent, Builder builder,
-      BuilderHelper<dynamic, dynamic, Arguments> helper) {
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper) {
     if (required.length == 0 && optional == null) return parent;
     Map<String, Builder> local = <String, Builder>{};
 

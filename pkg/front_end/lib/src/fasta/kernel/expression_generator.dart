@@ -36,7 +36,7 @@ import 'body_builder.dart' show Identifier, noLocation;
 
 import 'constness.dart' show Constness;
 
-import 'expression_generator_helper.dart' show BuilderHelper;
+import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
 
 import 'forest.dart' show Forest;
 
@@ -107,7 +107,7 @@ import 'kernel_builder.dart'
 /// [Generator] object.  Later, after `= b` is parsed, [buildAssignment] will
 /// be called.
 abstract class Generator<Arguments> {
-  final BuilderHelper<dynamic, dynamic, Arguments> helper;
+  final ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper;
   final Token token;
 
   Generator(this.helper, this.token);
@@ -302,7 +302,7 @@ abstract class Generator<Arguments> {
 
   /* kernel.Expression | Generator */ buildPropertyAccess(
       IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
-    if (send is SendAccessor) {
+    if (send is SendAccessGenerator) {
       return helper.buildMethodInvocation(buildSimpleRead(), send.name,
           send.arguments, offsetForToken(send.token),
           isNullAware: isNullAware);
@@ -362,8 +362,10 @@ class VariableUseGenerator<Arguments> extends Generator<Arguments> {
 
   final DartType promotedType;
 
-  VariableUseGenerator(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      Token token, this.variable,
+  VariableUseGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      this.variable,
       [this.promotedType])
       : super(helper, token);
 
@@ -425,7 +427,7 @@ class PropertyAccessGenerator<Arguments> extends Generator<Arguments> {
   VariableDeclaration _receiverVariable;
 
   PropertyAccessGenerator.internal(
-      BuilderHelper<dynamic, dynamic, Arguments> helper,
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
       Token token,
       this.receiver,
       this.name,
@@ -434,7 +436,7 @@ class PropertyAccessGenerator<Arguments> extends Generator<Arguments> {
       : super(helper, token);
 
   static Generator<Arguments> make<Arguments>(
-      BuilderHelper<dynamic, dynamic, Arguments> helper,
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
       Token token,
       kernel.Expression receiver,
       Name name,
@@ -529,8 +531,12 @@ class ThisPropertyAccessGenerator<Arguments> extends Generator<Arguments> {
 
   final Member setter;
 
-  ThisPropertyAccessGenerator(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      Token token, this.name, this.getter, this.setter)
+  ThisPropertyAccessGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      this.name,
+      this.getter,
+      this.setter)
       : super(helper, token);
 
   String get plainNameForRead => name.name;
@@ -606,7 +612,7 @@ class NullAwarePropertyAccessGenerator<Arguments> extends Generator<Arguments> {
   final DartType type;
 
   NullAwarePropertyAccessGenerator(
-      BuilderHelper<dynamic, dynamic, Arguments> helper,
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
       Token token,
       this.receiverExpression,
       this.name,
@@ -694,7 +700,7 @@ class SuperPropertyAccessGenerator<Arguments> extends Generator<Arguments> {
   final Member setter;
 
   SuperPropertyAccessGenerator(
-      BuilderHelper<dynamic, dynamic, Arguments> helper,
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
       Token token,
       this.name,
       this.getter,
@@ -777,7 +783,7 @@ class IndexedAccessGenerator<Arguments> extends Generator<Arguments> {
   VariableDeclaration indexVariable;
 
   IndexedAccessGenerator.internal(
-      BuilderHelper<dynamic, dynamic, Arguments> helper,
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
       Token token,
       this.receiver,
       this.index,
@@ -786,7 +792,7 @@ class IndexedAccessGenerator<Arguments> extends Generator<Arguments> {
       : super(helper, token);
 
   static Generator<Arguments> make<Arguments>(
-      BuilderHelper<dynamic, dynamic, Arguments> helper,
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
       Token token,
       kernel.Expression receiver,
       kernel.Expression index,
@@ -939,8 +945,12 @@ class ThisIndexedAccessGenerator<Arguments> extends Generator<Arguments> {
 
   VariableDeclaration indexVariable;
 
-  ThisIndexedAccessGenerator(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      Token token, this.index, this.getter, this.setter)
+  ThisIndexedAccessGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      this.index,
+      this.getter,
+      this.setter)
       : super(helper, token);
 
   String get plainNameForRead => "[]";
@@ -1059,8 +1069,12 @@ class SuperIndexedAccessGenerator<Arguments> extends Generator<Arguments> {
 
   VariableDeclaration indexVariable;
 
-  SuperIndexedAccessGenerator(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      Token token, this.index, this.getter, this.setter)
+  SuperIndexedAccessGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      this.index,
+      this.getter,
+      this.setter)
       : super(helper, token);
 
   String get plainNameForRead => "[]";
@@ -1191,13 +1205,16 @@ class StaticAccessGenerator<Arguments> extends Generator<Arguments> {
 
   final Member writeTarget;
 
-  StaticAccessGenerator(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      Token token, this.readTarget, this.writeTarget)
+  StaticAccessGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      this.readTarget,
+      this.writeTarget)
       : assert(readTarget != null || writeTarget != null),
         super(helper, token);
 
   factory StaticAccessGenerator.fromBuilder(
-      BuilderHelper<dynamic, dynamic, Arguments> helper,
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
       Builder builder,
       Token token,
       Builder builderSetter) {
@@ -1287,8 +1304,10 @@ class StaticAccessGenerator<Arguments> extends Generator<Arguments> {
 class LoadLibraryGenerator<Arguments> extends Generator<Arguments> {
   final LoadLibraryBuilder builder;
 
-  LoadLibraryGenerator(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      Token token, this.builder)
+  LoadLibraryGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      this.builder)
       : super(helper, token);
 
   String get plainNameForRead => 'loadLibrary';
@@ -1330,8 +1349,11 @@ class DeferredAccessGenerator<Arguments> extends Generator<Arguments> {
 
   final Generator generator;
 
-  DeferredAccessGenerator(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      Token token, this.builder, this.generator)
+  DeferredAccessGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      this.builder,
+      this.generator)
       : super(helper, token);
 
   String get plainNameForRead {
@@ -1406,8 +1428,11 @@ class ReadOnlyAccessGenerator<Arguments> extends Generator<Arguments> {
 
   VariableDeclaration value;
 
-  ReadOnlyAccessGenerator(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      Token token, this.expression, this.plainNameForRead)
+  ReadOnlyAccessGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      this.expression,
+      this.plainNameForRead)
       : super(helper, token);
 
   String get debugName => "ReadOnlyAccessGenerator";
@@ -1450,7 +1475,8 @@ class ReadOnlyAccessGenerator<Arguments> extends Generator<Arguments> {
 
 class LargeIntAccessGenerator<Arguments> extends Generator<Arguments> {
   LargeIntAccessGenerator(
-      BuilderHelper<dynamic, dynamic, Arguments> helper, Token token)
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      Token token)
       : super(helper, token);
 
   // TODO(ahe): This should probably be calling unhandled.
@@ -1501,7 +1527,7 @@ abstract class ErroneousExpressionGenerator<Arguments>
     implements Generator<Arguments> {
   /// Pass [arguments] that must be evaluated before throwing an error.  At
   /// most one of [isGetter] and [isSetter] should be true and they're passed
-  /// to [BuilderHelper.buildThrowNoSuchMethodError] if it is used.
+  /// to [ExpressionGeneratorHelper.buildThrowNoSuchMethodError] if it is used.
   kernel.Expression buildError(Arguments arguments,
       {bool isGetter: false, bool isSetter: false, int offset});
 
@@ -1617,8 +1643,10 @@ class ThisAccessGenerator<Arguments> extends Generator<Arguments> {
 
   final bool isSuper;
 
-  ThisAccessGenerator(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      Token token, this.isInitializer,
+  ThisAccessGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      this.isInitializer,
       {this.isSuper: false})
       : super(helper, token);
 
@@ -1653,7 +1681,7 @@ class ThisAccessGenerator<Arguments> extends Generator<Arguments> {
     Name name = send.name;
     Arguments arguments = send.arguments;
     int offset = offsetForToken(send.token);
-    if (isInitializer && send is SendAccessor) {
+    if (isInitializer && send is SendAccessGenerator) {
       if (isNullAware) {
         helper.deprecated_addCompileTimeError(
             operatorOffset, "Expected '.'\nTry removing '?'.");
@@ -1661,7 +1689,7 @@ class ThisAccessGenerator<Arguments> extends Generator<Arguments> {
       return buildConstructorInitializer(offset, name, arguments);
     }
     Member getter = helper.lookupInstanceMember(name, isSuper: isSuper);
-    if (send is SendAccessor) {
+    if (send is SendAccessGenerator) {
       // Notice that 'this' or 'super' can't be null. So we can ignore the
       // value of [isNullAware].
       if (getter == null) {
@@ -1787,7 +1815,9 @@ abstract class IncompleteSendGenerator<Arguments> extends Generator<Arguments> {
   final Name name;
 
   IncompleteSendGenerator(
-      BuilderHelper<dynamic, dynamic, Arguments> helper, Token token, this.name)
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      this.name)
       : super(helper, token);
 
   withReceiver(Object receiver, int operatorOffset, {bool isNullAware});
@@ -1818,7 +1848,9 @@ class UnresolvedNameGenerator<Arguments> extends Generator<Arguments>
   final Name name;
 
   UnresolvedNameGenerator(
-      BuilderHelper<dynamic, dynamic, Arguments> helper, Token token, this.name)
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      this.name)
       : super(helper, token);
 
   String get debugName => "UnresolvedNameGenerator";
@@ -1868,16 +1900,18 @@ class UnresolvedNameGenerator<Arguments> extends Generator<Arguments>
   }
 }
 
-// TODO(ahe): Rename to IncompleteErrorGenerator.
-class IncompleteError<Arguments> extends IncompleteSendGenerator<Arguments>
+class IncompleteErrorGenerator<Arguments>
+    extends IncompleteSendGenerator<Arguments>
     with ErroneousExpressionGenerator<Arguments> {
   final Message message;
 
-  IncompleteError(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      Token token, this.message)
+  IncompleteErrorGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      this.message)
       : super(helper, token, null);
 
-  String get debugName => "IncompleteError";
+  String get debugName => "IncompleteErrorGenerator";
 
   @override
   kernel.Expression buildError(Arguments arguments,
@@ -1910,20 +1944,23 @@ class IncompleteError<Arguments> extends IncompleteSendGenerator<Arguments>
   }
 }
 
-// TODO(ahe): Rename to SendAccessGenerator.
-class SendAccessor<Arguments> extends IncompleteSendGenerator<Arguments> {
+class SendAccessGenerator<Arguments>
+    extends IncompleteSendGenerator<Arguments> {
   @override
   final Arguments arguments;
 
-  SendAccessor(BuilderHelper<dynamic, dynamic, Arguments> helper, Token token,
-      Name name, this.arguments)
+  SendAccessGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      Name name,
+      this.arguments)
       : super(helper, token, name) {
     assert(arguments != null);
   }
 
   String get plainNameForRead => name.name;
 
-  String get debugName => "SendAccessor";
+  String get debugName => "SendAccessGenerator";
 
   kernel.Expression buildSimpleRead() {
     return unsupported("buildSimpleRead", offsetForToken(token), uri);
@@ -2000,16 +2037,17 @@ class SendAccessor<Arguments> extends IncompleteSendGenerator<Arguments> {
   }
 }
 
-// TODO(ahe): Rename to IncompletePropertyAccessGenerator.
-class IncompletePropertyAccessor<Arguments>
+class IncompletePropertyAccessGenerator<Arguments>
     extends IncompleteSendGenerator<Arguments> {
-  IncompletePropertyAccessor(
-      BuilderHelper<dynamic, dynamic, Arguments> helper, Token token, Name name)
+  IncompletePropertyAccessGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      Name name)
       : super(helper, token, name);
 
   String get plainNameForRead => name.name;
 
-  String get debugName => "IncompletePropertyAccessor";
+  String get debugName => "IncompletePropertyAccessGenerator";
 
   kernel.Expression buildSimpleRead() {
     return unsupported("buildSimpleRead", offsetForToken(token), uri);
@@ -2073,14 +2111,15 @@ class IncompletePropertyAccessor<Arguments>
   }
 }
 
-// TODO(ahe): Rename to ParenthesizedExpressionGenerator.
-class ParenthesizedExpression<Arguments>
+class ParenthesizedExpressionGenerator<Arguments>
     extends ReadOnlyAccessGenerator<Arguments> {
-  ParenthesizedExpression(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      Token token, kernel.Expression expression)
+  ParenthesizedExpressionGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      kernel.Expression expression)
       : super(helper, token, expression, null);
 
-  String get debugName => "ParenthesizedExpression";
+  String get debugName => "ParenthesizedExpressionGenerator";
 
   kernel.Expression makeInvalidWrite(kernel.Expression value) {
     return helper.deprecated_buildCompileTimeError(
@@ -2088,8 +2127,7 @@ class ParenthesizedExpression<Arguments>
   }
 }
 
-// TODO(ahe): Rename to TypeDeclarationAccessGenerator.
-class TypeDeclarationAccessor<Arguments>
+class TypeDeclarationAccessGenerator<Arguments>
     extends ReadOnlyAccessGenerator<Arguments> {
   /// The import prefix preceding the [declaration] reference, or `null` if
   /// the reference is not prefixed.
@@ -2101,8 +2139,8 @@ class TypeDeclarationAccessor<Arguments>
 
   final TypeDeclarationBuilder declaration;
 
-  TypeDeclarationAccessor(
-      BuilderHelper<dynamic, dynamic, Arguments> helper,
+  TypeDeclarationAccessGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
       Token token,
       this.prefix,
       this.declarationReferenceOffset,
@@ -2110,7 +2148,7 @@ class TypeDeclarationAccessor<Arguments>
       String plainNameForRead)
       : super(helper, token, null, plainNameForRead);
 
-  String get debugName => "TypeDeclarationAccessor";
+  String get debugName => "TypeDeclarationAccessGenerator";
 
   kernel.Expression get expression {
     if (super.expression == null) {
@@ -2157,7 +2195,7 @@ class TypeDeclarationAccessor<Arguments>
       Generator generator;
       if (builder == null) {
         // If we find a setter, [builder] is an [AccessErrorBuilder], not null.
-        if (send is IncompletePropertyAccessor) {
+        if (send is IncompletePropertyAccessGenerator) {
           generator = new UnresolvedNameGenerator(helper, send.token, name);
         } else {
           return helper.buildConstructorInvocation(declaration, send.token,
@@ -2203,7 +2241,7 @@ class TypeDeclarationAccessor<Arguments>
       } else {
         return unhandled(
             "${declaration.runtimeType}",
-            "TypeDeclarationAccessor.buildType",
+            "TypeDeclarationAccessGenerator.buildType",
             offsetForToken(token),
             helper.uri);
       }
@@ -2256,7 +2294,7 @@ kernel.Expression makeBinary<Arguments>(
     Name operator,
     Procedure interfaceTarget,
     kernel.Expression right,
-    BuilderHelper<dynamic, dynamic, Arguments> helper,
+    ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
     {int offset: TreeNode.noOffset}) {
   return new ShadowMethodInvocation(
       left,
@@ -2270,7 +2308,7 @@ kernel.Expression makeBinary<Arguments>(
 }
 
 kernel.Expression buildIsNull<Arguments>(kernel.Expression value, int offset,
-    BuilderHelper<dynamic, dynamic, Arguments> helper) {
+    ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper) {
   return makeBinary(value, equalsName, null,
       helper.storeOffset(helper.forest.literalNull(null), offset), helper,
       offset: offset);
