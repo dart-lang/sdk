@@ -328,10 +328,15 @@ testRule(String ruleName, File file, {bool debug: false}) {
     TestResourceProvider resourceProvider =
         new TestResourceProvider(memoryResourceProvider);
 
+    String packageConfigPath = p.join(p.dirname(file.path), '.mock_packages');
+    if (!resourceProvider.getFile(packageConfigPath).exists) {
+      packageConfigPath = null;
+    }
+
     LinterOptions options = new LinterOptions([rule])
       ..mockSdk = new MockSdk(memoryResourceProvider)
       ..resourceProvider = resourceProvider
-      ..packageRootPath = '.';
+      ..packageConfigPath = packageConfigPath;
 
     DartLinter driver = new DartLinter(options);
 
