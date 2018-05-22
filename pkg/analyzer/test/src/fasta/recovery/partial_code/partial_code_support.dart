@@ -260,17 +260,6 @@ class TestDescriptor {
    */
   TestDescriptor(this.name, this.invalid, this.errorCodes, this.valid,
       {this.allFailing: false, this.failing, this.expectedErrorsInValidCode});
-
-  /**
-   * Return a new description that is exactly like this descriptor except with
-   * the given [expectedErrorsInValidCode].
-   */
-  TestDescriptor withExpectedErrorsInValidCode(
-          List<ErrorCode> expectedErrorsInValidCode) =>
-      new TestDescriptor(name, invalid, errorCodes, valid,
-          allFailing: allFailing,
-          failing: failing,
-          expectedErrorsInValidCode: expectedErrorsInValidCode);
 }
 
 /**

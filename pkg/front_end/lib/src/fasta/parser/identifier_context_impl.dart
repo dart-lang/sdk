@@ -458,6 +458,47 @@ class LocalVariableDeclarationIdentifierContext extends IdentifierContext {
   }
 }
 
+/// See [IdentifierContext.metadataReference]
+/// and [IdentifierContext.metadataContinuation]
+/// and [IdentifierContext.metadataContinuationAfterTypeArguments].
+class MetadataReferenceIdentifierContext extends IdentifierContext {
+  const MetadataReferenceIdentifierContext()
+      : super('metadataReference', isScopeReference: true);
+
+  const MetadataReferenceIdentifierContext.continuation()
+      : super('metadataContinuation', isContinuation: true);
+
+  const MetadataReferenceIdentifierContext.continuationAfterTypeArguments()
+      : super('metadataContinuationAfterTypeArguments', isContinuation: true);
+
+  @override
+  Token ensureIdentifier(Token token, Parser parser) {
+    Token identifier = token.next;
+    assert(identifier.kind != IDENTIFIER_TOKEN);
+    if (identifier.isIdentifier) {
+      return identifier;
+    }
+
+    // Recovery
+    if (isOneOfOrEof(identifier, const ['{', '}', '(', ')', ']']) ||
+        looksLikeStartOfNextTopLevelDeclaration(identifier) ||
+        looksLikeStartOfNextClassMember(identifier) ||
+        looksLikeStartOfNextStatement(identifier)) {
+      identifier = parser.insertSyntheticIdentifier(token, this,
+          message: fasta.templateExpectedIdentifier.withArguments(identifier));
+    } else {
+      parser.reportRecoverableErrorWithToken(
+          identifier, fasta.templateExpectedIdentifier);
+      if (!identifier.isKeywordOrIdentifier) {
+        // When in doubt, consume the token to ensure we make progress
+        // but insert a synthetic identifier to satisfy listeners.
+        identifier = parser.rewriter.insertSyntheticIdentifier(identifier);
+      }
+    }
+    return identifier;
+  }
+}
+
 /// See [IdentifierContext.methodDeclaration],
 /// and [IdentifierContext.methodDeclarationContinuation],
 /// and [IdentifierContext.operatorName].

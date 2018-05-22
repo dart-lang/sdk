@@ -39,19 +39,17 @@ class IdentifierContext {
 
   /// Identifier is the start of a name in an annotation that precedes a
   /// declaration (i.e. it appears directly after an `@`).
-  static const metadataReference =
-      const IdentifierContext('metadataReference', isScopeReference: true);
+  static const metadataReference = const MetadataReferenceIdentifierContext();
 
   /// Identifier is part of a name in an annotation that precedes a declaration,
   /// but it's not the first identifier in the name.
   static const metadataContinuation =
-      const IdentifierContext('metadataContinuation', isContinuation: true);
+      const MetadataReferenceIdentifierContext.continuation();
 
   /// Identifier is part of a name in an annotation that precedes a declaration,
   /// but it appears after type parameters (e.g. `foo` in `@X<Y>.foo()`).
-  static const metadataContinuationAfterTypeArguments = const IdentifierContext(
-      'metadataContinuationAfterTypeArguments',
-      isContinuation: true);
+  static const metadataContinuationAfterTypeArguments =
+      const MetadataReferenceIdentifierContext.continuationAfterTypeArguments();
 
   /// Identifier is the name being declared by a typedef declaration.
   static const typedefDeclaration = const TypedefDeclarationIdentifierContext();

@@ -6070,8 +6070,10 @@ class Parser {
       // TODO(danrubel): Provide a more specific error message for extra ';'.
       reportRecoverableErrorWithToken(next, fasta.templateExpectedClassMember);
       listener.handleInvalidMember(next);
-      // Ensure we make progress.
-      token = next;
+      if (!identical(value, '}')) {
+        // Ensure we make progress.
+        token = next;
+      }
     } else {
       token = parseFields(beforeStart, externalToken, staticToken,
           covariantToken, varFinalOrConst, beforeType, typeInfo, token, false);
