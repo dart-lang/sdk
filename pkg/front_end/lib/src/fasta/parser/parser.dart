@@ -5609,7 +5609,7 @@ class Parser {
       if (identical(value, 'on')) {
         // 'on' type catchPart?
         onKeyword = token;
-        lastConsumed = parseType(token);
+        lastConsumed = computeType(token, true).ensureTypeNotVoid(token, this);
         token = lastConsumed.next;
         value = token.stringValue;
       }

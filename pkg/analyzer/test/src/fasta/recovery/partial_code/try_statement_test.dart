@@ -43,7 +43,12 @@ class TryStatementTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               "try {} on _s_ {}",
-              failing: allExceptEof),
+              failing: [
+                'block',
+                'labeled',
+                'localFunctionNonVoid',
+                'localFunctionVoid'
+              ]),
           new TestDescriptor('on_identifier', 'try {} on A',
               [ParserErrorCode.EXPECTED_TOKEN], "try {} on A {}",
               failing: ['block']),
