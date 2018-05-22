@@ -1113,6 +1113,18 @@ class Listener {
     logEvent("InvalidOperatorName");
   }
 
+  /// Handle the condition in a control structure:
+  /// - if statement
+  /// - do while loop
+  /// - switch statement
+  /// - while loop
+  void handleParenthesizedCondition(Token token) {
+    logEvent("ParenthesizedCondition");
+  }
+
+  /// Handle a parenthesized expression.
+  /// These may be within the condition expression of a control structure
+  /// but will not be the condition of a control structure.
   void handleParenthesizedExpression(Token token) {
     logEvent("ParenthesizedExpression");
   }

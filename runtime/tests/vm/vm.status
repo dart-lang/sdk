@@ -54,6 +54,7 @@ dart/redirection_type_shuffling_test/none: RuntimeError
 [ $compiler != dartk ]
 cc/IsolateReload_KernelIncrementalCompile: SkipByDesign
 cc/IsolateReload_KernelIncrementalCompileAppAndLib: SkipByDesign
+cc/IsolateReload_KernelIncrementalCompileExpression: SkipByDesign
 cc/IsolateReload_KernelIncrementalCompileGenerics: SkipByDesign
 cc/Mixin_PrivateSuperResolution: Skip
 cc/Mixin_PrivateSuperResolutionCrossLibraryShouldFail: Skip
@@ -146,8 +147,7 @@ cc/Service_TokenStream: Fail
 
 [ $compiler == dartk && $runtime == vm ]
 cc/Class_ComputeEndTokenPos: Crash
-cc/DartAPI_IsolateShutdownRunDartCode: Skip # Flaky
-cc/DartAPI_LoadLibrary: Crash # Issue 33048.
+cc/DartAPI_LoadLibrary: Fail, Crash # Issue 33048.
 cc/DebuggerAPI_BreakpointStubPatching: Fail
 cc/DebuggerAPI_GetClosureInfo: Fail
 cc/DebuggerAPI_InterruptIsolate: SkipSlow
@@ -283,6 +283,9 @@ cc/RegExp_ExternalTwoByteString: Skip # TODO(vegorov) These tests don't seem to 
 cc/RegExp_OneByteString: Skip # TODO(vegorov) These tests don't seem to work if FLAG_interpret_irregexp is switched on by default because they attempt to call regexp functions directly instead of going through JSSyntaxRegExp_ExecuteMatch.
 cc/RegExp_TwoByteString: Skip # TODO(vegorov) These tests don't seem to work if FLAG_interpret_irregexp is switched on by default because they attempt to call regexp functions directly instead of going through JSSyntaxRegExp_ExecuteMatch.
 cc/RegenerateAllocStubs: Skip # This test is meaningless for DBC as allocation stubs are not used.
+
+[ $arch == simdbc64 || $builder_tag == optimization_counter_threshold || $compiler != none ]
+dart/appjit_test: Skip
 
 [ $compiler == dart2analyzer || $compiler == dart2js ]
 dart/data_uri*test: Skip # Data uri's not supported by dart2js or the analyzer.

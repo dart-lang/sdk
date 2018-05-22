@@ -12,8 +12,6 @@ main() {
 
 class TypedefTest extends PartialCodeTest {
   buildAll() {
-    List<String> allExceptEof =
-        PartialCodeTest.declarationSuffixes.map((t) => t.name).toList();
     buildTests(
         'typedef',
         [
@@ -26,14 +24,16 @@ class TypedefTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               "typedef _s_();",
-              failing: [
-                'functionVoid',
-                'functionNonVoid',
-                'var',
-                'const',
-                'final',
-                'getter'
-              ]),
+              failing: ['functionVoid', 'functionNonVoid', 'getter']),
+          new TestDescriptor(
+              'name',
+              'typedef T',
+              [
+                ParserErrorCode.MISSING_TYPEDEF_PARAMETERS,
+                ParserErrorCode.EXPECTED_TOKEN
+              ],
+              "typedef T();",
+              failing: ['functionNonVoid', 'getter', 'setter']),
           new TestDescriptor(
               'keywordEquals',
               'typedef =',
@@ -43,7 +43,20 @@ class TypedefTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               "typedef _s_ = _s_;",
-              failing: allExceptEof),
+              allFailing: true),
+          new TestDescriptor(
+              'equals',
+              'typedef T =',
+              [
+                ParserErrorCode.EXPECTED_TYPE_NAME,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.INVALID_GENERIC_FUNCTION_TYPE
+              ],
+              "typedef T = _s_;",
+              expectedErrorsInValidCode: [
+                ParserErrorCode.INVALID_GENERIC_FUNCTION_TYPE
+              ],
+              failing: ['functionVoid', 'functionNonVoid', 'getter']),
         ],
         PartialCodeTest.declarationSuffixes);
   }

@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.20.2</version>
+  <version>1.20.3</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -2307,6 +2307,111 @@
       </field>
     </params>
   </request>
+  <request method="getSuggestions">
+    <p>
+      Request completion suggestions for the given runtime context.
+    </p>
+    <p>
+      It might take one or two requests of this type to get completion
+      suggestions. The first request should have only "code", "offset",
+      and "variables", but not "expressions". If there are sub-expressions that
+      can have different runtime types, and are considered to be safe to
+      evaluate at runtime (e.g. getters), so using their actual runtime types
+      can improve completion results, the server will not include the
+      "suggestions" field in the response, and instead will return the
+      "expressions" field. The client will use debug API to get current runtime
+      types for these sub-expressions and send another request, this time with
+      "expressions". If there are no interesting sub-expressions to get
+      runtime types for, or when the "expressions" field is provided by the
+      client, the server will return "suggestions" in the response.
+    </p>
+    <params>
+      <field name="code">
+        <ref>String</ref>
+        <p>
+          The code to get suggestions in.
+        </p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset within the code to get suggestions at.
+        </p>
+      </field>
+      <field name="contextFile">
+        <ref>FilePath</ref>
+        <p>
+          The path of the context file, e.g. the file of the current debugger
+          frame. The combination of the context file and context offset can
+          be used to ensure that all variables of the context are available
+          for completion (with their static types).
+        </p>
+      </field>
+      <field name="contextOffset">
+        <ref>int</ref>
+        <p>
+          The offset in the context file, e.g. the line offset in the current
+          debugger frame.
+        </p>
+      </field>
+      <field name="variables">
+        <list>
+          <ref>RuntimeCompletionVariable</ref>
+        </list>
+        <p>
+          The runtime context variables that are potentially referenced in the
+          code.
+        </p>
+      </field>
+      <field name="expressions" optional="true">
+        <list>
+          <ref>RuntimeCompletionExpression</ref>
+        </list>
+        <p>
+          The list of sub-expressions in the code for which the client wants
+          to provide runtime types. It does not have to be the full list of
+          expressions requested by the server, for missing expressions their
+          static types will be used.
+        </p>
+        <p>
+          When this field is omitted, the server will return completion
+          suggestions only when there are no interesting sub-expressions in the
+          given code. The client may provide an empty list, in this case the
+          server will return completion suggestions.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="suggestions" optional="true">
+        <list>
+          <ref>CompletionSuggestion</ref>
+        </list>
+        <p>
+          The completion suggestions. In contrast to usual completion request,
+          suggestions for private elements also will be provided.
+        </p>
+        <p>
+          If there are sub-expressions that can have different runtime types,
+          and are considered to be safe to evaluate at runtime (e.g. getters),
+          so using their actual runtime types can improve completion results,
+          the server omits this field in the response, and instead will return
+          the "expressions" field.
+        </p>
+      </field>
+      <field name="expressions" optional="true">
+        <list>
+          <ref>RuntimeCompletionExpression</ref>
+        </list>
+        <p>
+          The list of sub-expressions in the code for which the server would
+          like to know runtime types to provide better completion suggestions.
+        </p>
+        <p>
+          This field is omitted the field "suggestions" is returned.
+        </p>
+      </field>
+    </result>
+  </request>
   <request method="mapUri">
     <p>
       Map a URI from the execution context to the file that it corresponds
@@ -3074,6 +3179,132 @@
     <p>
       The identifier for a execution context.
     </p>
+  </type>
+  <type name="RuntimeCompletionExpression">
+    <p>
+      An expression for which we want to know its runtime type.
+      In expressions like `a.b.c.where((e) => e.^)` we want to know the
+      runtime type of `a.b.c` to enforce it statically at the time when we
+      compute completion suggestions, and get better type for `e`.
+    </p>
+    <object>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset of the expression in the code for completion.
+        </p>
+      </field>
+      <field name="length">
+        <ref>int</ref>
+        <p>
+          The length of the expression in the code for completion.
+        </p>
+      </field>
+      <field name="type" optional="true">
+        <ref>RuntimeCompletionExpressionType</ref>
+        <p>
+          When the expression is sent from the server to the client, the
+          type is omitted. The client should fill the type when it sends the
+          request to the server again.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="RuntimeCompletionVariable">
+    <p>
+      A variable in a runtime context.
+    </p>
+    <object>
+      <field name="name">
+        <ref>String</ref>
+        <p>
+          The name of the variable.
+          The name "this" has a special meaning and is used as an implicit
+          target for runtime completion, and in explicit "this" references.
+        </p>
+      </field>
+      <field name="type">
+        <ref>RuntimeCompletionExpressionType</ref>
+        <p>
+          The type of the variable.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="RuntimeCompletionExpressionType">
+    <p>
+      A type at runtime.
+    </p>
+    <object>
+      <field name="libraryPath" optional="true">
+        <ref>FilePath</ref>
+        <p>
+          The path of the library that has this type.
+          Omitted if the type is not declared in any library, e.g. "dynamic",
+          or "void".
+        </p>
+      </field>
+      <field name="kind">
+        <ref>RuntimeCompletionExpressionTypeKind</ref>
+        <p>
+          The kind of the type.
+        </p>
+      </field>
+      <field name="name" optional="true">
+        <ref>String</ref>
+        <p>
+          The name of the type. Omitted if the type does not have a name, e.g.
+          an inline function type.
+        </p>
+      </field>
+      <field name="typeArguments" optional="true">
+        <list>
+          <ref>RuntimeCompletionExpressionType</ref>
+        </list>
+        <p>
+          The type arguments of the type.
+          Omitted if the type does not have type parameters.
+        </p>
+      </field>
+      <field name="returnType" optional="true">
+        <ref>RuntimeCompletionExpressionType</ref>
+        <p>
+          If the type is a function type, the return type of the function.
+          Omitted if the type is not a function type.
+        </p>
+      </field>
+      <field name="parameterTypes" optional="true">
+        <list>
+          <ref>RuntimeCompletionExpressionType</ref>
+        </list>
+        <p>
+          If the type is a function type, the types of the function parameters
+          of all kinds - required, optional positional, and optional named.
+          Omitted if the type is not a function type.
+        </p>
+      </field>
+      <field name="parameterNames" optional="true">
+        <list>
+          <ref>String</ref>
+        </list>
+        <p>
+          If the type is a function type, the names of the function parameters
+          of all kinds - required, optional positional, and optional named.
+          The names of positional parameters are empty strings.
+          Omitted if the type is not a function type.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="RuntimeCompletionExpressionTypeKind">
+    <p>
+      An enumeration of the kinds of runtime expression types.
+    </p>
+    <enum>
+      <value><code>DYNAMIC</code></value>
+      <value><code>FUNCTION</code></value>
+      <value><code>INTERFACE</code></value>
+    </enum>
   </type>
   <type name="ExecutionService">
     <p>

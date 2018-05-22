@@ -415,6 +415,9 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     // Note that RegExes, js.ArrayInitializer and js.ObjectInitializer are not
     // [js.Literal]s.
     if (result is js.Literal) return result;
+    if (result is js.VariableUse) {
+      if (result.name == selfName) return result;
+    }
 
     js.Expression tempVar = useTempVar(allocateTempVar());
     addStatement(js.js.statement('# = #;', [tempVar, result]));

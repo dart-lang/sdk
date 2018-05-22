@@ -7,7 +7,7 @@ library compiler.src.inferrer.closure_tracer;
 import '../common/names.dart' show Names;
 import '../elements/entities.dart';
 import '../js_backend/backend.dart' show JavaScriptBackend;
-import '../types/types.dart' show TypeMask;
+import '../types/masks.dart' show TypeMask;
 import '../universe/selector.dart' show Selector;
 import 'debug.dart' as debug;
 import 'inferrer_engine.dart';

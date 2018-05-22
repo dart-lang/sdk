@@ -5,8 +5,7 @@
 /// Analysis to determine how to generate code for typed JavaScript interop.
 library compiler.src.js_backend.js_interop_analysis;
 
-import '../elements/resolution_types.dart'
-    show ResolutionDartType, ResolutionDynamicType, ResolutionFunctionType;
+import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../universe/selector.dart' show Selector;
@@ -44,13 +43,17 @@ class JsInteropAnalysis {
     return new jsAst.Block(statements);
   }
 
-  ResolutionFunctionType buildJsFunctionType() {
+  FunctionType buildJsFunctionType() {
     // TODO(jacobr): consider using codegenWorldBuilder.isChecks to determine the
     // range of positional arguments that need to be supported by JavaScript
     // function types.
-    return new ResolutionFunctionType.synthesized(
-        const ResolutionDynamicType(),
-        [],
-        new List<ResolutionDartType>.filled(16, const ResolutionDynamicType()));
+    return new FunctionType(
+        const DynamicType(),
+        const <DartType>[],
+        new List<DartType>.filled(16, const DynamicType()),
+        const <String>[],
+        const <DartType>[],
+        const <FunctionTypeVariable>[],
+        null);
   }
 }

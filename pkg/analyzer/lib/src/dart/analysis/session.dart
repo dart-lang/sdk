@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as driver;
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -40,6 +41,9 @@ class AnalysisSessionImpl implements AnalysisSession {
    * Initialize a newly created analysis session.
    */
   AnalysisSessionImpl(this._driver);
+
+  @override
+  ResourceProvider get resourceProvider => _driver.resourceProvider;
 
   @override
   SourceFactory get sourceFactory => _driver.sourceFactory;

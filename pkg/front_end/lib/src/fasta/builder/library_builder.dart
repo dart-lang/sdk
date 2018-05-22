@@ -176,7 +176,7 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
   /// where they were omitted by the programmer and not provided by the type
   /// inference.  The method returns the number of distinct type variables
   /// that were instantiated in this library.
-  int instantiateToBound(TypeBuilder dynamicType, TypeBuilder bottomType,
+  int computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder bottomType,
       ClassBuilder objectClass) {
     return 0;
   }

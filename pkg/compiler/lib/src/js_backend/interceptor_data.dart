@@ -9,7 +9,7 @@ import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
-import '../types/types.dart' show TypeMask;
+import '../types/masks.dart' show TypeMask;
 import '../universe/selector.dart';
 import '../world.dart' show ClosedWorld;
 import 'namer.dart';

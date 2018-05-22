@@ -137,15 +137,7 @@ List<KernelTypeBuilder> calculateBounds(
       new List<KernelTypeBuilder>(variables.length);
 
   for (int i = 0; i < variables.length; i++) {
-    KernelTypeBuilder type = variables[i].bound;
-    if (type == null ||
-        type is KernelNamedTypeBuilder &&
-            type.builder is KernelClassBuilder &&
-            (type.builder as KernelClassBuilder).cls == objectClass?.cls) {
-      type = dynamicType;
-    }
-
-    bounds[i] = type;
+    bounds[i] = variables[i].bound ?? dynamicType;
   }
 
   TypeVariablesGraph graph = new TypeVariablesGraph(variables, bounds);

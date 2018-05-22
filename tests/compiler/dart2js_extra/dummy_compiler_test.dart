@@ -27,8 +27,6 @@ String libProvider(Uri uri) {
     return buildLibrarySource(DEFAULT_INTERCEPTORS_LIBRARY);
   } else if (uri.path.endsWith('js_helper.dart')) {
     return buildLibrarySource(DEFAULT_JS_HELPER_LIBRARY);
-  } else if (uri.path.endsWith('isolate_helper.dart')) {
-    return buildLibrarySource(DEFAULT_ISOLATE_HELPER_LIBRARY);
   } else if (uri.path.endsWith('/async.dart')) {
     return buildLibrarySource(DEFAULT_ASYNC_LIBRARY);
   } else {

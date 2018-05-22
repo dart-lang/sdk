@@ -1075,14 +1075,6 @@ void PageSpace::CollectGarbage(bool compact) {
     set_tasks(tasks() - 1);
     ml.NotifyAll();
   }
-
-  if (compact) {
-    // Const object tables are hashed by address: rehash.
-    SafepointOperationScope safepoint(thread);
-    StackZone zone(thread);
-    HANDLESCOPE(thread);
-    thread->isolate()->RehashConstants();
-  }
 }
 
 void PageSpace::BlockingSweep() {

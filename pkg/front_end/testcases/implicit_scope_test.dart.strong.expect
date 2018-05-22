@@ -14,28 +14,28 @@ class ImplicitScopeTest extends core::Object {
     core::String a = "foo";
     dynamic b;
     if(self::ImplicitScopeTest::alwaysTrue()) {
-      dynamic a = "bar";
+      core::String a = "bar";
     }
     else {
-      dynamic b = a;
+      core::String b = a;
     }
     exp::Expect::equals("foo", a);
     exp::Expect::equals(null, b);
     while (!self::ImplicitScopeTest::alwaysTrue()) {
-      dynamic a = "bar";
-      dynamic b = "baz";
+      core::String a = "bar";
+      core::String b = "baz";
     }
     exp::Expect::equals("foo", a);
     exp::Expect::equals(null, b);
     for (core::int i = 0; i.{core::num::<}(10); i = i.{core::num::+}(1)) {
-      dynamic a = "bar";
-      dynamic b = "baz";
+      core::String a = "bar";
+      core::String b = "baz";
     }
     exp::Expect::equals("foo", a);
     exp::Expect::equals(null, b);
     do {
-      dynamic a = "bar";
-      dynamic b = "baz";
+      core::String a = "bar";
+      core::String b = "baz";
     }
     while ("black".{core::String::==}("white"))
     exp::Expect::equals("foo", a);

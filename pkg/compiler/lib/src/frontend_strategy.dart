@@ -14,20 +14,14 @@ import 'deferred_load.dart' show DeferredLoadTask;
 import 'elements/entities.dart';
 import 'elements/types.dart';
 import 'enqueue.dart';
-import 'environment.dart';
-import 'js_backend/backend.dart';
 import 'js_backend/backend_usage.dart';
 import 'js_backend/interceptor_data.dart';
-import 'js_backend/mirrors_analysis.dart';
-import 'js_backend/mirrors_data.dart';
 import 'js_backend/native_data.dart';
 import 'js_backend/no_such_method_registry.dart';
 import 'js_backend/runtime_types.dart';
 import 'library_loader.dart';
 import 'native/enqueue.dart' show NativeResolutionEnqueuer;
 import 'native/resolver.dart';
-import 'patch_parser.dart';
-import 'resolved_uri_translator.dart';
 import 'universe/class_hierarchy_builder.dart';
 import 'universe/world_builder.dart';
 import 'universe/world_impact.dart';
@@ -36,16 +30,8 @@ import 'universe/world_impact.dart';
 /// the resolved element model.
 abstract class FrontendStrategy {
   /// Creates library loader task for this strategy.
-  LibraryLoaderTask createLibraryLoader(
-      ResolvedUriTranslator uriTranslator,
-      ScriptLoader scriptLoader,
-      api.CompilerInput compilerInput,
-      ElementScanner scriptScanner,
-      PatchResolverFunction patchResolverFunc,
-      PatchParserTask patchParser,
-      Environment environment,
-      DiagnosticReporter reporter,
-      Measurer measurer);
+  LibraryLoaderTask createLibraryLoader(api.CompilerInput compilerInput,
+      DiagnosticReporter reporter, Measurer measurer);
 
   /// Returns the [ElementEnvironment] for the element model used in this
   /// strategy.
@@ -103,16 +89,6 @@ abstract class FrontendStrategy {
   FunctionEntity computeMain(
       LibraryEntity mainLibrary, WorldImpactBuilder impactBuilder);
 
-  // TODO(johnniwinther): Reuse the following classes between strategies:
-
-  /// Creates the [MirrorsDataBuilder] for this strategy.
-  MirrorsDataBuilder createMirrorsDataBuilder();
-
-  /// Creates the [MirrorsResolutionAnalysis] for this strategy.
-  // TODO(johnniwinther): Avoid passing [JavaScriptBackend].
-  MirrorsResolutionAnalysis createMirrorsResolutionAnalysis(
-      JavaScriptBackend backend);
-
   /// Creates the [RuntimeTypesNeedBuilder] for this strategy.
   RuntimeTypesNeedBuilder createRuntimeTypesNeedBuilder();
 
@@ -153,7 +129,7 @@ abstract class FrontendStrategyBase implements FrontendStrategy {
 /// Class that deletes the contents of an [WorldImpact] cache.
 // TODO(redemption): this can be deleted when we sunset the old front end.
 abstract class ImpactCacheDeleter {
-  bool retainCachesForTesting;
+  static bool retainCachesForTesting = false;
 
   /// Removes the [WorldImpact] for [element] from the resolution cache. Later
   /// calls to [getWorldImpact] or [computeWorldImpact] returns an empty impact.

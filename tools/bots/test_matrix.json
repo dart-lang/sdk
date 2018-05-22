@@ -18,7 +18,23 @@
       "runtime/tests/",
       "samples-dev/",
       "samples/",
-      "tests/",
+      "tests/angular/",
+      "tests/co19/",
+      "tests/compiler/",
+      "tests/corelib/",
+      "tests/corelib_2/",
+      "tests/dart/",
+      "tests/html/",
+      "tests/isolate/",
+      "tests/kernel/",
+      "tests/language/",
+      "tests/language_2/",
+      "tests/lib/",
+      "tests/lib_2/",
+      "tests/light_unittest.dart",
+      "tests/search/",
+      "tests/standalone/",
+      "tests/standalone_2/",
       "third_party/d8/",
       "third_party/observatory_pub_packages/packages/web_components/",
       "third_party/pkg/",
@@ -728,7 +744,7 @@
         {
           "name": "build dart",
           "script": "tools/build.py",
-          "arguments": ["dart2js_bot",  "compile_dart2js_platform"]
+          "arguments": ["dart2js_bot"]
         },
         {
           "name": "dart2js tests",
@@ -1613,14 +1629,8 @@
           "tests": ["pkg_tested"]
         },
         {
-          "name": "pub get dependencies",
-          "arguments": [
-            "--use-sdk",
-            "--compiler=none",
-            "--runtime=vm",
-            "--checked"
-          ],
-          "tests": ["pkgbuild"]
+          "name": "pub integration tests",
+          "script": "tools/bots/pub_integration_test.py"
         }
       ]
     },

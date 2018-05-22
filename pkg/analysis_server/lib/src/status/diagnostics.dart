@@ -11,7 +11,6 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/domain_diagnostic.dart';
-import 'package:analysis_server/src/domain_execution.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
@@ -351,12 +350,14 @@ class CompletionPage extends DiagnosticPageWithNav {
     buf.writeln('<table>');
     buf.writeln(
         '<tr><th>Time</th><th>Results</th><th>Source</th><th>Snippet</th></tr>');
+    var pathContext = completionDomain.server.resourceProvider.pathContext;
     for (CompletionPerformance completion in completions) {
+      String shortName = pathContext.basename(completion.path);
       buf.writeln('<tr>'
           '<td class="pre right">${printMilliseconds(
           completion.elapsedInMilliseconds)}</td>'
           '<td class="right">${completion.suggestionCount}</td>'
-          '<td>${escape(completion.source.shortName)}</td>'
+          '<td>${escape(shortName)}</td>'
           '<td><code>${escape(completion.snippet)}</code></td>'
           '</tr>');
     }
@@ -1310,19 +1311,5 @@ class SubscriptionsPage extends DiagnosticPageWithNav {
         buf.write('$item');
       });
     }
-
-    // execution domain
-    ExecutionDomainHandler domain = server.handlers.firstWhere(
-        (handler) => handler is ExecutionDomainHandler,
-        orElse: () => null);
-
-    h3('Execution domain');
-    ul(ExecutionService.VALUES, (item) {
-      if (domain.onFileAnalyzed != null) {
-        buf.write('$item (has subscriptions)');
-      } else {
-        buf.write('$item (no subscriptions)');
-      }
-    });
   }
 }

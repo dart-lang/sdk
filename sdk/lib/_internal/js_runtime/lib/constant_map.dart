@@ -125,7 +125,7 @@ class ConstantStringMap<K, V> extends ConstantMap<K, V> {
 
   V operator [](Object key) {
     if (!containsKey(key)) return null;
-    return _fetch(key);
+    return JS('', '#', _fetch(key));
   }
 
   // [_fetch] is the indexer for keys for which `containsKey(key)` is true.

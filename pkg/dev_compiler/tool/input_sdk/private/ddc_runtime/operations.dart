@@ -6,6 +6,7 @@
 /// generator.
 part of dart._runtime;
 
+// TODO(jmesserly): remove this in favor of _Invocation.
 class InvocationImpl extends Invocation {
   final Symbol memberName;
   final List positionalArguments;

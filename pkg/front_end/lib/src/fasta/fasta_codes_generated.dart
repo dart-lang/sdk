@@ -726,6 +726,257 @@ const MessageCode messageConstConstructorWithBody = const MessageCode(
     tip: r"""Try removing either the 'const' keyword or the body.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstEvalContext = messageConstEvalContext;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstEvalContext =
+    const MessageCode("ConstEvalContext", message: r"""While analyzing:""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        Constant
+            constant)> templateConstEvalDuplicateKey = const Template<
+        Message Function(Constant constant)>(
+    messageTemplate:
+        r"""The key '#constant' conflicts with another existing key in the map.""",
+    withArguments: _withArgumentsConstEvalDuplicateKey);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Constant constant)> codeConstEvalDuplicateKey =
+    const Code<Message Function(Constant constant)>(
+        "ConstEvalDuplicateKey", templateConstEvalDuplicateKey,
+        analyzerCode: "EQUAL_KEYS_IN_MAP");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalDuplicateKey(Constant constant) {
+  return new Message(codeConstEvalDuplicateKey,
+      message:
+          """The key '$constant' conflicts with another existing key in the map.""",
+      arguments: {'constant': constant});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstEvalFailedAssertion = messageConstEvalFailedAssertion;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstEvalFailedAssertion = const MessageCode(
+    "ConstEvalFailedAssertion",
+    analyzerCode: "CONST_EVAL_THROWS_EXCEPTION",
+    message: r"""This assertion failed.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string)>
+    templateConstEvalFailedAssertionWithMessage =
+    const Template<Message Function(String string)>(
+        messageTemplate: r"""This assertion failed with message: #string""",
+        withArguments: _withArgumentsConstEvalFailedAssertionWithMessage);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)>
+    codeConstEvalFailedAssertionWithMessage =
+    const Code<Message Function(String string)>(
+        "ConstEvalFailedAssertionWithMessage",
+        templateConstEvalFailedAssertionWithMessage,
+        analyzerCode: "CONST_EVAL_THROWS_EXCEPTION");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalFailedAssertionWithMessage(String string) {
+  return new Message(codeConstEvalFailedAssertionWithMessage,
+      message: """This assertion failed with message: $string""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String string,
+        Constant constant,
+        DartType _type,
+        DartType
+            _type2)> templateConstEvalInvalidBinaryOperandType = const Template<
+        Message Function(String string, Constant constant, DartType _type,
+            DartType _type2)>(
+    messageTemplate:
+        r"""Binary operator '#string' on '#constant' requires operand of type '#type', but was of type '#type2'.""",
+    withArguments: _withArgumentsConstEvalInvalidBinaryOperandType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String string, Constant constant, DartType _type, DartType _type2)>
+    codeConstEvalInvalidBinaryOperandType = const Code<
+        Message Function(
+            String string, Constant constant, DartType _type, DartType _type2)>(
+  "ConstEvalInvalidBinaryOperandType",
+  templateConstEvalInvalidBinaryOperandType,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalInvalidBinaryOperandType(
+    String string, Constant constant, DartType _type, DartType _type2) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
+  String type2 = '$buffer';
+
+  return new Message(codeConstEvalInvalidBinaryOperandType,
+      message:
+          """Binary operator '$string' on '$constant' requires operand of type '$type', but was of type '$type2'.""",
+      arguments: {
+        'string': string,
+        'constant': constant,
+        'type': _type,
+        'type2': _type2
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String string,
+        Constant
+            constant)> templateConstEvalInvalidMethodInvocation = const Template<
+        Message Function(String string, Constant constant)>(
+    messageTemplate:
+        r"""The method '#string' can't be invoked on '#constant' within a const context.""",
+    withArguments: _withArgumentsConstEvalInvalidMethodInvocation);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, Constant constant)>
+    codeConstEvalInvalidMethodInvocation =
+    const Code<Message Function(String string, Constant constant)>(
+        "ConstEvalInvalidMethodInvocation",
+        templateConstEvalInvalidMethodInvocation,
+        analyzerCode: "UNDEFINED_OPERATOR");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalInvalidMethodInvocation(
+    String string, Constant constant) {
+  return new Message(codeConstEvalInvalidMethodInvocation,
+      message:
+          """The method '$string' can't be invoked on '$constant' within a const context.""",
+      arguments: {'string': string, 'constant': constant});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateConstEvalInvalidStaticInvocation = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""The invocation of '#name' is not allowed within a const context.""",
+    withArguments: _withArgumentsConstEvalInvalidStaticInvocation);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeConstEvalInvalidStaticInvocation =
+    const Code<Message Function(String name)>(
+        "ConstEvalInvalidStaticInvocation",
+        templateConstEvalInvalidStaticInvocation,
+        analyzerCode: "CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalInvalidStaticInvocation(String name) {
+  return new Message(codeConstEvalInvalidStaticInvocation,
+      message:
+          """The invocation of '$name' is not allowed within a const context.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Constant constant)>
+    templateConstEvalInvalidStringInterpolationOperand =
+    const Template<Message Function(Constant constant)>(
+        messageTemplate:
+            r"""The '#constant' can't be used as part of a string interpolation within a const context, only values of type 'null', 'bool', 'int', 'double', or 'String' can be used.""",
+        withArguments:
+            _withArgumentsConstEvalInvalidStringInterpolationOperand);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Constant constant)>
+    codeConstEvalInvalidStringInterpolationOperand =
+    const Code<Message Function(Constant constant)>(
+        "ConstEvalInvalidStringInterpolationOperand",
+        templateConstEvalInvalidStringInterpolationOperand,
+        analyzerCode: "CONST_EVAL_TYPE_BOOL_NUM_STRING");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalInvalidStringInterpolationOperand(
+    Constant constant) {
+  return new Message(codeConstEvalInvalidStringInterpolationOperand,
+      message:
+          """The '$constant' can't be used as part of a string interpolation within a const context, only values of type 'null', 'bool', 'int', 'double', or 'String' can be used.""",
+      arguments: {'constant': constant});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        Constant constant,
+        DartType _type,
+        DartType
+            _type2)> templateConstEvalInvalidType = const Template<
+        Message Function(Constant constant, DartType _type, DartType _type2)>(
+    messageTemplate:
+        r"""Expected constant '#constant' to be of type '#type', but was of type '#type2'.""",
+    withArguments: _withArgumentsConstEvalInvalidType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Constant constant, DartType _type, DartType _type2)>
+    codeConstEvalInvalidType = const Code<
+        Message Function(Constant constant, DartType _type, DartType _type2)>(
+  "ConstEvalInvalidType",
+  templateConstEvalInvalidType,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalInvalidType(
+    Constant constant, DartType _type, DartType _type2) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
+  String type2 = '$buffer';
+
+  return new Message(codeConstEvalInvalidType,
+      message:
+          """Expected constant '$constant' to be of type '$type', but was of type '$type2'.""",
+      arguments: {'constant': constant, 'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            string)> templateConstEvalNonConstantLiteral = const Template<
+        Message Function(String string)>(
+    messageTemplate:
+        r"""Can't have a non-constant #string literal within a const context.""",
+    withArguments: _withArgumentsConstEvalNonConstantLiteral);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeConstEvalNonConstantLiteral =
+    const Code<Message Function(String string)>(
+        "ConstEvalNonConstantLiteral", templateConstEvalNonConstantLiteral,
+        analyzerCode: "NON_CONSTANT_DEFAULT_VALUE");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalNonConstantLiteral(String string) {
+  return new Message(codeConstEvalNonConstantLiteral,
+      message:
+          """Can't have a non-constant $string literal within a const context.""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstFactory = messageConstFactory;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2141,7 +2392,7 @@ const MessageCode messageFastaUsageLong =
     Read the SDK platform from <file>, which should be in Dill/Kernel IR format
     and contain the Dart SDK.
 
-  --target=none|vm|vmcc|vmreify|flutter
+  --target=dart2js|dart2js_server|dart_runner|flutter|flutter_runner|none|vm
     Specify the target configuration.
 
   --verify
@@ -2286,6 +2537,26 @@ Message _withArgumentsFinalInstanceVariableAlreadyInitializedCause(
   return new Message(codeFinalInstanceVariableAlreadyInitializedCause,
       message: """'$name' was initialized here.""", arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeForInLoopExactlyOneVariable =
+    messageForInLoopExactlyOneVariable;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageForInLoopExactlyOneVariable = const MessageCode(
+    "ForInLoopExactlyOneVariable",
+    severity: Severity.error,
+    message: r"""A for-in loop can't have more than one loop variable.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeForInLoopNotAssignable = messageForInLoopNotAssignable;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageForInLoopNotAssignable = const MessageCode(
+    "ForInLoopNotAssignable",
+    severity: Severity.error,
+    message:
+        r"""Can't assign to this, so it can't be used in a for-in loop.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -5657,6 +5928,8 @@ const Code<Null> codeTypedefNotFunction = messageTypedefNotFunction;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageTypedefNotFunction = const MessageCode(
     "TypedefNotFunction",
+    analyzerCode: "INVALID_GENERIC_FUNCTION_TYPE",
+    dart2jsCode: "*fatal*",
     message: r"""Can't create typedef from non-function type.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

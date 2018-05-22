@@ -169,10 +169,6 @@ analyzer/test/src/summary/resynthesize_kernel_test: StaticWarning
 front_end/test/incremental_dart2js_load_from_dill_test: StaticWarning
 front_end/test/incremental_load_from_dill_test: StaticWarning
 
-# Don't analyze tests in strong mode yet
-[ $compiler == dart2analyzer && $strong ]
-*: Skip # Issue 28649
-
 # Analyze dev_compiler but only run its tests on the vm
 [ $compiler != dart2analyzer && $runtime != vm ]
 dev_compiler/test/*: Skip

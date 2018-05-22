@@ -271,10 +271,13 @@ class Isolate {
    * before those methods can complete.
    *
    * If the [checked] parameter is set to `true` or `false`,
-   * the new isolate will run code in checked mode,
-   * respectively in production mode, if possible.
-   * If the parameter is omitted, the new isolate will inherit the
-   * value from the current isolate.
+   * the new isolate will run code in checked mode (enabling asserts and type
+   * checks), respectively in production mode (disabling asserts and type
+   * checks), if possible. If the parameter is omitted, the new isolate will
+   * inherit the value from the current isolate.
+   *
+   * In Dart2 strong mode, the `checked` parameter only controls asserts, but
+   * not type checks.
    *
    * It may not always be possible to honor the `checked` parameter.
    * If the isolate code was pre-compiled, it may not be possible to change

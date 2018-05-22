@@ -55,6 +55,8 @@ const uint8_t kNativeYieldFlags = 0x2;
 
 enum LogicalOperator { kAnd, kOr };
 
+typedef void (*Dart_ReleaseBufferCallback)(uint8_t* buffer);
+
 class Program {
  public:
   ~Program() {
@@ -77,18 +79,24 @@ class Program {
    * "sub program" should not try to release the buffer.
    * @return
    */
-  static Program* ReadFrom(Reader* reader, bool take_buffer_ownership = true);
+  static Program* ReadFrom(Reader* reader, bool take_buffer_ownership = false);
 
   static Program* ReadFromFile(const char* script_uri);
   static Program* ReadFromBuffer(const uint8_t* buffer,
                                  intptr_t buffer_length,
-                                 bool take_buffer_ownership = true);
+                                 bool take_buffer_ownership = false);
 
   bool is_single_program() { return single_program_; }
   NameIndex main_method() { return main_method_reference_; }
   intptr_t source_table_offset() const { return source_table_offset_; }
   intptr_t string_table_offset() const { return string_table_offset_; }
   intptr_t name_table_offset() const { return name_table_offset_; }
+  intptr_t metadata_payloads_offset() const {
+    return metadata_payloads_offset_;
+  }
+  intptr_t metadata_mappings_offset() const {
+    return metadata_mappings_offset_;
+  }
   intptr_t constant_table_offset() { return constant_table_offset_; }
   const uint8_t* kernel_data() { return kernel_data_; }
   intptr_t kernel_data_size() { return kernel_data_size_; }
@@ -114,6 +122,12 @@ class Program {
 
   // The offset from the start of the binary to the canonical name table.
   intptr_t name_table_offset_;
+
+  // The offset from the start of the binary to the metadata payloads.
+  intptr_t metadata_payloads_offset_;
+
+  // The offset from the start of the binary to the metadata mappings.
+  intptr_t metadata_mappings_offset_;
 
   // The offset from the start of the binary to the start of the string table.
   intptr_t string_table_offset_;
@@ -194,6 +208,7 @@ class KernelLineStartsReader {
 
   const dart::TypedData& line_starts_data_;
   KernelLineStartsHelper* helper_;
+  Dart_ReleaseBufferCallback release_callback;
 
   DISALLOW_COPY_AND_ASSIGN(KernelLineStartsReader);
 };

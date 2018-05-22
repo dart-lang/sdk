@@ -41,6 +41,7 @@ class _InvocationMirror implements Invocation {
   final List _argumentsDescriptor;
   final List _arguments;
   final bool _isSuperInvocation;
+  final int _delayedTypeArgumentsLen;
 
   // External representation of the invocation mirror; populated on demand.
   Symbol _memberName;
@@ -79,16 +80,20 @@ class _InvocationMirror implements Invocation {
     return _memberName;
   }
 
+  int get _typeArgsLen {
+    int typeArgsLen = _argumentsDescriptor[_TYPE_ARGS_LEN];
+    return typeArgsLen == 0 ? _delayedTypeArgumentsLen : typeArgsLen;
+  }
+
   List<Type> get typeArguments {
     if (_typeArguments == null) {
-      int typeArgsLen = _argumentsDescriptor[_TYPE_ARGS_LEN];
-      if (typeArgsLen == 0) {
+      if (_typeArgsLen == 0) {
         return _typeArguments = const <Type>[];
       }
       // A TypeArguments object does not have a corresponding Dart class and
       // cannot be accessed as an array in Dart. Therefore, we need a native
       // call to unpack the individual types into a list.
-      _typeArguments = _unpackTypeArguments(_arguments[0], typeArgsLen);
+      _typeArguments = _unpackTypeArguments(_arguments[0], _typeArgsLen);
     }
     return _typeArguments;
   }
@@ -106,7 +111,7 @@ class _InvocationMirror implements Invocation {
         return _positionalArguments = const [];
       }
       // Exclude receiver and type args in the returned list.
-      int receiverIndex = _argumentsDescriptor[_TYPE_ARGS_LEN] > 0 ? 1 : 0;
+      int receiverIndex = _typeArgsLen > 0 ? 1 : 0;
       _positionalArguments = new _ImmutableList._from(
           _arguments, receiverIndex + 1, numPositionalArguments);
     }
@@ -121,7 +126,7 @@ class _InvocationMirror implements Invocation {
       if (numNamedArguments == 0) {
         return _namedArguments = const {};
       }
-      int receiverIndex = _argumentsDescriptor[_TYPE_ARGS_LEN] > 0 ? 1 : 0;
+      int receiverIndex = _typeArgsLen > 0 ? 1 : 0;
       _namedArguments = new Map<Symbol, dynamic>();
       for (int i = 0; i < numNamedArguments; i++) {
         int namedEntryIndex = _FIRST_NAMED_ENTRY + 2 * i;
@@ -164,15 +169,32 @@ class _InvocationMirror implements Invocation {
   }
 
   _InvocationMirror(this._functionName, this._argumentsDescriptor,
-      this._arguments, this._isSuperInvocation, this._type);
+      this._arguments, this._isSuperInvocation, this._type,
+      [this._delayedTypeArgumentsLen = 0]);
 
   _InvocationMirror._withoutType(this._functionName, this._typeArguments,
-      this._positionalArguments, this._namedArguments, this._isSuperInvocation);
+      this._positionalArguments, this._namedArguments, this._isSuperInvocation,
+      [this._delayedTypeArgumentsLen = 0]);
 
   static _allocateInvocationMirror(String functionName,
       List argumentsDescriptor, List arguments, bool isSuperInvocation,
       [int type = null]) {
     return new _InvocationMirror(
         functionName, argumentsDescriptor, arguments, isSuperInvocation, type);
+  }
+
+  // This factory is used when creating an `Invocation` for a closure call which
+  // may have delayed type arguments. In that case, the arguments descriptor will
+  // indicate 0 type arguments, but the actual number of type arguments are
+  // passed in `delayedTypeArgumentsLen`. If any type arguments are available,
+  // the type arguments vector will be the first entry in `arguments`.
+  static _allocateInvocationMirrorForClosure(
+      String functionName,
+      List argumentsDescriptor,
+      List arguments,
+      int type,
+      int delayedTypeArgumentsLen) {
+    return new _InvocationMirror(functionName, argumentsDescriptor, arguments,
+        false, type, delayedTypeArgumentsLen);
   }
 }

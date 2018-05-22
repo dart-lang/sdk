@@ -4,6 +4,9 @@
 
 library entity_utils;
 
+import 'package:front_end/src/fasta/scanner.dart'
+    show isUserDefinableOperator, isMinusOperator;
+
 import 'entities.dart';
 
 // Somewhat stable ordering for libraries using [Uri]s
@@ -88,4 +91,87 @@ String reconstructConstructorName(FunctionEntity element) {
   } else {
     return '$className\$${element.name}';
   }
+}
+
+String reconstructConstructorNameSourceString(FunctionEntity element) {
+  if (element.name == '') {
+    return element.enclosingClass.name;
+  } else {
+    return reconstructConstructorName(element);
+  }
+}
+
+/**
+ * Map an operator-name to a valid JavaScript identifier.
+ *
+ * For non-operator names, this method just returns its input.
+ *
+ * The results returned from this method are guaranteed to be valid
+ * JavaScript identifiers, except it may include reserved words for
+ * non-operator names.
+ */
+String operatorNameToIdentifier(String name) {
+  if (name == null) {
+    return name;
+  } else if (name == '==') {
+    return r'operator$eq';
+  } else if (name == '~') {
+    return r'operator$not';
+  } else if (name == '[]') {
+    return r'operator$index';
+  } else if (name == '[]=') {
+    return r'operator$indexSet';
+  } else if (name == '*') {
+    return r'operator$mul';
+  } else if (name == '/') {
+    return r'operator$div';
+  } else if (name == '%') {
+    return r'operator$mod';
+  } else if (name == '~/') {
+    return r'operator$tdiv';
+  } else if (name == '+') {
+    return r'operator$add';
+  } else if (name == '<<') {
+    return r'operator$shl';
+  } else if (name == '>>') {
+    return r'operator$shr';
+  } else if (name == '>=') {
+    return r'operator$ge';
+  } else if (name == '>') {
+    return r'operator$gt';
+  } else if (name == '<=') {
+    return r'operator$le';
+  } else if (name == '<') {
+    return r'operator$lt';
+  } else if (name == '&') {
+    return r'operator$and';
+  } else if (name == '^') {
+    return r'operator$xor';
+  } else if (name == '|') {
+    return r'operator$or';
+  } else if (name == '-') {
+    return r'operator$sub';
+  } else if (name == 'unary-') {
+    return r'operator$negate';
+  } else {
+    return name;
+  }
+}
+
+String constructOperatorNameOrNull(String op, bool isUnary) {
+  if (isMinusOperator(op)) {
+    return isUnary ? 'unary-' : op;
+  } else if (isUserDefinableOperator(op) || op == '??') {
+    return op;
+  } else {
+    return null;
+  }
+}
+
+String constructOperatorName(String op, bool isUnary) {
+  String operatorName = constructOperatorNameOrNull(op, isUnary);
+  if (operatorName == null)
+    throw 'Unhandled operator: $op';
+  else
+    return operatorName;
 }

@@ -592,6 +592,10 @@ abstract class ScannerTestBase {
     _assertKeywordToken("implements");
   }
 
+  void test_keyword_interface() {
+    _assertKeywordToken("interface");
+  }
+
   void test_keyword_import() {
     _assertKeywordToken("import");
   }
@@ -606,6 +610,10 @@ abstract class ScannerTestBase {
 
   void test_keyword_library() {
     _assertKeywordToken("library");
+  }
+
+  void test_keyword_mixin() {
+    _assertKeywordToken("mixin");
   }
 
   void test_keyword_native() {

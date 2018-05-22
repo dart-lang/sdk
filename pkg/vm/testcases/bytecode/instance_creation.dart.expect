@@ -211,7 +211,7 @@ ConstantPool {
   return new self::C::•("hello");
 [@vm.bytecode=
 Bytecode {
-  Entry                2
+  Entry                1
   CheckStack
   PushConstant         CP#2
   PushConstant         CP#0
@@ -226,8 +226,8 @@ Bytecode {
   PushConstant         CP#8
   PushConstant         CP#6
   AllocateT
-  StoreLocal           r1
-  Push                 r1
+  StoreLocal           r0
+  Push                 r0
   PushConstant         CP#10
   IndirectStaticCall   1, CP#9
   Drop1

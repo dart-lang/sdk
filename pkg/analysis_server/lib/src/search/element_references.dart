@@ -68,12 +68,15 @@ class ElementReferencesComputer {
   /**
    * Returns a [Future] completing with [Element]s to search references to.
    *
-   * If a [ClassMemberElement] is given, each corresponding [Element] in the
-   * hierarchy is returned.
+   * If a [ClassMemberElement] or a named [ParameterElement] is given, each
+   * corresponding [Element] in the hierarchy is returned.
    *
    * Otherwise, only references to [element] should be searched.
    */
   Future<Iterable<Element>> _getRefElements(Element element) {
+    if (element is ParameterElement && element.isNamed) {
+      return getHierarchyNamedParameters(searchEngine, element);
+    }
     if (element is ClassMemberElement) {
       return getHierarchyMembers(searchEngine, element);
     }

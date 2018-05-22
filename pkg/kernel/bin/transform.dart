@@ -12,7 +12,6 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/src/tool/batch_util.dart';
 import 'package:kernel/target/targets.dart';
-import 'package:kernel/transformations/closure_conversion.dart' as closures;
 import 'package:kernel/transformations/constants.dart' as constants;
 import 'package:kernel/transformations/continuation.dart' as cont;
 import 'package:kernel/transformations/empty.dart' as empty;
@@ -93,9 +92,6 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
     case 'resolve-mixins':
       mix.transformLibraries(
           new NoneTarget(null), coreTypes, hierarchy, component.libraries);
-      break;
-    case 'closures':
-      component = closures.transformComponent(coreTypes, component);
       break;
     case 'coq':
       component = coq.transformComponent(coreTypes, component);

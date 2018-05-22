@@ -1611,6 +1611,7 @@ static void ShutdownIsolate(uword parameter) {
     if (!error.IsNull() && !error.IsUnwindError()) {
       OS::PrintErr("in ShutdownIsolate: %s\n", error.ToErrorCString());
     }
+    TransitionVMToNative transition(thread);
     Dart::RunShutdownCallback();
   }
   // Shut the isolate down.

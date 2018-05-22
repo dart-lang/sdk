@@ -25,8 +25,6 @@ import 'dart:_js_embedded_names'
 
 import 'dart:collection';
 
-import 'dart:_isolate_helper' show thisScript, isWorker;
-
 import 'dart:async' show Completer, DeferredLoadException, Future;
 
 import 'dart:_foreign_helper'
@@ -710,26 +708,6 @@ class ReflectionInfo {
 }
 
 class Primitives {
-  /// Isolate-unique ID for caching [JsClosureMirror.function].
-  /// Note the initial value is used by the first isolate (or if there are no
-  /// isolates), new isolates will update this value to avoid conflicts by
-  /// calling [initializeStatics].
-  static String mirrorFunctionCacheName = '\$cachedFunction';
-
-  /// Isolate-unique ID for caching [JsInstanceMirror._invoke].
-  static String mirrorInvokeCacheName = '\$cachedInvocation';
-
-  /// Called when creating a new isolate (see _IsolateContext constructor in
-  /// isolate_helper.dart).
-  /// Please don't add complicated code to this method, as it will impact
-  /// start-up performance.
-  static void initializeStatics(int id) {
-    // Benchmarking shows significant performance improvements if this is a
-    // fixed value.
-    mirrorFunctionCacheName += '_$id';
-    mirrorInvokeCacheName += '_$id';
-  }
-
   static int objectHashCode(object) {
     int hash = JS('int|Null', r'#.$identityHash', object);
     if (hash == null) {
@@ -3513,11 +3491,6 @@ functionTypeCast(value, functionTypeRti) {
   throw new CastErrorImplementation(value, self);
 }
 
-checkMalformedType(value, message) {
-  if (value == null) return value;
-  throw new TypeErrorImplementation.fromMessage(message);
-}
-
 futureOrTest(o, futureOrRti) => checkSubtypeOfRuntimeType(o, futureOrRti);
 
 futureOrCheck(o, futureOrRti) => assertSubtypeOfRuntimeType(o, futureOrRti);
@@ -3798,6 +3771,64 @@ String _computeCspNonce() {
   return JS('String', 'String(#.nonce)', currentScript);
 }
 
+/// Returns true if we are currently in a worker context.
+bool _isWorker() {
+  requiresPreamble();
+  return JS('', '!self.window && !!self.postMessage');
+}
+
+/// The src url for the script tag that loaded this code.
+String thisScript = _computeThisScript();
+
+/// The src url for the script tag that loaded this function.
+///
+/// Used to create JavaScript workers and load deferred libraries.
+String _computeThisScript() {
+  var currentScript = JS_EMBEDDED_GLOBAL('', CURRENT_SCRIPT);
+  if (currentScript != null) {
+    return JS('String', 'String(#.src)', currentScript);
+  }
+  // A worker has no script tag - so get an url from a stack-trace.
+  if (_isWorker()) return _computeThisScriptFromTrace();
+  // An isolate that doesn't support workers, but doesn't have a
+  // currentScript either. This is most likely a Chrome extension.
+  return null;
+}
+
+String _computeThisScriptFromTrace() {
+  var stack = JS('String|Null', 'new Error().stack');
+  if (stack == null) {
+    // According to Internet Explorer documentation, the stack
+    // property is not set until the exception is thrown. The stack
+    // property was not provided until IE10.
+    stack = JS(
+        'String|Null',
+        '(function() {'
+        'try { throw new Error() } catch(e) { return e.stack }'
+        '})()');
+    if (stack == null) throw new UnsupportedError('No stack trace');
+  }
+  var pattern, matches;
+
+  // This pattern matches V8, Chrome, and Internet Explorer stack
+  // traces that look like this:
+  // Error
+  //     at methodName (URI:LINE:COLUMN)
+  pattern = JS('', r'new RegExp("^ *at [^(]*\\((.*):[0-9]*:[0-9]*\\)$", "m")');
+
+  matches = JS('JSExtendableArray|Null', '#.match(#)', stack, pattern);
+  if (matches != null) return JS('String', '#[1]', matches);
+
+  // This pattern matches Firefox stack traces that look like this:
+  // methodName@URI:LINE
+  pattern = JS('', r'new RegExp("^[^@]*@(.*):[0-9]*$", "m")');
+
+  matches = JS('JSExtendableArray|Null', '#.match(#)', stack, pattern);
+  if (matches != null) return JS('String', '#[1]', matches);
+
+  throw new UnsupportedError('Cannot extract URI from "$stack"');
+}
+
 Future<Null> _loadHunk(String hunkName) {
   Future<Null> future = _loadingLibraries[hunkName];
   _eventLog.add(' - _loadHunk: $hunkName');
@@ -3843,7 +3874,7 @@ Future<Null> _loadHunk(String hunkName) {
     } catch (error, stackTrace) {
       failure(error, "invoking dartDeferredLibraryLoader hook", stackTrace);
     }
-  } else if (isWorker()) {
+  } else if (_isWorker()) {
     // We are in a web worker. Load the code with an XMLHttpRequest.
     int index = uri.lastIndexOf('/');
     uri = '${uri.substring(0, index + 1)}$hunkName';

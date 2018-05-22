@@ -4,7 +4,6 @@
 
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
-import 'package:kernel/library_index.dart';
 import 'package:kernel/type_environment.dart';
 
 /// An abstraction of the JS types
@@ -89,17 +88,19 @@ class JSUnknown extends JSType {
 class JSTypeRep {
   final TypeEnvironment types;
   final CoreTypes coreTypes;
-  final LibraryIndex sdk;
 
   final Class _jsBool;
   final Class _jsNumber;
-
   final Class _jsString;
-  JSTypeRep(this.types, this.sdk)
+
+  JSTypeRep(this.types)
       : coreTypes = types.coreTypes,
-        _jsBool = sdk.getClass('dart:_interceptors', 'JSBool'),
-        _jsNumber = sdk.getClass('dart:_interceptors', 'JSNumber'),
-        _jsString = sdk.getClass('dart:_interceptors', 'JSString');
+        _jsBool =
+            types.coreTypes.index.getClass('dart:_interceptors', 'JSBool'),
+        _jsNumber =
+            types.coreTypes.index.getClass('dart:_interceptors', 'JSNumber'),
+        _jsString =
+            types.coreTypes.index.getClass('dart:_interceptors', 'JSString');
 
   JSType typeFor(DartType type) {
     while (type is TypeParameterType) {

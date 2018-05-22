@@ -6824,10 +6824,6 @@ class Parser {
     } else {
       name = createSyntheticIdentifier();
     }
-    if (commentAndMetadata.hasMetadata) {
-      _reportErrorForNode(ParserErrorCode.ANNOTATION_ON_ENUM_CONSTANT,
-          commentAndMetadata.metadata[0]);
-    }
     return astFactory.enumConstantDeclaration(
         commentAndMetadata.comment, commentAndMetadata.metadata, name);
   }

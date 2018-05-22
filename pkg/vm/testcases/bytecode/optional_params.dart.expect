@@ -7,7 +7,7 @@ Bytecode {
   EntryOptional        1, 2, 0
   LoadConstant         r1, CP#0
   LoadConstant         r2, CP#1
-  Frame                3
+  Frame                1
   CheckStack
   PushConstant         CP#2
   PushConstant         CP#3
@@ -29,12 +29,12 @@ Bytecode {
   PushConstant         CP#2
   PushConstant         CP#3
   CreateArrayTOS
-  StoreLocal           r4
-  Push                 r4
+  StoreLocal           r3
+  Push                 r3
   PushConstant         CP#4
   PushConstant         CP#10
   StoreIndexedTOS
-  Push                 r4
+  Push                 r3
   PushConstant         CP#6
   Push                 r1
   StoreIndexedTOS
@@ -46,12 +46,12 @@ Bytecode {
   PushConstant         CP#2
   PushConstant         CP#3
   CreateArrayTOS
-  StoreLocal           r5
-  Push                 r5
+  StoreLocal           r3
+  Push                 r3
   PushConstant         CP#4
   PushConstant         CP#13
   StoreIndexedTOS
-  Push                 r5
+  Push                 r3
   PushConstant         CP#6
   Push                 r2
   StoreIndexedTOS
@@ -95,7 +95,7 @@ Bytecode {
   LoadConstant         r3, CP#4
   LoadConstant         r4, CP#5
   LoadConstant         r4, CP#6
-  Frame                5
+  Frame                1
   CheckStack
   PushConstant         CP#7
   PushConstant         CP#8
@@ -117,12 +117,12 @@ Bytecode {
   PushConstant         CP#7
   PushConstant         CP#8
   CreateArrayTOS
-  StoreLocal           r6
-  Push                 r6
+  StoreLocal           r5
+  Push                 r5
   PushConstant         CP#9
   PushConstant         CP#15
   StoreIndexedTOS
-  Push                 r6
+  Push                 r5
   PushConstant         CP#11
   Push                 r1
   StoreIndexedTOS
@@ -134,12 +134,12 @@ Bytecode {
   PushConstant         CP#7
   PushConstant         CP#8
   CreateArrayTOS
-  StoreLocal           r7
-  Push                 r7
+  StoreLocal           r5
+  Push                 r5
   PushConstant         CP#9
   PushConstant         CP#18
   StoreIndexedTOS
-  Push                 r7
+  Push                 r5
   PushConstant         CP#11
   Push                 r2
   StoreIndexedTOS
@@ -151,12 +151,12 @@ Bytecode {
   PushConstant         CP#7
   PushConstant         CP#8
   CreateArrayTOS
-  StoreLocal           r8
-  Push                 r8
+  StoreLocal           r5
+  Push                 r5
   PushConstant         CP#9
   PushConstant         CP#21
   StoreIndexedTOS
-  Push                 r8
+  Push                 r5
   PushConstant         CP#11
   Push                 r3
   StoreIndexedTOS
@@ -168,12 +168,12 @@ Bytecode {
   PushConstant         CP#7
   PushConstant         CP#8
   CreateArrayTOS
-  StoreLocal           r9
-  Push                 r9
+  StoreLocal           r5
+  Push                 r5
   PushConstant         CP#9
   PushConstant         CP#24
   StoreIndexedTOS
-  Push                 r9
+  Push                 r5
   PushConstant         CP#11
   Push                 r4
   StoreIndexedTOS

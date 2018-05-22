@@ -10,11 +10,8 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../common/names.dart' show Identifiers;
 import '../constants/values.dart';
-import '../elements/elements.dart'
-    show ConstructorElement, LocalElement, MemberElement;
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../tree/tree.dart' as ast show ForIn, Node, Send, SendSet;
 import '../types/masks.dart'
     show
         CommonMasks,
@@ -402,13 +399,7 @@ abstract class MemberTypeInformation extends ElementTypeInformation
    */
   Map<MemberEntity, Setlet<Object>> _callers;
 
-  MemberTypeInformation._internal(this._member) : super._internal(null) {
-    assert(_checkMember(_member));
-  }
-
-  bool _checkMember(MemberEntity member) {
-    return !(member is MemberElement && !member.isDeclaration);
-  }
+  MemberTypeInformation._internal(this._member) : super._internal(null);
 
   MemberEntity get member => _member;
 
@@ -619,19 +610,19 @@ class FactoryConstructorTypeInformation extends MemberTypeInformation {
       : super._internal(element);
 
   TypeMask handleSpecialCases(InferrerEngine inferrer) {
-    CommonMasks commonMasks = inferrer.commonMasks;
+    CommonMasks abstractValueDomain = inferrer.abstractValueDomain;
     if (_constructor.isFromEnvironmentConstructor) {
       if (_constructor.enclosingClass == inferrer.commonElements.intClass) {
         giveUp(inferrer);
-        return commonMasks.intType.nullable();
+        return abstractValueDomain.intType.nullable();
       } else if (_constructor.enclosingClass ==
           inferrer.commonElements.boolClass) {
         giveUp(inferrer);
-        return commonMasks.boolType.nullable();
+        return abstractValueDomain.boolType.nullable();
       } else if (_constructor.enclosingClass ==
           inferrer.commonElements.stringClass) {
         giveUp(inferrer);
-        return commonMasks.stringType.nullable();
+        return abstractValueDomain.stringType.nullable();
       }
     }
     return _handleFunctionCase(_constructor, inferrer);
@@ -688,9 +679,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
       : _isInstanceMemberParameter = false,
         _isClosureParameter = true,
         _isInitializingFormal = false,
-        super._internal(context) {
-    assert(_checkParameter(_parameter));
-  }
+        super._internal(context);
 
   ParameterTypeInformation.static(
       MemberTypeInformation context, this._parameter, this._type, this._method,
@@ -698,9 +687,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
       : _isInstanceMemberParameter = false,
         _isClosureParameter = false,
         _isInitializingFormal = isInitializingFormal,
-        super._internal(context) {
-    assert(_checkParameter(_parameter));
-  }
+        super._internal(context);
 
   ParameterTypeInformation.instanceMember(
       MemberTypeInformation context,
@@ -711,13 +698,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
       : _isInstanceMemberParameter = true,
         _isClosureParameter = false,
         _isInitializingFormal = false,
-        super._withAssignments(context, assignments) {
-    assert(_checkParameter(_parameter));
-  }
-
-  bool _checkParameter(Local parameter) {
-    return !(parameter is LocalElement && !parameter.isImplementation);
-  }
+        super._withAssignments(context, assignments);
 
   FunctionEntity get method => _method;
 
@@ -857,18 +838,15 @@ class ParameterTypeInformation extends ElementTypeInformation {
 
 enum CallType {
   access,
-  complex,
   forIn,
 }
 
 bool validCallType(CallType callType, Object call) {
   switch (callType) {
-    case CallType.complex:
-      return call is ast.SendSet;
     case CallType.access:
-      return call is ast.Send || call is ir.Node;
+      return call is ir.Node;
     case CallType.forIn:
-      return call is ast.ForIn || call is ir.ForInStatement;
+      return call is ir.ForInStatement;
   }
   throw new StateError('Unexpected call type $callType.');
 }
@@ -895,15 +873,7 @@ abstract class CallSiteTypeInformation extends TypeInformation
   CallSiteTypeInformation(MemberTypeInformation context, this._call,
       this.caller, this.selector, this.mask, this.arguments, this.inLoop)
       : super.noAssignments(context) {
-    assert(_checkCaller(caller));
-    // [_call] is either an AST node or a constructor element in case of a
-    // a forwarding constructor _call.
-    assert(
-        _call is ast.Node || _call is ConstructorElement || _call is ir.Node);
-  }
-
-  bool _checkCaller(MemberEntity caller) {
-    return !(caller is MemberElement && !caller.isDeclaration);
+    assert(_call is ir.Node);
   }
 
   String toString() => 'Call site $debugName $type';
@@ -929,13 +899,7 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
       TypeMask mask,
       ArgumentsTypes arguments,
       bool inLoop)
-      : super(context, call, enclosing, selector, mask, arguments, inLoop) {
-    assert(_checkCalledElement(calledElement));
-  }
-
-  bool _checkCalledElement(MemberEntity calledElement) {
-    return !(calledElement is MemberElement && !calledElement.isDeclaration);
-  }
+      : super(context, call, enclosing, selector, mask, arguments, inLoop);
 
   MemberTypeInformation _getCalledTypeInfo(InferrerEngine inferrer) {
     return inferrer.types.getInferredTypeOfMember(calledElement);
@@ -1056,7 +1020,7 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
     TypeMask receiverType = receiver.type;
 
     if (mask != receiverType) {
-      return receiverType == inferrer.commonMasks.dynamicType
+      return receiverType == inferrer.abstractValueDomain.dynamicType
           ? null
           : receiverType;
     } else {
@@ -1234,7 +1198,7 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
     // for all these targets.
     TypeMask result;
     if (_hasClosureCallTargets) {
-      result = inferrer.commonMasks.dynamicType;
+      result = inferrer.abstractValueDomain.dynamicType;
     } else {
       result = inferrer.types
           .joinTypeMasks(_concreteTargets.map((MemberEntity element) {

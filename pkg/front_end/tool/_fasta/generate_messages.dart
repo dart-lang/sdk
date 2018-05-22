@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'dart:io';
 
 import 'dart:isolate';
@@ -14,6 +16,17 @@ import "package:front_end/src/fasta/severity.dart" show severityEnumNames;
 
 main(List<String> arguments) async {
   var port = new ReceivePort();
+  await new File.fromUri(await computeGeneratedFile())
+      .writeAsString(await generateMessagesFile(), flush: true);
+  port.close();
+}
+
+Future<Uri> computeGeneratedFile() {
+  return Isolate.resolvePackageUri(
+      Uri.parse('package:front_end/src/fasta/fasta_codes_generated.dart'));
+}
+
+Future<String> generateMessagesFile() async {
   Uri messagesFile = Platform.script.resolve("../../messages.yaml");
   Map yaml = loadYaml(await new File.fromUri(messagesFile).readAsStringSync());
   StringBuffer sb = new StringBuffer();
@@ -45,13 +58,7 @@ part of fasta.codes;
         map['analyzerCode'], map['dart2jsCode'], map['severity']));
   }
 
-  String dartfmtedText = new DartFormatter().format("$sb");
-
-  Uri problemsFile = await Isolate.resolvePackageUri(
-      Uri.parse('package:front_end/src/fasta/fasta_codes_generated.dart'));
-  await new File.fromUri(problemsFile)
-      .writeAsString(dartfmtedText, flush: true);
-  port.close();
+  return new DartFormatter().format("$sb");
 }
 
 final RegExp placeholderPattern = new RegExp("#[a-zA-Z0-9_]+");
@@ -170,6 +177,11 @@ String type2 = '$buffer';
       case "#count2":
         parameters.add("int count2");
         arguments.add("'count2': count2");
+        break;
+
+      case "#constant":
+        parameters.add("Constant constant");
+        arguments.add("'constant': constant");
         break;
 
       default:

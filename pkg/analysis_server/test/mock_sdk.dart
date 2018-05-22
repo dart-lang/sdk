@@ -128,6 +128,7 @@ class Iterator<E> {
 abstract class Iterable<E> {
   Iterator<E> get iterator;
   bool get isEmpty;
+  void forEach(void f(E element));
   Iterable<T> map<T>(T f(E e)) => null;
   T fold<T>(T initialValue, T combine(T previousValue, E element));
   List<E> toList({bool growable: true});

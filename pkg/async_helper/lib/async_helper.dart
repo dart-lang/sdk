@@ -23,14 +23,7 @@
 
 library async_helper;
 
-// TODO(kustermann): This is problematic because we rely on a working
-// 'dart:isolate' (i.e. it is in particular problematic with dart2js).
-// It would be nice if we could use a different mechanism for different
-// runtimes.
-import 'dart:isolate';
-
 bool _initialized = false;
-ReceivePort _port = null;
 int _asyncLevel = 0;
 
 Exception _buildException(String msg) {
@@ -49,7 +42,6 @@ void asyncStart([int count = 1]) {
   if (!_initialized) {
     print('unittest-suite-wait-for-done');
     _initialized = true;
-    _port = new ReceivePort();
   }
   _asyncLevel += count;
 }
@@ -66,8 +58,6 @@ void asyncEnd() {
   }
   _asyncLevel--;
   if (_asyncLevel == 0) {
-    _port.close();
-    _port = null;
     print('unittest-suite-success');
   }
 }

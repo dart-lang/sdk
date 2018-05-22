@@ -108,7 +108,7 @@ class AnalysisServer {
    * The version of the analysis server. The value should be replaced
    * automatically during the build.
    */
-  static final String VERSION = '1.20.2';
+  static final String VERSION = '1.20.3';
 
   /**
    * The options of this server instance.
@@ -382,7 +382,7 @@ class AnalysisServer {
           sink = io.stdout;
         } else if (name.startsWith('file:')) {
           String path = name.substring('file:'.length);
-          sink = new io.File(path).openWrite(mode: io.FileMode.APPEND);
+          sink = new io.File(path).openWrite(mode: io.FileMode.append);
         }
       }
       _analysisPerformanceLogger = new PerformanceLog(sink);

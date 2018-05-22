@@ -1963,37 +1963,40 @@ class ElementKind implements Enum {
  * FoldingKind
  *
  * enum {
- *   COMMENT
- *   CLASS_MEMBER
+ *   ANNOTATIONS
+ *   CLASS_BODY
  *   DIRECTIVES
  *   DOCUMENTATION_COMMENT
- *   TOP_LEVEL_DECLARATION
+ *   FILE_HEADER
+ *   FUNCTION_BODY
  * }
  *
  * Clients may not extend, implement or mix-in this class.
  */
 class FoldingKind implements Enum {
-  static const FoldingKind COMMENT = const FoldingKind._("COMMENT");
+  static const FoldingKind ANNOTATIONS = const FoldingKind._("ANNOTATIONS");
 
-  static const FoldingKind CLASS_MEMBER = const FoldingKind._("CLASS_MEMBER");
+  static const FoldingKind CLASS_BODY = const FoldingKind._("CLASS_BODY");
 
   static const FoldingKind DIRECTIVES = const FoldingKind._("DIRECTIVES");
 
   static const FoldingKind DOCUMENTATION_COMMENT =
       const FoldingKind._("DOCUMENTATION_COMMENT");
 
-  static const FoldingKind TOP_LEVEL_DECLARATION =
-      const FoldingKind._("TOP_LEVEL_DECLARATION");
+  static const FoldingKind FILE_HEADER = const FoldingKind._("FILE_HEADER");
+
+  static const FoldingKind FUNCTION_BODY = const FoldingKind._("FUNCTION_BODY");
 
   /**
    * A list containing all of the enum values that are defined.
    */
   static const List<FoldingKind> VALUES = const <FoldingKind>[
-    COMMENT,
-    CLASS_MEMBER,
+    ANNOTATIONS,
+    CLASS_BODY,
     DIRECTIVES,
     DOCUMENTATION_COMMENT,
-    TOP_LEVEL_DECLARATION
+    FILE_HEADER,
+    FUNCTION_BODY
   ];
 
   @override
@@ -2003,16 +2006,18 @@ class FoldingKind implements Enum {
 
   factory FoldingKind(String name) {
     switch (name) {
-      case "COMMENT":
-        return COMMENT;
-      case "CLASS_MEMBER":
-        return CLASS_MEMBER;
+      case "ANNOTATIONS":
+        return ANNOTATIONS;
+      case "CLASS_BODY":
+        return CLASS_BODY;
       case "DIRECTIVES":
         return DIRECTIVES;
       case "DOCUMENTATION_COMMENT":
         return DOCUMENTATION_COMMENT;
-      case "TOP_LEVEL_DECLARATION":
-        return TOP_LEVEL_DECLARATION;
+      case "FILE_HEADER":
+        return FILE_HEADER;
+      case "FUNCTION_BODY":
+        return FUNCTION_BODY;
     }
     throw new Exception('Illegal enum value: $name');
   }

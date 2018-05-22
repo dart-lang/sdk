@@ -47,15 +47,11 @@ vars = {
   # Scripts that make 'git cl format' work.
   "clang_format_scripts_rev": "c09c8deeac31f05bd801995c475e7c8070f9ecda",
 
-  "gperftools_revision": "02eeed29df112728564a5dde6417fa4622b57a06",
+  "gperftools_revision": "9608fa3bcf8020d35f59fbf70cd3cbe4b015b972",
 
   # Revisions of /third_party/* dependencies.
   "args_tag": "1.4.1",
-  "async_tag": "2.0.6",
-  "barback-0.13.0_rev": "34853",
-  "barback-0.14.0_rev": "36398",
-  "barback-0.14.1_rev": "38525",
-  "barback_tag" : "0.15.2+14",
+  "async_tag": "2.0.7",
   "bazel_worker_tag": "v0.1.9",
   "boolean_selector_tag" : "1.0.3",
   "boringssl_gen_rev": "344f455fd13d46f054726638e76026156ea73aa9",
@@ -63,7 +59,7 @@ vars = {
   "charcode_tag": "v1.1.1",
   "chrome_rev" : "19997",
   "cli_util_tag" : "0.1.2+1",
-  "collection_tag": "1.14.6",
+  "collection_tag": "1.14.9",
   "convert_tag": "2.0.1",
   "crypto_tag" : "2.0.2+1",
   "csslib_tag" : "0.14.1",
@@ -81,7 +77,7 @@ vars = {
   #     minutes later.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
-  "dart_style_tag": "1.0.12",  # Please see the note above before updating.
+  "dart_style_tag": "1.0.14",  # Please see the note above before updating.
 
   "dartdoc_tag" : "v0.19.0",
   "fixnum_tag": "0.10.5",
@@ -93,12 +89,12 @@ vars = {
   "http_parser_tag" : "3.1.1",
   "http_retry_tag": "0.1.1",
   "http_tag" : "0.11.3+16",
-  "http_throttle_tag" : "1.0.1",
+  "http_throttle_tag" : "1.0.2",
   "idl_parser_rev": "5fb1ebf49d235b5a70c9f49047e83b0654031eb7",
   "intl_tag": "0.15.2",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "2.0.6",
-  "linter_tag": "0.1.50",
+  "linter_tag": "0.1.51",
   "logging_tag": "0.11.3+1",
   "markdown_tag": "1.1.1",
   "matcher_tag": "0.12.1+4",
@@ -135,7 +131,7 @@ vars = {
   "test_process_tag": "1.0.1",
   "term_glyph_tag": "1.0.0",
   "test_reflective_loader_tag": "0.1.4",
-  "test_tag": "0.12.30+1",
+  "test_tag": "0.12.38",
   "tuple_tag": "v1.0.1",
   "typed_data_tag": "1.1.3",
   "usage_tag": "3.3.0",
@@ -200,8 +196,6 @@ Var("dart_root") + "/tests/co19_2/src":
       Var("dart_git") + "args.git" + "@" + Var("args_tag"),
   Var("dart_root") + "/third_party/pkg/async":
       Var("dart_git") + "async.git" + "@" + Var("async_tag"),
-  Var("dart_root") + "/third_party/pkg/barback":
-      Var("dart_git") + "barback.git" + "@" + Var("barback_tag"),
   Var("dart_root") + "/third_party/pkg/bazel_worker":
       Var("dart_git") + "bazel_worker.git" + "@" + Var("bazel_worker_tag"),
   Var("dart_root") + "/third_party/pkg/boolean_selector":

@@ -74,7 +74,7 @@ class _TestFoldingContributor implements FoldingContributor {
   @override
   void computeFolding(FoldingRequest request, FoldingCollector collector) {
     for (int i = 0; i < regionCount; i++) {
-      collector.addRegion(i * 20, 10, FoldingKind.COMMENT);
+      collector.addRegion(i * 20, 10, FoldingKind.FILE_HEADER);
     }
   }
 }

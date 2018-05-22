@@ -34,13 +34,13 @@ class DirectCallMetadataRepository
       <TreeNode, DirectCallMetadata>{};
 
   @override
-  void writeToBinary(DirectCallMetadata metadata, BinarySink sink) {
+  void writeToBinary(DirectCallMetadata metadata, Node node, BinarySink sink) {
     sink.writeCanonicalNameReference(getCanonicalNameOfMember(metadata.target));
     sink.writeByte(metadata.checkReceiverForNull ? 1 : 0);
   }
 
   @override
-  DirectCallMetadata readFromBinary(BinarySource source) {
+  DirectCallMetadata readFromBinary(Node node, BinarySource source) {
     final targetReference = source.readCanonicalNameReference()?.getReference();
     if (targetReference == null) {
       throw 'DirectCallMetadata should have a non-null target';

@@ -4,12 +4,8 @@
 
 library dart2js.js_emitter.full_emitter.container_builder;
 
-import '../../constants/values.dart';
 import '../../deferred_load.dart' show OutputUnit;
-import '../../elements/elements.dart'
-    show Element, MetadataAnnotation, MethodElement;
 import '../../elements/entities.dart';
-import '../../elements/entity_utils.dart' as utils;
 import '../../elements/names.dart';
 import '../../js/js.dart' as jsAst;
 import '../../js/js.dart' show js;
@@ -32,15 +28,13 @@ class ContainerBuilder extends CodeEmitterHelper {
     jsAst.Expression code = method.code;
     bool needsStubs = method.parameterStubs.isNotEmpty;
     bool canBeApplied = method.canBeApplied;
-    bool canBeReflected = method.canBeReflected;
     bool canTearOff = method.needsTearOff;
     jsAst.Name tearOffName = method.tearOffName;
     bool isClosure = method is InstanceMethod && method.isClosureCallMethod;
     jsAst.Name superAlias = method is InstanceMethod ? method.aliasName : null;
     bool hasSuperAlias = superAlias != null;
     jsAst.Expression memberTypeExpression = method.functionType;
-    bool needStructuredInfo =
-        canTearOff || canBeReflected || canBeApplied || hasSuperAlias;
+    bool needStructuredInfo = canTearOff || canBeApplied || hasSuperAlias;
 
     bool isIntercepted = false;
     if (method is InstanceMethod) {
@@ -102,8 +96,7 @@ class ContainerBuilder extends CodeEmitterHelper {
 
     expressions.add(code);
 
-    bool onlyNeedsSuperAlias =
-        !(canTearOff || canBeReflected || canBeApplied || needsStubs);
+    bool onlyNeedsSuperAlias = !(canTearOff || canBeApplied || needsStubs);
 
     if (onlyNeedsSuperAlias) {
       jsAst.ArrayInitializer arrayInit =
@@ -155,50 +148,16 @@ class ContainerBuilder extends CodeEmitterHelper {
       ..add(js.number(optionalParameterCount))
       ..add(memberTypeExpression == null ? js("null") : memberTypeExpression);
 
-    if (canBeReflected || canBeApplied) {
+    if (canBeApplied) {
       expressions.addAll(
           task.metadataCollector.reifyDefaultArguments(member, outputUnit));
 
-      if (member is MethodElement) {
-        member.functionSignature.forEachParameter((Element parameter) {
-          expressions.add(
-              task.metadataCollector.reifyName(parameter.name, outputUnit));
-          if (backend.mirrorsData.mustRetainMetadata) {
-            Iterable<jsAst.Expression> metadataIndices =
-                parameter.metadata.map((MetadataAnnotation annotation) {
-              ConstantValue constant =
-                  backend.constants.getConstantValueForMetadata(annotation);
-              codegenWorldBuilder.addCompileTimeConstantForEmission(constant);
-              return task.metadataCollector
-                  .reifyMetadata(annotation, outputUnit);
-            });
-            expressions
-                .add(new jsAst.ArrayInitializer(metadataIndices.toList()));
-          }
-        });
-      } else {
-        codegenWorldBuilder.forEachParameter(member, (_, String name, _2) {
-          expressions.add(task.metadataCollector.reifyName(name, outputUnit));
-        });
-        // TODO(redemption): Support retaining mirrors metadata.
-      }
+      codegenWorldBuilder.forEachParameter(member, (_, String name, _2) {
+        expressions.add(task.metadataCollector.reifyName(name, outputUnit));
+      });
     }
     Name memberName = member.memberName;
-    if (canBeReflected) {
-      jsAst.LiteralString reflectionName;
-      if (member.isConstructor) {
-        // TODO(herhut): This registers name as a mangled name. Do we need this
-        //               given that we use a different name below?
-        emitter.getReflectionMemberName(member, name);
-        reflectionName = new jsAst.LiteralString(
-            '"new ${utils.reconstructConstructorName(member)}"');
-      } else {
-        reflectionName = js.string(namer.privateName(memberName));
-      }
-      expressions
-        ..add(reflectionName)
-        ..addAll(task.metadataCollector.computeMetadata(member, outputUnit));
-    } else if (isClosure && canBeApplied) {
+    if (isClosure && canBeApplied) {
       expressions.add(js.string(namer.privateName(memberName)));
     }
 

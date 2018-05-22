@@ -137,6 +137,7 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   SetFileCallbacks(file_open, file_read, file_write, file_close);
   set_entropy_source_callback(entropy_source);
   OS::InitOnce();
+  NOT_IN_PRODUCT(CodeObservers::InitOnce());
   start_time_micros_ = OS::GetCurrentMonotonicMicros();
   VirtualMemory::InitOnce();
   OSThread::InitOnce();
@@ -152,7 +153,6 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   ForwardingCorpse::InitOnce();
   Api::InitOnce();
   NativeSymbolResolver::InitOnce();
-  NOT_IN_PRODUCT(CodeObservers::InitOnce());
   NOT_IN_PRODUCT(Profiler::InitOnce());
   SemiSpace::InitOnce();
   NOT_IN_PRODUCT(Metric::InitOnce());
@@ -504,8 +504,8 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
                                   const uint8_t* snapshot_instructions,
                                   const uint8_t* shared_data,
                                   const uint8_t* shared_instructions,
-                                  intptr_t snapshot_length,
-                                  kernel::Program* kernel_program,
+                                  const uint8_t* kernel_buffer,
+                                  intptr_t kernel_buffer_size,
                                   void* data) {
   // Initialize the new isolate.
   Thread* T = Thread::Current();
@@ -524,11 +524,11 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
   }
 
   Error& error = Error::Handle(T->zone());
-  error = Object::Init(I, kernel_program);
+  error = Object::Init(I, kernel_buffer, kernel_buffer_size);
   if (!error.IsNull()) {
     return error.raw();
   }
-  if ((snapshot_data != NULL) && kernel_program == NULL) {
+  if ((snapshot_data != NULL) && kernel_buffer == NULL) {
     // Read the snapshot and setup the initial state.
     NOT_IN_PRODUCT(TimelineDurationScope tds(T, Timeline::GetIsolateStream(),
                                              "IsolateSnapshotReader"));
@@ -567,7 +567,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
       MegamorphicCacheTable::PrintSizes(I);
     }
   } else {
-    if ((vm_snapshot_kind_ != Snapshot::kNone) && kernel_program == NULL) {
+    if ((vm_snapshot_kind_ != Snapshot::kNone) && kernel_buffer == NULL) {
       const String& message =
           String::Handle(String::New("Missing isolate snapshot"));
       return ApiError::New(message);
@@ -592,7 +592,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
       Code::Handle(I->object_store()->megamorphic_miss_code());
   I->set_ic_miss_code(miss_code);
 
-  if ((snapshot_data == NULL) || (kernel_program != NULL)) {
+  if ((snapshot_data == NULL) || (kernel_buffer != NULL)) {
     const Error& error = Error::Handle(I->object_store()->PreallocateObjects());
     if (!error.IsNull()) {
       return error.raw();
@@ -677,6 +677,10 @@ const char* Dart::FeaturesString(Isolate* isolate,
              FLAG_error_on_bad_type);
     ADD_FLAG(error_on_bad_override, enable_error_on_bad_override,
              FLAG_error_on_bad_override);
+    // sync-async and reify_generic_functions also affect deopt_ids.
+    ADD_FLAG(sync_async, sync_async, FLAG_sync_async);
+    ADD_FLAG(reify_generic_functions, reify_generic_functions,
+             FLAG_reify_generic_functions);
     if (kind == Snapshot::kFullJIT) {
       ADD_FLAG(use_field_guards, use_field_guards, FLAG_use_field_guards);
       ADD_FLAG(use_osr, use_osr, FLAG_use_osr);
@@ -717,7 +721,9 @@ const char* Dart::FeaturesString(Isolate* isolate,
 }
 
 void Dart::RunShutdownCallback() {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  ASSERT(thread->execution_state() == Thread::kThreadInNative);
+  Isolate* isolate = thread->isolate();
   void* callback_data = isolate->init_callback_data();
   Dart_IsolateShutdownCallback callback = Isolate::ShutdownCallback();
   if (callback != NULL) {

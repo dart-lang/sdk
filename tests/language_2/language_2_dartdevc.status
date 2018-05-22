@@ -22,7 +22,10 @@ await_future_test: Pass, Timeout # Issue 29920
 bit_operations_test: RuntimeError # No bigints on web.
 bug32372_test: RuntimeError
 built_in_identifier_prefix_test: CompileTimeError
-built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Issue 28816
+built_in_identifier_type_annotation_test/dynamic-funarg: RuntimeError # Issue 28816
+built_in_identifier_type_annotation_test/dynamic-funret: RuntimeError # Issue 28816
+built_in_identifier_type_annotation_test/dynamic-gen: MissingCompileTimeError # Issue 28816
+built_in_identifier_type_annotation_test/dynamic-list: RuntimeError # Issue 28816
 cascaded_forwarding_stubs_generic_test: RuntimeError
 cascaded_forwarding_stubs_test: CompileTimeError
 conflicting_generic_interfaces_hierarchy_loop_infinite_test: Skip # Crashes or times out
@@ -36,6 +39,7 @@ const_types_test/08: MissingCompileTimeError
 const_types_test/14: MissingCompileTimeError
 const_types_test/15: MissingCompileTimeError
 constant_type_literal_test/01: MissingCompileTimeError # DDC allows type parameter type literals in const expressions.
+constructor_type_parameter_test/00: MissingCompileTimeError # Issue 33110
 covariance_field_test/03: RuntimeError
 covariant_override/tear_off_type_test: RuntimeError # Issue 28395
 default_implementation2_test: CompileTimeError # Issue 30855
@@ -295,7 +299,10 @@ async_return_types_test/wrongReturnType: MissingCompileTimeError
 bad_override_test/01: MissingCompileTimeError
 bad_override_test/02: MissingCompileTimeError
 bad_override_test/03: MissingCompileTimeError
-built_in_identifier_type_annotation_test/05: RuntimeError # Issue 32194
+built_in_identifier_type_annotation_test/dynamic: RuntimeError # Issue 32194
+built_in_identifier_type_annotation_test/dynamic-funarg: RuntimeError # Issue 32194
+built_in_identifier_type_annotation_test/dynamic-funret: RuntimeError # Issue 32194
+built_in_identifier_type_annotation_test/dynamic-list: RuntimeError # Issue 32194
 built_in_identifier_type_annotation_test/none: RuntimeError # Issue 32194
 call_method_as_cast_test/06: RuntimeError # Kernel allows classes to subtype `Function` so DDK elides the explicit cast.
 call_method_implicit_tear_off_implements_function_test/05: RuntimeError # Kernel is missing the implicit `call` tearoff for assignment `Function`
@@ -514,11 +521,13 @@ mixin_supertype_subclass_test/02: MissingCompileTimeError
 mixin_supertype_subclass_test/05: MissingCompileTimeError
 mixin_type_parameters_errors_test/03: MissingCompileTimeError
 mixin_type_parameters_errors_test/04: MissingCompileTimeError
+mock_writable_final_field_test: RuntimeError # Issue 30847
 mock_writable_final_private_field_test: RuntimeError
 multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/06r: MissingCompileTimeError
 named_constructor_test/01: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
+no_such_method_mock_test: RuntimeError # Issue 31426 - Kernel does not introduce nSM for implemented fields.
 null2_test: RuntimeError # Issue 32194
 null_method_test: RuntimeError # Issue 32194
 null_no_such_method_test: CompileTimeError # Issue 31533
@@ -663,7 +672,8 @@ example_constructor_test: RuntimeError # Expect.equals(expected: <0 1 2 3 4 5 6 
 exception_test: RuntimeError # DDC doesn't implement NullThrownError?; Expect.isTrue(false) fails.
 expect_test: RuntimeError # Issue 29920; Expect.identical did not fail
 f_bounded_quantification3_test: RuntimeError # Issue 29920; Uncaught Error: type arguments should not be null: (F1, F2) => {
-field3_test/01: MissingCompileTimeError
+field3_test/01: MissingCompileTimeError # Issue 33022
+field3_test/02: MissingCompileTimeError # Issue 33022
 field_initialization_order_test/none: RuntimeError # Expect.equals(expected: <b.a.ai.bi.>, actual: <b.bi.a.ai.>) fails.
 flatten_test/05: MissingRuntimeError # Issue 29920
 flatten_test/08: MissingRuntimeError # Issue 29920

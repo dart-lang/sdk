@@ -34,6 +34,8 @@
 #include "vm/heap.h"
 #include "vm/isolate_reload.h"
 #include "vm/kernel.h"
+#include "vm/kernel_isolate.h"
+#include "vm/kernel_loader.h"
 #include "vm/native_symbol.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
@@ -1293,12 +1295,14 @@ void Object::RegisterPrivateClass(const Class& cls,
 // A non-NULL kernel argument indicates (1).  A NULL kernel indicates (2) or
 // (3), depending on whether the VM is compiled with DART_NO_SNAPSHOT defined or
 // not.
-RawError* Object::Init(Isolate* isolate, kernel::Program* kernel_program) {
+RawError* Object::Init(Isolate* isolate,
+                       const uint8_t* kernel_buffer,
+                       intptr_t kernel_buffer_size) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   ASSERT(isolate == thread->isolate());
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  const bool is_kernel = (kernel_program != NULL);
+  const bool is_kernel = (kernel_buffer != NULL);
 #endif
   NOT_IN_PRODUCT(TimelineDurationScope tds(thread, Timeline::GetIsolateStream(),
                                            "Object::Init");)
@@ -1813,8 +1817,8 @@ RawError* Object::Init(Isolate* isolate, kernel::Program* kernel_program) {
 
     // Finish the initialization by compiling the bootstrap scripts containing
     // the base interfaces and the implementation of the internal classes.
-    const Error& error =
-        Error::Handle(zone, Bootstrap::DoBootstrapping(kernel_program));
+    const Error& error = Error::Handle(
+        zone, Bootstrap::DoBootstrapping(kernel_buffer, kernel_buffer_size));
     if (!error.IsNull()) {
       return error.raw();
     }
@@ -3195,6 +3199,15 @@ static RawString* BuildClosureSource(const Array& formal_params,
   return String::ConcatAll(Array::Handle(Array::MakeFixedLength(src_pieces)));
 }
 
+static RawObject* EvaluateWithDFEHelper(const String& expression,
+                                        const Array& definitions,
+                                        const Array& type_definitions,
+                                        const String& library_url,
+                                        const String& klass,
+                                        bool is_static,
+                                        const Array& arguments,
+                                        const TypeArguments& type_arguments);
+
 RawFunction* Function::EvaluateHelper(const Class& cls,
                                       const String& expr,
                                       const Array& param_names,
@@ -3221,9 +3234,24 @@ RawFunction* Function::EvaluateHelper(const Class& cls,
   return func.raw();
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+static void ReleaseFetchedBytes(uint8_t* buffer) {
+  free(buffer);
+}
+#endif
+
 RawObject* Class::Evaluate(const String& expr,
                            const Array& param_names,
                            const Array& param_values) const {
+  return Evaluate(expr, param_names, param_values, Object::empty_array(),
+                  Object::null_type_arguments());
+}
+
+RawObject* Class::Evaluate(const String& expr,
+                           const Array& param_names,
+                           const Array& param_values,
+                           const Array& type_param_names,
+                           const TypeArguments& type_param_values) const {
   ASSERT(Thread::Current()->IsMutatorThread());
   if (id() < kInstanceCid) {
     const Instance& exception = Instance::Handle(
@@ -3232,11 +3260,18 @@ RawObject* Class::Evaluate(const String& expr,
     return UnhandledException::New(exception, stacktrace);
   }
 
-  const Function& eval_func = Function::Handle(
-      Function::EvaluateHelper(*this, expr, param_names, true));
-  const Object& result =
-      Object::Handle(DartEntry::InvokeFunction(eval_func, param_values));
-  return result.raw();
+  if (Library::Handle(library()).kernel_data() == TypedData::null() ||
+      !FLAG_enable_kernel_expression_compilation) {
+    const Function& eval_func = Function::Handle(
+        Function::EvaluateHelper(*this, expr, param_names, true));
+    return DartEntry::InvokeFunction(eval_func, param_values);
+  }
+
+  return EvaluateWithDFEHelper(
+      expr, param_names, type_param_names,
+      String::Handle(Library::Handle(library()).url()),
+      IsTopLevel() ? String::Handle() : String::Handle(UserVisibleName()),
+      !IsTopLevel(), param_values, type_param_values);
 }
 
 // Ensure that top level parsing of the class has been done.
@@ -4637,7 +4672,7 @@ class CanonicalInstanceKey {
     }
     return false;
   }
-  uword Hash() const { return key_.ComputeCanonicalTableHash(); }
+  uword Hash() const { return key_.CanonicalizeHash(); }
   const Instance& key_;
 
  private:
@@ -4662,7 +4697,7 @@ class CanonicalInstanceTraits {
   static uword Hash(const Object& key) {
     ASSERT(!(key.IsString() || key.IsNumber() || key.IsAbstractType()));
     ASSERT(key.IsInstance());
-    return Instance::Cast(key).ComputeCanonicalTableHash();
+    return Instance::Cast(key).CanonicalizeHash();
   }
   static uword Hash(const CanonicalInstanceKey& key) { return key.Hash(); }
   static RawObject* NewKey(const CanonicalInstanceKey& obj) {
@@ -6067,6 +6102,9 @@ void Function::SetRedirectionTarget(const Function& target) const {
 
 // This field is heavily overloaded:
 //   eval function:           Script expression source
+//   kernel eval function:    Array[0] = Script
+//                            Array[1] = Kernel data
+//                            Array[2] = Kernel offset of enclosing library
 //   signature function:      SignatureData
 //   method extractor:        Function extracted closure function
 //   noSuchMethod dispatcher: Array arguments descriptor
@@ -7057,6 +7095,7 @@ RawFunction* Function::New(const String& name,
   NOT_IN_PRECOMPILED(result.set_inlining_depth(0));
   NOT_IN_PRECOMPILED(result.set_kernel_offset(0));
   result.set_is_optimizable(is_native ? false : true);
+  result.set_is_background_optimizable(is_native ? false : true);
   result.set_is_inlinable(true);
   result.set_allows_hoisting_check_class(true);
   result.set_allows_bounds_check_generalization(true);
@@ -7539,9 +7578,26 @@ RawClass* Function::origin() const {
   return PatchClass::Cast(obj).origin_class();
 }
 
+void Function::SetKernelDataAndScript(const Script& script,
+                                      const TypedData& data,
+                                      intptr_t offset) {
+  Array& data_field = Array::Handle(Array::New(3));
+  data_field.SetAt(0, script);
+  data_field.SetAt(1, data);
+  data_field.SetAt(2, Smi::Handle(Smi::New(offset)));
+  set_data(data_field);
+}
+
 RawScript* Function::script() const {
   // NOTE(turnidge): If you update this function, you probably want to
   // update Class::PatchFieldsAndFunctions() at the same time.
+  Object& data = Object::Handle(raw_ptr()->data_);
+  if (data.IsArray()) {
+    Object& script = Object::Handle(Array::Cast(data).At(0));
+    if (script.IsScript()) {
+      return Script::Cast(script).raw();
+    }
+  }
   if (token_pos() == TokenPosition::kMinSource) {
     // Testing for position 0 is an optimization that relies on temporary
     // eval functions having token position 0.
@@ -7566,6 +7622,13 @@ RawScript* Function::script() const {
 }
 
 RawTypedData* Function::KernelData() const {
+  Object& data = Object::Handle(raw_ptr()->data_);
+  if (data.IsArray()) {
+    Object& script = Object::Handle(Array::Cast(data).At(0));
+    if (script.IsScript()) {
+      return TypedData::RawCast(Array::Cast(data).At(1));
+    }
+  }
   if (IsClosureFunction()) {
     Function& parent = Function::Handle(parent_function());
     ASSERT(!parent.IsNull());
@@ -7582,6 +7645,13 @@ RawTypedData* Function::KernelData() const {
 }
 
 intptr_t Function::KernelDataProgramOffset() const {
+  Object& data = Object::Handle(raw_ptr()->data_);
+  if (data.IsArray()) {
+    Object& script = Object::Handle(Array::Cast(data).At(0));
+    if (script.IsScript()) {
+      return Smi::Value(Smi::RawCast(Array::Cast(data).At(2)));
+    }
+  }
   if (IsClosureFunction()) {
     Function& parent = Function::Handle(parent_function());
     ASSERT(!parent.IsNull());
@@ -11344,10 +11414,25 @@ void Library::InitCoreLibrary(Isolate* isolate) {
 RawObject* Library::Evaluate(const String& expr,
                              const Array& param_names,
                              const Array& param_values) const {
-  // Evaluate the expression as a static function of the toplevel class.
-  Class& top_level_class = Class::Handle(toplevel_class());
-  ASSERT(top_level_class.is_finalized());
-  return top_level_class.Evaluate(expr, param_names, param_values);
+  return Evaluate(expr, param_names, param_values, Array::empty_array(),
+                  TypeArguments::null_type_arguments());
+}
+
+RawObject* Library::Evaluate(const String& expr,
+                             const Array& param_names,
+                             const Array& param_values,
+                             const Array& type_param_names,
+                             const TypeArguments& type_param_values) const {
+  if (kernel_data() == TypedData::null() ||
+      !FLAG_enable_kernel_expression_compilation) {
+    // Evaluate the expression as a static function of the toplevel class.
+    Class& top_level_class = Class::Handle(toplevel_class());
+    ASSERT(top_level_class.is_finalized());
+    return top_level_class.Evaluate(expr, param_names, param_values);
+  }
+  return EvaluateWithDFEHelper(expr, param_names, type_param_names,
+                               String::Handle(url()), String::Handle(), false,
+                               param_values, type_param_values);
 }
 
 void Library::InitNativeWrappersLibrary(Isolate* isolate, bool is_kernel) {
@@ -11403,6 +11488,136 @@ class LibraryLookupTraits {
   static RawObject* NewKey(const String& str) { return str.raw(); }
 };
 typedef UnorderedHashMap<LibraryLookupTraits> LibraryLookupMap;
+
+static RawObject* EvaluateWithDFEHelper(const String& expression,
+                                        const Array& definitions,
+                                        const Array& type_definitions,
+                                        const String& library_url,
+                                        const String& klass,
+                                        bool is_static,
+                                        const Array& arguments,
+                                        const TypeArguments& type_arguments) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  const String& error_str = String::Handle(
+      String::New("Kernel service isolate not available in precompiled mode."));
+  return ApiError::New(error_str);
+#else
+  Isolate* I = Isolate::Current();
+  Thread* T = Thread::Current();
+
+  Dart_KernelCompilationResult compilation_result;
+  {
+    TransitionVMToNative transition(T);
+    compilation_result = KernelIsolate::CompileExpressionToKernel(
+        expression.ToCString(), definitions, type_definitions,
+        library_url.ToCString(), klass.IsNull() ? NULL : klass.ToCString(),
+        is_static);
+  }
+
+  Function& callee = Function::Handle();
+  intptr_t num_cids = I->class_table()->NumCids();
+  intptr_t num_libs =
+      GrowableObjectArray::Handle(I->object_store()->libraries()).Length();
+
+  if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
+    const String& prefix =
+        String::Handle(String::New("Kernel isolate rejected this request:\n"));
+    const String& error_str = String::Handle(String::Concat(
+        prefix, String::Handle(String::New(compilation_result.error))));
+    free(compilation_result.error);
+    return ApiError::New(error_str);
+  }
+
+  const uint8_t* kernel_file = compilation_result.kernel;
+  intptr_t kernel_length = compilation_result.kernel_size;
+  ASSERT(kernel_file != NULL);
+
+  kernel::Program* kernel_pgm =
+      kernel::Program::ReadFromBuffer(kernel_file, kernel_length, true);
+
+  if (kernel_pgm == NULL) {
+    return ApiError::New(String::Handle(
+        String::New("Kernel isolate returned ill-formed kernel.")));
+  }
+
+  kernel_pgm->set_release_buffer_callback(ReleaseFetchedBytes);
+
+  // Load the program with the debug procedure as a regular, independent
+  // program.
+  kernel::KernelLoader loader(kernel_pgm);
+  loader.LoadProgram();
+  ASSERT(I->class_table()->NumCids() > num_cids &&
+         GrowableObjectArray::Handle(I->object_store()->libraries()).Length() ==
+             num_libs + 1);
+  const String& fake_library_url =
+      String::Handle(String::New("evaluate:source"));
+  const Library& loaded =
+      Library::Handle(Library::LookupLibrary(T, fake_library_url));
+  ASSERT(!loaded.IsNull());
+
+  String& debug_name = String::Handle(
+      String::New(Symbols::Symbol(Symbols::kDebugProcedureNameId)));
+  Class& fake_class = Class::Handle();
+  if (!klass.IsNull()) {
+    fake_class = loaded.LookupClass(String::Handle(String::New(klass)));
+    ASSERT(!fake_class.IsNull());
+    callee = fake_class.LookupFunctionAllowPrivate(debug_name);
+  } else {
+    callee = loaded.LookupFunctionAllowPrivate(debug_name);
+  }
+  ASSERT(!callee.IsNull());
+
+  // Save the loaded library's kernel data to the generic "data" field of the
+  // callee, so it doesn't require access it's parent library during
+  // compilation.
+  callee.SetKernelDataAndScript(Script::Handle(callee.script()),
+                                TypedData::Handle(loaded.kernel_data()),
+                                loaded.kernel_offset());
+
+  // Reparent the callee to the real enclosing class so we can remove the fake
+  // class and library from the object store.
+  const Library& real_library =
+      Library::Handle(Library::LookupLibrary(T, library_url));
+  ASSERT(!real_library.IsNull());
+  Class& real_class = Class::Handle();
+  if (!klass.IsNull()) {
+    real_class = real_library.LookupClass(String::Handle(String::New(klass)));
+  } else {
+    real_class = real_library.toplevel_class();
+  }
+  ASSERT(!real_class.IsNull());
+
+  callee.set_owner(real_class);
+
+  // Unlink the fake library and class from the object store.
+  GrowableObjectArray::Handle(I->object_store()->libraries())
+      .SetLength(num_libs);
+  I->class_table()->SetNumCids(num_cids);
+  if (!fake_class.IsNull()) {
+    fake_class.set_id(kIllegalCid);
+  }
+  LibraryLookupMap libraries_map(I->object_store()->libraries_map());
+  bool removed = libraries_map.Remove(fake_library_url);
+  ASSERT(removed);
+  I->object_store()->set_libraries_map(libraries_map.Release());
+
+  if (type_definitions.Length() == 0) {
+    return DartEntry::InvokeFunction(callee, arguments);
+  }
+
+  intptr_t num_type_args = type_arguments.Length();
+  Array& real_arguments = Array::Handle(Array::New(arguments.Length() + 1));
+  real_arguments.SetAt(0, type_arguments);
+  Object& arg = Object::Handle();
+  for (intptr_t i = 0; i < arguments.Length(); ++i) {
+    arg = arguments.At(i);
+    real_arguments.SetAt(i + 1, arg);
+  }
+  const Array& args_desc = Array::Handle(
+      ArgumentsDescriptor::New(num_type_args, real_arguments.Length()));
+  return DartEntry::InvokeFunction(callee, real_arguments, args_desc);
+#endif
+}
 
 // Returns library with given url in current isolate, or NULL.
 RawLibrary* Library::LookupLibrary(Thread* thread, const String& url) {
@@ -12722,6 +12937,10 @@ RawStackMap* StackMap::New(intptr_t pc_offset,
   }
   ASSERT(pc_offset >= 0);
   result.SetPcOffset(pc_offset);
+  if (payload_size > 0) {
+    // Ensure leftover bits are deterministic.
+    result.raw()->ptr()->data()[payload_size - 1] = 0;
+  }
   for (intptr_t i = 0; i < length; ++i) {
     result.SetBit(i, bmap->Get(i));
   }
@@ -14625,9 +14844,11 @@ RawCode* Code::FinalizeBytecode(void* bytecode_data,
   code.set_compile_timestamp(OS::GetCurrentMonotonicMicros());
   // TODO(regis): Do we need to notify CodeObservers for bytecode too?
   // If so, provide a better name using ToLibNamePrefixedQualifiedCString().
+#ifndef PRODUCT
   CodeObservers::NotifyAll("bytecode", instrs.PayloadStart(),
                            0 /* prologue_offset */, instrs.Size(),
                            false /* optimized */);
+#endif
   {
     NoSafepointScope no_safepoint;
 
@@ -15614,8 +15835,16 @@ RawObject* Instance::Evaluate(const Class& method_cls,
                               const String& expr,
                               const Array& param_names,
                               const Array& param_values) const {
-  const Function& eval_func = Function::Handle(
-      Function::EvaluateHelper(method_cls, expr, param_names, false));
+  return Evaluate(method_cls, expr, param_names, param_values,
+                  Object::empty_array(), TypeArguments::null_type_arguments());
+}
+
+RawObject* Instance::Evaluate(const Class& method_cls,
+                              const String& expr,
+                              const Array& param_names,
+                              const Array& param_values,
+                              const Array& type_param_names,
+                              const TypeArguments& type_param_values) const {
   const Array& args = Array::Handle(Array::New(1 + param_values.Length()));
   PassiveObject& param = PassiveObject::Handle();
   args.SetAt(0, *this);
@@ -15623,7 +15852,19 @@ RawObject* Instance::Evaluate(const Class& method_cls,
     param = param_values.At(i);
     args.SetAt(i + 1, param);
   }
-  return DartEntry::InvokeFunction(eval_func, args);
+
+  const Library& library = Library::Handle(method_cls.library());
+  if (library.kernel_data() == TypedData::null() ||
+      !FLAG_enable_kernel_expression_compilation) {
+    const Function& eval_func = Function::Handle(
+        Function::EvaluateHelper(method_cls, expr, param_names, false));
+    return DartEntry::InvokeFunction(eval_func, args);
+  }
+  return EvaluateWithDFEHelper(
+      expr, param_names, type_param_names,
+      String::Handle(Library::Handle(method_cls.library()).url()),
+      String::Handle(method_cls.UserVisibleName()), false, args,
+      type_param_values);
 }
 
 RawObject* Instance::HashCode() const {
@@ -15668,20 +15909,22 @@ bool Instance::CanonicalizeEquals(const Instance& other) const {
   return true;
 }
 
-uword Instance::ComputeCanonicalTableHash() const {
-  ASSERT(!IsNull());
+uint32_t Instance::CanonicalizeHash() const {
+  if (IsNull()) {
+    return 2011;
+  }
   NoSafepointScope no_safepoint;
   const intptr_t instance_size = SizeFromClass();
   ASSERT(instance_size != 0);
-  uword hash = instance_size;
+  uint32_t hash = instance_size;
   uword this_addr = reinterpret_cast<uword>(this->raw_ptr());
+  Instance& member = Instance::Handle();
   for (intptr_t offset = Instance::NextFieldOffset(); offset < instance_size;
        offset += kWordSize) {
-    uword value = reinterpret_cast<uword>(
-        *reinterpret_cast<RawObject**>(this_addr + offset));
-    hash = CombineHashes(hash, value);
+    member ^= *reinterpret_cast<RawObject**>(this_addr + offset);
+    hash = CombineHashes(hash, member.CanonicalizeHash());
   }
-  return FinalizeHash(hash, (kBitsPerWord - 1));
+  return FinalizeHash(hash, String::kHashBits);
 }
 
 #if defined(DEBUG)
@@ -19381,6 +19624,10 @@ bool Double::CanonicalizeEquals(const Instance& other) const {
   return BitwiseEqualsToDouble(Double::Cast(other).value());
 }
 
+uint32_t Double::CanonicalizeHash() const {
+  return Hash64To32(bit_cast<uint64_t>(value()));
+}
+
 RawDouble* Double::New(double d, Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->double_class() != Class::null());
   Double& result = Double::Handle();
@@ -21782,16 +22029,18 @@ bool Array::CanonicalizeEquals(const Instance& other) const {
   return true;
 }
 
-uword Array::ComputeCanonicalTableHash() const {
-  ASSERT(!IsNull());
+uint32_t Array::CanonicalizeHash() const {
   NoSafepointScope no_safepoint;
   intptr_t len = Length();
-  uword hash = len;
-  uword value = reinterpret_cast<uword>(GetTypeArguments());
-  hash = CombineHashes(hash, value);
+  if (len == 0) {
+    return 1;
+  }
+  uint32_t hash = len;
+  Instance& member = Instance::Handle(GetTypeArguments());
+  hash = CombineHashes(hash, member.CanonicalizeHash());
   for (intptr_t i = 0; i < len; i++) {
-    value = reinterpret_cast<uword>(At(i));
-    hash = CombineHashes(hash, value);
+    member ^= At(i);
+    hash = CombineHashes(hash, member.CanonicalizeHash());
   }
   return FinalizeHash(hash, kHashBits);
 }
@@ -22408,12 +22657,12 @@ bool TypedData::CanonicalizeEquals(const Instance& other) const {
          (memcmp(DataAddr(0), other_typed_data.DataAddr(0), len) == 0);
 }
 
-uword TypedData::ComputeCanonicalTableHash() const {
+uint32_t TypedData::CanonicalizeHash() const {
   const intptr_t len = this->LengthInBytes();
   if (len == 0) {
     return 1;
   }
-  uword hash = len;
+  uint32_t hash = len;
   for (intptr_t i = 0; i < len; i++) {
     hash = CombineHashes(len, GetUint8(i));
   }

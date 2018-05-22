@@ -196,8 +196,6 @@ class ClassPropertyModel {
   /// super.
   final inheritedSetters = new HashSet<String>();
 
-  final mockMembers = <String, Member>{};
-
   final extensionMethods = new Set<String>();
 
   final extensionAccessors = new Set<String>();
@@ -231,14 +229,12 @@ class ClassPropertyModel {
       }
     }
 
-    _collectMockMembers(class_);
     _collectExtensionMembers(class_);
 
     var virtualAccessorNames = new HashSet<String>()
       ..addAll(inheritedGetters)
       ..addAll(inheritedSetters)
-      ..addAll(extensionAccessors)
-      ..addAll(mockMembers.values.map((m) => m.name.name));
+      ..addAll(extensionAccessors);
 
     // Visit accessors in the current class, and see if they need to be
     // generated differently based on the inherited fields/accessors.
@@ -258,62 +254,6 @@ class ClassPropertyModel {
 
   CoreTypes get coreTypes => extensionTypes.coreTypes;
 
-  void _collectMockMembers(Class class_) {
-    // TODO(jmesserly): every type with nSM will generate new stubs for all
-    // abstract members. For example:
-    //
-    //     class C { m(); noSuchMethod(...) { ... } }
-    //     class D extends C { m(); noSuchMethod(...) { ... } }
-    //
-    // We'll generate D.m even though it is not necessary.
-    //
-    // Doing better is a bit tricky, as our current codegen strategy for the
-    // mock methods encodes information about the number of arguments (and type
-    // arguments) that D expects.
-    if (!_hasNoSuchMethod(class_)) return;
-
-    // Collect all unimplemented members.
-    //
-    // Initially, we track abstract and concrete members separately, then
-    // remove concrete from the abstract set. This is done because abstract
-    // members are allowed to "override" concrete ones in Dart.
-    // (In that case, it will still be treated as a concrete member and can be
-    // called at runtime.)
-    var concreteMembers = new HashSet<String>();
-
-    void addMember(Member m, bool classIsAbstract, {bool isSetter: false}) {
-      var name = m.name.name;
-      if (isSetter) name += '=';
-      if (classIsAbstract || m.isAbstract) {
-        mockMembers[name] = m;
-      } else {
-        concreteMembers.add(name);
-      }
-    }
-
-    void visit(Class c, bool classIsAbstract) {
-      if (c == null) return;
-      visit(c.superclass, classIsAbstract);
-      visit(c.mixedInClass, classIsAbstract);
-      for (var i in c.implementedTypes) visit(i.classNode, true);
-
-      for (var m in c.members) {
-        if (m is Field) {
-          if (m.isStatic) continue;
-          addMember(m, classIsAbstract);
-          if (m.hasSetter) addMember(m, classIsAbstract, isSetter: true);
-        } else if (m is Procedure) {
-          if (m.isStatic) continue;
-          addMember(m, classIsAbstract, isSetter: m.isSetter);
-        }
-      }
-    }
-
-    visit(class_, false);
-
-    concreteMembers.forEach(mockMembers.remove);
-  }
-
   void _collectExtensionMembers(Class class_) {
     if (extensionTypes.isNativeClass(class_)) return;
 
@@ -327,17 +267,6 @@ class ClassPropertyModel {
     // For members on this class, check them against all generic interfaces.
     var seenConcreteMembers = new HashSet<String>();
     _findExtensionMembers(class_, seenConcreteMembers, allNatives);
-    // Add mock members. These are compiler-generated concrete members that
-    // forward to `noSuchMethod`.
-    for (var m in mockMembers.values) {
-      var name = m.name.name;
-      if (seenConcreteMembers.add(name) && allNatives.contains(name)) {
-        var extMembers = m is Procedure && !m.isAccessor
-            ? extensionMethods
-            : extensionAccessors;
-        extMembers.add(name);
-      }
-    }
 
     // For members of the superclass, we may need to add checks because this
     // class adds a new unsafe interface. Collect those checks.
@@ -420,18 +349,5 @@ class ClassPropertyModel {
     }
     var s = c.superclass;
     if (s != null) _collectNativeMembers(s, members);
-  }
-
-  /// Return `true` if the given [classElement] has a noSuchMethod() method
-  /// distinct from the one declared in class Object, as per the Dart Language
-  /// Specification (section 10.4).
-  // TODO(jmesserly): this was taken from error_verifier.dart
-  bool _hasNoSuchMethod(Class c) {
-    // TODO(jmesserly): is this lookup fast in Kernel?
-    // TODO(jmesserly): our old code may have matched an abstract nSM, but
-    // that seems incorrect. So we now look for a dispatch target.
-    var method = types.hierarchy.getDispatchTarget(c, new Name('noSuchMethod'));
-    var definingClass = method?.enclosingClass;
-    return definingClass != null && definingClass != coreTypes.objectClass;
   }
 }

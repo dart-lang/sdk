@@ -7,15 +7,17 @@ import 'dart:convert' show json;
 import 'dart:io' show File;
 
 import 'package:analyzer/analyzer.dart'
-    show AnalysisError, CompilationUnit, ErrorSeverity;
+    show AnalysisError, CompilationUnit, ErrorSeverity, ErrorType;
 import 'package:analyzer/dart/analysis/declared_variables.dart';
-import 'package:analyzer/dart/element/element.dart' show LibraryElement;
+import 'package:analyzer/dart/element/element.dart'
+    show LibraryElement, UriReferencedElement;
 import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
 import 'package:analyzer/file_system/physical_file_system.dart'
     show PhysicalResourceProvider;
 import 'package:analyzer/src/context/builder.dart' show ContextBuilder;
 import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
-import 'package:analyzer/src/error/codes.dart' show StaticTypeWarningCode;
+import 'package:analyzer/src/error/codes.dart'
+    show StaticTypeWarningCode, StrongModeCode;
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdkManager;
@@ -192,6 +194,16 @@ class ModuleCompiler {
       librariesToCompile.addAll(library.importedLibraries);
       librariesToCompile.addAll(library.exportedLibraries);
 
+      // TODO(jmesserly): remove "dart:mirrors" from DDC's SDK, and then remove
+      // this special case error message.
+      if (!compilingSdk && !options.emitMetadata) {
+        var node = _getDartMirrorsImport(library);
+        if (node != null) {
+          errors.add(new AnalysisError(library.source, node.uriOffset,
+              node.uriEnd, invalidImportDartMirrors));
+        }
+      }
+
       var tree = context.resolveCompilationUnit(library.source, library);
       trees.add(tree);
       errors.addAll(context.computeErrors(library.source));
@@ -229,6 +241,15 @@ class ModuleCompiler {
       rethrow;
     }
   }
+}
+
+UriReferencedElement _getDartMirrorsImport(LibraryElement library) {
+  return library.imports.firstWhere(_isDartMirrorsImort, orElse: () => null) ??
+      library.exports.firstWhere(_isDartMirrorsImort, orElse: () => null);
+}
+
+bool _isDartMirrorsImort(UriReferencedElement import) {
+  return import.uri == 'dart:mirrors';
 }
 
 class CompilerOptions {
@@ -588,3 +609,8 @@ Uri _sourceToUri(String source) {
       return new Uri.file(path.absolute(source));
   }
 }
+
+const invalidImportDartMirrors = const StrongModeCode(
+    ErrorType.COMPILE_TIME_ERROR,
+    'IMPORT_DART_MIRRORS',
+    'Cannot import "dart:mirrors" in web applications (https://goo.gl/R1anEs).');

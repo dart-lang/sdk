@@ -26,7 +26,7 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
   final AstProvider astProvider;
   final ResolvedUnitCache unitCache;
 
-  Set<LocalElement> elements = new Set<LocalElement>();
+  List<LocalElement> elements = [];
 
   RenameLocalRefactoringImpl(
       SearchEngine searchEngine, this.astProvider, LocalElement element)
@@ -92,25 +92,11 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
    * Fills [elements] with [Element]s to rename.
    */
   Future _prepareElements() async {
-    Element enclosing = element.enclosingElement;
-    if (enclosing is MethodElement &&
-        element is ParameterElement &&
-        (element as ParameterElement).isNamed) {
-      // prepare hierarchy methods
-      Set<ClassMemberElement> methods =
-          await getHierarchyMembers(searchEngine, enclosing);
-      // add named parameter from each method
-      for (ClassMemberElement method in methods) {
-        if (method is MethodElement) {
-          for (ParameterElement parameter in method.parameters) {
-            if (parameter.isNamed && parameter.name == element.name) {
-              elements.add(parameter);
-            }
-          }
-        }
-      }
+    Element element = this.element;
+    if (element is ParameterElement && element.isNamed) {
+      elements = await getHierarchyNamedParameters(searchEngine, element);
     } else {
-      elements = new Set.from([element]);
+      elements = [element];
     }
   }
 }

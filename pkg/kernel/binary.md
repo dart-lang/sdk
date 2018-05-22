@@ -131,11 +131,11 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion;
-  MetadataPayload[] metadataPayloads;
+  UInt32 formatVersion = 6;
   Library[] libraries;
   UriSource sourceMap;
   List<CanonicalName> canonicalNames;
+  MetadataPayload[] metadataPayloads;
   RList<MetadataMapping> metadataMappings;
   StringTable strings;
   List<Constant> constants;
@@ -149,9 +149,8 @@ type MetadataPayload {
 
 type MetadataMapping {
   UInt32 tag;  // StringReference of a fixed size.
+  // Node offsets are absolute, while metadata offsets are relative to metadataPayloads.
   RList<Pair<UInt32, UInt32>> nodeOffsetToMetadataOffset;
-  RList<UInt32> nodeReferences;  // If metadata payload references nodes
-                              // they are encoded as indices in this array.
 }
 
 // Component index with all fixed-size-32-bit integers.
@@ -162,6 +161,8 @@ type MetadataMapping {
 type ComponentIndex {
   UInt32 binaryOffsetForSourceTable;
   UInt32 binaryOffsetForCanonicalNames;
+  UInt32 binaryOffsetForMetadataPayloads;
+  UInt32 binaryOffsetForMetadataMappings;
   UInt32 binaryOffsetForStringTable;
   UInt32 binaryOffsetForConstantTable;
   UInt32 mainMethodReference; // This is a ProcedureReference with a fixed-size integer.

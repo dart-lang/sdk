@@ -25,10 +25,6 @@ enum TypeContinuation {
   /// Same as [Optional], but we have seen `var`.
   OptionalAfterVar,
 
-  /// Indicates that the keyword `typedef` has just been seen, and the parser
-  /// should parse the following as a type unless it is followed by `=`.
-  Typedef,
-
   /// Indicates that the parser is parsing an expression and has just seen an
   /// identifier.
   SendOrFunctionLiteral,

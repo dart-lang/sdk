@@ -100,6 +100,34 @@ Future<Set<ClassMemberElement>> getHierarchyMembers(
 }
 
 /**
+ * If the [element] is a named parameter in a [MethodElement], return all
+ * corresponding named parameters in the method hierarchy.
+ */
+Future<List<ParameterElement>> getHierarchyNamedParameters(
+    SearchEngine searchEngine, ParameterElement element) async {
+  if (element.isNamed) {
+    Element method = element.enclosingElement;
+    if (method is MethodElement) {
+      var hierarchyParameters = <ParameterElement>[];
+      var hierarchyMembers = await getHierarchyMembers(searchEngine, method);
+      for (ClassMemberElement hierarchyMethod in hierarchyMembers) {
+        if (hierarchyMethod is MethodElement) {
+          for (var hierarchyParameter in hierarchyMethod.parameters) {
+            if (hierarchyParameter.isNamed &&
+                hierarchyParameter.name == element.name) {
+              hierarchyParameters.add(hierarchyParameter);
+              break;
+            }
+          }
+        }
+      }
+      return hierarchyParameters;
+    }
+  }
+  return [element];
+}
+
+/**
  * Returns non-synthetic members of the given [ClassElement] and its super
  * classes.
  *

@@ -58,14 +58,20 @@ static SecCertificateRef CreateSecCertificateFromX509(X509* cert) {
   if (cert == NULL) {
     return NULL;
   }
-  unsigned char* deb_cert = NULL;
-  int length = i2d_X509(cert, &deb_cert);
+  int length = i2d_X509(cert, NULL);
   if (length < 0) {
     return 0;
   }
-  ASSERT(deb_cert != NULL);
-  ScopedCFDataRef cert_buf(
-      CFDataCreateWithBytesNoCopy(NULL, deb_cert, length, kCFAllocatorNull));
+  auto deb_cert = std::make_unique<unsigned char[]>(length);
+  unsigned char* temp = deb_cert.get();
+  if (i2d_X509(cert, &temp) != length) {
+    return NULL;
+  }
+  // TODO(bkonyi): we create a copy of the deb_cert here since it's unclear
+  // whether or not SecCertificateCreateWithData takes ownership of the CFData.
+  // Implementation here:
+  // https://opensource.apple.com/source/libsecurity_keychain/libsecurity_keychain-55050.2/lib/SecCertificate.cpp.auto.html
+  ScopedCFDataRef cert_buf(CFDataCreate(NULL, deb_cert.get(), length));
   SecCertificateRef auth_cert =
       SecCertificateCreateWithData(NULL, cert_buf.get());
   if (auth_cert == NULL) {

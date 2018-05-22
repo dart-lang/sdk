@@ -3394,21 +3394,20 @@ VM_UNIT_TEST_CASE(DartAPI_CurrentIsolateData) {
 static Dart_Handle LoadScript(const char* url_str, const char* source) {
   Dart_Handle url = NewString(url_str);
   Dart_Handle result;
-  Dart_Handle script;
   if (!FLAG_use_dart_frontend) {
     result = Dart_SetLibraryTagHandler(TestCase::library_handler);
     EXPECT_VALID(result);
-    script = NewString(source);
+    return Dart_LoadScript(url, Dart_Null(), NewString(source), 0, 0);
   } else {
-    void* kernel_pgm = NULL;
-    char* error =
-        TestCase::CompileTestScriptWithDFE(url_str, source, &kernel_pgm);
+    const uint8_t* kernel_buffer = NULL;
+    intptr_t kernel_buffer_size = 0;
+    char* error = TestCase::CompileTestScriptWithDFE(
+        url_str, source, &kernel_buffer, &kernel_buffer_size);
     if (error != NULL) {
       return Dart_NewApiError(error);
     }
-    script = reinterpret_cast<Dart_Handle>(kernel_pgm);
+    return Dart_LoadScriptFromKernel(kernel_buffer, kernel_buffer_size);
   }
-  return Dart_LoadScript(url, Dart_Null(), script, 0, 0);
 }
 
 VM_UNIT_TEST_CASE(DartAPI_IsolateSetCheckedMode) {
@@ -7177,6 +7176,12 @@ VM_UNIT_TEST_CASE(DartAPI_IsolateShutdownAndCleanup) {
 
 static int64_t add_result = 0;
 static void IsolateShutdownRunDartCodeTestCallback(void* callback_data) {
+  Dart_Isolate isolate = Dart_CurrentIsolate();
+  if (Dart_IsKernelIsolate(isolate) || Dart_IsServiceIsolate(isolate)) {
+    return;
+  } else {
+    ASSERT(add_result == 0);
+  }
   Dart_EnterScope();
   Dart_Handle lib = Dart_RootLibrary();
   EXPECT_VALID(lib);
@@ -7210,12 +7215,10 @@ VM_UNIT_TEST_CASE(DartAPI_IsolateShutdownRunDartCode) {
 
   {
     Dart_EnterScope();
-    Dart_Handle url = NewString(TestCase::url());
-    Dart_Handle source = NewString(kScriptChars);
+    Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+    EXPECT_VALID(lib);
     Dart_Handle result = Dart_SetLibraryTagHandler(TestCase::library_handler);
     EXPECT_VALID(result);
-    Dart_Handle lib = Dart_LoadScript(url, Dart_Null(), source, 0, 0);
-    EXPECT_VALID(lib);
     result = Dart_FinalizeLoading(false);
     EXPECT_VALID(result);
     result = Dart_Invoke(lib, NewString("main"), 0, NULL);

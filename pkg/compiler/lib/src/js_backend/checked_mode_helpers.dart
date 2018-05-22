@@ -4,9 +4,7 @@
 
 import '../common.dart';
 import '../common_elements.dart';
-import '../elements/elements.dart' show ErroneousElement;
 import '../elements/entities.dart';
-import '../elements/resolution_types.dart' show MalformedType;
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
@@ -33,20 +31,6 @@ class CheckedModeHelper {
   void generateAdditionalArguments(SsaCodeGenerator codegen, Namer namer,
       HTypeConversion node, List<jsAst.Expression> arguments) {
     // No additional arguments needed.
-  }
-}
-
-class MalformedCheckedModeHelper extends CheckedModeHelper {
-  const MalformedCheckedModeHelper(String name) : super(name);
-
-  CallStructure get callStructure => CallStructure.TWO_ARGS;
-
-  void generateAdditionalArguments(SsaCodeGenerator codegen, Namer namer,
-      HTypeConversion node, List<jsAst.Expression> arguments) {
-    // TODO(redemption): Support malformed types in [types.dart].
-    MalformedType type = node.typeExpression;
-    ErroneousElement element = type.element;
-    arguments.add(js.escapedString(element.message));
   }
 }
 
@@ -127,7 +111,6 @@ class CheckedModeHelpers {
 
   /// All the checked mode helpers.
   static const List<CheckedModeHelper> helpers = const <CheckedModeHelper>[
-    const MalformedCheckedModeHelper('checkMalformedType'),
     const CheckedModeHelper('stringTypeCast'),
     const CheckedModeHelper('stringTypeCheck'),
     const CheckedModeHelper('doubleTypeCast'),
@@ -215,11 +198,6 @@ class CheckedModeHelpers {
       DartType type, CommonElements commonElements,
       {bool typeCast, bool nativeCheckOnly}) {
     assert(!type.isTypedef);
-    if (type.isMalformed) {
-      // The same error is thrown for type test and type cast of a malformed
-      // type so we only need one check method.
-      return 'checkMalformedType';
-    }
 
     if (type.isTypeVariable) {
       return typeCast

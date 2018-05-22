@@ -2015,7 +2015,8 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
       if (FLAG_enable_inlining_annotations) {
         FATAL("Cannot enable inlining annotations and background compilation");
       }
-      if (!BackgroundCompiler::IsDisabled(isolate)) {
+      if (!BackgroundCompiler::IsDisabled(isolate) &&
+          function.is_background_optimizable()) {
         if (FLAG_background_compilation_stop_alot) {
           BackgroundCompiler::Stop(isolate);
         }
@@ -2026,6 +2027,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
         function.SetUsageCounter(INT_MIN);
         BackgroundCompiler::Start(isolate);
         isolate->background_compiler()->CompileOptimized(function);
+
         // Continue in the same code.
         arguments.SetReturn(function);
         return;

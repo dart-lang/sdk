@@ -7,7 +7,7 @@ library vm.transformations.cha_devirtualization;
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/class_hierarchy.dart'
-    show ClassHierarchy, ClosedWorldClassHierarchy;
+    show ClassHierarchy, ClassHierarchySubtypes, ClosedWorldClassHierarchy;
 
 import '../metadata/direct_call.dart';
 
@@ -15,9 +15,10 @@ import '../metadata/direct_call.dart';
 /// analysis. Assumes strong mode and closed world.
 Component transformComponent(CoreTypes coreTypes, Component component) {
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
-  final hierarchy = new ClassHierarchy(component,
+  ClosedWorldClassHierarchy hierarchy = new ClassHierarchy(component,
       onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
-  new CHADevirtualization(coreTypes, component, hierarchy)
+  final hierarchySubtypes = hierarchy.computeSubtypesInformation();
+  new CHADevirtualization(coreTypes, component, hierarchy, hierarchySubtypes)
       .visitComponent(component);
   return component;
 }
@@ -140,15 +141,16 @@ abstract class Devirtualization extends RecursiveVisitor<Null> {
 
 /// Devirtualization based on the closed-world class hierarchy analysis.
 class CHADevirtualization extends Devirtualization {
-  final ClosedWorldClassHierarchy _hierarchy;
+  final ClassHierarchySubtypes _hierarchySubtype;
 
-  CHADevirtualization(CoreTypes coreTypes, Component component, this._hierarchy)
-      : super(coreTypes, component, _hierarchy);
+  CHADevirtualization(CoreTypes coreTypes, Component component,
+      ClosedWorldClassHierarchy hierarchy, this._hierarchySubtype)
+      : super(coreTypes, component, hierarchy);
 
   @override
   DirectCallMetadata getDirectCall(TreeNode node, Member target,
       {bool setter = false}) {
-    Member singleTarget = _hierarchy
+    Member singleTarget = _hierarchySubtype
         .getSingleTargetForInterfaceInvocation(target, setter: setter);
     if (singleTarget == null) {
       return null;

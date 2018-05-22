@@ -6,6 +6,7 @@ library dart2js.abstract_value_domain;
 
 import '../constants/values.dart' show ConstantValue;
 import '../elements/entities.dart';
+import '../universe/selector.dart';
 
 /// A value in an abstraction of runtime values.
 abstract class AbstractValue {}
@@ -63,7 +64,7 @@ abstract class AbstractValueDomain {
 
   /// The [AbstractValue] that represents a non-null fixed size JavaScript array
   /// at runtime.
-  AbstractValue get fixedArrayType;
+  AbstractValue get fixedListType;
 
   /// The [AbstractValue] that represents a non-null 31-bit unsigned integer at
   /// runtime.
@@ -230,6 +231,10 @@ abstract class AbstractValueDomain {
   /// [b].
   AbstractValue union(covariant AbstractValue a, covariant AbstractValue b);
 
+  /// Returns [AbstractValue] for the runtime values contained in at least one
+  /// of [values].
+  AbstractValue unionOfMany(List<AbstractValue> values);
+
   /// Returns [AbstractValue] for the runtime values that [a] and [b] have in
   /// common.
   AbstractValue intersection(
@@ -243,4 +248,24 @@ abstract class AbstractValueDomain {
 
   /// Computes the [AbstractValue] corresponding to the constant [value].
   AbstractValue computeAbstractValueForConstant(ConstantValue value);
+
+  /// Returns the element type of [value] if it represents a container value
+  /// at runtime. Returns [dynamicType] otherwise.
+  AbstractValue getContainerElementType(AbstractValue value);
+
+  /// Returns the value type of [value] if it represents a map value at runtime.
+  /// Returns [dynamicType] otherwise.
+  AbstractValue getMapValueType(AbstractValue value);
+
+  /// Compute the type of all potential receivers of the set of live [members].
+  AbstractValue computeReceiver(Iterable<MemberEntity> members);
+
+  /// Returns whether [member] is a potential target when being
+  /// invoked on a [receiver]. [selector] is used to ensure library privacy is
+  /// taken into account.
+  bool canHit(AbstractValue receiver, MemberEntity member, Selector selector);
+
+  /// Returns whether [selector] invoked on a [receiver] can hit a
+  /// [noSuchMethod].
+  bool needsNoSuchMethodHandling(AbstractValue receiver, Selector selector);
 }

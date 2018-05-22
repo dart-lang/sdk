@@ -679,7 +679,7 @@ void MetadataHelper::SetMetadataMappings(intptr_t mappings_offset,
       intptr_t node_offset = reader.ReadUInt32();
       intptr_t md_offset = reader.ReadUInt32();
 
-      ASSERT((node_offset > 0) && (md_offset > 0));
+      ASSERT((node_offset > 0) && (md_offset >= 0));
       ASSERT(node_offset > prev_node_offset);
       prev_node_offset = node_offset;
     }
@@ -747,7 +747,7 @@ intptr_t MetadataHelper::GetNextMetadataPayloadOffset(intptr_t node_offset) {
 
   intptr_t index = last_mapping_index_;
   intptr_t mapping_node_offset = 0;
-  intptr_t mapping_md_offset = 0;
+  intptr_t mapping_md_offset = -1;
 
   Reader reader(H.metadata_mappings());
   const intptr_t kUInt32Size = 4;
@@ -766,7 +766,7 @@ intptr_t MetadataHelper::GetNextMetadataPayloadOffset(intptr_t node_offset) {
   last_node_offset_ = node_offset;
 
   if ((index < mappings_num_) && (mapping_node_offset == node_offset)) {
-    ASSERT(mapping_md_offset > 0);
+    ASSERT(mapping_md_offset >= 0);
     return mapping_md_offset;
   } else {
     return -1;
@@ -782,7 +782,7 @@ bool DirectCallMetadataHelper::ReadMetadata(intptr_t node_offset,
   }
 
   AlternativeReadingScope alt(&builder_->reader_, &H.metadata_payloads(),
-                              md_offset - MetadataPayloadOffset);
+                              md_offset);
 
   *target_name = builder_->ReadCanonicalNameReference();
   *check_receiver_for_null = builder_->ReadBool();
@@ -860,7 +860,7 @@ bool ProcedureAttributesMetadataHelper::ReadMetadata(
   }
 
   AlternativeReadingScope alt(&builder_->reader_, &H.metadata_payloads(),
-                              md_offset - MetadataPayloadOffset);
+                              md_offset);
 
   const int kDynamicUsesBit = 1 << 0;
   const int kNonThisUsesBit = 1 << 1;
@@ -890,7 +890,7 @@ InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
   }
 
   AlternativeReadingScope alt(&builder_->reader_, &H.metadata_payloads(),
-                              md_offset - MetadataPayloadOffset);
+                              md_offset);
 
   const NameIndex kernel_name = builder_->ReadCanonicalNameReference();
   const bool nullable = builder_->ReadBool();
@@ -923,7 +923,7 @@ void BytecodeMetadataHelper::CopyBytecode(const Function& function) {
   }
 
   AlternativeReadingScope alt(&builder_->reader_, &H.metadata_payloads(),
-                              md_offset - MetadataPayloadOffset);
+                              md_offset);
 
   // Read bytecode.
   intptr_t bytecode_size = builder_->reader_.ReadUInt();
@@ -1014,8 +1014,8 @@ void BytecodeMetadataHelper::CopyBytecode(const Function& function) {
         }
       } break;
       case ConstantPoolTag::kICData: {
-        NameIndex target = builder_->ReadCanonicalNameReference();
-        name = H.DartProcedureName(target).raw();
+        StringIndex target = builder_->ReadStringReference();
+        name = H.DartSymbolPlain(target).raw();
         intptr_t arg_desc_index = builder_->ReadUInt();
         ASSERT(arg_desc_index < i);
         array ^= obj_pool.ObjectAt(arg_desc_index);
@@ -1084,12 +1084,10 @@ void BytecodeMetadataHelper::CopyBytecode(const Function& function) {
         obj = H.Canonicalize(Instance::Cast(obj));
         break;
       case ConstantPoolTag::kType:
-        UNIMPLEMENTED();  // Encoding is under discussion with CFE team.
         obj = builder_->type_translator_.BuildType().raw();
         ASSERT(obj.IsAbstractType());
         break;
       case ConstantPoolTag::kTypeArguments:
-        UNIMPLEMENTED();  // Encoding is under discussion with CFE team.
         obj = builder_->type_translator_
                   .BuildTypeArguments(builder_->ReadListLength())
                   .raw();
@@ -2157,6 +2155,9 @@ void StreamingScopeBuilder::VisitStatement() {
         ExitScope(builder_->reader_.min_position(),
                   builder_->reader_.max_position());
       }
+
+      FinalizeCatchVariables();
+
       --depth_.catch_;
       return;
     }
@@ -2173,6 +2174,8 @@ void StreamingScopeBuilder::VisitStatement() {
       AddCatchVariables();
 
       VisitStatement();  // read finalizer.
+
+      FinalizeCatchVariables();
 
       --depth_.catch_;
       return;
@@ -2598,6 +2601,30 @@ void StreamingScopeBuilder::AddExceptionVariable(
   variables->Add(v);
 }
 
+void StreamingScopeBuilder::FinalizeExceptionVariable(
+    GrowableArray<LocalVariable*>* variables,
+    GrowableArray<LocalVariable*>* raw_variables,
+    const String& symbol,
+    intptr_t nesting_depth) {
+  // No need to create variables for try/catch-statements inside
+  // nested functions.
+  if (depth_.function_ > 0) return;
+
+  LocalVariable* variable = (*variables)[nesting_depth - 1];
+  LocalVariable* raw_variable;
+  if (variable->is_captured()) {
+    raw_variable =
+        new LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
+                          symbol, AbstractType::dynamic_type());
+    const bool ok = scope_->AddVariable(raw_variable);
+    ASSERT(ok);
+  } else {
+    raw_variable = variable;
+  }
+  raw_variables->EnsureLength(nesting_depth, nullptr);
+  (*raw_variables)[nesting_depth - 1] = raw_variable;
+}
+
 void StreamingScopeBuilder::AddTryVariables() {
   AddExceptionVariable(&result_->catch_context_variables,
                        ":saved_try_context_var", depth_.try_);
@@ -2608,6 +2635,16 @@ void StreamingScopeBuilder::AddCatchVariables() {
                        depth_.catch_);
   AddExceptionVariable(&result_->stack_trace_variables, ":stack_trace",
                        depth_.catch_);
+}
+
+void StreamingScopeBuilder::FinalizeCatchVariables() {
+  const intptr_t unique_id = result_->raw_variable_counter_++;
+  FinalizeExceptionVariable(
+      &result_->exception_variables, &result_->raw_exception_variables,
+      GenerateName(":raw_exception", unique_id), depth_.catch_);
+  FinalizeExceptionVariable(
+      &result_->stack_trace_variables, &result_->raw_stack_trace_variables,
+      GenerateName(":raw_stacktrace", unique_id), depth_.catch_);
 }
 
 void StreamingScopeBuilder::AddIteratorVariable() {
@@ -5191,6 +5228,46 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
   return instructions;
 }
 
+// If no type arguments are passed to a generic function, we need to fill the
+// type arguments in with the default types stored on the TypeParameter nodes
+// in Kernel.
+Fragment StreamingFlowGraphBuilder::BuildDefaultTypeHandling(
+    const Function& function,
+    intptr_t type_parameters_offset) {
+  if (function.IsGeneric() && I->reify_generic_functions()) {
+    AlternativeReadingScope alt(&reader_);
+    SetOffset(type_parameters_offset);
+    intptr_t num_type_params = ReadListLength();
+    ASSERT(num_type_params == function.NumTypeParameters());
+    TypeArguments& default_types =
+        TypeArguments::ZoneHandle(TypeArguments::New(num_type_params));
+    for (intptr_t i = 0; i < num_type_params; ++i) {
+      TypeParameterHelper helper(this);
+      helper.ReadUntilExcludingAndSetJustRead(
+          TypeParameterHelper::kDefaultType);
+      if (ReadTag() == kSomething) {
+        default_types.SetTypeAt(i, T.BuildType());
+      } else {
+        default_types.SetTypeAt(i, Object::dynamic_type());
+      }
+      helper.Finish();
+    }
+    default_types = default_types.Canonicalize();
+
+    if (!default_types.IsNull()) {
+      // clang-format off
+      return B->TestAnyTypeArgs(/*then=*/{}, /*else=*/{
+          TranslateInstantiatedTypeArguments(default_types),
+          StoreLocal(TokenPosition::kNoSource,
+                     parsed_function()->function_type_arguments()),
+          Drop()
+        });
+      // clang-format on
+    }
+  }
+  return Fragment();
+}
+
 FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
     const Function& function) {
   const Function& parent = Function::ZoneHandle(Z, function.parent_function());
@@ -5227,6 +5304,11 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
   body +=
       flow_graph_builder_->CheckStackOverflowInPrologue(function.token_pos());
 
+  FunctionNodeHelper function_node_helper(this);
+  function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
+
+  body += BuildDefaultTypeHandling(function, ReaderOffset());
+
   intptr_t type_args_len = 0;
   if (I->reify_generic_functions() && function.IsGeneric()) {
     type_args_len = function.NumTypeParameters();
@@ -5234,9 +5316,6 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
     body += LoadLocal(parsed_function()->function_type_arguments());
     body += PushArgument();
   }
-
-  FunctionNodeHelper function_node_helper(this);
-  function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
 
   if (I->argument_type_checks()) {
     if (!target.NeedsArgumentTypeChecks(I)) {
@@ -5376,27 +5455,13 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
   body += StoreLocal(TokenPosition::kNoSource, argument_count_var);
   body += Drop();
   if (function.IsGeneric() && Isolate::Current()->reify_generic_functions()) {
-    Fragment test_generic;
-    JoinEntryInstr* join = BuildJoinEntry();
-
-    TargetEntryInstr *passed_type_args, *not_passed_type_args;
-    test_generic += B->LoadArgDescriptor();
-    test_generic += LoadField(ArgumentsDescriptor::type_args_len_offset());
-    test_generic += IntConstant(0);
-    test_generic += BranchIfEqual(&not_passed_type_args, &passed_type_args,
-                                  /*negate=*/false);
-
-    Fragment passed_type_args_frag(passed_type_args);
-    passed_type_args_frag += IntConstant(1);
-    passed_type_args_frag +=
-        StoreLocal(TokenPosition::kNoSource, argument_count_var);
-    passed_type_args_frag += Drop();
-    passed_type_args_frag += Goto(join);
-
-    Fragment not_passed_type_args_frag(not_passed_type_args);
-    not_passed_type_args_frag += Goto(join);
-
-    body += Fragment(test_generic.entry, join);
+    // clang-format off
+    body += flow_graph_builder_->TestAnyTypeArgs(/*then=*/{
+        IntConstant(1),
+        StoreLocal(TokenPosition::kNoSource, argument_count_var),
+        Drop()
+      }, /*else=*/{});
+    // clang-format on
   }
 
   if (function.HasOptionalParameters()) {
@@ -5413,7 +5478,13 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
   //
   // var arguments = new Array<dynamic>(argument_count);
   //
-  // for (int i = 0; i < argument_count; ++i) {
+  // int i = 0;
+  // if (any type arguments are passed) {
+  //   arguments[0] = function_type_arguments;
+  //   ++i;
+  // }
+  //
+  // for (; i < argument_count; ++i) {
   //   arguments[i] = LoadFpRelativeSlot(
   //       kWordSize * (kParamEndSlotFromFp + argument_count - i));
   // }
@@ -5428,6 +5499,26 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
     body += IntConstant(0);
     body += StoreLocal(TokenPosition::kNoSource, index);
     body += Drop();
+
+    // if (any type arguments are passed) {
+    //   arguments[0] = function_type_arguments;
+    //   i = 1;
+    // }
+    if (function.IsGeneric() && Isolate::Current()->reify_generic_functions()) {
+      // clang-format off
+      Fragment store_type_arguments = {
+            LoadLocal(arguments),
+            IntConstant(0),
+            LoadFunctionTypeArguments(),
+            StoreIndexed(kArrayCid),
+            Drop(),
+            IntConstant(1),
+            StoreLocal(TokenPosition::kNoSource, index),
+            Drop()
+          };
+      // clang-format on
+      body += B->TestAnyTypeArgs(store_type_arguments, {});
+    }
 
     TargetEntryInstr* body_entry;
     TargetEntryInstr* loop_exit;
@@ -5515,10 +5606,6 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
   body += LoadLocal(arguments);
   body += PushArgument();
 
-  // false -> this is not super NSM
-  body += Constant(Bool::False());
-  body += PushArgument();
-
   if (throw_no_such_method_error) {
     const Function& parent =
         Function::ZoneHandle(Z, function.parent_function());
@@ -5541,12 +5628,30 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
   }
   body += PushArgument();
 
+  // Push the number of delayed type arguments.
+  if (function.IsClosureFunction()) {
+    LocalVariable* closure =
+        parsed_function()->node_sequence()->scope()->VariableAt(0);
+    body += B->TestDelayedTypeArgs(
+        closure,
+        Fragment({IntConstant(function.NumTypeParameters()),
+                  StoreLocal(TokenPosition::kNoSource, argument_count_var),
+                  Drop()}),
+        Fragment({IntConstant(0),
+                  StoreLocal(TokenPosition::kNoSource, argument_count_var),
+                  Drop()}));
+    body += LoadLocal(argument_count_var);
+  } else {
+    body += IntConstant(0);
+  }
+  body += PushArgument();
+
   const Class& mirror_class =
       Class::Handle(Z, Library::LookupCoreClass(Symbols::InvocationMirror()));
   ASSERT(!mirror_class.IsNull());
   const Function& allocation_function = Function::ZoneHandle(
-      Z, mirror_class.LookupStaticFunction(
-             Library::PrivateCoreLibName(Symbols::AllocateInvocationMirror())));
+      Z, mirror_class.LookupStaticFunction(Library::PrivateCoreLibName(
+             Symbols::AllocateInvocationMirrorForClosure())));
   ASSERT(!allocation_function.IsNull());
   body += StaticCall(TokenPosition::kMinSource, allocation_function,
                      /* argument_count = */ 5, ICData::kStatic);
@@ -5912,6 +6017,9 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
   // body because it needs to be executed everytime we enter the function -
   // even if we are resuming from the yield.
   Fragment prologue;
+
+  prologue += BuildDefaultTypeHandling(dart_function, type_parameters_offset);
+
   if (dart_function.IsClosureFunction() &&
       dart_function.NumParentTypeParameters() > 0 &&
       I->reify_generic_functions()) {
@@ -10912,51 +11020,39 @@ void StreamingFlowGraphBuilder::EnsureMetadataIsScanned() {
 
   // Read metadataMappings elements.
   for (uint32_t i = 0; i < metadata_num; ++i) {
-    // Read nodeReferences length.
+    // Read nodeOffsetToMetadataOffset length.
     offset -= kUInt32Size;
-    uint32_t node_references_num = reader.ReadUInt32At(offset);
-
-    // Skip nodeReferences and read nodeOffsetToMetadataOffset length.
-    offset -= node_references_num * kUInt32Size + kUInt32Size;
     uint32_t mappings_num = reader.ReadUInt32At(offset);
 
     // Skip nodeOffsetToMetadataOffset and read tag.
     offset -= mappings_num * 2 * kUInt32Size + kUInt32Size;
     StringIndex tag = StringIndex(reader.ReadUInt32At(offset));
 
+    if (mappings_num == 0) {
+      continue;
+    }
+
     // Check recognized metadata
     if (H.StringEquals(tag, DirectCallMetadataHelper::tag())) {
-      ASSERT(node_references_num == 0);
-
-      if (mappings_num > 0) {
-        if (!FLAG_precompiled_mode) {
-          FATAL("DirectCallMetadata is allowed in precompiled mode only");
-        }
-        direct_call_metadata_helper_.SetMetadataMappings(offset + kUInt32Size,
-                                                         mappings_num);
+      if (!FLAG_precompiled_mode) {
+        FATAL("DirectCallMetadata is allowed in precompiled mode only");
       }
+      direct_call_metadata_helper_.SetMetadataMappings(offset + kUInt32Size,
+                                                       mappings_num);
     } else if (H.StringEquals(tag, InferredTypeMetadataHelper::tag())) {
-      ASSERT(node_references_num == 0);
-
-      if (mappings_num > 0) {
-        if (!FLAG_precompiled_mode) {
-          FATAL("InferredTypeMetadata is allowed in precompiled mode only");
-        }
-        inferred_type_metadata_helper_.SetMetadataMappings(offset + kUInt32Size,
-                                                           mappings_num);
+      if (!FLAG_precompiled_mode) {
+        FATAL("InferredTypeMetadata is allowed in precompiled mode only");
       }
+      inferred_type_metadata_helper_.SetMetadataMappings(offset + kUInt32Size,
+                                                         mappings_num);
     } else if (H.StringEquals(tag, ProcedureAttributesMetadataHelper::tag())) {
-      ASSERT(node_references_num == 0);
-
-      if (mappings_num > 0) {
-        if (!FLAG_precompiled_mode) {
-          FATAL(
-              "ProcedureAttributesMetadata is allowed in precompiled mode "
-              "only");
-        }
-        procedure_attributes_metadata_helper_.SetMetadataMappings(
-            offset + kUInt32Size, mappings_num);
+      if (!FLAG_precompiled_mode) {
+        FATAL(
+            "ProcedureAttributesMetadata is allowed in precompiled mode "
+            "only");
       }
+      procedure_attributes_metadata_helper_.SetMetadataMappings(
+          offset + kUInt32Size, mappings_num);
     } else if (H.StringEquals(tag, BytecodeMetadataHelper::tag())) {
       bytecode_metadata_helper_.SetMetadataMappings(offset + kUInt32Size,
                                                     mappings_num);

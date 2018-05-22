@@ -18,9 +18,7 @@ import '../universe/world_impact.dart'
 import 'backend_impact.dart';
 import 'backend_usage.dart';
 import 'custom_elements_analysis.dart';
-import 'mirrors_analysis.dart';
 import 'runtime_types.dart';
-import 'type_variable_handler.dart';
 
 class CodegenEnqueuerListener extends EnqueuerListener {
   final ElementEnvironment _elementEnvironment;
@@ -31,8 +29,6 @@ class CodegenEnqueuerListener extends EnqueuerListener {
   final RuntimeTypesNeed _rtiNeed;
 
   final CustomElementsCodegenAnalysis _customElementsAnalysis;
-  final TypeVariableCodegenAnalysis _typeVariableCodegenAnalysis;
-  final MirrorsCodegenAnalysis _mirrorsAnalysis;
 
   final NativeCodegenEnqueuer _nativeEnqueuer;
 
@@ -45,8 +41,6 @@ class CodegenEnqueuerListener extends EnqueuerListener {
       this._backendUsage,
       this._rtiNeed,
       this._customElementsAnalysis,
-      this._typeVariableCodegenAnalysis,
-      this._mirrorsAnalysis,
       this._nativeEnqueuer);
 
   @override
@@ -110,7 +104,6 @@ class CodegenEnqueuerListener extends EnqueuerListener {
     // Return early if any elements are added to avoid counting the elements as
     // due to mirrors.
     enqueuer.applyImpact(_customElementsAnalysis.flush());
-    enqueuer.applyImpact(_typeVariableCodegenAnalysis.flush());
 
     if (_backendUsage.isNoSuchMethodUsed && !_isNoSuchMethodUsed) {
       enqueuer.applyImpact(
@@ -120,7 +113,6 @@ class CodegenEnqueuerListener extends EnqueuerListener {
 
     if (!enqueuer.queueIsEmpty) return false;
 
-    _mirrorsAnalysis.onQueueEmpty(enqueuer, recentClasses);
     return true;
   }
 
@@ -226,9 +218,6 @@ class CodegenEnqueuerListener extends EnqueuerListener {
 
   WorldImpact _processClass(ClassEntity cls) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
-    if (_elementEnvironment.isGenericClass(cls)) {
-      _typeVariableCodegenAnalysis.registerClassWithTypeVariables(cls);
-    }
     if (cls == _commonElements.closureClass) {
       _impacts.closureClass.registerImpact(impactBuilder, _elementEnvironment);
     }

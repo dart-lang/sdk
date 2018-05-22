@@ -81,8 +81,6 @@ void TestCaseBase::RunAll() {
   }
 }
 
-static void NoopRelease(uint8_t* data) {}
-
 Dart_Isolate TestCase::CreateIsolate(const uint8_t* data_buffer,
                                      intptr_t len,
                                      const uint8_t* instr_buffer,
@@ -97,13 +95,8 @@ Dart_Isolate TestCase::CreateIsolate(const uint8_t* data_buffer,
     isolate = Dart_CreateIsolate(name, NULL, data_buffer, instr_buffer, NULL,
                                  NULL, &api_flags, data, &err);
   } else {
-    kernel::Program* program = reinterpret_cast<kernel::Program*>(
-        Dart_ReadKernelBinary(data_buffer, len, NoopRelease));
-    if (program != NULL) {
-      isolate = Dart_CreateIsolateFromKernel(name, NULL, program, &api_flags,
-                                             data, &err);
-      delete program;
-    }
+    isolate = Dart_CreateIsolateFromKernel(name, NULL, data_buffer, len,
+                                           &api_flags, data, &err);
   }
   if (isolate == NULL) {
     OS::PrintErr("Creation of isolate failed '%s'\n", err);
@@ -237,7 +230,8 @@ bool TestCase::UsingStrongMode() {
 
 char* TestCase::CompileTestScriptWithDFE(const char* url,
                                          const char* source,
-                                         void** kernel_pgm,
+                                         const uint8_t** kernel_buffer,
+                                         intptr_t* kernel_buffer_size,
                                          bool incrementally) {
   // clang-format off
   Dart_SourceFile sourcefiles[] = {
@@ -248,14 +242,12 @@ char* TestCase::CompileTestScriptWithDFE(const char* url,
       "file:///.packages", "untitled:/"
     }};
   // clang-format on
-  return CompileTestScriptWithDFE(url,
-                                  sizeof(sourcefiles) / sizeof(Dart_SourceFile),
-                                  sourcefiles, kernel_pgm, incrementally);
+  return CompileTestScriptWithDFE(
+      url, sizeof(sourcefiles) / sizeof(Dart_SourceFile), sourcefiles,
+      kernel_buffer, kernel_buffer_size, incrementally);
 }
 
-static void ReleaseFetchedBytes(uint8_t* buffer) {
-  free(buffer);
-}
+#if 0
 
 char* TestCase::CompileTestScriptWithDFE(const char* url,
                                          int sourcefiles_count,
@@ -267,7 +259,13 @@ char* TestCase::CompileTestScriptWithDFE(const char* url,
       url, FLAG_strong ? platform_strong_dill : platform_dill,
       FLAG_strong ? platform_strong_dill_size : platform_dill_size,
       sourcefiles_count, sourcefiles, incrementally, NULL);
+  return ValidateCompilationResult(zone, compilation_result, kernel_pgm);
+}
 
+char* TestCase::ValidateCompilationResult(
+    Zone* zone,
+    Dart_KernelCompilationResult compilation_result,
+    void** kernel_pgm) {
   if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
     char* result =
         OS::SCreate(zone, "Compilation failed %s", compilation_result.error);
@@ -283,6 +281,41 @@ char* TestCase::CompileTestScriptWithDFE(const char* url,
       Dart_ReadKernelBinary(kernel_file, kernel_length, ReleaseFetchedBytes);
   if (*kernel_pgm == NULL) {
     return OS::SCreate(zone, "Failed to read generated kernel binary");
+  }
+  return NULL;
+}
+#endif
+
+char* TestCase::CompileTestScriptWithDFE(const char* url,
+                                         int sourcefiles_count,
+                                         Dart_SourceFile sourcefiles[],
+                                         const uint8_t** kernel_buffer,
+                                         intptr_t* kernel_buffer_size,
+                                         bool incrementally) {
+  Zone* zone = Thread::Current()->zone();
+  Dart_KernelCompilationResult compilation_result = Dart_CompileSourcesToKernel(
+      url, FLAG_strong ? platform_strong_dill : platform_dill,
+      FLAG_strong ? platform_strong_dill_size : platform_dill_size,
+      sourcefiles_count, sourcefiles, incrementally, NULL);
+  return ValidateCompilationResult(zone, compilation_result, kernel_buffer,
+                                   kernel_buffer_size);
+}
+
+char* TestCase::ValidateCompilationResult(
+    Zone* zone,
+    Dart_KernelCompilationResult compilation_result,
+    const uint8_t** kernel_buffer,
+    intptr_t* kernel_buffer_size) {
+  if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
+    char* result =
+        OS::SCreate(zone, "Compilation failed %s", compilation_result.error);
+    free(compilation_result.error);
+    return result;
+  }
+  *kernel_buffer = compilation_result.kernel;
+  *kernel_buffer_size = compilation_result.kernel_size;
+  if (kernel_buffer == NULL) {
+    return OS::SCreate(zone, "front end generated a NULL kernel file");
   }
   return NULL;
 }
@@ -456,17 +489,25 @@ Dart_Handle TestCase::LoadTestLibrary(const char* lib_uri,
     const char* prefixed_lib_uri =
         OS::SCreate(Thread::Current()->zone(), "file:///%s", lib_uri);
     Dart_SourceFile sourcefiles[] = {{prefixed_lib_uri, script}};
-    void* kernel_pgm = NULL;
+    const uint8_t* kernel_buffer = NULL;
+    intptr_t kernel_buffer_size = 0;
     int sourcefiles_count = sizeof(sourcefiles) / sizeof(Dart_SourceFile);
     char* error = TestCase::CompileTestScriptWithDFE(
-        sourcefiles[0].uri, sourcefiles_count, sourcefiles, &kernel_pgm, true);
+        sourcefiles[0].uri, sourcefiles_count, sourcefiles, &kernel_buffer,
+        &kernel_buffer_size, true);
     if (error != NULL) {
       return Dart_NewApiError(error);
     }
-    Dart_Handle url = NewString(prefixed_lib_uri);
-    Dart_Handle lib = Dart_LoadLibrary(
-        url, Dart_Null(), reinterpret_cast<Dart_Handle>(kernel_pgm), 0, 0);
+    Dart_Handle lib =
+        Dart_LoadLibraryFromKernel(kernel_buffer, kernel_buffer_size);
     EXPECT_VALID(lib);
+
+    // TODO(32618): Kernel doesn't correctly represent the root library.
+    lib = Dart_LookupLibrary(Dart_NewStringFromCString(sourcefiles[0].uri));
+    DART_CHECK_VALID(lib);
+    Dart_Handle result = Dart_SetRootLibrary(lib);
+    DART_CHECK_VALID(result);
+
     Dart_SetNativeResolver(lib, resolver, NULL);
     return lib;
   } else {
@@ -482,19 +523,27 @@ Dart_Handle TestCase::LoadTestScriptWithDFE(int sourcefiles_count,
                                             bool finalize,
                                             bool incrementally) {
   // First script is the main script.
-  Dart_Handle url = NewString(sourcefiles[0].uri);
   Dart_Handle result = Dart_SetLibraryTagHandler(LibraryTagHandler);
   EXPECT_VALID(result);
-  void* kernel_pgm = NULL;
+  const uint8_t* kernel_buffer = NULL;
+  intptr_t kernel_buffer_size = 0;
   char* error = TestCase::CompileTestScriptWithDFE(
-      sourcefiles[0].uri, sourcefiles_count, sourcefiles, &kernel_pgm,
-      incrementally);
+      sourcefiles[0].uri, sourcefiles_count, sourcefiles, &kernel_buffer,
+      &kernel_buffer_size, incrementally);
   if (error != NULL) {
     return Dart_NewApiError(error);
   }
-  Dart_Handle lib = Dart_LoadScript(
-      url, Dart_Null(), reinterpret_cast<Dart_Handle>(kernel_pgm), 0, 0);
+
+  Dart_Handle lib =
+      Dart_LoadLibraryFromKernel(kernel_buffer, kernel_buffer_size);
   DART_CHECK_VALID(lib);
+
+  // BOGUS: Kernel doesn't correctly represent the root library.
+  lib = Dart_LookupLibrary(Dart_NewStringFromCString(sourcefiles[0].uri));
+  DART_CHECK_VALID(lib);
+  result = Dart_SetRootLibrary(lib);
+  DART_CHECK_VALID(result);
+
   result = Dart_SetNativeResolver(lib, resolver, NULL);
   DART_CHECK_VALID(result);
   if (finalize) {
@@ -586,7 +635,8 @@ Dart_Handle TestCase::ReloadTestScript(const char* script) {
   return TriggerReload();
 }
 
-Dart_Handle TestCase::ReloadTestKernel(const void* kernel) {
+Dart_Handle TestCase::ReloadTestKernel(const uint8_t* kernel_buffer,
+                                       intptr_t kernel_buffer_size) {
   return TriggerReload();
 }
 

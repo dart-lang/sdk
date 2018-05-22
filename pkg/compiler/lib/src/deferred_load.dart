@@ -19,8 +19,6 @@ import 'constants/values.dart'
         InstantiationConstantValue,
         TypeConstantValue;
 import 'elements/types.dart';
-import 'elements/elements.dart'
-    show AstElement, ClassElement, Element, MethodElement, LocalFunctionElement;
 import 'elements/entities.dart';
 import 'kernel/kelements.dart' show KLocalFunction;
 import 'universe/use.dart';
@@ -190,11 +188,6 @@ abstract class DeferredLoadTask extends CompilerTask {
   /// Adds the results to [elements] and [constants].
   void _collectAllElementsAndConstantsResolvedFrom(Entity element,
       Set<Entity> elements, Set<ConstantValue> constants, isMirrorUsage) {
-    if (element is Element && element.isMalformed) {
-      // Malformed elements are ignored.
-      return;
-    }
-
     /// Collects all direct dependencies of [element].
     ///
     /// The collected dependent elements and constants are are added to
@@ -206,19 +199,13 @@ abstract class DeferredLoadTask extends CompilerTask {
         return;
       }
 
-      // TODO(johnniwinther): Remove this when [AbstractFieldElement] has been
-      // removed.
-      if (element is Element && element is! AstElement) return;
-      Entity analyzableElement =
-          element is Element ? element.analyzableElement.declaration : element;
-
       // TODO(sigurdm): We want to be more specific about this - need a better
       // way to query "liveness".
-      if (!compiler.resolutionWorldBuilder.isMemberUsed(analyzableElement)) {
+      if (!compiler.resolutionWorldBuilder.isMemberUsed(element)) {
         return;
       }
-      _collectDependenciesFromImpact(analyzableElement, elements);
-      collectConstantsInBody(analyzableElement, constants);
+      _collectDependenciesFromImpact(element, elements);
+      collectConstantsInBody(element, constants);
     }
 
     if (element is FunctionEntity) {
@@ -238,13 +225,12 @@ abstract class DeferredLoadTask extends CompilerTask {
         collectDependencies(element);
       }
 
-      ClassEntity cls = element is ClassElement ? element.declaration : element;
-      ClassEntity impl = cls is ClassElement ? cls.implementation : cls;
+      ClassEntity cls = element;
       elementEnvironment.forEachLocalClassMember(cls, addLiveInstanceMember);
-      elementEnvironment.forEachSupertype(impl, (InterfaceType type) {
+      elementEnvironment.forEachSupertype(cls, (InterfaceType type) {
         _collectTypeDependencies(type, elements);
       });
-      elements.add(impl);
+      elements.add(cls);
     } else if (element is MemberEntity &&
         (element.isStatic || element.isTopLevel || element.isConstructor)) {
       elements.add(element);
@@ -255,10 +241,8 @@ abstract class DeferredLoadTask extends CompilerTask {
       // constructor, not the class itself.  We must add all the
       // instance members of the constructor's class.
       ClassEntity cls = element.enclosingClass;
-      ClassEntity implementation =
-          cls is ClassElement ? cls.implementation : cls;
       _collectAllElementsAndConstantsResolvedFrom(
-          implementation, elements, constants, isMirrorUsage);
+          cls, elements, constants, isMirrorUsage);
     }
 
     // Other elements, in particular instance members, are ignored as
@@ -474,8 +458,6 @@ abstract class DeferredLoadTask extends CompilerTask {
       } else if (element is KLocalFunction) {
         // TODO(sigmund): consider adding `Local.library`
         library = element.memberContext.library;
-      } else if (element is LocalFunctionElement) {
-        library = element.library;
       } else {
         assert(false, "Unexpected entity: ${element.runtimeType}");
       }
@@ -691,12 +673,10 @@ abstract class DeferredLoadTask extends CompilerTask {
       // information.
       for (MemberEntity element
           in closedWorld.backendUsage.globalFunctionDependencies) {
-        element = element is MethodElement ? element.implementation : element;
         queue.addElement(element, importSets.mainSet);
       }
       for (ClassEntity element
           in closedWorld.backendUsage.globalClassDependencies) {
-        element = element is ClassElement ? element.implementation : element;
         queue.addElement(element, importSets.mainSet);
       }
 
@@ -1162,26 +1142,8 @@ class OutputUnitData {
     // TODO(johnniwinther): Support use of entities by splitting maps by
     // entity kind.
     if (!isProgramSplit) return mainOutputUnit;
-    entity = entity is Element ? entity.implementation : entity;
     OutputUnit unit = _entityToUnit[entity];
     if (unit != null) return unit;
-    if (entity is Element) {
-      Element element = entity;
-      while (!_entityToUnit.containsKey(element)) {
-        // TODO(21051): workaround: it looks like we output annotation constants
-        // for classes that we don't include in the output. This seems to happen
-        // when we have reflection but can see that some classes are not needed.
-        // We still add the annotation but don't run through it below (where we
-        // assign every element to its output unit).
-        if (element.enclosingElement == null) {
-          _entityToUnit[element] = mainOutputUnit;
-          break;
-        }
-        element = element.enclosingElement.implementation;
-      }
-      return _entityToUnit[element];
-    }
-
     if (entity is MemberEntity && entity.isInstanceMember) {
       return outputUnitForEntity(entity.enclosingClass);
     }

@@ -223,7 +223,7 @@ class NativeArguments {
                   RawObject** argv,
                   RawObject** retval)
       : thread_(thread),
-        argc_tag_(ReverseArgOrderBit::update(kReverseArgOrderBit, argc_tag)),
+        argc_tag_(ReverseArgOrderBit::update(true, argc_tag)),
         argv_(argv),
         retval_(retval) {}
 #endif

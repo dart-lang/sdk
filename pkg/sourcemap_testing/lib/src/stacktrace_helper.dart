@@ -285,14 +285,12 @@ class StackTraceLine {
     String fileName;
     int lastColon = text.lastIndexOf(':');
     if (lastColon != -1) {
-      int lastValue =
-          int.parse(text.substring(lastColon + 1), onError: (_) => null);
+      int lastValue = int.tryParse(text.substring(lastColon + 1));
       if (lastValue != null) {
         int secondToLastColon = text.lastIndexOf(':', lastColon - 1);
         if (secondToLastColon != -1) {
-          int secondToLastValue = int.parse(
-              text.substring(secondToLastColon + 1, lastColon),
-              onError: (_) => null);
+          int secondToLastValue =
+              int.tryParse(text.substring(secondToLastColon + 1, lastColon));
           if (secondToLastValue != null) {
             lineNo = secondToLastValue;
             columnNo = lastValue;

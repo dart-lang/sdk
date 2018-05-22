@@ -119,6 +119,8 @@ class IdValue {
       id = new NodeId(offset, IdKind.node);
       expected = text;
     }
+    // Remove newlines.
+    expected = expected.replaceAll(new RegExp(r'\s*(\n\s*)+\s*'), '');
     return new IdValue(id, expected);
   }
 }

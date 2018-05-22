@@ -25,7 +25,8 @@ import 'package:front_end/src/multi_root_file_system.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/binary/limited_ast_to_binary.dart';
-import 'package:kernel/kernel.dart' show Component, loadComponentFromBytes;
+import 'package:kernel/kernel.dart'
+    show Component, loadComponentSourceFromBytes;
 import 'package:kernel/target/targets.dart';
 import 'package:path/path.dart' as path;
 import 'package:usage/uuid/uuid.dart';
@@ -88,7 +89,12 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
           ' option',
       defaultsTo: 'org-dartlang-root',
       hide: true)
-  ..addFlag('verbose', help: 'Enables verbose output from the compiler.');
+  ..addFlag('verbose', help: 'Enables verbose output from the compiler.')
+  ..addOption('initialize-from-dill',
+      help: 'Normally the output dill is used to specify which dill to '
+          'initialize from, but it can be overwritten here.',
+      defaultsTo: null,
+      hide: true);
 
 String usage = '''
 Usage: server [options] [input.dart]
@@ -179,6 +185,7 @@ class FrontendCompiler implements CompilerInterface {
   String _kernelBinaryFilename;
   String _kernelBinaryFilenameIncremental;
   String _kernelBinaryFilenameFull;
+  String _initializeFromDill;
 
   final ProgramTransformer transformer;
 
@@ -203,6 +210,8 @@ class FrontendCompiler implements CompilerInterface {
             ? '${_options["output-dill"]}.incremental.dill'
             : '$filename.incremental.dill');
     _kernelBinaryFilename = _kernelBinaryFilenameFull;
+    _initializeFromDill =
+        _options['initialize-from-dill'] ?? _kernelBinaryFilenameFull;
     final String boundaryKey = new Uuid().generateV4();
     _outputStream.writeln('result $boundaryKey');
     final Uri sdkRoot = _ensureFolderPath(options['sdk-root']);
@@ -270,9 +279,9 @@ class FrontendCompiler implements CompilerInterface {
     Component component;
     if (options['incremental']) {
       _compilerOptions = compilerOptions;
-      _generator = generator ??
-          _createGenerator(new Uri.file(_kernelBinaryFilenameFull));
-      await invalidateIfBootstrapping();
+      _generator =
+          generator ?? _createGenerator(new Uri.file(_initializeFromDill));
+      await invalidateIfInitializingFromDill();
       component = await _runWithPrintRedirection(() => _generator.compile());
     } else {
       if (options['link-platform']) {
@@ -321,18 +330,19 @@ class FrontendCompiler implements CompilerInterface {
     await sink.close();
   }
 
-  Future<Null> invalidateIfBootstrapping() async {
+  Future<Null> invalidateIfInitializingFromDill() async {
     if (_kernelBinaryFilename != _kernelBinaryFilenameFull) return null;
-    // If the generator is initialized bootstrapping is not in effect anyway,
-    // so there's no reason to spend time invalidating what should be
-    // invalidated by the normal approach anyway.
+    // If the generator is initialized, it's not going to initialize from dill
+    // again anyway, so there's no reason to spend time invalidating what should
+    // be invalidated by the normal approach anyway.
     if (_generator.initialized) return null;
 
     try {
-      final File f = new File(_kernelBinaryFilenameFull);
+      final File f = new File(_initializeFromDill);
       if (!f.existsSync()) return null;
 
-      final Component component = loadComponentFromBytes(f.readAsBytesSync());
+      final Component component =
+          loadComponentSourceFromBytes(f.readAsBytesSync());
       for (Uri uri in component.uriToSource.keys) {
         if ('$uri' == '') continue;
 
@@ -357,8 +367,8 @@ class FrontendCompiler implements CompilerInterface {
       }
     } catch (e) {
       // If there's a failure in the above block we might not have invalidated
-      // correctly. Create a new generator that doesn't bootstrap to avoid missing
-      // any changes.
+      // correctly. Create a new generator that doesn't initialize from dill to
+      // avoid missing any changes.
       _generator = _createGenerator(null);
     }
   }
@@ -367,7 +377,7 @@ class FrontendCompiler implements CompilerInterface {
   Future<Null> recompileDelta({String filename}) async {
     final String boundaryKey = new Uuid().generateV4();
     _outputStream.writeln('result $boundaryKey');
-    await invalidateIfBootstrapping();
+    await invalidateIfInitializingFromDill();
     if (filename != null) {
       setMainSourceFilename(filename);
     }
@@ -421,9 +431,9 @@ class FrontendCompiler implements CompilerInterface {
     return Uri.base.resolveUri(new Uri.file(fileOrUri));
   }
 
-  IncrementalCompiler _createGenerator(Uri bootstrapDill) {
+  IncrementalCompiler _createGenerator(Uri initializeFromDillUri) {
     return new IncrementalCompiler(_compilerOptions, _mainSource,
-        bootstrapDill: bootstrapDill);
+        initializeFromDillUri: initializeFromDillUri);
   }
 
   Uri _ensureFolderPath(String path) {
@@ -454,6 +464,7 @@ void _writeDepfile(Component component, String output, String depfile) async {
   file.write(_escapePath(output));
   file.write(':');
   for (Uri dep in component.uriToSource.keys) {
+    if (dep == null) continue;
     file.write(' ');
     file.write(_escapePath(dep.toFilePath()));
   }

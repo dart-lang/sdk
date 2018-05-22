@@ -49,9 +49,9 @@ void main() {
   testNum(m2.cast<int, int>(), "Map<num>.unmod.cast<int>");
 
   Map<Symbol, dynamic> nsm = new NsmMap().foo(a: 0);
-  test(nsm, #a, 0, "nsm");
-  test(nsm.cast<Object, int>(), #a, 0, "nsm.cast");
-  test(nsm.retype<Object, int>(), #a, 0, "nsm.retype");
+  test(nsm, #a, 0, "nsm", noSuchMethodMap: true);
+  test(nsm.cast<Object, int>(), #a, 0, "nsm.cast", noSuchMethodMap: true);
+  test(nsm.retype<Object, int>(), #a, 0, "nsm.retype", noSuchMethodMap: true);
 }
 
 void testNum(Map<Object, Object> map, String name) {
@@ -59,11 +59,14 @@ void testNum(Map<Object, Object> map, String name) {
 }
 
 void test(
-    Map<Object, Object> map, Object firstKey, Object firstValue, String name) {
-  Expect.isTrue(map.containsKey(firstKey), "$name.containsKey");
-  Expect.equals(1, map.length, "$name.length");
-  Expect.equals(firstKey, map.keys.first, "$name.keys.first");
-  Expect.equals(firstValue, map.values.first, "$name.values.first");
+    Map<Object, Object> map, Object firstKey, Object firstValue, String name,
+    {bool noSuchMethodMap: false}) {
+  if (!noSuchMethodMap) {
+    Expect.isTrue(map.containsKey(firstKey), "$name.containsKey");
+    Expect.equals(1, map.length, "$name.length");
+    Expect.equals(firstKey, map.keys.first, "$name.keys.first");
+    Expect.equals(firstValue, map.values.first, "$name.values.first");
+  }
 
   Expect.throwsUnsupportedError(map.clear, "$name.clear");
   Expect.throwsUnsupportedError(() {

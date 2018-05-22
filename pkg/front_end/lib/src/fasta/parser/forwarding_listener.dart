@@ -1196,6 +1196,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleParenthesizedCondition(Token token) {
+    listener?.handleParenthesizedCondition(token);
+  }
+
+  @override
   void handleParenthesizedExpression(Token token) {
     listener?.handleParenthesizedExpression(token);
   }

@@ -8,6 +8,7 @@ import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../options.dart';
+import '../types/masks.dart';
 import '../types/types.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';

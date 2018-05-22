@@ -48,8 +48,6 @@ part '${convertPathForImport(testFile)}';
     // Build the request
     CompletionRequestImpl baseRequest = new CompletionRequestImpl(
         await driver.getResult(testFile),
-        resourceProvider,
-        testSource,
         completionOffset,
         new CompletionPerformance());
     Completer<DartCompletionRequest> requestCompleter =

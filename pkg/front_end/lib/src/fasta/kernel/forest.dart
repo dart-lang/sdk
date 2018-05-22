@@ -7,6 +7,8 @@ library fasta.forest;
 // TODO(ahe): Remove this import.
 import 'package:kernel/ast.dart' as kernel show Arguments, DartType;
 
+import 'body_builder.dart' show Identifier;
+
 /// A tree factory.
 ///
 /// For now, the [Location] is always a token.
@@ -91,7 +93,16 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   /// either adjacent strings or interpolated strings.
   Expression literalString(String value, Location location);
 
-  Expression literalSymbol(String value, Location location);
+  /// Return a representation of a symbol literal defined by the [hash] and the
+  /// list of [components]. The [value] is the string value of the symbol.
+  Expression literalSymbolMultiple(
+      String value, Location hash, List<Identifier> components);
+
+  /// Return a representation of a symbol literal defined by the [hash] and the
+  /// single [component]. The component can be either an [Identifier] or an
+  /// [Operator]. The [value] is the string value of the symbol.
+  Expression literalSymbolSingluar(
+      String value, Location hash, Object component);
 
   Expression literalType(covariant type, Location location);
 
@@ -124,6 +135,11 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
 
   Expression awaitExpression(Expression operand, Location location);
 
+  /// Return a representation of a block of [statements] enclosed between the
+  /// [openBracket] and [closeBracket].
+  Statement block(
+      Location openBrace, List<Statement> statements, Location closeBrace);
+
   /// Return a representation of a conditional expression. The [condition] is
   /// the expression preceding the question mark. The [question] is the `?`. The
   /// [thenExpression] is the expression following the question mark. The
@@ -131,6 +147,26 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   /// colon.
   Expression conditionalExpression(Expression condition, Location question,
       Expression thenExpression, Location colon, Expression elseExpression);
+
+  /// Return a representation of a do statement.
+  Statement doStatement(
+      Location doKeyword,
+      Statement body,
+      Location whileKeyword,
+      covariant Expression condition,
+      Location semicolon);
+
+  /// Return a representation of an expression statement composed from the
+  /// [expression] and [semicolon].
+  Statement expressionStatement(Expression expression, Location semicolon);
+
+  /// Return a representation of an empty statement consisting of the given
+  /// [semicolon].
+  Statement emptyStatement(Location semicolon);
+
+  /// Return a representation of an `if` statement.
+  Statement ifStatement(Location ifKeyword, covariant Expression condition,
+      Statement thenStatement, Location elseKeyword, Statement elseStatement);
 
   /// Return a representation of an `is` expression. The [operand] is the
   /// representation of the left operand. The [isOperator] is the `is` operator.
@@ -141,12 +177,82 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
 
   Expression notExpression(Expression operand, Location location);
 
+  /// Return a representation of a parenthesized condition consisting of the
+  /// given [expression] between the [leftParenthesis] and [rightParenthesis].
+  Object parenthesizedCondition(Location leftParenthesis, Expression expression,
+      Location rightParenthesis);
+
+  /// Return a representation of a rethrow statement consisting of the
+  /// [rethrowKeyword] followed by the [semicolon].
+  Statement rethrowStatement(Location rethrowKeyword, Location semicolon);
+
+  /// Return a representation of a return statement.
+  Statement returnStatement(
+      Location returnKeyword, Expression expression, Location semicolon);
+
   Expression stringConcatenationExpression(
       List<Expression> expressions, Location location);
 
+  /// The given [statement] is being used as the target of either a break or
+  /// continue statement. Return the statement that should be used as the actual
+  /// target.
+  Statement syntheticLabeledStatement(Statement statement);
+
   Expression thisExpression(Location location);
 
-  bool isErroneousNode(covariant node);
+  /// Return a representation of a throw expression consisting of the
+  /// [throwKeyword].
+  Expression throwExpression(Location throwKeyword, Expression expression);
+
+  /// Return a representation of a try statement. The statement is introduced by
+  /// the [tryKeyword] and the given [body]. If catch clauses were included,
+  /// then the [catchClauses] will represent them, otherwise it will be `null`.
+  /// Similarly, if a finally block was included, then the [finallyKeyword] and
+  /// [finallyBlock] will be non-`null`, otherwise both will be `null`. If there
+  /// was an error in some part of the try statement, then an [errorReplacement]
+  /// might be provided, in which case it could be returned instead of the
+  /// representation of the try statement.
+  Statement tryStatement(Location tryKeyword, Statement body,
+      covariant catchClauses, Location finallyKeyword, Statement finallyBlock);
+
+  Statement variablesDeclaration(covariant List declarations, Uri uri);
+
+  Object variablesDeclarationExtractDeclarations(
+      covariant Statement variablesDeclaration);
+
+  Statement wrapVariables(Statement statement);
+
+  /// Return a representation of a while statement introduced by the
+  /// [whileKeyword] and consisting of the given [condition] and [body].
+  Statement whileStatement(
+      Location whileKeyword, covariant Expression condition, Statement body);
+
+  /// Return a representation of a yield statement consisting of the
+  /// [yieldKeyword], [star], [expression], and [semicolon]. The [star] is null
+  /// when no star was included in the source code.
+  Statement yieldStatement(Location yieldKeyword, Location star,
+      Expression expression, Location semicolon);
+
+  bool isBlock(Object node);
+
+  bool isErroneousNode(Object node);
+
+  bool isThisExpression(Object node);
+
+  bool isVariablesDeclaration(Object node);
+
+  /// Record that the [user] (a break statement) is associated with the [target]
+  /// statement.
+  void resolveBreak(covariant Statement target, covariant Statement user);
+
+  /// Record that the [user] (a continue statement) is associated with the
+  /// [target] statement.
+  void resolveContinue(covariant Statement target, covariant Statement user);
+
+  /// Record that the [user] (a continue statement inside a switch case) is
+  /// associated with the [target] statement.
+  void resolveContinueInSwitch(
+      covariant Object target, covariant Statement user);
 
   // TODO(ahe): Remove this method when all users are moved here.
   kernel.Arguments castArguments(Arguments arguments) {

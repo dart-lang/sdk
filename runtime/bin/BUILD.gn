@@ -246,6 +246,7 @@ template("build_libdart_builtin") {
   static_library(target_name) {
     configs += [
                  "..:dart_arch_config",
+                 "..:dart_maybe_interpreter_config",
                  "..:dart_config",
                ] + extra_configs
     if (is_fuchsia) {
@@ -332,6 +333,7 @@ template("build_gen_snapshot") {
     configs += [
                  "..:dart_arch_config",
                  "..:dart_config",
+                 "..:dart_maybe_interpreter_config",
                  "..:dart_precompiler_config",
                ] + extra_configs
     if (is_fuchsia) {
@@ -467,6 +469,7 @@ template("build_gen_snapshot_dart_io") {
     configs += [
                  "..:dart_arch_config",
                  "..:dart_config",
+                 "..:dart_maybe_interpreter_config",
                  "..:dart_precompiler_config",
                ] + extra_configs
     deps = []
@@ -554,6 +557,7 @@ template("dart_io") {
     configs += [
                  "..:dart_arch_config",
                  "..:dart_config",
+                 "..:dart_maybe_interpreter_config",
                  "..:dart_os_config",
                ] + extra_configs
     if (is_fuchsia) {
@@ -868,6 +872,7 @@ template("dart_executable") {
                  "..:dart_arch_config",
                  "..:dart_config",
                  "..:dart_os_config",
+                 "..:dart_maybe_interpreter_config",
                  "..:dart_maybe_product_config",
                ] + extra_configs
     if (is_fuchsia) {
@@ -1011,7 +1016,7 @@ dart_executable("dart_precompiled_runtime_for_linking") {
 dart_executable("dart_bootstrap") {
   extra_configs = [
     "..:dart_precompiler_config",
-    "..:dart_no_snapshot_config",
+    "..:dart_nosnapshot_config",
   ]
   extra_deps = [
     ":gen_resources_cc",
@@ -1113,6 +1118,7 @@ executable("run_vm_tests") {
     "..:dart_arch_config",
     "..:dart_config",
     "..:dart_os_config",
+    "..:dart_maybe_interpreter_config",
     "..:dart_maybe_product_config",
   ]
   if (is_fuchsia) {

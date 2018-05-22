@@ -4,6 +4,7 @@
 
 import 'dart:io' hide Link;
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/closure.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/deferred_load.dart';
@@ -87,44 +88,73 @@ String outputUnitString(OutputUnit unit) {
 void computeKernelOutputUnitData(
     Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
     {bool verbose: false}) {
-  OutputUnitData data = compiler.backend.outputUnitData;
-  String value = outputUnitString(data.outputUnitForEntity(member));
-
   KernelBackendStrategy backendStrategy = compiler.backendStrategy;
   KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
   MemberDefinition definition = elementMap.getMemberDefinition(member);
+  new TypeMaskIrComputer(
+          compiler.reporter,
+          actualMap,
+          elementMap,
+          member,
+          compiler.backend.outputUnitData,
+          backendStrategy.closureDataLookup as ClosureDataLookup<ir.Node>)
+      .run(definition.node);
+}
 
-  _registerValue(
-      computeEntityId(definition.node),
-      value,
-      member,
-      computeSourceSpanFromTreeNode(definition.node),
-      actualMap,
-      compiler.reporter);
+/// IR visitor for computing inference data for a member.
+class TypeMaskIrComputer extends IrDataExtractor {
+  final KernelToElementMapForBuilding _elementMap;
+  final OutputUnitData _data;
+  final ClosureDataLookup<ir.Node> _closureDataLookup;
 
-  ir.Member memberNode = definition.node;
-  if (memberNode is ir.Field && memberNode.isConst) {
-    ir.Expression node = memberNode.initializer;
-    ConstantValue constant = elementMap.getConstantValue(node);
-    if (constant.isPrimitive) return;
-    SourceSpan span = computeSourceSpanFromTreeNode(node);
-    if (node is ir.ConstructorInvocation ||
-        node is ir.ListLiteral ||
-        (node is ir.MapLiteral && node.keyType == null)) {
-      // Adjust the source-span to match the AST-based location. The kernel FE
-      // skips the "const" keyword for the expression offset and any prefix in
-      // front of the constructor. The "-6" is an approximation assuming that
-      // there is just a single space after "const" and no prefix.
-      // TODO(sigmund): offsets should be fixed in the FE instead.
-      span = new SourceSpan(span.uri, span.begin - 6, span.end - 6);
+  TypeMaskIrComputer(
+      DiagnosticReporter reporter,
+      Map<Id, ActualData> actualMap,
+      this._elementMap,
+      MemberEntity member,
+      this._data,
+      this._closureDataLookup)
+      : super(reporter, actualMap);
+
+  String getMemberValue(MemberEntity member) {
+    return outputUnitString(_data.outputUnitForEntity(member));
+  }
+
+  @override
+  String computeMemberValue(Id id, ir.Member node) {
+    if (node is ir.Field && node.isConst) {
+      ir.Expression initializer = node.initializer;
+      ConstantValue constant = _elementMap.getConstantValue(initializer);
+      if (!constant.isPrimitive) {
+        SourceSpan span = computeSourceSpanFromTreeNode(initializer);
+        if (initializer is ir.ConstructorInvocation) {
+          // Adjust the source-span to match the AST-based location. The kernel FE
+          // skips the "const" keyword for the expression offset and any prefix in
+          // front of the constructor. The "-6" is an approximation assuming that
+          // there is just a single space after "const" and no prefix.
+          // TODO(sigmund): offsets should be fixed in the FE instead.
+          span = new SourceSpan(span.uri, span.begin - 6, span.end - 6);
+        }
+        _registerValue(
+            new NodeId(span.begin, IdKind.node),
+            outputUnitString(_data.outputUnitForConstant(constant)),
+            node,
+            span,
+            actualMap,
+            reporter);
+      }
     }
-    _registerValue(
-        new NodeId(span.begin, IdKind.node),
-        outputUnitString(data.outputUnitForConstant(constant)),
-        member,
-        span,
-        actualMap,
-        compiler.reporter);
+
+    return getMemberValue(_elementMap.getMember(node));
+  }
+
+  @override
+  String computeNodeValue(Id id, ir.TreeNode node) {
+    if (node is ir.FunctionExpression || node is ir.FunctionDeclaration) {
+      ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
+      return getMemberValue(info.callMethod);
+    }
+    return null;
   }
 }
 

@@ -137,10 +137,6 @@ class CommonElements {
   LibraryEntity get foreignLibrary =>
       _foreignLibrary ??= _env.lookupLibrary(Uris.dart__foreign_helper);
 
-  LibraryEntity _isolateHelperLibrary;
-  LibraryEntity get isolateHelperLibrary =>
-      _isolateHelperLibrary ??= _env.lookupLibrary(Uris.dart__isolate_helper);
-
   /// Reference to the internal library to lookup functions to always inline.
   LibraryEntity _internalLibrary;
   LibraryEntity get internalLibrary => _internalLibrary ??=
@@ -599,19 +595,6 @@ class CommonElements {
       _asyncStarStreamControllerFactory ??=
           _findAsyncHelperFunction('_makeAsyncStarStreamController');
 
-  // From dart:mirrors
-  FunctionEntity _findMirrorsFunction(String name) {
-    LibraryEntity library = _env.lookupLibrary(Uris.dart__js_mirrors);
-    if (library == null) return null;
-    return _env.lookupLibraryMember(library, name, required: true);
-  }
-
-  /// Holds the method "disableTreeShaking" in js_mirrors when
-  /// dart:mirrors has been loaded.
-  FunctionEntity _disableTreeShakingMarker;
-  FunctionEntity get disableTreeShakingMarker =>
-      _disableTreeShakingMarker ??= _findMirrorsFunction('disableTreeShaking');
-
   /// Holds the method "preserveNames" in js_mirrors when
   /// dart:mirrors has been loaded.
   FunctionEntity _preserveNamesMarker;
@@ -624,19 +607,6 @@ class CommonElements {
     }
     return _preserveNamesMarker;
   }
-
-  /// Holds the method "preserveMetadata" in js_mirrors when
-  /// dart:mirrors has been loaded.
-  FunctionEntity _preserveMetadataMarker;
-  FunctionEntity get preserveMetadataMarker =>
-      _preserveMetadataMarker ??= _findMirrorsFunction('preserveMetadata');
-
-  /// Holds the method "preserveLibraryNames" in js_mirrors when
-  /// dart:mirrors has been loaded.
-  FunctionEntity _preserveLibraryNamesMarker;
-  FunctionEntity get preserveLibraryNamesMarker =>
-      _preserveLibraryNamesMarker ??=
-          _findMirrorsFunction('preserveLibraryNames');
 
   // From dart:_interceptors
   ClassEntity _findInterceptorsClass(String name) =>
@@ -1442,8 +1412,6 @@ abstract class ElementEnvironment {
       ClassEntity cls, List<DartType> typeArguments);
 
   /// Returns the `dynamic` type.
-  // TODO(johnniwinther): Remove this when `ResolutionDynamicType` is no longer
-  // needed.
   DartType get dynamicType;
 
   /// Returns the 'raw type' of [cls]. That is, the instantiation of [cls]

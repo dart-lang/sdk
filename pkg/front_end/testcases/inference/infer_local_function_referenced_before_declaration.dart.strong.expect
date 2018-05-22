@@ -9,10 +9,10 @@ static method test() → dynamic {
   function f() → dynamic
     return throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#g, 32, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
   {
-    let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_local_function_referenced_before_declaration.dart:14:3: Error: Can't declare 'g' because it was already used in this scope.
+    invalid-expression "pkg/front_end/testcases/inference/infer_local_function_referenced_before_declaration.dart:14:3: Error: Can't declare 'g' because it was already used in this scope.
   g() => 0;
   ^";
-    function g() → dynamic
+    function g() → core::int
       return 0;
   }
   () → dynamic v = f;

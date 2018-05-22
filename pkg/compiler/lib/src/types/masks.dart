@@ -63,9 +63,21 @@ class CommonMasks implements AbstractValueDomain {
   TypeMask _indexablePrimitiveType;
   TypeMask _readableArrayType;
   TypeMask _mutableArrayType;
-  TypeMask _fixedArrayType;
   TypeMask _unmodifiableArrayType;
   TypeMask _interceptorType;
+
+  /// Cache of [FlatTypeMask]s grouped by the 8 possible values of the
+  /// `FlatTypeMask.flags` property.
+  final List<Map<ClassEntity, TypeMask>> _canonicalizedTypeMasks =
+      new List<Map<ClassEntity, TypeMask>>.filled(8, null);
+
+  /// Return the cached mask for [base] with the given flags, or
+  /// calls [createMask] to create the mask and cache it.
+  TypeMask getCachedMask(ClassEntity base, int flags, TypeMask createMask()) {
+    Map<ClassEntity, TypeMask> cachedMasks =
+        _canonicalizedTypeMasks[flags] ??= <ClassEntity, TypeMask>{};
+    return cachedMasks.putIfAbsent(base, createMask);
+  }
 
   TypeMask get dynamicType => _dynamicType ??= new TypeMask.subclass(
       _closedWorld.commonElements.objectClass, _closedWorld);
@@ -148,9 +160,6 @@ class CommonMasks implements AbstractValueDomain {
   TypeMask get mutableArrayType =>
       _mutableArrayType ??= new TypeMask.nonNullSubclass(
           commonElements.jsMutableArrayClass, _closedWorld);
-
-  TypeMask get fixedArrayType => _fixedArrayType ??=
-      new TypeMask.nonNullExact(commonElements.jsFixedArrayClass, _closedWorld);
 
   TypeMask get unmodifiableArrayType =>
       _unmodifiableArrayType ??= new TypeMask.nonNullExact(
@@ -374,5 +383,63 @@ class CommonMasks implements AbstractValueDomain {
   @override
   AbstractValue computeAbstractValueForConstant(ConstantValue value) {
     return computeTypeMask(_closedWorld, value);
+  }
+
+  @override
+  AbstractValue getMapValueType(AbstractValue value) {
+    if (value is MapTypeMask) {
+      return value.valueType ?? dynamicType;
+    }
+    return dynamicType;
+  }
+
+  @override
+  AbstractValue getContainerElementType(AbstractValue value) {
+    if (value is ContainerTypeMask) {
+      return value.elementType ?? dynamicType;
+    }
+    return dynamicType;
+  }
+
+  @override
+  AbstractValue unionOfMany(List<AbstractValue> values) {
+    TypeMask result = const TypeMask.nonNullEmpty();
+    for (TypeMask value in values) {
+      result = result.union(value, _closedWorld);
+    }
+    return result;
+  }
+
+  @override
+  AbstractValue computeReceiver(Iterable<MemberEntity> members) {
+    assert(_closedWorld
+        .hasAnyStrictSubclass(_closedWorld.commonElements.objectClass));
+    return new TypeMask.unionOf(
+        members.expand((MemberEntity element) {
+          ClassEntity cls = element.enclosingClass;
+          return [cls]..addAll(_closedWorld.mixinUsesOf(cls));
+        }).map((cls) {
+          if (_closedWorld.commonElements.jsNullClass == cls) {
+            return const TypeMask.empty();
+          } else if (_closedWorld.isInstantiated(cls)) {
+            return new TypeMask.nonNullSubclass(cls, _closedWorld);
+          } else {
+            // TODO(johnniwinther): Avoid the need for this case.
+            return const TypeMask.empty();
+          }
+        }),
+        _closedWorld);
+  }
+
+  @override
+  bool canHit(
+      covariant TypeMask receiver, MemberEntity member, Selector selector) {
+    return receiver.canHit(member, selector, _closedWorld);
+  }
+
+  @override
+  bool needsNoSuchMethodHandling(
+      covariant TypeMask receiver, Selector selector) {
+    return receiver.needsNoSuchMethodHandling(selector, _closedWorld);
   }
 }

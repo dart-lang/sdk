@@ -1043,9 +1043,25 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
             // We got an error during compilation.
             error = thread->sticky_error();
             thread->clear_sticky_error();
-            if ((error.IsLanguageError() &&
-                 LanguageError::Cast(error).kind() == Report::kBailout) ||
-                error.IsUnhandledException()) {
+
+            if (error.raw() == Object::background_compilation_error().raw()) {
+              if (FLAG_trace_compiler) {
+                THR_Print(
+                    "--> disabling background optimizations for '%s' (will "
+                    "try to re-compile on isolate thread again)\n",
+                    function.ToFullyQualifiedCString());
+              }
+
+              // Ensure we don't attempt to re-compile the function on the
+              // background compiler.
+              function.set_is_background_optimizable(false);
+
+              // Trigger another optimization soon on the main thread.
+              function.SetUsageCounter(FLAG_optimization_counter_threshold);
+            } else if ((error.IsLanguageError() &&
+                        LanguageError::Cast(error).kind() ==
+                            Report::kBailout) ||
+                       error.IsUnhandledException()) {
               if (FLAG_trace_compiler) {
                 THR_Print("--> disabling optimizations for '%s'\n",
                           function.ToFullyQualifiedCString());
@@ -1287,7 +1303,8 @@ RawObject* Compiler::CompileOptimizedFunction(Thread* thread,
   // not currently allowed.
   ASSERT(!thread->IsMutatorThread() || (osr_id != kNoOSRDeoptId) ||
          !FLAG_background_compilation ||
-         BackgroundCompiler::IsDisabled(Isolate::Current()));
+         BackgroundCompiler::IsDisabled(Isolate::Current()) ||
+         !function.is_background_optimizable());
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);
   return CompileFunctionHelper(pipeline, function, true, /* optimized */

@@ -76,6 +76,7 @@ DartType getStaticType(Expression e) =>
 /// inDeclarationContext, this method returns true if [node] is used in an
 /// invocation context such as a MethodInvocation.
 bool inInvocationContext(Expression node) {
+  if (node == null) return false;
   var parent = node.parent;
   while (parent is ParenthesizedExpression) {
     node = parent;

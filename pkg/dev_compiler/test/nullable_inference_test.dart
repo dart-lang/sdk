@@ -9,7 +9,6 @@ import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
-import 'package:kernel/library_index.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:test/test.dart';
 
@@ -491,9 +490,9 @@ class _TestRecursiveVisitor extends RecursiveVisitor<void> {
   @override
   visitComponent(Component node) {
     inference ??= new NullableInference(new JSTypeRep(
-        new TypeSchemaEnvironment(
-            new CoreTypes(node), new ClassHierarchy(node), true),
-        new LibraryIndex.coreLibraries(node)));
+      new TypeSchemaEnvironment(
+          new CoreTypes(node), new ClassHierarchy(node), true),
+    ));
 
     if (useAnnotations) {
       inference.allowNotNullDeclarations = useAnnotations;

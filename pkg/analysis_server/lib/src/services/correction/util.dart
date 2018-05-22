@@ -21,14 +21,14 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show SourceChange, SourceEdit;
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as pathos;
 
 /**
  * Adds edits to the given [change] that ensure that all the [libraries] are
  * imported into the given [targetLibrary].
  */
-void addLibraryImports(
-    SourceChange change, LibraryElement targetLibrary, Set<Source> libraries) {
+void addLibraryImports(pathos.Context pathContext, SourceChange change,
+    LibraryElement targetLibrary, Set<Source> libraries) {
   CorrectionUtils libUtils;
   try {
     CompilationUnitElement unitElement = targetLibrary.definingCompilationUnit;
@@ -52,7 +52,8 @@ void addLibraryImports(
 
   // Prepare all URIs to import.
   List<String> uriList = libraries
-      .map((library) => getLibrarySourceUri(targetLibrary, library))
+      .map((library) =>
+          getLibrarySourceUri(pathContext, targetLibrary, library.uri))
       .toList();
   uriList.sort((a, b) => a.compareTo(b));
 
@@ -347,18 +348,14 @@ Map<String, Element> getImportNamespace(ImportElement imp) {
 /**
  * Computes the best URI to import [what] into [from].
  */
-String getLibrarySourceUri(LibraryElement from, Source what) {
-  String whatPath = what.fullName;
-  // check if an absolute URI (such as 'dart:' or 'package:')
-  Uri whatUri = what.uri;
-  String whatUriScheme = whatUri.scheme;
-  if (whatUriScheme != '' && whatUriScheme != 'file') {
-    return whatUri.toString();
+String getLibrarySourceUri(
+    pathos.Context pathContext, LibraryElement from, Uri what) {
+  if (what.scheme == 'file') {
+    String fromFolder = pathContext.dirname(from.source.fullName);
+    String relativeFile = pathContext.relative(what.path, from: fromFolder);
+    return pathContext.split(relativeFile).join('/');
   }
-  // compute a relative URI
-  String fromFolder = dirname(from.source.fullName);
-  String relativeFile = relative(whatPath, from: fromFolder);
-  return split(relativeFile).join('/');
+  return what.toString();
 }
 
 /**

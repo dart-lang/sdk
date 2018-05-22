@@ -101,7 +101,7 @@ class WebServer {
    * Begin serving HTTP requests over the given [port].
    */
   void serveHttp(int port) {
-    _server = HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, port);
+    _server = HttpServer.bind(InternetAddress.loopbackIPv4, port);
     _server.then(_handleServer).catchError((_) {/* Ignore errors. */});
   }
 

@@ -22,7 +22,7 @@ import 'parser.dart' show Parser;
 
 import 'type_info.dart';
 
-import 'util.dart' show optional, skipMetadata;
+import 'util.dart' show isOneOf, optional, skipMetadata;
 
 /// See documentation on the [noType] const.
 class NoType implements TypeInfo {
@@ -35,7 +35,7 @@ class NoType implements TypeInfo {
   Token ensureTypeNotVoid(Token token, Parser parser) {
     parser.reportRecoverableErrorWithToken(
         token.next, fasta.templateExpectedType);
-    insertSyntheticIdentifierAfter(token, parser);
+    parser.rewriter.insertSyntheticIdentifier(token);
     return simpleType.parseType(token, parser);
   }
 
@@ -502,6 +502,12 @@ class NoTypeParamOrArg implements TypeParamOrArgInfo {
   }
 
   @override
+  Token parseVariables(Token token, Parser parser) {
+    parser.listener.handleNoTypeVariables(token.next);
+    return token;
+  }
+
+  @override
   Token skip(Token token) => token;
 }
 
@@ -515,23 +521,27 @@ class SimpleTypeArgument1 implements TypeParamOrArgInfo {
     Listener listener = parser.listener;
     listener.beginTypeArguments(token);
     token = simpleType.parseType(token, parser);
-    Token next = token.next;
+    token = processEndGroup(token, start, parser);
+    parser.listener.endTypeArguments(1, start, token);
+    return token;
+  }
 
-    if (next == start.endGroup) {
-      parser.listener.endTypeArguments(1, start, next);
-      return next;
-    } else if (optional('>', next)) {
-      // When `>>` is split, the inner group's endGroup updated here.
-      start.endGroup = next;
-      parser.listener.endTypeArguments(1, start, next);
-      return next;
-    } else if (optional('>>', next)) {
-      parser.listener.endTypeArguments(1, start, next);
-      // In this case, the last consumed token is the token before `>>`.
-      return token;
-    } else {
-      throw "Internal error: Expected '>' or '>>' but found '$next'.";
-    }
+  @override
+  Token parseVariables(Token token, Parser parser) {
+    BeginToken start = token = token.next;
+    assert(optional('<', token));
+    Listener listener = parser.listener;
+    listener.beginTypeVariables(token);
+    token = token.next;
+    listener.beginTypeVariable(token);
+    listener.beginMetadataStar(token);
+    listener.endMetadataStar(0);
+    listener.handleIdentifier(token, IdentifierContext.typeVariableDeclaration);
+    listener.handleNoType(token);
+    token = processEndGroup(token, start, parser);
+    listener.endTypeVariable(token, null);
+    listener.endTypeVariables(1, start, token);
+    return token;
   }
 
   @override
@@ -552,6 +562,10 @@ class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
   /// If a `>>` has not yet been split, then this field will be
   /// `>>` for the outer group and the token before `>>` for the inner group.
   Token end;
+
+  /// A collection of `<` without closing `>` in the reverse order from which
+  /// they were encountered in the token stream.
+  Link<Token> unbalancedLt = const Link<Token>();
 
   ComplexTypeParamOrArgInfo(Token token)
       : assert(optional('<', token.next)),
@@ -575,7 +589,6 @@ class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
     do {
       TypeInfo typeInfo = computeType(next, true, innerEndGroup);
       if (typeInfo == noType) {
-        // Recovery
         while (typeInfo == noType && optional('@', next.next)) {
           next = skipMetadata(next);
           typeInfo = computeType(next, true, innerEndGroup);
@@ -590,6 +603,10 @@ class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
       }
       token = typeInfo.skipType(next);
       next = token.next;
+      if (optional('extends', next) || optional('super', next)) {
+        token = computeType(next, true, innerEndGroup).skipType(next);
+        next = token.next;
+      }
     } while (optional(',', next));
 
     if (next == start.endGroup) {
@@ -605,17 +622,60 @@ class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
     return this;
   }
 
-  @override
-  Token parseArguments(Token token, Parser parser) {
-    assert(identical(start, token.next));
-
-    Token innerEndGroup;
-    if (start.endGroup != null && optional('>>', start.endGroup)) {
-      innerEndGroup = parser.rewriter.splitGtGt(start);
+  /// Parse the tokens and return the receiver or [noTypeParamOrArg] if there
+  /// are no type parameters or arguments. This does not modify the token
+  /// stream.
+  ///
+  /// This is called when parsing type parameters in a top level
+  /// or class member declaration. It assumes that a leading `<` cannot be part
+  /// of an expression, and thus tries to more aggressively recover
+  /// given an unmatched '<'.
+  ///
+  TypeParamOrArgInfo computeRecovery() {
+    assert(start.endGroup == null);
+    unbalancedLt = unbalancedLt.prepend(start);
+    Token token = start;
+    Token next = token.next;
+    while (!next.isEof) {
+      if (optional('Function', next)) {
+        next = next.next;
+        if (optional('<', next)) {
+          next = skipTypeVariables(next);
+          if (next == null) {
+            break;
+          }
+          next = next.next;
+        }
+        if (optional('(', next)) {
+          next = next.endGroup;
+        } else {
+          break;
+        }
+      } else if (optional('<', next)) {
+        Token endGroup = skipTypeVariables(next);
+        if (endGroup != null) {
+          next = endGroup;
+        } else {
+          unbalancedLt = unbalancedLt.prepend(next);
+        }
+      } else if (!isValidTypeReference(next) &&
+          !isOneOf(next, const ['.', ',', 'extends', 'super'])) {
+        break;
+      }
+      token = next;
+      next = token.next;
     }
 
-    Token next = start;
-    parser.listener.beginTypeArguments(start);
+    end = token;
+    return this;
+  }
+
+  @override
+  Token parseArguments(Token token, Parser parser) {
+    Token begin = balanceLt(token, parser);
+    Token next = begin;
+    Token innerEndGroup = processBeginGroup(begin, parser);
+    parser.listener.beginTypeArguments(begin);
     int count = 0;
     do {
       TypeInfo typeInfo = computeType(next, true, innerEndGroup);
@@ -633,28 +693,101 @@ class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
       next = token.next;
       ++count;
     } while (optional(',', next));
+    end = processEndGroup(token, begin, parser);
+    parser.listener.endTypeArguments(count, begin, end);
+    return end;
+  }
 
-    if (next == start.endGroup) {
-      end = next;
-      parser.listener.endTypeArguments(count, start, end);
-      return end;
-    } else if (optional('>', next)) {
-      // When `>>` is split, this method is recursively called
-      // and the inner group's endGroup updated here.
-      assert(start.endGroup == null);
-      end = start.endGroup = next;
-      parser.listener.endTypeArguments(count, start, end);
-      return end;
-    } else if (optional('>>', next)) {
-      // In this case, the end or last consumed token is the token before `>>`.
-      end = token;
-      parser.listener.endTypeArguments(count, start, next);
-      return end;
-    } else {
-      throw "Internal error: Expected '>' or '>>' but found '$next'.";
-    }
+  @override
+  Token parseVariables(Token token, Parser parser) {
+    Token begin = balanceLt(token, parser);
+    Token next = begin;
+    Token innerEndGroup = processBeginGroup(begin, parser);
+    parser.listener.beginTypeVariables(begin);
+    int count = 0;
+    do {
+      parser.listener.beginTypeVariable(next.next);
+      token = parser.parseMetadataStar(next);
+      token = parser.ensureIdentifier(
+          token, IdentifierContext.typeVariableDeclaration);
+      Token extendsOrSuper = null;
+      next = token.next;
+      if (optional('extends', next) || optional('super', next)) {
+        extendsOrSuper = next;
+        token = computeType(next, true, innerEndGroup)
+            .ensureTypeOrVoid(next, parser);
+        next = token.next;
+      } else {
+        parser.listener.handleNoType(token);
+      }
+      parser.listener.endTypeVariable(next, extendsOrSuper);
+      ++count;
+    } while (optional(',', next));
+    end = processEndGroup(token, begin, parser);
+    parser.listener.endTypeVariables(count, begin, end);
+    return end;
   }
 
   @override
   Token skip(Token token) => end;
+
+  /// For every unbalanced `<` append a synthetic `>`. Return the first `<`
+  Token balanceLt(Token token, Parser parser) {
+    assert(identical(start, token.next));
+    if (unbalancedLt.isEmpty) {
+      return start;
+    }
+    Token begin = parser.rewriter.balanceLt(token, end, unbalancedLt);
+    assert(begin.endGroup != null);
+    if (begin.endGroup.isSynthetic) {
+      parser.reportRecoverableError(
+          begin.endGroup.next, fasta.templateExpectedButGot.withArguments('>'));
+    }
+    return begin;
+  }
+}
+
+Token processBeginGroup(BeginToken start, Parser parser) {
+  Token innerEndGroup;
+  if (start.endGroup != null && optional('>>', start.endGroup)) {
+    innerEndGroup = parser.rewriter.splitGtGt(start);
+  }
+  return innerEndGroup;
+}
+
+Token processEndGroup(Token token, BeginToken start, Parser parser) {
+  Token next = token.next;
+  if (next == start.endGroup) {
+    return next;
+  } else if (optional('>', next)) {
+    // When `>>` is split, the inner group's endGroup updated here.
+    assert(start.endGroup == null);
+    start.endGroup = next;
+    return next;
+  } else if (optional('>>', next)) {
+    // In this case, the last consumed token is the token before `>>`.
+    return token;
+  } else {
+    // Recovery
+    parser.reportRecoverableErrorWithToken(next, fasta.templateUnexpectedToken);
+    if (start.endGroup != null) {
+      return start.endGroup;
+    }
+    while (true) {
+      if (optional('>', next)) {
+        start.endGroup = next;
+        return next;
+      }
+      if (optional('>>', next)) {
+        // In this case, the last consumed token is the token before `>>`.
+        return token;
+      }
+      if (next.isEof) {
+        // Sanity check.
+        return next;
+      }
+      token = next;
+      next = token.next;
+    }
+  }
 }

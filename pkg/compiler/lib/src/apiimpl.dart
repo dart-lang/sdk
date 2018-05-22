@@ -17,14 +17,11 @@ import 'common/tasks.dart' show GenericTask, Measurer;
 import 'common.dart';
 import 'compiler.dart';
 import 'diagnostics/messages.dart' show Message;
-import 'elements/elements.dart' as elements;
 import 'environment.dart';
-import 'library_loader.dart';
 import 'io/source_file.dart';
 import 'options.dart' show CompilerOptions;
 import 'platform_configuration.dart' as platform_configuration;
 import 'resolved_uri_translator.dart';
-import 'script.dart';
 
 /// Implements the [Compiler] using a [api.CompilerInput] for supplying the
 /// sources.
@@ -33,10 +30,6 @@ class CompilerImpl extends Compiler {
   api.CompilerInput provider;
   api.CompilerDiagnostics handler;
   Packages packages;
-
-  bool get mockableLibraryUsed => resolvedUriTranslator.isSet
-      ? resolvedUriTranslator.mockableLibraryUsed
-      : false;
 
   ForwardingResolvedUriTranslator resolvedUriTranslator;
 
@@ -73,86 +66,6 @@ class CompilerImpl extends Compiler {
         null, null, null, null, message, api.Diagnostic.VERBOSE_INFO);
   }
 
-  /// Report [exception] reading [uri]. Use [element] and [node] to compute
-  /// the error location.
-  void _reportReadError(
-      Uri uri, elements.Element element, Spannable node, exception) {
-    if (element == null || node == null) {
-      reporter.reportErrorMessage(new SourceSpan(uri, 0, 0),
-          MessageKind.READ_SELF_ERROR, {'uri': uri, 'exception': exception});
-    } else {
-      reporter.withCurrentElement(element, () {
-        reporter.reportErrorMessage(node, MessageKind.READ_URI_ERROR,
-            {'uri': uri, 'exception': exception});
-      });
-    }
-  }
-
-  /**
-   * Reads the script designated by [readableUri].
-   */
-  Future<Script> readScript(Uri readableUri, [Spannable node]) {
-    if (!readableUri.isAbsolute) {
-      if (node == null) node = NO_LOCATION_SPANNABLE;
-      reporter.internalError(
-          node, 'Relative uri $readableUri provided to readScript(Uri).');
-    }
-
-    // We need to store the current element since we are reporting read errors
-    // asynchronously and therefore need to restore the current element for
-    // [node] to be valid.
-    elements.Element element = currentElement;
-
-    Uri resourceUri = translateUri(node, readableUri);
-    if (resourceUri == null) return _synthesizeScript(readableUri);
-    if (resourceUri.scheme == 'dart-ext') {
-      reporter.withCurrentElement(element, () {
-        reporter.reportErrorMessage(node, MessageKind.DART_EXT_NOT_SUPPORTED);
-      });
-      return _synthesizeScript(readableUri);
-    }
-
-    // TODO(johnniwinther): Wrap the result from [provider] in a specialized
-    // [Future] to ensure that we never execute an asynchronous action without
-    // setting up the current element of the compiler.
-    return new Future.sync(
-            () => callUserProvider(resourceUri, api.InputKind.UTF8))
-        .then((api.Input sourceFile) {
-      // We use [readableUri] as the URI for the script since need to preserve
-      // the scheme in the script because [Script.uri] is used for resolving
-      // relative URIs mentioned in the script. See the comment on
-      // [LibraryLoader] for more details.
-      return new Script(readableUri, resourceUri, sourceFile);
-    }).catchError((error) {
-      _reportReadError(readableUri, element, node, error);
-      return _synthesizeScript(readableUri);
-    });
-  }
-
-  Future<Script> _synthesizeScript(Uri readableUri) {
-    return new Future.value(new Script.synthetic(readableUri));
-  }
-
-  Future<Binary> readBinary(Uri resourceUri, [Spannable node]) {
-    if (!resourceUri.isAbsolute) {
-      if (node == null) node = NO_LOCATION_SPANNABLE;
-      reporter.internalError(
-          node, 'Relative uri $resourceUri provided to readBinary(Uri).');
-    }
-
-    // We need to store the current element since we are reporting read errors
-    // asynchronously and therefore need to restore the current element for
-    // [node] to be valid.
-    elements.Element element = currentElement;
-
-    return new Future.sync(
-            () => callUserProvider(resourceUri, api.InputKind.binary))
-        .catchError((error) {
-      _reportReadError(resourceUri, element, node, error);
-      return new Binary(resourceUri, null);
-    });
-  }
-
   /**
    * Translates a readable URI into a resource URI.
    *
@@ -173,21 +86,6 @@ class CompilerImpl extends Compiler {
       reporter.reportErrorMessage(
           node, MessageKind.LIBRARY_NOT_FOUND, {'resolvedUri': uri});
       return null;
-    });
-  }
-
-  Future<elements.LibraryElement> analyzeUri(Uri uri,
-      {bool skipLibraryWithPartOfTag: true}) {
-    Future setupFuture = new Future.value();
-    if (resolvedUriTranslator.isNotSet) {
-      setupFuture = setupFuture.then((_) => setupSdk());
-    }
-    if (packages == null) {
-      setupFuture = setupFuture.then((_) => setupPackages(uri));
-    }
-    return setupFuture.then((_) {
-      return super
-          .analyzeUri(uri, skipLibraryWithPartOfTag: skipLibraryWithPartOfTag);
     });
   }
 
@@ -229,8 +127,7 @@ class CompilerImpl extends Compiler {
             .load(options.platformConfigUri, provider)
             .then((Map<String, Uri> mapping) {
           resolvedUriTranslator.resolvedUriTranslator =
-              new ResolvedUriTranslator(
-                  mapping, reporter, options.platformConfigUri);
+              new ResolvedUriTranslator(mapping);
         });
       });
     }
@@ -314,9 +211,6 @@ class CompilerImpl extends Compiler {
     }
   }
 
-  bool get isMockCompilation =>
-      mockableLibraryUsed && options.allowMockCompilation;
-
   void callUserHandler(Message message, Uri uri, int begin, int end,
       String text, api.Diagnostic kind) {
     try {
@@ -347,11 +241,6 @@ class CompilerImpl extends Compiler {
       reportCrashInUserCode('Uncaught exception in package discovery', ex, s);
       rethrow;
     }
-  }
-
-  Uri resolvePatchUri(String libraryName) {
-    return LibraryLoaderTask.resolvePatchUri(
-        libraryName, options.platformConfigUri);
   }
 }
 

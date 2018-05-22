@@ -134,8 +134,8 @@ class Tag {
 
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
-  /// Keep in sync with runtime/vm/kernel_binary.h.
-  static const int BinaryFormatVersion = 5;
+  /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
+  static const int BinaryFormatVersion = 6;
 }
 
 abstract class ConstantTag {

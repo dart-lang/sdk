@@ -98,12 +98,12 @@ class JsLinkedHashMap<K, V> extends MapBase<K, V>
       var strings = _strings;
       if (strings == null) return null;
       LinkedHashMapCell cell = _getTableCell(strings, key);
-      return (cell == null) ? null : cell.hashMapCellValue;
+      return JS('', '#', cell == null ? null : cell.hashMapCellValue);
     } else if (_isNumericKey(key)) {
       var nums = _nums;
       if (nums == null) return null;
       LinkedHashMapCell cell = _getTableCell(nums, key);
-      return (cell == null) ? null : cell.hashMapCellValue;
+      return JS('', '#', cell == null ? null : cell.hashMapCellValue);
     } else {
       return internalGet(key);
     }
@@ -116,7 +116,7 @@ class JsLinkedHashMap<K, V> extends MapBase<K, V>
     int index = internalFindBucketIndex(bucket, key);
     if (index < 0) return null;
     LinkedHashMapCell cell = JS('var', '#[#]', bucket, index);
-    return cell.hashMapCellValue;
+    return JS('', '#', cell.hashMapCellValue);
   }
 
   void operator []=(K key, V value) {
@@ -182,7 +182,7 @@ class JsLinkedHashMap<K, V> extends MapBase<K, V>
     _unlinkCell(cell);
     // TODO(kasperl): Consider getting rid of the bucket list when
     // the length reaches zero.
-    return cell.hashMapCellValue;
+    return JS('', '#', cell.hashMapCellValue);
   }
 
   void clear() {
@@ -197,7 +197,9 @@ class JsLinkedHashMap<K, V> extends MapBase<K, V>
     LinkedHashMapCell cell = _first;
     int modifications = _modifications;
     while (cell != null) {
-      action(cell.hashMapCellKey, cell.hashMapCellValue);
+      K key = JS('', '#', cell.hashMapCellKey);
+      V value = JS('', '#', cell.hashMapCellValue);
+      action(key, value);
       if (modifications != _modifications) {
         throw new ConcurrentModificationError(this);
       }
@@ -220,7 +222,7 @@ class JsLinkedHashMap<K, V> extends MapBase<K, V>
     if (cell == null) return null;
     _unlinkCell(cell);
     _deleteTableEntry(table, key);
-    return cell.hashMapCellValue;
+    return JS('', '#', cell.hashMapCellValue);
   }
 
   void _modified() {
@@ -398,7 +400,7 @@ class LinkedHashMapKeyIterable<E> extends EfficientLengthIterable<E> {
     LinkedHashMapCell cell = _map._first;
     int modifications = _map._modifications;
     while (cell != null) {
-      f(cell.hashMapCellKey);
+      f(JS('', '#', cell.hashMapCellKey));
       if (modifications != _map._modifications) {
         throw new ConcurrentModificationError(_map);
       }
@@ -426,7 +428,7 @@ class LinkedHashMapKeyIterator<E> implements Iterator<E> {
       _current = null;
       return false;
     } else {
-      _current = _cell.hashMapCellKey;
+      _current = JS('', '#', _cell.hashMapCellKey);
       _cell = _cell._next;
       return true;
     }

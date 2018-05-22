@@ -431,6 +431,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   /**
+   * Return the [ResourceProvider] that is used to access the file system.
+   */
+  ResourceProvider get resourceProvider => _resourceProvider;
+
+  /**
    * Return the [Stream] that produces [AnalysisResult]s for added files.
    *
    * Note that the stream supports only one single subscriber.

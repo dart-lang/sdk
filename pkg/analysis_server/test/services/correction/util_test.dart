@@ -287,7 +287,8 @@ import 'package:ddd/ddd.dart';
 
   void _assertAddLibraryImport(List<Source> newLibraries, String expectedCode) {
     SourceChange change = new SourceChange('');
-    addLibraryImports(change, testLibraryElement, newLibraries.toSet());
+    addLibraryImports(resourceProvider.pathContext, change, testLibraryElement,
+        newLibraries.toSet());
     SourceFileEdit testEdit = change.getFileEdit(testFile);
     expect(testEdit, isNotNull);
     String resultCode = SourceEdit.applySequence(testCode, testEdit.edits);

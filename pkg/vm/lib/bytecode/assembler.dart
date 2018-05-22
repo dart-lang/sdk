@@ -7,6 +7,7 @@ library vm.bytecode.assembler;
 import 'dart:typed_data';
 
 import 'package:vm/bytecode/dbc.dart';
+import 'package:vm/bytecode/exceptions.dart' show ExceptionsTable;
 
 class Label {
   List<int> _jumps = <int>[];
@@ -42,6 +43,7 @@ class BytecodeAssembler {
   final List<int> bytecode = new List<int>();
   final Uint32List _encodeBufferIn;
   final Uint8List _encodeBufferOut;
+  final ExceptionsTable exceptionsTable = new ExceptionsTable();
 
   BytecodeAssembler._(this._encodeBufferIn, this._encodeBufferOut);
 
@@ -51,6 +53,7 @@ class BytecodeAssembler {
   }
 
   int get offset => bytecode.length;
+  int get offsetInWords => bytecode.length >> kLog2BytesPerBytecode;
 
   void bind(Label label) {
     final List<int> jumps = label.bind(offset);
@@ -819,8 +822,8 @@ class BytecodeAssembler {
     emitWord(_encode0(Opcode.kCloneContext));
   }
 
-  void emitMoveSpecial(int ra, int rd) {
-    emitWord(_encodeAD(Opcode.kMoveSpecial, ra, rd));
+  void emitMoveSpecial(int ra, SpecialIndex rd) {
+    emitWord(_encodeAD(Opcode.kMoveSpecial, ra, rd.index));
   }
 
   void emitInstantiateType(int rd) {

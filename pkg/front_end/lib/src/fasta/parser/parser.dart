@@ -89,6 +89,7 @@ import 'type_info.dart'
         TypeParamOrArgInfo,
         computeMethodTypeArguments,
         computeType,
+        computeTypeParam,
         computeTypeParamOrArg,
         isGeneralizedFunctionType,
         isValidTypeReference,
@@ -501,8 +502,11 @@ class Parser {
       // and continue parsing as a top level function.
       rewriter.insertTokenAfter(
           next,
-          new SyntheticStringToken(TokenType.IDENTIFIER,
-              '#synthetic_function_${next.charOffset}', token.charOffset, 0));
+          new SyntheticStringToken(
+              TokenType.IDENTIFIER,
+              '#synthetic_function_${next.charOffset}',
+              next.next.charOffset,
+              0));
       return parseTopLevelMemberImpl(next);
     }
     // Ignore any preceding modifiers and just report the unexpected token
@@ -546,18 +550,14 @@ class Parser {
       directiveState?.checkDeclaration();
       return parseEnum(previous);
     } else if (identical(value, 'typedef')) {
-      Token next = token.next;
+      String nextValue = token.next.stringValue;
       directiveState?.checkDeclaration();
-      if (next.isIdentifier || optional("void", next)) {
-        return parseTypedef(previous);
-      } else if (next.isTopLevelKeyword ||
-          optional('var', next) ||
-          optional('=', next) ||
-          next.isEof) {
-        // Recovery
-        return parseTypedef(previous);
-      } else {
+      if (identical('(', nextValue) ||
+          identical('<', nextValue) ||
+          identical('.', nextValue)) {
         return parseTopLevelMemberImpl(previous);
+      } else {
+        return parseTypedef(previous);
       }
     } else {
       // The remaining top level keywords are built-in keywords
@@ -1045,8 +1045,12 @@ class Parser {
 
   /// ```
   /// typeAlias:
-  ///   metadata 'typedef' typeAliasBody
+  ///   metadata 'typedef' typeAliasBody |
+  ///   metadata 'typedef' identifier typeParameters? '=' functionType ';'
   /// ;
+  ///
+  /// functionType:
+  ///   returnType? 'Function' typeParameters? parameterTypeList
   ///
   /// typeAliasBody:
   ///   functionTypeAlias
@@ -1064,18 +1068,21 @@ class Parser {
     Token typedefKeyword = token.next;
     assert(optional('typedef', typedefKeyword));
     listener.beginFunctionTypeAlias(typedefKeyword);
+    TypeInfo typeInfo = computeType(typedefKeyword, false);
+    token = typeInfo.skipType(typedefKeyword).next;
     Token equals;
-    Token afterType = parseType(typedefKeyword, TypeContinuation.Typedef);
-    if (afterType == null) {
-      token = ensureIdentifier(
-          typedefKeyword, IdentifierContext.typedefDeclaration);
-      token = parseTypeVariablesOpt(token).next;
-      equals = token;
-      expect('=', token);
-      token = parseType(token);
+    TypeParamOrArgInfo typeParam = computeTypeParamOrArg(token);
+    if (typeInfo == noType &&
+        (token.kind == IDENTIFIER_TOKEN || token.type.isPseudo) &&
+        optional('=', typeParam.skip(token).next)) {
+      listener.handleIdentifier(token, IdentifierContext.typedefDeclaration);
+      equals = typeParam.parseVariables(token, this).next;
+      assert(optional('=', equals));
+      token = computeType(equals, true).ensureTypeOrVoid(equals, this);
     } else {
-      token = ensureIdentifier(afterType, IdentifierContext.typedefDeclaration);
-      token = parseTypeVariablesOpt(token);
+      token = typeInfo.parseType(typedefKeyword, this);
+      token = ensureIdentifier(token, IdentifierContext.typedefDeclaration);
+      token = typeParam.parseVariables(token, this);
       token =
           parseFormalParametersRequiredOpt(token, MemberKind.FunctionTypeAlias);
     }
@@ -1351,7 +1358,8 @@ class Parser {
 
     Token endInlineFunctionType;
     if (beforeInlineFunctionType != null) {
-      endInlineFunctionType = parseTypeVariablesOpt(beforeInlineFunctionType);
+      endInlineFunctionType = computeTypeParamOrArg(beforeInlineFunctionType)
+          .parseVariables(beforeInlineFunctionType, this);
       listener.beginFunctionTypedFormalParameter(beforeInlineFunctionType.next);
       token = typeInfo.parseType(beforeType, this);
       endInlineFunctionType = parseFormalParametersRequiredOpt(
@@ -1648,10 +1656,10 @@ class Parser {
     Token abstractToken = beforeAbstractToken?.next;
     Token begin = abstractToken ?? token;
     Token classKeyword = token;
-    expect("class", token);
+    assert(optional('class', token));
     Token name =
         ensureIdentifier(token, IdentifierContext.classOrNamedMixinDeclaration);
-    token = parseTypeVariablesOpt(name);
+    token = computeTypeParam(name).parseVariables(name, this);
     if (optional('=', token.next)) {
       listener.beginNamedMixinApplication(begin, abstractToken, name);
       return parseNamedMixinApplication(token, begin, classKeyword);
@@ -1665,7 +1673,7 @@ class Parser {
       Token token, Token begin, Token classKeyword) {
     Token equals = token = token.next;
     assert(optional('=', equals));
-    token = parseType(token);
+    token = computeType(token, true).ensureTypeNotVoid(token, this);
     token = parseMixinApplicationRest(token);
     Token implementsKeyword = null;
     if (optional('implements', token.next)) {
@@ -1753,7 +1761,8 @@ class Parser {
             TokenType.IDENTIFIER, 'Object', next.offset, 0);
         rewriter.insertTokenAfter(token, extendsKeyword);
         rewriter.insertTokenAfter(extendsKeyword, superclassToken);
-        token = parseType(extendsKeyword);
+        token = computeType(extendsKeyword, true)
+            .ensureTypeNotVoid(extendsKeyword, this);
         token = parseMixinApplicationRest(token);
         listener.handleClassExtends(extendsKeyword);
       } else {
@@ -1817,7 +1826,7 @@ class Parser {
     Token next = token.next;
     if (optional('extends', next)) {
       Token extendsKeyword = next;
-      token = parseType(next);
+      token = computeType(next, true).ensureTypeNotVoid(next, this);
       if (optional('with', token.next)) {
         token = parseMixinApplicationRest(token);
       } else {
@@ -1842,7 +1851,8 @@ class Parser {
     if (optional('implements', token.next)) {
       implementsKeyword = token.next;
       do {
-        token = parseType(token.next);
+        token =
+            computeType(token.next, true).ensureTypeNotVoid(token.next, this);
         ++interfacesCount;
       } while (optional(',', token.next));
     }
@@ -2012,13 +2022,6 @@ class Parser {
       followingValues = ['.', ';'];
     } else if (context == IdentifierContext.localAccessorDeclaration) {
       followingValues = ['(', '{', '=>'];
-    } else if (context == IdentifierContext.localFunctionDeclaration ||
-        context == IdentifierContext.localFunctionDeclarationContinuation) {
-      followingValues = ['.', '(', '{', '=>'];
-    } else if (context == IdentifierContext.topLevelFunctionDeclaration) {
-      followingValues = ['(', '{', '=>'];
-    } else if (context == IdentifierContext.typeVariableDeclaration) {
-      followingValues = ['<', '>', ';', '}'];
     } else {
       return false;
     }
@@ -2080,17 +2083,9 @@ class Parser {
       initialKeywords = statementKeywords();
     } else if (context == IdentifierContext.localAccessorDeclaration) {
       initialKeywords = statementKeywords();
-    } else if (context == IdentifierContext.localFunctionDeclaration) {
-      initialKeywords = statementKeywords();
     } else if (context ==
         IdentifierContext.localFunctionDeclarationContinuation) {
       initialKeywords = statementKeywords();
-    } else if (context == IdentifierContext.topLevelFunctionDeclaration) {
-      initialKeywords = topLevelKeywords();
-    } else if (context == IdentifierContext.typeVariableDeclaration) {
-      initialKeywords = topLevelKeywords()
-        ..addAll(classMemberKeywords())
-        ..addAll(statementKeywords());
     } else {
       return false;
     }
@@ -2368,12 +2363,6 @@ class Parser {
 
       case TypeContinuation.OptionalAfterVar:
         hasVar = true;
-        continue optional;
-
-      case TypeContinuation.Typedef:
-        if (optional('=', token)) {
-          return null; // This isn't a type, it's a new-style typedef.
-        }
         continue optional;
 
       case TypeContinuation.SendOrFunctionLiteral:
@@ -2693,7 +2682,7 @@ class Parser {
     Token token;
     bool isGetter = false;
     if (getOrSet == null) {
-      token = parseTypeVariablesOpt(name);
+      token = computeTypeParam(name).parseVariables(name, this);
     } else {
       isGetter = optional("get", getOrSet);
       token = name;
@@ -4444,20 +4433,36 @@ class Parser {
     return token;
   }
 
-  Token parseParenthesizedExpression(Token token) {
-    Token previousToken = token;
-    token = token.next;
-    if (!optional('(', token)) {
+  Token parseParenthesizedCondition(Token token) {
+    if (!optional('(', token.next)) {
       // Recover
+      Token next = token.next;
       reportRecoverableError(
-          token, fasta.templateExpectedToken.withArguments('('));
+          next, fasta.templateExpectedToken.withArguments('('));
+      // TODO(danrubel): Consider removing the 2nd error message.
       reportRecoverableError(
-          token, fasta.templateExpectedToken.withArguments(')'));
+          next, fasta.templateExpectedToken.withArguments(')'));
       BeginToken replacement = link(
-          new SyntheticBeginToken(TokenType.OPEN_PAREN, token.charOffset),
-          new SyntheticToken(TokenType.CLOSE_PAREN, token.charOffset));
-      token = rewriter.insertTokenAfter(previousToken, replacement).next;
+          new SyntheticBeginToken(TokenType.OPEN_PAREN, next.charOffset),
+          new SyntheticToken(TokenType.CLOSE_PAREN, next.charOffset));
+      rewriter.insertTokenAfter(token, replacement).next;
     }
+    Token begin = token.next;
+    token = parseExpressionInParenthesis(token);
+    listener.handleParenthesizedCondition(begin);
+    return token;
+  }
+
+  Token parseParenthesizedExpression(Token token) {
+    Token begin = token.next;
+    token = parseExpressionInParenthesis(token);
+    listener.handleParenthesizedExpression(begin);
+    return token;
+  }
+
+  Token parseExpressionInParenthesis(Token token) {
+    token = token.next;
+    assert(optional('(', token));
     BeginToken begin = token;
     token = parseExpression(token).next;
     if (!identical(begin.endGroup, token)) {
@@ -4465,8 +4470,7 @@ class Parser {
           token, fasta.templateExpectedButGot.withArguments(')'));
       token = begin.endGroup;
     }
-    listener.handleParenthesizedExpression(begin);
-    expect(')', token);
+    assert(optional(')', token));
     return token;
   }
 
@@ -5274,7 +5278,7 @@ class Parser {
     Token ifToken = token.next;
     assert(optional('if', ifToken));
     listener.beginIfStatement(ifToken);
-    token = parseParenthesizedExpression(ifToken);
+    token = parseParenthesizedCondition(ifToken);
     listener.beginThenStatement(token.next);
     token = parseStatement(token);
     listener.endThenStatement(token);
@@ -5494,7 +5498,7 @@ class Parser {
     Token whileToken = token.next;
     assert(optional('while', whileToken));
     listener.beginWhileStatement(whileToken);
-    token = parseParenthesizedExpression(whileToken);
+    token = parseParenthesizedCondition(whileToken);
     listener.beginWhileStatementBody(token.next);
     LoopState savedLoopState = loopState;
     loopState = LoopState.InsideLoop;
@@ -5529,7 +5533,7 @@ class Parser {
               new SyntheticKeywordToken(Keyword.WHILE, whileToken.charOffset))
           .next;
     }
-    token = parseParenthesizedExpression(whileToken);
+    token = parseParenthesizedCondition(whileToken);
     token = ensureSemicolon(token);
     listener.endDoWhileStatement(doToken, whileToken, token);
     return token;
@@ -5757,7 +5761,7 @@ class Parser {
     Token switchKeyword = token.next;
     assert(optional('switch', switchKeyword));
     listener.beginSwitchStatement(switchKeyword);
-    token = parseParenthesizedExpression(switchKeyword);
+    token = parseParenthesizedCondition(switchKeyword);
     LoopState savedLoopState = loopState;
     if (loopState == LoopState.OutsideLoop) {
       loopState = LoopState.InsideSwitch;

@@ -6,6 +6,7 @@ import '../common_elements.dart' show CommonElements;
 import '../elements/entities.dart';
 import '../options.dart';
 import '../types/abstract_value_domain.dart';
+import '../types/masks.dart';
 import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
 import '../world.dart' show ClosedWorld;

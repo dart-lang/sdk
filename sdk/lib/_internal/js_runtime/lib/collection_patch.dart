@@ -125,10 +125,10 @@ class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
   V operator [](Object key) {
     if (_isStringKey(key)) {
       var strings = _strings;
-      return (strings == null) ? null : _getTableEntry(strings, key);
+      return JS('', '#', strings == null ? null : _getTableEntry(strings, key));
     } else if (_isNumericKey(key)) {
       var nums = _nums;
-      return (nums == null) ? null : _getTableEntry(nums, key);
+      return JS('', '#', nums == null ? null : _getTableEntry(nums, key));
     } else {
       return _get(key);
     }
@@ -139,7 +139,7 @@ class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
     if (rest == null) return null;
     var bucket = _getBucket(rest, key);
     int index = _findBucketIndex(bucket, key);
-    return (index < 0) ? null : JS('var', '#[#]', bucket, index + 1);
+    return (index < 0) ? null : JS('', '#[#]', bucket, index + 1);
   }
 
   void operator []=(K key, V value) {

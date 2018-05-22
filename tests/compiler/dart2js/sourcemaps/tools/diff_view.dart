@@ -8,9 +8,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/diagnostics/invariant.dart';
-import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/io/position_information.dart';
@@ -615,12 +615,15 @@ class CodeLinesResult {
 }
 
 class CodeSources {
-  Map<Element, CodeSource> codeSourceMap = <Element, CodeSource>{};
+  Map<Entity, CodeSource> codeSourceMap = <Entity, CodeSource>{};
   Map<Uri, Map<Interval, CodeSource>> uriCodeSourceMap =
       <Uri, Map<Interval, CodeSource>>{};
 
   CodeSources(SourceMapProcessor processor, SourceMaps sourceMaps) {
-    CodeSource computeCodeSource(Element element) {
+    ElementEnvironment elementEnvironment =
+        sourceMaps.compiler.backendClosedWorldForTesting.elementEnvironment;
+
+    CodeSource computeCodeSource(Entity element) {
       return codeSourceMap.putIfAbsent(element, () {
         CodeSource codeSource = codeSourceFromElement(element);
         if (codeSource.begin != null) {
@@ -650,26 +653,18 @@ class CodeSources {
           }
           intervals[interval] = codeSource;
         }
-        if (element is ClassElement) {
-          element.forEachLocalMember((Element member) {
-            codeSource.members.add(computeCodeSource(member));
-          });
-          element.implementation.forEachLocalMember((Element member) {
-            codeSource.members.add(computeCodeSource(member));
-          });
-        } else if (element is MemberElement) {
-          element.nestedClosures.forEach((Element closure) {
-            codeSource.members.add(computeCodeSource(closure));
-          });
+        if (element is ClassEntity) {
+          elementEnvironment.forEachConstructor(element, computeCodeSource);
+          elementEnvironment.forEachLocalClassMember(
+              element, computeCodeSource);
         }
         return codeSource;
       });
     }
 
-    for (LibraryElement library
-        in sourceMaps.compiler.libraryLoader.libraries) {
-      library.forEachLocalMember(computeCodeSource);
-      library.implementation.forEachLocalMember(computeCodeSource);
+    for (LibraryEntity library in elementEnvironment.libraries) {
+      elementEnvironment.forEachClass(library, computeCodeSource);
+      elementEnvironment.forEachLibraryMember(library, computeCodeSource);
     }
 
     uriCodeSourceMap.forEach((Uri uri, Map<Interval, CodeSource> intervals) {
@@ -882,32 +877,25 @@ class SourceLocationCollector extends js.BaseVisitor {
 }
 
 /// Compute a [CodeSource] for source span of [element].
-CodeSource codeSourceFromElement(Entity _element) {
+CodeSource codeSourceFromElement(Entity element) {
   // TODO(johnniwinther): Handle kernel based elements.
-  Element element = _element;
   CodeKind kind;
   Uri uri;
   String name;
   int begin;
   int end;
-  if (element.isLibrary) {
-    LibraryElement library = element;
+  if (element is LibraryEntity) {
     kind = CodeKind.LIBRARY;
-    name = library.name;
-    uri = library.entryCompilationUnit.script.resourceUri;
-  } else if (element.isClass) {
+    name = element.name;
+    uri = element.canonicalUri;
+  } else if (element is ClassEntity) {
     kind = CodeKind.CLASS;
     name = element.name;
-    uri = element.compilationUnit.script.resourceUri;
-  } else {
-    AstElement astElement = element.implementation;
+    uri = element.library.canonicalUri;
+  } else if (element is MemberEntity) {
     kind = CodeKind.MEMBER;
-    uri = astElement.compilationUnit.script.resourceUri;
-    name = computeElementNameForSourceMaps(astElement);
-    if (astElement.hasNode) {
-      begin = astElement.node.getBeginToken().charOffset;
-      end = astElement.node.getEndToken().charEnd;
-    }
+    uri = element.library.canonicalUri;
+    name = computeElementNameForSourceMaps(element);
   }
   return new CodeSource(kind, uri, name, begin, end);
 }

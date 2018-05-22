@@ -10,7 +10,6 @@ import 'package:compiler/src/diagnostics/source_span.dart';
 import 'package:compiler/src/diagnostics/spannable.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/options.dart';
-import 'package:front_end/src/fasta/scanner.dart';
 
 abstract class DiagnosticReporterWrapper extends DiagnosticReporter {
   DiagnosticReporter get reporter;
@@ -62,9 +61,6 @@ abstract class DiagnosticReporterWrapper extends DiagnosticReporter {
   SourceSpan spanFromSpannable(Spannable node) {
     return reporter.spanFromSpannable(node);
   }
-
-  @override
-  SourceSpan spanFromToken(Token token) => reporter.spanFromToken(token);
 
   @override
   withCurrentElement(Entity element, f()) {

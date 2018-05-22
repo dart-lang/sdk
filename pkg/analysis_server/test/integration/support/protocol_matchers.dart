@@ -572,19 +572,21 @@ final Matcher isFlutterService = new MatchesEnum("FlutterService", ["OUTLINE"]);
  * FoldingKind
  *
  * enum {
- *   COMMENT
- *   CLASS_MEMBER
+ *   ANNOTATIONS
+ *   CLASS_BODY
  *   DIRECTIVES
  *   DOCUMENTATION_COMMENT
- *   TOP_LEVEL_DECLARATION
+ *   FILE_HEADER
+ *   FUNCTION_BODY
  * }
  */
 final Matcher isFoldingKind = new MatchesEnum("FoldingKind", [
-  "COMMENT",
-  "CLASS_MEMBER",
+  "ANNOTATIONS",
+  "CLASS_BODY",
   "DIRECTIVES",
   "DOCUMENTATION_COMMENT",
-  "TOP_LEVEL_DECLARATION"
+  "FILE_HEADER",
+  "FUNCTION_BODY"
 ]);
 
 /**
@@ -1275,6 +1277,70 @@ final Matcher isRequestErrorCode = new MatchesEnum("RequestErrorCode", [
   "UNKNOWN_SOURCE",
   "UNSUPPORTED_FEATURE"
 ]);
+
+/**
+ * RuntimeCompletionExpression
+ *
+ * {
+ *   "offset": int
+ *   "length": int
+ *   "type": optional RuntimeCompletionExpressionType
+ * }
+ */
+final Matcher isRuntimeCompletionExpression = new LazyMatcher(() =>
+    new MatchesJsonObject(
+        "RuntimeCompletionExpression", {"offset": isInt, "length": isInt},
+        optionalFields: {"type": isRuntimeCompletionExpressionType}));
+
+/**
+ * RuntimeCompletionExpressionType
+ *
+ * {
+ *   "libraryPath": optional FilePath
+ *   "kind": RuntimeCompletionExpressionTypeKind
+ *   "name": optional String
+ *   "typeArguments": optional List<RuntimeCompletionExpressionType>
+ *   "returnType": optional RuntimeCompletionExpressionType
+ *   "parameterTypes": optional List<RuntimeCompletionExpressionType>
+ *   "parameterNames": optional List<String>
+ * }
+ */
+final Matcher isRuntimeCompletionExpressionType = new LazyMatcher(
+    () => new MatchesJsonObject("RuntimeCompletionExpressionType", {
+          "kind": isRuntimeCompletionExpressionTypeKind
+        }, optionalFields: {
+          "libraryPath": isFilePath,
+          "name": isString,
+          "typeArguments": isListOf(isRuntimeCompletionExpressionType),
+          "returnType": isRuntimeCompletionExpressionType,
+          "parameterTypes": isListOf(isRuntimeCompletionExpressionType),
+          "parameterNames": isListOf(isString)
+        }));
+
+/**
+ * RuntimeCompletionExpressionTypeKind
+ *
+ * enum {
+ *   DYNAMIC
+ *   FUNCTION
+ *   INTERFACE
+ * }
+ */
+final Matcher isRuntimeCompletionExpressionTypeKind = new MatchesEnum(
+    "RuntimeCompletionExpressionTypeKind",
+    ["DYNAMIC", "FUNCTION", "INTERFACE"]);
+
+/**
+ * RuntimeCompletionVariable
+ *
+ * {
+ *   "name": String
+ *   "type": RuntimeCompletionExpressionType
+ * }
+ */
+final Matcher isRuntimeCompletionVariable = new LazyMatcher(() =>
+    new MatchesJsonObject("RuntimeCompletionVariable",
+        {"name": isString, "type": isRuntimeCompletionExpressionType}));
 
 /**
  * SearchId
@@ -2327,6 +2393,44 @@ final Matcher isExecutionDeleteContextParams = new LazyMatcher(() =>
  * execution.deleteContext result
  */
 final Matcher isExecutionDeleteContextResult = isNull;
+
+/**
+ * execution.getSuggestions params
+ *
+ * {
+ *   "code": String
+ *   "offset": int
+ *   "contextFile": FilePath
+ *   "contextOffset": int
+ *   "variables": List<RuntimeCompletionVariable>
+ *   "expressions": optional List<RuntimeCompletionExpression>
+ * }
+ */
+final Matcher isExecutionGetSuggestionsParams = new LazyMatcher(
+    () => new MatchesJsonObject("execution.getSuggestions params", {
+          "code": isString,
+          "offset": isInt,
+          "contextFile": isFilePath,
+          "contextOffset": isInt,
+          "variables": isListOf(isRuntimeCompletionVariable)
+        }, optionalFields: {
+          "expressions": isListOf(isRuntimeCompletionExpression)
+        }));
+
+/**
+ * execution.getSuggestions result
+ *
+ * {
+ *   "suggestions": optional List<CompletionSuggestion>
+ *   "expressions": optional List<RuntimeCompletionExpression>
+ * }
+ */
+final Matcher isExecutionGetSuggestionsResult = new LazyMatcher(() =>
+    new MatchesJsonObject("execution.getSuggestions result", null,
+        optionalFields: {
+          "suggestions": isListOf(isCompletionSuggestion),
+          "expressions": isListOf(isRuntimeCompletionExpression)
+        }));
 
 /**
  * execution.launchData params

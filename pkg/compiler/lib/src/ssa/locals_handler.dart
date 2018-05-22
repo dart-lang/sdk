@@ -4,7 +4,6 @@
 
 import '../closure.dart';
 import '../common.dart';
-import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../io/source_information.dart';
@@ -12,7 +11,8 @@ import '../js_backend/native_data.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_model/closure.dart' show JRecordField, JClosureField;
 import '../js_model/locals.dart' show JLocal;
-import '../tree/tree.dart' as ast;
+import '../types/abstract_value_domain.dart';
+import '../types/masks.dart';
 import '../types/types.dart';
 import '../world.dart' show ClosedWorld;
 
@@ -68,7 +68,8 @@ class LocalsHandler {
 
   ClosedWorld get closedWorld => builder.closedWorld;
 
-  CommonMasks get commonMasks => closedWorld.abstractValueDomain;
+  AbstractValueDomain get _abstractValueDomain =>
+      closedWorld.abstractValueDomain;
 
   GlobalTypeInferenceResults get _globalInferenceResults =>
       builder.globalInferenceResults;
@@ -118,7 +119,7 @@ class LocalsHandler {
   }
 
   HInstruction createBox(SourceInformation sourceInformation) {
-    HInstruction box = new HCreateBox(commonMasks.nonNullType)
+    HInstruction box = new HCreateBox(_abstractValueDomain.nonNullType)
       ..sourceInformation = sourceInformation;
     builder.add(box);
     return box;
@@ -137,7 +138,8 @@ class LocalsHandler {
     if (forGenerativeConstructorBody) {
       // The box is passed as a parameter to a generative
       // constructor body.
-      box = builder.addParameter(closureInfo.context, commonMasks.nonNullType);
+      box = builder.addParameter(
+          closureInfo.context, _abstractValueDomain.nonNullType);
     } else {
       box = createBox(sourceInformation);
     }
@@ -148,12 +150,8 @@ class LocalsHandler {
     closureInfo.forEachBoxedVariable((Local from, FieldEntity to) {
       // The [from] can only be a parameter for function-scopes and not
       // loop scopes.
-      bool isParameter;
-      if (from is JLocal) {
-        isParameter = from.isRegularParameter;
-      } else if (from is LocalVariableElement) {
-        isParameter = from.isRegularParameter;
-      }
+      JLocal jFrom = from;
+      bool isParameter = jFrom.isRegularParameter;
       assert(isParameter != null);
       if (isParameter && !forGenerativeConstructorBody) {
         // Now that the redirection is set up, the update to the local will
@@ -201,8 +199,6 @@ class LocalsHandler {
       Map<Local, TypeMask> parameters,
       SourceInformation sourceInformation,
       {bool isGenerativeConstructorBody}) {
-    assert(!(element is MemberElement && !element.isImplementation),
-        failedAt(element));
     this.scopeInfo = scopeInfo;
 
     parameters.forEach((Local local, TypeMask typeMask) {
@@ -234,7 +230,7 @@ class LocalsHandler {
       });
       // Inside closure redirect references to itself to [:this:].
       HThis thisInstruction =
-          new HThis(closureData.thisLocal, commonMasks.nonNullType);
+          new HThis(closureData.thisLocal, _abstractValueDomain.nonNullType);
       builder.graph.thisInstruction = thisInstruction;
       builder.graph.entry.addAtEntry(thisInstruction);
       updateLocal(closureData.closureEntity, thisInstruction);
@@ -304,8 +300,7 @@ class LocalsHandler {
     if (scopeInfo is! ClosureRepresentationInfo) return false;
     FieldEntity redirectTarget = redirectionMapping[local];
     if (redirectTarget == null) return false;
-    return redirectTarget is ClosureFieldElement ||
-        redirectTarget is JClosureField;
+    return redirectTarget is JClosureField;
   }
 
   bool isBoxed(Local local) {
@@ -347,7 +342,7 @@ class LocalsHandler {
       FieldEntity redirect = redirectionMapping[local];
       HInstruction receiver = readLocal(closureData.closureEntity);
       TypeMask type = local is BoxLocal
-          ? commonMasks.nonNullType
+          ? _abstractValueDomain.nonNullType
           : getTypeOfCapturedVariable(redirect);
       HInstruction fieldGet = new HFieldGet(redirect, receiver, type);
       builder.add(fieldGet);
@@ -360,9 +355,7 @@ class LocalsHandler {
       // accessed through a closure-field.
       // Calling [readLocal] makes sure we generate the correct code to get
       // the box.
-      if (redirect is BoxFieldElement) {
-        localBox = redirect.box;
-      } else if (redirect is JRecordField) {
+      if (redirect is JRecordField) {
         localBox = redirect.box;
       }
       assert(localBox != null);
@@ -375,8 +368,8 @@ class LocalsHandler {
     } else {
       assert(_isUsedInTryOrGenerator(local));
       HLocalValue localValue = getLocal(local);
-      HInstruction instruction = new HLocalGet(
-          local, localValue, commonMasks.dynamicType, sourceInformation);
+      HInstruction instruction = new HLocalGet(local, localValue,
+          _abstractValueDomain.dynamicType, sourceInformation);
       builder.add(instruction);
       return instruction;
     }
@@ -402,8 +395,9 @@ class LocalsHandler {
     }
 
     return activationVariables.putIfAbsent(local, () {
-      HLocalValue localValue = new HLocalValue(local, commonMasks.nonNullType)
-        ..sourceInformation = sourceInformation;
+      HLocalValue localValue =
+          new HLocalValue(local, _abstractValueDomain.nonNullType)
+            ..sourceInformation = sourceInformation;
       builder.graph.entry.addAtExit(localValue);
       return localValue;
     });
@@ -431,9 +425,7 @@ class LocalsHandler {
       FieldEntity redirect = redirectionMapping[local];
       assert(redirect != null);
       BoxLocal localBox;
-      if (redirect is BoxFieldElement) {
-        localBox = redirect.box;
-      } else if (redirect is JRecordField) {
+      if (redirect is JRecordField) {
         localBox = redirect.box;
       }
       assert(localBox != null);
@@ -522,8 +514,8 @@ class LocalsHandler {
       if (isAccessedDirectly(local)) {
         // We know 'this' cannot be modified.
         if (local != scopeInfo.thisLocal) {
-          HPhi phi =
-              new HPhi.singleInput(local, instruction, commonMasks.dynamicType);
+          HPhi phi = new HPhi.singleInput(
+              local, instruction, _abstractValueDomain.dynamicType);
           loopEntry.addPhi(phi);
           directLocals[local] = phi;
         } else {
@@ -590,8 +582,10 @@ class LocalsHandler {
         if (identical(instruction, mine)) {
           joinedLocals[local] = instruction;
         } else {
-          HInstruction phi = new HPhi.manyInputs(local,
-              <HInstruction>[mine, instruction], commonMasks.dynamicType);
+          HInstruction phi = new HPhi.manyInputs(
+              local,
+              <HInstruction>[mine, instruction],
+              _abstractValueDomain.dynamicType);
           joinBlock.addPhi(phi);
           joinedLocals[local] = phi;
         }
@@ -613,7 +607,7 @@ class LocalsHandler {
     HInstruction thisValue = null;
     directLocals.forEach((Local local, HInstruction instruction) {
       if (local != scopeInfo.thisLocal) {
-        HPhi phi = new HPhi.noInputs(local, commonMasks.dynamicType);
+        HPhi phi = new HPhi.noInputs(local, _abstractValueDomain.dynamicType);
         joinedLocals[local] = phi;
         joinBlock.addPhi(phi);
       } else {

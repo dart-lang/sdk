@@ -558,7 +558,9 @@ class Object {
 
   // Initialize a new isolate either from a Kernel IR, from source, or from a
   // snapshot.
-  static RawError* Init(Isolate* isolate, kernel::Program* program);
+  static RawError* Init(Isolate* isolate,
+                        const uint8_t* kernel_buffer,
+                        intptr_t kernel_buffer_size);
 
   static void MakeUnusedSpaceTraversable(const Object& obj,
                                          intptr_t original_size,
@@ -1363,14 +1365,19 @@ class Class : public Object {
   // Return true on success, or false and error otherwise.
   bool ApplyPatch(const Class& patch, Error* error) const;
 
-  // Evaluate the given expression as if it appeared in a static
-  // method of this class and return the resulting value, or an
-  // error object if evaluating the expression fails. The method has
-  // the formal parameters given in param_names, and is invoked with
-  // the argument values given in param_values.
+  // Evaluate the given expression as if it appeared in a static method of this
+  // class and return the resulting value, or an error object if evaluating the
+  // expression fails. The method has the formal (type) parameters given in
+  // (type_)param_names, and is invoked with the (type)argument values given in
+  // (type_)param_values.
   RawObject* Evaluate(const String& expr,
                       const Array& param_names,
                       const Array& param_values) const;
+  RawObject* Evaluate(const String& expr,
+                      const Array& param_names,
+                      const Array& param_values,
+                      const Array& type_param_names,
+                      const TypeArguments& type_param_values) const;
 
   RawError* EnsureIsFinalized(Thread* thread) const;
 
@@ -2136,6 +2143,7 @@ class Function : public Object {
   void ZeroEdgeCounters() const;
 
   RawClass* Owner() const;
+  void set_owner(const Object& value) const;
   RawClass* origin() const;
   RawScript* script() const;
   RawObject* RawOwner() const { return raw_ptr()->owner_; }
@@ -2504,6 +2512,10 @@ class Function : public Object {
     set_optimized_call_site_count(value);
   }
 
+  void SetKernelDataAndScript(const Script& script,
+                              const TypedData& data,
+                              intptr_t offset);
+
   intptr_t KernelDataProgramOffset() const;
 
   RawTypedData* KernelData() const;
@@ -2857,6 +2869,18 @@ class Function : public Object {
   FOR_EACH_FUNCTION_KIND_BIT(DEFINE_ACCESSORS)
 #undef DEFINE_ACCESSORS
 
+  // Indicates whether this function can be optimized on the background compiler
+  // thread.
+  bool is_background_optimizable() const {
+    return RawFunction::BackgroundOptimizableBit::decode(
+        raw_ptr()->packed_fields_);
+  }
+
+  void set_is_background_optimizable(bool value) const {
+    set_packed_fields(RawFunction::BackgroundOptimizableBit::update(
+        value, raw_ptr()->packed_fields_));
+  }
+
  private:
   void set_ic_data_array(const Array& value) const;
   void SetInstructionsSafe(const Code& value) const;
@@ -2904,7 +2928,6 @@ class Function : public Object {
   void set_name(const String& value) const;
   void set_kind(RawFunction::Kind value) const;
   void set_parent_function(const Function& value) const;
-  void set_owner(const Object& value) const;
   RawFunction* implicit_closure_function() const;
   void set_implicit_closure_function(const Function& value) const;
   RawInstance* implicit_static_closure() const;
@@ -3695,14 +3718,20 @@ class Library : public Object {
 
   static RawLibrary* New(const String& url);
 
-  // Evaluate the given expression as if it appeared in an top-level
-  // method of this library and return the resulting value, or an
-  // error object if evaluating the expression fails. The method has
-  // the formal parameters given in param_names, and is invoked with
-  // the argument values given in param_values.
+  // Evaluate the given expression as if it appeared in an top-level method of
+  // this library and return the resulting value, or an error object if
+  // evaluating the expression fails. The method has the formal (type)
+  // parameters given in (type_)param_names, and is invoked with the (type)
+  // argument values given in (type_)param_values.
   RawObject* Evaluate(const String& expr,
                       const Array& param_names,
                       const Array& param_values) const;
+
+  RawObject* Evaluate(const String& expr,
+                      const Array& param_names,
+                      const Array& param_values,
+                      const Array& type_param_names,
+                      const TypeArguments& type_arguments) const;
 
   // Library scope name dictionary.
   //
@@ -5487,7 +5516,7 @@ class Instance : public Object {
   virtual bool OperatorEquals(const Instance& other) const;
   bool IsIdenticalTo(const Instance& other) const;
   virtual bool CanonicalizeEquals(const Instance& other) const;
-  virtual uword ComputeCanonicalTableHash() const;
+  virtual uint32_t CanonicalizeHash() const;
 
   intptr_t SizeFromClass() const {
 #if defined(DEBUG)
@@ -5561,15 +5590,22 @@ class Instance : public Object {
   // (if not NULL) to call.
   bool IsCallable(Function* function) const;
 
-  // Evaluate the given expression as if it appeared in an instance
-  // method of this instance and return the resulting value, or an
-  // error object if evaluating the expression fails. The method has
-  // the formal parameters given in param_names, and is invoked with
-  // the argument values given in param_values.
+  // Evaluate the given expression as if it appeared in an instance method of
+  // this instance and return the resulting value, or an error object if
+  // evaluating the expression fails. The method has the formal (type)
+  // parameters given in (type_)param_names, and is invoked with the (type)
+  // argument values given in (type_)param_values.
   RawObject* Evaluate(const Class& method_cls,
                       const String& expr,
                       const Array& param_names,
                       const Array& param_values) const;
+
+  RawObject* Evaluate(const Class& method_cls,
+                      const String& expr,
+                      const Array& param_names,
+                      const Array& param_values,
+                      const Array& type_param_names,
+                      const TypeArguments& type_param_values) const;
 
   // Equivalent to invoking hashCode on this instance.
   virtual RawObject* HashCode() const;
@@ -5878,6 +5914,10 @@ class TypeArguments : public Instance {
                                  (len * kBytesPerElement));
   }
 
+  virtual uint32_t CanonicalizeHash() const {
+    // Hash() is not stable until finalization is done.
+    return 0;
+  }
   intptr_t Hash() const;
 
   static RawTypeArguments* New(intptr_t len, Heap::Space space = Heap::kOld);
@@ -5957,6 +5997,7 @@ class AbstractType : public Instance {
   virtual bool CanonicalizeEquals(const Instance& other) const {
     return Equals(other);
   }
+  virtual uint32_t CanonicalizeHash() const { return Hash(); }
   virtual bool Equals(const Instance& other) const {
     return IsEquivalent(other);
   }
@@ -6733,10 +6774,7 @@ class Integer : public Number {
   virtual bool CanonicalizeEquals(const Instance& other) const {
     return Equals(other);
   }
-  virtual uword ComputeCanonicalTableHash() const {
-    UNREACHABLE();
-    return 0;
-  }
+  virtual uint32_t CanonicalizeHash() const { return AsTruncatedUint32Value(); }
   virtual bool Equals(const Instance& other) const;
 
   virtual RawObject* HashCode() const { return raw(); }
@@ -7013,10 +7051,7 @@ class Double : public Number {
   bool BitwiseEqualsToDouble(double value) const;
   virtual bool OperatorEquals(const Instance& other) const;
   virtual bool CanonicalizeEquals(const Instance& other) const;
-  virtual uword ComputeCanonicalTableHash() const {
-    UNREACHABLE();
-    return 0;
-  }
+  virtual uint32_t CanonicalizeHash() const;
 
   static RawDouble* New(double d, Heap::Space space = Heap::kNew);
 
@@ -7166,10 +7201,7 @@ class String : public Instance {
   virtual bool CanonicalizeEquals(const Instance& other) const {
     return Equals(other);
   }
-  virtual uword ComputeCanonicalTableHash() const {
-    UNREACHABLE();
-    return 0;
-  }
+  virtual uint32_t CanonicalizeHash() const { return Hash(); }
   virtual bool Equals(const Instance& other) const;
 
   intptr_t CompareTo(const String& other) const;
@@ -7844,6 +7876,10 @@ class Bool : public Instance {
     return value ? Bool::True() : Bool::False();
   }
 
+  virtual uint32_t CanonicalizeHash() const {
+    return raw() == True().raw() ? 1231 : 1237;
+  }
+
  private:
   void set_value(bool value) const {
     StoreNonPointer(&raw_ptr()->value_, value);
@@ -7900,7 +7936,7 @@ class Array : public Instance {
   }
 
   virtual bool CanonicalizeEquals(const Instance& other) const;
-  virtual uword ComputeCanonicalTableHash() const;
+  virtual uint32_t CanonicalizeHash() const;
 
   static const intptr_t kBytesPerElement = kWordSize;
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
@@ -8073,10 +8109,6 @@ class GrowableObjectArray : public Instance {
   virtual bool CanonicalizeEquals(const Instance& other) const {
     UNREACHABLE();
     return false;
-  }
-  virtual uword ComputeCanonicalTableHash() const {
-    UNREACHABLE();
-    return 0;
   }
 
   // We don't expect a growable object array to be canonicalized.
@@ -8253,7 +8285,7 @@ class TypedData : public Instance {
   }
 
   virtual bool CanonicalizeEquals(const Instance& other) const;
-  virtual uword ComputeCanonicalTableHash() const;
+  virtual uint32_t CanonicalizeHash() const;
 
 #define TYPED_GETTER_SETTER(name, type)                                        \
   type Get##name(intptr_t byte_offset) const {                                 \
@@ -8778,7 +8810,9 @@ class Closure : public Instance {
     // None of the fields of a closure are instances.
     return true;
   }
-
+  virtual uint32_t CanonicalizeHash() const {
+    return Function::Handle(function()).Hash();
+  }
   int64_t ComputeHash() const;
 
   static RawClosure* New(const TypeArguments& instantiator_type_arguments,

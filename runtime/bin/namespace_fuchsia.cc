@@ -41,15 +41,15 @@ class NamespaceImpl {
   }
 
   ~NamespaceImpl() {
+    NO_RETRY_EXPECTED(close(rootfd_));
+    free(cwd_);
+    NO_RETRY_EXPECTED(close(cwdfd_));
     if (fdio_ns_ != NULL) {
       zx_status_t status = fdio_ns_destroy(fdio_ns_);
       if (status != ZX_OK) {
         Log::PrintErr("fdio_ns_destroy: %s\n", zx_status_get_string(status));
       }
     }
-    NO_RETRY_EXPECTED(close(rootfd_));
-    free(cwd_);
-    NO_RETRY_EXPECTED(close(cwdfd_));
   }
 
   intptr_t rootfd() const { return rootfd_; }

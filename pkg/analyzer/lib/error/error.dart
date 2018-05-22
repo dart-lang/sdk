@@ -320,7 +320,6 @@ const List<ErrorCode> errorCodeValues = const [
   ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION,
   ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE,
   ParserErrorCode.ABSTRACT_TYPEDEF,
-  ParserErrorCode.ANNOTATION_ON_ENUM_CONSTANT,
   ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER,
   ParserErrorCode.BREAK_OUTSIDE_OF_LOOP,
   ParserErrorCode.CATCH_SYNTAX,

@@ -7,7 +7,7 @@ import 'nodes.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../io/source_information.dart';
-import '../types/types.dart';
+import '../types/masks.dart';
 import '../universe/use.dart' show TypeUse;
 
 /// Enum that defines how a member has access to the current type variables.
@@ -73,6 +73,14 @@ abstract class TypeBuilder {
     // needed.
     builder.registry?.registerTypeUse(new TypeUse.isCheck(type));
     return other;
+  }
+
+  HInstruction trustTypeOfParameter(HInstruction original, DartType type) {
+    if (type == null) return original;
+    HInstruction trusted = _trustType(original, type);
+    if (trusted == original) return original;
+    builder.add(trusted);
+    return trusted;
   }
 
   HInstruction potentiallyCheckOrTrustTypeOfParameter(
@@ -171,11 +179,11 @@ abstract class TypeBuilder {
     HInstruction target =
         builder.localsHandler.readThis(sourceInformation: sourceInformation);
     HInstruction interceptor =
-        new HInterceptor(target, builder.commonMasks.nonNullType)
+        new HInterceptor(target, builder.abstractValueDomain.nonNullType)
           ..sourceInformation = sourceInformation;
     builder.add(interceptor);
     builder.push(new HTypeInfoReadVariable.intercepted(
-        variable, interceptor, target, builder.commonMasks.dynamicType)
+        variable, interceptor, target, builder.abstractValueDomain.dynamicType)
       ..sourceInformation = sourceInformation);
     return builder.pop();
   }
@@ -197,7 +205,7 @@ abstract class TypeBuilder {
         TypeInfoExpressionKind.INSTANCE,
         builder.closedWorld.elementEnvironment.getThisType(interface.element),
         inputs,
-        builder.commonMasks.dynamicType)
+        builder.abstractValueDomain.dynamicType)
       ..sourceInformation = sourceInformation;
     return representation;
   }
@@ -229,15 +237,11 @@ abstract class TypeBuilder {
         TypeInfoExpressionKind.COMPLETE,
         argument,
         inputs,
-        builder.commonMasks.dynamicType)
+        builder.abstractValueDomain.dynamicType)
       ..sourceInformation = sourceInformation;
     builder.add(result);
     return result;
   }
-
-  /// In checked mode, generate type tests for the parameters of the inlined
-  /// function.
-  void potentiallyCheckInlinedParameterTypes(FunctionEntity function);
 
   bool get checkOrTrustTypes =>
       builder.options.strongMode ||
@@ -254,10 +258,9 @@ abstract class TypeBuilder {
     if (type == null) return original;
     if (type.isTypeVariable) {
       TypeVariableType typeVariable = type;
-      // GENERIC_METHODS: The following statement was added for parsing and
-      // ignoring method type variables; must be generalized for full support of
-      // generic methods.
-      if (typeVariable.element.typeDeclaration is! ClassEntity) {
+      // In Dart 1, method type variables are ignored.
+      if (!builder.options.strongMode &&
+          typeVariable.element.typeDeclaration is! ClassEntity) {
         type = const DynamicType();
       }
     }

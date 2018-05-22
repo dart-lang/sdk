@@ -185,13 +185,17 @@ class ConstantsTransformer extends Transformer {
 
   void transformAnnotations(List<Expression> nodes, TreeNode parent) {
     if (evaluateAnnotations && nodes.length > 0) {
-      constantEvaluator.withNewEnvironment(() {
-        for (int i = 0; i < nodes.length; ++i) {
-          nodes[i] = tryEvaluateAndTransformWithContext(parent, nodes[i])
-            ..parent = parent;
-        }
-      });
+      transformExpressions(nodes, parent);
     }
+  }
+
+  void transformExpressions(List<Expression> nodes, TreeNode parent) {
+    constantEvaluator.withNewEnvironment(() {
+      for (int i = 0; i < nodes.length; ++i) {
+        nodes[i] = tryEvaluateAndTransformWithContext(parent, nodes[i])
+          ..parent = parent;
+      }
+    });
   }
 
   // Handle definition of constants:
@@ -248,7 +252,10 @@ class ConstantsTransformer extends Transformer {
         return null;
       }
     }
-    return super.visitVariableDeclaration(node);
+    if (node.initializer != null) {
+      node.initializer = node.initializer.accept(this)..parent = node;
+    }
+    return node;
   }
 
   visitField(Field node) {
@@ -290,6 +297,11 @@ class ConstantsTransformer extends Transformer {
       return tryEvaluateAndTransformWithContext(node, node);
     }
     return super.visitStaticGet(node);
+  }
+
+  visitSwitchCase(SwitchCase node) {
+    transformExpressions(node.expressions, node);
+    return super.visitSwitchCase(node);
   }
 
   visitVariableGet(VariableGet node) {
@@ -409,9 +421,7 @@ class ConstantEvaluator extends RecursiveVisitor {
   defaultTreeNode(Node node) {
     // Only a subset of the expression language is valid for constant
     // evaluation.
-    errorReporter.unimplemented(contextChain, node,
-        'Constant evaluation has no support for ${node.runtimeType} yet!');
-    throw const _AbortCurrentEvaluation();
+    throw 'Constant evaluation has no support for ${node.runtimeType} yet!';
   }
 
   visitNullLiteral(NullLiteral node) => nullConstant;
@@ -449,7 +459,7 @@ class ConstantEvaluator extends RecursiveVisitor {
 
   visitListLiteral(ListLiteral node) {
     if (!node.isConst) {
-      errorReporter.nonConstantLiteral(contextChain, node, 'List');
+      errorReporter.nonConstLiteral(contextChain, node, 'List');
       throw const _AbortCurrentEvaluation();
     }
     final List<Constant> entries = new List<Constant>(node.expressions.length);
@@ -463,7 +473,7 @@ class ConstantEvaluator extends RecursiveVisitor {
 
   visitMapLiteral(MapLiteral node) {
     if (!node.isConst) {
-      errorReporter.nonConstantLiteral(contextChain, node, 'Map');
+      errorReporter.nonConstLiteral(contextChain, node, 'Map');
       throw const _AbortCurrentEvaluation();
     }
     final Set<Constant> usedKeys = new Set<Constant>();
@@ -473,6 +483,9 @@ class ConstantEvaluator extends RecursiveVisitor {
       final key = node.entries[i].key.accept(this);
       final value = node.entries[i].value.accept(this);
       if (!usedKeys.add(key)) {
+        // TODO(kustermann): We should change the context handling from just
+        // capturing the `TreeNode`s to a `(TreeNode, String message)` tuple and
+        // report where the first key with the same value was.
         errorReporter.duplicateKey(contextChain, node.entries[i], key);
         throw const _AbortCurrentEvaluation();
       }
@@ -485,23 +498,24 @@ class ConstantEvaluator extends RecursiveVisitor {
     return canonicalize(backend.lowerMapConstant(mapConstant));
   }
 
+  visitFunctionExpression(FunctionExpression node) {
+    errorReporter.nonConstLiteral(contextChain, node, 'Function');
+    throw const _AbortCurrentEvaluation();
+  }
+
   visitConstructorInvocation(ConstructorInvocation node) {
     final Constructor constructor = node.target;
     final Class klass = constructor.enclosingClass;
     if (!constructor.isConst) {
-      errorReporter.nonConstConstructorInvocation(
-          contextChain, node, constructor);
-      throw const _AbortCurrentEvaluation();
+      throw 'The front-end should ensure we do not encounter a '
+          'constructor invocation of a non-const constructor.';
     }
-    if (constructor.function.body is! EmptyStatement) {
-      errorReporter.unreachable(contextChain, node,
-          'Constructor "$node" has non-trivial body "${constructor.function.body.runtimeType}".');
-      throw const _AbortCurrentEvaluation();
+    if (constructor.function.body != null &&
+        constructor.function.body is! EmptyStatement) {
+      throw 'Constructor "$node" has non-trivial body "${constructor.function.body.runtimeType}".';
     }
     if (klass.isAbstract) {
-      errorReporter.unreachable(contextChain, node,
-          'Constructor "$node" belongs to abstract class "${klass}".');
-      throw const _AbortCurrentEvaluation();
+      throw 'Constructor "$node" belongs to abstract class "${klass}".';
     }
 
     final typeArguments = evaluateTypeArguments(node.arguments);
@@ -587,20 +601,34 @@ class ConstantEvaluator extends RecursiveVisitor {
               if (condition is BoolConstant) {
                 if (!condition.value) {
                   final Constant message = init.statement.message?.accept(this);
-                  errorReporter.failedAssertion(
-                      contextChain, init.statement.condition, message);
+                  if (message == null) {
+                    errorReporter.failedAssertion(
+                        contextChain, init.statement.condition, null);
+                    throw const _AbortCurrentEvaluation();
+                  } else if (message is StringConstant) {
+                    errorReporter.failedAssertion(
+                        contextChain, init.statement.condition, message.value);
+                    throw const _AbortCurrentEvaluation();
+                  }
+                  errorReporter.invalidDartType(
+                      contextChain,
+                      init.statement.message,
+                      message,
+                      typeEnvironment.stringType);
                   throw const _AbortCurrentEvaluation();
                 }
               } else {
-                errorReporter.invalidType(
-                    contextChain, init.statement.condition, condition, 'bool');
+                errorReporter.invalidDartType(
+                    contextChain,
+                    init.statement.condition,
+                    condition,
+                    typeEnvironment.boolType);
                 throw const _AbortCurrentEvaluation();
               }
             }
           } else {
-            errorReporter.unimplemented(contextChain, init,
+            throw new Exception(
                 'No support for handling initializer of type "${init.runtimeType}".');
-            throw const _AbortCurrentEvaluation();
           }
         }
       });
@@ -615,21 +643,16 @@ class ConstantEvaluator extends RecursiveVisitor {
     final List<Constant> arguments =
         evaluatePositionalArguments(node.arguments);
 
+    // TODO(http://dartbug.com/31799): Ensure we only invoke ==/!= on
+    // null/bool/int/double/String objects.
+
     // Handle == and != first (it's common between all types).
     if (arguments.length == 1 && node.name.name == '==') {
-      // TODO(http://dartbug.com/31799): Re-enable these checks.
-      //ensurePrimitiveConstant(receiver);
       final right = arguments[0];
-      // TODO(http://dartbug.com/31799): Re-enable these checks.
-      //ensurePrimitiveConstant(right);
       return receiver == right ? trueConstant : falseConstant;
     }
     if (arguments.length == 1 && node.name.name == '!=') {
-      // TODO(http://dartbug.com/31799): Re-enable these checks.
-      //ensurePrimitiveConstant(receiver);
       final right = arguments[0];
-      // TODO(http://dartbug.com/31799): Re-enable these checks.
-      //ensurePrimitiveConstant(right);
       return receiver != right ? trueConstant : falseConstant;
     }
 
@@ -644,7 +667,12 @@ class ConstantEvaluator extends RecursiveVisitor {
                   new StringConstant(receiver.value + other.value));
             }
             errorReporter.invalidBinaryOperandType(
-                contextChain, node, 'String', '+', 'String', '$other');
+                contextChain,
+                node,
+                receiver,
+                '+',
+                typeEnvironment.stringType,
+                other.getType(typeEnvironment));
             throw const _AbortCurrentEvaluation();
         }
       }
@@ -669,7 +697,12 @@ class ConstantEvaluator extends RecursiveVisitor {
           }
         }
         errorReporter.invalidBinaryOperandType(
-            contextChain, node, 'bool', '${node.name.name}', 'bool', '$right');
+            contextChain,
+            node,
+            receiver,
+            '${node.name.name}',
+            typeEnvironment.boolType,
+            right.getType(typeEnvironment));
         throw const _AbortCurrentEvaluation();
       }
     } else if (receiver is IntConstant) {
@@ -710,8 +743,13 @@ class ConstantEvaluator extends RecursiveVisitor {
               node.name.name, receiver.value, value, node);
         }
 
-        errorReporter.invalidBinaryOperandType(contextChain, node, 'int',
-            '${node.name.name}', 'int/double', '$other');
+        errorReporter.invalidBinaryOperandType(
+            contextChain,
+            node,
+            receiver,
+            '${node.name.name}',
+            typeEnvironment.numType,
+            other.getType(typeEnvironment));
         throw const _AbortCurrentEvaluation();
       }
     } else if (receiver is DoubleConstant) {
@@ -730,8 +768,13 @@ class ConstantEvaluator extends RecursiveVisitor {
           return evaluateBinaryNumericOperation(
               node.name.name, receiver.value, value, node);
         }
-        errorReporter.invalidBinaryOperandType(contextChain, node, 'double',
-            '${node.name.name}', 'int/double', '$other');
+        errorReporter.invalidBinaryOperandType(
+            contextChain,
+            node,
+            receiver,
+            '${node.name.name}',
+            typeEnvironment.numType,
+            other.getType(typeEnvironment));
         throw const _AbortCurrentEvaluation();
       }
     }
@@ -752,7 +795,12 @@ class ConstantEvaluator extends RecursiveVisitor {
             return right;
           }
           errorReporter.invalidBinaryOperandType(
-              contextChain, node, 'bool', '${node.operator}', 'bool', '$right');
+              contextChain,
+              node,
+              left,
+              '${node.operator}',
+              typeEnvironment.boolType,
+              right.getType(typeEnvironment));
           throw const _AbortCurrentEvaluation();
         }
         errorReporter.invalidMethodInvocation(
@@ -767,7 +815,12 @@ class ConstantEvaluator extends RecursiveVisitor {
             return right;
           }
           errorReporter.invalidBinaryOperandType(
-              contextChain, node, 'bool', '${node.operator}', 'bool', '$right');
+              contextChain,
+              node,
+              left,
+              '${node.operator}',
+              typeEnvironment.boolType,
+              right.getType(typeEnvironment));
           throw const _AbortCurrentEvaluation();
         }
         errorReporter.invalidMethodInvocation(
@@ -789,7 +842,8 @@ class ConstantEvaluator extends RecursiveVisitor {
     } else if (constant == falseConstant) {
       return evaluate(node.otherwise);
     } else {
-      errorReporter.invalidType(contextChain, node, constant, 'bool');
+      errorReporter.invalidDartType(
+          contextChain, node, constant, typeEnvironment.boolType);
       throw const _AbortCurrentEvaluation();
     }
   }
@@ -834,8 +888,8 @@ class ConstantEvaluator extends RecursiveVisitor {
     if (!variable.isConst &&
         !_isFormalParameter(variable) &&
         variable.parent is! Let) {
-      errorReporter.nonConstantVariableGet(contextChain, node);
-      throw const _AbortCurrentEvaluation();
+      throw new Exception('The front-end should ensure we do not encounter a '
+          'variable get of a non-const variable.');
     }
     return env.lookupVariable(node.variable);
   }
@@ -854,9 +908,8 @@ class ConstantEvaluator extends RecursiveVisitor {
         errorReporter.invalidStaticInvocation(contextChain, node, target);
         throw const _AbortCurrentEvaluation();
       } else {
-        errorReporter.unreachable(contextChain, node,
+        throw new Exception(
             'No support for ${target.runtimeType} in a static-get.');
-        throw const _AbortCurrentEvaluation();
       }
     });
   }
@@ -903,11 +956,7 @@ class ConstantEvaluator extends RecursiveVisitor {
       if (parent is Library && parent == coreTypes.coreLibrary) {
         final positionalArguments = evaluatePositionalArguments(node.arguments);
         final Constant left = positionalArguments[0];
-        // TODO(http://dartbug.com/31799): Re-enable these checks.
-        //ensurePrimitiveConstant(left, node);
         final Constant right = positionalArguments[1];
-        // TODO(http://dartbug.com/31799): Re-enable these checks.
-        //ensurePrimitiveConstant(right, node);
         // Since we canonicalize constants during the evaluation, we can use
         // identical here.
         assert(left == right);
@@ -929,7 +978,8 @@ class ConstantEvaluator extends RecursiveVisitor {
     if (constant is BoolConstant) {
       return constant == trueConstant ? falseConstant : trueConstant;
     }
-    errorReporter.invalidType(contextChain, node, constant, 'bool');
+    errorReporter.invalidDartType(
+        contextChain, node, constant, typeEnvironment.boolType);
     throw const _AbortCurrentEvaluation();
   }
 
@@ -946,16 +996,12 @@ class ConstantEvaluator extends RecursiveVisitor {
         return canonicalize(
             new PartialInstantiationConstant(constant, node.typeArguments));
       }
-      errorReporter.unreachable(
-          contextChain,
-          node,
+      throw new Exception(
           'The number of type arguments supplied in the partial instantiation '
           'does not match the number of type arguments of the $constant.');
-      throw const _AbortCurrentEvaluation();
     }
-    errorReporter.unreachable(contextChain, node,
+    throw new Exception(
         'Only tear-off constants can be partially instantiated.');
-    throw const _AbortCurrentEvaluation();
   }
 
   // Helper methods:
@@ -985,13 +1031,11 @@ class ConstantEvaluator extends RecursiveVisitor {
     } else if (constant is TypeLiteralConstant) {
       constantType = new InterfaceType(coreTypes.typeClass);
     } else {
-      errorReporter.unreachable(contextChain, node,
-          'No support for ${constant.runtimeType}.runtimeType');
-      throw const _AbortCurrentEvaluation();
+      throw new Exception('No support for ${constant.runtimeType}.runtimeType');
     }
 
     if (!typeEnvironment.isSubtypeOf(constantType, type)) {
-      errorReporter.invalidType(contextChain, node, constant, '$type');
+      errorReporter.invalidDartType(contextChain, node, constant, type);
       throw const _AbortCurrentEvaluation();
     }
   }
@@ -1015,7 +1059,7 @@ class ConstantEvaluator extends RecursiveVisitor {
 
   List<Constant> evaluatePositionalArguments(Arguments arguments) {
     return arguments.positional.map((Expression node) {
-      return node.accept(this);
+      return node.accept(this) as Constant;
     }).toList();
   }
 
@@ -1050,18 +1094,6 @@ class ConstantEvaluator extends RecursiveVisitor {
       return fn();
     } finally {
       env = oldEnv;
-    }
-  }
-
-  ensurePrimitiveConstant(Constant value, TreeNode node) {
-    if (value is! NullConstant &&
-        value is! BoolConstant &&
-        value is! IntConstant &&
-        value is! DoubleConstant &&
-        value is! StringConstant) {
-      errorReporter.invalidType(
-          contextChain, node, value, 'bool/int/double/Null/String');
-      throw const _AbortCurrentEvaluation();
     }
   }
 
@@ -1105,8 +1137,7 @@ class ConstantEvaluator extends RecursiveVisitor {
         return a > b ? trueConstant : falseConstant;
     }
 
-    errorReporter.invalidBinaryMethodInvocation(contextChain, node, op);
-    throw const _AbortCurrentEvaluation();
+    throw new Exception("Unexpected binary numeric operation '$op'.");
   }
 
   int _wrapAroundInteger(int value) {
@@ -1211,26 +1242,19 @@ class _AbortCurrentEvaluation {
 abstract class ErrorReporter {
   const ErrorReporter();
 
-  invalidType(List<TreeNode> context, TreeNode node, Constant receiver,
-      String expectedType);
+  invalidDartType(List<TreeNode> context, TreeNode node, Constant receiver,
+      DartType expectedType);
   invalidBinaryOperandType(List<TreeNode> context, TreeNode node,
-      String receiverType, String op, String expectedType, String actualType);
-  invalidBinaryMethodInvocation(
-      List<TreeNode> context, TreeNode node, String op);
+      Constant receiver, String op, DartType expectedType, DartType actualType);
   invalidMethodInvocation(
       List<TreeNode> context, TreeNode node, Constant receiver, String op);
   invalidStaticInvocation(
       List<TreeNode> context, TreeNode node, Procedure target);
   invalidStringInterpolationOperand(
       List<TreeNode> context, TreeNode node, Constant constant);
+  nonConstLiteral(List<TreeNode> context, TreeNode node, String klass);
   duplicateKey(List<TreeNode> context, TreeNode node, Constant key);
-  nonConstantLiteral(List<TreeNode> context, TreeNode node, String literalType);
-  nonConstantVariableGet(List<TreeNode> context, VariableGet node);
-  nonConstConstructorInvocation(
-      List<TreeNode> context, TreeNode node, Constructor target);
-  failedAssertion(List<TreeNode> context, TreeNode node, Constant message);
-  unimplemented(List<TreeNode> context, TreeNode node, String message);
-  unreachable(List<TreeNode> context, TreeNode node, String message);
+  failedAssertion(List<TreeNode> context, TreeNode node, String message);
 }
 
 abstract class ErrorReporterBase implements ErrorReporter {
@@ -1252,26 +1276,26 @@ abstract class ErrorReporterBase implements ErrorReporter {
     return node == null ? TreeNode.noOffset : node.fileOffset;
   }
 
-  invalidType(List<TreeNode> context, TreeNode node, Constant receiver,
-      String expectedType) {
+  invalidDartType(List<TreeNode> context, TreeNode node, Constant receiver,
+      DartType expectedType) {
     report(
         context,
         'Expected expression to evaluate to "$expectedType" but got "$receiver.',
         node);
   }
 
-  invalidBinaryOperandType(List<TreeNode> context, TreeNode node,
-      String receiverType, String op, String expectedType, String actualType) {
+  invalidBinaryOperandType(
+      List<TreeNode> context,
+      TreeNode node,
+      Constant receiver,
+      String op,
+      DartType expectedType,
+      DartType actualType) {
     report(
         context,
-        'Calling "$op" on "$receiverType" needs operand of type '
+        'Calling "$op" on "$receiver" needs operand of type '
         '"$expectedType" (but got "$actualType")',
         node);
-  }
-
-  invalidBinaryMethodInvocation(
-      List<TreeNode> context, TreeNode node, String op) {
-    report(context, 'Cannot call "$op" on a numeric constant receiver', node);
   }
 
   invalidMethodInvocation(
@@ -1295,6 +1319,13 @@ abstract class ErrorReporterBase implements ErrorReporter {
         node);
   }
 
+  nonConstLiteral(List<TreeNode> context, TreeNode node, String klass) {
+    report(
+        context,
+        'Cannot have a non-constant $klass literal within a const context.',
+        node);
+  }
+
   duplicateKey(List<TreeNode> context, TreeNode node, Constant key) {
     report(
         context,
@@ -1302,46 +1333,11 @@ abstract class ErrorReporterBase implements ErrorReporter {
         node);
   }
 
-  nonConstantLiteral(
-      List<TreeNode> context, TreeNode node, String literalType) {
-    report(
-        context,
-        '"$literalType" literals inside constant expressions are required to '
-        'be constant.',
-        node);
-  }
-
-  nonConstantVariableGet(List<TreeNode> context, VariableGet node) {
-    report(
-        context,
-        'The variable "${node.variable.name}" is non-const and '
-        'can therefore not be used inside a constant expression.'
-        ' (${node}, ${node.parent.parent}, )',
-        node);
-  }
-
-  nonConstConstructorInvocation(
-      List<TreeNode> context, TreeNode node, Constructor target) {
-    report(
-        context,
-        'The non-const constructor "$target" cannot be called inside a '
-        'constant expression',
-        node);
-  }
-
-  failedAssertion(List<TreeNode> context, TreeNode node, Constant message) {
+  failedAssertion(List<TreeNode> context, TreeNode node, String message) {
     report(
         context,
         'The assertion condition evaluated to "false" with message "$message"',
         node);
-  }
-
-  unimplemented(List<TreeNode> context, TreeNode node, String message) {
-    report(context, 'Unimplemented: $message', node);
-  }
-
-  unreachable(List<TreeNode> context, TreeNode node, String message) {
-    report(context, 'Unreachable: $message', node);
   }
 }
 

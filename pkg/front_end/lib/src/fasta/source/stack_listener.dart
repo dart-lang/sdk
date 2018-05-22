@@ -277,6 +277,11 @@ abstract class StackListener extends Listener {
   }
 
   @override
+  void handleParenthesizedCondition(Token token) {
+    debugEvent("handleParenthesizedCondition");
+  }
+
+  @override
   void handleParenthesizedExpression(Token token) {
     debugEvent("ParenthesizedExpression");
   }

@@ -14,6 +14,11 @@ import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 /**
+ * The optional generator for prefix that should be used for new imports.
+ */
+typedef ImportPrefixGenerator = String Function(Uri);
+
+/**
  * A [ChangeBuilder] used to build changes in Dart files.
  *
  * Clients may not extend, implement or mix-in this class.
@@ -24,9 +29,18 @@ abstract class DartChangeBuilder implements ChangeBuilder {
    */
   factory DartChangeBuilder(AnalysisSession session) = DartChangeBuilderImpl;
 
+  /**
+   * Use the [buildFileEdit] function to create a collection of edits to the
+   * file with the given [path]. The edits will be added to the source change
+   * that is being built.
+   *
+   * If [importPrefixGenerator] is provided, it will be asked to generate an
+   * import prefix for every newly imported library.
+   */
   @override
   Future<Null> addFileEdit(
-      String path, void buildFileEdit(DartFileEditBuilder builder));
+      String path, void buildFileEdit(DartFileEditBuilder builder),
+      {ImportPrefixGenerator importPrefixGenerator});
 }
 
 /**
@@ -305,9 +319,12 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
       FunctionBody body, TypeProvider typeProvider);
 
   /**
-   * Arrange to have imports added for each of the given [libraries].
+   * Arrange to have an import added for the library with the given [uri].
+   *
+   * Returns the text of the URI that will be used in the import directive.
+   * It can be different than the given [Uri].
    */
-  void importLibraries(Iterable<Source> libraries);
+  String importLibrary(Uri uri);
 
   /**
    * Optionally create an edit to replace the given [typeAnnotation] with the

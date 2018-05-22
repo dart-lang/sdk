@@ -10,7 +10,6 @@ import '../common/tasks.dart' show CompilerTask;
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../common_elements.dart' show CommonElements;
-import '../elements/elements.dart' show MethodElement;
 import '../elements/entities.dart';
 import '../elements/jumps.dart';
 import '../elements/types.dart';
@@ -27,7 +26,7 @@ import '../js_model/elements.dart' show JGeneratorBody;
 import '../native/native.dart' as native;
 import '../options.dart';
 import '../types/abstract_value_domain.dart';
-import '../types/types.dart';
+import '../types/masks.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/use.dart'
@@ -2443,17 +2442,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       pushStatement(
           new js.Throw(value).withSourceInformation(sourceInformation));
     } else {
-      Entity element = _work.element;
-      if (element is MethodElement && element.asyncMarker.isYielding) {
-        // `return <expr>;` is illegal in a sync* or async* function.
-        // To have the async-translator working, we avoid introducing
-        // `return` nodes.
-        pushStatement(new js.ExpressionStatement(value)
-            .withSourceInformation(sourceInformation));
-      } else {
-        pushStatement(
-            new js.Return(value).withSourceInformation(sourceInformation));
-      }
+      pushStatement(
+          new js.Return(value).withSourceInformation(sourceInformation));
     }
   }
 

@@ -317,19 +317,21 @@ final Matcher isFilePath = isString;
  * FoldingKind
  *
  * enum {
- *   COMMENT
- *   CLASS_MEMBER
+ *   ANNOTATIONS
+ *   CLASS_BODY
  *   DIRECTIVES
  *   DOCUMENTATION_COMMENT
- *   TOP_LEVEL_DECLARATION
+ *   FILE_HEADER
+ *   FUNCTION_BODY
  * }
  */
 final Matcher isFoldingKind = new MatchesEnum("FoldingKind", [
-  "COMMENT",
-  "CLASS_MEMBER",
+  "ANNOTATIONS",
+  "CLASS_BODY",
   "DIRECTIVES",
   "DOCUMENTATION_COMMENT",
-  "TOP_LEVEL_DECLARATION"
+  "FILE_HEADER",
+  "FUNCTION_BODY"
 ]);
 
 /**

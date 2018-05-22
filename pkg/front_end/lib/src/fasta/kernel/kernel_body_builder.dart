@@ -39,4 +39,9 @@ class KernelBodyBuilder extends BodyBuilder<Expression, Statement, Arguments> {
       TypeInferrer typeInferrer)
       : super(library, member, scope, formalParameterScope, hierarchy,
             coreTypes, classBuilder, isInstanceMember, uri, typeInferrer);
+
+  @override
+  void enterThenForTypePromotion(Expression condition) {
+    typePromoter.enterThen(condition);
+  }
 }

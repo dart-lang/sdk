@@ -18,6 +18,7 @@ import '../kernel/element_map.dart';
 import '../native/behavior.dart';
 import '../options.dart';
 import '../types/constants.dart';
+import '../types/masks.dart';
 import '../types/types.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
@@ -1536,7 +1537,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   @override
   visitTryCatch(ir.TryCatch node) {
     LocalsHandler saved = _locals;
-    _locals = new LocalsHandler.from(_locals, node, useOtherTryBlock: false);
+    _locals = new LocalsHandler.from(_locals, node,
+        isTry: true, useOtherTryBlock: false);
     initializationIsIndefinite();
     visit(node.body);
     saved.mergeDiamondFlow(_locals, null);
@@ -1553,7 +1555,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   @override
   visitTryFinally(ir.TryFinally node) {
     LocalsHandler saved = _locals;
-    _locals = new LocalsHandler.from(_locals, node, useOtherTryBlock: false);
+    _locals = new LocalsHandler.from(_locals, node,
+        isTry: true, useOtherTryBlock: false);
     initializationIsIndefinite();
     visit(node.body);
     saved.mergeDiamondFlow(_locals, null);

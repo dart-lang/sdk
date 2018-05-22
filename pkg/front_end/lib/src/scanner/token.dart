@@ -216,11 +216,16 @@ class Keyword extends TokenType {
 
   static const Keyword IN = const Keyword("in", "IN");
 
+  static const Keyword INTERFACE =
+      const Keyword("interface", "INTERFACE", isBuiltIn: true);
+
   static const Keyword IS =
       const Keyword("is", "IS", precedence: RELATIONAL_PRECEDENCE);
 
   static const Keyword LIBRARY = const Keyword("library", "LIBRARY",
       isBuiltIn: true, isTopLevelKeyword: true);
+
+  static const Keyword MIXIN = const Keyword("mixin", "MIXIN", isBuiltIn: true);
 
   static const Keyword NATIVE =
       const Keyword("native", "NATIVE", isPseudo: true);
@@ -316,8 +321,10 @@ class Keyword extends TokenType {
     IMPLEMENTS,
     IMPORT,
     IN,
+    INTERFACE,
     IS,
     LIBRARY,
+    MIXIN,
     NATIVE,
     NEW,
     NULL,

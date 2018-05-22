@@ -1051,6 +1051,13 @@ CompileType SpecialParameterInstr::ComputeType() const {
       return CompileType::FromCid(kTypeArgumentsCid);
     case kArgDescriptor:
       return CompileType::FromCid(kImmutableArrayCid);
+    case kException:
+      return CompileType(CompileType::kNonNullable, kDynamicCid,
+                         &Object::dynamic_type());
+    case kStackTrace:
+      // We cannot use [kStackTraceCid] here because any kind of object can be
+      // used as a stack trace via `new Future.error(..., <obj>)` :-/
+      return CompileType::Dynamic();
   }
   UNREACHABLE();
   return CompileType::Dynamic();

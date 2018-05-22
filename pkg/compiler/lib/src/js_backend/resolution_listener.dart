@@ -23,11 +23,8 @@ import 'backend_usage.dart';
 import 'checked_mode_helpers.dart';
 import 'custom_elements_analysis.dart';
 import 'interceptor_data.dart';
-import 'mirrors_analysis.dart';
-import 'mirrors_data.dart';
 import 'native_data.dart' show NativeBasicData;
 import 'no_such_method_registry.dart';
-import 'type_variable_handler.dart';
 
 class ResolutionEnqueuerListener extends EnqueuerListener {
   // TODO(johnniwinther): Avoid the need for this.
@@ -41,12 +38,9 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   final NativeBasicData _nativeData;
   final InterceptorDataBuilder _interceptorData;
   final BackendUsageBuilder _backendUsage;
-  final MirrorsDataBuilder _mirrorsDataBuilder;
 
   final NoSuchMethodRegistry _noSuchMethodRegistry;
   final CustomElementsResolutionAnalysis _customElementsAnalysis;
-  final MirrorsResolutionAnalysis _mirrorsAnalysis;
-  final TypeVariableResolutionAnalysis _typeVariableResolutionAnalysis;
 
   final NativeResolutionEnqueuer _nativeEnqueuer;
 
@@ -61,11 +55,8 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       this._nativeData,
       this._interceptorData,
       this._backendUsage,
-      this._mirrorsDataBuilder,
       this._noSuchMethodRegistry,
       this._customElementsAnalysis,
-      this._mirrorsAnalysis,
-      this._typeVariableResolutionAnalysis,
       this._nativeEnqueuer,
       this._deferredLoadTask);
 
@@ -166,8 +157,6 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     // due to mirrors.
     enqueuer.applyImpact(_customElementsAnalysis.flush(),
         impactSource: _customElementsAnalysis);
-    enqueuer.applyImpact(_typeVariableResolutionAnalysis.flush(),
-        impactSource: _typeVariableResolutionAnalysis);
 
     for (ClassEntity cls in recentClasses) {
       MemberEntity element = _elementEnvironment.lookupLocalClassMember(
@@ -191,7 +180,6 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
 
     if (!enqueuer.queueIsEmpty) return false;
 
-    _mirrorsAnalysis.onQueueEmpty(enqueuer, recentClasses);
     return true;
   }
 
@@ -260,16 +248,36 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   @override
   WorldImpact registerUsedElement(MemberEntity member) {
     WorldImpactBuilderImpl worldImpact = new WorldImpactBuilderImpl();
-    _mirrorsDataBuilder.registerUsedMember(member);
     _customElementsAnalysis.registerStaticUse(member);
 
-    if (member.isFunction && member.isInstanceMember) {
-      FunctionEntity method = member;
-      ClassEntity cls = method.enclosingClass;
+    if (member.isFunction) {
+      FunctionEntity function = member;
+      if (function.isExternal) {
+        FunctionType functionType =
+            _elementEnvironment.getFunctionType(function);
 
-      if (method.name == Identifiers.call &&
-          _elementEnvironment.isGenericClass(cls)) {
-        worldImpact.addImpact(_registerComputeSignature());
+        var allParameterTypes = <DartType>[]
+          ..addAll(functionType.parameterTypes)
+          ..addAll(functionType.optionalParameterTypes)
+          ..addAll(functionType.namedParameterTypes);
+        for (var type in allParameterTypes) {
+          if (type.isFunctionType || type.isTypedef) {
+            var closureConverter = _commonElements.closureConverter;
+            worldImpact.registerStaticUse(
+                new StaticUse.implicitInvoke(closureConverter));
+            _backendUsage.registerBackendFunctionUse(closureConverter);
+            _backendUsage.registerGlobalFunctionDependency(closureConverter);
+            break;
+          }
+        }
+      }
+      if (function.isInstanceMember) {
+        ClassEntity cls = function.enclosingClass;
+
+        if (function.name == Identifiers.call &&
+            _elementEnvironment.isGenericClass(cls)) {
+          worldImpact.addImpact(_registerComputeSignature());
+        }
       }
     }
     _backendUsage.registerUsedMember(member);
@@ -304,9 +312,6 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
 
   WorldImpact _processClass(ClassEntity cls) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
-    if (_elementEnvironment.isGenericClass(cls)) {
-      _typeVariableResolutionAnalysis.registerClassWithTypeVariables(cls);
-    }
     // TODO(johnniwinther): Extract an `implementationClassesOf(...)` function
     // for these into [CommonElements] or [BackendImpacts].
     // Register any helper that will be needed by the backend.

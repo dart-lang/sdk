@@ -327,9 +327,6 @@ class ProcedureHelper {
   bool IsRedirectingFactoryConstructor() {
     return (flags_ & kRedirectingFactoryConstructor) != 0;
   }
-  bool IsNoSuchMethodForwarder() {
-    return (flags_ & kNoSuchMethodForwarder) != 0;
-  }
 
   NameIndex canonical_name_;
   TokenPosition position_;
@@ -825,8 +822,14 @@ class StreamingScopeBuilder {
                             const char* prefix,
                             intptr_t nesting_depth);
 
+  void FinalizeExceptionVariable(GrowableArray<LocalVariable*>* variables,
+                                 GrowableArray<LocalVariable*>* raw_variables,
+                                 const String& symbol,
+                                 intptr_t nesting_depth);
+
   void AddTryVariables();
   void AddCatchVariables();
+  void FinalizeCatchVariables();
   void AddIteratorVariable();
   void AddSwitchVariable();
 
@@ -1391,6 +1394,10 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
     kDefaultTypeChecks,
     kTypeChecksForNoDynamicInvocationsTearOff
   };
+
+  // Does not move the cursor.
+  Fragment BuildDefaultTypeHandling(const Function& function,
+                                    intptr_t type_parameters_offset);
 
   Fragment BuildArgumentTypeChecks(TypeChecksToBuild mode = kDefaultTypeChecks);
 

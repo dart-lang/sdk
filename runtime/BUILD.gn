@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 import("../build/dart/dart_host_sdk_toolchain.gni")
+import("configs.gni")
 import("runtime_args.gni")
 
 config("dart_public_config") {
@@ -48,7 +49,7 @@ config("dart_precompiler_config") {
   defines += [ "DART_PRECOMPILER" ]
 }
 
-config("dart_no_snapshot_config") {
+config("dart_nosnapshot_config") {
   defines = []
   defines += [ "DART_NO_SNAPSHOT" ]
 }
@@ -120,6 +121,17 @@ config("dart_arch_config") {
   }
 }
 
+config("dart_interpreter_config") {
+  defines = [ "DART_USE_INTERPRETER" ]
+}
+
+config("dart_maybe_interpreter_config") {
+  defines = []
+  if (dart_use_interpreter) {
+    defines += [ "DART_USE_INTERPRETER" ]
+  }
+}
+
 config("dart_config") {
   defines = []
 
@@ -136,15 +148,14 @@ config("dart_config") {
   }
 
   if (is_fuchsia) {
-    defines += [ "DART_USE_JEMALLOC" ]
+    import("//build/config/scudo/scudo.gni")
     include_dirs += [
       "//zircon/system/ulib/zx/include",
-      "//zircon/third_party/ulib/jemalloc/include",
     ]
-  }
-
-  if (dart_use_interpreter) {
-    defines += [ "DART_USE_INTERPRETER" ]
+    if (!use_scudo) {
+      defines += [ "DART_USE_JEMALLOC" ]
+      include_dirs += [ "//zircon/third_party/ulib/jemalloc/include" ]
+    }
   }
 
   if (!is_win) {
@@ -191,172 +202,29 @@ source_set("dart_api") {
   ]
 }
 
-template("libdart_library") {
-  extra_configs = []
-  if (defined(invoker.extra_configs)) {
-    extra_configs += invoker.extra_configs
-  }
-  extra_deps = []
-  if (defined(invoker.extra_deps)) {
-    extra_deps += invoker.extra_deps
-  }
-  target(dart_component_kind, target_name) {
-    configs += [
-                 ":dart_arch_config",
-                 ":dart_config",
-               ] + extra_configs
-    if (is_fuchsia) {
-      configs -= [ "//build/config:symbol_visibility_hidden" ]
-    }
-    deps = [
-             "third_party/double-conversion/src:libdouble_conversion",
-             ":generate_version_cc_file",
-           ] + extra_deps
-    include_dirs = [ "." ]
-    public_configs = [ ":dart_public_config" ]
-    sources = [
-      "$target_gen_dir/version.cc",
-      "include/dart_api.h",
-      "include/dart_native_api.h",
-      "include/dart_tools_api.h",
-      "vm/dart_api_impl.cc",
-      "vm/native_api_impl.cc",
-      "vm/version.h",
-    ]
-    defines = [ "DART_SHARED_LIB" ]
-  }
-}
-
-libdart_library("libdart_jit") {
-  extra_configs = [
-    ":dart_maybe_product_config",
-    ":dart_os_config",
-  ]
+library_for_all_configs("libdart") {
+  target_type = dart_component_kind
   extra_deps = [
+    "third_party/double-conversion/src:libdouble_conversion",
+    ":generate_version_cc_file",
+  ]
+  configurable_deps = [
     "platform:libdart_platform",
-    "vm:libdart_lib_jit",
-    "vm:libdart_vm_jit",
+    "vm:libdart_lib",
+    "vm:libdart_vm",
   ]
-}
-
-libdart_library("libdart_jit_product") {
-  extra_configs = [
-    ":dart_product_config",
-    ":dart_os_config",
+  include_dirs = [ "." ]
+  public_configs = [ ":dart_public_config" ]
+  sources = [
+    "$target_gen_dir/version.cc",
+    "include/dart_api.h",
+    "include/dart_native_api.h",
+    "include/dart_tools_api.h",
+    "vm/dart_api_impl.cc",
+    "vm/native_api_impl.cc",
+    "vm/version.h",
   ]
-  extra_deps = [
-    "platform:libdart_platform_product",
-    "vm:libdart_lib_jit_product",
-    "vm:libdart_vm_jit_product",
-  ]
-}
-
-libdart_library("libdart_precompiled_runtime") {
-  extra_configs = [
-    ":dart_maybe_product_config",
-    ":dart_precompiled_runtime_config",
-    ":dart_os_config",
-  ]
-  extra_deps = [
-    "platform:libdart_platform",
-    "vm:libdart_lib_precompiled_runtime",
-    "vm:libdart_vm_precompiled_runtime",
-  ]
-}
-
-libdart_library("libdart_precompiled_runtime_product") {
-  extra_configs = [
-    ":dart_product_config",
-    ":dart_precompiled_runtime_config",
-    ":dart_os_config",
-  ]
-  extra_deps = [
-    "platform:libdart_platform_product",
-    "vm:libdart_lib_precompiled_runtime_product",
-    "vm:libdart_vm_precompiled_runtime_product",
-  ]
-}
-
-libdart_library("libdart_nosnapshot_with_precompiler") {
-  extra_configs = [
-    ":dart_maybe_product_config",
-    ":dart_no_snapshot_config",
-    ":dart_precompiler_config",
-    ":dart_os_config",
-  ]
-  extra_deps = [
-    "platform:libdart_platform",
-    "vm:libdart_lib_nosnapshot_with_precompiler",
-    "vm:libdart_vm_nosnapshot_with_precompiler",
-  ]
-}
-
-libdart_library("libdart_nosnapshot_with_precompiler_product") {
-  extra_configs = [
-    ":dart_product_config",
-    ":dart_no_snapshot_config",
-    ":dart_precompiler_config",
-    ":dart_os_config",
-  ]
-  extra_deps = [
-    "platform:libdart_platform_product",
-    "vm:libdart_lib_nosnapshot_with_precompiler_product",
-    "vm:libdart_vm_nosnapshot_with_precompiler_product",
-  ]
-}
-
-libdart_library("libdart_nosnapshot_with_precompiler_fuchsia") {
-  extra_configs = [
-    ":dart_maybe_product_config",
-    ":dart_no_snapshot_config",
-    ":dart_precompiler_config",
-    ":dart_os_fuchsia_config",
-  ]
-  extra_deps = [
-    "platform:libdart_platform_fuchsia",
-    "vm:libdart_lib_nosnapshot_with_precompiler_fuchsia",
-    "vm:libdart_vm_nosnapshot_with_precompiler_fuchsia",
-  ]
-}
-
-libdart_library("libdart_nosnapshot_with_precompiler_product_fuchsia") {
-  extra_configs = [
-    ":dart_product_config",
-    ":dart_no_snapshot_config",
-    ":dart_precompiler_config",
-    ":dart_os_fuchsia_config",
-  ]
-  extra_deps = [
-    "platform:libdart_platform_product_fuchsia",
-    "vm:libdart_lib_nosnapshot_with_precompiler_product_fuchsia",
-    "vm:libdart_vm_nosnapshot_with_precompiler_product_fuchsia",
-  ]
-}
-
-libdart_library("libdart_with_precompiler") {
-  extra_configs = [
-    ":dart_maybe_product_config",
-    ":dart_precompiler_config",
-    ":dart_os_config",
-  ]
-  extra_deps = [
-    "platform:libdart_platform",
-    "vm:libdart_lib_with_precompiler",
-    "vm:libdart_vm_with_precompiler",
-  ]
-}
-
-libdart_library("libdart_with_precompiler_product") {
-  extra_configs = [
-    ":dart_product_config",
-    ":dart_precompiler_config",
-    ":dart_os_config",
-  ]
-  extra_deps = [
-    "platform:libdart_platform_product",
-    "vm:libdart_lib_with_precompiler_product",
-    "vm:libdart_vm_with_precompiler_product",
-  ]
+  defines = [ "DART_SHARED_LIB" ]
 }
 
 action("generate_version_cc_file") {

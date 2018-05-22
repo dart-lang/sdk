@@ -359,6 +359,14 @@ assertion_initializer_const_error2_test/cc02: Crash
 assertion_initializer_const_error_test/01: MissingCompileTimeError
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 
+[ $mode == debug && $hot_reload_rollback ]
+enum_duplicate_test/02: Pass, Crash # http://dartbug.com/33156
+enum_duplicate_test/none: Pass, Crash # http://dartbug.com/33156
+enum_private_test/01: Pass, Crash # http://dartbug.com/33156
+
+[ $mode == debug && ($hot_reload || $hot_reload_rollback) ]
+enum_duplicate_test/01: Pass, Crash # http://dartbug.com/33156
+
 [ $runtime == dart_precompiled && $minified ]
 cyclic_type_test/*: Skip # Tests below rely on Type.toString()
 enum_duplicate_test/*: Skip # Uses Enum.toString()

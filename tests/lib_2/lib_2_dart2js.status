@@ -700,8 +700,6 @@ html/js_function_getter_trust_types_test: CompileTimeError
 html/js_typed_interop_default_arg_test/explicit_argument: CompileTimeError
 html/js_typed_interop_side_cast_exp_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/js_typed_interop_test: CompileTimeError
-typed_data/typed_data_list_test: Crash
-typed_data/typed_list_iterable_test: Crash
 
 [ $compiler == dart2js && $fasta && $minified ]
 html/audiobuffersourcenode_test/functional: RuntimeError

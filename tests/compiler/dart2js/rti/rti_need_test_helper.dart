@@ -9,9 +9,7 @@ import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
-import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/js_backend/runtime_types.dart';
 import 'package:compiler/src/kernel/element_map.dart';
@@ -165,10 +163,6 @@ abstract class ComputeValueMixin<T> {
       }
 
       if (frontendClosure != null) {
-        if (frontendClosure is LocalFunctionElement &&
-            rtiNeed.localFunctionNeedsSignature(frontendClosure)) {
-          features.add(Tags.needsSignature);
-        }
         addFrontendData(frontendClosure);
         if (rtiNeedBuilder.localFunctionsUsingTypeVariableLiterals
             .contains(frontendClosure)) {
@@ -187,7 +181,7 @@ abstract class ComputeValueMixin<T> {
 }
 
 /// Visitor that determines whether a type refers to [entity].
-class FindTypeVisitor extends BaseResolutionDartTypeVisitor<bool, Null> {
+class FindTypeVisitor extends BaseDartTypeVisitor<bool, Null> {
   final Entity entity;
 
   FindTypeVisitor(this.entity);

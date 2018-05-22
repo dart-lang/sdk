@@ -62,7 +62,8 @@ class FlatTypeMask implements TypeMask {
     if (((flags >> 1) == SUBCLASS) && !world.hasAnyStrictSubclass(base)) {
       flags = (flags & 0x1) | (EXACT << 1);
     }
-    return world.getCachedMask(
+    CommonMasks commonMasks = world.abstractValueDomain;
+    return commonMasks.getCachedMask(
         base, flags, () => new FlatTypeMask.internal(base, flags));
   }
 

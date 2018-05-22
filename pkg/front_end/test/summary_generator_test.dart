@@ -14,9 +14,9 @@ main() {
     var summary = await summarize(['a.dart'], allSources);
     var component = loadComponentFromBytes(summary);
 
-    // Note: the kernel representation always has an empty '' key in the map,
+    // Note: the kernel representation always has a null key in the map,
     // but otherwise no other data is included here.
-    expect(component.uriToSource.keys.single, Uri.parse(""));
+    expect(component.uriToSource.keys.single, null);
   });
 
   test('summary includes declarations, but no method bodies', () async {

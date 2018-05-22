@@ -74,7 +74,7 @@ class DartChangeBuilderImplTest extends AbstractContextTest {
 class DartEditBuilderImplTest extends AbstractContextTest
     with BuilderTestMixin {
   test_importLibraries_DP() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'dart:aaa';
 import 'dart:ccc';
 
@@ -92,7 +92,7 @@ import 'package:ccc/ccc.dart';
   }
 
   test_importLibraries_PD() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'dart:aaa';
 import 'dart:ccc';
 
@@ -110,7 +110,7 @@ import 'package:ccc/ccc.dart';
   }
 
   test_importLibrary_afterLibraryDirective_dart() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 library test;
 
 class A {}
@@ -125,7 +125,7 @@ class A {}
   }
 
   test_importLibrary_dart_beforeDart() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'dart:aaa';
 import 'dart:ccc';
 ''', ['dart:bbb'], '''
@@ -136,7 +136,7 @@ import 'dart:ccc';
   }
 
   test_importLibrary_dart_beforeDart_first() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'dart:bbb';
 ''', ['dart:aaa'], '''
 import 'dart:aaa';
@@ -145,7 +145,7 @@ import 'dart:bbb';
   }
 
   test_importLibrary_dart_beforePackage() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'package:foo/foo.dart';
 ''', ['dart:async'], '''
 import 'dart:async';
@@ -155,7 +155,7 @@ import 'package:foo/foo.dart';
   }
 
   test_importLibrary_noDirectives_docComment() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 /// Documentation comment.
 /// Continues.
 void main() {}
@@ -169,7 +169,7 @@ void main() {}
   }
 
   test_importLibrary_noDirectives_hashBang() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 #!/bin/dart
 
 void main() {}
@@ -183,7 +183,7 @@ void main() {}
   }
 
   test_importLibrary_noDirectives_lineComment() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 // Not documentation comment.
 // Continues.
 
@@ -199,7 +199,7 @@ void main() {}
   }
 
   test_importLibrary_package_afterDart() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'dart:async';
 ''', ['package:aaa/aaa.dart'], '''
 import 'dart:async';
@@ -209,7 +209,7 @@ import 'package:aaa/aaa.dart';
   }
 
   test_importLibrary_package_afterPackage() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'package:aaa/a1.dart';
 
 import 'foo.dart';
@@ -222,7 +222,7 @@ import 'foo.dart';
   }
 
   test_importLibrary_package_afterPackage_leadingComment() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 // comment
 import 'package:aaa/a1.dart';
 
@@ -237,7 +237,7 @@ import 'foo.dart';
   }
 
   test_importLibrary_package_afterPackage_trailingComment() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'package:aaa/a1.dart'; // comment
 
 import 'foo.dart';
@@ -250,7 +250,7 @@ import 'foo.dart';
   }
 
   test_importLibrary_package_beforePackage() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'package:aaa/a1.dart';
 import 'package:aaa/a3.dart';
 
@@ -265,7 +265,7 @@ import 'foo.dart';
   }
 
   test_importLibrary_package_beforePackage_first() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'package:aaa/a2.dart';
 
 import 'foo.dart';
@@ -278,7 +278,7 @@ import 'foo.dart';
   }
 
   test_importLibrary_package_beforePackage_leadingComments() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 // comment a2
 import 'package:aaa/a2.dart';
 
@@ -293,7 +293,7 @@ import 'foo.dart';
   }
 
   test_importLibrary_package_beforePackage_trailingComments() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'package:aaa/a2.dart'; // comment a2
 
 import 'foo.dart';
@@ -306,7 +306,7 @@ import 'foo.dart';
   }
 
   test_importLibrary_package_beforeRelative() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'foo.dart';
 ''', ['package:aaa/aaa.dart'], '''
 import 'package:aaa/aaa.dart';
@@ -316,7 +316,7 @@ import 'foo.dart';
   }
 
   test_importLibrary_relative_afterDart() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'dart:async';
 ''', ['aaa.dart'], '''
 import 'dart:async';
@@ -326,7 +326,7 @@ import 'aaa.dart';
   }
 
   test_importLibrary_relative_afterPackage() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'package:foo/foo.dart';
 ''', ['aaa.dart'], '''
 import 'package:foo/foo.dart';
@@ -336,7 +336,7 @@ import 'aaa.dart';
   }
 
   test_importLibrary_relative_beforeRelative() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'dart:async';
 
 import 'package:foo/foo.dart';
@@ -355,7 +355,7 @@ import 'ccc.dart';
   }
 
   test_importLibrary_relative_beforeRelative_first() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'dart:async';
 
 import 'package:foo/foo.dart';
@@ -372,7 +372,7 @@ import 'bbb.dart';
   }
 
   test_importLibrary_relative_last() async {
-    await _assertImportLibraries('''
+    await _assertImportLibrary('''
 import 'dart:async';
 
 import 'package:foo/foo.dart';
@@ -1734,6 +1734,32 @@ import 'a.dart' as p;
     expect(edit.replacement, equalsIgnoringWhitespace(''));
   }
 
+  test_writeType_function() async {
+    await _assertWriteType('int Function(double a, String b)');
+  }
+
+  @failingTest
+  test_writeType_function_generic() async {
+    // TODO(scheglov) Fails because T/U are considered invisible.
+    await _assertWriteType('T Function<T, U>(T a, U b)');
+  }
+
+  test_writeType_function_noReturnType() async {
+    await _assertWriteType('Function()');
+  }
+
+  test_writeType_function_parameters_named() async {
+    await _assertWriteType('int Function(int a, {int b, int c})');
+  }
+
+  test_writeType_function_parameters_noName() async {
+    await _assertWriteType('int Function(double, String)');
+  }
+
+  test_writeType_function_parameters_positional() async {
+    await _assertWriteType('int Function(int a, [int b, int c])');
+  }
+
   test_writeType_genericType() async {
     String path = provider.convertPath('/test.dart');
     String content = 'class A {} class B<E> {}';
@@ -1806,6 +1832,33 @@ import 'a.dart' as p;
     expect(values, contains('C'));
   }
 
+  test_writeType_groupName_invalidType() async {
+    String path = provider.convertPath('/test.dart');
+    String content = 'class A<T> {}';
+    addSource(path, content);
+
+    InterfaceType typeA = await _getType(path, 'A');
+    DartType typeT = typeA.typeParameters.single.type;
+
+    var builder = new DartChangeBuilder(session);
+    await builder.addFileEdit(path, (builder) {
+      builder.addInsertion(content.length, (builder) {
+        // "T" cannot be written, because we are outside of "A".
+        // So, we also should not create linked groups.
+        builder.writeType(typeT, groupName: 'type');
+      });
+    });
+    expect(builder.sourceChange.linkedEditGroups, isEmpty);
+  }
+
+  test_writeType_interface_typeArguments() async {
+    await _assertWriteType('Map<int, List<String>>');
+  }
+
+  test_writeType_interface_typeArguments_allDynamic() async {
+    await _assertWriteType('Map');
+  }
+
   test_writeType_null() async {
     String path = provider.convertPath('/test.dart');
     String content = 'class A {}';
@@ -1819,6 +1872,56 @@ import 'a.dart' as p;
     });
     SourceEdit edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace(''));
+  }
+
+  test_writeType_prefixGenerator() async {
+    String aPath = provider.convertPath('/a.dart');
+    String bPath = provider.convertPath('/b.dart');
+
+    addSource(aPath, r'''
+class A1 {}
+class A2 {}
+''');
+    addSource(bPath, r'''
+class B {}
+''');
+
+    String path = provider.convertPath('/test.dart');
+    String content = '';
+    addSource(path, content);
+
+    ClassElement a1 = await _getClassElement(aPath, 'A1');
+    ClassElement a2 = await _getClassElement(aPath, 'A2');
+    ClassElement b = await _getClassElement(bPath, 'B');
+
+    int nextPrefixIndex = 0;
+    String prefixGenerator(_) {
+      return '_prefix${nextPrefixIndex++}';
+    }
+
+    var builder = new DartChangeBuilder(session);
+    await builder.addFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeType(a1.type);
+        builder.write(' a1; ');
+
+        builder.writeType(a2.type);
+        builder.write(' a2; ');
+
+        builder.writeType(b.type);
+        builder.write(' b;');
+      });
+    }, importPrefixGenerator: prefixGenerator);
+    List<SourceEdit> edits = getEdits(builder);
+    expect(edits, hasLength(2));
+    expect(
+        edits[0].replacement,
+        equalsIgnoringWhitespace(
+            "import 'a.dart' as _prefix0; import 'b.dart' as _prefix1;"));
+    expect(
+        edits[1].replacement,
+        equalsIgnoringWhitespace(
+            '_prefix0.A1 a1; _prefix0.A2 a2; _prefix1.B b;'));
   }
 
   test_writeType_required_dynamic() async {
@@ -1890,6 +1993,15 @@ import 'a.dart' as p;
     expect(edit.replacement, equalsIgnoringWhitespace('A'));
   }
 
+  test_writeType_typedef_typeArguments() async {
+    await _assertWriteType('F<int, String>',
+        declarations: 'typedef void F<T, U>(T t, U u);');
+  }
+
+  test_writeType_void() async {
+    await _assertWriteType('void Function()');
+  }
+
   test_writeTypes_empty() async {
     String path = provider.convertPath('/test.dart');
     String content = 'class A {}';
@@ -1955,18 +2067,15 @@ import 'a.dart' as p;
     expect(edit.replacement, equalsIgnoringWhitespace('implements A, B'));
   }
 
-  Future<Null> _assertImportLibraries(
+  Future<Null> _assertImportLibrary(
       String initialCode, List<String> newUris, String expectedCode) async {
     String path = provider.convertPath('/test.dart');
     addSource(path, initialCode);
     DartChangeBuilderImpl builder = new DartChangeBuilder(session);
     await builder.addFileEdit(path, (DartFileEditBuilder builder) {
-      Iterable<_MockSource> sources = newUris.map((newUri) {
-        String path =
-            newUri.contains(':') ? null : provider.convertPath('/$newUri');
-        return new _MockSource(path, Uri.parse(newUri));
-      });
-      builder.importLibraries(sources);
+      for (String newUri in newUris) {
+        builder.importLibrary(Uri.parse(newUri));
+      }
     });
 
     String resultCode = initialCode;
@@ -2044,6 +2153,23 @@ import 'a.dart' as p;
     }
   }
 
+  Future<void> _assertWriteType(String typeCode, {String declarations}) async {
+    String path = provider.convertPath('/test.dart');
+    String content = (declarations ?? '') + '$typeCode v;';
+    addSource(path, content);
+
+    var f = await _getTopLevelAccessorElement(path, 'v');
+
+    var builder = new DartChangeBuilder(session);
+    await builder.addFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeType(f.returnType);
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, typeCode);
+  }
+
   Future<ClassElement> _getClassElement(String path, String name) async {
     UnitElementResult result = await driver.getUnitElement(path);
     return result.element.getType(name);
@@ -2055,7 +2181,7 @@ import 'a.dart' as p;
     return result.element.accessors.firstWhere((v) => v.name == name);
   }
 
-  Future<DartType> _getType(String path, String name) async {
+  Future<InterfaceType> _getType(String path, String name) async {
     ClassElement classElement = await _getClassElement(path, name);
     return classElement.type;
   }
@@ -2167,17 +2293,4 @@ class C extends B {}
     expect(suggestions.map((s) => s.value),
         unorderedEquals(['Object', 'A', 'B', 'C']));
   }
-}
-
-class _MockSource implements Source {
-  @override
-  final String fullName;
-
-  @override
-  final Uri uri;
-
-  _MockSource(this.fullName, this.uri);
-
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

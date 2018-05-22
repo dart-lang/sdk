@@ -8,6 +8,8 @@ import 'dart:async' show Future;
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+
 import '../api_prototype/file_system.dart' show FileSystemEntity;
 
 import 'package:kernel/kernel.dart'
@@ -75,6 +77,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   Map<Uri, LibraryBuilder> userBuilders;
   final Uri initializeFromDillUri;
   bool initializedFromDill = false;
+  bool hasToCheckPackageUris = false;
 
   KernelIncrementalTarget userCode;
 
@@ -93,6 +96,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       if (this.invalidatedUris.contains(c.options.packagesUri)) {
         bypassCache = true;
       }
+      hasToCheckPackageUris = hasToCheckPackageUris || bypassCache;
       UriTranslator uriTranslator =
           await c.options.getUriTranslator(bypassCache: bypassCache);
       ticker.logMs("Read packages file");
@@ -138,19 +142,33 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
 
       Set<Uri> invalidatedUris = this.invalidatedUris.toSet();
-      this.invalidatedUris.clear();
       if (fullComponent) {
         invalidatedUris.add(entryPoint);
       }
 
-      List<LibraryBuilder> reusedLibraries =
-          computeReusedLibraries(invalidatedUris, uriTranslator);
+      ClassHierarchy hierarchy = userCode?.loader?.hierarchy;
+      Set<LibraryBuilder> notReusedLibraries;
+      if (hierarchy != null) {
+        notReusedLibraries = new Set<LibraryBuilder>();
+      }
+      List<LibraryBuilder> reusedLibraries = computeReusedLibraries(
+          invalidatedUris, uriTranslator,
+          notReused: notReusedLibraries);
       Set<Uri> reusedLibraryUris =
           new Set<Uri>.from(reusedLibraries.map((b) => b.uri));
       for (Uri uri in new Set<Uri>.from(dillLoadedData.loader.builders.keys)
         ..removeAll(reusedLibraryUris)) {
         dillLoadedData.loader.builders.remove(uri);
         userBuilders?.remove(uri);
+      }
+
+      if (hierarchy != null) {
+        List<Class> removedClasses = new List<Class>();
+        for (LibraryBuilder builder in notReusedLibraries) {
+          Library lib = builder.target;
+          removedClasses.addAll(lib.classes);
+        }
+        hierarchy.applyTreeChanges(removedClasses, const []);
       }
 
       if (userCode != null) {
@@ -170,6 +188,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           dillLoadedData,
           uriTranslator,
           uriToSource: c.uriToSource);
+      userCode.loader.hierarchy = hierarchy;
 
       for (LibraryBuilder library in reusedLibraries) {
         userCode.loader.builders[library.uri] = library;
@@ -201,6 +220,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             libraries: compiledLibraries, uriToSource: <Uri, Source>{});
       }
       if (componentWithDill != null) {
+        this.invalidatedUris.clear();
+        hasToCheckPackageUris = false;
         userCodeOld?.loader?.releaseAncillaryResources();
         userCodeOld?.loader?.builders?.clear();
         userCodeOld = null;
@@ -217,9 +238,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       List<Library> outputLibraries;
       if (data.includeUserLoadedLibraries || fullComponent) {
-        outputLibraries = computeTransitiveClosure(
-            compiledLibraries, mainMethod, entryPoint, reusedLibraries, data);
+        outputLibraries = computeTransitiveClosure(compiledLibraries,
+            mainMethod, entryPoint, reusedLibraries, data, hierarchy);
       } else {
+        computeTransitiveClosure(compiledLibraries, mainMethod, entryPoint,
+            reusedLibraries, data, hierarchy);
         outputLibraries = compiledLibraries;
       }
 
@@ -239,7 +262,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       Procedure mainMethod,
       Uri entry,
       List<LibraryBuilder> reusedLibraries,
-      IncrementalCompilerData data) {
+      IncrementalCompilerData data,
+      ClassHierarchy hierarchy) {
     List<Library> result = new List<Library>.from(inputLibraries);
     Map<Uri, Library> libraryMap = <Uri, Library>{};
     for (Library library in inputLibraries) {
@@ -274,10 +298,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
     }
 
+    List<Class> removedClasses = new List<Class>();
     for (Uri uri in potentiallyReferencedLibraries.keys) {
       if (uri.scheme == "package") continue;
-      userCode.loader.builders.remove(uri);
+      LibraryBuilder builder = userCode.loader.builders.remove(uri);
+      if (builder != null) {
+        Library lib = builder.target;
+        removedClasses.addAll(lib.classes);
+      }
     }
+    hierarchy?.applyTreeChanges(removedClasses, const []);
 
     return result;
   }
@@ -360,6 +390,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       String expression,
       Map<String, DartType> definitions,
       List<TypeParameter> typeDefinitions,
+      String syntheticProcedureName,
       Uri libraryUri,
       [String className,
       bool isStatic = false]) async {
@@ -440,7 +471,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           debugLibrary, className, className != null && !isStatic, parameters);
 
       Procedure procedure = new Procedure(
-          new Name("debugExpr"), ProcedureKind.Method, parameters,
+          new Name(syntheticProcedureName), ProcedureKind.Method, parameters,
           isStatic: isStatic);
 
       parameters.body = new ReturnStatement(compiledExpression)
@@ -459,10 +490,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }
 
   List<LibraryBuilder> computeReusedLibraries(
-      Set<Uri> invalidatedUris, UriTranslator uriTranslator) {
+      Set<Uri> invalidatedUris, UriTranslator uriTranslator,
+      {Set<LibraryBuilder> notReused}) {
     if (userCode == null && userBuilders == null) {
       return <LibraryBuilder>[];
     }
+
+    List<LibraryBuilder> result = <LibraryBuilder>[];
 
     // Maps all non-platform LibraryBuilders from their import URI.
     Map<Uri, LibraryBuilder> builders = <Uri, LibraryBuilder>{};
@@ -476,7 +510,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           (importUri != fileUri && invalidatedUris.contains(fileUri))) {
         return true;
       }
-      if (importUri.scheme == "package" &&
+      if (hasToCheckPackageUris &&
+          importUri.scheme == "package" &&
           uriTranslator.translate(importUri, false) != fileUri) {
         return true;
       }
@@ -484,6 +519,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
 
     addBuilderAndInvalidateUris(Uri uri, LibraryBuilder library) {
+      if (uri.scheme == "dart") {
+        result.add(library);
+        return;
+      }
       builders[uri] = library;
       if (isInvalidated(uri, library.target.fileUri)) {
         invalidatedImportUris.add(uri);
@@ -547,13 +586,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             workList.add(dependency);
           }
         }
+        notReused?.add(current);
       }
     }
 
     // Builders contain mappings from part uri to builder, meaning the same
     // builder can exist multiple times in the values list.
     Set<Uri> seenUris = new Set<Uri>();
-    List<LibraryBuilder> result = <LibraryBuilder>[];
     for (LibraryBuilder builder in builders.values) {
       if (builder.isPart) continue;
       // TODO(jensj/ahe): This line can probably go away once

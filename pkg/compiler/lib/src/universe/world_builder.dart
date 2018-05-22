@@ -8,18 +8,12 @@ import 'dart:collection';
 
 import '../common.dart';
 import '../common/names.dart' show Identifiers, Names;
-import '../common/resolution.dart' show Resolution;
 import '../common_elements.dart';
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
-import '../elements/elements.dart';
 import '../elements/entities.dart';
-import '../elements/resolution_types.dart';
 import '../elements/types.dart';
-import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../js_backend/backend_usage.dart' show BackendUsageBuilder;
-import '../js_backend/constant_handler_javascript.dart'
-    show JavaScriptConstantCompiler;
 import '../js_backend/interceptor_data.dart' show InterceptorDataBuilder;
 import '../js_backend/native_data.dart' show NativeBasicData, NativeDataBuilder;
 import '../js_backend/no_such_method_registry.dart';
@@ -32,7 +26,7 @@ import '../options.dart';
 import '../universe/class_set.dart';
 import '../util/enumset.dart';
 import '../util/util.dart';
-import '../world.dart' show World, ClosedWorld, ClosedWorldImpl, OpenWorld;
+import '../world.dart' show World, ClosedWorld, OpenWorld;
 import 'class_hierarchy_builder.dart' show ClassHierarchyBuilder, ClassQueries;
 import 'selector.dart' show Selector;
 import 'use.dart'
@@ -45,7 +39,6 @@ import 'use.dart'
         StaticUseKind;
 
 part 'codegen_world_builder.dart';
-part 'element_world_builder.dart';
 part 'member_usage.dart';
 part 'resolution_world_builder.dart';
 

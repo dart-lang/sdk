@@ -1266,6 +1266,8 @@ RawObject* ActivationFrame::Evaluate(const String& expr,
                                      const GrowableObjectArray& param_names,
                                      const GrowableObjectArray& param_values) {
   GetDescIndices();
+  bool type_arguments_available = false;
+  TypeArguments& type_arguments = TypeArguments::Handle();
   String& name = String::Handle();
   String& existing_name = String::Handle();
   Object& value = Instance::Handle();
@@ -1273,7 +1275,11 @@ RawObject* ActivationFrame::Evaluate(const String& expr,
   for (intptr_t i = 0; i < num_variables; i++) {
     TokenPosition ignore;
     VariableAt(i, &name, &ignore, &ignore, &ignore, &value);
-    if (!name.Equals(Symbols::This()) && !IsSyntheticVariableName(name)) {
+    if (name.Equals(Symbols::FunctionTypeArgumentsVar())) {
+      type_arguments_available = true;
+      type_arguments = TypeArguments::RawCast(value.raw());
+    } else if (!name.Equals(Symbols::This()) &&
+               !IsSyntheticVariableName(name)) {
       if (IsPrivateVariableName(name)) {
         name = String::ScrubName(name);
       }
@@ -1295,11 +1301,44 @@ RawObject* ActivationFrame::Evaluate(const String& expr,
     }
   }
 
+  Array& type_param_names = Array::Handle();
+  if ((function().IsGeneric() || function().HasGenericParent()) &&
+      type_arguments_available) {
+    intptr_t num_vars =
+        function().NumTypeParameters() + function().NumParentTypeParameters();
+    type_param_names = Array::New(num_vars);
+    TypeArguments& type_params = TypeArguments::Handle();
+    TypeParameter& type_param = TypeParameter::Handle();
+    String& name = String::Handle();
+    Function& current = Function::Handle(function().raw());
+    for (intptr_t i = 0; !current.IsNull(); i += current.NumTypeParameters(),
+                  current = current.parent_function()) {
+      type_params = current.type_parameters();
+      for (intptr_t j = 0; j < current.NumTypeParameters(); ++j) {
+        type_param = TypeParameter::RawCast(type_params.TypeAt(j));
+        name = type_param.Name();
+        // Write the names in backwards so they match up with the order of the
+        // types in 'type_arguments'.
+        type_param_names.SetAt(num_vars - (i + j) - 1, name);
+      }
+    }
+    if (type_arguments.IsNull()) {
+      type_arguments = TypeArguments::New(num_vars);
+      for (intptr_t i = 0; i < num_vars; ++i) {
+        type_arguments.SetTypeAt(i, Object::dynamic_type());
+      }
+    }
+    ASSERT(type_arguments.Length() == num_vars);
+  } else {
+    type_param_names = Object::empty_array().raw();
+  }
+
   if (function().is_static()) {
     const Class& cls = Class::Handle(function().Owner());
     return cls.Evaluate(expr,
                         Array::Handle(Array::MakeFixedLength(param_names)),
-                        Array::Handle(Array::MakeFixedLength(param_values)));
+                        Array::Handle(Array::MakeFixedLength(param_values)),
+                        type_param_names, type_arguments);
   } else {
     const Object& receiver = Object::Handle(GetReceiver());
     const Class& method_cls = Class::Handle(function().origin());
@@ -1310,7 +1349,8 @@ RawObject* ActivationFrame::Evaluate(const String& expr,
     const Instance& inst = Instance::Cast(receiver);
     return inst.Evaluate(method_cls, expr,
                          Array::Handle(Array::MakeFixedLength(param_names)),
-                         Array::Handle(Array::MakeFixedLength(param_values)));
+                         Array::Handle(Array::MakeFixedLength(param_values)),
+                         type_param_names, type_arguments);
   }
   UNREACHABLE();
   return Object::null();

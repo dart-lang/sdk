@@ -1,6 +1,7 @@
 # Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
+
 AbstractClassInstantiation/analyzerCode: Fail
 AbstractClassInstantiation/example: Fail
 AbstractClassMember/script5: Fail
@@ -61,6 +62,26 @@ ConstAndFinal/script1: Fail
 ConstAndVar/script1: Fail
 ConstConstructorNonFinalField/analyzerCode: Fail
 ConstConstructorNonFinalField/example: Fail
+ConstEvalContext/analyzerCode: Fail # This is just used for displaying the context.
+ConstEvalContext/example: Fail # This is just used for displaying the context.
+ConstEvalDuplicateKey/dart2jsCode: Fail
+ConstEvalDuplicateKey/example: Fail
+ConstEvalFailedAssertion/dart2jsCode: Fail
+ConstEvalFailedAssertion/example: Fail
+ConstEvalFailedAssertionWithMessage/dart2jsCode: Fail
+ConstEvalFailedAssertionWithMessage/example: Fail
+ConstEvalInvalidBinaryOperandType/analyzerCode: Fail # CONST_EVAL_TYPE_NUM / CONST_EVAL_TYPE_BOOL
+ConstEvalInvalidBinaryOperandType/example: Fail
+ConstEvalInvalidMethodInvocation/dart2jsCode: Fail
+ConstEvalInvalidMethodInvocation/example: Fail
+ConstEvalInvalidStaticInvocation/dart2jsCode: Fail
+ConstEvalInvalidStaticInvocation/example: Fail
+ConstEvalInvalidStringInterpolationOperand/dart2jsCode: Fail
+ConstEvalInvalidStringInterpolationOperand/example: Fail
+ConstEvalInvalidType/analyzerCode: Fail # CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH / CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH / CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH / ...
+ConstEvalInvalidType/example: Fail
+ConstEvalNonConstantLiteral/dart2jsCode: Fail
+ConstEvalNonConstantLiteral/example: Fail
 ConstFieldWithoutInitializer/example: Fail
 ConstructorHasNoSuchNamedParameter/analyzerCode: Fail
 ConstructorHasNoSuchNamedParameter/example: Fail
@@ -170,6 +191,10 @@ FinalAndCovariant/script2: Fail
 FinalFieldWithoutInitializer/example: Fail
 FinalInstanceVariableAlreadyInitialized/analyzerCode: Fail
 FinalInstanceVariableAlreadyInitialized/example: Fail
+ForInLoopExactlyOneVariable/analyzerCode: Fail # The analyzer doesn't recover well.
+ForInLoopExactlyOneVariable/statement: Fail # Fasta reports too many errors.
+ForInLoopNotAssignable/analyzerCode: Fail # The analyzer reports a different error.
+ForInLoopNotAssignable/statement: Fail
 FunctionHasNoSuchNamedParameter/analyzerCode: Fail
 FunctionHasNoSuchNamedParameter/example: Fail
 FunctionTypeDefaultValue/example: Fail
@@ -390,7 +415,6 @@ TypeVariableInStaticContext/analyzerCode: Fail
 TypeVariableInStaticContext/example: Fail
 TypeVariableSameNameAsEnclosing/analyzerCode: Fail
 TypeVariableSameNameAsEnclosing/example: Fail
-TypedefNotFunction/analyzerCode: Fail
 TypedefNotFunction/example: Fail
 UnexpectedDollarInString/analyzerCode: Fail
 UnexpectedDollarInString/script1: Fail

@@ -6,7 +6,8 @@ import("../executable_suffix.gni")
 
 _dart_root = rebase_path("../..")
 
-_prebuilt_dart_exe = "$_dart_root/tools/sdks/$host_os/dart-sdk/bin/dart$executable_suffix"
+_prebuilt_dart_exe =
+    "$_dart_root/tools/sdks/$host_os/dart-sdk/bin/dart$executable_suffix"
 
 # When the first argument is "exec_script", gn_run_binary.py always exits with
 # status 0, but gives non-empty output when the command it is given fails.

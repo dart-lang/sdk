@@ -229,6 +229,14 @@ class Padding extends SingleChildRenderObjectWidget {
     Widget child,
   });
 }
+
+class Expanded extends StatelessWidget {
+  const Expanded({
+    Key key,
+    int flex: 1,
+    @required Widget child,
+  });
+}
 ''');
 
     newFile('$flutterPkgLibPath/src/widgets/container.dart', r'''

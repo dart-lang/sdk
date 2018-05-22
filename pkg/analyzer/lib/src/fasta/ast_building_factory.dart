@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/ast.dart' hide Identifier;
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
+import 'package:front_end/src/fasta/kernel/body_builder.dart'
+    show Identifier, Operator;
 import 'package:front_end/src/fasta/kernel/forest.dart';
 import 'package:kernel/ast.dart' as kernel;
 
@@ -61,9 +63,12 @@ class AstBuildingForest
   Expression asLiteralString(Expression value) => value;
 
   @override
-  Expression awaitExpression(Expression operand, Token awaitKeyword) {
-    return astFactory.awaitExpression(awaitKeyword, operand);
-  }
+  Expression awaitExpression(Expression operand, Token awaitKeyword) =>
+      astFactory.awaitExpression(awaitKeyword, operand);
+
+  @override
+  Block block(Token openBrace, List<Statement> statements, Token closeBrace) =>
+      astFactory.block(openBrace, statements, closeBrace);
 
   @override
   kernel.Arguments castArguments(_Arguments arguments) {
@@ -84,6 +89,25 @@ class AstBuildingForest
           condition, question, thenExpression, colon, elseExpression);
 
   @override
+  Statement doStatement(Token doKeyword, Statement body, Token whileKeyword,
+          ParenthesizedExpression condition, Token semicolon) =>
+      astFactory.doStatement(
+          doKeyword,
+          body,
+          whileKeyword,
+          condition.leftParenthesis,
+          condition.expression,
+          condition.rightParenthesis,
+          semicolon);
+
+  @override
+  Statement emptyStatement(Token semicolon) =>
+      astFactory.emptyStatement(semicolon);
+
+  Statement expressionStatement(Expression expression, Token semicolon) =>
+      astFactory.expressionStatement(expression, semicolon);
+
+  @override
   kernel.DartType getTypeAt(TypeArgumentList typeArguments, int index) {
     return null; // typeArguments.arguments[index].type.kernelType;
   }
@@ -93,12 +117,38 @@ class AstBuildingForest
       typeArguments.arguments.length;
 
   @override
-  bool isErroneousNode(covariant node) => false; // ???
+  Statement ifStatement(
+          Token ifKeyword,
+          ParenthesizedExpression condition,
+          Statement thenStatement,
+          Token elseKeyword,
+          Statement elseStatement) =>
+      astFactory.ifStatement(
+          ifKeyword,
+          condition.leftParenthesis,
+          condition.expression,
+          condition.rightParenthesis,
+          thenStatement,
+          elseKeyword,
+          elseStatement);
+
+  @override
+  bool isBlock(Object node) => node is Block;
+
+  @override
+  bool isErroneousNode(Object node) => false /* ??? */;
 
   @override
   Expression isExpression(Expression expression, Token isOperator,
           Token notOperator, Object type) =>
       astFactory.isExpression(expression, isOperator, notOperator, type);
+
+  @override
+  bool isThisExpression(Object node) => node is ThisExpression;
+
+  @override
+  bool isVariablesDeclaration(Object node) =>
+      node is VariableDeclarationStatement && node.variables != 1;
 
   @override
   Expression literalBool(bool value, Token location) =>
@@ -150,9 +200,24 @@ class AstBuildingForest
         ..staticType = _typeProvider?.stringType;
 
   @override
-  Expression literalSymbol(String value, Token location) {
-    // TODO(brianwilkerson) Get the missing information.
-    return astFactory.symbolLiteral(location, null /* components */)
+  Expression literalSymbolMultiple(
+          String value, Token hash, List<Identifier> components) =>
+      astFactory.symbolLiteral(
+          hash, components.map((identifier) => identifier.token).toList())
+        ..staticType = _typeProvider?.symbolType;
+
+  @override
+  Expression literalSymbolSingluar(String value, Token hash, Object component) {
+    Token token;
+    if (component is Identifier) {
+      token = component.token;
+    } else if (component is Operator) {
+      token = component.token;
+    } else {
+      throw new ArgumentError(
+          'Unexpected class of component: ${component.runtimeType}');
+    }
+    return astFactory.symbolLiteral(hash, <Token>[token])
       ..staticType = _typeProvider?.symbolType;
   }
 
@@ -182,16 +247,90 @@ class AstBuildingForest
         ..staticType = _typeProvider?.boolType;
 
   @override
+  Object parenthesizedCondition(Token leftParenthesis, Expression expression,
+          Token rightParenthesis) =>
+      astFactory.parenthesizedExpression(
+          leftParenthesis, expression, rightParenthesis);
+
+  @override
   int readOffset(AstNode node) => node.offset;
+
+  @override
+  void resolveBreak(Statement target, BreakStatement user) {
+    user.target = target;
+  }
+
+  @override
+  void resolveContinue(Statement target, ContinueStatement user) {
+    user.target = target;
+  }
+
+  @override
+  void resolveContinueInSwitch(SwitchStatement target, ContinueStatement user) {
+    user.target = target;
+  }
+
+  @override
+  Statement rethrowStatement(Token rethrowKeyword, Token semicolon) =>
+      astFactory.expressionStatement(
+          astFactory.rethrowExpression(rethrowKeyword), semicolon);
+
+  @override
+  Statement returnStatement(
+          Token returnKeyword, Expression expression, Token semicolon) =>
+      astFactory.returnStatement(returnKeyword, expression, semicolon);
 
   @override
   Expression stringConcatenationExpression(
           List<Expression> strings, Token location) =>
-      astFactory.adjacentStrings(strings);
+      astFactory.adjacentStrings(strings.cast<StringLiteral>());
+
+  @override
+  Statement syntheticLabeledStatement(Statement statement) => statement;
 
   @override
   Expression thisExpression(Token thisKeyword) =>
       astFactory.thisExpression(thisKeyword);
+
+  @override
+  Expression throwExpression(Token throwKeyword, Expression expression) =>
+      astFactory.throwExpression(throwKeyword, expression);
+
+  @override
+  Statement tryStatement(
+          Token tryKeyword,
+          Statement body,
+          List<CatchClause> catchClauses,
+          Token finallyKeyword,
+          Statement finallyBlock) =>
+      astFactory.tryStatement(
+          tryKeyword, body, catchClauses, finallyKeyword, finallyBlock);
+
+  @override
+  VariableDeclarationStatement variablesDeclaration(
+      List<VariableDeclaration> declarations, Uri uri) {
+    // TODO(brianwilkerson) Implement this.
+    throw new UnimplementedError();
+  }
+
+  @override
+  NodeList<VariableDeclaration> variablesDeclarationExtractDeclarations(
+          VariableDeclarationStatement variablesDeclaration) =>
+      variablesDeclaration.variables.variables;
+
+  @override
+  Statement whileStatement(Token whileKeyword,
+          ParenthesizedExpression condition, Statement body) =>
+      astFactory.whileStatement(whileKeyword, condition.leftParenthesis,
+          condition.expression, condition.rightParenthesis, body);
+
+  @override
+  Statement wrapVariables(Statement statement) => statement;
+
+  @override
+  Statement yieldStatement(Token yieldKeyword, Token star,
+          Expression expression, Token semicolon) =>
+      astFactory.yieldStatement(yieldKeyword, star, expression, semicolon);
 }
 
 /// A data holder used to conform to the [Forest] API.

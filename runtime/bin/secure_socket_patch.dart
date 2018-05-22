@@ -202,6 +202,33 @@ class _X509CertificateImpl extends NativeFieldWrapperClass1
   // This is done by WrappedX509 in secure_socket.cc.
   _X509CertificateImpl();
 
+  Uint8List _cachedDer;
+  Uint8List get _der native "X509_Der";
+  Uint8List get der {
+    if (_cachedDer == null) {
+      _cachedDer = _der;
+    }
+    return _cachedDer;
+  }
+
+  String _cachedPem;
+  String get _pem native "X509_Pem";
+  String get pem {
+    if (_cachedPem == null) {
+      _cachedPem = _pem;
+    }
+    return _cachedPem;
+  }
+
+  Uint8List _cachedSha1;
+  Uint8List get _sha1 native "X509_Sha1";
+  Uint8List get sha1 {
+    if (_cachedSha1 == null) {
+      _cachedSha1 = _sha1;
+    }
+    return _cachedSha1;
+  }
+
   String get subject native "X509_Subject";
   String get issuer native "X509_Issuer";
   DateTime get startValidity {

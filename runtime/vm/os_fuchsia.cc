@@ -14,7 +14,7 @@
 #include <zircon/syscalls/object.h>
 #include <zircon/types.h>
 
-#include <fuchsia/cpp/time_zone.h>
+#include <time_zone/cpp/fidl.h>
 
 #include "lib/app/cpp/environment_services.h"
 

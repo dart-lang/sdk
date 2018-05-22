@@ -20,7 +20,6 @@ import '../constants/constructors.dart';
 import '../constants/evaluation.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
 import '../elements/names.dart';
@@ -1884,18 +1883,6 @@ class KernelConstantEnvironment implements ConstantEnvironment {
   @override
   ConstantSystem get constantSystem => const JavaScriptConstantSystem();
 
-  @override
-  ConstantValue getConstantValueForVariable(VariableElement element) {
-    throw new UnimplementedError(
-        "KernelConstantEnvironment.getConstantValueForVariable");
-  }
-
-  @override
-  ConstantValue getConstantValue(ConstantExpression expression) {
-    return _getConstantValue(CURRENT_ELEMENT_SPANNABLE, expression,
-        constantRequired: true);
-  }
-
   ConstantValue _getConstantValue(
       Spannable spannable, ConstantExpression expression,
       {bool constantRequired}) {
@@ -1905,11 +1892,6 @@ class KernelConstantEnvironment implements ConstantEnvironment {
               constantRequired: constantRequired),
           constantSystem);
     });
-  }
-
-  @override
-  bool hasConstantValue(ConstantExpression expression) {
-    throw new UnimplementedError("KernelConstantEnvironment.hasConstantValue");
   }
 }
 
@@ -2898,7 +2880,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
       } else if (node is ir.FunctionDeclaration) {
         String name = node.variable.name;
         if (name != null && name != "") {
-          parts.add(Elements.operatorNameToIdentifier(name));
+          parts.add(utils.operatorNameToIdentifier(name));
         } else {
           parts.add(anonymous);
           anonymous = '';
@@ -2911,7 +2893,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
         if (node.kind == ir.ProcedureKind.Factory) {
           parts.add(utils.reconstructConstructorName(getMember(node)));
         } else {
-          parts.add(Elements.operatorNameToIdentifier(node.name.name));
+          parts.add(utils.operatorNameToIdentifier(node.name.name));
         }
       } else if (node is ir.Constructor) {
         parts.add(utils.reconstructConstructorName(getMember(node)));

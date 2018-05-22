@@ -614,8 +614,8 @@ void IsolateReloadContext::Reload(bool force_reload,
         return;
       }
       did_kernel_compilation = true;
-      kernel_program.set(
-          kernel::Program::ReadFromBuffer(retval.kernel, retval.kernel_size));
+      kernel_program.set(kernel::Program::ReadFromBuffer(
+          retval.kernel, retval.kernel_size, true));
     }
 
     kernel_program.get()->set_release_buffer_callback(ReleaseFetchedBytes);
@@ -1501,8 +1501,8 @@ void IsolateReloadContext::Commit() {
     Become::ElementsForwardIdentity(before, after);
   }
 
-  // Rehash constants map for all classes. Constants are hashed by address, and
-  // addresses may change during a become operation.
+  // Rehash constants map for all classes. Constants are hashed by content, and
+  // content may have changed from fields being added or removed.
   {
     TIMELINE_SCOPE(RehashConstants);
     I->RehashConstants();

@@ -5,7 +5,6 @@
 import '../common.dart';
 import '../elements/jumps.dart';
 import '../io/source_information.dart';
-import '../tree/tree.dart' as ast;
 
 import 'graph_builder.dart';
 import 'locals_handler.dart';
@@ -219,35 +218,5 @@ abstract class SwitchCaseJumpHandler extends TargetJumpHandler {
       builder.jumpTargets.remove(target);
     }
     super.close();
-  }
-}
-
-/// Special [JumpHandler] implementation used to handle continue statements
-/// targeting switch cases.
-class AstSwitchCaseJumpHandler extends SwitchCaseJumpHandler {
-  AstSwitchCaseJumpHandler(
-      GraphBuilder builder, JumpTarget target, ast.SwitchStatement node)
-      : super(builder, target) {
-    // The switch case indices must match those computed in
-    // [SsaFromAstMixin.buildSwitchCaseConstants].
-    // Switch indices are 1-based so we can bypass the synthetic loop when no
-    // cases match simply by branching on the index (which defaults to null).
-    int switchIndex = 1;
-    for (ast.SwitchCase switchCase in node.cases) {
-      for (ast.Node labelOrCase in switchCase.labelsAndCases) {
-        ast.Node label = labelOrCase.asLabel();
-        if (label != null) {
-          LabelDefinition labelElement =
-              builder.elements.getLabelDefinition(label);
-          if (labelElement != null && labelElement.isContinueTarget) {
-            JumpTarget continueTarget = labelElement.target;
-            targetIndexMap[continueTarget] = switchIndex;
-            assert(builder.jumpTargets[continueTarget] == null);
-            builder.jumpTargets[continueTarget] = this;
-          }
-        }
-      }
-      switchIndex++;
-    }
   }
 }

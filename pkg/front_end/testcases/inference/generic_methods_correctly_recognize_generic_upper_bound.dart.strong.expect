@@ -6,7 +6,7 @@ class Foo<T extends core::Pattern = core::Pattern> extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
-  method method<generic-covariant-impl U extends self::Foo::T = dynamic>(self::Foo::method::U u) → self::Foo::method::U
+  method method<generic-covariant-impl U extends self::Foo::T = self::Foo::T>(self::Foo::method::U u) → self::Foo::method::U
     return u;
 }
 static method main() → dynamic {

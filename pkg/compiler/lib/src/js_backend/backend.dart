@@ -5,23 +5,17 @@
 library js_backend.backend;
 
 import '../common.dart';
-import '../common/backend_api.dart'
-    show ForeignResolver, NativeRegistry, ImpactTransformer;
+import '../common/backend_api.dart' show ImpactTransformer;
 import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/names.dart' show Uris;
-import '../common/resolution.dart' show Resolution, Target;
 import '../common/tasks.dart' show CompilerTask;
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
-import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../deferred_load.dart' show DeferredLoadTask, OutputUnitData;
 import '../dump_info.dart' show DumpInfoTask;
-import '../elements/elements.dart';
 import '../elements/entities.dart';
-import '../elements/names.dart';
-import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../enqueue.dart'
     show
@@ -41,11 +35,9 @@ import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
 import '../js_emitter/sorter.dart' show Sorter;
 import '../library_loader.dart' show LoadedLibraries;
 import '../native/native.dart' as native;
-import '../native/resolver.dart';
 import '../ssa/ssa.dart' show SsaFunctionCompiler;
 import '../tracer.dart';
-import '../tree/tree.dart';
-import '../types/types.dart';
+import '../types/masks.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/class_hierarchy_builder.dart'
     show ClassHierarchyBuilder, ClassQueries;
@@ -67,15 +59,11 @@ import 'enqueuer.dart';
 import 'impact_transformer.dart';
 import 'interceptor_data.dart';
 import 'js_interop_analysis.dart' show JsInteropAnalysis;
-import 'mirrors_analysis.dart';
-import 'mirrors_data.dart';
 import 'namer.dart';
 import 'native_data.dart';
 import 'no_such_method_registry.dart';
-import 'patch_resolver.dart';
 import 'resolution_listener.dart';
 import 'runtime_types.dart';
-import 'type_variable_handler.dart';
 
 const VERBOSE_OPTIMIZER_HINTS = false;
 
@@ -114,11 +102,7 @@ class FunctionInlineCache {
   ///
   /// For a [MethodElement] this means it must be the declaration element.
   bool checkFunction(FunctionEntity method) {
-    if (method is MethodElement) {
-      return method.isDeclaration;
-    } else {
-      return '$method'.startsWith(jsElementPrefix);
-    }
+    return '$method'.startsWith(jsElementPrefix);
   }
 
   /// Returns the current cache decision. This should only be used for testing.
@@ -360,7 +344,6 @@ class JavaScriptBackend {
   List<CompilerTask> get tasks {
     List<CompilerTask> result = functionCompiler.tasks;
     result.add(emitter);
-    result.add(patchResolverTask);
     return result;
   }
 
@@ -372,9 +355,6 @@ class JavaScriptBackend {
 
   /// True if the html library has been loaded.
   bool htmlLibraryIsLoaded = false;
-
-  /// Codegen handler for reflective access to type variables.
-  TypeVariableCodegenAnalysis _typeVariableCodegenAnalysis;
 
   /// Resolution support for generating table of interceptors and
   /// constructors for custom elements.
@@ -390,12 +370,6 @@ class JavaScriptBackend {
   /// Support for classifying `noSuchMethod` implementations.
   NoSuchMethodRegistry noSuchMethodRegistry;
 
-  /// Resolution support for computing reflectable elements.
-  MirrorsResolutionAnalysis _mirrorsResolutionAnalysis;
-
-  /// Codegen support for computing reflectable elements.
-  MirrorsCodegenAnalysis _mirrorsCodegenAnalysis;
-
   /// The compiler task responsible for the compilation of constants for both
   /// the frontend and the backend.
   final JavaScriptConstantTask constantCompilerTask;
@@ -405,17 +379,13 @@ class JavaScriptBackend {
 
   CodegenImpactTransformer _codegenImpactTransformer;
 
-  PatchResolverTask patchResolverTask;
-
   /// The strategy used for collecting and emitting source information.
   SourceInformationStrategy sourceInformationStrategy;
 
   NativeDataBuilderImpl _nativeDataBuilder;
   NativeDataBuilder get nativeDataBuilder => _nativeDataBuilder;
-  final NativeDataResolver _nativeDataResolver;
   OneShotInterceptorData _oneShotInterceptorData;
   BackendUsageBuilder _backendUsageBuilder;
-  MirrorsDataImpl _mirrorsData;
   OutputUnitData _outputUnitData;
 
   CheckedModeHelpers _checkedModeHelpers;
@@ -424,8 +394,6 @@ class JavaScriptBackend {
 
   native.NativeResolutionEnqueuer _nativeResolutionEnqueuer;
   native.NativeCodegenEnqueuer _nativeCodegenEnqueuer;
-
-  Target _target;
 
   Tracer tracer;
 
@@ -436,22 +404,16 @@ class JavaScriptBackend {
       bool useNewSourceInfo: false})
       : this.sourceInformationStrategy =
             compiler.backendStrategy.sourceInformationStrategy,
-        constantCompilerTask = new JavaScriptConstantTask(compiler),
-        _nativeDataResolver = new NativeDataResolverImpl(compiler) {
+        constantCompilerTask = new JavaScriptConstantTask(compiler) {
     CommonElements commonElements = compiler.frontendStrategy.commonElements;
-    _target = new JavaScriptBackendTarget(this);
-    _mirrorsData = compiler.frontendStrategy.createMirrorsDataBuilder();
     _backendUsageBuilder = new BackendUsageBuilderImpl(commonElements);
     _checkedModeHelpers = new CheckedModeHelpers();
     emitter =
         new CodeEmitterTask(compiler, generateSourceMap, useStartupEmitter);
     jsInteropAnalysis = new JsInteropAnalysis(this);
-    _mirrorsResolutionAnalysis =
-        compiler.frontendStrategy.createMirrorsResolutionAnalysis(this);
 
     noSuchMethodRegistry = new NoSuchMethodRegistryImpl(
         commonElements, compiler.frontendStrategy.createNoSuchMethodResolver());
-    patchResolverTask = new PatchResolverTask(compiler);
     functionCompiler = new SsaFunctionCompiler(
         this, compiler.measurer, sourceInformationStrategy);
   }
@@ -462,11 +424,7 @@ class JavaScriptBackend {
 
   DiagnosticReporter get reporter => compiler.reporter;
 
-  Resolution get resolution => compiler.resolution;
-
   ImpactCacheDeleter get impactCacheDeleter => compiler.impactCacheDeleter;
-
-  Target get target => _target;
 
   /// Resolution support for generating table of interceptors and
   /// constructors for custom elements.
@@ -488,33 +446,7 @@ class JavaScriptBackend {
     return _customElementsCodegenAnalysis;
   }
 
-  /// Codegen handler for reflective access to type variables.
-  TypeVariableCodegenAnalysis get typeVariableCodegenAnalysis {
-    assert(
-        _typeVariableCodegenAnalysis != null,
-        failedAt(NO_LOCATION_SPANNABLE,
-            "TypeVariableHandler has not been created yet."));
-    return _typeVariableCodegenAnalysis;
-  }
-
-  MirrorsData get mirrorsData => _mirrorsData;
-
-  MirrorsDataBuilder get mirrorsDataBuilder => _mirrorsData;
-
   OutputUnitData get outputUnitData => _outputUnitData;
-
-  /// Resolution support for computing reflectable elements.
-  MirrorsResolutionAnalysis get mirrorsResolutionAnalysis =>
-      _mirrorsResolutionAnalysis;
-
-  /// Codegen support for computing reflectable elements.
-  MirrorsCodegenAnalysis get mirrorsCodegenAnalysis {
-    assert(
-        _mirrorsCodegenAnalysis != null,
-        failedAt(NO_LOCATION_SPANNABLE,
-            "MirrorsCodegenAnalysis has not been created yet."));
-    return _mirrorsCodegenAnalysis;
-  }
 
   OneShotInterceptorData get oneShotInterceptorData {
     assert(
@@ -560,31 +492,6 @@ class JavaScriptBackend {
   /// constants.
   JavaScriptConstantCompiler get constants {
     return constantCompilerTask.jsConstantCompiler;
-  }
-
-  MethodElement resolveExternalFunction(MethodElement element) {
-    if (isForeign(compiler.frontendStrategy.commonElements, element)) {
-      return element;
-    }
-    if (_nativeDataResolver.isJsInteropMember(element)) {
-      if (element.memberName == const PublicName('[]') ||
-          element.memberName == const PublicName('[]=')) {
-        reporter.reportErrorMessage(
-            element, MessageKind.JS_INTEROP_INDEX_NOT_SUPPORTED);
-      }
-      return element;
-    }
-    return patchResolverTask.measure(() {
-      return patchResolverTask.resolveExternalFunction(element);
-    });
-  }
-
-  bool isForeign(CommonElements commonElements, Element element) =>
-      element.library == commonElements.foreignLibrary;
-
-  bool isBackendLibrary(CommonElements commonElements, LibraryElement library) {
-    return library == commonElements.interceptorsLibrary ||
-        library == commonElements.jsHelperLibrary;
   }
 
   Namer determineNamer(
@@ -643,45 +550,10 @@ class JavaScriptBackend {
   void onResolutionClosedWorld(
       ClosedWorld closedWorld, ClosedWorldRefiner closedWorldRefiner) {
     processAnnotations(closedWorldRefiner);
-    mirrorsDataBuilder.computeMembersNeededForReflection(
-        compiler.enqueuer.resolution.worldBuilder, closedWorld);
-    mirrorsResolutionAnalysis.onResolutionComplete();
   }
 
   void onDeferredLoadComplete(OutputUnitData data) {
     _outputUnitData = compiler.backendStrategy.convertOutputUnitData(data);
-  }
-
-  /// Called when resolving a call to a foreign function.
-  native.NativeBehavior resolveForeignCall(Send node, Element element,
-      CallStructure callStructure, ForeignResolver resolver) {
-    if (element.name == JS) {
-      return _nativeDataResolver.resolveJsCall(node, resolver);
-    } else if (element.name == JS_EMBEDDED_GLOBAL) {
-      return _nativeDataResolver.resolveJsEmbeddedGlobalCall(node, resolver);
-    } else if (element.name == JS_BUILTIN) {
-      return _nativeDataResolver.resolveJsBuiltinCall(node, resolver);
-    } else if (element.name == JS_INTERCEPTOR_CONSTANT) {
-      // The type constant that is an argument to JS_INTERCEPTOR_CONSTANT names
-      // a class that will be instantiated outside the program by attaching a
-      // native class dispatch record referencing the interceptor.
-      if (!node.argumentsNode.isEmpty) {
-        Node argument = node.argumentsNode.nodes.head;
-        ConstantExpression constant = resolver.getConstant(argument);
-        if (constant != null && constant.kind == ConstantExpressionKind.TYPE) {
-          TypeConstantExpression typeConstant = constant;
-          if (typeConstant.type is ResolutionInterfaceType) {
-            resolver.registerInstantiatedType(typeConstant.type);
-            // No native behavior for this call.
-            return null;
-          }
-        }
-      }
-      reporter.reportErrorMessage(
-          node, MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT);
-    }
-    // No native behavior for this call.
-    return null;
   }
 
   ResolutionEnqueuer createResolutionEnqueuer(
@@ -694,17 +566,11 @@ class JavaScriptBackend {
         compiler.frontendStrategy.createRuntimeTypesNeedBuilder();
     BackendImpacts impacts =
         new BackendImpacts(compiler.options, commonElements);
-    TypeVariableResolutionAnalysis typeVariableResolutionAnalysis =
-        new TypeVariableResolutionAnalysis(
-            compiler.frontendStrategy.elementEnvironment,
-            impacts,
-            _backendUsageBuilder);
     _nativeResolutionEnqueuer = new native.NativeResolutionEnqueuer(
         compiler.options,
         elementEnvironment,
         commonElements,
         compiler.frontendStrategy.dartTypes,
-        _backendUsageBuilder,
         compiler.frontendStrategy.createNativeClassFinder(nativeBasicData));
     _nativeDataBuilder = new NativeDataBuilderImpl(nativeBasicData);
     _customElementsResolutionAnalysis = new CustomElementsResolutionAnalysis(
@@ -724,7 +590,6 @@ class JavaScriptBackend {
         nativeBasicData,
         _nativeResolutionEnqueuer,
         _backendUsageBuilder,
-        mirrorsDataBuilder,
         customElementsResolutionAnalysis,
         rtiNeedBuilder,
         classHierarchyBuilder);
@@ -746,11 +611,8 @@ class JavaScriptBackend {
             nativeBasicData,
             interceptorDataBuilder,
             _backendUsageBuilder,
-            mirrorsDataBuilder,
             noSuchMethodRegistry,
             customElementsResolutionAnalysis,
-            mirrorsResolutionAnalysis,
-            typeVariableResolutionAnalysis,
             _nativeResolutionEnqueuer,
             compiler.deferredLoadTask),
         compiler.frontendStrategy.createResolutionWorldBuilder(
@@ -780,9 +642,6 @@ class JavaScriptBackend {
     CommonElements commonElements = closedWorld.commonElements;
     BackendImpacts impacts =
         new BackendImpacts(compiler.options, commonElements);
-    _typeVariableCodegenAnalysis = new TypeVariableCodegenAnalysis(
-        closedWorld.elementEnvironment, this, commonElements, mirrorsData);
-    _mirrorsCodegenAnalysis = mirrorsResolutionAnalysis.close();
     _customElementsCodegenAnalysis = new CustomElementsCodegenAnalysis(
         constantSystem,
         commonElements,
@@ -810,8 +669,6 @@ class JavaScriptBackend {
             closedWorld.backendUsage,
             closedWorld.rtiNeed,
             customElementsCodegenAnalysis,
-            typeVariableCodegenAnalysis,
-            mirrorsCodegenAnalysis,
             nativeCodegenEnqueuer));
   }
 
@@ -868,8 +725,6 @@ class JavaScriptBackend {
    * Invariant: [element] must be a declaration element.
    */
   String getGeneratedCode(MemberEntity element) {
-    assert(!(element is MemberElement && !element.isDeclaration),
-        failedAt(element));
     return jsAst.prettyPrint(generatedCode[element],
         enableMinification: compiler.options.enableMinification);
   }
@@ -878,39 +733,6 @@ class JavaScriptBackend {
   int assembleProgram(ClosedWorld closedWorld) {
     int programSize = emitter.assembleProgram(namer, closedWorld);
     closedWorld.noSuchMethodData.emitDiagnostic(reporter);
-    int totalMethodCount = generatedCode.length;
-    // TODO(redemption): Support `preMirrorsMethodCount` for entities.
-    if (mirrorsCodegenAnalysis.preMirrorsMethodCount != null &&
-        totalMethodCount != mirrorsCodegenAnalysis.preMirrorsMethodCount) {
-      int mirrorCount =
-          totalMethodCount - mirrorsCodegenAnalysis.preMirrorsMethodCount;
-      double percentage = (mirrorCount / totalMethodCount) * 100;
-      DiagnosticMessage hint = reporter.createMessage(
-          closedWorld.elementEnvironment.mainLibrary,
-          MessageKind.MIRROR_BLOAT, {
-        'count': mirrorCount,
-        'total': totalMethodCount,
-        'percentage': percentage.round()
-      });
-
-      List<DiagnosticMessage> infos = <DiagnosticMessage>[];
-      for (LibraryElement library in compiler.libraryLoader.libraries) {
-        if (library.isInternalLibrary) continue;
-        for (ImportElement import in library.imports) {
-          LibraryElement importedLibrary = import.importedLibrary;
-          if (importedLibrary != closedWorld.commonElements.mirrorsLibrary)
-            continue;
-          MessageKind kind =
-              compiler.mirrorUsageAnalyzerTask.hasMirrorUsage(library)
-                  ? MessageKind.MIRROR_IMPORT
-                  : MessageKind.MIRROR_IMPORT_NO_USAGE;
-          reporter.withCurrentElement(library, () {
-            infos.add(reporter.createMessage(import, kind));
-          });
-        }
-      }
-      reporter.reportHint(hint, infos);
-    }
     return programSize;
   }
 
@@ -1013,21 +835,9 @@ class JavaScriptBackend {
     tracer.close();
   }
 
-  // Does this element belong in the output
-  bool shouldOutput(Element element) => true;
-
   /// Returns `true` if the `native` pseudo keyword is supported for [library].
   bool canLibraryUseNative(LibraryEntity library) =>
       native.maybeEnableNative(library.canonicalUri);
-
-  bool isTargetSpecificLibrary(LibraryElement library) {
-    Uri canonicalUri = library.canonicalUri;
-    if (canonicalUri == Uris.dart__js_helper ||
-        canonicalUri == Uris.dart__interceptors) {
-      return true;
-    }
-    return false;
-  }
 
   /// Process backend specific annotations.
   // TODO(johnniwinther): Merge this with [AnnotationProcessor] and use
@@ -1049,12 +859,6 @@ class JavaScriptBackend {
       CommonElements commonElements,
       MemberEntity element,
       ClosedWorldRefiner closedWorldRefiner) {
-    if (element is MemberElement && element.isMalformed) {
-      // Elements that are marked as malformed during parsing or resolution
-      // might be registered here. These should just be ignored.
-      return;
-    }
-
     bool hasNoInline = false;
     bool hasForceInline = false;
 
@@ -1309,9 +1113,6 @@ class JavaScriptImpactStrategy extends ImpactStrategy {
         impact.apply(visitor);
       } else {
         impact.apply(visitor);
-        if (impactSource is Element) {
-          impactCacheDeleter.uncacheWorldImpact(impactSource);
-        }
       }
     } else if (impactUse == DeferredLoadTask.IMPACT_USE) {
       impact.apply(visitor);
@@ -1330,55 +1131,6 @@ class JavaScriptImpactStrategy extends ImpactStrategy {
       impactCacheDeleter.emptyCache();
     }
   }
-}
-
-class JavaScriptBackendTarget extends Target {
-  final JavaScriptBackend _backend;
-
-  JavaScriptBackendTarget(this._backend);
-
-  CommonElements get _commonElements =>
-      _backend.compiler.frontendStrategy.commonElements;
-
-  @override
-  bool isTargetSpecificLibrary(LibraryElement element) {
-    return _backend.isTargetSpecificLibrary(element);
-  }
-
-  @override
-  void resolveNativeMember(MemberElement element, NativeRegistry registry) {
-    return _backend._nativeDataResolver.resolveNativeMember(element, registry);
-  }
-
-  @override
-  MethodElement resolveExternalFunction(MethodElement element) {
-    return _backend.resolveExternalFunction(element);
-  }
-
-  @override
-  dynamic resolveForeignCall(Send node, Element element,
-      CallStructure callStructure, ForeignResolver resolver) {
-    return _backend.resolveForeignCall(node, element, callStructure, resolver);
-  }
-
-  @override
-  bool isDefaultNoSuchMethod(MethodElement element) {
-    return _commonElements.isDefaultNoSuchMethodImplementation(element);
-  }
-
-  @override
-  ClassElement defaultSuperclass(ClassElement element) {
-    return _commonElements.getDefaultSuperclass(
-        element, _backend.frontendStrategy.nativeBasicData);
-  }
-
-  @override
-  bool isNativeClass(ClassEntity element) =>
-      _backend.compiler.frontendStrategy.nativeBasicData.isNativeClass(element);
-
-  @override
-  bool isForeign(Element element) =>
-      _backend.isForeign(_commonElements, element);
 }
 
 class SuperMemberData {

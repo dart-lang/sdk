@@ -1,3 +1,27 @@
+## 0.32.0
+
+* Allow annotations on enum constants.
+* Analyzer fully supports being run on the VM with --preview-dart-2.
+* Fix heap usage regression by not storing bytes in the file cache.
+* Add AnalysisSessionHelper.getTopLevelPropertyAccessor().
+* Don't infer types when there's an irreconcilable type mismatch (#32305)
+* Many fasta parser improvements.
+* Use @isTest and @isTestGroup to understand executable element as a
+  test/group.  To use, add `@isTest` annotations (from package:meta)
+  to the methods in their package which define a test.
+```dart
+@isTest
+void myMagicTest(String name, FutureOr Function() body) {
+  test(name, body);
+}
+```
+  When subscribed to [notifications for outlines of a test file](https://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/master/pkg/analysis_server/doc/api.html#notification_analysis.outline),
+  they will include elements for UNIT_TEST_GROUP and UNIT_TEST_TEST.
+* Improve guess for type name identifier. (#32765)
+* Fix LineInfo.getOffsetOfLineAfter().
+* Remove some flutter specific analysis code.
+* Fix resolution tests when run locally.
+
 ## 0.31.2-alpha.2
 
 * Refactoring to make element model logic sharable with

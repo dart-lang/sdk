@@ -268,6 +268,10 @@ static bool IsFilteredIdentifier(const String& str) {
     // Keep :async_stack_trace for asynchronous debugging.
     return false;
   }
+  if (str.raw() == Symbols::FunctionTypeArgumentsVar().raw()) {
+    // Keep :function_type_arguments for accessing type variables in debugging.
+    return false;
+  }
   return str.CharAt(0) == ':';
 }
 
@@ -644,7 +648,8 @@ void LocalScope::CaptureLocalVariables(LocalScope* top_scope) {
           (variable->name().raw() == Symbols::ExceptionVar().raw()) ||
           (variable->name().raw() == Symbols::SavedTryContextVar().raw()) ||
           (variable->name().raw() == Symbols::ArgDescVar().raw()) ||
-          (variable->name().raw() == Symbols::FunctionTypeArgumentsVar().raw())) {
+          (variable->name().raw() ==
+           Symbols::FunctionTypeArgumentsVar().raw())) {
         // Don't capture those variables because the VM expects them to be on
         // the stack.
         continue;

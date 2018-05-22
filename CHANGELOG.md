@@ -1,3 +1,50 @@
+## 2.0.0-dev.56.0
+
+### Language
+
+* Invocations of noSuchMethod receive default values for optional args.
+  * The following program used to print "No arguments passed", and now prints
+    "First argument is 3".
+
+```dart
+abstract class B {
+  void m([int x = 3]);
+}
+
+class A implements B {
+  noSuchMethod(Invocation i) {
+    if (i.positionalArguments.length == 0) {
+      print("No arguments passed");
+    } else {
+      print("First argument is ${i.positionalArguments[0]}");
+    }
+  }
+}
+
+void main() {
+  A().m();
+}
+```
+
+### Core library changes
+
+* `dart:core`
+  * Deprecated the `NoSuchMethodError` constructor.
+
+* `dart:mirrors`
+  * Marked `MirrorsUsed` as deprecated. The mirrors library is no longer
+    supported by dart2js, and `MirrorsUsed` only affected dart2js.
+
+* `dart:io`
+  * Added `X509Certificate.der`, `X509Certificate.pem`, and
+    `X509Certificate.sha1`.
+
+### Tool Changes
+
+#### dartfmt
+
+  * Support metadata annotations on enum cases.
+
 ## 2.0.0-dev.55.0
 
 ### Language

@@ -65,70 +65,65 @@ async_return_types_test/nestedFuture: MissingCompileTimeError # Issue 33068
 async_return_types_test/wrongReturnType: MissingCompileTimeError # Issue 33068
 bad_override_test/01: MissingCompileTimeError # Issue 32984
 bad_override_test/02: MissingCompileTimeError # Issue 32984
-call_non_method_field_test/01: MissingCompileTimeError
-call_non_method_field_test/02: MissingCompileTimeError
-check_member_static_test/01: MissingCompileTimeError
-compile_time_constant_o_test/01: MissingCompileTimeError
-compile_time_constant_o_test/02: MissingCompileTimeError
-const_cast2_test/01: CompileTimeError
-const_cast2_test/none: CompileTimeError
-const_dynamic_type_literal_test/02: MissingCompileTimeError
+call_non_method_field_test/01: MissingCompileTimeError # Issue 32975
+call_non_method_field_test/02: MissingCompileTimeError # Issue 32975
+check_member_static_test/01: MissingCompileTimeError # Issue 32613
+const_cast2_test/01: CompileTimeError # Issue 32517
+const_cast2_test/none: CompileTimeError # Issue 32517
 const_instance_field_test/01: MissingCompileTimeError # Fasta bug: Const instance field. Issue 32326.
 const_map2_test/00: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 const_map3_test/00: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 const_switch2_test/01: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-const_types_test/34: MissingCompileTimeError
-const_types_test/39: MissingCompileTimeError
-constructor_redirect1_negative_test/01: MissingCompileTimeError
-constructor_redirect2_negative_test: MissingCompileTimeError
+const_types_test/34: MissingCompileTimeError # Issue 32988
+const_types_test/39: MissingCompileTimeError # Issue 32988
+constructor_redirect1_negative_test/01: MissingCompileTimeError # Issue 30856
+constructor_redirect2_negative_test: MissingCompileTimeError # Issue 30856
 constructor_redirect_test/01: MissingCompileTimeError # Fasta bug: Initializer refers to this.
-cyclic_constructor_test/01: MissingCompileTimeError # Fasta bug: Cyclic constructor redirection.
+constructor_type_parameter_test/00: MissingCompileTimeError # Issue 33110
+cyclic_constructor_test/01: MissingCompileTimeError # Issue 30856 (cyclic constructor redirection)
 cyclic_type_variable_test/01: MissingCompileTimeError # Issue 32989 (missing cycle check in bounds)
 cyclic_type_variable_test/02: MissingCompileTimeError # Issue 32989 (missing cycle check in bounds)
 cyclic_type_variable_test/03: MissingCompileTimeError # Issue 32989 (missing cycle check in bounds)
 cyclic_type_variable_test/04: MissingCompileTimeError # Issue 32989 (missing cycle check in bounds)
-default_factory2_test/01: MissingCompileTimeError
-default_factory_test/01: MissingCompileTimeError
+default_factory2_test/01: MissingCompileTimeError # Issue 32988
+default_factory_test/01: MissingCompileTimeError # Issue 32988
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
 deferred_inheritance_constraints_test/redirecting_constructor: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
-duplicate_export_negative_test: Fail # Issue 6134
-f_bounded_quantification_test/01: MissingCompileTimeError
-f_bounded_quantification_test/02: MissingCompileTimeError
-factory4_test/00: MissingCompileTimeError
-field3_test/01: MissingCompileTimeError
-field_override_test/00: MissingCompileTimeError
-field_override_test/01: MissingCompileTimeError
-generic_methods_bounds_test/01: MissingCompileTimeError
-generic_methods_overriding_test/01: MissingCompileTimeError
-generic_methods_recursive_bound_test/02: MissingCompileTimeError
-getter_override_test/03: MissingCompileTimeError
-identical_const_test/01: MissingCompileTimeError
-identical_const_test/02: MissingCompileTimeError
-identical_const_test/03: MissingCompileTimeError
-identical_const_test/04: MissingCompileTimeError
+duplicate_export_negative_test: Fail # Issue 12916
+f_bounded_quantification_test/01: MissingCompileTimeError # Issue 33018
+f_bounded_quantification_test/02: MissingCompileTimeError # Issue 33018
+factory4_test/00: MissingCompileTimeError # Issue 32988
+field3_test/01: MissingCompileTimeError # Issue 33022
+field3_test/02: MissingCompileTimeError # Issue 33022
+field_override_test/00: MissingCompileTimeError # Issue 32613
+field_override_test/01: MissingCompileTimeError # Issue 32613
+generic_methods_bounds_test/01: MissingCompileTimeError # Issue 33018
+generic_methods_overriding_test/01: MissingCompileTimeError # Issue 32613
+generic_methods_recursive_bound_test/02: MissingCompileTimeError # Issue 33018
+getter_override_test/03: MissingCompileTimeError # Issue 32984
 issue31596_override_test/07: MissingCompileTimeError
 issue31596_override_test/08: MissingCompileTimeError
 issue31596_super_test/02: MissingCompileTimeError
 issue31596_super_test/04: MissingCompileTimeError
-malbounded_instantiation_test/01: MissingCompileTimeError
-malbounded_instantiation_test/02: MissingCompileTimeError
-malbounded_instantiation_test/03: MissingCompileTimeError
-malbounded_redirecting_factory_test/02: MissingCompileTimeError
-malbounded_redirecting_factory_test/03: MissingCompileTimeError
-malbounded_redirecting_factory_test/04: MissingCompileTimeError
-malbounded_redirecting_factory_test/05: MissingCompileTimeError
-malbounded_type_cast2_test: MissingCompileTimeError
-malbounded_type_cast_test/00: MissingCompileTimeError
-malbounded_type_cast_test/01: MissingCompileTimeError
-malbounded_type_cast_test/02: MissingCompileTimeError
-malbounded_type_literal_test/00: MissingCompileTimeError
-malbounded_type_test2_test/00: MissingCompileTimeError
-malbounded_type_test_test/00: MissingCompileTimeError
-malbounded_type_test_test/01: MissingCompileTimeError
-malbounded_type_test_test/02: MissingCompileTimeError
-method_override7_test/03: MissingCompileTimeError
+malbounded_instantiation_test/01: MissingCompileTimeError # Issue 33018
+malbounded_instantiation_test/02: MissingCompileTimeError # Issue 33018
+malbounded_instantiation_test/03: MissingCompileTimeError # Issue 33018
+malbounded_redirecting_factory_test/02: MissingCompileTimeError # Issue 33018
+malbounded_redirecting_factory_test/03: MissingCompileTimeError # Issue 33018
+malbounded_redirecting_factory_test/04: MissingCompileTimeError # Issue 33018
+malbounded_redirecting_factory_test/05: MissingCompileTimeError # Issue 33018
+malbounded_type_cast2_test: MissingCompileTimeError # Issue 33018
+malbounded_type_cast_test/00: MissingCompileTimeError # Issue 33018
+malbounded_type_cast_test/01: MissingCompileTimeError # Issue 33018
+malbounded_type_cast_test/02: MissingCompileTimeError # Issue 33018
+malbounded_type_literal_test/00: MissingCompileTimeError # Issue 33018
+malbounded_type_test2_test/00: MissingCompileTimeError # Issue 33018
+malbounded_type_test_test/00: MissingCompileTimeError # Issue 33018
+malbounded_type_test_test/01: MissingCompileTimeError # Issue 33018
+malbounded_type_test_test/02: MissingCompileTimeError # Issue 33018
+method_override7_test/03: MissingCompileTimeError # Issue 32984
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError # KernelVM bug: Issue 15101
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError # KernelVM bug: Issue 15101
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError # KernelVM bug: Issue 15101
@@ -439,19 +434,21 @@ void_type_usage_test/paren_toString: MissingCompileTimeError # Issue 32804
 void_type_usage_test/paren_void_init: MissingCompileTimeError # Issue 32804
 void_type_usage_test/paren_while: MissingCompileTimeError # Issue 32804
 
-[ $arch == simarm && $compiler == dartkp && $strong ]
-await_test: RuntimeError
-
-[ $arch != simarm && $arch != simarm64 && $arch != simdbc64 && $compiler == dartk ]
-export_ambiguous_main_test: MissingCompileTimeError
+[ $arch != simarm && $arch != simarm64 && $arch != simdbc64 && $compiler == dartk && $runtime == vm && $strong ]
+export_ambiguous_main_test: Crash # Issue 32618
 
 [ $compiler != dart2js && $compiler != dartk && $compiler != dartkp && $fasta ]
 const_optional_args_test/01: MissingCompileTimeError
 
-[ $compiler != dart2js && $fasta ]
+# The precomilation configuration uses a kernel2kernel constants evaluator
+# which is is more correct than fasta/vm in JIT mode (i.e. it catches more
+# compile-time errors).
+[ $compiler != dart2js && $compiler != dartkp && $fasta ]
 compile_time_constant_c_test/02: MissingCompileTimeError
 const_constructor_nonconst_field_test/01: MissingCompileTimeError
 const_syntax_test/05: MissingCompileTimeError
+
+[ $compiler != dart2js && $fasta ]
 mixin_super_2_test/01: MissingCompileTimeError
 mixin_super_2_test/03: MissingCompileTimeError
 mixin_supertype_subclass_test/02: MissingCompileTimeError
@@ -857,11 +854,6 @@ check_member_static_test/02: MissingCompileTimeError # Issue 32613: override che
 checked_setter3_test/01: MissingCompileTimeError
 checked_setter3_test/02: MissingCompileTimeError
 checked_setter3_test/03: MissingCompileTimeError
-compile_time_constant_k_test/01: MissingCompileTimeError
-compile_time_constant_k_test/02: MissingCompileTimeError
-compile_time_constant_k_test/03: MissingCompileTimeError
-compile_time_constant_o_test/01: RuntimeError # KernelVM bug: Constant map duplicated key.
-compile_time_constant_o_test/02: RuntimeError # KernelVM bug: Constant map duplicated key.
 compile_time_constant_static5_test/11: CompileTimeError # Issue 31537
 compile_time_constant_static5_test/16: CompileTimeError # Issue 31537
 compile_time_constant_static5_test/21: CompileTimeError # Issue 31537
@@ -870,11 +862,9 @@ conditional_import_string_test: CompileTimeError # KernelVM bug: Deferred loadin
 conditional_import_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
 config_import_corelib_test: CompileTimeError # Issue 31533
 config_import_test: RuntimeError # KernelVM bug: Configurable imports.
-const_dynamic_type_literal_test/02: RuntimeError # KernelVM bug: Constant map duplicated key.
 const_evaluation_test: SkipByDesign
 const_list_test: RuntimeError
 const_map4_test: RuntimeError
-const_nested_test: RuntimeError # KernelVM bug: Constant evaluation.
 constructor12_test: RuntimeError
 constructor3_test: Fail, OK, Pass
 ct_const2_test: Skip # Incompatible flag: --compile_all
@@ -974,8 +964,6 @@ local_function_test/none: RuntimeError
 main_not_a_function_test: Skip
 main_test/03: RuntimeError
 many_overridden_no_such_method_test: SkipByDesign
-map_literal3_test/01: MissingCompileTimeError
-map_literal3_test/02: MissingCompileTimeError
 map_literal3_test/03: MissingCompileTimeError
 method_override4_test/01: MissingCompileTimeError
 method_override4_test/02: MissingCompileTimeError
@@ -1102,6 +1090,28 @@ no_such_method_native_test: RuntimeError # Compares symbol #foobar with string "
 recursive_generic_test: RuntimeError # Compares a (dynamic) toString call to 'C<D>'
 tearoff_dynamic_test: RuntimeError # Compares call to "foo" (noSuchMethod) with string "foo"
 type_variable_promotion_test: RuntimeError # Compares runtime type to the string "List<B>"
+
+# The precomilation configuration uses a kernel2kernel constants evaluator
+# which is is more correct than fasta/vm in JIT mode (i.e. it catches more
+# compile-time errors).
+[ $compiler != dartkp && $fasta ]
+compile_time_constant_o_test/01: MissingCompileTimeError # Issue 32983
+compile_time_constant_o_test/02: MissingCompileTimeError # Issue 32983
+const_dynamic_type_literal_test/02: MissingCompileTimeError # Issue 32983
+identical_const_test/01: MissingCompileTimeError # Issue 32983
+identical_const_test/02: MissingCompileTimeError # Issue 32983
+identical_const_test/03: MissingCompileTimeError # Issue 32983
+identical_const_test/04: MissingCompileTimeError # Issue 32983
+
+# The precomilation configuration uses a kernel2kernel constants evaluator
+# which is is more correct than fasta/vm in JIT mode (i.e. it catches more
+# compile-time errors).
+[ $compiler != dartkp && $fasta && $strong ]
+compile_time_constant_k_test/01: MissingCompileTimeError
+compile_time_constant_k_test/02: MissingCompileTimeError
+compile_time_constant_k_test/03: MissingCompileTimeError
+map_literal3_test/01: MissingCompileTimeError
+map_literal3_test/02: MissingCompileTimeError
 
 [ $compiler == fasta && $strong ]
 bad_override_test/03: MissingCompileTimeError
@@ -1296,16 +1306,11 @@ setter_override2_test/02: MissingCompileTimeError
 variable_shadow_class_test/01: MissingCompileTimeError
 
 [ $fasta && $strong ]
-compile_time_constant_k_test/01: MissingCompileTimeError
-compile_time_constant_k_test/02: MissingCompileTimeError
-compile_time_constant_k_test/03: MissingCompileTimeError
 compile_time_constant_static2_test/04: MissingCompileTimeError
 compile_time_constant_static3_test/04: MissingCompileTimeError
 initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
 issue18628_2_test/01: MissingCompileTimeError
-map_literal3_test/01: MissingCompileTimeError
-map_literal3_test/02: MissingCompileTimeError
 map_literal3_test/03: MissingCompileTimeError
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
@@ -1355,7 +1360,7 @@ bad_named_parameters_test/04: MissingCompileTimeError
 bad_named_parameters_test/05: MissingCompileTimeError
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/06: MissingCompileTimeError
-built_in_identifier_type_annotation_test/22: MissingCompileTimeError
+built_in_identifier_type_annotation_test/dynamic-gen: MissingCompileTimeError
 call_constructor_on_unresolvable_class_test/01: MissingCompileTimeError
 call_constructor_on_unresolvable_class_test/02: MissingCompileTimeError
 call_constructor_on_unresolvable_class_test/03: MissingCompileTimeError

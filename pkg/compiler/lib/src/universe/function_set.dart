@@ -6,11 +6,9 @@ library universe.function_set;
 
 import '../common/names.dart' show Identifiers, Selectors;
 import '../elements/entities.dart';
-import '../types/types.dart';
+import '../types/abstract_value_domain.dart';
 import '../util/util.dart' show Hashing, Setlet;
-import '../world.dart' show ClosedWorld;
 import 'selector.dart' show Selector;
-import 'world_builder.dart' show ReceiverConstraint;
 
 // TODO(kasperl): This actually holds getters and setters just fine
 // too and stricly they aren't functions. Maybe this needs a better
@@ -41,9 +39,9 @@ class FunctionSet {
   /// receiver with the given [constraint]. The returned elements may include
   /// noSuchMethod handlers that are potential targets indirectly through the
   /// noSuchMethod mechanism.
-  Iterable<MemberEntity> filter(Selector selector,
-      ReceiverConstraint constraint, ClosedWorld closedWorld) {
-    return query(selector, constraint, closedWorld).functions;
+  Iterable<MemberEntity> filter(
+      Selector selector, AbstractValue receiver, AbstractValueDomain domain) {
+    return query(selector, receiver, domain).functions;
   }
 
   /// Returns the mask for the potential receivers of a dynamic call to
@@ -52,43 +50,38 @@ class FunctionSet {
   /// This will narrow the constraints of [constraint] to a [TypeMask] of the
   /// set of classes that actually implement the selected member or implement
   /// the handling 'noSuchMethod' where the selected member is unimplemented.
-  TypeMask receiverType(Selector selector, ReceiverConstraint constraint,
-      ClosedWorld closedWorld) {
-    return query(selector, constraint, closedWorld).computeMask(closedWorld);
+  AbstractValue receiverType(
+      Selector selector, AbstractValue receiver, AbstractValueDomain domain) {
+    return query(selector, receiver, domain).computeMask(domain);
   }
 
-  SelectorMask _createSelectorMask(Selector selector,
-      ReceiverConstraint constraint, ClosedWorld closedWorld) {
-    return constraint != null
-        ? new SelectorMask(selector, constraint)
-        : new SelectorMask(
-            selector,
-            new TypeMask.subclass(
-                closedWorld.commonElements.objectClass, closedWorld));
+  SelectorMask _createSelectorMask(
+      Selector selector, AbstractValue receiver, AbstractValueDomain domain) {
+    return receiver != null
+        ? new SelectorMask(selector, receiver)
+        : new SelectorMask(selector, domain.dynamicType);
   }
 
   /// Returns the set of functions that can be the target of a call to
   /// [selector] on a receiver constrained by [constraint] including
   /// 'noSuchMethod' methods where applicable.
-  FunctionSetQuery query(Selector selector, ReceiverConstraint constraint,
-      ClosedWorld closedWorld) {
+  FunctionSetQuery query(
+      Selector selector, AbstractValue receiver, AbstractValueDomain domain) {
     String name = selector.name;
-    SelectorMask selectorMask =
-        _createSelectorMask(selector, constraint, closedWorld);
+    SelectorMask selectorMask = _createSelectorMask(selector, receiver, domain);
     SelectorMask noSuchMethodMask =
-        new SelectorMask(Selectors.noSuchMethod_, selectorMask.constraint);
+        new SelectorMask(Selectors.noSuchMethod_, selectorMask.receiver);
     FunctionSetNode node = _nodes[name];
     FunctionSetNode noSuchMethods = _nodes[Identifiers.noSuchMethod_];
     if (node != null) {
-      return node.query(
-          selectorMask, closedWorld, noSuchMethods, noSuchMethodMask);
+      return node.query(selectorMask, domain, noSuchMethods, noSuchMethodMask);
     }
     // If there is no method that matches [selector] we know we can
     // only hit [:noSuchMethod:].
     if (noSuchMethods == null) {
       return const EmptyFunctionSetQuery();
     }
-    return noSuchMethods.query(noSuchMethodMask, closedWorld);
+    return noSuchMethods.query(noSuchMethodMask, domain);
   }
 
   void forEach(void action(MemberEntity member)) {
@@ -102,34 +95,32 @@ class FunctionSet {
 /// on a receiver constrained by [constraint].
 class SelectorMask {
   final Selector selector;
-  final ReceiverConstraint constraint;
+  final AbstractValue receiver;
   final int hashCode;
 
-  SelectorMask(Selector selector, ReceiverConstraint constraint)
-      : this.selector = selector,
-        this.constraint = constraint,
-        this.hashCode =
-            Hashing.mixHashCodeBits(selector.hashCode, constraint.hashCode) {
-    assert(constraint != null);
+  SelectorMask(this.selector, this.receiver)
+      : this.hashCode =
+            Hashing.mixHashCodeBits(selector.hashCode, receiver.hashCode) {
+    assert(receiver != null);
   }
 
   String get name => selector.name;
 
-  bool applies(MemberEntity element, ClosedWorld closedWorld) {
+  bool applies(MemberEntity element, AbstractValueDomain domain) {
     if (!selector.appliesUnnamed(element)) return false;
-    return constraint.canHit(element, selector, closedWorld);
+    return domain.canHit(receiver, element, selector);
   }
 
-  bool needsNoSuchMethodHandling(ClosedWorld closedWorld) {
-    return constraint.needsNoSuchMethodHandling(selector, closedWorld);
+  bool needsNoSuchMethodHandling(AbstractValueDomain domain) {
+    return domain.needsNoSuchMethodHandling(receiver, selector);
   }
 
   bool operator ==(other) {
     if (identical(this, other)) return true;
-    return selector == other.selector && constraint == other.constraint;
+    return selector == other.selector && receiver == other.receiver;
   }
 
-  String toString() => '($selector,$constraint)';
+  String toString() => '($selector,$receiver)';
 }
 
 /// A node in the [FunctionSet] caching all [FunctionSetQuery] object for
@@ -202,7 +193,7 @@ class FunctionSetNode {
 
   /// Returns the set of functions that can be the target of [selectorMask]
   /// including no such method handling where applicable.
-  FunctionSetQuery query(SelectorMask selectorMask, ClosedWorld closedWorld,
+  FunctionSetQuery query(SelectorMask selectorMask, AbstractValueDomain domain,
       [FunctionSetNode noSuchMethods, SelectorMask noSuchMethodMask]) {
     assert(selectorMask.name == name);
     FunctionSetQuery result = cache[selectorMask];
@@ -210,7 +201,7 @@ class FunctionSetNode {
 
     Setlet<MemberEntity> functions;
     for (MemberEntity element in elements) {
-      if (selectorMask.applies(element, closedWorld)) {
+      if (selectorMask.applies(element, domain)) {
         if (functions == null) {
           // Defer the allocation of the functions set until we are
           // sure we need it. This allows us to return immutable empty
@@ -225,9 +216,9 @@ class FunctionSetNode {
     // add [noSuchMethod] implementations that apply to [mask] as
     // potential targets.
     if (noSuchMethods != null &&
-        selectorMask.needsNoSuchMethodHandling(closedWorld)) {
+        selectorMask.needsNoSuchMethodHandling(domain)) {
       FunctionSetQuery noSuchMethodQuery =
-          noSuchMethods.query(noSuchMethodMask, closedWorld);
+          noSuchMethods.query(noSuchMethodMask, domain);
       if (!noSuchMethodQuery.functions.isEmpty) {
         if (functions == null) {
           functions =
@@ -263,7 +254,7 @@ abstract class FunctionSetQuery {
   const FunctionSetQuery();
 
   /// Compute the type of all potential receivers of this function set.
-  TypeMask computeMask(ClosedWorld closedWorld);
+  AbstractValue computeMask(AbstractValueDomain domain);
 
   /// Returns all potential targets of this function set.
   Iterable<MemberEntity> get functions;
@@ -273,8 +264,7 @@ class EmptyFunctionSetQuery implements FunctionSetQuery {
   const EmptyFunctionSetQuery();
 
   @override
-  TypeMask computeMask(ClosedWorld closedWorld) =>
-      const TypeMask.nonNullEmpty();
+  AbstractValue computeMask(AbstractValueDomain domain) => domain.emptyType;
 
   @override
   Iterable<MemberEntity> get functions => const <MemberEntity>[];
@@ -286,31 +276,14 @@ class FullFunctionSetQuery implements FunctionSetQuery {
   @override
   final Iterable<MemberEntity> functions;
 
-  TypeMask _mask;
+  AbstractValue _receiver;
 
   FullFunctionSetQuery(this.functions);
 
   @override
-  TypeMask computeMask(ClosedWorld closedWorld) {
-    assert(closedWorld
-        .hasAnyStrictSubclass(closedWorld.commonElements.objectClass));
-    if (_mask != null) return _mask;
-    return _mask = new TypeMask.unionOf(
-        functions.expand((MemberEntity element) {
-          ClassEntity cls = element.enclosingClass;
-          return [cls]..addAll(closedWorld.mixinUsesOf(cls));
-        }).map((cls) {
-          if (closedWorld.commonElements.jsNullClass == cls) {
-            return const TypeMask.empty();
-          } else if (closedWorld.isInstantiated(cls)) {
-            return new TypeMask.nonNullSubclass(cls, closedWorld);
-          } else {
-            // TODO(johnniwinther): Avoid the need for this case.
-            return const TypeMask.empty();
-          }
-        }),
-        closedWorld);
+  AbstractValue computeMask(AbstractValueDomain domain) {
+    return _receiver ??= domain.computeReceiver(functions);
   }
 
-  String toString() => '$_mask:$functions';
+  String toString() => '$_receiver:$functions';
 }

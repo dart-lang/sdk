@@ -1304,7 +1304,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
         rhsType != null &&
         !lhsType.isDynamic &&
         !rhsType.isDynamic &&
-        lhsType.isMoreSpecificThan(rhsType)) {
+        _typeSystem.isMoreSpecificThan(lhsType, rhsType)) {
       _errorReporter.reportErrorForNode(HintCode.UNNECESSARY_CAST, node);
       return true;
     }

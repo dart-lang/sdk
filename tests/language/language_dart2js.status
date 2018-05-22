@@ -289,7 +289,7 @@ bit_operations_test/03: RuntimeError
 bit_operations_test/04: RuntimeError
 bit_operations_test/none: RuntimeError
 branch_canonicalization_test: RuntimeError
-call_function_apply_test: RuntimeError
+call_function_apply_test: RuntimeError # Issue 23873
 call_nonexistent_constructor_test/01: RuntimeError
 call_type_literal_test/01: RuntimeError
 canonical_const2_test: RuntimeError
@@ -554,7 +554,6 @@ type_variable_conflict2_test/02: MissingCompileTimeError
 [ $compiler == dart2js && $fasta && $host_checked ]
 async_test/setter1: Crash # 'file:*/pkg/compiler/lib/src/kernel/element_map_impl.dart': Failed assertion: line 939 pos 18: 'asyncMarker == AsyncMarker.SYNC': is not true.
 closure_self_reference_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/nodes.dart': Failed assertion: line 641 pos 12: 'isClosed()': is not true.
-generic_methods_generic_function_parameter_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 1728 pos 16: 'type is MethodTypeVariableType': is not true.
 generic_methods_type_expression_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 1728 pos 16: 'type is MethodTypeVariableType': is not true.
 generic_methods_type_expression_test/03: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 1728 pos 16: 'type is MethodTypeVariableType': is not true.
 generic_methods_type_expression_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 1728 pos 16: 'type is MethodTypeVariableType': is not true.

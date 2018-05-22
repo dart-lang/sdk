@@ -6,7 +6,6 @@ library js_backend.backend.impact_transformer;
 
 import '../universe/class_hierarchy_builder.dart' show ClassHierarchyBuilder;
 
-import '../closure.dart';
 import '../common.dart';
 import '../common_elements.dart';
 import '../common/backend_api.dart' show ImpactTransformer;
@@ -29,7 +28,6 @@ import 'backend_usage.dart';
 import 'checked_mode_helpers.dart';
 import 'custom_elements_analysis.dart';
 import 'interceptor_data.dart';
-import 'mirrors_data.dart';
 import 'namer.dart';
 import 'native_data.dart';
 import 'runtime_types.dart';
@@ -42,7 +40,6 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
   final NativeBasicData _nativeBasicData;
   final NativeResolutionEnqueuer _nativeResolutionEnqueuer;
   final BackendUsageBuilder _backendUsageBuilder;
-  final MirrorsDataBuilder _mirrorsDataBuilder;
   final CustomElementsResolutionAnalysis _customElementsResolutionAnalysis;
   final RuntimeTypesNeedBuilder _rtiNeedBuilder;
   final ClassHierarchyBuilder _classHierarchyBuilder;
@@ -55,7 +52,6 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       this._nativeBasicData,
       this._nativeResolutionEnqueuer,
       this._backendUsageBuilder,
-      this._mirrorsDataBuilder,
       this._customElementsResolutionAnalysis,
       this._rtiNeedBuilder,
       this._classHierarchyBuilder);
@@ -243,9 +239,6 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
 
     if (worldImpact.constSymbolNames.isNotEmpty) {
       registerImpact(_impacts.constSymbol);
-      for (String constSymbolName in worldImpact.constSymbolNames) {
-        _mirrorsDataBuilder.registerConstSymbol(constSymbolName);
-      }
     }
 
     for (StaticUse staticUse in worldImpact.staticUses) {
@@ -432,11 +425,6 @@ class CodegenImpactTransformer {
         if (_rtiNeed.methodNeedsSignature(callMethod)) {
           _impacts.computeSignature
               .registerImpact(transformed, _elementEnvironment);
-        } else if (callMethod is SynthesizedCallMethodElementX) {
-          if (_rtiNeed.localFunctionNeedsSignature(callMethod.expression)) {
-            _impacts.computeSignature
-                .registerImpact(transformed, _elementEnvironment);
-          }
         }
       }
     }

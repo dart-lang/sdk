@@ -7588,7 +7588,7 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
   const TokenPosition token_pos = ST(closure_body->token_pos());
 
   Function& completer_constructor = Function::ZoneHandle(Z);
-  if (FLAG_sync_async) {
+  if (I->sync_async()) {
     const Class& completer_class = Class::Handle(
         Z, async_lib.LookupClassAllowPrivate(Symbols::_AsyncAwaitCompleter()));
     ASSERT(!completer_class.IsNull());
@@ -7698,7 +7698,7 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
 
   current_block_->statements->Add(store_async_catch_error_callback);
 
-  if (FLAG_sync_async) {
+  if (I->sync_async()) {
     // Add to AST:
     //   :async_completer.start(:async_op);
     ArgumentListNode* arguments = new (Z) ArgumentListNode(token_pos);

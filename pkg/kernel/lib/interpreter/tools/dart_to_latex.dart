@@ -80,7 +80,7 @@ class Extractor {
       : inputFile = new File(inputFilename),
         outputFile = new File(outputFilename) {
     // Clear the output file at start.
-    outputFile.writeAsStringSync("", mode: FileMode.WRITE, flush: true);
+    outputFile.writeAsStringSync("", mode: FileMode.write, flush: true);
   }
 
   //LATEX-NEXT
@@ -133,7 +133,7 @@ class Extractor {
       outputLines.add(r"\end{verbatim}");
     }
     for (String line in outputLines) {
-      outputFile.writeAsStringSync("$line\n", mode: FileMode.APPEND);
+      outputFile.writeAsStringSync("$line\n", mode: FileMode.append);
     }
   }
 
@@ -180,7 +180,7 @@ class Extractor {
           : endIndex;
       outputFile.writeAsStringSync(
           input.substring(latexBeginIndex, latexEndIndex) + "\n",
-          mode: FileMode.APPEND);
+          mode: FileMode.append);
       input = input.substring(endIndex);
     }
   }

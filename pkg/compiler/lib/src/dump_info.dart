@@ -17,15 +17,12 @@ import 'common_elements.dart';
 import 'compiler.dart' show Compiler;
 import 'constants/values.dart' show ConstantValue, InterceptorConstantValue;
 import 'deferred_load.dart' show OutputUnit;
-import 'elements/elements.dart';
 import 'elements/entities.dart';
 import 'js/js.dart' as jsAst;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
+import 'types/masks.dart';
 import 'types/types.dart'
-    show
-        GlobalTypeInferenceElementResult,
-        GlobalTypeInferenceMemberResult,
-        TypeMask;
+    show GlobalTypeInferenceElementResult, GlobalTypeInferenceMemberResult;
 import 'universe/world_builder.dart'
     show CodegenWorldBuilder, ReceiverConstraint;
 import 'universe/world_impact.dart'
@@ -179,8 +176,6 @@ class ElementInfoCollector {
 
   ClassInfo visitClass(ClassEntity clazz) {
     // Omit class if it is not needed.
-    if (!_hasClassBeenResolved(clazz)) return null;
-
     ClassInfo classInfo = new ClassInfo(
         name: clazz.name,
         isAbstract: clazz.isAbstract,
@@ -385,10 +380,6 @@ class ElementInfoCollector {
     }
     return _infoFromOutputUnit(outputUnit);
   }
-
-  bool _hasClassBeenResolved(ClassEntity cls) {
-    return compiler.backend.mirrorsData.isClassResolved(cls);
-  }
 }
 
 class Selection {
@@ -451,9 +442,6 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   }
 
   void reportInlined(FunctionEntity element, MemberEntity inlinedFrom) {
-    assert(!(element is MethodElement && !element.isDeclaration));
-    assert(!(inlinedFrom is MemberElement && !inlinedFrom.isDeclaration));
-
     inlineCount.putIfAbsent(element, () => 0);
     inlineCount[element] += 1;
     inlineMap.putIfAbsent(inlinedFrom, () => new List<Entity>());

@@ -20,7 +20,7 @@ import '../js_model/closure.dart' show JRecordField, KernelScopeInfo;
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../native/native.dart' as native;
 import '../ssa/type_builder.dart';
-import '../types/types.dart';
+import '../types/masks.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import '../world.dart';

@@ -21,97 +21,109 @@
 // Note that we have several ways to use built-in identifiers other than
 // `dynamic` in other locations in a type, e.g., `Function(int set)`.
 
-abstract x = null; //              //# 01: syntax error
-as x = null; //                    //# 02: syntax error
-covariant x = null; //             //# 03: syntax error
-deferred x = null; //              //# 04: syntax error
-dynamic x = null; //               //# 05: ok
-export x = null; //                //# 06: syntax error
-external x = null; //              //# 07: syntax error
-factory x = null; //               //# 08: syntax error
-get x = null; //                   //# 09: syntax error
-implements x = null; //            //# 10: syntax error
-import x = null; //                //# 11: syntax error
-library x = null; //               //# 12: syntax error
-operator x = null; //              //# 13: syntax error
-part x = null; //                  //# 14: syntax error
-set x = null; //                   //# 15: syntax error
-static x = null; //                //# 16: syntax error
-typedef x = null; //               //# 17: syntax error
+final // optional type before variable must not be a built-in identifier.
+abstract //              //# abstract: syntax error
+as //                    //# as: syntax error
+covariant //             //# covariant: syntax error
+deferred //              //# deferred: syntax error
+dynamic //               //# dynamic: ok
+export //                //# export: syntax error
+external //              //# external: syntax error
+factory //               //# factory: syntax error
+get //                   //# get: syntax error
+implements //            //# implements: syntax error
+import //                //# import: syntax error
+interface //             //# interface: syntax error
+library //               //# library: syntax error
+mixin //                 //# mixin: syntax error
+operator //              //# operator: syntax error
+part //                  //# part: syntax error
+set //                   //# set: syntax error
+static //                //# static: syntax error
+typedef //               //# typedef: syntax error
 
-abstract<int> x = null; //         //# 18: syntax error
-as<int> x = null; //               //# 19: syntax error
-covariant<int> x = null; //        //# 20: syntax error
-deferred<int> x = null; //         //# 21: syntax error
-dynamic<int> x = null; //          //# 22: compile-time error
-export<int> x = null; //           //# 23: syntax error
-external<int> x = null; //         //# 24: syntax error
-factory<int> x = null; //          //# 25: syntax error
-get<int> x = null; //              //# 26: syntax error
-implements<int> x = null; //       //# 27: syntax error
-import<int> x = null; //           //# 28: syntax error
-library<int> x = null; //          //# 29: syntax error
-operator<int> x = null; //         //# 30: syntax error
-part<int> x = null; //             //# 31: syntax error
-set<int> x = null; //              //# 32: syntax error
-static<int> x = null; //           //# 33: syntax error
-typedef<int> x = null; //          //# 34: syntax error
+abstract<int> //         //# abstract-gen: syntax error
+as<int> //               //# as-gen: syntax error
+covariant<int> //        //# covariant-gen: syntax error
+deferred<int> //         //# deferred-gen: syntax error
+dynamic<int> //          //# dynamic-gen: compile-time error
+export<int> //           //# export-gen: syntax error
+external<int> //         //# external-gen: syntax error
+factory<int> //          //# factory-gen: syntax error
+get<int> //              //# get-gen: syntax error
+implements<int> //       //# implements-gen: syntax error
+import<int> //           //# import-gen: syntax error
+interface<int> //        //# interface-gen: syntax error
+library<int> //          //# library-gen: syntax error
+mixin<int> //            //# mixin-gen: syntax error
+operator<int> //         //# operator-gen: syntax error
+part<int> //             //# part-gen: syntax error
+set<int> //              //# set-gen: syntax error
+static<int> //           //# static-gen: syntax error
+typedef<int> //          //# typedef-gen: syntax error
 
-List<abstract> x = null; //        //# 35: syntax error
-List<as> x = null; //              //# 36: syntax error
-List<covariant> x = null; //       //# 37: syntax error
-List<deferred> x = null; //        //# 38: syntax error
-List<dynamic> x = null; //         //# 39: ok
-List<export> x = null; //          //# 40: syntax error
-List<external> x = null; //        //# 41: syntax error
-List<factory> x = null; //         //# 42: syntax error
-List<get> x = null; //             //# 43: syntax error
-List<implements> x = null; //      //# 44: syntax error
-List<import> x = null; //          //# 45: syntax error
-List<library> x = null; //         //# 46: syntax error
-List<operator> x = null; //        //# 47: syntax error
-List<part> x = null; //            //# 48: syntax error
-List<set> x = null; //             //# 49: syntax error
-List<static> x = null; //          //# 50: syntax error
-List<typedef> x = null; //         //# 51: syntax error
+List<abstract> //        //# abstract-list: syntax error
+List<as> //              //# as-list: syntax error
+List<covariant> //       //# covariant-list: syntax error
+List<deferred> //        //# deferred-list: syntax error
+List<dynamic> //         //# dynamic-list: ok
+List<export> //          //# export-list: syntax error
+List<external> //        //# external-list: syntax error
+List<factory> //         //# factory-list: syntax error
+List<get> //             //# get-list: syntax error
+List<implements> //      //# implements-list: syntax error
+List<import> //          //# import-list: syntax error
+List<interface> //       //# interface-list: syntax error
+List<library> //         //# library-list: syntax error
+List<mixin> //           //# mixin-list: syntax error
+List<operator> //        //# operator-list: syntax error
+List<part> //            //# part-list: syntax error
+List<set> //             //# set-list: syntax error
+List<static> //          //# static-list: syntax error
+List<typedef> //         //# typedef-list: syntax error
 
-Function(abstract) x = null; //    //# 52: syntax error
-Function(as) x = null; //          //# 53: syntax error
-Function(covariant) x = null; //   //# 54: syntax error
-Function(deferred) x = null; //    //# 55: syntax error
-Function(dynamic) x = null; //     //# 56: ok
-Function(export) x = null; //      //# 57: syntax error
-Function(external) x = null; //    //# 58: syntax error
-Function(factory) x = null; //     //# 59: syntax error
-Function(get) x = null; //         //# 60: syntax error
-Function(implements) x = null; //  //# 61: syntax error
-Function(import) x = null; //      //# 62: syntax error
-Function(library) x = null; //     //# 63: syntax error
-Function(operator) x = null; //    //# 64: syntax error
-Function(part) x = null; //        //# 65: syntax error
-Function(set) x = null; //         //# 66: syntax error
-Function(static) x = null; //      //# 67: syntax error
-Function(typedef) x = null; //     //# 68: syntax error
+Function(abstract) //    //# abstract-funarg: syntax error
+Function(as) //          //# as-funarg: syntax error
+Function(covariant) //   //# covariant-funarg: syntax error
+Function(deferred) //    //# deferred-funarg: syntax error
+Function(dynamic) //     //# dynamic-funarg: ok
+Function(export) //      //# export-funarg: syntax error
+Function(external) //    //# external-funarg: syntax error
+Function(factory) //     //# factory-funarg: syntax error
+Function(get) //         //# get-funarg: syntax error
+Function(implements) //  //# implements-funarg: syntax error
+Function(import) //      //# import-funarg: syntax error
+Function(interface) //   //# interface-funarg: syntax error
+Function(library) //     //# library-funarg: syntax error
+Function(mixin) //       //# mixin-funarg: syntax error
+Function(operator) //    //# operator-funarg: syntax error
+Function(part) //        //# part-funarg: syntax error
+Function(set) //         //# set-funarg: syntax error
+Function(static) //      //# static-funarg: syntax error
+Function(typedef) //     //# typedef-funarg: syntax error
 
-abstract Function() x = null; //   //# 69: syntax error
-as Function() x = null; //         //# 70: syntax error
-covariant Function() x = null; //  //# 71: syntax error
-deferred Function() x = null; //   //# 72: syntax error
-dynamic Function() x = null; //    //# 73: ok
-export Function() x = null; //     //# 74: syntax error
-external Function() x = null; //   //# 75: syntax error
-factory Function() x = null; //    //# 76: syntax error
-get Function() x = null; //        //# 77: syntax error
-implements Function() x = null; // //# 78: syntax error
-import Function() x = null; //     //# 79: syntax error
-library Function() x = null; //    //# 80: syntax error
-operator Function() x = null; //   //# 81: syntax error
-part Function() x = null; //       //# 82: syntax error
-set Function() x = null; //        //# 83: syntax error
-static Function() x = null; //     //# 84: syntax error
-typedef Function() x = null; //    //# 85: syntax error
+abstract Function() //   //# abstract-funret: syntax error
+as Function() //         //# as-funret: syntax error
+covariant Function() //  //# covariant-funret: syntax error
+deferred Function() //   //# deferred-funret: syntax error
+dynamic Function() //    //# dynamic-funret: ok
+export Function() //     //# export-funret: syntax error
+external Function() //   //# external-funret: syntax error
+factory Function() //    //# factory-funret: syntax error
+get Function() //        //# get-funret: syntax error
+implements Function() // //# implements-funret: syntax error
+import Function() //     //# import-funret: syntax error
+interface Function() //  //# interface-funret: syntax error
+library Function() //    //# library-funret: syntax error
+mixin Function() //      //# mixin-funret: syntax error
+operator Function() //   //# operator-funret: syntax error
+part Function() //       //# part-funret: syntax error
+set Function() //        //# set-funret: syntax error
+static Function() //     //# static-funret: syntax error
+typedef Function() //    //# typedef-funret: syntax error
+
+x = null;
 
 main() {
-  var x = null; //                 //# none: ok
   x.toString();
 }

@@ -35,6 +35,7 @@ main() {}
 """;
 
     // Since there are no region comment markers above
+    // just check the length instead of the contents
     final regions = await _computeRegions(content);
     expect(regions, hasLength(0));
   }
@@ -79,7 +80,7 @@ main() {}
 
 main() {/*1:INC*/
   print("Hello, world!");
-/*1:INC:TOP_LEVEL_DECLARATION*/}
+/*1:INC:FUNCTION_BODY*/}
 
 // Content after
 """;
@@ -96,7 +97,7 @@ main() {/*1:INC*/
 /// that spans lines/*1:INC:DOCUMENTATION_COMMENT*/
 main() {/*2:INC*/
   print("Hello, world!");
-/*2:INC:TOP_LEVEL_DECLARATION*/}
+/*2:INC:FUNCTION_BODY*/}
 
 // Content after
 """;
@@ -112,9 +113,9 @@ main() {/*2:INC*/
 main() {/*1:INC*/
   doPrint() {/*2:INC*/
     print("Hello, world!");
-  /*2:INC:TOP_LEVEL_DECLARATION*/}
+  /*2:INC:FUNCTION_BODY*/}
   doPrint();
-/*1:INC:TOP_LEVEL_DECLARATION*/}
+/*1:INC:FUNCTION_BODY*/}
 
 // Content after
 """;
@@ -130,12 +131,12 @@ main() {/*1:INC*/
 class Person {/*1:INC*/
   Person() {/*2:INC*/
     print("Hello, world!");
-  /*2:INC:CLASS_MEMBER*/}
+  /*2:INC:FUNCTION_BODY*/}
 
   void sayHello() {/*3:INC*/
     print("Hello, world!");
-  /*3:INC:CLASS_MEMBER*/}
-/*1:INC:TOP_LEVEL_DECLARATION*/}
+  /*3:INC:FUNCTION_BODY*/}
+/*1:INC:CLASS_BODY*/}
 
 // Content after
 """;
@@ -146,19 +147,135 @@ class Person {/*1:INC*/
 
   test_annotations() async {
     String content = """
-@myMultilineAnnotation(/*1:INC*/
+@myMultilineAnnotation/*1:INC*/(
   "this",
   "is a test"
-/*1:INC:TOP_LEVEL_DECLARATION*/)
-@another()
-@andAnother
-main() {/*2:INC*/
-  print("Hello, world!");
-/*2:INC:TOP_LEVEL_DECLARATION*/}
+)/*1:EXC:ANNOTATIONS*/
+main() {}
+
+@noFoldNecessary
+main2() {}
+
+@multipleAnnotations1/*2:INC*/(
+  "this",
+  "is a test"
+)
+@multipleAnnotations2()
+@multipleAnnotations3/*2:EXC:ANNOTATIONS*/
+main3() {}
+
+@noFoldsForSingleClassAnnotation
+class MyClass {}
+
+@folded.classAnnotation1/*3:INC*/()
+@foldedClassAnnotation2/*3:EXC:ANNOTATIONS*/
+class MyClass2 {/*4:INC*/
+  @fieldAnnotation1/*5:INC*/
+  @fieldAnnotation2/*5:EXC:ANNOTATIONS*/
+  int myField;
+
+  @getterAnnotation1/*6:INC*/
+  @getterAnnotation2/*6:EXC:ANNOTATIONS*/
+  int get myThing => 1;
+
+  @setterAnnotation1/*7:INC*/
+  @setterAnnotation2/*7:EXC:ANNOTATIONS*/
+  void set myThing(int value) {}
+  
+  @methodAnnotation1/*8:INC*/
+  @methodAnnotation2/*8:EXC:ANNOTATIONS*/
+  void myMethod() {}
+
+  @constructorAnnotation1/*9:INC*/
+  @constructorAnnotation1/*9:EXC:ANNOTATIONS*/
+  MyClass2() {}
+/*4:INC:CLASS_BODY*/}
 """;
 
     final regions = await _computeRegions(content);
     _compareRegions(regions, content);
+  }
+
+  test_file_header() async {
+    String content = """
+// Copyright some year by some people/*1:EXC*/
+// See LICENCE etc./*1:INC:FILE_HEADER*/
+
+// This is not the file header
+// It's just a comment
+main() {}
+""";
+
+    final regions = await _computeRegions(content);
+    _compareRegions(regions, content);
+  }
+
+  test_file_header_with_no_function_comment() async {
+    String content = """
+// Copyright some year by some people/*1:EXC*/
+// See LICENCE etc./*1:INC:FILE_HEADER*/
+
+main() {}
+""";
+
+    final regions = await _computeRegions(content);
+    _compareRegions(regions, content);
+  }
+
+  test_file_header_with_non_end_of_line_comment() async {
+    String content = """
+// Copyright some year by some people/*1:EXC*/
+// See LICENCE etc./*1:INC:FILE_HEADER*/
+/* This shouldn't be part of the file header */
+
+main() {}
+""";
+
+    final regions = await _computeRegions(content);
+    _compareRegions(regions, content);
+  }
+
+  test_file_header_does_not_include_block_comments() async {
+    String content = """
+/*
+ * Copyright some year by some people
+ * See LICENCE etc.
+ */
+/* This shouldn't be part of the file header */
+
+main() {}
+""";
+
+    final regions = await _computeRegions(content);
+    expect(regions, hasLength(0));
+  }
+
+  test_file_header_with_script_prefix() async {
+    String content = """
+#! /usr/bin/dart
+// Copyright some year by some people/*1:EXC*/
+// See LICENCE etc./*1:INC:FILE_HEADER*/
+
+// This is not the file header
+// It's just a comment
+main() {}
+""";
+
+    final regions = await _computeRegions(content);
+    _compareRegions(regions, content);
+  }
+
+  test_comment_is_not_considered_file_header() async {
+    String content = """
+// This is not the file header
+// It's just a comment
+main() {}
+""";
+
+    // Since there are no region comment markers above
+    // just check the length instead of the contents
+    final regions = await _computeRegions(content);
+    expect(regions, hasLength(0));
   }
 
   /// Compares provided folding regions with expected

@@ -571,6 +571,7 @@ typedef struct {
   bool reify_generic_functions;
   bool strong;
   bool load_vmservice_library;
+  bool sync_async;
 } Dart_IsolateFlags;
 
 /**
@@ -716,7 +717,7 @@ typedef void (*Dart_ThreadExitCallback)();
  */
 typedef void* (*Dart_FileOpenCallback)(const char* name, bool write);
 
-typedef void (*Dart_FileReadCallback)(const uint8_t** data,
+typedef void (*Dart_FileReadCallback)(uint8_t** data,
                                       intptr_t* file_length,
                                       void* stream);
 
@@ -893,12 +894,14 @@ Dart_CreateIsolate(const char* script_uri,
  *
  * \return The new isolate on success, or NULL if isolate creation failed.
  */
-DART_EXPORT Dart_Isolate Dart_CreateIsolateFromKernel(const char* script_uri,
-                                                      const char* main,
-                                                      void* kernel_program,
-                                                      Dart_IsolateFlags* flags,
-                                                      void* callback_data,
-                                                      char** error);
+DART_EXPORT Dart_Isolate
+Dart_CreateIsolateFromKernel(const char* script_uri,
+                             const char* main,
+                             const uint8_t* kernel_buffer,
+                             intptr_t kernel_buffer_size,
+                             Dart_IsolateFlags* flags,
+                             void* callback_data,
+                             char** error);
 /**
  * Shuts down the current isolate. After this call, the current isolate is NULL.
  * Any current scopes created by Dart_EnterScope will be exited. Invokes the
@@ -2927,21 +2930,6 @@ Dart_LoadScriptFromSnapshot(const uint8_t* script_snapshot_buffer,
  */
 DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_LoadScriptFromKernel(const uint8_t* kernel_buffer, intptr_t kernel_size);
-
-/**
- * Constructs an in-memory kernel program form a binary.
- *
- * \param buffer The start of a memory buffer containing the binary format.
- * \param buffer_len The length of the memory buffer.
- * \param callback If not NULL, is called to when buffer is no longer needed.
- *   If it is NULL, then free() is used to free buffer.
- *
- * \return kernel_program The `dart::kernel::Program` object.
- */
-typedef void (*Dart_ReleaseBufferCallback)(uint8_t* buffer);
-DART_EXPORT void* Dart_ReadKernelBinary(const uint8_t* buffer,
-                                        intptr_t buffer_len,
-                                        Dart_ReleaseBufferCallback callback);
 
 /**
  * Gets the library for the root script for the current isolate.

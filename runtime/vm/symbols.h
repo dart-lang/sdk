@@ -325,6 +325,7 @@ class ObjectPointerVisitor;
   V(ForwardingCorpse, "ForwardingCorpse")                                      \
   V(InvocationMirror, "_InvocationMirror")                                     \
   V(AllocateInvocationMirror, "_allocateInvocationMirror")                     \
+  V(AllocateInvocationMirrorForClosure, "_allocateInvocationMirrorForClosure") \
   V(toString, "toString")                                                      \
   V(_lookupHandler, "_lookupHandler")                                          \
   V(_handleMessage, "_handleMessage")                                          \
@@ -450,7 +451,8 @@ class ObjectPointerVisitor;
   V(PrependTypeArguments, "_prependTypeArguments")                             \
   V(DartDeveloperCausalAsyncStacks, "dart.developer.causal_async_stacks")      \
   V(_AsyncStarListenHelper, "_asyncStarListenHelper")                          \
-  V(GrowRegExpStack, "_growRegExpStack")
+  V(GrowRegExpStack, "_growRegExpStack")                                       \
+  V(DebugProcedureName, ":Eval")
 
 // Contains a list of frequently used strings in a canonicalized form. This
 // list is kept in the vm_isolate in order to share the copy across isolates

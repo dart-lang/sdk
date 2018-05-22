@@ -990,47 +990,35 @@ class KernelLibraryBuilder
     return count;
   }
 
-  int instantiateToBound(TypeBuilder dynamicType, TypeBuilder bottomType,
+  int computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder bottomType,
       ClassBuilder objectClass) {
     int count = 0;
+    bool strongMode = loader.target.strongMode;
+
+    int computeDefaultTypesForVariables(List<TypeVariableBuilder> variables) {
+      if (variables == null) return 0;
+      List<KernelTypeBuilder> calculatedBounds = strongMode
+          ? calculateBounds(variables, dynamicType, bottomType, objectClass)
+          : null;
+      for (int i = 0; i < variables.length; ++i) {
+        variables[i].defaultType =
+            strongMode ? calculatedBounds[i] : dynamicType;
+      }
+      return variables.length;
+    }
 
     for (var declaration in libraryDeclaration.members.values) {
       if (declaration is KernelClassBuilder) {
-        if (declaration.typeVariables != null) {
-          List<KernelTypeBuilder> calculatedBounds;
-          if (loader.target.strongMode) {
-            calculatedBounds = calculateBounds(declaration.typeVariables,
-                dynamicType, bottomType, objectClass);
-          } else {
-            calculatedBounds =
-                new List<KernelTypeBuilder>(declaration.typeVariables.length);
-            for (int i = 0; i < calculatedBounds.length; ++i) {
-              calculatedBounds[i] = dynamicType;
-            }
+        count += computeDefaultTypesForVariables(declaration.typeVariables);
+        declaration.forEach((String name, Builder member) {
+          if (member is KernelProcedureBuilder) {
+            count += computeDefaultTypesForVariables(member.typeVariables);
           }
-          for (int i = 0; i < calculatedBounds.length; ++i) {
-            declaration.typeVariables[i].defaultType = calculatedBounds[i];
-          }
-          count += calculatedBounds.length;
-        }
+        });
       } else if (declaration is KernelFunctionTypeAliasBuilder) {
-        if (declaration.typeVariables != null) {
-          List<KernelTypeBuilder> calculatedBounds;
-          if (loader.target.strongMode) {
-            calculatedBounds = calculateBounds(declaration.typeVariables,
-                dynamicType, bottomType, objectClass);
-          } else {
-            calculatedBounds =
-                new List<KernelTypeBuilder>(declaration.typeVariables.length);
-            for (int i = 0; i < calculatedBounds.length; ++i) {
-              calculatedBounds[i] = dynamicType;
-            }
-          }
-          for (int i = 0; i < calculatedBounds.length; ++i) {
-            declaration.typeVariables[i].defaultType = calculatedBounds[i];
-          }
-          count += calculatedBounds.length;
-        }
+        count += computeDefaultTypesForVariables(declaration.typeVariables);
+      } else if (declaration is KernelFunctionBuilder) {
+        count += computeDefaultTypesForVariables(declaration.typeVariables);
       }
     }
 

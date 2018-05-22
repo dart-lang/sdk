@@ -72,8 +72,8 @@ class TemporaryNamer extends LocalNamer {
     return node.name;
   }
 
-  void enterScope(FunctionExpression node) {
-    scope = scope.functions[node];
+  void enterScope(Node node) {
+    scope = scope.childScopes[node];
   }
 
   void leaveScope() {
@@ -83,8 +83,7 @@ class TemporaryNamer extends LocalNamer {
 
 /// Represents a complete function scope in JS.
 ///
-/// We don't currently track ES6 block scopes, because we don't represent them
-/// in js_ast yet.
+/// We don't currently track ES6 block scopes.
 class _FunctionScope {
   /// The parent scope.
   final _FunctionScope parent;
@@ -97,9 +96,9 @@ class _FunctionScope {
   /// not collide with inside this scope.
   final used = new HashSet<String>();
 
-  /// Nested functions, these are visited after everything else so the names
+  /// Nested scopes, these are visited after everything else so the names
   /// they might need are in scope.
-  final functions = new Map<FunctionExpression, _FunctionScope>();
+  final childScopes = new Map<Node, _FunctionScope>();
 
   /// New names assigned for temps and identifiers.
   final renames = new HashMap<Object, String>();
@@ -118,7 +117,7 @@ class _RenameVisitor extends VariableDeclarationVisitor {
   _RenameVisitor.build(Node root) {
     scope = rootScope;
     root.accept(this);
-    _finishFunctions();
+    _finishScopes();
     _finishNames();
   }
 
@@ -166,14 +165,22 @@ class _RenameVisitor extends VariableDeclarationVisitor {
 
   visitFunctionExpression(FunctionExpression node) {
     // Visit nested functions after all identifiers are declared.
-    scope.functions[node] = new _FunctionScope(scope);
+    scope.childScopes[node] = new _FunctionScope(scope);
   }
 
-  void _finishFunctions() {
-    scope.functions.forEach((FunctionExpression f, _FunctionScope s) {
+  visitClassExpression(ClassExpression node) {
+    scope.childScopes[node] = new _FunctionScope(scope);
+  }
+
+  void _finishScopes() {
+    scope.childScopes.forEach((node, s) {
       scope = s;
-      super.visitFunctionExpression(f);
-      _finishFunctions();
+      if (node is FunctionExpression) {
+        super.visitFunctionExpression(node);
+      } else {
+        super.visitClassExpression(node);
+      }
+      _finishScopes();
       scope = scope.parent;
     });
   }

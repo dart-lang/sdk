@@ -498,7 +498,6 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       List<String> ddcOptions,
       List<String> args) {
     var result = sharedOptions.toList()..addAll(ddcOptions);
-
     // The file being compiled is the last argument.
     result.add(args.last);
 
@@ -1062,6 +1061,8 @@ abstract class VMKernelCompilerMixin {
   bool get _useSdk;
   bool get _isStrong;
   bool get _isAot;
+  bool get _isChecked;
+  bool get _useEnableAsserts;
 
   String get executableScriptSuffix;
 
@@ -1107,6 +1108,10 @@ abstract class VMKernelCompilerMixin {
     }
 
     args.add(arguments.where((name) => name.endsWith('.dart')).single);
+    args.addAll(arguments.where((name) => name.startsWith('-D')));
+    if (_isChecked || _useEnableAsserts) {
+      args.add('--enable_asserts');
+    }
 
     // Pass environment variable to the gen_kernel script as
     // arguments are not passed if gen_kernel runs in batch mode.
