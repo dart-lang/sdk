@@ -229,6 +229,12 @@ FreshTypeParameters getFreshTypeParameters(List<TypeParameter> typeParameters) {
   }
   for (int i = 0; i < typeParameters.length; ++i) {
     freshParameters[i].bound = substitute(typeParameters[i].bound, map);
+
+    // [defaultType] is populated using instantiate-to-bound algorithm, so it
+    // shouldn't refer to type parameters from the same declaration.  However,
+    // if a transformation changes [defaultType], it may get such references,
+    // and the line below should invoke [substitute], like for [bound] above.
+    freshParameters[i].defaultType = typeParameters[i].defaultType;
   }
   return new FreshTypeParameters(freshParameters, Substitution.fromMap(map));
 }
