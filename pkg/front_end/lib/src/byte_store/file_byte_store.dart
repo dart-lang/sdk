@@ -5,8 +5,10 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:typed_data';
 
 import 'package:front_end/src/byte_store/byte_store.dart';
+import 'package:front_end/src/byte_store/crc32.dart';
 import 'package:path/path.dart';
 
 /**
@@ -144,6 +146,7 @@ class EvictingFileByteStore implements ByteStore {
 class FileByteStore implements ByteStore {
   final String _cachePath;
   final String _tempName;
+  final FileByteStoreValidator _validator = new FileByteStoreValidator();
 
   /**
    * If the same cache path is used from more than one isolate of the same
@@ -155,7 +158,9 @@ class FileByteStore implements ByteStore {
   @override
   List<int> get(String key) {
     try {
-      return _getFileForKey(key).readAsBytesSync();
+      File file = _getFileForKey(key);
+      List<int> rawBytes = file.readAsBytesSync();
+      return _validator.getData(rawBytes);
     } catch (_) {
       return null;
     }
@@ -164,6 +169,7 @@ class FileByteStore implements ByteStore {
   @override
   void put(String key, List<int> bytes) {
     try {
+      bytes = _validator.wrapData(bytes);
       File tempFile = _getFileForKey(_tempName);
       tempFile.writeAsBytesSync(bytes);
       File file = _getFileForKey(key);
@@ -173,5 +179,77 @@ class FileByteStore implements ByteStore {
 
   File _getFileForKey(String key) {
     return new File(join(_cachePath, key));
+  }
+}
+
+/**
+ * Generally speaking, we cannot guarantee that any data written into a
+ * file will stay the same - there is always a chance of a hardware problem,
+ * file system problem, truncated data, etc.
+ *
+ * So, we need to embed some validation into data itself.
+ * This class append the version and the checksum to data.
+ */
+class FileByteStoreValidator {
+  static const List<int> _VERSION = const [0x01, 0x00, 0x00, 0x00];
+
+  /**
+   * If the [rawBytes] have the valid version and checksum, extract and
+   * return the data from it.  Otherwise return `null`.
+   */
+  List<int> getData(List<int> rawBytes) {
+    // There must be at least the version and the checksum in the raw bytes.
+    if (rawBytes.length < 8) {
+      return null;
+    }
+    int len = rawBytes.length - 8;
+
+    // Check the version.
+    if (rawBytes[len + 0] != _VERSION[0] ||
+        rawBytes[len + 1] != _VERSION[1] ||
+        rawBytes[len + 2] != _VERSION[2] ||
+        rawBytes[len + 3] != _VERSION[3]) {
+      return null;
+    }
+
+    // Check the CRC32 of the data.
+    List<int> data = rawBytes.sublist(0, len);
+    int crc = getCrc32(data);
+    if (rawBytes[len + 4] != crc & 0xFF ||
+        rawBytes[len + 5] != (crc >> 8) & 0xFF ||
+        rawBytes[len + 6] != (crc >> 16) & 0xFF ||
+        rawBytes[len + 7] != (crc >> 24) & 0xFF) {
+      return null;
+    }
+
+    // OK, the data is probably valid.
+    return data;
+  }
+
+  /**
+   * Return bytes that include the given [data] plus the current version and
+   * the checksum of the [data].
+   */
+  List<int> wrapData(List<int> data) {
+    int len = data.length;
+    var bytes = new Uint8List(len + 8);
+
+    // Put the data.
+    bytes.setRange(0, len, data);
+
+    // Put the version.
+    bytes[len + 0] = _VERSION[0];
+    bytes[len + 1] = _VERSION[1];
+    bytes[len + 2] = _VERSION[2];
+    bytes[len + 3] = _VERSION[3];
+
+    // Put the CRC32 of the data.
+    int crc = getCrc32(data);
+    bytes[len + 4] = crc & 0xFF;
+    bytes[len + 5] = (crc >> 8) & 0xFF;
+    bytes[len + 6] = (crc >> 16) & 0xFF;
+    bytes[len + 7] = (crc >> 24) & 0xFF;
+
+    return bytes;
   }
 }

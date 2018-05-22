@@ -6,6 +6,8 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'byte_store_test.dart' as byte_store_test;
 import 'cache_test.dart' as cache_test;
+import 'crc32_test.dart' as crc32_test;
+import 'file_byte_store_test.dart' as file_byte_store_test;
 import 'protected_file_byte_store_test.dart' as protected_file_byte_store_test;
 
 /// Utility for manually running all tests.
@@ -13,6 +15,8 @@ main() {
   defineReflectiveSuite(() {
     byte_store_test.main();
     cache_test.main();
+    crc32_test.main();
+    file_byte_store_test.main();
     protected_file_byte_store_test.main();
   }, name: 'byte_store');
 }

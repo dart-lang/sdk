@@ -22,6 +22,8 @@ List<int> _b(int length) {
 
 @reflectiveTest
 class ProtectedFileByteStoreTest {
+  static const PADDING = 8;
+
   io.Directory cacheDirectory;
   String cachePath;
   ProtectedFileByteStore store;
@@ -167,7 +169,7 @@ class ProtectedFileByteStoreTest {
     }
     includes.forEach((expectedKey, expectedLength) {
       expect(keyToLength, contains(expectedKey));
-      expect(keyToLength, containsPair(expectedKey, expectedLength));
+      expect(keyToLength, containsPair(expectedKey, expectedLength + PADDING));
     });
     for (var excludedKey in excludes) {
       expect(keyToLength.keys, isNot(contains(excludedKey)));
