@@ -372,13 +372,23 @@ class LocalFunctionDeclarationIdentifierContext extends IdentifierContext {
   }
 }
 
-/// See [IdentifierContext.libraryName].
+/// See [IdentifierContext.libraryName],
+/// and [IdentifierContext.libraryNameContinuation]
+/// and [IdentifierContext.partName],
+/// and [IdentifierContext.partNameContinuation].
 class LibraryIdentifierContext extends IdentifierContext {
   const LibraryIdentifierContext()
       : super('libraryName', inLibraryOrPartOfDeclaration: true);
 
   const LibraryIdentifierContext.continuation()
       : super('libraryNameContinuation',
+            inLibraryOrPartOfDeclaration: true, isContinuation: true);
+
+  const LibraryIdentifierContext.partName()
+      : super('partName', inLibraryOrPartOfDeclaration: true);
+
+  const LibraryIdentifierContext.partNameContinuation()
+      : super('partNameContinuation',
             inLibraryOrPartOfDeclaration: true, isContinuation: true);
 
   @override

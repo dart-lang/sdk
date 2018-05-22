@@ -77,15 +77,12 @@ class IdentifierContext {
 
   /// Identifier is the start of a library name referenced by a `part of`
   /// directive (e.g. `foo` in the directive `part of foo;`).
-  static const partName =
-      const IdentifierContext('partName', inLibraryOrPartOfDeclaration: true);
+  static const partName = const LibraryIdentifierContext.partName();
 
   /// Identifier is part of a library name referenced by a `part of` directive,
   /// but it's not the first identifier in the name.
-  static const partNameContinuation = const IdentifierContext(
-      'partNameContinuation',
-      inLibraryOrPartOfDeclaration: true,
-      isContinuation: true);
+  static const partNameContinuation =
+      const LibraryIdentifierContext.partNameContinuation();
 
   /// Identifier is the type name being declared by an enum declaration.
   static const enumDeclaration = const EnumDeclarationIdentifierContext();

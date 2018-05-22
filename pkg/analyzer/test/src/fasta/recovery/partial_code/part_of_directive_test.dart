@@ -12,17 +12,18 @@ main() {
 
 class PartOfDirectivesTest extends PartialCodeTest {
   buildAll() {
-    List<String> allExceptEof = <String>[
-      'class',
+    List<String> identifiers = const [
       'typedef',
-      'functionVoid',
       'functionNonVoid',
-      'var',
-      'const',
-      'final',
       'getter',
       'setter'
     ];
+    List<TestSuffix> identifierSuffixes = PartialCodeTest.declarationSuffixes
+        .where((t) => identifiers.contains(t.name))
+        .toList();
+    List<TestSuffix> nonIdentifierSuffixes = PartialCodeTest.declarationSuffixes
+        .where((t) => !identifiers.contains(t.name))
+        .toList();
     buildTests(
         'part_of_directive',
         [
@@ -30,11 +31,31 @@ class PartOfDirectivesTest extends PartialCodeTest {
               'keyword',
               'part of',
               [
-                ParserErrorCode.MISSING_NAME_IN_PART_OF_DIRECTIVE,
+                ParserErrorCode.EXPECTED_STRING_LITERAL,
+                ParserErrorCode.EXPECTED_TOKEN
+              ],
+              'part of "";',
+              failing: []),
+        ],
+        nonIdentifierSuffixes);
+    buildTests(
+        'part_of_directive',
+        [
+          new TestDescriptor(
+              'keyword',
+              'part of',
+              [
+                ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               'part of _s_;',
-              allFailing: true),
+              failing: ['functionNonVoid', 'getter']),
+        ],
+        identifierSuffixes,
+        includeEof: false);
+    buildTests(
+        'part_of_directive',
+        [
           new TestDescriptor('name', 'part of lib',
               [ParserErrorCode.EXPECTED_TOKEN], 'library lib;',
               allFailing: true),
@@ -46,7 +67,7 @@ class PartOfDirectivesTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               'part of lib._s_;',
-              failing: allExceptEof),
+              failing: ['functionNonVoid', 'getter']),
           new TestDescriptor('nameDotName', 'part of lib.a',
               [ParserErrorCode.EXPECTED_TOKEN], 'part of lib.a;'),
           new TestDescriptor('emptyUri', "part of ''",
