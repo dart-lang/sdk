@@ -4,6 +4,22 @@
 
 ### Language
 
+#### Strong Mode
+
+### Core library changes
+
+### Dart VM
+
+### Tool Changes
+
+#### Pub
+
+#### Other Tools
+
+## 2.0.0-dev.56.0
+
+### Language
+
 * Invocations of noSuchMethod receive default values for optional args.
   * The following program used to print "No arguments passed", and now prints
     "First argument is 3".
@@ -28,9 +44,6 @@ void main() {
 }
 ```
 
-
-#### Strong Mode
-
 ### Core library changes
 
 * `dart:core`
@@ -44,17 +57,11 @@ void main() {
   * Added `X509Certificate.der`, `X509Certificate.pem`, and
     `X509Certificate.sha1`.
 
-### Dart VM
-
 ### Tool Changes
 
 #### dartfmt
 
   * Support metadata annotations on enum cases.
-
-#### Pub
-
-#### Other Tools
 
 ## 2.0.0-dev.55.0
 
