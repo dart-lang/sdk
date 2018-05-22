@@ -31,7 +31,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   @override
   void setUp() {
     super.setUp();
-    testFile = resourceProvider.convertPath('/test.dart');
+    testFile = resourceProvider.convertPath('/project/test.dart');
   }
 
   void addTestSource(String code, [Uri uri]) {

@@ -447,7 +447,7 @@ class A {
   A({test});
 }
 ''');
-    await indexUnit('/test2.dart', '''
+    await indexUnit('/project/test2.dart', '''
 import 'test.dart';
 main() {
   new A(test: 2);
@@ -463,7 +463,7 @@ class A {
   A({newName});
 }
 ''');
-    assertFileChangeResult('/test2.dart', '''
+    assertFileChangeResult('/project/test2.dart', '''
 import 'test.dart';
 main() {
   new A(newName: 2);
@@ -472,7 +472,7 @@ main() {
   }
 
   test_createChange_parameter_named_updateHierarchy() async {
-    await indexUnit('/test2.dart', '''
+    await indexUnit('/project/test2.dart', '''
 library test2;
 class A {
   void foo({int test: 1}) {
@@ -516,7 +516,7 @@ class C extends A {
   }
 }
 ''');
-    assertFileChangeResult('/test2.dart', '''
+    assertFileChangeResult('/project/test2.dart', '''
 library test2;
 class A {
   void foo({int newName: 1}) {

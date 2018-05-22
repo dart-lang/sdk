@@ -96,8 +96,8 @@ main() {
   }
 
   test_remove_unresolvedDirectives() async {
-    addSource('/existing_part1.dart', 'part of lib;');
-    addSource('/existing_part2.dart', 'part of lib;');
+    addSource('/project/existing_part1.dart', 'part of lib;');
+    addSource('/project/existing_part2.dart', 'part of lib;');
     await _computeUnitAndErrors(r'''
 library lib;
 
