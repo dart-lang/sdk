@@ -304,7 +304,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
-  Object parenthesizedCondition(
+  Expression parenthesizedCondition(
       Token leftParenthesis, Expression expression, Token rightParenthesis) {
     return expression;
   }
