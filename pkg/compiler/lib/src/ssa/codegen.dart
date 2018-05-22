@@ -47,7 +47,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
 
   String get name => 'SSA code generator';
 
-  js.Fun buildJavaScriptFunction(bool isGeneratorEntry, FunctionEntity element,
+  js.Fun buildJavaScriptFunction(bool needsAsyncRewrite, FunctionEntity element,
       List<js.Parameter> parameters, js.Block body) {
     js.Fun finish(js.AsyncModifier asyncModifier) {
       return new js.Fun(parameters, body, asyncModifier: asyncModifier)
@@ -56,15 +56,17 @@ class SsaCodeGeneratorTask extends CompilerTask {
               .buildDeclaration(element));
     }
 
-    if (isGeneratorEntry) return finish(const js.AsyncModifier.sync());
-
-    return finish(element.asyncMarker.isAsync
-        ? (element.asyncMarker.isYielding
-            ? const js.AsyncModifier.asyncStar()
-            : const js.AsyncModifier.async())
-        : (element.asyncMarker.isYielding
-            ? const js.AsyncModifier.syncStar()
-            : const js.AsyncModifier.sync()));
+    if (needsAsyncRewrite) {
+      return finish(element.asyncMarker.isAsync
+          ? (element.asyncMarker.isYielding
+              ? const js.AsyncModifier.asyncStar()
+              : const js.AsyncModifier.async())
+          : (element.asyncMarker.isYielding
+              ? const js.AsyncModifier.syncStar()
+              : const js.AsyncModifier.sync()));
+    } else {
+      return finish(const js.AsyncModifier.sync());
+    }
   }
 
   js.Expression generateCode(
@@ -122,7 +124,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
           work);
       codegen.visitGraph(graph);
       backend.tracer.traceGraph("codegen", graph);
-      return buildJavaScriptFunction(graph.isGeneratorEntry, work.element,
+      return buildJavaScriptFunction(graph.needsAsyncRewrite, work.element,
           codegen.parameters, codegen.body);
     });
   }

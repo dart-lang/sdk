@@ -964,6 +964,7 @@ class JavaScriptBackend {
       CodegenRegistry registry,
       FunctionEntity element,
       jsAst.Expression code,
+      DartType asyncTypeParameter,
       SourceInformation bodySourceInformation,
       SourceInformation exitSourceInformation) {
     if (element.asyncMarker == AsyncMarker.SYNC) return code;
@@ -974,8 +975,8 @@ class JavaScriptBackend {
 
     switch (element.asyncMarker) {
       case AsyncMarker.ASYNC:
-        rewriter = _makeAsyncRewriter(
-            commonElements, elementEnvironment, registry, element, code, name);
+        rewriter = _makeAsyncRewriter(commonElements, elementEnvironment,
+            registry, element, code, asyncTypeParameter, name);
         break;
       case AsyncMarker.SYNC_STAR:
         rewriter = new SyncStarRewriter(reporter, element,
@@ -983,8 +984,7 @@ class JavaScriptBackend {
                 emitter.staticFunctionAccess(commonElements.endOfIteration),
             iterableFactory: emitter
                 .staticFunctionAccess(commonElements.syncStarIterableFactory),
-            iterableFactoryTypeArguments:
-                _fetchItemType(element, elementEnvironment),
+            iterableFactoryTypeArguments: _fetchItemType(asyncTypeParameter),
             yieldStarExpression:
                 emitter.staticFunctionAccess(commonElements.yieldStar),
             uncaughtErrorExpression: emitter
@@ -1006,8 +1006,7 @@ class JavaScriptBackend {
             wrapBody: emitter.staticFunctionAccess(commonElements.wrapBody),
             newController: emitter.staticFunctionAccess(
                 commonElements.asyncStarStreamControllerFactory),
-            newControllerTypeArguments:
-                _fetchItemType(element, elementEnvironment),
+            newControllerTypeArguments: _fetchItemType(asyncTypeParameter),
             safeVariableName: namer.safeVariablePrefixForAsyncRewrite,
             yieldExpression:
                 emitter.staticFunctionAccess(commonElements.yieldSingle),
@@ -1024,22 +1023,15 @@ class JavaScriptBackend {
     return rewriter.rewrite(code, bodySourceInformation, exitSourceInformation);
   }
 
-  /// Returns an optional expression that evaluates the type argument to the
-  /// Future/Stream/Iterable.
-  /// Returns an empty list if the type is not needed.
-  /// Returns `null` if the type expression is determined by
-  /// the outside context and should be added as a function parameter.
-  List<jsAst.Expression> _fetchItemType(
-      FunctionEntity element, ElementEnvironment elementEnvironment) {
-    //DartType type =
-    //  elementEnvironment.getFunctionAsyncOrSyncStarElementType(element);
-
-    //if (!type.containsFreeTypeVariables) {
-    //  var ast = rtiEncoder.getTypeRepresentation(emitter.emitter, type, null);
-    //  return <jsAst.Expression>[ast];
-    //}
-
-    return null;
+  /// Returns an optional expression that evaluates [type].  Returns `null` if
+  /// the type expression is determined by the outside context and should be
+  /// added as a function parameter to the rewritten code.
+  // TODO(sra): We could also return an empty list if the generator takes no
+  // type (e.g. due to rtiNeed optimization).
+  List<jsAst.Expression> _fetchItemType(DartType type) {
+    if (type == null) return null;
+    var ast = rtiEncoder.getTypeRepresentation(emitter.emitter, type, null);
+    return <jsAst.Expression>[ast];
   }
 
   AsyncRewriter _makeAsyncRewriter(
@@ -1048,6 +1040,7 @@ class JavaScriptBackend {
       CodegenRegistry registry,
       FunctionEntity element,
       jsAst.Expression code,
+      DartType elementType,
       jsAst.Name name) {
     bool startAsyncSynchronously = compiler.options.startAsyncSynchronously;
 
@@ -1058,8 +1051,7 @@ class JavaScriptBackend {
         ? commonElements.asyncAwaitCompleterFactory
         : commonElements.syncCompleterFactory;
 
-    List<jsAst.Expression> itemTypeExpression =
-        _fetchItemType(element, elementEnvironment);
+    List<jsAst.Expression> itemTypeExpression = _fetchItemType(elementType);
 
     var rewriter = new AsyncRewriter(reporter, element,
         asyncStart: emitter.staticFunctionAccess(startFunction),

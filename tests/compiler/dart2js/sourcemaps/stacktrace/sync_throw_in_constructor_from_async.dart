@@ -12,7 +12,7 @@ test() async {
   // TODO(johnniwinther): Investigate why kernel doesn't point to the body
   // start brace.
   // ignore: UNUSED_LOCAL_VARIABLE
-  var /*2:test*/ /*3:test*/ c = new /*4:test*/ Class();
+  var /*2:test*/ c = new /*4:test*/ Class();
 }
 
 class Class {

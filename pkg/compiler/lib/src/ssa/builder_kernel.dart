@@ -1013,37 +1013,19 @@ class KernelSsaGraphBuilder extends ir.Visitor
         isStatement: true));
   }
 
-  /// Builds a SSA graph for a sync*/async/async* generator.
+  /// Builds a SSA graph for a sync*/async/async* generator.  We generate a
+  /// entry function which tail-calls a body function. The entry contains
+  /// per-invocation checks and the body, which is later transformed, contains
+  /// the re-entrant 'state machine' code.
   void buildGenerator(FunctionEntity function, ir.FunctionNode functionNode) {
-    // TODO(sra): Optimize by generating a merged entry + body when (1) there
-    // are no checks in the entry and (2) the element type is simple.
-    if (true == true) {
-      buildGeneratorEntry(function, functionNode);
-    } else {
-      openFunction(function, functionNode);
-      functionNode.body.accept(this);
-      closeFunction();
-    }
-  }
-
-  /// Builds a SSA graph for a sync*/async/async* generator body.
-  void buildGeneratorEntry(
-      FunctionEntity function, ir.FunctionNode functionNode) {
-    graph.isGeneratorEntry = true;
-
-    // TODO(sra): Omit entry checks.
     openFunction(function, functionNode);
 
-    // Generate type argument for generator class.
-
-    // Tail-call body.
-    JGeneratorBody body = _elementMap.getGeneratorBody(function);
-    backend.outputUnitData.registerColocatedMembers(function, body);
+    // Prepare to tail-call the body.
 
     // Is 'buildAsyncBody' the best location for the entry?
     var sourceInformation = _sourceInformationBuilder.buildAsyncBody();
 
-    // Forward all the parameters.
+    // Forward all the parameters to the body.
     List<HInstruction> inputs = <HInstruction>[];
     if (graph.thisInstruction != null) {
       inputs.add(graph.thisInstruction);
@@ -1061,8 +1043,29 @@ class KernelSsaGraphBuilder extends ir.Visitor
     // Add the type parameter for the generator's element type.
     DartType elementType = _elementMap.elementEnvironment
         .getAsyncOrSyncStarElementType(function.asyncMarker, _returnType);
-    inputs.add(typeBuilder.analyzeTypeArgument(elementType, function));
 
+    if (elementType.containsFreeTypeVariables) {
+      // Type must be computed in the entry function, where the type variables
+      // are in scope, and passed to the body function.
+      inputs.add(typeBuilder.analyzeTypeArgument(elementType, function));
+    } else {
+      // Types with no type variables can be emitted as part of the generator,
+      // avoiding an extra argument.
+      if (_generatedEntryIsEmpty()) {
+        // If the entry function is empty (e.g. no argument checks) and the type
+        // can be generated in body, 'inline' the body by generating it in
+        // place. This works because the subsequent transformation of the code
+        // is 'correct' for the empty entry function code.
+        graph.needsAsyncRewrite = true;
+        graph.asyncElementType = elementType;
+        functionNode.body.accept(this);
+        closeFunction();
+        return;
+      }
+    }
+
+    JGeneratorBody body = _elementMap.getGeneratorBody(function);
+    backend.outputUnitData.registerColocatedMembers(function, body);
     push(new HInvokeGeneratorBody(
         body,
         inputs,
@@ -1078,11 +1081,26 @@ class KernelSsaGraphBuilder extends ir.Visitor
   /// Builds a SSA graph for a sync*/async/async* generator body.
   void buildGeneratorBody(
       JGeneratorBody function, ir.FunctionNode functionNode) {
-    // TODO(sra): Omit entry checks.
     FunctionEntity entry = function.function;
     openFunction(entry, functionNode);
+    graph.needsAsyncRewrite = true;
+    if (!function.elementType.containsFreeTypeVariables) {
+      // We can generate the element type in place
+      graph.asyncElementType = function.elementType;
+    }
     functionNode.body.accept(this);
     closeFunction();
+  }
+
+  bool _generatedEntryIsEmpty() {
+    HBasicBlock block = current;
+    // If `block.id` is not 1 then we generated some control flow.
+    if (block.id != 1) return false;
+    for (HInstruction node = block.first; node != null; node = node.next) {
+      if (node is HGoto) continue;
+      return false;
+    }
+    return true;
   }
 
   void _potentiallyAddFunctionParameterTypeChecks(ir.FunctionNode function) {
@@ -1107,6 +1125,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         return;
       }
       HInstruction newParameter = localsHandler.directLocals[local];
+
       newParameter = typeBuilder.potentiallyCheckOrTrustTypeOfParameter(
           newParameter, _getDartTypeIfValid(variable.type));
       localsHandler.directLocals[local] = newParameter;
@@ -1225,20 +1244,20 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
   }
 
-  void openFunction(MemberEntity member, [ir.FunctionNode function]) {
+  void openFunction(MemberEntity member, [ir.FunctionNode functionNode]) {
     Map<Local, TypeMask> parameterMap = <Local, TypeMask>{};
-    if (function != null) {
+    if (functionNode != null) {
       void handleParameter(ir.VariableDeclaration node) {
         Local local = localsMap.getLocalVariable(node);
         parameterMap[local] =
             _typeInferenceMap.getInferredTypeOfParameter(local);
       }
 
-      function.positionalParameters.forEach(handleParameter);
-      function.namedParameters.toList()
+      functionNode.positionalParameters.forEach(handleParameter);
+      functionNode.namedParameters.toList()
         ..sort(namedOrdering)
         ..forEach(handleParameter);
-      _returnType = _elementMap.getDartType(function.returnType);
+      _returnType = _elementMap.getDartType(functionNode.returnType);
     }
 
     HBasicBlock block = graph.addNewBlock();
@@ -1258,8 +1277,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
     _addClassTypeVariablesIfNeeded(member);
     _addFunctionTypeVariablesIfNeeded(member);
 
-    if (function != null) {
-      _potentiallyAddFunctionParameterTypeChecks(function);
+    if (functionNode != null) {
+      _potentiallyAddFunctionParameterTypeChecks(functionNode);
     }
     _insertTraceCall(member);
     _insertCoverageCall(member);

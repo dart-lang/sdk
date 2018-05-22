@@ -10,6 +10,6 @@ main() {
 }
 
 @NoInline()
-test() async /*2:test*/ /*kernel.3:test*/ {
+test() async /*2:test*/ {
   /*4:test*/ throw '>ExceptionMarker<';
 }

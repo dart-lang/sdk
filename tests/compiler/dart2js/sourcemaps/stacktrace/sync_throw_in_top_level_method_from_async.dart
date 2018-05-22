@@ -9,7 +9,7 @@ main() {
 }
 
 @NoInline()
-test1() async /*2:test1*/ /*kernel.3:test1*/ {
+test1() async /*2:test1*/ {
   /*9:test1*/ test2();
 }
 

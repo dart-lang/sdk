@@ -208,9 +208,13 @@ class HGraph {
   HBasicBlock exit;
   HThis thisInstruction;
 
-  /// `true` if a sync*/async/async* method is split into an entry and a body
-  /// and this graph is for the entry, which should not be rewritten.
-  bool isGeneratorEntry = false;
+  /// `true` if this graph should be transformed by a sync*/async/async*
+  /// rewrite.
+  bool needsAsyncRewrite = false;
+
+  /// If this function requires an async rewrite, this is the element type of
+  /// the generator.
+  DartType asyncElementType;
 
   /// Receiver parameter, set for methods using interceptor calling convention.
   HParameterValue explicitReceiverParameter;
