@@ -23,7 +23,6 @@ import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/bazel.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/gn.dart';
-import 'package:analyzer/src/generated/package_build.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/workspace.dart';
@@ -282,13 +281,11 @@ class ContextBuilder {
   Workspace createWorkspace(String rootPath) {
     if (_hasPackageFileInPath(rootPath)) {
       // Bazel workspaces that include package files are treated like normal
-      // (non-Bazel) directories. But may still use package:build.
-      return PackageBuildWorkspace.find(resourceProvider, rootPath, this) ??
-          _BasicWorkspace.find(resourceProvider, rootPath, this);
+      // (non-Bazel) directories.
+      return _BasicWorkspace.find(resourceProvider, rootPath, this);
     }
     Workspace workspace = BazelWorkspace.find(resourceProvider, rootPath);
     workspace ??= GnWorkspace.find(resourceProvider, rootPath);
-    workspace ??= PackageBuildWorkspace.find(resourceProvider, rootPath, this);
     return workspace ?? _BasicWorkspace.find(resourceProvider, rootPath, this);
   }
 
