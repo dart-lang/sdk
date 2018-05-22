@@ -65,7 +65,7 @@ import 'package:front_end/src/fasta/kernel/expression_generator.dart'
         ThisIndexedAccessGenerator,
         ThisPropertyAccessGenerator,
         TypeDeclarationAccessor,
-        UnresolvedAccessor,
+        UnresolvedNameGenerator,
         VariableUseGenerator;
 
 import 'package:front_end/src/fasta/kernel/body_builder.dart'
@@ -226,7 +226,7 @@ main() {
         " plainNameForRead: foo, value: null)",
         new TypeDeclarationAccessor<Arguments>(
             helper, token, prefixBuilder, -1, declaration, "foo"));
-    check("UnresolvedAccessor(offset: 4, name: bar)",
-        new UnresolvedAccessor<Arguments>(helper, token, name));
+    check("UnresolvedNameGenerator(offset: 4, name: bar)",
+        new UnresolvedNameGenerator<Arguments>(helper, token, name));
   });
 }

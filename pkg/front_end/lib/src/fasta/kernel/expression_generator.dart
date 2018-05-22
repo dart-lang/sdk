@@ -1743,6 +1743,62 @@ abstract class IncompleteSendGenerator<Arguments> extends Generator<Arguments> {
   }
 }
 
+class UnresolvedNameGenerator<Arguments> extends Generator<Arguments>
+    with ErroneousExpressionGenerator<Arguments> {
+  @override
+  final Name name;
+
+  UnresolvedNameGenerator(
+      BuilderHelper<dynamic, dynamic, Arguments> helper, Token token, this.name)
+      : super(helper, token);
+
+  String get debugName => "UnresolvedNameGenerator";
+
+  kernel.Expression doInvocation(int charOffset, Arguments arguments) {
+    return buildError(arguments, offset: charOffset);
+  }
+
+  @override
+  DartType buildErroneousTypeNotAPrefix(Identifier suffix) {
+    helper.addProblem(
+        templateUnresolvedPrefixInTypeAnnotation.withArguments(
+            name.name, suffix.name),
+        offsetForToken(token),
+        lengthOfSpan(token, suffix.token));
+    return const InvalidType();
+  }
+
+  @override
+  kernel.Expression buildError(Arguments arguments,
+      {bool isGetter: false, bool isSetter: false, int offset}) {
+    offset ??= offsetForToken(this.token);
+    return helper.throwNoSuchMethodError(
+        storeOffset(forest.literalNull(null), offset),
+        plainNameForRead,
+        arguments,
+        offset,
+        isGetter: isGetter,
+        isSetter: isSetter);
+  }
+
+  @override
+  kernel.Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+    return unsupported("_makeRead", offsetForToken(token), uri);
+  }
+
+  @override
+  kernel.Expression _makeWrite(kernel.Expression value, bool voidContext,
+      ShadowComplexAssignment complexAssignment) {
+    return unsupported("_makeWrite", offsetForToken(token), uri);
+  }
+
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", name: ");
+    sink.write(name.name);
+  }
+}
+
 kernel.Expression makeLet(
     VariableDeclaration variable, kernel.Expression body) {
   if (variable == null) return body;

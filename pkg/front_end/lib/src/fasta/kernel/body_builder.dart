@@ -105,7 +105,7 @@ import 'expression_generator.dart'
         ThisAccessGenerator,
         ThisPropertyAccessGenerator,
         TypeDeclarationAccessor,
-        UnresolvedAccessor,
+        UnresolvedNameGenerator,
         VariableUseGenerator,
         buildIsNull;
 
@@ -437,7 +437,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       var expression = pop();
       if (expression is Identifier) {
         Identifier identifier = expression;
-        expression = new UnresolvedAccessor(
+        expression = new UnresolvedNameGenerator(
             this, identifier.token, new Name(identifier.name, library.library));
       }
       if (name?.isNotEmpty ?? false) {
@@ -1378,7 +1378,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       if (!isQualified && isInstanceContext) {
         assert(builder == null);
         if (constantContext != ConstantContext.none || member.isField) {
-          return new UnresolvedAccessor(this, token, n);
+          return new UnresolvedNameGenerator(this, token, n);
         }
         return new ThisPropertyAccessGenerator(this, token, n,
             lookupInstanceMember(n), lookupInstanceMember(n, isSetter: true));
@@ -1387,7 +1387,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
           member?.name == "_getMainClosure") {
         return storeOffset(forest.literalNull(null), charOffset);
       } else {
-        return new UnresolvedAccessor(this, token, n);
+        return new UnresolvedNameGenerator(this, token, n);
       }
     } else if (builder.isTypeDeclaration) {
       if (constantContext != ConstantContext.none &&
@@ -2564,7 +2564,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         String name = suffix == null
             ? "${prefix.plainNameForRead}.${identifier.name}"
             : "${prefix.plainNameForRead}.${identifier.name}.$suffix";
-        type = new UnresolvedAccessor(
+        type = new UnresolvedNameGenerator(
             this, prefix.token, new Name(name, library.library));
       } else {
         unhandled("${prefix.runtimeType}", "pushQualifiedReference",

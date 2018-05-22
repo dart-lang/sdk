@@ -568,7 +568,7 @@ class TypeDeclarationAccessor<Arguments>
       if (builder == null) {
         // If we find a setter, [builder] is an [AccessErrorBuilder], not null.
         if (send is IncompletePropertyAccessor) {
-          accessor = new UnresolvedAccessor(helper, send.token, name);
+          accessor = new UnresolvedNameGenerator(helper, send.token, name);
         } else {
           return helper.buildConstructorInvocation(declaration, send.token,
               arguments, name.name, null, token.charOffset, Constness.implicit);
@@ -652,55 +652,6 @@ class TypeDeclarationAccessor<Arguments>
   kernel.Expression doInvocation(int offset, Arguments arguments) {
     return helper.buildConstructorInvocation(declaration, token, arguments, "",
         null, token.charOffset, Constness.implicit);
-  }
-}
-
-class UnresolvedAccessor<Arguments> extends FastaAccessor<Arguments>
-    with GeneratorImpl, ErroneousExpressionGenerator<Arguments> {
-  @override
-  final Token token;
-
-  @override
-  final BuilderHelper<dynamic, dynamic, Arguments> helper;
-
-  @override
-  final Name name;
-
-  UnresolvedAccessor(this.helper, this.token, this.name);
-
-  String get debugName => "UnresolvedAccessor";
-
-  kernel.Expression doInvocation(int charOffset, Arguments arguments) {
-    return buildError(arguments, offset: charOffset);
-  }
-
-  @override
-  DartType buildErroneousTypeNotAPrefix(Identifier suffix) {
-    helper.addProblem(
-        templateUnresolvedPrefixInTypeAnnotation.withArguments(
-            name.name, suffix.name),
-        offsetForToken(token),
-        lengthOfSpan(token, suffix.token));
-    return const InvalidType();
-  }
-
-  @override
-  kernel.Expression buildError(Arguments arguments,
-      {bool isGetter: false, bool isSetter: false, int offset}) {
-    offset ??= offsetForToken(this.token);
-    return helper.throwNoSuchMethodError(
-        storeOffset(forest.literalNull(null), offset),
-        plainNameForRead,
-        arguments,
-        offset,
-        isGetter: isGetter,
-        isSetter: isSetter);
-  }
-
-  @override
-  void printOn(StringSink sink) {
-    sink.write(", name: ");
-    sink.write(name.name);
   }
 }
 
