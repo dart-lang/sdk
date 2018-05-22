@@ -9,6 +9,8 @@ import 'package:kernel/ast.dart' as kernel show Arguments, DartType;
 
 import 'body_builder.dart' show Identifier;
 
+export 'body_builder.dart' show Identifier, Operator;
+
 /// A tree factory.
 ///
 /// For now, the [Location] is always a token.

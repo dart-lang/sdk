@@ -21,8 +21,7 @@ import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:front_end/src/fasta/constant_context.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart';
 import "package:front_end/src/fasta/fasta_codes.dart";
-import 'package:front_end/src/fasta/kernel/body_builder.dart' hide Identifier;
-import 'package:front_end/src/fasta/kernel/forest.dart';
+import 'package:front_end/src/fasta/kernel/forest.dart' hide Identifier;
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart';
 import "package:front_end/src/fasta/kernel/kernel_target.dart";
 import 'package:front_end/src/fasta/modifier.dart' as Modifier;
@@ -514,7 +513,7 @@ f() {
         false /* strong mode */,
       ));
 
-      BodyBuilder builder = new AstBodyBuilder(
+      AstBodyBuilder builder = new AstBodyBuilder(
         library,
         procedureBuilder,
         library.scope,

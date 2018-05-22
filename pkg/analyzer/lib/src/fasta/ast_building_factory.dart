@@ -6,8 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart' hide Identifier;
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
-import 'package:front_end/src/fasta/kernel/body_builder.dart'
-    show Identifier, Operator;
 import 'package:front_end/src/fasta/kernel/forest.dart';
 import 'package:kernel/ast.dart' as kernel;
 

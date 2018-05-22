@@ -62,7 +62,9 @@ import '../../base/instrumentation.dart'
 
 import '../fasta_codes.dart';
 
-import '../kernel/expression_generator.dart' show BuilderHelper, buildIsNull;
+import '../kernel/expression_generator.dart' show buildIsNull;
+
+import '../kernel/expression_generator_helper.dart' show BuilderHelper;
 
 import '../kernel/kernel_shadow_ast.dart'
     show

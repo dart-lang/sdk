@@ -67,7 +67,9 @@ import '../type_inference/type_schema_environment.dart'
 
 import 'body_builder.dart' show combineStatements;
 
-import 'expression_generator.dart' show BuilderHelper, makeLet;
+import 'expression_generator.dart' show makeLet;
+
+import 'expression_generator_helper.dart' show BuilderHelper;
 
 /// Indicates whether type inference involving conditional expressions should
 /// always use least upper bound.

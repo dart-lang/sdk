@@ -84,7 +84,6 @@ import 'constness.dart' show Constness;
 
 import 'expression_generator.dart'
     show
-        BuilderHelper,
         DeferredAccessGenerator,
         ErroneousExpressionGenerator,
         Generator,
@@ -105,6 +104,8 @@ import 'expression_generator.dart'
         UnresolvedNameGenerator,
         VariableUseGenerator,
         buildIsNull;
+
+import 'expression_generator_helper.dart' show BuilderHelper;
 
 import 'redirecting_factory_body.dart'
     show
