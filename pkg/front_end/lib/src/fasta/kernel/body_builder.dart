@@ -2320,14 +2320,11 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       optional = pop();
       count--;
     }
-    FormalParameters<Arguments> formals = new FormalParameters(
-        popList(
-                count,
-                new List<VariableDeclaration>.filled(count, null,
-                    growable: true)) ??
-            <VariableDeclaration>[],
-        optional,
-        beginToken.charOffset);
+    List<VariableDeclaration> variables =
+        new List<VariableDeclaration>.filled(count, null, growable: true);
+    popList(count, variables);
+    FormalParameters<Arguments> formals =
+        new FormalParameters(variables, optional, beginToken.charOffset);
     constantContext = pop();
     push(formals);
     if ((inCatchClause || functionNestingLevel != 0) &&
