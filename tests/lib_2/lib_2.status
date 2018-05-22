@@ -144,6 +144,9 @@ mirrors/load_library_test: RuntimeError, OK # Deferred loaded eagerly
 mirrors/redirecting_factory_different_type_test/none: RuntimeError
 mirrors/reflected_type_generics_test/02: Fail, OK # Type check for a bounded type argument.
 
+[ $compiler == none && !$fasta ]
+mirrors/abstract_class_test: RuntimeError
+
 [ $runtime == chrome && $system == linux ]
 mirrors/native_class_test: Pass, Slow
 
