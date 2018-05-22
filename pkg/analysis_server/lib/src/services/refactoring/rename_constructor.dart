@@ -27,9 +27,9 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   final AstProvider astProvider;
 
-  RenameConstructorRefactoringImpl(
-      SearchEngine searchEngine, this.astProvider, ConstructorElement element)
-      : super(searchEngine, element);
+  RenameConstructorRefactoringImpl(RefactoringWorkspace workspace,
+      this.astProvider, ConstructorElement element)
+      : super(workspace, element);
 
   @override
   ConstructorElement get element => super.element as ConstructorElement;

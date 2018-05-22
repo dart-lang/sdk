@@ -42,8 +42,9 @@ Future<RefactoringStatus> validateRenameTopLevel(
  * A [Refactoring] for renaming compilation unit member [Element]s.
  */
 class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
-  RenameUnitMemberRefactoringImpl(SearchEngine searchEngine, Element element)
-      : super(searchEngine, element);
+  RenameUnitMemberRefactoringImpl(
+      RefactoringWorkspace workspace, Element element)
+      : super(workspace, element);
 
   @override
   String get refactoringName {

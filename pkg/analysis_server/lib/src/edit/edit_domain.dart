@@ -65,6 +65,11 @@ class EditDomainHandler extends AbstractRequestHandler {
   SearchEngine searchEngine;
 
   /**
+   * The workspace for rename refactorings.
+   */
+  RefactoringWorkspace refactoringWorkspace;
+
+  /**
    * The object used to manage uncompleted refactorings.
    */
   _RefactoringManager refactoringManager;
@@ -74,6 +79,8 @@ class EditDomainHandler extends AbstractRequestHandler {
    */
   EditDomainHandler(AnalysisServer server) : super(server) {
     searchEngine = server.searchEngine;
+    refactoringWorkspace =
+        new RefactoringWorkspace(server.driverMap.values, searchEngine);
     _newRefactoringManager();
   }
 
@@ -589,7 +596,7 @@ class EditDomainHandler extends AbstractRequestHandler {
         // try RENAME
         {
           RenameRefactoring renameRefactoring = new RenameRefactoring(
-              searchEngine, server.getAstProvider(file), element);
+              refactoringWorkspace, server.getAstProvider(file), element);
           if (renameRefactoring != null) {
             kinds.add(RefactoringKind.RENAME);
           }
@@ -614,7 +621,7 @@ class EditDomainHandler extends AbstractRequestHandler {
    * Initializes [refactoringManager] with a new instance.
    */
   void _newRefactoringManager() {
-    refactoringManager = new _RefactoringManager(server, searchEngine);
+    refactoringManager = new _RefactoringManager(server, refactoringWorkspace);
   }
 
   static int _getNumberOfScanParseErrors(List<engine.AnalysisError> errors) {
@@ -695,6 +702,7 @@ class _RefactoringManager {
       const <RefactoringProblem>[];
 
   final AnalysisServer server;
+  final RefactoringWorkspace refactoringWorkspace;
   final SearchEngine searchEngine;
   StreamSubscription subscriptionToReset;
 
@@ -711,7 +719,8 @@ class _RefactoringManager {
   Request request;
   EditGetRefactoringResult result;
 
-  _RefactoringManager(this.server, this.searchEngine) {
+  _RefactoringManager(this.server, this.refactoringWorkspace)
+      : searchEngine = refactoringWorkspace.searchEngine {
     _reset();
   }
 
@@ -978,7 +987,7 @@ class _RefactoringManager {
 
         // do create the refactoring
         refactoring = new RenameRefactoring(
-            searchEngine, server.getAstProvider(file), element);
+            refactoringWorkspace, server.getAstProvider(file), element);
         feedback = new RenameFeedback(
             feedbackOffset, feedbackLength, 'kind', 'oldName');
       }
