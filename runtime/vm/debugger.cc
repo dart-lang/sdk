@@ -752,15 +752,26 @@ RawObject* ActivationFrame::GetAsyncCompleter() {
 }
 
 RawObject* ActivationFrame::GetAsyncCompleterAwaiter(const Object& completer) {
-  const Class& sync_completer_cls = Class::Handle(completer.clazz());
-  ASSERT(!sync_completer_cls.IsNull());
-  const Class& completer_cls = Class::Handle(sync_completer_cls.SuperClass());
-  const Field& future_field =
-      Field::Handle(completer_cls.LookupInstanceFieldAllowPrivate(
-          Symbols::CompleterFuture()));
-  ASSERT(!future_field.IsNull());
   Instance& future = Instance::Handle();
-  future ^= Instance::Cast(completer).GetField(future_field);
+  if (FLAG_sync_async) {
+    const Class& completer_cls = Class::Handle(completer.clazz());
+    ASSERT(!completer_cls.IsNull());
+    const Function& future_getter = Function::Handle(
+        completer_cls.LookupGetterFunction(Symbols::CompleterFuture()));
+    ASSERT(!future_getter.IsNull());
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, Instance::Cast(completer));
+    future ^= DartEntry::InvokeFunction(future_getter, args);
+  } else {
+    const Class& sync_completer_cls = Class::Handle(completer.clazz());
+    ASSERT(!sync_completer_cls.IsNull());
+    const Class& completer_cls = Class::Handle(sync_completer_cls.SuperClass());
+    const Field& future_field =
+        Field::Handle(completer_cls.LookupInstanceFieldAllowPrivate(
+            Symbols::CompleterFuture()));
+    ASSERT(!future_field.IsNull());
+    future ^= Instance::Cast(completer).GetField(future_field);
+  }
   if (future.IsNull()) {
     // The completer object may not be fully initialized yet.
     return Object::null();
@@ -855,11 +866,18 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
 
 void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
   // Attempt to determine the token position from the async closure.
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const Script& script = Script::Handle(zone, function().script());
+
   ASSERT(function_.IsAsyncGenClosure() || function_.IsAsyncClosure());
   // This should only be called on frames that aren't active on the stack.
   ASSERT(fp() == 0);
+
   const Array& await_to_token_map =
-      Array::Handle(code_.await_token_positions());
+      Array::Handle(zone, script.kind() == RawScript::kKernelTag
+                              ? script.yield_positions()
+                              : code_.await_token_positions());
   if (await_to_token_map.IsNull()) {
     // No mapping.
     return;
@@ -883,9 +901,15 @@ void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
   if (await_jump_var < 0) {
     return;
   }
-  ASSERT(await_jump_var < await_to_token_map.Length());
+  intptr_t await_to_token_map_index =
+      script.kind() == RawScript::kKernelTag
+          ? await_jump_var - 1
+          :
+          // source script tokens array has first element duplicated
+          await_jump_var;
+  ASSERT(await_to_token_map_index < await_to_token_map.Length());
   const Object& token_pos =
-      Object::Handle(await_to_token_map.At(await_jump_var));
+      Object::Handle(await_to_token_map.At(await_to_token_map_index));
   if (token_pos.IsNull()) {
     return;
   }
@@ -2017,12 +2041,36 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
   Array& deopt_frame = Array::Handle(zone);
   class StackTrace& async_stack_trace = StackTrace::Handle(zone);
   bool stack_has_async_function = false;
+
+  // Number of frames we are trying to skip that form "sync async" entry.
+  int skipSyncAsyncFramesCount = -1;
+  String& function_name = String::Handle(zone);
   for (StackFrame* frame = iterator.NextFrame(); frame != NULL;
        frame = iterator.NextFrame()) {
     ASSERT(frame->IsValid());
     if (FLAG_trace_debugger_stacktrace) {
-      OS::PrintErr("CollectStackTrace: visiting frame:\n\t%s\n",
+      OS::PrintErr("CollectAwaiterReturnStackTrace: visiting frame:\n\t%s\n",
                    frame->ToCString());
+    }
+    if (skipSyncAsyncFramesCount >= 0) {
+      if (!frame->IsDartFrame()) {
+        break;
+      }
+      // Assume that the code we are looking for is not inlined.
+      code = frame->LookupDartCode();
+      function = code.function();
+      function_name ^= function.QualifiedScrubbedName();
+      if (skipSyncAsyncFramesCount == 2) {
+        if (!function_name.Equals(Symbols::_ClosureCall())) {
+          break;
+        }
+      } else if (skipSyncAsyncFramesCount == 1) {
+        if (!function_name.Equals(Symbols::_AsyncAwaitCompleterStart())) {
+          break;
+        }
+      }
+
+      skipSyncAsyncFramesCount--;
     }
     if (frame->IsDartFrame()) {
       code = frame->LookupDartCode();
@@ -2035,8 +2083,10 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
           function = it.function();
           if (FLAG_trace_debugger_stacktrace) {
             ASSERT(!function.IsNull());
-            OS::PrintErr("CollectStackTrace: visiting inlined function: %s\n",
-                         function.ToFullyQualifiedCString());
+            OS::PrintErr(
+                "CollectAwaiterReturnStackTrace: visiting inlined function: "
+                "%s\n",
+                function.ToFullyQualifiedCString());
           }
           intptr_t deopt_frame_offset = it.GetDeoptFpOffset();
           if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
@@ -2072,7 +2122,16 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
           // Grab the awaiter.
           async_activation ^= activation->GetAsyncAwaiter();
           async_stack_trace ^= activation->GetCausalStack();
-          break;
+          if (FLAG_sync_async) {
+            // async function might have been called synchronously, in which
+            // case we need to keep going down the stack.
+            // To determine how we are called we peek few more frames further
+            // expecting to see Closure_call followed by
+            // AsyncAwaitCompleter_start.
+            skipSyncAsyncFramesCount = 2;
+          } else {
+            break;
+          }
         } else {
           stack_trace->AddActivation(CollectDartFrame(
               isolate, frame->pc(), frame, code, Object::null_array(), 0));

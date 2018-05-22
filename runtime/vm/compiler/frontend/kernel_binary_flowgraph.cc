@@ -1598,8 +1598,8 @@ void StreamingScopeBuilder::VisitFunctionNode() {
     first_body_token_position_ = builder_->reader_.min_position();
   }
 
-  // Ensure that :await_jump_var, :await_ctx_var, :async_op and
-  // :async_stack_trace are captured.
+  // Ensure that :await_jump_var, :await_ctx_var, :async_op,
+  // :async_completer and :async_stack_trace are captured.
   if (function_node_helper.async_marker_ == FunctionNodeHelper::kSyncYielding) {
     {
       LocalVariable* temp = NULL;
@@ -1616,6 +1616,13 @@ void StreamingScopeBuilder::VisitFunctionNode() {
     {
       LocalVariable* temp =
           scope_->LookupVariable(Symbols::AsyncOperation(), true);
+      if (temp != NULL) {
+        scope_->CaptureVariable(temp);
+      }
+    }
+    {
+      LocalVariable* temp =
+          scope_->LookupVariable(Symbols::AsyncCompleter(), true);
       if (temp != NULL) {
         scope_->CaptureVariable(temp);
       }
@@ -5980,7 +5987,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
         dispatch += Drop();
       }
       if (i == (yield_continuations().length() - 1)) {
-        // We reached the last possility, no need to build more ifs.
+        // We reached the last possibility, no need to build more ifs.
         // Continue to the last continuation.
         // Note: continuations start with nop DropTemps instruction
         // which acts like an anchor, so we need to skip it.

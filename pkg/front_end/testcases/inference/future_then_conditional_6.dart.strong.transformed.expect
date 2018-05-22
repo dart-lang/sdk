@@ -24,7 +24,7 @@ class MyFuture<T extends core::Object = dynamic> extends core::Object implements
 static method test() → void {
   asy::Future<core::bool> f;
   asy::Future<core::int> t1 = f.{asy::Future::then}<core::int>((core::bool x) → asy::Future<core::int> /* originally async */ {
-    final asy::Completer<core::int> :completer = asy::Completer::sync<core::int>();
+    final asy::Completer<core::int> :async_completer = asy::Completer::sync<core::int>();
     asy::FutureOr<core::int> :return_value;
     dynamic :async_stack_trace;
     dynamic :async_op_then;
@@ -47,20 +47,20 @@ static method test() → void {
           :return_value = :async_temporary_0;
           break #L1;
         }
-        :completer.{asy::Completer::complete}(:return_value);
+        :async_completer.{asy::Completer::complete}(:return_value);
         return;
       }
       on dynamic catch(dynamic :exception, dynamic :stack_trace) {
-        :completer.{asy::Completer::completeError}(:exception, :stack_trace);
+        :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
       }
     :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
     :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
     :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
     asy::Future::microtask<dynamic>(:async_op);
-    return :completer.{asy::Completer::future};
+    return :async_completer.{asy::Completer::future};
   });
   asy::Future<core::int> t2 = f.{asy::Future::then}<core::int>((core::bool x) → asy::Future<core::int> /* originally async */ {
-    final asy::Completer<core::int> :completer = asy::Completer::sync<core::int>();
+    final asy::Completer<core::int> :async_completer = asy::Completer::sync<core::int>();
     asy::FutureOr<core::int> :return_value;
     dynamic :async_stack_trace;
     dynamic :async_op_then;
@@ -76,17 +76,17 @@ static method test() → void {
           :return_value = (:result ?{core::Object} 2 : asy::Future::value<core::int>(3)) as{TypeError} asy::FutureOr<core::int>;
           break #L2;
         }
-        :completer.{asy::Completer::complete}(:return_value);
+        :async_completer.{asy::Completer::complete}(:return_value);
         return;
       }
       on dynamic catch(dynamic :exception, dynamic :stack_trace) {
-        :completer.{asy::Completer::completeError}(:exception, :stack_trace);
+        :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
       }
     :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
     :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
     :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
     asy::Future::microtask<dynamic>(:async_op);
-    return :completer.{asy::Completer::future};
+    return :async_completer.{asy::Completer::future};
   });
   asy::Future<core::int> t5 = f.{asy::Future::then}<core::int>((core::bool x) → asy::FutureOr<core::int> => (x ?{core::Object} 2 : asy::Future::value<core::int>(3)) as{TypeError} asy::FutureOr<core::int>);
   asy::Future<core::int> t6 = f.{asy::Future::then}<core::int>((core::bool x) → asy::FutureOr<core::int> {

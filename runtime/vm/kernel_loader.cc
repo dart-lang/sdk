@@ -1398,8 +1398,16 @@ void KernelLoader::LoadProcedure(const Library& library,
   ASSERT(function_node_tag == kSomething);
   FunctionNodeHelper function_node_helper(&builder_);
   function_node_helper.ReadUntilIncluding(FunctionNodeHelper::kDartAsyncMarker);
+  // _AsyncAwaitCompleter.future should be made non-debuggable, otherwise
+  // stepping out of async methods will keep hitting breakpoint resulting in
+  // infinite loop.
+  bool isAsyncAwaitCompleterFuture =
+      Symbols::_AsyncAwaitCompleter().Equals(
+          String::Handle(owner.ScrubbedName())) &&
+      Symbols::CompleterGetFuture().Equals(String::Handle(function.name()));
   function.set_is_debuggable(function_node_helper.dart_async_marker_ ==
-                             FunctionNodeHelper::kSync);
+                                 FunctionNodeHelper::kSync &&
+                             !isAsyncAwaitCompleterFuture);
   switch (function_node_helper.dart_async_marker_) {
     case FunctionNodeHelper::kSyncStar:
       function.set_modifier(RawFunction::kSyncGen);
