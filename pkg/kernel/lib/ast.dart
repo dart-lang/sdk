@@ -5011,7 +5011,7 @@ class TypeParameter extends TreeNode {
   /// argument of a dynamic invocation of a generic function.
   DartType defaultType;
 
-  TypeParameter([this.name, this.bound]);
+  TypeParameter([this.name, this.bound, this.defaultType]);
 
   // Must match serialized bit positions.
   static const int FlagGenericCovariantImpl = 1 << 0;
@@ -5041,10 +5041,14 @@ class TypeParameter extends TreeNode {
 
   visitChildren(Visitor v) {
     bound.accept(v);
+    defaultType?.accept(v);
   }
 
   transformChildren(Transformer v) {
     bound = v.visitDartType(bound);
+    if (defaultType != null) {
+      defaultType = v.visitDartType(defaultType);
+    }
   }
 
   /// Returns a possibly synthesized name for this type parameter, consistent
