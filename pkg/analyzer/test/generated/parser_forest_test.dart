@@ -3181,6 +3181,8 @@ class ExpressionParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_parsePrimaryExpression_const() {
     super.test_parsePrimaryExpression_const();
+    fail(
+        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
   }
 
   @failingTest

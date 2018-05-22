@@ -58,7 +58,29 @@ class AstBuildingForest
   Expression asExpression(Expression expression, type, Token location) =>
       astFactory.asExpression(expression, location, type);
 
+  @override
   Expression asLiteralString(Expression value) => value;
+
+  @override
+  ConstructorInitializer assertInitializer(
+          Token assertKeyword,
+          Token leftParenthesis,
+          Expression condition,
+          Token comma,
+          Expression message) =>
+      astFactory.assertInitializer(assertKeyword, leftParenthesis, condition,
+          comma, message, leftParenthesis.endGroup);
+
+  @override
+  Statement assertStatement(
+          Token assertKeyword,
+          Token leftParenthesis,
+          Expression condition,
+          Token comma,
+          Expression message,
+          Token semicolon) =>
+      astFactory.assertStatement(assertKeyword, leftParenthesis, condition,
+          comma, message, leftParenthesis.endGroup, semicolon);
 
   @override
   Expression awaitExpression(Expression operand, Token awaitKeyword) =>
@@ -114,6 +136,7 @@ class AstBuildingForest
   Statement emptyStatement(Token semicolon) =>
       astFactory.emptyStatement(semicolon);
 
+  @override
   Statement expressionStatement(Expression expression, Token semicolon) =>
       astFactory.expressionStatement(expression, semicolon);
 

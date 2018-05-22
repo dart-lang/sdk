@@ -135,6 +135,20 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   Expression asExpression(
       Expression expression, covariant type, Location location);
 
+  /// Return a representation of an assert that appears in a constructor's
+  /// initializer list.
+  Object assertInitializer(Location assertKeyword, Location leftParenthesis,
+      Expression condition, Location comma, Expression message);
+
+  /// Return a representation of an assert that appears as a statement.
+  Statement assertStatement(
+      Location assertKeyword,
+      Location leftParenthesis,
+      Expression condition,
+      Location comma,
+      Expression message,
+      Location semicolon);
+
   Expression awaitExpression(Expression operand, Location location);
 
   /// Return a representation of a block of [statements] enclosed between the
