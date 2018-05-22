@@ -21,9 +21,7 @@ analyzer_files = exec_script("../../tools/list_dart_files.py",
                              "list lines")
 
 application_snapshot("generate_dartanalyzer_snapshot") {
-  vm_args = [
-    "--preview-dart-2",
-  ]
+  dart_version = 2
   main_dart = "../../pkg/analyzer_cli/bin/analyzer.dart"
   training_args = [
     "--dart-sdk=" + rebase_path("../../sdk"),
