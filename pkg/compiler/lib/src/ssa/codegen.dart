@@ -271,7 +271,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     int constant(HInstruction instruction) {
       if (instruction is HConstant && instruction.isConstantInteger()) {
         IntConstantValue constant = instruction.constant;
-        return constant.intValue;
+        return constant.intValue.toInt();
       }
       return null;
     }

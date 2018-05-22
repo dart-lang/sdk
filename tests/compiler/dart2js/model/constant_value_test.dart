@@ -29,12 +29,12 @@ void main() {
     FieldEntity field1 = env.elementEnvironment.lookupClassMember(C, 'field1');
     FieldEntity field2 = env.elementEnvironment.lookupClassMember(C, 'field2');
     ConstructedConstantValue value1 = new ConstructedConstantValue(C_raw, {
-      field1: new IntConstantValue(0),
-      field2: new IntConstantValue(1),
+      field1: new IntConstantValue(BigInt.zero),
+      field2: new IntConstantValue(BigInt.one),
     });
     ConstantValue value2 = new ConstructedConstantValue(C_raw, {
-      field2: new IntConstantValue(1),
-      field1: new IntConstantValue(0),
+      field2: new IntConstantValue(BigInt.one),
+      field1: new IntConstantValue(BigInt.zero),
     });
     Expect.equals(value1.hashCode, value2.hashCode, "Hashcode mismatch.");
     Expect.equals(value1, value2, "Value mismatch.");

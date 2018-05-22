@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions= --no_limit_ints_to_64_bits
 import 'dart:async';
 import 'package:expect/expect.dart';
 import 'package:compiler/compiler_new.dart';
@@ -14,7 +13,8 @@ const MEMORY_SOURCE_FILES = const {
   'main.dart': '''
         main() {
           print(12300000);
-          print(1234567890123456789012345);
+          // TODO(efortuna): Uncomment below when issue 33160 is fixed.
+          // print(0xffffffff00000000);
           print(double.maxFinite);
           print(-22230000);
         }'''
@@ -44,7 +44,9 @@ Future test({bool minify}) async {
     Expect.isTrue(jsOutput.contains('12300000'));
     Expect.isTrue(jsOutput.contains('-22230000'));
   }
-  Expect.isTrue(jsOutput.contains('12345678901234568e8'));
+  // TODO(efortuna): Uncomment when issue 33160 is fixed.
+  //Expect.isTrue(jsOutput.contains('18446744069414584e3'));
+  //Expect.isFalse(jsOutput.contains('-4294967296'));
   Expect.isTrue(jsOutput.contains('17976931348623157e292'));
   Expect.isFalse(jsOutput.contains('1234567890123456789012345'));
   // The decimal expansion of double.maxFinite has 308 digits. We only check

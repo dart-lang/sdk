@@ -2361,7 +2361,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
       List<ConstantValue> getConstants(
           ir.SwitchStatement parentSwitch, ir.SwitchCase switchCase) {
-        return <ConstantValue>[constantSystem.createInt(caseIndex[switchCase])];
+        return <ConstantValue>[
+          constantSystem.createIntFromInt(caseIndex[switchCase])
+        ];
       }
 
       void buildSwitchCase(ir.SwitchCase switchCase) {
@@ -4278,7 +4280,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     add(argumentNamesInstruction);
 
     ConstantValue kindConstant =
-        constantSystem.createInt(selector.invocationMirrorKind);
+        constantSystem.createIntFromInt(selector.invocationMirrorKind);
 
     _pushStaticInvocation(
         _commonElements.createInvocationMirror,

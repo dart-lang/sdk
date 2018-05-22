@@ -615,8 +615,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     ConstantSystem constantSystem = _closedWorld.constantSystem;
     // The JavaScript backend may turn this literal into a double at
     // runtime.
-    return _types.getConcreteTypeFor(
-        computeTypeMask(_closedWorld, constantSystem.createInt(node.value)));
+    return _types.getConcreteTypeFor(computeTypeMask(
+        _closedWorld, constantSystem.createIntFromInt(node.value)));
   }
 
   @override
@@ -1012,7 +1012,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         ConstantValue value = _elementMap.getFieldConstantValue(member);
         if (value != null && value.isInt) {
           IntConstantValue intValue = value;
-          return intValue.intValue;
+          return intValue.intValue.toInt();
         }
       }
     }

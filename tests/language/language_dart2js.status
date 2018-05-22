@@ -33,6 +33,7 @@ await_future_test: Pass, Timeout # Issue 26735
 override_field_test/02: Pass, Slow # TODO(kasperl): Please triage.
 
 [ $compiler == dart2js && $runtime == d8 && $fasta ]
+int_round_to_double_test: RuntimeError # Large integer literal. Not valid in dart2.
 regress_23408_test: RuntimeError
 
 [ $compiler == dart2js && $runtime != drt ]

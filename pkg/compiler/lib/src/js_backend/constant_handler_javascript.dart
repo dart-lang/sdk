@@ -43,7 +43,7 @@ class JavaScriptConstantCompiler implements BackendConstantEnvironment {
 
   JavaScriptConstantCompiler();
 
-  ConstantSystem get constantSystem => JAVA_SCRIPT_CONSTANT_SYSTEM;
+  ConstantSystem get constantSystem => JavaScriptConstantSystem.only;
 
   @override
   void registerLazyStatic(FieldEntity element) {

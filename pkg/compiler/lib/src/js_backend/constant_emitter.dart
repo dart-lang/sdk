@@ -120,7 +120,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
 
   @override
   jsAst.Expression visitInt(IntConstantValue constant, [_]) {
-    int value = constant.intValue;
+    BigInt value = constant.intValue;
     // Since we are in JavaScript we can shorten long integers to their shorter
     // exponential representation, for example: "1e4" is shorter than "10000".
     //
@@ -131,9 +131,9 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     String representation = value.toString();
     String alternative = null;
     int cutoff = _options.enableMinification ? 10000 : 1e10.toInt();
-    if (value.abs() >= cutoff) {
-      alternative =
-          _shortenExponentialRepresentation(value.toStringAsExponential());
+    if (value.abs() >= new BigInt.from(cutoff)) {
+      alternative = _shortenExponentialRepresentation(
+          value.toDouble().toStringAsExponential());
     }
     if (alternative != null && alternative.length < representation.length) {
       representation = alternative;

@@ -660,16 +660,16 @@ class TruncatingDivideSpecializer extends BinaryArithmeticSpecializer {
     if (!instruction.isConstantInteger()) return false;
     HConstant rightConstant = instruction;
     IntConstantValue intConstant = rightConstant.constant;
-    int count = intConstant.intValue;
-    return count != 0;
+    BigInt count = intConstant.intValue;
+    return count != BigInt.zero;
   }
 
   bool isTwoOrGreater(HInstruction instruction) {
     if (!instruction.isConstantInteger()) return false;
     HConstant rightConstant = instruction;
     IntConstantValue intConstant = rightConstant.constant;
-    int count = intConstant.intValue;
-    return count >= 2;
+    BigInt count = intConstant.intValue;
+    return count >= BigInt.two;
   }
 
   bool hasUint31Result(HInstruction instruction, ClosedWorld closedWorld) {
@@ -750,7 +750,9 @@ abstract class BinaryBitOpSpecializer extends BinaryArithmeticSpecializer {
     if (instruction.isConstantInteger()) {
       HConstant rightConstant = instruction;
       IntConstantValue intConstant = rightConstant.constant;
-      int value = intConstant.intValue;
+      int value = intConstant.intValue.toInt();
+      assert(intConstant.intValue ==
+          new BigInt.from(intConstant.intValue.toInt()));
       return value >= low && value <= high;
     }
     // TODO(sra): Integrate with the bit-width analysis in codegen.dart.

@@ -292,7 +292,8 @@ class HGraph {
   }
 
   HConstant addConstantInt(int i, ClosedWorld closedWorld) {
-    return addConstant(closedWorld.constantSystem.createInt(i), closedWorld);
+    return addConstant(
+        closedWorld.constantSystem.createIntFromInt(i), closedWorld);
   }
 
   HConstant addConstantDouble(double d, ClosedWorld closedWorld) {
