@@ -7,9 +7,9 @@ import 'dart:convert' show json;
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:build_integration/file_system/multi_root.dart';
 import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
-import 'package:front_end/src/multi_root_file_system.dart';
 import 'package:kernel/kernel.dart';
 import 'package:path/path.dart' as path;
 import 'package:source_maps/source_maps.dart';

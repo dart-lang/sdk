@@ -1,0 +1,9 @@
+name: build_integration
+version: 0.0.1
+author: Dart Team <misc@dartlang.org>
+description: >
+  Libraries for integrating Dart tools with build systems like bazel
+  and build_runner.
+homepage: https://github.com/dart-lang/sdk/tree/master/pkg/build_integration
+dependencies:
+  front_end: ^0.1.0

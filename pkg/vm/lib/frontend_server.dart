@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:io' hide FileSystemEntity;
 
 import 'package:args/args.dart';
+import 'package:build_integration/file_system/multi_root.dart';
 // front_end/src imports below that require lint `ignore_for_file`
 // are a temporary state of things until frontend team builds better api
 // that would replace api used below. This api was made private in
@@ -18,11 +19,7 @@ import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/file_system.dart'
     show FileSystemEntity;
 import 'package:front_end/src/api_prototype/front_end.dart';
-// Use of multi_root_file_system.dart directly from front_end package is a
-// temporarily solution while we are looking for better home for that
-// functionality.
 import 'package:front_end/src/fasta/kernel/utils.dart';
-import 'package:front_end/src/multi_root_file_system.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/binary/limited_ast_to_binary.dart';

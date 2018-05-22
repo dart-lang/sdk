@@ -6,8 +6,8 @@ library front_end.test.src.multi_root_file_system.dart;
 
 import 'dart:async';
 
+import 'package:build_integration/file_system/multi_root.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
-import 'package:front_end/src/multi_root_file_system.dart';
 
 import 'package:test/test.dart';
 
