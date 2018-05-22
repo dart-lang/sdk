@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*kernel.class: global#Map:instance*/
-/*strong.class: global#Map:checks=[],instance*/
+/*strong.class: global#Map:checkedInstance,checks=[],instance*/
 
 /*class: global#LinkedHashMap:*/
 /*class: global#JsLinkedHashMap:checks=[],instance*/

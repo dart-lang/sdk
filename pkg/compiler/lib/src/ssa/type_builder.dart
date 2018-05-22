@@ -66,15 +66,15 @@ abstract class TypeBuilder {
     assert(type != null);
     type = builder.localsHandler.substInContext(type);
     HInstruction other = buildTypeConversion(original, type, kind);
-    if (other is HTypeConversion && other.isRedundant(builder.closedWorld)) {
-      return original;
-    }
     // TODO(johnniwinther): This operation on `registry` may be inconsistent.
     // If it is needed then it seems likely that similar invocations of
     // `buildTypeConversion` in `SsaBuilder.visitAs` should also be followed by
     // a similar operation on `registry`; otherwise, this one might not be
     // needed.
     builder.registry?.registerTypeUse(new TypeUse.isCheck(type));
+    if (other is HTypeConversion && other.isRedundant(builder.closedWorld)) {
+      return original;
+    }
     return other;
   }
 
