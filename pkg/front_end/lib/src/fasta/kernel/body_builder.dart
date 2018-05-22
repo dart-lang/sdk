@@ -93,7 +93,7 @@ import 'expression_generator.dart'
         GeneratorImpl,
         IncompleteError,
         IncompletePropertyAccessor,
-        IncompleteSend,
+        IncompleteSendGenerator,
         IndexedAccessGenerator,
         LargeIntAccessGenerator,
         LoadLibraryGenerator,
@@ -1078,7 +1078,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   /// Handle `a?.b(...)`.
   void doIfNotNull(Token token) {
     var send = pop();
-    if (send is IncompleteSend) {
+    if (send is IncompleteSendGenerator) {
       push(send.withReceiver(pop(), token.charOffset, isNullAware: true));
     } else {
       pop();
@@ -1091,7 +1091,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
 
   void doDotOrCascadeExpression(Token token) {
     var send = pop();
-    if (send is IncompleteSend) {
+    if (send is IncompleteSendGenerator) {
       Object receiver = optional(".", token) ? pop() : popForValue();
       push(send.withReceiver(receiver, token.charOffset));
     } else {

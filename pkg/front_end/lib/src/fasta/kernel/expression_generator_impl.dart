@@ -188,7 +188,7 @@ abstract class FastaAccessor<Arguments> implements Accessor<Arguments> {
       int offset, Arguments arguments);
 
   /* kernel.Expression | FastaAccessor */ buildPropertyAccess(
-      IncompleteSend send, int operatorOffset, bool isNullAware) {
+      IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
     if (send is SendAccessor) {
       return helper.buildMethodInvocation(buildSimpleRead(), send.name,
           send.arguments, offsetForToken(send.token),
@@ -255,51 +255,29 @@ abstract class GeneratorImpl {
 
   kernel.Expression _finish(
       kernel.Expression body, ShadowComplexAssignment complexAssignment) {
-    return unimplemented("_finish", offsetForToken(token), uri);
+    return unsupported("_finish", offsetForToken(token), uri);
   }
 
   kernel.Expression _makeSimpleRead() {
-    return unimplemented("_makeSimpleRead", offsetForToken(token), uri);
+    return unsupported("_makeSimpleRead", offsetForToken(token), uri);
   }
 
   kernel.Expression _makeSimpleWrite(kernel.Expression value, bool voidContext,
       ShadowComplexAssignment complexAssignment) {
-    return unimplemented("_makeSimpleWrite", offsetForToken(token), uri);
+    return unsupported("_makeSimpleWrite", offsetForToken(token), uri);
   }
 
   kernel.Expression _makeRead(ShadowComplexAssignment complexAssignment) {
-    return unimplemented("_makeRead", offsetForToken(token), uri);
+    return unsupported("_makeRead", offsetForToken(token), uri);
   }
 
   kernel.Expression _makeWrite(kernel.Expression value, bool voidContext,
       ShadowComplexAssignment complexAssignment) {
-    return unimplemented("_makeWrite", offsetForToken(token), uri);
+    return unsupported("_makeWrite", offsetForToken(token), uri);
   }
 }
 
-abstract class IncompleteSend<Arguments> extends FastaAccessor<Arguments>
-    with GeneratorImpl {
-  final BuilderHelper<dynamic, dynamic, Arguments> helper;
-
-  @override
-  final Token token;
-
-  final Name name;
-
-  IncompleteSend(this.helper, this.token, this.name);
-
-  withReceiver(Object receiver, int operatorOffset, {bool isNullAware});
-
-  Arguments get arguments => null;
-
-  @override
-  void printOn(StringSink sink) {
-    sink.write(", name: ");
-    sink.write(name.name);
-  }
-}
-
-class IncompleteError<Arguments> extends IncompleteSend<Arguments>
+class IncompleteError<Arguments> extends IncompleteSendGenerator<Arguments>
     with ErroneousExpressionGenerator<Arguments> {
   final Message message;
 
@@ -340,7 +318,7 @@ class IncompleteError<Arguments> extends IncompleteSend<Arguments>
   }
 }
 
-class SendAccessor<Arguments> extends IncompleteSend<Arguments> {
+class SendAccessor<Arguments> extends IncompleteSendGenerator<Arguments> {
   @override
   final Arguments arguments;
 
@@ -429,7 +407,8 @@ class SendAccessor<Arguments> extends IncompleteSend<Arguments> {
   }
 }
 
-class IncompletePropertyAccessor<Arguments> extends IncompleteSend<Arguments> {
+class IncompletePropertyAccessor<Arguments>
+    extends IncompleteSendGenerator<Arguments> {
   IncompletePropertyAccessor(
       BuilderHelper<dynamic, dynamic, Arguments> helper, Token token, Name name)
       : super(helper, token, name);
@@ -572,7 +551,7 @@ class TypeDeclarationAccessor<Arguments>
 
   @override
   buildPropertyAccess(
-      IncompleteSend send, int operatorOffset, bool isNullAware) {
+      IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
     // `SomeType?.toString` is the same as `SomeType.toString`, not
     // `(SomeType).toString`.
     isNullAware = false;

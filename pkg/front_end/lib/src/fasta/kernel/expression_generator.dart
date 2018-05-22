@@ -29,7 +29,7 @@ import '../names.dart'
 
 import '../parser.dart' show lengthForToken, lengthOfSpan, offsetForToken;
 
-import '../problems.dart' show unhandled, unimplemented, unsupported;
+import '../problems.dart' show unhandled, unsupported;
 
 import '../scope.dart' show AccessErrorBuilder, ProblemBuilder, Scope;
 
@@ -589,7 +589,7 @@ class NullAwarePropertyAccessGenerator<Arguments> extends Generator<Arguments> {
   }
 
   kernel.Expression doInvocation(int offset, Arguments arguments) {
-    return unimplemented("doInvocation", offset, uri);
+    return unsupported("doInvocation", offset, uri);
   }
 
   @override
@@ -1288,7 +1288,7 @@ class DeferredAccessGenerator<Arguments> extends Generator<Arguments> {
   }
 
   buildPropertyAccess(
-      IncompleteSend send, int operatorOffset, bool isNullAware) {
+      IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
     var propertyAccess =
         accessor.buildPropertyAccess(send, operatorOffset, isNullAware);
     if (propertyAccess is FastaAccessor) {
@@ -1455,7 +1455,7 @@ abstract class ErroneousExpressionGenerator<Arguments>
 
   @override
   buildPropertyAccess(
-      IncompleteSend send, int operatorOffset, bool isNullAware) {
+      IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
     return this;
   }
 
@@ -1577,7 +1577,7 @@ class ThisAccessGenerator<Arguments> extends Generator<Arguments> {
   }
 
   buildPropertyAccess(
-      IncompleteSend send, int operatorOffset, bool isNullAware) {
+      IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
     Name name = send.name;
     Arguments arguments = send.arguments;
     int offset = offsetForToken(send.token);
@@ -1696,13 +1696,13 @@ class ThisAccessGenerator<Arguments> extends Generator<Arguments> {
 
   @override
   kernel.Expression _makeRead(ShadowComplexAssignment complexAssignment) {
-    return unimplemented("_makeRead", offsetForToken(token), uri);
+    return unsupported("_makeRead", offsetForToken(token), uri);
   }
 
   @override
   kernel.Expression _makeWrite(kernel.Expression value, bool voidContext,
       ShadowComplexAssignment complexAssignment) {
-    return unimplemented("_makeWrite", offsetForToken(token), uri);
+    return unsupported("_makeWrite", offsetForToken(token), uri);
   }
 
   @override
@@ -1711,6 +1711,35 @@ class ThisAccessGenerator<Arguments> extends Generator<Arguments> {
     sink.write(isInitializer);
     sink.write(", isSuper: ");
     sink.write(isSuper);
+  }
+}
+
+abstract class IncompleteSendGenerator<Arguments> extends Generator<Arguments> {
+  final Name name;
+
+  IncompleteSendGenerator(
+      BuilderHelper<dynamic, dynamic, Arguments> helper, Token token, this.name)
+      : super(helper, token);
+
+  withReceiver(Object receiver, int operatorOffset, {bool isNullAware});
+
+  Arguments get arguments => null;
+
+  @override
+  kernel.Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+    return unsupported("_makeRead", offsetForToken(token), uri);
+  }
+
+  @override
+  kernel.Expression _makeWrite(kernel.Expression value, bool voidContext,
+      ShadowComplexAssignment complexAssignment) {
+    return unsupported("_makeWrite", offsetForToken(token), uri);
+  }
+
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", name: ");
+    sink.write(name.name);
   }
 }
 
