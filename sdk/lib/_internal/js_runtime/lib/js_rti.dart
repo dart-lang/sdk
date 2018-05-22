@@ -829,6 +829,20 @@ Object getFutureOrArgument(var type) {
 bool checkSubtypeOfRuntimeType(o, t) {
   if (o == null) return isSupertypeOfNull(t);
   if (isTopType(t)) return true;
+  if (JS_GET_FLAG('STRONG_MODE') &&
+      JS('bool', 'typeof # == "object"', t) &&
+      isDartFutureOrType(t)) {
+    // `o is FutureOr<T>` is equivalent to
+    //
+    //     o is T || o is Future<T>
+    //
+    // T might be a function type, requiring extracting the closure's signature,
+    // so do the `o is T` check here and let the `Future` interface type test
+    // fall through to the `isSubtype` check at the end of this function.
+    var tTypeArgument = getFutureOrArgument(t);
+    if (checkSubtypeOfRuntimeType(o, tTypeArgument)) return true;
+  }
+
   // Get the runtime type information from the object here, because we may
   // overwrite o with the interceptor below.
   var rti = getRuntimeTypeInfo(o);
