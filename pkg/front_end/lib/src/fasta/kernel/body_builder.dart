@@ -90,7 +90,7 @@ import 'expression_generator.dart'
         ErroneousExpressionGenerator,
         FastaAccessor,
         FunctionTypeAccessor,
-        GeneratorImpl,
+        Generator,
         IncompleteError,
         IncompletePropertyAccessor,
         IncompleteSendGenerator,
@@ -4259,15 +4259,12 @@ class Label {
   String toString() => "label($name)";
 }
 
-abstract class ContextAccessor<Arguments> extends FastaAccessor<Arguments>
-    with GeneratorImpl {
-  final BuilderHelper<dynamic, dynamic, Arguments> helper;
+abstract class ContextAwareGenerator<Arguments> extends Generator<Arguments> {
+  final Generator generator;
 
-  final FastaAccessor accessor;
-
-  final Token token;
-
-  ContextAccessor(this.helper, this.token, this.accessor);
+  ContextAwareGenerator(BuilderHelper<dynamic, dynamic, Arguments> helper,
+      Token token, this.generator)
+      : super(helper, token);
 
   String get plainNameForRead {
     return unsupported("plainNameForRead", token.charOffset, helper.uri);
@@ -4326,14 +4323,14 @@ abstract class ContextAccessor<Arguments> extends FastaAccessor<Arguments>
   }
 }
 
-class DelayedAssignment<Arguments> extends ContextAccessor<Arguments> {
+class DelayedAssignment<Arguments> extends ContextAwareGenerator<Arguments> {
   final kernel.Expression value;
 
   final String assignmentOperator;
 
   DelayedAssignment(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      Token token, FastaAccessor accessor, this.value, this.assignmentOperator)
-      : super(helper, token, accessor);
+      Token token, Generator generator, this.value, this.assignmentOperator)
+      : super(helper, token, generator);
 
   String get debugName => "DelayedAssignment";
 
@@ -4351,43 +4348,43 @@ class DelayedAssignment<Arguments> extends ContextAccessor<Arguments> {
           "Not a constant expression.", offsetForToken(token));
     }
     if (identical("=", assignmentOperator)) {
-      return accessor.buildAssignment(value, voidContext: voidContext);
+      return generator.buildAssignment(value, voidContext: voidContext);
     } else if (identical("+=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(plusName, value,
+      return generator.buildCompoundAssignment(plusName, value,
           offset: offsetForToken(token), voidContext: voidContext);
     } else if (identical("-=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(minusName, value,
+      return generator.buildCompoundAssignment(minusName, value,
           offset: offsetForToken(token), voidContext: voidContext);
     } else if (identical("*=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(multiplyName, value,
+      return generator.buildCompoundAssignment(multiplyName, value,
           offset: offsetForToken(token), voidContext: voidContext);
     } else if (identical("%=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(percentName, value,
+      return generator.buildCompoundAssignment(percentName, value,
           offset: offsetForToken(token), voidContext: voidContext);
     } else if (identical("&=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(ampersandName, value,
+      return generator.buildCompoundAssignment(ampersandName, value,
           offset: offsetForToken(token), voidContext: voidContext);
     } else if (identical("/=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(divisionName, value,
+      return generator.buildCompoundAssignment(divisionName, value,
           offset: offsetForToken(token), voidContext: voidContext);
     } else if (identical("<<=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(leftShiftName, value,
+      return generator.buildCompoundAssignment(leftShiftName, value,
           offset: offsetForToken(token), voidContext: voidContext);
     } else if (identical(">>=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(rightShiftName, value,
+      return generator.buildCompoundAssignment(rightShiftName, value,
           offset: offsetForToken(token), voidContext: voidContext);
     } else if (identical("??=", assignmentOperator)) {
-      return accessor.buildNullAwareAssignment(
+      return generator.buildNullAwareAssignment(
           value, const DynamicType(), offsetForToken(token),
           voidContext: voidContext);
     } else if (identical("^=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(caretName, value,
+      return generator.buildCompoundAssignment(caretName, value,
           offset: offsetForToken(token), voidContext: voidContext);
     } else if (identical("|=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(barName, value,
+      return generator.buildCompoundAssignment(barName, value,
           offset: offsetForToken(token), voidContext: voidContext);
     } else if (identical("~/=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(mustacheName, value,
+      return generator.buildCompoundAssignment(mustacheName, value,
           offset: offsetForToken(token), voidContext: voidContext);
     } else {
       return unhandled(
@@ -4397,11 +4394,12 @@ class DelayedAssignment<Arguments> extends ContextAccessor<Arguments> {
 
   @override
   Initializer buildFieldInitializer(Map<String, int> initializedFields) {
-    if (!identical("=", assignmentOperator) || !accessor.isThisPropertyAccess) {
-      return accessor.buildFieldInitializer(initializedFields);
+    if (!identical("=", assignmentOperator) ||
+        !generator.isThisPropertyAccess) {
+      return generator.buildFieldInitializer(initializedFields);
     }
     return helper.buildFieldInitializer(
-        false, accessor.plainNameForRead, offsetForToken(token), value);
+        false, generator.plainNameForRead, offsetForToken(token), value);
   }
 
   @override
@@ -4413,7 +4411,8 @@ class DelayedAssignment<Arguments> extends ContextAccessor<Arguments> {
   }
 }
 
-class DelayedPostfixIncrement<Arguments> extends ContextAccessor<Arguments> {
+class DelayedPostfixIncrement<Arguments>
+    extends ContextAwareGenerator<Arguments> {
   final Name binaryOperator;
 
   final Procedure interfaceTarget;
@@ -4421,22 +4420,22 @@ class DelayedPostfixIncrement<Arguments> extends ContextAccessor<Arguments> {
   DelayedPostfixIncrement(
       BuilderHelper<dynamic, dynamic, Arguments> helper,
       Token token,
-      FastaAccessor accessor,
+      Generator generator,
       this.binaryOperator,
       this.interfaceTarget)
-      : super(helper, token, accessor);
+      : super(helper, token, generator);
 
   String get debugName => "DelayedPostfixIncrement";
 
   kernel.Expression buildSimpleRead() {
-    return accessor.buildPostfixIncrement(binaryOperator,
+    return generator.buildPostfixIncrement(binaryOperator,
         offset: offsetForToken(token),
         voidContext: false,
         interfaceTarget: interfaceTarget);
   }
 
   kernel.Expression buildForEffect() {
-    return accessor.buildPostfixIncrement(binaryOperator,
+    return generator.buildPostfixIncrement(binaryOperator,
         offset: offsetForToken(token),
         voidContext: true,
         interfaceTarget: interfaceTarget);

@@ -248,35 +248,6 @@ abstract class FastaAccessor<Arguments> implements Accessor<Arguments> {
   }
 }
 
-abstract class GeneratorImpl {
-  Token get token;
-
-  Uri get uri;
-
-  kernel.Expression _finish(
-      kernel.Expression body, ShadowComplexAssignment complexAssignment) {
-    return unsupported("_finish", offsetForToken(token), uri);
-  }
-
-  kernel.Expression _makeSimpleRead() {
-    return unsupported("_makeSimpleRead", offsetForToken(token), uri);
-  }
-
-  kernel.Expression _makeSimpleWrite(kernel.Expression value, bool voidContext,
-      ShadowComplexAssignment complexAssignment) {
-    return unsupported("_makeSimpleWrite", offsetForToken(token), uri);
-  }
-
-  kernel.Expression _makeRead(ShadowComplexAssignment complexAssignment) {
-    return unsupported("_makeRead", offsetForToken(token), uri);
-  }
-
-  kernel.Expression _makeWrite(kernel.Expression value, bool voidContext,
-      ShadowComplexAssignment complexAssignment) {
-    return unsupported("_makeWrite", offsetForToken(token), uri);
-  }
-}
-
 class IncompleteError<Arguments> extends IncompleteSendGenerator<Arguments>
     with ErroneousExpressionGenerator<Arguments> {
   final Message message;
