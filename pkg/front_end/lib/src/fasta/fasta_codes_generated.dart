@@ -1026,30 +1026,6 @@ const MessageCode messageConstMethod = const MessageCode("ConstMethod",
     tip: r"""Try removing the 'const' keyword.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-        Message Function(String name)>
-    templateConstructorHasNoSuchNamedParameter =
-    const Template<Message Function(String name)>(
-        messageTemplate:
-            r"""Constructor has no named parameter with the name '#name'.""",
-        withArguments: _withArgumentsConstructorHasNoSuchNamedParameter);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)>
-    codeConstructorHasNoSuchNamedParameter =
-    const Code<Message Function(String name)>(
-        "ConstructorHasNoSuchNamedParameter",
-        templateConstructorHasNoSuchNamedParameter,
-        severity: Severity.errorLegacyWarning);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstructorHasNoSuchNamedParameter(String name) {
-  return new Message(codeConstructorHasNoSuchNamedParameter,
-      message: """Constructor has no named parameter with the name '$name'.""",
-      arguments: {'name': name});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateConstructorNotFound =
     const Template<Message Function(String name)>(
         messageTemplate: r"""Couldn't find constructor '#name'.""",
@@ -2559,27 +2535,6 @@ const MessageCode messageForInLoopNotAssignable = const MessageCode(
         r"""Can't assign to this, so it can't be used in a for-in loop.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-        Message Function(String name)> templateFunctionHasNoSuchNamedParameter =
-    const Template<Message Function(String name)>(
-        messageTemplate:
-            r"""Function has no named parameter with the name '#name'.""",
-        withArguments: _withArgumentsFunctionHasNoSuchNamedParameter);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeFunctionHasNoSuchNamedParameter =
-    const Code<Message Function(String name)>("FunctionHasNoSuchNamedParameter",
-        templateFunctionHasNoSuchNamedParameter,
-        severity: Severity.errorLegacyWarning);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFunctionHasNoSuchNamedParameter(String name) {
-  return new Message(codeFunctionHasNoSuchNamedParameter,
-      message: """Function has no named parameter with the name '$name'.""",
-      arguments: {'name': name});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFunctionTypeDefaultValue = messageFunctionTypeDefaultValue;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3874,27 +3829,6 @@ const MessageCode messageMetadataTypeArguments = const MessageCode(
     message: r"""An annotation (metadata) can't use type arguments.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-        Message Function(String name)> templateMethodHasNoSuchNamedParameter =
-    const Template<Message Function(String name)>(
-        messageTemplate:
-            r"""Method has no named parameter with the name '#name'.""",
-        withArguments: _withArgumentsMethodHasNoSuchNamedParameter);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeMethodHasNoSuchNamedParameter =
-    const Code<Message Function(String name)>(
-        "MethodHasNoSuchNamedParameter", templateMethodHasNoSuchNamedParameter,
-        severity: Severity.errorLegacyWarning);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMethodHasNoSuchNamedParameter(String name) {
-  return new Message(codeMethodHasNoSuchNamedParameter,
-      message: """Method has no named parameter with the name '$name'.""",
-      arguments: {'name': name});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateMethodNotFound =
     const Template<Message Function(String name)>(
         messageTemplate: r"""Method not found: '#name'.""",
@@ -4262,6 +4196,25 @@ Message _withArgumentsNoFormals(Token token) {
       tip:
           """Try adding '()' after '$lexeme', or add 'get' before '$lexeme' to declare a getter.""",
       arguments: {'token': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateNoSuchNamedParameter =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""No named parameter with the name '#name'.""",
+        withArguments: _withArgumentsNoSuchNamedParameter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeNoSuchNamedParameter =
+    const Code<Message Function(String name)>(
+        "NoSuchNamedParameter", templateNoSuchNamedParameter,
+        severity: Severity.errorLegacyWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNoSuchNamedParameter(String name) {
+  return new Message(codeNoSuchNamedParameter,
+      message: """No named parameter with the name '$name'.""",
+      arguments: {'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5626,24 +5579,23 @@ const Template<
     Message Function(
         int count,
         int
-            count2)> templateTooFewArgumentsToConstructor = const Template<
+            count2)> templateTooFewArguments = const Template<
         Message Function(int count, int count2)>(
     messageTemplate:
-        r"""Too few positional arguments to constructor: #count required, #count2 given.""",
-    withArguments: _withArgumentsTooFewArgumentsToConstructor);
+        r"""Too few positional arguments: #count required, #count2 given.""",
+    withArguments: _withArgumentsTooFewArguments);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(int count, int count2)>
-    codeTooFewArgumentsToConstructor =
+const Code<Message Function(int count, int count2)> codeTooFewArguments =
     const Code<Message Function(int count, int count2)>(
-        "TooFewArgumentsToConstructor", templateTooFewArgumentsToConstructor,
+        "TooFewArguments", templateTooFewArguments,
         severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsTooFewArgumentsToConstructor(int count, int count2) {
-  return new Message(codeTooFewArgumentsToConstructor,
+Message _withArgumentsTooFewArguments(int count, int count2) {
+  return new Message(codeTooFewArguments,
       message:
-          """Too few positional arguments to constructor: $count required, $count2 given.""",
+          """Too few positional arguments: $count required, $count2 given.""",
       arguments: {'count': count, 'count2': count2});
 }
 
@@ -5652,128 +5604,23 @@ const Template<
     Message Function(
         int count,
         int
-            count2)> templateTooFewArgumentsToFunction = const Template<
+            count2)> templateTooManyArguments = const Template<
         Message Function(int count, int count2)>(
     messageTemplate:
-        r"""Too few positional arguments to function: #count required, #count2 given.""",
-    withArguments: _withArgumentsTooFewArgumentsToFunction);
+        r"""Too many positional arguments: #count allowed, #count2 given.""",
+    withArguments: _withArgumentsTooManyArguments);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(int count, int count2)>
-    codeTooFewArgumentsToFunction =
+const Code<Message Function(int count, int count2)> codeTooManyArguments =
     const Code<Message Function(int count, int count2)>(
-        "TooFewArgumentsToFunction", templateTooFewArgumentsToFunction,
+        "TooManyArguments", templateTooManyArguments,
         severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsTooFewArgumentsToFunction(int count, int count2) {
-  return new Message(codeTooFewArgumentsToFunction,
+Message _withArgumentsTooManyArguments(int count, int count2) {
+  return new Message(codeTooManyArguments,
       message:
-          """Too few positional arguments to function: $count required, $count2 given.""",
-      arguments: {'count': count, 'count2': count2});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        int count,
-        int
-            count2)> templateTooFewArgumentsToMethod = const Template<
-        Message Function(int count, int count2)>(
-    messageTemplate:
-        r"""Too few positional arguments to method: #count required, #count2 given.""",
-    withArguments: _withArgumentsTooFewArgumentsToMethod);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(int count, int count2)>
-    codeTooFewArgumentsToMethod =
-    const Code<Message Function(int count, int count2)>(
-        "TooFewArgumentsToMethod", templateTooFewArgumentsToMethod,
-        severity: Severity.errorLegacyWarning);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsTooFewArgumentsToMethod(int count, int count2) {
-  return new Message(codeTooFewArgumentsToMethod,
-      message:
-          """Too few positional arguments to method: $count required, $count2 given.""",
-      arguments: {'count': count, 'count2': count2});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        int count,
-        int
-            count2)> templateTooManyArgumentsToConstructor = const Template<
-        Message Function(int count, int count2)>(
-    messageTemplate:
-        r"""Too many positional arguments to constructor: #count allowed, #count2 given.""",
-    withArguments: _withArgumentsTooManyArgumentsToConstructor);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(int count, int count2)>
-    codeTooManyArgumentsToConstructor =
-    const Code<Message Function(int count, int count2)>(
-        "TooManyArgumentsToConstructor", templateTooManyArgumentsToConstructor,
-        severity: Severity.errorLegacyWarning);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsTooManyArgumentsToConstructor(int count, int count2) {
-  return new Message(codeTooManyArgumentsToConstructor,
-      message:
-          """Too many positional arguments to constructor: $count allowed, $count2 given.""",
-      arguments: {'count': count, 'count2': count2});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        int count,
-        int
-            count2)> templateTooManyArgumentsToFunction = const Template<
-        Message Function(int count, int count2)>(
-    messageTemplate:
-        r"""Too many positional arguments to function: #count allowed, #count2 given.""",
-    withArguments: _withArgumentsTooManyArgumentsToFunction);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(int count, int count2)>
-    codeTooManyArgumentsToFunction =
-    const Code<Message Function(int count, int count2)>(
-        "TooManyArgumentsToFunction", templateTooManyArgumentsToFunction,
-        severity: Severity.errorLegacyWarning);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsTooManyArgumentsToFunction(int count, int count2) {
-  return new Message(codeTooManyArgumentsToFunction,
-      message:
-          """Too many positional arguments to function: $count allowed, $count2 given.""",
-      arguments: {'count': count, 'count2': count2});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        int count,
-        int
-            count2)> templateTooManyArgumentsToMethod = const Template<
-        Message Function(int count, int count2)>(
-    messageTemplate:
-        r"""Too many positional arguments to method: #count allowed, #count2 given.""",
-    withArguments: _withArgumentsTooManyArgumentsToMethod);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(int count, int count2)>
-    codeTooManyArgumentsToMethod =
-    const Code<Message Function(int count, int count2)>(
-        "TooManyArgumentsToMethod", templateTooManyArgumentsToMethod,
-        severity: Severity.errorLegacyWarning);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsTooManyArgumentsToMethod(int count, int count2) {
-  return new Message(codeTooManyArgumentsToMethod,
-      message:
-          """Too many positional arguments to method: $count allowed, $count2 given.""",
+          """Too many positional arguments: $count allowed, $count2 given.""",
       arguments: {'count': count, 'count2': count2});
 }
 

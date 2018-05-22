@@ -85,10 +85,8 @@ import 'constness.dart' show Constness;
 import 'expression_generator.dart'
     show
         BuilderHelper,
-        CalleeDesignation,
         DeferredAccessGenerator,
         ErroneousExpressionGenerator,
-        FunctionTypeAccessor,
         Generator,
         IncompleteError,
         IncompletePropertyAccessor,
@@ -802,10 +800,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       Initializer initializer;
       Arguments arguments = forest.argumentsEmpty(noLocation);
       if (superTarget == null ||
-          checkArguments(
-                  new FunctionTypeAccessor.fromNode(superTarget.function),
-                  arguments,
-                  CalleeDesignation.Constructor,
+          checkArgumentsForFunction(superTarget.function, arguments,
                   builder.charOffset, const <TypeParameter>[]) !=
               null) {
         String superclass = classBuilder.supertype.fullNameForErrors;
@@ -2600,15 +2595,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       assert(!target.enclosingClass.isAbstract);
       typeParameters = target.enclosingClass.typeParameters;
     }
-    CalleeDesignation calleeKind = target is Constructor
-        ? CalleeDesignation.Constructor
-        : CalleeDesignation.Method;
-    LocatedMessage argMessage = checkArguments(
-        new FunctionTypeAccessor.fromNode(target.function),
-        arguments,
-        calleeKind,
-        charOffset,
-        typeParameters);
+    LocatedMessage argMessage = checkArgumentsForFunction(
+        target.function, arguments, charOffset, typeParameters);
     if (argMessage != null) {
       return throwNoSuchMethodError(
           storeOffset(forest.literalNull(null), charOffset),
@@ -2654,65 +2642,29 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   }
 
   @override
-  LocatedMessage checkArguments(FunctionTypeAccessor function,
-      Arguments arguments, CalleeDesignation calleeKind, int offset,
-      [List<TypeParameter> typeParameters]) {
+  LocatedMessage checkArgumentsForFunction(FunctionNode function,
+      Arguments arguments, int offset, List<TypeParameter> typeParameters) {
     if (forest.argumentsPositional(arguments).length <
         function.requiredParameterCount) {
-      Template<Message Function(int count, int count2)> template;
-      switch (calleeKind) {
-        case CalleeDesignation.Function:
-          template = fasta.templateTooFewArgumentsToFunction;
-          break;
-        case CalleeDesignation.Method:
-          template = fasta.templateTooFewArgumentsToMethod;
-          break;
-        case CalleeDesignation.Constructor:
-          template = fasta.templateTooFewArgumentsToConstructor;
-          break;
-      }
-      return template
+      return fasta.templateTooFewArguments
           .withArguments(function.requiredParameterCount,
               forest.argumentsPositional(arguments).length)
           .withLocation(uri, offset, noLength);
     }
     if (forest.argumentsPositional(arguments).length >
-        function.positionalParameterCount) {
-      Template<Message Function(int count, int count2)> template;
-      switch (calleeKind) {
-        case CalleeDesignation.Function:
-          template = fasta.templateTooManyArgumentsToFunction;
-          break;
-        case CalleeDesignation.Method:
-          template = fasta.templateTooManyArgumentsToMethod;
-          break;
-        case CalleeDesignation.Constructor:
-          template = fasta.templateTooManyArgumentsToConstructor;
-          break;
-      }
-      return template
-          .withArguments(function.positionalParameterCount,
+        function.positionalParameters.length) {
+      return fasta.templateTooManyArguments
+          .withArguments(function.positionalParameters.length,
               forest.argumentsPositional(arguments).length)
           .withLocation(uri, offset, noLength);
     }
     List named = forest.argumentsNamed(arguments);
     if (named.isNotEmpty) {
-      Set<String> names = function.namedParameterNames;
+      Set<String> names =
+          new Set.from(function.namedParameters.map((a) => a.name));
       for (NamedExpression argument in named) {
         if (!names.remove(argument.name)) {
-          Template<Message Function(String name)> template;
-          switch (calleeKind) {
-            case CalleeDesignation.Function:
-              template = fasta.templateFunctionHasNoSuchNamedParameter;
-              break;
-            case CalleeDesignation.Method:
-              template = fasta.templateMethodHasNoSuchNamedParameter;
-              break;
-            case CalleeDesignation.Constructor:
-              template = fasta.templateConstructorHasNoSuchNamedParameter;
-              break;
-          }
-          return template
+          return fasta.templateNoSuchNamedParameter
               .withArguments(argument.name)
               .withLocation(uri, argument.fileOffset, argument.name.length);
         }
@@ -2720,12 +2672,45 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     }
 
     List types = forest.argumentsTypeArguments(arguments);
-    if (typeParameters != null && typeParameters.length != types.length) {
+    if (typeParameters.length != types.length) {
       // TODO(paulberry): Report error in this case as well,
       // after https://github.com/dart-lang/sdk/issues/32130 is fixed.
       types.clear();
       for (int i = 0; i < typeParameters.length; i++) {
         types.add(const DynamicType());
+      }
+    }
+
+    return null;
+  }
+
+  @override
+  LocatedMessage checkArgumentsForType(
+      FunctionType function, Arguments arguments, int offset) {
+    if (forest.argumentsPositional(arguments).length <
+        function.requiredParameterCount) {
+      return fasta.templateTooFewArguments
+          .withArguments(function.requiredParameterCount,
+              forest.argumentsPositional(arguments).length)
+          .withLocation(uri, offset, noLength);
+    }
+    if (forest.argumentsPositional(arguments).length >
+        function.positionalParameters.length) {
+      return fasta.templateTooManyArguments
+          .withArguments(function.positionalParameters.length,
+              forest.argumentsPositional(arguments).length)
+          .withLocation(uri, offset, noLength);
+    }
+    List named = forest.argumentsNamed(arguments);
+    if (named.isNotEmpty) {
+      Set<String> names =
+          new Set.from(function.namedParameters.map((a) => a.name));
+      for (NamedExpression argument in named) {
+        if (!names.remove(argument.name)) {
+          return fasta.templateNoSuchNamedParameter
+              .withArguments(argument.name)
+              .withLocation(uri, argument.fileOffset, argument.name.length);
+        }
       }
     }
 

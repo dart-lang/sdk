@@ -1622,7 +1622,7 @@ TEST_CASE(IsolateReload_TearOff_Parameter_Count_Mismatch) {
   if (TestCase::UsingStrongMode()) {
     error =
         "file:///test-lib:8:12: Error: Too few positional"
-        " arguments to function: 1 required, 0 given.\n"
+        " arguments: 1 required, 0 given.\n"
         "  return f1();";
   } else if (TestCase::UsingDartFrontend()) {
     error =

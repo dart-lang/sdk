@@ -63,9 +63,11 @@ abstract class BuilderHelper<Expression, Statement, Arguments> {
       bool isStatic,
       LocatedMessage argMessage});
 
-  LocatedMessage checkArguments(FunctionTypeAccessor function,
-      Arguments arguments, CalleeDesignation calleeKind, int offset,
-      [List<TypeParameter> typeParameters]);
+  LocatedMessage checkArgumentsForFunction(FunctionNode function,
+      Arguments arguments, int offset, List<TypeParameter> typeParameters);
+
+  LocatedMessage checkArgumentsForType(
+      FunctionType function, Arguments arguments, int offset);
 
   StaticGet makeStaticGet(Member readTarget, Token token);
 
@@ -109,35 +111,6 @@ abstract class BuilderHelper<Expression, Statement, Arguments> {
   void warnTypeArgumentsMismatch(String name, int expected, int charOffset);
 
   T storeOffset<T>(T node, int offset);
-}
-
-// The name used to refer to a call target kind
-enum CalleeDesignation { Function, Method, Constructor }
-
-// Abstraction over FunctionNode and FunctionType to access the
-// number and names of parameters.
-class FunctionTypeAccessor {
-  int requiredParameterCount;
-  int positionalParameterCount;
-
-  List _namedParameters;
-
-  Set<String> get namedParameterNames {
-    return new Set.from(_namedParameters.map((a) => a.name));
-  }
-
-  factory FunctionTypeAccessor.fromNode(FunctionNode node) {
-    return new FunctionTypeAccessor._(node.requiredParameterCount,
-        node.positionalParameters.length, node.namedParameters);
-  }
-
-  factory FunctionTypeAccessor.fromType(FunctionType type) {
-    return new FunctionTypeAccessor._(type.requiredParameterCount,
-        type.positionalParameters.length, type.namedParameters);
-  }
-
-  FunctionTypeAccessor._(this.requiredParameterCount,
-      this.positionalParameterCount, this._namedParameters);
 }
 
 class IncompleteError<Arguments> extends IncompleteSendGenerator<Arguments>

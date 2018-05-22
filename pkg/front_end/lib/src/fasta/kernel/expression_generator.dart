@@ -1709,11 +1709,8 @@ class ThisAccessGenerator<Arguments> extends Generator<Arguments> {
     Constructor constructor = helper.lookupConstructor(name, isSuper: isSuper);
     LocatedMessage argMessage;
     if (constructor != null) {
-      argMessage = helper.checkArguments(
-          new FunctionTypeAccessor.fromNode(constructor.function),
-          arguments,
-          CalleeDesignation.Constructor,
-          offset, <TypeParameter>[]);
+      argMessage = helper.checkArgumentsForFunction(
+          constructor.function, arguments, offset, <TypeParameter>[]);
     }
     if (constructor == null || argMessage != null) {
       return helper.buildInvalidInitializer(

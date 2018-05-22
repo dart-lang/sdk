@@ -62,8 +62,7 @@ import '../../base/instrumentation.dart'
 
 import '../fasta_codes.dart';
 
-import '../kernel/expression_generator.dart'
-    show BuilderHelper, CalleeDesignation, FunctionTypeAccessor, buildIsNull;
+import '../kernel/expression_generator.dart' show BuilderHelper, buildIsNull;
 
 import '../kernel/kernel_shadow_ast.dart'
     show
@@ -1057,14 +1056,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       arguments.types.addAll(inferredTypes);
     }
     if (typeChecksNeeded && !identical(calleeType, unknownFunction)) {
-      CalleeDesignation calleeKind = receiverType is FunctionType
-          ? CalleeDesignation.Function
-          : CalleeDesignation.Method;
-      LocatedMessage argMessage = helper.checkArguments(
-          new FunctionTypeAccessor.fromType(calleeType),
-          arguments,
-          calleeKind,
-          offset);
+      LocatedMessage argMessage =
+          helper.checkArgumentsForType(calleeType, arguments, offset);
       if (argMessage != null) {
         helper.addProblem(
             argMessage.messageObject, argMessage.charOffset, argMessage.length);
