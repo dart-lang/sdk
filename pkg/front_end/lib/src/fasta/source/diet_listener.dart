@@ -26,7 +26,8 @@ import '../fasta_codes.dart'
 
 import '../kernel/kernel_body_builder.dart' show KernelBodyBuilder;
 
-import '../parser.dart' show IdentifierContext, MemberKind, Parser, optional;
+import '../parser.dart'
+    show Assert, IdentifierContext, MemberKind, Parser, optional;
 
 import '../problems.dart' show internalProblem, unexpected;
 
@@ -585,6 +586,13 @@ class DietListener extends StackListener {
   void endMember() {
     debugEvent("Member");
     checkEmpty(-1);
+  }
+
+  @override
+  void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
+      Token commaToken, Token semicolonToken) {
+    debugEvent("Assert");
+    // Do nothing
   }
 
   @override

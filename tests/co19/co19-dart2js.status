@@ -7085,6 +7085,7 @@ Language/Classes/Constructors/Generative_Constructors/execution_t05: Crash
 Language/Classes/Constructors/Generative_Constructors/execution_t06: Crash
 Language/Classes/Constructors/Generative_Constructors/execution_t07: Crash
 Language/Classes/Constructors/Generative_Constructors/execution_t12: Crash
+Language/Classes/Constructors/Generative_Constructors/initializers_t12: Crash # Issue 33157
 Language/Classes/Constructors/Generative_Constructors/redirection_t03: Crash
 Language/Classes/Constructors/Generative_Constructors/redirection_t07: Crash
 Language/Classes/Constructors/Generative_Constructors/redirection_t08: Crash

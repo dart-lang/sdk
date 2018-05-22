@@ -54,7 +54,7 @@ import '../operator.dart'
         operatorRequiredArgumentCount;
 
 import '../parser.dart'
-    show FormalParameterKind, IdentifierContext, MemberKind, optional;
+    show Assert, FormalParameterKind, IdentifierContext, MemberKind, optional;
 
 import '../problems.dart' show unhandled;
 
@@ -899,6 +899,13 @@ class OutlineBuilder extends UnhandledListener {
   void handleNoFormalParameters(Token token, MemberKind kind) {
     push(token.charOffset);
     super.handleNoFormalParameters(token, kind);
+  }
+
+  @override
+  void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
+      Token commaToken, Token semicolonToken) {
+    debugEvent("Assert");
+    // Do nothing
   }
 
   @override

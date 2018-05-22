@@ -46,7 +46,6 @@ rasta/unresolved_for_in: Crash
 regress/issue_29941: Crash
 regress/issue_29943: Crash
 regress/issue_29983: Crash # 'package:analyzer/src/fasta/ast_builder.dart': Failed assertion: line 478 pos 12: 'star == null': is not true.
-regress/issue_31155: Crash # Issue 31155.
 regress/issue_31157: Crash
 regress/issue_31180: Crash
 regress/issue_31186: Crash

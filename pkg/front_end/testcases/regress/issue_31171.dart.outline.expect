@@ -2,10 +2,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class A extends core::Object {
-  field dynamic x;
-  constructor •() → void
-    ;
-}
+typedef T = dynamic;
+typedef F = () → core::Map<core::String, dynamic>;
 static method main() → dynamic
   ;
