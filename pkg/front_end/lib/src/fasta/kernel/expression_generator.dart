@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// A library to help transform compounds and null-aware accessors into
-/// let expressions.
+/// A library to help generate expression.
 library fasta.expression_generator;
 
 import '../../scanner/token.dart' show Token;
@@ -103,35 +102,44 @@ import 'kernel_builder.dart'
 
 part 'expression_generator_impl.dart';
 
-/// An [Accessor] represents a subexpression for which we can't yet build a
-/// kernel [kernel.Expression] because we don't yet know the context in which
-/// it is used.
+/// A generator represents a subexpression for which we can't yet build an
+/// expression because we don't yet know the context in which it's used.
 ///
-/// Once the context is known, an [Accessor] can be converted into an
-/// [kernel.Expression] by calling a "build" method.
+/// Once the context is known, a generator can be converted into an expression
+/// by calling a `build` method.
 ///
 /// For example, when building a kernel representation for `a[x] = b`, after
 /// parsing `a[x]` but before parsing `= b`, we don't yet know whether to
-/// generate an invocation of `operator[]` or `operator[]=`, so we generate an
-/// [Accessor] object.  Later, after `= b` is parsed, [buildAssignment] will be
-/// called.
-// TODO(ahe): Move this into [Generator] when all uses have been updated.
-abstract class Accessor<Arguments> {
+/// generate an invocation of `operator[]` or `operator[]=`, so we create a
+/// [Generator] object.  Later, after `= b` is parsed, [buildAssignment] will
+/// be called.
+abstract class Generator<Arguments> {
   final BuilderHelper<dynamic, dynamic, Arguments> helper;
   final Token token;
 
-  Accessor(this.helper, this.token);
+  Generator(this.helper, this.token);
 
+  // TODO(ahe): Change type arguments.
   Forest<kernel.Expression, kernel.Statement, Token, Arguments> get forest =>
       helper.forest;
 
-  /// Builds an [kernel.Expression] representing a read from the accessor.
+  String get plainNameForRead;
+
+  String get debugName;
+
+  Uri get uri => helper.uri;
+
+  String get plainNameForWrite => plainNameForRead;
+
+  bool get isInitializer => false;
+
+  /// Builds a [kernel.Expression] representing a read from the generator.
   kernel.Expression buildSimpleRead() {
     return _finish(_makeSimpleRead(), null);
   }
 
-  /// Builds an [kernel.Expression] representing an assignment with the
-  /// accessor on the LHS and [value] on the RHS.
+  /// Builds a [kernel.Expression] representing an assignment with the
+  /// generator on the LHS and [value] on the RHS.
   ///
   /// The returned expression evaluates to the assigned value, unless
   /// [voidContext] is true, in which case it may evaluate to anything.
@@ -142,8 +150,8 @@ abstract class Accessor<Arguments> {
         complexAssignment);
   }
 
-  /// Returns an [kernel.Expression] representing a null-aware assignment
-  /// (`??=`) with the accessor on the LHS and [value] on the RHS.
+  /// Returns a [kernel.Expression] representing a null-aware assignment
+  /// (`??=`) with the generator on the LHS and [value] on the RHS.
   ///
   /// The returned expression evaluates to the assigned value, unless
   /// [voidContext] is true, in which case it may evaluate to anything.
@@ -178,8 +186,8 @@ abstract class Accessor<Arguments> {
     return _finish(makeLet(tmp, nullAwareCombiner), complexAssignment);
   }
 
-  /// Returns an [kernel.Expression] representing a compound assignment
-  /// (e.g. `+=`) with the accessor on the LHS and [value] on the RHS.
+  /// Returns a [kernel.Expression] representing a compound assignment
+  /// (e.g. `+=`) with the generator on the LHS and [value] on the RHS.
   kernel.Expression buildCompoundAssignment(
       Name binaryOperator, kernel.Expression value,
       {int offset: TreeNode.noOffset,
@@ -196,8 +204,8 @@ abstract class Accessor<Arguments> {
         complexAssignment);
   }
 
-  /// Returns an [kernel.Expression] representing a pre-increment or
-  /// pre-decrement of the accessor.
+  /// Returns a [kernel.Expression] representing a pre-increment or
+  /// pre-decrement of the generator.
   kernel.Expression buildPrefixIncrement(Name binaryOperator,
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
@@ -210,8 +218,8 @@ abstract class Accessor<Arguments> {
         isPreIncDec: true);
   }
 
-  /// Returns an [kernel.Expression] representing a post-increment or
-  /// post-decrement of the accessor.
+  /// Returns a [kernel.Expression] representing a post-increment or
+  /// post-decrement of the generator.
   kernel.Expression buildPostfixIncrement(Name binaryOperator,
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
@@ -258,32 +266,103 @@ abstract class Accessor<Arguments> {
     }
   }
 
-  /// Returns an [kernel.Expression] representing a compile-time error.
+  /// Returns a [kernel.Expression] representing a compile-time error.
   ///
   /// At runtime, an exception will be thrown.
-  makeInvalidRead() {
-    return unhandled("compile-time error", "$runtimeType",
-        offsetForToken(token), helper.uri);
+  kernel.Expression makeInvalidRead() {
+    return buildThrowNoSuchMethodError(
+        forest.literalNull(token), forest.argumentsEmpty(noLocation),
+        isGetter: true);
   }
 
-  /// Returns an [kernel.Expression] representing a compile-time error wrapping
+  /// Returns a [kernel.Expression] representing a compile-time error wrapping
   /// [value].
   ///
   /// At runtime, [value] will be evaluated before throwing an exception.
-  makeInvalidWrite(kernel.Expression value) {
-    return unhandled("compile-time error", "$runtimeType",
-        offsetForToken(token), helper.uri);
+  kernel.Expression makeInvalidWrite(kernel.Expression value) {
+    return buildThrowNoSuchMethodError(forest.literalNull(token),
+        forest.arguments(<kernel.Expression>[value], noLocation),
+        isSetter: true);
   }
 
   /// Creates a data structure for tracking the desugaring of a complex
   /// assignment expression whose right hand side is [rhs].
   ShadowComplexAssignment startComplexAssignment(kernel.Expression rhs) =>
       new ShadowIllegalAssignment(rhs);
-}
 
-// TODO(ahe): Merge classes [Accessor] and [FastaAccessor] into this.
-abstract class Generator<Arguments> = Accessor<Arguments>
-    with FastaAccessor<Arguments>;
+  T storeOffset<T>(T node, int offset) {
+    return helper.storeOffset(node, offset);
+  }
+
+  kernel.Expression buildForEffect() => buildSimpleRead();
+
+  Initializer buildFieldInitializer(Map<String, int> initializedFields) {
+    int offset = offsetForToken(token);
+    return helper.buildInvalidInitializer(
+        helper.buildCompileTimeError(
+            messageInvalidInitializer, offset, lengthForToken(token)),
+        offset);
+  }
+
+  /* kernel.Expression | Generator | Initializer */ doInvocation(
+      int offset, Arguments arguments);
+
+  /* kernel.Expression | Generator */ buildPropertyAccess(
+      IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
+    if (send is SendAccessor) {
+      return helper.buildMethodInvocation(buildSimpleRead(), send.name,
+          send.arguments, offsetForToken(send.token),
+          isNullAware: isNullAware);
+    } else {
+      if (helper.constantContext != ConstantContext.none &&
+          send.name != lengthName) {
+        helper.deprecated_addCompileTimeError(
+            offsetForToken(token), "Not a constant expression.");
+      }
+      return PropertyAccessGenerator.make(helper, send.token, buildSimpleRead(),
+          send.name, null, null, isNullAware);
+    }
+  }
+
+  DartType buildTypeWithBuiltArguments(List<DartType> arguments,
+      {bool nonInstanceAccessIsError: false}) {
+    helper.addProblem(templateNotAType.withArguments(token.lexeme),
+        offsetForToken(token), lengthForToken(token));
+    return const InvalidType();
+  }
+
+  /* kernel.Expression | Generator */ buildThrowNoSuchMethodError(
+      kernel.Expression receiver, Arguments arguments,
+      {bool isSuper: false,
+      bool isGetter: false,
+      bool isSetter: false,
+      bool isStatic: false,
+      String name,
+      int offset,
+      LocatedMessage argMessage}) {
+    return helper.throwNoSuchMethodError(receiver, name ?? plainNameForWrite,
+        arguments, offset ?? offsetForToken(this.token),
+        isGetter: isGetter,
+        isSetter: isSetter,
+        isSuper: isSuper,
+        isStatic: isStatic,
+        argMessage: argMessage);
+  }
+
+  bool get isThisPropertyAccess => false;
+
+  void printOn(StringSink sink);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer();
+    buffer.write(debugName);
+    buffer.write("(offset: ");
+    buffer.write("${offsetForToken(token)}");
+    printOn(buffer);
+    buffer.write(")");
+    return "$buffer";
+  }
+}
 
 class VariableUseGenerator<Arguments> extends Generator<Arguments> {
   final VariableDeclaration variable;
@@ -361,7 +440,7 @@ class PropertyAccessGenerator<Arguments> extends Generator<Arguments> {
       this.setter)
       : super(helper, token);
 
-  static FastaAccessor<Arguments> make<Arguments>(
+  static Generator<Arguments> make<Arguments>(
       BuilderHelper<dynamic, dynamic, Arguments> helper,
       Token token,
       kernel.Expression receiver,
@@ -713,7 +792,7 @@ class IndexedAccessGenerator<Arguments> extends Generator<Arguments> {
       this.setter)
       : super(helper, token);
 
-  static FastaAccessor<Arguments> make<Arguments>(
+  static Generator<Arguments> make<Arguments>(
       BuilderHelper<dynamic, dynamic, Arguments> helper,
       Token token,
       kernel.Expression receiver,
@@ -1256,10 +1335,10 @@ class LoadLibraryGenerator<Arguments> extends Generator<Arguments> {
 class DeferredAccessGenerator<Arguments> extends Generator<Arguments> {
   final PrefixBuilder builder;
 
-  final FastaAccessor accessor;
+  final Generator generator;
 
   DeferredAccessGenerator(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      Token token, this.builder, this.accessor)
+      Token token, this.builder, this.generator)
       : super(helper, token);
 
   String get plainNameForRead {
@@ -1271,18 +1350,18 @@ class DeferredAccessGenerator<Arguments> extends Generator<Arguments> {
 
   kernel.Expression _makeSimpleRead() {
     return helper.wrapInDeferredCheck(
-        accessor._makeSimpleRead(), builder, token.charOffset);
+        generator._makeSimpleRead(), builder, token.charOffset);
   }
 
   kernel.Expression _makeRead(ShadowComplexAssignment complexAssignment) {
     return helper.wrapInDeferredCheck(
-        accessor._makeRead(complexAssignment), builder, token.charOffset);
+        generator._makeRead(complexAssignment), builder, token.charOffset);
   }
 
   kernel.Expression _makeWrite(kernel.Expression value, bool voidContext,
       ShadowComplexAssignment complexAssignment) {
     return helper.wrapInDeferredCheck(
-        accessor._makeWrite(value, voidContext, complexAssignment),
+        generator._makeWrite(value, voidContext, complexAssignment),
         builder,
         token.charOffset);
   }
@@ -1290,8 +1369,8 @@ class DeferredAccessGenerator<Arguments> extends Generator<Arguments> {
   buildPropertyAccess(
       IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
     var propertyAccess =
-        accessor.buildPropertyAccess(send, operatorOffset, isNullAware);
-    if (propertyAccess is FastaAccessor) {
+        generator.buildPropertyAccess(send, operatorOffset, isNullAware);
+    if (propertyAccess is Generator) {
       return new DeferredAccessGenerator(
           helper, token, builder, propertyAccess);
     } else {
@@ -1305,7 +1384,7 @@ class DeferredAccessGenerator<Arguments> extends Generator<Arguments> {
       {bool nonInstanceAccessIsError: false}) {
     helper.addProblem(
         templateDeferredTypeAnnotation.withArguments(
-            accessor.buildTypeWithBuiltArguments(arguments,
+            generator.buildTypeWithBuiltArguments(arguments,
                 nonInstanceAccessIsError: nonInstanceAccessIsError),
             builder.name),
         offsetForToken(token),
@@ -1315,15 +1394,15 @@ class DeferredAccessGenerator<Arguments> extends Generator<Arguments> {
 
   kernel.Expression doInvocation(int offset, Arguments arguments) {
     return helper.wrapInDeferredCheck(
-        accessor.doInvocation(offset, arguments), builder, token.charOffset);
+        generator.doInvocation(offset, arguments), builder, token.charOffset);
   }
 
   @override
   void printOn(StringSink sink) {
     sink.write(", builder: ");
     sink.write(builder);
-    sink.write(", accessor: ");
-    sink.write(accessor);
+    sink.write(", generator: ");
+    sink.write(generator);
   }
 }
 

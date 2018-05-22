@@ -88,7 +88,6 @@ import 'expression_generator.dart'
         CalleeDesignation,
         DeferredAccessGenerator,
         ErroneousExpressionGenerator,
-        FastaAccessor,
         FunctionTypeAccessor,
         Generator,
         IncompleteError,
@@ -274,7 +273,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
 
   @override
   Expression toValue(Object node) {
-    if (node is FastaAccessor) {
+    if (node is Generator) {
       return toExpression(node.buildSimpleRead());
     } else if (node is Expression) {
       return node;
@@ -292,7 +291,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   }
 
   Expression toEffect(Object node) {
-    if (node is FastaAccessor) return toExpression(node.buildForEffect());
+    if (node is Generator) return toExpression(node.buildForEffect());
     return toValue(node);
   }
 
@@ -442,8 +441,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       }
       if (name?.isNotEmpty ?? false) {
         Token period = periodBeforeName ?? beginToken.next;
-        FastaAccessor accessor = expression;
-        expression = accessor.buildPropertyAccess(
+        Generator generator = expression;
+        expression = generator.buildPropertyAccess(
             new IncompletePropertyAccessor(
                 this, period.next, new Name(name, library.library)),
             period.next.offset,
@@ -620,7 +619,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     Initializer initializer;
     if (node is Initializer) {
       initializer = node;
-    } else if (node is FastaAccessor) {
+    } else if (node is Generator) {
       initializer = node.buildFieldInitializer(initializedFields);
     } else if (node is ConstructorInvocation) {
       initializer = buildSuperInitializer(
@@ -941,7 +940,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
 
   @override
   finishSend(Object receiver, Arguments arguments, int charOffset) {
-    if (receiver is FastaAccessor) {
+    if (receiver is Generator) {
       return receiver.doInvocation(charOffset, arguments);
     } else {
       return buildMethodInvocation(
@@ -1396,11 +1395,11 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         deprecated_addCompileTimeError(
             charOffset, "Not a constant expression.");
       }
-      TypeDeclarationAccessor accessor = new TypeDeclarationAccessor(
+      TypeDeclarationAccessor generator = new TypeDeclarationAccessor(
           this, token, prefix, charOffset, builder, name);
       return (prefix?.deferred == true)
-          ? new DeferredAccessGenerator(this, token, prefix, accessor)
-          : accessor;
+          ? new DeferredAccessGenerator(this, token, prefix, generator)
+          : generator;
     } else if (builder.isLocal) {
       if (constantContext != ConstantContext.none &&
           !builder.isConst &&
@@ -1449,11 +1448,11 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       return new ThisPropertyAccessGenerator(this, token, n, getter, setter);
     } else if (builder.isRegularMethod) {
       assert(builder.isStatic || builder.isTopLevel);
-      StaticAccessGenerator accessor =
+      StaticAccessGenerator generator =
           new StaticAccessGenerator(this, token, builder.target, null);
       return (prefix?.deferred == true)
-          ? new DeferredAccessGenerator(this, token, prefix, accessor)
-          : accessor;
+          ? new DeferredAccessGenerator(this, token, prefix, generator)
+          : generator;
     } else if (builder is PrefixBuilder) {
       if (constantContext != ConstantContext.none && builder.deferred) {
         deprecated_addCompileTimeError(
@@ -1477,10 +1476,10 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       } else if (builder.isField && !builder.isFinal) {
         setter = builder;
       }
-      StaticAccessGenerator accessor =
+      StaticAccessGenerator generator =
           new StaticAccessGenerator.fromBuilder(this, builder, token, setter);
       if (constantContext != ConstantContext.none) {
-        Member readTarget = accessor.readTarget;
+        Member readTarget = generator.readTarget;
         if (!(readTarget is Field && readTarget.isConst ||
             // Static tear-offs are also compile time constants.
             readTarget is Procedure)) {
@@ -1489,8 +1488,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         }
       }
       return (prefix?.deferred == true)
-          ? new DeferredAccessGenerator(this, token, prefix, accessor)
-          : accessor;
+          ? new DeferredAccessGenerator(this, token, prefix, generator)
+          : generator;
     }
   }
 
@@ -1789,13 +1788,13 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   void handleAssignmentExpression(Token token) {
     debugEvent("AssignmentExpression");
     Expression value = popForValue();
-    var accessor = pop();
-    if (accessor is! FastaAccessor) {
+    var generator = pop();
+    if (generator is! Generator) {
       push(buildCompileTimeError(fasta.messageNotAnLvalue,
           offsetForToken(token), lengthForToken(token)));
     } else {
-      push(new DelayedAssignment(
-          this, token, accessor, toKernelExpression(value), token.stringValue));
+      push(new DelayedAssignment(this, token, generator,
+          toKernelExpression(value), token.stringValue));
     }
   }
 
@@ -1821,7 +1820,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   }
 
   List<VariableDeclaration> buildVariableDeclarations(variableOrExpression) {
-    if (variableOrExpression is FastaAccessor) {
+    if (variableOrExpression is Generator) {
       variableOrExpression = variableOrExpression.buildForEffect();
     }
     if (variableOrExpression is VariableDeclaration) {
@@ -2054,7 +2053,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         return;
       }
     }
-    if (name is FastaAccessor) {
+    if (name is Generator) {
       push(name.buildTypeWithBuiltArguments(arguments));
     } else if (name is TypeBuilder) {
       push(name.build(library));
@@ -2484,24 +2483,26 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void handleUnaryPrefixAssignmentExpression(Token token) {
     debugEvent("UnaryPrefixAssignmentExpression");
-    var accessor = pop();
-    if (accessor is FastaAccessor) {
-      push(accessor.buildPrefixIncrement(incrementOperator(token),
+    var generator = pop();
+    if (generator is Generator) {
+      push(generator.buildPrefixIncrement(incrementOperator(token),
           offset: token.charOffset));
     } else {
-      push(wrapInCompileTimeError(toValue(accessor), fasta.messageNotAnLvalue));
+      push(
+          wrapInCompileTimeError(toValue(generator), fasta.messageNotAnLvalue));
     }
   }
 
   @override
   void handleUnaryPostfixAssignmentExpression(Token token) {
     debugEvent("UnaryPostfixAssignmentExpression");
-    var accessor = pop();
-    if (accessor is FastaAccessor) {
+    var generator = pop();
+    if (generator is Generator) {
       push(new DelayedPostfixIncrement<Arguments>(
-          this, token, accessor, incrementOperator(token), null));
+          this, token, generator, incrementOperator(token), null));
     } else {
-      push(wrapInCompileTimeError(toValue(accessor), fasta.messageNotAnLvalue));
+      push(
+          wrapInCompileTimeError(toValue(generator), fasta.messageNotAnLvalue));
     }
   }
 
@@ -2542,7 +2543,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   /// But the parser can't tell this from type c) above.
   ///
   /// This method pops 2 (or 3 if `periodBeforeName != null`) values from the
-  /// stack and pushes 3 values: an accessor (the type in a constructor
+  /// stack and pushes 3 values: a generator (the type in a constructor
   /// reference, or an expression in metadata), a list of type arguments, and a
   /// name.
   void pushQualifiedReference(Token start, Token periodBeforeName) {
@@ -2560,7 +2561,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         identifier = null;
       } else if (prefix is TypeDeclarationAccessor) {
         type = prefix;
-      } else if (prefix is FastaAccessor) {
+      } else if (prefix is Generator) {
         String name = suffix == null
             ? "${prefix.plainNameForRead}.${identifier.name}"
             : "${prefix.plainNameForRead}.${identifier.name}.$suffix";
@@ -2787,18 +2788,18 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     PrefixBuilder deferredPrefix;
     int checkOffset;
     if (type is DeferredAccessGenerator) {
-      DeferredAccessGenerator accessor = type;
-      type = accessor.accessor;
-      deferredPrefix = accessor.builder;
-      checkOffset = accessor.token.charOffset;
+      DeferredAccessGenerator generator = type;
+      type = generator.generator;
+      deferredPrefix = generator.builder;
+      checkOffset = generator.token.charOffset;
     }
 
     if (type is TypeDeclarationAccessor) {
-      TypeDeclarationAccessor accessor = type;
-      if (accessor.prefix != null) {
+      TypeDeclarationAccessor generator = type;
+      if (generator.prefix != null) {
         nameToken = nameToken.next.next;
       }
-      type = accessor.declaration;
+      type = generator.declaration;
     }
 
     ConstantContext savedConstantContext = pop();
@@ -3205,7 +3206,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         deprecated_addCompileTimeError(
             variable.fileOffset, "A for-in loop-variable can't be 'const'.");
       }
-    } else if (lvalue is FastaAccessor) {
+    } else if (lvalue is Generator) {
       /// We are in this case, where `lvalue` isn't a [VariableDeclaration]:
       ///
       ///     for (lvalue in expression) body
@@ -4688,7 +4689,7 @@ String getNodeName(Object node) {
     return node.fullNameForErrors;
   } else if (node is ThisAccessGenerator) {
     return node.isSuper ? "super" : "this";
-  } else if (node is FastaAccessor) {
+  } else if (node is Generator) {
     return node.plainNameForRead;
   } else {
     return unhandled("${node.runtimeType}", "getNodeName", -1, null);

@@ -47,7 +47,7 @@ import 'package:front_end/src/fasta/fasta_codes.dart'
 import 'package:front_end/src/fasta/kernel/expression_generator.dart'
     show
         DeferredAccessGenerator,
-        FastaAccessor,
+        Generator,
         IncompleteError,
         IncompletePropertyAccessor,
         IndexedAccessGenerator,
@@ -76,7 +76,7 @@ import 'package:front_end/src/fasta/kernel/kernel_body_builder.dart'
 
 import 'package:front_end/src/fasta/scanner.dart' show Token, scanString;
 
-void check(String expected, FastaAccessor<Arguments> generator) {
+void check(String expected, Generator<Arguments> generator) {
   Expect.stringEquals(expected, "$generator");
 }
 
@@ -123,7 +123,7 @@ main() {
     KernelBodyBuilder helper = new KernelBodyBuilder(
         libraryBuilder, null, null, null, null, null, null, false, uri, null);
 
-    FastaAccessor accessor =
+    Generator generator =
         new ThisAccessGenerator<Arguments>(helper, token, false);
 
     Library library = new Library(uri);
@@ -137,12 +137,12 @@ main() {
         "DelayedAssignment(offset: 4, value: expression,"
         " assignmentOperator: +=)",
         new DelayedAssignment<Arguments>(
-            helper, token, accessor, expression, assignmentOperator));
+            helper, token, generator, expression, assignmentOperator));
     check(
         "DelayedPostfixIncrement(offset: 4, binaryOperator: +,"
         " interfaceTarget: $uri::#class1::myInterfaceTarget)",
         new DelayedPostfixIncrement<Arguments>(
-            helper, token, accessor, binaryOperator, interfaceTarget));
+            helper, token, generator, binaryOperator, interfaceTarget));
     check(
         "VariableUseGenerator(offset: 4, variable: dynamic #t1;\n,"
         " promotedType: void)",
@@ -206,10 +206,10 @@ main() {
     check(
         "DeferredAccessGenerator(offset: 4, "
         "builder: Instance of 'PrefixBuilder',"
-        " accessor: ThisAccessGenerator(offset: 4, isInitializer: false,"
+        " generator: ThisAccessGenerator(offset: 4, isInitializer: false,"
         " isSuper: false))",
         new DeferredAccessGenerator<Arguments>(
-            helper, token, prefixBuilder, accessor));
+            helper, token, prefixBuilder, generator));
     check(
         "ReadOnlyAccessGenerator(offset: 4, expression: expression,"
         " plainNameForRead: foo, value: null)",

@@ -140,114 +140,6 @@ class FunctionTypeAccessor {
       this.positionalParameterCount, this._namedParameters);
 }
 
-// TODO(ahe): Merge this into [Generator] when all uses have been updated.
-abstract class FastaAccessor<Arguments> implements Accessor<Arguments> {
-  BuilderHelper<dynamic, dynamic, Arguments> get helper;
-
-  // TODO(ahe): Change type arguments.
-  Forest<kernel.Expression, kernel.Statement, Token, Arguments> get forest =>
-      helper.forest;
-
-  String get plainNameForRead;
-
-  String get debugName;
-
-  Uri get uri => helper.uri;
-
-  String get plainNameForWrite => plainNameForRead;
-
-  bool get isInitializer => false;
-
-  T storeOffset<T>(T node, int offset) {
-    return helper.storeOffset(node, offset);
-  }
-
-  kernel.Expression buildForEffect() => buildSimpleRead();
-
-  Initializer buildFieldInitializer(Map<String, int> initializedFields) {
-    int offset = offsetForToken(token);
-    return helper.buildInvalidInitializer(
-        helper.buildCompileTimeError(
-            messageInvalidInitializer, offset, lengthForToken(token)),
-        offset);
-  }
-
-  kernel.Expression makeInvalidRead() {
-    return buildThrowNoSuchMethodError(
-        forest.literalNull(token), forest.argumentsEmpty(noLocation),
-        isGetter: true);
-  }
-
-  kernel.Expression makeInvalidWrite(kernel.Expression value) {
-    return buildThrowNoSuchMethodError(forest.literalNull(token),
-        forest.arguments(<kernel.Expression>[value], noLocation),
-        isSetter: true);
-  }
-
-  /* kernel.Expression | FastaAccessor | Initializer */ doInvocation(
-      int offset, Arguments arguments);
-
-  /* kernel.Expression | FastaAccessor */ buildPropertyAccess(
-      IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
-    if (send is SendAccessor) {
-      return helper.buildMethodInvocation(buildSimpleRead(), send.name,
-          send.arguments, offsetForToken(send.token),
-          isNullAware: isNullAware);
-    } else {
-      if (helper.constantContext != ConstantContext.none &&
-          send.name != lengthName) {
-        helper.deprecated_addCompileTimeError(
-            offsetForToken(token), "Not a constant expression.");
-      }
-      return PropertyAccessGenerator.make(helper, send.token, buildSimpleRead(),
-          send.name, null, null, isNullAware);
-    }
-  }
-
-  DartType buildTypeWithBuiltArguments(List<DartType> arguments,
-      {bool nonInstanceAccessIsError: false}) {
-    helper.addProblem(templateNotAType.withArguments(token.lexeme),
-        offsetForToken(token), lengthForToken(token));
-    return const InvalidType();
-  }
-
-  /* kernel.Expression | FastaAccessor */ buildThrowNoSuchMethodError(
-      kernel.Expression receiver, Arguments arguments,
-      {bool isSuper: false,
-      bool isGetter: false,
-      bool isSetter: false,
-      bool isStatic: false,
-      String name,
-      int offset,
-      LocatedMessage argMessage}) {
-    return helper.throwNoSuchMethodError(receiver, name ?? plainNameForWrite,
-        arguments, offset ?? offsetForToken(this.token),
-        isGetter: isGetter,
-        isSetter: isSetter,
-        isSuper: isSuper,
-        isStatic: isStatic,
-        argMessage: argMessage);
-  }
-
-  bool get isThisPropertyAccess => false;
-
-  @override
-  ShadowComplexAssignment startComplexAssignment(kernel.Expression rhs) =>
-      new ShadowIllegalAssignment(rhs);
-
-  void printOn(StringSink sink);
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer();
-    buffer.write(debugName);
-    buffer.write("(offset: ");
-    buffer.write("${offsetForToken(token)}");
-    printOn(buffer);
-    buffer.write(")");
-    return "$buffer";
-  }
-}
-
 class IncompleteError<Arguments> extends IncompleteSendGenerator<Arguments>
     with ErroneousExpressionGenerator<Arguments> {
   final Message message;
@@ -313,7 +205,7 @@ class SendAccessor<Arguments> extends IncompleteSendGenerator<Arguments> {
   }
 
   withReceiver(Object receiver, int operatorOffset, {bool isNullAware: false}) {
-    if (receiver is FastaAccessor) {
+    if (receiver is Generator) {
       return receiver.buildPropertyAccess(this, operatorOffset, isNullAware);
     }
     if (receiver is PrefixBuilder) {
@@ -398,7 +290,7 @@ class IncompletePropertyAccessor<Arguments>
   }
 
   withReceiver(Object receiver, int operatorOffset, {bool isNullAware: false}) {
-    if (receiver is FastaAccessor) {
+    if (receiver is Generator) {
       return receiver.buildPropertyAccess(this, operatorOffset, isNullAware);
     }
     if (receiver is PrefixBuilder) {
@@ -476,7 +368,7 @@ class TypeDeclarationAccessor<Arguments>
   /// the reference is not prefixed.
   final PrefixBuilder prefix;
 
-  /// The offset at which the [declaration] is referenced by this accessor,
+  /// The offset at which the [declaration] is referenced by this generator,
   /// or `-1` if the reference is implicit.
   final int declarationReferenceOffset;
 
@@ -535,11 +427,11 @@ class TypeDeclarationAccessor<Arguments>
       Builder builder = declaration.findStaticBuilder(
           name.name, offsetForToken(token), uri, helper.library);
 
-      FastaAccessor accessor;
+      Generator generator;
       if (builder == null) {
         // If we find a setter, [builder] is an [AccessErrorBuilder], not null.
         if (send is IncompletePropertyAccessor) {
-          accessor = new UnresolvedNameGenerator(helper, send.token, name);
+          generator = new UnresolvedNameGenerator(helper, send.token, name);
         } else {
           return helper.buildConstructorInvocation(declaration, send.token,
               arguments, name.name, null, token.charOffset, Constness.implicit);
@@ -555,13 +447,13 @@ class TypeDeclarationAccessor<Arguments>
         } else if (builder.isField && !builder.isFinal) {
           setter = builder;
         }
-        accessor = new StaticAccessGenerator.fromBuilder(
+        generator = new StaticAccessGenerator.fromBuilder(
             helper, builder, send.token, setter);
       }
 
       return arguments == null
-          ? accessor
-          : accessor.doInvocation(offsetForToken(send.token), arguments);
+          ? generator
+          : generator.doInvocation(offsetForToken(send.token), arguments);
     } else {
       return super.buildPropertyAccess(send, operatorOffset, isNullAware);
     }
