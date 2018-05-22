@@ -519,15 +519,15 @@ TEST_CASE(IsolateReload_LibraryImportAdded) {
       "  return max(3, 4);\n"
       "}\n";
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(lib);
-  EXPECT_ERROR(SimpleInvokeError(lib, "main"), "max");
-
   const char* kReloadScript =
       "import 'dart:math';\n"
       "main() {\n"
       "  return max(3, 4);\n"
       "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScriptWithErrors(kScript);
+  EXPECT_VALID(lib);
+  EXPECT_ERROR(SimpleInvokeError(lib, "main"), "max");
 
   lib = TestCase::ReloadTestScript(kReloadScript);
   EXPECT_VALID(lib);
@@ -551,8 +551,6 @@ TEST_CASE(IsolateReload_LibraryImportRemoved) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID(lib);
-
   EXPECT_ERROR(SimpleInvokeError(lib, "main"), "max");
 }
 
@@ -1036,7 +1034,7 @@ TEST_CASE(IsolateReload_LibraryHide) {
 
   // Dart_Handle result;
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  Dart_Handle lib = TestCase::LoadTestScriptWithErrors(kScript);
   EXPECT_VALID(lib);
   EXPECT_ERROR(SimpleInvokeError(lib, "main"), "importedFunc");
 
@@ -1069,7 +1067,7 @@ TEST_CASE(IsolateReload_LibraryShow) {
       "  return importedIntFunc();\n"
       "}\n";
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  Dart_Handle lib = TestCase::LoadTestScriptWithErrors(kScript);
   EXPECT_VALID(lib);
 
   // Works.
@@ -1089,12 +1087,15 @@ TEST_CASE(IsolateReload_LibraryShow) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID(lib);
-
-  // Works.
-  EXPECT_STREQ("a", SimpleInvokeStr(lib, "main"));
-  // Results in an error.
-  EXPECT_ERROR(SimpleInvokeError(lib, "mainInt"), "importedIntFunc");
+  if (TestCase::UsingDartFrontend() && TestCase::UsingStrongMode()) {
+    EXPECT_ERROR(lib, "importedIntFunc");
+  } else {
+    EXPECT_VALID(lib);
+    // Works.
+    EXPECT_STREQ("a", SimpleInvokeStr(lib, "main"));
+    // Results in an error.
+    EXPECT_ERROR(SimpleInvokeError(lib, "mainInt"), "importedIntFunc");
+  }
 }
 
 // Verifies that we clear the ICs for the functions live on the stack in a way

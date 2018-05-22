@@ -318,17 +318,25 @@ class TestCase : TestCaseBase {
                                         const char* source,
                                         const uint8_t** kernel_buffer,
                                         intptr_t* kernel_buffer_size,
-                                        bool incrementally = true);
+                                        bool incrementally = true,
+                                        bool allow_compile_errors = false);
   static char* CompileTestScriptWithDFE(const char* url,
                                         int sourcefiles_count,
                                         Dart_SourceFile sourcefiles[],
                                         const uint8_t** kernel_buffer,
                                         intptr_t* kernel_buffer_size,
-                                        bool incrementally = true);
+                                        bool incrementally = true,
+                                        bool allow_compile_errors = false);
   static Dart_Handle LoadTestScript(const char* script,
                                     Dart_NativeEntryResolver resolver,
                                     const char* lib_uri = USER_TEST_URI,
-                                    bool finalize = true);
+                                    bool finalize = true,
+                                    bool allow_compile_errors = false);
+  static Dart_Handle LoadTestScriptWithErrors(
+      const char* script,
+      Dart_NativeEntryResolver resolver = NULL,
+      const char* lib_uri = USER_TEST_URI,
+      bool finalize = true);
   static Dart_Handle LoadTestLibrary(const char* lib_uri,
                                      const char* script,
                                      Dart_NativeEntryResolver resolver = NULL);
@@ -337,7 +345,8 @@ class TestCase : TestCaseBase {
       Dart_SourceFile sourcefiles[],
       Dart_NativeEntryResolver resolver = NULL,
       bool finalize = true,
-      bool incrementally = true);
+      bool incrementally = true,
+      bool allow_compile_errors = false);
   static Dart_Handle LoadCoreTestScript(const char* script,
                                         Dart_NativeEntryResolver resolver);
 
@@ -385,7 +394,8 @@ class TestCase : TestCaseBase {
   static char* ValidateCompilationResult(Zone* zone,
                                          Dart_KernelCompilationResult result,
                                          const uint8_t** kernel_buffer,
-                                         intptr_t* kernel_buffer_size);
+                                         intptr_t* kernel_buffer_size,
+                                         bool allow_compile_errors);
 
   RunEntry* const run_;
 };

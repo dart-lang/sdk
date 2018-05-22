@@ -262,7 +262,8 @@ Future _processExpressionCompilationRequest(request) async {
 
   if (compiler == null) {
     port.send(new CompilationResult.errors(
-        ["No incremental compiler available for this isolate."]).toResponse());
+            ["No incremental compiler available for this isolate."], null)
+        .toResponse());
     return;
   }
 
@@ -274,14 +275,15 @@ Future _processExpressionCompilationRequest(request) async {
         expression, definitions, typeDefinitions, libraryUri, klass, isStatic);
 
     if (procedure == null) {
-      port.send(new CompilationResult.errors(["Invalid scope."]).toResponse());
+      port.send(
+          new CompilationResult.errors(["Invalid scope."], null).toResponse());
       return;
     }
 
     if (compiler.errors.isNotEmpty) {
       // TODO(sigmund): the compiler prints errors to the console, so we
       // shouldn't print those messages again here.
-      result = new CompilationResult.errors(compiler.errors);
+      result = new CompilationResult.errors(compiler.errors, null);
     } else {
       result = new CompilationResult.ok(serializeProcedure(procedure));
     }
@@ -387,7 +389,8 @@ Future _processLoadRequest(request) async {
     Component component = await compiler.compile(script);
 
     if (compiler.errors.isNotEmpty) {
-      result = new CompilationResult.errors(compiler.errors);
+      result = new CompilationResult.errors(compiler.errors,
+          serializeComponent(component, filter: (lib) => !lib.isExternal));
     } else {
       // We serialize the component excluding vm_platform.dill because the VM has
       // these sources built-in. Everything loaded as a summary in
@@ -415,7 +418,7 @@ Future _processLoadRequest(request) async {
       inputFileUri,
       inputFileUri,
       null,
-      new CompilationResult.errors(<String>["unknown tag"]).payload
+      new CompilationResult.errors(<String>["unknown tag"], null).payload
     ]);
   }
 }
@@ -509,7 +512,8 @@ abstract class CompilationResult {
 
   factory CompilationResult.ok(Uint8List bytes) = _CompilationOk;
 
-  factory CompilationResult.errors(List<String> errors) = _CompilationError;
+  factory CompilationResult.errors(List<String> errors, Uint8List bytes) =
+      _CompilationError;
 
   factory CompilationResult.crash(Object exception, StackTrace stack) =
       _CompilationCrash;
@@ -545,9 +549,10 @@ abstract class _CompilationFail extends CompilationResult {
 }
 
 class _CompilationError extends _CompilationFail {
+  final Uint8List bytes;
   final List<String> errors;
 
-  _CompilationError(this.errors);
+  _CompilationError(this.errors, this.bytes);
 
   @override
   Status get status => Status.error;
@@ -556,6 +561,8 @@ class _CompilationError extends _CompilationFail {
   String get errorString => errors.take(10).join('\n');
 
   String toString() => "_CompilationError(${errorString})";
+
+  List toResponse() => [status.index, payload, bytes];
 }
 
 class _CompilationCrash extends _CompilationFail {
