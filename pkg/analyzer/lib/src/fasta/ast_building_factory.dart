@@ -98,13 +98,13 @@ class AstBuildingForest
 
   @override
   kernel.Arguments castArguments(_Arguments arguments) {
-    // TODO(brianwilkerson) Implement this or remove it from the API.
+    // TODO(brianwilkerson): Implement this or remove it from the API.
     throw new UnimplementedError();
   }
 
   @override
   Expression checkLibraryIsLoaded(dependency) {
-    // TODO(brianwilkerson) Implement this.
+    // TODO(brianwilkerson): Implement this.
     throw new UnimplementedError();
   }
 
@@ -256,14 +256,14 @@ class AstBuildingForest
 
   @override
   Expression literalType(covariant type, Token location) {
-    // TODO(brianwilkerson) Capture the type information.
+    // TODO(brianwilkerson): Capture the type information.
     return astFactory.simpleIdentifier(location)
       ..staticType = _typeProvider?.typeType;
   }
 
   @override
   Expression loadLibrary(dependency) {
-    // TODO(brianwilkerson) Implement this.
+    // TODO(brianwilkerson): Implement this.
     throw new UnimplementedError();
   }
 
@@ -342,7 +342,7 @@ class AstBuildingForest
   @override
   VariableDeclarationStatement variablesDeclaration(
       List<VariableDeclaration> declarations, Uri uri) {
-    // TODO(brianwilkerson) Implement this.
+    // TODO(brianwilkerson): Implement this.
     throw new UnimplementedError();
   }
 
@@ -371,7 +371,7 @@ class AstBuildingForest
       Token token,
       VariableDeclarationStatement variable,
       kernel.DartType promotedType) {
-    // TODO(brianwilkerson) Implement this.
+    // TODO(brianwilkerson): Implement this.
     throw new UnimplementedError();
   }
 
@@ -383,7 +383,7 @@ class AstBuildingForest
       covariant name,
       covariant getter,
       covariant setter) {
-    // TODO(brianwilkerson) Implement this.
+    // TODO(brianwilkerson): Implement this.
     throw new UnimplementedError();
   }
 
@@ -394,7 +394,7 @@ class AstBuildingForest
       covariant name,
       covariant getter,
       covariant setter) {
-    // TODO(brianwilkerson) Implement this.
+    // TODO(brianwilkerson): Implement this.
     throw new UnimplementedError();
   }
 }
