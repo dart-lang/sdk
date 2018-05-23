@@ -29,6 +29,7 @@ const int ADDITIVE_PRECEDENCE = 13;
 const int MULTIPLICATIVE_PRECEDENCE = 14;
 const int PREFIX_PRECEDENCE = 15;
 const int POSTFIX_PRECEDENCE = 16;
+const int SELECTOR_PRECEDENCE = 17;
 
 /**
  * The opening half of a grouping pair of tokens. This is used for curly
@@ -1289,7 +1290,7 @@ class TokenType {
       const TokenType('#', 'HASH', NO_PRECEDENCE, HASH_TOKEN);
 
   static const TokenType INDEX = const TokenType(
-      '[]', 'INDEX', POSTFIX_PRECEDENCE, INDEX_TOKEN,
+      '[]', 'INDEX', SELECTOR_PRECEDENCE, INDEX_TOKEN,
       isOperator: true, isUserDefinableOperator: true);
 
   static const TokenType INDEX_EQ = const TokenType(
@@ -1328,10 +1329,10 @@ class TokenType {
       '{', 'OPEN_CURLY_BRACKET', NO_PRECEDENCE, OPEN_CURLY_BRACKET_TOKEN);
 
   static const TokenType OPEN_PAREN =
-      const TokenType('(', 'OPEN_PAREN', POSTFIX_PRECEDENCE, OPEN_PAREN_TOKEN);
+      const TokenType('(', 'OPEN_PAREN', SELECTOR_PRECEDENCE, OPEN_PAREN_TOKEN);
 
   static const TokenType OPEN_SQUARE_BRACKET = const TokenType('[',
-      'OPEN_SQUARE_BRACKET', POSTFIX_PRECEDENCE, OPEN_SQUARE_BRACKET_TOKEN);
+      'OPEN_SQUARE_BRACKET', SELECTOR_PRECEDENCE, OPEN_SQUARE_BRACKET_TOKEN);
 
   static const TokenType PERCENT = const TokenType(
       '%', 'PERCENT', MULTIPLICATIVE_PRECEDENCE, PERCENT_TOKEN,
@@ -1342,7 +1343,7 @@ class TokenType {
       isOperator: true);
 
   static const TokenType PERIOD =
-      const TokenType('.', 'PERIOD', POSTFIX_PRECEDENCE, PERIOD_TOKEN);
+      const TokenType('.', 'PERIOD', SELECTOR_PRECEDENCE, PERIOD_TOKEN);
 
   static const TokenType PERIOD_PERIOD = const TokenType(
       '..', 'PERIOD_PERIOD', CASCADE_PRECEDENCE, PERIOD_PERIOD_TOKEN,
@@ -1365,7 +1366,7 @@ class TokenType {
       isOperator: true);
 
   static const TokenType QUESTION_PERIOD = const TokenType(
-      '?.', 'QUESTION_PERIOD', POSTFIX_PRECEDENCE, QUESTION_PERIOD_TOKEN,
+      '?.', 'QUESTION_PERIOD', SELECTOR_PRECEDENCE, QUESTION_PERIOD_TOKEN,
       isOperator: true);
 
   static const TokenType QUESTION_QUESTION = const TokenType(
@@ -1699,6 +1700,12 @@ class TokenType {
       this == TokenType.MINUS ||
       this == TokenType.PLUS_PLUS ||
       this == TokenType.MINUS_MINUS;
+
+  /**
+   * Return `true` if this type of token represents a selector operator
+   * (starting token of a selector).
+   */
+  bool get isSelectorOperator => precedence == SELECTOR_PRECEDENCE;
 
   @override
   String toString() => name;

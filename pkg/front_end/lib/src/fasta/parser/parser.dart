@@ -21,6 +21,7 @@ import '../../scanner/token.dart'
         Keyword,
         POSTFIX_PRECEDENCE,
         RELATIONAL_PRECEDENCE,
+        SELECTOR_PRECEDENCE,
         SyntheticBeginToken,
         SyntheticKeywordToken,
         SyntheticStringToken,
@@ -3963,7 +3964,7 @@ class Parser {
   Token parsePrecedenceExpression(
       Token token, int precedence, bool allowCascades) {
     assert(precedence >= 1);
-    assert(precedence <= POSTFIX_PRECEDENCE);
+    assert(precedence <= SELECTOR_PRECEDENCE);
     token = parseUnaryExpression(token, allowCascades);
     Token next = token.next;
     TokenType type = next.type;
@@ -3994,10 +3995,16 @@ class Parser {
           token = parsePrecedenceExpression(token.next, level, allowCascades);
           listener.handleAssignmentExpression(operator);
         } else if (identical(tokenLevel, POSTFIX_PRECEDENCE)) {
+          if ((identical(type, TokenType.PLUS_PLUS)) ||
+              (identical(type, TokenType.MINUS_MINUS))) {
+            listener.handleUnaryPostfixAssignmentExpression(token.next);
+            token = next;
+          }
+        } else if (identical(tokenLevel, SELECTOR_PRECEDENCE)) {
           if (identical(type, TokenType.PERIOD) ||
               identical(type, TokenType.QUESTION_PERIOD)) {
             // Left associative, so we recurse at the next higher precedence
-            // level. However, POSTFIX_PRECEDENCE is the highest level, so we
+            // level. However, SELECTOR_PRECEDENCE is the highest level, so we
             // should just call [parseUnaryExpression] directly. However, a
             // unary expression isn't legal after a period, so we call
             // [parsePrimary] instead.
@@ -4008,10 +4015,6 @@ class Parser {
               (identical(type, TokenType.OPEN_SQUARE_BRACKET))) {
             token = parseArgumentOrIndexStar(token, typeArguments);
             next = token.next;
-          } else if ((identical(type, TokenType.PLUS_PLUS)) ||
-              (identical(type, TokenType.MINUS_MINUS))) {
-            listener.handleUnaryPostfixAssignmentExpression(token.next);
-            token = next;
           } else if (identical(type, TokenType.INDEX)) {
             BeginToken replacement = link(
                 new BeginToken(TokenType.OPEN_SQUARE_BRACKET, next.charOffset,
