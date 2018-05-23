@@ -2023,11 +2023,6 @@ class Parser {
       followingValues = [';'];
     } else if (context == IdentifierContext.constructorReferenceContinuation) {
       followingValues = ['.', ',', '(', ')', '[', ']', '}', ';'];
-    } else if (context == IdentifierContext.labelDeclaration) {
-      followingValues = [':'];
-    } else if (context == IdentifierContext.literalSymbol ||
-        context == IdentifierContext.literalSymbolContinuation) {
-      followingValues = ['.', ';'];
     } else {
       return false;
     }
@@ -2065,10 +2060,7 @@ class Parser {
     // could create a method to test whether a given token matches one of the
     // patterns.
     List<String> initialKeywords;
-    if (context == IdentifierContext.labelDeclaration) {
-      initialKeywords = statementKeywords();
-    } else if (context ==
-        IdentifierContext.localFunctionDeclarationContinuation) {
+    if (context == IdentifierContext.localFunctionDeclarationContinuation) {
       initialKeywords = statementKeywords();
     } else {
       return false;
@@ -3871,12 +3863,9 @@ class Parser {
   /// ;
   /// ```
   Token parseLabel(Token token) {
-    // TODO(brianwilkerson): Enable this assert.
-    // `parseType` is allowing `void` to be a label.
-//    assert(token.next.isIdentifier);
-    assert(optional(':', token.next.next));
+    assert(token.next.isIdentifier);
     token = ensureIdentifier(token, IdentifierContext.labelDeclaration).next;
-    expect(':', token);
+    assert(optional(':', token));
     listener.handleLabel(token);
     return token;
   }

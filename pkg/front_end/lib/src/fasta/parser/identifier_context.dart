@@ -176,20 +176,16 @@ class IdentifierContext {
 
   /// Identifier is the declaration of a label (i.e. it is followed by `:` and
   /// then a statement).
-  static const labelDeclaration =
-      const IdentifierContext('labelDeclaration', inDeclaration: true);
+  static const labelDeclaration = const LabelDeclarationIdentifierContext();
 
   /// Identifier is the start of a reference occurring in a literal symbol (e.g.
   /// `foo` in `#foo`).
-  static const literalSymbol =
-      const IdentifierContext('literalSymbol', inSymbol: true);
+  static const literalSymbol = const LiteralSymbolIdentifierContext();
 
   /// Identifier is part of a reference occurring in a literal symbol, but it's
   /// not the first identifier of the reference (e.g. `foo` in `#prefix.foo`).
-  static const literalSymbolContinuation = const IdentifierContext(
-      'literalSymbolContinuation',
-      inSymbol: true,
-      isContinuation: true);
+  static const literalSymbolContinuation =
+      const LiteralSymbolIdentifierContext.continuation();
 
   /// Identifier appears in an expression, and it does not immediately follow a
   /// `.`.
