@@ -29,7 +29,6 @@ class InstanceCreationTest extends PartialCodeTest {
           '$keyword',
           [
             ParserErrorCode.MISSING_IDENTIFIER,
-            ParserErrorCode.MISSING_IDENTIFIER,
             ParserErrorCode.EXPECTED_TOKEN,
           ],
           "$keyword _s_()"),

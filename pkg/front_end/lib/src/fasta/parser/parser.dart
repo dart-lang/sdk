@@ -1955,11 +1955,7 @@ class Parser {
         token = next;
       } else {
         reportRecoverableErrorWithToken(next, context.recoveryTemplate);
-        if (context == IdentifierContext.constructorReference) {
-          token = insertSyntheticIdentifier(token, context);
-        } else {
-          token = next;
-        }
+        token = next;
       }
     } else if (next.type.isBuiltIn && !context.isBuiltInIdentifierAllowed) {
       if (context.inDeclaration) {

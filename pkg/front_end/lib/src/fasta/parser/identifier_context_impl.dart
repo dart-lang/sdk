@@ -90,6 +90,40 @@ class CombinatorIdentifierContext extends IdentifierContext {
   }
 }
 
+/// See [IdentifierContext.constructorReference]
+/// and [IdentifierContext.constructorReferenceContinuation]
+/// and [IdentifierContext.constructorReferenceContinuationAfterTypeArguments].
+class ConstructorReferenceIdentifierContext extends IdentifierContext {
+  const ConstructorReferenceIdentifierContext()
+      : super('constructorReference', isScopeReference: true);
+
+  const ConstructorReferenceIdentifierContext.continuation()
+      : super('constructorReferenceContinuation', isContinuation: true);
+
+  const ConstructorReferenceIdentifierContext.continuationAfterTypeArguments()
+      : super('constructorReferenceContinuationAfterTypeArguments',
+            isContinuation: true);
+
+  @override
+  Token ensureIdentifier(Token token, Parser parser) {
+    Token identifier = token.next;
+    assert(identifier.kind != IDENTIFIER_TOKEN);
+    if (identifier.isIdentifier) {
+      return identifier;
+    }
+
+    // Recovery
+    if (!identifier.isKeywordOrIdentifier) {
+      identifier = parser.insertSyntheticIdentifier(token, this,
+          message: fasta.templateExpectedIdentifier.withArguments(identifier));
+    } else {
+      parser.reportRecoverableErrorWithToken(
+          identifier, fasta.templateExpectedIdentifier);
+    }
+    return identifier;
+  }
+}
+
 /// See [IdentifierContext.dottedName].
 class DottedNameIdentifierContext extends IdentifierContext {
   const DottedNameIdentifierContext() : super('dottedName');

@@ -158,30 +158,21 @@ class IdentifierContext {
   static const localFunctionDeclarationContinuation =
       const LocalFunctionDeclarationIdentifierContext.continuation();
 
-  /// Identifier is the name appearing in a function expression.
-  ///
-  /// TODO(paulberry,ahe): What is an example of valid Dart code where this
-  /// would occur?
-  static const functionExpressionName =
-      const IdentifierContext('functionExpressionName');
-
   /// Identifier is the start of a reference to a constructor declared
   /// elsewhere.
   static const constructorReference =
-      const IdentifierContext('constructorReference', isScopeReference: true);
+      const ConstructorReferenceIdentifierContext();
 
   /// Identifier is part of a reference to a constructor declared elsewhere, but
   /// it's not the first identifier of the reference.
-  static const constructorReferenceContinuation = const IdentifierContext(
-      'constructorReferenceContinuation',
-      isContinuation: true);
+  static const constructorReferenceContinuation =
+      const ConstructorReferenceIdentifierContext.continuation();
 
   /// Identifier is part of a reference to a constructor declared elsewhere, but
   /// it appears after type parameters (e.g. `foo` in `X<Y>.foo`).
   static const constructorReferenceContinuationAfterTypeArguments =
-      const IdentifierContext(
-          'constructorReferenceContinuationAfterTypeArguments',
-          isContinuation: true);
+      const ConstructorReferenceIdentifierContext
+          .continuationAfterTypeArguments();
 
   /// Identifier is the declaration of a label (i.e. it is followed by `:` and
   /// then a statement).
