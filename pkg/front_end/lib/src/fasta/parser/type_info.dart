@@ -270,10 +270,10 @@ TypeParamOrArgInfo computeTypeParam(Token token) {
   // Recovery
   if (token.next.endGroup == null) {
     // Attempt to find where the missing `>` should be inserted.
-    return new ComplexTypeParamOrArgInfo(token).computeRecovery();
+    return new ComplexTypeParamOrArgInfo(token).computeUnbalanced();
   } else {
     // The `<` `>` are balanced but there's still a problem.
-    return noTypeParamOrArg;
+    return new ComplexTypeParamOrArgInfo(token).computeBalancedButInvalid();
   }
 }
 

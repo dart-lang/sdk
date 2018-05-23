@@ -4,7 +4,8 @@
 
 library fasta.parser.type_info_impl;
 
-import '../../scanner/token.dart' show BeginToken, Token;
+import '../../scanner/token.dart'
+    show BeginToken, SyntheticToken, Token, TokenType;
 
 import '../fasta_codes.dart' as fasta;
 
@@ -628,10 +629,29 @@ class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
   ///
   /// This is called when parsing type parameters in a top level
   /// or class member declaration. It assumes that a leading `<` cannot be part
+  /// of an expression, and thus tries to more aggressively recover.
+  ///
+  TypeParamOrArgInfo computeBalancedButInvalid() {
+    assert(start.endGroup != null);
+    Token next = start.endGroup.next;
+    if (next.isIdentifier || optional('(', next)) {
+      end = start.endGroup;
+      return this;
+    } else {
+      return noTypeParamOrArg;
+    }
+  }
+
+  /// Parse the tokens and return the receiver or [noTypeParamOrArg] if there
+  /// are no type parameters or arguments. This does not modify the token
+  /// stream.
+  ///
+  /// This is called when parsing type parameters in a top level
+  /// or class member declaration. It assumes that a leading `<` cannot be part
   /// of an expression, and thus tries to more aggressively recover
   /// given an unmatched '<'.
   ///
-  TypeParamOrArgInfo computeRecovery() {
+  TypeParamOrArgInfo computeUnbalanced() {
     assert(start.endGroup == null);
     unbalancedLt = unbalancedLt.prepend(start);
     Token token = start;
@@ -677,7 +697,7 @@ class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
     Token innerEndGroup = processBeginGroup(begin, parser);
     parser.listener.beginTypeArguments(begin);
     int count = 0;
-    do {
+    while (true) {
       TypeInfo typeInfo = computeType(next, true, innerEndGroup);
       if (typeInfo == noType) {
         // Recovery
@@ -692,7 +712,20 @@ class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
       token = typeInfo.ensureTypeOrVoid(next, parser);
       next = token.next;
       ++count;
-    } while (optional(',', next));
+      if (!optional(',', next)) {
+        if (IDENTIFIER_TOKEN != next.kind) {
+          break;
+        }
+
+        // Recovery: missing comma
+        parser.reportRecoverableError(
+            next, fasta.templateExpectedButGot.withArguments(','));
+        next = parser.rewriter
+            .insertTokenAfter(
+                token, new SyntheticToken(TokenType.COMMA, next.charOffset))
+            .next;
+      }
+    }
     end = processEndGroup(token, begin, parser);
     parser.listener.endTypeArguments(count, begin, end);
     return end;
@@ -705,7 +738,7 @@ class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
     Token innerEndGroup = processBeginGroup(begin, parser);
     parser.listener.beginTypeVariables(begin);
     int count = 0;
-    do {
+    while (true) {
       parser.listener.beginTypeVariable(next.next);
       token = parser.parseMetadataStar(next);
       token = parser.ensureIdentifier(
@@ -722,7 +755,20 @@ class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
       }
       parser.listener.endTypeVariable(next, extendsOrSuper);
       ++count;
-    } while (optional(',', next));
+      if (!optional(',', next)) {
+        if (IDENTIFIER_TOKEN != next.kind) {
+          break;
+        }
+
+        // Recovery: missing comma
+        parser.reportRecoverableError(
+            next, fasta.templateExpectedButGot.withArguments(','));
+        next = parser.rewriter
+            .insertTokenAfter(
+                token, new SyntheticToken(TokenType.COMMA, next.charOffset))
+            .next;
+      }
+    }
     end = processEndGroup(token, begin, parser);
     parser.listener.endTypeVariables(count, begin, end);
     return end;

@@ -2690,7 +2690,7 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
     parser.parseCompilationUnit2();
     listener.assertErrors(usingFastaParser
         ? [
-            expectedError(ParserErrorCode.MISSING_IDENTIFIER, 13, 1),
+            expectedError(ParserErrorCode.MISSING_IDENTIFIER, 13, 0),
             expectedError(ParserErrorCode.EXPECTED_TOKEN, 13, 1),
             expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 10, 1),
             expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 13, 1)
@@ -4425,7 +4425,7 @@ class Wrong<T> {
     expectNotNullIfNoErrors(member);
     listener.assertErrors(usingFastaParser
         ? [
-            expectedError(ParserErrorCode.EXPECTED_TOKEN, 15, 1) /*>*/
+            expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 15, 1) /*!*/
           ]
         : [
             expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 0) /*>*/,

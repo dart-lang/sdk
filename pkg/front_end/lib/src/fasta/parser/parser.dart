@@ -3278,7 +3278,7 @@ class Parser {
 
     bool isGetter = false;
     if (getOrSet == null) {
-      token = parseTypeVariablesOpt(token);
+      token = computeTypeParam(token).parseVariables(token, this);
     } else {
       isGetter = optional("get", getOrSet);
       listener.handleNoTypeVariables(token.next);
