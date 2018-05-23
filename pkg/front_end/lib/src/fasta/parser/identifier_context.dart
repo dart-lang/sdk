@@ -145,15 +145,6 @@ class IdentifierContext {
   static const operatorName =
       const MethodDeclarationIdentifierContext.continuation();
 
-  /// Identifier is the name being declared by a local function declaration that
-  /// uses a "get" or "set" keyword.
-  ///
-  /// TODO(paulberry,ahe): Does this ever occur in valid Dart, or does it only
-  /// occur as part of error recovery?  If it's only as part of error recovery,
-  /// perhaps we should just re-use localFunctionDeclaration.
-  static const localAccessorDeclaration =
-      const IdentifierContext('localAccessorDeclaration', inDeclaration: true);
-
   /// Identifier is the start of the name being declared by a local function
   /// declaration.
   static const localFunctionDeclaration =

@@ -2031,8 +2031,6 @@ class Parser {
     } else if (context == IdentifierContext.literalSymbol ||
         context == IdentifierContext.literalSymbolContinuation) {
       followingValues = ['.', ';'];
-    } else if (context == IdentifierContext.localAccessorDeclaration) {
-      followingValues = ['(', '{', '=>'];
     } else {
       return false;
     }
@@ -2071,8 +2069,6 @@ class Parser {
     // patterns.
     List<String> initialKeywords;
     if (context == IdentifierContext.labelDeclaration) {
-      initialKeywords = statementKeywords();
-    } else if (context == IdentifierContext.localAccessorDeclaration) {
       initialKeywords = statementKeywords();
     } else if (context ==
         IdentifierContext.localFunctionDeclarationContinuation) {
