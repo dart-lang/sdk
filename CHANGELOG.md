@@ -76,6 +76,8 @@ void main() {
 * `dart:io`
   * Added `X509Certificate.der`, `X509Certificate.pem`, and
     `X509Certificate.sha1`.
+  * Added `FileSystemEntity.fromRawPath` constructor to allow for
+    the creation of `FileSystemEntity` using `Uint8List` buffers.
 
 ### Tool Changes
 

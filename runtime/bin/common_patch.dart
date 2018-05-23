@@ -23,7 +23,7 @@ import "dart:async"
 
 import "dart:collection" show HashMap;
 
-import "dart:convert" show Encoding;
+import "dart:convert" show Encoding, utf8;
 
 import "dart:developer" show registerExtension;
 

@@ -203,15 +203,26 @@ class _FileStreamConsumer extends StreamConsumer<List<int>> {
 
 // Class for encapsulating the native implementation of files.
 class _File extends FileSystemEntity implements File {
-  final String path;
+  String _path;
+  Uint8List _rawPath;
 
-  // Constructor for file.
-  _File(this.path) {
+  _File(String path) {
     if (path is! String) {
-      throw new ArgumentError('${Error.safeToString(path)} '
-          'is not a String');
+      throw new ArgumentError('${Error.safeToString(path)} is not a String');
     }
+    _path = path;
+    _rawPath = FileSystemEntity._toUtf8Array(path);
   }
+
+  _File.fromRawPath(Uint8List rawPath) {
+    if (rawPath == null) {
+      throw new ArgumentError('rawPath cannot be null');
+    }
+    _rawPath = FileSystemEntity._toNullTerminatedUtf8Array(rawPath);
+    _path = FileSystemEntity._toStringFromUtf8Array(rawPath);
+  }
+
+  String get path => _path;
 
   // WARNING:
   // Calling this function will increase the reference count on the native
@@ -226,7 +237,7 @@ class _File extends FileSystemEntity implements File {
   }
 
   Future<bool> exists() {
-    return _dispatchWithNamespace(_IOService.fileExists, [null, path])
+    return _dispatchWithNamespace(_IOService.fileExists, [null, _rawPath])
         .then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "Cannot check existence", path);
@@ -235,10 +246,10 @@ class _File extends FileSystemEntity implements File {
     });
   }
 
-  external static _exists(_Namespace namespace, String path);
+  external static _exists(_Namespace namespace, Uint8List rawPath);
 
   bool existsSync() {
-    var result = _exists(_Namespace._namespace, path);
+    var result = _exists(_Namespace._namespace, _rawPath);
     throwIfError(result, "Cannot check existence of file", path);
     return result;
   }
@@ -249,8 +260,8 @@ class _File extends FileSystemEntity implements File {
     var result =
         recursive ? parent.create(recursive: true) : new Future.value(null);
     return result
-        .then(
-            (_) => _dispatchWithNamespace(_IOService.fileCreate, [null, path]))
+        .then((_) =>
+            _dispatchWithNamespace(_IOService.fileCreate, [null, _rawPath]))
         .then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "Cannot create file", path);
@@ -259,17 +270,18 @@ class _File extends FileSystemEntity implements File {
     });
   }
 
-  external static _create(_Namespace namespace, String path);
+  external static _create(_Namespace namespace, Uint8List rawPath);
 
-  external static _createLink(_Namespace namespace, String path, String target);
+  external static _createLink(
+      _Namespace namespace, Uint8List rawPath, String target);
 
-  external static _linkTarget(_Namespace namespace, String path);
+  external static _linkTarget(_Namespace namespace, Uint8List rawPath);
 
   void createSync({bool recursive: false}) {
     if (recursive) {
       parent.createSync(recursive: true);
     }
-    var result = _create(_Namespace._namespace, path);
+    var result = _create(_Namespace._namespace, _rawPath);
     throwIfError(result, "Cannot create file", path);
   }
 
@@ -277,7 +289,7 @@ class _File extends FileSystemEntity implements File {
     if (recursive) {
       return new Directory(path).delete(recursive: true).then((_) => this);
     }
-    return _dispatchWithNamespace(_IOService.fileDelete, [null, path])
+    return _dispatchWithNamespace(_IOService.fileDelete, [null, _rawPath])
         .then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "Cannot delete file", path);
@@ -286,21 +298,21 @@ class _File extends FileSystemEntity implements File {
     });
   }
 
-  external static _deleteNative(_Namespace namespace, String path);
+  external static _deleteNative(_Namespace namespace, Uint8List rawPath);
 
-  external static _deleteLinkNative(_Namespace namespace, String path);
+  external static _deleteLinkNative(_Namespace namespace, Uint8List rawPath);
 
   void _deleteSync({bool recursive: false}) {
     if (recursive) {
-      return new Directory(path).deleteSync(recursive: true);
+      return new Directory.fromRawPath(_rawPath).deleteSync(recursive: true);
     }
-    var result = _deleteNative(_Namespace._namespace, path);
+    var result = _deleteNative(_Namespace._namespace, _rawPath);
     throwIfError(result, "Cannot delete file", path);
   }
 
   Future<File> rename(String newPath) {
-    return _dispatchWithNamespace(_IOService.fileRename, [null, path, newPath])
-        .then((response) {
+    return _dispatchWithNamespace(
+        _IOService.fileRename, [null, _rawPath, newPath]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(
             response, "Cannot rename file to '$newPath'", path);
@@ -309,20 +321,21 @@ class _File extends FileSystemEntity implements File {
     });
   }
 
-  external static _rename(_Namespace namespace, String oldPath, String newPath);
+  external static _rename(
+      _Namespace namespace, Uint8List oldPath, String newPath);
 
   external static _renameLink(
-      _Namespace namespace, String oldPath, String newPath);
+      _Namespace namespace, Uint8List oldPath, String newPath);
 
   File renameSync(String newPath) {
-    var result = _rename(_Namespace._namespace, path, newPath);
+    var result = _rename(_Namespace._namespace, _rawPath, newPath);
     throwIfError(result, "Cannot rename file to '$newPath'", path);
     return new File(newPath);
   }
 
   Future<File> copy(String newPath) {
-    return _dispatchWithNamespace(_IOService.fileCopy, [null, path, newPath])
-        .then((response) {
+    return _dispatchWithNamespace(
+        _IOService.fileCopy, [null, _rawPath, newPath]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(
             response, "Cannot copy file to '$newPath'", path);
@@ -331,10 +344,11 @@ class _File extends FileSystemEntity implements File {
     });
   }
 
-  external static _copy(_Namespace namespace, String oldPath, String newPath);
+  external static _copy(
+      _Namespace namespace, Uint8List oldPath, String newPath);
 
   File copySync(String newPath) {
-    var result = _copy(_Namespace._namespace, path, newPath);
+    var result = _copy(_Namespace._namespace, _rawPath, newPath);
     throwIfError(result, "Cannot copy file to '$newPath'", path);
     return new File(newPath);
   }
@@ -348,8 +362,8 @@ class _File extends FileSystemEntity implements File {
       return new Future.error(
           new ArgumentError('Invalid file mode for this operation'));
     }
-    return _dispatchWithNamespace(_IOService.fileOpen, [null, path, mode._mode])
-        .then((response) {
+    return _dispatchWithNamespace(
+        _IOService.fileOpen, [null, _rawPath, mode._mode]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "Cannot open file", path);
       }
@@ -358,8 +372,8 @@ class _File extends FileSystemEntity implements File {
   }
 
   Future<int> length() {
-    return _dispatchWithNamespace(_IOService.fileLengthFromPath, [null, path])
-        .then((response) {
+    return _dispatchWithNamespace(
+        _IOService.fileLengthFromPath, [null, _rawPath]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(
             response, "Cannot retrieve length of file", path);
@@ -368,16 +382,16 @@ class _File extends FileSystemEntity implements File {
     });
   }
 
-  external static _lengthFromPath(_Namespace namespace, String path);
+  external static _lengthFromPath(_Namespace namespace, Uint8List rawPath);
 
   int lengthSync() {
-    var result = _lengthFromPath(_Namespace._namespace, path);
+    var result = _lengthFromPath(_Namespace._namespace, _rawPath);
     throwIfError(result, "Cannot retrieve length of file", path);
     return result;
   }
 
   Future<DateTime> lastAccessed() {
-    return _dispatchWithNamespace(_IOService.fileLastAccessed, [null, path])
+    return _dispatchWithNamespace(_IOService.fileLastAccessed, [null, _rawPath])
         .then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(
@@ -387,10 +401,10 @@ class _File extends FileSystemEntity implements File {
     });
   }
 
-  external static _lastAccessed(_Namespace namespace, String path);
+  external static _lastAccessed(_Namespace namespace, Uint8List rawPath);
 
   DateTime lastAccessedSync() {
-    var ms = _lastAccessed(_Namespace._namespace, path);
+    var ms = _lastAccessed(_Namespace._namespace, _rawPath);
     throwIfError(ms, "Cannot retrieve access time", path);
     return new DateTime.fromMillisecondsSinceEpoch(ms);
   }
@@ -398,7 +412,8 @@ class _File extends FileSystemEntity implements File {
   Future setLastAccessed(DateTime time) {
     int millis = time.millisecondsSinceEpoch;
     return _dispatchWithNamespace(
-        _IOService.fileSetLastAccessed, [null, path, millis]).then((response) {
+            _IOService.fileSetLastAccessed, [null, _rawPath, millis])
+        .then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "Cannot set access time", path);
       }
@@ -407,11 +422,11 @@ class _File extends FileSystemEntity implements File {
   }
 
   external static _setLastAccessed(
-      _Namespace namespace, String path, int millis);
+      _Namespace namespace, Uint8List rawPath, int millis);
 
   void setLastAccessedSync(DateTime time) {
     int millis = time.millisecondsSinceEpoch;
-    var result = _setLastAccessed(_Namespace._namespace, path, millis);
+    var result = _setLastAccessed(_Namespace._namespace, _rawPath, millis);
     if (result is OSError) {
       throw new FileSystemException(
           "Failed to set file access time", path, result);
@@ -419,7 +434,7 @@ class _File extends FileSystemEntity implements File {
   }
 
   Future<DateTime> lastModified() {
-    return _dispatchWithNamespace(_IOService.fileLastModified, [null, path])
+    return _dispatchWithNamespace(_IOService.fileLastModified, [null, _rawPath])
         .then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(
@@ -429,10 +444,10 @@ class _File extends FileSystemEntity implements File {
     });
   }
 
-  external static _lastModified(_Namespace namespace, String path);
+  external static _lastModified(_Namespace namespace, Uint8List rawPath);
 
   DateTime lastModifiedSync() {
-    var ms = _lastModified(_Namespace._namespace, path);
+    var ms = _lastModified(_Namespace._namespace, _rawPath);
     throwIfError(ms, "Cannot retrieve modification time", path);
     return new DateTime.fromMillisecondsSinceEpoch(ms);
   }
@@ -440,7 +455,8 @@ class _File extends FileSystemEntity implements File {
   Future setLastModified(DateTime time) {
     int millis = time.millisecondsSinceEpoch;
     return _dispatchWithNamespace(
-        _IOService.fileSetLastModified, [null, path, millis]).then((response) {
+            _IOService.fileSetLastModified, [null, _rawPath, millis])
+        .then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(
             response, "Cannot set modification time", path);
@@ -450,18 +466,18 @@ class _File extends FileSystemEntity implements File {
   }
 
   external static _setLastModified(
-      _Namespace namespace, String path, int millis);
+      _Namespace namespace, Uint8List rawPath, int millis);
 
   void setLastModifiedSync(DateTime time) {
     int millis = time.millisecondsSinceEpoch;
-    var result = _setLastModified(_Namespace._namespace, path, millis);
+    var result = _setLastModified(_Namespace._namespace, _rawPath, millis);
     if (result is OSError) {
       throw new FileSystemException(
           "Failed to set file modification time", path, result);
     }
   }
 
-  external static _open(_Namespace namespace, String path, int mode);
+  external static _open(_Namespace namespace, Uint8List rawPath, int mode);
 
   RandomAccessFile openSync({FileMode mode: FileMode.read}) {
     if (mode != FileMode.read &&
@@ -471,9 +487,9 @@ class _File extends FileSystemEntity implements File {
         mode != FileMode.writeOnlyAppend) {
       throw new ArgumentError('Invalid file mode for this operation');
     }
-    var id = _open(_Namespace._namespace, path, mode._mode);
+    var id = _open(_Namespace._namespace, _rawPath, mode._mode);
     throwIfError(id, "Cannot open file", path);
-    return new _RandomAccessFile(id, path);
+    return new _RandomAccessFile(id, _path);
   }
 
   external static int _openStdio(int fd);

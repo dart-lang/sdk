@@ -85,7 +85,9 @@ const char* DartUtils::MapLibraryUrl(const char* url_string) {
 int64_t DartUtils::GetIntegerValue(Dart_Handle value_obj) {
   int64_t value = 0;
   Dart_Handle result = Dart_IntegerToInt64(value_obj, &value);
-  if (Dart_IsError(result)) Dart_PropagateError(result);
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
   return value;
 }
 
@@ -102,7 +104,9 @@ int64_t DartUtils::GetInt64ValueCheckRange(Dart_Handle value_obj,
 intptr_t DartUtils::GetIntptrValue(Dart_Handle value_obj) {
   int64_t value = 0;
   Dart_Handle result = Dart_IntegerToInt64(value_obj, &value);
-  if (Dart_IsError(result)) Dart_PropagateError(result);
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
   if (value < kIntptrMin || kIntptrMax < value) {
     Dart_PropagateError(Dart_NewApiError("Value outside intptr_t range"));
   }
@@ -113,26 +117,83 @@ bool DartUtils::GetInt64Value(Dart_Handle value_obj, int64_t* value) {
   bool valid = Dart_IsInteger(value_obj);
   if (valid) {
     Dart_Handle result = Dart_IntegerFitsIntoInt64(value_obj, &valid);
-    if (Dart_IsError(result)) Dart_PropagateError(result);
+    if (Dart_IsError(result)) {
+      Dart_PropagateError(result);
+    }
   }
   if (!valid) return false;
   Dart_Handle result = Dart_IntegerToInt64(value_obj, value);
-  if (Dart_IsError(result)) Dart_PropagateError(result);
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
   return true;
 }
 
 const char* DartUtils::GetStringValue(Dart_Handle str_obj) {
   const char* cstring = NULL;
   Dart_Handle result = Dart_StringToCString(str_obj, &cstring);
-  if (Dart_IsError(result)) Dart_PropagateError(result);
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
   return cstring;
 }
 
 bool DartUtils::GetBooleanValue(Dart_Handle bool_obj) {
   bool value = false;
   Dart_Handle result = Dart_BooleanValue(bool_obj, &value);
-  if (Dart_IsError(result)) Dart_PropagateError(result);
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
   return value;
+}
+
+bool DartUtils::GetNativeBooleanArgument(Dart_NativeArguments args,
+                                         intptr_t index) {
+  bool value = false;
+  Dart_Handle result = Dart_GetNativeBooleanArgument(args, index, &value);
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
+  return value;
+}
+
+int64_t DartUtils::GetNativeIntegerArgument(Dart_NativeArguments args,
+                                            intptr_t index) {
+  int64_t value = 0;
+  Dart_Handle result = Dart_GetNativeIntegerArgument(args, index, &value);
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
+  return value;
+}
+
+intptr_t DartUtils::GetNativeIntptrArgument(Dart_NativeArguments args,
+                                            intptr_t index) {
+  int64_t value = GetNativeIntegerArgument(args, index);
+  if (value < kIntptrMin || kIntptrMax < value) {
+    Dart_PropagateError(Dart_NewApiError("Value outside intptr_t range"));
+  }
+  return static_cast<intptr_t>(value);
+}
+
+const char* DartUtils::GetNativeStringArgument(Dart_NativeArguments args,
+                                               intptr_t index) {
+  char* tmp = NULL;
+  Dart_Handle result =
+      Dart_GetNativeStringArgument(args, index, reinterpret_cast<void**>(&tmp));
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
+  if (tmp != NULL) {
+    return tmp;
+  }
+  const char* cstring = NULL;
+  result = Dart_StringToCString(result, &cstring);
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
+  ASSERT(cstring != NULL);
+  return cstring;
 }
 
 Dart_Handle DartUtils::SetIntegerField(Dart_Handle handle,

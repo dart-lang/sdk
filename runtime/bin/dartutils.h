@@ -103,7 +103,23 @@ class DartUtils {
   // Returns the boolean value of a Dart object. If the object is not
   // a boolean value an API error is propagated.
   static bool GetBooleanValue(Dart_Handle bool_obj);
-
+  // Returns the boolean value of the argument at index. If the argument
+  // is not a boolean value an API error is propagated.
+  static bool GetNativeBooleanArgument(Dart_NativeArguments args,
+                                       intptr_t index);
+  // Returns the integer value of the argument at index. If the argument
+  // is not an integer value an API error is propagated.
+  static int64_t GetNativeIntegerArgument(Dart_NativeArguments args,
+                                          intptr_t index);
+  // Returns the intptr_t value of the argument at index. If the argument
+  // is not an integer value or the value is outside the intptr_t range an
+  // API error is propagated.
+  static intptr_t GetNativeIntptrArgument(Dart_NativeArguments args,
+                                          intptr_t index);
+  // Returns the string value of the argument at index. If the argument
+  // is not a string value an API error is propagated.
+  static const char* GetNativeStringArgument(Dart_NativeArguments args,
+                                             intptr_t index);
   static Dart_Handle SetIntegerField(Dart_Handle handle,
                                      const char* name,
                                      int64_t val);
