@@ -79,7 +79,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   Iterable<InterfaceType> _getSelfAndInheritedTypes(InterfaceType type) sync* {
     InterfaceType current = type;
-    while (current != null) {
+    while (current != null && current is InterfaceType) {
       yield current;
       current = current.superclass;
     }
