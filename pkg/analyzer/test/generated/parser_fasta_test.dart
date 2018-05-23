@@ -53,12 +53,6 @@ class BuilderProxy implements Builder {
 @reflectiveTest
 class ClassMemberParserTest_Fasta extends FastaParserTestCase
     with ClassMemberParserTestMixin {
-  @failingTest
-  @override
-  void test_parseAwaitExpression_inSync() {
-    super.test_parseAwaitExpression_inSync();
-  }
-
   @override
   void test_parseClassMember_method_generic_comment_noReturnType() {
     // Ignored: Fasta does not support the generic comment syntax.

@@ -372,13 +372,22 @@ abstract class ClassMemberParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_parseAwaitExpression_inSync() {
-    // This test requires better error recovery than we currently have. In
-    // particular, we need to be able to distinguish between an await expression
-    // in the wrong context, and the use of 'await' as an identifier.
     createParser('m() { return await x + await y; }');
     MethodDeclaration method = parser.parseClassMember('C');
     expect(method, isNotNull);
-    assertNoErrors();
+    listener.assertErrors(usingFastaParser
+        ? [
+            expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 13, 5),
+            expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 23, 5)
+          ]
+        : [
+            // This test requires better error recovery than we currently have.
+            // In particular, we need to be able to distinguish
+            // between an await expression in the wrong context,
+            // and the use of 'await' as an identifier.
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 13, 5),
+            expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 29, 1)
+          ]);
     FunctionBody body = method.body;
     EngineTestCase.assertInstanceOf(
         (obj) => obj is BlockFunctionBody, BlockFunctionBody, body);
@@ -388,10 +397,13 @@ abstract class ClassMemberParserTestMixin implements AbstractParserTestCase {
     Expression expression = (statement as ReturnStatement).expression;
     EngineTestCase.assertInstanceOf(
         (obj) => obj is BinaryExpression, BinaryExpression, expression);
-    EngineTestCase.assertInstanceOf((obj) => obj is AwaitExpression,
-        AwaitExpression, (expression as BinaryExpression).leftOperand);
-    EngineTestCase.assertInstanceOf((obj) => obj is AwaitExpression,
-        AwaitExpression, (expression as BinaryExpression).rightOperand);
+    if (!usingFastaParser) {
+      // TODO(danrubel): capture `await` keywords in fasta generated AST
+      EngineTestCase.assertInstanceOf((obj) => obj is AwaitExpression,
+          AwaitExpression, (expression as BinaryExpression).leftOperand);
+      EngineTestCase.assertInstanceOf((obj) => obj is AwaitExpression,
+          AwaitExpression, (expression as BinaryExpression).rightOperand);
+    }
   }
 
   void test_parseClassMember_constructor_withDocComment() {
