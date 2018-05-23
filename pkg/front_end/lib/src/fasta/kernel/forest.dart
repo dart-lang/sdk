@@ -9,7 +9,8 @@ import 'package:kernel/ast.dart' as kernel
         Arguments, // TODO(ahe): Remove this import.
         DartType,
         Member,
-        Name;
+        Name,
+        Procedure;
 
 import 'body_builder.dart' show Identifier;
 
@@ -326,6 +327,21 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
       kernel.Name name,
       kernel.Member getter,
       kernel.Member setter);
+
+  Generator<Expression, Statement, Arguments> indexedAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Location location,
+      Expression receiver,
+      Expression index,
+      kernel.Procedure getter,
+      kernel.Procedure setter);
+
+  Generator<Expression, Statement, Arguments> thisIndexedAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Location location,
+      Expression index,
+      kernel.Procedure getter,
+      kernel.Procedure setter);
 
   // TODO(ahe): Remove this method when all users are moved here.
   kernel.Arguments castArguments(Arguments arguments) {

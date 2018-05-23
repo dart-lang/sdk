@@ -411,12 +411,36 @@ class AstBuildingForest
     throw new UnimplementedError();
   }
 
+  @override
   Generator<Expression, Statement, _Arguments> superPropertyAccessGenerator(
       ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
       Token token,
       kernel.Name name,
       kernel.Member getter,
       kernel.Member setter) {
+    // TODO(brianwilkerson): Implement this.
+    throw new UnimplementedError();
+  }
+
+  @override
+  Generator<Expression, Statement, _Arguments> indexedAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+      Token token,
+      Expression receiver,
+      Expression index,
+      kernel.Procedure getter,
+      kernel.Procedure setter) {
+    // TODO(brianwilkerson): Implement this.
+    throw new UnimplementedError();
+  }
+
+  @override
+  Generator<Expression, Statement, _Arguments> thisIndexedAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+      Token token,
+      Expression index,
+      kernel.Procedure getter,
+      kernel.Procedure setter) {
     // TODO(brianwilkerson): Implement this.
     throw new UnimplementedError();
   }

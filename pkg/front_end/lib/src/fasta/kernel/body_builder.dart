@@ -2410,12 +2410,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
           lookupInstanceMember(indexSetName, isSuper: true)));
     } else {
       push(IndexedAccessGenerator.make(
-          this,
-          openSquareBracket,
-          toKernelExpression(toValue(receiver)),
-          toKernelExpression(index),
-          null,
-          null));
+          this, openSquareBracket, toValue(receiver), index, null, null));
     }
   }
 

@@ -26,6 +26,7 @@ import 'package:kernel/ast.dart'
         Member,
         Name,
         NamedExpression,
+        Procedure,
         Statement,
         SwitchCase,
         ThisExpression,
@@ -41,9 +42,11 @@ import '../scanner.dart' show Token;
 
 import 'kernel_expression_generator.dart'
     show
+        KernelIndexedAccessGenerator,
         KernelNullAwarePropertyAccessGenerator,
         KernelPropertyAccessGenerator,
         KernelSuperPropertyAccessGenerator,
+        KernelThisIndexedAccessGenerator,
         KernelThisPropertyAccessGenerator,
         KernelVariableUseGenerator;
 
@@ -564,6 +567,29 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
       Member setter) {
     return new KernelSuperPropertyAccessGenerator(
         helper, token, name, getter, setter);
+  }
+
+  @override
+  KernelIndexedAccessGenerator indexedAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Expression receiver,
+      Expression index,
+      Procedure getter,
+      Procedure setter) {
+    return new KernelIndexedAccessGenerator.internal(
+        helper, token, receiver, index, getter, setter);
+  }
+
+  @override
+  KernelThisIndexedAccessGenerator thisIndexedAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Expression index,
+      Procedure getter,
+      Procedure setter) {
+    return new KernelThisIndexedAccessGenerator(
+        helper, token, index, getter, setter);
   }
 }
 

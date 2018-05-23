@@ -44,7 +44,6 @@ export 'kernel_expression_generator.dart'
         IncompleteErrorGenerator,
         IncompletePropertyAccessGenerator,
         IncompleteSendGenerator,
-        IndexedAccessGenerator,
         LargeIntAccessGenerator,
         LoadLibraryGenerator,
         ParenthesizedExpressionGenerator,
@@ -53,7 +52,6 @@ export 'kernel_expression_generator.dart'
         StaticAccessGenerator,
         SuperIndexedAccessGenerator,
         ThisAccessGenerator,
-        ThisIndexedAccessGenerator,
         TypeDeclarationAccessGenerator,
         UnresolvedNameGenerator,
         buildIsNull;
@@ -350,4 +348,68 @@ abstract class SuperPropertyAccessGenerator<Expression, Statement, Arguments>
 
   @override
   String get debugName => "SuperPropertyAccessGenerator";
+}
+
+abstract class IndexedAccessGenerator<Expression, Statement, Arguments>
+    implements Generator<Expression, Statement, Arguments> {
+  factory IndexedAccessGenerator.internal(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Expression receiver,
+      Expression index,
+      Procedure getter,
+      Procedure setter) {
+    return helper.forest
+        .indexedAccessGenerator(helper, token, receiver, index, getter, setter);
+  }
+
+  static Generator<Expression, Statement, Arguments>
+      make<Expression, Statement, Arguments>(
+          ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+          Token token,
+          Expression receiver,
+          Expression index,
+          Procedure getter,
+          Procedure setter) {
+    if (helper.forest.isThisExpression(receiver)) {
+      return new ThisIndexedAccessGenerator(
+          helper, token, index, getter, setter);
+    } else {
+      return new IndexedAccessGenerator.internal(
+          helper, token, receiver, index, getter, setter);
+    }
+  }
+
+  @override
+  String get plainNameForRead => "[]";
+
+  @override
+  String get plainNameForWrite => "[]=";
+
+  @override
+  String get debugName => "IndexedAccessGenerator";
+}
+
+/// Special case of [IndexedAccessGenerator] to avoid creating an indirect
+/// access to 'this'.
+abstract class ThisIndexedAccessGenerator<Expression, Statement, Arguments>
+    implements Generator<Expression, Statement, Arguments> {
+  factory ThisIndexedAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Expression index,
+      Procedure getter,
+      Procedure setter) {
+    return helper.forest
+        .thisIndexedAccessGenerator(helper, token, index, getter, setter);
+  }
+
+  @override
+  String get plainNameForRead => "[]";
+
+  @override
+  String get plainNameForWrite => "[]=";
+
+  @override
+  String get debugName => "ThisIndexedAccessGenerator";
 }

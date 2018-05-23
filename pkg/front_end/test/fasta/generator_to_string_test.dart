@@ -58,10 +58,11 @@ import 'package:front_end/src/fasta/kernel/kernel_expression_generator.dart'
         DelayedPostfixIncrement,
         IncompleteErrorGenerator,
         IncompletePropertyAccessGenerator,
-        IndexedAccessGenerator,
+        KernelIndexedAccessGenerator,
         KernelNullAwarePropertyAccessGenerator,
         KernelPropertyAccessGenerator,
         KernelSuperPropertyAccessGenerator,
+        KernelThisIndexedAccessGenerator,
         KernelThisPropertyAccessGenerator,
         KernelVariableUseGenerator,
         LargeIntAccessGenerator,
@@ -72,7 +73,6 @@ import 'package:front_end/src/fasta/kernel/kernel_expression_generator.dart'
         StaticAccessGenerator,
         SuperIndexedAccessGenerator,
         ThisAccessGenerator,
-        ThisIndexedAccessGenerator,
         TypeDeclarationAccessGenerator,
         UnresolvedNameGenerator;
 
@@ -176,12 +176,13 @@ main() {
         "IndexedAccessGenerator(offset: 4, receiver: expression, index: index,"
         " getter: $uri::myGetter, setter: $uri::mySetter,"
         " receiverVariable: null, indexVariable: null)",
-        new IndexedAccessGenerator.internal(
+        new KernelIndexedAccessGenerator.internal(
             helper, token, expression, index, getter, setter));
     check(
         "ThisIndexedAccessGenerator(offset: 4, index: index,"
         " getter: $uri::myGetter, setter: $uri::mySetter, indexVariable: null)",
-        new ThisIndexedAccessGenerator(helper, token, index, getter, setter));
+        new KernelThisIndexedAccessGenerator(
+            helper, token, index, getter, setter));
     check(
         "SuperIndexedAccessGenerator(offset: 4, index: index,"
         " getter: $uri::myGetter, setter: $uri::mySetter, indexVariable: null)",

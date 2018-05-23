@@ -52,9 +52,11 @@ import 'expression_generator.dart'
     show
         ExpressionGenerator,
         Generator,
+        IndexedAccessGenerator,
         NullAwarePropertyAccessGenerator,
         PropertyAccessGenerator,
         SuperPropertyAccessGenerator,
+        ThisIndexedAccessGenerator,
         ThisPropertyAccessGenerator,
         VariableUseGenerator;
 
@@ -668,6 +670,277 @@ class KernelSuperPropertyAccessGenerator extends KernelGenerator
     printQualifiedNameOn(getter, sink, syntheticNames: syntheticNames);
     sink.write(", setter: ");
     printQualifiedNameOn(setter, sink, syntheticNames: syntheticNames);
+  }
+}
+
+class KernelIndexedAccessGenerator extends KernelGenerator
+    with IndexedAccessGenerator<Expression, Statement, Arguments> {
+  final Expression receiver;
+
+  final Expression index;
+
+  final Procedure getter;
+
+  final Procedure setter;
+
+  VariableDeclaration receiverVariable;
+
+  VariableDeclaration indexVariable;
+
+  KernelIndexedAccessGenerator.internal(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      this.receiver,
+      this.index,
+      this.getter,
+      this.setter)
+      : super(helper, token);
+
+  Expression indexAccess() {
+    indexVariable ??= new VariableDeclaration.forValue(index);
+    return new VariableGet(indexVariable)..fileOffset = offsetForToken(token);
+  }
+
+  Expression receiverAccess() {
+    // We cannot reuse the receiver if it is a variable since it might be
+    // reassigned in the index expression.
+    receiverVariable ??= new VariableDeclaration.forValue(receiver);
+    return new VariableGet(receiverVariable)
+      ..fileOffset = offsetForToken(token);
+  }
+
+  @override
+  Expression _makeSimpleRead() {
+    var read = new ShadowMethodInvocation(receiver, indexGetName,
+        forest.castArguments(forest.arguments(<Expression>[index], token)),
+        interfaceTarget: getter)
+      ..fileOffset = offsetForToken(token);
+    return read;
+  }
+
+  @override
+  Expression _makeSimpleWrite(Expression value, bool voidContext,
+      ShadowComplexAssignment complexAssignment) {
+    if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
+    var write = new ShadowMethodInvocation(
+        receiver,
+        indexSetName,
+        forest
+            .castArguments(forest.arguments(<Expression>[index, value], token)),
+        interfaceTarget: setter)
+      ..fileOffset = offsetForToken(token);
+    complexAssignment?.write = write;
+    return write;
+  }
+
+  @override
+  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+    var read = new ShadowMethodInvocation(
+        receiverAccess(),
+        indexGetName,
+        forest.castArguments(
+            forest.arguments(<Expression>[indexAccess()], token)),
+        interfaceTarget: getter)
+      ..fileOffset = offsetForToken(token);
+    complexAssignment?.read = read;
+    return read;
+  }
+
+  @override
+  Expression _makeWrite(Expression value, bool voidContext,
+      ShadowComplexAssignment complexAssignment) {
+    if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
+    var write = new ShadowMethodInvocation(
+        receiverAccess(),
+        indexSetName,
+        forest.castArguments(
+            forest.arguments(<Expression>[indexAccess(), value], token)),
+        interfaceTarget: setter)
+      ..fileOffset = offsetForToken(token);
+    complexAssignment?.write = write;
+    return write;
+  }
+
+  // TODO(dmitryas): remove this method after the "[]=" operator of the Context
+  // class is made to return a value.
+  Expression _makeWriteAndReturn(
+      Expression value, ShadowComplexAssignment complexAssignment) {
+    // The call to []= does not return the value like direct-style assignments
+    // do.  We need to bind the value in a let.
+    var valueVariable = new VariableDeclaration.forValue(value);
+    var write = new ShadowMethodInvocation(
+        receiverAccess(),
+        indexSetName,
+        forest.castArguments(forest.arguments(
+            <Expression>[indexAccess(), new VariableGet(valueVariable)],
+            token)),
+        interfaceTarget: setter)
+      ..fileOffset = offsetForToken(token);
+    complexAssignment?.write = write;
+    var dummy = new ShadowVariableDeclaration.forValue(
+        write, helper.functionNestingLevel);
+    return makeLet(
+        valueVariable, makeLet(dummy, new VariableGet(valueVariable)));
+  }
+
+  @override
+  Expression _finish(
+      Expression body, ShadowComplexAssignment complexAssignment) {
+    return super._finish(
+        makeLet(receiverVariable, makeLet(indexVariable, body)),
+        complexAssignment);
+  }
+
+  @override
+  Expression doInvocation(int offset, Arguments arguments) {
+    return helper.buildMethodInvocation(
+        buildSimpleRead(), callName, arguments, forest.readOffset(arguments),
+        isImplicitCall: true);
+  }
+
+  @override
+  ShadowComplexAssignment startComplexAssignment(Expression rhs) =>
+      new ShadowIndexAssign(receiver, index, rhs);
+
+  @override
+  void printOn(StringSink sink) {
+    NameSystem syntheticNames = new NameSystem();
+    sink.write(", receiver: ");
+    printNodeOn(receiver, sink, syntheticNames: syntheticNames);
+    sink.write(", index: ");
+    printNodeOn(index, sink, syntheticNames: syntheticNames);
+    sink.write(", getter: ");
+    printQualifiedNameOn(getter, sink, syntheticNames: syntheticNames);
+    sink.write(", setter: ");
+    printQualifiedNameOn(setter, sink, syntheticNames: syntheticNames);
+    sink.write(", receiverVariable: ");
+    printNodeOn(receiverVariable, sink, syntheticNames: syntheticNames);
+    sink.write(", indexVariable: ");
+    printNodeOn(indexVariable, sink, syntheticNames: syntheticNames);
+  }
+}
+
+class KernelThisIndexedAccessGenerator extends KernelGenerator
+    with ThisIndexedAccessGenerator<Expression, Statement, Arguments> {
+  final Expression index;
+
+  final Procedure getter;
+
+  final Procedure setter;
+
+  VariableDeclaration indexVariable;
+
+  KernelThisIndexedAccessGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, dynamic> helper,
+      Token token,
+      this.index,
+      this.getter,
+      this.setter)
+      : super(helper, token);
+
+  Expression indexAccess() {
+    indexVariable ??= new VariableDeclaration.forValue(index);
+    return new VariableGet(indexVariable);
+  }
+
+  Expression _makeWriteAndReturn(
+      Expression value, ShadowComplexAssignment complexAssignment) {
+    var valueVariable = new VariableDeclaration.forValue(value);
+    var write = new ShadowMethodInvocation(
+        forest.thisExpression(token),
+        indexSetName,
+        forest.castArguments(forest.arguments(
+            <Expression>[indexAccess(), new VariableGet(valueVariable)],
+            token)),
+        interfaceTarget: setter)
+      ..fileOffset = offsetForToken(token);
+    complexAssignment?.write = write;
+    var dummy = new VariableDeclaration.forValue(write);
+    return makeLet(
+        valueVariable, makeLet(dummy, new VariableGet(valueVariable)));
+  }
+
+  @override
+  Expression _makeSimpleRead() {
+    return new ShadowMethodInvocation(
+        forest.thisExpression(token),
+        indexGetName,
+        forest.castArguments(forest.arguments(<Expression>[index], token)),
+        interfaceTarget: getter)
+      ..fileOffset = offsetForToken(token);
+  }
+
+  @override
+  Expression _makeSimpleWrite(Expression value, bool voidContext,
+      ShadowComplexAssignment complexAssignment) {
+    if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
+    var write = new ShadowMethodInvocation(
+        forest.thisExpression(token),
+        indexSetName,
+        forest
+            .castArguments(forest.arguments(<Expression>[index, value], token)),
+        interfaceTarget: setter)
+      ..fileOffset = offsetForToken(token);
+    complexAssignment?.write = write;
+    return write;
+  }
+
+  @override
+  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+    var read = new ShadowMethodInvocation(
+        forest.thisExpression(token),
+        indexGetName,
+        forest.castArguments(
+            forest.arguments(<Expression>[indexAccess()], token)),
+        interfaceTarget: getter)
+      ..fileOffset = offsetForToken(token);
+    complexAssignment?.read = read;
+    return read;
+  }
+
+  @override
+  Expression _makeWrite(Expression value, bool voidContext,
+      ShadowComplexAssignment complexAssignment) {
+    if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
+    var write = new ShadowMethodInvocation(
+        forest.thisExpression(token),
+        indexSetName,
+        forest.castArguments(
+            forest.arguments(<Expression>[indexAccess(), value], token)),
+        interfaceTarget: setter)
+      ..fileOffset = offsetForToken(token);
+    complexAssignment?.write = write;
+    return write;
+  }
+
+  @override
+  Expression _finish(
+      Expression body, ShadowComplexAssignment complexAssignment) {
+    return super._finish(makeLet(indexVariable, body), complexAssignment);
+  }
+
+  @override
+  Expression doInvocation(int offset, Arguments arguments) {
+    return helper.buildMethodInvocation(
+        buildSimpleRead(), callName, arguments, offset,
+        isImplicitCall: true);
+  }
+
+  @override
+  ShadowComplexAssignment startComplexAssignment(Expression rhs) =>
+      new ShadowIndexAssign(null, index, rhs);
+
+  @override
+  void printOn(StringSink sink) {
+    NameSystem syntheticNames = new NameSystem();
+    sink.write(", index: ");
+    printNodeOn(index, sink, syntheticNames: syntheticNames);
+    sink.write(", getter: ");
+    printQualifiedNameOn(getter, sink, syntheticNames: syntheticNames);
+    sink.write(", setter: ");
+    printQualifiedNameOn(setter, sink, syntheticNames: syntheticNames);
+    sink.write(", indexVariable: ");
+    printNodeOn(indexVariable, sink, syntheticNames: syntheticNames);
   }
 }
 
