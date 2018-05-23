@@ -14,8 +14,6 @@ import 'class_builder.dart' show ClassBuilder;
 
 export '../scope.dart' show AccessErrorBuilder, Scope, ScopeBuilder;
 
-export '../source/unhandled_listener.dart' show Unhandled;
-
 export 'builtin_type_builder.dart' show BuiltinTypeBuilder;
 
 export 'class_builder.dart' show ClassBuilder;

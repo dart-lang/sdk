@@ -312,10 +312,6 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
 
   Statement popStatement() => forest.wrapVariables(pop());
 
-  void ignore(Unhandled value) {
-    pop();
-  }
-
   void enterSwitchScope() {
     push(switchScope ?? NullValue.SwitchScope);
     switchScope = scope;
