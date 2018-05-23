@@ -18,71 +18,86 @@ main() async {
 
   if (MediaStream.supported) {
     test('getUserMedia audio', () async {
-      var mediaStream = await window.navigator.getUserMedia(audio: true);
-      expect(mediaStream, isNotNull);
-      expect(mediaStream is MediaStream, true);
-      var devices = window.navigator.mediaDevices;
-      var enumDevices = await devices.enumerateDevices();
-      expect(enumDevices.length > 1, true);
-      for (var device in enumDevices) {
-        var goodDevLabel = device.label.endsWith('Built-in Output') ||
-            device.label.endsWith('Built-in Microphone');
-        expect(goodDevLabel, true);
+      try {
+        var mediaStream = await window.navigator.getUserMedia(audio: true);
+        expect(mediaStream, isNotNull);
+        expect(mediaStream is MediaStream, true);
+        var devices = window.navigator.mediaDevices;
+        var enumDevices = await devices.enumerateDevices();
+        expect(enumDevices.length > 1, true);
+        for (var device in enumDevices) {
+          var goodDevLabel = device.label.endsWith('Built-in Output') ||
+              device.label.endsWith('Built-in Microphone');
+          expect(goodDevLabel, true);
+        }
+      } catch (e) {
+        // Could fail if bot machine doesn't support audio or video.
+        expect(e.name, DomException.NOT_FOUND);
       }
     });
 
     test('getUserMedia', () {
-      return window.navigator.getUserMedia(video: true).then((stream) {
-        expect(stream, isNotNull);
+      try {
+        return window.navigator.getUserMedia(video: true).then((stream) {
+          expect(stream, isNotNull);
 
-        var url = Url.createObjectUrlFromStream(stream);
-        expect(url, isNotNull);
+          var url = Url.createObjectUrlFromStream(stream);
+          expect(url, isNotNull);
 
-        var video = new VideoElement()..autoplay = true;
+          var video = new VideoElement()..autoplay = true;
 
-        var completer = new Completer();
-        video.onError.listen((e) {
-          completer.completeError(e);
+          var completer = new Completer();
+          video.onError.listen((e) {
+            completer.completeError(e);
+          });
+          video.onPlaying.first.then((e) {
+            completer.complete(video);
+          });
+
+          document.body.append(video);
+          video.src = url;
+
+          return completer.future;
         });
-        video.onPlaying.first.then((e) {
-          completer.complete(video);
-        });
-
-        document.body.append(video);
-        video.src = url;
-
-        return completer.future;
-      });
+      } catch (e) {
+        // Could fail if bot machine doesn't support audio or video.
+        expect(e.name, DomException.NOT_FOUND);
+      }
     });
 
     test('getUserMediaComplexConstructor', () {
-      return window.navigator.getUserMedia(video: {
-        'mandatory': {'minAspectRatio': 1.333, 'maxAspectRatio': 1.334},
-        'optional': [
-          {'minFrameRate': 60},
-          {'maxWidth': 640}
-        ]
-      }).then((stream) {
-        expect(stream, isNotNull);
+      try {
+        return window.navigator.getUserMedia(video: {
+          'mandatory': {'minAspectRatio': 1.333, 'maxAspectRatio': 1.334},
+          'optional': [
+            {'minFrameRate': 60},
+            {'maxWidth': 640}
+          ]
+        }).then((stream) {
+          expect(stream, isNotNull);
 
-        var url = Url.createObjectUrlFromStream(stream);
-        expect(url, isNotNull);
+          var url = Url.createObjectUrlFromStream(stream);
+          expect(url, isNotNull);
 
-        var video = new VideoElement()..autoplay = true;
+          var video = new VideoElement()..autoplay = true;
 
-        var completer = new Completer();
-        video.onError.listen((e) {
-          completer.completeError(e);
+          var completer = new Completer();
+          video.onError.listen((e) {
+            completer.completeError(e);
+          });
+          video.onPlaying.first.then((e) {
+            completer.complete(video);
+          });
+
+          document.body.append(video);
+          video.src = url;
+
+          return completer.future;
         });
-        video.onPlaying.first.then((e) {
-          completer.complete(video);
-        });
-
-        document.body.append(video);
-        video.src = url;
-
-        return completer.future;
-      });
+      } catch (e) {
+        // Could fail if bot machine doesn't support audio or video.
+        expect(e.name, DomException.NOT_FOUND);
+      }
     });
   }
 }
