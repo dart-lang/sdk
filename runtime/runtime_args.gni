@@ -81,4 +81,8 @@ declare_args() {
   # Whether the runtime should interpret called functions for which bytecode
   # is provided by kernel, rather than compile them before execution.
   dart_use_interpreter = false
+
+  # Whether the VM includes the kernel service in all modes (debug, release,
+  # product).
+  exclude_kernel_service = false
 }

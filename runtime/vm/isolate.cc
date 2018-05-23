@@ -801,6 +801,8 @@ void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
 #define FLAG_FOR_NONPRODUCT(action)
 #endif
 
+#define FLAG_FOR_PRODUCT(action) action
+
 #define SET_FROM_FLAG(when, name, bitname, isolate_flag, flag)                 \
   FLAG_FOR_##when(isolate_flags_ = bitname##Bit::update(                       \
                       api_flags.isolate_flag, isolate_flags_));
@@ -809,6 +811,7 @@ void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
 
 #undef FLAG_FOR_NONPRODUCT
 #undef FLAG_FOR_PRECOMPILER
+#undef FLAG_FOR_PRODUCT
 #undef SET_FROM_FLAG
 
   set_use_dart_frontend(api_flags.use_dart_frontend);

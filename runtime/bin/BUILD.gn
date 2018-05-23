@@ -901,6 +901,9 @@ template("dart_executable") {
     }
 
     defines = extra_defines
+    if (exclude_kernel_service) {
+      defines += [ "EXCLUDE_CFE_AND_KERNEL_PLATFORM" ]
+    }
 
     if (dart_use_tcmalloc) {
       deps += [ "//third_party/tcmalloc" ]
@@ -955,9 +958,6 @@ dart_executable("dart") {
   if (dart_runtime_mode != "release") {
     extra_deps += [ "../observatory:standalone_observatory_archive" ]
   }
-  if (dart_runtime_mode != "release") {
-    extra_deps += [ ":dart_kernel_platform_cc" ]
-  }
   extra_sources = [
     "builtin_nolib.cc",
     "dfe.cc",
@@ -970,6 +970,9 @@ dart_executable("dart") {
   ]
   if (dart_runtime_mode == "release") {
     extra_sources += [ "observatory_assets_empty.cc" ]
+  }
+  if (!exclude_kernel_service) {
+    extra_deps += [ ":dart_kernel_platform_cc" ]
   }
 }
 
@@ -1038,9 +1041,6 @@ dart_executable("dart_bootstrap") {
     ":generate_web_sql_cc_file",
     "..:libdart_nosnapshot_with_precompiler",
   ]
-  if (dart_runtime_mode != "release") {
-    extra_deps += [ ":dart_kernel_platform_cc" ]
-  }
   extra_defines = [ "NO_OBSERVATORY" ]
   extra_sources = [
     "builtin.cc",
@@ -1073,6 +1073,9 @@ dart_executable("dart_bootstrap") {
     "$target_gen_dir/web_gl_gen.cc",
     "$target_gen_dir/web_sql_gen.cc",
   ]
+  if (!exclude_kernel_service) {
+    extra_deps += [ ":dart_kernel_platform_cc" ]
+  }
 }
 
 executable("process_test") {

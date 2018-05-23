@@ -221,6 +221,8 @@ def ToGnArgs(args, mode, arch, target_os):
   else:
     gn_args['dart_runtime_mode'] = 'develop'
 
+  gn_args['exclude_kernel_service'] = args.exclude_kernel_service
+
   dont_use_clang = DontUseClang(args, gn_args['target_os'],
                                       gn_args['host_cpu'],
                                       gn_args['target_cpu'])
@@ -391,6 +393,11 @@ def parse_args(args):
   other_group.add_argument('--ide',
       help='Generate an IDE file.',
       default=os_has_ide(HOST_OS),
+      action='store_true')
+  other_group.add_argument('--exclude-kernel-service',
+      help='Exclude the kernel service.',
+      default=False,
+      dest='exclude_kernel_service',
       action='store_true')
   other_group.add_argument('--msan',
       help='Build with MSAN',

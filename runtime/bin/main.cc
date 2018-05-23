@@ -615,7 +615,13 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
       platform_kernel_buffer_size = kernel_buffer_size;
     }
     if (platform_kernel_buffer == NULL) {
+#if defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
+      FATAL(
+          "Binary built with --exclude-kernel-service. Cannot run"
+          " from source.");
+#else
       FATAL("platform_program cannot be NULL.");
+#endif  // defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
     }
     // TODO(sivachandra): When the platform program is unavailable, check if
     // application kernel binary is self contained or an incremental binary.
