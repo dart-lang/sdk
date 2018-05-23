@@ -1839,14 +1839,6 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     Statement body = popStatement();
     List<Expression> updates = popListForEffect(updateExpressionCount);
     Statement conditionStatement = popStatement();
-    kernel.Statement kernelConditionStatement =
-        toKernelStatement(conditionStatement);
-    Expression condition = null;
-    if (kernelConditionStatement is ExpressionStatement) {
-      condition = toExpression(kernelConditionStatement.expression);
-    } else {
-      assert(kernelConditionStatement is EmptyStatement);
-    }
     dynamic variableOrExpression = pop();
     List<VariableDeclaration> variables =
         buildVariableDeclarations(variableOrExpression);
@@ -1857,22 +1849,36 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     exitLocalScope();
     JumpTarget continueTarget = exitContinueTarget();
     JumpTarget breakTarget = exitBreakTarget();
-    kernel.Statement kernelBody = toKernelStatement(body);
     if (continueTarget.hasUsers) {
-      kernelBody = new ShadowLabeledStatement(kernelBody);
-      continueTarget.resolveContinues(forest, kernelBody);
+      body = forest.syntheticLabeledStatement(body);
+      continueTarget.resolveContinues(forest, body);
     }
-    kernel.Statement result = new ShadowForStatement(
+    Expression condition;
+    Token rightSeparator;
+    if (forest.isExpressionStatement(conditionStatement)) {
+      condition =
+          forest.getExpressionFromExpressionStatement(conditionStatement);
+      rightSeparator = forest.getSemicolon(conditionStatement);
+    } else {
+      assert(forest.isEmptyStatement(conditionStatement));
+      rightSeparator = forest.getSemicolon(conditionStatement);
+    }
+    Statement result = forest.forStatement(
+        forKeyword,
+        leftParen,
         variables,
-        toKernelExpression(condition),
-        toKernelExpressionList(updates),
-        kernelBody)
-      ..fileOffset = forKeyword.charOffset;
+        variables,
+        leftSeparator,
+        condition,
+        rightSeparator,
+        updates,
+        leftParen.endGroup,
+        body);
     if (breakTarget.hasUsers) {
-      result = new ShadowLabeledStatement(result);
+      result = forest.syntheticLabeledStatement(result);
       breakTarget.resolveBreaks(forest, result);
     }
-    exitLoopOrSwitch(toStatement(result));
+    exitLoopOrSwitch(result);
   }
 
   @override

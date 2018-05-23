@@ -201,6 +201,19 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   /// [semicolon].
   Statement emptyStatement(Location semicolon);
 
+  /// Return a representation of a for statement.
+  Statement forStatement(
+      Location forKeyword,
+      Location leftParenthesis,
+      covariant variableList,
+      covariant initialization,
+      Location leftSeparator,
+      Expression condition,
+      Location rightSeparator,
+      List<Expression> updaters,
+      Location rightParenthesis,
+      Statement body);
+
   /// Return a representation of an `if` statement.
   Statement ifStatement(Location ifKeyword, covariant Expression condition,
       Statement thenStatement, Location elseKeyword, Statement elseStatement);
@@ -270,9 +283,24 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   Statement yieldStatement(Location yieldKeyword, Location star,
       Expression expression, Location semicolon);
 
+  /// Return the expression from the given expression [statement].
+  Expression getExpressionFromExpressionStatement(Statement statement);
+
+  /// Return the semicolon at the end of the given [statement], or `null` if the
+  /// statement is not terminated by a semicolon.
+  Location getSemicolon(Statement statement);
+
   bool isBlock(Object node);
 
+  /// Return `true` if the given [statement] is the representation of an empty
+  /// statement.
+  bool isEmptyStatement(Statement statement);
+
   bool isErroneousNode(Object node);
+
+  /// Return `true` if the given [statement] is the representation of an
+  /// expression statement.
+  bool isExpressionStatement(Statement statement);
 
   bool isThisExpression(Object node);
 

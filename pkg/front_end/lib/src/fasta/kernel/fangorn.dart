@@ -65,6 +65,7 @@ import 'kernel_shadow_ast.dart'
         ShadowDoStatement,
         ShadowDoubleLiteral,
         ShadowExpressionStatement,
+        ShadowForStatement,
         ShadowIfStatement,
         ShadowIntLiteral,
         ShadowIsExpression,
@@ -351,6 +352,22 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
+  Statement forStatement(
+      Token forKeyword,
+      Token leftParenthesis,
+      List<VariableDeclaration> variableList,
+      covariant initialization,
+      Token leftSeparator,
+      Expression condition,
+      Token rightSeparator,
+      List<Expression> updaters,
+      Token rightParenthesis,
+      Statement body) {
+    return new ShadowForStatement(variableList, condition, updaters, body)
+      ..fileOffset = forKeyword.charOffset;
+  }
+
+  @override
   Statement ifStatement(Token ifKeyword, Expression condition,
       Statement thenStatement, Token elseKeyword, Statement elseStatement) {
     return new ShadowIfStatement(condition, thenStatement, elseStatement)
@@ -467,7 +484,18 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
+  Expression getExpressionFromExpressionStatement(Statement statement) {
+    return (statement as ExpressionStatement).expression;
+  }
+
+  @override
+  Token getSemicolon(Statement statement) => null;
+
+  @override
   bool isBlock(Object node) => node is Block;
+
+  @override
+  bool isEmptyStatement(Statement statement) => statement is EmptyStatement;
 
   @override
   bool isErroneousNode(Object node) {
@@ -489,6 +517,10 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
     }
     return node is InvalidExpression;
   }
+
+  @override
+  bool isExpressionStatement(Statement statement) =>
+      statement is ExpressionStatement;
 
   @override
   bool isThisExpression(Object node) => node is ThisExpression;

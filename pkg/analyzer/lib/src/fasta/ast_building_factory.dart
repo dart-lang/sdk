@@ -141,6 +141,45 @@ class AstBuildingForest
       astFactory.expressionStatement(expression, semicolon);
 
   @override
+  Statement forStatement(
+          Token forKeyword,
+          Token leftParenthesis,
+          covariant variableList,
+          covariant initialization,
+          Token leftSeparator,
+          Expression condition,
+          Token rightSeparator,
+          List<Expression> updaters,
+          Token rightParenthesis,
+          Statement body) =>
+      astFactory.forStatement(
+          forKeyword,
+          leftParenthesis,
+          variableList,
+          initialization,
+          leftSeparator,
+          condition,
+          rightSeparator,
+          updaters,
+          rightParenthesis,
+          body);
+
+  @override
+  Expression getExpressionFromExpressionStatement(Statement statement) =>
+      (statement as ExpressionStatement).expression;
+
+  @override
+  Token getSemicolon(Statement statement) {
+    if (statement is ExpressionStatement) {
+      return statement.semicolon;
+    }
+    if (statement is EmptyStatement) {
+      return statement.semicolon;
+    }
+    return null;
+  }
+
+  @override
   kernel.DartType getTypeAt(TypeArgumentList typeArguments, int index) {
     return null; // typeArguments.arguments[index].type.kernelType;
   }
@@ -166,7 +205,22 @@ class AstBuildingForest
           elseStatement);
 
   @override
+  Generator<Expression, Statement, _Arguments> indexedAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+      Token token,
+      Expression receiver,
+      Expression index,
+      kernel.Procedure getter,
+      kernel.Procedure setter) {
+    // TODO(brianwilkerson): Implement this.
+    throw new UnimplementedError();
+  }
+
+  @override
   bool isBlock(Object node) => node is Block;
+
+  @override
+  bool isEmptyStatement(Statement statement) => statement is EmptyStatement;
 
   @override
   bool isErroneousNode(Object node) => false /* ??? */;
@@ -175,6 +229,10 @@ class AstBuildingForest
   Expression isExpression(Expression expression, Token isOperator,
           Token notOperator, Object type) =>
       astFactory.isExpression(expression, isOperator, notOperator, type);
+
+  @override
+  bool isExpressionStatement(Statement statement) =>
+      statement is ExpressionStatement;
 
   @override
   bool isThisExpression(Object node) => node is ThisExpression;
@@ -280,10 +338,35 @@ class AstBuildingForest
         ..staticType = _typeProvider?.boolType;
 
   @override
+  Generator<Expression, Statement, _Arguments> nullAwarePropertyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+      Token token,
+      Expression receiverExpression,
+      kernel.Name name,
+      kernel.Member getter,
+      kernel.Member setter,
+      kernel.DartType type) {
+    // TODO(brianwilkerson): Implement this.
+    throw new UnimplementedError();
+  }
+
+  @override
   Object parenthesizedCondition(Token leftParenthesis, Expression expression,
           Token rightParenthesis) =>
       astFactory.parenthesizedExpression(
           leftParenthesis, expression, rightParenthesis);
+
+  @override
+  Generator<Expression, Statement, _Arguments> propertyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+      Token token,
+      Expression receiver,
+      kernel.Name name,
+      kernel.Member getter,
+      kernel.Member setter) {
+    // TODO(brianwilkerson): Implement this.
+    throw new UnimplementedError();
+  }
 
   @override
   int readOffset(AstNode node) => node.offset;
@@ -319,11 +402,44 @@ class AstBuildingForest
       astFactory.adjacentStrings(strings.cast<StringLiteral>());
 
   @override
+  Generator<Expression, Statement, _Arguments> superPropertyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+      Token token,
+      kernel.Name name,
+      kernel.Member getter,
+      kernel.Member setter) {
+    // TODO(brianwilkerson): Implement this.
+    throw new UnimplementedError();
+  }
+
+  @override
   Statement syntheticLabeledStatement(Statement statement) => statement;
 
   @override
   Expression thisExpression(Token thisKeyword) =>
       astFactory.thisExpression(thisKeyword);
+
+  @override
+  Generator<Expression, Statement, _Arguments> thisIndexedAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+      Token token,
+      Expression index,
+      kernel.Procedure getter,
+      kernel.Procedure setter) {
+    // TODO(brianwilkerson): Implement this.
+    throw new UnimplementedError();
+  }
+
+  @override
+  Generator<Expression, Statement, _Arguments> thisPropertyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+      Token location,
+      kernel.Name name,
+      kernel.Member getter,
+      kernel.Member setter) {
+    // TODO(brianwilkerson): Implement this.
+    throw new UnimplementedError();
+  }
 
   @override
   Expression throwExpression(Token throwKeyword, Expression expression) =>
@@ -352,6 +468,15 @@ class AstBuildingForest
       variablesDeclaration.variables.variables;
 
   @override
+  Generator<Expression, Statement, _Arguments> variableUseGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+      Token token,
+      VariableDeclarationStatement variable,
+      kernel.DartType promotedType) {
+    // TODO(brianwilkerson) Implement this.
+    throw new UnimplementedError();
+  }
+
   Statement whileStatement(Token whileKeyword,
           ParenthesizedExpression condition, Statement body) =>
       astFactory.whileStatement(whileKeyword, condition.leftParenthesis,
@@ -364,86 +489,6 @@ class AstBuildingForest
   Statement yieldStatement(Token yieldKeyword, Token star,
           Expression expression, Token semicolon) =>
       astFactory.yieldStatement(yieldKeyword, star, expression, semicolon);
-
-  @override
-  Generator<Expression, Statement, _Arguments> variableUseGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
-      Token token,
-      VariableDeclarationStatement variable,
-      kernel.DartType promotedType) {
-    // TODO(brianwilkerson) Implement this.
-    throw new UnimplementedError();
-  }
-
-  @override
-  Generator<Expression, Statement, _Arguments> propertyAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
-      Token token,
-      Expression receiver,
-      kernel.Name name,
-      kernel.Member getter,
-      kernel.Member setter) {
-    // TODO(brianwilkerson) Implement this.
-    throw new UnimplementedError();
-  }
-
-  @override
-  Generator<Expression, Statement, _Arguments> thisPropertyAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
-      Token location,
-      kernel.Name name,
-      kernel.Member getter,
-      kernel.Member setter) {
-    // TODO(brianwilkerson) Implement this.
-    throw new UnimplementedError();
-  }
-
-  @override
-  Generator<Expression, Statement, _Arguments> nullAwarePropertyAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
-      Token token,
-      Expression receiverExpression,
-      kernel.Name name,
-      kernel.Member getter,
-      kernel.Member setter,
-      kernel.DartType type) {
-    // TODO(brianwilkerson) Implement this.
-    throw new UnimplementedError();
-  }
-
-  @override
-  Generator<Expression, Statement, _Arguments> superPropertyAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
-      Token token,
-      kernel.Name name,
-      kernel.Member getter,
-      kernel.Member setter) {
-    // TODO(brianwilkerson): Implement this.
-    throw new UnimplementedError();
-  }
-
-  @override
-  Generator<Expression, Statement, _Arguments> indexedAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
-      Token token,
-      Expression receiver,
-      Expression index,
-      kernel.Procedure getter,
-      kernel.Procedure setter) {
-    // TODO(brianwilkerson): Implement this.
-    throw new UnimplementedError();
-  }
-
-  @override
-  Generator<Expression, Statement, _Arguments> thisIndexedAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
-      Token token,
-      Expression index,
-      kernel.Procedure getter,
-      kernel.Procedure setter) {
-    // TODO(brianwilkerson): Implement this.
-    throw new UnimplementedError();
-  }
 }
 
 /// A data holder used to conform to the [Forest] API.
