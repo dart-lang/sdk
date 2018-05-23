@@ -36,6 +36,10 @@ class Intrinsifier : public AllStatic {
   static void IntrinsicCallEpilogue(Assembler* assembler);
 
  private:
+  // The "_A" value used in the intrinsification of
+  // `runtime/lib/math_patch.dart:_Random._nextState()`
+  static const int64_t kRandomAValue = 0xffffda61;
+
   static bool CanIntrinsify(const Function& function);
 
 #define DECLARE_FUNCTION(class_name, function_name, enum_name, type, fp)       \

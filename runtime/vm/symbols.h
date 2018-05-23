@@ -387,7 +387,6 @@ class ObjectPointerVisitor;
   V(ExternalName, "ExternalName")                                              \
   V(_Random, "_Random")                                                        \
   V(_state, "_state")                                                          \
-  V(_A, "_A")                                                                  \
   V(_stackTrace, "_stackTrace")                                                \
   V(_SpecialTypeMirror, "_SpecialTypeMirror")                                  \
   V(_LocalClassMirror, "_LocalClassMirror")                                    \

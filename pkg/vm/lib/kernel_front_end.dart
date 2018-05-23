@@ -159,8 +159,6 @@ Future _performConstantEvaluation(
     final typeEnvironment =
         new TypeEnvironment(coreTypes, hierarchy, strongMode: strongMode);
 
-    // NOTE: Currently we keep fields, because there are certain constant
-    // fields which the VM accesses (e.g. `_Random._A` needs to be preserved).
     // TODO(kustermann): We should use the entrypoints manifest to find out
     // which fields need to be preserved and remove the rest.
     constants.transformComponent(component, vmConstants,
