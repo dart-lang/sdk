@@ -79,7 +79,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   Iterable<InterfaceType> _getSelfAndInheritedTypes(InterfaceType type) sync* {
     InterfaceType current = type;
-    while (current != null) {
+    // TODO(a14n) the is check looks unnecessary but prevents https://github.com/dart-lang/sdk/issues/33210
+    // for now it's not clear how this can happen
+    while (current != null && current is InterfaceType) {
       yield current;
       current = current.superclass;
     }
