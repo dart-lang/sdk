@@ -2788,28 +2788,37 @@ class Function : public Object {
 
   void set_modifier(RawFunction::AsyncModifier value) const;
 
+// 'WasCompiled' is true if the function was compiled once in this
+// VM instantiation. It is independent from presence of type feedback
+// (ic_data_array) and code, which may be loaded from a snapshot.
+// 'WasExecuted' is true if the usage counter has ever been positive.
+// 'ProhibitsHoistingCheckClass' is true if this function deoptimized before on
+// a hoisted check class instruction.
+// 'ProhibitsBoundsCheckGeneralization' is true if this function deoptimized
+// before on a generalized bounds check.
+#define STATE_BITS_LIST(V)                                                     \
+  V(WasCompiled)                                                               \
+  V(WasExecutedBit)                                                            \
+  V(ProhibitsHoistingCheckClass)                                               \
+  V(ProhibitsBoundsCheckGeneralization)
+
   enum StateBits {
-    kWasCompiledPos = 0,
-    kWasExecutedPos = 1,
+#define DECLARE_FLAG_POS(Name) k##Name##Pos,
+    STATE_BITS_LIST(DECLARE_FLAG_POS)
+#undef DECLARE_FLAG_POS
   };
-  class WasCompiledBit : public BitField<uint8_t, bool, kWasCompiledPos, 1> {};
-  class WasExecutedBit : public BitField<uint8_t, bool, kWasExecutedPos, 1> {};
+#define DEFINE_FLAG_BIT(Name)                                                  \
+  class Name##Bit : public BitField<uint8_t, bool, k##Name##Pos, 1> {};
+  STATE_BITS_LIST(DEFINE_FLAG_BIT)
+#undef DEFINE_FLAG_BIT
 
-  // 'WasCompiled' is true if the function was compiled once in this
-  // VM instantiation. It is independent from presence of type feedback
-  // (ic_data_array) and code, which may be loaded from a snapshot.
-  void SetWasCompiled(bool value) const {
-    set_state_bits(WasCompiledBit::update(value, state_bits()));
-  }
-  bool WasCompiled() const { return WasCompiledBit::decode(state_bits()); }
-
-  // 'WasExecuted' is true if the usage counter has ever been positive.
-  void SetWasExecuted(bool value) const {
-    set_state_bits(WasExecutedBit::update(value, state_bits()));
-  }
-  bool WasExecuted() const {
-    return (usage_counter() > 0) || WasExecutedBit::decode(state_bits());
-  }
+#define DEFINE_FLAG_ACCESSORS(Name)                                            \
+  void Set##Name(bool value) const {                                           \
+    set_state_bits(Name##Bit::update(value, state_bits()));                    \
+  }                                                                            \
+  bool Name() const { return Name##Bit::decode(state_bits()); }
+  STATE_BITS_LIST(DEFINE_FLAG_ACCESSORS)
+#undef DEFINE_FLAG_ACCESSORS
 
   void SetUsageCounter(intptr_t value) const {
     if (usage_counter() > 0) {
@@ -2817,6 +2826,10 @@ class Function : public Object {
     }
     set_usage_counter(value);
   }
+
+  bool WasExecuted() const { return (usage_counter() > 0) || WasExecutedBit(); }
+
+  void SetWasExecuted(bool value) const { SetWasExecutedBit(value); }
 
   // static: Considered during class-side or top-level resolution rather than
   //         instance-side resolution.
@@ -2855,8 +2868,6 @@ class Function : public Object {
   V(Native, is_native)                                                         \
   V(Redirecting, is_redirecting)                                               \
   V(External, is_external)                                                     \
-  V(AllowsHoistingCheckClass, allows_hoisting_check_class)                     \
-  V(AllowsBoundsCheckGeneralization, allows_bounds_check_generalization)       \
   V(GeneratedBody, is_generated_body)                                          \
   V(AlwaysInline, always_inline)                                               \
   V(PolymorphicTarget, is_polymorphic_target)

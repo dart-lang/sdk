@@ -7097,8 +7097,6 @@ RawFunction* Function::New(const String& name,
   result.set_is_optimizable(is_native ? false : true);
   result.set_is_background_optimizable(is_native ? false : true);
   result.set_is_inlinable(true);
-  result.set_allows_hoisting_check_class(true);
-  result.set_allows_bounds_check_generalization(true);
   result.SetInstructionsSafe(
       Code::Handle(StubCode::LazyCompile_entry()->code()));
   if (kind == RawFunction::kClosureFunction ||

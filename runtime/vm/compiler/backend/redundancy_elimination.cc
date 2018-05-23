@@ -1331,7 +1331,7 @@ void LICM::TrySpecializeSmiPhi(PhiInstr* phi,
 }
 
 void LICM::OptimisticallySpecializeSmiPhis() {
-  if (!flow_graph()->function().allows_hoisting_check_class() ||
+  if (flow_graph()->function().ProhibitsHoistingCheckClass() ||
       FLAG_precompiled_mode) {
     // Do not hoist any: Either deoptimized on a hoisted check,
     // or compiling precompiled code where we can't do optimistic
@@ -1355,7 +1355,7 @@ void LICM::OptimisticallySpecializeSmiPhis() {
 }
 
 void LICM::Optimize() {
-  if (!flow_graph()->function().allows_hoisting_check_class()) {
+  if (flow_graph()->function().ProhibitsHoistingCheckClass()) {
     // Do not hoist any.
     return;
   }

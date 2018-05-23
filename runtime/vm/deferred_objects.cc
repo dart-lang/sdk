@@ -139,11 +139,11 @@ void DeferredRetAddr::Materialize(DeoptContext* deopt_context) {
   } else {
     if (deopt_context->HasDeoptFlag(ICData::kHoisted)) {
       // Prevent excessive deoptimization.
-      function.set_allows_hoisting_check_class(false);
+      function.SetProhibitsHoistingCheckClass(true);
     }
 
     if (deopt_context->HasDeoptFlag(ICData::kGeneralized)) {
-      function.set_allows_bounds_check_generalization(false);
+      function.SetProhibitsBoundsCheckGeneralization(true);
     }
   }
 }
