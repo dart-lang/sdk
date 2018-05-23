@@ -3231,19 +3231,20 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   void handleLabel(Token token) {
     debugEvent("Label");
     Identifier identifier = pop();
-    push(new Label(identifier.name, identifier.token.charOffset));
+    push(forest.label(identifier.token, token));
   }
 
   @override
   void beginLabeledStatement(Token token, int labelCount) {
     debugEvent("beginLabeledStatement");
-    List<Label> labels = popList(
-        labelCount, new List<Label>.filled(labelCount, null, growable: true));
+    List<Object> labels =
+        new List<Object>.filled(labelCount, null, growable: true);
+    popList(labelCount, labels);
     enterLocalScope(null, scope.createNestedLabelScope());
     LabelTarget target = new LabelTarget<Statement>(
-        member, functionNestingLevel, token.charOffset);
-    for (Label label in labels) {
-      scope.declareLabel(label.name, target);
+        labels, member, functionNestingLevel, token.charOffset);
+    for (Object label in labels) {
+      scope.declareLabel(forest.getLabelName(label), target);
     }
     push(target);
   }
@@ -3260,9 +3261,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       }
       target.breakTarget.resolveBreaks(forest, statement);
     }
-    // TODO(brianwilkerson): Figure out how to get the labels that are part of
-    // the statement.
-//    statement = forest.labeledStatement(labels, statement);
+    statement = forest.labeledStatement(target, statement);
     if (target.continueTarget.hasUsers) {
       if (statement is! LabeledStatement) {
         statement = forest.syntheticLabeledStatement(statement);
@@ -3369,11 +3368,11 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {
     debugEvent("beginSwitchCase");
     List labelsAndExpressions = popList(labelCount + expressionCount);
-    List<Label> labels = <Label>[];
+    List<Object> labels = <Object>[];
     List<Expression> expressions = <Expression>[];
     if (labelsAndExpressions != null) {
       for (var labelOrExpression in labelsAndExpressions) {
-        if (labelOrExpression is Label) {
+        if (forest.isLabel(labelOrExpression)) {
           labels.add(labelOrExpression);
         } else {
           expressions.add(labelOrExpression);
@@ -3381,18 +3380,19 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       }
     }
     assert(scope == switchScope);
-    for (Label label in labels) {
-      if (scope.hasLocalLabel(label.name)) {
+    for (Object label in labels) {
+      String labelName = forest.getLabelName(label);
+      if (scope.hasLocalLabel(labelName)) {
         // TODO(ahe): Should validate this is a goto target.
-        if (!scope.claimLabel(label.name)) {
+        if (!scope.claimLabel(labelName)) {
           addCompileTimeError(
               fasta.templateDuplicateLabelInSwitchStatement
-                  .withArguments(label.name),
-              label.charOffset,
-              label.name.length);
+                  .withArguments(labelName),
+              forest.getLabelOffset(label),
+              labelName.length);
         }
       } else {
-        scope.declareLabel(label.name, createGotoTarget(firstToken.charOffset));
+        scope.declareLabel(labelName, createGotoTarget(firstToken.charOffset));
       }
     }
     push(expressions);
@@ -3415,7 +3415,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     // check this switch case to see if it falls through to the next case.
     Statement block = popBlock(statementCount, firstToken, null);
     exitLocalScope();
-    List<Label> labels = pop();
+    List<Object> labels = pop();
     List<Expression> expressions = pop();
     List<int> expressionOffsets = <int>[];
     for (Expression expression in expressions) {
@@ -3453,10 +3453,10 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     List<SwitchCase> cases =
         new List<SwitchCase>.filled(caseCount, null, growable: true);
     for (int i = caseCount - 1; i >= 0; i--) {
-      List<Label> labels = pop();
+      List<Object> labels = pop();
       SwitchCase current = cases[i] = pop();
-      for (Label label in labels) {
-        JumpTarget target = switchScope.lookupLabel(label.name);
+      for (Object label in labels) {
+        JumpTarget target = switchScope.lookupLabel(forest.getLabelName(label));
         if (target != null) {
           target.resolveGotos(forest, current);
         }
@@ -4189,15 +4189,6 @@ class InitializedIdentifier extends Identifier {
   String toString() => "initialized-identifier($name, $initializer)";
 }
 
-class Label {
-  String name;
-  int charOffset;
-
-  Label(this.name, this.charOffset);
-
-  String toString() => "label($name)";
-}
-
 class JumpTarget<Statement> extends Builder {
   final List<Statement> users = <Statement>[];
 
@@ -4264,13 +4255,16 @@ class JumpTarget<Statement> extends Builder {
 }
 
 class LabelTarget<Statement> extends Builder implements JumpTarget<Statement> {
+  final List<Object> labels;
+
   final JumpTarget breakTarget;
 
   final JumpTarget continueTarget;
 
   final int functionNestingLevel;
 
-  LabelTarget(MemberBuilder member, this.functionNestingLevel, int charOffset)
+  LabelTarget(this.labels, MemberBuilder member, this.functionNestingLevel,
+      int charOffset)
       : breakTarget = new JumpTarget<Statement>(
             JumpTargetKind.Break, functionNestingLevel, member, charOffset),
         continueTarget = new JumpTarget<Statement>(

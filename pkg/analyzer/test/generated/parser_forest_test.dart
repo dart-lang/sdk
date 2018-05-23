@@ -5045,18 +5045,8 @@ class StatementParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_parseBreakStatement_label() {
-    super.test_parseBreakStatement_label();
-  }
-
-  @failingTest
   void test_parseBreakStatement_noLabel() {
     super.test_parseBreakStatement_noLabel();
-  }
-
-  @failingTest
-  void test_parseContinueStatement_label() {
-    super.test_parseContinueStatement_label();
   }
 
   @failingTest

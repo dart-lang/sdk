@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart' hide Identifier;
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
+import 'package:front_end/src/fasta/kernel/body_builder.dart' show LabelTarget;
 import 'package:front_end/src/fasta/kernel/forest.dart';
 import 'package:kernel/ast.dart' as kernel;
 
@@ -210,6 +211,11 @@ class AstBuildingForest
   Expression getExpressionFromExpressionStatement(Statement statement) =>
       (statement as ExpressionStatement).expression;
 
+  String getLabelName(Label label) => label.label.name;
+
+  @override
+  int getLabelOffset(Label label) => label.offset;
+
   @override
   int getOptionalParameterCount(FormalParameterList parameters) {
     int count = 0;
@@ -314,11 +320,23 @@ class AstBuildingForest
       statement is ExpressionStatement;
 
   @override
+  bool isLabel(covariant node) => node is Label;
+
+  @override
   bool isThisExpression(Object node) => node is ThisExpression;
 
   @override
   bool isVariablesDeclaration(Object node) =>
       node is VariableDeclarationStatement && node.variables != 1;
+
+  @override
+  Label label(Token identifier, Token colon) =>
+      astFactory.label(astFactory.simpleIdentifier(identifier), colon);
+
+  @override
+  Statement labeledStatement(
+          LabelTarget<Statement> target, Statement statement) =>
+      astFactory.labeledStatement(target.labels.cast<Label>(), statement);
 
   @override
   Expression literalBool(bool value, Token location) =>

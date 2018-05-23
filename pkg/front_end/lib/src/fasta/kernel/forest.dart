@@ -12,7 +12,7 @@ import 'package:kernel/ast.dart' as kernel
         Name,
         Procedure;
 
-import 'body_builder.dart' show Identifier;
+import 'body_builder.dart' show Identifier, LabelTarget;
 
 import 'expression_generator.dart' show Generator;
 
@@ -235,6 +235,15 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   Expression isExpression(Expression operand, Location isOperator,
       Location notOperator, covariant type);
 
+  /// Return a representation of the label consisting of the given [identifer]
+  /// followed by the given [colon].
+  Object label(Location identifier, Location colon);
+
+  /// Return a representation of a [statement] that has one or more labels (from
+  /// the [target]) associated with it.
+  Statement labeledStatement(
+      LabelTarget<Statement> target, Statement statement);
+
   Expression notExpression(Expression operand, Location location);
 
   /// Return a representation of a parenthesized condition consisting of the
@@ -296,6 +305,12 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   /// Return the expression from the given expression [statement].
   Expression getExpressionFromExpressionStatement(Statement statement);
 
+  /// Return the name of the given [label].
+  String getLabelName(covariant label);
+
+  /// Return the offset of the given [label].
+  int getLabelOffset(covariant label);
+
   /// Return the semicolon at the end of the given [statement], or `null` if the
   /// statement is not terminated by a semicolon.
   Location getSemicolon(Statement statement);
@@ -321,6 +336,9 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   /// Return `true` if the given [statement] is the representation of an
   /// expression statement.
   bool isExpressionStatement(Statement statement);
+
+  /// Return `true` if the given [node] is a label.
+  bool isLabel(covariant node);
 
   bool isThisExpression(Object node);
 

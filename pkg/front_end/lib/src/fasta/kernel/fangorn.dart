@@ -41,6 +41,8 @@ import '../problems.dart' show unsupported;
 
 import '../scanner.dart' show Token;
 
+import 'body_builder.dart' show LabelTarget;
+
 import 'kernel_expression_generator.dart'
     show
         KernelIndexedAccessGenerator,
@@ -403,6 +405,16 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
+  Label label(Token identifier, Token colon) {
+    return new Label(identifier.lexeme, identifier.charOffset);
+  }
+
+  @override
+  Statement labeledStatement(
+          LabelTarget<Statement> target, Statement statement) =>
+      statement;
+
+  @override
   Expression notExpression(Expression operand, Token token) {
     return new ShadowNot(operand)..fileOffset = offsetForToken(token);
   }
@@ -530,6 +542,12 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
+  String getLabelName(Label label) => label.name;
+
+  @override
+  int getLabelOffset(Label label) => label.charOffset;
+
+  @override
   Token getSemicolon(Statement statement) => null;
 
   @override
@@ -562,6 +580,9 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   @override
   bool isExpressionStatement(Statement statement) =>
       statement is ExpressionStatement;
+
+  @override
+  bool isLabel(covariant node) => node is Label;
 
   @override
   bool isThisExpression(Object node) => node is ThisExpression;
@@ -698,4 +719,15 @@ class _VariablesDeclaration extends Statement {
   transformChildren(v) {
     unsupported("transformChildren", fileOffset, uri);
   }
+}
+
+/// A data holder used to hold the information about a label that is pushed on
+/// the stack.
+class Label {
+  String name;
+  int charOffset;
+
+  Label(this.name, this.charOffset);
+
+  String toString() => "label($name)";
 }
