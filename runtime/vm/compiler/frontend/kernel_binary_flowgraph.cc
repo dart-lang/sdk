@@ -4146,6 +4146,13 @@ const Object& StreamingConstantEvaluator::RunFunction(
     intptr_t argument_count,
     const Instance* receiver,
     const TypeArguments* type_args) {
+  // We use a kernel2kernel constant evaluator in Dart 2.0 AOT compilation, so
+  // we should never end up evaluating constants using the VM's constant
+  // evaluator.
+  if (I->strong() && FLAG_precompiled_mode) {
+    UNREACHABLE();
+  }
+
   // We do not support generic methods yet.
   ASSERT((receiver == NULL) || (type_args == NULL));
   intptr_t extra_arguments =
@@ -7412,7 +7419,8 @@ CatchBlock* StreamingFlowGraphBuilder::catch_block() {
 }
 
 ActiveClass* StreamingFlowGraphBuilder::active_class() {
-  return &flow_graph_builder_->active_class_;
+  return (flow_graph_builder_ != NULL) ? &flow_graph_builder_->active_class_
+                                       : NULL;
 }
 
 ScopeBuildingResult* StreamingFlowGraphBuilder::scopes() {
@@ -11057,9 +11065,16 @@ RawObject* StreamingFlowGraphBuilder::BuildParameterDescriptor(
   return param_descriptor.raw();
 }
 
-RawObject* StreamingFlowGraphBuilder::EvaluateMetadata(intptr_t kernel_offset) {
+RawObject* StreamingFlowGraphBuilder::EvaluateMetadata(
+    intptr_t kernel_offset,
+    const Class& owner_class) {
   SetOffset(kernel_offset);
   const Tag tag = PeekTag();
+
+  // Setup active_class in type translator for type finalization.
+  ActiveClass active_class;
+  active_class.klass = &owner_class;
+  type_translator_.set_active_class(&active_class);
 
   if (tag == kClass) {
     ClassHelper class_helper(this);
@@ -11086,6 +11101,8 @@ RawObject* StreamingFlowGraphBuilder::EvaluateMetadata(intptr_t kernel_offset) {
     SkipExpression();  // read (actual) initializer.
     metadata_values.SetAt(i, value);
   }
+
+  type_translator_.set_active_class(NULL);
 
   return metadata_values.raw();
 }

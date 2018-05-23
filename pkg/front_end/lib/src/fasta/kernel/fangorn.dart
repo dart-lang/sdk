@@ -10,8 +10,8 @@ import 'package:kernel/ast.dart'
     show
         Arguments,
         AssertInitializer,
-        BreakStatement,
         Block,
+        BreakStatement,
         Catch,
         ContinueSwitchStatement,
         DartType,
@@ -23,7 +23,10 @@ import 'package:kernel/ast.dart'
         Let,
         LibraryDependency,
         MapEntry,
+        Member,
+        Name,
         NamedExpression,
+        Procedure,
         Statement,
         SwitchCase,
         ThisExpression,
@@ -36,6 +39,16 @@ import '../parser.dart' show offsetForToken, optional;
 import '../problems.dart' show unsupported;
 
 import '../scanner.dart' show Token;
+
+import 'kernel_expression_generator.dart'
+    show
+        KernelIndexedAccessGenerator,
+        KernelNullAwarePropertyAccessGenerator,
+        KernelPropertyAccessGenerator,
+        KernelSuperPropertyAccessGenerator,
+        KernelThisIndexedAccessGenerator,
+        KernelThisPropertyAccessGenerator,
+        KernelVariableUseGenerator;
 
 import 'kernel_shadow_ast.dart'
     show
@@ -52,6 +65,7 @@ import 'kernel_shadow_ast.dart'
         ShadowDoStatement,
         ShadowDoubleLiteral,
         ShadowExpressionStatement,
+        ShadowForStatement,
         ShadowIfStatement,
         ShadowIntLiteral,
         ShadowIsExpression,
@@ -76,7 +90,7 @@ import 'kernel_shadow_ast.dart'
         ShadowWhileStatement,
         ShadowYieldStatement;
 
-import 'forest.dart' show Forest;
+import 'forest.dart' show ExpressionGeneratorHelper, Forest;
 
 /// A shadow tree factory.
 class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
@@ -338,6 +352,22 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
+  Statement forStatement(
+      Token forKeyword,
+      Token leftParenthesis,
+      List<VariableDeclaration> variableList,
+      covariant initialization,
+      Token leftSeparator,
+      Expression condition,
+      Token rightSeparator,
+      List<Expression> updaters,
+      Token rightParenthesis,
+      Statement body) {
+    return new ShadowForStatement(variableList, condition, updaters, body)
+      ..fileOffset = forKeyword.charOffset;
+  }
+
+  @override
   Statement ifStatement(Token ifKeyword, Expression condition,
       Statement thenStatement, Token elseKeyword, Statement elseStatement) {
     return new ShadowIfStatement(condition, thenStatement, elseStatement)
@@ -454,7 +484,18 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
+  Expression getExpressionFromExpressionStatement(Statement statement) {
+    return (statement as ExpressionStatement).expression;
+  }
+
+  @override
+  Token getSemicolon(Statement statement) => null;
+
+  @override
   bool isBlock(Object node) => node is Block;
+
+  @override
+  bool isEmptyStatement(Statement statement) => statement is EmptyStatement;
 
   @override
   bool isErroneousNode(Object node) {
@@ -478,6 +519,10 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
+  bool isExpressionStatement(Statement statement) =>
+      statement is ExpressionStatement;
+
+  @override
   bool isThisExpression(Object node) => node is ThisExpression;
 
   @override
@@ -497,6 +542,86 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   void resolveContinueInSwitch(
       SwitchCase target, ContinueSwitchStatement user) {
     user.target = target;
+  }
+
+  @override
+  KernelVariableUseGenerator variableUseGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      VariableDeclaration variable,
+      DartType promotedType) {
+    return new KernelVariableUseGenerator(
+        helper, token, variable, promotedType);
+  }
+
+  @override
+  KernelPropertyAccessGenerator propertyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Expression receiver,
+      Name name,
+      Member getter,
+      Member setter) {
+    return new KernelPropertyAccessGenerator.internal(
+        helper, token, receiver, name, getter, setter);
+  }
+
+  @override
+  KernelThisPropertyAccessGenerator thisPropertyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Name name,
+      Member getter,
+      Member setter) {
+    return new KernelThisPropertyAccessGenerator(
+        helper, token, name, getter, setter);
+  }
+
+  @override
+  KernelNullAwarePropertyAccessGenerator nullAwarePropertyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Expression receiverExpression,
+      Name name,
+      Member getter,
+      Member setter,
+      DartType type) {
+    return new KernelNullAwarePropertyAccessGenerator(
+        helper, token, receiverExpression, name, getter, setter, type);
+  }
+
+  @override
+  KernelSuperPropertyAccessGenerator superPropertyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Name name,
+      Member getter,
+      Member setter) {
+    return new KernelSuperPropertyAccessGenerator(
+        helper, token, name, getter, setter);
+  }
+
+  @override
+  KernelIndexedAccessGenerator indexedAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Expression receiver,
+      Expression index,
+      Procedure getter,
+      Procedure setter) {
+    return new KernelIndexedAccessGenerator.internal(
+        helper, token, receiver, index, getter, setter);
+  }
+
+  @override
+  KernelThisIndexedAccessGenerator thisIndexedAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Expression index,
+      Procedure getter,
+      Procedure setter) {
+    return new KernelThisIndexedAccessGenerator(
+        helper, token, index, getter, setter);
   }
 }
 

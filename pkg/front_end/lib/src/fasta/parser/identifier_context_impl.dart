@@ -298,6 +298,39 @@ class FieldInitializerIdentifierContext extends IdentifierContext {
   }
 }
 
+/// See [IdentifierContext.formalParameterDeclaration].
+class FormalParameterDeclarationIdentifierContext extends IdentifierContext {
+  const FormalParameterDeclarationIdentifierContext()
+      : super('formalParameterDeclaration', inDeclaration: true);
+
+  @override
+  Token ensureIdentifier(Token token, Parser parser) {
+    Token identifier = token.next;
+    assert(identifier.kind != IDENTIFIER_TOKEN);
+    if (identifier.isIdentifier) {
+      return identifier;
+    }
+
+    // Recovery
+    const followingValues = const [':', '=', ',', '(', ')', '[', ']', '{', '}'];
+    if (looksLikeStartOfNextClassMember(identifier) ||
+        looksLikeStartOfNextStatement(identifier) ||
+        isOneOfOrEof(identifier, followingValues)) {
+      identifier = parser.insertSyntheticIdentifier(token, this,
+          message: fasta.templateExpectedIdentifier.withArguments(identifier));
+    } else {
+      parser.reportRecoverableErrorWithToken(
+          identifier, fasta.templateExpectedIdentifier);
+      if (!identifier.isKeywordOrIdentifier) {
+        // When in doubt, consume the token to ensure we make progress
+        // but insert a synthetic identifier to satisfy listeners.
+        identifier = parser.rewriter.insertSyntheticIdentifier(identifier);
+      }
+    }
+    return identifier;
+  }
+}
+
 /// See [IdentifierContext.importPrefixDeclaration].
 class ImportPrefixIdentifierContext extends IdentifierContext {
   const ImportPrefixIdentifierContext()

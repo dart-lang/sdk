@@ -60,9 +60,8 @@ class IdentifierContext {
 
   /// Identifier is a formal parameter being declared as part of a function,
   /// method, or typedef declaration.
-  static const formalParameterDeclaration = const IdentifierContext(
-      'formalParameterDeclaration',
-      inDeclaration: true);
+  static const formalParameterDeclaration =
+      const FormalParameterDeclarationIdentifierContext();
 
   /// Identifier is the start of a library name (e.g. `foo` in the directive
   /// 'library foo;`).
@@ -145,15 +144,6 @@ class IdentifierContext {
   /// perhaps we should just re-use methodDeclaration.
   static const operatorName =
       const MethodDeclarationIdentifierContext.continuation();
-
-  /// Identifier is the name being declared by a local function declaration that
-  /// uses a "get" or "set" keyword.
-  ///
-  /// TODO(paulberry,ahe): Does this ever occur in valid Dart, or does it only
-  /// occur as part of error recovery?  If it's only as part of error recovery,
-  /// perhaps we should just re-use localFunctionDeclaration.
-  static const localAccessorDeclaration =
-      const IdentifierContext('localAccessorDeclaration', inDeclaration: true);
 
   /// Identifier is the start of the name being declared by a local function
   /// declaration.

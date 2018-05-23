@@ -1421,7 +1421,8 @@ void RangeAnalysis::EliminateRedundantBoundsChecks() {
     // check earlier, or we're compiling precompiled code (no
     // optimistic hoisting of checks possible)
     const bool try_generalization =
-        function.allows_bounds_check_generalization() && !FLAG_precompiled_mode;
+        !function.ProhibitsBoundsCheckGeneralization() &&
+        !FLAG_precompiled_mode;
 
     BoundsCheckGeneralizer generalizer(this, flow_graph_);
 

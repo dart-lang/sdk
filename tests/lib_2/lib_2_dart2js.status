@@ -468,6 +468,9 @@ html/xhr_test: RuntimeError
 [ $compiler == dart2js && $system == linux ]
 html/interactive_geolocation_test: Skip # Requires allowing geo location.
 
+[ $compiler == dart2js && $system != macos && ($runtime != chrome || $runtime != safari) ]
+html/interactive_media_test: RuntimeError # # See NOTE in test on how to run.
+
 [ $compiler == dart2js && $system == windows ]
 html/xhr_test: RuntimeError
 
@@ -789,9 +792,6 @@ async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_json_utf8_decode_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_json_utf8_encode_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out. Issue 22050
-
-[ $compiler == dart2js && ($runtime != chrome || $system != macos) ]
-html/interactive_media_test: RuntimeError # # See NOTE in test on how to run.
 
 [ $compiler == dart2js && ($runtime == ff || $runtime == safari || $ie) ]
 html/custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Polyfill does not support

@@ -62,7 +62,7 @@ import '../quote.dart' show unescapeString;
 
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
-import 'unhandled_listener.dart' show NullValue, UnhandledListener;
+import 'stack_listener.dart' show NullValue, StackListener;
 
 import '../configuration.dart' show Configuration;
 
@@ -72,7 +72,7 @@ enum MethodBody {
   RedirectingFactoryBody,
 }
 
-class OutlineBuilder extends UnhandledListener {
+class OutlineBuilder extends StackListener {
   final SourceLibraryBuilder library;
 
   final bool enableNative;
@@ -90,7 +90,6 @@ class OutlineBuilder extends UnhandledListener {
   @override
   Uri get uri => library.fileUri;
 
-  @override
   int popCharOffset() => pop();
 
   List<String> popIdentifierList(int count) {

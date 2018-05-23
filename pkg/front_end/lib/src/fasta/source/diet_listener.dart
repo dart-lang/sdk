@@ -5,8 +5,15 @@
 library fasta.diet_listener;
 
 import 'package:kernel/ast.dart'
-    show AsyncMarker, Class, InterfaceType, Typedef;
-import 'package:kernel/ast.dart';
+    show
+        AsyncMarker,
+        Class,
+        Expression,
+        InterfaceType,
+        Library,
+        LibraryDependency,
+        LibraryPart,
+        Typedef;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 

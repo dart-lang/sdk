@@ -1,3 +1,5 @@
+## 2.0.0-dev.58.0
+
 ## 2.0.0-dev.57.0
 
 * Support Javascript Promise APIs as a Dart Future.  In Javascript a Promise has two

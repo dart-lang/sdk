@@ -14,13 +14,11 @@ class V extends core::Object {
 }
 static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/named_function_scope.dart:28:48: Error: A function expression can't have a name.
     var x = /*@error=NamedFunctionExpression*/ T() {};
-                                               ^", "pkg/front_end/testcases/named_function_scope.dart:46:9: Error: A function expression can't have a return type.
-        T
-        ^", "pkg/front_end/testcases/named_function_scope.dart:49:9: Error: A function expression can't have a name.
+                                               ^", "pkg/front_end/testcases/named_function_scope.dart:48:9: Error: A function expression can't have a name.
         T() {};
-        ^", "pkg/front_end/testcases/named_function_scope.dart:63:9: Error: A function expression can't have a name.
+        ^", "pkg/front_end/testcases/named_function_scope.dart:62:9: Error: A function expression can't have a name.
         T< /*@context=DuplicatedNameCause*/ T>() {};
-        ^", "pkg/front_end/testcases/named_function_scope.dart:84:32: Error: 'T' isn't a type.
+        ^", "pkg/front_end/testcases/named_function_scope.dart:83:32: Error: 'T' isn't a type.
     void T(/*@error=NotAType*/ T t) {}
                                ^"]/* from null */;
 static method test() → dynamic {
@@ -49,24 +47,24 @@ static method test() → dynamic {
                                                 ^" in let final<BottomType> #t2 = null in null;
   }
   {
-    dynamic x = let final dynamic #t3 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/named_function_scope.dart:49:9: Error: Can't declare 'T' because it was already used in this scope.
+    dynamic x = let final dynamic #t3 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/named_function_scope.dart:48:9: Error: Can't declare 'T' because it was already used in this scope.
         T() {};
         ^" in let final () → self::T T = () → self::T {} in T;
   }
   {
-    self::V V = invalid-expression "pkg/front_end/testcases/named_function_scope.dart:55:47: Error: Can't declare 'V' because it was already used in this scope.
+    self::V V = invalid-expression "pkg/front_end/testcases/named_function_scope.dart:54:47: Error: Can't declare 'V' because it was already used in this scope.
     V /*@error=DuplicatedNamePreviouslyUsed*/ V;
                                               ^" as{TypeError} self::V;
   }
   {
-    dynamic x = let final dynamic #t4 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/named_function_scope.dart:63:9: Error: 'T' is already declared in this scope.
+    dynamic x = let final dynamic #t4 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/named_function_scope.dart:62:9: Error: 'T' is already declared in this scope.
         T< /*@context=DuplicatedNameCause*/ T>() {};
         ^" in let final <T extends core::Object = dynamic>() → dynamic T = <T extends core::Object = dynamic>() → dynamic {} in T;
   }
   {
     self::T t;
     {
-      invalid-expression "pkg/front_end/testcases/named_function_scope.dart:68:47: Error: Can't declare 'T' because it was already used in this scope.
+      invalid-expression "pkg/front_end/testcases/named_function_scope.dart:67:47: Error: Can't declare 'T' because it was already used in this scope.
     T /*@error=DuplicatedNamePreviouslyUsed*/ T() {}
                                               ^";
       function T() → self::T {}
@@ -74,7 +72,7 @@ static method test() → dynamic {
   }
   {
     {
-      invalid-expression "pkg/front_end/testcases/named_function_scope.dart:72:47: Error: Can't declare 'T' because it was already used in this scope.
+      invalid-expression "pkg/front_end/testcases/named_function_scope.dart:71:47: Error: Can't declare 'T' because it was already used in this scope.
     T /*@error=DuplicatedNamePreviouslyUsed*/ T() {}
                                               ^";
       function T() → self::T {}
@@ -83,7 +81,7 @@ static method test() → dynamic {
   {
     self::T t;
     {
-      invalid-expression "pkg/front_end/testcases/named_function_scope.dart:77:47: Error: Can't declare 'T' because it was already used in this scope.
+      invalid-expression "pkg/front_end/testcases/named_function_scope.dart:76:47: Error: Can't declare 'T' because it was already used in this scope.
     T /*@error=DuplicatedNamePreviouslyUsed*/ T(T t) {}
                                               ^";
       function T(self::T t) → self::T {}
@@ -91,7 +89,7 @@ static method test() → dynamic {
   }
   {
     {
-      invalid-expression "pkg/front_end/testcases/named_function_scope.dart:81:47: Error: Can't declare 'T' because it was already used in this scope.
+      invalid-expression "pkg/front_end/testcases/named_function_scope.dart:80:47: Error: Can't declare 'T' because it was already used in this scope.
     T /*@error=DuplicatedNamePreviouslyUsed*/ T(T t) {}
                                               ^";
       function T(self::T t) → self::T {}

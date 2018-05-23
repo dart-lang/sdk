@@ -76,7 +76,6 @@ export 'kernel_shadow_ast.dart'
         ShadowFactoryConstructorInvocation,
         ShadowFieldInitializer,
         ShadowForInStatement,
-        ShadowForStatement,
         ShadowFunctionDeclaration,
         ShadowFunctionExpression,
         ShadowIfNullExpression,

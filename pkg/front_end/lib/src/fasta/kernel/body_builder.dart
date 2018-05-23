@@ -6,6 +6,8 @@ library fasta.body_builder;
 
 import 'dart:core' hide MapEntry;
 
+import 'package:kernel/ast.dart' as kernel show Expression, Statement;
+
 import '../constant_context.dart' show ConstantContext;
 
 import '../fasta_codes.dart' as fasta;
@@ -19,22 +21,7 @@ import '../messages.dart' as messages show getLocationFromUri;
 import '../modifier.dart' show Modifier, constMask, covariantMask, finalMask;
 
 import '../names.dart'
-    show
-        ampersandName,
-        barName,
-        callName,
-        caretName,
-        divisionName,
-        emptyName,
-        indexGetName,
-        indexSetName,
-        leftShiftName,
-        minusName,
-        multiplyName,
-        mustacheName,
-        percentName,
-        plusName,
-        rightShiftName;
+    show callName, emptyName, indexGetName, indexSetName, minusName, plusName;
 
 import '../parser.dart'
     show
@@ -85,6 +72,8 @@ import 'constness.dart' show Constness;
 import 'expression_generator.dart'
     show
         DeferredAccessGenerator,
+        DelayedAssignment,
+        DelayedPostfixIncrement,
         ErroneousExpressionGenerator,
         Generator,
         IncompleteErrorGenerator,
@@ -117,8 +106,6 @@ import 'redirecting_factory_body.dart'
 import 'kernel_api.dart';
 
 import 'kernel_ast_api.dart' hide Expression, Statement;
-
-import 'kernel_ast_api.dart' as kernel show Expression, Statement;
 
 import 'kernel_builder.dart';
 
@@ -324,10 +311,6 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   }
 
   Statement popStatement() => forest.wrapVariables(pop());
-
-  void ignore(Unhandled value) {
-    pop();
-  }
 
   void enterSwitchScope() {
     push(switchScope ?? NullValue.SwitchScope);
@@ -654,8 +637,11 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   }
 
   @override
-  void finishFunction(List annotations, FormalParameters<Arguments> formals,
-      AsyncMarker asyncModifier, kernel.Statement body) {
+  void finishFunction(
+      List annotations,
+      FormalParameters<Expression, Statement, Arguments> formals,
+      AsyncMarker asyncModifier,
+      kernel.Statement body) {
     debugEvent("finishFunction");
     typePromoter.finished();
 
@@ -753,7 +739,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
 
     enterLocalScope(
         null,
-        new FormalParameters<Arguments>(
+        new FormalParameters<Expression, Statement, Arguments>(
                 parameters.positionalParameters, null, -1)
             .computeFormalParameterScope(scope, member, this));
 
@@ -925,7 +911,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       if (arguments == null) {
         push(new IncompletePropertyAccessGenerator(this, beginToken, name));
       } else {
-        push(new SendAccessGenerator(this, beginToken, name, arguments));
+        push(new SendAccessGenerator(
+            this, beginToken, name, forest.castArguments(arguments)));
       }
     } else if (arguments == null) {
       push(receiver);
@@ -1852,14 +1839,6 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     Statement body = popStatement();
     List<Expression> updates = popListForEffect(updateExpressionCount);
     Statement conditionStatement = popStatement();
-    kernel.Statement kernelConditionStatement =
-        toKernelStatement(conditionStatement);
-    Expression condition = null;
-    if (kernelConditionStatement is ExpressionStatement) {
-      condition = toExpression(kernelConditionStatement.expression);
-    } else {
-      assert(kernelConditionStatement is EmptyStatement);
-    }
     dynamic variableOrExpression = pop();
     List<VariableDeclaration> variables =
         buildVariableDeclarations(variableOrExpression);
@@ -1870,22 +1849,36 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     exitLocalScope();
     JumpTarget continueTarget = exitContinueTarget();
     JumpTarget breakTarget = exitBreakTarget();
-    kernel.Statement kernelBody = toKernelStatement(body);
     if (continueTarget.hasUsers) {
-      kernelBody = new ShadowLabeledStatement(kernelBody);
-      continueTarget.resolveContinues(forest, kernelBody);
+      body = forest.syntheticLabeledStatement(body);
+      continueTarget.resolveContinues(forest, body);
     }
-    kernel.Statement result = new ShadowForStatement(
+    Expression condition;
+    Token rightSeparator;
+    if (forest.isExpressionStatement(conditionStatement)) {
+      condition =
+          forest.getExpressionFromExpressionStatement(conditionStatement);
+      rightSeparator = forest.getSemicolon(conditionStatement);
+    } else {
+      assert(forest.isEmptyStatement(conditionStatement));
+      rightSeparator = forest.getSemicolon(conditionStatement);
+    }
+    Statement result = forest.forStatement(
+        forKeyword,
+        leftParen,
         variables,
-        toKernelExpression(condition),
-        toKernelExpressionList(updates),
-        kernelBody)
-      ..fileOffset = forKeyword.charOffset;
+        variables,
+        leftSeparator,
+        condition,
+        rightSeparator,
+        updates,
+        leftParen.endGroup,
+        body);
     if (breakTarget.hasUsers) {
-      result = new ShadowLabeledStatement(result);
+      result = forest.syntheticLabeledStatement(result);
       breakTarget.resolveBreaks(forest, result);
     }
-    exitLoopOrSwitch(toStatement(result));
+    exitLoopOrSwitch(result);
   }
 
   @override
@@ -2094,7 +2087,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void endFunctionType(Token functionToken, Token endToken) {
     debugEvent("FunctionType");
-    FormalParameters<Arguments> formals = pop();
+    FormalParameters<Expression, Statement, Arguments> formals = pop();
     DartType returnType = pop();
     List<TypeParameter> typeVariables = typeVariableBuildersToKernel(pop());
     FunctionType type = formals.toFunctionType(returnType, typeVariables);
@@ -2268,7 +2261,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     if (inCatchClause || functionNestingLevel != 0) {
       exitLocalScope();
     }
-    FormalParameters<Arguments> formals = pop();
+    FormalParameters<Expression, Statement, Arguments> formals = pop();
     DartType returnType = pop();
     List<TypeParameter> typeVariables = typeVariableBuildersToKernel(pop());
     FunctionType type = formals.toFunctionType(returnType, typeVariables);
@@ -2323,8 +2316,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     List<VariableDeclaration> variables =
         new List<VariableDeclaration>.filled(count, null, growable: true);
     popList(count, variables);
-    FormalParameters<Arguments> formals =
-        new FormalParameters(variables, optional, beginToken.charOffset);
+    var formals = new FormalParameters<Expression, Statement, Arguments>(
+        variables, optional, beginToken.charOffset);
     constantContext = pop();
     push(formals);
     if ((inCatchClause || functionNestingLevel != 0) &&
@@ -2358,7 +2351,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     if (catchKeyword != null) {
       exitLocalScope();
     }
-    FormalParameters<Arguments> catchParameters = popIfNotNull(catchKeyword);
+    FormalParameters<Expression, Statement, Arguments> catchParameters =
+        popIfNotNull(catchKeyword);
     DartType type = popIfNotNull(onKeyword) ?? const DynamicType();
     VariableDeclaration exception;
     VariableDeclaration stackTrace;
@@ -2421,13 +2415,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
           lookupInstanceMember(indexGetName, isSuper: true),
           lookupInstanceMember(indexSetName, isSuper: true)));
     } else {
-      push(IndexedAccessGenerator.make<Arguments>(
-          this,
-          openSquareBracket,
-          toKernelExpression(toValue(receiver)),
-          toKernelExpression(index),
-          null,
-          null));
+      push(IndexedAccessGenerator.make(
+          this, openSquareBracket, toValue(receiver), index, null, null));
     }
   }
 
@@ -2492,7 +2481,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     debugEvent("UnaryPostfixAssignmentExpression");
     var generator = pop();
     if (generator is Generator) {
-      push(new DelayedPostfixIncrement<Arguments>(
+      push(new DelayedPostfixIncrement(
           this, token, generator, incrementOperator(token), null));
     } else {
       push(
@@ -2794,7 +2783,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
           ? wrapInDeferredCheck(expression, deferredPrefix, checkOffset)
           : expression);
     } else if (type is ErroneousExpressionGenerator) {
-      push(type.buildError(arguments));
+      push(type.buildError(forest.castArguments(arguments)));
     } else {
       push(throwNoSuchMethodError(storeOffset(forest.literalNull(null), offset),
           debugName(getNodeName(type), name), arguments, nameToken.charOffset));
@@ -3018,7 +3007,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     Statement body = popStatement();
     AsyncMarker asyncModifier = pop();
     exitLocalScope();
-    FormalParameters<Arguments> formals = pop();
+    FormalParameters<Expression, Statement, Arguments> formals = pop();
     var declaration = pop();
     var returnType = pop();
     var hasImplicitReturnType = returnType == null;
@@ -3115,7 +3104,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     Statement body = popStatement();
     AsyncMarker asyncModifier = pop();
     exitLocalScope();
-    FormalParameters<Arguments> formals = pop();
+    FormalParameters<Expression, Statement, Arguments> formals = pop();
     exitFunction();
     List<TypeParameter> typeParameters = typeVariableBuildersToKernel(pop());
     FunctionNode function = formals.addToFunction(new FunctionNode(
@@ -4209,203 +4198,6 @@ class Label {
   String toString() => "label($name)";
 }
 
-abstract class ContextAwareGenerator<Arguments> extends Generator<Arguments> {
-  final Generator generator;
-
-  ContextAwareGenerator(
-      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
-      Token token,
-      this.generator)
-      : super(helper, token);
-
-  String get plainNameForRead {
-    return unsupported("plainNameForRead", token.charOffset, helper.uri);
-  }
-
-  kernel.Expression doInvocation(int charOffset, Arguments arguments) {
-    return unhandled("${runtimeType}", "doInvocation", charOffset, uri);
-  }
-
-  kernel.Expression buildSimpleRead();
-
-  kernel.Expression buildForEffect();
-
-  kernel.Expression buildAssignment(kernel.Expression value,
-      {bool voidContext: false}) {
-    return makeInvalidWrite(value);
-  }
-
-  kernel.Expression buildNullAwareAssignment(
-      kernel.Expression value, DartType type, int offset,
-      {bool voidContext: false}) {
-    return makeInvalidWrite(value);
-  }
-
-  kernel.Expression buildCompoundAssignment(
-      Name binaryOperator, kernel.Expression value,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      Procedure interfaceTarget,
-      bool isPreIncDec: false}) {
-    return makeInvalidWrite(value);
-  }
-
-  kernel.Expression buildPrefixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      Procedure interfaceTarget}) {
-    return makeInvalidWrite(null);
-  }
-
-  kernel.Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      Procedure interfaceTarget}) {
-    return makeInvalidWrite(null);
-  }
-
-  makeInvalidRead() {
-    return unsupported("makeInvalidRead", token.charOffset, helper.uri);
-  }
-
-  kernel.Expression makeInvalidWrite(kernel.Expression value) {
-    return helper.deprecated_buildCompileTimeError(
-        "Can't be used as left-hand side of assignment.",
-        offsetForToken(token));
-  }
-}
-
-class DelayedAssignment<Arguments> extends ContextAwareGenerator<Arguments> {
-  final kernel.Expression value;
-
-  final String assignmentOperator;
-
-  DelayedAssignment(
-      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
-      Token token,
-      Generator generator,
-      this.value,
-      this.assignmentOperator)
-      : super(helper, token, generator);
-
-  String get debugName => "DelayedAssignment";
-
-  kernel.Expression buildSimpleRead() {
-    return handleAssignment(false);
-  }
-
-  kernel.Expression buildForEffect() {
-    return handleAssignment(true);
-  }
-
-  kernel.Expression handleAssignment(bool voidContext) {
-    if (helper.constantContext != ConstantContext.none) {
-      return helper.deprecated_buildCompileTimeError(
-          "Not a constant expression.", offsetForToken(token));
-    }
-    if (identical("=", assignmentOperator)) {
-      return generator.buildAssignment(value, voidContext: voidContext);
-    } else if (identical("+=", assignmentOperator)) {
-      return generator.buildCompoundAssignment(plusName, value,
-          offset: offsetForToken(token), voidContext: voidContext);
-    } else if (identical("-=", assignmentOperator)) {
-      return generator.buildCompoundAssignment(minusName, value,
-          offset: offsetForToken(token), voidContext: voidContext);
-    } else if (identical("*=", assignmentOperator)) {
-      return generator.buildCompoundAssignment(multiplyName, value,
-          offset: offsetForToken(token), voidContext: voidContext);
-    } else if (identical("%=", assignmentOperator)) {
-      return generator.buildCompoundAssignment(percentName, value,
-          offset: offsetForToken(token), voidContext: voidContext);
-    } else if (identical("&=", assignmentOperator)) {
-      return generator.buildCompoundAssignment(ampersandName, value,
-          offset: offsetForToken(token), voidContext: voidContext);
-    } else if (identical("/=", assignmentOperator)) {
-      return generator.buildCompoundAssignment(divisionName, value,
-          offset: offsetForToken(token), voidContext: voidContext);
-    } else if (identical("<<=", assignmentOperator)) {
-      return generator.buildCompoundAssignment(leftShiftName, value,
-          offset: offsetForToken(token), voidContext: voidContext);
-    } else if (identical(">>=", assignmentOperator)) {
-      return generator.buildCompoundAssignment(rightShiftName, value,
-          offset: offsetForToken(token), voidContext: voidContext);
-    } else if (identical("??=", assignmentOperator)) {
-      return generator.buildNullAwareAssignment(
-          value, const DynamicType(), offsetForToken(token),
-          voidContext: voidContext);
-    } else if (identical("^=", assignmentOperator)) {
-      return generator.buildCompoundAssignment(caretName, value,
-          offset: offsetForToken(token), voidContext: voidContext);
-    } else if (identical("|=", assignmentOperator)) {
-      return generator.buildCompoundAssignment(barName, value,
-          offset: offsetForToken(token), voidContext: voidContext);
-    } else if (identical("~/=", assignmentOperator)) {
-      return generator.buildCompoundAssignment(mustacheName, value,
-          offset: offsetForToken(token), voidContext: voidContext);
-    } else {
-      return unhandled(
-          assignmentOperator, "handleAssignment", token.charOffset, helper.uri);
-    }
-  }
-
-  @override
-  Initializer buildFieldInitializer(Map<String, int> initializedFields) {
-    if (!identical("=", assignmentOperator) ||
-        !generator.isThisPropertyAccess) {
-      return generator.buildFieldInitializer(initializedFields);
-    }
-    return helper.buildFieldInitializer(
-        false, generator.plainNameForRead, offsetForToken(token), value);
-  }
-
-  @override
-  void printOn(StringSink sink) {
-    sink.write(", value: ");
-    printNodeOn(value, sink);
-    sink.write(", assignmentOperator: ");
-    sink.write(assignmentOperator);
-  }
-}
-
-class DelayedPostfixIncrement<Arguments>
-    extends ContextAwareGenerator<Arguments> {
-  final Name binaryOperator;
-
-  final Procedure interfaceTarget;
-
-  DelayedPostfixIncrement(
-      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
-      Token token,
-      Generator generator,
-      this.binaryOperator,
-      this.interfaceTarget)
-      : super(helper, token, generator);
-
-  String get debugName => "DelayedPostfixIncrement";
-
-  kernel.Expression buildSimpleRead() {
-    return generator.buildPostfixIncrement(binaryOperator,
-        offset: offsetForToken(token),
-        voidContext: false,
-        interfaceTarget: interfaceTarget);
-  }
-
-  kernel.Expression buildForEffect() {
-    return generator.buildPostfixIncrement(binaryOperator,
-        offset: offsetForToken(token),
-        voidContext: true,
-        interfaceTarget: interfaceTarget);
-  }
-
-  @override
-  void printOn(StringSink sink) {
-    sink.write(", binaryOperator: ");
-    sink.write(binaryOperator.name);
-    sink.write(", interfaceTarget: ");
-    printQualifiedNameOn(interfaceTarget, sink);
-  }
-}
-
 class JumpTarget<Statement> extends Builder {
   final List<Statement> users = <Statement>[];
 
@@ -4536,7 +4328,7 @@ class OptionalFormals {
   OptionalFormals(this.kind, this.formals);
 }
 
-class FormalParameters<Arguments> {
+class FormalParameters<Expression, Statement, Arguments> {
   final List<VariableDeclaration> required;
   final OptionalFormals optional;
   final int charOffset;

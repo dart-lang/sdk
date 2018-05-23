@@ -4,12 +4,25 @@
 
 library fasta.forest;
 
-// TODO(ahe): Remove this import.
-import 'package:kernel/ast.dart' as kernel show Arguments, DartType;
+import 'package:kernel/ast.dart' as kernel
+    show
+        Arguments, // TODO(ahe): Remove this import.
+        DartType,
+        Member,
+        Name,
+        Procedure;
 
 import 'body_builder.dart' show Identifier;
 
+import 'expression_generator.dart' show Generator;
+
+import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
+
 export 'body_builder.dart' show Identifier, Operator;
+
+export 'expression_generator.dart' show Generator;
+
+export 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
 
 /// A tree factory.
 ///
@@ -188,6 +201,19 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   /// [semicolon].
   Statement emptyStatement(Location semicolon);
 
+  /// Return a representation of a for statement.
+  Statement forStatement(
+      Location forKeyword,
+      Location leftParenthesis,
+      covariant variableList,
+      covariant initialization,
+      Location leftSeparator,
+      Expression condition,
+      Location rightSeparator,
+      List<Expression> updaters,
+      Location rightParenthesis,
+      Statement body);
+
   /// Return a representation of an `if` statement.
   Statement ifStatement(Location ifKeyword, covariant Expression condition,
       Statement thenStatement, Location elseKeyword, Statement elseStatement);
@@ -257,9 +283,24 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   Statement yieldStatement(Location yieldKeyword, Location star,
       Expression expression, Location semicolon);
 
+  /// Return the expression from the given expression [statement].
+  Expression getExpressionFromExpressionStatement(Statement statement);
+
+  /// Return the semicolon at the end of the given [statement], or `null` if the
+  /// statement is not terminated by a semicolon.
+  Location getSemicolon(Statement statement);
+
   bool isBlock(Object node);
 
+  /// Return `true` if the given [statement] is the representation of an empty
+  /// statement.
+  bool isEmptyStatement(Statement statement);
+
   bool isErroneousNode(Object node);
+
+  /// Return `true` if the given [statement] is the representation of an
+  /// expression statement.
+  bool isExpressionStatement(Statement statement);
 
   bool isThisExpression(Object node);
 
@@ -277,6 +318,58 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   /// associated with the [target] statement.
   void resolveContinueInSwitch(
       covariant Object target, covariant Statement user);
+
+  Generator<Expression, Statement, Arguments> variableUseGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Location location,
+      covariant variable,
+      kernel.DartType promotedType);
+
+  Generator<Expression, Statement, Arguments> propertyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Location location,
+      Expression receiver,
+      kernel.Name name,
+      kernel.Member getter,
+      kernel.Member setter);
+
+  Generator<Expression, Statement, Arguments> thisPropertyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Location location,
+      kernel.Name name,
+      kernel.Member getter,
+      kernel.Member setter);
+
+  Generator<Expression, Statement, Arguments> nullAwarePropertyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Location location,
+      Expression receiverExpression,
+      kernel.Name name,
+      kernel.Member getter,
+      kernel.Member setter,
+      kernel.DartType type);
+
+  Generator<Expression, Statement, Arguments> superPropertyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Location location,
+      kernel.Name name,
+      kernel.Member getter,
+      kernel.Member setter);
+
+  Generator<Expression, Statement, Arguments> indexedAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Location location,
+      Expression receiver,
+      Expression index,
+      kernel.Procedure getter,
+      kernel.Procedure setter);
+
+  Generator<Expression, Statement, Arguments> thisIndexedAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Location location,
+      Expression index,
+      kernel.Procedure getter,
+      kernel.Procedure setter);
 
   // TODO(ahe): Remove this method when all users are moved here.
   kernel.Arguments castArguments(Arguments arguments) {

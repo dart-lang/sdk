@@ -1496,17 +1496,8 @@ void Intrinsifier::Random_nextState(Assembler* assembler) {
   const Field& state_field = Field::ZoneHandle(
       random_class.LookupInstanceFieldAllowPrivate(Symbols::_state()));
   ASSERT(!state_field.IsNull());
-  const Field& random_A_field = Field::ZoneHandle(
-      random_class.LookupStaticFieldAllowPrivate(Symbols::_A()));
-  ASSERT(!random_A_field.IsNull());
-  ASSERT(random_A_field.is_const());
-  Instance& a_value = Instance::Handle(random_A_field.StaticValue());
-  if (a_value.raw() == Object::sentinel().raw() ||
-      a_value.raw() == Object::transition_sentinel().raw()) {
-    random_A_field.EvaluateInitializer();
-    a_value = random_A_field.StaticValue();
-  }
-  const int64_t a_int_value = Integer::Cast(a_value).AsInt64Value();
+  const int64_t a_int_value = Intrinsifier::kRandomAValue;
+
   // Receiver.
   __ movq(RAX, Address(RSP, +1 * kWordSize));
   // Field '_state'.

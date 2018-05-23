@@ -21,6 +21,7 @@ import '../../scanner/token.dart'
         Keyword,
         POSTFIX_PRECEDENCE,
         RELATIONAL_PRECEDENCE,
+        SELECTOR_PRECEDENCE,
         SyntheticBeginToken,
         SyntheticKeywordToken,
         SyntheticStringToken,
@@ -1195,12 +1196,25 @@ class Parser {
       }
       token = parseFormalParameter(token, FormalParameterKind.mandatory, kind);
       next = token.next;
-      if (optional(',', next)) {
-        token = next;
-        continue;
+      if (!optional(',', next)) {
+        Token next = token.next;
+        if (optional(')', next)) {
+          token = next;
+        } else {
+          // Recovery
+          if (begin.endGroup.isSynthetic) {
+            // Scanner has already reported a missing `)` error,
+            // but placed the `)` in the wrong location, so move it.
+            token = rewriter.moveSynthetic(token, begin.endGroup);
+          } else {
+            reportRecoverableError(
+                next, fasta.templateExpectedButGot.withArguments(')'));
+            token = begin.endGroup;
+          }
+        }
+        break;
       }
-      token = ensureCloseParen(token, begin);
-      break;
+      token = next;
     }
     assert(optional(')', token));
     listener.endFormalParameters(parameterCount, begin, token, kind);
@@ -2013,15 +2027,11 @@ class Parser {
       followingValues = [';'];
     } else if (context == IdentifierContext.constructorReferenceContinuation) {
       followingValues = ['.', ',', '(', ')', '[', ']', '}', ';'];
-    } else if (context == IdentifierContext.formalParameterDeclaration) {
-      followingValues = [':', '=', ',', '(', ')', '[', ']', '{', '}'];
     } else if (context == IdentifierContext.labelDeclaration) {
       followingValues = [':'];
     } else if (context == IdentifierContext.literalSymbol ||
         context == IdentifierContext.literalSymbolContinuation) {
       followingValues = ['.', ';'];
-    } else if (context == IdentifierContext.localAccessorDeclaration) {
-      followingValues = ['(', '{', '=>'];
     } else {
       return false;
     }
@@ -2041,8 +2051,6 @@ class Parser {
       return false;
     }
 
-    List<String> classMemberKeywords() =>
-        <String>['const', 'final', 'var', 'void'];
     List<String> statementKeywords() => <String>[
           'const',
           'do',
@@ -2054,19 +2062,6 @@ class Parser {
           'void',
           'while'
         ];
-    List<String> topLevelKeywords() => <String>[
-          'class',
-          'const',
-          'enum',
-          'export',
-          'final',
-          'import',
-          'library',
-          'part',
-          'typedef',
-          'var',
-          'void'
-        ];
 
     // TODO(brianwilkerson): At the moment, this test is entirely based on data
     // that can be represented declaratively. If that proves to be sufficient,
@@ -2074,14 +2069,7 @@ class Parser {
     // could create a method to test whether a given token matches one of the
     // patterns.
     List<String> initialKeywords;
-    if (context == IdentifierContext.formalParameterDeclaration) {
-      initialKeywords = topLevelKeywords()
-        ..addAll(classMemberKeywords())
-        ..addAll(statementKeywords())
-        ..add('covariant');
-    } else if (context == IdentifierContext.labelDeclaration) {
-      initialKeywords = statementKeywords();
-    } else if (context == IdentifierContext.localAccessorDeclaration) {
+    if (context == IdentifierContext.labelDeclaration) {
       initialKeywords = statementKeywords();
     } else if (context ==
         IdentifierContext.localFunctionDeclarationContinuation) {
@@ -2301,32 +2289,6 @@ class Parser {
       return token;
     }
 
-    /// Returns true if [token] could be the start of a function body.
-    bool looksLikeFunctionBody(Token token) {
-      return optional('{', token) ||
-          optional('=>', token) ||
-          optional('async', token) ||
-          optional('sync', token);
-    }
-
-    /// Returns true if [token] could be the start of a function declaration
-    /// without a return type.
-    bool looksLikeFunctionDeclaration(Token token) {
-      if (!token.isIdentifier) {
-        return false;
-      }
-      token = token.next;
-      if (optional('<', token)) {
-        Token closeBrace = token.endGroup;
-        if (closeBrace == null) return false;
-        token = closeBrace.next;
-      }
-      if (optional('(', token)) {
-        return looksLikeFunctionBody(token.endGroup.next);
-      }
-      return false;
-    }
-
     switch (continuation) {
       case TypeContinuation.Required:
         // If the token after the type is not an identifier,
@@ -2364,41 +2326,6 @@ class Parser {
       case TypeContinuation.OptionalAfterVar:
         hasVar = true;
         continue optional;
-
-      case TypeContinuation.SendOrFunctionLiteral:
-        Token beforeName;
-        Token name;
-        bool hasReturnType;
-        if (looksLikeType && looksLikeFunctionDeclaration(token)) {
-          beforeName = beforeToken;
-          name = token;
-          hasReturnType = true;
-          // Fall-through to parseNamedFunctionRest below.
-        } else if (looksLikeFunctionDeclaration(begin)) {
-          beforeName = beforeBegin;
-          name = begin;
-          hasReturnType = false;
-          // Fall-through to parseNamedFunctionRest below.
-        } else {
-          return parseSend(beforeBegin, continuationContext);
-        }
-
-        Token formals = parseTypeVariablesOpt(name);
-        listener.beginNamedFunctionExpression(begin);
-        if (hasReturnType) {
-          if (voidToken != null) {
-            listener.handleVoidKeyword(voidToken);
-          } else {
-            commitType();
-          }
-          reportRecoverableError(
-              begin, fasta.messageReturnTypeFunctionExpression);
-        } else {
-          listener.handleNoType(formals);
-        }
-        if (beforeName.next != name)
-          throw new StateError("beforeName.next != name");
-        return parseNamedFunctionRest(beforeName, begin, formals, true);
     }
 
     throw "Internal error: Unhandled continuation '$continuation'.";
@@ -3494,6 +3421,16 @@ class Parser {
     return token;
   }
 
+  Token parseFunctionLiteral(
+      final Token start, TypeInfo typeInfo, IdentifierContext context) {
+    Token beforeName = typeInfo.skipType(start);
+    assert(beforeName.next.isIdentifier);
+    Token formals = parseTypeVariablesOpt(beforeName.next);
+    listener.beginNamedFunctionExpression(start.next);
+    typeInfo.parseType(start, this);
+    return parseNamedFunctionRest(beforeName, start.next, formals, true);
+  }
+
   /// Parses the rest of a named function declaration starting from its [name]
   /// but then skips any type parameters and continue parsing from [formals]
   /// (the formal parameters).
@@ -4027,7 +3964,7 @@ class Parser {
   Token parsePrecedenceExpression(
       Token token, int precedence, bool allowCascades) {
     assert(precedence >= 1);
-    assert(precedence <= POSTFIX_PRECEDENCE);
+    assert(precedence <= SELECTOR_PRECEDENCE);
     token = parseUnaryExpression(token, allowCascades);
     Token next = token.next;
     TokenType type = next.type;
@@ -4058,10 +3995,16 @@ class Parser {
           token = parsePrecedenceExpression(token.next, level, allowCascades);
           listener.handleAssignmentExpression(operator);
         } else if (identical(tokenLevel, POSTFIX_PRECEDENCE)) {
+          if ((identical(type, TokenType.PLUS_PLUS)) ||
+              (identical(type, TokenType.MINUS_MINUS))) {
+            listener.handleUnaryPostfixAssignmentExpression(token.next);
+            token = next;
+          }
+        } else if (identical(tokenLevel, SELECTOR_PRECEDENCE)) {
           if (identical(type, TokenType.PERIOD) ||
               identical(type, TokenType.QUESTION_PERIOD)) {
             // Left associative, so we recurse at the next higher precedence
-            // level. However, POSTFIX_PRECEDENCE is the highest level, so we
+            // level. However, SELECTOR_PRECEDENCE is the highest level, so we
             // should just call [parseUnaryExpression] directly. However, a
             // unary expression isn't legal after a period, so we call
             // [parsePrimary] instead.
@@ -4072,10 +4015,6 @@ class Parser {
               (identical(type, TokenType.OPEN_SQUARE_BRACKET))) {
             token = parseArgumentOrIndexStar(token, typeArguments);
             next = token.next;
-          } else if ((identical(type, TokenType.PLUS_PLUS)) ||
-              (identical(type, TokenType.MINUS_MINUS))) {
-            listener.handleUnaryPostfixAssignmentExpression(token.next);
-            token = next;
           } else if (identical(type, TokenType.INDEX)) {
             BeginToken replacement = link(
                 new BeginToken(TokenType.OPEN_SQUARE_BRACKET, next.charOffset,
@@ -4605,9 +4544,12 @@ class Parser {
   Token parseSendOrFunctionLiteral(Token token, IdentifierContext context) {
     if (!mayParseFunctionExpressions) {
       return parseSend(token, context);
-    } else {
-      return parseType(token, TypeContinuation.SendOrFunctionLiteral, context);
     }
+    TypeInfo typeInfo = computeType(token, false);
+    if (!looksLikeFunctionDeclaration(typeInfo.skipType(token).next)) {
+      return parseSend(token, context);
+    }
+    return parseFunctionLiteral(token, typeInfo, context);
   }
 
   Token parseRequiredArguments(Token token) {
@@ -5019,6 +4961,32 @@ class Parser {
     return false;
   }
 
+  /// Returns true if [token] could be the start of a function body.
+  bool looksLikeFunctionBody(Token token) {
+    return optional('{', token) ||
+        optional('=>', token) ||
+        optional('async', token) ||
+        optional('sync', token);
+  }
+
+  /// Returns true if [token] could be the start of a function declaration
+  /// without a return type.
+  bool looksLikeFunctionDeclaration(Token token) {
+    if (!token.isIdentifier) {
+      return false;
+    }
+    token = token.next;
+    if (optional('<', token)) {
+      Token closeBrace = token.endGroup;
+      if (closeBrace == null) return false;
+      token = closeBrace.next;
+    }
+    if (optional('(', token)) {
+      return looksLikeFunctionBody(token.endGroup.next);
+    }
+    return false;
+  }
+
   Token parseExpressionStatementOrConstDeclaration(final Token start) {
     Token constToken = start.next;
     assert(optional('const', constToken));
@@ -5113,7 +5081,8 @@ class Parser {
         listener.beginMetadataStar(start.next);
         listener.endMetadataStar(0);
       }
-      Token beforeFormals = parseTypeVariablesOpt(next);
+      Token beforeFormals =
+          computeTypeParamOrArg(next).parseVariables(next, this);
       listener.beginLocalFunctionDeclaration(start.next);
       token = typeInfo.parseType(beforeType, this);
       next = token.next;

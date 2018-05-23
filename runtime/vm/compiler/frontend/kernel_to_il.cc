@@ -2776,8 +2776,9 @@ RawObject* EvaluateMetadata(const Field& metadata_field) {
         &helper, Script::Handle(Z, metadata_field.Script()), Z,
         TypedData::Handle(Z, metadata_field.KernelData()),
         metadata_field.KernelDataProgramOffset());
+    const Class& owner_class = Class::Handle(Z, metadata_field.Owner());
     return streaming_flow_graph_builder.EvaluateMetadata(
-        metadata_field.kernel_offset());
+        metadata_field.kernel_offset(), owner_class);
   } else {
     Thread* thread = Thread::Current();
     Error& error = Error::Handle();

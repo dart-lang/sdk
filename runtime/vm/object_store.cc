@@ -57,6 +57,13 @@ void ObjectStore::PrintToJSONObject(JSONObject* jsobj) {
 }
 #endif  // !PRODUCT
 
+static RawInstance* AllocateObjectByClassName(const Library& library,
+                                              const String& class_name) {
+  const Class& cls = Class::Handle(library.LookupClassAllowPrivate(class_name));
+  ASSERT(!cls.IsNull());
+  return Instance::New(cls);
+}
+
 RawError* ObjectStore::PreallocateObjects() {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
@@ -81,17 +88,13 @@ RawError* ObjectStore::PreallocateObjects() {
   Object& result = Object::Handle();
   const Library& library = Library::Handle(Library::CoreLibrary());
 
-  result =
-      DartLibraryCalls::InstanceCreate(library, Symbols::StackOverflowError(),
-                                       Symbols::Dot(), Object::empty_array());
+  result = AllocateObjectByClassName(library, Symbols::StackOverflowError());
   if (result.IsError()) {
     return Error::Cast(result).raw();
   }
   set_stack_overflow(Instance::Cast(result));
 
-  result =
-      DartLibraryCalls::InstanceCreate(library, Symbols::OutOfMemoryError(),
-                                       Symbols::Dot(), Object::empty_array());
+  result = AllocateObjectByClassName(library, Symbols::OutOfMemoryError());
   if (result.IsError()) {
     return Error::Cast(result).raw();
   }

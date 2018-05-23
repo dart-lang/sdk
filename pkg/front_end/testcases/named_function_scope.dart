@@ -41,7 +41,6 @@ test() {
     // This causes a scope error as T is already used in the function-type
     // scope (the return type).
     var x =
-        /*@error=ReturnTypeFunctionExpression*/
         /*@context=DuplicatedNamePreviouslyUsedCause*/
         T
         /*@error=NamedFunctionExpression*/

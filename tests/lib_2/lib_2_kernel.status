@@ -134,7 +134,6 @@ mirrors/library_imports_shown_test: RuntimeError # Issue 33098
 mirrors/library_metadata_test: RuntimeError
 mirrors/load_library_test: RuntimeError
 mirrors/metadata_allowed_values_test/16: Skip # Flaky, crashes.
-mirrors/metadata_constructed_constant_test: Crash, RuntimeError
 mirrors/metadata_scope_test/none: RuntimeError
 mirrors/method_mirror_location_test: RuntimeError
 mirrors/method_mirror_source_line_ending_test: Crash
@@ -221,13 +220,11 @@ mirrors/instance_members_unimplemented_interface_test: RuntimeError
 mirrors/instance_members_with_override_test: RuntimeError
 mirrors/invoke_closurization2_test: RuntimeError
 mirrors/invoke_throws_test: RuntimeError
-mirrors/metadata_const_map_test: Crash
 mirrors/mixin_members_test: RuntimeError
 mirrors/operator_test: RuntimeError
 mirrors/redirecting_factory_different_type_test/02: MissingCompileTimeError
 mirrors/redirecting_factory_different_type_test/none: RuntimeError
 mirrors/redirecting_factory_reflection_test: RuntimeError
-mirrors/regress_16321_test/none: Crash
 mirrors/top_level_accessors_test/01: MissingCompileTimeError
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revealed these test failures, which

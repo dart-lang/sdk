@@ -189,6 +189,7 @@ class _Random implements Random {
   // The constant A is selected from "Numerical Recipes 3rd Edition" p.348 B1.
 
   // Implements:
+  //   const _A = 0xffffda61;
   //   var state =
   //       ((_A * (_state[_kSTATE_LO])) + _state[_kSTATE_HI]) & ((1 << 64) - 1);
   //   _state[_kSTATE_LO] = state & ((1 << 32) - 1);
@@ -232,8 +233,6 @@ class _Random implements Random {
   static const _POW2_32 = 1 << 32;
   static const _POW2_53_D = 1.0 * (1 << 53);
   static const _POW2_27_D = 1.0 * (1 << 27);
-
-  static const _A = 0xffffda61;
 
   // Use a singleton Random object to get a new seed if no seed was passed.
   static var _prng = new _Random._withState(_initialSeed());
