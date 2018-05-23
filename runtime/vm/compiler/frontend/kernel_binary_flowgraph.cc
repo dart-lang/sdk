@@ -4146,6 +4146,13 @@ const Object& StreamingConstantEvaluator::RunFunction(
     intptr_t argument_count,
     const Instance* receiver,
     const TypeArguments* type_args) {
+  // We use a kernel2kernel constant evaluator in Dart 2.0 AOT compilation, so
+  // we should never end up evaluating constants using the VM's constant
+  // evaluator.
+  if (I->strong() && FLAG_precompiled_mode) {
+    UNREACHABLE();
+  }
+
   // We do not support generic methods yet.
   ASSERT((receiver == NULL) || (type_args == NULL));
   intptr_t extra_arguments =
