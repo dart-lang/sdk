@@ -37,6 +37,7 @@ import 'expression_generator.dart'
         ExpressionGenerator,
         Generator,
         PropertyAccessGenerator,
+        ThisPropertyAccessGenerator,
         VariableUseGenerator;
 
 import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
@@ -395,6 +396,81 @@ class KernelPropertyAccessGenerator extends KernelGenerator
   Expression _finish(
       Expression body, ShadowComplexAssignment complexAssignment) {
     return super._finish(makeLet(_receiverVariable, body), complexAssignment);
+  }
+}
+
+class KernelThisPropertyAccessGenerator extends KernelGenerator
+    with ThisPropertyAccessGenerator<Expression, Statement, Arguments> {
+  final Name name;
+
+  final Member getter;
+
+  final Member setter;
+
+  KernelThisPropertyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      this.name,
+      this.getter,
+      this.setter)
+      : super(helper, token);
+
+  @override
+  String get plainNameForRead => name.name;
+
+  @override
+  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+    if (getter == null) {
+      helper.warnUnresolvedGet(name, offsetForToken(token));
+    }
+    var read = new ShadowPropertyGet(forest.thisExpression(token), name, getter)
+      ..fileOffset = offsetForToken(token);
+    complexAssignment?.read = read;
+    return read;
+  }
+
+  @override
+  Expression _makeWrite(Expression value, bool voidContext,
+      ShadowComplexAssignment complexAssignment) {
+    if (setter == null) {
+      helper.warnUnresolvedSet(name, offsetForToken(token));
+    }
+    var write =
+        new PropertySet(forest.thisExpression(token), name, value, setter)
+          ..fileOffset = offsetForToken(token);
+    complexAssignment?.write = write;
+    return write;
+  }
+
+  @override
+  Expression doInvocation(int offset, Arguments arguments) {
+    Member interfaceTarget = getter;
+    if (interfaceTarget == null) {
+      helper.warnUnresolvedMethod(name, offset);
+    }
+    if (interfaceTarget is Field) {
+      // TODO(ahe): In strong mode we should probably rewrite this to
+      // `this.name.call(arguments)`.
+      interfaceTarget = null;
+    }
+    return helper.buildMethodInvocation(
+        forest.thisExpression(null), name, arguments, offset,
+        interfaceTarget: interfaceTarget);
+  }
+
+  @override
+  ShadowComplexAssignment startComplexAssignment(Expression rhs) =>
+      new ShadowPropertyAssign(null, rhs);
+
+  @override
+  void printOn(StringSink sink) {
+    NameSystem syntheticNames = new NameSystem();
+    sink.write(", name: ");
+    sink.write(name.name);
+    sink.write(", getter: ");
+    printQualifiedNameOn(getter, sink, syntheticNames: syntheticNames);
+    sink.write(", setter: ");
+    printQualifiedNameOn(setter, sink, syntheticNames: syntheticNames);
   }
 }
 

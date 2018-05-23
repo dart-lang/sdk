@@ -386,6 +386,17 @@ class AstBuildingForest
     // TODO(brianwilkerson) Implement this.
     throw new UnimplementedError();
   }
+
+  @override
+  Generator<Expression, Statement, _Arguments> thisPropertyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+      Token location,
+      covariant name,
+      covariant getter,
+      covariant setter) {
+    // TODO(brianwilkerson) Implement this.
+    throw new UnimplementedError();
+  }
 }
 
 /// A data holder used to conform to the [Forest] API.

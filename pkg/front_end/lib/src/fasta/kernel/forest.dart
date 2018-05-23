@@ -300,6 +300,13 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
       covariant getter,
       covariant setter);
 
+  Generator<Expression, Statement, Arguments> thisPropertyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Location location,
+      covariant name,
+      covariant getter,
+      covariant setter);
+
   // TODO(ahe): Remove this method when all users are moved here.
   kernel.Arguments castArguments(Arguments arguments) {
     dynamic a = arguments;

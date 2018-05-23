@@ -40,7 +40,10 @@ import '../problems.dart' show unsupported;
 import '../scanner.dart' show Token;
 
 import 'kernel_expression_generator.dart'
-    show KernelPropertyAccessGenerator, KernelVariableUseGenerator;
+    show
+        KernelPropertyAccessGenerator,
+        KernelThisPropertyAccessGenerator,
+        KernelVariableUseGenerator;
 
 import 'kernel_shadow_ast.dart'
     show
@@ -524,6 +527,17 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
       Member setter) {
     return new KernelPropertyAccessGenerator.internal(
         helper, token, receiver, name, getter, setter);
+  }
+
+  @override
+  KernelThisPropertyAccessGenerator thisPropertyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Name name,
+      Member getter,
+      Member setter) {
+    return new KernelThisPropertyAccessGenerator(
+        helper, token, name, getter, setter);
   }
 }
 

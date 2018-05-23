@@ -55,7 +55,6 @@ export 'kernel_expression_generator.dart'
         SuperIndexedAccessGenerator,
         ThisAccessGenerator,
         ThisIndexedAccessGenerator,
-        ThisPropertyAccessGenerator,
         TypeDeclarationAccessGenerator,
         UnresolvedNameGenerator,
         buildIsNull;
@@ -297,4 +296,25 @@ abstract class PropertyAccessGenerator<Expression, Statement, Arguments>
 
   @override
   bool get isThisPropertyAccess => false;
+}
+
+/// Special case of [PropertyAccessGenerator] to avoid creating an indirect
+/// access to 'this'.
+abstract class ThisPropertyAccessGenerator<Expression, Statement, Arguments>
+    implements Generator<Expression, Statement, Arguments> {
+  factory ThisPropertyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Name name,
+      Member getter,
+      Member setter) {
+    return helper.forest
+        .thisPropertyAccessGenerator(helper, token, name, getter, setter);
+  }
+
+  @override
+  String get debugName => "ThisPropertyAccessGenerator";
+
+  @override
+  bool get isThisPropertyAccess => true;
 }
