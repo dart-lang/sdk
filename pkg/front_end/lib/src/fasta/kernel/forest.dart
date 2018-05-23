@@ -9,7 +9,15 @@ import 'package:kernel/ast.dart' as kernel show Arguments, DartType;
 
 import 'body_builder.dart' show Identifier;
 
+import 'expression_generator.dart' show Generator;
+
+import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
+
 export 'body_builder.dart' show Identifier, Operator;
+
+export 'expression_generator.dart' show Generator;
+
+export 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
 
 /// A tree factory.
 ///
@@ -277,6 +285,20 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   /// associated with the [target] statement.
   void resolveContinueInSwitch(
       covariant Object target, covariant Statement user);
+
+  Generator<Expression, Statement, Arguments> variableUseGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Location location,
+      covariant variable,
+      kernel.DartType promotedType);
+
+  Generator<Expression, Statement, Arguments> propertyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Location location,
+      Expression receiver,
+      covariant name,
+      covariant getter,
+      covariant setter);
 
   // TODO(ahe): Remove this method when all users are moved here.
   kernel.Arguments castArguments(Arguments arguments) {

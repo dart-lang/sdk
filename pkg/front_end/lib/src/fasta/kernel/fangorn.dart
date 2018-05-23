@@ -10,8 +10,8 @@ import 'package:kernel/ast.dart'
     show
         Arguments,
         AssertInitializer,
-        BreakStatement,
         Block,
+        BreakStatement,
         Catch,
         ContinueSwitchStatement,
         DartType,
@@ -23,6 +23,8 @@ import 'package:kernel/ast.dart'
         Let,
         LibraryDependency,
         MapEntry,
+        Member,
+        Name,
         NamedExpression,
         Statement,
         SwitchCase,
@@ -36,6 +38,9 @@ import '../parser.dart' show offsetForToken, optional;
 import '../problems.dart' show unsupported;
 
 import '../scanner.dart' show Token;
+
+import 'kernel_expression_generator.dart'
+    show KernelPropertyAccessGenerator, KernelVariableUseGenerator;
 
 import 'kernel_shadow_ast.dart'
     show
@@ -76,7 +81,7 @@ import 'kernel_shadow_ast.dart'
         ShadowWhileStatement,
         ShadowYieldStatement;
 
-import 'forest.dart' show Forest;
+import 'forest.dart' show ExpressionGeneratorHelper, Forest;
 
 /// A shadow tree factory.
 class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
@@ -497,6 +502,28 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   void resolveContinueInSwitch(
       SwitchCase target, ContinueSwitchStatement user) {
     user.target = target;
+  }
+
+  @override
+  KernelVariableUseGenerator variableUseGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      VariableDeclaration variable,
+      DartType promotedType) {
+    return new KernelVariableUseGenerator(
+        helper, token, variable, promotedType);
+  }
+
+  @override
+  KernelPropertyAccessGenerator propertyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Expression receiver,
+      Name name,
+      Member getter,
+      Member setter) {
+    return new KernelPropertyAccessGenerator.internal(
+        helper, token, receiver, name, getter, setter);
   }
 }
 

@@ -364,6 +364,28 @@ class AstBuildingForest
   Statement yieldStatement(Token yieldKeyword, Token star,
           Expression expression, Token semicolon) =>
       astFactory.yieldStatement(yieldKeyword, star, expression, semicolon);
+
+  @override
+  Generator<Expression, Statement, _Arguments> variableUseGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+      Token token,
+      VariableDeclarationStatement variable,
+      kernel.DartType promotedType) {
+    // TODO(brianwilkerson) Implement this.
+    throw new UnimplementedError();
+  }
+
+  @override
+  Generator<Expression, Statement, _Arguments> propertyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+      Token token,
+      Expression receiver,
+      covariant name,
+      covariant getter,
+      covariant setter) {
+    // TODO(brianwilkerson) Implement this.
+    throw new UnimplementedError();
+  }
 }
 
 /// A data holder used to conform to the [Forest] API.
