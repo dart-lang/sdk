@@ -28,4 +28,4 @@ DART_ROOT="$(cd "${SDK_DIR}/.." ; pwd -P)"
 
 DARTFMT="$DART_ROOT/third_party/pkg_tested/dart_style/bin/format.dart"
 
-exec "$DART" "--packages=$DART_ROOT/.packages" "$DARTFMT" "$@"
+exec "$DART" "--preview-dart-2" "--packages=$DART_ROOT/.packages" "$DARTFMT" "$@"
