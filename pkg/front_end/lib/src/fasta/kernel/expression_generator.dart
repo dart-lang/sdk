@@ -33,10 +33,7 @@ import 'kernel_ast_api.dart'
         VariableDeclaration;
 
 import 'kernel_expression_generator.dart'
-    show
-        IncompleteSendGenerator,
-        NullAwarePropertyAccessGenerator,
-        SendAccessGenerator;
+    show IncompleteSendGenerator, SendAccessGenerator;
 
 export 'kernel_expression_generator.dart'
     show
@@ -319,4 +316,22 @@ abstract class ThisPropertyAccessGenerator<Expression, Statement, Arguments>
 
   @override
   bool get isThisPropertyAccess => true;
+}
+
+abstract class NullAwarePropertyAccessGenerator<Expression, Statement,
+    Arguments> implements Generator<Expression, Statement, Arguments> {
+  factory NullAwarePropertyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Expression receiverExpression,
+      Name name,
+      Member getter,
+      Member setter,
+      DartType type) {
+    return helper.forest.nullAwarePropertyAccessGenerator(
+        helper, token, receiverExpression, name, getter, setter, type);
+  }
+
+  @override
+  String get debugName => "NullAwarePropertyAccessGenerator";
 }

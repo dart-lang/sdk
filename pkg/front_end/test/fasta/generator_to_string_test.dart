@@ -59,12 +59,12 @@ import 'package:front_end/src/fasta/kernel/kernel_expression_generator.dart'
         IncompleteErrorGenerator,
         IncompletePropertyAccessGenerator,
         IndexedAccessGenerator,
+        KernelNullAwarePropertyAccessGenerator,
         KernelPropertyAccessGenerator,
         KernelThisPropertyAccessGenerator,
         KernelVariableUseGenerator,
         LargeIntAccessGenerator,
         LoadLibraryGenerator,
-        NullAwarePropertyAccessGenerator,
         ParenthesizedExpressionGenerator,
         ReadOnlyAccessGenerator,
         SendAccessGenerator,
@@ -165,7 +165,7 @@ main() {
         " receiver: final dynamic #t1 = expression;\n,"
         " receiverExpression: expression, name: bar, getter: $uri::myGetter,"
         " setter: $uri::mySetter, type: void)",
-        new NullAwarePropertyAccessGenerator(
+        new KernelNullAwarePropertyAccessGenerator(
             helper, token, expression, name, getter, setter, type));
     check(
         "SuperPropertyAccessGenerator(offset: 4, name: bar,"

@@ -52,6 +52,7 @@ import 'expression_generator.dart'
     show
         ExpressionGenerator,
         Generator,
+        NullAwarePropertyAccessGenerator,
         PropertyAccessGenerator,
         ThisPropertyAccessGenerator,
         VariableUseGenerator;
@@ -488,6 +489,104 @@ class KernelThisPropertyAccessGenerator extends KernelGenerator
     printQualifiedNameOn(getter, sink, syntheticNames: syntheticNames);
     sink.write(", setter: ");
     printQualifiedNameOn(setter, sink, syntheticNames: syntheticNames);
+  }
+}
+
+class KernelNullAwarePropertyAccessGenerator extends KernelGenerator
+    with NullAwarePropertyAccessGenerator<Expression, Statement, Arguments> {
+  final VariableDeclaration receiver;
+
+  final Expression receiverExpression;
+
+  final Name name;
+
+  final Member getter;
+
+  final Member setter;
+
+  final DartType type;
+
+  KernelNullAwarePropertyAccessGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, dynamic> helper,
+      Token token,
+      this.receiverExpression,
+      this.name,
+      this.getter,
+      this.setter,
+      this.type)
+      : this.receiver = makeOrReuseVariable(receiverExpression),
+        super(helper, token);
+
+  Expression receiverAccess() => new VariableGet(receiver);
+
+  @override
+  String get plainNameForRead => name.name;
+
+  @override
+  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+    var read = new ShadowPropertyGet(receiverAccess(), name, getter)
+      ..fileOffset = offsetForToken(token);
+    complexAssignment?.read = read;
+    return read;
+  }
+
+  @override
+  Expression _makeWrite(Expression value, bool voidContext,
+      ShadowComplexAssignment complexAssignment) {
+    var write = new PropertySet(receiverAccess(), name, value, setter)
+      ..fileOffset = offsetForToken(token);
+    complexAssignment?.write = write;
+    return write;
+  }
+
+  @override
+  Expression _finish(
+      Expression body, ShadowComplexAssignment complexAssignment) {
+    var offset = offsetForToken(token);
+    var nullAwareGuard = helper.storeOffset(
+        forest.conditionalExpression(
+            buildIsNull(receiverAccess(), offset, helper),
+            null,
+            helper.storeOffset(forest.literalNull(null), offset),
+            null,
+            body),
+        offset);
+    if (complexAssignment != null) {
+      body = makeLet(receiver, nullAwareGuard);
+      ShadowPropertyAssign kernelPropertyAssign = complexAssignment;
+      kernelPropertyAssign.nullAwareGuard = nullAwareGuard;
+      kernelPropertyAssign.desugared = body;
+      return kernelPropertyAssign;
+    } else {
+      return new ShadowNullAwarePropertyGet(receiver, nullAwareGuard)
+        ..fileOffset = offset;
+    }
+  }
+
+  @override
+  Expression doInvocation(int offset, Arguments arguments) {
+    return unsupported("doInvocation", offset, uri);
+  }
+
+  @override
+  ShadowComplexAssignment startComplexAssignment(Expression rhs) =>
+      new ShadowPropertyAssign(receiverExpression, rhs);
+
+  @override
+  void printOn(StringSink sink) {
+    NameSystem syntheticNames = new NameSystem();
+    sink.write(", receiver: ");
+    printNodeOn(receiver, sink, syntheticNames: syntheticNames);
+    sink.write(", receiverExpression: ");
+    printNodeOn(receiverExpression, sink, syntheticNames: syntheticNames);
+    sink.write(", name: ");
+    sink.write(name.name);
+    sink.write(", getter: ");
+    printQualifiedNameOn(getter, sink, syntheticNames: syntheticNames);
+    sink.write(", setter: ");
+    printQualifiedNameOn(setter, sink, syntheticNames: syntheticNames);
+    sink.write(", type: ");
+    printNodeOn(type, sink, syntheticNames: syntheticNames);
   }
 }
 

@@ -380,9 +380,9 @@ class AstBuildingForest
       ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
       Token token,
       Expression receiver,
-      covariant name,
-      covariant getter,
-      covariant setter) {
+      kernel.Name name,
+      kernel.Member getter,
+      kernel.Member setter) {
     // TODO(brianwilkerson): Implement this.
     throw new UnimplementedError();
   }
@@ -391,9 +391,22 @@ class AstBuildingForest
   Generator<Expression, Statement, _Arguments> thisPropertyAccessGenerator(
       ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
       Token location,
-      covariant name,
-      covariant getter,
-      covariant setter) {
+      kernel.Name name,
+      kernel.Member getter,
+      kernel.Member setter) {
+    // TODO(brianwilkerson): Implement this.
+    throw new UnimplementedError();
+  }
+
+  @override
+  Generator<Expression, Statement, _Arguments> nullAwarePropertyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+      Token token,
+      Expression receiverExpression,
+      kernel.Name name,
+      kernel.Member getter,
+      kernel.Member setter,
+      kernel.DartType type) {
     // TODO(brianwilkerson): Implement this.
     throw new UnimplementedError();
   }

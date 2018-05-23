@@ -4,8 +4,12 @@
 
 library fasta.forest;
 
-// TODO(ahe): Remove this import.
-import 'package:kernel/ast.dart' as kernel show Arguments, DartType;
+import 'package:kernel/ast.dart' as kernel
+    show
+        Arguments, // TODO(ahe): Remove this import.
+        DartType,
+        Member,
+        Name;
 
 import 'body_builder.dart' show Identifier;
 
@@ -296,16 +300,25 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
       ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
       Location location,
       Expression receiver,
-      covariant name,
-      covariant getter,
-      covariant setter);
+      kernel.Name name,
+      kernel.Member getter,
+      kernel.Member setter);
 
   Generator<Expression, Statement, Arguments> thisPropertyAccessGenerator(
       ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
       Location location,
-      covariant name,
-      covariant getter,
-      covariant setter);
+      kernel.Name name,
+      kernel.Member getter,
+      kernel.Member setter);
+
+  Generator<Expression, Statement, Arguments> nullAwarePropertyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Location location,
+      Expression receiverExpression,
+      kernel.Name name,
+      kernel.Member getter,
+      kernel.Member setter,
+      kernel.DartType type);
 
   // TODO(ahe): Remove this method when all users are moved here.
   kernel.Arguments castArguments(Arguments arguments) {

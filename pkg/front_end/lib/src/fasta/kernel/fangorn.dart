@@ -41,6 +41,7 @@ import '../scanner.dart' show Token;
 
 import 'kernel_expression_generator.dart'
     show
+        KernelNullAwarePropertyAccessGenerator,
         KernelPropertyAccessGenerator,
         KernelThisPropertyAccessGenerator,
         KernelVariableUseGenerator;
@@ -538,6 +539,19 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
       Member setter) {
     return new KernelThisPropertyAccessGenerator(
         helper, token, name, getter, setter);
+  }
+
+  @override
+  KernelNullAwarePropertyAccessGenerator nullAwarePropertyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Expression receiverExpression,
+      Name name,
+      Member getter,
+      Member setter,
+      DartType type) {
+    return new KernelNullAwarePropertyAccessGenerator(
+        helper, token, receiverExpression, name, getter, setter, type);
   }
 }
 
