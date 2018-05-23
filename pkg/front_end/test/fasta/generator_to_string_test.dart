@@ -61,6 +61,7 @@ import 'package:front_end/src/fasta/kernel/kernel_expression_generator.dart'
         IndexedAccessGenerator,
         KernelNullAwarePropertyAccessGenerator,
         KernelPropertyAccessGenerator,
+        KernelSuperPropertyAccessGenerator,
         KernelThisPropertyAccessGenerator,
         KernelVariableUseGenerator,
         LargeIntAccessGenerator,
@@ -70,7 +71,6 @@ import 'package:front_end/src/fasta/kernel/kernel_expression_generator.dart'
         SendAccessGenerator,
         StaticAccessGenerator,
         SuperIndexedAccessGenerator,
-        SuperPropertyAccessGenerator,
         ThisAccessGenerator,
         ThisIndexedAccessGenerator,
         TypeDeclarationAccessGenerator,
@@ -170,7 +170,8 @@ main() {
     check(
         "SuperPropertyAccessGenerator(offset: 4, name: bar,"
         " getter: $uri::myGetter, setter: $uri::mySetter)",
-        new SuperPropertyAccessGenerator(helper, token, name, getter, setter));
+        new KernelSuperPropertyAccessGenerator(
+            helper, token, name, getter, setter));
     check(
         "IndexedAccessGenerator(offset: 4, receiver: expression, index: index,"
         " getter: $uri::myGetter, setter: $uri::mySetter,"

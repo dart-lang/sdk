@@ -335,3 +335,19 @@ abstract class NullAwarePropertyAccessGenerator<Expression, Statement,
   @override
   String get debugName => "NullAwarePropertyAccessGenerator";
 }
+
+abstract class SuperPropertyAccessGenerator<Expression, Statement, Arguments>
+    implements Generator<Expression, Statement, Arguments> {
+  factory SuperPropertyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Name name,
+      Member getter,
+      Member setter) {
+    return helper.forest
+        .superPropertyAccessGenerator(helper, token, name, getter, setter);
+  }
+
+  @override
+  String get debugName => "SuperPropertyAccessGenerator";
+}

@@ -410,6 +410,16 @@ class AstBuildingForest
     // TODO(brianwilkerson) Implement this.
     throw new UnimplementedError();
   }
+
+  Generator<Expression, Statement, _Arguments> superPropertyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+      Token token,
+      kernel.Name name,
+      kernel.Member getter,
+      kernel.Member setter) {
+    // TODO(brianwilkerson): Implement this.
+    throw new UnimplementedError();
+  }
 }
 
 /// A data holder used to conform to the [Forest] API.

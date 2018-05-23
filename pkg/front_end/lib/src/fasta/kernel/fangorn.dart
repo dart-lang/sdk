@@ -43,6 +43,7 @@ import 'kernel_expression_generator.dart'
     show
         KernelNullAwarePropertyAccessGenerator,
         KernelPropertyAccessGenerator,
+        KernelSuperPropertyAccessGenerator,
         KernelThisPropertyAccessGenerator,
         KernelVariableUseGenerator;
 
@@ -552,6 +553,17 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
       DartType type) {
     return new KernelNullAwarePropertyAccessGenerator(
         helper, token, receiverExpression, name, getter, setter, type);
+  }
+
+  @override
+  KernelSuperPropertyAccessGenerator superPropertyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Name name,
+      Member getter,
+      Member setter) {
+    return new KernelSuperPropertyAccessGenerator(
+        helper, token, name, getter, setter);
   }
 }
 
