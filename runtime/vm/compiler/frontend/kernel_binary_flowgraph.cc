@@ -7419,7 +7419,8 @@ CatchBlock* StreamingFlowGraphBuilder::catch_block() {
 }
 
 ActiveClass* StreamingFlowGraphBuilder::active_class() {
-  return &flow_graph_builder_->active_class_;
+  return (flow_graph_builder_ != NULL) ? &flow_graph_builder_->active_class_
+                                       : NULL;
 }
 
 ScopeBuildingResult* StreamingFlowGraphBuilder::scopes() {
@@ -11064,9 +11065,16 @@ RawObject* StreamingFlowGraphBuilder::BuildParameterDescriptor(
   return param_descriptor.raw();
 }
 
-RawObject* StreamingFlowGraphBuilder::EvaluateMetadata(intptr_t kernel_offset) {
+RawObject* StreamingFlowGraphBuilder::EvaluateMetadata(
+    intptr_t kernel_offset,
+    const Class& owner_class) {
   SetOffset(kernel_offset);
   const Tag tag = PeekTag();
+
+  // Setup active_class in type translator for type finalization.
+  ActiveClass active_class;
+  active_class.klass = &owner_class;
+  type_translator_.set_active_class(&active_class);
 
   if (tag == kClass) {
     ClassHelper class_helper(this);
@@ -11093,6 +11101,8 @@ RawObject* StreamingFlowGraphBuilder::EvaluateMetadata(intptr_t kernel_offset) {
     SkipExpression();  // read (actual) initializer.
     metadata_values.SetAt(i, value);
   }
+
+  type_translator_.set_active_class(NULL);
 
   return metadata_values.raw();
 }

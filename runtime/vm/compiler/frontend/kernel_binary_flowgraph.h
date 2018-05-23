@@ -707,6 +707,10 @@ class StreamingDartTypeTranslator {
 
   const Type& ReceiverType(const Class& klass);
 
+  void set_active_class(ActiveClass* active_class) {
+    active_class_ = active_class;
+  }
+
  private:
   // Can build a malformed type.
   void BuildTypeInternal(bool invalid_as_dynamic = false);
@@ -1261,7 +1265,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
 
   Fragment BuildStatementAt(intptr_t kernel_offset);
   RawObject* BuildParameterDescriptor(intptr_t kernel_offset);
-  RawObject* EvaluateMetadata(intptr_t kernel_offset);
+  RawObject* EvaluateMetadata(intptr_t kernel_offset, const Class& owner_class);
   void CollectTokenPositionsFor(
       intptr_t script_index,
       intptr_t initial_script_index,
