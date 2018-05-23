@@ -15,6 +15,7 @@ import 'package:kernel/ast.dart'
         Catch,
         ContinueSwitchStatement,
         DartType,
+        DynamicType,
         EmptyStatement,
         Expression,
         ExpressionStatement,
@@ -49,6 +50,8 @@ import 'kernel_expression_generator.dart'
         KernelThisIndexedAccessGenerator,
         KernelThisPropertyAccessGenerator,
         KernelVariableUseGenerator;
+
+import 'body_builder.dart' show FormalParameters, OptionalFormals;
 
 import 'kernel_shadow_ast.dart'
     show
@@ -321,6 +324,21 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
+  Catch catchClause(
+      Token onKeyword,
+      DartType exceptionType,
+      Token catchKeyword,
+      VariableDeclaration exceptionParameter,
+      VariableDeclaration stackTraceParameter,
+      DartType stackTraceType,
+      Statement body) {
+    exceptionType ??= const DynamicType();
+    return new Catch(exceptionParameter, body,
+        guard: exceptionType, stackTrace: stackTraceParameter)
+      ..fileOffset = offsetForToken(onKeyword ?? catchKeyword);
+  }
+
+  @override
   Expression conditionalExpression(Expression condition, Token question,
       Expression thenExpression, Token colon, Expression elseExpression) {
     return new ShadowConditionalExpression(
@@ -484,6 +502,29 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
+  int getOptionalParameterCount(
+      FormalParameters<Expression, Statement, Arguments> parameters) {
+    OptionalFormals optional = parameters.optional;
+    if (optional == null) {
+      return 0;
+    }
+    return optional.formals.length;
+  }
+
+  @override
+  Object getRequiredParameter(
+      FormalParameters<Expression, Statement, Arguments> parameters,
+      int index) {
+    return parameters.required[index];
+  }
+
+  @override
+  int getRequiredParameterCount(
+      FormalParameters<Expression, Statement, Arguments> parameters) {
+    return parameters.required.length;
+  }
+
+  @override
   Expression getExpressionFromExpressionStatement(Statement statement) {
     return (statement as ExpressionStatement).expression;
   }
@@ -542,6 +583,11 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   void resolveContinueInSwitch(
       SwitchCase target, ContinueSwitchStatement user) {
     user.target = target;
+  }
+
+  @override
+  void setParameterType(VariableDeclaration parameter, DartType type) {
+    parameter.type = type ?? const DynamicType();
   }
 
   @override

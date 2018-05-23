@@ -103,6 +103,48 @@ class AstBuildingForest
   }
 
   @override
+  CatchClause catchClause(
+      Token onKeyword,
+      TypeAnnotation exceptionType,
+      Token catchKeyword,
+      SimpleIdentifier exceptionParameter,
+      SimpleIdentifier stackTraceParameter,
+      TypeAnnotation stackTraceType,
+      Statement body) {
+    // TODO(brianwilkerson) The following is not reliable in the presence of
+    // recovery. Consider passing the required tokens from the Parser to the
+    // BodyBuilder to here.
+    Token leftParenthesis;
+    if (catchKeyword != null) {
+      leftParenthesis = catchKeyword.next;
+    }
+    Token comma;
+    if (stackTraceParameter != null) {
+      comma = exceptionParameter.endToken.next;
+    }
+    Token rightParenthesis;
+    if (catchKeyword != null) {
+      if (stackTraceParameter != null) {
+        rightParenthesis = stackTraceParameter.endToken.next;
+      } else if (comma != null) {
+        rightParenthesis = comma.next;
+      } else {
+        rightParenthesis = exceptionParameter.endToken.next;
+      }
+    }
+    return astFactory.catchClause(
+        onKeyword,
+        exceptionType,
+        catchKeyword,
+        leftParenthesis,
+        exceptionParameter,
+        comma,
+        stackTraceParameter,
+        rightParenthesis,
+        body);
+  }
+
+  @override
   Expression checkLibraryIsLoaded(dependency) {
     // TODO(brianwilkerson) Implement this.
     throw new UnimplementedError();
@@ -167,6 +209,43 @@ class AstBuildingForest
   @override
   Expression getExpressionFromExpressionStatement(Statement statement) =>
       (statement as ExpressionStatement).expression;
+
+  @override
+  int getOptionalParameterCount(FormalParameterList parameters) {
+    int count = 0;
+    for (FormalParameter parameter in parameters.parameters) {
+      if (!parameter.isRequired) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  @override
+  FormalParameter getRequiredParameter(
+      FormalParameterList parameters, int index) {
+    int count = 0;
+    for (FormalParameter parameter in parameters.parameters) {
+      if (parameter.isRequired) {
+        if (count == index) {
+          return parameter;
+        }
+        count++;
+      }
+    }
+    throw new IndexError(index, parameters);
+  }
+
+  @override
+  int getRequiredParameterCount(FormalParameterList parameters) {
+    int count = 0;
+    for (FormalParameter parameter in parameters.parameters) {
+      if (parameter.isRequired) {
+        count++;
+      }
+    }
+    return count;
+  }
 
   @override
   Token getSemicolon(Statement statement) {
@@ -395,6 +474,11 @@ class AstBuildingForest
   Statement returnStatement(
           Token returnKeyword, Expression expression, Token semicolon) =>
       astFactory.returnStatement(returnKeyword, expression, semicolon);
+
+  @override
+  void setParameterType(FormalParameter parameter, TypeAnnotation type) {
+    parameter.identifier.staticType = type.type;
+  }
 
   @override
   Expression stringConcatenationExpression(

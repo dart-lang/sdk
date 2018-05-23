@@ -2346,39 +2346,39 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void handleCatchBlock(Token onKeyword, Token catchKeyword, Token comma) {
     debugEvent("CatchBlock");
-    Block body = pop();
+    Statement body = pop();
     inCatchBlock = pop();
     if (catchKeyword != null) {
       exitLocalScope();
     }
-    FormalParameters<Expression, Statement, Arguments> catchParameters =
-        popIfNotNull(catchKeyword);
-    DartType type = popIfNotNull(onKeyword) ?? const DynamicType();
-    VariableDeclaration exception;
-    VariableDeclaration stackTrace;
+    Object catchParameters = popIfNotNull(catchKeyword);
+    Object type = popIfNotNull(onKeyword);
+    Object exception;
+    Object stackTrace;
     if (catchParameters != null) {
-      if (catchParameters.required.length > 0) {
-        exception = catchParameters.required[0];
-        exception.type = type;
-      }
-      if (catchParameters.required.length > 1) {
-        stackTrace = catchParameters.required[1];
-        stackTrace.type = coreTypes.stackTraceClass.rawType;
-      }
-      if (catchParameters.required.length > 2 ||
-          catchParameters.optional != null) {
-        body = toKernelStatement(forest.block(
+      int requiredCount = forest.getRequiredParameterCount(catchParameters);
+      int optionalCount = forest.getOptionalParameterCount(catchParameters);
+      if ((requiredCount == 1 || requiredCount == 2) && optionalCount == 0) {
+        exception = forest.getRequiredParameter(catchParameters, 0);
+        forest.setParameterType(exception, type);
+        if (requiredCount == 2) {
+          stackTrace = forest.getRequiredParameter(catchParameters, 1);
+          forest.setParameterType(
+              stackTrace, coreTypes.stackTraceClass.rawType);
+        }
+      } else {
+        body = forest.block(
             catchKeyword,
             <Statement>[
               toStatement(compileTimeErrorInTry ??=
                   deprecated_buildCompileTimeErrorStatement(
                       "Invalid catch arguments.", catchKeyword.next.charOffset))
             ],
-            null));
+            null);
       }
     }
-    push(new Catch(exception, body, guard: type, stackTrace: stackTrace)
-      ..fileOffset = offsetForToken(onKeyword ?? catchKeyword));
+    push(forest.catchClause(onKeyword, type, catchKeyword, exception,
+        stackTrace, coreTypes.stackTraceClass.rawType, body));
   }
 
   @override

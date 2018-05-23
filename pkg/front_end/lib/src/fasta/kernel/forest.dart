@@ -173,6 +173,16 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   Statement breakStatement(
       Location breakKeyword, Identifier label, Location semicolon);
 
+  /// Return a representation of a catch clause.
+  Object catchClause(
+      Location onKeyword,
+      covariant exceptionType,
+      Location catchKeyword,
+      covariant exceptionParameter,
+      covariant stackTraceParameter,
+      covariant stackTraceType,
+      Statement body);
+
   /// Return a representation of a conditional expression. The [condition] is
   /// the expression preceding the question mark. The [question] is the `?`. The
   /// [thenExpression] is the expression following the question mark. The
@@ -290,6 +300,16 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   /// statement is not terminated by a semicolon.
   Location getSemicolon(Statement statement);
 
+  /// Return the number of optional parameters in the list of [parameters].
+  int getOptionalParameterCount(covariant parameters);
+
+  /// Return the required parameter from the list of [parameters] at the given
+  /// [index].
+  Object getRequiredParameter(covariant parameters, int index);
+
+  /// Return the number of required parameters in the list of [parameters].
+  int getRequiredParameterCount(covariant parameters);
+
   bool isBlock(Object node);
 
   /// Return `true` if the given [statement] is the representation of an empty
@@ -318,6 +338,9 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   /// associated with the [target] statement.
   void resolveContinueInSwitch(
       covariant Object target, covariant Statement user);
+
+  /// Set the type of the [parameter] to the given [type].
+  void setParameterType(covariant parameter, covariant type);
 
   Generator<Expression, Statement, Arguments> variableUseGenerator(
       ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
