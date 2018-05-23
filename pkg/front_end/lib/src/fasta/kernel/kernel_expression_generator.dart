@@ -20,7 +20,23 @@ import '../fasta_codes.dart'
 
 import '../messages.dart' show Message, noLength;
 
-import '../names.dart' show callName, equalsName, indexGetName, indexSetName;
+import '../names.dart'
+    show
+        ampersandName,
+        barName,
+        callName,
+        caretName,
+        divisionName,
+        equalsName,
+        indexGetName,
+        indexSetName,
+        leftShiftName,
+        minusName,
+        multiplyName,
+        mustacheName,
+        percentName,
+        plusName,
+        rightShiftName;
 
 import '../parser.dart' show lengthForToken, lengthOfSpan, offsetForToken;
 
@@ -52,6 +68,7 @@ import 'kernel_ast_api.dart'
     show
         Constructor,
         DartType,
+        DynamicType,
         Field,
         Initializer,
         InvalidType,

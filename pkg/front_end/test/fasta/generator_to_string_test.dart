@@ -45,9 +45,6 @@ import 'package:front_end/src/fasta/kernel/kernel_target.dart'
 import 'package:front_end/src/fasta/fasta_codes.dart'
     show Message, templateUnspecified;
 
-import 'package:front_end/src/fasta/kernel/body_builder.dart'
-    show DelayedAssignment, DelayedPostfixIncrement;
-
 import 'package:front_end/src/fasta/kernel/expression_generator.dart'
     show Generator;
 
@@ -57,6 +54,8 @@ import 'package:front_end/src/fasta/kernel/kernel_body_builder.dart'
 import 'package:front_end/src/fasta/kernel/kernel_expression_generator.dart'
     show
         DeferredAccessGenerator,
+        DelayedAssignment,
+        DelayedPostfixIncrement,
         IncompleteErrorGenerator,
         IncompletePropertyAccessGenerator,
         IndexedAccessGenerator,

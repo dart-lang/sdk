@@ -1681,3 +1681,194 @@ class TypeDeclarationAccessGenerator extends ReadOnlyAccessGenerator {
         null, token.charOffset, Constness.implicit);
   }
 }
+
+abstract class ContextAwareGenerator
+    extends Generator<Expression, Statement, Arguments> {
+  final Generator generator;
+
+  ContextAwareGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, dynamic> helper,
+      Token token,
+      this.generator)
+      : super(helper, token);
+
+  String get plainNameForRead {
+    return unsupported("plainNameForRead", token.charOffset, helper.uri);
+  }
+
+  Expression doInvocation(int charOffset, Arguments arguments) {
+    return unhandled("${runtimeType}", "doInvocation", charOffset, uri);
+  }
+
+  Expression buildSimpleRead();
+
+  Expression buildForEffect();
+
+  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+    return makeInvalidWrite(value);
+  }
+
+  Expression buildNullAwareAssignment(
+      Expression value, DartType type, int offset,
+      {bool voidContext: false}) {
+    return makeInvalidWrite(value);
+  }
+
+  Expression buildCompoundAssignment(Name binaryOperator, Expression value,
+      {int offset: TreeNode.noOffset,
+      bool voidContext: false,
+      Procedure interfaceTarget,
+      bool isPreIncDec: false}) {
+    return makeInvalidWrite(value);
+  }
+
+  Expression buildPrefixIncrement(Name binaryOperator,
+      {int offset: TreeNode.noOffset,
+      bool voidContext: false,
+      Procedure interfaceTarget}) {
+    return makeInvalidWrite(null);
+  }
+
+  Expression buildPostfixIncrement(Name binaryOperator,
+      {int offset: TreeNode.noOffset,
+      bool voidContext: false,
+      Procedure interfaceTarget}) {
+    return makeInvalidWrite(null);
+  }
+
+  makeInvalidRead() {
+    return unsupported("makeInvalidRead", token.charOffset, helper.uri);
+  }
+
+  Expression makeInvalidWrite(Expression value) {
+    return helper.deprecated_buildCompileTimeError(
+        "Can't be used as left-hand side of assignment.",
+        offsetForToken(token));
+  }
+}
+
+class DelayedAssignment extends ContextAwareGenerator {
+  final Expression value;
+
+  final String assignmentOperator;
+
+  DelayedAssignment(ExpressionGeneratorHelper<dynamic, dynamic, dynamic> helper,
+      Token token, Generator generator, this.value, this.assignmentOperator)
+      : super(helper, token, generator);
+
+  String get debugName => "DelayedAssignment";
+
+  Expression buildSimpleRead() {
+    return handleAssignment(false);
+  }
+
+  Expression buildForEffect() {
+    return handleAssignment(true);
+  }
+
+  Expression handleAssignment(bool voidContext) {
+    if (helper.constantContext != ConstantContext.none) {
+      return helper.deprecated_buildCompileTimeError(
+          "Not a constant expression.", offsetForToken(token));
+    }
+    if (identical("=", assignmentOperator)) {
+      return generator.buildAssignment(value, voidContext: voidContext);
+    } else if (identical("+=", assignmentOperator)) {
+      return generator.buildCompoundAssignment(plusName, value,
+          offset: offsetForToken(token), voidContext: voidContext);
+    } else if (identical("-=", assignmentOperator)) {
+      return generator.buildCompoundAssignment(minusName, value,
+          offset: offsetForToken(token), voidContext: voidContext);
+    } else if (identical("*=", assignmentOperator)) {
+      return generator.buildCompoundAssignment(multiplyName, value,
+          offset: offsetForToken(token), voidContext: voidContext);
+    } else if (identical("%=", assignmentOperator)) {
+      return generator.buildCompoundAssignment(percentName, value,
+          offset: offsetForToken(token), voidContext: voidContext);
+    } else if (identical("&=", assignmentOperator)) {
+      return generator.buildCompoundAssignment(ampersandName, value,
+          offset: offsetForToken(token), voidContext: voidContext);
+    } else if (identical("/=", assignmentOperator)) {
+      return generator.buildCompoundAssignment(divisionName, value,
+          offset: offsetForToken(token), voidContext: voidContext);
+    } else if (identical("<<=", assignmentOperator)) {
+      return generator.buildCompoundAssignment(leftShiftName, value,
+          offset: offsetForToken(token), voidContext: voidContext);
+    } else if (identical(">>=", assignmentOperator)) {
+      return generator.buildCompoundAssignment(rightShiftName, value,
+          offset: offsetForToken(token), voidContext: voidContext);
+    } else if (identical("??=", assignmentOperator)) {
+      return generator.buildNullAwareAssignment(
+          value, const DynamicType(), offsetForToken(token),
+          voidContext: voidContext);
+    } else if (identical("^=", assignmentOperator)) {
+      return generator.buildCompoundAssignment(caretName, value,
+          offset: offsetForToken(token), voidContext: voidContext);
+    } else if (identical("|=", assignmentOperator)) {
+      return generator.buildCompoundAssignment(barName, value,
+          offset: offsetForToken(token), voidContext: voidContext);
+    } else if (identical("~/=", assignmentOperator)) {
+      return generator.buildCompoundAssignment(mustacheName, value,
+          offset: offsetForToken(token), voidContext: voidContext);
+    } else {
+      return unhandled(
+          assignmentOperator, "handleAssignment", token.charOffset, helper.uri);
+    }
+  }
+
+  @override
+  Initializer buildFieldInitializer(Map<String, int> initializedFields) {
+    if (!identical("=", assignmentOperator) ||
+        !generator.isThisPropertyAccess) {
+      return generator.buildFieldInitializer(initializedFields);
+    }
+    return helper.buildFieldInitializer(
+        false, generator.plainNameForRead, offsetForToken(token), value);
+  }
+
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", value: ");
+    printNodeOn(value, sink);
+    sink.write(", assignmentOperator: ");
+    sink.write(assignmentOperator);
+  }
+}
+
+class DelayedPostfixIncrement extends ContextAwareGenerator {
+  final Name binaryOperator;
+
+  final Procedure interfaceTarget;
+
+  DelayedPostfixIncrement(
+      ExpressionGeneratorHelper<dynamic, dynamic, dynamic> helper,
+      Token token,
+      Generator generator,
+      this.binaryOperator,
+      this.interfaceTarget)
+      : super(helper, token, generator);
+
+  String get debugName => "DelayedPostfixIncrement";
+
+  Expression buildSimpleRead() {
+    return generator.buildPostfixIncrement(binaryOperator,
+        offset: offsetForToken(token),
+        voidContext: false,
+        interfaceTarget: interfaceTarget);
+  }
+
+  Expression buildForEffect() {
+    return generator.buildPostfixIncrement(binaryOperator,
+        offset: offsetForToken(token),
+        voidContext: true,
+        interfaceTarget: interfaceTarget);
+  }
+
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", binaryOperator: ");
+    sink.write(binaryOperator.name);
+    sink.write(", interfaceTarget: ");
+    printQualifiedNameOn(interfaceTarget, sink);
+  }
+}

@@ -41,6 +41,8 @@ import 'kernel_expression_generator.dart'
 export 'kernel_expression_generator.dart'
     show
         DeferredAccessGenerator,
+        DelayedAssignment,
+        DelayedPostfixIncrement,
         ErroneousExpressionGenerator,
         IncompleteErrorGenerator,
         IncompletePropertyAccessGenerator,
