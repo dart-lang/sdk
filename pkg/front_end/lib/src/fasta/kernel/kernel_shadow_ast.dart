@@ -34,13 +34,15 @@ import '../../base/instrumentation.dart'
         InstrumentationValueForTypeArgs;
 
 import '../fasta_codes.dart'
-    show templateCantUseSuperBoundedTypeForInstanceCreation;
+    show noLength, templateCantUseSuperBoundedTypeForInstanceCreation;
 
 import '../problems.dart' show unhandled, unsupported;
 
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+
+import '../type_inference/inference_helper.dart' show InferenceHelper;
 
 import '../type_inference/interface_resolver.dart' show InterfaceResolver;
 
@@ -66,8 +68,6 @@ import '../type_inference/type_schema_environment.dart'
     show TypeSchemaEnvironment, getPositionalParameterType;
 
 import 'body_builder.dart' show combineStatements;
-
-import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
 
 import 'kernel_expression_generator.dart' show makeLet;
 
@@ -618,11 +618,11 @@ class ShadowConstructorInvocation extends ConstructorInvocation
     if (inferrer.strongMode &&
         !inferrer.isTopLevel &&
         inferrer.typeSchemaEnvironment.isSuperBounded(inferredType)) {
-      inferrer.helper.deprecated_addCompileTimeError(
-          fileOffset,
+      inferrer.helper.addProblem(
           templateCantUseSuperBoundedTypeForInstanceCreation
-              .withArguments(inferredType)
-              .message);
+              .withArguments(inferredType),
+          fileOffset,
+          noLength);
     }
 
     if (isRedirected(this)) {
@@ -2114,8 +2114,7 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
   }
 
   @override
-  void inferInitializer(
-      ExpressionGeneratorHelper helper, Initializer initializer) {
+  void inferInitializer(InferenceHelper helper, Initializer initializer) {
     assert(initializer is ShadowInitializer);
     this.helper = helper;
     // Use polymorphic dispatch on [KernelInitializer] to perform whatever

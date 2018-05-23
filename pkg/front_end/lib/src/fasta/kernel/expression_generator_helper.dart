@@ -14,6 +14,8 @@ import '../messages.dart' show Message;
 
 import '../scope.dart' show ProblemBuilder, Scope;
 
+import '../type_inference/inference_helper.dart' show InferenceHelper;
+
 import '../type_inference/type_promotion.dart' show TypePromoter;
 
 import 'constness.dart' show Constness;
@@ -43,7 +45,8 @@ import 'kernel_builder.dart'
         PrefixBuilder,
         TypeDeclarationBuilder;
 
-abstract class ExpressionGeneratorHelper<Expression, Statement, Arguments> {
+abstract class ExpressionGeneratorHelper<Expression, Statement, Arguments>
+    implements InferenceHelper<Expression, Statement, Arguments> {
   LibraryBuilder get library;
 
   Uri get uri;
