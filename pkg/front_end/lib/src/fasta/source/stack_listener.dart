@@ -111,7 +111,7 @@ abstract class StackListener extends Listener {
     if (tokenOrNull == null) stack.push(nullValue);
   }
 
-  Object peek() => stack.last;
+  Object peek() => stack.isNotEmpty ? stack.last : null;
 
   Object pop([NullValue nullValue]) {
     return stack.pop(nullValue);
