@@ -2292,32 +2292,6 @@ class Parser {
       return token;
     }
 
-    /// Returns true if [token] could be the start of a function body.
-    bool looksLikeFunctionBody(Token token) {
-      return optional('{', token) ||
-          optional('=>', token) ||
-          optional('async', token) ||
-          optional('sync', token);
-    }
-
-    /// Returns true if [token] could be the start of a function declaration
-    /// without a return type.
-    bool looksLikeFunctionDeclaration(Token token) {
-      if (!token.isIdentifier) {
-        return false;
-      }
-      token = token.next;
-      if (optional('<', token)) {
-        Token closeBrace = token.endGroup;
-        if (closeBrace == null) return false;
-        token = closeBrace.next;
-      }
-      if (optional('(', token)) {
-        return looksLikeFunctionBody(token.endGroup.next);
-      }
-      return false;
-    }
-
     switch (continuation) {
       case TypeContinuation.Required:
         // If the token after the type is not an identifier,
@@ -2355,41 +2329,6 @@ class Parser {
       case TypeContinuation.OptionalAfterVar:
         hasVar = true;
         continue optional;
-
-      case TypeContinuation.SendOrFunctionLiteral:
-        Token beforeName;
-        Token name;
-        bool hasReturnType;
-        if (looksLikeType && looksLikeFunctionDeclaration(token)) {
-          beforeName = beforeToken;
-          name = token;
-          hasReturnType = true;
-          // Fall-through to parseNamedFunctionRest below.
-        } else if (looksLikeFunctionDeclaration(begin)) {
-          beforeName = beforeBegin;
-          name = begin;
-          hasReturnType = false;
-          // Fall-through to parseNamedFunctionRest below.
-        } else {
-          return parseSend(beforeBegin, continuationContext);
-        }
-
-        Token formals = parseTypeVariablesOpt(name);
-        listener.beginNamedFunctionExpression(begin);
-        if (hasReturnType) {
-          if (voidToken != null) {
-            listener.handleVoidKeyword(voidToken);
-          } else {
-            commitType();
-          }
-          reportRecoverableError(
-              begin, fasta.messageReturnTypeFunctionExpression);
-        } else {
-          listener.handleNoType(formals);
-        }
-        if (beforeName.next != name)
-          throw new StateError("beforeName.next != name");
-        return parseNamedFunctionRest(beforeName, begin, formals, true);
     }
 
     throw "Internal error: Unhandled continuation '$continuation'.";
@@ -3483,6 +3422,16 @@ class Parser {
     token = parseAsyncOptBody(token, true, false);
     listener.endFunctionExpression(beginToken, token.next);
     return token;
+  }
+
+  Token parseFunctionLiteral(
+      final Token start, TypeInfo typeInfo, IdentifierContext context) {
+    Token beforeName = typeInfo.skipType(start);
+    assert(beforeName.next.isIdentifier);
+    Token formals = parseTypeVariablesOpt(beforeName.next);
+    listener.beginNamedFunctionExpression(start.next);
+    typeInfo.parseType(start, this);
+    return parseNamedFunctionRest(beforeName, start.next, formals, true);
   }
 
   /// Parses the rest of a named function declaration starting from its [name]
@@ -4596,9 +4545,12 @@ class Parser {
   Token parseSendOrFunctionLiteral(Token token, IdentifierContext context) {
     if (!mayParseFunctionExpressions) {
       return parseSend(token, context);
-    } else {
-      return parseType(token, TypeContinuation.SendOrFunctionLiteral, context);
     }
+    TypeInfo typeInfo = computeType(token, false);
+    if (!looksLikeFunctionDeclaration(typeInfo.skipType(token).next)) {
+      return parseSend(token, context);
+    }
+    return parseFunctionLiteral(token, typeInfo, context);
   }
 
   Token parseRequiredArguments(Token token) {
@@ -5006,6 +4958,32 @@ class Parser {
         // Recovery: Looks like a local function that is missing parenthesis.
         return true;
       }
+    }
+    return false;
+  }
+
+  /// Returns true if [token] could be the start of a function body.
+  bool looksLikeFunctionBody(Token token) {
+    return optional('{', token) ||
+        optional('=>', token) ||
+        optional('async', token) ||
+        optional('sync', token);
+  }
+
+  /// Returns true if [token] could be the start of a function declaration
+  /// without a return type.
+  bool looksLikeFunctionDeclaration(Token token) {
+    if (!token.isIdentifier) {
+      return false;
+    }
+    token = token.next;
+    if (optional('<', token)) {
+      Token closeBrace = token.endGroup;
+      if (closeBrace == null) return false;
+      token = closeBrace.next;
+    }
+    if (optional('(', token)) {
+      return looksLikeFunctionBody(token.endGroup.next);
     }
     return false;
   }

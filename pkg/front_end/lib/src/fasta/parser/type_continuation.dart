@@ -24,8 +24,4 @@ enum TypeContinuation {
 
   /// Same as [Optional], but we have seen `var`.
   OptionalAfterVar,
-
-  /// Indicates that the parser is parsing an expression and has just seen an
-  /// identifier.
-  SendOrFunctionLiteral,
 }
