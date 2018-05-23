@@ -5078,7 +5078,8 @@ class Parser {
         listener.beginMetadataStar(start.next);
         listener.endMetadataStar(0);
       }
-      Token beforeFormals = parseTypeVariablesOpt(next);
+      Token beforeFormals =
+          computeTypeParamOrArg(next).parseVariables(next, this);
       listener.beginLocalFunctionDeclaration(start.next);
       token = typeInfo.parseType(beforeType, this);
       next = token.next;
