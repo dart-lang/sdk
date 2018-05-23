@@ -4,7 +4,7 @@
 
 import 'dart:async';
 
-import 'package:front_end/src/api_prototype/file_system.dart';
+import 'package:front_end/src/api_unstable/build_integration.dart';
 
 /// Wraps a file system to create an overlay of files from multiple roots.
 ///
