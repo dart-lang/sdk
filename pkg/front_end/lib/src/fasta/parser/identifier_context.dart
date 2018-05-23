@@ -60,9 +60,8 @@ class IdentifierContext {
 
   /// Identifier is a formal parameter being declared as part of a function,
   /// method, or typedef declaration.
-  static const formalParameterDeclaration = const IdentifierContext(
-      'formalParameterDeclaration',
-      inDeclaration: true);
+  static const formalParameterDeclaration =
+      const FormalParameterDeclarationIdentifierContext();
 
   /// Identifier is the start of a library name (e.g. `foo` in the directive
   /// 'library foo;`).

@@ -1195,12 +1195,25 @@ class Parser {
       }
       token = parseFormalParameter(token, FormalParameterKind.mandatory, kind);
       next = token.next;
-      if (optional(',', next)) {
-        token = next;
-        continue;
+      if (!optional(',', next)) {
+        Token next = token.next;
+        if (optional(')', next)) {
+          token = next;
+        } else {
+          // Recovery
+          if (begin.endGroup.isSynthetic) {
+            // Scanner has already reported a missing `)` error,
+            // but placed the `)` in the wrong location, so move it.
+            token = rewriter.moveSynthetic(token, begin.endGroup);
+          } else {
+            reportRecoverableError(
+                next, fasta.templateExpectedButGot.withArguments(')'));
+            token = begin.endGroup;
+          }
+        }
+        break;
       }
-      token = ensureCloseParen(token, begin);
-      break;
+      token = next;
     }
     assert(optional(')', token));
     listener.endFormalParameters(parameterCount, begin, token, kind);
@@ -2013,8 +2026,6 @@ class Parser {
       followingValues = [';'];
     } else if (context == IdentifierContext.constructorReferenceContinuation) {
       followingValues = ['.', ',', '(', ')', '[', ']', '}', ';'];
-    } else if (context == IdentifierContext.formalParameterDeclaration) {
-      followingValues = [':', '=', ',', '(', ')', '[', ']', '{', '}'];
     } else if (context == IdentifierContext.labelDeclaration) {
       followingValues = [':'];
     } else if (context == IdentifierContext.literalSymbol ||
@@ -2041,8 +2052,6 @@ class Parser {
       return false;
     }
 
-    List<String> classMemberKeywords() =>
-        <String>['const', 'final', 'var', 'void'];
     List<String> statementKeywords() => <String>[
           'const',
           'do',
@@ -2054,19 +2063,6 @@ class Parser {
           'void',
           'while'
         ];
-    List<String> topLevelKeywords() => <String>[
-          'class',
-          'const',
-          'enum',
-          'export',
-          'final',
-          'import',
-          'library',
-          'part',
-          'typedef',
-          'var',
-          'void'
-        ];
 
     // TODO(brianwilkerson): At the moment, this test is entirely based on data
     // that can be represented declaratively. If that proves to be sufficient,
@@ -2074,12 +2070,7 @@ class Parser {
     // could create a method to test whether a given token matches one of the
     // patterns.
     List<String> initialKeywords;
-    if (context == IdentifierContext.formalParameterDeclaration) {
-      initialKeywords = topLevelKeywords()
-        ..addAll(classMemberKeywords())
-        ..addAll(statementKeywords())
-        ..add('covariant');
-    } else if (context == IdentifierContext.labelDeclaration) {
+    if (context == IdentifierContext.labelDeclaration) {
       initialKeywords = statementKeywords();
     } else if (context == IdentifierContext.localAccessorDeclaration) {
       initialKeywords = statementKeywords();

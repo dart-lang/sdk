@@ -4495,12 +4495,12 @@ class Wrong<T> {
     // being reported in code that cannot actually be reached), but that hasn't
     // been proven yet.
     createParser('(int a, int b ;',
-        expectedEndOffset: 0 /* ErrorToken at end of token stream */);
+        expectedEndOffset: 14 /* ErrorToken at end of token stream */);
     FormalParameterList list = parser.parseFormalParameterList();
     expectNotNullIfNoErrors(list);
     if (usingFastaParser) {
-      listener
-          .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 14, 1)]);
+      // Fasta scanner reports missing `)` error
+      listener.assertNoErrors();
     } else if (fe.Scanner.useFasta) {
       listener.errors
           .contains(expectedError(ParserErrorCode.EXPECTED_TOKEN, 14, 1));
