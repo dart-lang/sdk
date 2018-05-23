@@ -133,7 +133,7 @@ Future<api.CompilationResult> compile(List<String> argv,
   bool showHints;
   bool enableColors;
   Uri platformBinaries = computePlatformBinariesLocation();
-  Map<String, dynamic> environment = new Map<String, dynamic>();
+  Map<String, String> environment = new Map<String, String>();
 
   void passThrough(String argument) => options.add(argument);
   void ignoreOption(String argument) {}
@@ -787,7 +787,7 @@ bool enableWriteString = true;
 
 Future<api.CompilationResult> internalMain(List<String> arguments,
     {fe.InitializedCompilerState kernelInitializedCompilerState}) {
-  Future onError(exception, trace) {
+  Future<api.CompilationResult> onError(exception, trace) {
     // If we are already trying to exit, just continue exiting.
     if (exception == _EXIT_SIGNAL) throw exception;
 

@@ -29,7 +29,8 @@ class MemorySourceFileProvider extends SourceFileProvider {
   MemorySourceFileProvider(Map<String, dynamic> this.memorySourceFiles);
 
   @override
-  Future<Input> readBytesFromUri(Uri resourceUri, InputKind inputKind) {
+  Future<Input<List<int>>> readBytesFromUri(
+      Uri resourceUri, InputKind inputKind) {
     if (resourceUri.scheme != 'memory') {
       return super.readBytesFromUri(resourceUri, inputKind);
     }
@@ -41,7 +42,7 @@ class MemorySourceFileProvider extends SourceFileProvider {
       return new Future.error(new Exception(
           'No such memory file $resourceUri in ${memorySourceFiles.keys}'));
     }
-    Input input;
+    Input<List<int>> input;
     switch (inputKind) {
       case InputKind.UTF8:
         if (source is String) {

@@ -119,8 +119,8 @@ class CompilerImpl extends Compiler {
     return new Future.value();
   }
 
-  Future<Null> setupSdk() {
-    Future future = new Future.value(null);
+  Future setupSdk() {
+    var future = new Future.value(null);
     if (resolvedUriTranslator.isNotSet) {
       future = future.then((_) {
         return platform_configuration
