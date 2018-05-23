@@ -51,7 +51,7 @@ throwNullValueError() {
       null, new Symbol('<Unexpected Null Value>'), null, null, null);
 }
 
-castError(obj, expectedType, [bool typeError = undefined]) {
+castError(obj, expectedType, [@js_helper.notNull bool isImplicit = false]) {
   var actualType = getReifiedType(obj);
   var message = _castErrorMessage(actualType, expectedType);
   if (JS('!', 'dart.__ignoreAllErrors')) {
@@ -59,9 +59,8 @@ castError(obj, expectedType, [bool typeError = undefined]) {
     return obj;
   }
   if (JS('!', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
-  var error = JS<bool>('!', '#', typeError)
-      ? new TypeErrorImpl(message)
-      : new CastErrorImpl(message);
+  var error =
+      isImplicit ? new TypeErrorImpl(message) : new CastErrorImpl(message);
   throw error;
 }
 

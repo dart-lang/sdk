@@ -12,7 +12,10 @@ class B extends core::Object {
 }
 class C extends core::Object {
   field dynamic f;
+  field dynamic B;
   synthetic constructor •() → void
+    ;
+  operator >() → dynamic
     ;
 }
 static method main() → void

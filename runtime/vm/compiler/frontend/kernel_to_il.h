@@ -580,6 +580,7 @@ class BaseFlowGraphBuilder {
   Fragment Drop();
   // Drop given number of temps from the stack but preserve top of the stack.
   Fragment DropTempsPreserveTop(intptr_t num_temps_to_drop);
+  Fragment MakeTemp();
 
   // Create a pseudo-local variable for a location on the expression stack.
   // Note: SSA construction currently does not support inserting Phi functions

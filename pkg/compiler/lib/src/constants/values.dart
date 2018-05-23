@@ -205,55 +205,38 @@ abstract class NumConstantValue extends PrimitiveConstantValue {
 }
 
 class IntConstantValue extends NumConstantValue {
-  final int intValue;
+  final BigInt intValue;
+
+  // Caching IntConstantValues representing -2 through 10 so that we don't have
+  // to create new ones every time those values are used.
+  static Map<BigInt, IntConstantValue> _cachedValues = {};
+
   double get doubleValue => intValue.toDouble();
 
-  factory IntConstantValue(int value) {
-    switch (value) {
-      case 0:
-        return const IntConstantValue._internal(0);
-      case 1:
-        return const IntConstantValue._internal(1);
-      case 2:
-        return const IntConstantValue._internal(2);
-      case 3:
-        return const IntConstantValue._internal(3);
-      case 4:
-        return const IntConstantValue._internal(4);
-      case 5:
-        return const IntConstantValue._internal(5);
-      case 6:
-        return const IntConstantValue._internal(6);
-      case 7:
-        return const IntConstantValue._internal(7);
-      case 8:
-        return const IntConstantValue._internal(8);
-      case 9:
-        return const IntConstantValue._internal(9);
-      case 10:
-        return const IntConstantValue._internal(10);
-      case -1:
-        return const IntConstantValue._internal(-1);
-      case -2:
-        return const IntConstantValue._internal(-2);
-      default:
-        return new IntConstantValue._internal(value);
+  factory IntConstantValue(BigInt value) {
+    var existing = _cachedValues[value];
+    if (existing != null) return existing;
+    var intConstantVal = new IntConstantValue._internal(value);
+    var intValue = value.toInt();
+    if (intValue <= -2 && intValue >= 10) {
+      _cachedValues[value] = intConstantVal;
     }
+    return intConstantVal;
   }
 
   const IntConstantValue._internal(this.intValue);
 
   bool get isInt => true;
 
-  bool isUInt31() => intValue >= 0 && intValue < (1 << 31);
+  bool isUInt31() => intValue.toUnsigned(31) == intValue;
 
-  bool isUInt32() => intValue >= 0 && intValue < (1 << 32);
+  bool isUInt32() => intValue.toUnsigned(32) == intValue;
 
-  bool isPositive() => intValue >= 0;
+  bool isPositive() => intValue >= BigInt.zero;
 
-  bool get isZero => intValue == 0;
+  bool get isZero => intValue == BigInt.zero;
 
-  bool get isOne => intValue == 1;
+  bool get isOne => intValue == BigInt.one;
 
   DartType getType(CommonElements types) => types.intType;
 
@@ -264,7 +247,7 @@ class IntConstantValue extends NumConstantValue {
     return intValue == otherInt.intValue;
   }
 
-  int get hashCode => intValue & Hashing.SMI_MASK;
+  int get hashCode => intValue.hashCode & Hashing.SMI_MASK;
 
   accept(ConstantValueVisitor visitor, arg) => visitor.visitInt(this, arg);
 

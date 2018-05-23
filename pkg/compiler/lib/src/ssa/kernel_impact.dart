@@ -235,8 +235,8 @@ class KernelImpactBuilder extends ir.Visitor {
 
   @override
   void visitIntLiteral(ir.IntLiteral literal) {
-    impactBuilder
-        .registerConstantLiteral(new IntConstantExpression(literal.value));
+    impactBuilder.registerConstantLiteral(
+        new IntConstantExpression(new BigInt.from(literal.value)));
   }
 
   @override

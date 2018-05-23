@@ -23,6 +23,7 @@ import 'dart:_js_helper'
         PrivateSymbol,
         ReifyFunctionTypes,
         NoReifyGeneric;
+import 'dart:_js_helper' as js_helper show notNull;
 import 'dart:_debugger' show trackCall;
 
 export 'dart:_debugger'

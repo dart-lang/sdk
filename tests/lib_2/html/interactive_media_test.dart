@@ -6,14 +6,31 @@ library interactive_test;
 
 import 'dart:async';
 import 'dart:html';
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
-import 'utils.dart';
 
-main() {
-  useHtmlIndividualConfiguration();
+import 'package:unittest/unittest.dart';
+import 'package:unittest/html_config.dart';
+import 'package:async_helper/async_helper.dart';
+
+// NOTE: To test enable chrome://flags/#enable-experimental-web-platform-features
+
+main() async {
+  useHtmlConfiguration();
 
   if (MediaStream.supported) {
+    test('getUserMedia audio', () async {
+      var mediaStream = await window.navigator.getUserMedia(audio: true);
+      expect(mediaStream, isNotNull);
+      expect(mediaStream is MediaStream, true);
+      var devices = window.navigator.mediaDevices;
+      var enumDevices = await devices.enumerateDevices();
+      expect(enumDevices.length > 1, true);
+      for (var device in enumDevices) {
+        var goodDevLabel = device.label.endsWith('Built-in Output') ||
+            device.label.endsWith('Built-in Microphone');
+        expect(goodDevLabel, true);
+      }
+    });
+
     test('getUserMedia', () {
       return window.navigator.getUserMedia(video: true).then((stream) {
         expect(stream, isNotNull);

@@ -12,7 +12,6 @@ import 'package:analysis_server/src/services/refactoring/naming_conventions.dart
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/rename.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -29,9 +28,9 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
   List<LocalElement> elements = [];
 
   RenameLocalRefactoringImpl(
-      SearchEngine searchEngine, this.astProvider, LocalElement element)
+      RefactoringWorkspace workspace, this.astProvider, LocalElement element)
       : unitCache = new ResolvedUnitCache(astProvider),
-        super(searchEngine, element);
+        super(workspace, element);
 
   @override
   LocalElement get element => super.element as LocalElement;

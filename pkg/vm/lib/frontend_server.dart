@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:io' hide FileSystemEntity;
 
 import 'package:args/args.dart';
+import 'package:build_integration/file_system/multi_root.dart';
 // front_end/src imports below that require lint `ignore_for_file`
 // are a temporary state of things until frontend team builds better api
 // that would replace api used below. This api was made private in
@@ -18,10 +19,7 @@ import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/file_system.dart'
     show FileSystemEntity;
 import 'package:front_end/src/api_prototype/front_end.dart';
-// Use of multi_root_file_system.dart directly from front_end package is a
-// temporarily solution while we are looking for better home for that
-// functionality.
-import 'package:front_end/src/multi_root_file_system.dart';
+import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/binary/limited_ast_to_binary.dart';
@@ -123,7 +121,16 @@ Options:
 ${argParser.usage}
 ''';
 
-enum _State { READY_FOR_INSTRUCTION, RECOMPILE_LIST }
+enum _State {
+  READY_FOR_INSTRUCTION,
+  RECOMPILE_LIST,
+  COMPILE_EXPRESSION_EXPRESSION,
+  COMPILE_EXPRESSION_DEFS,
+  COMPILE_EXPRESSION_TYPEDEFS,
+  COMPILE_EXPRESSION_LIBRARY_URI,
+  COMPILE_EXPRESSION_KLASS,
+  COMPILE_EXPRESSION_IS_STATIC
+}
 
 /// Actions that every compiler should implement.
 abstract class CompilerInterface {
@@ -152,6 +159,26 @@ abstract class CompilerInterface {
   /// Resets incremental compiler accept/reject status so that next time
   /// recompile is requested, complete kernel file is produced.
   void resetIncrementalCompiler();
+
+  /// Compiles [expression] with free variables listed in [definitions],
+  /// free type variables listed in [typedDefinitions]. "Free" means their
+  /// values are through evaluation API call, rather than coming from running
+  /// application.
+  /// If [klass] is not [null], expression is compiled in context of [klass]
+  /// class.
+  /// If [klass] is [null],expression is compiled at top-level of
+  /// [libraryUrl] library. If [klass] is not [null], [isStatic] determines
+  /// whether expression can refer to [this] or not.
+  Future<Null> compileExpression(
+      String expression,
+      List<String> definitions,
+      List<String> typeDefinitions,
+      String libraryUri,
+      String klass,
+      bool isStatic);
+
+  /// Communicates an error [msg] to the client.
+  void reportError(String msg);
 }
 
 abstract class ProgramTransformer {
@@ -207,7 +234,7 @@ class FrontendCompiler implements CompilerInterface {
     _kernelBinaryFilenameFull = _options['output-dill'] ?? '$filename.dill';
     _kernelBinaryFilenameIncremental = _options['output-incremental-dill'] ??
         (_options['output-dill'] != null
-            ? '${_options["output-dill"]}.incremental.dill'
+            ? '${_options['output-dill']}.incremental.dill'
             : '$filename.incremental.dill');
     _kernelBinaryFilename = _kernelBinaryFilenameFull;
     _initializeFromDill =
@@ -240,7 +267,7 @@ class FrontendCompiler implements CompilerInterface {
             break;
           case Severity.errorLegacyWarning:
           case Severity.context:
-            throw "Unexpected severity: $severity";
+            throw 'Unexpected severity: $severity';
         }
         if (printMessage) {
           _outputStream.writeln(message.formatted);
@@ -258,9 +285,9 @@ class FrontendCompiler implements CompilerInterface {
           options['filesystem-scheme'], rootUris, compilerOptions.fileSystem);
 
       if (_options['output-dill'] == null) {
-        print("When --filesystem-root is specified it is required to specify"
-            " --output-dill option that points to physical file system location"
-            " of a target dill file.");
+        print('When --filesystem-root is specified it is required to specify'
+            ' --output-dill option that points to physical file system location'
+            ' of a target dill file.');
         return false;
       }
     }
@@ -396,7 +423,37 @@ class FrontendCompiler implements CompilerInterface {
     _outputStream
         .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
     _kernelBinaryFilename = _kernelBinaryFilenameIncremental;
-    return null;
+  }
+
+  @override
+  Future<Null> compileExpression(
+      String expression,
+      List<String> definitions,
+      List<String> typeDefinitions,
+      String libraryUri,
+      String klass,
+      bool isStatic) async {
+    final String boundaryKey = new Uuid().generateV4();
+    _outputStream.writeln('result $boundaryKey');
+    Procedure procedure = await _generator.compileExpression(
+        expression, definitions, typeDefinitions, libraryUri, klass, isStatic);
+    if (procedure != null) {
+      final IOSink sink = new File(_kernelBinaryFilename).openWrite();
+      sink.add(serializeProcedure(procedure));
+      await sink.close();
+      _outputStream.writeln('$boundaryKey $_kernelBinaryFilename');
+      _kernelBinaryFilename = _kernelBinaryFilenameIncremental;
+    } else {
+      _outputStream.writeln(boundaryKey);
+    }
+  }
+
+  @override
+  void reportError(String msg) {
+    final String boundaryKey = new Uuid().generateV4();
+    _outputStream.writeln('result $boundaryKey');
+    _outputStream.writeln(msg);
+    _outputStream.writeln(boundaryKey);
   }
 
   @override
@@ -472,12 +529,24 @@ void _writeDepfile(Component component, String output, String depfile) async {
   await file.close();
 }
 
+class _CompileExpressionRequest {
+  String expression;
+  // Note that FE will reject a compileExpression command by returning a null
+  // procedure when defs or typeDefs include an illegal identifier.
+  List<String> defs = <String>[];
+  List<String> typeDefs = <String>[];
+  String library;
+  String klass;
+  bool isStatic;
+}
+
 /// Listens for the compilation commands on [input] stream.
 /// This supports "interactive" recompilation mode of execution.
 void listenAndCompile(CompilerInterface compiler, Stream<List<int>> input,
     ArgResults options, void quit(),
     {IncrementalCompiler generator}) {
   _State state = _State.READY_FOR_INSTRUCTION;
+  _CompileExpressionRequest compileExpressionRequest;
   String boundaryKey;
   String recompileFilename;
   input
@@ -488,6 +557,8 @@ void listenAndCompile(CompilerInterface compiler, Stream<List<int>> input,
       case _State.READY_FOR_INSTRUCTION:
         const String COMPILE_INSTRUCTION_SPACE = 'compile ';
         const String RECOMPILE_INSTRUCTION_SPACE = 'recompile ';
+        const String COMPILE_EXPRESSION_INSTRUCTION_SPACE =
+            'compile-expression ';
         if (string.startsWith(COMPILE_INSTRUCTION_SPACE)) {
           final String filename =
               string.substring(COMPILE_INSTRUCTION_SPACE.length);
@@ -505,6 +576,22 @@ void listenAndCompile(CompilerInterface compiler, Stream<List<int>> input,
             boundaryKey = remainder;
           }
           state = _State.RECOMPILE_LIST;
+        } else if (string.startsWith(COMPILE_EXPRESSION_INSTRUCTION_SPACE)) {
+          // 'compile-expression <boundarykey>
+          // expression
+          // definitions (one per line)
+          // ...
+          // <boundarykey>
+          // type-defintions (one per line)
+          // ...
+          // <boundarykey>
+          // <libraryUri: String>
+          // <klass: String>
+          // <isStatic: true|false>
+          compileExpressionRequest = new _CompileExpressionRequest();
+          boundaryKey =
+              string.substring(COMPILE_EXPRESSION_INSTRUCTION_SPACE.length);
+          state = _State.COMPILE_EXPRESSION_EXPRESSION;
         } else if (string == 'accept') {
           compiler.acceptLastDelta();
         } else if (string == 'reset') {
@@ -519,6 +606,48 @@ void listenAndCompile(CompilerInterface compiler, Stream<List<int>> input,
           state = _State.READY_FOR_INSTRUCTION;
         } else
           compiler.invalidate(Uri.base.resolve(string));
+        break;
+      case _State.COMPILE_EXPRESSION_EXPRESSION:
+        compileExpressionRequest.expression = string;
+        state = _State.COMPILE_EXPRESSION_DEFS;
+        break;
+      case _State.COMPILE_EXPRESSION_DEFS:
+        if (string == boundaryKey) {
+          state = _State.COMPILE_EXPRESSION_TYPEDEFS;
+        } else {
+          compileExpressionRequest.defs.add(string);
+        }
+        break;
+      case _State.COMPILE_EXPRESSION_TYPEDEFS:
+        if (string == boundaryKey) {
+          state = _State.COMPILE_EXPRESSION_LIBRARY_URI;
+        } else {
+          compileExpressionRequest.typeDefs.add(string);
+        }
+        break;
+      case _State.COMPILE_EXPRESSION_LIBRARY_URI:
+        compileExpressionRequest.library = string;
+        state = _State.COMPILE_EXPRESSION_KLASS;
+        break;
+      case _State.COMPILE_EXPRESSION_KLASS:
+        compileExpressionRequest.klass = string.isEmpty ? null : string;
+        state = _State.COMPILE_EXPRESSION_IS_STATIC;
+        break;
+      case _State.COMPILE_EXPRESSION_IS_STATIC:
+        if (string == 'true' || string == 'false') {
+          compileExpressionRequest.isStatic = string == 'true';
+          compiler.compileExpression(
+              compileExpressionRequest.expression,
+              compileExpressionRequest.defs,
+              compileExpressionRequest.typeDefs,
+              compileExpressionRequest.library,
+              compileExpressionRequest.klass,
+              compileExpressionRequest.isStatic);
+        } else {
+          compiler
+              .reportError('Got $string. Expected either "true" or "false"');
+        }
+        state = _State.READY_FOR_INSTRUCTION;
         break;
     }
   });

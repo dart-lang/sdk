@@ -235,7 +235,7 @@ class BoolConstantExpression extends ConstantExpression {
 
 /// Integer literal constant.
 class IntConstantExpression extends ConstantExpression {
-  final int intValue;
+  final BigInt intValue;
 
   IntConstantExpression(this.intValue);
 
@@ -1533,7 +1533,8 @@ class StringLengthConstantExpression extends ConstantExpression {
       return new NonConstantValue();
     } else {
       StringConstantValue stringValue = value;
-      return constantSystem.createInt(stringValue.stringValue.length);
+      return constantSystem
+          .createInt(new BigInt.from(stringValue.stringValue.length));
     }
   }
 
@@ -1907,9 +1908,9 @@ class IntFromEnvironmentConstantExpression
       StringConstantValue nameStringConstantValue = nameConstantValue;
       String text =
           environment.readFromEnvironment(nameStringConstantValue.stringValue);
-      int value;
+      BigInt value;
       if (text != null) {
-        value = int.parse(text, onError: (_) => null);
+        value = BigInt.tryParse(text);
       }
       if (value == null) {
         return defaultConstantValue;

@@ -7,8 +7,7 @@ library ssa;
 import '../common/codegen.dart' show CodegenWorkItem, CodegenRegistry;
 import '../common/tasks.dart' show CompilerTask, Measurer;
 import '../constants/values.dart';
-import '../elements/entities.dart'
-    show FieldEntity, FunctionEntity, MemberEntity;
+import '../elements/entities.dart' show FieldEntity, MemberEntity;
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend.dart' show JavaScriptBackend, FunctionCompiler;
@@ -45,7 +44,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
     optimizer.optimize(work, graph, closedWorld);
     MemberEntity element = work.element;
     js.Expression result = generator.generateCode(work, graph, closedWorld);
-    if (element is FunctionEntity && !graph.isGeneratorEntry) {
+    if (graph.needsAsyncRewrite) {
       SourceInformationBuilder sourceInformationBuilder =
           backend.sourceInformationStrategy.createBuilderForContext(element);
       result = backend.rewriteAsync(
@@ -54,6 +53,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
           work.registry,
           element,
           result,
+          graph.asyncElementType,
           sourceInformationBuilder.buildAsyncBody(),
           sourceInformationBuilder.buildAsyncExit());
     }

@@ -425,8 +425,7 @@ final _ignoreTypeFailure = JS('', '''(() => {
 
     if (!!$isSubtype(type, $Iterable) && !!$isSubtype(actual, $Iterable) ||
         !!$isSubtype(type, $Future) && !!$isSubtype(actual, $Future) ||
-        !!$isSubtype(type, $Map) && !!$isSubtype(actual, $Map) ||
-        !!$isSubtype(type, $Stream) && !!$isSubtype(actual, $Stream)) {
+        !!$isSubtype(type, $Map) && !!$isSubtype(actual, $Map)) {
       console.warn('Ignoring cast fail from ' + $typeName(actual) +
                    ' to ' + $typeName(type));
       return true;
@@ -444,7 +443,7 @@ bool instanceOf(obj, type) {
 }
 
 @JSExportName('as')
-cast(obj, type, bool isExplicit) {
+cast(obj, type, @js_helper.notNull bool isImplicit) {
   if (obj == null) return obj;
   var actual = getReifiedType(obj);
   var result = isSubtype(actual, type);
@@ -454,13 +453,13 @@ cast(obj, type, bool isExplicit) {
       'dart.__ignoreWhitelistedErrors && #(#, #)',
       result,
       result,
-      isExplicit,
+      isImplicit,
       _ignoreTypeFailure,
       actual,
       type)) {
     return obj;
   }
-  return castError(obj, type, isExplicit);
+  return castError(obj, type, isImplicit);
 }
 
 bool test(bool obj) {

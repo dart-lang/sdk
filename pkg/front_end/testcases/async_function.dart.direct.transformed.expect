@@ -5,7 +5,7 @@ import "dart:core" as core;
 
 static field core::List<core::String> stringList = <dynamic>["bar"];
 static method asyncString() → asy::Future<core::String> /* originally async */ {
-  final asy::Completer<core::String> :completer = asy::Completer::sync<core::String>();
+  final asy::Completer<core::String> :async_completer = asy::Completer::sync<core::String>();
   asy::FutureOr<core::String> :return_value;
   dynamic :async_stack_trace;
   dynamic :async_op_then;
@@ -19,20 +19,20 @@ static method asyncString() → asy::Future<core::String> /* originally async */
         :return_value = "foo";
         break #L1;
       }
-      :completer.{asy::Completer::complete}(:return_value);
+      :async_completer.{asy::Completer::complete}(:return_value);
       return;
     }
     on dynamic catch(dynamic :exception, dynamic :stack_trace) {
-      :completer.{asy::Completer::completeError}(:exception, :stack_trace);
+      :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
     }
   :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
   :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
   asy::Future::microtask<dynamic>(:async_op);
-  return :completer.{asy::Completer::future};
+  return :async_completer.{asy::Completer::future};
 }
 static method asyncString2() → asy::Future<core::String> /* originally async */ {
-  final asy::Completer<core::String> :completer = asy::Completer::sync<core::String>();
+  final asy::Completer<core::String> :async_completer = asy::Completer::sync<core::String>();
   asy::FutureOr<core::String> :return_value;
   dynamic :async_stack_trace;
   dynamic :async_op_then;
@@ -46,17 +46,17 @@ static method asyncString2() → asy::Future<core::String> /* originally async *
         :return_value = self::asyncString();
         break #L2;
       }
-      :completer.{asy::Completer::complete}(:return_value);
+      :async_completer.{asy::Completer::complete}(:return_value);
       return;
     }
     on dynamic catch(dynamic :exception, dynamic :stack_trace) {
-      :completer.{asy::Completer::completeError}(:exception, :stack_trace);
+      :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
     }
   :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
   :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
   asy::Future::microtask<dynamic>(:async_op);
-  return :completer.{asy::Completer::future};
+  return :async_completer.{asy::Completer::future};
 }
 static method syncStarString() → core::Iterable<core::String> /* originally sync* */ {
   dynamic :await_jump_var = 0;
@@ -170,7 +170,7 @@ static method asyncStarString2() → asy::Stream<core::String> /* originally asy
   return :controller.{asy::_AsyncStarStreamController::stream};
 }
 static method main() → dynamic /* originally async */ {
-  final asy::Completer<dynamic> :completer = asy::Completer::sync<dynamic>();
+  final asy::Completer<dynamic> :async_completer = asy::Completer::sync<dynamic>();
   asy::FutureOr<dynamic> :return_value;
   dynamic :async_stack_trace;
   dynamic :async_op_then;
@@ -185,15 +185,15 @@ static method main() → dynamic /* originally async */ {
         [yield] let dynamic #t2 = asy::_awaitHelper(self::asyncString(), :async_op_then, :async_op_error, :async_op) in null;
         core::String str = :result;
       }
-      :completer.{asy::Completer::complete}(:return_value);
+      :async_completer.{asy::Completer::complete}(:return_value);
       return;
     }
     on dynamic catch(dynamic :exception, dynamic :stack_trace) {
-      :completer.{asy::Completer::completeError}(:exception, :stack_trace);
+      :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
     }
   :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
   :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
   :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
   asy::Future::microtask<dynamic>(:async_op);
-  return :completer.{asy::Completer::future};
+  return :async_completer.{asy::Completer::future};
 }

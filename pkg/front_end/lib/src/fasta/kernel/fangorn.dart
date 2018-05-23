@@ -9,6 +9,7 @@ import 'dart:core' hide MapEntry;
 import 'package:kernel/ast.dart'
     show
         Arguments,
+        AssertInitializer,
         BreakStatement,
         Block,
         Catch,
@@ -30,7 +31,7 @@ import 'package:kernel/ast.dart'
         VariableDeclaration,
         setParents;
 
-import '../parser.dart' show offsetForToken;
+import '../parser.dart' show offsetForToken, optional;
 
 import '../problems.dart' show unsupported;
 
@@ -40,9 +41,12 @@ import 'kernel_shadow_ast.dart'
     show
         ShadowArguments,
         ShadowAsExpression,
+        ShadowAssertInitializer,
+        ShadowAssertStatement,
         ShadowAwaitExpression,
         ShadowBlock,
         ShadowBoolLiteral,
+        ShadowBreakStatement,
         ShadowCheckLibraryIsLoaded,
         ShadowConditionalExpression,
         ShadowDoStatement,
@@ -222,6 +226,59 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
+  AssertInitializer assertInitializer(
+      Token assertKeyword,
+      Token leftParenthesis,
+      Expression condition,
+      Token comma,
+      Expression message) {
+    return new ShadowAssertInitializer(assertStatement(
+        assertKeyword, leftParenthesis, condition, comma, message, null));
+  }
+
+  @override
+  Statement assertStatement(Token assertKeyword, Token leftParenthesis,
+      Expression condition, Token comma, Expression message, Token semicolon) {
+    // Compute start and end offsets for the condition expression.
+    // This code is a temporary workaround because expressions don't carry
+    // their start and end offsets currently.
+    //
+    // The token that follows leftParenthesis is considered to be the
+    // first token of the condition.
+    // TODO(ahe): this really should be condition.fileOffset.
+    int startOffset = leftParenthesis.next.offset;
+    int endOffset;
+    {
+      // Search forward from leftParenthesis to find the last token of
+      // the condition - which is a token immediately followed by a commaToken,
+      // right parenthesis or a trailing comma.
+      Token conditionBoundary = comma ?? leftParenthesis.endGroup;
+      Token conditionLastToken = leftParenthesis;
+      while (!conditionLastToken.isEof) {
+        Token nextToken = conditionLastToken.next;
+        if (nextToken == conditionBoundary) {
+          break;
+        } else if (optional(',', nextToken) &&
+            nextToken.next == conditionBoundary) {
+          // The next token is trailing comma, which means current token is
+          // the last token of the condition.
+          break;
+        }
+        conditionLastToken = nextToken;
+      }
+      if (conditionLastToken.isEof) {
+        endOffset = startOffset = -1;
+      } else {
+        endOffset = conditionLastToken.offset + conditionLastToken.length;
+      }
+    }
+    return new ShadowAssertStatement(condition,
+        conditionStartOffset: startOffset,
+        conditionEndOffset: endOffset,
+        message: message);
+  }
+
+  @override
   Expression awaitExpression(Expression operand, Token token) {
     return new ShadowAwaitExpression(operand)
       ..fileOffset = offsetForToken(token);
@@ -245,11 +302,23 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
+  Statement breakStatement(Token breakKeyword, Object label, Token semicolon) {
+    return new ShadowBreakStatement(null)..fileOffset = breakKeyword.charOffset;
+  }
+
+  @override
   Expression conditionalExpression(Expression condition, Token question,
       Expression thenExpression, Token colon, Expression elseExpression) {
     return new ShadowConditionalExpression(
         condition, thenExpression, elseExpression)
       ..fileOffset = offsetForToken(question);
+  }
+
+  @override
+  Statement continueStatement(
+      Token continueKeyword, Object label, Token semicolon) {
+    return new ShadowBreakStatement(null)
+      ..fileOffset = continueKeyword.charOffset;
   }
 
   @override
@@ -291,7 +360,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
-  Object parenthesizedCondition(
+  Expression parenthesizedCondition(
       Token leftParenthesis, Expression expression, Token rightParenthesis) {
     return expression;
   }

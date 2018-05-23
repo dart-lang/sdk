@@ -63,6 +63,7 @@ analysis_server/test/integration: SkipByDesign # Analysis server integration tes
 analyzer_cli/test/*: SkipByDesign # Only meant to run on vm
 analyzer_plugin/test/*: SkipByDesign # Only meant to run on vm
 analyzer_plugin/tool/*: SkipByDesign # Only meant to run on vm
+build_integration/test/*: SkipByDesign # Only meant to run on vm, most use dart:mirrors and dart:io
 collection/test/equality_test/01: Fail # Issue 1533
 collection/test/equality_test/02: Fail # Issue 1533
 collection/test/equality_test/03: Fail # Issue 1533

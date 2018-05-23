@@ -9,6 +9,8 @@ import 'package:kernel/ast.dart' as kernel show Arguments, DartType;
 
 import 'body_builder.dart' show Identifier;
 
+export 'body_builder.dart' show Identifier, Operator;
+
 /// A tree factory.
 ///
 /// For now, the [Location] is always a token.
@@ -133,12 +135,30 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   Expression asExpression(
       Expression expression, covariant type, Location location);
 
+  /// Return a representation of an assert that appears in a constructor's
+  /// initializer list.
+  Object assertInitializer(Location assertKeyword, Location leftParenthesis,
+      Expression condition, Location comma, Expression message);
+
+  /// Return a representation of an assert that appears as a statement.
+  Statement assertStatement(
+      Location assertKeyword,
+      Location leftParenthesis,
+      Expression condition,
+      Location comma,
+      Expression message,
+      Location semicolon);
+
   Expression awaitExpression(Expression operand, Location location);
 
   /// Return a representation of a block of [statements] enclosed between the
   /// [openBracket] and [closeBracket].
   Statement block(
       Location openBrace, List<Statement> statements, Location closeBrace);
+
+  /// Return a representation of a break statement.
+  Statement breakStatement(
+      Location breakKeyword, Identifier label, Location semicolon);
 
   /// Return a representation of a conditional expression. The [condition] is
   /// the expression preceding the question mark. The [question] is the `?`. The
@@ -147,6 +167,10 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   /// colon.
   Expression conditionalExpression(Expression condition, Location question,
       Expression thenExpression, Location colon, Expression elseExpression);
+
+  /// Return a representation of a continue statement.
+  Statement continueStatement(
+      Location continueKeyword, Identifier label, Location semicolon);
 
   /// Return a representation of a do statement.
   Statement doStatement(

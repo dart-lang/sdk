@@ -31,7 +31,7 @@ declare -a EXTRA_VM_OPTIONS
 
 case $0 in
   *_developer)
-    EXTRA_VM_OPTIONS+=('--checked')
+    EXTRA_VM_OPTIONS+=('--enable-asserts')
     ;;
 esac
 
@@ -47,4 +47,4 @@ ANALYZER="$DART_ROOT/pkg/analyzer_cli/bin/analyzer.dart"
 
 DEV_OPTIONS="--use-analysis-driver-memory-byte-store"
 
-exec "$DART" "--packages=$DART_ROOT/.packages" "${EXTRA_VM_OPTIONS[@]}" "$ANALYZER" "$DEV_OPTIONS" "$SDK_ARG" "$@"
+exec "$DART" "--preview-dart-2" "--packages=$DART_ROOT/.packages" "${EXTRA_VM_OPTIONS[@]}" "$ANALYZER" "$DEV_OPTIONS" "$SDK_ARG" "$@"

@@ -315,7 +315,7 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
     }
   }
 
-  static Element _createCollectionLine() => new DivElement()
+  static HtmlElement _createCollectionLine() => new DivElement()
     ..classes = ['collection-item']
     ..children = [
       new SpanElement()

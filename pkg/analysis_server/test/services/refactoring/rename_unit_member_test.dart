@@ -69,7 +69,7 @@ class B extends A {
     await indexTestUnit('''
 class Test {}
 ''');
-    await indexUnit(convertPath('/lib.dart'), '''
+    await indexUnit(convertPath('/project/lib.dart'), '''
 library my.lib;
 import 'test.dart';
 
@@ -109,7 +109,7 @@ class A {
     await indexTestUnit('''
 class Test {}
 ''');
-    await indexUnit(convertPath('/lib.dart'), '''
+    await indexUnit(convertPath('/project/lib.dart'), '''
 library my.lib;
 import 'test.dart';
 class A {
@@ -214,44 +214,6 @@ class B {
     assertRefactoringStatusOK(status);
   }
 
-  test_checkInitialConditions_inPubCache_posix() async {
-    addSource('/.pub-cache/lib.dart', r'''
-class A {}
-''');
-    await indexTestUnit('''
-import "${convertPathForImport('/.pub-cache/lib.dart')}";
-main() {
-  A a;
-}
-''');
-    createRenameRefactoringAtString('A a');
-    // check status
-    refactoring.newName = 'NewName';
-    RefactoringStatus status = await refactoring.checkInitialConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
-        expectedMessage:
-            "The class 'A' is defined in a pub package, so cannot be renamed.");
-  }
-
-  test_checkInitialConditions_inPubCache_windows() async {
-    addSource('/Pub/Cache/lib.dart', r'''
-class A {}
-''');
-    await indexTestUnit('''
-import "${convertPathForImport('/Pub/Cache/lib.dart')}";
-main() {
-  A a;
-}
-''');
-    createRenameRefactoringAtString('A a');
-    // check status
-    refactoring.newName = 'NewName';
-    RefactoringStatus status = await refactoring.checkInitialConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
-        expectedMessage:
-            "The class 'A' is defined in a pub package, so cannot be renamed.");
-  }
-
   test_checkInitialConditions_inSDK() async {
     await indexTestUnit('''
 main() {
@@ -265,6 +227,25 @@ main() {
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
         expectedMessage:
             "The class 'String' is defined in the SDK, so cannot be renamed.");
+  }
+
+  test_checkInitialConditions_outsideOfProject() async {
+    addSource('/other/lib.dart', r'''
+class A {}
+''');
+    await indexTestUnit('''
+import "${convertPathForImport('/other/lib.dart')}";
+main() {
+  A a;
+}
+''');
+    createRenameRefactoringAtString('A a');
+    // check status
+    refactoring.newName = 'NewName';
+    RefactoringStatus status = await refactoring.checkInitialConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
+        expectedMessage:
+            "The class 'A' is defined outside of the project, so cannot be renamed.");
   }
 
   test_checkNewName_ClassElement() async {
@@ -483,7 +464,7 @@ main() {
   }
 
   test_createChange_FunctionElement_imported() async {
-    await indexUnit('/foo.dart', r'''
+    await indexUnit('/project/foo.dart', r'''
 test() {}
 foo() {}
 ''');
@@ -510,7 +491,7 @@ main() {
   foo();
 }
 ''');
-    assertFileChangeResult('/foo.dart', '''
+    assertFileChangeResult('/project/foo.dart', '''
 newName() {}
 foo() {}
 ''');

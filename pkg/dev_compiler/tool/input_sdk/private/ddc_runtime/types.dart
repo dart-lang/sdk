@@ -427,7 +427,7 @@ class FunctionType extends AbstractFunctionType {
         }))()''');
 
   @JSExportName('as')
-  as_T(obj, [bool typeError]) {
+  as_T(obj, [@js_helper.notNull bool isImplicit = false]) {
     if (obj == null) return obj;
     if (JS('bool', 'typeof # == "function"', obj)) {
       var actual = JS('', '#[#]', obj, _runtimeType);
@@ -436,12 +436,14 @@ class FunctionType extends AbstractFunctionType {
       if (actual == null) return obj;
       var result = isSubtype(actual, this);
       if (result == true) return obj;
-      if (result == null && JS('bool', 'dart.__ignoreWhitelistedErrors')) {
+      if (result == null &&
+          isImplicit &&
+          JS<bool>('!', 'dart.__ignoreWhitelistedErrors')) {
         _logIgnoredCast(actual, this);
         return obj;
       }
     }
-    return castError(obj, this, typeError);
+    return castError(obj, this, isImplicit);
   }
 
   @JSExportName('_check')

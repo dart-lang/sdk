@@ -11,18 +11,18 @@ import '../common_elements.dart' show CommonElements;
 import '../elements/types.dart';
 import '../elements/entities.dart';
 
-const JAVA_SCRIPT_CONSTANT_SYSTEM = const JavaScriptConstantSystem();
-
 class JavaScriptBitNotOperation extends BitNotOperation {
   const JavaScriptBitNotOperation();
 
   ConstantValue fold(ConstantValue constant) {
-    if (JAVA_SCRIPT_CONSTANT_SYSTEM.isInt(constant)) {
+    if (JavaScriptConstantSystem.only.isInt(constant)) {
       // In JavaScript we don't check for -0 and treat it as if it was zero.
-      if (constant.isMinusZero) constant = DART_CONSTANT_SYSTEM.createInt(0);
+      if (constant.isMinusZero) {
+        constant = DART_CONSTANT_SYSTEM.createInt(BigInt.zero);
+      }
       IntConstantValue intConstant = constant;
       // We convert the result of bit-operations to 32 bit unsigned integers.
-      return JAVA_SCRIPT_CONSTANT_SYSTEM.createInt32(~intConstant.intValue);
+      return JavaScriptConstantSystem.only.createInt32(~intConstant.intValue);
     }
     return null;
   }
@@ -41,12 +41,16 @@ class JavaScriptBinaryBitOperation implements BinaryOperation {
 
   ConstantValue fold(ConstantValue left, ConstantValue right) {
     // In JavaScript we don't check for -0 and treat it as if it was zero.
-    if (left.isMinusZero) left = DART_CONSTANT_SYSTEM.createInt(0);
-    if (right.isMinusZero) right = DART_CONSTANT_SYSTEM.createInt(0);
+    if (left.isMinusZero) {
+      left = DART_CONSTANT_SYSTEM.createInt(BigInt.zero);
+    }
+    if (right.isMinusZero) {
+      right = DART_CONSTANT_SYSTEM.createInt(BigInt.zero);
+    }
     IntConstantValue result = dartBitOperation.fold(left, right);
     if (result != null) {
       // We convert the result of bit-operations to 32 bit unsigned integers.
-      return JAVA_SCRIPT_CONSTANT_SYSTEM.createInt32(result.intValue);
+      return JavaScriptConstantSystem.only.createInt32(result.intValue);
     }
     return result;
   }
@@ -61,9 +65,9 @@ class JavaScriptShiftRightOperation extends JavaScriptBinaryBitOperation {
     // Truncate the input value to 32 bits if necessary.
     if (left.isInt) {
       IntConstantValue intConstant = left;
-      int value = intConstant.intValue;
-      int truncatedValue = value & JAVA_SCRIPT_CONSTANT_SYSTEM.BITS32;
-      if (value < 0) {
+      BigInt value = intConstant.intValue;
+      BigInt truncatedValue = value & JavaScriptConstantSystem.only.BITS32;
+      if (value < BigInt.zero) {
         // Sign-extend if the input was negative. The current semantics don't
         // make much sense, since we only look at bit 31.
         // TODO(floitsch): we should treat the input to right shifts as
@@ -74,8 +78,8 @@ class JavaScriptShiftRightOperation extends JavaScriptBinaryBitOperation {
         // Example: 0xFFFFFFFF - 0x100000000 => -1.
         // We simply and with the sign-bit and multiply by two. If the sign-bit
         // was set, then the result is 0. Otherwise it will become 2^32.
-        final int SIGN_BIT = 0x80000000;
-        truncatedValue -= 2 * (truncatedValue & SIGN_BIT);
+        final BigInt SIGN_BIT = new BigInt.from(0x80000000);
+        truncatedValue -= BigInt.two * (truncatedValue & SIGN_BIT);
       }
       if (value != truncatedValue) {
         left = DART_CONSTANT_SYSTEM.createInt(truncatedValue);
@@ -95,8 +99,8 @@ class JavaScriptNegateOperation implements UnaryOperation {
   ConstantValue fold(ConstantValue constant) {
     if (constant.isInt) {
       IntConstantValue intConstant = constant;
-      if (intConstant.intValue == 0) {
-        return JAVA_SCRIPT_CONSTANT_SYSTEM.createDouble(-0.0);
+      if (intConstant.intValue == BigInt.zero) {
+        return JavaScriptConstantSystem.only.createDouble(-0.0);
       }
     }
     return dartNegateOperation.fold(constant);
@@ -112,7 +116,7 @@ class JavaScriptAddOperation implements BinaryOperation {
   ConstantValue fold(ConstantValue left, ConstantValue right) {
     ConstantValue result = _addOperation.fold(left, right);
     if (result != null && result.isNum) {
-      return JAVA_SCRIPT_CONSTANT_SYSTEM.convertToJavaScriptConstant(result);
+      return JavaScriptConstantSystem.only.convertToJavaScriptConstant(result);
     }
     return result;
   }
@@ -125,8 +129,8 @@ class JavaScriptRemainderOperation extends ArithmeticNumOperation {
 
   const JavaScriptRemainderOperation();
 
-  int foldInts(int left, int right) {
-    if (right == 0) return null;
+  BigInt foldInts(BigInt left, BigInt right) {
+    if (right == BigInt.zero) return null;
     return left.remainder(right);
   }
 
@@ -144,7 +148,7 @@ class JavaScriptBinaryArithmeticOperation implements BinaryOperation {
   ConstantValue fold(ConstantValue left, ConstantValue right) {
     ConstantValue result = dartArithmeticOperation.fold(left, right);
     if (result == null) return result;
-    return JAVA_SCRIPT_CONSTANT_SYSTEM.convertToJavaScriptConstant(result);
+    return JavaScriptConstantSystem.only.convertToJavaScriptConstant(result);
   }
 
   apply(left, right) => dartArithmeticOperation.apply(left, right);
@@ -186,7 +190,7 @@ class JavaScriptRoundOperation implements UnaryOperation {
   ConstantValue fold(ConstantValue constant) {
     // Be careful to round() only values that do not throw on either the host or
     // target platform.
-    ConstantValue tryToRound(num value) {
+    ConstantValue tryToRound(double value) {
       // Due to differences between browsers, only 'round' easy cases. Avoid
       // cases where nudging the value up or down changes the answer.
       // 13 digits is safely within the ~15 digit precision of doubles.
@@ -196,13 +200,13 @@ class JavaScriptRoundOperation implements UnaryOperation {
       double rounded1 = (value * (1.0 + severalULP)).roundToDouble();
       double rounded2 = (value * (1.0 - severalULP)).roundToDouble();
       if (rounded != rounded1 || rounded != rounded2) return null;
-      return JAVA_SCRIPT_CONSTANT_SYSTEM
-          .convertToJavaScriptConstant(new IntConstantValue(value.round()));
+      return JavaScriptConstantSystem.only.convertToJavaScriptConstant(
+          new IntConstantValue(new BigInt.from(value.round())));
     }
 
     if (constant.isInt) {
       IntConstantValue intConstant = constant;
-      int value = intConstant.intValue;
+      double value = intConstant.intValue.toDouble();
       if (value >= -double.maxFinite && value <= double.maxFinite) {
         return tryToRound(value);
       }
@@ -224,7 +228,7 @@ class JavaScriptRoundOperation implements UnaryOperation {
  * compiled to JavaScript.
  */
 class JavaScriptConstantSystem extends ConstantSystem {
-  final int BITS32 = 0xFFFFFFFF;
+  final BITS32 = new BigInt.from(0xFFFFFFFF);
 
   final add = const JavaScriptAddOperation();
   final bitAnd = const JavaScriptBinaryBitOperation(const BitAndOperation());
@@ -260,13 +264,16 @@ class JavaScriptConstantSystem extends ConstantSystem {
   final round = const JavaScriptRoundOperation();
   final abs = const UnfoldedUnaryOperation('abs');
 
-  const JavaScriptConstantSystem();
+  static final JavaScriptConstantSystem only =
+      new JavaScriptConstantSystem._internal();
+
+  JavaScriptConstantSystem._internal();
 
   /**
    * Returns true if [value] will turn into NaN or infinity
    * at runtime.
    */
-  bool integerBecomesNanOrInfinity(int value) {
+  bool integerBecomesNanOrInfinity(BigInt value) {
     double doubleValue = value.toDouble();
     return doubleValue.isNaN || doubleValue.isInfinite;
   }
@@ -274,13 +281,13 @@ class JavaScriptConstantSystem extends ConstantSystem {
   NumConstantValue convertToJavaScriptConstant(NumConstantValue constant) {
     if (constant.isInt) {
       IntConstantValue intConstant = constant;
-      int intValue = intConstant.intValue;
+      BigInt intValue = intConstant.intValue;
       if (integerBecomesNanOrInfinity(intValue)) {
         return new DoubleConstantValue(intValue.toDouble());
       }
       // If the integer loses precision with JavaScript numbers, use
       // the floored version JavaScript will use.
-      int floorValue = intValue.toDouble().floor().toInt();
+      BigInt floorValue = new BigInt.from(intValue.toDouble());
       if (floorValue != intValue) {
         return new IntConstantValue(floorValue);
       }
@@ -290,9 +297,9 @@ class JavaScriptConstantSystem extends ConstantSystem {
       if (!doubleValue.isInfinite &&
           !doubleValue.isNaN &&
           !constant.isMinusZero) {
-        int intValue = doubleValue.truncate();
-        if (intValue == doubleValue) {
-          return new IntConstantValue(intValue);
+        double truncated = doubleValue.truncateToDouble();
+        if (truncated == doubleValue) {
+          return new IntConstantValue(new BigInt.from(truncated));
         }
       }
     }
@@ -300,11 +307,11 @@ class JavaScriptConstantSystem extends ConstantSystem {
   }
 
   @override
-  NumConstantValue createInt(int i) {
+  NumConstantValue createInt(BigInt i) {
     return convertToJavaScriptConstant(new IntConstantValue(i));
   }
 
-  NumConstantValue createInt32(int i) => new IntConstantValue(i & BITS32);
+  NumConstantValue createInt32(BigInt i) => new IntConstantValue(i & BITS32);
   NumConstantValue createDouble(double d) =>
       convertToJavaScriptConstant(new DoubleConstantValue(d));
   StringConstantValue createString(String string) {

@@ -560,10 +560,8 @@ class AssistProcessor {
     }
     // Use the returned expression as the field initializer.
     if (expression != null) {
-      AstNode beginNodeToReplace = getter.name;
       String code = 'final';
       if (getter.returnType != null) {
-        beginNodeToReplace = getter.returnType;
         code += ' ' + _getNodeText(getter.returnType);
       }
       code += ' ' + _getNodeText(getter.name);
@@ -571,7 +569,8 @@ class AssistProcessor {
         code += ' = ' + _getNodeText(expression);
       }
       code += ';';
-      SourceRange replacementRange = range.startEnd(beginNodeToReplace, getter);
+      SourceRange replacementRange =
+          range.startEnd(getter.returnType ?? getter.propertyKeyword, getter);
       DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.addSimpleReplacement(replacementRange, code);

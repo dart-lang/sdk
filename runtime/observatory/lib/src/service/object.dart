@@ -460,6 +460,7 @@ abstract class Location implements M.Location {
   int get tokenPos;
   Future<int> getLine();
   Future<int> getColumn();
+  Future<String> toUserString();
 }
 
 /// A [SourceLocation] represents a location or range in the source code.

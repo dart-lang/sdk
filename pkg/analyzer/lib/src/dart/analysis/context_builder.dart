@@ -80,7 +80,9 @@ class ContextBuilderImpl implements ContextBuilder {
     builder.performanceLog = performanceLog;
 
     old.ContextRoot oldContextRoot = new old.ContextRoot(
-        contextRoot.root.path, contextRoot.excludedPaths.toList());
+        resourceProvider.pathContext,
+        contextRoot.root.path,
+        contextRoot.excludedPaths.toList());
     AnalysisDriver driver = builder.buildDriver(oldContextRoot);
     DriverBasedAnalysisContext context =
         new DriverBasedAnalysisContext(resourceProvider, contextRoot, driver);

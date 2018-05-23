@@ -969,8 +969,8 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
     if (syncAsync) {
       final completerType = new InterfaceType(
           helper.asyncAwaitCompleterClass, completerTypeArguments);
-      // final Completer<T> :completer = new _AsyncAwaitCompleter<T>();
-      completerVariable = new VariableDeclaration(":completer",
+      // final Completer<T> :async_completer = new _AsyncAwaitCompleter<T>();
+      completerVariable = new VariableDeclaration(":async_completer",
           initializer: new ConstructorInvocation(
               helper.asyncAwaitCompleterConstructor,
               new Arguments([], types: completerTypeArguments))
@@ -980,8 +980,8 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
     } else {
       final completerType =
           new InterfaceType(helper.completerClass, completerTypeArguments);
-      // final Completer<T> :completer = new Completer<T>.sync();
-      completerVariable = new VariableDeclaration(":completer",
+      // final Completer<T> :async_completer = new Completer<T>.sync();
+      completerVariable = new VariableDeclaration(":async_completer",
           initializer: new StaticInvocation(helper.completerConstructor,
               new Arguments([], types: completerTypeArguments))
             ..fileOffset = enclosingFunction.body?.fileOffset ?? -1,
@@ -996,7 +996,7 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
     setupAsyncContinuations(statements);
 
     if (syncAsync) {
-      // :completer.start(:async_op);
+      // :async_completer.start(:async_op);
       var startStatement = new ExpressionStatement(new MethodInvocation(
           new VariableGet(completerVariable),
           new Name('start'),
@@ -1012,7 +1012,7 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
         ..fileOffset = enclosingFunction.fileOffset);
       statements.add(newMicrotaskStatement);
     }
-    // return :completer.future;
+    // return :async_completer.future;
     var completerGet = new VariableGet(completerVariable);
     var returnStatement = new ReturnStatement(new PropertyGet(completerGet,
         new Name('future', helper.asyncLibrary), helper.completerFuture));

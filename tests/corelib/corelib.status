@@ -151,16 +151,27 @@ big_integer_parsed_div_rem_vm_test: RuntimeError
 big_integer_parsed_mul_div_vm_test: RuntimeError
 bit_twiddling_bigint_test: RuntimeError
 compare_to2_test: RuntimeError
+double_ceil_test: RuntimeError # Large integer literal. Not representable in JS.
+double_floor_test: RuntimeError # Large integer literal. Not representable in JS.
 double_parse_test/01: RuntimeError
+double_round_test: RuntimeError # Large integer literal. Not representable in JS.
+double_truncate_test: RuntimeError # Large integer literal. Not representable in JS.
 hash_set_test/01: RuntimeError
+int_ceil_to_double_test: RuntimeError # Large integer literal. Not representable in JS.
+int_floor_to_double_test: RuntimeError # Large integer literal. Not representable in JS.
+int_from_environment_test: RuntimeError # Large integer literal. Not representable in JS.
 int_modulo_arith_test/bignum: RuntimeError
 int_modulo_arith_test/modPow: RuntimeError
 int_parse_radix_test/01: RuntimeError
 int_parse_radix_test/02: RuntimeError
+int_round_to_double_test: RuntimeError # Large integer literal. Not representable in JS.
+int_truncate_to_double_test: RuntimeError # Large integer literal. Not representable in JS.
 integer_to_radix_string_test: RuntimeError
 integer_to_string_test/01: RuntimeError
 iterable_return_type_test/02: RuntimeError
 nan_infinity_test/01: RuntimeError
+num_parse_test/01: RuntimeError # Large integer literal. Not representable in JS.
+num_parse_test/none: RuntimeError # Large integer literal. Not representable in JS.
 regress_r21715_test: RuntimeError
 string_base_vm_test: RuntimeError
 symbol_reserved_word_test/03: RuntimeError

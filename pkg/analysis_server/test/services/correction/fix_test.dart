@@ -1100,7 +1100,7 @@ build() {
 
   test_addMissingRequiredArg_cons_single() async {
     _addMetaPackageSource();
-    addSource('/libA.dart', r'''
+    addSource('/project/libA.dart', r'''
 library libA;
 import 'package:meta/meta.dart';
 
@@ -1128,7 +1128,7 @@ main() {
   test_addMissingRequiredArg_cons_single_closure() async {
     _addMetaPackageSource();
 
-    addSource('/libA.dart', r'''
+    addSource('/project/libA.dart', r'''
 library libA;
 import 'package:meta/meta.dart';
 
@@ -1158,7 +1158,7 @@ main() {
   test_addMissingRequiredArg_cons_single_closure_2() async {
     _addMetaPackageSource();
 
-    addSource('/libA.dart', r'''
+    addSource('/project/libA.dart', r'''
 library libA;
 import 'package:meta/meta.dart';
 
@@ -1188,7 +1188,7 @@ main() {
   test_addMissingRequiredArg_cons_single_closure_3() async {
     _addMetaPackageSource();
 
-    addSource('/libA.dart', r'''
+    addSource('/project/libA.dart', r'''
 library libA;
 import 'package:meta/meta.dart';
 
@@ -1218,7 +1218,7 @@ main() {
   test_addMissingRequiredArg_cons_single_closure_4() async {
     _addMetaPackageSource();
 
-    addSource('/libA.dart', r'''
+    addSource('/project/libA.dart', r'''
 library libA;
 import 'package:meta/meta.dart';
 
@@ -1248,7 +1248,7 @@ main() {
   test_addMissingRequiredArg_cons_single_list() async {
     _addMetaPackageSource();
 
-    addSource('/libA.dart', r'''
+    addSource('/project/libA.dart', r'''
 library libA;
 import 'package:meta/meta.dart';
 
@@ -1495,13 +1495,13 @@ main(A a) {
   }
 
   test_changeToStaticAccess_method_importType() async {
-    addSource('/libA.dart', r'''
+    addSource('/project/libA.dart', r'''
 library libA;
 class A {
   static foo() {}
 }
 ''');
-    addSource('/libB.dart', r'''
+    addSource('/project/libB.dart', r'''
 library libB;
 import 'libA.dart';
 class B extends A {}
@@ -1556,13 +1556,13 @@ main(A a) {
   }
 
   test_changeToStaticAccess_property_importType() async {
-    addSource('/libA.dart', r'''
+    addSource('/project/libA.dart', r'''
 library libA;
 class A {
   static get foo => null;
 }
 ''');
-    addSource('/libB.dart', r'''
+    addSource('/project/libB.dart', r'''
 library libB;
 import 'libA.dart';
 class B extends A {}
@@ -1748,7 +1748,7 @@ library my.lib;
 
 class A {}
 ''';
-    addSource('/lib.dart', libCode);
+    addSource('/project/lib.dart', libCode);
     await resolveTestUnit('''
 import 'lib.dart' as lib;
 
@@ -1764,7 +1764,7 @@ main() {
     List<SourceFileEdit> fileEdits = change.edits;
     expect(fileEdits, hasLength(1));
     SourceFileEdit fileEdit = change.edits[0];
-    expect(fileEdit.file, convertPath('/lib.dart'));
+    expect(fileEdit.file, convertPath('/project/lib.dart'));
     expect(SourceEdit.applySequence(libCode, fileEdit.edits), r'''
 library my.lib;
 
@@ -2165,11 +2165,11 @@ class B extends A {
   }
 
   test_createConstructorSuperImplicit_importType() async {
-    addSource('/libA.dart', r'''
+    addSource('/project/libA.dart', r'''
 library libA;
 class A {}
 ''');
-    addSource('/libB.dart', r'''
+    addSource('/project/libB.dart', r'''
 library libB;
 import 'libA.dart';
 class B {
@@ -2314,7 +2314,7 @@ main(A a) {
   }
 
   test_createField_getter_qualified_instance_differentLibrary() async {
-    addSource('/other.dart', '''
+    addSource('/project/other.dart', '''
 /**
  * A comment to push the offset of the braces for the following class
  * declaration past the end of the content of the test file. Used to catch an
@@ -2343,7 +2343,7 @@ class A {
   int test;
 }
 ''',
-        target: '/other.dart');
+        target: '/project/other.dart');
   }
 
   test_createField_getter_qualified_instance_dynamicType() async {
@@ -2493,11 +2493,11 @@ main(A a) {
   }
 
   test_createField_importType() async {
-    addSource('/libA.dart', r'''
+    addSource('/project/libA.dart', r'''
 library libA;
 class A {}
 ''');
-    addSource('/libB.dart', r'''
+    addSource('/project/libB.dart', r'''
 library libB;
 import 'libA.dart';
 A getA() => null;
@@ -2938,7 +2938,7 @@ main(A a) {
   }
 
   test_createGetter_qualified_instance_differentLibrary() async {
-    addSource('/other.dart', '''
+    addSource('/project/other.dart', '''
 /**
  * A comment to push the offset of the braces for the following class
  * declaration past the end of the content of the test file. Used to catch an
@@ -2967,7 +2967,7 @@ class A {
   int get test => null;
 }
 ''',
-        target: '/other.dart');
+        target: '/project/other.dart');
   }
 
   test_createGetter_qualified_instance_dynamicType() async {
@@ -3879,11 +3879,11 @@ int test(double a, String b) {
   }
 
   test_creationFunction_forFunctionType_importType() async {
-    addSource('/libA.dart', r'''
+    addSource('/project/libA.dart', r'''
 library libA;
 class A {}
 ''');
-    addSource('/libB.dart', r'''
+    addSource('/project/libB.dart', r'''
 library libB;
 import 'libA.dart';
 useFunction(int g(A a)) {}
@@ -5370,7 +5370,7 @@ void process(List<int> items) {
   }
 
   test_undefinedFunction_create_importType() async {
-    addSource('/lib.dart', r'''
+    addSource('/project/lib.dart', r'''
 library lib;
 import 'dart:async';
 Future getFuture() => null;
@@ -6082,8 +6082,8 @@ export 'test3.dart';
 class D {
 }
 ''';
-    addSource('/test2.dart', code2);
-    addSource('/test3.dart', r'''
+    addSource('/project/test2.dart', code2);
+    addSource('/project/test3.dart', r'''
 library test3;
 class E {}
 ''');
@@ -6101,7 +6101,7 @@ main(aaa.D d, aaa.E e) {
     List<SourceFileEdit> fileEdits = change.edits;
     expect(fileEdits, hasLength(1));
     SourceFileEdit fileEdit = change.edits[0];
-    expect(fileEdit.file, convertPath('/test2.dart'));
+    expect(fileEdit.file, convertPath('/project/test2.dart'));
     expect(SourceEdit.applySequence(code2, fileEdit.edits), r'''
 library test2;
 import 'test3.dart' as bbb;
@@ -6119,7 +6119,7 @@ class D {
 }
 class E {}
 ''';
-    addSource('/test2.dart', code2);
+    addSource('/project/test2.dart', code2);
     await resolveTestUnit('''
 library test;
 import 'test2.dart' as test2;
@@ -6134,7 +6134,7 @@ main(test2.D d, test2.E e) {
     List<SourceFileEdit> fileEdits = change.edits;
     expect(fileEdits, hasLength(1));
     SourceFileEdit fileEdit = change.edits[0];
-    expect(fileEdit.file, convertPath('/test2.dart'));
+    expect(fileEdit.file, convertPath('/project/test2.dart'));
     expect(SourceEdit.applySequence(code2, fileEdit.edits), r'''
 library test2;
 class D {

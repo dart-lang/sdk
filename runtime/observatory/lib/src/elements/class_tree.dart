@@ -143,7 +143,7 @@ class ClassTreeElement extends HtmlElement implements Renderable {
           });
   }
 
-  static Element _create(toggle) {
+  static HtmlElement _create(toggle) {
     return new DivElement()
       ..classes = ['class-tree-item']
       ..children = [

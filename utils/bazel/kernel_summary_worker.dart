@@ -14,8 +14,8 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:bazel_worker/bazel_worker.dart';
+import 'package:build_integration/file_system/multi_root.dart';
 import 'package:front_end/src/api_unstable/summary_worker.dart' as fe;
-import 'package:front_end/src/multi_root_file_system.dart';
 import 'package:kernel/ast.dart' show Component, Library;
 import 'package:kernel/target/targets.dart';
 

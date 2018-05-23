@@ -12,44 +12,14 @@ import 'package:analysis_server/src/services/refactoring/refactoring_internal.da
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
-import 'package:path/path.dart' as pathos;
-
-bool isElementInPubCache(Element element) {
-  Source source = element.source;
-  String path = source.fullName;
-  return isPathInPubCache(path);
-}
-
-bool isElementInSdkOrPubCache(Element element) {
-  Source source = element.source;
-  String path = source.fullName;
-  return source.isInSystemLibrary || isPathInPubCache(path);
-}
-
-bool isPathInPubCache(String path) {
-  List<String> parts = pathos.split(path);
-  if (parts.contains('.pub-cache')) {
-    return true;
-  }
-  for (int i = 0; i < parts.length - 1; i++) {
-    if (parts[i] == 'Pub' && parts[i + 1] == 'Cache') {
-      return true;
-    }
-    if (parts[i] == 'third_party' &&
-        (parts[i + 1] == 'pkg' || parts[i + 1] == 'pkg_tested')) {
-      return true;
-    }
-  }
-  return false;
-}
 
 /**
  * An abstract implementation of [RenameRefactoring].
  */
 abstract class RenameRefactoringImpl extends RefactoringImpl
     implements RenameRefactoring {
+  final RefactoringWorkspace workspace;
   final SearchEngine searchEngine;
   final Element _element;
   final String elementKindName;
@@ -58,8 +28,8 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
 
   String newName;
 
-  RenameRefactoringImpl(SearchEngine searchEngine, Element element)
-      : searchEngine = searchEngine,
+  RenameRefactoringImpl(this.workspace, Element element)
+      : searchEngine = workspace.searchEngine,
         _element = element,
         elementKindName = element.kind.displayName,
         oldName = _getDisplayName(element);
@@ -97,9 +67,9 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
           getElementQualifiedName(element));
       result.addFatalError(message);
     }
-    if (isElementInPubCache(element)) {
+    if (!workspace.containsFile(element.source.fullName)) {
       String message = format(
-          "The {0} '{1}' is defined in a pub package, so cannot be renamed.",
+          "The {0} '{1}' is defined outside of the project, so cannot be renamed.",
           getElementKindName(element),
           getElementQualifiedName(element));
       result.addFatalError(message);

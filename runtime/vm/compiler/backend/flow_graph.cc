@@ -1167,8 +1167,8 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
     // 2a. Handle uses:
     // Update the expression stack renaming environment for each use by
     // removing the renamed value.
-    // For each use of a LoadLocal, StoreLocal, DropTemps or Constant: Replace
-    // it with the renamed value.
+    // For each use of a LoadLocal, StoreLocal, MakeTemp, DropTemps or Constant:
+    // replace it with the renamed value.
     for (intptr_t i = current->InputCount() - 1; i >= 0; --i) {
       Value* v = current->InputAt(i);
       // Update expression stack.
@@ -1177,8 +1177,10 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
       Definition* reaching_defn = env->RemoveLast();
       Definition* input_defn = v->definition();
       if (input_defn != reaching_defn) {
+        // Note: constants can only be replaced with other constants.
         ASSERT(input_defn->IsLoadLocal() || input_defn->IsStoreLocal() ||
-               input_defn->IsDropTemps() || input_defn->IsConstant());
+               input_defn->IsDropTemps() || input_defn->IsMakeTemp() ||
+               (input_defn->IsConstant() && reaching_defn->IsConstant()));
         // Assert we are not referencing nulls in the initial environment.
         ASSERT(reaching_defn->ssa_temp_index() != -1);
         v->set_definition(reaching_defn);
@@ -1192,103 +1194,120 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
       env->RemoveLast();
     }
 
-    // 2b. Handle LoadLocal, StoreLocal, DropTemps and Constant.
-    Definition* definition = current->AsDefinition();
-    if (definition != NULL) {
-      LoadLocalInstr* load = definition->AsLoadLocal();
-      StoreLocalInstr* store = definition->AsStoreLocal();
-      DropTempsInstr* drop = definition->AsDropTemps();
-      ConstantInstr* constant = definition->AsConstant();
-      if ((load != NULL) || (store != NULL) || (drop != NULL) ||
-          (constant != NULL)) {
-        Definition* result = NULL;
-        if (store != NULL) {
-          // Update renaming environment.
-          intptr_t index = store->local().BitIndexIn(num_direct_parameters_);
-          result = store->value()->definition();
+    // 2b. Handle LoadLocal/StoreLocal/MakeTemp/DropTemps/Constant and
+    // PushArgument specially. Other definitions are just pushed
+    // to the environment directly.
+    Definition* result = NULL;
+    switch (current->tag()) {
+      case Instruction::kLoadLocal: {
+        LoadLocalInstr* load = current->Cast<LoadLocalInstr>();
+        // The graph construction ensures we do not have an unused LoadLocal
+        // computation.
+        ASSERT(load->HasTemp());
+        const intptr_t index = load->local().BitIndexIn(num_direct_parameters_);
+        result = (*env)[index];
 
-          if (!FLAG_prune_dead_locals ||
-              variable_liveness->IsStoreAlive(block_entry, store)) {
-            (*env)[index] = result;
-          } else {
-            (*env)[index] = constant_dead();
-          }
-        } else if (load != NULL) {
-          // The graph construction ensures we do not have an unused LoadLocal
-          // computation.
-          ASSERT(definition->HasTemp());
-          intptr_t index = load->local().BitIndexIn(num_direct_parameters_);
-          result = (*env)[index];
+        PhiInstr* phi = result->AsPhi();
+        if ((phi != NULL) && !phi->is_alive()) {
+          phi->mark_alive();
+          live_phis->Add(phi);
+        }
 
-          PhiInstr* phi = result->AsPhi();
-          if ((phi != NULL) && !phi->is_alive()) {
-            phi->mark_alive();
-            live_phis->Add(phi);
-          }
+        if (FLAG_prune_dead_locals &&
+            variable_liveness->IsLastLoad(block_entry, load)) {
+          (*env)[index] = constant_dead();
+        }
 
-          if (FLAG_prune_dead_locals &&
-              variable_liveness->IsLastLoad(block_entry, load)) {
-            (*env)[index] = constant_dead();
-          }
+        // Record captured parameters so that they can be skipped when
+        // emitting sync code inside optimized try-blocks.
+        if (load->local().is_captured_parameter()) {
+          captured_parameters_->Add(index);
+        }
 
-          // Record captured parameters so that they can be skipped when
-          // emitting sync code inside optimized try-blocks.
-          if (load->local().is_captured_parameter()) {
-            intptr_t index = load->local().BitIndexIn(num_direct_parameters_);
-            captured_parameters_->Add(index);
-          }
-
-          if ((phi != NULL) && isolate()->strong() &&
-              FLAG_use_strong_mode_types) {
-            // Assign type to Phi if it doesn't have a type yet.
-            // For a Phi to appear in the local variable it either was placed
-            // there as incoming value by renaming or it was stored there by
-            // StoreLocal which took this Phi from another local via LoadLocal,
-            // to which this reasoning applies recursively.
-            // This means that we are guaranteed to process LoadLocal for a
-            // matching variable first.
-            if (!phi->HasType()) {
-              ASSERT((index < phi->block()->phis()->length()) &&
-                     ((*phi->block()->phis())[index] == phi));
-              phi->UpdateType(
-                  CompileType::FromAbstractType(load->local().type()));
-            }
-          }
-        } else if (drop != NULL) {
-          // Drop temps from the environment.
-          for (intptr_t j = 0; j < drop->num_temps(); j++) {
-            env->RemoveLast();
-          }
-          if (drop->value() != NULL) {
-            result = drop->value()->definition();
-          }
-          ASSERT((drop->value() != NULL) || !drop->HasTemp());
-        } else {
-          if (definition->HasTemp()) {
-            result = GetConstant(constant->value());
+        if ((phi != NULL) && isolate()->strong() &&
+            FLAG_use_strong_mode_types) {
+          // Assign type to Phi if it doesn't have a type yet.
+          // For a Phi to appear in the local variable it either was placed
+          // there as incoming value by renaming or it was stored there by
+          // StoreLocal which took this Phi from another local via LoadLocal,
+          // to which this reasoning applies recursively.
+          // This means that we are guaranteed to process LoadLocal for a
+          // matching variable first.
+          if (!phi->HasType()) {
+            ASSERT((index < phi->block()->phis()->length()) &&
+                   ((*phi->block()->phis())[index] == phi));
+            phi->UpdateType(
+                CompileType::FromAbstractType(load->local().type()));
           }
         }
-        // Update expression stack or remove from graph.
-        if (definition->HasTemp()) {
-          ASSERT(result != NULL);
-          env->Add(result);
-        }
-        it.RemoveCurrentFromGraph();
-      } else {
-        // Not a load, store, drop or constant.
-        if (definition->HasTemp()) {
-          // Assign fresh SSA temporary and update expression stack.
-          AllocateSSAIndexes(definition);
-          env->Add(definition);
-        }
+        break;
       }
+
+      case Instruction::kStoreLocal: {
+        StoreLocalInstr* store = current->Cast<StoreLocalInstr>();
+        const intptr_t index =
+            store->local().BitIndexIn(num_direct_parameters_);
+        result = store->value()->definition();
+
+        if (!FLAG_prune_dead_locals ||
+            variable_liveness->IsStoreAlive(block_entry, store)) {
+          (*env)[index] = result;
+        } else {
+          (*env)[index] = constant_dead();
+        }
+        break;
+      }
+
+      case Instruction::kDropTemps: {
+        // Drop temps from the environment.
+        DropTempsInstr* drop = current->Cast<DropTempsInstr>();
+        for (intptr_t j = 0; j < drop->num_temps(); j++) {
+          env->RemoveLast();
+        }
+        if (drop->value() != NULL) {
+          result = drop->value()->definition();
+        }
+        ASSERT((drop->value() != NULL) || !drop->HasTemp());
+        break;
+      }
+
+      case Instruction::kConstant: {
+        ConstantInstr* constant = current->Cast<ConstantInstr>();
+        if (constant->HasTemp()) {
+          result = GetConstant(constant->value());
+        }
+        break;
+      }
+
+      case Instruction::kMakeTemp: {
+        // Simply push a #null value to the expression stack.
+        result = constant_null_;
+        break;
+      }
+
+      case Instruction::kPushArgument:
+        env->Add(current->Cast<PushArgumentInstr>());
+        continue;
+
+      default:
+        // Other definitions directly go into the environment.
+        if (Definition* definition = current->AsDefinition()) {
+          if (definition->HasTemp()) {
+            // Assign fresh SSA temporary and update expression stack.
+            AllocateSSAIndexes(definition);
+            env->Add(definition);
+          }
+        }
+        continue;
     }
 
-    // 2c. Handle pushed argument.
-    PushArgumentInstr* push = current->AsPushArgument();
-    if (push != NULL) {
-      env->Add(push);
+    // Update expression stack and remove current instruction from the graph.
+    Definition* definition = current->Cast<Definition>();
+    if (definition->HasTemp()) {
+      ASSERT(result != NULL);
+      env->Add(result);
     }
+    it.RemoveCurrentFromGraph();
   }
 
   // 3. Process dominated blocks.

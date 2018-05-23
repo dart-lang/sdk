@@ -3990,71 +3990,6 @@ class Parser {
     return token;
   }
 
-  Token skipExpression(Token token) {
-    while (true) {
-      Token next = token.next;
-      final kind = next.kind;
-      final value = next.stringValue;
-      if ((identical(kind, EOF_TOKEN)) ||
-          (identical(value, ';')) ||
-          (identical(value, ',')) ||
-          (identical(value, '}')) ||
-          (identical(value, ')')) ||
-          (identical(value, ']'))) {
-        break;
-      }
-      if (identical(value, '=') ||
-          identical(value, '?') ||
-          identical(value, ':') ||
-          identical(value, '??')) {
-        var nextValue = next.next.stringValue;
-        if (identical(nextValue, 'const')) {
-          token = next;
-          next = token.next;
-          nextValue = next.next.stringValue;
-        }
-        if (identical(nextValue, '{')) {
-          // Handle cases like this:
-          // class Foo {
-          //   var map;
-          //   Foo() : map = {};
-          //   Foo.x() : map = true ? {} : {};
-          // }
-          token = next.next.endGroup ?? next;
-          next = token.next;
-          continue;
-        }
-        if (identical(nextValue, '<')) {
-          // Handle cases like this:
-          // class Foo {
-          //   var map;
-          //   Foo() : map = <String, Foo>{};
-          //   Foo.x() : map = true ? <String, Foo>{} : <String, Foo>{};
-          // }
-          token = next.next.endGroup ?? next;
-          next = token.next;
-          if (identical(next.stringValue, '{')) {
-            token = next.endGroup ?? next;
-            next = token.next;
-          }
-          continue;
-        }
-      }
-      if (!mayParseFunctionExpressions && identical(value, '{')) {
-        break;
-      }
-      if (next is BeginToken) {
-        token = next.endGroup ?? next;
-      } else {
-        if (next is ErrorToken) {
-          reportErrorToken(next, false);
-        }
-        token = next;
-      }
-    }
-    return token;
-  }
-
   int expressionDepth = 0;
   Token parseExpression(Token token) {
     if (expressionDepth++ > 500) {
@@ -5674,7 +5609,7 @@ class Parser {
       if (identical(value, 'on')) {
         // 'on' type catchPart?
         onKeyword = token;
-        lastConsumed = parseType(token);
+        lastConsumed = computeType(token, true).ensureTypeNotVoid(token, this);
         token = lastConsumed.next;
         value = token.stringValue;
       }
@@ -6135,8 +6070,10 @@ class Parser {
       // TODO(danrubel): Provide a more specific error message for extra ';'.
       reportRecoverableErrorWithToken(next, fasta.templateExpectedClassMember);
       listener.handleInvalidMember(next);
-      // Ensure we make progress.
-      token = next;
+      if (!identical(value, '}')) {
+        // Ensure we make progress.
+        token = next;
+      }
     } else {
       token = parseFields(beforeStart, externalToken, staticToken,
           covariantToken, varFinalOrConst, beforeType, typeInfo, token, false);

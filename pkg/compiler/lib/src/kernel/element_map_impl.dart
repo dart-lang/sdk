@@ -1881,7 +1881,7 @@ class KernelConstantEnvironment implements ConstantEnvironment {
   KernelConstantEnvironment(this._elementMap, this._environment);
 
   @override
-  ConstantSystem get constantSystem => const JavaScriptConstantSystem();
+  ConstantSystem get constantSystem => JavaScriptConstantSystem.only;
 
   ConstantValue _getConstantValue(
       Spannable spannable, ConstantExpression expression,
@@ -2920,12 +2920,13 @@ class JsKernelToElementMap extends KernelToElementMapBase
   }
 
   JGeneratorBody getGeneratorBody(covariant IndexedFunction function) {
-    FunctionData functionData = _members.getData(function);
-    ir.TreeNode node = functionData.definition.node;
-    // TODO(sra): Maybe store this in the FunctionData.
     JGeneratorBody generatorBody = _generatorBodies[function];
     if (generatorBody == null) {
-      generatorBody = createGeneratorBody(function);
+      FunctionData functionData = _members.getData(function);
+      ir.TreeNode node = functionData.definition.node;
+      DartType elementType =
+          _elementEnvironment.getFunctionAsyncOrSyncStarElementType(function);
+      generatorBody = createGeneratorBody(function, elementType);
       _members.register<IndexedFunction, FunctionData>(
           generatorBody,
           new GeneratorBodyFunctionData(
@@ -2942,7 +2943,8 @@ class JsKernelToElementMap extends KernelToElementMapBase
     return generatorBody;
   }
 
-  JGeneratorBody createGeneratorBody(FunctionEntity function);
+  JGeneratorBody createGeneratorBody(
+      FunctionEntity function, DartType elementType);
 }
 
 class KernelClassQueries extends ClassQueries {

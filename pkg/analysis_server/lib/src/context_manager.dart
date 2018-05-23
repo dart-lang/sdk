@@ -1130,7 +1130,7 @@ class ContextManagerImpl implements ContextManager {
         .toList();
     processOptionsForDriver(info, options, optionMap);
     ContextRoot contextRoot =
-        new ContextRoot(folder.path, containedExcludedPaths);
+        new ContextRoot(pathContext, folder.path, containedExcludedPaths);
     if (optionsFile != null) {
       contextRoot.optionsFilePath = optionsFile.path;
     }

@@ -62,8 +62,10 @@ import '../../base/instrumentation.dart'
 
 import '../fasta_codes.dart';
 
-import '../kernel/expression_generator.dart'
-    show BuilderHelper, CalleeDesignation, FunctionTypeAccessor, buildIsNull;
+import '../kernel/expression_generator.dart' show buildIsNull;
+
+import '../kernel/expression_generator_helper.dart'
+    show ExpressionGeneratorHelper;
 
 import '../kernel/kernel_shadow_ast.dart'
     show
@@ -322,18 +324,20 @@ abstract class TypeInferrer {
   Uri get uri;
 
   /// Performs full type inference on the given field initializer.
-  void inferFieldInitializer(
-      BuilderHelper helper, DartType declaredType, Expression initializer);
+  void inferFieldInitializer(ExpressionGeneratorHelper helper,
+      DartType declaredType, Expression initializer);
 
   /// Performs type inference on the given function body.
-  void inferFunctionBody(BuilderHelper helper, DartType returnType,
+  void inferFunctionBody(ExpressionGeneratorHelper helper, DartType returnType,
       AsyncMarker asyncMarker, Statement body);
 
   /// Performs type inference on the given constructor initializer.
-  void inferInitializer(BuilderHelper helper, Initializer initializer);
+  void inferInitializer(
+      ExpressionGeneratorHelper helper, Initializer initializer);
 
   /// Performs type inference on the given metadata annotations.
-  void inferMetadata(BuilderHelper helper, List<Expression> annotations);
+  void inferMetadata(
+      ExpressionGeneratorHelper helper, List<Expression> annotations);
 
   /// Performs type inference on the given metadata annotations keeping the
   /// existing helper if possible.
@@ -341,8 +345,8 @@ abstract class TypeInferrer {
 
   /// Performs type inference on the given function parameter initializer
   /// expression.
-  void inferParameterInitializer(
-      BuilderHelper helper, Expression initializer, DartType declaredType);
+  void inferParameterInitializer(ExpressionGeneratorHelper helper,
+      Expression initializer, DartType declaredType);
 }
 
 /// Implementation of [TypeInferrer] which doesn't do any type inference.
@@ -362,25 +366,27 @@ class TypeInferrerDisabled extends TypeInferrer {
   Uri get uri => null;
 
   @override
-  void inferFieldInitializer(
-      BuilderHelper helper, DartType declaredType, Expression initializer) {}
+  void inferFieldInitializer(ExpressionGeneratorHelper helper,
+      DartType declaredType, Expression initializer) {}
 
   @override
-  void inferFunctionBody(BuilderHelper helper, DartType returnType,
+  void inferFunctionBody(ExpressionGeneratorHelper helper, DartType returnType,
       AsyncMarker asyncMarker, Statement body) {}
 
   @override
-  void inferInitializer(BuilderHelper helper, Initializer initializer) {}
+  void inferInitializer(
+      ExpressionGeneratorHelper helper, Initializer initializer) {}
 
   @override
-  void inferMetadata(BuilderHelper helper, List<Expression> annotations) {}
+  void inferMetadata(
+      ExpressionGeneratorHelper helper, List<Expression> annotations) {}
 
   @override
   void inferMetadataKeepingHelper(List<Expression> annotations) {}
 
   @override
-  void inferParameterInitializer(
-      BuilderHelper helper, Expression initializer, DartType declaredType) {}
+  void inferParameterInitializer(ExpressionGeneratorHelper helper,
+      Expression initializer, DartType declaredType) {}
 }
 
 /// Derived class containing generic implementations of [TypeInferrer].
@@ -418,7 +424,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   final SourceLibraryBuilder library;
 
-  BuilderHelper helper;
+  ExpressionGeneratorHelper helper;
 
   /// Context information for the current closure, or `null` if we are not
   /// inside a closure.
@@ -924,8 +930,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       Expression expression, DartType typeContext, bool typeNeeded);
 
   @override
-  void inferFieldInitializer(
-      BuilderHelper helper, DartType declaredType, Expression initializer) {
+  void inferFieldInitializer(ExpressionGeneratorHelper helper,
+      DartType declaredType, Expression initializer) {
     assert(closureContext == null);
     this.helper = helper;
     var actualType = inferExpression(
@@ -944,7 +950,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   DartType inferFieldTopLevel(ShadowField field, bool typeNeeded);
 
   @override
-  void inferFunctionBody(BuilderHelper helper, DartType returnType,
+  void inferFunctionBody(ExpressionGeneratorHelper helper, DartType returnType,
       AsyncMarker asyncMarker, Statement body) {
     assert(closureContext == null);
     this.helper = helper;
@@ -1057,14 +1063,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       arguments.types.addAll(inferredTypes);
     }
     if (typeChecksNeeded && !identical(calleeType, unknownFunction)) {
-      CalleeDesignation calleeKind = receiverType is FunctionType
-          ? CalleeDesignation.Function
-          : CalleeDesignation.Method;
-      LocatedMessage argMessage = helper.checkArguments(
-          new FunctionTypeAccessor.fromType(calleeType),
-          arguments,
-          calleeKind,
-          offset);
+      LocatedMessage argMessage =
+          helper.checkArgumentsForType(calleeType, arguments, offset);
       if (argMessage != null) {
         helper.addProblem(
             argMessage.messageObject, argMessage.charOffset, argMessage.length);
@@ -1243,7 +1243,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   }
 
   @override
-  void inferMetadata(BuilderHelper helper, List<Expression> annotations) {
+  void inferMetadata(
+      ExpressionGeneratorHelper helper, List<Expression> annotations) {
     if (annotations != null) {
       this.helper = helper;
       inferMetadataKeepingHelper(annotations);
@@ -1325,8 +1326,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   }
 
   @override
-  void inferParameterInitializer(
-      BuilderHelper helper, Expression initializer, DartType declaredType) {
+  void inferParameterInitializer(ExpressionGeneratorHelper helper,
+      Expression initializer, DartType declaredType) {
     assert(closureContext == null);
     this.helper = helper;
     assert(declaredType != null);

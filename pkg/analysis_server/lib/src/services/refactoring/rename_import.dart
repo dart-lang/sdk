@@ -27,8 +27,8 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
   final AstProvider astProvider;
 
   RenameImportRefactoringImpl(
-      SearchEngine searchEngine, this.astProvider, ImportElement element)
-      : super(searchEngine, element);
+      RefactoringWorkspace workspace, this.astProvider, ImportElement element)
+      : super(workspace, element);
 
   @override
   ImportElement get element => super.element as ImportElement;

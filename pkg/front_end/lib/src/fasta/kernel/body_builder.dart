@@ -84,30 +84,28 @@ import 'constness.dart' show Constness;
 
 import 'expression_generator.dart'
     show
-        BuilderHelper,
-        CalleeDesignation,
         DeferredAccessGenerator,
         ErroneousExpressionGenerator,
-        FastaAccessor,
-        FunctionTypeAccessor,
-        GeneratorImpl,
-        IncompleteError,
-        IncompletePropertyAccessor,
-        IncompleteSend,
+        Generator,
+        IncompleteErrorGenerator,
+        IncompletePropertyAccessGenerator,
+        IncompleteSendGenerator,
         IndexedAccessGenerator,
         LargeIntAccessGenerator,
         LoadLibraryGenerator,
-        ParenthesizedExpression,
+        ParenthesizedExpressionGenerator,
         ReadOnlyAccessGenerator,
-        SendAccessor,
+        SendAccessGenerator,
         StaticAccessGenerator,
         SuperIndexedAccessGenerator,
         ThisAccessGenerator,
         ThisPropertyAccessGenerator,
-        TypeDeclarationAccessor,
-        UnresolvedAccessor,
+        TypeDeclarationAccessGenerator,
+        UnresolvedNameGenerator,
         VariableUseGenerator,
         buildIsNull;
+
+import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
 
 import 'redirecting_factory_body.dart'
     show
@@ -131,7 +129,7 @@ const noLocation = null;
 
 abstract class BodyBuilder<Expression, Statement, Arguments>
     extends ScopeListener<JumpTarget>
-    implements BuilderHelper<Expression, Statement, Arguments> {
+    implements ExpressionGeneratorHelper<Expression, Statement, Arguments> {
   @override
   final KernelLibraryBuilder library;
 
@@ -274,7 +272,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
 
   @override
   Expression toValue(Object node) {
-    if (node is FastaAccessor) {
+    if (node is Generator) {
       return toExpression(node.buildSimpleRead());
     } else if (node is Expression) {
       return node;
@@ -292,7 +290,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   }
 
   Expression toEffect(Object node) {
-    if (node is FastaAccessor) return toExpression(node.buildForEffect());
+    if (node is Generator) return toExpression(node.buildForEffect());
     return toValue(node);
   }
 
@@ -437,14 +435,14 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       var expression = pop();
       if (expression is Identifier) {
         Identifier identifier = expression;
-        expression = new UnresolvedAccessor(
+        expression = new UnresolvedNameGenerator(
             this, identifier.token, new Name(identifier.name, library.library));
       }
       if (name?.isNotEmpty ?? false) {
         Token period = periodBeforeName ?? beginToken.next;
-        FastaAccessor accessor = expression;
-        expression = accessor.buildPropertyAccess(
-            new IncompletePropertyAccessor(
+        Generator generator = expression;
+        expression = generator.buildPropertyAccess(
+            new IncompletePropertyAccessGenerator(
                 this, period.next, new Name(name, library.library)),
             period.next.offset,
             false);
@@ -620,7 +618,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     Initializer initializer;
     if (node is Initializer) {
       initializer = node;
-    } else if (node is FastaAccessor) {
+    } else if (node is Generator) {
       initializer = node.buildFieldInitializer(initializedFields);
     } else if (node is ConstructorInvocation) {
       initializer = buildSuperInitializer(
@@ -803,10 +801,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       Initializer initializer;
       Arguments arguments = forest.argumentsEmpty(noLocation);
       if (superTarget == null ||
-          checkArguments(
-                  new FunctionTypeAccessor.fromNode(superTarget.function),
-                  arguments,
-                  CalleeDesignation.Constructor,
+          checkArgumentsForFunction(superTarget.function, arguments,
                   builder.charOffset, const <TypeParameter>[]) !=
               null) {
         String superclass = classBuilder.supertype.fullNameForErrors;
@@ -909,7 +904,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void handleParenthesizedExpression(Token token) {
     debugEvent("ParenthesizedExpression");
-    push(new ParenthesizedExpression(
+    push(new ParenthesizedExpressionGenerator(
         this, token.endGroup, toKernelExpression(popForValue())));
   }
 
@@ -928,9 +923,9 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     if (receiver is Identifier) {
       Name name = new Name(receiver.name, library.library);
       if (arguments == null) {
-        push(new IncompletePropertyAccessor(this, beginToken, name));
+        push(new IncompletePropertyAccessGenerator(this, beginToken, name));
       } else {
-        push(new SendAccessor(this, beginToken, name, arguments));
+        push(new SendAccessGenerator(this, beginToken, name, arguments));
       }
     } else if (arguments == null) {
       push(receiver);
@@ -941,7 +936,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
 
   @override
   finishSend(Object receiver, Arguments arguments, int charOffset) {
-    if (receiver is FastaAccessor) {
+    if (receiver is Generator) {
       return receiver.doInvocation(charOffset, arguments);
     } else {
       return buildMethodInvocation(
@@ -1078,7 +1073,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   /// Handle `a?.b(...)`.
   void doIfNotNull(Token token) {
     var send = pop();
-    if (send is IncompleteSend) {
+    if (send is IncompleteSendGenerator) {
       push(send.withReceiver(pop(), token.charOffset, isNullAware: true));
     } else {
       pop();
@@ -1091,7 +1086,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
 
   void doDotOrCascadeExpression(Token token) {
     var send = pop();
-    if (send is IncompleteSend) {
+    if (send is IncompleteSendGenerator) {
       Object receiver = optional(".", token) ? pop() : popForValue();
       push(send.withReceiver(receiver, token.charOffset));
     } else {
@@ -1370,7 +1365,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
           classBuilder.origin.findStaticBuilder(name, charOffset, uri, library);
     }
     if (builder != null && member.isField && builder.isInstanceMember) {
-      return new IncompleteError(this, token,
+      return new IncompleteErrorGenerator(this, token,
           fasta.templateThisAccessInFieldInitializer.withArguments(name));
     }
     if (builder == null || (!isInstanceContext && builder.isInstanceMember)) {
@@ -1378,7 +1373,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       if (!isQualified && isInstanceContext) {
         assert(builder == null);
         if (constantContext != ConstantContext.none || member.isField) {
-          return new UnresolvedAccessor(this, token, n);
+          return new UnresolvedNameGenerator(this, token, n);
         }
         return new ThisPropertyAccessGenerator(this, token, n,
             lookupInstanceMember(n), lookupInstanceMember(n, isSetter: true));
@@ -1387,7 +1382,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
           member?.name == "_getMainClosure") {
         return storeOffset(forest.literalNull(null), charOffset);
       } else {
-        return new UnresolvedAccessor(this, token, n);
+        return new UnresolvedNameGenerator(this, token, n);
       }
     } else if (builder.isTypeDeclaration) {
       if (constantContext != ConstantContext.none &&
@@ -1396,11 +1391,12 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         deprecated_addCompileTimeError(
             charOffset, "Not a constant expression.");
       }
-      TypeDeclarationAccessor accessor = new TypeDeclarationAccessor(
-          this, token, prefix, charOffset, builder, name);
+      TypeDeclarationAccessGenerator generator =
+          new TypeDeclarationAccessGenerator(
+              this, token, prefix, charOffset, builder, name);
       return (prefix?.deferred == true)
-          ? new DeferredAccessGenerator(this, token, prefix, accessor)
-          : accessor;
+          ? new DeferredAccessGenerator(this, token, prefix, generator)
+          : generator;
     } else if (builder.isLocal) {
       if (constantContext != ConstantContext.none &&
           !builder.isConst &&
@@ -1449,11 +1445,11 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       return new ThisPropertyAccessGenerator(this, token, n, getter, setter);
     } else if (builder.isRegularMethod) {
       assert(builder.isStatic || builder.isTopLevel);
-      StaticAccessGenerator accessor =
+      StaticAccessGenerator generator =
           new StaticAccessGenerator(this, token, builder.target, null);
       return (prefix?.deferred == true)
-          ? new DeferredAccessGenerator(this, token, prefix, accessor)
-          : accessor;
+          ? new DeferredAccessGenerator(this, token, prefix, generator)
+          : generator;
     } else if (builder is PrefixBuilder) {
       if (constantContext != ConstantContext.none && builder.deferred) {
         deprecated_addCompileTimeError(
@@ -1477,10 +1473,10 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       } else if (builder.isField && !builder.isFinal) {
         setter = builder;
       }
-      StaticAccessGenerator accessor =
+      StaticAccessGenerator generator =
           new StaticAccessGenerator.fromBuilder(this, builder, token, setter);
       if (constantContext != ConstantContext.none) {
-        Member readTarget = accessor.readTarget;
+        Member readTarget = generator.readTarget;
         if (!(readTarget is Field && readTarget.isConst ||
             // Static tear-offs are also compile time constants.
             readTarget is Procedure)) {
@@ -1489,8 +1485,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         }
       }
       return (prefix?.deferred == true)
-          ? new DeferredAccessGenerator(this, token, prefix, accessor)
-          : accessor;
+          ? new DeferredAccessGenerator(this, token, prefix, generator)
+          : generator;
     }
   }
 
@@ -1789,13 +1785,13 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   void handleAssignmentExpression(Token token) {
     debugEvent("AssignmentExpression");
     Expression value = popForValue();
-    var accessor = pop();
-    if (accessor is! FastaAccessor) {
+    var generator = pop();
+    if (generator is! Generator) {
       push(buildCompileTimeError(fasta.messageNotAnLvalue,
           offsetForToken(token), lengthForToken(token)));
     } else {
-      push(new DelayedAssignment(
-          this, token, accessor, toKernelExpression(value), token.stringValue));
+      push(new DelayedAssignment(this, token, generator,
+          toKernelExpression(value), token.stringValue));
     }
   }
 
@@ -1821,7 +1817,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   }
 
   List<VariableDeclaration> buildVariableDeclarations(variableOrExpression) {
-    if (variableOrExpression is FastaAccessor) {
+    if (variableOrExpression is Generator) {
       variableOrExpression = variableOrExpression.buildForEffect();
     }
     if (variableOrExpression is VariableDeclaration) {
@@ -2054,7 +2050,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         return;
       }
     }
-    if (name is FastaAccessor) {
+    if (name is Generator) {
       push(name.buildTypeWithBuiltArguments(arguments));
     } else if (name is TypeBuilder) {
       push(name.build(library));
@@ -2324,14 +2320,11 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       optional = pop();
       count--;
     }
-    FormalParameters<Arguments> formals = new FormalParameters(
-        popList(
-                count,
-                new List<VariableDeclaration>.filled(count, null,
-                    growable: true)) ??
-            <VariableDeclaration>[],
-        optional,
-        beginToken.charOffset);
+    List<VariableDeclaration> variables =
+        new List<VariableDeclaration>.filled(count, null, growable: true);
+    popList(count, variables);
+    FormalParameters<Arguments> formals =
+        new FormalParameters(variables, optional, beginToken.charOffset);
     constantContext = pop();
     push(formals);
     if ((inCatchClause || functionNestingLevel != 0) &&
@@ -2484,24 +2477,26 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void handleUnaryPrefixAssignmentExpression(Token token) {
     debugEvent("UnaryPrefixAssignmentExpression");
-    var accessor = pop();
-    if (accessor is FastaAccessor) {
-      push(accessor.buildPrefixIncrement(incrementOperator(token),
+    var generator = pop();
+    if (generator is Generator) {
+      push(generator.buildPrefixIncrement(incrementOperator(token),
           offset: token.charOffset));
     } else {
-      push(wrapInCompileTimeError(toValue(accessor), fasta.messageNotAnLvalue));
+      push(
+          wrapInCompileTimeError(toValue(generator), fasta.messageNotAnLvalue));
     }
   }
 
   @override
   void handleUnaryPostfixAssignmentExpression(Token token) {
     debugEvent("UnaryPostfixAssignmentExpression");
-    var accessor = pop();
-    if (accessor is FastaAccessor) {
+    var generator = pop();
+    if (generator is Generator) {
       push(new DelayedPostfixIncrement<Arguments>(
-          this, token, accessor, incrementOperator(token), null));
+          this, token, generator, incrementOperator(token), null));
     } else {
-      push(wrapInCompileTimeError(toValue(accessor), fasta.messageNotAnLvalue));
+      push(
+          wrapInCompileTimeError(toValue(generator), fasta.messageNotAnLvalue));
     }
   }
 
@@ -2542,7 +2537,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   /// But the parser can't tell this from type c) above.
   ///
   /// This method pops 2 (or 3 if `periodBeforeName != null`) values from the
-  /// stack and pushes 3 values: an accessor (the type in a constructor
+  /// stack and pushes 3 values: a generator (the type in a constructor
   /// reference, or an expression in metadata), a list of type arguments, and a
   /// name.
   void pushQualifiedReference(Token start, Token periodBeforeName) {
@@ -2558,13 +2553,13 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
             prefix.exportScope, identifier.name, identifier.token,
             isQualified: true, prefix: prefix);
         identifier = null;
-      } else if (prefix is TypeDeclarationAccessor) {
+      } else if (prefix is TypeDeclarationAccessGenerator) {
         type = prefix;
-      } else if (prefix is FastaAccessor) {
+      } else if (prefix is Generator) {
         String name = suffix == null
             ? "${prefix.plainNameForRead}.${identifier.name}"
             : "${prefix.plainNameForRead}.${identifier.name}.$suffix";
-        type = new UnresolvedAccessor(
+        type = new UnresolvedNameGenerator(
             this, prefix.token, new Name(name, library.library));
       } else {
         unhandled("${prefix.runtimeType}", "pushQualifiedReference",
@@ -2599,15 +2594,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       assert(!target.enclosingClass.isAbstract);
       typeParameters = target.enclosingClass.typeParameters;
     }
-    CalleeDesignation calleeKind = target is Constructor
-        ? CalleeDesignation.Constructor
-        : CalleeDesignation.Method;
-    LocatedMessage argMessage = checkArguments(
-        new FunctionTypeAccessor.fromNode(target.function),
-        arguments,
-        calleeKind,
-        charOffset,
-        typeParameters);
+    LocatedMessage argMessage = checkArgumentsForFunction(
+        target.function, arguments, charOffset, typeParameters);
     if (argMessage != null) {
       return throwNoSuchMethodError(
           storeOffset(forest.literalNull(null), charOffset),
@@ -2653,65 +2641,29 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   }
 
   @override
-  LocatedMessage checkArguments(FunctionTypeAccessor function,
-      Arguments arguments, CalleeDesignation calleeKind, int offset,
-      [List<TypeParameter> typeParameters]) {
+  LocatedMessage checkArgumentsForFunction(FunctionNode function,
+      Arguments arguments, int offset, List<TypeParameter> typeParameters) {
     if (forest.argumentsPositional(arguments).length <
         function.requiredParameterCount) {
-      Template<Message Function(int count, int count2)> template;
-      switch (calleeKind) {
-        case CalleeDesignation.Function:
-          template = fasta.templateTooFewArgumentsToFunction;
-          break;
-        case CalleeDesignation.Method:
-          template = fasta.templateTooFewArgumentsToMethod;
-          break;
-        case CalleeDesignation.Constructor:
-          template = fasta.templateTooFewArgumentsToConstructor;
-          break;
-      }
-      return template
+      return fasta.templateTooFewArguments
           .withArguments(function.requiredParameterCount,
               forest.argumentsPositional(arguments).length)
           .withLocation(uri, offset, noLength);
     }
     if (forest.argumentsPositional(arguments).length >
-        function.positionalParameterCount) {
-      Template<Message Function(int count, int count2)> template;
-      switch (calleeKind) {
-        case CalleeDesignation.Function:
-          template = fasta.templateTooManyArgumentsToFunction;
-          break;
-        case CalleeDesignation.Method:
-          template = fasta.templateTooManyArgumentsToMethod;
-          break;
-        case CalleeDesignation.Constructor:
-          template = fasta.templateTooManyArgumentsToConstructor;
-          break;
-      }
-      return template
-          .withArguments(function.positionalParameterCount,
+        function.positionalParameters.length) {
+      return fasta.templateTooManyArguments
+          .withArguments(function.positionalParameters.length,
               forest.argumentsPositional(arguments).length)
           .withLocation(uri, offset, noLength);
     }
     List named = forest.argumentsNamed(arguments);
     if (named.isNotEmpty) {
-      Set<String> names = function.namedParameterNames;
+      Set<String> names =
+          new Set.from(function.namedParameters.map((a) => a.name));
       for (NamedExpression argument in named) {
         if (!names.remove(argument.name)) {
-          Template<Message Function(String name)> template;
-          switch (calleeKind) {
-            case CalleeDesignation.Function:
-              template = fasta.templateFunctionHasNoSuchNamedParameter;
-              break;
-            case CalleeDesignation.Method:
-              template = fasta.templateMethodHasNoSuchNamedParameter;
-              break;
-            case CalleeDesignation.Constructor:
-              template = fasta.templateConstructorHasNoSuchNamedParameter;
-              break;
-          }
-          return template
+          return fasta.templateNoSuchNamedParameter
               .withArguments(argument.name)
               .withLocation(uri, argument.fileOffset, argument.name.length);
         }
@@ -2719,12 +2671,45 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     }
 
     List types = forest.argumentsTypeArguments(arguments);
-    if (typeParameters != null && typeParameters.length != types.length) {
+    if (typeParameters.length != types.length) {
       // TODO(paulberry): Report error in this case as well,
       // after https://github.com/dart-lang/sdk/issues/32130 is fixed.
       types.clear();
       for (int i = 0; i < typeParameters.length; i++) {
         types.add(const DynamicType());
+      }
+    }
+
+    return null;
+  }
+
+  @override
+  LocatedMessage checkArgumentsForType(
+      FunctionType function, Arguments arguments, int offset) {
+    if (forest.argumentsPositional(arguments).length <
+        function.requiredParameterCount) {
+      return fasta.templateTooFewArguments
+          .withArguments(function.requiredParameterCount,
+              forest.argumentsPositional(arguments).length)
+          .withLocation(uri, offset, noLength);
+    }
+    if (forest.argumentsPositional(arguments).length >
+        function.positionalParameters.length) {
+      return fasta.templateTooManyArguments
+          .withArguments(function.positionalParameters.length,
+              forest.argumentsPositional(arguments).length)
+          .withLocation(uri, offset, noLength);
+    }
+    List named = forest.argumentsNamed(arguments);
+    if (named.isNotEmpty) {
+      Set<String> names =
+          new Set.from(function.namedParameters.map((a) => a.name));
+      for (NamedExpression argument in named) {
+        if (!names.remove(argument.name)) {
+          return fasta.templateNoSuchNamedParameter
+              .withArguments(argument.name)
+              .withLocation(uri, argument.fileOffset, argument.name.length);
+        }
       }
     }
 
@@ -2787,18 +2772,18 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     PrefixBuilder deferredPrefix;
     int checkOffset;
     if (type is DeferredAccessGenerator) {
-      DeferredAccessGenerator accessor = type;
-      type = accessor.accessor;
-      deferredPrefix = accessor.builder;
-      checkOffset = accessor.token.charOffset;
+      DeferredAccessGenerator generator = type;
+      type = generator.generator;
+      deferredPrefix = generator.builder;
+      checkOffset = generator.token.charOffset;
     }
 
-    if (type is TypeDeclarationAccessor) {
-      TypeDeclarationAccessor accessor = type;
-      if (accessor.prefix != null) {
+    if (type is TypeDeclarationAccessGenerator) {
+      TypeDeclarationAccessGenerator generator = type;
+      if (generator.prefix != null) {
         nameToken = nameToken.next.next;
       }
-      type = accessor.declaration;
+      type = generator.declaration;
     }
 
     ConstantContext savedConstantContext = pop();
@@ -2940,7 +2925,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     if (context.isScopeReference && isInstanceContext) {
       push(new ThisAccessGenerator(this, token, inInitializer));
     } else {
-      push(new IncompleteError(this, token, fasta.messageThisAsIdentifier));
+      push(new IncompleteErrorGenerator(
+          this, token, fasta.messageThisAsIdentifier));
     }
   }
 
@@ -2952,7 +2938,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       member.transformerFlags |= TransformerFlag.superCalls;
       push(new ThisAccessGenerator(this, token, inInitializer, isSuper: true));
     } else {
-      push(new IncompleteError(this, token, fasta.messageSuperAsIdentifier));
+      push(new IncompleteErrorGenerator(
+          this, token, fasta.messageSuperAsIdentifier));
     }
   }
 
@@ -3205,7 +3192,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         deprecated_addCompileTimeError(
             variable.fileOffset, "A for-in loop-variable can't be 'const'.");
       }
-    } else if (lvalue is FastaAccessor) {
+    } else if (lvalue is Generator) {
       /// We are in this case, where `lvalue` isn't a [VariableDeclaration]:
       ///
       ///     for (lvalue in expression) body
@@ -3261,7 +3248,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void beginLabeledStatement(Token token, int labelCount) {
     debugEvent("beginLabeledStatement");
-    List<Label> labels = popList(labelCount);
+    List<Label> labels = popList(
+        labelCount, new List<Label>.filled(labelCount, null, growable: true));
     enterLocalScope(null, scope.createNestedLabelScope());
     LabelTarget target = new LabelTarget<Statement>(
         member, functionNestingLevel, token.charOffset);
@@ -3277,20 +3265,22 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     Statement statement = popStatement();
     LabelTarget target = pop();
     exitLocalScope();
-    kernel.Statement kernelStatement = toKernelStatement(statement);
     if (target.breakTarget.hasUsers) {
-      if (kernelStatement is! LabeledStatement) {
-        kernelStatement = new ShadowLabeledStatement(kernelStatement);
+      if (statement is! LabeledStatement) {
+        statement = forest.syntheticLabeledStatement(statement);
       }
-      target.breakTarget.resolveBreaks(forest, kernelStatement);
+      target.breakTarget.resolveBreaks(forest, statement);
     }
+    // TODO(brianwilkerson): Figure out how to get the labels that are part of
+    // the statement.
+//    statement = forest.labeledStatement(labels, statement);
     if (target.continueTarget.hasUsers) {
-      if (kernelStatement is! LabeledStatement) {
-        kernelStatement = new ShadowLabeledStatement(kernelStatement);
+      if (statement is! LabeledStatement) {
+        statement = forest.syntheticLabeledStatement(statement);
       }
-      target.continueTarget.resolveContinues(forest, kernelStatement);
+      target.continueTarget.resolveContinues(forest, statement);
     }
-    push(kernelStatement);
+    push(statement);
   }
 
   @override
@@ -3352,48 +3342,10 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     Expression message = popForValueIfNotNull(commaToken);
     Expression condition = popForValue();
 
-    // Compute start and end offsets for the condition expression.
-    // This code is a temporary workaround because expressions don't carry
-    // their start and end offsets currently.
-    //
-    // The token that follows leftParenthesis is considered to be the
-    // first token of the condition.
-    // TODO(ahe): this really should be condition.fileOffset.
-    int startOffset = leftParenthesis.next.offset;
-    int endOffset;
-    {
-      // Search forward from leftParenthesis to find the last token of
-      // the condition - which is a token immediately followed by a commaToken,
-      // right parenthesis or a trailing comma.
-      Token conditionBoundary = commaToken ?? leftParenthesis.endGroup;
-      Token conditionLastToken = leftParenthesis;
-      while (!conditionLastToken.isEof) {
-        Token nextToken = conditionLastToken.next;
-        if (nextToken == conditionBoundary) {
-          break;
-        } else if (optional(',', nextToken) &&
-            nextToken.next == conditionBoundary) {
-          // The next token is trailing comma, which means current token is
-          // the last token of the condition.
-          break;
-        }
-        conditionLastToken = nextToken;
-      }
-      if (conditionLastToken.isEof) {
-        endOffset = startOffset = -1;
-      } else {
-        endOffset = conditionLastToken.offset + conditionLastToken.length;
-      }
-    }
-
-    AssertStatement statement = new ShadowAssertStatement(
-        toKernelExpression(condition),
-        conditionStartOffset: startOffset,
-        conditionEndOffset: endOffset,
-        message: toKernelExpression(message));
     switch (kind) {
       case Assert.Statement:
-        push(statement);
+        push(forest.assertStatement(assertKeyword, leftParenthesis, condition,
+            commaToken, message, semicolonToken));
         break;
 
       case Assert.Expression:
@@ -3404,7 +3356,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         break;
 
       case Assert.Initializer:
-        push(new ShadowAssertInitializer(statement));
+        push(forest.assertInitializer(
+            assertKeyword, leftParenthesis, condition, commaToken, message));
         break;
     }
   }
@@ -3560,11 +3513,12 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       bool hasTarget, Token breakKeyword, Token endToken) {
     debugEvent("BreakStatement");
     var target = breakTarget;
+    Identifier identifier;
     String name;
     if (hasTarget) {
-      Identifier identifier = pop();
+      identifier = pop();
       name = identifier.name;
-      target = scope.lookupLabel(identifier.name);
+      target = scope.lookupLabel(name);
     }
     if (target == null && name == null) {
       push(compileTimeErrorInLoopOrSwitch =
@@ -3582,8 +3536,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
               "Can't break to '$name' in a different function.",
               breakKeyword.next.charOffset));
     } else {
-      BreakStatement statement = new ShadowBreakStatement(null)
-        ..fileOffset = breakKeyword.charOffset;
+      Statement statement =
+          forest.breakStatement(breakKeyword, identifier, endToken);
       target.addBreak(statement);
       push(statement);
     }
@@ -3594,9 +3548,10 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       bool hasTarget, Token continueKeyword, Token endToken) {
     debugEvent("ContinueStatement");
     var target = continueTarget;
+    Identifier identifier;
     String name;
     if (hasTarget) {
-      Identifier identifier = pop();
+      identifier = pop();
       name = identifier.name;
       target = scope.lookupLabel(identifier.name);
       if (target != null && target is! JumpTarget) {
@@ -3639,8 +3594,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
               "Can't continue at '$name' in a different function.",
               continueKeyword.next.charOffset));
     } else {
-      BreakStatement statement = new ShadowBreakStatement(null)
-        ..fileOffset = continueKeyword.charOffset;
+      Statement statement =
+          forest.continueStatement(continueKeyword, identifier, endToken);
       target.addContinue(statement);
       push(statement);
     }
@@ -3686,7 +3641,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     List<Expression> annotations = pop();
     KernelTypeVariableBuilder variable;
     Object inScope = scopeLookup(scope, name.name, token);
-    if (inScope is TypeDeclarationAccessor) {
+    if (inScope is TypeDeclarationAccessGenerator) {
       variable = inScope.declaration;
     } else {
       // Something went wrong when pre-parsing the type variables.
@@ -4254,15 +4209,14 @@ class Label {
   String toString() => "label($name)";
 }
 
-abstract class ContextAccessor<Arguments> extends FastaAccessor<Arguments>
-    with GeneratorImpl {
-  final BuilderHelper<dynamic, dynamic, Arguments> helper;
+abstract class ContextAwareGenerator<Arguments> extends Generator<Arguments> {
+  final Generator generator;
 
-  final FastaAccessor accessor;
-
-  final Token token;
-
-  ContextAccessor(this.helper, this.token, this.accessor);
+  ContextAwareGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      this.generator)
+      : super(helper, token);
 
   String get plainNameForRead {
     return unsupported("plainNameForRead", token.charOffset, helper.uri);
@@ -4321,14 +4275,18 @@ abstract class ContextAccessor<Arguments> extends FastaAccessor<Arguments>
   }
 }
 
-class DelayedAssignment<Arguments> extends ContextAccessor<Arguments> {
+class DelayedAssignment<Arguments> extends ContextAwareGenerator<Arguments> {
   final kernel.Expression value;
 
   final String assignmentOperator;
 
-  DelayedAssignment(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      Token token, FastaAccessor accessor, this.value, this.assignmentOperator)
-      : super(helper, token, accessor);
+  DelayedAssignment(
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      Generator generator,
+      this.value,
+      this.assignmentOperator)
+      : super(helper, token, generator);
 
   String get debugName => "DelayedAssignment";
 
@@ -4346,43 +4304,43 @@ class DelayedAssignment<Arguments> extends ContextAccessor<Arguments> {
           "Not a constant expression.", offsetForToken(token));
     }
     if (identical("=", assignmentOperator)) {
-      return accessor.buildAssignment(value, voidContext: voidContext);
+      return generator.buildAssignment(value, voidContext: voidContext);
     } else if (identical("+=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(plusName, value,
+      return generator.buildCompoundAssignment(plusName, value,
           offset: offsetForToken(token), voidContext: voidContext);
     } else if (identical("-=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(minusName, value,
+      return generator.buildCompoundAssignment(minusName, value,
           offset: offsetForToken(token), voidContext: voidContext);
     } else if (identical("*=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(multiplyName, value,
+      return generator.buildCompoundAssignment(multiplyName, value,
           offset: offsetForToken(token), voidContext: voidContext);
     } else if (identical("%=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(percentName, value,
+      return generator.buildCompoundAssignment(percentName, value,
           offset: offsetForToken(token), voidContext: voidContext);
     } else if (identical("&=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(ampersandName, value,
+      return generator.buildCompoundAssignment(ampersandName, value,
           offset: offsetForToken(token), voidContext: voidContext);
     } else if (identical("/=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(divisionName, value,
+      return generator.buildCompoundAssignment(divisionName, value,
           offset: offsetForToken(token), voidContext: voidContext);
     } else if (identical("<<=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(leftShiftName, value,
+      return generator.buildCompoundAssignment(leftShiftName, value,
           offset: offsetForToken(token), voidContext: voidContext);
     } else if (identical(">>=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(rightShiftName, value,
+      return generator.buildCompoundAssignment(rightShiftName, value,
           offset: offsetForToken(token), voidContext: voidContext);
     } else if (identical("??=", assignmentOperator)) {
-      return accessor.buildNullAwareAssignment(
+      return generator.buildNullAwareAssignment(
           value, const DynamicType(), offsetForToken(token),
           voidContext: voidContext);
     } else if (identical("^=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(caretName, value,
+      return generator.buildCompoundAssignment(caretName, value,
           offset: offsetForToken(token), voidContext: voidContext);
     } else if (identical("|=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(barName, value,
+      return generator.buildCompoundAssignment(barName, value,
           offset: offsetForToken(token), voidContext: voidContext);
     } else if (identical("~/=", assignmentOperator)) {
-      return accessor.buildCompoundAssignment(mustacheName, value,
+      return generator.buildCompoundAssignment(mustacheName, value,
           offset: offsetForToken(token), voidContext: voidContext);
     } else {
       return unhandled(
@@ -4392,11 +4350,12 @@ class DelayedAssignment<Arguments> extends ContextAccessor<Arguments> {
 
   @override
   Initializer buildFieldInitializer(Map<String, int> initializedFields) {
-    if (!identical("=", assignmentOperator) || !accessor.isThisPropertyAccess) {
-      return accessor.buildFieldInitializer(initializedFields);
+    if (!identical("=", assignmentOperator) ||
+        !generator.isThisPropertyAccess) {
+      return generator.buildFieldInitializer(initializedFields);
     }
     return helper.buildFieldInitializer(
-        false, accessor.plainNameForRead, offsetForToken(token), value);
+        false, generator.plainNameForRead, offsetForToken(token), value);
   }
 
   @override
@@ -4408,30 +4367,31 @@ class DelayedAssignment<Arguments> extends ContextAccessor<Arguments> {
   }
 }
 
-class DelayedPostfixIncrement<Arguments> extends ContextAccessor<Arguments> {
+class DelayedPostfixIncrement<Arguments>
+    extends ContextAwareGenerator<Arguments> {
   final Name binaryOperator;
 
   final Procedure interfaceTarget;
 
   DelayedPostfixIncrement(
-      BuilderHelper<dynamic, dynamic, Arguments> helper,
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
       Token token,
-      FastaAccessor accessor,
+      Generator generator,
       this.binaryOperator,
       this.interfaceTarget)
-      : super(helper, token, accessor);
+      : super(helper, token, generator);
 
   String get debugName => "DelayedPostfixIncrement";
 
   kernel.Expression buildSimpleRead() {
-    return accessor.buildPostfixIncrement(binaryOperator,
+    return generator.buildPostfixIncrement(binaryOperator,
         offset: offsetForToken(token),
         voidContext: false,
         interfaceTarget: interfaceTarget);
   }
 
   kernel.Expression buildForEffect() {
-    return accessor.buildPostfixIncrement(binaryOperator,
+    return generator.buildPostfixIncrement(binaryOperator,
         offset: offsetForToken(token),
         voidContext: true,
         interfaceTarget: interfaceTarget);
@@ -4628,7 +4588,7 @@ class FormalParameters<Arguments> {
   }
 
   Scope computeFormalParameterScope(Scope parent, Builder builder,
-      BuilderHelper<dynamic, dynamic, Arguments> helper) {
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper) {
     if (required.length == 0 && optional == null) return parent;
     Map<String, Builder> local = <String, Builder>{};
 
@@ -4684,7 +4644,7 @@ String getNodeName(Object node) {
     return node.fullNameForErrors;
   } else if (node is ThisAccessGenerator) {
     return node.isSuper ? "super" : "this";
-  } else if (node is FastaAccessor) {
+  } else if (node is Generator) {
     return node.plainNameForRead;
   } else {
     return unhandled("${node.runtimeType}", "getNodeName", -1, null);

@@ -23,6 +23,7 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show RefactoringMethodParameter, SourceChange;
@@ -378,6 +379,25 @@ abstract class Refactoring {
 }
 
 /**
+ * Information about the workspace refactorings operate it.
+ */
+class RefactoringWorkspace {
+  final Iterable<AnalysisDriver> drivers;
+  final SearchEngine searchEngine;
+
+  RefactoringWorkspace(this.drivers, this.searchEngine);
+
+  /**
+   * Whether the file with the given [path] is in a context root.
+   */
+  bool containsFile(String path) {
+    return drivers.any((driver) {
+      return driver.contextRoot.containsFile(path);
+    });
+  }
+}
+
+/**
  * Abstract [Refactoring] for renaming some [Element].
  */
 abstract class RenameRefactoring implements Refactoring {
@@ -386,8 +406,8 @@ abstract class RenameRefactoring implements Refactoring {
    * maybe `null` if there is no support for renaming [Element]s of the given
    * type.
    */
-  factory RenameRefactoring(
-      SearchEngine searchEngine, AstProvider astProvider, Element element) {
+  factory RenameRefactoring(RefactoringWorkspace workspace,
+      AstProvider astProvider, Element element) {
     if (element == null) {
       return null;
     }
@@ -395,28 +415,27 @@ abstract class RenameRefactoring implements Refactoring {
       element = (element as PropertyAccessorElement).variable;
     }
     if (element.enclosingElement is CompilationUnitElement) {
-      return new RenameUnitMemberRefactoringImpl(searchEngine, element);
+      return new RenameUnitMemberRefactoringImpl(workspace, element);
     }
     if (element is ConstructorElement) {
       return new RenameConstructorRefactoringImpl(
-          searchEngine, astProvider, element);
+          workspace, astProvider, element);
     }
     if (element is ImportElement) {
-      return new RenameImportRefactoringImpl(
-          searchEngine, astProvider, element);
+      return new RenameImportRefactoringImpl(workspace, astProvider, element);
     }
     if (element is LabelElement) {
-      return new RenameLabelRefactoringImpl(searchEngine, element);
+      return new RenameLabelRefactoringImpl(workspace, element);
     }
     if (element is LibraryElement) {
-      return new RenameLibraryRefactoringImpl(searchEngine, element);
+      return new RenameLibraryRefactoringImpl(workspace, element);
     }
     if (element is LocalElement) {
-      return new RenameLocalRefactoringImpl(searchEngine, astProvider, element);
+      return new RenameLocalRefactoringImpl(workspace, astProvider, element);
     }
     if (element.enclosingElement is ClassElement) {
       return new RenameClassMemberRefactoringImpl(
-          searchEngine, astProvider, element);
+          workspace, astProvider, element);
     }
     return null;
   }

@@ -272,7 +272,7 @@ class InstanceRefElement extends HtmlElement implements Renderable {
       case M.InstanceKind.list:
         var index = 0;
         return _loadedInstance.elements
-            .map((element) => new DivElement()
+            .map<Element>((element) => new DivElement()
               ..children = [
                 new SpanElement()..text = '[ ${index++} ] : ',
                 anyRef(_isolate, element, _objects, queue: _r.queue)
@@ -281,7 +281,7 @@ class InstanceRefElement extends HtmlElement implements Renderable {
               ..addAll(_createShowMoreButton());
       case M.InstanceKind.map:
         return _loadedInstance.associations
-            .map((association) => new DivElement()
+            .map<Element>((association) => new DivElement()
               ..children = [
                 new SpanElement()..text = '[ ',
                 anyRef(_isolate, association.key, _objects, queue: _r.queue),
@@ -306,7 +306,7 @@ class InstanceRefElement extends HtmlElement implements Renderable {
       case M.InstanceKind.float64x2List:
         var index = 0;
         return _loadedInstance.typedElements
-            .map((e) => new DivElement()..text = '[ ${index++} ] : $e')
+            .map<Element>((e) => new DivElement()..text = '[ ${index++} ] : $e')
             .toList()
               ..addAll(_createShowMoreButton());
       case M.InstanceKind.mirrorReference:

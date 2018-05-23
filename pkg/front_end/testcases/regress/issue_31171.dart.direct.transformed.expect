@@ -1,0 +1,14 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef T = dynamic;
+typedef F = () → core::Map<core::String, dynamic>;
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/regress/issue_31171.dart:8:1: Error: Expected a type, but got 'typedef'.
+typedef F = Map<String, dynamic> Function();
+^^^^^^^", "pkg/front_end/testcases/regress/issue_31171.dart:8:1: Error: Expected ';' before this.
+typedef F = Map<String, dynamic> Function();
+^^^^^^^", "pkg/front_end/testcases/regress/issue_31171.dart:7:11: Error: Can't create typedef from non-function type.
+typedef T = 
+          ^"]/* from null */;
+static method main() → dynamic {}

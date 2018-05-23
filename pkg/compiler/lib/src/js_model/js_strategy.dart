@@ -346,7 +346,7 @@ class JsClosedWorldBuilder {
         elementEnvironment: _elementEnvironment,
         dartTypes: _elementMap.types,
         commonElements: _commonElements,
-        constantSystem: const JavaScriptConstantSystem(),
+        constantSystem: JavaScriptConstantSystem.only,
         backendUsage: backendUsage,
         noSuchMethodData: noSuchMethodData,
         nativeData: nativeData,

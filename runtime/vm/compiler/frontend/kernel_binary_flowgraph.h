@@ -670,7 +670,16 @@ class BytecodeMetadataHelper : public MetadataHelper {
       : MetadataHelper(builder) {}
 
 #if defined(DART_USE_INTERPRETER)
-  void CopyBytecode(const Function& function);
+  void ReadMetadata(const Function& function);
+
+ private:
+  // Returns the index of the last read pool entry.
+  intptr_t ReadPoolEntries(const Function& function,
+                           const Function& inner_function,
+                           const ObjectPool& pool,
+                           intptr_t from_index);
+  RawCode* ReadBytecode(const ObjectPool& pool);
+  void ReadExceptionsTable(const Code& bytecode);
 #endif
 };
 
@@ -1446,6 +1455,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   // Drop given number of temps from the stack but preserve top of the stack.
   Fragment DropTempsPreserveTop(intptr_t num_temps_to_drop);
 
+  Fragment MakeTemp();
   Fragment NullConstant();
   JoinEntryInstr* BuildJoinEntry();
   JoinEntryInstr* BuildJoinEntry(intptr_t try_index);

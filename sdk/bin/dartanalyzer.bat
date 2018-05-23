@@ -24,7 +24,7 @@ set SDK_ARG=--dart-sdk=%SDK_DIR%
 set EXTRA_VM_OPTIONS=
 
 if _%DARTANALYZER_DEVELOPER_MODE%_ == _1_ (
-  set EXTRA_VM_OPTIONS=%EXTRA_VM_OPTIONS% --checked
+  set EXTRA_VM_OPTIONS=%EXTRA_VM_OPTIONS% --enable_asserts
 )
 
 rem We allow extra vm options to be passed in through an environment variable.
@@ -40,7 +40,7 @@ if %DART_ROOT:~-1%==\ set DART_ROOT=%DART_ROOT:~0,-1%
 
 set ANALYZER=%DART_ROOT%\pkg\analyzer_cli\bin\analyzer.dart
 
-"%DART%" "--packages=%DART_ROOT%\.packages" %EXTRA_VM_OPTIONS% "%ANALYZER%" "%SDK_ARG%" %*
+"%DART%" "--preview-dart-2" "--packages=%DART_ROOT%\.packages" %EXTRA_VM_OPTIONS% "%ANALYZER%" "%SDK_ARG%" %*
 
 endlocal
 

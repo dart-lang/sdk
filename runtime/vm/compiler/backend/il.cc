@@ -3377,8 +3377,21 @@ void SpecialParameterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNREACHABLE();
 }
 
+LocationSummary* MakeTempInstr::MakeLocationSummary(Zone* zone,
+                                                    bool optimizing) const {
+  ASSERT(!optimizing);
+  null_->InitializeLocationSummary(zone, optimizing);
+  return null_->locs();
+}
+
+void MakeTempInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(!compiler->is_optimizing());
+  null_->EmitNativeCode(compiler);
+}
+
 LocationSummary* DropTempsInstr::MakeLocationSummary(Zone* zone,
                                                      bool optimizing) const {
+  ASSERT(!optimizing);
   return (InputCount() == 1)
              ? LocationSummary::Make(zone, 1, Location::SameAsFirstInput(),
                                      LocationSummary::kNoCall)

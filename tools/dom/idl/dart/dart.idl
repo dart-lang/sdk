@@ -133,6 +133,9 @@ interface HTMLMediaElement {
 [DartSupplemental]
 interface RTCPeerConnection {
   [DartSuppress, RaisesException] void addIceCandidate(RTCIceCandidate candidate);
+  [DartSuppress] Promise<void> getStats(RTCStatsCallback successCallback, optional MediaStreamTrack? selector);
+  [DartSuppress] Promise<void> setLocalDescription(RTCSessionDescriptionInit description);
+  [DartSuppress] Promise<void> setRemoteDescription(RTCSessionDescriptionInit description);
 };
 
 // See implementation in tools/dom/templates for canvas and offscreenCanvas.
@@ -563,12 +566,6 @@ interface Performance {
 [DartSupplemental]
 interface CalcLength {
     [DartName=inch] readonly attribute double? in;
-};
-
-[DartSupplemental]
-interface RTCPeerConnection {
-    [DartSuppress] Promise<void> setLocalDescription(RTCSessionDescriptionInit description);
-    [DartSuppress] Promise<void> setRemoteDescription(RTCSessionDescriptionInit description);
 };
 
 [DartSuppress]

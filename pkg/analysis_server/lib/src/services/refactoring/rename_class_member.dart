@@ -41,8 +41,8 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   _ClassMemberValidator _validator;
 
   RenameClassMemberRefactoringImpl(
-      SearchEngine searchEngine, this.astProvider, Element element)
-      : super(searchEngine, element);
+      RefactoringWorkspace workspace, this.astProvider, Element element)
+      : super(workspace, element);
 
   @override
   String get refactoringName {
@@ -102,7 +102,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
     List<SourceReference> nameRefs = getSourceReferences(nameMatches);
     for (SourceReference reference in nameRefs) {
       // ignore references from SDK and pub cache
-      if (isElementInSdkOrPubCache(reference.element)) {
+      if (!workspace.containsFile(reference.element.source.fullName)) {
         continue;
       }
       // check the element being renamed is accessible

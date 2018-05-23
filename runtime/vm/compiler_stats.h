@@ -78,7 +78,7 @@ class CompilerStats {
   Timer graphcompiler_timer;   // Included in codegen_timer.
   Timer codefinalizer_timer;   // Included in codegen_timer.
 
-  ALIGN8 int64_t num_tokens_total;  // Isolate + VM isolate
+  ALIGN8 int64_t num_tokens_total;  // Isolate + VM isolate.
   ALIGN8 int64_t num_tokens_scanned;
   ALIGN8 int64_t num_tokens_consumed;
   ALIGN8 int64_t num_cached_consts;

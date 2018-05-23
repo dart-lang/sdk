@@ -583,10 +583,25 @@ class KernelCompilationRequest : public ValueObject {
   }
 
  private:
+  void LoadKernelFromResponse(Dart_CObject* response) {
+    ASSERT((response->type == Dart_CObject_kTypedData) ||
+           (response->type == Dart_CObject_kNull));
+
+    if (response->type == Dart_CObject_kNull) {
+      return;
+    }
+
+    ASSERT(response->value.as_typed_data.type == Dart_TypedData_kUint8);
+    result_.kernel_size = response->value.as_typed_data.length;
+    result_.kernel = static_cast<uint8_t*>(malloc(result_.kernel_size));
+    memmove(result_.kernel, response->value.as_typed_data.values,
+            result_.kernel_size);
+  }
+
   // Possible responses from the Kernel isolate:
   //
   //     [Ok, Uint8List KernelBinary]
-  //     [Error, String error]
+  //     [Error, String error, Uint8List KernelBinary]
   //     [Crash, String error]
   //
   void HandleResponseImpl(Dart_CObject* message) {
@@ -602,22 +617,11 @@ class KernelCompilationRequest : public ValueObject {
         message->value.as_array.values[0]->value.as_int32);
 
     if (result_.status == Dart_KernelCompilationStatus_Ok) {
-      ASSERT((response[1]->type == Dart_CObject_kTypedData) ||
-             (response[1]->type == Dart_CObject_kNull));
-
-      if (response[1]->type == Dart_CObject_kNull) {
-        ml.Notify();
-        return;
-      }
-
-      ASSERT(response[1]->value.as_typed_data.type == Dart_TypedData_kUint8);
-      result_.kernel_size = response[1]->value.as_typed_data.length;
-      result_.kernel = static_cast<uint8_t*>(malloc(result_.kernel_size));
-      memmove(result_.kernel, response[1]->value.as_typed_data.values,
-              result_.kernel_size);
+      LoadKernelFromResponse(response[1]);
     } else {
-      ASSERT(result_.status == Dart_KernelCompilationStatus_Crash ||
-             result_.status == Dart_KernelCompilationStatus_Error);
+      if (result_.status == Dart_KernelCompilationStatus_Error) {
+        LoadKernelFromResponse(response[2]);
+      }
       // This is an error.
       ASSERT(response[1]->type == Dart_CObject_kString);
       result_.error = strdup(response[1]->value.as_string);

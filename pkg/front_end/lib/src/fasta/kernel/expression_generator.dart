@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// A library to help transform compounds and null-aware accessors into
-/// let expressions.
+/// A library to help generate expression.
 library fasta.expression_generator;
 
 import '../../scanner/token.dart' show Token;
@@ -29,15 +28,15 @@ import '../names.dart'
 
 import '../parser.dart' show lengthForToken, lengthOfSpan, offsetForToken;
 
-import '../problems.dart' show unhandled, unimplemented, unsupported;
+import '../problems.dart' show unhandled, unsupported;
 
-import '../scope.dart' show AccessErrorBuilder, ProblemBuilder, Scope;
-
-import '../type_inference/type_promotion.dart' show TypePromoter;
+import '../scope.dart' show AccessErrorBuilder;
 
 import 'body_builder.dart' show Identifier, noLocation;
 
 import 'constness.dart' show Constness;
+
+import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
 
 import 'forest.dart' show Forest;
 
@@ -50,8 +49,6 @@ import 'kernel_ast_api.dart'
         Constructor,
         DartType,
         Field,
-        FunctionNode,
-        FunctionType,
         Initializer,
         InvalidType,
         Let,
@@ -72,7 +69,6 @@ import 'kernel_ast_api.dart'
         ShadowVariableAssignment,
         ShadowVariableDeclaration,
         ShadowVariableGet,
-        StaticGet,
         StaticSet,
         SuperMethodInvocation,
         SuperPropertySet,
@@ -94,44 +90,49 @@ import 'kernel_builder.dart'
         KernelClassBuilder,
         KernelFunctionTypeAliasBuilder,
         KernelInvalidTypeBuilder,
-        KernelPrefixBuilder,
         KernelTypeVariableBuilder,
-        LibraryBuilder,
         LoadLibraryBuilder,
         PrefixBuilder,
         TypeDeclarationBuilder;
 
-part 'expression_generator_impl.dart';
-
-/// An [Accessor] represents a subexpression for which we can't yet build a
-/// kernel [kernel.Expression] because we don't yet know the context in which
-/// it is used.
+/// A generator represents a subexpression for which we can't yet build an
+/// expression because we don't yet know the context in which it's used.
 ///
-/// Once the context is known, an [Accessor] can be converted into an
-/// [kernel.Expression] by calling a "build" method.
+/// Once the context is known, a generator can be converted into an expression
+/// by calling a `build` method.
 ///
 /// For example, when building a kernel representation for `a[x] = b`, after
 /// parsing `a[x]` but before parsing `= b`, we don't yet know whether to
-/// generate an invocation of `operator[]` or `operator[]=`, so we generate an
-/// [Accessor] object.  Later, after `= b` is parsed, [buildAssignment] will be
-/// called.
-// TODO(ahe): Move this into [Generator] when all uses have been updated.
-abstract class Accessor<Arguments> {
-  final BuilderHelper<dynamic, dynamic, Arguments> helper;
+/// generate an invocation of `operator[]` or `operator[]=`, so we create a
+/// [Generator] object.  Later, after `= b` is parsed, [buildAssignment] will
+/// be called.
+abstract class Generator<Arguments> {
+  final ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper;
   final Token token;
 
-  Accessor(this.helper, this.token);
+  Generator(this.helper, this.token);
 
+  // TODO(ahe): Change type arguments.
   Forest<kernel.Expression, kernel.Statement, Token, Arguments> get forest =>
       helper.forest;
 
-  /// Builds an [kernel.Expression] representing a read from the accessor.
+  String get plainNameForRead;
+
+  String get debugName;
+
+  Uri get uri => helper.uri;
+
+  String get plainNameForWrite => plainNameForRead;
+
+  bool get isInitializer => false;
+
+  /// Builds a [kernel.Expression] representing a read from the generator.
   kernel.Expression buildSimpleRead() {
     return _finish(_makeSimpleRead(), null);
   }
 
-  /// Builds an [kernel.Expression] representing an assignment with the
-  /// accessor on the LHS and [value] on the RHS.
+  /// Builds a [kernel.Expression] representing an assignment with the
+  /// generator on the LHS and [value] on the RHS.
   ///
   /// The returned expression evaluates to the assigned value, unless
   /// [voidContext] is true, in which case it may evaluate to anything.
@@ -142,8 +143,8 @@ abstract class Accessor<Arguments> {
         complexAssignment);
   }
 
-  /// Returns an [kernel.Expression] representing a null-aware assignment
-  /// (`??=`) with the accessor on the LHS and [value] on the RHS.
+  /// Returns a [kernel.Expression] representing a null-aware assignment
+  /// (`??=`) with the generator on the LHS and [value] on the RHS.
   ///
   /// The returned expression evaluates to the assigned value, unless
   /// [voidContext] is true, in which case it may evaluate to anything.
@@ -178,8 +179,8 @@ abstract class Accessor<Arguments> {
     return _finish(makeLet(tmp, nullAwareCombiner), complexAssignment);
   }
 
-  /// Returns an [kernel.Expression] representing a compound assignment
-  /// (e.g. `+=`) with the accessor on the LHS and [value] on the RHS.
+  /// Returns a [kernel.Expression] representing a compound assignment
+  /// (e.g. `+=`) with the generator on the LHS and [value] on the RHS.
   kernel.Expression buildCompoundAssignment(
       Name binaryOperator, kernel.Expression value,
       {int offset: TreeNode.noOffset,
@@ -196,8 +197,8 @@ abstract class Accessor<Arguments> {
         complexAssignment);
   }
 
-  /// Returns an [kernel.Expression] representing a pre-increment or
-  /// pre-decrement of the accessor.
+  /// Returns a [kernel.Expression] representing a pre-increment or
+  /// pre-decrement of the generator.
   kernel.Expression buildPrefixIncrement(Name binaryOperator,
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
@@ -210,8 +211,8 @@ abstract class Accessor<Arguments> {
         isPreIncDec: true);
   }
 
-  /// Returns an [kernel.Expression] representing a post-increment or
-  /// post-decrement of the accessor.
+  /// Returns a [kernel.Expression] representing a post-increment or
+  /// post-decrement of the generator.
   kernel.Expression buildPostfixIncrement(Name binaryOperator,
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
@@ -258,40 +259,113 @@ abstract class Accessor<Arguments> {
     }
   }
 
-  /// Returns an [kernel.Expression] representing a compile-time error.
+  /// Returns a [kernel.Expression] representing a compile-time error.
   ///
   /// At runtime, an exception will be thrown.
-  makeInvalidRead() {
-    return unhandled("compile-time error", "$runtimeType",
-        offsetForToken(token), helper.uri);
+  kernel.Expression makeInvalidRead() {
+    return buildThrowNoSuchMethodError(
+        forest.literalNull(token), forest.argumentsEmpty(noLocation),
+        isGetter: true);
   }
 
-  /// Returns an [kernel.Expression] representing a compile-time error wrapping
+  /// Returns a [kernel.Expression] representing a compile-time error wrapping
   /// [value].
   ///
   /// At runtime, [value] will be evaluated before throwing an exception.
-  makeInvalidWrite(kernel.Expression value) {
-    return unhandled("compile-time error", "$runtimeType",
-        offsetForToken(token), helper.uri);
+  kernel.Expression makeInvalidWrite(kernel.Expression value) {
+    return buildThrowNoSuchMethodError(forest.literalNull(token),
+        forest.arguments(<kernel.Expression>[value], noLocation),
+        isSetter: true);
   }
 
   /// Creates a data structure for tracking the desugaring of a complex
   /// assignment expression whose right hand side is [rhs].
   ShadowComplexAssignment startComplexAssignment(kernel.Expression rhs) =>
       new ShadowIllegalAssignment(rhs);
-}
 
-// TODO(ahe): Merge classes [Accessor] and [FastaAccessor] into this.
-abstract class Generator<Arguments> = Accessor<Arguments>
-    with FastaAccessor<Arguments>;
+  T storeOffset<T>(T node, int offset) {
+    return helper.storeOffset(node, offset);
+  }
+
+  kernel.Expression buildForEffect() => buildSimpleRead();
+
+  Initializer buildFieldInitializer(Map<String, int> initializedFields) {
+    int offset = offsetForToken(token);
+    return helper.buildInvalidInitializer(
+        helper.buildCompileTimeError(
+            messageInvalidInitializer, offset, lengthForToken(token)),
+        offset);
+  }
+
+  /* kernel.Expression | Generator | Initializer */ doInvocation(
+      int offset, Arguments arguments);
+
+  /* kernel.Expression | Generator */ buildPropertyAccess(
+      IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
+    if (send is SendAccessGenerator) {
+      return helper.buildMethodInvocation(buildSimpleRead(), send.name,
+          send.arguments, offsetForToken(send.token),
+          isNullAware: isNullAware);
+    } else {
+      if (helper.constantContext != ConstantContext.none &&
+          send.name != lengthName) {
+        helper.deprecated_addCompileTimeError(
+            offsetForToken(token), "Not a constant expression.");
+      }
+      return PropertyAccessGenerator.make(helper, send.token, buildSimpleRead(),
+          send.name, null, null, isNullAware);
+    }
+  }
+
+  DartType buildTypeWithBuiltArguments(List<DartType> arguments,
+      {bool nonInstanceAccessIsError: false}) {
+    helper.addProblem(templateNotAType.withArguments(token.lexeme),
+        offsetForToken(token), lengthForToken(token));
+    return const InvalidType();
+  }
+
+  /* kernel.Expression | Generator */ buildThrowNoSuchMethodError(
+      kernel.Expression receiver, Arguments arguments,
+      {bool isSuper: false,
+      bool isGetter: false,
+      bool isSetter: false,
+      bool isStatic: false,
+      String name,
+      int offset,
+      LocatedMessage argMessage}) {
+    return helper.throwNoSuchMethodError(receiver, name ?? plainNameForWrite,
+        arguments, offset ?? offsetForToken(this.token),
+        isGetter: isGetter,
+        isSetter: isSetter,
+        isSuper: isSuper,
+        isStatic: isStatic,
+        argMessage: argMessage);
+  }
+
+  bool get isThisPropertyAccess => false;
+
+  void printOn(StringSink sink);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer();
+    buffer.write(debugName);
+    buffer.write("(offset: ");
+    buffer.write("${offsetForToken(token)}");
+    printOn(buffer);
+    buffer.write(")");
+    return "$buffer";
+  }
+}
 
 class VariableUseGenerator<Arguments> extends Generator<Arguments> {
   final VariableDeclaration variable;
 
   final DartType promotedType;
 
-  VariableUseGenerator(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      Token token, this.variable,
+  VariableUseGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      this.variable,
       [this.promotedType])
       : super(helper, token);
 
@@ -353,7 +427,7 @@ class PropertyAccessGenerator<Arguments> extends Generator<Arguments> {
   VariableDeclaration _receiverVariable;
 
   PropertyAccessGenerator.internal(
-      BuilderHelper<dynamic, dynamic, Arguments> helper,
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
       Token token,
       this.receiver,
       this.name,
@@ -361,8 +435,8 @@ class PropertyAccessGenerator<Arguments> extends Generator<Arguments> {
       this.setter)
       : super(helper, token);
 
-  static FastaAccessor<Arguments> make<Arguments>(
-      BuilderHelper<dynamic, dynamic, Arguments> helper,
+  static Generator<Arguments> make<Arguments>(
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
       Token token,
       kernel.Expression receiver,
       Name name,
@@ -457,8 +531,12 @@ class ThisPropertyAccessGenerator<Arguments> extends Generator<Arguments> {
 
   final Member setter;
 
-  ThisPropertyAccessGenerator(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      Token token, this.name, this.getter, this.setter)
+  ThisPropertyAccessGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      this.name,
+      this.getter,
+      this.setter)
       : super(helper, token);
 
   String get plainNameForRead => name.name;
@@ -534,7 +612,7 @@ class NullAwarePropertyAccessGenerator<Arguments> extends Generator<Arguments> {
   final DartType type;
 
   NullAwarePropertyAccessGenerator(
-      BuilderHelper<dynamic, dynamic, Arguments> helper,
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
       Token token,
       this.receiverExpression,
       this.name,
@@ -589,7 +667,7 @@ class NullAwarePropertyAccessGenerator<Arguments> extends Generator<Arguments> {
   }
 
   kernel.Expression doInvocation(int offset, Arguments arguments) {
-    return unimplemented("doInvocation", offset, uri);
+    return unsupported("doInvocation", offset, uri);
   }
 
   @override
@@ -622,7 +700,7 @@ class SuperPropertyAccessGenerator<Arguments> extends Generator<Arguments> {
   final Member setter;
 
   SuperPropertyAccessGenerator(
-      BuilderHelper<dynamic, dynamic, Arguments> helper,
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
       Token token,
       this.name,
       this.getter,
@@ -705,7 +783,7 @@ class IndexedAccessGenerator<Arguments> extends Generator<Arguments> {
   VariableDeclaration indexVariable;
 
   IndexedAccessGenerator.internal(
-      BuilderHelper<dynamic, dynamic, Arguments> helper,
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
       Token token,
       this.receiver,
       this.index,
@@ -713,8 +791,8 @@ class IndexedAccessGenerator<Arguments> extends Generator<Arguments> {
       this.setter)
       : super(helper, token);
 
-  static FastaAccessor<Arguments> make<Arguments>(
-      BuilderHelper<dynamic, dynamic, Arguments> helper,
+  static Generator<Arguments> make<Arguments>(
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
       Token token,
       kernel.Expression receiver,
       kernel.Expression index,
@@ -867,8 +945,12 @@ class ThisIndexedAccessGenerator<Arguments> extends Generator<Arguments> {
 
   VariableDeclaration indexVariable;
 
-  ThisIndexedAccessGenerator(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      Token token, this.index, this.getter, this.setter)
+  ThisIndexedAccessGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      this.index,
+      this.getter,
+      this.setter)
       : super(helper, token);
 
   String get plainNameForRead => "[]";
@@ -987,8 +1069,12 @@ class SuperIndexedAccessGenerator<Arguments> extends Generator<Arguments> {
 
   VariableDeclaration indexVariable;
 
-  SuperIndexedAccessGenerator(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      Token token, this.index, this.getter, this.setter)
+  SuperIndexedAccessGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      this.index,
+      this.getter,
+      this.setter)
       : super(helper, token);
 
   String get plainNameForRead => "[]";
@@ -1119,13 +1205,16 @@ class StaticAccessGenerator<Arguments> extends Generator<Arguments> {
 
   final Member writeTarget;
 
-  StaticAccessGenerator(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      Token token, this.readTarget, this.writeTarget)
+  StaticAccessGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      this.readTarget,
+      this.writeTarget)
       : assert(readTarget != null || writeTarget != null),
         super(helper, token);
 
   factory StaticAccessGenerator.fromBuilder(
-      BuilderHelper<dynamic, dynamic, Arguments> helper,
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
       Builder builder,
       Token token,
       Builder builderSetter) {
@@ -1215,8 +1304,10 @@ class StaticAccessGenerator<Arguments> extends Generator<Arguments> {
 class LoadLibraryGenerator<Arguments> extends Generator<Arguments> {
   final LoadLibraryBuilder builder;
 
-  LoadLibraryGenerator(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      Token token, this.builder)
+  LoadLibraryGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      this.builder)
       : super(helper, token);
 
   String get plainNameForRead => 'loadLibrary';
@@ -1256,10 +1347,13 @@ class LoadLibraryGenerator<Arguments> extends Generator<Arguments> {
 class DeferredAccessGenerator<Arguments> extends Generator<Arguments> {
   final PrefixBuilder builder;
 
-  final FastaAccessor accessor;
+  final Generator generator;
 
-  DeferredAccessGenerator(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      Token token, this.builder, this.accessor)
+  DeferredAccessGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      this.builder,
+      this.generator)
       : super(helper, token);
 
   String get plainNameForRead {
@@ -1271,27 +1365,27 @@ class DeferredAccessGenerator<Arguments> extends Generator<Arguments> {
 
   kernel.Expression _makeSimpleRead() {
     return helper.wrapInDeferredCheck(
-        accessor._makeSimpleRead(), builder, token.charOffset);
+        generator._makeSimpleRead(), builder, token.charOffset);
   }
 
   kernel.Expression _makeRead(ShadowComplexAssignment complexAssignment) {
     return helper.wrapInDeferredCheck(
-        accessor._makeRead(complexAssignment), builder, token.charOffset);
+        generator._makeRead(complexAssignment), builder, token.charOffset);
   }
 
   kernel.Expression _makeWrite(kernel.Expression value, bool voidContext,
       ShadowComplexAssignment complexAssignment) {
     return helper.wrapInDeferredCheck(
-        accessor._makeWrite(value, voidContext, complexAssignment),
+        generator._makeWrite(value, voidContext, complexAssignment),
         builder,
         token.charOffset);
   }
 
   buildPropertyAccess(
-      IncompleteSend send, int operatorOffset, bool isNullAware) {
+      IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
     var propertyAccess =
-        accessor.buildPropertyAccess(send, operatorOffset, isNullAware);
-    if (propertyAccess is FastaAccessor) {
+        generator.buildPropertyAccess(send, operatorOffset, isNullAware);
+    if (propertyAccess is Generator) {
       return new DeferredAccessGenerator(
           helper, token, builder, propertyAccess);
     } else {
@@ -1305,7 +1399,7 @@ class DeferredAccessGenerator<Arguments> extends Generator<Arguments> {
       {bool nonInstanceAccessIsError: false}) {
     helper.addProblem(
         templateDeferredTypeAnnotation.withArguments(
-            accessor.buildTypeWithBuiltArguments(arguments,
+            generator.buildTypeWithBuiltArguments(arguments,
                 nonInstanceAccessIsError: nonInstanceAccessIsError),
             builder.name),
         offsetForToken(token),
@@ -1315,15 +1409,15 @@ class DeferredAccessGenerator<Arguments> extends Generator<Arguments> {
 
   kernel.Expression doInvocation(int offset, Arguments arguments) {
     return helper.wrapInDeferredCheck(
-        accessor.doInvocation(offset, arguments), builder, token.charOffset);
+        generator.doInvocation(offset, arguments), builder, token.charOffset);
   }
 
   @override
   void printOn(StringSink sink) {
     sink.write(", builder: ");
     sink.write(builder);
-    sink.write(", accessor: ");
-    sink.write(accessor);
+    sink.write(", generator: ");
+    sink.write(generator);
   }
 }
 
@@ -1334,8 +1428,11 @@ class ReadOnlyAccessGenerator<Arguments> extends Generator<Arguments> {
 
   VariableDeclaration value;
 
-  ReadOnlyAccessGenerator(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      Token token, this.expression, this.plainNameForRead)
+  ReadOnlyAccessGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      this.expression,
+      this.plainNameForRead)
       : super(helper, token);
 
   String get debugName => "ReadOnlyAccessGenerator";
@@ -1378,7 +1475,8 @@ class ReadOnlyAccessGenerator<Arguments> extends Generator<Arguments> {
 
 class LargeIntAccessGenerator<Arguments> extends Generator<Arguments> {
   LargeIntAccessGenerator(
-      BuilderHelper<dynamic, dynamic, Arguments> helper, Token token)
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      Token token)
       : super(helper, token);
 
   // TODO(ahe): This should probably be calling unhandled.
@@ -1429,7 +1527,7 @@ abstract class ErroneousExpressionGenerator<Arguments>
     implements Generator<Arguments> {
   /// Pass [arguments] that must be evaluated before throwing an error.  At
   /// most one of [isGetter] and [isSetter] should be true and they're passed
-  /// to [BuilderHelper.buildThrowNoSuchMethodError] if it is used.
+  /// to [ExpressionGeneratorHelper.buildThrowNoSuchMethodError] if it is used.
   kernel.Expression buildError(Arguments arguments,
       {bool isGetter: false, bool isSetter: false, int offset});
 
@@ -1455,7 +1553,7 @@ abstract class ErroneousExpressionGenerator<Arguments>
 
   @override
   buildPropertyAccess(
-      IncompleteSend send, int operatorOffset, bool isNullAware) {
+      IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
     return this;
   }
 
@@ -1545,8 +1643,10 @@ class ThisAccessGenerator<Arguments> extends Generator<Arguments> {
 
   final bool isSuper;
 
-  ThisAccessGenerator(BuilderHelper<dynamic, dynamic, Arguments> helper,
-      Token token, this.isInitializer,
+  ThisAccessGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      this.isInitializer,
       {this.isSuper: false})
       : super(helper, token);
 
@@ -1577,11 +1677,11 @@ class ThisAccessGenerator<Arguments> extends Generator<Arguments> {
   }
 
   buildPropertyAccess(
-      IncompleteSend send, int operatorOffset, bool isNullAware) {
+      IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
     Name name = send.name;
     Arguments arguments = send.arguments;
     int offset = offsetForToken(send.token);
-    if (isInitializer && send is SendAccessor) {
+    if (isInitializer && send is SendAccessGenerator) {
       if (isNullAware) {
         helper.deprecated_addCompileTimeError(
             operatorOffset, "Expected '.'\nTry removing '?'.");
@@ -1589,7 +1689,7 @@ class ThisAccessGenerator<Arguments> extends Generator<Arguments> {
       return buildConstructorInitializer(offset, name, arguments);
     }
     Member getter = helper.lookupInstanceMember(name, isSuper: isSuper);
-    if (send is SendAccessor) {
+    if (send is SendAccessGenerator) {
       // Notice that 'this' or 'super' can't be null. So we can ignore the
       // value of [isNullAware].
       if (getter == null) {
@@ -1630,11 +1730,8 @@ class ThisAccessGenerator<Arguments> extends Generator<Arguments> {
     Constructor constructor = helper.lookupConstructor(name, isSuper: isSuper);
     LocatedMessage argMessage;
     if (constructor != null) {
-      argMessage = helper.checkArguments(
-          new FunctionTypeAccessor.fromNode(constructor.function),
-          arguments,
-          CalleeDesignation.Constructor,
-          offset, <TypeParameter>[]);
+      argMessage = helper.checkArgumentsForFunction(
+          constructor.function, arguments, offset, <TypeParameter>[]);
     }
     if (constructor == null || argMessage != null) {
       return helper.buildInvalidInitializer(
@@ -1696,13 +1793,13 @@ class ThisAccessGenerator<Arguments> extends Generator<Arguments> {
 
   @override
   kernel.Expression _makeRead(ShadowComplexAssignment complexAssignment) {
-    return unimplemented("_makeRead", offsetForToken(token), uri);
+    return unsupported("_makeRead", offsetForToken(token), uri);
   }
 
   @override
   kernel.Expression _makeWrite(kernel.Expression value, bool voidContext,
       ShadowComplexAssignment complexAssignment) {
-    return unimplemented("_makeWrite", offsetForToken(token), uri);
+    return unsupported("_makeWrite", offsetForToken(token), uri);
   }
 
   @override
@@ -1711,6 +1808,478 @@ class ThisAccessGenerator<Arguments> extends Generator<Arguments> {
     sink.write(isInitializer);
     sink.write(", isSuper: ");
     sink.write(isSuper);
+  }
+}
+
+abstract class IncompleteSendGenerator<Arguments> extends Generator<Arguments> {
+  final Name name;
+
+  IncompleteSendGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      this.name)
+      : super(helper, token);
+
+  withReceiver(Object receiver, int operatorOffset, {bool isNullAware});
+
+  Arguments get arguments => null;
+
+  @override
+  kernel.Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+    return unsupported("_makeRead", offsetForToken(token), uri);
+  }
+
+  @override
+  kernel.Expression _makeWrite(kernel.Expression value, bool voidContext,
+      ShadowComplexAssignment complexAssignment) {
+    return unsupported("_makeWrite", offsetForToken(token), uri);
+  }
+
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", name: ");
+    sink.write(name.name);
+  }
+}
+
+class UnresolvedNameGenerator<Arguments> extends Generator<Arguments>
+    with ErroneousExpressionGenerator<Arguments> {
+  @override
+  final Name name;
+
+  UnresolvedNameGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      this.name)
+      : super(helper, token);
+
+  String get debugName => "UnresolvedNameGenerator";
+
+  kernel.Expression doInvocation(int charOffset, Arguments arguments) {
+    return buildError(arguments, offset: charOffset);
+  }
+
+  @override
+  DartType buildErroneousTypeNotAPrefix(Identifier suffix) {
+    helper.addProblem(
+        templateUnresolvedPrefixInTypeAnnotation.withArguments(
+            name.name, suffix.name),
+        offsetForToken(token),
+        lengthOfSpan(token, suffix.token));
+    return const InvalidType();
+  }
+
+  @override
+  kernel.Expression buildError(Arguments arguments,
+      {bool isGetter: false, bool isSetter: false, int offset}) {
+    offset ??= offsetForToken(this.token);
+    return helper.throwNoSuchMethodError(
+        storeOffset(forest.literalNull(null), offset),
+        plainNameForRead,
+        arguments,
+        offset,
+        isGetter: isGetter,
+        isSetter: isSetter);
+  }
+
+  @override
+  kernel.Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+    return unsupported("_makeRead", offsetForToken(token), uri);
+  }
+
+  @override
+  kernel.Expression _makeWrite(kernel.Expression value, bool voidContext,
+      ShadowComplexAssignment complexAssignment) {
+    return unsupported("_makeWrite", offsetForToken(token), uri);
+  }
+
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", name: ");
+    sink.write(name.name);
+  }
+}
+
+class IncompleteErrorGenerator<Arguments>
+    extends IncompleteSendGenerator<Arguments>
+    with ErroneousExpressionGenerator<Arguments> {
+  final Message message;
+
+  IncompleteErrorGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      this.message)
+      : super(helper, token, null);
+
+  String get debugName => "IncompleteErrorGenerator";
+
+  @override
+  kernel.Expression buildError(Arguments arguments,
+      {bool isGetter: false, bool isSetter: false, int offset}) {
+    int length = noLength;
+    if (offset == null) {
+      offset = offsetForToken(token);
+      length = lengthForToken(token);
+    }
+    return helper.buildCompileTimeError(message, offset, length);
+  }
+
+  @override
+  DartType buildErroneousTypeNotAPrefix(Identifier suffix) {
+    helper.addProblem(
+        templateNotAPrefixInTypeAnnotation.withArguments(
+            token.lexeme, suffix.name),
+        offsetForToken(token),
+        lengthOfSpan(token, suffix.token));
+    return const InvalidType();
+  }
+
+  @override
+  doInvocation(int offset, Arguments arguments) => this;
+
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", message: ");
+    sink.write(message.code.name);
+  }
+}
+
+class SendAccessGenerator<Arguments>
+    extends IncompleteSendGenerator<Arguments> {
+  @override
+  final Arguments arguments;
+
+  SendAccessGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      Name name,
+      this.arguments)
+      : super(helper, token, name) {
+    assert(arguments != null);
+  }
+
+  String get plainNameForRead => name.name;
+
+  String get debugName => "SendAccessGenerator";
+
+  kernel.Expression buildSimpleRead() {
+    return unsupported("buildSimpleRead", offsetForToken(token), uri);
+  }
+
+  kernel.Expression buildAssignment(kernel.Expression value,
+      {bool voidContext: false}) {
+    return unsupported("buildAssignment", offsetForToken(token), uri);
+  }
+
+  withReceiver(Object receiver, int operatorOffset, {bool isNullAware: false}) {
+    if (receiver is Generator) {
+      return receiver.buildPropertyAccess(this, operatorOffset, isNullAware);
+    }
+    if (receiver is PrefixBuilder) {
+      PrefixBuilder prefix = receiver;
+      if (isNullAware) {
+        helper.deprecated_addCompileTimeError(
+            offsetForToken(token),
+            "Library prefix '${prefix.name}' can't be used with null-aware "
+            "operator.\nTry removing '?'.");
+      }
+      receiver = helper.scopeLookup(prefix.exportScope, name.name, token,
+          isQualified: true, prefix: prefix);
+      return helper.finishSend(receiver, arguments, offsetForToken(token));
+    }
+    return helper.buildMethodInvocation(
+        helper.toValue(receiver), name, arguments, offsetForToken(token),
+        isNullAware: isNullAware);
+  }
+
+  kernel.Expression buildNullAwareAssignment(
+      kernel.Expression value, DartType type, int offset,
+      {bool voidContext: false}) {
+    return unsupported("buildNullAwareAssignment", offset, uri);
+  }
+
+  kernel.Expression buildCompoundAssignment(
+      Name binaryOperator, kernel.Expression value,
+      {int offset,
+      bool voidContext: false,
+      Procedure interfaceTarget,
+      bool isPreIncDec: false}) {
+    return unsupported(
+        "buildCompoundAssignment", offset ?? offsetForToken(token), uri);
+  }
+
+  kernel.Expression buildPrefixIncrement(Name binaryOperator,
+      {int offset, bool voidContext: false, Procedure interfaceTarget}) {
+    return unsupported(
+        "buildPrefixIncrement", offset ?? offsetForToken(token), uri);
+  }
+
+  kernel.Expression buildPostfixIncrement(Name binaryOperator,
+      {int offset, bool voidContext: false, Procedure interfaceTarget}) {
+    return unsupported(
+        "buildPostfixIncrement", offset ?? offsetForToken(token), uri);
+  }
+
+  kernel.Expression doInvocation(int offset, Arguments arguments) {
+    return unsupported("doInvocation", offset, uri);
+  }
+
+  @override
+  void printOn(StringSink sink) {
+    super.printOn(sink);
+    sink.write(", arguments: ");
+    var node = arguments;
+    if (node is kernel.Node) {
+      printNodeOn(node, sink);
+    } else {
+      sink.write(node);
+    }
+  }
+}
+
+class IncompletePropertyAccessGenerator<Arguments>
+    extends IncompleteSendGenerator<Arguments> {
+  IncompletePropertyAccessGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      Name name)
+      : super(helper, token, name);
+
+  String get plainNameForRead => name.name;
+
+  String get debugName => "IncompletePropertyAccessGenerator";
+
+  kernel.Expression buildSimpleRead() {
+    return unsupported("buildSimpleRead", offsetForToken(token), uri);
+  }
+
+  kernel.Expression buildAssignment(kernel.Expression value,
+      {bool voidContext: false}) {
+    return unsupported("buildAssignment", offsetForToken(token), uri);
+  }
+
+  withReceiver(Object receiver, int operatorOffset, {bool isNullAware: false}) {
+    if (receiver is Generator) {
+      return receiver.buildPropertyAccess(this, operatorOffset, isNullAware);
+    }
+    if (receiver is PrefixBuilder) {
+      PrefixBuilder prefix = receiver;
+      if (isNullAware) {
+        helper.deprecated_addCompileTimeError(
+            offsetForToken(token),
+            "Library prefix '${prefix.name}' can't be used with null-aware "
+            "operator.\nTry removing '?'.");
+      }
+      return helper.scopeLookup(prefix.exportScope, name.name, token,
+          isQualified: true, prefix: prefix);
+    }
+
+    return PropertyAccessGenerator.make(
+        helper, token, helper.toValue(receiver), name, null, null, isNullAware);
+  }
+
+  kernel.Expression buildNullAwareAssignment(
+      kernel.Expression value, DartType type, int offset,
+      {bool voidContext: false}) {
+    return unsupported("buildNullAwareAssignment", offset, uri);
+  }
+
+  kernel.Expression buildCompoundAssignment(
+      Name binaryOperator, kernel.Expression value,
+      {int offset,
+      bool voidContext: false,
+      Procedure interfaceTarget,
+      bool isPreIncDec: false}) {
+    return unsupported(
+        "buildCompoundAssignment", offset ?? offsetForToken(token), uri);
+  }
+
+  kernel.Expression buildPrefixIncrement(Name binaryOperator,
+      {int offset, bool voidContext: false, Procedure interfaceTarget}) {
+    return unsupported(
+        "buildPrefixIncrement", offset ?? offsetForToken(token), uri);
+  }
+
+  kernel.Expression buildPostfixIncrement(Name binaryOperator,
+      {int offset, bool voidContext: false, Procedure interfaceTarget}) {
+    return unsupported(
+        "buildPostfixIncrement", offset ?? offsetForToken(token), uri);
+  }
+
+  kernel.Expression doInvocation(int offset, Arguments arguments) {
+    return unsupported("doInvocation", offset, uri);
+  }
+}
+
+class ParenthesizedExpressionGenerator<Arguments>
+    extends ReadOnlyAccessGenerator<Arguments> {
+  ParenthesizedExpressionGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      kernel.Expression expression)
+      : super(helper, token, expression, null);
+
+  String get debugName => "ParenthesizedExpressionGenerator";
+
+  kernel.Expression makeInvalidWrite(kernel.Expression value) {
+    return helper.deprecated_buildCompileTimeError(
+        "Can't assign to a parenthesized expression.", offsetForToken(token));
+  }
+}
+
+class TypeDeclarationAccessGenerator<Arguments>
+    extends ReadOnlyAccessGenerator<Arguments> {
+  /// The import prefix preceding the [declaration] reference, or `null` if
+  /// the reference is not prefixed.
+  final PrefixBuilder prefix;
+
+  /// The offset at which the [declaration] is referenced by this generator,
+  /// or `-1` if the reference is implicit.
+  final int declarationReferenceOffset;
+
+  final TypeDeclarationBuilder declaration;
+
+  TypeDeclarationAccessGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      Token token,
+      this.prefix,
+      this.declarationReferenceOffset,
+      this.declaration,
+      String plainNameForRead)
+      : super(helper, token, null, plainNameForRead);
+
+  String get debugName => "TypeDeclarationAccessGenerator";
+
+  kernel.Expression get expression {
+    if (super.expression == null) {
+      int offset = offsetForToken(token);
+      if (declaration is KernelInvalidTypeBuilder) {
+        KernelInvalidTypeBuilder declaration = this.declaration;
+        helper.addProblemErrorIfConst(
+            declaration.message.messageObject, offset, token.length);
+        super.expression =
+            new Throw(forest.literalString(declaration.message.message, token))
+              ..fileOffset = offset;
+      } else {
+        super.expression = forest.literalType(
+            buildTypeWithBuiltArguments(null, nonInstanceAccessIsError: true),
+            token);
+      }
+    }
+    return super.expression;
+  }
+
+  kernel.Expression makeInvalidWrite(kernel.Expression value) {
+    return buildThrowNoSuchMethodError(
+        forest.literalNull(token),
+        storeOffset(forest.arguments(<kernel.Expression>[value], null),
+            value.fileOffset),
+        isSetter: true);
+  }
+
+  @override
+  buildPropertyAccess(
+      IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
+    // `SomeType?.toString` is the same as `SomeType.toString`, not
+    // `(SomeType).toString`.
+    isNullAware = false;
+
+    Name name = send.name;
+    Arguments arguments = send.arguments;
+
+    if (declaration is KernelClassBuilder) {
+      KernelClassBuilder declaration = this.declaration;
+      Builder builder = declaration.findStaticBuilder(
+          name.name, offsetForToken(token), uri, helper.library);
+
+      Generator generator;
+      if (builder == null) {
+        // If we find a setter, [builder] is an [AccessErrorBuilder], not null.
+        if (send is IncompletePropertyAccessGenerator) {
+          generator = new UnresolvedNameGenerator(helper, send.token, name);
+        } else {
+          return helper.buildConstructorInvocation(declaration, send.token,
+              arguments, name.name, null, token.charOffset, Constness.implicit);
+        }
+      } else {
+        Builder setter;
+        if (builder.isSetter) {
+          setter = builder;
+        } else if (builder.isGetter) {
+          setter = declaration.findStaticBuilder(
+              name.name, offsetForToken(token), uri, helper.library,
+              isSetter: true);
+        } else if (builder.isField && !builder.isFinal) {
+          setter = builder;
+        }
+        generator = new StaticAccessGenerator.fromBuilder(
+            helper, builder, send.token, setter);
+      }
+
+      return arguments == null
+          ? generator
+          : generator.doInvocation(offsetForToken(send.token), arguments);
+    } else {
+      return super.buildPropertyAccess(send, operatorOffset, isNullAware);
+    }
+  }
+
+  @override
+  DartType buildTypeWithBuiltArguments(List<DartType> arguments,
+      {bool nonInstanceAccessIsError: false}) {
+    if (arguments != null) {
+      int expected = 0;
+      if (declaration is KernelClassBuilder) {
+        expected = declaration.target.typeParameters.length;
+      } else if (declaration is FunctionTypeAliasBuilder) {
+        expected = declaration.target.typeParameters.length;
+      } else if (declaration is KernelTypeVariableBuilder) {
+        // Type arguments on a type variable - error reported elsewhere.
+      } else if (declaration is BuiltinTypeBuilder) {
+        // Type arguments on a built-in type, for example, dynamic or void.
+        expected = 0;
+      } else {
+        return unhandled(
+            "${declaration.runtimeType}",
+            "TypeDeclarationAccessGenerator.buildType",
+            offsetForToken(token),
+            helper.uri);
+      }
+      if (arguments.length != expected) {
+        helper.warnTypeArgumentsMismatch(
+            declaration.name, expected, offsetForToken(token));
+        // We ignore the provided arguments, which will in turn return the
+        // raw type below.
+        // TODO(sigmund): change to use an InvalidType and include the raw type
+        // as a recovery node once the IR can represent it (Issue #29840).
+        arguments = null;
+      }
+    }
+
+    DartType type;
+    if (arguments == null) {
+      TypeDeclarationBuilder typeDeclaration = declaration;
+      if (typeDeclaration is KernelClassBuilder) {
+        type = typeDeclaration.buildType(helper.library, null);
+      } else if (typeDeclaration is KernelFunctionTypeAliasBuilder) {
+        type = typeDeclaration.buildType(helper.library, null);
+      }
+    }
+    if (type == null) {
+      type =
+          declaration.buildTypesWithBuiltArguments(helper.library, arguments);
+    }
+    if (type is TypeParameterType) {
+      return helper.validatedTypeVariableUse(
+          type, offsetForToken(token), nonInstanceAccessIsError);
+    }
+    return type;
+  }
+
+  @override
+  kernel.Expression doInvocation(int offset, Arguments arguments) {
+    return helper.buildConstructorInvocation(declaration, token, arguments, "",
+        null, token.charOffset, Constness.implicit);
   }
 }
 
@@ -1725,7 +2294,7 @@ kernel.Expression makeBinary<Arguments>(
     Name operator,
     Procedure interfaceTarget,
     kernel.Expression right,
-    BuilderHelper<dynamic, dynamic, Arguments> helper,
+    ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
     {int offset: TreeNode.noOffset}) {
   return new ShadowMethodInvocation(
       left,
@@ -1739,7 +2308,7 @@ kernel.Expression makeBinary<Arguments>(
 }
 
 kernel.Expression buildIsNull<Arguments>(kernel.Expression value, int offset,
-    BuilderHelper<dynamic, dynamic, Arguments> helper) {
+    ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper) {
   return makeBinary(value, equalsName, null,
       helper.storeOffset(helper.forest.literalNull(null), offset), helper,
       offset: offset);
@@ -1749,4 +2318,14 @@ VariableDeclaration makeOrReuseVariable(kernel.Expression value) {
   // TODO: Devise a way to remember if a variable declaration was reused
   // or is fresh (hence needs a let binding).
   return new VariableDeclaration.forValue(value);
+}
+
+int adjustForImplicitCall(String name, int offset) {
+  // Normally the offset is at the start of the token, but in this case,
+  // because we insert a '.call', we want it at the end instead.
+  return offset + (name?.length ?? 0);
+}
+
+bool isFieldOrGetter(Member member) {
+  return member is Field || (member is Procedure && member.isGetter);
 }

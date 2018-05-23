@@ -357,9 +357,9 @@ static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/su
     super.m -= 42;
           ^", "pkg/front_end/testcases/super_rasta_copy.dart:232:15: Error: Superclass has no setter named 'm'.
     use(super.m -= 42);
-              ^", "pkg/front_end/testcases/super_rasta_copy.dart:139:11: Error: Too many positional arguments to method: 0 allowed, 1 given.
+              ^", "pkg/front_end/testcases/super_rasta_copy.dart:139:11: Error: Too many positional arguments: 0 allowed, 1 given.
     super.m(87);
-          ^", "pkg/front_end/testcases/super_rasta_copy.dart:140:15: Error: Too many positional arguments to method: 0 allowed, 1 given.
+          ^", "pkg/front_end/testcases/super_rasta_copy.dart:140:15: Error: Too many positional arguments: 0 allowed, 1 given.
     use(super.m(87));
               ^"]/* from null */;
 static method use(dynamic x) → dynamic {

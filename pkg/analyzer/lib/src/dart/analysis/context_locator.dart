@@ -100,8 +100,10 @@ class ContextLocatorImpl implements ContextLocator {
     builder.performanceLog = performanceLog;
     List<AnalysisContext> contextList = <AnalysisContext>[];
     for (ContextRoot root in roots) {
-      old.ContextRoot contextRoot =
-          new old.ContextRoot(root.root.path, root.excludedPaths.toList());
+      old.ContextRoot contextRoot = new old.ContextRoot(
+          resourceProvider.pathContext,
+          root.root.path,
+          root.excludedPaths.toList());
       AnalysisDriver driver = builder.buildDriver(contextRoot);
       DriverBasedAnalysisContext context =
           new DriverBasedAnalysisContext(resourceProvider, root, driver);

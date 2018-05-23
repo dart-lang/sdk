@@ -72,6 +72,9 @@ abstract class TypeBuilder {
     // a similar operation on `registry`; otherwise, this one might not be
     // needed.
     builder.registry?.registerTypeUse(new TypeUse.isCheck(type));
+    if (other is HTypeConversion && other.isRedundant(builder.closedWorld)) {
+      return original;
+    }
     return other;
   }
 
@@ -79,6 +82,9 @@ abstract class TypeBuilder {
     if (type == null) return original;
     HInstruction trusted = _trustType(original, type);
     if (trusted == original) return original;
+    if (trusted is HTypeKnown && trusted.isRedundant(builder.closedWorld)) {
+      return original;
+    }
     builder.add(trusted);
     return trusted;
   }

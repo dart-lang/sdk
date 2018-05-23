@@ -8,7 +8,7 @@ import "package:compiler/src/ssa/value_range_analyzer.dart";
 import "package:compiler/src/types/abstract_value_domain.dart";
 import "package:compiler/src/js_backend/constant_system_javascript.dart";
 
-ValueRangeInfo info = new ValueRangeInfo(const JavaScriptConstantSystem());
+ValueRangeInfo info = new ValueRangeInfo(JavaScriptConstantSystem.only);
 
 class AbstractValueDomainMock implements AbstractValueDomain {
   const AbstractValueDomainMock();
@@ -27,7 +27,7 @@ Value lengthValue =
 Range createSingleRange(Value value) => info.newNormalizedRange(value, value);
 
 Range createSingleIntRange(int value) {
-  return createSingleRange(info.newIntValue(value));
+  return createSingleRange(info.newIntValue(new BigInt.from(value)));
 }
 
 Range createSingleInstructionRange() => createSingleRange(instructionValue);
@@ -35,16 +35,18 @@ Range createSingleInstructionRange() => createSingleRange(instructionValue);
 Range createSingleLengthRange() => createSingleRange(lengthValue);
 
 Range createIntRange(int lower, int upper) {
-  return info.newNormalizedRange(
-      info.newIntValue(lower), info.newIntValue(upper));
+  return info.newNormalizedRange(info.newIntValue(new BigInt.from(lower)),
+      info.newIntValue(new BigInt.from(upper)));
 }
 
 Range createLengthRange(int lower) {
-  return info.newNormalizedRange(info.newIntValue(lower), lengthValue);
+  return info.newNormalizedRange(
+      info.newIntValue(new BigInt.from(lower)), lengthValue);
 }
 
 Range createInstructionRange(int lower) {
-  return info.newNormalizedRange(info.newIntValue(lower), instructionValue);
+  return info.newNormalizedRange(
+      info.newIntValue(new BigInt.from(lower)), instructionValue);
 }
 
 Range instruction = createSingleInstructionRange();
@@ -60,8 +62,8 @@ Range _0_length = createLengthRange(0);
 Range _0_instruction = createInstructionRange(0);
 
 checkAndRange(Range one, Range two, lower, upper) {
-  if (lower is num) lower = info.newIntValue(lower);
-  if (upper is num) upper = info.newIntValue(upper);
+  if (lower is num) lower = info.newIntValue(new BigInt.from(lower));
+  if (upper is num) upper = info.newIntValue(new BigInt.from(upper));
   Range range = info.newNormalizedRange(lower, upper);
   Expect.equals(range, one & two);
 }
@@ -89,12 +91,12 @@ checkSubRange(Range one, Range two, [lower, upper]) {
   if (lower == null) {
     lower = buildBound(one.lower, two.upper);
   } else if (lower is num) {
-    lower = info.newIntValue(lower);
+    lower = info.newIntValue(new BigInt.from(lower));
   }
   if (upper == null) {
     upper = buildBound(one.upper, two.lower);
   } else if (upper is num) {
-    upper = info.newIntValue(upper);
+    upper = info.newIntValue(new BigInt.from(upper));
   }
 
   Expect.equals(info.newNormalizedRange(lower, upper), one - two);
@@ -106,14 +108,14 @@ checkNegateRange(Range range, [arg1, arg2]) {
   } else {
     Value low, up;
     if (arg1 is num) {
-      low = info.newIntValue(arg1);
+      low = info.newIntValue(new BigInt.from(arg1));
     } else if (arg1 == null) {
       low = info.newNegateValue(range.upper);
     } else {
       low = arg1;
     }
     if (arg2 is num) {
-      up = info.newIntValue(arg2);
+      up = info.newIntValue(new BigInt.from(arg2));
     } else if (arg2 == null) {
       up = info.newNegateValue(range.lower);
     } else {

@@ -160,6 +160,10 @@ LibTest/core/List/removeAt_A02_t01: RuntimeError # Issue 1533
 LibTest/core/List/sort_A01_t06: Slow, Pass # Slow tests that needs extra time to finish.
 LibTest/core/double/INFINITY_A01_t04: RuntimeError # Expected to fail because double.INFINITY is int.
 LibTest/core/double/NEGATIVE_INFINITY_A01_t04: RuntimeError # Expected to fail because double.NEGATIVE_INFINITY is int.
+LibTest/core/double/operator_addition_A01_t06: RuntimeError # Large integer literal. Not valid dart 2.
+LibTest/core/double/operator_addition_A01_t08: Crash # Large integer literal. Not valid dart 2.
+LibTest/core/double/operator_subtraction_A01_t06: RuntimeError # Large integer literal. Not valid dart 2.
+LibTest/core/double/operator_subtraction_A01_t09: Crash # Large integer literal. Not valid dart 2.
 LibTest/core/int/hashCode_A01_t01: RuntimeError, OK # co19 issue 308
 LibTest/core/int/isEven_A01_t01: RuntimeError, OK # co19 issue 277
 LibTest/core/int/isOdd_A01_t01: RuntimeError, OK # co19 issue 277
@@ -170,8 +174,13 @@ LibTest/core/int/operator_NOT_A01_t01: RuntimeError, OK # Expects negative resul
 LibTest/core/int/operator_OR_A01_t01: RuntimeError, OK # Requires bigints.
 LibTest/core/int/operator_XOR_A01_t01: RuntimeError, OK # Requires bigints.
 LibTest/core/int/operator_addition_A01_t01: RuntimeError, OK # co19 issue 200
+LibTest/core/int/operator_division_A01_t01: RuntimeError # Large integer literal. Not valid dart 2.
+LibTest/core/int/operator_multiplication_A01_t01: RuntimeError # Large integer literal. Not valid dart 2.
 LibTest/core/int/operator_remainder_A01_t01: RuntimeError, OK # Requires bigints.
+LibTest/core/int/operator_remainder_A01_t02: RuntimeError, OK # Requires bigints.
 LibTest/core/int/operator_right_shift_A01_t01: RuntimeError, OK # Expects negative result from bit-operation.
+LibTest/core/int/operator_subtraction_A01_t01: RuntimeError # Large integer literal. Not valid dart 2.
+LibTest/core/int/operator_truncating_division_A01_t01: RuntimeError # Large integer literal. Not valid dart 2.
 LibTest/core/int/toDouble_A01_t01: RuntimeError, OK # co19 issue 200
 LibTest/html/Element/addEventListener_A01_t04: Skip # https://github.com/dart-lang/sdk/issues/28873
 LibTest/html/Element/queryAll_A01_t01: RuntimeError # See issue 143
@@ -7076,6 +7085,7 @@ Language/Classes/Constructors/Generative_Constructors/execution_t05: Crash
 Language/Classes/Constructors/Generative_Constructors/execution_t06: Crash
 Language/Classes/Constructors/Generative_Constructors/execution_t07: Crash
 Language/Classes/Constructors/Generative_Constructors/execution_t12: Crash
+Language/Classes/Constructors/Generative_Constructors/initializers_t12: Crash # Issue 33157
 Language/Classes/Constructors/Generative_Constructors/redirection_t03: Crash
 Language/Classes/Constructors/Generative_Constructors/redirection_t07: Crash
 Language/Classes/Constructors/Generative_Constructors/redirection_t08: Crash

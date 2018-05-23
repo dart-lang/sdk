@@ -185,10 +185,6 @@ dart/spawn_shutdown_test: SkipSlow
 [ $compiler == dartk && $runtime == vm && $system == macos ]
 cc/IsolateReload_LibraryLookup: Fail, Crash
 
-[ $compiler == dartk && $runtime == vm && $strong ]
-cc/IsolateReload_LibraryHide: Crash
-cc/IsolateReload_LibraryShow: Crash
-
 [ $compiler == dartk && $system == linux ]
 cc/IsolateReload_LibraryLookup: Fail, Crash
 
@@ -204,8 +200,6 @@ cc/Service_Code: Fail
 [ $compiler == dartk && $strong ]
 cc/DartGeneratedArrayLiteralMessages: Crash # Issue 32190
 cc/FullSnapshot1: Crash # Issue 32190
-cc/IsolateReload_LibraryImportAdded: Crash # Issue 32190
-cc/IsolateReload_LibraryImportRemoved: Fail # Issue 32190
 cc/IsolateReload_LibraryLookup: Fail, Crash # Issue 32190
 cc/MismatchedSnapshotKinds: Fail, Crash, OK # Script snapshots not supported in Dart 2
 cc/ScriptSnapshot1: Fail, Crash, OK # Script snapshots not supported in Dart 2

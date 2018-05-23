@@ -150,8 +150,10 @@ class ObjectPointerVisitor;
   V(CompleterSyncConstructor, "Completer.sync")                                \
   V(_AsyncAwaitCompleter, "_AsyncAwaitCompleter")                              \
   V(_AsyncAwaitCompleterConstructor, "_AsyncAwaitCompleter.")                  \
+  V(_AsyncAwaitCompleterStart, "_AsyncAwaitCompleter.start")                   \
   V(_AsyncAwaitStart, "start")                                                 \
   V(CompleterFuture, "future")                                                 \
+  V(CompleterGetFuture, "get:future")                                          \
   V(StreamIterator, "StreamIterator")                                          \
   V(StreamIteratorConstructor, "StreamIterator.")                              \
   V(Native, "native")                                                          \
@@ -171,6 +173,7 @@ class ObjectPointerVisitor;
   V(PatchClass, "PatchClass")                                                  \
   V(Function, "Function")                                                      \
   V(_Closure, "_Closure")                                                      \
+  V(_ClosureCall, "_Closure.call")                                             \
   V(FunctionResult, "function result")                                         \
   V(FactoryResult, "factory result")                                           \
   V(ClosureData, "ClosureData")                                                \

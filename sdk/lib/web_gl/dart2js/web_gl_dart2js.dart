@@ -1387,7 +1387,9 @@ class GetBufferSubDataAsync extends Interceptor {
   @DocsEditable()
   @Experimental() // untriaged
   Future getBufferSubDataAsync(int target, int srcByteOffset, TypedData dstData,
-      [int dstOffset, int length]) native;
+          [int dstOffset, int length]) =>
+      promiseToFuture(JS("", "#.getBufferSubDataAsync(#, #, #, #, #)", this,
+          target, srcByteOffset, dstData, dstOffset, length));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2895,7 +2897,7 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
   @DomName('WebGLRenderingContext.commit')
   @DocsEditable()
   @Experimental() // untriaged
-  Future commit() native;
+  Future commit() => promiseToFuture(JS("", "#.commit()", this));
 
   @DomName('WebGLRenderingContext.compileShader')
   @DocsEditable()
@@ -6709,7 +6711,7 @@ class RenderingContext2 extends Interceptor
   @DomName('WebGL2RenderingContext.commit')
   @DocsEditable()
   @Experimental() // untriaged
-  Future commit() native;
+  Future commit() => promiseToFuture(JS("", "#.commit()", this));
 
   @DomName('WebGL2RenderingContext.compileShader')
   @DocsEditable()

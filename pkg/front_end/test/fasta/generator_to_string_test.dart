@@ -47,25 +47,25 @@ import 'package:front_end/src/fasta/fasta_codes.dart'
 import 'package:front_end/src/fasta/kernel/expression_generator.dart'
     show
         DeferredAccessGenerator,
-        FastaAccessor,
-        IncompleteError,
-        IncompletePropertyAccessor,
+        Generator,
+        IncompleteErrorGenerator,
+        IncompletePropertyAccessGenerator,
         IndexedAccessGenerator,
         LargeIntAccessGenerator,
         LoadLibraryGenerator,
         NullAwarePropertyAccessGenerator,
-        ParenthesizedExpression,
+        ParenthesizedExpressionGenerator,
         PropertyAccessGenerator,
         ReadOnlyAccessGenerator,
-        SendAccessor,
+        SendAccessGenerator,
         StaticAccessGenerator,
         SuperIndexedAccessGenerator,
         SuperPropertyAccessGenerator,
         ThisAccessGenerator,
         ThisIndexedAccessGenerator,
         ThisPropertyAccessGenerator,
-        TypeDeclarationAccessor,
-        UnresolvedAccessor,
+        TypeDeclarationAccessGenerator,
+        UnresolvedNameGenerator,
         VariableUseGenerator;
 
 import 'package:front_end/src/fasta/kernel/body_builder.dart'
@@ -76,7 +76,7 @@ import 'package:front_end/src/fasta/kernel/kernel_body_builder.dart'
 
 import 'package:front_end/src/fasta/scanner.dart' show Token, scanString;
 
-void check(String expected, FastaAccessor<Arguments> generator) {
+void check(String expected, Generator<Arguments> generator) {
   Expect.stringEquals(expected, "$generator");
 }
 
@@ -123,7 +123,7 @@ main() {
     KernelBodyBuilder helper = new KernelBodyBuilder(
         libraryBuilder, null, null, null, null, null, null, false, uri, null);
 
-    FastaAccessor accessor =
+    Generator generator =
         new ThisAccessGenerator<Arguments>(helper, token, false);
 
     Library library = new Library(uri);
@@ -137,12 +137,12 @@ main() {
         "DelayedAssignment(offset: 4, value: expression,"
         " assignmentOperator: +=)",
         new DelayedAssignment<Arguments>(
-            helper, token, accessor, expression, assignmentOperator));
+            helper, token, generator, expression, assignmentOperator));
     check(
         "DelayedPostfixIncrement(offset: 4, binaryOperator: +,"
         " interfaceTarget: $uri::#class1::myInterfaceTarget)",
         new DelayedPostfixIncrement<Arguments>(
-            helper, token, accessor, binaryOperator, interfaceTarget));
+            helper, token, generator, binaryOperator, interfaceTarget));
     check(
         "VariableUseGenerator(offset: 4, variable: dynamic #t1;\n,"
         " promotedType: void)",
@@ -197,19 +197,19 @@ main() {
     check(
         "ThisAccessGenerator(offset: 4, isInitializer: false, isSuper: false)",
         new ThisAccessGenerator<Arguments>(helper, token, false));
-    check("IncompleteError(offset: 4, message: Unspecified)",
-        new IncompleteError<Arguments>(helper, token, message));
-    check("SendAccessor(offset: 4, name: bar, arguments: (\"arg\"))",
-        new SendAccessor<Arguments>(helper, token, name, arguments));
-    check("IncompletePropertyAccessor(offset: 4, name: bar)",
-        new IncompletePropertyAccessor<Arguments>(helper, token, name));
+    check("IncompleteErrorGenerator(offset: 4, message: Unspecified)",
+        new IncompleteErrorGenerator<Arguments>(helper, token, message));
+    check("SendAccessGenerator(offset: 4, name: bar, arguments: (\"arg\"))",
+        new SendAccessGenerator<Arguments>(helper, token, name, arguments));
+    check("IncompletePropertyAccessGenerator(offset: 4, name: bar)",
+        new IncompletePropertyAccessGenerator<Arguments>(helper, token, name));
     check(
         "DeferredAccessGenerator(offset: 4, "
         "builder: Instance of 'PrefixBuilder',"
-        " accessor: ThisAccessGenerator(offset: 4, isInitializer: false,"
+        " generator: ThisAccessGenerator(offset: 4, isInitializer: false,"
         " isSuper: false))",
         new DeferredAccessGenerator<Arguments>(
-            helper, token, prefixBuilder, accessor));
+            helper, token, prefixBuilder, generator));
     check(
         "ReadOnlyAccessGenerator(offset: 4, expression: expression,"
         " plainNameForRead: foo, value: null)",
@@ -218,15 +218,16 @@ main() {
     check("LargeIntAccessGenerator(offset: 4, lexeme: myToken)",
         new LargeIntAccessGenerator<Arguments>(helper, token));
     check(
-        "ParenthesizedExpression(offset: 4, expression: expression,"
+        "ParenthesizedExpressionGenerator(offset: 4, expression: expression,"
         " plainNameForRead: null, value: null)",
-        new ParenthesizedExpression<Arguments>(helper, token, expression));
+        new ParenthesizedExpressionGenerator<Arguments>(
+            helper, token, expression));
     check(
-        "TypeDeclarationAccessor(offset: 4, expression: T,"
+        "TypeDeclarationAccessGenerator(offset: 4, expression: T,"
         " plainNameForRead: foo, value: null)",
-        new TypeDeclarationAccessor<Arguments>(
+        new TypeDeclarationAccessGenerator<Arguments>(
             helper, token, prefixBuilder, -1, declaration, "foo"));
-    check("UnresolvedAccessor(offset: 4, name: bar)",
-        new UnresolvedAccessor<Arguments>(helper, token, name));
+    check("UnresolvedNameGenerator(offset: 4, name: bar)",
+        new UnresolvedNameGenerator<Arguments>(helper, token, name));
   });
 }

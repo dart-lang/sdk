@@ -35,23 +35,21 @@ class IdentifierContext {
 
   /// Identifier is one of the shown/hidden names in an import/export
   /// combinator.
-  static const combinator = const IdentifierContext('combinator');
+  static const combinator = const CombinatorIdentifierContext();
 
   /// Identifier is the start of a name in an annotation that precedes a
   /// declaration (i.e. it appears directly after an `@`).
-  static const metadataReference =
-      const IdentifierContext('metadataReference', isScopeReference: true);
+  static const metadataReference = const MetadataReferenceIdentifierContext();
 
   /// Identifier is part of a name in an annotation that precedes a declaration,
   /// but it's not the first identifier in the name.
   static const metadataContinuation =
-      const IdentifierContext('metadataContinuation', isContinuation: true);
+      const MetadataReferenceIdentifierContext.continuation();
 
   /// Identifier is part of a name in an annotation that precedes a declaration,
   /// but it appears after type parameters (e.g. `foo` in `@X<Y>.foo()`).
-  static const metadataContinuationAfterTypeArguments = const IdentifierContext(
-      'metadataContinuationAfterTypeArguments',
-      isContinuation: true);
+  static const metadataContinuationAfterTypeArguments =
+      const MetadataReferenceIdentifierContext.continuationAfterTypeArguments();
 
   /// Identifier is the name being declared by a typedef declaration.
   static const typedefDeclaration = const TypedefDeclarationIdentifierContext();
@@ -77,15 +75,12 @@ class IdentifierContext {
 
   /// Identifier is the start of a library name referenced by a `part of`
   /// directive (e.g. `foo` in the directive `part of foo;`).
-  static const partName =
-      const IdentifierContext('partName', inLibraryOrPartOfDeclaration: true);
+  static const partName = const LibraryIdentifierContext.partName();
 
   /// Identifier is part of a library name referenced by a `part of` directive,
   /// but it's not the first identifier in the name.
-  static const partNameContinuation = const IdentifierContext(
-      'partNameContinuation',
-      inLibraryOrPartOfDeclaration: true,
-      isContinuation: true);
+  static const partNameContinuation =
+      const LibraryIdentifierContext.partNameContinuation();
 
   /// Identifier is the type name being declared by an enum declaration.
   static const enumDeclaration = const EnumDeclarationIdentifierContext();

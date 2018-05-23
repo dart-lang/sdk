@@ -85,6 +85,15 @@ class ImportDirectivesTest extends PartialCodeTest {
               ],
               "import 'a.dart' as _s_;",
               failing: ['functionNonVoid', 'getter']),
+          new TestDescriptor(
+              'show',
+              "import 'a.dart' show",
+              [
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.MISSING_IDENTIFIER
+              ],
+              "import 'a.dart' show _s_;",
+              failing: ['functionNonVoid', 'getter']),
         ],
         PartialCodeTest.prePartSuffixes);
   }

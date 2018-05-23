@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// A file system that implements [CopilerOptions.multiRoots].
-library front_end.src.multi_roots_file_system;
-
 import 'dart:async';
 
 import 'package:front_end/src/api_prototype/file_system.dart';

@@ -326,7 +326,7 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
     return report;
   }
 
-  static Element _createDominator(toggle) {
+  static HtmlElement _createDominator(toggle) {
     return new DivElement()
       ..classes = ['tree-item']
       ..children = [
@@ -344,7 +344,7 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
       ];
   }
 
-  static Element _createMergedDominator(toggle) {
+  static HtmlElement _createMergedDominator(toggle) {
     return new DivElement()
       ..classes = ['tree-item']
       ..children = [
@@ -362,7 +362,7 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
       ];
   }
 
-  static Element _createGroup(toggle) {
+  static HtmlElement _createGroup(toggle) {
     return new DivElement()
       ..classes = ['tree-item']
       ..children = [
@@ -380,7 +380,7 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
       ];
   }
 
-  static Element _createOwnershipClass(toggle) {
+  static HtmlElement _createOwnershipClass(toggle) {
     return new DivElement()
       ..classes = ['tree-item']
       ..children = [
@@ -397,7 +397,7 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
   static const int kMaxChildren = 100;
   static const int kMinRetainedSize = 4096;
 
-  static _getChildrenDominator(M.HeapSnapshotDominatorNode node) {
+  static Iterable _getChildrenDominator(M.HeapSnapshotDominatorNode node) {
     final list = node.children.toList();
     list.sort((a, b) => b.retainedSize - a.retainedSize);
     return list
@@ -405,7 +405,8 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
         .take(kMaxChildren);
   }
 
-  static _getChildrenMergedDominator(M.HeapSnapshotMergedDominatorNode node) {
+  static Iterable _getChildrenMergedDominator(
+      M.HeapSnapshotMergedDominatorNode node) {
     final list = node.children.toList();
     list.sort((a, b) => b.retainedSize - a.retainedSize);
     return list
@@ -413,7 +414,7 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
         .take(kMaxChildren);
   }
 
-  static _getChildrenGroup(item) {
+  static Iterable _getChildrenGroup(item) {
     if (item is M.HeapSnapshotClassReferences) {
       if (item.inbounds.isNotEmpty || item.outbounds.isNotEmpty) {
         return [item.inbounds, item.outbounds];
@@ -424,7 +425,7 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
     return const [];
   }
 
-  static _getChildrenOwnershipClass(item) {
+  static Iterable _getChildrenOwnershipClass(item) {
     return const [];
   }
 

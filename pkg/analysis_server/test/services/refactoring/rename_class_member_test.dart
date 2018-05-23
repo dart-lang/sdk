@@ -157,7 +157,7 @@ class A {
   test() {}
 }
 ''');
-    await indexUnit('/lib.dart', '''
+    await indexUnit('/project/lib.dart', '''
 library my.lib;
 import 'test.dart';
 
@@ -356,7 +356,7 @@ class A {
   newName() {} // marker
 }
 ''';
-    await indexUnit('/lib.dart', libCode);
+    await indexUnit('/project/lib.dart', libCode);
     await indexTestUnit('''
 import 'lib.dart';
 class B extends A {

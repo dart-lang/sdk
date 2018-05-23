@@ -6,8 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart' hide Identifier;
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
-import 'package:front_end/src/fasta/kernel/body_builder.dart'
-    show Identifier, Operator;
 import 'package:front_end/src/fasta/kernel/forest.dart';
 import 'package:kernel/ast.dart' as kernel;
 
@@ -60,7 +58,29 @@ class AstBuildingForest
   Expression asExpression(Expression expression, type, Token location) =>
       astFactory.asExpression(expression, location, type);
 
+  @override
   Expression asLiteralString(Expression value) => value;
+
+  @override
+  ConstructorInitializer assertInitializer(
+          Token assertKeyword,
+          Token leftParenthesis,
+          Expression condition,
+          Token comma,
+          Expression message) =>
+      astFactory.assertInitializer(assertKeyword, leftParenthesis, condition,
+          comma, message, leftParenthesis.endGroup);
+
+  @override
+  Statement assertStatement(
+          Token assertKeyword,
+          Token leftParenthesis,
+          Expression condition,
+          Token comma,
+          Expression message,
+          Token semicolon) =>
+      astFactory.assertStatement(assertKeyword, leftParenthesis, condition,
+          comma, message, leftParenthesis.endGroup, semicolon);
 
   @override
   Expression awaitExpression(Expression operand, Token awaitKeyword) =>
@@ -69,6 +89,12 @@ class AstBuildingForest
   @override
   Block block(Token openBrace, List<Statement> statements, Token closeBrace) =>
       astFactory.block(openBrace, statements, closeBrace);
+
+  @override
+  Statement breakStatement(
+          Token breakKeyword, Identifier label, Token semicolon) =>
+      astFactory.breakStatement(
+          breakKeyword, astFactory.simpleIdentifier(label.token), semicolon);
 
   @override
   kernel.Arguments castArguments(_Arguments arguments) {
@@ -89,6 +115,12 @@ class AstBuildingForest
           condition, question, thenExpression, colon, elseExpression);
 
   @override
+  Statement continueStatement(
+          Token continueKeyword, Identifier label, Token semicolon) =>
+      astFactory.continueStatement(
+          continueKeyword, astFactory.simpleIdentifier(label.token), semicolon);
+
+  @override
   Statement doStatement(Token doKeyword, Statement body, Token whileKeyword,
           ParenthesizedExpression condition, Token semicolon) =>
       astFactory.doStatement(
@@ -104,6 +136,7 @@ class AstBuildingForest
   Statement emptyStatement(Token semicolon) =>
       astFactory.emptyStatement(semicolon);
 
+  @override
   Statement expressionStatement(Expression expression, Token semicolon) =>
       astFactory.expressionStatement(expression, semicolon);
 

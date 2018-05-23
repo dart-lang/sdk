@@ -240,7 +240,7 @@ class AudioContext extends BaseAudioContext {
   @DomName('AudioContext.close')
   @DocsEditable()
   @Experimental() // untriaged
-  Future close() native;
+  Future close() => promiseToFuture(JS("", "#.close()", this));
 
   @DomName('AudioContext.getOutputTimestamp')
   @DocsEditable()
@@ -258,7 +258,7 @@ class AudioContext extends BaseAudioContext {
   @DomName('AudioContext.suspend')
   @DocsEditable()
   @Experimental() // untriaged
-  Future suspend() native;
+  Future suspend() => promiseToFuture(JS("", "#.suspend()", this));
 
   factory AudioContext() => JS('AudioContext',
       'new (window.AudioContext || window.webkitAudioContext)()');
@@ -534,9 +534,66 @@ class AudioParam extends Interceptor {
 @DomName('AudioParamMap')
 @Experimental() // untriaged
 @Native("AudioParamMap")
-class AudioParamMap extends Interceptor {
+class AudioParamMap extends Interceptor with MapMixin<String, dynamic> {
   // To suppress missing implicit constructor warnings.
   factory AudioParamMap._() {
+    throw new UnsupportedError("Not supported");
+  }
+
+  Map _getItem(String key) =>
+      convertNativeToDart_Dictionary(JS('', '#.get(#)', this, key));
+
+  void addAll(Map<String, dynamic> other) {
+    throw new UnsupportedError("Not supported");
+  }
+
+  bool containsValue(dynamic value) => values.any((e) => e == value);
+
+  bool containsKey(dynamic key) => _getItem(key) != null;
+
+  Map operator [](dynamic key) => _getItem(key);
+
+  void forEach(void f(String key, dynamic value)) {
+    var entries = JS('', '#.entries()', this);
+    while (true) {
+      var entry = JS('', '#.next()', entries);
+      if (JS('bool', '#.done', entry)) return;
+      f(JS('String', '#.value[0]', entry),
+          convertNativeToDart_Dictionary(JS('', '#.value[1]', entry)));
+    }
+  }
+
+  Iterable<String> get keys {
+    final keys = <String>[];
+    forEach((k, v) => keys.add(k));
+    return keys;
+  }
+
+  Iterable<Map> get values {
+    final values = <Map>[];
+    forEach((k, v) => values.add(v));
+    return values;
+  }
+
+  int get length => JS('int', '#.size', this);
+
+  bool get isEmpty => length == 0;
+
+  bool get isNotEmpty => !isEmpty;
+
+  void operator []=(String key, dynamic value) {
+    throw new UnsupportedError("Not supported");
+  }
+
+  dynamic putIfAbsent(String key, dynamic ifAbsent()) {
+    throw new UnsupportedError("Not supported");
+  }
+
+  String remove(dynamic key) {
+    throw new UnsupportedError("Not supported");
+  }
+
+  void clear() {
     throw new UnsupportedError("Not supported");
   }
 }
@@ -955,14 +1012,16 @@ class BaseAudioContext extends EventTarget {
   @DomName('BaseAudioContext.decodeAudioData')
   @DocsEditable()
   @Experimental() // untriaged
-  Future decodeAudioData(ByteBuffer audioData,
-      [DecodeSuccessCallback successCallback,
-      DecodeErrorCallback errorCallback]) native;
+  Future<AudioBuffer> decodeAudioData(ByteBuffer audioData,
+          [DecodeSuccessCallback successCallback,
+          DecodeErrorCallback errorCallback]) =>
+      promiseToFuture<AudioBuffer>(JS("", "#.decodeAudioData(#, #, #)", this,
+          audioData, successCallback, errorCallback));
 
   @DomName('BaseAudioContext.resume')
   @DocsEditable()
   @Experimental() // untriaged
-  Future resume() native;
+  Future resume() => promiseToFuture(JS("", "#.resume()", this));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1481,13 +1540,15 @@ class OfflineAudioContext extends BaseAudioContext {
   @DomName('OfflineAudioContext.startRendering')
   @DocsEditable()
   @Experimental() // untriaged
-  Future startRendering() native;
+  Future<AudioBuffer> startRendering() =>
+      promiseToFuture<AudioBuffer>(JS("", "#.startRendering()", this));
 
   @JSName('suspend')
   @DomName('OfflineAudioContext.suspend')
   @DocsEditable()
   @Experimental() // untriaged
-  Future suspendFor(num suspendTime) native;
+  Future suspendFor(num suspendTime) =>
+      promiseToFuture(JS("", "#.suspendFor(#)", this, suspendTime));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

@@ -32,7 +32,8 @@ class CastStreamSubscription<S, T> implements StreamSubscription<T> {
   Future cancel() => _source.cancel();
 
   void onData(void handleData(T data)) {
-    _source.onData((S data) => handleData(data as T));
+    _source
+        .onData(handleData == null ? null : (S data) => handleData(data as T));
   }
 
   void onError(Function handleError) {

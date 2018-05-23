@@ -1893,7 +1893,7 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   @override
   void visitInt(IntConstantValue constant, [_]) {
     // No `addRoot` since IntConstants are always inlined.
-    if (constant.intValue < 0) {
+    if (constant.intValue < BigInt.zero) {
       add('m${-constant.intValue}');
     } else {
       add('${constant.intValue}');
@@ -2088,7 +2088,11 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
 
   @override
   int visitInt(IntConstantValue constant, [_]) {
-    return _hashInt(constant.intValue);
+    BigInt value = constant.intValue;
+    if (value.toSigned(32) == value) {
+      return value.toUnsigned(32).toInt() & _MASK;
+    }
+    return _hashDouble(value.toDouble());
   }
 
   @override

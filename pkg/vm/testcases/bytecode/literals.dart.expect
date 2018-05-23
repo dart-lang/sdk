@@ -125,7 +125,7 @@ Bytecode {
 }
 ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
-  [1] = StaticICData target '#lib::A::_name', arg-desc CP#0
+  [1] = StaticICData get target '#lib::A::_name', arg-desc CP#0
   [2] = Null
 }
 ]  method toString() → core::String

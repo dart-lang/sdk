@@ -295,7 +295,7 @@ abstract class KernelToElementMapBaseMixin implements KernelToElementMap {
         assert(constant.fields.length == 1 || constant.fields.length == 2);
         ConstantValue indexConstant = constant.fields.values.first;
         if (indexConstant is IntConstantValue) {
-          return indexConstant.intValue;
+          return indexConstant.intValue.toInt();
         }
       }
     }
@@ -604,7 +604,7 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
 
   @override
   ConstantExpression visitIntLiteral(ir.IntLiteral node) {
-    return new IntConstantExpression(node.value);
+    return new IntConstantExpression(new BigInt.from(node.value));
   }
 
   @override

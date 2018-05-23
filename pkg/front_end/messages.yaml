@@ -1065,40 +1065,16 @@ CandidateFoundIsDefaultConstructor:
   template: "The class '#name' has a constructor that takes no arguments."
   severity: CONTEXT
 
-TooFewArgumentsToFunction:
-  template: "Too few positional arguments to function: #count required, #count2 given."
+TooFewArguments:
+  template: "Too few positional arguments: #count required, #count2 given."
   severity: ERROR_LEGACY_WARNING
 
-TooFewArgumentsToMethod:
-  template: "Too few positional arguments to method: #count required, #count2 given."
+TooManyArguments:
+  template: "Too many positional arguments: #count allowed, #count2 given."
   severity: ERROR_LEGACY_WARNING
 
-TooFewArgumentsToConstructor:
-  template: "Too few positional arguments to constructor: #count required, #count2 given."
-  severity: ERROR_LEGACY_WARNING
-
-TooManyArgumentsToFunction:
-  template: "Too many positional arguments to function: #count allowed, #count2 given."
-  severity: ERROR_LEGACY_WARNING
-
-TooManyArgumentsToMethod:
-  template: "Too many positional arguments to method: #count allowed, #count2 given."
-  severity: ERROR_LEGACY_WARNING
-
-TooManyArgumentsToConstructor:
-  template: "Too many positional arguments to constructor: #count allowed, #count2 given."
-  severity: ERROR_LEGACY_WARNING
-
-FunctionHasNoSuchNamedParameter:
-  template: "Function has no named parameter with the name '#name'."
-  severity: ERROR_LEGACY_WARNING
-
-MethodHasNoSuchNamedParameter:
-  template: "Method has no named parameter with the name '#name'."
-  severity: ERROR_LEGACY_WARNING
-
-ConstructorHasNoSuchNamedParameter:
-  template: "Constructor has no named parameter with the name '#name'."
+NoSuchNamedParameter:
+  template: "No named parameter with the name '#name'."
   severity: ERROR_LEGACY_WARNING
 
 AbstractClassInstantiation:

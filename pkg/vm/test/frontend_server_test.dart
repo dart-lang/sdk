@@ -470,6 +470,115 @@ Future<int> main() async {
       tempDir.delete(recursive: true);
     });
 
+    test('compile expression', () async {
+      var file = new File('${tempDir.path}/foo.dart')..createSync();
+      file.writeAsStringSync("main() {}\n");
+      var dillFile = new File('${tempDir.path}/app.dill');
+      expect(dillFile.existsSync(), equals(false));
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--strong',
+        '--incremental',
+        '--platform=${platformKernel.path}',
+        '--output-dill=${dillFile.path}'
+      ];
+
+      final StreamController<List<int>> streamController =
+          new StreamController<List<int>>();
+      final StreamController<List<int>> stdoutStreamController =
+          new StreamController<List<int>>();
+      final IOSink ioSink = new IOSink(stdoutStreamController.sink);
+      StreamController<String> receivedResults = new StreamController<String>();
+
+      String boundaryKey;
+      stdoutStreamController.stream
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .listen((String s) {
+        const String RESULT_OUTPUT_SPACE = 'result ';
+        if (boundaryKey == null) {
+          if (s.startsWith(RESULT_OUTPUT_SPACE)) {
+            boundaryKey = s.substring(RESULT_OUTPUT_SPACE.length);
+          }
+        } else {
+          if (s.startsWith(boundaryKey)) {
+            receivedResults.add(s.length > boundaryKey.length
+                ? s.substring(boundaryKey.length + 1)
+                : null);
+            boundaryKey = null;
+          }
+        }
+      });
+
+      int exitcode =
+          await starter(args, input: streamController.stream, output: ioSink);
+      expect(exitcode, equals(0));
+      streamController.add('compile ${file.path}\n'.codeUnits);
+      int count = 0;
+      Completer<bool> allDone = new Completer<bool>();
+      receivedResults.stream.listen((String outputFilenameAndErrorCount) {
+        if (count == 0) {
+          // First request is to 'compile', which results in full kernel file.
+          int delim = outputFilenameAndErrorCount.lastIndexOf(' ');
+          expect(delim > 0, equals(true));
+          String outputFilename =
+              outputFilenameAndErrorCount.substring(0, delim);
+          int errorsCount = int
+              .parse(outputFilenameAndErrorCount.substring(delim + 1).trim());
+
+          expect(dillFile.existsSync(), equals(true));
+          expect(outputFilename, dillFile.path);
+          expect(errorsCount, equals(0));
+          streamController.add('accept\n'.codeUnits);
+
+          // 'compile-expression <boundarykey>
+          // expression
+          // definitions (one per line)
+          // ...
+          // <boundarykey>
+          // type-defintions (one per line)
+          // ...
+          // <boundarykey>
+          // <libraryUri: String>
+          // <klass: String>
+          // <isStatic: true|false>
+          streamController.add(
+              'compile-expression abc\n2+2\nabc\nabc\n${file.uri}\n\n\n'
+                  .codeUnits);
+          count += 1;
+        } else if (count == 1) {
+          // Previous request should have failed because isStatic was blank
+          expect(outputFilenameAndErrorCount, isNull);
+
+          streamController.add(
+              'compile-expression abc\n2+2\nabc\nabc\n${file.uri}\n\nfalse\n'
+                  .codeUnits);
+          count += 1;
+        } else if (count == 2) {
+          // Second request is to 'compile-expression', which results in
+          // kernel file with a function that wraps compiled expression.
+          expect(outputFilenameAndErrorCount, isNotNull);
+          File outputFile = new File(outputFilenameAndErrorCount);
+          expect(outputFile.existsSync(), equals(true));
+          expect(outputFile.lengthSync(), isPositive);
+
+          streamController.add('compile foo.bar\n'.codeUnits);
+          count += 1;
+        } else {
+          expect(count, 3);
+          // Third request is to 'compile' non-existent file, that should fail.
+          int delim = outputFilenameAndErrorCount.lastIndexOf(' ');
+          expect(delim > 0, equals(true));
+          int errorsCount = int
+              .parse(outputFilenameAndErrorCount.substring(delim + 1).trim());
+          expect(errorsCount, greaterThan(0));
+          allDone.complete(true);
+        }
+      });
+
+      expect(await allDone.future, true);
+    });
+
     test('recompile request keeps incremental output dill filename', () async {
       var file = new File('${tempDir.path}/foo.dart')..createSync();
       file.writeAsStringSync("main() {}\n");

@@ -1,3 +1,21 @@
+## 2.0.0-dev.57.0
+
+* Support Javascript Promise APIs as a Dart Future.  In Javascript a Promise has two
+  callbacks one for success and one for failure.  For success the Future returns the
+  value e.g.,
+
+BackgroundFetchManager.get is exposed as:
+
+```dart
+  Future<BackgroundFetchRegistration> get(String id)
+```
+
+usage could be:
+
+   BackgroundFetchRegistration result = await fetchMgr.get('abc');
+
+  The underlying JS Promise to Future mechanism will be exposed as a public API in a future checkin.
+
 ## 2.0.0-dev.56.0
 
 ### Language

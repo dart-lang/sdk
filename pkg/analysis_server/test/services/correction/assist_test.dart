@@ -104,7 +104,7 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
   }
 
   test_addTypeAnnotation_BAD_privateType_closureParameter() async {
-    addSource('/my_lib.dart', '''
+    addSource('/project/my_lib.dart', '''
 library my_lib;
 class A {}
 class _B extends A {}
@@ -120,7 +120,7 @@ main() {
   }
 
   test_addTypeAnnotation_BAD_privateType_declaredIdentifier() async {
-    addSource('/my_lib.dart', '''
+    addSource('/project/my_lib.dart', '''
 library my_lib;
 class A {}
 class _B extends A {}
@@ -141,7 +141,7 @@ class A<T> {
   test_addTypeAnnotation_BAD_privateType_list() async {
     // This is now failing because we're suggesting "List" rather than nothing.
     // Is it really better to produce nothing?
-    addSource('/my_lib.dart', '''
+    addSource('/project/my_lib.dart', '''
 library my_lib;
 class A {}
 class _B extends A {}
@@ -162,7 +162,7 @@ main() {
   }
 
   test_addTypeAnnotation_BAD_privateType_variable() async {
-    addSource('/my_lib.dart', '''
+    addSource('/project/my_lib.dart', '''
 library my_lib;
 class A {}
 class _B extends A {}
@@ -279,7 +279,7 @@ main(List<String> items) {
   }
 
   test_addTypeAnnotation_declaredIdentifier_OK_addImport_dartUri() async {
-    addSource('/my_lib.dart', r'''
+    addSource('/project/my_lib.dart', r'''
 import 'dart:async';
 List<Future<int>> getFutures() => null;
 ''');
@@ -416,7 +416,7 @@ class A<T> {
   }
 
   test_addTypeAnnotation_local_OK_addImport_dartUri() async {
-    addSource('/my_lib.dart', r'''
+    addSource('/project/my_lib.dart', r'''
 import 'dart:async';
 Future<int> getFutureInt() => null;
 ''');
@@ -438,7 +438,7 @@ main() {
 
   test_addTypeAnnotation_local_OK_addImport_notLibraryUnit() async {
     // prepare library
-    addSource('/my_lib.dart', r'''
+    addSource('/project/my_lib.dart', r'''
 import 'dart:async';
 Future<int> getFutureInt() => null;
 ''');
@@ -455,8 +455,8 @@ main() {
 }
 ''';
     // add sources
-    addSource('/app.dart', appCode);
-    testSource = addSource('/test.dart', testCode);
+    addSource('/project/app.dart', appCode);
+    testSource = addSource('/project/test.dart', testCode);
     // resolve
     await resolveTestUnit(testCode);
     // prepare the assist
@@ -465,7 +465,7 @@ main() {
     change = assist.change;
     // verify
     {
-      var testFileEdit = change.getFileEdit(convertPath('/app.dart'));
+      var testFileEdit = change.getFileEdit(convertPath('/project/app.dart'));
       var resultCode = SourceEdit.applySequence(appCode, testFileEdit.edits);
       expect(resultCode, '''
 library my_app;
@@ -476,7 +476,7 @@ part 'test.dart';
 ''');
     }
     {
-      var testFileEdit = change.getFileEdit(convertPath('/test.dart'));
+      var testFileEdit = change.getFileEdit(convertPath('/project/test.dart'));
       var resultCode = SourceEdit.applySequence(testCode, testFileEdit.edits);
       expect(resultCode, '''
 part of my_app;
@@ -488,10 +488,10 @@ main() {
   }
 
   test_addTypeAnnotation_local_OK_addImport_relUri() async {
-    addSource('/aa/bbb/lib_a.dart', r'''
+    addSource('/project/aa/bbb/lib_a.dart', r'''
 class MyClass {}
 ''');
-    addSource('/ccc/lib_b.dart', r'''
+    addSource('/project/ccc/lib_b.dart', r'''
 import '../aa/bbb/lib_a.dart';
 MyClass newMyClass() => null;
 ''');
@@ -1676,6 +1676,34 @@ class A {
 }
 class B extends A {
   final int foo;
+}
+''');
+  }
+
+  test_convertToFinalField_OK_noReturnType() async {
+    await resolveTestUnit('''
+class A {
+  get foo => 42;
+}
+''');
+    await assertHasAssistAt(
+        'get foo', DartAssistKind.CONVERT_INTO_FINAL_FIELD, '''
+class A {
+  final foo = 42;
+}
+''');
+  }
+
+  test_convertToFinalField_OK_noReturnType_static() async {
+    await resolveTestUnit('''
+class A {
+  static get foo => 42;
+}
+''');
+    await assertHasAssistAt(
+        'get foo', DartAssistKind.CONVERT_INTO_FINAL_FIELD, '''
+class A {
+  static final foo = 42;
 }
 ''');
   }
