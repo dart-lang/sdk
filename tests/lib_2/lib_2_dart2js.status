@@ -293,6 +293,7 @@ html/serialized_script_value_test: RuntimeError
 html/shadow_dom_test: RuntimeError
 html/shadowroot_test: RuntimeError
 html/speechrecognition_test: RuntimeError
+html/storage_promise_test: RuntimeError
 html/storage_test: RuntimeError
 html/streams_test: RuntimeError
 html/svg_test: RuntimeError
@@ -341,7 +342,7 @@ collection/list_test: RuntimeError
 html/fontface_loaded_test: RuntimeError
 html/html_mock_test: RuntimeError # Issue 31038
 html/input_element_attributes_test: RuntimeError
-html/interactive_media_test: RuntimeError
+html/interactive_media_test: RuntimeError # # See NOTE in test on how to run.
 html/js_dart_functions_test: RuntimeError # does not implement Dart 2 implicit `.call` tearoff
 html/js_extend_class_test: RuntimeError
 

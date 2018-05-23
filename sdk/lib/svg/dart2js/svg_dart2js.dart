@@ -2683,7 +2683,7 @@ class ImageElement extends GraphicsElement implements UriReference {
   @DomName('SVGImageElement.decode')
   @DocsEditable()
   @Experimental() // untriaged
-  Future decode() native;
+  Future decode() => promiseToFuture(JS("", "#.decode()", this));
 
   // From SVGURIReference
 

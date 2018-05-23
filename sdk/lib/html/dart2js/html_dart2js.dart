@@ -101,6 +101,46 @@ Window get window => JS('Window', 'window');
 HtmlDocument get document =>
     JS('returns:HtmlDocument;depends:none;effects:none;gvn:true', 'document');
 
+// Supoort to convert JS Promise to a Dart Future.
+Future<T> promiseToFuture<T>(thePromise) {
+  var completer = new Completer<T>();
+
+  var thenSuccessCode = (promiseValue) => completer.complete(promiseValue);
+  var thenErrorCode = (promiseError) => completer.completeError(promiseError);
+
+  JS("", "#.then(#, #)", thePromise, convertDartClosureToJS(thenSuccessCode, 1),
+      convertDartClosureToJS(thenErrorCode, 1));
+
+  return completer.future;
+}
+
+// Supoort to convert JS Promise to a Dart Future that returns a MapLike (Class with Map mixin).
+Future promiseToFutureMap(thePromise) {
+  var completer = new Completer();
+
+  var thenSuccessCode = (promiseValue) => completer.complete(promiseValue);
+  var thenErrorCode = (promiseError) => completer.completeError(promiseError);
+
+  JS("", "#.then(#, #)", thePromise, convertDartClosureToJS(thenSuccessCode, 1),
+      convertDartClosureToJS(thenErrorCode, 1));
+
+  return completer.future;
+}
+
+// Supoort to convert JS Promise to a Dart Future that returns a Dictionary as a Dart Map.
+Future<Map> promiseToFutureDictionary(thePromise) {
+  var completer = new Completer<Map>();
+
+  var thenSuccessCode = (promiseValue) =>
+      completer.complete(convertNativeToDart_Dictionary(promiseValue));
+  var thenErrorCode = (promiseError) => completer.completeError(promiseError);
+
+  JS("", "#.then(#, #)", thePromise, convertDartClosureToJS(thenSuccessCode, 1),
+      convertDartClosureToJS(thenErrorCode, 1));
+
+  return completer.future;
+}
+
 // Workaround for tags like <cite> that lack their own Element subclass --
 // Dart issue 1990.
 @Native("HTMLElement")
@@ -129,7 +169,6 @@ class HtmlElement extends Element implements NoncedElement {
 @Experimental() // untriaged
 typedef void FontFaceSetForEachCallback(
     FontFace fontFace, FontFace fontFaceAgain, FontFaceSet set);
-
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -1810,12 +1849,15 @@ class BackgroundFetchManager extends Interceptor {
   @DomName('BackgroundFetchManager.get')
   @DocsEditable()
   @Experimental() // untriaged
-  Future get(String id) native;
+  Future<BackgroundFetchRegistration> get(String id) =>
+      promiseToFuture<BackgroundFetchRegistration>(
+          JS("", "#.get(#)", this, id));
 
   @DomName('BackgroundFetchManager.getIds')
   @DocsEditable()
   @Experimental() // untriaged
-  Future getIds() native;
+  Future<List<String>> getIds() =>
+      promiseToFuture<List<String>>(JS("", "#.getIds()", this));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1869,7 +1911,7 @@ class BackgroundFetchRegistration extends EventTarget {
   @DomName('BackgroundFetchRegistration.abort')
   @DocsEditable()
   @Experimental() // untriaged
-  Future abort() native;
+  Future<bool> abort() => promiseToFuture<bool>(JS("", "#.abort()", this));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1932,7 +1974,8 @@ class BackgroundFetchedEvent extends BackgroundFetchEvent {
   @DomName('BackgroundFetchedEvent.updateUI')
   @DocsEditable()
   @Experimental() // untriaged
-  Future updateUI(String title) native;
+  Future updateUI(String title) =>
+      promiseToFuture(JS("", "#.updateUI(#)", this, title));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1978,7 +2021,9 @@ class BarcodeDetector extends Interceptor {
   @DomName('BarcodeDetector.detect')
   @DocsEditable()
   @Experimental() // untriaged
-  Future detect(/*ImageBitmapSource*/ image) native;
+  Future<List<DetectedBarcode>> detect(/*ImageBitmapSource*/ image) =>
+      promiseToFuture<List<DetectedBarcode>>(
+          JS("", "#.detect(#)", this, image));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2090,7 +2135,7 @@ class BeforeInstallPromptEvent extends Event {
   @DomName('BeforeInstallPromptEvent.prompt')
   @DocsEditable()
   @Experimental() // untriaged
-  Future prompt() native;
+  Future prompt() => promiseToFuture(JS("", "#.prompt()", this));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2231,12 +2276,13 @@ class BluetoothRemoteGattDescriptor extends Interceptor {
   @DomName('BluetoothRemoteGATTDescriptor.readValue')
   @DocsEditable()
   @Experimental() // untriaged
-  Future readValue() native;
+  Future readValue() => promiseToFuture(JS("", "#.readValue()", this));
 
   @DomName('BluetoothRemoteGATTDescriptor.writeValue')
   @DocsEditable()
   @Experimental() // untriaged
-  Future writeValue(/*BufferSource*/ value) native;
+  Future writeValue(/*BufferSource*/ value) =>
+      promiseToFuture(JS("", "#.writeValue(#)", this, value));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2260,27 +2306,28 @@ class Body extends Interceptor {
   @DomName('Body.arrayBuffer')
   @DocsEditable()
   @Experimental() // untriaged
-  Future arrayBuffer() native;
+  Future arrayBuffer() => promiseToFuture(JS("", "#.arrayBuffer()", this));
 
   @DomName('Body.blob')
   @DocsEditable()
   @Experimental() // untriaged
-  Future blob() native;
+  Future<Blob> blob() => promiseToFuture<Blob>(JS("", "#.blob()", this));
 
   @DomName('Body.formData')
   @DocsEditable()
   @Experimental() // untriaged
-  Future formData() native;
+  Future<FormData> formData() =>
+      promiseToFuture<FormData>(JS("", "#.formData()", this));
 
   @DomName('Body.json')
   @DocsEditable()
   @Experimental() // untriaged
-  Future json() native;
+  Future json() => promiseToFuture(JS("", "#.json()", this));
 
   @DomName('Body.text')
   @DocsEditable()
   @Experimental() // untriaged
-  Future text() native;
+  Future<String> text() => promiseToFuture<String>(JS("", "#.text()", this));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2719,17 +2766,19 @@ class CacheStorage extends Interceptor {
   @DomName('CacheStorage.delete')
   @DocsEditable()
   @Experimental() // untriaged
-  Future delete(String cacheName) native;
+  Future delete(String cacheName) =>
+      promiseToFuture(JS("", "#.delete(#)", this, cacheName));
 
   @DomName('CacheStorage.has')
   @DocsEditable()
   @Experimental() // untriaged
-  Future has(String cacheName) native;
+  Future has(String cacheName) =>
+      promiseToFuture(JS("", "#.has(#)", this, cacheName));
 
   @DomName('CacheStorage.keys')
   @DocsEditable()
   @Experimental() // untriaged
-  Future keys() native;
+  Future keys() => promiseToFuture(JS("", "#.keys()", this));
 
   @DomName('CacheStorage.match')
   @DocsEditable()
@@ -2756,7 +2805,8 @@ class CacheStorage extends Interceptor {
   @DomName('CacheStorage.open')
   @DocsEditable()
   @Experimental() // untriaged
-  Future open(String cacheName) native;
+  Future open(String cacheName) =>
+      promiseToFuture(JS("", "#.open(#)", this, cacheName));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4031,12 +4081,12 @@ class Clients extends Interceptor {
   @DomName('Clients.claim')
   @DocsEditable()
   @Experimental() // untriaged
-  Future claim() native;
+  Future claim() => promiseToFuture(JS("", "#.claim()", this));
 
   @DomName('Clients.get')
   @DocsEditable()
   @Experimental() // untriaged
-  Future get(String id) native;
+  Future get(String id) => promiseToFuture(JS("", "#.get(#)", this, id));
 
   @DomName('Clients.matchAll')
   @DocsEditable()
@@ -4063,7 +4113,8 @@ class Clients extends Interceptor {
   @DomName('Clients.openWindow')
   @DocsEditable()
   @Experimental() // untriaged
-  Future openWindow(String url) native;
+  Future<WindowClient> openWindow(String url) =>
+      promiseToFuture<WindowClient>(JS("", "#.openWindow(#)", this, url));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4457,17 +4508,20 @@ class CredentialsContainer extends Interceptor {
   @DomName('CredentialsContainer.preventSilentAccess')
   @DocsEditable()
   @Experimental() // untriaged
-  Future preventSilentAccess() native;
+  Future preventSilentAccess() =>
+      promiseToFuture(JS("", "#.preventSilentAccess()", this));
 
   @DomName('CredentialsContainer.requireUserMediation')
   @DocsEditable()
   @Experimental() // untriaged
-  Future requireUserMediation() native;
+  Future requireUserMediation() =>
+      promiseToFuture(JS("", "#.requireUserMediation()", this));
 
   @DomName('CredentialsContainer.store')
   @DocsEditable()
   @Experimental() // untriaged
-  Future store(Credential credential) native;
+  Future store(Credential credential) =>
+      promiseToFuture(JS("", "#.store(#)", this, credential));
 }
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10270,7 +10324,8 @@ class CustomElementRegistry extends Interceptor {
   @DomName('CustomElementRegistry.whenDefined')
   @DocsEditable()
   @Experimental() // untriaged
-  Future whenDefined(String name) native;
+  Future whenDefined(String name) =>
+      promiseToFuture(JS("", "#.whenDefined(#)", this, name));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19259,7 +19314,8 @@ class FaceDetector extends Interceptor {
   @DomName('FaceDetector.detect')
   @DocsEditable()
   @Experimental() // untriaged
-  Future detect(/*ImageBitmapSource*/ image) native;
+  Future<List<DetectedFace>> detect(/*ImageBitmapSource*/ image) =>
+      promiseToFuture<List<DetectedFace>>(JS("", "#.detect(#)", this, image));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20099,7 +20155,8 @@ class FontFace extends Interceptor {
   @DomName('FontFace.load')
   @DocsEditable()
   @Experimental() // untriaged
-  Future load() native;
+  Future<FontFace> load() =>
+      promiseToFuture<FontFace>(JS("", "#.load()", this));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23312,17 +23369,21 @@ class ImageCapture extends Interceptor {
   @DomName('ImageCapture.getPhotoCapabilities')
   @DocsEditable()
   @Experimental() // untriaged
-  Future getPhotoCapabilities() native;
+  Future<PhotoCapabilities> getPhotoCapabilities() =>
+      promiseToFuture<PhotoCapabilities>(
+          JS("", "#.getPhotoCapabilities()", this));
 
   @DomName('ImageCapture.getPhotoSettings')
   @DocsEditable()
   @Experimental() // untriaged
-  Future getPhotoSettings() native;
+  Future<Map> getPhotoSettings() =>
+      promiseToFutureDictionary(JS("", "#.getPhotoSettings()", this));
 
   @DomName('ImageCapture.grabFrame')
   @DocsEditable()
   @Experimental() // untriaged
-  Future grabFrame() native;
+  Future<ImageBitmap> grabFrame() =>
+      promiseToFuture<ImageBitmap>(JS("", "#.grabFrame()", this));
 
   @DomName('ImageCapture.setOptions')
   @DocsEditable()
@@ -23504,7 +23565,7 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   @DomName('HTMLImageElement.decode')
   @DocsEditable()
   @Experimental() // untriaged
-  Future decode() native;
+  Future decode() => promiseToFuture(JS("", "#.decode()", this));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25360,7 +25421,9 @@ class MediaDevices extends EventTarget {
   @DomName('MediaDevices.enumerateDevices')
   @DocsEditable()
   @Experimental() // untriaged
-  Future enumerateDevices() native;
+  Future<List<MediaDeviceInfo>> enumerateDevices() =>
+      promiseToFuture<List<MediaDeviceInfo>>(
+          JS("", "#.enumerateDevices()", this));
 
   @DomName('MediaDevices.getSupportedConstraints')
   @DocsEditable()
@@ -25615,17 +25678,19 @@ class MediaElement extends HtmlElement {
 
   @DomName('HTMLMediaElement.play')
   @DocsEditable()
-  Future play() native;
+  Future play() => promiseToFuture(JS("", "#.play()", this));
 
   @DomName('HTMLMediaElement.setMediaKeys')
   @DocsEditable()
   @Experimental() // untriaged
-  Future setMediaKeys(MediaKeys mediaKeys) native;
+  Future setMediaKeys(MediaKeys mediaKeys) =>
+      promiseToFuture(JS("", "#.setMediaKeys(#)", this, mediaKeys));
 
   @DomName('HTMLMediaElement.setSinkId')
   @DocsEditable()
   @Experimental() // untriaged
-  Future setSinkId(String sinkId) native;
+  Future setSinkId(String sinkId) =>
+      promiseToFuture(JS("", "#.setSinkId(#)", this, sinkId));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25785,22 +25850,25 @@ class MediaKeySession extends EventTarget {
 
   @DomName('MediaKeySession.close')
   @DocsEditable()
-  Future close() native;
+  Future close() => promiseToFuture(JS("", "#.close()", this));
 
   @DomName('MediaKeySession.generateRequest')
   @DocsEditable()
   @Experimental() // untriaged
-  Future generateRequest(String initDataType, /*BufferSource*/ initData) native;
+  Future generateRequest(String initDataType, /*BufferSource*/ initData) =>
+      promiseToFuture(
+          JS("", "#.generateRequest(#, #)", this, initDataType, initData));
 
   @DomName('MediaKeySession.load')
   @DocsEditable()
   @Experimental() // untriaged
-  Future load(String sessionId) native;
+  Future load(String sessionId) =>
+      promiseToFuture(JS("", "#.load(#)", this, sessionId));
 
   @DomName('MediaKeySession.remove')
   @DocsEditable()
   @Experimental() // untriaged
-  Future remove() native;
+  Future remove() => promiseToFuture(JS("", "#.remove()", this));
 
   @JSName('update')
   @DomName('MediaKeySession.update')
@@ -25863,7 +25931,8 @@ class MediaKeySystemAccess extends Interceptor {
   @DomName('MediaKeySystemAccess.createMediaKeys')
   @DocsEditable()
   @Experimental() // untriaged
-  Future createMediaKeys() native;
+  Future createMediaKeys() =>
+      promiseToFuture(JS("", "#.createMediaKeys()", this));
 
   @DomName('MediaKeySystemAccess.getConfiguration')
   @DocsEditable()
@@ -25901,12 +25970,15 @@ class MediaKeys extends Interceptor {
   @DomName('MediaKeys.getStatusForPolicy')
   @DocsEditable()
   @Experimental() // untriaged
-  Future getStatusForPolicy(MediaKeysPolicy policy) native;
+  Future getStatusForPolicy(MediaKeysPolicy policy) =>
+      promiseToFuture(JS("", "#.getStatusForPolicy(#)", this, policy));
 
   @DomName('MediaKeys.setServerCertificate')
   @DocsEditable()
   @Experimental() // untriaged
-  Future setServerCertificate(/*BufferSource*/ serverCertificate) native;
+  Future setServerCertificate(/*BufferSource*/ serverCertificate) =>
+      promiseToFuture(
+          JS("", "#.setServerCertificate(#)", this, serverCertificate));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27241,9 +27313,66 @@ class MidiInput extends MidiPort {
 @DomName('MIDIInputMap')
 @Experimental() // untriaged
 @Native("MIDIInputMap")
-class MidiInputMap extends Interceptor {
+class MidiInputMap extends Interceptor with MapMixin<String, dynamic> {
   // To suppress missing implicit constructor warnings.
   factory MidiInputMap._() {
+    throw new UnsupportedError("Not supported");
+  }
+
+  Map _getItem(String key) =>
+      convertNativeToDart_Dictionary(JS('', '#.get(#)', this, key));
+
+  void addAll(Map<String, dynamic> other) {
+    throw new UnsupportedError("Not supported");
+  }
+
+  bool containsValue(dynamic value) => values.any((e) => e == value);
+
+  bool containsKey(dynamic key) => _getItem(key) != null;
+
+  Map operator [](dynamic key) => _getItem(key);
+
+  void forEach(void f(String key, dynamic value)) {
+    var entries = JS('', '#.entries()', this);
+    while (true) {
+      var entry = JS('', '#.next()', entries);
+      if (JS('bool', '#.done', entry)) return;
+      f(JS('String', '#.value[0]', entry),
+          convertNativeToDart_Dictionary(JS('', '#.value[1]', entry)));
+    }
+  }
+
+  Iterable<String> get keys {
+    final keys = <String>[];
+    forEach((k, v) => keys.add(k));
+    return keys;
+  }
+
+  Iterable<Map> get values {
+    final values = <Map>[];
+    forEach((k, v) => values.add(v));
+    return values;
+  }
+
+  int get length => JS('int', '#.size', this);
+
+  bool get isEmpty => length == 0;
+
+  bool get isNotEmpty => !isEmpty;
+
+  void operator []=(String key, dynamic value) {
+    throw new UnsupportedError("Not supported");
+  }
+
+  dynamic putIfAbsent(String key, dynamic ifAbsent()) {
+    throw new UnsupportedError("Not supported");
+  }
+
+  String remove(dynamic key) {
+    throw new UnsupportedError("Not supported");
+  }
+
+  void clear() {
     throw new UnsupportedError("Not supported");
   }
 }
@@ -27307,9 +27436,66 @@ class MidiOutput extends MidiPort {
 @DomName('MIDIOutputMap')
 @Experimental() // untriaged
 @Native("MIDIOutputMap")
-class MidiOutputMap extends Interceptor {
+class MidiOutputMap extends Interceptor with MapMixin<String, dynamic> {
   // To suppress missing implicit constructor warnings.
   factory MidiOutputMap._() {
+    throw new UnsupportedError("Not supported");
+  }
+
+  Map _getItem(String key) =>
+      convertNativeToDart_Dictionary(JS('', '#.get(#)', this, key));
+
+  void addAll(Map<String, dynamic> other) {
+    throw new UnsupportedError("Not supported");
+  }
+
+  bool containsValue(dynamic value) => values.any((e) => e == value);
+
+  bool containsKey(dynamic key) => _getItem(key) != null;
+
+  Map operator [](dynamic key) => _getItem(key);
+
+  void forEach(void f(String key, dynamic value)) {
+    var entries = JS('', '#.entries()', this);
+    while (true) {
+      var entry = JS('', '#.next()', entries);
+      if (JS('bool', '#.done', entry)) return;
+      f(JS('String', '#.value[0]', entry),
+          convertNativeToDart_Dictionary(JS('', '#.value[1]', entry)));
+    }
+  }
+
+  Iterable<String> get keys {
+    final keys = <String>[];
+    forEach((k, v) => keys.add(k));
+    return keys;
+  }
+
+  Iterable<Map> get values {
+    final values = <Map>[];
+    forEach((k, v) => values.add(v));
+    return values;
+  }
+
+  int get length => JS('int', '#.size', this);
+
+  bool get isEmpty => length == 0;
+
+  bool get isNotEmpty => !isEmpty;
+
+  void operator []=(String key, dynamic value) {
+    throw new UnsupportedError("Not supported");
+  }
+
+  dynamic putIfAbsent(String key, dynamic ifAbsent()) {
+    throw new UnsupportedError("Not supported");
+  }
+
+  String remove(dynamic key) {
+    throw new UnsupportedError("Not supported");
+  }
+
+  void clear() {
     throw new UnsupportedError("Not supported");
   }
 }
@@ -27361,12 +27547,12 @@ class MidiPort extends EventTarget {
   @DomName('MIDIPort.close')
   @DocsEditable()
   @Experimental() // untriaged
-  Future close() native;
+  Future close() => promiseToFuture(JS("", "#.close()", this));
 
   @DomName('MIDIPort.open')
   @DocsEditable()
   @Experimental() // untriaged
-  Future open() native;
+  Future open() => promiseToFuture(JS("", "#.open()", this));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28057,17 +28243,18 @@ class NavigationPreloadManager extends Interceptor {
   @DomName('NavigationPreloadManager.disable')
   @DocsEditable()
   @Experimental() // untriaged
-  Future disable() native;
+  Future disable() => promiseToFuture(JS("", "#.disable()", this));
 
   @DomName('NavigationPreloadManager.enable')
   @DocsEditable()
   @Experimental() // untriaged
-  Future enable() native;
+  Future enable() => promiseToFuture(JS("", "#.enable()", this));
 
   @DomName('NavigationPreloadManager.getState')
   @DocsEditable()
   @Experimental() // untriaged
-  Future getState() native;
+  Future<Map> getState() =>
+      promiseToFutureDictionary(JS("", "#.getState()", this));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28307,7 +28494,7 @@ class Navigator extends NavigatorConcurrentHardware
   @DomName('Navigator.getBattery')
   @DocsEditable()
   @Experimental() // untriaged
-  Future getBattery() native;
+  Future getBattery() => promiseToFuture(JS("", "#.getBattery()", this));
 
   @JSName('getGamepads')
   @DomName('Navigator.getGamepads')
@@ -28320,12 +28507,14 @@ class Navigator extends NavigatorConcurrentHardware
   @DomName('Navigator.getInstalledRelatedApps')
   @DocsEditable()
   @Experimental() // untriaged
-  Future getInstalledRelatedApps() native;
+  Future<RelatedApplication> getInstalledRelatedApps() =>
+      promiseToFuture<RelatedApplication>(
+          JS("", "#.getInstalledRelatedApps()", this));
 
   @DomName('Navigator.getVRDisplays')
   @DocsEditable()
   @Experimental() // untriaged
-  Future getVRDisplays() native;
+  Future getVRDisplays() => promiseToFuture(JS("", "#.getVRDisplays()", this));
 
   @DomName('Navigator.registerProtocolHandler')
   @DocsEditable()
@@ -28380,7 +28569,9 @@ class Navigator extends NavigatorConcurrentHardware
   @DocsEditable()
   @Experimental() // untriaged
   Future requestMediaKeySystemAccess(
-      String keySystem, List<Map> supportedConfigurations) native;
+          String keySystem, List<Map> supportedConfigurations) =>
+      promiseToFuture(JS("", "#.requestMediaKeySystemAccess(#, #)", this,
+          keySystem, supportedConfigurations));
 
   @DomName('Navigator.sendBeacon')
   @DocsEditable()
@@ -30139,7 +30330,7 @@ class OffscreenCanvasRenderingContext2D extends Interceptor
   @DomName('OffscreenCanvasRenderingContext2D.commit')
   @DocsEditable()
   @Experimental() // untriaged
-  Future commit() native;
+  Future commit() => promiseToFuture(JS("", "#.commit()", this));
 
   @DomName('OffscreenCanvasRenderingContext2D.createImageData')
   @DocsEditable()
@@ -31380,27 +31571,31 @@ class PaymentInstruments extends Interceptor {
   @DomName('PaymentInstruments.clear')
   @DocsEditable()
   @Experimental() // untriaged
-  Future clear() native;
+  Future clear() => promiseToFuture(JS("", "#.clear()", this));
 
   @DomName('PaymentInstruments.delete')
   @DocsEditable()
   @Experimental() // untriaged
-  Future delete(String instrumentKey) native;
+  Future<bool> delete(String instrumentKey) =>
+      promiseToFuture<bool>(JS("", "#.delete(#)", this, instrumentKey));
 
   @DomName('PaymentInstruments.get')
   @DocsEditable()
   @Experimental() // untriaged
-  Future get(String instrumentKey) native;
+  Future<Map> get(String instrumentKey) =>
+      promiseToFutureDictionary(JS("", "#.get(#)", this, instrumentKey));
 
   @DomName('PaymentInstruments.has')
   @DocsEditable()
   @Experimental() // untriaged
-  Future has(String instrumentKey) native;
+  Future has(String instrumentKey) =>
+      promiseToFuture(JS("", "#.has(#)", this, instrumentKey));
 
   @DomName('PaymentInstruments.keys')
   @DocsEditable()
   @Experimental() // untriaged
-  Future keys() native;
+  Future<List<String>> keys() =>
+      promiseToFuture<List<String>>(JS("", "#.keys()", this));
 
   @DomName('PaymentInstruments.set')
   @DocsEditable()
@@ -31500,17 +31695,19 @@ class PaymentRequest extends EventTarget {
   @DomName('PaymentRequest.abort')
   @DocsEditable()
   @Experimental() // untriaged
-  Future abort() native;
+  Future abort() => promiseToFuture(JS("", "#.abort()", this));
 
   @DomName('PaymentRequest.canMakePayment')
   @DocsEditable()
   @Experimental() // untriaged
-  Future canMakePayment() native;
+  Future<bool> canMakePayment() =>
+      promiseToFuture<bool>(JS("", "#.canMakePayment()", this));
 
   @DomName('PaymentRequest.show')
   @DocsEditable()
   @Experimental() // untriaged
-  Future show() native;
+  Future<PaymentResponse> show() =>
+      promiseToFuture<PaymentResponse>(JS("", "#.show()", this));
 }
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31577,7 +31774,8 @@ class PaymentRequestEvent extends ExtendableEvent {
   @DomName('PaymentRequestEvent.openWindow')
   @DocsEditable()
   @Experimental() // untriaged
-  Future openWindow(String url) native;
+  Future<WindowClient> openWindow(String url) =>
+      promiseToFuture<WindowClient>(JS("", "#.openWindow(#)", this, url));
 
   @DomName('PaymentRequestEvent.respondWith')
   @DocsEditable()
@@ -31677,7 +31875,8 @@ class PaymentResponse extends Interceptor {
   @DomName('PaymentResponse.complete')
   @DocsEditable()
   @Experimental() // untriaged
-  Future complete([String paymentResult]) native;
+  Future complete([String paymentResult]) =>
+      promiseToFuture(JS("", "#.complete(#)", this, paymentResult));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -32347,7 +32546,9 @@ class Permissions extends Interceptor {
   @DomName('Permissions.requestAll')
   @DocsEditable()
   @Experimental() // untriaged
-  Future requestAll(List<Map> permissions) native;
+  Future<PermissionStatus> requestAll(List<Map> permissions) =>
+      promiseToFuture<PermissionStatus>(
+          JS("", "#.requestAll(#)", this, permissions));
 
   @DomName('Permissions.revoke')
   @DocsEditable()
@@ -32984,17 +33185,22 @@ class PresentationRequest extends EventTarget {
   @DomName('PresentationRequest.getAvailability')
   @DocsEditable()
   @Experimental() // untriaged
-  Future getAvailability() native;
+  Future<PresentationAvailability> getAvailability() =>
+      promiseToFuture<PresentationAvailability>(
+          JS("", "#.getAvailability()", this));
 
   @DomName('PresentationRequest.reconnect')
   @DocsEditable()
   @Experimental() // untriaged
-  Future reconnect(String id) native;
+  Future<PresentationConnection> reconnect(String id) =>
+      promiseToFuture<PresentationConnection>(
+          JS("", "#.reconnect(#)", this, id));
 
   @DomName('PresentationRequest.start')
   @DocsEditable()
   @Experimental() // untriaged
-  Future start() native;
+  Future<PresentationConnection> start() =>
+      promiseToFuture<PresentationConnection>(JS("", "#.start()", this));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -33221,7 +33427,8 @@ class PushManager extends Interceptor {
   @DomName('PushManager.getSubscription')
   @DocsEditable()
   @Experimental() // untriaged
-  Future getSubscription() native;
+  Future<PushSubscription> getSubscription() =>
+      promiseToFuture<PushSubscription>(JS("", "#.getSubscription()", this));
 
   @DomName('PushManager.permissionState')
   @DocsEditable()
@@ -33338,7 +33545,8 @@ class PushSubscription extends Interceptor {
   @DomName('PushSubscription.unsubscribe')
   @DocsEditable()
   @Experimental() // untriaged
-  Future unsubscribe() native;
+  Future<bool> unsubscribe() =>
+      promiseToFuture<bool>(JS("", "#.unsubscribe()", this));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -33687,17 +33895,19 @@ class RemotePlayback extends EventTarget {
   @DomName('RemotePlayback.cancelWatchAvailability')
   @DocsEditable()
   @Experimental() // untriaged
-  Future cancelWatchAvailability([int id]) native;
+  Future cancelWatchAvailability([int id]) =>
+      promiseToFuture(JS("", "#.cancelWatchAvailability(#)", this, id));
 
   @DomName('RemotePlayback.prompt')
   @DocsEditable()
   @Experimental() // untriaged
-  Future prompt() native;
+  Future prompt() => promiseToFuture(JS("", "#.prompt()", this));
 
   @DomName('RemotePlayback.watchAvailability')
   @DocsEditable()
   @Experimental() // untriaged
-  Future watchAvailability(RemotePlaybackAvailabilityCallback callback) native;
+  Future<int> watchAvailability(RemotePlaybackAvailabilityCallback callback) =>
+      promiseToFuture<int>(JS("", "#.watchAvailability(#)", this, callback));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34301,15 +34511,6 @@ class RtcPeerConnection extends EventTarget {
     return completer.future;
   }
 
-  @DomName('RTCPeerConnection.getStats')
-  Future<RtcStatsResponse> getStats(MediaStreamTrack selector) {
-    var completer = new Completer<RtcStatsResponse>();
-    _getStats((value) {
-      completer.complete(value);
-    }, selector);
-    return completer.future;
-  }
-
   @DomName('RTCPeerConnection.generateCertificate')
   @DocsEditable()
   @Experimental() // untriaged
@@ -34422,8 +34623,10 @@ class RtcPeerConnection extends EventTarget {
   @DomName('RTCPeerConnection.addIceCandidate')
   @DocsEditable()
   Future addIceCandidate(Object candidate,
-      [VoidCallback successCallback,
-      RtcPeerConnectionErrorCallback failureCallback]) native;
+          [VoidCallback successCallback,
+          RtcPeerConnectionErrorCallback failureCallback]) =>
+      promiseToFuture(JS("", "#.addIceCandidate(#, #, #)", this, candidate,
+          successCallback, failureCallback));
 
   @DomName('RTCPeerConnection.addStream')
   @DocsEditable()
@@ -34601,11 +34804,9 @@ class RtcPeerConnection extends EventTarget {
   @Experimental() // untriaged
   List<RtcRtpSender> getSenders() native;
 
-  @JSName('getStats')
   @DomName('RTCPeerConnection.getStats')
   @DocsEditable()
-  Future _getStats(
-      [RtcStatsCallback successCallback, MediaStreamTrack selector]) native;
+  Future getStats() => promiseToFutureMap(JS("", "#.getStats()", this));
 
   @DomName('RTCPeerConnection.removeStream')
   @DocsEditable()
@@ -34876,9 +35077,66 @@ class RtcSessionDescription extends Interceptor {
 // http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCStatsReport
 @Experimental()
 @Native("RTCStatsReport")
-class RtcStatsReport extends Interceptor {
+class RtcStatsReport extends Interceptor with MapMixin<String, dynamic> {
   // To suppress missing implicit constructor warnings.
   factory RtcStatsReport._() {
+    throw new UnsupportedError("Not supported");
+  }
+
+  Map _getItem(String key) =>
+      convertNativeToDart_Dictionary(JS('', '#.get(#)', this, key));
+
+  void addAll(Map<String, dynamic> other) {
+    throw new UnsupportedError("Not supported");
+  }
+
+  bool containsValue(dynamic value) => values.any((e) => e == value);
+
+  bool containsKey(dynamic key) => _getItem(key) != null;
+
+  Map operator [](dynamic key) => _getItem(key);
+
+  void forEach(void f(String key, dynamic value)) {
+    var entries = JS('', '#.entries()', this);
+    while (true) {
+      var entry = JS('', '#.next()', entries);
+      if (JS('bool', '#.done', entry)) return;
+      f(JS('String', '#.value[0]', entry),
+          convertNativeToDart_Dictionary(JS('', '#.value[1]', entry)));
+    }
+  }
+
+  Iterable<String> get keys {
+    final keys = <String>[];
+    forEach((k, v) => keys.add(k));
+    return keys;
+  }
+
+  Iterable<Map> get values {
+    final values = <Map>[];
+    forEach((k, v) => values.add(v));
+    return values;
+  }
+
+  int get length => JS('int', '#.size', this);
+
+  bool get isEmpty => length == 0;
+
+  bool get isNotEmpty => !isEmpty;
+
+  void operator []=(String key, dynamic value) {
+    throw new UnsupportedError("Not supported");
+  }
+
+  dynamic putIfAbsent(String key, dynamic ifAbsent()) {
+    throw new UnsupportedError("Not supported");
+  }
+
+  String remove(dynamic key) {
+    throw new UnsupportedError("Not supported");
+  }
+
+  void clear() {
     throw new UnsupportedError("Not supported");
   }
 }
@@ -35043,7 +35301,8 @@ class ScreenOrientation extends EventTarget {
   @DomName('ScreenOrientation.lock')
   @DocsEditable()
   @Experimental() // untriaged
-  Future lock(String orientation) native;
+  Future lock(String orientation) =>
+      promiseToFuture(JS("", "#.lock(#)", this, orientation));
 
   @DomName('ScreenOrientation.unlock')
   @DocsEditable()
@@ -35771,12 +36030,16 @@ class ServiceWorkerContainer extends EventTarget {
   @DomName('ServiceWorkerContainer.getRegistration')
   @DocsEditable()
   @Experimental() // untriaged
-  Future getRegistration([String documentURL]) native;
+  Future<ServiceWorkerRegistration> getRegistration([String documentURL]) =>
+      promiseToFuture<ServiceWorkerRegistration>(
+          JS("", "#.getRegistration(#)", this, documentURL));
 
   @DomName('ServiceWorkerContainer.getRegistrations')
   @DocsEditable()
   @Experimental() // untriaged
-  Future getRegistrations() native;
+  Future<List<ServiceWorkerRegistration>> getRegistrations() =>
+      promiseToFuture<List<ServiceWorkerRegistration>>(
+          JS("", "#.getRegistrations()", this));
 
   @DomName('ServiceWorkerContainer.register')
   @DocsEditable()
@@ -35862,7 +36125,7 @@ class ServiceWorkerGlobalScope extends WorkerGlobalScope {
   @DomName('ServiceWorkerGlobalScope.skipWaiting')
   @DocsEditable()
   @Experimental() // untriaged
-  Future skipWaiting() native;
+  Future skipWaiting() => promiseToFuture(JS("", "#.skipWaiting()", this));
 
   @DomName('ServiceWorkerGlobalScope.onactivate')
   @DocsEditable()
@@ -35996,12 +36259,13 @@ class ServiceWorkerRegistration extends EventTarget {
   @DomName('ServiceWorkerRegistration.unregister')
   @DocsEditable()
   @Experimental() // untriaged
-  Future unregister() native;
+  Future<bool> unregister() =>
+      promiseToFuture<bool>(JS("", "#.unregister()", this));
 
   @DomName('ServiceWorkerRegistration.update')
   @DocsEditable()
   @Experimental() // untriaged
-  Future update() native;
+  Future update() => promiseToFuture(JS("", "#.update()", this));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -37639,17 +37903,19 @@ class StorageManager extends Interceptor {
   @DomName('StorageManager.estimate')
   @DocsEditable()
   @Experimental() // untriaged
-  Future estimate() native;
+  Future<Map> estimate() =>
+      promiseToFutureDictionary(JS("", "#.estimate()", this));
 
   @DomName('StorageManager.persist')
   @DocsEditable()
   @Experimental() // untriaged
-  Future persist() native;
+  Future<bool> persist() => promiseToFuture<bool>(JS("", "#.persist()", this));
 
   @DomName('StorageManager.persisted')
   @DocsEditable()
   @Experimental() // untriaged
-  Future persisted() native;
+  Future<bool> persisted() =>
+      promiseToFuture<bool>(JS("", "#.persisted()", this));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -37892,12 +38158,14 @@ class SyncManager extends Interceptor {
   @DomName('SyncManager.getTags')
   @DocsEditable()
   @Experimental() // untriaged
-  Future getTags() native;
+  Future<List<String>> getTags() =>
+      promiseToFuture<List<String>>(JS("", "#.getTags()", this));
 
   @DomName('SyncManager.register')
   @DocsEditable()
   @Experimental() // untriaged
-  Future register(String tag) native;
+  Future register(String tag) =>
+      promiseToFuture(JS("", "#.register(#)", this, tag));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -38591,7 +38859,8 @@ class TextDetector extends Interceptor {
   @DomName('TextDetector.detect')
   @DocsEditable()
   @Experimental() // untriaged
-  Future detect(/*ImageBitmapSource*/ image) native;
+  Future<List<DetectedText>> detect(/*ImageBitmapSource*/ image) =>
+      promiseToFuture<List<DetectedText>>(JS("", "#.detect(#)", this, image));
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -39863,7 +40132,8 @@ class UnderlyingSourceBase extends Interceptor {
   @DomName('UnderlyingSourceBase.cancel')
   @DocsEditable()
   @Experimental() // untriaged
-  Future cancel(Object reason) native;
+  Future cancel(Object reason) =>
+      promiseToFuture(JS("", "#.cancel(#)", this, reason));
 
   @DomName('UnderlyingSourceBase.notifyLockAcquired')
   @DocsEditable()
@@ -39878,12 +40148,13 @@ class UnderlyingSourceBase extends Interceptor {
   @DomName('UnderlyingSourceBase.pull')
   @DocsEditable()
   @Experimental() // untriaged
-  Future pull() native;
+  Future pull() => promiseToFuture(JS("", "#.pull()", this));
 
   @DomName('UnderlyingSourceBase.start')
   @DocsEditable()
   @Experimental() // untriaged
-  Future start(Object stream) native;
+  Future start(Object stream) =>
+      promiseToFuture(JS("", "#.start(#)", this, stream));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -40107,7 +40378,7 @@ class VR extends EventTarget {
   @DomName('VR.getDevices')
   @DocsEditable()
   @Experimental() // untriaged
-  Future getDevices() native;
+  Future getDevices() => promiseToFuture(JS("", "#.getDevices()", this));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -40281,7 +40552,7 @@ class VRDisplay extends EventTarget {
   @DomName('VRDisplay.exitPresent')
   @DocsEditable()
   @Experimental() // untriaged
-  Future exitPresent() native;
+  Future exitPresent() => promiseToFuture(JS("", "#.exitPresent()", this));
 
   @DomName('VRDisplay.getEyeParameters')
   @DocsEditable()
@@ -40306,7 +40577,8 @@ class VRDisplay extends EventTarget {
   @DomName('VRDisplay.requestPresent')
   @DocsEditable()
   @Experimental() // untriaged
-  Future requestPresent(List<Map> layers) native;
+  Future requestPresent(List<Map> layers) =>
+      promiseToFuture(JS("", "#.requestPresent(#)", this, layers));
 
   @DomName('VRDisplay.submitFrame')
   @DocsEditable()
@@ -40577,7 +40849,7 @@ class VRSession extends EventTarget {
   @DomName('VRSession.end')
   @DocsEditable()
   @Experimental() // untriaged
-  Future end() native;
+  Future end() => promiseToFuture(JS("", "#.end()", this));
 
   @DomName('VRSession.requestFrameOfReference')
   @DocsEditable()
@@ -43905,12 +44177,14 @@ class WindowClient extends Client {
   @DomName('WindowClient.focus')
   @DocsEditable()
   @Experimental() // untriaged
-  Future focus() native;
+  Future<WindowClient> focus() =>
+      promiseToFuture<WindowClient>(JS("", "#.focus()", this));
 
   @DomName('WindowClient.navigate')
   @DocsEditable()
   @Experimental() // untriaged
-  Future navigate(String url) native;
+  Future<WindowClient> navigate(String url) =>
+      promiseToFuture<WindowClient>(JS("", "#.navigate(#)", this, url));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -44787,17 +45061,20 @@ class _BudgetService extends Interceptor {
   @DomName('BudgetService.getBudget')
   @DocsEditable()
   @Experimental() // untriaged
-  Future getBudget() native;
+  Future<BudgetState> getBudget() =>
+      promiseToFuture<BudgetState>(JS("", "#.getBudget()", this));
 
   @DomName('BudgetService.getCost')
   @DocsEditable()
   @Experimental() // untriaged
-  Future getCost(String operation) native;
+  Future<double> getCost(String operation) =>
+      promiseToFuture<double>(JS("", "#.getCost(#)", this, operation));
 
   @DomName('BudgetService.reserve')
   @DocsEditable()
   @Experimental() // untriaged
-  Future reserve(String operation) native;
+  Future<bool> reserve(String operation) =>
+      promiseToFuture<bool>(JS("", "#.reserve(#)", this, operation));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -44842,22 +45119,26 @@ class _Clipboard extends EventTarget {
   @DomName('Clipboard.read')
   @DocsEditable()
   @Experimental() // untriaged
-  Future read() native;
+  Future<DataTransfer> read() =>
+      promiseToFuture<DataTransfer>(JS("", "#.read()", this));
 
   @DomName('Clipboard.readText')
   @DocsEditable()
   @Experimental() // untriaged
-  Future readText() native;
+  Future<String> readText() =>
+      promiseToFuture<String>(JS("", "#.readText()", this));
 
   @DomName('Clipboard.write')
   @DocsEditable()
   @Experimental() // untriaged
-  Future write(DataTransfer data) native;
+  Future write(DataTransfer data) =>
+      promiseToFuture(JS("", "#.write(#)", this, data));
 
   @DomName('Clipboard.writeText')
   @DocsEditable()
   @Experimental() // untriaged
-  Future writeText(String data) native;
+  Future writeText(String data) =>
+      promiseToFuture(JS("", "#.writeText(#)", this, data));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

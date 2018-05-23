@@ -854,6 +854,13 @@ class IDLInterface(IDLNode):
     if not (self._find_first(ast, 'Partial') is None):
       self.is_supplemental = True
       self.ext_attrs['DartSupplemental'] = None
+    self.isMaplike = False
+    self.isMaplike_ro = False
+    self.maplike_key_value = [None, None]
+    if ast is not None and ast.maplike is not None:
+       self.isMaplike = True
+       self.isMaplike_ro = ast.maplike.is_read_only
+       self.maplike_key_value = [IDLType(ast.maplike.key_type), IDLType(ast.maplike.value_type)]
 
     self.operations = self._convert_all(ast, 'Operation',
       lambda ast: IDLOperation(ast, self.doc_js_name))

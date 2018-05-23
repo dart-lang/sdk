@@ -666,6 +666,14 @@ class HtmlDartInterfaceGenerator(object):
              self._interface.id == 'CSSStyleDeclaration')):
             base_class = 'DartHtmlDomObject'
 
+    maplikeKeyType = ''
+    maplikeValueType = ''
+    if self._interface.isMaplike:
+        maplikeKeyType = self._type_registry.\
+            _TypeInfo(self._interface.maplike_key_value[0].id).dart_type()
+        maplikeValueType = 'dynamic'
+        mixins_str = " with MapMixin<%s, %s>" % (maplikeKeyType, maplikeValueType)
+
     implementation_members_emitter = implementation_emitter.Emit(
         self._backend.ImplementationTemplate(),
         LIBRARYNAME='dart.dom.%s' % self._library_name,
@@ -676,7 +684,9 @@ class HtmlDartInterfaceGenerator(object):
         IMPLEMENTS=implements_str,
         MIXINS=mixins_str,
         DOMNAME=self._interface.doc_js_name,
-        NATIVESPEC=native_spec)
+        NATIVESPEC=native_spec,
+        KEYTYPE=maplikeKeyType,
+        VALUETYPE=maplikeValueType)
     stream_getter_signatures_emitter = None
     element_stream_getters_emitter = None
     if type(implementation_members_emitter) == tuple:
@@ -753,6 +763,102 @@ class HtmlDartInterfaceGenerator(object):
 
 # ------------------------------------------------------------------------------
 
+''' TODO(terry): Current idl_parser (Chrome) doesn't keep the Promise type e.g.,
+                 Promise<T> in the AST so there is no way to pull this out.  Need
+                 to investigate getting the Chrome folks to fix.  However, they
+                 don't use this in the C++ code generation and don't have a need
+                 for this feature.  For now I have a table that maps to the
+                 parameterized Promise type.
+'''
+promise_attributes = monitored.Dict('systemhtml.promise_attr_type', {
+    "Animation.finished": {"type": "Animation"},
+    "Animation.ready": {"type": "Animation"},
+    "FontFace.loaded": {"type": "FontFace"},
+    "FontFaceSet.ready": {"type": "FontFaceSet"},
+    "PresentationReceiver.connectionList": {"type": "PresentationConnectionList"},
+    "ServiceWorkerContainer.ready": {"type": "ServiceWorkerRegistration"},
+})
+
+promise_operations = monitored.Dict('systemhtml.promise_oper_type', {
+  "Clipboard.read": { "type": "DataTransfer" },
+  "Clipboard.readText": { "type": "String" },
+  "FontFace.load": { "type": "FontFace"},
+  "FontFaceSet.load": { "type": "List<FontFace>" },
+  "OffscreenCanvas.load": { "type": "Blob" },
+  "BackgroundFetchManager.fetch": { "type": "BackgroundFetchRegistration" },
+  "BackgroundFetchManager.get": { "type": "BackgroundFetchRegistration" },
+  "BackgroundFetchManager.getIds": { "type": "List<String>" },
+  "BackgroundFetchRegistration.abort": { "type": "bool" },
+  "SyncManager.getTags": { "type": "List<String>" },
+  "BudgetService.getCost": { "type": "double" },
+  "BudgetService.getBudget": { "type": "BudgetState" },
+  "BudgetService.reserve": { "type": "bool" },
+  "Body.blob": { "type": "Blob" },
+  "Body.formData": { "type": "FormData" },
+  "Body.text": { "type": "String" },
+  "ImageCapture.getPhotoCapabilities": { "type": "PhotoCapabilities" },
+  "ImageCapture.getPhotoSettings": { "type": "dictionary" },
+  "ImageCapture.takePhoto": { "type": "Blob" },
+  "ImageCapture.grabFrame": { "type": "ImageBitmap" },
+  "Navigator.getInstalledRelatedApps": { "type": "RelatedApplication" },
+  "MediaCapabilities.decodingInfo": { "type": "MediaCapabilitiesInfo" },
+  "MediaCapabilities.encodingInfo": { "type": "MediaCapabilitiesInfo" },
+  "MediaDevices.enumerateDevices": { "type": "List<MediaDeviceInfo>" },
+  "MediaDevices.getUserMedia": { "type": "MediaStream" },
+  "MediaStreamTrack.applyConstraints": { "type": "MediaTrackConstraints" },
+  "ServiceWorkerRegistration.getNotifications": { "type": "List<Notification>" },
+  "PaymentInstruments.delete": { "type": "bool" },
+  "PaymentInstruments.get": { "type": "dictionary" },
+  "PaymentInstruments.keys": { "type": "List<String>" },
+  "PaymentInstrumentshas.": { "type": "bool" },
+  "PaymentRequest.show": { "type": "PaymentResponse" },
+  "PaymentRequest.canMakePayment": { "type": "bool" },
+  "PaymentRequestEvent.openWindow": { "type": "WindowClient" },
+  "RTCPeerConnection.createOffer": { "type": "RtcSessionDescription" },
+  "RTCPeerConnection.createAnswer": { "type": "RtcSessionDescription" },
+  "RTCPeerConnection.getStats": { "type": "dictionary", "maplike": "RTCStatsReport"},
+  "RTCPeerConnection.generateCertificate": { "type": "RtcCertificate" },
+  "Permissions.query": { "type": "PermissionStatus" },
+  "Permissions.request": { "type": "PermissionStatus" },
+  "Permissions.revoke": { "type": "PermissionStatus" },
+  "Permissions.requestAll": { "type": "PermissionStatus" },
+  "PresentationRequest.start": { "type": "PresentationConnection" },
+  "PresentationRequest.reconnect": { "type": "PresentationConnection" },
+  "PresentationRequest.getAvailability": { "type": "PresentationAvailability" },
+  "PushManager.subscribe": { "type": "PushSubscription" },
+  "PushManager.getSubscription": { "type": "PushSubscription" },
+  "PushSubscription.unsubscribe": { "type": "bool" },
+  "StorageManager.persisted": { "type": "bool" },
+  "StorageManager.persist": { "type": "bool" },
+  "StorageManager.estimate": { "type": "dictionary" },
+  "RemotePlayback.watchAvailability": { "type": "int" },
+  "Clients.matchAll": { "type": "List<Client>" },
+  "Clients.openWindow": { "type": "WindowClient" },
+  "NavigationPreloadManager.getState": { "type": "dictionary" },
+  "ServiceWorkerContainer.register": { "type": "ServiceWorkerRegistration" },
+  "ServiceWorkerContainer.getRegistration": { "type": "ServiceWorkerRegistration" },
+  "ServiceWorkerContainer.getRegistrations": { "type": "List<ServiceWorkerRegistration>" },
+  "ServiceWorkerGlobalScope.fetch": { "type": "Response" },
+  "ServiceWorkerRegistration.unregister": { "type": "bool" },
+  "WindowClient.focus": { "type": "WindowClient" },
+  "WindowClient.navigate": { "type": "WindowClient" },
+  "BarcodeDetector.detect": { "type": "List<DetectedBarcode>" },
+  "FaceDetector.detect": { "type": "List<DetectedFace>" },
+  "TextDetector.detect": { "type": "List<DetectedText>" },
+  "BaseAudioContext.decodeAudioData": { "type": "AudioBuffer" },
+  "OfflineAudioContext.startRendering": { "type": "AudioBuffer" },
+})
+
+def _GetPromiseOperationType(interface_operation):
+  if interface_operation in promise_operations:
+    return promise_operations[interface_operation]
+  return None
+
+def _GetPromiseAttributeType(interface_operation):
+  if interface_operation in promise_attributes:
+    return promise_attributes[interface_operation]
+  return None
+
 class Dart2JSBackend(HtmlDartGenerator):
   """Generates a dart2js class for the dart:html library from a DOM IDL
   interface.
@@ -792,8 +898,14 @@ class Dart2JSBackend(HtmlDartGenerator):
   def ImplementationTemplate(self):
     template_file = ('impl_%s.darttemplate' %
                      self._interface.doc_js_name)
-    return (self._template_loader.TryLoad(template_file) or
-            self._template_loader.Load('dart2js_impl.darttemplate'))
+    template_file_content = self._template_loader.TryLoad(template_file)
+    if not(template_file_content):
+      if self._interface.isMaplike and self._interface.isMaplike_ro:
+          # TODO(terry): There are no mutable maplikes yet.
+          template_file_content = self._template_loader.Load('dart2js_maplike_impl.darttemplate')
+      else:
+        template_file_content = self._template_loader.Load('dart2js_impl.darttemplate')
+    return template_file_content
 
   def StartInterface(self, members_emitter):
     self._members_emitter = members_emitter
@@ -1150,13 +1262,61 @@ class Dart2JSBackend(HtmlDartGenerator):
             resultType = 'Function'
     return resultType
 
+  def _zeroArgs(self, argsNames):
+    return 'JS("", "#.$NAME()", this)'
+
+  def _manyArgs(self, numberArgs, argsNames):
+    argsPound = "#" if numberArgs == 1 else ("#, " * numberArgs)[:-2]
+    return '    JS("", "#.$NAME(%s)", this, %s)' % (argsPound, argsNames)
+
+  def _promiseToFutureCode(self, argsNames):
+    numberArgs = argsNames.count(',') + 1
+    jsCall = self._zeroArgs(argsNames) if len(argsNames) == 0 else \
+        self._manyArgs(numberArgs, argsNames)
+
+    futureTemplate = [
+    '\n'
+    '  $RENAME$METADATA$MODIFIERS $TYPE $NAME($PARAMS) => $PROMISE_CALL(',
+    jsCall,
+    ');\n'
+    ]
+    return "".join(futureTemplate)
 
   def _AddDirectNativeOperation(self, info, html_name):
     force_optional = True if html_name.startswith('_') else False
-
     resultType = self._computeResultType(info.type_name)
 
-    self._members_emitter.Emit(
+    if info.type_name == 'Promise' and not(force_optional):
+      lookupOp = "%s.%s" % (self._interface.id, html_name)
+      promiseFound = _GetPromiseOperationType(lookupOp)
+      promiseType = 'Future'
+      promiseCall = 'promiseToFuture'
+      if promiseFound is not(None):
+        if 'maplike' in promiseFound:
+          promiseCall = 'promiseToFutureMap'
+          promiseType = 'Future'
+        elif promiseFound['type'] == 'dictionary':
+          # It's a dictionary so return as a Map.
+          promiseCall = 'promiseToFutureDictionary'
+          promiseType = 'Future<Map>'
+        else:
+          paramType = promiseFound['type']
+          promiseCall = 'promiseToFuture<%s>' % paramType
+          promiseType = 'Future<%s>' % paramType
+
+      argsNames = info.ParametersAsArgumentList()
+      codeTemplate = self._promiseToFutureCode(argsNames)
+      self._members_emitter.Emit(codeTemplate,
+        RENAME=self._RenamingAnnotation(info.declared_name, html_name),
+        METADATA=self._Metadata(info.type_name, info.declared_name,
+            self.SecureOutputType(info.type_name)),
+        MODIFIERS='static ' if info.IsStatic() else '',
+        TYPE=promiseType,
+        PROMISE_CALL=promiseCall,
+        NAME=html_name,
+        PARAMS=info.ParametersAsDeclaration(self._NarrowInputType, force_optional))
+    else:
+        self._members_emitter.Emit(
         '\n'
         '  $RENAME$METADATA$MODIFIERS$TYPE $NAME($PARAMS) native;\n',
         RENAME=self._RenamingAnnotation(info.declared_name, html_name),

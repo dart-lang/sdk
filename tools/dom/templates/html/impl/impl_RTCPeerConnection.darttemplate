@@ -50,13 +50,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     return completer.future;
   }
 
-  @DomName('RTCPeerConnection.getStats')
-  Future<RtcStatsResponse> getStats(MediaStreamTrack selector) {
-    var completer = new Completer<RtcStatsResponse>();
-    _getStats((value) { completer.complete(value); }, selector);
-    return completer.future;
-  }
-
   @DomName('RTCPeerConnection.generateCertificate')
   @DocsEditable()
   @Experimental() // untriaged

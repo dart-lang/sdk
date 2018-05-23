@@ -26,7 +26,7 @@ math/math_test: RuntimeError # Issue 29922
 
 [ $system == linux && ($compiler == dartdevc || $compiler == dartdevk) ]
 html/interactive_geolocation_test: Skip # Requires allowing geo location.
-html/interactive_media_test: RuntimeError
+html/interactive_media_test: RuntimeError # # See NOTE in test on how to run.
 
 [ $system == macos && ($compiler == dartdevc || $compiler == dartdevk) ]
 html/client_rect_test: Pass, RuntimeError # Issue 31019
@@ -85,7 +85,7 @@ html/deferred_multi_app_htmltest: Skip # Issue 29919
 html/element_classes_svg_test: RuntimeError # Issue 29922
 html/element_classes_test: RuntimeError # Issue 29922
 html/fontface_loaded_test: RuntimeError
-html/interactive_media_test: Skip # requests interactive permissions (camera, geolocation)
+html/interactive_media_test: RuntimeError # See NOTE in test on how to run and interactive permissions (camera, geolocation)
 html/isolates_test: RuntimeError # Issue 29922
 html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue 29922
 html/js_typed_interop_side_cast_exp_test/01: RuntimeError # Requires --experimental-trust-js-interop-type-annotations flag.

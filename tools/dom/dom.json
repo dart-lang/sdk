@@ -14628,6 +14628,9 @@
         "support_level": "untriaged"
       },
       "getStats": {},
+      "getStats2": {
+        "support_level": "untriaged"
+      },
       "getStreamById": {},
       "iceConnectionState": {},
       "iceGatheringState": {},

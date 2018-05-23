@@ -187,7 +187,7 @@ for interface in _removed_html_interfaces:
   html_interface_renames[interface] = '_' + interface
 
 convert_to_future_members = monitored.Set(
-    'htmlrenamer.converted_to_future_members', [
+  'htmlrenamer.converted_to_future_members', [
   'DataTransferItem.getAsString',
   'DirectoryEntry.getDirectory',
   'DirectoryEntry.getFile',
@@ -425,7 +425,6 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'Range.getClientRects',
   'RTCPeerConnection.createAnswer',
   'RTCPeerConnection.createOffer',
-  'RTCPeerConnection.getStats',
   'Screen.availHeight',
   'Screen.availLeft',
   'Screen.availTop',
