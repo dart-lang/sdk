@@ -32,72 +32,68 @@ main() async {
         }
       } catch (e) {
         // Could fail if bot machine doesn't support audio or video.
-        expect(e.name, DomException.NOT_FOUND);
+        expect(e.name == DomException.NOT_FOUND, true);
       }
     });
 
     test('getUserMedia', () {
-      try {
-        return window.navigator.getUserMedia(video: true).then((stream) {
-          expect(stream, isNotNull);
+      return window.navigator.getUserMedia(video: true).then((stream) {
+        expect(stream, isNotNull);
 
-          var url = Url.createObjectUrlFromStream(stream);
-          expect(url, isNotNull);
+        var url = Url.createObjectUrlFromStream(stream);
+        expect(url, isNotNull);
 
-          var video = new VideoElement()..autoplay = true;
+        var video = new VideoElement()..autoplay = true;
 
-          var completer = new Completer();
-          video.onError.listen((e) {
-            completer.completeError(e);
-          });
-          video.onPlaying.first.then((e) {
-            completer.complete(video);
-          });
-
-          document.body.append(video);
-          video.src = url;
-
-          return completer.future;
+        var completer = new Completer();
+        video.onError.listen((e) {
+          completer.completeError(e);
         });
-      } catch (e) {
+        video.onPlaying.first.then((e) {
+          completer.complete(video);
+        });
+
+        document.body.append(video);
+        video.src = url;
+
+        return completer.future;
+      }).catchError((e) {
         // Could fail if bot machine doesn't support audio or video.
-        expect(e.name, DomException.NOT_FOUND);
-      }
+        expect(e.name == DomException.NOT_FOUND, true);
+      });
     });
 
     test('getUserMediaComplexConstructor', () {
-      try {
-        return window.navigator.getUserMedia(video: {
-          'mandatory': {'minAspectRatio': 1.333, 'maxAspectRatio': 1.334},
-          'optional': [
-            {'minFrameRate': 60},
-            {'maxWidth': 640}
-          ]
-        }).then((stream) {
-          expect(stream, isNotNull);
+      return window.navigator.getUserMedia(video: {
+        'mandatory': {'minAspectRatio': 1.333, 'maxAspectRatio': 1.334},
+        'optional': [
+          {'minFrameRate': 60},
+          {'maxWidth': 640}
+        ]
+      }).then((stream) {
+        expect(stream, isNotNull);
 
-          var url = Url.createObjectUrlFromStream(stream);
-          expect(url, isNotNull);
+        var url = Url.createObjectUrlFromStream(stream);
+        expect(url, isNotNull);
 
-          var video = new VideoElement()..autoplay = true;
+        var video = new VideoElement()..autoplay = true;
 
-          var completer = new Completer();
-          video.onError.listen((e) {
-            completer.completeError(e);
-          });
-          video.onPlaying.first.then((e) {
-            completer.complete(video);
-          });
-
-          document.body.append(video);
-          video.src = url;
-
-          return completer.future;
+        var completer = new Completer();
+        video.onError.listen((e) {
+          completer.completeError(e);
         });
-      } catch (e) {
+        video.onPlaying.first.then((e) {
+          completer.complete(video);
+        });
+
+        document.body.append(video);
+        video.src = url;
+
+        return completer.future;
+      }).catchError((e) {
         // Could fail if bot machine doesn't support audio or video.
-        expect(e.name, DomException.NOT_FOUND);
-      }
+        expect(e.name == DomException.NOT_FOUND, true);
+      });
     });
   }
 }
