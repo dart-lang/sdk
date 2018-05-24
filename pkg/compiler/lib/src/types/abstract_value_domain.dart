@@ -268,4 +268,14 @@ abstract class AbstractValueDomain {
   /// Returns whether [selector] invoked on a [receiver] can hit a
   /// [noSuchMethod].
   bool needsNoSuchMethodHandling(AbstractValue receiver, Selector selector);
+
+  /// Returns `true` if the set of runtime values of [subset] are all in the set
+  /// of runtime values of [superset].
+  bool contains(AbstractValue superset, AbstractValue subset);
+
+  /// Returns the [MemberEntity] that is known to always be hit at runtime
+  /// [receiver].
+  ///
+  /// Returns `null` if 0 or more than 1 member can be hit at runtime.
+  MemberEntity locateSingleMember(AbstractValue receiver, Selector selector);
 }

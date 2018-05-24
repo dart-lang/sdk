@@ -470,10 +470,11 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         entity,
         impact,
         new WorldImpactVisitorImpl(visitDynamicUse: (dynamicUse) {
+          TypeMask mask = dynamicUse.mask;
           selections.addAll(closedWorld
               // TODO(het): Handle `call` on `Closure` through
               // `world.includesClosureCall`.
-              .locateMembers(dynamicUse.selector, dynamicUse.mask)
+              .locateMembers(dynamicUse.selector, mask)
               .map((MemberEntity e) => new Selection(e, dynamicUse.mask)));
         }, visitStaticUse: (staticUse) {
           selections.add(new Selection(staticUse.element, null));
