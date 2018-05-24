@@ -53,11 +53,11 @@ import 'package:front_end/src/fasta/kernel/kernel_body_builder.dart'
 
 import 'package:front_end/src/fasta/kernel/kernel_expression_generator.dart'
     show
-        DeferredAccessGenerator,
         DelayedAssignment,
         DelayedPostfixIncrement,
         IncompleteErrorGenerator,
         IncompletePropertyAccessGenerator,
+        KernelDeferredAccessGenerator,
         KernelIndexedAccessGenerator,
         KernelLoadLibraryGenerator,
         KernelNullAwarePropertyAccessGenerator,
@@ -210,7 +210,8 @@ main() {
         " builder: Instance of 'PrefixBuilder',"
         " generator: ThisAccessGenerator(offset: 4, isInitializer: false,"
         " isSuper: false))",
-        new DeferredAccessGenerator(helper, token, prefixBuilder, generator));
+        new KernelDeferredAccessGenerator(
+            helper, token, prefixBuilder, generator));
     check(
         "ReadOnlyAccessGenerator(offset: 4, expression: expression,"
         " plainNameForRead: foo, value: null)",

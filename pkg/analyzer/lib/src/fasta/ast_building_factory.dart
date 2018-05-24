@@ -164,6 +164,16 @@ class AstBuildingForest
           continueKeyword, astFactory.simpleIdentifier(label.token), semicolon);
 
   @override
+  Generator<Expression, Statement, _Arguments> deferredAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+      Token token,
+      PrefixBuilder builder,
+      Generator<Expression, Statement, _Arguments> generator) {
+    // TODO(brianwilkerson) Implement this.
+    throw new UnimplementedError();
+  }
+
+  @override
   Statement doStatement(Token doKeyword, Statement body, Token whileKeyword,
           ParenthesizedExpression condition, Token semicolon) =>
       astFactory.doStatement(

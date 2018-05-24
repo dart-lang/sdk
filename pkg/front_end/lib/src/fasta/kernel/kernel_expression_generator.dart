@@ -13,7 +13,6 @@ import '../fasta_codes.dart'
         LocatedMessage,
         messageLoadLibraryTakesNoArguments,
         messageSuperAsExpression,
-        templateDeferredTypeAnnotation,
         templateIntegerLiteralIsOutOfRange,
         templateNotAPrefixInTypeAnnotation,
         templateUnresolvedPrefixInTypeAnnotation;
@@ -48,6 +47,7 @@ import 'constness.dart' show Constness;
 
 import 'expression_generator.dart'
     show
+        DeferredAccessGenerator,
         ExpressionGenerator,
         Generator,
         IndexedAccessGenerator,
@@ -1202,6 +1202,43 @@ class KernelLoadLibraryGenerator extends KernelGenerator
   void printOn(StringSink sink) {
     sink.write(", builder: ");
     sink.write(builder);
+  }
+}
+
+class KernelDeferredAccessGenerator extends KernelGenerator
+    with DeferredAccessGenerator<Expression, Statement, Arguments> {
+  @override
+  final PrefixBuilder builder;
+
+  @override
+  final KernelGenerator generator;
+
+  KernelDeferredAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      this.builder,
+      this.generator)
+      : super(helper, token);
+
+  @override
+  Expression _makeSimpleRead() {
+    return helper.wrapInDeferredCheck(
+        generator._makeSimpleRead(), builder, token.charOffset);
+  }
+
+  @override
+  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+    return helper.wrapInDeferredCheck(
+        generator._makeRead(complexAssignment), builder, token.charOffset);
+  }
+
+  @override
+  Expression _makeWrite(Expression value, bool voidContext,
+      ShadowComplexAssignment complexAssignment) {
+    return helper.wrapInDeferredCheck(
+        generator._makeWrite(value, voidContext, complexAssignment),
+        builder,
+        token.charOffset);
   }
 }
 

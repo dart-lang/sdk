@@ -1387,11 +1387,13 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         deprecated_addCompileTimeError(
             charOffset, "Not a constant expression.");
       }
-      TypeDeclarationAccessGenerator generator =
+      // TODO(ahe): Restore type: TypeDeclarationAccessGenerator.
+      Generator<dynamic, dynamic, dynamic> generator =
           new TypeDeclarationAccessGenerator(
               this, token, prefix, charOffset, builder, name);
       return (prefix?.deferred == true)
-          ? new DeferredAccessGenerator(this, token, prefix, generator)
+          ? new DeferredAccessGenerator<Expression, Statement, Arguments>(
+              this, token, prefix, generator)
           : generator;
     } else if (builder.isLocal) {
       if (constantContext != ConstantContext.none &&
@@ -1447,7 +1449,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
           new StaticAccessGenerator<Expression, Statement, Arguments>(
               this, token, builder.target, null);
       return (prefix?.deferred == true)
-          ? new DeferredAccessGenerator(this, token, prefix, generator)
+          ? new DeferredAccessGenerator<Expression, Statement, Arguments>(
+              this, token, prefix, generator)
           : generator;
     } else if (builder is PrefixBuilder) {
       if (constantContext != ConstantContext.none && builder.deferred) {
@@ -1486,7 +1489,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         }
       }
       return (prefix?.deferred == true)
-          ? new DeferredAccessGenerator(this, token, prefix, generator)
+          ? new DeferredAccessGenerator<Expression, Statement, Arguments>(
+              this, token, prefix, generator)
           : generator;
     }
   }
@@ -2780,8 +2784,9 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     var type = pop();
     PrefixBuilder deferredPrefix;
     int checkOffset;
-    if (type is DeferredAccessGenerator) {
-      DeferredAccessGenerator generator = type;
+    if (type is DeferredAccessGenerator<Expression, Statement, Arguments>) {
+      DeferredAccessGenerator<Expression, Statement, Arguments> generator =
+          type;
       type = generator.generator;
       deferredPrefix = generator.builder;
       checkOffset = generator.token.charOffset;

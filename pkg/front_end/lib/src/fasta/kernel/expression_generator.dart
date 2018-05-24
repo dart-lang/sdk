@@ -7,10 +7,16 @@ library fasta.expression_generator;
 
 import '../../scanner/token.dart' show Token;
 
+import '../builder/builder.dart' show AccessErrorBuilder, Builder;
+
 import '../constant_context.dart' show ConstantContext;
 
 import '../fasta_codes.dart'
-    show LocatedMessage, messageInvalidInitializer, templateNotAType;
+    show
+        LocatedMessage,
+        messageInvalidInitializer,
+        templateDeferredTypeAnnotation,
+        templateNotAType;
 
 import '../names.dart' show lengthName;
 
@@ -20,7 +26,7 @@ import '../problems.dart' show unhandled, unsupported;
 
 import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
 
-import 'forest.dart' show Forest;
+import 'forest.dart' show Forest, LoadLibraryBuilder, PrefixBuilder;
 
 import 'kernel_ast_api.dart'
     show
@@ -32,15 +38,11 @@ import 'kernel_ast_api.dart'
         Procedure,
         VariableDeclaration;
 
-import 'kernel_builder.dart'
-    show AccessErrorBuilder, Builder, LoadLibraryBuilder;
-
 import 'kernel_expression_generator.dart'
     show IncompleteSendGenerator, SendAccessGenerator;
 
 export 'kernel_expression_generator.dart'
     show
-        DeferredAccessGenerator,
         DelayedAssignment,
         DelayedPostfixIncrement,
         ErroneousExpressionGenerator,
@@ -488,4 +490,70 @@ abstract class LoadLibraryGenerator<Expression, Statement, Arguments>
 
   @override
   String get debugName => "LoadLibraryGenerator";
+}
+
+abstract class DeferredAccessGenerator<Expression, Statement, Arguments>
+    implements Generator<Expression, Statement, Arguments> {
+  factory DeferredAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      PrefixBuilder builder,
+      Generator<Expression, Statement, Arguments> generator) {
+    return helper.forest
+        .deferredAccessGenerator(helper, token, builder, generator);
+  }
+
+  PrefixBuilder get builder;
+
+  Generator<Expression, Statement, Arguments> get generator;
+
+  @override
+  buildPropertyAccess(
+      IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
+    var propertyAccess =
+        generator.buildPropertyAccess(send, operatorOffset, isNullAware);
+    if (propertyAccess is Generator) {
+      return new DeferredAccessGenerator<Expression, Statement, Arguments>(
+          helper, token, builder, propertyAccess);
+    } else {
+      Expression expression = propertyAccess;
+      return helper.wrapInDeferredCheck(expression, builder, token.charOffset);
+    }
+  }
+
+  @override
+  String get plainNameForRead {
+    return unsupported(
+        "deferredAccessor.plainNameForRead", offsetForToken(token), uri);
+  }
+
+  @override
+  String get debugName => "DeferredAccessGenerator";
+
+  @override
+  DartType buildTypeWithBuiltArguments(List<DartType> arguments,
+      {bool nonInstanceAccessIsError: false}) {
+    helper.addProblem(
+        templateDeferredTypeAnnotation.withArguments(
+            generator.buildTypeWithBuiltArguments(arguments,
+                nonInstanceAccessIsError: nonInstanceAccessIsError),
+            builder.name),
+        offsetForToken(token),
+        lengthForToken(token));
+    return const InvalidType();
+  }
+
+  @override
+  Expression doInvocation(int offset, Arguments arguments) {
+    return helper.wrapInDeferredCheck(
+        generator.doInvocation(offset, arguments), builder, token.charOffset);
+  }
+
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", builder: ");
+    sink.write(builder);
+    sink.write(", generator: ");
+    sink.write(generator);
+  }
 }

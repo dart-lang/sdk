@@ -45,12 +45,13 @@ import 'body_builder.dart' show LabelTarget;
 
 import 'kernel_expression_generator.dart'
     show
+        KernelDeferredAccessGenerator,
         KernelIndexedAccessGenerator,
         KernelLoadLibraryGenerator,
-        KernelStaticAccessGenerator,
-        KernelSuperIndexedAccessGenerator,
         KernelNullAwarePropertyAccessGenerator,
         KernelPropertyAccessGenerator,
+        KernelStaticAccessGenerator,
+        KernelSuperIndexedAccessGenerator,
         KernelSuperPropertyAccessGenerator,
         KernelThisIndexedAccessGenerator,
         KernelThisPropertyAccessGenerator,
@@ -98,7 +99,13 @@ import 'kernel_shadow_ast.dart'
         ShadowWhileStatement,
         ShadowYieldStatement;
 
-import 'forest.dart' show ExpressionGeneratorHelper, Forest, LoadLibraryBuilder;
+import 'forest.dart'
+    show
+        ExpressionGeneratorHelper,
+        Forest,
+        Generator,
+        LoadLibraryBuilder,
+        PrefixBuilder;
 
 /// A shadow tree factory.
 class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
@@ -719,6 +726,14 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
       Token token,
       LoadLibraryBuilder builder) {
     return new KernelLoadLibraryGenerator(helper, token, builder);
+  }
+
+  KernelDeferredAccessGenerator deferredAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      PrefixBuilder builder,
+      Generator<Expression, Statement, Arguments> generator) {
+    return new KernelDeferredAccessGenerator(helper, token, builder, generator);
   }
 }
 
