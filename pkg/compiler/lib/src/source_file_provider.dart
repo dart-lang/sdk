@@ -144,7 +144,7 @@ abstract class SourceFileProvider implements CompilerInput {
 
   relativizeUri(Uri uri) => relativize(cwd, uri, isWindows);
 
-  SourceFile getUtf8SourceFile(Uri resourceUri) {
+  SourceFile<List<int>> getUtf8SourceFile(Uri resourceUri) {
     return utf8SourceFiles[resourceUri];
   }
 

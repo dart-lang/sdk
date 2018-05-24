@@ -1102,7 +1102,7 @@ class Namer {
   }
 
   jsAst.Name _disambiguateGlobalMember(MemberEntity element) {
-    return _disambiguateGlobal(element, _proposeNameForMember);
+    return _disambiguateGlobal<MemberEntity>(element, _proposeNameForMember);
   }
 
   jsAst.Name _disambiguateGlobalType(Entity element) {
@@ -1112,8 +1112,8 @@ class Namer {
   /// Returns the disambiguated name for a top-level or static element.
   ///
   /// The resulting name is unique within the global-member namespace.
-  jsAst.Name _disambiguateGlobal(
-      Entity element, String proposeName(Entity element)) {
+  jsAst.Name _disambiguateGlobal<T extends Entity>(
+      T element, String proposeName(T element)) {
     // TODO(asgerf): We can reuse more short names if we disambiguate with
     // a separate namespace for each of the global holder objects.
     jsAst.Name newName = userGlobals[element];

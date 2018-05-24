@@ -138,7 +138,7 @@ class Setlet<E> extends SetBase<E> {
         while (copyTo < CAPACITY) _contents[copyTo++] = null;
       } else {
         _contents = new Set<E>()
-          ..addAll(_contents)
+          ..addAll((_contents as List).cast<E>())
           ..add(element);
         _extra = _MARKER;
       }

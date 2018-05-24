@@ -2423,7 +2423,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void generateThrowWithHelper(FunctionEntity helper, argument,
       {SourceInformation sourceInformation}) {
     js.Expression jsHelper = _emitter.staticFunctionAccess(helper);
-    List arguments = [];
+    List arguments = <js.Expression>[];
     if (argument is List) {
       argument.forEach((instruction) {
         use(instruction);

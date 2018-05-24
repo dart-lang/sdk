@@ -1555,7 +1555,7 @@ class HCreate extends HInstruction {
   /// we have to register the instantiated type in the code generator. The
   /// [instructionType] of this node is not enough, because we also need the
   /// type arguments. See also [SsaFromAstMixin.currentInlinedInstantiations].
-  List<DartType> instantiatedTypes;
+  List<InterfaceType> instantiatedTypes;
 
   /// If this node creates a closure class, [callMethod] is the call method of
   /// the closure class.
@@ -1759,7 +1759,7 @@ class HInvokeStatic extends HInvoke {
   /// contains the type(s) used in the (Dart) `New` expression(s). The
   /// [instructionType] of this node is not enough, because we also need the
   /// type arguments. See also [SsaFromAstMixin.currentInlinedInstantiations].
-  List<DartType> instantiatedTypes;
+  List<InterfaceType> instantiatedTypes;
 
   /** The first input must be the target. */
   HInvokeStatic(this.element, inputs, AbstractValue type, this.typeArguments,
