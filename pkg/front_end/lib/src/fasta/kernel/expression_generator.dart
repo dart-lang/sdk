@@ -274,15 +274,10 @@ abstract class PropertyAccessGenerator<Expression, Statement, Arguments>
       return unsupported("ThisExpression", offsetForToken(token), helper.uri);
     } else {
       return isNullAware
-          ? new NullAwarePropertyAccessGenerator(
-              helper,
-              token,
-              receiver as dynamic /* TODO(ahe): Remove this cast. */,
-              name,
-              getter,
-              setter,
-              null)
-          : new PropertyAccessGenerator.internal(
+          ? new NullAwarePropertyAccessGenerator<Expression, Statement,
+              Arguments>(helper, token, receiver, name, getter, setter, null)
+          : new PropertyAccessGenerator<Expression, Statement,
+                  Arguments>.internal(
               helper, token, receiver, name, getter, setter);
     }
   }
@@ -371,11 +366,11 @@ abstract class IndexedAccessGenerator<Expression, Statement, Arguments>
           Procedure getter,
           Procedure setter) {
     if (helper.forest.isThisExpression(receiver)) {
-      return new ThisIndexedAccessGenerator(
+      return new ThisIndexedAccessGenerator<Expression, Statement, Arguments>(
           helper, token, index, getter, setter);
     } else {
-      return new IndexedAccessGenerator.internal(
-          helper, token, receiver, index, getter, setter);
+      return new IndexedAccessGenerator<Expression, Statement,
+          Arguments>.internal(helper, token, receiver, index, getter, setter);
     }
   }
 

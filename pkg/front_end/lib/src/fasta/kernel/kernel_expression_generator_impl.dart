@@ -514,11 +514,11 @@ class ThisAccessGenerator extends KernelGenerator {
       Member setter =
           helper.lookupInstanceMember(name, isSuper: isSuper, isSetter: true);
       if (isSuper) {
-        return new SuperPropertyAccessGenerator(
-            helper, send.token, name, getter, setter);
+        return new SuperPropertyAccessGenerator<Expression, Statement,
+            Arguments>(helper, send.token, name, getter, setter);
       } else {
-        return new ThisPropertyAccessGenerator(
-            helper, send.token, name, getter, setter);
+        return new ThisPropertyAccessGenerator<Expression, Statement,
+            Arguments>(helper, send.token, name, getter, setter);
       }
     }
   }
@@ -878,7 +878,7 @@ class IncompletePropertyAccessGenerator extends IncompleteSendGenerator {
           isQualified: true, prefix: prefix);
     }
 
-    return PropertyAccessGenerator.make(
+    return PropertyAccessGenerator.make<Expression, Statement, Arguments>(
         helper, token, helper.toValue(receiver), name, null, null, isNullAware);
   }
 

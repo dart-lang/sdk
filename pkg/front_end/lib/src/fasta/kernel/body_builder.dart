@@ -938,13 +938,15 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     Expression expression = popForValue();
     if (expression is ShadowCascadeExpression) {
       push(expression);
-      push(new VariableUseGenerator(this, token, expression.variable));
+      push(new VariableUseGenerator<Expression, Statement, Arguments>(
+          this, token, expression.variable));
       expression.extend();
     } else {
       VariableDeclaration variable = new ShadowVariableDeclaration.forValue(
           toKernelExpression(expression), functionNestingLevel);
       push(new ShadowCascadeExpression(variable));
-      push(new VariableUseGenerator(this, token, variable));
+      push(new VariableUseGenerator<Expression, Statement, Arguments>(
+          this, token, variable));
     }
   }
 
@@ -1362,8 +1364,9 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         if (constantContext != ConstantContext.none || member.isField) {
           return new UnresolvedNameGenerator(this, token, n);
         }
-        return new ThisPropertyAccessGenerator(this, token, n,
-            lookupInstanceMember(n), lookupInstanceMember(n, isSetter: true));
+        return new ThisPropertyAccessGenerator<Expression, Statement,
+                Arguments>(this, token, n, lookupInstanceMember(n),
+            lookupInstanceMember(n, isSetter: true));
       } else if (ignoreMainInGetMainClosure &&
           name == "main" &&
           member?.name == "_getMainClosure") {
@@ -1406,7 +1409,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
               ..fileOffset = charOffset,
             name);
       } else {
-        return new VariableUseGenerator(this, token, builder.target);
+        return new VariableUseGenerator<Expression, Statement, Arguments>(
+            this, token, builder.target);
       }
     } else if (builder.isInstanceMember) {
       if (constantContext != ConstantContext.none &&
@@ -1429,7 +1433,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         getter = builder.target;
         setter = lookupInstanceMember(n, isSetter: true);
       }
-      return new ThisPropertyAccessGenerator(this, token, n, getter, setter);
+      return new ThisPropertyAccessGenerator<Expression, Statement, Arguments>(
+          this, token, n, getter, setter);
     } else if (builder.isRegularMethod) {
       assert(builder.isStatic || builder.isTopLevel);
       StaticAccessGenerator generator =
@@ -2408,14 +2413,14 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     Expression index = popForValue();
     var receiver = pop();
     if (receiver is ThisAccessGenerator && receiver.isSuper) {
-      push(new SuperIndexedAccessGenerator(
+      push(new SuperIndexedAccessGenerator<Expression, Statement, Arguments>(
           this,
           openSquareBracket,
-          toKernelExpression(index),
+          index,
           lookupInstanceMember(indexGetName, isSuper: true),
           lookupInstanceMember(indexSetName, isSuper: true)));
     } else {
-      push(IndexedAccessGenerator.make(
+      push(IndexedAccessGenerator.make<Expression, Statement, Arguments>(
           this, openSquareBracket, toValue(receiver), index, null, null));
     }
   }

@@ -206,8 +206,8 @@ main() {
     check("IncompletePropertyAccessGenerator(offset: 4, name: bar)",
         new IncompletePropertyAccessGenerator(helper, token, name));
     check(
-        "DeferredAccessGenerator(offset: 4, "
-        "builder: Instance of 'PrefixBuilder',"
+        "DeferredAccessGenerator(offset: 4,"
+        " builder: Instance of 'PrefixBuilder',"
         " generator: ThisAccessGenerator(offset: 4, isInitializer: false,"
         " isSuper: false))",
         new DeferredAccessGenerator(helper, token, prefixBuilder, generator));
