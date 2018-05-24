@@ -345,7 +345,10 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
       // relative URIs and perform other related tasks. We need Loader to be
       // initialized for this to work because loading from Kernel binary
       // bypasses normal source code loading paths that initialize it.
-      Loader::InitForSnapshot(script_uri);
+      const char* resolved_script_uri = NULL;
+      result = Dart_StringToCString(uri, &resolved_script_uri);
+      CHECK_RESULT(result);
+      Loader::InitForSnapshot(resolved_script_uri);
     }
 
     Dart_TimelineEvent("LoadScript", Dart_TimelineGetMicros(),
