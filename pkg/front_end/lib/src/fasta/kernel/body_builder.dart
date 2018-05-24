@@ -1409,11 +1409,11 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         var fact =
             typePromoter.getFactForAccess(builder.target, functionNestingLevel);
         var scope = typePromoter.currentScope;
-        return new ReadOnlyAccessGenerator(
+        return new ReadOnlyAccessGenerator<Expression, Statement, Arguments>(
             this,
             token,
-            new ShadowVariableGet(builder.target, fact, scope)
-              ..fileOffset = charOffset,
+            toExpression(new ShadowVariableGet(builder.target, fact, scope)
+              ..fileOffset = charOffset),
             name);
       } else {
         return new VariableUseGenerator<Expression, Statement, Arguments>(

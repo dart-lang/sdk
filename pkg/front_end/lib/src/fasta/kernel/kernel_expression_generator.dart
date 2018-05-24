@@ -54,6 +54,7 @@ import 'expression_generator.dart'
         LoadLibraryGenerator,
         NullAwarePropertyAccessGenerator,
         PropertyAccessGenerator,
+        ReadOnlyAccessGenerator,
         StaticAccessGenerator,
         SuperIndexedAccessGenerator,
         SuperPropertyAccessGenerator,
@@ -1238,7 +1239,7 @@ class KernelDeferredAccessGenerator extends KernelGenerator
   }
 }
 
-class KernelTypeUseGenerator extends ReadOnlyAccessGenerator
+class KernelTypeUseGenerator extends KernelReadOnlyAccessGenerator
     with TypeUseGenerator<Expression, Statement, Arguments> {
   /// The import prefix preceding the [declaration] reference, or `null` if
   /// the reference is not prefixed.
@@ -1253,7 +1254,7 @@ class KernelTypeUseGenerator extends ReadOnlyAccessGenerator
   final TypeDeclarationBuilder declaration;
 
   KernelTypeUseGenerator(
-      ExpressionGeneratorHelper<dynamic, dynamic, dynamic> helper,
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
       Token token,
       this.prefix,
       this.declarationReferenceOffset,
@@ -1341,6 +1342,63 @@ class KernelTypeUseGenerator extends ReadOnlyAccessGenerator
   Expression doInvocation(int offset, Arguments arguments) {
     return helper.buildConstructorInvocation(declaration, token, arguments, "",
         null, token.charOffset, Constness.implicit);
+  }
+}
+
+class KernelReadOnlyAccessGenerator extends KernelGenerator
+    with ReadOnlyAccessGenerator<Expression, Statement, Arguments> {
+  @override
+  final String plainNameForRead;
+
+  Expression expression;
+
+  VariableDeclaration value;
+
+  KernelReadOnlyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      this.expression,
+      this.plainNameForRead)
+      : super(helper, token);
+
+  @override
+  Expression _makeSimpleRead() => expression;
+
+  @override
+  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+    value ??= new VariableDeclaration.forValue(expression);
+    return new VariableGet(value);
+  }
+
+  @override
+  Expression _makeWrite(Expression value, bool voidContext,
+      ShadowComplexAssignment complexAssignment) {
+    var write = makeInvalidWrite(value);
+    complexAssignment?.write = write;
+    return write;
+  }
+
+  @override
+  Expression _finish(
+          Expression body, ShadowComplexAssignment complexAssignment) =>
+      super._finish(makeLet(value, body), complexAssignment);
+
+  @override
+  Expression doInvocation(int offset, Arguments arguments) {
+    return helper.buildMethodInvocation(buildSimpleRead(), callName, arguments,
+        adjustForImplicitCall(plainNameForRead, offset),
+        isImplicitCall: true);
+  }
+
+  @override
+  void printOn(StringSink sink) {
+    NameSystem syntheticNames = new NameSystem();
+    sink.write(", expression: ");
+    printNodeOn(expression, sink, syntheticNames: syntheticNames);
+    sink.write(", plainNameForRead: ");
+    sink.write(plainNameForRead);
+    sink.write(", value: ");
+    printNodeOn(value, sink, syntheticNames: syntheticNames);
   }
 }
 

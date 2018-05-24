@@ -61,7 +61,6 @@ export 'kernel_expression_generator.dart'
         IncompleteSendGenerator,
         LargeIntAccessGenerator,
         ParenthesizedExpressionGenerator,
-        ReadOnlyAccessGenerator,
         SendAccessGenerator,
         ThisAccessGenerator,
         UnresolvedNameGenerator,
@@ -635,4 +634,19 @@ abstract class TypeUseGenerator<Expression, Statement, Arguments>
     }
     return type;
   }
+}
+
+abstract class ReadOnlyAccessGenerator<Expression, Statement, Arguments>
+    implements Generator<Expression, Statement, Arguments> {
+  factory ReadOnlyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Expression expression,
+      String plainNameForRead) {
+    return helper.forest
+        .readOnlyAccessGenerator(helper, token, expression, plainNameForRead);
+  }
+
+  @override
+  String get debugName => "ReadOnlyAccessGenerator";
 }

@@ -450,6 +450,12 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
       TypeDeclarationBuilder declaration,
       String plainNameForRead);
 
+  Generator<Expression, Statement, Arguments> readOnlyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Location location,
+      Expression expression,
+      String plainNameForRead);
+
   // TODO(ahe): Remove this method when all users are moved here.
   kernel.Arguments castArguments(Arguments arguments) {
     dynamic a = arguments;

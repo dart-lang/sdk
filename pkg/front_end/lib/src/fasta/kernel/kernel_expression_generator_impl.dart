@@ -15,58 +15,6 @@
 /// superclass should use the forest API in a factory method.
 part of 'kernel_expression_generator.dart';
 
-class ReadOnlyAccessGenerator extends KernelGenerator {
-  final String plainNameForRead;
-
-  Expression expression;
-
-  VariableDeclaration value;
-
-  ReadOnlyAccessGenerator(
-      ExpressionGeneratorHelper<dynamic, dynamic, dynamic> helper,
-      Token token,
-      this.expression,
-      this.plainNameForRead)
-      : super(helper, token);
-
-  String get debugName => "ReadOnlyAccessGenerator";
-
-  Expression _makeSimpleRead() => expression;
-
-  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
-    value ??= new VariableDeclaration.forValue(expression);
-    return new VariableGet(value);
-  }
-
-  Expression _makeWrite(Expression value, bool voidContext,
-      ShadowComplexAssignment complexAssignment) {
-    var write = makeInvalidWrite(value);
-    complexAssignment?.write = write;
-    return write;
-  }
-
-  Expression _finish(
-          Expression body, ShadowComplexAssignment complexAssignment) =>
-      super._finish(makeLet(value, body), complexAssignment);
-
-  Expression doInvocation(int offset, Arguments arguments) {
-    return helper.buildMethodInvocation(buildSimpleRead(), callName, arguments,
-        adjustForImplicitCall(plainNameForRead, offset),
-        isImplicitCall: true);
-  }
-
-  @override
-  void printOn(StringSink sink) {
-    NameSystem syntheticNames = new NameSystem();
-    sink.write(", expression: ");
-    printNodeOn(expression, sink, syntheticNames: syntheticNames);
-    sink.write(", plainNameForRead: ");
-    sink.write(plainNameForRead);
-    sink.write(", value: ");
-    printNodeOn(value, sink, syntheticNames: syntheticNames);
-  }
-}
-
 class LargeIntAccessGenerator extends KernelGenerator {
   LargeIntAccessGenerator(
       ExpressionGeneratorHelper<dynamic, dynamic, dynamic> helper, Token token)
@@ -693,7 +641,7 @@ class IncompletePropertyAccessGenerator extends IncompleteSendGenerator {
   }
 }
 
-class ParenthesizedExpressionGenerator extends ReadOnlyAccessGenerator {
+class ParenthesizedExpressionGenerator extends KernelReadOnlyAccessGenerator {
   ParenthesizedExpressionGenerator(
       ExpressionGeneratorHelper<dynamic, dynamic, dynamic> helper,
       Token token,

@@ -50,6 +50,7 @@ import 'kernel_expression_generator.dart'
         KernelLoadLibraryGenerator,
         KernelNullAwarePropertyAccessGenerator,
         KernelPropertyAccessGenerator,
+        KernelReadOnlyAccessGenerator,
         KernelStaticAccessGenerator,
         KernelSuperIndexedAccessGenerator,
         KernelSuperPropertyAccessGenerator,
@@ -750,6 +751,16 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
       String plainNameForRead) {
     return new KernelTypeUseGenerator(helper, token, prefix,
         declarationReferenceOffset, declaration, plainNameForRead);
+  }
+
+  @override
+  KernelReadOnlyAccessGenerator readOnlyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Expression expression,
+      String plainNameForRead) {
+    return new KernelReadOnlyAccessGenerator(
+        helper, token, expression, plainNameForRead);
   }
 }
 

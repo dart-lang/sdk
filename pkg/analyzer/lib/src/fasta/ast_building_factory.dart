@@ -488,6 +488,16 @@ class AstBuildingForest
   int readOffset(AstNode node) => node.offset;
 
   @override
+  Generator<Expression, Statement, _Arguments> readOnlyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+      Token token,
+      Expression expression,
+      String plainNameForRead) {
+    // TODO(brianwilkerson) Implement this.
+    throw new UnimplementedError();
+  }
+
+  @override
   void resolveBreak(Statement target, BreakStatement user) {
     user.target = target;
   }
