@@ -399,7 +399,6 @@ function_type_call_getter2_test/05: MissingCompileTimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_dynamic_test/01: MissingCompileTimeError
 generic_methods_dynamic_test/03: MissingCompileTimeError
-generic_methods_overriding_test/01: MissingCompileTimeError
 generic_methods_overriding_test/03: MissingCompileTimeError
 generic_methods_overriding_test/06: StaticWarning
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
@@ -1107,8 +1106,6 @@ field3_test/02: MissingCompileTimeError # Issue 33022
 field3a_negative_test: StaticWarning # Issue 28823
 forwarding_stub_tearoff_test: CompileTimeError
 generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30207
-generic_methods_overriding_test/01: MissingCompileTimeError # Issue 29070
-generic_methods_overriding_test/03: MissingCompileTimeError # Issue 29070
 generic_no_such_method_dispatcher_test: CompileTimeError
 generic_tearoff_test: CompileTimeError
 import_core_prefix_test: CompileTimeError # "dynamic" should be defined in core.

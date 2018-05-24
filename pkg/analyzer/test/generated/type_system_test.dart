@@ -2145,28 +2145,6 @@ class StrongSubtypingTest {
     }
   }
 
-  void test_genericFunction_simple_fBounded() {
-    ClassElementImpl AClass = ElementFactory.classElement2('A', ["Q"]);
-    InterfaceType AType = AClass.type;
-    ClassElementImpl BClass = ElementFactory.classElement2('B', ["R"]);
-    BClass.supertype = AType.instantiate([BClass.typeParameters[0].type]);
-    InterfaceType BType = BClass.type;
-
-    DartType s = TypeBuilder.variable("S");
-    (s.element as TypeParameterElementImpl).bound = AType.instantiate([s]);
-    DartType t = TypeBuilder.variable("T", bound: s);
-    DartType u = TypeBuilder.variable("U");
-    (u.element as TypeParameterElementImpl).bound = BType.instantiate([u]);
-    DartType v = TypeBuilder.variable("V", bound: u);
-
-    _checkIsStrictSubtypeOf(
-        TypeBuilder.function(types: [s]), TypeBuilder.function(types: [u]));
-
-    _checkIsStrictSubtypeOf(
-        TypeBuilder.function(types: [s, t], required: [s], result: t),
-        TypeBuilder.function(types: [u, v], required: [u], result: v));
-  }
-
   void test_generics() {
     ClassElementImpl LClass = ElementFactory.classElement2('L', ["T"]);
     InterfaceType LType = LClass.type;

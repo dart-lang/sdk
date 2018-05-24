@@ -6748,6 +6748,9 @@ class ResolverVisitor extends ScopedVisitor {
    */
   void _inferFunctionExpressionParametersTypes(
       Expression mayBeClosure, DartType mayByFunctionType) {
+    // TODO(mfairhurst): remove this code and callers. It's doing
+    // "propagated type" inference for the Dart 1 type system.
+    assert(!strongMode);
     // prepare closure
     if (mayBeClosure is! FunctionExpression) {
       return;

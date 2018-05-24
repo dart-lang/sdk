@@ -3407,12 +3407,16 @@ class D extends C {
   test_genericMethod_override_bounds() async {
     await resolveTestUnit(r'''
 class A {}
-class B extends A {}
-class C {
-  T f<T extends B>(T x) => null;
-}
-class D extends C {
+class B {
   T f<T extends A>(T x) => null;
+}
+// override with the same bound is OK
+class C extends B {
+  T f<T extends A>(T x) => null;
+}
+// override with new name and the same bound is OK
+class D extends B {
+  Q f<Q extends A>(Q x) => null;
 }
 ''');
   }
@@ -3433,20 +3437,27 @@ class B extends A {
     verify([source]);
   }
 
-  test_genericMethod_override_invalidReturnType() async {
+  test_genericMethod_override_differentContextsSameBounds() async {
     Source source = addSource(r'''
-class C {
-  Iterable<T> f<T>(T x) => null;
+        class GenericMethodBounds<T> {
+  Type get t => T;
+  GenericMethodBounds<E> foo<E extends T>() => new GenericMethodBounds<E>();
+  GenericMethodBounds<E> bar<E extends void Function(T)>() =>
+      new GenericMethodBounds<E>();
 }
-class D extends C {
-  String f<S>(S x) => null;
-}''');
+
+class GenericMethodBoundsDerived extends GenericMethodBounds<num> {
+  GenericMethodBounds<E> foo<E extends num>() => new GenericMethodBounds<E>();
+  GenericMethodBounds<E> bar<E extends void Function(num)>() =>
+      new GenericMethodBounds<E>();
+}
+''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    assertNoErrors(source);
     verify([source]);
   }
 
-  test_genericMethod_override_invalidTypeParamBounds() async {
+  test_genericMethod_override_invalidContravariantTypeParamBounds() async {
     Source source = addSource(r'''
 class A {}
 class B extends A {}
@@ -3455,6 +3466,34 @@ class C {
 }
 class D extends C {
   T f<T extends B>(T x) => null;
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    verify([source]);
+  }
+
+  test_genericMethod_override_invalidCovariantTypeParamBounds() async {
+    Source source = addSource(r'''
+class A {}
+class B extends A {}
+class C {
+  T f<T extends B>(T x) => null;
+}
+class D extends C {
+  T f<T extends A>(T x) => null;
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
+    verify([source]);
+  }
+
+  test_genericMethod_override_invalidReturnType() async {
+    Source source = addSource(r'''
+class C {
+  Iterable<T> f<T>(T x) => null;
+}
+class D extends C {
+  String f<S>(S x) => null;
 }''');
     await computeAnalysisResult(source);
     assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
@@ -3910,6 +3949,48 @@ class C<E> {
 ''');
   }
 
+  @failingTest
+  test_notInstantiatedBound_class_error_recursion() async {
+    String code = r'''
+class A<T extends B> {} // points to a
+class B<T extends A> {} // points to b
+class C<T extends A> {} // points to a cyclical type
+''';
+    await resolveTestUnit(code, noErrors: false);
+    assertErrors(testSource, [
+      StrongModeCode.NOT_INSTANTIATED_BOUND,
+      StrongModeCode.NOT_INSTANTIATED_BOUND,
+      StrongModeCode.NOT_INSTANTIATED_BOUND,
+    ]);
+  }
+
+  @failingTest
+  test_notInstantiatedBound_class_error_recursion_less_direct() async {
+    String code = r'''
+class A<T extends B<A>> {}
+class B<T extends A<B>> {}
+''';
+    await resolveTestUnit(code, noErrors: false);
+    assertErrors(testSource, [
+      StrongModeCode.NOT_INSTANTIATED_BOUND,
+      StrongModeCode.NOT_INSTANTIATED_BOUND,
+    ]);
+  }
+
+  test_notInstantiatedBound_class_error_recursion_typedef() async {
+    String code = r'''
+typedef F(C value);
+class C<T extends F> {}
+class D<T extends C> {}
+''';
+    await resolveTestUnit(code, noErrors: false);
+    assertErrors(testSource, [
+      StrongModeCode.NOT_INSTANTIATED_BOUND,
+      StrongModeCode.NOT_INSTANTIATED_BOUND,
+      CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
+    ]);
+  }
+
   test_notInstantiatedBound_error_class_argument() async {
     String code = r'''
 class A<K, V extends List<K>> {}
@@ -3959,34 +4040,6 @@ class D<T extends B> {}
     ]);
   }
 
-  @failingTest
-  test_notInstantiatedBound_class_error_recursion() async {
-    String code = r'''
-class A<T extends B> {} // points to a
-class B<T extends A> {} // points to b
-class C<T extends A> {} // points to a cyclical type
-''';
-    await resolveTestUnit(code, noErrors: false);
-    assertErrors(testSource, [
-      StrongModeCode.NOT_INSTANTIATED_BOUND,
-      StrongModeCode.NOT_INSTANTIATED_BOUND,
-      StrongModeCode.NOT_INSTANTIATED_BOUND,
-    ]);
-  }
-
-  @failingTest
-  test_notInstantiatedBound_class_error_recursion_less_direct() async {
-    String code = r'''
-class A<T extends B<A>> {}
-class B<T extends A<B>> {}
-''';
-    await resolveTestUnit(code, noErrors: false);
-    assertErrors(testSource, [
-      StrongModeCode.NOT_INSTANTIATED_BOUND,
-      StrongModeCode.NOT_INSTANTIATED_BOUND,
-    ]);
-  }
-
   test_notInstantiatedBound_error_typedef_argument() async {
     String code = r'''
 class A<K, V extends List<K>> {}
@@ -4012,20 +4065,6 @@ typedef void F<T extends A>();
 ''';
     await resolveTestUnit(code, noErrors: false);
     assertErrors(testSource, [StrongModeCode.NOT_INSTANTIATED_BOUND]);
-  }
-
-  test_notInstantiatedBound_class_error_recursion_typedef() async {
-    String code = r'''
-typedef F(C value);
-class C<T extends F> {}
-class D<T extends C> {}
-''';
-    await resolveTestUnit(code, noErrors: false);
-    assertErrors(testSource, [
-      StrongModeCode.NOT_INSTANTIATED_BOUND,
-      StrongModeCode.NOT_INSTANTIATED_BOUND,
-      CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
-    ]);
   }
 
   test_notInstantiatedBound_ok_class() async {
@@ -4068,6 +4107,15 @@ class C<T extends A<B, B>> {}
     assertNoErrors(testSource);
   }
 
+  test_notInstantiatedBound_ok_class_function() async {
+    String code = r'''
+class A<T extends void Function<Z>()> {}
+class B<T extends A> {}
+''';
+    await resolveTestUnit(code);
+    assertNoErrors(testSource);
+  }
+
   test_notInstantiatedBound_ok_class_typedef() async {
     String code = r'''
 typedef void F<T extends int>();
@@ -4081,15 +4129,6 @@ class C<T extends F> {}
     String code = r'''
 class C<T extends int> {}
 typedef void F<T extends C>();
-''';
-    await resolveTestUnit(code);
-    assertNoErrors(testSource);
-  }
-
-  test_notInstantiatedBound_ok_class_function() async {
-    String code = r'''
-class A<T extends void Function<Z>()> {}
-class B<T extends A> {}
 ''';
     await resolveTestUnit(code);
     assertNoErrors(testSource);
@@ -4403,7 +4442,7 @@ abstract class BaseCopy extends Base {
 }
 
 abstract class Override implements Base, BaseCopy {
-  f<E>(x) => null;
+  f<E extends int>(x) => null;
 }
 
 class C extends Override implements Base {}
