@@ -1186,6 +1186,11 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
   /// ---- Implementation of [EntryPointsListener] interface. ----
 
   @override
+  void addDirectFieldAccess(Field field, Type value) {
+    getFieldValue(field).setValue(value, this);
+  }
+
+  @override
   void addRawCall(Selector selector) {
     if (kPrintDebug) {
       debugPrint("ADD RAW CALL: $selector");

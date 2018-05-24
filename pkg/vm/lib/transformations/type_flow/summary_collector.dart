@@ -253,9 +253,12 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   Map<VariableDeclaration, Join> _variables;
   Join _returnValue;
   Parameter _receiver;
+  ConstantAllocationCollector constantAllocationCollector;
 
   SummaryCollector(
-      this._environment, this._entryPointsListener, this._nativeCodeOracle);
+      this._environment, this._entryPointsListener, this._nativeCodeOracle) {
+    constantAllocationCollector = new ConstantAllocationCollector(this);
+  }
 
   Summary createSummary(Member member) {
     debugPrint("===== ${member} =====");
@@ -444,10 +447,17 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     _summary.add(param);
     assertx(param.index < _summary.parameterCount);
     if (param.index >= _summary.requiredParameterCount) {
-      // TODO(alexmarkov): get actual type of constant initializer
-      param.defaultValue = (initializer != null)
-          ? new Type.fromStatic(initializer.getStaticType(_environment))
-          : _nullType;
+      if (initializer != null) {
+        if (initializer is ConstantExpression) {
+          param.defaultValue =
+              constantAllocationCollector.typeFor(initializer.constant);
+        } else {
+          param.defaultValue =
+              new Type.fromStatic(initializer.getStaticType(_environment));
+        }
+      } else {
+        param.defaultValue = _nullType;
+      }
     } else {
       assertx(initializer == null);
     }
@@ -1182,6 +1192,11 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   visitInvalidInitializer(InvalidInitializer node) {}
+
+  @override
+  TypeExpr visitConstantExpression(ConstantExpression node) {
+    return constantAllocationCollector.typeFor(node.constant);
+  }
 }
 
 class EmptyEntryPointsListener implements EntryPointsListener {
@@ -1190,6 +1205,9 @@ class EmptyEntryPointsListener implements EntryPointsListener {
 
   @override
   void addRawCall(Selector selector) {}
+
+  @override
+  void addDirectFieldAccess(Field field, Type value) {}
 
   @override
   ConcreteType addAllocatedClass(Class c) {
@@ -1211,5 +1229,93 @@ class CreateAllSummariesVisitor extends RecursiveVisitor<Null> {
     if (!m.isAbstract && !(m is Field && m.initializer == null)) {
       _summaryColector.createSummary(m);
     }
+  }
+}
+
+class ConstantAllocationCollector extends ConstantVisitor<Type> {
+  final SummaryCollector summaryCollector;
+
+  final Map<Constant, Type> constants = <Constant, Type>{};
+
+  ConstantAllocationCollector(this.summaryCollector);
+
+  // Ensures the transtive graph of [constant] got scanned for potential
+  // allocations and field types.  Returns the [Type] of this constant.
+  Type typeFor(Constant constant) {
+    return constants.putIfAbsent(constant, () => constant.accept(this));
+  }
+
+  @override
+  defaultConstant(Constant constant) {
+    throw 'There is no support for constant "$constant" in TFA yet!';
+  }
+
+  @override
+  Type visitNullConstant(NullConstant constant) {
+    return summaryCollector._nullType;
+  }
+
+  @override
+  Type visitBoolConstant(BoolConstant constant) {
+    return summaryCollector._boolType;
+  }
+
+  @override
+  Type visitIntConstant(IntConstant constant) {
+    return summaryCollector._intType;
+  }
+
+  @override
+  Type visitDoubleConstant(DoubleConstant constant) {
+    return summaryCollector._doubleType;
+  }
+
+  @override
+  Type visitStringConstant(StringConstant constant) {
+    return summaryCollector._stringType;
+  }
+
+  @override
+  Type visitMapConstant(MapConstant node) {
+    throw 'The kernel2kernel constants transformation desugars const maps!';
+  }
+
+  @override
+  Type visitListConstant(ListConstant constant) {
+    for (final Constant entry in constant.entries) {
+      typeFor(entry);
+    }
+    return new Type.cone(constant.getType(summaryCollector._environment));
+  }
+
+  @override
+  Type visitInstanceConstant(InstanceConstant constant) {
+    final resultType =
+        summaryCollector._entryPointsListener.addAllocatedClass(constant.klass);
+    constant.fieldValues.forEach((Reference fieldReference, Constant value) {
+      summaryCollector._entryPointsListener
+          .addDirectFieldAccess(fieldReference.asField, typeFor(value));
+    });
+    return resultType;
+  }
+
+  @override
+  Type visitTearOffConstant(TearOffConstant constant) {
+    final Procedure procedure = constant.procedure;
+    summaryCollector._entryPointsListener
+        .addRawCall(new DirectSelector(procedure));
+    return new Type.cone(constant.getType(summaryCollector._environment));
+  }
+
+  @override
+  Type visitPartialInstantiationConstant(
+      PartialInstantiationConstant constant) {
+    constant.tearOffConstant.accept(this);
+    return new Type.cone(constant.getType(summaryCollector._environment));
+  }
+
+  @override
+  Type visitTypeLiteralConstant(TypeLiteralConstant constant) {
+    return new Type.cone(constant.getType(summaryCollector._environment));
   }
 }
