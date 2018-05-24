@@ -49,6 +49,11 @@ class Fix {
    */
   Fix(this.kind, this.change);
 
+  /**
+   * Returns `true` if this fix is the union of multiple fixes.
+   */
+  bool isFixAllFix() => change.message == kind.appliedTogetherMessage;
+
   @override
   String toString() {
     return 'Fix(kind=$kind, change=$change)';

@@ -142,16 +142,47 @@ bool test() {
       fail(
           'Expected to find and return fix-all FixKind for $kind, but kind.canBeAppliedTogether is ${kind.canBeAppliedTogether}');
     }
-    List<Fix> fixes = await _computeFixes(error);
-    Fix firstMatchingFix = fixes.firstWhere((fix) => fix.kind == kind);
-    Fix lastMatchingFix = fixes.lastWhere((fix) => fix.kind == kind);
-    if (firstMatchingFix == null) {
-      fail('Expected to find fix $kind in\n${fixes.join('\n')}');
-    } else if (lastMatchingFix == null &&
-        !lastMatchingFix.kind.canBeAppliedTogether()) {
-      fail('Expected to find fix $kind in\n${fixes.join('\n')}');
+
+    // Compute the fixes for this AnalysisError
+    final List<Fix> fixes = await _computeFixes(error);
+
+    // If hasFixAllFix is false, assert that none of the fixes are a fix-all fix
+    if (!hasFixAllFix) {
+      for (Fix f in fixes) {
+        if (f.isFixAllFix()) {
+          fail("The boolean hasFixAllFix is false, but such a fix was found in "
+              "the computed set of fixes: $fixes, error: $error.");
+        }
+      }
     }
-    return !hasFixAllFix ? firstMatchingFix : lastMatchingFix;
+    // If hasFixAllFix is true, assert that there exists such a fix in the list
+    else {
+      bool foundFixAllFix = false;
+      for (Fix f in fixes) {
+        if (f.isFixAllFix()) {
+          foundFixAllFix = true;
+          break;
+        }
+      }
+      if (!foundFixAllFix) {
+        fail("The boolean hasFixAllFix is true, but no fix-all fix was found "
+            "in the computed set of fixes: $fixes, error: $error.");
+      }
+    }
+
+    Fix foundFix = null;
+    if (!hasFixAllFix) {
+      foundFix =
+          fixes.firstWhere((fix) => fix.kind == kind && !fix.isFixAllFix());
+    } else {
+      foundFix =
+          fixes.lastWhere((fix) => fix.kind == kind && fix.isFixAllFix());
+    }
+    if (foundFix == null) {
+      fail('Expected to find fix $kind in\n${fixes.join('\n')}, hasFixAllFix = '
+          '$hasFixAllFix');
+    }
+    return foundFix;
   }
 
   void _assertLinkedGroup(LinkedEditGroup group, List<String> expectedStrings,
@@ -5177,8 +5208,6 @@ main() {
   }
 
   test_removeUnusedImport_all_diverseImports() async {
-    // TODO (jwren) add an additional test to verify the used, unused, used,
-    // unused ... permutations.
     await resolveTestUnit('''
 import 'dart:math';
 import 'dart:math';
@@ -5188,6 +5217,28 @@ main() {
 ''');
     await assertHasFixAllFix(
         HintCode.UNUSED_IMPORT, DartFixKind.REMOVE_UNUSED_IMPORT, '''
+main() {
+}
+''');
+  }
+
+  test_removeUnusedImport_all_diverseImports2() async {
+    await resolveTestUnit('''
+import 'dart:async';
+import 'dart:math' as math;
+import 'dart:async';
+
+var tau = math.pi * 2;
+
+main() {
+}
+''');
+    await assertHasFixAllFix(
+        HintCode.UNUSED_IMPORT, DartFixKind.REMOVE_UNUSED_IMPORT, '''
+import 'dart:math' as math;
+
+var tau = math.pi * 2;
+
 main() {
 }
 ''');
