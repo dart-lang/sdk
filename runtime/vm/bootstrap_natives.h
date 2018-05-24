@@ -364,6 +364,7 @@ namespace dart {
   V(MirrorReference_equals, 2)                                                 \
   V(MirrorSystem_libraries, 0)                                                 \
   V(MirrorSystem_isolate, 0)                                                   \
+  V(IsolateMirror_loadUri, 1)                                                  \
   V(InstanceMirror_invoke, 5)                                                  \
   V(InstanceMirror_invokeGetter, 3)                                            \
   V(InstanceMirror_invokeSetter, 4)                                            \

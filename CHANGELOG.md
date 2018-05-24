@@ -562,6 +562,10 @@ Still need entries for all changes to dart:js since 1.x
   * Renamed `E`, `LN10`, `LN`, `LOG2E`, `LOG10E`, `PI`, `SQRT1_2` and `SQRT2`
     to `e`, `ln10`, `ln`, `log2e`, `log10e`, `pi`, `sqrt1_2` and `sqrt2`.
 
+* `dart.mirrors`
+  * Added `IsolateMirror.loadUri`, which allows dynamically loading additional
+    code.
+
 <!--
 Still need entries for all changes to dart:svg since 1.x
 -->
