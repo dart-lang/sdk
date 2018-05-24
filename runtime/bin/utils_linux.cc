@@ -22,11 +22,7 @@ OSError::OSError() : sub_system_(kSystem), code_(0), message_(NULL) {
 }
 
 void OSError::Reload() {
-  set_sub_system(kSystem);
-  set_code(errno);
-  const int kBufferSize = 1024;
-  char error_buf[kBufferSize];
-  SetMessage(Utils::StrError(errno, error_buf, kBufferSize));
+  SetCodeAndMessage(kSystem, errno);
 }
 
 void OSError::SetCodeAndMessage(SubSystem sub_system, int code) {

@@ -66,7 +66,7 @@ void FUNCTION_NAME(Directory_Exists)(Dart_NativeArguments args) {
     ASSERT(data.type() == Dart_TypedData_kUint8);
     const char* name = data.GetCString();
     result = Directory::Exists(namespc, name);
-    if ((result != Directory::DOES_NOT_EXIST) ||
+    if ((result != Directory::DOES_NOT_EXIST) &&
         (result != Directory::EXISTS)) {
       // Errors must be caught before TypedDataScope data is destroyed.
       os_error.Reload();
@@ -499,7 +499,7 @@ bool SyncDirectoryListing::HandleDirectory(const char* dir_name) {
   // constructor. This avoids/delays interpreting the UTF-8 bytes in dir_name.
   // Later, client code may either choose to access FileSystemEntity.path.
   // FileSystemEntity.path will trigger UTF-8 decoding and return a path with
-  // non-UTF-8 characters replaced with �.
+  // non-UTF-8 characters replaced with U+FFFD.
 
   size_t dir_name_length = strlen(dir_name);
   uint8_t* buffer = NULL;
@@ -525,7 +525,7 @@ bool SyncDirectoryListing::HandleLink(const char* link_name) {
   // constructor. This avoids/delays interpreting the UTF-8 bytes in dir_name.
   // Later, client code may either choose to access FileSystemEntity.path.
   // FileSystemEntity.path will trigger UTF-8 decoding and return a path with
-  // non-UTF-8 characters replaced with �.
+  // non-UTF-8 characters replaced with U+FFFD.
 
   size_t link_name_length = strlen(link_name);
   uint8_t* buffer = NULL;
@@ -550,7 +550,7 @@ bool SyncDirectoryListing::HandleFile(const char* file_name) {
   // constructor. This avoids/delays interpreting the UTF-8 bytes in dir_name.
   // Later, client code may either choose to access FileSystemEntity.path.
   // FileSystemEntity.path will trigger UTF-8 decoding and return a path with
-  // non-UTF-8 characters replaced with �.
+  // non-UTF-8 characters replaced with U+FFFD.
 
   size_t file_name_length = strlen(file_name);
   uint8_t* buffer = NULL;

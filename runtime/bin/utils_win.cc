@@ -36,13 +36,7 @@ OSError::OSError() : sub_system_(kSystem), code_(0), message_(NULL) {
 }
 
 void OSError::Reload() {
-  set_code(GetLastError());
-
-  static const int kMaxMessageLength = 256;
-  wchar_t message[kMaxMessageLength];
-  FormatMessageIntoBuffer(code_, message, kMaxMessageLength);
-  char* utf8 = StringUtilsWin::WideToUtf8(message);
-  SetMessage(utf8);
+  SetCodeAndMessage(kSystem, GetLastError());
 }
 
 void OSError::SetCodeAndMessage(SubSystem sub_system, int code) {
