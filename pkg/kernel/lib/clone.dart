@@ -395,6 +395,9 @@ class CloneVisitor implements TreeVisitor {
     return variables[node] = new VariableDeclaration(node.name,
         initializer: cloneOptional(node.initializer),
         type: visitType(node.type))
+      ..annotations = node.annotations.isEmpty
+          ? const <Expression>[]
+          : node.annotations.map(clone).toList()
       ..flags = node.flags;
   }
 
@@ -413,6 +416,9 @@ class CloneVisitor implements TreeVisitor {
         initializers: node.initializers.map(clone).toList(),
         transformerFlags: node.transformerFlags,
         fileUri: _activeFileUri)
+      ..annotations = node.annotations.isEmpty
+          ? const <Expression>[]
+          : node.annotations.map(clone).toList()
       ..fileOffset = _cloneFileOffset(node.fileOffset)
       ..fileEndOffset = _cloneFileOffset(node.fileEndOffset);
   }
@@ -423,6 +429,9 @@ class CloneVisitor implements TreeVisitor {
         fileUri: _activeFileUri,
         forwardingStubSuperTarget: node.forwardingStubSuperTarget,
         forwardingStubInterfaceTarget: node.forwardingStubInterfaceTarget)
+      ..annotations = node.annotations.isEmpty
+          ? const <Expression>[]
+          : node.annotations.map(clone).toList()
       ..fileOffset = _cloneFileOffset(node.fileOffset)
       ..fileEndOffset = _cloneFileOffset(node.fileEndOffset)
       ..flags = node.flags;
@@ -440,6 +449,9 @@ class CloneVisitor implements TreeVisitor {
         hasImplicitSetter: node.hasImplicitSetter,
         transformerFlags: node.transformerFlags,
         fileUri: _activeFileUri)
+      ..annotations = node.annotations.isEmpty
+          ? const <Expression>[]
+          : node.annotations.map(clone).toList()
       ..fileOffset = _cloneFileOffset(node.fileOffset)
       ..fileEndOffset = _cloneFileOffset(node.fileEndOffset)
       ..flags = node.flags;
@@ -456,7 +468,10 @@ class CloneVisitor implements TreeVisitor {
         positionalParameters: node.positionalParameters.map(clone).toList(),
         namedParameters: node.namedParameters.map(clone).toList(),
         requiredParameterCount: node.requiredParameterCount,
-        fileUri: _activeFileUri);
+        fileUri: _activeFileUri)
+      ..annotations = node.annotations.isEmpty
+          ? const <Expression>[]
+          : node.annotations.map(clone).toList();
   }
 
   visitTypeParameter(TypeParameter node) {
@@ -466,7 +481,11 @@ class CloneVisitor implements TreeVisitor {
     if (node.defaultType != null) {
       newNode.defaultType = visitType(node.defaultType);
     }
-    return newNode..flags = node.flags;
+    return newNode
+      ..annotations = node.annotations.isEmpty
+          ? const <Expression>[]
+          : node.annotations.map(clone).toList()
+      ..flags = node.flags;
   }
 
   TreeNode cloneFunctionNodeBody(FunctionNode node) => cloneOptional(node.body);
