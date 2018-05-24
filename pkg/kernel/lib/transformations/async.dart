@@ -454,15 +454,12 @@ class ExpressionLifter extends Transformer {
   }
 
   TreeNode visitLet(Let expr) {
-    var shouldName = seenAwait;
-
-    seenAwait = false;
     var body = expr.body.accept(this);
 
     VariableDeclaration variable = expr.variable;
     if (seenAwait) {
-      // The body in `let var x = initializer in body` contained an await.  We
-      // will produce the sequence of statements:
+      // There is an await in the body of `let var x = initializer in body` or
+      // to its right.  We will produce the sequence of statements:
       //
       // <initializer's statements>
       // var x = <initializer's value>
@@ -488,7 +485,6 @@ class ExpressionLifter extends Transformer {
     } else {
       // The body in `let x = initializer in body` did not contain an await.  We
       // can leave a let expression.
-      seenAwait = shouldName;
       return transform(expr, () {
         // The body has already been translated.
         expr.body = body..parent = expr;
