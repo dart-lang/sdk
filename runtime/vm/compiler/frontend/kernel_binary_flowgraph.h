@@ -923,12 +923,12 @@ class StreamingConstantEvaluator {
 
   bool IsCached(intptr_t offset);
 
-  Instance& EvaluateExpression(intptr_t offset, bool reset_position = true);
+  RawInstance* EvaluateExpression(intptr_t offset, bool reset_position = true);
   Instance& EvaluateListLiteral(intptr_t offset, bool reset_position = true);
   Instance& EvaluateMapLiteral(intptr_t offset, bool reset_position = true);
   Instance& EvaluateConstructorInvocation(intptr_t offset,
                                           bool reset_position = true);
-  Object& EvaluateExpressionSafe(intptr_t offset);
+  RawObject* EvaluateExpressionSafe(intptr_t offset);
 
  private:
   bool IsAllowedToEvaluate();
