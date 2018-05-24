@@ -125,17 +125,6 @@ class _LocalIsolateMirror extends _LocalMirror implements IsolateMirror {
   bool get isCurrent => true;
 
   String toString() => "IsolateMirror on '$debugName'";
-
-  Future<LibraryMirror> loadUri(Uri uri) async {
-    var result = _loadUri(uri.toString());
-    if (result == null) {
-      // Censored library.
-      throw new Exception("Cannot load $uri");
-    }
-    return result;
-  }
-
-  static LibraryMirror _loadUri(String uri) native "IsolateMirror_loadUri";
 }
 
 class _SyntheticAccessor implements MethodMirror {

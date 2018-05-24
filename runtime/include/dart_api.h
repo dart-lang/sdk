@@ -351,7 +351,6 @@ DART_EXPORT Dart_Handle Dart_ErrorGetStackTrace(Dart_Handle handle);
  * \param error the error message.
  */
 DART_EXPORT Dart_Handle Dart_NewApiError(const char* error);
-DART_EXPORT Dart_Handle Dart_NewCompilationError(const char* error);
 
 /**
  * Produces a new unhandled exception error handle.
