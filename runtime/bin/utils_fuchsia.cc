@@ -17,6 +17,10 @@ namespace dart {
 namespace bin {
 
 OSError::OSError() : sub_system_(kSystem), code_(0), message_(NULL) {
+  Reload();
+}
+
+void OSError::Reload() {
   set_sub_system(kSystem);
   set_code(errno);
   const int kBufferSize = 1024;

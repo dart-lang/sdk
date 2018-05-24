@@ -32,6 +32,10 @@ void FormatMessageIntoBuffer(DWORD code, wchar_t* buffer, int buffer_length) {
 }
 
 OSError::OSError() : sub_system_(kSystem), code_(0), message_(NULL) {
+  Reload();
+}
+
+void OSError::Reload() {
   set_code(GetLastError());
 
   static const int kMaxMessageLength = 256;
