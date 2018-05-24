@@ -16,15 +16,15 @@ void main() {
     CompilationResult result =
         await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
     Compiler compiler = result.compiler;
-    var outputUnitForEntity =
-        compiler.backend.outputUnitData.outputUnitForEntity;
+    var outputUnitForMember =
+        compiler.backend.outputUnitData.outputUnitForMember;
     var env = compiler.backendClosedWorldForTesting.elementEnvironment;
     var mainOutputUnit = compiler.backend.outputUnitData.mainOutputUnit;
     dynamic lib = env.lookupLibrary(Uri.parse("memory:lib.dart"));
     var f1 = env.lookupLibraryMember(lib, "f1");
     var f2 = env.lookupLibraryMember(lib, "f2");
-    Expect.notEquals(mainOutputUnit, outputUnitForEntity(f1));
-    Expect.equals(mainOutputUnit, outputUnitForEntity(f2));
+    Expect.notEquals(mainOutputUnit, outputUnitForMember(f1));
+    Expect.equals(mainOutputUnit, outputUnitForMember(f2));
   });
 }
 

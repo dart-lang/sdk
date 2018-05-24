@@ -25,20 +25,20 @@ void main() {
       return elementEnvironment.lookupLibrary(Uri.parse(name));
     }
 
-    var outputUnitForEntity =
-        compiler.backend.outputUnitData.outputUnitForEntity;
+    var outputUnitForMember =
+        compiler.backend.outputUnitData.outputUnitForMember;
 
     dynamic lib1 = lookupLibrary("memory:lib1.dart");
     var foo1 = elementEnvironment.lookupLibraryMember(lib1, "foo");
-    var ou_lib1 = outputUnitForEntity(foo1);
+    var ou_lib1 = outputUnitForMember(foo1);
 
     dynamic lib2 = lookupLibrary("memory:lib2.dart");
     var foo2 = elementEnvironment.lookupLibraryMember(lib2, "foo");
-    var ou_lib2 = outputUnitForEntity(foo2);
+    var ou_lib2 = outputUnitForMember(foo2);
 
     dynamic mainApp = elementEnvironment.mainLibrary;
     var fooMain = elementEnvironment.lookupLibraryMember(mainApp, "foo");
-    var ou_lib1_lib2 = outputUnitForEntity(fooMain);
+    var ou_lib1_lib2 = outputUnitForMember(fooMain);
 
     String mainOutput = collector.getOutput("", OutputType.js);
     String lib1Output =

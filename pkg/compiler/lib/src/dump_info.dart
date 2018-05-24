@@ -109,7 +109,7 @@ class ElementInfoCollector {
   TypedefInfo visitTypedef(TypedefEntity typdef) {
     var type = environment.getFunctionTypeOfTypedef(typdef);
     TypedefInfo info =
-        new TypedefInfo(typdef.name, '$type', _unitInfoForEntity(typdef));
+        new TypedefInfo(typdef.name, '$type', _unitInfoForTypedef(typdef));
     _entityToInfo[typdef] = info;
     LibraryInfo lib = _entityToInfo[typdef.library];
     lib.typedefs.add(info);
@@ -147,7 +147,7 @@ class ElementInfoCollector {
         type: '${environment.getFieldType(field)}',
         inferredType: '$inferredType',
         code: code,
-        outputUnit: _unitInfoForEntity(field),
+        outputUnit: _unitInfoForMember(field),
         isConst: field.isConst);
     _entityToInfo[field] = info;
     if (codegenWorldBuilder.hasConstantFieldInitializer(field)) {
@@ -179,7 +179,7 @@ class ElementInfoCollector {
     ClassInfo classInfo = new ClassInfo(
         name: clazz.name,
         isAbstract: clazz.isAbstract,
-        outputUnit: _unitInfoForEntity(clazz));
+        outputUnit: _unitInfoForClass(clazz));
     _entityToInfo[clazz] = classInfo;
 
     int size = compiler.dumpInfoTask.sizeOf(clazz);
@@ -232,7 +232,7 @@ class ElementInfoCollector {
   ClosureInfo visitClosureClass(ClassEntity element) {
     ClosureInfo closureInfo = new ClosureInfo(
         name: element.name,
-        outputUnit: _unitInfoForEntity(element),
+        outputUnit: _unitInfoForClass(element),
         size: compiler.dumpInfoTask.sizeOf(element));
     _entityToInfo[element] = closureInfo;
 
@@ -313,7 +313,7 @@ class ElementInfoCollector {
         inlinedCount: inlinedCount,
         code: code,
         type: functionType.toString(),
-        outputUnit: _unitInfoForEntity(function));
+        outputUnit: _unitInfoForMember(function));
     _entityToInfo[function] = info;
 
     int closureSize = _addClosureInfo(info, function);
@@ -366,9 +366,14 @@ class ElementInfoCollector {
     });
   }
 
-  OutputUnitInfo _unitInfoForEntity(Entity entity) {
+  OutputUnitInfo _unitInfoForMember(MemberEntity entity) {
     return _infoFromOutputUnit(
-        compiler.backend.outputUnitData.outputUnitForEntity(entity));
+        compiler.backend.outputUnitData.outputUnitForMember(entity));
+  }
+
+  OutputUnitInfo _unitInfoForClass(ClassEntity entity) {
+    return _infoFromOutputUnit(
+        compiler.backend.outputUnitData.outputUnitForClass(entity));
   }
 
   OutputUnitInfo _unitInfoForConstant(ConstantValue constant) {
@@ -379,6 +384,11 @@ class ElementInfoCollector {
       return null;
     }
     return _infoFromOutputUnit(outputUnit);
+  }
+
+  OutputUnitInfo _unitInfoForTypedef(TypedefEntity entity) {
+    // TODO(johnniwinther): Do we ever emit typedefs?
+    return null;
   }
 }
 

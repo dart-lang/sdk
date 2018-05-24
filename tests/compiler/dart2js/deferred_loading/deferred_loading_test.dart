@@ -117,7 +117,7 @@ class TypeMaskIrComputer extends IrDataExtractor {
       : super(reporter, actualMap);
 
   String getMemberValue(MemberEntity member) {
-    return outputUnitString(_data.outputUnitForEntity(member));
+    return outputUnitString(_data.outputUnitForMember(member));
   }
 
   @override
@@ -162,7 +162,7 @@ void computeKernelClassOutputUnitData(
     Compiler compiler, ClassEntity cls, Map<Id, ActualData> actualMap,
     {bool verbose: false}) {
   OutputUnitData data = compiler.backend.outputUnitData;
-  String value = outputUnitString(data.outputUnitForEntity(cls));
+  String value = outputUnitString(data.outputUnitForClass(cls));
 
   KernelBackendStrategy backendStrategy = compiler.backendStrategy;
   KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;

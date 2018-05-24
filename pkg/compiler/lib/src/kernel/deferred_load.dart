@@ -20,37 +20,8 @@ class KernelDeferredLoadTask extends DeferredLoadTask {
 
   KernelDeferredLoadTask(Compiler compiler, this._elementMap) : super(compiler);
 
-  @override
-  Iterable<ImportEntity> importsTo(Entity element, LibraryEntity library) {
-    ir.NamedNode node;
-    String nodeName;
-    ir.Library enclosingLibrary;
-    if (element is ClassEntity) {
-      ClassDefinition definition = _elementMap.getClassDefinition(element);
-      if (definition.kind != ClassKind.regular) {
-        // You can't import closures.
-        return const <ImportEntity>[];
-      }
-      ir.Class _node = definition.node;
-      nodeName = _node.name;
-      enclosingLibrary = _node.enclosingLibrary;
-      node = _node;
-    } else if (element is MemberEntity) {
-      ir.Member _node = _elementMap.getMemberDefinition(element).node;
-      nodeName = _node.name.name;
-      enclosingLibrary = _node.enclosingLibrary;
-      node = _node;
-    } else if (element is Local ||
-        element is LibraryEntity ||
-        element is TypeVariableEntity) {
-      return const <ImportEntity>[];
-    } else if (element is TypedefEntity) {
-      throw new UnimplementedError("KernelDeferredLoadTask.importsTo typedef");
-    } else {
-      throw new UnsupportedError(
-          "KernelDeferredLoadTask.importsTo unexpected entity type: "
-          "${element.runtimeType}");
-    }
+  Iterable<ImportEntity> _findImportsTo(ir.NamedNode node, String nodeName,
+      ir.Library enclosingLibrary, LibraryEntity library) {
     List<ImportEntity> imports = [];
     ir.Library source = _elementMap.getLibraryNode(library);
     for (ir.LibraryDependency dependency in source.dependencies) {
@@ -62,6 +33,25 @@ class KernelDeferredLoadTask extends DeferredLoadTask {
       }
     }
     return imports;
+  }
+
+  @override
+  Iterable<ImportEntity> classImportsTo(
+      ClassEntity element, LibraryEntity library) {
+    ClassDefinition definition = _elementMap.getClassDefinition(element);
+    if (definition.kind != ClassKind.regular) {
+      // You can't import closures.
+      return const <ImportEntity>[];
+    }
+    ir.Class node = definition.node;
+    return _findImportsTo(node, node.name, node.enclosingLibrary, library);
+  }
+
+  @override
+  Iterable<ImportEntity> memberImportsTo(
+      Entity element, LibraryEntity library) {
+    ir.Member node = _elementMap.getMemberDefinition(element).node;
+    return _findImportsTo(node, node.name.name, node.enclosingLibrary, library);
   }
 
   @override
@@ -77,14 +67,13 @@ class KernelDeferredLoadTask extends DeferredLoadTask {
   }
 
   @override
-  void collectConstantsInBody(
-      covariant MemberEntity element, Set<ConstantValue> constants) {
+  void collectConstantsInBody(MemberEntity element, Dependencies dependencies) {
     ir.Member node = _elementMap.getMemberDefinition(element).node;
 
     // Fetch the internal node in order to skip annotations on the member.
     // TODO(sigmund): replace this pattern when the kernel-ast provides a better
     // way to skip annotations (issue 31565).
-    var visitor = new ConstantCollector(_elementMap, constants);
+    var visitor = new ConstantCollector(_elementMap, dependencies);
     if (node is ir.Field) {
       node.initializer?.accept(visitor);
       return;
@@ -135,9 +124,9 @@ bool _isVisible(List<ir.Combinator> combinators, String name) {
 
 class ConstantCollector extends ir.RecursiveVisitor {
   final KernelToElementMapForImpact elementMap;
-  final Set<ConstantValue> constants;
+  final Dependencies dependencies;
 
-  ConstantCollector(this.elementMap, this.constants);
+  ConstantCollector(this.elementMap, this.dependencies);
 
   CommonElements get commonElements => elementMap.commonElements;
 
@@ -145,7 +134,7 @@ class ConstantCollector extends ir.RecursiveVisitor {
     ConstantValue constant =
         elementMap.getConstantValue(node, requireConstant: required);
     if (constant != null) {
-      constants.add(constant);
+      dependencies.constants.add(constant);
     }
   }
 
