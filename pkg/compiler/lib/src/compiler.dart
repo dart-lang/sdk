@@ -303,7 +303,6 @@ abstract class Compiler {
       resolutionEnqueuer = enqueuer.createResolutionEnqueuer();
       backend.onResolutionStart();
     }
-    resolutionEnqueuer.addDeferredActions(libraryLoader.pullDeferredActions());
     return resolutionEnqueuer;
   }
 

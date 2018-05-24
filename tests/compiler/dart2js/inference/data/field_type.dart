@@ -202,7 +202,8 @@ class A9 {
 
   /*element: A9.:[exact=A9]*/
   A9(/*[exact=JSBool]*/ x) {
-    if (x) {} else {
+    if (x) {
+    } else {
       /*update: [exact=A9]*/ f9 = "1";
     }
   }
@@ -727,7 +728,8 @@ class A29 {
   /*element: A29.:[exact=A29]*/
   A29(/*[exact=JSUInt31]*/ x) {
     this. /*update: [exact=A29]*/ f29a = x;
-    if (x /*invoke: [exact=JSUInt31]*/ == 0) {} else {
+    if (x /*invoke: [exact=JSUInt31]*/ == 0) {
+    } else {
       return;
     }
     this. /*update: [exact=A29]*/ f29b = x;

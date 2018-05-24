@@ -19,7 +19,6 @@ import 'kernel/dart2js_target.dart' show Dart2jsTarget;
 import 'common/tasks.dart' show CompilerTask, Measurer;
 import 'common.dart';
 import 'elements/entities.dart' show LibraryEntity;
-import 'enqueue.dart' show DeferredAction;
 import 'kernel/element_map_impl.dart' show KernelToElementMapForImpactImpl;
 import 'resolved_uri_translator.dart';
 import 'util/util.dart' show Link;
@@ -131,47 +130,7 @@ abstract class LibraryLoaderTask implements LibraryProvider, CompilerTask {
   /// [LibraryElement] for the library and computes the import/export scope,
   /// loading and computing the import/export scopes of all required libraries
   /// in the process. The method handles cyclic dependency between libraries.
-  ///
-  /// If [skipFileWithPartOfTag] is `true`, `null` is returned if the
-  /// compilation unit for [resolvedUri] contains a `part of` tag. This is only
-  /// used for analysis through [Compiler.analyzeUri].
-  Future<LoadedLibraries> loadLibrary(Uri resolvedUri,
-      {bool skipFileWithPartOfTag: false});
-
-  // TODO(johnniwinther): Move these to a separate interface.
-  /// Register a deferred action to be performed during resolution.
-  void registerDeferredAction(DeferredAction action);
-
-  /// Returns the deferred actions registered since the last call to
-  /// [pullDeferredActions].
-  Iterable<DeferredAction> pullDeferredActions();
-
-  /// The locations of js patch-files relative to the sdk-descriptors.
-  static const _patchLocations = const <String, String>{
-    "async": "_internal/js_runtime/lib/async_patch.dart",
-    "cli": "_internal/js_runtime/lib/cli_patch.dart",
-    "collection": "_internal/js_runtime/lib/collection_patch.dart",
-    "convert": "_internal/js_runtime/lib/convert_patch.dart",
-    "core": "_internal/js_runtime/lib/core_patch.dart",
-    "developer": "_internal/js_runtime/lib/developer_patch.dart",
-    "io": "_internal/js_runtime/lib/io_patch.dart",
-    "isolate": "_internal/js_runtime/lib/isolate_patch.dart",
-    "math": "_internal/js_runtime/lib/math_patch.dart",
-    "mirrors": "_internal/js_runtime/lib/mirrors_patch.dart",
-    "typed_data": "_internal/js_runtime/lib/typed_data_patch.dart",
-    "_internal": "_internal/js_runtime/lib/internal_patch.dart",
-    "_js": "js/_js_client.dart",
-  };
-
-  /// Returns the location of the patch-file associated with [libraryName]
-  /// resolved from [plaformConfigUri].
-  ///
-  /// Returns null if there is none.
-  static Uri resolvePatchUri(String libraryName, Uri platformConfigUri) {
-    String patchLocation = _patchLocations[libraryName];
-    if (patchLocation == null) return null;
-    return platformConfigUri.resolve(patchLocation);
-  }
+  Future<LoadedLibraries> loadLibrary(Uri resolvedUri);
 }
 
 /// Interface for an entity that provide libraries.
@@ -223,8 +182,7 @@ class KernelLibraryLoaderTask extends CompilerTask
   /// library, so this name is actually a bit of a misnomer).
   // TODO(efortuna): Rename this once the Element library loader class goes
   // away.
-  Future<LoadedLibraries> loadLibrary(Uri resolvedUri,
-      {bool skipFileWithPartOfTag: false}) {
+  Future<LoadedLibraries> loadLibrary(Uri resolvedUri) {
     return measure(() async {
       var isDill = resolvedUri.path.endsWith('.dill');
       ir.Component component;
@@ -303,13 +261,6 @@ class KernelLibraryLoaderTask extends CompilerTask
   LibraryEntity lookupLibrary(Uri canonicalUri) {
     return _elementMap?.lookupLibrary(canonicalUri);
   }
-
-  void registerDeferredAction(DeferredAction action) {
-    throw new UnimplementedError(
-        'KernelLibraryLoaderTask.registerDeferredAction');
-  }
-
-  Iterable<DeferredAction> pullDeferredActions() => const <DeferredAction>[];
 }
 
 /// Information on the set libraries loaded as a result of a call to
