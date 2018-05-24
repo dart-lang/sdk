@@ -72,6 +72,12 @@ abstract class FixContext {
   AnalysisError get error;
 
   /**
+   * All of the errors in the file. This is used to compute additional fixes
+   * such "Fix all instances in file."
+   */
+  List<AnalysisError> get errors;
+
+  /**
    * The [ResourceProvider] to access files and folders.
    */
   ResourceProvider get resourceProvider;

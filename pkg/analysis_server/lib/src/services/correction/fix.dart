@@ -212,8 +212,9 @@ class DartFixKind {
       const FixKind('REMOVE_UNUSED_CATCH', 50, "Remove unused 'catch' clause");
   static const REMOVE_UNUSED_CATCH_STACK = const FixKind(
       'REMOVE_UNUSED_CATCH_STACK', 50, "Remove unused stack trace variable");
-  static const REMOVE_UNUSED_IMPORT =
-      const FixKind('REMOVE_UNUSED_IMPORT', 50, "Remove unused import");
+  static const REMOVE_UNUSED_IMPORT = const FixKind(
+      'REMOVE_UNUSED_IMPORT', 50, "Remove unused import",
+      appliedTogetherMessage: "Remove all unused imports in this file");
   static const RENAME_TO_CAMEL_CASE =
       const FixKind('RENAME_TO_CAMEL_CASE', 50, "Rename to '{0}'");
   static const REPLACE_BOOLEAN_WITH_BOOL = const FixKind(
@@ -266,10 +267,15 @@ class FixContextImpl implements FixContext {
   @override
   final AnalysisError error;
 
-  FixContextImpl(this.resourceProvider, this.analysisDriver, this.error);
+  @override
+  final List<AnalysisError> errors;
+
+  FixContextImpl(
+      this.resourceProvider, this.analysisDriver, this.error, this.errors);
 
   FixContextImpl.from(FixContext other)
       : resourceProvider = other.resourceProvider,
         analysisDriver = other.analysisDriver,
-        error = other.error;
+        error = other.error,
+        errors = other.errors;
 }

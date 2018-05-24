@@ -526,12 +526,18 @@ class EditDomainHandler extends AbstractRequestHandler {
       CompilationUnit unit = result.unit;
       LineInfo lineInfo = result.lineInfo;
       int requestLine = lineInfo.getLocation(offset).lineNumber;
+      List<engine.AnalysisError> errorsCopy = new List.from(result.errors);
       for (engine.AnalysisError error in result.errors) {
         int errorLine = lineInfo.getLocation(error.offset).lineNumber;
         if (errorLine == requestLine) {
           AstProvider astProvider = new AstProviderForDriver(driver);
           DartFixContext context = new _DartFixContextImpl(
-              server.resourceProvider, result.driver, astProvider, unit, error);
+              server.resourceProvider,
+              result.driver,
+              astProvider,
+              unit,
+              error,
+              errorsCopy);
           List<Fix> fixes =
               await new DefaultFixContributor().internalComputeFixes(context);
           if (fixes.isNotEmpty) {
@@ -679,8 +685,11 @@ class _DartFixContextImpl implements DartFixContext {
   @override
   final engine.AnalysisError error;
 
+  @override
+  final List<engine.AnalysisError> errors;
+
   _DartFixContextImpl(this.resourceProvider, this.analysisDriver,
-      this.astProvider, this.unit, this.error);
+      this.astProvider, this.unit, this.error, this.errors);
 
   @override
   GetTopLevelDeclarations get getTopLevelDeclarations =>
