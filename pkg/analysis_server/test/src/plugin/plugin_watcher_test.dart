@@ -50,8 +50,8 @@ class PluginWatcherTest extends Object with ResourceProviderMixin {
     newFile(
         '/pkg2/${PluginLocator.toolsFolderName}/${PluginLocator.defaultPluginFolderName}/bin/plugin.dart');
 
-    ContextRoot contextRoot =
-        new ContextRoot(resourceProvider.pathContext, pkg1Path, []);
+    ContextRoot contextRoot = new ContextRoot(pkg1Path, [],
+        pathContext: resourceProvider.pathContext);
     TestDriver driver = new TestDriver(resourceProvider, contextRoot);
     driver.analysisOptions.enabledPluginNames = ['pkg2'];
     watcher.addedDriver(driver, contextRoot);
@@ -80,8 +80,8 @@ class PluginWatcherTest extends Object with ResourceProviderMixin {
     String pkg1Path = newFolder('/pkg1').path;
     newFile('/pkg1/lib/test1.dart');
 
-    ContextRoot contextRoot =
-        new ContextRoot(resourceProvider.pathContext, pkg1Path, []);
+    ContextRoot contextRoot = new ContextRoot(pkg1Path, [],
+        pathContext: resourceProvider.pathContext);
     TestDriver driver = new TestDriver(resourceProvider, contextRoot);
     driver.analysisOptions.enabledPluginNames = ['pkg3'];
     watcher.addedDriver(driver, contextRoot);
@@ -102,8 +102,8 @@ class PluginWatcherTest extends Object with ResourceProviderMixin {
 
   test_removedDriver() {
     String pkg1Path = newFolder('/pkg1').path;
-    ContextRoot contextRoot =
-        new ContextRoot(resourceProvider.pathContext, pkg1Path, []);
+    ContextRoot contextRoot = new ContextRoot(pkg1Path, [],
+        pathContext: resourceProvider.pathContext);
     TestDriver driver = new TestDriver(resourceProvider, contextRoot);
     watcher.addedDriver(driver, contextRoot);
     watcher.removedDriver(driver);

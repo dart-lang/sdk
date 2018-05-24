@@ -137,8 +137,8 @@ class _IsTestGroup {
         resourceProvider,
         new MemoryByteStore(),
         fileContentOverlay,
-        new ContextRoot(resourceProvider.pathContext,
-            resourceProvider.convertPath('/project'), []),
+        new ContextRoot(resourceProvider.convertPath('/project'), [],
+            pathContext: resourceProvider.pathContext),
         sourceFactory,
         new AnalysisOptionsImpl()..strongMode = true);
     scheduler.start();

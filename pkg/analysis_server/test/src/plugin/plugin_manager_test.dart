@@ -34,7 +34,7 @@ main() {
 }
 
 ContextRoot _newContextRoot(String root, {List<String> exclude: const []}) {
-  return new ContextRoot(path.context, root, exclude);
+  return new ContextRoot(root, exclude, pathContext: path.context);
 }
 
 @reflectiveTest

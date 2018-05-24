@@ -891,7 +891,7 @@ linter:
     - empty_constructor_bodies
 ''');
 
-    ContextRoot root = new ContextRoot(pathContext, path, []);
+    ContextRoot root = new ContextRoot(path, [], pathContext: pathContext);
     builder.getAnalysisOptions(path, contextRoot: root);
     expect(root.optionsFilePath, equals(filePath));
   }
