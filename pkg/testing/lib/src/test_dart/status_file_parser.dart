@@ -39,7 +39,7 @@ class Section {
   Section(this.statusFile, this.condition, this.lineNumber)
       : testRules = new List<TestRule>();
 
-  bool isEnabled(environment) =>
+  bool isEnabled(Map<String, String> environment) =>
       condition == null || condition.evaluate(environment);
 
   String toString() {
@@ -48,15 +48,15 @@ class Section {
 }
 
 Future<TestExpectations> ReadTestExpectations(List<String> statusFilePaths,
-    Map environment, ExpectationSet expectationSet) {
+    Map<String, String> environment, ExpectationSet expectationSet) {
   var testExpectations = new TestExpectations(expectationSet);
   return Future.wait(statusFilePaths.map((String statusFile) {
     return ReadTestExpectationsInto(testExpectations, statusFile, environment);
   })).then((_) => testExpectations);
 }
 
-Future ReadTestExpectationsInto(
-    TestExpectations expectations, String statusFilePath, environment) {
+Future<void> ReadTestExpectationsInto(TestExpectations expectations,
+    String statusFilePath, Map<String, String> environment) {
   var completer = new Completer();
   List<Section> sections = new List<Section>();
 
@@ -75,7 +75,7 @@ Future ReadTestExpectationsInto(
   return completer.future;
 }
 
-void ReadConfigurationInto(Path path, sections, onDone) {
+void ReadConfigurationInto(Path path, List<Section> sections, void onDone()) {
   StatusFile statusFile = new StatusFile(path);
   File file = new File(path.toNativePath());
   if (!file.existsSync()) {
@@ -152,25 +152,25 @@ class TestExpectations {
   // Only create one copy of each Set<Expectation>.
   // We just use .toString as a key, so we may make a few
   // sets that only differ in their toString element order.
-  static Map _cachedSets = new Map();
+  static Map<String, Set<Expectation>> _cachedSets = {};
 
   final ExpectationSet expectationSet;
 
-  Map _map;
+  Map<String, Set<Expectation>> _map;
   bool _preprocessed = false;
-  Map _regExpCache;
-  Map _keyToRegExps;
+  Map<String, RegExp> _regExpCache;
+  Map<String, List<RegExp>> _keyToRegExps;
 
   /**
    * Create a TestExpectations object. See the [expectations] method
    * for an explanation of matching.
    */
-  TestExpectations(this.expectationSet) : _map = new Map();
+  TestExpectations(this.expectationSet) : _map = {};
 
   /**
    * Add a rule to the expectations.
    */
-  void addRule(testRule, environment) {
+  void addRule(TestRule testRule, Map<String, String> environment) {
     // Once we have started using the expectations we cannot add more
     // rules.
     if (_preprocessed) {
@@ -193,7 +193,7 @@ class TestExpectations {
    * "^$keyComponent\$" matches the corresponding filename component.
    */
   Set<Expectation> expectations(String filename) {
-    var result = new Set();
+    var result = new Set<Expectation>();
     var splitFilename = filename.split('/');
 
     // Create mapping from keys to list of RegExps once and for all.
@@ -224,13 +224,13 @@ class TestExpectations {
   void _preprocessForMatching() {
     if (_preprocessed) return;
 
-    _keyToRegExps = new Map();
-    _regExpCache = new Map();
+    _keyToRegExps = {};
+    _regExpCache = {};
 
     _map.forEach((key, expectations) {
       if (_keyToRegExps[key] != null) return;
       var splitKey = key.split('/');
-      var regExps = new List(splitKey.length);
+      var regExps = new List<RegExp>(splitKey.length);
       for (var i = 0; i < splitKey.length; i++) {
         var component = splitKey[i];
         var regExp = _regExpCache[component];

@@ -121,7 +121,7 @@ abstract class StackListener extends Listener {
     return value == null ? null : pop();
   }
 
-  List popList(int n, [List list]) {
+  List popList(int n, List list) {
     if (n == 0) return null;
     return stack.popList(n, list);
   }
@@ -314,7 +314,9 @@ abstract class StackListener extends Listener {
   @override
   void handleStringJuxtaposition(int literalCount) {
     debugEvent("StringJuxtaposition");
-    push(popList(literalCount).join(""));
+    push(popList(literalCount,
+            new List<Expression>.filled(literalCount, null, growable: true))
+        .join(""));
   }
 
   @override
@@ -396,16 +398,15 @@ class Stack {
     final table = array;
     final length = arrayLength;
 
-    final tailList = list ?? new List.filled(count, null, growable: true);
     final startIndex = length - count;
     for (int i = 0; i < count; i++) {
       final value = table[startIndex + i];
-      tailList[i] = value is NullValue ? null : value;
+      list[i] = value is NullValue ? null : value;
       table[startIndex + i] = null;
     }
     arrayLength -= count;
 
-    return tailList;
+    return list;
   }
 
   List get values {

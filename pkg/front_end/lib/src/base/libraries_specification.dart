@@ -164,9 +164,10 @@ class LibrariesSpecification {
         }
 
         var uri = checkAndResolve(data['uri']);
-        var patches;
+        List<Uri> patches;
         if (data['patches'] is List) {
-          patches = data['patches'].map(baseUri.resolve).toList();
+          patches =
+              data['patches'].map<Uri>((s) => baseUri.resolve(s)).toList();
         } else if (data['patches'] is String) {
           patches = [checkAndResolve(data['patches'])];
         } else if (data['patches'] == null) {

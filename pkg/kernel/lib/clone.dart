@@ -52,7 +52,7 @@ class CloneVisitor implements TreeVisitor {
     return _activeFileUri == null ? TreeNode.noOffset : fileOffset;
   }
 
-  TreeNode clone(TreeNode node) {
+  T clone<T extends TreeNode>(T node) {
     final Uri activeFileUriSaved = _activeFileUri;
     if (node is FileUriNode) _activeFileUri = node.fileUri ?? _activeFileUri;
     final TreeNode result = node.accept(this)

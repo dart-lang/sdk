@@ -90,7 +90,9 @@ class DietListener extends StackListener {
   @override
   void endMetadataStar(int count) {
     debugEvent("MetadataStar");
-    push(popList(count)?.first ?? NullValue.Metadata);
+    push(popList(count, new List<Token>.filled(count, null, growable: true))
+            ?.first ??
+        NullValue.Metadata);
   }
 
   @override
@@ -574,7 +576,8 @@ class DietListener extends StackListener {
   }
 
   void buildFields(int count, Token token, bool isTopLevel) {
-    List<String> names = popList(count);
+    List<String> names =
+        popList(count, new List<String>.filled(count, null, growable: true));
     Builder builder = lookupBuilder(token, null, names.first);
     Token metadata = pop();
     // TODO(paulberry): don't re-parse the field if we've already parsed it

@@ -10,6 +10,8 @@ import '../../scanner/token.dart' show Token;
 
 import '../builder/builder.dart';
 
+import '../builder/metadata_builder.dart' show ExpressionMetadataBuilder;
+
 import '../combinator.dart' show Combinator;
 
 import '../fasta_codes.dart'
@@ -65,6 +67,13 @@ import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'stack_listener.dart' show NullValue, StackListener;
 
 import '../configuration.dart' show Configuration;
+
+import '../kernel/kernel_builder.dart'
+    show
+        KernelFormalParameterBuilder,
+        KernelNamedTypeBuilder,
+        KernelTypeBuilder,
+        KernelTypeVariableBuilder;
 
 enum MethodBody {
   Abstract,
@@ -129,7 +138,11 @@ class OutlineBuilder extends StackListener {
   @override
   void endMetadataStar(int count) {
     debugEvent("MetadataStar");
-    push(popList(count) ?? NullValue.Metadata);
+    push(popList(
+            count,
+            new List<ExpressionMetadataBuilder<TypeBuilder>>.filled(count, null,
+                growable: true)) ??
+        NullValue.Metadata);
   }
 
   @override
@@ -155,7 +168,9 @@ class OutlineBuilder extends StackListener {
   @override
   void endCombinators(int count) {
     debugEvent("Combinators");
-    push(popList(count) ?? NullValue.Combinators);
+    push(popList(
+            count, new List<Combinator>.filled(count, null, growable: true)) ??
+        NullValue.Combinators);
   }
 
   @override
@@ -202,7 +217,9 @@ class OutlineBuilder extends StackListener {
   @override
   void endConditionalUris(int count) {
     debugEvent("EndConditionalUris");
-    push(popList(count) ?? NullValue.ConditionalUris);
+    push(popList(count,
+            new List<Configuration>.filled(count, null, growable: true)) ??
+        NullValue.ConditionalUris);
   }
 
   @override
@@ -388,7 +405,11 @@ class OutlineBuilder extends StackListener {
   @override
   void handleClassImplements(Token implementsKeyword, int interfacesCount) {
     debugEvent("handleClassImplements");
-    push(popList(interfacesCount) ?? NullValue.TypeBuilderList);
+    push(popList(
+            interfacesCount,
+            new List<KernelNamedTypeBuilder>.filled(interfacesCount, null,
+                growable: true)) ??
+        NullValue.TypeBuilderList);
   }
 
   @override
@@ -730,7 +751,9 @@ class OutlineBuilder extends StackListener {
   @override
   void endTypeArguments(int count, Token beginToken, Token endToken) {
     debugEvent("TypeArguments");
-    push(popList(count) ?? NullValue.TypeArguments);
+    push(popList(count,
+            new List<KernelTypeBuilder>.filled(count, null, growable: true)) ??
+        NullValue.TypeArguments);
   }
 
   @override
@@ -750,13 +773,21 @@ class OutlineBuilder extends StackListener {
   @override
   void endTypeList(int count) {
     debugEvent("TypeList");
-    push(popList(count) ?? NullValue.TypeList);
+    push(popList(
+            count,
+            new List<KernelNamedTypeBuilder>.filled(count, null,
+                growable: true)) ??
+        NullValue.TypeList);
   }
 
   @override
   void endTypeVariables(int count, Token beginToken, Token endToken) {
     debugEvent("TypeVariables");
-    push(popList(count) ?? NullValue.TypeVariables);
+    push(popList(
+            count,
+            new List<KernelTypeVariableBuilder>.filled(count, null,
+                growable: true)) ??
+        NullValue.TypeVariables);
   }
 
   @override
@@ -819,7 +850,9 @@ class OutlineBuilder extends StackListener {
     // 0. It might be simpler if the parser didn't call this method in that
     // case, however, then [beginOptionalFormalParameters] wouldn't always be
     // matched by this method.
-    List parameters = popList(count) ?? [];
+    var parameters = new List<KernelFormalParameterBuilder>.filled(count, null,
+        growable: true);
+    popList(count, parameters);
     for (FormalParameterBuilder parameter in parameters) {
       parameter.kind = kind;
     }
@@ -910,7 +943,8 @@ class OutlineBuilder extends StackListener {
   @override
   void endEnum(Token enumKeyword, Token leftBrace, int count) {
     String documentationComment = getDocumentationComment(enumKeyword);
-    List constantNamesAndOffsets = popList(count * 3);
+    List<Object> constantNamesAndOffsets = popList(
+        count * 3, new List<Object>.filled(count * 3, null, growable: true));
     int charOffset = pop();
     String name = pop();
     List<MetadataBuilder> metadata = pop();
@@ -1007,7 +1041,8 @@ class OutlineBuilder extends StackListener {
   void endTopLevelFields(Token staticToken, Token covariantToken,
       Token varFinalOrConst, int count, Token beginToken, Token endToken) {
     debugEvent("endTopLevelFields");
-    List fieldsInfo = popList(count * 4);
+    List<Object> fieldsInfo = popList(
+        count * 4, new List<Object>.filled(count * 4, null, growable: true));
     TypeBuilder type = pop();
     int modifiers = (staticToken != null ? staticMask : 0) |
         (covariantToken != null ? covariantMask : 0) |
@@ -1023,7 +1058,8 @@ class OutlineBuilder extends StackListener {
   void endFields(Token staticToken, Token covariantToken, Token varFinalOrConst,
       int count, Token beginToken, Token endToken) {
     debugEvent("Fields");
-    List fieldsInfo = popList(count * 4);
+    List<Object> fieldsInfo = popList(
+        count * 4, new List<Object>.filled(count * 4, null, growable: true));
     TypeBuilder type = pop();
     int modifiers = (staticToken != null ? staticMask : 0) |
         (covariantToken != null ? covariantMask : 0) |

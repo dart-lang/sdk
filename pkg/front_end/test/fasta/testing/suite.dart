@@ -247,7 +247,7 @@ class Run extends Step<Uri, int, FastaContext> {
     File generated = new File.fromUri(uri);
     StdioProcess process;
     try {
-      var args = [];
+      var args = <String>[];
       if (context.strongMode) {
         args.add('--strong');
         args.add('--reify-generic-functions');

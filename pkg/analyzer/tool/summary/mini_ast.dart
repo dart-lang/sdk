@@ -178,13 +178,14 @@ class MiniAstBuilder extends StackListener {
   @override
   void endArguments(int count, Token beginToken, Token endToken) {
     debugEvent("Arguments");
-    push(popList(count));
+    push(popList(count, new List<dynamic>.filled(count, null, growable: true)));
   }
 
   @override
   void endClassBody(int memberCount, Token beginToken, Token endToken) {
     debugEvent("ClassBody");
-    push(popList(memberCount));
+    push(popList(memberCount,
+        new List<dynamic>.filled(memberCount, null, growable: true)));
   }
 
   @override
@@ -229,7 +230,9 @@ class MiniAstBuilder extends StackListener {
 
   void endEnum(Token enumKeyword, Token leftBrace, int count) {
     debugEvent("Enum");
-    List<EnumConstantDeclaration> constants = popList(count);
+    List<EnumConstantDeclaration> constants =
+        new List.filled(count, null, growable: true);
+    popList(count, constants);
     String name = pop();
     List<Annotation> metadata = pop();
     Comment comment = pop();
@@ -273,7 +276,7 @@ class MiniAstBuilder extends StackListener {
   @override
   void handleIdentifierList(int count) {
     debugEvent("IdentifierList");
-    push(popList(count));
+    push(popList(count, new List<dynamic>.filled(count, null, growable: true)));
   }
 
   @override
@@ -345,7 +348,9 @@ class MiniAstBuilder extends StackListener {
   @override
   void endMetadataStar(int count) {
     debugEvent("MetadataStar");
-    push(popList(count) ?? NullValue.Metadata);
+    push(
+        popList(count, new List<dynamic>.filled(count, null, growable: true)) ??
+            NullValue.Metadata);
   }
 
   void endMethod(
@@ -384,7 +389,8 @@ class MiniAstBuilder extends StackListener {
     // We ignore top level variable declarations; they are present just to make
     // the IDL analyze without warnings.
     debugEvent("TopLevelFields");
-    popList(count); // Fields
+    popList(
+        count, new List<dynamic>.filled(count, null, growable: true)); // Fields
     pop(); // Type
     pop(); // Metadata
     pop(); // Comment
@@ -393,7 +399,7 @@ class MiniAstBuilder extends StackListener {
   @override
   void endTypeArguments(int count, Token beginToken, Token endToken) {
     debugEvent("TypeArguments");
-    push(popList(count));
+    push(popList(count, new List<dynamic>.filled(count, null, growable: true)));
   }
 
   @override

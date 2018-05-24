@@ -445,7 +445,9 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void endMetadataStar(int count) {
     debugEvent("MetadataStar");
-    push(popList(count) ?? NullValue.Metadata);
+    push(popList(
+            count, new List<Expression>.filled(count, null, growable: true)) ??
+        NullValue.Metadata);
   }
 
   @override
@@ -822,7 +824,9 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void endArguments(int count, Token beginToken, Token endToken) {
     debugEvent("Arguments");
-    List arguments = popList(count) ?? <Expression>[];
+    List<dynamic> arguments =
+        new List<dynamic>.filled(count, null, growable: true);
+    popList(count, arguments);
     int firstNamedArgumentIndex = arguments.length;
     for (int i = 0; i < arguments.length; i++) {
       var node = arguments[i];
@@ -877,7 +881,9 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       }
       push(forest.arguments(positional, beginToken, named: named));
     } else {
-      push(forest.arguments(arguments, beginToken));
+      // TODO(kmillikin): Find a way to avoid allocating a second list in the
+      // case where there were no named arguments, which is a common one.
+      push(forest.arguments(new List<Expression>.from(arguments), beginToken));
     }
   }
 
@@ -1510,7 +1516,9 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       String value = unescapeString(token.lexeme);
       push(forest.literalString(value, token));
     } else {
-      List parts = popList(1 + interpolationCount * 2);
+      var count = 1 + interpolationCount * 2;
+      List<Object> parts =
+          popList(count, new List<Object>.filled(count, null, growable: true));
       Token first = parts.first;
       Token last = parts.last;
       Quote quote = analyzeQuote(first.lexeme);
@@ -2251,7 +2259,10 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     FormalParameterKind kind = optional("{", beginToken)
         ? FormalParameterKind.optionalNamed
         : FormalParameterKind.optionalPositional;
-    push(new OptionalFormals(kind, popList(count) ?? []));
+    var variables =
+        new List<VariableDeclaration>.filled(count, null, growable: true);
+    popList(count, variables);
+    push(new OptionalFormals(kind, variables));
   }
 
   @override
@@ -2389,7 +2400,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void endTryStatement(int catchCount, Token tryKeyword, Token finallyKeyword) {
     Statement finallyBlock = popStatementIfNotNull(finallyKeyword);
-    Object catches = popList(catchCount);
+    Object catches = popList(
+        catchCount, new List<Catch>.filled(catchCount, null, growable: true));
     Statement tryBlock = popStatement();
     if (compileTimeErrorInTry == null) {
       push(forest.tryStatement(
@@ -2910,7 +2922,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void endTypeArguments(int count, Token beginToken, Token endToken) {
     debugEvent("TypeArguments");
-    push(popList(count));
+    push(
+        popList(count, new List<DartType>.filled(count, null, growable: true)));
   }
 
   @override
@@ -3372,7 +3385,9 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {
     debugEvent("beginSwitchCase");
-    List labelsAndExpressions = popList(labelCount + expressionCount);
+    var count = labelCount + expressionCount;
+    List<Object> labelsAndExpressions =
+        popList(count, new List<Object>.filled(count, null, growable: true));
     List<Object> labels = <Object>[];
     List<Expression> expressions = <Expression>[];
     if (labelsAndExpressions != null) {
@@ -3656,7 +3671,10 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void endTypeVariables(int count, Token beginToken, Token endToken) {
     debugEvent("TypeVariables");
-    List<KernelTypeVariableBuilder> typeVariables = popList(count);
+    List<KernelTypeVariableBuilder> typeVariables = popList(
+        count,
+        new List<KernelTypeVariableBuilder>.filled(count, null,
+            growable: true));
     if (typeVariables != null) {
       if (library.loader.target.strongMode) {
         List<KernelTypeBuilder> calculatedBounds = calculateBounds(

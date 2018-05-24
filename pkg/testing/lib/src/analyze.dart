@@ -46,18 +46,23 @@ class Analyze extends Suite {
     String optionsPath = json["options"];
     Uri optionsUri = optionsPath == null ? null : base.resolve(optionsPath);
 
-    List<Uri> uris = new List<Uri>.from(
-        json["uris"].map((String relative) => base.resolve(relative)));
+    List<Uri> uris = json["uris"].map<Uri>((relative) {
+      String r = relative;
+      return base.resolve(r);
+    }).toList();
 
     List<RegExp> exclude =
-        new List<RegExp>.from(json["exclude"].map((String p) => new RegExp(p)));
+        json["exclude"].map<RegExp>((p) => new RegExp(p)).toList();
 
     Map gitGrep = json["git grep"];
     List<String> gitGrepPathspecs;
     List<String> gitGrepPatterns;
     if (gitGrep != null) {
-      gitGrepPathspecs = gitGrep["pathspecs"] ?? const <String>["."];
-      gitGrepPatterns = gitGrep["patterns"];
+      gitGrepPathspecs = gitGrep["pathspecs"] == null
+          ? const <String>["."]
+          : new List<String>.from(gitGrep["pathspecs"]);
+      if (gitGrep["patterns"] != null)
+        gitGrepPatterns = new List<String>.from(gitGrep["patterns"]);
     }
 
     return new Analyze(

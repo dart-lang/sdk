@@ -24,7 +24,6 @@ import 'builder.dart'
     show
         Builder,
         ClassBuilder,
-        DynamicTypeBuilder,
         ModifierBuilder,
         PrefixBuilder,
         Scope,
@@ -181,12 +180,7 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
     return 0;
   }
 
-  void becomeCoreLibrary(dynamicType) {
-    if (scope.local["dynamic"] == null) {
-      addBuilder("dynamic",
-          new DynamicTypeBuilder<T, dynamic>(dynamicType, this, -1), -1);
-    }
-  }
+  void becomeCoreLibrary(dynamicType);
 
   void forEach(void f(String name, Builder builder)) {
     scope.forEach((String name, Builder builder) {

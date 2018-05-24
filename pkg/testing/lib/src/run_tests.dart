@@ -39,11 +39,11 @@ class CommandLine {
   Set<String> get skip => commaSeparated("--skip=");
 
   Set<String> commaSeparated(String prefix) {
-    return options.expand((String s) {
+    return new Set<String>.from(options.expand((String s) {
       if (!s.startsWith(prefix)) return const [];
       s = s.substring(prefix.length);
       return s.split(",");
-    }).toSet();
+    }));
   }
 
   Map<String, String> get environment {
@@ -167,8 +167,8 @@ main(List<String> arguments) => withErrorHandling(() async {
       print("Running tests took: ${sw.elapsed}.");
     });
 
-Future<Null> runTests(Map<String, Function> tests) =>
-    withErrorHandling(() async {
+Future<void> runTests(Map<String, Function> tests) =>
+    withErrorHandling<void>(() async {
       int completed = 0;
       for (String name in tests.keys) {
         StringBuffer sb = new StringBuffer();

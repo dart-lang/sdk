@@ -9,6 +9,7 @@ import 'dart:convert' show jsonDecode;
 import 'package:kernel/ast.dart'
     show
         Class,
+        DartType,
         Field,
         Library,
         ListLiteral,
@@ -25,6 +26,7 @@ import '../problems.dart' show internalProblem, unhandled, unimplemented;
 import '../kernel/kernel_builder.dart'
     show
         Builder,
+        DynamicTypeBuilder,
         InvalidTypeBuilder,
         KernelInvalidTypeBuilder,
         KernelTypeBuilder,
@@ -64,6 +66,16 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
 
   @override
   Library get target => library;
+
+  void becomeCoreLibrary(dynamicType) {
+    if (scope.local["dynamic"] == null) {
+      addBuilder(
+          "dynamic",
+          new DynamicTypeBuilder<KernelTypeBuilder, DartType>(
+              dynamicType, this, -1),
+          -1);
+    }
+  }
 
   void addClass(Class cls) {
     DillClassBuilder classBulder = new DillClassBuilder(cls, this);

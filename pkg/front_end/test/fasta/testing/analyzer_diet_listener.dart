@@ -58,7 +58,8 @@ class AnalyzerDietListener extends DietListener {
 
   @override
   void buildFields(int count, Token token, bool isTopLevel) {
-    List<String> names = popList(count);
+    List<String> names =
+        popList(count, new List<String>.filled(count, null, growable: true));
     Builder builder = lookupBuilder(token, null, names.first);
     Token metadata = pop();
     AstBuilder listener =
