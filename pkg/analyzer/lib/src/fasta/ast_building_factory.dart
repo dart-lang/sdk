@@ -297,7 +297,7 @@ class AstBuildingForest
       Expression index,
       kernel.Procedure getter,
       kernel.Procedure setter) {
-    // TODO(brianwilkerson): Implement this.
+    // TODO(brianwilkerson) Implement this.
     throw new UnimplementedError();
   }
 
@@ -443,7 +443,7 @@ class AstBuildingForest
       kernel.Member getter,
       kernel.Member setter,
       kernel.DartType type) {
-    // TODO(brianwilkerson): Implement this.
+    // TODO(brianwilkerson) Implement this.
     throw new UnimplementedError();
   }
 
@@ -461,7 +461,7 @@ class AstBuildingForest
       kernel.Name name,
       kernel.Member getter,
       kernel.Member setter) {
-    // TODO(brianwilkerson): Implement this.
+    // TODO(brianwilkerson) Implement this.
     throw new UnimplementedError();
   }
 
@@ -504,13 +504,24 @@ class AstBuildingForest
       astFactory.adjacentStrings(strings.cast<StringLiteral>());
 
   @override
+  Generator<Expression, Statement, _Arguments> superIndexedAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+      Token token,
+      Expression index,
+      kernel.Member getter,
+      kernel.Member setter) {
+    // TODO(brianwilkerson) Implement this.
+    throw new UnimplementedError();
+  }
+
+  @override
   Generator<Expression, Statement, _Arguments> superPropertyAccessGenerator(
       ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
       Token token,
       kernel.Name name,
       kernel.Member getter,
       kernel.Member setter) {
-    // TODO(brianwilkerson): Implement this.
+    // TODO(brianwilkerson) Implement this.
     throw new UnimplementedError();
   }
 
@@ -528,7 +539,7 @@ class AstBuildingForest
       Expression index,
       kernel.Procedure getter,
       kernel.Procedure setter) {
-    // TODO(brianwilkerson): Implement this.
+    // TODO(brianwilkerson) Implement this.
     throw new UnimplementedError();
   }
 
@@ -539,7 +550,7 @@ class AstBuildingForest
       kernel.Name name,
       kernel.Member getter,
       kernel.Member setter) {
-    // TODO(brianwilkerson): Implement this.
+    // TODO(brianwilkerson) Implement this.
     throw new UnimplementedError();
   }
 

@@ -54,6 +54,7 @@ import 'expression_generator.dart'
         Generator,
         IndexedAccessGenerator,
         NullAwarePropertyAccessGenerator,
+        SuperIndexedAccessGenerator,
         PropertyAccessGenerator,
         SuperPropertyAccessGenerator,
         ThisIndexedAccessGenerator,
@@ -929,6 +930,146 @@ class KernelThisIndexedAccessGenerator extends KernelGenerator
   @override
   ShadowComplexAssignment startComplexAssignment(Expression rhs) =>
       new ShadowIndexAssign(null, index, rhs);
+
+  @override
+  void printOn(StringSink sink) {
+    NameSystem syntheticNames = new NameSystem();
+    sink.write(", index: ");
+    printNodeOn(index, sink, syntheticNames: syntheticNames);
+    sink.write(", getter: ");
+    printQualifiedNameOn(getter, sink, syntheticNames: syntheticNames);
+    sink.write(", setter: ");
+    printQualifiedNameOn(setter, sink, syntheticNames: syntheticNames);
+    sink.write(", indexVariable: ");
+    printNodeOn(indexVariable, sink, syntheticNames: syntheticNames);
+  }
+}
+
+class KernelSuperIndexedAccessGenerator extends KernelGenerator
+    with SuperIndexedAccessGenerator<Expression, Statement, Arguments> {
+  final Expression index;
+
+  final Member getter;
+
+  final Member setter;
+
+  VariableDeclaration indexVariable;
+
+  KernelSuperIndexedAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      this.index,
+      this.getter,
+      this.setter)
+      : super(helper, token);
+
+  Expression indexAccess() {
+    indexVariable ??= new VariableDeclaration.forValue(index);
+    return new VariableGet(indexVariable);
+  }
+
+  Expression _makeWriteAndReturn(
+      Expression value, ShadowComplexAssignment complexAssignment) {
+    var valueVariable = new VariableDeclaration.forValue(value);
+    if (setter == null) {
+      helper.warnUnresolvedMethod(indexSetName, offsetForToken(token),
+          isSuper: true);
+    }
+    var write = new SuperMethodInvocation(
+        indexSetName,
+        forest.castArguments(forest.arguments(
+            <Expression>[indexAccess(), new VariableGet(valueVariable)],
+            token)),
+        setter)
+      ..fileOffset = offsetForToken(token);
+    complexAssignment?.write = write;
+    var dummy = new VariableDeclaration.forValue(write);
+    return makeLet(
+        valueVariable, makeLet(dummy, new VariableGet(valueVariable)));
+  }
+
+  @override
+  Expression _makeSimpleRead() {
+    if (getter == null) {
+      helper.warnUnresolvedMethod(indexGetName, offsetForToken(token),
+          isSuper: true);
+    }
+    // TODO(ahe): Use [DirectMethodInvocation] when possible.
+    return new ShadowSuperMethodInvocation(
+        indexGetName,
+        forest.castArguments(forest.arguments(<Expression>[index], token)),
+        getter)
+      ..fileOffset = offsetForToken(token);
+  }
+
+  @override
+  Expression _makeSimpleWrite(Expression value, bool voidContext,
+      ShadowComplexAssignment complexAssignment) {
+    if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
+    if (setter == null) {
+      helper.warnUnresolvedMethod(indexSetName, offsetForToken(token),
+          isSuper: true);
+    }
+    var write = new SuperMethodInvocation(
+        indexSetName,
+        forest
+            .castArguments(forest.arguments(<Expression>[index, value], token)),
+        setter)
+      ..fileOffset = offsetForToken(token);
+    complexAssignment?.write = write;
+    return write;
+  }
+
+  @override
+  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+    if (getter == null) {
+      helper.warnUnresolvedMethod(indexGetName, offsetForToken(token),
+          isSuper: true);
+    }
+    var read = new SuperMethodInvocation(
+        indexGetName,
+        forest.castArguments(
+            forest.arguments(<Expression>[indexAccess()], token)),
+        getter)
+      ..fileOffset = offsetForToken(token);
+    complexAssignment?.read = read;
+    return read;
+  }
+
+  @override
+  Expression _makeWrite(Expression value, bool voidContext,
+      ShadowComplexAssignment complexAssignment) {
+    if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
+    if (setter == null) {
+      helper.warnUnresolvedMethod(indexSetName, offsetForToken(token),
+          isSuper: true);
+    }
+    var write = new SuperMethodInvocation(
+        indexSetName,
+        forest.castArguments(
+            forest.arguments(<Expression>[indexAccess(), value], token)),
+        setter)
+      ..fileOffset = offsetForToken(token);
+    complexAssignment?.write = write;
+    return write;
+  }
+
+  @override
+  Expression _finish(
+      Expression body, ShadowComplexAssignment complexAssignment) {
+    return super._finish(makeLet(indexVariable, body), complexAssignment);
+  }
+
+  @override
+  Expression doInvocation(int offset, Arguments arguments) {
+    return helper.buildMethodInvocation(
+        buildSimpleRead(), callName, arguments, offset,
+        isImplicitCall: true);
+  }
+
+  @override
+  ShadowComplexAssignment startComplexAssignment(Expression rhs) =>
+      new ShadowIndexAssign(null, index, rhs, isSuper: true);
 
   @override
   void printOn(StringSink sink) {

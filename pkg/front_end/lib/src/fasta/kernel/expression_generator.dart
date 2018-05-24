@@ -50,7 +50,6 @@ export 'kernel_expression_generator.dart'
         ReadOnlyAccessGenerator,
         SendAccessGenerator,
         StaticAccessGenerator,
-        SuperIndexedAccessGenerator,
         ThisAccessGenerator,
         TypeDeclarationAccessGenerator,
         UnresolvedNameGenerator,
@@ -412,4 +411,23 @@ abstract class ThisIndexedAccessGenerator<Expression, Statement, Arguments>
 
   @override
   String get debugName => "ThisIndexedAccessGenerator";
+}
+
+abstract class SuperIndexedAccessGenerator<Expression, Statement, Arguments>
+    implements Generator<Expression, Statement, Arguments> {
+  factory SuperIndexedAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Expression index,
+      Member getter,
+      Member setter) {
+    return helper.forest
+        .superIndexedAccessGenerator(helper, token, index, getter, setter);
+  }
+
+  String get plainNameForRead => "[]";
+
+  String get plainNameForWrite => "[]=";
+
+  String get debugName => "SuperIndexedAccessGenerator";
 }

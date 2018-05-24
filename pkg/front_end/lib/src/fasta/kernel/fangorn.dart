@@ -46,6 +46,7 @@ import 'body_builder.dart' show LabelTarget;
 import 'kernel_expression_generator.dart'
     show
         KernelIndexedAccessGenerator,
+        KernelSuperIndexedAccessGenerator,
         KernelNullAwarePropertyAccessGenerator,
         KernelPropertyAccessGenerator,
         KernelSuperPropertyAccessGenerator,
@@ -688,6 +689,17 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
       Procedure getter,
       Procedure setter) {
     return new KernelThisIndexedAccessGenerator(
+        helper, token, index, getter, setter);
+  }
+
+  @override
+  KernelSuperIndexedAccessGenerator superIndexedAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Expression index,
+      Member getter,
+      Member setter) {
+    return new KernelSuperIndexedAccessGenerator(
         helper, token, index, getter, setter);
   }
 }

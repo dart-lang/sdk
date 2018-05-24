@@ -412,6 +412,13 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
       kernel.Procedure getter,
       kernel.Procedure setter);
 
+  Generator<Expression, Statement, Arguments> superIndexedAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Location location,
+      Expression index,
+      kernel.Member getter,
+      kernel.Member setter);
+
   // TODO(ahe): Remove this method when all users are moved here.
   kernel.Arguments castArguments(Arguments arguments) {
     dynamic a = arguments;
