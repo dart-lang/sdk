@@ -4,6 +4,23 @@
 
 ### Language
 
+The change to make bounds on generic functions invariant has landed in the
+analyzer.  The analyzer will now issue an invalid override error on the
+following program ([issue 29014][sdk#29014]).
+
+```dart
+class A {
+  void f<T extends int>() {}
+}
+
+class B extends A {
+  @override
+  void f<T extends num>() {}
+}
+```
+
+[sdk#29014]: https://github.com/dart-lang/sdk/issues/29014
+
 #### Strong Mode
 
 ### Core library changes
