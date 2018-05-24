@@ -197,9 +197,8 @@ class IdentifierContext {
 
   /// Identifier is a reference to a named argument of a function or method
   /// invocation (e.g. `foo` in `f(foo: 0);`.
-  static const namedArgumentReference = const IdentifierContext(
-      'namedArgumentReference',
-      allowedInConstantExpression: true);
+  static const namedArgumentReference =
+      const NamedArgumentReferenceIdentifierContext();
 
   /// Identifier is a name being declared by a local variable declaration.
   static const localVariableDeclaration =
@@ -207,7 +206,7 @@ class IdentifierContext {
 
   /// Identifier is a reference to a label (e.g. `foo` in `break foo;`).
   /// Labels have their own scope.
-  static const labelReference = const IdentifierContext('labelReference');
+  static const labelReference = const LabelReferenceIdentifierContext();
 
   final String _name;
 

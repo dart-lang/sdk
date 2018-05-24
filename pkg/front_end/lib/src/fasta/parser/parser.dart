@@ -1918,68 +1918,14 @@ class Parser {
   /// an error, and return the synthetic identifier.
   Token ensureIdentifier(Token token, IdentifierContext context) {
     assert(context != null);
-    Token next = token.next;
-    if (next.kind == IDENTIFIER_TOKEN) {
-      listener.handleIdentifier(next, context);
-      return next;
-    }
-    Token identifier = context.ensureIdentifier(token, this);
-    // TODO(danrubel): Once refactoring is complete,
-    // context.ensureIdentifier should never return null.
-    if (identifier != null) {
+    Token identifier = token.next;
+    if (identifier.kind != IDENTIFIER_TOKEN) {
+      identifier = context.ensureIdentifier(token, this);
+      assert(identifier != null);
       assert(identifier.isKeywordOrIdentifier);
-      listener.handleIdentifier(identifier, context);
-      return identifier;
     }
-
-    // TODO(danrubel): Roll everything beyond this point into the
-    // ensureIdentifier methods in the various IdentifierContext subclasses.
-
-    if (!next.isIdentifier) {
-      if (next is ErrorToken) {
-        // TODO(brianwilkerson): This preserves the current semantics, but the
-        // listener should not be recovering from this case, so this needs to be
-        // reworked to recover in this method (probably inside the outermost
-        // if statement).
-        token =
-            reportUnrecoverableErrorWithToken(next, context.recoveryTemplate)
-                .next;
-      } else if (isIdentifierForRecovery(next, context)) {
-        reportRecoverableErrorWithToken(next, context.recoveryTemplate);
-        token = next;
-      } else if (isPostIdentifierForRecovery(next, context) ||
-          isStartOfNextSibling(next, context)) {
-        token = insertSyntheticIdentifier(token, context);
-      } else if (next.isKeywordOrIdentifier) {
-        reportRecoverableErrorWithToken(next, context.recoveryTemplate);
-        token = next;
-      } else {
-        reportRecoverableErrorWithToken(next, context.recoveryTemplate);
-        token = next;
-      }
-    } else if (next.type.isBuiltIn && !context.isBuiltInIdentifierAllowed) {
-      if (context.inDeclaration) {
-        reportRecoverableErrorWithToken(
-            next, fasta.templateBuiltInIdentifierInDeclaration);
-      } else if (!optional("dynamic", next)) {
-        reportRecoverableErrorWithToken(
-            next, fasta.templateBuiltInIdentifierAsType);
-      }
-      token = next;
-    } else if (!inPlainSync && next.type.isPseudo) {
-      if (optional('await', next)) {
-        reportRecoverableError(next, fasta.messageAwaitAsIdentifier);
-      } else if (optional('yield', next)) {
-        reportRecoverableError(next, fasta.messageYieldAsIdentifier);
-      } else if (optional('async', next)) {
-        reportRecoverableError(next, fasta.messageAsyncAsIdentifier);
-      }
-      token = next;
-    } else {
-      token = next;
-    }
-    listener.handleIdentifier(token, context);
-    return token;
+    listener.handleIdentifier(identifier, context);
+    return identifier;
   }
 
   /// Return `true` if the given [token] should be treated like the start of
@@ -2002,76 +1948,6 @@ class Parser {
       optional('~', next) ||
       optional('++', next) ||
       optional('--', next);
-
-  /// Return `true` if the given [token] should be treated like an identifier in
-  /// the given [context] for the purposes of recovery.
-  bool isIdentifierForRecovery(Token token, IdentifierContext context) {
-    if (!token.type.isKeyword) {
-      return false;
-    }
-    return isPostIdentifierForRecovery(token.next, context);
-  }
-
-  /// Return `true` if the given [token] appears to be a token that would be
-  /// expected after an identifier in the given [context].
-  bool isPostIdentifierForRecovery(Token token, IdentifierContext context) {
-    if (token.isEof) {
-      return true;
-    }
-    List<String> followingValues;
-    if (context == IdentifierContext.combinator) {
-      followingValues = [';'];
-    } else if (context == IdentifierContext.constructorReferenceContinuation) {
-      followingValues = ['.', ',', '(', ')', '[', ']', '}', ';'];
-    } else {
-      return false;
-    }
-    for (String tokenValue in followingValues) {
-      if (optional(tokenValue, token)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /// Return `true` if the given [token] appears to be the start of a (virtual)
-  /// node that would be a sibling of the current node or one of its parents.
-  /// The type of the current node is suggested by the given [context].
-  bool isStartOfNextSibling(Token token, IdentifierContext context) {
-    if (!token.type.isKeyword) {
-      return false;
-    }
-
-    List<String> statementKeywords() => <String>[
-          'const',
-          'do',
-          'final',
-          'if',
-          'switch',
-          'try',
-          'var',
-          'void',
-          'while'
-        ];
-
-    // TODO(brianwilkerson): At the moment, this test is entirely based on data
-    // that can be represented declaratively. If that proves to be sufficient,
-    // then this data can be moved into a field in IdentifierContext and we
-    // could create a method to test whether a given token matches one of the
-    // patterns.
-    List<String> initialKeywords;
-    if (context == IdentifierContext.localFunctionDeclarationContinuation) {
-      initialKeywords = statementKeywords();
-    } else {
-      return false;
-    }
-    for (String tokenValue in initialKeywords) {
-      if (optional(tokenValue, token)) {
-        return true;
-      }
-    }
-    return false;
-  }
 
   Token expect(String string, Token token) {
     // TODO(danrubel): update all uses of expect(';'...) to ensureSemicolon

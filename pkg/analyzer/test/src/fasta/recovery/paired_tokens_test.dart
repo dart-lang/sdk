@@ -284,13 +284,13 @@ f(x) {
 ''');
   }
 
-  @failingTest
   void test_parameterList_class() {
     // Parser crashes
     testRecovery('''
 f(x
 class C {}
-''', [ScannerErrorCode.EXPECTED_TOKEN], '''
+''', [ScannerErrorCode.EXPECTED_TOKEN, ParserErrorCode.MISSING_FUNCTION_BODY],
+        '''
 f(x) {}
 class C {}
 ''');
