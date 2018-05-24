@@ -700,15 +700,21 @@ const char* Dart::FeaturesString(Isolate* isolate,
 #elif defined(TARGET_ARCH_IA32)
     buffer.AddString(" ia32");
 #elif defined(TARGET_ARCH_X64)
-#if defined(_WIN64)
+#if defined(TARGET_OS_WINDOWS)
     buffer.AddString(" x64-win");
 #else
     buffer.AddString(" x64-sysv");
 #endif
 #elif defined(TARGET_ARCH_DBC)
-    buffer.AddString(" dbc");
-#elif defined(TARGET_ARCH_DBC64)
+#if defined(ARCH_IS_32_BIT)
+    buffer.AddString(" dbc32");
+#elif defined(ARCH_IS_64_BIT)
     buffer.AddString(" dbc64");
+#else
+#error What word size?
+#endif
+#else
+#error What architecture?
 #endif
   }
 
