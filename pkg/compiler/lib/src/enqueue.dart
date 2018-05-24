@@ -378,15 +378,9 @@ class ResolutionEnqueuer extends EnqueuerImpl {
         }
         break;
       case TypeUseKind.TYPE_LITERAL:
-        TypedefType typedef;
-        if (type.isTypedef) {
-          typedef = type;
-        } else if (type is FunctionType) {
-          typedef = type.typedefType;
-        } else if (type is TypeVariableType) {
+        if (type is TypeVariableType) {
           _worldBuilder.registerTypeVariableTypeLiteral(type);
         }
-        if (typedef != null) worldBuilder.registerTypedef(typedef.element);
         break;
     }
   }

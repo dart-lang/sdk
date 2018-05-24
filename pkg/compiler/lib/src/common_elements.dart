@@ -1497,18 +1497,9 @@ abstract class ElementEnvironment {
   /// Returns the metadata constants declared on [cls].
   Iterable<ConstantValue> getClassMetadata(ClassEntity cls);
 
-  /// Returns the metadata constants declared on [typedef].
-  Iterable<ConstantValue> getTypedefMetadata(TypedefEntity typedef);
-
   /// Returns the metadata constants declared on [member].
   Iterable<ConstantValue> getMemberMetadata(MemberEntity member,
       {bool includeParameterMetadata: false});
-
-  /// Returns the function type that is an alias of a [typedef].
-  FunctionType getFunctionTypeOfTypedef(TypedefEntity typedef);
-
-  /// Returns the typedef type that is declared by a [typedef].
-  TypedefType getTypedefTypeOfTypedef(TypedefEntity typedef);
 
   /// Returns `true` if [cls] is a Dart enum class.
   bool isEnumClass(ClassEntity cls);

@@ -53,7 +53,6 @@ class JsInteropAnalysis {
         new List<DartType>.filled(16, const DynamicType()),
         const <String>[],
         const <DartType>[],
-        const <FunctionTypeVariable>[],
-        null);
+        const <FunctionTypeVariable>[]);
   }
 }

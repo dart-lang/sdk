@@ -479,7 +479,7 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
     }
 
     return new FunctionType(returnType, parameterTypes, optionalParameterTypes,
-        namedParameters, namedParameterTypes, typeVariables, null);
+        namedParameters, namedParameterTypes, typeVariables);
   }
 
   @override
@@ -614,15 +614,10 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
             ..sort((a, b) => a.compareTo(b));
           List<DartType> namedParameterTypes =
               new List.filled(namedParameters.length, dynamic);
-          data.callType = new FunctionType(
-              dynamic,
-              requiredParameterTypes,
-              optionalParameterTypes,
-              namedParameters,
-              namedParameterTypes,
+          data.callType = new FunctionType(dynamic, requiredParameterTypes,
+              optionalParameterTypes, namedParameters, namedParameterTypes,
               // TODO(johnniwinther): Generate existential types here.
-              const <FunctionTypeVariable>[],
-              null);
+              const <FunctionTypeVariable>[]);
         } else {
           // The function type is not valid.
           data.callType = const DynamicType();
@@ -1721,29 +1716,12 @@ class KernelElementEnvironment extends ElementEnvironment {
   }
 
   @override
-  Iterable<ConstantValue> getTypedefMetadata(TypedefEntity typedef) {
-    // TODO(redemption): Support this.
-    throw new UnsupportedError('ElementEnvironment.getTypedefMetadata');
-  }
-
-  @override
   Iterable<ConstantValue> getMemberMetadata(covariant IndexedMember member,
       {bool includeParameterMetadata: false}) {
     // TODO(redemption): Support includeParameterMetadata.
     assert(elementMap.checkFamily(member));
     MemberData memberData = elementMap._members.getData(member);
     return memberData.getMetadata(elementMap);
-  }
-
-  @override
-  FunctionType getFunctionTypeOfTypedef(TypedefEntity typedef) {
-    // TODO(redemption): Support this.
-    throw new UnsupportedError('ElementEnvironment.getFunctionTypeOfTypedef');
-  }
-
-  @override
-  TypedefType getTypedefTypeOfTypedef(TypedefEntity typedef) {
-    return elementMap._typedefs.getData(typedef).rawType;
   }
 
   @override
@@ -1826,9 +1804,6 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
       }
     }
 
-    DartType typedefType =
-        node.typedef == null ? null : elementMap.getTypedefType(node.typedef);
-
     FunctionType type = new FunctionType(
         visitType(node.returnType),
         visitTypes(node.positionalParameters
@@ -1839,8 +1814,7 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
             .toList()),
         node.namedParameters.map((n) => n.name).toList(),
         node.namedParameters.map((n) => visitType(n.type)).toList(),
-        typeVariables ?? const <FunctionTypeVariable>[],
-        typedefType);
+        typeVariables ?? const <FunctionTypeVariable>[]);
     for (ir.TypeParameter typeParameter in node.typeParameters) {
       currentFunctionTypeParameters.remove(typeParameter);
     }
@@ -2116,7 +2090,6 @@ class KernelClosedWorld extends ClosedWorldBase
       Iterable<MemberEntity> liveInstanceMembers,
       Iterable<MemberEntity> assignedInstanceMembers,
       Iterable<MemberEntity> processedMembers,
-      Set<TypedefEntity> allTypedefs,
       Map<ClassEntity, Set<ClassEntity>> mixinUses,
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
@@ -2135,7 +2108,6 @@ class KernelClosedWorld extends ClosedWorldBase
             liveInstanceMembers,
             assignedInstanceMembers,
             processedMembers,
-            allTypedefs,
             mixinUses,
             typesImplementedBySubclasses,
             classHierarchyNodes,

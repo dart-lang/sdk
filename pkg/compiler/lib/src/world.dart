@@ -287,9 +287,6 @@ abstract class ClosedWorld implements World {
   AbstractValue extendMaskIfReachesAll(
       Selector selector, AbstractValue receiver);
 
-  /// Returns all resolved typedefs.
-  Iterable<TypedefEntity> get allTypedefs;
-
   /// Returns `true` if [selector] on [receiver] can hit a `call` method on a
   /// subclass of `Closure`.
   ///
@@ -389,7 +386,6 @@ abstract class ClosedWorldRefiner {
 
 abstract class OpenWorld implements World {
   void registerUsedElement(MemberEntity element);
-  void registerTypedef(TypedefEntity typedef);
 
   ClosedWorld closeWorld();
 
@@ -433,8 +429,6 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   final NoSuchMethodData noSuchMethodData;
 
   FunctionSet _allFunctions;
-
-  final Set<TypedefEntity> _allTypedefs;
 
   final Map<ClassEntity, Set<ClassEntity>> mixinUses;
   Map<ClassEntity, List<ClassEntity>> _liveMixinUses;
@@ -497,13 +491,11 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
       this.liveInstanceMembers,
       this.assignedInstanceMembers,
       this.processedMembers,
-      Set<TypedefEntity> allTypedefs,
       this.mixinUses,
       this.typesImplementedBySubclasses,
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
       Map<ClassEntity, ClassSet> classSets)
       : this._implementedClasses = implementedClasses,
-        this._allTypedefs = allTypedefs,
         this._classHierarchyNodes = classHierarchyNodes,
         this._classSets = classSets {
     _commonMasks = new CommonMasks(this);
@@ -1029,8 +1021,6 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
     assert(checkClass(cls));
     return _classSets[cls];
   }
-
-  Iterable<TypedefEntity> get allTypedefs => _allTypedefs;
 
   void _ensureFunctionSet() {
     if (_allFunctions == null) {

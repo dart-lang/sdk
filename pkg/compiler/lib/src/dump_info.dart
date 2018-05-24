@@ -55,7 +55,6 @@ class ElementInfoCollector {
       result.constants.add(info);
     });
     environment.libraries.forEach(visitLibrary);
-    closedWorld.allTypedefs.forEach(visitTypedef);
   }
 
   /// Whether to emit information about [entity].
@@ -103,18 +102,6 @@ class ElementInfoCollector {
 
     if (info.isEmpty && !shouldKeep(lib)) return null;
     result.libraries.add(info);
-    return info;
-  }
-
-  TypedefInfo visitTypedef(TypedefEntity typdef) {
-    var type = environment.getFunctionTypeOfTypedef(typdef);
-    TypedefInfo info =
-        new TypedefInfo(typdef.name, '$type', _unitInfoForTypedef(typdef));
-    _entityToInfo[typdef] = info;
-    LibraryInfo lib = _entityToInfo[typdef.library];
-    lib.typedefs.add(info);
-    info.parent = lib;
-    result.typedefs.add(info);
     return info;
   }
 
@@ -384,11 +371,6 @@ class ElementInfoCollector {
       return null;
     }
     return _infoFromOutputUnit(outputUnit);
-  }
-
-  OutputUnitInfo _unitInfoForTypedef(TypedefEntity entity) {
-    // TODO(johnniwinther): Do we ever emit typedefs?
-    return null;
   }
 }
 

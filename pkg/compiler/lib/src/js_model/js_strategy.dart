@@ -43,7 +43,6 @@ import '../types/types.dart';
 import '../universe/class_set.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
-import '../util/emptyset.dart';
 import '../world.dart';
 import 'closure.dart';
 import 'elements.dart';
@@ -391,9 +390,7 @@ class JsClosedWorldBuilder {
         assignedInstanceMembers: assignedInstanceMembers,
         processedMembers: processedMembers,
         mixinUses: mixinUses,
-        typesImplementedBySubclasses: typesImplementedBySubclasses,
-        // TODO(johnniwinther): Support this:
-        allTypedefs: new ImmutableEmptySet<TypedefEntity>());
+        typesImplementedBySubclasses: typesImplementedBySubclasses);
   }
 
   BackendUsage _convertBackendUsage(
@@ -619,7 +616,6 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
       Iterable<MemberEntity> liveInstanceMembers,
       Iterable<MemberEntity> assignedInstanceMembers,
       Iterable<MemberEntity> processedMembers,
-      Set<TypedefEntity> allTypedefs,
       Map<ClassEntity, Set<ClassEntity>> mixinUses,
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
@@ -638,7 +634,6 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
             liveInstanceMembers,
             assignedInstanceMembers,
             processedMembers,
-            allTypedefs,
             mixinUses,
             typesImplementedBySubclasses,
             classHierarchyNodes,
@@ -786,9 +781,8 @@ class TypeConverter extends DartTypeVisitor<DartType, Null> {
     for (FunctionTypeVariable typeVariable in type.typeVariables) {
       _functionTypeVariables.remove(typeVariable);
     }
-    var typedefType = type.typedefType?.accept(this, null);
     return new FunctionType(returnType, parameterTypes, optionalParameterTypes,
-        type.namedParameters, namedParameterTypes, typeVariables, typedefType);
+        type.namedParameters, namedParameterTypes, typeVariables);
   }
 
   DartType visitInterfaceType(InterfaceType type, _) {

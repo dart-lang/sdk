@@ -562,17 +562,13 @@ class FunctionType extends DartType {
 
   final List<FunctionTypeVariable> typeVariables;
 
-  /// The originating [TypedefType], if any.
-  final TypedefType typedefType;
-
   FunctionType(
       this.returnType,
       this.parameterTypes,
       this.optionalParameterTypes,
       this.namedParameters,
       this.namedParameterTypes,
-      this.typeVariables,
-      this.typedefType);
+      this.typeVariables);
 
   bool get containsTypeVariables {
     return typeVariables.any((type) => type.bound.containsTypeVariables) ||
@@ -665,8 +661,7 @@ class FunctionType extends DartType {
           newOptionalParameterTypes,
           namedParameters,
           newNamedParameterTypes,
-          newTypeVariables,
-          typedefType);
+          newTypeVariables);
     }
     return this;
   }
