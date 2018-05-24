@@ -136,7 +136,7 @@ vars = {
   "typed_data_tag": "1.1.3",
   "usage_tag": "3.3.0",
   "utf_tag": "0.9.0+4",
-  "watcher_tag": "0.9.7+7",
+  "watcher_tag": "0.9.7+8",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_tag": "1.0.7",
   "WebCore_rev": "fb11e887f77919450e497344da570d780e078bc8",
