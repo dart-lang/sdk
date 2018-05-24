@@ -4069,26 +4069,16 @@ void StreamingConstantEvaluator::EvaluatePartialTearoffInstantiation() {
   // read type arguments.
   intptr_t num_type_args = builder_->ReadListLength();
   const TypeArguments* type_args = &T.BuildTypeArguments(num_type_args);
-  // Even if all dynamic types are passed in, we need to put a vector in here to
-  // distinguish this partially applied tearoff from a normal tearoff. This is
-  // necessary because the tearoff wrapper (BuildGraphOfImplicitClosureFunction)
-  // needs to throw NSM if type arguments are passed to a partially applied
-  // tearoff.
-  if (type_args->IsNull()) {
-    type_args =
-        &TypeArguments::ZoneHandle(Z, TypeArguments::New(num_type_args));
-    for (intptr_t i = 0; i < num_type_args; ++i) {
-      type_args->SetTypeAt(i, Type::ZoneHandle(Z, Type::DynamicType()));
-    }
-  }
 
   // Create new closure with the type arguments inserted, and other things
   // copied over.
   Closure& new_closure = Closure::Handle(
-      Z, Closure::New(TypeArguments::Handle(
-                          Z, old_closure.instantiator_type_arguments()),
-                      *type_args, Function::Handle(Z, old_closure.function()),
-                      Context::Handle(Z, old_closure.context()), Heap::kOld));
+      Z,
+      Closure::New(
+          TypeArguments::Handle(Z, old_closure.instantiator_type_arguments()),
+          TypeArguments::Handle(old_closure.function_type_arguments()),
+          *type_args, Function::Handle(Z, old_closure.function()),
+          Context::Handle(Z, old_closure.context()), Heap::kOld));
   result_ = H.Canonicalize(new_closure);
 }
 

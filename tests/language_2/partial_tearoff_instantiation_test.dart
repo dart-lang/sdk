@@ -112,5 +112,10 @@ void main() {
 
     // Not OK with a type argument.
     y.f<String>("hello6"); //# 08: compile-time error
+
+    // Correct runtime type of x.f.
+    void instantiatedFType(dynamic _) {}
+    Expect.equals(x.f.runtimeType.toString(),
+        instantiatedFType.runtimeType.toString()); // #09: ok
   }
 }
