@@ -246,7 +246,7 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
     }
   }
 
-  Iterable<dynamic> _doSearch(String search) {
+  Iterable<dynamic> _doSearch(Pattern search) {
     return _items.where((item) => _search(search, item));
   }
 }

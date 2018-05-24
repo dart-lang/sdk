@@ -289,9 +289,8 @@ class HeapMapElement extends HtmlElement implements Renderable {
     if (gc != null) {
       params['gc'] = gc;
     }
-    return isolate
-        .invokeRpc('_getHeapMap', params)
-        .then((S.ServiceMap response) {
+    return isolate.invokeRpc('_getHeapMap', params).then((serviceObject) {
+      S.ServiceMap response = serviceObject;
       assert(response['type'] == 'HeapMap');
       _fragmentation = response;
       _updateFragmentationData();

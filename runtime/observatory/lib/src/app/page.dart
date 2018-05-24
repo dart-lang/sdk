@@ -170,7 +170,8 @@ class VMPage extends MatchingPage {
       app.locationManager.go(Uris.vmConnect());
       return;
     }
-    app.vm.reload().then((VM vm) {
+    app.vm.reload().then((serviceObject) {
+      VM vm = serviceObject;
       container.children = [
         new VMViewElement(vm, _vmrepository, app.events, app.notifications,
             new IsolateRepository(app.vm), _scriptRepository,
@@ -706,7 +707,8 @@ class MemoryDashboardPage extends MatchingPage {
       return;
     }
     final editor = getEditor(uri);
-    app.vm.reload().then((VM vm) async {
+    app.vm.reload().then((serviceObject) async {
+      VM vm = serviceObject;
       // Preload all isolates to avoid sorting problems.
       await Future.wait(vm.isolates.map((i) => i.load()));
       container.children = [
