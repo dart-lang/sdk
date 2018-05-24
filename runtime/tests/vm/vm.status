@@ -117,6 +117,9 @@ cc/Profiler_ToggleRecordAllocation: Skip
 cc/Profiler_TrivialRecordAllocation: Skip
 cc/Profiler_TypedArrayAllocation: Skip
 
+[ $arch == x64 && $compiler == dartk && $system == windows && $strong ]
+cc/Profiler_BasicSourcePosition: Fail # http://dartbug.com/33224
+
 [ $arch == x64 && $system == windows ]
 cc/Profiler_BinaryOperatorSourcePositionOptimized: Pass, Fail # Issue 31137
 cc/Profiler_ClosureAllocation: Pass, Fail # Issue 31137
