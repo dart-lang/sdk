@@ -15,49 +15,6 @@
 /// superclass should use the forest API in a factory method.
 part of 'kernel_expression_generator.dart';
 
-class LoadLibraryGenerator extends KernelGenerator {
-  final LoadLibraryBuilder builder;
-
-  LoadLibraryGenerator(
-      ExpressionGeneratorHelper<dynamic, dynamic, dynamic> helper,
-      Token token,
-      this.builder)
-      : super(helper, token);
-
-  String get plainNameForRead => 'loadLibrary';
-
-  String get debugName => "LoadLibraryGenerator";
-
-  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
-    var read =
-        helper.makeStaticGet(builder.createTearoffMethod(helper.forest), token);
-    complexAssignment?.read = read;
-    return read;
-  }
-
-  Expression _makeWrite(Expression value, bool voidContext,
-      ShadowComplexAssignment complexAssignment) {
-    Expression write = makeInvalidWrite(value);
-    write.fileOffset = offsetForToken(token);
-    return write;
-  }
-
-  Expression doInvocation(int offset, Arguments arguments) {
-    if (forest.argumentsPositional(arguments).length > 0 ||
-        forest.argumentsNamed(arguments).length > 0) {
-      helper.addProblemErrorIfConst(
-          messageLoadLibraryTakesNoArguments, offset, 'loadLibrary'.length);
-    }
-    return builder.createLoadLibrary(offset, forest);
-  }
-
-  @override
-  void printOn(StringSink sink) {
-    sink.write(", builder: ");
-    sink.write(builder);
-  }
-}
-
 class DeferredAccessGenerator extends KernelGenerator {
   final PrefixBuilder builder;
 

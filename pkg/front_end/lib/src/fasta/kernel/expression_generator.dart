@@ -7,8 +7,6 @@ library fasta.expression_generator;
 
 import '../../scanner/token.dart' show Token;
 
-import '../builder/builder.dart' show AccessErrorBuilder, Builder;
-
 import '../constant_context.dart' show ConstantContext;
 
 import '../fasta_codes.dart'
@@ -34,6 +32,9 @@ import 'kernel_ast_api.dart'
         Procedure,
         VariableDeclaration;
 
+import 'kernel_builder.dart'
+    show AccessErrorBuilder, Builder, LoadLibraryBuilder;
+
 import 'kernel_expression_generator.dart'
     show IncompleteSendGenerator, SendAccessGenerator;
 
@@ -47,7 +48,6 @@ export 'kernel_expression_generator.dart'
         IncompletePropertyAccessGenerator,
         IncompleteSendGenerator,
         LargeIntAccessGenerator,
-        LoadLibraryGenerator,
         ParenthesizedExpressionGenerator,
         ReadOnlyAccessGenerator,
         SendAccessGenerator,
@@ -472,4 +472,20 @@ abstract class StaticAccessGenerator<Expression, Statement, Arguments>
 
   @override
   String get debugName => "StaticAccessGenerator";
+}
+
+abstract class LoadLibraryGenerator<Expression, Statement, Arguments>
+    implements Generator<Expression, Statement, Arguments> {
+  factory LoadLibraryGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      LoadLibraryBuilder builder) {
+    return helper.forest.loadLibraryGenerator(helper, token, builder);
+  }
+
+  @override
+  String get plainNameForRead => 'loadLibrary';
+
+  @override
+  String get debugName => "LoadLibraryGenerator";
 }

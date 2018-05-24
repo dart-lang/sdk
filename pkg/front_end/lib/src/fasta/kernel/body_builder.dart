@@ -1461,7 +1461,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       }
       return builder;
     } else if (builder is LoadLibraryBuilder) {
-      return new LoadLibraryGenerator(this, token, builder);
+      return new LoadLibraryGenerator<Expression, Statement, Arguments>(
+          this, token, builder);
     } else {
       if (builder.hasProblem && builder is! AccessErrorBuilder) return builder;
       Builder setter;

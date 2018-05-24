@@ -59,6 +59,7 @@ import 'package:front_end/src/fasta/kernel/kernel_expression_generator.dart'
         IncompleteErrorGenerator,
         IncompletePropertyAccessGenerator,
         KernelIndexedAccessGenerator,
+        KernelLoadLibraryGenerator,
         KernelNullAwarePropertyAccessGenerator,
         KernelPropertyAccessGenerator,
         KernelStaticAccessGenerator,
@@ -68,7 +69,6 @@ import 'package:front_end/src/fasta/kernel/kernel_expression_generator.dart'
         KernelThisPropertyAccessGenerator,
         KernelVariableUseGenerator,
         LargeIntAccessGenerator,
-        LoadLibraryGenerator,
         ParenthesizedExpressionGenerator,
         ReadOnlyAccessGenerator,
         SendAccessGenerator,
@@ -195,7 +195,7 @@ main() {
     check(
         "LoadLibraryGenerator(offset: 4,"
         " builder: Instance of 'LoadLibraryBuilder')",
-        new LoadLibraryGenerator(helper, token, loadLibraryBuilder));
+        new KernelLoadLibraryGenerator(helper, token, loadLibraryBuilder));
     check(
         "ThisAccessGenerator(offset: 4, isInitializer: false, isSuper: false)",
         new ThisAccessGenerator(helper, token, false));

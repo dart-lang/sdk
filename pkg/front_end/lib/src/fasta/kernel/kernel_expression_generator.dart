@@ -51,6 +51,7 @@ import 'expression_generator.dart'
         ExpressionGenerator,
         Generator,
         IndexedAccessGenerator,
+        LoadLibraryGenerator,
         NullAwarePropertyAccessGenerator,
         PropertyAccessGenerator,
         StaticAccessGenerator,
@@ -1158,6 +1159,49 @@ class KernelStaticAccessGenerator extends KernelGenerator
     printQualifiedNameOn(readTarget, sink, syntheticNames: syntheticNames);
     sink.write(", writeTarget: ");
     printQualifiedNameOn(writeTarget, sink, syntheticNames: syntheticNames);
+  }
+}
+
+class KernelLoadLibraryGenerator extends KernelGenerator
+    with LoadLibraryGenerator<Expression, Statement, Arguments> {
+  final LoadLibraryBuilder builder;
+
+  KernelLoadLibraryGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      this.builder)
+      : super(helper, token);
+
+  @override
+  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+    var read =
+        helper.makeStaticGet(builder.createTearoffMethod(helper.forest), token);
+    complexAssignment?.read = read;
+    return read;
+  }
+
+  @override
+  Expression _makeWrite(Expression value, bool voidContext,
+      ShadowComplexAssignment complexAssignment) {
+    Expression write = makeInvalidWrite(value);
+    write.fileOffset = offsetForToken(token);
+    return write;
+  }
+
+  @override
+  Expression doInvocation(int offset, Arguments arguments) {
+    if (forest.argumentsPositional(arguments).length > 0 ||
+        forest.argumentsNamed(arguments).length > 0) {
+      helper.addProblemErrorIfConst(
+          messageLoadLibraryTakesNoArguments, offset, 'loadLibrary'.length);
+    }
+    return builder.createLoadLibrary(offset, forest);
+  }
+
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", builder: ");
+    sink.write(builder);
   }
 }
 

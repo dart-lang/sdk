@@ -423,6 +423,15 @@ class AstBuildingForest
   }
 
   @override
+  Generator<Expression, Statement, _Arguments> loadLibraryGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+      Token token,
+      LoadLibraryBuilder builder) {
+    // TODO(brianwilkerson) Implement this.
+    throw new UnimplementedError();
+  }
+
+  @override
   Object mapEntry(Expression key, Token colon, Expression value) =>
       astFactory.mapLiteralEntry(key, colon, value);
 
