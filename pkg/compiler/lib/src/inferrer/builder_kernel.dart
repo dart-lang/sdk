@@ -580,8 +580,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   @override
   TypeInformation visitMapLiteral(ir.MapLiteral node) {
     return _inferrer.concreteTypes.putIfAbsent(node, () {
-      List keyTypes = [];
-      List valueTypes = [];
+      List keyTypes = <TypeInformation>[];
+      List valueTypes = <TypeInformation>[];
 
       for (ir.MapEntry entry in node.entries) {
         keyTypes.add(visit(entry.key));
