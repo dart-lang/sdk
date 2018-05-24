@@ -371,6 +371,7 @@ html/history_test/history: Skip # Issue 22050
 html/input_element_datetime_test: Fail
 html/input_element_month_test: Fail
 html/input_element_week_test: Fail
+html/interactive_media_test: RuntimeError # Not supported in FF
 html/media_stream_test: Fail
 html/messageevent_test: Pass, RuntimeError # Issue 28983
 html/request_animation_frame_test: Skip # Async test hangs.
