@@ -127,8 +127,7 @@ Future benchmark(
   var dir = Directory.systemTemp.createTempSync("ikg-cache");
   compilerOptions.byteStore = createByteStore(cache, dir.path);
 
-  final processedOptions =
-      new ProcessedOptions(compilerOptions, false, [entryUri]);
+  final processedOptions = new ProcessedOptions(compilerOptions, [entryUri]);
   final UriTranslator uriTranslator = await processedOptions.getUriTranslator();
 
   collector.start("Initial compilation");

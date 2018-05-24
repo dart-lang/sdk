@@ -177,26 +177,9 @@ main() {
       expect(errors, isEmpty);
     });
 
-    test('compiler by default is hermetic', () async {
+    test('compiler is not hermetic by default', () async {
       var errors = [];
       var options = new CompilerOptions()..onError = (e) => errors.add(e);
-      var sources = {
-        'a.dart': 'import "b.dart"; a() => print("hi");',
-        'b.dart': ''
-      };
-      await compileUnit(['a.dart'], sources, options: options);
-      expect(errors.first.message, contains('Invalid access'));
-      errors.clear();
-
-      await compileUnit(['a.dart', 'b.dart'], sources, options: options);
-      expect(errors, isEmpty);
-    });
-
-    test('chaseDependencies=true removes hermetic restriction', () async {
-      var errors = [];
-      var options = new CompilerOptions()
-        ..chaseDependencies = true
-        ..onError = (e) => errors.add(e);
       await compileUnit([
         'a.dart'
       ], {

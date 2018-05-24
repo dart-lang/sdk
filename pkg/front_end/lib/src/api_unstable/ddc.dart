@@ -66,10 +66,9 @@ Future<InitializedCompilerState> initializeCompiler(
     ..inputSummaries = inputSummaries
     ..target = target
     ..fileSystem = fileSystem ?? StandardFileSystem.instance
-    ..chaseDependencies = true
     ..reportMessages = true;
 
-  ProcessedOptions processedOpts = new ProcessedOptions(options, true, []);
+  ProcessedOptions processedOpts = new ProcessedOptions(options, []);
 
   return new InitializedCompilerState(options, processedOpts);
 }

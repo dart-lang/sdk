@@ -129,8 +129,7 @@ class BatchCompiler {
 
   Future<bool> batchCompile(CompilerOptions options, Uri input, Uri output) {
     return CompilerContext.runWithOptions(
-        new ProcessedOptions(options, false, <Uri>[input], output),
-        batchCompileImpl);
+        new ProcessedOptions(options, <Uri>[input], output), batchCompileImpl);
   }
 
   Future<bool> batchCompileImpl(CompilerContext c) async {

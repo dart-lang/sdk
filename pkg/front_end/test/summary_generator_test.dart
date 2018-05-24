@@ -118,14 +118,10 @@ main() {
         component.libraries.single.importUri.path.endsWith('b.dart'), isTrue);
   });
 
-  test('summarization by default is hermetic', () async {
+  test('summarization by default is not hermetic', () async {
     var errors = [];
     var options = new CompilerOptions()..onError = (e) => errors.add(e);
     await summarize(['b.dart'], allSources, options: options);
-    expect(errors.first.toString(), contains('Invalid access'));
-    errors.clear();
-
-    await summarize(['a.dart', 'b.dart'], allSources, options: options);
     expect(errors, isEmpty);
   });
 

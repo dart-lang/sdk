@@ -38,10 +38,9 @@ Future<InitializedCompilerState> initializeCompiler(
     ..packagesFileUri = packagesFile
     ..inputSummaries = inputSummaries
     ..target = target
-    ..fileSystem = fileSystem
-    ..chaseDependencies = true;
+    ..fileSystem = fileSystem;
 
-  ProcessedOptions processedOpts = new ProcessedOptions(options, true, []);
+  ProcessedOptions processedOpts = new ProcessedOptions(options, []);
 
   return new InitializedCompilerState(options, processedOpts);
 }

@@ -370,7 +370,7 @@ Future<Context> createContext(
     };
 
   final ProcessedOptions options =
-      new ProcessedOptions(optionBuilder, false, [entryPoint]);
+      new ProcessedOptions(optionBuilder, [entryPoint]);
 
   final ExternalStateSnapshot snapshot =
       new ExternalStateSnapshot(await options.loadSdkSummary(null));

@@ -987,7 +987,6 @@ import 'b.dart';
       ..fileSystem = fileSystem
       ..sdkRoot = Uri.parse('org-dartlang-test:///sdk/')
       ..compileSdk = true
-      ..chaseDependencies = true
       ..strongMode = true
       ..target = new NoneTarget(new TargetFlags(strongMode: true));
     var inputs = [Uri.parse('dart:core')];

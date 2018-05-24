@@ -189,7 +189,6 @@ Future compileKernelSummary(
     ..packagesFileUri = _uriInRepo(".packages")
     ..strongMode = true
     ..debugDump = true
-    ..chaseDependencies = true
     ..onError = errorHandler
     ..reportMessages = true
     ..target = new DevCompilerTarget();

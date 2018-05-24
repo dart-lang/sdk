@@ -300,7 +300,6 @@ ProcessedOptions analyzeCommandLine(
           ..sdkSummary = options["--platform"]
           ..librariesSpecificationUri = resolveFile(arguments[1])
           ..setExitCodeOnProblem = true
-          ..chaseDependencies = true
           ..packagesFileUri = packages
           ..strongMode = strongMode
           ..target = target
@@ -311,7 +310,6 @@ ProcessedOptions analyzeCommandLine(
           ..debugDump = dumpIr
           ..verbose = verbose
           ..verify = verify,
-        false,
         <Uri>[Uri.parse(arguments[0])],
         resolveFile(arguments[2]));
   } else if (arguments.isEmpty) {
@@ -352,7 +350,7 @@ ProcessedOptions analyzeCommandLine(
       inputs.add(resolveFile(argument));
     }
   }
-  return new ProcessedOptions(compilerOptions, false, inputs, output);
+  return new ProcessedOptions(compilerOptions, inputs, output);
 }
 
 dynamic withGlobalOptions(

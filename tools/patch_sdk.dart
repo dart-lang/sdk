@@ -200,19 +200,11 @@ Future<List<Uri>> compilePlatform(
     ..compileSdk = true
     ..sdkRoot = patchedSdk
     ..packagesFileUri = packages
-    ..chaseDependencies = true
     ..target = target;
 
   var inputs = [Uri.parse('dart:core')];
-  var result = await generateKernel(
-      new ProcessedOptions(
-          options,
-          // TODO(sigmund): pass all sdk libraries needed here, and make this
-          // hermetic.
-          false,
-          inputs),
-      buildSummary: true,
-      buildComponent: true);
+  var result = await generateKernel(new ProcessedOptions(options, inputs),
+      buildSummary: true, buildComponent: true);
   await writeComponentToFile(result.component, output);
   return result.deps;
 }

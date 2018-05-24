@@ -178,7 +178,7 @@ class SingleShotCompilerWrapper extends Compiler {
   Future<Component> compileInternal(Uri script) async {
     return requireMain
         ? kernelForProgram(script, options)
-        : kernelForComponent([script], options..chaseDependencies = true);
+        : kernelForComponent([script], options);
   }
 }
 

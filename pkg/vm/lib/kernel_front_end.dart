@@ -145,8 +145,7 @@ Future _performConstantEvaluation(
   final vmConstants =
       new vm_constants.VmConstantsBackend(environmentDefines, coreTypes);
 
-  final processedOptions =
-      new ProcessedOptions(compilerOptions, false, [source]);
+  final processedOptions = new ProcessedOptions(compilerOptions, [source]);
 
   // Run within the context, so we have uri source tokens...
   await CompilerContext.runWithOptions(processedOptions,
