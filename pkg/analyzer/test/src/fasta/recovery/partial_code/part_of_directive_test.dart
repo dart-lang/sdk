@@ -34,8 +34,7 @@ class PartOfDirectivesTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_STRING_LITERAL,
                 ParserErrorCode.EXPECTED_TOKEN
               ],
-              'part of "";',
-              failing: []),
+              'part of "";'),
         ],
         nonIdentifierSuffixes);
     buildTests(

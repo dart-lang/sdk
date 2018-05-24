@@ -33,6 +33,16 @@ Token beforeCloseBraceTokenFor(BeginToken left) {
   return token;
 }
 
+/// Return [token] if it is non-synthetic,
+/// otherwise find the next non-synthetic token.
+/// This may return EOF if there are no more non-synthetic tokens in the stream.
+Token findNonSyntheticToken(Token token) {
+  while (token.isSynthetic && !token.isEof) {
+    token = token.next;
+  }
+  return token;
+}
+
 /// A null-aware alternative to `token.offset`.  If [token] is `null`, returns
 /// `TreeNode.noOffset`.
 int offsetForToken(Token token) {

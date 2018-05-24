@@ -97,7 +97,7 @@ import 'type_info.dart'
         noType,
         noTypeParamOrArg;
 
-import 'util.dart' show optional;
+import 'util.dart' show findNonSyntheticToken, optional;
 
 /// An event generating parser of Dart programs. This parser expects all tokens
 /// in a linked list (aka a token stream).
@@ -6063,6 +6063,8 @@ class Parser {
     if (token is ErrorToken) {
       reportErrorToken(token, true);
     } else {
+      // Find a non-synthetic token on which to report the error.
+      token = findNonSyntheticToken(token);
       listener.handleRecoverableError(message, token, token);
     }
   }
@@ -6084,6 +6086,8 @@ class Parser {
     if (token is ErrorToken) {
       reportErrorToken(token, true);
     } else {
+      // Find a non-synthetic token on which to report the error.
+      token = findNonSyntheticToken(token);
       listener.handleRecoverableError(
           template.withArguments(token), token, token);
     }
