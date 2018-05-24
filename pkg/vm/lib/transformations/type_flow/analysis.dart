@@ -611,20 +611,65 @@ class _ReceiverTypeBuilder {
   }
 }
 
+/// Keeps track of number of cached [_Invocation] objects with
+/// a particular selector and provides approximation if needed.
+class _SelectorApproximation {
+  /// Approximation [_Invocation] with raw arguments is created and used
+  /// after number of [_Invocation] objects with same selector but
+  /// different arguments reaches this limit.
+  static const int maxInvocationsPerSelector = 5000;
+
+  int count = 0;
+  _Invocation approximation;
+}
+
+/// Maintains ([Selector], [Args]) => [_Invocation] cache.
+/// Invocations are cached in order to reuse previously calculated result.
 class _InvocationsCache {
+  final TypeFlowAnalysis _typeFlowAnalysis;
   final Set<_Invocation> _invocations = new Set<_Invocation>();
+  final Map<Selector, _SelectorApproximation> _approximations =
+      <Selector, _SelectorApproximation>{};
+
+  _InvocationsCache(this._typeFlowAnalysis);
 
   _Invocation getInvocation(Selector selector, Args<Type> args) {
+    ++Statistics.invocationsQueriedInCache;
     _Invocation invocation = (selector is DirectSelector)
         ? new _DirectInvocation(selector, args)
         : new _DispatchableInvocation(selector, args);
     _Invocation result = _invocations.lookup(invocation);
-    if (result == null) {
-      bool added = _invocations.add(invocation);
-      assertx(added);
-      result = invocation;
+    if (result != null) {
+      return result;
     }
-    return result;
+
+    if (selector is InterfaceSelector) {
+      // Detect if there are too many invocations per selector. In such case,
+      // approximate extra invocations with a single invocation with raw
+      // arguments.
+
+      final sa = (_approximations[selector] ??= new _SelectorApproximation());
+
+      if (sa.count >= _SelectorApproximation.maxInvocationsPerSelector) {
+        if (sa.approximation == null) {
+          final rawArgs =
+              _typeFlowAnalysis.summaryCollector.rawArguments(selector);
+          sa.approximation = new _DispatchableInvocation(selector, rawArgs);
+          Statistics.approximateInvocationsCreated++;
+        }
+        Statistics.approximateInvocationsUsed++;
+        return sa.approximation;
+      }
+
+      ++sa.count;
+      Statistics.maxInvocationsCachedPerSelector =
+          max(Statistics.maxInvocationsCachedPerSelector, sa.count);
+    }
+
+    bool added = _invocations.add(invocation);
+    assertx(added);
+    ++Statistics.invocationsAddedToCache;
+    return invocation;
   }
 }
 
@@ -1010,6 +1055,7 @@ class _WorkList {
   void process() {
     while (pending.isNotEmpty) {
       assertx(callStack.isEmpty && processing.isEmpty);
+      Statistics.iterationsOverInvocationsWorkList++;
       processInvocation(pending.first);
     }
   }
@@ -1060,6 +1106,7 @@ class _WorkList {
       // Invocation is still pending - it was invalidated while being processed.
       // Move result to invalidatedResult.
       if (_isPending(invocation)) {
+        Statistics.invocationsInvalidatedDuringProcessing++;
         invocation.invalidatedResult = result;
         invocation.result = null;
       }
@@ -1095,7 +1142,7 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
   final NativeCodeOracle nativeCodeOracle;
   _ClassHierarchyCache hierarchyCache;
   SummaryCollector summaryCollector;
-  _InvocationsCache _invocationsCache = new _InvocationsCache();
+  _InvocationsCache _invocationsCache;
   _WorkList workList;
 
   final Map<Member, Summary> _summaries = <Member, Summary>{};
@@ -1108,6 +1155,7 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
     hierarchyCache = new _ClassHierarchyCache(this, hierarchy);
     summaryCollector =
         new SummaryCollector(environment, this, nativeCodeOracle);
+    _invocationsCache = new _InvocationsCache(this);
     workList = new _WorkList(this);
 
     if (entryPointsJSONFiles != null) {

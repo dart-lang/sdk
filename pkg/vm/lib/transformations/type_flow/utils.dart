@@ -78,6 +78,13 @@ class Statistics {
   static int maxInvalidationsPerInvocation = 0;
   static int recursiveInvocationsApproximated = 0;
   static int typeConeSpecializations = 0;
+  static int iterationsOverInvocationsWorkList = 0;
+  static int invocationsInvalidatedDuringProcessing = 0;
+  static int invocationsQueriedInCache = 0;
+  static int invocationsAddedToCache = 0;
+  static int maxInvocationsCachedPerSelector = 0;
+  static int approximateInvocationsCreated = 0;
+  static int approximateInvocationsUsed = 0;
   static int classesDropped = 0;
   static int membersDropped = 0;
   static int methodBodiesDropped = 0;
@@ -97,6 +104,13 @@ class Statistics {
     maxInvalidationsPerInvocation = 0;
     recursiveInvocationsApproximated = 0;
     typeConeSpecializations = 0;
+    iterationsOverInvocationsWorkList = 0;
+    invocationsInvalidatedDuringProcessing = 0;
+    invocationsQueriedInCache = 0;
+    invocationsAddedToCache = 0;
+    maxInvocationsCachedPerSelector = 0;
+    approximateInvocationsCreated = 0;
+    approximateInvocationsUsed = 0;
     classesDropped = 0;
     membersDropped = 0;
     methodBodiesDropped = 0;
@@ -117,6 +131,13 @@ class Statistics {
     ${maxInvalidationsPerInvocation} maximum invalidations per invocation
     ${recursiveInvocationsApproximated} recursive invocations approximated
     ${typeConeSpecializations} type cones specialized
+    ${iterationsOverInvocationsWorkList} iterations over invocations work list
+    ${invocationsInvalidatedDuringProcessing} invocations invalidated during processing
+    ${invocationsQueriedInCache} invocations queried in cache
+    ${invocationsAddedToCache} invocations added to cache
+    ${maxInvocationsCachedPerSelector} maximum invocations cached per selector
+    ${approximateInvocationsCreated} approximate invocations created
+    ${approximateInvocationsUsed} times approximate invocation is used
     ${classesDropped} classes dropped
     ${membersDropped} members dropped
     ${methodBodiesDropped} method bodies dropped
