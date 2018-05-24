@@ -42,8 +42,6 @@ import '../parser.dart' show lengthForToken, lengthOfSpan, offsetForToken;
 
 import '../problems.dart' show unhandled, unsupported;
 
-import '../scope.dart' show AccessErrorBuilder;
-
 import 'body_builder.dart' show Identifier, noLocation;
 
 import 'constness.dart' show Constness;
@@ -54,8 +52,9 @@ import 'expression_generator.dart'
         Generator,
         IndexedAccessGenerator,
         NullAwarePropertyAccessGenerator,
-        SuperIndexedAccessGenerator,
         PropertyAccessGenerator,
+        StaticAccessGenerator,
+        SuperIndexedAccessGenerator,
         SuperPropertyAccessGenerator,
         ThisIndexedAccessGenerator,
         ThisPropertyAccessGenerator,
@@ -277,7 +276,7 @@ class KernelVariableUseGenerator extends KernelGenerator
   final DartType promotedType;
 
   KernelVariableUseGenerator(
-      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
       Token token,
       this.variable,
       this.promotedType)
@@ -343,7 +342,7 @@ class KernelPropertyAccessGenerator extends KernelGenerator
   VariableDeclaration _receiverVariable;
 
   KernelPropertyAccessGenerator.internal(
-      ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper,
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
       Token token,
       this.receiver,
       this.name,
@@ -511,7 +510,7 @@ class KernelNullAwarePropertyAccessGenerator extends KernelGenerator
   final DartType type;
 
   KernelNullAwarePropertyAccessGenerator(
-      ExpressionGeneratorHelper<dynamic, dynamic, dynamic> helper,
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
       Token token,
       this.receiverExpression,
       this.name,
@@ -603,7 +602,7 @@ class KernelSuperPropertyAccessGenerator extends KernelGenerator
   final Member setter;
 
   KernelSuperPropertyAccessGenerator(
-      ExpressionGeneratorHelper<dynamic, dynamic, dynamic> helper,
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
       Token token,
       this.name,
       this.getter,
@@ -832,7 +831,7 @@ class KernelThisIndexedAccessGenerator extends KernelGenerator
   VariableDeclaration indexVariable;
 
   KernelThisIndexedAccessGenerator(
-      ExpressionGeneratorHelper<dynamic, dynamic, dynamic> helper,
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
       Token token,
       this.index,
       this.getter,
@@ -1082,6 +1081,83 @@ class KernelSuperIndexedAccessGenerator extends KernelGenerator
     printQualifiedNameOn(setter, sink, syntheticNames: syntheticNames);
     sink.write(", indexVariable: ");
     printNodeOn(indexVariable, sink, syntheticNames: syntheticNames);
+  }
+}
+
+class KernelStaticAccessGenerator extends KernelGenerator
+    with StaticAccessGenerator<Expression, Statement, Arguments> {
+  @override
+  final Member readTarget;
+
+  final Member writeTarget;
+
+  KernelStaticAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      this.readTarget,
+      this.writeTarget)
+      : assert(readTarget != null || writeTarget != null),
+        super(helper, token);
+
+  @override
+  String get plainNameForRead => (readTarget ?? writeTarget).name.name;
+
+  @override
+  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+    if (readTarget == null) {
+      return makeInvalidRead();
+    } else {
+      var read = helper.makeStaticGet(readTarget, token);
+      complexAssignment?.read = read;
+      return read;
+    }
+  }
+
+  @override
+  Expression _makeWrite(Expression value, bool voidContext,
+      ShadowComplexAssignment complexAssignment) {
+    Expression write;
+    if (writeTarget == null) {
+      write = makeInvalidWrite(value);
+    } else {
+      write = new StaticSet(writeTarget, value);
+      complexAssignment?.write = write;
+    }
+    write.fileOffset = offsetForToken(token);
+    return write;
+  }
+
+  @override
+  Expression doInvocation(int offset, Arguments arguments) {
+    if (helper.constantContext != ConstantContext.none &&
+        !helper.isIdentical(readTarget)) {
+      helper.deprecated_addCompileTimeError(
+          offset, "Not a constant expression.");
+    }
+    if (readTarget == null || isFieldOrGetter(readTarget)) {
+      return helper.buildMethodInvocation(buildSimpleRead(), callName,
+          arguments, offset + (readTarget?.name?.name?.length ?? 0),
+          // This isn't a constant expression, but we have checked if a
+          // constant expression error should be emitted already.
+          isConstantExpression: true,
+          isImplicitCall: true);
+    } else {
+      return helper.buildStaticInvocation(readTarget, arguments,
+          charOffset: offset);
+    }
+  }
+
+  @override
+  ShadowComplexAssignment startComplexAssignment(Expression rhs) =>
+      new ShadowStaticAssignment(rhs);
+
+  @override
+  void printOn(StringSink sink) {
+    NameSystem syntheticNames = new NameSystem();
+    sink.write(", readTarget: ");
+    printQualifiedNameOn(readTarget, sink, syntheticNames: syntheticNames);
+    sink.write(", writeTarget: ");
+    printQualifiedNameOn(writeTarget, sink, syntheticNames: syntheticNames);
   }
 }
 

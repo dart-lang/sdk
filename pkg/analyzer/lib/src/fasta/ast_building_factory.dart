@@ -499,6 +499,16 @@ class AstBuildingForest
   }
 
   @override
+  Generator<Expression, Statement, _Arguments> staticAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+      Token token,
+      kernel.Member getter,
+      kernel.Member setter) {
+    // TODO(brianwilkerson) Implement this.
+    throw new UnimplementedError();
+  }
+
+  @override
   Expression stringConcatenationExpression(
           List<Expression> strings, Token location) =>
       astFactory.adjacentStrings(strings.cast<StringLiteral>());

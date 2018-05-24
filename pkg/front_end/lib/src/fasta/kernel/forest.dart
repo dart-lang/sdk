@@ -419,6 +419,12 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
       kernel.Member getter,
       kernel.Member setter);
 
+  Generator<Expression, Statement, Arguments> staticAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Location location,
+      kernel.Member getter,
+      kernel.Member setter);
+
   // TODO(ahe): Remove this method when all users are moved here.
   kernel.Arguments castArguments(Arguments arguments) {
     dynamic a = arguments;

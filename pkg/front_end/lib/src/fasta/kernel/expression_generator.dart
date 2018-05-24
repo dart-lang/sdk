@@ -7,6 +7,8 @@ library fasta.expression_generator;
 
 import '../../scanner/token.dart' show Token;
 
+import '../builder/builder.dart' show AccessErrorBuilder, Builder;
+
 import '../constant_context.dart' show ConstantContext;
 
 import '../fasta_codes.dart'
@@ -16,7 +18,7 @@ import '../names.dart' show lengthName;
 
 import '../parser.dart' show lengthForToken, offsetForToken;
 
-import '../problems.dart' show unsupported;
+import '../problems.dart' show unhandled, unsupported;
 
 import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
 
@@ -49,7 +51,6 @@ export 'kernel_expression_generator.dart'
         ParenthesizedExpressionGenerator,
         ReadOnlyAccessGenerator,
         SendAccessGenerator,
-        StaticAccessGenerator,
         ThisAccessGenerator,
         TypeDeclarationAccessGenerator,
         UnresolvedNameGenerator,
@@ -425,4 +426,50 @@ abstract class SuperIndexedAccessGenerator<Expression, Statement, Arguments>
   String get plainNameForWrite => "[]=";
 
   String get debugName => "SuperIndexedAccessGenerator";
+}
+
+abstract class StaticAccessGenerator<Expression, Statement, Arguments>
+    implements Generator<Expression, Statement, Arguments> {
+  factory StaticAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Member readTarget,
+      Member writeTarget) {
+    return helper.forest
+        .staticAccessGenerator(helper, token, readTarget, writeTarget);
+  }
+
+  factory StaticAccessGenerator.fromBuilder(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Builder builder,
+      Token token,
+      Builder builderSetter) {
+    if (builder is AccessErrorBuilder) {
+      AccessErrorBuilder error = builder;
+      builder = error.builder;
+      // We should only see an access error here if we've looked up a setter
+      // when not explicitly looking for a setter.
+      assert(builder.isSetter);
+    } else if (builder.target == null) {
+      return unhandled(
+          "${builder.runtimeType}",
+          "StaticAccessGenerator.fromBuilder",
+          offsetForToken(token),
+          helper.uri);
+    }
+    Member getter = builder.target.hasGetter ? builder.target : null;
+    Member setter = builder.target.hasSetter ? builder.target : null;
+    if (setter == null) {
+      if (builderSetter?.target?.hasSetter ?? false) {
+        setter = builderSetter.target;
+      }
+    }
+    return new StaticAccessGenerator<Expression, Statement, Arguments>(
+        helper, token, getter, setter);
+  }
+
+  Member get readTarget;
+
+  @override
+  String get debugName => "StaticAccessGenerator";
 }

@@ -1443,8 +1443,9 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
           this, token, n, getter, setter);
     } else if (builder.isRegularMethod) {
       assert(builder.isStatic || builder.isTopLevel);
-      StaticAccessGenerator generator =
-          new StaticAccessGenerator(this, token, builder.target, null);
+      StaticAccessGenerator<Expression, Statement, Arguments> generator =
+          new StaticAccessGenerator<Expression, Statement, Arguments>(
+              this, token, builder.target, null);
       return (prefix?.deferred == true)
           ? new DeferredAccessGenerator(this, token, prefix, generator)
           : generator;
@@ -1471,8 +1472,9 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       } else if (builder.isField && !builder.isFinal) {
         setter = builder;
       }
-      StaticAccessGenerator generator =
-          new StaticAccessGenerator.fromBuilder(this, builder, token, setter);
+      StaticAccessGenerator<Expression, Statement, Arguments> generator =
+          new StaticAccessGenerator<Expression, Statement,
+              Arguments>.fromBuilder(this, builder, token, setter);
       if (constantContext != ConstantContext.none) {
         Member readTarget = generator.readTarget;
         if (!(readTarget is Field && readTarget.isConst ||

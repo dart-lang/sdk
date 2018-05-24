@@ -15,107 +15,6 @@
 /// superclass should use the forest API in a factory method.
 part of 'kernel_expression_generator.dart';
 
-class StaticAccessGenerator extends KernelGenerator {
-  final Member readTarget;
-
-  final Member writeTarget;
-
-  StaticAccessGenerator(
-      ExpressionGeneratorHelper<dynamic, dynamic, dynamic> helper,
-      Token token,
-      this.readTarget,
-      this.writeTarget)
-      : assert(readTarget != null || writeTarget != null),
-        super(helper, token);
-
-  factory StaticAccessGenerator.fromBuilder(
-      ExpressionGeneratorHelper<dynamic, dynamic, dynamic> helper,
-      Builder builder,
-      Token token,
-      Builder builderSetter) {
-    if (builder is AccessErrorBuilder) {
-      AccessErrorBuilder error = builder;
-      builder = error.builder;
-      // We should only see an access error here if we've looked up a setter
-      // when not explicitly looking for a setter.
-      assert(builder.isSetter);
-    } else if (builder.target == null) {
-      return unhandled(
-          "${builder.runtimeType}",
-          "StaticAccessGenerator.fromBuilder",
-          offsetForToken(token),
-          helper.uri);
-    }
-    Member getter = builder.target.hasGetter ? builder.target : null;
-    Member setter = builder.target.hasSetter ? builder.target : null;
-    if (setter == null) {
-      if (builderSetter?.target?.hasSetter ?? false) {
-        setter = builderSetter.target;
-      }
-    }
-    return new StaticAccessGenerator(helper, token, getter, setter);
-  }
-
-  String get plainNameForRead => (readTarget ?? writeTarget).name.name;
-
-  String get debugName => "StaticAccessGenerator";
-
-  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
-    if (readTarget == null) {
-      return makeInvalidRead();
-    } else {
-      var read = helper.makeStaticGet(readTarget, token);
-      complexAssignment?.read = read;
-      return read;
-    }
-  }
-
-  Expression _makeWrite(Expression value, bool voidContext,
-      ShadowComplexAssignment complexAssignment) {
-    Expression write;
-    if (writeTarget == null) {
-      write = makeInvalidWrite(value);
-    } else {
-      write = new StaticSet(writeTarget, value);
-      complexAssignment?.write = write;
-    }
-    write.fileOffset = offsetForToken(token);
-    return write;
-  }
-
-  Expression doInvocation(int offset, Arguments arguments) {
-    if (helper.constantContext != ConstantContext.none &&
-        !helper.isIdentical(readTarget)) {
-      helper.deprecated_addCompileTimeError(
-          offset, "Not a constant expression.");
-    }
-    if (readTarget == null || isFieldOrGetter(readTarget)) {
-      return helper.buildMethodInvocation(buildSimpleRead(), callName,
-          arguments, offset + (readTarget?.name?.name?.length ?? 0),
-          // This isn't a constant expression, but we have checked if a
-          // constant expression error should be emitted already.
-          isConstantExpression: true,
-          isImplicitCall: true);
-    } else {
-      return helper.buildStaticInvocation(readTarget, arguments,
-          charOffset: offset);
-    }
-  }
-
-  @override
-  ShadowComplexAssignment startComplexAssignment(Expression rhs) =>
-      new ShadowStaticAssignment(rhs);
-
-  @override
-  void printOn(StringSink sink) {
-    NameSystem syntheticNames = new NameSystem();
-    sink.write(", readTarget: ");
-    printQualifiedNameOn(readTarget, sink, syntheticNames: syntheticNames);
-    sink.write(", writeTarget: ");
-    printQualifiedNameOn(writeTarget, sink, syntheticNames: syntheticNames);
-  }
-}
-
 class LoadLibraryGenerator extends KernelGenerator {
   final LoadLibraryBuilder builder;
 
@@ -168,8 +67,11 @@ class DeferredAccessGenerator extends KernelGenerator {
       ExpressionGeneratorHelper<dynamic, dynamic, dynamic> helper,
       Token token,
       this.builder,
-      this.generator)
-      : super(helper, token);
+      Generator<dynamic, dynamic, dynamic>
+          generator // TODO(ahe): Should be this.generator
+      )
+      : this.generator = generator,
+        super(helper, token);
 
   String get plainNameForRead {
     return unsupported(
@@ -1014,8 +916,8 @@ class TypeDeclarationAccessGenerator extends ReadOnlyAccessGenerator {
         } else if (builder.isField && !builder.isFinal) {
           setter = builder;
         }
-        generator = new StaticAccessGenerator.fromBuilder(
-            helper, builder, send.token, setter);
+        generator = new StaticAccessGenerator<Expression, Statement,
+            Arguments>.fromBuilder(helper, builder, send.token, setter);
       }
 
       return arguments == null
