@@ -519,16 +519,12 @@ Future<int> main() async {
       receivedResults.stream.listen((String outputFilenameAndErrorCount) {
         if (count == 0) {
           // First request is to 'compile', which results in full kernel file.
-          int delim = outputFilenameAndErrorCount.lastIndexOf(' ');
-          expect(delim > 0, equals(true));
-          String outputFilename =
-              outputFilenameAndErrorCount.substring(0, delim);
-          int errorsCount = int
-              .parse(outputFilenameAndErrorCount.substring(delim + 1).trim());
+          CompilationResult result =
+              new CompilationResult.parse(outputFilenameAndErrorCount);
 
           expect(dillFile.existsSync(), equals(true));
-          expect(outputFilename, dillFile.path);
-          expect(errorsCount, equals(0));
+          expect(result.filename, dillFile.path);
+          expect(result.errorsCount, equals(0));
           streamController.add('accept\n'.codeUnits);
 
           // 'compile-expression <boundarykey>
@@ -558,7 +554,11 @@ Future<int> main() async {
           // Second request is to 'compile-expression', which results in
           // kernel file with a function that wraps compiled expression.
           expect(outputFilenameAndErrorCount, isNotNull);
-          File outputFile = new File(outputFilenameAndErrorCount);
+          CompilationResult result =
+              new CompilationResult.parse(outputFilenameAndErrorCount);
+
+          expect(result.errorsCount, equals(0));
+          File outputFile = new File(result.filename);
           expect(outputFile.existsSync(), equals(true));
           expect(outputFile.lengthSync(), isPositive);
 
@@ -567,11 +567,10 @@ Future<int> main() async {
         } else {
           expect(count, 3);
           // Third request is to 'compile' non-existent file, that should fail.
-          int delim = outputFilenameAndErrorCount.lastIndexOf(' ');
-          expect(delim > 0, equals(true));
-          int errorsCount = int
-              .parse(outputFilenameAndErrorCount.substring(delim + 1).trim());
-          expect(errorsCount, greaterThan(0));
+          expect(outputFilenameAndErrorCount, isNotNull);
+          CompilationResult result =
+              new CompilationResult.parse(outputFilenameAndErrorCount);
+          expect(result.errorsCount, greaterThan(0));
           allDone.complete(true);
         }
       });
@@ -623,16 +622,13 @@ Future<int> main() async {
       int count = 0;
       Completer<bool> allDone = new Completer<bool>();
       receivedResults.stream.listen((String outputFilenameAndErrorCount) {
-        int delim = outputFilenameAndErrorCount.lastIndexOf(' ');
-        expect(delim > 0, equals(true));
-        String outputFilename = outputFilenameAndErrorCount.substring(0, delim);
-        int errorsCount =
-            int.parse(outputFilenameAndErrorCount.substring(delim + 1).trim());
+        CompilationResult result =
+            new CompilationResult.parse(outputFilenameAndErrorCount);
         if (count == 0) {
           // First request is to 'compile', which results in full kernel file.
           expect(dillFile.existsSync(), equals(true));
-          expect(outputFilename, dillFile.path);
-          expect(errorsCount, 0);
+          expect(result.filename, dillFile.path);
+          expect(result.errorsCount, 0);
           count += 1;
           streamController.add('accept\n'.codeUnits);
           var file2 = new File('${tempDir.path}/bar.dart')..createSync();
@@ -646,8 +642,8 @@ Future<int> main() async {
           // Second request is to 'recompile', which results in incremental
           // kernel file.
           var dillIncFile = new File('${dillFile.path}.incremental.dill');
-          expect(outputFilename, dillIncFile.path);
-          expect(errorsCount, 0);
+          expect(result.filename, dillIncFile.path);
+          expect(result.errorsCount, 0);
           expect(dillIncFile.existsSync(), equals(true));
           allDone.complete(true);
         }
@@ -699,16 +695,13 @@ Future<int> main() async {
       int count = 0;
       Completer<bool> allDone = new Completer<bool>();
       receivedResults.stream.listen((String outputFilenameAndErrorCount) {
-        int delim = outputFilenameAndErrorCount.lastIndexOf(' ');
-        expect(delim > 0, equals(true));
-        String outputFilename = outputFilenameAndErrorCount.substring(0, delim);
-        int errorsCount =
-            int.parse(outputFilenameAndErrorCount.substring(delim + 1).trim());
+        CompilationResult result =
+            new CompilationResult.parse(outputFilenameAndErrorCount);
         switch (count) {
           case 0:
             expect(dillFile.existsSync(), equals(true));
-            expect(outputFilename, dillFile.path);
-            expect(errorsCount, 2);
+            expect(result.filename, dillFile.path);
+            expect(result.errorsCount, 2);
             count += 1;
             streamController.add('accept\n'.codeUnits);
             var file2 = new File('${tempDir.path}/bar.dart')..createSync();
@@ -720,8 +713,8 @@ Future<int> main() async {
             break;
           case 1:
             var dillIncFile = new File('${dillFile.path}.incremental.dill');
-            expect(outputFilename, dillIncFile.path);
-            expect(errorsCount, 1);
+            expect(result.filename, dillIncFile.path);
+            expect(result.errorsCount, 1);
             count += 1;
             streamController.add('accept\n'.codeUnits);
             var file2 = new File('${tempDir.path}/bar.dart')..createSync();
@@ -733,8 +726,8 @@ Future<int> main() async {
             break;
           case 2:
             var dillIncFile = new File('${dillFile.path}.incremental.dill');
-            expect(outputFilename, dillIncFile.path);
-            expect(errorsCount, 0);
+            expect(result.filename, dillIncFile.path);
+            expect(result.errorsCount, 0);
             expect(dillIncFile.existsSync(), equals(true));
             allDone.complete(true);
         }
@@ -809,5 +802,17 @@ Uri computePlatformBinariesLocation() {
     // We assume this is running from a build directory (for example,
     // `out/ReleaseX64` or `xcodebuild/ReleaseX64`).
     return vmDirectory;
+  }
+}
+
+class CompilationResult {
+  String filename;
+  int errorsCount;
+
+  CompilationResult.parse(String filenameAndErrorCount) {
+    int delim = filenameAndErrorCount.lastIndexOf(' ');
+    expect(delim > 0, equals(true));
+    filename = filenameAndErrorCount.substring(0, delim);
+    errorsCount = int.parse(filenameAndErrorCount.substring(delim + 1).trim());
   }
 }
