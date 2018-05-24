@@ -1491,7 +1491,8 @@ It is a static warning if a setter $m_1$ overrides (\ref{inheritanceAndOverridin
 It is a static warning if a class has a setter named $v=$ with argument type $T$ and a getter named $v$ with return type $S$, and $T$ may not be assigned to $S$.
 
 \LMHash{}
-It is a static warning if a class declares a static setter named $v=$ and also has a non-static member named $v$.
+It is a static warning if a class declares a static setter named $v=$ and has an instance getter named $v$.
+It is a static warning if a class declares a setter named $v=$ and has a method named $v$.
 
 % We need not consider implicit declarations: If $v=$ is declared
 % implicitly then there is a static variable $v$, and then it is
@@ -2171,6 +2172,7 @@ Dart static methods may be seen as functions of the enclosing library.
 
 \LMHash{}
 It is a static warning if a class $C$ declares a static method named $n$ and has a setter named $n=$.
+It is a static warning if a class $C$ declares a static member named $n$ and has an instance member named $n$.
 
 
 \subsection{Static Variables}
