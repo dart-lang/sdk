@@ -1211,7 +1211,7 @@ class ProgramCompiler extends Object
       if (!emitMetadata && member.isStatic) continue;
 
       var name = member.name.name;
-      var reifiedType = _getMemberRuntimeType(member, c);
+      var reifiedType = _getMemberRuntimeType(member, c) as FunctionType;
 
       // Don't add redundant signatures for inherited methods whose signature
       // did not change.  If we are not overriding, or if the thing we are
@@ -1310,7 +1310,7 @@ class ProgramCompiler extends Object
         field.isFinal ? 'finalFieldType(#)' : 'fieldType(#)', [args]);
   }
 
-  FunctionType _getMemberRuntimeType(Member member, Class fromClass) {
+  DartType _getMemberRuntimeType(Member member, Class fromClass) {
     var f = member.function;
     if (f == null) {
       return (member as Field).type;
