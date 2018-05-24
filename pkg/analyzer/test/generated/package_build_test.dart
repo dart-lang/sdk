@@ -116,8 +116,9 @@ class PackageBuildPackageUriResolverTest extends _BaseTest {
 
   Uri addPackageSource(String path, String uriStr, {bool create: true}) {
     Uri uri = Uri.parse(uriStr);
-    final File file =
-        create ? provider.newFile(_p(path), '') : provider.getResource(path);
+    final File file = create
+        ? provider.newFile(_p(path), '')
+        : provider.getResource(_p(path));
     final Source source = file.createSource(uri);
     when(packageUriResolver.resolveAbsolute(uri)).thenReturn(source);
     return uri;
@@ -226,7 +227,7 @@ class PackageBuildWorkspaceTest extends _BaseTest {
 
     final libFile = provider.newFile(
         _p('/workspace/.dart_tool/build/generated/project/lib/file.dart'), '');
-    expect(workspace.builtFile('lib/file.dart', 'project'), libFile);
+    expect(workspace.builtFile(_p('lib/file.dart'), 'project'), libFile);
   }
 
   void test_builtFile_importedPackage() {
@@ -238,7 +239,7 @@ class PackageBuildWorkspaceTest extends _BaseTest {
 
     final libFile = provider.newFile(
         _p('/workspace/.dart_tool/build/generated/foo/lib/file.dart'), '');
-    expect(workspace.builtFile('lib/file.dart', 'foo'), libFile);
+    expect(workspace.builtFile(_p('lib/file.dart'), 'foo'), libFile);
   }
 
   void test_builtFile_notInPackagesGetsHidden() {
@@ -382,7 +383,7 @@ class PackageBuildWorkspaceTest extends _BaseTest {
         _createWorkspace('/workspace', ['project']);
 
     final binFile = provider.newFile(_p('/workspace/bin/file.dart'), '');
-    expect(workspace.findFile('/workspace/bin/file.dart'), binFile);
+    expect(workspace.findFile(_p('/workspace/bin/file.dart')), binFile);
   }
 
   void test_findFile_binGenerated() {
@@ -394,7 +395,7 @@ class PackageBuildWorkspaceTest extends _BaseTest {
 
     final binFile = provider.newFile(
         _p('/workspace/.dart_tool/build/generated/project/bin/file.dart'), '');
-    expect(workspace.findFile('/workspace/bin/file.dart'), binFile);
+    expect(workspace.findFile(_p('/workspace/bin/file.dart')), binFile);
   }
 
   void test_findFile_libGenerated() {
@@ -406,7 +407,7 @@ class PackageBuildWorkspaceTest extends _BaseTest {
 
     final libFile = provider.newFile(
         _p('/workspace/.dart_tool/build/generated/project/lib/file.dart'), '');
-    expect(workspace.findFile('/workspace/lib/file.dart'), libFile);
+    expect(workspace.findFile(_p('/workspace/lib/file.dart')), libFile);
   }
 
   void test_findFile_test() {
@@ -418,7 +419,7 @@ class PackageBuildWorkspaceTest extends _BaseTest {
         _createWorkspace('/workspace', ['project']);
 
     final testFile = provider.newFile(_p('/workspace/test/file.dart'), '');
-    expect(workspace.findFile('/workspace/test/file.dart'), testFile);
+    expect(workspace.findFile(_p('/workspace/test/file.dart')), testFile);
   }
 
   void test_findFile_testGenerated() {
@@ -431,7 +432,7 @@ class PackageBuildWorkspaceTest extends _BaseTest {
 
     final testFile = provider.newFile(
         _p('/workspace/.dart_tool/build/generated/project/test/file.dart'), '');
-    expect(workspace.findFile('/workspace/test/file.dart'), testFile);
+    expect(workspace.findFile(_p('/workspace/test/file.dart')), testFile);
   }
 
   void test_findFile_web() {
@@ -442,7 +443,7 @@ class PackageBuildWorkspaceTest extends _BaseTest {
         _createWorkspace('/workspace', ['project']);
 
     final webFile = provider.newFile(_p('/workspace/web/file.dart'), '');
-    expect(workspace.findFile('/workspace/web/file.dart'), webFile);
+    expect(workspace.findFile(_p('/workspace/web/file.dart')), webFile);
   }
 
   void test_findFile_webGenerated() {
@@ -454,7 +455,7 @@ class PackageBuildWorkspaceTest extends _BaseTest {
 
     final webFile = provider.newFile(
         _p('/workspace/.dart_tool/build/generated/project/web/file.dart'), '');
-    expect(workspace.findFile('/workspace/web/file.dart'), webFile);
+    expect(workspace.findFile(_p('/workspace/web/file.dart')), webFile);
   }
 
   PackageBuildWorkspace _createWorkspace(
