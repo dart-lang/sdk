@@ -179,16 +179,18 @@ main() {
       (ClassEntity cls) {
     List<String> expectedLiveMembers =
         expectedLiveMembersMap[cls.name] ?? const <String>[];
-    elementEnvironment.forEachLocalClassMember(cls, (MemberEntity member) {
+    List<String> actualLiveMembers = <String>[];
+    closedWorld.processedMembers.forEach((MemberEntity member) {
       if (member.enclosingClass != cls) return;
-      bool expected = expectedLiveMembers.contains(member.name);
-      bool live = closedWorld.processedMembers.contains(member);
-      Expect.equals(
-          expected,
-          live,
-          "Member $member ${expected ? '' : 'not '}expected to be live "
-          "in ${strongMode ? 'Dart 2' : 'Dart 1'}. "
-          "Expected members for ${cls.name}: $expectedLiveMembers");
+      if (member.isConstructor) return;
+      actualLiveMembers.add(member.name);
     });
+    Expect.setEquals(
+        expectedLiveMembers,
+        actualLiveMembers,
+        "Unexpected live members for $cls "
+        "in ${strongMode ? 'Dart 2' : 'Dart 1'}. \n"
+        "Expected members for ${cls.name}: $expectedLiveMembers\n"
+        "Actual members for ${cls.name}  : $actualLiveMembers");
   });
 }

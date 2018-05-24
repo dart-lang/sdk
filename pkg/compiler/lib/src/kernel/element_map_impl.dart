@@ -841,6 +841,9 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
 
 /// Mixin that implements the abstract methods in [KernelToElementMapBase].
 abstract class ElementCreatorMixin implements KernelToElementMapBase {
+  /// Set to `true` before creating the J-World from the K-World to assert that
+  /// no entities are created late.
+  bool _envIsClosed = false;
   ProgramEnv get _env;
   EntityDataEnvMap<IndexedLibrary, LibraryData, LibraryEnv> get _libraries;
   EntityDataEnvMap<IndexedClass, ClassData, ClassEnv> get _classes;
@@ -885,6 +888,10 @@ abstract class ElementCreatorMixin implements KernelToElementMapBase {
 
   LibraryEntity _getLibrary(ir.Library node, [LibraryEnv libraryEnv]) {
     return _libraryMap.putIfAbsent(node, () {
+      assert(
+          !_envIsClosed,
+          "Environment of $this is closed. Trying to create "
+          "library for $node.");
       Uri canonicalUri = node.importUri;
       String name = node.name;
       if (name == null) {
@@ -900,6 +907,10 @@ abstract class ElementCreatorMixin implements KernelToElementMapBase {
 
   ClassEntity _getClass(ir.Class node, [ClassEnv classEnv]) {
     return _classMap.putIfAbsent(node, () {
+      assert(
+          !_envIsClosed,
+          "Environment of $this is closed. Trying to create "
+          "class for $node.");
       KLibrary library = _getLibrary(node.enclosingLibrary);
       if (classEnv == null) {
         classEnv = _libraries.getEnv(library).lookupClass(node.name);
@@ -913,6 +924,10 @@ abstract class ElementCreatorMixin implements KernelToElementMapBase {
 
   TypedefEntity _getTypedef(ir.Typedef node) {
     return _typedefMap.putIfAbsent(node, () {
+      assert(
+          !_envIsClosed,
+          "Environment of $this is closed. Trying to create "
+          "typedef for $node.");
       IndexedLibrary library = _getLibrary(node.enclosingLibrary);
       IndexedTypedef typedef = createTypedef(library, node.name);
       TypedefType typedefType = new TypedefType(
@@ -926,6 +941,10 @@ abstract class ElementCreatorMixin implements KernelToElementMapBase {
 
   TypeVariableEntity _getTypeVariable(ir.TypeParameter node) {
     return _typeVariableMap.putIfAbsent(node, () {
+      assert(
+          !_envIsClosed,
+          "Environment of $this is closed. Trying to create "
+          "type variable for $node.");
       if (node.parent is ir.Class) {
         ir.Class cls = node.parent;
         int index = cls.typeParameters.indexOf(node);
@@ -962,6 +981,10 @@ abstract class ElementCreatorMixin implements KernelToElementMapBase {
 
   ConstructorEntity _getConstructor(ir.Member node) {
     return _constructorMap.putIfAbsent(node, () {
+      assert(
+          !_envIsClosed,
+          "Environment of $this is closed. Trying to create "
+          "constructor for $node.");
       MemberDefinition definition;
       ir.FunctionNode functionNode;
       ClassEntity enclosingClass = _getClass(node.enclosingClass);
@@ -999,6 +1022,10 @@ abstract class ElementCreatorMixin implements KernelToElementMapBase {
 
   FunctionEntity _getMethod(ir.Procedure node) {
     return _methodMap.putIfAbsent(node, () {
+      assert(
+          !_envIsClosed,
+          "Environment of $this is closed. Trying to create "
+          "function for $node.");
       LibraryEntity library;
       ClassEntity enclosingClass;
       if (node.enclosingClass != null) {
@@ -1048,6 +1075,10 @@ abstract class ElementCreatorMixin implements KernelToElementMapBase {
 
   FieldEntity _getField(ir.Field node) {
     return _fieldMap.putIfAbsent(node, () {
+      assert(
+          !_envIsClosed,
+          "Environment of $this is closed. Trying to create "
+          "field for $node.");
       LibraryEntity library;
       ClassEntity enclosingClass;
       if (node.enclosingClass != null) {
@@ -2370,6 +2401,11 @@ class JsKernelToElementMap extends KernelToElementMapBase
       assert(newTypeVariable.typeVariableIndex ==
           oldTypeVariable.typeVariableIndex);
     }
+    // TODO(johnniwinther): We should close the environment in the beginning of
+    // this constructor but currently we need the [MemberEntity] to query if the
+    // member is live, thus potentially creating the [MemberEntity] in the
+    // process. Avoid this.
+    _elementMap._envIsClosed = true;
   }
 
   @override
