@@ -59,6 +59,7 @@ import 'expression_generator.dart'
         SuperPropertyAccessGenerator,
         ThisIndexedAccessGenerator,
         ThisPropertyAccessGenerator,
+        TypeUseGenerator,
         VariableUseGenerator;
 
 import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
@@ -101,7 +102,6 @@ import 'kernel_ast_api.dart'
         Throw,
         TreeNode,
         TypeParameter,
-        TypeParameterType,
         VariableDeclaration,
         VariableGet,
         VariableSet;
@@ -109,12 +109,8 @@ import 'kernel_ast_api.dart'
 import 'kernel_builder.dart'
     show
         Builder,
-        BuiltinTypeBuilder,
-        FunctionTypeAliasBuilder,
         KernelClassBuilder,
-        KernelFunctionTypeAliasBuilder,
         KernelInvalidTypeBuilder,
-        KernelTypeVariableBuilder,
         LoadLibraryBuilder,
         PrefixBuilder,
         TypeDeclarationBuilder;
@@ -1239,6 +1235,112 @@ class KernelDeferredAccessGenerator extends KernelGenerator
         generator._makeWrite(value, voidContext, complexAssignment),
         builder,
         token.charOffset);
+  }
+}
+
+class KernelTypeUseGenerator extends ReadOnlyAccessGenerator
+    with TypeUseGenerator<Expression, Statement, Arguments> {
+  /// The import prefix preceding the [declaration] reference, or `null` if
+  /// the reference is not prefixed.
+  @override
+  final PrefixBuilder prefix;
+
+  /// The offset at which the [declaration] is referenced by this generator,
+  /// or `-1` if the reference is implicit.
+  final int declarationReferenceOffset;
+
+  @override
+  final TypeDeclarationBuilder declaration;
+
+  KernelTypeUseGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, dynamic> helper,
+      Token token,
+      this.prefix,
+      this.declarationReferenceOffset,
+      this.declaration,
+      String plainNameForRead)
+      : super(helper, token, null, plainNameForRead);
+
+  @override
+  Expression get expression {
+    if (super.expression == null) {
+      int offset = offsetForToken(token);
+      if (declaration is KernelInvalidTypeBuilder) {
+        KernelInvalidTypeBuilder declaration = this.declaration;
+        helper.addProblemErrorIfConst(
+            declaration.message.messageObject, offset, token.length);
+        super.expression =
+            new Throw(forest.literalString(declaration.message.message, token))
+              ..fileOffset = offset;
+      } else {
+        super.expression = forest.literalType(
+            buildTypeWithBuiltArguments(null, nonInstanceAccessIsError: true),
+            token);
+      }
+    }
+    return super.expression;
+  }
+
+  @override
+  Expression makeInvalidWrite(Expression value) {
+    return buildThrowNoSuchMethodError(
+        forest.literalNull(token),
+        storeOffset(
+            forest.arguments(<Expression>[value], null), value.fileOffset),
+        isSetter: true);
+  }
+
+  @override
+  buildPropertyAccess(
+      IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
+    // `SomeType?.toString` is the same as `SomeType.toString`, not
+    // `(SomeType).toString`.
+    isNullAware = false;
+
+    Name name = send.name;
+    Arguments arguments = send.arguments;
+
+    if (declaration is KernelClassBuilder) {
+      KernelClassBuilder declaration = this.declaration;
+      Builder builder = declaration.findStaticBuilder(
+          name.name, offsetForToken(token), uri, helper.library);
+
+      Generator generator;
+      if (builder == null) {
+        // If we find a setter, [builder] is an [AccessErrorBuilder], not null.
+        if (send is IncompletePropertyAccessGenerator) {
+          generator = new UnresolvedNameGenerator(helper, send.token, name);
+        } else {
+          return helper.buildConstructorInvocation(declaration, send.token,
+              arguments, name.name, null, token.charOffset, Constness.implicit);
+        }
+      } else {
+        Builder setter;
+        if (builder.isSetter) {
+          setter = builder;
+        } else if (builder.isGetter) {
+          setter = declaration.findStaticBuilder(
+              name.name, offsetForToken(token), uri, helper.library,
+              isSetter: true);
+        } else if (builder.isField && !builder.isFinal) {
+          setter = builder;
+        }
+        generator = new StaticAccessGenerator<Expression, Statement,
+            Arguments>.fromBuilder(helper, builder, send.token, setter);
+      }
+
+      return arguments == null
+          ? generator
+          : generator.doInvocation(offsetForToken(send.token), arguments);
+    } else {
+      return super.buildPropertyAccess(send, operatorOffset, isNullAware);
+    }
+  }
+
+  @override
+  Expression doInvocation(int offset, Arguments arguments) {
+    return helper.buildConstructorInvocation(declaration, token, arguments, "",
+        null, token.charOffset, Constness.implicit);
   }
 }
 

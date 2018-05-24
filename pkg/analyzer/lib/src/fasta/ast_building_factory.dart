@@ -598,6 +598,18 @@ class AstBuildingForest
           tryKeyword, body, catchClauses, finallyKeyword, finallyBlock);
 
   @override
+  Generator<Expression, Statement, _Arguments> typeUseGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+      Token token,
+      PrefixBuilder prefix,
+      int declarationReferenceOffset,
+      TypeDeclarationBuilder declaration,
+      String plainNameForRead) {
+    // TODO(brianwilkerson) Implement this.
+    throw new UnimplementedError();
+  }
+
+  @override
   VariableDeclarationStatement variablesDeclaration(
       List<VariableDeclaration> declarations, Uri uri) {
     // TODO(brianwilkerson) Implement this.

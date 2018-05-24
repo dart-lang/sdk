@@ -89,7 +89,7 @@ import 'expression_generator.dart'
         SuperIndexedAccessGenerator,
         ThisAccessGenerator,
         ThisPropertyAccessGenerator,
-        TypeDeclarationAccessGenerator,
+        TypeUseGenerator,
         UnresolvedNameGenerator,
         VariableUseGenerator,
         buildIsNull;
@@ -1387,9 +1387,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         deprecated_addCompileTimeError(
             charOffset, "Not a constant expression.");
       }
-      // TODO(ahe): Restore type: TypeDeclarationAccessGenerator.
-      Generator<dynamic, dynamic, dynamic> generator =
-          new TypeDeclarationAccessGenerator(
+      TypeUseGenerator<Expression, Statement, Arguments> generator =
+          new TypeUseGenerator<Expression, Statement, Arguments>(
               this, token, prefix, charOffset, builder, name);
       return (prefix?.deferred == true)
           ? new DeferredAccessGenerator<Expression, Statement, Arguments>(
@@ -2566,7 +2565,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
             prefix.exportScope, identifier.name, identifier.token,
             isQualified: true, prefix: prefix);
         identifier = null;
-      } else if (prefix is TypeDeclarationAccessGenerator) {
+      } else if (prefix is TypeUseGenerator<Expression, Statement, Arguments>) {
         type = prefix;
       } else if (prefix is Generator) {
         String name = suffix == null
@@ -2792,8 +2791,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       checkOffset = generator.token.charOffset;
     }
 
-    if (type is TypeDeclarationAccessGenerator) {
-      TypeDeclarationAccessGenerator generator = type;
+    if (type is TypeUseGenerator<Expression, Statement, Arguments>) {
+      TypeUseGenerator<Expression, Statement, Arguments> generator = type;
       if (generator.prefix != null) {
         nameToken = nameToken.next.next;
       }
@@ -3658,7 +3657,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     List<Expression> annotations = pop();
     KernelTypeVariableBuilder variable;
     Object inScope = scopeLookup(scope, name.name, token);
-    if (inScope is TypeDeclarationAccessGenerator) {
+    if (inScope is TypeUseGenerator<Expression, Statement, Arguments>) {
       variable = inScope.declaration;
     } else {
       // Something went wrong when pre-parsing the type variables.

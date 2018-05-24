@@ -55,6 +55,7 @@ import 'kernel_expression_generator.dart'
         KernelSuperPropertyAccessGenerator,
         KernelThisIndexedAccessGenerator,
         KernelThisPropertyAccessGenerator,
+        KernelTypeUseGenerator,
         KernelVariableUseGenerator;
 
 import 'body_builder.dart' show FormalParameters, OptionalFormals;
@@ -105,7 +106,8 @@ import 'forest.dart'
         Forest,
         Generator,
         LoadLibraryBuilder,
-        PrefixBuilder;
+        PrefixBuilder,
+        TypeDeclarationBuilder;
 
 /// A shadow tree factory.
 class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
@@ -721,6 +723,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
     return new KernelStaticAccessGenerator(helper, token, getter, setter);
   }
 
+  @override
   KernelLoadLibraryGenerator loadLibraryGenerator(
       ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
       Token token,
@@ -728,12 +731,25 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
     return new KernelLoadLibraryGenerator(helper, token, builder);
   }
 
+  @override
   KernelDeferredAccessGenerator deferredAccessGenerator(
       ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
       Token token,
       PrefixBuilder builder,
       Generator<Expression, Statement, Arguments> generator) {
     return new KernelDeferredAccessGenerator(helper, token, builder, generator);
+  }
+
+  @override
+  KernelTypeUseGenerator typeUseGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      PrefixBuilder prefix,
+      int declarationReferenceOffset,
+      TypeDeclarationBuilder declaration,
+      String plainNameForRead) {
+    return new KernelTypeUseGenerator(helper, token, prefix,
+        declarationReferenceOffset, declaration, plainNameForRead);
   }
 }
 

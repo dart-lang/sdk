@@ -7,8 +7,6 @@ library fasta.expression_generator;
 
 import '../../scanner/token.dart' show Token;
 
-import '../builder/builder.dart' show AccessErrorBuilder, Builder;
-
 import '../constant_context.dart' show ConstantContext;
 
 import '../fasta_codes.dart'
@@ -26,7 +24,8 @@ import '../problems.dart' show unhandled, unsupported;
 
 import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
 
-import 'forest.dart' show Forest, LoadLibraryBuilder, PrefixBuilder;
+import 'forest.dart'
+    show Forest, LoadLibraryBuilder, PrefixBuilder, TypeDeclarationBuilder;
 
 import 'kernel_ast_api.dart'
     show
@@ -36,7 +35,18 @@ import 'kernel_ast_api.dart'
         Member,
         Name,
         Procedure,
+        TypeParameterType,
         VariableDeclaration;
+
+import 'kernel_builder.dart'
+    show
+        AccessErrorBuilder,
+        Builder,
+        BuiltinTypeBuilder,
+        FunctionTypeAliasBuilder,
+        KernelClassBuilder,
+        KernelFunctionTypeAliasBuilder,
+        KernelTypeVariableBuilder;
 
 import 'kernel_expression_generator.dart'
     show IncompleteSendGenerator, SendAccessGenerator;
@@ -54,7 +64,6 @@ export 'kernel_expression_generator.dart'
         ReadOnlyAccessGenerator,
         SendAccessGenerator,
         ThisAccessGenerator,
-        TypeDeclarationAccessGenerator,
         UnresolvedNameGenerator,
         buildIsNull;
 
@@ -166,10 +175,10 @@ abstract class Generator<Expression, Statement, Arguments>
         offset);
   }
 
-  /* kernel.Expression | Generator | Initializer */ doInvocation(
+  /* Expression | Generator | Initializer */ doInvocation(
       int offset, Arguments arguments);
 
-  /* kernel.Expression | Generator */ buildPropertyAccess(
+  /* Expression | Generator */ buildPropertyAccess(
       IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
     if (send is SendAccessGenerator) {
       return helper.buildMethodInvocation(
@@ -203,7 +212,7 @@ abstract class Generator<Expression, Statement, Arguments>
   }
 
   @override
-  /* kernel.Expression | Generator */ buildThrowNoSuchMethodError(
+  /* Expression | Generator */ buildThrowNoSuchMethodError(
       Expression receiver, Arguments arguments,
       {bool isSuper: false,
       bool isGetter: false,
@@ -555,5 +564,75 @@ abstract class DeferredAccessGenerator<Expression, Statement, Arguments>
     sink.write(builder);
     sink.write(", generator: ");
     sink.write(generator);
+  }
+}
+
+abstract class TypeUseGenerator<Expression, Statement, Arguments>
+    implements Generator<Expression, Statement, Arguments> {
+  factory TypeUseGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      PrefixBuilder prefix,
+      int declarationReferenceOffset,
+      TypeDeclarationBuilder declaration,
+      String plainNameForRead) {
+    return helper.forest.typeUseGenerator(helper, token, prefix,
+        declarationReferenceOffset, declaration, plainNameForRead);
+  }
+
+  PrefixBuilder get prefix;
+
+  TypeDeclarationBuilder get declaration;
+
+  @override
+  String get debugName => "TypeUseGenerator";
+
+  @override
+  DartType buildTypeWithBuiltArguments(List<DartType> arguments,
+      {bool nonInstanceAccessIsError: false}) {
+    if (arguments != null) {
+      int expected = 0;
+      if (declaration is KernelClassBuilder) {
+        expected = declaration.target.typeParameters.length;
+      } else if (declaration is FunctionTypeAliasBuilder) {
+        expected = declaration.target.typeParameters.length;
+      } else if (declaration is KernelTypeVariableBuilder) {
+        // Type arguments on a type variable - error reported elsewhere.
+      } else if (declaration is BuiltinTypeBuilder) {
+        // Type arguments on a built-in type, for example, dynamic or void.
+        expected = 0;
+      } else {
+        return unhandled("${declaration.runtimeType}",
+            "TypeUseGenerator.buildType", offsetForToken(token), helper.uri);
+      }
+      if (arguments.length != expected) {
+        helper.warnTypeArgumentsMismatch(
+            declaration.name, expected, offsetForToken(token));
+        // We ignore the provided arguments, which will in turn return the
+        // raw type below.
+        // TODO(sigmund): change to use an InvalidType and include the raw type
+        // as a recovery node once the IR can represent it (Issue #29840).
+        arguments = null;
+      }
+    }
+
+    DartType type;
+    if (arguments == null) {
+      TypeDeclarationBuilder typeDeclaration = declaration;
+      if (typeDeclaration is KernelClassBuilder) {
+        type = typeDeclaration.buildType(helper.library, null);
+      } else if (typeDeclaration is KernelFunctionTypeAliasBuilder) {
+        type = typeDeclaration.buildType(helper.library, null);
+      }
+    }
+    if (type == null) {
+      type =
+          declaration.buildTypesWithBuiltArguments(helper.library, arguments);
+    }
+    if (type is TypeParameterType) {
+      return helper.validatedTypeVariableUse(
+          type, offsetForToken(token), nonInstanceAccessIsError);
+    }
+    return type;
   }
 }

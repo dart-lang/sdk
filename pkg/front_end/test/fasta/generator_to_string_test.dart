@@ -67,13 +67,13 @@ import 'package:front_end/src/fasta/kernel/kernel_expression_generator.dart'
         KernelSuperPropertyAccessGenerator,
         KernelThisIndexedAccessGenerator,
         KernelThisPropertyAccessGenerator,
+        KernelTypeUseGenerator,
         KernelVariableUseGenerator,
         LargeIntAccessGenerator,
         ParenthesizedExpressionGenerator,
         ReadOnlyAccessGenerator,
         SendAccessGenerator,
         ThisAccessGenerator,
-        TypeDeclarationAccessGenerator,
         UnresolvedNameGenerator;
 
 import 'package:front_end/src/fasta/scanner.dart' show Token, scanString;
@@ -223,9 +223,9 @@ main() {
         " plainNameForRead: null, value: null)",
         new ParenthesizedExpressionGenerator(helper, token, expression));
     check(
-        "TypeDeclarationAccessGenerator(offset: 4, expression: T,"
+        "TypeUseGenerator(offset: 4, expression: T,"
         " plainNameForRead: foo, value: null)",
-        new TypeDeclarationAccessGenerator(
+        new KernelTypeUseGenerator(
             helper, token, prefixBuilder, -1, declaration, "foo"));
     check("UnresolvedNameGenerator(offset: 4, name: bar)",
         new UnresolvedNameGenerator(helper, token, name));
