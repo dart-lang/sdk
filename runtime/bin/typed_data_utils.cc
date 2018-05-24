@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "bin/typed_data_utils.h"
 #include "platform/assert.h"
-#include "runtime/bin/typed_data_utils.h"
 
 namespace dart {
 namespace bin {
