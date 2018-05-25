@@ -159,7 +159,7 @@ abstract class LinkBuilder<T> {
 
   /// Prepends all elements added to the builder to [tail]. The resulting list
   /// is returned and the builder is cleared.
-  Link<T> toLink([Link<T> tail = const Link()]);
+  Link<T> toLink([Link<T> tail]);
 
   /// Creates a new fixed length containing all added elements. The
   /// resulting list is returned and the builder is cleared.

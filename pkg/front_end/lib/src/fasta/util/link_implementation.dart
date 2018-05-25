@@ -64,8 +64,7 @@ class LinkEntry<T> extends Link<T> {
   final T head;
   Link<T> tail;
 
-  LinkEntry(this.head, [Link<T> tail])
-      : this.tail = ((tail == null) ? const Link() : tail);
+  LinkEntry(this.head, [Link<T> tail]) : tail = tail ?? const Link<Null>();
 
   Link<T> prepend(T element) {
     // TODO(ahe): Use new Link<T>, but this cost 8% performance on VM.
@@ -90,9 +89,9 @@ class LinkEntry<T> extends Link<T> {
   }
 
   Link<T> reverse() {
-    Link<T> result = const Link();
+    Link<T> result = const Link<Null>();
     for (Link<T> link = this; link.isNotEmpty; link = link.tail) {
-      result = result.prepend(link.head);
+      result = new LinkEntry<T>(link.head, result);
     }
     return result;
   }
@@ -167,8 +166,13 @@ class LinkBuilderImplementation<T> implements LinkBuilder<T> {
 
   LinkBuilderImplementation();
 
-  Link<T> toLink([Link<T> tail = const Link()]) {
-    if (head == null) return tail;
+  Link<T> toLink([Link<T> tail]) {
+    if (head == null) {
+      // TODO(ahe): We should consider making the [tail] argument mandatory to
+      // avoid creating unneeded objects.
+      return tail ?? new Link<T>();
+    }
+    tail ??= const Link<Null>();
     lastLink.tail = tail;
     Link<T> link = head;
     lastLink = null;
