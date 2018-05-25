@@ -188,7 +188,7 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
       ];
   }
 
-  static _getChildren(nodeDynamic) {
+  static Iterable<M.CallTreeNode> _getChildren(nodeDynamic) {
     M.CallTreeNode node = nodeDynamic;
     return node.children;
   }
