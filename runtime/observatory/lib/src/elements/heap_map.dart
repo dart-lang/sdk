@@ -181,7 +181,7 @@ class HeapMapElement extends HtmlElement implements Renderable {
     var pagePixels = _pageHeight * _fragmentationData.width;
     var index = new PixelReference(_fragmentationData, point).index;
     var pageIndex = index ~/ pagePixels;
-    var pageOffset = index % pagePixels;
+    num pageOffset = index % pagePixels;
     var pages = _fragmentation['pages'];
     if (pageIndex < 0 || pageIndex >= pages.length) {
       return null;
