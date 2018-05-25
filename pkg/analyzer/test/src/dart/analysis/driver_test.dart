@@ -1987,6 +1987,39 @@ var A2 = B1;
         await driver.getTopLevelNameDeclarations('X'), [], []);
   }
 
+  test_getTopLevelNameDeclarations_discoverAvailable() async {
+    var t = _p('/test/lib/test.dart');
+    var a1 = _p('/aaa/lib/a1.dart');
+    var a2 = _p('/aaa/lib/src/a2.dart');
+    var b = _p('/bbb/lib/b.dart');
+    var c = _p('/ccc/lib/c.dart');
+
+    provider.newFile(t, 'class T {}');
+    provider.newFile(a1, 'class A1 {}');
+    provider.newFile(a2, 'class A2 {}');
+    provider.newFile(b, 'class B {}');
+    provider.newFile(c, 'class C {}');
+
+    driver.addFile(t);
+    // Don't add a1.dart, a2.dart, or b.dart - they should be discovered.
+    // And c.dart is not in .packages, so should not be discovered.
+
+    _assertTopLevelDeclarations(
+        await driver.getTopLevelNameDeclarations('T'), [t], [false]);
+
+    _assertTopLevelDeclarations(
+        await driver.getTopLevelNameDeclarations('A1'), [a1], [false]);
+
+    _assertTopLevelDeclarations(
+        await driver.getTopLevelNameDeclarations('A2'), [a2], [false]);
+
+    _assertTopLevelDeclarations(
+        await driver.getTopLevelNameDeclarations('B'), [b], [false]);
+
+    _assertTopLevelDeclarations(
+        await driver.getTopLevelNameDeclarations('C'), [], []);
+  }
+
   test_getTopLevelNameDeclarations_parts() async {
     var a = _p('/test/lib/a.dart');
     var b = _p('/test/lib/b.dart');

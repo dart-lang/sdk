@@ -201,6 +201,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   final _requestedFiles = <String, List<Completer<AnalysisResult>>>{};
 
   /**
+   * The task that discovers available files.  If this field is not `null`,
+   * and the task is not completed, it should be performed and completed
+   * before any name searching task.
+   */
+  _DiscoverAvailableFilesTask _discoverAvailableFilesTask;
+
+  /**
    * The list of tasks to compute files defining a class member name.
    */
   final _definingClassMemberNameTasks = <_FilesDefiningClassMemberNameTask>[];
@@ -478,6 +485,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     if (_requestedFiles.isNotEmpty) {
       return AnalysisDriverPriority.interactive;
     }
+    if (_discoverAvailableFilesTask != null &&
+        !_discoverAvailableFilesTask.isCompleted) {
+      return AnalysisDriverPriority.interactive;
+    }
     if (_definingClassMemberNameTasks.isNotEmpty ||
         _referencingNameTasks.isNotEmpty) {
       return AnalysisDriverPriority.interactive;
@@ -650,6 +661,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * define a class member with the given [name].
    */
   Future<List<String>> getFilesDefiningClassMemberName(String name) {
+    _discoverAvailableFiles();
     var task = new _FilesDefiningClassMemberNameTask(this, name);
     _definingClassMemberNameTasks.add(task);
     _scheduler.notify(this);
@@ -661,6 +673,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * reference the given external [name].
    */
   Future<List<String>> getFilesReferencingName(String name) {
+    _discoverAvailableFiles();
     var task = new _FilesReferencingNameTask(this, name);
     _referencingNameTasks.add(task);
     _scheduler.notify(this);
@@ -793,6 +806,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    */
   Future<List<TopLevelDeclarationInSource>> getTopLevelNameDeclarations(
       String name) {
+    _discoverAvailableFiles();
     var task = new _TopLevelNameDeclarationsTask(this, name);
     _topLevelNameDeclarationsTasks.add(task);
     _scheduler.notify(this);
@@ -964,6 +978,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
             .putIfAbsent(path, () => [])
             .addAll(completers);
       }
+      return;
+    }
+
+    // Discover available files.
+    if (_discoverAvailableFilesTask != null &&
+        !_discoverAvailableFilesTask.isCompleted) {
+      _discoverAvailableFilesTask.perform();
       return;
     }
 
@@ -1414,6 +1435,14 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    */
   void _createNewSession() {
     _currentSession = new AnalysisSessionImpl(this);
+  }
+
+  /**
+   * If this has not been done yet, schedule discovery of all files that are
+   * potentially available, so that they are included in [knownFiles].
+   */
+  void _discoverAvailableFiles() {
+    _discoverAvailableFilesTask ??= new _DiscoverAvailableFilesTask(this);
   }
 
   /**
@@ -2220,6 +2249,79 @@ class UnitElementResult extends BaseAnalysisResult
 
   @override
   results.ResultState get state => results.ResultState.VALID;
+}
+
+/**
+ * Task that discovers all files that are available to the driver, and makes
+ * them known.
+ */
+class _DiscoverAvailableFilesTask {
+  static const int _MS_WORK_INTERVAL = 5;
+
+  final AnalysisDriver driver;
+
+  bool isCompleted = false;
+
+  Iterator<Folder> folderIterator;
+  List<String> files;
+  int fileIndex = 0;
+
+  _DiscoverAvailableFilesTask(this.driver);
+
+  /**
+   * Perform the next piece of work, and set [isCompleted] to `true` to
+   * indicate that the task is done, or keeps it `false` to indicate that the
+   * task should continue to be run.
+   */
+  void perform() {
+    // Prepare the iterator of package/lib folders.
+    if (folderIterator == null) {
+      var packageMap = driver._sourceFactory.packageMap;
+      if (packageMap != null) {
+        folderIterator = packageMap.values.expand((f) => f).iterator;
+        files = <String>[];
+      } else {
+        isCompleted = true;
+        return;
+      }
+    }
+
+    // List each package/lib folder recursively.
+    Stopwatch timer = new Stopwatch()..start();
+    while (folderIterator.moveNext()) {
+      if (timer.elapsedMilliseconds > _MS_WORK_INTERVAL) {
+        return;
+      }
+      var folder = folderIterator.current;
+      _appendFilesRecursively(folder);
+    }
+
+    // Get know files one by one.
+    while (fileIndex < files.length) {
+      if (timer.elapsedMilliseconds > _MS_WORK_INTERVAL) {
+        return;
+      }
+      var file = files[fileIndex++];
+      driver._fsState.getFileForPath(file);
+    }
+
+    // The task is done, clean up.
+    isCompleted = true;
+    folderIterator = null;
+    files = null;
+  }
+
+  void _appendFilesRecursively(Folder folder) {
+    try {
+      for (var child in folder.getChildren()) {
+        if (child is File) {
+          files.add(child.path);
+        } else if (child is Folder) {
+          _appendFilesRecursively(child);
+        }
+      }
+    } catch (_) {}
+  }
 }
 
 /**
