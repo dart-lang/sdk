@@ -50,7 +50,7 @@ class InstanceMock implements M.Instance {
   final M.ContextRef closureContext;
   final int offset;
   final int count;
-  final Iterable<dynamic> typedElements;
+  final List<dynamic> typedElements;
   final Iterable<M.BoundField> fields;
   final Iterable<M.NativeField> nativeFields;
   final Iterable<M.Guarded<M.ObjectRef>> elements;
