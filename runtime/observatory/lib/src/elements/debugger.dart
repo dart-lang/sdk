@@ -657,7 +657,7 @@ class SetCommand extends DebuggerCommand {
   Future run(List<String> args) async {
     if (args.length == 0) {
       for (var name in _options.keys) {
-        var getHandler = _options[name][2];
+        dynamic getHandler = _options[name][2];
         var value = await getHandler(debugger, name);
         debugger.console.print("${name} = ${value}");
       }
@@ -668,7 +668,7 @@ class SetCommand extends DebuggerCommand {
         debugger.console.print("unrecognized option: $name");
         return;
       } else {
-        var getHandler = optionInfo[2];
+        dynamic getHandler = optionInfo[2];
         var value = await getHandler(debugger, name);
         debugger.console.print("${name} = ${value}");
       }
@@ -680,12 +680,12 @@ class SetCommand extends DebuggerCommand {
         debugger.console.print("unrecognized option: $name");
         return;
       }
-      var validValues = optionInfo[0];
+      dynamic validValues = optionInfo[0];
       if (!validValues.contains(value)) {
         debugger.console.print("'${value}' is not in ${validValues}");
         return;
       }
-      var setHandler = optionInfo[1];
+      dynamic setHandler = optionInfo[1];
       await setHandler(debugger, name, value);
     } else {
       debugger.console.print("set expects 0, 1, or 2 arguments");

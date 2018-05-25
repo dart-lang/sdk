@@ -94,10 +94,10 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
         if (loc.tokenPos != null) {
           line = _loadedScript.tokenToLine(loc.tokenPos);
         } else {
-          line = loc.line;
+          line = (loc as dynamic).line;
         }
       } else {
-        line = loc.line;
+        line = (loc as dynamic).line;
       }
       if ((line == null) || ((line >= _startLine) && (line <= _endLine))) {
         _r.dirty();
@@ -170,7 +170,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
   void _scrollToCurrentPos() {
     var lines = getElementsByClassName(makeLineClass(_currentLine));
     if (lines.length > 0) {
-      lines[0].scrollIntoView();
+      (lines[0] as dynamic).scrollIntoView();
     }
   }
 
@@ -227,7 +227,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
       reports.add(S.Isolate.kProfileReport);
     }
     S.Isolate isolate = _isolate as S.Isolate;
-    var sourceReport =
+    dynamic sourceReport =
         await isolate.getSourceReport(reports, script, _startPos, _endPos);
     _possibleBreakpointLines =
         S.getPossibleBreakpointLines(sourceReport, script);

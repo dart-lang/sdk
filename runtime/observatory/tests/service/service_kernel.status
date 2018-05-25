@@ -139,6 +139,3 @@ rewind_test: Pass, RuntimeError
 set_name_rpc_test: RuntimeError # Please triage.
 unused_changes_in_last_reload_test: Skip # Times out on sim architectures.
 valid_source_locations_test: Pass, Slow, Timeout # Issue 33087
-
-[ $compiler == fasta && $strong ]
-add_breakpoint_rpc_test: CompileTimeError
