@@ -26,7 +26,12 @@ import '../problems.dart' show unhandled, unsupported;
 import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
 
 import 'forest.dart'
-    show Forest, LoadLibraryBuilder, PrefixBuilder, TypeDeclarationBuilder;
+    show
+        Forest,
+        Identifier,
+        LoadLibraryBuilder,
+        PrefixBuilder,
+        TypeDeclarationBuilder;
 
 import 'kernel_ast_api.dart'
     show
@@ -56,7 +61,6 @@ export 'kernel_expression_generator.dart'
     show
         DelayedAssignment,
         DelayedPostfixIncrement,
-        ErroneousExpressionGenerator,
         IncompleteErrorGenerator,
         IncompletePropertyAccessGenerator,
         IncompleteSendGenerator,
@@ -682,5 +686,114 @@ abstract class LargeIntAccessGenerator<Expression, Statement, Arguments>
   void printOn(StringSink sink) {
     sink.write(", lexeme: ");
     sink.write(token.lexeme);
+  }
+}
+
+abstract class ErroneousExpressionGenerator<Expression, Statement, Arguments>
+    implements Generator<Expression, Statement, Arguments> {
+  /// Pass [arguments] that must be evaluated before throwing an error.  At
+  /// most one of [isGetter] and [isSetter] should be true and they're passed
+  /// to [ExpressionGeneratorHelper.buildThrowNoSuchMethodError] if it is used.
+  Expression buildError(Arguments arguments,
+      {bool isGetter: false, bool isSetter: false, int offset});
+
+  DartType buildErroneousTypeNotAPrefix(Identifier suffix);
+
+  Name get name => unsupported("name", offsetForToken(token), uri);
+
+  @override
+  String get plainNameForRead => name.name;
+
+  withReceiver(Object receiver, int operatorOffset, {bool isNullAware}) => this;
+
+  @override
+  Initializer buildFieldInitializer(Map<String, int> initializedFields) {
+    return helper.buildInvalidInitializer(
+        buildError(forest.argumentsEmpty(token), isSetter: true));
+  }
+
+  @override
+  doInvocation(int offset, Arguments arguments) {
+    return buildError(arguments, offset: offset);
+  }
+
+  @override
+  buildPropertyAccess(
+      IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
+    return this;
+  }
+
+  @override
+  buildThrowNoSuchMethodError(Expression receiver, Arguments arguments,
+      {bool isSuper: false,
+      bool isGetter: false,
+      bool isSetter: false,
+      bool isStatic: false,
+      String name,
+      int offset,
+      LocatedMessage argMessage}) {
+    return this;
+  }
+
+  @override
+  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+    return buildError(forest.arguments(<Expression>[value], token),
+        isSetter: true);
+  }
+
+  @override
+  Expression buildCompoundAssignment(Name binaryOperator, Expression value,
+      {int offset: -1,
+      bool voidContext: false,
+      Procedure interfaceTarget,
+      bool isPreIncDec: false}) {
+    return buildError(forest.arguments(<Expression>[value], token),
+        isGetter: true);
+  }
+
+  @override
+  Expression buildPrefixIncrement(Name binaryOperator,
+      {int offset: -1, bool voidContext: false, Procedure interfaceTarget}) {
+    // TODO(ahe): For the Analyzer, we probably need to build a prefix
+    // increment node that wraps an error.
+    return buildError(
+        forest.arguments(
+            <Expression>[storeOffset(forest.literalInt(1, null), offset)],
+            token),
+        isGetter: true);
+  }
+
+  @override
+  Expression buildPostfixIncrement(Name binaryOperator,
+      {int offset: -1, bool voidContext: false, Procedure interfaceTarget}) {
+    // TODO(ahe): For the Analyzer, we probably need to build a post increment
+    // node that wraps an error.
+    return buildError(
+        forest.arguments(
+            <Expression>[storeOffset(forest.literalInt(1, null), offset)],
+            token),
+        isGetter: true);
+  }
+
+  @override
+  Expression buildNullAwareAssignment(
+      Expression value, DartType type, int offset,
+      {bool voidContext: false}) {
+    return buildError(forest.arguments(<Expression>[value], token),
+        isSetter: true);
+  }
+
+  @override
+  Expression buildSimpleRead() =>
+      buildError(forest.argumentsEmpty(token), isGetter: true);
+
+  @override
+  Expression makeInvalidRead() =>
+      buildError(forest.argumentsEmpty(token), isGetter: true);
+
+  @override
+  Expression makeInvalidWrite(Expression value) {
+    return buildError(forest.arguments(<Expression>[value], token),
+        isSetter: true);
   }
 }

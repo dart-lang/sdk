@@ -15,118 +15,6 @@
 /// superclass should use the forest API in a factory method.
 part of 'kernel_expression_generator.dart';
 
-abstract class ErroneousExpressionGenerator implements KernelGenerator {
-  /// Pass [arguments] that must be evaluated before throwing an error.  At
-  /// most one of [isGetter] and [isSetter] should be true and they're passed
-  /// to [ExpressionGeneratorHelper.buildThrowNoSuchMethodError] if it is used.
-  Expression buildError(Arguments arguments,
-      {bool isGetter: false, bool isSetter: false, int offset});
-
-  DartType buildErroneousTypeNotAPrefix(Identifier suffix);
-
-  Name get name => unsupported("name", offsetForToken(token), uri);
-
-  @override
-  String get plainNameForRead => name.name;
-
-  withReceiver(Object receiver, int operatorOffset, {bool isNullAware}) => this;
-
-  @override
-  Initializer buildFieldInitializer(Map<String, int> initializedFields) {
-    return helper.buildInvalidInitializer(
-        buildError(forest.argumentsEmpty(noLocation), isSetter: true));
-  }
-
-  @override
-  doInvocation(int offset, Arguments arguments) {
-    return buildError(arguments, offset: offset);
-  }
-
-  @override
-  buildPropertyAccess(
-      IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
-    return this;
-  }
-
-  @override
-  buildThrowNoSuchMethodError(Expression receiver, Arguments arguments,
-      {bool isSuper: false,
-      bool isGetter: false,
-      bool isSetter: false,
-      bool isStatic: false,
-      String name,
-      int offset,
-      LocatedMessage argMessage}) {
-    return this;
-  }
-
-  @override
-  Expression buildAssignment(Expression value, {bool voidContext: false}) {
-    return buildError(forest.arguments(<Expression>[value], noLocation),
-        isSetter: true);
-  }
-
-  @override
-  Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      Procedure interfaceTarget,
-      bool isPreIncDec: false}) {
-    return buildError(forest.arguments(<Expression>[value], token),
-        isGetter: true);
-  }
-
-  @override
-  Expression buildPrefixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      Procedure interfaceTarget}) {
-    // TODO(ahe): For the Analyzer, we probably need to build a prefix
-    // increment node that wraps an error.
-    return buildError(
-        forest.arguments(
-            <Expression>[storeOffset(forest.literalInt(1, null), offset)],
-            noLocation),
-        isGetter: true);
-  }
-
-  @override
-  Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      Procedure interfaceTarget}) {
-    // TODO(ahe): For the Analyzer, we probably need to build a post increment
-    // node that wraps an error.
-    return buildError(
-        forest.arguments(
-            <Expression>[storeOffset(forest.literalInt(1, null), offset)],
-            noLocation),
-        isGetter: true);
-  }
-
-  @override
-  Expression buildNullAwareAssignment(
-      Expression value, DartType type, int offset,
-      {bool voidContext: false}) {
-    return buildError(forest.arguments(<Expression>[value], noLocation),
-        isSetter: true);
-  }
-
-  @override
-  Expression buildSimpleRead() =>
-      buildError(forest.argumentsEmpty(noLocation), isGetter: true);
-
-  @override
-  Expression makeInvalidRead() =>
-      buildError(forest.argumentsEmpty(noLocation), isGetter: true);
-
-  @override
-  Expression makeInvalidWrite(Expression value) {
-    return buildError(forest.arguments(<Expression>[value], noLocation),
-        isSetter: true);
-  }
-}
-
 class ThisAccessGenerator extends KernelGenerator {
   final bool isInitializer;
 
@@ -330,7 +218,7 @@ abstract class IncompleteSendGenerator extends KernelGenerator {
 }
 
 class UnresolvedNameGenerator extends KernelGenerator
-    with ErroneousExpressionGenerator {
+    with ErroneousExpressionGenerator<Expression, Statement, Arguments> {
   @override
   final Name name;
 
@@ -388,7 +276,7 @@ class UnresolvedNameGenerator extends KernelGenerator
 }
 
 class IncompleteErrorGenerator extends IncompleteSendGenerator
-    with ErroneousExpressionGenerator {
+    with ErroneousExpressionGenerator<Expression, Statement, Arguments> {
   final Message message;
 
   IncompleteErrorGenerator(

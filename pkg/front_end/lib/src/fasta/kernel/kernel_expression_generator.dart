@@ -47,6 +47,7 @@ import 'constness.dart' show Constness;
 import 'expression_generator.dart'
     show
         DeferredAccessGenerator,
+        ErroneousExpressionGenerator,
         ExpressionGenerator,
         Generator,
         IndexedAccessGenerator,
