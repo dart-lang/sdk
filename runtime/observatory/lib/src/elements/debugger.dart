@@ -1508,7 +1508,8 @@ class ObservatoryDebugger extends Debugger {
       breakOnException = isolate.exceptionsPauseInfo;
     }
 
-    isolate.reload().then((response) {
+    isolate.reload().then((serviceObject) {
+      S.Isolate response = serviceObject;
       if (response.isSentinel) {
         // The isolate has gone away.  The IsolateExit event will
         // clear the isolate for the debugger page.

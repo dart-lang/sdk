@@ -355,7 +355,8 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
   }
 
   Future loadDeclarationsOfLibrary(S.Library lib) {
-    return lib.load().then((lib) {
+    return lib.load().then((serviceObject) {
+      S.Library lib = serviceObject;
       var loads = [];
       for (var func in lib.functions) {
         loads.add(func.load());
@@ -371,7 +372,8 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
   }
 
   Future loadDeclarationsOfClass(S.Class cls) {
-    return cls.load().then((cls) {
+    return cls.load().then((serviceObject) {
+      S.Class cls = serviceObject;
       var loads = [];
       for (var func in cls.functions) {
         loads.add(func.load());
