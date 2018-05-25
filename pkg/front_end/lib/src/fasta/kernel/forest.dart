@@ -225,7 +225,7 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
       covariant initialization,
       Location leftSeparator,
       Expression condition,
-      Location rightSeparator,
+      Statement conditionStatement,
       List<Expression> updaters,
       Location rightParenthesis,
       Statement body);
@@ -316,10 +316,6 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
 
   /// Return the offset of the given [label].
   int getLabelOffset(covariant label);
-
-  /// Return the semicolon at the end of the given [statement], or `null` if the
-  /// statement is not terminated by a semicolon.
-  Location getSemicolon(Statement statement);
 
   /// Return the number of optional parameters in the list of [parameters].
   int getOptionalParameterCount(covariant parameters);

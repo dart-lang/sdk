@@ -201,7 +201,7 @@ class AstBuildingForest
           covariant initialization,
           Token leftSeparator,
           Expression condition,
-          Token rightSeparator,
+          Statement conditionStatement,
           List<Expression> updaters,
           Token rightParenthesis,
           Statement body) =>
@@ -212,7 +212,7 @@ class AstBuildingForest
           initialization,
           leftSeparator,
           condition,
-          rightSeparator,
+          getSemicolon(conditionStatement),
           updaters,
           rightParenthesis,
           body);
@@ -263,7 +263,8 @@ class AstBuildingForest
     return count;
   }
 
-  @override
+  /// Return the semicolon at the end of the given [statement], or `null` if the
+  /// statement is not terminated by a semicolon.
   Token getSemicolon(Statement statement) {
     if (statement is ExpressionStatement) {
       return statement.semicolon;

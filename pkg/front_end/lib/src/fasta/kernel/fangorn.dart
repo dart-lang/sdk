@@ -393,7 +393,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
       covariant initialization,
       Token leftSeparator,
       Expression condition,
-      Token rightSeparator,
+      Statement conditionStatement,
       List<Expression> updaters,
       Token rightParenthesis,
       Statement body) {
@@ -560,9 +560,6 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
 
   @override
   int getLabelOffset(Label label) => label.charOffset;
-
-  @override
-  Token getSemicolon(Statement statement) => null;
 
   @override
   bool isBlock(Object node) => node is Block;

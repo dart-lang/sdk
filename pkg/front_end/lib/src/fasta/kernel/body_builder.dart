@@ -1874,14 +1874,11 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       continueTarget.resolveContinues(forest, body);
     }
     Expression condition;
-    Token rightSeparator;
     if (forest.isExpressionStatement(conditionStatement)) {
       condition =
           forest.getExpressionFromExpressionStatement(conditionStatement);
-      rightSeparator = forest.getSemicolon(conditionStatement);
     } else {
       assert(forest.isEmptyStatement(conditionStatement));
-      rightSeparator = forest.getSemicolon(conditionStatement);
     }
     Statement result = forest.forStatement(
         forKeyword,
@@ -1890,7 +1887,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         variables,
         leftSeparator,
         condition,
-        rightSeparator,
+        conditionStatement,
         updates,
         leftParen.endGroup,
         body);
