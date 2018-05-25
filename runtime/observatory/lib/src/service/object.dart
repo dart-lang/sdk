@@ -654,6 +654,7 @@ class _EventStreamState {
 abstract class VM extends ServiceObjectOwner implements M.VM {
   VM get vm => this;
   Isolate get isolate => null;
+  WebSocketVMTarget get target;
 
   // TODO(turnidge): The connection should not be stored in the VM object.
   bool get isDisconnected;
@@ -1077,6 +1078,9 @@ class FakeVM extends VM {
     }
     return new Future.value(response);
   }
+
+  @override
+  WebSocketVMTarget get target => throw new UnimplementedError();
 }
 
 /// Snapshot in time of tag counters.
