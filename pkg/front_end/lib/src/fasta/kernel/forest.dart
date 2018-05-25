@@ -456,6 +456,10 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
       Expression expression,
       String plainNameForRead);
 
+  Generator<Expression, Statement, Arguments> largeIntAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Location location);
+
   // TODO(ahe): Remove this method when all users are moved here.
   kernel.Arguments castArguments(Arguments arguments) {
     dynamic a = arguments;

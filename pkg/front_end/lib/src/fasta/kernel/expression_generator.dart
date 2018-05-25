@@ -14,6 +14,7 @@ import '../fasta_codes.dart'
         LocatedMessage,
         messageInvalidInitializer,
         templateDeferredTypeAnnotation,
+        templateIntegerLiteralIsOutOfRange,
         templateNotAType;
 
 import '../names.dart' show lengthName;
@@ -59,7 +60,6 @@ export 'kernel_expression_generator.dart'
         IncompleteErrorGenerator,
         IncompletePropertyAccessGenerator,
         IncompleteSendGenerator,
-        LargeIntAccessGenerator,
         ParenthesizedExpressionGenerator,
         SendAccessGenerator,
         ThisAccessGenerator,
@@ -649,4 +649,38 @@ abstract class ReadOnlyAccessGenerator<Expression, Statement, Arguments>
 
   @override
   String get debugName => "ReadOnlyAccessGenerator";
+}
+
+abstract class LargeIntAccessGenerator<Expression, Statement, Arguments>
+    implements Generator<Expression, Statement, Arguments> {
+  factory LargeIntAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token) {
+    return helper.forest.largeIntAccessGenerator(helper, token);
+  }
+
+  // TODO(ahe): This should probably be calling unhandled.
+  @override
+  String get plainNameForRead => null;
+
+  @override
+  String get debugName => "LargeIntAccessGenerator";
+
+  Expression buildError() {
+    return helper.buildCompileTimeError(
+        templateIntegerLiteralIsOutOfRange.withArguments(token),
+        offsetForToken(token),
+        lengthForToken(token));
+  }
+
+  @override
+  Expression doInvocation(int offset, Arguments arguments) {
+    return buildError();
+  }
+
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", lexeme: ");
+    sink.write(token.lexeme);
+  }
 }

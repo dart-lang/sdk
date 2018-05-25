@@ -349,6 +349,14 @@ class AstBuildingForest
       astFactory.labeledStatement(target.labels.cast<Label>(), statement);
 
   @override
+  Generator<Expression, Statement, _Arguments> largeIntAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+      Token token) {
+    // TODO(brianwilkerson) Implement this.
+    throw new UnimplementedError();
+  }
+
+  @override
   Expression literalBool(bool value, Token location) =>
       astFactory.booleanLiteral(location, value)
         ..staticType = _typeProvider?.boolType;

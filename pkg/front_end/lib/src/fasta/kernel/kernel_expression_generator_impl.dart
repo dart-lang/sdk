@@ -15,55 +15,6 @@
 /// superclass should use the forest API in a factory method.
 part of 'kernel_expression_generator.dart';
 
-class LargeIntAccessGenerator extends KernelGenerator {
-  LargeIntAccessGenerator(
-      ExpressionGeneratorHelper<dynamic, dynamic, dynamic> helper, Token token)
-      : super(helper, token);
-
-  // TODO(ahe): This should probably be calling unhandled.
-  String get plainNameForRead => null;
-
-  String get debugName => "LargeIntAccessGenerator";
-
-  @override
-  Expression _makeSimpleRead() => buildError();
-
-  @override
-  Expression _makeSimpleWrite(Expression value, bool voidContext,
-      ShadowComplexAssignment complexAssignment) {
-    return buildError();
-  }
-
-  @override
-  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
-    return buildError();
-  }
-
-  @override
-  Expression _makeWrite(Expression value, bool voidContext,
-      ShadowComplexAssignment complexAssignment) {
-    return buildError();
-  }
-
-  Expression buildError() {
-    return helper.buildCompileTimeError(
-        templateIntegerLiteralIsOutOfRange.withArguments(token),
-        offsetForToken(token),
-        lengthForToken(token));
-  }
-
-  @override
-  Expression doInvocation(int offset, Arguments arguments) {
-    return buildError();
-  }
-
-  @override
-  void printOn(StringSink sink) {
-    sink.write(", lexeme: ");
-    sink.write(token.lexeme);
-  }
-}
-
 abstract class ErroneousExpressionGenerator implements KernelGenerator {
   /// Pass [arguments] that must be evaluated before throwing an error.  At
   /// most one of [isGetter] and [isSetter] should be true and they're passed

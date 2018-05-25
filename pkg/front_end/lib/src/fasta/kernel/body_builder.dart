@@ -1600,7 +1600,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     debugEvent("LiteralInt");
     int value = int.parse(token.lexeme, onError: (_) => null);
     if (value == null) {
-      push(new LargeIntAccessGenerator(this, token));
+      push(new LargeIntAccessGenerator<Expression, Statement, Arguments>(
+          this, token));
     } else {
       push(forest.literalInt(value, token));
     }
@@ -2454,7 +2455,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       if (optional("-", token)) {
         operator = "unary-";
 
-        if (receiver is LargeIntAccessGenerator) {
+        if (receiver
+            is LargeIntAccessGenerator<Expression, Statement, Arguments>) {
           int value =
               int.parse("-" + receiver.token.lexeme, onError: (_) => null);
           if (value != null) {

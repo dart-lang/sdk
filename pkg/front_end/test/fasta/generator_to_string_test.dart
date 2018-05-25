@@ -59,6 +59,7 @@ import 'package:front_end/src/fasta/kernel/kernel_expression_generator.dart'
         IncompletePropertyAccessGenerator,
         KernelDeferredAccessGenerator,
         KernelIndexedAccessGenerator,
+        KernelLargeIntAccessGenerator,
         KernelLoadLibraryGenerator,
         KernelNullAwarePropertyAccessGenerator,
         KernelPropertyAccessGenerator,
@@ -70,7 +71,6 @@ import 'package:front_end/src/fasta/kernel/kernel_expression_generator.dart'
         KernelThisPropertyAccessGenerator,
         KernelTypeUseGenerator,
         KernelVariableUseGenerator,
-        LargeIntAccessGenerator,
         ParenthesizedExpressionGenerator,
         SendAccessGenerator,
         ThisAccessGenerator,
@@ -217,7 +217,7 @@ main() {
         " plainNameForRead: foo, value: null)",
         new KernelReadOnlyAccessGenerator(helper, token, expression, "foo"));
     check("LargeIntAccessGenerator(offset: 4, lexeme: myToken)",
-        new LargeIntAccessGenerator(helper, token));
+        new KernelLargeIntAccessGenerator(helper, token));
     check(
         "ParenthesizedExpressionGenerator(offset: 4, expression: expression,"
         " plainNameForRead: null, value: null)",

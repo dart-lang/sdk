@@ -13,7 +13,6 @@ import '../fasta_codes.dart'
         LocatedMessage,
         messageLoadLibraryTakesNoArguments,
         messageSuperAsExpression,
-        templateIntegerLiteralIsOutOfRange,
         templateNotAPrefixInTypeAnnotation,
         templateUnresolvedPrefixInTypeAnnotation;
 
@@ -51,6 +50,7 @@ import 'expression_generator.dart'
         ExpressionGenerator,
         Generator,
         IndexedAccessGenerator,
+        LargeIntAccessGenerator,
         LoadLibraryGenerator,
         NullAwarePropertyAccessGenerator,
         PropertyAccessGenerator,
@@ -1399,6 +1399,34 @@ class KernelReadOnlyAccessGenerator extends KernelGenerator
     sink.write(plainNameForRead);
     sink.write(", value: ");
     printNodeOn(value, sink, syntheticNames: syntheticNames);
+  }
+}
+
+class KernelLargeIntAccessGenerator extends KernelGenerator
+    with LargeIntAccessGenerator<Expression, Statement, Arguments> {
+  KernelLargeIntAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token)
+      : super(helper, token);
+
+  @override
+  Expression _makeSimpleRead() => buildError();
+
+  @override
+  Expression _makeSimpleWrite(Expression value, bool voidContext,
+      ShadowComplexAssignment complexAssignment) {
+    return buildError();
+  }
+
+  @override
+  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+    return buildError();
+  }
+
+  @override
+  Expression _makeWrite(Expression value, bool voidContext,
+      ShadowComplexAssignment complexAssignment) {
+    return buildError();
   }
 }
 
