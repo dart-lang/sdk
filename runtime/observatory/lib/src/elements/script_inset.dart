@@ -928,7 +928,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
   /// children have been added, and only supports one node at a time.
   static void _makeCssClassUncopyable(Element root, String className) {
     var noCopyNodes = root.getElementsByClassName(className);
-    for (var node in noCopyNodes) {
+    for (HtmlElement node in noCopyNodes) {
       node.style.setProperty('-moz-user-select', 'none');
       node.style.setProperty('-khtml-user-select', 'none');
       node.style.setProperty('-webkit-user-select', 'none');
@@ -938,11 +938,11 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
     root.onCopy.listen((event) {
       // Mark the nodes as hidden before the copy happens, then mark them as
       // visible on the next event loop turn.
-      for (var node in noCopyNodes) {
+      for (HtmlElement node in noCopyNodes) {
         node.style.visibility = 'hidden';
       }
       Timer.run(() {
-        for (var node in noCopyNodes) {
+        for (HtmlElement node in noCopyNodes) {
           node.style.visibility = 'visible';
         }
       });

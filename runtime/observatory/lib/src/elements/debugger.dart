@@ -65,7 +65,7 @@ class HelpCommand extends DebuggerCommand {
       var commands = debugger.cmd.matchCommand([], false);
       commands.sort((a, b) => a.name.compareTo(b.name));
       con.print('List of commands:\n');
-      for (var command in commands) {
+      for (DebuggerCommand command in commands) {
         con.print('${_nameAndAlias(command).padRight(12)} '
             '- ${command.helpShort}');
       }
@@ -88,7 +88,7 @@ class HelpCommand extends DebuggerCommand {
         return new Future.value(null);
       }
       con.print('');
-      for (var command in commands) {
+      for (DebuggerCommand command in commands) {
         con.printBold(_nameAndAlias(command));
         con.print(command.helpLong);
 
@@ -101,7 +101,7 @@ class HelpCommand extends DebuggerCommand {
         if (subCommands.isNotEmpty) {
           subCommands.sort((a, b) => a.name.compareTo(b.name));
           con.print('Subcommands:\n');
-          for (var subCommand in subCommands) {
+          for (DebuggerCommand subCommand in subCommands) {
             con.print('    ${subCommand.fullName.padRight(16)} '
                 '- ${subCommand.helpShort}');
           }
