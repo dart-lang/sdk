@@ -75,7 +75,7 @@ class ClassAllocationProfileElement extends HtmlElement implements Renderable {
       children = const [];
       return;
     }
-    final content = [
+    final content = <HtmlElement>[
       new SampleBufferControlElement(_vm, _progress, _progressStream,
           selectedTag: _tag, queue: _r.queue)
         ..onTagChange.listen((e) {

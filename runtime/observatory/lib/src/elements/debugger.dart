@@ -696,7 +696,7 @@ class SetCommand extends DebuggerCommand {
     if (args.length < 1 || args.length > 2) {
       return new Future.value([args.join('')]);
     }
-    var result = [];
+    var result = <String>[];
     if (args.length == 1) {
       var prefix = args[0];
       for (var option in _options.keys) {
@@ -931,7 +931,7 @@ class DeleteCommand extends DebuggerCommand {
       }
       toRemove.add(bptToRemove);
     }
-    List pending = [];
+    List<Future> pending = [];
     for (var bpt in toRemove) {
       pending.add(debugger.isolate.removeBreakpoint(bpt));
     }
@@ -1041,7 +1041,7 @@ class IsolateCommand extends DebuggerCommand {
     if (args.length != 1) {
       return new Future.value([args.join('')]);
     }
-    var result = [];
+    var result = <String>[];
     for (var isolate in debugger.vm.isolates) {
       var str = isolate.number.toString();
       if (str.startsWith(args[0])) {
@@ -1086,7 +1086,7 @@ class IsolateListCommand extends DebuggerCommand {
     }
 
     // Refresh all isolates first.
-    var pending = [];
+    var pending = <Future>[];
     for (var isolate in debugger.vm.isolates) {
       pending.add(isolate.reload());
     }
@@ -1517,7 +1517,7 @@ class ObservatoryDebugger extends Debugger {
       }
       // TODO(turnidge): Currently the debugger relies on all libs
       // being loaded.  Fix this.
-      var pending = [];
+      var pending = <Future>[];
       for (var lib in response.libraries) {
         if (!lib.loaded) {
           pending.add(lib.load());
@@ -1915,7 +1915,7 @@ class ObservatoryDebugger extends Debugger {
         await isolate.addBreakpoint(script, line);
       } else {
         // TODO(turnidge): Clear this breakpoint at current column.
-        var pending = [];
+        var pending = <Future>[];
         for (var bpt in bpts) {
           pending.add(isolate.removeBreakpoint(bpt));
         }

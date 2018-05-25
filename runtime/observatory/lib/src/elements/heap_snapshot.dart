@@ -188,7 +188,7 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
   VirtualTreeElement _tree;
 
   List<Element> _createReport() {
-    var report = [
+    var report = <HtmlElement>[
       new DivElement()
         ..classes = ['content-centered-big']
         ..children = [

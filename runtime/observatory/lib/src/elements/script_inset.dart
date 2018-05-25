@@ -357,7 +357,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
   Future loadDeclarationsOfLibrary(S.Library lib) {
     return lib.load().then((serviceObject) {
       S.Library lib = serviceObject;
-      var loads = [];
+      var loads = <Future>[];
       for (var func in lib.functions) {
         loads.add(func.load());
       }
@@ -374,7 +374,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
   Future loadDeclarationsOfClass(S.Class cls) {
     return cls.load().then((serviceObject) {
       S.Class cls = serviceObject;
-      var loads = [];
+      var loads = <Future>[];
       for (var func in cls.functions) {
         loads.add(func.load());
       }
@@ -816,7 +816,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
         });
       } else {
         // Existing breakpoint.  Remove it.
-        List pending = [];
+        List<Future> pending = [];
         for (var bpt in line.breakpoints) {
           pending.add(line.script.isolate.removeBreakpoint(bpt));
         }
