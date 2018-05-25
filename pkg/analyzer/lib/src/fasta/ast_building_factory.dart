@@ -226,43 +226,6 @@ class AstBuildingForest
   @override
   int getLabelOffset(Label label) => label.offset;
 
-  @override
-  int getOptionalParameterCount(FormalParameterList parameters) {
-    int count = 0;
-    for (FormalParameter parameter in parameters.parameters) {
-      if (!parameter.isRequired) {
-        count++;
-      }
-    }
-    return count;
-  }
-
-  @override
-  FormalParameter getRequiredParameter(
-      FormalParameterList parameters, int index) {
-    int count = 0;
-    for (FormalParameter parameter in parameters.parameters) {
-      if (parameter.isRequired) {
-        if (count == index) {
-          return parameter;
-        }
-        count++;
-      }
-    }
-    throw new IndexError(index, parameters);
-  }
-
-  @override
-  int getRequiredParameterCount(FormalParameterList parameters) {
-    int count = 0;
-    for (FormalParameter parameter in parameters.parameters) {
-      if (parameter.isRequired) {
-        count++;
-      }
-    }
-    return count;
-  }
-
   /// Return the semicolon at the end of the given [statement], or `null` if the
   /// statement is not terminated by a semicolon.
   Token getSemicolon(Statement statement) {

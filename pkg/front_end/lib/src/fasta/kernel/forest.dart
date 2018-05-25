@@ -317,16 +317,6 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   /// Return the offset of the given [label].
   int getLabelOffset(covariant label);
 
-  /// Return the number of optional parameters in the list of [parameters].
-  int getOptionalParameterCount(covariant parameters);
-
-  /// Return the required parameter from the list of [parameters] at the given
-  /// [index].
-  Object getRequiredParameter(covariant parameters, int index);
-
-  /// Return the number of required parameters in the list of [parameters].
-  int getRequiredParameterCount(covariant parameters);
-
   bool isBlock(Object node);
 
   /// Return `true` if the given [statement] is the representation of an empty

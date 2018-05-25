@@ -60,8 +60,6 @@ import 'kernel_expression_generator.dart'
         KernelTypeUseGenerator,
         KernelVariableUseGenerator;
 
-import 'body_builder.dart' show FormalParameters, OptionalFormals;
-
 import 'kernel_shadow_ast.dart'
     show
         ShadowArguments,
@@ -525,29 +523,6 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
       Token yieldKeyword, Token star, Expression expression, Token semicolon) {
     return new ShadowYieldStatement(expression, isYieldStar: star != null)
       ..fileOffset = yieldKeyword.charOffset;
-  }
-
-  @override
-  int getOptionalParameterCount(
-      FormalParameters<Expression, Statement, Arguments> parameters) {
-    OptionalFormals optional = parameters.optional;
-    if (optional == null) {
-      return 0;
-    }
-    return optional.formals.length;
-  }
-
-  @override
-  Object getRequiredParameter(
-      FormalParameters<Expression, Statement, Arguments> parameters,
-      int index) {
-    return parameters.required[index];
-  }
-
-  @override
-  int getRequiredParameterCount(
-      FormalParameters<Expression, Statement, Arguments> parameters) {
-    return parameters.required.length;
   }
 
   @override

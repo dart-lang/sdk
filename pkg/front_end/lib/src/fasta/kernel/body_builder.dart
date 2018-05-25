@@ -2372,18 +2372,19 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     if (catchKeyword != null) {
       exitLocalScope();
     }
-    Object catchParameters = popIfNotNull(catchKeyword);
+    FormalParameters<Expression, Statement, Arguments> catchParameters =
+        popIfNotNull(catchKeyword);
     Object type = popIfNotNull(onKeyword);
     Object exception;
     Object stackTrace;
     if (catchParameters != null) {
-      int requiredCount = forest.getRequiredParameterCount(catchParameters);
-      int optionalCount = forest.getOptionalParameterCount(catchParameters);
-      if ((requiredCount == 1 || requiredCount == 2) && optionalCount == 0) {
-        exception = forest.getRequiredParameter(catchParameters, 0);
+      int requiredCount = catchParameters.required.length;
+      if ((requiredCount == 1 || requiredCount == 2) &&
+          catchParameters.optional == null) {
+        exception = catchParameters.required[0];
         forest.setParameterType(exception, type);
         if (requiredCount == 2) {
-          stackTrace = forest.getRequiredParameter(catchParameters, 1);
+          stackTrace = catchParameters.required[1];
           forest.setParameterType(
               stackTrace, coreTypes.stackTraceClass.rawType);
         }
