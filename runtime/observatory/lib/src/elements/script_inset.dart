@@ -1065,7 +1065,7 @@ class BreakpointAnnotation extends Annotation {
   BreakpointAnnotation(M.IsolateRef isolate, M.ObjectRepository objects,
       RenderingQueue queue, this.bpt)
       : super(isolate, objects, queue) {
-    var script = bpt.location.script;
+    S.Script script = bpt.location.script;
     var location = bpt.location;
     if (location.tokenPos != null) {
       var pos = location.tokenPos;
@@ -1089,7 +1089,7 @@ class BreakpointAnnotation extends Annotation {
     if (element == null) {
       return; // TODO(rmacnak): Handling overlapping annotations.
     }
-    var script = bpt.location.script;
+    S.Script script = bpt.location.script;
     var pos = bpt.location.tokenPos;
     int line = script.tokenToLine(pos);
     int column = script.tokenToCol(pos);

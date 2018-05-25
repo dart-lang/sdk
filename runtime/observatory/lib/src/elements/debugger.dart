@@ -1697,20 +1697,20 @@ class ObservatoryDebugger extends Debugger {
   void onEvent(S.ServiceEvent event) {
     switch (event.kind) {
       case S.ServiceEvent.kVMUpdate:
-        var vm = event.owner;
+        S.VM vm = event.owner;
         console.print("VM ${vm.displayName} renamed to '${vm.name}'");
         break;
 
       case S.ServiceEvent.kIsolateStart:
         {
-          var iso = event.owner;
+          S.Isolate iso = event.owner;
           console.print("Isolate ${iso.number} '${iso.name}' has been created");
         }
         break;
 
       case S.ServiceEvent.kIsolateExit:
         {
-          var iso = event.owner;
+          S.Isolate iso = event.owner;
           if (iso == isolate) {
             console.print("The current isolate ${iso.number} '${iso.name}' "
                 "has exited");
@@ -1735,7 +1735,7 @@ class ObservatoryDebugger extends Debugger {
         break;
 
       case S.ServiceEvent.kIsolateUpdate:
-        var iso = event.owner;
+        S.Isolate iso = event.owner;
         console.print("Isolate ${iso.number} renamed to '${iso.name}'");
         break;
 
@@ -2019,7 +2019,7 @@ class DebuggerPageElement extends HtmlElement implements Renderable {
     assert(objects != null);
     assert(scripts != null);
     assert(events != null);
-    final e = document.createElement(tag.name);
+    final DebuggerPageElement e = document.createElement(tag.name);
     final debugger = new ObservatoryDebugger(isolate);
     debugger.page = e;
     debugger.objects = objects;
@@ -2210,7 +2210,7 @@ class DebuggerStackElement extends HtmlElement implements Renderable {
     assert(objects != null);
     assert(scripts != null);
     assert(events != null);
-    final e = document.createElement(tag.name);
+    final DebuggerStackElement e = document.createElement(tag.name);
     e._isolate = isolate;
     e._debugger = debugger;
     e._scroller = scroller;
