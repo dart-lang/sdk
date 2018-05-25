@@ -252,7 +252,7 @@ class ClassViewElement extends HtmlElement implements Renderable {
                         new ButtonElement()
                           ..text = 'disable'
                           ..onClick.listen((e) async {
-                            e.target.disabled = true;
+                            (e.target as ButtonElement).disabled = true;
                             await _profiles.disable(_isolate, _cls);
                             _loadProfile = true;
                             _refresh();
@@ -263,7 +263,7 @@ class ClassViewElement extends HtmlElement implements Renderable {
                         new ButtonElement()
                           ..text = 'enable'
                           ..onClick.listen((e) async {
-                            e.target.disabled = true;
+                            (e.target as ButtonElement).disabled = true;
                             await _profiles.enable(_isolate, _cls);
                             _refresh();
                           })
