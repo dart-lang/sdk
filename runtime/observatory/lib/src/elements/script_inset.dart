@@ -433,9 +433,9 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
       }
     }
     if (targetUri.scheme == 'package') {
-      targetUri = "packages/${targetUri.path}";
+      var targetUriString = "packages/${targetUri.path}";
       for (M.Library l in script.isolate.libraries) {
-        if (targetUri.toString() == l.uri) {
+        if (targetUriString == l.uri) {
           return l;
         }
       }
