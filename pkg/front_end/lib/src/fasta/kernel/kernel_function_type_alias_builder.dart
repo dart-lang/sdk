@@ -101,7 +101,7 @@ class KernelFunctionTypeAliasBuilder
 
     if (arguments == null && typeVariables != null) {
       List<DartType> result =
-          new List<DartType>.filled(typeVariables.length, null);
+          new List<DartType>.filled(typeVariables.length, null, growable: true);
       for (int i = 0; i < result.length; ++i) {
         result[i] = typeVariables[i].defaultType.build(library);
       }
@@ -120,7 +120,8 @@ class KernelFunctionTypeAliasBuilder
     }
 
     // arguments.length == typeVariables.length
-    List<DartType> result = new List<DartType>.filled(arguments.length, null);
+    List<DartType> result =
+        new List<DartType>.filled(arguments.length, null, growable: true);
     for (int i = 0; i < result.length; ++i) {
       result[i] = arguments[i].build(library);
     }
