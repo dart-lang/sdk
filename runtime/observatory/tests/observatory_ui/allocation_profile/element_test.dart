@@ -89,7 +89,7 @@ main() {
       e
           .querySelectorAll(rTag)
           .sublist(1, 4)
-          .forEach((NavRefreshElement e) => e.refresh());
+          .forEach((e) => (e as NavRefreshElement).refresh());
       e.remove();
       await e.onRendered.first;
       expect(e.children.length, isZero, reason: 'is empty');
