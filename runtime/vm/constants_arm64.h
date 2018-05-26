@@ -522,8 +522,10 @@ enum MiscDP2SourceOp {
 enum MiscDP3SourceOp {
   MiscDP3SourceMask = 0x1f000000,
   MiscDP3SourceFixed = DPRegisterFixed | B28 | B24,
-  MADD = MiscDP3SourceFixed,
-  MSUB = MiscDP3SourceFixed | B15,
+  MADDW = MiscDP3SourceFixed,
+  MADD = MiscDP3SourceFixed | B31,
+  MSUBW = MiscDP3SourceFixed | B15,
+  MSUB = MiscDP3SourceFixed | B31 | B15,
   SMULH = MiscDP3SourceFixed | B31 | B22,
   UMULH = MiscDP3SourceFixed | B31 | B23 | B22,
   SMADDL = MiscDP3SourceFixed | B31 | B21,
