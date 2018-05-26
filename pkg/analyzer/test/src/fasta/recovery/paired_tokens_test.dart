@@ -84,7 +84,6 @@ f<T extends List<int>> = () => null;
 
   @failingTest
   void test_typeArguments_inner_last() {
-    // Parser crashes
     testRecovery('''
 List<List<int>
 ''', [ScannerErrorCode.EXPECTED_TOKEN], '''
@@ -94,7 +93,6 @@ List<List<int>> _s_;
 
   @failingTest
   void test_typeArguments_inner_notLast() {
-    // Parser crashes
     testRecovery('''
 Map<List<int, List<String>>
 ''', [ScannerErrorCode.EXPECTED_TOKEN], '''
@@ -102,13 +100,29 @@ Map<List<int>, List<String>> _s_;
 ''');
   }
 
+  void test_typeArguments_inner_notLast2() {
+    // TODO(danrubel): Investigate better recovery.
+    testRecovery('''
+Map<List<int, List<String>> f;
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+Map<List<int, List<String>>> f;
+''');
+  }
+
   @failingTest
   void test_typeArguments_outer_last() {
-    // Parser crashes
     testRecovery('''
 List<int
 ''', [ScannerErrorCode.EXPECTED_TOKEN], '''
 List<int> _s_;
+''');
+  }
+
+  void test_typeArguments_missing_comma() {
+    testRecovery('''
+List<int double> f;
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+List<int, double> f;
 ''');
   }
 

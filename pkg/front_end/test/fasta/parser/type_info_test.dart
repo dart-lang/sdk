@@ -890,7 +890,7 @@ class TypeParamOrArgInfoTest {
     Token gtgt = start.next.next.next;
     expect(gtgt.lexeme, '>>');
 
-    TypeParamOrArgInfo typeVarInfo = computeTypeParamOrArg(start, gtgt);
+    TypeParamOrArgInfo typeVarInfo = computeTypeParamOrArg(start, false, gtgt);
     expect(typeVarInfo, simpleTypeArgument1, reason: source);
   }
 
@@ -1260,9 +1260,10 @@ void expectNestedComplexInfo(String source) {
 }
 
 TypeInfo compute(expectedInfo, String source, Token start, bool required,
-    {Token innerEndGroup}) {
+    {bool inDeclaration = false, Token innerEndGroup}) {
   int expectedGtGtAndNullEndCount = countGtGtAndNullEnd(start);
-  TypeInfo typeInfo = computeType(start, required, innerEndGroup);
+  TypeInfo typeInfo =
+      computeType(start, required, inDeclaration, innerEndGroup);
   expect(typeInfo, expectedInfo, reason: source);
   expect(countGtGtAndNullEnd(start), expectedGtGtAndNullEndCount,
       reason: 'computeType should not modify the token stream');

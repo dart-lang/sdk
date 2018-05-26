@@ -99,7 +99,7 @@ Token skipMetadata(Token token) {
         next = token.next;
       }
     }
-    if (optional('(', next)) {
+    if (optional('(', next) && !next.endGroup.isSynthetic) {
       token = next.endGroup;
       next = token.next;
     }

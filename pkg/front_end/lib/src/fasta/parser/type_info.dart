@@ -130,15 +130,19 @@ bool isValidTypeReference(Token token) {
 /// Called by the parser to obtain information about a possible type reference
 /// that follows [token]. This does not modify the token stream.
 ///
+/// If [inDeclaration] is `true`, then this will more aggressively recover
+/// given unbalanced `<` `>` and invalid parameters or arguments.
+///
 /// If this method is called by [computeTypeParamOrArg] and the outer group ends
 /// with `>>`, then then [innerEndGroup] is set to either `>>` if the token
 /// has not been split or the first `>` if the `>>` token has been split.
-TypeInfo computeType(final Token token, bool required, [Token innerEndGroup]) {
+TypeInfo computeType(final Token token, bool required,
+    [bool inDeclaration = false, Token innerEndGroup]) {
   Token next = token.next;
   if (!isValidTypeReference(next)) {
     if (next.type.isBuiltIn) {
       TypeParamOrArgInfo typeParamOrArg =
-          computeTypeParamOrArg(next, innerEndGroup);
+          computeTypeParamOrArg(next, inDeclaration, innerEndGroup);
       if (typeParamOrArg != noTypeParamOrArg) {
         // Recovery: built-in `<` ... `>`
         if (required || looksLikeName(typeParamOrArg.skip(next).next)) {
@@ -159,7 +163,7 @@ TypeInfo computeType(final Token token, bool required, [Token innerEndGroup]) {
     } else if (required && optional('.', next)) {
       // Recovery: looks like prefixed type missing the prefix
       return new ComplexTypeInfo(
-              token, computeTypeParamOrArg(next, innerEndGroup))
+              token, computeTypeParamOrArg(next, inDeclaration, innerEndGroup))
           .computePrefixedType(required);
     }
     return noType;
@@ -185,7 +189,7 @@ TypeInfo computeType(final Token token, bool required, [Token innerEndGroup]) {
   // We've seen an identifier.
 
   TypeParamOrArgInfo typeParamOrArg =
-      computeTypeParamOrArg(next, innerEndGroup);
+      computeTypeParamOrArg(next, inDeclaration, innerEndGroup);
   if (typeParamOrArg != noTypeParamOrArg) {
     if (typeParamOrArg == simpleTypeArgument1) {
       // We've seen identifier `<` identifier `>`
@@ -215,7 +219,8 @@ TypeInfo computeType(final Token token, bool required, [Token innerEndGroup]) {
     next = next.next;
     if (isValidTypeReference(next)) {
       // We've seen identifier `.` identifier
-      typeParamOrArg = computeTypeParamOrArg(next, innerEndGroup);
+      typeParamOrArg =
+          computeTypeParamOrArg(next, inDeclaration, innerEndGroup);
       next = next.next;
       if (typeParamOrArg == noTypeParamOrArg &&
           !isGeneralizedFunctionType(next)) {
@@ -233,7 +238,8 @@ TypeInfo computeType(final Token token, bool required, [Token innerEndGroup]) {
     }
     // identifier `.` non-identifier
     if (required) {
-      typeParamOrArg = computeTypeParamOrArg(token.next.next, innerEndGroup);
+      typeParamOrArg =
+          computeTypeParamOrArg(token.next.next, inDeclaration, innerEndGroup);
       return new ComplexTypeInfo(token, typeParamOrArg)
           .computePrefixedType(required);
     }
@@ -255,47 +261,30 @@ TypeInfo computeType(final Token token, bool required, [Token innerEndGroup]) {
 }
 
 /// Called by the parser to obtain information about a possible group of type
-/// parameters that follow [token] in a top level or class member declaration.
-/// It assumes that a leading `<` cannot be part of an expression, and thus
-/// tries to more aggressively recover given an unmatched '<'
-TypeParamOrArgInfo computeTypeParam(Token token) {
-  if (!optional('<', token.next)) {
-    return noTypeParamOrArg;
-  }
-  TypeParamOrArgInfo typeParam = computeTypeParamOrArgImpl(token);
-  if (typeParam != noTypeParamOrArg) {
-    return typeParam;
-  }
-
-  // Recovery
-  if (token.next.endGroup == null) {
-    // Attempt to find where the missing `>` should be inserted.
-    return new ComplexTypeParamOrArgInfo(token).computeUnbalanced();
-  } else {
-    // The `<` `>` are balanced but there's still a problem.
-    return new ComplexTypeParamOrArgInfo(token).computeBalancedButInvalid();
-  }
-}
-
-/// Called by the parser to obtain information about a possible group of type
 /// parameters or type arguments that follow [token].
 /// This does not modify the token stream.
+///
+/// If [inDeclaration] is `true`, then this will more aggressively recover
+/// given unbalanced `<` `>` and invalid parameters or arguments.
 ///
 /// If this method is called by [computeType] and the outer group ends
 /// with `>>`, then then [innerEndGroup] is set to either `>>` if the token
 /// has not been split or the first `>` if the `>>` token has been split.
-TypeParamOrArgInfo computeTypeParamOrArg(Token token, [Token innerEndGroup]) {
-  return optional('<', token.next)
-      ? computeTypeParamOrArgImpl(token, innerEndGroup)
-      : noTypeParamOrArg;
-}
-
-TypeParamOrArgInfo computeTypeParamOrArgImpl(Token token,
-    [Token innerEndGroup]) {
+TypeParamOrArgInfo computeTypeParamOrArg(Token token,
+    [bool inDeclaration = false, Token innerEndGroup]) {
   Token next = token.next;
-  assert(optional('<', next));
+  if (!optional('<', next)) {
+    return noTypeParamOrArg;
+  }
   Token endGroup = next.endGroup ?? innerEndGroup;
   if (endGroup == null) {
+    if (inDeclaration) {
+      // Recovery
+      // Since the leading `<` cannot be part of an expression,
+      // try to more aggressively recover given an unbalanced '<'.
+      return new ComplexTypeParamOrArgInfo(token, inDeclaration)
+          .compute(innerEndGroup);
+    }
     return noTypeParamOrArg;
   }
   Token identifier = next.next;
@@ -306,7 +295,8 @@ TypeParamOrArgInfo computeTypeParamOrArgImpl(Token token,
     return simpleTypeArgument1;
   }
   // TODO(danrubel): Consider adding additional const for common situations.
-  return new ComplexTypeParamOrArgInfo(token).compute(innerEndGroup);
+  return new ComplexTypeParamOrArgInfo(token, inDeclaration)
+      .compute(innerEndGroup);
 }
 
 /// Called by the parser to obtain information about a possible group of type

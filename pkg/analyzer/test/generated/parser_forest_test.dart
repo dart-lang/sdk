@@ -891,6 +891,16 @@ class ErrorParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
+  void test_constructorPartial2() {
+    super.test_constructorPartial();
+  }
+
+  @failingTest
+  void test_constructorPartial3() {
+    super.test_constructorPartial();
+  }
+
+  @failingTest
   void test_constructorWithReturnType() {
     super.test_constructorWithReturnType();
   }
@@ -4276,6 +4286,11 @@ class RecoveryParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_incompleteTypeParameters2() {
     super.test_incompleteTypeParameters2();
+  }
+
+  @failingTest
+  void test_incompleteTypeParameters3() {
+    super.test_incompleteTypeParameters3();
   }
 
   @failingTest

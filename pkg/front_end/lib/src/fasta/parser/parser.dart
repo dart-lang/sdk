@@ -90,7 +90,6 @@ import 'type_info.dart'
         TypeParamOrArgInfo,
         computeMethodTypeArguments,
         computeType,
-        computeTypeParam,
         computeTypeParamOrArg,
         isGeneralizedFunctionType,
         isValidTypeReference,
@@ -1673,7 +1672,7 @@ class Parser {
     assert(optional('class', token));
     Token name =
         ensureIdentifier(token, IdentifierContext.classOrNamedMixinDeclaration);
-    token = computeTypeParam(name).parseVariables(name, this);
+    token = computeTypeParamOrArg(name, true).parseVariables(name, this);
     if (optional('=', token.next)) {
       listener.beginNamedMixinApplication(begin, abstractToken, name);
       return parseNamedMixinApplication(token, begin, classKeyword);
@@ -2309,7 +2308,7 @@ class Parser {
     }
 
     Token beforeType = token;
-    TypeInfo typeInfo = computeType(token, false);
+    TypeInfo typeInfo = computeType(token, false, true);
     token = typeInfo.skipType(token);
     next = token.next;
 
@@ -2473,7 +2472,7 @@ class Parser {
     Token token;
     bool isGetter = false;
     if (getOrSet == null) {
-      token = computeTypeParam(name).parseVariables(name, this);
+      token = computeTypeParamOrArg(name, true).parseVariables(name, this);
     } else {
       isGetter = optional("get", getOrSet);
       token = name;
@@ -2965,7 +2964,7 @@ class Parser {
     listener.beginMember();
 
     Token beforeType = token;
-    TypeInfo typeInfo = computeType(token, false);
+    TypeInfo typeInfo = computeType(token, false, true);
     token = typeInfo.skipType(token);
     next = token.next;
 
@@ -3146,7 +3145,7 @@ class Parser {
 
     bool isGetter = false;
     if (getOrSet == null) {
-      token = computeTypeParam(token).parseVariables(token, this);
+      token = computeTypeParamOrArg(token, true).parseVariables(token, this);
     } else {
       isGetter = optional("get", getOrSet);
       listener.handleNoTypeVariables(token.next);
@@ -5877,7 +5876,7 @@ class Parser {
       return reportAndSkipEnumInClass(next);
     } else if (identical(value, 'typedef')) {
       return reportAndSkipTypedefInClass(next);
-    } else if (next.isOperator) {
+    } else if (next.isOperator && next.endGroup == null) {
       return parseInvalidOperatorDeclaration(beforeStart, externalToken,
           staticToken, covariantToken, varFinalOrConst, beforeType);
     }
