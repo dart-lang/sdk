@@ -4,7 +4,6 @@
 
 import 'package:front_end/src/fasta/messages.dart';
 import 'package:front_end/src/fasta/parser.dart';
-import 'package:front_end/src/fasta/parser/token_stream_rewriter.dart';
 import 'package:front_end/src/fasta/parser/type_info.dart';
 import 'package:front_end/src/fasta/parser/type_info_impl.dart';
 import 'package:front_end/src/fasta/scanner.dart';
@@ -208,47 +207,6 @@ class TypeInfoTest {
         'handleType T >',
         'endTypeArguments 1 < >',
         'handleType C ;',
-      ]);
-      expect(listener.errors, isNull);
-    }
-
-    listener = new TypeInfoListener();
-    assertResult(
-        simpleTypeWith1Argument.ensureTypeNotVoid(start, new Parser(listener)));
-
-    listener = new TypeInfoListener();
-    assertResult(
-        simpleTypeWith1Argument.ensureTypeOrVoid(start, new Parser(listener)));
-
-    listener = new TypeInfoListener();
-    assertResult(
-        simpleTypeWith1Argument.parseTypeNotVoid(start, new Parser(listener)));
-
-    listener = new TypeInfoListener();
-    assertResult(
-        simpleTypeWith1Argument.parseType(start, new Parser(listener)));
-  }
-
-  void test_simpleTypeArgumentsInfo2() {
-    final Token start = scanString('before S<C<T>> ;').tokens.next.next;
-    expect(start.lexeme, '<');
-    final Token expectedEnd = start.next.next.next;
-    expect(expectedEnd.next.lexeme, '>>');
-
-    expect(simpleTypeWith1Argument.skipType(start), expectedEnd);
-    expect(simpleTypeWith1Argument.couldBeExpression, isFalse);
-
-    TypeInfoListener listener;
-    assertResult(Token actualEnd) {
-      expect(actualEnd, expectedEnd);
-      expect(listener.calls, [
-        'handleIdentifier C typeReference',
-        'beginTypeArguments <',
-        'handleIdentifier T typeReference',
-        'handleNoTypeArguments >>',
-        'handleType T >>',
-        'endTypeArguments 1 < T',
-        'handleType C >>',
       ]);
       expect(listener.errors, isNull);
     }
@@ -912,43 +870,6 @@ class TypeParamOrArgInfoTest {
     expect(listener.errors, isNull);
   }
 
-  void test_simple_parseArguments2() {
-    final Token start = scanString('before <S<T>> after').tokens.next.next;
-    Token t = start.next.next;
-    expect(t.next.lexeme, '>>');
-    final TypeInfoListener listener = new TypeInfoListener();
-
-    expect(simpleTypeArgument1.parseArguments(start, new Parser(listener)), t);
-    expect(listener.calls, [
-      'beginTypeArguments <',
-      'handleIdentifier T typeReference',
-      'handleNoTypeArguments >>',
-      'handleType T >>',
-      'endTypeArguments 1 < T'
-    ]);
-    expect(listener.errors, isNull);
-  }
-
-  void test_simple_parseVariables2() {
-    final Token start = scanString('before <S<T>> after').tokens.next.next;
-    Token t = start.next.next;
-    expect(t.next.lexeme, '>>');
-    final TypeInfoListener listener = new TypeInfoListener();
-
-    expect(simpleTypeArgument1.parseVariables(start, new Parser(listener)), t);
-    expect(listener.calls, [
-      'beginTypeVariables <',
-      'beginTypeVariable T',
-      'beginMetadataStar T',
-      'endMetadataStar 0',
-      'handleIdentifier T typeVariableDeclaration',
-      'handleNoType T',
-      'endTypeVariable T null',
-      'endTypeVariables 1 < T',
-    ]);
-    expect(listener.errors, isNull);
-  }
-
   void test_computeTypeParamOrArg_basic() {
     expectTypeParamOrArg(noTypeParamOrArg, '');
     expectTypeParamOrArg(noTypeParamOrArg, 'a');
@@ -1017,17 +938,6 @@ class TypeParamOrArgInfoTest {
       'handleType S >',
       'endTypeArguments 1 < >'
     ]);
-    expectComplexTypeArg('<S<T>>', splitGtGt: false, expectedCalls: [
-      'beginTypeArguments <',
-      'handleIdentifier S typeReference',
-      'beginTypeArguments <',
-      'handleIdentifier T typeReference',
-      'handleNoTypeArguments >>',
-      'handleType T >>',
-      'endTypeArguments 1 < T',
-      'handleType S >>',
-      'endTypeArguments 1 < >>'
-    ]);
     expectComplexTypeArg('<S<Function()>>', expectedCalls: [
       'beginTypeArguments <',
       'handleIdentifier S typeReference',
@@ -1041,20 +951,6 @@ class TypeParamOrArgInfoTest {
       'endTypeArguments 1 < >',
       'handleType S >',
       'endTypeArguments 1 < >'
-    ]);
-    expectComplexTypeArg('<S<Function()>>', splitGtGt: false, expectedCalls: [
-      'beginTypeArguments <',
-      'handleIdentifier S typeReference',
-      'beginTypeArguments <',
-      'handleNoTypeVariables (',
-      'beginFunctionType Function',
-      'handleNoType <',
-      'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
-      'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-      'endFunctionType Function >>',
-      'endTypeArguments 1 < )',
-      'handleType S >>',
-      'endTypeArguments 1 < >>'
     ]);
     expectComplexTypeArg('<S<void Function()>>', expectedCalls: [
       'beginTypeArguments <',
@@ -1070,22 +966,6 @@ class TypeParamOrArgInfoTest {
       'handleType S >',
       'endTypeArguments 1 < >'
     ]);
-    expectComplexTypeArg('<S<void Function()>>',
-        splitGtGt: false,
-        expectedCalls: [
-          'beginTypeArguments <',
-          'handleIdentifier S typeReference',
-          'beginTypeArguments <',
-          'handleNoTypeVariables (',
-          'beginFunctionType void', // was 'beginFunctionType Function'
-          'handleVoidKeyword void', // was 'handleNoType <'
-          'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
-          'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
-          'endFunctionType Function >>',
-          'endTypeArguments 1 < )',
-          'handleType S >>',
-          'endTypeArguments 1 < >>'
-        ]);
   }
 
   void test_computeTypeArg_complex_recovery() {
@@ -1107,18 +987,6 @@ class TypeParamOrArgInfoTest {
       'handleType S extends',
       'endTypeArguments 1 < >',
     ]);
-    expectComplexTypeArg('<S extends List<T>>',
-        splitGtGt: false,
-        expectedErrors: [
-          error(codeUnexpectedToken, 3, 7)
-        ],
-        expectedCalls: [
-          'beginTypeArguments <',
-          'handleIdentifier S typeReference',
-          'handleNoTypeArguments extends',
-          'handleType S extends',
-          'endTypeArguments 1 < >>',
-        ]);
     expectComplexTypeArg('<@A S,T>', expectedErrors: [
       error(codeUnexpectedToken, 1, 1)
     ], expectedCalls: [
@@ -1215,24 +1083,6 @@ class TypeParamOrArgInfoTest {
       'endTypeVariable > extends',
       'endTypeVariables 1 < >',
     ]);
-    expectComplexTypeParam('<S extends List<T>>',
-        splitGtGt: false,
-        expectedCalls: [
-          'beginTypeVariables <',
-          'beginTypeVariable S',
-          'beginMetadataStar S',
-          'endMetadataStar 0',
-          'handleIdentifier S typeVariableDeclaration',
-          'handleIdentifier List typeReference',
-          'beginTypeArguments <',
-          'handleIdentifier T typeReference',
-          'handleNoTypeArguments >>',
-          'handleType T >>',
-          'endTypeArguments 1 < T',
-          'handleType List >>',
-          'endTypeVariable >> extends',
-          'endTypeVariables 1 < >>',
-        ]);
     expectComplexTypeParam('<R, S extends void Function()>', expectedCalls: [
       'beginTypeVariables <',
       'beginTypeVariable R',
@@ -1364,21 +1214,6 @@ class TypeParamOrArgInfoTest {
       'endTypeVariable < null',
       'endTypeVariables 1 < >',
     ]);
-    expectComplexTypeParam('<S<T>>',
-        expectedErrors: [
-          error(codeUnexpectedToken, 2, 1),
-        ],
-        splitGtGt: false,
-        expectedCalls: [
-          'beginTypeVariables <',
-          'beginTypeVariable S',
-          'beginMetadataStar S',
-          'endMetadataStar 0',
-          'handleIdentifier S typeVariableDeclaration',
-          'handleNoType S',
-          'endTypeVariable < null',
-          'endTypeVariables 1 < >>',
-        ]);
   }
 }
 
@@ -1470,8 +1305,7 @@ ComplexTypeInfo computeComplex(
 }
 
 void expectComplexTypeArg(String source,
-    {bool splitGtGt: true,
-    String expectedAfter,
+    {String expectedAfter,
     List<String> expectedCalls,
     List<ExpectedError> expectedErrors}) {
   Token start = scan(source);
@@ -1487,16 +1321,8 @@ void expectComplexTypeArg(String source,
 
   TypeInfoListener listener = new TypeInfoListener();
   Parser parser = new Parser(listener);
-  if (!splitGtGt) {
-    parser.cachedRewriter = new TokenStreamNonRewriter();
-  }
   Token actualEnd = typeVarInfo.parseArguments(start, parser);
   expectEnd(expectedAfter, actualEnd);
-  if (!splitGtGt) {
-    expect(countGtGtAndNullEnd(start), expectedGtGtAndNullEndCount,
-        reason: 'TypeParamOrArgInfo.parseArguments'
-            ' should not modify the token stream');
-  }
 
   if (expectedCalls != null) {
     try {
@@ -1516,8 +1342,7 @@ void expectComplexTypeArg(String source,
 }
 
 void expectComplexTypeParam(String source,
-    {bool splitGtGt: true,
-    String expectedAfter,
+    {String expectedAfter,
     List<String> expectedCalls,
     List<ExpectedError> expectedErrors}) {
   Token start = scan(source);
@@ -1533,16 +1358,8 @@ void expectComplexTypeParam(String source,
 
   TypeInfoListener listener = new TypeInfoListener(metadataAllowed: true);
   Parser parser = new Parser(listener);
-  if (!splitGtGt) {
-    parser.cachedRewriter = new TokenStreamNonRewriter();
-  }
   Token actualEnd = typeVarInfo.parseVariables(start, parser);
   expectEnd(expectedAfter, actualEnd);
-  if (!splitGtGt) {
-    expect(countGtGtAndNullEnd(start), expectedGtGtAndNullEndCount,
-        reason: 'TypeParamOrArgInfo.parseVariables'
-            ' should not modify the token stream');
-  }
 
   if (expectedCalls != null) {
     try {
@@ -1811,16 +1628,4 @@ class ExpectedError {
 
   @override
   String toString() => 'error(${code.name}, $start, $length)';
-}
-
-class TokenStreamNonRewriter implements TokenStreamRewriter {
-  @override
-  Token splitGtGt(BeginToken start) {
-    Token gtgt = start.endGroup;
-    assert(gtgt != null);
-    assert(optional('>>', gtgt));
-    return gtgt;
-  }
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
