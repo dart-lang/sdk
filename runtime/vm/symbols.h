@@ -170,6 +170,7 @@ class ObjectPointerVisitor;
   V(_MixinAppType, "_MixinAppType")                                            \
   V(TypeArguments, "TypeArguments")                                            \
   V(Patch, "patch")                                                            \
+  V(Pragma, "pragma")                                                          \
   V(PatchClass, "PatchClass")                                                  \
   V(Function, "Function")                                                      \
   V(_Closure, "_Closure")                                                      \
@@ -444,6 +445,7 @@ class ObjectPointerVisitor;
   V(DartLibraryMirrors, "dart.library.mirrors")                                \
   V(_name, "_name")                                                            \
   V(name, "name")                                                              \
+  V(options, "options")                                                        \
   V(_classRangeCheck, "_classRangeCheck")                                      \
   V(_classRangeCheckNegative, "_classRangeCheckNegative")                      \
   V(_classRangeAssert, "_classRangeAssert")                                    \
@@ -454,7 +456,8 @@ class ObjectPointerVisitor;
   V(DartDeveloperCausalAsyncStacks, "dart.developer.causal_async_stacks")      \
   V(_AsyncStarListenHelper, "_asyncStarListenHelper")                          \
   V(GrowRegExpStack, "_growRegExpStack")                                       \
-  V(DebugProcedureName, ":Eval")
+  V(DebugProcedureName, ":Eval")                                               \
+  V(vm_entry_point, "vm.entry_point")
 
 // Contains a list of frequently used strings in a canonicalized form. This
 // list is kept in the vm_isolate in order to share the copy across isolates

@@ -432,23 +432,14 @@ void KernelLoader::AnnotateNativeProcedures(const Array& constant_table_array) {
   ASSERT(constant_table.Release().raw() == constant_table_array.raw());
 }
 
-RawString* KernelLoader::DetectExternalName() {
+RawString* KernelLoader::DetectExternalNameCtor() {
   builder_.ReadTag();
   builder_.ReadPosition();
   NameIndex annotation_class = H.EnclosingName(
       builder_.ReadCanonicalNameReference());  // read target reference,
-  ASSERT(H.IsClass(annotation_class));
-  StringIndex class_name_index = H.CanonicalNameString(annotation_class);
 
-  // Just compare by name, do not generate the annotation class.
-  if (!H.StringEquals(class_name_index, "ExternalName")) {
-    builder_.SkipArguments();
-    return String::null();
-  }
-  ASSERT(H.IsLibrary(H.CanonicalNameParent(annotation_class)));
-  StringIndex library_name_index =
-      H.CanonicalNameString(H.CanonicalNameParent(annotation_class));
-  if (!H.StringEquals(library_name_index, "dart:_internal")) {
+  if (!IsClassName(annotation_class, Symbols::DartInternal(),
+                   Symbols::ExternalName())) {
     builder_.SkipArguments();
     return String::null();
   }
@@ -469,6 +460,30 @@ RawString* KernelLoader::DetectExternalName() {
   ASSERT(list_length == 0);
 
   return result.raw();
+}
+
+bool KernelLoader::IsClassName(NameIndex name,
+                               const String& library,
+                               const String& klass) {
+  ASSERT(H.IsClass(name));
+  StringIndex class_name_index = H.CanonicalNameString(name);
+
+  if (!H.StringEquals(class_name_index, klass.ToCString())) {
+    return false;
+  }
+  ASSERT(H.IsLibrary(H.CanonicalNameParent(name)));
+  StringIndex library_name_index =
+      H.CanonicalNameString(H.CanonicalNameParent(name));
+  return H.StringEquals(library_name_index, library.ToCString());
+}
+
+bool KernelLoader::DetectPragmaCtor() {
+  builder_.ReadTag();
+  builder_.ReadPosition();
+  NameIndex annotation_class = H.EnclosingName(
+      builder_.ReadCanonicalNameReference());  // read target reference
+  builder_.SkipArguments();
+  return IsClassName(annotation_class, Symbols::DartCore(), Symbols::Pragma());
 }
 
 void KernelLoader::LoadNativeExtensionLibraries(
@@ -510,7 +525,7 @@ void KernelLoader::LoadNativeExtensionLibraries(
         }
       } else if (tag == kConstructorInvocation ||
                  tag == kConstConstructorInvocation) {
-        uri_path = DetectExternalName();
+        uri_path = DetectExternalNameCtor();
       } else {
         builder_.SkipExpression();
       }
@@ -1288,6 +1303,106 @@ void KernelLoader::FinishLoading(const Class& klass) {
                                    class_index, &class_helper);
 }
 
+// Read annotations on a procedure to identify potential VM-specific directives.
+//
+// Output parameters:
+//
+//   `native_name`: non-null if `ExternalName(<name>)` was identified.
+//
+//   `is_potential_native`: non-null if there may be an `ExternalName`
+//   annotation and we need to re-try after reading the constants table.
+//
+//   `has_pragma_annotation`: non-null if @pragma(...) was found (no information
+//   is given on the kind of pragma directive).
+//
+void KernelLoader::ReadProcedureAnnotations(intptr_t annotation_count,
+                                            String* native_name,
+                                            bool* is_potential_native,
+                                            bool* has_pragma_annotation) {
+  *is_potential_native = false;
+  *has_pragma_annotation = false;
+  String& detected_name = String::Handle(Z);
+  Class& pragma_class = Class::Handle(Z, I->object_store()->pragma_class());
+  for (intptr_t i = 0; i < annotation_count; ++i) {
+    const intptr_t tag = builder_.PeekTag();
+    if (tag == kConstructorInvocation || tag == kConstConstructorInvocation) {
+      const intptr_t start = builder_.ReaderOffset();
+      detected_name = DetectExternalNameCtor();
+      if (!detected_name.IsNull()) {
+        *native_name = detected_name.raw();
+        continue;
+      }
+
+      builder_.SetOffset(start);
+      if (DetectPragmaCtor()) {
+        *has_pragma_annotation = true;
+      }
+    } else if (tag == kConstantExpression) {
+      const Array& constant_table_array =
+          Array::Handle(kernel_program_info_.constants());
+      if (constant_table_array.IsNull()) {
+        // We can only read in the constant table once all classes have been
+        // finalized (otherwise we can't create instances of the classes!).
+        //
+        // We therefore delay the scanning for `ExternalName {name: ... }`
+        // constants in the annotation list to later.
+        *is_potential_native = true;
+
+        if (program_ == nullptr) {
+          builder_.SkipExpression();
+          continue;
+        }
+
+        // For pragma annotations, we seek into the constants table and peek
+        // into the Kernel representation of the constant.
+        //
+        // TODO(sjindel): Refactor `ExternalName` handling to do this as well
+        // and avoid the "potential natives" list.
+
+        builder_.ReadByte();  // Skip the tag.
+
+        const intptr_t offset_in_constant_table = builder_.ReadUInt();
+
+        AlternativeReadingScope scope(&builder_.reader_,
+                                      program_->constant_table_offset());
+
+        // Seek into the position within the constant table where we can inspect
+        // this constant's Kernel representation.
+        builder_.ReadUInt();  // skip constant table size
+        builder_.SetOffset(builder_.ReaderOffset() + offset_in_constant_table);
+        uint8_t tag = builder_.ReadTag();
+        if (tag == kInstanceConstant) {
+          *has_pragma_annotation =
+              IsClassName(builder_.ReadCanonicalNameReference(),
+                          Symbols::DartCore(), Symbols::Pragma());
+        }
+      } else {
+        KernelConstantsMap constant_table(constant_table_array.raw());
+        builder_.ReadByte();  // Skip the tag.
+
+        // Obtain `dart:_internal::ExternalName.name`.
+        EnsureExternalClassIsLookedUp();
+
+        const intptr_t constant_table_index = builder_.ReadUInt();
+        const Object& constant =
+            Object::Handle(constant_table.GetOrDie(constant_table_index));
+        if (constant.clazz() == external_name_class_.raw()) {
+          const Instance& instance =
+              Instance::Handle(Instance::RawCast(constant.raw()));
+          *native_name =
+              String::RawCast(instance.GetField(external_name_field_));
+        } else if (constant.clazz() == pragma_class.raw()) {
+          *has_pragma_annotation = true;
+        }
+        ASSERT(constant_table.Release().raw() == constant_table_array.raw());
+      }
+    } else {
+      builder_.SkipExpression();
+      continue;
+    }
+  }
+}
+
 void KernelLoader::LoadProcedure(const Library& library,
                                  const Class& owner,
                                  bool in_class,
@@ -1304,78 +1419,14 @@ void KernelLoader::LoadProcedure(const Library& library,
   bool is_method = in_class && !procedure_helper.IsStatic();
   bool is_abstract = procedure_helper.IsAbstract();
   bool is_external = procedure_helper.IsExternal();
-  String* native_name = NULL;
-  intptr_t annotation_count;
-  bool is_potential_native = false;
-  if (is_external) {
-    // Maybe it has a native implementation, which is not external as far as
-    // the VM is concerned because it does have an implementation.  Check for
-    // an ExternalName annotation and extract the string from it.
-    annotation_count = builder_.ReadListLength();  // read list length.
-    for (int i = 0; i < annotation_count; ++i) {
-      const intptr_t tag = builder_.PeekTag();
-      if (tag == kConstructorInvocation || tag == kConstConstructorInvocation) {
-        String& detected_name = String::Handle(DetectExternalName());
-        if (detected_name.IsNull()) continue;
-
-        is_external = false;
-        native_name = &detected_name;
-
-        // Skip remaining annotations
-        for (++i; i < annotation_count; ++i) {
-          builder_.SkipExpression();  // read ith annotation.
-        }
-      } else if (tag == kConstantExpression) {
-        if (kernel_program_info_.constants() == Array::null()) {
-          // We can only read in the constant table once all classes have been
-          // finalized (otherwise we can't create instances of the classes!).
-          //
-          // We therefore delay the scanning for `ExternalName {name: ... }`
-          // constants in the annotation list to later.
-          is_potential_native = true;
-          builder_.SkipExpression();
-        } else {
-          builder_.ReadByte();  // Skip the tag.
-
-          // Obtain `dart:_internal::ExternalName.name`.
-          EnsureExternalClassIsLookedUp();
-
-          const Array& constant_table_array =
-              Array::Handle(kernel_program_info_.constants());
-          KernelConstantsMap constant_table(constant_table_array.raw());
-
-          // We have a candiate.  Let's look if it's an instance of the
-          // ExternalName class.
-          const intptr_t constant_table_index = builder_.ReadUInt();
-          const Object& constant =
-              Object::Handle(constant_table.GetOrDie(constant_table_index));
-          ASSERT(constant_table.Release().raw() == constant_table_array.raw());
-          if (constant.clazz() == external_name_class_.raw()) {
-            const Instance& instance =
-                Instance::Handle(Instance::RawCast(constant.raw()));
-
-            // We found the annotation, let's flag the function as native and
-            // set the native name!
-            native_name = &String::Handle(
-                String::RawCast(instance.GetField(external_name_field_)));
-
-            // Skip remaining annotations
-            for (++i; i < annotation_count; ++i) {
-              builder_.SkipExpression();  // read ith annotation.
-            }
-            break;
-          }
-        }
-      } else {
-        builder_.SkipExpression();
-        continue;
-      }
-    }
-    procedure_helper.SetJustRead(ProcedureHelper::kAnnotations);
-  } else {
-    procedure_helper.ReadUntilIncluding(ProcedureHelper::kAnnotations);
-    annotation_count = procedure_helper.annotation_count_;
-  }
+  String& native_name = String::Handle(Z);
+  bool is_potential_native;
+  bool has_pragma_annotation;
+  const intptr_t annotation_count = builder_.ReadListLength();
+  ReadProcedureAnnotations(annotation_count, &native_name, &is_potential_native,
+                           &has_pragma_annotation);
+  is_external = is_external && native_name.IsNull();
+  procedure_helper.SetJustRead(ProcedureHelper::kAnnotations);
   const Object& script_class =
       ClassForScriptAt(owner, procedure_helper.source_uri_index_);
   RawFunction::Kind kind = GetFunctionType(procedure_helper.kind_);
@@ -1384,8 +1435,9 @@ void KernelLoader::LoadProcedure(const Library& library,
                        !is_method,  // is_static
                        false,       // is_const
                        is_abstract, is_external,
-                       native_name != NULL,  // is_native
+                       !native_name.IsNull(),  // is_native
                        script_class, procedure_helper.position_));
+  function.set_has_pragma(has_pragma_annotation);
   function.set_end_token_pos(procedure_helper.end_position_);
   functions_.Add(&function);
   function.set_kernel_offset(procedure_offset);
@@ -1426,8 +1478,8 @@ void KernelLoader::LoadProcedure(const Library& library,
   }
   ASSERT(function_node_helper.async_marker_ == FunctionNodeHelper::kSync);
 
-  if (native_name != NULL) {
-    function.set_native_name(*native_name);
+  if (!native_name.IsNull()) {
+    function.set_native_name(native_name);
   }
   if (is_potential_native) {
     EnsurePotentialNatives();
@@ -1451,7 +1503,7 @@ void KernelLoader::LoadProcedure(const Library& library,
                 .IsNull());
   }
 
-  if (FLAG_enable_mirrors && annotation_count > 0) {
+  if (annotation_count > 0) {
     library.AddFunctionMetadata(function, TokenPosition::kNoSource,
                                 procedure_offset);
   }

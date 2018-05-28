@@ -900,6 +900,7 @@ type ListConstant extends Constant {
 
 type InstanceConstant extends Constant {
   Byte tag = 7;
+  CanonicalNameReference class;
   List<DartType> typeArguments;
   List<[FieldReference, ConstantReference]> values;
 }
