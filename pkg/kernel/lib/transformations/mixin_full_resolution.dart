@@ -232,11 +232,13 @@ class MixinFullResolution {
       }
     }
 
-    // This class implements the mixin type.
+    // This class implements the mixin type.  Implementations can rely on it
+    // occurring last.
     class_.implementedTypes.add(class_.mixedInType);
 
     // This class is now a normal class.
     class_.mixedInType = null;
+    class_.isSyntheticMixinImplementation = true;
   }
 
   Constructor buildForwardingConstructor(
