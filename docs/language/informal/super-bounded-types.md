@@ -2,7 +2,7 @@
 
 **Author**: eernst@.
 
-**Version**: 0.5 (2018-01-11).
+**Version**: 0.6 (2018-05-25).
 
 **Status**: Under implementation.
 
@@ -348,6 +348,51 @@ super-bounded. Similarly, `G<Object>` is a super-bounded type because
 `void Function(A<Object>)` is well-bounded because `A<Object>` is
 super-bounded.*
 
+*Note that it is necessary to require that the right hand side of a type
+alias declaration is taken into account when determining that a given
+application of a type alias to an actual type argument list is correctly
+super-bounded. That is, we do not think that it is possible for a
+(reasonable) constraint specification mechanism on the formal type
+parameters of a type alias declaration to ensure that all arguments
+satisfying those constraints will also be suitable for the type on the
+right hand side. In particular, we may use simple upper bounds and
+F-bounded constraints (as we have always done), perform and pass the
+'correctly super-bounded' check on a given parameterized type based on a
+type alias, and still have a right hand side which is not well-bounded:*
+```dart
+class B<X extends List<num>> {}
+typedef H<Y extends num> = void Function(B<List<Y>>);
+typedef K<Y extends num> = B<List<Y>> Function(B<List<Y>>);
+
+H<Object> myH = null; // Error!
+```
+*`H<Object>` is a compile-time error because it is not regular-bounded
+(`Object <: num` does not hold), and it is also not correctly
+super-bounded: `Null` does satisfy the constraint in the declaration of
+`Y`, but `H<Object>` gives rise to the right hand side
+`void Function(B<List<Object>>)`, and that is not a well-bounded type:
+It is not regular-bounded (`List<Object> <: List<num>` does not hold),
+and it does not become a regular-bounded type by the type replacements
+(that yield `void Function(B<List<Object>>)` because that occurrence of
+`Object` is contravariant).*
+
+*Semantically, this failure may be motivated by the fact that `H<Object>`,
+were it allowed, would not be a supertype of `H<T>` for all the `T` where
+`H<T>` is regular-bounded. So it would not be capable of playing the role
+as a "default type" that abstracts over all the possible actual types that
+are expressible using `H`. For example, a variable declared like
+`List<H<Object>> x;` would not be allowed to hold a value of type
+`List<H<num>>` because the latter is not a subtype of the former.*
+
+*In the given situation it is possible to express such a default type:
+`H<Null>` is actually a common supertype of `H<T>` for all `T` such that
+`H<T>` is regular-bounded. However, `K` shows that this is not always the
+case: There is no type `S` such that `K<S>` is a common supertype of `K<T>`
+for all those `T` where `K<T>` is regular-bounded. Facing this situation,
+we prefer to bail out rather than implicitly allow some kind of
+super-bounded type (assuming that we amend the rules such that it is not an
+error) which would not abstract over all possible instantiations anyway.*
+
 *The subtype relations for super-bounded types follow directly from the
 extension of generic covariance to include actual type arguments that
 violate the declared bounds. For the example in the Motivation section, `D`
@@ -534,6 +579,9 @@ class types like `C<C<dynamic>>` that we have already argued are useful.
 
 
 ## Updates
+
+*   Version 0.6 (2018-05-25), added example showing why we must check the
+    right hand side of type aliases.
 
 *   Version 0.5 (2018-01-11), generalized to allow replacement of top types
     covariantly and bottom types contravariantly. Introduced checks on
