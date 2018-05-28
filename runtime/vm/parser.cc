@@ -5585,16 +5585,6 @@ bool Parser::IsPatchAnnotation(TokenPosition pos) {
   return IsSymbol(Symbols::Patch());
 }
 
-bool Parser::IsPragmaAnnotation(TokenPosition pos) {
-  if (pos == TokenPosition::kNoSource) {
-    return false;
-  }
-  TokenPosScope saved_pos(this);
-  SetPosition(pos);
-  ExpectToken(Token::kAT);
-  return IsSymbol(Symbols::Pragma());
-}
-
 TokenPosition Parser::SkipMetadata() {
   if (CurrentToken() != Token::kAT) {
     return TokenPosition::kNoSource;
@@ -5976,8 +5966,6 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
     ConsumeToken();
     is_external = true;
   }
-  const bool has_pragma = IsPragmaAnnotation(metadata_pos);
-
   // Parse optional result type.
   if (IsFunctionReturnType()) {
     // It is too early to resolve the type here, since it can be a result type
@@ -6011,7 +5999,7 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
                        /* is_abstract = */ false, is_external,
                        /* is_native = */ false,  // May change.
                        owner, decl_begin_pos));
-  func.set_has_pragma(has_pragma);
+
   ASSERT(innermost_function().IsNull());
   innermost_function_ = func.raw();
 

@@ -857,6 +857,7 @@ static Dart_QualifiedFunctionName standalone_entry_points[] = {
     {"dart:isolate", "::", "_getIsolateScheduleImmediateClosure"},
     {"dart:isolate", "::", "_setupHooks"},
     {"dart:isolate", "::", "_startMainIsolate"},
+    {"dart:vmservice_io", "::", "main"},
     // Fields
     {"dart:_builtin", "::", "_isolateId"},
     {"dart:_builtin", "::", "_loadPort"},

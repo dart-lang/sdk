@@ -11097,10 +11097,10 @@ RawObject* StreamingFlowGraphBuilder::EvaluateMetadata(
   intptr_t list_length = ReadListLength();  // read list length.
   const Array& metadata_values =
       Array::Handle(Z, Array::New(list_length, H.allocation_space()));
-  Instance& value = Instance::Handle(Z);
   for (intptr_t i = 0; i < list_length; ++i) {
     // this will (potentially) read the expression, but reset the position.
-    value = constant_evaluator_.EvaluateExpression(ReaderOffset());
+    Instance& value = Instance::ZoneHandle(
+        Z, constant_evaluator_.EvaluateExpression(ReaderOffset()));
     SkipExpression();  // read (actual) initializer.
     metadata_values.SetAt(i, value);
   }

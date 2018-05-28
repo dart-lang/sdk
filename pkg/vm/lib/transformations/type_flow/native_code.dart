@@ -11,7 +11,6 @@ import 'dart:io' show File;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/library_index.dart' show LibraryIndex;
-import 'package:kernel/core_types.dart' show CoreTypes;
 
 // TODO(alexmarkov): Move findNativeName out of treeshaker and avoid dependency
 // on unrelated transformation.
@@ -30,66 +29,6 @@ abstract class EntryPointsListener {
 
   /// Add instantiation of the given class.
   ConcreteType addAllocatedClass(Class c);
-}
-
-/// Some entry points are not listed in any JSON file but are marked with the
-/// `@pragma('vm.entry_point', ...)` annotation instead.
-///
-/// Currently Procedure`s (action "call") can be annotated in this way.
-//
-// TODO(sjindel): Support all types of entry points.
-class PragmaEntryPointsVisitor extends RecursiveVisitor {
-  final EntryPointsListener entryPoints;
-  final CoreTypes coreTypes;
-
-  PragmaEntryPointsVisitor(this.coreTypes, this.entryPoints);
-
-  bool _definesRoot(InstanceConstant constant) {
-    if (constant.classReference.node != coreTypes.pragmaClass) return false;
-
-    Constant name = constant.fieldValues[coreTypes.pragmaName.reference];
-    assertx(name != null);
-    if (name is! StringConstant ||
-        (name as StringConstant).value != "vm.entry_point") {
-      return false;
-    }
-
-    Constant options = constant.fieldValues[coreTypes.pragmaOptions.reference];
-    assertx(options != null);
-    if (options is NullConstant) return true;
-    return options is BoolConstant && options.value;
-  }
-
-  bool _annotationsDefineRoot(List<Expression> annotations) {
-    for (var annotation in annotations) {
-      if (annotation is ConstantExpression) {
-        Constant constant = annotation.constant;
-        if (constant is InstanceConstant) {
-          if (_definesRoot(constant)) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
-  }
-
-  @override
-  visitClass(Class klass) {
-    if (_annotationsDefineRoot(klass.annotations)) {
-      entryPoints.addAllocatedClass(klass);
-    }
-    klass.visitChildren(this);
-  }
-
-  @override
-  visitProcedure(Procedure proc) {
-    if (_annotationsDefineRoot(proc.annotations)) {
-      entryPoints.addRawCall(proc.isInstanceMember
-          ? new InterfaceSelector(proc, callKind: CallKind.Method)
-          : new DirectSelector(proc, callKind: CallKind.Method));
-    }
-  }
 }
 
 /// Provides insights into the behavior of native code.

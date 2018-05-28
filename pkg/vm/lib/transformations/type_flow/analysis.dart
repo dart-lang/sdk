@@ -12,7 +12,6 @@ import 'dart:math' show max;
 import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
 import 'package:kernel/class_hierarchy.dart' show ClosedWorldClassHierarchy;
 import 'package:kernel/library_index.dart' show LibraryIndex;
-import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/type_environment.dart';
 
 import 'calls.dart';
@@ -1149,7 +1148,7 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
   final Map<Member, Summary> _summaries = <Member, Summary>{};
   final Map<Field, _FieldValue> _fieldValues = <Field, _FieldValue>{};
 
-  TypeFlowAnalysis(Component component, CoreTypes coreTypes,
+  TypeFlowAnalysis(
       ClosedWorldClassHierarchy hierarchy, this.environment, this.libraryIndex,
       {List<String> entryPointsJSONFiles})
       : nativeCodeOracle = new NativeCodeOracle(libraryIndex) {
@@ -1162,8 +1161,6 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
     if (entryPointsJSONFiles != null) {
       nativeCodeOracle.processEntryPointsJSONFiles(entryPointsJSONFiles, this);
     }
-
-    component.accept(new PragmaEntryPointsVisitor(coreTypes, this));
   }
 
   _Invocation get currentInvocation => workList.callStack.last;

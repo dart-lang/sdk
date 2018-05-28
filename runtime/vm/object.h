@@ -2870,8 +2870,7 @@ class Function : public Object {
   V(External, is_external)                                                     \
   V(GeneratedBody, is_generated_body)                                          \
   V(AlwaysInline, always_inline)                                               \
-  V(PolymorphicTarget, is_polymorphic_target)                                  \
-  V(HasPragma, has_pragma)
+  V(PolymorphicTarget, is_polymorphic_target)
 
 #define DEFINE_ACCESSORS(name, accessor_name)                                  \
   void set_##accessor_name(bool value) const {                                 \

@@ -220,10 +220,6 @@ void ObjectStore::InitKnownObjects() {
   ASSERT(!cls.IsNull());
   set_compiletime_error_class(cls);
 
-  cls = core_lib.LookupClassAllowPrivate(Symbols::Pragma());
-  ASSERT(!cls.IsNull());
-  set_pragma_class(cls);
-
   // Cache the core private functions used for fast instance of checks.
   simple_instance_of_function_ =
       PrivateObjectLookup(Symbols::_simpleInstanceOf());

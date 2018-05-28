@@ -56,7 +56,6 @@ class ObjectPointerVisitor;
   RW(TypeArguments, type_argument_string)                                      \
   RW(TypeArguments, type_argument_int)                                         \
   RW(Class, compiletime_error_class)                                           \
-  RW(Class, pragma_class)                                                      \
   RW(Class, future_class)                                                      \
   RW(Class, completer_class)                                                   \
   RW(Class, stream_iterator_class)                                             \

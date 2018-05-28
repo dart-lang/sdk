@@ -51,8 +51,7 @@ Component transformComponent(
   Statistics.reset();
   final analysisStopWatch = new Stopwatch()..start();
 
-  final typeFlowAnalysis = new TypeFlowAnalysis(
-      component, coreTypes, hierarchy, types, libraryIndex,
+  final typeFlowAnalysis = new TypeFlowAnalysis(hierarchy, types, libraryIndex,
       entryPointsJSONFiles: entryPoints);
 
   Procedure main = component.mainMethod;

@@ -313,7 +313,6 @@ void Precompiler::DoCompileAll(
 
         // Start with the allocations and invocations that happen from C++.
         AddRoots(embedder_entry_points);
-        AddAnnotatedRoots();
 
         // Compile newly found targets and add their callees until we reach a
         // fixed point.
@@ -340,7 +339,6 @@ void Precompiler::DoCompileAll(
       Class& null_class = Class::Handle(Z);
       Function& null_function = Function::Handle(Z);
       I->object_store()->set_future_class(null_class);
-      I->object_store()->set_pragma_class(null_class);
       I->object_store()->set_completer_class(null_class);
       I->object_store()->set_stream_iterator_class(null_class);
       I->object_store()->set_symbol_class(null_class);
@@ -734,14 +732,14 @@ void PrecompilerEntryPointsPrinter::DescribeClass(JSONWriter* writer,
 }
 
 void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
-  PrecompilerEntryPointsPrinter entry_points_printer(zone());
-
   // Note that <rootlibrary>.main is not a root. The appropriate main will be
   // discovered through _getMainClosure.
 
   AddSelector(Symbols::NoSuchMethod());
 
   AddSelector(Symbols::Call());  // For speed, not correctness.
+
+  PrecompilerEntryPointsPrinter entry_points_printer(zone());
 
   // Allocated from C++.
   Class& cls = Class::Handle(Z);
@@ -1504,61 +1502,6 @@ void Precompiler::AddInstantiatedClass(const Class& cls) {
   const Class& superclass = Class::Handle(cls.SuperClass());
   if (!superclass.IsNull()) {
     AddInstantiatedClass(superclass);
-  }
-}
-
-// Adds all values annotated with @pragma('vm.entry_point') as roots.
-void Precompiler::AddAnnotatedRoots() {
-  auto& lib = Library::Handle(Z);
-  auto& cls = Class::Handle(isolate()->object_store()->pragma_class());
-  auto& functions = Array::Handle(Z);
-  auto& function = Function::Handle(Z);
-  auto& metadata = Array::Handle(Z);
-  auto& pragma = Object::Handle(Z);
-  auto& pragma_options = Object::Handle(Z);
-  auto& pragma_name_field = Field::Handle(Z, cls.LookupField(Symbols::name()));
-  auto& pragma_options_field =
-      Field::Handle(Z, cls.LookupField(Symbols::options()));
-
-  for (intptr_t i = 0; i < libraries_.Length(); i++) {
-    lib ^= libraries_.At(i);
-    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
-    while (it.HasNext()) {
-      cls = it.GetNextClass();
-      functions = cls.functions();
-      for (intptr_t k = 0; k < functions.Length(); k++) {
-        function ^= functions.At(k);
-        if (!function.has_pragma()) continue;
-        metadata ^= lib.GetMetadata(function);
-        if (metadata.IsNull()) continue;
-
-        bool is_entry_point = false;
-        for (intptr_t i = 0; i < metadata.Length(); i++) {
-          pragma = metadata.At(i);
-          if (pragma.clazz() != isolate()->object_store()->pragma_class()) {
-            continue;
-          }
-          if (Instance::Cast(pragma).GetField(pragma_name_field) !=
-              Symbols::vm_entry_point().raw()) {
-            continue;
-          }
-          pragma_options =
-              Instance::Cast(pragma).GetField(pragma_options_field);
-          if (pragma_options.raw() == Bool::null() ||
-              pragma_options.raw() == Bool::True().raw()) {
-            is_entry_point = true;
-            break;
-          }
-        }
-
-        if (!is_entry_point) continue;
-
-        AddFunction(function);
-        if (function.IsGenerativeConstructor()) {
-          AddInstantiatedClass(cls);
-        }
-      }
-    }
   }
 }
 

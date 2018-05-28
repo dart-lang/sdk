@@ -163,7 +163,7 @@ Future _performConstantEvaluation(
     constants.transformComponent(component, vmConstants,
         keepFields: true,
         strongMode: true,
-        evaluateAnnotations: true,
+        evaluateAnnotations: false,
         enableAsserts: enableAsserts,
         errorReporter:
             new ForwardConstantEvaluationErrors(context, typeEnvironment));
