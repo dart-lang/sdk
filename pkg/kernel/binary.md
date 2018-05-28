@@ -286,8 +286,7 @@ type Class extends Node {
   UriReference fileUri;
   FileOffset fileOffset;
   FileOffset fileEndOffset;
-  Byte flags (isAbstract, isEnum, isSyntheticMixinApplication,
-              xx); // Where xx is index into ClassLevel
+  Byte flags (isAbstract, isEnum, xx); // Where xx is index into ClassLevel
   StringReference name;
   List<Expression> annotations;
   List<TypeParameter> typeParameters;
