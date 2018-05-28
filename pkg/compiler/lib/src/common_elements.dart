@@ -1118,6 +1118,9 @@ class CommonElements {
   FunctionEntity get instantiatedGenericFunctionType =>
       _findHelperFunction('instantiatedGenericFunctionType');
 
+  FunctionEntity get extractFunctionTypeObjectFromInternal =>
+      _findHelperFunction('extractFunctionTypeObjectFromInternal');
+
   // From dart:_internal
 
   ClassEntity _symbolImplementationClass;

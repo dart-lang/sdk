@@ -774,6 +774,7 @@ class BackendImpacts {
         _commonElements.instantiate2,
         _commonElements.instantiate3,
         _commonElements.instantiatedGenericFunctionType,
+        _commonElements.extractFunctionTypeObjectFromInternal,
       ], instantiatedClasses: [
         _commonElements.instantiation1Class,
         _commonElements.instantiation2Class,

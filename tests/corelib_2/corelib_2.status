@@ -196,10 +196,6 @@ list_test/none: Crash # Unsupported operation: Unsupported type parameter type n
 map_test: Crash # tests/corelib_2/map_test.dart:903:7: Internal problem: Unhandled Null in installDefaultConstructor.
 symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') should be allowed.
 
-[ $compiler == dart2js && $fast_startup ]
-apply3_test: RuntimeError
-dynamic_nosuchmethod_test: RuntimeError
-
 [ $compiler == dart2js && $fast_startup && $fasta && $strong ]
 cast_test: RuntimeError
 error_stack_trace1_test: RuntimeError
