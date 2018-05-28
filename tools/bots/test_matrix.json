@@ -436,6 +436,29 @@
     },
     {
       "builders": [
+        "app-kernel-linux-debug-x64",
+        "app-kernel-linux-product-x64",
+        "app-kernel-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the vm kernel app builder group."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime_kernel"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": ["--compiler=app_jitk", "--strong"]
+        }
+      ]
+    },
+    {
+      "builders": [
         "ddc-linux-release-chrome",
         "ddc-win-release-chrome"
       ],

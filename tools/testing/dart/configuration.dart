@@ -187,6 +187,7 @@ class Configuration {
   /// as the first stage of compilation.
   bool get usesFasta {
     var fastaCompilers = const [
+      Compiler.appJitk,
       Compiler.dartdevk,
       Compiler.dartk,
       Compiler.dartkp,
@@ -546,6 +547,7 @@ class Compiler {
   static const dartdevc = const Compiler._('dartdevc');
   static const dartdevk = const Compiler._('dartdevk');
   static const appJit = const Compiler._('app_jit');
+  static const appJitk = const Compiler._('app_jitk');
   static const dartk = const Compiler._('dartk');
   static const dartkp = const Compiler._('dartkp');
   static const specParser = const Compiler._('spec_parser');
@@ -561,6 +563,7 @@ class Compiler {
     dartdevc,
     dartdevk,
     appJit,
+    appJitk,
     dartk,
     dartkp,
     specParser,
@@ -614,6 +617,7 @@ class Compiler {
       case Compiler.dart2analyzer:
         return const [Runtime.none];
       case Compiler.appJit:
+      case Compiler.appJitk:
       case Compiler.dartk:
         return const [Runtime.vm, Runtime.selfCheck];
       case Compiler.precompiler:
@@ -647,6 +651,7 @@ class Compiler {
       case Compiler.dart2analyzer:
         return Runtime.none;
       case Compiler.appJit:
+      case Compiler.appJitk:
       case Compiler.dartk:
         return Runtime.vm;
       case Compiler.precompiler:
@@ -805,6 +810,7 @@ class Runtime {
       ].contains(this);
 
   bool get isIE => name.startsWith("ie");
+
   bool get isSafari => name.startsWith("safari");
 
   /// Whether this runtime is a command-line JavaScript environment.

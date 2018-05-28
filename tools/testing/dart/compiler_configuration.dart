@@ -68,6 +68,9 @@ abstract class CompilerConfiguration {
       case Compiler.appJit:
         return new AppJitCompilerConfiguration(configuration);
 
+      case Compiler.appJitk:
+        return new AppJitCompilerConfiguration(configuration, useDfe: true);
+
       case Compiler.precompiler:
         return new PrecompilerCompilerConfiguration(configuration);
 
@@ -910,7 +913,11 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
 }
 
 class AppJitCompilerConfiguration extends CompilerConfiguration {
-  AppJitCompilerConfiguration(Configuration configuration)
+  // This boolean is used by the [VMTestSuite] for running cc tests via
+  // run_vm_tests.
+  final bool useDfe;
+
+  AppJitCompilerConfiguration(Configuration configuration, {this.useDfe: false})
       : super._subclass(configuration);
 
   int get timeoutMultiplier {
@@ -934,6 +941,9 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
     var exec = "${_configuration.buildDirectory}/dart";
     var snapshot = "$tempDir/out.jitsnapshot";
     var args = ["--snapshot=$snapshot", "--snapshot-kind=app-jit"];
+    if (useDfe) {
+      args.add("--preview-dart-2");
+    }
     args.addAll(arguments);
 
     return Command.compilation('app_jit', tempDir, bootstrapDependencies(),
@@ -965,6 +975,9 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
     if (_isChecked) {
       args.add('--enable_asserts');
       args.add('--enable_type_checks');
+    }
+    if (useDfe) {
+      args.add('--preview-dart-2');
     }
     args
       ..addAll(vmOptions)

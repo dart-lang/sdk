@@ -374,7 +374,7 @@ mirrors/symbol_validation_test: RuntimeError # Issue 13596
 
 # All these tests have been migrated as strong mode compatible tests to
 # lib_2, so skipping these tests for dartk and dartkp
-[ $compiler == dartk || $compiler == dartkp ]
+[ $compiler == app_jitk || $compiler == dartk || $compiler == dartkp ]
 *: SkipByDesign
 
 [ $runtime == chrome || $runtime == ff ]
