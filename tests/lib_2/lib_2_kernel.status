@@ -10,6 +10,24 @@
 # missing a section you need, please reach out to sigmund@ to see the best way
 # to add them.
 
+[ $compiler == app_jitk ]
+async/async_await_sync_completer_test: RuntimeError
+async/future_test/01: RuntimeError
+async/future_test/none: RuntimeError
+async/slow_consumer2_test: RuntimeError
+async/stream_controller_async_test: RuntimeError
+async/stream_distinct_test: RuntimeError
+async/stream_join_test: RuntimeError
+async/stream_subscription_as_future_test: RuntimeError
+async/timer_not_available_test: RuntimeError
+isolate/issue_21398_parent_isolate1_test: RuntimeError
+isolate/issue_22778_test: Crash
+isolate/kill_self_synchronously_test: RuntimeError
+isolate/message_test: RuntimeError
+isolate/mint_maker_test: RuntimeError
+isolate/ping_pause_test: Skip # Timeout
+isolate/static_function_test: RuntimeError
+
 [ $compiler == fasta ]
 html/*: Skip # TODO(ahe): Make dart:html available.
 isolate/browser/*: Skip # TODO(ahe): Make dart:html available.
@@ -44,6 +62,10 @@ mirrors/invocation_fuzz_test/false: Pass, Crash, RuntimeError # Flaky on vm-kern
 mirrors/invocation_fuzz_test/none: Pass, Crash, RuntimeError # Flaky on vm-kernel-optcounter-threshold-linux-release-x64, bug #31838
 mirrors/invocation_fuzz_test/smi: Crash, RuntimeError, Fail, Pass # Crashes on opt counter builder (#31838)
 mirrors/invocation_fuzz_test/string: Pass, Crash, RuntimeError # Flaky on vm-kernel-optcounter-threshold-linux-release-x64, bug #31838
+
+[ $compiler == app_jitk && $mode == product ]
+isolate/spawn_function_custom_class_test: Skip # Timeout
+isolate/spawn_uri_nested_vm_test: Skip # Timeout
 
 [ $compiler != dart2js && $fasta && !$strong ]
 isolate/browser/compute_this_script_browser_test: CompileTimeError
@@ -322,7 +344,7 @@ typed_data/float32x4_static_test: MissingCompileTimeError
 typed_data/int32x4_static_test/01: MissingCompileTimeError
 typed_data/int32x4_static_test/02: MissingCompileTimeError
 
-[ $compiler == dartk || $compiler == dartkp ]
+[ $compiler == app_jitk || $compiler == dartk || $compiler == dartkp ]
 html/*: SkipByDesign
 isolate/browser/*: SkipByDesign
 js/*: SkipByDesign

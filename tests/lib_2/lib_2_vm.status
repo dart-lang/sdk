@@ -14,7 +14,7 @@ convert/streamed_conversion_json_utf8_decode_test: Skip # Verification not yet i
 [ $arch == simarm64 && $runtime == vm ]
 convert/utf85_test: Skip # Pass, Slow Issue 20111.
 
-[ $compiler != dartk && $runtime == vm ]
+[ $compiler != app_jitk && $compiler != dartk && $runtime == vm ]
 convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeouts.
 html/*: SkipByDesign # dart:html not supported on VM.
 js/datetime_roundtrip_test: CompileTimeError
@@ -32,10 +32,10 @@ mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a
 mirrors/native_class_test: SkipByDesign # Imports dart:html
 mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError
 
-[ $compiler != dartk && $runtime == vm && !$checked ]
+[ $compiler != app_jitk && $compiler != dartk && $runtime == vm && !$checked ]
 mirrors/inference_and_no_such_method_test: RuntimeError
 
-[ $compiler != dartk && $runtime == vm && $strong ]
+[ $compiler != app_jitk && $compiler != dartk && $runtime == vm && $strong ]
 async/future_or_only_in_async_test/00: MissingCompileTimeError
 
 [ $compiler != dartk && $runtime == vm && !$strong ]

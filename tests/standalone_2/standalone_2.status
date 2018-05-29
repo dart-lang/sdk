@@ -69,7 +69,7 @@ float_array_static_test: MissingCompileTimeError
 io/*: Skip # Issue 30618
 
 # All static_tests have expected compile-time errors.
-[ $compiler != dart2analyzer && $compiler != dartdevc && $compiler != dartk && $compiler != dartkp && $runtime != none && $strong ]
+[ $compiler != app_jitk && $compiler != dart2analyzer && $compiler != dartdevc && $compiler != dartk && $compiler != dartkp && $runtime != none && $strong ]
 float_array_static_test: MissingCompileTimeError
 
 [ $compiler == none && $runtime == vm && $system == fuchsia ]

@@ -46,6 +46,9 @@ initializer_super_last_test/cc30: MissingCompileTimeError
 initializer_super_last_test/cc31: MissingCompileTimeError
 initializer_super_last_test/cc32: MissingCompileTimeError
 
+[ $compiler != app_jitk && $compiler != dartk && $compiler != dartkp && $mode == debug && $runtime == vm ]
+built_in_identifier_type_annotation_test/set: Crash # Not supported by legacy VM front-end.
+
 [ $compiler != dart2js && $compiler != dartdevc && !$fasta && $strong ]
 type_promotion_functions_test: CompileTimeError # Issue 30895: This test requires a complete rewrite for 2.0.
 
@@ -116,9 +119,6 @@ initializer_super_last_test/cc32: MissingCompileTimeError # Was valid in Dart 1.
 
 [ $compiler != dartdevc && !$checked ]
 function_type/*: Skip # Needs checked mode.
-
-[ $compiler != dartk && $compiler != dartkp && $mode == debug && $runtime == vm ]
-built_in_identifier_type_annotation_test/set: Crash # Not supported by legacy VM front-end.
 
 [ $compiler == none && $runtime == drt && !$checked ]
 assertion_initializer_const_error_test/01: Fail
