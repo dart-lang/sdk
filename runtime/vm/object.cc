@@ -7070,6 +7070,7 @@ RawFunction* Function::New(const String& name,
   result.set_parameter_types(Object::empty_array());
   result.set_parameter_names(Object::empty_array());
   result.set_name(name);
+  result.set_kind_tag(0);  // Ensure determinism of uninitialized bits.
   result.set_kind(kind);
   result.set_recognized_kind(MethodRecognizer::kUnknown);
   result.set_modifier(RawFunction::kNoModifier);

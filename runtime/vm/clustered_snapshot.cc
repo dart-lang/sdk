@@ -19,6 +19,8 @@
 #include "vm/timeline.h"
 #include "vm/version.h"
 
+#define LOG_SECTION_BOUNDARIES false
+
 namespace dart {
 
 static RawObject* AllocateUninitialized(PageSpace* old_space, intptr_t size) {
@@ -49,6 +51,10 @@ void Deserializer::InitializeHeader(RawObject* raw,
 }
 
 void SerializationCluster::WriteAndMeasureAlloc(Serializer* serializer) {
+  if (LOG_SECTION_BOUNDARIES) {
+    OS::PrintErr("Data + %" Px ": Alloc %s\n", serializer->bytes_written(),
+                 name_);
+  }
   intptr_t start_size = serializer->bytes_written() + serializer->GetDataSize();
   intptr_t start_objects = serializer->next_ref_index();
   WriteAlloc(serializer);
@@ -59,6 +65,10 @@ void SerializationCluster::WriteAndMeasureAlloc(Serializer* serializer) {
 }
 
 void SerializationCluster::WriteAndMeasureFill(Serializer* serializer) {
+  if (LOG_SECTION_BOUNDARIES) {
+    OS::PrintErr("Data + %" Px ": Fill %s\n", serializer->bytes_written(),
+                 name_);
+  }
   intptr_t start = serializer->bytes_written();
   WriteFill(serializer);
   intptr_t stop = serializer->bytes_written();
