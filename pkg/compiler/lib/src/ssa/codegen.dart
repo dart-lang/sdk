@@ -132,8 +132,6 @@ class SsaCodeGeneratorTask extends CompilerTask {
   }
 }
 
-typedef void EntityAction(Entity element);
-
 class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   /**
    * Returned by [expressionType] to tell how code can be generated for
@@ -171,8 +169,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   final Set<HInstruction> generateAtUseSite;
   final Set<HInstruction> controlFlowOperators;
-  final Map<Entity, EntityAction> breakAction;
-  final Map<Entity, EntityAction> continueAction;
+  final Set<JumpTarget> breakAction;
+  final Set<LabelDefinition> continueAction;
+  final Set<JumpTarget> implicitContinueAction;
   final List<js.Parameter> parameters;
 
   js.Block currentContainer;
@@ -233,8 +232,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         oldContainerStack = <js.Block>[],
         generateAtUseSite = new Set<HInstruction>(),
         controlFlowOperators = new Set<HInstruction>(),
-        breakAction = new Map<Entity, EntityAction>(),
-        continueAction = new Map<Entity, EntityAction>();
+        breakAction = new Set<JumpTarget>(),
+        continueAction = new Set<LabelDefinition>(),
+        implicitContinueAction = new Set<JumpTarget>();
 
   CodegenRegistry get _registry => _work.registry;
 
@@ -1131,7 +1131,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         if (label.isContinueTarget) {
           String labelName = _namer.continueLabelName(label);
           result = new js.LabeledStatement(labelName, result);
-          continueAction[label] = continueAsBreak;
+          continueAction.add(label);
           continueOverrides = continueOverrides.prepend(label);
         }
       }
@@ -1141,7 +1141,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       JumpTarget target = labeledBlockInfo.target;
       String labelName = _namer.implicitContinueLabelName(target);
       result = new js.LabeledStatement(labelName, result);
-      continueAction[target] = implicitContinueAsBreak;
+      implicitContinueAction.add(target);
       continueOverrides = continueOverrides.prepend(target);
     } else {
       for (LabelDefinition label in labeledBlockInfo.labels) {
@@ -1158,7 +1158,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // so that case code can break.
       String labelName = _namer.implicitBreakLabelName(target);
       result = new js.LabeledStatement(labelName, result);
-      breakAction[target] = implicitBreakWithLabel;
+      breakAction.add(target);
     }
 
     currentContainer = body;
@@ -1167,6 +1167,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (labeledBlockInfo.isContinue) {
       while (!continueOverrides.isEmpty) {
         continueAction.remove(continueOverrides.head);
+        implicitContinueAction.remove(continueOverrides.head);
         continueOverrides = continueOverrides.tail;
       }
     } else {
@@ -1191,14 +1192,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         if (label.isContinueTarget) {
           String labelName = _namer.continueLabelName(label);
           result = new js.LabeledStatement(labelName, result);
-          continueAction[label] = continueAsBreak;
+          continueAction.add(label);
         }
       }
       String labelName = _namer.implicitContinueLabelName(target);
       result = new js.LabeledStatement(labelName, result);
-      continueAction[info.target] = implicitContinueAsBreak;
+      implicitContinueAction.add(info.target);
       visitBodyIgnoreLabels(info);
-      continueAction.remove(info.target);
+      implicitContinueAction.remove(info.target);
       for (LabelDefinition label in info.labels) {
         if (label.isContinueTarget) {
           continueAction.remove(label);
@@ -1556,29 +1557,21 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
-  /**
-   * Checks if [map] contains an [EntityAction] for [entity], and
-   * if so calls that action and returns true.
-   * Otherwise returns false.
-   */
-  bool tryCallAction(Map<Entity, EntityAction> map, Entity entity) {
-    EntityAction action = map[entity];
-    if (action == null) return false;
-    action(entity);
-    return true;
-  }
-
   visitBreak(HBreak node) {
     assert(node.block.successors.length == 1);
     if (node.label != null) {
       LabelDefinition label = node.label;
-      if (!tryCallAction(breakAction, label)) {
+      if (breakAction.contains(label.target)) {
+        implicitBreakWithLabel(label.target);
+      } else {
         pushStatement(new js.Break(_namer.breakLabelName(label))
             .withSourceInformation(node.sourceInformation));
       }
     } else {
       JumpTarget target = node.target;
-      if (!tryCallAction(breakAction, target)) {
+      if (breakAction.contains(target)) {
+        implicitBreakWithLabel(target);
+      } else {
         if (node.breakSwitchContinueLoop) {
           pushStatement(new js.Break(_namer.implicitContinueLabelName(target))
               .withSourceInformation(node.sourceInformation));
@@ -1594,14 +1587,18 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     assert(node.block.successors.length == 1);
     if (node.label != null) {
       LabelDefinition label = node.label;
-      if (!tryCallAction(continueAction, label)) {
+      if (continueAction.contains(label)) {
+        continueAsBreak(label);
+      } else {
         // TODO(floitsch): should this really be the breakLabelName?
         pushStatement(new js.Continue(_namer.breakLabelName(label))
             .withSourceInformation(node.sourceInformation));
       }
     } else {
       JumpTarget target = node.target;
-      if (!tryCallAction(continueAction, target)) {
+      if (implicitContinueAction.contains(target)) {
+        implicitContinueAsBreak(target);
+      } else {
         if (target.isSwitch) {
           pushStatement(
               new js.Continue(_namer.implicitContinueLabelName(target))

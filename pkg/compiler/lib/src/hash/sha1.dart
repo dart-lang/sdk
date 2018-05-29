@@ -129,7 +129,7 @@ abstract class _HashBase implements Hash {
 
   // Compute the final result as a list of bytes from the hash words.
   List<int> _resultAsBytes() {
-    var result = [];
+    var result = <int>[];
     for (var i = 0; i < _h.length; i++) {
       result.addAll(_wordToBytes(_h[i]));
     }
