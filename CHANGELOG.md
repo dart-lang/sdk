@@ -4,6 +4,22 @@
 
 ### Language
 
+#### Strong Mode
+
+### Core library changes
+
+### Dart VM
+
+### Tool Changes
+
+#### Pub
+
+#### Other Tools
+
+## 2.0.0-dev.59.0
+
+### Language
+
 The change to make bounds on generic functions invariant has landed in the
 analyzer.  The analyzer will now issue an invalid override error on the
 following program ([issue 29014][sdk#29014]).
@@ -20,18 +36,6 @@ class B extends A {
 ```
 
 [sdk#29014]: https://github.com/dart-lang/sdk/issues/29014
-
-#### Strong Mode
-
-### Core library changes
-
-### Dart VM
-
-### Tool Changes
-
-#### Pub
-
-#### Other Tools
 
 ## 2.0.0-dev.58.0
 
