@@ -23,7 +23,7 @@ import 'parser.dart' show Parser;
 
 import 'type_info.dart';
 
-import 'util.dart' show optional, skipMetadata;
+import 'util.dart' show isOneOf, optional, skipMetadata;
 
 /// See documentation on the [noType] const.
 class NoType implements TypeInfo {
@@ -231,9 +231,7 @@ bool looksLikeTypeParamOrArg(bool inDeclaration, Token token) {
   if (inDeclaration && token.kind == IDENTIFIER_TOKEN) {
     Token next = token.next;
     if (next.kind == IDENTIFIER_TOKEN ||
-        optional(',', next) ||
-        optional('>', next) ||
-        optional('>>', next)) {
+        isOneOf(next, const [',', '>', '>>'])) {
       return true;
     }
   }
@@ -760,9 +758,8 @@ Token processEndGroup(Token token, BeginToken start, Parser parser) {
     // Extraneous tokens between `<` and `>`.
     parser.reportRecoverableErrorWithToken(next, fasta.templateUnexpectedToken);
     return start.endGroup;
-  } else if (optional('>>', next) ||
-      optional('>=', next) ||
-      optional('>>=', next)) {
+  } else if (isOneOf(next, const ['>>', '>=', '>>='])) {
+    // Found single unbalanced `<`.
     return parser.rewriter.splitEndGroup(start, next);
   }
   // Ensure that `>` is inserted after any newly inserted synthetic tokens.

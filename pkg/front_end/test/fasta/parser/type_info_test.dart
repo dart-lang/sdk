@@ -4,6 +4,7 @@
 
 import 'package:front_end/src/fasta/messages.dart';
 import 'package:front_end/src/fasta/parser.dart';
+import 'package:front_end/src/fasta/parser/type_continuation.dart';
 import 'package:front_end/src/fasta/parser/type_info.dart';
 import 'package:front_end/src/fasta/parser/type_info_impl.dart';
 import 'package:front_end/src/fasta/scanner.dart';
@@ -522,23 +523,25 @@ class TypeInfoTest {
     // TOOD(danrubel): dynamic, do, other keywords, malformed, recovery
     // <T>
 
-    // TODO(danrubel): Improve missing comma recovery
     expectTypeParamOrArg(noTypeParamOrArg, 'G<int double> g');
-    // expectComplexInfo('G<int double> g',
-    //     required: true,
-    //     tokenAfter: 'g',
-    //     expectedCalls: [
-    //       'handleIdentifier G typeReference',
-    //       'beginTypeArguments <',
-    //       'handleIdentifier int typeReference',
-    //       'handleNoTypeArguments double',
-    //       'handleType int double',
-    //       'endTypeArguments 1 < >',
-    //       'handleType G g',
-    //     ],
-    //     expectedErrors: [
-    //       error(codeExpectedToken, 6, 6)
-    //     ]);
+    expectComplexInfo('G<int double> g',
+        inDeclaration: true,
+        expectedAfter: 'g',
+        expectedCalls: [
+          'handleIdentifier G typeReference',
+          'beginTypeArguments <',
+          'handleIdentifier int typeReference',
+          'handleNoTypeArguments double' /* was , */,
+          'handleType int double' /* was , */,
+          'handleIdentifier double typeReference',
+          'handleNoTypeArguments >',
+          'handleType double >',
+          'endTypeArguments 2 < >',
+          'handleType G g',
+        ],
+        expectedErrors: [
+          error(codeExpectedButGot, 6, 6)
+        ]);
 
     expectInfo(noType, 'C<>', required: false);
     expectComplexInfo('C<>', required: true, expectedCalls: [
@@ -1024,6 +1027,14 @@ class TypeParamOrArgInfoTest {
       'handleType T >',
       'endTypeArguments 2 < >'
     ]);
+    expectComplexTypeArg('<S T>',
+        inDeclaration: true, expectedErrors: [error(codeExpectedButGot, 3, 1)]);
+    expectComplexTypeArg('<S',
+        inDeclaration: true, expectedErrors: [error(codeExpectedButGot, 2, 0)]);
+    expectComplexTypeArg('<@Foo S', inDeclaration: true, expectedErrors: [
+      error(codeUnexpectedToken, 1, 1),
+      error(codeExpectedButGot, 7, 0)
+    ]);
   }
 
   void test_computeTypeParam_complex() {
@@ -1214,6 +1225,14 @@ class TypeParamOrArgInfoTest {
       'endTypeVariable < null',
       'endTypeVariables 1 < >',
     ]);
+    expectComplexTypeParam('<S T>', inDeclaration: true, expectedErrors: [
+      error(codeExpectedButGot, 3, 1),
+    ]);
+    expectComplexTypeParam('<S', inDeclaration: true, expectedErrors: [
+      error(codeExpectedButGot, 2, 0),
+    ]);
+    expectComplexTypeParam('<@Foo S',
+        inDeclaration: true, expectedErrors: [error(codeExpectedButGot, 7, 0)]);
   }
 }
 
@@ -1228,17 +1247,18 @@ void expectInfo(expectedInfo, String source, {bool required}) {
 
 void expectComplexInfo(String source,
     {bool required,
+    bool inDeclaration = false,
     String expectedAfter,
     List<String> expectedCalls,
     List<ExpectedError> expectedErrors}) {
   if (required == null) {
-    computeComplex(source, scan(source), true, expectedAfter, expectedCalls,
-        expectedErrors);
-    computeComplex(source, scan(source), false, expectedAfter, expectedCalls,
-        expectedErrors);
+    computeComplex(source, scan(source), true, inDeclaration, expectedAfter,
+        expectedCalls, expectedErrors);
+    computeComplex(source, scan(source), false, inDeclaration, expectedAfter,
+        expectedCalls, expectedErrors);
   } else {
-    computeComplex(source, scan(source), required, expectedAfter, expectedCalls,
-        expectedErrors);
+    computeComplex(source, scan(source), required, inDeclaration, expectedAfter,
+        expectedCalls, expectedErrors);
   }
 }
 
@@ -1274,12 +1294,14 @@ ComplexTypeInfo computeComplex(
     String source,
     Token start,
     bool required,
+    bool inDeclaration,
     String expectedAfter,
     List<String> expectedCalls,
     List<ExpectedError> expectedErrors) {
   int expectedGtGtAndNullEndCount = countGtGtAndNullEnd(start);
-  ComplexTypeInfo typeInfo =
-      compute(const isInstanceOf<ComplexTypeInfo>(), source, start, required);
+  ComplexTypeInfo typeInfo = compute(
+      const isInstanceOf<ComplexTypeInfo>(), source, start, required,
+      inDeclaration: inDeclaration);
   expect(typeInfo.start, start.next, reason: source);
   expect(typeInfo.couldBeExpression, isFalse);
   expectEnd(expectedAfter, typeInfo.skipType(start));
@@ -1291,28 +1313,35 @@ ComplexTypeInfo computeComplex(
 
   expectEnd(expectedAfter, actualEnd);
   if (expectedCalls != null) {
-    // TypeInfoListener listener2 = new TypeInfoListener();
-    // new Parser(listener2).parseType(start, TypeContinuation.Required);
-    // print('[');
-    // for (String call in listener2.calls) {
-    //   print("'$call',");
-    // }
-    // print(']');
-
-    expect(listener.calls, expectedCalls, reason: source);
+    try {
+      expect(listener.calls, expectedCalls, reason: source);
+    } catch (e) {
+      TypeInfoListener listener2 = new TypeInfoListener();
+      new Parser(listener2).parseType(start, TypeContinuation.Required);
+      print('[');
+      for (String call in listener2.calls) {
+        print("'$call',");
+      }
+      print(']');
+      rethrow;
+    }
   }
   expect(listener.errors, expectedErrors, reason: source);
   return typeInfo;
 }
 
 void expectComplexTypeArg(String source,
-    {String expectedAfter,
+    {bool inDeclaration = false,
+    String expectedAfter,
     List<String> expectedCalls,
     List<ExpectedError> expectedErrors}) {
   Token start = scan(source);
   int expectedGtGtAndNullEndCount = countGtGtAndNullEnd(start);
   ComplexTypeParamOrArgInfo typeVarInfo = computeVar(
-      const isInstanceOf<ComplexTypeParamOrArgInfo>(), source, start);
+      const isInstanceOf<ComplexTypeParamOrArgInfo>(),
+      source,
+      start,
+      inDeclaration);
 
   expect(typeVarInfo.start, start.next, reason: source);
   expectEnd(expectedAfter, typeVarInfo.skip(start));
@@ -1343,13 +1372,17 @@ void expectComplexTypeArg(String source,
 }
 
 void expectComplexTypeParam(String source,
-    {String expectedAfter,
+    {bool inDeclaration = false,
+    String expectedAfter,
     List<String> expectedCalls,
     List<ExpectedError> expectedErrors}) {
   Token start = scan(source);
   int expectedGtGtAndNullEndCount = countGtGtAndNullEnd(start);
   ComplexTypeParamOrArgInfo typeVarInfo = computeVar(
-      const isInstanceOf<ComplexTypeParamOrArgInfo>(), source, start);
+      const isInstanceOf<ComplexTypeParamOrArgInfo>(),
+      source,
+      start,
+      inDeclaration);
 
   expect(typeVarInfo.start, start.next, reason: source);
   expectEnd(expectedAfter, typeVarInfo.skip(start));
@@ -1380,17 +1413,18 @@ void expectComplexTypeParam(String source,
 }
 
 void expectTypeParamOrArg(expectedInfo, String source,
-    {bool splitGtGt: true,
+    {bool inDeclaration = false,
     String expectedAfter,
     List<String> expectedCalls,
     List<ExpectedError> expectedErrors}) {
   Token start = scan(source);
-  computeVar(expectedInfo, source, start);
+  computeVar(expectedInfo, source, start, inDeclaration);
 }
 
-TypeParamOrArgInfo computeVar(expectedInfo, String source, Token start) {
+TypeParamOrArgInfo computeVar(
+    expectedInfo, String source, Token start, bool inDeclaration) {
   int expectedGtGtAndNullEndCount = countGtGtAndNullEnd(start);
-  TypeParamOrArgInfo typeVarInfo = computeTypeParamOrArg(start);
+  TypeParamOrArgInfo typeVarInfo = computeTypeParamOrArg(start, inDeclaration);
   expect(typeVarInfo, expectedInfo, reason: source);
   expect(countGtGtAndNullEnd(start), expectedGtGtAndNullEndCount,
       reason: 'computeTypeParamOrArg should not modify the token stream');

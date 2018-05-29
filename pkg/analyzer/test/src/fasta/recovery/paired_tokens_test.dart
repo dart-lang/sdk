@@ -91,6 +91,14 @@ List<List<int>> _s_;
 ''');
   }
 
+  void test_typeArguments_inner_last2() {
+    testRecovery('''
+List<List<int> f;
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+List<List<int>> f;
+''');
+  }
+
   @failingTest
   void test_typeArguments_inner_notLast() {
     testRecovery('''
@@ -115,6 +123,14 @@ Map<List<int, List<String>>> f;
 List<int
 ''', [ScannerErrorCode.EXPECTED_TOKEN], '''
 List<int> _s_;
+''');
+  }
+
+  void test_typeArguments_outer_last2() {
+    testRecovery('''
+List<int f;
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+List<int> f;
 ''');
   }
 

@@ -1312,13 +1312,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_incompleteTypeArguments_field() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_incompleteTypeArguments_field();
-  }
-
-  @override
-  @failingTest
   void test_missingIdentifier_afterAnnotation() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_missingIdentifier_afterAnnotation();
