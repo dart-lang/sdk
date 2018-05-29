@@ -2420,9 +2420,9 @@ class DebuggerStackElement extends HtmlElement implements Renderable {
 class DebuggerFrameElement extends HtmlElement implements Renderable {
   static const tag = const Tag<DebuggerFrameElement>('debugger-frame');
 
-  RenderingScheduler<DebuggerMessageElement> _r;
+  RenderingScheduler<DebuggerFrameElement> _r;
 
-  Stream<RenderedEvent<DebuggerMessageElement>> get onRendered => _r.onRendered;
+  Stream<RenderedEvent<DebuggerFrameElement>> get onRendered => _r.onRendered;
 
   Element _scroller;
   DivElement _varsDiv;
@@ -2475,7 +2475,7 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
     assert(scripts != null);
     assert(events != null);
     final DebuggerFrameElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<DebuggerFrameElement>(e, queue: queue);
     e._isolate = isolate;
     e._frame = frame;
     e._scroller = scroller;
