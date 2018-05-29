@@ -97,6 +97,8 @@ class AstBuilder extends ScopeListener {
 
   StringLiteral nativeName;
 
+  bool parseFunctionBodies = true;
+
   AstBuilder(ErrorReporter errorReporter, this.fileUri, this.member,
       Scope scope, this.isFullAst,
       [Uri uri])
@@ -396,7 +398,13 @@ class AstBuilder extends ScopeListener {
     Block block = ast.block(leftBracket, statements, rightBracket);
     Token star = pop();
     Token asyncKeyword = pop();
-    push(ast.blockFunctionBody(asyncKeyword, star, block));
+    if (parseFunctionBodies) {
+      push(ast.blockFunctionBody(asyncKeyword, star, block));
+    } else {
+      // TODO(danrubel): Skip the block rather than parsing it.
+      push(ast.emptyFunctionBody(
+          new SyntheticToken(TokenType.SEMICOLON, leftBracket.charOffset)));
+    }
   }
 
   void finishFunction(
@@ -512,8 +520,12 @@ class AstBuilder extends ScopeListener {
     Token star = pop();
     Token asyncKeyword = pop();
     assert(star == null);
-    push(ast.expressionFunctionBody(
-        asyncKeyword, arrowToken, expression, semicolon));
+    if (parseFunctionBodies) {
+      push(ast.expressionFunctionBody(
+          asyncKeyword, arrowToken, expression, semicolon));
+    } else {
+      push(ast.emptyFunctionBody(semicolon));
+    }
   }
 
   void endReturnStatement(

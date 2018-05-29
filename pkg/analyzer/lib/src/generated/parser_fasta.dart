@@ -48,7 +48,7 @@ abstract class ParserAdapter implements Parser {
 
   @override
   void set parseFunctionBodies(bool parseFunctionBodies) {
-    // ignored
+    astBuilder.parseFunctionBodies = parseFunctionBodies;
   }
 
   @override
