@@ -1184,7 +1184,7 @@ library l;''');
     CharSequenceReader reader = new CharSequenceReader(code);
     Scanner scanner = new Scanner(null, reader, listener);
     Token token = scanner.tokenize();
-    Parser parser = new Parser(null, listener);
+    Parser parser = new Parser(NonExistingSource.unknown, listener);
     CompilationUnit unit = parser.parseCompilationUnit(token);
     expect(unit, isNotNull);
     listener.assertNoErrors();

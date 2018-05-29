@@ -10053,7 +10053,7 @@ class ParserTestCase extends EngineTestCase
     listener ??= AnalysisErrorListener.NULL_LISTENER;
     Scanner scanner = new Scanner(null, new CharSequenceReader(code), listener);
     Token token = scanner.tokenize();
-    Parser parser = new Parser(null, listener);
+    Parser parser = new Parser(NonExistingSource.unknown, listener);
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = new LineInfo(scanner.lineStarts);
@@ -13173,7 +13173,7 @@ class SimpleParserTest extends ParserTestCase with SimpleParserTestMixin {
   }
 
   void test_Parser() {
-    expect(new Parser(null, null), isNotNull);
+    expect(new Parser(NonExistingSource.unknown, null), isNotNull);
   }
 
   void test_parseTypeName_parameterized_nullable() {
