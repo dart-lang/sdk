@@ -297,7 +297,7 @@ class ClassEnvImpl implements ClassEnv {
   ClassEnvImpl.internal(this.cls, this._constructorMap, this._memberMap,
       this._setterMap, this._members);
 
-  bool get isUnnamedMixinApplication => cls.isSyntheticMixinImplementation;
+  bool get isUnnamedMixinApplication => cls.isAnonymousMixin;
 
   /// Copied from 'package:kernel/transformations/mixin_full_resolution.dart'.
   ir.Constructor _buildForwardingConstructor(

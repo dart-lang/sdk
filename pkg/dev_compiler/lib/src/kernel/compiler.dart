@@ -522,7 +522,7 @@ class ProgramCompiler extends Object
 
   JS.Statement _emitClassDeclaration(Class c) {
     // Mixins are unrolled in _defineClass.
-    if (c.isSyntheticMixinImplementation) return null;
+    if (c.isAnonymousMixin) return null;
 
     // If this class is annotated with `@JS`, then there is nothing to emit.
     if (findAnnotation(c, isPublicJSAnnotation) != null) return null;
@@ -820,7 +820,7 @@ class ProgramCompiler extends Object
   /// Defines all constructors for this class as ES5 constructors.
   List<JS.Statement> _defineConstructors(Class c, JS.Expression className) {
     var body = <JS.Statement>[];
-    if (c.isSyntheticMixinImplementation || isMixinAliasClass(c)) {
+    if (c.isAnonymousMixin || isMixinAliasClass(c)) {
       // We already handled this when we defined the class.
       return body;
     }

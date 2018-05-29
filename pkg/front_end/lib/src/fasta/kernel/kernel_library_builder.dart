@@ -449,8 +449,7 @@ class KernelLibraryBuilder
         // TODO(ahe, kmillikin): Should always be true?
         // pkg/analyzer/test/src/summary/resynthesize_kernel_test.dart can't
         // handle that :(
-        application.cls.isSyntheticMixinImplementation =
-            !isNamedMixinApplication;
+        application.cls.isAnonymousMixin = !isNamedMixinApplication;
         addBuilder(fullname, application, charOffset);
         supertype =
             addNamedType(fullname, applicationTypeArguments, charOffset);

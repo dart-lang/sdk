@@ -967,6 +967,10 @@ void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,
   klass->set_interfaces(interfaces);
 
   if (class_helper->is_abstract()) klass->set_is_abstract();
+
+  if (class_helper->is_transformed_mixin_application()) {
+    klass->set_is_transformed_mixin_application();
+  }
 }
 
 // Workaround for http://dartbug.com/32087: currently Kernel front-end

@@ -79,7 +79,7 @@ class DeduplicateMixinsTransformer extends Transformer {
       _transformSupertype(c);
     }
 
-    if (!c.isSyntheticMixinImplementation) {
+    if (!c.isAnonymousMixin) {
       return c;
     }
 

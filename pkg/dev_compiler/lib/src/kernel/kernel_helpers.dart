@@ -227,7 +227,7 @@ Class getSuperclassAndMixins(Class c, List<Class> mixins) {
   if (mixedInClass != null) mixins.add(mixedInClass);
 
   var sc = c.superclass;
-  for (; sc.isSyntheticMixinImplementation; sc = sc.superclass) {
+  for (; sc.isAnonymousMixin; sc = sc.superclass) {
     mixins.add(sc.mixedInClass);
   }
   return sc;

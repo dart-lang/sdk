@@ -133,12 +133,9 @@ mirrors/function_type_mirror_test: RuntimeError
 mirrors/generic_f_bounded_mixin_application_test: RuntimeError
 mirrors/generic_function_typedef_test: RuntimeError
 mirrors/generic_interface_test/01: RuntimeError
-mirrors/generic_interface_test/none: RuntimeError
 mirrors/generic_mixin_applications_test: RuntimeError
-mirrors/generic_mixin_test: RuntimeError
 mirrors/hot_get_field_test: RuntimeError
 mirrors/hot_set_field_test: RuntimeError
-mirrors/intercepted_object_test: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/invocation_fuzz_test: RuntimeError, Crash
 mirrors/invoke_private_test: RuntimeError
 mirrors/invoke_private_wrong_library_test: RuntimeError
@@ -171,8 +168,6 @@ mirrors/mirrors_used_typedef_declaration_test/01: RuntimeError
 mirrors/mirrors_used_typedef_declaration_test/none: RuntimeError
 mirrors/mixin_application_test: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/mixin_members_test: CompileTimeError # Issue 31402 (Invocation arguments)
-mirrors/mixin_simple_test: RuntimeError
-mirrors/mixin_test: RuntimeError
 mirrors/native_class_test: SkipByDesign # Imports dart:html
 mirrors/operator_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/other_declarations_location_test: RuntimeError
