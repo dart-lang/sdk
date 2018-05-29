@@ -104,18 +104,19 @@ class InstantiationStubGenerator {
   /// ```
   /// $signature:: function() {
   ///   return H.instantiatedGenericFunctionType(
-  ///       this._genericClosure.$signature(),
+  ///       H.extractFunctionTypeObjectFromInternal(this._genericClosure),
   ///       this.$ti);
   /// }
   /// ```
   ParameterStubMethod _generateSignatureStub(FieldEntity functionField) {
     jsAst.Name operatorSignature = _namer.asName(_namer.operatorSignature);
 
-    jsAst.Fun function = js('function() { return #(this.#.#(), this.#); }', [
+    jsAst.Fun function = js('function() { return #(#(this.#), this.#); }', [
       _emitter.staticFunctionAccess(
           _commonElements.instantiatedGenericFunctionType),
+      _emitter.staticFunctionAccess(
+          _commonElements.extractFunctionTypeObjectFromInternal),
       _namer.fieldPropertyName(functionField),
-      operatorSignature,
       _namer.rtiFieldJsName,
     ]);
     // TODO(sra): Generate source information for stub that has no member.

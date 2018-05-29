@@ -3150,6 +3150,31 @@ RawType* ClassFinalizer::ResolveMixinAppType(
   return Type::New(mixin_app_class, mixin_app_args, mixin_app_type.token_pos());
 }
 
+// For a class used as an interface marks this class and all its superclasses
+// implemented.
+//
+// Does not mark its interfaces implemented because those would already be
+// marked as such.
+static void MarkImplemented(Zone* zone, const Class& iface) {
+  if (iface.is_implemented()) {
+    return;
+  }
+
+  Class& cls = Class::Handle(zone, iface.raw());
+  AbstractType& type = AbstractType::Handle(zone);
+
+  while (!cls.is_implemented()) {
+    cls.set_is_implemented();
+
+    type = cls.super_type();
+    if (type.IsNull() || type.IsObjectType()) {
+      break;
+    }
+    ASSERT(type.IsResolved());
+    cls = type.type_class();
+  }
+}
+
 // Recursively walks the graph of explicitly declared super type and
 // interfaces, resolving unresolved super types and interfaces.
 // Reports an error if there is an interface reference that cannot be
@@ -3328,9 +3353,10 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
         }
       }
     }
-    interface_class.set_is_implemented();
+
     // Now resolve the super interfaces.
     ResolveSuperTypeAndInterfaces(interface_class, visited);
+    MarkImplemented(zone, interface_class);
   }
   visited->RemoveLast();
   cls.set_is_cycle_free();

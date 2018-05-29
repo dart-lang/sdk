@@ -23,8 +23,9 @@ void main() {
     var main = env.mainFunction;
     Expect.isNotNull(main, "Could not find 'main'");
 
-    var outputUnitForEntity =
-        compiler.backend.outputUnitData.outputUnitForEntity;
+    var outputUnitForMember =
+        compiler.backend.outputUnitData.outputUnitForMember;
+    var outputUnitForClass = compiler.backend.outputUnitData.outputUnitForClass;
 
     var mainOutputUnit = compiler.backend.outputUnitData.mainOutputUnit;
     var backend = compiler.backend;
@@ -40,21 +41,21 @@ void main() {
     var bar1 = env.lookupLibraryMember(lib4, "bar1");
     var bar2 = env.lookupLibraryMember(lib4, "bar2");
 
-    OutputUnit ou_lib1 = outputUnitForEntity(foo1);
-    OutputUnit ou_lib2 = outputUnitForEntity(foo2);
-    OutputUnit ou_lib1_lib2 = outputUnitForEntity(foo3);
-    OutputUnit ou_lib4_1 = outputUnitForEntity(bar1);
-    OutputUnit ou_lib4_2 = outputUnitForEntity(bar2);
+    OutputUnit ou_lib1 = outputUnitForMember(foo1);
+    OutputUnit ou_lib2 = outputUnitForMember(foo2);
+    OutputUnit ou_lib1_lib2 = outputUnitForMember(foo3);
+    OutputUnit ou_lib4_1 = outputUnitForMember(bar1);
+    OutputUnit ou_lib4_2 = outputUnitForMember(bar2);
 
-    Expect.equals(mainOutputUnit, outputUnitForEntity(main));
-    Expect.notEquals(mainOutputUnit, outputUnitForEntity(foo1));
+    Expect.equals(mainOutputUnit, outputUnitForMember(main));
+    Expect.notEquals(mainOutputUnit, outputUnitForMember(foo1));
     Expect.notEquals(ou_lib1, ou_lib1_lib2);
     Expect.notEquals(ou_lib2, ou_lib1_lib2);
     Expect.notEquals(ou_lib1, ou_lib2);
     Expect.notEquals(ou_lib4_1, ou_lib4_2);
     Expect.notEquals(ou_lib1, ou_lib4_2);
     // InputElement is native, so it should be in the mainOutputUnit.
-    Expect.equals(mainOutputUnit, outputUnitForEntity(inputElement));
+    Expect.equals(mainOutputUnit, outputUnitForClass(inputElement));
 
     var hunksToLoad = compiler.deferredLoadTask.hunksToLoad;
 

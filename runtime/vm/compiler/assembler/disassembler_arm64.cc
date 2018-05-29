@@ -614,9 +614,7 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
       } else if (format[1] == 'f') {
         ASSERT(STRING_STARTS_WITH(format, "sf"));
         if (instr->SFField() == 1) {
-          // TODO(zra): If we don't use the w form much, we can omit printing
-          // this x.
-          Print("x");
+          // 64-bit width is most commonly used, no need to print "x".
         } else {
           Print("w");
         }
@@ -1142,13 +1140,13 @@ void ARM64Decoder::DecodeMiscDP3Source(Instr* instr) {
   int32_t mask = B31 | B30 | B29 | B23 | B22 | B21 | B15 | MiscDP3SourceMask;
   int32_t bits = instr->InstructionBits() & mask;
 
-  if (bits == MADD) {
+  if (bits == MADD || bits == MADDW) {
     if (zero_operand) {
       Format(instr, "mul'sf 'rd, 'rn, 'rm");
     } else {
       Format(instr, "madd'sf 'rd, 'rn, 'rm, 'ra");
     }
-  } else if (bits == MSUB) {
+  } else if (bits == MSUB || bits == MSUBW) {
     if (zero_operand) {
       Format(instr, "mneg'sf 'rd, 'rn, 'rm");
     } else {

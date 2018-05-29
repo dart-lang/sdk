@@ -725,25 +725,18 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
   }
 
-  int _encodeClassFlags(bool isAbstract, bool isEnum,
-      bool isSyntheticMixinImplementation, ClassLevel level) {
-    int abstractFlag = isAbstract ? 1 : 0;
-    int isEnumFlag = isEnum ? 2 : 0;
-    int isSyntheticMixinImplementationFlag =
-        isSyntheticMixinImplementation ? 4 : 0;
-    int levelFlags = (level.index - 1) << 3;
-    return abstractFlag |
-        isEnumFlag |
-        isSyntheticMixinImplementationFlag |
-        levelFlags;
+  int _encodeClassFlags(int flags, ClassLevel level) {
+    assert((flags & Class.LevelMask) == 0);
+    final levelIndex = level.index - 1;
+    assert((levelIndex & Class.LevelMask) == levelIndex);
+    return flags | levelIndex;
   }
 
   @override
   void visitClass(Class node) {
     classOffsets.add(getBufferOffset());
 
-    int flags = _encodeClassFlags(node.isAbstract, node.isEnum,
-        node.isSyntheticMixinImplementation, node.level);
+    int flags = _encodeClassFlags(node.flags, node.level);
     if (node.canonicalName == null) {
       throw 'Missing canonical name for $node';
     }

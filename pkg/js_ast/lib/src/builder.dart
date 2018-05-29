@@ -1254,7 +1254,7 @@ class MiniJsParser {
 
   VariableDeclarationList finishVariableDeclarationList(
       Declaration firstVariable) {
-    var initialization = [];
+    var initialization = <VariableInitialization>[];
 
     void declare(Declaration declaration) {
       Expression initializer = null;

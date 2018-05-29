@@ -17,6 +17,7 @@ set -e
 OPTIONS=()
 GEN_KERNEL_OPTIONS=()
 PACKAGES=
+BUILD_ELF=0
 
 ARGV=()
 for arg in "$@"; do
@@ -35,6 +36,9 @@ for arg in "$@"; do
     -D* )
     GEN_KERNEL_OPTIONS+=("$arg")
     ;;
+    --build-elf)
+    BUILD_ELF=1
+    ;;
     --*)
     OPTIONS+=("$arg")
     ;;
@@ -51,6 +55,13 @@ fi
 
 SOURCE_FILE="${ARGV[0]}"
 SNAPSHOT_FILE="${ARGV[1]}"
+
+if [ $BUILD_ELF -eq 1 ]; then
+  DART_BOOTSTRAP_OUT="${SNAPSHOT_FILE}.S"
+else
+  OPTIONS=("--use-blobs" "${OPTIONS[@]}")
+  DART_BOOTSTRAP_OUT="${SNAPSHOT_FILE}"
+fi
 
 function follow_links() {
   file="$1"
@@ -95,12 +106,16 @@ ENTRY_POINTS="--entry-points ${BIN_DIR}/gen/runtime/bin/precompiler_entry_points
      "$SOURCE_FILE"
 
 # Step 2: Generate snapshot from the Kernel binary.
-exec "$BIN_DIR"/dart_bootstrap                                                 \
+"$BIN_DIR"/dart_bootstrap                                                      \
      --strong                                                                  \
      --reify-generic-functions                                                 \
      --limit-ints-to-64-bits                                                   \
      --snapshot-kind=app-aot                                                   \
-     --use-blobs                                                               \
-     --snapshot="$SNAPSHOT_FILE"                                               \
+     --snapshot="$DART_BOOTSTRAP_OUT"                                          \
      "${OPTIONS[@]}"                                                           \
      "$SNAPSHOT_FILE.dill"
+
+# Step 3: Assemble the assembly file into an ELF object.
+if [ $BUILD_ELF -eq 1 ]; then
+    gcc -shared -o "$SNAPSHOT_FILE" "$DART_BOOTSTRAP_OUT"
+fi

@@ -1634,7 +1634,7 @@ class StrongModeMixinInferrer implements MixinInferrer {
       Supertype baseType, Supertype mixinSupertype) {
     if (mixinSupertype.typeArguments.isEmpty) {
       // The supertype constraint isn't generic; it doesn't constrain anything.
-    } else if (mixinSupertype.classNode.isSyntheticMixinImplementation) {
+    } else if (mixinSupertype.classNode.isAnonymousMixin) {
       // We had a mixin M<X0, ..., Xn> with a superclass constraint of the form
       // S0 with M0 where S0 and M0 each possibly have type arguments.  That has
       // been compiled a named mixin application class of the form

@@ -3362,8 +3362,9 @@ bool StreamingConstantEvaluator::IsCached(intptr_t offset) {
   return GetCachedConstant(offset, &result_);
 }
 
-Instance& StreamingConstantEvaluator::EvaluateExpression(intptr_t offset,
-                                                         bool reset_position) {
+RawInstance* StreamingConstantEvaluator::EvaluateExpression(
+    intptr_t offset,
+    bool reset_position) {
   ASSERT(Error::Handle(Z, H.thread()->sticky_error()).IsNull());
   if (!GetCachedConstant(offset, &result_)) {
     ASSERT(IsAllowedToEvaluate());
@@ -3481,9 +3482,7 @@ Instance& StreamingConstantEvaluator::EvaluateExpression(intptr_t offset,
       builder_->SkipExpression();
     }
   }
-  // We return a new `ZoneHandle` here on purpose: The intermediate language
-  // instructions do not make a copy of the handle, so we do it.
-  return Instance::ZoneHandle(Z, result_.raw());
+  return result_.raw();
 }
 
 Instance& StreamingConstantEvaluator::EvaluateListLiteral(intptr_t offset,
@@ -3538,7 +3537,7 @@ Instance& StreamingConstantEvaluator::EvaluateConstructorInvocation(
   return Instance::ZoneHandle(Z, result_.raw());
 }
 
-Object& StreamingConstantEvaluator::EvaluateExpressionSafe(intptr_t offset) {
+RawObject* StreamingConstantEvaluator::EvaluateExpressionSafe(intptr_t offset) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     return EvaluateExpression(offset);
@@ -3547,7 +3546,7 @@ Object& StreamingConstantEvaluator::EvaluateExpressionSafe(intptr_t offset) {
     Error& error = Error::Handle(Z);
     error = thread->sticky_error();
     thread->clear_sticky_error();
-    return error;
+    return error.raw();
   }
 }
 
@@ -3695,8 +3694,9 @@ void StreamingConstantEvaluator::EvaluateStaticGet() {
 void StreamingConstantEvaluator::EvaluateMethodInvocation() {
   builder_->ReadPosition();  // read position.
   // This method call wasn't cached, so receiver et al. isn't cached either.
-  const Instance& receiver =
-      EvaluateExpression(builder_->ReaderOffset(), false);  // read receiver.
+  const Instance& receiver = Instance::Handle(
+      Z,
+      EvaluateExpression(builder_->ReaderOffset(), false));  // read receiver.
   Class& klass =
       Class::Handle(Z, isolate_->class_table()->At(receiver.GetClassId()));
   ASSERT(!klass.IsNull());
@@ -3721,8 +3721,9 @@ void StreamingConstantEvaluator::EvaluateMethodInvocation() {
 void StreamingConstantEvaluator::EvaluateDirectMethodInvocation() {
   builder_->ReadPosition();  // read position.
 
-  const Instance& receiver =
-      EvaluateExpression(builder_->ReaderOffset(), false);  // read receiver.
+  const Instance& receiver = Instance::Handle(
+      Z,
+      EvaluateExpression(builder_->ReaderOffset(), false));  // read receiver.
 
   NameIndex kernel_name =
       builder_->ReadCanonicalNameReference();  // read target_reference.
@@ -3828,7 +3829,7 @@ void StreamingConstantEvaluator::EvaluateConstructorInvocationInternal() {
   Instance* receiver = NULL;
   const TypeArguments* type_arguments_argument = NULL;
   if (!constructor.IsFactory()) {
-    receiver = &Instance::ZoneHandle(Z, Instance::New(klass, Heap::kOld));
+    receiver = &Instance::Handle(Z, Instance::New(klass, Heap::kOld));
     if (type_arguments != NULL) {
       receiver->SetTypeArguments(*type_arguments);
     }
@@ -3991,9 +3992,10 @@ void StreamingConstantEvaluator::EvaluateListLiteralInternal() {
   const Array& const_list =
       Array::ZoneHandle(Z, Array::New(length, Heap::kOld));
   const_list.SetTypeArguments(type_arguments);
+  Instance& expression = Instance::Handle(Z);
   for (intptr_t i = 0; i < length; ++i) {
-    const Instance& expression = EvaluateExpression(
-        builder_->ReaderOffset(), false);  // read ith expression.
+    expression = EvaluateExpression(builder_->ReaderOffset(),
+                                    false);  // read ith expression.
     const_list.SetAt(i, expression);
   }
   const_list.MakeImmutable();
@@ -4008,13 +4010,13 @@ void StreamingConstantEvaluator::EvaluateMapLiteralInternal() {
   intptr_t length = builder_->ReadListLength();  // read length of entries.
 
   // This MapLiteral wasn't cached, so content isn't cached either.
-  Array& const_kv_array =
-      Array::ZoneHandle(Z, Array::New(2 * length, Heap::kOld));
+  Array& const_kv_array = Array::Handle(Z, Array::New(2 * length, Heap::kOld));
+  Instance& temp = Instance::Handle(Z);
   for (intptr_t i = 0; i < length; ++i) {
-    const_kv_array.SetAt(2 * i + 0, EvaluateExpression(builder_->ReaderOffset(),
-                                                       false));  // read key.
-    const_kv_array.SetAt(2 * i + 1, EvaluateExpression(builder_->ReaderOffset(),
-                                                       false));  // read value.
+    temp = EvaluateExpression(builder_->ReaderOffset(), false);  // read key.
+    const_kv_array.SetAt(2 * i + 0, temp);
+    temp = EvaluateExpression(builder_->ReaderOffset(), false);  // read value.
+    const_kv_array.SetAt(2 * i + 1, temp);
   }
 
   const_kv_array.MakeImmutable();
@@ -4050,8 +4052,9 @@ void StreamingConstantEvaluator::EvaluateLet() {
   if (tag == kNothing) {
     local->SetConstValue(Instance::ZoneHandle(Z, Instance::null()));
   } else {
-    local->SetConstValue(EvaluateExpression(
-        builder_->ReaderOffset(), false));  // read rest of initializer.
+    local->SetConstValue(Instance::ZoneHandle(
+        Z, EvaluateExpression(builder_->ReaderOffset(),
+                              false)));  // read rest of initializer.
   }
 
   EvaluateExpression(builder_->ReaderOffset(), false);  // read body
@@ -4059,8 +4062,9 @@ void StreamingConstantEvaluator::EvaluateLet() {
 
 void StreamingConstantEvaluator::EvaluatePartialTearoffInstantiation() {
   // This method call wasn't cached, so receiver et al. isn't cached either.
-  const Instance& receiver =
-      EvaluateExpression(builder_->ReaderOffset(), false);  // read receiver.
+  const Instance& receiver = Instance::Handle(
+      Z,
+      EvaluateExpression(builder_->ReaderOffset(), false));  // read receiver.
   if (!receiver.IsClosure()) {
     H.ReportError(script_, TokenPosition::kNoSource, "Expected closure.");
   }
@@ -4069,26 +4073,16 @@ void StreamingConstantEvaluator::EvaluatePartialTearoffInstantiation() {
   // read type arguments.
   intptr_t num_type_args = builder_->ReadListLength();
   const TypeArguments* type_args = &T.BuildTypeArguments(num_type_args);
-  // Even if all dynamic types are passed in, we need to put a vector in here to
-  // distinguish this partially applied tearoff from a normal tearoff. This is
-  // necessary because the tearoff wrapper (BuildGraphOfImplicitClosureFunction)
-  // needs to throw NSM if type arguments are passed to a partially applied
-  // tearoff.
-  if (type_args->IsNull()) {
-    type_args =
-        &TypeArguments::ZoneHandle(Z, TypeArguments::New(num_type_args));
-    for (intptr_t i = 0; i < num_type_args; ++i) {
-      type_args->SetTypeAt(i, Type::ZoneHandle(Z, Type::DynamicType()));
-    }
-  }
 
   // Create new closure with the type arguments inserted, and other things
   // copied over.
   Closure& new_closure = Closure::Handle(
-      Z, Closure::New(TypeArguments::Handle(
-                          Z, old_closure.instantiator_type_arguments()),
-                      *type_args, Function::Handle(Z, old_closure.function()),
-                      Context::Handle(Z, old_closure.context()), Heap::kOld));
+      Z,
+      Closure::New(
+          TypeArguments::Handle(Z, old_closure.instantiator_type_arguments()),
+          TypeArguments::Handle(old_closure.function_type_arguments()),
+          *type_args, Function::Handle(Z, old_closure.function()),
+          Context::Handle(Z, old_closure.context()), Heap::kOld));
   result_ = H.Canonicalize(new_closure);
 }
 
@@ -4159,7 +4153,7 @@ const Object& StreamingConstantEvaluator::RunFunction(
       (receiver != NULL ? 1 : 0) + (type_args != NULL ? 1 : 0);
 
   // Build up arguments.
-  const Array& arguments = Array::ZoneHandle(
+  const Array& arguments = Array::Handle(
       Z, Array::New(extra_arguments + argument_count, H.allocation_space()));
   intptr_t pos = 0;
   if (receiver != NULL) {
@@ -4180,7 +4174,7 @@ const Object& StreamingConstantEvaluator::RunFunction(
   // List of named.
   list_length = builder_->ReadListLength();  // read list length.
   const Array& names =
-      Array::ZoneHandle(Z, Array::New(list_length, H.allocation_space()));
+      Array::Handle(Z, Array::New(list_length, H.allocation_space()));
   for (intptr_t i = 0; i < list_length; ++i) {
     String& name = H.DartSymbolObfuscate(
         builder_->ReadStringReference());  // read ith name index.
@@ -5105,7 +5099,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldInitializer() {
       flow_graph_builder_->CheckStackOverflowInPrologue(field_helper.position_);
   if (field_helper.IsConst()) {
     // this will (potentially) read the initializer, but reset the position.
-    body += Constant(constant_evaluator_.EvaluateExpression(ReaderOffset()));
+    body += Constant(Instance::ZoneHandle(
+        Z, constant_evaluator_.EvaluateExpression(ReaderOffset())));
     SkipExpression();  // read the initializer.
   } else {
     body += BuildExpression();  // read initializer.
@@ -5163,7 +5158,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldAccessor(
     // contain because it would detect spurious circular initialization when it
     // checks for the transition sentinel.
     ASSERT(initializer_tag == kSomething);
-    body += Constant(constant_evaluator_.EvaluateExpression(ReaderOffset()));
+    body += Constant(Instance::ZoneHandle(
+        Z, constant_evaluator_.EvaluateExpression(ReaderOffset())));
   } else {
     // The field always has an initializer because static fields without
     // initializers are initialized eagerly and do not have implicit getters.
@@ -5214,8 +5210,8 @@ void StreamingFlowGraphBuilder::SetupDefaultParameterValues() {
         if (tag == kSomething) {
           // this will (potentially) read the initializer,
           // but reset the position.
-          default_value =
-              &constant_evaluator_.EvaluateExpression(ReaderOffset());
+          default_value = &Instance::ZoneHandle(
+              Z, constant_evaluator_.EvaluateExpression(ReaderOffset()));
           SkipExpression();  // read (actual) initializer.
         } else {
           default_value = &Instance::ZoneHandle(Z, Instance::null());
@@ -5242,8 +5238,8 @@ void StreamingFlowGraphBuilder::SetupDefaultParameterValues() {
         if (tag == kSomething) {
           // this will (potentially) read the initializer,
           // but reset the position.
-          default_value =
-              &constant_evaluator_.EvaluateExpression(ReaderOffset());
+          default_value = &Instance::ZoneHandle(
+              Z, constant_evaluator_.EvaluateExpression(ReaderOffset()));
           SkipExpression();  // read (actual) initializer.
         } else {
           default_value = &Instance::ZoneHandle(Z, Instance::null());
@@ -8452,7 +8448,8 @@ Fragment StreamingFlowGraphBuilder::BuildStaticGet(TokenPosition* p) {
     const Field& field =
         Field::ZoneHandle(Z, H.LookupFieldByKernelField(target));
     if (field.is_const()) {
-      return Constant(constant_evaluator_.EvaluateExpression(offset));
+      return Constant(Instance::ZoneHandle(
+          Z, constant_evaluator_.EvaluateExpression(offset)));
     } else {
       const Class& owner = Class::Handle(Z, field.Owner());
       const String& getter_name = H.DartGetterName(target);
@@ -8474,7 +8471,8 @@ Fragment StreamingFlowGraphBuilder::BuildStaticGet(TokenPosition* p) {
       return StaticCall(position, function, 0, Array::null_array(),
                         ICData::kStatic, &result_type);
     } else if (H.IsMethod(target)) {
-      return Constant(constant_evaluator_.EvaluateExpression(offset));
+      return Constant(Instance::ZoneHandle(
+          Z, constant_evaluator_.EvaluateExpression(offset)));
     } else {
       UNIMPLEMENTED();
     }
@@ -8551,7 +8549,8 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
     intptr_t argument_count = PeekArgumentsCount() + 1;
 
     if ((argument_count == 1) && (token_kind == Token::kNEGATE)) {
-      const Object& result = constant_evaluator_.EvaluateExpressionSafe(offset);
+      const Object& result = Object::ZoneHandle(
+          Z, constant_evaluator_.EvaluateExpressionSafe(offset));
       if (!result.IsError()) {
         SkipArguments();               // read arguments.
         SkipCanonicalNameReference();  // read interface_target_reference.
@@ -8560,7 +8559,8 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
     } else if ((argument_count == 2) &&
                Token::IsBinaryArithmeticOperator(token_kind) &&
                IsNumberLiteral(PeekArgumentsFirstPositionalTag())) {
-      const Object& result = constant_evaluator_.EvaluateExpressionSafe(offset);
+      const Object& result = Object::ZoneHandle(
+          Z, constant_evaluator_.EvaluateExpressionSafe(offset));
       if (!result.IsError()) {
         SkipArguments();               // read arguments.
         SkipCanonicalNameReference();  // read interface_target_reference.
@@ -9355,7 +9355,8 @@ Fragment StreamingFlowGraphBuilder::BuildSymbolLiteral(
 
   intptr_t offset = ReaderOffset() - 1;  // EvaluateExpression needs the tag.
   SkipStringReference();                 // read index into string table.
-  return Constant(constant_evaluator_.EvaluateExpression(offset));
+  return Constant(
+      Instance::ZoneHandle(Z, constant_evaluator_.EvaluateExpression(offset)));
 }
 
 Fragment StreamingFlowGraphBuilder::BuildTypeLiteral(TokenPosition* position) {
@@ -10208,8 +10209,8 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchStatement() {
         TargetEntryInstr* otherwise;
 
         TokenPosition position = ReadPosition();  // read jth position.
-        current_instructions +=
-            Constant(constant_evaluator_.EvaluateExpression(ReaderOffset()));
+        current_instructions += Constant(Instance::ZoneHandle(
+            Z, constant_evaluator_.EvaluateExpression(ReaderOffset())));
         SkipExpression();  // read jth expression.
         current_instructions += PushArgument();
         current_instructions += LoadLocal(scopes()->switch_variable);
@@ -10666,8 +10667,9 @@ Fragment StreamingFlowGraphBuilder::BuildVariableDeclaration() {
     instructions += NullConstant();
   } else {
     if (helper.IsConst()) {
-      const Instance& constant_value = constant_evaluator_.EvaluateExpression(
-          ReaderOffset());  // read initializer form current position.
+      const Instance& constant_value = Instance::ZoneHandle(
+          Z, constant_evaluator_.EvaluateExpression(
+                 ReaderOffset()));  // read initializer form current position.
       variable->SetConstValue(constant_value);
       instructions += Constant(constant_value);
       SkipExpression();  // skip initializer.
@@ -11048,8 +11050,8 @@ RawObject* StreamingFlowGraphBuilder::BuildParameterDescriptor(
     Tag tag = ReadTag();  // read (first part of) initializer.
     if (tag == kSomething) {
       // this will (potentially) read the initializer, but reset the position.
-      Instance& constant =
-          constant_evaluator_.EvaluateExpression(ReaderOffset());
+      Instance& constant = Instance::ZoneHandle(
+          Z, constant_evaluator_.EvaluateExpression(ReaderOffset()));
       SkipExpression();  // read (actual) initializer.
       param_descriptor.SetAt(entry_start + Parser::kParameterDefaultValueOffset,
                              constant);
@@ -11097,7 +11099,8 @@ RawObject* StreamingFlowGraphBuilder::EvaluateMetadata(
       Array::Handle(Z, Array::New(list_length, H.allocation_space()));
   for (intptr_t i = 0; i < list_length; ++i) {
     // this will (potentially) read the expression, but reset the position.
-    Instance& value = constant_evaluator_.EvaluateExpression(ReaderOffset());
+    Instance& value = Instance::ZoneHandle(
+        Z, constant_evaluator_.EvaluateExpression(ReaderOffset()));
     SkipExpression();  // read (actual) initializer.
     metadata_values.SetAt(i, value);
   }
@@ -11341,10 +11344,8 @@ const Array& ConstantHelper::ReadConstantTable() {
                                                   : Object::bool_false().raw();
         break;
       case kIntConstant: {
-        temp_instance_ = const_evaluator_
-                             .EvaluateExpression(builder_.ReaderOffset(),
-                                                 false /* reset position */)
-                             .raw();
+        temp_instance_ = const_evaluator_.EvaluateExpression(
+            builder_.ReaderOffset(), false /* reset position */);
         break;
       }
       case kDoubleConstant: {

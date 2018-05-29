@@ -55,7 +55,6 @@ class ElementInfoCollector {
       result.constants.add(info);
     });
     environment.libraries.forEach(visitLibrary);
-    closedWorld.allTypedefs.forEach(visitTypedef);
   }
 
   /// Whether to emit information about [entity].
@@ -106,18 +105,6 @@ class ElementInfoCollector {
     return info;
   }
 
-  TypedefInfo visitTypedef(TypedefEntity typdef) {
-    var type = environment.getFunctionTypeOfTypedef(typdef);
-    TypedefInfo info =
-        new TypedefInfo(typdef.name, '$type', _unitInfoForEntity(typdef));
-    _entityToInfo[typdef] = info;
-    LibraryInfo lib = _entityToInfo[typdef.library];
-    lib.typedefs.add(info);
-    info.parent = lib;
-    result.typedefs.add(info);
-    return info;
-  }
-
   GlobalTypeInferenceMemberResult _resultOfMember(MemberEntity e) =>
       compiler.globalInference.results.resultOfMember(e);
 
@@ -147,7 +134,7 @@ class ElementInfoCollector {
         type: '${environment.getFieldType(field)}',
         inferredType: '$inferredType',
         code: code,
-        outputUnit: _unitInfoForEntity(field),
+        outputUnit: _unitInfoForMember(field),
         isConst: field.isConst);
     _entityToInfo[field] = info;
     if (codegenWorldBuilder.hasConstantFieldInitializer(field)) {
@@ -179,7 +166,7 @@ class ElementInfoCollector {
     ClassInfo classInfo = new ClassInfo(
         name: clazz.name,
         isAbstract: clazz.isAbstract,
-        outputUnit: _unitInfoForEntity(clazz));
+        outputUnit: _unitInfoForClass(clazz));
     _entityToInfo[clazz] = classInfo;
 
     int size = compiler.dumpInfoTask.sizeOf(clazz);
@@ -232,7 +219,7 @@ class ElementInfoCollector {
   ClosureInfo visitClosureClass(ClassEntity element) {
     ClosureInfo closureInfo = new ClosureInfo(
         name: element.name,
-        outputUnit: _unitInfoForEntity(element),
+        outputUnit: _unitInfoForClass(element),
         size: compiler.dumpInfoTask.sizeOf(element));
     _entityToInfo[element] = closureInfo;
 
@@ -313,7 +300,7 @@ class ElementInfoCollector {
         inlinedCount: inlinedCount,
         code: code,
         type: functionType.toString(),
-        outputUnit: _unitInfoForEntity(function));
+        outputUnit: _unitInfoForMember(function));
     _entityToInfo[function] = info;
 
     int closureSize = _addClosureInfo(info, function);
@@ -366,9 +353,14 @@ class ElementInfoCollector {
     });
   }
 
-  OutputUnitInfo _unitInfoForEntity(Entity entity) {
+  OutputUnitInfo _unitInfoForMember(MemberEntity entity) {
     return _infoFromOutputUnit(
-        compiler.backend.outputUnitData.outputUnitForEntity(entity));
+        compiler.backend.outputUnitData.outputUnitForMember(entity));
+  }
+
+  OutputUnitInfo _unitInfoForClass(ClassEntity entity) {
+    return _infoFromOutputUnit(
+        compiler.backend.outputUnitData.outputUnitForClass(entity));
   }
 
   OutputUnitInfo _unitInfoForConstant(ConstantValue constant) {
@@ -470,10 +462,11 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         entity,
         impact,
         new WorldImpactVisitorImpl(visitDynamicUse: (dynamicUse) {
+          TypeMask mask = dynamicUse.mask;
           selections.addAll(closedWorld
               // TODO(het): Handle `call` on `Closure` through
               // `world.includesClosureCall`.
-              .locateMembers(dynamicUse.selector, dynamicUse.mask)
+              .locateMembers(dynamicUse.selector, mask)
               .map((MemberEntity e) => new Selection(e, dynamicUse.mask)));
         }, visitStaticUse: (staticUse) {
           selections.add(new Selection(staticUse.element, null));

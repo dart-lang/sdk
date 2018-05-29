@@ -158,47 +158,34 @@ class IdentifierContext {
   static const localFunctionDeclarationContinuation =
       const LocalFunctionDeclarationIdentifierContext.continuation();
 
-  /// Identifier is the name appearing in a function expression.
-  ///
-  /// TODO(paulberry,ahe): What is an example of valid Dart code where this
-  /// would occur?
-  static const functionExpressionName =
-      const IdentifierContext('functionExpressionName');
-
   /// Identifier is the start of a reference to a constructor declared
   /// elsewhere.
   static const constructorReference =
-      const IdentifierContext('constructorReference', isScopeReference: true);
+      const ConstructorReferenceIdentifierContext();
 
   /// Identifier is part of a reference to a constructor declared elsewhere, but
   /// it's not the first identifier of the reference.
-  static const constructorReferenceContinuation = const IdentifierContext(
-      'constructorReferenceContinuation',
-      isContinuation: true);
+  static const constructorReferenceContinuation =
+      const ConstructorReferenceIdentifierContext.continuation();
 
   /// Identifier is part of a reference to a constructor declared elsewhere, but
   /// it appears after type parameters (e.g. `foo` in `X<Y>.foo`).
   static const constructorReferenceContinuationAfterTypeArguments =
-      const IdentifierContext(
-          'constructorReferenceContinuationAfterTypeArguments',
-          isContinuation: true);
+      const ConstructorReferenceIdentifierContext
+          .continuationAfterTypeArguments();
 
   /// Identifier is the declaration of a label (i.e. it is followed by `:` and
   /// then a statement).
-  static const labelDeclaration =
-      const IdentifierContext('labelDeclaration', inDeclaration: true);
+  static const labelDeclaration = const LabelDeclarationIdentifierContext();
 
   /// Identifier is the start of a reference occurring in a literal symbol (e.g.
   /// `foo` in `#foo`).
-  static const literalSymbol =
-      const IdentifierContext('literalSymbol', inSymbol: true);
+  static const literalSymbol = const LiteralSymbolIdentifierContext();
 
   /// Identifier is part of a reference occurring in a literal symbol, but it's
   /// not the first identifier of the reference (e.g. `foo` in `#prefix.foo`).
-  static const literalSymbolContinuation = const IdentifierContext(
-      'literalSymbolContinuation',
-      inSymbol: true,
-      isContinuation: true);
+  static const literalSymbolContinuation =
+      const LiteralSymbolIdentifierContext.continuation();
 
   /// Identifier appears in an expression, and it does not immediately follow a
   /// `.`.
@@ -210,9 +197,8 @@ class IdentifierContext {
 
   /// Identifier is a reference to a named argument of a function or method
   /// invocation (e.g. `foo` in `f(foo: 0);`.
-  static const namedArgumentReference = const IdentifierContext(
-      'namedArgumentReference',
-      allowedInConstantExpression: true);
+  static const namedArgumentReference =
+      const NamedArgumentReferenceIdentifierContext();
 
   /// Identifier is a name being declared by a local variable declaration.
   static const localVariableDeclaration =
@@ -220,7 +206,7 @@ class IdentifierContext {
 
   /// Identifier is a reference to a label (e.g. `foo` in `break foo;`).
   /// Labels have their own scope.
-  static const labelReference = const IdentifierContext('labelReference');
+  static const labelReference = const LabelReferenceIdentifierContext();
 
   final String _name;
 

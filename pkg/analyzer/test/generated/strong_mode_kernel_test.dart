@@ -357,9 +357,18 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
 
   @override
   @failingTest
-  test_genericMethod_override_invalidTypeParamBounds() async {
+  test_genericMethod_override_invalidCovariantTypeParamBounds() async {
     // Expected 1 errors of type StrongModeCode.STRONG_MODE_INVALID_METHOD_OVERRIDE, found 0
-    await super.test_genericMethod_override_invalidTypeParamBounds();
+    await super
+        .test_genericMethod_override_invalidContravariantTypeParamBounds();
+  }
+
+  @override
+  @failingTest
+  test_genericMethod_override_invalidContravariantTypeParamBounds() async {
+    // Expected 1 errors of type StrongModeCode.STRONG_MODE_INVALID_METHOD_OVERRIDE, found 0
+    await super
+        .test_genericMethod_override_invalidContravariantTypeParamBounds();
   }
 
   @override

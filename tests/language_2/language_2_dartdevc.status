@@ -63,7 +63,6 @@ function_propagation_test: RuntimeError
 generic_local_functions_test: CompileTimeError
 generic_methods_generic_function_parameter_test: CompileTimeError
 generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30208
-generic_methods_overriding_test/03: MissingCompileTimeError # Issue 29920
 generic_no_such_method_dispatcher_simple_test: Skip # This test is just for kernel.
 generic_no_such_method_dispatcher_test: CompileTimeError
 getter_closure_execution_order_test: RuntimeError # Issue 29920
@@ -391,6 +390,7 @@ function_type_parameter2_negative_test: Fail
 function_type_parameter_negative_test: Fail
 generic_function_bounds_test: RuntimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
+generic_methods_overriding_test/01: MissingCompileTimeError # Issue 29920
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
 generic_no_such_method_dispatcher_simple_test: CompileTimeError # Warning: Superclass has no method named 'foo'.
 generic_no_such_method_dispatcher_test: CompileTimeError # Issue 31533
@@ -685,7 +685,6 @@ generic_function_type_as_type_argument_test/01: MissingCompileTimeError # Issue 
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError # Issue 29920
 generic_instanceof2_test: RuntimeError # Issue 29920; ReferenceError: FooOfK$String is not defined
 generic_is_check_test: RuntimeError # Issue 29920; Expect.isTrue(false) fails.
-generic_methods_overriding_test/01: MissingCompileTimeError # Issue 29920
 generic_tearoff_test: CompileTimeError
 identical_closure2_test: RuntimeError # Issue 29920; Expect.isFalse(true) fails.
 infinite_switch_label_test: RuntimeError # Issue 29920; NoSuchMethodError: method not found: '<Unexpected Null Value>'

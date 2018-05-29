@@ -365,6 +365,5 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
    * Returns the [element] that is known to always be hit at runtime
    * on this mask. Returns null if there is none.
    */
-  // TODO(johnniwinther): Move this method to [World].
   MemberEntity locateSingleMember(Selector selector, ClosedWorld closedWorld);
 }

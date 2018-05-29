@@ -891,6 +891,16 @@ class ErrorParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
+  void test_constructorPartial2() {
+    super.test_constructorPartial();
+  }
+
+  @failingTest
+  void test_constructorPartial3() {
+    super.test_constructorPartial();
+  }
+
+  @failingTest
   void test_constructorWithReturnType() {
     super.test_constructorWithReturnType();
   }
@@ -4279,6 +4289,11 @@ class RecoveryParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
+  void test_incompleteTypeParameters3() {
+    super.test_incompleteTypeParameters3();
+  }
+
+  @failingTest
   void test_invalidFunctionBodyModifier() {
     super.test_invalidFunctionBodyModifier();
   }
@@ -5045,18 +5060,8 @@ class StatementParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_parseBreakStatement_label() {
-    super.test_parseBreakStatement_label();
-  }
-
-  @failingTest
   void test_parseBreakStatement_noLabel() {
     super.test_parseBreakStatement_noLabel();
-  }
-
-  @failingTest
-  void test_parseContinueStatement_label() {
-    super.test_parseContinueStatement_label();
   }
 
   @failingTest

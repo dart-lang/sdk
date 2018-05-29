@@ -616,7 +616,7 @@ class ProgramBuilder {
     List<StaticMethod> statics = memberElements
         .where((e) => !e.isField)
         .cast<FunctionEntity>()
-        .map(_buildStaticMethod)
+        .map<StaticMethod>(_buildStaticMethod)
         .toList();
 
     if (library == _commonElements.interceptorsLibrary) {

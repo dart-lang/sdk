@@ -104,10 +104,16 @@ String escape(String s) {
 }
 
 void testThrows(jsonText) {
+  var message = "json = '${escape(jsonText)}'";
   Expect.throwsFormatException(() => json.decode(jsonText),
-      "json = '${escape(jsonText)}'");
+      "json.decode, $message");
   Expect.throwsFormatException(() => jsonDecode(jsonText),
-      "json = '${escape(jsonText)}'");
+      "jsonDecode, $message");
+  Expect.throwsFormatException(() => json.decoder.convert(jsonText),
+      "json.decoder.convert, $message");
+  Expect.throwsFormatException(() =>
+      utf8.decoder.fuse(json.decoder).convert(utf8.encode(jsonText)),
+      "utf8.decoder.fuse(json.decoder) o utf.encode, $message");
 }
 
 testNumbers() {
@@ -187,6 +193,10 @@ testNumbers() {
   testThrows("-2.2 e+2");
   testThrows("-2.2e +2");
   testThrows("-2.2e+ 2");
+  testThrows("01");
+  testThrows("0.");
+  testThrows(".0");
+  testThrows("0.e1");
 
   testThrows("[2.,2]");
   testThrows("{2.:2}");

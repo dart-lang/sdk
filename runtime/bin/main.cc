@@ -345,7 +345,10 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
       // relative URIs and perform other related tasks. We need Loader to be
       // initialized for this to work because loading from Kernel binary
       // bypasses normal source code loading paths that initialize it.
-      Loader::InitForSnapshot(script_uri);
+      const char* resolved_script_uri = NULL;
+      result = Dart_StringToCString(uri, &resolved_script_uri);
+      CHECK_RESULT(result);
+      Loader::InitForSnapshot(resolved_script_uri);
     }
 
     Dart_TimelineEvent("LoadScript", Dart_TimelineGetMicros(),
@@ -615,7 +618,13 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
       platform_kernel_buffer_size = kernel_buffer_size;
     }
     if (platform_kernel_buffer == NULL) {
+#if defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
+      FATAL(
+          "Binary built with --exclude-kernel-service. Cannot run"
+          " from source.");
+#else
       FATAL("platform_program cannot be NULL.");
+#endif  // defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
     }
     // TODO(sivachandra): When the platform program is unavailable, check if
     // application kernel binary is self contained or an incremental binary.

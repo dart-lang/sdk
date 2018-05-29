@@ -26,9 +26,6 @@ verbose_gc_to_bmu_test: Skip
 [ $builder_tag == swarming && $system == macos ]
 io/*: Skip # Issue 30618
 
-[ $compiler == dartk && $strong ]
-*: SkipByDesign
-
 [ $compiler == fasta && $strong ]
 io/directory_invalid_arguments_test: CompileTimeError
 io/io_override_test: CompileTimeError
@@ -63,25 +60,21 @@ io/raw_secure_server_socket_test: Pass, Crash # Issue 29524
 io/directory_fuzz_test: Skip # These test have type errors on purpose and take very long to run in checked mode with no benefit. Skip.
 io/directory_invalid_arguments_test: Fail, OK # These tests have type errors on purpose.
 io/file_fuzz_test: Skip # These test have type errors on purpose and take very long to run in checked mode with no benefit. Skip.
-io/file_invalid_arguments_test: Fail, OK # These tests have type errors on purpose.
 io/internet_address_invalid_arguments_test: Fail, OK # These tests have type errors on purpose.
 io/process_invalid_arguments_test: Fail, OK # These tests have type errors on purpose.
 io/socket_invalid_arguments_test: Fail, OK # These tests have type errors on purpose.
 io/stdout_bad_argument_test: Fail, OK # These tests have type errors on purpose.
 
-[ !$strong && ($compiler == dartk || $compiler == dartkp) ]
-*: Skip
-
 [ $compiler == app_jit || $compiler == precompiler ]
 io/compile_all_test: Skip # Incompatible flag --compile_all
 
-[ $compiler == dart2js || $compiler == dartdevc ]
-*: SkipByDesign
-
 # We skip all the Dart 1.0 tests in dartk and dartkp mode as these
 # modes are intended only for Dart 2.0 with strong mode enabled.
-[ $compiler == dartk || $compiler == dartkp ]
-*: Skip
+[ $compiler == app_jitk || $compiler == dartk || $compiler == dartkp ]
+*: SkipByDesign
+
+[ $compiler == dart2js || $compiler == dartdevc ]
+*: SkipByDesign
 
 [ $compiler != none || $runtime != vm ]
 script_snapshot_depfile_test: SkipByDesign # Only makes sense running from source.

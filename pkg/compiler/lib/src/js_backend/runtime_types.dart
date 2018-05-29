@@ -1571,6 +1571,26 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
       typeVariableTestsForTesting = typeVariableTests;
     }
 
+    /*print(typeVariableTests.dump());
+    print('------------------------------------------------------------------');
+    print('classesNeedingTypeArguments:');
+    classesNeedingTypeArguments.forEach((e) => print('  $e'));
+    print('------------------------------------------------------------------');
+    print('methodsNeedingSignature:');
+    methodsNeedingSignature.forEach((e) => print('  $e'));
+    print('------------------------------------------------------------------');
+    print('methodsNeedingTypeArguments:');
+    methodsNeedingTypeArguments.forEach((e) => print('  $e'));
+    print('------------------------------------------------------------------');
+    print('localFunctionsNeedingSignature:');
+    localFunctionsNeedingSignature.forEach((e) => print('  $e'));
+    print('------------------------------------------------------------------');
+    print('localFunctionsNeedingTypeArguments:');
+    localFunctionsNeedingTypeArguments.forEach((e) => print('  $e'));
+    print('------------------------------------------------------------------');
+    print('selectorsNeedingTypeArguments:');
+    selectorsNeedingTypeArguments.forEach((e) => print('  $e'));*/
+
     return _createRuntimeTypesNeed(
         _elementEnvironment,
         closedWorld.backendUsage,

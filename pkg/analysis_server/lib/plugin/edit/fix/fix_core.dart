@@ -49,6 +49,11 @@ class Fix {
    */
   Fix(this.kind, this.change);
 
+  /**
+   * Returns `true` if this fix is the union of multiple fixes.
+   */
+  bool isFixAllFix() => change.message == kind.appliedTogetherMessage;
+
   @override
   String toString() {
     return 'Fix(kind=$kind, change=$change)';
@@ -70,6 +75,12 @@ abstract class FixContext {
    * The error to fix, should be reported by the given [analysisDriver].
    */
   AnalysisError get error;
+
+  /**
+   * All of the errors in the file. This is used to compute additional fixes
+   * such "Fix all instances in file."
+   */
+  List<AnalysisError> get errors;
 
   /**
    * The [ResourceProvider] to access files and folders.

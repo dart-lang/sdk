@@ -24,6 +24,9 @@ abstract class EntryPointsListener {
   /// Add call by the given selector with arbitrary ('raw') arguments.
   void addRawCall(Selector selector);
 
+  /// Sets the type of the given field.
+  void addDirectFieldAccess(Field field, Type value);
+
   /// Add instantiation of the given class.
   ConcreteType addAllocatedClass(Class c);
 }

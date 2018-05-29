@@ -155,6 +155,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
         _customElementsAnalysis.registerTypeConstant(representedType.element);
       }
     } else if (constant is InstantiationConstantValue) {
+      // TODO(johnniwinther): Register these using `BackendImpact`.
       impactBuilder.registerTypeUse(new TypeUse.instantiation(
           _elementEnvironment
               .getThisType(_commonElements.instantiation1Class)));
@@ -167,6 +168,9 @@ class CodegenEnqueuerListener extends EnqueuerListener {
       impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
           _commonElements.instantiatedGenericFunctionType,
           CallStructure.TWO_ARGS));
+      impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
+          _commonElements.extractFunctionTypeObjectFromInternal,
+          CallStructure.ONE_ARG));
     }
   }
 

@@ -10,7 +10,6 @@ import 'package:front_end/src/fasta/util/link.dart';
 export 'emptyset.dart';
 export 'maplet.dart';
 export 'setlet.dart';
-export 'package:front_end/src/fasta/util/link.dart';
 
 part 'indentation.dart';
 
@@ -210,7 +209,7 @@ String modifiersToString(
   if (isExternal) builder.addLast('external');
   if (isCovariant) builder.addLast('covariant');
   StringBuffer buffer = new StringBuffer();
-  builder.toLink().printOn(buffer, ', ');
+  builder.toLink(const Link<String>()).printOn(buffer, ', ');
   return buffer.toString();
 }
 

@@ -5,6 +5,9 @@
 import("../application_snapshot.gni")
 
 application_snapshot("dartfmt") {
+  dart_version = 2
   main_dart = "../../third_party/pkg_tested/dart_style/bin/format.dart"
-  training_args = [ "--help" ]
+
+  # Train it on formatting its own source.
+  training_args = [ "../../third_party/pkg_tested/dart_style" ]
 }

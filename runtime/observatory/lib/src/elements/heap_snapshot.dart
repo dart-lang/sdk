@@ -188,7 +188,7 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
   VirtualTreeElement _tree;
 
   List<Element> _createReport() {
-    var report = [
+    var report = <HtmlElement>[
       new DivElement()
         ..classes = ['content-centered-big']
         ..children = [
@@ -397,7 +397,8 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
   static const int kMaxChildren = 100;
   static const int kMinRetainedSize = 4096;
 
-  static Iterable _getChildrenDominator(M.HeapSnapshotDominatorNode node) {
+  static Iterable _getChildrenDominator(nodeDynamic) {
+    M.HeapSnapshotDominatorNode node = nodeDynamic;
     final list = node.children.toList();
     list.sort((a, b) => b.retainedSize - a.retainedSize);
     return list
@@ -405,8 +406,8 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
         .take(kMaxChildren);
   }
 
-  static Iterable _getChildrenMergedDominator(
-      M.HeapSnapshotMergedDominatorNode node) {
+  static Iterable _getChildrenMergedDominator(nodeDynamic) {
+    M.HeapSnapshotMergedDominatorNode node = nodeDynamic;
     final list = node.children.toList();
     list.sort((a, b) => b.retainedSize - a.retainedSize);
     return list

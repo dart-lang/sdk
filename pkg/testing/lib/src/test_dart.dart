@@ -29,7 +29,9 @@ class TestDart extends Suite {
   factory TestDart.fromJsonMap(Uri base, Map json, String name, String kind) {
     String common = json["common"] ?? "";
     String processes = json["processes"] ?? "-j${Platform.numberOfProcessors}";
-    List<String> commandLines = json["command-lines"] ?? <String>[];
+    List<String> commandLines = json["command-lines"] == null
+        ? new List<String>.from(json["command-lines"])
+        : <String>[];
     return new TestDart(name, common, processes, commandLines);
   }
 

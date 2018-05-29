@@ -2,7 +2,7 @@
 
 **Author**: eernst@
 
-**Version**: 0.5 (2018-01-11)
+**Version**: 0.7 (2018-02-26)
 
 **Status**: Under implementation.
 
@@ -191,40 +191,41 @@ _U<sub>p,m</sub>_ (*so each type variable is related to, that is, depends
 on, every type variable in its bound, possibly including itself*).
 Let _==><sub>m</sub>_ be the transitive closure of _--><sub>m</sub>_.
 For each _m_, let _U<sub>i,m+1</sub>_, for _i_ in _1 .. k_, be determined
-as follows:
+by the following iterative process:
 
-- Let _j_ be the lowest number such that
-  _X<sub>j</sub> ==><sub>m</sub> X<sub>j</sub>_ (*that is, such that this
-  type variable is a member of a dependency cycle*).
-  Let _{Y<sub>1</sub> .. Y<sub>p</sub>}_ be the the maximal subset
-  containing _X<sub>j</sub>_ of _{X<sub>1</sub> .. X<sub>k</sub>}_ where
-  every pair is related: _Y<sub>q</sub> ==><sub>m</sub> Y<sub>r</sub>_, for
-  all _q, r_ in _1 .. p_ (*i.e., this subset is a strongly connected
-  component in the dependency graph containing _X<sub>j</sub>_*).
-  Then _U<sub>i,m+1</sub>_ is the result of substituting, in
-  _U<sub>i,m</sub>_, `Null` for every contravariant occurrence
-  of _X<sub>j</sub>_, and `dynamic` for every covariant occurrence of
-  _X<sub>j</sub>_, for all _i_ in _1 .. k_ such that _X<sub>i</sub>_ is a
-  member of _{Y<sub>1</sub> .. Y<sub>p</sub>}_; and _U<sub>i,m+1</sub>_ is
-  _U<sub>i,m</sub>_, for all other _i_ in _1 .. k_.
-  *That is, we update the bounds of type variables in the dependency cycle
-  such that the type variables in the dependency cycle are replaced by
-  `Null` or `dynamic`, depending on the variance of the location.*
+1. If there exists a _j_ in _1 .. k_ such that
+   _X<sub>j</sub> ==><sub>m</sub> X<sub>j</sub>_
+   (*that is, if the dependency graph has a cycle*)
+   let _M<sub>1</sub> .. M<sub>p</sub>_ be the strongly connected components
+   (SCCs) with respect to _--><sub>m</sub>_
+   (*that is, the maximal subsets of _X<sub>1</sub> .. X<sub>k</sub>_
+   where every pair of variables in each subset are related in both directions
+   by _==><sub>m</sub>_; note that the SCCs are pairwise disjoint; also, they
+   are uniquely defined up to reordering, and the order does not matter*).
+   Let _M_ be the union of _M<sub>1</sub> .. M<sub>p</sub>_
+   (*that is, all variables that participate in a dependency cycle*).
+   Let _i_ be in _1 .. k_.
+   If _X<sub>i</sub>_ does not belong to _M_ then
+   _U<sub>i,m+1</sub> = U<sub>i,m</sub>_.
+   Otherwise there exists a _q_ such that _X<sub>i</sub>_ belongs to
+   _M<sub>q</sub>_; _U<sub>i,m+1</sub>_ is then obtained from _U<sub>i,m</sub>_
+   by replacing every covariant occurrence of a variable in _M<sub>q</sub>_ by
+   `dynamic`, and replacing every contravariant occurence of a variable in
+   _M<sub>q</sub>_ by `Null`.
 
-- Otherwise, (*if no such dependency cycle exists*) let _j_ be the
-  lowest number such that _X<sub>j</sub>_ occurs in
-  _U<sub>p,m</sub>_ for some _p_ and
-  _X<sub>j</sub> -/-><sub>m</sub> X<sub>q</sub>_ for all _q_ in _1..k_
-  (*that is, _U<sub>j,m</sub>_ is closed, that is, the current bound of
-  _X<sub>j</sub>_ does not depend on any other type variables; but
-  _X<sub>j</sub>_ is being depended on by the bounds of some other type
-  variables*). Then _U<sub>i,m+1</sub>_ is the result of substituting, in
-  _U<sub>i,m</sub>_, `Null` for every contravariant occurrence
-  of _X<sub>j</sub>_, and _U<sub>j,m</sub>_ for every covariant occurrence
-  of _X<sub>j</sub>_, for all _i_ in _1 .. k_.
+2. Otherwise, (*if no dependency cycle exists*) let _j_ be the lowest number
+   such that _X<sub>j</sub>_ occurs in _U<sub>p,m</sub>_ for some _p_ and
+   _X<sub>j</sub> -/-><sub>m</sub> X<sub>q</sub>_ for all _q_ in _1..k_
+   (*that is, _U<sub>j,m</sub>_ is closed, that is, the current bound of
+   _X<sub>j</sub>_ does not contain any type variables; but _X<sub>j</sub>_ is
+   being depended on by the bound of some other type variable*).
+   Then, for all _i_ in _1 .. k_, _U<sub>i,m+1</sub>_ is obtained from
+   _U<sub>i,m</sub>_ by replacing every covariant occurrence of _X<sub>j</sub>_
+   by _U<sub>j,m</sub>_, and replacing every contravariant occurrence of
+   _X<sub>j</sub>_ by `Null`.
 
-- Otherwise, (*when no dependencies exist*) terminate with the result
-  _&lt;U<sub>1,m</sub> ..., U<sub>k,m</sub>&gt;_.
+3. Otherwise, (*when no dependencies exist*) terminate with the result
+   _&lt;U<sub>1,m</sub> ..., U<sub>k,m</sub>&gt;_.
 
 *This process will always terminate, because the total number of
 occurrences of type variables from _{X<sub>1</sub> .. X<sub>k</sub>}_ in
@@ -258,6 +259,13 @@ applicable.
 
 
 ## Updates
+
+*   Feb 26th 2018, version 0.7: Revised cycle breaking algorithm for
+    F-bounded type variables to avoid specifying orderings that do not matter.
+
+*   Feb 22nd 2018, version 0.6: Revised cycle breaking algorithm for
+    F-bounded type variables to replace all members by an extreme type, not
+    just one of them.
 
 *   Jan 11th 2018, version 0.5: Revised treatment of variance based on
     strongly connected components in the dependency graph.

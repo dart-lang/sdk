@@ -43,7 +43,6 @@ class BulkCompiler {
               ..fileSystem = (new FileBackedMemoryFileSystem()
                 ..entities[mainUri.path] =
                     (new MemoryFileSystemEntity(mainUri)..bytes = <int>[])),
-            false,
             <Uri>[mainUri]);
 
   Future<Null> compile(String source) {

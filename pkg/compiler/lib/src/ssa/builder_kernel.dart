@@ -2839,7 +2839,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       ConstantValue value = _elementMap.getFieldConstantValue(field);
       if (value != null) {
         if (!field.isAssignable) {
-          var unit = compiler.backend.outputUnitData.outputUnitForEntity(field);
+          var unit = compiler.backend.outputUnitData.outputUnitForMember(field);
           // TODO(sigmund): this is not equivalent to what the old FE does: if
           // there is no prefix the old FE wouldn't treat this in any special
           // way. Also, if the prefix points to a constant in the main output

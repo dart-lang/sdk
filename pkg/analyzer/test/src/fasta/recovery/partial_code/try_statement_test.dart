@@ -12,8 +12,6 @@ main() {
 
 class TryStatementTest extends PartialCodeTest {
   buildAll() {
-    final allExceptEof =
-        PartialCodeTest.statementSuffixes.map((ts) => ts.name).toList();
     buildTests(
         'try_statement',
         [
@@ -67,32 +65,57 @@ class TryStatementTest extends PartialCodeTest {
               [
                 ScannerErrorCode.EXPECTED_TOKEN,
                 ParserErrorCode.CATCH_SYNTAX,
+                ParserErrorCode.CATCH_SYNTAX,
+                ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               "try {} catch (e) {}",
-              failing: allExceptEof),
+              failing: [
+                'eof',
+                'block',
+                'labeled',
+                'localFunctionNonVoid',
+                'localFunctionVoid',
+                'localVariable'
+              ]),
           new TestDescriptor(
               'catch_identifier',
               'try {} catch (e',
-              [ParserErrorCode.EXPECTED_TOKEN, ScannerErrorCode.EXPECTED_TOKEN],
-              "try {} catch (e) {}",
-              failing: allExceptEof),
-          new TestDescriptor(
-              'catch_identifierComma',
-              'try {} catch (e, ',
               [
                 ParserErrorCode.CATCH_SYNTAX,
                 ParserErrorCode.EXPECTED_TOKEN,
                 ScannerErrorCode.EXPECTED_TOKEN
               ],
+              "try {} catch (e) {}",
+              failing: ['eof', 'block', 'labeled', 'localFunctionNonVoid']),
+          new TestDescriptor(
+              'catch_identifierComma',
+              'try {} catch (e, ',
+              [
+                ParserErrorCode.CATCH_SYNTAX,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ScannerErrorCode.EXPECTED_TOKEN
+              ],
               "try {} catch (e, _s_) {}",
-              failing: allExceptEof),
+              failing: [
+                'eof',
+                'block',
+                'labeled',
+                'localFunctionNonVoid',
+                'localFunctionVoid',
+                'localVariable'
+              ]),
           new TestDescriptor(
               'catch_identifierCommaIdentifier',
               'try {} catch (e, s',
-              [ParserErrorCode.EXPECTED_TOKEN, ScannerErrorCode.EXPECTED_TOKEN],
+              [
+                ParserErrorCode.CATCH_SYNTAX,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ScannerErrorCode.EXPECTED_TOKEN
+              ],
               "try {} catch (e, s) {}",
-              failing: allExceptEof),
+              failing: ['eof', 'block', 'labeled', 'localFunctionNonVoid']),
           new TestDescriptor('catch_rightParen', 'try {} catch (e, s)',
               [ParserErrorCode.EXPECTED_TOKEN], "try {} catch (e, s) {}",
               failing: ['block']),
@@ -110,33 +133,58 @@ class TryStatementTest extends PartialCodeTest {
               'try {} on A catch (',
               [
                 ParserErrorCode.CATCH_SYNTAX,
+                ParserErrorCode.CATCH_SYNTAX,
+                ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.EXPECTED_TOKEN,
                 ScannerErrorCode.EXPECTED_TOKEN
               ],
               "try {} on A catch (e) {}",
-              failing: allExceptEof),
+              failing: [
+                'eof',
+                'block',
+                'labeled',
+                'localFunctionNonVoid',
+                'localFunctionVoid',
+                'localVariable'
+              ]),
           new TestDescriptor(
               'on_catch_identifier',
               'try {} on A catch (e',
-              [ParserErrorCode.EXPECTED_TOKEN, ScannerErrorCode.EXPECTED_TOKEN],
-              "try {} on A catch (e) {}",
-              failing: allExceptEof),
-          new TestDescriptor(
-              'on_catch_identifierComma',
-              'try {} on A catch (e, ',
               [
                 ParserErrorCode.CATCH_SYNTAX,
                 ParserErrorCode.EXPECTED_TOKEN,
                 ScannerErrorCode.EXPECTED_TOKEN
               ],
+              "try {} on A catch (e) {}",
+              failing: ['eof', 'block', 'labeled', 'localFunctionNonVoid']),
+          new TestDescriptor(
+              'on_catch_identifierComma',
+              'try {} on A catch (e, ',
+              [
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.CATCH_SYNTAX,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ScannerErrorCode.EXPECTED_TOKEN
+              ],
               "try {} on A catch (e, _s_) {}",
-              failing: allExceptEof),
+              failing: [
+                'eof',
+                'block',
+                'labeled',
+                'localFunctionVoid',
+                'localFunctionNonVoid',
+                'localVariable'
+              ]),
           new TestDescriptor(
               'on_catch_identifierCommaIdentifier',
               'try {} on A catch (e, s',
-              [ParserErrorCode.EXPECTED_TOKEN, ScannerErrorCode.EXPECTED_TOKEN],
+              [
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.CATCH_SYNTAX,
+                ScannerErrorCode.EXPECTED_TOKEN
+              ],
               "try {} on A catch (e, s) {}",
-              failing: allExceptEof),
+              failing: ['eof', 'block', 'labeled', 'localFunctionNonVoid']),
           new TestDescriptor('on_catch_rightParen', 'try {} on A catch (e, s)',
               [ParserErrorCode.EXPECTED_TOKEN], "try {} on A catch (e, s) {}",
               failing: ['block']),

@@ -13,10 +13,10 @@ import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
 import 'package:compiler/src/js_model/locals.dart';
 import 'package:compiler/src/universe/world_builder.dart';
-import 'package:compiler/src/util/util.dart';
 import 'package:expect/expect.dart';
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
+import 'package:front_end/src/fasta/util/link.dart' show Link;
 import 'package:kernel/ast.dart' as ir;
 
 const List<String> skipForKernel = const <String>[];

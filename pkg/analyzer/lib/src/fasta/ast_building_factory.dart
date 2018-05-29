@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart' hide Identifier;
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
+import 'package:front_end/src/fasta/kernel/body_builder.dart' show LabelTarget;
 import 'package:front_end/src/fasta/kernel/forest.dart';
 import 'package:kernel/ast.dart' as kernel;
 
@@ -103,6 +104,48 @@ class AstBuildingForest
   }
 
   @override
+  CatchClause catchClause(
+      Token onKeyword,
+      TypeAnnotation exceptionType,
+      Token catchKeyword,
+      SimpleIdentifier exceptionParameter,
+      SimpleIdentifier stackTraceParameter,
+      TypeAnnotation stackTraceType,
+      Statement body) {
+    // TODO(brianwilkerson) The following is not reliable in the presence of
+    // recovery. Consider passing the required tokens from the Parser to the
+    // BodyBuilder to here.
+    Token leftParenthesis;
+    if (catchKeyword != null) {
+      leftParenthesis = catchKeyword.next;
+    }
+    Token comma;
+    if (stackTraceParameter != null) {
+      comma = exceptionParameter.endToken.next;
+    }
+    Token rightParenthesis;
+    if (catchKeyword != null) {
+      if (stackTraceParameter != null) {
+        rightParenthesis = stackTraceParameter.endToken.next;
+      } else if (comma != null) {
+        rightParenthesis = comma.next;
+      } else {
+        rightParenthesis = exceptionParameter.endToken.next;
+      }
+    }
+    return astFactory.catchClause(
+        onKeyword,
+        exceptionType,
+        catchKeyword,
+        leftParenthesis,
+        exceptionParameter,
+        comma,
+        stackTraceParameter,
+        rightParenthesis,
+        body);
+  }
+
+  @override
   Expression checkLibraryIsLoaded(dependency) {
     // TODO(brianwilkerson) Implement this.
     throw new UnimplementedError();
@@ -119,6 +162,16 @@ class AstBuildingForest
           Token continueKeyword, Identifier label, Token semicolon) =>
       astFactory.continueStatement(
           continueKeyword, astFactory.simpleIdentifier(label.token), semicolon);
+
+  @override
+  Generator<Expression, Statement, _Arguments> deferredAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+      Token token,
+      PrefixBuilder builder,
+      Generator<Expression, Statement, _Arguments> generator) {
+    // TODO(brianwilkerson) Implement this.
+    throw new UnimplementedError();
+  }
 
   @override
   Statement doStatement(Token doKeyword, Statement body, Token whileKeyword,
@@ -148,7 +201,7 @@ class AstBuildingForest
           covariant initialization,
           Token leftSeparator,
           Expression condition,
-          Token rightSeparator,
+          Statement conditionStatement,
           List<Expression> updaters,
           Token rightParenthesis,
           Statement body) =>
@@ -159,7 +212,7 @@ class AstBuildingForest
           initialization,
           leftSeparator,
           condition,
-          rightSeparator,
+          getSemicolon(conditionStatement),
           updaters,
           rightParenthesis,
           body);
@@ -168,7 +221,13 @@ class AstBuildingForest
   Expression getExpressionFromExpressionStatement(Statement statement) =>
       (statement as ExpressionStatement).expression;
 
+  String getLabelName(Label label) => label.label.name;
+
   @override
+  int getLabelOffset(Label label) => label.offset;
+
+  /// Return the semicolon at the end of the given [statement], or `null` if the
+  /// statement is not terminated by a semicolon.
   Token getSemicolon(Statement statement) {
     if (statement is ExpressionStatement) {
       return statement.semicolon;
@@ -212,7 +271,7 @@ class AstBuildingForest
       Expression index,
       kernel.Procedure getter,
       kernel.Procedure setter) {
-    // TODO(brianwilkerson): Implement this.
+    // TODO(brianwilkerson) Implement this.
     throw new UnimplementedError();
   }
 
@@ -235,11 +294,31 @@ class AstBuildingForest
       statement is ExpressionStatement;
 
   @override
+  bool isLabel(covariant node) => node is Label;
+
+  @override
   bool isThisExpression(Object node) => node is ThisExpression;
 
   @override
   bool isVariablesDeclaration(Object node) =>
       node is VariableDeclarationStatement && node.variables != 1;
+
+  @override
+  Label label(Token identifier, Token colon) =>
+      astFactory.label(astFactory.simpleIdentifier(identifier), colon);
+
+  @override
+  Statement labeledStatement(
+          LabelTarget<Statement> target, Statement statement) =>
+      astFactory.labeledStatement(target.labels.cast<Label>(), statement);
+
+  @override
+  Generator<Expression, Statement, _Arguments> largeIntAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+      Token token) {
+    // TODO(brianwilkerson) Implement this.
+    throw new UnimplementedError();
+  }
 
   @override
   Expression literalBool(bool value, Token location) =>
@@ -326,6 +405,15 @@ class AstBuildingForest
   }
 
   @override
+  Generator<Expression, Statement, _Arguments> loadLibraryGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+      Token token,
+      LoadLibraryBuilder builder) {
+    // TODO(brianwilkerson) Implement this.
+    throw new UnimplementedError();
+  }
+
+  @override
   Object mapEntry(Expression key, Token colon, Expression value) =>
       astFactory.mapLiteralEntry(key, colon, value);
 
@@ -346,7 +434,7 @@ class AstBuildingForest
       kernel.Member getter,
       kernel.Member setter,
       kernel.DartType type) {
-    // TODO(brianwilkerson): Implement this.
+    // TODO(brianwilkerson) Implement this.
     throw new UnimplementedError();
   }
 
@@ -364,12 +452,22 @@ class AstBuildingForest
       kernel.Name name,
       kernel.Member getter,
       kernel.Member setter) {
-    // TODO(brianwilkerson): Implement this.
+    // TODO(brianwilkerson) Implement this.
     throw new UnimplementedError();
   }
 
   @override
   int readOffset(AstNode node) => node.offset;
+
+  @override
+  Generator<Expression, Statement, _Arguments> readOnlyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+      Token token,
+      Expression expression,
+      String plainNameForRead) {
+    // TODO(brianwilkerson) Implement this.
+    throw new UnimplementedError();
+  }
 
   @override
   void resolveBreak(Statement target, BreakStatement user) {
@@ -397,9 +495,35 @@ class AstBuildingForest
       astFactory.returnStatement(returnKeyword, expression, semicolon);
 
   @override
+  void setParameterType(FormalParameter parameter, TypeAnnotation type) {
+    parameter.identifier.staticType = type.type;
+  }
+
+  @override
+  Generator<Expression, Statement, _Arguments> staticAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+      Token token,
+      kernel.Member getter,
+      kernel.Member setter) {
+    // TODO(brianwilkerson) Implement this.
+    throw new UnimplementedError();
+  }
+
+  @override
   Expression stringConcatenationExpression(
           List<Expression> strings, Token location) =>
       astFactory.adjacentStrings(strings.cast<StringLiteral>());
+
+  @override
+  Generator<Expression, Statement, _Arguments> superIndexedAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+      Token token,
+      Expression index,
+      kernel.Member getter,
+      kernel.Member setter) {
+    // TODO(brianwilkerson) Implement this.
+    throw new UnimplementedError();
+  }
 
   @override
   Generator<Expression, Statement, _Arguments> superPropertyAccessGenerator(
@@ -408,7 +532,7 @@ class AstBuildingForest
       kernel.Name name,
       kernel.Member getter,
       kernel.Member setter) {
-    // TODO(brianwilkerson): Implement this.
+    // TODO(brianwilkerson) Implement this.
     throw new UnimplementedError();
   }
 
@@ -426,7 +550,7 @@ class AstBuildingForest
       Expression index,
       kernel.Procedure getter,
       kernel.Procedure setter) {
-    // TODO(brianwilkerson): Implement this.
+    // TODO(brianwilkerson) Implement this.
     throw new UnimplementedError();
   }
 
@@ -437,7 +561,7 @@ class AstBuildingForest
       kernel.Name name,
       kernel.Member getter,
       kernel.Member setter) {
-    // TODO(brianwilkerson): Implement this.
+    // TODO(brianwilkerson) Implement this.
     throw new UnimplementedError();
   }
 
@@ -454,6 +578,18 @@ class AstBuildingForest
           Statement finallyBlock) =>
       astFactory.tryStatement(
           tryKeyword, body, catchClauses, finallyKeyword, finallyBlock);
+
+  @override
+  Generator<Expression, Statement, _Arguments> typeUseGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+      Token token,
+      PrefixBuilder prefix,
+      int declarationReferenceOffset,
+      TypeDeclarationBuilder declaration,
+      String plainNameForRead) {
+    // TODO(brianwilkerson) Implement this.
+    throw new UnimplementedError();
+  }
 
   @override
   VariableDeclarationStatement variablesDeclaration(

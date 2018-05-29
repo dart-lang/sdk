@@ -384,8 +384,6 @@ abstract class ResolutionWorldBuilderBase extends WorldBuilderBase
   ClosedWorld _closedWorldCache;
   final Set<MemberEntity> _liveInstanceMembers = new Set<MemberEntity>();
 
-  final Set<TypedefEntity> _allTypedefs = new Set<TypedefEntity>();
-
   final Set<ConstantValue> _constantValues = new Set<ConstantValue>();
 
   final Set<Local> genericLocalFunctions = new Set<Local>();
@@ -888,10 +886,6 @@ abstract class ResolutionWorldBuilderBase extends WorldBuilderBase
     return uses != null ? uses : const <ClassEntity>[];
   }
 
-  void registerTypedef(TypedefEntity typdef) {
-    _allTypedefs.add(typdef);
-  }
-
   void registerUsedElement(MemberEntity element) {
     if (element.isInstanceMember && !element.isAbstract) {
       _liveInstanceMembers.add(element);
@@ -1063,7 +1057,6 @@ abstract class KernelResolutionWorldBuilderBase
         liveInstanceMembers: _liveInstanceMembers,
         assignedInstanceMembers: computeAssignedInstanceMembers(),
         processedMembers: _processedMembers,
-        allTypedefs: _allTypedefs,
         mixinUses: classHierarchyBuilder.mixinUses,
         typesImplementedBySubclasses: typesImplementedBySubclasses,
         classHierarchyNodes: classHierarchyBuilder.classHierarchyNodes,

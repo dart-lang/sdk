@@ -38,7 +38,8 @@ class ContextRoot {
   /**
    * Initialize a newly created context root.
    */
-  ContextRoot(this.pathContext, this.root, this.exclude);
+  ContextRoot(this.root, this.exclude, {path.Context pathContext})
+      : pathContext = pathContext ?? path.context;
 
   @override
   int get hashCode {

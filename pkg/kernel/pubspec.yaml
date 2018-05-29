@@ -1,7 +1,7 @@
 name: kernel
 # Currently, kernel API is not stable and users should
 # not depend on semver semantics when depending on this package.
-version: 0.3.0
+version: 0.3.1-alpha.0
 author: Dart Team <misc@dartlang.org>
 description: Dart IR (Intermediate Representation)
 homepage: https://github.com/dart-lang/sdk/tree/master/pkg/kernel
@@ -14,7 +14,7 @@ dependencies:
   package_config: ^1.0.0
 dev_dependencies:
   analyzer: '>=0.31.0 <0.33.0'
-  front_end: 0.1.0
+  front_end: 0.1.1-alpha.0
   test: ^0.12.15+6
   stack_trace: ^1.6.6
   ansicolor: ^0.0.9

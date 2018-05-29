@@ -26,4 +26,4 @@ SNAPSHOT="$BIN_DIR/snapshots/dartfmt.dart.snapshot"
 
 # We are running the snapshot in the built SDK.
 DART="$BIN_DIR/dart"
-exec "$DART" "$SNAPSHOT" "$@"
+exec "$DART" "--preview-dart-2" "$SNAPSHOT" "$@"

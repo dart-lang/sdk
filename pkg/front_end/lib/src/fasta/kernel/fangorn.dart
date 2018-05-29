@@ -15,6 +15,7 @@ import 'package:kernel/ast.dart'
         Catch,
         ContinueSwitchStatement,
         DartType,
+        DynamicType,
         EmptyStatement,
         Expression,
         ExpressionStatement,
@@ -40,14 +41,23 @@ import '../problems.dart' show unsupported;
 
 import '../scanner.dart' show Token;
 
+import 'body_builder.dart' show LabelTarget;
+
 import 'kernel_expression_generator.dart'
     show
+        KernelDeferredAccessGenerator,
         KernelIndexedAccessGenerator,
+        KernelLargeIntAccessGenerator,
+        KernelLoadLibraryGenerator,
         KernelNullAwarePropertyAccessGenerator,
         KernelPropertyAccessGenerator,
+        KernelReadOnlyAccessGenerator,
+        KernelStaticAccessGenerator,
+        KernelSuperIndexedAccessGenerator,
         KernelSuperPropertyAccessGenerator,
         KernelThisIndexedAccessGenerator,
         KernelThisPropertyAccessGenerator,
+        KernelTypeUseGenerator,
         KernelVariableUseGenerator;
 
 import 'kernel_shadow_ast.dart'
@@ -90,7 +100,14 @@ import 'kernel_shadow_ast.dart'
         ShadowWhileStatement,
         ShadowYieldStatement;
 
-import 'forest.dart' show ExpressionGeneratorHelper, Forest;
+import 'forest.dart'
+    show
+        ExpressionGeneratorHelper,
+        Forest,
+        Generator,
+        LoadLibraryBuilder,
+        PrefixBuilder,
+        TypeDeclarationBuilder;
 
 /// A shadow tree factory.
 class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
@@ -321,6 +338,21 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
+  Catch catchClause(
+      Token onKeyword,
+      DartType exceptionType,
+      Token catchKeyword,
+      VariableDeclaration exceptionParameter,
+      VariableDeclaration stackTraceParameter,
+      DartType stackTraceType,
+      Statement body) {
+    exceptionType ??= const DynamicType();
+    return new Catch(exceptionParameter, body,
+        guard: exceptionType, stackTrace: stackTraceParameter)
+      ..fileOffset = offsetForToken(onKeyword ?? catchKeyword);
+  }
+
+  @override
   Expression conditionalExpression(Expression condition, Token question,
       Expression thenExpression, Token colon, Expression elseExpression) {
     return new ShadowConditionalExpression(
@@ -359,7 +391,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
       covariant initialization,
       Token leftSeparator,
       Expression condition,
-      Token rightSeparator,
+      Statement conditionStatement,
       List<Expression> updaters,
       Token rightParenthesis,
       Statement body) {
@@ -383,6 +415,16 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
     }
     return new ShadowIsExpression(operand, type)..fileOffset = offset;
   }
+
+  @override
+  Label label(Token identifier, Token colon) {
+    return new Label(identifier.lexeme, identifier.charOffset);
+  }
+
+  @override
+  Statement labeledStatement(
+          LabelTarget<Statement> target, Statement statement) =>
+      statement;
 
   @override
   Expression notExpression(Expression operand, Token token) {
@@ -489,7 +531,10 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
-  Token getSemicolon(Statement statement) => null;
+  String getLabelName(Label label) => label.name;
+
+  @override
+  int getLabelOffset(Label label) => label.charOffset;
 
   @override
   bool isBlock(Object node) => node is Block;
@@ -523,6 +568,9 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
       statement is ExpressionStatement;
 
   @override
+  bool isLabel(covariant node) => node is Label;
+
+  @override
   bool isThisExpression(Object node) => node is ThisExpression;
 
   @override
@@ -542,6 +590,11 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   void resolveContinueInSwitch(
       SwitchCase target, ContinueSwitchStatement user) {
     user.target = target;
+  }
+
+  @override
+  void setParameterType(VariableDeclaration parameter, DartType type) {
+    parameter.type = type ?? const DynamicType();
   }
 
   @override
@@ -623,6 +676,72 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
     return new KernelThisIndexedAccessGenerator(
         helper, token, index, getter, setter);
   }
+
+  @override
+  KernelSuperIndexedAccessGenerator superIndexedAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Expression index,
+      Member getter,
+      Member setter) {
+    return new KernelSuperIndexedAccessGenerator(
+        helper, token, index, getter, setter);
+  }
+
+  @override
+  KernelStaticAccessGenerator staticAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Member getter,
+      Member setter) {
+    return new KernelStaticAccessGenerator(helper, token, getter, setter);
+  }
+
+  @override
+  KernelLoadLibraryGenerator loadLibraryGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      LoadLibraryBuilder builder) {
+    return new KernelLoadLibraryGenerator(helper, token, builder);
+  }
+
+  @override
+  KernelDeferredAccessGenerator deferredAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      PrefixBuilder builder,
+      Generator<Expression, Statement, Arguments> generator) {
+    return new KernelDeferredAccessGenerator(helper, token, builder, generator);
+  }
+
+  @override
+  KernelTypeUseGenerator typeUseGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      PrefixBuilder prefix,
+      int declarationReferenceOffset,
+      TypeDeclarationBuilder declaration,
+      String plainNameForRead) {
+    return new KernelTypeUseGenerator(helper, token, prefix,
+        declarationReferenceOffset, declaration, plainNameForRead);
+  }
+
+  @override
+  KernelReadOnlyAccessGenerator readOnlyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Expression expression,
+      String plainNameForRead) {
+    return new KernelReadOnlyAccessGenerator(
+        helper, token, expression, plainNameForRead);
+  }
+
+  @override
+  KernelLargeIntAccessGenerator largeIntAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token) {
+    return new KernelLargeIntAccessGenerator(helper, token);
+  }
 }
 
 class _VariablesDeclaration extends Statement {
@@ -652,4 +771,15 @@ class _VariablesDeclaration extends Statement {
   transformChildren(v) {
     unsupported("transformChildren", fileOffset, uri);
   }
+}
+
+/// A data holder used to hold the information about a label that is pushed on
+/// the stack.
+class Label {
+  String name;
+  int charOffset;
+
+  Label(this.name, this.charOffset);
+
+  String toString() => "label($name)";
 }

@@ -222,7 +222,8 @@ class CpuProfileTableElement extends HtmlElement implements Renderable {
     return element;
   }
 
-  void _updateFunction(Element e, M.ProfileFunction item, int index) {
+  void _updateFunction(Element e, itemDynamic, int index) {
+    M.ProfileFunction item = itemDynamic;
     if (item == _selected) {
       e.classes = ['function-item', 'selected'];
     } else {

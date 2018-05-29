@@ -654,6 +654,7 @@ class _EventStreamState {
 abstract class VM extends ServiceObjectOwner implements M.VM {
   VM get vm => this;
   Isolate get isolate => null;
+  WebSocketVMTarget get target;
 
   // TODO(turnidge): The connection should not be stored in the VM object.
   bool get isDisconnected;
@@ -813,7 +814,7 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
 
   // Note that this function does not reload the isolate if it found
   // in the cache.
-  Future<ServiceObject> getIsolate(String isolateId) {
+  Future<Isolate> getIsolate(String isolateId) {
     if (!loaded) {
       // Trigger a VM load, then get the isolate.
       return load().then((_) => getIsolate(isolateId)).catchError(_ignoreError);
@@ -1077,6 +1078,9 @@ class FakeVM extends VM {
     }
     return new Future.value(response);
   }
+
+  @override
+  WebSocketVMTarget get target => throw new UnimplementedError();
 }
 
 /// Snapshot in time of tag counters.

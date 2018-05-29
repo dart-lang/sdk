@@ -299,8 +299,8 @@ package_resource_test: Skip # Resolve URI not supported yet in product mode.
 
 # We skip all the Dart 1.0 tests in dartk and dartkp mode as these
 # modes are intended only for Dart 2.0 with strong mode enabled.
-[ $compiler == dartk || $compiler == dartkp ]
-*: Skip
+[ $compiler == app_jitk || $compiler == dartk || $compiler == dartkp ]
+*: SkipByDesign
 
 [ $runtime == dart_precompiled || $runtime == flutter || $runtime == vm ]
 big_integer_arith_vm_test: CompileTimeError # Large integer literal

@@ -859,10 +859,8 @@ bool checkSubtypeOfRuntimeType(o, t) {
   if (isDartFunctionType(t)) {
     // Functions are treated specially and have their type information stored
     // directly in the instance.
-    var targetSignatureFunction =
-        getField(o, '${JS_GET_NAME(JsGetName.SIGNATURE_NAME)}');
-    if (targetSignatureFunction == null) return false;
-    type = invokeOn(targetSignatureFunction, o, null);
+    type = extractFunctionTypeObjectFromInternal(o);
+    if (type == null) return false;
     return isFunctionSubtype(type, t);
   }
   return isSubtype(type, t);

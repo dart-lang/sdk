@@ -14,7 +14,8 @@ main() {
   asyncTest(() async {
     Uri generatedFile = await computeGeneratedFile();
     String generated = await generateMessagesFile();
-    String actual = await new File.fromUri(generatedFile).readAsString();
+    String actual = (await new File.fromUri(generatedFile).readAsString())
+        .replaceAll('\r\n', '\n');
     Expect.stringEquals(
         generated, actual, "${generatedFile.path} is out of date");
   });

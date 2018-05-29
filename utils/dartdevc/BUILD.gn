@@ -35,6 +35,8 @@ application_snapshot("dartdevc") {
 }
 
 application_snapshot("dartdevk") {
+  dart_version = 2
+
   main_dart = "../../pkg/dev_compiler/bin/dartdevk.dart"
 
   training_args = [

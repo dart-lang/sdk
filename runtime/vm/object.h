@@ -1311,6 +1311,17 @@ class Class : public Object {
   }
   void set_is_mixin_type_applied() const;
 
+  // Tests if this is a mixin application class which was desugared
+  // to a normal class by kernel mixin transformation
+  // (pkg/kernel/lib/transformations/mixin_full_resolution.dart).
+  //
+  // In such case, its mixed-in type was pulled into the end of
+  // interfaces list.
+  bool is_transformed_mixin_application() const {
+    return TransformedMixinApplicationBit::decode(raw_ptr()->state_bits_);
+  }
+  void set_is_transformed_mixin_application() const;
+
   bool is_fields_marked_nullable() const {
     return FieldsMarkedNullableBit::decode(raw_ptr()->state_bits_);
   }
@@ -1470,6 +1481,7 @@ class Class : public Object {
     kFieldsMarkedNullableBit = 11,
     kCycleFreeBit = 12,
     kEnumBit = 13,
+    kTransformedMixinApplicationBit = 14,
     kIsAllocatedBit = 15,
   };
   class ConstBit : public BitField<uint16_t, bool, kConstBit, 1> {};
@@ -1494,6 +1506,8 @@ class Class : public Object {
       : public BitField<uint16_t, bool, kFieldsMarkedNullableBit, 1> {};
   class CycleFreeBit : public BitField<uint16_t, bool, kCycleFreeBit, 1> {};
   class EnumBit : public BitField<uint16_t, bool, kEnumBit, 1> {};
+  class TransformedMixinApplicationBit
+      : public BitField<uint16_t, bool, kTransformedMixinApplicationBit, 1> {};
   class IsAllocatedBit : public BitField<uint16_t, bool, kIsAllocatedBit, 1> {};
 
   void set_name(const String& value) const;

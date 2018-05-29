@@ -228,6 +228,8 @@ def BuildOneConfig(options, targets, target_os, mode, arch):
   build_config = utils.GetBuildConf(mode, arch, target_os)
   out_dir = utils.GetBuildRoot(HOST_OS, mode, arch, target_os)
   using_goma = False
+  # TODO(zra): Remove auto-run of gn, replace with prompt for user to run
+  # gn.py manually.
   if ShouldRunGN(out_dir):
     RunGN(target_os, mode, arch)
   command = ['ninja', '-C', out_dir]

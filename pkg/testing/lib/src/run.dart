@@ -206,8 +206,10 @@ ${imports.toString().trim()}
 
 Future<Null> main() async {
   if ($isVerbose) enableVerboseOutput();
-  Map<String, String> environment = json.decode('${json.encode(environment)}');
-  Set<String> selectors = json.decode('${json.encode(selectors)}').toSet();
+  Map<String, String> environment =
+      new Map<String, String>.from(json.decode('${json.encode(environment)}'));
+  Set<String> selectors =
+      new Set<String>.from(json.decode('${json.encode(selectors)}'));
   await runTests(<String, Function> {
       ${splitLines(dart.toString().trim()).join('      ')}
   });

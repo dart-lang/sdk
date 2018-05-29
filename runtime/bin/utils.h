@@ -27,6 +27,9 @@ class OSError {
   }
   virtual ~OSError() { free(message_); }
 
+  // Reload this OSError with the current OS error, discarding the previous.
+  void Reload();
+
   SubSystem sub_system() { return sub_system_; }
   int code() { return code_; }
   char* message() { return message_; }

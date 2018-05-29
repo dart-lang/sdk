@@ -117,17 +117,17 @@ Future _runGlobalTransformations(
     // when building a platform dill file for VM/JIT case.
     mixin_deduplication.transformComponent(component);
 
-    if (useGlobalTypeFlowAnalysis) {
-      globalTypeFlow.transformComponent(coreTypes, component, entryPoints);
-    } else {
-      devirtualization.transformComponent(coreTypes, component);
-    }
-
     if (enableConstantEvaluation) {
       await _performConstantEvaluation(source, compilerOptions, component,
           coreTypes, environmentDefines, strongMode, enableAsserts);
 
       if (errorDetector.hasCompilationErrors) return;
+    }
+
+    if (useGlobalTypeFlowAnalysis) {
+      globalTypeFlow.transformComponent(coreTypes, component, entryPoints);
+    } else {
+      devirtualization.transformComponent(coreTypes, component);
     }
 
     no_dynamic_invocations_annotator.transformComponent(component);
@@ -145,8 +145,7 @@ Future _performConstantEvaluation(
   final vmConstants =
       new vm_constants.VmConstantsBackend(environmentDefines, coreTypes);
 
-  final processedOptions =
-      new ProcessedOptions(compilerOptions, false, [source]);
+  final processedOptions = new ProcessedOptions(compilerOptions, [source]);
 
   // Run within the context, so we have uri source tokens...
   await CompilerContext.runWithOptions(processedOptions,
@@ -159,8 +158,8 @@ Future _performConstantEvaluation(
     final typeEnvironment =
         new TypeEnvironment(coreTypes, hierarchy, strongMode: strongMode);
 
-    // TODO(kustermann): We should use the entrypoints manifest to find out
-    // which fields need to be preserved and remove the rest.
+    // TFA will remove constants fields which are unused (and respects the
+    // vm/embedder entrypoints).
     constants.transformComponent(component, vmConstants,
         keepFields: true,
         strongMode: true,

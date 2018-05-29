@@ -211,10 +211,6 @@ class ResolutionEnqueuer extends EnqueuerImpl {
 
   final Queue<WorkItem> _queue = new Queue<WorkItem>();
 
-  /// Queue of deferred resolution actions to execute when the resolution queue
-  /// has been emptied.
-  final Queue<DeferredAction> _deferredQueue = new Queue<DeferredAction>();
-
   // If not `null` this is called when the queue has been emptied. It allows for
   // applying additional impacts before re-emptying the queue.
   void Function() onEmptyForTesting;
@@ -378,15 +374,9 @@ class ResolutionEnqueuer extends EnqueuerImpl {
         }
         break;
       case TypeUseKind.TYPE_LITERAL:
-        TypedefType typedef;
-        if (type.isTypedef) {
-          typedef = type;
-        } else if (type is FunctionType) {
-          typedef = type.typedefType;
-        } else if (type is TypeVariableType) {
+        if (type is TypeVariableType) {
           _worldBuilder.registerTypeVariableTypeLiteral(type);
         }
-        if (typedef != null) worldBuilder.registerTypedef(typedef.element);
         break;
     }
   }
@@ -418,10 +408,8 @@ class ResolutionEnqueuer extends EnqueuerImpl {
       if (!_onQueueEmpty(recents)) {
         _recentClasses.addAll(recents);
       }
-    } while (_queue.isNotEmpty ||
-        _recentClasses.isNotEmpty ||
-        _deferredQueue.isNotEmpty ||
-        _recentConstants);
+    } while (
+        _queue.isNotEmpty || _recentClasses.isNotEmpty || _recentConstants);
   }
 
   void forEach(void f(WorkItem work)) {
@@ -470,25 +458,6 @@ class ResolutionEnqueuer extends EnqueuerImpl {
     _queue.add(workItem);
   }
 
-  /// Adds an action to the deferred task queue.
-  /// The action is performed the next time the resolution queue has been
-  /// emptied.
-  ///
-  /// The queue is processed in FIFO order.
-  void addDeferredAction(DeferredAction deferredAction) {
-    if (queueIsClosed) {
-      failedAt(
-          deferredAction.element,
-          "Resolution work list is closed. "
-          "Trying to add deferred action for ${deferredAction.element}");
-    }
-    _deferredQueue.add(deferredAction);
-  }
-
-  void addDeferredActions(Iterable<DeferredAction> deferredActions) {
-    deferredActions.forEach(addDeferredAction);
-  }
-
   /// [_onQueueEmpty] is called whenever the queue is drained. [recentClasses]
   /// contains the set of all classes seen for the first time since
   /// [_onQueueEmpty] was called last. A return value of [true] indicates that
@@ -496,18 +465,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   /// returned, [_onQueueEmpty] will be called once the queue is empty again (or
   /// still empty) and [recentClasses] will be a superset of the current value.
   bool _onQueueEmpty(Iterable<ClassEntity> recentClasses) {
-    _emptyDeferredQueue();
-
     return listener.onQueueEmpty(this, recentClasses);
-  }
-
-  void emptyDeferredQueueForTesting() => _emptyDeferredQueue();
-
-  void _emptyDeferredQueue() {
-    while (!_deferredQueue.isEmpty) {
-      DeferredAction task = _deferredQueue.removeFirst();
-      _reporter.withCurrentElement(task.element, task.action);
-    }
   }
 }
 
@@ -614,15 +572,6 @@ class EnqueuerImplImpactVisitor implements WorldImpactVisitor {
   void visitConstantUse(ConstantUse constantUse) {
     enqueuer.strategy.processConstantUse(enqueuer, constantUse);
   }
-}
-
-typedef void DeferredActionFunction();
-
-class DeferredAction {
-  final Entity element;
-  final DeferredActionFunction action;
-
-  DeferredAction(this.element, this.action);
 }
 
 /// Interface for creating work items for enqueued member entities.

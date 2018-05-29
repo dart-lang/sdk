@@ -139,11 +139,30 @@ class FixKind {
   final String message;
 
   /**
-   * Initialize a newly created kind of fix to have the given [name],
-   * [priority] and [message].
+   * A human-readable description of the changes that will be applied by this
+   * kind of 'applied together' fix.
    */
-  const FixKind(this.name, this.priority, this.message);
+  final String appliedTogetherMessage;
+
+  /**
+   * The change can be made with other fixes of this [FixKind].
+   */
+  bool canBeAppliedTogether() => appliedTogetherMessage != null;
+
+  /**
+   * Initialize a newly created kind of fix to have the given [name],
+   * [priority], [message], and optionally [canBeAppliedTogether] and
+   * [appliedTogetherMessage].
+   */
+  const FixKind(this.name, this.priority, this.message,
+      {this.appliedTogetherMessage: null});
 
   @override
   String toString() => name;
+
+  @override
+  bool operator ==(o) => o is FixKind && o.name == name;
+
+  @override
+  int get hashCode => name.hashCode;
 }

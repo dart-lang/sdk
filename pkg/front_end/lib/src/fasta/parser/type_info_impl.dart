@@ -4,7 +4,8 @@
 
 library fasta.parser.type_info_impl;
 
-import '../../scanner/token.dart' show BeginToken, Token;
+import '../../scanner/token.dart'
+    show BeginToken, SyntheticToken, Token, TokenType;
 
 import '../fasta_codes.dart' as fasta;
 
@@ -224,6 +225,19 @@ bool looksLikeName(Token token) =>
         // `typedef` is probably a separate declaration.
         (!optional('typedef', token) || !token.next.isIdentifier));
 
+/// When missing a comma, determine if the given token looks like it should
+/// be part of a collection of type parameters or arguments.
+bool looksLikeTypeParamOrArg(bool inDeclaration, Token token) {
+  if (inDeclaration && token.kind == IDENTIFIER_TOKEN) {
+    Token next = token.next;
+    if (next.kind == IDENTIFIER_TOKEN ||
+        isOneOf(next, const [',', '>', '>>'])) {
+      return true;
+    }
+  }
+  return false;
+}
+
 Token skipTypeVariables(Token token) {
   assert(optional('<', token));
   Token endGroup = token.endGroup;
@@ -358,9 +372,9 @@ class ComplexTypeInfo implements TypeInfo {
     assert(identical(token, end) || optional('>', token));
 
     // During recovery, [token] may be a synthetic that was inserted in the
-    // middle of the type reference. In this situation, return [end] so that it
-    // matches [skipType], and so that the next token to be parsed is correct.
-    return token.isSynthetic ? end : token;
+    // middle of the type reference.
+    end = token;
+    return token;
   }
 
   @override
@@ -547,10 +561,12 @@ class SimpleTypeArgument1 implements TypeParamOrArgInfo {
   @override
   Token skip(Token token) {
     token = token.next;
+    assert(optional('<', token));
     assert(token.endGroup != null ||
         (optional('>', token.next.next) || optional('>>', token.next.next)));
-    return token.endGroup ??
-        (optional('>>', token.next.next) ? token.next : token.next.next);
+    return (optional('>>', token.endGroup ?? token.next.next)
+        ? token.next
+        : token.next.next);
   }
 }
 
@@ -558,17 +574,18 @@ class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
   /// The first token in the type var.
   final BeginToken start;
 
+  /// If [inDeclaration] is `true`, then this will more aggressively recover
+  /// given unbalanced `<` `>` and invalid parameters or arguments.
+  final bool inDeclaration;
+
   /// The last token in the group (typically `>`).
   /// If a `>>` has not yet been split, then this field will be
   /// `>>` for the outer group and the token before `>>` for the inner group.
   Token end;
 
-  /// A collection of `<` without closing `>` in the reverse order from which
-  /// they were encountered in the token stream.
-  Link<Token> unbalancedLt = const Link<Token>();
-
-  ComplexTypeParamOrArgInfo(Token token)
+  ComplexTypeParamOrArgInfo(Token token, this.inDeclaration)
       : assert(optional('<', token.next)),
+        assert(inDeclaration != null),
         start = token.next;
 
   /// Parse the tokens and return the receiver or [noTypeParamOrArg] if there
@@ -586,12 +603,12 @@ class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
 
     Token token;
     Token next = start;
-    do {
-      TypeInfo typeInfo = computeType(next, true, innerEndGroup);
+    while (true) {
+      TypeInfo typeInfo = computeType(next, true, inDeclaration, innerEndGroup);
       if (typeInfo == noType) {
         while (typeInfo == noType && optional('@', next.next)) {
           next = skipMetadata(next);
-          typeInfo = computeType(next, true, innerEndGroup);
+          typeInfo = computeType(next, true, inDeclaration, innerEndGroup);
         }
         if (typeInfo == noType && !optional(',', next.next)) {
           token = next;
@@ -604,10 +621,17 @@ class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
       token = typeInfo.skipType(next);
       next = token.next;
       if (optional('extends', next) || optional('super', next)) {
-        token = computeType(next, true, innerEndGroup).skipType(next);
+        token = computeType(next, true, inDeclaration, innerEndGroup)
+            .skipType(next);
         next = token.next;
       }
-    } while (optional(',', next));
+      if (!optional(',', next)) {
+        if (!looksLikeTypeParamOrArg(inDeclaration, next)) {
+          break;
+        }
+        // Recovery: Missing comma. Continue looping
+      }
+    }
 
     if (next == start.endGroup) {
       end = next;
@@ -616,96 +640,62 @@ class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
       assert(optional('>', endGroup) || optional('>>', endGroup));
       // If `>>`, then the end or last consumed token is the token before `>>`.
       end = optional('>>', next) ? token : next;
+    } else if (inDeclaration && start.endGroup == null) {
+      // Recovery: Unbalanced `<`
+      end = token;
     } else {
       return noTypeParamOrArg;
     }
     return this;
   }
 
-  /// Parse the tokens and return the receiver or [noTypeParamOrArg] if there
-  /// are no type parameters or arguments. This does not modify the token
-  /// stream.
-  ///
-  /// This is called when parsing type parameters in a top level
-  /// or class member declaration. It assumes that a leading `<` cannot be part
-  /// of an expression, and thus tries to more aggressively recover
-  /// given an unmatched '<'.
-  ///
-  TypeParamOrArgInfo computeRecovery() {
-    assert(start.endGroup == null);
-    unbalancedLt = unbalancedLt.prepend(start);
-    Token token = start;
-    Token next = token.next;
-    while (!next.isEof) {
-      if (optional('Function', next)) {
-        next = next.next;
-        if (optional('<', next)) {
-          next = skipTypeVariables(next);
-          if (next == null) {
-            break;
-          }
-          next = next.next;
-        }
-        if (optional('(', next)) {
-          next = next.endGroup;
-        } else {
-          break;
-        }
-      } else if (optional('<', next)) {
-        Token endGroup = skipTypeVariables(next);
-        if (endGroup != null) {
-          next = endGroup;
-        } else {
-          unbalancedLt = unbalancedLt.prepend(next);
-        }
-      } else if (!isValidTypeReference(next) &&
-          !isOneOf(next, const ['.', ',', 'extends', 'super'])) {
-        break;
-      }
-      token = next;
-      next = token.next;
-    }
-
-    end = token;
-    return this;
-  }
-
   @override
   Token parseArguments(Token token, Parser parser) {
-    Token begin = balanceLt(token, parser);
-    Token next = begin;
-    Token innerEndGroup = processBeginGroup(begin, parser);
-    parser.listener.beginTypeArguments(begin);
+    Token next = start;
+    Token innerEndGroup = processBeginGroup(start, parser);
+    parser.listener.beginTypeArguments(start);
     int count = 0;
-    do {
-      TypeInfo typeInfo = computeType(next, true, innerEndGroup);
+    while (true) {
+      TypeInfo typeInfo = computeType(next, true, inDeclaration, innerEndGroup);
       if (typeInfo == noType) {
         // Recovery
         while (typeInfo == noType && optional('@', next.next)) {
           parser.reportRecoverableErrorWithToken(
               next.next, fasta.templateUnexpectedToken);
           next = skipMetadata(next);
-          typeInfo = computeType(next, true, innerEndGroup);
+          typeInfo = computeType(next, true, inDeclaration, innerEndGroup);
         }
         // Fall through to process type (if any) and consume `,`
       }
       token = typeInfo.ensureTypeOrVoid(next, parser);
       next = token.next;
       ++count;
-    } while (optional(',', next));
-    end = processEndGroup(token, begin, parser);
-    parser.listener.endTypeArguments(count, begin, end);
+      if (!optional(',', next)) {
+        if (!looksLikeTypeParamOrArg(inDeclaration, next)) {
+          break;
+        }
+
+        // Recovery: missing comma
+        parser.reportRecoverableError(
+            next, fasta.templateExpectedButGot.withArguments(','));
+        next = parser.rewriter
+            .insertTokenAfter(
+                token, new SyntheticToken(TokenType.COMMA, next.charOffset))
+            .next;
+      }
+    }
+    end = processEndGroup(token, start, parser);
+    parser.listener.endTypeArguments(count, start, end);
     return end;
   }
 
   @override
   Token parseVariables(Token token, Parser parser) {
-    Token begin = balanceLt(token, parser);
-    Token next = begin;
-    Token innerEndGroup = processBeginGroup(begin, parser);
-    parser.listener.beginTypeVariables(begin);
+    Token next = start;
+    Token innerEndGroup = processBeginGroup(start, parser);
+    parser.listener.beginTypeVariables(start);
     int count = 0;
-    do {
+    while (true) {
       parser.listener.beginTypeVariable(next.next);
       token = parser.parseMetadataStar(next);
       token = parser.ensureIdentifier(
@@ -714,7 +704,7 @@ class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
       next = token.next;
       if (optional('extends', next) || optional('super', next)) {
         extendsOrSuper = next;
-        token = computeType(next, true, innerEndGroup)
+        token = computeType(next, true, inDeclaration, innerEndGroup)
             .ensureTypeOrVoid(next, parser);
         next = token.next;
       } else {
@@ -722,72 +712,67 @@ class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
       }
       parser.listener.endTypeVariable(next, extendsOrSuper);
       ++count;
-    } while (optional(',', next));
-    end = processEndGroup(token, begin, parser);
-    parser.listener.endTypeVariables(count, begin, end);
+      if (!optional(',', next)) {
+        if (!looksLikeTypeParamOrArg(inDeclaration, next)) {
+          break;
+        }
+
+        // Recovery: missing comma
+        parser.reportRecoverableError(
+            next, fasta.templateExpectedButGot.withArguments(','));
+        next = parser.rewriter
+            .insertTokenAfter(
+                token, new SyntheticToken(TokenType.COMMA, next.charOffset))
+            .next;
+      }
+    }
+    end = processEndGroup(token, start, parser);
+    parser.listener.endTypeVariables(count, start, end);
     return end;
   }
 
   @override
   Token skip(Token token) => end;
-
-  /// For every unbalanced `<` append a synthetic `>`. Return the first `<`
-  Token balanceLt(Token token, Parser parser) {
-    assert(identical(start, token.next));
-    if (unbalancedLt.isEmpty) {
-      return start;
-    }
-    Token begin = parser.rewriter.balanceLt(token, end, unbalancedLt);
-    assert(begin.endGroup != null);
-    if (begin.endGroup.isSynthetic) {
-      parser.reportRecoverableError(
-          begin.endGroup.next, fasta.templateExpectedButGot.withArguments('>'));
-    }
-    return begin;
-  }
 }
 
 Token processBeginGroup(BeginToken start, Parser parser) {
-  Token innerEndGroup;
   if (start.endGroup != null && optional('>>', start.endGroup)) {
-    innerEndGroup = parser.rewriter.splitGtGt(start);
+    return parser.rewriter.splitEndGroup(start);
   }
-  return innerEndGroup;
+  return null;
 }
 
 Token processEndGroup(Token token, BeginToken start, Parser parser) {
   Token next = token.next;
   if (next == start.endGroup) {
     return next;
-  } else if (optional('>', next)) {
+  } else if (optional('>', next) && !next.isSynthetic) {
     // When `>>` is split, the inner group's endGroup updated here.
     assert(start.endGroup == null);
     start.endGroup = next;
     return next;
-  } else if (optional('>>', next)) {
-    // In this case, the last consumed token is the token before `>>`.
-    return token;
-  } else {
-    // Recovery
-    parser.reportRecoverableErrorWithToken(next, fasta.templateUnexpectedToken);
-    if (start.endGroup != null) {
-      return start.endGroup;
-    }
-    while (true) {
-      if (optional('>', next)) {
-        start.endGroup = next;
-        return next;
-      }
-      if (optional('>>', next)) {
-        // In this case, the last consumed token is the token before `>>`.
-        return token;
-      }
-      if (next.isEof) {
-        // Sanity check.
-        return next;
-      }
-      token = next;
-      next = token.next;
-    }
   }
+
+  // Recovery
+  if (start.endGroup != null) {
+    // Extraneous tokens between `<` and `>`.
+    parser.reportRecoverableErrorWithToken(next, fasta.templateUnexpectedToken);
+    return start.endGroup;
+  } else if (isOneOf(next, const ['>>', '>=', '>>='])) {
+    // Found single unbalanced `<`.
+    return parser.rewriter.splitEndGroup(start, next);
+  }
+  // Ensure that `>` is inserted after any newly inserted synthetic tokens.
+  while (next.isSynthetic && !next.isEof) {
+    token = next;
+    next = token.next;
+  }
+  // Unbalanced `<` `>`
+  parser.reportRecoverableError(
+      next, fasta.templateExpectedButGot.withArguments('>'));
+  start.endGroup = parser.rewriter
+      .insertTokenAfter(
+          token, new SyntheticToken(TokenType.GT, next.charOffset))
+      .next;
+  return start.endGroup;
 }

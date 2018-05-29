@@ -63,9 +63,9 @@ class Chain extends Suite {
     Uri uri = base.resolve(path);
     Uri statusFile = base.resolve(json["status"]);
     List<RegExp> pattern =
-        new List<RegExp>.from(json["pattern"].map((String p) => new RegExp(p)));
+        json["pattern"].map<RegExp>((p) => new RegExp(p)).toList();
     List<RegExp> exclude =
-        new List<RegExp>.from(json["exclude"].map((String p) => new RegExp(p)));
+        json["exclude"].map<RegExp>((p) => new RegExp(p)).toList();
     bool processMultitests = json["process-multitests"] ?? false;
     return new Chain(name, kind, source, uri, statusFile, pattern, exclude,
         processMultitests);

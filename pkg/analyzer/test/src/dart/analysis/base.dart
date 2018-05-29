@@ -94,7 +94,9 @@ class BaseAnalysisDriverTest {
           new DartUriResolver(sdk),
           generatedUriResolver,
           new PackageMapUriResolver(provider, <String, List<Folder>>{
-            'test': [provider.getFolder(testProject)]
+            'test': [provider.getFolder(testProject)],
+            'aaa': [provider.getFolder(_p('/aaa/lib'))],
+            'bbb': [provider.getFolder(_p('/bbb/lib'))],
           }),
           new ResourceUriResolver(provider)
         ], null, provider),

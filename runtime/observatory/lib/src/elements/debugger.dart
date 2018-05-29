@@ -65,7 +65,7 @@ class HelpCommand extends DebuggerCommand {
       var commands = debugger.cmd.matchCommand([], false);
       commands.sort((a, b) => a.name.compareTo(b.name));
       con.print('List of commands:\n');
-      for (var command in commands) {
+      for (DebuggerCommand command in commands) {
         con.print('${_nameAndAlias(command).padRight(12)} '
             '- ${command.helpShort}');
       }
@@ -88,7 +88,7 @@ class HelpCommand extends DebuggerCommand {
         return new Future.value(null);
       }
       con.print('');
-      for (var command in commands) {
+      for (DebuggerCommand command in commands) {
         con.printBold(_nameAndAlias(command));
         con.print(command.helpLong);
 
@@ -101,7 +101,7 @@ class HelpCommand extends DebuggerCommand {
         if (subCommands.isNotEmpty) {
           subCommands.sort((a, b) => a.name.compareTo(b.name));
           con.print('Subcommands:\n');
-          for (var subCommand in subCommands) {
+          for (DebuggerCommand subCommand in subCommands) {
             con.print('    ${subCommand.fullName.padRight(16)} '
                 '- ${subCommand.helpShort}');
           }
@@ -657,7 +657,7 @@ class SetCommand extends DebuggerCommand {
   Future run(List<String> args) async {
     if (args.length == 0) {
       for (var name in _options.keys) {
-        var getHandler = _options[name][2];
+        dynamic getHandler = _options[name][2];
         var value = await getHandler(debugger, name);
         debugger.console.print("${name} = ${value}");
       }
@@ -668,7 +668,7 @@ class SetCommand extends DebuggerCommand {
         debugger.console.print("unrecognized option: $name");
         return;
       } else {
-        var getHandler = optionInfo[2];
+        dynamic getHandler = optionInfo[2];
         var value = await getHandler(debugger, name);
         debugger.console.print("${name} = ${value}");
       }
@@ -680,12 +680,12 @@ class SetCommand extends DebuggerCommand {
         debugger.console.print("unrecognized option: $name");
         return;
       }
-      var validValues = optionInfo[0];
+      dynamic validValues = optionInfo[0];
       if (!validValues.contains(value)) {
         debugger.console.print("'${value}' is not in ${validValues}");
         return;
       }
-      var setHandler = optionInfo[1];
+      dynamic setHandler = optionInfo[1];
       await setHandler(debugger, name, value);
     } else {
       debugger.console.print("set expects 0, 1, or 2 arguments");
@@ -696,7 +696,7 @@ class SetCommand extends DebuggerCommand {
     if (args.length < 1 || args.length > 2) {
       return new Future.value([args.join('')]);
     }
-    var result = [];
+    var result = <String>[];
     if (args.length == 1) {
       var prefix = args[0];
       for (var option in _options.keys) {
@@ -931,7 +931,7 @@ class DeleteCommand extends DebuggerCommand {
       }
       toRemove.add(bptToRemove);
     }
-    List pending = [];
+    List<Future> pending = [];
     for (var bpt in toRemove) {
       pending.add(debugger.isolate.removeBreakpoint(bpt));
     }
@@ -1041,7 +1041,7 @@ class IsolateCommand extends DebuggerCommand {
     if (args.length != 1) {
       return new Future.value([args.join('')]);
     }
-    var result = [];
+    var result = <String>[];
     for (var isolate in debugger.vm.isolates) {
       var str = isolate.number.toString();
       if (str.startsWith(args[0])) {
@@ -1086,7 +1086,7 @@ class IsolateListCommand extends DebuggerCommand {
     }
 
     // Refresh all isolates first.
-    var pending = [];
+    var pending = <Future>[];
     for (var isolate in debugger.vm.isolates) {
       pending.add(isolate.reload());
     }
@@ -1508,7 +1508,8 @@ class ObservatoryDebugger extends Debugger {
       breakOnException = isolate.exceptionsPauseInfo;
     }
 
-    isolate.reload().then((response) {
+    isolate.reload().then((serviceObject) {
+      S.Isolate response = serviceObject;
       if (response.isSentinel) {
         // The isolate has gone away.  The IsolateExit event will
         // clear the isolate for the debugger page.
@@ -1516,7 +1517,7 @@ class ObservatoryDebugger extends Debugger {
       }
       // TODO(turnidge): Currently the debugger relies on all libs
       // being loaded.  Fix this.
-      var pending = [];
+      var pending = <Future>[];
       for (var lib in response.libraries) {
         if (!lib.loaded) {
           pending.add(lib.load());
@@ -1697,20 +1698,20 @@ class ObservatoryDebugger extends Debugger {
   void onEvent(S.ServiceEvent event) {
     switch (event.kind) {
       case S.ServiceEvent.kVMUpdate:
-        var vm = event.owner;
+        S.VM vm = event.owner;
         console.print("VM ${vm.displayName} renamed to '${vm.name}'");
         break;
 
       case S.ServiceEvent.kIsolateStart:
         {
-          var iso = event.owner;
+          S.Isolate iso = event.owner;
           console.print("Isolate ${iso.number} '${iso.name}' has been created");
         }
         break;
 
       case S.ServiceEvent.kIsolateExit:
         {
-          var iso = event.owner;
+          S.Isolate iso = event.owner;
           if (iso == isolate) {
             console.print("The current isolate ${iso.number} '${iso.name}' "
                 "has exited");
@@ -1735,7 +1736,7 @@ class ObservatoryDebugger extends Debugger {
         break;
 
       case S.ServiceEvent.kIsolateUpdate:
-        var iso = event.owner;
+        S.Isolate iso = event.owner;
         console.print("Isolate ${iso.number} renamed to '${iso.name}'");
         break;
 
@@ -1914,7 +1915,7 @@ class ObservatoryDebugger extends Debugger {
         await isolate.addBreakpoint(script, line);
       } else {
         // TODO(turnidge): Clear this breakpoint at current column.
-        var pending = [];
+        var pending = <Future>[];
         for (var bpt in bpts) {
           pending.add(isolate.removeBreakpoint(bpt));
         }
@@ -2019,7 +2020,7 @@ class DebuggerPageElement extends HtmlElement implements Renderable {
     assert(objects != null);
     assert(scripts != null);
     assert(events != null);
-    final e = document.createElement(tag.name);
+    final DebuggerPageElement e = document.createElement(tag.name);
     final debugger = new ObservatoryDebugger(isolate);
     debugger.page = e;
     debugger.objects = objects;
@@ -2210,7 +2211,7 @@ class DebuggerStackElement extends HtmlElement implements Renderable {
     assert(objects != null);
     assert(scripts != null);
     assert(events != null);
-    final e = document.createElement(tag.name);
+    final DebuggerStackElement e = document.createElement(tag.name);
     e._isolate = isolate;
     e._debugger = debugger;
     e._scroller = scroller;

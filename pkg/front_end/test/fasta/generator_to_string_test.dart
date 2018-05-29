@@ -53,27 +53,27 @@ import 'package:front_end/src/fasta/kernel/kernel_body_builder.dart'
 
 import 'package:front_end/src/fasta/kernel/kernel_expression_generator.dart'
     show
-        DeferredAccessGenerator,
         DelayedAssignment,
         DelayedPostfixIncrement,
         IncompleteErrorGenerator,
         IncompletePropertyAccessGenerator,
+        KernelDeferredAccessGenerator,
         KernelIndexedAccessGenerator,
+        KernelLargeIntAccessGenerator,
+        KernelLoadLibraryGenerator,
         KernelNullAwarePropertyAccessGenerator,
         KernelPropertyAccessGenerator,
+        KernelReadOnlyAccessGenerator,
+        KernelStaticAccessGenerator,
+        KernelSuperIndexedAccessGenerator,
         KernelSuperPropertyAccessGenerator,
         KernelThisIndexedAccessGenerator,
         KernelThisPropertyAccessGenerator,
+        KernelTypeUseGenerator,
         KernelVariableUseGenerator,
-        LargeIntAccessGenerator,
-        LoadLibraryGenerator,
         ParenthesizedExpressionGenerator,
-        ReadOnlyAccessGenerator,
         SendAccessGenerator,
-        StaticAccessGenerator,
-        SuperIndexedAccessGenerator,
         ThisAccessGenerator,
-        TypeDeclarationAccessGenerator,
         UnresolvedNameGenerator;
 
 import 'package:front_end/src/fasta/scanner.dart' show Token, scanString;
@@ -186,15 +186,16 @@ main() {
     check(
         "SuperIndexedAccessGenerator(offset: 4, index: index,"
         " getter: $uri::myGetter, setter: $uri::mySetter, indexVariable: null)",
-        new SuperIndexedAccessGenerator(helper, token, index, getter, setter));
+        new KernelSuperIndexedAccessGenerator(
+            helper, token, index, getter, setter));
     check(
         "StaticAccessGenerator(offset: 4, readTarget: $uri::myGetter,"
         " writeTarget: $uri::mySetter)",
-        new StaticAccessGenerator(helper, token, getter, setter));
+        new KernelStaticAccessGenerator(helper, token, getter, setter));
     check(
         "LoadLibraryGenerator(offset: 4,"
         " builder: Instance of 'LoadLibraryBuilder')",
-        new LoadLibraryGenerator(helper, token, loadLibraryBuilder));
+        new KernelLoadLibraryGenerator(helper, token, loadLibraryBuilder));
     check(
         "ThisAccessGenerator(offset: 4, isInitializer: false, isSuper: false)",
         new ThisAccessGenerator(helper, token, false));
@@ -205,25 +206,26 @@ main() {
     check("IncompletePropertyAccessGenerator(offset: 4, name: bar)",
         new IncompletePropertyAccessGenerator(helper, token, name));
     check(
-        "DeferredAccessGenerator(offset: 4, "
-        "builder: Instance of 'PrefixBuilder',"
+        "DeferredAccessGenerator(offset: 4,"
+        " builder: Instance of 'PrefixBuilder',"
         " generator: ThisAccessGenerator(offset: 4, isInitializer: false,"
         " isSuper: false))",
-        new DeferredAccessGenerator(helper, token, prefixBuilder, generator));
+        new KernelDeferredAccessGenerator(
+            helper, token, prefixBuilder, generator));
     check(
         "ReadOnlyAccessGenerator(offset: 4, expression: expression,"
         " plainNameForRead: foo, value: null)",
-        new ReadOnlyAccessGenerator(helper, token, expression, "foo"));
+        new KernelReadOnlyAccessGenerator(helper, token, expression, "foo"));
     check("LargeIntAccessGenerator(offset: 4, lexeme: myToken)",
-        new LargeIntAccessGenerator(helper, token));
+        new KernelLargeIntAccessGenerator(helper, token));
     check(
         "ParenthesizedExpressionGenerator(offset: 4, expression: expression,"
         " plainNameForRead: null, value: null)",
         new ParenthesizedExpressionGenerator(helper, token, expression));
     check(
-        "TypeDeclarationAccessGenerator(offset: 4, expression: T,"
+        "TypeUseGenerator(offset: 4, expression: T,"
         " plainNameForRead: foo, value: null)",
-        new TypeDeclarationAccessGenerator(
+        new KernelTypeUseGenerator(
             helper, token, prefixBuilder, -1, declaration, "foo"));
     check("UnresolvedNameGenerator(offset: 4, name: bar)",
         new UnresolvedNameGenerator(helper, token, name));

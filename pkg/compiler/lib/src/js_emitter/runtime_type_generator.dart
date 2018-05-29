@@ -101,6 +101,7 @@ class RuntimeTypeGenerator {
   final RuntimeTypesEncoder _rtiEncoder;
   final JsInteropAnalysis _jsInteropAnalysis;
   final bool _strongMode;
+  final _TypeContainedInOutputUnitVisitor _outputUnitVisitor;
 
   RuntimeTypeGenerator(
       this._commonElements,
@@ -111,7 +112,9 @@ class RuntimeTypeGenerator {
       this._rtiChecks,
       this._rtiEncoder,
       this._jsInteropAnalysis,
-      this._strongMode);
+      this._strongMode)
+      : _outputUnitVisitor = new _TypeContainedInOutputUnitVisitor(
+            _commonElements, _outputUnitData);
 
   /**
    * Generate "is tests" for [cls] itself, and the "is tests" for the
@@ -145,19 +148,28 @@ class RuntimeTypeGenerator {
       // signatures. We either need them for mirrors or because [type] is
       // potentially a subtype of a checked function. Currently we eagerly
       // generate a function type index or signature for all callable classes.
-      if (storeFunctionTypeInMetadata && !type.containsTypeVariables) {
-        // TODO(johnniwinther,efortuna): Should we use the scheme for Dart 2?
-        // TODO(sigmund): use output unit of `method` (Issue #31032)
-        OutputUnit outputUnit = _outputUnitData.mainOutputUnit;
-        result.functionTypeIndex =
-            emitterTask.metadataCollector.reifyType(type, outputUnit);
+      jsAst.Expression functionTypeIndex;
+      if (!type.containsTypeVariables) {
+        // TODO(sigmund): use output unit of [method] when the classes mentioned
+        // in [type] aren't in the main output unit. (Issue #31032)
+        OutputUnit mainOutputUnit = _outputUnitData.mainOutputUnit;
+        if (_outputUnitVisitor.isTypeContainedIn(type, mainOutputUnit)) {
+          functionTypeIndex =
+              emitterTask.metadataCollector.reifyType(type, mainOutputUnit);
+        }
+      }
+      if (storeFunctionTypeInMetadata && functionTypeIndex != null) {
+        result.functionTypeIndex = functionTypeIndex;
       } else {
         jsAst.Expression encoding =
             generatedCode[classFunctionType.signatureFunction];
-        if (classFunctionType.signatureFunction != null) {
-          // Use precomputed signature function if live.
-        } else {
-          assert(!_strongMode);
+        if (_strongMode) {
+          if (classFunctionType.signatureFunction == null) {
+            // The signature function isn't live.
+            return;
+          }
+          encoding = functionTypeIndex ?? encoding;
+        } else if (encoding == null) {
           // Generate the signature on the fly. This is only supported for
           // Dart 1.
 
@@ -238,5 +250,86 @@ class RuntimeTypeGenerator {
     if (classChecks.functionType != null) {
       generateFunctionTypeSignature(classChecks.functionType);
     }
+  }
+}
+
+/// Visitor that checks whether a type is contained within one output unit.
+class _TypeContainedInOutputUnitVisitor
+    implements DartTypeVisitor<bool, OutputUnit> {
+  final CommonElements _commonElements;
+  final OutputUnitData _outputUnitData;
+
+  _TypeContainedInOutputUnitVisitor(this._commonElements, this._outputUnitData);
+
+  /// Returns `true` if all classes mentioned in [type] are in [outputUnit].
+  bool isTypeContainedIn(DartType type, OutputUnit outputUnit) =>
+      visit(type, outputUnit);
+
+  @override
+  bool visit(DartType type, OutputUnit argument) => type.accept(this, argument);
+
+  bool visitList(List<DartType> types, OutputUnit argument) {
+    for (DartType type in types) {
+      if (!visit(type, argument)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @override
+  bool visitFutureOrType(FutureOrType type, OutputUnit argument) {
+    if (_outputUnitData.outputUnitForClass(_commonElements.functionClass) !=
+        argument) {
+      return false;
+    }
+    return visit(type.typeArgument, argument);
+  }
+
+  @override
+  bool visitDynamicType(DynamicType type, OutputUnit argument) => true;
+
+  @override
+  bool visitTypedefType(TypedefType type, OutputUnit argument) {
+    return visit(type.unaliased, argument);
+  }
+
+  @override
+  bool visitInterfaceType(InterfaceType type, OutputUnit argument) {
+    if (_outputUnitData.outputUnitForClass(type.element) != argument) {
+      return false;
+    }
+    return visitList(type.typeArguments, argument);
+  }
+
+  @override
+  bool visitFunctionType(FunctionType type, OutputUnit argument) {
+    bool result = visit(type.returnType, argument) &&
+        visitList(type.parameterTypes, argument) &&
+        visitList(type.optionalParameterTypes, argument) &&
+        visitList(type.namedParameterTypes, argument);
+    if (!result) return false;
+    for (FunctionTypeVariable typeVariable in type.typeVariables) {
+      if (!visit(typeVariable.bound, argument)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @override
+  bool visitFunctionTypeVariable(
+      FunctionTypeVariable type, OutputUnit argument) {
+    return true;
+  }
+
+  @override
+  bool visitTypeVariableType(TypeVariableType type, OutputUnit argument) {
+    return false;
+  }
+
+  @override
+  bool visitVoidType(VoidType type, OutputUnit argument) {
+    return true;
   }
 }

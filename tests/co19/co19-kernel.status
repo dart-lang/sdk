@@ -1777,5 +1777,5 @@ LibTest/typed_data/Uint64List/Uint64List.fromList_A01_t02: CompileTimeError
 LibTest/typed_data/Uint64List/Uint64List.view_A01_t01: CompileTimeError
 LibTest/typed_data/Uint64List/Uint64List.view_A01_t02: CompileTimeError
 
-[ $compiler == dartk || $compiler == dartkp ]
+[ $compiler == app_jitk || $compiler == dartk || $compiler == dartkp ]
 *: SkipByDesign

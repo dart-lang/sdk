@@ -21,7 +21,7 @@ abstract class IncrementalKernelGenerator {
   factory IncrementalKernelGenerator(CompilerOptions options, Uri entryPoint,
       [Uri initializeFromDillUri]) {
     return new IncrementalCompiler(
-        new CompilerContext(new ProcessedOptions(options, false, [entryPoint])),
+        new CompilerContext(new ProcessedOptions(options, [entryPoint])),
         initializeFromDillUri);
   }
 

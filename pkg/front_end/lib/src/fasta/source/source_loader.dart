@@ -664,7 +664,7 @@ class SourceLoader<L> extends Loader<L> {
     TypeEnvironment env = new TypeEnvironment(coreTypes, hierarchy,
         strongMode: target.strongMode);
 
-    if (cls.isSyntheticMixinImplementation) return;
+    if (cls.isAnonymousMixin) return;
 
     if (env.isSubtypeOf(a.asInterfaceType, b.asInterfaceType)) return;
     addProblem(

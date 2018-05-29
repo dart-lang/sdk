@@ -956,12 +956,15 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
   FunctionNode rewrite() {
     var statements = <Statement>[];
 
-    // The original function return type should be Future<T> because the
-    // function is async. If it was, we make a Completer<T>.  Otherwise
-    // We will make a malformed type.
-    // In an "Future<FooBar> foo() async {}" function the body can either return
-    // a "FooBar" or a "Future<FooBar>" => a "FutureOr<FooBar>".
-    final DartType valueType = elementTypeFromReturnType(helper.futureClass);
+    // The original function return type should be Future<T> or FutureOr<T>
+    // because the function is async. If it was, we make a Completer<T>,
+    // otherwise we make a malformed type.  In a "Future<T> foo() async {}"
+    // function the body can either return a "T" or a "Future<T>" => a
+    // "FutureOr<T>".
+    DartType valueType = elementTypeFromReturnType(helper.futureClass);
+    if (valueType == const DynamicType()) {
+      valueType = elementTypeFromReturnType(helper.futureOrClass);
+    }
     final DartType returnType =
         new InterfaceType(helper.futureOrClass, <DartType>[valueType]);
     var completerTypeArguments = <DartType>[valueType];

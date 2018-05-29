@@ -3447,10 +3447,20 @@ listSuperNativeTypeCast(value, property) {
 
 extractFunctionTypeObjectFrom(o) {
   var interceptor = getInterceptor(o);
+  return extractFunctionTypeObjectFromInternal(interceptor);
+}
+
+extractFunctionTypeObjectFromInternal(o) {
   var signatureName = JS_GET_NAME(JsGetName.SIGNATURE_NAME);
-  return JS('bool', '# in #', signatureName, interceptor)
-      ? JS('', '#[#]()', interceptor, signatureName)
-      : null;
+  if (JS('bool', '# in #', signatureName, o)) {
+    var signature = JS('', '#[#]', o, signatureName);
+    if (JS('bool', 'typeof # == "number"', signature)) {
+      return getType(signature);
+    } else {
+      return JS('', '#[#]()', o, signatureName);
+    }
+  }
+  return null;
 }
 
 functionTypeTest(value, functionTypeRti) {

@@ -442,4 +442,15 @@ class CommonMasks implements AbstractValueDomain {
       covariant TypeMask receiver, Selector selector) {
     return receiver.needsNoSuchMethodHandling(selector, _closedWorld);
   }
+
+  @override
+  bool contains(covariant TypeMask superset, covariant TypeMask subset) {
+    return superset.containsMask(subset, _closedWorld);
+  }
+
+  @override
+  MemberEntity locateSingleMember(
+      covariant TypeMask receiver, Selector selector) {
+    return receiver.locateSingleMember(selector, _closedWorld);
+  }
 }

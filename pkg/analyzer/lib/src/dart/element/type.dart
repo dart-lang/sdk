@@ -1175,8 +1175,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
   /**
    * Compares two function types [t] and [s] to see if their corresponding
-   * parameter types match [parameterRelation] and their return types match
-   * [returnRelation].
+   * parameter types match [parameterRelation], return types match
+   * [returnRelation], and type parameter bounds match [boundsRelation].
    *
    * Used for the various relations on function types which have the same
    * structural rules for handling optional parameters and arity, but use their
@@ -1184,14 +1184,20 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    *
    * If [parameterRelation] is omitted, uses [returnRelation] for both. This
    * is convenient for Dart 1 type system methods.
+   *
+   * If [boundsRelation] is omitted, uses [returnRelation]. This is for
+   * backwards compatibility, and convenience for Dart 1 type system methods.
    */
   static bool relate(
       FunctionType t,
       DartType other,
       bool returnRelation(DartType t, DartType s),
       DartType instantiateToBounds(DartType t),
-      {bool parameterRelation(ParameterElement t, ParameterElement s)}) {
+      {bool parameterRelation(ParameterElement t, ParameterElement s),
+      bool boundsRelation(DartType bound2, DartType bound1,
+          TypeParameterElement formal2, TypeParameterElement formal1)}) {
     parameterRelation ??= (t, s) => returnRelation(t.type, s.type);
+    boundsRelation ??= (t, s, _, __) => returnRelation(t, s);
 
     // Trivial base cases.
     if (other == null) {
@@ -1208,8 +1214,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     // This type cast is safe, because we checked it above.
     FunctionType s = other as FunctionType;
     if (t.typeFormals.isNotEmpty) {
-      List<DartType> freshVariables =
-          relateTypeFormals(t, s, (s, t, _, __) => returnRelation(s, t));
+      List<DartType> freshVariables = relateTypeFormals(t, s, boundsRelation);
       if (freshVariables == null) {
         return false;
       }

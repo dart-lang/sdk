@@ -412,7 +412,7 @@ f() {
 //        print(problem.formatted);
       };
 
-    options = new ProcessedOptions(optionBuilder, false, [entryPoint]);
+    options = new ProcessedOptions(optionBuilder, [entryPoint]);
 
     UriTranslatorImpl uriTranslator = await options.getUriTranslator();
 

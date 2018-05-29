@@ -5,28 +5,41 @@
 part of dart.io;
 
 class _Directory extends FileSystemEntity implements Directory {
-  final String path;
+  String _path;
+  Uint8List _rawPath;
 
-  _Directory(this.path) {
+  _Directory(String path) {
     if (path is! String) {
-      throw new ArgumentError('${Error.safeToString(path)} '
-          'is not a String');
+      throw new ArgumentError('${Error.safeToString(path)} is not a String');
     }
+    _path = path;
+    _rawPath = FileSystemEntity._toUtf8Array(_path);
   }
 
+  _Directory.fromRawPath(Uint8List rawPath) {
+    if (rawPath == null) {
+      throw new ArgumentError('rawPath cannot be null');
+    }
+    _rawPath = FileSystemEntity._toNullTerminatedUtf8Array(rawPath);
+    _path = FileSystemEntity._toStringFromUtf8Array(rawPath);
+  }
+
+  String get path => _path;
+
   external static _current(_Namespace namespace);
-  external static _setCurrent(_Namespace namespace, path);
-  external static _createTemp(_Namespace namespace, String path);
+  external static _setCurrent(_Namespace namespace, Uint8List rawPath);
+  external static _createTemp(_Namespace namespace, Uint8List rawPath);
   external static String _systemTemp(_Namespace namespace);
-  external static _exists(_Namespace namespace, String path);
-  external static _create(_Namespace namespace, String path);
+  external static _exists(_Namespace namespace, Uint8List rawPath);
+  external static _create(_Namespace namespace, Uint8List rawPath);
   external static _deleteNative(
-      _Namespace namespace, String path, bool recursive);
-  external static _rename(_Namespace namespace, String path, String newPath);
+      _Namespace namespace, Uint8List rawPath, bool recursive);
+  external static _rename(
+      _Namespace namespace, Uint8List rawPath, String newPath);
   external static void _fillWithDirectoryListing(
       _Namespace namespace,
       List<FileSystemEntity> list,
-      String path,
+      Uint8List rawPath,
       bool recursive,
       bool followLinks);
 
@@ -40,12 +53,27 @@ class _Directory extends FileSystemEntity implements Directory {
   }
 
   static void set current(path) {
-    if (path is Directory) path = path.path;
+    Uint8List _rawPath;
+    if (path is _Directory) {
+      // For our internal Directory implementation, go ahead and use the raw
+      // path.
+      _rawPath = path._rawPath;
+    } else if (path is Directory) {
+      // FIXME(bkonyi): package:file passes in instances of classes which do
+      // not have _path defined, so we will fallback to using the existing
+      // path String for now.
+      _rawPath = FileSystemEntity._toUtf8Array(path.path);
+    } else if (path is String) {
+      _rawPath = FileSystemEntity._toUtf8Array(path);
+    } else {
+      throw new ArgumentError('${Error.safeToString(path)} is not a String or'
+          ' Directory');
+    }
     if (!_EmbedderConfig._mayChdir) {
       throw new UnsupportedError(
           "This embedder disallows setting Directory.current");
     }
-    var result = _setCurrent(_Namespace._namespace, path);
+    var result = _setCurrent(_Namespace._namespace, _rawPath);
     if (result is ArgumentError) throw result;
     if (result is OSError) {
       throw new FileSystemException(
@@ -59,7 +87,7 @@ class _Directory extends FileSystemEntity implements Directory {
 
   Future<bool> exists() {
     return _File._dispatchWithNamespace(
-        _IOService.directoryExists, [null, path]).then((response) {
+        _IOService.directoryExists, [null, _rawPath]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionOrErrorFromResponse(response, "Exists failed");
       }
@@ -68,7 +96,7 @@ class _Directory extends FileSystemEntity implements Directory {
   }
 
   bool existsSync() {
-    var result = _exists(_Namespace._namespace, path);
+    var result = _exists(_Namespace._namespace, _rawPath);
     if (result is OSError) {
       throw new FileSystemException("Exists failed", path, result);
     }
@@ -91,7 +119,7 @@ class _Directory extends FileSystemEntity implements Directory {
       });
     } else {
       return _File._dispatchWithNamespace(
-          _IOService.directoryCreate, [null, path]).then((response) {
+          _IOService.directoryCreate, [null, _rawPath]).then((response) {
         if (_isErrorResponse(response)) {
           throw _exceptionOrErrorFromResponse(response, "Creation failed");
         }
@@ -107,7 +135,7 @@ class _Directory extends FileSystemEntity implements Directory {
         parent.createSync(recursive: true);
       }
     }
-    var result = _create(_Namespace._namespace, path);
+    var result = _create(_Namespace._namespace, _rawPath);
     if (result is OSError) {
       throw new FileSystemException("Creation failed", path, result);
     }
@@ -123,13 +151,15 @@ class _Directory extends FileSystemEntity implements Directory {
           "To use the system temp directory, use Directory.systemTemp");
     }
     String fullPrefix;
+    // FIXME(bkonyi): here we're using `path` directly, which might cause
+    // issues if it is not UTF-8 encoded.
     if (path.endsWith('/') || (Platform.isWindows && path.endsWith('\\'))) {
       fullPrefix = "$path$prefix";
     } else {
       fullPrefix = "$path${Platform.pathSeparator}$prefix";
     }
-    return _File._dispatchWithNamespace(
-        _IOService.directoryCreateTemp, [null, fullPrefix]).then((response) {
+    return _File._dispatchWithNamespace(_IOService.directoryCreateTemp,
+        [null, FileSystemEntity._toUtf8Array(fullPrefix)]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionOrErrorFromResponse(
             response, "Creation of temporary directory failed");
@@ -145,12 +175,15 @@ class _Directory extends FileSystemEntity implements Directory {
           "To use the system temp directory, use Directory.systemTemp");
     }
     String fullPrefix;
+    // FIXME(bkonyi): here we're using `path` directly, which might cause
+    // issues if it is not UTF-8 encoded.
     if (path.endsWith('/') || (Platform.isWindows && path.endsWith('\\'))) {
       fullPrefix = "$path$prefix";
     } else {
       fullPrefix = "$path${Platform.pathSeparator}$prefix";
     }
-    var result = _createTemp(_Namespace._namespace, fullPrefix);
+    var result = _createTemp(
+        _Namespace._namespace, FileSystemEntity._toUtf8Array(fullPrefix));
     if (result is OSError) {
       throw new FileSystemException(
           "Creation of temporary directory failed", fullPrefix, result);
@@ -159,8 +192,8 @@ class _Directory extends FileSystemEntity implements Directory {
   }
 
   Future<Directory> _delete({bool recursive: false}) {
-    return _File._dispatchWithNamespace(
-        _IOService.directoryDelete, [null, path, recursive]).then((response) {
+    return _File._dispatchWithNamespace(_IOService.directoryDelete,
+        [null, _rawPath, recursive]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionOrErrorFromResponse(response, "Deletion failed");
       }
@@ -169,7 +202,7 @@ class _Directory extends FileSystemEntity implements Directory {
   }
 
   void _deleteSync({bool recursive: false}) {
-    var result = _deleteNative(_Namespace._namespace, path, recursive);
+    var result = _deleteNative(_Namespace._namespace, _rawPath, recursive);
     if (result is OSError) {
       throw new FileSystemException("Deletion failed", path, result);
     }
@@ -177,7 +210,7 @@ class _Directory extends FileSystemEntity implements Directory {
 
   Future<Directory> rename(String newPath) {
     return _File._dispatchWithNamespace(
-        _IOService.directoryRename, [null, path, newPath]).then((response) {
+        _IOService.directoryRename, [null, _rawPath, newPath]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionOrErrorFromResponse(response, "Rename failed");
       }
@@ -189,7 +222,7 @@ class _Directory extends FileSystemEntity implements Directory {
     if (newPath is! String) {
       throw new ArgumentError();
     }
-    var result = _rename(_Namespace._namespace, path, newPath);
+    var result = _rename(_Namespace._namespace, _rawPath, newPath);
     if (result is OSError) {
       throw new FileSystemException("Rename failed", path, result);
     }
@@ -199,7 +232,10 @@ class _Directory extends FileSystemEntity implements Directory {
   Stream<FileSystemEntity> list(
       {bool recursive: false, bool followLinks: true}) {
     return new _AsyncDirectoryLister(
-            FileSystemEntity._ensureTrailingPathSeparators(path),
+            // FIXME(bkonyi): here we're using `path` directly, which might cause issues
+            // if it is not UTF-8 encoded.
+            FileSystemEntity._toUtf8Array(
+                FileSystemEntity._ensureTrailingPathSeparators(path)),
             recursive,
             followLinks)
         .stream;
@@ -214,7 +250,10 @@ class _Directory extends FileSystemEntity implements Directory {
     _fillWithDirectoryListing(
         _Namespace._namespace,
         result,
-        FileSystemEntity._ensureTrailingPathSeparators(path),
+        // FIXME(bkonyi): here we're using `path` directly, which might cause issues
+        // if it is not UTF-8 encoded.
+        FileSystemEntity
+            ._toUtf8Array(FileSystemEntity._ensureTrailingPathSeparators(path)),
         recursive,
         followLinks);
     return result;
@@ -258,7 +297,7 @@ class _AsyncDirectoryLister {
   static const int responseComplete = 1;
   static const int responseError = 2;
 
-  final String path;
+  final Uint8List rawPath;
   final bool recursive;
   final bool followLinks;
 
@@ -269,7 +308,7 @@ class _AsyncDirectoryLister {
   _AsyncDirectoryListerOps _ops;
   Completer closeCompleter = new Completer();
 
-  _AsyncDirectoryLister(this.path, this.recursive, this.followLinks) {
+  _AsyncDirectoryLister(this.rawPath, this.recursive, this.followLinks) {
     controller = new StreamController<FileSystemEntity>(
         onListen: onListen, onResume: onResume, onCancel: onCancel, sync: true);
   }
@@ -287,7 +326,7 @@ class _AsyncDirectoryLister {
 
   void onListen() {
     _File._dispatchWithNamespace(_IOService.directoryListStart,
-        [null, path, recursive, followLinks]).then((response) {
+        [null, rawPath, recursive, followLinks]).then((response) {
       if (response is int) {
         _ops = new _AsyncDirectoryListerOps(response);
         next();
@@ -340,13 +379,13 @@ class _AsyncDirectoryLister {
           assert(i % 2 == 0);
           switch (result[i++]) {
             case listFile:
-              controller.add(new File(result[i]));
+              controller.add(new File.fromRawPath(result[i]));
               break;
             case listDirectory:
-              controller.add(new Directory(result[i]));
+              controller.add(new Directory.fromRawPath(result[i]));
               break;
             case listLink:
-              controller.add(new Link(result[i]));
+              controller.add(new Link.fromRawPath(result[i]));
               break;
             case listError:
               error(result[i]);
@@ -395,7 +434,11 @@ class _AsyncDirectoryLister {
       var err = new OSError(responseErrorInfo[_osErrorResponseMessage],
           responseErrorInfo[_osErrorResponseErrorCode]);
       var errorPath = message[responsePath];
-      if (errorPath == null) errorPath = path;
+      if (errorPath == null) {
+        errorPath = utf8.decode(rawPath, allowMalformed: true);
+      } else if (errorPath is Uint8List) {
+        errorPath = utf8.decode(message[responsePath], allowMalformed: true);
+      }
       controller.addError(
           new FileSystemException("Directory listing failed", errorPath, err));
     } else {

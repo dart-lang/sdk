@@ -133,7 +133,7 @@ class EvalBoxElement extends HtmlElement implements Renderable {
     ];
   }
 
-  TextInputElement _createEvalTextArea() {
+  TextAreaElement _createEvalTextArea() {
     var area = new TextAreaElement()
       ..classes = ['textbox']
       ..placeholder = 'evaluate an expression'

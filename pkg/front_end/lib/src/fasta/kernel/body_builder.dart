@@ -89,7 +89,7 @@ import 'expression_generator.dart'
         SuperIndexedAccessGenerator,
         ThisAccessGenerator,
         ThisPropertyAccessGenerator,
-        TypeDeclarationAccessGenerator,
+        TypeUseGenerator,
         UnresolvedNameGenerator,
         VariableUseGenerator,
         buildIsNull;
@@ -445,7 +445,9 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void endMetadataStar(int count) {
     debugEvent("MetadataStar");
-    push(popList(count) ?? NullValue.Metadata);
+    push(popList(
+            count, new List<Expression>.filled(count, null, growable: true)) ??
+        NullValue.Metadata);
   }
 
   @override
@@ -822,7 +824,9 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void endArguments(int count, Token beginToken, Token endToken) {
     debugEvent("Arguments");
-    List arguments = popList(count) ?? <Expression>[];
+    List<dynamic> arguments =
+        new List<dynamic>.filled(count, null, growable: true);
+    popList(count, arguments);
     int firstNamedArgumentIndex = arguments.length;
     for (int i = 0; i < arguments.length; i++) {
       var node = arguments[i];
@@ -877,7 +881,9 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       }
       push(forest.arguments(positional, beginToken, named: named));
     } else {
-      push(forest.arguments(arguments, beginToken));
+      // TODO(kmillikin): Find a way to avoid allocating a second list in the
+      // case where there were no named arguments, which is a common one.
+      push(forest.arguments(new List<Expression>.from(arguments), beginToken));
     }
   }
 
@@ -938,13 +944,15 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     Expression expression = popForValue();
     if (expression is ShadowCascadeExpression) {
       push(expression);
-      push(new VariableUseGenerator(this, token, expression.variable));
+      push(new VariableUseGenerator<Expression, Statement, Arguments>(
+          this, token, expression.variable));
       expression.extend();
     } else {
       VariableDeclaration variable = new ShadowVariableDeclaration.forValue(
           toKernelExpression(expression), functionNestingLevel);
       push(new ShadowCascadeExpression(variable));
-      push(new VariableUseGenerator(this, token, variable));
+      push(new VariableUseGenerator<Expression, Statement, Arguments>(
+          this, token, variable));
     }
   }
 
@@ -1362,8 +1370,9 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         if (constantContext != ConstantContext.none || member.isField) {
           return new UnresolvedNameGenerator(this, token, n);
         }
-        return new ThisPropertyAccessGenerator(this, token, n,
-            lookupInstanceMember(n), lookupInstanceMember(n, isSetter: true));
+        return new ThisPropertyAccessGenerator<Expression, Statement,
+                Arguments>(this, token, n, lookupInstanceMember(n),
+            lookupInstanceMember(n, isSetter: true));
       } else if (ignoreMainInGetMainClosure &&
           name == "main" &&
           member?.name == "_getMainClosure") {
@@ -1378,11 +1387,12 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         deprecated_addCompileTimeError(
             charOffset, "Not a constant expression.");
       }
-      TypeDeclarationAccessGenerator generator =
-          new TypeDeclarationAccessGenerator(
+      TypeUseGenerator<Expression, Statement, Arguments> generator =
+          new TypeUseGenerator<Expression, Statement, Arguments>(
               this, token, prefix, charOffset, builder, name);
       return (prefix?.deferred == true)
-          ? new DeferredAccessGenerator(this, token, prefix, generator)
+          ? new DeferredAccessGenerator<Expression, Statement, Arguments>(
+              this, token, prefix, generator)
           : generator;
     } else if (builder.isLocal) {
       if (constantContext != ConstantContext.none &&
@@ -1399,14 +1409,15 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         var fact =
             typePromoter.getFactForAccess(builder.target, functionNestingLevel);
         var scope = typePromoter.currentScope;
-        return new ReadOnlyAccessGenerator(
+        return new ReadOnlyAccessGenerator<Expression, Statement, Arguments>(
             this,
             token,
-            new ShadowVariableGet(builder.target, fact, scope)
-              ..fileOffset = charOffset,
+            toExpression(new ShadowVariableGet(builder.target, fact, scope)
+              ..fileOffset = charOffset),
             name);
       } else {
-        return new VariableUseGenerator(this, token, builder.target);
+        return new VariableUseGenerator<Expression, Statement, Arguments>(
+            this, token, builder.target);
       }
     } else if (builder.isInstanceMember) {
       if (constantContext != ConstantContext.none &&
@@ -1429,13 +1440,16 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         getter = builder.target;
         setter = lookupInstanceMember(n, isSetter: true);
       }
-      return new ThisPropertyAccessGenerator(this, token, n, getter, setter);
+      return new ThisPropertyAccessGenerator<Expression, Statement, Arguments>(
+          this, token, n, getter, setter);
     } else if (builder.isRegularMethod) {
       assert(builder.isStatic || builder.isTopLevel);
-      StaticAccessGenerator generator =
-          new StaticAccessGenerator(this, token, builder.target, null);
+      StaticAccessGenerator<Expression, Statement, Arguments> generator =
+          new StaticAccessGenerator<Expression, Statement, Arguments>(
+              this, token, builder.target, null);
       return (prefix?.deferred == true)
-          ? new DeferredAccessGenerator(this, token, prefix, generator)
+          ? new DeferredAccessGenerator<Expression, Statement, Arguments>(
+              this, token, prefix, generator)
           : generator;
     } else if (builder is PrefixBuilder) {
       if (constantContext != ConstantContext.none && builder.deferred) {
@@ -1449,7 +1463,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       }
       return builder;
     } else if (builder is LoadLibraryBuilder) {
-      return new LoadLibraryGenerator(this, token, builder);
+      return new LoadLibraryGenerator<Expression, Statement, Arguments>(
+          this, token, builder);
     } else {
       if (builder.hasProblem && builder is! AccessErrorBuilder) return builder;
       Builder setter;
@@ -1460,8 +1475,9 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       } else if (builder.isField && !builder.isFinal) {
         setter = builder;
       }
-      StaticAccessGenerator generator =
-          new StaticAccessGenerator.fromBuilder(this, builder, token, setter);
+      StaticAccessGenerator<Expression, Statement, Arguments> generator =
+          new StaticAccessGenerator<Expression, Statement,
+              Arguments>.fromBuilder(this, builder, token, setter);
       if (constantContext != ConstantContext.none) {
         Member readTarget = generator.readTarget;
         if (!(readTarget is Field && readTarget.isConst ||
@@ -1472,7 +1488,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         }
       }
       return (prefix?.deferred == true)
-          ? new DeferredAccessGenerator(this, token, prefix, generator)
+          ? new DeferredAccessGenerator<Expression, Statement, Arguments>(
+              this, token, prefix, generator)
           : generator;
     }
   }
@@ -1505,7 +1522,9 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       String value = unescapeString(token.lexeme);
       push(forest.literalString(value, token));
     } else {
-      List parts = popList(1 + interpolationCount * 2);
+      var count = 1 + interpolationCount * 2;
+      List<Object> parts =
+          popList(count, new List<Object>.filled(count, null, growable: true));
       Token first = parts.first;
       Token last = parts.last;
       Quote quote = analyzeQuote(first.lexeme);
@@ -1581,7 +1600,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     debugEvent("LiteralInt");
     int value = int.parse(token.lexeme, onError: (_) => null);
     if (value == null) {
-      push(new LargeIntAccessGenerator(this, token));
+      push(new LargeIntAccessGenerator<Expression, Statement, Arguments>(
+          this, token));
     } else {
       push(forest.literalInt(value, token));
     }
@@ -1854,14 +1874,11 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       continueTarget.resolveContinues(forest, body);
     }
     Expression condition;
-    Token rightSeparator;
     if (forest.isExpressionStatement(conditionStatement)) {
       condition =
           forest.getExpressionFromExpressionStatement(conditionStatement);
-      rightSeparator = forest.getSemicolon(conditionStatement);
     } else {
       assert(forest.isEmptyStatement(conditionStatement));
-      rightSeparator = forest.getSemicolon(conditionStatement);
     }
     Statement result = forest.forStatement(
         forKeyword,
@@ -1870,7 +1887,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         variables,
         leftSeparator,
         condition,
-        rightSeparator,
+        conditionStatement,
         updates,
         leftParen.endGroup,
         body);
@@ -2032,7 +2049,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       if (prefix is PrefixBuilder) {
         name = scopeLookup(prefix.exportScope, suffix.name, beginToken,
             isQualified: true, prefix: prefix);
-      } else if (prefix is ErroneousExpressionGenerator) {
+      } else if (prefix
+          is ErroneousExpressionGenerator<Expression, Statement, Arguments>) {
         push(prefix.buildErroneousTypeNotAPrefix(suffix));
         return;
       } else {
@@ -2246,7 +2264,10 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     FormalParameterKind kind = optional("{", beginToken)
         ? FormalParameterKind.optionalNamed
         : FormalParameterKind.optionalPositional;
-    push(new OptionalFormals(kind, popList(count) ?? []));
+    var variables =
+        new List<VariableDeclaration>.filled(count, null, growable: true);
+    popList(count, variables);
+    push(new OptionalFormals(kind, variables));
   }
 
   @override
@@ -2346,45 +2367,47 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void handleCatchBlock(Token onKeyword, Token catchKeyword, Token comma) {
     debugEvent("CatchBlock");
-    Block body = pop();
+    Statement body = pop();
     inCatchBlock = pop();
     if (catchKeyword != null) {
       exitLocalScope();
     }
     FormalParameters<Expression, Statement, Arguments> catchParameters =
         popIfNotNull(catchKeyword);
-    DartType type = popIfNotNull(onKeyword) ?? const DynamicType();
-    VariableDeclaration exception;
-    VariableDeclaration stackTrace;
+    Object type = popIfNotNull(onKeyword);
+    Object exception;
+    Object stackTrace;
     if (catchParameters != null) {
-      if (catchParameters.required.length > 0) {
+      int requiredCount = catchParameters.required.length;
+      if ((requiredCount == 1 || requiredCount == 2) &&
+          catchParameters.optional == null) {
         exception = catchParameters.required[0];
-        exception.type = type;
-      }
-      if (catchParameters.required.length > 1) {
-        stackTrace = catchParameters.required[1];
-        stackTrace.type = coreTypes.stackTraceClass.rawType;
-      }
-      if (catchParameters.required.length > 2 ||
-          catchParameters.optional != null) {
-        body = toKernelStatement(forest.block(
+        forest.setParameterType(exception, type);
+        if (requiredCount == 2) {
+          stackTrace = catchParameters.required[1];
+          forest.setParameterType(
+              stackTrace, coreTypes.stackTraceClass.rawType);
+        }
+      } else {
+        body = forest.block(
             catchKeyword,
             <Statement>[
               toStatement(compileTimeErrorInTry ??=
                   deprecated_buildCompileTimeErrorStatement(
                       "Invalid catch arguments.", catchKeyword.next.charOffset))
             ],
-            null));
+            null);
       }
     }
-    push(new Catch(exception, body, guard: type, stackTrace: stackTrace)
-      ..fileOffset = offsetForToken(onKeyword ?? catchKeyword));
+    push(forest.catchClause(onKeyword, type, catchKeyword, exception,
+        stackTrace, coreTypes.stackTraceClass.rawType, body));
   }
 
   @override
   void endTryStatement(int catchCount, Token tryKeyword, Token finallyKeyword) {
     Statement finallyBlock = popStatementIfNotNull(finallyKeyword);
-    Object catches = popList(catchCount);
+    Object catches = popList(
+        catchCount, new List<Catch>.filled(catchCount, null, growable: true));
     Statement tryBlock = popStatement();
     if (compileTimeErrorInTry == null) {
       push(forest.tryStatement(
@@ -2408,14 +2431,14 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     Expression index = popForValue();
     var receiver = pop();
     if (receiver is ThisAccessGenerator && receiver.isSuper) {
-      push(new SuperIndexedAccessGenerator(
+      push(new SuperIndexedAccessGenerator<Expression, Statement, Arguments>(
           this,
           openSquareBracket,
-          toKernelExpression(index),
+          index,
           lookupInstanceMember(indexGetName, isSuper: true),
           lookupInstanceMember(indexSetName, isSuper: true)));
     } else {
-      push(IndexedAccessGenerator.make(
+      push(IndexedAccessGenerator.make<Expression, Statement, Arguments>(
           this, openSquareBracket, toValue(receiver), index, null, null));
     }
   }
@@ -2431,7 +2454,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       if (optional("-", token)) {
         operator = "unary-";
 
-        if (receiver is LargeIntAccessGenerator) {
+        if (receiver
+            is LargeIntAccessGenerator<Expression, Statement, Arguments>) {
           int value =
               int.parse("-" + receiver.token.lexeme, onError: (_) => null);
           if (value != null) {
@@ -2542,7 +2566,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
             prefix.exportScope, identifier.name, identifier.token,
             isQualified: true, prefix: prefix);
         identifier = null;
-      } else if (prefix is TypeDeclarationAccessGenerator) {
+      } else if (prefix is TypeUseGenerator<Expression, Statement, Arguments>) {
         type = prefix;
       } else if (prefix is Generator) {
         String name = suffix == null
@@ -2760,15 +2784,16 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     var type = pop();
     PrefixBuilder deferredPrefix;
     int checkOffset;
-    if (type is DeferredAccessGenerator) {
-      DeferredAccessGenerator generator = type;
+    if (type is DeferredAccessGenerator<Expression, Statement, Arguments>) {
+      DeferredAccessGenerator<Expression, Statement, Arguments> generator =
+          type;
       type = generator.generator;
       deferredPrefix = generator.builder;
       checkOffset = generator.token.charOffset;
     }
 
-    if (type is TypeDeclarationAccessGenerator) {
-      TypeDeclarationAccessGenerator generator = type;
+    if (type is TypeUseGenerator<Expression, Statement, Arguments>) {
+      TypeUseGenerator<Expression, Statement, Arguments> generator = type;
       if (generator.prefix != null) {
         nameToken = nameToken.next.next;
       }
@@ -2782,8 +2807,9 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       push(deferredPrefix != null
           ? wrapInDeferredCheck(expression, deferredPrefix, checkOffset)
           : expression);
-    } else if (type is ErroneousExpressionGenerator) {
-      push(type.buildError(forest.castArguments(arguments)));
+    } else if (type
+        is ErroneousExpressionGenerator<Expression, Statement, Arguments>) {
+      push(type.buildError(arguments));
     } else {
       push(throwNoSuchMethodError(storeOffset(forest.literalNull(null), offset),
           debugName(getNodeName(type), name), arguments, nameToken.charOffset));
@@ -2905,7 +2931,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void endTypeArguments(int count, Token beginToken, Token endToken) {
     debugEvent("TypeArguments");
-    push(popList(count));
+    push(
+        popList(count, new List<DartType>.filled(count, null, growable: true)));
   }
 
   @override
@@ -3231,19 +3258,20 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   void handleLabel(Token token) {
     debugEvent("Label");
     Identifier identifier = pop();
-    push(new Label(identifier.name, identifier.token.charOffset));
+    push(forest.label(identifier.token, token));
   }
 
   @override
   void beginLabeledStatement(Token token, int labelCount) {
     debugEvent("beginLabeledStatement");
-    List<Label> labels = popList(
-        labelCount, new List<Label>.filled(labelCount, null, growable: true));
+    List<Object> labels =
+        new List<Object>.filled(labelCount, null, growable: true);
+    popList(labelCount, labels);
     enterLocalScope(null, scope.createNestedLabelScope());
     LabelTarget target = new LabelTarget<Statement>(
-        member, functionNestingLevel, token.charOffset);
-    for (Label label in labels) {
-      scope.declareLabel(label.name, target);
+        labels, member, functionNestingLevel, token.charOffset);
+    for (Object label in labels) {
+      scope.declareLabel(forest.getLabelName(label), target);
     }
     push(target);
   }
@@ -3260,9 +3288,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       }
       target.breakTarget.resolveBreaks(forest, statement);
     }
-    // TODO(brianwilkerson): Figure out how to get the labels that are part of
-    // the statement.
-//    statement = forest.labeledStatement(labels, statement);
+    statement = forest.labeledStatement(target, statement);
     if (target.continueTarget.hasUsers) {
       if (statement is! LabeledStatement) {
         statement = forest.syntheticLabeledStatement(statement);
@@ -3368,12 +3394,14 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {
     debugEvent("beginSwitchCase");
-    List labelsAndExpressions = popList(labelCount + expressionCount);
-    List<Label> labels = <Label>[];
+    var count = labelCount + expressionCount;
+    List<Object> labelsAndExpressions =
+        popList(count, new List<Object>.filled(count, null, growable: true));
+    List<Object> labels = <Object>[];
     List<Expression> expressions = <Expression>[];
     if (labelsAndExpressions != null) {
       for (var labelOrExpression in labelsAndExpressions) {
-        if (labelOrExpression is Label) {
+        if (forest.isLabel(labelOrExpression)) {
           labels.add(labelOrExpression);
         } else {
           expressions.add(labelOrExpression);
@@ -3381,18 +3409,19 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       }
     }
     assert(scope == switchScope);
-    for (Label label in labels) {
-      if (scope.hasLocalLabel(label.name)) {
+    for (Object label in labels) {
+      String labelName = forest.getLabelName(label);
+      if (scope.hasLocalLabel(labelName)) {
         // TODO(ahe): Should validate this is a goto target.
-        if (!scope.claimLabel(label.name)) {
+        if (!scope.claimLabel(labelName)) {
           addCompileTimeError(
               fasta.templateDuplicateLabelInSwitchStatement
-                  .withArguments(label.name),
-              label.charOffset,
-              label.name.length);
+                  .withArguments(labelName),
+              forest.getLabelOffset(label),
+              labelName.length);
         }
       } else {
-        scope.declareLabel(label.name, createGotoTarget(firstToken.charOffset));
+        scope.declareLabel(labelName, createGotoTarget(firstToken.charOffset));
       }
     }
     push(expressions);
@@ -3415,7 +3444,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     // check this switch case to see if it falls through to the next case.
     Statement block = popBlock(statementCount, firstToken, null);
     exitLocalScope();
-    List<Label> labels = pop();
+    List<Object> labels = pop();
     List<Expression> expressions = pop();
     List<int> expressionOffsets = <int>[];
     for (Expression expression in expressions) {
@@ -3453,10 +3482,10 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     List<SwitchCase> cases =
         new List<SwitchCase>.filled(caseCount, null, growable: true);
     for (int i = caseCount - 1; i >= 0; i--) {
-      List<Label> labels = pop();
+      List<Object> labels = pop();
       SwitchCase current = cases[i] = pop();
-      for (Label label in labels) {
-        JumpTarget target = switchScope.lookupLabel(label.name);
+      for (Object label in labels) {
+        JumpTarget target = switchScope.lookupLabel(forest.getLabelName(label));
         if (target != null) {
           target.resolveGotos(forest, current);
         }
@@ -3630,7 +3659,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     List<Expression> annotations = pop();
     KernelTypeVariableBuilder variable;
     Object inScope = scopeLookup(scope, name.name, token);
-    if (inScope is TypeDeclarationAccessGenerator) {
+    if (inScope is TypeUseGenerator<Expression, Statement, Arguments>) {
       variable = inScope.declaration;
     } else {
       // Something went wrong when pre-parsing the type variables.
@@ -3651,7 +3680,10 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void endTypeVariables(int count, Token beginToken, Token endToken) {
     debugEvent("TypeVariables");
-    List<KernelTypeVariableBuilder> typeVariables = popList(count);
+    List<KernelTypeVariableBuilder> typeVariables = popList(
+        count,
+        new List<KernelTypeVariableBuilder>.filled(count, null,
+            growable: true));
     if (typeVariables != null) {
       if (library.loader.target.strongMode) {
         List<KernelTypeBuilder> calculatedBounds = calculateBounds(
@@ -4189,15 +4221,6 @@ class InitializedIdentifier extends Identifier {
   String toString() => "initialized-identifier($name, $initializer)";
 }
 
-class Label {
-  String name;
-  int charOffset;
-
-  Label(this.name, this.charOffset);
-
-  String toString() => "label($name)";
-}
-
 class JumpTarget<Statement> extends Builder {
   final List<Statement> users = <Statement>[];
 
@@ -4264,13 +4287,16 @@ class JumpTarget<Statement> extends Builder {
 }
 
 class LabelTarget<Statement> extends Builder implements JumpTarget<Statement> {
+  final List<Object> labels;
+
   final JumpTarget breakTarget;
 
   final JumpTarget continueTarget;
 
   final int functionNestingLevel;
 
-  LabelTarget(MemberBuilder member, this.functionNestingLevel, int charOffset)
+  LabelTarget(this.labels, MemberBuilder member, this.functionNestingLevel,
+      int charOffset)
       : breakTarget = new JumpTarget<Statement>(
             JumpTargetKind.Break, functionNestingLevel, member, charOffset),
         continueTarget = new JumpTarget<Statement>(

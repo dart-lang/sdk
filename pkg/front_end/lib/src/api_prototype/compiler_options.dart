@@ -131,19 +131,7 @@ class CompilerOptions {
   /// When this option is `true`, [sdkSummary] must be null.
   bool compileSdk = false;
 
-  /// Whether the compiler should read files that are discovered as
-  /// dependencies, or only access the files listed explicitly.
-  ///
-  /// This option has different defaults depending on the API.
-  ///
-  /// For modular APIs like `kernelForComponent` and `summaryFor` the default
-  /// behavior is `false`. These APIs want to ensure that builds are hermetic,
-  /// where all files that will be compiled are listed explicitly and all other
-  /// dependencies are covered by summary files.
-  ///
-  /// For whole-program APIs like `kernelForProgram`, this option is true by
-  /// default, so they can treat any dependency that is not described in a
-  /// summary as if it was explicitly listed as an input.
+  @deprecated
   bool chaseDependencies;
 
   /// Whether to interpret Dart sources in strong-mode.

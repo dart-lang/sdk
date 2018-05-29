@@ -43,7 +43,7 @@ import 'compiler_options.dart' show CompilerOptions;
 /// an error is reported.
 // TODO(sigmund): rename to kernelForScript?
 Future<Component> kernelForProgram(Uri source, CompilerOptions options) async {
-  var pOptions = new ProcessedOptions(options, false, [source]);
+  var pOptions = new ProcessedOptions(options, [source]);
   return await CompilerContext.runWithOptions(pOptions, (context) async {
     var component = (await generateKernelInternal())?.component;
     if (component == null) return null;
@@ -66,19 +66,10 @@ Future<Component> kernelForProgram(Uri source, CompilerOptions options) async {
 /// dependencies, build unit dependencies must be acyclic.
 ///
 /// This API is intended for modular compilation. Dependencies to other build
-/// units are specified using [CompilerOptions.inputSummaries].
-///
-/// By default, the compilation process is hermetic, meaning that the only files
-/// which will be read are those listed in [sources],
-/// [CompilerOptions.inputSummaries], and [CompilerOptions.sdkSummary].  If a
-/// source file attempts to refer to a file which is not obtainable from these
-/// URIs, that will result in an error, even if the file exists on the
-/// filesystem.
-///
-/// When [CompilerOptions.chaseDependencies] is true, this default behavior
-/// changes, and any dependency of [sources] that is not listed in
-/// [CompilerOptions.inputSummaries] and [CompilerOptions.sdkSummary] is treated
-/// as an additional source file for the build unit.
+/// units are specified using [CompilerOptions.inputSummaries].  Any dependency
+/// of [sources] that is not listed in [CompilerOptions.inputSummaries] and
+/// [CompilerOptions.sdkSummary] is treated as an additional source file for the
+/// build unit.
 ///
 /// Any `part` declarations found in [sources] must refer to part files which
 /// are also listed in the build unit sources, otherwise an error results.  (It
@@ -89,6 +80,6 @@ Future<Component> kernelForProgram(Uri source, CompilerOptions options) async {
 /// summaries.
 Future<Component> kernelForComponent(
     List<Uri> sources, CompilerOptions options) async {
-  return (await generateKernel(new ProcessedOptions(options, true, sources)))
+  return (await generateKernel(new ProcessedOptions(options, sources)))
       ?.component;
 }

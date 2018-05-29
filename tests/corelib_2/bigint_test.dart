@@ -363,6 +363,9 @@ testBigintTruncDiv() {
   a = BigInt.parse("12345678901234567890");
   b = BigInt.parse("10000000000000000");
   Expect.equals(new BigInt.from(1234), a ~/ b);
+  a = BigInt.parse("9173112362840293939050000000000000000");
+  b = BigInt.parse("50000000000000000");
+  Expect.equals(BigInt.parse("183462247256805878781"), a ~/ b);
 }
 
 testBigintDiv() {

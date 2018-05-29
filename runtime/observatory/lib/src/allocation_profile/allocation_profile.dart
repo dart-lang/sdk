@@ -47,7 +47,7 @@ class AllocationProfile implements M.AllocationProfile {
       accumulators.addAll(new Map.fromIterable(values, value: (_) => classes));
     });
     final List<M.ClassHeapStats> result = <M.ClassHeapStats>[];
-    members.forEach((ClassHeapStats member) {
+    members.forEach((M.ClassHeapStats member) {
       if (accumulators.containsKey(member.clazz.id)) {
         accumulators[member.clazz.id].add(member);
       } else {

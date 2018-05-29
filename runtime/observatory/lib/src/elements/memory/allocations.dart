@@ -221,7 +221,8 @@ class MemoryAllocationsElement extends HtmlElement implements Renderable {
     _r.dirty();
   }
 
-  void _updateCollectionLine(Element e, M.ClassHeapStats item, index) {
+  void _updateCollectionLine(Element e, itemDynamic, index) {
+    M.ClassHeapStats item = itemDynamic;
     e.children[0].text = Utils.formatSize(_getAccumulatedSize(item));
     e.children[1].text = '${_getAccumulatedInstances(item)}';
     e.children[2].text = Utils.formatSize(_getCurrentSize(item));

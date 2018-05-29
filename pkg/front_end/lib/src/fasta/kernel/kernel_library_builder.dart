@@ -53,6 +53,7 @@ import 'kernel_builder.dart'
         BuiltinTypeBuilder,
         ClassBuilder,
         ConstructorReferenceBuilder,
+        DynamicTypeBuilder,
         FormalParameterBuilder,
         InvalidTypeBuilder,
         KernelClassBuilder,
@@ -125,6 +126,16 @@ class KernelLibraryBuilder
 
   Uri get uri => library.importUri;
 
+  void becomeCoreLibrary(dynamicType) {
+    if (scope.local["dynamic"] == null) {
+      addBuilder(
+          "dynamic",
+          new DynamicTypeBuilder<KernelTypeBuilder, DartType>(
+              dynamicType, this, -1),
+          -1);
+    }
+  }
+
   KernelTypeBuilder addNamedType(
       Object name, List<KernelTypeBuilder> arguments, int charOffset) {
     return addType(new KernelNamedTypeBuilder(name, arguments), charOffset);
@@ -138,7 +149,8 @@ class KernelLibraryBuilder
 
   KernelTypeBuilder addVoidType(int charOffset) {
     return addNamedType("void", null, charOffset)
-      ..bind(new VoidTypeBuilder(const VoidType(), this, charOffset));
+      ..bind(new VoidTypeBuilder<KernelTypeBuilder, VoidType>(
+          const VoidType(), this, charOffset));
   }
 
   void addClass(
@@ -437,8 +449,7 @@ class KernelLibraryBuilder
         // TODO(ahe, kmillikin): Should always be true?
         // pkg/analyzer/test/src/summary/resynthesize_kernel_test.dart can't
         // handle that :(
-        application.cls.isSyntheticMixinImplementation =
-            !isNamedMixinApplication;
+        application.cls.isAnonymousMixin = !isNamedMixinApplication;
         addBuilder(fullname, application, charOffset);
         supertype =
             addNamedType(fullname, applicationTypeArguments, charOffset);
@@ -976,7 +987,8 @@ class KernelLibraryBuilder
       boundlessTypeVariables.add(newVariable);
     }
     for (TypeBuilder newType in newTypes) {
-      declaration.addType(new UnresolvedType(newType, -1, null));
+      declaration
+          .addType(new UnresolvedType<KernelTypeBuilder>(newType, -1, null));
     }
     return copy;
   }

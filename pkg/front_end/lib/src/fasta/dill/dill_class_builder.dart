@@ -66,8 +66,9 @@ class DillClassBuilder extends KernelClassBuilder {
     // So, if [arguments] is null, the default types should be retrieved from
     // [cls.typeParameters].
     if (arguments == null) {
-      List<DartType> result =
-          new List<DartType>.filled(cls.typeParameters.length, null);
+      List<DartType> result = new List<DartType>.filled(
+          cls.typeParameters.length, null,
+          growable: true);
       for (int i = 0; i < result.length; ++i) {
         result[i] = cls.typeParameters[i].defaultType;
       }
@@ -75,7 +76,8 @@ class DillClassBuilder extends KernelClassBuilder {
     }
 
     // [arguments] != null
-    List<DartType> result = new List<DartType>.filled(arguments.length, null);
+    List<DartType> result =
+        new List<DartType>.filled(arguments.length, null, growable: true);
     for (int i = 0; i < result.length; ++i) {
       result[i] = arguments[i].build(library);
     }

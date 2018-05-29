@@ -1,3 +1,24 @@
+## 2.0.0-dev.59.0
+
+### Language
+
+The change to make bounds on generic functions invariant has landed in the
+analyzer.  The analyzer will now issue an invalid override error on the
+following program ([issue 29014][sdk#29014]).
+
+```dart
+class A {
+  void f<T extends int>() {}
+}
+
+class B extends A {
+  @override
+  void f<T extends num>() {}
+}
+```
+
+[sdk#29014]: https://github.com/dart-lang/sdk/issues/29014
+
 ## 2.0.0-dev.58.0
 
 ## 2.0.0-dev.57.0
@@ -58,6 +79,8 @@ void main() {
 * `dart:io`
   * Added `X509Certificate.der`, `X509Certificate.pem`, and
     `X509Certificate.sha1`.
+  * Added `FileSystemEntity.fromRawPath` constructor to allow for
+    the creation of `FileSystemEntity` using `Uint8List` buffers.
 
 ### Tool Changes
 

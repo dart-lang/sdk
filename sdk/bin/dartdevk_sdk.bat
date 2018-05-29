@@ -20,7 +20,7 @@ for %%i in ("%BIN_DIR%\..\") do set SDK_DIR=%%~fi
 rem Remove trailing backslash if there is one
 if %SDK_DIR:~-1%==\ set SDK_DIR=%SDK_DIR:~0,-1%
 
-"%DART%" "%SNAPSHOT%" "--packages=%SDK_DIR%\..\..\..\.packages" %*
+"%DART%" "--preview-dart-2" "%SNAPSHOT%" "--packages=%SDK_DIR%\..\..\..\.packages" %*
 
 endlocal
 

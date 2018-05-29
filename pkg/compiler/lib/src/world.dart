@@ -5,6 +5,9 @@
 library dart2js.world;
 
 import 'dart:collection' show Queue;
+
+import 'package:front_end/src/fasta/util/link.dart' show Link;
+
 import 'common.dart';
 import 'common/names.dart';
 import 'common_elements.dart' show CommonElements, ElementEnvironment;
@@ -20,13 +23,12 @@ import 'js_backend/runtime_types.dart'
 import 'ordered_typeset.dart';
 import 'options.dart';
 import 'types/abstract_value_domain.dart';
-import 'types/masks.dart' show CommonMasks, TypeMask;
+import 'types/masks.dart' show CommonMasks;
 import 'universe/class_set.dart';
 import 'universe/function_set.dart' show FunctionSet;
 import 'universe/selector.dart' show Selector;
 import 'universe/side_effects.dart' show SideEffects, SideEffectsBuilder;
 import 'universe/world_builder.dart';
-import 'util/util.dart' show Link;
 
 /// Common superinterface for [OpenWorld] and [ClosedWorld].
 abstract class World {}
@@ -282,50 +284,50 @@ abstract class ClosedWorld implements World {
   /// Returns `true` if the field [element] is known to be effectively final.
   bool fieldNeverChanges(MemberEntity element);
 
-  /// Extends the receiver type [mask] for calling [selector] to take live
+  /// Extends the [receiver] type for calling [selector] to take live
   /// `noSuchMethod` handlers into account.
-  TypeMask extendMaskIfReachesAll(Selector selector, TypeMask mask);
+  AbstractValue extendMaskIfReachesAll(
+      Selector selector, AbstractValue receiver);
 
-  /// Returns all resolved typedefs.
-  Iterable<TypedefEntity> get allTypedefs;
-
-  /// Returns `true` if [selector] on [mask] can hit a `call` method on a
+  /// Returns `true` if [selector] on [receiver] can hit a `call` method on a
   /// subclass of `Closure`.
   ///
   /// Every implementation of `Closure` has a 'call' method with its own
   /// signature so it cannot be modelled by a [FunctionEntity]. Also,
   /// call-methods for tear-off are not part of the element model.
-  bool includesClosureCall(Selector selector, TypeMask mask);
+  bool includesClosureCall(Selector selector, AbstractValue receiver);
 
   /// Returns the mask for the potential receivers of a dynamic call to
-  /// [selector] on [mask].
+  /// [selector] on [receiver].
   ///
-  /// This will narrow the constraints of [mask] to a [TypeMask] of the
-  /// set of classes that actually implement the selected member or implement
-  /// the handling 'noSuchMethod' where the selected member is unimplemented.
-  TypeMask computeReceiverType(Selector selector, TypeMask mask);
+  /// This will narrow the constraints of [receiver] to an [AbstractValue] of
+  /// the set of classes that actually implement the selected member or
+  /// implement the handling 'noSuchMethod' where the selected member is
+  /// unimplemented.
+  AbstractValue computeReceiverType(Selector selector, AbstractValue receiver);
 
-  /// Returns all the instance members that may be invoked with the
-  /// [selector] on a receiver with the given [mask]. The returned elements may
-  /// include noSuchMethod handlers that are potential targets indirectly
-  /// through the noSuchMethod mechanism.
-  Iterable<MemberEntity> locateMembers(Selector selector, TypeMask mask);
+  /// Returns all the instance members that may be invoked with the [selector]
+  /// on the given [receiver]. The returned elements may include noSuchMethod
+  /// handlers that are potential targets indirectly through the noSuchMethod
+  /// mechanism.
+  Iterable<MemberEntity> locateMembers(
+      Selector selector, AbstractValue receiver);
 
-  /// Returns the single [MemberEntity] that matches a call to [selector] on a
-  /// receiver of type [mask]. If multiple targets exist, `null` is returned.
-  MemberEntity locateSingleMember(Selector selector, TypeMask mask);
+  /// Returns the single [MemberEntity] that matches a call to [selector] on the
+  /// [receiver]. If multiple targets exist, `null` is returned.
+  MemberEntity locateSingleMember(Selector selector, AbstractValue receiver);
 
-  /// Returns the single field that matches a call to [selector] on a
-  /// receiver of type [mask]. If multiple targets exist or the single target
-  /// is not a field, `null` is returned.
-  FieldEntity locateSingleField(Selector selector, TypeMask mask);
+  /// Returns the single field that matches a call to [selector] on the
+  /// [receiver]. If multiple targets exist or the single target is not a field,
+  /// `null` is returned.
+  FieldEntity locateSingleField(Selector selector, AbstractValue receiver);
 
   /// Returns the side effects of executing [element].
   SideEffects getSideEffectsOfElement(FunctionEntity element);
 
-  /// Returns the side effects of calling [selector] on a receiver of type
-  /// [mask].
-  SideEffects getSideEffectsOfSelector(Selector selector, TypeMask mask);
+  /// Returns the side effects of calling [selector] on the [receiver].
+  SideEffects getSideEffectsOfSelector(
+      Selector selector, AbstractValue receiver);
 
   /// Returns `true` if [element] is guaranteed not to throw an exception.
   bool getCannotThrow(FunctionEntity element);
@@ -386,7 +388,6 @@ abstract class ClosedWorldRefiner {
 
 abstract class OpenWorld implements World {
   void registerUsedElement(MemberEntity element);
-  void registerTypedef(TypedefEntity typedef);
 
   ClosedWorld closeWorld();
 
@@ -430,8 +431,6 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   final NoSuchMethodData noSuchMethodData;
 
   FunctionSet _allFunctions;
-
-  final Set<TypedefEntity> _allTypedefs;
 
   final Map<ClassEntity, Set<ClassEntity>> mixinUses;
   Map<ClassEntity, List<ClassEntity>> _liveMixinUses;
@@ -494,13 +493,11 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
       this.liveInstanceMembers,
       this.assignedInstanceMembers,
       this.processedMembers,
-      Set<TypedefEntity> allTypedefs,
       this.mixinUses,
       this.typesImplementedBySubclasses,
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
       Map<ClassEntity, ClassSet> classSets)
       : this._implementedClasses = implementedClasses,
-        this._allTypedefs = allTypedefs,
         this._classHierarchyNodes = classHierarchyNodes,
         this._classSets = classSets {
     _commonMasks = new CommonMasks(this);
@@ -1027,8 +1024,6 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
     return _classSets[cls];
   }
 
-  Iterable<TypedefEntity> get allTypedefs => _allTypedefs;
-
   void _ensureFunctionSet() {
     if (_allFunctions == null) {
       // [FunctionSet] is created lazily because it is not used when we switch
@@ -1037,58 +1032,62 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
     }
   }
 
-  /// Returns `true` if [selector] on [mask] can hit a `call` method on a
+  /// Returns `true` if [selector] on [receiver] can hit a `call` method on a
   /// subclass of `Closure`.
   ///
   /// Every implementation of `Closure` has a 'call' method with its own
   /// signature so it cannot be modelled by a [FunctionEntity]. Also,
   /// call-methods for tear-off are not part of the element model.
-  bool includesClosureCall(Selector selector, TypeMask mask) {
+  bool includesClosureCall(Selector selector, AbstractValue receiver) {
     return selector.name == Identifiers.call &&
-        (mask == null ||
-            mask.containsMask(abstractValueDomain.functionType, closedWorld));
+        (receiver == null ||
+            // TODO(johnniwinther): Should this have been `intersects` instead?
+            abstractValueDomain.contains(
+                receiver, abstractValueDomain.functionType));
   }
 
-  TypeMask computeReceiverType(Selector selector, TypeMask mask) {
+  AbstractValue computeReceiverType(Selector selector, AbstractValue receiver) {
     _ensureFunctionSet();
-    if (includesClosureCall(selector, mask)) {
+    if (includesClosureCall(selector, receiver)) {
       return abstractValueDomain.dynamicType;
     }
-    return _allFunctions.receiverType(selector, mask, abstractValueDomain);
+    return _allFunctions.receiverType(selector, receiver, abstractValueDomain);
   }
 
-  Iterable<MemberEntity> locateMembers(Selector selector, TypeMask mask) {
+  Iterable<MemberEntity> locateMembers(
+      Selector selector, AbstractValue receiver) {
     _ensureFunctionSet();
-    return _allFunctions.filter(selector, mask, abstractValueDomain);
+    return _allFunctions.filter(selector, receiver, abstractValueDomain);
   }
 
-  bool hasAnyUserDefinedGetter(Selector selector, TypeMask mask) {
+  bool hasAnyUserDefinedGetter(Selector selector, AbstractValue receiver) {
     _ensureFunctionSet();
     return _allFunctions
-        .filter(selector, mask, abstractValueDomain)
+        .filter(selector, receiver, abstractValueDomain)
         .any((each) => each.isGetter);
   }
 
-  FieldEntity locateSingleField(Selector selector, TypeMask mask) {
-    MemberEntity result = locateSingleMember(selector, mask);
+  FieldEntity locateSingleField(Selector selector, AbstractValue receiver) {
+    MemberEntity result = locateSingleMember(selector, receiver);
     return (result != null && result.isField) ? result : null;
   }
 
-  MemberEntity locateSingleMember(Selector selector, TypeMask mask) {
-    if (includesClosureCall(selector, mask)) {
+  MemberEntity locateSingleMember(Selector selector, AbstractValue receiver) {
+    if (includesClosureCall(selector, receiver)) {
       return null;
     }
-    mask ??= abstractValueDomain.dynamicType;
-    return mask.locateSingleMember(selector, this);
+    receiver ??= abstractValueDomain.dynamicType;
+    return abstractValueDomain.locateSingleMember(receiver, selector);
   }
 
-  TypeMask extendMaskIfReachesAll(Selector selector, TypeMask mask) {
+  AbstractValue extendMaskIfReachesAll(
+      Selector selector, AbstractValue receiver) {
     bool canReachAll = true;
-    if (mask != null) {
+    if (receiver != null) {
       canReachAll = backendUsage.isInvokeOnUsed &&
-          mask.needsNoSuchMethodHandling(selector, this);
+          abstractValueDomain.needsNoSuchMethodHandling(receiver, selector);
     }
-    return canReachAll ? abstractValueDomain.dynamicType : mask;
+    return canReachAll ? abstractValueDomain.dynamicType : receiver;
   }
 
   bool fieldNeverChanges(MemberEntity element) {
@@ -1110,15 +1109,16 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
     return false;
   }
 
-  SideEffects getSideEffectsOfSelector(Selector selector, TypeMask mask) {
+  SideEffects getSideEffectsOfSelector(
+      Selector selector, AbstractValue receiver) {
     // We're not tracking side effects of closures.
-    if (selector.isClosureCall || includesClosureCall(selector, mask)) {
+    if (selector.isClosureCall || includesClosureCall(selector, receiver)) {
       return new SideEffects();
     }
     SideEffects sideEffects = new SideEffects.empty();
     _ensureFunctionSet();
     for (MemberEntity e
-        in _allFunctions.filter(selector, mask, abstractValueDomain)) {
+        in _allFunctions.filter(selector, receiver, abstractValueDomain)) {
       if (e.isField) {
         if (selector.isGetter) {
           if (!fieldNeverChanges(e)) {

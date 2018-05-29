@@ -12,17 +12,23 @@ import 'package:kernel/ast.dart' as kernel
         Name,
         Procedure;
 
-import 'body_builder.dart' show Identifier;
+import 'body_builder.dart' show Identifier, LabelTarget;
 
 import 'expression_generator.dart' show Generator;
 
 import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
+
+import 'kernel_builder.dart'
+    show LoadLibraryBuilder, PrefixBuilder, TypeDeclarationBuilder;
 
 export 'body_builder.dart' show Identifier, Operator;
 
 export 'expression_generator.dart' show Generator;
 
 export 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
+
+export 'kernel_builder.dart'
+    show LoadLibraryBuilder, PrefixBuilder, TypeDeclarationBuilder;
 
 /// A tree factory.
 ///
@@ -173,6 +179,16 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   Statement breakStatement(
       Location breakKeyword, Identifier label, Location semicolon);
 
+  /// Return a representation of a catch clause.
+  Object catchClause(
+      Location onKeyword,
+      covariant exceptionType,
+      Location catchKeyword,
+      covariant exceptionParameter,
+      covariant stackTraceParameter,
+      covariant stackTraceType,
+      Statement body);
+
   /// Return a representation of a conditional expression. The [condition] is
   /// the expression preceding the question mark. The [question] is the `?`. The
   /// [thenExpression] is the expression following the question mark. The
@@ -209,7 +225,7 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
       covariant initialization,
       Location leftSeparator,
       Expression condition,
-      Location rightSeparator,
+      Statement conditionStatement,
       List<Expression> updaters,
       Location rightParenthesis,
       Statement body);
@@ -224,6 +240,15 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   /// The [type] is a representation of the type that is the right operand.
   Expression isExpression(Expression operand, Location isOperator,
       Location notOperator, covariant type);
+
+  /// Return a representation of the label consisting of the given [identifer]
+  /// followed by the given [colon].
+  Object label(Location identifier, Location colon);
+
+  /// Return a representation of a [statement] that has one or more labels (from
+  /// the [target]) associated with it.
+  Statement labeledStatement(
+      LabelTarget<Statement> target, Statement statement);
 
   Expression notExpression(Expression operand, Location location);
 
@@ -286,9 +311,11 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   /// Return the expression from the given expression [statement].
   Expression getExpressionFromExpressionStatement(Statement statement);
 
-  /// Return the semicolon at the end of the given [statement], or `null` if the
-  /// statement is not terminated by a semicolon.
-  Location getSemicolon(Statement statement);
+  /// Return the name of the given [label].
+  String getLabelName(covariant label);
+
+  /// Return the offset of the given [label].
+  int getLabelOffset(covariant label);
 
   bool isBlock(Object node);
 
@@ -301,6 +328,9 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   /// Return `true` if the given [statement] is the representation of an
   /// expression statement.
   bool isExpressionStatement(Statement statement);
+
+  /// Return `true` if the given [node] is a label.
+  bool isLabel(covariant node);
 
   bool isThisExpression(Object node);
 
@@ -318,6 +348,9 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   /// associated with the [target] statement.
   void resolveContinueInSwitch(
       covariant Object target, covariant Statement user);
+
+  /// Set the type of the [parameter] to the given [type].
+  void setParameterType(covariant parameter, covariant type);
 
   Generator<Expression, Statement, Arguments> variableUseGenerator(
       ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
@@ -370,6 +403,48 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
       Expression index,
       kernel.Procedure getter,
       kernel.Procedure setter);
+
+  Generator<Expression, Statement, Arguments> superIndexedAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Location location,
+      Expression index,
+      kernel.Member getter,
+      kernel.Member setter);
+
+  Generator<Expression, Statement, Arguments> staticAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Location location,
+      kernel.Member getter,
+      kernel.Member setter);
+
+  Generator<Expression, Statement, Arguments> loadLibraryGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Location location,
+      LoadLibraryBuilder builder);
+
+  Generator<Expression, Statement, Arguments> deferredAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Location location,
+      PrefixBuilder builder,
+      Generator<Expression, Statement, Arguments> generator);
+
+  Generator<Expression, Statement, Arguments> typeUseGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Location location,
+      PrefixBuilder prefix,
+      int declarationReferenceOffset,
+      TypeDeclarationBuilder declaration,
+      String plainNameForRead);
+
+  Generator<Expression, Statement, Arguments> readOnlyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Location location,
+      Expression expression,
+      String plainNameForRead);
+
+  Generator<Expression, Statement, Arguments> largeIntAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Location location);
 
   // TODO(ahe): Remove this method when all users are moved here.
   kernel.Arguments castArguments(Arguments arguments) {

@@ -272,6 +272,9 @@ class LocalSourcePredicate_TRUE implements LocalSourcePredicate {
  * An implementation of an non-existing [Source].
  */
 class NonExistingSource extends Source {
+  static final unknown = new NonExistingSource(
+      '/unknown.dart', pathos.toUri('/unknown.dart'), UriKind.FILE_URI);
+
   @override
   final String fullName;
 

@@ -486,7 +486,6 @@ stacktrace_rethrow_error_test/none: RuntimeError # Issue 12698
 stacktrace_rethrow_error_test/withtraceparameter: RuntimeError # Issue 12698
 stacktrace_rethrow_nonerror_test: RuntimeError # Issue 12698
 stacktrace_test: RuntimeError # Issue 12698
-super_call4_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 switch_bad_case_test/01: MissingCompileTimeError
 switch_bad_case_test/02: MissingCompileTimeError
 switch_case_test/00: MissingCompileTimeError
@@ -808,7 +807,6 @@ string_interpolation_and_buffer_test: RuntimeError
 string_split_test: CompileTimeError
 string_supertype_checked_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
-super_call4_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 super_no_such_method1_test: CompileTimeError
 super_no_such_method2_test: CompileTimeError
 super_no_such_method3_test: CompileTimeError

@@ -20,8 +20,8 @@ void deferredTest1() {
   asyncTest(() async {
     CompilationResult result = await runCompiler(memorySourceFiles: TEST1);
     Compiler compiler = result.compiler;
-    var outputUnitForEntity =
-        compiler.backend.outputUnitData.outputUnitForEntity;
+    var outputUnitForMember =
+        compiler.backend.outputUnitData.outputUnitForMember;
     var mainOutputUnit = compiler.backend.outputUnitData.mainOutputUnit;
     var env = compiler.backendClosedWorldForTesting.elementEnvironment;
     lookupLibrary(name) => env.lookupLibrary(Uri.parse(name));
@@ -30,7 +30,7 @@ void deferredTest1() {
     env.lookupLibraryMember(lib1, "foo1");
     var foo2 = env.lookupLibraryMember(lib2, "foo2");
 
-    Expect.notEquals(mainOutputUnit, outputUnitForEntity(foo2));
+    Expect.notEquals(mainOutputUnit, outputUnitForMember(foo2));
   });
 }
 
@@ -38,16 +38,15 @@ void deferredTest2() {
   asyncTest(() async {
     CompilationResult result = await runCompiler(memorySourceFiles: TEST2);
     Compiler compiler = result.compiler;
-    var outputUnitForEntity =
-        compiler.backend.outputUnitData.outputUnitForEntity;
+    var outputUnitForClass = compiler.backend.outputUnitData.outputUnitForClass;
 
     var mainOutputUnit = compiler.backend.outputUnitData.mainOutputUnit;
     var env = compiler.backendClosedWorldForTesting.elementEnvironment;
     lookupLibrary(name) => env.lookupLibrary(Uri.parse(name));
     dynamic shared = lookupLibrary("memory:shared.dart");
-    var a = env.lookupLibraryMember(shared, "A");
+    var a = env.lookupClass(shared, "A");
 
-    Expect.equals(mainOutputUnit, outputUnitForEntity(a));
+    Expect.equals(mainOutputUnit, outputUnitForClass(a));
   });
 }
 

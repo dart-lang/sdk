@@ -646,18 +646,14 @@ class GenericInferrer {
 
     if (t1 is FunctionType && t2 is FunctionType) {
       return FunctionTypeImpl.relate(
-          t1,
-          t2,
-          (t1, t2) {
-            // TODO(jmesserly): should we flip covariance when we're relating
-            // type formal bounds? They're more like parameters.
-            return matchSubtype(t1, t2);
-          },
-          _typeSystem.instantiateToBounds,
+          t1, t2, matchSubtype, _typeSystem.instantiateToBounds,
           parameterRelation: (p1, p2) {
             return _matchSubtypeOf(p2.type, p1.type, null, origin,
                 covariant: !covariant);
-          });
+          },
+          // Type parameter bounds are invariant.
+          boundsRelation: (t1, t2, p1, p2) =>
+              matchSubtype(t1, t2) && matchSubtype(t2, t1));
     }
 
     if (t1 is FunctionType && t2 == typeProvider.functionType) {
@@ -1181,7 +1177,10 @@ class StrongTypeSystemImpl extends TypeSystem {
   /// - it allows opt-in covariant parameters.
   bool isOverrideSubtypeOf(FunctionType f1, FunctionType f2) {
     return FunctionTypeImpl.relate(f1, f2, isSubtypeOf, instantiateToBounds,
-        parameterRelation: isOverrideSubtypeOfParameter);
+        parameterRelation: isOverrideSubtypeOfParameter,
+        // Type parameter bounds are invariant.
+        boundsRelation: (t1, t2, p1, p2) =>
+            isSubtypeOf(t1, t2) && isSubtypeOf(t2, t1));
   }
 
   /// Check that parameter [p2] is a subtype of [p1], given that we are
@@ -1522,7 +1521,10 @@ class StrongTypeSystemImpl extends TypeSystem {
   /// Check that [f1] is a subtype of [f2].
   bool _isFunctionSubtypeOf(FunctionType f1, FunctionType f2) {
     return FunctionTypeImpl.relate(f1, f2, isSubtypeOf, instantiateToBounds,
-        parameterRelation: (p1, p2) => isSubtypeOf(p2.type, p1.type));
+        parameterRelation: (p1, p2) => isSubtypeOf(p2.type, p1.type),
+        // Type parameter bounds are invariant.
+        boundsRelation: (t1, t2, p1, p2) =>
+            isSubtypeOf(t1, t2) && isSubtypeOf(t2, t1));
   }
 
   bool _isInterfaceSubtypeOf(

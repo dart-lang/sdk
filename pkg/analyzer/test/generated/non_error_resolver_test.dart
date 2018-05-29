@@ -4786,6 +4786,49 @@ main() {
     assertNoErrors(source);
   }
 
+  test_optionalNew_rewrite() async {
+    resetWith(
+        options: new AnalysisOptionsImpl()
+          ..previewDart2 = true
+          ..strongMode = true);
+    Source source = addSource(r'''
+import 'b.dart';
+main() {
+  const B.named1();
+  const B.named2();
+  const B.named3();
+  const B.named4();
+}
+''');
+    addNamedSource("/a.dart", r'''
+class A {
+  const A();
+  const A.named();
+}
+''');
+    addNamedSource("/b.dart", r'''
+import 'a.dart';
+import 'a.dart' as p;
+
+const _a1 = A();
+const _a2 = A.named();
+const _a3 = p.A();
+const _a4 = p.A.named();
+
+class B {
+  const B.named1({this.a: _a1}) : assert(a != null);
+  const B.named2({this.a: _a2}) : assert(a != null);
+  const B.named3({this.a: _a3}) : assert(a != null);
+  const B.named4({this.a: _a4}) : assert(a != null);
+
+  final A a;
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_optionalParameterInOperator_required() async {
     Source source = addSource(r'''
 class A {

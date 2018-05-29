@@ -119,6 +119,24 @@ convert(x) => _s_ as T;
 ''');
   }
 
+  @failingTest
+  void test_initializerList_missingComma() {
+    // https://github.com/dart-lang/sdk/issues/33241
+    testRecovery('''
+class Test {
+  Test()
+    : assert(true)
+      assert(true);
+}
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+class Test {
+  Test()
+    : assert(true),
+      assert(true);
+}
+''');
+  }
+
   void test_asExpression_missingRight() {
     testRecovery('''
 convert(x) => x as ;

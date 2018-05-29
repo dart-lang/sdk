@@ -13,12 +13,12 @@ class FileStat {
 @patch
 class FileSystemEntity {
   @patch
-  static _getTypeNative(_Namespace namespace, String path, bool followLinks)
-      native "File_GetType";
+  static _getTypeNative(_Namespace namespace, Uint8List rawPath,
+      bool followLinks) native "File_GetType";
   @patch
   static _identicalNative(_Namespace namespace, String path1, String path2)
       native "File_AreIdentical";
   @patch
-  static _resolveSymbolicLinks(_Namespace namespace, String path)
+  static _resolveSymbolicLinks(_Namespace namespace, Uint8List path)
       native "File_ResolveSymbolicLinks";
 }

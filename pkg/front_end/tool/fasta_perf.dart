@@ -233,7 +233,6 @@ generateKernel(Uri entryUri,
     ..onError = onErrorHandler(strongMode)
     ..strongMode = strongMode
     ..target = createTarget(isFlutter: false, strongMode: strongMode)
-    ..chaseDependencies = true
     ..packagesFileUri = Uri.base.resolve('.packages')
     ..compileSdk = compileSdk;
   if (!compileSdk) {

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:html';
+import 'package:observatory/models.dart' as M;
 import 'package:unittest/unittest.dart';
 import 'package:observatory/src/elements/flag_list.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
@@ -32,7 +33,7 @@ main() {
         const FlagMock(name: 'f2', comment: 'c2', modified: false),
         const FlagMock(name: 'f3', comment: 'c3', modified: false),
       ];
-      final flags = []..addAll(modified)..addAll(unmodifed);
+      final flags = <M.Flag>[]..addAll(modified)..addAll(unmodifed);
       final repository = new FlagsRepositoryMock(list: flags);
       final e = new FlagListElement(vm, events, repository, notifications);
       document.body.append(e);

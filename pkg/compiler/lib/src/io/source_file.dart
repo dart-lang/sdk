@@ -227,7 +227,7 @@ class CachingUtf8BytesSourceFile extends Utf8BytesSourceFile {
   }
 }
 
-class StringSourceFile extends SourceFile<String> {
+class StringSourceFile extends SourceFile<List<int>> {
   final Uri uri;
   final String filename;
   final String text;
@@ -240,7 +240,7 @@ class StringSourceFile extends SourceFile<String> {
   StringSourceFile.fromName(String filename, String text)
       : this(new Uri(path: filename), filename, text);
 
-  String get data => text;
+  List<int> get data => utf8.encode(text);
 
   int get length => text.length;
   set length(int v) {}

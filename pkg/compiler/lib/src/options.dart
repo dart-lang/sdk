@@ -61,7 +61,7 @@ class CompilerOptions implements DiagnosticOptions {
 
   /// Resolved constant "environment" values passed to the compiler via the `-D`
   /// flags.
-  Map<String, dynamic> environment = const <String, dynamic>{};
+  Map<String, String> environment = const <String, String>{};
 
   /// A possibly null state object for kernel compilation.
   fe.InitializedCompilerState kernelInitializedCompilerState;

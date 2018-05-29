@@ -515,33 +515,35 @@ class Expect {
   }
 
   /**
-   * Calls the function [f] and verifies that it throws an exception.
+   * Calls the function [f] and verifies that it throws a `T`.
    * The optional [check] function can provide additional validation
-   * that the correct exception is being thrown.  For example, to check
-   * the type of the exception you could write this:
+   * that the correct object is being thrown.  For example, to check
+   * the content of the thrown boject you could write this:
    *
-   *     Expect.throws(myThrowingFunction, (e) => e is MyException);
+   *     Expect.throws<MyException>(myThrowingFunction,
+   *          (e) => e.myMessage.contains("WARNING"));
+   *
+   * The type variable can be omitted and the type checked in [check]
+   * instead. This was traditionally done before Dart had generic methods.
    *
    * If `f` fails an expectation (i.e., throws an [ExpectException]), that
    * exception is not caught by [Expect.throws]. The test is still considered
    * failing.
    */
-  static void throws(void f(), [bool check(Object error), String reason]) {
+  static void throws<T>(void f(), [bool check(T error), String reason]) {
     String msg = reason == null ? "" : "($reason)";
-    if (f is! _Nullary) {
+    if (f is! Function()) {
       // Only throws from executing the function body should count as throwing.
       // The failure to even call `f` should throw outside the try/catch.
       _fail("Expect.throws$msg: Function f not callable with zero arguments");
     }
     try {
       f();
-    } catch (e, s) {
+    } on Object catch (e, s) {
       // A test failure doesn't count as throwing.
       if (e is ExpectException) rethrow;
-      if (check != null && !check(e)) {
-        _fail("Expect.throws$msg: Unexpected '$e'\n$s");
-      }
-      return;
+      if (e is T && (check == null || check(e))) return;
+      _fail("Expect.throws$msg: Unexpected '$e'\n$s");
     }
     _fail('Expect.throws$msg fails: Did not throw');
   }
@@ -607,8 +609,9 @@ class Expect {
 /// Used in [Expect] because [Expect.identical] shadows the real [identical].
 bool _identical(a, b) => identical(a, b);
 
-typedef _Nullary(); // Expect.throws argument must be this type.
-
+/// Exception thrown on a failed expectation check.
+///
+/// Always recognized by [Expect.throws] as an unexpected error.
 class ExpectException implements Exception {
   final String message;
   ExpectException(this.message);

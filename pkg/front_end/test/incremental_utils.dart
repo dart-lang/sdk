@@ -33,7 +33,7 @@ int countEmptyMixinBodies(Component component) {
   int empty = 0;
   for (Library lib in component.libraries) {
     for (Class c in lib.classes) {
-      if (c.isSyntheticMixinImplementation) {
+      if (c.isAnonymousMixin) {
         for (Procedure p in c.procedures) {
           if (p.function.body is EmptyStatement) {
             empty++;

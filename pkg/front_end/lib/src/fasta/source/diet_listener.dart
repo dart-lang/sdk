@@ -9,6 +9,7 @@ import 'package:kernel/ast.dart'
         AsyncMarker,
         Class,
         Expression,
+        Field,
         InterfaceType,
         Library,
         LibraryDependency,
@@ -33,8 +34,7 @@ import '../fasta_codes.dart'
 
 import '../kernel/kernel_body_builder.dart' show KernelBodyBuilder;
 
-import '../parser.dart'
-    show Assert, IdentifierContext, MemberKind, Parser, optional;
+import '../parser.dart' show Assert, MemberKind, Parser, optional;
 
 import '../problems.dart' show internalProblem, unexpected;
 
@@ -90,7 +90,9 @@ class DietListener extends StackListener {
   @override
   void endMetadataStar(int count) {
     debugEvent("MetadataStar");
-    push(popList(count)?.first ?? NullValue.Metadata);
+    push(popList(count, new List<Token>.filled(count, null, growable: true))
+            ?.first ??
+        NullValue.Metadata);
   }
 
   @override
@@ -269,15 +271,6 @@ class DietListener extends StackListener {
   @override
   void endInitializers(int count, Token beginToken, Token endToken) {
     debugEvent("Initializers");
-  }
-
-  @override
-  void handleIdentifier(Token token, IdentifierContext context) {
-    if (context == IdentifierContext.enumValueDeclaration) {
-      // Discard the metadata.
-      pop();
-    }
-    super.handleIdentifier(token, context);
   }
 
   @override
@@ -574,7 +567,8 @@ class DietListener extends StackListener {
   }
 
   void buildFields(int count, Token token, bool isTopLevel) {
-    List<String> names = popList(count);
+    List<String> names =
+        popList(count, new List<String>.filled(count, null, growable: true));
     Builder builder = lookupBuilder(token, null, names.first);
     Token metadata = pop();
     // TODO(paulberry): don't re-parse the field if we've already parsed it
@@ -640,16 +634,29 @@ class DietListener extends StackListener {
   void endEnum(Token enumKeyword, Token leftBrace, int count) {
     debugEvent("Enum");
 
-    discard(count); // values
+    List metadataAndValues = new List.filled(count * 2, null, growable: true);
+    popList(count * 2, metadataAndValues);
+
     String name = pop();
     Token metadata = pop();
 
-    Builder enumBuilder = lookupBuilder(enumKeyword, null, name);
+    ClassBuilder enumBuilder = lookupBuilder(enumKeyword, null, name);
     Class target = enumBuilder.target;
     var metadataConstants = parseMetadata(enumBuilder, metadata);
     if (metadataConstants != null) {
       for (var metadataConstant in metadataConstants) {
         target.addAnnotation(metadataConstant);
+      }
+    }
+    for (int i = 0; i < metadataAndValues.length; i += 2) {
+      Token metadata = metadataAndValues[i];
+      String valueName = metadataAndValues[i + 1];
+      Builder builder = enumBuilder.scope.local[valueName];
+      if (metadata != null) {
+        Field field = builder.target;
+        for (var annotation in parseMetadata(builder, metadata)) {
+          field.addAnnotation(annotation);
+        }
       }
     }
 

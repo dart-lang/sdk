@@ -27,7 +27,7 @@ if %DART_ROOT:~-1%==\ set DART_ROOT=%DART_ROOT:~0,-1%
 
 set DARTFMT=%DART_ROOT%\third_party\pkg_tested\dart_style\bin\format.dart
 
-"%DART%" "--packages=%DART_ROOT%\.packages" "%DARTFMT%" %*
+"%DART%" "--preview-dart-2" "--packages=%DART_ROOT%\.packages" "%DARTFMT%" %*
 
 endlocal
 

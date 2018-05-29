@@ -1129,8 +1129,9 @@ class ContextManagerImpl implements ContextManager {
             pathContext.isWithin(includedPath, excludedPath))
         .toList();
     processOptionsForDriver(info, options, optionMap);
-    ContextRoot contextRoot =
-        new ContextRoot(pathContext, folder.path, containedExcludedPaths);
+    ContextRoot contextRoot = new ContextRoot(
+        folder.path, containedExcludedPaths,
+        pathContext: pathContext);
     if (optionsFile != null) {
       contextRoot.optionsFilePath = optionsFile.path;
     }

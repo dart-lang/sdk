@@ -47,7 +47,7 @@ InitializedCompilerState initializeCompiler(
     ..librariesSpecificationUri = librariesSpecificationUri
     ..packagesFileUri = packagesFileUri;
 
-  ProcessedOptions processedOpts = new ProcessedOptions(options, false, []);
+  ProcessedOptions processedOpts = new ProcessedOptions(options, []);
 
   return new InitializedCompilerState(options, processedOpts);
 }

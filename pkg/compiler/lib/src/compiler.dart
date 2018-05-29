@@ -303,7 +303,6 @@ abstract class Compiler {
       resolutionEnqueuer = enqueuer.createResolutionEnqueuer();
       backend.onResolutionStart();
     }
-    resolutionEnqueuer.addDeferredActions(libraryLoader.pullDeferredActions());
     return resolutionEnqueuer;
   }
 
@@ -418,13 +417,13 @@ abstract class Compiler {
     phase = PHASE_DONE_RESOLVING;
 
     ClosedWorld closedWorld = resolutionWorldBuilder.closeWorld();
+    OutputUnitData result = deferredLoadTask.run(mainFunction, closedWorld);
     ClosedWorldRefiner closedWorldRefiner =
         backendStrategy.createClosedWorldRefiner(closedWorld);
     // Compute whole-program-knowledge that the backend needs. (This might
     // require the information computed in [world.closeWorld].)
     backend.onResolutionClosedWorld(closedWorld, closedWorldRefiner);
 
-    OutputUnitData result = deferredLoadTask.run(mainFunction, closedWorld);
     backend.onDeferredLoadComplete(result);
 
     // TODO(johnniwinther): Move this after rti computation but before

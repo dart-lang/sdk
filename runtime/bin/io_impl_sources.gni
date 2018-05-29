@@ -101,4 +101,6 @@ io_impl_sources = [
   "sync_socket_linux.cc",
   "sync_socket_macos.cc",
   "sync_socket_win.cc",
+  "typed_data_utils.h",
+  "typed_data_utils.cc",
 ]

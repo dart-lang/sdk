@@ -59,7 +59,7 @@ void main(List<String> args) {
   ProcessResult runDdc(String command, List<String> args) {
     if (debug) {
       // Use unbuilt script.  This only works from a source checkout.
-      args.insertAll(0, ['--preview-dart-2', '-c', path.join(ddcPath, 'bin', '${command}.dart')]);
+      args.insertAll(0, ['--preview-dart-2', '--enable-asserts', path.join(ddcPath, 'bin', '${command}.dart')]);
       command = dartBinary;
     } else {
       // Use built snapshot.

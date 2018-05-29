@@ -441,7 +441,8 @@ class FrontendCompiler implements CompilerInterface {
       final IOSink sink = new File(_kernelBinaryFilename).openWrite();
       sink.add(serializeProcedure(procedure));
       await sink.close();
-      _outputStream.writeln('$boundaryKey $_kernelBinaryFilename');
+      _outputStream
+          .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
       _kernelBinaryFilename = _kernelBinaryFilenameIncremental;
     } else {
       _outputStream.writeln(boundaryKey);

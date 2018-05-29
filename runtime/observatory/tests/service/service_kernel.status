@@ -2,6 +2,116 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $compiler == app_jitk ]
+add_breakpoint_rpc_test: RuntimeError
+async_generator_breakpoint_test: RuntimeError
+async_next_test: RuntimeError
+async_scope_test: RuntimeError
+async_single_step_exception_test: RuntimeError
+async_single_step_into_test: RuntimeError
+async_single_step_out_test: RuntimeError
+async_star_single_step_into_test: RuntimeError
+async_star_step_out_test: RuntimeError
+async_step_out_test: RuntimeError
+awaiter_async_stack_contents_test: RuntimeError
+bad_reload_test: RuntimeError
+break_on_activation_test: RuntimeError
+break_on_function_test: RuntimeError
+breakpoint_in_parts_class_test: RuntimeError
+breakpoint_two_args_checked_test: RuntimeError
+causal_async_stack_contents_test: RuntimeError
+causal_async_stack_presence_test: RuntimeError
+causal_async_star_stack_contents_test: RuntimeError
+causal_async_star_stack_presence_test: RuntimeError
+complex_reload_test: RuntimeError
+coverage_leaf_function_test: RuntimeError
+coverage_optimized_function_test: RuntimeError
+debugger_inspect_test: Skip # Timeout
+debugger_location_second_test: RuntimeError
+debugger_location_test: RuntimeError
+debugging_inlined_finally_test: RuntimeError
+debugging_test: RuntimeError
+developer_service_get_isolate_id_test: RuntimeError
+eval_internal_class_test: RuntimeError
+eval_test: RuntimeError
+evaluate_activation_in_method_class_test: RuntimeError
+evaluate_activation_test/instance: RuntimeError
+evaluate_activation_test/none: RuntimeError
+evaluate_activation_test/scope: RuntimeError
+evaluate_async_closure_test: RuntimeError
+evaluate_class_type_parameters_test: RuntimeError
+evaluate_in_async_activation_test: RuntimeError
+evaluate_in_async_star_activation_test: RuntimeError
+evaluate_in_frame_rpc_test: RuntimeError
+evaluate_in_frame_with_scope_test: RuntimeError
+evaluate_in_sync_star_activation_test: RuntimeError
+evaluate_with_scope_test: RuntimeError
+get_instances_rpc_test: RuntimeError
+get_object_rpc_test: RuntimeError
+get_retaining_path_rpc_test: RuntimeError
+get_source_report_test: RuntimeError
+get_stack_rpc_test: RuntimeError
+get_user_level_retaining_path_rpc_test: RuntimeError
+get_vm_rpc_test: RuntimeError
+get_vm_timeline_rpc_test: RuntimeError
+instance_field_order_rpc_test: RuntimeError
+issue_25465_test: RuntimeError
+issue_27238_test: RuntimeError
+issue_27287_test: RuntimeError
+local_variable_declaration_test: RuntimeError
+mixin_break_test: RuntimeError
+next_through_assign_call_test: RuntimeError
+next_through_assign_int_test: RuntimeError
+next_through_call_on_field_in_class_test: RuntimeError
+next_through_call_on_field_test: RuntimeError
+next_through_call_on_static_field_in_class_test: RuntimeError
+next_through_catch_test: RuntimeError
+next_through_closure_test: RuntimeError
+next_through_create_list_and_map_test: RuntimeError
+next_through_for_each_loop_test: RuntimeError
+next_through_for_loop_with_break_and_continue_test: RuntimeError
+next_through_function_expression_test: RuntimeError
+next_through_implicit_call_test: RuntimeError
+next_through_is_and_as_test: RuntimeError
+next_through_multi_catch_test: RuntimeError
+next_through_new_test: RuntimeError
+next_through_operator_bracket_on_super_test: RuntimeError
+next_through_operator_bracket_on_this_test: RuntimeError
+next_through_operator_bracket_test: RuntimeError
+next_through_simple_async_test: RuntimeError
+next_through_simple_async_with_returns_test: RuntimeError
+next_through_simple_linear_2_test: RuntimeError
+next_through_simple_linear_test: RuntimeError
+parameters_in_scope_at_entry_test: RuntimeError
+pause_on_exceptions_test: Skip # Timeout
+pause_on_unhandled_async_exceptions2_test: RuntimeError
+pause_on_unhandled_async_exceptions_test: RuntimeError
+positive_token_pos_test: RuntimeError
+process_service_test: RuntimeError
+regress_28443_test: RuntimeError
+regress_28980_test: RuntimeError
+rewind_optimized_out_test: RuntimeError
+rewind_test: RuntimeError
+set_library_debuggable_test: RuntimeError
+set_name_rpc_test: RuntimeError
+set_vm_name_rpc_test: RuntimeError
+steal_breakpoint_test: RuntimeError
+step_into_async_no_await_test: RuntimeError
+step_over_await_test: RuntimeError
+step_through_arithmetic_test: RuntimeError
+step_through_constructor_calls_test: RuntimeError
+step_through_constructor_test: RuntimeError
+step_through_function_2_test: RuntimeError
+step_through_function_test: RuntimeError
+step_through_getter_test: RuntimeError
+step_through_property_get_test: RuntimeError
+step_through_property_set_test: RuntimeError
+step_through_setter_test: RuntimeError
+step_through_switch_test: RuntimeError
+step_through_switch_with_continue_test: RuntimeError
+unused_changes_in_last_reload_test: RuntimeError
+valid_source_locations_test: RuntimeError
+
 # Kernel works slightly different. There are kernel specific versions.
 # These are the non-kernel specific versions so skip tests and allow errors.
 [ $compiler == dartk ]
@@ -33,6 +143,10 @@ get_cpu_profile_timeline_rpc_test: Pass, RuntimeError # http://dartbug.com/31794
 
 [ $arch == simdbc64 && $compiler == dartk && $mode == debug ]
 eval_test: Pass, Slow
+
+[ $compiler == app_jitk && $mode == debug ]
+code_test: RuntimeError
+step_test: RuntimeError
 
 [ $compiler == dartk && $mode == debug ]
 isolate_lifecycle_test: Skip # Flaky.
@@ -139,6 +253,3 @@ rewind_test: Pass, RuntimeError
 set_name_rpc_test: RuntimeError # Please triage.
 unused_changes_in_last_reload_test: Skip # Times out on sim architectures.
 valid_source_locations_test: Pass, Slow, Timeout # Issue 33087
-
-[ $compiler == fasta && $strong ]
-add_breakpoint_rpc_test: CompileTimeError

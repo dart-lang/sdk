@@ -1175,6 +1175,9 @@ void Intrinsifier::Bigint_estQuotientDigit(Assembler* assembler) {
   // --qh
   __ sub(R6, R6, Operand(1));
 
+  // Continue while loop.
+  __ b(&qh_adj_loop);
+
   __ Bind(&qh_ok);
   // R0 = qd = qh << 32
   __ orr(R0, ZR, Operand(R6, LSL, 32));
@@ -1226,6 +1229,9 @@ void Intrinsifier::Bigint_estQuotientDigit(Assembler* assembler) {
 
   // --ql
   __ sub(R6, R6, Operand(1));
+
+  // Continue while loop.
+  __ b(&ql_adj_loop);
 
   __ Bind(&ql_ok);
   // qd |= ql;

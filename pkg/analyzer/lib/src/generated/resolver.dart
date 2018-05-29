@@ -76,17 +76,21 @@ class AstRewriteVisitor extends ScopedVisitor {
       }
       Element element = nameScope.lookup(methodName, definingLibrary);
       if (element is ClassElement) {
+        ConstructorElement constructorElement = element.unnamedConstructor;
         AstFactory astFactory = new AstFactoryImpl();
         TypeName typeName = astFactory.typeName(methodName, node.typeArguments);
+        ConstructorName constructorName =
+            astFactory.constructorName(typeName, null, null);
         InstanceCreationExpression instanceCreationExpression =
             astFactory.instanceCreationExpression(
-                _getKeyword(node),
-                astFactory.constructorName(typeName, null, null),
-                node.argumentList);
+                _getKeyword(node), constructorName, node.argumentList);
         DartType type = _getType(element, node.typeArguments);
         methodName.staticElement = element;
         methodName.staticType = type;
         typeName.type = type;
+        constructorName.staticElement = constructorElement;
+        instanceCreationExpression.staticType = type;
+        instanceCreationExpression.staticElement = constructorElement;
         NodeReplacer.replace(node, instanceCreationExpression);
       }
     } else if (target is SimpleIdentifier) {
@@ -98,19 +102,22 @@ class AstRewriteVisitor extends ScopedVisitor {
       Element element = nameScope.lookup(target, definingLibrary);
       if (element is ClassElement) {
         // Possible case: C.n()
-        if (element.getNamedConstructor(methodName.name) != null) {
+        var constructorElement = element.getNamedConstructor(methodName.name);
+        if (constructorElement != null) {
           AstFactory astFactory = new AstFactoryImpl();
           TypeName typeName = astFactory.typeName(target, node.typeArguments);
+          ConstructorName constructorName =
+              astFactory.constructorName(typeName, node.operator, methodName);
           InstanceCreationExpression instanceCreationExpression =
               astFactory.instanceCreationExpression(
-                  _getKeyword(node),
-                  astFactory.constructorName(
-                      typeName, node.operator, methodName),
-                  node.argumentList);
+                  _getKeyword(node), constructorName, node.argumentList);
           DartType type = _getType(element, node.typeArguments);
           methodName.staticElement = element;
           methodName.staticType = type;
           typeName.type = type;
+          constructorName.staticElement = constructorElement;
+          instanceCreationExpression.staticType = type;
+          instanceCreationExpression.staticElement = constructorElement;
           NodeReplacer.replace(node, instanceCreationExpression);
         }
       } else if (element is PrefixElement) {
@@ -122,18 +129,23 @@ class AstRewriteVisitor extends ScopedVisitor {
             astFactory.simpleIdentifier(methodName.token));
         Element prefixedElement = nameScope.lookup(identifier, definingLibrary);
         if (prefixedElement is ClassElement) {
+          ConstructorElement constructorElement =
+              prefixedElement.unnamedConstructor;
           TypeName typeName = astFactory.typeName(
               astFactory.prefixedIdentifier(target, node.operator, methodName),
               node.typeArguments);
+          ConstructorName constructorName =
+              astFactory.constructorName(typeName, null, null);
           InstanceCreationExpression instanceCreationExpression =
               astFactory.instanceCreationExpression(
-                  _getKeyword(node),
-                  astFactory.constructorName(typeName, null, null),
-                  node.argumentList);
+                  _getKeyword(node), constructorName, node.argumentList);
           DartType type = _getType(prefixedElement, node.typeArguments);
           methodName.staticElement = element;
           methodName.staticType = type;
           typeName.type = type;
+          constructorName.staticElement = constructorElement;
+          instanceCreationExpression.staticType = type;
+          instanceCreationExpression.staticElement = constructorElement;
           NodeReplacer.replace(node, instanceCreationExpression);
         }
       }
@@ -143,19 +155,22 @@ class AstRewriteVisitor extends ScopedVisitor {
       if (prefixElement is PrefixElement) {
         Element element = nameScope.lookup(target, definingLibrary);
         if (element is ClassElement) {
-          if (element.getNamedConstructor(methodName.name) != null) {
+          var constructorElement = element.getNamedConstructor(methodName.name);
+          if (constructorElement != null) {
             AstFactory astFactory = new AstFactoryImpl();
             TypeName typeName = astFactory.typeName(target, node.typeArguments);
+            ConstructorName constructorName =
+                astFactory.constructorName(typeName, node.operator, methodName);
             InstanceCreationExpression instanceCreationExpression =
                 astFactory.instanceCreationExpression(
-                    _getKeyword(node),
-                    astFactory.constructorName(
-                        typeName, node.operator, methodName),
-                    node.argumentList);
+                    _getKeyword(node), constructorName, node.argumentList);
             DartType type = _getType(element, node.typeArguments);
             methodName.staticElement = element;
             methodName.staticType = type;
             typeName.type = type;
+            constructorName.staticElement = constructorElement;
+            instanceCreationExpression.staticType = type;
+            instanceCreationExpression.staticElement = constructorElement;
             NodeReplacer.replace(node, instanceCreationExpression);
           }
         }
@@ -6748,6 +6763,9 @@ class ResolverVisitor extends ScopedVisitor {
    */
   void _inferFunctionExpressionParametersTypes(
       Expression mayBeClosure, DartType mayByFunctionType) {
+    // TODO(mfairhurst): remove this code and callers. It's doing
+    // "propagated type" inference for the Dart 1 type system.
+    assert(!strongMode);
     // prepare closure
     if (mayBeClosure is! FunctionExpression) {
       return;

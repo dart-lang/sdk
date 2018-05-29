@@ -356,7 +356,16 @@ class _LocalClassMirror extends _LocalObjectMirror
   DeclarationMirror _owner;
   final bool isAbstract;
   final bool _isGeneric;
+
+  // Only used for Dart 1 named mixin applications.
+  // TODO(alexmarkov): Clean up after Dart 1 is gone.
   final bool _isMixinAlias;
+
+  // Since Dart 2, mixins are erased by kernel transformation.
+  // Resulting classes have this flag set, and mixed-in type is pulled into
+  // the end of interfaces list.
+  final bool _isTransformedMixinApplication;
+
   final bool _isGenericDeclaration;
   final bool isEnum;
   Type _instantiator;
@@ -369,6 +378,7 @@ class _LocalClassMirror extends _LocalObjectMirror
       this.isAbstract,
       this._isGeneric,
       this._isMixinAlias,
+      this._isTransformedMixinApplication,
       this._isGenericDeclaration,
       this.isEnum)
       : this._simpleName = _s(simpleName),
@@ -443,6 +453,9 @@ class _LocalClassMirror extends _LocalObjectMirror
       var interfaceTypes = isOriginalDeclaration
           ? _nativeInterfaces(_reflectedType)
           : _nativeInterfacesInstantiated(_reflectedType);
+      if (_isTransformedMixinApplication) {
+        interfaceTypes = interfaceTypes.sublist(0, interfaceTypes.length - 1);
+      }
       var interfaceMirrors = new List<ClassMirror>();
       for (var interfaceType in interfaceTypes) {
         interfaceMirrors.add(reflectType(interfaceType));
@@ -570,6 +583,7 @@ class _LocalClassMirror extends _LocalObjectMirror
         new UnmodifiableMapView<Symbol, DeclarationMirror>(decls);
   }
 
+  // Note: returns correct result only for Dart 1 anonymous mixin applications.
   bool get _isAnonymousMixinApplication {
     if (_isMixinAlias) return false; // Named mixin application.
     if (mixin == this) return false; // Not a mixin application.
@@ -579,7 +593,7 @@ class _LocalClassMirror extends _LocalObjectMirror
   List<TypeVariableMirror> _typeVariables;
   List<TypeVariableMirror> get typeVariables {
     if (_typeVariables == null) {
-      if (_isAnonymousMixinApplication) {
+      if (!_isTransformedMixinApplication && _isAnonymousMixinApplication) {
         return _typeVariables = const <TypeVariableMirror>[];
       }
       _typeVariables = new List<TypeVariableMirror>();
@@ -600,7 +614,8 @@ class _LocalClassMirror extends _LocalObjectMirror
   List<TypeMirror> _typeArguments;
   List<TypeMirror> get typeArguments {
     if (_typeArguments == null) {
-      if (_isGenericDeclaration || _isAnonymousMixinApplication) {
+      if (_isGenericDeclaration ||
+          (!_isTransformedMixinApplication && _isAnonymousMixinApplication)) {
         _typeArguments = const <TypeMirror>[];
       } else {
         _typeArguments = new UnmodifiableListView<TypeMirror>(
@@ -734,7 +749,7 @@ class _LocalFunctionTypeMirror extends _LocalClassMirror
   final _functionReflectee;
   _LocalFunctionTypeMirror(reflectee, this._functionReflectee, reflectedType)
       : super(reflectee, reflectedType, null, null, false, false, false, false,
-            false);
+            false, false);
 
   bool get _isAnonymousMixinApplication => false;
 

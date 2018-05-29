@@ -31,7 +31,6 @@ Future main(List<String> args) async {
   var target = new DevCompilerTarget();
   var options = new CompilerOptions()
     ..compileSdk = true
-    ..chaseDependencies = true
     ..packagesFileUri = path.toUri(path.absolute('../../.packages'))
     ..sdkRoot = path.toUri(inputPath)
     ..target = target;

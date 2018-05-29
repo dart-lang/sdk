@@ -48,12 +48,12 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   final GlobalTypeInferenceElementData<ir.Node> _memberData;
   final bool _inGenerativeConstructor;
 
-  LocalsHandler _locals;
+  LocalsHandler<ir.Node> _locals;
   final SideEffectsBuilder _sideEffectsBuilder;
-  final Map<JumpTarget, List<LocalsHandler>> _breaksFor =
-      <JumpTarget, List<LocalsHandler>>{};
-  final Map<JumpTarget, List<LocalsHandler>> _continuesFor =
-      <JumpTarget, List<LocalsHandler>>{};
+  final Map<JumpTarget, List<LocalsHandler<ir.Node>>> _breaksFor =
+      <JumpTarget, List<LocalsHandler<ir.Node>>>{};
+  final Map<JumpTarget, List<LocalsHandler<ir.Node>>> _continuesFor =
+      <JumpTarget, List<LocalsHandler<ir.Node>>>{};
   TypeInformation _returnType;
   final Set<Local> _capturedVariables = new Set<Local>();
 
@@ -90,7 +90,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
     FieldInitializationScope<ir.Node> fieldScope =
         _inGenerativeConstructor ? new FieldInitializationScope(_types) : null;
-    _locals = new LocalsHandler(
+    _locals = new LocalsHandler<ir.Node>(
         _inferrer, _types, _options, _analyzedNode, fieldScope);
   }
 
@@ -522,7 +522,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       continueTargets.forEach(_clearBreaksAndContinues);
     } else {
       LocalsHandler saved = _locals;
-      List<LocalsHandler> localsToMerge = <LocalsHandler>[];
+      List<LocalsHandler<ir.Node>> localsToMerge = <LocalsHandler<ir.Node>>[];
       bool hasDefaultCase = false;
 
       for (ir.SwitchCase switchCase in node.cases) {
@@ -580,8 +580,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   @override
   TypeInformation visitMapLiteral(ir.MapLiteral node) {
     return _inferrer.concreteTypes.putIfAbsent(node, () {
-      List keyTypes = [];
-      List valueTypes = [];
+      List keyTypes = <TypeInformation>[];
+      List valueTypes = <TypeInformation>[];
 
       for (ir.MapEntry entry in node.entries) {
         keyTypes.add(visit(entry.key));
@@ -944,8 +944,12 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   void _setupBreaksAndContinues(JumpTarget target) {
     if (target == null) return;
-    if (target.isContinueTarget) _continuesFor[target] = <LocalsHandler>[];
-    if (target.isBreakTarget) _breaksFor[target] = <LocalsHandler>[];
+    if (target.isContinueTarget) {
+      _continuesFor[target] = <LocalsHandler<ir.Node>>[];
+    }
+    if (target.isBreakTarget) {
+      _breaksFor[target] = <LocalsHandler<ir.Node>>[];
+    }
   }
 
   void _clearBreaksAndContinues(JumpTarget element) {
@@ -953,15 +957,15 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     _breaksFor.remove(element);
   }
 
-  List<LocalsHandler> _getBreaks(JumpTarget target) {
-    List<LocalsHandler> list = <LocalsHandler>[_locals];
+  List<LocalsHandler<ir.Node>> _getBreaks(JumpTarget target) {
+    List<LocalsHandler<ir.Node>> list = <LocalsHandler<ir.Node>>[_locals];
     if (target == null) return list;
     if (!target.isBreakTarget) return list;
     return list..addAll(_breaksFor[target]);
   }
 
-  List<LocalsHandler> _getLoopBackEdges(JumpTarget target) {
-    List<LocalsHandler> list = <LocalsHandler>[_locals];
+  List<LocalsHandler<ir.Node>> _getLoopBackEdges(JumpTarget target) {
+    List<LocalsHandler<ir.Node>> list = <LocalsHandler<ir.Node>>[_locals];
     if (target == null) return list;
     if (!target.isContinueTarget) return list;
     return list..addAll(_continuesFor[target]);
@@ -1463,7 +1467,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     // We don't put the closure in the work queue of the
     // inferrer, because it will share information with its enclosing
     // method, like for example the types of local variables.
-    LocalsHandler closureLocals =
+    LocalsHandler<ir.Node> closureLocals =
         new LocalsHandler.from(_locals, node, useOtherTryBlock: false);
     KernelTypeGraphBuilder visitor = new KernelTypeGraphBuilder(
         _options,

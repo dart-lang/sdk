@@ -431,8 +431,10 @@ class ClassHelper {
   };
 
   enum Flag {
-    kIsAbstract = 1,
-    kIsEnumClass = 2,
+    kIsAbstract = 1 << 2,
+    kIsEnumClass = 1 << 3,
+    kIsAnonymousMixin = 1 << 4,
+    kIsEliminatedMixin = 1 << 5,
   };
 
   explicit ClassHelper(KernelReaderHelper* helper)
@@ -447,9 +449,13 @@ class ClassHelper {
   void SetNext(Field field) { next_read_ = field; }
   void SetJustRead(Field field) { next_read_ = field + 1; }
 
-  bool is_abstract() { return flags_ & Flag::kIsAbstract; }
+  bool is_abstract() const { return flags_ & Flag::kIsAbstract; }
 
-  bool is_enum_class() { return flags_ & Flag::kIsEnumClass; }
+  bool is_enum_class() const { return flags_ & Flag::kIsEnumClass; }
+
+  bool is_transformed_mixin_application() const {
+    return flags_ & Flag::kIsEliminatedMixin;
+  }
 
   NameIndex canonical_name_;
   TokenPosition position_;
@@ -923,12 +929,12 @@ class StreamingConstantEvaluator {
 
   bool IsCached(intptr_t offset);
 
-  Instance& EvaluateExpression(intptr_t offset, bool reset_position = true);
+  RawInstance* EvaluateExpression(intptr_t offset, bool reset_position = true);
   Instance& EvaluateListLiteral(intptr_t offset, bool reset_position = true);
   Instance& EvaluateMapLiteral(intptr_t offset, bool reset_position = true);
   Instance& EvaluateConstructorInvocation(intptr_t offset,
                                           bool reset_position = true);
-  Object& EvaluateExpressionSafe(intptr_t offset);
+  RawObject* EvaluateExpressionSafe(intptr_t offset);
 
  private:
   bool IsAllowedToEvaluate();

@@ -131,7 +131,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 6;
+  UInt32 formatVersion = 7;
   Library[] libraries;
   UriSource sourceMap;
   List<CanonicalName> canonicalNames;
@@ -286,11 +286,14 @@ type Class extends Node {
   UriReference fileUri;
   FileOffset fileOffset;
   FileOffset fileEndOffset;
-  Byte flags (isAbstract, isEnum, xx); // Where xx is index into ClassLevel
+  Byte flags (levelBit0, levelBit1, isAbstract, isEnum, isAnonymousMixin,
+              isEliminatedMixin); // Where level is index into ClassLevel
   StringReference name;
   List<Expression> annotations;
   List<TypeParameter> typeParameters;
   Option<DartType> superClass;
+  // For transformed mixin application classes (isEliminatedMixin),
+  // original mixedInType is pulled into the end of implementedClasses.
   Option<DartType> mixedInType;
   List<DartType> implementedClasses;
   List<Field> fields;

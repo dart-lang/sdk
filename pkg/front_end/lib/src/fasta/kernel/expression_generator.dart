@@ -10,17 +10,28 @@ import '../../scanner/token.dart' show Token;
 import '../constant_context.dart' show ConstantContext;
 
 import '../fasta_codes.dart'
-    show LocatedMessage, messageInvalidInitializer, templateNotAType;
+    show
+        LocatedMessage,
+        messageInvalidInitializer,
+        templateDeferredTypeAnnotation,
+        templateIntegerLiteralIsOutOfRange,
+        templateNotAType;
 
 import '../names.dart' show lengthName;
 
 import '../parser.dart' show lengthForToken, offsetForToken;
 
-import '../problems.dart' show unsupported;
+import '../problems.dart' show unhandled, unsupported;
 
 import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
 
-import 'forest.dart' show Forest;
+import 'forest.dart'
+    show
+        Forest,
+        Identifier,
+        LoadLibraryBuilder,
+        PrefixBuilder,
+        TypeDeclarationBuilder;
 
 import 'kernel_ast_api.dart'
     show
@@ -30,29 +41,32 @@ import 'kernel_ast_api.dart'
         Member,
         Name,
         Procedure,
+        TypeParameterType,
         VariableDeclaration;
+
+import 'kernel_builder.dart'
+    show
+        AccessErrorBuilder,
+        Builder,
+        BuiltinTypeBuilder,
+        FunctionTypeAliasBuilder,
+        KernelClassBuilder,
+        KernelFunctionTypeAliasBuilder,
+        KernelTypeVariableBuilder;
 
 import 'kernel_expression_generator.dart'
     show IncompleteSendGenerator, SendAccessGenerator;
 
 export 'kernel_expression_generator.dart'
     show
-        DeferredAccessGenerator,
         DelayedAssignment,
         DelayedPostfixIncrement,
-        ErroneousExpressionGenerator,
         IncompleteErrorGenerator,
         IncompletePropertyAccessGenerator,
         IncompleteSendGenerator,
-        LargeIntAccessGenerator,
-        LoadLibraryGenerator,
         ParenthesizedExpressionGenerator,
-        ReadOnlyAccessGenerator,
         SendAccessGenerator,
-        StaticAccessGenerator,
-        SuperIndexedAccessGenerator,
         ThisAccessGenerator,
-        TypeDeclarationAccessGenerator,
         UnresolvedNameGenerator,
         buildIsNull;
 
@@ -164,10 +178,10 @@ abstract class Generator<Expression, Statement, Arguments>
         offset);
   }
 
-  /* kernel.Expression | Generator | Initializer */ doInvocation(
+  /* Expression | Generator | Initializer */ doInvocation(
       int offset, Arguments arguments);
 
-  /* kernel.Expression | Generator */ buildPropertyAccess(
+  /* Expression | Generator */ buildPropertyAccess(
       IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
     if (send is SendAccessGenerator) {
       return helper.buildMethodInvocation(
@@ -201,7 +215,7 @@ abstract class Generator<Expression, Statement, Arguments>
   }
 
   @override
-  /* kernel.Expression | Generator */ buildThrowNoSuchMethodError(
+  /* Expression | Generator */ buildThrowNoSuchMethodError(
       Expression receiver, Arguments arguments,
       {bool isSuper: false,
       bool isGetter: false,
@@ -275,15 +289,10 @@ abstract class PropertyAccessGenerator<Expression, Statement, Arguments>
       return unsupported("ThisExpression", offsetForToken(token), helper.uri);
     } else {
       return isNullAware
-          ? new NullAwarePropertyAccessGenerator(
-              helper,
-              token,
-              receiver as dynamic /* TODO(ahe): Remove this cast. */,
-              name,
-              getter,
-              setter,
-              null)
-          : new PropertyAccessGenerator.internal(
+          ? new NullAwarePropertyAccessGenerator<Expression, Statement,
+              Arguments>(helper, token, receiver, name, getter, setter, null)
+          : new PropertyAccessGenerator<Expression, Statement,
+                  Arguments>.internal(
               helper, token, receiver, name, getter, setter);
     }
   }
@@ -372,11 +381,11 @@ abstract class IndexedAccessGenerator<Expression, Statement, Arguments>
           Procedure getter,
           Procedure setter) {
     if (helper.forest.isThisExpression(receiver)) {
-      return new ThisIndexedAccessGenerator(
+      return new ThisIndexedAccessGenerator<Expression, Statement, Arguments>(
           helper, token, index, getter, setter);
     } else {
-      return new IndexedAccessGenerator.internal(
-          helper, token, receiver, index, getter, setter);
+      return new IndexedAccessGenerator<Expression, Statement,
+          Arguments>.internal(helper, token, receiver, index, getter, setter);
     }
   }
 
@@ -412,4 +421,379 @@ abstract class ThisIndexedAccessGenerator<Expression, Statement, Arguments>
 
   @override
   String get debugName => "ThisIndexedAccessGenerator";
+}
+
+abstract class SuperIndexedAccessGenerator<Expression, Statement, Arguments>
+    implements Generator<Expression, Statement, Arguments> {
+  factory SuperIndexedAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Expression index,
+      Member getter,
+      Member setter) {
+    return helper.forest
+        .superIndexedAccessGenerator(helper, token, index, getter, setter);
+  }
+
+  String get plainNameForRead => "[]";
+
+  String get plainNameForWrite => "[]=";
+
+  String get debugName => "SuperIndexedAccessGenerator";
+}
+
+abstract class StaticAccessGenerator<Expression, Statement, Arguments>
+    implements Generator<Expression, Statement, Arguments> {
+  factory StaticAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Member readTarget,
+      Member writeTarget) {
+    return helper.forest
+        .staticAccessGenerator(helper, token, readTarget, writeTarget);
+  }
+
+  factory StaticAccessGenerator.fromBuilder(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Builder builder,
+      Token token,
+      Builder builderSetter) {
+    if (builder is AccessErrorBuilder) {
+      AccessErrorBuilder error = builder;
+      builder = error.builder;
+      // We should only see an access error here if we've looked up a setter
+      // when not explicitly looking for a setter.
+      assert(builder.isSetter);
+    } else if (builder.target == null) {
+      return unhandled(
+          "${builder.runtimeType}",
+          "StaticAccessGenerator.fromBuilder",
+          offsetForToken(token),
+          helper.uri);
+    }
+    Member getter = builder.target.hasGetter ? builder.target : null;
+    Member setter = builder.target.hasSetter ? builder.target : null;
+    if (setter == null) {
+      if (builderSetter?.target?.hasSetter ?? false) {
+        setter = builderSetter.target;
+      }
+    }
+    return new StaticAccessGenerator<Expression, Statement, Arguments>(
+        helper, token, getter, setter);
+  }
+
+  Member get readTarget;
+
+  @override
+  String get debugName => "StaticAccessGenerator";
+}
+
+abstract class LoadLibraryGenerator<Expression, Statement, Arguments>
+    implements Generator<Expression, Statement, Arguments> {
+  factory LoadLibraryGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      LoadLibraryBuilder builder) {
+    return helper.forest.loadLibraryGenerator(helper, token, builder);
+  }
+
+  @override
+  String get plainNameForRead => 'loadLibrary';
+
+  @override
+  String get debugName => "LoadLibraryGenerator";
+}
+
+abstract class DeferredAccessGenerator<Expression, Statement, Arguments>
+    implements Generator<Expression, Statement, Arguments> {
+  factory DeferredAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      PrefixBuilder builder,
+      Generator<Expression, Statement, Arguments> generator) {
+    return helper.forest
+        .deferredAccessGenerator(helper, token, builder, generator);
+  }
+
+  PrefixBuilder get builder;
+
+  Generator<Expression, Statement, Arguments> get generator;
+
+  @override
+  buildPropertyAccess(
+      IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
+    var propertyAccess =
+        generator.buildPropertyAccess(send, operatorOffset, isNullAware);
+    if (propertyAccess is Generator) {
+      return new DeferredAccessGenerator<Expression, Statement, Arguments>(
+          helper, token, builder, propertyAccess);
+    } else {
+      Expression expression = propertyAccess;
+      return helper.wrapInDeferredCheck(expression, builder, token.charOffset);
+    }
+  }
+
+  @override
+  String get plainNameForRead {
+    return unsupported(
+        "deferredAccessor.plainNameForRead", offsetForToken(token), uri);
+  }
+
+  @override
+  String get debugName => "DeferredAccessGenerator";
+
+  @override
+  DartType buildTypeWithBuiltArguments(List<DartType> arguments,
+      {bool nonInstanceAccessIsError: false}) {
+    helper.addProblem(
+        templateDeferredTypeAnnotation.withArguments(
+            generator.buildTypeWithBuiltArguments(arguments,
+                nonInstanceAccessIsError: nonInstanceAccessIsError),
+            builder.name),
+        offsetForToken(token),
+        lengthForToken(token));
+    return const InvalidType();
+  }
+
+  @override
+  Expression doInvocation(int offset, Arguments arguments) {
+    return helper.wrapInDeferredCheck(
+        generator.doInvocation(offset, arguments), builder, token.charOffset);
+  }
+
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", builder: ");
+    sink.write(builder);
+    sink.write(", generator: ");
+    sink.write(generator);
+  }
+}
+
+abstract class TypeUseGenerator<Expression, Statement, Arguments>
+    implements Generator<Expression, Statement, Arguments> {
+  factory TypeUseGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      PrefixBuilder prefix,
+      int declarationReferenceOffset,
+      TypeDeclarationBuilder declaration,
+      String plainNameForRead) {
+    return helper.forest.typeUseGenerator(helper, token, prefix,
+        declarationReferenceOffset, declaration, plainNameForRead);
+  }
+
+  PrefixBuilder get prefix;
+
+  TypeDeclarationBuilder get declaration;
+
+  @override
+  String get debugName => "TypeUseGenerator";
+
+  @override
+  DartType buildTypeWithBuiltArguments(List<DartType> arguments,
+      {bool nonInstanceAccessIsError: false}) {
+    if (arguments != null) {
+      int expected = 0;
+      if (declaration is KernelClassBuilder) {
+        expected = declaration.target.typeParameters.length;
+      } else if (declaration is FunctionTypeAliasBuilder) {
+        expected = declaration.target.typeParameters.length;
+      } else if (declaration is KernelTypeVariableBuilder) {
+        // Type arguments on a type variable - error reported elsewhere.
+      } else if (declaration is BuiltinTypeBuilder) {
+        // Type arguments on a built-in type, for example, dynamic or void.
+        expected = 0;
+      } else {
+        return unhandled("${declaration.runtimeType}",
+            "TypeUseGenerator.buildType", offsetForToken(token), helper.uri);
+      }
+      if (arguments.length != expected) {
+        helper.warnTypeArgumentsMismatch(
+            declaration.name, expected, offsetForToken(token));
+        // We ignore the provided arguments, which will in turn return the
+        // raw type below.
+        // TODO(sigmund): change to use an InvalidType and include the raw type
+        // as a recovery node once the IR can represent it (Issue #29840).
+        arguments = null;
+      }
+    }
+
+    DartType type;
+    if (arguments == null) {
+      TypeDeclarationBuilder typeDeclaration = declaration;
+      if (typeDeclaration is KernelClassBuilder) {
+        type = typeDeclaration.buildType(helper.library, null);
+      } else if (typeDeclaration is KernelFunctionTypeAliasBuilder) {
+        type = typeDeclaration.buildType(helper.library, null);
+      }
+    }
+    if (type == null) {
+      type =
+          declaration.buildTypesWithBuiltArguments(helper.library, arguments);
+    }
+    if (type is TypeParameterType) {
+      return helper.validatedTypeVariableUse(
+          type, offsetForToken(token), nonInstanceAccessIsError);
+    }
+    return type;
+  }
+}
+
+abstract class ReadOnlyAccessGenerator<Expression, Statement, Arguments>
+    implements Generator<Expression, Statement, Arguments> {
+  factory ReadOnlyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Expression expression,
+      String plainNameForRead) {
+    return helper.forest
+        .readOnlyAccessGenerator(helper, token, expression, plainNameForRead);
+  }
+
+  @override
+  String get debugName => "ReadOnlyAccessGenerator";
+}
+
+abstract class LargeIntAccessGenerator<Expression, Statement, Arguments>
+    implements Generator<Expression, Statement, Arguments> {
+  factory LargeIntAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token) {
+    return helper.forest.largeIntAccessGenerator(helper, token);
+  }
+
+  // TODO(ahe): This should probably be calling unhandled.
+  @override
+  String get plainNameForRead => null;
+
+  @override
+  String get debugName => "LargeIntAccessGenerator";
+
+  Expression buildError() {
+    return helper.buildCompileTimeError(
+        templateIntegerLiteralIsOutOfRange.withArguments(token),
+        offsetForToken(token),
+        lengthForToken(token));
+  }
+
+  @override
+  Expression doInvocation(int offset, Arguments arguments) {
+    return buildError();
+  }
+
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", lexeme: ");
+    sink.write(token.lexeme);
+  }
+}
+
+abstract class ErroneousExpressionGenerator<Expression, Statement, Arguments>
+    implements Generator<Expression, Statement, Arguments> {
+  /// Pass [arguments] that must be evaluated before throwing an error.  At
+  /// most one of [isGetter] and [isSetter] should be true and they're passed
+  /// to [ExpressionGeneratorHelper.buildThrowNoSuchMethodError] if it is used.
+  Expression buildError(Arguments arguments,
+      {bool isGetter: false, bool isSetter: false, int offset});
+
+  DartType buildErroneousTypeNotAPrefix(Identifier suffix);
+
+  Name get name => unsupported("name", offsetForToken(token), uri);
+
+  @override
+  String get plainNameForRead => name.name;
+
+  withReceiver(Object receiver, int operatorOffset, {bool isNullAware}) => this;
+
+  @override
+  Initializer buildFieldInitializer(Map<String, int> initializedFields) {
+    return helper.buildInvalidInitializer(
+        buildError(forest.argumentsEmpty(token), isSetter: true));
+  }
+
+  @override
+  doInvocation(int offset, Arguments arguments) {
+    return buildError(arguments, offset: offset);
+  }
+
+  @override
+  buildPropertyAccess(
+      IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
+    return this;
+  }
+
+  @override
+  buildThrowNoSuchMethodError(Expression receiver, Arguments arguments,
+      {bool isSuper: false,
+      bool isGetter: false,
+      bool isSetter: false,
+      bool isStatic: false,
+      String name,
+      int offset,
+      LocatedMessage argMessage}) {
+    return this;
+  }
+
+  @override
+  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+    return buildError(forest.arguments(<Expression>[value], token),
+        isSetter: true);
+  }
+
+  @override
+  Expression buildCompoundAssignment(Name binaryOperator, Expression value,
+      {int offset: -1,
+      bool voidContext: false,
+      Procedure interfaceTarget,
+      bool isPreIncDec: false}) {
+    return buildError(forest.arguments(<Expression>[value], token),
+        isGetter: true);
+  }
+
+  @override
+  Expression buildPrefixIncrement(Name binaryOperator,
+      {int offset: -1, bool voidContext: false, Procedure interfaceTarget}) {
+    // TODO(ahe): For the Analyzer, we probably need to build a prefix
+    // increment node that wraps an error.
+    return buildError(
+        forest.arguments(
+            <Expression>[storeOffset(forest.literalInt(1, null), offset)],
+            token),
+        isGetter: true);
+  }
+
+  @override
+  Expression buildPostfixIncrement(Name binaryOperator,
+      {int offset: -1, bool voidContext: false, Procedure interfaceTarget}) {
+    // TODO(ahe): For the Analyzer, we probably need to build a post increment
+    // node that wraps an error.
+    return buildError(
+        forest.arguments(
+            <Expression>[storeOffset(forest.literalInt(1, null), offset)],
+            token),
+        isGetter: true);
+  }
+
+  @override
+  Expression buildNullAwareAssignment(
+      Expression value, DartType type, int offset,
+      {bool voidContext: false}) {
+    return buildError(forest.arguments(<Expression>[value], token),
+        isSetter: true);
+  }
+
+  @override
+  Expression buildSimpleRead() =>
+      buildError(forest.argumentsEmpty(token), isGetter: true);
+
+  @override
+  Expression makeInvalidRead() =>
+      buildError(forest.argumentsEmpty(token), isGetter: true);
+
+  @override
+  Expression makeInvalidWrite(Expression value) {
+    return buildError(forest.arguments(<Expression>[value], token),
+        isSetter: true);
+  }
 }

@@ -32,13 +32,11 @@ void FormatMessageIntoBuffer(DWORD code, wchar_t* buffer, int buffer_length) {
 }
 
 OSError::OSError() : sub_system_(kSystem), code_(0), message_(NULL) {
-  set_code(GetLastError());
+  Reload();
+}
 
-  static const int kMaxMessageLength = 256;
-  wchar_t message[kMaxMessageLength];
-  FormatMessageIntoBuffer(code_, message, kMaxMessageLength);
-  char* utf8 = StringUtilsWin::WideToUtf8(message);
-  SetMessage(utf8);
+void OSError::Reload() {
+  SetCodeAndMessage(kSystem, GetLastError());
 }
 
 void OSError::SetCodeAndMessage(SubSystem sub_system, int code) {

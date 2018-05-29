@@ -159,14 +159,15 @@ class KernelEnumBuilder extends SourceClassBuilder
         charEndOffset);
     members["toString"] = toStringBuilder;
     String className = name;
-    for (int i = 0; i < constantNamesAndOffsetsAndDocs.length; i += 3) {
-      String name = constantNamesAndOffsetsAndDocs[i];
-      int charOffset = constantNamesAndOffsetsAndDocs[i + 1];
-      String documentationComment = constantNamesAndOffsetsAndDocs[i + 2];
+    for (int i = 0; i < constantNamesAndOffsetsAndDocs.length; i += 4) {
+      List<MetadataBuilder> metadata = constantNamesAndOffsetsAndDocs[i];
+      String name = constantNamesAndOffsetsAndDocs[i + 1];
+      int charOffset = constantNamesAndOffsetsAndDocs[i + 2];
+      String documentationComment = constantNamesAndOffsetsAndDocs[i + 3];
       if (members.containsKey(name)) {
         parent.addCompileTimeError(templateDuplicatedName.withArguments(name),
             charOffset, noLength, parent.fileUri);
-        constantNamesAndOffsetsAndDocs[i] = null;
+        constantNamesAndOffsetsAndDocs[i + 1] = null;
         continue;
       }
       if (name == className) {
@@ -175,11 +176,18 @@ class KernelEnumBuilder extends SourceClassBuilder
             charOffset,
             noLength,
             parent.fileUri);
-        constantNamesAndOffsetsAndDocs[i] = null;
+        constantNamesAndOffsetsAndDocs[i + 1] = null;
         continue;
       }
-      KernelFieldBuilder fieldBuilder = new KernelFieldBuilder(null, selfType,
-          name, constMask | staticMask, parent, charOffset, null, true);
+      KernelFieldBuilder fieldBuilder = new KernelFieldBuilder(
+          metadata,
+          selfType,
+          name,
+          constMask | staticMask,
+          parent,
+          charOffset,
+          null,
+          true);
       metadataCollector?.setDocumentationComment(
           fieldBuilder.target, documentationComment);
       members[name] = fieldBuilder;
@@ -235,8 +243,8 @@ class KernelEnumBuilder extends SourceClassBuilder
     toStringBuilder.body = new ReturnStatement(
         new DirectPropertyGet(new ThisExpression(), nameField));
     List<Expression> values = <Expression>[];
-    for (int i = 0; i < constantNamesAndOffsetsAndDocs.length; i += 3) {
-      String name = constantNamesAndOffsetsAndDocs[i];
+    for (int i = 0; i < constantNamesAndOffsetsAndDocs.length; i += 4) {
+      String name = constantNamesAndOffsetsAndDocs[i + 1];
       if (name != null) {
         KernelFieldBuilder builder = this[name];
         values.add(new StaticGet(builder.build(libraryBuilder)));
@@ -273,8 +281,8 @@ class KernelEnumBuilder extends SourceClassBuilder
             ..parent = constructor);
     }
     int index = 0;
-    for (int i = 0; i < constantNamesAndOffsetsAndDocs.length; i += 3) {
-      String constant = constantNamesAndOffsetsAndDocs[i];
+    for (int i = 0; i < constantNamesAndOffsetsAndDocs.length; i += 4) {
+      String constant = constantNamesAndOffsetsAndDocs[i + 1];
       if (constant != null) {
         KernelFieldBuilder field = this[constant];
         field.build(libraryBuilder);

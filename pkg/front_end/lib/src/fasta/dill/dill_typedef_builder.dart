@@ -45,8 +45,9 @@ class DillFunctionTypeAliasBuilder extends KernelFunctionTypeAliasBuilder {
     // So, if [arguments] is null, the default types should be retrieved from
     // [cls.typeParameters].
     if (arguments == null) {
-      List<DartType> result =
-          new List<DartType>.filled(target.typeParameters.length, null);
+      List<DartType> result = new List<DartType>.filled(
+          target.typeParameters.length, null,
+          growable: true);
       for (int i = 0; i < result.length; ++i) {
         result[i] = target.typeParameters[i].defaultType;
       }
@@ -54,7 +55,8 @@ class DillFunctionTypeAliasBuilder extends KernelFunctionTypeAliasBuilder {
     }
 
     // [arguments] != null
-    List<DartType> result = new List<DartType>.filled(arguments.length, null);
+    List<DartType> result =
+        new List<DartType>.filled(arguments.length, null, growable: true);
     for (int i = 0; i < result.length; ++i) {
       result[i] = arguments[i].build(library);
     }

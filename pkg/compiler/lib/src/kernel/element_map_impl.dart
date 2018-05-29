@@ -4,6 +4,7 @@
 
 library dart2js.kernel.element_map;
 
+import 'package:front_end/src/fasta/util/link.dart' show Link, LinkBuilder;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
@@ -46,7 +47,6 @@ import '../universe/class_hierarchy_builder.dart';
 import '../universe/class_set.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
-import '../util/util.dart' show Link, LinkBuilder;
 import '../world.dart';
 import 'element_map.dart';
 import 'element_map_mixins.dart';
@@ -311,11 +311,12 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
         node.implementedTypes.forEach((ir.Supertype supertype) {
           linkBuilder.addLast(processSupertype(supertype));
         });
-        Link<InterfaceType> interfaces = linkBuilder.toLink();
+        Link<InterfaceType> interfaces =
+            linkBuilder.toLink(const Link<InterfaceType>());
         OrderedTypeSetBuilder setBuilder =
             new _KernelOrderedTypeSetBuilder(this, cls);
         data.orderedTypeSet = setBuilder.createOrderedTypeSet(
-            data.supertype, interfaces.reverse());
+            data.supertype, interfaces.reverse(const Link<InterfaceType>()));
         data.interfaces = new List<InterfaceType>.from(interfaces.toList());
       }
     }
@@ -479,7 +480,7 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
     }
 
     return new FunctionType(returnType, parameterTypes, optionalParameterTypes,
-        namedParameters, namedParameterTypes, typeVariables, null);
+        namedParameters, namedParameterTypes, typeVariables);
   }
 
   @override
@@ -614,15 +615,10 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
             ..sort((a, b) => a.compareTo(b));
           List<DartType> namedParameterTypes =
               new List.filled(namedParameters.length, dynamic);
-          data.callType = new FunctionType(
-              dynamic,
-              requiredParameterTypes,
-              optionalParameterTypes,
-              namedParameters,
-              namedParameterTypes,
+          data.callType = new FunctionType(dynamic, requiredParameterTypes,
+              optionalParameterTypes, namedParameters, namedParameterTypes,
               // TODO(johnniwinther): Generate existential types here.
-              const <FunctionTypeVariable>[],
-              null);
+              const <FunctionTypeVariable>[]);
         } else {
           // The function type is not valid.
           data.callType = const DynamicType();
@@ -841,6 +837,9 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
 
 /// Mixin that implements the abstract methods in [KernelToElementMapBase].
 abstract class ElementCreatorMixin implements KernelToElementMapBase {
+  /// Set to `true` before creating the J-World from the K-World to assert that
+  /// no entities are created late.
+  bool _envIsClosed = false;
   ProgramEnv get _env;
   EntityDataEnvMap<IndexedLibrary, LibraryData, LibraryEnv> get _libraries;
   EntityDataEnvMap<IndexedClass, ClassData, ClassEnv> get _classes;
@@ -885,6 +884,10 @@ abstract class ElementCreatorMixin implements KernelToElementMapBase {
 
   LibraryEntity _getLibrary(ir.Library node, [LibraryEnv libraryEnv]) {
     return _libraryMap.putIfAbsent(node, () {
+      assert(
+          !_envIsClosed,
+          "Environment of $this is closed. Trying to create "
+          "library for $node.");
       Uri canonicalUri = node.importUri;
       String name = node.name;
       if (name == null) {
@@ -900,6 +903,10 @@ abstract class ElementCreatorMixin implements KernelToElementMapBase {
 
   ClassEntity _getClass(ir.Class node, [ClassEnv classEnv]) {
     return _classMap.putIfAbsent(node, () {
+      assert(
+          !_envIsClosed,
+          "Environment of $this is closed. Trying to create "
+          "class for $node.");
       KLibrary library = _getLibrary(node.enclosingLibrary);
       if (classEnv == null) {
         classEnv = _libraries.getEnv(library).lookupClass(node.name);
@@ -913,6 +920,10 @@ abstract class ElementCreatorMixin implements KernelToElementMapBase {
 
   TypedefEntity _getTypedef(ir.Typedef node) {
     return _typedefMap.putIfAbsent(node, () {
+      assert(
+          !_envIsClosed,
+          "Environment of $this is closed. Trying to create "
+          "typedef for $node.");
       IndexedLibrary library = _getLibrary(node.enclosingLibrary);
       IndexedTypedef typedef = createTypedef(library, node.name);
       TypedefType typedefType = new TypedefType(
@@ -926,6 +937,10 @@ abstract class ElementCreatorMixin implements KernelToElementMapBase {
 
   TypeVariableEntity _getTypeVariable(ir.TypeParameter node) {
     return _typeVariableMap.putIfAbsent(node, () {
+      assert(
+          !_envIsClosed,
+          "Environment of $this is closed. Trying to create "
+          "type variable for $node.");
       if (node.parent is ir.Class) {
         ir.Class cls = node.parent;
         int index = cls.typeParameters.indexOf(node);
@@ -962,6 +977,10 @@ abstract class ElementCreatorMixin implements KernelToElementMapBase {
 
   ConstructorEntity _getConstructor(ir.Member node) {
     return _constructorMap.putIfAbsent(node, () {
+      assert(
+          !_envIsClosed,
+          "Environment of $this is closed. Trying to create "
+          "constructor for $node.");
       MemberDefinition definition;
       ir.FunctionNode functionNode;
       ClassEntity enclosingClass = _getClass(node.enclosingClass);
@@ -999,6 +1018,10 @@ abstract class ElementCreatorMixin implements KernelToElementMapBase {
 
   FunctionEntity _getMethod(ir.Procedure node) {
     return _methodMap.putIfAbsent(node, () {
+      assert(
+          !_envIsClosed,
+          "Environment of $this is closed. Trying to create "
+          "function for $node.");
       LibraryEntity library;
       ClassEntity enclosingClass;
       if (node.enclosingClass != null) {
@@ -1048,6 +1071,10 @@ abstract class ElementCreatorMixin implements KernelToElementMapBase {
 
   FieldEntity _getField(ir.Field node) {
     return _fieldMap.putIfAbsent(node, () {
+      assert(
+          !_envIsClosed,
+          "Environment of $this is closed. Trying to create "
+          "field for $node.");
       LibraryEntity library;
       ClassEntity enclosingClass;
       if (node.enclosingClass != null) {
@@ -1690,29 +1717,12 @@ class KernelElementEnvironment extends ElementEnvironment {
   }
 
   @override
-  Iterable<ConstantValue> getTypedefMetadata(TypedefEntity typedef) {
-    // TODO(redemption): Support this.
-    throw new UnsupportedError('ElementEnvironment.getTypedefMetadata');
-  }
-
-  @override
   Iterable<ConstantValue> getMemberMetadata(covariant IndexedMember member,
       {bool includeParameterMetadata: false}) {
     // TODO(redemption): Support includeParameterMetadata.
     assert(elementMap.checkFamily(member));
     MemberData memberData = elementMap._members.getData(member);
     return memberData.getMetadata(elementMap);
-  }
-
-  @override
-  FunctionType getFunctionTypeOfTypedef(TypedefEntity typedef) {
-    // TODO(redemption): Support this.
-    throw new UnsupportedError('ElementEnvironment.getFunctionTypeOfTypedef');
-  }
-
-  @override
-  TypedefType getTypedefTypeOfTypedef(TypedefEntity typedef) {
-    return elementMap._typedefs.getData(typedef).rawType;
   }
 
   @override
@@ -1795,9 +1805,6 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
       }
     }
 
-    DartType typedefType =
-        node.typedef == null ? null : elementMap.getTypedefType(node.typedef);
-
     FunctionType type = new FunctionType(
         visitType(node.returnType),
         visitTypes(node.positionalParameters
@@ -1808,8 +1815,7 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
             .toList()),
         node.namedParameters.map((n) => n.name).toList(),
         node.namedParameters.map((n) => visitType(n.type)).toList(),
-        typeVariables ?? const <FunctionTypeVariable>[],
-        typedefType);
+        typeVariables ?? const <FunctionTypeVariable>[]);
     for (ir.TypeParameter typeParameter in node.typeParameters) {
       currentFunctionTypeParameters.remove(typeParameter);
     }
@@ -2085,7 +2091,6 @@ class KernelClosedWorld extends ClosedWorldBase
       Iterable<MemberEntity> liveInstanceMembers,
       Iterable<MemberEntity> assignedInstanceMembers,
       Iterable<MemberEntity> processedMembers,
-      Set<TypedefEntity> allTypedefs,
       Map<ClassEntity, Set<ClassEntity>> mixinUses,
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
@@ -2104,7 +2109,6 @@ class KernelClosedWorld extends ClosedWorldBase
             liveInstanceMembers,
             assignedInstanceMembers,
             processedMembers,
-            allTypedefs,
             mixinUses,
             typesImplementedBySubclasses,
             classHierarchyNodes,
@@ -2370,6 +2374,11 @@ class JsKernelToElementMap extends KernelToElementMapBase
       assert(newTypeVariable.typeVariableIndex ==
           oldTypeVariable.typeVariableIndex);
     }
+    // TODO(johnniwinther): We should close the environment in the beginning of
+    // this constructor but currently we need the [MemberEntity] to query if the
+    // member is live, thus potentially creating the [MemberEntity] in the
+    // process. Avoid this.
+    _elementMap._envIsClosed = true;
   }
 
   @override

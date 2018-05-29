@@ -546,6 +546,20 @@ class A {
     expect(outline, isNotNull);
   }
 
+  /**
+   * Code like this caused Dart2 failure in the past.
+   *
+   * https://github.com/dart-lang/sdk/issues/33228
+   */
+  test_invocation_ofParameter() async {
+    Outline outline = await _computeOutline('''
+main(p()) {
+  p();
+}
+''');
+    expect(outline, isNotNull);
+  }
+
   test_isTest_isTestGroup() async {
     addMetaPackageSource();
     Outline outline = await _computeOutline('''

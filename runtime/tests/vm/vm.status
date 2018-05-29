@@ -26,6 +26,12 @@ cc/CodeImmutability: Fail, OK # Address Sanitizer turns a crash into a failure.
 [ $compiler == app_jit ]
 dart/snapshot_version_test: Fail, OK # Expects to find script snapshot relative to Dart source.
 
+[ $compiler == app_jitk ]
+dart/data_uri_import_test/utf16: MissingRuntimeError
+dart/redirection_type_shuffling_test/00: RuntimeError
+dart/redirection_type_shuffling_test/none: RuntimeError
+dart/snapshot_version_test: RuntimeError
+
 [ $compiler == dart2analyzer ]
 dart/byte_array_optimized_test: CompileTimeError # int64
 dart/byte_array_test: CompileTimeError # int64
@@ -116,6 +122,9 @@ cc/Profiler_StringInterpolation: Skip
 cc/Profiler_ToggleRecordAllocation: Skip
 cc/Profiler_TrivialRecordAllocation: Skip
 cc/Profiler_TypedArrayAllocation: Skip
+
+[ $arch == x64 && $compiler == dartk && $system == windows && $strong ]
+cc/Profiler_BasicSourcePosition: Fail # http://dartbug.com/33224
 
 [ $arch == x64 && $system == windows ]
 cc/Profiler_BinaryOperatorSourcePositionOptimized: Pass, Fail # Issue 31137

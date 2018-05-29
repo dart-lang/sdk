@@ -137,7 +137,7 @@ abstract class KernelClassBuilder
 
     if (arguments == null && typeVariables != null) {
       List<DartType> result =
-          new List<DartType>.filled(typeVariables.length, null);
+          new List<DartType>.filled(typeVariables.length, null, growable: true);
       for (int i = 0; i < result.length; ++i) {
         result[i] = typeVariables[i].defaultType.build(library);
       }
@@ -156,7 +156,8 @@ abstract class KernelClassBuilder
     }
 
     // arguments.length == typeVariables.length
-    List<DartType> result = new List<DartType>.filled(arguments.length, null);
+    List<DartType> result =
+        new List<DartType>.filled(arguments.length, null, growable: true);
     for (int i = 0; i < result.length; ++i) {
       result[i] = arguments[i].build(library);
     }
@@ -185,7 +186,8 @@ abstract class KernelClassBuilder
       return new Supertype(
           cls,
           new List<DartType>.filled(
-              cls.typeParameters.length, const UnknownType()));
+              cls.typeParameters.length, const UnknownType(),
+              growable: true));
     }
   }
 
@@ -215,9 +217,10 @@ abstract class KernelClassBuilder
                 // TODO(32049) If type arguments aren't specified, they should
                 // be inferred.  Currently, the inference is not performed.
                 // The code below is a workaround.
-                typeArguments = new List.filled(
+                typeArguments = new List<DartType>.filled(
                     targetBuilder.target.enclosingClass.typeParameters.length,
-                    const DynamicType());
+                    const DynamicType(),
+                    growable: true);
               }
               builder.setRedirectingFactoryBody(
                   targetBuilder.target, typeArguments);
@@ -227,9 +230,10 @@ abstract class KernelClassBuilder
                 // TODO(32049) If type arguments aren't specified, they should
                 // be inferred.  Currently, the inference is not performed.
                 // The code below is a workaround.
-                typeArguments = new List.filled(
+                typeArguments = new List<DartType>.filled(
                     targetBuilder.target.enclosingClass.typeParameters.length,
-                    const DynamicType());
+                    const DynamicType(),
+                    growable: true);
               }
               builder.setRedirectingFactoryBody(
                   targetBuilder.member, typeArguments);

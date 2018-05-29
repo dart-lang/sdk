@@ -115,7 +115,7 @@ abstract class Directory implements FileSystemEntity {
   /**
    * Gets the path of this directory.
    */
-  final String path;
+  String get path;
 
   /**
    * Creates a [Directory] object.
@@ -132,6 +132,11 @@ abstract class Directory implements FileSystemEntity {
       return new _Directory(path);
     }
     return overrides.createDirectory(path);
+  }
+
+  factory Directory.fromRawPath(Uint8List path) {
+    // TODO(bkonyi): Handle overrides.
+    return new _Directory.fromRawPath(path);
   }
 
   /**

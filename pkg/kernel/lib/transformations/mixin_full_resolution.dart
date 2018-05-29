@@ -232,11 +232,15 @@ class MixinFullResolution {
       }
     }
 
-    // This class implements the mixin type.
+    // This class implements the mixin type. Also, backends rely on the fact
+    // that eliminated mixin is appended into the end of interfaces list.
     class_.implementedTypes.add(class_.mixedInType);
 
     // This class is now a normal class.
     class_.mixedInType = null;
+
+    // Leave breadcrumbs for backends (e.g. for dart:mirrors implementation).
+    class_.isEliminatedMixin = true;
   }
 
   Constructor buildForwardingConstructor(

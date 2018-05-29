@@ -239,8 +239,8 @@ class ProcessedOptionsTest {
         .entityForUri(Uri.parse('org-dartlang-test:///base/location/.packages'))
         .writeAsStringSync('foo:baz\n');
     var raw = new CompilerOptions()..fileSystem = fileSystem;
-    var processed = new ProcessedOptions(raw, false,
-        [Uri.parse('org-dartlang-test:///base/location/script.dart')]);
+    var processed = new ProcessedOptions(
+        raw, [Uri.parse('org-dartlang-test:///base/location/script.dart')]);
     var uriTranslator = await processed.getUriTranslator();
     checkPackageExpansion('foo', 'base/location/baz', uriTranslator.packages);
   }
@@ -259,8 +259,8 @@ class ProcessedOptionsTest {
         .entityForUri(Uri.parse('org-dartlang-test:///base/.packages'))
         .writeAsStringSync('foo:baz\n');
     var raw = new CompilerOptions()..fileSystem = fileSystem;
-    var processed = new ProcessedOptions(raw, false,
-        [Uri.parse('org-dartlang-test:///base/location/script.dart')]);
+    var processed = new ProcessedOptions(
+        raw, [Uri.parse('org-dartlang-test:///base/location/script.dart')]);
     var uriTranslator = await processed.getUriTranslator();
     checkPackageExpansion('foo', 'base/baz', uriTranslator.packages);
   }
@@ -282,8 +282,8 @@ class ProcessedOptionsTest {
         .entityForUri(Uri.parse('org-dartlang-test:///base/.packages'))
         .writeAsStringSync('foo:baz\n');
     var raw = new CompilerOptions()..fileSystem = fileSystem;
-    var processed = new ProcessedOptions(raw, false,
-        [Uri.parse('org-dartlang-test:///base/location/script.dart')]);
+    var processed = new ProcessedOptions(
+        raw, [Uri.parse('org-dartlang-test:///base/location/script.dart')]);
     var uriTranslator = await processed.getUriTranslator();
     checkPackageExpansion(
         'foo', 'base/location/packages/foo', uriTranslator.packages);
@@ -299,8 +299,8 @@ class ProcessedOptionsTest {
     var raw = new CompilerOptions()
       ..fileSystem = fileSystem
       ..onError = (e) => errors.add(e);
-    var processed = new ProcessedOptions(raw, false,
-        [Uri.parse('org-dartlang-test:///base/location/script.dart')]);
+    var processed = new ProcessedOptions(
+        raw, [Uri.parse('org-dartlang-test:///base/location/script.dart')]);
     var uriTranslator = await processed.getUriTranslator();
     expect(errors, isEmpty);
     expect(uriTranslator.packages.asMap(), isEmpty);
@@ -342,7 +342,7 @@ class ProcessedOptionsTest {
     var raw = new CompilerOptions()
       ..fileSystem = fileSystem
       ..onError = (e) => errors.add(e);
-    var options = new ProcessedOptions(raw, false, [Uri.parse('foo.dart')]);
+    var options = new ProcessedOptions(raw, [Uri.parse('foo.dart')]);
     var result = await options.validateOptions();
     expect(errors.single.message,
         startsWith(_stringPrefixOf(templateInputFileNotFound)));
@@ -368,7 +368,7 @@ class ProcessedOptionsTest {
       ..sdkRoot = sdkRoot
       ..fileSystem = fileSystem
       ..onError = (e) => errors.add(e);
-    var options = new ProcessedOptions(raw, false, [Uri.parse('foo.dart')]);
+    var options = new ProcessedOptions(raw, [Uri.parse('foo.dart')]);
     var result = await options.validateOptions();
     // Note: we check this first so test failures show the cause directly.
     expect(errors, isEmpty);
@@ -385,7 +385,7 @@ class ProcessedOptionsTest {
       ..sdkRoot = sdkRoot
       ..fileSystem = fileSystem
       ..onError = (e) => errors.add(e);
-    var options = new ProcessedOptions(raw, false, [Uri.parse('foo.dart')]);
+    var options = new ProcessedOptions(raw, [Uri.parse('foo.dart')]);
     expect(await options.validateOptions(), isFalse);
     expect(errors.first.message,
         startsWith(_stringPrefixOf(templateSdkRootNotFound)));
@@ -403,7 +403,7 @@ class ProcessedOptionsTest {
       ..sdkSummary = sdkSummary
       ..fileSystem = fileSystem
       ..onError = (e) => errors.add(e);
-    var options = new ProcessedOptions(raw, false, [Uri.parse('foo.dart')]);
+    var options = new ProcessedOptions(raw, [Uri.parse('foo.dart')]);
     var result = await options.validateOptions();
     expect(errors, isEmpty);
     expect(result, isTrue);
@@ -419,7 +419,7 @@ class ProcessedOptionsTest {
       ..sdkSummary = sdkSummary
       ..fileSystem = fileSystem
       ..onError = (e) => errors.add(e);
-    var options = new ProcessedOptions(raw, false, [Uri.parse('foo.dart')]);
+    var options = new ProcessedOptions(raw, [Uri.parse('foo.dart')]);
     expect(await options.validateOptions(), isFalse);
     expect(errors.single.message,
         startsWith(_stringPrefixOf(templateSdkSummaryNotFound)));
@@ -440,7 +440,7 @@ class ProcessedOptionsTest {
       ..sdkRoot = sdkRoot
       ..fileSystem = fileSystem
       ..onError = (e) => errors.add(e);
-    var options = new ProcessedOptions(raw, false, [Uri.parse('foo.dart')]);
+    var options = new ProcessedOptions(raw, [Uri.parse('foo.dart')]);
     var result = await options.validateOptions();
     expect(errors, isEmpty);
     expect(result, isTrue);
@@ -458,7 +458,7 @@ class ProcessedOptionsTest {
       ..sdkSummary = sdkSummary
       ..fileSystem = fileSystem
       ..onError = (e) => errors.add(e);
-    var options = new ProcessedOptions(raw, false, [Uri.parse('foo.dart')]);
+    var options = new ProcessedOptions(raw, [Uri.parse('foo.dart')]);
     expect(await options.validateOptions(), isFalse);
     expect(errors.single.message,
         startsWith(_stringPrefixOf(templateSdkSummaryNotFound)));

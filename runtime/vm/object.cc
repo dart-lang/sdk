@@ -3792,6 +3792,11 @@ void Class::set_is_mixin_type_applied() const {
   set_state_bits(MixinTypeAppliedBit::update(true, raw_ptr()->state_bits_));
 }
 
+void Class::set_is_transformed_mixin_application() const {
+  set_state_bits(
+      TransformedMixinApplicationBit::update(true, raw_ptr()->state_bits_));
+}
+
 void Class::set_is_fields_marked_nullable() const {
   set_state_bits(FieldsMarkedNullableBit::update(true, raw_ptr()->state_bits_));
 }

@@ -313,7 +313,7 @@ static RawInstance* CreateClassMirror(const Class& cls,
     return CreateTypedefMirror(cls, type, is_declaration, owner_mirror);
   }
 
-  const Array& args = Array::Handle(Array::New(9));
+  const Array& args = Array::Handle(Array::New(10));
   args.SetAt(0, MirrorReference::Handle(MirrorReference::New(cls)));
   args.SetAt(1, type);
   // Note that the VM does not consider mixin application aliases to be mixin
@@ -328,8 +328,9 @@ static RawInstance* CreateClassMirror(const Class& cls,
   args.SetAt(4, Bool::Get(cls.is_abstract()));
   args.SetAt(5, Bool::Get(cls.IsGeneric()));
   args.SetAt(6, Bool::Get(cls.is_mixin_app_alias()));
-  args.SetAt(7, cls.NumTypeParameters() == 0 ? Bool::False() : is_declaration);
-  args.SetAt(8, Bool::Get(cls.is_enum_class()));
+  args.SetAt(7, Bool::Get(cls.is_transformed_mixin_application()));
+  args.SetAt(8, cls.NumTypeParameters() == 0 ? Bool::False() : is_declaration);
+  args.SetAt(9, Bool::Get(cls.is_enum_class()));
   return CreateMirror(Symbols::_LocalClassMirror(), args);
 }
 
@@ -993,7 +994,13 @@ DEFINE_NATIVE_ENTRY(ClassMirror_mixin, 1) {
   PROPAGATE_IF_MALFORMED(type);
   ASSERT(type.IsFinalized());
   const Class& cls = Class::Handle(type.type_class());
-  const AbstractType& mixin_type = AbstractType::Handle(cls.mixin());
+  AbstractType& mixin_type = AbstractType::Handle();
+  if (cls.is_transformed_mixin_application()) {
+    const Array& interfaces = Array::Handle(cls.interfaces());
+    mixin_type ^= interfaces.At(interfaces.Length() - 1);
+  } else {
+    mixin_type = cls.mixin();
+  }
   ASSERT(mixin_type.IsNull() || mixin_type.IsFinalized());
   return mixin_type.raw();
 }
@@ -1005,7 +1012,13 @@ DEFINE_NATIVE_ENTRY(ClassMirror_mixin_instantiated, 2) {
   PROPAGATE_IF_MALFORMED(type);
   ASSERT(type.IsFinalized());
   const Class& cls = Class::Handle(type.type_class());
-  const AbstractType& mixin_type = AbstractType::Handle(cls.mixin());
+  AbstractType& mixin_type = AbstractType::Handle();
+  if (cls.is_transformed_mixin_application()) {
+    const Array& interfaces = Array::Handle(cls.interfaces());
+    mixin_type ^= interfaces.At(interfaces.Length() - 1);
+  } else {
+    mixin_type = cls.mixin();
+  }
   if (mixin_type.IsNull()) {
     return mixin_type.raw();
   }

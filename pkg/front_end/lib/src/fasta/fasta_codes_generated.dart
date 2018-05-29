@@ -128,17 +128,6 @@ Message _withArgumentsAmbiguousSupertypes(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeAnnotationOnEnumConstant = messageAnnotationOnEnumConstant;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageAnnotationOnEnumConstant = const MessageCode(
-    "AnnotationOnEnumConstant",
-    analyzerCode: "ANNOTATION_ON_ENUM_CONSTANT",
-    dart2jsCode: "*fatal*",
-    message: r"""Enum constants can't have annotations.""",
-    tip: r"""Try removing the annotation.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         int

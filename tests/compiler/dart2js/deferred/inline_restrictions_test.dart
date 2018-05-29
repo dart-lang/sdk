@@ -18,16 +18,16 @@ void main() {
         memorySourceFiles: MEMORY_SOURCE_FILES, outputProvider: collector);
     Compiler compiler = result.compiler;
     var env = compiler.backendClosedWorldForTesting.elementEnvironment;
-    var outputUnitForEntity =
-        compiler.backend.outputUnitData.outputUnitForEntity;
+    var outputUnitForMember =
+        compiler.backend.outputUnitData.outputUnitForMember;
     lookupLibrary(name) => env.lookupLibrary(Uri.parse(name));
     dynamic lib1 = lookupLibrary("memory:lib1.dart");
     var inlineMeAway = env.lookupLibraryMember(lib1, "inlineMeAway");
-    var ou_lib1 = outputUnitForEntity(inlineMeAway);
+    var ou_lib1 = outputUnitForMember(inlineMeAway);
 
     dynamic lib3 = lookupLibrary("memory:lib3.dart");
     var sameContextInline = env.lookupLibraryMember(lib3, "sameContextInline");
-    var ou_lib3 = outputUnitForEntity(sameContextInline);
+    var ou_lib3 = outputUnitForMember(sameContextInline);
 
     // Test that we actually got different output units.
     Expect.notEquals(ou_lib1.name, ou_lib3.name);
