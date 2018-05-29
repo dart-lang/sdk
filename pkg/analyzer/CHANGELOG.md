@@ -1,4 +1,4 @@
-## 0.32.1-alpha.0
+## 0.32.1
 
 * Add the ability to specify a pathContext when creating a ContextRoot (not part
   of the officially supported API, but needed by some clients).
