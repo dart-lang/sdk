@@ -791,14 +791,20 @@ DART_EXPORT Dart_Handle Dart_ErrorGetStackTrace(Dart_Handle handle) {
   }
 }
 
-// TODO(turnidge): This clones Api::NewError.  I need to use va_copy to
-// fix this but not sure if it available on all of our builds.
 DART_EXPORT Dart_Handle Dart_NewApiError(const char* error) {
   DARTSCOPE(Thread::Current());
   CHECK_CALLBACK_STATE(T);
 
   const String& message = String::Handle(Z, String::New(error));
   return Api::NewHandle(T, ApiError::New(message));
+}
+
+DART_EXPORT Dart_Handle Dart_NewCompilationError(const char* error) {
+  DARTSCOPE(Thread::Current());
+  CHECK_CALLBACK_STATE(T);
+
+  const String& message = String::Handle(Z, String::New(error));
+  return Api::NewHandle(T, LanguageError::New(message));
 }
 
 DART_EXPORT Dart_Handle Dart_NewUnhandledExceptionError(Dart_Handle exception) {

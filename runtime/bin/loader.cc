@@ -7,6 +7,7 @@
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
 #include "bin/dfe.h"
+#include "bin/error_exit.h"
 #include "bin/extensions.h"
 #include "bin/file.h"
 #include "bin/gzip.h"
@@ -660,7 +661,6 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
   if (Dart_IsError(result)) {
     return result;
   }
-  Dart_Isolate current = Dart_CurrentIsolate();
   if (tag == Dart_kKernelTag) {
     uint8_t* kernel_buffer = NULL;
     intptr_t kernel_buffer_size = 0;
@@ -687,7 +687,6 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
 
     return Extensions::LoadExtension("/", absolute_path, library);
   }
-  ASSERT(Dart_IsKernelIsolate(current) || !dfe.UseDartFrontend());
   if (tag != Dart_kScriptTag) {
     // Special case for handling dart: imports and parts.
     // Grab the library's url.
@@ -766,8 +765,25 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
     loader->SendImportExtensionRequest(url, Dart_LibraryUrl(library));
   } else {
     if (dfe.CanUseDartFrontend() && dfe.UseDartFrontend() &&
-        !Dart_IsKernelIsolate(current)) {
-      FATAL("Loader should not be called to compile scripts to kernel.");
+        (tag == Dart_kImportTag)) {
+      // E.g., IsolateMirror.loadUri.
+      char* error = NULL;
+      int exit_code = 0;
+      uint8_t* kernel_buffer = NULL;
+      intptr_t kernel_buffer_size = -1;
+      dfe.CompileAndReadScript(url_string, &kernel_buffer, &kernel_buffer_size,
+                               &error, &exit_code, true /* strong */, NULL);
+      if (exit_code == 0) {
+        return Dart_LoadLibraryFromKernel(kernel_buffer, kernel_buffer_size);
+      } else if (exit_code == kCompilationErrorExitCode) {
+        Dart_Handle result = Dart_NewCompilationError(error);
+        free(error);
+        return result;
+      } else {
+        Dart_Handle result = Dart_NewApiError(error);
+        free(error);
+        return result;
+      }
     } else {
       loader->SendRequest(
           tag, url,
