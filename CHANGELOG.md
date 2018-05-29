@@ -955,8 +955,9 @@ the `PUB_ALLOW_PRERELEASE_SDK` environment variable to `false`.
 
       In practice what that means is you can edit your Dart files, refresh in
       Chrome (or other supported browsers), and see your edits almost
-      immediately. This is because pub is only recompiling your package, not all
-      packages that you depend on.
+      immediately. This fast edit-refresh cycle was previously only possible
+      in Dartium — now it's available everywhere. This is because pub is
+      only recompiling your package, not all packages that you depend on.
 
       There is one caveat with the new compiler, which is that your package and
       your dependencies must all be strong mode clean. If you are getting an
@@ -984,6 +985,10 @@ the `PUB_ALLOW_PRERELEASE_SDK` environment variable to `false`.
       quickly than you can with dart2js. In order to do that, run
       `pub serve test --web-compiler=dartdevc`, and then run
       `pub run test -p chrome --pub-serve=8080`.
+      
+      Note that `dart2js` is still the recommended compiler for production:
+      it produces much smaller and more performant code. The Dart Development
+      Compiler is for development.
 
     * The `--no-dart2js` flag has been deprecated in favor of
       `--web-compiler=none`.
