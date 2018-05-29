@@ -276,8 +276,6 @@ class OutlineBuilder extends StackListener {
   @override
   void handleIdentifier(Token token, IdentifierContext context) {
     if (context == IdentifierContext.enumValueDeclaration) {
-      // Discard the metadata.
-      pop();
       super.handleIdentifier(token, context);
       push(token.charOffset);
       String documentationComment = getDocumentationComment(token);
@@ -944,7 +942,7 @@ class OutlineBuilder extends StackListener {
   void endEnum(Token enumKeyword, Token leftBrace, int count) {
     String documentationComment = getDocumentationComment(enumKeyword);
     List<Object> constantNamesAndOffsets = popList(
-        count * 3, new List<Object>.filled(count * 3, null, growable: true));
+        count * 4, new List<Object>.filled(count * 4, null, growable: true));
     int charOffset = pop();
     String name = pop();
     List<MetadataBuilder> metadata = pop();

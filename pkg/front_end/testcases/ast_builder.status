@@ -4,6 +4,7 @@
 
 # Status file for the ast_builder_test.dart test suite. This is testing
 # generating analyzer ASTs and connecting up type inference information.
+annotation_on_enum_values: Crash
 annotation_top: Crash
 argument_mismatch: Fail
 bug32629: Fail

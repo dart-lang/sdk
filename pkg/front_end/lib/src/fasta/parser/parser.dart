@@ -1596,7 +1596,7 @@ class Parser {
 
   /// ```
   /// enumType:
-  ///   metadata 'enum' id '{' id [',' id]* [','] '}'
+  ///   metadata 'enum' id '{' metadata id [',' metadata id]* [','] '}'
   /// ;
   /// ```
   Token parseEnum(Token token) {
@@ -1618,10 +1618,6 @@ class Parser {
           break;
         }
         token = parseMetadataStar(token);
-        if (!identical(token.next, next)) {
-          listener.handleRecoverableError(
-              fasta.messageAnnotationOnEnumConstant, next, token);
-        }
         token = ensureIdentifier(token, IdentifierContext.enumValueDeclaration);
         next = token.next;
         count++;
