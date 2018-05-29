@@ -88,10 +88,11 @@ class LinkEntry<T> extends Link<T> {
     return buffer.toString();
   }
 
-  Link<T> reverse() {
-    Link<T> result = const Link<Null>();
+  @override
+  Link<T> reverse(Link<T> tail) {
+    Link<T> result = tail;
     for (Link<T> link = this; link.isNotEmpty; link = link.tail) {
-      result = new LinkEntry<T>(link.head, result);
+      result = result.prepend(link.head);
     }
     return result;
   }
@@ -146,17 +147,6 @@ class LinkEntry<T> extends Link<T> {
     }
     return length;
   }
-
-  Link copyWithout(e) {
-    LinkBuilder copy = new LinkBuilder();
-    Link link = this;
-    for (; link.isNotEmpty; link = link.tail) {
-      if (link.head != e) {
-        copy.addLast(link.head);
-      }
-    }
-    return copy.toLink(link);
-  }
 }
 
 class LinkBuilderImplementation<T> implements LinkBuilder<T> {
@@ -166,13 +156,9 @@ class LinkBuilderImplementation<T> implements LinkBuilder<T> {
 
   LinkBuilderImplementation();
 
-  Link<T> toLink([Link<T> tail]) {
-    if (head == null) {
-      // TODO(ahe): We should consider making the [tail] argument mandatory to
-      // avoid creating unneeded objects.
-      return tail ?? new Link<T>();
-    }
-    tail ??= const Link<Null>();
+  @override
+  Link<T> toLink(Link<T> tail) {
+    if (head == null) return tail;
     lastLink.tail = tail;
     Link<T> link = head;
     lastLink = null;

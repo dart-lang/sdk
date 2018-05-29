@@ -61,7 +61,7 @@ class Link<T> implements Iterable<T> {
   bool get isEmpty => true;
   bool get isNotEmpty => false;
 
-  Link<T> reverse() => this;
+  Link<T> reverse(Link<T> tail) => this;
 
   Link<T> reversePrependAll(Link<T> from) {
     if (from.isEmpty) return this;
@@ -121,8 +121,6 @@ class Link<T> implements Iterable<T> {
     return true;
   }
 
-  Link copyWithout(e) => this;
-
   //
   // Unsupported Iterable<T> methods.
   //
@@ -159,7 +157,7 @@ abstract class LinkBuilder<T> {
 
   /// Prepends all elements added to the builder to [tail]. The resulting list
   /// is returned and the builder is cleared.
-  Link<T> toLink([Link<T> tail]);
+  Link<T> toLink(Link<T> tail);
 
   /// Creates a new fixed length containing all added elements. The
   /// resulting list is returned and the builder is cleared.

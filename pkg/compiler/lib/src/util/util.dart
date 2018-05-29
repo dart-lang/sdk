@@ -210,7 +210,7 @@ String modifiersToString(
   if (isExternal) builder.addLast('external');
   if (isCovariant) builder.addLast('covariant');
   StringBuffer buffer = new StringBuffer();
-  builder.toLink().printOn(buffer, ', ');
+  builder.toLink(const Link<String>()).printOn(buffer, ', ');
   return buffer.toString();
 }
 
