@@ -63,6 +63,7 @@ class _JsonUtf8Decoder extends Converter<List<int>, Object> {
     parser.chunk = input;
     parser.chunkEnd = input.length;
     parser.parse(0);
+    parser.close();
     return parser.result;
   }
 
@@ -398,6 +399,7 @@ abstract class _ChunkedJsonParser<T> {
   static const int KWD_NULL = 0; // Prefix of "null" seen.
   static const int KWD_TRUE = 4; // Prefix of "true" seen.
   static const int KWD_FALSE = 8; // Prefix of "false" seen.
+  static const int KWD_BOM = 12; // Prefix of BOM seen.
   static const int KWD_COUNT_SHIFT = 4; // Prefix length in bits 4+.
 
   // Mask used to mask off two lower bits.
@@ -439,8 +441,11 @@ abstract class _ChunkedJsonParser<T> {
    *      ..0ddd0011 : Partial 'null' keyword.
    *      ..0ddd0111 : Partial 'true' keyword.
    *      ..0ddd1011 : Partial 'false' keyword.
-   *                   For all three keywords, the `ddd` bits encode the number
+   *      ..0ddd1111 : Partial UTF-8 BOM byte seqeuence ("\xEF\xBB\xBF").
+   *                   For all keywords, the `ddd` bits encode the number
    *                   of letters seen.
+   *                   The BOM byte sequence is only used by [_JsonUtf8Parser],
+   *                   and only at the very beginning of input.
    */
   int partialState = NO_PARTIAL;
 
@@ -789,7 +794,8 @@ abstract class _ChunkedJsonParser<T> {
     int keywordType = partialState & KWD_TYPE_MASK;
     int count = partialState >> KWD_COUNT_SHIFT;
     int keywordTypeIndex = keywordType >> KWD_TYPE_SHIFT;
-    String keyword = const ["null", "true", "false"][keywordTypeIndex];
+    String keyword =
+        const ["null", "true", "false", "\xEF\xBB\xBF"][keywordTypeIndex];
     assert(count < keyword.length);
     do {
       if (position == chunkEnd) {
@@ -798,13 +804,19 @@ abstract class _ChunkedJsonParser<T> {
         return chunkEnd;
       }
       int expectedChar = keyword.codeUnitAt(count);
-      if (getChar(position) != expectedChar) return fail(position);
+      if (getChar(position) != expectedChar) {
+        if (count == 0) {
+          assert(keywordType == KWD_BOM);
+          return position;
+        }
+        return fail(position);
+      }
       position++;
       count++;
     } while (count < keyword.length);
     if (keywordType == KWD_NULL) {
       listener.handleNull();
-    } else {
+    } else if (keywordType != KWD_BOM) {
       listener.handleBool(keywordType == KWD_TRUE);
     }
     return position;
@@ -1255,7 +1267,7 @@ abstract class _ChunkedJsonParser<T> {
         fail(position, "Missing expected digit");
       } else {
         // If it doesn't even start out as a numeral.
-        fail(position, "Unexpected character");
+        fail(position);
       }
     }
     if (digit == 0) {
@@ -1660,7 +1672,7 @@ class _Utf8StringBuffer {
           position++;
         } else {
           throw new FormatException(
-              "Unexepected UTF-8 continuation byte", utf8, position);
+              "Unexpected UTF-8 continuation byte", utf8, position);
         }
       } else if (char < 0xE0) {
         // C0-DF
@@ -1726,7 +1738,11 @@ class _JsonUtf8Parser extends _ChunkedJsonParser<List<int>> {
   int chunkEnd;
 
   _JsonUtf8Parser(_JsonListener listener, this.allowMalformed)
-      : super(listener);
+      : super(listener) {
+    // Starts out checking for an optional BOM (KWD_BOM, count = 0).
+    partialState =
+        _ChunkedJsonParser.PARTIAL_KEYWORD | _ChunkedJsonParser.KWD_BOM;
+  }
 
   int getChar(int position) => chunk[position];
 
