@@ -127,6 +127,12 @@ abstract class ExtractLocalRefactoring implements Refactoring {
    * level of checking.
    */
   RefactoringStatus checkName();
+
+  /**
+   * Return `true` if refactoring is available, possibly without checking all
+   * initial conditions.
+   */
+  bool isAvailable();
 }
 
 /**
@@ -220,6 +226,12 @@ abstract class ExtractMethodRefactoring implements Refactoring {
    * level of checking.
    */
   RefactoringStatus checkName();
+
+  /**
+   * Return `true` if refactoring is available, possibly without checking all
+   * initial conditions.
+   */
+  bool isAvailable();
 }
 
 /**

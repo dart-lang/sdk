@@ -876,6 +876,18 @@ main() {
     expect(kinds, contains(RefactoringKind.EXTRACT_METHOD));
   }
 
+  Future test_extractLocal_withoutSelection() async {
+    addTestFile('''
+main() {
+  var a = 1 + 2;
+}
+''');
+    await waitForTasksFinished();
+    await getRefactoringsAtString('1 + 2');
+    expect(kinds, contains(RefactoringKind.EXTRACT_LOCAL_VARIABLE));
+    expect(kinds, contains(RefactoringKind.EXTRACT_METHOD));
+  }
+
   Future test_extractWidget() async {
     addFlutterPackage();
     addTestFile('''

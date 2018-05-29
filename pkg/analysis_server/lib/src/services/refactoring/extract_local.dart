@@ -212,6 +212,11 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   }
 
   @override
+  bool isAvailable() {
+    return !_checkSelection().hasFatalError;
+  }
+
+  @override
   bool requiresPreview() => false;
 
   /**
