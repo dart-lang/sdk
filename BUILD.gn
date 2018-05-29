@@ -139,6 +139,12 @@ group("samples") {
   ]
 }
 
+group("observatory_archive") {
+  deps = [
+    "runtime/observatory:observatory_archive"
+  ]
+}
+
 # The rules below build a Fuchsia OS image that includes the Dart tree
 # under /system/test/dart.  To get this into the `user.bootfs` generated
 # by the Fuchsia build, add the GN build argument:

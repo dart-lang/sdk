@@ -16,7 +16,7 @@ import tarfile
 import tempfile
 import gzip
 
-def makeArchive(tar_path, client_root, compress, files):
+def CreateTarArchive(tar_path, client_root, compress, files):
   mode_string = 'w'
   tar = tarfile.open(tar_path, mode=mode_string)
   for input_file_name in files:
@@ -42,7 +42,35 @@ def makeArchive(tar_path, client_root, compress, files):
       gz.write(uncompressed)
       gz.close()
 
-def writeCCFile(output_file,
+
+def MakeArchive(options):
+  if not options.client_root:
+    sys.stderr.write('--client_root not specified')
+    return -1
+
+  files = [ ]
+  for dirname, dirnames, filenames in os.walk(options.client_root):
+    # strip out all dot files.
+    filenames = [f for f in filenames if not f[0] == '.']
+    dirnames[:] = [d for d in dirnames if not d[0] == '.']
+    for f in filenames:
+      src_path = os.path.join(dirname, f)
+      if (os.path.isdir(src_path)):
+          continue
+      files.append(src_path)
+
+  # Ensure consistent file ordering for reproducible builds.
+  files.sort()
+
+  # Write out archive.
+  CreateTarArchive(options.tar_output,
+                   options.client_root,
+                   options.compress,
+                   files)
+  return 0
+
+
+def WriteCCFile(output_file,
                 outer_namespace,
                 inner_namespace,
                 name,
@@ -89,13 +117,41 @@ typedef unsigned __int8 uint8_t;
 
   open(output_file, 'w').write(cc_text)
 
-def main(args):
+
+def MakeCCFile(options):
+  if not options.output:
+    sys.stderr.write('--output not specified\n')
+    return -1
+  if not options.name:
+    sys.stderr.write('--name not specified\n')
+    return -1
+  if not options.tar_input:
+    sys.stderr.write('--tar_input not specified\n')
+    return -1
+
+  # Read it back in.
+  with open(options.tar_input, 'rb') as tar_file:
+    tar_archive = tar_file.read()
+
+  # Write CC file.
+  WriteCCFile(options.output,
+              options.outer_namespace,
+              options.inner_namespace,
+              options.name,
+              tar_archive)
+  return 0
+
+
+def Main(args):
   try:
     # Parse input.
     parser = OptionParser()
     parser.add_option("--output",
                       action="store", type="string",
                       help="output file name")
+    parser.add_option("--tar_input",\
+                      action="store", type="string",
+                      help="input tar archive")
     parser.add_option("--tar_output",
                       action="store", type="string",
                       help="tar output file name")
@@ -116,51 +172,11 @@ def main(args):
                       help="root directory client resources")
 
     (options, args) = parser.parse_args()
-    if not options.output:
-      sys.stderr.write('--output not specified\n')
-      return -1
-    if not options.tar_output:
-      sys.stderr.write('--tar_output not specified\n')
-      return -1
-    if not options.name:
-      sys.stderr.write('--name not specified\n')
-      return -1
-    if not options.client_root:
-      sys.stderr.write('--client_root not specified')
-      return -1
 
-    files = [ ]
-
-    for dirname, dirnames, filenames in os.walk(options.client_root):
-      # strip out all dot files.
-      filenames = [f for f in filenames if not f[0] == '.']
-      dirnames[:] = [d for d in dirnames if not d[0] == '.']
-      for f in filenames:
-        src_path = os.path.join(dirname, f)
-        if (os.path.isdir(src_path)):
-            continue
-        files.append(src_path)
-
-    # Ensure consistent file ordering for reproducible builds.
-    files.sort()
-
-    # Write out archive.
-    makeArchive(options.tar_output,
-                options.client_root,
-                options.compress,
-                files)
-
-    # Read it back in.
-    with open(options.tar_output, 'rb') as tar_file:
-      tar_archive = tar_file.read()
-
-    # Write CC file.
-    writeCCFile(options.output,
-                options.outer_namespace,
-                options.inner_namespace,
-                options.name,
-                tar_archive)
-    return 0
+    if options.tar_output:
+      return MakeArchive(options)
+    else:
+      return MakeCCFile(options)
 
   except Exception, inst:
     sys.stderr.write('create_resources.py exception\n')
@@ -168,5 +184,6 @@ def main(args):
     sys.stderr.write('\n')
     return -1
 
+
 if __name__ == '__main__':
-  sys.exit(main(sys.argv))
+  sys.exit(Main(sys.argv))
