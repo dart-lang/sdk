@@ -5,6 +5,9 @@
 library dart2js.world;
 
 import 'dart:collection' show Queue;
+
+import 'package:front_end/src/fasta/util/link.dart' show Link;
+
 import 'common.dart';
 import 'common/names.dart';
 import 'common_elements.dart' show CommonElements, ElementEnvironment;
@@ -26,7 +29,6 @@ import 'universe/function_set.dart' show FunctionSet;
 import 'universe/selector.dart' show Selector;
 import 'universe/side_effects.dart' show SideEffects, SideEffectsBuilder;
 import 'universe/world_builder.dart';
-import 'util/util.dart' show Link;
 
 /// Common superinterface for [OpenWorld] and [ClosedWorld].
 abstract class World {}

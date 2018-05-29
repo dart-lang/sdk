@@ -12,8 +12,8 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart' show ClassEntity;
 import 'package:compiler/src/universe/class_set.dart';
 import 'package:compiler/src/util/enumset.dart';
-import 'package:compiler/src/util/util.dart';
 import 'package:compiler/src/world.dart';
+import 'package:front_end/src/fasta/util/link.dart' show Link;
 import '../type_test_helper.dart';
 
 void main() {

@@ -4,13 +4,14 @@
 
 library ordered_typeset;
 
+import 'package:front_end/src/fasta/util/link.dart' show Link, LinkBuilder;
+import 'package:front_end/src/fasta/util/link_implementation.dart'
+    show LinkEntry;
+
 import 'common.dart';
 import 'diagnostics/diagnostic_listener.dart' show DiagnosticReporter;
 import 'elements/entities.dart';
 import 'elements/types.dart';
-import 'util/util.dart' show Link, LinkBuilder;
-import 'package:front_end/src/fasta/util/link_implementation.dart'
-    show LinkEntry;
 
 /**
  * An ordered set of the supertypes of a class. The supertypes of a class are

@@ -4,6 +4,9 @@
 
 import 'dart:math' as math;
 import 'dart:collection' show Queue;
+
+import 'package:front_end/src/fasta/util/link.dart' show Link;
+
 import '../common.dart';
 import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/tasks.dart' show CompilerTask;
@@ -31,7 +34,6 @@ import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/use.dart'
     show ConstantUse, ConstrainedDynamicUse, StaticUse, TypeUse;
-import '../util/util.dart';
 import '../world.dart' show ClosedWorld;
 import 'codegen_helpers.dart';
 import 'nodes.dart';

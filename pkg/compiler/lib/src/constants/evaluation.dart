@@ -4,12 +4,13 @@
 
 library dart2js.constants.evaluation;
 
+import 'package:front_end/src/fasta/util/link.dart' show Link;
+
 import '../common.dart';
 import '../common_elements.dart' show CommonElements;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
-import '../util/util.dart' show Link;
 import 'constructors.dart';
 import 'expressions.dart';
 import 'values.dart';

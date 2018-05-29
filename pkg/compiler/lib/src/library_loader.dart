@@ -7,6 +7,7 @@ library dart2js.library_loader;
 import 'dart:async';
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
+import 'package:front_end/src/fasta/util/link.dart' show Link;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 import 'package:kernel/kernel.dart' hide LibraryDependency, Combinator;
@@ -21,7 +22,6 @@ import 'common.dart';
 import 'elements/entities.dart' show LibraryEntity;
 import 'kernel/element_map_impl.dart' show KernelToElementMapForImpactImpl;
 import 'resolved_uri_translator.dart';
-import 'util/util.dart' show Link;
 
 /**
  * [CompilerTask] for loading libraries and setting up the import/export scopes.

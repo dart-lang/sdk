@@ -6,9 +6,10 @@ library dart2js.world.class_set;
 
 import 'dart:collection' show IterableBase;
 
+import 'package:front_end/src/fasta/util/link.dart' show Link;
+
 import '../elements/entities.dart' show ClassEntity;
 import '../util/enumset.dart' show EnumSet;
-import '../util/util.dart' show Link;
 
 /// Enum for the different kinds of instantiation of a class.
 enum Instantiation {

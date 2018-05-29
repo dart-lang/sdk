@@ -4,6 +4,7 @@
 
 library dart2js.kernel.element_map;
 
+import 'package:front_end/src/fasta/util/link.dart' show Link, LinkBuilder;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
@@ -46,7 +47,6 @@ import '../universe/class_hierarchy_builder.dart';
 import '../universe/class_set.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
-import '../util/util.dart' show Link, LinkBuilder;
 import '../world.dart';
 import 'element_map.dart';
 import 'element_map_mixins.dart';

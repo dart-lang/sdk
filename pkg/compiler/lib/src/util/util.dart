@@ -10,7 +10,6 @@ import 'package:front_end/src/fasta/util/link.dart';
 export 'emptyset.dart';
 export 'maplet.dart';
 export 'setlet.dart';
-export 'package:front_end/src/fasta/util/link.dart';
 
 part 'indentation.dart';
 
