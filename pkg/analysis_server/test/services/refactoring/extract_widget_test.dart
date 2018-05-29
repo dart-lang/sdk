@@ -915,6 +915,98 @@ class MyWidget extends StatelessWidget {
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
   }
 
+  test_parameters_private() async {
+    addFlutterPackage();
+    await indexTestUnit(r'''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  String _field;
+
+  @override
+  Widget build(BuildContext context) {
+    return new Text(_field);
+  }
+}
+''');
+    _createRefactoringForStringOffset('new Text');
+
+    await _assertSuccessfulRefactoring('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  String _field;
+
+  @override
+  Widget build(BuildContext context) {
+    return new Test(field: _field);
+  }
+}
+
+class Test extends StatelessWidget {
+  const Test({
+    Key key,
+    @required String field,
+  }) : _field = field, super(key: key);
+
+  final String _field;
+
+  @override
+  Widget build(BuildContext context) {
+    return new Text(_field);
+  }
+}
+''');
+  }
+
+  test_parameters_private_conflictWithPublic() async {
+    addFlutterPackage();
+    await indexTestUnit(r'''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  int field;
+  String _field;
+
+  @override
+  Widget build(BuildContext context) {
+    return new Text('$field $_field');
+  }
+}
+''');
+    _createRefactoringForStringOffset('new Text');
+
+    await _assertSuccessfulRefactoring(r'''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  int field;
+  String _field;
+
+  @override
+  Widget build(BuildContext context) {
+    return new Test(field: field, field2: _field);
+  }
+}
+
+class Test extends StatelessWidget {
+  const Test({
+    Key key,
+    @required this.field,
+    @required String field2,
+  }) : _field = field2, super(key: key);
+
+  final int field;
+  final String _field;
+
+  @override
+  Widget build(BuildContext context) {
+    return new Text('$field $_field');
+  }
+}
+''');
+  }
+
   test_parameters_readField_readLocal() async {
     addFlutterPackage();
     await indexTestUnit(r'''

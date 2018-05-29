@@ -266,6 +266,29 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
       }
     }
 
+    // Collect used public names.
+    var usedNames = new Set<String>();
+    for (var parameter in _parameters) {
+      if (!parameter.name.startsWith('_')) {
+        usedNames.add(parameter.name);
+      }
+    }
+
+    // Give each private parameter a public name for the constructor.
+    for (var parameter in _parameters) {
+      var name = parameter.name;
+      if (name.startsWith('_')) {
+        var baseName = name.substring(1);
+        for (var i = 1;; i++) {
+          name = i == 1 ? baseName : '$baseName$i';
+          if (usedNames.add(name)) {
+            break;
+          }
+        }
+      }
+      parameter.constructorName = name;
+    }
+
     return collector.status;
   }
 
@@ -334,18 +357,33 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
               builder.writeln(',');
 
               // Add parameters for fields, local, and method parameters.
-              for (int i = 0; i < _parameters.length; i++) {
+              for (var parameter in _parameters) {
                 builder.write('    ');
                 builder.write('@');
                 builder.writeReference(accessorRequired);
-                builder.write(' this.');
-                builder.write(_parameters[i].name);
+                builder.write(' ');
+                if (parameter.constructorName != parameter.name) {
+                  builder.writeType(parameter.type);
+                  builder.write(' ');
+                  builder.write(parameter.constructorName);
+                } else {
+                  builder.write('this.');
+                  builder.write(parameter.name);
+                }
                 builder.writeln(',');
               }
 
               builder.write('  }');
             },
             initializerWriter: () {
+              for (var parameter in _parameters) {
+                if (parameter.constructorName != parameter.name) {
+                  builder.write(parameter.name);
+                  builder.write(' = ');
+                  builder.write(parameter.constructorName);
+                  builder.write(', ');
+                }
+              }
               builder.write('super(key: key)');
             },
           );
@@ -407,7 +445,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
       if (parameter != _parameters.first) {
         builder.write(', ');
       }
-      builder.write(parameter.name);
+      builder.write(parameter.constructorName);
       builder.write(': ');
       builder.write(parameter.name);
     }
@@ -433,11 +471,18 @@ class _MethodInvocationsCollector extends RecursiveAstVisitor<void> {
 }
 
 class _Parameter {
+  /// The name which is used to reference this parameter in the expression
+  /// being extracted, and also the name of the field in the new widget.
   final String name;
+
   final DartType type;
 
   /// Whether the parameter is a parameter of the method being extracted.
   final bool isMethodParameter;
+
+  /// If the [name] is private, the public name to use in the new widget
+  /// constructor. If the [name] is already public, then the [name].
+  String constructorName;
 
   _Parameter(this.name, this.type, {this.isMethodParameter: false});
 }
