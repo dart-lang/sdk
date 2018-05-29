@@ -992,7 +992,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     if (_definingClassMemberNameTasks.isNotEmpty) {
       _FilesDefiningClassMemberNameTask task =
           _definingClassMemberNameTasks.first;
-      bool isDone = await task.perform();
+      bool isDone = task.perform();
       if (isDone) {
         _definingClassMemberNameTasks.remove(task);
       }
@@ -1002,7 +1002,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     // Compute files referencing a name.
     if (_referencingNameTasks.isNotEmpty) {
       _FilesReferencingNameTask task = _referencingNameTasks.first;
-      bool isDone = await task.perform();
+      bool isDone = task.perform();
       if (isDone) {
         _referencingNameTasks.remove(task);
       }
@@ -1012,7 +1012,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     // Compute top-level declarations.
     if (_topLevelNameDeclarationsTasks.isNotEmpty) {
       _TopLevelNameDeclarationsTask task = _topLevelNameDeclarationsTasks.first;
-      bool isDone = await task.perform();
+      bool isDone = task.perform();
       if (isDone) {
         _topLevelNameDeclarationsTasks.remove(task);
       }
@@ -2370,7 +2370,7 @@ class _FilesDefiningClassMemberNameTask {
    * scenarios. Instead we use a fixed length of time, so we can spend less time
    * overall and keep quick enough response time.
    */
-  Future<bool> perform() async {
+  bool perform() {
     Stopwatch timer = new Stopwatch()..start();
     while (timer.elapsedMilliseconds < _MS_WORK_INTERVAL) {
       // Prepare files to check.
@@ -2427,7 +2427,7 @@ class _FilesReferencingNameTask {
    * scenarios. Instead we use a fixed length of time, so we can spend less time
    * overall and keep quick enough response time.
    */
-  Future<bool> perform() async {
+  bool perform() {
     Stopwatch timer = new Stopwatch()..start();
     while (timer.elapsedMilliseconds < _MS_WORK_INTERVAL) {
       // Prepare files to check.
@@ -2478,7 +2478,7 @@ class _TopLevelNameDeclarationsTask {
    * return `true` to indicate that the task is done, return `false` to indicate
    * that the task should continue to be run.
    */
-  Future<bool> perform() async {
+  bool perform() {
     // Prepare files to check.
     if (filesToCheck.isEmpty) {
       filesToCheck.addAll(driver.addedFiles.difference(checkedFiles));
