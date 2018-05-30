@@ -63,7 +63,7 @@ application_snapshot("dart2js") {
     "$root_out_dir/dart2js_platform_strong.dill",
     "$root_out_dir/dart2js_outline_strong.dill",
   ]
-  vm_args = [ "--no_limit_ints_to_64_bits" ]
+  vm_args = []
   main_dart = "$target_gen_dir/dart2js.dart"
   training_args = [
     "--packages=" + rebase_path("../../.packages"),

@@ -657,12 +657,10 @@ instance_creation_in_function_annotation_test: RuntimeError
 instantiate_tearoff_of_call_test: CompileTimeError
 int64_literal_test/01: RuntimeError
 int64_literal_test/02: RuntimeError
-int64_literal_test/03: MissingCompileTimeError
 int64_literal_test/04: RuntimeError
 int64_literal_test/05: RuntimeError
 int64_literal_test/10: RuntimeError
 int64_literal_test/20: RuntimeError
-int64_literal_test/30: MissingCompileTimeError
 int64_literal_test/40: RuntimeError
 int64_literal_test/none: RuntimeError
 integer_division_by_zero_test: RuntimeError # Issue 8301
@@ -1055,12 +1053,10 @@ instance_creation_in_function_annotation_test: RuntimeError
 instantiate_tearoff_of_call_test: CompileTimeError
 int64_literal_test/01: RuntimeError
 int64_literal_test/02: RuntimeError
-int64_literal_test/03: MissingCompileTimeError
 int64_literal_test/04: RuntimeError
 int64_literal_test/05: RuntimeError
 int64_literal_test/10: RuntimeError
 int64_literal_test/20: RuntimeError
-int64_literal_test/30: MissingCompileTimeError
 int64_literal_test/40: RuntimeError
 int64_literal_test/none: RuntimeError
 integer_division_by_zero_test: RuntimeError # Issue 8301
@@ -1591,12 +1587,10 @@ instance_creation_in_function_annotation_test: RuntimeError
 instantiate_tearoff_of_call_test: CompileTimeError
 int64_literal_test/01: RuntimeError
 int64_literal_test/02: RuntimeError
-int64_literal_test/03: MissingCompileTimeError
 int64_literal_test/04: RuntimeError
 int64_literal_test/05: RuntimeError
 int64_literal_test/10: RuntimeError
 int64_literal_test/20: RuntimeError
-int64_literal_test/30: MissingCompileTimeError
 int64_literal_test/40: RuntimeError
 int64_literal_test/none: RuntimeError
 integer_division_by_zero_test: RuntimeError # Issue 8301

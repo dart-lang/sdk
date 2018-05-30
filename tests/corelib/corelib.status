@@ -109,6 +109,25 @@ core_runtime_types_test: Pass, Fail # Issue 27913
 package_resource_test: RuntimeError # Issue 26842
 
 [ $compiler == dart2js && $checked && $fasta ]
+big_integer_arith_vm_test/add: CompileTimeError
+big_integer_arith_vm_test/div: CompileTimeError
+big_integer_arith_vm_test/gcd: CompileTimeError
+big_integer_arith_vm_test/mod: CompileTimeError
+big_integer_arith_vm_test/modInv: CompileTimeError
+big_integer_arith_vm_test/modPow: CompileTimeError
+big_integer_arith_vm_test/mul: CompileTimeError
+big_integer_arith_vm_test/negate: CompileTimeError
+big_integer_arith_vm_test/none: CompileTimeError
+big_integer_arith_vm_test/overflow: CompileTimeError
+big_integer_arith_vm_test/shift: CompileTimeError
+big_integer_arith_vm_test/sub: CompileTimeError
+big_integer_arith_vm_test/trunDiv: CompileTimeError
+bit_twiddling_bigint_test: CompileTimeError
+bit_twiddling_test: CompileTimeError
+double_ceil_test: CompileTimeError
+double_floor_test: CompileTimeError
+double_round_test: CompileTimeError
+double_truncate_test: CompileTimeError
 from_environment_const_type_test/02: MissingCompileTimeError
 from_environment_const_type_test/03: MissingCompileTimeError
 from_environment_const_type_test/04: MissingCompileTimeError
@@ -127,60 +146,166 @@ from_environment_const_type_undefined_test/04: MissingCompileTimeError
 from_environment_const_type_undefined_test/06: MissingCompileTimeError
 from_environment_const_type_undefined_test/07: MissingCompileTimeError
 from_environment_const_type_undefined_test/08: MissingCompileTimeError
+int_ceil_test: CompileTimeError
+int_ceil_to_double_test: CompileTimeError
+int_floor_test: CompileTimeError
+int_floor_to_double_test: CompileTimeError
+int_from_environment_test: CompileTimeError
+int_modulo_arith_test/bignum: CompileTimeError
+int_modulo_arith_test/modPow: CompileTimeError
+int_modulo_arith_test/none: CompileTimeError
+int_parse_radix_test/02: CompileTimeError
+int_round_test: CompileTimeError
+int_round_to_double_test: CompileTimeError
+int_to_int_test: CompileTimeError
+int_truncate_test: CompileTimeError
+int_truncate_to_double_test: CompileTimeError
+integer_to_radix_string_test: CompileTimeError
+integer_to_string_test/01: CompileTimeError
+num_parse_test/01: CompileTimeError
+num_parse_test/none: CompileTimeError
+num_sign_test: CompileTimeError
+regress_r21715_test: CompileTimeError
 
 [ $compiler == dart2js && $fast_startup ]
 apply3_test: Fail # mirrors not supported
 
 [ $compiler == dart2js && $fasta ]
 apply3_test: RuntimeError # mirrors not supported
-big_integer_arith_vm_test/add: RuntimeError
-big_integer_arith_vm_test/div: RuntimeError
-big_integer_arith_vm_test/gcd: RuntimeError
-big_integer_arith_vm_test/mod: RuntimeError
-big_integer_arith_vm_test/modInv: RuntimeError
-big_integer_arith_vm_test/modPow: RuntimeError
-big_integer_arith_vm_test/mul: RuntimeError
-big_integer_arith_vm_test/negate: RuntimeError
-big_integer_arith_vm_test/none: RuntimeError
-big_integer_arith_vm_test/overflow: RuntimeError
-big_integer_arith_vm_test/shift: RuntimeError
-big_integer_arith_vm_test/sub: RuntimeError
-big_integer_arith_vm_test/trunDiv: RuntimeError
+big_integer_arith_vm_test/add: CompileTimeError #Large integer literal. Not representable in JS.
+big_integer_arith_vm_test/div: CompileTimeError #Large integer literal. Not representable in JS.
+big_integer_arith_vm_test/gcd: CompileTimeError # Large integer literal. Not representable in JS.
+big_integer_arith_vm_test/mod: CompileTimeError #Large integer literal. Not representable in JS.
+big_integer_arith_vm_test/modInv: CompileTimeError #Large integer literal. Not representable in JS.
+big_integer_arith_vm_test/modPow: CompileTimeError #Large integer literal. Not representable in JS.
+big_integer_arith_vm_test/mul: CompileTimeError #Large integer literal. Not representable in JS.
+big_integer_arith_vm_test/negate: CompileTimeError #Large integer literal. Not representable in JS.
+big_integer_arith_vm_test/none: CompileTimeError #Large integer literal. Not representable in JS.
+big_integer_arith_vm_test/overflow: CompileTimeError #Large integer literal. Not representable in JS.
+big_integer_arith_vm_test/shift: CompileTimeError # Large integer literal. Not representable in JS.
+big_integer_arith_vm_test/sub: CompileTimeError #Large integer literal. Not representable in JS.
+big_integer_arith_vm_test/trunDiv: CompileTimeError #Large integer literal. Not representable in JS.
 big_integer_parsed_arith_vm_test: RuntimeError
 big_integer_parsed_div_rem_vm_test: RuntimeError
 big_integer_parsed_mul_div_vm_test: RuntimeError
-bit_twiddling_bigint_test: RuntimeError
+bit_twiddling_bigint_test: CompileTimeError #Large integer literal. Not representable in JS.
+bit_twiddling_test: CompileTimeError # Large integer literal. Not representable in JS.
 compare_to2_test: RuntimeError
-double_ceil_test: RuntimeError # Large integer literal. Not representable in JS.
-double_floor_test: RuntimeError # Large integer literal. Not representable in JS.
+double_ceil_test: CompileTimeError # Large integer literal. Not representable in JS.
+double_floor_test: CompileTimeError # Large integer literal. Not representable in JS.
 double_parse_test/01: RuntimeError
-double_round_test: RuntimeError # Large integer literal. Not representable in JS.
-double_truncate_test: RuntimeError # Large integer literal. Not representable in JS.
+double_round_test: CompileTimeError # Large integer literal. Not representable in JS.
+double_truncate_test: CompileTimeError # Large integer literal. Not representable in JS.
 hash_set_test/01: RuntimeError
-int_ceil_to_double_test: RuntimeError # Large integer literal. Not representable in JS.
-int_floor_to_double_test: RuntimeError # Large integer literal. Not representable in JS.
-int_from_environment_test: RuntimeError # Large integer literal. Not representable in JS.
-int_modulo_arith_test/bignum: RuntimeError
-int_modulo_arith_test/modPow: RuntimeError
+int_ceil_test: CompileTimeError # Large integer literal. Not representable in JS.
+int_ceil_to_double_test: CompileTimeError # Large integer literal. Not representable in JS.
+int_floor_test: CompileTimeError #Large integer literal. Not representable in JS.
+int_floor_to_double_test: CompileTimeError # Large integer literal. Not representable in JS.
+int_from_environment_test: CompileTimeError # Large integer literal. Not representable in JS.
+int_modulo_arith_test/bignum: CompileTimeError # Large integer literal. Not representable in JS.
+int_modulo_arith_test/modPow: CompileTimeError # Large integer literal. Not representable in JS.
+int_modulo_arith_test/none: CompileTimeError # Large integer literal. Not representable in JS.
 int_parse_radix_test/01: RuntimeError
-int_parse_radix_test/02: RuntimeError
-int_round_to_double_test: RuntimeError # Large integer literal. Not representable in JS.
-int_truncate_to_double_test: RuntimeError # Large integer literal. Not representable in JS.
-integer_to_radix_string_test: RuntimeError
-integer_to_string_test/01: RuntimeError
+int_parse_radix_test/02: CompileTimeError
+int_round_test: CompileTimeError # Large integer literal. Not representable in JS.
+int_round_to_double_test: CompileTimeError # Large integer literal. Not representable in JS.
+int_to_int_test: CompileTimeError # Large integer literal. Not representable in JS.
+int_truncate_test: CompileTimeError # Large integer literal. Not representable in JS.
+int_truncate_to_double_test: CompileTimeError # Large integer literal. Not representable in JS.
+integer_to_radix_string_test: CompileTimeError # Large integer literal. Not representable in JS.
+integer_to_string_test/01: CompileTimeError # Large integer literal. Not representable in JS.
 iterable_return_type_test/02: RuntimeError
 nan_infinity_test/01: RuntimeError
-num_parse_test/01: RuntimeError # Large integer literal. Not representable in JS.
-num_parse_test/none: RuntimeError # Large integer literal. Not representable in JS.
-regress_r21715_test: RuntimeError
+num_parse_test/01: CompileTimeError # Large integer literal. Not representable in JS.
+num_parse_test/none: CompileTimeError # Large integer literal. Not representable in JS.
+num_sign_test: CompileTimeError # Large integer literal. Not representable in JS.
+regress_r21715_test: CompileTimeError # Large integer literal. Not representable in JS.
 string_base_vm_test: RuntimeError
 symbol_reserved_word_test/03: RuntimeError
 
 [ $compiler == dart2js && $fasta && $host_checked ]
 apply3_test: RuntimeError
+big_integer_arith_vm_test/add: CompileTimeError
+big_integer_arith_vm_test/div: CompileTimeError
+big_integer_arith_vm_test/gcd: CompileTimeError
+big_integer_arith_vm_test/mod: CompileTimeError
+big_integer_arith_vm_test/modInv: CompileTimeError
+big_integer_arith_vm_test/modPow: CompileTimeError
+big_integer_arith_vm_test/mul: CompileTimeError
+big_integer_arith_vm_test/negate: CompileTimeError
+big_integer_arith_vm_test/none: CompileTimeError
+big_integer_arith_vm_test/overflow: CompileTimeError
+big_integer_arith_vm_test/shift: CompileTimeError
+big_integer_arith_vm_test/sub: CompileTimeError
+big_integer_arith_vm_test/trunDiv: CompileTimeError
+bit_twiddling_bigint_test: CompileTimeError
+bit_twiddling_test: CompileTimeError
+double_ceil_test: CompileTimeError
+double_floor_test: CompileTimeError
+double_round_test: CompileTimeError
+double_truncate_test: CompileTimeError
+int_ceil_test: CompileTimeError
+int_ceil_to_double_test: CompileTimeError
+int_floor_test: CompileTimeError
+int_floor_to_double_test: CompileTimeError
+int_from_environment_test: CompileTimeError
+int_modulo_arith_test/bignum: CompileTimeError
+int_modulo_arith_test/modPow: CompileTimeError
+int_modulo_arith_test/none: CompileTimeError
+int_parse_radix_test/02: CompileTimeError
+int_round_test: CompileTimeError
+int_round_to_double_test: CompileTimeError
+int_to_int_test: CompileTimeError
+int_truncate_test: CompileTimeError
+int_truncate_to_double_test: CompileTimeError
+integer_to_radix_string_test: CompileTimeError
+integer_to_string_test/01: CompileTimeError
+num_parse_test/01: CompileTimeError
+num_parse_test/none: CompileTimeError
+num_sign_test: CompileTimeError
+regress_r21715_test: CompileTimeError
 
 [ $compiler == dart2js && $fasta && $minified ]
 apply3_test: RuntimeError
+big_integer_arith_vm_test/add: CompileTimeError
+big_integer_arith_vm_test/div: CompileTimeError
+big_integer_arith_vm_test/gcd: CompileTimeError
+big_integer_arith_vm_test/mod: CompileTimeError
+big_integer_arith_vm_test/modInv: CompileTimeError
+big_integer_arith_vm_test/modPow: CompileTimeError
+big_integer_arith_vm_test/mul: CompileTimeError
+big_integer_arith_vm_test/negate: CompileTimeError
+big_integer_arith_vm_test/none: CompileTimeError
+big_integer_arith_vm_test/overflow: CompileTimeError
+big_integer_arith_vm_test/shift: CompileTimeError
+big_integer_arith_vm_test/sub: CompileTimeError
+big_integer_arith_vm_test/trunDiv: CompileTimeError
+bit_twiddling_bigint_test: CompileTimeError
+bit_twiddling_test: CompileTimeError
+double_ceil_test: CompileTimeError
+double_floor_test: CompileTimeError
+double_round_test: CompileTimeError
+double_truncate_test: CompileTimeError
+int_ceil_test: CompileTimeError
+int_ceil_to_double_test: CompileTimeError
+int_floor_test: CompileTimeError
+int_floor_to_double_test: CompileTimeError
+int_from_environment_test: CompileTimeError
+int_modulo_arith_test/bignum: CompileTimeError
+int_modulo_arith_test/modPow: CompileTimeError
+int_modulo_arith_test/none: CompileTimeError
+int_parse_radix_test/02: CompileTimeError
+int_round_test: CompileTimeError
+int_round_to_double_test: CompileTimeError
+int_to_int_test: CompileTimeError
+int_truncate_test: CompileTimeError
+int_truncate_to_double_test: CompileTimeError
+integer_to_radix_string_test: CompileTimeError
+integer_to_string_test/01: CompileTimeError
+num_parse_test/01: CompileTimeError
+num_parse_test/none: CompileTimeError
+num_sign_test: CompileTimeError
+regress_r21715_test: CompileTimeError
 symbol_operator_test/03: RuntimeError # Issue 27394
 symbol_operator_test/none: RuntimeError
 

@@ -128,7 +128,9 @@ mirror_enqueuer_regression_test: Pass
 closure_capture2_test: RuntimeError
 closure_type_reflection2_test: RuntimeError
 closure_type_reflection_test: RuntimeError
-constant_javascript_semantics_test/01: MissingCompileTimeError
+constant_javascript_semantics_test/03: CompileTimeError
+constant_javascript_semantics_test/04: CompileTimeError
+constant_javascript_semantics_test/none: CompileTimeError
 deferred/deferred_mirrors1_test: SkipByDesign
 deferred/deferred_mirrors2_test: RuntimeError
 deferred/reflect_multiple_annotations_test: RuntimeError
@@ -164,6 +166,7 @@ private_symbol_literal_test/05: MissingCompileTimeError
 private_symbol_literal_test/06: MissingCompileTimeError
 reflect_native_types_test: RuntimeError
 regress/4562_test/none: CompileTimeError
+round_constant_folding_test: CompileTimeError
 type_constant_switch_test/01: MissingCompileTimeError
 
 [ $compiler == dart2js && $fasta && $minified ]

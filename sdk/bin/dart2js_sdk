@@ -48,7 +48,6 @@ case $0 in
     EXTRA_VM_OPTIONS+=('--checked')
     ;;
 esac
-EXTRA_VM_OPTIONS+=('--no_limit_ints_to_64_bits')
 
 # We allow extra vm options to be passed in through an environment variable.
 if [[ $DART_VM_OPTIONS ]]; then

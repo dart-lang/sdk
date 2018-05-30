@@ -21,7 +21,7 @@ set DART=%BIN_DIR%\dart
 set SNAPSHOT=%BIN_DIR%\snapshots\dart2js.dart.snapshot
 
 set EXTRA_OPTIONS=
-set EXTRA_VM_OPTIONS=--no_limit_ints_to_64_bits
+set EXTRA_VM_OPTIONS=
 
 if _%DART2JS_DEVELOPER_MODE%_ == _1_ (
   set EXTRA_VM_OPTIONS=%EXTRA_VM_OPTIONS% --checked

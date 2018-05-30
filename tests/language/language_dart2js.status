@@ -87,6 +87,7 @@ library_env_test/has_no_io_support: RuntimeError, OK # dart2js supports io when 
 config_import_corelib_test: RuntimeError, OK # all dart:* are supported when using '--categories=all'.
 
 [ $compiler == dart2js && $checked && $fasta ]
+arithmetic_test: CompileTimeError
 assertion_initializer_const_function_test/01: RuntimeError
 assertion_initializer_test: RuntimeError
 assign_static_type_test/01: Fail
@@ -137,6 +138,7 @@ deferred_constraints_constants_test/reference_after_load: Crash # Unsupported op
 deferred_constraints_type_annotation_test/type_annotation1: Fail # Missing dynamic type error
 deferred_constraints_type_annotation_test/type_annotation_generic1: Fail # Missing dynamic type error
 deferred_constraints_type_annotation_test/type_annotation_generic4: Fail # Missing dynamic type error
+deopt_inlined_function_lazy_test: CompileTimeError
 factory_redirection_test/08: Fail
 factory_redirection_test/09: Fail
 factory_redirection_test/10: Fail
@@ -146,6 +148,8 @@ factory_redirection_test/14: Fail
 generalized_void_syntax_test: RuntimeError
 generic_functions_test: RuntimeError
 generic_methods_test: RuntimeError
+guess_cid_test: CompileTimeError
+int2_test: CompileTimeError
 internal_library_test/02: Crash # NoSuchMethodError: Class 'DillLibraryBuilder' has no instance getter 'mixinApplicationClasses'.
 list_literal1_test/01: MissingCompileTimeError
 malbounded_instantiation_test/01: RuntimeError # Issue 12702
@@ -160,6 +164,8 @@ malbounded_type_test_test/04: Fail # Issue 14121
 malformed2_test/00: RuntimeError
 malformed2_test/01: MissingCompileTimeError
 map_literal1_test/01: MissingCompileTimeError
+mint_compares_test: CompileTimeError
+number_identity_test: CompileTimeError
 redirecting_factory_infinite_steps_test/01: Fail
 redirecting_factory_malbounded_test/01: Fail
 regress_26133_test: RuntimeError # Issue 26429
@@ -280,6 +286,7 @@ super_getter_setter_test: Fail # mirrors not supported
 vm/reflect_core_vm_test: Fail # mirrors not supported
 
 [ $compiler == dart2js && $fasta ]
+arithmetic_test: CompileTimeError # Int larger than 64 bits
 async_star_cancel_while_paused_test: RuntimeError
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
@@ -327,6 +334,7 @@ deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
 deferred_load_library_wrong_args_test/01: MissingRuntimeError
 deferred_not_loaded_check_test: RuntimeError
 deferred_redirecting_factory_test: RuntimeError
+deopt_inlined_function_lazy_test: CompileTimeError # Int larger than 64 bits.
 double_int_to_string_test: RuntimeError
 duplicate_export_negative_test: Fail
 duplicate_implements_test/01: MissingCompileTimeError
@@ -361,10 +369,13 @@ getter_override2_test/02: MissingCompileTimeError
 getter_override_test/00: MissingCompileTimeError
 getter_override_test/01: MissingCompileTimeError
 getter_override_test/02: MissingCompileTimeError
+guess_cid_test: CompileTimeError # Int larger than 64 bits
 identical_closure2_test: RuntimeError
 if_null_assignment_behavior_test/14: RuntimeError
 infinity_test: RuntimeError
 instance_creation_in_function_annotation_test: RuntimeError
+int2_test: CompileTimeError # Int larger than 64 bits
+int_round_test: CompileTimeError # Int larger than 64 bits
 integer_division_by_zero_test: RuntimeError
 internal_library_test/02: Crash # type 'DillLibraryBuilder' is not a subtype of type 'SourceLibraryBuilder<KernelTypeBuilder, Library>' of 'value' where
 invocation_mirror2_test: RuntimeError # mirrors not supported
@@ -385,6 +396,7 @@ method_override7_test/02: MissingCompileTimeError
 method_override8_test/00: MissingCompileTimeError
 method_override8_test/01: MissingCompileTimeError
 mint_arithmetic_test: RuntimeError
+mint_compares_test: CompileTimeError # Int larger than 64 bits
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError
@@ -498,6 +510,7 @@ no_main_test/01: CompileTimeError
 no_such_method_test: RuntimeError
 null_test/none: RuntimeError
 number_identity2_test: RuntimeError
+number_identity_test: CompileTimeError # Int larger than 64 bits
 numbers_test: RuntimeError
 overridden_no_such_method_test: RuntimeError
 override_field_method1_negative_test: Fail
@@ -553,21 +566,33 @@ type_literal_prefix_call_test/00: RuntimeError
 type_variable_conflict2_test/02: MissingCompileTimeError
 
 [ $compiler == dart2js && $fasta && $host_checked ]
+arithmetic_test: CompileTimeError
 async_test/setter1: Crash # 'file:*/pkg/compiler/lib/src/kernel/element_map_impl.dart': Failed assertion: line 939 pos 18: 'asyncMarker == AsyncMarker.SYNC': is not true.
 closure_self_reference_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/nodes.dart': Failed assertion: line 641 pos 12: 'isClosed()': is not true.
+deopt_inlined_function_lazy_test: CompileTimeError
 generic_methods_type_expression_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 1728 pos 16: 'type is MethodTypeVariableType': is not true.
 generic_methods_type_expression_test/03: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 1728 pos 16: 'type is MethodTypeVariableType': is not true.
 generic_methods_type_expression_test/none: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 1728 pos 16: 'type is MethodTypeVariableType': is not true.
+guess_cid_test: CompileTimeError
+int2_test: CompileTimeError
 invocation_mirror_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 3014 pos 14: 'arguments.named.isEmpty': is not true.
+mint_compares_test: CompileTimeError
+number_identity_test: CompileTimeError
 sync_generator2_test/41: Crash # 'file:*/pkg/compiler/lib/src/kernel/element_map_impl.dart': Failed assertion: line 939 pos 18: 'asyncMarker == AsyncMarker.SYNC': is not true.
 sync_generator2_test/52: Crash # 'file:*/pkg/compiler/lib/src/kernel/element_map_impl.dart': Failed assertion: line 939 pos 18: 'asyncMarker == AsyncMarker.SYNC': is not true.
 syntax_test/21: Crash # 'file:*/pkg/compiler/lib/src/kernel/env.dart': Failed assertion: line 322 pos 16: '!name.contains('#')': is not true.
 syntax_test/22: Crash # 'file:*/pkg/compiler/lib/src/kernel/env.dart': Failed assertion: line 322 pos 16: '!name.contains('#')': is not true.
 
 [ $compiler == dart2js && $fasta && $minified ]
+arithmetic_test: CompileTimeError
 deferred_load_library_wrong_args_test/01: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 deferred_redirecting_factory_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deopt_inlined_function_lazy_test: CompileTimeError
+guess_cid_test: CompileTimeError
+int2_test: CompileTimeError
 internal_library_test/02: Crash # NoSuchMethodError: Class 'DillLibraryBuilder' has no instance getter 'mixinApplicationClasses'.
+mint_compares_test: CompileTimeError
+number_identity_test: CompileTimeError
 stacktrace_rethrow_error_test/none: RuntimeError # Issue 12698
 stacktrace_rethrow_error_test/withtraceparameter: RuntimeError # Issue 12698
 stacktrace_rethrow_nonerror_test: RuntimeError # Issue 12698

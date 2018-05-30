@@ -19,7 +19,7 @@ async/async_await_sync_completer_test: RuntimeError # sync-async is on by defaul
 async/schedule_microtask6_test: RuntimeError # global error handling is not supported. Issue 5958
 convert/base64_test/01: Fail, OK # Uses bit-wise operations to detect invalid values. Some large invalid values accepted by dart2js.
 convert/chunked_conversion_utf88_test: Slow, Pass
-convert/utf82_test: RuntimeError # Large integer literal. Not valid in dart2.
+convert/utf82_test: CompileTimeError # Large integer literal. Not valid in dart2.
 convert/utf85_test: Slow, Pass
 developer/timeline_test: Skip # Not supported
 math/double_pow_test: RuntimeError
