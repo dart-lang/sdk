@@ -7084,6 +7084,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_intrinsic(false);
   result.set_is_redirecting(false);
   result.set_is_generated_body(false);
+  result.set_has_pragma(false);
   result.set_always_inline(false);
   result.set_is_polymorphic_target(false);
   NOT_IN_PRECOMPILED(result.set_state_bits(0));
