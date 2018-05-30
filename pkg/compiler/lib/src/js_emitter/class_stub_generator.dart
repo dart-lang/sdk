@@ -211,7 +211,8 @@ class ClassStubGenerator {
           js.quoteName(enableMinification ? internalName : methodName),
       'internalName': js.quoteName(internalName),
       'type': js.number(type),
-      'arguments': new jsAst.ArrayInitializer(parameterNames.map(js).toList()),
+      'arguments': new jsAst.ArrayInitializer(
+          parameterNames.map<jsAst.Expression>(js).toList()),
       'namedArguments': new jsAst.ArrayInitializer(argNames),
       'typeArgumentCount': js.number(selector.typeArgumentCount)
     });

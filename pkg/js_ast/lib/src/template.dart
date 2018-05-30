@@ -486,7 +486,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       return new Switch(
           makeKey(arguments),
           makeCases
-              .map((Instantiator makeCase) => makeCase(arguments))
+              .map<SwitchClause>((Instantiator makeCase) => makeCase(arguments))
               .toList());
     };
   }
