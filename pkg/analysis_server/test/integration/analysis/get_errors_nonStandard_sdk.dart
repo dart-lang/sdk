@@ -70,14 +70,9 @@ class AnalysisDomainGetErrorsTest
   }
 
   @override
-  Future startServer(
-      {bool checked: true,
-      int diagnosticPort,
-      int servicesPort,
-      bool cfe: false}) {
+  Future startServer({int diagnosticPort, int servicesPort, bool cfe: false}) {
     String sdkPath = createNonStandardSdk();
     return server.start(
-        checked: checked,
         diagnosticPort: diagnosticPort,
         sdkPath: sdkPath,
         servicesPort: servicesPort,
