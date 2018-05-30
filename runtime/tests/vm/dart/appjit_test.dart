@@ -2,6 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// VMOptions=--optimization-counter-threshold=100
+
+// Verify that app-jit snapshot contains dependencies between classes and CHA
+// optimized code.
+
 import 'dart:async';
 import 'dart:io';
 
@@ -45,7 +50,6 @@ Future<Result> runDartBinary(String prefix, List<String> arguments) async {
   final actualArguments = <String>[]
     ..addAll(Platform.executableArguments)
     ..addAll(arguments);
-  print("+ $binary " + actualArguments.join(" "));
   final processResult = await Process.run(binary, actualArguments);
   final result = new Result(
       '[$prefix] ${binary} ${actualArguments.join(' ')}', processResult);
@@ -56,40 +60,26 @@ Future<Result> runDartBinary(String prefix, List<String> arguments) async {
   return result;
 }
 
-Future<Null> checkDeterministicSnapshot(
-    String snapshotKind, String expectedStdout) async {
+const snapshotName = 'app.jit';
+
+void main() async {
   final Directory temp = Directory.systemTemp.createTempSync();
-  final snapshot1Path = p.join(temp.path, 'snapshot1');
-  final snapshot2Path = p.join(temp.path, 'snapshot2');
+  final snapshotPath = p.join(temp.path, 'app.jit');
+  final testPath = Platform.script
+      .toFilePath()
+      .replaceAll(new RegExp(r'_test.dart$'), '_test_body.dart');
 
+  await temp.create();
   try {
-    final generate1Result = await runDartBinary('GENERATE SNAPSHOT 1', [
-      '--deterministic',
-      '--snapshot=$snapshot1Path',
-      '--snapshot-kind=$snapshotKind',
-      Platform.script.toFilePath(),
-      '--child',
+    final trainingResult = await runDartBinary('TRAINING RUN', [
+      '--snapshot=$snapshotPath',
+      '--snapshot-kind=app-jit',
+      testPath,
+      '--train'
     ]);
-    expectOutput(expectedStdout, generate1Result);
-
-    final generate2Result = await runDartBinary('GENERATE SNAPSHOT 2', [
-      '--deterministic',
-      '--snapshot=$snapshot2Path',
-      '--snapshot-kind=$snapshotKind',
-      Platform.script.toFilePath(),
-      '--child',
-    ]);
-    expectOutput(expectedStdout, generate2Result);
-
-    var snapshot1Bytes = await new File(snapshot1Path).readAsBytes();
-    var snapshot2Bytes = await new File(snapshot2Path).readAsBytes();
-
-    Expect.equals(snapshot1Bytes.length, snapshot2Bytes.length);
-    for (var i = 0; i < snapshot1Bytes.length; i++) {
-      if (snapshot1Bytes[i] != snapshot2Bytes[i]) {
-        Expect.fail("Snapshots are not bitwise equal!");
-      }
-    }
+    expectOutput("OK(Trained)", trainingResult);
+    final runResult = await runDartBinary('RUN FROM SNAPSHOT', [snapshotPath]);
+    expectOutput("OK(Run)", runResult);
   } finally {
     await temp.delete(recursive: true);
   }
