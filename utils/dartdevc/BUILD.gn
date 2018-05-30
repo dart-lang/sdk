@@ -49,7 +49,7 @@ application_snapshot("dartdevk") {
 
   deps = [
     ":dartdevc_sdk",
-    ":dartdevc_sdk_kernel_summary",
+    ":dartdevk_sdk",
   ]
 
   inputs = [ sdk_dill ]
@@ -229,10 +229,21 @@ group("dartdevc_test") {
   deps = [
     ":dartdevc",
     ":dartdevc_sdk",
-    ":dartdevc_sdk_kernel_summary",
+    ":dartdevk_sdk",
     ":dartdevc_test_pkg",
     ":dartdevk",
     "../../sdk:create_sdk",
+  ]
+}
+
+# Builds everything needed to run dartdevc and dartdevk tests locally using
+# test.dart without --use-sdk. This is the same as dartdevc_test, but skips
+# things rely on building the Dart VM and create_sdk.
+group("dartdevc_test_local") {
+  deps = [
+    ":dartdevc_sdk",
+    ":dartdevk_sdk",
+    ":dartdevc_test_pkg",
   ]
 }
 
@@ -243,11 +254,11 @@ create_timestamp_file("dartdevc_files_stamp") {
 
 # Compiles the packages used by the tests to JS with dartdevc so that they are
 # available for loading by the tests.
-dart_action("dartdevc_test_pkg") {
+prebuilt_dart_action("dartdevc_test_pkg") {
   deps = [
     ":dartdevc_files_stamp",
     ":dartdevc_sdk",
-    ":dartdevc_sdk_kernel_summary",
+    ":dartdevk_sdk",
     "../../pkg:pkg_files_stamp",
   ]
 
@@ -304,7 +315,7 @@ dart_action("dartdevc_test_pkg") {
 }
 
 # Compiles the DDC SDK's kernel summary and JS code.
-dart_action("dartdevc_sdk_kernel_summary") {
+prebuilt_dart_action("dartdevk_sdk") {
   deps = [
     ":dartdevc_files_stamp",
   ]
