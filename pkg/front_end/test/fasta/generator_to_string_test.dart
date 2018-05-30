@@ -74,7 +74,7 @@ import 'package:front_end/src/fasta/kernel/kernel_expression_generator.dart'
         ParenthesizedExpressionGenerator,
         SendAccessGenerator,
         ThisAccessGenerator,
-        UnresolvedNameGenerator;
+        KernelUnresolvedNameGenerator;
 
 import 'package:front_end/src/fasta/scanner.dart' show Token, scanString;
 
@@ -228,6 +228,6 @@ main() {
         new KernelTypeUseGenerator(
             helper, token, prefixBuilder, -1, declaration, "foo"));
     check("UnresolvedNameGenerator(offset: 4, name: bar)",
-        new UnresolvedNameGenerator(helper, token, name));
+        new KernelUnresolvedNameGenerator(helper, token, name));
   });
 }

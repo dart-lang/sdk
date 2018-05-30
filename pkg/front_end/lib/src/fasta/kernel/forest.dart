@@ -454,6 +454,11 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
       ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
       Location location);
 
+  Generator<Expression, Statement, Arguments> unresolvedNameGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Location location,
+      kernel.Name name);
+
   // TODO(ahe): Remove this method when all users are moved here.
   kernel.Arguments castArguments(Arguments arguments) {
     dynamic a = arguments;

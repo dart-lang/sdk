@@ -13,8 +13,7 @@ import '../fasta_codes.dart'
         LocatedMessage,
         messageLoadLibraryTakesNoArguments,
         messageSuperAsExpression,
-        templateNotAPrefixInTypeAnnotation,
-        templateUnresolvedPrefixInTypeAnnotation;
+        templateNotAPrefixInTypeAnnotation;
 
 import '../messages.dart' show Message, noLength;
 
@@ -62,6 +61,7 @@ import 'expression_generator.dart'
         ThisIndexedAccessGenerator,
         ThisPropertyAccessGenerator,
         TypeUseGenerator,
+        UnresolvedNameGenerator,
         VariableUseGenerator;
 
 import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
@@ -1428,6 +1428,37 @@ class KernelLargeIntAccessGenerator extends KernelGenerator
   Expression _makeWrite(Expression value, bool voidContext,
       ShadowComplexAssignment complexAssignment) {
     return buildError();
+  }
+}
+
+class KernelUnresolvedNameGenerator extends KernelGenerator
+    with
+        ErroneousExpressionGenerator<Expression, Statement, Arguments>,
+        UnresolvedNameGenerator<Expression, Statement, Arguments> {
+  @override
+  final Name name;
+
+  KernelUnresolvedNameGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, dynamic> helper,
+      Token token,
+      this.name)
+      : super(helper, token);
+
+  @override
+  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+    return unsupported("_makeRead", offsetForToken(token), uri);
+  }
+
+  @override
+  Expression _makeWrite(Expression value, bool voidContext,
+      ShadowComplexAssignment complexAssignment) {
+    return unsupported("_makeWrite", offsetForToken(token), uri);
+  }
+
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", name: ");
+    sink.write(name.name);
   }
 }
 

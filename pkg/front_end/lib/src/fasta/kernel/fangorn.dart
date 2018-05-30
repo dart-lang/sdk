@@ -58,6 +58,7 @@ import 'kernel_expression_generator.dart'
         KernelThisIndexedAccessGenerator,
         KernelThisPropertyAccessGenerator,
         KernelTypeUseGenerator,
+        KernelUnresolvedNameGenerator,
         KernelVariableUseGenerator;
 
 import 'kernel_shadow_ast.dart'
@@ -755,6 +756,14 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
       ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
       Token token) {
     return new KernelLargeIntAccessGenerator(helper, token);
+  }
+
+  @override
+  KernelUnresolvedNameGenerator unresolvedNameGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Name name) {
+    return new KernelUnresolvedNameGenerator(helper, token, name);
   }
 }
 

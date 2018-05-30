@@ -602,6 +602,15 @@ class AstBuildingForest
   }
 
   @override
+  Generator<Expression, Statement, _Arguments> unresolvedNameGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+      Token token,
+      kernel.Name name) {
+    // TODO(brianwilkerson) Implement this.
+    throw new UnimplementedError();
+  }
+
+  @override
   VariableDeclarationStatement variablesDeclaration(
       List<VariableDeclaration> declarations, Uri uri) {
     // TODO(brianwilkerson) Implement this.

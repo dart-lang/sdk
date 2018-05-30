@@ -15,11 +15,12 @@ import '../fasta_codes.dart'
         messageInvalidInitializer,
         templateDeferredTypeAnnotation,
         templateIntegerLiteralIsOutOfRange,
-        templateNotAType;
+        templateNotAType,
+        templateUnresolvedPrefixInTypeAnnotation;
 
 import '../names.dart' show lengthName;
 
-import '../parser.dart' show lengthForToken, offsetForToken;
+import '../parser.dart' show lengthForToken, lengthOfSpan, offsetForToken;
 
 import '../problems.dart' show unhandled, unsupported;
 
@@ -67,7 +68,6 @@ export 'kernel_expression_generator.dart'
         ParenthesizedExpressionGenerator,
         SendAccessGenerator,
         ThisAccessGenerator,
-        UnresolvedNameGenerator,
         buildIsNull;
 
 abstract class ExpressionGenerator<Expression, Statement, Arguments> {
@@ -795,5 +795,44 @@ abstract class ErroneousExpressionGenerator<Expression, Statement, Arguments>
   Expression makeInvalidWrite(Expression value) {
     return buildError(forest.arguments(<Expression>[value], token),
         isSetter: true);
+  }
+}
+
+abstract class UnresolvedNameGenerator<Expression, Statement, Arguments>
+    implements ErroneousExpressionGenerator<Expression, Statement, Arguments> {
+  factory UnresolvedNameGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Name name) {
+    return helper.forest.unresolvedNameGenerator(helper, token, name);
+  }
+
+  String get debugName => "UnresolvedNameGenerator";
+
+  Expression doInvocation(int charOffset, Arguments arguments) {
+    return buildError(arguments, offset: charOffset);
+  }
+
+  @override
+  DartType buildErroneousTypeNotAPrefix(Identifier suffix) {
+    helper.addProblem(
+        templateUnresolvedPrefixInTypeAnnotation.withArguments(
+            name.name, suffix.name),
+        offsetForToken(token),
+        lengthOfSpan(token, suffix.token));
+    return const InvalidType();
+  }
+
+  @override
+  Expression buildError(Arguments arguments,
+      {bool isGetter: false, bool isSetter: false, int offset}) {
+    offset ??= offsetForToken(this.token);
+    return helper.throwNoSuchMethodError(
+        storeOffset(forest.literalNull(null), offset),
+        plainNameForRead,
+        arguments,
+        offset,
+        isGetter: isGetter,
+        isSetter: isSetter);
   }
 }
