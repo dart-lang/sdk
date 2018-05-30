@@ -322,6 +322,9 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   /// Return the offset of the given [label].
   int getLabelOffset(covariant label);
 
+  /// Return the name of the given variable [declaration].
+  String getVariableDeclarationName(covariant declaration);
+
   bool isBlock(Object node);
 
   /// Return `true` if the given [statement] is the representation of an empty

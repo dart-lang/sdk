@@ -358,8 +358,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     }
   }
 
-  void declareVariable(VariableDeclaration variable, Scope scope) {
-    String name = variable.name;
+  void declareVariable(Object variable, Scope scope) {
+    String name = forest.getVariableDeclarationName(variable);
     Builder existing = scope.local[name];
     if (existing != null) {
       // This reports an error for duplicated declarations in the same scope:
@@ -373,7 +373,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       return;
     }
     LocatedMessage context = scope.declare(
-        variable.name,
+        forest.getVariableDeclarationName(variable),
         new KernelVariableBuilder(
             variable, member ?? classBuilder ?? library, uri),
         uri);

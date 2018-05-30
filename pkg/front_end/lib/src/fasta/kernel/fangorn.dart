@@ -546,6 +546,11 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   int getLabelOffset(Label label) => label.charOffset;
 
   @override
+  String getVariableDeclarationName(VariableDeclaration declaration) {
+    return declaration.name;
+  }
+
+  @override
   bool isBlock(Object node) => node is Block;
 
   @override

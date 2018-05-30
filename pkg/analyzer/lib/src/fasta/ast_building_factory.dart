@@ -248,6 +248,11 @@ class AstBuildingForest
       typeArguments.arguments.length;
 
   @override
+  String getVariableDeclarationName(VariableDeclaration declaration) {
+    return declaration.name.name;
+  }
+
+  @override
   Statement ifStatement(
           Token ifKeyword,
           ParenthesizedExpression condition,
