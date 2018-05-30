@@ -90,8 +90,9 @@ bool hasFix(ErrorCode errorCode) =>
 class DartFixKind {
   static const ADD_ASYNC =
       const FixKind('ADD_ASYNC', 50, "Add 'async' modifier");
-  static const ADD_EXPLICIT_CAST =
-      const FixKind('ADD_EXPLICIT_CAST', 50, "Add cast");
+  static const ADD_EXPLICIT_CAST = const FixKind(
+      'ADD_EXPLICIT_CAST', 50, "Add cast",
+      appliedTogetherMessage: "Add all casts in file");
   static const ADD_FIELD_FORMAL_PARAMETERS = const FixKind(
       'ADD_FIELD_FORMAL_PARAMETERS', 30, "Add final field formal parameters");
   static const ADD_MISSING_PARAMETER_POSITIONAL = const FixKind(

@@ -477,6 +477,28 @@ class B {}
 ''');
   }
 
+  test_addExplicitCast_assignment_general_all() async {
+    await resolveTestUnit('''
+f(A a) {
+  B b, b2;
+  b = a;
+  b2 = a;
+}
+class A {}
+class B {}
+''');
+    await assertHasFixAllFix(StaticTypeWarningCode.INVALID_ASSIGNMENT,
+        DartFixKind.ADD_EXPLICIT_CAST, '''
+f(A a) {
+  B b, b2;
+  b = a as B;
+  b2 = a as B;
+}
+class A {}
+class B {}
+''');
+  }
+
   test_addExplicitCast_assignment_list() async {
     await resolveTestUnit('''
 f(List<A> a) {
@@ -496,6 +518,28 @@ class B {}
 ''');
   }
 
+  test_addExplicitCast_assignment_list_all() async {
+    await resolveTestUnit('''
+f(List<A> a) {
+  List<B> b, b2;
+  b = a.where((e) => e is B).toList();
+  b2 = a.where((e) => e is B).toList();
+}
+class A {}
+class B {}
+''');
+    await assertHasFixAllFix(StaticTypeWarningCode.INVALID_ASSIGNMENT,
+        DartFixKind.ADD_EXPLICIT_CAST, '''
+f(List<A> a) {
+  List<B> b, b2;
+  b = a.where((e) => e is B).cast<B>().toList();
+  b2 = a.where((e) => e is B).cast<B>().toList();
+}
+class A {}
+class B {}
+''');
+  }
+
   test_addExplicitCast_assignment_map() async {
     await resolveTestUnit('''
 f(Map<A, B> a) {
@@ -509,6 +553,28 @@ class B {}
 f(Map<A, B> a) {
   Map<B, A> b;
   b = a.cast<B, A>();
+}
+class A {}
+class B {}
+''');
+  }
+
+  test_addExplicitCast_assignment_map_all() async {
+    await resolveTestUnit('''
+f(Map<A, B> a) {
+  Map<B, A> b, b2;
+  b = a;
+  b2 = a;
+}
+class A {}
+class B {}
+''');
+    await assertHasFixAllFix(StaticTypeWarningCode.INVALID_ASSIGNMENT,
+        DartFixKind.ADD_EXPLICIT_CAST, '''
+f(Map<A, B> a) {
+  Map<B, A> b, b2;
+  b = a.cast<B, A>();
+  b2 = a.cast<B, A>();
 }
 class A {}
 class B {}
@@ -538,6 +604,32 @@ class B {}
 ''');
   }
 
+  test_addExplicitCast_assignment_needsParens_all() async {
+    await resolveTestUnit('''
+f(A a) {
+  B b, b2;
+  b = a..m();
+  b2 = a..m();
+}
+class A {
+  int m() => 0;
+}
+class B {}
+''');
+    await assertHasFixAllFix(StaticTypeWarningCode.INVALID_ASSIGNMENT,
+        DartFixKind.ADD_EXPLICIT_CAST, '''
+f(A a) {
+  B b, b2;
+  b = (a..m()) as B;
+  b2 = (a..m()) as B;
+}
+class A {
+  int m() => 0;
+}
+class B {}
+''');
+  }
+
   test_addExplicitCast_assignment_set() async {
     await resolveTestUnit('''
 f(Set<A> a) {
@@ -551,6 +643,28 @@ class B {}
 f(Set<A> a) {
   Set<B> b;
   b = a.cast<B>();
+}
+class A {}
+class B {}
+''');
+  }
+
+  test_addExplicitCast_assignment_set_all() async {
+    await resolveTestUnit('''
+f(Set<A> a) {
+  Set<B> b, b2;
+  b = a;
+  b2 = a;
+}
+class A {}
+class B {}
+''');
+    await assertHasFixAllFix(StaticTypeWarningCode.INVALID_ASSIGNMENT,
+        DartFixKind.ADD_EXPLICIT_CAST, '''
+f(Set<A> a) {
+  Set<B> b, b2;
+  b = a.cast<B>();
+  b2 = a.cast<B>();
 }
 class A {}
 class B {}
@@ -597,6 +711,26 @@ class B {}
 ''');
   }
 
+  test_addExplicitCast_declaration_general_all() async {
+    await resolveTestUnit('''
+f(A a) {
+  B b = a;
+  B b2 = a;
+}
+class A {}
+class B {}
+''');
+    await assertHasFixAllFix(StaticTypeWarningCode.INVALID_ASSIGNMENT,
+        DartFixKind.ADD_EXPLICIT_CAST, '''
+f(A a) {
+  B b = a as B;
+  B b2 = a as B;
+}
+class A {}
+class B {}
+''');
+  }
+
   test_addExplicitCast_declaration_list() async {
     await resolveTestUnit('''
 f(List<A> a) {
@@ -614,6 +748,26 @@ class B {}
 ''');
   }
 
+  test_addExplicitCast_declaration_list_all() async {
+    await resolveTestUnit('''
+f(List<A> a) {
+  List<B> b = a.where((e) => e is B).toList();
+  List<B> b2 = a.where((e) => e is B).toList();
+}
+class A {}
+class B {}
+''');
+    await assertHasFixAllFix(StaticTypeWarningCode.INVALID_ASSIGNMENT,
+        DartFixKind.ADD_EXPLICIT_CAST, '''
+f(List<A> a) {
+  List<B> b = a.where((e) => e is B).cast<B>().toList();
+  List<B> b2 = a.where((e) => e is B).cast<B>().toList();
+}
+class A {}
+class B {}
+''');
+  }
+
   test_addExplicitCast_declaration_map() async {
     await resolveTestUnit('''
 f(Map<A, B> a) {
@@ -625,6 +779,26 @@ class B {}
     await assertHasFix(DartFixKind.ADD_EXPLICIT_CAST, '''
 f(Map<A, B> a) {
   Map<B, A> b = a.cast<B, A>();
+}
+class A {}
+class B {}
+''');
+  }
+
+  test_addExplicitCast_declaration_map_all() async {
+    await resolveTestUnit('''
+f(Map<A, B> a) {
+  Map<B, A> b = a;
+  Map<B, A> b2 = a;
+}
+class A {}
+class B {}
+''');
+    await assertHasFixAllFix(StaticTypeWarningCode.INVALID_ASSIGNMENT,
+        DartFixKind.ADD_EXPLICIT_CAST, '''
+f(Map<A, B> a) {
+  Map<B, A> b = a.cast<B, A>();
+  Map<B, A> b2 = a.cast<B, A>();
 }
 class A {}
 class B {}
@@ -652,6 +826,30 @@ class B {}
 ''');
   }
 
+  test_addExplicitCast_declaration_needsParens_all() async {
+    await resolveTestUnit('''
+f(A a) {
+  B b = a..m();
+  B b2 = a..m();
+}
+class A {
+  int m() => 0;
+}
+class B {}
+''');
+    await assertHasFixAllFix(StaticTypeWarningCode.INVALID_ASSIGNMENT,
+        DartFixKind.ADD_EXPLICIT_CAST, '''
+f(A a) {
+  B b = (a..m()) as B;
+  B b2 = (a..m()) as B;
+}
+class A {
+  int m() => 0;
+}
+class B {}
+''');
+  }
+
   test_addExplicitCast_declaration_set() async {
     await resolveTestUnit('''
 f(Set<A> a) {
@@ -663,6 +861,26 @@ class B {}
     await assertHasFix(DartFixKind.ADD_EXPLICIT_CAST, '''
 f(Set<A> a) {
   Set<B> b = a.cast<B>();
+}
+class A {}
+class B {}
+''');
+  }
+
+  test_addExplicitCast_declaration_set_all() async {
+    await resolveTestUnit('''
+f(Set<A> a) {
+  Set<B> b = a;
+  Set<B> b2 = a;
+}
+class A {}
+class B {}
+''');
+    await assertHasFixAllFix(StaticTypeWarningCode.INVALID_ASSIGNMENT,
+        DartFixKind.ADD_EXPLICIT_CAST, '''
+f(Set<A> a) {
+  Set<B> b = a.cast<B>();
+  Set<B> b2 = a.cast<B>();
 }
 class A {}
 class B {}
