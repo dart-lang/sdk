@@ -44,7 +44,7 @@ static zx_status_t GetLocalAndDstOffsetInSeconds(int64_t seconds_since_epoch,
                                                  int32_t* local_offset,
                                                  int32_t* dst_offset) {
   time_zone::TimezoneSyncPtr time_svc;
-  component::ConnectToEnvironmentService(time_svc.NewRequest());
+  fuchsia::sys::ConnectToEnvironmentService(time_svc.NewRequest());
   if (!time_svc->GetTimezoneOffsetMinutes(seconds_since_epoch * 1000,
                                           local_offset, dst_offset))
     return ZX_ERR_UNAVAILABLE;
@@ -57,7 +57,7 @@ const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
   // TODO(abarth): Handle time zone changes.
   static const auto* tz_name = new std::string([] {
     time_zone::TimezoneSyncPtr time_svc;
-    component::ConnectToEnvironmentService(time_svc.NewRequest());
+    fuchsia::sys::ConnectToEnvironmentService(time_svc.NewRequest());
     fidl::StringPtr result;
     time_svc->GetTimezoneId(&result);
     return *result;
