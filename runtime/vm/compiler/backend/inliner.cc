@@ -3502,6 +3502,28 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
       return true;
     }
 
+    case MethodRecognizer::kListFactory: {
+      // We only want to inline new List(n) which decreases code size and
+      // improves performance. We don't want to inline new List().
+      if (call->ArgumentCount() != 2) {
+        return false;
+      }
+
+      const auto type = new (Z) Value(call->ArgumentAt(0));
+      const auto num_elements = new (Z) Value(call->ArgumentAt(1));
+      *entry = new (Z)
+          TargetEntryInstr(flow_graph->allocate_block_id(),
+                           call->GetBlock()->try_index(), Thread::kNoDeoptId);
+      (*entry)->InheritDeoptTarget(Z, call);
+      *last = new (Z) CreateArrayInstr(call->token_pos(), type, num_elements,
+                                       call->deopt_id());
+      flow_graph->AppendTo(
+          *entry, *last,
+          call->deopt_id() != Thread::kNoDeoptId ? call->env() : NULL,
+          FlowGraph::kValue);
+      return true;
+    }
+
     case MethodRecognizer::kObjectArrayAllocate: {
       Value* num_elements = new (Z) Value(call->ArgumentAt(1));
       if (num_elements->BindsToConstant() &&

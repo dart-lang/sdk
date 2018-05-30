@@ -19,6 +19,7 @@ namespace dart {
   V(::, identical, ObjectIdentical, Bool, 0x49c6e96a)                          \
   V(ClassID, getID, ClassIDgetID, Smi, 0x7b18b257)                             \
   V(Object, Object., ObjectConstructor, Dynamic, 0x681617fe)                   \
+  V(List, ., ListFactory, Dynamic, 0x629f8324)                                 \
   V(_List, ., ObjectArrayAllocate, Array, 0x2121902f)                          \
   V(_TypedList, _getInt8, ByteArrayBaseGetInt8, Smi, 0x7041895a)               \
   V(_TypedList, _getUint8, ByteArrayBaseGetUint8, Smi, 0x336fa3ea)             \
