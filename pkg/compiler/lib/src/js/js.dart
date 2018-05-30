@@ -115,8 +115,7 @@ class TokenCounter extends BaseVisitor {
     }
   }
 
-  // TODO(28763): Remove `<dynamic>` when issue 28763 is fixed.
-  void countTokens(Node node) => node.accept<dynamic>(this);
+  void countTokens(Node node) => node.accept(this);
 }
 
 abstract class ReferenceCountedAstNode implements Node {

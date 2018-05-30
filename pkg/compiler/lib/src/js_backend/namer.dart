@@ -1646,6 +1646,10 @@ class Namer {
 
   String get futureOrTypeTag => r'type';
 
+  // The name of the variable used to offset function signatures in deferred
+  // parts with the fast-startup emitter.
+  String get typesOffsetName => r'typesOffset';
+
   Map<FunctionType, jsAst.Name> functionTypeNameMap =
       new HashMap<FunctionType, jsAst.Name>();
 

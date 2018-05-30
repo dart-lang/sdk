@@ -65,6 +65,8 @@ class _BoundMetadataEntry extends _MetadataEntry {
   }
 
   int compareTo(covariant _MetadataEntry other) => other._rc - this._rc;
+
+  String toString() => '_BoundMetadataEntry($hashCode,rc=$_rc,_value=$_value)';
 }
 
 class _MetadataList extends jsAst.DeferredExpression {

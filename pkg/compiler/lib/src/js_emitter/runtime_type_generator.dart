@@ -149,6 +149,7 @@ class RuntimeTypeGenerator {
       // potentially a subtype of a checked function. Currently we eagerly
       // generate a function type index or signature for all callable classes.
       jsAst.Expression functionTypeIndex;
+      bool isDeferred = false;
       if (!type.containsTypeVariables) {
         // TODO(sigmund): use output unit of [method] when the classes mentioned
         // in [type] aren't in the main output unit. (Issue #31032)
@@ -156,6 +157,12 @@ class RuntimeTypeGenerator {
         if (_outputUnitVisitor.isTypeContainedIn(type, mainOutputUnit)) {
           functionTypeIndex =
               emitterTask.metadataCollector.reifyType(type, mainOutputUnit);
+        } else if (!storeFunctionTypeInMetadata) {
+          // TODO(johnniwinther): Support sharing deferred signatures with the
+          // full emitter.
+          isDeferred = true;
+          functionTypeIndex = emitterTask.metadataCollector
+              .reifyType(type, _outputUnitData.outputUnitForMember(method));
         }
       }
       if (storeFunctionTypeInMetadata && functionTypeIndex != null) {
@@ -168,7 +175,18 @@ class RuntimeTypeGenerator {
             // The signature function isn't live.
             return;
           }
-          encoding = functionTypeIndex ?? encoding;
+          if (functionTypeIndex != null) {
+            if (isDeferred) {
+              // The function type index must be offset by the number of types
+              // already loaded.
+              encoding = new jsAst.Binary(
+                  '+',
+                  new jsAst.VariableUse(_namer.typesOffsetName),
+                  functionTypeIndex);
+            } else {
+              encoding = functionTypeIndex;
+            }
+          }
         } else if (encoding == null) {
           // Generate the signature on the fly. This is only supported for
           // Dart 1.
