@@ -8,6 +8,9 @@
 
 ### Core library changes
 
+* `dart:convert`
+  * Allow `utf8.decoder.fuse(json.decoder)` to ignore leading Unicode BOM.
+
 ### Dart VM
 
 ### Tool Changes
