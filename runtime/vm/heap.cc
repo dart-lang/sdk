@@ -29,6 +29,8 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, write_protect_vm_isolate, true, "Write protect vm_isolate.");
+
 Heap::Heap(Isolate* isolate,
            intptr_t max_new_gen_semi_words,
            intptr_t max_old_gen_words,
@@ -878,12 +880,16 @@ NoHeapGrowthControlScope::~NoHeapGrowthControlScope() {
 
 WritableVMIsolateScope::WritableVMIsolateScope(Thread* thread)
     : StackResource(thread) {
-  Dart::vm_isolate()->heap()->WriteProtect(false);
+  if (FLAG_write_protect_vm_isolate) {
+    Dart::vm_isolate()->heap()->WriteProtect(false);
+  }
 }
 
 WritableVMIsolateScope::~WritableVMIsolateScope() {
   ASSERT(Dart::vm_isolate()->heap()->UsedInWords(Heap::kNew) == 0);
-  Dart::vm_isolate()->heap()->WriteProtect(true);
+  if (FLAG_write_protect_vm_isolate) {
+    Dart::vm_isolate()->heap()->WriteProtect(true);
+  }
 }
 
 }  // namespace dart
