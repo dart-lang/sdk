@@ -1845,6 +1845,7 @@ void Isolate::Shutdown() {
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_check_reloaded && is_runnable() && (this != Dart::vm_isolate()) &&
+      !KernelIsolate::IsKernelIsolate(this) &&
       !ServiceIsolate::IsServiceIsolateDescendant(this)) {
     if (!HasAttemptedReload()) {
       FATAL(
