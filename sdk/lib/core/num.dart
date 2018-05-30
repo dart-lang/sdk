@@ -396,7 +396,7 @@ abstract class num implements Comparable<num> {
    * Examples:
    *
    *     1.toStringAsPrecision(2);       // 1.0
-   *     1e15.toStringAsPrecision(3);    // 1.00+15
+   *     1e15.toStringAsPrecision(3);    // 1.00e+15
    *     1234567.toStringAsPrecision(3); // 1.23e+6
    *     1234567.toStringAsPrecision(9); // 1234567.00
    *     12345678901234567890.toStringAsPrecision(20); // 12345678901234567168
