@@ -115,7 +115,7 @@ class HelpCommand extends DebuggerCommand {
   Future<List<String>> complete(List<String> args) {
     var commands = debugger.cmd.matchCommand(args, false);
     var result = commands.map((command) => '${command.fullName} ');
-    return new Future.value(result);
+    return new Future.value(result.toList());
   }
 
   String helpShort =
