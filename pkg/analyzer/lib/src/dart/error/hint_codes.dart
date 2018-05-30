@@ -132,6 +132,22 @@ class HintCode extends ErrorCode {
       correction: "Try removing all but one import of the library.");
 
   /**
+   * Duplicate hidden names.
+   */
+  static const HintCode DUPLICATE_HIDDEN_NAME =
+      const HintCode('DUPLICATE_HIDDEN_NAME', "Duplicate hidden name.",
+          correction: "Try removing the repeated name from the list of hidden "
+              "members.");
+
+  /**
+   * Duplicate shown names.
+   */
+  static const HintCode DUPLICATE_SHOWN_NAME =
+      const HintCode('DUPLICATE_SHOWN_NAME', "Duplicate shown name.",
+          correction: "Try removing the repeated name from the list of shown "
+              "members.");
+
+  /**
    * It is a bad practice for a source file in a package "lib" directory
    * hierarchy to traverse outside that directory hierarchy. For example, a
    * source file in the "lib" directory should not contain a directive such as

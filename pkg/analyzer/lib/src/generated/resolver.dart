@@ -4076,6 +4076,20 @@ class ImportsVerifier {
   final HashMap<ImportDirective, List<SimpleIdentifier>> _unusedShownNamesMap =
       new HashMap<ImportDirective, List<SimpleIdentifier>>();
 
+  /**
+   * A map of names that are hidden more than once.
+   */
+  final HashMap<NamespaceDirective, List<SimpleIdentifier>>
+      _duplicateHiddenNamesMap =
+      new HashMap<NamespaceDirective, List<SimpleIdentifier>>();
+
+  /**
+   * A map of names that are shown more than once.
+   */
+  final HashMap<NamespaceDirective, List<SimpleIdentifier>>
+      _duplicateShownNamesMap =
+      new HashMap<NamespaceDirective, List<SimpleIdentifier>>();
+
   void addImports(CompilationUnit node) {
     for (Directive directive in node.directives) {
       if (directive is ImportDirective) {
@@ -4104,6 +4118,9 @@ class ImportsVerifier {
           }
         }
         _addShownNames(directive);
+      }
+      if (directive is NamespaceDirective) {
+        _addDuplicateShownHiddenNames(directive);
       }
     }
     if (_unusedImports.length > 1) {
@@ -4200,6 +4217,37 @@ class ImportsVerifier {
   }
 
   /**
+   * Report a [HintCode.DUPLICATE_SHOWN_HIDDEN_NAME] hint for each duplicate
+   * shown or hidden name.
+   *
+   * Only call this method after all of the compilation units have been visited
+   * by this visitor.
+   *
+   * @param errorReporter the error reporter used to report the set of
+   *          [HintCode.UNUSED_SHOWN_NAME] hints
+   */
+  void generateDuplicateShownHiddenNameHints(ErrorReporter reporter) {
+    _duplicateHiddenNamesMap.forEach(
+        (NamespaceDirective directive, List<SimpleIdentifier> identifiers) {
+      int length = identifiers.length;
+      for (int i = 0; i < length; i++) {
+        Identifier identifier = identifiers[i];
+        reporter.reportErrorForNode(
+            HintCode.DUPLICATE_HIDDEN_NAME, identifier, [identifier.name]);
+      }
+    });
+    _duplicateShownNamesMap.forEach(
+        (NamespaceDirective directive, List<SimpleIdentifier> identifiers) {
+      int length = identifiers.length;
+      for (int i = 0; i < length; i++) {
+        Identifier identifier = identifiers[i];
+        reporter.reportErrorForNode(
+            HintCode.DUPLICATE_SHOWN_NAME, identifier, [identifier.name]);
+      }
+    });
+  }
+
+  /**
    * Remove elements from [_unusedImports] using the given [usedElements].
    */
   void removeUsedElements(UsedImportedElements usedElements) {
@@ -4256,6 +4304,43 @@ class ImportsVerifier {
         for (SimpleIdentifier name in combinator.shownNames) {
           if (name.staticElement != null) {
             identifiers.add(name);
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Add duplicate shown and hidden names from [directive] into
+   * [_duplicateHiddenNamesMap] and [_duplicateShownNamesMap].
+   */
+  void _addDuplicateShownHiddenNames(NamespaceDirective directive) {
+    if (directive.combinators == null) {
+      return;
+    }
+    for (Combinator combinator in directive.combinators) {
+      // Use a Set to find duplicates in faster than O(n^2) time.
+      Set<Element> identifiers = new Set<Element>();
+      if (combinator is HideCombinator) {
+        for (SimpleIdentifier name in combinator.hiddenNames) {
+          if (name.staticElement != null) {
+            if (!identifiers.add(name.staticElement)) {
+              // [name] is a duplicate.
+              List<SimpleIdentifier> duplicateNames = _duplicateHiddenNamesMap
+                  .putIfAbsent(directive, () => new List<SimpleIdentifier>());
+              duplicateNames.add(name);
+            }
+          }
+        }
+      } else if (combinator is ShowCombinator) {
+        for (SimpleIdentifier name in combinator.shownNames) {
+          if (name.staticElement != null) {
+            if (!identifiers.add(name.staticElement)) {
+              // [name] is a duplicate.
+              List<SimpleIdentifier> duplicateNames = _duplicateShownNamesMap
+                  .putIfAbsent(directive, () => new List<SimpleIdentifier>());
+              duplicateNames.add(name);
+            }
           }
         }
       }
