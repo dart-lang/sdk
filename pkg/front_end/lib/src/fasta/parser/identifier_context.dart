@@ -63,6 +63,10 @@ class IdentifierContext {
   static const formalParameterDeclaration =
       const FormalParameterDeclarationIdentifierContext();
 
+  /// Identifier is a formal parameter being declared as part of a catch block
+  /// in a try/catch/finally statement.
+  static const catchParameter = const CatchParameterIdentifierContext();
+
   /// Identifier is the start of a library name (e.g. `foo` in the directive
   /// 'library foo;`).
   static const libraryName = const LibraryIdentifierContext();

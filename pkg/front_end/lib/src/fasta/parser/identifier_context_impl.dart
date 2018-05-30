@@ -16,6 +16,33 @@ import 'type_info.dart' show isValidTypeReference;
 
 import 'util.dart' show isOneOfOrEof, optional;
 
+/// See [IdentifierContext.catchParameter].
+class CatchParameterIdentifierContext extends IdentifierContext {
+  const CatchParameterIdentifierContext() : super('catchParameter');
+
+  @override
+  Token ensureIdentifier(Token token, Parser parser) {
+    Token identifier = token.next;
+    assert(identifier.kind != IDENTIFIER_TOKEN);
+    if (identifier.isIdentifier) {
+      checkAsyncAwaitYieldAsIdentifier(identifier, parser);
+      return identifier;
+    }
+
+    // Recovery
+    parser.reportRecoverableError(identifier, fasta.messageCatchSyntax);
+    if (looksLikeStartOfNextStatement(identifier) ||
+        isOneOfOrEof(identifier, const [',', ')'])) {
+      return parser.rewriter.insertSyntheticIdentifier(token);
+    } else if (!identifier.isKeywordOrIdentifier) {
+      // When in doubt, consume the token to ensure we make progress
+      // but insert a synthetic identifier to satisfy listeners.
+      return parser.rewriter.insertSyntheticIdentifier(identifier);
+    }
+    return identifier;
+  }
+}
+
 /// See [IdentifierContext.classOrNamedMixinDeclaration].
 class ClassOrNamedMixinIdentifierContext extends IdentifierContext {
   const ClassOrNamedMixinIdentifierContext()
@@ -471,6 +498,7 @@ class LabelDeclarationIdentifierContext extends IdentifierContext {
     Token identifier = token.next;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     if (identifier.isIdentifier) {
+      checkAsyncAwaitYieldAsIdentifier(identifier, parser);
       return identifier;
     }
 
@@ -501,6 +529,7 @@ class LabelReferenceIdentifierContext extends IdentifierContext {
     Token identifier = token.next;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     if (identifier.isIdentifier) {
+      checkAsyncAwaitYieldAsIdentifier(identifier, parser);
       return identifier;
     }
 
@@ -625,6 +654,7 @@ class MetadataReferenceIdentifierContext extends IdentifierContext {
     Token identifier = token.next;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     if (identifier.isIdentifier) {
+      checkAsyncAwaitYieldAsIdentifier(identifier, parser);
       return identifier;
     }
 

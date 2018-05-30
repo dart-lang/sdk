@@ -5466,32 +5466,45 @@ class Parser {
         }
 
         Token exceptionName = openParens.next;
-        if (!exceptionName.isIdentifier) {
-          reportRecoverableError(exceptionName, fasta.messageCatchSyntax);
-          if (!exceptionName.isKeywordOrIdentifier) {
-            exceptionName = new SyntheticStringToken(
-                TokenType.IDENTIFIER, '', exceptionName.charOffset, 0);
-            rewriter.insertTokenAfter(openParens, exceptionName);
-          }
+        if (exceptionName.kind != IDENTIFIER_TOKEN) {
+          exceptionName = IdentifierContext.catchParameter
+              .ensureIdentifier(openParens, this);
         }
 
-        Token commaOrCloseParens = exceptionName.next;
-        if (optional(")", commaOrCloseParens)) {
+        if (optional(")", exceptionName.next)) {
           // OK: `catch (identifier)`.
-        } else if (!optional(",", commaOrCloseParens)) {
-          reportRecoverableError(exceptionName, fasta.messageCatchSyntax);
         } else {
-          comma = commaOrCloseParens;
-          Token traceName = comma.next;
-          if (!traceName.isIdentifier) {
-            reportRecoverableError(exceptionName, fasta.messageCatchSyntax);
-            if (!traceName.isKeywordOrIdentifier) {
-              traceName = new SyntheticStringToken(
-                  TokenType.IDENTIFIER, '', traceName.charOffset, 0);
-              rewriter.insertTokenAfter(comma, traceName);
+          comma = exceptionName.next;
+          if (!optional(",", comma)) {
+            // Recovery
+            if (!exceptionName.isSynthetic) {
+              reportRecoverableError(comma, fasta.messageCatchSyntax);
             }
-          } else if (!optional(")", traceName.next)) {
-            reportRecoverableError(exceptionName, fasta.messageCatchSyntax);
+            if (openParens.endGroup.isSynthetic) {
+              // The scanner did not place the synthetic ')' correctly.
+              rewriter.moveSynthetic(exceptionName, openParens.endGroup);
+              comma = null;
+            } else {
+              comma = rewriter.insertTokenAfter(exceptionName,
+                  new SyntheticToken(TokenType.COMMA, comma.charOffset));
+            }
+          }
+          if (comma != null) {
+            Token traceName = comma.next;
+            if (traceName.kind != IDENTIFIER_TOKEN) {
+              traceName = IdentifierContext.catchParameter
+                  .ensureIdentifier(comma, this);
+            }
+            if (!optional(")", traceName.next)) {
+              // Recovery
+              if (!traceName.isSynthetic) {
+                reportRecoverableError(exceptionName, fasta.messageCatchSyntax);
+              }
+              if (openParens.endGroup.isSynthetic) {
+                // The scanner did not place the synthetic ')' correctly.
+                rewriter.moveSynthetic(traceName, openParens.endGroup);
+              }
+            }
           }
         }
         lastConsumed = parseFormalParameters(catchKeyword, MemberKind.Catch);

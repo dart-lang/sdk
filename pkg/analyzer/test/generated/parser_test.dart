@@ -15720,7 +15720,7 @@ main() {
   void test_parseTryStatement_catch_error_missingCatchTrace() {
     var statement = parseStatement('try {} catch (e,) {}') as TryStatement;
     listener.assertErrors(usingFastaParser
-        ? [expectedError(ParserErrorCode.CATCH_SYNTAX, 14, 1)]
+        ? [expectedError(ParserErrorCode.CATCH_SYNTAX, 16, 1)]
         : [
             expectedError(ParserErrorCode.MISSING_IDENTIFIER, 14, 1),
           ]);
