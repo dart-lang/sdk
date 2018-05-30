@@ -83,6 +83,7 @@ import 'kernel_shadow_ast.dart'
         ShadowLabeledStatement,
         ShadowListLiteral,
         ShadowLoadLibrary,
+        ShadowLogicalExpression,
         ShadowMapLiteral,
         ShadowNot,
         ShadowNullLiteral,
@@ -425,6 +426,14 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   Statement labeledStatement(
           LabelTarget<Statement> target, Statement statement) =>
       statement;
+
+  @override
+  Expression logicalExpression(
+      Expression leftOperand, Token operator, Expression rightOperand) {
+    return new ShadowLogicalExpression(
+        leftOperand, operator.stringValue, rightOperand)
+      ..fileOffset = offsetForToken(operator);
+  }
 
   @override
   Expression notExpression(Expression operand, Token token) {

@@ -414,6 +414,11 @@ class AstBuildingForest
   }
 
   @override
+  Expression logicalExpression(
+          Expression leftOperand, Token operator, Expression rightOperand) =>
+      astFactory.binaryExpression(leftOperand, operator, rightOperand);
+
+  @override
   Object mapEntry(Expression key, Token colon, Expression value) =>
       astFactory.mapLiteralEntry(key, colon, value);
 

@@ -250,6 +250,11 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   Statement labeledStatement(
       LabelTarget<Statement> target, Statement statement);
 
+  /// Return a representation of a logical expression having the [leftOperand],
+  /// [rightOperand] and the [operator] (either `&&` or `||`).
+  Expression logicalExpression(
+      Expression leftOperand, Location operator, Expression rightOperand);
+
   Expression notExpression(Expression operand, Location location);
 
   /// Return a representation of a parenthesized condition consisting of the

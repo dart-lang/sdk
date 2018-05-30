@@ -1037,13 +1037,10 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   void doLogicalExpression(Token token) {
     Expression argument = popForValue();
     Expression receiver = pop();
-    var logicalExpression = new ShadowLogicalExpression(
-        toKernelExpression(receiver),
-        token.stringValue,
-        toKernelExpression(argument))
-      ..fileOffset = offsetForToken(token);
+    Expression logicalExpression =
+        forest.logicalExpression(receiver, token, argument);
     typePromoter.exitLogicalExpression(
-        toKernelExpression(argument), logicalExpression);
+        toKernelExpression(argument), toKernelExpression(logicalExpression));
     push(logicalExpression);
   }
 
