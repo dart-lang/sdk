@@ -48,22 +48,18 @@ import 'package:front_end/src/fasta/messages.dart'
         messageTypedefNotFunction,
         templateDuplicateLabelInSwitchStatement,
         templateExpectedType;
-import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
-    show Builder, Scope;
 import 'package:front_end/src/fasta/quote.dart';
 import 'package:front_end/src/fasta/scanner/token_constants.dart';
-import 'package:front_end/src/fasta/source/scope_listener.dart'
-    show JumpTargetKind, NullValue, ScopeListener;
+import 'package:front_end/src/fasta/source/stack_listener.dart'
+    show NullValue, StackListener;
 import 'package:kernel/ast.dart' show AsyncMarker;
 
 /// A parser listener that builds the analyzer's AST structure.
-class AstBuilder extends ScopeListener {
+class AstBuilder extends StackListener {
   final AstFactory ast = standard.astFactory;
 
   final FastaErrorReporter errorReporter;
   final Uri fileUri;
-  final Builder member;
-
   ScriptTag scriptTag;
   final List<Directive> directives = <Directive>[];
   final List<CompilationUnitMember> declarations = <CompilationUnitMember>[];
@@ -99,17 +95,10 @@ class AstBuilder extends ScopeListener {
 
   bool parseFunctionBodies = true;
 
-  AstBuilder(ErrorReporter errorReporter, this.fileUri, this.member,
-      Scope scope, this.isFullAst,
+  AstBuilder(ErrorReporter errorReporter, this.fileUri, this.isFullAst,
       [Uri uri])
       : this.errorReporter = new FastaErrorReporter(errorReporter),
-        uri = uri ?? fileUri,
-        super(scope);
-
-  createJumpTarget(JumpTargetKind kind, int charOffset) {
-    // TODO(ahe): Implement jump targets.
-    return null;
-  }
+        uri = uri ?? fileUri;
 
   void beginLiteralString(Token literalString) {
     assert(identical(literalString.kind, STRING_TOKEN));
@@ -392,9 +381,6 @@ class AstBuilder extends ScopeListener {
     debugEvent("BlockFunctionBody");
 
     List<Statement> statements = popTypedList(count);
-    if (leftBracket != null) {
-      exitLocalScope();
-    }
     Block block = ast.block(leftBracket, statements, rightBracket);
     Token star = pop();
     Token asyncKeyword = pop();
@@ -645,8 +631,6 @@ class AstBuilder extends ScopeListener {
 
     Statement body = pop();
     ParenthesizedExpression condition = pop();
-    exitContinueTarget();
-    exitBreakTarget();
     push(ast.whileStatement(whileKeyword, condition.leftParenthesis,
         condition.expression, condition.rightParenthesis, body));
   }
@@ -729,7 +713,6 @@ class AstBuilder extends ScopeListener {
     debugEvent("Block");
 
     List<Statement> statements = popTypedList(count) ?? <Statement>[];
-    exitLocalScope();
     push(ast.block(leftBracket, statements, rightBracket));
   }
 
@@ -750,9 +733,6 @@ class AstBuilder extends ScopeListener {
     List<Expression> updates = popTypedList(updateExpressionCount);
     Statement conditionStatement = pop();
     Object initializerPart = pop();
-    exitLocalScope();
-    exitContinueTarget();
-    exitBreakTarget();
 
     VariableDeclarationList variableList;
     Expression initializer;
@@ -1094,9 +1074,6 @@ class AstBuilder extends ScopeListener {
     Statement body = pop();
     Expression iterator = pop();
     Object variableOrDeclaration = pop();
-    exitLocalScope();
-    exitContinueTarget();
-    exitBreakTarget();
     if (variableOrDeclaration is VariableDeclarationStatement) {
       VariableDeclarationList variableList = variableOrDeclaration.variables;
       push(ast.forEachStatementWithDeclaration(
@@ -1273,8 +1250,6 @@ class AstBuilder extends ScopeListener {
     debugEvent("SwitchBlock");
 
     List<List<SwitchMember>> membersList = popTypedList(caseCount);
-    exitBreakTarget();
-    exitLocalScope();
     List<SwitchMember> members =
         membersList?.expand((members) => members)?.toList() ?? <SwitchMember>[];
 
@@ -1677,8 +1652,6 @@ class AstBuilder extends ScopeListener {
 
     ParenthesizedExpression condition = pop();
     Statement body = pop();
-    exitContinueTarget();
-    exitBreakTarget();
     push(ast.doStatement(
         doKeyword,
         body,
@@ -2552,12 +2525,6 @@ class AstBuilder extends ScopeListener {
     push(popTypedList<Annotation>(count) ?? NullValue.Metadata);
   }
 
-  @override
-  void printEvent(String name) {
-    // TODO(scheglov): Call of super is commented out to prevent spamming.
-//    super.printEvent(name);
-  }
-
   ParameterKind _toAnalyzerParameterKind(FormalParameterKind type) {
     if (type == FormalParameterKind.optionalPositional) {
       return ParameterKind.POSITIONAL;
@@ -2998,6 +2965,39 @@ class AstBuilder extends ScopeListener {
     stack.arrayLength -= count;
 
     return tailList;
+  }
+
+  @override
+  void exitLocalScope() {}
+
+  @override
+  void endDoWhileStatementBody(Token token) {
+    debugEvent("endDoWhileStatementBody");
+  }
+
+  @override
+  void endForStatementBody(Token token) {
+    debugEvent("endForStatementBody");
+  }
+
+  @override
+  void endForInBody(Token token) {
+    debugEvent("endForInBody");
+  }
+
+  @override
+  void endThenStatement(Token token) {
+    debugEvent("endThenStatement");
+  }
+
+  @override
+  void endWhileStatementBody(Token token) {
+    debugEvent("endWhileStatementBody");
+  }
+
+  @override
+  void endElseStatement(Token token) {
+    debugEvent("endElseStatement");
   }
 }
 

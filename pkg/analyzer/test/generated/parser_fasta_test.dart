@@ -11,7 +11,6 @@ import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/string_source.dart';
-import 'package:front_end/src/fasta/kernel/kernel_builder.dart';
 import 'package:front_end/src/fasta/scanner/error_token.dart' show ErrorToken;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:test/test.dart';
@@ -39,16 +38,6 @@ main() {
  * Type of the "parse..." methods defined in the Fasta parser.
  */
 typedef analyzer.Token ParseFunction(analyzer.Token token);
-
-/**
- * Proxy implementation of [Builder] used by Fasta parser tests.
- *
- * All undeclared identifiers are presumed to resolve via an instance of this
- * class.
- */
-class BuilderProxy implements Builder {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
 
 @reflectiveTest
 class ClassMemberParserTest_Fasta extends FastaParserTestCase
@@ -1133,24 +1122,21 @@ class ParserProxy extends analyzer.ParserAdapter {
       {bool allowNativeClause: false,
       bool enableGenericMethodComments: false,
       int expectedEndOffset}) {
-    var member = new BuilderProxy();
-    var scope = new ScopeProxy();
     TestSource source = new TestSource();
     var errorListener = new GatheringErrorListener(checkRanges: true);
     var errorReporter = new ErrorReporter(errorListener, source);
-    return new ParserProxy._(
-        firstToken, errorReporter, null, member, scope, errorListener,
+    return new ParserProxy._(firstToken, errorReporter, null, errorListener,
         allowNativeClause: allowNativeClause,
         enableGenericMethodComments: enableGenericMethodComments,
         expectedEndOffset: expectedEndOffset);
   }
 
   ParserProxy._(analyzer.Token firstToken, ErrorReporter errorReporter,
-      Uri fileUri, Builder member, Scope scope, this._errorListener,
+      Uri fileUri, this._errorListener,
       {bool allowNativeClause: false,
       bool enableGenericMethodComments: false,
       this.expectedEndOffset})
-      : super(firstToken, errorReporter, fileUri, member, scope,
+      : super(firstToken, errorReporter, fileUri,
             allowNativeClause: allowNativeClause,
             enableGenericMethodComments: enableGenericMethodComments) {
     _eventListener = new ForwardingTestListener(astBuilder);
@@ -1333,34 +1319,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
       ParserErrorCode.MISSING_IDENTIFIER
     ]);
   }
-}
-
-/**
- * Proxy implementation of [Scope] used by Fasta parser tests.
- *
- * Any name lookup request is satisfied by creating an instance of
- * [BuilderProxy].
- */
-class ScopeProxy implements Scope {
-  final _locals = <String, Builder>{};
-
-  @override
-  Scope createNestedScope(String debugName, {bool isModifiable: true}) {
-    return new Scope.nested(this, debugName, isModifiable: isModifiable);
-  }
-
-  @override
-  declare(String name, Builder builder, Uri fileUri) {
-    _locals[name] = builder;
-    return null;
-  }
-
-  @override
-  Builder lookup(String name, int charOffset, Uri fileUri,
-          {bool isInstanceScope: true}) =>
-      _locals.putIfAbsent(name, () => new BuilderProxy());
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 @reflectiveTest

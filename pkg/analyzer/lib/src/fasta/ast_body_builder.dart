@@ -38,10 +38,4 @@ class AstBodyBuilder extends BodyBuilder<Expression, Statement, dynamic> {
   void enterThenForTypePromotion(Expression condition) {
     // Do nothing.
   }
-
-  @override
-  void printEvent(String name) {
-    // TODO(scheglov): Call of super is commented out to prevent spamming.
-//    super.printEvent(name);
-  }
 }

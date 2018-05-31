@@ -72,13 +72,9 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 export 'package:testing/testing.dart' show Chain, runMe;
 
-import 'analyzer_target.dart' show AnalyzerTarget;
-
 const String STRONG_MODE = " strong mode ";
 
 const String ENABLE_FULL_COMPILE = " full compile ";
-
-const String AST_KIND_INDEX = " AST kind index ";
 
 const String EXPECTATIONS = '''
 [
@@ -95,11 +91,6 @@ const String EXPECTATIONS = '''
 
 String generateExpectationName(bool strongMode) {
   return strongMode ? "strong" : "direct";
-}
-
-enum AstKind {
-  Analyzer,
-  Kernel,
 }
 
 class FastaContext extends ChainContext {
@@ -128,38 +119,34 @@ class FastaContext extends ChainContext {
       bool updateComments,
       bool skipVm,
       this.uriTranslator,
-      bool fullCompile,
-      AstKind astKind)
+      bool fullCompile)
       : steps = <Step>[
-          new Outline(fullCompile, astKind, strongMode,
-              updateComments: updateComments),
+          new Outline(fullCompile, strongMode, updateComments: updateComments),
           const Print(),
           new Verify(fullCompile)
         ] {
     verificationError = expectationSet["VerificationError"];
-    if (astKind != AstKind.Analyzer) {
+    if (!ignoreExpectations) {
+      steps.add(new MatchExpectation(
+          fullCompile
+              ? ".${generateExpectationName(strongMode)}.expect"
+              : ".outline.expect",
+          updateExpectations: updateExpectations));
+    }
+    if (strongMode) {
+      steps.add(const TypeCheck());
+    }
+    if (fullCompile && !skipVm) {
+      steps.add(const Transform());
       if (!ignoreExpectations) {
         steps.add(new MatchExpectation(
             fullCompile
-                ? ".${generateExpectationName(strongMode)}.expect"
-                : ".outline.expect",
+                ? ".${generateExpectationName(strongMode)}.transformed.expect"
+                : ".outline.transformed.expect",
             updateExpectations: updateExpectations));
       }
-      if (strongMode) {
-        steps.add(const TypeCheck());
-      }
-      if (fullCompile && !skipVm) {
-        steps.add(const Transform());
-        if (!ignoreExpectations) {
-          steps.add(new MatchExpectation(
-              fullCompile
-                  ? ".${generateExpectationName(strongMode)}.transformed.expect"
-                  : ".outline.transformed.expect",
-              updateExpectations: updateExpectations));
-        }
-        steps.add(const WriteDill());
-        steps.add(const Run());
-      }
+      steps.add(const WriteDill());
+      steps.add(const Run());
     }
   }
 
@@ -211,9 +198,6 @@ class FastaContext extends ChainContext {
     if (platformBinaries != null && !platformBinaries.endsWith('/')) {
       platformBinaries = '$platformBinaries/';
     }
-    String astKindString = environment[AST_KIND_INDEX];
-    AstKind astKind =
-        astKindString == null ? null : AstKind.values[int.parse(astKindString)];
     return new FastaContext(
         vm,
         strongMode,
@@ -226,8 +210,7 @@ class FastaContext extends ChainContext {
         updateComments,
         skipVm,
         uriTranslator,
-        environment.containsKey(ENABLE_FULL_COMPILE),
-        astKind);
+        environment.containsKey(ENABLE_FULL_COMPILE));
   }
 }
 
@@ -265,17 +248,15 @@ class Run extends Step<Uri, int, FastaContext> {
 class Outline extends Step<TestDescription, Component, FastaContext> {
   final bool fullCompile;
 
-  final AstKind astKind;
-
   final bool strongMode;
 
-  const Outline(this.fullCompile, this.astKind, this.strongMode,
+  const Outline(this.fullCompile, this.strongMode,
       {this.updateComments: false});
 
   final bool updateComments;
 
   String get name {
-    return fullCompile ? "${astKind} compile" : "outline";
+    return fullCompile ? "compile" : "outline";
   }
 
   bool get isCompiler => fullCompile;
@@ -297,10 +278,8 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
       UriTranslatorImpl uriTranslator = new UriTranslatorImpl(
           const TargetLibrariesSpecification('vm'),
           context.uriTranslator.packages);
-      KernelTarget sourceTarget = astKind == AstKind.Analyzer
-          ? new AnalyzerTarget(dillTarget, uriTranslator, strongMode)
-          : new KernelTarget(
-              StandardFileSystem.instance, false, dillTarget, uriTranslator);
+      KernelTarget sourceTarget = new KernelTarget(
+          StandardFileSystem.instance, false, dillTarget, uriTranslator);
 
       Component p;
       try {

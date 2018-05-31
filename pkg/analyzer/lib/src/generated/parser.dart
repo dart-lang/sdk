@@ -24,7 +24,6 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:front_end/src/fasta/kernel/kernel_builder.dart';
 import 'package:front_end/src/fasta/parser/identifier_context.dart' as fasta;
 import 'package:front_end/src/fasta/parser/member_kind.dart' as fasta;
 import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
