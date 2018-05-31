@@ -5480,6 +5480,17 @@ class Parser {
             if (!exceptionName.isSynthetic) {
               reportRecoverableError(comma, fasta.messageCatchSyntax);
             }
+            // TODO(danrubel): Consider inserting synthetic identifier if
+            // exceptionName is a non-synthetic identifier followed by `.`.
+            // Then this
+            //   } catch (
+            //   e.f();
+            // will recover to
+            //   } catch (_s_) {}
+            //   e.f();
+            // rather than
+            //   } catch (e) {}
+            //   _s_.f();
             if (openParens.endGroup.isSynthetic) {
               // The scanner did not place the synthetic ')' correctly.
               rewriter.moveSynthetic(exceptionName, openParens.endGroup);

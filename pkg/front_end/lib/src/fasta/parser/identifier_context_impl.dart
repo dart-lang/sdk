@@ -136,6 +136,7 @@ class ConstructorReferenceIdentifierContext extends IdentifierContext {
     Token identifier = token.next;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     if (identifier.isIdentifier) {
+      checkAsyncAwaitYieldAsIdentifier(identifier, parser);
       return identifier;
     }
 
@@ -369,6 +370,7 @@ class FormalParameterDeclarationIdentifierContext extends IdentifierContext {
     Token identifier = token.next;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     if (identifier.isIdentifier) {
+      checkAsyncAwaitYieldAsIdentifier(identifier, parser);
       return identifier;
     }
 
@@ -732,6 +734,7 @@ class NamedArgumentReferenceIdentifierContext extends IdentifierContext {
     Token identifier = token.next;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     if (identifier.isIdentifier) {
+      checkAsyncAwaitYieldAsIdentifier(identifier, parser);
       return identifier;
     }
 
@@ -902,18 +905,25 @@ class TypeVariableDeclarationIdentifierContext extends IdentifierContext {
     }
 
     // Recovery
-    parser.reportRecoverableErrorWithToken(
-        identifier, fasta.templateExpectedIdentifier);
     const followingValues = const ['<', '>', ';', '}', 'extends', 'super'];
     if (looksLikeStartOfNextTopLevelDeclaration(identifier) ||
         looksLikeStartOfNextClassMember(identifier) ||
         looksLikeStartOfNextStatement(identifier) ||
         isOneOfOrEof(identifier, followingValues)) {
+      parser.reportRecoverableErrorWithToken(
+          identifier, fasta.templateExpectedIdentifier);
       identifier = parser.rewriter.insertSyntheticIdentifier(token);
+    } else if (identifier.type.isBuiltIn) {
+      parser.reportRecoverableErrorWithToken(
+          identifier, fasta.templateBuiltInIdentifierInDeclaration);
     } else {
-      // When in doubt, consume the token to ensure we make progress
-      // but insert a synthetic identifier to satisfy listeners.
-      identifier = parser.rewriter.insertSyntheticIdentifier(identifier);
+      parser.reportRecoverableErrorWithToken(
+          identifier, fasta.templateExpectedIdentifier);
+      if (!identifier.isKeywordOrIdentifier) {
+        // When in doubt, consume the token to ensure we make progress
+        // but insert a synthetic identifier to satisfy listeners.
+        identifier = parser.rewriter.insertSyntheticIdentifier(identifier);
+      }
     }
     return identifier;
   }

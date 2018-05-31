@@ -628,7 +628,11 @@ class A {
   A(static this.x);
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE]);
+    assertErrors(
+        source,
+        usingFastaParser
+            ? [ParserErrorCode.EXTRANEOUS_MODIFIER]
+            : [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE]);
     verify([source]);
   }
 
@@ -637,7 +641,11 @@ class A {
 f(static x) {
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE]);
+    assertErrors(
+        source,
+        usingFastaParser
+            ? [ParserErrorCode.EXTRANEOUS_MODIFIER]
+            : [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE]);
     verify([source]);
   }
 
@@ -1350,14 +1358,28 @@ class A {
   A(const this.x) {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_FORMAL_PARAMETER]);
+    assertErrors(
+        source,
+        usingFastaParser
+            ? [
+                CompileTimeErrorCode.CONST_FORMAL_PARAMETER,
+                ParserErrorCode.EXTRANEOUS_MODIFIER
+              ]
+            : [CompileTimeErrorCode.CONST_FORMAL_PARAMETER]);
     verify([source]);
   }
 
   test_constFormalParameter_simpleFormalParameter() async {
     Source source = addSource("f(const x) {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_FORMAL_PARAMETER]);
+    assertErrors(
+        source,
+        usingFastaParser
+            ? [
+                CompileTimeErrorCode.CONST_FORMAL_PARAMETER,
+                ParserErrorCode.EXTRANEOUS_MODIFIER
+              ]
+            : [CompileTimeErrorCode.CONST_FORMAL_PARAMETER]);
     verify([source]);
   }
 
@@ -1706,7 +1728,13 @@ typedef F = int Function([Map<String, String> m = const {}]);
     Source source = addSource("typedef F([x = 0]);");
     await computeAnalysisResult(source);
     assertErrors(
-        source, [CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS]);
+        source,
+        usingFastaParser
+            ? [
+                CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS,
+                ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE
+              ]
+            : [CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS]);
     verify([source]);
   }
 
@@ -1714,23 +1742,41 @@ typedef F = int Function([Map<String, String> m = const {}]);
     Source source = addSource("typedef F([x = 0]);");
     await computeAnalysisResult(source);
     assertErrors(
-        source, [CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS]);
+        source,
+        usingFastaParser
+            ? [
+                CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS,
+                ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE
+              ]
+            : [CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS]);
     verify([source]);
   }
 
   test_defaultValueInFunctionTypedParameter_named() async {
     Source source = addSource("f(g({p: null})) {}");
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER]);
+    assertErrors(
+        source,
+        usingFastaParser
+            ? [
+                CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER,
+                ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE
+              ]
+            : [CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER]);
     verify([source]);
   }
 
   test_defaultValueInFunctionTypedParameter_optional() async {
     Source source = addSource("f(g([p = null])) {}");
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER]);
+    assertErrors(
+        source,
+        usingFastaParser
+            ? [
+                CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER,
+                ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE
+              ]
+            : [CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER]);
     verify([source]);
   }
 
@@ -3589,7 +3635,16 @@ class A {
   set x(v) async {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER]);
+    // TODO(danrubel): Investigate why error message is duplicated when
+    // using fasta parser.
+    assertErrors(
+        source,
+        usingFastaParser
+            ? [
+                CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
+                CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER
+              ]
+            : [CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER]);
     verify([source]);
   }
 
@@ -3599,7 +3654,14 @@ class A {
   set x(v) async* {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER]);
+    assertErrors(
+        source,
+        usingFastaParser
+            ? [
+                CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
+                CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER
+              ]
+            : [CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER]);
     verify([source]);
   }
 
@@ -3609,28 +3671,56 @@ class A {
   set x(v) sync* {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER]);
+    assertErrors(
+        source,
+        usingFastaParser
+            ? [
+                CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
+                CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER
+              ]
+            : [CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER]);
     verify([source]);
   }
 
   test_invalidModifierOnSetter_topLevel_async() async {
     Source source = addSource("set x(v) async {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER]);
+    assertErrors(
+        source,
+        usingFastaParser
+            ? [
+                CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
+                CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER
+              ]
+            : [CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER]);
     verify([source]);
   }
 
   test_invalidModifierOnSetter_topLevel_asyncStar() async {
     Source source = addSource("set x(v) async* {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER]);
+    assertErrors(
+        source,
+        usingFastaParser
+            ? [
+                CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
+                CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER
+              ]
+            : [CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER]);
     verify([source]);
   }
 
   test_invalidModifierOnSetter_topLevel_syncStar() async {
     Source source = addSource("set x(v) sync* {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER]);
+    assertErrors(
+        source,
+        usingFastaParser
+            ? [
+                CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
+                CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER
+              ]
+            : [CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER]);
     verify([source]);
   }
 

@@ -1603,7 +1603,6 @@ class AstBuilder extends ScopeListener {
     List<Configuration> configurations = pop();
     StringLiteral uri = pop();
     List<Annotation> metadata = pop();
-    assert(metadata == null); // TODO(paulberry): fix.
     Comment comment = _findComment(metadata, importKeyword);
 
     directives.add(ast.importDirective(
@@ -1654,7 +1653,6 @@ class AstBuilder extends ScopeListener {
     List<Configuration> configurations = pop();
     StringLiteral uri = pop();
     List<Annotation> metadata = pop();
-    assert(metadata == null);
     Comment comment = _findComment(metadata, exportKeyword);
     directives.add(ast.exportDirective(comment, metadata, exportKeyword, uri,
         configurations, combinators, semicolon));
@@ -2155,6 +2153,7 @@ class AstBuilder extends ScopeListener {
       pop(); // separator before constructor initializers
     }
     FormalParameterList parameters = pop();
+    checkFieldFormalParameters(parameters);
     SimpleIdentifier name = pop();
     TypeAnnotation returnType = pop();
     TypeParameterList typeParameters = pop();
@@ -2342,15 +2341,7 @@ class AstBuilder extends ScopeListener {
         handleRecoverableError(
             messageConstMethod, modifiers.constKeyword, modifiers.constKeyword);
       }
-      if (parameters?.parameters != null) {
-        parameters.parameters.forEach((FormalParameter param) {
-          if (param is FieldFormalParameter) {
-            // This error is reported in the BodyBuilder.endFormalParameter.
-            handleRecoverableError(messageFieldInitializerOutsideConstructor,
-                param.thisKeyword, param.thisKeyword);
-          }
-        });
-      }
+      checkFieldFormalParameters(parameters);
       classDeclaration.members.add(ast.methodDeclaration(
           comment,
           metadata,
@@ -2379,6 +2370,18 @@ class AstBuilder extends ScopeListener {
       constructor(name.prefix, name.period, name.identifier);
     } else {
       throw new UnimplementedError();
+    }
+  }
+
+  void checkFieldFormalParameters(FormalParameterList parameters) {
+    if (parameters?.parameters != null) {
+      parameters.parameters.forEach((FormalParameter param) {
+        if (param is FieldFormalParameter) {
+          // This error is reported in the BodyBuilder.endFormalParameter.
+          handleRecoverableError(messageFieldInitializerOutsideConstructor,
+              param.thisKeyword, param.thisKeyword);
+        }
+      });
     }
   }
 
