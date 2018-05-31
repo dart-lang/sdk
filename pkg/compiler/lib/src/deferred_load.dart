@@ -522,8 +522,13 @@ abstract class DeferredLoadTask extends CompilerTask {
     for (Local localFunction in dependencies.localFunctions) {
       // Local function are not updated recursively because the dependencies are
       // already visited as dependencies of the enclosing member, so we just
-      // assign the [newSet] to each local function.
-      _localFunctionToSet[localFunction] = newSet;
+      // assign the [newSet] to each local function that is not already assigned
+      // to the main output unit.
+      ImportSet currentSet = _localFunctionToSet[localFunction];
+      if (currentSet != newSet && currentSet != importSets.mainSet) {
+        assert(currentSet == oldSet);
+        _localFunctionToSet[localFunction] = newSet;
+      }
     }
 
     for (ConstantValue dependency in dependencies.constants) {
