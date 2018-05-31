@@ -16,12 +16,12 @@ import 'package:kernel/ast.dart'
         ProcedureKind,
         ReturnStatement;
 
-import 'kernel_builder.dart' show Builder, KernelLibraryBuilder;
+import 'kernel_builder.dart' show Declaration, KernelLibraryBuilder;
 
 import 'forest.dart' show Forest;
 
 /// Builder to represent the `deferLibrary.loadLibrary` calls and tear-offs.
-class LoadLibraryBuilder extends Builder {
+class LoadLibraryBuilder extends Declaration {
   final KernelLibraryBuilder parent;
 
   final LibraryDependency importDependency;
@@ -33,8 +33,9 @@ class LoadLibraryBuilder extends Builder {
   /// null, no tear-offs were seen in the code and no method is generated.
   Member tearoff;
 
-  LoadLibraryBuilder(this.parent, this.importDependency, this.charOffset)
-      : super(parent, charOffset, parent.fileUri);
+  LoadLibraryBuilder(this.parent, this.importDependency, this.charOffset);
+
+  Uri get fileUri => parent.fileUri;
 
   LoadLibrary createLoadLibrary(int charOffset, Forest forest) {
     return forest.loadLibrary(importDependency)..fileOffset = charOffset;

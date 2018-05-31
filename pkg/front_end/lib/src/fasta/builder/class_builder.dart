@@ -8,8 +8,8 @@ import '../problems.dart' show internalProblem;
 
 import 'builder.dart'
     show
-        Builder,
         ConstructorReferenceBuilder,
+        Declaration,
         LibraryBuilder,
         MemberBuilder,
         MetadataBuilder,
@@ -90,19 +90,19 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
   }
 
   /// Used to lookup a static member of this class.
-  Builder findStaticBuilder(
+  Declaration findStaticBuilder(
       String name, int charOffset, Uri fileUri, LibraryBuilder accessingLibrary,
       {bool isSetter: false}) {
     if (accessingLibrary.origin != library.origin && name.startsWith("_")) {
       return null;
     }
-    Builder builder = isSetter
+    Declaration declaration = isSetter
         ? scope.lookupSetter(name, charOffset, fileUri, isInstanceScope: false)
         : scope.lookup(name, charOffset, fileUri, isInstanceScope: false);
-    return builder;
+    return declaration;
   }
 
-  Builder findConstructorOrFactory(
+  Declaration findConstructorOrFactory(
       String name, int charOffset, Uri uri, LibraryBuilder accessingLibrary) {
     if (accessingLibrary.origin != library.origin && name.startsWith("_")) {
       return null;
@@ -137,14 +137,14 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
     Map<TypeVariableBuilder, TypeBuilder> substitutionMap;
     List arguments;
     List variables;
-    Builder builder;
+    Declaration declaration;
 
     /// If [application] is mixing in [superclass] directly or via other named
     /// mixin applications, return it.
     NamedTypeBuilder findSuperclass(MixinApplicationBuilder application) {
       for (TypeBuilder t in application.mixins) {
         if (t is NamedTypeBuilder) {
-          if (t.builder == superclass) return t;
+          if (t.declaration == superclass) return t;
         } else if (t is MixinApplicationBuilder) {
           NamedTypeBuilder s = findSuperclass(t);
           if (s != null) return s;
@@ -154,16 +154,16 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
     }
 
     void handleNamedTypeBuilder(NamedTypeBuilder t) {
-      builder = t.builder;
+      declaration = t.declaration;
       arguments = t.arguments ?? const [];
-      if (builder is ClassBuilder) {
-        ClassBuilder cls = builder;
+      if (declaration is ClassBuilder) {
+        ClassBuilder cls = declaration;
         variables = cls.typeVariables;
         supertype = cls.supertype;
       }
     }
 
-    while (builder != superclass) {
+    while (declaration != superclass) {
       variables = null;
       if (supertype is NamedTypeBuilder) {
         handleNamedTypeBuilder(supertype);

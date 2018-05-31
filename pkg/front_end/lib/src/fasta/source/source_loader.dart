@@ -34,8 +34,8 @@ import '../../base/instrumentation.dart'
 
 import '../builder/builder.dart'
     show
-        Builder,
         ClassBuilder,
+        Declaration,
         EnumBuilder,
         LibraryBuilder,
         NamedTypeBuilder,
@@ -223,9 +223,10 @@ class SourceLoader<L> extends Loader<L> {
     if (token == null) return null;
     DietListener dietListener = createDietListener(library);
 
-    Builder parent = library;
+    Declaration parent = library;
     if (enclosingClass != null) {
-      Builder cls = dietListener.memberScope.lookup(enclosingClass, -1, null);
+      Declaration cls =
+          dietListener.memberScope.lookup(enclosingClass, -1, null);
       if (cls is ClassBuilder) {
         parent = cls;
         dietListener
@@ -304,7 +305,7 @@ class SourceLoader<L> extends Loader<L> {
       wasChanged = false;
       for (SourceLibraryBuilder exported in both) {
         for (Export export in exported.exporters) {
-          exported.exportScope.forEach((String name, Builder member) {
+          exported.exportScope.forEach((String name, Declaration member) {
             if (export.addToExportScope(name, member)) {
               wasChanged = true;
             }
@@ -333,15 +334,15 @@ class SourceLoader<L> extends Loader<L> {
     // TODO(sigmund): should be `covarint SourceLibraryBuilder`.
     builders.forEach((Uri uri, dynamic l) {
       SourceLibraryBuilder library = l;
-      Set<Builder> members = new Set<Builder>();
-      library.forEach((String name, Builder member) {
+      Set<Declaration> members = new Set<Declaration>();
+      library.forEach((String name, Declaration member) {
         while (member != null) {
           members.add(member);
           member = member.next;
         }
       });
       List<String> exports = <String>[];
-      library.exportScope.forEach((String name, Builder member) {
+      library.exportScope.forEach((String name, Declaration member) {
         while (member != null) {
           if (!members.contains(member)) {
             exports.add(name);
@@ -553,10 +554,11 @@ class SourceLoader<L> extends Loader<L> {
       if (mixedInType != null) {
         bool isClassBuilder = false;
         if (mixedInType is NamedTypeBuilder) {
-          var builder = mixedInType.builder;
+          var builder = mixedInType.declaration;
           if (builder is ClassBuilder) {
             isClassBuilder = true;
-            for (Builder constructory in builder.constructors.local.values) {
+            for (Declaration constructory
+                in builder.constructors.local.values) {
               if (constructory.isConstructor && !constructory.isSynthetic) {
                 cls.addCompileTimeError(
                     templateIllegalMixinDueToConstructors

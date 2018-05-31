@@ -321,9 +321,9 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     Scope outerSwitchScope = pop();
     if (switchScope.unclaimedForwardDeclarations != null) {
       switchScope.unclaimedForwardDeclarations
-          .forEach((String name, Builder builder) {
+          .forEach((String name, Declaration declaration) {
         if (outerSwitchScope == null) {
-          JumpTarget target = builder;
+          JumpTarget target = declaration;
           for (kernel.Statement statement in target.users) {
             statement.parent.replaceChild(
                 statement,
@@ -331,7 +331,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
                     fasta.templateLabelNotFound.withArguments(name)));
           }
         } else {
-          outerSwitchScope.forwardDeclareLabel(name, builder);
+          outerSwitchScope.forwardDeclareLabel(name, declaration);
         }
       });
     }
@@ -360,7 +360,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
 
   void declareVariable(Object variable, Scope scope) {
     String name = forest.getVariableDeclarationName(variable);
-    Builder existing = scope.local[name];
+    Declaration existing = scope.local[name];
     if (existing != null) {
       // This reports an error for duplicated declarations in the same scope:
       // `{ var x; var x; }`
@@ -1291,7 +1291,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         // objects directly.
         var supertype = builder.supertype;
         if (supertype is NamedTypeBuilder) {
-          var builder = supertype.builder;
+          var builder = supertype.declaration;
           if (builder is ClassBuilder) return builder;
         }
         return null;
@@ -1350,20 +1350,23 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   scopeLookup(Scope scope, String name, Token token,
       {bool isQualified: false, PrefixBuilder prefix}) {
     int charOffset = offsetForToken(token);
-    Builder builder = scope.lookup(name, charOffset, uri);
-    if (builder == null && prefix == null && (classBuilder?.isPatch ?? false)) {
+    Declaration declaration = scope.lookup(name, charOffset, uri);
+    if (declaration == null &&
+        prefix == null &&
+        (classBuilder?.isPatch ?? false)) {
       // The scope of a patched method includes the origin class.
-      builder =
+      declaration =
           classBuilder.origin.findStaticBuilder(name, charOffset, uri, library);
     }
-    if (builder != null && member.isField && builder.isInstanceMember) {
+    if (declaration != null && member.isField && declaration.isInstanceMember) {
       return new IncompleteErrorGenerator(this, token,
           fasta.templateThisAccessInFieldInitializer.withArguments(name));
     }
-    if (builder == null || (!isInstanceContext && builder.isInstanceMember)) {
+    if (declaration == null ||
+        (!isInstanceContext && declaration.isInstanceMember)) {
       Name n = new Name(name, library.library);
       if (!isQualified && isInstanceContext) {
-        assert(builder == null);
+        assert(declaration == null);
         if (constantContext != ConstantContext.none || member.isField) {
           return new UnresolvedNameGenerator(this, token, n);
         }
@@ -1377,23 +1380,23 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       } else {
         return new UnresolvedNameGenerator(this, token, n);
       }
-    } else if (builder.isTypeDeclaration) {
+    } else if (declaration.isTypeDeclaration) {
       if (constantContext != ConstantContext.none &&
-          builder.isTypeVariable &&
+          declaration.isTypeVariable &&
           !member.isConstructor) {
         deprecated_addCompileTimeError(
             charOffset, "Not a constant expression.");
       }
       TypeUseGenerator<Expression, Statement, Arguments> generator =
           new TypeUseGenerator<Expression, Statement, Arguments>(
-              this, token, prefix, charOffset, builder, name);
+              this, token, prefix, charOffset, declaration, name);
       return (prefix?.deferred == true)
           ? new DeferredAccessGenerator<Expression, Statement, Arguments>(
               this, token, prefix, generator)
           : generator;
-    } else if (builder.isLocal) {
+    } else if (declaration.isLocal) {
       if (constantContext != ConstantContext.none &&
-          !builder.isConst &&
+          !declaration.isConst &&
           !member.isConstructor) {
         deprecated_addCompileTimeError(
             charOffset, "Not a constant expression.");
@@ -1402,21 +1405,21 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       // VariableDeclaration being final. See
       // [ProcedureBuilder.computeFormalParameterInitializerScope]. If that
       // wasn't the case, we could always use [VariableUseGenerator].
-      if (builder.isFinal) {
-        var fact =
-            typePromoter.getFactForAccess(builder.target, functionNestingLevel);
+      if (declaration.isFinal) {
+        var fact = typePromoter.getFactForAccess(
+            declaration.target, functionNestingLevel);
         var scope = typePromoter.currentScope;
         return new ReadOnlyAccessGenerator<Expression, Statement, Arguments>(
             this,
             token,
-            toExpression(new ShadowVariableGet(builder.target, fact, scope)
+            toExpression(new ShadowVariableGet(declaration.target, fact, scope)
               ..fileOffset = charOffset),
             name);
       } else {
         return new VariableUseGenerator<Expression, Statement, Arguments>(
-            this, token, builder.target);
+            this, token, declaration.target);
       }
-    } else if (builder.isInstanceMember) {
+    } else if (declaration.isInstanceMember) {
       if (constantContext != ConstantContext.none &&
           !inInitializer &&
           // TODO(ahe): This is a hack because Fasta sets up the scope
@@ -1430,26 +1433,26 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       Name n = new Name(name, library.library);
       Member getter;
       Member setter;
-      if (builder is AccessErrorBuilder) {
-        setter = builder.parent.target;
+      if (declaration is AccessErrorBuilder) {
+        setter = declaration.parent.target;
         getter = lookupInstanceMember(n);
       } else {
-        getter = builder.target;
+        getter = declaration.target;
         setter = lookupInstanceMember(n, isSetter: true);
       }
       return new ThisPropertyAccessGenerator<Expression, Statement, Arguments>(
           this, token, n, getter, setter);
-    } else if (builder.isRegularMethod) {
-      assert(builder.isStatic || builder.isTopLevel);
+    } else if (declaration.isRegularMethod) {
+      assert(declaration.isStatic || declaration.isTopLevel);
       StaticAccessGenerator<Expression, Statement, Arguments> generator =
           new StaticAccessGenerator<Expression, Statement, Arguments>(
-              this, token, builder.target, null);
+              this, token, declaration.target, null);
       return (prefix?.deferred == true)
           ? new DeferredAccessGenerator<Expression, Statement, Arguments>(
               this, token, prefix, generator)
           : generator;
-    } else if (builder is PrefixBuilder) {
-      if (constantContext != ConstantContext.none && builder.deferred) {
+    } else if (declaration is PrefixBuilder) {
+      if (constantContext != ConstantContext.none && declaration.deferred) {
         deprecated_addCompileTimeError(
             charOffset,
             "'$name' can't be used in a constant expression because it's "
@@ -1458,23 +1461,24 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
             "You might try moving the constant to the deferred library, "
             "or removing 'deferred' from the import.");
       }
-      return builder;
-    } else if (builder is LoadLibraryBuilder) {
+      return declaration;
+    } else if (declaration is LoadLibraryBuilder) {
       return new LoadLibraryGenerator<Expression, Statement, Arguments>(
-          this, token, builder);
+          this, token, declaration);
     } else {
-      if (builder.hasProblem && builder is! AccessErrorBuilder) return builder;
-      Builder setter;
-      if (builder.isSetter) {
-        setter = builder;
-      } else if (builder.isGetter) {
+      if (declaration.hasProblem && declaration is! AccessErrorBuilder)
+        return declaration;
+      Declaration setter;
+      if (declaration.isSetter) {
+        setter = declaration;
+      } else if (declaration.isGetter) {
         setter = scope.lookupSetter(name, charOffset, uri);
-      } else if (builder.isField && !builder.isFinal) {
-        setter = builder;
+      } else if (declaration.isField && !declaration.isFinal) {
+        setter = declaration;
       }
       StaticAccessGenerator<Expression, Statement, Arguments> generator =
           new StaticAccessGenerator<Expression, Statement,
-              Arguments>.fromBuilder(this, builder, token, setter);
+              Arguments>.fromBuilder(this, declaration, token, setter);
       if (constantContext != ConstantContext.none) {
         Member readTarget = generator.readTarget;
         if (!(readTarget is Field && readTarget.isConst ||
@@ -2846,7 +2850,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         return deprecated_buildCompileTimeError(
             "An enum class can't be instantiated.", nameToken.charOffset);
       }
-      Builder b = type.findConstructorOrFactory(name, charOffset, uri, library);
+      Declaration b =
+          type.findConstructorOrFactory(name, charOffset, uri, library);
       Member target;
       Member initialTarget;
       List<DartType> targetTypeArguments;
@@ -3820,7 +3825,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       [int charOffset = -1]) {
     addProblemErrorIfConst(message, charOffset, className.length);
     // TODO(ahe): The following doesn't make sense to Analyzer AST.
-    Builder constructor = library.loader.getAbstractClassInstantiationError();
+    Declaration constructor =
+        library.loader.getAbstractClassInstantiationError();
     return toExpression(new Throw(toKernelExpression(buildStaticInvocation(
         constructor.target,
         forest.arguments(<Expression>[
@@ -3872,7 +3878,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   Initializer buildFieldInitializer(
       bool isSynthetic, String name, int offset, Expression expression) {
-    Builder builder =
+    Declaration builder =
         classBuilder.scope.local[name] ?? classBuilder.origin.scope.local[name];
     if (builder is KernelFieldBuilder && builder.isInstanceMember) {
       initializedFields ??= <String, int>{};
@@ -3894,7 +3900,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
                   .withArguments(name)
                   .withLocation(uri, builder.charOffset, noLength)
             ]);
-        Builder constructor =
+        Declaration constructor =
             library.loader.getDuplicatedFieldInitializerError();
         return buildInvalidInitializer(
             toExpression(new Throw(toKernelExpression(buildStaticInvocation(
@@ -4218,16 +4224,24 @@ class InitializedIdentifier extends Identifier {
   String toString() => "initialized-identifier($name, $initializer)";
 }
 
-class JumpTarget<Statement> extends Builder {
+class JumpTarget<Statement> extends Declaration {
   final List<Statement> users = <Statement>[];
 
   final JumpTargetKind kind;
 
   final int functionNestingLevel;
 
-  JumpTarget(this.kind, this.functionNestingLevel, MemberBuilder member,
-      int charOffset)
-      : super(member, charOffset, member.fileUri);
+  @override
+  final MemberBuilder parent;
+
+  @override
+  final int charOffset;
+
+  JumpTarget(
+      this.kind, this.functionNestingLevel, this.parent, this.charOffset);
+
+  @override
+  Uri get fileUri => parent.fileUri;
 
   bool get isBreakTarget => kind == JumpTargetKind.Break;
 
@@ -4283,8 +4297,12 @@ class JumpTarget<Statement> extends Builder {
   String get fullNameForErrors => "<jump-target>";
 }
 
-class LabelTarget<Statement> extends Builder implements JumpTarget<Statement> {
+class LabelTarget<Statement> extends Declaration
+    implements JumpTarget<Statement> {
   final List<Object> labels;
+
+  @override
+  final MemberBuilder parent;
 
   final JumpTarget breakTarget;
 
@@ -4292,13 +4310,18 @@ class LabelTarget<Statement> extends Builder implements JumpTarget<Statement> {
 
   final int functionNestingLevel;
 
-  LabelTarget(this.labels, MemberBuilder member, this.functionNestingLevel,
-      int charOffset)
+  @override
+  final int charOffset;
+
+  LabelTarget(
+      this.labels, this.parent, this.functionNestingLevel, this.charOffset)
       : breakTarget = new JumpTarget<Statement>(
-            JumpTargetKind.Break, functionNestingLevel, member, charOffset),
+            JumpTargetKind.Break, functionNestingLevel, parent, charOffset),
         continueTarget = new JumpTarget<Statement>(
-            JumpTargetKind.Continue, functionNestingLevel, member, charOffset),
-        super(member, charOffset, member.fileUri);
+            JumpTargetKind.Continue, functionNestingLevel, parent, charOffset);
+
+  @override
+  Uri get fileUri => parent.fileUri;
 
   bool get hasUsers => breakTarget.hasUsers || continueTarget.hasUsers;
 
@@ -4402,18 +4425,18 @@ class FormalParameters<Expression, Statement, Arguments> {
         typeParameters: typeParameters);
   }
 
-  Scope computeFormalParameterScope(Scope parent, Builder builder,
+  Scope computeFormalParameterScope(Scope parent, Declaration declaration,
       ExpressionGeneratorHelper<dynamic, dynamic, Arguments> helper) {
     if (required.length == 0 && optional == null) return parent;
-    Map<String, Builder> local = <String, Builder>{};
+    Map<String, Declaration> local = <String, Declaration>{};
 
     for (VariableDeclaration parameter in required) {
       if (local[parameter.name] != null) {
         helper.deprecated_addCompileTimeError(
             parameter.fileOffset, "Duplicated name.");
       }
-      local[parameter.name] =
-          new KernelVariableBuilder(parameter, builder, builder.fileUri);
+      local[parameter.name] = new KernelVariableBuilder(
+          parameter, declaration, declaration.fileUri);
     }
     if (optional != null) {
       for (VariableDeclaration parameter in optional.formals) {
@@ -4421,8 +4444,8 @@ class FormalParameters<Expression, Statement, Arguments> {
           helper.deprecated_addCompileTimeError(
               parameter.fileOffset, "Duplicated name.");
         }
-        local[parameter.name] =
-            new KernelVariableBuilder(parameter, builder, builder.fileUri);
+        local[parameter.name] = new KernelVariableBuilder(
+            parameter, declaration, declaration.fileUri);
       }
     }
     return new Scope(local, null, parent, "formals", isModifiable: false);
@@ -4455,7 +4478,7 @@ String debugName(String className, String name, [String prefix]) {
 String getNodeName(Object node) {
   if (node is Identifier) {
     return node.name;
-  } else if (node is Builder) {
+  } else if (node is Declaration) {
     return node.fullNameForErrors;
   } else if (node is ThisAccessGenerator) {
     return node.isSuper ? "super" : "this";

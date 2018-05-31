@@ -60,9 +60,9 @@ import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'kernel_builder.dart'
     show
-        Builder,
         ClassBuilder,
         ConstructorReferenceBuilder,
+        Declaration,
         FormalParameterBuilder,
         KernelFormalParameterBuilder,
         KernelLibraryBuilder,
@@ -217,7 +217,7 @@ abstract class KernelFunctionBuilder
   Member build(SourceLibraryBuilder library);
 
   void becomeNative(Loader loader) {
-    Builder constructor = loader.getNativeAnnotation();
+    Declaration constructor = loader.getNativeAnnotation();
     Arguments arguments =
         new Arguments(<Expression>[new StringLiteral(nativeMethodName)]);
     Expression annotation;
@@ -244,7 +244,7 @@ abstract class KernelFunctionBuilder
     return true;
   }
 
-  void reportPatchMismatch(Builder patch) {
+  void reportPatchMismatch(Declaration patch) {
     library.addCompileTimeError(messagePatchDeclarationMismatch,
         patch.charOffset, noLength, patch.fileUri, context: [
       messagePatchDeclarationOrigin.withLocation(fileUri, charOffset, noLength)
@@ -385,7 +385,7 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
   }
 
   @override
-  void applyPatch(Builder patch) {
+  void applyPatch(Declaration patch) {
     if (patch is KernelProcedureBuilder) {
       if (checkPatch(patch)) {
         patch.actualOrigin = this;
@@ -556,7 +556,7 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
   }
 
   @override
-  void applyPatch(Builder patch) {
+  void applyPatch(Declaration patch) {
     if (patch is KernelConstructorBuilder) {
       if (checkPatch(patch)) {
         patch.actualOrigin = this;

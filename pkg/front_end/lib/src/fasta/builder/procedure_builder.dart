@@ -11,7 +11,7 @@ import 'package:kernel/ast.dart' show AsyncMarker, ProcedureKind;
 
 import 'builder.dart'
     show
-        Builder,
+        Declaration,
         FormalParameterBuilder,
         LibraryBuilder,
         MemberBuilder,
@@ -68,7 +68,7 @@ abstract class ProcedureBuilder<T extends TypeBuilder> extends MemberBuilder {
   /// Language Specifiction, 4th ed, section 9.2.
   Scope computeFormalParameterScope(Scope parent) {
     if (formals == null) return parent;
-    Map<String, Builder> local = <String, Builder>{};
+    Map<String, Declaration> local = <String, Declaration>{};
     for (FormalParameterBuilder formal in formals) {
       if (!isConstructor || !formal.hasThis) {
         local[formal.name] = formal;
@@ -95,7 +95,7 @@ abstract class ProcedureBuilder<T extends TypeBuilder> extends MemberBuilder {
     // parameter initializer scope.
 
     if (formals == null) return parent;
-    Map<String, Builder> local = <String, Builder>{};
+    Map<String, Declaration> local = <String, Declaration>{};
     for (FormalParameterBuilder formal in formals) {
       local[formal.name] = formal.forFormalParameterInitializerScope();
     }
@@ -108,7 +108,7 @@ abstract class ProcedureBuilder<T extends TypeBuilder> extends MemberBuilder {
   /// to support generic methods.
   Scope computeTypeParameterScope(Scope parent) {
     if (typeVariables == null) return parent;
-    Map<String, Builder> local = <String, Builder>{};
+    Map<String, Declaration> local = <String, Declaration>{};
     for (TypeVariableBuilder variable in typeVariables) {
       local[variable.name] = variable;
     }

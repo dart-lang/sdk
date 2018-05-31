@@ -42,7 +42,7 @@ import '../source/source_class_builder.dart' show SourceClassBuilder;
 
 import 'kernel_builder.dart'
     show
-        Builder,
+        Declaration,
         EnumBuilder,
         FormalParameterBuilder,
         KernelClassBuilder,
@@ -266,7 +266,7 @@ class KernelEnumBuilder extends SourceClassBuilder
         new FieldInitializer(nameField,
             new VariableGet(constructor.function.positionalParameters[1]))
           ..parent = constructor);
-    KernelClassBuilder objectClass = objectType.builder;
+    KernelClassBuilder objectClass = objectType.declaration;
     MemberBuilder superConstructor = objectClass.findConstructorOrFactory(
         "", charOffset, fileUri, libraryBuilder);
     if (superConstructor == null || !superConstructor.isConstructor) {
@@ -298,7 +298,7 @@ class KernelEnumBuilder extends SourceClassBuilder
   }
 
   @override
-  Builder findConstructorOrFactory(
+  Declaration findConstructorOrFactory(
       String name, int charOffset, Uri uri, LibraryBuilder library) {
     return null;
   }

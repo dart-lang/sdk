@@ -6,15 +6,18 @@ library fasta.kernel_variable_builder;
 
 import 'package:kernel/ast.dart' show VariableDeclaration;
 
-import 'kernel_builder.dart' show Builder;
+import 'kernel_builder.dart' show Declaration;
 
-class KernelVariableBuilder extends Builder {
+class KernelVariableBuilder extends Declaration {
+  @override
+  final Declaration parent;
+
+  @override
+  final Uri fileUri;
+
   final VariableDeclaration variable;
 
-  KernelVariableBuilder(
-      VariableDeclaration variable, Builder parent, Uri fileUri)
-      : variable = variable,
-        super(parent, variable.fileOffset, fileUri);
+  KernelVariableBuilder(this.variable, this.parent, this.fileUri);
 
   @override
   int get charOffset => variable.fileOffset;

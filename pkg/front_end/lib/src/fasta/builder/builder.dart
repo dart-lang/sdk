@@ -4,14 +4,6 @@
 
 library fasta.builder;
 
-import '../../base/instrumentation.dart' show Instrumentation;
-
-import '../problems.dart' show unhandled, unsupported;
-
-import 'library_builder.dart' show LibraryBuilder;
-
-import 'class_builder.dart' show ClassBuilder;
-
 export '../scope.dart' show AccessErrorBuilder, Scope, ScopeBuilder;
 
 export 'builtin_type_builder.dart' show BuiltinTypeBuilder;
@@ -19,6 +11,8 @@ export 'builtin_type_builder.dart' show BuiltinTypeBuilder;
 export 'class_builder.dart' show ClassBuilder;
 
 export 'constructor_reference_builder.dart' show ConstructorReferenceBuilder;
+
+export 'declaration.dart' show Declaration;
 
 export 'dynamic_type_builder.dart' show DynamicTypeBuilder;
 
@@ -61,93 +55,3 @@ export 'type_variable_builder.dart' show TypeVariableBuilder;
 export 'unresolved_type.dart' show UnresolvedType;
 
 export 'void_type_builder.dart' show VoidTypeBuilder;
-
-abstract class Builder {
-  /// Used when multiple things with the same name are declared within the same
-  /// parent. Only used for declarations, not for scopes.
-  ///
-  // TODO(ahe): Move to member builder or something. Then we can make
-  // this a const class.
-  Builder next;
-
-  /// The values of [parent], [charOffset], and [fileUri] aren't stored. We
-  /// need to evaluate the memory impact of doing so, but want to ensure the
-  /// information is always provided.
-  Builder(Builder parent, int charOffset, Uri fileUri);
-
-  int get charOffset => -1;
-
-  Uri get fileUri => null;
-
-  /// Resolve constructors (lookup names in scope) recorded in this builder and
-  /// return the number of constructors resolved.
-  int resolveConstructors(LibraryBuilder parent) => 0;
-
-  Builder get parent => null;
-
-  bool get isFinal => false;
-
-  bool get isField => false;
-
-  bool get isRegularMethod => false;
-
-  bool get isGetter => false;
-
-  bool get isSetter => false;
-
-  bool get isInstanceMember => false;
-
-  bool get isStatic => false;
-
-  bool get isTopLevel => false;
-
-  bool get isTypeDeclaration => false;
-
-  bool get isTypeVariable => false;
-
-  bool get isConstructor => false;
-
-  bool get isFactory => false;
-
-  bool get isLocal => false;
-
-  bool get isConst => false;
-
-  bool get isSynthetic => false;
-
-  get target => unsupported("${runtimeType}.target", charOffset, fileUri);
-
-  bool get hasProblem => false;
-
-  bool get isPatch => this != origin;
-
-  Builder get origin => this;
-
-  String get fullNameForErrors;
-
-  Uri computeLibraryUri() {
-    Builder builder = this;
-    do {
-      if (builder is LibraryBuilder) return builder.uri;
-      builder = builder.parent;
-    } while (builder != null);
-    return unhandled("no library parent", "${runtimeType}", -1, null);
-  }
-
-  void prepareTopLevelInference(
-      covariant LibraryBuilder library, ClassBuilder currentClass) {}
-
-  void instrumentTopLevelInference(Instrumentation instrumentation) {}
-
-  /// Applies [patch] to this.
-  void applyPatch(Builder patch) {
-    unsupported("${runtimeType}.applyPatch", charOffset, fileUri);
-  }
-
-  /// Returns the number of patches that was finished.
-  int finishPatch() {
-    if (!isPatch) return 0;
-    unsupported("${runtimeType}.finishPatch", charOffset, fileUri);
-    return 0;
-  }
-}

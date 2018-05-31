@@ -76,8 +76,8 @@ import '../uri_translator.dart' show UriTranslator;
 
 import 'kernel_builder.dart'
     show
-        Builder,
         ClassBuilder,
+        Declaration,
         InvalidTypeBuilder,
         KernelClassBuilder,
         KernelLibraryBuilder,
@@ -187,9 +187,9 @@ class KernelTarget extends TargetImplementation {
   void addDirectSupertype(ClassBuilder cls, Set<ClassBuilder> set) {
     if (cls == null) return;
     forEachDirectSupertype(cls, (NamedTypeBuilder type) {
-      Builder builder = type.builder;
-      if (builder is ClassBuilder) {
-        set.add(builder);
+      Declaration declaration = type.declaration;
+      if (declaration is ClassBuilder) {
+        set.add(declaration);
       }
     });
   }
@@ -199,7 +199,7 @@ class KernelTarget extends TargetImplementation {
     List<SourceClassBuilder> result = <SourceClassBuilder>[];
     loader.builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == loader) {
-        library.forEach((String name, Builder member) {
+        library.forEach((String name, Declaration member) {
           if (member is SourceClassBuilder && !member.isPatch) {
             result.add(member);
           }
@@ -273,13 +273,14 @@ class KernelTarget extends TargetImplementation {
     return component;
   }
 
-  /// Build the kernel representation of the component loaded by this target. The
-  /// component will contain full bodies for the code loaded from sources, and
-  /// only references to the code loaded by the [DillTarget], which may or may
-  /// not include method bodies (depending on what was loaded into that target,
-  /// an outline or a full kernel component).
+  /// Build the kernel representation of the component loaded by this
+  /// target. The component will contain full bodies for the code loaded from
+  /// sources, and only references to the code loaded by the [DillTarget],
+  /// which may or may not include method bodies (depending on what was loaded
+  /// into that target, an outline or a full kernel component).
   ///
-  /// If [verify], run the default kernel verification on the resulting component.
+  /// If [verify], run the default kernel verification on the resulting
+  /// component.
   @override
   Future<Component> buildComponent({bool verify: false}) async {
     if (loader.first == null) return null;
@@ -385,12 +386,13 @@ class KernelTarget extends TargetImplementation {
         nameRoot: nameRoot, libraries: libraries, uriToSource: uriToSource);
     if (loader.first != null) {
       // TODO(sigmund): do only for full program
-      Builder builder = loader.first.exportScope.lookup("main", -1, null);
-      if (builder is KernelProcedureBuilder) {
-        component.mainMethod = builder.procedure;
-      } else if (builder is DillMemberBuilder) {
-        if (builder.member is Procedure) {
-          component.mainMethod = builder.member;
+      Declaration declaration =
+          loader.first.exportScope.lookup("main", -1, null);
+      if (declaration is KernelProcedureBuilder) {
+        component.mainMethod = declaration.procedure;
+      } else if (declaration is DillMemberBuilder) {
+        if (declaration.member is Procedure) {
+          component.mainMethod = declaration.member;
         }
       }
     }
@@ -403,21 +405,22 @@ class KernelTarget extends TargetImplementation {
     Class objectClass = this.objectClass;
     loader.builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == loader) {
-        library.forEach((String name, Builder builder) {
-          while (builder != null) {
-            if (builder is SourceClassBuilder) {
-              Class cls = builder.target;
+        library.forEach((String name, Declaration declaration) {
+          while (declaration != null) {
+            if (declaration is SourceClassBuilder) {
+              Class cls = declaration.target;
               if (cls != objectClass) {
                 cls.supertype ??= objectClass.asRawSupertype;
-                builder.supertype ??= new KernelNamedTypeBuilder("Object", null)
-                  ..bind(objectClassBuilder);
+                declaration.supertype ??=
+                    new KernelNamedTypeBuilder("Object", null)
+                      ..bind(objectClassBuilder);
               }
-              if (builder.isMixinApplication) {
-                cls.mixedInType = builder.mixedInType.buildMixedInType(
-                    library, builder.charOffset, builder.fileUri);
+              if (declaration.isMixinApplication) {
+                cls.mixedInType = declaration.mixedInType.buildMixedInType(
+                    library, declaration.charOffset, declaration.fileUri);
               }
             }
-            builder = builder.next;
+            declaration = declaration.next;
           }
         });
       }
@@ -435,7 +438,7 @@ class KernelTarget extends TargetImplementation {
     ticker.logMs("Installed default constructors");
   }
 
-  KernelClassBuilder get objectClassBuilder => objectType.builder;
+  KernelClassBuilder get objectClassBuilder => objectType.declaration;
 
   Class get objectClass => objectClassBuilder.cls;
 
@@ -463,7 +466,7 @@ class KernelTarget extends TargetImplementation {
         SourceClassBuilder named = supertype;
         TypeBuilder type = named.supertype;
         if (type is NamedTypeBuilder) {
-          supertype = type.builder;
+          supertype = type.declaration;
         } else {
           unhandled("${type.runtimeType}", "installDefaultConstructor",
               builder.charOffset, builder.fileUri);
@@ -620,7 +623,7 @@ class KernelTarget extends TargetImplementation {
     Map<Constructor, List<FieldInitializer>> fieldInitializers =
         <Constructor, List<FieldInitializer>>{};
     Constructor superTarget;
-    builder.constructors.forEach((String name, Builder member) {
+    builder.constructors.forEach((String name, Declaration member) {
       if (member.isFactory) return;
       MemberBuilder constructorBuilder = member;
       Constructor constructor = constructorBuilder.target;

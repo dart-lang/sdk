@@ -8,7 +8,7 @@ import 'dart:async' show Future;
 
 import 'dart:collection' show Queue;
 
-import 'builder/builder.dart' show Builder, LibraryBuilder;
+import 'builder/builder.dart' show Declaration, LibraryBuilder;
 
 import 'deprecated_problems.dart' show firstSourceUri;
 
@@ -263,17 +263,17 @@ severity: $severity
     return true;
   }
 
-  Builder getAbstractClassInstantiationError() {
+  Declaration getAbstractClassInstantiationError() {
     return target.getAbstractClassInstantiationError(this);
   }
 
-  Builder getCompileTimeError() => target.getCompileTimeError(this);
+  Declaration getCompileTimeError() => target.getCompileTimeError(this);
 
-  Builder getDuplicatedFieldInitializerError() {
+  Declaration getDuplicatedFieldInitializerError() {
     return target.getDuplicatedFieldInitializerError(this);
   }
 
-  Builder getNativeAnnotation() => target.getNativeAnnotation(this);
+  Declaration getNativeAnnotation() => target.getNativeAnnotation(this);
 
   void recordMessage(Severity severity, Message message, int charOffset,
       int length, Uri fileUri,

@@ -37,7 +37,7 @@ class KernelNamedTypeBuilder
 
   Supertype handleInvalidSupertype(
       LibraryBuilder library, int charOffset, Uri fileUri) {
-    var template = builder.isTypeVariable
+    var template = declaration.isTypeVariable
         ? templateSupertypeIsTypeVariable
         : templateSupertypeIsIllegal;
     library.addCompileTimeError(
@@ -46,12 +46,12 @@ class KernelNamedTypeBuilder
   }
 
   DartType build(LibraryBuilder library) {
-    return builder.buildType(library, arguments);
+    return declaration.buildType(library, arguments);
   }
 
   Supertype buildSupertype(
       LibraryBuilder library, int charOffset, Uri fileUri) {
-    TypeDeclarationBuilder declaration = builder;
+    TypeDeclarationBuilder declaration = this.declaration;
     if (declaration is KernelClassBuilder) {
       return declaration.buildSupertype(library, arguments);
     } else if (declaration is KernelInvalidTypeBuilder) {
@@ -68,7 +68,7 @@ class KernelNamedTypeBuilder
 
   Supertype buildMixedInType(
       LibraryBuilder library, int charOffset, Uri fileUri) {
-    TypeDeclarationBuilder declaration = builder;
+    TypeDeclarationBuilder declaration = this.declaration;
     if (declaration is KernelClassBuilder) {
       return declaration.buildMixedInType(library, arguments);
     } else if (declaration is KernelInvalidTypeBuilder) {
@@ -84,9 +84,9 @@ class KernelNamedTypeBuilder
   }
 
   TypeBuilder subst(Map<TypeVariableBuilder, TypeBuilder> substitution) {
-    TypeBuilder result = substitution[builder];
+    TypeBuilder result = substitution[declaration];
     if (result != null) {
-      assert(builder is TypeVariableBuilder);
+      assert(declaration is TypeVariableBuilder);
       return result;
     } else if (arguments != null) {
       List<KernelTypeBuilder> arguments;
@@ -100,7 +100,7 @@ class KernelNamedTypeBuilder
         i++;
       }
       if (arguments != null) {
-        return new KernelNamedTypeBuilder(name, arguments)..bind(builder);
+        return new KernelNamedTypeBuilder(name, arguments)..bind(declaration);
       }
     }
     return this;

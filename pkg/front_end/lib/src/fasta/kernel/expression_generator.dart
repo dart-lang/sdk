@@ -48,8 +48,8 @@ import 'kernel_ast_api.dart'
 import 'kernel_builder.dart'
     show
         AccessErrorBuilder,
-        Builder,
         BuiltinTypeBuilder,
+        Declaration,
         FunctionTypeAliasBuilder,
         KernelClassBuilder,
         KernelFunctionTypeAliasBuilder,
@@ -455,24 +455,24 @@ abstract class StaticAccessGenerator<Expression, Statement, Arguments>
 
   factory StaticAccessGenerator.fromBuilder(
       ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Builder builder,
+      Declaration declaration,
       Token token,
-      Builder builderSetter) {
-    if (builder is AccessErrorBuilder) {
-      AccessErrorBuilder error = builder;
-      builder = error.builder;
+      Declaration builderSetter) {
+    if (declaration is AccessErrorBuilder) {
+      AccessErrorBuilder error = declaration;
+      declaration = error.builder;
       // We should only see an access error here if we've looked up a setter
       // when not explicitly looking for a setter.
-      assert(builder.isSetter);
-    } else if (builder.target == null) {
+      assert(declaration.isSetter);
+    } else if (declaration.target == null) {
       return unhandled(
-          "${builder.runtimeType}",
+          "${declaration.runtimeType}",
           "StaticAccessGenerator.fromBuilder",
           offsetForToken(token),
           helper.uri);
     }
-    Member getter = builder.target.hasGetter ? builder.target : null;
-    Member setter = builder.target.hasSetter ? builder.target : null;
+    Member getter = declaration.target.hasGetter ? declaration.target : null;
+    Member setter = declaration.target.hasSetter ? declaration.target : null;
     if (setter == null) {
       if (builderSetter?.target?.hasSetter ?? false) {
         setter = builderSetter.target;
@@ -720,7 +720,8 @@ abstract class ErroneousExpressionGenerator<Expression, Statement, Arguments>
   @override
   buildPropertyAccess(
       IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
-    return this;
+    return send.withReceiver(buildSimpleRead(), operatorOffset,
+        isNullAware: isNullAware);
   }
 
   @override

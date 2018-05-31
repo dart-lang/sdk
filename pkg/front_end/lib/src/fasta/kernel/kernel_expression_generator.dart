@@ -110,7 +110,7 @@ import 'kernel_ast_api.dart'
 
 import 'kernel_builder.dart'
     show
-        Builder,
+        Declaration,
         KernelClassBuilder,
         KernelInvalidTypeBuilder,
         LoadLibraryBuilder,
@@ -1304,12 +1304,12 @@ class KernelTypeUseGenerator extends KernelReadOnlyAccessGenerator
 
     if (declaration is KernelClassBuilder) {
       KernelClassBuilder declaration = this.declaration;
-      Builder builder = declaration.findStaticBuilder(
+      Declaration member = declaration.findStaticBuilder(
           name.name, offsetForToken(token), uri, helper.library);
 
       Generator generator;
-      if (builder == null) {
-        // If we find a setter, [builder] is an [AccessErrorBuilder], not null.
+      if (member == null) {
+        // If we find a setter, [member] is an [AccessErrorBuilder], not null.
         if (send is IncompletePropertyAccessGenerator) {
           generator = new UnresolvedNameGenerator(helper, send.token, name);
         } else {
@@ -1317,18 +1317,18 @@ class KernelTypeUseGenerator extends KernelReadOnlyAccessGenerator
               arguments, name.name, null, token.charOffset, Constness.implicit);
         }
       } else {
-        Builder setter;
-        if (builder.isSetter) {
-          setter = builder;
-        } else if (builder.isGetter) {
+        Declaration setter;
+        if (member.isSetter) {
+          setter = member;
+        } else if (member.isGetter) {
           setter = declaration.findStaticBuilder(
               name.name, offsetForToken(token), uri, helper.library,
               isSetter: true);
-        } else if (builder.isField && !builder.isFinal) {
-          setter = builder;
+        } else if (member.isField && !member.isFinal) {
+          setter = member;
         }
         generator = new StaticAccessGenerator<Expression, Statement,
-            Arguments>.fromBuilder(helper, builder, send.token, setter);
+            Arguments>.fromBuilder(helper, member, send.token, setter);
       }
 
       return arguments == null

@@ -14,16 +14,17 @@ import '../modifier.dart'
         namedMixinApplicationMask,
         staticMask;
 
-import 'builder.dart' show Builder;
+import 'builder.dart' show Declaration;
 
-abstract class ModifierBuilder extends Builder {
+abstract class ModifierBuilder extends Declaration {
+  final Declaration parent;
+
   final int charOffset;
 
   final Uri fileUri;
 
-  ModifierBuilder(Builder parent, this.charOffset, [Uri fileUri])
-      : fileUri = fileUri ?? parent?.fileUri,
-        super(parent, charOffset, fileUri ?? parent?.fileUri);
+  ModifierBuilder(this.parent, this.charOffset, [Uri fileUri])
+      : fileUri = fileUri ?? parent?.fileUri;
 
   int get modifiers;
 

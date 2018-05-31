@@ -24,11 +24,11 @@ KernelTypeBuilder substituteRange(
     Map<TypeVariableBuilder, KernelTypeBuilder> lowerSubstitution,
     {bool isCovariant = true}) {
   if (type is KernelNamedTypeBuilder) {
-    if (type.builder is KernelTypeVariableBuilder) {
+    if (type.declaration is KernelTypeVariableBuilder) {
       if (isCovariant) {
-        return upperSubstitution[type.builder] ?? type;
+        return upperSubstitution[type.declaration] ?? type;
       }
-      return lowerSubstitution[type.builder] ?? type;
+      return lowerSubstitution[type.declaration] ?? type;
     }
     if (type.arguments == null || type.arguments.length == 0) {
       return type;
@@ -45,7 +45,7 @@ KernelTypeBuilder substituteRange(
     }
     if (arguments != null) {
       return new KernelNamedTypeBuilder(type.name, arguments)
-        ..bind(type.builder);
+        ..bind(type.declaration);
     }
     return type;
   }
@@ -201,9 +201,9 @@ class TypeVariablesGraph implements Graph<int> {
 
     void collectReferencesFrom(int index, TypeBuilder type) {
       if (type is NamedTypeBuilder) {
-        if (type.builder is TypeVariableBuilder &&
-            this.variables.contains(type.builder)) {
-          edges[variableIndices[type.builder]].add(index);
+        if (type.declaration is TypeVariableBuilder &&
+            this.variables.contains(type.declaration)) {
+          edges[variableIndices[type.declaration]].add(index);
         }
         if (type.arguments != null) {
           for (TypeBuilder argument in type.arguments) {

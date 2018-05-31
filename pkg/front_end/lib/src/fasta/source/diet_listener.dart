@@ -211,7 +211,7 @@ class DietListener extends StackListener {
     String name = pop();
     Token metadata = pop();
 
-    Builder typedefBuilder = lookupBuilder(typedefKeyword, null, name);
+    Declaration typedefBuilder = lookupBuilder(typedefKeyword, null, name);
     Typedef target = typedefBuilder.target;
     var metadataConstants = parseMetadata(typedefBuilder, metadata);
     if (metadataConstants != null) {
@@ -569,12 +569,15 @@ class DietListener extends StackListener {
   void buildFields(int count, Token token, bool isTopLevel) {
     List<String> names =
         popList(count, new List<String>.filled(count, null, growable: true));
-    Builder builder = lookupBuilder(token, null, names.first);
+    Declaration declaration = lookupBuilder(token, null, names.first);
     Token metadata = pop();
     // TODO(paulberry): don't re-parse the field if we've already parsed it
     // for type inference.
-    parseFields(createListener(builder, memberScope, builder.isInstanceMember),
-        token, metadata, isTopLevel);
+    parseFields(
+        createListener(declaration, memberScope, declaration.isInstanceMember),
+        token,
+        metadata,
+        isTopLevel);
   }
 
   @override
@@ -604,7 +607,7 @@ class DietListener extends StackListener {
     assert(currentClass == null);
     assert(memberScope == library.scope);
 
-    Builder classBuilder = lookupBuilder(token, null, name);
+    Declaration classBuilder = lookupBuilder(token, null, name);
     Class target = classBuilder.target;
     var metadataConstants = parseMetadata(classBuilder, metadata);
     if (metadataConstants != null) {
@@ -651,10 +654,10 @@ class DietListener extends StackListener {
     for (int i = 0; i < metadataAndValues.length; i += 2) {
       Token metadata = metadataAndValues[i];
       String valueName = metadataAndValues[i + 1];
-      Builder builder = enumBuilder.scope.local[valueName];
+      Declaration declaration = enumBuilder.scope.local[valueName];
       if (metadata != null) {
-        Field field = builder.target;
-        for (var annotation in parseMetadata(builder, metadata)) {
+        Field field = declaration.target;
+        for (var annotation in parseMetadata(declaration, metadata)) {
           field.addAnnotation(annotation);
         }
       }
@@ -671,7 +674,7 @@ class DietListener extends StackListener {
     String name = pop();
     Token metadata = pop();
 
-    Builder classBuilder = lookupBuilder(classKeyword, null, name);
+    Declaration classBuilder = lookupBuilder(classKeyword, null, name);
     Class target = classBuilder.target;
     var metadataConstants = parseMetadata(classBuilder, metadata);
     if (metadataConstants != null) {
@@ -754,9 +757,9 @@ class DietListener extends StackListener {
     listener.checkEmpty(token.charOffset);
   }
 
-  Builder lookupBuilder(Token token, Token getOrSet, String name) {
+  Declaration lookupBuilder(Token token, Token getOrSet, String name) {
     // TODO(ahe): Can I move this to Scope or ScopeBuilder?
-    Builder builder;
+    Declaration declaration;
     if (currentClass != null) {
       if (uri != currentClass.fileUri) {
         unexpected("$uri", "${currentClass.fileUri}", currentClass.charOffset,
@@ -764,22 +767,22 @@ class DietListener extends StackListener {
       }
 
       if (getOrSet != null && optional("set", getOrSet)) {
-        builder = currentClass.scope.setters[name];
+        declaration = currentClass.scope.setters[name];
       } else {
-        builder = currentClass.scope.local[name];
+        declaration = currentClass.scope.local[name];
       }
     } else if (getOrSet != null && optional("set", getOrSet)) {
-      builder = library.scope.setters[name];
+      declaration = library.scope.setters[name];
     } else {
-      builder = library.scopeBuilder[name];
+      declaration = library.scopeBuilder[name];
     }
-    checkBuilder(token, builder, name);
-    return builder;
+    checkBuilder(token, declaration, name);
+    return declaration;
   }
 
-  Builder lookupConstructor(Token token, Object nameOrQualified) {
+  Declaration lookupConstructor(Token token, Object nameOrQualified) {
     assert(currentClass != null);
-    Builder builder;
+    Declaration declaration;
     String name;
     String suffix;
     if (nameOrQualified is QualifiedName) {
@@ -789,22 +792,22 @@ class DietListener extends StackListener {
       name = nameOrQualified;
       suffix = name == currentClass.name ? "" : name;
     }
-    builder = currentClass.constructors.local[suffix];
-    checkBuilder(token, builder, nameOrQualified);
-    return builder;
+    declaration = currentClass.constructors.local[suffix];
+    checkBuilder(token, declaration, nameOrQualified);
+    return declaration;
   }
 
-  void checkBuilder(Token token, Builder builder, Object name) {
-    if (builder == null) {
+  void checkBuilder(Token token, Declaration declaration, Object name) {
+    if (declaration == null) {
       internalProblem(templateInternalProblemNotFound.withArguments("$name"),
           token.charOffset, uri);
     }
-    if (builder.next != null) {
+    if (declaration.next != null) {
       deprecated_inputError(uri, token.charOffset, "Duplicated name: $name");
     }
-    if (uri != builder.fileUri) {
-      unexpected(
-          "$uri", "${builder.fileUri}", builder.charOffset, builder.fileUri);
+    if (uri != declaration.fileUri) {
+      unexpected("$uri", "${declaration.fileUri}", declaration.charOffset,
+          declaration.fileUri);
     }
   }
 

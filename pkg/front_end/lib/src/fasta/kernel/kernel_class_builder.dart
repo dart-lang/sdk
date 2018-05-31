@@ -73,9 +73,9 @@ import '../type_inference/type_schema.dart' show UnknownType;
 
 import 'kernel_builder.dart'
     show
-        Builder,
         ClassBuilder,
         ConstructorReferenceBuilder,
+        Declaration,
         KernelLibraryBuilder,
         KernelProcedureBuilder,
         KernelRedirectingFactoryBuilder,
@@ -199,20 +199,20 @@ abstract class KernelClassBuilder
       // Copy keys to avoid concurrent modification error.
       List<String> names = constructors.keys.toList();
       for (String name in names) {
-        Builder builder = constructors[name];
-        if (builder.parent != this) {
+        Declaration declaration = constructors[name];
+        if (declaration.parent != this) {
           unexpected(
-              "$fileUri", "${builder.parent.fileUri}", charOffset, fileUri);
+              "$fileUri", "${declaration.parent.fileUri}", charOffset, fileUri);
         }
-        if (builder is KernelRedirectingFactoryBuilder) {
+        if (declaration is KernelRedirectingFactoryBuilder) {
           // Compute the immediate redirection target, not the effective.
           ConstructorReferenceBuilder redirectionTarget =
-              builder.redirectionTarget;
+              declaration.redirectionTarget;
           if (redirectionTarget != null) {
-            Builder targetBuilder = redirectionTarget.target;
-            addRedirectingConstructor(builder, library);
+            Declaration targetBuilder = redirectionTarget.target;
+            addRedirectingConstructor(declaration, library);
             if (targetBuilder is ProcedureBuilder) {
-              List<DartType> typeArguments = builder.typeArguments;
+              List<DartType> typeArguments = declaration.typeArguments;
               if (typeArguments == null) {
                 // TODO(32049) If type arguments aren't specified, they should
                 // be inferred.  Currently, the inference is not performed.
@@ -222,10 +222,10 @@ abstract class KernelClassBuilder
                     const DynamicType(),
                     growable: true);
               }
-              builder.setRedirectingFactoryBody(
+              declaration.setRedirectingFactoryBody(
                   targetBuilder.target, typeArguments);
             } else if (targetBuilder is DillMemberBuilder) {
-              List<DartType> typeArguments = builder.typeArguments;
+              List<DartType> typeArguments = declaration.typeArguments;
               if (typeArguments == null) {
                 // TODO(32049) If type arguments aren't specified, they should
                 // be inferred.  Currently, the inference is not performed.
@@ -235,19 +235,19 @@ abstract class KernelClassBuilder
                     const DynamicType(),
                     growable: true);
               }
-              builder.setRedirectingFactoryBody(
+              declaration.setRedirectingFactoryBody(
                   targetBuilder.member, typeArguments);
             } else {
               var message = templateRedirectionTargetNotFound
                   .withArguments(redirectionTarget.fullNameForErrors);
-              if (builder.isConst) {
-                addCompileTimeError(message, builder.charOffset, noLength);
+              if (declaration.isConst) {
+                addCompileTimeError(message, declaration.charOffset, noLength);
               } else {
-                addProblem(message, builder.charOffset, noLength);
+                addProblem(message, declaration.charOffset, noLength);
               }
               // CoreTypes aren't computed yet, and this is the outline
               // phase. So we can't and shouldn't create a method body.
-              builder.body = new RedirectingFactoryBody.unresolved(
+              declaration.body = new RedirectingFactoryBody.unresolved(
                   redirectionTarget.fullNameForErrors);
             }
           }
@@ -830,24 +830,24 @@ abstract class KernelClassBuilder
   }
 
   @override
-  void applyPatch(Builder patch) {
+  void applyPatch(Declaration patch) {
     if (patch is KernelClassBuilder) {
       patch.actualOrigin = this;
       // TODO(ahe): Complain if `patch.supertype` isn't null.
-      scope.local.forEach((String name, Builder member) {
-        Builder memberPatch = patch.scope.local[name];
+      scope.local.forEach((String name, Declaration member) {
+        Declaration memberPatch = patch.scope.local[name];
         if (memberPatch != null) {
           member.applyPatch(memberPatch);
         }
       });
-      scope.setters.forEach((String name, Builder member) {
-        Builder memberPatch = patch.scope.setters[name];
+      scope.setters.forEach((String name, Declaration member) {
+        Declaration memberPatch = patch.scope.setters[name];
         if (memberPatch != null) {
           member.applyPatch(memberPatch);
         }
       });
-      constructors.local.forEach((String name, Builder member) {
-        Builder memberPatch = patch.constructors.local[name];
+      constructors.local.forEach((String name, Declaration member) {
+        Declaration memberPatch = patch.constructors.local[name];
         if (memberPatch != null) {
           member.applyPatch(memberPatch);
         }
@@ -876,29 +876,29 @@ abstract class KernelClassBuilder
   }
 
   @override
-  Builder findStaticBuilder(
+  Declaration findStaticBuilder(
       String name, int charOffset, Uri fileUri, LibraryBuilder accessingLibrary,
       {bool isSetter: false}) {
-    Builder builder = super.findStaticBuilder(
+    Declaration declaration = super.findStaticBuilder(
         name, charOffset, fileUri, accessingLibrary,
         isSetter: isSetter);
-    if (builder == null && isPatch) {
+    if (declaration == null && isPatch) {
       return origin.findStaticBuilder(
           name, charOffset, fileUri, accessingLibrary,
           isSetter: isSetter);
     }
-    return builder;
+    return declaration;
   }
 
   @override
-  Builder findConstructorOrFactory(
+  Declaration findConstructorOrFactory(
       String name, int charOffset, Uri uri, LibraryBuilder accessingLibrary) {
-    Builder builder =
+    Declaration declaration =
         super.findConstructorOrFactory(name, charOffset, uri, accessingLibrary);
-    if (builder == null && isPatch) {
+    if (declaration == null && isPatch) {
       return origin.findConstructorOrFactory(
           name, charOffset, uri, accessingLibrary);
     }
-    return builder;
+    return declaration;
   }
 }

@@ -25,7 +25,7 @@ import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import 'kernel_body_builder.dart' show KernelBodyBuilder;
 
 import 'kernel_builder.dart'
-    show Builder, FieldBuilder, KernelTypeBuilder, MetadataBuilder;
+    show Declaration, FieldBuilder, KernelTypeBuilder, MetadataBuilder;
 
 import 'kernel_shadow_ast.dart' show ShadowField;
 
@@ -41,7 +41,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       this.type,
       String name,
       int modifiers,
-      Builder compilationUnit,
+      Declaration compilationUnit,
       int charOffset,
       this.initializerTokenForInference,
       this.hasInitializer)
