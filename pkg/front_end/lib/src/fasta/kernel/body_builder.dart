@@ -585,7 +585,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
                   true,
                   formal.name,
                   formal.charOffset,
-                  toExpression(new VariableGet(formal.declaration)));
+                  toExpression(new VariableGet(formal.declaration)),
+                  formalType: formal.declaration.type);
             }
             member.addInitializer(initializer, _typeInferrer);
           }
@@ -3914,9 +3915,19 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     return initializer;
   }
 
+  /// Parameter [formalType] should only be passed in the special case of
+  /// building a field initializer as a desugaring of an initializing formal
+  /// parameter.  The spec says the following:
+  ///
+  /// "If an explicit type is attached to the initializing formal, that is its
+  /// static type.  Otherwise, the type of an initializing formal named _id_ is
+  /// _Tid_, where _Tid_ is the type of the instance variable named _id_ in the
+  /// immediately enclosing class.  It is a static warning if the static type of
+  /// _id_ is not a subtype of _Tid_."
   @override
   Initializer buildFieldInitializer(
-      bool isSynthetic, String name, int offset, Expression expression) {
+      bool isSynthetic, String name, int offset, Expression expression,
+      {DartType formalType}) {
     Declaration builder =
         classBuilder.scope.local[name] ?? classBuilder.origin.scope.local[name];
     if (builder is KernelFieldBuilder && builder.isInstanceMember) {
@@ -3950,6 +3961,21 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
                 charOffset: offset)))),
             offset);
       } else {
+        if (library.loader.target.strongMode &&
+            formalType != null &&
+            !_typeInferrer.typeSchemaEnvironment
+                .isSubtypeOf(formalType, builder.field.type)) {
+          library.addProblem(
+              fasta.templateInitializingFormalTypeMismatch
+                  .withArguments(name, formalType, builder.field.type),
+              offset,
+              noLength,
+              uri,
+              context: [
+                fasta.messageInitializingFormalTypeMismatchField
+                    .withLocation(builder.fileUri, builder.charOffset, noLength)
+              ]);
+        }
         return new ShadowFieldInitializer(
             builder.field, toKernelExpression(expression))
           ..fileOffset = offset

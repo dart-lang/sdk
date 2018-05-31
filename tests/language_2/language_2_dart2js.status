@@ -918,8 +918,6 @@ compile_time_constant_k_test/02: MissingCompileTimeError
 compile_time_constant_k_test/03: MissingCompileTimeError
 compile_time_constant_o_test/01: MissingCompileTimeError
 compile_time_constant_o_test/02: MissingCompileTimeError
-compile_time_constant_static2_test/04: MissingCompileTimeError
-compile_time_constant_static3_test/04: MissingCompileTimeError
 compile_time_constant_static5_test/11: CompileTimeError
 compile_time_constant_static5_test/16: CompileTimeError
 compile_time_constant_static5_test/21: CompileTimeError
@@ -1047,8 +1045,6 @@ identical_const_test/03: MissingCompileTimeError
 identical_const_test/04: MissingCompileTimeError
 if_null_precedence_test/none: RuntimeError
 infinity_test: RuntimeError # non JS number semantics - Issue 4984
-initializing_formal_type_annotation_test/01: MissingCompileTimeError
-initializing_formal_type_annotation_test/02: MissingCompileTimeError
 instance_creation_in_function_annotation_test: RuntimeError
 instantiate_tearoff_of_call_test: CompileTimeError
 int64_literal_test/01: RuntimeError
@@ -1458,8 +1454,6 @@ compile_time_constant_k_test/02: MissingCompileTimeError
 compile_time_constant_k_test/03: MissingCompileTimeError
 compile_time_constant_o_test/01: MissingCompileTimeError
 compile_time_constant_o_test/02: MissingCompileTimeError
-compile_time_constant_static2_test/04: MissingCompileTimeError
-compile_time_constant_static3_test/04: MissingCompileTimeError
 compile_time_constant_static5_test/11: CompileTimeError
 compile_time_constant_static5_test/16: CompileTimeError
 compile_time_constant_static5_test/21: CompileTimeError
@@ -1581,8 +1575,6 @@ identical_const_test/03: MissingCompileTimeError
 identical_const_test/04: MissingCompileTimeError
 if_null_precedence_test/none: RuntimeError
 infinity_test: RuntimeError # non JS number semantics - Issue 4984
-initializing_formal_type_annotation_test/01: MissingCompileTimeError
-initializing_formal_type_annotation_test/02: MissingCompileTimeError
 instance_creation_in_function_annotation_test: RuntimeError
 instantiate_tearoff_of_call_test: CompileTimeError
 int64_literal_test/01: RuntimeError

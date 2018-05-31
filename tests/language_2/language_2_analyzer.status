@@ -1152,7 +1152,6 @@ override_inheritance_field_test/50: CompileTimeError
 override_inheritance_generic_test/02: CompileTimeError
 override_inheritance_method_test/28: CompileTimeError
 override_inheritance_method_test/29: CompileTimeError
-parameter_initializer_test: CompileTimeError
 parser_quirks_test: CompileTimeError
 regress_22976_test/01: CompileTimeError
 regress_22976_test/02: CompileTimeError

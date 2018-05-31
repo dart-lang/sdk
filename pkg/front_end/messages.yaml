@@ -2207,3 +2207,19 @@ ForInLoopExactlyOneVariable:
   template: "A for-in loop can't have more than one loop variable."
   severity: ERROR
   statement: "for (var x, y in []) {}"
+
+InitializingFormalTypeMismatch:
+  template: "The type of parameter '#name' (#type) is not a subtype of the corresponding field's type (#type2)."
+  tip: "Try changing the type of parameter '#name' to a subtype of #type2."
+  severity: ERROR_LEGACY_WARNING
+  analyzerCode: INVALID_PARAMETER_DECLARATION
+  dart2jsCode: "*fatal*"
+  script: >
+    class C {
+      int x;
+      C(num this.x);
+    }
+
+InitializingFormalTypeMismatchField:
+  template: "The field that corresponds to the parameter."
+  severity: CONTEXT
