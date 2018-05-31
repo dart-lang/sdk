@@ -3240,13 +3240,6 @@ void Assembler::Stop(const char* message) {
     BranchLink(&StubCode::PrintStopMessage_entry()->label());
     PopList((1 << R0) | (1 << IP) | (1 << LR));  // Restore R0, IP, LR.
   }
-  // Emit the message address before the svc instruction, so that we can
-  // 'unstop' and continue execution in the simulator or jump to the next
-  // instruction in gdb.
-  Label stop;
-  b(&stop);
-  Emit(reinterpret_cast<int32_t>(message));
-  Bind(&stop);
   bkpt(Instr::kStopMessageCode);
 }
 

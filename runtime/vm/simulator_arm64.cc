@@ -1651,8 +1651,11 @@ void Simulator::DecodeExceptionGen(Instr* instr) {
     SimulatorDebugger dbg(this);
     int32_t imm = instr->Imm16Field();
     if (imm == Instr::kStopMessageCode) {
-      const char* message = *reinterpret_cast<const char**>(
-          reinterpret_cast<intptr_t>(instr) - 2 * Instr::kInstrSize);
+      const char* message = "Stop messages not enabled";
+      if (FLAG_print_stop_message) {
+        message = *reinterpret_cast<const char**>(
+            reinterpret_cast<intptr_t>(instr) - 2 * Instr::kInstrSize);
+      }
       set_pc(get_pc() + Instr::kInstrSize);
       dbg.Stop(instr, message);
     } else {

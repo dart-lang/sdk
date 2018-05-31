@@ -2320,9 +2320,6 @@ void Assembler::Stop(const char* message) {
     movl(EAX, Immediate(reinterpret_cast<int32_t>(message)));
     Call(*StubCode::PrintStopMessage_entry());  // Passing message in EAX.
     popl(EAX);                                  // Restore EAX.
-  } else {
-    // Emit the message address as immediate operand in the test instruction.
-    testl(EAX, Immediate(reinterpret_cast<int32_t>(message)));
   }
   // Emit the int3 instruction.
   int3();  // Execution can be resumed with the 'cont' command in gdb.
