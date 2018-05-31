@@ -20,8 +20,9 @@ main(List<String> args) {
   writeComponentToText(component);
 }
 
-/// Creates a component that contains all of the context code marked as external,
-/// and all libraries defined in partial.dill as they are written in that file.
+/// Creates a component that contains all of the context code marked as
+/// external, and all libraries defined in partial.dill as they are written in
+/// that file.
 Component _loadComponent(List<String> args) {
   List<int> partialInput = new File(args[0]).readAsBytesSync();
 

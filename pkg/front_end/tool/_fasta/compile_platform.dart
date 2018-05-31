@@ -114,7 +114,8 @@ Future writeDepsFile(
     //
     // It's broken if it says something like this:
     //
-    //     ninja explain: expected depfile 'vm_platform.dill.d' to mention 'vm_platform.dill', got '/.../xcodebuild/ReleaseX64/vm_platform.dill'
+    //     ninja explain: expected depfile 'vm_platform.dill.d' to mention \
+    //     'vm_platform.dill', got '/.../xcodebuild/ReleaseX64/vm_platform.dill'
     return Uri.parse(relativizeUri(uri, base: Uri.base)).toFilePath();
   }
 

@@ -483,16 +483,16 @@ abstract class TypePromoterImpl extends TypePromoter {
 /// represents all facts that are known to hold at a certain point in the
 /// component.
 ///
-/// The fact is said to "apply" to a given point in the execution of the component
-/// if the fact is part of the current fact state at the point the parser
-/// reaches that point in the component.
+/// The fact is said to "apply" to a given point in the execution of the
+/// component if the fact is part of the current fact state at the point the
+/// parser reaches that point in the component.
 ///
-/// Note: just because a fact "applies" to a given point in the execution of the
-/// component doesn't mean a type will be promoted--it simply means that the fact
-/// was deduced at a previous point in the straight line execution of the code.
-/// It's possible that the fact will be overshadowed by a later fact, or its
-/// effect will be cancelled by a later assignment.  The final detemination of
-/// whether promotion occurs is left to [_computePromotedType].
+/// Note: just because a fact "applies" to a given point in the execution of
+/// the component doesn't mean a type will be promoted--it simply means that
+/// the fact was deduced at a previous point in the straight line execution of
+/// the code.  It's possible that the fact will be overshadowed by a later
+/// fact, or its effect will be cancelled by a later assignment.  The final
+/// detemination of whether promotion occurs is left to [_computePromotedType].
 abstract class TypePromotionFact {
   /// The variable this fact records information about, or `null` if this fact
   /// records information about general flow control.

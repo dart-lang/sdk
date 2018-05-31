@@ -3,8 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * The enumeration `UriKind` defines the different kinds of URI's that are known to the
- * analysis engine. These are used to keep track of the kind of URI associated with a given source.
+ * The enumeration `UriKind` defines the different kinds of URI's that are
+ * known to the analysis engine. These are used to keep track of the kind of
+ * URI associated with a given source.
  */
 class UriKind implements Comparable<UriKind> {
   /**

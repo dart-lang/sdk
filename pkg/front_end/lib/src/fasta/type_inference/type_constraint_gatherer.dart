@@ -227,10 +227,10 @@ class TypeConstraintGatherer {
       var subtypeArg = subtype.typeArguments[0];
       if (supertype is InterfaceType &&
           identical(supertype.classNode, environment.futureOrClass)) {
-        // `FutureOr<P>` is a subtype match for `FutureOr<Q>` with respect to `L`
-        // under constraints `C`:
-        // - If `P` is a subtype match for `Q` with respect to `L` under constraints
-        //   `C`.
+        // `FutureOr<P>` is a subtype match for `FutureOr<Q>` with respect to
+        // `L` under constraints `C`:
+        // - If `P` is a subtype match for `Q` with respect to `L` under
+        //   constraints `C`.
         var supertypeArg = supertype.typeArguments[0];
         return _isSubtypeMatch(subtypeArg, supertypeArg);
       }
@@ -252,8 +252,8 @@ class TypeConstraintGatherer {
       // constraints `C`:
       // - If `P` is a subtype match for `Future<Q>` with respect to `L` under
       //   constraints `C`.
-      // - Or `P` is not a subtype match for `Future<Q>` with respect to `L` under
-      //   constraints `C`
+      // - Or `P` is not a subtype match for `Future<Q>` with respect to `L`
+      //   under constraints `C`
       //   - And `P` is a subtype match for `Q` with respect to `L` under
       //     constraints `C`
       var supertypeArg = supertype.typeArguments[0];

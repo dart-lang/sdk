@@ -94,8 +94,8 @@ class CompilerOptions {
   /// program.
   ///
   /// The components provided here should be closed and acyclic: any libraries
-  /// that they reference should be defined in a component in [linkedDependencies]
-  /// or any of the [inputSummaries] or [sdkSummary].
+  /// that they reference should be defined in a component in
+  /// [linkedDependencies] or any of the [inputSummaries] or [sdkSummary].
   List<Uri> linkedDependencies = [];
 
   /// URI of the SDK summary file (typically a "file:" URI).
@@ -175,8 +175,8 @@ class CompilerOptions {
   // verbose data (Issue #30056)
   bool verbose = false;
 
-  /// Whether to run extra verification steps to validate that compiled components
-  /// are well formed.
+  /// Whether to run extra verification steps to validate that compiled
+  /// components are well formed.
   ///
   /// Errors are reported via the [onError] callback.
   // TODO(sigmund): ensure we don't print errors to stdout (Issue #30056)

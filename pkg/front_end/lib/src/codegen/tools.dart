@@ -60,8 +60,8 @@ abstract class GeneratedContent {
     for (GeneratedContent target in targets) {
       bool ok = await target.check(pkgPath);
       if (!ok) {
-        print(
-            '${target.output(pkgPath).absolute} does not have expected contents.');
+        print("${target.output(pkgPath).absolute}"
+            " doesn't have expected contents.");
         generateNeeded = true;
       }
     }
