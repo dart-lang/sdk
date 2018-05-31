@@ -2245,8 +2245,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     debugEvent("FormalParameter");
     if (thisKeyword != null) {
       if (!inConstructor) {
-        deprecated_addCompileTimeError(thisKeyword.charOffset,
-            "'this' parameters can only be used on constructors.");
+        handleRecoverableError(fasta.messageFieldInitializerOutsideConstructor,
+            thisKeyword, thisKeyword);
         thisKeyword = null;
       }
     }
