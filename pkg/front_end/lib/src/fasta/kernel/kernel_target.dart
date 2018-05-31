@@ -252,15 +252,9 @@ class KernelTarget extends TargetImplementation {
       loader.resolveConstructors();
       component =
           link(new List<Library>.from(loader.libraries), nameRoot: nameRoot);
-      if (metadataCollector != null) {
-        component.addMetadataRepository(metadataCollector.repository);
-      }
       computeCoreTypes();
       loader.computeHierarchy();
-      if (!loader.target.disableTypeInference) {
-        loader.prepareTopLevelInference(myClasses);
-        loader.performTopLevelInference(myClasses);
-      }
+      loader.performTopLevelInference(myClasses);
       loader.checkOverrides(myClasses);
       loader.checkAbstractMembers(myClasses);
       loader.addNoSuchMethodForwarders(myClasses);
@@ -395,6 +389,10 @@ class KernelTarget extends TargetImplementation {
           component.mainMethod = declaration.member;
         }
       }
+    }
+
+    if (metadataCollector != null) {
+      component.addMetadataRepository(metadataCollector.repository);
     }
 
     ticker.logMs("Linked component");

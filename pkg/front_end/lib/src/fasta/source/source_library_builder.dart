@@ -89,6 +89,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   /// Indicates whether type inference (and type promotion) should be disabled
   /// for this library.
+  @override
   final bool disableTypeInference;
 
   String documentationComment;
@@ -721,18 +722,6 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     // relativize when printing a message, but still store the full URI in
     // .dill files.
     return name ?? "<library '$fileUri'>";
-  }
-
-  @override
-  void prepareTopLevelInference(
-      SourceLibraryBuilder library, ClassBuilder currentClass) {
-    forEach((String name, Declaration member) {
-      if (member is ClassBuilder) {
-        // Classes are handled separately, in class hierarchy order.
-        return;
-      }
-      member.prepareTopLevelInference(library, currentClass);
-    });
   }
 
   @override

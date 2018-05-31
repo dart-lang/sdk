@@ -23,9 +23,9 @@ import '../fasta_codes.dart'
 
 import '../kernel/kernel_builder.dart'
     show
-        ClassBuilder,
         ConstructorReferenceBuilder,
         Declaration,
+        FieldBuilder,
         KernelClassBuilder,
         KernelFieldBuilder,
         KernelFunctionBuilder,
@@ -41,8 +41,6 @@ import '../kernel/kernel_builder.dart'
 import '../kernel/kernel_shadow_ast.dart' show ShadowClass;
 
 import '../problems.dart' show unexpected, unhandled;
-
-import 'source_library_builder.dart' show SourceLibraryBuilder;
 
 ShadowClass initializeClass(
     ShadowClass cls,
@@ -100,7 +98,11 @@ class SourceClassBuilder extends KernelClassBuilder {
     ShadowClass.setBuilder(this.cls, this);
   }
 
-  Class get cls => origin.actualCls;
+  @override
+  ShadowClass get cls => origin.actualCls;
+
+  @override
+  KernelLibraryBuilder get library => super.library;
 
   Class build(KernelLibraryBuilder library, LibraryBuilder coreLibrary) {
     void buildBuilders(String name, Declaration declaration) {
@@ -201,11 +203,13 @@ class SourceClassBuilder extends KernelClassBuilder {
   }
 
   @override
-  void prepareTopLevelInference(
-      SourceLibraryBuilder library, ClassBuilder currentClass) {
-    scope.forEach((name, declaration) {
-      declaration.prepareTopLevelInference(library, this);
+  void prepareTopLevelInference() {
+    scope.forEach((String name, Declaration declaration) {
+      if (declaration is FieldBuilder) {
+        declaration.prepareTopLevelInference();
+      }
     });
+    cls.setupApiMembers(library.loader.interfaceResolver);
   }
 
   @override

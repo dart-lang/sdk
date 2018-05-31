@@ -67,6 +67,8 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
   @override
   R get target;
 
+  bool get disableTypeInference => true;
+
   Uri get uri;
 
   Declaration addBuilder(String name, Declaration declaration, int charOffset);

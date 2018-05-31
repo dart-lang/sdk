@@ -226,4 +226,6 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
   }
 
   int get typeVariablesCount;
+
+  void prepareTopLevelInference() {}
 }

@@ -117,6 +117,7 @@ const noLocation = null;
 abstract class BodyBuilder<Expression, Statement, Arguments>
     extends ScopeListener<JumpTarget>
     implements ExpressionGeneratorHelper<Expression, Statement, Arguments> {
+  // TODO(ahe): Rename [library] to 'part'.
   @override
   final KernelLibraryBuilder library;
 
@@ -148,6 +149,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   // https://github.com/dart-lang/sdk/issues/28989.
   final bool ignoreMainInGetMainClosure;
 
+  // TODO(ahe): Consider renaming [uri] to 'partUri'.
   @override
   final Uri uri;
 
@@ -210,9 +212,9 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   Map<String, int> initializedFields;
 
   BodyBuilder(
-      KernelLibraryBuilder library,
+      this.library,
       this.member,
-      Scope scope,
+      this.enclosingScope,
       this.formalParameterScope,
       this.hierarchy,
       this.coreTypes,
@@ -220,9 +222,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       this.isInstanceMember,
       this.uri,
       this._typeInferrer)
-      : enclosingScope = scope,
-        library = library,
-        enableNative =
+      : enableNative =
             library.loader.target.backendTarget.enableNative(library.uri),
         stringExpectedAfterNative =
             library.loader.target.backendTarget.nativeExtensionExpectsString,
@@ -231,7 +231,38 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         needsImplicitSuperInitializer =
             coreTypes?.objectClass != classBuilder?.cls,
         typePromoter = _typeInferrer?.typePromoter,
-        super(scope);
+        super(enclosingScope);
+
+  BodyBuilder.withParents(
+      KernelFieldBuilder field,
+      KernelLibraryBuilder part,
+      KernelClassBuilder classBuilder,
+      ClassHierarchy hierarchy,
+      CoreTypes coreTypes,
+      TypeInferrer typeInferrer)
+      : this(
+            part,
+            field,
+            classBuilder?.scope ?? field.library.scope,
+            null,
+            hierarchy,
+            coreTypes,
+            classBuilder,
+            field.isInstanceMember,
+            field.fileUri,
+            typeInferrer);
+
+  BodyBuilder.forField(KernelFieldBuilder field, ClassHierarchy hierarchy,
+      CoreTypes coreTypes, TypeInferrer typeInferrer)
+      : this.withParents(
+            field,
+            field.parent is KernelClassBuilder
+                ? field.parent.parent
+                : field.parent,
+            field.parent is KernelClassBuilder ? field.parent : null,
+            hierarchy,
+            coreTypes,
+            typeInferrer);
 
   bool get hasParserError => recoverableErrors.isNotEmpty;
 
@@ -764,6 +795,14 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         this, const DynamicType(), AsyncMarker.Sync, fakeReturn);
 
     return toExpression(fakeReturn.expression);
+  }
+
+  Expression parseFieldInitializer(Token token) {
+    Parser parser = new Parser(this);
+    token = parser.parseExpression(parser.syntheticPreviousToken(token));
+    Expression expression = popForValue();
+    checkEmpty(token.charOffset);
+    return expression;
   }
 
   void finishConstructor(

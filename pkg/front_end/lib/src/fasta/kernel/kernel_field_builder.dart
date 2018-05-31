@@ -4,28 +4,27 @@
 
 library fasta.kernel_field_builder;
 
-import 'package:front_end/src/base/instrumentation.dart'
-    show Instrumentation, InstrumentationValueForType;
-
 import 'package:kernel/ast.dart'
     show DartType, Expression, Field, Name, NullLiteral;
 
-import '../../scanner/token.dart' show Token;
+import '../../base/instrumentation.dart'
+    show Instrumentation, InstrumentationValueForType;
 
-import '../builder/class_builder.dart' show ClassBuilder;
+import '../../scanner/token.dart' show Token;
 
 import '../fasta_codes.dart' show messageInternalProblemAlreadyInitialized;
 
-import '../parser/parser.dart' show Parser;
-
 import '../problems.dart' show internalProblem;
-
-import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'kernel_body_builder.dart' show KernelBodyBuilder;
 
 import 'kernel_builder.dart'
-    show Declaration, FieldBuilder, KernelTypeBuilder, MetadataBuilder;
+    show
+        Declaration,
+        FieldBuilder,
+        KernelTypeBuilder,
+        LibraryBuilder,
+        MetadataBuilder;
 
 import 'kernel_shadow_ast.dart' show ShadowField;
 
@@ -61,7 +60,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
   bool get isEligibleForInference =>
       type == null && (hasInitializer || isInstanceMember);
 
-  Field build(SourceLibraryBuilder library) {
+  Field build(LibraryBuilder library) {
     field.name ??= new Name(name, library.target);
     if (type != null) {
       field.type = type.build(library);
@@ -86,35 +85,20 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
   Field get target => field;
 
   @override
-  void prepareTopLevelInference(
-      SourceLibraryBuilder library, ClassBuilder currentClass) {
-    if (isEligibleForInference) {
-      var memberScope =
-          currentClass == null ? library.scope : currentClass.scope;
-      var typeInferenceEngine = library.loader.typeInferenceEngine;
-      var typeInferrer = typeInferenceEngine.createTopLevelTypeInferrer(
-          field.enclosingClass?.thisType, field);
-      if (hasInitializer) {
-        KernelBodyBuilder bodyBuilder = new KernelBodyBuilder(
-            library,
-            this,
-            memberScope,
-            null,
-            typeInferenceEngine.classHierarchy,
-            typeInferenceEngine.coreTypes,
-            currentClass,
-            isInstanceMember,
-            library.fileUri,
-            typeInferrer);
-        Parser parser = new Parser(bodyBuilder);
-        Token token = parser
-            .parseExpression(
-                parser.syntheticPreviousToken(initializerTokenForInference))
-            .next;
-        Expression expression = bodyBuilder.popForValue();
-        bodyBuilder.checkEmpty(token.charOffset);
-        initializer = expression;
-      }
+  void prepareTopLevelInference() {
+    if (!isEligibleForInference) return;
+    var typeInferenceEngine = library.loader.typeInferenceEngine;
+    var typeInferrer = typeInferenceEngine.createTopLevelTypeInferrer(
+        field.enclosingClass?.thisType, field);
+    if (hasInitializer) {
+      initializer = new KernelBodyBuilder.forField(
+              this,
+              // TODO(ahe): Why can't we use the loader's classHierarchy and
+              // coreTypes?
+              typeInferenceEngine.classHierarchy,
+              typeInferenceEngine.coreTypes,
+              typeInferrer)
+          .parseFieldInitializer(initializerTokenForInference);
     }
   }
 

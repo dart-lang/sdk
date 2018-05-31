@@ -32,6 +32,8 @@ import 'target_implementation.dart' show TargetImplementation;
 
 import 'ticker.dart' show Ticker;
 
+import 'type_inference/type_inference_engine.dart' show TypeInferenceEngine;
+
 abstract class Loader<L> {
   final Map<Uri, LibraryBuilder> builders = <Uri, LibraryBuilder>{};
 
@@ -72,6 +74,8 @@ abstract class Loader<L> {
   Ticker get ticker => target.ticker;
 
   Template<SummaryTemplate> get outlineSummaryTemplate;
+
+  TypeInferenceEngine get typeInferenceEngine => null;
 
   /// Look up a library builder by the name [uri], or if such doesn't
   /// exist, create one. The canonical URI of the library is [uri], and its

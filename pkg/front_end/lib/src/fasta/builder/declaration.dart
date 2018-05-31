@@ -76,7 +76,5 @@ abstract class Declaration {
   /// return the number of constructors resolved.
   int resolveConstructors(covariant Declaration parent) => 0;
 
-  void prepareTopLevelInference(covariant library, covariant currentClass) {}
-
   void instrumentTopLevelInference(covariant instrumentation) {}
 }
