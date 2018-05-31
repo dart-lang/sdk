@@ -292,7 +292,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   Expression toValue(Object node) {
     if (node is Generator) {
-      return toExpression(node.buildSimpleRead());
+      return node.buildSimpleRead();
     } else if (node is Expression) {
       return node;
     } else if (node is PrefixBuilder) {

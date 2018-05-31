@@ -22,6 +22,11 @@ main() async {
   });
 }
 
+void dart2Failure() {
+  fail(
+      'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
+}
+
 @reflectiveTest
 class ClassMemberParserTest_Forest extends FastaBodyBuilderTestCase
     with ClassMemberParserTestMixin {
@@ -627,8 +632,7 @@ class ComplexParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_logicalAndExpression() {
     super.test_logicalAndExpression();
-    fail(
-        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
+    dart2Failure();
   }
 
   @failingTest
@@ -649,22 +653,19 @@ class ComplexParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_logicalOrExpression() {
     super.test_logicalOrExpression();
-    fail(
-        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
+    dart2Failure();
   }
 
   @failingTest
   void test_logicalOrExpression_precedence_logicalAnd_left() {
     super.test_logicalOrExpression_precedence_logicalAnd_left();
-    fail(
-        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
+    dart2Failure();
   }
 
   @failingTest
   void test_logicalOrExpression_precedence_logicalAnd_right() {
     super.test_logicalOrExpression_precedence_logicalAnd_right();
-    fail(
-        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
+    dart2Failure();
   }
 
   @failingTest
@@ -680,13 +681,6 @@ class ComplexParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_methodInvocation3() {
     super.test_methodInvocation3();
-  }
-
-  @failingTest
-  void test_multipleLabels_statement() {
-    super.test_multipleLabels_statement();
-    fail(
-        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
   }
 
   @failingTest
@@ -1779,8 +1773,7 @@ class ErrorParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_missingAssignableSelector_identifiersAssigned() {
     super.test_missingAssignableSelector_identifiersAssigned();
-    fail(
-        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
+    dart2Failure();
   }
 
   @failingTest
@@ -1806,8 +1799,7 @@ class ErrorParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_missingAssignableSelector_superPropertyAccessAssigned() {
     super.test_missingAssignableSelector_superPropertyAccessAssigned();
-    fail(
-        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
+    dart2Failure();
   }
 
   @failingTest
@@ -2671,11 +2663,6 @@ class ExpressionParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_parseAwaitExpression() {
-    super.test_parseAwaitExpression();
-  }
-
-  @failingTest
   void test_parseBitwiseAndExpression_normal() {
     super.test_parseBitwiseAndExpression_normal();
   }
@@ -2833,8 +2820,7 @@ class ExpressionParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_parseConditionalExpression() {
     super.test_parseConditionalExpression();
-    fail(
-        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
+    dart2Failure();
   }
 
   @failingTest
@@ -3086,15 +3072,13 @@ class ExpressionParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_parseLogicalAndExpression() {
     super.test_parseLogicalAndExpression();
-    fail(
-        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
+    dart2Failure();
   }
 
   @failingTest
   void test_parseLogicalOrExpression() {
     super.test_parseLogicalOrExpression();
-    fail(
-        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
+    dart2Failure();
   }
 
   @failingTest
@@ -3211,8 +3195,7 @@ class ExpressionParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_parsePrimaryExpression_const() {
     super.test_parsePrimaryExpression_const();
-    fail(
-        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
+    dart2Failure();
   }
 
   @failingTest
@@ -3396,16 +3379,6 @@ class ExpressionParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_parseThrowExpression() {
-    super.test_parseThrowExpression();
-  }
-
-  @failingTest
-  void test_parseThrowExpressionWithoutCascade() {
-    super.test_parseThrowExpressionWithoutCascade();
-  }
-
-  @failingTest
   void test_parseUnaryExpression_decrement_normal() {
     super.test_parseUnaryExpression_decrement_normal();
   }
@@ -3448,11 +3421,6 @@ class ExpressionParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_parseUnaryExpression_minus_super() {
     super.test_parseUnaryExpression_minus_super();
-  }
-
-  @failingTest
-  void test_parseUnaryExpression_not_normal() {
-    super.test_parseUnaryExpression_not_normal();
   }
 
   @failingTest
@@ -4061,15 +4029,13 @@ class RecoveryParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_conditionalExpression_missingElse() {
     super.test_conditionalExpression_missingElse();
-    fail(
-        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
+    dart2Failure();
   }
 
   @failingTest
   void test_conditionalExpression_missingThen() {
     super.test_conditionalExpression_missingThen();
-    fail(
-        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
+    dart2Failure();
   }
 
   @failingTest
@@ -4160,8 +4126,7 @@ class RecoveryParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_incomplete_conditionalExpression() {
     super.test_incomplete_conditionalExpression();
-    fail(
-        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
+    dart2Failure();
   }
 
   @failingTest
@@ -4342,22 +4307,19 @@ class RecoveryParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_logicalAndExpression_missing_LHS() {
     super.test_logicalAndExpression_missing_LHS();
-    fail(
-        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
+    dart2Failure();
   }
 
   @failingTest
   void test_logicalAndExpression_missing_LHS_RHS() {
     super.test_logicalAndExpression_missing_LHS_RHS();
-    fail(
-        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
+    dart2Failure();
   }
 
   @failingTest
   void test_logicalAndExpression_missing_RHS() {
     super.test_logicalAndExpression_missing_RHS();
-    fail(
-        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
+    dart2Failure();
   }
 
   @failingTest
@@ -4373,36 +4335,31 @@ class RecoveryParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_logicalOrExpression_missing_LHS() {
     super.test_logicalOrExpression_missing_LHS();
-    fail(
-        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
+    dart2Failure();
   }
 
   @failingTest
   void test_logicalOrExpression_missing_LHS_RHS() {
     super.test_logicalOrExpression_missing_LHS_RHS();
-    fail(
-        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
+    dart2Failure();
   }
 
   @failingTest
   void test_logicalOrExpression_missing_RHS() {
     super.test_logicalOrExpression_missing_RHS();
-    fail(
-        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
+    dart2Failure();
   }
 
   @failingTest
   void test_logicalOrExpression_precedence_logicalAnd_left() {
     super.test_logicalOrExpression_precedence_logicalAnd_left();
-    fail(
-        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
+    dart2Failure();
   }
 
   @failingTest
   void test_logicalOrExpression_precedence_logicalAnd_right() {
     super.test_logicalOrExpression_precedence_logicalAnd_right();
-    fail(
-        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
+    dart2Failure();
   }
 
   @failingTest
@@ -4867,11 +4824,6 @@ class SimpleParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_parseReturnStatement_value() {
-    super.test_parseReturnStatement_value();
-  }
-
-  @failingTest
   void test_parseStatement_function_noReturnType() {
     super.test_parseStatement_function_noReturnType();
   }
@@ -5077,31 +5029,6 @@ class StatementParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_parseAssertStatement() {
-    super.test_parseAssertStatement();
-  }
-
-  @failingTest
-  void test_parseAssertStatement_messageLowPrecedence() {
-    super.test_parseAssertStatement_messageLowPrecedence();
-  }
-
-  @failingTest
-  void test_parseAssertStatement_messageString() {
-    super.test_parseAssertStatement_messageString();
-  }
-
-  @failingTest
-  void test_parseAssertStatement_trailingComma_message() {
-    super.test_parseAssertStatement_trailingComma_message();
-  }
-
-  @failingTest
-  void test_parseAssertStatement_trailingComma_noMessage() {
-    super.test_parseAssertStatement_trailingComma_noMessage();
-  }
-
-  @failingTest
   void test_parseBreakStatement_noLabel() {
     super.test_parseBreakStatement_noLabel();
   }
@@ -5109,11 +5036,6 @@ class StatementParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_parseContinueStatement_noLabel() {
     super.test_parseContinueStatement_noLabel();
-  }
-
-  @failingTest
-  void test_parseDoStatement() {
-    super.test_parseDoStatement();
   }
 
   @failingTest
@@ -5217,25 +5139,8 @@ class StatementParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_parseIfStatement_else_block() {
-    super.test_parseIfStatement_else_block();
-  }
-
-  @failingTest
-  void test_parseIfStatement_else_emptyStatements() {
-    super.test_parseIfStatement_else_emptyStatements();
-    fail(
-        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
-  }
-
-  @failingTest
   void test_parseIfStatement_else_statement() {
     super.test_parseIfStatement_else_statement();
-  }
-
-  @failingTest
-  void test_parseIfStatement_noElse_block() {
-    super.test_parseIfStatement_noElse_block();
   }
 
   @failingTest
@@ -5403,18 +5308,6 @@ class StatementParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_parseStatement_multipleLabels() {
-    super.test_parseStatement_multipleLabels();
-    fail(
-        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
-  }
-
-  @failingTest
-  void test_parseStatement_noLabels() {
-    super.test_parseStatement_noLabels();
-  }
-
-  @failingTest
   void test_parseStatement_singleLabel() {
     super.test_parseStatement_singleLabel();
   }
@@ -5567,11 +5460,6 @@ class StatementParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_parseVariableDeclarationStatementAfterMetadata_single() {
     super.test_parseVariableDeclarationStatementAfterMetadata_single();
-  }
-
-  @failingTest
-  void test_parseWhileStatement() {
-    super.test_parseWhileStatement();
   }
 
   @failingTest

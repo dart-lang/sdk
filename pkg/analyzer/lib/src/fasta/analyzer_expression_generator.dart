@@ -7,19 +7,20 @@ import 'package:analyzer/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/fasta/ast_building_factory.dart';
 import 'package:front_end/src/fasta/kernel/expression_generator.dart' as fasta;
 import 'package:front_end/src/fasta/kernel/expression_generator_helper.dart';
-import 'package:front_end/src/fasta/kernel/forest.dart';
+import 'package:front_end/src/fasta/kernel/forest.dart' as fasta;
 import 'package:front_end/src/scanner/token.dart';
 import 'package:kernel/ast.dart' show DartType, Initializer, Name, Procedure;
 
 abstract class AnalyzerExpressionGenerator
-    implements Generator<Expression, Statement, Arguments> {
+    implements fasta.Generator<Expression, Statement, Arguments> {
   final ExpressionGeneratorHelper<Expression, Statement, Arguments> helper;
 
   final AstFactory astFactory;
 
   AnalyzerExpressionGenerator(this.helper, this.astFactory);
 
-  Forest<Expression, Statement, Token, Arguments> get forest => helper.forest;
+  fasta.Forest<Expression, Statement, Token, Arguments> get forest =>
+      helper.forest;
 
   @override
 // TODO: implement isInitializer
@@ -143,6 +144,46 @@ abstract class AnalyzerExpressionGenerator
   T storeOffset<T>(T node, int offset) {
     // TODO: implement storeOffset
     throw new UnimplementedError();
+  }
+}
+
+class AnalyzerUnlinkedNameGenerator extends AnalyzerExpressionGenerator
+    with
+        fasta.ErroneousExpressionGenerator<Expression, Statement, Arguments>,
+        fasta.UnlinkedGenerator<Expression, Statement, Arguments> {
+  @override
+  final Token token;
+
+  @override
+  final fasta.UnlinkedDeclaration declaration;
+
+  AnalyzerUnlinkedNameGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, dynamic> helper,
+      AstFactory astFactory,
+      this.token,
+      this.declaration)
+      : super(helper, astFactory);
+
+  @override
+  DartType buildErroneousTypeNotAPrefix(fasta.Identifier suffix) {
+    // TODO: implement buildErroneousTypeNotAPrefix
+    throw new UnimplementedError();
+  }
+
+  @override
+  Expression buildError(Arguments arguments,
+      {bool isGetter: false, bool isSetter: false, int offset}) {
+    // TODO: implement buildError
+    throw new UnimplementedError();
+  }
+
+  @override
+  Expression buildSimpleRead() => astFactory.simpleIdentifier(token);
+
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", name: ");
+    sink.write(name.name);
   }
 }
 

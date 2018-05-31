@@ -614,8 +614,8 @@ class AstBuildingForest
       ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
       Token token,
       UnlinkedDeclaration declaration) {
-    // TODO(brianwilkerson) Implement this.
-    throw new UnimplementedError();
+    return new AnalyzerUnlinkedNameGenerator(
+        helper, astFactory, token, declaration);
   }
 
   @override
