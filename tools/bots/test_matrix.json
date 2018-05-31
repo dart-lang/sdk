@@ -737,6 +737,28 @@
     },
     {
       "builders": [
+        "vm-kernel-reload-linux-debug-x64",
+        "vm-kernel-reload-linux-release-x64",
+        "vm-kernel-reload-mac-debug-simdbc64",
+        "vm-kernel-reload-mac-release-simdbc64"
+      ],
+      "meta": {
+        "description": "This is the configuration for the kernel hot reload builders."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["runtime_kernel"]
+        },
+        {
+          "name": "vm tests",
+          "arguments": ["--compiler=dartk", "--hot-reload", "--strong"]
+        }
+      ]
+    },
+    {
+      "builders": [
         "vm-reload-rollback-linux-debug-x64",
         "vm-reload-rollback-linux-release-x64"
       ],
@@ -756,6 +778,26 @@
         {
           "name": "checked vm tests",
           "arguments": ["--checked","--hot-reload-rollback"]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-kernel-reload-rollback-linux-debug-x64",
+        "vm-kernel-reload-rollback-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This is the configuration for kernel reload rollback builders."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["runtime_kernel"]
+        },
+        {
+          "name": "vm tests",
+          "arguments": ["--compiler=dartk", "--hot-reload-rollback", "--strong"]
         }
       ]
     },
