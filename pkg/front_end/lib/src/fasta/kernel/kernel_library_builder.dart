@@ -890,10 +890,10 @@ class KernelLibraryBuilder
     if (scope.local[name] == declaration) {
       isLocal = true;
       preferred = declaration;
-      hiddenUri = other.computeLibraryUri();
+      hiddenUri = computeLibraryUri(other);
     } else {
-      uri = declaration.computeLibraryUri();
-      otherUri = other.computeLibraryUri();
+      uri = computeLibraryUri(declaration);
+      otherUri = computeLibraryUri(other);
       if (declaration is LoadLibraryBuilder) {
         isLoadLibrary = true;
         preferred = declaration;
@@ -1138,4 +1138,14 @@ class KernelLibraryBuilder
         (!member.isSetter && scope.local[name] == null));
     addToExportScope(name, member);
   }
+}
+
+Uri computeLibraryUri(Declaration declaration) {
+  Declaration current = declaration;
+  do {
+    if (current is LibraryBuilder) return current.uri;
+    current = current.parent;
+  } while (current != null);
+  return unhandled("no library parent", "${declaration.runtimeType}",
+      declaration.charOffset, declaration.fileUri);
 }

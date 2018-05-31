@@ -4,9 +4,7 @@
 
 library fasta.declaration;
 
-import '../problems.dart' show unhandled, unsupported;
-
-import 'library_builder.dart' show LibraryBuilder;
+import '../problems.dart' show unsupported;
 
 abstract class Declaration {
   /// Used when multiple things with the same name are declared within the same
@@ -61,15 +59,6 @@ abstract class Declaration {
   bool get isTypeDeclaration => false;
 
   bool get isTypeVariable => false;
-
-  Uri computeLibraryUri() {
-    Declaration declaration = this;
-    do {
-      if (declaration is LibraryBuilder) return declaration.uri;
-      declaration = declaration.parent;
-    } while (declaration != null);
-    return unhandled("no library parent", "${runtimeType}", -1, null);
-  }
 
   /// Applies [patch] to this declaration.
   void applyPatch(Declaration patch) {
