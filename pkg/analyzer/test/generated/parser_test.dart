@@ -2403,36 +2403,6 @@ void f() {
  */
 @reflectiveTest
 class ErrorParserTest extends ParserTestCase with ErrorParserTestMixin {
-  @failingTest
-  @override
-  void test_expectedListOrMapLiteral() {
-    super.test_expectedListOrMapLiteral();
-  }
-
-  @failingTest
-  @override
-  void test_invalidCommentReference__new_nonIdentifier() {
-    super.test_invalidCommentReference__new_nonIdentifier();
-  }
-
-  @failingTest
-  @override
-  void test_invalidCommentReference__new_tooMuch() {
-    super.test_invalidCommentReference__new_tooMuch();
-  }
-
-  @failingTest
-  @override
-  void test_invalidCommentReference__nonNew_nonIdentifier() {
-    super.test_invalidCommentReference__nonNew_nonIdentifier();
-  }
-
-  @failingTest
-  @override
-  void test_invalidCommentReference__nonNew_tooMuch() {
-    super.test_invalidCommentReference__nonNew_tooMuch();
-  }
-
   void test_missingIdentifier_number() {
     createParser('1');
     SimpleIdentifier expression = parser.parseSimpleIdentifier();
@@ -3249,6 +3219,7 @@ class Foo {
     expectNotNullIfNoErrors(literal);
   }
 
+  @failingTest
   void test_expectedListOrMapLiteral() {
     // It isn't clear that this test can ever pass. The parser is currently
     // create a synthetic list literal in this case, but isSynthetic() isn't
@@ -4032,6 +4003,7 @@ class Wrong<T> {
     expectNotNullIfNoErrors(literal);
   }
 
+  @failingTest
   void test_invalidCommentReference__new_nonIdentifier() {
     // This test fails because the method parseCommentReference returns null.
     createParser('');
@@ -4041,6 +4013,7 @@ class Wrong<T> {
         [expectedError(ParserErrorCode.INVALID_COMMENT_REFERENCE, 0, 6)]);
   }
 
+  @failingTest
   void test_invalidCommentReference__new_tooMuch() {
     createParser('');
     CommentReference reference = parser.parseCommentReference('new a.b.c.d', 0);
@@ -4049,6 +4022,7 @@ class Wrong<T> {
         [expectedError(ParserErrorCode.INVALID_COMMENT_REFERENCE, 0, 11)]);
   }
 
+  @failingTest
   void test_invalidCommentReference__nonNew_nonIdentifier() {
     // This test fails because the method parseCommentReference returns null.
     createParser('');
@@ -4058,6 +4032,7 @@ class Wrong<T> {
         [expectedError(ParserErrorCode.INVALID_COMMENT_REFERENCE, 0, 2)]);
   }
 
+  @failingTest
   void test_invalidCommentReference__nonNew_tooMuch() {
     createParser('');
     CommentReference reference = parser.parseCommentReference('a.b.c.d', 0);
