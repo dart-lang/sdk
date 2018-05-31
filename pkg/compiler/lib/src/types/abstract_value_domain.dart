@@ -91,6 +91,18 @@ abstract class AbstractValueDomain {
   /// The [AbstractValue] that represents the empty set of runtime values.
   AbstractValue get emptyType;
 
+  /// The [AbstractValue] that represents a non-null instance at runtime of the
+  /// `Iterable` class used for the `sync*` implementation.
+  AbstractValue get syncStarIterableType;
+
+  /// The [AbstractValue] that represents a non-null instance at runtime of the
+  /// `Future` class used for the `async` implementation.
+  AbstractValue get asyncFutureType;
+
+  /// The [AbstractValue] that represents a non-null instance at runtime of the
+  /// `Stream` class used for the `async*` implementation.
+  AbstractValue get asyncStarStreamType;
+
   /// Creates an [AbstractValue] for a non-null exact instance of [cls].
   AbstractValue createNonNullExact(ClassEntity cls);
 
@@ -277,9 +289,15 @@ abstract class AbstractValueDomain {
   /// Computes the [AbstractValue] corresponding to the constant [value].
   AbstractValue computeAbstractValueForConstant(ConstantValue value);
 
+  /// Returns `true` if [value] represents a container value at runtime.
+  bool isContainer(covariant AbstractValue value);
+
   /// Returns the element type of [value] if it represents a container value
   /// at runtime. Returns [dynamicType] otherwise.
   AbstractValue getContainerElementType(AbstractValue value);
+
+  /// Returns `true` if [value] represents a map value at runtime.
+  bool isMap(covariant AbstractValue value);
 
   /// Returns the value type of [value] if it represents a map value at runtime.
   /// Returns [dynamicType] otherwise.

@@ -151,13 +151,16 @@ class CommonMasks implements AbstractValueDomain {
   TypeMask get typeType => _typeType ??=
       new TypeMask.nonNullExact(commonElements.typeLiteralClass, _closedWorld);
 
+  @override
   TypeMask get syncStarIterableType => _syncStarIterableType ??=
       new TypeMask.nonNullExact(commonElements.syncStarIterable, _closedWorld);
 
+  @override
   TypeMask get asyncFutureType =>
       _asyncFutureType ??= new TypeMask.nonNullExact(
           commonElements.futureImplementation, _closedWorld);
 
+  @override
   TypeMask get asyncStarStreamType => _asyncStarStreamType ??=
       new TypeMask.nonNullExact(commonElements.controllerStream, _closedWorld);
 
@@ -595,5 +598,15 @@ class CommonMasks implements AbstractValueDomain {
   @override
   bool canBeInterceptor(TypeMask value) {
     return !interceptorType.isDisjoint(value, _closedWorld);
+  }
+
+  @override
+  bool isMap(TypeMask value) {
+    return value.isMap;
+  }
+
+  @override
+  bool isContainer(TypeMask value) {
+    return value.isContainer;
   }
 }
