@@ -483,6 +483,23 @@ abstract class DeferredLoadTask extends CompilerTask {
     }
   }
 
+  void _updateLocalFunction(
+      Local localFunction, ImportSet oldSet, ImportSet newSet) {
+    ImportSet currentSet = _localFunctionToSet[localFunction];
+    if (currentSet == newSet) return;
+
+    // Elements in the main output unit always remain there.
+    if (currentSet == importSets.mainSet) return;
+
+    if (currentSet == oldSet) {
+      _localFunctionToSet[localFunction] = newSet;
+    } else {
+      _localFunctionToSet[localFunction] = importSets.union(currentSet, newSet);
+    }
+    // Note: local functions are not updated recursively because the
+    // dependencies are already visited as dependencies of the enclosing member.
+  }
+
   void _processDependencies(LibraryEntity library, Dependencies dependencies,
       ImportSet oldSet, ImportSet newSet, WorkQueue queue) {
     for (ClassEntity cls in dependencies.classes) {
@@ -520,15 +537,7 @@ abstract class DeferredLoadTask extends CompilerTask {
     }
 
     for (Local localFunction in dependencies.localFunctions) {
-      // Local function are not updated recursively because the dependencies are
-      // already visited as dependencies of the enclosing member, so we just
-      // assign the [newSet] to each local function that is not already assigned
-      // to the main output unit.
-      ImportSet currentSet = _localFunctionToSet[localFunction];
-      if (currentSet != newSet && currentSet != importSets.mainSet) {
-        assert(currentSet == oldSet);
-        _localFunctionToSet[localFunction] = newSet;
-      }
+      _updateLocalFunction(localFunction, oldSet, newSet);
     }
 
     for (ConstantValue dependency in dependencies.constants) {
