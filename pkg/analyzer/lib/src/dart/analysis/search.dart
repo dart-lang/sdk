@@ -138,9 +138,6 @@ class Search {
       }
     }
 
-    for (String path in _driver.addedFiles) {
-      _driver.fsState.getFileForPath(path);
-    }
     await _driver.discoverAvailableFiles();
 
     try {

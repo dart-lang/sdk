@@ -2273,7 +2273,7 @@ class _DiscoverAvailableFilesTask {
   bool isCompleted = false;
 
   Iterator<Folder> folderIterator;
-  List<String> files;
+  List<String> files = [];
   int fileIndex = 0;
 
   _DiscoverAvailableFilesTask(this.driver);
@@ -2284,15 +2284,16 @@ class _DiscoverAvailableFilesTask {
    * task should continue to be run.
    */
   void perform() {
+    // Always discover added files.
+    files.addAll(driver.addedFiles);
+
     // Prepare the iterator of package/lib folders.
     if (folderIterator == null) {
       var packageMap = driver._sourceFactory.packageMap;
       if (packageMap != null) {
         folderIterator = packageMap.values.expand((f) => f).iterator;
-        files = <String>[];
       } else {
-        isCompleted = true;
-        return;
+        folderIterator = <Folder>[].iterator;
       }
     }
 
