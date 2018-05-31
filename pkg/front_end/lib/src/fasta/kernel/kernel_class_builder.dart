@@ -427,8 +427,9 @@ abstract class KernelClassBuilder
       KernelTarget target, Procedure procedure, ClassHierarchy hierarchy) {
     CloneWithoutBody cloner = new CloneWithoutBody(
         typeSubstitution: getSubstitutionMap(
-            hierarchy.getClassAsInstanceOf(cls, procedure.enclosingClass)));
-    Procedure cloned = cloner.clone(procedure);
+            hierarchy.getClassAsInstanceOf(cls, procedure.enclosingClass)),
+        cloneAnnotations: false);
+    Procedure cloned = cloner.clone(procedure)..isExternal = false;
     transformProcedureToNoSuchMethodForwarder(noSuchMethod, target, cloned);
     cls.procedures.add(cloned);
     cloned.parent = cls;
