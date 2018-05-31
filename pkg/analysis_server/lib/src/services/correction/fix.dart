@@ -105,7 +105,8 @@ class DartFixKind {
       'ADD_MISSING_PARAMETER_REQUIRED', 30, "Add required parameter");
   static const ADD_MISSING_REQUIRED_ARGUMENT = const FixKind(
       'ADD_MISSING_REQUIRED_ARGUMENT', 30, "Add required argument '{0}'");
-  static const ADD_NE_NULL = const FixKind('ADD_NE_NULL', 50, "Add != null");
+  static const ADD_NE_NULL = const FixKind('ADD_NE_NULL', 50, "Add != null",
+      appliedTogetherMessage: "Add != null everywhere in file");
   static const ADD_PACKAGE_DEPENDENCY = const FixKind(
       'ADD_PACKAGE_DEPENDENCY', 50, "Add dependency on package '{0}'");
   static const ADD_STATIC =
@@ -207,8 +208,9 @@ class DartFixKind {
       const FixKind('REMOVE_THIS_EXPRESSION', 50, "Remove this expression");
   static const REMOVE_TYPE_NAME =
       const FixKind('REMOVE_TYPE_NAME', 50, "Remove type name");
-  static const REMOVE_UNNECESSARY_CAST =
-      const FixKind('REMOVE_UNNECESSARY_CAST', 50, "Remove unnecessary cast");
+  static const REMOVE_UNNECESSARY_CAST = const FixKind(
+      'REMOVE_UNNECESSARY_CAST', 50, "Remove unnecessary cast",
+      appliedTogetherMessage: "Remove all unnecessary casts in file");
   static const REMOVE_UNUSED_CATCH_CLAUSE =
       const FixKind('REMOVE_UNUSED_CATCH', 50, "Remove unused 'catch' clause");
   static const REMOVE_UNUSED_CATCH_STACK = const FixKind(
@@ -219,7 +221,8 @@ class DartFixKind {
   static const RENAME_TO_CAMEL_CASE =
       const FixKind('RENAME_TO_CAMEL_CASE', 50, "Rename to '{0}'");
   static const REPLACE_BOOLEAN_WITH_BOOL = const FixKind(
-      'REPLACE_BOOLEAN_WITH_BOOL', 50, "Replace 'boolean' with 'bool'");
+      'REPLACE_BOOLEAN_WITH_BOOL', 50, "Replace 'boolean' with 'bool'",
+      appliedTogetherMessage: "Replace all 'boolean' with 'bool' in file");
   static const REPLACE_FINAL_WITH_CONST = const FixKind(
       'REPLACE_FINAL_WITH_CONST', 50, "Replace 'final' with 'const'");
   static const REPLACE_VAR_WITH_DYNAMIC = const FixKind(

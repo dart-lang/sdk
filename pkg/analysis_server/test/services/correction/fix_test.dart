@@ -1727,6 +1727,22 @@ main() {
 ''');
   }
 
+  test_boolean_all() async {
+    await resolveTestUnit('''
+main() {
+  boolean v;
+  boolean w;
+}
+''');
+    await assertHasFixAllFix(StaticWarningCode.UNDEFINED_CLASS_BOOLEAN,
+        DartFixKind.REPLACE_BOOLEAN_WITH_BOOL, '''
+main() {
+  bool v;
+  bool w;
+}
+''');
+  }
+
   test_canBeNullAfterNullAware_chain() async {
     await resolveTestUnit('''
 main(x) {
@@ -5229,6 +5245,30 @@ main(String p) {
 ''');
   }
 
+  test_nonBoolCondition_addNotNull_all() async {
+    await resolveTestUnit('''
+main(String p, String q) {
+  if (p) {
+    print(p);
+  }
+  if (q) {
+    print(q);
+  }
+}
+''');
+    await assertHasFixAllFix(
+        StaticTypeWarningCode.NON_BOOL_CONDITION, DartFixKind.ADD_NE_NULL, '''
+main(String p, String q) {
+  if (p != null) {
+    print(p);
+  }
+  if (q != null) {
+    print(q);
+  }
+}
+''');
+  }
+
   test_removeDeadCode_condition() async {
     await resolveTestUnit('''
 main(int p) {
@@ -5323,6 +5363,30 @@ main(Object p) {
 main(Object p) {
   if (p is String) {
     String v = p;
+  }
+}
+''');
+  }
+
+  test_removeUnnecessaryCast_assignment_all() async {
+    await resolveTestUnit('''
+main(Object p, Object q) {
+  if (p is String) {
+    String v = ((p as String));
+  }
+  if (q is int) {
+    int v = ((q as int));
+  }
+}
+''');
+    await assertHasFixAllFix(
+        HintCode.UNNECESSARY_CAST, DartFixKind.REMOVE_UNNECESSARY_CAST, '''
+main(Object p, Object q) {
+  if (p is String) {
+    String v = p;
+  }
+  if (q is int) {
+    int v = q;
   }
 }
 ''');
