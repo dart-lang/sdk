@@ -7067,6 +7067,7 @@ RawFunction* Function::New(const String& name,
                            Heap::Space space) {
   ASSERT(!owner.IsNull() || (kind == RawFunction::kSignatureFunction));
   const Function& result = Function::Handle(Function::New(space));
+  result.set_kind_tag(0);
   result.set_parameter_types(Object::empty_array());
   result.set_parameter_names(Object::empty_array());
   result.set_name(name);
