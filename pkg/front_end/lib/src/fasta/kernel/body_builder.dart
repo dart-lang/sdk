@@ -309,7 +309,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   }
 
   Expression toEffect(Object node) {
-    if (node is Generator) return toExpression(node.buildForEffect());
+    if (node is Generator) return node.buildForEffect();
     return toValue(node);
   }
 
