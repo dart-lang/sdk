@@ -4,7 +4,7 @@
 
 library type_mask_test_helper;
 
-import 'package:compiler/src/types/masks.dart';
+import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import 'package:compiler/src/world.dart' show ClosedWorld;
 
 export 'package:compiler/src/types/types.dart';

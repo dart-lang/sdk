@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/types/masks.dart';
+import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import 'package:compiler/src/universe/selector.dart';
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';

@@ -4,10 +4,10 @@
 
 library types.constants;
 
-import '../common.dart';
-import '../constants/values.dart';
-import '../js_backend/js_backend.dart' show SyntheticConstantKind;
-import '../world.dart' show ClosedWorld;
+import '../../common.dart';
+import '../../constants/values.dart';
+import '../../js_backend/js_backend.dart' show SyntheticConstantKind;
+import '../../world.dart' show ClosedWorld;
 import 'masks.dart';
 
 /// Computes the [TypeMask] for the constant [value].

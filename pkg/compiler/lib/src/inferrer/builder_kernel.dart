@@ -17,7 +17,6 @@ import '../js_model/locals.dart' show JumpVisitor;
 import '../kernel/element_map.dart';
 import '../native/behavior.dart';
 import '../options.dart';
-import '../types/constants.dart';
 import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
 import '../universe/selector.dart';
@@ -615,8 +614,9 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     ConstantSystem constantSystem = _closedWorld.constantSystem;
     // The JavaScript backend may turn this literal into a double at
     // runtime.
-    return _types.getConcreteTypeFor(computeTypeMask(
-        _closedWorld, constantSystem.createIntFromInt(node.value)));
+    return _types.getConcreteTypeFor(_closedWorld.abstractValueDomain
+        .computeAbstractValueForConstant(
+            constantSystem.createIntFromInt(node.value)));
   }
 
   @override
@@ -624,8 +624,9 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     ConstantSystem constantSystem = _closedWorld.constantSystem;
     // The JavaScript backend may turn this literal into an integer at
     // runtime.
-    return _types.getConcreteTypeFor(
-        computeTypeMask(_closedWorld, constantSystem.createDouble(node.value)));
+    return _types.getConcreteTypeFor(_closedWorld.abstractValueDomain
+        .computeAbstractValueForConstant(
+            constantSystem.createDouble(node.value)));
   }
 
   @override

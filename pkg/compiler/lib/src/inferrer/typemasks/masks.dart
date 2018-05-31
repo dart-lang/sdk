@@ -4,18 +4,18 @@
 
 library masks;
 
-import '../common.dart';
-import '../common_elements.dart' show CommonElements;
-import '../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
-import '../elements/entities.dart';
-import '../inferrer/type_graph_inferrer.dart' show TypeGraphInferrer;
-import '../universe/selector.dart' show Selector;
-import '../universe/use.dart' show DynamicUse;
-import '../universe/world_builder.dart'
+import '../../common.dart';
+import '../../common_elements.dart' show CommonElements;
+import '../../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
+import '../../elements/entities.dart';
+import '../../types/abstract_value_domain.dart';
+import '../../universe/selector.dart' show Selector;
+import '../../universe/use.dart' show DynamicUse;
+import '../../universe/world_builder.dart'
     show UniverseSelectorConstraints, SelectorConstraintsStrategy;
-import '../util/util.dart';
-import '../world.dart' show ClassQuery, ClosedWorld;
-import 'abstract_value_domain.dart';
+import '../../util/util.dart';
+import '../../world.dart' show ClassQuery, ClosedWorld;
+import '../type_graph_inferrer.dart' show TypeGraphInferrer;
 import 'constants.dart';
 
 part 'container_type_mask.dart';

@@ -7,7 +7,7 @@
 import "package:async_helper/async_helper.dart";
 import "package:compiler/src/commandline_options.dart";
 import "package:compiler/src/constants/values.dart";
-import "package:compiler/src/types/masks.dart";
+import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import "package:expect/expect.dart";
 import '../memory_compiler.dart';
 

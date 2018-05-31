@@ -1025,7 +1025,7 @@ abstract class KernelResolutionWorldBuilderBase
             classQueries);
 
   @override
-  ClosedWorld closeWorld() {
+  ClosedWorld closeWorld(AbstractValueStrategy abstractValueStrategy) {
     Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses =
         populateHierarchyNodes();
 
@@ -1061,6 +1061,7 @@ abstract class KernelResolutionWorldBuilderBase
         mixinUses: classHierarchyBuilder.mixinUses,
         typesImplementedBySubclasses: typesImplementedBySubclasses,
         classHierarchyNodes: classHierarchyBuilder.classHierarchyNodes,
-        classSets: classHierarchyBuilder.classSets);
+        classSets: classHierarchyBuilder.classSets,
+        abstractValueStrategy: abstractValueStrategy);
   }
 }

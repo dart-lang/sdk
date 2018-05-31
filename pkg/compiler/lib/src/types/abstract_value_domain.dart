@@ -7,8 +7,20 @@ library dart2js.abstract_value_domain;
 import '../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
 import '../elements/entities.dart';
 import '../universe/selector.dart';
+import '../universe/world_builder.dart';
+import '../world.dart';
 
 enum AbstractBool { True, False, Maybe }
+
+/// Strategy for the abstraction of runtime values used by the global type
+/// inference.
+abstract class AbstractValueStrategy {
+  /// Creates the abstract value domain for [closedWorld].
+  AbstractValueDomain createDomain(ClosedWorld closedWorld);
+
+  /// Creates the [SelectorConstraintsStrategy] used by the backend enqueuer.
+  SelectorConstraintsStrategy createSelectorStrategy();
+}
 
 /// A value in an abstraction of runtime values.
 abstract class AbstractValue {}

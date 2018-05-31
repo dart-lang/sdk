@@ -43,6 +43,7 @@ import '../options.dart';
 import '../ordered_typeset.dart';
 import '../ssa/kernel_impact.dart';
 import '../ssa/type_builder.dart';
+import '../types/abstract_value_domain.dart';
 import '../universe/class_hierarchy_builder.dart';
 import '../universe/class_set.dart';
 import '../universe/selector.dart';
@@ -2094,7 +2095,8 @@ class KernelClosedWorld extends ClosedWorldBase
       Map<ClassEntity, Set<ClassEntity>> mixinUses,
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
-      Map<ClassEntity, ClassSet> classSets})
+      Map<ClassEntity, ClassSet> classSets,
+      AbstractValueStrategy abstractValueStrategy})
       : super(
             elementEnvironment,
             dartTypes,
@@ -2112,7 +2114,8 @@ class KernelClosedWorld extends ClosedWorldBase
             mixinUses,
             typesImplementedBySubclasses,
             classHierarchyNodes,
-            classSets) {
+            classSets,
+            abstractValueStrategy) {
     computeRtiNeed(resolutionWorldBuilder, rtiNeedBuilder, options);
   }
 

@@ -23,7 +23,6 @@ import 'js_backend/runtime_types.dart'
 import 'ordered_typeset.dart';
 import 'options.dart';
 import 'types/abstract_value_domain.dart';
-import 'types/masks.dart' show CommonMasks;
 import 'universe/class_set.dart';
 import 'universe/function_set.dart' show FunctionSet;
 import 'universe/selector.dart' show Selector;
@@ -389,7 +388,7 @@ abstract class ClosedWorldRefiner {
 abstract class OpenWorld implements World {
   void registerUsedElement(MemberEntity element);
 
-  ClosedWorld closeWorld();
+  ClosedWorld closeWorld(AbstractValueStrategy abstractValueStrategy);
 
   /// Returns an iterable over all mixin applications that mixin [cls].
   Iterable<ClassEntity> allMixinUsesOf(ClassEntity cls);
@@ -496,11 +495,12 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
       this.mixinUses,
       this.typesImplementedBySubclasses,
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
-      Map<ClassEntity, ClassSet> classSets)
+      Map<ClassEntity, ClassSet> classSets,
+      AbstractValueStrategy abstractValueStrategy)
       : this._implementedClasses = implementedClasses,
         this._classHierarchyNodes = classHierarchyNodes,
         this._classSets = classSets {
-    _abstractValueDomain = new CommonMasks(this);
+    _abstractValueDomain = abstractValueStrategy.createDomain(this);
   }
 
   @override

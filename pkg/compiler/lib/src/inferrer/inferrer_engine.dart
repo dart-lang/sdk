@@ -18,7 +18,6 @@ import '../js_emitter/sorter.dart';
 import '../native/behavior.dart' as native;
 import '../options.dart';
 import '../types/abstract_value_domain.dart';
-import '../types/constants.dart';
 import '../types/types.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
@@ -710,7 +709,8 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
                 // Although we might find a better type, we have to keep
                 // the old type around to ensure that we get a complete view
                 // of the type graph and do not drop any flow edges.
-                AbstractValue refinedType = computeTypeMask(closedWorld, value);
+                AbstractValue refinedType =
+                    abstractValueDomain.computeAbstractValueForConstant(value);
                 type = new NarrowTypeInformation(
                     abstractValueDomain, type, refinedType);
                 types.allocatedTypes.add(type);

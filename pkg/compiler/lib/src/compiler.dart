@@ -6,6 +6,8 @@ library dart2js.compiler_base;
 
 import 'dart:async' show Future;
 
+import 'package:front_end/src/fasta/scanner.dart' show StringToken;
+
 import '../compiler_new.dart' as api;
 import 'backend_strategy.dart';
 import 'common/names.dart' show Selectors;
@@ -24,6 +26,7 @@ import 'elements/entities.dart';
 import 'enqueue.dart' show Enqueuer, EnqueueTask, ResolutionEnqueuer;
 import 'environment.dart';
 import 'frontend_strategy.dart';
+import 'inferrer/typemasks/masks.dart' show TypeMaskStrategy;
 import 'io/source_information.dart' show SourceInformation;
 import 'js_backend/backend.dart' show JavaScriptBackend;
 import 'kernel/kernel_backend_strategy.dart';
@@ -32,7 +35,7 @@ import 'library_loader.dart' show LibraryLoaderTask, LoadedLibraries;
 import 'null_compiler_output.dart' show NullCompilerOutput, NullSink;
 import 'options.dart' show CompilerOptions, DiagnosticOptions;
 import 'ssa/nodes.dart' show HInstruction;
-import 'package:front_end/src/fasta/scanner.dart' show StringToken;
+import 'types/abstract_value_domain.dart' show AbstractValueStrategy;
 import 'types/types.dart' show GlobalTypeInferenceTask;
 import 'universe/selector.dart' show Selector;
 import 'universe/world_builder.dart'
@@ -101,6 +104,8 @@ abstract class Compiler {
   GlobalTypeInferenceTask globalInference;
   JavaScriptBackend backend;
   CodegenWorldBuilder _codegenWorldBuilder;
+
+  AbstractValueStrategy abstractValueStrategy = const TypeMaskStrategy();
 
   GenericTask selfTask;
 
@@ -416,7 +421,8 @@ abstract class Compiler {
   ClosedWorldRefiner closeResolution(FunctionEntity mainFunction) {
     phase = PHASE_DONE_RESOLVING;
 
-    ClosedWorld closedWorld = resolutionWorldBuilder.closeWorld();
+    ClosedWorld closedWorld =
+        resolutionWorldBuilder.closeWorld(abstractValueStrategy);
     OutputUnitData result = deferredLoadTask.run(mainFunction, closedWorld);
     ClosedWorldRefiner closedWorldRefiner =
         backendStrategy.createClosedWorldRefiner(closedWorld);

@@ -59,8 +59,22 @@ class IncreasingTypeMaskSet extends UniverseSelectorConstraints {
   }
 }
 
-class TypeMaskStrategy implements SelectorConstraintsStrategy {
+class TypeMaskStrategy implements AbstractValueStrategy {
   const TypeMaskStrategy();
+
+  @override
+  AbstractValueDomain createDomain(ClosedWorld closedWorld) {
+    return new CommonMasks(closedWorld);
+  }
+
+  @override
+  SelectorConstraintsStrategy createSelectorStrategy() {
+    return new TypeMaskSelectorStrategy();
+  }
+}
+
+class TypeMaskSelectorStrategy implements SelectorConstraintsStrategy {
+  const TypeMaskSelectorStrategy();
 
   @override
   UniverseSelectorConstraints createSelectorConstraints(Selector selector) {

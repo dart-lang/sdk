@@ -23,6 +23,7 @@ import '../js_model/elements.dart' show JSignatureMethod;
 import '../kernel/element_map_impl.dart';
 import '../native/enqueue.dart' show NativeResolutionEnqueuer;
 import '../options.dart';
+import '../types/abstract_value_domain.dart';
 import '../universe/class_set.dart';
 import '../util/enumset.dart';
 import '../util/util.dart';

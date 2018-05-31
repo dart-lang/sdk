@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/types/masks.dart' show ContainerTypeMask, TypeMask;
+import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import 'package:expect/expect.dart';
 
 import 'type_mask_test_helper.dart';
