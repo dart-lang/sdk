@@ -1272,10 +1272,12 @@ When a class name appears as a type, that name denotes the interface of the clas
 % Maybe the final field hides the setter in scope?
 % I think the original rules were best.
 
-\LMHash{}
-It is a compile-time error if a class declares two members of the same name.
-It is a compile-time error if a class has an instance member and a static member with the same name.
-% It is a compile-time error if a generic (\ref{generics}) class declares a member with the same name as one of its type parameters.
+\commentary{
+It is a compile-time error if a class declares two members of the same name,
+either because it declares the same name twice in the same scope (\ref{scoping}),
+or because it declares a static member and an instance member with the same name
+(\ref{classMemberConflicts}).
+}
 
 \commentary{
 Here are simple examples, that illustrate the difference between ``has a member'' and ``declares a member''.
@@ -1324,9 +1326,11 @@ It is a static warning if an instance method $m_1$ overrides an instance member 
 \LMHash{}
 It is a static warning if an instance method $m_1$ overrides an instance member $m_2$ and the type of $m_1$ is not a subtype of the type of $m_2$.
 It is a static warning if an instance method $m_1$ overrides an instance member $m_2$, the signature of $m_2$ explicitly specifies a default value for a formal parameter $p$, and the signature of $m_1$ implies a different default value for $p$.
-It is a static warning if a class $C$ declares an instance method named $n$ and has a setter named $n=$.
 
-% Works. If the name is public, no issue. If it's private, if a subclass has a conflicting inst var, it either is in the same lib and will be flagged, or is in another and is not an issue.
+\commentary{
+A method declaration may conflict with other declarations
+(\ref{classMemberConflicts}).
+}
 
 
 \subsubsection{Operators}
@@ -1418,34 +1422,17 @@ The effect of a static getter declaration in class $C$ is to add an instance get
 The instance getters of a class $C$ are those instance getters declared by $C$, either implicitly or explicitly, and the instance getters inherited by $C$ from its superclass.
 The static getters of a class $C$ are those static getters declared by $C$.
 
-\LMHash{}
-It is a compile-time error if a class has both a getter and a method with the same name.
-This restriction holds regardless of whether the getter is defined explicitly or implicitly, or whether the getter or the method are inherited or not.
-
 \commentary{
-This implies that a getter can never override a method, and a method can never override a getter or an instance variable.
+A getter declaration may conflict with other declarations
+(\ref{classMemberConflicts}).
+In particular, a getter can never override a method,
+and a method can never override a getter or an instance variable.
 }
 
 \LMHash{}
 It is a static warning if the return type of a getter is \VOID.
 It is a static warning if a getter $m_1$ overrides (\ref{inheritanceAndOverriding}) a getter
 $m_2$ and the type of $m_1$ is not a subtype of the type of $m_2$.
-
-\LMHash{}
-It is a static warning if a class declares a static getter named $v$ and also has a non-static setter named $v=$.
-
-% We need not consider implicit declarations: If $v$ is declared
-% implicitly then there is a static variable $v$ and an induced setter
-% $v=$, and then it is already a compile-time error to have an
-% instance setter named $v=$ due to the name clash. Otherwise, $v$ is
-% an explicitly declared static getter (and there may or may not be an
-% explicitly declared static setter $v=$). If the non-static setter
-% $v=$ is declared implicitly then there is an instance variable $v$
-% inducing it, and it will also induce an instance getter $v$, which
-% is again already a compile-time error.  Hence, if any of said
-% declarations are implicit then it is already a compile-time error,
-% so we need not specify how to handle those cases with respect to
-% this static warning.
 
 
 \subsection{Setters}
@@ -1490,22 +1477,10 @@ It is a static warning if a setter declares a return type other than \VOID{}.
 It is a static warning if a setter $m_1$ overrides (\ref{inheritanceAndOverriding}) a setter $m_2$ and the type of $m_1$ is not a subtype of the type of $m_2$.
 It is a static warning if a class has a setter named $v=$ with argument type $T$ and a getter named $v$ with return type $S$, and $T$ may not be assigned to $S$.
 
-\LMHash{}
-It is a static warning if a class declares a static setter named $v=$ and has an instance getter named $v$.
-It is a static warning if a class declares a setter named $v=$ and has a method named $v$.
-
-% We need not consider implicit declarations: If $v=$ is declared
-% implicitly then there is a static variable $v$, and then it is
-% already a compile-time error to have an instance member named $v$,
-% both when it is a method and when it is induced by an instance
-% variable. Otherwise, $v=$ is an explicitly declared setter (and
-% there may or may not be an explicitly declared static getter
-% $v$). If the non-static member $v$ is declared implicitly then there
-% is an instance variable $v$ inducing it, and it will also induce an
-% instance setter $v=$, which is again already a compile-time error.
-% Hence, if any of said declarations are implicit then it is already a
-% compile-time error, so we need not specify how to handle those cases
-% with respect to this static warning.
+\commentary{
+A setter declaration may conflict with other declarations
+(\ref{classMemberConflicts}).
+}
 
 
 \subsection{Abstract Instance Members}
@@ -1632,8 +1607,12 @@ Constructors may be generative (\ref{generativeConstructors}) or they may be fac
 
 \LMHash{}
 A {\em constructor name} always begins with the name of its immediately enclosing class, and may optionally be followed by a dot and an identifier $id$.
-It is a compile-time error if $id$ is the name of a member declared in the immediately enclosing class.
 It is a compile-time error if the name of a constructor is not a constructor name.
+
+\commentary{
+A constructor declaration may conflict with static member declarations
+(\ref{classMemberConflicts}).
+}
 
 % In what scope do constructors go? The simple names of named constructors go in the static scope of the class. Unnamed ones go nowhere, but we use the class name to refer to them; the class name could also in the static scope of the class as well to prevent weird errors, or we could ban it explicitly and avoiding duplication. Similarly, the instance scope could contain the constructor names and class name, or we could have special rules to prevent collisions between instance members and constructors or the class.
 
@@ -2170,9 +2149,10 @@ Of course, the entire notion of static methods is debatable, but it is retained 
 Dart static methods may be seen as functions of the enclosing library.
 }
 
-\LMHash{}
-It is a static warning if a class $C$ declares a static method named $n$ and has a setter named $n=$.
-It is a static warning if a class $C$ declares a static member named $n$ and has an instance member named $n$.
+\commentary{
+Static method declarations may conflict with other declarations
+(\ref{classMemberConflicts}).
+}
 
 
 \subsection{Static Variables}
@@ -2449,6 +2429,28 @@ However, if a class does explicitly declare a member that conflicts with its sup
 %It is a static warning if an imported superinterface of a class $C$ declares private members.
 
 % Should we ignore unimplemented private members?
+
+
+\subsection{Class Member Conflicts}
+\LMLabel{classMemberConflicts}
+
+Some pairs of class member declarations cannot coexist,
+even though they do not both introduce the same name into the same scope.
+This section specifies these errors.
+
+The {\em basename} of a getter or method named $n$ is $n$;
+the basename of a setter named \code{$n$=} is $n$.
+
+Let $C$ be a class.
+It is a compile-time error if $C$ declares a
+\begin{itemize}
+\item constructor named \code{$C$.$n$} and a static member with basename $n$.
+\item getter or a setter with basename $n$, and has a method named $n$.
+\item method named $n$, and has a getter or a setter with basename $n$.
+\item static member with basename $n$, and has an instance member with basename $n$.
+\end{itemize}
+These errors occur when the getters or setters are defined explicitly
+as well as when they are induced by variable declarations.
 
 
 \section{Interfaces}
