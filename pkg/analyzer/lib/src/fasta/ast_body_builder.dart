@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart' show Expression, Statement;
 import 'package:analyzer/src/fasta/ast_building_factory.dart'
-    show AstBuildingForest;
+    show Arguments, AstBuildingForest;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:front_end/src/fasta/kernel/body_builder.dart' show BodyBuilder;
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
@@ -17,7 +17,7 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 export 'package:front_end/src/fasta/kernel/unlinked_scope.dart'
     show UnlinkedScope;
 
-class AstBodyBuilder extends BodyBuilder<Expression, Statement, dynamic> {
+class AstBodyBuilder extends BodyBuilder<Expression, Statement, Arguments> {
   @override
   final AstBuildingForest forest;
 

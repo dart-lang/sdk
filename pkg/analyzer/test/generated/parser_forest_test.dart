@@ -627,6 +627,8 @@ class ComplexParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_logicalAndExpression() {
     super.test_logicalAndExpression();
+    fail(
+        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
   }
 
   @failingTest
@@ -647,16 +649,22 @@ class ComplexParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_logicalOrExpression() {
     super.test_logicalOrExpression();
+    fail(
+        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
   }
 
   @failingTest
   void test_logicalOrExpression_precedence_logicalAnd_left() {
     super.test_logicalOrExpression_precedence_logicalAnd_left();
+    fail(
+        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
   }
 
   @failingTest
   void test_logicalOrExpression_precedence_logicalAnd_right() {
     super.test_logicalOrExpression_precedence_logicalAnd_right();
+    fail(
+        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
   }
 
   @failingTest
@@ -677,6 +685,8 @@ class ComplexParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_multipleLabels_statement() {
     super.test_multipleLabels_statement();
+    fail(
+        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
   }
 
   @failingTest
@@ -1769,6 +1779,8 @@ class ErrorParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_missingAssignableSelector_identifiersAssigned() {
     super.test_missingAssignableSelector_identifiersAssigned();
+    fail(
+        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
   }
 
   @failingTest
@@ -1794,6 +1806,8 @@ class ErrorParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_missingAssignableSelector_superPropertyAccessAssigned() {
     super.test_missingAssignableSelector_superPropertyAccessAssigned();
+    fail(
+        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
   }
 
   @failingTest
@@ -2819,6 +2833,8 @@ class ExpressionParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_parseConditionalExpression() {
     super.test_parseConditionalExpression();
+    fail(
+        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
   }
 
   @failingTest
@@ -3070,11 +3086,15 @@ class ExpressionParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_parseLogicalAndExpression() {
     super.test_parseLogicalAndExpression();
+    fail(
+        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
   }
 
   @failingTest
   void test_parseLogicalOrExpression() {
     super.test_parseLogicalOrExpression();
+    fail(
+        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
   }
 
   @failingTest
@@ -4041,11 +4061,15 @@ class RecoveryParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_conditionalExpression_missingElse() {
     super.test_conditionalExpression_missingElse();
+    fail(
+        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
   }
 
   @failingTest
   void test_conditionalExpression_missingThen() {
     super.test_conditionalExpression_missingThen();
+    fail(
+        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
   }
 
   @failingTest
@@ -4136,6 +4160,8 @@ class RecoveryParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_incomplete_conditionalExpression() {
     super.test_incomplete_conditionalExpression();
+    fail(
+        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
   }
 
   @failingTest
@@ -4316,16 +4342,22 @@ class RecoveryParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_logicalAndExpression_missing_LHS() {
     super.test_logicalAndExpression_missing_LHS();
+    fail(
+        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
   }
 
   @failingTest
   void test_logicalAndExpression_missing_LHS_RHS() {
     super.test_logicalAndExpression_missing_LHS_RHS();
+    fail(
+        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
   }
 
   @failingTest
   void test_logicalAndExpression_missing_RHS() {
     super.test_logicalAndExpression_missing_RHS();
+    fail(
+        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
   }
 
   @failingTest
@@ -4341,26 +4373,36 @@ class RecoveryParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_logicalOrExpression_missing_LHS() {
     super.test_logicalOrExpression_missing_LHS();
+    fail(
+        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
   }
 
   @failingTest
   void test_logicalOrExpression_missing_LHS_RHS() {
     super.test_logicalOrExpression_missing_LHS_RHS();
+    fail(
+        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
   }
 
   @failingTest
   void test_logicalOrExpression_missing_RHS() {
     super.test_logicalOrExpression_missing_RHS();
+    fail(
+        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
   }
 
   @failingTest
   void test_logicalOrExpression_precedence_logicalAnd_left() {
     super.test_logicalOrExpression_precedence_logicalAnd_left();
+    fail(
+        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
   }
 
   @failingTest
   void test_logicalOrExpression_precedence_logicalAnd_right() {
     super.test_logicalOrExpression_precedence_logicalAnd_right();
+    fail(
+        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
   }
 
   @failingTest
@@ -5363,6 +5405,8 @@ class StatementParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_parseStatement_multipleLabels() {
     super.test_parseStatement_multipleLabels();
+    fail(
+        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
   }
 
   @failingTest
