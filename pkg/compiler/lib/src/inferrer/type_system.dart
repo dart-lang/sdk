@@ -6,7 +6,6 @@ import '../common.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../types/abstract_value_domain.dart';
-import '../types/masks.dart' show ContainerTypeMask, MapTypeMask;
 import '../universe/selector.dart';
 import '../world.dart';
 import 'type_graph_nodes.dart';
@@ -15,11 +14,14 @@ import 'type_graph_nodes.dart';
 /// information for nodes.
 abstract class TypeSystemStrategy<T> {
   /// Creates [MemberTypeInformation] for [member].
-  MemberTypeInformation createMemberTypeInformation(MemberEntity member);
+  MemberTypeInformation createMemberTypeInformation(
+      AbstractValueDomain abstractValueDomain, MemberEntity member);
 
   /// Creates [ParameterTypeInformation] for [parameter].
   ParameterTypeInformation createParameterTypeInformation(
-      Local parameter, TypeSystem<T> types);
+      AbstractValueDomain abstractValueDomain,
+      Local parameter,
+      TypeSystem<T> types);
 
   /// Calls [f] for each parameter in [function].
   void forEachParameter(FunctionEntity function, void f(Local parameter));
@@ -261,11 +263,12 @@ class TypeSystem<T> {
 
   TypeInformation stringLiteralType(String value) {
     return new StringLiteralTypeInformation(
-        value, _abstractValueDomain.stringType);
+        _abstractValueDomain, value, _abstractValueDomain.stringType);
   }
 
   TypeInformation boolLiteralType(bool value) {
-    return new BoolLiteralTypeInformation(value, _abstractValueDomain.boolType);
+    return new BoolLiteralTypeInformation(
+        _abstractValueDomain, value, _abstractValueDomain.boolType);
   }
 
   /**
@@ -282,7 +285,7 @@ class TypeSystem<T> {
       return dynamicType;
     }
     return getConcreteTypeFor(
-        firstType.type.union(secondType.type, _closedWorld));
+        _abstractValueDomain.union(firstType.type, secondType.type));
   }
 
   /**
@@ -304,7 +307,7 @@ class TypeSystem<T> {
   TypeInformation refineReceiver(
       Selector selector, AbstractValue mask, TypeInformation receiver,
       {bool isConditional}) {
-    if (receiver.type.isExact) return receiver;
+    if (_abstractValueDomain.isExact(receiver.type)) return receiver;
     AbstractValue otherType = _closedWorld.computeReceiverType(selector, mask);
     // Conditional sends (a?.b) can still narrow the possible types of `a`,
     // however, we still need to consider that `a` may be null.
@@ -319,7 +322,8 @@ class TypeSystem<T> {
         _abstractValueDomain.containsAll(otherType)) {
       return receiver;
     }
-    TypeInformation newType = new NarrowTypeInformation(receiver, otherType);
+    TypeInformation newType =
+        new NarrowTypeInformation(_abstractValueDomain, receiver, otherType);
     allocatedTypes.add(newType);
     return newType;
   }
@@ -340,7 +344,7 @@ class TypeSystem<T> {
         if (isNullable) {
           return type;
         }
-        otherType = dynamicType.type.nonNullable();
+        otherType = _abstractValueDomain.excludeNull(dynamicType.type);
       } else {
         otherType =
             _abstractValueDomain.createNonNullSubtype(interface.element);
@@ -358,10 +362,11 @@ class TypeSystem<T> {
     if (isNullable) {
       otherType = _abstractValueDomain.includeNull(otherType);
     }
-    if (type.type.isExact) {
+    if (_abstractValueDomain.isExact(type.type)) {
       return type;
     } else {
-      TypeInformation newType = new NarrowTypeInformation(type, otherType);
+      TypeInformation newType =
+          new NarrowTypeInformation(_abstractValueDomain, type, otherType);
       allocatedTypes.add(newType);
       return newType;
     }
@@ -371,11 +376,11 @@ class TypeSystem<T> {
    * Returns the non-nullable type of [type].
    */
   TypeInformation narrowNotNull(TypeInformation type) {
-    if (type.type.isExact && !type.type.isNullable) {
+    if (_abstractValueDomain.isExact(type.type)) {
       return type;
     }
-    TypeInformation newType =
-        new NarrowTypeInformation(type, dynamicType.type.nonNullable());
+    TypeInformation newType = new NarrowTypeInformation(_abstractValueDomain,
+        type, _abstractValueDomain.excludeNull(dynamicType.type));
     allocatedTypes.add(newType);
     return newType;
   }
@@ -383,7 +388,8 @@ class TypeSystem<T> {
   ParameterTypeInformation getInferredTypeOfParameter(Local parameter) {
     return parameterTypeInformations.putIfAbsent(parameter, () {
       ParameterTypeInformation typeInformation =
-          strategy.createParameterTypeInformation(parameter, this);
+          strategy.createParameterTypeInformation(
+              _abstractValueDomain, parameter, this);
       _orderedTypeInformations.add(typeInformation);
       return typeInformation;
     });
@@ -394,7 +400,7 @@ class TypeSystem<T> {
         failedAt(member, "Unexpected abstract member $member."));
     return memberTypeInformations.putIfAbsent(member, () {
       MemberTypeInformation typeInformation =
-          strategy.createMemberTypeInformation(member);
+          strategy.createMemberTypeInformation(_abstractValueDomain, member);
       _orderedTypeInformations.add(typeInformation);
       return typeInformation;
     });
@@ -451,7 +457,7 @@ class TypeSystem<T> {
     ClassEntity typedDataClass = _closedWorld.commonElements.typedDataClass;
     bool isTypedArray = typedDataClass != null &&
         _closedWorld.isInstantiated(typedDataClass) &&
-        type.type.satisfies(typedDataClass, _closedWorld);
+        _abstractValueDomain.isInstanceOfOrNull(type.type, typedDataClass);
     bool isConst = (type.type == _abstractValueDomain.constListType);
     bool isFixed = (type.type == _abstractValueDomain.fixedListType) ||
         isConst ||
@@ -461,22 +467,24 @@ class TypeSystem<T> {
     int inferredLength = isFixed ? length : null;
     AbstractValue elementTypeMask =
         isElementInferred ? elementType.type : dynamicType.type;
-    ContainerTypeMask<T> mask = new ContainerTypeMask<T>(
+    AbstractValue mask = _abstractValueDomain.createContainerValue(
         type.type, node, enclosing, elementTypeMask, inferredLength);
     ElementInContainerTypeInformation element =
-        new ElementInContainerTypeInformation(currentMember, elementType);
+        new ElementInContainerTypeInformation(
+            _abstractValueDomain, currentMember, elementType);
     element.inferred = isElementInferred;
 
     allocatedTypes.add(element);
-    return allocatedLists[node] =
-        new ListTypeInformation(currentMember, mask, element, length);
+    return allocatedLists[node] = new ListTypeInformation(
+        _abstractValueDomain, currentMember, mask, element, length);
   }
 
   /// Creates a [TypeInformation] object either for the closurization of a
   /// static or top-level method [element] used as a function constant or for
   /// the synthesized 'call' method [element] created for a local function.
   TypeInformation allocateClosure(FunctionEntity element) {
-    TypeInformation result = new ClosureTypeInformation(currentMember, element);
+    TypeInformation result = new ClosureTypeInformation(
+        _abstractValueDomain, currentMember, element);
     allocatedClosures.add(result);
     return result;
   }
@@ -497,13 +505,13 @@ class TypeSystem<T> {
     } else {
       keyType = valueType = dynamicType.type;
     }
-    MapTypeMask mask =
-        new MapTypeMask(type.type, node, element, keyType, valueType);
+    AbstractValue mask = _abstractValueDomain.createMapValue(
+        type.type, node, element, keyType, valueType);
 
     TypeInformation keyTypeInfo =
-        new KeyInMapTypeInformation(currentMember, null);
-    TypeInformation valueTypeInfo =
-        new ValueInMapTypeInformation(currentMember, null);
+        new KeyInMapTypeInformation(_abstractValueDomain, currentMember, null);
+    TypeInformation valueTypeInfo = new ValueInMapTypeInformation(
+        _abstractValueDomain, currentMember, null);
     allocatedTypes.add(keyTypeInfo);
     allocatedTypes.add(valueTypeInfo);
 
@@ -511,8 +519,8 @@ class TypeSystem<T> {
         new MapTypeInformation(currentMember, mask, keyTypeInfo, valueTypeInfo);
 
     for (int i = 0; i < keyTypes.length; ++i) {
-      TypeInformation newType =
-          map.addEntryAssignment(keyTypes[i], valueTypes[i], true);
+      TypeInformation newType = map.addEntryAssignment(
+          _abstractValueDomain, keyTypes[i], valueTypes[i], true);
       if (newType != null) allocatedTypes.add(newType);
     }
 
@@ -537,7 +545,7 @@ class TypeSystem<T> {
   TypeInformation allocateDiamondPhi(
       TypeInformation firstInput, TypeInformation secondInput) {
     PhiElementTypeInformation<T> result = new PhiElementTypeInformation<T>(
-        currentMember, null, null,
+        _abstractValueDomain, currentMember, null, null,
         isTry: false);
     result.addAssignment(firstInput);
     result.addAssignment(secondInput);
@@ -548,7 +556,7 @@ class TypeSystem<T> {
   PhiElementTypeInformation<T> _addPhi(
       T node, Local variable, TypeInformation inputType, bool isTry) {
     PhiElementTypeInformation<T> result = new PhiElementTypeInformation<T>(
-        currentMember, node, variable,
+        _abstractValueDomain, currentMember, node, variable,
         isTry: isTry);
     allocatedTypes.add(result);
     result.addAssignment(inputType);

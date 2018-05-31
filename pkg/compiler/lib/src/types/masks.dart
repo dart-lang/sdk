@@ -287,7 +287,10 @@ class CommonMasks implements AbstractValueDomain {
   bool isEmpty(TypeMask value) => value.isEmpty;
 
   @override
-  bool isExact(TypeMask value) => value.isExact || isNull(value);
+  bool isExact(TypeMask value) => value.isExact && !value.isNullable;
+
+  @override
+  bool isExactOrNull(TypeMask value) => value.isExact || isNull(value);
 
   @override
   ClassEntity getExactClass(TypeMask mask) {
@@ -298,12 +301,18 @@ class CommonMasks implements AbstractValueDomain {
   bool isPrimitiveValue(TypeMask value) => value.isValue;
 
   @override
-  ConstantValue getPrimitiveValue(TypeMask mask) {
+  PrimitiveConstantValue getPrimitiveValue(TypeMask mask) {
     if (mask.isValue) {
       ValueTypeMask valueMask = mask;
       return valueMask.value;
     }
     return null;
+  }
+
+  @override
+  AbstractValue createPrimitiveValue(
+      covariant TypeMask originalValue, PrimitiveConstantValue value) {
+    return new ValueTypeMask(originalValue, value);
   }
 
   @override
@@ -489,8 +498,17 @@ class CommonMasks implements AbstractValueDomain {
   }
 
   @override
+  AbstractValue getMapKeyType(AbstractValue value) {
+    if (value is MapTypeMask) {
+      return value.keyType;
+    }
+    return dynamicType;
+  }
+
+  @override
   AbstractValue getMapValueType(AbstractValue value) {
     if (value is MapTypeMask) {
+      // TODO(johnniwinther): Assert the `value.valueType` is not null.
       return value.valueType ?? dynamicType;
     }
     return dynamicType;
@@ -502,6 +520,22 @@ class CommonMasks implements AbstractValueDomain {
       return value.elementType ?? dynamicType;
     }
     return dynamicType;
+  }
+
+  @override
+  int getContainerLength(AbstractValue value) {
+    return value is ContainerTypeMask ? value.length : null;
+  }
+
+  @override
+  AbstractValue createContainerValue(
+      AbstractValue forwardTo,
+      Object allocationNode,
+      MemberEntity allocationElement,
+      AbstractValue elementType,
+      int length) {
+    return new ContainerTypeMask(
+        forwardTo, allocationNode, allocationElement, elementType, length);
   }
 
   @override
@@ -609,4 +643,113 @@ class CommonMasks implements AbstractValueDomain {
   bool isContainer(TypeMask value) {
     return value.isContainer;
   }
+
+  @override
+  bool isDictionary(TypeMask value) {
+    return value.isDictionary;
+  }
+
+  @override
+  bool containsDictionaryKey(AbstractValue value, String key) {
+    return value is DictionaryTypeMask && value.containsKey(key);
+  }
+
+  @override
+  AbstractValue getDictionaryValueForKey(AbstractValue value, String key) {
+    if (value is DictionaryTypeMask) return value.getValueForKey(key);
+    return dynamicType;
+  }
+
+  @override
+  AbstractValue createMapValue(AbstractValue forwardTo, Object allocationNode,
+      MemberEntity allocationElement, AbstractValue key, AbstractValue value) {
+    return new MapTypeMask(
+        forwardTo, allocationNode, allocationElement, key, value);
+  }
+
+  @override
+  AbstractValue createDictionaryValue(
+      AbstractValue forwardTo,
+      Object allocationNode,
+      MemberEntity allocationElement,
+      AbstractValue key,
+      AbstractValue value,
+      Map<String, AbstractValue> mappings) {
+    return new DictionaryTypeMask(
+        forwardTo, allocationNode, allocationElement, key, value, mappings);
+  }
+
+  @override
+  bool isSpecializationOf(
+      AbstractValue specialization, AbstractValue generalization) {
+    return specialization is ForwardingTypeMask &&
+        specialization.forwardTo == generalization;
+  }
+
+  @override
+  Object getAllocationNode(AbstractValue value) {
+    if (value is AllocationTypeMask) {
+      return value.allocationNode;
+    }
+    return null;
+  }
+
+  @override
+  MemberEntity getAllocationElement(AbstractValue value) {
+    if (value is AllocationTypeMask) {
+      return value.allocationElement;
+    }
+    return null;
+  }
+
+  @override
+  AbstractValue getGeneralization(AbstractValue value) {
+    if (value is AllocationTypeMask) {
+      return value.forwardTo;
+    }
+    return null;
+  }
+
+  @override
+  String getCompactText(AbstractValue value) {
+    return formatType(value);
+  }
+}
+
+/// Convert the given TypeMask to a compact string format.
+///
+/// The default format is too verbose for the graph format since long strings
+/// create oblong nodes that obstruct the graph layout.
+String formatType(TypeMask type) {
+  if (type is FlatTypeMask) {
+    // TODO(asgerf): Disambiguate classes whose name is not unique. Using the
+    //     library name for all classes is not a good idea, since library names
+    //     can be really long and mess up the layout.
+    // Capitalize Null to emphasize that it's the null type mask and not
+    // a null value we accidentally printed out.
+    if (type.isEmptyOrNull) return type.isNullable ? 'Null' : 'Empty';
+    String nullFlag = type.isNullable ? '?' : '';
+    String subFlag = type.isExact ? '' : type.isSubclass ? '+' : '*';
+    return '${type.base.name}$nullFlag$subFlag';
+  }
+  if (type is UnionTypeMask) {
+    return type.disjointMasks.map(formatType).join(' | ');
+  }
+  if (type is ContainerTypeMask) {
+    String container = formatType(type.forwardTo);
+    String member = formatType(type.elementType);
+    return '$container<$member>';
+  }
+  if (type is MapTypeMask) {
+    String container = formatType(type.forwardTo);
+    String key = formatType(type.keyType);
+    String value = formatType(type.valueType);
+    return '$container<$key,$value>';
+  }
+  if (type is ValueTypeMask) {
+    String baseType = formatType(type.forwardTo);
+    String value = type.value.toStructuredText();
+    return '$baseType=$value';
+  }
+  return '$type'; // Fall back on toString if not supported here.
 }

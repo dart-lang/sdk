@@ -1010,7 +1010,8 @@ abstract class HInstruction implements Spannable {
   /// Does this node potentially affect control flow.
   bool isControlFlow() => false;
 
-  bool isExact(AbstractValueDomain domain) => domain.isExact(instructionType);
+  bool isExact(AbstractValueDomain domain) =>
+      domain.isExactOrNull(instructionType);
 
   bool isValue(AbstractValueDomain domain) =>
       domain.isPrimitiveValue(instructionType);

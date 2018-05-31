@@ -9,7 +9,7 @@ part of masks;
  * site of a map (currently only internal Map class) that will get specialized
  * once the [TypeGraphInferrer] phase finds a key and/or value type for it.
  */
-class MapTypeMask<T> extends ForwardingTypeMask {
+class MapTypeMask<T> extends AllocationTypeMask<T> {
   final TypeMask forwardTo;
 
   // The [Node] where this type mask was created.

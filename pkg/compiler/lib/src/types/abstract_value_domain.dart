@@ -4,7 +4,7 @@
 
 library dart2js.abstract_value_domain;
 
-import '../constants/values.dart' show ConstantValue;
+import '../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
 import '../elements/entities.dart';
 import '../universe/selector.dart';
 
@@ -155,15 +155,15 @@ abstract class AbstractValueDomain {
   /// Returns `true` if [value] is empty set of runtime values.
   bool isEmpty(covariant AbstractValue value);
 
-  /// Returns `true` if [value] is an exact class or `null` at runtime.
+  /// Returns `true` if [value] is a non-null exact class at runtime.
   bool isExact(covariant AbstractValue value);
+
+  /// Returns `true` if [value] is an exact class or `null` at runtime.
+  bool isExactOrNull(covariant AbstractValue value);
 
   /// Returns the [ClassEntity] if this [value] is a non-null instance of an
   /// exact class at runtime, and `null` otherwise.
   ClassEntity getExactClass(covariant AbstractValue value);
-
-  /// Returns `true` if [value] a known primitive JavaScript value at runtime.
-  bool isPrimitiveValue(covariant AbstractValue value);
 
   /// Returns `true` if [value] can be `null` at runtime.
   bool canBeNull(covariant AbstractValue value);
@@ -292,21 +292,116 @@ abstract class AbstractValueDomain {
   /// Returns `true` if [value] represents a container value at runtime.
   bool isContainer(covariant AbstractValue value);
 
+  /// Creates a container value specialization of [originalValue] with the
+  /// inferred [element] runtime value and inferred runtime [length].
+  ///
+  /// The [allocationNode] is used to identify this particular map allocation.
+  /// The [allocationElement] is used only for debugging.
+  AbstractValue createContainerValue(
+      AbstractValue originalValue,
+      Object allocationNode,
+      MemberEntity allocationElement,
+      AbstractValue elementType,
+      int length);
+
   /// Returns the element type of [value] if it represents a container value
   /// at runtime. Returns [dynamicType] otherwise.
   AbstractValue getContainerElementType(AbstractValue value);
 
+  /// Return the known length of [value] if it represents a container value
+  /// at runtime. Returns `null` if the length is unknown or if [value] doesn't
+  /// represent a container value at runtime.
+  int getContainerLength(AbstractValue value);
+
   /// Returns `true` if [value] represents a map value at runtime.
   bool isMap(covariant AbstractValue value);
+
+  /// Creates a map value specialization of [originalValue] with the inferred
+  /// [key] and [value] runtime values.
+  ///
+  /// The [allocationNode] is used to identify this particular map allocation.
+  /// The [allocationElement] is used only for debugging.
+  AbstractValue createMapValue(
+      AbstractValue originalValue,
+      Object allocationNode,
+      MemberEntity allocationElement,
+      AbstractValue key,
+      AbstractValue value);
+
+  /// Returns the key type of [value] if it represents a map value at runtime.
+  /// Returns [dynamicType] otherwise.
+  AbstractValue getMapKeyType(AbstractValue value);
 
   /// Returns the value type of [value] if it represents a map value at runtime.
   /// Returns [dynamicType] otherwise.
   AbstractValue getMapValueType(AbstractValue value);
 
+  /// Returns `true` if [value] represents a dictionary value, that is, a map
+  /// with strings as keys, at runtime.
+  bool isDictionary(covariant AbstractValue value);
+
+  /// Creates a dictionary value specialization of [originalValue] with the
+  /// inferred [key] and [value] runtime values.
+  ///
+  /// The [allocationNode] is used to identify this particular map allocation.
+  /// The [allocationElement] is used only for debugging.
+  AbstractValue createDictionaryValue(
+      AbstractValue originalValue,
+      Object allocationNode,
+      MemberEntity allocationElement,
+      AbstractValue key,
+      AbstractValue value,
+      Map<String, AbstractValue> mappings);
+
+  /// Returns `true` if [value] is a dictionary value which contains [key] as
+  /// a key.
+  bool containsDictionaryKey(AbstractValue value, String key);
+
+  /// Returns the value type for [key] in [value] if it represents a dictionary
+  /// value at runtime. Returns [dynamicType] otherwise.
+  AbstractValue getDictionaryValueForKey(AbstractValue value, String key);
+
+  /// Returns `true` if [specialization] is a specialization of
+  /// [generalization].
+  ///
+  /// Specializations are created through [createPrimitiveValue],
+  /// [createMapValue], [createDictionaryValue] and [createContainerValue].
+  bool isSpecializationOf(
+      AbstractValue specialization, AbstractValue generalization);
+
+  /// Returns the value of which [value] is a specialization. Return `null` if
+  /// [value] is not a specialization.
+  ///
+  /// Specializations are created through [createPrimitiveValue],
+  /// [createMapValue], [createDictionaryValue] and [createContainerValue].
+  AbstractValue getGeneralization(AbstractValue value);
+
+  /// Return the object identifying the allocation of [value] if it is an
+  /// allocation based specialization. Otherwise returns `null`.
+  ///
+  /// Allocation based specializations are created through [createMapValue],
+  /// [createDictionaryValue] and [createContainerValue]
+  Object getAllocationNode(AbstractValue value);
+
+  /// Return the allocation element of [value] if it is an allocation based
+  /// specialization. Otherwise returns `null`.
+  ///
+  /// Allocation based specializations are created through [createMapValue],
+  /// [createDictionaryValue] and [createContainerValue]
+  MemberEntity getAllocationElement(AbstractValue value);
+
+  /// Returns `true` if [value] a known primitive JavaScript value at runtime.
+  bool isPrimitiveValue(covariant AbstractValue value);
+
+  /// Creates a primitive value specialization of [originalValue] with the
+  /// inferred primitive constant [value].
+  AbstractValue createPrimitiveValue(
+      AbstractValue originalValue, PrimitiveConstantValue value);
+
   /// Returns the primitive JavaScript value of [value] if it represents a
   /// primitive JavaScript value at runtime, value at runtime. Returns `null`
   /// otherwise.
-  ConstantValue getPrimitiveValue(covariant AbstractValue value);
+  PrimitiveConstantValue getPrimitiveValue(covariant AbstractValue value);
 
   /// Compute the type of all potential receivers of the set of live [members].
   AbstractValue computeReceiver(Iterable<MemberEntity> members);
@@ -346,4 +441,7 @@ abstract class AbstractValueDomain {
 
   /// Returns `true` if [value] is an JavaScript indexable of fixed length.
   bool isFixedLengthJsIndexable(AbstractValue value);
+
+  /// Returns compact a textual representation for [value] used for debugging.
+  String getCompactText(AbstractValue value);
 }

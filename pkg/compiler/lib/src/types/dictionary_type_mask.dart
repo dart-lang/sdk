@@ -14,7 +14,7 @@ part of masks;
  */
 class DictionaryTypeMask<T> extends MapTypeMask<T> {
   // The underlying key/value map of this dictionary.
-  final Map<String, TypeMask> typeMap;
+  final Map<String, AbstractValue> _typeMap;
 
   DictionaryTypeMask(
       TypeMask forwardTo,
@@ -22,34 +22,38 @@ class DictionaryTypeMask<T> extends MapTypeMask<T> {
       MemberEntity allocationElement,
       TypeMask keyType,
       TypeMask valueType,
-      this.typeMap)
+      this._typeMap)
       : super(forwardTo, allocationNode, allocationElement, keyType, valueType);
 
   TypeMask nullable() {
     return isNullable
         ? this
         : new DictionaryTypeMask<T>(forwardTo.nullable(), allocationNode,
-            allocationElement, keyType, valueType, typeMap);
+            allocationElement, keyType, valueType, _typeMap);
   }
 
   TypeMask nonNullable() {
     return isNullable
         ? new DictionaryTypeMask<T>(forwardTo.nonNullable(), allocationNode,
-            allocationElement, keyType, valueType, typeMap)
+            allocationElement, keyType, valueType, _typeMap)
         : this;
   }
 
   bool get isDictionary => true;
   bool get isExact => true;
 
+  bool containsKey(String key) => _typeMap.containsKey(key);
+
+  TypeMask getValueForKey(String key) => _typeMap[key];
+
   bool equalsDisregardNull(other) {
     if (other is! DictionaryTypeMask) return false;
     return allocationNode == other.allocationNode &&
         keyType == other.keyType &&
         valueType == other.valueType &&
-        typeMap.keys.every((k) => other.typeMap.containsKey(k)) &&
-        other.typeMap.keys.every(
-            (k) => typeMap.containsKey(k) && typeMap[k] == other.typeMap[k]);
+        _typeMap.keys.every((k) => other._typeMap.containsKey(k)) &&
+        other._typeMap.keys.every(
+            (k) => _typeMap.containsKey(k) && _typeMap[k] == other._typeMap[k]);
   }
 
   TypeMask intersection(TypeMask other, ClosedWorld closedWorld) {
@@ -70,14 +74,14 @@ class DictionaryTypeMask<T> extends MapTypeMask<T> {
       TypeMask newKeyType = keyType.union(other.keyType, closedWorld);
       TypeMask newValueType = valueType.union(other.valueType, closedWorld);
       Map<String, TypeMask> mappings = <String, TypeMask>{};
-      typeMap.forEach((k, v) {
-        if (!other.typeMap.containsKey(k)) {
+      _typeMap.forEach((k, dynamic v) {
+        if (!other._typeMap.containsKey(k)) {
           mappings[k] = v.nullable();
         }
       });
-      other.typeMap.forEach((k, v) {
-        if (typeMap.containsKey(k)) {
-          mappings[k] = v.union(typeMap[k], closedWorld);
+      other._typeMap.forEach((k, v) {
+        if (_typeMap.containsKey(k)) {
+          mappings[k] = v.union(_typeMap[k], closedWorld);
         } else {
           mappings[k] = v.nullable();
         }
@@ -100,11 +104,11 @@ class DictionaryTypeMask<T> extends MapTypeMask<T> {
   bool operator ==(other) => super == other;
 
   int get hashCode {
-    return computeHashCode(allocationNode, isNullable, typeMap, forwardTo);
+    return computeHashCode(allocationNode, isNullable, _typeMap, forwardTo);
   }
 
   String toString() {
     return 'Dictionary($forwardTo, key: $keyType, '
-        'value: $valueType, map: $typeMap)';
+        'value: $valueType, map: $_typeMap)';
   }
 }

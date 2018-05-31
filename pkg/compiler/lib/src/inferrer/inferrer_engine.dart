@@ -440,8 +440,8 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
 
     info.bailedOut = false;
     info.elementType.inferred = true;
-    AbstractValue fixedListType = abstractValueDomain.fixedListType;
-    if (info.originalType.forwardTo == fixedListType) {
+    if (abstractValueDomain.isSpecializationOf(
+        info.originalType, abstractValueDomain.fixedListType)) {
       info.checksGrowable = tracer.callsGrowableMethod;
     }
     tracer.assignments.forEach(info.elementType.addAssignment);
@@ -460,12 +460,12 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
 
     info.bailedOut = false;
     for (int i = 0; i < tracer.keyAssignments.length; ++i) {
-      TypeInformation newType = info.addEntryAssignment(
+      TypeInformation newType = info.addEntryAssignment(abstractValueDomain,
           tracer.keyAssignments[i], tracer.valueAssignments[i]);
       if (newType != null) workQueue.add(newType);
     }
     for (TypeInformation map in tracer.mapAssignments) {
-      workQueue.addAll(info.addMapAssignment(map));
+      workQueue.addAll(info.addMapAssignment(abstractValueDomain, map));
     }
 
     info.markAsInferred();
@@ -596,15 +596,15 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
       types.allocatedLists.values.forEach((_info) {
         ListTypeInformation info = _info;
         print('${info.type} '
-            'for ${info.originalType.allocationNode} '
-            'at ${info.originalType.allocationElement} '
+            'for ${abstractValueDomain.getAllocationNode(info.originalType)} '
+            'at ${abstractValueDomain.getAllocationElement(info.originalType)}'
             'after ${info.refineCount}');
       });
       types.allocatedMaps.values.forEach((_info) {
         MapTypeInformation info = _info;
         print('${info.type} '
-            'for ${info.originalType.allocationNode} '
-            'at ${info.originalType.allocationElement} '
+            'for ${abstractValueDomain.getAllocationNode(info.originalType)} '
+            'at ${abstractValueDomain.getAllocationElement(info.originalType)}'
             'after ${info.refineCount}');
       });
       types.allocatedClosures.forEach((TypeInformation info) {
@@ -711,7 +711,8 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
                 // the old type around to ensure that we get a complete view
                 // of the type graph and do not drop any flow edges.
                 AbstractValue refinedType = computeTypeMask(closedWorld, value);
-                type = new NarrowTypeInformation(type, refinedType);
+                type = new NarrowTypeInformation(
+                    abstractValueDomain, type, refinedType);
                 types.allocatedTypes.add(type);
               }
             }
@@ -766,7 +767,8 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
       if (info is StaticCallSiteTypeInformation) {
         MemberEntity member = info.calledElement;
         closedWorldRefiner.addFunctionCalledInLoop(member);
-      } else if (info.mask != null && !info.mask.containsAll(closedWorld)) {
+      } else if (info.mask != null &&
+          !abstractValueDomain.containsAll(info.mask)) {
         // For instance methods, we only register a selector called in a
         // loop if it is a typed selector, to avoid marking too many
         // methods as being called from within a loop. This cuts down
@@ -906,7 +908,8 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
 
   TypeInformation getDefaultTypeOfParameter(Local parameter) {
     return defaultTypeOfParameter.putIfAbsent(parameter, () {
-      return new PlaceholderTypeInformation(types.currentMember);
+      return new PlaceholderTypeInformation(
+          abstractValueDomain, types.currentMember);
     });
   }
 
@@ -967,6 +970,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
       SideEffectsBuilder sideEffectsBuilder,
       bool inLoop) {
     CallSiteTypeInformation info = new StaticCallSiteTypeInformation(
+        abstractValueDomain,
         types.currentMember,
         node,
         caller,
@@ -1020,6 +1024,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
     });
 
     CallSiteTypeInformation info = new DynamicCallSiteTypeInformation(
+        abstractValueDomain,
         types.currentMember,
         callType,
         node,
@@ -1037,16 +1042,16 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
   }
 
   TypeInformation registerAwait(T node, TypeInformation argument) {
-    AwaitTypeInformation info =
-        new AwaitTypeInformation<T>(types.currentMember, node);
+    AwaitTypeInformation info = new AwaitTypeInformation<T>(
+        abstractValueDomain, types.currentMember, node);
     info.addAssignment(argument);
     types.allocatedTypes.add(info);
     return info;
   }
 
   TypeInformation registerYield(T node, TypeInformation argument) {
-    YieldTypeInformation info =
-        new YieldTypeInformation<T>(types.currentMember, node);
+    YieldTypeInformation info = new YieldTypeInformation<T>(
+        abstractValueDomain, types.currentMember, node);
     info.addAssignment(argument);
     types.allocatedTypes.add(info);
     return info;
@@ -1063,6 +1068,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
       {bool inLoop}) {
     sideEffectsBuilder.setAllSideEffectsAndDependsOnSomething();
     CallSiteTypeInformation info = new ClosureCallSiteTypeInformation(
+        abstractValueDomain,
         types.currentMember,
         node,
         caller,

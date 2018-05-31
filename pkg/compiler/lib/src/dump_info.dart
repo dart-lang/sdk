@@ -20,7 +20,7 @@ import 'deferred_load.dart' show OutputUnit;
 import 'elements/entities.dart';
 import 'js/js.dart' as jsAst;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
-import 'types/masks.dart';
+import 'types/abstract_value_domain.dart';
 import 'types/types.dart'
     show GlobalTypeInferenceElementResult, GlobalTypeInferenceMemberResult;
 import 'universe/world_builder.dart' show CodegenWorldBuilder;
@@ -118,9 +118,12 @@ class ElementInfoCollector {
     if (!isInInstantiatedClass && !_hasBeenResolved(field)) {
       return null;
     }
-    TypeMask inferredType = _resultOfMember(field).type;
+    AbstractValue inferredType = _resultOfMember(field).type;
     // If a field has an empty inferred type it is never used.
-    if (inferredType == null || inferredType.isEmpty) return null;
+    if (inferredType == null ||
+        closedWorld.abstractValueDomain.isEmpty(inferredType)) {
+      return null;
+    }
 
     int size = compiler.dumpInfoTask.sizeOf(field);
     String code = compiler.dumpInfoTask.codeOf(field);
@@ -461,13 +464,12 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         entity,
         impact,
         new WorldImpactVisitorImpl(visitDynamicUse: (dynamicUse) {
-          TypeMask mask = dynamicUse.receiverConstraint;
+          AbstractValue mask = dynamicUse.receiverConstraint;
           selections.addAll(closedWorld
               // TODO(het): Handle `call` on `Closure` through
               // `world.includesClosureCall`.
               .locateMembers(dynamicUse.selector, mask)
-              .map((MemberEntity e) =>
-                  new Selection(e, dynamicUse.receiverConstraint)));
+              .map((MemberEntity e) => new Selection(e, mask)));
         }, visitStaticUse: (staticUse) {
           selections.add(new Selection(staticUse.element, null));
         }),
