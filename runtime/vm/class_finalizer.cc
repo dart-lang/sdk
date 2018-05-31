@@ -3223,9 +3223,11 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
     cls.set_super_type(super_type);
   }
 
-  // If cls belongs to core lib, restrictions about allowed interfaces
-  // are lifted.
-  const bool cls_belongs_to_core_lib = cls.library() == Library::CoreLibrary();
+  // If cls belongs to core lib or is a synthetic class which could belong to
+  // the core library, the restrictions about allowed interfaces are lifted.
+  const bool exempt_from_hierarchy_restrictions =
+      cls.library() == Library::CoreLibrary() ||
+      String::Handle(cls.Name()).Equals(Symbols::DebugClassName());
 
   // Resolve and check the super type and interfaces of cls.
   visited->Add(cls_index);
@@ -3256,7 +3258,7 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
 
   // If cls belongs to core lib or to core lib's implementation, restrictions
   // about allowed interfaces are lifted.
-  if (!cls_belongs_to_core_lib) {
+  if (!exempt_from_hierarchy_restrictions) {
     // Prevent extending core implementation classes.
     bool is_error = false;
     switch (interface_class.id()) {
@@ -3335,7 +3337,7 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
     }
     // Verify that unless cls belongs to core lib, it cannot extend, implement,
     // or mixin any of Null, bool, num, int, double, String, dynamic.
-    if (!cls_belongs_to_core_lib) {
+    if (!exempt_from_hierarchy_restrictions) {
       if (interface.IsBoolType() || interface.IsNullType() ||
           interface.IsNumberType() || interface.IsIntType() ||
           interface.IsDoubleType() || interface.IsStringType() ||

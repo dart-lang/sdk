@@ -438,7 +438,7 @@ RawArray* ArgumentsDescriptor::NewNonCached(intptr_t type_args_len,
   descriptor.SetAt(kCountIndex, arg_count);
 
   // Set number of positional arguments.
-  descriptor.SetAt(kPositionalCountIndex, Smi::Handle(Smi::New(num_arguments)));
+  descriptor.SetAt(kPositionalCountIndex, arg_count);
 
   // Set terminating null.
   descriptor.SetAt((descriptor_len - 1), Object::null_object());

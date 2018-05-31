@@ -11,11 +11,11 @@ import 'test_helper.dart';
 topLevel<S>() {
   debugger();
 
-  void inner1<T>() {
+  void inner1<T>(T x) {
     debugger();
   }
 
-  inner1<int>();
+  inner1<int>(3);
 
   void inner2() {
     debugger();
@@ -64,6 +64,10 @@ var tests = <IsolateTest>[
     result = await isolate.evalFrame(topFrame, "S.toString()");
     print(result);
     expect(result.valueAsString, equals("String"));
+
+    result = await isolate.evalFrame(topFrame, "x");
+    print(result);
+    expect(result.valueAsString, equals("3"));
   },
   resumeIsolate,
   hasStoppedAtBreakpoint,

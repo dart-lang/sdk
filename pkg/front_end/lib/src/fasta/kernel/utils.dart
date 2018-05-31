@@ -61,6 +61,8 @@ List<int> serializeComponent(Component component,
   return byteSink.builder.takeBytes();
 }
 
+const String kDebugClassName = "#DebugClass";
+
 List<int> serializeProcedure(Procedure procedure) {
   Library fakeLibrary =
       new Library(new Uri(scheme: 'evaluate', path: 'source'));
@@ -70,7 +72,7 @@ List<int> serializeProcedure(Procedure procedure) {
 
     CloneVisitor cloner = new CloneVisitor();
 
-    Class fakeClass = new Class(name: realClass.name);
+    Class fakeClass = new Class(name: kDebugClassName);
     for (TypeParameter typeParam in realClass.typeParameters) {
       fakeClass.typeParameters.add(typeParam.accept(cloner));
     }

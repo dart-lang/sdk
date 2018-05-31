@@ -20,11 +20,18 @@ class MyClass {
   }
 }
 
+class _MyClass {
+  void foo() {
+    debugger();
+  }
+}
+
 void testFunction() {
   int i = 0;
   while (true) {
     if (++i % 100000000 == 0) {
       MyClass.method(10000);
+      (new _MyClass()).foo();
     }
   }
 }
@@ -67,6 +74,23 @@ var tests = <IsolateTest>[
     result = await instance.evaluate('this + frog');
     expect(result.type, equals('Error'));
   },
+  resumeIsolate,
+  hasStoppedAtBreakpoint,
+  (Isolate isolate) async {
+    ServiceMap stack = await isolate.getStack();
+
+    // Make sure we are in the right place.
+    expect(stack.type, equals('Stack'));
+    expect(stack['frames'].length, greaterThanOrEqualTo(2));
+    expect(stack['frames'][0].function.name, equals('foo'));
+    expect(stack['frames'][0].function.dartOwner.name, equals('_MyClass'));
+
+    var cls = stack['frames'][0].function.dartOwner;
+
+    dynamic result = await cls.evaluate("1+1");
+    print(result);
+    expect(result.valueAsString, equals("2"));
+  }
 ];
 
 main(args) => runIsolateTests(args, tests, testeeConcurrent: testFunction);

@@ -11551,7 +11551,8 @@ static RawObject* EvaluateWithDFEHelper(const String& expression,
   // Load the program with the debug procedure as a regular, independent
   // program.
   kernel::KernelLoader loader(kernel_pgm);
-  loader.LoadProgram();
+  const Object& result = Object::Handle(loader.LoadProgram());
+  if (result.IsError()) return result.raw();
   ASSERT(I->class_table()->NumCids() > num_cids &&
          GrowableObjectArray::Handle(I->object_store()->libraries()).Length() ==
              num_libs + 1);
@@ -11565,7 +11566,7 @@ static RawObject* EvaluateWithDFEHelper(const String& expression,
       String::New(Symbols::Symbol(Symbols::kDebugProcedureNameId)));
   Class& fake_class = Class::Handle();
   if (!klass.IsNull()) {
-    fake_class = loaded.LookupClass(String::Handle(String::New(klass)));
+    fake_class = loaded.LookupClass(Symbols::DebugClassName());
     ASSERT(!fake_class.IsNull());
     callee = fake_class.LookupFunctionAllowPrivate(debug_name);
   } else {
@@ -11587,7 +11588,7 @@ static RawObject* EvaluateWithDFEHelper(const String& expression,
   ASSERT(!real_library.IsNull());
   Class& real_class = Class::Handle();
   if (!klass.IsNull()) {
-    real_class = real_library.LookupClass(String::Handle(String::New(klass)));
+    real_class = real_library.LookupClassAllowPrivate(klass);
   } else {
     real_class = real_library.toplevel_class();
   }
@@ -11620,7 +11621,7 @@ static RawObject* EvaluateWithDFEHelper(const String& expression,
     real_arguments.SetAt(i + 1, arg);
   }
   const Array& args_desc = Array::Handle(
-      ArgumentsDescriptor::New(num_type_args, real_arguments.Length()));
+      ArgumentsDescriptor::New(num_type_args, arguments.Length()));
   return DartEntry::InvokeFunction(callee, real_arguments, args_desc);
 #endif
 }

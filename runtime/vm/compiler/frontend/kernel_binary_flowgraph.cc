@@ -5955,9 +5955,8 @@ Fragment StreamingFlowGraphBuilder::BuildArgumentTypeChecks(
         bound = forwarding_param.bound();
       }
 
-      if (I->strong() && !bound.IsObjectType() &&
+      if (I->strong() && !bound.IsObjectType() && !bound.IsDynamicType() &&
           (I->reify_generic_functions() || dart_function.IsFactory())) {
-        ASSERT(!bound.IsDynamicType());
         TypeParameter& param = TypeParameter::Handle(Z);
         if (dart_function.IsFactory()) {
           param ^= TypeArguments::Handle(

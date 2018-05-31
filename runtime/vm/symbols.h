@@ -457,6 +457,7 @@ class ObjectPointerVisitor;
   V(_AsyncStarListenHelper, "_asyncStarListenHelper")                          \
   V(GrowRegExpStack, "_growRegExpStack")                                       \
   V(DebugProcedureName, ":Eval")                                               \
+  V(DebugClassName, "#DebugClass")                                             \
   V(vm_entry_point, "vm.entry_point")
 
 // Contains a list of frequently used strings in a canonicalized form. This
