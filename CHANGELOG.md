@@ -15,6 +15,13 @@
 
 ### Tool Changes
 
+#### Analyzer
+
+* New static checking of duplicate shown or hidden names in an export directive
+  ([issue 33182]).
+
+[issue 33182]: https://github.com/dart-lang/sdk/issues/33182
+
 #### Pub
 
 #### Other Tools
