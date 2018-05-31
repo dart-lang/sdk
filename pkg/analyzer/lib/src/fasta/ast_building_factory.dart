@@ -284,8 +284,8 @@ class AstBuildingForest
       Expression index,
       kernel.Procedure getter,
       kernel.Procedure setter) {
-    // TODO(brianwilkerson) Implement this.
-    throw new UnimplementedError();
+    return new AnalyzerIndexedAccessGenerator(
+        helper, astFactory, receiver, token, index, token.endGroup);
   }
 
   @override
@@ -452,8 +452,8 @@ class AstBuildingForest
       kernel.Member getter,
       kernel.Member setter,
       kernel.DartType type) {
-    // TODO(brianwilkerson) Implement this.
-    throw new UnimplementedError();
+    return new AnalyzerNullAwarePropertyAccessGenerator(
+        helper, astFactory, receiverExpression, token, null /*name*/);
   }
 
   @override
@@ -550,8 +550,8 @@ class AstBuildingForest
       kernel.Name name,
       kernel.Member getter,
       kernel.Member setter) {
-    // TODO(brianwilkerson) Implement this.
-    throw new UnimplementedError();
+    return new AnalyzerSuperPropertyAccessGenerator(
+        helper, astFactory, null, null, null /*name*/);
   }
 
   @override
@@ -644,8 +644,7 @@ class AstBuildingForest
       Token token,
       VariableDeclarationStatement variable,
       kernel.DartType promotedType) {
-    // TODO(brianwilkerson) Implement this.
-    throw new UnimplementedError();
+    return new AnalyzerVariableUseGenerator(helper, astFactory, token);
   }
 
   Statement whileStatement(Token whileKeyword,

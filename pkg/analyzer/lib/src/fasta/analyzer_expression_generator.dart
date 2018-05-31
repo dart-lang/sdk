@@ -147,6 +147,97 @@ abstract class AnalyzerExpressionGenerator
   }
 }
 
+class AnalyzerIndexedAccessGenerator extends AnalyzerExpressionGenerator
+    with fasta.IndexedAccessGenerator<Expression, Statement, Arguments> {
+  /// The expression computing the object on which the index operation will be
+  /// invoked.
+  final Expression target;
+
+  /// The left bracket.
+  final Token leftBracket;
+
+  /// The expression computing the argument for the index operation.
+  final Expression index;
+
+  /// The right bracket.
+  final Token rightBracket;
+
+  /// Initialize a newly created generator to have the given helper.
+  AnalyzerIndexedAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      AstFactory astFactory,
+      this.target,
+      this.leftBracket,
+      this.index,
+      this.rightBracket)
+      : super(helper, astFactory);
+
+  @override
+  Token get token => leftBracket;
+
+  @override
+  Expression buildAssignment(Expression value, {bool voidContext}) {
+    // TODO(brianwilkerson) Figure out how to get the token for the operator.
+    return astFactory.assignmentExpression(buildSimpleRead(), null, value);
+  }
+
+  @override
+  Expression buildSimpleRead() => astFactory.indexExpressionForTarget(
+      target, leftBracket, index, rightBracket);
+}
+
+class AnalyzerNullAwarePropertyAccessGenerator
+    extends AnalyzerExpressionGenerator
+    with
+        fasta.NullAwarePropertyAccessGenerator<Expression, Statement,
+            Arguments> {
+  final Expression target;
+  final Token operator;
+  final SimpleIdentifier propertyName;
+
+  AnalyzerNullAwarePropertyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      AstFactory astFactory,
+      this.target,
+      this.operator,
+      this.propertyName)
+      : super(helper, astFactory);
+
+  @override
+  Token get token => operator;
+
+  @override
+  Expression buildSimpleRead() =>
+      astFactory.propertyAccess(target, operator, propertyName);
+}
+
+class AnalyzerSuperPropertyAccessGenerator extends AnalyzerExpressionGenerator
+    with fasta.SuperPropertyAccessGenerator<Expression, Statement, Arguments> {
+  /// The `super` keyword.
+  Token superKeyword;
+
+  /// The `.` or `?.` operator.
+  Token operator;
+
+  /// The name of the property being accessed,
+  SimpleIdentifier propertyName;
+
+  AnalyzerSuperPropertyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      AstFactory astFactory,
+      this.superKeyword,
+      this.operator,
+      this.propertyName)
+      : super(helper, astFactory);
+
+  @override
+  Token get token => operator;
+
+  @override
+  Expression buildSimpleRead() => astFactory.propertyAccess(
+      astFactory.superExpression(superKeyword), operator, propertyName);
+}
+
 class AnalyzerUnlinkedNameGenerator extends AnalyzerExpressionGenerator
     with
         fasta.ErroneousExpressionGenerator<Expression, Statement, Arguments>,
@@ -212,4 +303,21 @@ class AnalyzerUnresolvedNameGenerator extends AnalyzerExpressionGenerator
     sink.write(", name: ");
     sink.write(name.name);
   }
+}
+
+class AnalyzerVariableUseGenerator extends AnalyzerExpressionGenerator
+    with fasta.VariableUseGenerator<Expression, Statement, Arguments> {
+  final Token nameToken;
+
+  AnalyzerVariableUseGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      AstFactory astFactory,
+      this.nameToken)
+      : super(helper, astFactory);
+
+  @override
+  Token get token => nameToken;
+
+  @override
+  Expression buildSimpleRead() => astFactory.simpleIdentifier(nameToken);
 }
