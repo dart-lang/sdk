@@ -5,63 +5,66 @@
 import '../common_elements.dart' show CommonElements;
 import '../elements/entities.dart';
 import '../native/native.dart' as native;
-import '../types/masks.dart';
+import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
 import '../world.dart' show ClosedWorld;
 
-class TypeMaskFactory {
-  static TypeMask inferredReturnTypeForElement(
+class AbstractValueFactory {
+  static AbstractValue inferredReturnTypeForElement(
       FunctionEntity element, GlobalTypeInferenceResults results) {
     return results.resultOfMember(element).returnType ??
         results.closedWorld.abstractValueDomain.dynamicType;
   }
 
-  static TypeMask inferredTypeForMember(
+  static AbstractValue inferredTypeForMember(
       MemberEntity element, GlobalTypeInferenceResults results) {
     return results.resultOfMember(element).type ??
         results.closedWorld.abstractValueDomain.dynamicType;
   }
 
-  static TypeMask inferredTypeForParameter(
+  static AbstractValue inferredTypeForParameter(
       Local element, GlobalTypeInferenceResults results) {
     return results.resultOfParameter(element).type ??
         results.closedWorld.abstractValueDomain.dynamicType;
   }
 
-  static TypeMask inferredTypeForSelector(
-      Selector selector, TypeMask mask, GlobalTypeInferenceResults results) {
-    return results.typeOfSelector(selector, mask) ??
+  static AbstractValue inferredTypeForSelector(Selector selector,
+      AbstractValue receiver, GlobalTypeInferenceResults results) {
+    return results.typeOfSelector(selector, receiver) ??
         results.closedWorld.abstractValueDomain.dynamicType;
   }
 
-  static TypeMask fromNativeBehavior(
+  static AbstractValue fromNativeBehavior(
       native.NativeBehavior nativeBehavior, ClosedWorld closedWorld) {
-    CommonMasks commonMasks = closedWorld.abstractValueDomain;
+    AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
     var typesReturned = nativeBehavior.typesReturned;
-    if (typesReturned.isEmpty) return commonMasks.dynamicType;
+    if (typesReturned.isEmpty) return abstractValueDomain.dynamicType;
 
     CommonElements commonElements = closedWorld.commonElements;
 
     // [type] is either an instance of [DartType] or special objects
     // like [native.SpecialType.JsObject].
-    TypeMask fromNativeType(dynamic type) {
+    AbstractValue fromNativeType(dynamic type) {
       if (type == native.SpecialType.JsObject) {
-        return new TypeMask.nonNullExact(
-            commonElements.objectClass, closedWorld);
+        return abstractValueDomain
+            .createNonNullExact(commonElements.objectClass);
+      } else if (type.isVoid) {
+        return abstractValueDomain.nullType;
+      } else if (type.isDynamic) {
+        return abstractValueDomain.dynamicType;
+      } else if (type == commonElements.nullType) {
+        return abstractValueDomain.nullType;
+      } else if (type.treatAsDynamic) {
+        return abstractValueDomain.dynamicType;
+      } else {
+        return abstractValueDomain.createNonNullSubtype(type.element);
       }
-
-      if (type.isVoid) return commonMasks.nullType;
-      if (type.isDynamic) return commonMasks.dynamicType;
-      if (type.element == commonElements.nullClass) return commonMasks.nullType;
-      if (type.treatAsDynamic) return commonMasks.dynamicType;
-      return new TypeMask.nonNullSubtype(type.element, closedWorld);
     }
 
-    TypeMask result = typesReturned
-        .map(fromNativeType)
-        .reduce((t1, t2) => t1.union(t2, closedWorld));
-    assert(!result.isEmpty);
+    AbstractValue result =
+        abstractValueDomain.unionOfMany(typesReturned.map(fromNativeType));
+    assert(!abstractValueDomain.isEmpty(result));
     return result;
   }
 }

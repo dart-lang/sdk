@@ -79,59 +79,77 @@ class CommonMasks implements AbstractValueDomain {
     return cachedMasks.putIfAbsent(base, createMask);
   }
 
+  @override
   TypeMask get dynamicType => _dynamicType ??= new TypeMask.subclass(
       _closedWorld.commonElements.objectClass, _closedWorld);
 
+  @override
   TypeMask get nonNullType => _nonNullType ??= new TypeMask.nonNullSubclass(
       _closedWorld.commonElements.objectClass, _closedWorld);
 
+  @override
   TypeMask get intType => _intType ??=
       new TypeMask.nonNullSubclass(commonElements.jsIntClass, _closedWorld);
 
+  @override
   TypeMask get uint32Type => _uint32Type ??=
       new TypeMask.nonNullSubclass(commonElements.jsUInt32Class, _closedWorld);
 
+  @override
   TypeMask get uint31Type => _uint31Type ??=
       new TypeMask.nonNullExact(commonElements.jsUInt31Class, _closedWorld);
 
+  @override
   TypeMask get positiveIntType =>
       _positiveIntType ??= new TypeMask.nonNullSubclass(
           commonElements.jsPositiveIntClass, _closedWorld);
 
+  @override
   TypeMask get doubleType => _doubleType ??=
       new TypeMask.nonNullExact(commonElements.jsDoubleClass, _closedWorld);
 
+  @override
   TypeMask get numType => _numType ??=
       new TypeMask.nonNullSubclass(commonElements.jsNumberClass, _closedWorld);
 
+  @override
   TypeMask get boolType => _boolType ??=
       new TypeMask.nonNullExact(commonElements.jsBoolClass, _closedWorld);
 
+  @override
   TypeMask get functionType => _functionType ??=
       new TypeMask.nonNullSubtype(commonElements.functionClass, _closedWorld);
 
+  @override
   TypeMask get listType => _listType ??=
       new TypeMask.nonNullExact(commonElements.jsArrayClass, _closedWorld);
 
+  @override
   TypeMask get constListType => _constListType ??= new TypeMask.nonNullExact(
       commonElements.jsUnmodifiableArrayClass, _closedWorld);
 
+  @override
   TypeMask get fixedListType => _fixedListType ??=
       new TypeMask.nonNullExact(commonElements.jsFixedArrayClass, _closedWorld);
 
+  @override
   TypeMask get growableListType =>
       _growableListType ??= new TypeMask.nonNullExact(
           commonElements.jsExtendableArrayClass, _closedWorld);
 
+  @override
   TypeMask get mapType => _mapType ??=
       new TypeMask.nonNullSubtype(commonElements.mapLiteralClass, _closedWorld);
 
+  @override
   TypeMask get constMapType => _constMapType ??= new TypeMask.nonNullSubtype(
       commonElements.constMapLiteralClass, _closedWorld);
 
+  @override
   TypeMask get stringType => _stringType ??=
       new TypeMask.nonNullExact(commonElements.jsStringClass, _closedWorld);
 
+  @override
   TypeMask get typeType => _typeType ??=
       new TypeMask.nonNullExact(commonElements.typeLiteralClass, _closedWorld);
 
@@ -146,8 +164,10 @@ class CommonMasks implements AbstractValueDomain {
       new TypeMask.nonNullExact(commonElements.controllerStream, _closedWorld);
 
   // TODO(johnniwinther): Assert that the null type has been resolved.
+  @override
   TypeMask get nullType => _nullType ??= const TypeMask.empty();
 
+  @override
   TypeMask get emptyType => const TypeMask.nonNullEmpty();
 
   TypeMask get indexablePrimitiveType =>
@@ -169,6 +189,7 @@ class CommonMasks implements AbstractValueDomain {
       _interceptorType ??= new TypeMask.nonNullSubclass(
           commonElements.jsInterceptorClass, _closedWorld);
 
+  @override
   bool isTypedArray(TypeMask mask) {
     // Just checking for `TypedData` is not sufficient, as it is an abstract
     // class any user-defined class can implement. So we also check for the
@@ -181,6 +202,7 @@ class CommonMasks implements AbstractValueDomain {
             _closedWorld);
   }
 
+  @override
   bool couldBeTypedArray(TypeMask mask) {
     bool intersects(TypeMask type1, TypeMask type2) =>
         !type1.intersection(type2, _closedWorld).isEmpty;
@@ -197,47 +219,94 @@ class CommonMasks implements AbstractValueDomain {
                 _closedWorld));
   }
 
+  @override
   TypeMask createNonNullExact(ClassEntity cls) {
     return new TypeMask.nonNullExact(cls, _closedWorld);
   }
 
+  @override
+  TypeMask createNullableExact(ClassEntity cls) {
+    return new TypeMask.exact(cls, _closedWorld);
+  }
+
+  @override
+  TypeMask createNonNullSubclass(ClassEntity cls) {
+    return new TypeMask.nonNullSubclass(cls, _closedWorld);
+  }
+
+  @override
   TypeMask createNonNullSubtype(ClassEntity cls) {
     return new TypeMask.nonNullSubtype(cls, _closedWorld);
   }
 
+  @override
   TypeMask createNullableSubtype(ClassEntity cls) {
     return new TypeMask.subtype(cls, _closedWorld);
   }
 
+  @override
   TypeMask excludeNull(TypeMask mask) => mask.nonNullable();
 
   @override
   TypeMask includeNull(TypeMask mask) => mask.nullable();
 
+  @override
   bool containsType(TypeMask typeMask, ClassEntity cls) {
     return _closedWorld.isInstantiated(cls) &&
         typeMask.contains(cls, _closedWorld);
   }
 
+  @override
   bool containsOnlyType(TypeMask typeMask, ClassEntity cls) {
     return _closedWorld.isInstantiated(cls) && typeMask.containsOnly(cls);
   }
 
-  bool isInstanceOf(TypeMask typeMask, ClassEntity cls) {
+  @override
+  bool isInstanceOfOrNull(TypeMask typeMask, ClassEntity cls) {
     return _closedWorld.isImplemented(cls) &&
         typeMask.satisfies(cls, _closedWorld);
   }
 
+  @override
+  AbstractBool isInstanceOf(
+      covariant TypeMask expressionMask, ClassEntity cls) {
+    AbstractValue typeMask = (cls == commonElements.nullClass)
+        ? createNullableSubtype(cls)
+        : createNonNullSubtype(cls);
+    if (expressionMask.union(typeMask, _closedWorld) == typeMask) {
+      return AbstractBool.True;
+    } else if (expressionMask.isDisjoint(typeMask, _closedWorld)) {
+      return AbstractBool.False;
+    } else {
+      return AbstractBool.Maybe;
+    }
+  }
+
+  @override
   bool isEmpty(TypeMask value) => value.isEmpty;
 
+  @override
   bool isExact(TypeMask value) => value.isExact || isNull(value);
 
-  bool isValue(TypeMask value) => value.isValue;
+  @override
+  bool isPrimitiveValue(TypeMask value) => value.isValue;
 
+  @override
+  ConstantValue getPrimitiveValue(TypeMask mask) {
+    if (mask.isValue) {
+      ValueTypeMask valueMask = mask;
+      return valueMask.value;
+    }
+    return null;
+  }
+
+  @override
   bool canBeNull(TypeMask value) => value.isNullable;
 
+  @override
   bool isNull(TypeMask value) => value.isNull;
 
+  @override
   bool canBePrimitive(TypeMask value) {
     return canBePrimitiveNumber(value) ||
         canBePrimitiveArray(value) ||
@@ -246,6 +315,7 @@ class CommonMasks implements AbstractValueDomain {
         isNull(value);
   }
 
+  @override
   bool canBePrimitiveNumber(TypeMask value) {
     // TODO(sra): It should be possible to test only jsDoubleClass and
     // jsUInt31Class, since all others are superclasses of these two.
@@ -257,10 +327,12 @@ class CommonMasks implements AbstractValueDomain {
         containsType(value, commonElements.jsDoubleClass);
   }
 
+  @override
   bool canBePrimitiveBoolean(TypeMask value) {
     return containsType(value, commonElements.jsBoolClass);
   }
 
+  @override
   bool canBePrimitiveArray(TypeMask value) {
     return containsType(value, commonElements.jsArrayClass) ||
         containsType(value, commonElements.jsFixedArrayClass) ||
@@ -268,102 +340,123 @@ class CommonMasks implements AbstractValueDomain {
         containsType(value, commonElements.jsUnmodifiableArrayClass);
   }
 
+  @override
   bool isIndexablePrimitive(TypeMask value) {
     return value.containsOnlyString(_closedWorld) ||
-        isInstanceOf(value, commonElements.jsIndexableClass);
+        isInstanceOfOrNull(value, commonElements.jsIndexableClass);
   }
 
+  @override
   bool isFixedArray(TypeMask value) {
     // TODO(sra): Recognize the union of these types as well.
     return containsOnlyType(value, commonElements.jsFixedArrayClass) ||
         containsOnlyType(value, commonElements.jsUnmodifiableArrayClass);
   }
 
+  @override
   bool isExtendableArray(TypeMask value) {
     return containsOnlyType(value, commonElements.jsExtendableArrayClass);
   }
 
+  @override
   bool isMutableArray(TypeMask value) {
-    return isInstanceOf(value, commonElements.jsMutableArrayClass);
+    return isInstanceOfOrNull(value, commonElements.jsMutableArrayClass);
   }
 
-  bool isReadableArray(TypeMask value) {
-    return isInstanceOf(value, commonElements.jsArrayClass);
-  }
-
+  @override
   bool isMutableIndexable(TypeMask value) {
-    return isInstanceOf(value, commonElements.jsMutableIndexableClass);
+    return isInstanceOfOrNull(value, commonElements.jsMutableIndexableClass);
   }
 
-  bool isArray(TypeMask value) => isReadableArray(value);
+  @override
+  bool isArray(TypeMask value) {
+    return isInstanceOfOrNull(value, commonElements.jsArrayClass);
+  }
 
+  @override
   bool canBePrimitiveString(TypeMask value) {
     return containsType(value, commonElements.jsStringClass);
   }
 
+  @override
   bool isInteger(TypeMask value) {
     return value.containsOnlyInt(_closedWorld) && !value.isNullable;
   }
 
+  @override
   bool isUInt32(TypeMask value) {
     return !value.isNullable &&
-        isInstanceOf(value, commonElements.jsUInt32Class);
+        isInstanceOfOrNull(value, commonElements.jsUInt32Class);
   }
 
+  @override
   bool isUInt31(TypeMask value) {
     return !value.isNullable &&
-        isInstanceOf(value, commonElements.jsUInt31Class);
+        isInstanceOfOrNull(value, commonElements.jsUInt31Class);
   }
 
+  @override
   bool isPositiveInteger(TypeMask value) {
     return !value.isNullable &&
-        isInstanceOf(value, commonElements.jsPositiveIntClass);
+        isInstanceOfOrNull(value, commonElements.jsPositiveIntClass);
   }
 
+  @override
   bool isPositiveIntegerOrNull(TypeMask value) {
-    return isInstanceOf(value, commonElements.jsPositiveIntClass);
+    return isInstanceOfOrNull(value, commonElements.jsPositiveIntClass);
   }
 
+  @override
   bool isIntegerOrNull(TypeMask value) {
     return value.containsOnlyInt(_closedWorld);
   }
 
+  @override
   bool isNumber(TypeMask value) {
     return value.containsOnlyNum(_closedWorld) && !value.isNullable;
   }
 
+  @override
   bool isNumberOrNull(TypeMask value) {
     return value.containsOnlyNum(_closedWorld);
   }
 
+  @override
   bool isDouble(TypeMask value) {
     return value.containsOnlyDouble(_closedWorld) && !value.isNullable;
   }
 
+  @override
   bool isDoubleOrNull(TypeMask value) {
     return value.containsOnlyDouble(_closedWorld);
   }
 
+  @override
   bool isBoolean(TypeMask value) {
     return value.containsOnlyBool(_closedWorld) && !value.isNullable;
   }
 
+  @override
   bool isBooleanOrNull(TypeMask value) {
     return value.containsOnlyBool(_closedWorld);
   }
 
+  @override
   bool isString(TypeMask value) {
     return value.containsOnlyString(_closedWorld) && !value.isNullable;
   }
 
+  @override
   bool isStringOrNull(TypeMask value) {
     return value.containsOnlyString(_closedWorld);
   }
 
+  @override
   bool isPrimitive(TypeMask value) {
     return (isPrimitiveOrNull(value) && !value.isNullable) || isNull(value);
   }
 
+  @override
   bool isPrimitiveOrNull(TypeMask value) {
     return isIndexablePrimitive(value) ||
         isNumberOrNull(value) ||
@@ -371,13 +464,17 @@ class CommonMasks implements AbstractValueDomain {
         isNull(value);
   }
 
+  @override
   TypeMask union(TypeMask a, TypeMask b) => a.union(b, _closedWorld);
 
+  @override
   TypeMask intersection(TypeMask a, TypeMask b) =>
       a.intersection(b, _closedWorld);
 
+  @override
   bool areDisjoint(TypeMask a, TypeMask b) => a.isDisjoint(b, _closedWorld);
 
+  @override
   bool containsAll(TypeMask a) => a.containsAll(_closedWorld);
 
   @override
@@ -402,7 +499,7 @@ class CommonMasks implements AbstractValueDomain {
   }
 
   @override
-  AbstractValue unionOfMany(List<AbstractValue> values) {
+  AbstractValue unionOfMany(Iterable<AbstractValue> values) {
     TypeMask result = const TypeMask.nonNullEmpty();
     for (TypeMask value in values) {
       result = result.union(value, _closedWorld);
@@ -449,6 +546,11 @@ class CommonMasks implements AbstractValueDomain {
   }
 
   @override
+  bool isIn(covariant TypeMask subset, covariant TypeMask superset) {
+    return subset.isInMask(superset, _closedWorld);
+  }
+
+  @override
   MemberEntity locateSingleMember(
       covariant TypeMask receiver, Selector selector) {
     return receiver.locateSingleMember(selector, _closedWorld);
@@ -479,5 +581,10 @@ class CommonMasks implements AbstractValueDomain {
       return true;
     }
     return false;
+  }
+
+  @override
+  bool canBeInterceptor(TypeMask value) {
+    return !interceptorType.isDisjoint(value, _closedWorld);
   }
 }

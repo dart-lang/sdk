@@ -8,7 +8,7 @@ import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../options.dart';
-import '../types/masks.dart';
+import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
@@ -25,12 +25,12 @@ import 'types.dart';
 class InvokeDynamicSpecializer {
   const InvokeDynamicSpecializer();
 
-  TypeMask computeTypeFromInputTypes(
+  AbstractValue computeTypeFromInputTypes(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
       ClosedWorld closedWorld) {
-    return TypeMaskFactory.inferredTypeForSelector(
+    return AbstractValueFactory.inferredTypeForSelector(
         instruction.selector, instruction.mask, results);
   }
 
@@ -192,9 +192,9 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
       // We want the right checked mode error.
       return null;
     }
-    TypeMask receiverType =
+    AbstractValue receiverType =
         instruction.getDartReceiver(closedWorld).instructionType;
-    TypeMask type = TypeMaskFactory.inferredTypeForSelector(
+    AbstractValue type = AbstractValueFactory.inferredTypeForSelector(
         instruction.selector, receiverType, results);
     return new HIndex(instruction.inputs[1], instruction.inputs[2],
         instruction.selector, type);
@@ -208,7 +208,7 @@ class BitNotSpecializer extends InvokeDynamicSpecializer {
     return constantSystem.bitNot;
   }
 
-  TypeMask computeTypeFromInputTypes(
+  AbstractValue computeTypeFromInputTypes(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
@@ -249,7 +249,7 @@ class UnaryNegateSpecializer extends InvokeDynamicSpecializer {
     return constantSystem.negate;
   }
 
-  TypeMask computeTypeFromInputTypes(
+  AbstractValue computeTypeFromInputTypes(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
@@ -296,7 +296,7 @@ class AbsSpecializer extends InvokeDynamicSpecializer {
     return constantSystem.abs;
   }
 
-  TypeMask computeTypeFromInputTypes(
+  AbstractValue computeTypeFromInputTypes(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
@@ -331,7 +331,7 @@ class AbsSpecializer extends InvokeDynamicSpecializer {
 abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
   const BinaryArithmeticSpecializer();
 
-  TypeMask computeTypeFromInputTypes(
+  AbstractValue computeTypeFromInputTypes(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
@@ -402,7 +402,7 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
 class AddSpecializer extends BinaryArithmeticSpecializer {
   const AddSpecializer();
 
-  TypeMask computeTypeFromInputTypes(
+  AbstractValue computeTypeFromInputTypes(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
@@ -441,7 +441,7 @@ class DivideSpecializer extends BinaryArithmeticSpecializer {
     return constantSystem.divide;
   }
 
-  TypeMask computeTypeFromInputTypes(
+  AbstractValue computeTypeFromInputTypes(
       HInstruction instruction,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
@@ -467,7 +467,7 @@ class DivideSpecializer extends BinaryArithmeticSpecializer {
 class ModuloSpecializer extends BinaryArithmeticSpecializer {
   const ModuloSpecializer();
 
-  TypeMask computeTypeFromInputTypes(
+  AbstractValue computeTypeFromInputTypes(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
@@ -553,7 +553,7 @@ class ModuloSpecializer extends BinaryArithmeticSpecializer {
 class RemainderSpecializer extends BinaryArithmeticSpecializer {
   const RemainderSpecializer();
 
-  TypeMask computeTypeFromInputTypes(
+  AbstractValue computeTypeFromInputTypes(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
@@ -589,7 +589,7 @@ class MultiplySpecializer extends BinaryArithmeticSpecializer {
     return constantSystem.multiply;
   }
 
-  TypeMask computeTypeFromInputTypes(
+  AbstractValue computeTypeFromInputTypes(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
@@ -641,7 +641,7 @@ class TruncatingDivideSpecializer extends BinaryArithmeticSpecializer {
     return constantSystem.truncatingDivide;
   }
 
-  TypeMask computeTypeFromInputTypes(
+  AbstractValue computeTypeFromInputTypes(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
@@ -727,7 +727,7 @@ class TruncatingDivideSpecializer extends BinaryArithmeticSpecializer {
 abstract class BinaryBitOpSpecializer extends BinaryArithmeticSpecializer {
   const BinaryBitOpSpecializer();
 
-  TypeMask computeTypeFromInputTypes(
+  AbstractValue computeTypeFromInputTypes(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
@@ -819,7 +819,7 @@ class ShiftLeftSpecializer extends BinaryBitOpSpecializer {
 class ShiftRightSpecializer extends BinaryBitOpSpecializer {
   const ShiftRightSpecializer();
 
-  TypeMask computeTypeFromInputTypes(
+  AbstractValue computeTypeFromInputTypes(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
@@ -887,7 +887,7 @@ class BitOrSpecializer extends BinaryBitOpSpecializer {
     return constantSystem.bitOr;
   }
 
-  TypeMask computeTypeFromInputTypes(
+  AbstractValue computeTypeFromInputTypes(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
@@ -922,7 +922,7 @@ class BitAndSpecializer extends BinaryBitOpSpecializer {
     return constantSystem.bitAnd;
   }
 
-  TypeMask computeTypeFromInputTypes(
+  AbstractValue computeTypeFromInputTypes(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
@@ -958,7 +958,7 @@ class BitXorSpecializer extends BinaryBitOpSpecializer {
     return constantSystem.bitXor;
   }
 
-  TypeMask computeTypeFromInputTypes(
+  AbstractValue computeTypeFromInputTypes(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
@@ -989,7 +989,7 @@ class BitXorSpecializer extends BinaryBitOpSpecializer {
 abstract class RelationalSpecializer extends InvokeDynamicSpecializer {
   const RelationalSpecializer();
 
-  TypeMask computeTypeFromInputTypes(
+  AbstractValue computeTypeFromInputTypes(
       HInvokeDynamic instruction,
       GlobalTypeInferenceResults results,
       CompilerOptions options,
@@ -1034,7 +1034,7 @@ class EqualsSpecializer extends RelationalSpecializer {
       ClosedWorld closedWorld) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
-    TypeMask instructionType = left.instructionType;
+    AbstractValue instructionType = left.instructionType;
     if (right.isConstantNull() ||
         left.isPrimitiveOrNull(closedWorld.abstractValueDomain)) {
       return newBuiltinVariant(instruction, closedWorld);

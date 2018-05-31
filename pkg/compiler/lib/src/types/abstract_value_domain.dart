@@ -8,6 +8,8 @@ import '../constants/values.dart' show ConstantValue;
 import '../elements/entities.dart';
 import '../universe/selector.dart';
 
+enum AbstractBool { True, False, Maybe }
+
 /// A value in an abstraction of runtime values.
 abstract class AbstractValue {}
 
@@ -89,12 +91,20 @@ abstract class AbstractValueDomain {
   /// The [AbstractValue] that represents the empty set of runtime values.
   AbstractValue get emptyType;
 
-  /// Creates an [AbstractValue] for non-null exact instance of [cls].
+  /// Creates an [AbstractValue] for a non-null exact instance of [cls].
   AbstractValue createNonNullExact(ClassEntity cls);
 
-  /// Creates an [AbstractValue] for non-null instance that implements [cls].
+  /// Creates an [AbstractValue] for a potentially null exact instance of [cls].
+  AbstractValue createNullableExact(ClassEntity cls);
+
+  /// Creates an [AbstractValue] for a non-null instance that extends [cls].
+  AbstractValue createNonNullSubclass(ClassEntity cls);
+
+  /// Creates an [AbstractValue] for a non-null instance that implements [cls].
   AbstractValue createNonNullSubtype(ClassEntity cls);
 
+  /// Creates an [AbstractValue] for a potentially null instance that implements
+  /// [cls].
   AbstractValue createNullableSubtype(ClassEntity cls);
 
   /// Returns `true` if [value] is a native typed array or `null` at runtime.
@@ -117,7 +127,18 @@ abstract class AbstractValueDomain {
   bool containsOnlyType(covariant AbstractValue value, ClassEntity cls);
 
   /// Returns `true` if [value] is an instance of [cls] or `null` at runtime.
-  bool isInstanceOf(covariant AbstractValue value, ClassEntity cls);
+  // TODO(johnniwinther): Merge this with [isInstanceOf].
+  bool isInstanceOfOrNull(covariant AbstractValue value, ClassEntity cls);
+
+  /// Returns an [AbstractBool] that describes how [value] is known to be an
+  /// instance of [cls] at runtime.
+  ///
+  /// If the returned value is `Abstract.True`, [value] is known _always_ to be
+  /// an instance of [cls]. If the returned value is `Abstract.False`, [value]
+  /// is known _never_ to be an instance of [cls]. If the returned value is
+  /// `Abstract.Maybe` [value] might or might not be an instance of [cls] at
+  /// runtime.
+  AbstractBool isInstanceOf(AbstractValue value, ClassEntity cls);
 
   /// Returns `true` if [value] is empty set of runtime values.
   bool isEmpty(covariant AbstractValue value);
@@ -126,7 +147,7 @@ abstract class AbstractValueDomain {
   bool isExact(covariant AbstractValue value);
 
   /// Returns `true` if [value] a known primitive JavaScript value at runtime.
-  bool isValue(covariant AbstractValue value);
+  bool isPrimitiveValue(covariant AbstractValue value);
 
   /// Returns `true` if [value] can be `null` at runtime.
   bool canBeNull(covariant AbstractValue value);
@@ -173,6 +194,9 @@ abstract class AbstractValueDomain {
 
   /// Returns `true` if [value] could be a JavaScript string at runtime.
   bool canBePrimitiveString(covariant AbstractValue value);
+
+  /// Return `true` if [value] could be an interceptor at runtime.
+  bool canBeInterceptor(covariant AbstractValue value);
 
   /// Returns `true` if [value] is a non-null integer value at runtime.
   bool isInteger(covariant AbstractValue value);
@@ -233,7 +257,7 @@ abstract class AbstractValueDomain {
 
   /// Returns [AbstractValue] for the runtime values contained in at least one
   /// of [values].
-  AbstractValue unionOfMany(List<AbstractValue> values);
+  AbstractValue unionOfMany(Iterable<AbstractValue> values);
 
   /// Returns [AbstractValue] for the runtime values that [a] and [b] have in
   /// common.
@@ -257,6 +281,11 @@ abstract class AbstractValueDomain {
   /// Returns [dynamicType] otherwise.
   AbstractValue getMapValueType(AbstractValue value);
 
+  /// Returns the primitive JavaScript value of [value] if it represents a
+  /// primitive JavaScript value at runtime, value at runtime. Returns `null`
+  /// otherwise.
+  ConstantValue getPrimitiveValue(covariant AbstractValue value);
+
   /// Compute the type of all potential receivers of the set of live [members].
   AbstractValue computeReceiver(Iterable<MemberEntity> members);
 
@@ -272,6 +301,10 @@ abstract class AbstractValueDomain {
   /// Returns `true` if the set of runtime values of [subset] are all in the set
   /// of runtime values of [superset].
   bool contains(AbstractValue superset, AbstractValue subset);
+
+  /// Returns `true` if the set of runtime values of [subset] are all in the set
+  /// of runtime values of [superset].
+  bool isIn(AbstractValue subset, AbstractValue superset);
 
   /// Returns the [MemberEntity] that is known to always be hit at runtime
   /// [receiver].

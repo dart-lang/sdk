@@ -18,7 +18,6 @@ import '../js/js.dart' as js;
 import '../js_backend/js_backend.dart';
 import '../native/native.dart' as native;
 import '../types/abstract_value_domain.dart';
-import '../types/masks.dart' show TypeMask;
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
 import '../util/util.dart';
@@ -1013,7 +1012,8 @@ abstract class HInstruction implements Spannable {
 
   bool isExact(AbstractValueDomain domain) => domain.isExact(instructionType);
 
-  bool isValue(AbstractValueDomain domain) => domain.isValue(instructionType);
+  bool isValue(AbstractValueDomain domain) =>
+      domain.isPrimitiveValue(instructionType);
 
   bool canBeNull(AbstractValueDomain domain) =>
       domain.canBeNull(instructionType);
@@ -3204,8 +3204,8 @@ class HTypeConversion extends HCheck {
     }
     // Type is refined from `dynamic`, so it might become non-redundant.
     if (abstractValueDomain.containsAll(checkedType)) return false;
-    TypeMask inputType = checkedInput.instructionType;
-    return inputType.isInMask(checkedType, closedWorld);
+    AbstractValue inputType = checkedInput.instructionType;
+    return abstractValueDomain.isIn(inputType, checkedType);
   }
 
   String toString() => 'HTypeConversion(type=$typeExpression, kind=$kind, '
@@ -3253,8 +3253,8 @@ class HTypeKnown extends HCheck {
   bool isRedundant(ClosedWorld closedWorld) {
     AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
     if (abstractValueDomain.containsAll(knownType)) return false;
-    TypeMask inputType = checkedInput.instructionType;
-    return inputType.isInMask(knownType, closedWorld);
+    AbstractValue inputType = checkedInput.instructionType;
+    return abstractValueDomain.isIn(inputType, knownType);
   }
 }
 

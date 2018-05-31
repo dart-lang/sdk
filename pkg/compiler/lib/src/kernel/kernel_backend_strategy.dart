@@ -126,7 +126,7 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
           .resultOfMember(e is ConstructorBodyEntity ? e.constructor : e);
 
   AbstractValue getReturnTypeOf(FunctionEntity function) {
-    return TypeMaskFactory.inferredReturnTypeForElement(
+    return AbstractValueFactory.inferredReturnTypeForElement(
         function, _globalInferenceResults);
   }
 
@@ -173,28 +173,28 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
   }
 
   AbstractValue inferredIndexType(ir.ForInStatement node) {
-    return TypeMaskFactory.inferredTypeForSelector(
+    return AbstractValueFactory.inferredTypeForSelector(
         new Selector.index(), typeOfIterator(node), _globalInferenceResults);
   }
 
   AbstractValue getInferredTypeOf(MemberEntity member) {
-    return TypeMaskFactory.inferredTypeForMember(
+    return AbstractValueFactory.inferredTypeForMember(
         member, _globalInferenceResults);
   }
 
   AbstractValue getInferredTypeOfParameter(Local parameter) {
-    return TypeMaskFactory.inferredTypeForParameter(
+    return AbstractValueFactory.inferredTypeForParameter(
         parameter, _globalInferenceResults);
   }
 
   AbstractValue selectorTypeOf(Selector selector, AbstractValue mask) {
-    return TypeMaskFactory.inferredTypeForSelector(
+    return AbstractValueFactory.inferredTypeForSelector(
         selector, mask, _globalInferenceResults);
   }
 
   AbstractValue typeFromNativeBehavior(
       NativeBehavior nativeBehavior, ClosedWorld closedWorld) {
-    return TypeMaskFactory.fromNativeBehavior(nativeBehavior, closedWorld);
+    return AbstractValueFactory.fromNativeBehavior(nativeBehavior, closedWorld);
   }
 }
 

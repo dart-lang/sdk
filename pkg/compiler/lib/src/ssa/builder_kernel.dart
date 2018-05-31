@@ -31,7 +31,7 @@ import '../js_model/elements.dart' show JGeneratorBody;
 import '../kernel/element_map.dart';
 import '../kernel/kernel_backend_strategy.dart';
 import '../native/native.dart' as native;
-import '../types/masks.dart';
+import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
@@ -541,7 +541,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       }
 
       newObject = new HCreate(cls, constructorArguments,
-          new TypeMask.nonNullExact(cls, closedWorld), sourceInformation,
+          abstractValueDomain.createNonNullExact(cls), sourceInformation,
           instantiatedTypes: instantiatedTypes,
           hasRtiInput: needsTypeArguments);
 
@@ -1206,7 +1206,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       String arguments = templateArguments.join(',');
 
       // TODO(sra): Use declared type or NativeBehavior type.
-      TypeMask typeMask = abstractValueDomain.dynamicType;
+      AbstractValue typeMask = abstractValueDomain.dynamicType;
       String template;
       if (targetElement.isGetter) {
         template = '${templateReceiver}$nativeName';
@@ -1245,7 +1245,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   }
 
   void openFunction(MemberEntity member, [ir.FunctionNode functionNode]) {
-    Map<Local, TypeMask> parameterMap = <Local, TypeMask>{};
+    Map<Local, AbstractValue> parameterMap = <Local, AbstractValue>{};
     if (functionNode != null) {
       void handleParameter(ir.VariableDeclaration node) {
         Local local = localsMap.getLocalVariable(node);
@@ -1593,7 +1593,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // array, as this is stronger than the iterator's `get current` type, for
       // example, `get current` includes null.
       // TODO(sra): The element type of a container type mask might be better.
-      TypeMask type = _typeInferenceMap.inferredIndexType(node);
+      AbstractValue type = _typeInferenceMap.inferredIndexType(node);
 
       SourceInformation sourceInformation =
           _sourceInformationBuilder.buildForInCurrent(node);
@@ -1658,7 +1658,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     HInstruction iterator;
 
     void buildInitializer() {
-      TypeMask mask = _typeInferenceMap.typeOfIterator(node);
+      AbstractValue mask = _typeInferenceMap.typeOfIterator(node);
       node.iterable.accept(this);
       HInstruction receiver = pop();
       _pushDynamicInvocation(
@@ -1672,7 +1672,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
 
     HInstruction buildCondition() {
-      TypeMask mask = _typeInferenceMap.typeOfIteratorMoveNext(node);
+      AbstractValue mask = _typeInferenceMap.typeOfIteratorMoveNext(node);
       _pushDynamicInvocation(
           node,
           mask,
@@ -1686,7 +1686,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     void buildBody() {
       SourceInformation sourceInformation =
           _sourceInformationBuilder.buildForInCurrent(node);
-      TypeMask mask = _typeInferenceMap.typeOfIteratorCurrent(node);
+      AbstractValue mask = _typeInferenceMap.typeOfIteratorCurrent(node);
       _pushDynamicInvocation(node, mask, Selectors.current, [iterator],
           const <DartType>[], sourceInformation);
 
@@ -1742,7 +1742,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     void buildInitializer() {}
 
     HInstruction buildCondition() {
-      TypeMask mask = _typeInferenceMap.typeOfIteratorMoveNext(node);
+      AbstractValue mask = _typeInferenceMap.typeOfIteratorMoveNext(node);
       _pushDynamicInvocation(
           node,
           mask,
@@ -1756,7 +1756,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
 
     void buildBody() {
-      TypeMask mask = _typeInferenceMap.typeOfIteratorCurrent(node);
+      AbstractValue mask = _typeInferenceMap.typeOfIteratorCurrent(node);
       _pushDynamicInvocation(
           node,
           mask,
@@ -2033,8 +2033,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
   }
 
-  void generateError(FunctionEntity function, String message, TypeMask typeMask,
-      SourceInformation sourceInformation) {
+  void generateError(FunctionEntity function, String message,
+      AbstractValue typeMask, SourceInformation sourceInformation) {
     HInstruction errorMessage = graph.addConstantString(message, closedWorld);
     _pushStaticInvocation(
         function, [errorMessage], typeMask, const <DartType>[],
@@ -2687,9 +2687,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
           listInstruction, type, sourceInformation);
     }
 
-    TypeMask type = _typeInferenceMap.typeOfListLiteral(
+    AbstractValue type = _typeInferenceMap.typeOfListLiteral(
         targetElement, node, abstractValueDomain);
-    if (!type.containsAll(closedWorld)) {
+    if (!abstractValueDomain.containsAll(type)) {
       listInstruction.instructionType = type;
     }
     stack.add(listInstruction);
@@ -2762,11 +2762,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
     // type inference might discover a more specific type, or find nothing (in
     // dart2js unit tests).
 
-    TypeMask mapType = new TypeMask.nonNullSubtype(
-        _commonElements.mapLiteralClass, closedWorld);
-    TypeMask returnTypeMask = _typeInferenceMap.getReturnTypeOf(constructor);
-    TypeMask instructionType =
-        mapType.intersection(returnTypeMask, closedWorld);
+    AbstractValue mapType = abstractValueDomain
+        .createNonNullSubtype(_commonElements.mapLiteralClass);
+    AbstractValue returnTypeMask =
+        _typeInferenceMap.getReturnTypeOf(constructor);
+    AbstractValue instructionType =
+        abstractValueDomain.intersection(mapType, returnTypeMask);
 
     addImplicitInstantiation(type);
     _pushStaticInvocation(
@@ -3249,7 +3250,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       return;
     }
 
-    TypeMask typeMask = _typeInferenceMap.getReturnTypeOf(function);
+    AbstractValue typeMask = _typeInferenceMap.getReturnTypeOf(function);
 
     List<DartType> typeArguments =
         _getStaticTypeArguments(function, node.arguments);
@@ -3279,7 +3280,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   void handleInvokeFactoryConstructor(
       ir.StaticInvocation invocation,
       ConstructorEntity function,
-      TypeMask typeMask,
+      AbstractValue typeMask,
       List<HInstruction> arguments,
       SourceInformation sourceInformation) {
     if (function.isExternal && function.isFromEnvironmentConstructor) {
@@ -3317,7 +3318,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       return;
     }
 
-    TypeMask resultType = typeMask;
+    AbstractValue resultType = typeMask;
 
     bool isJSArrayTypedConstructor =
         function == commonElements.jsArrayTypedConstructor;
@@ -3750,7 +3751,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         failedAt(_elementMap.getSpannable(targetElement, invocation),
             "No NativeBehavior for $invocation"));
 
-    TypeMask ssaType =
+    AbstractValue ssaType =
         _typeInferenceMap.typeFromNativeBehavior(nativeBehavior, closedWorld);
     push(new HForeignCode(expr, ssaType, const <HInstruction>[],
         nativeBehavior: nativeBehavior));
@@ -3797,7 +3798,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         failedAt(_elementMap.getSpannable(targetElement, invocation),
             "No NativeBehavior for $invocation"));
 
-    TypeMask ssaType =
+    AbstractValue ssaType =
         _typeInferenceMap.typeFromNativeBehavior(nativeBehavior, closedWorld);
     push(new HForeignCode(template, ssaType, inputs,
         nativeBehavior: nativeBehavior));
@@ -3893,7 +3894,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
           MessageKind.JS_PLACEHOLDER_CAPTURE);
     }
 
-    TypeMask ssaType =
+    AbstractValue ssaType =
         _typeInferenceMap.typeFromNativeBehavior(nativeBehavior, closedWorld);
 
     SourceInformation sourceInformation = null;
@@ -3906,7 +3907,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     push(code);
 
     DartType type = _getDartTypeIfValid(invocation.arguments.types.single);
-    TypeMask trustedMask = typeBuilder.trustTypeMask(type);
+    AbstractValue trustedMask = typeBuilder.trustTypeMask(type);
 
     if (trustedMask != null) {
       // We only allow the type argument to narrow `dynamic`, which probably
@@ -3914,7 +3915,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       if (abstractValueDomain.containsAll(code.instructionType)) {
         // Overwrite the type with the narrower type.
         code.instructionType = trustedMask;
-      } else if (trustedMask.containsMask(code.instructionType, closedWorld)) {
+      } else if (abstractValueDomain.contains(
+          trustedMask, code.instructionType)) {
         // It is acceptable for the type parameter to be broader than the
         // specified type.
       } else {
@@ -3942,7 +3944,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   }
 
   void _pushStaticInvocation(MemberEntity target, List<HInstruction> arguments,
-      TypeMask typeMask, List<DartType> typeArguments,
+      AbstractValue typeMask, List<DartType> typeArguments,
       {SourceInformation sourceInformation, InterfaceType instanceType}) {
     // TODO(redemption): Pass current node if needed.
     if (_tryInlineMethod(target, null, null, arguments, null, sourceInformation,
@@ -3970,7 +3972,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   void _pushDynamicInvocation(
       ir.Node node,
-      TypeMask mask,
+      AbstractValue mask,
       Selector selector,
       List<HInstruction> arguments,
       List<DartType> typeArguments,
@@ -4035,7 +4037,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
     inputs.addAll(arguments);
 
-    TypeMask type = _typeInferenceMap.selectorTypeOf(selector, mask);
+    AbstractValue type = _typeInferenceMap.selectorTypeOf(selector, mask);
     if (selector.isGetter) {
       push(new HInvokeDynamicGetter(selector, mask, null, inputs, isIntercepted,
           type, sourceInformation));
@@ -4165,7 +4167,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
           .add(localsHandler.readLocal(closureInfo.getLocalForField(field)));
     });
 
-    TypeMask type = new TypeMask.nonNullExact(closureClassEntity, closedWorld);
+    AbstractValue type =
+        abstractValueDomain.createNonNullExact(closureClassEntity);
     // TODO(efortuna): Add source information here.
     push(new HCreate(
         closureClassEntity, capturedVariables, type, sourceInformation,
@@ -4338,7 +4341,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     inputs.add(receiver);
     inputs.addAll(arguments);
 
-    TypeMask typeMask;
+    AbstractValue typeMask;
     if (target is FunctionEntity) {
       typeMask = _typeInferenceMap.getReturnTypeOf(target);
     } else {
@@ -4537,7 +4540,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     ConstructorEntity constructor = _elementMap.getConstructor(target);
     ClassEntity cls = constructor.enclosingClass;
-    TypeMask typeMask = new TypeMask.nonNullExact(cls, closedWorld);
+    AbstractValue typeMask = abstractValueDomain.createNonNullExact(cls);
     InterfaceType instanceType = _elementMap.createInterfaceType(
         target.enclosingClass, node.arguments.types);
     instanceType = localsHandler.substInContext(instanceType);
@@ -4819,7 +4822,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   bool _tryInlineMethod(
       FunctionEntity function,
       Selector selector,
-      TypeMask mask,
+      AbstractValue mask,
       List<HInstruction> providedArguments,
       ir.Node currentNode,
       SourceInformation sourceInformation,
@@ -4857,7 +4860,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
           failedAt(function, "Missing selector for inlining of $function."));
       if (selector != null) {
         if (!selector.applies(function)) return false;
-        if (mask != null && !mask.canHit(function, selector, closedWorld)) {
+        if (mask != null &&
+            !abstractValueDomain.canHit(mask, function, selector)) {
           return false;
         }
       }
@@ -4989,7 +4993,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // NoSuchMethodError message as if we had called it.
       if (function.isInstanceMember &&
           function is! ConstructorBodyEntity &&
-          (mask == null || mask.isNullable)) {
+          (mask == null || abstractValueDomain.canBeNull(mask))) {
         add(new HFieldGet(
             null, providedArguments[0], abstractValueDomain.dynamicType,
             isAssignable: false)

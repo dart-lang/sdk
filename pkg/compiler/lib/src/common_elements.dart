@@ -7,6 +7,7 @@ library dart2js.type_system;
 
 import 'common.dart';
 import 'common/names.dart' show Identifiers, Uris;
+import 'constants/expressions.dart' show ConstantExpression;
 import 'constants/values.dart';
 import 'elements/entities.dart';
 import 'elements/names.dart' show PublicName;
@@ -14,12 +15,10 @@ import 'elements/types.dart';
 import 'js_backend/backend.dart' show JavaScriptBackend;
 import 'js_backend/constant_system_javascript.dart';
 import 'js_backend/native_data.dart' show NativeBasicData;
-import 'constants/expressions.dart' show ConstantExpression;
+import 'types/abstract_value_domain.dart';
 import 'universe/call_structure.dart' show CallStructure;
 import 'universe/selector.dart' show Selector;
 import 'universe/call_structure.dart';
-import 'universe/world_builder.dart';
-import 'world.dart';
 
 /// The common elements and types in Dart.
 class CommonElements {
@@ -748,8 +747,8 @@ class CommonElements {
   /// in the given [world].
   ///
   /// Returns `false` if `JSString.split` is not available.
-  bool appliesToJsStringSplit(
-      Selector selector, ReceiverConstraint receiver, World world) {
+  bool appliesToJsStringSplit(Selector selector, AbstractValue receiver,
+      AbstractValueDomain abstractValueDomain) {
     if (_jsStringSplit == null) {
       ClassEntity cls =
           _findClass(interceptorsLibrary, 'JSString', required: false);
@@ -758,7 +757,8 @@ class CommonElements {
       if (_jsStringSplit == null) return false;
     }
     return selector.applies(_jsStringSplit) &&
-        (receiver == null || receiver.canHit(jsStringSplit, selector, world));
+        (receiver == null ||
+            abstractValueDomain.canHit(receiver, jsStringSplit, selector));
   }
 
   FunctionEntity _jsStringSplit;
