@@ -461,7 +461,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   final Set<FunctionEntity> _functionsThatMightBePassedToApply =
       new Set<FunctionEntity>();
 
-  CommonMasks _commonMasks;
+  AbstractValueDomain _abstractValueDomain;
 
   final ElementEnvironment elementEnvironment;
   final DartTypes dartTypes;
@@ -500,14 +500,14 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
       : this._implementedClasses = implementedClasses,
         this._classHierarchyNodes = classHierarchyNodes,
         this._classSets = classSets {
-    _commonMasks = new CommonMasks(this);
+    _abstractValueDomain = new CommonMasks(this);
   }
 
   @override
   ClosedWorld get closedWorld => this;
 
-  CommonMasks get abstractValueDomain {
-    return _commonMasks;
+  AbstractValueDomain get abstractValueDomain {
+    return _abstractValueDomain;
   }
 
   bool checkEntity(covariant Entity element);

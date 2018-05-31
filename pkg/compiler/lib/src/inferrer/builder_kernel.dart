@@ -18,7 +18,7 @@ import '../kernel/element_map.dart';
 import '../native/behavior.dart';
 import '../options.dart';
 import '../types/constants.dart';
-import '../types/masks.dart';
+import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
@@ -125,7 +125,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   /// If an instance field matched with a [selector] that is _not_ a setter, the
   /// field is considered to have been read before initialization and the field
   /// is assumed to be potentially `null`.
-  void _checkIfExposesThis(Selector selector, TypeMask mask) {
+  void _checkIfExposesThis(Selector selector, AbstractValue mask) {
     if (_isThisExposed) {
       // We already consider `this` to have been exposed.
       return;
@@ -296,7 +296,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = new Selector(SelectorKind.CALL, constructor.memberName,
         _elementMap.getCallStructure(node.arguments));
-    TypeMask mask = _memberData.typeOfSend(node);
+    AbstractValue mask = _memberData.typeOfSend(node);
     handleConstructorInvoke(
         node, node.arguments, selector, mask, constructor, arguments);
 
@@ -312,7 +312,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = new Selector(SelectorKind.CALL, constructor.memberName,
         _elementMap.getCallStructure(node.arguments));
-    TypeMask mask = _memberData.typeOfSend(node);
+    AbstractValue mask = _memberData.typeOfSend(node);
     handleConstructorInvoke(
         node, node.arguments, selector, mask, constructor, arguments);
 
@@ -725,7 +725,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   @override
   TypeInformation visitMethodInvocation(ir.MethodInvocation node) {
     Selector selector = _elementMap.getSelector(node);
-    TypeMask mask = _memberData.typeOfSend(node);
+    AbstractValue mask = _memberData.typeOfSend(node);
 
     ir.TreeNode receiver = node.receiver;
     if (receiver is ir.VariableGet &&
@@ -767,7 +767,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       CallType callType,
       ir.Node node,
       Selector selector,
-      TypeMask mask,
+      AbstractValue mask,
       TypeInformation receiverType,
       ArgumentsTypes arguments) {
     assert(receiverType != null);
@@ -811,13 +811,17 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   }
 
   TypeInformation handleDynamicGet(ir.Node node, Selector selector,
-      TypeMask mask, TypeInformation receiverType) {
+      AbstractValue mask, TypeInformation receiverType) {
     return _handleDynamic(
         CallType.access, node, selector, mask, receiverType, null);
   }
 
-  TypeInformation handleDynamicSet(ir.Node node, Selector selector,
-      TypeMask mask, TypeInformation receiverType, TypeInformation rhsType) {
+  TypeInformation handleDynamicSet(
+      ir.Node node,
+      Selector selector,
+      AbstractValue mask,
+      TypeInformation receiverType,
+      TypeInformation rhsType) {
     ArgumentsTypes arguments = new ArgumentsTypes([rhsType], null);
     return _handleDynamic(
         CallType.access, node, selector, mask, receiverType, arguments);
@@ -827,7 +831,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       CallType callType,
       ir.Node node,
       Selector selector,
-      TypeMask mask,
+      AbstractValue mask,
       TypeInformation receiverType,
       ArgumentsTypes arguments) {
     return _handleDynamic(
@@ -896,8 +900,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       _markThisAsExposed();
     }
 
-    TypeMask currentMask;
-    TypeMask moveNextMask;
+    AbstractValue currentMask;
+    AbstractValue moveNextMask;
     TypeInformation iteratorType;
     if (node.isAsync) {
       TypeInformation expressionType = visit(node.iterable);
@@ -914,7 +918,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     } else {
       TypeInformation expressionType = visit(node.iterable);
       Selector iteratorSelector = Selectors.iterator;
-      TypeMask iteratorMask = _memberData.typeOfIterator(node);
+      AbstractValue iteratorMask = _memberData.typeOfIterator(node);
       currentMask = _memberData.typeOfIteratorCurrent(node);
       moveNextMask = _memberData.typeOfIteratorMoveNext(node);
 
@@ -998,7 +1002,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     ConstructorEntity constructor = _elementMap.getConstructor(node.target);
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = _elementMap.getSelector(node);
-    TypeMask mask = _memberData.typeOfSend(node);
+    AbstractValue mask = _memberData.typeOfSend(node);
     return handleConstructorInvoke(
         node, node.arguments, selector, mask, constructor, arguments);
   }
@@ -1038,7 +1042,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       ir.Node node,
       ir.Arguments arguments,
       Selector selector,
-      TypeMask mask,
+      AbstractValue mask,
       ConstructorEntity constructor,
       ArgumentsTypes argumentsTypes) {
     TypeInformation returnType =
@@ -1089,13 +1093,13 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   }
 
   TypeInformation handleStaticInvoke(ir.Node node, Selector selector,
-      TypeMask mask, MemberEntity element, ArgumentsTypes arguments) {
+      AbstractValue mask, MemberEntity element, ArgumentsTypes arguments) {
     return _inferrer.registerCalledMember(node, selector, mask, _analyzedMember,
         element, arguments, _sideEffectsBuilder, inLoop);
   }
 
   TypeInformation handleClosureCall(ir.Node node, Selector selector,
-      TypeMask mask, MemberEntity member, ArgumentsTypes arguments) {
+      AbstractValue mask, MemberEntity member, ArgumentsTypes arguments) {
     return _inferrer.registerCalledClosure(
         node,
         selector,
@@ -1112,7 +1116,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       FunctionEntity function,
       ArgumentsTypes arguments,
       Selector selector,
-      TypeMask mask) {
+      AbstractValue mask) {
     String name = function.name;
     handleStaticInvoke(node, selector, mask, function, arguments);
     if (name == JavaScriptBackend.JS) {
@@ -1143,7 +1147,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     MemberEntity member = _elementMap.getMember(node.target);
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = _elementMap.getSelector(node);
-    TypeMask mask = _memberData.typeOfSend(node);
+    AbstractValue mask = _memberData.typeOfSend(node);
     if (_closedWorld.commonElements.isForeign(member)) {
       return handleForeignInvoke(node, member, arguments, selector, mask);
     } else if (member.isConstructor) {
@@ -1165,7 +1169,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   @override
   TypeInformation visitStaticGet(ir.StaticGet node) {
     MemberEntity member = _elementMap.getMember(node.target);
-    TypeMask mask = _memberData.typeOfSend(node);
+    AbstractValue mask = _memberData.typeOfSend(node);
     return handleStaticInvoke(
         node, new Selector.getter(member.memberName), mask, member, null);
   }
@@ -1177,7 +1181,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       _markThisAsExposed();
     }
     MemberEntity member = _elementMap.getMember(node.target);
-    TypeMask mask = _memberData.typeOfSend(node);
+    AbstractValue mask = _memberData.typeOfSend(node);
     handleStaticInvoke(node, new Selector.setter(member.memberName), mask,
         member, new ArgumentsTypes([rhsType], null));
     return rhsType;
@@ -1187,7 +1191,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   TypeInformation visitPropertyGet(ir.PropertyGet node) {
     TypeInformation receiverType = visit(node.receiver);
     Selector selector = _elementMap.getSelector(node);
-    TypeMask mask = _memberData.typeOfSend(node);
+    AbstractValue mask = _memberData.typeOfSend(node);
     // TODO(johnniwinther): Use `node.interfaceTarget` to narrow the receiver
     // type for --trust-type-annotations/strong-mode.
     if (node.receiver is ir.ThisExpression) {
@@ -1201,7 +1205,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   TypeInformation visitDirectPropertyGet(ir.DirectPropertyGet node) {
     TypeInformation receiverType = thisType;
     MemberEntity member = _elementMap.getMember(node.target);
-    TypeMask mask = _memberData.typeOfSend(node);
+    AbstractValue mask = _memberData.typeOfSend(node);
     // TODO(johnniwinther): Use `node.target` to narrow the receiver type.
     Selector selector = new Selector.getter(member.memberName);
     _checkIfExposesThis(selector, _types.newTypedSelector(receiverType, mask));
@@ -1212,7 +1216,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   TypeInformation visitPropertySet(ir.PropertySet node) {
     TypeInformation receiverType = visit(node.receiver);
     Selector selector = _elementMap.getSelector(node);
-    TypeMask mask = _memberData.typeOfSend(node);
+    AbstractValue mask = _memberData.typeOfSend(node);
 
     TypeInformation rhsType = visit(node.value);
     if (node.value is ir.ThisExpression) {
@@ -1220,7 +1224,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     }
 
     if (_inGenerativeConstructor && node.receiver is ir.ThisExpression) {
-      TypeMask typedMask = _types.newTypedSelector(receiverType, mask);
+      AbstractValue typedMask = _types.newTypedSelector(receiverType, mask);
       if (!_closedWorld.includesClosureCall(selector, typedMask)) {
         Iterable<MemberEntity> targets =
             _closedWorld.locateMembers(selector, typedMask);
@@ -1608,7 +1612,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   }
 
   TypeInformation handleSuperNoSuchMethod(ir.Node node, Selector selector,
-      TypeMask mask, ArgumentsTypes arguments) {
+      AbstractValue mask, ArgumentsTypes arguments) {
     // Ensure we create a node, to make explicit the call to the
     // `noSuchMethod` handler.
     FunctionEntity noSuchMethod =
@@ -1624,7 +1628,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
     MemberEntity member = _elementMap.getSuperMember(
         _analyzedMember, node.name, node.interfaceTarget);
-    TypeMask mask = _memberData.typeOfSend(node);
+    AbstractValue mask = _memberData.typeOfSend(node);
     Selector selector = new Selector.getter(_elementMap.getName(node.name));
     if (member == null) {
       return handleSuperNoSuchMethod(node, selector, mask, null);
@@ -1643,7 +1647,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     MemberEntity member = _elementMap.getSuperMember(
         _analyzedMember, node.name, node.interfaceTarget,
         setter: true);
-    TypeMask mask = _memberData.typeOfSend(node);
+    AbstractValue mask = _memberData.typeOfSend(node);
     Selector selector = new Selector.setter(_elementMap.getName(node.name));
     ArgumentsTypes arguments = new ArgumentsTypes([rhsType], null);
     if (member == null) {
@@ -1664,7 +1668,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         _analyzedMember, node.name, node.interfaceTarget);
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = _elementMap.getSelector(node);
-    TypeMask mask = _memberData.typeOfSend(node);
+    AbstractValue mask = _memberData.typeOfSend(node);
     if (member == null) {
       return handleSuperNoSuchMethod(node, selector, mask, arguments);
     } else if (member.isFunction) {
@@ -1720,7 +1724,7 @@ class IsCheck {
 
 class Refinement {
   final Selector selector;
-  final TypeMask mask;
+  final AbstractValue mask;
 
   Refinement(this.selector, this.mask);
 }

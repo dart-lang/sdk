@@ -278,4 +278,14 @@ abstract class AbstractValueDomain {
   ///
   /// Returns `null` if 0 or more than 1 member can be hit at runtime.
   MemberEntity locateSingleMember(AbstractValue receiver, Selector selector);
+
+  /// Returns `true` if [value] is a indexable and iterable JavaScript value at
+  /// runtime.
+  ///
+  /// JavaScript arrays are both indexable and iterable whereas JavaScript
+  /// strings are indexable but not iterable.
+  bool isJsIndexableAndIterable(AbstractValue value);
+
+  /// Returns `true` if [value] is an JavaScript indexable of fixed length.
+  bool isFixedLengthJsIndexable(AbstractValue value);
 }

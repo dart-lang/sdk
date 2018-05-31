@@ -453,4 +453,31 @@ class CommonMasks implements AbstractValueDomain {
       covariant TypeMask receiver, Selector selector) {
     return receiver.locateSingleMember(selector, _closedWorld);
   }
+
+  @override
+  bool isJsIndexableAndIterable(covariant TypeMask mask) {
+    return mask != null &&
+        mask.satisfies(
+            _closedWorld.commonElements.jsIndexableClass, _closedWorld) &&
+        // String is indexable but not iterable.
+        !mask.satisfies(
+            _closedWorld.commonElements.jsStringClass, _closedWorld);
+  }
+
+  @override
+  bool isFixedLengthJsIndexable(covariant TypeMask mask) {
+    if (mask.isContainer && (mask as ContainerTypeMask).length != null) {
+      // A container on which we have inferred the length.
+      return true;
+    }
+    // TODO(sra): Recognize any combination of fixed length indexables.
+    if (mask.containsOnly(_closedWorld.commonElements.jsFixedArrayClass) ||
+        mask.containsOnly(
+            _closedWorld.commonElements.jsUnmodifiableArrayClass) ||
+        mask.containsOnlyString(_closedWorld) ||
+        _closedWorld.abstractValueDomain.isTypedArray(mask)) {
+      return true;
+    }
+    return false;
+  }
 }

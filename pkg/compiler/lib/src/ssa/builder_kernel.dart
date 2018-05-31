@@ -1494,7 +1494,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
   void visitForInStatement(ir.ForInStatement node) {
     if (node.isAsync) {
       _buildAsyncForIn(node);
-    } else if (_typeInferenceMap.isJsIndexableIterator(node, closedWorld)) {
+    } else if (_typeInferenceMap.isJsIndexableIterator(
+        node, abstractValueDomain)) {
       // If the expression being iterated over is a JS indexable type, we can
       // generate an optimized version of for-in that uses indexing.
       _buildForInIndexable(node);
@@ -1561,7 +1562,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       node.iterable.accept(this);
       array = pop();
       isFixed =
-          _typeInferenceMap.isFixedLength(array.instructionType, closedWorld);
+          abstractValueDomain.isFixedLengthJsIndexable(array.instructionType);
       localsHandler.updateLocal(
           indexVariable, graph.addConstantInt(0, closedWorld),
           sourceInformation: sourceInformation);
@@ -2686,8 +2687,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
           listInstruction, type, sourceInformation);
     }
 
-    TypeMask type =
-        _typeInferenceMap.typeOfListLiteral(targetElement, node, closedWorld);
+    TypeMask type = _typeInferenceMap.typeOfListLiteral(
+        targetElement, node, abstractValueDomain);
     if (!type.containsAll(closedWorld)) {
       listInstruction.instructionType = type;
     }
@@ -2926,7 +2927,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     _pushDynamicInvocation(
         node,
-        _typeInferenceMap.receiverTypeOfSet(node, closedWorld),
+        _typeInferenceMap.receiverTypeOfSet(node, abstractValueDomain),
         new Selector.setter(_elementMap.getName(node.name)),
         <HInstruction>[receiver, value],
         const <DartType>[],
@@ -4234,7 +4235,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         _fillDynamicTypeArguments(selector, node.arguments, typeArguments);
     _pushDynamicInvocation(
         node,
-        _typeInferenceMap.receiverTypeOfInvocation(node, closedWorld),
+        _typeInferenceMap.receiverTypeOfInvocation(node, abstractValueDomain),
         selector,
         <HInstruction>[receiver]..addAll(_visitArgumentsForDynamicTarget(
             selector, node.arguments, typeArguments)),
