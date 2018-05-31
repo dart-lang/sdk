@@ -307,22 +307,38 @@ abstract class ParserAdapter implements Parser {
 
   @override
   TypeParameter parseTypeParameter() {
-    currentToken = fastaParser
-        .parseTypeVariable(fastaParser.syntheticPreviousToken(currentToken))
-        .next;
-    return astBuilder.pop();
+    currentToken = new SyntheticBeginToken(TokenType.LT, 0)
+      ..endGroup = new SyntheticToken(TokenType.GT, 0)
+      ..setNext(currentToken);
+    appendToken(currentToken, currentToken.endGroup);
+    TypeParameterList typeParams = parseTypeParameterList();
+    return typeParams.typeParameters[0];
   }
 
   @override
   TypeParameterList parseTypeParameterList() {
-    currentToken = fastaParser
-        .parseTypeVariablesOpt(fastaParser.syntheticPreviousToken(currentToken))
+    Token token = fastaParser.syntheticPreviousToken(currentToken);
+    currentToken = fasta
+        .computeTypeParamOrArg(token, true)
+        .parseVariables(token, fastaParser)
         .next;
     return astBuilder.pop();
   }
 
   @override
   Expression parseUnaryExpression() => parseExpression2();
+
+  /// Append the given token to the end of the token stream,
+  /// and update the token's offset.
+  appendToken(Token token, Token newToken) {
+    while (!token.next.isEof) {
+      token = token.next;
+    }
+    newToken
+      ..offset = token.end
+      ..setNext(token.next);
+    token.setNext(newToken);
+  }
 }
 
 /**

@@ -3291,8 +3291,9 @@ class Parser {
   Token parseFunctionLiteral(
       final Token start, TypeInfo typeInfo, IdentifierContext context) {
     Token beforeName = typeInfo.skipType(start);
-    assert(beforeName.next.isIdentifier);
-    Token formals = parseTypeVariablesOpt(beforeName.next);
+    Token name = beforeName.next;
+    assert(name.isIdentifier);
+    Token formals = computeTypeParamOrArg(name).parseVariables(name, this);
     listener.beginNamedFunctionExpression(start.next);
     typeInfo.parseType(start, this);
     return parseNamedFunctionRest(beforeName, start.next, formals, true);
@@ -4374,7 +4375,7 @@ class Parser {
     if (constKeyword == null &&
         closeBrace != null &&
         identical(closeBrace.next.kind, OPEN_PAREN_TOKEN)) {
-      token = parseTypeVariablesOpt(token);
+      token = computeTypeParamOrArg(token).parseVariables(token, this);
       return parseLiteralFunctionSuffix(token);
     } else {
       token = computeTypeParamOrArg(token).parseArguments(token, this);
