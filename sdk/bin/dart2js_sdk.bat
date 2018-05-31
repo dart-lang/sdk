@@ -21,10 +21,10 @@ set DART=%BIN_DIR%\dart
 set SNAPSHOT=%BIN_DIR%\snapshots\dart2js.dart.snapshot
 
 set EXTRA_OPTIONS=
-set EXTRA_VM_OPTIONS=
+set EXTRA_VM_OPTIONS=--preview-dart-2
 
 if _%DART2JS_DEVELOPER_MODE%_ == _1_ (
-  set EXTRA_VM_OPTIONS=%EXTRA_VM_OPTIONS% --checked
+  set EXTRA_VM_OPTIONS=%EXTRA_VM_OPTIONS% --enable-asserts
 )
 
 if exist "%SNAPSHOT%" (

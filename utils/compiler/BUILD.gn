@@ -52,6 +52,8 @@ dart_action("dart2js_create_snapshot_entry") {
 }
 
 application_snapshot("dart2js") {
+  dart_version = 2
+
   deps = [
     ":compile_dart2js_platform",
     ":compile_dart2js_platform_strong",
