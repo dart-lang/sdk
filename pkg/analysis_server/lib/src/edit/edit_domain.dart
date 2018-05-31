@@ -586,7 +586,7 @@ class EditDomainHandler extends AbstractRequestHandler {
         }
         // Try EXTRACT_WIDGETS.
         if (new ExtractWidgetRefactoring(
-                searchEngine, analysisSession, unit, offset)
+                searchEngine, analysisSession, unit, offset, length)
             .isAvailable()) {
           kinds.add(RefactoringKind.EXTRACT_WIDGET);
         }
@@ -936,7 +936,7 @@ class _RefactoringManager {
       if (unit != null) {
         var analysisSession = server.getAnalysisDriver(file).currentSession;
         refactoring = new ExtractWidgetRefactoring(
-            searchEngine, analysisSession, unit, offset);
+            searchEngine, analysisSession, unit, offset, length);
         feedback = new ExtractWidgetFeedback();
       }
     }

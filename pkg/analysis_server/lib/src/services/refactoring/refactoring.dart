@@ -243,9 +243,9 @@ abstract class ExtractWidgetRefactoring implements Refactoring {
    * Returns a new [ExtractWidgetRefactoring] instance.
    */
   factory ExtractWidgetRefactoring(SearchEngine searchEngine,
-      AnalysisSession session, CompilationUnit unit, int offset) {
+      AnalysisSession session, CompilationUnit unit, int offset, int length) {
     return new ExtractWidgetRefactoringImpl(
-        searchEngine, session, unit, offset);
+        searchEngine, session, unit, offset, length);
   }
 
   /**

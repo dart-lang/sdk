@@ -1081,6 +1081,95 @@ class MyWidget extends StatelessWidget {
     expect(refactoring.refactoringName, 'Extract Widget');
   }
 
+  test_statements() async {
+    addFlutterPackage();
+    await indexTestUnit(r'''
+import 'package:flutter/material.dart';
+
+Widget main() {
+  var index = 0;
+  var a = 'a $index';
+// start
+  var b = 'b $index';
+  return new Row(
+    children: <Widget>[
+      new Text(a),
+      new Text(b),
+    ],
+  );
+// end
+}
+''');
+    _createRefactoringForStartEnd();
+
+    await _assertSuccessfulRefactoring(r'''
+import 'package:flutter/material.dart';
+
+Widget main() {
+  var index = 0;
+  var a = 'a $index';
+// start
+  return new Test(index: index, a: a);
+// end
+}
+
+class Test extends StatelessWidget {
+  const Test({
+    Key key,
+    @required this.index,
+    @required this.a,
+  }) : super(key: key);
+
+  final int index;
+  final String a;
+
+  @override
+  Widget build(BuildContext context) {
+    var b = 'b $index';
+    return new Row(
+      children: <Widget>[
+        new Text(a),
+        new Text(b),
+      ],
+    );
+  }
+}
+''');
+  }
+
+  test_statements_BAD_emptySelection() async {
+    addFlutterPackage();
+    await indexTestUnit(r'''
+import 'package:flutter/material.dart';
+
+void main() {
+// start
+// end
+}
+''');
+    _createRefactoringForStartEnd();
+
+    assertRefactoringStatus(await refactoring.checkInitialConditions(),
+        RefactoringProblemSeverity.FATAL);
+  }
+
+  test_statements_BAD_notReturnStatement() async {
+    addFlutterPackage();
+    await indexTestUnit(r'''
+import 'package:flutter/material.dart';
+
+void main() {
+// start
+  new Text('text');
+// end
+}
+''');
+    _createRefactoringForStartEnd();
+
+    assertRefactoringStatus(await refactoring.checkInitialConditions(),
+        RefactoringProblemSeverity.FATAL);
+  }
+
   Future<void> _assertRefactoringChange(String expectedCode) async {
     SourceChange refactoringChange = await refactoring.createChange();
     this.refactoringChange = refactoringChange;
@@ -1096,10 +1185,16 @@ class MyWidget extends StatelessWidget {
     await _assertRefactoringChange(expectedCode);
   }
 
-  void _createRefactoring(int offset) {
+  void _createRefactoring(int offset, int length) {
     refactoring = new ExtractWidgetRefactoring(
-        searchEngine, driver.currentSession, testUnit, offset);
+        searchEngine, driver.currentSession, testUnit, offset, length);
     refactoring.name = 'Test';
+  }
+
+  void _createRefactoringForStartEnd() {
+    int offset = findOffset('// start\n') + '// start\n'.length;
+    int length = findOffset('// end') - offset;
+    _createRefactoring(offset, length);
   }
 
   /**
@@ -1108,6 +1203,6 @@ class MyWidget extends StatelessWidget {
    */
   void _createRefactoringForStringOffset(String search) {
     int offset = findOffset(search);
-    _createRefactoring(offset);
+    _createRefactoring(offset, 0);
   }
 }
