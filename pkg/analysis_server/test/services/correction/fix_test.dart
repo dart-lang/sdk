@@ -5136,6 +5136,22 @@ main(p) {
 ''');
   }
 
+  test_isNotNull_all() async {
+    await resolveTestUnit('''
+main(p, q) {
+  p is! Null;
+  q is! Null;
+}
+''');
+    await assertHasFixAllFix(
+        HintCode.TYPE_CHECK_IS_NOT_NULL, DartFixKind.USE_NOT_EQ_NULL, '''
+main(p, q) {
+  p != null;
+  q != null;
+}
+''');
+  }
+
   test_isNull() async {
     await resolveTestUnit('''
 main(p) {
@@ -5145,6 +5161,22 @@ main(p) {
     await assertHasFix(DartFixKind.USE_EQ_EQ_NULL, '''
 main(p) {
   p == null;
+}
+''');
+  }
+
+  test_isNull_all() async {
+    await resolveTestUnit('''
+main(p, q) {
+  p is Null;
+  q is Null;
+}
+''');
+    await assertHasFixAllFix(
+        HintCode.TYPE_CHECK_IS_NULL, DartFixKind.USE_EQ_EQ_NULL, '''
+main(p, q) {
+  p == null;
+  q == null;
 }
 ''');
   }
