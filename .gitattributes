@@ -53,3 +53,5 @@ tests/lib_2/mirrors/method_mirror_source_other.dart -text
 *.png binary
 *.jpg binary
 *.xpi binary
+
+*.status diff=status
