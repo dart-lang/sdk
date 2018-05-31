@@ -155,6 +155,14 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   Class get closureClass =>
       _closureClass ??= libraryIndex.getClass('dart:core', '_Closure');
 
+  Procedure _objectInstanceOf;
+  Procedure get objectInstanceOf => _objectInstanceOf ??=
+      libraryIndex.getMember('dart:core', 'Object', '_instanceOf');
+
+  Procedure _objectAs;
+  Procedure get objectAs =>
+      _objectAs ??= libraryIndex.getMember('dart:core', 'Object', '_as');
+
   Field _closureInstantiatorTypeArguments;
   Field get closureInstantiatorTypeArguments =>
       _closureInstantiatorTypeArguments ??= libraryIndex.getMember(
@@ -422,7 +430,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
     asm.emitPushConstant(cp.add(new ConstantType(type)));
     final argDescIndex = cp.add(new ConstantArgDesc(4));
-    final icdataIndex = cp.add(new ConstantICData('_instanceOf', argDescIndex));
+    final icdataIndex = cp.add(new ConstantICData(
+        InvocationKind.method, objectInstanceOf.name, argDescIndex));
     asm.emitInstanceCall1(4, icdataIndex);
   }
 
@@ -770,7 +779,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     final typeIndex = cp.add(new ConstantType(node.type));
     asm.emitPushConstant(typeIndex);
     final argDescIndex = cp.add(new ConstantArgDesc(4));
-    final icdataIndex = cp.add(new ConstantICData('_as', argDescIndex));
+    final icdataIndex = cp.add(
+        new ConstantICData(InvocationKind.method, objectAs.name, argDescIndex));
     asm.emitInstanceCall1(4, icdataIndex);
   }
 
@@ -1000,8 +1010,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     // TODO(alexmarkov): fast path smi ops
     final argDescIndex =
         cp.add(new ConstantArgDesc.fromArguments(args, hasReceiver: true));
-    final icdataIndex =
-        cp.add(new ConstantICData(node.name.name, argDescIndex));
+    final icdataIndex = cp.add(
+        new ConstantICData(InvocationKind.method, node.name, argDescIndex));
     // TODO(alexmarkov): figure out when generate InstanceCall2 (2 checked arguments).
     asm.emitInstanceCall1(
         args.positional.length + args.named.length + 1, icdataIndex);
@@ -1012,7 +1022,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     node.receiver.accept(this);
     final argDescIndex = cp.add(new ConstantArgDesc(1));
     final icdataIndex = cp.add(
-        new ConstantICData('$kGetterPrefix${node.name.name}', argDescIndex));
+        new ConstantICData(InvocationKind.getter, node.name, argDescIndex));
     asm.emitInstanceCall1(1, icdataIndex);
   }
 
@@ -1024,7 +1034,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     asm.emitStoreLocal(temp);
     final argDescIndex = cp.add(new ConstantArgDesc(2));
     final icdataIndex = cp.add(
-        new ConstantICData('$kSetterPrefix${node.name.name}', argDescIndex));
+        new ConstantICData(InvocationKind.setter, node.name, argDescIndex));
     asm.emitInstanceCall1(2, icdataIndex);
     asm.emitDrop1();
     asm.emitPush(temp);
@@ -1356,8 +1366,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     asm.emitInstanceCall1(
         1,
-        cp.add(new ConstantICData(
-            '$kGetterPrefix$kIterator', cp.add(new ConstantArgDesc(1)))));
+        cp.add(new ConstantICData(InvocationKind.getter, new Name(kIterator),
+            cp.add(new ConstantArgDesc(1)))));
 
     final iteratorTemp = locals.tempIndexInFrame(node);
     asm.emitPopLocal(iteratorTemp);
@@ -1369,8 +1379,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     asm.emitCheckStack();
 
     asm.emitPush(iteratorTemp);
-    asm.emitInstanceCall1(1,
-        cp.add(new ConstantICData(kMoveNext, cp.add(new ConstantArgDesc(1)))));
+    asm.emitInstanceCall1(
+        1,
+        cp.add(new ConstantICData(InvocationKind.method, new Name(kMoveNext),
+            cp.add(new ConstantArgDesc(1)))));
     _genJumpIfFalse(/* negated = */ false, done);
 
     _enterScope(node);
@@ -1380,8 +1392,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     asm.emitPush(iteratorTemp);
     asm.emitInstanceCall1(
         1,
-        cp.add(new ConstantICData(
-            '$kGetterPrefix$kCurrent', cp.add(new ConstantArgDesc(1)))));
+        cp.add(new ConstantICData(InvocationKind.getter, new Name(kCurrent),
+            cp.add(new ConstantArgDesc(1)))));
 
     _genStoreVar(node.variable);
 
@@ -1509,7 +1521,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
           asm.emitPush(temp);
           _genPushConstExpr(expr);
           asm.emitInstanceCall2(
-              2, cp.add(new ConstantICData('==', equalsArgDesc)));
+              2,
+              cp.add(new ConstantICData(
+                  InvocationKind.method, new Name('=='), equalsArgDesc)));
           _genJumpIfTrue(/* negated = */ false, caseLabel);
         }
       }

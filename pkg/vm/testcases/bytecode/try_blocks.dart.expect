@@ -204,12 +204,12 @@ ConstantPool {
   [3] = Type dart.core::TypeError
   [4] = Null
   [5] = ArgDesc num-args 4, num-type-args 0, names []
-  [6] = ICData target-name '_instanceOf', arg-desc CP#5
+  [6] = ICData target-name 'dart.core::_instanceOf', arg-desc CP#5
   [7] = Bool true
   [8] = String 'caught type error'
   [9] = StaticICData target 'dart.core::print', arg-desc CP#1
   [10] = Type dart.core::AssertionError
-  [11] = ICData target-name '_instanceOf', arg-desc CP#5
+  [11] = ICData target-name 'dart.core::_instanceOf', arg-desc CP#5
   [12] = Int 2
   [13] = Int 0
   [14] = String 'caught assertion error '
@@ -217,7 +217,7 @@ ConstantPool {
   [16] = StaticICData target 'dart.core::_StringBase::_interpolate', arg-desc CP#1
   [17] = StaticICData target 'dart.core::print', arg-desc CP#1
   [18] = Type dart.core::Error
-  [19] = ICData target-name '_instanceOf', arg-desc CP#5
+  [19] = ICData target-name 'dart.core::_instanceOf', arg-desc CP#5
   [20] = Int 4
   [21] = String 'caught error '
   [22] = String ' '
@@ -404,7 +404,7 @@ ConstantPool {
   [28] = StaticICData target 'dart.core::print', arg-desc CP#7
   [29] = Type dart.core::Error
   [30] = ArgDesc num-args 4, num-type-args 0, names []
-  [31] = ICData target-name '_instanceOf', arg-desc CP#30
+  [31] = ICData target-name 'dart.core::_instanceOf', arg-desc CP#30
   [32] = Bool true
   [33] = String 'error '
   [34] = String ', captured stack trace: '

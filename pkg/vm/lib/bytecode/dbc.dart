@@ -644,14 +644,6 @@ const Map<Opcode, Format> BytecodeFormats = const {
 // Should match constant in runtime/vm/stack_frame_dbc.h.
 const int kParamEndSlotFromFp = 4;
 
-// Prefix used to distinguish getters in ICData target names.
-// Should match constant in runtime/vm/object.cc.
-const String kGetterPrefix = 'get:';
-
-// Prefix used to distinguish setters in ICData target names.
-// Should match constant in runtime/vm/object.cc.
-const String kSetterPrefix = 'set:';
-
 enum SpecialIndex {
   exception,
   stackTrace,
