@@ -187,6 +187,7 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
         args.add('--no-background-compilation');
       }
     } else {
+      args.add('--no-preview-dart-2');
       if (_isStrong) {
         args.add('--strong');
       }
@@ -772,6 +773,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       args.add('--preview-dart-2');
       args.addAll(_replaceDartFiles(arguments, tempKernelFile(tempDir)));
     } else {
+      args.add('--no-preview-dart-2');
       args.addAll(arguments);
     }
 
@@ -943,6 +945,8 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
     var args = ["--snapshot=$snapshot", "--snapshot-kind=app-jit"];
     if (useDfe) {
       args.add("--preview-dart-2");
+    } else {
+      args.add("--no-preview-dart-2");
     }
     args.addAll(arguments);
 
@@ -978,6 +982,8 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
     }
     if (useDfe) {
       args.add('--preview-dart-2');
+    } else {
+      args.add("--no-preview-dart-2");
     }
     args
       ..addAll(vmOptions)
