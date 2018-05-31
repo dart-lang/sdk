@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -113,11 +114,9 @@ class Search {
    * declarations.
    *
    * The path of each file with at least one declaration is added to [files].
-   * The list is for searched, there might be duplicates, but this is OK,
-   * we just want reduce amount of data, not to make it absolute minimum.
    */
   Future<List<Declaration>> declarations(
-      RegExp regExp, int maxResults, List<String> files,
+      RegExp regExp, int maxResults, LinkedHashSet<String> files,
       {String onlyForFile}) async {
     List<Declaration> declarations = <Declaration>[];
 
@@ -139,9 +138,17 @@ class Search {
       }
     }
 
+    for (String path in _driver.addedFiles) {
+      _driver.fsState.getFileForPath(path);
+    }
+    await _driver.discoverAvailableFiles();
+
     try {
-      for (String path in _driver.addedFiles) {
+      for (String path in _driver.knownFiles) {
         if (onlyForFile != null && path != onlyForFile) {
+          continue;
+        }
+        if (files.contains(path)) {
           continue;
         }
 
@@ -166,6 +173,7 @@ class Search {
             fileIndex = files.length;
             files.add(file.path);
           }
+
           var location = file.lineInfo.getLocation(offset);
           declarations.add(new Declaration(
               fileIndex,

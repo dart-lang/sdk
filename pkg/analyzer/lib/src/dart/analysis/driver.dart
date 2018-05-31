@@ -599,6 +599,15 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     _createKernelDriver();
   }
 
+  /**
+   * Return a [Future] that completes when discovery of all files that are
+   * potentially available is done, so that they are included in [knownFiles].
+   */
+  Future<void> discoverAvailableFiles() {
+    _discoverAvailableFiles();
+    return _discoverAvailableFilesTask.completer.future;
+  }
+
   @override
   void dispose() {
     _scheduler.remove(this);
@@ -2259,6 +2268,7 @@ class _DiscoverAvailableFilesTask {
   static const int _MS_WORK_INTERVAL = 5;
 
   final AnalysisDriver driver;
+  final Completer<void> completer = new Completer<void>();
 
   bool isCompleted = false;
 
@@ -2309,6 +2319,7 @@ class _DiscoverAvailableFilesTask {
     isCompleted = true;
     folderIterator = null;
     files = null;
+    completer.complete();
   }
 
   void _appendFilesRecursively(Folder folder) {

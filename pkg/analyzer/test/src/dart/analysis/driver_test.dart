@@ -1107,6 +1107,35 @@ const x = 1;
     expect(session2, isNot(session1));
   }
 
+  test_discoverAvailableFiles() async {
+    var t = _p('/test/lib/test.dart');
+    var a1 = _p('/aaa/lib/a1.dart');
+    var a2 = _p('/aaa/lib/src/a2.dart');
+    var b = _p('/bbb/lib/b.dart');
+    var c = _p('/ccc/lib/c.dart');
+
+    provider.newFile(t, 'class T {}');
+    provider.newFile(a1, 'class A1 {}');
+    provider.newFile(a2, 'class A2 {}');
+    provider.newFile(b, 'class B {}');
+    provider.newFile(c, 'class C {}');
+
+    driver.addFile(t);
+    // Don't add a1.dart, a2.dart, or b.dart - they should be discovered.
+    // And c.dart is not in .packages, so should not be discovered.
+
+    await driver.discoverAvailableFiles();
+
+    expect(driver.knownFiles, contains(t));
+    expect(driver.knownFiles, contains(a1));
+    expect(driver.knownFiles, contains(a2));
+    expect(driver.knownFiles, contains(b));
+    expect(driver.knownFiles, isNot(contains(c)));
+
+    // We call wait for discovery more than once.
+    await driver.discoverAvailableFiles();
+  }
+
   test_errors_uriDoesNotExist_export() async {
     addTestFile(r'''
 export 'foo.dart';
