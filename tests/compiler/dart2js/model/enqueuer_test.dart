@@ -188,7 +188,7 @@ main() {}
       ElementEnvironment elementEnvironment,
       String className,
       String methodName,
-      ReceiverConstraint Function(ClassEntity cls) createConstraint) {
+      Object Function(ClassEntity cls) createConstraint) {
     ClassEntity cls = elementEnvironment.lookupClass(
         elementEnvironment.mainLibrary, className);
     Selector selector = new Selector.call(
@@ -200,11 +200,8 @@ main() {}
     enqueuer.applyImpact(impact);
   }
 
-  void applyImpact(
-      Enqueuer enqueuer,
-      ElementEnvironment elementEnvironment,
-      Impact impact,
-      ReceiverConstraint Function(ClassEntity cls) createConstraint) {
+  void applyImpact(Enqueuer enqueuer, ElementEnvironment elementEnvironment,
+      Impact impact, Object Function(ClassEntity cls) createConstraint) {
     switch (impact.kind) {
       case ImpactKind.instantiate:
         instantiate(enqueuer, elementEnvironment, impact.clsName);
@@ -253,7 +250,7 @@ main() {}
         compiler.frontendStrategy.elementEnvironment;
     checkInvariant(enqueuer, elementEnvironment);
 
-    ReceiverConstraint createConstraint(ClassEntity cls) {
+    Object createConstraint(ClassEntity cls) {
       return new StrongModeConstraint(cls);
     }
 
@@ -268,7 +265,7 @@ main() {}
         compiler.backendClosedWorldForTesting.elementEnvironment;
     checkInvariant(enqueuer, elementEnvironment);
 
-    ReceiverConstraint createConstraint(ClassEntity cls) {
+    Object createConstraint(ClassEntity cls) {
       return new TypeMask.subtype(cls, closedWorld);
     }
 

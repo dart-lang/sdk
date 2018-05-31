@@ -22,10 +22,8 @@ import '../elements/types.dart';
 import '../elements/entities.dart';
 import '../js_model/closure.dart';
 import '../util/util.dart' show equalElements, Hashing;
-import '../world.dart' show World;
 import 'call_structure.dart' show CallStructure;
 import 'selector.dart' show Selector;
-import 'world_builder.dart' show ReceiverConstraint;
 
 enum DynamicUseKind {
   INVOKE,
@@ -34,7 +32,7 @@ enum DynamicUseKind {
 }
 
 /// The use of a dynamic property. [selector] defined the name and kind of the
-/// property and [mask] defines the known constraint for the object on which
+/// property and [receiverConstraint] defines the known constraint for the object on which
 /// the property is accessed.
 class DynamicUse {
   final Selector selector;
@@ -64,12 +62,7 @@ class DynamicUse {
     return sb.toString();
   }
 
-  bool appliesUnnamed(MemberEntity element, World world) {
-    return selector.appliesUnnamed(element) &&
-        (mask == null || mask.canHit(element, selector, world));
-  }
-
-  ReceiverConstraint get mask => null;
+  Object get receiverConstraint => null;
 
   DynamicUseKind get kind {
     if (selector.isGetter) {
@@ -83,18 +76,18 @@ class DynamicUse {
 
   List<DartType> get typeArguments => const <DartType>[];
 
-  int get hashCode =>
-      Hashing.listHash(typeArguments, Hashing.objectsHash(selector, mask));
+  int get hashCode => Hashing.listHash(
+      typeArguments, Hashing.objectsHash(selector, receiverConstraint));
 
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! DynamicUse) return false;
     return selector == other.selector &&
-        mask == other.mask &&
+        receiverConstraint == other.receiverConstraint &&
         equalElements(typeArguments, other.typeArguments);
   }
 
-  String toString() => '$selector,$mask';
+  String toString() => '$selector,$receiverConstraint';
 }
 
 class GenericDynamicUse extends DynamicUse {
@@ -118,10 +111,11 @@ class GenericDynamicUse extends DynamicUse {
 /// This is used in the codegen phase where receivers are constrained to a
 /// type mask or similar.
 class ConstrainedDynamicUse extends DynamicUse {
-  final ReceiverConstraint mask;
+  final Object receiverConstraint;
   final List<DartType> _typeArguments;
 
-  ConstrainedDynamicUse(Selector selector, this.mask, this._typeArguments)
+  ConstrainedDynamicUse(
+      Selector selector, this.receiverConstraint, this._typeArguments)
       : super(selector) {
     assert(
         selector.callStructure.typeArgumentCount ==

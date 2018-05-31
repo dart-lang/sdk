@@ -146,6 +146,10 @@ abstract class AbstractValueDomain {
   /// Returns `true` if [value] is an exact class or `null` at runtime.
   bool isExact(covariant AbstractValue value);
 
+  /// Returns the [ClassEntity] if this [value] is a non-null instance of an
+  /// exact class at runtime, and `null` otherwise.
+  ClassEntity getExactClass(covariant AbstractValue value);
+
   /// Returns `true` if [value] a known primitive JavaScript value at runtime.
   bool isPrimitiveValue(covariant AbstractValue value);
 
@@ -312,7 +316,10 @@ abstract class AbstractValueDomain {
   /// Returns `null` if 0 or more than 1 member can be hit at runtime.
   MemberEntity locateSingleMember(AbstractValue receiver, Selector selector);
 
-  /// Returns `true` if [value] is a indexable and iterable JavaScript value at
+  /// Returns `true` if [value] is an indexable JavaScript value at runtime.
+  bool isJsIndexable(covariant AbstractValue value);
+
+  /// Returns `true` if [value] is an indexable and iterable JavaScript value at
   /// runtime.
   ///
   /// JavaScript arrays are both indexable and iterable whereas JavaScript

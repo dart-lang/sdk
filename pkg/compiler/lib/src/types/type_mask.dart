@@ -66,6 +66,15 @@ class TypeMaskStrategy implements SelectorConstraintsStrategy {
   UniverseSelectorConstraints createSelectorConstraints(Selector selector) {
     return new IncreasingTypeMaskSet();
   }
+
+  @override
+  bool appliedUnnamed(
+      DynamicUse dynamicUse, MemberEntity member, covariant ClosedWorld world) {
+    Selector selector = dynamicUse.selector;
+    TypeMask mask = dynamicUse.receiverConstraint;
+    return selector.appliesUnnamed(member) &&
+        (mask == null || mask.canHit(member, selector, world));
+  }
 }
 
 /**
@@ -73,7 +82,7 @@ class TypeMaskStrategy implements SelectorConstraintsStrategy {
  * operations on it are not guaranteed to be precise and they may
  * yield conservative answers that contain too many classes.
  */
-abstract class TypeMask implements ReceiverConstraint, AbstractValue {
+abstract class TypeMask implements AbstractValue {
   factory TypeMask(
       ClassEntity base, int kind, bool isNullable, ClosedWorld closedWorld) {
     return new FlatTypeMask.normalized(
@@ -360,6 +369,10 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
    * privacy is taken into account.
    */
   bool canHit(MemberEntity element, Selector selector, ClosedWorld closedWorld);
+
+  /// Returns whether this [TypeMask] applied to [selector] can hit a
+  /// [noSuchMethod].
+  bool needsNoSuchMethodHandling(Selector selector, ClosedWorld world);
 
   /**
    * Returns the [element] that is known to always be hit at runtime

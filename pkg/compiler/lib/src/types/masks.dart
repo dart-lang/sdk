@@ -10,11 +10,9 @@ import '../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
 import '../elements/entities.dart';
 import '../inferrer/type_graph_inferrer.dart' show TypeGraphInferrer;
 import '../universe/selector.dart' show Selector;
+import '../universe/use.dart' show DynamicUse;
 import '../universe/world_builder.dart'
-    show
-        ReceiverConstraint,
-        UniverseSelectorConstraints,
-        SelectorConstraintsStrategy;
+    show UniverseSelectorConstraints, SelectorConstraintsStrategy;
 import '../util/util.dart';
 import '../world.dart' show ClassQuery, ClosedWorld;
 import 'abstract_value_domain.dart';
@@ -289,6 +287,11 @@ class CommonMasks implements AbstractValueDomain {
   bool isExact(TypeMask value) => value.isExact || isNull(value);
 
   @override
+  ClassEntity getExactClass(TypeMask mask) {
+    return mask.singleClass(_closedWorld);
+  }
+
+  @override
   bool isPrimitiveValue(TypeMask value) => value.isValue;
 
   @override
@@ -554,6 +557,12 @@ class CommonMasks implements AbstractValueDomain {
   MemberEntity locateSingleMember(
       covariant TypeMask receiver, Selector selector) {
     return receiver.locateSingleMember(selector, _closedWorld);
+  }
+
+  @override
+  bool isJsIndexable(TypeMask mask) {
+    return mask.satisfies(
+        _closedWorld.commonElements.jsIndexableClass, _closedWorld);
   }
 
   @override

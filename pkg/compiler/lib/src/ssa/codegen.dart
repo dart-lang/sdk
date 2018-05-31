@@ -29,7 +29,6 @@ import '../js_model/elements.dart' show JGeneratorBody;
 import '../native/native.dart' as native;
 import '../options.dart';
 import '../types/abstract_value_domain.dart';
-import '../types/masks.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/use.dart'
@@ -365,8 +364,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         .visitGraph(graph);
     new SsaTypeKnownRemover().visitGraph(graph);
     new SsaTrustedCheckRemover(_options).visitGraph(graph);
-    new SsaInstructionMerger(_closedWorld.abstractValueDomain,
-            generateAtUseSite, _superMemberData)
+    new SsaInstructionMerger(
+            _abstractValueDomain, generateAtUseSite, _superMemberData)
         .visitGraph(graph);
     new SsaConditionMerger(generateAtUseSite, controlFlowOperators)
         .visitGraph(graph);
@@ -1828,8 +1827,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     _registry.registerUseInterceptor();
   }
 
-  TypeMask getOptimizedSelectorFor(
-      HInvokeDynamic node, Selector selector, TypeMask mask) {
+  AbstractValue getOptimizedSelectorFor(
+      HInvokeDynamic node, Selector selector, AbstractValue mask) {
     if (node.element != null) {
       // Create an artificial type mask to make sure only
       // [node.element] will be enqueued. We're not using the receiver
@@ -1837,7 +1836,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // invoke dynamic knows more than the receiver.
       ClassEntity enclosing = node.element.enclosingClass;
       if (_closedWorld.isInstantiated(enclosing)) {
-        return _closedWorld.abstractValueDomain.createNonNullExact(enclosing);
+        return _abstractValueDomain.createNonNullExact(enclosing);
       } else {
         // The element is mixed in so a non-null subtype mask is the most
         // precise we have.
@@ -1847,7 +1846,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                 node,
                 "Element ${node.element} from $enclosing expected "
                 "to be mixed in."));
-        return _closedWorld.abstractValueDomain.createNonNullSubtype(enclosing);
+        return _abstractValueDomain.createNonNullSubtype(enclosing);
       }
     }
     // If [JSInvocationMirror._invokeOn] is enabled, and this call
@@ -1880,7 +1879,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       _registry.registerStaticUse(new StaticUse.directInvoke(
           target, selector.callStructure, node.typeArguments));
     } else {
-      TypeMask mask = getOptimizedSelectorFor(node, selector, node.mask);
+      AbstractValue mask = getOptimizedSelectorFor(node, selector, node.mask);
       _registry.registerDynamicUse(
           new ConstrainedDynamicUse(selector, mask, node.typeArguments));
     }
@@ -1895,7 +1894,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       _registry.registerStaticUse(new StaticUse.directSet(node.element));
     } else {
       Selector selector = node.selector;
-      TypeMask mask = getOptimizedSelectorFor(node, selector, node.mask);
+      AbstractValue mask = getOptimizedSelectorFor(node, selector, node.mask);
       _registry.registerDynamicUse(
           new ConstrainedDynamicUse(selector, mask, node.typeArguments));
     }
@@ -1912,7 +1911,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       _registry.registerStaticUse(new StaticUse.directGet(node.element));
     } else {
       Selector selector = node.selector;
-      TypeMask mask = getOptimizedSelectorFor(node, selector, node.mask);
+      AbstractValue mask = getOptimizedSelectorFor(node, selector, node.mask);
       _registry.registerDynamicUse(
           new ConstrainedDynamicUse(selector, mask, node.typeArguments));
     }
@@ -2929,19 +2928,18 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   js.Expression generateReceiverOrArgumentTypeTest(HTypeConversion node) {
     HInstruction input = node.checkedInput;
-    TypeMask inputType = node.inputType ?? input.instructionType;
-    TypeMask checkedType = node.checkedType;
+    AbstractValue inputType = node.inputType ?? input.instructionType;
+    AbstractValue checkedType = node.checkedType;
     // This path is no longer used for indexable primitive types.
-    assert(
-        !checkedType.satisfies(_commonElements.jsIndexableClass, _closedWorld));
+    assert(!_abstractValueDomain.isJsIndexable(checkedType));
     // Figure out if it is beneficial to use a null check.  V8 generally prefers
     // 'typeof' checks, but for integers we cannot compile this test into a
     // single typeof check so the null check is cheaper.
-    bool isIntCheck = checkedType.containsOnlyInt(_closedWorld);
+    bool isIntCheck = _abstractValueDomain.isIntegerOrNull(checkedType);
     bool turnIntoNumCheck =
-        isIntCheck && inputType.containsOnlyInt(_closedWorld);
+        isIntCheck && _abstractValueDomain.isIntegerOrNull(inputType);
     bool turnIntoNullCheck = !turnIntoNumCheck &&
-        (checkedType.nullable() == inputType) &&
+        (_abstractValueDomain.includeNull(checkedType) == inputType) &&
         isIntCheck;
 
     if (turnIntoNullCheck) {
@@ -2952,15 +2950,16 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // input is !int
       checkBigInt(input, '!==', input.sourceInformation);
       return pop();
-    } else if (turnIntoNumCheck || checkedType.containsOnlyNum(_closedWorld)) {
+    } else if (turnIntoNumCheck ||
+        _abstractValueDomain.isNumberOrNull(checkedType)) {
       // input is !num
       checkNum(input, '!==', input.sourceInformation);
       return pop();
-    } else if (checkedType.containsOnlyBool(_closedWorld)) {
+    } else if (_abstractValueDomain.isBooleanOrNull(checkedType)) {
       // input is !bool
       checkBool(input, '!==', input.sourceInformation);
       return pop();
-    } else if (checkedType.containsOnlyString(_closedWorld)) {
+    } else if (_abstractValueDomain.isStringOrNull(checkedType)) {
       // input is !string
       checkString(input, '!==', input.sourceInformation);
       return pop();
@@ -3124,14 +3123,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   bool typeVariableAccessNeedsSubstitution(
-      TypeVariableEntity element, TypeMask receiverMask) {
+      TypeVariableEntity element, AbstractValue receiverMask) {
     ClassEntity cls = element.typeDeclaration;
 
     // See if the receiver type narrows the set of classes to ones that can be
     // indexed.
     // TODO(sra): Currently the only convenient query is [singleClass]. We
     // should iterate over all the concrete classes in [receiverMask].
-    ClassEntity receiverClass = receiverMask.singleClass(_closedWorld);
+    ClassEntity receiverClass =
+        _abstractValueDomain.getExactClass(receiverMask);
     if (receiverClass != null) {
       if (_rtiSubstitutions.isTrivialSubstitution(receiverClass, cls)) {
         return false;

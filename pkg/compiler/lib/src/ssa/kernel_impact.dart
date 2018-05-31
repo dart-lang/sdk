@@ -510,7 +510,7 @@ class KernelImpactBuilder extends ir.Visitor {
     List<DartType> typeArguments = _visitArguments(node.arguments);
     // TODO(johnniwinther): Restrict the dynamic use to only match the known
     // target.
-    ReceiverConstraint constraint;
+    Object constraint;
     MemberEntity member = elementMap.getMember(node.target);
     if (_options.strongMode && useStrongModeWorldStrategy) {
       // TODO(johnniwinther): Restrict this to subclasses?
@@ -610,7 +610,7 @@ class KernelImpactBuilder extends ir.Visitor {
       }
     } else {
       visitNode(node.receiver);
-      ReceiverConstraint constraint;
+      Object constraint;
       if (_options.strongMode && useStrongModeWorldStrategy) {
         DartType receiverType = elementMap.getStaticType(node.receiver);
         if (receiverType is InterfaceType) {
@@ -626,7 +626,7 @@ class KernelImpactBuilder extends ir.Visitor {
   @override
   void visitPropertyGet(ir.PropertyGet node) {
     visitNode(node.receiver);
-    ReceiverConstraint constraint;
+    Object constraint;
     if (_options.strongMode && useStrongModeWorldStrategy) {
       DartType receiverType = elementMap.getStaticType(node.receiver);
       if (receiverType is InterfaceType) {
@@ -642,7 +642,7 @@ class KernelImpactBuilder extends ir.Visitor {
   void visitPropertySet(ir.PropertySet node) {
     visitNode(node.receiver);
     visitNode(node.value);
-    ReceiverConstraint constraint;
+    Object constraint;
     if (_options.strongMode && useStrongModeWorldStrategy) {
       DartType receiverType = elementMap.getStaticType(node.receiver);
       if (receiverType is InterfaceType) {

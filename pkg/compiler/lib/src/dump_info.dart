@@ -23,8 +23,7 @@ import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'types/masks.dart';
 import 'types/types.dart'
     show GlobalTypeInferenceElementResult, GlobalTypeInferenceMemberResult;
-import 'universe/world_builder.dart'
-    show CodegenWorldBuilder, ReceiverConstraint;
+import 'universe/world_builder.dart' show CodegenWorldBuilder;
 import 'universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitorImpl;
 import 'world.dart' show ClosedWorld;
@@ -376,8 +375,8 @@ class ElementInfoCollector {
 
 class Selection {
   final Entity selectedEntity;
-  final ReceiverConstraint mask;
-  Selection(this.selectedEntity, this.mask);
+  final Object receiverConstraint;
+  Selection(this.selectedEntity, this.receiverConstraint);
 }
 
 /// Interface used to record information from different parts of the compiler so
@@ -462,12 +461,13 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         entity,
         impact,
         new WorldImpactVisitorImpl(visitDynamicUse: (dynamicUse) {
-          TypeMask mask = dynamicUse.mask;
+          TypeMask mask = dynamicUse.receiverConstraint;
           selections.addAll(closedWorld
               // TODO(het): Handle `call` on `Closure` through
               // `world.includesClosureCall`.
               .locateMembers(dynamicUse.selector, mask)
-              .map((MemberEntity e) => new Selection(e, dynamicUse.mask)));
+              .map((MemberEntity e) =>
+                  new Selection(e, dynamicUse.receiverConstraint)));
         }, visitStaticUse: (staticUse) {
           selections.add(new Selection(staticUse.element, null));
         }),
@@ -570,7 +570,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         // Don't register dart2js builtin functions that are not recorded.
         Info useInfo = infoCollector._entityToInfo[selection.selectedEntity];
         if (useInfo == null) continue;
-        info.uses.add(new DependencyInfo(useInfo, '${selection.mask}'));
+        info.uses.add(
+            new DependencyInfo(useInfo, '${selection.receiverConstraint}'));
       }
     }
 
@@ -584,7 +585,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
       for (Selection selection in uses) {
         Info useInfo = infoCollector._entityToInfo[selection.selectedEntity];
         if (useInfo == null) continue;
-        info.uses.add(new DependencyInfo(useInfo, '${selection.mask}'));
+        info.uses.add(
+            new DependencyInfo(useInfo, '${selection.receiverConstraint}'));
       }
     }
 

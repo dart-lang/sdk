@@ -600,7 +600,8 @@ abstract class ResolutionWorldBuilderBase extends WorldBuilderBase
     void _process(Map<String, Set<_MemberUsage>> memberMap,
         EnumSet<MemberUse> action(_MemberUsage usage)) {
       _processSet(memberMap, methodName, (_MemberUsage usage) {
-        if (dynamicUse.appliesUnnamed(usage.entity, this)) {
+        if (selectorConstraintsStrategy.appliedUnnamed(
+            dynamicUse, usage.entity, this)) {
           memberUsed(usage.entity, action(usage));
           return true;
         }
@@ -634,7 +635,7 @@ abstract class ResolutionWorldBuilderBase extends WorldBuilderBase
       Map<String, Map<Selector, SelectorConstraints>> selectorMap) {
     Selector selector = dynamicUse.selector;
     String name = selector.name;
-    ReceiverConstraint constraint = dynamicUse.mask;
+    Object constraint = dynamicUse.receiverConstraint;
     Map<Selector, SelectorConstraints> selectors = selectorMap.putIfAbsent(
         name, () => new Maplet<Selector, SelectorConstraints>());
     UniverseSelectorConstraints constraints =

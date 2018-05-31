@@ -130,7 +130,7 @@ abstract class GraphBuilder {
   /// Pushes a boolean checking [expression] against null.
   pushCheckNull(HInstruction expression) {
     push(new HIdentity(expression, graph.addConstantNull(closedWorld), null,
-        closedWorld.abstractValueDomain.boolType));
+        abstractValueDomain.boolType));
   }
 
   void dup() {

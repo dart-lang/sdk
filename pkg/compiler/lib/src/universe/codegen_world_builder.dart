@@ -256,7 +256,8 @@ abstract class CodegenWorldBuilderImpl extends WorldBuilderBase
     void _process(Map<String, Set<_MemberUsage>> memberMap,
         EnumSet<MemberUse> action(_MemberUsage usage)) {
       _processSet(memberMap, methodName, (_MemberUsage usage) {
-        if (dynamicUse.appliesUnnamed(usage.entity, _world)) {
+        if (selectorConstraintsStrategy.appliedUnnamed(
+            dynamicUse, usage.entity, _world)) {
           memberUsed(usage.entity, action(usage));
           return true;
         }
@@ -294,14 +295,14 @@ abstract class CodegenWorldBuilderImpl extends WorldBuilderBase
       Map<String, Map<Selector, SelectorConstraints>> selectorMap) {
     Selector selector = dynamicUse.selector;
     String name = selector.name;
-    ReceiverConstraint mask = dynamicUse.mask;
+    Object constraint = dynamicUse.receiverConstraint;
     Map<Selector, SelectorConstraints> selectors = selectorMap.putIfAbsent(
         name, () => new Maplet<Selector, SelectorConstraints>());
     UniverseSelectorConstraints constraints =
         selectors.putIfAbsent(selector, () {
       return selectorConstraintsStrategy.createSelectorConstraints(selector);
     });
-    return constraints.addReceiverConstraint(mask);
+    return constraints.addReceiverConstraint(constraint);
   }
 
   Map<Selector, SelectorConstraints> _asUnmodifiable(

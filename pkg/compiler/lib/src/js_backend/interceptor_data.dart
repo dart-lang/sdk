@@ -9,7 +9,7 @@ import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
-import '../types/masks.dart' show TypeMask;
+import '../types/abstract_value_domain.dart';
 import '../universe/selector.dart';
 import '../world.dart' show ClosedWorld;
 import 'namer.dart';
@@ -25,7 +25,7 @@ abstract class InterceptorData {
   bool isInterceptedName(String name);
   bool isInterceptedSelector(Selector selector);
   bool isInterceptedMixinSelector(
-      Selector selector, TypeMask mask, ClosedWorld closedWorld);
+      Selector selector, AbstractValue mask, ClosedWorld closedWorld);
   Iterable<ClassEntity> get interceptedClasses;
   bool isMixedIntoInterceptedClass(ClassEntity element);
 
@@ -117,7 +117,7 @@ class InterceptorDataImpl implements InterceptorData {
   /// into an intercepted class.  These selectors are not eligible for the
   /// 'dummy explicit receiver' optimization.
   bool isInterceptedMixinSelector(
-      Selector selector, TypeMask mask, ClosedWorld closedWorld) {
+      Selector selector, AbstractValue mask, ClosedWorld closedWorld) {
     Set<MemberEntity> elements =
         _interceptedMixinElements.putIfAbsent(selector.name, () {
       Set<MemberEntity> elements = interceptedMembers[selector.name];
@@ -132,7 +132,8 @@ class InterceptorDataImpl implements InterceptorData {
     if (elements.isEmpty) return false;
     return elements.any((element) {
       return selector.applies(element) &&
-          (mask == null || mask.canHit(element, selector, closedWorld));
+          (mask == null ||
+              closedWorld.abstractValueDomain.canHit(mask, element, selector));
     });
   }
 

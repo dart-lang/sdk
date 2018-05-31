@@ -18,7 +18,6 @@ import '../js_backend/runtime_types.dart';
 import '../native/native.dart' as native;
 import '../options.dart';
 import '../types/abstract_value_domain.dart';
-//import '../types/masks.dart';
 import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
