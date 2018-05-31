@@ -516,8 +516,8 @@ f() {
       AstBodyBuilder builder = new AstBodyBuilder(
         library,
         procedureBuilder,
-        library.scope,
-        procedureBuilder.computeFormalParameterScope(library.scope),
+        new UnlinkedScope(),
+        null,
         kernelTarget.loader.hierarchy,
         kernelTarget.loader.coreTypes,
         null /* classBuilder */,

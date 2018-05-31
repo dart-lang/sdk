@@ -90,6 +90,7 @@ import 'expression_generator.dart'
         ThisAccessGenerator,
         ThisPropertyAccessGenerator,
         TypeUseGenerator,
+        UnlinkedGenerator,
         UnresolvedNameGenerator,
         VariableUseGenerator,
         buildIsNull;
@@ -1391,6 +1392,9 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       {bool isQualified: false, PrefixBuilder prefix}) {
     int charOffset = offsetForToken(token);
     Declaration declaration = scope.lookup(name, charOffset, uri);
+    if (declaration is UnlinkedDeclaration) {
+      return new UnlinkedGenerator(this, token, declaration);
+    }
     if (declaration == null &&
         prefix == null &&
         (classBuilder?.isPatch ?? false)) {

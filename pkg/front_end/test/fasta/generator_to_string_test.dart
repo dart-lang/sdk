@@ -37,7 +37,8 @@ import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
         KernelTypeVariableBuilder,
         LoadLibraryBuilder,
         PrefixBuilder,
-        TypeDeclarationBuilder;
+        TypeDeclarationBuilder,
+        UnlinkedDeclaration;
 
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
@@ -70,11 +71,12 @@ import 'package:front_end/src/fasta/kernel/kernel_expression_generator.dart'
         KernelThisIndexedAccessGenerator,
         KernelThisPropertyAccessGenerator,
         KernelTypeUseGenerator,
+        KernelUnlinkedGenerator,
+        KernelUnresolvedNameGenerator,
         KernelVariableUseGenerator,
         ParenthesizedExpressionGenerator,
         SendAccessGenerator,
-        ThisAccessGenerator,
-        KernelUnresolvedNameGenerator;
+        ThisAccessGenerator;
 
 import 'package:front_end/src/fasta/scanner.dart' show Token, scanString;
 
@@ -229,5 +231,9 @@ main() {
             helper, token, prefixBuilder, -1, declaration, "foo"));
     check("UnresolvedNameGenerator(offset: 4, name: bar)",
         new KernelUnresolvedNameGenerator(helper, token, name));
+    check(
+        "UnlinkedGenerator(offset: 4, name: foo)",
+        new KernelUnlinkedGenerator(
+            helper, token, new UnlinkedDeclaration("foo", false, -1, null)));
   });
 }

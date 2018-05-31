@@ -19,7 +19,11 @@ import 'expression_generator.dart' show Generator;
 import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
 
 import 'kernel_builder.dart'
-    show LoadLibraryBuilder, PrefixBuilder, TypeDeclarationBuilder;
+    show
+        LoadLibraryBuilder,
+        PrefixBuilder,
+        TypeDeclarationBuilder,
+        UnlinkedDeclaration;
 
 export 'body_builder.dart' show Identifier, Operator;
 
@@ -28,7 +32,11 @@ export 'expression_generator.dart' show Generator;
 export 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
 
 export 'kernel_builder.dart'
-    show LoadLibraryBuilder, PrefixBuilder, TypeDeclarationBuilder;
+    show
+        LoadLibraryBuilder,
+        PrefixBuilder,
+        TypeDeclarationBuilder,
+        UnlinkedDeclaration;
 
 /// A tree factory.
 ///
@@ -458,6 +466,11 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
       ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
       Location location,
       kernel.Name name);
+
+  Generator<Expression, Statement, Arguments> unlinkedGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Location location,
+      UnlinkedDeclaration declaration);
 
   // TODO(ahe): Remove this method when all users are moved here.
   kernel.Arguments castArguments(Arguments arguments) {

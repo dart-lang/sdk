@@ -14,6 +14,9 @@ import 'package:front_end/src/fasta/type_inference/type_inferrer.dart'
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
 
+export 'package:front_end/src/fasta/kernel/unlinked_scope.dart'
+    show UnlinkedScope;
+
 class AstBodyBuilder extends BodyBuilder<Expression, Statement, dynamic> {
   @override
   final AstBuildingForest forest;
@@ -37,5 +40,10 @@ class AstBodyBuilder extends BodyBuilder<Expression, Statement, dynamic> {
   @override
   void enterThenForTypePromotion(Expression condition) {
     // Do nothing.
+  }
+
+  @override
+  void logEvent(String name) {
+    throw "Parser event '$name' not implemented";
   }
 }

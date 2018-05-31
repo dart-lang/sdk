@@ -32,7 +32,8 @@ import 'forest.dart'
         Identifier,
         LoadLibraryBuilder,
         PrefixBuilder,
-        TypeDeclarationBuilder;
+        TypeDeclarationBuilder,
+        UnlinkedDeclaration;
 
 import 'kernel_ast_api.dart'
     show
@@ -835,5 +836,29 @@ abstract class UnresolvedNameGenerator<Expression, Statement, Arguments>
         offset,
         isGetter: isGetter,
         isSetter: isSetter);
+  }
+}
+
+abstract class UnlinkedGenerator<Expression, Statement, Arguments>
+    implements Generator<Expression, Statement, Arguments> {
+  factory UnlinkedGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      UnlinkedDeclaration declaration) {
+    return helper.forest.unlinkedGenerator(helper, token, declaration);
+  }
+
+  UnlinkedDeclaration get declaration;
+
+  @override
+  String get plainNameForRead => declaration.name;
+
+  @override
+  String get debugName => "UnlinkedGenerator";
+
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", name: ");
+    sink.write(declaration.name);
   }
 }

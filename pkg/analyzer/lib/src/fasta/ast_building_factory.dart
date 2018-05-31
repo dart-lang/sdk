@@ -602,6 +602,15 @@ class AstBuildingForest
   }
 
   @override
+  Generator<Expression, Statement, _Arguments> unlinkedGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+      Token token,
+      UnlinkedDeclaration declaration) {
+    // TODO(brianwilkerson) Implement this.
+    throw new UnimplementedError();
+  }
+
+  @override
   Generator<Expression, Statement, _Arguments> unresolvedNameGenerator(
       ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
       Token token,

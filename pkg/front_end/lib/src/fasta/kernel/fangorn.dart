@@ -58,6 +58,7 @@ import 'kernel_expression_generator.dart'
         KernelThisIndexedAccessGenerator,
         KernelThisPropertyAccessGenerator,
         KernelTypeUseGenerator,
+        KernelUnlinkedGenerator,
         KernelUnresolvedNameGenerator,
         KernelVariableUseGenerator;
 
@@ -109,7 +110,8 @@ import 'forest.dart'
         Generator,
         LoadLibraryBuilder,
         PrefixBuilder,
-        TypeDeclarationBuilder;
+        TypeDeclarationBuilder,
+        UnlinkedDeclaration;
 
 /// A shadow tree factory.
 class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
@@ -764,6 +766,14 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
       Token token,
       Name name) {
     return new KernelUnresolvedNameGenerator(helper, token, name);
+  }
+
+  @override
+  KernelUnlinkedGenerator unlinkedGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      UnlinkedDeclaration declaration) {
+    return new KernelUnlinkedGenerator(helper, token, declaration);
   }
 }
 

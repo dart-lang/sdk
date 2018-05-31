@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/ast.dart' show Arguments, Expression, Node, Statement;
+import 'package:kernel/ast.dart'
+    show Arguments, Expression, InvalidExpression, Node, Statement;
 
 import '../../scanner/token.dart' show Token;
 
@@ -61,6 +62,7 @@ import 'expression_generator.dart'
         ThisIndexedAccessGenerator,
         ThisPropertyAccessGenerator,
         TypeUseGenerator,
+        UnlinkedGenerator,
         UnresolvedNameGenerator,
         VariableUseGenerator;
 
@@ -68,7 +70,8 @@ import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
 
 import 'forest.dart' show Forest;
 
-import 'kernel_builder.dart' show LoadLibraryBuilder, PrefixBuilder;
+import 'kernel_builder.dart'
+    show LoadLibraryBuilder, PrefixBuilder, UnlinkedDeclaration;
 
 import 'kernel_api.dart' show NameSystem, printNodeOn, printQualifiedNameOn;
 
@@ -1459,6 +1462,53 @@ class KernelUnresolvedNameGenerator extends KernelGenerator
   void printOn(StringSink sink) {
     sink.write(", name: ");
     sink.write(name.name);
+  }
+}
+
+class KernelUnlinkedGenerator extends KernelGenerator
+    with UnlinkedGenerator<Expression, Statement, Arguments> {
+  @override
+  final UnlinkedDeclaration declaration;
+
+  final Expression receiver;
+
+  final Name name;
+
+  KernelUnlinkedGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      this.declaration)
+      : name = new Name(declaration.name, helper.library.target),
+        receiver = new InvalidExpression(declaration.name)
+          ..fileOffset = offsetForToken(token),
+        super(helper, token);
+
+  @override
+  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+    return unsupported("_makeRead", offsetForToken(token), uri);
+  }
+
+  @override
+  Expression _makeWrite(Expression value, bool voidContext,
+      ShadowComplexAssignment complexAssignment) {
+    return unsupported("_makeWrite", offsetForToken(token), uri);
+  }
+
+  @override
+  Expression buildAssignment(Expression value, {bool voidContext}) {
+    return new PropertySet(receiver, name, value)
+      ..fileOffset = offsetForToken(token);
+  }
+
+  @override
+  Expression buildSimpleRead() {
+    return new ShadowPropertyGet(receiver, name)
+      ..fileOffset = offsetForToken(token);
+  }
+
+  @override
+  Expression doInvocation(int offset, Arguments arguments) {
+    return unsupported("doInvocation", offset, uri);
   }
 }
 
