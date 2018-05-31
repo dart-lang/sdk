@@ -3092,6 +3092,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitTypeInfoExpression(HTypeInfoExpression node) {
+    DartType type = node.dartType;
     List<js.Expression> arguments = <js.Expression>[];
     for (HInstruction input in node.inputs) {
       use(input);
@@ -3103,19 +3104,19 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         int index = 0;
         js.Expression result = _rtiEncoder.getTypeRepresentation(
             _emitter.emitter,
-            node.dartType,
+            type,
             (TypeVariableType variable) => arguments[index++]);
         assert(
             index == node.inputs.length,
-            "Not all input is read for type ${node.dartType}: "
+            "Not all input is read for type ${type}: "
             "$index of ${node.inputs}.");
         push(result);
         return;
 
       case TypeInfoExpressionKind.INSTANCE:
         // We expect only flat types for the INSTANCE representation.
-        assert((node.dartType as InterfaceType).typeArguments.length ==
-            arguments.length);
+        assert(
+            (type as InterfaceType).typeArguments.length == arguments.length);
         _registry.registerInstantiatedClass(_commonElements.listClass);
         push(new js.ArrayInitializer(arguments)
             .withSourceInformation(node.sourceInformation));

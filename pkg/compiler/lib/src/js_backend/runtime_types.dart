@@ -2146,12 +2146,21 @@ class TypeRepresentationGenerator
 
   jsAst.Expression visitInterfaceType(InterfaceType type, Emitter emitter) {
     jsAst.Expression name = getJavaScriptClassName(type.element, emitter);
-    if (_nativeData.isJsInteropClass(type.element)) {
-      return getJsInteropTypeArguments(type.typeArguments.length, name: name);
+    jsAst.Expression result;
+    if (type.treatAsRaw) {
+      result = name;
+    } else {
+      // Visit all type arguments. This is done even for jsinterop classes to
+      // enforce the invariant that [onVariable] is called for each type
+      // variable in the type.
+      result = visitList(type.typeArguments, emitter, head: name);
+      if (_nativeData.isJsInteropClass(type.element)) {
+        // Replace type arguments of generic jsinterop classes with 'any' type.
+        result =
+            getJsInteropTypeArguments(type.typeArguments.length, name: name);
+      }
     }
-    return type.treatAsRaw
-        ? name
-        : visitList(type.typeArguments, emitter, head: name);
+    return result;
   }
 
   jsAst.Expression visitList(List<DartType> types, Emitter emitter,
