@@ -451,7 +451,7 @@ class InterceptorStubGenerator {
         //     {"": A.A$, "foo": A.A$foo, "bar": A.A$bar}
         //
         // We expect most of the time the map will be a singleton.
-        var properties = [];
+        var properties = <jsAst.Property>[];
         for (ConstructorEntity member in analysis.constructors(classElement)) {
           properties.add(new jsAst.Property(
               js.string(member.name), _emitter.staticFunctionAccess(member)));

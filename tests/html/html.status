@@ -505,8 +505,8 @@ js_typed_interop_test/static_method_tearoff_1: RuntimeError
 mirrors_js_typed_interop_test: SkipByDesign
 
 [ $compiler == dart2js && $fasta && $host_checked ]
-fontface_loaded_test: Crash
-streams_test: Crash
+fontface_loaded_test: RuntimeError
+streams_test: RuntimeError
 
 [ $compiler == dart2js && $minified ]
 canvas_pixel_array_type_alias_test/types2_runtimeTypeName: Fail, OK # Issue 12605

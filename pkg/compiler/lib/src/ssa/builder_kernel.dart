@@ -926,10 +926,13 @@ class KernelSsaGraphBuilder extends ir.Visitor
     FunctionType functionType =
         _elementMap.getFunctionType(originalClosureNode);
     functionType.forEachTypeVariable((TypeVariableType typeVariableType) {
-      DartType result = localsHandler.substInContext(typeVariableType);
-      HInstruction argument =
-          typeBuilder.analyzeTypeArgument(result, sourceElement);
-      typeArguments.add(argument);
+      if (options.strongMode ||
+          typeVariableType.element.typeDeclaration is ClassEntity) {
+        DartType result = localsHandler.substInContext(typeVariableType);
+        HInstruction argument =
+            typeBuilder.analyzeTypeArgument(result, sourceElement);
+        typeArguments.add(argument);
+      }
     });
     push(new HTypeInfoExpression(
         TypeInfoExpressionKind.COMPLETE,
