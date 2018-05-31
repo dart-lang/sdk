@@ -101,6 +101,10 @@ dart/spawn_shutdown_test: Skip # OOM crash can bring down the OS.
 cc/CorelibCompilerStats: Skip
 cc/Service_Profile: Skip
 
+[ $checked ]
+dart/appjit_determinism_test: Skip # Issue 31427 - Lingering non-determinism in checked mode.
+dart/script_determinism_test: Skip # Issue 31427 - Lingering non-determinism in checked mode.
+
 [ !$strong ]
 dart/callee_side_type_checks_test: SkipByDesign
 
