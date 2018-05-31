@@ -290,6 +290,7 @@ void_type_usage_test/paren_void_init: MissingCompileTimeError
 [ $compiler == dartdevk ]
 additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
+assert_with_message_test: RuntimeError # Issue 33293
 async_or_generator_return_type_stacktrace_test/01: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError

@@ -11,9 +11,9 @@ class Foo {
 
 test() {
   dynamic d = new Foo();
-  var /*@type=dynamic*/ get_hashCode = d.hashCode;
+  var /*@type=int*/ get_hashCode = d.hashCode;
   var /*@type=dynamic*/ call_hashCode = d.hashCode();
-  var /*@type=dynamic*/ call_toString = d.toString();
+  var /*@type=String*/ call_toString = d.toString();
   var /*@type=dynamic*/ call_toStringArg = d.toString(color: "pink");
   var /*@type=dynamic*/ call_foo0 = d.foo();
   var /*@type=dynamic*/ call_foo1 = d.foo(1);

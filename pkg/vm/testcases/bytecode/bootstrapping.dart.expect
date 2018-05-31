@@ -573,7 +573,7 @@ ConstantPool {
   [3] = Null
 }
 ]static method _print(dynamic arg) → void {
-  self::_printString(arg.toString() as{TypeError} core::String);
+  self::_printString(arg.toString());
 }
 [@vm.bytecode=
 Bytecode {
