@@ -238,36 +238,6 @@ bool looksLikeTypeParamOrArg(bool inDeclaration, Token token) {
   return false;
 }
 
-Token skipTypeVariables(Token token) {
-  assert(optional('<', token));
-  Token endGroup = token.endGroup;
-  if (endGroup == null) {
-    return null;
-  }
-
-  // The scanner sets the endGroup in situations like this: C<T && T>U;
-  // Scan the type arguments to assert there are no operators.
-  // TODO(danrubel): Fix the scanner to do this scanning.
-  token = token.next;
-  while (token != endGroup) {
-    if (token.isKeywordOrIdentifier ||
-        optional(',', token) ||
-        optional('.', token) ||
-        optional('<', token) ||
-        optional('>', token) ||
-        optional('>>', token) ||
-        optional('@', token)) {
-      // ok
-    } else if (optional('(', token)) {
-      token = token.endGroup;
-    } else {
-      return null;
-    }
-    token = token.next;
-  }
-  return endGroup;
-}
-
 /// Instances of [ComplexTypeInfo] are returned by [computeType] to represent
 /// type references that cannot be represented by the constants above.
 class ComplexTypeInfo implements TypeInfo {
@@ -280,9 +250,8 @@ class ComplexTypeInfo implements TypeInfo {
   /// The last token in the type reference.
   Token end;
 
-  /// The tokens before the start of type variables of function types seen
-  /// during analysis. Notice that the tokens in this list might precede
-  /// either `'<'` or `'('` as not all function types have type parameters.
+  /// The `Function` tokens before the start of type variables of function types
+  /// as seen during analysis.
   Link<Token> typeVariableStarters = const Link<Token>();
 
   /// If the receiver represents a generalized function type then this indicates
@@ -318,7 +287,7 @@ class ComplexTypeInfo implements TypeInfo {
     }
 
     for (Link<Token> t = typeVariableStarters; t.isNotEmpty; t = t.tail) {
-      parser.parseTypeVariablesOpt(t.head);
+      computeTypeParamOrArg(t.head, true).parseVariables(t.head, parser);
       parser.listener.beginFunctionType(start);
     }
 
@@ -477,15 +446,9 @@ class ComplexTypeInfo implements TypeInfo {
   void computeRest(Token token, bool required) {
     while (optional('Function', token)) {
       Token typeVariableStart = token;
+      // TODO(danrubel): Consider caching TypeParamOrArgInfo
+      token = computeTypeParamOrArg(token, true).skip(token);
       token = token.next;
-      if (optional('<', token)) {
-        token = skipTypeVariables(token);
-        if (token == null) {
-          break; // Not a function type.
-        }
-        assert(optional('>', token) || optional('>>', token));
-        token = token.next;
-      }
       if (!optional('(', token)) {
         break; // Not a function type.
       }
