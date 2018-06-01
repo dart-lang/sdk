@@ -49,6 +49,9 @@
 % - Make `async` *not* a reserved word inside async functions.
 % - Added 'Class Member Conflicts', simplifying and adjusting rules about
 %   member declaration conflicts beyond "`n` declared twice in one scope".
+% - Specify that integer literals are limited to signed 64-bit values,
+%   and that the `int` class is intended as signed 64-bit integer, but
+%   that platforms may differ.
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -3279,7 +3282,7 @@ The static type of \NULL{} is the \code{Null} type.
 \LMLabel{numbers}
 
 \LMHash{}
-A {\em numeric literal} is either a decimal or hexadecimal integer of arbitrary size, or a decimal double.
+A {\em numeric literal} is either a decimal or hexadecimal numeral representing an integer value, or a decimal double representation.
 
 \begin{grammar}
 {\bf numericLiteral:}NUMBER;
@@ -3290,54 +3293,78 @@ A {\em numeric literal} is either a decimal or hexadecimal integer of arbitrary 
   {`\escapegrammar .}' DIGIT+ EXPONENT?
   .
 
-{\bf EXPONENT:}(`e' $|$ `E') ('+' $|$ `-`)? DIGIT+
+{\bf EXPONENT:}(`e' $|$ `E') (`+' $|$ `-'')? DIGIT+
   .
 
 {\bf HEX\_NUMBER:}`0x' HEX\_DIGIT+;
   `0X' HEX\_DIGIT+
   .
 
-{\bf HEX\_DIGIT:}`a'{\escapegrammar ..}'f';
-  `A'{\escapegrammar ..}'F';
+{\bf HEX\_DIGIT:}`a'{\escapegrammar ..}`f';
+  `A'{\escapegrammar ..}`F';
   DIGIT
   .
 \end{grammar}
 
 \LMHash{}
-If a numeric literal begins with the prefix `0x' or `0X',
-it denotes the integer represented by the hexadecimal numeral
+A numeric literal starting with `0x' or `0X'
+is a {\em hexadecimal integer literal}.
+It has the numeric integer value of the hexadecimal numeral
 following `0x' (respectively `0X').
-Otherwise, if the numeric literal contains only decimal digits,
-it denotes an integer represented as a decimal numeral.
-In either case the literal evaluates to an instance of the class \code{int}
-with the integer value represented by that numeral.
-Otherwise, the numeric literal contains either a decimal point or an exponent part
-and it evaluates to a an instance of the `double` class
-representing a 64 bit double precision floating point number
-as specified by the IEEE 754 standard.
 
 \LMHash{}
-In principle, the range of integers supported by a Dart implementations is unlimited.
-In practice, it is limited by available memory.
-Implementations may also be limited by other considerations.
-
-\commentary{
-For example, implementations may choose to limit the range to facilitate efficient compilation to Javascript.
-These limitations should be relaxed as soon as technologically feasible.
-}
-
-\LMHash{}
-It is a compile-time error for a class to extend, mix in or implement \code{int}.
-It is a compile-time error for a class to extend, mix in or implement \code{double}.
-It is a compile-time error for any class other than \code{int} and \code{double} to extend, mix in or implement \code{num}.
+A numeric literal that contains only decimal digits is a {\em decimal integer literal}.
+It has the numeric integer value of the decimal numeral.
 
 \LMHash{}
 An {\em integer literal} is either a hexadecimal integer literal or a decimal integer literal.
 The static type of an integer literal is \code{int}.
 
 \LMHash{}
-A {\em literal double} is a numeric literal that is not an integer literal.
-The static type of a literal double is \code{double}.
+A numeric literal that is not an integer literal is a {\em double literal}.
+\commentary{A double literal always contains either a decimal point or an exponent part.}
+The static type of a double literal is \code{double}.
+
+\LMHash{}
+A hexadecimal integer literal with numeric value $i$ is a compile-time
+error if $i \ge{} 2^{64}$, unless it is prefixed by a unary minus operator,
+in which case it is a compile-time error if $i \gt{} 2^{63}$.
+If the \code{int} class is implemented as signed 64-bit two's complement integers,
+$i \ge{} 2^63$, and the literal is not prefixed by a unary minus operator, then
+the literal evaluates to an instance of the \code{int} class representing the integer value $i - 2^64$.
+Otherwise the literal evaluates to an instance of the \code{int} class representing
+the integer value $i$,
+and it is a compile-time error if the integer $i$ cannot be represented exactly
+by an instance of \code{int}.
+
+\LMHash{}
+A decimal integer literal with numeric value $i$ is a compile-time error
+if $i \ge{} 2^{63}$, unless $i$ is prefixed by a unary minus operator,
+in which case it is only a compile-time error if $i \gt{} 2^{63}$.
+Otherwise the literal evaluates to an instance of the \code{int} class representing
+the integer value $i$.
+It is a compile-time error if the value $i$ cannot be represented exactly
+by an instance of \code{int}.
+
+\LMHash{}
+A double literal evaluates to a an instance of the \code{double} class
+representing a 64 bit double precision floating point number
+as specified by the IEEE 754 standard.
+
+\commentary{
+Integers in Dart are designed to be implemented as
+64-bit two's complement integer representations.
+In practice, implementations may be limited by other considerations.
+For example, Dart compiled to JavaScript may use the JavaScript number type,
+equivalent to Dart \code{double}, to represent integers, and if so,
+integer literals with more than 53 bits of precision cannot be represented
+exactly.
+}
+
+\LMHash{}
+It is a compile-time error for a class to extend, mix in or implement \code{int}.
+It is a compile-time error for a class to extend, mix in or implement \code{double}.
+It is a compile-time error for any class other than \code{int} and \code{double} to extend, mix in or implement \code{num}.
 
 
 \subsection{Booleans}
@@ -6544,7 +6571,20 @@ Evaluation of an expression of the form \code{-{}-$e$} is equivalent to \code{$e
 %The expression $-e$ is equivalent to the method invocation \code{$e$.-()}.  The expression \code{-\SUPER{}} is equivalent to the method invocation \code{\SUPER{}.-()}.
 
 \LMHash{}
-An expression of the form \code{$op$ $e$} is equivalent to the method invocation \code{$e.op()$}.
+If $e$ is an expression is of the form \code{-$l$}
+where $l$ is an integer literal (\ref{numbers}) with numerical integer value $i$,
+then it is a compile-time error if $i \gt{} 2^{63}$.
+Otherwise, when $0 \le{} i \le{} 2^{63}$, the static type of $e$ is \code{int}
+and $e$ evaluates to an instance of the class \code{int}
+representing the integer value $-i$,
+and it is a compile-time error if the integer $-i$ cannot be represented exactly
+by an instance of \code{int}.
+\rationale{This treats \code{-$l$} where $l$ is an integer literal as an atomic signed numeral.
+It does not {\em evaluate} $l$ as an individual expression because \code{-9223372036854775808}
+should represent a valid \code{int} even if \code{9223372036854775808} does not.}
+
+\LMHash{}
+Any other expression of the form \code{$op$ $e$} is equivalent to the method invocation \code{$e.op()$}.
 An expression of the form \code{$op$ \SUPER{}} is equivalent to the method invocation (\ref{superInvocation}) \code{\SUPER{}.$op()$}.
 
 
