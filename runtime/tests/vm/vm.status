@@ -51,7 +51,7 @@ dart/optimized_stacktrace_line_test: RuntimeError # The source positions do not 
 dart/redirection_type_shuffling_test: Skip # Depends on lazy enforcement of type bounds
 dart/simd128float32_array_test: Skip # compilers not aware of Simd128
 dart/simd128float32_test: Skip # compilers not aware of Simd128
-dart/truncating_ints_test: Skip # dart2js doesn't know about --limit-ints-to-64-bits
+dart/truncating_ints_test: SkipByDesign # The test requires int64.
 dart/wrap_around_in_range_analysis_test: SkipByDesign # The test requires int64.
 
 [ $compiler == dartk ]
@@ -237,9 +237,6 @@ dart/snapshot_version_test: RuntimeError # Please triage.
 dart/appjit_cha_deopt_test: SkipByDesign # Test needs to run from source
 dart/appjit_determinism_test: SkipByDesign # Test needs to run from source
 dart/script_determinism_test: SkipByDesign # Test needs to run from source
-
-[ $compiler == dartkp && !$strong ]
-dart/truncating_ints_test: Skip # This test cannot be run in dartkp/legacy mode (gen_kernel does not pass --limit-ints-to-64-bits in legacy mode).
 
 [ $compiler == dartkp && ($runtime == dart_precompiled || $runtime == vm) ]
 dart/data_uri_import_test/utf16: MissingRuntimeError # UTF-16 data URIs work in dartk

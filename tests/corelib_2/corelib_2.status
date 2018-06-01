@@ -394,13 +394,13 @@ double_round_test/int64: RuntimeError, OK # Requires fixed-size int64 support.
 double_truncate_test/int64: RuntimeError, OK # Requires fixed-size int64 support.
 hash_set_test/01: RuntimeError # non JS number semantics - Issue 11551
 int_modulo_arith_test/modPow: RuntimeError # Issue 29921
-int_parse_with_limited_ints_test: Skip # dart2js and dartdevc don't know about --limit-ints-to-64-bits
+int_parse_with_limited_ints_test: Skip # Requires fixed-size int64 support.
 integer_arith_vm_test/modPow: RuntimeError # Issues 10245, 30170
 integer_parsed_arith_vm_test: RuntimeError # Issues 10245, 29921
 integer_parsed_div_rem_vm_test: RuntimeError # Issue 29921
 integer_parsed_mul_div_vm_test: RuntimeError # Issue 29921
 regress_r21715_test: RuntimeError # Requires fixed-size int64 support.
-typed_data_with_limited_ints_test: Skip # dart2js and dartdevc don't know about --limit-ints-to-64-bits
+typed_data_with_limited_ints_test: Skip # Requires fixed-size int64 support.
 
 [ $runtime != none && ($compiler == dartdevc || $compiler == dartdevk) ]
 bigint_test: Pass, Slow
@@ -411,7 +411,7 @@ hash_set_test/01: RuntimeError # Issue 29921
 int_modulo_arith_test/none: RuntimeError # Issue 29921
 int_parse_radix_test/01: RuntimeError # Issue 29921
 int_parse_radix_test/02: RuntimeError # Issue 29921
-int_parse_with_limited_ints_test: Skip # dartdevc doesn't know about --limit-ints-to-64-bits
+int_parse_with_limited_ints_test: Skip # Requires fixed-size int64 support.
 integer_arith_vm_test/modPow: RuntimeError # Issue 30170
 integer_parsed_arith_vm_test: RuntimeError # Issue 29921
 integer_to_radix_string_test: RuntimeError # Issue 29921
@@ -467,7 +467,7 @@ symbol_reserved_word_test/06: RuntimeError # Issue 29921
 symbol_reserved_word_test/09: RuntimeError # Issue 29921
 symbol_reserved_word_test/12: RuntimeError # Issue 29921
 symbol_test/none: RuntimeError # Issue 29921
-typed_data_with_limited_ints_test: Skip # dartdevc doesn't know about --limit-ints-to-64-bits
+typed_data_with_limited_ints_test: Skip # Requires fixed-size int64 support.
 
 [ $runtime == vm && !$strong ]
 collection_of_test: RuntimeError

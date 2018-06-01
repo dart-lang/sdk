@@ -1132,11 +1132,6 @@ abstract class VMKernelCompilerMixin {
       args.add('--enable_asserts');
     }
 
-    // Pass environment variable to the gen_kernel script as
-    // arguments are not passed if gen_kernel runs in batch mode.
-    environmentOverrides = new Map.from(environmentOverrides);
-    environmentOverrides['DART_VM_FLAGS'] = '--limit-ints-to-64-bits';
-
     return Command.vmKernelCompilation(dillFile, true, bootstrapDependencies(),
         genKernel, args, environmentOverrides);
   }

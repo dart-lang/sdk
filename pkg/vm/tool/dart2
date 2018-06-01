@@ -43,5 +43,4 @@ exec "$DART_BINARY"                                                            \
      --preview_dart_2                                                          \
      --strong                                                                  \
      --reify-generic-functions                                                 \
-     --limit-ints-to-64-bits                                                   \
      "$@"
