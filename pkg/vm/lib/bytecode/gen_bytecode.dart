@@ -98,7 +98,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   @override
   defaultMember(Member node) {
-    if (node.isAbstract) {
+    if (node.isAbstract || node.isExternal) {
       return;
     }
     try {

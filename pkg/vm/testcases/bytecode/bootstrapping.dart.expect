@@ -67,41 +67,11 @@ ConstantPool {
 ]  constructor _() → void
     : super core::Object::•()
     ;
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack
-  PushConstant         CP#0
-  ReturnTOS
-}
-ConstantPool {
-  [0] = Null
-}
-]  @_in::ExternalName::•("Namespace_Create")
+  @_in::ExternalName::•("Namespace_Create")
   external static method _create(self::_NamespaceImpl namespace, dynamic n) → self::_NamespaceImpl;
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack
-  PushConstant         CP#0
-  ReturnTOS
-}
-ConstantPool {
-  [0] = Null
-}
-]  @_in::ExternalName::•("Namespace_GetPointer")
+  @_in::ExternalName::•("Namespace_GetPointer")
   external static method _getPointer(self::_NamespaceImpl namespace) → core::int;
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack
-  PushConstant         CP#0
-  ReturnTOS
-}
-ConstantPool {
-  [0] = Null
-}
-]  @_in::ExternalName::•("Namespace_GetDefault")
+  @_in::ExternalName::•("Namespace_GetDefault")
   external static method _getDefault() → core::int;
 [@vm.bytecode=
 Bytecode {
@@ -542,17 +512,7 @@ ConstantPool {
 }
 ]static field core::int _stderrFD = 2;
 static field core::String _rawScript;
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack
-  PushConstant         CP#0
-  ReturnTOS
-}
-ConstantPool {
-  [0] = Null
-}
-]@_in::ExternalName::•("Builtin_PrintString")
+@_in::ExternalName::•("Builtin_PrintString")
 external static method _printString(core::String s) → void;
 [@vm.bytecode=
 Bytecode {
