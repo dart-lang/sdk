@@ -92,7 +92,8 @@ const char* TypeTestingStubNamer::AssemblerSafeName(char* cname) {
 }
 
 RawInstructions* TypeTestingStubGenerator::DefaultCodeForType(
-    const AbstractType& type) {
+    const AbstractType& type,
+    bool lazy_specialize /* = true */) {
   // During bootstrapping we have no access to stubs yet, so we'll just return
   // `null` and patch these later in `Object::FinishInitOnce()`.
   if (!StubCode::HasBeenInitialized()) {
@@ -112,12 +113,26 @@ RawInstructions* TypeTestingStubGenerator::DefaultCodeForType(
   }
 
   if (type.IsType() || type.IsTypeParameter()) {
-    return Code::InstructionsOf(StubCode::DefaultTypeTest_entry()->code());
+    const bool should_specialize = !FLAG_precompiled_mode && lazy_specialize;
+    return Code::InstructionsOf(
+        should_specialize ? StubCode::LazySpecializeTypeTest_entry()->code()
+                          : StubCode::DefaultTypeTest_entry()->code());
   } else {
     ASSERT(type.IsBoundedType() || type.IsMixinAppType());
     return Code::InstructionsOf(StubCode::UnreachableTypeTest_entry()->code());
   }
 }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+void TypeTestingStubGenerator::SpecializeStubFor(Thread* thread,
+                                                 const AbstractType& type) {
+  HierarchyInfo hi(thread);
+  TypeTestingStubGenerator generator;
+  const Instructions& instr = Instructions::Handle(
+      thread->zone(), generator.OptimizedCodeForType(type));
+  type.SetTypeTestingStub(instr);
+}
+#endif
 
 TypeTestingStubGenerator::TypeTestingStubGenerator()
     : object_store_(Isolate::Current()->object_store()),
@@ -167,7 +182,7 @@ RawInstructions* TypeTestingStubGenerator::OptimizedCodeForType(
     }
   }
 #endif  // !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
-  return TypeTestingStubGenerator::DefaultCodeForType(type);
+  return TypeTestingStubGenerator::DefaultCodeForType(type, false);
 }
 
 TypeTestingStubFinder::TypeTestingStubFinder()
@@ -186,6 +201,10 @@ RawInstructions* TypeTestingStubFinder::LookupByAddresss(
     uword entry_point) const {
   // First test the 4 common ones:
   code_ = StubCode::DefaultTypeTest_entry()->code();
+  if (entry_point == code_.UncheckedEntryPoint()) {
+    return code_.instructions();
+  }
+  code_ = StubCode::LazySpecializeTypeTest_entry()->code();
   if (entry_point == code_.UncheckedEntryPoint()) {
     return code_.instructions();
   }
@@ -212,6 +231,10 @@ const char* TypeTestingStubFinder::StubNameFromAddresss(
   code_ = StubCode::DefaultTypeTest_entry()->code();
   if (entry_point == code_.UncheckedEntryPoint()) {
     return "TypeTestingStub_Default";
+  }
+  code_ = StubCode::LazySpecializeTypeTest_entry()->code();
+  if (entry_point == code_.UncheckedEntryPoint()) {
+    return "TypeTestingStub_LazySpecialize";
   }
   code_ = StubCode::TopTypeTypeTest_entry()->code();
   if (entry_point == code_.UncheckedEntryPoint()) {
@@ -331,7 +354,7 @@ RawInstructions* TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
 #ifndef PRODUCT
   if (FLAG_support_disassembler && FLAG_disassemble_stubs) {
     LogBlock lb;
-    THR_Print("Code for stub '%s': {\n", name);
+    THR_Print("Code for stub '%s' (type = %s): {\n", name, type.ToCString());
     DisassembleToStdout formatter;
     code.Disassemble(&formatter);
     THR_Print("}\n");

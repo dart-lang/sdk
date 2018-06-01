@@ -335,6 +335,7 @@ class SnapshotReader : public BaseReader {
   Array* ArrayHandle() { return &array_; }
   Class* ClassHandle() { return &cls_; }
   Code* CodeHandle() { return &code_; }
+  Instructions* InstructionsHandle() { return &instructions_; }
   String* StringHandle() { return &str_; }
   AbstractType* TypeHandle() { return &type_; }
   TypeArguments* TypeArgumentsHandle() { return &type_arguments_; }
@@ -440,20 +441,21 @@ class SnapshotReader : public BaseReader {
 
   bool is_vm_isolate() const;
 
-  Snapshot::Kind kind_;   // Indicates type of snapshot(full, script, message).
-  Thread* thread_;        // Current thread.
-  Zone* zone_;            // Zone for allocations while reading snapshot.
-  Heap* heap_;            // Heap of the current isolate.
-  PageSpace* old_space_;  // Old space of the current isolate.
-  Class& cls_;            // Temporary Class handle.
-  Code& code_;            // Temporary Code handle.
-  Object& obj_;           // Temporary Object handle.
-  PassiveObject& pobj_;   // Temporary PassiveObject handle.
-  Array& array_;          // Temporary Array handle.
-  Field& field_;          // Temporary Field handle.
-  String& str_;           // Temporary String handle.
-  Library& library_;      // Temporary library handle.
-  AbstractType& type_;    // Temporary type handle.
+  Snapshot::Kind kind_;            // Indicates type of the snapshot.
+  Thread* thread_;                 // Current thread.
+  Zone* zone_;                     // Zone for allocations while reading.
+  Heap* heap_;                     // Heap of the current isolate.
+  PageSpace* old_space_;           // Old space of the current isolate.
+  Class& cls_;                     // Temporary Class handle.
+  Code& code_;                     // Temporary Code handle.
+  Instructions& instructions_;     // Temporary Instructions handle
+  Object& obj_;                    // Temporary Object handle.
+  PassiveObject& pobj_;            // Temporary PassiveObject handle.
+  Array& array_;                   // Temporary Array handle.
+  Field& field_;                   // Temporary Field handle.
+  String& str_;                    // Temporary String handle.
+  Library& library_;               // Temporary library handle.
+  AbstractType& type_;             // Temporary type handle.
   TypeArguments& type_arguments_;  // Temporary type argument handle.
   GrowableObjectArray& tokens_;    // Temporary tokens handle.
   TokenStream& stream_;            // Temporary token stream handle.

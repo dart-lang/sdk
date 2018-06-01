@@ -686,10 +686,11 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
   __ PushObject(dst_name);  // Push the name of the destination.
   __ LoadObject(EAX, test_cache);
   __ pushl(EAX);
-  GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 6, locs);
+  __ PushObject(Smi::ZoneHandle(zone(), Smi::New(kTypeCheckFromInline)));
+  GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 7, locs);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
-  __ Drop(6);
+  __ Drop(7);
   __ popl(EAX);
 
   __ Bind(&is_assignable);
