@@ -270,7 +270,26 @@ class _HttpRequest extends _HttpInboundMessage implements HttpRequest {
       return _session;
     }
     // Create session, store it in connection, and return.
-    return _session = _httpServer._sessionManager.createSession();
+    _session = _httpServer._sessionManager.createSession();
+
+    bool found = false;
+    final cookies = response.cookies;
+    for (int i = 0; i < cookies.length; i++) {
+      if (cookies[i].name.toUpperCase() == _DART_SESSION_ID) {
+        cookies[i]
+          ..value = session.id
+          ..httpOnly = true
+          ..path = "/";
+        found = true;
+      }
+    }
+    if (!found) {
+      var cookie = new Cookie(_DART_SESSION_ID, session.id);
+      cookies.add(cookie
+        ..httpOnly = true
+        ..path = "/");
+    }
+    return _session;
   }
 
   HttpConnectionInfo get connectionInfo => _httpConnection.connectionInfo;
@@ -874,23 +893,6 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
     if (session != null && !session._destroyed) {
       // Mark as not new.
       session._isNew = false;
-      // Make sure we only send the current session id.
-      bool found = false;
-      for (int i = 0; i < cookies.length; i++) {
-        if (cookies[i].name.toUpperCase() == _DART_SESSION_ID) {
-          cookies[i]
-            ..value = session.id
-            ..httpOnly = true
-            ..path = "/";
-          found = true;
-        }
-      }
-      if (!found) {
-        var cookie = new Cookie(_DART_SESSION_ID, session.id);
-        cookies.add(cookie
-          ..httpOnly = true
-          ..path = "/");
-      }
     }
     // Add all the cookies set to the headers.
     if (_cookies != null) {
