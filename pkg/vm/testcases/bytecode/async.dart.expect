@@ -1,0 +1,2193 @@
+library #lib;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+[@vm.bytecode=
+Bytecode {
+  Entry                7
+  CheckStack
+  AllocateContext      4
+  StoreLocal           r1
+  Push                 r1
+  Push                 r0
+  StoreFieldTOS        CP#0
+  PopLocal             r0
+  Push                 r0
+  PushConstant         CP#1
+  PushConstant         CP#3
+  IndirectStaticCall   1, CP#2
+  StoreFieldTOS        CP#4
+  Push                 r0
+  PushConstant         CP#5
+  StoreFieldTOS        CP#6
+  PushConstant         CP#5
+  PopLocal             r2
+  PushConstant         CP#5
+  PopLocal             r3
+  PushConstant         CP#5
+  PopLocal             r4
+  Push                 r0
+  PushConstant         CP#7
+  StoreFieldTOS        CP#8
+  Push                 r0
+  PushConstant         CP#5
+  StoreFieldTOS        CP#9
+  Allocate             CP#19
+  StoreLocal           r6
+  Push                 r6
+  PushConstant         CP#5
+  StoreFieldTOS        CP#20
+  Push                 r6
+  PushConstant         CP#5
+  StoreFieldTOS        CP#21
+  Push                 r6
+  PushConstant         CP#10
+  StoreFieldTOS        CP#22
+  Push                 r6
+  Push                 r0
+  StoreFieldTOS        CP#11
+  PopLocal             r5
+  Push                 r5
+  PushConstant         CP#24
+  IndirectStaticCall   1, CP#23
+  StoreLocal           r2
+  Drop1
+  Push                 r5
+  PushConstant         CP#25
+  IndirectStaticCall   1, CP#23
+  StoreLocal           r3
+  Drop1
+  Push                 r5
+  PushConstant         CP#26
+  IndirectStaticCall   1, CP#23
+  StoreLocal           r4
+  Drop1
+  PushConstant         CP#27
+  Push                 r5
+  PushConstant         CP#29
+  IndirectStaticCall   2, CP#28
+  Drop1
+  Push                 r0
+  LoadFieldTOS         CP#4
+  InstanceCall1        1, CP#30
+  ReturnTOS
+  Push                 r0
+  LoadFieldTOS         CP#0
+  PopLocal             r0
+  PushConstant         CP#5
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ContextOffset parent
+  [1] = TypeArgs [dart.core::int]
+  [2] = ArgDesc num-args 0, num-type-args 1, names []
+  [3] = StaticICData target 'dart.async::Completer::sync', arg-desc CP#2
+  [4] = ContextOffset var [3]
+  [5] = Null
+  [6] = ContextOffset var [2]
+  [7] = Int 0
+  [8] = ContextOffset var [0]
+  [9] = ContextOffset var [1]
+  [10] = ClosureFunction :async_op ([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding ;
+  [11] = FieldOffset dart.core::_Closure::_context
+  [12] = Int 42
+  [13] = ArgDesc num-args 2, num-type-args 0, names []
+  [14] = ICData target-name 'complete', arg-desc CP#13
+  [15] = Type dynamic
+  [16] = ArgDesc num-args 3, num-type-args 0, names []
+  [17] = ICData target-name 'completeError', arg-desc CP#16
+  [18] = EndClosureFunctionScope
+  [19] = Class dart.core::_Closure
+  [20] = FieldOffset dart.core::_Closure::_instantiator_type_arguments
+  [21] = FieldOffset dart.core::_Closure::_function_type_arguments
+  [22] = FieldOffset dart.core::_Closure::_function
+  [23] = ArgDesc num-args 1, num-type-args 0, names []
+  [24] = StaticICData target 'dart.async::_asyncStackTraceHelper', arg-desc CP#23
+  [25] = StaticICData target 'dart.async::_asyncThenWrapperHelper', arg-desc CP#23
+  [26] = StaticICData target 'dart.async::_asyncErrorWrapperHelper', arg-desc CP#23
+  [27] = TypeArgs [dynamic]
+  [28] = ArgDesc num-args 1, num-type-args 1, names []
+  [29] = StaticICData target 'dart.async::Future::microtask', arg-desc CP#28
+  [30] = ICData get target-name 'future', arg-desc CP#23
+}
+Closure CP#10 {
+  EntryOptional        1, 3, 0
+  LoadConstant         r1, CP#5
+  LoadConstant         r2, CP#5
+  LoadConstant         r3, CP#5
+  Frame                6
+  CheckStack
+  Push                 r0
+  LoadFieldTOS         CP#11
+  PopLocal             r4
+  Push                 r4
+  LoadFieldTOS         CP#8
+  StoreLocal           r5
+  PushConstant         CP#7
+  IfNeStrictNumTOS
+  Jump                 L1
+  Push                 r4
+  PopLocal             r6
+Try #0 start:
+  Push                 r4
+  PushConstant         CP#12
+  StoreLocal           r8
+  StoreFieldTOS        CP#6
+  Push                 r8
+  Drop1
+  Jump                 L2
+L2:
+  Push                 r4
+  LoadFieldTOS         CP#4
+  Push                 r4
+  LoadFieldTOS         CP#6
+  InstanceCall1        2, CP#14
+  Drop1
+  PushConstant         CP#5
+  ReturnTOS
+  Jump                 L3
+Try #0 end:
+Try #0 handler:
+  Push                 r6
+  PopLocal             r4
+  MoveSpecial          r6, exception
+  MoveSpecial          r7, stackTrace
+  Push                 r6
+  PopLocal             r8
+  Push                 r7
+  PopLocal             r9
+  Push                 r4
+  LoadFieldTOS         CP#4
+  Push                 r8
+  Push                 r9
+  InstanceCall1        3, CP#17
+  Drop1
+  Jump                 L3
+L3:
+  PushConstant         CP#5
+  ReturnTOS
+L1:
+  Trap
+
+}
+]static method foo() → asy::Future<core::int> /* originally async */ {
+  final asy::Completer<core::int> :async_completer = asy::Completer::sync<core::int>();
+  asy::FutureOr<core::int> :return_value;
+  dynamic :async_stack_trace;
+  dynamic :async_op_then;
+  dynamic :async_op_error;
+  dynamic :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    try {
+      #L1:
+      {
+        :return_value = 42;
+        break #L1;
+      }
+      :async_completer.{asy::Completer::complete}(:return_value);
+      return;
+    }
+    on dynamic catch(dynamic :exception, dynamic :stack_trace) {
+      :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
+    }
+  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+  asy::Future::microtask<dynamic>(:async_op);
+  return :async_completer.{asy::Completer::future};
+}
+[@vm.bytecode=
+Bytecode {
+  Entry                4
+  CheckStack
+  AllocateContext      2
+  StoreLocal           r1
+  Push                 r1
+  Push                 r0
+  StoreFieldTOS        CP#0
+  PopLocal             r0
+  Push                 r0
+  Push                 FP[-6]
+  StoreFieldTOS        CP#1
+  Push                 r0
+  Push                 FP[-5]
+  StoreFieldTOS        CP#2
+  AllocateContext      9
+  StoreLocal           r1
+  Push                 r1
+  Push                 r0
+  StoreFieldTOS        CP#0
+  PopLocal             r0
+  Push                 r0
+  PushConstant         CP#3
+  PushConstant         CP#5
+  IndirectStaticCall   1, CP#4
+  StoreFieldTOS        CP#6
+  Push                 r0
+  PushConstant         CP#7
+  StoreFieldTOS        CP#8
+  PushConstant         CP#7
+  PopLocal             r2
+  Push                 r0
+  PushConstant         CP#7
+  StoreFieldTOS        CP#9
+  Push                 r0
+  PushConstant         CP#7
+  StoreFieldTOS        CP#10
+  Push                 r0
+  PushConstant         CP#11
+  StoreFieldTOS        CP#1
+  Push                 r0
+  PushConstant         CP#7
+  StoreFieldTOS        CP#2
+  Push                 r0
+  PushConstant         CP#7
+  StoreFieldTOS        CP#12
+  Push                 r0
+  PushConstant         CP#7
+  StoreFieldTOS        CP#13
+  Push                 r0
+  Allocate             CP#29
+  StoreLocal           r3
+  Push                 r3
+  PushConstant         CP#7
+  StoreFieldTOS        CP#30
+  Push                 r3
+  PushConstant         CP#7
+  StoreFieldTOS        CP#31
+  Push                 r3
+  PushConstant         CP#14
+  StoreFieldTOS        CP#32
+  Push                 r3
+  Push                 r0
+  StoreFieldTOS        CP#15
+  StoreFieldTOS        CP#17
+  Push                 r0
+  LoadFieldTOS         CP#17
+  PushConstant         CP#34
+  IndirectStaticCall   1, CP#33
+  StoreLocal           r2
+  Drop1
+  Push                 r0
+  Push                 r0
+  LoadFieldTOS         CP#17
+  PushConstant         CP#35
+  IndirectStaticCall   1, CP#33
+  StoreLocal           r3
+  StoreFieldTOS        CP#9
+  Push                 r3
+  Drop1
+  Push                 r0
+  Push                 r0
+  LoadFieldTOS         CP#17
+  PushConstant         CP#36
+  IndirectStaticCall   1, CP#33
+  StoreLocal           r3
+  StoreFieldTOS        CP#10
+  Push                 r3
+  Drop1
+  PushConstant         CP#37
+  Push                 r0
+  LoadFieldTOS         CP#17
+  PushConstant         CP#39
+  IndirectStaticCall   2, CP#38
+  Drop1
+  Push                 r0
+  LoadFieldTOS         CP#6
+  InstanceCall1        1, CP#40
+  ReturnTOS
+  Push                 r0
+  LoadFieldTOS         CP#0
+  PopLocal             r0
+  PushConstant         CP#7
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ContextOffset parent
+  [1] = ContextOffset var [0]
+  [2] = ContextOffset var [1]
+  [3] = TypeArgs [dart.core::int]
+  [4] = ArgDesc num-args 0, num-type-args 1, names []
+  [5] = StaticICData target 'dart.async::Completer::sync', arg-desc CP#4
+  [6] = ContextOffset var [8]
+  [7] = Null
+  [8] = ContextOffset var [7]
+  [9] = ContextOffset var [3]
+  [10] = ContextOffset var [4]
+  [11] = Int 0
+  [12] = ContextOffset var [2]
+  [13] = ContextOffset var [6]
+  [14] = ClosureFunction :async_op ([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding ;
+  [15] = FieldOffset dart.core::_Closure::_context
+  [16] = Int 1
+  [17] = ContextOffset var [5]
+  [18] = ArgDesc num-args 4, num-type-args 0, names []
+  [19] = StaticICData target 'dart.async::_awaitHelper', arg-desc CP#18
+  [20] = Int 2
+  [21] = StaticICData target 'dart.async::_awaitHelper', arg-desc CP#18
+  [22] = ArgDesc num-args 2, num-type-args 0, names []
+  [23] = ICData target-name '+', arg-desc CP#22
+  [24] = ICData target-name 'complete', arg-desc CP#22
+  [25] = Type dynamic
+  [26] = ArgDesc num-args 3, num-type-args 0, names []
+  [27] = ICData target-name 'completeError', arg-desc CP#26
+  [28] = EndClosureFunctionScope
+  [29] = Class dart.core::_Closure
+  [30] = FieldOffset dart.core::_Closure::_instantiator_type_arguments
+  [31] = FieldOffset dart.core::_Closure::_function_type_arguments
+  [32] = FieldOffset dart.core::_Closure::_function
+  [33] = ArgDesc num-args 1, num-type-args 0, names []
+  [34] = StaticICData target 'dart.async::_asyncStackTraceHelper', arg-desc CP#33
+  [35] = StaticICData target 'dart.async::_asyncThenWrapperHelper', arg-desc CP#33
+  [36] = StaticICData target 'dart.async::_asyncErrorWrapperHelper', arg-desc CP#33
+  [37] = TypeArgs [dynamic]
+  [38] = ArgDesc num-args 1, num-type-args 1, names []
+  [39] = StaticICData target 'dart.async::Future::microtask', arg-desc CP#38
+  [40] = ICData get target-name 'future', arg-desc CP#33
+}
+Closure CP#14 {
+  EntryOptional        1, 3, 0
+  LoadConstant         r1, CP#7
+  LoadConstant         r2, CP#7
+  LoadConstant         r3, CP#7
+  Frame                6
+  CheckStack
+  Push                 r0
+  LoadFieldTOS         CP#15
+  PopLocal             r4
+  Push                 r4
+  LoadFieldTOS         CP#1
+  StoreLocal           r5
+  PushConstant         CP#11
+  IfNeStrictNumTOS
+  Jump                 L1
+  Push                 r4
+  Push                 r4
+  StoreFieldTOS        CP#12
+Try #0 start:
+  Push                 r4
+  PushConstant         CP#16
+  StoreFieldTOS        CP#1
+  Push                 r4
+  Push                 r4
+  StoreFieldTOS        CP#2
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#1
+  Push                 r4
+  LoadFieldTOS         CP#9
+  Push                 r4
+  LoadFieldTOS         CP#10
+  Push                 r4
+  LoadFieldTOS         CP#17
+  PushConstant         CP#19
+  IndirectStaticCall   4, CP#18
+  PopLocal             r8
+  PushConstant         CP#7
+  ReturnTOS
+L6:
+  IfEqNull             r2
+  Jump                 L2
+  Push                 r2
+  Push                 r3
+  Throw                1
+L2:
+  Push                 r4
+  Push                 r1
+  StoreLocal           r8
+  StoreFieldTOS        CP#13
+  Push                 r8
+  Drop1
+  Push                 r4
+  PushConstant         CP#20
+  StoreFieldTOS        CP#1
+  Push                 r4
+  Push                 r4
+  StoreFieldTOS        CP#2
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#2
+  Push                 r4
+  LoadFieldTOS         CP#9
+  Push                 r4
+  LoadFieldTOS         CP#10
+  Push                 r4
+  LoadFieldTOS         CP#17
+  PushConstant         CP#21
+  IndirectStaticCall   4, CP#18
+  PopLocal             r9
+  PushConstant         CP#7
+  ReturnTOS
+L7:
+  IfEqNull             r2
+  Jump                 L3
+  Push                 r2
+  Push                 r3
+  Throw                1
+L3:
+  Push                 r4
+  Push                 r4
+  LoadFieldTOS         CP#13
+  Push                 r1
+  InstanceCall1        2, CP#23
+  StoreLocal           r8
+  StoreFieldTOS        CP#8
+  Push                 r8
+  Drop1
+  Jump                 L4
+L4:
+  Push                 r4
+  LoadFieldTOS         CP#6
+  Push                 r4
+  LoadFieldTOS         CP#8
+  InstanceCall1        2, CP#24
+  Drop1
+  PushConstant         CP#7
+  ReturnTOS
+  Jump                 L5
+Try #0 end:
+Try #0 handler:
+  Push                 r0
+  LoadFieldTOS         CP#15
+  PopLocal             r4
+  Push                 r4
+  LoadFieldTOS         CP#12
+  PopLocal             r4
+  MoveSpecial          r6, exception
+  MoveSpecial          r7, stackTrace
+  Push                 r6
+  PopLocal             r8
+  Push                 r7
+  PopLocal             r9
+  Push                 r4
+  LoadFieldTOS         CP#6
+  Push                 r8
+  Push                 r9
+  InstanceCall1        3, CP#27
+  Drop1
+  Jump                 L5
+L5:
+  PushConstant         CP#7
+  ReturnTOS
+L1:
+  Push                 r4
+  LoadFieldTOS         CP#2
+  PopLocal             r4
+  Push                 r5
+  PushConstant         CP#16
+  IfEqStrictNumTOS
+  Jump                 L6
+  Jump                 L7
+
+}
+]static method simpleAsyncAwait(asy::Future<core::int> a, asy::Future<core::int> b) → asy::Future<core::int> /* originally async */ {
+  final asy::Completer<core::int> :async_completer = asy::Completer::sync<core::int>();
+  asy::FutureOr<core::int> :return_value;
+  dynamic :async_stack_trace;
+  dynamic :async_op_then;
+  dynamic :async_op_error;
+  dynamic :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  dynamic :saved_try_context_var0;
+  dynamic :async_temporary_0;
+  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    try {
+      #L2:
+      {
+        [yield] let dynamic #t1 = asy::_awaitHelper(a, :async_op_then, :async_op_error, :async_op) in null;
+        :async_temporary_0 = :result;
+        [yield] let dynamic #t2 = asy::_awaitHelper(b, :async_op_then, :async_op_error, :async_op) in null;
+        :return_value = :async_temporary_0.{core::num::+}(:result);
+        break #L2;
+      }
+      :async_completer.{asy::Completer::complete}(:return_value);
+      return;
+    }
+    on dynamic catch(dynamic :exception, dynamic :stack_trace) {
+      :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
+    }
+  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+  asy::Future::microtask<dynamic>(:async_op);
+  return :async_completer.{asy::Completer::future};
+}
+[@vm.bytecode=
+Bytecode {
+  Entry                4
+  CheckStack
+  AllocateContext      1
+  StoreLocal           r1
+  Push                 r1
+  Push                 r0
+  StoreFieldTOS        CP#0
+  PopLocal             r0
+  Push                 r0
+  Push                 FP[-5]
+  StoreFieldTOS        CP#1
+  AllocateContext      10
+  StoreLocal           r1
+  Push                 r1
+  Push                 r0
+  StoreFieldTOS        CP#0
+  PopLocal             r0
+  Push                 r0
+  PushConstant         CP#2
+  PushConstant         CP#4
+  IndirectStaticCall   1, CP#3
+  StoreFieldTOS        CP#5
+  Push                 r0
+  PushConstant         CP#6
+  StoreFieldTOS        CP#7
+  PushConstant         CP#6
+  PopLocal             r2
+  Push                 r0
+  PushConstant         CP#6
+  StoreFieldTOS        CP#8
+  Push                 r0
+  PushConstant         CP#6
+  StoreFieldTOS        CP#9
+  Push                 r0
+  PushConstant         CP#10
+  StoreFieldTOS        CP#1
+  Push                 r0
+  PushConstant         CP#6
+  StoreFieldTOS        CP#11
+  Push                 r0
+  PushConstant         CP#6
+  StoreFieldTOS        CP#12
+  Push                 r0
+  PushConstant         CP#6
+  StoreFieldTOS        CP#13
+  Push                 r0
+  PushConstant         CP#6
+  StoreFieldTOS        CP#14
+  Push                 r0
+  Allocate             CP#43
+  StoreLocal           r3
+  Push                 r3
+  PushConstant         CP#6
+  StoreFieldTOS        CP#44
+  Push                 r3
+  PushConstant         CP#6
+  StoreFieldTOS        CP#45
+  Push                 r3
+  PushConstant         CP#15
+  StoreFieldTOS        CP#46
+  Push                 r3
+  Push                 r0
+  StoreFieldTOS        CP#16
+  StoreFieldTOS        CP#29
+  Push                 r0
+  LoadFieldTOS         CP#29
+  PushConstant         CP#47
+  IndirectStaticCall   1, CP#21
+  StoreLocal           r2
+  Drop1
+  Push                 r0
+  Push                 r0
+  LoadFieldTOS         CP#29
+  PushConstant         CP#48
+  IndirectStaticCall   1, CP#21
+  StoreLocal           r3
+  StoreFieldTOS        CP#8
+  Push                 r3
+  Drop1
+  Push                 r0
+  Push                 r0
+  LoadFieldTOS         CP#29
+  PushConstant         CP#49
+  IndirectStaticCall   1, CP#21
+  StoreLocal           r3
+  StoreFieldTOS        CP#9
+  Push                 r3
+  Drop1
+  PushConstant         CP#50
+  Push                 r0
+  LoadFieldTOS         CP#29
+  PushConstant         CP#52
+  IndirectStaticCall   2, CP#51
+  Drop1
+  Push                 r0
+  LoadFieldTOS         CP#5
+  InstanceCall1        1, CP#53
+  ReturnTOS
+  Push                 r0
+  LoadFieldTOS         CP#0
+  PopLocal             r0
+  PushConstant         CP#6
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ContextOffset parent
+  [1] = ContextOffset var [0]
+  [2] = TypeArgs [dart.core::int]
+  [3] = ArgDesc num-args 0, num-type-args 1, names []
+  [4] = StaticICData target 'dart.async::Completer::sync', arg-desc CP#3
+  [5] = ContextOffset var [9]
+  [6] = Null
+  [7] = ContextOffset var [8]
+  [8] = ContextOffset var [5]
+  [9] = ContextOffset var [6]
+  [10] = Int 0
+  [11] = ContextOffset var [1]
+  [12] = ContextOffset var [4]
+  [13] = ContextOffset var [3]
+  [14] = ContextOffset var [2]
+  [15] = ClosureFunction :async_op ([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding ;
+  [16] = FieldOffset dart.core::_Closure::_context
+  [17] = Int 10
+  [18] = ArgDesc num-args 2, num-type-args 0, names []
+  [19] = ICData target-name '<', arg-desc CP#18
+  [20] = Bool true
+  [21] = ArgDesc num-args 1, num-type-args 0, names []
+  [22] = ICData get target-name 'iterator', arg-desc CP#21
+  [23] = ICData target-name 'moveNext', arg-desc CP#21
+  [24] = ICData get target-name 'current', arg-desc CP#21
+  [25] = ICData target-name '+', arg-desc CP#18
+  [26] = Int 1
+  [27] = ArgDesc num-args 0, num-type-args 0, names []
+  [28] = StaticICData target '#lib::foo', arg-desc CP#27
+  [29] = ContextOffset var [7]
+  [30] = ArgDesc num-args 4, num-type-args 0, names []
+  [31] = StaticICData target 'dart.async::_awaitHelper', arg-desc CP#30
+  [32] = ICData target-name '+', arg-desc CP#18
+  [33] = ICData target-name '+', arg-desc CP#18
+  [34] = ICData target-name '+', arg-desc CP#18
+  [35] = ICData target-name '<', arg-desc CP#18
+  [36] = ICData target-name '+', arg-desc CP#18
+  [37] = ICData target-name '+', arg-desc CP#18
+  [38] = ICData target-name 'complete', arg-desc CP#18
+  [39] = Type dynamic
+  [40] = ArgDesc num-args 3, num-type-args 0, names []
+  [41] = ICData target-name 'completeError', arg-desc CP#40
+  [42] = EndClosureFunctionScope
+  [43] = Class dart.core::_Closure
+  [44] = FieldOffset dart.core::_Closure::_instantiator_type_arguments
+  [45] = FieldOffset dart.core::_Closure::_function_type_arguments
+  [46] = FieldOffset dart.core::_Closure::_function
+  [47] = StaticICData target 'dart.async::_asyncStackTraceHelper', arg-desc CP#21
+  [48] = StaticICData target 'dart.async::_asyncThenWrapperHelper', arg-desc CP#21
+  [49] = StaticICData target 'dart.async::_asyncErrorWrapperHelper', arg-desc CP#21
+  [50] = TypeArgs [dynamic]
+  [51] = ArgDesc num-args 1, num-type-args 1, names []
+  [52] = StaticICData target 'dart.async::Future::microtask', arg-desc CP#51
+  [53] = ICData get target-name 'future', arg-desc CP#21
+}
+Closure CP#15 {
+  EntryOptional        1, 3, 0
+  LoadConstant         r1, CP#6
+  LoadConstant         r2, CP#6
+  LoadConstant         r3, CP#6
+  Frame                7
+  CheckStack
+  Push                 r0
+  LoadFieldTOS         CP#16
+  PopLocal             r4
+  Push                 r4
+  LoadFieldTOS         CP#1
+  StoreLocal           r5
+  PushConstant         CP#10
+  IfNeStrictNumTOS
+  Jump                 L1
+  Push                 r4
+  Push                 r4
+  StoreFieldTOS        CP#12
+Try #0 start:
+  AllocateContext      1
+  StoreLocal           r5
+  Push                 r5
+  Push                 r4
+  StoreFieldTOS        CP#0
+  PopLocal             r4
+  Push                 r4
+  PushConstant         CP#10
+  StoreFieldTOS        CP#1
+  AllocateContext      1
+  StoreLocal           r5
+  Push                 r5
+  Push                 r4
+  StoreFieldTOS        CP#0
+  PopLocal             r4
+  Push                 r4
+  PushConstant         CP#10
+  StoreFieldTOS        CP#1
+L6:
+  CheckStack
+  Push                 r4
+  LoadFieldTOS         CP#1
+  PushConstant         CP#17
+  InstanceCall1        2, CP#19
+  PushConstant         CP#20
+  IfNeStrictTOS
+  Jump                 L2
+  AllocateContext      1
+  StoreLocal           r5
+  Push                 r5
+  Push                 r4
+  StoreFieldTOS        CP#0
+  PopLocal             r4
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#1
+  InstanceCall1        1, CP#22
+  PopLocal             r8
+  Push                 r4
+  Push                 r8
+  StoreFieldTOS        CP#1
+L5:
+  CheckStack
+  Push                 r4
+  LoadFieldTOS         CP#1
+  StoreLocal           r8
+  InstanceCall1        1, CP#23
+  PushConstant         CP#20
+  IfNeStrictTOS
+  Jump                 L3
+  AllocateContext      1
+  StoreLocal           r5
+  Push                 r5
+  Push                 r4
+  StoreFieldTOS        CP#0
+  PopLocal             r4
+  Push                 r4
+  Push                 r8
+  InstanceCall1        1, CP#24
+  StoreFieldTOS        CP#1
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#1
+  StoreLocal           r9
+  StoreFieldTOS        CP#14
+  Push                 r9
+  Drop1
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#1
+  Push                 r4
+  LoadFieldTOS         CP#1
+  InstanceCall1        2, CP#25
+  StoreLocal           r9
+  StoreFieldTOS        CP#13
+  Push                 r9
+  Drop1
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  PushConstant         CP#26
+  StoreFieldTOS        CP#1
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  Push                 r4
+  StoreFieldTOS        CP#11
+  PushConstant         CP#28
+  IndirectStaticCall   0, CP#27
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#8
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#9
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#29
+  PushConstant         CP#31
+  IndirectStaticCall   4, CP#30
+  PopLocal             r10
+  PushConstant         CP#6
+  ReturnTOS
+L11:
+  IfEqNull             r2
+  Jump                 L4
+  Push                 r2
+  Push                 r3
+  Throw                1
+L4:
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#14
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#13
+  Push                 r1
+  InstanceCall1        2, CP#32
+  InstanceCall1        2, CP#33
+  StoreLocal           r9
+  StoreFieldTOS        CP#1
+  Push                 r9
+  Drop1
+  Push                 r4
+  LoadFieldTOS         CP#0
+  PopLocal             r4
+  Jump                 L5
+L3:
+  Push                 r4
+  LoadFieldTOS         CP#0
+  PopLocal             r4
+  Push                 r4
+  CloneContext
+  PopLocal             r4
+  Push                 r4
+  Push                 r4
+  LoadFieldTOS         CP#1
+  PushConstant         CP#26
+  InstanceCall1        2, CP#34
+  StoreLocal           r8
+  StoreFieldTOS        CP#1
+  Push                 r8
+  Drop1
+  Jump                 L6
+L2:
+  Push                 r4
+  LoadFieldTOS         CP#0
+  PopLocal             r4
+  PushConstant         CP#10
+  PopLocal             r8
+L8:
+  CheckStack
+  Push                 r8
+  PushConstant         CP#17
+  InstanceCall1        2, CP#35
+  PushConstant         CP#20
+  IfNeStrictTOS
+  Jump                 L7
+  Push                 r4
+  Push                 r4
+  LoadFieldTOS         CP#1
+  Push                 r8
+  InstanceCall1        2, CP#36
+  StoreLocal           r9
+  StoreFieldTOS        CP#1
+  Push                 r9
+  Drop1
+  Push                 r8
+  PushConstant         CP#26
+  InstanceCall1        2, CP#37
+  StoreLocal           r8
+  Drop1
+  Jump                 L8
+L7:
+  Push                 r4
+  LoadFieldTOS         CP#0
+  Push                 r4
+  LoadFieldTOS         CP#1
+  StoreLocal           r8
+  StoreFieldTOS        CP#7
+  Push                 r8
+  Drop1
+  Push                 r4
+  LoadFieldTOS         CP#0
+  PopLocal             r4
+  Jump                 L9
+  Push                 r4
+  LoadFieldTOS         CP#0
+  PopLocal             r4
+L9:
+  Push                 r4
+  LoadFieldTOS         CP#5
+  Push                 r4
+  LoadFieldTOS         CP#7
+  InstanceCall1        2, CP#38
+  Drop1
+  PushConstant         CP#6
+  ReturnTOS
+  Jump                 L10
+Try #0 end:
+Try #0 handler:
+  Push                 r0
+  LoadFieldTOS         CP#16
+  PopLocal             r4
+  Push                 r4
+  LoadFieldTOS         CP#12
+  PopLocal             r4
+  MoveSpecial          r6, exception
+  MoveSpecial          r7, stackTrace
+  Push                 r6
+  PopLocal             r8
+  Push                 r7
+  PopLocal             r9
+  Push                 r4
+  LoadFieldTOS         CP#5
+  Push                 r8
+  Push                 r9
+  InstanceCall1        3, CP#41
+  Drop1
+  Jump                 L10
+L10:
+  PushConstant         CP#6
+  ReturnTOS
+L1:
+  Push                 r4
+  LoadFieldTOS         CP#11
+  PopLocal             r4
+  Jump                 L11
+
+}
+]static method loops(core::List<core::int> list) → asy::Future<core::int> /* originally async */ {
+  final asy::Completer<core::int> :async_completer = asy::Completer::sync<core::int>();
+  asy::FutureOr<core::int> :return_value;
+  dynamic :async_stack_trace;
+  dynamic :async_op_then;
+  dynamic :async_op_error;
+  dynamic :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  dynamic :saved_try_context_var0;
+  dynamic :async_temporary_0;
+  dynamic :async_temporary_1;
+  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    try {
+      #L3:
+      {
+        core::int sum = 0;
+        for (core::int i = 0; i.{core::num::<}(10); i = i.{core::num::+}(1)) {
+          for (core::int j in list) {
+            :async_temporary_1 = sum;
+            :async_temporary_0 = i.{core::num::+}(j);
+            [yield] let dynamic #t3 = asy::_awaitHelper(self::foo(), :async_op_then, :async_op_error, :async_op) in null;
+            sum = :async_temporary_1.{core::num::+}(:async_temporary_0.{core::num::+}(:result));
+          }
+        }
+        for (core::int k = 0; k.{core::num::<}(10); k = k.{core::num::+}(1)) {
+          sum = sum.{core::num::+}(k);
+        }
+        :return_value = sum;
+        break #L3;
+      }
+      :async_completer.{asy::Completer::complete}(:return_value);
+      return;
+    }
+    on dynamic catch(dynamic :exception, dynamic :stack_trace) {
+      :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
+    }
+  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+  asy::Future::microtask<dynamic>(:async_op);
+  return :async_completer.{asy::Completer::future};
+}
+[@vm.bytecode=
+Bytecode {
+  Entry                4
+  CheckStack
+  AllocateContext      3
+  StoreLocal           r1
+  Push                 r1
+  Push                 r0
+  StoreFieldTOS        CP#0
+  PopLocal             r0
+  Push                 r0
+  Push                 FP[-7]
+  StoreFieldTOS        CP#1
+  Push                 r0
+  Push                 FP[-6]
+  StoreFieldTOS        CP#2
+  Push                 r0
+  Push                 FP[-5]
+  StoreFieldTOS        CP#3
+  AllocateContext      13
+  StoreLocal           r1
+  Push                 r1
+  Push                 r0
+  StoreFieldTOS        CP#0
+  PopLocal             r0
+  Push                 r0
+  PushConstant         CP#4
+  PushConstant         CP#6
+  IndirectStaticCall   1, CP#5
+  StoreFieldTOS        CP#7
+  Push                 r0
+  PushConstant         CP#8
+  StoreFieldTOS        CP#9
+  PushConstant         CP#8
+  PopLocal             r2
+  Push                 r0
+  PushConstant         CP#8
+  StoreFieldTOS        CP#10
+  Push                 r0
+  PushConstant         CP#8
+  StoreFieldTOS        CP#11
+  Push                 r0
+  PushConstant         CP#12
+  StoreFieldTOS        CP#1
+  Push                 r0
+  PushConstant         CP#8
+  StoreFieldTOS        CP#2
+  Push                 r0
+  PushConstant         CP#8
+  StoreFieldTOS        CP#13
+  Push                 r0
+  PushConstant         CP#8
+  StoreFieldTOS        CP#14
+  Push                 r0
+  PushConstant         CP#8
+  StoreFieldTOS        CP#15
+  Push                 r0
+  PushConstant         CP#8
+  StoreFieldTOS        CP#16
+  Push                 r0
+  PushConstant         CP#8
+  StoreFieldTOS        CP#17
+  Push                 r0
+  PushConstant         CP#8
+  StoreFieldTOS        CP#3
+  Push                 r0
+  Allocate             CP#52
+  StoreLocal           r3
+  Push                 r3
+  PushConstant         CP#8
+  StoreFieldTOS        CP#53
+  Push                 r3
+  PushConstant         CP#8
+  StoreFieldTOS        CP#54
+  Push                 r3
+  PushConstant         CP#18
+  StoreFieldTOS        CP#55
+  Push                 r3
+  Push                 r0
+  StoreFieldTOS        CP#19
+  StoreFieldTOS        CP#21
+  Push                 r0
+  LoadFieldTOS         CP#21
+  PushConstant         CP#56
+  IndirectStaticCall   1, CP#35
+  StoreLocal           r2
+  Drop1
+  Push                 r0
+  Push                 r0
+  LoadFieldTOS         CP#21
+  PushConstant         CP#57
+  IndirectStaticCall   1, CP#35
+  StoreLocal           r3
+  StoreFieldTOS        CP#10
+  Push                 r3
+  Drop1
+  Push                 r0
+  Push                 r0
+  LoadFieldTOS         CP#21
+  PushConstant         CP#58
+  IndirectStaticCall   1, CP#35
+  StoreLocal           r3
+  StoreFieldTOS        CP#11
+  Push                 r3
+  Drop1
+  PushConstant         CP#59
+  Push                 r0
+  LoadFieldTOS         CP#21
+  PushConstant         CP#61
+  IndirectStaticCall   2, CP#60
+  Drop1
+  Push                 r0
+  LoadFieldTOS         CP#7
+  InstanceCall1        1, CP#62
+  ReturnTOS
+  Push                 r0
+  LoadFieldTOS         CP#0
+  PopLocal             r0
+  PushConstant         CP#8
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ContextOffset parent
+  [1] = ContextOffset var [0]
+  [2] = ContextOffset var [1]
+  [3] = ContextOffset var [2]
+  [4] = TypeArgs [dart.core::int]
+  [5] = ArgDesc num-args 0, num-type-args 1, names []
+  [6] = StaticICData target 'dart.async::Completer::sync', arg-desc CP#5
+  [7] = ContextOffset var [12]
+  [8] = Null
+  [9] = ContextOffset var [9]
+  [10] = ContextOffset var [6]
+  [11] = ContextOffset var [7]
+  [12] = Int 0
+  [13] = ContextOffset var [3]
+  [14] = ContextOffset var [4]
+  [15] = ContextOffset var [5]
+  [16] = ContextOffset var [10]
+  [17] = ContextOffset var [11]
+  [18] = ClosureFunction :async_op ([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding ;
+  [19] = FieldOffset dart.core::_Closure::_context
+  [20] = Int 1
+  [21] = ContextOffset var [8]
+  [22] = ArgDesc num-args 4, num-type-args 0, names []
+  [23] = StaticICData target 'dart.async::_awaitHelper', arg-desc CP#22
+  [24] = ArgDesc num-args 2, num-type-args 0, names []
+  [25] = ICData target-name '+', arg-desc CP#24
+  [26] = Type dynamic
+  [27] = Type dart.core::Error
+  [28] = ICData target-name 'dart.core::_instanceOf', arg-desc CP#22
+  [29] = Bool true
+  [30] = Int 42
+  [31] = Int 2
+  [32] = StaticICData target 'dart.async::_awaitHelper', arg-desc CP#22
+  [33] = ICData target-name '+', arg-desc CP#24
+  [34] = String 'fin'
+  [35] = ArgDesc num-args 1, num-type-args 0, names []
+  [36] = StaticICData target 'dart.core::print', arg-desc CP#35
+  [37] = Int 3
+  [38] = StaticICData target 'dart.async::_awaitHelper', arg-desc CP#22
+  [39] = ICData target-name '+', arg-desc CP#24
+  [40] = StaticICData target 'dart.core::print', arg-desc CP#35
+  [41] = Int 4
+  [42] = StaticICData target 'dart.async::_awaitHelper', arg-desc CP#22
+  [43] = ICData target-name '+', arg-desc CP#24
+  [44] = StaticICData target 'dart.core::print', arg-desc CP#35
+  [45] = Int 5
+  [46] = StaticICData target 'dart.async::_awaitHelper', arg-desc CP#22
+  [47] = ICData target-name '+', arg-desc CP#24
+  [48] = ICData target-name 'complete', arg-desc CP#24
+  [49] = ArgDesc num-args 3, num-type-args 0, names []
+  [50] = ICData target-name 'completeError', arg-desc CP#49
+  [51] = EndClosureFunctionScope
+  [52] = Class dart.core::_Closure
+  [53] = FieldOffset dart.core::_Closure::_instantiator_type_arguments
+  [54] = FieldOffset dart.core::_Closure::_function_type_arguments
+  [55] = FieldOffset dart.core::_Closure::_function
+  [56] = StaticICData target 'dart.async::_asyncStackTraceHelper', arg-desc CP#35
+  [57] = StaticICData target 'dart.async::_asyncThenWrapperHelper', arg-desc CP#35
+  [58] = StaticICData target 'dart.async::_asyncErrorWrapperHelper', arg-desc CP#35
+  [59] = TypeArgs [dynamic]
+  [60] = ArgDesc num-args 1, num-type-args 1, names []
+  [61] = StaticICData target 'dart.async::Future::microtask', arg-desc CP#60
+  [62] = ICData get target-name 'future', arg-desc CP#35
+}
+Closure CP#18 {
+  EntryOptional        1, 3, 0
+  LoadConstant         r1, CP#8
+  LoadConstant         r2, CP#8
+  LoadConstant         r3, CP#8
+  Frame                10
+  CheckStack
+  Push                 r0
+  LoadFieldTOS         CP#19
+  PopLocal             r4
+  Push                 r4
+  LoadFieldTOS         CP#1
+  StoreLocal           r5
+  PushConstant         CP#12
+  IfNeStrictNumTOS
+  Jump                 L1
+  Push                 r4
+  Push                 r4
+  StoreFieldTOS        CP#13
+Try #0 start:
+  AllocateContext      1
+  StoreLocal           r5
+  Push                 r5
+  Push                 r4
+  StoreFieldTOS        CP#0
+  PopLocal             r4
+  Push                 r4
+  PushConstant         CP#20
+  StoreFieldTOS        CP#1
+  Push                 r4
+  LoadFieldTOS         CP#0
+  Push                 r4
+  StoreFieldTOS        CP#14
+Try #1 start:
+  Push                 r4
+  LoadFieldTOS         CP#0
+  Push                 r4
+  StoreFieldTOS        CP#15
+Try #2 start:
+  Push                 r4
+  LoadFieldTOS         CP#0
+  Push                 r4
+  LoadFieldTOS         CP#1
+  StoreLocal           r12
+  StoreFieldTOS        CP#3
+  Push                 r12
+  Drop1
+  Push                 r4
+  LoadFieldTOS         CP#0
+  PushConstant         CP#20
+  StoreFieldTOS        CP#1
+  Push                 r4
+  LoadFieldTOS         CP#0
+  Push                 r4
+  StoreFieldTOS        CP#2
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#1
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#10
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#11
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#21
+  PushConstant         CP#23
+  IndirectStaticCall   4, CP#22
+  PopLocal             r13
+  PushConstant         CP#8
+  ReturnTOS
+L13:
+  IfEqNull             r2
+  Jump                 L2
+  Push                 r2
+  Push                 r3
+  Throw                1
+L2:
+  Push                 r4
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
+  Push                 r1
+  InstanceCall1        2, CP#25
+  StoreLocal           r12
+  StoreFieldTOS        CP#1
+  Push                 r12
+  Drop1
+  Jump                 L3
+Try #2 end:
+Try #2 handler:
+  Push                 r0
+  LoadFieldTOS         CP#19
+  PopLocal             r4
+  Push                 r4
+  LoadFieldTOS         CP#15
+  PopLocal             r4
+  MoveSpecial          r10, exception
+  MoveSpecial          r11, stackTrace
+  Push                 r4
+  LoadFieldTOS         CP#0
+  Push                 r10
+  StoreFieldTOS        CP#16
+  Push                 r4
+  LoadFieldTOS         CP#0
+  Push                 r11
+  StoreFieldTOS        CP#17
+  AllocateContext      1
+  StoreLocal           r5
+  Push                 r5
+  Push                 r4
+  StoreFieldTOS        CP#0
+  PopLocal             r4
+  Push                 r4
+  Push                 r10
+  StoreFieldTOS        CP#1
+  Push                 r4
+  LoadFieldTOS         CP#1
+  PushConstant         CP#8
+  PushConstant         CP#8
+  PushConstant         CP#27
+  InstanceCall1        4, CP#28
+  PushConstant         CP#29
+  IfNeStrictTOS
+  Jump                 L4
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  PushConstant         CP#30
+  StoreLocal           r12
+  StoreFieldTOS        CP#9
+  Push                 r12
+  Drop1
+  Jump                 L5
+L4:
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#1
+  StoreLocal           r12
+  StoreFieldTOS        CP#3
+  Push                 r12
+  Drop1
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  PushConstant         CP#31
+  StoreFieldTOS        CP#1
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  Push                 r4
+  StoreFieldTOS        CP#2
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#2
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#10
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#11
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#21
+  PushConstant         CP#32
+  IndirectStaticCall   4, CP#22
+  PopLocal             r13
+  PushConstant         CP#8
+  ReturnTOS
+L14:
+  IfEqNull             r2
+  Jump                 L6
+  Push                 r2
+  Push                 r3
+  Throw                1
+L6:
+  Push                 r4
+  LoadFieldTOS         CP#0
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
+  Push                 r1
+  InstanceCall1        2, CP#33
+  StoreLocal           r12
+  StoreFieldTOS        CP#1
+  Push                 r12
+  Drop1
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#16
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#17
+  Throw                1
+  Drop1
+  Push                 r4
+  LoadFieldTOS         CP#0
+  PopLocal             r4
+  Jump                 L3
+L3:
+  Jump                 L7
+Try #1 end:
+Try #1 handler:
+  Push                 r0
+  LoadFieldTOS         CP#19
+  PopLocal             r4
+  Push                 r4
+  LoadFieldTOS         CP#14
+  PopLocal             r4
+  MoveSpecial          r8, exception
+  MoveSpecial          r9, stackTrace
+  Push                 r4
+  LoadFieldTOS         CP#0
+  Push                 r8
+  StoreFieldTOS        CP#16
+  Push                 r4
+  LoadFieldTOS         CP#0
+  Push                 r9
+  StoreFieldTOS        CP#17
+  PushConstant         CP#34
+  PushConstant         CP#36
+  IndirectStaticCall   1, CP#35
+  Drop1
+  Push                 r4
+  LoadFieldTOS         CP#0
+  Push                 r4
+  LoadFieldTOS         CP#1
+  StoreLocal           r10
+  StoreFieldTOS        CP#3
+  Push                 r10
+  Drop1
+  Push                 r4
+  LoadFieldTOS         CP#0
+  PushConstant         CP#37
+  StoreFieldTOS        CP#1
+  Push                 r4
+  LoadFieldTOS         CP#0
+  Push                 r4
+  StoreFieldTOS        CP#2
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#10
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#11
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#21
+  PushConstant         CP#38
+  IndirectStaticCall   4, CP#22
+  PopLocal             r12
+  PushConstant         CP#8
+  ReturnTOS
+L15:
+  IfEqNull             r2
+  Jump                 L8
+  Push                 r2
+  Push                 r3
+  Throw                1
+L8:
+  Push                 r4
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
+  Push                 r1
+  InstanceCall1        2, CP#39
+  StoreLocal           r10
+  StoreFieldTOS        CP#1
+  Push                 r10
+  Drop1
+  Push                 r4
+  LoadFieldTOS         CP#0
+  Push                 r4
+  LoadFieldTOS         CP#1
+  StoreLocal           r10
+  StoreFieldTOS        CP#9
+  Push                 r10
+  Drop1
+  Push                 r4
+  LoadFieldTOS         CP#0
+  PopLocal             r4
+  Jump                 L9
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#16
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#17
+  Throw                1
+L5:
+  Push                 r0
+  LoadFieldTOS         CP#19
+  PopLocal             r4
+  Push                 r4
+  LoadFieldTOS         CP#14
+  PopLocal             r4
+  PushConstant         CP#34
+  PushConstant         CP#40
+  IndirectStaticCall   1, CP#35
+  Drop1
+  Push                 r4
+  LoadFieldTOS         CP#0
+  Push                 r4
+  LoadFieldTOS         CP#1
+  StoreLocal           r10
+  StoreFieldTOS        CP#3
+  Push                 r10
+  Drop1
+  Push                 r4
+  LoadFieldTOS         CP#0
+  PushConstant         CP#41
+  StoreFieldTOS        CP#1
+  Push                 r4
+  LoadFieldTOS         CP#0
+  Push                 r4
+  StoreFieldTOS        CP#2
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#10
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#11
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#21
+  PushConstant         CP#42
+  IndirectStaticCall   4, CP#22
+  PopLocal             r12
+  PushConstant         CP#8
+  ReturnTOS
+L16:
+  IfEqNull             r2
+  Jump                 L10
+  Push                 r2
+  Push                 r3
+  Throw                1
+L10:
+  Push                 r4
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
+  Push                 r1
+  InstanceCall1        2, CP#43
+  StoreLocal           r10
+  StoreFieldTOS        CP#1
+  Push                 r10
+  Drop1
+  Push                 r4
+  LoadFieldTOS         CP#0
+  Push                 r4
+  LoadFieldTOS         CP#1
+  StoreLocal           r10
+  StoreFieldTOS        CP#9
+  Push                 r10
+  Drop1
+  Push                 r4
+  LoadFieldTOS         CP#0
+  PopLocal             r4
+  Jump                 L9
+  Push                 r4
+  LoadFieldTOS         CP#0
+  PopLocal             r4
+  Jump                 L9
+L7:
+  Push                 r0
+  LoadFieldTOS         CP#19
+  PopLocal             r4
+  Push                 r4
+  LoadFieldTOS         CP#14
+  PopLocal             r4
+  PushConstant         CP#34
+  PushConstant         CP#44
+  IndirectStaticCall   1, CP#35
+  Drop1
+  Push                 r4
+  LoadFieldTOS         CP#0
+  Push                 r4
+  LoadFieldTOS         CP#1
+  StoreLocal           r10
+  StoreFieldTOS        CP#3
+  Push                 r10
+  Drop1
+  Push                 r4
+  LoadFieldTOS         CP#0
+  PushConstant         CP#45
+  StoreFieldTOS        CP#1
+  Push                 r4
+  LoadFieldTOS         CP#0
+  Push                 r4
+  StoreFieldTOS        CP#2
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#10
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#11
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#21
+  PushConstant         CP#46
+  IndirectStaticCall   4, CP#22
+  PopLocal             r12
+  PushConstant         CP#8
+  ReturnTOS
+L17:
+  IfEqNull             r2
+  Jump                 L11
+  Push                 r2
+  Push                 r3
+  Throw                1
+L11:
+  Push                 r4
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
+  Push                 r1
+  InstanceCall1        2, CP#47
+  StoreLocal           r10
+  StoreFieldTOS        CP#1
+  Push                 r10
+  Drop1
+  Push                 r4
+  LoadFieldTOS         CP#0
+  Push                 r4
+  LoadFieldTOS         CP#1
+  StoreLocal           r10
+  StoreFieldTOS        CP#9
+  Push                 r10
+  Drop1
+  Push                 r4
+  LoadFieldTOS         CP#0
+  PopLocal             r4
+  Jump                 L9
+  Push                 r4
+  LoadFieldTOS         CP#0
+  PopLocal             r4
+L9:
+  Push                 r4
+  LoadFieldTOS         CP#7
+  Push                 r4
+  LoadFieldTOS         CP#9
+  InstanceCall1        2, CP#48
+  Drop1
+  PushConstant         CP#8
+  ReturnTOS
+  Jump                 L12
+Try #0 end:
+Try #0 handler:
+  Push                 r0
+  LoadFieldTOS         CP#19
+  PopLocal             r4
+  Push                 r4
+  LoadFieldTOS         CP#13
+  PopLocal             r4
+  MoveSpecial          r6, exception
+  MoveSpecial          r7, stackTrace
+  Push                 r6
+  PopLocal             r8
+  Push                 r7
+  PopLocal             r9
+  Push                 r4
+  LoadFieldTOS         CP#7
+  Push                 r8
+  Push                 r9
+  InstanceCall1        3, CP#50
+  Drop1
+  Jump                 L12
+L12:
+  PushConstant         CP#8
+  ReturnTOS
+L1:
+  Push                 r4
+  LoadFieldTOS         CP#2
+  PopLocal             r4
+  Push                 r5
+  PushConstant         CP#20
+  IfEqStrictNumTOS
+  Jump                 L13
+  Push                 r5
+  PushConstant         CP#31
+  IfEqStrictNumTOS
+  Jump                 L14
+  Push                 r5
+  PushConstant         CP#37
+  IfEqStrictNumTOS
+  Jump                 L15
+  Push                 r5
+  PushConstant         CP#41
+  IfEqStrictNumTOS
+  Jump                 L16
+  Jump                 L17
+
+}
+]static method tryCatchRethrow(asy::Future<core::int> a, asy::Future<core::int> b, asy::Future<core::int> c) → asy::Future<core::int> /* originally async */ {
+  final asy::Completer<core::int> :async_completer = asy::Completer::sync<core::int>();
+  asy::FutureOr<core::int> :return_value;
+  dynamic :async_stack_trace;
+  dynamic :async_op_then;
+  dynamic :async_op_error;
+  dynamic :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  dynamic :saved_try_context_var0;
+  dynamic :saved_try_context_var1;
+  dynamic :saved_try_context_var2;
+  dynamic :exception0;
+  dynamic :stack_trace0;
+  dynamic :async_temporary_0;
+  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    try {
+      #L4:
+      {
+        core::int x = 1;
+        try
+          try {
+            :async_temporary_0 = x;
+            [yield] let dynamic #t4 = asy::_awaitHelper(a, :async_op_then, :async_op_error, :async_op) in null;
+            x = :async_temporary_0.{core::num::+}(:result);
+          }
+          on dynamic catch(final dynamic e) {
+            if(e is core::Error) {
+              :return_value = 42;
+              break #L4;
+            }
+            :async_temporary_0 = x;
+            [yield] let dynamic #t5 = asy::_awaitHelper(b, :async_op_then, :async_op_error, :async_op) in null;
+            x = :async_temporary_0.{core::num::+}(:result);
+            rethrow;
+          }
+        finally {
+          core::print("fin");
+          :async_temporary_0 = x;
+          [yield] let dynamic #t6 = asy::_awaitHelper(c, :async_op_then, :async_op_error, :async_op) in null;
+          x = :async_temporary_0.{core::num::+}(:result);
+          :return_value = x;
+          break #L4;
+        }
+      }
+      :async_completer.{asy::Completer::complete}(:return_value);
+      return;
+    }
+    on dynamic catch(dynamic :exception, dynamic :stack_trace) {
+      :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
+    }
+  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+  asy::Future::microtask<dynamic>(:async_op);
+  return :async_completer.{asy::Completer::future};
+}
+[@vm.bytecode=
+Bytecode {
+  Entry                4
+  CheckStack
+  AllocateContext      1
+  StoreLocal           r1
+  Push                 r1
+  Push                 r0
+  StoreFieldTOS        CP#0
+  PopLocal             r0
+  Push                 r0
+  Push                 FP[-5]
+  StoreFieldTOS        CP#1
+  AllocateContext      1
+  StoreLocal           r1
+  Push                 r1
+  Push                 r0
+  StoreFieldTOS        CP#0
+  PopLocal             r0
+  Push                 r0
+  PushConstant         CP#2
+  StoreFieldTOS        CP#1
+  Allocate             CP#36
+  StoreLocal           r3
+  Push                 r3
+  PushConstant         CP#9
+  StoreFieldTOS        CP#37
+  Push                 r3
+  PushConstant         CP#9
+  StoreFieldTOS        CP#38
+  Push                 r3
+  PushConstant         CP#3
+  StoreFieldTOS        CP#39
+  Push                 r3
+  Push                 r0
+  StoreFieldTOS        CP#4
+  PopLocal             r2
+  Push                 r2
+  ReturnTOS
+  Push                 r0
+  LoadFieldTOS         CP#0
+  PopLocal             r0
+  PushConstant         CP#9
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ContextOffset parent
+  [1] = ContextOffset var [0]
+  [2] = Int 3
+  [3] = ClosureFunction nested () → dart.async::Future<dart.core::int> /* originally async */ ;
+  [4] = FieldOffset dart.core::_Closure::_context
+  [5] = TypeArgs [dart.core::int]
+  [6] = ArgDesc num-args 0, num-type-args 1, names []
+  [7] = StaticICData target 'dart.async::Completer::sync', arg-desc CP#6
+  [8] = ContextOffset var [8]
+  [9] = Null
+  [10] = ContextOffset var [7]
+  [11] = ContextOffset var [4]
+  [12] = ContextOffset var [5]
+  [13] = Int 0
+  [14] = ContextOffset var [1]
+  [15] = ContextOffset var [2]
+  [16] = ContextOffset var [3]
+  [17] = ClosureFunction :async_op ([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding ;
+  [18] = Int 4
+  [19] = Int 5
+  [20] = Int 1
+  [21] = ContextOffset var [6]
+  [22] = ArgDesc num-args 4, num-type-args 0, names []
+  [23] = StaticICData target 'dart.async::_awaitHelper', arg-desc CP#22
+  [24] = ArgDesc num-args 2, num-type-args 0, names []
+  [25] = ICData target-name '+', arg-desc CP#24
+  [26] = Type dynamic
+  [27] = String 'fin'
+  [28] = ArgDesc num-args 1, num-type-args 0, names []
+  [29] = StaticICData target 'dart.core::print', arg-desc CP#28
+  [30] = StaticICData target 'dart.core::print', arg-desc CP#28
+  [31] = StaticICData target 'dart.core::print', arg-desc CP#28
+  [32] = ICData target-name 'complete', arg-desc CP#24
+  [33] = ArgDesc num-args 3, num-type-args 0, names []
+  [34] = ICData target-name 'completeError', arg-desc CP#33
+  [35] = EndClosureFunctionScope
+  [36] = Class dart.core::_Closure
+  [37] = FieldOffset dart.core::_Closure::_instantiator_type_arguments
+  [38] = FieldOffset dart.core::_Closure::_function_type_arguments
+  [39] = FieldOffset dart.core::_Closure::_function
+  [40] = StaticICData target 'dart.async::_asyncStackTraceHelper', arg-desc CP#28
+  [41] = StaticICData target 'dart.async::_asyncThenWrapperHelper', arg-desc CP#28
+  [42] = StaticICData target 'dart.async::_asyncErrorWrapperHelper', arg-desc CP#28
+  [43] = TypeArgs [dynamic]
+  [44] = ArgDesc num-args 1, num-type-args 1, names []
+  [45] = StaticICData target 'dart.async::Future::microtask', arg-desc CP#44
+  [46] = ICData get target-name 'future', arg-desc CP#28
+  [47] = EndClosureFunctionScope
+}
+Closure CP#17 {
+  EntryOptional        1, 3, 0
+  LoadConstant         r1, CP#9
+  LoadConstant         r2, CP#9
+  LoadConstant         r3, CP#9
+  Frame                8
+  CheckStack
+  Push                 r0
+  LoadFieldTOS         CP#4
+  PopLocal             r4
+  Push                 r4
+  LoadFieldTOS         CP#1
+  StoreLocal           r5
+  PushConstant         CP#13
+  IfNeStrictNumTOS
+  Jump                 L1
+  Push                 r4
+  Push                 r4
+  StoreFieldTOS        CP#15
+Try #0 start:
+  AllocateContext      1
+  StoreLocal           r5
+  Push                 r5
+  Push                 r4
+  StoreFieldTOS        CP#0
+  PopLocal             r4
+  Push                 r4
+  PushConstant         CP#18
+  StoreFieldTOS        CP#1
+  Push                 r4
+  LoadFieldTOS         CP#0
+  Push                 r4
+  StoreFieldTOS        CP#16
+Try #1 start:
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  PushConstant         CP#19
+  StoreLocal           r10
+  StoreFieldTOS        CP#1
+  Push                 r10
+  Drop1
+  Push                 r4
+  LoadFieldTOS         CP#0
+  PushConstant         CP#20
+  StoreFieldTOS        CP#1
+  Push                 r4
+  LoadFieldTOS         CP#0
+  Push                 r4
+  StoreFieldTOS        CP#14
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#1
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#11
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#12
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#21
+  PushConstant         CP#23
+  IndirectStaticCall   4, CP#22
+  PopLocal             r11
+  PushConstant         CP#9
+  ReturnTOS
+L6:
+  Push                 r4
+  Push                 r1
+  StoreLocal           r10
+  StoreFieldTOS        CP#1
+  Push                 r10
+  Drop1
+  Push                 r4
+  LoadFieldTOS         CP#0
+  Push                 r4
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#1
+  Push                 r4
+  LoadFieldTOS         CP#1
+  InstanceCall1        2, CP#25
+  StoreLocal           r10
+  StoreFieldTOS        CP#10
+  Push                 r10
+  Drop1
+  Jump                 L2
+  Jump                 L3
+Try #1 end:
+Try #1 handler:
+  Push                 r0
+  LoadFieldTOS         CP#4
+  PopLocal             r4
+  Push                 r4
+  LoadFieldTOS         CP#16
+  PopLocal             r4
+  MoveSpecial          r8, exception
+  MoveSpecial          r9, stackTrace
+  PushConstant         CP#27
+  PushConstant         CP#29
+  IndirectStaticCall   1, CP#28
+  Drop1
+  Push                 r8
+  Push                 r9
+  Throw                1
+L2:
+  Push                 r0
+  LoadFieldTOS         CP#4
+  PopLocal             r4
+  Push                 r4
+  LoadFieldTOS         CP#16
+  PopLocal             r4
+  PushConstant         CP#27
+  PushConstant         CP#30
+  IndirectStaticCall   1, CP#28
+  Drop1
+  Push                 r4
+  LoadFieldTOS         CP#0
+  PopLocal             r4
+  Jump                 L4
+L3:
+  Push                 r0
+  LoadFieldTOS         CP#4
+  PopLocal             r4
+  Push                 r4
+  LoadFieldTOS         CP#16
+  PopLocal             r4
+  PushConstant         CP#27
+  PushConstant         CP#31
+  IndirectStaticCall   1, CP#28
+  Drop1
+  Push                 r4
+  LoadFieldTOS         CP#0
+  PopLocal             r4
+L4:
+  Push                 r4
+  LoadFieldTOS         CP#8
+  Push                 r4
+  LoadFieldTOS         CP#10
+  InstanceCall1        2, CP#32
+  Drop1
+  PushConstant         CP#9
+  ReturnTOS
+  Jump                 L5
+Try #0 end:
+Try #0 handler:
+  Push                 r0
+  LoadFieldTOS         CP#4
+  PopLocal             r4
+  Push                 r4
+  LoadFieldTOS         CP#15
+  PopLocal             r4
+  MoveSpecial          r6, exception
+  MoveSpecial          r7, stackTrace
+  Push                 r6
+  PopLocal             r8
+  Push                 r7
+  PopLocal             r9
+  Push                 r4
+  LoadFieldTOS         CP#8
+  Push                 r8
+  Push                 r9
+  InstanceCall1        3, CP#34
+  Drop1
+  Jump                 L5
+L5:
+  PushConstant         CP#9
+  ReturnTOS
+L1:
+  Push                 r4
+  LoadFieldTOS         CP#14
+  PopLocal             r4
+  Jump                 L6
+
+}
+
+Closure CP#3 {
+  Entry                4
+  CheckStack
+  Push                 FP[-5]
+  LoadFieldTOS         CP#4
+  PopLocal             r0
+  AllocateContext      9
+  StoreLocal           r1
+  Push                 r1
+  Push                 r0
+  StoreFieldTOS        CP#0
+  PopLocal             r0
+  Push                 r0
+  PushConstant         CP#5
+  PushConstant         CP#7
+  IndirectStaticCall   1, CP#6
+  StoreFieldTOS        CP#8
+  Push                 r0
+  PushConstant         CP#9
+  StoreFieldTOS        CP#10
+  PushConstant         CP#9
+  PopLocal             r2
+  Push                 r0
+  PushConstant         CP#9
+  StoreFieldTOS        CP#11
+  Push                 r0
+  PushConstant         CP#9
+  StoreFieldTOS        CP#12
+  Push                 r0
+  PushConstant         CP#13
+  StoreFieldTOS        CP#1
+  Push                 r0
+  PushConstant         CP#9
+  StoreFieldTOS        CP#14
+  Push                 r0
+  PushConstant         CP#9
+  StoreFieldTOS        CP#15
+  Push                 r0
+  PushConstant         CP#9
+  StoreFieldTOS        CP#16
+  Push                 r0
+  Allocate             CP#36
+  StoreLocal           r3
+  Push                 r3
+  PushConstant         CP#9
+  StoreFieldTOS        CP#37
+  Push                 r3
+  PushConstant         CP#9
+  StoreFieldTOS        CP#38
+  Push                 r3
+  PushConstant         CP#17
+  StoreFieldTOS        CP#39
+  Push                 r3
+  Push                 r0
+  StoreFieldTOS        CP#4
+  StoreFieldTOS        CP#21
+  Push                 r0
+  LoadFieldTOS         CP#21
+  PushConstant         CP#40
+  IndirectStaticCall   1, CP#28
+  StoreLocal           r2
+  Drop1
+  Push                 r0
+  Push                 r0
+  LoadFieldTOS         CP#21
+  PushConstant         CP#41
+  IndirectStaticCall   1, CP#28
+  StoreLocal           r3
+  StoreFieldTOS        CP#11
+  Push                 r3
+  Drop1
+  Push                 r0
+  Push                 r0
+  LoadFieldTOS         CP#21
+  PushConstant         CP#42
+  IndirectStaticCall   1, CP#28
+  StoreLocal           r3
+  StoreFieldTOS        CP#12
+  Push                 r3
+  Drop1
+  PushConstant         CP#43
+  Push                 r0
+  LoadFieldTOS         CP#21
+  PushConstant         CP#45
+  IndirectStaticCall   2, CP#44
+  Drop1
+  Push                 r0
+  LoadFieldTOS         CP#8
+  InstanceCall1        1, CP#46
+  ReturnTOS
+  Push                 r0
+  LoadFieldTOS         CP#0
+  PopLocal             r0
+  PushConstant         CP#9
+  ReturnTOS
+
+}
+]static method closure(asy::Future<core::int> a) → dynamic {
+  core::int x = 3;
+  function nested() → asy::Future<core::int> /* originally async */ {
+    final asy::Completer<core::int> :async_completer = asy::Completer::sync<core::int>();
+    asy::FutureOr<core::int> :return_value;
+    dynamic :async_stack_trace;
+    dynamic :async_op_then;
+    dynamic :async_op_error;
+    dynamic :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    dynamic :saved_try_context_var0;
+    dynamic :saved_try_context_var1;
+    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+      try {
+        #L5:
+        {
+          core::int y = 4;
+          try {
+            x = 5;
+            [yield] let dynamic #t7 = asy::_awaitHelper(a, :async_op_then, :async_op_error, :async_op) in null;
+            y = :result;
+            :return_value = x.{core::num::+}(y);
+            break #L5;
+          }
+          finally {
+            core::print("fin");
+          }
+        }
+        :async_completer.{asy::Completer::complete}(:return_value);
+        return;
+      }
+      on dynamic catch(dynamic :exception, dynamic :stack_trace) {
+        :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
+      }
+    :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+    :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+    :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+    asy::Future::microtask<dynamic>(:async_op);
+    return :async_completer.{asy::Completer::future};
+  }
+  return nested;
+}
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  PushConstant         CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = Null
+}
+]static method main() → dynamic {}

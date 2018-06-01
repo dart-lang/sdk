@@ -7,6 +7,8 @@ library vm.bytecode.local_vars;
 import 'dart:math' show max;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/transformations/continuation.dart'
+    show ContinuationVariables;
 import 'package:vm/bytecode/dbc.dart';
 
 class LocalVariables {
@@ -14,6 +16,14 @@ class LocalVariables {
   final Map<VariableDeclaration, VarDesc> _vars =
       <VariableDeclaration, VarDesc>{};
   final Map<TreeNode, List<int>> _temps = <TreeNode, List<int>>{};
+  final Map<TreeNode, VariableDeclaration> _capturedSavedContextVars =
+      <TreeNode, VariableDeclaration>{};
+  final Map<TreeNode, VariableDeclaration> _capturedExceptionVars =
+      <TreeNode, VariableDeclaration>{};
+  final Map<TreeNode, VariableDeclaration> _capturedStackTraceVars =
+      <TreeNode, VariableDeclaration>{};
+  final Map<ForInStatement, VariableDeclaration> _capturedIteratorVars =
+      <ForInStatement, VariableDeclaration>{};
 
   Scope _currentScope;
   Frame _currentFrame;
@@ -54,6 +64,10 @@ class LocalVariables {
   int get currentContextSize => _currentScope.contextSize;
   int get currentContextLevel => _currentScope.contextLevel;
 
+  int get contextLevelAtEntry =>
+      _currentFrame.contextLevelAtEntry ??
+      (throw "Current frame is top level and it doesn't have a context at entry");
+
   int getContextLevelOfVar(VariableDeclaration variable) {
     final v = _getVarDesc(variable);
     assert(v.isCaptured);
@@ -85,6 +99,45 @@ class LocalVariables {
       (throw 'Receiver variable is not declared in ${_currentFrame.function}');
 
   bool get hasReceiver => _currentFrame.receiverVar != null;
+
+  bool get isSyncYieldingFrame => _currentFrame.isSyncYielding;
+
+  VariableDeclaration get awaitJumpVar {
+    assert(_currentFrame.isSyncYielding);
+    return _currentFrame.parent
+        .getSyntheticVar(ContinuationVariables.awaitJumpVar);
+  }
+
+  VariableDeclaration get awaitContextVar {
+    assert(_currentFrame.isSyncYielding);
+    return _currentFrame.parent
+        .getSyntheticVar(ContinuationVariables.awaitContextVar);
+  }
+
+  VariableDeclaration capturedSavedContextVar(TreeNode node) =>
+      _capturedSavedContextVars[node];
+  VariableDeclaration capturedExceptionVar(TreeNode node) =>
+      _capturedExceptionVars[node];
+  VariableDeclaration capturedStackTraceVar(TreeNode node) =>
+      _capturedStackTraceVars[node];
+  VariableDeclaration capturedIteratorVar(ForInStatement node) =>
+      _capturedIteratorVars[node];
+
+  int get asyncExceptionParamIndexInFrame {
+    assert(_currentFrame.isSyncYielding);
+    final function = (_currentFrame.function as FunctionDeclaration).function;
+    final param = function.positionalParameters
+        .firstWhere((p) => p.name == ContinuationVariables.exceptionParam);
+    return getVarIndexInFrame(param);
+  }
+
+  int get asyncStackTraceParamIndexInFrame {
+    assert(_currentFrame.isSyncYielding);
+    final function = (_currentFrame.function as FunctionDeclaration).function;
+    final param = function.positionalParameters
+        .firstWhere((p) => p.name == ContinuationVariables.stackTraceParam);
+    return getVarIndexInFrame(param);
+  }
 
   int get frameSize => _currentFrame.frameSize;
 
@@ -121,7 +174,9 @@ class VarDesc {
   int index;
   int originalParamSlotIndex;
 
-  VarDesc(this.declaration, this.scope);
+  VarDesc(this.declaration, this.scope) {
+    scope.vars.add(this);
+  }
 
   Frame get frame => scope.frame;
 
@@ -146,20 +201,29 @@ class Frame {
   bool hasOptionalParameters = false;
   bool hasCapturedParameters = false;
   bool hasClosures = false;
+  bool isDartSync = true;
+  bool isSyncYielding = false;
   VariableDeclaration receiverVar;
   VariableDeclaration typeArgsVar;
   VariableDeclaration closureVar;
   VariableDeclaration contextVar;
   VariableDeclaration scratchVar;
+  Map<String, VariableDeclaration> syntheticVars;
   int frameSize = 0;
   List<int> temporaries = <int>[];
+  int contextLevelAtEntry;
 
   Frame(this.function, this.parent);
+
+  VariableDeclaration getSyntheticVar(String name) =>
+      syntheticVars[name] ??
+      (throw '${name} variable is not declared in ${function}');
 }
 
 class Scope {
   final Scope parent;
   final Frame frame;
+  final List<VarDesc> vars = <VarDesc>[];
 
   int localsUsed;
   int tempsUsed;
@@ -176,6 +240,8 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
 
   Scope _currentScope;
   Frame _currentFrame;
+  List<TreeNode> _enclosingTryBlocks;
+  List<TreeNode> _enclosingTryCatches;
 
   _ScopeBuilder(this.locals);
 
@@ -188,6 +254,11 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
   void _visitFunction(TreeNode node) {
     _enterFrame(node);
 
+    final savedEnclosingTryBlocks = _enclosingTryBlocks;
+    _enclosingTryBlocks = <TreeNode>[];
+    final savedEnclosingTryCatches = _enclosingTryCatches;
+    _enclosingTryCatches = <TreeNode>[];
+
     if (node is Field) {
       node.initializer.accept(this);
     } else {
@@ -198,6 +269,11 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
 
       FunctionNode function = (node as dynamic).function;
       assert(function != null);
+
+      _currentFrame.isDartSync = function.dartAsyncMarker == AsyncMarker.Sync;
+
+      _currentFrame.isSyncYielding =
+          function.asyncMarker == AsyncMarker.SyncYielding;
 
       _currentFrame.numTypeArguments =
           (_currentFrame.parent?.numTypeArguments ?? 0) +
@@ -224,6 +300,15 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
       visitList(function.positionalParameters, this);
       visitList(function.namedParameters, this);
 
+      if (_currentFrame.isSyncYielding) {
+        // The following variables from parent frame are used implicitly and need
+        // to be captured to preserve state across closure invocations.
+        _useVariable(_currentFrame.parent
+            .getSyntheticVar(ContinuationVariables.awaitJumpVar));
+        _useVariable(_currentFrame.parent
+            .getSyntheticVar(ContinuationVariables.awaitContextVar));
+      }
+
       if (node is Constructor) {
         for (var field in node.enclosingClass.fields) {
           if (!field.isStatic && field.initializer != null) {
@@ -244,6 +329,9 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
       _currentFrame.scratchVar = new VariableDeclaration(':scratch');
       _declareVariable(_currentFrame.scratchVar);
     }
+
+    _enclosingTryBlocks = savedEnclosingTryBlocks;
+    _enclosingTryCatches = savedEnclosingTryCatches;
 
     _leaveFrame();
   }
@@ -290,6 +378,56 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
     _useVariable(_currentFrame.receiverVar);
   }
 
+  void _captureAllVisibleVariablesInCurrentFrame() {
+    assert(_currentFrame.isSyncYielding);
+    final transient = new Set<VariableDeclaration>();
+    transient
+      ..addAll([
+        _currentFrame.typeArgsVar,
+        _currentFrame.closureVar,
+        _currentFrame.contextVar,
+        _currentFrame.scratchVar,
+      ]);
+    transient.addAll((_currentFrame.function as FunctionDeclaration)
+        .function
+        .positionalParameters);
+    for (Scope scope = _currentScope;
+        scope != null && scope.frame == _currentFrame;
+        scope = scope.parent) {
+      for (VarDesc v in scope.vars) {
+        if (!transient.contains(v.declaration)) {
+          v.capture();
+        }
+      }
+    }
+  }
+
+  // Capture synthetic variables for control flow statements.
+  void _captureSyntheticVariables() {
+    int depth = 0;
+    for (TreeNode tryBlock in _enclosingTryBlocks) {
+      _captureSyntheticVariable(ContinuationVariables.savedTryContextVar(depth),
+          tryBlock, locals._capturedSavedContextVars);
+      ++depth;
+    }
+    depth = 0;
+    for (TreeNode tryBlock in _enclosingTryCatches) {
+      _captureSyntheticVariable(ContinuationVariables.exceptionVar(depth),
+          tryBlock, locals._capturedExceptionVars);
+      _captureSyntheticVariable(ContinuationVariables.stackTraceVar(depth),
+          tryBlock, locals._capturedStackTraceVars);
+      ++depth;
+    }
+  }
+
+  void _captureSyntheticVariable(
+      String name, TreeNode node, Map<TreeNode, VariableDeclaration> map) {
+    final variable = _currentFrame.parent.getSyntheticVar(name);
+    _useVariable(variable);
+    assert(map[node] == null || map[node] == variable);
+    map[node] = variable;
+  }
+
   void _visitWithScope(TreeNode node) {
     _enterScope(node);
     node.visitChildren(this);
@@ -317,6 +455,13 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
   @override
   visitVariableDeclaration(VariableDeclaration node) {
     _declareVariable(node);
+
+    if (!_currentFrame.isDartSync && node.name[0] == ':') {
+      _currentFrame.syntheticVars ??= <String, VariableDeclaration>{};
+      assert(_currentFrame.syntheticVars[node.name] == null);
+      _currentFrame.syntheticVars[node.name] = node;
+    }
+
     node.visitChildren(this);
   }
 
@@ -381,10 +526,28 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
   visitForInStatement(ForInStatement node) {
     node.iterable.accept(this);
 
+    VariableDeclaration iteratorVar;
+    if (_currentFrame.isSyncYielding) {
+      // Declare a variable to hold 'iterator' so it could be captured.
+      iteratorVar = new VariableDeclaration(null);
+      _declareVariable(iteratorVar);
+      locals._capturedIteratorVars[node] = iteratorVar;
+    }
+
     _enterScope(node);
     node.variable.accept(this);
     node.body.accept(this);
     _leaveScope();
+
+    if (_currentFrame.isSyncYielding && !locals.isCaptured(iteratorVar)) {
+      // Iterator variable was not captured, as there are no yield points
+      // inside for-in statement body. The variable is needed only if captured,
+      // so undeclare it.
+      assert(_currentScope.vars.last == locals._vars[iteratorVar]);
+      _currentScope.vars.removeLast();
+      locals._vars.remove(iteratorVar);
+      locals._capturedIteratorVars.remove(node);
+    }
   }
 
   @override
@@ -395,6 +558,36 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
   @override
   visitLet(Let node) {
     _visitWithScope(node);
+  }
+
+  @override
+  visitYieldStatement(YieldStatement node) {
+    assert(_currentFrame.isSyncYielding);
+    _captureAllVisibleVariablesInCurrentFrame();
+    _captureSyntheticVariables();
+    node.visitChildren(this);
+  }
+
+  @override
+  visitTryCatch(TryCatch node) {
+    _enclosingTryBlocks.add(node);
+    node.body?.accept(this);
+    _enclosingTryBlocks.removeLast();
+
+    _enclosingTryCatches.add(node);
+    visitList(node.catches, this);
+    _enclosingTryCatches.removeLast();
+  }
+
+  @override
+  visitTryFinally(TryFinally node) {
+    _enclosingTryBlocks.add(node);
+    node.body?.accept(this);
+    _enclosingTryBlocks.removeLast();
+
+    _enclosingTryCatches.add(node);
+    node.finalizer?.accept(this);
+    _enclosingTryCatches.removeLast();
   }
 }
 
@@ -415,6 +608,10 @@ class _Allocator extends RecursiveVisitor<Null> {
 
     if (_currentScope.frame != _currentFrame) {
       _currentFrame = _currentScope.frame;
+
+      if (_currentScope.parent != null) {
+        _currentFrame.contextLevelAtEntry = _currentScope.parent.contextLevel;
+      }
 
       _currentScope.localsUsed = 0;
       _currentScope.tempsUsed = 0;

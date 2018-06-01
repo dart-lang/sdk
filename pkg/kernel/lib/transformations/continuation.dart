@@ -12,6 +12,17 @@ import '../visitor.dart';
 
 import 'async.dart';
 
+class ContinuationVariables {
+  static const awaitJumpVar = ':await_jump_var';
+  static const awaitContextVar = ':await_ctx_var';
+  static const exceptionParam = ':exception';
+  static const stackTraceParam = ':stack_trace';
+
+  static String savedTryContextVar(int depth) => ':saved_try_context_var$depth';
+  static String exceptionVar(int depth) => ':exception$depth';
+  static String stackTraceVar(int depth) => ':stack_trace$depth';
+}
+
 void transformLibraries(
     CoreTypes coreTypes, List<Library> libraries, bool syncAsync) {
   var helper = new HelperNodes.fromCoreTypes(coreTypes);
@@ -42,10 +53,10 @@ class RecursiveContinuationRewriter extends Transformer {
   final bool syncAsync;
 
   final VariableDeclaration asyncJumpVariable = new VariableDeclaration(
-      ":await_jump_var",
+      ContinuationVariables.awaitJumpVar,
       initializer: new IntLiteral(0));
   final VariableDeclaration asyncContextVariable =
-      new VariableDeclaration(":await_ctx_var");
+      new VariableDeclaration(ContinuationVariables.awaitContextVar);
 
   RecursiveContinuationRewriter(this.helper, this.syncAsync);
 
@@ -154,13 +165,15 @@ abstract class ContinuationRewriterBase extends RecursiveContinuationRewriter {
   }
 
   Iterable<VariableDeclaration> createCapturedTryVariables() =>
-      new Iterable.generate(capturedTryDepth,
-          (depth) => new VariableDeclaration(":saved_try_context_var${depth}"));
+      new Iterable.generate(
+          capturedTryDepth,
+          (depth) => new VariableDeclaration(
+              ContinuationVariables.savedTryContextVar(depth)));
 
   Iterable<VariableDeclaration> createCapturedCatchVariables() =>
       new Iterable.generate(capturedCatchDepth).expand((depth) => [
-            new VariableDeclaration(":exception${depth}"),
-            new VariableDeclaration(":stack_trace${depth}"),
+            new VariableDeclaration(ContinuationVariables.exceptionVar(depth)),
+            new VariableDeclaration(ContinuationVariables.stackTraceVar(depth)),
           ]);
 
   List<VariableDeclaration> variableDeclarations() =>
@@ -293,8 +306,8 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
     // }
     final parameters = <VariableDeclaration>[
       expressionRewriter.asyncResult,
-      new VariableDeclaration(':exception'),
-      new VariableDeclaration(':stack_trace'),
+      new VariableDeclaration(ContinuationVariables.exceptionParam),
+      new VariableDeclaration(ContinuationVariables.stackTraceParam),
     ];
 
     // Note: SyncYielding functions have no Dart equivalent. Since they are
