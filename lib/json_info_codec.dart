@@ -61,7 +61,8 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
       }
     });
 
-    json['dependencies']?.forEach((String k, List<String> deps) {
+    json['dependencies']?.forEach((String k, dependencies) {
+      List<String> deps = dependencies;
       result.dependencies[idMap[k]] = deps.map((d) => idMap[d]).toList();
     });
 
@@ -138,7 +139,9 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
       ..code = json['code']
       ..isConst = json['const'] ?? false
       ..initializer = parseId(json['initializer'])
-      ..closures = (json['children'] as List).map((c) => parseId(c)).toList();
+      ..closures = (json['children'] as List)
+          .map<ClosureInfo>((c) => parseId(c))
+          .toList();
   }
 
   ConstantInfo parseConstant(Map json) {
@@ -236,7 +239,9 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
       ..sideEffects = json['sideEffects']
       ..modifiers =
           parseModifiers(new Map<String, bool>.from(json['modifiers']))
-      ..closures = (json['children'] as List).map((p) => parseId(p)).toList()
+      ..closures = (json['children'] as List)
+          .map<ClosureInfo>((c) => parseId(c))
+          .toList()
       ..measurements = parseMeasurements(json['measurements']);
   }
 
@@ -282,7 +287,8 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
       ..function = parseId(json['function']);
   }
 
-  Info parseId(String serializedId) {
+  Info parseId(id) {
+    String serializedId = id;
     if (serializedId == null) {
       return null;
     }
