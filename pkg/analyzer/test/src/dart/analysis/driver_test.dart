@@ -570,7 +570,8 @@ part 'part.dart';
 
     // Simulate a change that happens during reading the cached errors.
     bool asyncWorkExecuted = false;
-    driver.test.workToWaitAfterComputingResult = (path) {
+    driver.test.workToWaitAfterComputingResult = (path) async {
+      await new Future.value(); // the rest will be executed asynchronously
       provider.updateFile(path, 'class B');
       driver.changeFile(path);
       asyncWorkExecuted = true;
