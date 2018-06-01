@@ -1,3 +1,7 @@
+## 0.5.6+1
+
+- Changes to make the library strong mode (runtime) clean.
+
 ## 0.5.6
 
 - Added `isRuntimeTypeUsed`, `isIsolateInUse`, `isFunctionApplyUsed` and `isMirrorsUsed` to

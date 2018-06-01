@@ -417,7 +417,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
 
   Map visitLibrary(LibraryInfo info) {
     return _visitBasicInfo(info)
-      ..addAll({
+      ..addAll(<String, Object>{
         'children': _toSortedSerializIds([
           info.topLevelFunctions,
           info.topLevelVariables,
@@ -430,7 +430,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
 
   Map visitClass(ClassInfo info) {
     return _visitBasicInfo(info)
-      ..addAll({
+      ..addAll(<String, Object>{
         // TODO(sigmund): change format, include only when abstract is true.
         'modifiers': {'abstract': info.isAbstract},
         'children':
@@ -440,7 +440,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
 
   Map visitField(FieldInfo info) {
     var result = _visitBasicInfo(info)
-      ..addAll({
+      ..addAll(<String, Object>{
         'children': _toSortedSerializIds(info.closures),
         'inferredType': info.inferredType,
         'code': info.code,
@@ -456,7 +456,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
   }
 
   Map visitConstant(ConstantInfo info) =>
-      _visitBasicInfo(info)..addAll({'code': info.code});
+      _visitBasicInfo(info)..addAll(<String, Object>{'code': info.code});
 
   // TODO(sigmund): exclude false values (requires bumping the format version):
   //     var res = <String, bool>{};
@@ -501,7 +501,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
 
   Map visitFunction(FunctionInfo info) {
     return _visitBasicInfo(info)
-      ..addAll({
+      ..addAll(<String, Object>{
         'children': _toSortedSerializIds(info.closures),
         'modifiers': _visitFunctionModifiers(info.modifiers),
         'returnType': info.returnType,
@@ -520,7 +520,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
 
   Map visitClosure(ClosureInfo info) {
     return _visitBasicInfo(info)
-      ..addAll({'function': info.function.serializedId});
+      ..addAll(<String, Object>{'function': info.function.serializedId});
   }
 
   visitTypedef(TypedefInfo info) => _visitBasicInfo(info)..['type'] = info.type;
