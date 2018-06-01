@@ -99,7 +99,7 @@ vars = {
   "markdown_tag": "2.0.0",
   "matcher_tag": "0.12.1+4",
   "mime_tag": "0.9.6",
-  "mockito_tag": "a92db054fba18bc2d605be7670aee74b7cadc00a",
+  "mockito_tag": "d39ac507483b9891165e422ec98d9fb480037c8b",
   "mustache4dart_tag" : "v2.1.2",
   "oauth2_tag": "1.1.0",
   "observatory_pub_packages_rev": "d3a3aebefbd35aa30fe7bbc2889b772b398f7d7f",

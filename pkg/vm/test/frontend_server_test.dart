@@ -33,7 +33,8 @@ Future<int> main() async {
 
   group('batch compile with mocked compiler', () {
     final CompilerInterface compiler = new _MockedCompiler();
-    when(compiler.compile(any, any, generator: any)).thenReturn(true);
+    when(compiler.compile(any, any, generator: anyNamed('generator')))
+        .thenAnswer((_) => new Future.value(true));
 
     test('compile from command line', () async {
       final List<String> args = <String>[
@@ -46,7 +47,7 @@ Future<int> main() async {
       final List<ArgResults> capturedArgs = verify(compiler.compile(
         argThat(equals('server.dart')),
         captureAny,
-        generator: any,
+        generator: anyNamed('generator'),
       )).captured;
       expect(capturedArgs.single['sdk-root'], equals('sdkroot'));
       expect(capturedArgs.single['strong'], equals(false));
@@ -64,7 +65,7 @@ Future<int> main() async {
       final List<ArgResults> capturedArgs = verify(compiler.compile(
         argThat(equals('server.dart')),
         captureAny,
-        generator: any,
+        generator: anyNamed('generator'),
       )).captured;
       expect(capturedArgs.single['sdk-root'], equals('sdkroot'));
       expect(capturedArgs.single['strong'], equals(true));
@@ -84,7 +85,7 @@ Future<int> main() async {
       final List<ArgResults> capturedArgs = verify(compiler.compile(
         argThat(equals('server.dart')),
         captureAny,
-        generator: any,
+        generator: anyNamed('generator'),
       )).captured;
       expect(capturedArgs.single['sdk-root'], equals('sdkroot'));
       expect(capturedArgs.single['strong'], equals(true));
@@ -103,7 +104,7 @@ Future<int> main() async {
       final List<ArgResults> capturedArgs = verify(compiler.compile(
         argThat(equals('server.dart')),
         captureAny,
-        generator: any,
+        generator: anyNamed('generator'),
       )).captured;
       expect(capturedArgs.single['sdk-root'], equals('sdkroot'));
       expect(capturedArgs.single['link-platform'], equals(true));
@@ -123,7 +124,7 @@ Future<int> main() async {
       final StreamController<List<int>> inputStreamController =
           new StreamController<List<int>>();
       final ReceivePort compileCalled = new ReceivePort();
-      when(compiler.compile(any, any, generator: any))
+      when(compiler.compile(any, any, generator: anyNamed('generator')))
           .thenAnswer((Invocation invocation) {
         expect(invocation.positionalArguments[0], equals('server.dart'));
         expect(
@@ -161,7 +162,7 @@ Future<int> main() async {
       final StreamController<List<int>> inputStreamController =
           new StreamController<List<int>>();
       final ReceivePort compileCalled = new ReceivePort();
-      when(compiler.compile(any, any, generator: any))
+      when(compiler.compile(any, any, generator: anyNamed('generator')))
           .thenAnswer((Invocation invocation) {
         expect(invocation.positionalArguments[0], equals('server.dart'));
         expect(
@@ -185,7 +186,7 @@ Future<int> main() async {
       final StreamController<List<int>> inputStreamController =
           new StreamController<List<int>>();
       final ReceivePort compileCalled = new ReceivePort();
-      when(compiler.compile(any, any, generator: any))
+      when(compiler.compile(any, any, generator: anyNamed('generator')))
           .thenAnswer((Invocation invocation) {
         expect(invocation.positionalArguments[0], equals('server.dart'));
         expect(
@@ -210,7 +211,7 @@ Future<int> main() async {
           new StreamController<List<int>>();
       final ReceivePort compileCalled = new ReceivePort();
       int counter = 1;
-      when(compiler.compile(any, any, generator: any))
+      when(compiler.compile(any, any, generator: anyNamed('generator')))
           .thenAnswer((Invocation invocation) {
         expect(invocation.positionalArguments[0],
             equals('server${counter++}.dart'));
@@ -235,7 +236,8 @@ Future<int> main() async {
 
   group('interactive incremental compile with mocked compiler', () {
     final CompilerInterface compiler = new _MockedCompiler();
-    when(compiler.compile(any, any, generator: any)).thenReturn(true);
+    when(compiler.compile(any, any, generator: anyNamed('generator')))
+        .thenAnswer((_) => new Future.value(true));
 
     final List<String> args = <String>[
       '--sdk-root',
@@ -356,7 +358,8 @@ Future<int> main() async {
       await recompileCalled.first;
 
       verifyInOrder(<void>[
-        await compiler.compile('file1.dart', any, generator: any),
+        await compiler.compile('file1.dart', any,
+            generator: anyNamed('generator')),
         compiler.acceptLastDelta(),
         compiler.invalidate(Uri.base.resolve('file2.dart')),
         compiler.invalidate(Uri.base.resolve('file3.dart')),
@@ -430,7 +433,8 @@ Future<int> main() async {
 
     group('compile with output path', () {
       final CompilerInterface compiler = new _MockedCompiler();
-      when(compiler.compile(any, any, generator: any)).thenReturn(true);
+      when(compiler.compile(any, any, generator: anyNamed('generator')))
+          .thenAnswer((_) => new Future.value(true));
 
       test('compile from command line', () async {
         final List<String> args = <String>[
@@ -447,7 +451,7 @@ Future<int> main() async {
         final List<ArgResults> capturedArgs = verify(compiler.compile(
           argThat(equals('server.dart')),
           captureAny,
-          generator: any,
+          generator: anyNamed('generator'),
         )).captured;
         expect(capturedArgs.single['sdk-root'], equals('sdkroot'));
         expect(capturedArgs.single['strong'], equals(false));
