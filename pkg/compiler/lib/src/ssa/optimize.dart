@@ -1282,7 +1282,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       }
       // All intercepted classes extend `Interceptor`, so if the receiver can't
       // be a class extending `Interceptor` then it can be called directly.
-      if (!_abstractValueDomain.canBeInterceptor(toStringType)) {
+      if (!_abstractValueDomain.canBeInterceptor(input.instructionType)) {
         var inputs = <HInstruction>[input, input]; // [interceptor, receiver].
         HInstruction result = new HInvokeDynamicMethod(
             selector,
