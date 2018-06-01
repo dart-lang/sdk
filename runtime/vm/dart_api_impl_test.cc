@@ -3618,21 +3618,25 @@ TEST_CASE(DartAPI_TypeGetParameterizedTypes) {
       "Type getMyClass1_1Type() {\n"
       "  return new MyClass1<List<int>, List<double>>().runtimeType;\n"
       "}\n";
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  bool instanceOf = false;
+
+  Dart_Handle corelib = Dart_LookupLibrary(NewString("dart:core"));
+  EXPECT_VALID(corelib);
 
   // First get type objects of some of the basic types used in the test.
-  Dart_Handle int_type = Dart_GetType(lib, NewString("int"), 0, NULL);
+  Dart_Handle int_type = Dart_GetType(corelib, NewString("int"), 0, NULL);
   EXPECT_VALID(int_type);
-  Dart_Handle double_type = Dart_GetType(lib, NewString("double"), 0, NULL);
+  Dart_Handle double_type = Dart_GetType(corelib, NewString("double"), 0, NULL);
   EXPECT_VALID(double_type);
-  Dart_Handle list_type = Dart_GetType(lib, NewString("List"), 0, NULL);
+  Dart_Handle list_type = Dart_GetType(corelib, NewString("List"), 0, NULL);
   EXPECT_VALID(list_type);
   Dart_Handle type_args = Dart_NewList(1);
   EXPECT_VALID(Dart_ListSetAt(type_args, 0, int_type));
   Dart_Handle list_int_type =
-      Dart_GetType(lib, NewString("List"), 1, &type_args);
+      Dart_GetType(corelib, NewString("List"), 1, &type_args);
   EXPECT_VALID(list_int_type);
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  bool instanceOf = false;
 
   // Now instantiate MyClass0 and MyClass1 types with the same type arguments
   // used in the code above.

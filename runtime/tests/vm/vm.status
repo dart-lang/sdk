@@ -56,7 +56,6 @@ dart/wrap_around_in_range_analysis_test: SkipByDesign # The test requires int64.
 
 [ $compiler == dartk ]
 cc/DartAPI_New: Fail # Issue #33041
-cc/DartAPI_TypeGetParameterizedTypes: Crash # Issue 33042
 dart/appjit_cha_deopt_test: SkipSlow # Issue 33266
 dart/redirection_type_shuffling_test/00: RuntimeError
 dart/redirection_type_shuffling_test/none: RuntimeError
