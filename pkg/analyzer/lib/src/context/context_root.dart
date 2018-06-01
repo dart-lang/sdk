@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 /**
@@ -38,7 +39,7 @@ class ContextRoot {
   /**
    * Initialize a newly created context root.
    */
-  ContextRoot(this.root, this.exclude, {path.Context pathContext})
+  ContextRoot(this.root, this.exclude, {@required path.Context pathContext})
       : pathContext = pathContext ?? path.context;
 
   @override
