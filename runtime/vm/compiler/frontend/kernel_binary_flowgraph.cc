@@ -3894,11 +3894,12 @@ void StreamingConstantEvaluator::EvaluateAsExpression() {
 
   const AbstractType& type = T.BuildType();
   if (!type.IsInstantiated() || type.IsMalformed()) {
+    const String& type_str = String::Handle(type.UserVisibleName());
     H.ReportError(
         script_, TokenPosition::kNoSource,
         "Not a constant expression: right hand side of an implicit "
         "as-expression is expected to be an instantiated type, got %s",
-        type.ToCString());
+        type_str.ToCString());
   }
 
   const TypeArguments& instantiator_type_arguments = TypeArguments::Handle();
@@ -3906,9 +3907,13 @@ void StreamingConstantEvaluator::EvaluateAsExpression() {
   Error& error = Error::Handle();
   if (!result_.IsInstanceOf(type, instantiator_type_arguments,
                             function_type_arguments, &error)) {
+    const AbstractType& rtype =
+        AbstractType::Handle(result_.GetType(Heap::kNew));
+    const String& result_str = String::Handle(rtype.UserVisibleName());
+    const String& type_str = String::Handle(type.UserVisibleName());
     H.ReportError(script_, TokenPosition::kNoSource,
                   "Not a constant expression: %s is not an instance of %s",
-                  result_.ToCString(), type.ToCString());
+                  result_str.ToCString(), type_str.ToCString());
   }
 }
 
