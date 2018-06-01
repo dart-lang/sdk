@@ -161,7 +161,7 @@ class MemoryAllocationsElement extends HtmlElement implements Renderable {
         ..children = [
           new SpanElement()
             ..classes = ['group']
-            ..children = [
+            ..nodes = [
               new Text('Since Last '),
               resetAccumulators
                 ..text = 'Reset'
