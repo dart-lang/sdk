@@ -54,8 +54,8 @@ class PluginWatcherTest extends Object with ResourceProviderMixin {
         pathContext: resourceProvider.pathContext);
     TestDriver driver = new TestDriver(resourceProvider, contextRoot);
     driver.analysisOptions.enabledPluginNames = ['pkg2'];
-    watcher.addedDriver(driver, contextRoot);
     expect(manager.addedContextRoots, isEmpty);
+    watcher.addedDriver(driver, contextRoot);
     //
     // Test to see whether the listener was configured correctly.
     //
