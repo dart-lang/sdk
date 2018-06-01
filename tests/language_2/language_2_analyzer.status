@@ -1342,6 +1342,8 @@ constructor13_test/01: MissingCompileTimeError
 constructor13_test/02: MissingCompileTimeError
 constructor_call_as_function_test: StaticWarning
 constructor_duplicate_final_test/03: MissingCompileTimeError
+constructor_with_type_parameters_test/09: MissingCompileTimeError
+constructor_with_type_parameters_test/15: MissingCompileTimeError
 create_unresolved_type_test/01: MissingCompileTimeError
 fuzzy_arrows_test/01: MissingCompileTimeError
 generic_constructor_mixin2_test/01: MissingCompileTimeError
