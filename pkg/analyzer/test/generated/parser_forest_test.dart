@@ -487,6 +487,7 @@ class ComplexParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_assignmentExpression_compound() {
     super.test_assignmentExpression_compound();
+    dart2Failure();
   }
 
   @failingTest
@@ -3801,26 +3802,31 @@ class RecoveryParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_assignmentExpression_missing_compound1() {
     super.test_assignmentExpression_missing_compound1();
+    dart2Failure();
   }
 
   @failingTest
   void test_assignmentExpression_missing_compound2() {
     super.test_assignmentExpression_missing_compound2();
+    dart2Failure();
   }
 
   @failingTest
   void test_assignmentExpression_missing_compound3() {
     super.test_assignmentExpression_missing_compound3();
+    dart2Failure();
   }
 
   @failingTest
   void test_assignmentExpression_missing_LHS() {
     super.test_assignmentExpression_missing_LHS();
+    dart2Failure();
   }
 
   @failingTest
   void test_assignmentExpression_missing_RHS() {
     super.test_assignmentExpression_missing_RHS();
+    dart2Failure();
   }
 
   @failingTest

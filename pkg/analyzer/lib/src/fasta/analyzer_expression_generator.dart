@@ -25,6 +25,7 @@ abstract class AnalyzerExpressionGenerator
   @override
 // TODO: implement isInitializer
   bool get isInitializer => throw new UnimplementedError();
+
   @override
 // TODO: implement isThisPropertyAccess
   bool get isThisPropertyAccess => throw new UnimplementedError();
@@ -43,8 +44,8 @@ abstract class AnalyzerExpressionGenerator
 
   @override
   Expression buildAssignment(Expression value, {bool voidContext}) {
-    // TODO: implement buildAssignment
-    throw new UnimplementedError();
+    // TODO(brianwilkerson) Figure out how to get the token for the operator.
+    return astFactory.assignmentExpression(buildSimpleRead(), null, value);
   }
 
   @override
@@ -53,8 +54,8 @@ abstract class AnalyzerExpressionGenerator
       bool voidContext,
       Procedure interfaceTarget,
       bool isPreIncDec}) {
-    // TODO: implement buildCompoundAssignment
-    throw new UnimplementedError();
+    // TODO(brianwilkerson) Figure out how to get the token for the operator.
+    return astFactory.assignmentExpression(buildSimpleRead(), null, value);
   }
 
   @override
@@ -71,28 +72,30 @@ abstract class AnalyzerExpressionGenerator
   Expression buildNullAwareAssignment(
       Expression value, DartType type, int offset,
       {bool voidContext}) {
-    // TODO: implement buildNullAwareAssignment
-    throw new UnimplementedError();
+    // TODO(brianwilkerson) Figure out how to get the token for the operator.
+    // TODO(brianwilkerson) Capture the type information?
+    return astFactory.assignmentExpression(buildSimpleRead(), null, value);
   }
 
   @override
   Expression buildPostfixIncrement(Name binaryOperator,
       {int offset, bool voidContext, Procedure interfaceTarget}) {
-    // TODO: implement buildPostfixIncrement
-    throw new UnimplementedError();
+    // TODO(brianwilkerson) Figure out how to get the token for the operator.
+    return astFactory.postfixExpression(buildSimpleRead(), null);
   }
 
   @override
   Expression buildPrefixIncrement(Name binaryOperator,
       {int offset, bool voidContext, Procedure interfaceTarget}) {
-    // TODO: implement buildPrefixIncrement
-    throw new UnimplementedError();
+    // TODO(brianwilkerson) Figure out how to get the token for the operator.
+    return astFactory.prefixExpression(null, buildSimpleRead());
   }
 
   @override
   buildPropertyAccess(fasta.IncompleteSendGenerator send, int operatorOffset,
       bool isNullAware) {
     // TODO: implement buildPropertyAccess
+//    return astFactory.propertyAccess(buildSimpleRead(), null, null);
     throw new UnimplementedError();
   }
 
@@ -174,12 +177,6 @@ class AnalyzerIndexedAccessGenerator extends AnalyzerExpressionGenerator
 
   @override
   Token get token => leftBracket;
-
-  @override
-  Expression buildAssignment(Expression value, {bool voidContext}) {
-    // TODO(brianwilkerson) Figure out how to get the token for the operator.
-    return astFactory.assignmentExpression(buildSimpleRead(), null, value);
-  }
 
   @override
   Expression buildSimpleRead() => astFactory.indexExpressionForTarget(
