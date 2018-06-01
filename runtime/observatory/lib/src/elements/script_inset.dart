@@ -82,11 +82,8 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
     super.attached();
     _r.enable();
     _subscription = _events.onDebugEvent
-        .where((e) =>
-            (e is M.BreakpointAddedEvent) ||
-            (e is M.BreakpointResolvedEvent) ||
-            (e is M.BreakpointRemovedEvent))
-        .map((e) => e.breakpoint)
+        .where((e) => e is M.BreakpointEvent)
+        .map((e) => (e as M.BreakpointEvent).breakpoint)
         .listen((M.Breakpoint b) {
       final loc = b.location;
       int line;

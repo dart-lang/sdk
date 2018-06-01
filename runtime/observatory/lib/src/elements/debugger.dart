@@ -1927,7 +1927,7 @@ class ObservatoryDebugger extends Debugger {
 
   Future smartNext() async {
     if (isolatePaused()) {
-      var event = isolate.pauseEvent;
+      M.AsyncSuspensionEvent event = isolate.pauseEvent;
       if (event.atAsyncSuspension) {
         return asyncNext();
       } else {
@@ -1940,7 +1940,7 @@ class ObservatoryDebugger extends Debugger {
 
   Future asyncNext() async {
     if (isolatePaused()) {
-      var event = isolate.pauseEvent;
+      M.AsyncSuspensionEvent event = isolate.pauseEvent;
       if (!event.atAsyncSuspension) {
         console.print("No async continuation at this location");
       } else {
