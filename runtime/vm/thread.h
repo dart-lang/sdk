@@ -102,7 +102,9 @@ class Zone;
   V(RawCode*, lazy_deopt_from_throw_stub_,                                     \
     StubCode::DeoptimizeLazyFromThrow_entry()->code(), NULL)                   \
   V(RawCode*, slow_type_test_stub_, StubCode::SlowTypeTest_entry()->code(),    \
-    NULL)
+    NULL)                                                                      \
+  V(RawCode*, lazy_specialize_type_test_stub_,                                 \
+    StubCode::LazySpecializeTypeTest_entry()->code(), NULL)
 
 #endif
 

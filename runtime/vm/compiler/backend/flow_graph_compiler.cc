@@ -1934,7 +1934,12 @@ void FlowGraphCompiler::GenerateCidRangesCheck(Assembler* assembler,
   }
 }
 
-void FlowGraphCompiler::GenerateAssertAssignableAOT(
+bool FlowGraphCompiler::ShouldUseTypeTestingStubFor(bool optimizing,
+                                                    const AbstractType& type) {
+  return FLAG_precompiled_mode || (optimizing && type.IsTypeParameter());
+}
+
+void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
     const AbstractType& dst_type,
     const String& dst_name,
     const Register instance_reg,

@@ -18247,6 +18247,8 @@ RawTypeRef* TypeRef::CloneUninstantiated(const Class& new_owner,
   cloned_ref_type = ref_type.CloneUninstantiated(new_owner, trail);
   ASSERT(!cloned_ref_type.IsTypeRef());
   cloned_type_ref.set_type(cloned_ref_type);
+  cloned_type_ref.SetTypeTestingStub(Instructions::Handle(
+      TypeTestingStubGenerator::DefaultCodeForType(cloned_type_ref)));
   return cloned_type_ref.raw();
 }
 

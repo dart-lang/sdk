@@ -9,6 +9,7 @@
 #include "vm/snapshot.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
+#include "vm/type_testing_stubs.h"
 #include "vm/visitor.h"
 
 namespace dart {
@@ -236,6 +237,11 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
     type.SetCanonical();
   }
 
+  // Fill in the type testing stub.
+  Instructions& instr = *reader->InstructionsHandle();
+  instr = TypeTestingStubGenerator::DefaultCodeForType(type);
+  type.SetTypeTestingStub(instr);
+
   return type.raw();
 }
 
@@ -306,6 +312,11 @@ RawTypeRef* TypeRef::ReadFrom(SnapshotReader* reader,
   READ_OBJECT_FIELDS(type_ref, type_ref.raw()->from(), type_ref.raw()->to(),
                      kAsReference);
 
+  // Fill in the type testing stub.
+  Instructions& instr = *reader->InstructionsHandle();
+  instr = TypeTestingStubGenerator::DefaultCodeForType(type_ref);
+  type_ref.SetTypeTestingStub(instr);
+
   return type_ref.raw();
 }
 
@@ -356,6 +367,11 @@ RawTypeParameter* TypeParameter::ReadFrom(SnapshotReader* reader,
   (*reader->ClassHandle()) =
       Class::RawCast(reader->ReadObjectImpl(kAsReference));
   type_parameter.set_parameterized_class(*reader->ClassHandle());
+
+  // Fill in the type testing stub.
+  Instructions& instr = *reader->InstructionsHandle();
+  instr = TypeTestingStubGenerator::DefaultCodeForType(type_parameter);
+  type_parameter.SetTypeTestingStub(instr);
 
   return type_parameter.raw();
 }

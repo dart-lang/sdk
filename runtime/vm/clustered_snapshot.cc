@@ -33,6 +33,10 @@ static RawObject* AllocateUninitialized(PageSpace* old_space, intptr_t size) {
   return RawObject::FromAddr(address);
 }
 
+static bool SnapshotContainsTypeTestingStubs(Snapshot::Kind kind) {
+  return kind == Snapshot::kFullAOT || kind == Snapshot::kFullJIT;
+}
+
 void Deserializer::InitializeHeader(RawObject* raw,
                                     intptr_t class_id,
                                     intptr_t size,
@@ -3058,6 +3062,8 @@ class TypeSerializationCluster : public SerializationCluster {
 
   void WriteFill(Serializer* s) {
     const bool is_vm_isolate = s->isolate() == Dart::vm_isolate();
+    const bool should_write_type_testing_stub =
+        SnapshotContainsTypeTestingStubs(s->kind());
 
     intptr_t count = canonical_objects_.length();
     for (intptr_t i = 0; i < count; i++) {
@@ -3069,7 +3075,7 @@ class TypeSerializationCluster : public SerializationCluster {
       }
       s->WriteTokenPosition(type->ptr()->token_pos_);
       s->Write<int8_t>(type->ptr()->type_state_);
-      if (s->kind() == Snapshot::kFullAOT) {
+      if (should_write_type_testing_stub) {
         RawInstructions* instr = type_testing_stubs_.LookupByAddresss(
             type->ptr()->type_test_stub_entry_point_);
         s->WriteInstructions(instr, Code::null());
@@ -3085,7 +3091,7 @@ class TypeSerializationCluster : public SerializationCluster {
       }
       s->WriteTokenPosition(type->ptr()->token_pos_);
       s->Write<int8_t>(type->ptr()->type_state_);
-      if (s->kind() == Snapshot::kFullAOT) {
+      if (should_write_type_testing_stub) {
         RawInstructions* instr = type_testing_stubs_.LookupByAddresss(
             type->ptr()->type_test_stub_entry_point_);
         s->WriteInstructions(instr, Code::null());
@@ -3094,7 +3100,7 @@ class TypeSerializationCluster : public SerializationCluster {
 
     // The dynamic/void objects are not serialized, so we manually send
     // the type testing stub for it.
-    if (s->kind() == Snapshot::kFullAOT && is_vm_isolate) {
+    if (should_write_type_testing_stub && is_vm_isolate) {
       RawInstructions* dynamic_instr = type_testing_stubs_.LookupByAddresss(
           Type::dynamic_type().type_test_stub_entry_point());
       s->WriteInstructions(dynamic_instr, Code::null());
@@ -3137,6 +3143,8 @@ class TypeDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     const bool is_vm_isolate = d->isolate() == Dart::vm_isolate();
+    const bool should_read_type_testing_stub =
+        SnapshotContainsTypeTestingStubs(d->kind());
 
     for (intptr_t id = canonical_start_index_; id < canonical_stop_index_;
          id++) {
@@ -3150,7 +3158,7 @@ class TypeDeserializationCluster : public DeserializationCluster {
       }
       type->ptr()->token_pos_ = d->ReadTokenPosition();
       type->ptr()->type_state_ = d->Read<int8_t>();
-      if (d->kind() == Snapshot::kFullAOT) {
+      if (should_read_type_testing_stub) {
         instr_ = d->ReadInstructions();
         type_ = type;
         type_.SetTypeTestingStub(instr_);
@@ -3168,7 +3176,7 @@ class TypeDeserializationCluster : public DeserializationCluster {
       }
       type->ptr()->token_pos_ = d->ReadTokenPosition();
       type->ptr()->type_state_ = d->Read<int8_t>();
-      if (d->kind() == Snapshot::kFullAOT) {
+      if (should_read_type_testing_stub) {
         instr_ = d->ReadInstructions();
         type_ = type;
         type_.SetTypeTestingStub(instr_);
@@ -3177,7 +3185,7 @@ class TypeDeserializationCluster : public DeserializationCluster {
 
     // The dynamic/void objects are not serialized, so we manually send
     // the type testing stub for it.
-    if (d->kind() == Snapshot::kFullAOT && is_vm_isolate) {
+    if (should_read_type_testing_stub && is_vm_isolate) {
       instr_ = d->ReadInstructions();
       Type::dynamic_type().SetTypeTestingStub(instr_);
       instr_ = d->ReadInstructions();
@@ -3186,7 +3194,7 @@ class TypeDeserializationCluster : public DeserializationCluster {
   }
 
   void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
-    if (kind != Snapshot::kFullAOT) {
+    if (!SnapshotContainsTypeTestingStubs(kind)) {
       for (intptr_t id = canonical_start_index_; id < canonical_stop_index_;
            id++) {
         type_ ^= refs.At(id);
@@ -3237,6 +3245,9 @@ class TypeRefSerializationCluster : public SerializationCluster {
   }
 
   void WriteFill(Serializer* s) {
+    const bool should_write_type_testing_stub =
+        SnapshotContainsTypeTestingStubs(s->kind());
+
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawTypeRef* type = objects_[i];
@@ -3245,7 +3256,7 @@ class TypeRefSerializationCluster : public SerializationCluster {
       for (RawObject** p = from; p <= to; p++) {
         s->WriteRef(*p);
       }
-      if (s->kind() == Snapshot::kFullAOT) {
+      if (should_write_type_testing_stub) {
         RawInstructions* instr = type_testing_stubs_.LookupByAddresss(
             type->ptr()->type_test_stub_entry_point_);
         s->WriteInstructions(instr, Code::null());
@@ -3276,7 +3287,9 @@ class TypeRefDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
+    const bool is_vm_object = d->isolate() == Dart::vm_isolate();
+    const bool should_read_type_testing_stub =
+        SnapshotContainsTypeTestingStubs(d->kind());
 
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawTypeRef* type = reinterpret_cast<RawTypeRef*>(d->Ref(id));
@@ -3287,9 +3300,19 @@ class TypeRefDeserializationCluster : public DeserializationCluster {
       for (RawObject** p = from; p <= to; p++) {
         *p = d->ReadRef();
       }
-      if (d->kind() == Snapshot::kFullAOT) {
+      if (should_read_type_testing_stub) {
         instr_ = d->ReadInstructions();
         type_ = type;
+        type_.SetTypeTestingStub(instr_);
+      }
+    }
+  }
+
+  void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
+    if (!SnapshotContainsTypeTestingStubs(kind)) {
+      for (intptr_t id = start_index_; id < stop_index_; id++) {
+        type_ ^= refs.At(id);
+        instr_ = TypeTestingStubGenerator::DefaultCodeForType(type_);
         type_.SetTypeTestingStub(instr_);
       }
     }
@@ -3331,6 +3354,9 @@ class TypeParameterSerializationCluster : public SerializationCluster {
   }
 
   void WriteFill(Serializer* s) {
+    const bool should_write_type_testing_stub =
+        SnapshotContainsTypeTestingStubs(s->kind());
+
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawTypeParameter* type = objects_[i];
@@ -3343,7 +3369,7 @@ class TypeParameterSerializationCluster : public SerializationCluster {
       s->WriteTokenPosition(type->ptr()->token_pos_);
       s->Write<int16_t>(type->ptr()->index_);
       s->Write<int8_t>(type->ptr()->type_state_);
-      if (s->kind() == Snapshot::kFullAOT) {
+      if (should_write_type_testing_stub) {
         RawInstructions* instr = type_testing_stubs_.LookupByAddresss(
             type->ptr()->type_test_stub_entry_point_);
         s->WriteInstructions(instr, Code::null());
@@ -3376,6 +3402,8 @@ class TypeParameterDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     bool is_vm_object = d->isolate() == Dart::vm_isolate();
+    const bool should_read_type_testing_stub =
+        SnapshotContainsTypeTestingStubs(d->kind());
 
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawTypeParameter* type = reinterpret_cast<RawTypeParameter*>(d->Ref(id));
@@ -3390,7 +3418,7 @@ class TypeParameterDeserializationCluster : public DeserializationCluster {
       type->ptr()->token_pos_ = d->ReadTokenPosition();
       type->ptr()->index_ = d->Read<int16_t>();
       type->ptr()->type_state_ = d->Read<int8_t>();
-      if (d->kind() == Snapshot::kFullAOT) {
+      if (should_read_type_testing_stub) {
         instr_ = d->ReadInstructions();
         type_ = type;
         type_.SetTypeTestingStub(instr_);
@@ -3399,7 +3427,7 @@ class TypeParameterDeserializationCluster : public DeserializationCluster {
   }
 
   void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
-    if (kind != Snapshot::kFullAOT) {
+    if (!SnapshotContainsTypeTestingStubs(kind)) {
       for (intptr_t id = start_index_; id < stop_index_; id++) {
         type_ ^= refs.At(id);
         instr_ = TypeTestingStubGenerator::DefaultCodeForType(type_);
