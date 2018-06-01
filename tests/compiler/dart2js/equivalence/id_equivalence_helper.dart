@@ -692,7 +692,7 @@ Future<bool> checkCode(
               'UNEXPECTED $mode DATA for ${id.descriptor}: '
               'Object: ${actualData.objectText}\n '
               'expected: ${colorizeExpected('$expected')}\n '
-              'actual: ${colorizeActual('$actual')}');
+              'actual  : ${colorizeActual('$actual')}');
           if (filterActualData == null ||
               filterActualData(expected, actualData)) {
             hasLocalFailure = true;

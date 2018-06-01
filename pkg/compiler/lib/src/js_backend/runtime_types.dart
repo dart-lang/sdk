@@ -789,7 +789,7 @@ class TypeVariableTests {
   ///     }
   ///     main() => new B<int>().m(0);
   ///
-  Iterable<ClassEntity> get classTests =>
+  Iterable<ClassEntity> get classTestsForTesting =>
       _classes.values.where((n) => n.hasTest).map((n) => n.cls).toSet();
 
   /// Classes that explicitly use their type variables in is-tests.
@@ -801,7 +801,7 @@ class TypeVariableTests {
   ///     }
   ///     main() => new A<int>().m(0);
   ///
-  Iterable<ClassEntity> get directClassTests =>
+  Iterable<ClassEntity> get directClassTestsForTesting =>
       _classes.values.where((n) => n.hasDirectTest).map((n) => n.cls).toSet();
 
   /// Methods that explicitly or implicitly use their type variables in
@@ -813,7 +813,7 @@ class TypeVariableTests {
   ///     m2<S>(o) => m1<S>(o);
   ///     main() => m2<int>(0);
   ///
-  Iterable<Entity> get methodTests =>
+  Iterable<Entity> get methodTestsForTesting =>
       _methods.values.where((n) => n.hasTest).map((n) => n.function).toSet();
 
   /// Methods that explicitly use their type variables in is-tests.
@@ -823,7 +823,7 @@ class TypeVariableTests {
   ///     m<T>(o) => o is T;
   ///     main() => m<int>(0);
   ///
-  Iterable<Entity> get directMethodTests => _methods.values
+  Iterable<Entity> get directMethodTestsForTesting => _methods.values
       .where((n) => n.hasDirectTest)
       .map((n) => n.function)
       .toSet();
@@ -1022,20 +1022,25 @@ class TypeVariableTests {
 
   void _propagateTests(CommonElements commonElements,
       ElementEnvironment elementEnvironment, WorldBuilder worldBuilder) {
+    void processTypeVariableType(TypeVariableType type, {bool direct: true}) {
+      TypeVariableEntity variable = type.element;
+      if (variable.typeDeclaration is ClassEntity) {
+        _getClassNode(variable.typeDeclaration).markTest(direct: direct);
+      } else {
+        _getMethodNode(
+                elementEnvironment, worldBuilder, variable.typeDeclaration)
+            .markTest(direct: direct);
+      }
+    }
+
     void processType(DartType type, {bool direct: true}) {
-      if (type.isTypeVariable) {
-        TypeVariableType typeVariableType = type;
-        TypeVariableEntity variable = typeVariableType.element;
-        if (variable.typeDeclaration is ClassEntity) {
-          _getClassNode(variable.typeDeclaration).markTest(direct: direct);
-        } else {
-          _getMethodNode(
-                  elementEnvironment, worldBuilder, variable.typeDeclaration)
-              .markTest(direct: direct);
-        }
-      } else if (type is FutureOrType) {
+      if (type is FutureOrType) {
         _getClassNode(commonElements.futureClass).markIndirectTest();
         processType(type.typeArgument, direct: false);
+      } else {
+        type.forEachTypeVariable((TypeVariableType type) {
+          processTypeVariableType(type, direct: direct);
+        });
       }
     }
 

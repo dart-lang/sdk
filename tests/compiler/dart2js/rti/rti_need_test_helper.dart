@@ -113,10 +113,10 @@ abstract class ComputeValueMixin<T> {
         .contains(frontendClass)) {
       features.add(Tags.typeLiteral);
     }
-    if (rtiNeedBuilder.typeVariableTestsForTesting.directClassTests
+    if (rtiNeedBuilder.typeVariableTestsForTesting.directClassTestsForTesting
         .contains(frontendClass)) {
       features.add(Tags.directTypeArgumentTest);
-    } else if (rtiNeedBuilder.typeVariableTestsForTesting.classTests
+    } else if (rtiNeedBuilder.typeVariableTestsForTesting.classTestsForTesting
         .contains(frontendClass)) {
       features.add(Tags.indirectTypeArgumentTest);
     }
@@ -143,10 +143,12 @@ abstract class ComputeValueMixin<T> {
 
       void addFrontendData(Entity entity) {
         findDependencies(features, entity);
-        if (rtiNeedBuilder.typeVariableTestsForTesting.directMethodTests
+        if (rtiNeedBuilder
+            .typeVariableTestsForTesting.directMethodTestsForTesting
             .contains(entity)) {
           features.add(Tags.directTypeArgumentTest);
-        } else if (rtiNeedBuilder.typeVariableTestsForTesting.methodTests
+        } else if (rtiNeedBuilder
+            .typeVariableTestsForTesting.methodTestsForTesting
             .contains(entity)) {
           features.add(Tags.indirectTypeArgumentTest);
         }
