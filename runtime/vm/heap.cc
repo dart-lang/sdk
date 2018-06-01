@@ -140,9 +140,12 @@ void Heap::AllocateExternal(intptr_t cid, intptr_t size, Space space) {
   } else {
     ASSERT(space == kOld);
     old_space_.AllocateExternal(cid, size);
-    if (old_space_.NeedsGarbageCollection()) {
-      CollectAllGarbage();
-    }
+  }
+  // Idle GC does not check whether promotions should trigger a full GC.
+  // As a workaround, we check here on every external allocation. See issue
+  // dartbug.com/33314.
+  if (old_space_.NeedsGarbageCollection()) {
+    CollectAllGarbage();
   }
 }
 
