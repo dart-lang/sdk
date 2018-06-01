@@ -491,9 +491,6 @@ html/js_function_getter_trust_types_test: Skip # --trust-type-annotations incomp
 [ $compiler == dart2js && $checked && $fasta ]
 async/stream_listen_zone_test: RuntimeError
 
-[ $compiler == dart2js && !$checked ]
-async/async_await_sync_completer_test: RuntimeError
-
 [ $compiler == dart2js && $csp && $fasta && $minified ]
 collection/list_test: RuntimeError
 
