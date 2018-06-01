@@ -154,11 +154,12 @@ analyzer:
     server.setAnalysisSubscriptions(<AnalysisService, Set<String>>{
       AnalysisService.NAVIGATION: new Set<String>.from([path])
     });
-    // the file is excluded, so no navigation notification
+
+    // We respect subscriptions, even for excluded files.
     await server.onAnalysisComplete;
     expect(channel.notificationsReceived.any((notification) {
       return notification.event == ANALYSIS_NOTIFICATION_NAVIGATION;
-    }), isFalse);
+    }), isTrue);
   }
 
   test_setAnalysisSubscriptions_fileInIgnoredFolder_oldOptions() async {
@@ -173,11 +174,12 @@ analyzer:
     server.setAnalysisSubscriptions(<AnalysisService, Set<String>>{
       AnalysisService.NAVIGATION: new Set<String>.from([path])
     });
-    // the file is excluded, so no navigation notification
+
+    // We respect subscriptions, even for excluded files.
     await server.onAnalysisComplete;
     expect(channel.notificationsReceived.any((notification) {
       return notification.event == ANALYSIS_NOTIFICATION_NAVIGATION;
-    }), isFalse);
+    }), isTrue);
   }
 
   Future test_shutdown() {
