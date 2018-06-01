@@ -394,18 +394,15 @@ void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
-  // When using a type testing stub, we want to prevent spilling of the
-  // function/instantiator type argument vectors, since stub preserves them. So
-  // we make this a `kNoCall` summary, even though most other registers can be
-  // modified by the stub. To tell the register allocator about it, we reserve
+  // In AOT mode, we want to prevent spilling of the function/instantiator type
+  // argument vectors, since we preserve them.  So we make this a `kNoCall`
+  // summary.  Though most other registers can be modified by the type testing
+  // stubs we are calling.  To tell the register allocator about it, we reserve
   // all the other registers as temporary registers.
   // TODO(http://dartbug.com/32788): Simplify this.
   const Register kInstanceReg = R0;
   const Register kInstantiatorTypeArgumentsReg = R1;
   const Register kFunctionTypeArgumentsReg = R2;
-
-  const bool using_stub =
-      FlowGraphCompiler::ShouldUseTypeTestingStubFor(opt, dst_type());
 
   const intptr_t kNonChangeableInputRegs =
       (1 << kInstanceReg) | (1 << kInstantiatorTypeArgumentsReg) |
@@ -414,13 +411,14 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumInputs = 3;
 
   const intptr_t kNumTemps =
-      using_stub ? (Utils::CountOneBits64(kDartAvailableCpuRegs) -
-                    Utils::CountOneBits64(kNonChangeableInputRegs))
-                 : 0;
+      FLAG_precompiled_mode ? (Utils::CountOneBits64(kDartAvailableCpuRegs) -
+                               Utils::CountOneBits64(kNonChangeableInputRegs))
+                            : 0;
 
-  LocationSummary* summary = new (zone) LocationSummary(
-      zone, kNumInputs, kNumTemps,
-      using_stub ? LocationSummary::kCallCalleeSafe : LocationSummary::kCall);
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps,
+                      FLAG_precompiled_mode ? LocationSummary::kCallCalleeSafe
+                                            : LocationSummary::kCall);
   summary->set_in(0, Location::RegisterLocation(kInstanceReg));  // Value.
   summary->set_in(1,
                   Location::RegisterLocation(
@@ -432,7 +430,7 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
   // once register allocator no longer hits assertion.
   summary->set_out(0, Location::RegisterLocation(kInstanceReg));
 
-  if (using_stub) {
+  if (FLAG_precompiled_mode) {
     // Let's reserve all registers except for the input ones.
     intptr_t next_temp = 0;
     for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {

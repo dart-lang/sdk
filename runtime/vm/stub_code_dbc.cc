@@ -104,11 +104,6 @@ void StubCode::GenerateUnreachableTypeTestStub(Assembler* assembler) {
 }
 
 // TODO(kustermann): Don't generate this stub.
-void StubCode::GenerateLazySpecializeTypeTestStub(Assembler* assembler) {
-  __ Trap();
-}
-
-// TODO(kustermann): Don't generate this stub.
 void StubCode::GenerateSlowTypeTestStub(Assembler* assembler) {
   __ Trap();
 }

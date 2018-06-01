@@ -26,7 +26,6 @@
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 #include "vm/thread_registry.h"
-#include "vm/type_testing_stubs.h"
 #include "vm/verifier.h"
 
 namespace dart {
@@ -681,9 +680,8 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
 // Arg3: type arguments of the function of the type being assigned to.
 // Arg4: name of variable being assigned to.
 // Arg5: SubtypeTestCache.
-// Arg6: invocation mode (see TypeCheckMode)
 // Return value: instance if a subtype, otherwise throw a TypeError.
-DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
+DEFINE_RUNTIME_ENTRY(TypeCheck, 6) {
   const Instance& src_instance =
       Instance::CheckedHandle(zone, arguments.ArgAt(0));
   AbstractType& dst_type =
@@ -699,13 +697,6 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
   SubtypeTestCache& cache = SubtypeTestCache::Handle(zone);
   cache ^= arguments.ArgAt(5);
   ASSERT(cache.IsNull() || cache.IsSubtypeTestCache());
-
-  const TypeCheckMode mode = static_cast<TypeCheckMode>(
-      Smi::CheckedHandle(zone, arguments.ArgAt(6)).Value());
-
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_DBC)
-  ASSERT(mode == kTypeCheckFromInline);
-#endif
 
   ASSERT(!dst_type.IsMalformed());    // Already checked in code generator.
   ASSERT(!dst_type.IsMalbounded());   // Already checked in code generator.
@@ -740,10 +731,8 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
       bound_error_message = String::New(bound_error.ToErrorCString());
     }
     if (dst_name.IsNull()) {
-#if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
-      // Can only come here from type testing stub.
-      ASSERT(mode != kTypeCheckFromInline);
-
+#if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32) &&                 \
+    (defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME))
       // Grab the [dst_name] from the pool.  It's stored at one pool slot after
       // the subtype-test-cache.
       DartFrameIterator iterator(thread,
@@ -767,20 +756,14 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
     UNREACHABLE();
   }
 
-  bool should_update_cache = true;
+  if (cache.IsNull()) {
 #if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32) &&                 \
-    !defined(DART_PRECOMPILED_RUNTIME)
-  if (mode == kTypeCheckFromLazySpecializeStub) {
-    TypeTestingStubGenerator::SpecializeStubFor(thread, dst_type);
-    // Only create the cache when we come from a normal stub.
-    should_update_cache = false;
-  }
-#endif
+    (defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME))
 
-  if (should_update_cache) {
-    if (cache.IsNull()) {
-#if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
-      ASSERT(mode == kTypeCheckFromSlowStub);
+#if defined(DART_PRECOMPILER)
+    if (FLAG_precompiled_mode) {
+#endif  // defined(DART_PRECOMPILER)
+
       // We lazily create [SubtypeTestCache] for those call sites which actually
       // need one and will patch the pool entry.
       DartFrameIterator iterator(thread,
@@ -797,15 +780,37 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
       ASSERT(pool.ObjectAt(stc_pool_idx) == Object::null());
       cache = SubtypeTestCache::New();
       pool.SetObjectAt(stc_pool_idx, cache);
-#else
-      UNREACHABLE();
-#endif
-    }
 
-    UpdateTypeTestCache(src_instance, dst_type, instantiator_type_arguments,
-                        function_type_arguments, Bool::True(), cache);
+#if defined(DART_PRECOMPILER)
+    }
+#endif  // defined(DART_PRECOMPILER)
+
+#else
+    // WARNING: If we ever come here, it's a really bad sign, because it means
+    // that there was a type test, which generated code could not handle but we
+    // have no subtype cache.  Which means that this successfully-passing type
+    // check will always go to runtime.
+    //
+    // Currently there is one known case when this happens:
+    //
+    // The [FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest] is
+    // handling type checks against int/num specially: It generates a number of
+    // class-id checks.  Unfortunately it handles only normal implementations of
+    // 'int', such as kSmiCid, kMintCid, kBigintCid.  It will signal that there
+    // is no subtype-cache necessary on that call site, because all integer
+    // types have been handled.
+    //
+    // -> Though this is not true, due to (from runtime/lib/array_patch.dart):
+    //
+    //    class _GrowableArrayMarker implements int { }
+    //
+    // Because of this, we cannot have an `UNREACHABLE()` here, but rather just
+    // have a NOP and return `true`, to signal the type check passed.
+#endif  // defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
   }
 
+  UpdateTypeTestCache(src_instance, dst_type, instantiator_type_arguments,
+                      function_type_arguments, Bool::True(), cache);
   arguments.SetReturn(src_instance);
 }
 

@@ -36,12 +36,7 @@ class TypeTestingStubGenerator {
   // During bootstrapping it will return `null` for a whitelisted set of types,
   // otherwise it will return a default stub which tail-calls
   // subtypingtest/runtime code.
-  static RawInstructions* DefaultCodeForType(const AbstractType& type,
-                                             bool lazy_specialize = true);
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  static void SpecializeStubFor(Thread* thread, const AbstractType& type);
-#endif
+  static RawInstructions* DefaultCodeForType(const AbstractType& type);
 
   TypeTestingStubGenerator();
 

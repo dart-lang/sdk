@@ -28,7 +28,7 @@ class Code;
 
 bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj);
 
-#if !defined(TARGET_ARCH_IA32) && !defined(TARGET_ARCH_DBC)
+#if defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
 
 class TypeTestingStubCallPattern : public ValueObject {
  public:
@@ -40,7 +40,7 @@ class TypeTestingStubCallPattern : public ValueObject {
   const uword pc_;
 };
 
-#endif  // !defined(TARGET_ARCH_IA32) && !defined(TARGET_ARCH_DBC)
+#endif  // defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace dart
 

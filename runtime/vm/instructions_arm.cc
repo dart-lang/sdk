@@ -285,6 +285,8 @@ bool ReturnPattern::IsValid() const {
   return false;
 }
 
+#if defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
+
 intptr_t TypeTestingStubCallPattern::GetSubtypeTestCachePoolIndex() {
   // Calls to the type testing stubs look like:
   //   ldr R3, [PP+idx]
@@ -301,6 +303,8 @@ intptr_t TypeTestingStubCallPattern::GetSubtypeTestCachePoolIndex() {
   ASSERT(reg == R3);
   return pool_index;
 }
+
+#endif  // defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace dart
 

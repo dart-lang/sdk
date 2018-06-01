@@ -654,9 +654,8 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
     return;
   }
 
-  if (ShouldUseTypeTestingStubFor(is_optimizing(), dst_type)) {
-    GenerateAssertAssignableViaTypeTestingStub(token_pos, deopt_id, dst_type,
-                                               dst_name, locs);
+  if (FLAG_precompiled_mode) {
+    GenerateAssertAssignableAOT(token_pos, deopt_id, dst_type, dst_name, locs);
   } else {
     Label is_assignable, runtime_call;
 
@@ -679,17 +678,16 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
     __ PushObject(dst_name);  // Push the name of the destination.
     __ LoadUniqueObject(RAX, test_cache);
     __ pushq(RAX);
-    __ PushObject(Smi::ZoneHandle(zone(), Smi::New(kTypeCheckFromInline)));
-    GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 7, locs);
+    GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 6, locs);
     // Pop the parameters supplied to the runtime entry. The result of the
     // type check runtime call is the checked value.
-    __ Drop(7);
+    __ Drop(6);
     __ popq(RAX);
     __ Bind(&is_assignable);
   }
 }
 
-void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
+void FlowGraphCompiler::GenerateAssertAssignableAOT(
     TokenPosition token_pos,
     intptr_t deopt_id,
     const AbstractType& dst_type,
@@ -704,10 +702,10 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
   const Register subtype_cache_reg = R9;
   const Register kScratchReg = RBX;
 
-  GenerateAssertAssignableViaTypeTestingStub(
-      dst_type, dst_name, kInstanceReg, kInstantiatorTypeArgumentsReg,
-      kFunctionTypeArgumentsReg, subtype_cache_reg, kScratchReg, kScratchReg,
-      &done);
+  GenerateAssertAssignableAOT(dst_type, dst_name, kInstanceReg,
+                              kInstantiatorTypeArgumentsReg,
+                              kFunctionTypeArgumentsReg, subtype_cache_reg,
+                              kScratchReg, kScratchReg, &done);
 
   // We use 2 consecutive entries in the pool for the subtype cache and the
   // destination name.  The second entry, namely [dst_name] seems to be unused,

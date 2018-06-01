@@ -3368,9 +3368,8 @@ RawObject* Interpreter::Call(const Code& code,
       SP[4] = args[2];  // function type args
       SP[5] = args[4];  // name
       SP[6] = cache;
-      SP[7] = Smi::New(kTypeCheckFromInline);
-      Exit(thread, FP, SP + 8, pc);
-      NativeArguments native_args(thread, 7, SP + 1, SP - 4);
+      Exit(thread, FP, SP + 7, pc);
+      NativeArguments native_args(thread, 6, SP + 1, SP - 4);
       INVOKE_RUNTIME(DRT_TypeCheck, native_args);
     }
 
