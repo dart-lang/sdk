@@ -239,9 +239,7 @@ class AnalyzerSuperPropertyAccessGenerator extends AnalyzerExpressionGenerator
 }
 
 class AnalyzerUnlinkedNameGenerator extends AnalyzerExpressionGenerator
-    with
-        fasta.ErroneousExpressionGenerator<Expression, Statement, Arguments>,
-        fasta.UnlinkedGenerator<Expression, Statement, Arguments> {
+    with fasta.UnlinkedGenerator<Expression, Statement, Arguments> {
   @override
   final Token token;
 
@@ -256,26 +254,7 @@ class AnalyzerUnlinkedNameGenerator extends AnalyzerExpressionGenerator
       : super(helper, astFactory);
 
   @override
-  DartType buildErroneousTypeNotAPrefix(fasta.Identifier suffix) {
-    // TODO: implement buildErroneousTypeNotAPrefix
-    throw new UnimplementedError();
-  }
-
-  @override
-  Expression buildError(Arguments arguments,
-      {bool isGetter: false, bool isSetter: false, int offset}) {
-    // TODO: implement buildError
-    throw new UnimplementedError();
-  }
-
-  @override
   Expression buildSimpleRead() => astFactory.simpleIdentifier(token);
-
-  @override
-  void printOn(StringSink sink) {
-    sink.write(", name: ");
-    sink.write(name.name);
-  }
 }
 
 class AnalyzerUnresolvedNameGenerator extends AnalyzerExpressionGenerator
@@ -297,12 +276,6 @@ class AnalyzerUnresolvedNameGenerator extends AnalyzerExpressionGenerator
 
   @override
   Expression buildSimpleRead() => astFactory.simpleIdentifier(token);
-
-  @override
-  void printOn(StringSink sink) {
-    sink.write(", name: ");
-    sink.write(name.name);
-  }
 }
 
 class AnalyzerVariableUseGenerator extends AnalyzerExpressionGenerator
