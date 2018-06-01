@@ -2678,6 +2678,9 @@ class FixProcessor {
     IfStatement ifStatement = node is IfStatement
         ? node
         : node.getAncestor((node) => node is IfStatement);
+    if (ifStatement == null) {
+      return;
+    }
     var thenStatement = ifStatement.thenStatement;
     Statement uniqueStatement(Statement statement) {
       if (statement is Block) {
