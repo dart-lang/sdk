@@ -100,10 +100,6 @@ dart/spawn_shutdown_test: Skip # OOM crash can bring down the OS.
 cc/CorelibCompilerStats: Skip
 cc/Service_Profile: Skip
 
-[ $checked ]
-dart/appjit_determinism_test: Skip # Issue 31427 - Lingering non-determinism in checked mode.
-dart/script_determinism_test: Skip # Issue 31427 - Lingering non-determinism in checked mode.
-
 [ !$strong ]
 dart/callee_side_type_checks_test: SkipByDesign
 
@@ -345,6 +341,10 @@ cc/CoreSnapshotSize: SkipByDesign # Imports dart:mirrors
 cc/CreateMirrorSystem: SkipByDesign # Imports dart:mirrors
 cc/StandaloneSnapshotSize: SkipByDesign # Imports dart:mirrors
 dart/redirection_type_shuffling_test: SkipByDesign # Imports dart:mirrors
+
+[ $system == windows || $checked ]
+dart/appjit_determinism_test: Skip # Issue 31427 - Lingering non-determinism in checked mode and Windows.
+dart/script_determinism_test: Skip # Issue 31427 - Lingering non-determinism in checked mode and Windows.
 
 [ $hot_reload || $hot_reload_rollback ]
 dart/appjit_determinism_test: Skip # Reload affects determinisim
