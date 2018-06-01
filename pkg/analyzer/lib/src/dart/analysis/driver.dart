@@ -2284,11 +2284,11 @@ class _DiscoverAvailableFilesTask {
    * task should continue to be run.
    */
   void perform() {
-    // Always discover added files.
-    files.addAll(driver.addedFiles);
-
     // Prepare the iterator of package/lib folders.
     if (folderIterator == null) {
+      // Always discover added files.
+      files.addAll(driver.addedFiles);
+
       var packageMap = driver._sourceFactory.packageMap;
       if (packageMap != null) {
         folderIterator = packageMap.values.expand((f) => f).iterator;
@@ -2300,11 +2300,14 @@ class _DiscoverAvailableFilesTask {
     // List each package/lib folder recursively.
     Stopwatch timer = new Stopwatch()..start();
     while (folderIterator.moveNext()) {
+      var folder = folderIterator.current;
+      _appendFilesRecursively(folder);
+
+      // Note: must check if we are exiting before calling moveNext()
+      // otherwise we will skip one iteration of the loop when we come back.
       if (timer.elapsedMilliseconds > _MS_WORK_INTERVAL) {
         return;
       }
-      var folder = folderIterator.current;
-      _appendFilesRecursively(folder);
     }
 
     // Get know files one by one.
