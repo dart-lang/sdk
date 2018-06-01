@@ -3293,7 +3293,7 @@ A {\em numeric literal} is either a decimal or hexadecimal numeral representing 
   {`\escapegrammar .}' DIGIT+ EXPONENT?
   .
 
-{\bf EXPONENT:}(`e' $|$ `E') (`+' $|$ `-'')? DIGIT+
+{\bf EXPONENT:}(`e' $|$ `E') (`+' $|$ `-')? DIGIT+
   .
 
 {\bf HEX\_NUMBER:}`0x' HEX\_DIGIT+;
@@ -3330,8 +3330,8 @@ A hexadecimal integer literal with numeric value $i$ is a compile-time
 error if $i \ge{} 2^{64}$, unless it is prefixed by a unary minus operator,
 in which case it is a compile-time error if $i \gt{} 2^{63}$.
 If the \code{int} class is implemented as signed 64-bit two's complement integers,
-$i \ge{} 2^63$, and the literal is not prefixed by a unary minus operator, then
-the literal evaluates to an instance of the \code{int} class representing the integer value $i - 2^64$.
+$i \ge{} 2^{63}$, and the literal is not prefixed by a unary minus operator, then
+the literal evaluates to an instance of the \code{int} class representing the integer value $i - 2^{64}$.
 Otherwise the literal evaluates to an instance of the \code{int} class representing
 the integer value $i$,
 and it is a compile-time error if the integer $i$ cannot be represented exactly
