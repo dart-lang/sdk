@@ -248,7 +248,6 @@ const_types_test/39: MissingCompileTimeError # Issue 32988
 constructor_redirect1_negative_test/01: MissingCompileTimeError # Issue 30856
 constructor_redirect2_negative_test: MissingCompileTimeError # Issue 30856
 constructor_redirect_test/01: MissingCompileTimeError # Fasta bug: Initializer refers to this.
-constructor_type_parameter_test/00: MissingCompileTimeError # Issue 33110
 cyclic_constructor_test/01: MissingCompileTimeError # Issue 30856 (cyclic constructor redirection)
 cyclic_type_variable_test/01: MissingCompileTimeError # Issue 32989 (missing cycle check in bounds)
 cyclic_type_variable_test/02: MissingCompileTimeError # Issue 32989 (missing cycle check in bounds)

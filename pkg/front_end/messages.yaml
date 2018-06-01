@@ -1022,6 +1022,13 @@ ConstructorWithReturnType:
   script:
     - "class C { int C() {} }"
 
+ConstructorWithTypeParameters:
+  template: "Constructors can't have type parameters."
+  severity: ERROR
+  script:
+    - "class C { C<T>() {} }"
+    - "class C { C.foo<T>() {} }"
+
 FieldInitializerOutsideConstructor:
   template: "Field formal parameters can only be used in a constructor."
   tip: "Try removing 'this.'."

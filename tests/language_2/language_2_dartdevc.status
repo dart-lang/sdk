@@ -39,7 +39,8 @@ const_types_test/08: MissingCompileTimeError
 const_types_test/14: MissingCompileTimeError
 const_types_test/15: MissingCompileTimeError
 constant_type_literal_test/01: MissingCompileTimeError # DDC allows type parameter type literals in const expressions.
-constructor_type_parameter_test/00: MissingCompileTimeError # Issue 33110
+constructor_type_parameter_test/00: MissingCompileTimeError
+constructor_with_type_parameters_test/03: MissingCompileTimeError
 covariance_field_test/03: RuntimeError
 covariant_override/tear_off_type_test: RuntimeError # Issue 28395
 default_implementation2_test: CompileTimeError # Issue 30855

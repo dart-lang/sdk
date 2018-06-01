@@ -450,6 +450,7 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
       constructor.function.parent = constructor;
       constructor.function.fileOffset = charOpenParenOffset;
       constructor.function.fileEndOffset = constructor.fileEndOffset;
+      constructor.function.typeParameters = const <TypeParameter>[];
       constructor.isConst = isConst;
       constructor.isExternal = isExternal;
       constructor.name = new Name(name, library.target);

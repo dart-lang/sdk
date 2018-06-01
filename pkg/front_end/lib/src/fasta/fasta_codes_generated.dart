@@ -1046,6 +1046,16 @@ const MessageCode messageConstructorWithReturnType = const MessageCode(
     tip: r"""Try removing the return type.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstructorWithTypeParameters =
+    messageConstructorWithTypeParameters;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstructorWithTypeParameters = const MessageCode(
+    "ConstructorWithTypeParameters",
+    severity: Severity.error,
+    message: r"""Constructors can't have type parameters.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeContinueOutsideOfLoop = messageContinueOutsideOfLoop;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

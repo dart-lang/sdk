@@ -17,7 +17,8 @@ const_cast2_test/01: CompileTimeError
 const_cast2_test/none: CompileTimeError
 const_for_in_variable_test/01: MissingCompileTimeError # Issue 25161
 constructor_call_wrong_argument_count_negative_test: Fail # Issue 11585
-constructor_type_parameter_test/00: MissingCompileTimeError # Issue 33110
+constructor_type_parameter_test/00: MissingCompileTimeError
+constructor_with_type_parameters_test/03: MissingCompileTimeError
 deep_nesting1_negative_test: CompileTimeError # Issue 25558
 deep_nesting2_negative_test: CompileTimeError # Issue 25558
 duplicate_export_negative_test: CompileTimeError

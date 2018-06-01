@@ -85,6 +85,7 @@ ConstEvalNonConstantLiteral/example: Fail
 ConstFieldWithoutInitializer/example: Fail
 ConstructorNotFound/analyzerCode: Fail
 ConstructorNotFound/example: Fail
+ConstructorWithTypeParameters/analyzerCode: Fail # No corresponding analyzer message
 ContinueOutsideOfLoop/script1: Fail
 ContinueWithoutLabelInCase/script1: Fail
 CouldNotParseUri/analyzerCode: Fail
