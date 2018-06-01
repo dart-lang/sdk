@@ -103,7 +103,9 @@ class AstBuildingForest
   Statement breakStatement(
           Token breakKeyword, Identifier label, Token semicolon) =>
       astFactory.breakStatement(
-          breakKeyword, astFactory.simpleIdentifier(label.token), semicolon);
+          breakKeyword,
+          label == null ? null : astFactory.simpleIdentifier(label.token),
+          semicolon);
 
   @override
   kernel.Arguments castArguments(Arguments arguments) {
@@ -169,7 +171,9 @@ class AstBuildingForest
   Statement continueStatement(
           Token continueKeyword, Identifier label, Token semicolon) =>
       astFactory.continueStatement(
-          continueKeyword, astFactory.simpleIdentifier(label.token), semicolon);
+          continueKeyword,
+          label == null ? null : astFactory.simpleIdentifier(label.token),
+          semicolon);
 
   @override
   Generator<Expression, Statement, Arguments> deferredAccessGenerator(
@@ -436,7 +440,7 @@ class AstBuildingForest
       astFactory.mapLiteralEntry(key, colon, value);
 
   @override
-  List mapEntryList(int length) => <MapLiteralEntry>[];
+  List mapEntryList(int length) => new List<MapLiteralEntry>(length);
 
   @override
   Expression notExpression(Expression operand, Token operator) =>

@@ -492,6 +492,7 @@ class ComplexParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_assignmentExpression_indexExpression() {
     super.test_assignmentExpression_indexExpression();
+    dart2Failure();
   }
 
   @failingTest
@@ -795,11 +796,6 @@ class ErrorParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_breakOutsideOfLoop_breakInDoStatement() {
-    super.test_breakOutsideOfLoop_breakInDoStatement();
-  }
-
-  @failingTest
   void test_breakOutsideOfLoop_breakInForStatement() {
     super.test_breakOutsideOfLoop_breakInForStatement();
   }
@@ -812,11 +808,6 @@ class ErrorParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_breakOutsideOfLoop_breakInSwitchStatement() {
     super.test_breakOutsideOfLoop_breakInSwitchStatement();
-  }
-
-  @failingTest
-  void test_breakOutsideOfLoop_breakInWhileStatement() {
-    super.test_breakOutsideOfLoop_breakInWhileStatement();
   }
 
   @failingTest
@@ -920,11 +911,6 @@ class ErrorParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_continueOutsideOfLoop_continueInDoStatement() {
-    super.test_continueOutsideOfLoop_continueInDoStatement();
-  }
-
-  @failingTest
   void test_continueOutsideOfLoop_continueInForStatement() {
     super.test_continueOutsideOfLoop_continueInForStatement();
   }
@@ -937,11 +923,6 @@ class ErrorParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_continueOutsideOfLoop_continueInSwitchStatement() {
     super.test_continueOutsideOfLoop_continueInSwitchStatement();
-  }
-
-  @failingTest
-  void test_continueOutsideOfLoop_continueInWhileStatement() {
-    super.test_continueOutsideOfLoop_continueInWhileStatement();
   }
 
   @failingTest
@@ -2588,16 +2569,12 @@ class ExpressionParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_parseAssignableExpression_expression_index() {
     super.test_parseAssignableExpression_expression_index();
+    dart2Failure();
   }
 
   @failingTest
   void test_parseAssignableExpression_expression_question_dot() {
     super.test_parseAssignableExpression_expression_question_dot();
-  }
-
-  @failingTest
-  void test_parseAssignableExpression_identifier() {
-    super.test_parseAssignableExpression_identifier();
   }
 
   @failingTest
@@ -2623,11 +2600,6 @@ class ExpressionParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_parseAssignableExpression_identifier_index() {
-    super.test_parseAssignableExpression_identifier_index();
-  }
-
-  @failingTest
   void test_parseAssignableExpression_identifier_question_dot() {
     super.test_parseAssignableExpression_identifier_question_dot();
   }
@@ -2650,11 +2622,6 @@ class ExpressionParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_parseAssignableSelector_index() {
     super.test_parseAssignableSelector_index();
-  }
-
-  @failingTest
-  void test_parseAssignableSelector_none() {
-    super.test_parseAssignableSelector_none();
   }
 
   @failingTest
@@ -3060,11 +3027,6 @@ class ExpressionParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_parseListOrMapLiteral_map_noType() {
-    super.test_parseListOrMapLiteral_map_noType();
-  }
-
-  @failingTest
   void test_parseListOrMapLiteral_map_type() {
     super.test_parseListOrMapLiteral_map_type();
   }
@@ -3087,28 +3049,8 @@ class ExpressionParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_parseMapLiteral_multiple() {
-    super.test_parseMapLiteral_multiple();
-  }
-
-  @failingTest
-  void test_parseMapLiteral_single() {
-    super.test_parseMapLiteral_single();
-  }
-
-  @failingTest
   void test_parseMapLiteralEntry_complex() {
     super.test_parseMapLiteralEntry_complex();
-  }
-
-  @failingTest
-  void test_parseMapLiteralEntry_int() {
-    super.test_parseMapLiteralEntry_int();
-  }
-
-  @failingTest
-  void test_parseMapLiteralEntry_string() {
-    super.test_parseMapLiteralEntry_string();
   }
 
   @failingTest
@@ -3134,11 +3076,6 @@ class ExpressionParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_parsePostfixExpression_increment() {
     super.test_parsePostfixExpression_increment();
-  }
-
-  @failingTest
-  void test_parsePostfixExpression_none_indexExpression() {
-    super.test_parsePostfixExpression_none_indexExpression();
   }
 
   @failingTest
@@ -3183,11 +3120,6 @@ class ExpressionParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_parsePrefixedIdentifier_noPrefix() {
-    super.test_parsePrefixedIdentifier_noPrefix();
-  }
-
-  @failingTest
   void test_parsePrefixedIdentifier_prefix() {
     super.test_parsePrefixedIdentifier_prefix();
   }
@@ -3211,11 +3143,6 @@ class ExpressionParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_parsePrimaryExpression_genericFunctionExpression() {
     super.test_parsePrimaryExpression_genericFunctionExpression();
-  }
-
-  @failingTest
-  void test_parsePrimaryExpression_identifier() {
-    super.test_parsePrimaryExpression_identifier();
   }
 
   @failingTest
@@ -3321,16 +3248,6 @@ class ExpressionParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_parseShiftExpression_super() {
     super.test_parseShiftExpression_super();
-  }
-
-  @failingTest
-  void test_parseSimpleIdentifier_builtInIdentifier() {
-    super.test_parseSimpleIdentifier_builtInIdentifier();
-  }
-
-  @failingTest
-  void test_parseSimpleIdentifier_normalIdentifier() {
-    super.test_parseSimpleIdentifier_normalIdentifier();
   }
 
   @failingTest
@@ -5029,16 +4946,6 @@ class StatementParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_parseBreakStatement_noLabel() {
-    super.test_parseBreakStatement_noLabel();
-  }
-
-  @failingTest
-  void test_parseContinueStatement_noLabel() {
-    super.test_parseContinueStatement_noLabel();
-  }
-
-  @failingTest
   void test_parseForStatement_each_await() {
     super.test_parseForStatement_each_await();
   }
@@ -5146,11 +5053,6 @@ class StatementParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_parseIfStatement_noElse_statement() {
     super.test_parseIfStatement_noElse_statement();
-  }
-
-  @failingTest
-  void test_parseNonLabeledStatement_const_map_nonEmpty() {
-    super.test_parseNonLabeledStatement_const_map_nonEmpty();
   }
 
   @failingTest
