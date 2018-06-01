@@ -284,7 +284,8 @@ class Search {
   /**
    * Returns references to the [element].
    */
-  Future<List<SearchResult>> references(Element element) async {
+  Future<List<SearchResult>> references(
+      Element element, SearchedFiles searchedFiles) async {
     if (element == null) {
       return const <SearchResult>[];
     }
@@ -294,19 +295,19 @@ class Search {
         kind == ElementKind.CONSTRUCTOR ||
         kind == ElementKind.FUNCTION_TYPE_ALIAS ||
         kind == ElementKind.SETTER) {
-      return _searchReferences(element);
+      return _searchReferences(element, searchedFiles);
     } else if (kind == ElementKind.COMPILATION_UNIT) {
       return _searchReferences_CompilationUnit(element);
     } else if (kind == ElementKind.GETTER) {
-      return _searchReferences_Getter(element);
+      return _searchReferences_Getter(element, searchedFiles);
     } else if (kind == ElementKind.FIELD ||
         kind == ElementKind.TOP_LEVEL_VARIABLE) {
-      return _searchReferences_Field(element);
+      return _searchReferences_Field(element, searchedFiles);
     } else if (kind == ElementKind.FUNCTION || kind == ElementKind.METHOD) {
       if (element.enclosingElement is ExecutableElement) {
         return _searchReferences_Local(element, (n) => n is Block);
       }
-      return _searchReferences_Function(element);
+      return _searchReferences_Function(element, searchedFiles);
     } else if (kind == ElementKind.IMPORT) {
       return _searchReferences_Import(element);
     } else if (kind == ElementKind.LABEL ||
@@ -315,7 +316,7 @@ class Search {
     } else if (kind == ElementKind.LIBRARY) {
       return _searchReferences_Library(element);
     } else if (kind == ElementKind.PARAMETER) {
-      return _searchReferences_Parameter(element);
+      return _searchReferences_Parameter(element, searchedFiles);
     } else if (kind == ElementKind.PREFIX) {
       return _searchReferences_Prefix(element);
     } else if (kind == ElementKind.TYPE_PARAMETER) {
@@ -327,13 +328,18 @@ class Search {
 
   /**
    * Returns subtypes of the given [type].
+   *
+   * The [searchedFiles] are consulted to see if a file is "owned" by this
+   * [Search] object, so should be only searched by it to avoid duplicate
+   * results; and updated to take ownership if the file is not owned yet.
    */
-  Future<List<SearchResult>> subTypes(ClassElement type) async {
+  Future<List<SearchResult>> subTypes(
+      ClassElement type, SearchedFiles searchedFiles) async {
     if (type == null) {
       return const <SearchResult>[];
     }
     List<SearchResult> results = <SearchResult>[];
-    await _addResults(results, type, const {
+    await _addResults(results, type, searchedFiles, const {
       IndexRelationKind.IS_EXTENDED_BY: SearchResultKind.REFERENCE,
       IndexRelationKind.IS_MIXED_IN_BY: SearchResultKind.REFERENCE,
       IndexRelationKind.IS_IMPLEMENTED_BY: SearchResultKind.REFERENCE
@@ -413,7 +419,8 @@ class Search {
   /**
    * Returns unresolved references to the given [name].
    */
-  Future<List<SearchResult>> unresolvedMemberReferences(String name) async {
+  Future<List<SearchResult>> unresolvedMemberReferences(
+      String name, SearchedFiles searchedFiles) async {
     if (name == null) {
       return const <SearchResult>[];
     }
@@ -424,10 +431,11 @@ class Search {
     // Check the index of every file that references the element name.
     List<SearchResult> results = [];
     for (String file in files) {
-      AnalysisDriverUnitIndex index = await _driver.getIndex(file);
-      if (index != null) {
-        _IndexRequest request = new _IndexRequest(index);
-        var fileResults = await request.getUnresolvedMemberReferences(
+      if (searchedFiles.add(file, this)) {
+        AnalysisDriverUnitIndex index = await _driver.getIndex(file);
+        if (index != null) {
+          _IndexRequest request = new _IndexRequest(index);
+          var fileResults = await request.getUnresolvedMemberReferences(
             name,
             const {
               IndexRelationKind.IS_READ_BY: SearchResultKind.READ,
@@ -435,15 +443,20 @@ class Search {
               IndexRelationKind.IS_READ_WRITTEN_BY: SearchResultKind.READ_WRITE,
               IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION
             },
-            () => _getUnitElement(file));
-        results.addAll(fileResults);
+            () => _getUnitElement(file),
+          );
+          results.addAll(fileResults);
+        }
       }
     }
 
     return results;
   }
 
-  Future<Null> _addResults(List<SearchResult> results, Element element,
+  Future<Null> _addResults(
+      List<SearchResult> results,
+      Element element,
+      SearchedFiles searchedFiles,
       Map<IndexRelationKind, SearchResultKind> relationToResultKind) async {
     // Prepare the element name.
     String name = element.displayName;
@@ -467,14 +480,16 @@ class Search {
       }
     } else {
       files = await _driver.getFilesReferencingName(name);
-      if (!files.contains(path) && _driver.addedFiles.contains(path)) {
+      if (!files.contains(path)) {
         files.add(path);
       }
     }
 
     // Check the index of every file that references the element name.
     for (String file in files) {
-      await _addResultsInFile(results, element, relationToResultKind, file);
+      if (searchedFiles.add(file, this)) {
+        await _addResultsInFile(results, element, relationToResultKind, file);
+      }
     }
   }
 
@@ -503,9 +518,10 @@ class Search {
     return result?.element;
   }
 
-  Future<List<SearchResult>> _searchReferences(Element element) async {
+  Future<List<SearchResult>> _searchReferences(
+      Element element, SearchedFiles searchedFiles) async {
     List<SearchResult> results = <SearchResult>[];
-    await _addResults(results, element,
+    await _addResults(results, element, searchedFiles,
         const {IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE});
     return results;
   }
@@ -538,35 +554,36 @@ class Search {
   }
 
   Future<List<SearchResult>> _searchReferences_Field(
-      PropertyInducingElement field) async {
+      PropertyInducingElement field, SearchedFiles searchedFiles) async {
     List<SearchResult> results = <SearchResult>[];
     PropertyAccessorElement getter = field.getter;
     PropertyAccessorElement setter = field.setter;
     if (!field.isSynthetic) {
-      await _addResults(results, field, const {
+      await _addResults(results, field, searchedFiles, const {
         IndexRelationKind.IS_WRITTEN_BY: SearchResultKind.WRITE,
         IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE
       });
     }
     if (getter != null) {
-      await _addResults(results, getter, const {
+      await _addResults(results, getter, searchedFiles, const {
         IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.READ,
         IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION
       });
     }
     if (setter != null) {
-      await _addResults(results, setter,
+      await _addResults(results, setter, searchedFiles,
           const {IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.WRITE});
     }
     return results;
   }
 
-  Future<List<SearchResult>> _searchReferences_Function(Element element) async {
+  Future<List<SearchResult>> _searchReferences_Function(
+      Element element, SearchedFiles searchedFiles) async {
     if (element is Member) {
       element = (element as Member).baseElement;
     }
     List<SearchResult> results = <SearchResult>[];
-    await _addResults(results, element, const {
+    await _addResults(results, element, searchedFiles, const {
       IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE,
       IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION
     });
@@ -574,9 +591,9 @@ class Search {
   }
 
   Future<List<SearchResult>> _searchReferences_Getter(
-      PropertyAccessorElement getter) async {
+      PropertyAccessorElement getter, SearchedFiles searchedFiles) async {
     List<SearchResult> results = <SearchResult>[];
-    await _addResults(results, getter, const {
+    await _addResults(results, getter, searchedFiles, const {
       IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE,
       IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION
     });
@@ -666,14 +683,14 @@ class Search {
   }
 
   Future<List<SearchResult>> _searchReferences_Parameter(
-      ParameterElement parameter) async {
+      ParameterElement parameter, SearchedFiles searchedFiles) async {
     List<SearchResult> results = <SearchResult>[];
     results.addAll(await _searchReferences_Local(parameter, (AstNode node) {
       AstNode parent = node.parent;
       return parent is ClassDeclaration || parent is CompilationUnit;
     }));
     if (parameter.isOptional) {
-      results.addAll(await _searchReferences(parameter));
+      results.addAll(await _searchReferences(parameter, searchedFiles));
     }
     return results;
   }
@@ -697,6 +714,28 @@ class Search {
       results.addAll(visitor.results);
     }
     return results;
+  }
+}
+
+/**
+ * Container that keeps track of file owners.
+ */
+class SearchedFiles {
+  final Map<String, Search> owners = {};
+
+  bool add(String path, Search search) {
+    var owner = owners[path];
+    if (owner == null) {
+      owners[path] = search;
+      return true;
+    }
+    return identical(owner, search);
+  }
+
+  void ownAdded(Search search) {
+    for (var path in search._driver.addedFiles) {
+      owners[path] = search;
+    }
   }
 }
 

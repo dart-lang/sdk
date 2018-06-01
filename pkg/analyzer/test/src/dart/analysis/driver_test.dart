@@ -1111,12 +1111,14 @@ const x = 1;
     var t = _p('/test/lib/test.dart');
     var a1 = _p('/aaa/lib/a1.dart');
     var a2 = _p('/aaa/lib/src/a2.dart');
+    var a3 = _p('/aaa/lib/a3.txt');
     var b = _p('/bbb/lib/b.dart');
     var c = _p('/ccc/lib/c.dart');
 
     provider.newFile(t, 'class T {}');
     provider.newFile(a1, 'class A1 {}');
     provider.newFile(a2, 'class A2 {}');
+    provider.newFile(a3, 'text');
     provider.newFile(b, 'class B {}');
     provider.newFile(c, 'class C {}');
 
@@ -1129,6 +1131,7 @@ const x = 1;
     expect(driver.knownFiles, contains(t));
     expect(driver.knownFiles, contains(a1));
     expect(driver.knownFiles, contains(a2));
+    expect(driver.knownFiles, isNot(contains(a3)));
     expect(driver.knownFiles, contains(b));
     expect(driver.knownFiles, isNot(contains(c)));
 
@@ -1401,6 +1404,26 @@ bbb() {}
     // We get the same results second time.
     List<String> files2 = await driver.getFilesReferencingName('A');
     expect(files2, unorderedEquals([b, c]));
+  }
+
+  test_getFilesReferencingName_discover() async {
+    var t = _p('/test/lib/test.dart');
+    var a = _p('/aaa/lib/a.dart');
+    var b = _p('/bbb/lib/b.dart');
+    var c = _p('/ccc/lib/c.dart');
+
+    provider.newFile(t, 'int t;');
+    provider.newFile(a, 'int a;');
+    provider.newFile(b, 'int b;');
+    provider.newFile(c, 'int c;');
+
+    driver.addFile(t);
+
+    List<String> files = await driver.getFilesReferencingName('int');
+    expect(files, contains(t));
+    expect(files, contains(a));
+    expect(files, contains(b));
+    expect(files, isNot(contains(c)));
   }
 
   test_getIndex() async {
@@ -2016,7 +2039,7 @@ var A2 = B1;
         await driver.getTopLevelNameDeclarations('X'), [], []);
   }
 
-  test_getTopLevelNameDeclarations_discoverAvailable() async {
+  test_getTopLevelNameDeclarations_discover() async {
     var t = _p('/test/lib/test.dart');
     var a1 = _p('/aaa/lib/a1.dart');
     var a2 = _p('/aaa/lib/src/a2.dart');

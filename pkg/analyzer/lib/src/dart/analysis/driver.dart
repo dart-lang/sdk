@@ -678,7 +678,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   /**
-   * Return a [Future] that completes with the list of added files that
+   * Return a [Future] that completes with the list of known files that
    * reference the given external [name].
    */
   Future<List<String>> getFilesReferencingName(String name) {
@@ -2327,7 +2327,10 @@ class _DiscoverAvailableFilesTask {
     try {
       for (var child in folder.getChildren()) {
         if (child is File) {
-          files.add(child.path);
+          var path = child.path;
+          if (AnalysisEngine.isDartFileName(path)) {
+            files.add(path);
+          }
         } else if (child is Folder) {
           _appendFilesRecursively(child);
         }
@@ -2444,7 +2447,7 @@ class _FilesReferencingNameTask {
     while (timer.elapsedMilliseconds < _MS_WORK_INTERVAL) {
       // Prepare files to check.
       if (filesToCheck.isEmpty) {
-        Set<String> newFiles = driver.addedFiles.difference(checkedFiles);
+        Set<String> newFiles = driver.knownFiles.difference(checkedFiles);
         filesToCheck.addAll(newFiles);
       }
 

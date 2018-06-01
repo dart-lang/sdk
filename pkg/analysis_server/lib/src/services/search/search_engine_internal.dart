@@ -85,9 +85,10 @@ class SearchEngineImpl implements SearchEngine {
   Future<List<SearchMatch>> searchMemberReferences(String name) async {
     List<SearchResult> allResults = [];
     List<AnalysisDriver> drivers = _drivers.toList();
+    SearchedFiles searchedFiles = _createSearchedFiles(drivers);
     for (AnalysisDriver driver in drivers) {
       List<SearchResult> results =
-          await driver.search.unresolvedMemberReferences(name);
+          await driver.search.unresolvedMemberReferences(name, searchedFiles);
       allResults.addAll(results);
     }
     return allResults.map(SearchMatchImpl.forSearchResult).toList();
@@ -97,8 +98,10 @@ class SearchEngineImpl implements SearchEngine {
   Future<List<SearchMatch>> searchReferences(Element element) async {
     List<SearchResult> allResults = [];
     List<AnalysisDriver> drivers = _drivers.toList();
+    SearchedFiles searchedFiles = _createSearchedFiles(drivers);
     for (AnalysisDriver driver in drivers) {
-      List<SearchResult> results = await driver.search.references(element);
+      List<SearchResult> results =
+          await driver.search.references(element, searchedFiles);
       allResults.addAll(results);
     }
     return allResults.map(SearchMatchImpl.forSearchResult).toList();
@@ -122,11 +125,25 @@ class SearchEngineImpl implements SearchEngine {
     return allElements.map(SearchMatchImpl.forElement).toList();
   }
 
+  /**
+   * Create a new [SearchedFiles] instance in which added files are owned
+   * by the drivers that have them added.
+   */
+  SearchedFiles _createSearchedFiles(List<AnalysisDriver> drivers) {
+    var searchedFiles = new SearchedFiles();
+    for (AnalysisDriver driver in drivers) {
+      searchedFiles.ownAdded(driver.search);
+    }
+    return searchedFiles;
+  }
+
   Future<List<SearchResult>> _searchDirectSubtypes(ClassElement type) async {
     List<SearchResult> allResults = [];
     List<AnalysisDriver> drivers = _drivers.toList();
+    SearchedFiles searchedFiles = _createSearchedFiles(drivers);
     for (AnalysisDriver driver in drivers) {
-      List<SearchResult> results = await driver.search.subTypes(type);
+      List<SearchResult> results =
+          await driver.search.subTypes(type, searchedFiles);
       allResults.addAll(results);
     }
     return allResults;

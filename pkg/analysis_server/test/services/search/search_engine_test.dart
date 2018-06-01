@@ -336,6 +336,38 @@ T b;
         matches, contains(predicate((SearchMatch m) => m.element.name == 'b')));
   }
 
+  test_searchReferences_discover_owned() async {
+    var t = newFile('/test/lib/t.dart', content: '''
+import 'package:aaa/a.dart';
+int t;
+''').path;
+    var a = newFile('/aaa/lib/a.dart', content: '''
+int a;
+''').path;
+
+    var driver1 = _newDriver(packageUriResolver: _mapUriResolver('aaa', a));
+    var driver2 = _newDriver();
+
+    driver1.addFile(t);
+    driver2.addFile(a);
+
+    LibraryElement coreLib = await driver1.getLibraryByUri('dart:core');
+    ClassElement intElement = coreLib.getType('int');
+
+    var searchEngine = new SearchEngineImpl([driver1, driver2]);
+    var matches = await searchEngine.searchReferences(intElement);
+
+    void assertHasOne(String path, String name) {
+      expect(matches.where((m) {
+        var element = m.element;
+        return element.name == name && element.source.fullName == path;
+      }), hasLength(1));
+    }
+
+    assertHasOne(t, 't');
+    assertHasOne(a, 'a');
+  }
+
   test_searchTopLevelDeclarations() async {
     var a = newFile('/test/a.dart', content: '''
 class A {}
@@ -377,9 +409,9 @@ get b => 42;
   test_searchTopLevelDeclarations_dependentPackage() async {
     var a = newFile('/a/lib/a.dart', content: '''
 class A {}
-''');
+''').path;
     var driver1 = _newDriver();
-    driver1.addFile(a.path);
+    driver1.addFile(a);
 
     // The package:b uses the class A from the package:a,
     // so it sees the declaration the element A.
@@ -387,10 +419,7 @@ class A {}
 import 'package:a/a.dart';
 class B extends A {}
 ''');
-    var driver2 = _newDriver(
-        packageUriResolver: new PackageMapUriResolver(resourceProvider, {
-      'a': [a.parent]
-    }));
+    var driver2 = _newDriver(packageUriResolver: _mapUriResolver('a', a));
     driver2.addFile(b.path);
 
     while (scheduler.isAnalyzing) {
@@ -413,6 +442,12 @@ class B extends A {}
 
     assertHasOneElement('A');
     assertHasOneElement('B');
+  }
+
+  UriResolver _mapUriResolver(String packageName, String path) {
+    return new PackageMapUriResolver(resourceProvider, {
+      packageName: [resourceProvider.getFile(path).parent]
+    });
   }
 
   AnalysisDriver _newDriver({UriResolver packageUriResolver}) {
