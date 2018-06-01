@@ -1,4 +1,4 @@
-## 0.5.6+1
+## 0.5.6+4
 
 - Changes to make the library strong mode (runtime) clean.
 
