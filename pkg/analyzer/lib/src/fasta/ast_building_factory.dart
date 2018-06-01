@@ -181,8 +181,8 @@ class AstBuildingForest
       Token token,
       PrefixBuilder builder,
       Generator<Expression, Statement, Arguments> generator) {
-    // TODO(brianwilkerson) Implement this.
-    throw new UnimplementedError();
+    return new AnalyzerDeferredAccessGenerator(
+        helper, astFactory, token, builder, generator);
   }
 
   @override
@@ -333,8 +333,7 @@ class AstBuildingForest
   Generator<Expression, Statement, Arguments> largeIntAccessGenerator(
       ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
       Token token) {
-    // TODO(brianwilkerson) Implement this.
-    throw new UnimplementedError();
+    return new AnalyzerLargeIntAccessGenerator(helper, astFactory, token);
   }
 
   @override
@@ -426,8 +425,7 @@ class AstBuildingForest
       ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
       Token token,
       LoadLibraryBuilder builder) {
-    // TODO(brianwilkerson) Implement this.
-    throw new UnimplementedError();
+    return new AnalyzerLoadLibraryGenerator(helper, astFactory, token, builder);
   }
 
   @override
@@ -474,8 +472,8 @@ class AstBuildingForest
       kernel.Name name,
       kernel.Member getter,
       kernel.Member setter) {
-    // TODO(brianwilkerson) Implement this.
-    throw new UnimplementedError();
+    return new AnalyzerPropertyAccessGenerator(
+        helper, astFactory, token, receiver, name, getter, setter);
   }
 
   @override
@@ -487,8 +485,8 @@ class AstBuildingForest
       Token token,
       Expression expression,
       String plainNameForRead) {
-    // TODO(brianwilkerson) Implement this.
-    throw new UnimplementedError();
+    return new AnalyzerReadOnlyAccessGenerator(
+        helper, astFactory, token, expression, plainNameForRead);
   }
 
   @override
@@ -527,8 +525,8 @@ class AstBuildingForest
       Token token,
       kernel.Member getter,
       kernel.Member setter) {
-    // TODO(brianwilkerson) Implement this.
-    throw new UnimplementedError();
+    return new AnalyzerStaticAccessGenerator(
+        helper, astFactory, token, getter, setter);
   }
 
   @override
@@ -543,8 +541,9 @@ class AstBuildingForest
       Expression index,
       kernel.Member getter,
       kernel.Member setter) {
-    // TODO(brianwilkerson) Implement this.
-    throw new UnimplementedError();
+    // TODO(brianwilkerson) Figure out how to get the token for `super`.
+    return new AnalyzerIndexedAccessGenerator(
+        helper, astFactory, null, token, index, token.endGroup);
   }
 
   @override
@@ -554,6 +553,7 @@ class AstBuildingForest
       kernel.Name name,
       kernel.Member getter,
       kernel.Member setter) {
+    // TODO(brianwilkerson) Figure out how to get the token for the name.
     return new AnalyzerSuperPropertyAccessGenerator(
         helper, astFactory, null, null, null /*name*/);
   }
@@ -572,8 +572,9 @@ class AstBuildingForest
       Expression index,
       kernel.Procedure getter,
       kernel.Procedure setter) {
-    // TODO(brianwilkerson) Implement this.
-    throw new UnimplementedError();
+    // TODO(brianwilkerson) Figure out how to get the token for `this`.
+    return new AnalyzerIndexedAccessGenerator(
+        helper, astFactory, null, token, index, token.endGroup);
   }
 
   @override
@@ -583,8 +584,9 @@ class AstBuildingForest
       kernel.Name name,
       kernel.Member getter,
       kernel.Member setter) {
-    // TODO(brianwilkerson) Implement this.
-    throw new UnimplementedError();
+    // TODO(brianwilkerson) Figure out how to get the token for the name.
+    return new AnalyzerThisPropertyAccessGenerator(
+        helper, astFactory, location, name, getter, setter);
   }
 
   @override
@@ -609,8 +611,8 @@ class AstBuildingForest
       int declarationReferenceOffset,
       TypeDeclarationBuilder declaration,
       String plainNameForRead) {
-    // TODO(brianwilkerson) Implement this.
-    throw new UnimplementedError();
+    return new AnalyzerTypeUseGenerator(helper, astFactory, token, prefix,
+        declarationReferenceOffset, declaration, plainNameForRead);
   }
 
   @override
