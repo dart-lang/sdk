@@ -475,31 +475,14 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
         analysisResult, completionOffset, new CompletionPerformance());
 
     // Build the request
-    Completer<DartCompletionRequest> requestCompleter =
-        new Completer<DartCompletionRequest>();
-    DartCompletionRequestImpl
-        .from(baseRequest)
-        .then((DartCompletionRequest request) {
-      requestCompleter.complete(request);
-    });
-    request = await performAnalysis(times, requestCompleter);
+    var request = await DartCompletionRequestImpl.from(baseRequest);
 
     var range = request.target.computeReplacementRange(request.offset);
     replacementOffset = range.offset;
     replacementLength = range.length;
-    Completer<List<CompletionSuggestion>> suggestionCompleter =
-        new Completer<List<CompletionSuggestion>>();
 
     // Request completions
-    contributor
-        .computeSuggestions(request)
-        .then((List<CompletionSuggestion> computedSuggestions) {
-      suggestionCompleter.complete(computedSuggestions);
-    });
-
-    // Perform analysis until the suggestions have been computed
-    // or the max analysis cycles ([times]) has been reached
-    suggestions = await performAnalysis(times, suggestionCompleter);
+    suggestions = await contributor.computeSuggestions(request);
     expect(suggestions, isNotNull, reason: 'expected suggestions');
   }
 
