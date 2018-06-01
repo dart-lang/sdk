@@ -610,7 +610,7 @@ class ForwardingNode extends Procedure {
 /// infer covariance annotations, and to create forwarwding stubs when necessary
 /// to meet covariance requirements.
 class InterfaceResolver {
-  final TypeInferenceEngineImpl _typeInferenceEngine;
+  final TypeInferenceEngine _typeInferenceEngine;
 
   final TypeEnvironment _typeEnvironment;
 

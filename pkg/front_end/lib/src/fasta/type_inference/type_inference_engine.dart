@@ -37,7 +37,7 @@ import 'type_schema_environment.dart';
 /// Concrete class derived from [InferenceNode] to represent type inference of a
 /// field based on its initializer.
 class FieldInitializerInferenceNode extends InferenceNode {
-  final TypeInferenceEngineImpl _typeInferenceEngine;
+  final TypeInferenceEngine _typeInferenceEngine;
 
   /// The field whose type should be inferred.
   final ShadowField field;
@@ -200,16 +200,24 @@ abstract class InferenceNode {
 /// (e.g. DietListener).  Derived classes should derive from
 /// [TypeInferenceEngineImpl].
 abstract class TypeInferenceEngine {
-  ClassHierarchy get classHierarchy;
+  ClassHierarchy classHierarchy;
 
-  void set classHierarchy(ClassHierarchy classHierarchy);
-
-  CoreTypes get coreTypes;
+  CoreTypes coreTypes;
 
   /// Indicates whether the "prepare" phase of type inference is complete.
-  void set isTypeInferencePrepared(bool value);
+  bool isTypeInferencePrepared = false;
 
-  TypeSchemaEnvironment get typeSchemaEnvironment;
+  TypeSchemaEnvironment typeSchemaEnvironment;
+
+  final staticInferenceNodes = <FieldInitializerInferenceNode>[];
+
+  final initializingFormals = <ShadowVariableDeclaration>[];
+
+  final Instrumentation instrumentation;
+
+  final bool strongMode;
+
+  TypeInferenceEngine(this.instrumentation, this.strongMode);
 
   /// Creates a disabled type inferrer (intended for debugging and profiling
   /// only).
@@ -225,58 +233,13 @@ abstract class TypeInferenceEngine {
   TypeInferrer createTopLevelTypeInferrer(
       InterfaceType thisType, ShadowField field);
 
+  /// Retrieve the [TypeInferrer] for the given [field], which was created by
+  /// a previous call to [createTopLevelTypeInferrer].
+  TypeInferrerImpl getFieldTypeInferrer(ShadowField field);
+
   /// Performs the second phase of top level initializer inference, which is to
   /// visit all accessors and top level variables that were passed to
   /// [recordAccessor] in topologically-sorted order and assign their types.
-  void finishTopLevelFields();
-
-  /// Performs the third phase of top level inference, which is to visit all
-  /// initializing formals and infer their types (if necessary) from the
-  /// corresponding fields.
-  void finishTopLevelInitializingFormals();
-
-  /// Gets ready to do top level type inference for the component having the
-  /// given [hierarchy], using the given [coreTypes].
-  void prepareTopLevel(CoreTypes coreTypes, ClassHierarchy hierarchy);
-
-  /// Records that the given initializing [formal] will need top level type
-  /// inference.
-  void recordInitializingFormal(ShadowVariableDeclaration formal);
-
-  /// Records that the given static [field] will need top level type inference.
-  void recordStaticFieldInferenceCandidate(
-      ShadowField field, LibraryBuilder library);
-}
-
-/// Derived class containing generic implementations of
-/// [TypeInferenceEngineImpl].
-///
-/// This class contains as much of the implementation of type inference as
-/// possible without knowing the identity of the type parameter.  It defers to
-/// abstract methods for everything else.
-abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
-  final Instrumentation instrumentation;
-
-  final bool strongMode;
-
-  final staticInferenceNodes = <FieldInitializerInferenceNode>[];
-
-  final initializingFormals = <ShadowVariableDeclaration>[];
-
-  @override
-  CoreTypes coreTypes;
-
-  @override
-  ClassHierarchy classHierarchy;
-
-  TypeSchemaEnvironment typeSchemaEnvironment;
-
-  @override
-  bool isTypeInferencePrepared = false;
-
-  TypeInferenceEngineImpl(this.instrumentation, this.strongMode);
-
-  @override
   void finishTopLevelFields() {
     for (var node in staticInferenceNodes) {
       node.resolve();
@@ -284,7 +247,9 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     staticInferenceNodes.clear();
   }
 
-  @override
+  /// Performs the third phase of top level inference, which is to visit all
+  /// initializing formals and infer their types (if necessary) from the
+  /// corresponding fields.
   void finishTopLevelInitializingFormals() {
     for (ShadowVariableDeclaration formal in initializingFormals) {
       try {
@@ -300,11 +265,8 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
     }
   }
 
-  /// Retrieve the [TypeInferrer] for the given [field], which was created by
-  /// a previous call to [createTopLevelTypeInferrer].
-  TypeInferrerImpl getFieldTypeInferrer(ShadowField field);
-
-  @override
+  /// Gets ready to do top level type inference for the component having the
+  /// given [hierarchy], using the given [coreTypes].
   void prepareTopLevel(CoreTypes coreTypes, ClassHierarchy hierarchy) {
     this.coreTypes = coreTypes;
     this.classHierarchy = hierarchy;
@@ -312,11 +274,13 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
         new TypeSchemaEnvironment(coreTypes, hierarchy, strongMode);
   }
 
-  @override
+  /// Records that the given initializing [formal] will need top level type
+  /// inference.
   void recordInitializingFormal(ShadowVariableDeclaration formal) {
     initializingFormals.add(formal);
   }
 
+  /// Records that the given static [field] will need top level type inference.
   void recordStaticFieldInferenceCandidate(
       ShadowField field, LibraryBuilder library) {
     var node = new FieldInitializerInferenceNode(this, field, library);

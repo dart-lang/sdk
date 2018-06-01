@@ -89,7 +89,7 @@ import 'interface_resolver.dart' show ForwardingNode, SyntheticAccessor;
 import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
 
 import 'type_inference_engine.dart'
-    show IncludesTypeParametersCovariantly, TypeInferenceEngineImpl;
+    show IncludesTypeParametersCovariantly, TypeInferenceEngine;
 
 import 'type_promotion.dart' show TypePromoter, TypePromoterDisabled;
 
@@ -395,7 +395,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   static final FunctionType unknownFunction =
       new FunctionType(const [], const DynamicType());
 
-  final TypeInferenceEngineImpl engine;
+  final TypeInferenceEngine engine;
 
   @override
   final Uri uri;
