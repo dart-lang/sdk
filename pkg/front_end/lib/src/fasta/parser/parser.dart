@@ -2467,7 +2467,7 @@ class Parser {
 
     bool isGetter = false;
     if (getOrSet == null) {
-      token = computeTypeParamOrArg(name, true).parseVariables(name, this);
+      token = parseMethodTypeVar(name);
     } else {
       isGetter = optional("get", getOrSet);
       token = name;
@@ -2484,6 +2484,22 @@ class Parser {
     token = parseFunctionBody(token, false, externalToken != null);
     asyncState = savedAsyncModifier;
     listener.endTopLevelMethod(beforeStart.next, getOrSet, token);
+    return token;
+  }
+
+  Token parseMethodTypeVar(Token name) {
+    TypeParamOrArgInfo typeVar = computeTypeParamOrArg(name, true);
+    Token token;
+    if (typeVar == noTypeParamOrArg || name.next.endGroup != null) {
+      token = typeVar.parseVariables(name, this);
+    } else {
+      // Recovery
+      token = typeVar.parseVariables(name, this);
+      if (optional('=', token.next)) {
+        token = token.next;
+        reportRecoverableErrorWithToken(token, fasta.templateUnexpectedToken);
+      }
+    }
     return token;
   }
 
@@ -3149,7 +3165,7 @@ class Parser {
 
     bool isGetter = false;
     if (getOrSet == null) {
-      token = computeTypeParamOrArg(token, true).parseVariables(token, this);
+      token = parseMethodTypeVar(token);
     } else {
       isGetter = optional("get", getOrSet);
       listener.handleNoTypeVariables(token.next);

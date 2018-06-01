@@ -57,29 +57,17 @@ f<T extends Function<X>()>() => null;
   void test_typeParameters_gtEq() {
     testRecovery('''
 f<T>=() => null;
-''', [
-      ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
-      ParserErrorCode.MISSING_FUNCTION_BODY
-    ], '''
-f<T> = () => null;
-''', expectedErrorsInValidCode: [
-      ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
-      ParserErrorCode.MISSING_FUNCTION_BODY
-    ]);
+''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
+f<T>() => null;
+''');
   }
 
   void test_typeParameters_gtGtEq() {
     testRecovery('''
 f<T extends List<int>>=() => null;
-''', [
-      ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
-      ParserErrorCode.MISSING_FUNCTION_BODY
-    ], '''
-f<T extends List<int>> = () => null;
-''', expectedErrorsInValidCode: [
-      ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
-      ParserErrorCode.MISSING_FUNCTION_BODY
-    ]);
+''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
+f<T extends List<int>>() => null;
+''');
   }
 
   @failingTest
