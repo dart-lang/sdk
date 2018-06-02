@@ -143,14 +143,14 @@ class AnalysisServerTest extends Object with ResourceProviderMixin {
   }
 
   test_setAnalysisSubscriptions_fileInIgnoredFolder_newOptions() async {
-    String path = '/project/samples/sample.dart';
+    String path = convertPath('/project/samples/sample.dart');
     newFile(path);
     newFile('/project/analysis_options.yaml', content: r'''
 analyzer:
   exclude:
     - 'samples/**'
 ''');
-    server.setAnalysisRoots('0', ['/project'], [], {});
+    server.setAnalysisRoots('0', [convertPath('/project')], [], {});
     server.setAnalysisSubscriptions(<AnalysisService, Set<String>>{
       AnalysisService.NAVIGATION: new Set<String>.from([path])
     });
@@ -163,14 +163,14 @@ analyzer:
   }
 
   test_setAnalysisSubscriptions_fileInIgnoredFolder_oldOptions() async {
-    String path = '/project/samples/sample.dart';
+    String path = convertPath('/project/samples/sample.dart');
     newFile(path);
     newFile('/project/.analysis_options', content: r'''
 analyzer:
   exclude:
     - 'samples/**'
 ''');
-    server.setAnalysisRoots('0', ['/project'], [], {});
+    server.setAnalysisRoots('0', [convertPath('/project')], [], {});
     server.setAnalysisSubscriptions(<AnalysisService, Set<String>>{
       AnalysisService.NAVIGATION: new Set<String>.from([path])
     });

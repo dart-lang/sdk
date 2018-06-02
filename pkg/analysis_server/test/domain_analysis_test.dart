@@ -576,7 +576,7 @@ class SetSubscriptionsTest extends AbstractAnalysisTest {
   }
 
   test_afterAnalysis_noSuchFile() async {
-    String file = '/no-such-file.dart';
+    String file = convertPath('/no-such-file.dart');
     addTestFile('// no matter');
     createProject();
     // wait for analysis, no results initially
