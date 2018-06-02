@@ -4412,8 +4412,7 @@ void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ jmp(&done, Assembler::kNearJump);
 
     __ Bind(&returns_nan);
-    static double kNaN = NAN;
-    __ LoadImmediate(temp, Immediate(reinterpret_cast<intptr_t>(&kNaN)));
+    __ movq(temp, Address(THR, Thread::double_nan_address_offset()));
     __ movsd(result, Address(temp, 0));
     __ jmp(&done, Assembler::kNearJump);
 

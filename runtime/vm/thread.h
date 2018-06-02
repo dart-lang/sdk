@@ -148,6 +148,8 @@ class Zone;
     NativeEntry::AutoScopeNativeCallWrapperEntry(), 0)                         \
   V(RawString**, predefined_symbols_address_, Symbols::PredefinedAddress(),    \
     NULL)                                                                      \
+  V(uword, double_nan_address_, reinterpret_cast<uword>(&double_nan_constant), \
+    0)                                                                         \
   V(uword, double_negate_address_,                                             \
     reinterpret_cast<uword>(&double_negate_constant), 0)                       \
   V(uword, double_abs_address_, reinterpret_cast<uword>(&double_abs_constant), \

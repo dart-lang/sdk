@@ -152,6 +152,8 @@ Thread::Thread(Isolate* isolate)
   }
 }
 
+static const double double_nan_constant = NAN;
+
 static const struct ALIGN16 {
   uint64_t a;
   uint64_t b;
