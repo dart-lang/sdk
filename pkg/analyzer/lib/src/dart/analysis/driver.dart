@@ -2430,15 +2430,18 @@ class _FilesDefiningClassMemberNameTask {
  * file.
  */
 class _FilesReferencingNameTask {
+  static const int _WORK_FILES = 100;
   static const int _MS_WORK_INTERVAL = 5;
 
   final AnalysisDriver driver;
   final String name;
   final Completer<List<String>> completer = new Completer<List<String>>();
 
+  int fileStamp = -1;
+  List<FileState> filesToCheck;
+  int filesToCheckIndex;
+
   final List<String> referencingFiles = <String>[];
-  final Set<String> checkedFiles = new Set<String>();
-  final List<String> filesToCheck = <String>[];
 
   _FilesReferencingNameTask(this.driver, this.name);
 
@@ -2453,31 +2456,33 @@ class _FilesReferencingNameTask {
    * overall and keep quick enough response time.
    */
   bool perform() {
-    Stopwatch timer = new Stopwatch()..start();
-    while (timer.elapsedMilliseconds < _MS_WORK_INTERVAL) {
-      // Prepare files to check.
-      if (filesToCheck.isEmpty) {
-        Set<String> newFiles = driver.knownFiles.difference(checkedFiles);
-        filesToCheck.addAll(newFiles);
-      }
-
-      // If no more files to check, complete and done.
-      if (filesToCheck.isEmpty) {
-        completer.complete(referencingFiles);
-        return true;
-      }
-
-      // Check the next file.
-      String path = filesToCheck.removeLast();
-      FileState file = driver._fsState.getFileForPath(path);
-      if (file.referencedNames.contains(name)) {
-        referencingFiles.add(path);
-      }
-      checkedFiles.add(path);
+    if (driver._fsState.fileStamp != fileStamp) {
+      filesToCheck = null;
+      referencingFiles.clear();
     }
 
-    // We're not done yet.
-    return false;
+    // Prepare files to check.
+    if (filesToCheck == null) {
+      fileStamp = driver._fsState.fileStamp;
+      filesToCheck = driver._fsState.knownFiles;
+      filesToCheckIndex = 0;
+    }
+
+    Stopwatch timer = new Stopwatch()..start();
+    while (filesToCheckIndex < filesToCheck.length) {
+      if (filesToCheckIndex % _WORK_FILES == 0 &&
+          timer.elapsedMilliseconds > _MS_WORK_INTERVAL) {
+        return false;
+      }
+      FileState file = filesToCheck[filesToCheckIndex++];
+      if (file.referencedNames.contains(name)) {
+        referencingFiles.add(file.path);
+      }
+    }
+
+    // If no more files to check, complete and done.
+    completer.complete(referencingFiles);
+    return true;
   }
 }
 

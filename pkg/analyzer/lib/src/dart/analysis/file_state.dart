@@ -743,6 +743,11 @@ class FileSystemState {
   final Map<FileState, List<FileState>> _partToLibraries = {};
 
   /**
+   * The value of this field is incremented when the set of files is updated.
+   */
+  int fileStamp = 0;
+
+  /**
    * The [FileState] instance that correspond to an unresolved URI.
    */
   FileState _unresolvedFile;
@@ -923,6 +928,7 @@ class FileSystemState {
       knownFilePaths.add(path);
       files = <FileState>[];
       _pathToFiles[path] = files;
+      fileStamp++;
     }
     files.add(file);
   }
