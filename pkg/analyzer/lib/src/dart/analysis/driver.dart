@@ -2284,11 +2284,18 @@ class _DiscoverAvailableFilesTask {
    * task should continue to be run.
    */
   void perform() {
-    // Prepare the iterator of package/lib folders.
     if (folderIterator == null) {
-      // Always discover added files.
       files.addAll(driver.addedFiles);
 
+      // Discover SDK libraries.
+      var dartSdk = driver._sourceFactory.dartSdk;
+      if (dartSdk != null) {
+        for (var sdkLibrary in dartSdk.sdkLibraries) {
+          files.add(sdkLibrary.path);
+        }
+      }
+
+      // Discover files in package/lib folders.
       var packageMap = driver._sourceFactory.packageMap;
       if (packageMap != null) {
         folderIterator = packageMap.values.expand((f) => f).iterator;

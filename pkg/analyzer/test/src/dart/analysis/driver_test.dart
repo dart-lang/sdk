@@ -1108,7 +1108,7 @@ const x = 1;
     expect(session2, isNot(session1));
   }
 
-  test_discoverAvailableFiles() async {
+  test_discoverAvailableFiles_packages() async {
     var t = _p('/test/lib/test.dart');
     var a1 = _p('/aaa/lib/a1.dart');
     var a2 = _p('/aaa/lib/src/a2.dart');
@@ -1138,6 +1138,21 @@ const x = 1;
 
     // We call wait for discovery more than once.
     await driver.discoverAvailableFiles();
+  }
+
+  test_discoverAvailableFiles_sdk() async {
+    await driver.discoverAvailableFiles();
+
+    void assertHasDartUri(String uri) {
+      var file = sdk.mapDartUri(uri).fullName;
+      expect(driver.knownFiles, contains(file));
+    }
+
+    assertHasDartUri('dart:async');
+    assertHasDartUri('dart:collection');
+    assertHasDartUri('dart:convert');
+    assertHasDartUri('dart:core');
+    assertHasDartUri('dart:math');
   }
 
   test_errors_uriDoesNotExist_export() async {
