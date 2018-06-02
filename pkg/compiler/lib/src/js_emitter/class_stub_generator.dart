@@ -43,7 +43,7 @@ class ClassStubGenerator {
     //        [ constructorName, fields,
     //            fields.map(
     //                (name) => js('this.# = #', [name, name]))]));
-    var typeParameters = const <jsAst.Parameter>[];
+    dynamic typeParameters = const <jsAst.Parameter>[];
     dynamic typeInits = const <jsAst.Expression>[];
     if (hasRtiField) {
       dynamic rtiName = _namer.rtiFieldJsName;
