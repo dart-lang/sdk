@@ -2308,7 +2308,8 @@ import 'b.dart';
   }
 
   test_missingDartLibrary_async() async {
-    provider.getFile(_p(MockSdk.FULL_URI_MAP['dart:async'])).delete();
+    var asyncPath = sdk.mapDartUri('dart:async').fullName;
+    provider.getFile(asyncPath).delete();
     addTestFile('class C {}');
 
     ErrorsResult result = await driver.getErrors(testFile);
@@ -2319,7 +2320,8 @@ import 'b.dart';
   }
 
   test_missingDartLibrary_core() async {
-    provider.getFile(_p(MockSdk.FULL_URI_MAP['dart:core'])).delete();
+    var corePath = sdk.mapDartUri('dart:core').fullName;
+    provider.getFile(corePath).delete();
     addTestFile('class C {}');
 
     ErrorsResult result = await driver.getErrors(testFile);
