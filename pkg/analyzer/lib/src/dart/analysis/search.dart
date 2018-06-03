@@ -401,7 +401,8 @@ class Search {
       }
     }
 
-    for (FileState file in _driver.fsState.knownFiles) {
+    List<FileState> knownFiles = _driver.fsState.knownFiles.toList();
+    for (FileState file in knownFiles) {
       UnitElementResult unitResult = await _driver.getUnitElement(file.path);
       if (unitResult != null) {
         CompilationUnitElement unitElement = unitResult.element;
@@ -537,7 +538,8 @@ class Search {
 
     // Check every file that references the given path.
     List<SearchResult> results = <SearchResult>[];
-    for (FileState file in _driver.fsState.knownFiles) {
+    List<FileState> knownFiles = _driver.fsState.knownFiles.toList();
+    for (FileState file in knownFiles) {
       for (FileState referencedFile in file.directReferencedFiles) {
         if (referencedFile.path == path) {
           await _addResultsInFile(

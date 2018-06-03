@@ -723,6 +723,11 @@ class FileSystemState {
   final Set<String> knownFilePaths = new Set<String>();
 
   /**
+   * All known files.
+   */
+  final List<FileState> knownFiles = [];
+
+  /**
    * Mapping from a path to the flag whether there is a URI for the path.
    */
   final Map<String, bool> _hasUriForPath = {};
@@ -774,12 +779,6 @@ class FileSystemState {
         _FileContentCache.getInstance(_resourceProvider, _contentOverlay);
     _testView = new FileSystemStateTestView(this);
   }
-
-  /**
-   * Return the known files.
-   */
-  List<FileState> get knownFiles =>
-      _pathToFiles.values.map((files) => files.first).toList();
 
   @visibleForTesting
   FileSystemStateTestView get test => _testView;
@@ -917,6 +916,7 @@ class FileSystemState {
     markFileForReading(path);
     _uriToFile.clear();
     knownFilePaths.clear();
+    knownFiles.clear();
     _pathToFiles.clear();
     _pathToCanonicalFile.clear();
     _partToLibraries.clear();
@@ -926,6 +926,7 @@ class FileSystemState {
     var files = _pathToFiles[path];
     if (files == null) {
       knownFilePaths.add(path);
+      knownFiles.add(file);
       files = <FileState>[];
       _pathToFiles[path] = files;
       fileStamp++;
