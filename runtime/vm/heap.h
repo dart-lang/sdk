@@ -136,8 +136,7 @@ class Heap {
   // Initialize the heap and register it with the isolate.
   static void Init(Isolate* isolate,
                    intptr_t max_new_gen_words,
-                   intptr_t max_old_gen_words,
-                   intptr_t max_external_words);
+                   intptr_t max_old_gen_words);
 
   // Writes a suitable name for a VM region in the heap into the buffer `name`.
   static void RegionName(Heap* heap,
@@ -292,8 +291,7 @@ class Heap {
 
   Heap(Isolate* isolate,
        intptr_t max_new_gen_semi_words,  // Max capacity of new semi-space.
-       intptr_t max_old_gen_words,
-       intptr_t max_external_words);
+       intptr_t max_old_gen_words);
 
   uword AllocateNew(intptr_t size);
   uword AllocateOld(intptr_t size, HeapPage::PageType type);

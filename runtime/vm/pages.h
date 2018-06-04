@@ -151,6 +151,8 @@ class PageSpaceController {
   // (e.g., promotion), as it does not change the state of the controller.
   bool NeedsGarbageCollection(SpaceUsage after) const;
 
+  bool NeedsExternalCollection(SpaceUsage after) const;
+
   // Returns whether an idle GC is worthwhile.
   bool NeedsIdleGarbageCollection(SpaceUsage current) const;
 
@@ -181,6 +183,9 @@ class PageSpaceController {
 
   // Pages of capacity growth allowed before next GC is advised.
   intptr_t grow_heap_;
+
+  // Pages of external growth allowed before next GC is advised.
+  intptr_t grow_external_;
 
   // If the garbage collector was not able to free more than heap_growth_ratio_
   // memory, then the heap is grown. Otherwise garbage collection is performed.
@@ -213,9 +218,7 @@ class PageSpace {
  public:
   enum GrowthPolicy { kControlGrowth, kForceGrowth };
 
-  PageSpace(Heap* heap,
-            intptr_t max_capacity_in_words,
-            intptr_t max_external_in_words);
+  PageSpace(Heap* heap, intptr_t max_capacity_in_words);
   ~PageSpace();
 
   uword TryAllocate(intptr_t size,
@@ -229,8 +232,7 @@ class PageSpace {
   }
 
   bool NeedsGarbageCollection() const {
-    return page_space_controller_.NeedsGarbageCollection(usage_) ||
-           NeedsExternalGC();
+    return page_space_controller_.NeedsGarbageCollection(usage_);
   }
 
   int64_t UsedInWords() const { return usage_.used_in_words; }
@@ -293,11 +295,6 @@ class PageSpace {
   }
 
   bool GrowthControlState() { return page_space_controller_.is_enabled(); }
-
-  bool NeedsExternalGC() const {
-    return (max_external_in_words_ != 0) &&
-           (ExternalInWords() > max_external_in_words_);
-  }
 
   // Note: Code pages are made executable/non-executable when 'read_only' is
   // true/false, respectively.
@@ -432,7 +429,7 @@ class PageSpace {
 
   // Various sizes being tracked for this generation.
   intptr_t max_capacity_in_words_;
-  intptr_t max_external_in_words_;
+
   // NOTE: The capacity component of usage_ is updated by the concurrent
   // sweeper. Use (Increase)CapacityInWords(Locked) for thread-safe access.
   SpaceUsage usage_;

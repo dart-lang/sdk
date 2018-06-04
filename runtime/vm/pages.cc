@@ -165,9 +165,7 @@ void HeapPage::WriteProtect(bool read_only) {
 // based on the device's actual speed.
 static const intptr_t kConservativeInitialMarkSpeed = 20;
 
-PageSpace::PageSpace(Heap* heap,
-                     intptr_t max_capacity_in_words,
-                     intptr_t max_external_in_words)
+PageSpace::PageSpace(Heap* heap, intptr_t max_capacity_in_words)
     : freelist_(),
       heap_(heap),
       pages_lock_(new Mutex()),
@@ -180,7 +178,6 @@ PageSpace::PageSpace(Heap* heap,
       bump_top_(0),
       bump_end_(0),
       max_capacity_in_words_(max_capacity_in_words),
-      max_external_in_words_(max_external_in_words),
       tasks_lock_(new Monitor()),
       tasks_(0),
 #if defined(DEBUG)
@@ -445,7 +442,6 @@ void PageSpace::AllocateExternal(intptr_t cid, intptr_t size) {
   AtomicOperations::IncrementBy(&(usage_.external_in_words), size_in_words);
   NOT_IN_PRODUCT(
       heap_->isolate()->class_table()->UpdateAllocatedExternalOld(cid, size));
-  // TODO(koda): Control growth.
 }
 
 void PageSpace::FreeExternal(intptr_t size) {
@@ -1234,6 +1230,7 @@ PageSpaceController::PageSpaceController(Heap* heap,
     : heap_(heap),
       is_enabled_(false),
       grow_heap_(heap_growth_max / 2),
+      grow_external_(heap_growth_max / 2),
       heap_growth_ratio_(heap_growth_ratio),
       desired_utilization_((100.0 - heap_growth_ratio) / 100.0),
       heap_growth_max_(heap_growth_max),
@@ -1265,6 +1262,16 @@ bool PageSpaceController::NeedsGarbageCollection(SpaceUsage after) const {
                  heap_->isolate()->name(), needs_gc ? "collect" : "grow",
                  capacity_increase_in_pages, needs_gc ? ">" : "<=", grow_heap_);
   }
+  return needs_gc || NeedsExternalCollection(after);
+}
+
+bool PageSpaceController::NeedsExternalCollection(SpaceUsage after) const {
+  intptr_t increase_in_words =
+      after.external_in_words - last_usage_.external_in_words;
+  ASSERT(increase_in_words >= 0);
+  increase_in_words = Utils::RoundUp(increase_in_words, kPageSizeInWords);
+  intptr_t increase_in_pages = increase_in_words / kPageSizeInWords;
+  bool needs_gc = increase_in_pages > grow_external_;
   return needs_gc;
 }
 
@@ -1292,6 +1299,24 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
   history_.AddGarbageCollectionTime(start, end);
   const int gc_time_fraction = history_.GarbageCollectionTimeFraction();
   heap_->RecordData(PageSpace::kGCTimeFraction, gc_time_fraction);
+
+  // Decide how much external allocations can grow before triggering a GC.
+  {
+    const intptr_t external_after_in_pages =
+        Utils::RoundUp(after.external_in_words, kPageSizeInWords) /
+        kPageSizeInWords;
+    const intptr_t external_growth_in_pages =
+        Utils::RoundUp(before.external_in_words - last_usage_.external_in_words,
+                       kPageSizeInWords) /
+        kPageSizeInWords;
+    // Trigger GC when external allocations grow:
+    // - 25% of the external allocations after this GC, or
+    // - half of the growth since the last collection
+    // whichever is bigger. The second case prevents shrinking the limit too
+    // much. See similar handling of the Dart heap below.
+    grow_external_ = Utils::Maximum<intptr_t>(external_after_in_pages >> 2,
+                                              external_growth_in_pages >> 1);
+  }
 
   // Assume garbage increases linearly with allocation:
   // G = kA, and estimate k from the previous cycle.

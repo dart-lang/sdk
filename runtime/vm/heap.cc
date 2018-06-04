@@ -33,11 +33,10 @@ DEFINE_FLAG(bool, write_protect_vm_isolate, true, "Write protect vm_isolate.");
 
 Heap::Heap(Isolate* isolate,
            intptr_t max_new_gen_semi_words,
-           intptr_t max_old_gen_words,
-           intptr_t max_external_words)
+           intptr_t max_old_gen_words)
     : isolate_(isolate),
       new_space_(this, max_new_gen_semi_words, kNewObjectAlignmentOffset),
-      old_space_(this, max_old_gen_words, max_external_words),
+      old_space_(this, max_old_gen_words),
       barrier_(new Monitor()),
       barrier_done_(new Monitor()),
       read_only_(false),
@@ -132,7 +131,7 @@ void Heap::AllocateExternal(intptr_t cid, intptr_t size, Space space) {
   if (space == kNew) {
     isolate()->AssertCurrentThreadIsMutator();
     new_space_.AllocateExternal(cid, size);
-    if (new_space_.ExternalInWords() > (FLAG_new_gen_ext_limit * MBInWords)) {
+    if (new_space_.ExternalInWords() > (4 * new_space_.CapacityInWords())) {
       // Attempt to free some external allocation by a scavenge. (If the total
       // remains above the limit, next external alloc will trigger another.)
       CollectGarbage(kNew);
@@ -508,11 +507,9 @@ void Heap::WriteProtect(bool read_only) {
 
 void Heap::Init(Isolate* isolate,
                 intptr_t max_new_gen_words,
-                intptr_t max_old_gen_words,
-                intptr_t max_external_words) {
+                intptr_t max_old_gen_words) {
   ASSERT(isolate->heap() == NULL);
-  Heap* heap = new Heap(isolate, max_new_gen_words, max_old_gen_words,
-                        max_external_words);
+  Heap* heap = new Heap(isolate, max_new_gen_words, max_old_gen_words);
   isolate->set_heap(heap);
 }
 
