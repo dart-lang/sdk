@@ -7190,7 +7190,8 @@ class String : public Instance {
   static RawString* NewExternal(const uint8_t* utf8_array,
                                 intptr_t array_len,
                                 void* peer,
-                                Dart_PeerFinalizer callback,
+                                intptr_t external_allocation_size,
+                                Dart_WeakPersistentHandleFinalizer callback,
                                 Heap::Space = Heap::kNew);
 
   // Creates a new External String object using the specified array of
@@ -7198,7 +7199,8 @@ class String : public Instance {
   static RawString* NewExternal(const uint16_t* utf16_array,
                                 intptr_t array_len,
                                 void* peer,
-                                Dart_PeerFinalizer callback,
+                                intptr_t external_allocation_size,
+                                Dart_WeakPersistentHandleFinalizer callback,
                                 Heap::Space = Heap::kNew);
 
   static void Copy(const String& dst,
@@ -7424,13 +7426,9 @@ class OneByteString : public AllStatic {
                                               Heap::Space space);
 
   static void SetPeer(const String& str,
-                      intptr_t external_size,
                       void* peer,
-                      Dart_PeerFinalizer cback);
-
-  static void Finalize(void* isolate_callback_data,
-                       Dart_WeakPersistentHandle handle,
-                       void* peer);
+                      intptr_t external_allocation_size,
+                      Dart_WeakPersistentHandleFinalizer callback);
 
   static const ClassId kClassId = kOneByteStringCid;
 
@@ -7551,13 +7549,9 @@ class TwoByteString : public AllStatic {
                                      Heap::Space space);
 
   static void SetPeer(const String& str,
-                      intptr_t external_size,
                       void* peer,
-                      Dart_PeerFinalizer cback);
-
-  static void Finalize(void* isolate_callback_data,
-                       Dart_WeakPersistentHandle handle,
-                       void* peer);
+                      intptr_t external_allocation_size,
+                      Dart_WeakPersistentHandleFinalizer callback);
 
   static RawTwoByteString* null() {
     return reinterpret_cast<RawTwoByteString*>(Object::null());
@@ -7606,9 +7600,7 @@ class ExternalOneByteString : public AllStatic {
     return *CharAddr(str, index);
   }
 
-  static void* GetPeer(const String& str) {
-    return raw_ptr(str)->external_data_->peer();
-  }
+  static void* GetPeer(const String& str) { return raw_ptr(str)->peer_; }
 
   static intptr_t external_data_offset() {
     return OFFSET_OF(RawExternalOneByteString, external_data_);
@@ -7622,11 +7614,13 @@ class ExternalOneByteString : public AllStatic {
     return String::RoundedAllocationSize(sizeof(RawExternalOneByteString));
   }
 
-  static RawExternalOneByteString* New(const uint8_t* characters,
-                                       intptr_t len,
-                                       void* peer,
-                                       Dart_PeerFinalizer callback,
-                                       Heap::Space space);
+  static RawExternalOneByteString* New(
+      const uint8_t* characters,
+      intptr_t len,
+      void* peer,
+      intptr_t external_allocation_size,
+      Dart_WeakPersistentHandleFinalizer callback,
+      Heap::Space space);
 
   static RawExternalOneByteString* null() {
     return reinterpret_cast<RawExternalOneByteString*>(Object::null());
@@ -7650,20 +7644,22 @@ class ExternalOneByteString : public AllStatic {
   static const uint8_t* CharAddr(const String& str, intptr_t index) {
     ASSERT((index >= 0) && (index < str.Length()));
     ASSERT(str.IsExternalOneByteString());
-    return &(raw_ptr(str)->external_data_->data()[index]);
+    return &(raw_ptr(str)->external_data_[index]);
   }
 
   static const uint8_t* DataStart(const String& str) {
     ASSERT(str.IsExternalOneByteString());
-    return &(raw_ptr(str)->external_data_->data()[0]);
+    return raw_ptr(str)->external_data_;
   }
 
   static void SetExternalData(const String& str,
-                              ExternalStringData<uint8_t>* data) {
+                              const uint8_t* data,
+                              void* peer) {
     ASSERT(str.IsExternalOneByteString());
-    ASSERT(!Isolate::Current()->heap()->Contains(
-        reinterpret_cast<uword>(data->data())));
+    ASSERT(
+        !Isolate::Current()->heap()->Contains(reinterpret_cast<uword>(data)));
     str.StoreNonPointer(&raw_ptr(str)->external_data_, data);
+    str.StoreNonPointer(&raw_ptr(str)->peer_, peer);
   }
 
   static void Finalize(void* isolate_callback_data,
@@ -7695,9 +7691,7 @@ class ExternalTwoByteString : public AllStatic {
     return *CharAddr(str, index);
   }
 
-  static void* GetPeer(const String& str) {
-    return raw_ptr(str)->external_data_->peer();
-  }
+  static void* GetPeer(const String& str) { return raw_ptr(str)->peer_; }
 
   static intptr_t external_data_offset() {
     return OFFSET_OF(RawExternalTwoByteString, external_data_);
@@ -7711,11 +7705,13 @@ class ExternalTwoByteString : public AllStatic {
     return String::RoundedAllocationSize(sizeof(RawExternalTwoByteString));
   }
 
-  static RawExternalTwoByteString* New(const uint16_t* characters,
-                                       intptr_t len,
-                                       void* peer,
-                                       Dart_PeerFinalizer callback,
-                                       Heap::Space space = Heap::kNew);
+  static RawExternalTwoByteString* New(
+      const uint16_t* characters,
+      intptr_t len,
+      void* peer,
+      intptr_t external_allocation_size,
+      Dart_WeakPersistentHandleFinalizer callback,
+      Heap::Space space = Heap::kNew);
 
   static RawExternalTwoByteString* null() {
     return reinterpret_cast<RawExternalTwoByteString*>(Object::null());
@@ -7735,20 +7731,22 @@ class ExternalTwoByteString : public AllStatic {
   static const uint16_t* CharAddr(const String& str, intptr_t index) {
     ASSERT((index >= 0) && (index < str.Length()));
     ASSERT(str.IsExternalTwoByteString());
-    return &(raw_ptr(str)->external_data_->data()[index]);
+    return &(raw_ptr(str)->external_data_[index]);
   }
 
   static const uint16_t* DataStart(const String& str) {
     ASSERT(str.IsExternalTwoByteString());
-    return &(raw_ptr(str)->external_data_->data()[0]);
+    return raw_ptr(str)->external_data_;
   }
 
   static void SetExternalData(const String& str,
-                              ExternalStringData<uint16_t>* data) {
+                              const uint16_t* data,
+                              void* peer) {
     ASSERT(str.IsExternalTwoByteString());
-    ASSERT(!Isolate::Current()->heap()->Contains(
-        reinterpret_cast<uword>(data->data())));
+    ASSERT(
+        !Isolate::Current()->heap()->Contains(reinterpret_cast<uword>(data)));
     str.StoreNonPointer(&raw_ptr(str)->external_data_, data);
+    str.StoreNonPointer(&raw_ptr(str)->peer_, peer);
   }
 
   static void Finalize(void* isolate_callback_data,

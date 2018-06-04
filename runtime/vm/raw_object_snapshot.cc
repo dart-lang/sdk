@@ -2141,7 +2141,7 @@ void RawExternalOneByteString::WriteTo(SnapshotWriter* writer,
   // Serialize as a non-external one byte string.
   StringWriteTo(writer, object_id, kind, kOneByteStringCid,
                 writer->GetObjectTags(this), ptr()->length_,
-                ptr()->external_data_->data());
+                ptr()->external_data_);
 }
 
 void RawExternalTwoByteString::WriteTo(SnapshotWriter* writer,
@@ -2151,7 +2151,7 @@ void RawExternalTwoByteString::WriteTo(SnapshotWriter* writer,
   // Serialize as a non-external two byte string.
   StringWriteTo(writer, object_id, kind, kTwoByteStringCid,
                 writer->GetObjectTags(this), ptr()->length_,
-                ptr()->external_data_->data());
+                ptr()->external_data_);
 }
 
 RawBool* Bool::ReadFrom(SnapshotReader* reader,

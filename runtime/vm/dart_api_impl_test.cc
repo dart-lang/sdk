@@ -1034,6 +1034,10 @@ TEST_CASE(DartAPI_ArrayValues) {
   }
 }
 
+static void NoopFinalizer(void* isolate_callback_data,
+                          Dart_WeakPersistentHandle handle,
+                          void* peer) {}
+
 TEST_CASE(DartAPI_IsString) {
   uint8_t latin1[] = {'o', 'n', 'e', 0xC2, 0xA2};
 
@@ -1072,8 +1076,8 @@ TEST_CASE(DartAPI_IsString) {
     EXPECT_EQ(data8[i], latin1_array[i]);
   }
 
-  Dart_Handle ext8 =
-      Dart_NewExternalLatin1String(data8, ARRAY_SIZE(data8), data8, NULL);
+  Dart_Handle ext8 = Dart_NewExternalLatin1String(
+      data8, ARRAY_SIZE(data8), data8, sizeof(data8), NoopFinalizer);
   EXPECT_VALID(ext8);
   EXPECT(Dart_IsString(ext8));
   EXPECT(Dart_IsExternalString(ext8));
@@ -1094,8 +1098,8 @@ TEST_CASE(DartAPI_IsString) {
   EXPECT_EQ(4, str_len);
   EXPECT(!peer);
 
-  Dart_Handle ext16 =
-      Dart_NewExternalUTF16String(data16, ARRAY_SIZE(data16), data16, NULL);
+  Dart_Handle ext16 = Dart_NewExternalUTF16String(
+      data16, ARRAY_SIZE(data16), data16, sizeof(data16), NoopFinalizer);
   EXPECT_VALID(ext16);
   EXPECT(Dart_IsString(ext16));
   EXPECT(Dart_IsExternalString(ext16));
@@ -1198,7 +1202,9 @@ class GCTestHelper : public AllStatic {
   }
 };
 
-static void ExternalStringCallbackFinalizer(void* peer) {
+static void ExternalStringCallbackFinalizer(void* isolate_callback_data,
+                                            Dart_WeakPersistentHandle handle,
+                                            void* peer) {
   *static_cast<int*>(peer) *= 2;
 }
 
@@ -1211,12 +1217,14 @@ TEST_CASE(DartAPI_ExternalStringCallback) {
 
     uint8_t data8[] = {'h', 'e', 'l', 'l', 'o'};
     Dart_Handle obj8 = Dart_NewExternalLatin1String(
-        data8, ARRAY_SIZE(data8), &peer8, ExternalStringCallbackFinalizer);
+        data8, ARRAY_SIZE(data8), &peer8, sizeof(data8),
+        ExternalStringCallbackFinalizer);
     EXPECT_VALID(obj8);
 
     uint16_t data16[] = {'h', 'e', 'l', 'l', 'o'};
     Dart_Handle obj16 = Dart_NewExternalUTF16String(
-        data16, ARRAY_SIZE(data16), &peer16, ExternalStringCallbackFinalizer);
+        data16, ARRAY_SIZE(data16), &peer16, sizeof(data16),
+        ExternalStringCallbackFinalizer);
     EXPECT_VALID(obj16);
 
     Dart_ExitScope();
@@ -1243,21 +1251,25 @@ TEST_CASE(DartAPI_ExternalStringPretenure) {
     static const uint8_t big_data8[16 * MB] = {
         0,
     };
-    Dart_Handle big8 = Dart_NewExternalLatin1String(
-        big_data8, ARRAY_SIZE(big_data8), NULL, NULL);
+    Dart_Handle big8 =
+        Dart_NewExternalLatin1String(big_data8, ARRAY_SIZE(big_data8), NULL,
+                                     sizeof(big_data8), NoopFinalizer);
     EXPECT_VALID(big8);
     static const uint16_t big_data16[16 * MB / 2] = {
         0,
     };
-    Dart_Handle big16 = Dart_NewExternalUTF16String(
-        big_data16, ARRAY_SIZE(big_data16), NULL, NULL);
+    Dart_Handle big16 =
+        Dart_NewExternalUTF16String(big_data16, ARRAY_SIZE(big_data16), NULL,
+                                    sizeof(big_data16), NoopFinalizer);
     static const uint8_t small_data8[] = {'f', 'o', 'o'};
-    Dart_Handle small8 = Dart_NewExternalLatin1String(
-        small_data8, ARRAY_SIZE(small_data8), NULL, NULL);
+    Dart_Handle small8 =
+        Dart_NewExternalLatin1String(small_data8, ARRAY_SIZE(small_data8), NULL,
+                                     sizeof(small_data8), NoopFinalizer);
     EXPECT_VALID(small8);
     static const uint16_t small_data16[] = {'b', 'a', 'r'};
-    Dart_Handle small16 = Dart_NewExternalUTF16String(
-        small_data16, ARRAY_SIZE(small_data16), NULL, NULL);
+    Dart_Handle small16 =
+        Dart_NewExternalUTF16String(small_data16, ARRAY_SIZE(small_data16),
+                                    NULL, sizeof(small_data16), NoopFinalizer);
     EXPECT_VALID(small16);
     {
       CHECK_API_SCOPE(thread);
@@ -5355,9 +5367,11 @@ TEST_CASE(DartAPI_GetNativeArguments) {
       reinterpret_cast<Dart_NativeEntryResolver>(native_args_lookup));
 
   const char* ascii_str = "string";
+  intptr_t ascii_str_length = strlen(ascii_str);
   Dart_Handle extstr = Dart_NewExternalLatin1String(
-      reinterpret_cast<const uint8_t*>(ascii_str), strlen(ascii_str),
-      reinterpret_cast<void*>(&native_arg_str_peer), NULL);
+      reinterpret_cast<const uint8_t*>(ascii_str), ascii_str_length,
+      reinterpret_cast<void*>(&native_arg_str_peer), ascii_str_length,
+      NoopFinalizer);
 
   Dart_Handle args[1];
   args[0] = extstr;
@@ -7969,8 +7983,8 @@ TEST_CASE(DartAPI_ExternalStringIndexOf) {
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
 
   uint8_t data8[] = {'W'};
-  Dart_Handle ext8 =
-      Dart_NewExternalLatin1String(data8, ARRAY_SIZE(data8), data8, NULL);
+  Dart_Handle ext8 = Dart_NewExternalLatin1String(
+      data8, ARRAY_SIZE(data8), data8, sizeof(data8), NoopFinalizer);
   EXPECT_VALID(ext8);
   EXPECT(Dart_IsString(ext8));
   EXPECT(Dart_IsExternalString(ext8));

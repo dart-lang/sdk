@@ -2856,15 +2856,9 @@ static Definition* PrepareInlineStringIndexOp(FlowGraph* flow_graph,
     str = new LoadUntaggedInstr(new Value(str),
                                 ExternalOneByteString::external_data_offset());
     cursor = flow_graph->AppendTo(cursor, str, NULL, FlowGraph::kValue);
-    str = new LoadUntaggedInstr(
-        new Value(str), RawExternalOneByteString::ExternalData::data_offset());
-    cursor = flow_graph->AppendTo(cursor, str, NULL, FlowGraph::kValue);
   } else if (cid == kExternalTwoByteStringCid) {
     str = new LoadUntaggedInstr(new Value(str),
                                 ExternalTwoByteString::external_data_offset());
-    cursor = flow_graph->AppendTo(cursor, str, NULL, FlowGraph::kValue);
-    str = new LoadUntaggedInstr(
-        new Value(str), RawExternalTwoByteString::ExternalData::data_offset());
     cursor = flow_graph->AppendTo(cursor, str, NULL, FlowGraph::kValue);
   }
 

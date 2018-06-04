@@ -19625,7 +19625,7 @@ intptr_t String::Hash(RawString* raw) {
       ASSERT(raw->IsExternalOneByteString());
       RawExternalOneByteString* str =
           reinterpret_cast<RawExternalOneByteString*>(raw);
-      data = str->ptr()->external_data_->data();
+      data = str->ptr()->external_data_;
     }
     return String::Hash(data, length);
   } else {
@@ -19636,7 +19636,7 @@ intptr_t String::Hash(RawString* raw) {
       ASSERT(raw->IsExternalTwoByteString());
       RawExternalTwoByteString* str =
           reinterpret_cast<RawExternalTwoByteString*>(raw);
-      data = str->ptr()->external_data_->data();
+      data = str->ptr()->external_data_;
     }
     return String::Hash(data, length);
   }
@@ -19962,17 +19962,21 @@ RawString* String::New(const String& str, Heap::Space space) {
 RawString* String::NewExternal(const uint8_t* characters,
                                intptr_t len,
                                void* peer,
-                               Dart_PeerFinalizer callback,
+                               intptr_t external_allocation_size,
+                               Dart_WeakPersistentHandleFinalizer callback,
                                Heap::Space space) {
-  return ExternalOneByteString::New(characters, len, peer, callback, space);
+  return ExternalOneByteString::New(characters, len, peer,
+                                    external_allocation_size, callback, space);
 }
 
 RawString* String::NewExternal(const uint16_t* characters,
                                intptr_t len,
                                void* peer,
-                               Dart_PeerFinalizer callback,
+                               intptr_t external_allocation_size,
+                               Dart_WeakPersistentHandleFinalizer callback,
                                Heap::Space space) {
-  return ExternalTwoByteString::New(characters, len, peer, callback, space);
+  return ExternalTwoByteString::New(characters, len, peer,
+                                    external_allocation_size, callback, space);
 }
 
 void String::Copy(const String& dst,
@@ -20358,8 +20362,7 @@ static FinalizablePersistentHandle* AddFinalizer(
     void* peer,
     Dart_WeakPersistentHandleFinalizer callback,
     intptr_t external_size) {
-  ASSERT((callback != NULL && peer != NULL) ||
-         (callback == NULL && peer == NULL));
+  ASSERT(callback != NULL);
   return FinalizablePersistentHandle::New(Isolate::Current(), referent, peer,
                                           callback, external_size);
 }
@@ -20783,24 +20786,6 @@ RawOneByteString* OneByteString::SubStringUnchecked(const String& str,
   return result;
 }
 
-void OneByteString::SetPeer(const String& str,
-                            intptr_t external_size,
-                            void* peer,
-                            Dart_PeerFinalizer cback) {
-  ASSERT(!str.IsNull() && str.IsOneByteString());
-  ASSERT(peer != NULL);
-  ExternalStringData<uint8_t>* ext_data =
-      new ExternalStringData<uint8_t>(NULL, peer, cback);
-  AddFinalizer(str, ext_data, OneByteString::Finalize, external_size);
-  Isolate::Current()->heap()->SetPeer(str.raw(), peer);
-}
-
-void OneByteString::Finalize(void* isolate_callback_data,
-                             Dart_WeakPersistentHandle handle,
-                             void* peer) {
-  delete reinterpret_cast<ExternalStringData<uint8_t>*>(peer);
-}
-
 RawTwoByteString* TwoByteString::EscapeSpecialCharacters(const String& str) {
   intptr_t len = str.Length();
   if (len > 0) {
@@ -20980,29 +20965,12 @@ RawTwoByteString* TwoByteString::Transform(int32_t (*mapping)(int32_t ch),
   return TwoByteString::raw(result);
 }
 
-void TwoByteString::SetPeer(const String& str,
-                            intptr_t external_size,
-                            void* peer,
-                            Dart_PeerFinalizer cback) {
-  ASSERT(!str.IsNull() && str.IsTwoByteString());
-  ASSERT(peer != NULL);
-  ExternalStringData<uint16_t>* ext_data =
-      new ExternalStringData<uint16_t>(NULL, peer, cback);
-  AddFinalizer(str, ext_data, TwoByteString::Finalize, external_size);
-  Isolate::Current()->heap()->SetPeer(str.raw(), peer);
-}
-
-void TwoByteString::Finalize(void* isolate_callback_data,
-                             Dart_WeakPersistentHandle handle,
-                             void* peer) {
-  delete reinterpret_cast<ExternalStringData<uint16_t>*>(peer);
-}
-
 RawExternalOneByteString* ExternalOneByteString::New(
     const uint8_t* data,
     intptr_t len,
     void* peer,
-    Dart_PeerFinalizer callback,
+    intptr_t external_allocation_size,
+    Dart_WeakPersistentHandleFinalizer callback,
     Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->external_one_byte_string_class() !=
          Class::null());
@@ -21012,8 +20980,6 @@ RawExternalOneByteString* ExternalOneByteString::New(
            len);
   }
   String& result = String::Handle();
-  ExternalStringData<uint8_t>* external_data =
-      new ExternalStringData<uint8_t>(data, peer, callback);
   {
     RawObject* raw =
         Object::Allocate(ExternalOneByteString::kClassId,
@@ -21022,25 +20988,18 @@ RawExternalOneByteString* ExternalOneByteString::New(
     result ^= raw;
     result.SetLength(len);
     result.SetHash(0);
-    SetExternalData(result, external_data);
+    SetExternalData(result, data, peer);
   }
-  intptr_t external_size = len;
-  AddFinalizer(result, external_data, ExternalOneByteString::Finalize,
-               external_size);
+  AddFinalizer(result, peer, callback, external_allocation_size);
   return ExternalOneByteString::raw(result);
-}
-
-void ExternalOneByteString::Finalize(void* isolate_callback_data,
-                                     Dart_WeakPersistentHandle handle,
-                                     void* peer) {
-  delete reinterpret_cast<ExternalStringData<uint8_t>*>(peer);
 }
 
 RawExternalTwoByteString* ExternalTwoByteString::New(
     const uint16_t* data,
     intptr_t len,
     void* peer,
-    Dart_PeerFinalizer callback,
+    intptr_t external_allocation_size,
+    Dart_WeakPersistentHandleFinalizer callback,
     Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->external_two_byte_string_class() !=
          Class::null());
@@ -21050,8 +21009,6 @@ RawExternalTwoByteString* ExternalTwoByteString::New(
            len);
   }
   String& result = String::Handle();
-  ExternalStringData<uint16_t>* external_data =
-      new ExternalStringData<uint16_t>(data, peer, callback);
   {
     RawObject* raw =
         Object::Allocate(ExternalTwoByteString::kClassId,
@@ -21060,18 +21017,10 @@ RawExternalTwoByteString* ExternalTwoByteString::New(
     result ^= raw;
     result.SetLength(len);
     result.SetHash(0);
-    SetExternalData(result, external_data);
+    SetExternalData(result, data, peer);
   }
-  intptr_t external_size = len * 2;
-  AddFinalizer(result, external_data, ExternalTwoByteString::Finalize,
-               external_size);
+  AddFinalizer(result, peer, callback, external_allocation_size);
   return ExternalTwoByteString::raw(result);
-}
-
-void ExternalTwoByteString::Finalize(void* isolate_callback_data,
-                                     Dart_WeakPersistentHandle handle,
-                                     void* peer) {
-  delete reinterpret_cast<ExternalStringData<uint16_t>*>(peer);
 }
 
 RawBool* Bool::New(bool value) {
