@@ -377,25 +377,24 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * [element], and also initialize [typeArguments] to match the
    * [typeParameters], which permits later substitution.
    */
-  FunctionTypeImpl(FunctionTypedElement element,
-      [List<FunctionTypeAliasElement> prunedTypedefs])
-      : this._(element, null, prunedTypedefs, null, null, null, false);
-
-  /**
-   * Initialize a newly created function type to be declared by the given
-   * [element], with the given [name] and [typeArguments].
-   */
-  FunctionTypeImpl.elementWithNameAndArgs(Element element, String name,
-      List<DartType> typeArguments, bool isInstantiated)
-      : this._(element, name, null, typeArguments, null, null, isInstantiated);
+  factory FunctionTypeImpl(FunctionTypedElement element) {
+    if (element is FunctionTypeAliasElement) {
+      throw new StateError('Use FunctionTypeImpl.forTypedef for typedefs');
+    }
+    return new FunctionTypeImpl._(element, null, null, null, null, null, false);
+  }
 
   /**
    * Initialize a newly created function type to be declared by the given
    * [element].
+   *
+   * If [typeArguments] are provided, they are used to instantiate the typedef.
    */
-  FunctionTypeImpl.forTypedef(FunctionTypeAliasElement element,
-      [List<FunctionTypeAliasElement> prunedTypedefs])
-      : this._(element, element?.name, prunedTypedefs, null, null, null, false);
+  factory FunctionTypeImpl.forTypedef(FunctionTypeAliasElement element,
+      {List<DartType> typeArguments}) {
+    return new FunctionTypeImpl._(element, element?.name, null, typeArguments,
+        null, null, typeArguments != null);
+  }
 
   /**
    * Initialize a newly created function type that is semantically the same as

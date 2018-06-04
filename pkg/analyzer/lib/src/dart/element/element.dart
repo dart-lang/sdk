@@ -4411,8 +4411,7 @@ abstract class ExecutableElementImpl extends ElementImpl
   @override
   FunctionType get type {
     if (_kernel != null || serializedExecutable != null) {
-      _type ??= new FunctionTypeImpl.elementWithNameAndArgs(
-          this, null, allEnclosingTypeParameterTypes, false);
+      _type ??= new FunctionTypeImpl(this);
     }
     return _type;
   }
@@ -5155,8 +5154,7 @@ class FunctionElementImpl_forLUB extends FunctionElementImpl {
 
   @override
   FunctionType get type {
-    return _type ??=
-        new FunctionTypeImpl.elementWithNameAndArgs(this, null, null, false);
+    return _type ??= new FunctionTypeImpl(this);
   }
 
   @override
@@ -5299,8 +5297,7 @@ class GenericFunctionTypeElementImpl extends ElementImpl
 
   @override
   FunctionType get type {
-    _type ??= new FunctionTypeImpl.elementWithNameAndArgs(
-        this, null, allEnclosingTypeParameterTypes, false);
+    _type ??= new FunctionTypeImpl(this);
     return _type;
   }
 

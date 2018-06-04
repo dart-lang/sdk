@@ -80,19 +80,17 @@ class FunctionTypeTest {
   DartType mapOf(DartType keyType, DartType valueType) =>
       mapType.instantiate([keyType, valueType]);
 
-  test_elementWithNameAndArgs_nonTypedef_noTypeArguments() {
+  test_unnamedConstructor_nonTypedef_noTypeArguments() {
     var e = new MockFunctionTypedElement();
-    FunctionType f =
-        new FunctionTypeImpl.elementWithNameAndArgs(e, null, [], false);
+    FunctionType f = new FunctionTypeImpl(e);
     basicChecks(f, element: same(e));
   }
 
-  test_elementWithNameAndArgs_nonTypedef_withTypeArguments() {
+  test_unnamedConstructor_nonTypedef_withTypeArguments() {
     var t = new MockTypeParameterElement('T');
     var c = new MockClassElement('C', typeParameters: [t]);
     var e = new MockMethodElement(c, returnType: t.type);
-    FunctionType f =
-        new FunctionTypeImpl.elementWithNameAndArgs(e, null, [t.type], false);
+    FunctionType f = new FunctionTypeImpl(e);
     basicChecks(f,
         element: same(e),
         typeArguments: [same(t.type)],
@@ -101,7 +99,7 @@ class FunctionTypeTest {
         returnType: same(t.type));
   }
 
-  test_elementWithNameAndArgs_typedef_bothTypeParameters() {
+  test_forInstantiatedTypedef_bothTypeParameters() {
     var t = new MockTypeParameterElement('T');
     var u = new MockTypeParameterElement('U');
     var e = new MockGenericTypeAliasElement('F',
@@ -109,7 +107,7 @@ class FunctionTypeTest {
         innerTypeParameters: [u],
         returnType: mapOf(t.type, u.type));
     FunctionType f =
-        new FunctionTypeImpl.elementWithNameAndArgs(e, 'F', [objectType], true);
+        new FunctionTypeImpl.forTypedef(e, typeArguments: [objectType]);
     basicChecks(f,
         element: same(e),
         displayName: 'F<Object>',
@@ -119,12 +117,11 @@ class FunctionTypeTest {
         returnType: mapOf(objectType, u.type));
   }
 
-  test_elementWithNameAndArgs_typedef_innerTypeParameter() {
+  test_forInstantiatedTypedef_innerTypeParameter() {
     var t = new MockTypeParameterElement('T');
     var e = new MockGenericTypeAliasElement('F',
         innerTypeParameters: [t], returnType: t.type);
-    FunctionType f =
-        new FunctionTypeImpl.elementWithNameAndArgs(e, 'F', [], true);
+    FunctionType f = new FunctionTypeImpl.forTypedef(e, typeArguments: []);
     basicChecks(f,
         element: same(e),
         displayName: 'F',
@@ -132,19 +129,18 @@ class FunctionTypeTest {
         returnType: same(t.type));
   }
 
-  test_elementWithNameAndArgs_typedef_noTypeParameters() {
+  test_forInstantiatedTypedef_noTypeParameters() {
     var e = new MockGenericTypeAliasElement('F');
-    FunctionType f =
-        new FunctionTypeImpl.elementWithNameAndArgs(e, 'F', [], true);
+    FunctionType f = new FunctionTypeImpl.forTypedef(e, typeArguments: []);
     basicChecks(f, element: same(e), displayName: 'F', name: 'F');
   }
 
-  test_elementWithNameAndArgs_typedef_outerTypeParameters() {
+  test_forInstantiatedTypedef_outerTypeParameters() {
     var t = new MockTypeParameterElement('T');
     var e = new MockGenericTypeAliasElement('F',
         typeParameters: [t], returnType: t.type);
     FunctionType f =
-        new FunctionTypeImpl.elementWithNameAndArgs(e, 'F', [objectType], true);
+        new FunctionTypeImpl.forTypedef(e, typeArguments: [objectType]);
     basicChecks(f,
         element: same(e),
         displayName: 'F<Object>',
@@ -860,8 +856,7 @@ class MockGenericFunctionTypeElementImpl
   get returnType => enclosingElement.returnType;
 
   @override
-  get type => _type ??= new FunctionTypeImpl.elementWithNameAndArgs(this, null,
-      enclosingElement.typeParameters.map((e) => e.type).toList(), false);
+  get type => _type ??= new FunctionTypeImpl(this);
 
   @override
   get typeParameters => enclosingElement.innerTypeParameters;
