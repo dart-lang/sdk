@@ -6,15 +6,23 @@
 
 #### Strong Mode
 
-### Core library changes
-
-* `dart:convert`
-  * Allow `utf8.decoder.fuse(json.decoder)` to ignore leading Unicode BOM.
-
 ### Dart VM
 
 * The VM now uses `--sync-async` by default. Users can still opt out by
   providing the `--no-sync-async` flag.
+
+### Tool Changes
+
+#### Pub
+
+#### Other Tools
+
+## 2.0.0-dev.60.0
+
+### Core library changes
+
+* `dart:convert`
+  * Allow `utf8.decoder.fuse(json.decoder)` to ignore leading Unicode BOM.
 
 ### Tool Changes
 
@@ -24,10 +32,6 @@
   ([issue 33182]).
 
 [issue 33182]: https://github.com/dart-lang/sdk/issues/33182
-
-#### Pub
-
-#### Other Tools
 
 ## 2.0.0-dev.59.0
 
