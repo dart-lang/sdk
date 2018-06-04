@@ -1624,7 +1624,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   void _update(Map map, bool mapIsRef) {
     name = map['name'];
     vmName = map.containsKey('_vmName') ? map['_vmName'] : name;
-    number = int.parse(map['number'], onError: (_) => null);
+    number = int.tryParse(map['number']);
     if (mapIsRef) {
       return;
     }
@@ -1632,7 +1632,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     loading = false;
     runnable = map['runnable'] == true;
     _upgradeCollection(map, isolate);
-    originNumber = int.parse(map['_originNumber'], onError: (_) => null);
+    originNumber = int.tryParse(map['_originNumber']);
     rootLibrary = map['rootLib'];
     if (map['entry'] != null) {
       entry = map['entry'];

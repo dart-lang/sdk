@@ -75,8 +75,8 @@ class DebuggerLocation {
     if (colStr != null) {
       colStr = colStr.substring(1);
     }
-    var line = int.parse(lineStr, onError: (_) => -1);
-    var col = (colStr != null ? int.parse(colStr, onError: (_) => -1) : null);
+    var line = int.tryParse(lineStr) ?? -1;
+    var col = (colStr != null ? int.tryParse(colStr) ?? -1 : null);
     if (line == -1) {
       return new Future.value(
           new DebuggerLocation.error("Line '${lineStr}' must be an integer"));
