@@ -207,7 +207,7 @@ ObjectGraph::~ObjectGraph() {}
 
 void ObjectGraph::IterateObjects(ObjectGraph::Visitor* visitor) {
   Stack stack(isolate());
-  isolate()->VisitObjectPointers(&stack, false);
+  isolate()->VisitObjectPointers(&stack, ValidationPolicy::kDontValidateFrames);
   stack.TraverseGraph(visitor);
   Unmarker::UnmarkAll(isolate());
 }
@@ -642,7 +642,8 @@ intptr_t ObjectGraph::Serialize(WriteStream* stream,
     // Write root "object".
     WriteHeader(kRootAddress, 0, kRootCid, stream);
     WritePointerVisitor ptr_writer(isolate(), stream, false);
-    isolate()->VisitObjectPointers(&ptr_writer, false);
+    isolate()->VisitObjectPointers(&ptr_writer,
+                                   ValidationPolicy::kDontValidateFrames);
     stream->WriteUnsigned(0);
   } else {
     {
@@ -658,7 +659,8 @@ intptr_t ObjectGraph::Serialize(WriteStream* stream,
       // Write stack "object".
       WriteHeader(kStackAddress, 0, kStackCid, stream);
       WritePointerVisitor ptr_writer(isolate(), stream, true);
-      isolate()->VisitStackPointers(&ptr_writer, false);
+      isolate()->VisitStackPointers(&ptr_writer,
+                                    ValidationPolicy::kDontValidateFrames);
       stream->WriteUnsigned(0);
     }
   }

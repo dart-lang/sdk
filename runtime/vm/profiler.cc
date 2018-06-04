@@ -539,8 +539,8 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
       const StackFrameIterator::CrossThreadPolicy cross_thread_policy =
           StackFrameIterator::kNoCrossThreadIteration;
 #endif
-      StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames,
-                                  thread, cross_thread_policy);
+      StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames, thread,
+                                  cross_thread_policy);
       pc_ = NULL;
       fp_ = NULL;
       sp_ = NULL;

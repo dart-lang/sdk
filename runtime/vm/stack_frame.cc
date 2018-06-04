@@ -353,7 +353,7 @@ static void UnpoisonStack(uword fp) {
 StackFrameIterator::StackFrameIterator(ValidationPolicy validation_policy,
                                        Thread* thread,
                                        CrossThreadPolicy cross_thread_policy)
-    : validate_(validation_policy == kValidateFrames),
+    : validate_(validation_policy == ValidationPolicy::kValidateFrames),
       entry_(thread),
       exit_(thread),
       frames_(thread),
@@ -368,7 +368,7 @@ StackFrameIterator::StackFrameIterator(uword last_fp,
                                        ValidationPolicy validation_policy,
                                        Thread* thread,
                                        CrossThreadPolicy cross_thread_policy)
-    : validate_(validation_policy == kValidateFrames),
+    : validate_(validation_policy == ValidationPolicy::kValidateFrames),
       entry_(thread),
       exit_(thread),
       frames_(thread),
@@ -388,7 +388,7 @@ StackFrameIterator::StackFrameIterator(uword fp,
                                        ValidationPolicy validation_policy,
                                        Thread* thread,
                                        CrossThreadPolicy cross_thread_policy)
-    : validate_(validation_policy == kValidateFrames),
+    : validate_(validation_policy == ValidationPolicy::kValidateFrames),
       entry_(thread),
       exit_(thread),
       frames_(thread),
@@ -441,7 +441,7 @@ StackFrame* StackFrameIterator::NextFrame() {
 #endif  // !defined(TARGET_ARCH_DBC)
     return current_frame_;
   }
-  ASSERT((validate_ == kDontValidateFrames) || current_frame_->IsValid());
+  ASSERT(!validate_ || current_frame_->IsValid());
   if (current_frame_->IsEntryFrame()) {
     if (HasNextFrame()) {  // We have another chained block.
       current_frame_ = NextExitFrame();
@@ -450,7 +450,7 @@ StackFrame* StackFrameIterator::NextFrame() {
     current_frame_ = NULL;  // No more frames.
     return current_frame_;
   }
-  ASSERT((validate_ == kDontValidateFrames) || current_frame_->IsExitFrame() ||
+  ASSERT(!validate_ || current_frame_->IsExitFrame() ||
          current_frame_->IsDartFrame(validate_) ||
          current_frame_->IsStubFrame());
 
@@ -472,7 +472,7 @@ StackFrame* StackFrameIterator::FrameSetIterator::NextFrame(bool validate) {
   sp_ = frame->GetCallerSp();
   fp_ = frame->GetCallerFp();
   pc_ = frame->GetCallerPc();
-  ASSERT((validate == kDontValidateFrames) || frame->IsValid());
+  ASSERT(!validate || frame->IsValid());
   return frame;
 }
 
@@ -483,7 +483,7 @@ ExitFrame* StackFrameIterator::NextExitFrame() {
   frames_.sp_ = exit_.GetCallerSp();
   frames_.fp_ = exit_.GetCallerFp();
   frames_.pc_ = exit_.GetCallerPc();
-  ASSERT((validate_ == kDontValidateFrames) || exit_.IsValid());
+  ASSERT(!validate_ || exit_.IsValid());
   return &exit_;
 }
 
@@ -493,7 +493,7 @@ EntryFrame* StackFrameIterator::NextEntryFrame() {
   entry_.fp_ = frames_.fp_;
   entry_.pc_ = frames_.pc_;
   SetupNextExitFrameData();  // Setup data for next exit frame in chain.
-  ASSERT((validate_ == kDontValidateFrames) || entry_.IsValid());
+  ASSERT(!validate_ || entry_.IsValid());
   return &entry_;
 }
 
@@ -586,7 +586,7 @@ intptr_t InlinedFunctionsIterator::GetDeoptFpOffset() const {
 
 #if defined(DEBUG)
 void ValidateFrames() {
-  StackFrameIterator frames(StackFrameIterator::kValidateFrames,
+  StackFrameIterator frames(ValidationPolicy::kValidateFrames,
                             Thread::Current(),
                             StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = frames.NextFrame();

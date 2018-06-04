@@ -267,13 +267,15 @@ void HeapIterationScope::IterateVMIsolateObjects(ObjectVisitor* visitor) const {
   Dart::vm_isolate()->heap()->VisitObjects(visitor);
 }
 
-void HeapIterationScope::IterateObjectPointers(ObjectPointerVisitor* visitor,
-                                               bool validate_frames) {
+void HeapIterationScope::IterateObjectPointers(
+    ObjectPointerVisitor* visitor,
+    ValidationPolicy validate_frames) {
   isolate()->VisitObjectPointers(visitor, validate_frames);
 }
 
-void HeapIterationScope::IterateStackPointers(ObjectPointerVisitor* visitor,
-                                              bool validate_frames) {
+void HeapIterationScope::IterateStackPointers(
+    ObjectPointerVisitor* visitor,
+    ValidationPolicy validate_frames) {
   isolate()->VisitStackPointers(visitor, validate_frames);
 }
 

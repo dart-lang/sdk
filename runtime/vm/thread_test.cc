@@ -131,7 +131,7 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
         ObjectCounter counter(isolate_, &smi);
         // Ensure that our particular zone is visited.
         iteration.IterateStackPointers(&counter,
-                                       StackFrameIterator::kValidateFrames);
+                                       ValidationPolicy::kValidateFrames);
         EXPECT_EQ(1, counter.count());
       }
       char* unique_chars = zone->PrintToString("unique_str_%" Pd, id_);
@@ -148,7 +148,7 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
         ObjectCounter str_counter(isolate_, &unique_str);
         // Ensure that our particular zone is visited.
         iteration.IterateStackPointers(&str_counter,
-                                       StackFrameIterator::kValidateFrames);
+                                       ValidationPolicy::kValidateFrames);
         // We should visit the string object exactly once.
         EXPECT_EQ(1, str_counter.count());
       }
@@ -429,7 +429,7 @@ class SafepointTestTask : public ThreadPool::Task {
         ASSERT(thread->IsAtSafepoint());
         ObjectCounter counter(isolate_, &smi);
         iteration.IterateStackPointers(&counter,
-                                       StackFrameIterator::kValidateFrames);
+                                       ValidationPolicy::kValidateFrames);
         {
           MonitorLocker ml(monitor_);
           EXPECT_EQ(*expected_count_, counter.count());

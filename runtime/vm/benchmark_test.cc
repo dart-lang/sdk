@@ -386,7 +386,7 @@ static void StackFrame_accessFrame(Dart_NativeArguments args) {
   Timer timer(true, "LookupDartCode benchmark");
   timer.Start();
   for (int i = 0; i < kNumIterations; i++) {
-    StackFrameIterator frames(StackFrameIterator::kDontValidateFrames,
+    StackFrameIterator frames(ValidationPolicy::kDontValidateFrames,
                               Thread::Current(),
                               StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* frame = frames.NextFrame();

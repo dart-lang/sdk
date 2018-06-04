@@ -1888,7 +1888,7 @@ Isolate* Isolate::isolates_list_head_ = NULL;
 bool Isolate::creation_enabled_ = false;
 
 void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
-                                  bool validate_frames) {
+                                  ValidationPolicy validate_frames) {
   ASSERT(visitor != NULL);
 
   // Visit objects in the object store.
@@ -1966,7 +1966,7 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 }
 
 void Isolate::VisitStackPointers(ObjectPointerVisitor* visitor,
-                                 bool validate_frames) {
+                                 ValidationPolicy validate_frames) {
   // Visit objects in all threads (e.g., Dart stack, handles in zones).
   thread_registry()->VisitObjectPointers(visitor, validate_frames);
 }

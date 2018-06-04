@@ -60,7 +60,7 @@ void ThreadRegistry::ReturnThreadLocked(bool is_mutator, Thread* thread) {
 }
 
 void ThreadRegistry::VisitObjectPointers(ObjectPointerVisitor* visitor,
-                                         bool validate_frames) {
+                                         ValidationPolicy validate_frames) {
   MonitorLocker ml(threads_lock());
   bool mutator_thread_visited = false;
   Thread* thread = active_list_;

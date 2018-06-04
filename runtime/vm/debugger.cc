@@ -674,7 +674,7 @@ void ActivationFrame::PrintDescriptorsError(const char* message) {
   DisassembleToStdout formatter;
   code().Disassemble(&formatter);
   PcDescriptors::Handle(code().pc_descriptors()).Print();
-  StackFrameIterator frames(StackFrameIterator::kDontValidateFrames,
+  StackFrameIterator frames(ValidationPolicy::kDontValidateFrames,
                             Thread::Current(),
                             StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = frames.NextFrame();
@@ -1174,7 +1174,7 @@ void ActivationFrame::PrintContextMismatchError(intptr_t ctx_slot,
   OS::PrintErr(
       "-------------------------\n"
       "All frames...\n\n");
-  StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames,
+  StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames,
                               Thread::Current(),
                               StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = iterator.NextFrame();
@@ -1872,7 +1872,7 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
   DebuggerStackTrace* stack_trace = new DebuggerStackTrace(8);
-  StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames,
+  StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames,
                               Thread::Current(),
                               StackFrameIterator::kNoCrossThreadIteration);
   Code& code = Code::Handle(zone);
@@ -1961,7 +1961,7 @@ DebuggerStackTrace* Debugger::CollectAsyncCausalStackTrace() {
   // asynchronous function. We truncate the remainder of the synchronous
   // stack trace because it contains activations that are part of the
   // asynchronous dispatch mechanisms.
-  StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames,
+  StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames,
                               Thread::Current(),
                               StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = iterator.NextFrame();
@@ -2028,7 +2028,7 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
   Isolate* isolate = thread->isolate();
   DebuggerStackTrace* stack_trace = new DebuggerStackTrace(8);
 
-  StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames,
+  StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames,
                               Thread::Current(),
                               StackFrameIterator::kNoCrossThreadIteration);
 
@@ -2199,7 +2199,7 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
 }
 
 ActivationFrame* Debugger::TopDartFrame() const {
-  StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames,
+  StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames,
                               Thread::Current(),
                               StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = iterator.NextFrame();
@@ -3440,7 +3440,7 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
       OS::PrintErr(
           "-------------------------\n"
           "All frames...\n\n");
-      StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames,
+      StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames,
                                   Thread::Current(),
                                   StackFrameIterator::kNoCrossThreadIteration);
       StackFrame* frame = iterator.NextFrame();
@@ -3558,7 +3558,7 @@ void Debugger::RewindToFrame(intptr_t frame_index) {
   Function& function = Function::Handle(zone);
 
   // Find the requested frame.
-  StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames,
+  StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames,
                               Thread::Current(),
                               StackFrameIterator::kNoCrossThreadIteration);
   intptr_t current_frame = 0;
@@ -3659,7 +3659,7 @@ void Debugger::RewindPostDeopt() {
     OS::PrintErr(
         "-------------------------\n"
         "All frames...\n\n");
-    StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames,
+    StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames,
                                 Thread::Current(),
                                 StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* frame = iterator.NextFrame();
@@ -3674,7 +3674,7 @@ void Debugger::RewindPostDeopt() {
   Zone* zone = thread->zone();
   Code& code = Code::Handle(zone);
 
-  StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames,
+  StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames,
                               Thread::Current(),
                               StackFrameIterator::kNoCrossThreadIteration);
   intptr_t current_frame = 0;

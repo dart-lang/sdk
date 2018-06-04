@@ -2054,7 +2054,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
 // Patch static call to point to valid code's entry point.
 DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames, thread,
+  StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames, thread,
                               StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = iterator.NextFrame();
   ASSERT(frame != NULL);
@@ -2095,7 +2095,7 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
 // stub.
 DEFINE_RUNTIME_ENTRY(FixAllocationStubTarget, 0) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames, thread,
+  StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames, thread,
                               StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = iterator.NextFrame();
   ASSERT(frame != NULL);

@@ -578,8 +578,7 @@ void Scavenger::IterateObjectIdTable(Isolate* isolate,
 
 void Scavenger::IterateRoots(Isolate* isolate, ScavengerVisitor* visitor) {
   int64_t start = OS::GetCurrentMonotonicMicros();
-  isolate->VisitObjectPointers(visitor,
-                               StackFrameIterator::kDontValidateFrames);
+  isolate->VisitObjectPointers(visitor, ValidationPolicy::kDontValidateFrames);
   int64_t middle = OS::GetCurrentMonotonicMicros();
   IterateStoreBuffers(isolate, visitor);
   IterateObjectIdTable(isolate, visitor);

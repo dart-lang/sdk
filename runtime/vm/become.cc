@@ -286,7 +286,8 @@ void Become::FollowForwardingPointers(Thread* thread) {
   }
 
   // C++ pointers.
-  isolate->VisitObjectPointers(&pointer_visitor, true);
+  isolate->VisitObjectPointers(&pointer_visitor,
+                               ValidationPolicy::kValidateFrames);
 #ifndef PRODUCT
   if (FLAG_support_service) {
     ObjectIdRing* ring = isolate->object_id_ring();

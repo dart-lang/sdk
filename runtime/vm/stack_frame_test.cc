@@ -18,7 +18,7 @@ namespace dart {
 
 // Unit test for empty stack frame iteration.
 ISOLATE_UNIT_TEST_CASE(EmptyStackFrameIteration) {
-  StackFrameIterator iterator(StackFrameIterator::kValidateFrames,
+  StackFrameIterator iterator(ValidationPolicy::kValidateFrames,
                               Thread::Current(),
                               StackFrameIterator::kNoCrossThreadIteration);
   EXPECT(!iterator.HasNextFrame());
@@ -50,7 +50,7 @@ void FUNCTION_NAME(StackFrame_equals)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(StackFrame_frameCount)(Dart_NativeArguments args) {
   int count = 0;
-  StackFrameIterator frames(StackFrameIterator::kValidateFrames,
+  StackFrameIterator frames(ValidationPolicy::kValidateFrames,
                             Thread::Current(),
                             StackFrameIterator::kNoCrossThreadIteration);
   while (frames.NextFrame() != NULL) {

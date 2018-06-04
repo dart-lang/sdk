@@ -15,6 +15,7 @@
 #include "vm/os_thread.h"
 #include "vm/runtime_entry_list.h"
 #include "vm/store_buffer.h"
+
 namespace dart {
 
 class AbstractType;
@@ -166,6 +167,11 @@ class Zone;
 #define CACHED_CONSTANTS_LIST(V)                                               \
   CACHED_VM_OBJECTS_LIST(V)                                                    \
   CACHED_ADDRESSES_LIST(V)
+
+enum class ValidationPolicy {
+  kValidateFrames = 0,
+  kDontValidateFrames = 1,
+};
 
 // A VM thread; may be executing Dart code or performing helper tasks like
 // garbage collection or compilation. The Thread structure associated with
@@ -735,7 +741,8 @@ class Thread : public BaseThread {
   Thread* next() const { return next_; }
 
   // Visit all object pointers.
-  void VisitObjectPointers(ObjectPointerVisitor* visitor, bool validate_frames);
+  void VisitObjectPointers(ObjectPointerVisitor* visitor,
+                           ValidationPolicy validate_frames);
 
   bool IsValidHandle(Dart_Handle object) const;
   bool IsValidLocalHandle(Dart_Handle object) const;

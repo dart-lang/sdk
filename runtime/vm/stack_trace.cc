@@ -13,7 +13,7 @@ intptr_t StackTraceUtils::CountFrames(Thread* thread,
                                       const Function& async_function) {
   Zone* zone = thread->zone();
   intptr_t frame_count = 0;
-  StackFrameIterator frames(StackFrameIterator::kDontValidateFrames, thread,
+  StackFrameIterator frames(ValidationPolicy::kDontValidateFrames, thread,
                             StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = frames.NextFrame();
   ASSERT(frame != NULL);  // We expect to find a dart invocation frame.
@@ -48,7 +48,7 @@ intptr_t StackTraceUtils::CollectFrames(Thread* thread,
                                         intptr_t count,
                                         int skip_frames) {
   Zone* zone = thread->zone();
-  StackFrameIterator frames(StackFrameIterator::kDontValidateFrames, thread,
+  StackFrameIterator frames(ValidationPolicy::kDontValidateFrames, thread,
                             StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = frames.NextFrame();
   ASSERT(frame != NULL);  // We expect to find a dart invocation frame.
