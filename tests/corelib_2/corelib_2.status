@@ -34,7 +34,6 @@ bigint_from_test: RuntimeError # Issue 32589
 bool_from_environment2_test/03: Crash
 int_modulo_arith_test/modPow: RuntimeError
 int_modulo_arith_test/none: RuntimeError
-null_test: RuntimeError # Issue 32194
 string_from_environment3_test/03: Crash
 
 [ $compiler == precompiler ]

@@ -472,7 +472,7 @@ ConstantPool {
   [9] = ICData target-name 'call', arg-desc CP#8
 }
 ]  static get platformScript() → dynamic {
-    if(self::VMLibraryHooks::_cachedScript.==(null) && !self::VMLibraryHooks::_computeScriptUri.==(null)) {
+    if(self::VMLibraryHooks::_cachedScript.{core::Object::==}(null) && !self::VMLibraryHooks::_computeScriptUri.{core::Object::==}(null)) {
       self::VMLibraryHooks::_cachedScript = self::VMLibraryHooks::_computeScriptUri.call();
     }
     return self::VMLibraryHooks::_cachedScript;
@@ -533,7 +533,7 @@ ConstantPool {
   [3] = Null
 }
 ]static method _print(dynamic arg) → void {
-  self::_printString(arg.toString());
+  self::_printString(arg.{core::Object::toString}());
 }
 [@vm.bytecode=
 Bytecode {

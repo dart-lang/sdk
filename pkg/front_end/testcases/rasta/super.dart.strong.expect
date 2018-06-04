@@ -215,30 +215,30 @@ Try correcting the name to the name of an existing method, or defining a method 
     self::use(super.m = 42);
     super.{self::A::n} = 42;
     self::use(super.{self::A::n} = 42);
-    super.{self::A::a}.==(null) ?{dynamic} super.{self::A::a} = 42 : null;
-    self::use(let final dynamic #t46 = super.{self::A::a} in #t46.==(null) ?{dynamic} super.{self::A::a} = 42 : #t46);
-    super.{self::B::b}.==(null) ?{dynamic} super.{self::A::b} = 42 : null;
-    self::use(let final dynamic #t47 = super.{self::B::b} in #t47.==(null) ?{dynamic} super.{self::A::b} = 42 : #t47);
-    super.{self::A::c}.==(null) ?{dynamic} super.{self::B::c} = 42 : null;
-    self::use(let final dynamic #t48 = super.{self::A::c} in #t48.==(null) ?{dynamic} super.{self::B::c} = 42 : #t48);
-    super.{self::B::d}.==(null) ?{dynamic} super.{self::A::d} = 42 : null;
-    self::use(let final dynamic #t49 = super.{self::B::d} in #t49.==(null) ?{dynamic} super.{self::A::d} = 42 : #t49);
-    super.{self::A::e}.==(null) ?{dynamic} super.e = 42 : null;
-    self::use(let final dynamic #t50 = super.{self::A::e} in #t50.==(null) ?{dynamic} super.e = 42 : #t50);
-    super.{self::A::f}.==(null) ?{dynamic} super.f = 42 : null;
-    self::use(let final dynamic #t51 = super.{self::A::f} in #t51.==(null) ?{dynamic} super.f = 42 : #t51);
-    super.g.==(null) ?{dynamic} super.{self::A::g} = 42 : null;
-    self::use(let final dynamic #t52 = super.g in #t52.==(null) ?{dynamic} super.{self::A::g} = 42 : #t52);
-    super.{self::A::h}.==(null) ?{dynamic} super.{self::A::h} = 42 : null;
-    self::use(let final dynamic #t53 = super.{self::A::h} in #t53.==(null) ?{dynamic} super.{self::A::h} = 42 : #t53);
-    super.{self::A::i}.==(null) ?{dynamic} super.{self::B::i} = 42 : null;
-    self::use(let final dynamic #t54 = super.{self::A::i} in #t54.==(null) ?{dynamic} super.{self::B::i} = 42 : #t54);
-    let final core::int #t55 = 87 in super.{self::A::[]}(#t55).==(null) ?{dynamic} let final core::int #t56 = 42 in let final void #t57 = super.{self::A::[]=}(#t55, #t56) in #t56 : null;
-    self::use(let final core::int #t58 = 87 in let final dynamic #t59 = super.{self::A::[]}(#t58) in #t59.==(null) ?{dynamic} let final core::int #t60 = 42 in let final void #t61 = super.{self::A::[]=}(#t58, #t60) in #t60 : #t59);
-    super.{self::A::m}.==(null) ?{core::Object} super.m = 42 : null;
-    self::use(let final () → void #t62 = super.{self::A::m} in #t62.==(null) ?{core::Object} super.m = 42 : #t62);
-    super.{self::A::n}.==(null) ?{core::Object} super.{self::A::n} = 42 : null;
-    self::use(let final () → void #t63 = super.{self::A::n} in #t63.==(null) ?{core::Object} super.{self::A::n} = 42 : #t63);
+    super.{self::A::a}.{core::Object::==}(null) ?{dynamic} super.{self::A::a} = 42 : null;
+    self::use(let final dynamic #t46 = super.{self::A::a} in #t46.{core::Object::==}(null) ?{dynamic} super.{self::A::a} = 42 : #t46);
+    super.{self::B::b}.{core::Object::==}(null) ?{dynamic} super.{self::A::b} = 42 : null;
+    self::use(let final dynamic #t47 = super.{self::B::b} in #t47.{core::Object::==}(null) ?{dynamic} super.{self::A::b} = 42 : #t47);
+    super.{self::A::c}.{core::Object::==}(null) ?{dynamic} super.{self::B::c} = 42 : null;
+    self::use(let final dynamic #t48 = super.{self::A::c} in #t48.{core::Object::==}(null) ?{dynamic} super.{self::B::c} = 42 : #t48);
+    super.{self::B::d}.{core::Object::==}(null) ?{dynamic} super.{self::A::d} = 42 : null;
+    self::use(let final dynamic #t49 = super.{self::B::d} in #t49.{core::Object::==}(null) ?{dynamic} super.{self::A::d} = 42 : #t49);
+    super.{self::A::e}.{core::Object::==}(null) ?{dynamic} super.e = 42 : null;
+    self::use(let final dynamic #t50 = super.{self::A::e} in #t50.{core::Object::==}(null) ?{dynamic} super.e = 42 : #t50);
+    super.{self::A::f}.{core::Object::==}(null) ?{dynamic} super.f = 42 : null;
+    self::use(let final dynamic #t51 = super.{self::A::f} in #t51.{core::Object::==}(null) ?{dynamic} super.f = 42 : #t51);
+    super.g.{core::Object::==}(null) ?{dynamic} super.{self::A::g} = 42 : null;
+    self::use(let final dynamic #t52 = super.g in #t52.{core::Object::==}(null) ?{dynamic} super.{self::A::g} = 42 : #t52);
+    super.{self::A::h}.{core::Object::==}(null) ?{dynamic} super.{self::A::h} = 42 : null;
+    self::use(let final dynamic #t53 = super.{self::A::h} in #t53.{core::Object::==}(null) ?{dynamic} super.{self::A::h} = 42 : #t53);
+    super.{self::A::i}.{core::Object::==}(null) ?{dynamic} super.{self::B::i} = 42 : null;
+    self::use(let final dynamic #t54 = super.{self::A::i} in #t54.{core::Object::==}(null) ?{dynamic} super.{self::B::i} = 42 : #t54);
+    let final core::int #t55 = 87 in super.{self::A::[]}(#t55).{core::Object::==}(null) ?{dynamic} let final core::int #t56 = 42 in let final void #t57 = super.{self::A::[]=}(#t55, #t56) in #t56 : null;
+    self::use(let final core::int #t58 = 87 in let final dynamic #t59 = super.{self::A::[]}(#t58) in #t59.{core::Object::==}(null) ?{dynamic} let final core::int #t60 = 42 in let final void #t61 = super.{self::A::[]=}(#t58, #t60) in #t60 : #t59);
+    super.{self::A::m}.{core::Object::==}(null) ?{core::Object} super.m = 42 : null;
+    self::use(let final () → void #t62 = super.{self::A::m} in #t62.{core::Object::==}(null) ?{core::Object} super.m = 42 : #t62);
+    super.{self::A::n}.{core::Object::==}(null) ?{core::Object} super.{self::A::n} = 42 : null;
+    self::use(let final () → void #t63 = super.{self::A::n} in #t63.{core::Object::==}(null) ?{core::Object} super.{self::A::n} = 42 : #t63);
     super.{self::A::a} = super.{self::A::a}.+(42);
     self::use(super.{self::A::a} = super.{self::A::a}.+(42));
     super.{self::A::b} = super.{self::B::b}.+(42);
@@ -433,7 +433,7 @@ Try removing '+'.
     use(super.n(87));
               ^"]/* from null */;
 static method use(dynamic x) → dynamic {
-  if(x.==(new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}))
+  if(x.{core::Object::==}(new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}))
     throw "Shouldn't happen";
 }
 static method main() → dynamic {

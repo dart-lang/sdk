@@ -290,7 +290,6 @@ void_type_usage_test/paren_void_init: MissingCompileTimeError
 [ $compiler == dartdevk ]
 additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
-assert_with_message_test: RuntimeError # Issue 33293
 async_or_generator_return_type_stacktrace_test/01: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
@@ -299,11 +298,9 @@ async_return_types_test/wrongReturnType: MissingCompileTimeError
 bad_override_test/01: MissingCompileTimeError
 bad_override_test/02: MissingCompileTimeError
 bad_override_test/03: MissingCompileTimeError
-built_in_identifier_type_annotation_test/dynamic: RuntimeError # Issue 32194
 built_in_identifier_type_annotation_test/dynamic-funarg: RuntimeError # Issue 32194
 built_in_identifier_type_annotation_test/dynamic-funret: RuntimeError # Issue 32194
 built_in_identifier_type_annotation_test/dynamic-list: RuntimeError # Issue 32194
-built_in_identifier_type_annotation_test/none: RuntimeError # Issue 32194
 call_method_as_cast_test/06: RuntimeError # Kernel allows classes to subtype `Function` so DDK elides the explicit cast.
 call_method_implicit_tear_off_implements_function_test/05: RuntimeError # Kernel is missing the implicit `call` tearoff for assignment `Function`
 call_method_implicit_tear_off_implements_function_test/06: RuntimeError # Kernel is missing the implicit `call` tearoff for assignment `Function`
@@ -311,7 +308,6 @@ call_method_must_not_be_field_test/06: RuntimeError # Kernel does not distinguis
 call_method_must_not_be_getter_test/06: RuntimeError # Kernel does not distinguish `d()` from `d.call()`
 call_non_method_field_test/01: MissingCompileTimeError
 call_non_method_field_test/02: MissingCompileTimeError
-cast_test/none: RuntimeError # Issue 32194
 check_member_static_test/01: MissingCompileTimeError
 check_member_static_test/02: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
@@ -343,7 +339,6 @@ const_switch2_test/01: MissingCompileTimeError
 const_syntax_test/05: MissingCompileTimeError
 const_types_test/34: MissingCompileTimeError
 const_types_test/39: MissingCompileTimeError
-constant_string_interpolation2_test: RuntimeError # Issue 32194
 constants_test/05: MissingCompileTimeError
 constructor_redirect1_negative_test/01: MissingCompileTimeError
 constructor_redirect2_negative_test: MissingCompileTimeError
@@ -525,11 +520,7 @@ multiline_newline_test/06r: MissingCompileTimeError
 named_constructor_test/01: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
 no_such_method_mock_test: RuntimeError # Issue 31426 - Kernel does not introduce nSM for implemented fields.
-null2_test: RuntimeError # Issue 32194
-null_method_test: RuntimeError # Issue 32194
 null_no_such_method_test: CompileTimeError # Issue 31533
-null_test/none: RuntimeError # Issue 32194
-null_to_string_test: RuntimeError # Issue 32194
 override_field_test/01: MissingCompileTimeError
 override_field_test/02: MissingCompileTimeError
 override_inheritance_field_test/04: CompileTimeError # Issue 31616
@@ -565,7 +556,6 @@ setter_override_test/01: MissingCompileTimeError
 setter_override_test/02: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
 string_interpolate_test: CompileTimeError # Issue 31533
-string_optimizations_test: RuntimeError # Issue 32194
 string_split_test: CompileTimeError # Issue 31616
 string_supertype_checked_test: CompileTimeError # Issue 31616
 super_bound_closure_test/none: CompileTimeError # Issue 31533
@@ -584,7 +574,6 @@ switch_case_test/00: MissingCompileTimeError
 switch_case_test/01: MissingCompileTimeError
 switch_case_test/02: MissingCompileTimeError
 syncstar_yield_test/copyParameters: RuntimeError # Expect.equals(expected: <2>, actual: <3>) fails.
-tearoff_dynamic_test: RuntimeError # Issue 32194
 try_catch_test/01: MissingCompileTimeError
 type_alias_equality_test/02: RuntimeError # Issue 32785
 type_literal_test: RuntimeError # Expect.equals(expected: <Func>, actual: <(bool) => int>) fails.

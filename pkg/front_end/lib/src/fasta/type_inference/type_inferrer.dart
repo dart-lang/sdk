@@ -633,6 +633,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
             return null;
           }
         }
+        if (instrumentation != null && !silent) {
+          instrumentation.record(uri, methodInvocation.fileOffset, 'target',
+              new InstrumentationValueForMember(interfaceMember));
+        }
+        methodInvocation.interfaceTarget = interfaceMember;
       } else if (strongMode && interfaceMember is Member) {
         methodInvocation.interfaceTarget = interfaceMember;
       }
@@ -665,9 +670,13 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           expression: propertyGet,
           receiver: propertyGet.receiver,
           silent: silent);
-      if (strongMode &&
-          receiverType != const DynamicType() &&
-          interfaceMember is Member) {
+      if (strongMode && interfaceMember is Member) {
+        if (instrumentation != null &&
+            !silent &&
+            receiverType == const DynamicType()) {
+          instrumentation.record(uri, propertyGet.fileOffset, 'target',
+              new InstrumentationValueForMember(interfaceMember));
+        }
         propertyGet.interfaceTarget = interfaceMember;
       }
       return interfaceMember;
@@ -698,9 +707,13 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           receiver: propertySet.receiver,
           setter: true,
           silent: silent);
-      if (strongMode &&
-          receiverType != const DynamicType() &&
-          interfaceMember is Member) {
+      if (strongMode && interfaceMember is Member) {
+        if (instrumentation != null &&
+            !silent &&
+            receiverType == const DynamicType()) {
+          instrumentation.record(uri, propertySet.fileOffset, 'target',
+              new InstrumentationValueForMember(interfaceMember));
+        }
         propertySet.interfaceTarget = interfaceMember;
       }
       return interfaceMember;
@@ -1379,9 +1392,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           errorTemplate: templateUndefinedGetter,
           expression: expression,
           receiver: receiver);
-      if (strongMode &&
-          receiverType != const DynamicType() &&
-          interfaceMember is Member) {
+      if (strongMode && interfaceMember is Member) {
+        if (instrumentation != null && receiverType == const DynamicType()) {
+          instrumentation.record(uri, desugaredGet.fileOffset, 'target',
+              new InstrumentationValueForMember(interfaceMember));
+        }
         desugaredGet.interfaceTarget = interfaceMember;
       }
     }

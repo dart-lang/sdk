@@ -36,10 +36,10 @@ static method main() → dynamic {
   self::Named named = new self::Named::•();
   named.{self::M::m} = 42;
   named.{self::N::superM} = 87;
-  if(!named.{self::M::m}.==(42)) {
+  if(!named.{self::M::m}.{core::Object::==}(42)) {
     throw "Bad mixin translation of set:superM";
   }
-  if(!named.{self::N::superM}.==(87)) {
+  if(!named.{self::N::superM}.{core::Object::==}(87)) {
     throw "Bad mixin translation of get:superM";
   }
 }
