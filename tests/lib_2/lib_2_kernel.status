@@ -11,14 +11,12 @@
 # to add them.
 
 [ $compiler == app_jitk ]
-async/async_await_sync_completer_test: RuntimeError
 async/future_test/01: RuntimeError
 async/future_test/none: RuntimeError
 async/slow_consumer2_test: RuntimeError
 async/stream_controller_async_test: RuntimeError
 async/stream_distinct_test: RuntimeError
 async/stream_join_test: RuntimeError
-async/stream_subscription_as_future_test: RuntimeError
 async/timer_not_available_test: RuntimeError
 isolate/issue_21398_parent_isolate1_test: RuntimeError
 isolate/issue_22778_test: Crash
@@ -26,7 +24,7 @@ isolate/kill_self_synchronously_test: RuntimeError
 isolate/message_test: RuntimeError
 isolate/mint_maker_test: RuntimeError
 isolate/ping_pause_test: Skip # Timeout
-isolate/static_function_test: RuntimeError
+isolate/spawn_function_custom_class_test: Skip # Timeout
 
 [ $compiler == fasta ]
 html/*: Skip # TODO(ahe): Make dart:html available.
@@ -276,14 +274,12 @@ isolate/static_function_test: Skip # Flaky (https://github.com/dart-lang/sdk/iss
 
 # ===== dartkp + dart_precompiled status lines =====
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
-async/async_await_sync_completer_test: RuntimeError
 async/future_test/01: RuntimeError
 async/future_test/none: RuntimeError
 async/slow_consumer2_test: RuntimeError # Issue 31402 (Invocation arguments)
 async/stream_controller_async_test: RuntimeError
 async/stream_distinct_test: RuntimeError
 async/stream_join_test: RuntimeError
-async/stream_subscription_as_future_test: RuntimeError
 async/timer_not_available_test: RuntimeError
 html/*: SkipByDesign # dart:html not supported on VM.
 isolate/compile_time_error_test/01: Crash
