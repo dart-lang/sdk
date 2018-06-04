@@ -5,7 +5,7 @@
 import '../common.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../types/masks.dart';
+import '../types/abstract_value_domain.dart';
 import '../universe/selector.dart';
 import '../world.dart';
 import 'type_graph_nodes.dart';
@@ -14,11 +14,14 @@ import 'type_graph_nodes.dart';
 /// information for nodes.
 abstract class TypeSystemStrategy<T> {
   /// Creates [MemberTypeInformation] for [member].
-  MemberTypeInformation createMemberTypeInformation(MemberEntity member);
+  MemberTypeInformation createMemberTypeInformation(
+      AbstractValueDomain abstractValueDomain, MemberEntity member);
 
   /// Creates [ParameterTypeInformation] for [parameter].
   ParameterTypeInformation createParameterTypeInformation(
-      Local parameter, TypeSystem<T> types);
+      AbstractValueDomain abstractValueDomain,
+      Local parameter,
+      TypeSystem<T> types);
 
   /// Calls [f] for each parameter in [function].
   void forEachParameter(FunctionEntity function, void f(Local parameter));
@@ -43,7 +46,7 @@ abstract class TypeSystemStrategy<T> {
  * The class [SimpleInferrerVisitor] will use when working on types.
  */
 class TypeSystem<T> {
-  final ClosedWorld closedWorld;
+  final JClosedWorld _closedWorld;
   final TypeSystemStrategy<T> strategy;
 
   /// [parameterTypeInformations] and [memberTypeInformations] ordered by
@@ -68,8 +71,8 @@ class TypeSystem<T> {
   final Set<TypeInformation> allocatedClosures = new Set<TypeInformation>();
 
   /// Cache of [ConcreteTypeInformation].
-  final Map<TypeMask, TypeInformation> concreteTypes =
-      new Map<TypeMask, TypeInformation>();
+  final Map<AbstractValue, TypeInformation> concreteTypes =
+      new Map<AbstractValue, TypeInformation>();
 
   /// List of [TypeInformation]s for calls inside method bodies.
   final List<CallSiteTypeInformation> allocatedCalls =
@@ -95,11 +98,12 @@ class TypeSystem<T> {
         allocatedTypes
       ].expand((x) => x);
 
-  TypeSystem(this.closedWorld, this.strategy) {
-    nonNullEmptyType = getConcreteTypeFor(commonMasks.emptyType);
+  TypeSystem(this._closedWorld, this.strategy) {
+    nonNullEmptyType = getConcreteTypeFor(_abstractValueDomain.emptyType);
   }
 
-  CommonMasks get commonMasks => closedWorld.abstractValueDomain;
+  AbstractValueDomain get _abstractValueDomain =>
+      _closedWorld.abstractValueDomain;
 
   /// Used to group [TypeInformation] nodes by the element that triggered their
   /// creation.
@@ -117,111 +121,120 @@ class TypeSystem<T> {
   TypeInformation nullTypeCache;
   TypeInformation get nullType {
     if (nullTypeCache != null) return nullTypeCache;
-    return nullTypeCache = getConcreteTypeFor(commonMasks.nullType);
+    return nullTypeCache = getConcreteTypeFor(_abstractValueDomain.nullType);
   }
 
   TypeInformation intTypeCache;
   TypeInformation get intType {
     if (intTypeCache != null) return intTypeCache;
-    return intTypeCache = getConcreteTypeFor(commonMasks.intType);
+    return intTypeCache = getConcreteTypeFor(_abstractValueDomain.intType);
   }
 
   TypeInformation uint32TypeCache;
   TypeInformation get uint32Type {
     if (uint32TypeCache != null) return uint32TypeCache;
-    return uint32TypeCache = getConcreteTypeFor(commonMasks.uint32Type);
+    return uint32TypeCache =
+        getConcreteTypeFor(_abstractValueDomain.uint32Type);
   }
 
   TypeInformation uint31TypeCache;
   TypeInformation get uint31Type {
     if (uint31TypeCache != null) return uint31TypeCache;
-    return uint31TypeCache = getConcreteTypeFor(commonMasks.uint31Type);
+    return uint31TypeCache =
+        getConcreteTypeFor(_abstractValueDomain.uint31Type);
   }
 
   TypeInformation positiveIntTypeCache;
   TypeInformation get positiveIntType {
     if (positiveIntTypeCache != null) return positiveIntTypeCache;
     return positiveIntTypeCache =
-        getConcreteTypeFor(commonMasks.positiveIntType);
+        getConcreteTypeFor(_abstractValueDomain.positiveIntType);
   }
 
   TypeInformation doubleTypeCache;
   TypeInformation get doubleType {
     if (doubleTypeCache != null) return doubleTypeCache;
-    return doubleTypeCache = getConcreteTypeFor(commonMasks.doubleType);
+    return doubleTypeCache =
+        getConcreteTypeFor(_abstractValueDomain.doubleType);
   }
 
   TypeInformation numTypeCache;
   TypeInformation get numType {
     if (numTypeCache != null) return numTypeCache;
-    return numTypeCache = getConcreteTypeFor(commonMasks.numType);
+    return numTypeCache = getConcreteTypeFor(_abstractValueDomain.numType);
   }
 
   TypeInformation boolTypeCache;
   TypeInformation get boolType {
     if (boolTypeCache != null) return boolTypeCache;
-    return boolTypeCache = getConcreteTypeFor(commonMasks.boolType);
+    return boolTypeCache = getConcreteTypeFor(_abstractValueDomain.boolType);
   }
 
   TypeInformation functionTypeCache;
   TypeInformation get functionType {
     if (functionTypeCache != null) return functionTypeCache;
-    return functionTypeCache = getConcreteTypeFor(commonMasks.functionType);
+    return functionTypeCache =
+        getConcreteTypeFor(_abstractValueDomain.functionType);
   }
 
   TypeInformation listTypeCache;
   TypeInformation get listType {
     if (listTypeCache != null) return listTypeCache;
-    return listTypeCache = getConcreteTypeFor(commonMasks.listType);
+    return listTypeCache = getConcreteTypeFor(_abstractValueDomain.listType);
   }
 
   TypeInformation constListTypeCache;
   TypeInformation get constListType {
     if (constListTypeCache != null) return constListTypeCache;
-    return constListTypeCache = getConcreteTypeFor(commonMasks.constListType);
+    return constListTypeCache =
+        getConcreteTypeFor(_abstractValueDomain.constListType);
   }
 
   TypeInformation fixedListTypeCache;
   TypeInformation get fixedListType {
     if (fixedListTypeCache != null) return fixedListTypeCache;
-    return fixedListTypeCache = getConcreteTypeFor(commonMasks.fixedListType);
+    return fixedListTypeCache =
+        getConcreteTypeFor(_abstractValueDomain.fixedListType);
   }
 
   TypeInformation growableListTypeCache;
   TypeInformation get growableListType {
     if (growableListTypeCache != null) return growableListTypeCache;
     return growableListTypeCache =
-        getConcreteTypeFor(commonMasks.growableListType);
+        getConcreteTypeFor(_abstractValueDomain.growableListType);
   }
 
   TypeInformation mapTypeCache;
   TypeInformation get mapType {
     if (mapTypeCache != null) return mapTypeCache;
-    return mapTypeCache = getConcreteTypeFor(commonMasks.mapType);
+    return mapTypeCache = getConcreteTypeFor(_abstractValueDomain.mapType);
   }
 
   TypeInformation constMapTypeCache;
   TypeInformation get constMapType {
     if (constMapTypeCache != null) return constMapTypeCache;
-    return constMapTypeCache = getConcreteTypeFor(commonMasks.constMapType);
+    return constMapTypeCache =
+        getConcreteTypeFor(_abstractValueDomain.constMapType);
   }
 
   TypeInformation stringTypeCache;
   TypeInformation get stringType {
     if (stringTypeCache != null) return stringTypeCache;
-    return stringTypeCache = getConcreteTypeFor(commonMasks.stringType);
+    return stringTypeCache =
+        getConcreteTypeFor(_abstractValueDomain.stringType);
   }
 
   TypeInformation typeTypeCache;
   TypeInformation get typeType {
     if (typeTypeCache != null) return typeTypeCache;
-    return typeTypeCache = getConcreteTypeFor(commonMasks.typeType);
+    return typeTypeCache = getConcreteTypeFor(_abstractValueDomain.typeType);
   }
 
   TypeInformation dynamicTypeCache;
   TypeInformation get dynamicType {
     if (dynamicTypeCache != null) return dynamicTypeCache;
-    return dynamicTypeCache = getConcreteTypeFor(commonMasks.dynamicType);
+    return dynamicTypeCache =
+        getConcreteTypeFor(_abstractValueDomain.dynamicType);
   }
 
   TypeInformation asyncFutureTypeCache;
@@ -229,31 +242,33 @@ class TypeSystem<T> {
   TypeInformation get asyncFutureType {
     if (asyncFutureTypeCache != null) return asyncFutureTypeCache;
     return asyncFutureTypeCache =
-        getConcreteTypeFor(commonMasks.asyncFutureType);
+        getConcreteTypeFor(_abstractValueDomain.asyncFutureType);
   }
 
   TypeInformation syncStarIterableTypeCache;
   TypeInformation get syncStarIterableType {
     if (syncStarIterableTypeCache != null) return syncStarIterableTypeCache;
     return syncStarIterableTypeCache =
-        getConcreteTypeFor(commonMasks.syncStarIterableType);
+        getConcreteTypeFor(_abstractValueDomain.syncStarIterableType);
   }
 
   TypeInformation asyncStarStreamTypeCache;
   TypeInformation get asyncStarStreamType {
     if (asyncStarStreamTypeCache != null) return asyncStarStreamTypeCache;
     return asyncStarStreamTypeCache =
-        getConcreteTypeFor(commonMasks.asyncStarStreamType);
+        getConcreteTypeFor(_abstractValueDomain.asyncStarStreamType);
   }
 
   TypeInformation nonNullEmptyType;
 
   TypeInformation stringLiteralType(String value) {
-    return new StringLiteralTypeInformation(value, commonMasks.stringType);
+    return new StringLiteralTypeInformation(
+        _abstractValueDomain, value, _abstractValueDomain.stringType);
   }
 
   TypeInformation boolLiteralType(bool value) {
-    return new BoolLiteralTypeInformation(value, commonMasks.boolType);
+    return new BoolLiteralTypeInformation(
+        _abstractValueDomain, value, _abstractValueDomain.boolType);
   }
 
   /**
@@ -270,14 +285,14 @@ class TypeSystem<T> {
       return dynamicType;
     }
     return getConcreteTypeFor(
-        firstType.type.union(secondType.type, closedWorld));
+        _abstractValueDomain.union(firstType.type, secondType.type));
   }
 
   /**
    * Returns `true` if `selector` should be updated to reflect the new
    * `receiverType`.
    */
-  bool selectorNeedsUpdate(TypeInformation info, TypeMask mask) {
+  bool selectorNeedsUpdate(TypeInformation info, AbstractValue mask) {
     return info.type != mask;
   }
 
@@ -290,24 +305,25 @@ class TypeSystem<T> {
    * be null.
    */
   TypeInformation refineReceiver(
-      Selector selector, TypeMask mask, TypeInformation receiver,
+      Selector selector, AbstractValue mask, TypeInformation receiver,
       {bool isConditional}) {
-    if (receiver.type.isExact) return receiver;
-    TypeMask otherType = closedWorld.computeReceiverType(selector, mask);
+    if (_abstractValueDomain.isExact(receiver.type)) return receiver;
+    AbstractValue otherType = _closedWorld.computeReceiverType(selector, mask);
     // Conditional sends (a?.b) can still narrow the possible types of `a`,
     // however, we still need to consider that `a` may be null.
     if (isConditional) {
       // Note: we don't check that receiver.type.isNullable here because this is
       // called during the graph construction.
-      otherType = otherType.nullable();
+      otherType = _abstractValueDomain.includeNull(otherType);
     }
     // If this is refining to nullable subtype of `Object` just return
     // the receiver. We know the narrowing is useless.
-    if (otherType.isNullable && otherType.containsAll(closedWorld)) {
+    if (_abstractValueDomain.canBeNull(otherType) &&
+        _abstractValueDomain.containsAll(otherType)) {
       return receiver;
     }
-    assert(TypeMask.assertIsNormalized(otherType, closedWorld));
-    TypeInformation newType = new NarrowTypeInformation(receiver, otherType);
+    TypeInformation newType =
+        new NarrowTypeInformation(_abstractValueDomain, receiver, otherType);
     allocatedTypes.add(newType);
     return newType;
   }
@@ -321,16 +337,17 @@ class TypeSystem<T> {
       {bool isNullable: true}) {
     if (annotation.treatAsDynamic) return type;
     if (annotation.isVoid) return type;
-    TypeMask otherType;
+    AbstractValue otherType;
     if (annotation.isInterfaceType) {
       InterfaceType interface = annotation;
-      if (interface.element == closedWorld.commonElements.objectClass) {
+      if (interface.element == _closedWorld.commonElements.objectClass) {
         if (isNullable) {
           return type;
         }
-        otherType = dynamicType.type.nonNullable();
+        otherType = _abstractValueDomain.excludeNull(dynamicType.type);
       } else {
-        otherType = new TypeMask.nonNullSubtype(interface.element, closedWorld);
+        otherType =
+            _abstractValueDomain.createNonNullSubtype(interface.element);
       }
     } else if (annotation.isTypedef || annotation.isFunctionType) {
       otherType = functionType.type;
@@ -342,12 +359,14 @@ class TypeSystem<T> {
       // TODO(ngeoffray): Narrow to bound.
       return type;
     }
-    if (isNullable) otherType = otherType.nullable();
-    if (type.type.isExact) {
+    if (isNullable) {
+      otherType = _abstractValueDomain.includeNull(otherType);
+    }
+    if (_abstractValueDomain.isExact(type.type)) {
       return type;
     } else {
-      assert(TypeMask.assertIsNormalized(otherType, closedWorld));
-      TypeInformation newType = new NarrowTypeInformation(type, otherType);
+      TypeInformation newType =
+          new NarrowTypeInformation(_abstractValueDomain, type, otherType);
       allocatedTypes.add(newType);
       return newType;
     }
@@ -357,11 +376,11 @@ class TypeSystem<T> {
    * Returns the non-nullable type of [type].
    */
   TypeInformation narrowNotNull(TypeInformation type) {
-    if (type.type.isExact && !type.type.isNullable) {
+    if (_abstractValueDomain.isExact(type.type)) {
       return type;
     }
-    TypeInformation newType =
-        new NarrowTypeInformation(type, dynamicType.type.nonNullable());
+    TypeInformation newType = new NarrowTypeInformation(_abstractValueDomain,
+        type, _abstractValueDomain.excludeNull(dynamicType.type));
     allocatedTypes.add(newType);
     return newType;
   }
@@ -369,7 +388,8 @@ class TypeSystem<T> {
   ParameterTypeInformation getInferredTypeOfParameter(Local parameter) {
     return parameterTypeInformations.putIfAbsent(parameter, () {
       ParameterTypeInformation typeInformation =
-          strategy.createParameterTypeInformation(parameter, this);
+          strategy.createParameterTypeInformation(
+              _abstractValueDomain, parameter, this);
       _orderedTypeInformations.add(typeInformation);
       return typeInformation;
     });
@@ -380,7 +400,7 @@ class TypeSystem<T> {
         failedAt(member, "Unexpected abstract member $member."));
     return memberTypeInformations.putIfAbsent(member, () {
       MemberTypeInformation typeInformation =
-          strategy.createMemberTypeInformation(member);
+          strategy.createMemberTypeInformation(_abstractValueDomain, member);
       _orderedTypeInformations.add(typeInformation);
       return typeInformation;
     });
@@ -389,7 +409,7 @@ class TypeSystem<T> {
   /**
    * Returns the internal inferrer representation for [mask].
    */
-  ConcreteTypeInformation getConcreteTypeFor(TypeMask mask) {
+  ConcreteTypeInformation getConcreteTypeFor(AbstractValue mask) {
     assert(mask != null);
     return concreteTypes.putIfAbsent(mask, () {
       return new ConcreteTypeInformation(mask);
@@ -409,17 +429,17 @@ class TypeSystem<T> {
 
   TypeInformation nonNullSubtype(ClassEntity cls) {
     assert(strategy.checkClassEntity(cls));
-    return getConcreteTypeFor(new TypeMask.nonNullSubtype(cls, closedWorld));
+    return getConcreteTypeFor(_abstractValueDomain.createNonNullSubtype(cls));
   }
 
   TypeInformation nonNullSubclass(ClassEntity cls) {
     assert(strategy.checkClassEntity(cls));
-    return getConcreteTypeFor(new TypeMask.nonNullSubclass(cls, closedWorld));
+    return getConcreteTypeFor(_abstractValueDomain.createNonNullSubclass(cls));
   }
 
   TypeInformation nonNullExact(ClassEntity cls) {
     assert(strategy.checkClassEntity(cls));
-    return getConcreteTypeFor(new TypeMask.nonNullExact(cls, closedWorld));
+    return getConcreteTypeFor(_abstractValueDomain.createNonNullExact(cls));
   }
 
   TypeInformation nonNullEmpty() {
@@ -434,34 +454,37 @@ class TypeSystem<T> {
       TypeInformation type, T node, MemberEntity enclosing,
       [TypeInformation elementType, int length]) {
     assert(strategy.checkListNode(node));
-    ClassEntity typedDataClass = closedWorld.commonElements.typedDataClass;
+    ClassEntity typedDataClass = _closedWorld.commonElements.typedDataClass;
     bool isTypedArray = typedDataClass != null &&
-        closedWorld.isInstantiated(typedDataClass) &&
-        type.type.satisfies(typedDataClass, closedWorld);
-    bool isConst = (type.type == commonMasks.constListType);
-    bool isFixed =
-        (type.type == commonMasks.fixedListType) || isConst || isTypedArray;
+        _closedWorld.isInstantiated(typedDataClass) &&
+        _abstractValueDomain.isInstanceOfOrNull(type.type, typedDataClass);
+    bool isConst = (type.type == _abstractValueDomain.constListType);
+    bool isFixed = (type.type == _abstractValueDomain.fixedListType) ||
+        isConst ||
+        isTypedArray;
     bool isElementInferred = isConst || isTypedArray;
 
     int inferredLength = isFixed ? length : null;
-    TypeMask elementTypeMask =
+    AbstractValue elementTypeMask =
         isElementInferred ? elementType.type : dynamicType.type;
-    ContainerTypeMask<T> mask = new ContainerTypeMask<T>(
+    AbstractValue mask = _abstractValueDomain.createContainerValue(
         type.type, node, enclosing, elementTypeMask, inferredLength);
     ElementInContainerTypeInformation element =
-        new ElementInContainerTypeInformation(currentMember, elementType);
+        new ElementInContainerTypeInformation(
+            _abstractValueDomain, currentMember, elementType);
     element.inferred = isElementInferred;
 
     allocatedTypes.add(element);
-    return allocatedLists[node] =
-        new ListTypeInformation(currentMember, mask, element, length);
+    return allocatedLists[node] = new ListTypeInformation(
+        _abstractValueDomain, currentMember, mask, element, length);
   }
 
   /// Creates a [TypeInformation] object either for the closurization of a
   /// static or top-level method [element] used as a function constant or for
   /// the synthesized 'call' method [element] created for a local function.
   TypeInformation allocateClosure(FunctionEntity element) {
-    TypeInformation result = new ClosureTypeInformation(currentMember, element);
+    TypeInformation result = new ClosureTypeInformation(
+        _abstractValueDomain, currentMember, element);
     allocatedClosures.add(result);
     return result;
   }
@@ -471,24 +494,24 @@ class TypeSystem<T> {
       [List<TypeInformation> keyTypes, List<TypeInformation> valueTypes]) {
     assert(strategy.checkMapNode(node));
     assert(keyTypes.length == valueTypes.length);
-    bool isFixed = (type.type == commonMasks.constMapType);
+    bool isFixed = (type.type == _abstractValueDomain.constMapType);
 
-    TypeMask keyType, valueType;
+    AbstractValue keyType, valueType;
     if (isFixed) {
       keyType = keyTypes.fold(nonNullEmptyType.type,
-          (type, info) => type.union(info.type, closedWorld));
+          (type, info) => _abstractValueDomain.union(type, info.type));
       valueType = valueTypes.fold(nonNullEmptyType.type,
-          (type, info) => type.union(info.type, closedWorld));
+          (type, info) => _abstractValueDomain.union(type, info.type));
     } else {
       keyType = valueType = dynamicType.type;
     }
-    MapTypeMask mask =
-        new MapTypeMask(type.type, node, element, keyType, valueType);
+    AbstractValue mask = _abstractValueDomain.createMapValue(
+        type.type, node, element, keyType, valueType);
 
     TypeInformation keyTypeInfo =
-        new KeyInMapTypeInformation(currentMember, null);
-    TypeInformation valueTypeInfo =
-        new ValueInMapTypeInformation(currentMember, null);
+        new KeyInMapTypeInformation(_abstractValueDomain, currentMember, null);
+    TypeInformation valueTypeInfo = new ValueInMapTypeInformation(
+        _abstractValueDomain, currentMember, null);
     allocatedTypes.add(keyTypeInfo);
     allocatedTypes.add(valueTypeInfo);
 
@@ -496,8 +519,8 @@ class TypeSystem<T> {
         new MapTypeInformation(currentMember, mask, keyTypeInfo, valueTypeInfo);
 
     for (int i = 0; i < keyTypes.length; ++i) {
-      TypeInformation newType =
-          map.addEntryAssignment(keyTypes[i], valueTypes[i], true);
+      TypeInformation newType = map.addEntryAssignment(
+          _abstractValueDomain, keyTypes[i], valueTypes[i], true);
       if (newType != null) allocatedTypes.add(newType);
     }
 
@@ -509,7 +532,7 @@ class TypeSystem<T> {
     return map;
   }
 
-  TypeMask newTypedSelector(TypeInformation info, TypeMask mask) {
+  AbstractValue newTypedSelector(TypeInformation info, AbstractValue mask) {
     // Only type the selector if [info] is concrete, because the other
     // kinds of [TypeInformation] have the empty type at this point of
     // analysis.
@@ -522,7 +545,7 @@ class TypeSystem<T> {
   TypeInformation allocateDiamondPhi(
       TypeInformation firstInput, TypeInformation secondInput) {
     PhiElementTypeInformation<T> result = new PhiElementTypeInformation<T>(
-        currentMember, null, null,
+        _abstractValueDomain, currentMember, null, null,
         isTry: false);
     result.addAssignment(firstInput);
     result.addAssignment(secondInput);
@@ -533,7 +556,7 @@ class TypeSystem<T> {
   PhiElementTypeInformation<T> _addPhi(
       T node, Local variable, TypeInformation inputType, bool isTry) {
     PhiElementTypeInformation<T> result = new PhiElementTypeInformation<T>(
-        currentMember, node, variable,
+        _abstractValueDomain, currentMember, node, variable,
         isTry: isTry);
     allocatedTypes.add(result);
     result.addAssignment(inputType);
@@ -595,32 +618,33 @@ class TypeSystem<T> {
     return phiType;
   }
 
-  TypeMask computeTypeMask(Iterable<TypeInformation> assignments) {
+  AbstractValue computeTypeMask(Iterable<TypeInformation> assignments) {
     return joinTypeMasks(assignments.map((e) => e.type));
   }
 
-  TypeMask joinTypeMasks(Iterable<TypeMask> masks) {
-    var dynamicType = commonMasks.dynamicType;
+  AbstractValue joinTypeMasks(Iterable<AbstractValue> masks) {
+    var dynamicType = _abstractValueDomain.dynamicType;
     // Optimization: we are iterating over masks twice, but because `masks` is a
     // mapped iterable, we save the intermediate results to avoid computing them
     // again.
     var list = [];
-    for (TypeMask mask in masks) {
+    for (AbstractValue mask in masks) {
       // Don't do any work on computing unions if we know that after all that
       // work the result will be `dynamic`.
       // TODO(sigmund): change to `mask == dynamicType` so we can continue to
       // track the non-nullable bit.
-      if (mask.containsAll(closedWorld)) return dynamicType;
+      if (_abstractValueDomain.containsAll(mask)) return dynamicType;
       list.add(mask);
     }
 
-    TypeMask newType = null;
-    for (TypeMask mask in list) {
-      newType = newType == null ? mask : newType.union(mask, closedWorld);
+    AbstractValue newType = null;
+    for (AbstractValue mask in list) {
+      newType =
+          newType == null ? mask : _abstractValueDomain.union(newType, mask);
       // Likewise - stop early if we already reach dynamic.
-      if (newType.containsAll(closedWorld)) return dynamicType;
+      if (_abstractValueDomain.containsAll(newType)) return dynamicType;
     }
 
-    return newType ?? const TypeMask.nonNullEmpty();
+    return newType ?? _abstractValueDomain.emptyType;
   }
 }

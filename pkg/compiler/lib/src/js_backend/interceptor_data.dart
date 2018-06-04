@@ -9,9 +9,9 @@ import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
-import '../types/masks.dart' show TypeMask;
+import '../types/abstract_value_domain.dart';
 import '../universe/selector.dart';
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show JClosedWorld;
 import 'namer.dart';
 import 'native_data.dart';
 
@@ -25,7 +25,7 @@ abstract class InterceptorData {
   bool isInterceptedName(String name);
   bool isInterceptedSelector(Selector selector);
   bool isInterceptedMixinSelector(
-      Selector selector, TypeMask mask, ClosedWorld closedWorld);
+      Selector selector, AbstractValue mask, JClosedWorld closedWorld);
   Iterable<ClassEntity> get interceptedClasses;
   bool isMixedIntoInterceptedClass(ClassEntity element);
 
@@ -33,12 +33,12 @@ abstract class InterceptorData {
   ///
   /// Returns an empty set if there is no class. Do not modify the returned set.
   Set<ClassEntity> getInterceptedClassesOn(
-      String name, ClosedWorld closedWorld);
+      String name, JClosedWorld closedWorld);
 
   /// Whether the compiler can use the native `instanceof` check to test for
   /// instances of [type]. This is true for types that are not used as mixins or
   /// interfaces.
-  bool mayGenerateInstanceofCheck(DartType type, ClosedWorld closedWorld);
+  bool mayGenerateInstanceofCheck(DartType type, JClosedWorld closedWorld);
 }
 
 abstract class InterceptorDataBuilder {
@@ -117,7 +117,7 @@ class InterceptorDataImpl implements InterceptorData {
   /// into an intercepted class.  These selectors are not eligible for the
   /// 'dummy explicit receiver' optimization.
   bool isInterceptedMixinSelector(
-      Selector selector, TypeMask mask, ClosedWorld closedWorld) {
+      Selector selector, AbstractValue mask, JClosedWorld closedWorld) {
     Set<MemberEntity> elements =
         _interceptedMixinElements.putIfAbsent(selector.name, () {
       Set<MemberEntity> elements = interceptedMembers[selector.name];
@@ -132,7 +132,8 @@ class InterceptorDataImpl implements InterceptorData {
     if (elements.isEmpty) return false;
     return elements.any((element) {
       return selector.applies(element) &&
-          (mask == null || mask.canHit(element, selector, closedWorld));
+          (mask == null ||
+              closedWorld.abstractValueDomain.canHit(mask, element, selector));
     });
   }
 
@@ -152,7 +153,7 @@ class InterceptorDataImpl implements InterceptorData {
   ///
   /// Returns an empty set if there is no class. Do not modify the returned set.
   Set<ClassEntity> getInterceptedClassesOn(
-      String name, ClosedWorld closedWorld) {
+      String name, JClosedWorld closedWorld) {
     Set<MemberEntity> intercepted = interceptedMembers[name];
     if (intercepted == null) return _noClasses;
     return _interceptedClassesCache.putIfAbsent(name, () {
@@ -177,7 +178,7 @@ class InterceptorDataImpl implements InterceptorData {
   }
 
   Set<ClassEntity> nativeSubclassesOfMixin(
-      ClassEntity mixin, ClosedWorld closedWorld) {
+      ClassEntity mixin, JClosedWorld closedWorld) {
     Iterable<ClassEntity> uses = closedWorld.mixinUsesOf(mixin);
     Set<ClassEntity> result = null;
     for (ClassEntity use in uses) {
@@ -202,7 +203,7 @@ class InterceptorDataImpl implements InterceptorData {
   bool isMixedIntoInterceptedClass(ClassEntity element) =>
       classesMixedIntoInterceptedClasses.contains(element);
 
-  bool mayGenerateInstanceofCheck(DartType type, ClosedWorld closedWorld) {
+  bool mayGenerateInstanceofCheck(DartType type, JClosedWorld closedWorld) {
     // We can use an instanceof check for raw types that have no subclass that
     // is mixed-in or in an implements clause.
 
@@ -311,7 +312,7 @@ class OneShotInterceptorData {
       _specializedGetInterceptors[name];
 
   jsAst.Name registerOneShotInterceptor(
-      Selector selector, Namer namer, ClosedWorld closedWorld) {
+      Selector selector, Namer namer, JClosedWorld closedWorld) {
     Set<ClassEntity> classes =
         _interceptorData.getInterceptedClassesOn(selector.name, closedWorld);
     jsAst.Name name = namer.nameForGetOneShotInterceptor(selector, classes);

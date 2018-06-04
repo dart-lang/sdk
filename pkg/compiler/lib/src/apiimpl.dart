@@ -18,7 +18,6 @@ import 'common.dart';
 import 'compiler.dart';
 import 'diagnostics/messages.dart' show Message;
 import 'environment.dart';
-import 'io/source_file.dart';
 import 'options.dart' show CompilerOptions;
 import 'platform_configuration.dart' as platform_configuration;
 import 'resolved_uri_translator.dart';
@@ -95,9 +94,9 @@ class CompilerImpl extends Compiler {
       // and we can't depend on 'dart:io' classes.
       packages = new NonFilePackagesDirectoryPackages(options.packageRoot);
     } else if (options.packageConfig != null) {
-      Future<Binary> future =
+      Future<api.Input<List<int>>> future =
           callUserProvider(options.packageConfig, api.InputKind.binary);
-      return future.then((Binary binary) {
+      return future.then((api.Input<List<int>> binary) {
         packages =
             new MapPackages(pkgs.parse(binary.data, options.packageConfig));
       }).catchError((error) {

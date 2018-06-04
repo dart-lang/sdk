@@ -72,7 +72,7 @@ class NavNotifyElement extends HtmlElement implements Renderable {
 
   bool _filter(M.Notification notification) {
     if (!_notifyOnPause && notification is M.EventNotification) {
-      return !M.Event.isPauseEvent(notification.event);
+      return notification.event is! M.PauseEvent;
     }
     return true;
   }

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analysis_server.dart';
@@ -144,7 +145,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
       }
     }
 
-    var files = <String>[];
+    var files = new LinkedHashSet<String>();
     var declarations = <search.Declaration>[];
 
     protocol.ElementKind getElementKind(search.DeclarationKind kind) {
@@ -209,7 +210,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
     }).toList();
 
     server.sendResponse(new protocol.SearchGetElementDeclarationsResult(
-            elementDeclarations, files)
+            elementDeclarations, files.toList())
         .toResponse(request.id));
   }
 

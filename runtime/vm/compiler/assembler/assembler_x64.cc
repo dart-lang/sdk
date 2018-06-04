@@ -1307,8 +1307,8 @@ void Assembler::IncrementSmiField(const Address& dest, int64_t increment) {
 }
 
 void Assembler::Stop(const char* message, bool fixed_length_encoding) {
-  int64_t message_address = reinterpret_cast<int64_t>(message);
   if (FLAG_print_stop_message) {
+    int64_t message_address = reinterpret_cast<int64_t>(message);
     pushq(TMP);  // Preserve TMP register.
     pushq(RDI);  // Preserve RDI register.
     if (fixed_length_encoding) {
@@ -1322,14 +1322,6 @@ void Assembler::Stop(const char* message, bool fixed_length_encoding) {
     call(&StubCode::PrintStopMessage_entry()->label());
     popq(RDI);  // Restore RDI register.
     popq(TMP);  // Restore TMP register.
-  } else {
-    // Emit the lower half and the higher half of the message address as
-    // immediate operands in the test rax instructions.
-    testl(RAX, Immediate(Utils::Low32Bits(message_address)));
-    uint32_t hi = Utils::High32Bits(message_address);
-    if (hi != 0) {
-      testl(RAX, Immediate(hi));
-    }
   }
   // Emit the int3 instruction.
   int3();  // Execution can be resumed with the 'cont' command in gdb.

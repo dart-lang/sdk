@@ -394,15 +394,18 @@ void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
-  // In AOT mode, we want to prevent spilling of the function/instantiator type
-  // argument vectors, since we preserve them.  So we make this a `kNoCall`
-  // summary.  Though most other registers can be modified by the type testing
-  // stubs we are calling.  To tell the register allocator about it, we reserve
+  // When using a type testing stub, we want to prevent spilling of the
+  // function/instantiator type argument vectors, since stub preserves them. So
+  // we make this a `kNoCall` summary, even though most other registers can be
+  // modified by the stub. To tell the register allocator about it, we reserve
   // all the other registers as temporary registers.
   // TODO(http://dartbug.com/32788): Simplify this.
   const Register kInstanceReg = R0;
   const Register kInstantiatorTypeArgumentsReg = R1;
   const Register kFunctionTypeArgumentsReg = R2;
+
+  const bool using_stub =
+      FlowGraphCompiler::ShouldUseTypeTestingStubFor(opt, dst_type());
 
   const intptr_t kNonChangeableInputRegs =
       (1 << kInstanceReg) | (1 << kInstantiatorTypeArgumentsReg) |
@@ -410,15 +413,24 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
 
   const intptr_t kNumInputs = 3;
 
-  const intptr_t kNumTemps =
-      FLAG_precompiled_mode ? (Utils::CountOneBits64(kDartAvailableCpuRegs) -
-                               Utils::CountOneBits64(kNonChangeableInputRegs))
-                            : 0;
+  // We invoke a stub that can potentially clobber any CPU register
+  // but can only clobber FPU registers on the slow path when
+  // entering runtime. ARM64 ABI only guarantees that lower
+  // 64-bits of an V registers are preserved so we block all
+  // of them except for FpuTMP.
+  const intptr_t kCpuRegistersToPreserve =
+      kDartAvailableCpuRegs & ~kNonChangeableInputRegs;
+  const intptr_t kFpuRegistersToPreserve =
+      Utils::SignedNBitMask(kNumberOfFpuRegisters) & ~(1l << FpuTMP);
 
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps,
-                      FLAG_precompiled_mode ? LocationSummary::kCallCalleeSafe
-                                            : LocationSummary::kCall);
+  const intptr_t kNumTemps =
+      using_stub ? (Utils::CountOneBits64(kCpuRegistersToPreserve) +
+                    Utils::CountOneBits64(kFpuRegistersToPreserve))
+                 : 0;
+
+  LocationSummary* summary = new (zone) LocationSummary(
+      zone, kNumInputs, kNumTemps,
+      using_stub ? LocationSummary::kCallCalleeSafe : LocationSummary::kCall);
   summary->set_in(0, Location::RegisterLocation(kInstanceReg));  // Value.
   summary->set_in(1,
                   Location::RegisterLocation(
@@ -430,15 +442,22 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
   // once register allocator no longer hits assertion.
   summary->set_out(0, Location::RegisterLocation(kInstanceReg));
 
-  if (FLAG_precompiled_mode) {
+  if (using_stub) {
     // Let's reserve all registers except for the input ones.
     intptr_t next_temp = 0;
     for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
-      const bool is_allocatable = ((1 << i) & kDartAvailableCpuRegs) != 0;
-      const bool is_input = ((1 << i) & kNonChangeableInputRegs) != 0;
-      if (is_allocatable && !is_input) {
+      const bool should_preserve = ((1 << i) & kCpuRegistersToPreserve) != 0;
+      if (should_preserve) {
         summary->set_temp(next_temp++,
                           Location::RegisterLocation(static_cast<Register>(i)));
+      }
+    }
+
+    for (intptr_t i = 0; i < kNumberOfFpuRegisters; i++) {
+      const bool should_preserve = ((1l << i) & kFpuRegistersToPreserve) != 0;
+      if (should_preserve) {
+        summary->set_temp(next_temp++, Location::FpuRegisterLocation(
+                                           static_cast<FpuRegister>(i)));
       }
     }
   }

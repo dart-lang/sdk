@@ -5,14 +5,22 @@
 import 'package:analyzer/dart/ast/ast.dart' hide Identifier;
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
+import 'package:analyzer/src/fasta/analyzer_expression_generator.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:front_end/src/fasta/kernel/body_builder.dart' show LabelTarget;
 import 'package:front_end/src/fasta/kernel/forest.dart';
 import 'package:kernel/ast.dart' as kernel;
 
+/// A data holder used to conform to the [Forest] API.
+class Arguments {
+  List<TypeAnnotation> typeArguments = <TypeAnnotation>[];
+  List<Expression> positionalArguments = <Expression>[];
+  List<Expression> namedArguments = <Expression>[];
+}
+
 /// An implementation of a [Forest] that can be used to build an AST structure.
 class AstBuildingForest
-    implements Forest<Expression, Statement, Token, _Arguments> {
+    implements Forest<Expression, Statement, Token, Arguments> {
   /// The type provider used to resolve the types of literal nodes, or `null` if
   /// type resolution is not being performed.
   final TypeProvider _typeProvider;
@@ -24,9 +32,9 @@ class AstBuildingForest
   AstBuildingForest(this._typeProvider);
 
   @override
-  _Arguments arguments(List<Expression> positional, Token location,
+  Arguments arguments(List<Expression> positional, Token location,
       {covariant List types, covariant List named}) {
-    _Arguments arguments = new _Arguments();
+    Arguments arguments = new Arguments();
     if (types != null) {
       arguments.typeArguments = types.cast<TypeAnnotation>();
     }
@@ -38,22 +46,22 @@ class AstBuildingForest
   }
 
   @override
-  _Arguments argumentsEmpty(Token location) => new _Arguments();
+  Arguments argumentsEmpty(Token location) => new Arguments();
 
   @override
-  List argumentsNamed(_Arguments arguments) => arguments.namedArguments;
+  List argumentsNamed(Arguments arguments) => arguments.namedArguments;
 
   @override
-  List<Expression> argumentsPositional(_Arguments arguments) =>
+  List<Expression> argumentsPositional(Arguments arguments) =>
       arguments.positionalArguments;
 
   @override
-  void argumentsSetTypeArguments(_Arguments arguments, covariant List types) {
+  void argumentsSetTypeArguments(Arguments arguments, covariant List types) {
     arguments.typeArguments = types.cast<TypeAnnotation>();
   }
 
   @override
-  List argumentsTypeArguments(_Arguments arguments) => arguments.typeArguments;
+  List argumentsTypeArguments(Arguments arguments) => arguments.typeArguments;
 
   @override
   Expression asExpression(Expression expression, type, Token location) =>
@@ -95,10 +103,12 @@ class AstBuildingForest
   Statement breakStatement(
           Token breakKeyword, Identifier label, Token semicolon) =>
       astFactory.breakStatement(
-          breakKeyword, astFactory.simpleIdentifier(label.token), semicolon);
+          breakKeyword,
+          label == null ? null : astFactory.simpleIdentifier(label.token),
+          semicolon);
 
   @override
-  kernel.Arguments castArguments(_Arguments arguments) {
+  kernel.Arguments castArguments(Arguments arguments) {
     // TODO(brianwilkerson) Implement this or remove it from the API.
     throw new UnimplementedError();
   }
@@ -161,16 +171,18 @@ class AstBuildingForest
   Statement continueStatement(
           Token continueKeyword, Identifier label, Token semicolon) =>
       astFactory.continueStatement(
-          continueKeyword, astFactory.simpleIdentifier(label.token), semicolon);
+          continueKeyword,
+          label == null ? null : astFactory.simpleIdentifier(label.token),
+          semicolon);
 
   @override
-  Generator<Expression, Statement, _Arguments> deferredAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+  Generator<Expression, Statement, Arguments> deferredAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
       Token token,
       PrefixBuilder builder,
-      Generator<Expression, Statement, _Arguments> generator) {
-    // TODO(brianwilkerson) Implement this.
-    throw new UnimplementedError();
+      Generator<Expression, Statement, Arguments> generator) {
+    return new AnalyzerDeferredAccessGenerator(
+        helper, astFactory, token, builder, generator);
   }
 
   @override
@@ -248,6 +260,11 @@ class AstBuildingForest
       typeArguments.arguments.length;
 
   @override
+  String getVariableDeclarationName(VariableDeclaration declaration) {
+    return declaration.name.name;
+  }
+
+  @override
   Statement ifStatement(
           Token ifKeyword,
           ParenthesizedExpression condition,
@@ -264,15 +281,15 @@ class AstBuildingForest
           elseStatement);
 
   @override
-  Generator<Expression, Statement, _Arguments> indexedAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+  Generator<Expression, Statement, Arguments> indexedAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
       Token token,
       Expression receiver,
       Expression index,
       kernel.Procedure getter,
       kernel.Procedure setter) {
-    // TODO(brianwilkerson) Implement this.
-    throw new UnimplementedError();
+    return new AnalyzerIndexedAccessGenerator(
+        helper, astFactory, receiver, token, index, token.endGroup);
   }
 
   @override
@@ -313,11 +330,10 @@ class AstBuildingForest
       astFactory.labeledStatement(target.labels.cast<Label>(), statement);
 
   @override
-  Generator<Expression, Statement, _Arguments> largeIntAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+  Generator<Expression, Statement, Arguments> largeIntAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
       Token token) {
-    // TODO(brianwilkerson) Implement this.
-    throw new UnimplementedError();
+    return new AnalyzerLargeIntAccessGenerator(helper, astFactory, token);
   }
 
   @override
@@ -405,20 +421,24 @@ class AstBuildingForest
   }
 
   @override
-  Generator<Expression, Statement, _Arguments> loadLibraryGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+  Generator<Expression, Statement, Arguments> loadLibraryGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
       Token token,
       LoadLibraryBuilder builder) {
-    // TODO(brianwilkerson) Implement this.
-    throw new UnimplementedError();
+    return new AnalyzerLoadLibraryGenerator(helper, astFactory, token, builder);
   }
+
+  @override
+  Expression logicalExpression(
+          Expression leftOperand, Token operator, Expression rightOperand) =>
+      astFactory.binaryExpression(leftOperand, operator, rightOperand);
 
   @override
   Object mapEntry(Expression key, Token colon, Expression value) =>
       astFactory.mapLiteralEntry(key, colon, value);
 
   @override
-  List mapEntryList(int length) => <MapLiteralEntry>[];
+  List mapEntryList(int length) => new List<MapLiteralEntry>(length);
 
   @override
   Expression notExpression(Expression operand, Token operator) =>
@@ -426,16 +446,16 @@ class AstBuildingForest
         ..staticType = _typeProvider?.boolType;
 
   @override
-  Generator<Expression, Statement, _Arguments> nullAwarePropertyAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+  Generator<Expression, Statement, Arguments> nullAwarePropertyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
       Token token,
       Expression receiverExpression,
       kernel.Name name,
       kernel.Member getter,
       kernel.Member setter,
       kernel.DartType type) {
-    // TODO(brianwilkerson) Implement this.
-    throw new UnimplementedError();
+    return new AnalyzerNullAwarePropertyAccessGenerator(
+        helper, astFactory, receiverExpression, token, null /*name*/);
   }
 
   @override
@@ -445,28 +465,28 @@ class AstBuildingForest
           leftParenthesis, expression, rightParenthesis);
 
   @override
-  Generator<Expression, Statement, _Arguments> propertyAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+  Generator<Expression, Statement, Arguments> propertyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
       Token token,
       Expression receiver,
       kernel.Name name,
       kernel.Member getter,
       kernel.Member setter) {
-    // TODO(brianwilkerson) Implement this.
-    throw new UnimplementedError();
+    return new AnalyzerPropertyAccessGenerator(
+        helper, astFactory, token, receiver, name, getter, setter);
   }
 
   @override
   int readOffset(AstNode node) => node.offset;
 
   @override
-  Generator<Expression, Statement, _Arguments> readOnlyAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+  Generator<Expression, Statement, Arguments> readOnlyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
       Token token,
       Expression expression,
       String plainNameForRead) {
-    // TODO(brianwilkerson) Implement this.
-    throw new UnimplementedError();
+    return new AnalyzerReadOnlyAccessGenerator(
+        helper, astFactory, token, expression, plainNameForRead);
   }
 
   @override
@@ -500,13 +520,13 @@ class AstBuildingForest
   }
 
   @override
-  Generator<Expression, Statement, _Arguments> staticAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+  Generator<Expression, Statement, Arguments> staticAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
       Token token,
       kernel.Member getter,
       kernel.Member setter) {
-    // TODO(brianwilkerson) Implement this.
-    throw new UnimplementedError();
+    return new AnalyzerStaticAccessGenerator(
+        helper, astFactory, token, getter, setter);
   }
 
   @override
@@ -515,25 +535,27 @@ class AstBuildingForest
       astFactory.adjacentStrings(strings.cast<StringLiteral>());
 
   @override
-  Generator<Expression, Statement, _Arguments> superIndexedAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+  Generator<Expression, Statement, Arguments> superIndexedAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
       Token token,
       Expression index,
       kernel.Member getter,
       kernel.Member setter) {
-    // TODO(brianwilkerson) Implement this.
-    throw new UnimplementedError();
+    // TODO(brianwilkerson) Figure out how to get the token for `super`.
+    return new AnalyzerIndexedAccessGenerator(
+        helper, astFactory, null, token, index, token.endGroup);
   }
 
   @override
-  Generator<Expression, Statement, _Arguments> superPropertyAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+  Generator<Expression, Statement, Arguments> superPropertyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
       Token token,
       kernel.Name name,
       kernel.Member getter,
       kernel.Member setter) {
-    // TODO(brianwilkerson) Implement this.
-    throw new UnimplementedError();
+    // TODO(brianwilkerson) Figure out how to get the token for the name.
+    return new AnalyzerSuperPropertyAccessGenerator(
+        helper, astFactory, null, null, null /*name*/);
   }
 
   @override
@@ -544,25 +566,27 @@ class AstBuildingForest
       astFactory.thisExpression(thisKeyword);
 
   @override
-  Generator<Expression, Statement, _Arguments> thisIndexedAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+  Generator<Expression, Statement, Arguments> thisIndexedAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
       Token token,
       Expression index,
       kernel.Procedure getter,
       kernel.Procedure setter) {
-    // TODO(brianwilkerson) Implement this.
-    throw new UnimplementedError();
+    // TODO(brianwilkerson) Figure out how to get the token for `this`.
+    return new AnalyzerIndexedAccessGenerator(
+        helper, astFactory, null, token, index, token.endGroup);
   }
 
   @override
-  Generator<Expression, Statement, _Arguments> thisPropertyAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+  Generator<Expression, Statement, Arguments> thisPropertyAccessGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
       Token location,
       kernel.Name name,
       kernel.Member getter,
       kernel.Member setter) {
-    // TODO(brianwilkerson) Implement this.
-    throw new UnimplementedError();
+    // TODO(brianwilkerson) Figure out how to get the token for the name.
+    return new AnalyzerThisPropertyAccessGenerator(
+        helper, astFactory, location, name, getter, setter);
   }
 
   @override
@@ -580,15 +604,32 @@ class AstBuildingForest
           tryKeyword, body, catchClauses, finallyKeyword, finallyBlock);
 
   @override
-  Generator<Expression, Statement, _Arguments> typeUseGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+  Generator<Expression, Statement, Arguments> typeUseGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
       Token token,
       PrefixBuilder prefix,
       int declarationReferenceOffset,
       TypeDeclarationBuilder declaration,
       String plainNameForRead) {
-    // TODO(brianwilkerson) Implement this.
-    throw new UnimplementedError();
+    return new AnalyzerTypeUseGenerator(helper, astFactory, token, prefix,
+        declarationReferenceOffset, declaration, plainNameForRead);
+  }
+
+  @override
+  Generator<Expression, Statement, Arguments> unlinkedGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      UnlinkedDeclaration declaration) {
+    return new AnalyzerUnlinkedNameGenerator(
+        helper, astFactory, token, declaration);
+  }
+
+  @override
+  Generator<Expression, Statement, Arguments> unresolvedNameGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      kernel.Name name) {
+    return new AnalyzerUnresolvedNameGenerator(helper, astFactory, token, name);
   }
 
   @override
@@ -604,13 +645,12 @@ class AstBuildingForest
       variablesDeclaration.variables.variables;
 
   @override
-  Generator<Expression, Statement, _Arguments> variableUseGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, _Arguments> helper,
+  Generator<Expression, Statement, Arguments> variableUseGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
       Token token,
       VariableDeclarationStatement variable,
       kernel.DartType promotedType) {
-    // TODO(brianwilkerson) Implement this.
-    throw new UnimplementedError();
+    return new AnalyzerVariableUseGenerator(helper, astFactory, token);
   }
 
   Statement whileStatement(Token whileKeyword,
@@ -625,11 +665,4 @@ class AstBuildingForest
   Statement yieldStatement(Token yieldKeyword, Token star,
           Expression expression, Token semicolon) =>
       astFactory.yieldStatement(yieldKeyword, star, expression, semicolon);
-}
-
-/// A data holder used to conform to the [Forest] API.
-class _Arguments {
-  List<TypeAnnotation> typeArguments = <TypeAnnotation>[];
-  List<Expression> positionalArguments = <Expression>[];
-  List<Expression> namedArguments = <Expression>[];
 }

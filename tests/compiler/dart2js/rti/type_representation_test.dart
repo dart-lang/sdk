@@ -109,7 +109,7 @@ main() {
     return stringify(name);
   }
 
-  ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+  JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   String func = backend.namer.functionTypeTag;
   String ret = backend.namer.functionTypeReturnTypeTag;

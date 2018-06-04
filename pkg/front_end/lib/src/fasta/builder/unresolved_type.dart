@@ -29,11 +29,11 @@ class UnresolvedType<T extends TypeBuilder> {
   void checkType() {
     TypeBuilder resolvedType = builder;
     if (resolvedType is NamedTypeBuilder) {
-      TypeDeclarationBuilder declaration = resolvedType.builder;
+      TypeDeclarationBuilder declaration = resolvedType.declaration;
       if (declaration is ClassBuilder) {
         if (resolvedType.arguments != null &&
             resolvedType.arguments.length != declaration.typeVariablesCount) {
-          resolvedType.builder = resolvedType.buildInvalidType(
+          resolvedType.declaration = resolvedType.buildInvalidType(
               charOffset,
               fileUri,
               templateTypeArgumentMismatch.withArguments(
@@ -42,7 +42,7 @@ class UnresolvedType<T extends TypeBuilder> {
       } else if (declaration is FunctionTypeAliasBuilder) {
         if (resolvedType.arguments != null &&
             resolvedType.arguments.length != declaration.typeVariablesCount) {
-          resolvedType.builder = resolvedType.buildInvalidType(
+          resolvedType.declaration = resolvedType.buildInvalidType(
               charOffset,
               fileUri,
               templateTypeArgumentMismatch.withArguments(
@@ -56,7 +56,7 @@ class UnresolvedType<T extends TypeBuilder> {
   void normalizeType() {
     TypeBuilder resolvedType = builder;
     if (resolvedType is NamedTypeBuilder) {
-      TypeDeclarationBuilder declaration = resolvedType.builder;
+      TypeDeclarationBuilder declaration = resolvedType.declaration;
       if (declaration is ClassBuilder) {
         if (resolvedType.arguments != null &&
             resolvedType.arguments.length != declaration.typeVariablesCount) {

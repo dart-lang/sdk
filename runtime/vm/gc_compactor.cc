@@ -556,7 +556,7 @@ void GCCompactor::ForwardStackPointers() {
   // N.B.: Heap pointers have already been forwarded. We forward the heap before
   // forwarding the stack to limit the number of places that need to be aware of
   // forwarding when reading stack maps.
-  isolate()->VisitObjectPointers(this, StackFrameIterator::kDontValidateFrames);
+  isolate()->VisitObjectPointers(this, ValidationPolicy::kDontValidateFrames);
 }
 
 }  // namespace dart

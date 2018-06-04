@@ -36,7 +36,6 @@ html/fileapi_entry_test: Pass, RuntimeError # Issue 31019
 html/xhr_test: Skip # Times out. Issue 21527
 
 [ $compiler == dartdevc || $compiler == dartdevk ]
-async/async_await_sync_completer_test: RuntimeError # Issue 29922
 async/async_await_zones_test: RuntimeError # Issue 29922
 async/future_or_bad_type_test/implements: RuntimeError # Issue 29922
 async/future_or_bad_type_test/none: RuntimeError # Issue 29922
@@ -45,7 +44,6 @@ async/slow_consumer_test: Pass, Timeout # Issue 29922
 async/stream_controller_async_test: RuntimeError
 async/stream_distinct_test: RuntimeError # Issue 29922
 async/stream_join_test: RuntimeError
-async/stream_subscription_as_future_test: RuntimeError
 async/timer_not_available_test: RuntimeError
 convert/base64_test/01: Fail, OK # Uses bit-wise operations to detect invalid values. Some large invalid values accepted by DDC/dart2js.
 convert/chunked_conversion_utf88_test: Slow, Pass

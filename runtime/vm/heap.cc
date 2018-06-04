@@ -29,6 +29,8 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, write_protect_vm_isolate, true, "Write protect vm_isolate.");
+
 Heap::Heap(Isolate* isolate,
            intptr_t max_new_gen_semi_words,
            intptr_t max_old_gen_words,
@@ -138,9 +140,12 @@ void Heap::AllocateExternal(intptr_t cid, intptr_t size, Space space) {
   } else {
     ASSERT(space == kOld);
     old_space_.AllocateExternal(cid, size);
-    if (old_space_.NeedsGarbageCollection()) {
-      CollectAllGarbage();
-    }
+  }
+  // Idle GC does not check whether promotions should trigger a full GC.
+  // As a workaround, we check here on every external allocation. See issue
+  // dartbug.com/33314.
+  if (old_space_.NeedsGarbageCollection()) {
+    CollectAllGarbage();
   }
 }
 
@@ -262,13 +267,15 @@ void HeapIterationScope::IterateVMIsolateObjects(ObjectVisitor* visitor) const {
   Dart::vm_isolate()->heap()->VisitObjects(visitor);
 }
 
-void HeapIterationScope::IterateObjectPointers(ObjectPointerVisitor* visitor,
-                                               bool validate_frames) {
+void HeapIterationScope::IterateObjectPointers(
+    ObjectPointerVisitor* visitor,
+    ValidationPolicy validate_frames) {
   isolate()->VisitObjectPointers(visitor, validate_frames);
 }
 
-void HeapIterationScope::IterateStackPointers(ObjectPointerVisitor* visitor,
-                                              bool validate_frames) {
+void HeapIterationScope::IterateStackPointers(
+    ObjectPointerVisitor* visitor,
+    ValidationPolicy validate_frames) {
   isolate()->VisitStackPointers(visitor, validate_frames);
 }
 
@@ -878,12 +885,16 @@ NoHeapGrowthControlScope::~NoHeapGrowthControlScope() {
 
 WritableVMIsolateScope::WritableVMIsolateScope(Thread* thread)
     : StackResource(thread) {
-  Dart::vm_isolate()->heap()->WriteProtect(false);
+  if (FLAG_write_protect_vm_isolate) {
+    Dart::vm_isolate()->heap()->WriteProtect(false);
+  }
 }
 
 WritableVMIsolateScope::~WritableVMIsolateScope() {
   ASSERT(Dart::vm_isolate()->heap()->UsedInWords(Heap::kNew) == 0);
-  Dart::vm_isolate()->heap()->WriteProtect(true);
+  if (FLAG_write_protect_vm_isolate) {
+    Dart::vm_isolate()->heap()->WriteProtect(true);
+  }
 }
 
 }  // namespace dart

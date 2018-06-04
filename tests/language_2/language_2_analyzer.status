@@ -17,7 +17,8 @@ const_cast2_test/01: CompileTimeError
 const_cast2_test/none: CompileTimeError
 const_for_in_variable_test/01: MissingCompileTimeError # Issue 25161
 constructor_call_wrong_argument_count_negative_test: Fail # Issue 11585
-constructor_type_parameter_test/00: MissingCompileTimeError # Issue 33110
+constructor_type_parameter_test/00: MissingCompileTimeError
+constructor_with_type_parameters_test/03: MissingCompileTimeError
 deep_nesting1_negative_test: CompileTimeError # Issue 25558
 deep_nesting2_negative_test: CompileTimeError # Issue 25558
 duplicate_export_negative_test: CompileTimeError
@@ -1152,7 +1153,6 @@ override_inheritance_field_test/50: CompileTimeError
 override_inheritance_generic_test/02: CompileTimeError
 override_inheritance_method_test/28: CompileTimeError
 override_inheritance_method_test/29: CompileTimeError
-parameter_initializer_test: CompileTimeError
 parser_quirks_test: CompileTimeError
 regress_22976_test/01: CompileTimeError
 regress_22976_test/02: CompileTimeError
@@ -1342,6 +1342,8 @@ constructor13_test/01: MissingCompileTimeError
 constructor13_test/02: MissingCompileTimeError
 constructor_call_as_function_test: StaticWarning
 constructor_duplicate_final_test/03: MissingCompileTimeError
+constructor_with_type_parameters_test/09: MissingCompileTimeError
+constructor_with_type_parameters_test/15: MissingCompileTimeError
 create_unresolved_type_test/01: MissingCompileTimeError
 fuzzy_arrows_test/01: MissingCompileTimeError
 generic_constructor_mixin2_test/01: MissingCompileTimeError

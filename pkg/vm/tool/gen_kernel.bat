@@ -13,9 +13,6 @@ if %SCRIPTPATH:~-1%==\ set SCRIPTPATH=%SCRIPTPATH:~0,-1%
 
 set SDK_DIR=%SCRIPTPATH%/../../../
 
-REM Enable Dart 2.0 fixed-size integers for gen_kernel
-set DART_VM_OPTIONS=--limit-ints-to-64-bits %DART_VM_OPTIONS%
-
 set DART=%SDK_DIR%/tools/sdks/win/dart-sdk/bin/dart.exe
 
 "%DART%" %DART_VM_OPTIONS% "%SDK_DIR%/pkg/vm/bin/gen_kernel.dart" %*

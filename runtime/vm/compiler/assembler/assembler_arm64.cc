@@ -221,11 +221,6 @@ void Assembler::Stop(const char* message) {
   if (FLAG_print_stop_message) {
     UNIMPLEMENTED();
   }
-  Label stop;
-  b(&stop);
-  Emit(Utils::Low32Bits(reinterpret_cast<int64_t>(message)));
-  Emit(Utils::High32Bits(reinterpret_cast<int64_t>(message)));
-  Bind(&stop);
   brk(Instr::kStopMessageCode);
 }
 

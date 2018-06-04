@@ -74,12 +74,14 @@ class EvalBoxElement extends HtmlElement implements Renderable {
     children = [
       new DivElement()
         ..classes = ['quicks']
-        ..children = _quickExpressions.map((q) => new ButtonElement()
-          ..text = q
-          ..onClick.listen((_) {
-            _expression = q;
-            _run();
-          })),
+        ..children = _quickExpressions
+            .map((q) => new ButtonElement()
+              ..text = q
+              ..onClick.listen((_) {
+                _expression = q;
+                _run();
+              }))
+            .toList(),
       new DivElement()
         ..classes = ['heading']
         ..children = [

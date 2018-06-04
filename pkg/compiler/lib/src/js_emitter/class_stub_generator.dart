@@ -15,7 +15,7 @@ import '../options.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/world_builder.dart'
     show CodegenWorldBuilder, SelectorConstraints;
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show JClosedWorld;
 
 import 'code_emitter_task.dart';
 import 'model.dart';
@@ -23,7 +23,7 @@ import 'model.dart';
 class ClassStubGenerator {
   final Namer _namer;
   final CodegenWorldBuilder _worldBuilder;
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
   final bool enableMinification;
   final Emitter _emitter;
   final CommonElements _commonElements;
@@ -43,7 +43,7 @@ class ClassStubGenerator {
     //        [ constructorName, fields,
     //            fields.map(
     //                (name) => js('this.# = #', [name, name]))]));
-    var typeParameters = const <jsAst.Parameter>[];
+    dynamic typeParameters = const <jsAst.Parameter>[];
     dynamic typeInits = const <jsAst.Expression>[];
     if (hasRtiField) {
       dynamic rtiName = _namer.rtiFieldJsName;
@@ -211,7 +211,8 @@ class ClassStubGenerator {
           js.quoteName(enableMinification ? internalName : methodName),
       'internalName': js.quoteName(internalName),
       'type': js.number(type),
-      'arguments': new jsAst.ArrayInitializer(parameterNames.map(js).toList()),
+      'arguments': new jsAst.ArrayInitializer(
+          parameterNames.map<jsAst.Expression>(js).toList()),
       'namedArguments': new jsAst.ArrayInitializer(argNames),
       'typeArgumentCount': js.number(selector.typeArgumentCount)
     });

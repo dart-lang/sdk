@@ -492,6 +492,8 @@ class ValueGraphVisitor : public EffectGraphVisitor {
   Value* value_;
 
  private:
+  friend class EffectGraphVisitor;
+
   // Helper to set the output state to return a Value.
   virtual void ReturnValue(Value* value) { value_ = value; }
 
@@ -539,6 +541,8 @@ class TestGraphVisitor : public ValueGraphVisitor {
   TokenPosition condition_token_pos() const { return condition_token_pos_; }
 
  private:
+  friend class EffectGraphVisitor;
+
   // Construct and concatenate a Branch instruction to this graph fragment.
   // Closes the fragment and sets the output parameters.
   virtual void ReturnValue(Value* value);

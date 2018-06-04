@@ -4,16 +4,23 @@
 
 part of mocks;
 
-class PortsMock implements M.Ports {
-  final Iterable<M.Port> elements;
+class PortsAndHandlesMock implements M.Ports, M.PersistentHandles {
+  final Iterable<PortMock> elements;
 
-  const PortsMock({this.elements: const []});
+  const PortsAndHandlesMock({this.elements: const []});
+
+  @override
+  Iterable<M.WeakPersistentHandle> get weakElements =>
+      throw new UnimplementedError();
 }
 
-class PortMock implements M.Port {
+class PortMock implements M.Port, M.PersistentHandle {
   final String name;
   final M.ObjectRef handler;
 
   const PortMock(
       {this.name: 'port-name', this.handler: const InstanceRefMock()});
+
+  @override
+  M.ObjectRef get object => throw new UnimplementedError();
 }

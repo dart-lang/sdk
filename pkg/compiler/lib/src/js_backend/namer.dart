@@ -27,7 +27,7 @@ import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector, SelectorKind;
 import '../universe/world_builder.dart' show CodegenWorldBuilder;
 import '../util/util.dart';
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show JClosedWorld;
 import 'backend.dart';
 import 'constant_system_javascript.dart';
 import 'native_data.dart';
@@ -492,7 +492,7 @@ class Namer {
   static final RegExp IDENTIFIER = new RegExp(r'^[A-Za-z_$][A-Za-z0-9_$]*$');
   static final RegExp NON_IDENTIFIER_CHAR = new RegExp(r'[^A-Za-z_0-9$]');
 
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
   final CodegenWorldBuilder _codegenWorldBuilder;
 
   RuntimeTypesEncoder _rtiEncoder;
@@ -1645,6 +1645,10 @@ class Namer {
   String get futureOrTag => r'futureOr';
 
   String get futureOrTypeTag => r'type';
+
+  // The name of the variable used to offset function signatures in deferred
+  // parts with the fast-startup emitter.
+  String get typesOffsetName => r'typesOffset';
 
   Map<FunctionType, jsAst.Name> functionTypeNameMap =
       new HashMap<FunctionType, jsAst.Name>();

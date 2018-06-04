@@ -62,7 +62,7 @@ main() {
         options: [Flags.disableRtiOptimization, Flags.disableInlining]);
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
-    ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     RuntimeTypesNeed rtiNeed = closedWorld.rtiNeed;
     ProgramLookup programLookup = new ProgramLookup(compiler);

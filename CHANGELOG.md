@@ -1,3 +1,19 @@
+## 2.0.0-dev.60.0
+
+### Core library changes
+
+* `dart:convert`
+  * Allow `utf8.decoder.fuse(json.decoder)` to ignore leading Unicode BOM.
+
+### Tool Changes
+
+#### Analyzer
+
+* New static checking of duplicate shown or hidden names in an export directive
+  ([issue 33182]).
+
+[issue 33182]: https://github.com/dart-lang/sdk/issues/33182
+
 ## 2.0.0-dev.59.0
 
 ### Language
@@ -564,6 +580,10 @@ Still need entries for all changes to dart:js since 1.x
 
   * Renamed `E`, `LN10`, `LN`, `LOG2E`, `LOG10E`, `PI`, `SQRT1_2` and `SQRT2`
     to `e`, `ln10`, `ln`, `log2e`, `log10e`, `pi`, `sqrt1_2` and `sqrt2`.
+
+* `dart.mirrors`
+  * Added `IsolateMirror.loadUri`, which allows dynamically loading additional
+    code.
 
 <!--
 Still need entries for all changes to dart:svg since 1.x

@@ -1811,6 +1811,13 @@ class RawAbstractType : public RawInstance {
     kFinalizedInstantiated,    // Instantiated type ready for use.
     kFinalizedUninstantiated,  // Uninstantiated type ready for use.
   };
+
+  // Note: we don't handle this field in GC in any special way.
+  // Instead we rely on two things:
+  //   (1) GC not moving code objects and
+  //   (2) lifetime of optimized stubs exceeding that of types;
+  // Practically (2) means that optimized stubs never die because
+  // canonical types to which they are attached never die.
   uword type_test_stub_entry_point_;  // Accessed from generated code.
 
  private:

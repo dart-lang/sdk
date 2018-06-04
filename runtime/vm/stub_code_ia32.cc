@@ -1788,27 +1788,32 @@ void StubCode::GenerateSubtype4TestCacheStub(Assembler* assembler) {
 }
 
 void StubCode::GenerateDefaultTypeTestStub(Assembler* assembler) {
-  // Only used in AOT and therefore not on ia32.
+  // Not implemented on ia32.
   __ Breakpoint();
 }
 
 void StubCode::GenerateTopTypeTypeTestStub(Assembler* assembler) {
-  // Only used in AOT and therefore not on ia32.
+  // Not implemented on ia32.
   __ Breakpoint();
 }
 
 void StubCode::GenerateTypeRefTypeTestStub(Assembler* assembler) {
-  // Only used in AOT and therefore not on ia32.
+  // Not implemented on ia32.
   __ Breakpoint();
 }
 
 void StubCode::GenerateUnreachableTypeTestStub(Assembler* assembler) {
-  // Only used in AOT and therefore not on ia32.
+  // Not implemented on ia32.
+  __ Breakpoint();
+}
+
+void StubCode::GenerateLazySpecializeTypeTestStub(Assembler* assembler) {
+  // Not implemented on ia32.
   __ Breakpoint();
 }
 
 void StubCode::GenerateSlowTypeTestStub(Assembler* assembler) {
-  // Only used in AOT and therefore not on ia32.
+  // Not implemented on ia32.
   __ Breakpoint();
 }
 

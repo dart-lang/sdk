@@ -10,7 +10,7 @@ import '../compiler.dart' show Compiler;
 import '../elements/entities.dart';
 import '../inferrer/type_graph_inferrer.dart' show TypeGraphInferrer;
 import '../universe/selector.dart' show Selector;
-import '../world.dart' show ClosedWorld, ClosedWorldRefiner;
+import '../world.dart' show JClosedWorld;
 import 'abstract_value_domain.dart';
 
 /// Results about a single element (e.g. a method, parameter, or field)
@@ -188,7 +188,7 @@ abstract class TypesInferrer<T> {
 abstract class GlobalTypeInferenceResults<T> {
   // TODO(sigmund): store relevant data & drop reference to inference engine.
   final TypeGraphInferrer<T> _inferrer;
-  final ClosedWorld closedWorld;
+  final JClosedWorld closedWorld;
   final Map<MemberEntity, GlobalTypeInferenceMemberResult<T>> _memberResults =
       <MemberEntity, GlobalTypeInferenceMemberResult<T>>{};
   final Map<Local, GlobalTypeInferenceParameterResult<T>> _parameterResults =
@@ -258,11 +258,11 @@ class GlobalTypeInferenceTask extends CompilerTask {
         super(compiler.measurer);
 
   /// Runs the global type-inference algorithm once.
-  void runGlobalTypeInference(FunctionEntity mainElement,
-      ClosedWorld closedWorld, ClosedWorldRefiner closedWorldRefiner) {
+  void runGlobalTypeInference(
+      FunctionEntity mainElement, JClosedWorld closedWorld) {
     measure(() {
       typesInferrerInternal ??= compiler.backendStrategy.createTypesInferrer(
-          closedWorldRefiner,
+          closedWorld,
           disableTypeInference: compiler.disableTypeInference);
       typesInferrerInternal.analyzeMain(mainElement);
       typesInferrerInternal.clear();

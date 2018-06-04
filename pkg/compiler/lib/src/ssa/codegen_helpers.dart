@@ -8,9 +8,8 @@ import '../js_backend/js_backend.dart';
 import '../js_backend/interceptor_data.dart';
 import '../options.dart';
 import '../types/abstract_value_domain.dart';
-import '../types/masks.dart';
 import '../universe/selector.dart' show Selector;
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show JClosedWorld;
 import 'nodes.dart';
 
 /**
@@ -18,7 +17,7 @@ import 'nodes.dart';
  * Caches codegen information on nodes.
  */
 class SsaInstructionSelection extends HBaseVisitor {
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
   final InterceptorData _interceptorData;
   HGraph graph;
 
@@ -71,8 +70,8 @@ class SsaInstructionSelection extends HBaseVisitor {
     if (node.kind == HIs.RAW_CHECK) {
       HInstruction interceptor = node.interceptor;
       if (interceptor != null) {
-        return new HIsViaInterceptor(node.typeExpression, interceptor,
-            _closedWorld.abstractValueDomain.boolType);
+        return new HIsViaInterceptor(
+            node.typeExpression, interceptor, _abstractValueDomain.boolType);
       }
     }
     return node;
@@ -86,9 +85,10 @@ class SsaInstructionSelection extends HBaseVisitor {
   String simpleOp(HInstruction left, HInstruction right) {
     // Returns the single identity comparison (== or ===) or null if a more
     // complex expression is required.
-    TypeMask leftType = left.instructionType;
-    TypeMask rightType = right.instructionType;
-    if (leftType.isNullable && rightType.isNullable) {
+    AbstractValue leftType = left.instructionType;
+    AbstractValue rightType = right.instructionType;
+    if (_abstractValueDomain.canBeNull(leftType) &&
+        _abstractValueDomain.canBeNull(rightType)) {
       if (left.isConstantNull() ||
           right.isConstantNull() ||
           (left.isPrimitive(_abstractValueDomain) && leftType == rightType)) {
@@ -108,14 +108,14 @@ class SsaInstructionSelection extends HBaseVisitor {
 
   HInstruction visitInvokeSuper(HInvokeSuper node) {
     if (node.isInterceptedCall) {
-      TypeMask mask = node.getDartReceiver(_closedWorld).instructionType;
+      AbstractValue mask = node.getDartReceiver(_closedWorld).instructionType;
       tryReplaceInterceptorWithDummy(node, node.selector, mask);
     }
     return node;
   }
 
   void tryReplaceInterceptorWithDummy(
-      HInvoke node, Selector selector, TypeMask mask) {
+      HInvoke node, Selector selector, AbstractValue mask) {
     // Calls of the form
     //
     //     a.foo$1(a, x)

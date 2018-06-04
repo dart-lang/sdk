@@ -3894,11 +3894,12 @@ void StreamingConstantEvaluator::EvaluateAsExpression() {
 
   const AbstractType& type = T.BuildType();
   if (!type.IsInstantiated() || type.IsMalformed()) {
+    const String& type_str = String::Handle(type.UserVisibleName());
     H.ReportError(
         script_, TokenPosition::kNoSource,
         "Not a constant expression: right hand side of an implicit "
         "as-expression is expected to be an instantiated type, got %s",
-        type.ToCString());
+        type_str.ToCString());
   }
 
   const TypeArguments& instantiator_type_arguments = TypeArguments::Handle();
@@ -3906,9 +3907,13 @@ void StreamingConstantEvaluator::EvaluateAsExpression() {
   Error& error = Error::Handle();
   if (!result_.IsInstanceOf(type, instantiator_type_arguments,
                             function_type_arguments, &error)) {
+    const AbstractType& rtype =
+        AbstractType::Handle(result_.GetType(Heap::kNew));
+    const String& result_str = String::Handle(rtype.UserVisibleName());
+    const String& type_str = String::Handle(type.UserVisibleName());
     H.ReportError(script_, TokenPosition::kNoSource,
                   "Not a constant expression: %s is not an instance of %s",
-                  result_.ToCString(), type.ToCString());
+                  result_str.ToCString(), type_str.ToCString());
   }
 }
 
@@ -5955,9 +5960,8 @@ Fragment StreamingFlowGraphBuilder::BuildArgumentTypeChecks(
         bound = forwarding_param.bound();
       }
 
-      if (I->strong() && !bound.IsObjectType() &&
+      if (I->strong() && !bound.IsObjectType() && !bound.IsDynamicType() &&
           (I->reify_generic_functions() || dart_function.IsFactory())) {
-        ASSERT(!bound.IsDynamicType());
         TypeParameter& param = TypeParameter::Handle(Z);
         if (dart_function.IsFactory()) {
           param ^= TypeArguments::Handle(
@@ -11097,10 +11101,10 @@ RawObject* StreamingFlowGraphBuilder::EvaluateMetadata(
   intptr_t list_length = ReadListLength();  // read list length.
   const Array& metadata_values =
       Array::Handle(Z, Array::New(list_length, H.allocation_space()));
+  Instance& value = Instance::Handle(Z);
   for (intptr_t i = 0; i < list_length; ++i) {
     // this will (potentially) read the expression, but reset the position.
-    Instance& value = Instance::ZoneHandle(
-        Z, constant_evaluator_.EvaluateExpression(ReaderOffset()));
+    value = constant_evaluator_.EvaluateExpression(ReaderOffset());
     SkipExpression();  // read (actual) initializer.
     metadata_values.SetAt(i, value);
   }

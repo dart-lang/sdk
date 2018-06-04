@@ -8,7 +8,7 @@ import '../fasta_codes.dart' show Message;
 
 import 'builder.dart'
     show
-        Builder,
+        Declaration,
         InvalidTypeBuilder,
         PrefixBuilder,
         QualifiedName,
@@ -21,7 +21,7 @@ abstract class NamedTypeBuilder<T extends TypeBuilder, R> extends TypeBuilder {
 
   List<T> arguments;
 
-  TypeDeclarationBuilder<T, R> builder;
+  TypeDeclarationBuilder<T, R> declaration;
 
   NamedTypeBuilder(this.name, this.arguments);
 
@@ -29,17 +29,17 @@ abstract class NamedTypeBuilder<T extends TypeBuilder, R> extends TypeBuilder {
       [Message message]);
 
   @override
-  void bind(TypeDeclarationBuilder builder) {
-    this.builder = builder?.origin;
+  void bind(TypeDeclarationBuilder declaration) {
+    this.declaration = declaration?.origin;
   }
 
   @override
   void resolveIn(Scope scope, int charOffset, Uri fileUri) {
-    if (builder != null) return;
+    if (declaration != null) return;
     final name = this.name;
-    Builder member;
+    Declaration member;
     if (name is QualifiedName) {
-      var prefix = scope.lookup(name.prefix, charOffset, fileUri);
+      Declaration prefix = scope.lookup(name.prefix, charOffset, fileUri);
       if (prefix is PrefixBuilder) {
         member = prefix.lookup(name.suffix, name.charOffset, fileUri);
       }
@@ -47,10 +47,10 @@ abstract class NamedTypeBuilder<T extends TypeBuilder, R> extends TypeBuilder {
       member = scope.lookup(name, charOffset, fileUri);
     }
     if (member is TypeDeclarationBuilder) {
-      builder = member.origin;
+      declaration = member.origin;
       return;
     }
-    builder = buildInvalidType(charOffset, fileUri);
+    declaration = buildInvalidType(charOffset, fileUri);
   }
 
   String get debugName => "NamedTypeBuilder";

@@ -80,7 +80,8 @@ abstract class ExpressionGeneratorHelper<Expression, Statement, Arguments>
   Initializer buildInvalidInitializer(Expression expression, [int offset]);
 
   Initializer buildFieldInitializer(
-      bool isSynthetic, String name, int offset, Expression expression);
+      bool isSynthetic, String name, int offset, Expression expression,
+      {DartType formalType});
 
   Initializer buildSuperInitializer(
       bool isSynthetic, Constructor constructor, Arguments arguments,

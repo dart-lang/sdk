@@ -2836,6 +2836,7 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
       verifier.addImports(unit);
       usedImportedElementsList.forEach(verifier.removeUsedElements);
       verifier.generateDuplicateImportHints(errorReporter);
+      verifier.generateDuplicateShownHiddenNameHints(errorReporter);
       verifier.generateUnusedImportHints(errorReporter);
       verifier.generateUnusedShownNameHints(errorReporter);
     }

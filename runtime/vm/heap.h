@@ -384,9 +384,9 @@ class HeapIterationScope : public StackResource {
   void IterateVMIsolateObjects(ObjectVisitor* visitor) const;
 
   void IterateObjectPointers(ObjectPointerVisitor* visitor,
-                             bool validate_frames);
+                             ValidationPolicy validate_frames);
   void IterateStackPointers(ObjectPointerVisitor* visitor,
-                            bool validate_frames);
+                            ValidationPolicy validate_frames);
 
  private:
   Heap* heap_;

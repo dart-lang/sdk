@@ -2913,8 +2913,8 @@ class FunctionTypeAliasElementForLink extends Object
         return context.typeSystem
             .instantiateToBounds(new FunctionTypeImpl.forTypedef(this));
       } else {
-        return new FunctionTypeImpl.elementWithNameAndArgs(
-            this, name, typeArguments, true);
+        return new FunctionTypeImpl.forTypedef(this,
+            typeArguments: typeArguments);
       }
     } else {
       return _type ??= new FunctionTypeImpl.forTypedef(this);
@@ -2989,8 +2989,7 @@ class GenericFunctionTypeElementForLink extends Object
 
   @override
   FunctionType get type {
-    return _type ??= new FunctionTypeImpl.elementWithNameAndArgs(
-        this, null, allEnclosingTypeParameterTypes, false);
+    return _type ??= new FunctionTypeImpl(this);
   }
 
   @override
@@ -3087,8 +3086,8 @@ class GenericTypeAliasElementForLink extends Object
         return context.typeSystem
             .instantiateToBounds(new FunctionTypeImpl.forTypedef(this));
       } else {
-        return new FunctionTypeImpl.elementWithNameAndArgs(
-            this, name, typeArguments, true);
+        return new FunctionTypeImpl.forTypedef(this,
+            typeArguments: typeArguments);
       }
     } else {
       return new FunctionTypeImpl.forTypedef(this);

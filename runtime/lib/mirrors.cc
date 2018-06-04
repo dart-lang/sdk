@@ -9,6 +9,7 @@
 #include "vm/class_finalizer.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/compiler/jit/compiler.h"
+#include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
@@ -757,6 +758,95 @@ DEFINE_NATIVE_ENTRY(MirrorSystem_isolate, 0) {
   VerifyMethodKindShifts();
 
   return CreateIsolateMirror();
+}
+
+static void ThrowLanguageError(const char* message) {
+  const Error& error =
+      Error::Handle(LanguageError::New(String::Handle(String::New(message))));
+  Exceptions::PropagateError(error);
+}
+
+DEFINE_NATIVE_ENTRY(IsolateMirror_loadUri, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(String, uri, arguments->NativeArgAt(0));
+
+  Dart_LibraryTagHandler handler = isolate->library_tag_handler();
+  if (handler == NULL) {
+    ThrowLanguageError("no library handler registered");
+  }
+
+  // Canonicalize library URI.
+  String& canonical_uri = String::Handle(zone);
+  if (uri.StartsWith(Symbols::DartScheme())) {
+    canonical_uri = uri.raw();
+  } else {
+    isolate->BlockClassFinalization();
+    Object& result = Object::Handle(zone);
+    {
+      TransitionVMToNative transition(thread);
+      Api::Scope api_scope(thread);
+      Dart_Handle retval = handler(
+          Dart_kCanonicalizeUrl,
+          Api::NewHandle(thread, isolate->object_store()->root_library()),
+          Api::NewHandle(thread, uri.raw()));
+      result = Api::UnwrapHandle(retval);
+    }
+    isolate->UnblockClassFinalization();
+    if (result.IsError()) {
+      if (result.IsLanguageError()) {
+        Exceptions::ThrowCompileTimeError(LanguageError::Cast(result));
+      }
+      Exceptions::PropagateError(Error::Cast(result));
+    } else if (!result.IsString()) {
+      ThrowLanguageError("library handler failed URI canonicalization");
+    }
+
+    canonical_uri ^= result.raw();
+  }
+
+  // Create a new library if it does not exist yet.
+  Library& library =
+      Library::Handle(zone, Library::LookupLibrary(thread, canonical_uri));
+  if (library.IsNull()) {
+    library = Library::New(canonical_uri);
+    library.Register(thread);
+  }
+
+  // Ensure loading started.
+  if (library.LoadNotStarted()) {
+    library.SetLoadRequested();
+
+    isolate->BlockClassFinalization();
+    Object& result = Object::Handle(zone);
+    {
+      TransitionVMToNative transition(thread);
+      Api::Scope api_scope(thread);
+      Dart_Handle retval = handler(
+          Dart_kImportTag,
+          Api::NewHandle(thread, isolate->object_store()->root_library()),
+          Api::NewHandle(thread, canonical_uri.raw()));
+      result = Api::UnwrapHandle(retval);
+    }
+    isolate->UnblockClassFinalization();
+    if (result.IsError()) {
+      if (result.IsLanguageError()) {
+        Exceptions::ThrowCompileTimeError(LanguageError::Cast(result));
+      }
+      Exceptions::PropagateError(Error::Cast(result));
+    }
+  }
+
+  if (!library.Loaded()) {
+    // This code assumes a synchronous tag handler (which dart::bin and tonic
+    // provide). Strictly though we should complete a future in response to
+    // Dart_FinalizeLoading.
+    UNIMPLEMENTED();
+  }
+
+  if (!ClassFinalizer::ProcessPendingClasses()) {
+    Exceptions::PropagateError(Error::Handle(thread->sticky_error()));
+  }
+
+  return CreateLibraryMirror(thread, library);
 }
 
 DEFINE_NATIVE_ENTRY(Mirrors_makeLocalClassMirror, 1) {

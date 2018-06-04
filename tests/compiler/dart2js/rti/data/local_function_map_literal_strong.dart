@@ -4,7 +4,7 @@
 
 import 'package:expect/expect.dart';
 
-/*strong.class: global#LinkedHashMap:deps=[Map],explicit=[LinkedHashMap<LinkedHashMap.K,LinkedHashMap.V>],implicit=[LinkedHashMap.K,LinkedHashMap.V],indirect,needsArgs*/
+/*strong.class: global#LinkedHashMap:deps=[Map],direct,explicit=[LinkedHashMap<LinkedHashMap.K,LinkedHashMap.V>],implicit=[LinkedHashMap.K,LinkedHashMap.V],needsArgs*/
 /*omit.class: global#LinkedHashMap:deps=[Map],needsArgs*/
 
 /*strong.element: method:implicit=[method.T],indirect,needsArgs*/

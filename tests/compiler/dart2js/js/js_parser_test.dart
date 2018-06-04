@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions= --no_limit_ints_to_64_bits
 import 'package:expect/expect.dart';
 import 'package:compiler/src/js/js.dart' as jsAst;
 import 'package:compiler/src/js/js.dart' show js;
@@ -107,7 +106,7 @@ void main() {
   // Good hex constants.
   testExpression('var x = 0xff');
   testExpression('var x = 0xff + 0xff');
-  testExpression('var x = 0xaF + 0x0123456789abcdefABCDEF');
+  testExpression('var x = 0xaF + 0x0123456789abcdefA');
   // All sorts of keywords are allowed as property names in ES5.
   testExpression('x.new = 0');
   testExpression('x.delete = 0');

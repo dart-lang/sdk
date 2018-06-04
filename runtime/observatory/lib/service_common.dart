@@ -77,7 +77,7 @@ abstract class CommonWebSocket {
 /// The Dart VM can be embedded in Chromium or standalone.
 abstract class CommonWebSocketVM extends VM {
   final Completer _connected = new Completer();
-  final Completer _disconnected = new Completer<String>();
+  final Completer<String> _disconnected = new Completer<String>();
   final WebSocketVMTarget target;
   final Map<String, _WebSocketRequest> _delayedRequests =
       new Map<String, _WebSocketRequest>();
@@ -114,7 +114,7 @@ abstract class CommonWebSocketVM extends VM {
     }
   }
 
-  Future get onDisconnect => _disconnected.future;
+  Future<String> get onDisconnect => _disconnected.future;
   bool get isDisconnected => _disconnected.isCompleted;
 
   void disconnect({String reason: 'WebSocket closed'}) {

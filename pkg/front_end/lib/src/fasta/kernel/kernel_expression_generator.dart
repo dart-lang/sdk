@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/ast.dart' show Arguments, Expression, Node, Statement;
+import 'package:kernel/ast.dart'
+    show Arguments, Expression, InvalidExpression, Node, Statement;
 
 import '../../scanner/token.dart' show Token;
 
@@ -13,8 +14,7 @@ import '../fasta_codes.dart'
         LocatedMessage,
         messageLoadLibraryTakesNoArguments,
         messageSuperAsExpression,
-        templateNotAPrefixInTypeAnnotation,
-        templateUnresolvedPrefixInTypeAnnotation;
+        templateNotAPrefixInTypeAnnotation;
 
 import '../messages.dart' show Message, noLength;
 
@@ -62,13 +62,16 @@ import 'expression_generator.dart'
         ThisIndexedAccessGenerator,
         ThisPropertyAccessGenerator,
         TypeUseGenerator,
+        UnlinkedGenerator,
+        UnresolvedNameGenerator,
         VariableUseGenerator;
 
 import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
 
 import 'forest.dart' show Forest;
 
-import 'kernel_builder.dart' show LoadLibraryBuilder, PrefixBuilder;
+import 'kernel_builder.dart'
+    show LoadLibraryBuilder, PrefixBuilder, UnlinkedDeclaration;
 
 import 'kernel_api.dart' show NameSystem, printNodeOn, printQualifiedNameOn;
 
@@ -110,7 +113,7 @@ import 'kernel_ast_api.dart'
 
 import 'kernel_builder.dart'
     show
-        Builder,
+        Declaration,
         KernelClassBuilder,
         KernelInvalidTypeBuilder,
         LoadLibraryBuilder,
@@ -1304,12 +1307,12 @@ class KernelTypeUseGenerator extends KernelReadOnlyAccessGenerator
 
     if (declaration is KernelClassBuilder) {
       KernelClassBuilder declaration = this.declaration;
-      Builder builder = declaration.findStaticBuilder(
+      Declaration member = declaration.findStaticBuilder(
           name.name, offsetForToken(token), uri, helper.library);
 
       Generator generator;
-      if (builder == null) {
-        // If we find a setter, [builder] is an [AccessErrorBuilder], not null.
+      if (member == null) {
+        // If we find a setter, [member] is an [AccessErrorBuilder], not null.
         if (send is IncompletePropertyAccessGenerator) {
           generator = new UnresolvedNameGenerator(helper, send.token, name);
         } else {
@@ -1317,18 +1320,18 @@ class KernelTypeUseGenerator extends KernelReadOnlyAccessGenerator
               arguments, name.name, null, token.charOffset, Constness.implicit);
         }
       } else {
-        Builder setter;
-        if (builder.isSetter) {
-          setter = builder;
-        } else if (builder.isGetter) {
+        Declaration setter;
+        if (member.isSetter) {
+          setter = member;
+        } else if (member.isGetter) {
           setter = declaration.findStaticBuilder(
               name.name, offsetForToken(token), uri, helper.library,
               isSetter: true);
-        } else if (builder.isField && !builder.isFinal) {
-          setter = builder;
+        } else if (member.isField && !member.isFinal) {
+          setter = member;
         }
         generator = new StaticAccessGenerator<Expression, Statement,
-            Arguments>.fromBuilder(helper, builder, send.token, setter);
+            Arguments>.fromBuilder(helper, member, send.token, setter);
       }
 
       return arguments == null
@@ -1428,6 +1431,84 @@ class KernelLargeIntAccessGenerator extends KernelGenerator
   Expression _makeWrite(Expression value, bool voidContext,
       ShadowComplexAssignment complexAssignment) {
     return buildError();
+  }
+}
+
+class KernelUnresolvedNameGenerator extends KernelGenerator
+    with
+        ErroneousExpressionGenerator<Expression, Statement, Arguments>,
+        UnresolvedNameGenerator<Expression, Statement, Arguments> {
+  @override
+  final Name name;
+
+  KernelUnresolvedNameGenerator(
+      ExpressionGeneratorHelper<dynamic, dynamic, dynamic> helper,
+      Token token,
+      this.name)
+      : super(helper, token);
+
+  @override
+  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+    return unsupported("_makeRead", offsetForToken(token), uri);
+  }
+
+  @override
+  Expression _makeWrite(Expression value, bool voidContext,
+      ShadowComplexAssignment complexAssignment) {
+    return unsupported("_makeWrite", offsetForToken(token), uri);
+  }
+
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", name: ");
+    sink.write(name.name);
+  }
+}
+
+class KernelUnlinkedGenerator extends KernelGenerator
+    with UnlinkedGenerator<Expression, Statement, Arguments> {
+  @override
+  final UnlinkedDeclaration declaration;
+
+  final Expression receiver;
+
+  final Name name;
+
+  KernelUnlinkedGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      this.declaration)
+      : name = new Name(declaration.name, helper.library.target),
+        receiver = new InvalidExpression(declaration.name)
+          ..fileOffset = offsetForToken(token),
+        super(helper, token);
+
+  @override
+  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+    return unsupported("_makeRead", offsetForToken(token), uri);
+  }
+
+  @override
+  Expression _makeWrite(Expression value, bool voidContext,
+      ShadowComplexAssignment complexAssignment) {
+    return unsupported("_makeWrite", offsetForToken(token), uri);
+  }
+
+  @override
+  Expression buildAssignment(Expression value, {bool voidContext}) {
+    return new PropertySet(receiver, name, value)
+      ..fileOffset = offsetForToken(token);
+  }
+
+  @override
+  Expression buildSimpleRead() {
+    return new ShadowPropertyGet(receiver, name)
+      ..fileOffset = offsetForToken(token);
+  }
+
+  @override
+  Expression doInvocation(int offset, Arguments arguments) {
+    return unsupported("doInvocation", offset, uri);
   }
 }
 

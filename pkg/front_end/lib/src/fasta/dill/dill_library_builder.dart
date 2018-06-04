@@ -25,7 +25,7 @@ import '../problems.dart' show internalProblem, unhandled, unimplemented;
 
 import '../kernel/kernel_builder.dart'
     show
-        Builder,
+        Declaration,
         DynamicTypeBuilder,
         InvalidTypeBuilder,
         KernelInvalidTypeBuilder,
@@ -105,22 +105,23 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
     }
   }
 
-  Builder addBuilder(String name, Builder builder, int charOffset) {
+  @override
+  Declaration addBuilder(String name, Declaration declaration, int charOffset) {
     if (name == null || name.isEmpty) return null;
-    bool isSetter = builder.isSetter;
+    bool isSetter = declaration.isSetter;
     if (isSetter) {
-      scopeBuilder.addSetter(name, builder);
+      scopeBuilder.addSetter(name, declaration);
     } else {
-      scopeBuilder.addMember(name, builder);
+      scopeBuilder.addMember(name, declaration);
     }
     if (!name.startsWith("_")) {
       if (isSetter) {
-        exportScopeBuilder.addSetter(name, builder);
+        exportScopeBuilder.addSetter(name, declaration);
       } else {
-        exportScopeBuilder.addMember(name, builder);
+        exportScopeBuilder.addMember(name, declaration);
       }
     }
-    return builder;
+    return declaration;
   }
 
   void addTypedef(Typedef typedef) {
@@ -129,13 +130,14 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   }
 
   @override
-  void addToScope(String name, Builder member, int charOffset, bool isImport) {
+  void addToScope(
+      String name, Declaration member, int charOffset, bool isImport) {
     unimplemented("addToScope", charOffset, fileUri);
   }
 
   @override
-  Builder buildAmbiguousBuilder(
-      String name, Builder builder, Builder other, int charOffset,
+  Declaration computeAmbiguousDeclaration(
+      String name, Declaration builder, Declaration other, int charOffset,
       {bool isExport: false, bool isImport: false}) {
     if (builder == other) return builder;
     if (builder is InvalidTypeBuilder) return builder;
@@ -154,17 +156,17 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
 
   void finalizeExports() {
     unserializableExports?.forEach((String name, String message) {
-      Builder builder;
+      Declaration declaration;
       switch (name) {
         case "dynamic":
         case "void":
           // TODO(ahe): It's likely that we shouldn't be exporting these types
           // from dart:core, and this case can be removed.
-          builder = loader.coreLibrary.exportScopeBuilder[name];
+          declaration = loader.coreLibrary.exportScopeBuilder[name];
           break;
 
         default:
-          builder = new KernelInvalidTypeBuilder(
+          declaration = new KernelInvalidTypeBuilder(
               name,
               -1,
               null,
@@ -172,7 +174,7 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
                   ? null
                   : templateUnspecified.withArguments(message));
       }
-      exportScopeBuilder.addMember(name, builder);
+      exportScopeBuilder.addMember(name, declaration);
     });
 
     for (var reference in library.additionalExports) {
@@ -203,22 +205,22 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
             -1,
             fileUri);
       }
-      Builder builder;
+      Declaration declaration;
       if (isSetter) {
-        builder = library.exportScope.setters[name];
-        exportScopeBuilder.addSetter(name, builder);
+        declaration = library.exportScope.setters[name];
+        exportScopeBuilder.addSetter(name, declaration);
       } else {
-        builder = library.exportScope.local[name];
-        exportScopeBuilder.addMember(name, builder);
+        declaration = library.exportScope.local[name];
+        exportScopeBuilder.addMember(name, declaration);
       }
-      if (builder == null) {
+      if (declaration == null) {
         internalProblem(
             templateUnspecified.withArguments(
                 "Exported element '$name' not found in '$libraryUri'."),
             -1,
             fileUri);
       }
-      assert(node == builder.target);
+      assert(node == declaration.target);
     }
   }
 }

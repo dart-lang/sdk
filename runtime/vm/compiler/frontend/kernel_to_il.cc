@@ -2135,6 +2135,71 @@ Fragment FlowGraphBuilder::NativeFunctionBody(intptr_t first_positional_offset,
                               Array::length_offset(),
                               Type::ZoneHandle(Z, Type::SmiType()), kSmiCid);
       break;
+    case MethodRecognizer::kListFactory: {
+      // factory List<E>([int length]) {
+      //   return (:arg_desc.positional_count == 2) ? new _List<E>(length)
+      //                                            : new _GrowableList<E>(0);
+      // }
+      const Library& core_lib = Library::Handle(Z, Library::CoreLibrary());
+
+      TargetEntryInstr *allocate_non_growable, *allocate_growable;
+
+      body += LoadArgDescriptor();
+      body +=
+          LoadField(ArgumentsDescriptor::positional_count_offset(), kSmiCid);
+      body += IntConstant(2);
+      body += BranchIfStrictEqual(&allocate_non_growable, &allocate_growable);
+
+      JoinEntryInstr* join = BuildJoinEntry();
+
+      {
+        const Class& cls = Class::Handle(
+            Z, core_lib.LookupClass(
+                   Library::PrivateCoreLibName(Symbols::_List())));
+        ASSERT(!cls.IsNull());
+        const Function& func = Function::ZoneHandle(
+            Z, cls.LookupFactoryAllowPrivate(Symbols::_ListFactory()));
+        ASSERT(!func.IsNull());
+
+        Fragment allocate(allocate_non_growable);
+        allocate += LoadLocal(scopes_->type_arguments_variable);
+        allocate += PushArgument();
+        allocate += LoadLocal(LookupVariable(first_positional_offset));
+        allocate += PushArgument();
+        allocate +=
+            StaticCall(TokenPosition::kNoSource, func, 2, ICData::kStatic);
+        allocate += StoreLocal(TokenPosition::kNoSource,
+                               parsed_function_->expression_temp_var());
+        allocate += Drop();
+        allocate += Goto(join);
+      }
+
+      {
+        const Class& cls = Class::Handle(
+            Z, core_lib.LookupClass(
+                   Library::PrivateCoreLibName(Symbols::_GrowableList())));
+        ASSERT(!cls.IsNull());
+        const Function& func = Function::ZoneHandle(
+            Z, cls.LookupFactoryAllowPrivate(Symbols::_GrowableListFactory()));
+        ASSERT(!func.IsNull());
+
+        Fragment allocate(allocate_growable);
+        allocate += LoadLocal(scopes_->type_arguments_variable);
+        allocate += PushArgument();
+        allocate += IntConstant(0);
+        allocate += PushArgument();
+        allocate +=
+            StaticCall(TokenPosition::kNoSource, func, 2, ICData::kStatic);
+        allocate += StoreLocal(TokenPosition::kNoSource,
+                               parsed_function_->expression_temp_var());
+        allocate += Drop();
+        allocate += Goto(join);
+      }
+
+      body = Fragment(body.entry, join);
+      body += LoadLocal(parsed_function_->expression_temp_var());
+      break;
+    }
     case MethodRecognizer::kObjectArrayAllocate:
       body += LoadLocal(scopes_->type_arguments_variable);
       body += LoadLocal(LookupVariable(first_positional_offset));

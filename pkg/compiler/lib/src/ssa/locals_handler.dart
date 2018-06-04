@@ -12,9 +12,8 @@ import '../js_backend/interceptor_data.dart';
 import '../js_model/closure.dart' show JRecordField, JClosureField;
 import '../js_model/locals.dart' show JLocal;
 import '../types/abstract_value_domain.dart';
-import '../types/masks.dart';
 import '../types/types.dart';
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show JClosedWorld;
 
 import 'graph_builder.dart';
 import 'nodes.dart';
@@ -66,7 +65,7 @@ class LocalsHandler {
   LocalsHandler(this.builder, this.executableContext, this.memberContext,
       this.instanceType, this._nativeData, this._interceptorData);
 
-  ClosedWorld get closedWorld => builder.closedWorld;
+  JClosedWorld get closedWorld => builder.closedWorld;
 
   AbstractValueDomain get _abstractValueDomain =>
       closedWorld.abstractValueDomain;
@@ -196,12 +195,12 @@ class LocalsHandler {
       MemberEntity element,
       ScopeInfo scopeInfo,
       CapturedScope scopeData,
-      Map<Local, TypeMask> parameters,
+      Map<Local, AbstractValue> parameters,
       SourceInformation sourceInformation,
       {bool isGenerativeConstructorBody}) {
     this.scopeInfo = scopeInfo;
 
-    parameters.forEach((Local local, TypeMask typeMask) {
+    parameters.forEach((Local local, AbstractValue typeMask) {
       if (isGenerativeConstructorBody) {
         if (scopeData.isBoxed(local)) {
           // The parameter will be a field in the box passed as the
@@ -275,8 +274,8 @@ class LocalsHandler {
       SyntheticLocal parameter = createLocal('receiver');
       // Unlike `this`, receiver is nullable since direct calls to generative
       // constructor call the constructor with `null`.
-      HParameterValue value =
-          new HParameterValue(parameter, new TypeMask.exact(cls, closedWorld));
+      HParameterValue value = new HParameterValue(
+          parameter, closedWorld.abstractValueDomain.createNullableExact(cls));
       builder.graph.explicitReceiverParameter = value;
       builder.graph.entry.addAtEntry(value);
       if (builder.lastAddedParameter == null) {
@@ -341,7 +340,7 @@ class LocalsHandler {
       ClosureRepresentationInfo closureData = scopeInfo;
       FieldEntity redirect = redirectionMapping[local];
       HInstruction receiver = readLocal(closureData.closureEntity);
-      TypeMask type = local is BoxLocal
+      AbstractValue type = local is BoxLocal
           ? _abstractValueDomain.nonNullType
           : getTypeOfCapturedVariable(redirect);
       HInstruction fieldGet = new HFieldGet(redirect, receiver, type);
@@ -643,10 +642,10 @@ class LocalsHandler {
     return this;
   }
 
-  TypeMask cachedTypeOfThis;
+  AbstractValue cachedTypeOfThis;
 
-  TypeMask getTypeOfThis() {
-    TypeMask result = cachedTypeOfThis;
+  AbstractValue getTypeOfThis() {
+    AbstractValue result = cachedTypeOfThis;
     if (result == null) {
       ThisLocal local = scopeInfo.thisLocal;
       ClassEntity cls = local.enclosingClass;
@@ -655,21 +654,21 @@ class LocalsHandler {
         // of the class that mixins the enclosing class. These two
         // classes do not have a subclass relationship, so, for
         // simplicity, we mark the type as an interface type.
-        result = new TypeMask.nonNullSubtype(cls, closedWorld);
+        result = _abstractValueDomain.createNonNullSubtype(cls);
       } else {
-        result = new TypeMask.nonNullSubclass(cls, closedWorld);
+        result = _abstractValueDomain.createNonNullSubclass(cls);
       }
       cachedTypeOfThis = result;
     }
     return result;
   }
 
-  Map<FieldEntity, TypeMask> cachedTypesOfCapturedVariables =
-      new Map<FieldEntity, TypeMask>();
+  Map<FieldEntity, AbstractValue> cachedTypesOfCapturedVariables =
+      new Map<FieldEntity, AbstractValue>();
 
-  TypeMask getTypeOfCapturedVariable(FieldEntity element) {
+  AbstractValue getTypeOfCapturedVariable(FieldEntity element) {
     return cachedTypesOfCapturedVariables.putIfAbsent(element, () {
-      return TypeMaskFactory.inferredTypeForMember(
+      return AbstractValueFactory.inferredTypeForMember(
           element, _globalInferenceResults);
     });
   }

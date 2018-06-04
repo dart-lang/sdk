@@ -89,7 +89,7 @@ import 'interface_resolver.dart' show ForwardingNode, SyntheticAccessor;
 import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
 
 import 'type_inference_engine.dart'
-    show IncludesTypeParametersCovariantly, TypeInferenceEngineImpl;
+    show IncludesTypeParametersCovariantly, TypeInferenceEngine;
 
 import 'type_promotion.dart' show TypePromoter, TypePromoterDisabled;
 
@@ -395,7 +395,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   static final FunctionType unknownFunction =
       new FunctionType(const [], const DynamicType());
 
-  final TypeInferenceEngineImpl engine;
+  final TypeInferenceEngine engine;
 
   @override
   final Uri uri;
@@ -547,8 +547,14 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// Finds a member of [receiverType] called [name], and if it is found,
   /// reports it through instrumentation using [fileOffset].
   ///
-  /// For the special case where [receiverType] is a [FunctionType], and the
-  /// method name is `call`, the string `call` is returned as a sentinel object.
+  /// For the case where [receiverType] is a [FunctionType], and the name
+  /// is `call`, the string 'call' is returned as a sentinel object.
+  ///
+  /// For the case where [receiverType] is `dynamic`, and the name is declared
+  /// in Object, the member from Object is returned though the call may not end
+  /// up targeting it if the arguments do not match (the basic principle is that
+  /// the Object member is used for inferring types only if noSuchMethod cannot
+  /// be targeted due to, e.g., an incorrect argument count).
   Object findInterfaceMember(DartType receiverType, Name name, int fileOffset,
       {Template<Message Function(String, DartType)> errorTemplate,
       Expression expression,
@@ -568,16 +574,15 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       return 'call';
     }
 
-    Member interfaceMember;
-    if (receiverType is! DynamicType) {
-      Class classNode = receiverType is InterfaceType
-          ? receiverType.classNode
-          : coreTypes.objectClass;
-      interfaceMember = _getInterfaceMember(classNode, name, setter);
-      if (!silent && interfaceMember != null) {
-        instrumentation?.record(uri, fileOffset, 'target',
-            new InstrumentationValueForMember(interfaceMember));
-      }
+    Class classNode = receiverType is InterfaceType
+        ? receiverType.classNode
+        : coreTypes.objectClass;
+    Member interfaceMember = _getInterfaceMember(classNode, name, setter);
+    if (!silent &&
+        receiverType != const DynamicType() &&
+        interfaceMember != null) {
+      instrumentation?.record(uri, fileOffset, 'target',
+          new InstrumentationValueForMember(interfaceMember));
     }
 
     if (!isTopLevel &&
@@ -600,8 +605,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     return interfaceMember;
   }
 
-  /// Finds a member of [receiverType] called [name], and if it is found,
-  /// reports it through instrumentation and records it in [methodInvocation].
+  /// Finds a member of [receiverType] called [name] and records it in
+  /// [methodInvocation].
   Object findMethodInvocationMember(
       DartType receiverType, InvocationExpression methodInvocation,
       {bool silent: false}) {
@@ -614,11 +619,31 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           expression: methodInvocation,
           receiver: methodInvocation.receiver,
           silent: silent);
-      if (strongMode && interfaceMember is Member) {
+      if (receiverType == const DynamicType() && interfaceMember is Procedure) {
+        var arguments = methodInvocation.arguments;
+        var signature = interfaceMember.function;
+        if (arguments.positional.length < signature.requiredParameterCount ||
+            arguments.positional.length >
+                signature.positionalParameters.length) {
+          return null;
+        }
+        for (var argument in arguments.named) {
+          if (!signature.namedParameters
+              .any((declaration) => declaration.name == argument.name)) {
+            return null;
+          }
+        }
+        if (instrumentation != null && !silent) {
+          instrumentation.record(uri, methodInvocation.fileOffset, 'target',
+              new InstrumentationValueForMember(interfaceMember));
+        }
+        methodInvocation.interfaceTarget = interfaceMember;
+      } else if (strongMode && interfaceMember is Member) {
         methodInvocation.interfaceTarget = interfaceMember;
       }
       return interfaceMember;
     } else if (methodInvocation is SuperMethodInvocation) {
+      assert(receiverType != const DynamicType());
       var interfaceMember = findInterfaceMember(
           receiverType, methodInvocation.name, methodInvocation.fileOffset,
           silent: silent);
@@ -646,10 +671,17 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           receiver: propertyGet.receiver,
           silent: silent);
       if (strongMode && interfaceMember is Member) {
+        if (instrumentation != null &&
+            !silent &&
+            receiverType == const DynamicType()) {
+          instrumentation.record(uri, propertyGet.fileOffset, 'target',
+              new InstrumentationValueForMember(interfaceMember));
+        }
         propertyGet.interfaceTarget = interfaceMember;
       }
       return interfaceMember;
     } else if (propertyGet is SuperPropertyGet) {
+      assert(receiverType != const DynamicType());
       var interfaceMember = findInterfaceMember(
           receiverType, propertyGet.name, propertyGet.fileOffset,
           silent: silent);
@@ -676,10 +708,17 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           setter: true,
           silent: silent);
       if (strongMode && interfaceMember is Member) {
+        if (instrumentation != null &&
+            !silent &&
+            receiverType == const DynamicType()) {
+          instrumentation.record(uri, propertySet.fileOffset, 'target',
+              new InstrumentationValueForMember(interfaceMember));
+        }
         propertySet.interfaceTarget = interfaceMember;
       }
       return interfaceMember;
     } else if (propertySet is SuperPropertySet) {
+      assert(receiverType != const DynamicType());
       var interfaceMember = findInterfaceMember(
           receiverType, propertySet.name, propertySet.fileOffset,
           setter: true, silent: silent);
@@ -1353,7 +1392,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           errorTemplate: templateUndefinedGetter,
           expression: expression,
           receiver: receiver);
-      if (interfaceMember is Member) {
+      if (strongMode && interfaceMember is Member) {
+        if (instrumentation != null && receiverType == const DynamicType()) {
+          instrumentation.record(uri, desugaredGet.fileOffset, 'target',
+              new InstrumentationValueForMember(interfaceMember));
+        }
         desugaredGet.interfaceTarget = interfaceMember;
       }
     }

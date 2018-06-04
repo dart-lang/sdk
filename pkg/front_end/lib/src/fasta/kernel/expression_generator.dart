@@ -15,11 +15,12 @@ import '../fasta_codes.dart'
         messageInvalidInitializer,
         templateDeferredTypeAnnotation,
         templateIntegerLiteralIsOutOfRange,
-        templateNotAType;
+        templateNotAType,
+        templateUnresolvedPrefixInTypeAnnotation;
 
 import '../names.dart' show lengthName;
 
-import '../parser.dart' show lengthForToken, offsetForToken;
+import '../parser.dart' show lengthForToken, lengthOfSpan, offsetForToken;
 
 import '../problems.dart' show unhandled, unsupported;
 
@@ -31,7 +32,8 @@ import 'forest.dart'
         Identifier,
         LoadLibraryBuilder,
         PrefixBuilder,
-        TypeDeclarationBuilder;
+        TypeDeclarationBuilder,
+        UnlinkedDeclaration;
 
 import 'kernel_ast_api.dart'
     show
@@ -47,8 +49,8 @@ import 'kernel_ast_api.dart'
 import 'kernel_builder.dart'
     show
         AccessErrorBuilder,
-        Builder,
         BuiltinTypeBuilder,
+        Declaration,
         FunctionTypeAliasBuilder,
         KernelClassBuilder,
         KernelFunctionTypeAliasBuilder,
@@ -67,7 +69,6 @@ export 'kernel_expression_generator.dart'
         ParenthesizedExpressionGenerator,
         SendAccessGenerator,
         ThisAccessGenerator,
-        UnresolvedNameGenerator,
         buildIsNull;
 
 abstract class ExpressionGenerator<Expression, Statement, Arguments> {
@@ -455,24 +456,24 @@ abstract class StaticAccessGenerator<Expression, Statement, Arguments>
 
   factory StaticAccessGenerator.fromBuilder(
       ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Builder builder,
+      Declaration declaration,
       Token token,
-      Builder builderSetter) {
-    if (builder is AccessErrorBuilder) {
-      AccessErrorBuilder error = builder;
-      builder = error.builder;
+      Declaration builderSetter) {
+    if (declaration is AccessErrorBuilder) {
+      AccessErrorBuilder error = declaration;
+      declaration = error.builder;
       // We should only see an access error here if we've looked up a setter
       // when not explicitly looking for a setter.
-      assert(builder.isSetter);
-    } else if (builder.target == null) {
+      assert(declaration.isSetter);
+    } else if (declaration.target == null) {
       return unhandled(
-          "${builder.runtimeType}",
+          "${declaration.runtimeType}",
           "StaticAccessGenerator.fromBuilder",
           offsetForToken(token),
           helper.uri);
     }
-    Member getter = builder.target.hasGetter ? builder.target : null;
-    Member setter = builder.target.hasSetter ? builder.target : null;
+    Member getter = declaration.target.hasGetter ? declaration.target : null;
+    Member setter = declaration.target.hasSetter ? declaration.target : null;
     if (setter == null) {
       if (builderSetter?.target?.hasSetter ?? false) {
         setter = builderSetter.target;
@@ -720,7 +721,8 @@ abstract class ErroneousExpressionGenerator<Expression, Statement, Arguments>
   @override
   buildPropertyAccess(
       IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
-    return this;
+    return send.withReceiver(buildSimpleRead(), operatorOffset,
+        isNullAware: isNullAware);
   }
 
   @override
@@ -795,5 +797,68 @@ abstract class ErroneousExpressionGenerator<Expression, Statement, Arguments>
   Expression makeInvalidWrite(Expression value) {
     return buildError(forest.arguments(<Expression>[value], token),
         isSetter: true);
+  }
+}
+
+abstract class UnresolvedNameGenerator<Expression, Statement, Arguments>
+    implements ErroneousExpressionGenerator<Expression, Statement, Arguments> {
+  factory UnresolvedNameGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Name name) {
+    return helper.forest.unresolvedNameGenerator(helper, token, name);
+  }
+
+  String get debugName => "UnresolvedNameGenerator";
+
+  Expression doInvocation(int charOffset, Arguments arguments) {
+    return buildError(arguments, offset: charOffset);
+  }
+
+  @override
+  DartType buildErroneousTypeNotAPrefix(Identifier suffix) {
+    helper.addProblem(
+        templateUnresolvedPrefixInTypeAnnotation.withArguments(
+            name.name, suffix.name),
+        offsetForToken(token),
+        lengthOfSpan(token, suffix.token));
+    return const InvalidType();
+  }
+
+  @override
+  Expression buildError(Arguments arguments,
+      {bool isGetter: false, bool isSetter: false, int offset}) {
+    offset ??= offsetForToken(this.token);
+    return helper.throwNoSuchMethodError(
+        storeOffset(forest.literalNull(null), offset),
+        plainNameForRead,
+        arguments,
+        offset,
+        isGetter: isGetter,
+        isSetter: isSetter);
+  }
+}
+
+abstract class UnlinkedGenerator<Expression, Statement, Arguments>
+    implements Generator<Expression, Statement, Arguments> {
+  factory UnlinkedGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      UnlinkedDeclaration declaration) {
+    return helper.forest.unlinkedGenerator(helper, token, declaration);
+  }
+
+  UnlinkedDeclaration get declaration;
+
+  @override
+  String get plainNameForRead => declaration.name;
+
+  @override
+  String get debugName => "UnlinkedGenerator";
+
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", name: ");
+    sink.write(declaration.name);
   }
 }

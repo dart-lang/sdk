@@ -33,16 +33,10 @@ class KernelTypeGraphInferrer extends TypeGraphInferrer<ir.Node> {
   final GlobalLocalsMap _globalLocalsMap;
   final ClosureDataLookup<ir.Node> _closureDataLookup;
 
-  KernelTypeGraphInferrer(
-      this._compiler,
-      this._elementMap,
-      this._globalLocalsMap,
-      this._closureDataLookup,
-      ClosedWorld closedWorld,
-      ClosedWorldRefiner closedWorldRefiner,
+  KernelTypeGraphInferrer(this._compiler, this._elementMap,
+      this._globalLocalsMap, this._closureDataLookup, JClosedWorld closedWorld,
       {bool disableTypeInference: false})
-      : super(closedWorld, closedWorldRefiner,
-            disableTypeInference: disableTypeInference);
+      : super(closedWorld, disableTypeInference: disableTypeInference);
 
   @override
   InferrerEngine<ir.Node> createInferrerEngineFor(FunctionEntity main) {
@@ -55,7 +49,6 @@ class KernelTypeGraphInferrer extends TypeGraphInferrer<ir.Node> {
         _globalLocalsMap,
         _closureDataLookup,
         closedWorld,
-        closedWorldRefiner,
         _compiler.backend.noSuchMethodRegistry,
         main,
         _compiler.backendStrategy.sorter);
@@ -70,7 +63,7 @@ class KernelTypeGraphInferrer extends TypeGraphInferrer<ir.Node> {
 class KernelGlobalTypeInferenceResults
     extends GlobalTypeInferenceResults<ir.Node> {
   KernelGlobalTypeInferenceResults(
-      TypesInferrer<ir.Node> inferrer, ClosedWorld closedWorld)
+      TypesInferrer<ir.Node> inferrer, JClosedWorld closedWorld)
       : super(inferrer, closedWorld);
 
   GlobalTypeInferenceMemberResult<ir.Node> createMemberResult(
@@ -105,8 +98,7 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
       this._elementMap,
       this._globalLocalsMap,
       this._closureDataLookup,
-      ClosedWorld closedWorld,
-      ClosedWorldRefiner closedWorldRefiner,
+      JClosedWorld closedWorld,
       NoSuchMethodRegistry noSuchMethodRegistry,
       FunctionEntity mainElement,
       Sorter sorter)
@@ -116,7 +108,6 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
             reporter,
             compilerOutput,
             closedWorld,
-            closedWorldRefiner,
             noSuchMethodRegistry,
             mainElement,
             sorter,
@@ -268,7 +259,9 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy<ir.Node> {
 
   @override
   ParameterTypeInformation createParameterTypeInformation(
-      covariant JLocal parameter, TypeSystem<ir.Node> types) {
+      AbstractValueDomain abstractValueDomain,
+      covariant JLocal parameter,
+      TypeSystem<ir.Node> types) {
     MemberEntity context = parameter.memberContext;
     KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(context);
     ir.FunctionNode functionNode =
@@ -289,40 +282,48 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy<ir.Node> {
         types.getInferredTypeOfMember(member);
     if (isClosure) {
       return new ParameterTypeInformation.localFunction(
-          memberTypeInformation, parameter, type, member);
+          abstractValueDomain, memberTypeInformation, parameter, type, member);
     } else if (member.isInstanceMember) {
-      return new ParameterTypeInformation.instanceMember(memberTypeInformation,
-          parameter, type, member, new ParameterAssignments());
+      return new ParameterTypeInformation.instanceMember(
+          abstractValueDomain,
+          memberTypeInformation,
+          parameter,
+          type,
+          member,
+          new ParameterAssignments());
     } else {
       return new ParameterTypeInformation.static(
-          memberTypeInformation, parameter, type, member);
+          abstractValueDomain, memberTypeInformation, parameter, type, member);
     }
   }
 
   @override
-  MemberTypeInformation createMemberTypeInformation(MemberEntity member) {
+  MemberTypeInformation createMemberTypeInformation(
+      AbstractValueDomain abstractValueDomain, MemberEntity member) {
     if (member.isField) {
       FieldEntity field = member;
       DartType type = _elementEnvironment.getFieldType(field);
-      return new FieldTypeInformation(field, type);
+      return new FieldTypeInformation(abstractValueDomain, field, type);
     } else if (member.isGetter) {
       FunctionEntity getter = member;
       DartType type = _elementEnvironment.getFunctionType(getter);
-      return new GetterTypeInformation(getter, type);
+      return new GetterTypeInformation(abstractValueDomain, getter, type);
     } else if (member.isSetter) {
       FunctionEntity setter = member;
-      return new SetterTypeInformation(setter);
+      return new SetterTypeInformation(abstractValueDomain, setter);
     } else if (member.isFunction) {
       FunctionEntity method = member;
       DartType type = _elementEnvironment.getFunctionType(method);
-      return new MethodTypeInformation(method, type);
+      return new MethodTypeInformation(abstractValueDomain, method, type);
     } else {
       ConstructorEntity constructor = member;
       if (constructor.isFactoryConstructor) {
         DartType type = _elementEnvironment.getFunctionType(constructor);
-        return new FactoryConstructorTypeInformation(constructor, type);
+        return new FactoryConstructorTypeInformation(
+            abstractValueDomain, constructor, type);
       } else {
-        return new GenerativeConstructorTypeInformation(constructor);
+        return new GenerativeConstructorTypeInformation(
+            abstractValueDomain, constructor);
       }
     }
   }

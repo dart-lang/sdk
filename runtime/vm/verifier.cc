@@ -74,8 +74,7 @@ void VerifyPointersVisitor::VerifyPointers(MarkExpectation mark_expectation) {
 
   VerifyPointersVisitor visitor(isolate, allocated_set);
   // Visit all strongly reachable objects.
-  iteration.IterateObjectPointers(&visitor,
-                                  StackFrameIterator::kValidateFrames);
+  iteration.IterateObjectPointers(&visitor, ValidationPolicy::kValidateFrames);
   VerifyWeakPointersVisitor weak_visitor(&visitor);
   // Visit weak handles and prologue weak handles.
   isolate->VisitWeakPersistentHandles(&weak_visitor);

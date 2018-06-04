@@ -21,13 +21,11 @@ main() {
 @reflectiveTest
 class AnalysisHighlightsTest extends AbstractAnalysisServerIntegrationTest {
   Future startServer({
-    bool checked: true,
     int diagnosticPort,
     int servicesPort,
     bool cfe: false,
   }) {
     return server.start(
-        checked: checked,
         diagnosticPort: diagnosticPort,
         servicesPort: servicesPort,
         useAnalysisHighlight2: true,

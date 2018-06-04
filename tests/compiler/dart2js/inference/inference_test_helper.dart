@@ -9,7 +9,7 @@ import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/types/masks.dart';
+import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import 'package:compiler/src/types/types.dart';
 import 'package:compiler/src/js_model/locals.dart';
 import 'package:compiler/src/kernel/element_map.dart';

@@ -127,6 +127,12 @@ abstract class ExtractLocalRefactoring implements Refactoring {
    * level of checking.
    */
   RefactoringStatus checkName();
+
+  /**
+   * Return `true` if refactoring is available, possibly without checking all
+   * initial conditions.
+   */
+  bool isAvailable();
 }
 
 /**
@@ -220,6 +226,12 @@ abstract class ExtractMethodRefactoring implements Refactoring {
    * level of checking.
    */
   RefactoringStatus checkName();
+
+  /**
+   * Return `true` if refactoring is available, possibly without checking all
+   * initial conditions.
+   */
+  bool isAvailable();
 }
 
 /**
@@ -231,9 +243,9 @@ abstract class ExtractWidgetRefactoring implements Refactoring {
    * Returns a new [ExtractWidgetRefactoring] instance.
    */
   factory ExtractWidgetRefactoring(SearchEngine searchEngine,
-      AnalysisSession session, CompilationUnit unit, int offset) {
+      AnalysisSession session, CompilationUnit unit, int offset, int length) {
     return new ExtractWidgetRefactoringImpl(
-        searchEngine, session, unit, offset);
+        searchEngine, session, unit, offset, length);
   }
 
   /**

@@ -64,8 +64,6 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
   return false;
 }
 
-#if defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
-
 intptr_t TypeTestingStubCallPattern::GetSubtypeTestCachePoolIndex() {
   const intptr_t kCallPatternSize = 10;
   static int16_t pattern[kCallPatternSize] = {
@@ -77,8 +75,6 @@ intptr_t TypeTestingStubCallPattern::GetSubtypeTestCachePoolIndex() {
 
   return IndexFromPPLoad(start + 3);
 }
-
-#endif  // defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace dart
 

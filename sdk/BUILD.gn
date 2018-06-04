@@ -564,7 +564,7 @@ copy("copy_dev_compiler_summary") {
   deps = [
     ":copy_libraries",
     "../utils/dartdevc:dartdevc_sdk",
-    "../utils/dartdevc:dartdevc_sdk_kernel_summary",
+    "../utils/dartdevc:dartdevk_sdk",
   ]
   gen_dir = get_label_info("../utils/dartdevc:dartdevc_sdk", "target_gen_dir")
   sources = [
@@ -651,9 +651,9 @@ copy("copy_dev_compiler_js_legacy") {
 copy("copy_dev_compiler_js_amd_kernel") {
   visibility = [ ":copy_dev_compiler_js" ]
   deps = [
-    "../utils/dartdevc:dartdevc_sdk_kernel_summary",
+    "../utils/dartdevc:dartdevk_sdk",
   ]
-  gen_dir = get_label_info("../utils/dartdevc:dartdevc_sdk_kernel_summary",
+  gen_dir = get_label_info("../utils/dartdevc:dartdevk_sdk",
                            "target_gen_dir")
   sources = [
     "$gen_dir/kernel/amd/dart_sdk.js",
@@ -669,9 +669,9 @@ copy("copy_dev_compiler_js_amd_kernel") {
 copy("copy_dev_compiler_js_common_kernel") {
   visibility = [ ":copy_dev_compiler_js" ]
   deps = [
-    "../utils/dartdevc:dartdevc_sdk_kernel_summary",
+    "../utils/dartdevc:dartdevk_sdk",
   ]
-  gen_dir = get_label_info("../utils/dartdevc:dartdevc_sdk_kernel_summary",
+  gen_dir = get_label_info("../utils/dartdevc:dartdevk_sdk",
                            "target_gen_dir")
   sources = [
     "$gen_dir/kernel/common/dart_sdk.js",
@@ -687,9 +687,9 @@ copy("copy_dev_compiler_js_common_kernel") {
 copy("copy_dev_compiler_js_es6_kernel") {
   visibility = [ ":copy_dev_compiler_js" ]
   deps = [
-    "../utils/dartdevc:dartdevc_sdk_kernel_summary",
+    "../utils/dartdevc:dartdevk_sdk",
   ]
-  gen_dir = get_label_info("../utils/dartdevc:dartdevc_sdk_kernel_summary",
+  gen_dir = get_label_info("../utils/dartdevc:dartdevk_sdk",
                            "target_gen_dir")
   sources = [
     "$gen_dir/kernel/es6/dart_sdk.js",
@@ -704,9 +704,9 @@ copy("copy_dev_compiler_js_es6_kernel") {
 copy("copy_dev_compiler_js_legacy_kernel") {
   visibility = [ ":copy_dev_compiler_js" ]
   deps = [
-    "../utils/dartdevc:dartdevc_sdk_kernel_summary",
+    "../utils/dartdevc:dartdevk_sdk",
   ]
-  gen_dir = get_label_info("../utils/dartdevc:dartdevc_sdk_kernel_summary",
+  gen_dir = get_label_info("../utils/dartdevc:dartdevk_sdk",
                            "target_gen_dir")
   sources = [
     "$gen_dir/kernel/legacy/dart_sdk.js",

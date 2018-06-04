@@ -6,8 +6,8 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/inferrer/type_graph_inferrer.dart';
+import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import 'package:compiler/src/types/abstract_value_domain.dart';
-import 'package:compiler/src/types/masks.dart' show MapTypeMask, TypeMask;
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
 
@@ -233,7 +233,7 @@ doTest(String allocation,
   TypeMask keyType, valueType;
   TypeGraphInferrer typesInferrer =
       compiler.globalInference.typesInferrerInternal;
-  ClosedWorld closedWorld = typesInferrer.closedWorld;
+  JClosedWorld closedWorld = typesInferrer.closedWorld;
   AbstractValueDomain commonMasks = closedWorld.abstractValueDomain;
   TypeMask emptyType = new TypeMask.nonNullEmpty();
   MemberEntity aKey = findMember(closedWorld, 'aKey');

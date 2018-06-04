@@ -24,9 +24,8 @@ import '../js_backend/runtime_types.dart';
 import '../js_emitter/code_emitter_task.dart';
 import '../options.dart';
 import '../types/abstract_value_domain.dart';
-import '../types/masks.dart';
 import '../types/types.dart';
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show JClosedWorld;
 import 'jump_handler.dart';
 import 'locals_handler.dart';
 import 'nodes.dart';
@@ -54,7 +53,7 @@ abstract class GraphBuilder {
 
   CodegenRegistry get registry;
 
-  ClosedWorld get closedWorld;
+  JClosedWorld get closedWorld;
 
   AbstractValueDomain get abstractValueDomain =>
       closedWorld.abstractValueDomain;
@@ -131,7 +130,7 @@ abstract class GraphBuilder {
   /// Pushes a boolean checking [expression] against null.
   pushCheckNull(HInstruction expression) {
     push(new HIdentity(expression, graph.addConstantNull(closedWorld), null,
-        closedWorld.abstractValueDomain.boolType));
+        abstractValueDomain.boolType));
   }
 
   void dup() {
@@ -215,7 +214,7 @@ abstract class GraphBuilder {
     current.add(instruction);
   }
 
-  HParameterValue addParameter(Entity parameter, TypeMask type) {
+  HParameterValue addParameter(Entity parameter, AbstractValue type) {
     HParameterValue result = new HParameterValue(parameter, type);
     if (lastAddedParameter == null) {
       graph.entry.addBefore(graph.entry.first, result);

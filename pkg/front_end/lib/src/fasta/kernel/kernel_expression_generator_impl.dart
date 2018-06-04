@@ -217,64 +217,6 @@ abstract class IncompleteSendGenerator extends KernelGenerator {
   }
 }
 
-class UnresolvedNameGenerator extends KernelGenerator
-    with ErroneousExpressionGenerator<Expression, Statement, Arguments> {
-  @override
-  final Name name;
-
-  UnresolvedNameGenerator(
-      ExpressionGeneratorHelper<dynamic, dynamic, dynamic> helper,
-      Token token,
-      this.name)
-      : super(helper, token);
-
-  String get debugName => "UnresolvedNameGenerator";
-
-  Expression doInvocation(int charOffset, Arguments arguments) {
-    return buildError(arguments, offset: charOffset);
-  }
-
-  @override
-  DartType buildErroneousTypeNotAPrefix(Identifier suffix) {
-    helper.addProblem(
-        templateUnresolvedPrefixInTypeAnnotation.withArguments(
-            name.name, suffix.name),
-        offsetForToken(token),
-        lengthOfSpan(token, suffix.token));
-    return const InvalidType();
-  }
-
-  @override
-  Expression buildError(Arguments arguments,
-      {bool isGetter: false, bool isSetter: false, int offset}) {
-    offset ??= offsetForToken(this.token);
-    return helper.throwNoSuchMethodError(
-        storeOffset(forest.literalNull(null), offset),
-        plainNameForRead,
-        arguments,
-        offset,
-        isGetter: isGetter,
-        isSetter: isSetter);
-  }
-
-  @override
-  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
-    return unsupported("_makeRead", offsetForToken(token), uri);
-  }
-
-  @override
-  Expression _makeWrite(Expression value, bool voidContext,
-      ShadowComplexAssignment complexAssignment) {
-    return unsupported("_makeWrite", offsetForToken(token), uri);
-  }
-
-  @override
-  void printOn(StringSink sink) {
-    sink.write(", name: ");
-    sink.write(name.name);
-  }
-}
-
 class IncompleteErrorGenerator extends IncompleteSendGenerator
     with ErroneousExpressionGenerator<Expression, Statement, Arguments> {
   final Message message;

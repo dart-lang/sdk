@@ -116,7 +116,7 @@ class _FieldNamingScope {
   }
 
   factory _FieldNamingScope.forClass(
-      ClassEntity cls, ClosedWorld world, _FieldNamingRegistry registry) {
+      ClassEntity cls, JClosedWorld world, _FieldNamingRegistry registry) {
     _FieldNamingScope result = registry.scopes[cls];
     if (result != null) return result;
 

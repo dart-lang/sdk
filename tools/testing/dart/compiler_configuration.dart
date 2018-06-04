@@ -187,6 +187,7 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
         args.add('--no-background-compilation');
       }
     } else {
+      args.add('--no-preview-dart-2');
       if (_isStrong) {
         args.add('--strong');
       }
@@ -772,6 +773,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       args.add('--preview-dart-2');
       args.addAll(_replaceDartFiles(arguments, tempKernelFile(tempDir)));
     } else {
+      args.add('--no-preview-dart-2');
       args.addAll(arguments);
     }
 
@@ -943,6 +945,8 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
     var args = ["--snapshot=$snapshot", "--snapshot-kind=app-jit"];
     if (useDfe) {
       args.add("--preview-dart-2");
+    } else {
+      args.add("--no-preview-dart-2");
     }
     args.addAll(arguments);
 
@@ -978,6 +982,8 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
     }
     if (useDfe) {
       args.add('--preview-dart-2');
+    } else {
+      args.add("--no-preview-dart-2");
     }
     args
       ..addAll(vmOptions)
@@ -1125,11 +1131,6 @@ abstract class VMKernelCompilerMixin {
     if (_isChecked || _useEnableAsserts) {
       args.add('--enable_asserts');
     }
-
-    // Pass environment variable to the gen_kernel script as
-    // arguments are not passed if gen_kernel runs in batch mode.
-    environmentOverrides = new Map.from(environmentOverrides);
-    environmentOverrides['DART_VM_FLAGS'] = '--limit-ints-to-64-bits';
 
     return Command.vmKernelCompilation(dillFile, true, bootstrapDependencies(),
         genKernel, args, environmentOverrides);

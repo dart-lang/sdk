@@ -38,10 +38,10 @@ declare -a EXTRA_VM_OPTIONS
 
 case $0 in
   *_developer)
-    EXTRA_VM_OPTIONS+=('--checked')
+    EXTRA_VM_OPTIONS+=('--enable-asserts')
     ;;
 esac
-EXTRA_VM_OPTIONS+=('--no_limit_ints_to_64_bits')
+EXTRA_VM_OPTIONS+=('--preview-dart-2')
 
 # We allow extra vm options to be passed in through an environment variable.
 if [[ $DART_VM_OPTIONS ]]; then

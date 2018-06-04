@@ -475,7 +475,7 @@ void GCMarker::IterateRoots(Isolate* isolate,
   ASSERT(0 <= slice_index && slice_index < num_slices);
   if ((slice_index == 0) || (num_slices <= 1)) {
     isolate->VisitObjectPointers(visitor,
-                                 StackFrameIterator::kDontValidateFrames);
+                                 ValidationPolicy::kDontValidateFrames);
   }
   if ((slice_index == 1) || (num_slices <= 1)) {
     heap_->new_space()->VisitObjectPointers(visitor);

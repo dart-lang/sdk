@@ -56,7 +56,7 @@ testIterators() async {
         new G();
       }
       """);
-  ClosedWorld world = env.closedWorld;
+  KClosedWorld world = env.kClosedWorld;
 
   ClassEntity A = env.getClass("A");
   ClassEntity B = env.getClass("B");
@@ -386,7 +386,7 @@ testForEach() async {
         new I();
       }
       """);
-  ClosedWorld world = env.closedWorld;
+  KClosedWorld world = env.kClosedWorld;
 
   ClassEntity A = env.getClass("A");
   ClassEntity B = env.getClass("B");
@@ -603,7 +603,7 @@ testClosures({bool strongMode}) async {
       """,
       options: strongMode ? [Flags.strongMode] : [],
       testBackendWorld: true);
-  ClosedWorld world = env.closedWorld;
+  JClosedWorld world = env.jClosedWorld;
 
   ClassEntity functionClass = world.commonElements.functionClass;
   ClassEntity closureClass = world.commonElements.closureClass;

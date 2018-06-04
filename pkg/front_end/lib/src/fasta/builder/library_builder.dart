@@ -22,8 +22,8 @@ import '../messages.dart'
 
 import 'builder.dart'
     show
-        Builder,
         ClassBuilder,
+        Declaration,
         ModifierBuilder,
         PrefixBuilder,
         Scope,
@@ -51,6 +51,9 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
         exportScopeBuilder = new ScopeBuilder(exportScope),
         super(null, -1, fileUri);
 
+  @override
+  Declaration get parent => null;
+
   bool get isPart => false;
 
   @override
@@ -64,9 +67,11 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
   @override
   R get target;
 
+  bool get disableTypeInference => true;
+
   Uri get uri;
 
-  Builder addBuilder(String name, Builder builder, int charOffset);
+  Declaration addBuilder(String name, Declaration declaration, int charOffset);
 
   void addExporter(
       LibraryBuilder exporter, List<Combinator> combinators, int charOffset) {
@@ -93,16 +98,17 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
   }
 
   /// Returns true if the export scope was modified.
-  bool addToExportScope(String name, Builder member) {
+  bool addToExportScope(String name, Declaration member) {
     if (name.startsWith("_")) return false;
     if (member is PrefixBuilder) return false;
-    Map<String, Builder> map =
+    Map<String, Declaration> map =
         member.isSetter ? exportScope.setters : exportScope.local;
-    Builder existing = map[name];
+    Declaration existing = map[name];
     if (existing == member) return false;
     if (existing != null) {
-      Builder result =
-          buildAmbiguousBuilder(name, existing, member, -1, isExport: true);
+      Declaration result = computeAmbiguousDeclaration(
+          name, existing, member, -1,
+          isExport: true);
       map[name] = result;
       return result != existing;
     } else {
@@ -111,10 +117,11 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
     return true;
   }
 
-  void addToScope(String name, Builder member, int charOffset, bool isImport);
+  void addToScope(
+      String name, Declaration member, int charOffset, bool isImport);
 
-  Builder buildAmbiguousBuilder(
-      String name, Builder builder, Builder other, int charOffset,
+  Declaration computeAmbiguousDeclaration(
+      String name, Declaration declaration, Declaration other, int charOffset,
       {bool isExport: false, bool isImport: false});
 
   int finishDeferredLoadTearoffs() => 0;
@@ -135,7 +142,7 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
   /// If [constructorName] is null or the empty string, it's assumed to be an
   /// unnamed constructor. it's an error if [constructorName] starts with
   /// `"_"`, and [bypassLibraryPrivacy] is false.
-  Builder getConstructor(String className,
+  Declaration getConstructor(String className,
       {String constructorName, bool bypassLibraryPrivacy: false}) {
     constructorName ??= "";
     if (constructorName.startsWith("_") && !bypassLibraryPrivacy) {
@@ -145,12 +152,12 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
           -1,
           null);
     }
-    Builder cls = (bypassLibraryPrivacy ? scope : exportScope)
+    Declaration cls = (bypassLibraryPrivacy ? scope : exportScope)
         .lookup(className, -1, null);
     if (cls is ClassBuilder) {
       // TODO(ahe): This code is similar to code in `endNewExpression` in
       // `body_builder.dart`, try to share it.
-      Builder constructor =
+      Declaration constructor =
           cls.findConstructorOrFactory(constructorName, -1, null, this);
       if (constructor == null) {
         // Fall-through to internal error below.
@@ -182,17 +189,17 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
 
   void becomeCoreLibrary(dynamicType);
 
-  void forEach(void f(String name, Builder builder)) {
-    scope.forEach((String name, Builder builder) {
-      if (builder.parent == this) {
-        f(name, builder);
+  void forEach(void f(String name, Declaration declaration)) {
+    scope.forEach((String name, Declaration declaration) {
+      if (declaration.parent == this) {
+        f(name, declaration);
       }
     });
   }
 
   /// Don't use for scope lookup. Only use when an element is known to exist
   /// (and not a setter).
-  Builder operator [](String name) {
+  Declaration operator [](String name) {
     return scope.local[name] ??
         internalProblem(
             templateInternalProblemNotFoundIn.withArguments(name, "$fileUri"),
@@ -200,7 +207,7 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
             fileUri);
   }
 
-  Builder lookup(String name, int charOffset, Uri fileUri) {
+  Declaration lookup(String name, int charOffset, Uri fileUri) {
     return scope.lookup(name, charOffset, fileUri);
   }
 

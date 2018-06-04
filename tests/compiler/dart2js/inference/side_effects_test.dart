@@ -28,7 +28,7 @@ main(List<String> args) {
 }
 
 abstract class ComputeValueMixin<T> {
-  ClosedWorld get closedWorld;
+  JClosedWorld get closedWorld;
 
   String getMemberValue(MemberEntity member) {
     if (member is FunctionEntity) {
@@ -59,7 +59,7 @@ void computeMemberIrSideEffects(
 /// AST visitor for computing side effects data for a member.
 class SideEffectsIrComputer extends IrDataExtractor
     with ComputeValueMixin<ir.Node> {
-  final ClosedWorld closedWorld;
+  final JClosedWorld closedWorld;
   final KernelToElementMapForBuilding _elementMap;
   final ClosureDataLookup<ir.Node> _closureDataLookup;
 

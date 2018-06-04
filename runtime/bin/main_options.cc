@@ -70,7 +70,6 @@ void Options::SetPreviewDart2Options(CommandLineOptions* vm_options) {
   OPTION_FIELD(preview_dart_2) = true;
   vm_options->AddArgument("--strong");
   vm_options->AddArgument("--reify-generic-functions");
-  vm_options->AddArgument("--limit-ints-to-64-bits");
   vm_options->AddArgument("--sync-async");
 }
 

@@ -20,8 +20,16 @@ class CloneVisitor implements TreeVisitor {
       <LabeledStatement, LabeledStatement>{};
   final Map<SwitchCase, SwitchCase> switchCases = <SwitchCase, SwitchCase>{};
   final Map<TypeParameter, DartType> typeSubstitution;
+  bool cloneAnnotations;
 
-  CloneVisitor({Map<TypeParameter, DartType> typeSubstitution})
+  /// Creates an instance of the cloning visitor for Kernel ASTs.
+  ///
+  /// The boolean value of [cloneAnnotations] tells if the annotations on the
+  /// outline elements in the source AST should be cloned to the target AST. The
+  /// annotations in procedure bodies are cloned unconditionally.
+  CloneVisitor(
+      {Map<TypeParameter, DartType> typeSubstitution,
+      this.cloneAnnotations = true})
       : this.typeSubstitution = ensureMutable(typeSubstitution);
 
   static Map<TypeParameter, DartType> ensureMutable(
@@ -395,6 +403,9 @@ class CloneVisitor implements TreeVisitor {
     return variables[node] = new VariableDeclaration(node.name,
         initializer: cloneOptional(node.initializer),
         type: visitType(node.type))
+      ..annotations = cloneAnnotations && !node.annotations.isEmpty
+          ? node.annotations.map(clone).toList()
+          : const <Expression>[]
       ..flags = node.flags;
   }
 
@@ -413,6 +424,9 @@ class CloneVisitor implements TreeVisitor {
         initializers: node.initializers.map(clone).toList(),
         transformerFlags: node.transformerFlags,
         fileUri: _activeFileUri)
+      ..annotations = cloneAnnotations && !node.annotations.isEmpty
+          ? node.annotations.map(clone).toList()
+          : const <Expression>[]
       ..fileOffset = _cloneFileOffset(node.fileOffset)
       ..fileEndOffset = _cloneFileOffset(node.fileEndOffset);
   }
@@ -423,6 +437,9 @@ class CloneVisitor implements TreeVisitor {
         fileUri: _activeFileUri,
         forwardingStubSuperTarget: node.forwardingStubSuperTarget,
         forwardingStubInterfaceTarget: node.forwardingStubInterfaceTarget)
+      ..annotations = cloneAnnotations && !node.annotations.isEmpty
+          ? node.annotations.map(clone).toList()
+          : const <Expression>[]
       ..fileOffset = _cloneFileOffset(node.fileOffset)
       ..fileEndOffset = _cloneFileOffset(node.fileEndOffset)
       ..flags = node.flags;
@@ -440,6 +457,9 @@ class CloneVisitor implements TreeVisitor {
         hasImplicitSetter: node.hasImplicitSetter,
         transformerFlags: node.transformerFlags,
         fileUri: _activeFileUri)
+      ..annotations = cloneAnnotations && !node.annotations.isEmpty
+          ? node.annotations.map(clone).toList()
+          : const <Expression>[]
       ..fileOffset = _cloneFileOffset(node.fileOffset)
       ..fileEndOffset = _cloneFileOffset(node.fileEndOffset)
       ..flags = node.flags;
@@ -456,7 +476,10 @@ class CloneVisitor implements TreeVisitor {
         positionalParameters: node.positionalParameters.map(clone).toList(),
         namedParameters: node.namedParameters.map(clone).toList(),
         requiredParameterCount: node.requiredParameterCount,
-        fileUri: _activeFileUri);
+        fileUri: _activeFileUri)
+      ..annotations = cloneAnnotations && !node.annotations.isEmpty
+          ? node.annotations.map(clone).toList()
+          : const <Expression>[];
   }
 
   visitTypeParameter(TypeParameter node) {
@@ -466,10 +489,22 @@ class CloneVisitor implements TreeVisitor {
     if (node.defaultType != null) {
       newNode.defaultType = visitType(node.defaultType);
     }
-    return newNode..flags = node.flags;
+    return newNode
+      ..annotations = cloneAnnotations && !node.annotations.isEmpty
+          ? node.annotations.map(clone).toList()
+          : const <Expression>[]
+      ..flags = node.flags;
   }
 
-  TreeNode cloneFunctionNodeBody(FunctionNode node) => cloneOptional(node.body);
+  TreeNode cloneFunctionNodeBody(FunctionNode node) {
+    bool savedCloneAnnotations = this.cloneAnnotations;
+    try {
+      this.cloneAnnotations = true;
+      return cloneOptional(node.body);
+    } finally {
+      this.cloneAnnotations = savedCloneAnnotations;
+    }
+  }
 
   visitFunctionNode(FunctionNode node) {
     var typeParameters = node.typeParameters.map(clone).toList();
@@ -584,8 +619,12 @@ class CloneVisitor implements TreeVisitor {
 }
 
 class CloneWithoutBody extends CloneVisitor {
-  CloneWithoutBody({Map<TypeParameter, DartType> typeSubstitution})
-      : super(typeSubstitution: typeSubstitution);
+  CloneWithoutBody(
+      {Map<TypeParameter, DartType> typeSubstitution,
+      bool cloneAnnotations = true})
+      : super(
+            typeSubstitution: typeSubstitution,
+            cloneAnnotations: cloneAnnotations);
 
   @override
   TreeNode cloneFunctionNodeBody(FunctionNode node) => null;

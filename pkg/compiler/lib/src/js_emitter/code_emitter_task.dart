@@ -15,7 +15,7 @@ import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
 import '../js_backend/js_backend.dart' show JavaScriptBackend, Namer;
 import '../universe/world_builder.dart' show CodegenWorldBuilder;
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show JClosedWorld;
 import 'full_emitter/emitter.dart' as full_js_emitter;
 import 'program_builder/program_builder.dart';
 import 'startup_emitter/emitter.dart' as startup_js_emitter;
@@ -155,7 +155,7 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   /// Creates the [Emitter] for this task.
-  void createEmitter(Namer namer, ClosedWorld closedWorld,
+  void createEmitter(Namer namer, JClosedWorld closedWorld,
       CodegenWorldBuilder codegenWorldBuilder, Sorter sorter) {
     measure(() {
       _nativeEmitter = new NativeEmitter(this, closedWorld, codegenWorldBuilder,
@@ -169,7 +169,7 @@ class CodeEmitterTask extends CompilerTask {
     });
   }
 
-  int assembleProgram(Namer namer, ClosedWorld closedWorld) {
+  int assembleProgram(Namer namer, JClosedWorld closedWorld) {
     return measure(() {
       _finalizeRti();
       ProgramBuilder programBuilder = new ProgramBuilder(
@@ -216,7 +216,7 @@ abstract class EmitterFactory {
 
   /// Create the [Emitter] for the emitter [task] that uses the given [namer].
   Emitter createEmitter(CodeEmitterTask task, Namer namer,
-      ClosedWorld closedWorld, Sorter sorter);
+      JClosedWorld closedWorld, Sorter sorter);
 }
 
 abstract class Emitter {

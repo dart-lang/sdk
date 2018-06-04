@@ -21,6 +21,7 @@ import '../fasta_codes.dart'
         messageConstConstructorWithBody,
         messageConstMethod,
         messageConstructorWithReturnType,
+        messageConstructorWithTypeParameters,
         messageExpectedBlockToSkip,
         messageInterpolationInUri,
         messageOperatorWithOptionalFormals,
@@ -56,7 +57,14 @@ import '../operator.dart'
         operatorRequiredArgumentCount;
 
 import '../parser.dart'
-    show Assert, FormalParameterKind, IdentifierContext, MemberKind, optional;
+    show
+        Assert,
+        FormalParameterKind,
+        IdentifierContext,
+        lengthOfSpan,
+        MemberKind,
+        offsetForToken,
+        optional;
 
 import '../problems.dart' show unhandled;
 
@@ -86,6 +94,8 @@ class OutlineBuilder extends StackListener {
 
   final bool enableNative;
   final bool stringExpectedAfterNative;
+  bool inConstructor = false;
+  bool inConstructorName = false;
 
   String nativeMethodName;
 
@@ -283,6 +293,9 @@ class OutlineBuilder extends StackListener {
     } else {
       super.handleIdentifier(token, context);
       push(token.charOffset);
+    }
+    if (inConstructor && context == IdentifierContext.methodDeclaration) {
+      inConstructorName = true;
     }
   }
 
@@ -555,12 +568,13 @@ class OutlineBuilder extends StackListener {
   @override
   void beginMethod(Token externalToken, Token staticToken, Token covariantToken,
       Token varFinalOrConst, Token name) {
+    inConstructor = name?.lexeme == library.currentDeclaration.name;
     List<Modifier> modifiers = <Modifier>[];
     if (externalToken != null) {
       modifiers.add(External);
     }
     if (staticToken != null) {
-      if (name?.lexeme == library.currentDeclaration.name) {
+      if (inConstructor) {
         handleRecoverableError(
             messageStaticConstructor, staticToken, staticToken);
       } else {
@@ -718,6 +732,7 @@ class OutlineBuilder extends StackListener {
           isTopLevel: false);
     }
     nativeMethodName = null;
+    inConstructor = false;
   }
 
   @override
@@ -786,6 +801,17 @@ class OutlineBuilder extends StackListener {
             new List<KernelTypeVariableBuilder>.filled(count, null,
                 growable: true)) ??
         NullValue.TypeVariables);
+    if (inConstructorName) {
+      addProblem(messageConstructorWithTypeParameters,
+          offsetForToken(beginToken), lengthOfSpan(beginToken, endToken));
+      inConstructorName = false;
+    }
+  }
+
+  @override
+  void handleNoTypeVariables(Token token) {
+    super.handleNoTypeVariables(token);
+    inConstructorName = false;
   }
 
   @override

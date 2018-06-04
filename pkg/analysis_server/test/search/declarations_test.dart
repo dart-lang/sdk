@@ -85,15 +85,15 @@ class D {}
 ''').path;
 
     // Limit to exactly one file.
-    await _getDeclarations(pattern: r'[A-D]', maxResults: 2);
+    await _getDeclarations(pattern: r'^[A-D]$', maxResults: 2);
     expect(declarationsResult.declarations, hasLength(2));
 
     // Limit in the middle of the second file.
-    await _getDeclarations(pattern: r'[A-D]', maxResults: 3);
+    await _getDeclarations(pattern: r'^[A-D]$', maxResults: 3);
     expect(declarationsResult.declarations, hasLength(3));
 
     // No limit.
-    await _getDeclarations(pattern: r'[A-D]');
+    await _getDeclarations(pattern: r'^[A-D]$');
     expect(declarationsResult.declarations, hasLength(4));
   }
 

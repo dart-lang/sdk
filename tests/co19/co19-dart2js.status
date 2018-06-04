@@ -7001,9 +7001,12 @@ Language/Expressions/Assignment/no_such_method_t08: RuntimeError
 Language/Expressions/Assignment/no_such_method_t09: RuntimeError
 Language/Expressions/Constants/bitwise_operators_t05: MissingCompileTimeError
 Language/Expressions/Constants/depending_on_itself_t03: Crash
-Language/Expressions/Constants/exception_t01: MissingCompileTimeError
-Language/Expressions/Constants/exception_t02: MissingCompileTimeError
+Language/Expressions/Constants/exception_t01: MissingCompileTimeError # Larger than 64 bit int
+Language/Expressions/Constants/exception_t02: Pass
+Language/Expressions/Constants/literal_number_t01: CompileTimeError # Larger than 64 bit int
 Language/Expressions/Constants/logical_expression_t04: MissingCompileTimeError
+Language/Expressions/Constants/math_operators_t01: CompileTimeError # Larger than 64 bit int
+Language/Expressions/Constants/math_operators_t06: CompileTimeError # Larger than 64 bit int
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t04: Crash
 Language/Expressions/Instance_Creation/Const/exception_t01: MissingCompileTimeError
 Language/Expressions/Method_Invocation/Ordinary_Invocation/evaluation_t08: RuntimeError
@@ -7011,6 +7014,8 @@ Language/Expressions/Method_Invocation/Super_Invocation/accessible_instance_memb
 Language/Expressions/Method_Invocation/Super_Invocation/evaluation_t05: RuntimeError
 Language/Expressions/Method_Invocation/Super_Invocation/invocation_t02: Crash
 Language/Expressions/Null/instance_of_class_null_t01: RuntimeError
+Language/Expressions/Numbers/static_type_of_int_t01: CompileTimeError # Larger than 64 bit int
+Language/Expressions/Numbers/syntax_t10: CompileTimeError # Larger than 64 bit int
 Language/Expressions/This/placement_t04: Crash
 Language/Functions/External_Functions/not_connected_to_a_body_t01: RuntimeError
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t01: MissingCompileTimeError
@@ -7047,6 +7052,30 @@ Language/Types/Type_Void/syntax_t09: MissingCompileTimeError
 LayoutTests/fast/canvas/gradient-addColorStop-with-invalid-color_t01: Pass, RuntimeError
 LayoutTests/fast/canvas/rgba-parsing_t01: Pass, RuntimeError
 LibTest/core/Invocation/namedArguments_A01_t01: RuntimeError
+LibTest/core/double/isInfinite_A01_t03: CompileTimeError # Larger than 64 bit int
+LibTest/core/int/abs_A01_t01: CompileTimeError # Larger than 64 bit int
+LibTest/core/int/ceilToDouble_A01_t01: CompileTimeError # Larger than 64 bit int
+LibTest/core/int/ceil_A01_t01: CompileTimeError # Larger than 64 bit int
+LibTest/core/int/floorToDouble_A01_t01: CompileTimeError # Larger than 64 bit int
+LibTest/core/int/floor_A01_t01: CompileTimeError # Larger than 64 bit int
+LibTest/core/int/isInfinite_A01_t01: CompileTimeError # Larger than 64 bit int
+LibTest/core/int/isNaN_A01_t01: CompileTimeError # Larger than 64 bit int
+LibTest/core/int/isNegative_A01_t01: CompileTimeError # Larger than 64 bit int
+LibTest/core/int/operator_GE_A01_t01: CompileTimeError # Larger than 64 bit int
+LibTest/core/int/operator_LE_A01_t01: CompileTimeError # Larger than 64 bit int
+LibTest/core/int/operator_division_A01_t01: CompileTimeError # Larger than 64 bit int
+LibTest/core/int/operator_multiplication_A01_t01: CompileTimeError # Larger than 64 bit int
+LibTest/core/int/operator_remainder_A01_t02: CompileTimeError # Larger than 64 bit int
+LibTest/core/int/operator_subtraction_A01_t01: CompileTimeError # Larger than 64 bit int
+LibTest/core/int/operator_truncating_division_A01_t01: CompileTimeError # Larger than 64 bit int
+LibTest/core/int/operator_unary_minus_A01_t01: CompileTimeError # Larger than 64 bit int
+LibTest/core/int/parse_A01_t01: CompileTimeError # Larger than 64 bit int
+LibTest/core/int/remainder_A01_t02: CompileTimeError # Larger than 64 bit int
+LibTest/core/int/roundToDouble_A01_t01: CompileTimeError # Larger than 64 bit int
+LibTest/core/int/round_A01_t01: CompileTimeError # Larger than 64 bit int
+LibTest/core/int/toInt_A01_t01: CompileTimeError # Larger than 64 bit int
+LibTest/core/int/truncateToDouble_A01_t01: CompileTimeError # Larger than 64 bit int
+LibTest/core/int/truncate_A01_t01: CompileTimeError # Larger than 64 bit int
 LibTest/html/Document/dispatchEvent_A01_t01: Crash
 LibTest/html/Document/on_A01_t01: Crash
 LibTest/html/Document/on_A01_t02: Crash
@@ -7076,6 +7105,7 @@ LibTest/html/Window/postMessage_A01_t02: Crash
 LibTest/html/Window/requestFileSystem_A01_t01: Crash
 LibTest/html/Window/requestFileSystem_A01_t02: Crash
 LibTest/html/Window/requestFileSystem_A02_t01: Crash
+LibTest/math/pow_A10_t01: CompileTimeError # Larger than 64 bit int
 WebPlatformTest/html/semantics/embedded-content/the-audio-element/audio_constructor_t01: RuntimeError
 
 [ $compiler == dart2js && $fasta && $host_checked ]

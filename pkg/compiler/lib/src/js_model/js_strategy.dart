@@ -39,6 +39,7 @@ import '../kernel/kelements.dart';
 import '../native/behavior.dart';
 import '../options.dart';
 import '../ssa/ssa.dart';
+import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
 import '../universe/class_set.dart';
 import '../universe/selector.dart';
@@ -68,7 +69,7 @@ class JsBackendStrategy implements KernelBackendStrategy {
   GlobalLocalsMap get globalLocalsMapForTesting => _globalLocalsMap;
 
   @override
-  ClosedWorldRefiner createClosedWorldRefiner(ClosedWorld closedWorld) {
+  JClosedWorld createJClosedWorld(KClosedWorld closedWorld) {
     KernelFrontEndStrategy strategy = _compiler.frontendStrategy;
     _elementMap = new JsKernelToElementMap(
         _compiler.reporter,
@@ -80,7 +81,10 @@ class JsBackendStrategy implements KernelBackendStrategy {
     _closureDataLookup = new KernelClosureConversionTask(
         _compiler.measurer, _elementMap, _globalLocalsMap, _compiler.options);
     JsClosedWorldBuilder closedWorldBuilder = new JsClosedWorldBuilder(
-        _elementMap, _closureDataLookup, _compiler.options);
+        _elementMap,
+        _closureDataLookup,
+        _compiler.options,
+        _compiler.abstractValueStrategy);
     return closedWorldBuilder._convertClosedWorld(
         closedWorld, strategy.closureModels);
   }
@@ -187,14 +191,14 @@ class JsBackendStrategy implements KernelBackendStrategy {
   }
 
   @override
-  WorkItemBuilder createCodegenWorkItemBuilder(ClosedWorld closedWorld) {
+  WorkItemBuilder createCodegenWorkItemBuilder(JClosedWorld closedWorld) {
     return new KernelCodegenWorkItemBuilder(_compiler.backend, closedWorld);
   }
 
   @override
   CodegenWorldBuilder createCodegenWorldBuilder(
       NativeBasicData nativeBasicData,
-      ClosedWorld closedWorld,
+      JClosedWorld closedWorld,
       SelectorConstraintsStrategy selectorConstraintsStrategy) {
     return new KernelCodegenWorldBuilder(
         elementMap,
@@ -211,10 +215,10 @@ class JsBackendStrategy implements KernelBackendStrategy {
   }
 
   @override
-  TypesInferrer createTypesInferrer(ClosedWorldRefiner closedWorldRefiner,
+  TypesInferrer createTypesInferrer(JClosedWorld closedWorld,
       {bool disableTypeInference: false}) {
     return new KernelTypeGraphInferrer(_compiler, _elementMap, _globalLocalsMap,
-        _closureDataLookup, closedWorldRefiner.closedWorld, closedWorldRefiner,
+        _closureDataLookup, closedWorld,
         disableTypeInference: disableTypeInference);
   }
 }
@@ -226,15 +230,16 @@ class JsClosedWorldBuilder {
   final Map<ClassEntity, ClassSet> _classSets = <ClassEntity, ClassSet>{};
   final KernelClosureConversionTask _closureConversionTask;
   final CompilerOptions _options;
+  final AbstractValueStrategy _abstractValueStrategy;
 
-  JsClosedWorldBuilder(
-      this._elementMap, this._closureConversionTask, this._options);
+  JsClosedWorldBuilder(this._elementMap, this._closureConversionTask,
+      this._options, this._abstractValueStrategy);
 
   ElementEnvironment get _elementEnvironment => _elementMap.elementEnvironment;
   CommonElements get _commonElements => _elementMap.commonElements;
 
-  JsClosedWorld _convertClosedWorld(ClosedWorldBase closedWorld,
-      Map<MemberEntity, ScopeModel> closureModels) {
+  JsClosedWorld _convertClosedWorld(
+      KClosedWorld closedWorld, Map<MemberEntity, ScopeModel> closureModels) {
     JsToFrontendMap map = new JsToFrontendMapImpl(_elementMap);
 
     BackendUsage backendUsage =
@@ -390,7 +395,8 @@ class JsClosedWorldBuilder {
         assignedInstanceMembers: assignedInstanceMembers,
         processedMembers: processedMembers,
         mixinUses: mixinUses,
-        typesImplementedBySubclasses: typesImplementedBySubclasses);
+        typesImplementedBySubclasses: typesImplementedBySubclasses,
+        abstractValueStrategy: _abstractValueStrategy);
   }
 
   BackendUsage _convertBackendUsage(
@@ -600,6 +606,7 @@ class JsClosedWorldBuilder {
 class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
   final JsKernelToElementMap elementMap;
   final RuntimeTypesNeed rtiNeed;
+  AbstractValueDomain _abstractValueDomain;
 
   JsClosedWorld(this.elementMap,
       {ElementEnvironment elementEnvironment,
@@ -619,7 +626,8 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
       Map<ClassEntity, Set<ClassEntity>> mixinUses,
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
-      Map<ClassEntity, ClassSet> classSets})
+      Map<ClassEntity, ClassSet> classSets,
+      AbstractValueStrategy abstractValueStrategy})
       : super(
             elementEnvironment,
             dartTypes,
@@ -637,7 +645,15 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
             mixinUses,
             typesImplementedBySubclasses,
             classHierarchyNodes,
-            classSets);
+            classSets,
+            abstractValueStrategy) {
+    _abstractValueDomain = abstractValueStrategy.createDomain(this);
+  }
+
+  @override
+  AbstractValueDomain get abstractValueDomain {
+    return _abstractValueDomain;
+  }
 
   @override
   void registerClosureClass(ClassEntity cls) {

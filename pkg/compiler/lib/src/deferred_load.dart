@@ -24,7 +24,7 @@ import 'universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitorImpl;
 import 'util/uri_extras.dart' as uri_extras;
 import 'util/util.dart' show makeUnique;
-import 'world.dart' show ClosedWorld;
+import 'world.dart' show KClosedWorld;
 
 /// A "hunk" of the program that will be loaded whenever one of its [imports]
 /// are loaded.
@@ -483,6 +483,23 @@ abstract class DeferredLoadTask extends CompilerTask {
     }
   }
 
+  void _updateLocalFunction(
+      Local localFunction, ImportSet oldSet, ImportSet newSet) {
+    ImportSet currentSet = _localFunctionToSet[localFunction];
+    if (currentSet == newSet) return;
+
+    // Elements in the main output unit always remain there.
+    if (currentSet == importSets.mainSet) return;
+
+    if (currentSet == oldSet) {
+      _localFunctionToSet[localFunction] = newSet;
+    } else {
+      _localFunctionToSet[localFunction] = importSets.union(currentSet, newSet);
+    }
+    // Note: local functions are not updated recursively because the
+    // dependencies are already visited as dependencies of the enclosing member.
+  }
+
   void _processDependencies(LibraryEntity library, Dependencies dependencies,
       ImportSet oldSet, ImportSet newSet, WorkQueue queue) {
     for (ClassEntity cls in dependencies.classes) {
@@ -520,10 +537,7 @@ abstract class DeferredLoadTask extends CompilerTask {
     }
 
     for (Local localFunction in dependencies.localFunctions) {
-      // Local function are not updated recursively because the dependencies are
-      // already visited as dependencies of the enclosing member, so we just
-      // assign the [newSet] to each local function.
-      _localFunctionToSet[localFunction] = newSet;
+      _updateLocalFunction(localFunction, oldSet, newSet);
     }
 
     for (ConstantValue dependency in dependencies.constants) {
@@ -699,7 +713,7 @@ abstract class DeferredLoadTask extends CompilerTask {
   /// TODO(sigmund): investigate different heuristics for how to select the next
   /// work item (e.g. we might converge faster if we pick first the update that
   /// contains a bigger delta.)
-  OutputUnitData run(FunctionEntity main, ClosedWorld closedWorld) {
+  OutputUnitData run(FunctionEntity main, KClosedWorld closedWorld) {
     if (!isProgramSplit || main == null || disableProgramSplit) {
       return _buildResult();
     }

@@ -6,7 +6,7 @@ library compiler.src.inferrer.node_tracer;
 
 import '../common/names.dart' show Identifiers;
 import '../elements/entities.dart';
-import '../types/masks.dart' show ContainerTypeMask, MapTypeMask;
+import '../types/abstract_value_domain.dart';
 import '../util/util.dart' show Setlet;
 import 'debug.dart' as debug;
 import 'inferrer_engine.dart';
@@ -306,31 +306,33 @@ abstract class TracerVisitor implements TypeInformationVisitor {
 
   void visitDynamicCallSiteTypeInformation(
       DynamicCallSiteTypeInformation info) {
-    void addsToContainer(ContainerTypeMask mask) {
-      if (mask.allocationNode != null) {
+    void addsToContainer(AbstractValue mask) {
+      Object allocationNode =
+          inferrer.abstractValueDomain.getAllocationNode(mask);
+      if (allocationNode != null) {
         ListTypeInformation list =
-            inferrer.types.allocatedLists[mask.allocationNode];
+            inferrer.types.allocatedLists[allocationNode];
         listsToAnalyze.add(list);
       } else {
-        // The [ContainerTypeMask] is a union of two containers, and we lose
-        // track of where these containers have been allocated at this point.
+        // The [mask] is a union of two containers, and we lose track of where
+        // these containers have been allocated at this point.
         bailout('Stored in too many containers');
       }
     }
 
-    void addsToMapValue(MapTypeMask mask) {
-      if (mask.allocationNode != null) {
-        MapTypeInformation map =
-            inferrer.types.allocatedMaps[mask.allocationNode];
+    void addsToMapValue(AbstractValue mask) {
+      Object allocationNode =
+          inferrer.abstractValueDomain.getAllocationNode(mask);
+      if (allocationNode != null) {
+        MapTypeInformation map = inferrer.types.allocatedMaps[allocationNode];
         mapsToAnalyze.add(map);
       } else {
-        // The [MapTypeMask] is a union. See comment for [ContainerTypeMask]
-        // above.
+        // The [mask] is a union. See comment for [mask] above.
         bailout('Stored in too many maps');
       }
     }
 
-    void addsToMapKey(MapTypeMask mask) {
+    void addsToMapKey(AbstractValue mask) {
       // We do not track the use of keys from a map, so we have to bail.
       bailout('Used as key in Map');
     }
@@ -338,9 +340,9 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     // "a[...] = x" could be a list (container) or map assignemnt.
     if (isIndexSetValue(info)) {
       var receiverType = info.receiver.type;
-      if (receiverType is ContainerTypeMask) {
+      if (inferrer.abstractValueDomain.isContainer(receiverType)) {
         addsToContainer(receiverType);
-      } else if (receiverType is MapTypeMask) {
+      } else if (inferrer.abstractValueDomain.isMap(receiverType)) {
         addsToMapValue(receiverType);
       } else {
         // Not a container or map, so the targets could be any methods. There
@@ -363,7 +365,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     // Could be:  m[x] = ...;
     if (isIndexSetKey(info)) {
       var receiverType = info.receiver.type;
-      if (receiverType is MapTypeMask) {
+      if (inferrer.abstractValueDomain.isMap(receiverType)) {
         addsToMapKey(receiverType);
       } else {
         bailoutIfReaches(isParameterOfListAddingMethod);
@@ -373,7 +375,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
 
     if (mightAddToContainer(info)) {
       var receiverType = info.receiver.type;
-      if (receiverType is ContainerTypeMask) {
+      if (inferrer.abstractValueDomain.isContainer(receiverType)) {
         addsToContainer(receiverType);
       } else {
         // Not a container, see note above.

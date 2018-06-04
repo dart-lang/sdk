@@ -372,7 +372,7 @@ class KernelResynthesizer implements ElementResynthesizer {
     }
 
     // Replace Analyzer type parameters with type arguments.
-    return rawType.substitute4(usedTypeParameters, usedTypeArguments);
+    throw new UnimplementedError('TODO(paulberry)');
   }
 
   /// Return the [TypeParameterElement] for the given [kernelTypeParameter].

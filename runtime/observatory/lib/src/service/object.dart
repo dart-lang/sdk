@@ -963,7 +963,7 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
   Future get onConnect;
 
   /// Completes when the VM disconnects or there was an error connecting.
-  Future get onDisconnect;
+  Future<String> get onDisconnect;
 
   void _update(Map map, bool mapIsRef) {
     name = map['name'];
@@ -1047,7 +1047,7 @@ class FakeVM extends VM {
 
   /// Force the VM to disconnect.
   void disconnect() {
-    _onDisconnect.complete(this);
+    _onDisconnect.complete('Disconnected');
   }
 
   // Always connected.
@@ -1062,8 +1062,8 @@ class FakeVM extends VM {
 
   bool get isConnected => !isDisconnected;
   // Only complete when requested.
-  Completer _onDisconnect = new Completer();
-  Future get onDisconnect => _onDisconnect.future;
+  Completer<String> _onDisconnect = new Completer<String>();
+  Future<String> get onDisconnect => _onDisconnect.future;
   bool get isDisconnected => _onDisconnect.isCompleted;
 
   Future<Map> invokeRpcRaw(String method, Map params) {

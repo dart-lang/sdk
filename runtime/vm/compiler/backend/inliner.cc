@@ -2605,51 +2605,55 @@ static void PrepareInlineByteArrayBaseOp(FlowGraph* flow_graph,
                                          intptr_t view_cid,
                                          Definition** array,
                                          Definition* byte_index,
-                                         Instruction** cursor) {
-  LoadFieldInstr* length = new (Z) LoadFieldInstr(
-      new (Z) Value(*array), CheckArrayBoundInstr::LengthOffsetFor(array_cid),
-      Type::ZoneHandle(Z, Type::SmiType()), call->token_pos());
-  length->set_is_immutable(true);
-  length->set_result_cid(kSmiCid);
-  length->set_recognized_kind(
-      LoadFieldInstr::RecognizedKindFromArrayCid(array_cid));
-  *cursor = flow_graph->AppendTo(*cursor, length, NULL, FlowGraph::kValue);
+                                         Instruction** cursor,
+                                         bool needs_bounds_check) {
+  if (needs_bounds_check) {
+    LoadFieldInstr* length = new (Z) LoadFieldInstr(
+        new (Z) Value(*array), CheckArrayBoundInstr::LengthOffsetFor(array_cid),
+        Type::ZoneHandle(Z, Type::SmiType()), call->token_pos());
+    length->set_is_immutable(true);
+    length->set_result_cid(kSmiCid);
+    length->set_recognized_kind(
+        LoadFieldInstr::RecognizedKindFromArrayCid(array_cid));
+    *cursor = flow_graph->AppendTo(*cursor, length, NULL, FlowGraph::kValue);
 
-  intptr_t element_size = Instance::ElementSizeFor(array_cid);
-  ConstantInstr* bytes_per_element =
-      flow_graph->GetConstant(Smi::Handle(Z, Smi::New(element_size)));
-  BinarySmiOpInstr* len_in_bytes = new (Z)
-      BinarySmiOpInstr(Token::kMUL, new (Z) Value(length),
-                       new (Z) Value(bytes_per_element), call->deopt_id());
-  *cursor = flow_graph->AppendTo(*cursor, len_in_bytes, call->env(),
-                                 FlowGraph::kValue);
-
-  // adjusted_length = len_in_bytes - (element_size - 1).
-  Definition* adjusted_length = len_in_bytes;
-  intptr_t adjustment = Instance::ElementSizeFor(view_cid) - 1;
-  if (adjustment > 0) {
-    ConstantInstr* length_adjustment =
-        flow_graph->GetConstant(Smi::Handle(Z, Smi::New(adjustment)));
-    adjusted_length = new (Z)
-        BinarySmiOpInstr(Token::kSUB, new (Z) Value(len_in_bytes),
-                         new (Z) Value(length_adjustment), call->deopt_id());
-    *cursor = flow_graph->AppendTo(*cursor, adjusted_length, call->env(),
+    intptr_t element_size = Instance::ElementSizeFor(array_cid);
+    ConstantInstr* bytes_per_element =
+        flow_graph->GetConstant(Smi::Handle(Z, Smi::New(element_size)));
+    BinarySmiOpInstr* len_in_bytes = new (Z)
+        BinarySmiOpInstr(Token::kMUL, new (Z) Value(length),
+                         new (Z) Value(bytes_per_element), call->deopt_id());
+    *cursor = flow_graph->AppendTo(*cursor, len_in_bytes, call->env(),
                                    FlowGraph::kValue);
-  }
 
-  // Check adjusted_length > 0.
-  ConstantInstr* zero = flow_graph->GetConstant(Smi::Handle(Z, Smi::New(0)));
-  *cursor = flow_graph->AppendTo(
-      *cursor,
-      new (Z) CheckArrayBoundInstr(new (Z) Value(adjusted_length),
-                                   new (Z) Value(zero), call->deopt_id()),
-      call->env(), FlowGraph::kEffect);
-  // Check 0 <= byte_index < adjusted_length.
-  *cursor = flow_graph->AppendTo(
-      *cursor,
-      new (Z) CheckArrayBoundInstr(new (Z) Value(adjusted_length),
-                                   new (Z) Value(byte_index), call->deopt_id()),
-      call->env(), FlowGraph::kEffect);
+    // adjusted_length = len_in_bytes - (element_size - 1).
+    Definition* adjusted_length = len_in_bytes;
+    intptr_t adjustment = Instance::ElementSizeFor(view_cid) - 1;
+    if (adjustment > 0) {
+      ConstantInstr* length_adjustment =
+          flow_graph->GetConstant(Smi::Handle(Z, Smi::New(adjustment)));
+      adjusted_length = new (Z)
+          BinarySmiOpInstr(Token::kSUB, new (Z) Value(len_in_bytes),
+                           new (Z) Value(length_adjustment), call->deopt_id());
+      *cursor = flow_graph->AppendTo(*cursor, adjusted_length, call->env(),
+                                     FlowGraph::kValue);
+    }
+
+    // Check adjusted_length > 0.
+    ConstantInstr* zero = flow_graph->GetConstant(Smi::Handle(Z, Smi::New(0)));
+    *cursor = flow_graph->AppendTo(
+        *cursor,
+        new (Z) CheckArrayBoundInstr(new (Z) Value(adjusted_length),
+                                     new (Z) Value(zero), call->deopt_id()),
+        call->env(), FlowGraph::kEffect);
+    // Check 0 <= byte_index < adjusted_length.
+    *cursor = flow_graph->AppendTo(
+        *cursor,
+        new (Z)
+            CheckArrayBoundInstr(new (Z) Value(adjusted_length),
+                                 new (Z) Value(byte_index), call->deopt_id()),
+        call->env(), FlowGraph::kEffect);
+  }
 
   if (RawObject::IsExternalTypedDataClassId(array_cid)) {
     LoadUntaggedInstr* elements = new (Z) LoadUntaggedInstr(
@@ -2679,8 +2683,13 @@ static bool InlineByteArrayBaseLoad(FlowGraph* flow_graph,
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
 
+  // All getters that go through InlineByteArrayBaseLoad() have explicit
+  // bounds checks in all their clients in the library, so we can omit
+  // yet another inlined bounds check when compiling for Dart2.
+  const bool needs_bounds_check = !FLAG_strong;
+
   PrepareInlineByteArrayBaseOp(flow_graph, call, array_cid, view_cid, &array,
-                               index, &cursor);
+                               index, &cursor, needs_bounds_check);
 
   intptr_t deopt_id = Thread::kNoDeoptId;
   if ((array_cid == kTypedDataInt32ArrayCid) ||
@@ -2726,8 +2735,13 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
 
+  // All setters that go through InlineByteArrayBaseStore() have explicit
+  // bounds checks in all their clients in the library, so we can omit
+  // yet another inlined bounds check when compiling for Dart2.
+  const bool needs_bounds_check = !FLAG_strong;
+
   PrepareInlineByteArrayBaseOp(flow_graph, call, array_cid, view_cid, &array,
-                               index, &cursor);
+                               index, &cursor, needs_bounds_check);
 
   Cids* value_check = NULL;
   switch (view_cid) {
@@ -3499,6 +3513,28 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
       (*entry)->InheritDeoptTarget(Z, call);
       ASSERT(!call->HasUses());
       *last = NULL;  // Empty body.
+      return true;
+    }
+
+    case MethodRecognizer::kListFactory: {
+      // We only want to inline new List(n) which decreases code size and
+      // improves performance. We don't want to inline new List().
+      if (call->ArgumentCount() != 2) {
+        return false;
+      }
+
+      const auto type = new (Z) Value(call->ArgumentAt(0));
+      const auto num_elements = new (Z) Value(call->ArgumentAt(1));
+      *entry = new (Z)
+          TargetEntryInstr(flow_graph->allocate_block_id(),
+                           call->GetBlock()->try_index(), Thread::kNoDeoptId);
+      (*entry)->InheritDeoptTarget(Z, call);
+      *last = new (Z) CreateArrayInstr(call->token_pos(), type, num_elements,
+                                       call->deopt_id());
+      flow_graph->AppendTo(
+          *entry, *last,
+          call->deopt_id() != Thread::kNoDeoptId ? call->env() : NULL,
+          FlowGraph::kValue);
       return true;
     }
 

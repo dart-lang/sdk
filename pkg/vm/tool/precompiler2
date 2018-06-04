@@ -95,7 +95,6 @@ ENTRY_POINTS="--entry-points ${BIN_DIR}/gen/runtime/bin/precompiler_entry_points
 
 # Step 1: Generate Kernel binary from the input Dart source.
 "$BIN_DIR"/dart                                                                \
-     --limit-ints-to-64-bits                                                   \
      "${SDK_DIR}/pkg/vm/bin/gen_kernel.dart"                                   \
      --platform "${BIN_DIR}/vm_platform_strong.dill"                           \
      --aot                                                                     \
@@ -109,7 +108,6 @@ ENTRY_POINTS="--entry-points ${BIN_DIR}/gen/runtime/bin/precompiler_entry_points
 "$BIN_DIR"/dart_bootstrap                                                      \
      --strong                                                                  \
      --reify-generic-functions                                                 \
-     --limit-ints-to-64-bits                                                   \
      --snapshot-kind=app-aot                                                   \
      --snapshot="$DART_BOOTSTRAP_OUT"                                          \
      "${OPTIONS[@]}"                                                           \

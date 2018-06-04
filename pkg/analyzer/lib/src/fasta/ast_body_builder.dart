@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart' show Expression, Statement;
 import 'package:analyzer/src/fasta/ast_building_factory.dart'
-    show AstBuildingForest;
+    show Arguments, AstBuildingForest;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:front_end/src/fasta/kernel/body_builder.dart' show BodyBuilder;
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
@@ -14,7 +14,10 @@ import 'package:front_end/src/fasta/type_inference/type_inferrer.dart'
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-class AstBodyBuilder extends BodyBuilder<Expression, Statement, dynamic> {
+export 'package:front_end/src/fasta/kernel/unlinked_scope.dart'
+    show UnlinkedScope;
+
+class AstBodyBuilder extends BodyBuilder<Expression, Statement, Arguments> {
   @override
   final AstBuildingForest forest;
 
@@ -40,8 +43,7 @@ class AstBodyBuilder extends BodyBuilder<Expression, Statement, dynamic> {
   }
 
   @override
-  void printEvent(String name) {
-    // TODO(scheglov): Call of super is commented out to prevent spamming.
-//    super.printEvent(name);
+  void logEvent(String name) {
+    throw "Parser event '$name' not implemented";
   }
 }

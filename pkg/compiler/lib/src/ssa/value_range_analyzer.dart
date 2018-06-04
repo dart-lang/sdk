@@ -5,7 +5,7 @@
 import '../constant_system_dart.dart';
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show JClosedWorld;
 import 'nodes.dart';
 import 'optimize.dart';
 
@@ -600,13 +600,13 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
    */
   final Map<HInstruction, Range> ranges = new Map<HInstruction, Range>();
 
-  final ClosedWorld closedWorld;
+  final JClosedWorld closedWorld;
   final ValueRangeInfo info;
   final SsaOptimizerTask optimizer;
 
   HGraph graph;
 
-  SsaValueRangeAnalyzer(ClosedWorld closedWorld, this.optimizer)
+  SsaValueRangeAnalyzer(JClosedWorld closedWorld, this.optimizer)
       : info = new ValueRangeInfo(closedWorld.constantSystem),
         this.closedWorld = closedWorld;
 
@@ -1064,7 +1064,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
  * Tries to find a range for the update instruction of a loop phi.
  */
 class LoopUpdateRecognizer extends HBaseVisitor {
-  final ClosedWorld closedWorld;
+  final JClosedWorld closedWorld;
   final Map<HInstruction, Range> ranges;
   final ValueRangeInfo info;
   LoopUpdateRecognizer(this.closedWorld, this.ranges, this.info);

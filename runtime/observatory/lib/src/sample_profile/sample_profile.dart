@@ -134,7 +134,8 @@ class FunctionCallTreeNodeCode {
   FunctionCallTreeNodeCode(this.code, this.ticks);
 }
 
-class FunctionCallTreeNode extends CallTreeNode<FunctionCallTreeNode> {
+class FunctionCallTreeNode extends CallTreeNode<FunctionCallTreeNode>
+    implements M.FunctionCallTreeNode {
   final ProfileFunction profileFunction;
   final codes = new List<FunctionCallTreeNodeCode>();
   int _totalCodeTicks = 0;

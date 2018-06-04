@@ -1265,6 +1265,16 @@ String findNativeName(Member procedure) {
           assert(annotation.arguments.positional.length == 1);
           return (annotation.arguments.positional[0] as StringLiteral).value;
         }
+      } else if (annotation is ConstantExpression) {
+        final constant = annotation.constant;
+        if (constant is InstanceConstant) {
+          final Class klass = constant.klass;
+          if (klass.name == 'ExternalName' &&
+              klass.enclosingLibrary.importUri.toString() == 'dart:_internal') {
+            assert(constant.fieldValues.length == 1);
+            return (constant.fieldValues.values.single as StringConstant).value;
+          }
+        }
       }
     }
   }

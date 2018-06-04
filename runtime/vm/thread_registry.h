@@ -29,7 +29,8 @@ class ThreadRegistry {
         mutator_thread_(NULL) {}
   ~ThreadRegistry();
 
-  void VisitObjectPointers(ObjectPointerVisitor* visitor, bool validate_frames);
+  void VisitObjectPointers(ObjectPointerVisitor* visitor,
+                           ValidationPolicy validate_frames);
   void PrepareForGC();
   Thread* mutator_thread() const { return mutator_thread_; }
 

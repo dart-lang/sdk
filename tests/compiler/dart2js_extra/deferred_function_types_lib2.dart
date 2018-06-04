@@ -15,3 +15,5 @@ method4() {
 test4(o) => o is Class2 Function(Class2, Class2);
 
 method6(Class2 c, int i, String s) {}
+
+test6(o) => o is Function(Class2, int, String);

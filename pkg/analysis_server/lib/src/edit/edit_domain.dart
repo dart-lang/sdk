@@ -569,22 +569,28 @@ class EditDomainHandler extends AbstractRequestHandler {
     int length = params.length;
     // add refactoring kinds
     List<RefactoringKind> kinds = <RefactoringKind>[];
-    // Try EXTRACT_WIDGETS.
+    // Check nodes.
     {
       var unit = await server.getResolvedCompilationUnit(file);
       var analysisSession = server.getAnalysisDriver(file)?.currentSession;
       if (unit != null && analysisSession != null) {
-        var refactoring = new ExtractWidgetRefactoring(
-            searchEngine, analysisSession, unit, offset);
-        if (refactoring.isAvailable()) {
+        // Try EXTRACT_LOCAL_VARIABLE.
+        if (new ExtractLocalRefactoring(unit, offset, length).isAvailable()) {
+          kinds.add(RefactoringKind.EXTRACT_LOCAL_VARIABLE);
+        }
+        // Try EXTRACT_METHOD.
+        if (new ExtractMethodRefactoring(
+                searchEngine, server.getAstProvider(file), unit, offset, length)
+            .isAvailable()) {
+          kinds.add(RefactoringKind.EXTRACT_METHOD);
+        }
+        // Try EXTRACT_WIDGETS.
+        if (new ExtractWidgetRefactoring(
+                searchEngine, analysisSession, unit, offset, length)
+            .isAvailable()) {
           kinds.add(RefactoringKind.EXTRACT_WIDGET);
         }
       }
-    }
-    // try EXTRACT_*
-    if (length != 0) {
-      kinds.add(RefactoringKind.EXTRACT_LOCAL_VARIABLE);
-      kinds.add(RefactoringKind.EXTRACT_METHOD);
     }
     // check elements
     {
@@ -930,7 +936,7 @@ class _RefactoringManager {
       if (unit != null) {
         var analysisSession = server.getAnalysisDriver(file).currentSession;
         refactoring = new ExtractWidgetRefactoring(
-            searchEngine, analysisSession, unit, offset);
+            searchEngine, analysisSession, unit, offset, length);
         feedback = new ExtractWidgetFeedback();
       }
     }

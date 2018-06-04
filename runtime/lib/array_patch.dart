@@ -4,28 +4,10 @@
 
 // part of "core_patch.dart";
 
-// The _GrowableArrayMarker class is used to signal to the List() factory
-// whether a parameter was passed.
-class _GrowableArrayMarker implements int {
-  const _GrowableArrayMarker();
-  noSuchMethod(_) {
-    throw new UnimplementedError();
-  }
-}
-
-const _GROWABLE_ARRAY_MARKER = const _GrowableArrayMarker();
-
 @patch
 class List<E> {
   @patch
-  factory List([int length = _GROWABLE_ARRAY_MARKER]) {
-    if (identical(length, _GROWABLE_ARRAY_MARKER)) {
-      return new _GrowableList<E>(0);
-    }
-    // All error handling on the length parameter is done at the implementation
-    // of new _List.
-    return new _List<E>(length);
-  }
+  factory List([int length]) native "List_new";
 
   @patch
   factory List.filled(int length, E fill, {bool growable: false}) {

@@ -19,7 +19,7 @@ main() {
         entryPoint: Platform.script.resolve('data/subtype_named_args.dart'));
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
-    ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     ProgramLookup programLookup = new ProgramLookup(compiler);
 
     List<ClassEntity> found = <ClassEntity>[];

@@ -263,13 +263,11 @@ abstract class AbstractAnalysisServerIntegrationTest
    * Start [server].
    */
   Future startServer({
-    bool checked: true,
     int diagnosticPort,
     int servicesPort,
     bool cfe: false,
   }) {
     return server.start(
-        checked: checked,
         diagnosticPort: diagnosticPort,
         servicesPort: servicesPort,
         useCFE: cfe || useCFE);
@@ -664,7 +662,6 @@ class Server {
    * to be used.
    */
   Future start({
-    bool checked: true,
     int diagnosticPort,
     String instrumentationLogFile,
     bool profileServer: false,
@@ -678,9 +675,28 @@ class Server {
     }
     _time.start();
     String dartBinary = Platform.executable;
-    String rootDir =
-        findRoot(Platform.script.toFilePath(windows: Platform.isWindows));
-    String serverPath = normalize(join(rootDir, 'bin', 'server.dart'));
+
+    // The integration tests run 3x faster when run from snapshots (you need to
+    // run test.py with --use-sdk).
+    final bool useSnapshot = true;
+    String serverPath;
+
+    if (useSnapshot) {
+      // Look for snapshots/analysis_server.dart.snapshot.
+      serverPath = normalize(join(dirname(Platform.resolvedExecutable),
+          'snapshots', 'analysis_server.dart.snapshot'));
+
+      if (!FileSystemEntity.isFileSync(serverPath)) {
+        // Look for dart-sdk/bin/snapshots/analysis_server.dart.snapshot.
+        serverPath = normalize(join(dirname(Platform.resolvedExecutable),
+            'dart-sdk', 'bin', 'snapshots', 'analysis_server.dart.snapshot'));
+      }
+    } else {
+      String rootDir =
+          findRoot(Platform.script.toFilePath(windows: Platform.isWindows));
+      serverPath = normalize(join(rootDir, 'bin', 'server.dart'));
+    }
+
     List<String> arguments = [];
     //
     // Add VM arguments.
@@ -700,9 +716,6 @@ class Server {
     }
     if (Platform.packageConfig != null) {
       arguments.add('--packages=${Platform.packageConfig}');
-    }
-    if (checked) {
-      arguments.add('--checked');
     }
     //
     // Add the server executable.

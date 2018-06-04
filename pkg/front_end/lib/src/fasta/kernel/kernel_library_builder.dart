@@ -49,10 +49,10 @@ import '../source/source_library_builder.dart'
 import 'kernel_builder.dart'
     show
         AccessErrorBuilder,
-        Builder,
         BuiltinTypeBuilder,
         ClassBuilder,
         ConstructorReferenceBuilder,
+        Declaration,
         DynamicTypeBuilder,
         FormalParameterBuilder,
         InvalidTypeBuilder,
@@ -233,7 +233,7 @@ class KernelLibraryBuilder
   }
 
   Map<String, TypeVariableBuilder> checkTypeVariables(
-      List<TypeVariableBuilder> typeVariables, Builder owner) {
+      List<TypeVariableBuilder> typeVariables, Declaration owner) {
     if (typeVariables?.isEmpty ?? true) return null;
     Map<String, TypeVariableBuilder> typeVariablesByName =
         <String, TypeVariableBuilder>{};
@@ -479,7 +479,7 @@ class KernelLibraryBuilder
         typeVariables: typeVariables,
         modifiers: modifiers,
         interfaces: interfaces);
-    checkTypeVariables(typeVariables, supertype.builder);
+    checkTypeVariables(typeVariables, supertype.declaration);
   }
 
   @override
@@ -727,34 +727,34 @@ class KernelLibraryBuilder
   }
 
   @override
-  void buildBuilder(Builder builder, LibraryBuilder coreLibrary) {
+  void buildBuilder(Declaration declaration, LibraryBuilder coreLibrary) {
     Class cls;
     Member member;
     Typedef typedef;
-    if (builder is SourceClassBuilder) {
-      cls = builder.build(this, coreLibrary);
-    } else if (builder is KernelFieldBuilder) {
-      member = builder.build(this)..isStatic = true;
-    } else if (builder is KernelProcedureBuilder) {
-      member = builder.build(this)..isStatic = true;
-    } else if (builder is KernelFunctionTypeAliasBuilder) {
-      typedef = builder.build(this);
-    } else if (builder is KernelEnumBuilder) {
-      cls = builder.build(this, coreLibrary);
-    } else if (builder is PrefixBuilder) {
+    if (declaration is SourceClassBuilder) {
+      cls = declaration.build(this, coreLibrary);
+    } else if (declaration is KernelFieldBuilder) {
+      member = declaration.build(this)..isStatic = true;
+    } else if (declaration is KernelProcedureBuilder) {
+      member = declaration.build(this)..isStatic = true;
+    } else if (declaration is KernelFunctionTypeAliasBuilder) {
+      typedef = declaration.build(this);
+    } else if (declaration is KernelEnumBuilder) {
+      cls = declaration.build(this, coreLibrary);
+    } else if (declaration is PrefixBuilder) {
       // Ignored. Kernel doesn't represent prefixes.
       return;
-    } else if (builder is BuiltinTypeBuilder) {
+    } else if (declaration is BuiltinTypeBuilder) {
       // Nothing needed.
       return;
     } else {
-      unhandled("${builder.runtimeType}", "buildBuilder", builder.charOffset,
-          builder.fileUri);
+      unhandled("${declaration.runtimeType}", "buildBuilder",
+          declaration.charOffset, declaration.fileUri);
       return;
     }
-    if (builder.isPatch) {
-      // The kernel node of a patch is shared with the origin builder. We have
-      // two builders: the origin, and the patch, but only one kernel node
+    if (declaration.isPatch) {
+      // The kernel node of a patch is shared with the origin declaration. We
+      // have two builders: the origin, and the patch, but only one kernel node
       // (which corresponds to the final output). Consequently, the node
       // shouldn't be added to its apparent kernel parent as this would create
       // a duplicate entry in the parent's list of children/members.
@@ -770,7 +770,7 @@ class KernelLibraryBuilder
   }
 
   void addNativeDependency(Uri nativeImportUri) {
-    Builder constructor = loader.getNativeAnnotation();
+    Declaration constructor = loader.getNativeAnnotation();
     Arguments arguments =
         new Arguments(<Expression>[new StringLiteral("$nativeImportUri")]);
     Expression annotation;
@@ -865,16 +865,16 @@ class KernelLibraryBuilder
   }
 
   @override
-  Builder buildAmbiguousBuilder(
-      String name, Builder builder, Builder other, int charOffset,
+  Declaration computeAmbiguousDeclaration(
+      String name, Declaration declaration, Declaration other, int charOffset,
       {bool isExport: false, bool isImport: false}) {
     // TODO(ahe): Can I move this to Scope or Prefix?
-    if (builder == other) return builder;
-    if (builder is InvalidTypeBuilder) return builder;
+    if (declaration == other) return declaration;
+    if (declaration is InvalidTypeBuilder) return declaration;
     if (other is InvalidTypeBuilder) return other;
-    if (builder is AccessErrorBuilder) {
-      AccessErrorBuilder error = builder;
-      builder = error.builder;
+    if (declaration is AccessErrorBuilder) {
+      AccessErrorBuilder error = declaration;
+      declaration = error.builder;
     }
     if (other is AccessErrorBuilder) {
       AccessErrorBuilder error = other;
@@ -882,28 +882,28 @@ class KernelLibraryBuilder
     }
     bool isLocal = false;
     bool isLoadLibrary = false;
-    Builder preferred;
+    Declaration preferred;
     Uri uri;
     Uri otherUri;
     Uri preferredUri;
     Uri hiddenUri;
-    if (scope.local[name] == builder) {
+    if (scope.local[name] == declaration) {
       isLocal = true;
-      preferred = builder;
-      hiddenUri = other.computeLibraryUri();
+      preferred = declaration;
+      hiddenUri = computeLibraryUri(other);
     } else {
-      uri = builder.computeLibraryUri();
-      otherUri = other.computeLibraryUri();
-      if (builder is LoadLibraryBuilder) {
+      uri = computeLibraryUri(declaration);
+      otherUri = computeLibraryUri(other);
+      if (declaration is LoadLibraryBuilder) {
         isLoadLibrary = true;
-        preferred = builder;
+        preferred = declaration;
         preferredUri = otherUri;
       } else if (other is LoadLibraryBuilder) {
         isLoadLibrary = true;
         preferred = other;
         preferredUri = uri;
       } else if (otherUri?.scheme == "dart" && uri?.scheme != "dart") {
-        preferred = builder;
+        preferred = declaration;
         preferredUri = uri;
         hiddenUri = otherUri;
       } else if (uri?.scheme == "dart" && otherUri?.scheme != "dart") {
@@ -930,14 +930,15 @@ class KernelLibraryBuilder
       }
       return preferred;
     }
-    if (builder.next == null && other.next == null) {
-      if (isImport && builder is PrefixBuilder && other is PrefixBuilder) {
+    if (declaration.next == null && other.next == null) {
+      if (isImport && declaration is PrefixBuilder && other is PrefixBuilder) {
         // Handles the case where the same prefix is used for different
         // imports.
-        return builder
+        return declaration
           ..exportScope.merge(other.exportScope,
-              (String name, Builder existing, Builder member) {
-            return buildAmbiguousBuilder(name, existing, member, charOffset,
+              (String name, Declaration existing, Declaration member) {
+            return computeAmbiguousDeclaration(
+                name, existing, member, charOffset,
                 isExport: isExport, isImport: isImport);
           });
       }
@@ -1022,7 +1023,7 @@ class KernelLibraryBuilder
     for (var declaration in libraryDeclaration.members.values) {
       if (declaration is KernelClassBuilder) {
         count += computeDefaultTypesForVariables(declaration.typeVariables);
-        declaration.forEach((String name, Builder member) {
+        declaration.forEach((String name, Declaration member) {
           if (member is KernelProcedureBuilder) {
             count += computeDefaultTypesForVariables(member.typeVariables);
           }
@@ -1047,7 +1048,7 @@ class KernelLibraryBuilder
   @override
   void addImportsToScope() {
     super.addImportsToScope();
-    exportScope.forEach((String name, Builder member) {
+    exportScope.forEach((String name, Declaration member) {
       if (member.parent != this) {
         switch (name) {
           case "dynamic":
@@ -1071,9 +1072,9 @@ class KernelLibraryBuilder
   @override
   void applyPatches() {
     if (!isPatch) return;
-    origin.forEach((String name, Builder member) {
+    origin.forEach((String name, Declaration member) {
       bool isSetter = member.isSetter;
-      Builder patch = isSetter ? scope.setters[name] : scope.local[name];
+      Declaration patch = isSetter ? scope.setters[name] : scope.local[name];
       if (patch != null) {
         // [patch] has the same name as a [member] in [origin] library, so it
         // must be a patch to [member].
@@ -1090,7 +1091,7 @@ class KernelLibraryBuilder
         }
       }
     });
-    forEach((String name, Builder member) {
+    forEach((String name, Declaration member) {
       // We need to inject all non-patch members into the origin library. This
       // should only apply to private members.
       if (member.isPatch) {
@@ -1106,13 +1107,13 @@ class KernelLibraryBuilder
   int finishPatchMethods() {
     if (!isPatch) return 0;
     int count = 0;
-    forEach((String name, Builder member) {
+    forEach((String name, Declaration member) {
       count += member.finishPatch();
     });
     return count;
   }
 
-  void injectMemberFromPatch(String name, Builder member) {
+  void injectMemberFromPatch(String name, Declaration member) {
     if (member.isSetter) {
       assert(scope.setters[name] == null);
       scopeBuilder.addSetter(name, member);
@@ -1122,7 +1123,7 @@ class KernelLibraryBuilder
     }
   }
 
-  void exportMemberFromPatch(String name, Builder member) {
+  void exportMemberFromPatch(String name, Declaration member) {
     if (uri.scheme != "dart" || !uri.path.startsWith("_")) {
       addCompileTimeError(templatePatchInjectionFailed.withArguments(name, uri),
           member.charOffset, noLength, member.fileUri);
@@ -1137,4 +1138,14 @@ class KernelLibraryBuilder
         (!member.isSetter && scope.local[name] == null));
     addToExportScope(name, member);
   }
+}
+
+Uri computeLibraryUri(Declaration declaration) {
+  Declaration current = declaration;
+  do {
+    if (current is LibraryBuilder) return current.uri;
+    current = current.parent;
+  } while (current != null);
+  return unhandled("no library parent", "${declaration.runtimeType}",
+      declaration.charOffset, declaration.fileUri);
 }

@@ -334,6 +334,7 @@ class LibraryAnalyzer {
       verifier.addImports(unit);
       _usedImportedElementsList.forEach(verifier.removeUsedElements);
       verifier.generateDuplicateImportHints(errorReporter);
+      verifier.generateDuplicateShownHiddenNameHints(errorReporter);
       verifier.generateUnusedImportHints(errorReporter);
       verifier.generateUnusedShownNameHints(errorReporter);
     }

@@ -7,7 +7,7 @@ import 'package:expect/expect.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/types/masks.dart';
+import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import 'package:compiler/src/world.dart';
 
 import '../memory_compiler.dart';
@@ -44,7 +44,7 @@ main() {
         await runCompiler(memorySourceFiles: {'main.dart': CODE});
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
-    ClosedWorld world = compiler.backendClosedWorldForTesting;
+    JClosedWorld world = compiler.backendClosedWorldForTesting;
     ElementEnvironment elementEnvironment = world.elementEnvironment;
 
     /// Checks the expectation of `isDisjoint` for two mask. Also checks that

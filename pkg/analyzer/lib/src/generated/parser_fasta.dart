@@ -24,11 +24,9 @@ abstract class ParserAdapter implements Parser {
   final AstBuilder astBuilder;
 
   ParserAdapter(this.currentToken, ErrorReporter errorReporter, Uri fileUri,
-      Builder member, Scope scope,
       {bool allowNativeClause: false, bool enableGenericMethodComments: false})
       : fastaParser = new fasta.Parser(null),
-        astBuilder =
-            new AstBuilder(errorReporter, fileUri, member, scope, true) {
+        astBuilder = new AstBuilder(errorReporter, fileUri, true) {
     fastaParser.listener = astBuilder;
     astBuilder.parser = fastaParser;
     astBuilder.allowNativeClause = allowNativeClause;
@@ -48,7 +46,7 @@ abstract class ParserAdapter implements Parser {
 
   @override
   void set parseFunctionBodies(bool parseFunctionBodies) {
-    // ignored
+    astBuilder.parseFunctionBodies = parseFunctionBodies;
   }
 
   @override
@@ -309,26 +307,38 @@ abstract class ParserAdapter implements Parser {
 
   @override
   TypeParameter parseTypeParameter() {
-    currentToken = fastaParser
-        .parseTypeVariable(fastaParser.syntheticPreviousToken(currentToken))
-        .next;
-    return astBuilder.pop();
+    currentToken = new SyntheticBeginToken(TokenType.LT, 0)
+      ..endGroup = new SyntheticToken(TokenType.GT, 0)
+      ..setNext(currentToken);
+    appendToken(currentToken, currentToken.endGroup);
+    TypeParameterList typeParams = parseTypeParameterList();
+    return typeParams.typeParameters[0];
   }
 
   @override
   TypeParameterList parseTypeParameterList() {
-    currentToken = fastaParser
-        .parseTypeVariablesOpt(fastaParser.syntheticPreviousToken(currentToken))
+    Token token = fastaParser.syntheticPreviousToken(currentToken);
+    currentToken = fasta
+        .computeTypeParamOrArg(token, true)
+        .parseVariables(token, fastaParser)
         .next;
     return astBuilder.pop();
   }
 
   @override
   Expression parseUnaryExpression() => parseExpression2();
-}
 
-class _Builder implements Builder {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  /// Append the given token to the end of the token stream,
+  /// and update the token's offset.
+  appendToken(Token token, Token newToken) {
+    while (!token.next.isEof) {
+      token = token.next;
+    }
+    newToken
+      ..offset = token.end
+      ..setNext(token.next);
+    token.setNext(newToken);
+  }
 }
 
 /**
@@ -349,15 +359,13 @@ class _Parser2 extends ParserAdapter {
   factory _Parser2(Source source, AnalysisErrorListener errorListener,
       {bool allowNativeClause: false}) {
     var errorReporter = new ErrorReporter(errorListener, source);
-    var member = new _Builder();
-    var scope = new Scope.top(isModifiable: true);
-    return new _Parser2._(source, errorReporter, source.uri, member, scope,
+    return new _Parser2._(source, errorReporter, source.uri,
         allowNativeClause: allowNativeClause);
   }
 
   _Parser2._(this._source, ErrorReporter errorReporter, Uri fileUri,
-      Builder member, Scope scope, {bool allowNativeClause: false})
-      : super(null, errorReporter, fileUri, member, scope,
+      {bool allowNativeClause: false})
+      : super(null, errorReporter, fileUri,
             allowNativeClause: allowNativeClause);
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

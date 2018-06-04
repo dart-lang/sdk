@@ -18,7 +18,7 @@ import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/world_builder.dart'
     show CodegenWorldBuilder, SelectorConstraints;
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show JClosedWorld;
 
 import 'model.dart';
 
@@ -33,7 +33,7 @@ class ParameterStubGenerator {
   final NativeData _nativeData;
   final InterceptorData _interceptorData;
   final CodegenWorldBuilder _codegenWorldBuilder;
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
   final SourceInformationStrategy _sourceInformationStrategy;
 
   ParameterStubGenerator(

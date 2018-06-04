@@ -10,7 +10,7 @@ import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/universe/class_set.dart';
-import 'package:compiler/src/world.dart' show ClassQuery, ClosedWorld;
+import 'package:compiler/src/world.dart' show ClassQuery, JClosedWorld;
 import '../type_test_helper.dart';
 
 void main() {
@@ -51,8 +51,8 @@ testClassSets() async {
         html.window;
         new html.Worker('');
       }
-      """);
-  ClosedWorld closedWorld = env.closedWorld;
+      """, testBackendWorld: true);
+  JClosedWorld closedWorld = env.jClosedWorld;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
 
   ClassEntity Object_ = env.getElement("Object");
@@ -242,8 +242,8 @@ testProperties() async {
         new G3();
         new H4();
       }
-      """);
-  ClosedWorld closedWorld = env.closedWorld;
+      """, testBackendWorld: true);
+  JClosedWorld closedWorld = env.jClosedWorld;
 
   check(String name, {bool hasStrictSubtype, bool hasOnlySubclasses}) {
     ClassEntity cls = env.getElement(name);
@@ -309,7 +309,8 @@ testProperties() async {
 }
 
 testNativeClasses() async {
-  var env = await TypeEnvironment.create('', mainSource: r"""
+  var env = await TypeEnvironment.create('',
+      mainSource: r"""
       import 'dart:html' as html;
       main() {
         html.window; // Creates 'Window'.
@@ -317,8 +318,9 @@ testNativeClasses() async {
         new html.CanvasElement() // Creates CanvasElement
             ..getContext(''); // Creates CanvasRenderingContext2D
       }
-      """);
-  ClosedWorld closedWorld = env.closedWorld;
+      """,
+      testBackendWorld: true);
+  JClosedWorld closedWorld = env.jClosedWorld;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   LibraryEntity dart_html = elementEnvironment.lookupLibrary(Uris.dart_html);
 
@@ -517,7 +519,8 @@ testNativeClasses() async {
 }
 
 testCommonSubclasses() async {
-  var env = await TypeEnvironment.create('', mainSource: r"""
+  var env = await TypeEnvironment.create('',
+      mainSource: r"""
       class A {}
       class B {}
       class C extends A {}
@@ -540,8 +543,9 @@ testCommonSubclasses() async {
         new I();
         new J();
       }
-      """);
-  ClosedWorld closedWorld = env.closedWorld;
+      """,
+      testBackendWorld: true);
+  JClosedWorld closedWorld = env.jClosedWorld;
 
   ClassEntity A = env.getElement("A");
   ClassEntity B = env.getElement("B");

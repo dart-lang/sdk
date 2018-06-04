@@ -51,8 +51,7 @@ import '../type_inference/type_inference_engine.dart'
         FieldInitializerInferenceNode,
         IncludesTypeParametersCovariantly,
         InferenceNode,
-        TypeInferenceEngine,
-        TypeInferenceEngineImpl;
+        TypeInferenceEngine;
 
 import '../type_inference/type_inferrer.dart'
     show TypeInferrer, TypeInferrerDisabled, TypeInferrerImpl;
@@ -819,7 +818,7 @@ class ShadowField extends Field implements ShadowMember {
 
   @override
   void setInferredType(
-      TypeInferenceEngineImpl engine, Uri uri, DartType inferredType) {
+      TypeInferenceEngine engine, Uri uri, DartType inferredType) {
     type = inferredType;
   }
 
@@ -1434,7 +1433,7 @@ abstract class ShadowMember implements Member {
   void set _inferenceNode(InferenceNode value);
 
   void setInferredType(
-      TypeInferenceEngineImpl engine, Uri uri, DartType inferredType);
+      TypeInferenceEngine engine, Uri uri, DartType inferredType);
 
   static void resolveInferenceNode(Member member) {
     if (member is ShadowMember) {
@@ -1580,7 +1579,7 @@ class ShadowProcedure extends Procedure implements ShadowMember {
 
   @override
   void setInferredType(
-      TypeInferenceEngineImpl engine, Uri uri, DartType inferredType) {
+      TypeInferenceEngine engine, Uri uri, DartType inferredType) {
     if (isSetter) {
       if (function.positionalParameters.length > 0) {
         function.positionalParameters[0].type = inferredType;
@@ -2027,7 +2026,7 @@ class ShadowTryFinally extends TryFinally implements ShadowStatement {
 
 /// Concrete implementation of [TypeInferenceEngine] specialized to work with
 /// kernel objects.
-class ShadowTypeInferenceEngine extends TypeInferenceEngineImpl {
+class ShadowTypeInferenceEngine extends TypeInferenceEngine {
   ShadowTypeInferenceEngine(Instrumentation instrumentation, bool strongMode)
       : super(instrumentation, strongMode);
 

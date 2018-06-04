@@ -115,7 +115,7 @@ class HelpCommand extends DebuggerCommand {
   Future<List<String>> complete(List<String> args) {
     var commands = debugger.cmd.matchCommand(args, false);
     var result = commands.map((command) => '${command.fullName} ');
-    return new Future.value(result);
+    return new Future.value(result.toList());
   }
 
   String helpShort =
@@ -1927,7 +1927,7 @@ class ObservatoryDebugger extends Debugger {
 
   Future smartNext() async {
     if (isolatePaused()) {
-      var event = isolate.pauseEvent;
+      M.AsyncSuspensionEvent event = isolate.pauseEvent;
       if (event.atAsyncSuspension) {
         return asyncNext();
       } else {
@@ -1940,7 +1940,7 @@ class ObservatoryDebugger extends Debugger {
 
   Future asyncNext() async {
     if (isolatePaused()) {
-      var event = isolate.pauseEvent;
+      M.AsyncSuspensionEvent event = isolate.pauseEvent;
       if (!event.atAsyncSuspension) {
         console.print("No async continuation at this location");
       } else {
@@ -2420,9 +2420,9 @@ class DebuggerStackElement extends HtmlElement implements Renderable {
 class DebuggerFrameElement extends HtmlElement implements Renderable {
   static const tag = const Tag<DebuggerFrameElement>('debugger-frame');
 
-  RenderingScheduler<DebuggerMessageElement> _r;
+  RenderingScheduler<DebuggerFrameElement> _r;
 
-  Stream<RenderedEvent<DebuggerMessageElement>> get onRendered => _r.onRendered;
+  Stream<RenderedEvent<DebuggerFrameElement>> get onRendered => _r.onRendered;
 
   Element _scroller;
   DivElement _varsDiv;
@@ -2475,7 +2475,7 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
     assert(scripts != null);
     assert(events != null);
     final DebuggerFrameElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<DebuggerFrameElement>(e, queue: queue);
     e._isolate = isolate;
     e._frame = frame;
     e._scroller = scroller;

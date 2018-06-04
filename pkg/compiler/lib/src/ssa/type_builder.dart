@@ -7,7 +7,7 @@ import 'nodes.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../io/source_information.dart';
-import '../types/masks.dart';
+import '../types/abstract_value_domain.dart';
 import '../universe/use.dart' show TypeUse;
 
 /// Enum that defines how a member has access to the current type variables.
@@ -40,7 +40,7 @@ abstract class TypeBuilder {
 
   /// Create a type mask for 'trusting' a DartType. Returns `null` if there is
   /// no approximating type mask (i.e. the type mask would be `dynamic`).
-  TypeMask trustTypeMask(DartType type) {
+  AbstractValue trustTypeMask(DartType type) {
     if (type == null) return null;
     type = builder.localsHandler.substInContext(type);
     type = type.unaliased;
@@ -49,13 +49,13 @@ abstract class TypeBuilder {
     if (type == builder.commonElements.objectType) return null;
     // The type element is either a class or the void element.
     ClassEntity element = (type as InterfaceType).element;
-    return new TypeMask.subtype(element, builder.closedWorld);
+    return builder.abstractValueDomain.createNullableSubtype(element);
   }
 
   /// Create an instruction to simply trust the provided type.
   HInstruction _trustType(HInstruction original, DartType type) {
     assert(type != null);
-    TypeMask mask = trustTypeMask(type);
+    AbstractValue mask = trustTypeMask(type);
     if (mask == null) return original;
     return new HTypeKnown.pinned(mask, original);
   }
@@ -273,8 +273,8 @@ abstract class TypeBuilder {
     type = type.unaliased;
     if (type.isInterfaceType && !type.treatAsRaw) {
       InterfaceType interfaceType = type;
-      TypeMask subtype =
-          new TypeMask.subtype(interfaceType.element, builder.closedWorld);
+      AbstractValue subtype = builder.abstractValueDomain
+          .createNullableSubtype(interfaceType.element);
       HInstruction representations = buildTypeArgumentRepresentations(
           type, builder.sourceElement, sourceInformation);
       builder.add(representations);
@@ -282,7 +282,7 @@ abstract class TypeBuilder {
           type, kind, subtype, original, representations)
         ..sourceInformation = sourceInformation;
     } else if (type.isTypeVariable) {
-      TypeMask subtype = original.instructionType;
+      AbstractValue subtype = original.instructionType;
       HInstruction typeVariable =
           addTypeVariableReference(type, builder.sourceElement);
       return new HTypeConversion.withTypeRepresentation(
@@ -292,7 +292,7 @@ abstract class TypeBuilder {
       HInstruction reifiedType =
           analyzeTypeArgument(type, builder.sourceElement);
       // TypeMasks don't encode function types or FutureOr types.
-      TypeMask refinedMask = original.instructionType;
+      AbstractValue refinedMask = original.instructionType;
       return new HTypeConversion.withTypeRepresentation(
           type, kind, refinedMask, original, reifiedType)
         ..sourceInformation = sourceInformation;

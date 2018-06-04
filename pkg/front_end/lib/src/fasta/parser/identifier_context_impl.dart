@@ -16,6 +16,33 @@ import 'type_info.dart' show isValidTypeReference;
 
 import 'util.dart' show isOneOfOrEof, optional;
 
+/// See [IdentifierContext.catchParameter].
+class CatchParameterIdentifierContext extends IdentifierContext {
+  const CatchParameterIdentifierContext() : super('catchParameter');
+
+  @override
+  Token ensureIdentifier(Token token, Parser parser) {
+    Token identifier = token.next;
+    assert(identifier.kind != IDENTIFIER_TOKEN);
+    if (identifier.isIdentifier) {
+      checkAsyncAwaitYieldAsIdentifier(identifier, parser);
+      return identifier;
+    }
+
+    // Recovery
+    parser.reportRecoverableError(identifier, fasta.messageCatchSyntax);
+    if (looksLikeStartOfNextStatement(identifier) ||
+        isOneOfOrEof(identifier, const [',', ')'])) {
+      return parser.rewriter.insertSyntheticIdentifier(token);
+    } else if (!identifier.isKeywordOrIdentifier) {
+      // When in doubt, consume the token to ensure we make progress
+      // but insert a synthetic identifier to satisfy listeners.
+      return parser.rewriter.insertSyntheticIdentifier(identifier);
+    }
+    return identifier;
+  }
+}
+
 /// See [IdentifierContext.classOrNamedMixinDeclaration].
 class ClassOrNamedMixinIdentifierContext extends IdentifierContext {
   const ClassOrNamedMixinIdentifierContext()
@@ -109,6 +136,7 @@ class ConstructorReferenceIdentifierContext extends IdentifierContext {
     Token identifier = token.next;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     if (identifier.isIdentifier) {
+      checkAsyncAwaitYieldAsIdentifier(identifier, parser);
       return identifier;
     }
 
@@ -342,6 +370,7 @@ class FormalParameterDeclarationIdentifierContext extends IdentifierContext {
     Token identifier = token.next;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     if (identifier.isIdentifier) {
+      checkAsyncAwaitYieldAsIdentifier(identifier, parser);
       return identifier;
     }
 
@@ -471,6 +500,7 @@ class LabelDeclarationIdentifierContext extends IdentifierContext {
     Token identifier = token.next;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     if (identifier.isIdentifier) {
+      checkAsyncAwaitYieldAsIdentifier(identifier, parser);
       return identifier;
     }
 
@@ -501,6 +531,7 @@ class LabelReferenceIdentifierContext extends IdentifierContext {
     Token identifier = token.next;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     if (identifier.isIdentifier) {
+      checkAsyncAwaitYieldAsIdentifier(identifier, parser);
       return identifier;
     }
 
@@ -625,6 +656,7 @@ class MetadataReferenceIdentifierContext extends IdentifierContext {
     Token identifier = token.next;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     if (identifier.isIdentifier) {
+      checkAsyncAwaitYieldAsIdentifier(identifier, parser);
       return identifier;
     }
 
@@ -702,6 +734,7 @@ class NamedArgumentReferenceIdentifierContext extends IdentifierContext {
     Token identifier = token.next;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     if (identifier.isIdentifier) {
+      checkAsyncAwaitYieldAsIdentifier(identifier, parser);
       return identifier;
     }
 
@@ -872,18 +905,25 @@ class TypeVariableDeclarationIdentifierContext extends IdentifierContext {
     }
 
     // Recovery
-    parser.reportRecoverableErrorWithToken(
-        identifier, fasta.templateExpectedIdentifier);
     const followingValues = const ['<', '>', ';', '}', 'extends', 'super'];
     if (looksLikeStartOfNextTopLevelDeclaration(identifier) ||
         looksLikeStartOfNextClassMember(identifier) ||
         looksLikeStartOfNextStatement(identifier) ||
         isOneOfOrEof(identifier, followingValues)) {
+      parser.reportRecoverableErrorWithToken(
+          identifier, fasta.templateExpectedIdentifier);
       identifier = parser.rewriter.insertSyntheticIdentifier(token);
+    } else if (identifier.type.isBuiltIn) {
+      parser.reportRecoverableErrorWithToken(
+          identifier, fasta.templateBuiltInIdentifierInDeclaration);
     } else {
-      // When in doubt, consume the token to ensure we make progress
-      // but insert a synthetic identifier to satisfy listeners.
-      identifier = parser.rewriter.insertSyntheticIdentifier(identifier);
+      parser.reportRecoverableErrorWithToken(
+          identifier, fasta.templateExpectedIdentifier);
+      if (!identifier.isKeywordOrIdentifier) {
+        // When in doubt, consume the token to ensure we make progress
+        // but insert a synthetic identifier to satisfy listeners.
+        identifier = parser.rewriter.insertSyntheticIdentifier(identifier);
+      }
     }
     return identifier;
   }

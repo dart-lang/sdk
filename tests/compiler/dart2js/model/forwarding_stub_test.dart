@@ -30,7 +30,7 @@ main() {
         memorySourceFiles: {'main.dart': source}, options: [Flags.strongMode]));
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
-    ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     ClassEntity cls =
         elementEnvironment.lookupClass(elementEnvironment.mainLibrary, 'Class');

@@ -34,7 +34,6 @@ bigint_from_test: RuntimeError # Issue 32589
 bool_from_environment2_test/03: Crash
 int_modulo_arith_test/modPow: RuntimeError
 int_modulo_arith_test/none: RuntimeError
-null_test: RuntimeError # Issue 32194
 string_from_environment3_test/03: Crash
 
 [ $compiler == precompiler ]
@@ -305,6 +304,12 @@ string_base_vm_static_test: MissingCompileTimeError
 string_replace_static_test: MissingCompileTimeError
 string_static_test: MissingCompileTimeError
 
+[ $compiler == dartk && $mode == debug && $hot_reload ]
+map_test: Crash
+
+[ $compiler == dartk && $mode == release && $hot_reload ]
+bigint_parse_radix_test: Crash
+
 # ===== dartk + vm status lines =====
 [ $compiler == dartk && $runtime == vm && $strong ]
 iterable_fold_test/02: RuntimeError
@@ -394,13 +399,13 @@ double_round_test/int64: RuntimeError, OK # Requires fixed-size int64 support.
 double_truncate_test/int64: RuntimeError, OK # Requires fixed-size int64 support.
 hash_set_test/01: RuntimeError # non JS number semantics - Issue 11551
 int_modulo_arith_test/modPow: RuntimeError # Issue 29921
-int_parse_with_limited_ints_test: Skip # dart2js and dartdevc don't know about --limit-ints-to-64-bits
+int_parse_with_limited_ints_test: Skip # Requires fixed-size int64 support.
 integer_arith_vm_test/modPow: RuntimeError # Issues 10245, 30170
 integer_parsed_arith_vm_test: RuntimeError # Issues 10245, 29921
 integer_parsed_div_rem_vm_test: RuntimeError # Issue 29921
 integer_parsed_mul_div_vm_test: RuntimeError # Issue 29921
 regress_r21715_test: RuntimeError # Requires fixed-size int64 support.
-typed_data_with_limited_ints_test: Skip # dart2js and dartdevc don't know about --limit-ints-to-64-bits
+typed_data_with_limited_ints_test: Skip # Requires fixed-size int64 support.
 
 [ $runtime != none && ($compiler == dartdevc || $compiler == dartdevk) ]
 bigint_test: Pass, Slow
@@ -411,7 +416,7 @@ hash_set_test/01: RuntimeError # Issue 29921
 int_modulo_arith_test/none: RuntimeError # Issue 29921
 int_parse_radix_test/01: RuntimeError # Issue 29921
 int_parse_radix_test/02: RuntimeError # Issue 29921
-int_parse_with_limited_ints_test: Skip # dartdevc doesn't know about --limit-ints-to-64-bits
+int_parse_with_limited_ints_test: Skip # Requires fixed-size int64 support.
 integer_arith_vm_test/modPow: RuntimeError # Issue 30170
 integer_parsed_arith_vm_test: RuntimeError # Issue 29921
 integer_to_radix_string_test: RuntimeError # Issue 29921
@@ -467,7 +472,7 @@ symbol_reserved_word_test/06: RuntimeError # Issue 29921
 symbol_reserved_word_test/09: RuntimeError # Issue 29921
 symbol_reserved_word_test/12: RuntimeError # Issue 29921
 symbol_test/none: RuntimeError # Issue 29921
-typed_data_with_limited_ints_test: Skip # dartdevc doesn't know about --limit-ints-to-64-bits
+typed_data_with_limited_ints_test: Skip # Requires fixed-size int64 support.
 
 [ $runtime == vm && !$strong ]
 collection_of_test: RuntimeError

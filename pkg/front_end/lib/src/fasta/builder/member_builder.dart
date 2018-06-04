@@ -5,13 +5,13 @@
 library fasta.member_builder;
 
 import 'builder.dart'
-    show Builder, ClassBuilder, LibraryBuilder, ModifierBuilder;
+    show ClassBuilder, Declaration, LibraryBuilder, ModifierBuilder;
 
 abstract class MemberBuilder extends ModifierBuilder {
   /// For top-level members, the parent is set correctly during
   /// construction. However, for class members, the parent is initially the
   /// library and updated later.
-  Builder parent;
+  Declaration parent;
 
   String get name;
 

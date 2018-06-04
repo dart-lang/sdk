@@ -133,17 +133,17 @@ ConstantPool {
   [1] = Null
   [2] = Type #lib::A<#lib::D::P>
   [3] = ArgDesc num-args 4, num-type-args 0, names []
-  [4] = ICData target-name '_instanceOf', arg-desc CP#3
+  [4] = ICData target-name 'dart.core::_instanceOf', arg-desc CP#3
   [5] = Bool true
   [6] = String '21'
   [7] = ArgDesc num-args 1, num-type-args 0, names []
   [8] = StaticICData target 'dart.core::print', arg-desc CP#7
   [9] = Type #lib::C<dynamic, #lib::D::Q, dart.core::List<#lib::D::P>>
-  [10] = ICData target-name '_instanceOf', arg-desc CP#3
+  [10] = ICData target-name 'dart.core::_instanceOf', arg-desc CP#3
   [11] = String '22'
   [12] = StaticICData target 'dart.core::print', arg-desc CP#7
   [13] = ArgDesc num-args 2, num-type-args 0, names []
-  [14] = ICData target-name 'set:foo', arg-desc CP#13
+  [14] = ICData set target-name 'foo', arg-desc CP#13
 }
 ]  method foo2(dynamic y) → dynamic {
     if(y is self::A<self::D::P>) {
@@ -201,18 +201,18 @@ ConstantPool {
   [0] = TypeArgumentsFieldOffset #lib::D
   [1] = Type #lib::A<#lib::D::foo3::T1>
   [2] = ArgDesc num-args 4, num-type-args 0, names []
-  [3] = ICData target-name '_instanceOf', arg-desc CP#2
+  [3] = ICData target-name 'dart.core::_instanceOf', arg-desc CP#2
   [4] = Bool true
   [5] = String '31'
   [6] = ArgDesc num-args 1, num-type-args 0, names []
   [7] = StaticICData target 'dart.core::print', arg-desc CP#6
   [8] = Type #lib::C<dart.core::Map<#lib::D::foo3::T1, #lib::D::P>, dart.core::List<#lib::D::foo3::T2>, #lib::D::Q>
-  [9] = ICData target-name '_instanceOf', arg-desc CP#2
+  [9] = ICData target-name 'dart.core::_instanceOf', arg-desc CP#2
   [10] = String '32'
   [11] = StaticICData target 'dart.core::print', arg-desc CP#6
   [12] = Type dart.core::Map<#lib::D::foo3::T2, #lib::D::Q>
-  [13] = ICData target-name '_as', arg-desc CP#2
-  [14] = ICData target-name 'get:values', arg-desc CP#6
+  [13] = ICData target-name 'dart.core::_as', arg-desc CP#2
+  [14] = ICData get target-name 'values', arg-desc CP#6
   [15] = Null
 }
 ]  method foo3<T1 extends core::Object = dynamic, T2 extends core::Object = dynamic>(dynamic z) → dynamic {
@@ -268,17 +268,17 @@ ConstantPool {
   [0] = Null
   [1] = Type #lib::B
   [2] = ArgDesc num-args 4, num-type-args 0, names []
-  [3] = ICData target-name '_instanceOf', arg-desc CP#2
+  [3] = ICData target-name 'dart.core::_instanceOf', arg-desc CP#2
   [4] = Bool true
   [5] = String '11'
   [6] = ArgDesc num-args 1, num-type-args 0, names []
   [7] = StaticICData target 'dart.core::print', arg-desc CP#6
   [8] = Type #lib::C<dart.core::int, dart.core::Object, dynamic>
-  [9] = ICData target-name '_instanceOf', arg-desc CP#2
+  [9] = ICData target-name 'dart.core::_instanceOf', arg-desc CP#2
   [10] = String '12'
   [11] = StaticICData target 'dart.core::print', arg-desc CP#6
   [12] = Type #lib::A<dart.core::int>
-  [13] = ICData target-name '_as', arg-desc CP#2
+  [13] = ICData target-name 'dart.core::_as', arg-desc CP#2
 }
 ]static method foo1(dynamic x) → dynamic {
   if(x is self::B) {

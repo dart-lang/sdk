@@ -10,6 +10,12 @@
 
 namespace dart {
 
+DEFINE_NATIVE_ENTRY(List_new, 2) {
+  // This function is handled by flow-graph builder.
+  UNREACHABLE();
+  return Object::null();
+}
+
 DEFINE_NATIVE_ENTRY(List_allocate, 2) {
   // Implemented in FlowGraphBuilder::VisitNativeBody.
   UNREACHABLE();

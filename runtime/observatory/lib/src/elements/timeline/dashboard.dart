@@ -97,7 +97,7 @@ class TimelineDashboardElement extends HtmlElement implements Renderable {
     _frame.src = _makeFrameUrl();
     _content.children = [
       new HeadingElement.h2()
-        ..children = ([new Text("Timeline View")]
+        ..nodes = ([new Text("Timeline View")]
           ..addAll(_createButtons())
           ..addAll(_createTabs())),
       new ParagraphElement()
@@ -118,7 +118,7 @@ class TimelineDashboardElement extends HtmlElement implements Renderable {
     }
   }
 
-  List<Element> _createButtons() {
+  List<Node> _createButtons() {
     if (_flags == null) {
       return [new Text('Loading')];
     }

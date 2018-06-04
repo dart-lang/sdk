@@ -115,6 +115,7 @@ isolate/deferred_in_isolate2_test: Skip # Issue 16898. Deferred loading does not
 [ $hot_reload ]
 async/stream_periodic4_test: Pass, RuntimeError # Issue 30904
 async/timer_regress22626_test: Pass, RuntimeError # Timing dependent.
+mirrors/dynamic_load_test: RuntimeError # Issue 26869 - Reload fails to preserve library identity
 
 [ $jscl ]
 isolate/spawn_uri_multi_test/none: RuntimeError # Issue 13544

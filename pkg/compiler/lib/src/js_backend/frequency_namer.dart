@@ -30,7 +30,7 @@ class FrequencyBasedNamer extends Namer
       _staticsPropertyName ??= getFreshName(instanceScope, 'static');
 
   FrequencyBasedNamer(
-      ClosedWorld closedWorld, CodegenWorldBuilder codegenWorldBuilder)
+      JClosedWorld closedWorld, CodegenWorldBuilder codegenWorldBuilder)
       : super(closedWorld, codegenWorldBuilder) {
     fieldRegistry = new _FieldNamingRegistry(this);
   }

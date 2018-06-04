@@ -7067,9 +7067,11 @@ RawFunction* Function::New(const String& name,
                            Heap::Space space) {
   ASSERT(!owner.IsNull() || (kind == RawFunction::kSignatureFunction));
   const Function& result = Function::Handle(Function::New(space));
+  result.set_kind_tag(0);
   result.set_parameter_types(Object::empty_array());
   result.set_parameter_names(Object::empty_array());
   result.set_name(name);
+  result.set_kind_tag(0);  // Ensure determinism of uninitialized bits.
   result.set_kind(kind);
   result.set_recognized_kind(MethodRecognizer::kUnknown);
   result.set_modifier(RawFunction::kNoModifier);
@@ -7084,6 +7086,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_intrinsic(false);
   result.set_is_redirecting(false);
   result.set_is_generated_body(false);
+  result.set_has_pragma(false);
   result.set_always_inline(false);
   result.set_is_polymorphic_target(false);
   NOT_IN_PRECOMPILED(result.set_state_bits(0));
@@ -11548,7 +11551,8 @@ static RawObject* EvaluateWithDFEHelper(const String& expression,
   // Load the program with the debug procedure as a regular, independent
   // program.
   kernel::KernelLoader loader(kernel_pgm);
-  loader.LoadProgram();
+  const Object& result = Object::Handle(loader.LoadProgram());
+  if (result.IsError()) return result.raw();
   ASSERT(I->class_table()->NumCids() > num_cids &&
          GrowableObjectArray::Handle(I->object_store()->libraries()).Length() ==
              num_libs + 1);
@@ -11562,7 +11566,7 @@ static RawObject* EvaluateWithDFEHelper(const String& expression,
       String::New(Symbols::Symbol(Symbols::kDebugProcedureNameId)));
   Class& fake_class = Class::Handle();
   if (!klass.IsNull()) {
-    fake_class = loaded.LookupClass(String::Handle(String::New(klass)));
+    fake_class = loaded.LookupClass(Symbols::DebugClassName());
     ASSERT(!fake_class.IsNull());
     callee = fake_class.LookupFunctionAllowPrivate(debug_name);
   } else {
@@ -11584,7 +11588,7 @@ static RawObject* EvaluateWithDFEHelper(const String& expression,
   ASSERT(!real_library.IsNull());
   Class& real_class = Class::Handle();
   if (!klass.IsNull()) {
-    real_class = real_library.LookupClass(String::Handle(String::New(klass)));
+    real_class = real_library.LookupClassAllowPrivate(klass);
   } else {
     real_class = real_library.toplevel_class();
   }
@@ -11617,7 +11621,7 @@ static RawObject* EvaluateWithDFEHelper(const String& expression,
     real_arguments.SetAt(i + 1, arg);
   }
   const Array& args_desc = Array::Handle(
-      ArgumentsDescriptor::New(num_type_args, real_arguments.Length()));
+      ArgumentsDescriptor::New(num_type_args, arguments.Length()));
   return DartEntry::InvokeFunction(callee, real_arguments, args_desc);
 #endif
 }
@@ -18243,6 +18247,8 @@ RawTypeRef* TypeRef::CloneUninstantiated(const Class& new_owner,
   cloned_ref_type = ref_type.CloneUninstantiated(new_owner, trail);
   ASSERT(!cloned_ref_type.IsTypeRef());
   cloned_type_ref.set_type(cloned_ref_type);
+  cloned_type_ref.SetTypeTestingStub(Instructions::Handle(
+      TypeTestingStubGenerator::DefaultCodeForType(cloned_type_ref)));
   return cloned_type_ref.raw();
 }
 

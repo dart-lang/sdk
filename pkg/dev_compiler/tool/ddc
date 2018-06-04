@@ -70,7 +70,7 @@ if [ "$KERNEL" = true ]; then
   if [ ! -e $GEN_DIR/kernel/ddc_sdk.dill ]; then
     echo "DDC SDK must be built first, please run:"
     echo "    pushd $SDKDIR"
-    echo "    ./tools/build.py -m release dartdevc_sdk_kernel_summary"
+    echo "    ./tools/build.py -m release dartdevk_sdk"
     exit 1
   fi
 

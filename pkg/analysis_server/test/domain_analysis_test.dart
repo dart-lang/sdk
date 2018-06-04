@@ -576,7 +576,7 @@ class SetSubscriptionsTest extends AbstractAnalysisTest {
   }
 
   test_afterAnalysis_noSuchFile() async {
-    String file = '/no-such-file.dart';
+    String file = convertPath('/no-such-file.dart');
     addTestFile('// no matter');
     createProject();
     // wait for analysis, no results initially
@@ -584,9 +584,9 @@ class SetSubscriptionsTest extends AbstractAnalysisTest {
     expect(filesHighlights[testFile], isNull);
     // subscribe
     addAnalysisSubscription(AnalysisService.HIGHLIGHTS, file);
-    await server.onAnalysisComplete;
+    await _resultsAvailable.future;
     // there are results
-    expect(filesHighlights[file], isNull);
+    expect(filesHighlights[file], isEmpty);
   }
 
   test_afterAnalysis_packageFile_external() async {

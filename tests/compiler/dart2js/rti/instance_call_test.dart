@@ -103,7 +103,7 @@ main() {
         options: [Flags.strongMode, Flags.omitImplicitChecks]);
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
-    ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     RuntimeTypesNeed rtiNeed = closedWorld.rtiNeed;
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     ProgramLookup programLookup = new ProgramLookup(compiler);

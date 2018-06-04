@@ -69,7 +69,7 @@ main() {
         options: [Flags.strongMode, Flags.omitImplicitChecks]);
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
-    ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     ProgramLookup programLookup = new ProgramLookup(compiler);
 
     void checkStubs(ClassEntity element, List<String> expectedStubs) {

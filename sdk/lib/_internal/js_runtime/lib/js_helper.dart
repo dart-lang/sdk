@@ -3465,10 +3465,19 @@ extractFunctionTypeObjectFromInternal(o) {
 
 functionTypeTest(value, functionTypeRti) {
   if (value == null) return false;
+  if (JS('bool', 'typeof # == "function"', value)) {
+    // JavaScript functions do not have an attached type, but for convenient
+    // JS-interop, we pretend they can be any function type.
+    // TODO(sra): Tighten this up to disallow matching function types with
+    // features inaccessible from JavaScript, i.e.  optional named parameters
+    // and type parameters functions.
+    // TODO(sra): If the JavaScript function was the output of `dart:js`'s
+    // `allowInterop` then we have access to the wrapped function.
+    return true;
+  }
   var functionTypeObject = extractFunctionTypeObjectFrom(value);
-  return functionTypeObject == null
-      ? false
-      : isFunctionSubtype(functionTypeObject, functionTypeRti);
+  if (functionTypeObject == null) return false;
+  return isFunctionSubtype(functionTypeObject, functionTypeRti);
 }
 
 // Declared as 'var' to avoid assignment checks.

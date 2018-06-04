@@ -7,7 +7,7 @@ import 'package:expect/expect.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/types/masks.dart';
+import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import 'package:compiler/src/world.dart';
 import 'type_mask_test_helper.dart';
 import '../memory_compiler.dart';
@@ -104,7 +104,7 @@ class RuleSet {
   }
 }
 
-void testUnion(ClosedWorld closedWorld) {
+void testUnion(JClosedWorld closedWorld) {
   RuleSet ruleSet = new RuleSet(
       'union', (t1, t2) => simplify(t1.union(t2, closedWorld), closedWorld));
   rule(type1, type2, result) => ruleSet.rule(type1, type2, result);
@@ -415,7 +415,7 @@ void testUnion(ClosedWorld closedWorld) {
   ruleSet.validateCoverage();
 }
 
-void testIntersection(ClosedWorld closedWorld) {
+void testIntersection(JClosedWorld closedWorld) {
   RuleSet ruleSet =
       new RuleSet('intersection', (t1, t2) => t1.intersection(t2, closedWorld));
   rule(type1, type2, result) => ruleSet.rule(type1, type2, result);
@@ -730,7 +730,7 @@ void testIntersection(ClosedWorld closedWorld) {
   ruleSet.validateCoverage();
 }
 
-void testRegressions(ClosedWorld closedWorld) {
+void testRegressions(JClosedWorld closedWorld) {
   TypeMask nonNullPotentialString =
       new TypeMask.nonNullSubtype(patternClass, closedWorld);
   Expect.equals(potentialString,
@@ -758,7 +758,7 @@ runTests() async {
   }, beforeRun: (compiler) => compiler.stopAfterTypeInference = true);
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler;
-  ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+  JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
   CommonElements commonElements = closedWorld.commonElements;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
 

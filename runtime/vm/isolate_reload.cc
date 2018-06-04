@@ -854,7 +854,7 @@ void IsolateReloadContext::ReportOnJSON(JSONStream* stream) {
 
 void IsolateReloadContext::EnsuredUnoptimizedCodeForStack() {
   TIMELINE_SCOPE(EnsuredUnoptimizedCodeForStack);
-  StackFrameIterator it(StackFrameIterator::kDontValidateFrames,
+  StackFrameIterator it(ValidationPolicy::kDontValidateFrames,
                         Thread::Current(),
                         StackFrameIterator::kNoCrossThreadIteration);
 

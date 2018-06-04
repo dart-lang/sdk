@@ -628,7 +628,7 @@ ConstantPool {
   [13] = ClosureFunction closure2 () → void;
   [14] = ICData target-name '+', arg-desc CP#7
   [15] = ArgDesc num-args 1, num-type-args 0, names []
-  [16] = ICData target-name 'get:foo', arg-desc CP#15
+  [16] = ICData get target-name 'foo', arg-desc CP#15
   [17] = ICData target-name '+', arg-desc CP#7
   [18] = Null
   [19] = EndClosureFunctionScope
@@ -648,7 +648,7 @@ ConstantPool {
   [33] = StaticICData target 'dart.core::print', arg-desc CP#15
   [34] = Int 42
   [35] = ClosureFunction <anonymous closure> () → dart.core::Null;
-  [36] = ICData target-name 'set:foo', arg-desc CP#7
+  [36] = ICData set target-name 'foo', arg-desc CP#7
   [37] = EndClosureFunctionScope
   [38] = ICData target-name 'call', arg-desc CP#15
 }
@@ -1090,11 +1090,11 @@ L1:
 }
 ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
-  [1] = ICData target-name 'get:iterator', arg-desc CP#0
+  [1] = ICData get target-name 'iterator', arg-desc CP#0
   [2] = ICData target-name 'moveNext', arg-desc CP#0
   [3] = Bool true
   [4] = ContextOffset parent
-  [5] = ICData target-name 'get:current', arg-desc CP#0
+  [5] = ICData get target-name 'current', arg-desc CP#0
   [6] = ContextOffset var [0]
   [7] = ClosureFunction <anonymous closure> () → dart.core::Null;
   [8] = FieldOffset dart.core::_Closure::_context

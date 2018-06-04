@@ -162,7 +162,6 @@ class RunKernelTask : public ThreadPool::Task {
     }
 
     ASSERT(KernelIsolate::IsKernelIsolate(I));
-    KernelIsolate::SetKernelIsolate(NULL);
     KernelIsolate::SetLoadPort(ILLEGAL_PORT);
 
     // Shut the isolate down.
@@ -170,6 +169,9 @@ class RunKernelTask : public ThreadPool::Task {
     if (FLAG_trace_kernel) {
       OS::Print(DART_KERNEL_ISOLATE_NAME ": Shutdown.\n");
     }
+    // This should be the last line so the check
+    // IsKernelIsolate works during the shutdown process.
+    KernelIsolate::SetKernelIsolate(NULL);
   }
 
   bool RunMain(Isolate* I) {

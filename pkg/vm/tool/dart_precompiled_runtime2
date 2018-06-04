@@ -36,5 +36,4 @@ BIN_DIR="$OUT_DIR$DART_CONFIGURATION"
 exec "$BIN_DIR"/dart_precompiled_runtime               \
      --strong                                          \
      --reify-generic-functions                         \
-     --limit-ints-to-64-bits                           \
      "$@"

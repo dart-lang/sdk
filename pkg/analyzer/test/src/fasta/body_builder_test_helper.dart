@@ -173,8 +173,16 @@ class FastaBodyBuilderTestCase extends Object
       bool inAsync: false,
       bool inCatchBlock: false}) {
     // TODO(brianwilkerson) Check error codes.
-    return _parse(source, (parser, token) => parser.parseExpression(token),
+    Object result = _parse(
+        source, (parser, token) => parser.parseExpression(token),
         inAsync: inAsync, inCatchBlock: inCatchBlock);
+    if (result is Generator) {
+      result = (result as Generator).buildForEffect();
+    }
+    if (result is! Expression) {
+      throw new StateError('Expected Expression, found ${result.runtimeType}');
+    }
+    return result;
   }
 
   @override
@@ -516,8 +524,8 @@ f() {
       AstBodyBuilder builder = new AstBodyBuilder(
         library,
         procedureBuilder,
-        library.scope,
-        procedureBuilder.computeFormalParameterScope(library.scope),
+        new UnlinkedScope(),
+        null,
         kernelTarget.loader.hierarchy,
         kernelTarget.loader.coreTypes,
         null /* classBuilder */,

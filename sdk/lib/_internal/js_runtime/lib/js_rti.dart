@@ -829,25 +829,28 @@ Object getFutureOrArgument(var type) {
 bool checkSubtypeOfRuntimeType(o, t) {
   if (o == null) return isSupertypeOfNull(t);
   if (isTopType(t)) return true;
-  if (JS_GET_FLAG('STRONG_MODE') &&
-      JS('bool', 'typeof # == "object"', t) &&
-      isDartFutureOrType(t)) {
-    // `o is FutureOr<T>` is equivalent to
-    //
-    //     o is T || o is Future<T>
-    //
-    // T might be a function type, requiring extracting the closure's signature,
-    // so do the `o is T` check here and let the `Future` interface type test
-    // fall through to the `isSubtype` check at the end of this function.
-    var tTypeArgument = getFutureOrArgument(t);
-    if (checkSubtypeOfRuntimeType(o, tTypeArgument)) return true;
+  if (JS('bool', 'typeof # == "object"', t)) {
+    if (JS_GET_FLAG('STRONG_MODE') && isDartFutureOrType(t)) {
+      // `o is FutureOr<T>` is equivalent to
+      //
+      //     o is T || o is Future<T>
+      //
+      // T might be a function type, requiring extracting the closure's
+      // signature, so do the `o is T` check here and let the `Future` interface
+      // type test fall through to the `isSubtype` check at the end of this
+      // function.
+      var tTypeArgument = getFutureOrArgument(t);
+      if (checkSubtypeOfRuntimeType(o, tTypeArgument)) return true;
+    }
+
+    if (isDartFunctionType(t)) {
+      return functionTypeTest(o, t);
+    }
   }
 
-  // Get the runtime type information from the object here, because we may
-  // overwrite o with the interceptor below.
+  var interceptor = getInterceptor(o);
+  var type = getRawRuntimeType(interceptor);
   var rti = getRuntimeTypeInfo(o);
-  o = getInterceptor(o);
-  var type = getRawRuntimeType(o);
   if (rti != null) {
     // If the type has type variables (that is, `rti != null`), make a copy of
     // the type arguments and insert [o] in the first position to create a
@@ -855,13 +858,6 @@ bool checkSubtypeOfRuntimeType(o, t) {
     rti = JS('JSExtendableArray', '#.slice()', rti); // Make a copy.
     JS('', '#.splice(0, 0, #)', rti, type); // Insert type at position 0.
     type = rti;
-  }
-  if (isDartFunctionType(t)) {
-    // Functions are treated specially and have their type information stored
-    // directly in the instance.
-    type = extractFunctionTypeObjectFromInternal(o);
-    if (type == null) return false;
-    return isFunctionSubtype(type, t);
   }
   return isSubtype(type, t);
 }

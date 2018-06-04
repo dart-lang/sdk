@@ -601,20 +601,19 @@ class AnalysisServer {
    * otherwise in the first driver, otherwise `null` is returned.
    */
   Future<nd.AnalysisResult> getAnalysisResult(String path,
-      {bool sendCachedToStream: false}) async {
+      {bool sendCachedToStream: false}) {
     if (!AnalysisEngine.isDartFileName(path)) {
       return null;
     }
 
-    try {
-      nd.AnalysisDriver driver = getAnalysisDriver(path);
-      return await driver?.getResult(path,
-          sendCachedToStream: sendCachedToStream);
-    } catch (e) {
-      // Ignore the exception.
-      // We don't want to log the same exception again and again.
-      return null;
+    nd.AnalysisDriver driver = getAnalysisDriver(path);
+    if (driver == null) {
+      return new Future.value();
     }
+
+    return driver
+        .getResult(path, sendCachedToStream: sendCachedToStream)
+        .catchError((_) => null);
   }
 
   /**

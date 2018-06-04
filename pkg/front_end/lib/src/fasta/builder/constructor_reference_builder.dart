@@ -8,15 +8,19 @@ import '../messages.dart' show noLength, templateConstructorNotFound;
 
 import 'builder.dart'
     show
-        Builder,
         ClassBuilder,
+        Declaration,
         LibraryBuilder,
         PrefixBuilder,
         QualifiedName,
         Scope,
         TypeBuilder;
 
-class ConstructorReferenceBuilder extends Builder {
+class ConstructorReferenceBuilder {
+  final int charOffset;
+
+  final Uri fileUri;
+
   final Object name;
 
   final List<TypeBuilder> typeArguments;
@@ -24,38 +28,38 @@ class ConstructorReferenceBuilder extends Builder {
   /// This is the name of a named constructor. As `bar` in `new Foo<T>.bar()`.
   final String suffix;
 
-  Builder target;
+  Declaration target;
 
   ConstructorReferenceBuilder(this.name, this.typeArguments, this.suffix,
-      Builder parent, int charOffset)
-      : super(parent, charOffset, parent.fileUri);
+      Declaration parent, this.charOffset)
+      : fileUri = parent.fileUri;
 
   String get fullNameForErrors => "$name${suffix == null ? '' : '.$suffix'}";
 
   void resolveIn(Scope scope, LibraryBuilder accessingLibrary) {
     final name = this.name;
-    Builder builder;
+    Declaration declaration;
     if (name is QualifiedName) {
       String prefix = name.prefix;
       String middle = name.suffix;
-      builder = scope.lookup(prefix, charOffset, fileUri);
-      if (builder is PrefixBuilder) {
-        PrefixBuilder prefix = builder;
-        builder = prefix.lookup(middle, name.charOffset, fileUri);
-      } else if (builder is ClassBuilder) {
-        ClassBuilder cls = builder;
-        builder = cls.findConstructorOrFactory(
+      declaration = scope.lookup(prefix, charOffset, fileUri);
+      if (declaration is PrefixBuilder) {
+        PrefixBuilder prefix = declaration;
+        declaration = prefix.lookup(middle, name.charOffset, fileUri);
+      } else if (declaration is ClassBuilder) {
+        ClassBuilder cls = declaration;
+        declaration = cls.findConstructorOrFactory(
             middle, name.charOffset, fileUri, accessingLibrary);
         if (suffix == null) {
-          target = builder;
+          target = declaration;
           return;
         }
       }
     } else {
-      builder = scope.lookup(name, charOffset, fileUri);
+      declaration = scope.lookup(name, charOffset, fileUri);
     }
-    if (builder is ClassBuilder) {
-      target = builder.findConstructorOrFactory(
+    if (declaration is ClassBuilder) {
+      target = declaration.findConstructorOrFactory(
           suffix ?? "", charOffset, fileUri, accessingLibrary);
     }
     if (target == null) {

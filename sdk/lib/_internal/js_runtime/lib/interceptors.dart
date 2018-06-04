@@ -485,6 +485,7 @@ class JavaScriptFunction extends JavaScriptObject implements Function {
 
   String toString() {
     var dartClosure = JS('', '#.#', this, DART_CLOSURE_PROPERTY_NAME);
-    return dartClosure == null ? super.toString() : dartClosure.toString();
+    if (dartClosure == null) return super.toString();
+    return 'JavaScript function for ${dartClosure.toString()}';
   }
 }

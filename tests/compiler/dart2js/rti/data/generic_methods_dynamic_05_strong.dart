@@ -20,7 +20,7 @@ class B {}
 
 class C {
   /*!strong.element: C.bar:needsArgs,selectors=[Selector(call, bar, arity=1, types=1)]*/
-  /*strong.element: C.bar:explicit=[Iterable<bar.T>],implicit=[bar.T],indirect,needsArgs,selectors=[Selector(call, bar, arity=1, types=1)]*/
+  /*strong.element: C.bar:direct,explicit=[Iterable<bar.T>],implicit=[bar.T],needsArgs,selectors=[Selector(call, bar, arity=1, types=1)]*/
   List<T> bar<T>(Iterable<T> t) => <T>[t.first];
 }
 

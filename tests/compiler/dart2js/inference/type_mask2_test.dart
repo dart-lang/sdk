@@ -8,8 +8,8 @@ import 'dart:async';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/types/masks.dart';
-import 'package:compiler/src/world.dart' show ClosedWorld;
+import 'package:compiler/src/inferrer/typemasks/masks.dart';
+import 'package:compiler/src/world.dart' show JClosedWorld;
 import '../type_test_helper.dart';
 
 isCheckedMode() {
@@ -35,7 +35,7 @@ void main() {
   });
 }
 
-checkMasks(ClosedWorld closedWorld, List<ClassEntity> allClasses,
+checkMasks(JClosedWorld closedWorld, List<ClassEntity> allClasses,
     List<FlatTypeMask> masks,
     {FlatTypeMask result,
     List<FlatTypeMask> disjointMasks,
@@ -105,9 +105,9 @@ Future testUnionTypeMaskFlatten() async {
         new D();
         new E();
       }
-      """);
+      """, testBackendWorld: true);
 
-  ClosedWorld closedWorld = env.closedWorld;
+  JClosedWorld closedWorld = env.jClosedWorld;
 
   ClassEntity Object_ = env.getElement("Object");
   ClassEntity A = env.getElement("A");
@@ -209,12 +209,14 @@ Future testUnionTypeMaskFlatten() async {
 }
 
 Future testStringSubtypes() async {
-  TypeEnvironment env = await TypeEnvironment.create('', mainSource: r"""
+  TypeEnvironment env = await TypeEnvironment.create('',
+      mainSource: r"""
       main() {
         '' is String;
       }
-      """);
-  ClosedWorld closedWorld = env.closedWorld;
+      """,
+      testBackendWorld: true);
+  JClosedWorld closedWorld = env.jClosedWorld;
 
   ClassEntity Object_ = env.getElement("Object");
   ClassEntity String_ = env.getElement("String");

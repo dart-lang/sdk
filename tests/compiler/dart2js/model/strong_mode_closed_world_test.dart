@@ -171,7 +171,7 @@ main() {
     'Q': ['method3'],
   };
 
-  ClosedWorld closedWorld =
+  KClosedWorld closedWorld =
       compiler.resolutionWorldBuilder.closedWorldForTesting;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
 

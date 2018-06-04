@@ -1971,7 +1971,6 @@ class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
             elementMap.elementEnvironment,
             elementMap.types,
             elementMap.commonElements,
-            elementMap._constantEnvironment.constantSystem,
             nativeBasicData,
             nativeDataBuilder,
             interceptorDataBuilder,
@@ -2064,61 +2063,95 @@ abstract class KernelClosedWorldMixin implements ClosedWorldBase {
       true;
 
   @override
-  bool checkClass(ClassEntity cls) => true;
-
-  @override
   bool checkEntity(Entity element) => true;
 }
 
-class KernelClosedWorld extends ClosedWorldBase
-    with KernelClosedWorldMixin, ClosedWorldRtiNeedMixin {
+class KClosedWorldImpl extends ClosedWorldRtiNeedMixin implements KClosedWorld {
   final KernelToElementMapForImpactImpl elementMap;
+  final ElementEnvironment elementEnvironment;
+  final DartTypes dartTypes;
+  final CommonElements commonElements;
+  final NativeData nativeData;
+  final InterceptorData interceptorData;
+  final BackendUsage backendUsage;
+  final NoSuchMethodData noSuchMethodData;
 
-  KernelClosedWorld(this.elementMap,
+  final Map<ClassEntity, Set<ClassEntity>> mixinUses;
+
+  final Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses;
+
+  final Map<ClassEntity, ClassHierarchyNode> _classHierarchyNodes;
+  final Map<ClassEntity, ClassSet> _classSets;
+
+  // TODO(johnniwinther): Can this be derived from [ClassSet]s?
+  final Set<ClassEntity> _implementedClasses;
+
+  final Iterable<MemberEntity> liveInstanceMembers;
+
+  /// Members that are written either directly or through a setter selector.
+  final Iterable<MemberEntity> assignedInstanceMembers;
+
+  final Iterable<ClassEntity> liveNativeClasses;
+
+  final Iterable<MemberEntity> processedMembers;
+
+  KClosedWorldImpl(this.elementMap,
       {CompilerOptions options,
-      ElementEnvironment elementEnvironment,
-      DartTypes dartTypes,
-      CommonElements commonElements,
-      ConstantSystem constantSystem,
-      NativeData nativeData,
-      InterceptorData interceptorData,
-      BackendUsage backendUsage,
-      NoSuchMethodData noSuchMethodData,
+      this.elementEnvironment,
+      this.dartTypes,
+      this.commonElements,
+      this.nativeData,
+      this.interceptorData,
+      this.backendUsage,
+      this.noSuchMethodData,
       ResolutionWorldBuilder resolutionWorldBuilder,
       RuntimeTypesNeedBuilder rtiNeedBuilder,
       Set<ClassEntity> implementedClasses,
-      Iterable<ClassEntity> liveNativeClasses,
-      Iterable<MemberEntity> liveInstanceMembers,
-      Iterable<MemberEntity> assignedInstanceMembers,
-      Iterable<MemberEntity> processedMembers,
-      Map<ClassEntity, Set<ClassEntity>> mixinUses,
-      Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
+      this.liveNativeClasses,
+      this.liveInstanceMembers,
+      this.assignedInstanceMembers,
+      this.processedMembers,
+      this.mixinUses,
+      this.typesImplementedBySubclasses,
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
       Map<ClassEntity, ClassSet> classSets})
-      : super(
-            elementEnvironment,
-            dartTypes,
-            commonElements,
-            constantSystem,
-            nativeData,
-            interceptorData,
-            backendUsage,
-            noSuchMethodData,
-            implementedClasses,
-            liveNativeClasses,
-            liveInstanceMembers,
-            assignedInstanceMembers,
-            processedMembers,
-            mixinUses,
-            typesImplementedBySubclasses,
-            classHierarchyNodes,
-            classSets) {
+      : _implementedClasses = implementedClasses,
+        _classHierarchyNodes = classHierarchyNodes,
+        _classSets = classSets {
     computeRtiNeed(resolutionWorldBuilder, rtiNeedBuilder, options);
   }
 
-  @override
-  void registerClosureClass(ClassEntity cls) {
-    throw new UnsupportedError('KernelClosedWorld.registerClosureClass');
+  /// Returns `true` if [cls] is implemented by an instantiated class.
+  bool isImplemented(ClassEntity cls) {
+    return _implementedClasses.contains(cls);
+  }
+
+  /// Returns [ClassHierarchyNode] for [cls] used to model the class hierarchies
+  /// of known classes.
+  ///
+  /// This method is only provided for testing. For queries on classes, use the
+  /// methods defined in [JClosedWorld].
+  ClassHierarchyNode getClassHierarchyNode(ClassEntity cls) {
+    return _classHierarchyNodes[cls];
+  }
+
+  /// Returns [ClassSet] for [cls] used to model the extends and implements
+  /// relations of known classes.
+  ///
+  /// This method is only provided for testing. For queries on classes, use the
+  /// methods defined in [JClosedWorld].
+  ClassSet getClassSet(ClassEntity cls) {
+    return _classSets[cls];
+  }
+
+  /// Applies [f] to each live class that implements [cls] _not_ including [cls]
+  /// itself.
+  void forEachStrictSubtypeOf(
+      ClassEntity cls, IterationStep f(ClassEntity cls)) {
+    ClassSet classSet = _classSets[cls];
+    if (classSet == null) return;
+    classSet.forEachSubtype(f, ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
+        strict: true);
   }
 }
 

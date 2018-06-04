@@ -138,7 +138,7 @@ class SearchBarElement extends HtmlElement implements Renderable {
           })
       ];
     }
-    _resultsArea.children = [
+    _resultsArea.nodes = [
       new ButtonElement()
         ..text = '▲'
         ..disabled = _results.isEmpty

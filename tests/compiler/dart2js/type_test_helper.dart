@@ -13,7 +13,7 @@ import 'package:compiler/src/compiler.dart' show Compiler;
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/frontend_strategy.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
-import 'package:compiler/src/world.dart' show ClosedWorld;
+import 'package:compiler/src/world.dart' show JClosedWorld, KClosedWorld;
 import 'memory_compiler.dart' as memory;
 
 DartType instantiate(ClassEntity element, List<DartType> arguments) {
@@ -193,12 +193,14 @@ class TypeEnvironment {
     return types.isPotentialSubtype(T, S);
   }
 
-  ClosedWorld get closedWorld {
-    if (testBackendWorld) {
-      return compiler.backendClosedWorldForTesting;
-    } else {
-      return compiler.resolutionWorldBuilder.closedWorldForTesting;
-    }
+  JClosedWorld get jClosedWorld {
+    assert(testBackendWorld);
+    return compiler.backendClosedWorldForTesting;
+  }
+
+  KClosedWorld get kClosedWorld {
+    assert(!testBackendWorld);
+    return compiler.resolutionWorldBuilder.closedWorldForTesting;
   }
 }
 

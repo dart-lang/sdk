@@ -13,7 +13,7 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/enqueue.dart';
-import 'package:compiler/src/types/masks.dart';
+import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import 'package:compiler/src/universe/call_structure.dart';
 import 'package:compiler/src/universe/selector.dart';
 import 'package:compiler/src/universe/world_impact.dart';
@@ -188,7 +188,7 @@ main() {}
       ElementEnvironment elementEnvironment,
       String className,
       String methodName,
-      ReceiverConstraint Function(ClassEntity cls) createConstraint) {
+      Object Function(ClassEntity cls) createConstraint) {
     ClassEntity cls = elementEnvironment.lookupClass(
         elementEnvironment.mainLibrary, className);
     Selector selector = new Selector.call(
@@ -200,11 +200,8 @@ main() {}
     enqueuer.applyImpact(impact);
   }
 
-  void applyImpact(
-      Enqueuer enqueuer,
-      ElementEnvironment elementEnvironment,
-      Impact impact,
-      ReceiverConstraint Function(ClassEntity cls) createConstraint) {
+  void applyImpact(Enqueuer enqueuer, ElementEnvironment elementEnvironment,
+      Impact impact, Object Function(ClassEntity cls) createConstraint) {
     switch (impact.kind) {
       case ImpactKind.instantiate:
         instantiate(enqueuer, elementEnvironment, impact.clsName);
@@ -253,7 +250,7 @@ main() {}
         compiler.frontendStrategy.elementEnvironment;
     checkInvariant(enqueuer, elementEnvironment);
 
-    ReceiverConstraint createConstraint(ClassEntity cls) {
+    Object createConstraint(ClassEntity cls) {
       return new StrongModeConstraint(cls);
     }
 
@@ -263,12 +260,12 @@ main() {}
   };
   compiler.onCodegenQueueEmptyForTesting = () {
     Enqueuer enqueuer = compiler.enqueuer.codegenEnqueuerForTesting;
-    ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     ElementEnvironment elementEnvironment =
         compiler.backendClosedWorldForTesting.elementEnvironment;
     checkInvariant(enqueuer, elementEnvironment);
 
-    ReceiverConstraint createConstraint(ClassEntity cls) {
+    Object createConstraint(ClassEntity cls) {
       return new TypeMask.subtype(cls, closedWorld);
     }
 

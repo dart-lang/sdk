@@ -255,8 +255,8 @@ class HeapMapElement extends HtmlElement implements Renderable {
     var pages = _fragmentation['pages'];
     _status = 'Loaded $startPage of ${pages.length} pages';
     _r.dirty();
-    var startY = startPage * _pageHeight;
-    var endY = startY + _pageHeight;
+    var startY = (startPage * _pageHeight).round();
+    var endY = startY + _pageHeight.round();
     if (startPage >= pages.length || endY > _fragmentationData.height) {
       return;
     }

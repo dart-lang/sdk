@@ -5,7 +5,6 @@
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -183,28 +182,6 @@ main() {
       await _getNavigation(testFile, testCode.indexOf(search), 1);
       assertHasOperatorRegion(search, 1, '[]=(index', 3);
     }
-  }
-
-  test_removeContextAfterRequest() async {
-    addTestFile('''
-main() {
-  var test = 0;
-  print(test);
-}
-''');
-    // handle the request synchronously
-    Request request =
-        _createGetNavigationRequest(testFile, testCode.indexOf('test);'), 0);
-    server.handleRequest(request);
-    // remove context, causes sending an "invalid file" error
-    {
-      Folder projectFolder = getFolder(projectPath);
-      server.contextManager.callbacks.removeContext(projectFolder, <String>[]);
-    }
-    // wait for an error response
-    Response response = await serverChannel.waitForResponse(request);
-    expect(response.error, isNotNull);
-    expect(response.error.code, RequestErrorCode.GET_NAVIGATION_INVALID_FILE);
   }
 
   test_zeroLength_end() async {

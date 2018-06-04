@@ -3247,6 +3247,87 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
         length_load->set_recognized_kind(MethodRecognizer::kObjectArrayLength);
         return ReturnDefinition(length_load);
       }
+      case MethodRecognizer::kListFactory: {
+        // factory List<E>([int length]) {
+        //   return (:arg_desc.positional_count == 2) ? new _List<E>(length)
+        //                                            : new _GrowableList<E>(0);
+        // }
+        ASSERT(owner_->parsed_function().has_arg_desc_var());
+        const auto type_args_parameter = node->scope()->LookupVariable(
+            Symbols::TypeArgumentsParameter(), true);
+        const auto length_parameter =
+            node->scope()->LookupVariable(Symbols::Length(), true);
+        const Library& core_lib = Library::Handle(Z, Library::CoreLibrary());
+
+        // Build: :arg_desc.positional_count == 2
+        TestGraphVisitor comparison(owner(), token_pos);
+        auto arg_descriptor = comparison.Bind(new (Z) LoadLocalInstr(
+            *owner_->parsed_function().arg_desc_var(), token_pos));
+        auto positional_count = comparison.Bind(new (Z) LoadFieldInstr(
+            arg_descriptor, ArgumentsDescriptor::positional_count_offset(),
+            AbstractType::ZoneHandle(Z, Type::SmiType()), token_pos));
+        auto constant_1 = comparison.Bind(
+            new (Z) ConstantInstr(Smi::ZoneHandle(Z, Smi::New(2))));
+        comparison.ReturnDefinition(new (Z) StrictCompareInstr(
+            token_pos, Token::kEQ_STRICT, positional_count, constant_1, false,
+            owner()->GetNextDeoptId()));  // No number check.
+
+        // Build: :expr_temp = new _List<E>(length)
+        ValueGraphVisitor allocate_non_growable(owner());
+        {
+          auto arguments = new (Z) ZoneGrowableArray<PushArgumentInstr*>(Z, 2);
+          arguments->Add(
+              allocate_non_growable.PushArgument(allocate_non_growable.Bind(
+                  new (Z) LoadLocalInstr(*type_args_parameter, token_pos))));
+          arguments->Add(
+              allocate_non_growable.PushArgument(allocate_non_growable.Bind(
+                  new (Z) LoadLocalInstr(*length_parameter, token_pos))));
+          const Class& cls = Class::Handle(
+              Z, core_lib.LookupClass(
+                     Library::PrivateCoreLibName(Symbols::_List())));
+          ASSERT(!cls.IsNull());
+          const intptr_t kTypeArgsLen = 0;
+          const Function& func = Function::ZoneHandle(
+              Z, cls.LookupFactoryAllowPrivate(Symbols::_ListFactory()));
+          ASSERT(!func.IsNull());
+          allocate_non_growable.ReturnDefinition(new (Z) StaticCallInstr(
+              token_pos, func, kTypeArgsLen,
+              Object::null_array(),  // No names.
+              arguments, owner()->ic_data_array(), owner()->GetNextDeoptId(),
+              ICData::kStatic));
+          allocate_non_growable.Do(
+              BuildStoreExprTemp(allocate_non_growable.value(), token_pos));
+        }
+
+        // Build: :expr_temp = new _GrowableList<E>(0)
+        ValueGraphVisitor allocate_growable(owner());
+        {
+          auto arguments = new (Z) ZoneGrowableArray<PushArgumentInstr*>(Z, 1);
+          arguments->Add(allocate_growable.PushArgument(allocate_growable.Bind(
+              new (Z) LoadLocalInstr(*type_args_parameter, token_pos))));
+          arguments->Add(allocate_growable.PushArgument(allocate_growable.Bind(
+              new (Z) ConstantInstr(Smi::ZoneHandle(Z, Smi::New(0))))));
+          const Class& cls = Class::Handle(
+              Z, core_lib.LookupClass(
+                     Library::PrivateCoreLibName(Symbols::_GrowableList())));
+          ASSERT(!cls.IsNull());
+          const intptr_t kTypeArgsLen = 0;
+          const Function& func = Function::ZoneHandle(
+              Z,
+              cls.LookupFactoryAllowPrivate(Symbols::_GrowableListFactory()));
+          ASSERT(!func.IsNull());
+          allocate_growable.ReturnDefinition(new (Z) StaticCallInstr(
+              token_pos, func, kTypeArgsLen,
+              Object::null_array(),  // No names.
+              arguments, owner()->ic_data_array(), owner()->GetNextDeoptId(),
+              ICData::kStatic));
+          allocate_growable.Do(
+              BuildStoreExprTemp(allocate_growable.value(), token_pos));
+        }
+
+        Join(comparison, allocate_non_growable, allocate_growable);
+        return ReturnDefinition(BuildLoadExprTemp(token_pos));
+      }
       case MethodRecognizer::kObjectArrayAllocate: {
         LocalVariable* type_args_parameter = node->scope()->LookupVariable(
             Symbols::TypeArgumentsParameter(), true);

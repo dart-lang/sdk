@@ -9,7 +9,7 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/universe/call_structure.dart';
 import 'package:compiler/src/universe/selector.dart';
-import 'package:compiler/src/world.dart' show ClosedWorld, ClassQuery;
+import 'package:compiler/src/world.dart' show JClosedWorld, ClassQuery;
 import 'type_test_helper.dart';
 
 void main() {
@@ -33,7 +33,7 @@ class Subtype implements Superclass {
 
 testClassSets() async {
   Selector foo, bar, baz;
-  ClosedWorld closedWorld;
+  JClosedWorld closedWorld;
   ClassEntity superclass, subclass, subtype;
   String testMode;
 
@@ -46,13 +46,13 @@ testClassSets() async {
     main.write('}');
     testMode = '$instantiated';
 
-    var env =
-        await TypeEnvironment.create(CLASSES, mainSource: main.toString());
+    var env = await TypeEnvironment.create(CLASSES,
+        mainSource: main.toString(), testBackendWorld: true);
     foo = new Selector.call(const PublicName('foo'), CallStructure.NO_ARGS);
     bar = new Selector.call(const PublicName('bar'), CallStructure.NO_ARGS);
     baz = new Selector.call(const PublicName('baz'), CallStructure.NO_ARGS);
 
-    closedWorld = env.closedWorld;
+    closedWorld = env.jClosedWorld;
     superclass = env.getElement('Superclass');
     subclass = env.getElement('Subclass');
     subtype = env.getElement('Subtype');

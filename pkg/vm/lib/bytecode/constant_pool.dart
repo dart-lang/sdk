@@ -57,16 +57,17 @@ type ConstantArgDesc extends ConstantPoolEntry {
   List<StringReference> names;
 }
 
-type ConstantICData extends ConstantPoolEntry {
-  Byte tag = 7;
-  StringReference targetName;
-  ConstantIndex argDesc;
-}
-
 enum InvocationKind {
   method, // x.foo(...) or foo(...)
   getter, // x.foo
   setter  // x.foo = ...
+}
+
+type ConstantICData extends ConstantPoolEntry {
+  Byte tag = 7;
+  Byte invocationKind; // Index in InvocationKind enum.
+  Name targetName;
+  ConstantIndex argDesc;
 }
 
 type ConstantStaticICData extends ConstantPoolEntry {
@@ -442,28 +443,46 @@ class ConstantArgDesc extends ConstantPoolEntry {
       listEquals(this.argNames, other.argNames);
 }
 
+enum InvocationKind { method, getter, setter }
+
+String _invocationKindToString(InvocationKind kind) {
+  switch (kind) {
+    case InvocationKind.method:
+      return '';
+    case InvocationKind.getter:
+      return 'get ';
+    case InvocationKind.setter:
+      return 'set ';
+  }
+  throw 'Unexpected InvocationKind $kind';
+}
+
 class ConstantICData extends ConstantPoolEntry {
-  final String targetName;
+  final InvocationKind invocationKind;
+  final Name targetName;
   final int argDescConstantIndex;
 
-  ConstantICData(this.targetName, this.argDescConstantIndex);
+  ConstantICData(
+      this.invocationKind, this.targetName, this.argDescConstantIndex);
 
   @override
   ConstantTag get tag => ConstantTag.kICData;
 
   @override
   void writeValueToBinary(BinarySink sink) {
-    sink.writeStringReference(targetName);
+    sink.writeByte(invocationKind.index);
+    sink.writeName(targetName);
     sink.writeUInt30(argDescConstantIndex);
   }
 
   ConstantICData.readFromBinary(BinarySource source)
-      : targetName = source.readStringReference(),
+      : invocationKind = InvocationKind.values[source.readByte()],
+        targetName = source.readName(),
         argDescConstantIndex = source.readUInt();
 
   @override
-  String toString() =>
-      'ICData target-name \'$targetName\', arg-desc CP#$argDescConstantIndex';
+  String toString() => 'ICData ${_invocationKindToString(invocationKind)}'
+      'target-name \'$targetName\', arg-desc CP#$argDescConstantIndex';
 
   // ConstantICData entries are created per call site and should not be merged,
   // so ConstantICData class uses identity [hashCode] and [operator ==].
@@ -474,8 +493,6 @@ class ConstantICData extends ConstantPoolEntry {
   @override
   bool operator ==(other) => identical(this, other);
 }
-
-enum InvocationKind { method, getter, setter }
 
 class ConstantStaticICData extends ConstantPoolEntry {
   final InvocationKind invocationKind;
@@ -508,11 +525,7 @@ class ConstantStaticICData extends ConstantPoolEntry {
         argDescConstantIndex = source.readUInt();
 
   @override
-  String toString() =>
-      'StaticICData ' +
-      (invocationKind == InvocationKind.getter
-          ? 'get '
-          : (invocationKind == InvocationKind.setter ? 'set ' : '')) +
+  String toString() => 'StaticICData ${_invocationKindToString(invocationKind)}'
       'target \'$target\', arg-desc CP#$argDescConstantIndex';
 
   // ConstantStaticICData entries are created per call site and should not be

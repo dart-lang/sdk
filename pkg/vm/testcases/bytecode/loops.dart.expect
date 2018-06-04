@@ -41,7 +41,7 @@ L1:
 ConstantPool {
   [0] = Int 0
   [1] = ArgDesc num-args 1, num-type-args 0, names []
-  [2] = ICData target-name 'get:length', arg-desc CP#1
+  [2] = ICData get target-name 'length', arg-desc CP#1
   [3] = ArgDesc num-args 2, num-type-args 0, names []
   [4] = ICData target-name '<', arg-desc CP#3
   [5] = Bool true
@@ -108,7 +108,7 @@ ConstantPool {
   [2] = ICData target-name '>=', arg-desc CP#1
   [3] = Bool true
   [4] = ArgDesc num-args 1, num-type-args 0, names []
-  [5] = ICData target-name 'get:length', arg-desc CP#4
+  [5] = ICData get target-name 'length', arg-desc CP#4
   [6] = ICData target-name '>=', arg-desc CP#1
   [7] = ICData target-name '[]', arg-desc CP#1
   [8] = ICData target-name '+', arg-desc CP#1
@@ -178,7 +178,7 @@ ConstantPool {
   [1] = Int 100
   [2] = ArgDesc num-args 1, num-type-args 0, names []
   [3] = ICData target-name 'unary-', arg-desc CP#2
-  [4] = ICData target-name 'get:length', arg-desc CP#2
+  [4] = ICData get target-name 'length', arg-desc CP#2
   [5] = ArgDesc num-args 2, num-type-args 0, names []
   [6] = ICData target-name '<', arg-desc CP#5
   [7] = Bool true
@@ -242,7 +242,7 @@ L1:
 ConstantPool {
   [0] = Int 0
   [1] = ArgDesc num-args 1, num-type-args 0, names []
-  [2] = ICData target-name 'get:length', arg-desc CP#1
+  [2] = ICData get target-name 'length', arg-desc CP#1
   [3] = ArgDesc num-args 2, num-type-args 0, names []
   [4] = ICData target-name '<', arg-desc CP#3
   [5] = Bool true
@@ -302,7 +302,7 @@ ConstantPool {
   [4] = Int 1
   [5] = ICData target-name '+', arg-desc CP#1
   [6] = ArgDesc num-args 1, num-type-args 0, names []
-  [7] = ICData target-name 'get:length', arg-desc CP#6
+  [7] = ICData get target-name 'length', arg-desc CP#6
   [8] = ICData target-name '<', arg-desc CP#1
   [9] = Bool true
   [10] = Null
@@ -351,10 +351,10 @@ L1:
 ConstantPool {
   [0] = Int 0
   [1] = ArgDesc num-args 1, num-type-args 0, names []
-  [2] = ICData target-name 'get:iterator', arg-desc CP#1
+  [2] = ICData get target-name 'iterator', arg-desc CP#1
   [3] = ICData target-name 'moveNext', arg-desc CP#1
   [4] = Bool true
-  [5] = ICData target-name 'get:current', arg-desc CP#1
+  [5] = ICData get target-name 'current', arg-desc CP#1
   [6] = ArgDesc num-args 2, num-type-args 0, names []
   [7] = ICData target-name '+', arg-desc CP#6
   [8] = Null
@@ -406,10 +406,10 @@ ConstantPool {
   [0] = Int 0
   [1] = Int 42
   [2] = ArgDesc num-args 1, num-type-args 0, names []
-  [3] = ICData target-name 'get:iterator', arg-desc CP#2
+  [3] = ICData get target-name 'iterator', arg-desc CP#2
   [4] = ICData target-name 'moveNext', arg-desc CP#2
   [5] = Bool true
-  [6] = ICData target-name 'get:current', arg-desc CP#2
+  [6] = ICData get target-name 'current', arg-desc CP#2
   [7] = ArgDesc num-args 2, num-type-args 0, names []
   [8] = ICData target-name '+', arg-desc CP#7
   [9] = Null

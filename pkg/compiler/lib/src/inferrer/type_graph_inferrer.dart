@@ -10,7 +10,7 @@ import '../elements/entities.dart';
 import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
-import '../world.dart' show ClosedWorld, ClosedWorldRefiner;
+import '../world.dart' show JClosedWorld;
 import 'inferrer_engine.dart';
 import 'type_graph_nodes.dart';
 
@@ -48,11 +48,9 @@ class WorkQueue {
 abstract class TypeGraphInferrer<T> implements TypesInferrer<T> {
   InferrerEngine<T> inferrer;
   final bool _disableTypeInference;
-  final ClosedWorld closedWorld;
-  final ClosedWorldRefiner closedWorldRefiner;
+  final JClosedWorld closedWorld;
 
-  TypeGraphInferrer(this.closedWorld, this.closedWorldRefiner,
-      {bool disableTypeInference: false})
+  TypeGraphInferrer(this.closedWorld, {bool disableTypeInference: false})
       : this._disableTypeInference = disableTypeInference;
 
   String get name => 'Graph inferrer';

@@ -57,6 +57,7 @@ LibTest/math/pow_A10_t01: CompileTimeError
 Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t01: MissingCompileTimeError
 Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t02: MissingCompileTimeError
 Language/Classes/Constructors/Constant_Constructors/invalid_constant_initializer_t02: MissingCompileTimeError
+Language/Classes/Constructors/Generative_Constructors/static_type_t01: CompileTimeError
 Language/Classes/Instance_Methods/same_name_setter_t02: CompileTimeError # Issue 14736
 Language/Classes/Setters/name_t03: CompileTimeError
 Language/Classes/Setters/name_t04: CompileTimeError

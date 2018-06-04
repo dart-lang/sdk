@@ -9,7 +9,7 @@ import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../js_backend/namer.dart' show Namer;
 import '../types/abstract_value_domain.dart';
 import '../tracer.dart';
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show JClosedWorld;
 import 'nodes.dart';
 
 /**
@@ -18,7 +18,7 @@ import 'nodes.dart';
  * to enable it.
  */
 class HTracer extends HGraphVisitor with TracerUtil {
-  final ClosedWorld closedWorld;
+  final JClosedWorld closedWorld;
   final Namer namer;
   final OutputSink output;
 
@@ -113,7 +113,7 @@ class HTracer extends HGraphVisitor with TracerUtil {
 }
 
 class HInstructionStringifier implements HVisitor<String> {
-  final ClosedWorld closedWorld;
+  final JClosedWorld closedWorld;
   final Namer namer;
   final HBasicBlock currentBlock;
 

@@ -599,6 +599,15 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     _createKernelDriver();
   }
 
+  /**
+   * Return a [Future] that completes when discovery of all files that are
+   * potentially available is done, so that they are included in [knownFiles].
+   */
+  Future<void> discoverAvailableFiles() {
+    _discoverAvailableFiles();
+    return _discoverAvailableFilesTask.completer.future;
+  }
+
   @override
   void dispose() {
     _scheduler.remove(this);
@@ -669,7 +678,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   /**
-   * Return a [Future] that completes with the list of added files that
+   * Return a [Future] that completes with the list of known files that
    * reference the given external [name].
    */
   Future<List<String>> getFilesReferencingName(String name) {
@@ -992,7 +1001,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     if (_definingClassMemberNameTasks.isNotEmpty) {
       _FilesDefiningClassMemberNameTask task =
           _definingClassMemberNameTasks.first;
-      bool isDone = await task.perform();
+      bool isDone = task.perform();
       if (isDone) {
         _definingClassMemberNameTasks.remove(task);
       }
@@ -1002,7 +1011,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     // Compute files referencing a name.
     if (_referencingNameTasks.isNotEmpty) {
       _FilesReferencingNameTask task = _referencingNameTasks.first;
-      bool isDone = await task.perform();
+      bool isDone = task.perform();
       if (isDone) {
         _referencingNameTasks.remove(task);
       }
@@ -1012,7 +1021,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     // Compute top-level declarations.
     if (_topLevelNameDeclarationsTasks.isNotEmpty) {
       _TopLevelNameDeclarationsTask task = _topLevelNameDeclarationsTasks.first;
-      bool isDone = await task.perform();
+      bool isDone = task.perform();
       if (isDone) {
         _topLevelNameDeclarationsTasks.remove(task);
       }
@@ -2259,11 +2268,12 @@ class _DiscoverAvailableFilesTask {
   static const int _MS_WORK_INTERVAL = 5;
 
   final AnalysisDriver driver;
+  final Completer<void> completer = new Completer<void>();
 
   bool isCompleted = false;
 
   Iterator<Folder> folderIterator;
-  List<String> files;
+  List<String> files = [];
   int fileIndex = 0;
 
   _DiscoverAvailableFilesTask(this.driver);
@@ -2274,26 +2284,37 @@ class _DiscoverAvailableFilesTask {
    * task should continue to be run.
    */
   void perform() {
-    // Prepare the iterator of package/lib folders.
     if (folderIterator == null) {
+      files.addAll(driver.addedFiles);
+
+      // Discover SDK libraries.
+      var dartSdk = driver._sourceFactory.dartSdk;
+      if (dartSdk != null) {
+        for (var sdkLibrary in dartSdk.sdkLibraries) {
+          files.add(sdkLibrary.path);
+        }
+      }
+
+      // Discover files in package/lib folders.
       var packageMap = driver._sourceFactory.packageMap;
       if (packageMap != null) {
         folderIterator = packageMap.values.expand((f) => f).iterator;
-        files = <String>[];
       } else {
-        isCompleted = true;
-        return;
+        folderIterator = <Folder>[].iterator;
       }
     }
 
     // List each package/lib folder recursively.
     Stopwatch timer = new Stopwatch()..start();
     while (folderIterator.moveNext()) {
+      var folder = folderIterator.current;
+      _appendFilesRecursively(folder);
+
+      // Note: must check if we are exiting before calling moveNext()
+      // otherwise we will skip one iteration of the loop when we come back.
       if (timer.elapsedMilliseconds > _MS_WORK_INTERVAL) {
         return;
       }
-      var folder = folderIterator.current;
-      _appendFilesRecursively(folder);
     }
 
     // Get know files one by one.
@@ -2309,13 +2330,17 @@ class _DiscoverAvailableFilesTask {
     isCompleted = true;
     folderIterator = null;
     files = null;
+    completer.complete();
   }
 
   void _appendFilesRecursively(Folder folder) {
     try {
       for (var child in folder.getChildren()) {
         if (child is File) {
-          files.add(child.path);
+          var path = child.path;
+          if (AnalysisEngine.isDartFileName(path)) {
+            files.add(path);
+          }
         } else if (child is Folder) {
           _appendFilesRecursively(child);
         }
@@ -2370,7 +2395,7 @@ class _FilesDefiningClassMemberNameTask {
    * scenarios. Instead we use a fixed length of time, so we can spend less time
    * overall and keep quick enough response time.
    */
-  Future<bool> perform() async {
+  bool perform() {
     Stopwatch timer = new Stopwatch()..start();
     while (timer.elapsedMilliseconds < _MS_WORK_INTERVAL) {
       // Prepare files to check.
@@ -2405,15 +2430,18 @@ class _FilesDefiningClassMemberNameTask {
  * file.
  */
 class _FilesReferencingNameTask {
+  static const int _WORK_FILES = 100;
   static const int _MS_WORK_INTERVAL = 5;
 
   final AnalysisDriver driver;
   final String name;
   final Completer<List<String>> completer = new Completer<List<String>>();
 
+  int fileStamp = -1;
+  List<FileState> filesToCheck;
+  int filesToCheckIndex;
+
   final List<String> referencingFiles = <String>[];
-  final Set<String> checkedFiles = new Set<String>();
-  final List<String> filesToCheck = <String>[];
 
   _FilesReferencingNameTask(this.driver, this.name);
 
@@ -2427,32 +2455,34 @@ class _FilesReferencingNameTask {
    * scenarios. Instead we use a fixed length of time, so we can spend less time
    * overall and keep quick enough response time.
    */
-  Future<bool> perform() async {
-    Stopwatch timer = new Stopwatch()..start();
-    while (timer.elapsedMilliseconds < _MS_WORK_INTERVAL) {
-      // Prepare files to check.
-      if (filesToCheck.isEmpty) {
-        Set<String> newFiles = driver.addedFiles.difference(checkedFiles);
-        filesToCheck.addAll(newFiles);
-      }
-
-      // If no more files to check, complete and done.
-      if (filesToCheck.isEmpty) {
-        completer.complete(referencingFiles);
-        return true;
-      }
-
-      // Check the next file.
-      String path = filesToCheck.removeLast();
-      FileState file = driver._fsState.getFileForPath(path);
-      if (file.referencedNames.contains(name)) {
-        referencingFiles.add(path);
-      }
-      checkedFiles.add(path);
+  bool perform() {
+    if (driver._fsState.fileStamp != fileStamp) {
+      filesToCheck = null;
+      referencingFiles.clear();
     }
 
-    // We're not done yet.
-    return false;
+    // Prepare files to check.
+    if (filesToCheck == null) {
+      fileStamp = driver._fsState.fileStamp;
+      filesToCheck = driver._fsState.knownFiles;
+      filesToCheckIndex = 0;
+    }
+
+    Stopwatch timer = new Stopwatch()..start();
+    while (filesToCheckIndex < filesToCheck.length) {
+      if (filesToCheckIndex % _WORK_FILES == 0 &&
+          timer.elapsedMilliseconds > _MS_WORK_INTERVAL) {
+        return false;
+      }
+      FileState file = filesToCheck[filesToCheckIndex++];
+      if (file.referencedNames.contains(name)) {
+        referencingFiles.add(file.path);
+      }
+    }
+
+    // If no more files to check, complete and done.
+    completer.complete(referencingFiles);
+    return true;
   }
 }
 
@@ -2478,7 +2508,7 @@ class _TopLevelNameDeclarationsTask {
    * return `true` to indicate that the task is done, return `false` to indicate
    * that the task should continue to be run.
    */
-  Future<bool> perform() async {
+  bool perform() {
     // Prepare files to check.
     if (filesToCheck.isEmpty) {
       filesToCheck.addAll(driver.addedFiles.difference(checkedFiles));

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart' hide Declaration;
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
@@ -109,7 +110,7 @@ class C {
   void m() {}
 }
 ''');
-    var files = <String>[];
+    var files = new LinkedHashSet<String>();
     List<Declaration> declarations =
         await driver.search.declarations(null, null, files);
     _assertHasDeclaration(declarations, 'C', DeclarationKind.CLASS,
@@ -128,13 +129,52 @@ class C {
         offset: 83, codeOffset: 78, codeLength: 11, className: 'C');
   }
 
+  test_declarations_discover() async {
+    var t = _p('/test/lib/t.dart');
+    var a = _p('/aaa/lib/a.dart');
+    var b = _p('/bbb/lib/b.dart');
+    var c = _p('/ccc/lib/c.dart');
+
+    provider.newFile(t, 'class T {}');
+    provider.newFile(a, 'class A {}');
+    provider.newFile(b, 'class B {}');
+    provider.newFile(c, 'class C {}');
+
+    driver.addFile(t);
+
+    var files = new LinkedHashSet<String>();
+    var declarations = await driver.search.declarations(null, null, files);
+    _assertHasDeclaration(declarations, 'T', DeclarationKind.CLASS);
+    _assertHasDeclaration(declarations, 'A', DeclarationKind.CLASS);
+    _assertHasDeclaration(declarations, 'B', DeclarationKind.CLASS);
+    _assertNoDeclaration(declarations, 'C');
+  }
+
+  test_declarations_duplicateFile() async {
+    var a = _p('/test/lib/a.dart');
+    var b = _p('/test/lib/b.dart');
+
+    provider.newFile(a, 'class A {}');
+    provider.newFile(b, 'class B {}');
+
+    driver.addFile(a);
+    driver.addFile(b);
+
+    var files = new LinkedHashSet<String>();
+    files.add(b);
+
+    var declarations = await driver.search.declarations(null, null, files);
+    _assertHasDeclaration(declarations, 'A', DeclarationKind.CLASS);
+    _assertNoDeclaration(declarations, 'B');
+  }
+
   test_declarations_enum() async {
     await _resolveTestUnit('''
 enum E {
   a, bb, ccc
 }
 ''');
-    var files = <String>[];
+    var files = new LinkedHashSet<String>();
     List<Declaration> declarations =
         await driver.search.declarations(null, null, files);
     _assertHasDeclaration(declarations, 'E', DeclarationKind.ENUM,
@@ -153,7 +193,7 @@ class A {}
 class B {}
 class C {}
 ''');
-    var files = <String>[];
+    var files = new LinkedHashSet<String>();
     List<Declaration> declarations =
         await driver.search.declarations(null, 2, files);
     expect(declarations, hasLength(2));
@@ -168,7 +208,7 @@ class C {}
     driver.addFile(a);
     driver.addFile(b);
 
-    var files = <String>[];
+    var files = new LinkedHashSet<String>();
     List<Declaration> declarations =
         await driver.search.declarations(null, null, files, onlyForFile: b);
 
@@ -188,7 +228,7 @@ void f(bool a, String b) {}
 typedef F(int a);
 typedef T F2<T, U>(U a);
 ''');
-    var files = <String>[];
+    var files = new LinkedHashSet<String>();
     List<Declaration> declarations =
         await driver.search.declarations(null, null, files);
 
@@ -228,7 +268,7 @@ void f2(a(b, c)) {}
 void f3(bool Function(int a, String b) c) {}
 void f4(bool Function(int, String) a) {}
 ''');
-    var files = <String>[];
+    var files = new LinkedHashSet<String>();
     List<Declaration> declarations =
         await driver.search.declarations(null, null, files);
 
@@ -259,7 +299,7 @@ class A<T, T2> {
   void m3<U1, U2>(Map<Map<T2, U2>, Map<U1, T>> a) {}
 }
 ''');
-    var files = <String>[];
+    var files = new LinkedHashSet<String>();
     List<Declaration> declarations =
         await driver.search.declarations(null, null, files);
 
@@ -288,7 +328,7 @@ class B {}
 class C {}
 class D {}
 ''');
-    var files = <String>[];
+    var files = new LinkedHashSet<String>();
     List<Declaration> declarations =
         await driver.search.declarations(new RegExp(r'[A-C]'), null, files);
     _assertHasDeclaration(declarations, 'A', DeclarationKind.CLASS);
@@ -306,7 +346,7 @@ int v;
 typedef void tf1();
 typedef tf2<T> = int Function<S>(T tp, S sp);
 ''');
-    var files = <String>[];
+    var files = new LinkedHashSet<String>();
     List<Declaration> declarations =
         await driver.search.declarations(null, null, files);
     _assertHasDeclaration(declarations, 'g', DeclarationKind.GETTER,
@@ -337,6 +377,75 @@ typedef tf2<T> = int Function<S>(T tp, S sp);
     _assertNoDeclaration(declarations, 'p');
     _assertNoDeclaration(declarations, 'tp');
     _assertNoDeclaration(declarations, 'sp');
+  }
+
+  test_references_discover() async {
+    var t = _p('/test/lib/t.dart');
+    var a = _p('/aaa/lib/a.dart');
+    var b = _p('/bbb/lib/b.dart');
+    var c = _p('/ccc/lib/c.dart');
+
+    provider.newFile(t, 'List t;');
+    provider.newFile(a, 'List a;');
+    provider.newFile(b, 'List b;');
+    provider.newFile(c, 'List c;');
+
+    driver.addFile(t);
+
+    LibraryElement coreLib = await driver.getLibraryByUri('dart:core');
+    ClassElement listElement = coreLib.getType('List');
+
+    var searchedFiles = new SearchedFiles();
+    var results = await driver.search.references(listElement, searchedFiles);
+
+    void assertHasResult(String path, String name, {bool not: false}) {
+      var matcher = contains(predicate((SearchResult r) {
+        var element = r.enclosingElement;
+        return element.name == name && element.source.fullName == path;
+      }));
+      expect(results, not ? isNot(matcher) : matcher);
+    }
+
+    assertHasResult(t, 't');
+    assertHasResult(a, 'a');
+    assertHasResult(b, 'b');
+    assertHasResult(c, 'c', not: true);
+  }
+
+  test_references_discover_onlyOwned() async {
+    var t = _p('/test/lib/t.dart');
+    var a = _p('/aaa/lib/a.dart');
+    var b = _p('/bbb/lib/b.dart');
+
+    provider.newFile(t, 'List t;');
+    provider.newFile(a, 'List a;');
+    provider.newFile(b, 'List b;');
+
+    driver.addFile(t);
+    driver.addFile(a);
+
+    LibraryElement coreLib = await driver.getLibraryByUri('dart:core');
+    ClassElement listElement = coreLib.getType('List');
+
+    var searchedFiles = new SearchedFiles();
+
+    // Make b.dart owned by a different driver.
+    var driver2 = createAnalysisDriver();
+    searchedFiles.add(b, driver2.search);
+
+    var results = await driver.search.references(listElement, searchedFiles);
+
+    void assertHasResult(String path, String name, {bool not: false}) {
+      var matcher = contains(predicate((SearchResult r) {
+        var element = r.enclosingElement;
+        return element.name == name && element.source.fullName == path;
+      }));
+      expect(results, not ? isNot(matcher) : matcher);
+    }
+
+    assertHasResult(t, 't');
+    assertHasResult(a, 'a');
+    assertHasResult(b, 'b', not: true);
   }
 
   test_searchMemberReferences_qualified_resolved() async {
@@ -1398,6 +1507,39 @@ class F {}
     }
   }
 
+  test_subTypes_discover() async {
+    var t = _p('/test/lib/t.dart');
+    var a = _p('/aaa/lib/a.dart');
+    var b = _p('/bbb/lib/b.dart');
+    var c = _p('/ccc/lib/c.dart');
+
+    provider.newFile(t, 'class T implements List {}');
+    provider.newFile(a, 'class A implements List {}');
+    provider.newFile(b, 'class B implements List {}');
+    provider.newFile(c, 'class C implements List {}');
+
+    driver.addFile(t);
+
+    LibraryElement coreLib = await driver.getLibraryByUri('dart:core');
+    ClassElement listElement = coreLib.getType('List');
+
+    var searchedFiles = new SearchedFiles();
+    var results = await driver.search.subTypes(listElement, searchedFiles);
+
+    void assertHasResult(String path, String name, {bool not: false}) {
+      var matcher = contains(predicate((SearchResult r) {
+        var element = r.enclosingElement;
+        return element.name == name && element.source.fullName == path;
+      }));
+      expect(results, not ? isNot(matcher) : matcher);
+    }
+
+    assertHasResult(t, 'T');
+    assertHasResult(a, 'A');
+    assertHasResult(b, 'B');
+    assertHasResult(c, 'C', not: true);
+  }
+
   test_subtypes_files() async {
     String pathB = _p('$testProject/b.dart');
     String pathC = _p('$testProject/c.dart');
@@ -1542,15 +1684,17 @@ class NoMatchABCDE {}
 
   Future<Null> _verifyNameReferences(
       String name, List<ExpectedResult> expectedMatches) async {
+    var searchedFiles = new SearchedFiles();
     List<SearchResult> results =
-        await driver.search.unresolvedMemberReferences(name);
+        await driver.search.unresolvedMemberReferences(name, searchedFiles);
     _assertResults(results, expectedMatches);
     expect(results, hasLength(expectedMatches.length));
   }
 
   Future _verifyReferences(
       Element element, List<ExpectedResult> expectedMatches) async {
-    List<SearchResult> results = await driver.search.references(element);
+    var searchedFiles = new SearchedFiles();
+    var results = await driver.search.references(element, searchedFiles);
     _assertResults(results, expectedMatches);
     expect(results, hasLength(expectedMatches.length));
   }

@@ -552,10 +552,14 @@ abstract class Future<T> {
    *
    * If [onError] is provided, and this future completes with an error,
    * the `onError` callback is called with that error and its stack trace.
-   * The `onError` callback must accept either one argument or two arguments.
+   * The `onError` callback must accept either one argument or two arguments
+   * where the latter is a [StackTrace].
    * If `onError` accepts two arguments,
    * it is called with both the error and the stack trace,
    * otherwise it is called with just the error object.
+   * The `onError` callback must return a value or future that can be used
+   * to complete the returned future, so it must be something assignable to
+   * `FutureOr<R>`.
    *
    * Returns a new [Future]
    * which is completed with the result of the call to `onValue`
@@ -586,7 +590,7 @@ abstract class Future<T> {
    * has completed with an error then the error is reported as unhandled error.
    * See the description on [Future].
    */
-  Future<S> then<S>(FutureOr<S> onValue(T value), {Function onError});
+  Future<R> then<R>(FutureOr<R> onValue(T value), {Function onError});
 
   /**
    * Handles errors emitted by this [Future].

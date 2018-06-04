@@ -141,9 +141,15 @@ class _BufferingStreamSubscription<T>
 
   void onError(Function handleError) {
     if (handleError == null) handleError = _nullErrorHandler;
-    // We are not allowed to use 'void' as type argument for the generic type,
-    // so we use 'dynamic' instead.
-    _onError = _registerErrorHandler<dynamic>(handleError, _zone);
+    if (handleError is void Function(Object, StackTrace)) {
+      _onError = _zone
+          .registerBinaryCallback<dynamic, Object, StackTrace>(handleError);
+    } else if (handleError is void Function(Object)) {
+      _onError = _zone.registerUnaryCallback<dynamic, Object>(handleError);
+    } else {
+      throw new ArgumentError("handleError callback must take either an Object "
+          "(the error), or both an Object (the error) and a StackTrace.");
+    }
   }
 
   void onDone(void handleDone()) {
@@ -344,11 +350,11 @@ class _BufferingStreamSubscription<T>
       if (_isCanceled && !_waitsForCancel) return;
       _state |= _STATE_IN_CALLBACK;
       // TODO(floitsch): this dynamic should be 'void'.
-      if (_onError is ZoneBinaryCallback<dynamic, Object, StackTrace>) {
-        ZoneBinaryCallback<dynamic, Object, StackTrace> errorCallback =
-            _onError;
-        _zone.runBinaryGuarded(errorCallback, error, stackTrace);
+      var onError = _onError;
+      if (onError is void Function(Object, StackTrace)) {
+        _zone.runBinaryGuarded<Object, StackTrace>(onError, error, stackTrace);
       } else {
+        assert(_onError is void Function(Object));
         _zone.runUnaryGuarded<Object>(_onError, error);
       }
       _state &= ~_STATE_IN_CALLBACK;

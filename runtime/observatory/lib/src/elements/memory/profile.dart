@@ -108,7 +108,7 @@ class MemoryProfileElement extends HtmlElement implements Renderable {
         ..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h1()
-            ..children = [
+            ..nodes = [
               new Text(_isolate.name),
               bReload
                 ..classes = ['header_button']

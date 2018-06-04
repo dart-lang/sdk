@@ -491,9 +491,6 @@ html/js_function_getter_trust_types_test: Skip # --trust-type-annotations incomp
 [ $compiler == dart2js && $checked && $fasta ]
 async/stream_listen_zone_test: RuntimeError
 
-[ $compiler == dart2js && !$checked ]
-async/async_await_sync_completer_test: RuntimeError
-
 [ $compiler == dart2js && $csp && $fasta && $minified ]
 collection/list_test: RuntimeError
 
@@ -689,10 +686,9 @@ html/js_typed_interop_default_arg_test/explicit_argument: RuntimeError
 html/js_typed_interop_test: RuntimeError
 
 [ $compiler == dart2js && $fasta && $host_checked ]
-async/stream_controller_async_test: Crash
 html/custom/mirrors_2_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/custom/mirrors_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
-html/fontface_loaded_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
+html/fontface_loaded_test: RuntimeError # TypeError: Cannot read property 'createFragment$3$treeSanitizer$validator' of undefined
 html/indexeddb_3_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/indexeddb_5_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/js_array_test: CompileTimeError

@@ -4,12 +4,12 @@
 
 library type_mask_test_helper;
 
-import 'package:compiler/src/types/masks.dart';
-import 'package:compiler/src/world.dart' show ClosedWorld;
+import 'package:compiler/src/inferrer/typemasks/masks.dart';
+import 'package:compiler/src/world.dart' show JClosedWorld;
 
 export 'package:compiler/src/types/types.dart';
 
-TypeMask simplify(TypeMask mask, ClosedWorld closedWorld) {
+TypeMask simplify(TypeMask mask, JClosedWorld closedWorld) {
   if (mask is ForwardingTypeMask) {
     return simplify(mask.forwardTo, closedWorld);
   } else if (mask is UnionTypeMask) {
@@ -19,7 +19,7 @@ TypeMask simplify(TypeMask mask, ClosedWorld closedWorld) {
   }
 }
 
-TypeMask interceptorOrComparable(ClosedWorld closedWorld,
+TypeMask interceptorOrComparable(JClosedWorld closedWorld,
     {bool nullable: false}) {
   // TODO(johnniwinther): The mock libraries are missing 'Comparable' and
   // therefore consider the union of for instance 'String' and 'num' to be

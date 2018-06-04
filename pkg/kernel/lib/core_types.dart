@@ -98,6 +98,10 @@ class CoreTypes {
   /// The `dart:mirrors` library, or `null` if the component does not use it.
   Library _mirrorsLibrary;
 
+  Class _pragmaClass;
+  Field _pragmaName;
+  Field _pragmaOptions;
+
   CoreTypes(Component component)
       : index = new LibraryIndex.coreLibraries(component);
 
@@ -316,6 +320,18 @@ class CoreTypes {
 
   Procedure get objectEquals {
     return _objectEquals ??= index.getMember('dart:core', 'Object', '==');
+  }
+
+  Class get pragmaClass {
+    return _pragmaClass ??= index.getClass('dart:core', 'pragma');
+  }
+
+  Field get pragmaName {
+    return _pragmaName ??= index.getMember('dart:core', 'pragma', 'name');
+  }
+
+  Field get pragmaOptions {
+    return _pragmaOptions ??= index.getMember('dart:core', 'pragma', 'options');
   }
 
   Procedure get printProcedure {

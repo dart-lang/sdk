@@ -5620,6 +5620,7 @@ abstract class BinarySink {
 
   void writeCanonicalNameReference(CanonicalName name);
   void writeStringReference(String str);
+  void writeName(Name node);
   void writeDartType(DartType type);
   void writeNode(Node node);
 
@@ -5646,6 +5647,7 @@ abstract class BinarySource {
 
   CanonicalName readCanonicalNameReference();
   String readStringReference();
+  Name readName();
   DartType readDartType();
   FunctionNode readFunctionNode();
 

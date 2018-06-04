@@ -15,7 +15,7 @@ import '../js_emitter/js_emitter.dart' show Emitter;
 import '../options.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show JClosedWorld, KClosedWorld;
 import 'backend_usage.dart';
 import 'namer.dart';
 import 'native_data.dart';
@@ -134,7 +134,7 @@ abstract class RuntimeTypesNeedBuilder {
   /// Computes the [RuntimeTypesNeed] for the data registered with this builder.
   RuntimeTypesNeed computeRuntimeTypesNeed(
       ResolutionWorldBuilder resolutionWorldBuilder,
-      ClosedWorld closedWorld,
+      KClosedWorld closedWorld,
       CompilerOptions options);
 }
 
@@ -153,7 +153,7 @@ class TrivialRuntimeTypesNeedBuilder implements RuntimeTypesNeedBuilder {
   @override
   RuntimeTypesNeed computeRuntimeTypesNeed(
       ResolutionWorldBuilder resolutionWorldBuilder,
-      ClosedWorld closedWorld,
+      KClosedWorld closedWorld,
       CompilerOptions options) {
     return const TrivialRuntimeTypesNeed();
   }
@@ -202,7 +202,7 @@ abstract class RuntimeTypesChecksBuilder {
 }
 
 class TrivialRuntimeTypesChecksBuilder implements RuntimeTypesChecksBuilder {
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
   final TrivialRuntimeTypesSubstitutions _substitutions;
   bool rtiChecksBuilderClosed = false;
 
@@ -267,7 +267,7 @@ class ClassCollector extends ArgumentCollector {
 
 abstract class RuntimeTypesSubstitutionsMixin
     implements RuntimeTypesSubstitutions {
-  ClosedWorld get _closedWorld;
+  JClosedWorld get _closedWorld;
   TypeChecks get _requiredChecks;
 
   ElementEnvironment get _elementEnvironment => _closedWorld.elementEnvironment;
@@ -585,7 +585,7 @@ abstract class RuntimeTypesSubstitutionsMixin
 }
 
 class TrivialRuntimeTypesSubstitutions extends RuntimeTypesSubstitutionsMixin {
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
   TypeChecks _requiredChecks;
 
   TrivialRuntimeTypesSubstitutions(this._closedWorld);
@@ -789,7 +789,7 @@ class TypeVariableTests {
   ///     }
   ///     main() => new B<int>().m(0);
   ///
-  Iterable<ClassEntity> get classTests =>
+  Iterable<ClassEntity> get classTestsForTesting =>
       _classes.values.where((n) => n.hasTest).map((n) => n.cls).toSet();
 
   /// Classes that explicitly use their type variables in is-tests.
@@ -801,7 +801,7 @@ class TypeVariableTests {
   ///     }
   ///     main() => new A<int>().m(0);
   ///
-  Iterable<ClassEntity> get directClassTests =>
+  Iterable<ClassEntity> get directClassTestsForTesting =>
       _classes.values.where((n) => n.hasDirectTest).map((n) => n.cls).toSet();
 
   /// Methods that explicitly or implicitly use their type variables in
@@ -813,7 +813,7 @@ class TypeVariableTests {
   ///     m2<S>(o) => m1<S>(o);
   ///     main() => m2<int>(0);
   ///
-  Iterable<Entity> get methodTests =>
+  Iterable<Entity> get methodTestsForTesting =>
       _methods.values.where((n) => n.hasTest).map((n) => n.function).toSet();
 
   /// Methods that explicitly use their type variables in is-tests.
@@ -823,7 +823,7 @@ class TypeVariableTests {
   ///     m<T>(o) => o is T;
   ///     main() => m<int>(0);
   ///
-  Iterable<Entity> get directMethodTests => _methods.values
+  Iterable<Entity> get directMethodTestsForTesting => _methods.values
       .where((n) => n.hasDirectTest)
       .map((n) => n.function)
       .toSet();
@@ -1022,20 +1022,25 @@ class TypeVariableTests {
 
   void _propagateTests(CommonElements commonElements,
       ElementEnvironment elementEnvironment, WorldBuilder worldBuilder) {
+    void processTypeVariableType(TypeVariableType type, {bool direct: true}) {
+      TypeVariableEntity variable = type.element;
+      if (variable.typeDeclaration is ClassEntity) {
+        _getClassNode(variable.typeDeclaration).markTest(direct: direct);
+      } else {
+        _getMethodNode(
+                elementEnvironment, worldBuilder, variable.typeDeclaration)
+            .markTest(direct: direct);
+      }
+    }
+
     void processType(DartType type, {bool direct: true}) {
-      if (type.isTypeVariable) {
-        TypeVariableType typeVariableType = type;
-        TypeVariableEntity variable = typeVariableType.element;
-        if (variable.typeDeclaration is ClassEntity) {
-          _getClassNode(variable.typeDeclaration).markTest(direct: direct);
-        } else {
-          _getMethodNode(
-                  elementEnvironment, worldBuilder, variable.typeDeclaration)
-              .markTest(direct: direct);
-        }
-      } else if (type is FutureOrType) {
+      if (type is FutureOrType) {
         _getClassNode(commonElements.futureClass).markIndirectTest();
         processType(type.typeArgument, direct: false);
+      } else {
+        type.forEachTypeVariable((TypeVariableType type) {
+          processTypeVariableType(type, direct: direct);
+        });
       }
     }
 
@@ -1357,7 +1362,7 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
   @override
   RuntimeTypesNeed computeRuntimeTypesNeed(
       ResolutionWorldBuilder resolutionWorldBuilder,
-      ClosedWorld closedWorld,
+      KClosedWorld closedWorld,
       CompilerOptions options) {
     TypeVariableTests typeVariableTests = new TypeVariableTests(
         closedWorld.elementEnvironment,
@@ -1645,7 +1650,7 @@ class _RuntimeTypesChecks implements RuntimeTypesChecks {
 class RuntimeTypesImpl extends _RuntimeTypesBase
     with RuntimeTypesSubstitutionsMixin
     implements RuntimeTypesChecksBuilder {
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
 
   // The set of type arguments tested against type variable bounds.
   final Set<DartType> checkedTypeArguments = new Set<DartType>();
@@ -2146,12 +2151,21 @@ class TypeRepresentationGenerator
 
   jsAst.Expression visitInterfaceType(InterfaceType type, Emitter emitter) {
     jsAst.Expression name = getJavaScriptClassName(type.element, emitter);
-    if (_nativeData.isJsInteropClass(type.element)) {
-      return getJsInteropTypeArguments(type.typeArguments.length, name: name);
+    jsAst.Expression result;
+    if (type.treatAsRaw) {
+      result = name;
+    } else {
+      // Visit all type arguments. This is done even for jsinterop classes to
+      // enforce the invariant that [onVariable] is called for each type
+      // variable in the type.
+      result = visitList(type.typeArguments, emitter, head: name);
+      if (_nativeData.isJsInteropClass(type.element)) {
+        // Replace type arguments of generic jsinterop classes with 'any' type.
+        result =
+            getJsInteropTypeArguments(type.typeArguments.length, name: name);
+      }
     }
-    return type.treatAsRaw
-        ? name
-        : visitList(type.typeArguments, emitter, head: name);
+    return result;
   }
 
   jsAst.Expression visitList(List<DartType> types, Emitter emitter,

@@ -1075,8 +1075,8 @@ class _ReferenceInfo extends ReferenceInfo {
         } else {
           typeArguments = _dynamicTypeArguments;
         }
-        return new FunctionTypeImpl.elementWithNameAndArgs(
-            element, name, typeArguments, numTypeParameters != 0);
+        return new FunctionTypeImpl.forTypedef(element,
+            typeArguments: typeArguments);
       } else {
         FunctionTypedElementComputer computer;
         if (implicitFunctionTypeIndices.isNotEmpty) {

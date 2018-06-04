@@ -58,6 +58,8 @@ import 'kernel_expression_generator.dart'
         KernelThisIndexedAccessGenerator,
         KernelThisPropertyAccessGenerator,
         KernelTypeUseGenerator,
+        KernelUnlinkedGenerator,
+        KernelUnresolvedNameGenerator,
         KernelVariableUseGenerator;
 
 import 'kernel_shadow_ast.dart'
@@ -83,6 +85,7 @@ import 'kernel_shadow_ast.dart'
         ShadowLabeledStatement,
         ShadowListLiteral,
         ShadowLoadLibrary,
+        ShadowLogicalExpression,
         ShadowMapLiteral,
         ShadowNot,
         ShadowNullLiteral,
@@ -107,7 +110,8 @@ import 'forest.dart'
         Generator,
         LoadLibraryBuilder,
         PrefixBuilder,
-        TypeDeclarationBuilder;
+        TypeDeclarationBuilder,
+        UnlinkedDeclaration;
 
 /// A shadow tree factory.
 class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
@@ -427,6 +431,14 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
       statement;
 
   @override
+  Expression logicalExpression(
+      Expression leftOperand, Token operator, Expression rightOperand) {
+    return new ShadowLogicalExpression(
+        leftOperand, operator.stringValue, rightOperand)
+      ..fileOffset = offsetForToken(operator);
+  }
+
+  @override
   Expression notExpression(Expression operand, Token token) {
     return new ShadowNot(operand)..fileOffset = offsetForToken(token);
   }
@@ -535,6 +547,11 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
 
   @override
   int getLabelOffset(Label label) => label.charOffset;
+
+  @override
+  String getVariableDeclarationName(VariableDeclaration declaration) {
+    return declaration.name;
+  }
 
   @override
   bool isBlock(Object node) => node is Block;
@@ -741,6 +758,22 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
       ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
       Token token) {
     return new KernelLargeIntAccessGenerator(helper, token);
+  }
+
+  @override
+  KernelUnresolvedNameGenerator unresolvedNameGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Name name) {
+    return new KernelUnresolvedNameGenerator(helper, token, name);
+  }
+
+  @override
+  KernelUnlinkedGenerator unlinkedGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      UnlinkedDeclaration declaration) {
+    return new KernelUnlinkedGenerator(helper, token, declaration);
   }
 }
 

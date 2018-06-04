@@ -97,7 +97,7 @@ main() {
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler;
 
-  ClosedWorld closedWorld =
+  KClosedWorld closedWorld =
       compiler.resolutionWorldBuilder.closedWorldForTesting;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
 

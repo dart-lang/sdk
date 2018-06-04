@@ -14,7 +14,7 @@ class PersistentHandlesRepositoryMock implements M.PersistentHandlesRepository {
     if (_getter != null) {
       return _getter(i);
     }
-    return new Future.value(new PortsMock());
+    return new Future.value(new PortsAndHandlesMock());
   }
 
   PersistentHandlesRepositoryMock(

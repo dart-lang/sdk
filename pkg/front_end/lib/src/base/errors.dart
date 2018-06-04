@@ -83,8 +83,8 @@ class ErrorSeverity implements Comparable<ErrorSeverity> {
   static const ErrorSeverity INFO = const ErrorSeverity('INFO', 1, "I", "info");
 
   /**
-   * The severity representing a warning. Warnings can become errors if the `-Werror` command
-   * line flag is specified.
+   * The severity representing a warning. Warnings can become errors if the
+   * `-Werror` command line flag is specified.
    */
   static const ErrorSeverity WARNING =
       const ErrorSeverity('WARNING', 2, "W", "warning");

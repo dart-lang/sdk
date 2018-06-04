@@ -14,7 +14,7 @@ import '../../deferred_load.dart' show OutputUnit;
 import '../../elements/entities.dart';
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart' show JavaScriptBackend, Namer;
-import '../../world.dart' show ClosedWorld;
+import '../../world.dart' show JClosedWorld;
 import '../js_emitter.dart' show CodeEmitterTask, NativeEmitter;
 import '../js_emitter.dart' as emitterTask show EmitterBase, EmitterFactory;
 import '../model.dart';
@@ -32,7 +32,7 @@ class EmitterFactory implements emitterTask.EmitterFactory {
 
   @override
   Emitter createEmitter(CodeEmitterTask task, Namer namer,
-      ClosedWorld closedWorld, Sorter sorter) {
+      JClosedWorld closedWorld, Sorter sorter) {
     return new Emitter(task.compiler, namer, task.nativeEmitter, closedWorld,
         sorter, task, generateSourceMap);
   }
@@ -40,7 +40,7 @@ class EmitterFactory implements emitterTask.EmitterFactory {
 
 class Emitter extends emitterTask.EmitterBase {
   final Compiler _compiler;
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
   final Namer namer;
   final ModelEmitter _emitter;
 

@@ -29,7 +29,7 @@ import '../../js_backend/native_data.dart';
 import '../../universe/call_structure.dart' show CallStructure;
 import '../../universe/world_builder.dart' show CodegenWorldBuilder;
 import '../../util/uri_extras.dart' show relativize;
-import '../../world.dart' show ClosedWorld;
+import '../../world.dart' show JClosedWorld;
 import '../constant_ordering.dart' show ConstantOrdering;
 import '../headers.dart';
 import '../js_emitter.dart' hide Emitter, EmitterFactory;
@@ -65,7 +65,7 @@ class EmitterFactory implements js_emitter.EmitterFactory {
 
   @override
   Emitter createEmitter(CodeEmitterTask task, Namer namer,
-      ClosedWorld closedWorld, Sorter sorter) {
+      JClosedWorld closedWorld, Sorter sorter) {
     return new Emitter(
         task.compiler, namer, closedWorld, generateSourceMap, task, sorter);
   }
@@ -74,7 +74,7 @@ class EmitterFactory implements js_emitter.EmitterFactory {
 class Emitter extends js_emitter.EmitterBase {
   final Compiler compiler;
   final CodeEmitterTask task;
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
 
   // The following fields will be set to copies of the program-builder's
   // collector.

@@ -15,6 +15,7 @@
 #include "vm/os_thread.h"
 #include "vm/runtime_entry_list.h"
 #include "vm/store_buffer.h"
+
 namespace dart {
 
 class AbstractType;
@@ -102,7 +103,9 @@ class Zone;
   V(RawCode*, lazy_deopt_from_throw_stub_,                                     \
     StubCode::DeoptimizeLazyFromThrow_entry()->code(), NULL)                   \
   V(RawCode*, slow_type_test_stub_, StubCode::SlowTypeTest_entry()->code(),    \
-    NULL)
+    NULL)                                                                      \
+  V(RawCode*, lazy_specialize_type_test_stub_,                                 \
+    StubCode::LazySpecializeTypeTest_entry()->code(), NULL)
 
 #endif
 
@@ -146,6 +149,8 @@ class Zone;
     NativeEntry::AutoScopeNativeCallWrapperEntry(), 0)                         \
   V(RawString**, predefined_symbols_address_, Symbols::PredefinedAddress(),    \
     NULL)                                                                      \
+  V(uword, double_nan_address_, reinterpret_cast<uword>(&double_nan_constant), \
+    0)                                                                         \
   V(uword, double_negate_address_,                                             \
     reinterpret_cast<uword>(&double_negate_constant), 0)                       \
   V(uword, double_abs_address_, reinterpret_cast<uword>(&double_abs_constant), \
@@ -162,6 +167,11 @@ class Zone;
 #define CACHED_CONSTANTS_LIST(V)                                               \
   CACHED_VM_OBJECTS_LIST(V)                                                    \
   CACHED_ADDRESSES_LIST(V)
+
+enum class ValidationPolicy {
+  kValidateFrames = 0,
+  kDontValidateFrames = 1,
+};
 
 // A VM thread; may be executing Dart code or performing helper tasks like
 // garbage collection or compilation. The Thread structure associated with
@@ -731,7 +741,8 @@ class Thread : public BaseThread {
   Thread* next() const { return next_; }
 
   // Visit all object pointers.
-  void VisitObjectPointers(ObjectPointerVisitor* visitor, bool validate_frames);
+  void VisitObjectPointers(ObjectPointerVisitor* visitor,
+                           ValidationPolicy validate_frames);
 
   bool IsValidHandle(Dart_Handle object) const;
   bool IsValidLocalHandle(Dart_Handle object) const;

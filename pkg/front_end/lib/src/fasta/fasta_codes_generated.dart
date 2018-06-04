@@ -1046,6 +1046,16 @@ const MessageCode messageConstructorWithReturnType = const MessageCode(
     tip: r"""Try removing the return type.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstructorWithTypeParameters =
+    messageConstructorWithTypeParameters;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstructorWithTypeParameters = const MessageCode(
+    "ConstructorWithTypeParameters",
+    severity: Severity.error,
+    message: r"""Constructors can't have type parameters.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeContinueOutsideOfLoop = messageContinueOutsideOfLoop;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2812,6 +2822,59 @@ const MessageCode messageInitializedVariableInForEach = const MessageCode(
     message: r"""The loop variable in a for-each loop can't be initialized.""",
     tip:
         r"""Try removing the initializer, or using a different kind of loop.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        DartType _type,
+        DartType
+            _type2)> templateInitializingFormalTypeMismatch = const Template<
+        Message Function(String name, DartType _type, DartType _type2)>(
+    messageTemplate:
+        r"""The type of parameter '#name' (#type) is not a subtype of the corresponding field's type (#type2).""",
+    tipTemplate:
+        r"""Try changing the type of parameter '#name' to a subtype of #type2.""",
+    withArguments: _withArgumentsInitializingFormalTypeMismatch);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, DartType _type, DartType _type2)>
+    codeInitializingFormalTypeMismatch =
+    const Code<Message Function(String name, DartType _type, DartType _type2)>(
+        "InitializingFormalTypeMismatch",
+        templateInitializingFormalTypeMismatch,
+        analyzerCode: "INVALID_PARAMETER_DECLARATION",
+        dart2jsCode: "*fatal*",
+        severity: Severity.errorLegacyWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInitializingFormalTypeMismatch(
+    String name, DartType _type, DartType _type2) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
+  String type2 = '$buffer';
+
+  return new Message(codeInitializingFormalTypeMismatch,
+      message:
+          """The type of parameter '$name' ($type) is not a subtype of the corresponding field's type ($type2).""",
+      tip: """Try changing the type of parameter '$name' to a subtype of $type2.""",
+      arguments: {'name': name, 'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInitializingFormalTypeMismatchField =
+    messageInitializingFormalTypeMismatchField;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInitializingFormalTypeMismatchField =
+    const MessageCode("InitializingFormalTypeMismatchField",
+        severity: Severity.context,
+        message: r"""The field that corresponds to the parameter.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Uri uri_)> templateInputFileNotFound =

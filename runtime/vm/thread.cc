@@ -152,6 +152,8 @@ Thread::Thread(Isolate* isolate)
   }
 }
 
+static const double double_nan_constant = NAN;
+
 static const struct ALIGN16 {
   uint64_t a;
   uint64_t b;
@@ -630,7 +632,7 @@ void Thread::ClearReusableHandles() {
 }
 
 void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
-                                 bool validate_frames) {
+                                 ValidationPolicy validation_policy) {
   ASSERT(visitor != NULL);
 
   if (zone_ != NULL) {
@@ -665,10 +667,6 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
   // (which iterate it's stack) to finish.
   const StackFrameIterator::CrossThreadPolicy cross_thread_policy =
       StackFrameIterator::kAllowCrossThreadIteration;
-
-  const StackFrameIterator::ValidationPolicy validation_policy =
-      validate_frames ? StackFrameIterator::kValidateFrames
-                      : StackFrameIterator::kDontValidateFrames;
 
   // Iterate over all the stack frames and visit objects on the stack.
   StackFrameIterator frames_iterator(top_exit_frame_info(), validation_policy,

@@ -24,6 +24,11 @@ import 'analysis_context_factory.dart';
  */
 class EngineTestCase {
   /**
+   * Flag indicating whether the fasta parser is being used.
+   */
+  bool get usingFastaParser => Parser.useFasta;
+
+  /**
    * Assert that the given collection has the same number of elements as the number of specified
    * names, and that for each specified name, a corresponding element can be found in the given
    * collection with that name.

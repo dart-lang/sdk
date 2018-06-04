@@ -5,6 +5,7 @@
 import("../application_snapshot.gni")
 
 application_snapshot("dartdoc") {
+  dart_version = 2
   main_dart = "../../third_party/pkg/dartdoc/bin/dartdoc.dart"
   training_args = [ "--help" ]
 }

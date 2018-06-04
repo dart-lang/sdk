@@ -49,7 +49,8 @@ class ScannerErrorCode extends ErrorCode {
       const ScannerErrorCode(
           'UNTERMINATED_MULTI_LINE_COMMENT', "Unterminated multi-line comment.",
           correction: "Try terminating the comment with '*/', or "
-              "removing any unbalanced occurances of '/*' (because comments nest in Dart).");
+              "removing any unbalanced occurances of '/*'"
+              " (because comments nest in Dart).");
 
   static const ScannerErrorCode UNTERMINATED_STRING_LITERAL =
       const ScannerErrorCode(

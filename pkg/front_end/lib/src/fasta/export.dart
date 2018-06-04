@@ -4,7 +4,7 @@
 
 library fasta.export;
 
-import 'builder/builder.dart' show Builder, LibraryBuilder;
+import 'builder/builder.dart' show Declaration, LibraryBuilder;
 
 import 'combinator.dart' show Combinator;
 
@@ -23,7 +23,7 @@ class Export {
 
   Uri get fileUri => exporter.fileUri;
 
-  bool addToExportScope(String name, Builder member) {
+  bool addToExportScope(String name, Declaration member) {
     if (combinators != null) {
       for (Combinator combinator in combinators) {
         if (combinator.isShow && !combinator.names.contains(name)) return false;

@@ -13,7 +13,7 @@ class PortsRepositoryMock implements M.PortsRepository {
     if (_getter != null) {
       return _getter(i);
     }
-    return new Future.value(new PortsMock());
+    return new Future.value(new PortsAndHandlesMock());
   }
 
   PortsRepositoryMock({PortsRepositoryMockGetter getter}) : _getter = getter;

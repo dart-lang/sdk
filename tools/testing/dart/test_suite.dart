@@ -862,12 +862,9 @@ class StandardTestSuite extends TestSuite {
       // TODO(rnystrom): Hack. When running the 2.0 tests, always implicitly
       // turn on reified generics in the VM.
       // Note that VMOptions=--no-reify-generic-functions in test is ignored.
-      // Also, enable Dart 2.0 fixed-size integers with --limit-ints-to-64-bits.
       // Dart 2 VM wrapper (pkg/vm/tool/dart2) already passes correct arguments.
       if (suiteName.endsWith("_2") && !configuration.usingDart2VMWrapper) {
-        allVmOptions = allVmOptions.toList()
-          ..add("--reify-generic-functions")
-          ..add("--limit-ints-to-64-bits");
+        allVmOptions = allVmOptions.toList()..add("--reify-generic-functions");
       }
 
       var commands =

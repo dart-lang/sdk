@@ -333,7 +333,8 @@ class TypeInfoTest {
       'handleType int )',
       'handleNoName )',
       'handleFormalParameterWithoutValue )',
-      'beginTypeVariables null null ) FormalParameterKind.mandatory MemberKind.GeneralizedFunctionType',
+      'beginTypeVariables null null ) FormalParameterKind.mandatory'
+          ' MemberKind.GeneralizedFunctionType',
       'endFormalParameters 1 ( ) MemberKind.GeneralizedFunctionType',
       'endFunctionType Function m',
     ]);

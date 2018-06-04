@@ -19,7 +19,11 @@ import 'expression_generator.dart' show Generator;
 import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
 
 import 'kernel_builder.dart'
-    show LoadLibraryBuilder, PrefixBuilder, TypeDeclarationBuilder;
+    show
+        LoadLibraryBuilder,
+        PrefixBuilder,
+        TypeDeclarationBuilder,
+        UnlinkedDeclaration;
 
 export 'body_builder.dart' show Identifier, Operator;
 
@@ -28,7 +32,11 @@ export 'expression_generator.dart' show Generator;
 export 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
 
 export 'kernel_builder.dart'
-    show LoadLibraryBuilder, PrefixBuilder, TypeDeclarationBuilder;
+    show
+        LoadLibraryBuilder,
+        PrefixBuilder,
+        TypeDeclarationBuilder,
+        UnlinkedDeclaration;
 
 /// A tree factory.
 ///
@@ -250,6 +258,11 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   Statement labeledStatement(
       LabelTarget<Statement> target, Statement statement);
 
+  /// Return a representation of a logical expression having the [leftOperand],
+  /// [rightOperand] and the [operator] (either `&&` or `||`).
+  Expression logicalExpression(
+      Expression leftOperand, Location operator, Expression rightOperand);
+
   Expression notExpression(Expression operand, Location location);
 
   /// Return a representation of a parenthesized condition consisting of the
@@ -316,6 +329,9 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
 
   /// Return the offset of the given [label].
   int getLabelOffset(covariant label);
+
+  /// Return the name of the given variable [declaration].
+  String getVariableDeclarationName(covariant declaration);
 
   bool isBlock(Object node);
 
@@ -445,6 +461,16 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   Generator<Expression, Statement, Arguments> largeIntAccessGenerator(
       ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
       Location location);
+
+  Generator<Expression, Statement, Arguments> unresolvedNameGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Location location,
+      kernel.Name name);
+
+  Generator<Expression, Statement, Arguments> unlinkedGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Location location,
+      UnlinkedDeclaration declaration);
 
   // TODO(ahe): Remove this method when all users are moved here.
   kernel.Arguments castArguments(Arguments arguments) {

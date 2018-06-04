@@ -2467,7 +2467,7 @@ class Parser {
 
     bool isGetter = false;
     if (getOrSet == null) {
-      token = computeTypeParamOrArg(name, true).parseVariables(name, this);
+      token = parseMethodTypeVar(name);
     } else {
       isGetter = optional("get", getOrSet);
       token = name;
@@ -2484,6 +2484,22 @@ class Parser {
     token = parseFunctionBody(token, false, externalToken != null);
     asyncState = savedAsyncModifier;
     listener.endTopLevelMethod(beforeStart.next, getOrSet, token);
+    return token;
+  }
+
+  Token parseMethodTypeVar(Token name) {
+    TypeParamOrArgInfo typeVar = computeTypeParamOrArg(name, true);
+    Token token;
+    if (typeVar == noTypeParamOrArg || name.next.endGroup != null) {
+      token = typeVar.parseVariables(name, this);
+    } else {
+      // Recovery
+      token = typeVar.parseVariables(name, this);
+      if (optional('=', token.next)) {
+        token = token.next;
+        reportRecoverableErrorWithToken(token, fasta.templateUnexpectedToken);
+      }
+    }
     return token;
   }
 
@@ -3149,7 +3165,7 @@ class Parser {
 
     bool isGetter = false;
     if (getOrSet == null) {
-      token = computeTypeParamOrArg(token, true).parseVariables(token, this);
+      token = parseMethodTypeVar(token);
     } else {
       isGetter = optional("get", getOrSet);
       listener.handleNoTypeVariables(token.next);
@@ -3291,8 +3307,9 @@ class Parser {
   Token parseFunctionLiteral(
       final Token start, TypeInfo typeInfo, IdentifierContext context) {
     Token beforeName = typeInfo.skipType(start);
-    assert(beforeName.next.isIdentifier);
-    Token formals = parseTypeVariablesOpt(beforeName.next);
+    Token name = beforeName.next;
+    assert(name.isIdentifier);
+    Token formals = computeTypeParamOrArg(name).parseVariables(name, this);
     listener.beginNamedFunctionExpression(start.next);
     typeInfo.parseType(start, this);
     return parseNamedFunctionRest(beforeName, start.next, formals, true);
@@ -4374,7 +4391,7 @@ class Parser {
     if (constKeyword == null &&
         closeBrace != null &&
         identical(closeBrace.next.kind, OPEN_PAREN_TOKEN)) {
-      token = parseTypeVariablesOpt(token);
+      token = computeTypeParamOrArg(token).parseVariables(token, this);
       return parseLiteralFunctionSuffix(token);
     } else {
       token = computeTypeParamOrArg(token).parseArguments(token, this);
@@ -5466,32 +5483,56 @@ class Parser {
         }
 
         Token exceptionName = openParens.next;
-        if (!exceptionName.isIdentifier) {
-          reportRecoverableError(exceptionName, fasta.messageCatchSyntax);
-          if (!exceptionName.isKeywordOrIdentifier) {
-            exceptionName = new SyntheticStringToken(
-                TokenType.IDENTIFIER, '', exceptionName.charOffset, 0);
-            rewriter.insertTokenAfter(openParens, exceptionName);
-          }
+        if (exceptionName.kind != IDENTIFIER_TOKEN) {
+          exceptionName = IdentifierContext.catchParameter
+              .ensureIdentifier(openParens, this);
         }
 
-        Token commaOrCloseParens = exceptionName.next;
-        if (optional(")", commaOrCloseParens)) {
+        if (optional(")", exceptionName.next)) {
           // OK: `catch (identifier)`.
-        } else if (!optional(",", commaOrCloseParens)) {
-          reportRecoverableError(exceptionName, fasta.messageCatchSyntax);
         } else {
-          comma = commaOrCloseParens;
-          Token traceName = comma.next;
-          if (!traceName.isIdentifier) {
-            reportRecoverableError(exceptionName, fasta.messageCatchSyntax);
-            if (!traceName.isKeywordOrIdentifier) {
-              traceName = new SyntheticStringToken(
-                  TokenType.IDENTIFIER, '', traceName.charOffset, 0);
-              rewriter.insertTokenAfter(comma, traceName);
+          comma = exceptionName.next;
+          if (!optional(",", comma)) {
+            // Recovery
+            if (!exceptionName.isSynthetic) {
+              reportRecoverableError(comma, fasta.messageCatchSyntax);
             }
-          } else if (!optional(")", traceName.next)) {
-            reportRecoverableError(exceptionName, fasta.messageCatchSyntax);
+            // TODO(danrubel): Consider inserting synthetic identifier if
+            // exceptionName is a non-synthetic identifier followed by `.`.
+            // Then this
+            //   } catch (
+            //   e.f();
+            // will recover to
+            //   } catch (_s_) {}
+            //   e.f();
+            // rather than
+            //   } catch (e) {}
+            //   _s_.f();
+            if (openParens.endGroup.isSynthetic) {
+              // The scanner did not place the synthetic ')' correctly.
+              rewriter.moveSynthetic(exceptionName, openParens.endGroup);
+              comma = null;
+            } else {
+              comma = rewriter.insertTokenAfter(exceptionName,
+                  new SyntheticToken(TokenType.COMMA, comma.charOffset));
+            }
+          }
+          if (comma != null) {
+            Token traceName = comma.next;
+            if (traceName.kind != IDENTIFIER_TOKEN) {
+              traceName = IdentifierContext.catchParameter
+                  .ensureIdentifier(comma, this);
+            }
+            if (!optional(")", traceName.next)) {
+              // Recovery
+              if (!traceName.isSynthetic) {
+                reportRecoverableError(exceptionName, fasta.messageCatchSyntax);
+              }
+              if (openParens.endGroup.isSynthetic) {
+                // The scanner did not place the synthetic ')' correctly.
+                rewriter.moveSynthetic(traceName, openParens.endGroup);
+              }
+            }
           }
         }
         lastConsumed = parseFormalParameters(catchKeyword, MemberKind.Catch);

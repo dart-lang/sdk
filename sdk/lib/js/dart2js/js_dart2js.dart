@@ -88,7 +88,11 @@ import 'dart:typed_data' show TypedData;
 
 import 'dart:_foreign_helper' show JS, JS_CONST, DART_CLOSURE_TO_JS;
 import 'dart:_interceptors'
-    show JavaScriptObject, UnknownJavaScriptObject, DART_CLOSURE_PROPERTY_NAME;
+    show
+        JavaScriptFunction,
+        JavaScriptObject,
+        UnknownJavaScriptObject,
+        DART_CLOSURE_PROPERTY_NAME;
 import 'dart:_js_helper'
     show Primitives, convertDartClosureToJS, getIsolateAffinityTag;
 import 'dart:_js' show isBrowserObject, convertFromBrowserObject;
@@ -99,7 +103,7 @@ final JsObject context = _wrapToDart(JS('', 'self'));
 
 _convertDartFunction(Function f, {bool captureThis: false}) {
   return JS(
-      '',
+      'JavaScriptFunction',
       '''
         function(_call, f, captureThis) {
           return function() {
@@ -652,7 +656,7 @@ _convertDartFunctionFast(Function f) {
   var existing = JS('', '#.#', f, _JS_FUNCTION_PROPERTY_NAME);
   if (existing != null) return existing;
   var ret = JS(
-      '',
+      'JavaScriptFunction',
       '''
         function(_call, f) {
           return function() {
@@ -671,7 +675,7 @@ _convertDartFunctionFastCaptureThis(Function f) {
   var existing = JS('', '#.#', f, _JS_FUNCTION_PROPERTY_NAME_CAPTURE_THIS);
   if (existing != null) return existing;
   var ret = JS(
-      '',
+      'JavaScriptFunction',
       '''
         function(_call, f) {
           return function() {

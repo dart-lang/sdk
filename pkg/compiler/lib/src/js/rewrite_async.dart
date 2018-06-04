@@ -522,7 +522,8 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     List<js.Node> visited = nodes.take(lastTransformIndex).map((js.Node node) {
       return (node == null) ? null : _storeIfNecessary(visitExpression(node));
     }).toList();
-    visited.addAll(nodes.skip(lastTransformIndex).map((js.Node node) {
+    visited.addAll(
+        nodes.skip(lastTransformIndex).map<js.Expression>((js.Node node) {
       return (node == null) ? null : visitExpression(node);
     }));
     var result = fn(visited);

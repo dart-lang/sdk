@@ -465,7 +465,6 @@ class PackageBuildWorkspaceTest extends _BaseTest {
     final packageMap = new Map.fromIterable(packageNames, value: ((_) => []));
     when(contextBuilder.createPackageMap(_p(root))).thenReturn(packages);
     when(contextBuilder.convertPackagesToMap(packages)).thenReturn(packageMap);
-    when(packages.asMap()).thenReturn(packageMap);
     return PackageBuildWorkspace.find(provider, _p(root), contextBuilder);
   }
 }

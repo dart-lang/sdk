@@ -1241,6 +1241,32 @@ class B {}''');
     verify([source]);
   }
 
+  test_duplicateShownHiddenName_hidden() async {
+    Source source = addSource(r'''
+library L;
+export 'lib1.dart' hide A, B, A;''');
+    addNamedSource("/lib1.dart", r'''
+library lib1;
+class A {}
+class B {}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DUPLICATE_HIDDEN_NAME]);
+    verify([source]);
+  }
+
+  test_duplicateShownHiddenName_shown() async {
+    Source source = addSource(r'''
+library L;
+export 'lib1.dart' show A, B, A;''');
+    addNamedSource("/lib1.dart", r'''
+library lib1;
+class A {}
+class B {}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DUPLICATE_SHOWN_NAME]);
+    verify([source]);
+  }
+
   test_factory__expr_return_null_OK() async {
     Source source = addSource(r'''
 import 'package:meta/meta.dart';

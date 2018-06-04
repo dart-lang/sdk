@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $runtime != none && !$checked ]
+LibTest/async/Future/catchError_A03_t05: RuntimeError
+
 [ $runtime == dart_precompiled || $runtime == flutter || $runtime == vm ]
 LayoutTests/fast/*: SkipByDesign # DOM not supported on VM.
 LibTest/html/*: SkipByDesign # dart:html not supported on VM.

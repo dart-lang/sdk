@@ -28,7 +28,7 @@ main() {
       const PortMock(name: 'port-2'),
       const PortMock(name: 'port-3')
     ];
-    const isolatePorts = const PortsMock(elements: elements);
+    const isolatePorts = const PortsAndHandlesMock(elements: elements);
     final ports = new PortsRepositoryMock(
         getter: expectAsync((i) async {
       expect(i, equals(isolate));

@@ -5,9 +5,9 @@
 import 'package:compiler/src/common_elements.dart' show ElementEnvironment;
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
-import 'package:compiler/src/world.dart' show ClosedWorld;
+import 'package:compiler/src/world.dart' show JClosedWorld;
 
-ClassEntity findClass(ClosedWorld closedWorld, String name) {
+ClassEntity findClass(JClosedWorld closedWorld, String name) {
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   ClassEntity cls =
       elementEnvironment.lookupClass(elementEnvironment.mainLibrary, name);
@@ -22,7 +22,7 @@ ClassEntity findClass(ClosedWorld closedWorld, String name) {
 }
 
 MemberEntity findClassMember(
-    ClosedWorld closedWorld, String className, String memberName) {
+    JClosedWorld closedWorld, String className, String memberName) {
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   ClassEntity cls = findClass(closedWorld, className);
   assert(cls != null, "Class '$className' not found.");
@@ -31,7 +31,7 @@ MemberEntity findClassMember(
   return member;
 }
 
-MemberEntity findMember(ClosedWorld closedWorld, String name) {
+MemberEntity findMember(JClosedWorld closedWorld, String name) {
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   MemberEntity member = elementEnvironment.lookupLibraryMember(
       elementEnvironment.mainLibrary, name);
@@ -41,12 +41,12 @@ MemberEntity findMember(ClosedWorld closedWorld, String name) {
   return member;
 }
 
-FunctionType findFunctionType(ClosedWorld closedWorld, String name) {
+FunctionType findFunctionType(JClosedWorld closedWorld, String name) {
   FunctionEntity function = findMember(closedWorld, name);
   return closedWorld.elementEnvironment.getFunctionType(function);
 }
 
-DartType findFieldType(ClosedWorld closedWorld, String name) {
+DartType findFieldType(JClosedWorld closedWorld, String name) {
   FieldEntity field = findMember(closedWorld, name);
   return closedWorld.elementEnvironment.getFieldType(field);
 }

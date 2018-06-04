@@ -486,7 +486,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       return new Switch(
           makeKey(arguments),
           makeCases
-              .map((Instantiator makeCase) => makeCase(arguments))
+              .map<SwitchClause>((Instantiator makeCase) => makeCase(arguments))
               .toList());
     };
   }
@@ -692,7 +692,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
         node.elements.map(visit).toList(growable: false);
     return (arguments) {
       List<Expression> elements = elementMakers
-          .map((Instantiator instantiator) => instantiator(arguments))
+          .map<Expression>(
+              (Instantiator instantiator) => instantiator(arguments))
           .toList(growable: false);
       return new ArrayInitializer(elements);
     };

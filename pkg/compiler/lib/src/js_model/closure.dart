@@ -17,7 +17,6 @@ import '../kernel/env.dart';
 import '../options.dart';
 import '../ssa/type_builder.dart';
 import '../universe/selector.dart';
-import '../world.dart';
 import 'elements.dart';
 import 'closure_visitors.dart';
 import 'locals.dart';
@@ -98,16 +97,6 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   KernelClosureConversionTask(
       Measurer measurer, this._elementMap, this._globalLocalsMap, this._options)
       : super(measurer);
-
-  /// The combined steps of generating our intermediate representation of
-  /// closures that need to be rewritten and generating the element model.
-  /// Ultimately these two steps will be split apart with the second step
-  /// happening later in compilation just before codegen. These steps are
-  /// combined here currently to provide a consistent interface to the rest of
-  /// the compiler until we are ready to separate these phases.
-  @override
-  void convertClosures(Iterable<MemberEntity> processedEntities,
-      ClosedWorldRefiner closedWorldRefiner) {}
 
   void _updateScopeBasedOnRtiNeed(KernelScopeInfo scope, ClosureRtiNeed rtiNeed,
       MemberEntity outermostEntity) {

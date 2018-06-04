@@ -1419,25 +1419,33 @@ const _rootZone = const _RootZone();
 /**
  * Runs [body] in its own zone.
  *
- * Returns the result of invoking [body].
+ * Creates a new zone using [Zone.fork] based on [zoneSpecification] and
+ * [zoneValues], then runs [body] in that zone and returns the result.
  *
- * If [onError] is non-null the zone is considered an error zone. All uncaught
- * errors, synchronous or asynchronous, in the zone are caught and handled
- * by the callback. When the error is synchronous, throwing in the [onError]
- * handler, leads to a synchronous exception.
+ * If [onError] is provided, it must have one of the types
+ * * `void Function(Object)`
+ * * `void Function(Object, StackTrace)`
+ * and the [onError] handler is used *both* to handle asynchronous errors
+ * by overriding [ZoneSpecification.handleUncaughtError] in [zoneSpecification],
+ * if any, *and* to handle errors thrown synchronously by the call to [body].
  *
- * Returns `null` when [body] threw, and a provided [onError] function completed
- * without throwing.
+ * If an error occurs synchronously in [body],
+ * then throwing in the [onError] handler
+ * makes the call to `runZone` throw that error,
+ * and otherwise the call to `runZoned` returns `null`.
  *
- * Errors may never cross error-zone boundaries. This is intuitive for leaving
- * a zone, but it also applies for errors that would enter an error-zone.
- * Errors that try to cross error-zone boundaries are considered uncaught.
+ * If the zone specification has a `handleUncaughtError` value or the [onError]
+ * parameter is provided, the zone becomes an error-zone.
+ *
+ * Errors will never cross error-zone boundaries by themselves.
+ * Errors that try to cross error-zone boundaries are considered uncaught in
+ * their originating error zone.
  *
  *     var future = new Future.value(499);
  *     runZoned(() {
- *       future = future.then((_) { throw "error in first error-zone"; });
+ *       var future2 = future.then((_) { throw "error in first error-zone"; });
  *       runZoned(() {
- *         future = future.catchError((e) { print("Never reached!"); });
+ *         var future3 = future2.catchError((e) { print("Never reached!"); });
  *       }, onError: (e) { print("unused error handler"); });
  *     }, onError: (e) { print("catches error of first error-zone."); });
  *
@@ -1446,58 +1454,65 @@ const _rootZone = const _RootZone();
  *     runZoned(() {
  *       new Future(() { throw "asynchronous error"; });
  *     }, onError: print);  // Will print "asynchronous error".
+ *
+ * It is possible to manually pass an error from one error zone to another
+ * by re-throwing it in the new zone. If [onError] throws, that error will
+ * occur in the original zone where [runZoned] was called.
  */
 R runZoned<R>(R body(),
     {Map zoneValues, ZoneSpecification zoneSpecification, Function onError}) {
-  // TODO(floitsch): the return type should be `void` here.
-  if (onError != null &&
-      onError is! ZoneBinaryCallback<dynamic, Object, StackTrace> &&
-      onError is! ZoneUnaryCallback<dynamic, Object>) {
-    throw new ArgumentError("onError callback must take an Object (the error), "
-        "or an Object (the error) and a StackTrace");
+  if (onError == null) {
+    return _runZoned<R>(body, zoneValues, zoneSpecification);
   }
-  HandleUncaughtErrorHandler errorHandler;
-  if (onError != null) {
-    errorHandler = (Zone self, ZoneDelegate parent, Zone zone, error,
-        StackTrace stackTrace) {
-      try {
-        if (onError is void Function(Object, StackTrace)) {
-          self.parent.runBinary(onError, error, stackTrace);
-          return;
-        }
-        assert(onError is void Function(Object));
-        self.parent.runUnary(onError, error);
-      } catch (e, s) {
-        if (identical(e, error)) {
-          parent.handleUncaughtError(zone, error, stackTrace);
-        } else {
-          parent.handleUncaughtError(zone, e, s);
-        }
+  void Function(Object) unaryOnError;
+  void Function(Object, StackTrace) binaryOnError;
+  if (onError is void Function(Object)) {
+    unaryOnError = onError;
+  } else if (onError is void Function(Object, StackTrace)) {
+    binaryOnError = onError;
+  } else {
+    throw new ArgumentError("onError callback must take either an Object "
+        "(the error), or both an Object (the error) and a StackTrace.");
+  }
+  HandleUncaughtErrorHandler errorHandler = (Zone self, ZoneDelegate parent,
+      Zone zone, error, StackTrace stackTrace) {
+    try {
+      if (binaryOnError != null) {
+        self.parent.runBinary(binaryOnError, error, stackTrace);
+      } else {
+        assert(unaryOnError != null);
+        self.parent.runUnary(unaryOnError, error);
       }
-    };
-  }
+    } catch (e, s) {
+      if (identical(e, error)) {
+        parent.handleUncaughtError(zone, error, stackTrace);
+      } else {
+        parent.handleUncaughtError(zone, e, s);
+      }
+    }
+  };
   if (zoneSpecification == null) {
     zoneSpecification =
         new ZoneSpecification(handleUncaughtError: errorHandler);
-  } else if (errorHandler != null) {
+  } else {
     zoneSpecification = new ZoneSpecification.from(zoneSpecification,
         handleUncaughtError: errorHandler);
   }
-  Zone zone = Zone.current
-      .fork(specification: zoneSpecification, zoneValues: zoneValues);
-  if (onError != null) {
-    try {
-      return zone.run(body);
-    } catch (e, stackTrace) {
-      if (onError is ZoneBinaryCallback<R, Object, StackTrace>) {
-        zone.runBinary(onError, e, stackTrace);
-        return null;
-      }
-      assert(onError is ZoneUnaryCallback<R, Object>);
-      zone.runUnary(onError, e);
-      return null;
+  try {
+    return _runZoned<R>(body, zoneValues, zoneSpecification);
+  } catch (e, stackTrace) {
+    if (binaryOnError != null) {
+      binaryOnError(e, stackTrace);
+    } else {
+      assert(unaryOnError != null);
+      unaryOnError(e);
     }
-  } else {
-    return zone.run(body);
   }
+  return null;
 }
+
+/// Runs [body] in a new zone based on [zoneValues] and [specification].
+R _runZoned<R>(R body(), Map zoneValues, ZoneSpecification specification) =>
+    Zone.current
+        .fork(specification: specification, zoneValues: zoneValues)
+        .run<R>(body);

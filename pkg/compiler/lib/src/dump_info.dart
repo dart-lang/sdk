@@ -20,18 +20,17 @@ import 'deferred_load.dart' show OutputUnit;
 import 'elements/entities.dart';
 import 'js/js.dart' as jsAst;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
-import 'types/masks.dart';
+import 'types/abstract_value_domain.dart';
 import 'types/types.dart'
     show GlobalTypeInferenceElementResult, GlobalTypeInferenceMemberResult;
-import 'universe/world_builder.dart'
-    show CodegenWorldBuilder, ReceiverConstraint;
+import 'universe/world_builder.dart' show CodegenWorldBuilder;
 import 'universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitorImpl;
-import 'world.dart' show ClosedWorld;
+import 'world.dart' show JClosedWorld;
 
 class ElementInfoCollector {
   final Compiler compiler;
-  final ClosedWorld closedWorld;
+  final JClosedWorld closedWorld;
 
   ElementEnvironment get environment => closedWorld.elementEnvironment;
   CodegenWorldBuilder get codegenWorldBuilder => compiler.codegenWorldBuilder;
@@ -119,9 +118,12 @@ class ElementInfoCollector {
     if (!isInInstantiatedClass && !_hasBeenResolved(field)) {
       return null;
     }
-    TypeMask inferredType = _resultOfMember(field).type;
+    AbstractValue inferredType = _resultOfMember(field).type;
     // If a field has an empty inferred type it is never used.
-    if (inferredType == null || inferredType.isEmpty) return null;
+    if (inferredType == null ||
+        closedWorld.abstractValueDomain.isEmpty(inferredType)) {
+      return null;
+    }
 
     int size = compiler.dumpInfoTask.sizeOf(field);
     String code = compiler.dumpInfoTask.codeOf(field);
@@ -376,8 +378,8 @@ class ElementInfoCollector {
 
 class Selection {
   final Entity selectedEntity;
-  final ReceiverConstraint mask;
-  Selection(this.selectedEntity, this.mask);
+  final Object receiverConstraint;
+  Selection(this.selectedEntity, this.receiverConstraint);
 }
 
 /// Interface used to record information from different parts of the compiler so
@@ -453,7 +455,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   /// Returns an iterable of [Selection]s that are used by [entity]. Each
   /// [Selection] contains an entity that is used and the selector that
   /// selected the entity.
-  Iterable<Selection> getRetaining(Entity entity, ClosedWorld closedWorld) {
+  Iterable<Selection> getRetaining(Entity entity, JClosedWorld closedWorld) {
     WorldImpact impact = impacts[entity];
     if (impact == null) return const <Selection>[];
 
@@ -462,12 +464,12 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         entity,
         impact,
         new WorldImpactVisitorImpl(visitDynamicUse: (dynamicUse) {
-          TypeMask mask = dynamicUse.mask;
+          AbstractValue mask = dynamicUse.receiverConstraint;
           selections.addAll(closedWorld
               // TODO(het): Handle `call` on `Closure` through
               // `world.includesClosureCall`.
               .locateMembers(dynamicUse.selector, mask)
-              .map((MemberEntity e) => new Selection(e, dynamicUse.mask)));
+              .map((MemberEntity e) => new Selection(e, mask)));
         }, visitStaticUse: (staticUse) {
           selections.add(new Selection(staticUse.element, null));
         }),
@@ -538,7 +540,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     return sb.toString();
   }
 
-  void dumpInfo(ClosedWorld closedWorld) {
+  void dumpInfo(JClosedWorld closedWorld) {
     measure(() {
       infoCollector = new ElementInfoCollector(compiler, closedWorld)..run();
       StringBuffer jsonBuffer = new StringBuffer();
@@ -552,7 +554,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     });
   }
 
-  void dumpInfoJson(StringSink buffer, ClosedWorld closedWorld) {
+  void dumpInfoJson(StringSink buffer, JClosedWorld closedWorld) {
     JsonEncoder encoder = const JsonEncoder.withIndent('  ');
     Stopwatch stopwatch = new Stopwatch();
     stopwatch.start();
@@ -570,7 +572,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         // Don't register dart2js builtin functions that are not recorded.
         Info useInfo = infoCollector._entityToInfo[selection.selectedEntity];
         if (useInfo == null) continue;
-        info.uses.add(new DependencyInfo(useInfo, '${selection.mask}'));
+        info.uses.add(
+            new DependencyInfo(useInfo, '${selection.receiverConstraint}'));
       }
     }
 
@@ -584,7 +587,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
       for (Selection selection in uses) {
         Info useInfo = infoCollector._entityToInfo[selection.selectedEntity];
         if (useInfo == null) continue;
-        info.uses.add(new DependencyInfo(useInfo, '${selection.mask}'));
+        info.uses.add(
+            new DependencyInfo(useInfo, '${selection.receiverConstraint}'));
       }
     }
 

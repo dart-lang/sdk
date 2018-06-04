@@ -29,7 +29,7 @@ import 'universe/world_impact.dart'
     show ImpactStrategy, ImpactUseCase, WorldImpact, WorldImpactVisitor;
 import 'util/enumset.dart';
 import 'util/util.dart' show Setlet;
-import 'world.dart' show ClosedWorld;
+import 'world.dart' show JClosedWorld;
 
 class EnqueueTask extends CompilerTask {
   ResolutionEnqueuer _resolution;
@@ -60,7 +60,7 @@ class EnqueueTask extends CompilerTask {
           ..onEmptyForTesting = compiler.onResolutionQueueEmptyForTesting;
   }
 
-  Enqueuer createCodegenEnqueuer(ClosedWorld closedWorld) {
+  Enqueuer createCodegenEnqueuer(JClosedWorld closedWorld) {
     return codegenEnqueuerForTesting = compiler.backend
         .createCodegenEnqueuer(this, compiler, closedWorld)
           ..onEmptyForTesting = compiler.onCodegenQueueEmptyForTesting;

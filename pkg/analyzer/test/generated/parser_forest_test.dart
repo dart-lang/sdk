@@ -22,6 +22,11 @@ main() async {
   });
 }
 
+void dart2Failure() {
+  fail(
+      'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
+}
+
 @reflectiveTest
 class ClassMemberParserTest_Forest extends FastaBodyBuilderTestCase
     with ClassMemberParserTestMixin {
@@ -482,11 +487,13 @@ class ComplexParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_assignmentExpression_compound() {
     super.test_assignmentExpression_compound();
+    dart2Failure();
   }
 
   @failingTest
   void test_assignmentExpression_indexExpression() {
     super.test_assignmentExpression_indexExpression();
+    dart2Failure();
   }
 
   @failingTest
@@ -627,6 +634,7 @@ class ComplexParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_logicalAndExpression() {
     super.test_logicalAndExpression();
+    dart2Failure();
   }
 
   @failingTest
@@ -647,16 +655,19 @@ class ComplexParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_logicalOrExpression() {
     super.test_logicalOrExpression();
+    dart2Failure();
   }
 
   @failingTest
   void test_logicalOrExpression_precedence_logicalAnd_left() {
     super.test_logicalOrExpression_precedence_logicalAnd_left();
+    dart2Failure();
   }
 
   @failingTest
   void test_logicalOrExpression_precedence_logicalAnd_right() {
     super.test_logicalOrExpression_precedence_logicalAnd_right();
+    dart2Failure();
   }
 
   @failingTest
@@ -672,11 +683,6 @@ class ComplexParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_methodInvocation3() {
     super.test_methodInvocation3();
-  }
-
-  @failingTest
-  void test_multipleLabels_statement() {
-    super.test_multipleLabels_statement();
   }
 
   @failingTest
@@ -791,11 +797,6 @@ class ErrorParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_breakOutsideOfLoop_breakInDoStatement() {
-    super.test_breakOutsideOfLoop_breakInDoStatement();
-  }
-
-  @failingTest
   void test_breakOutsideOfLoop_breakInForStatement() {
     super.test_breakOutsideOfLoop_breakInForStatement();
   }
@@ -808,11 +809,6 @@ class ErrorParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_breakOutsideOfLoop_breakInSwitchStatement() {
     super.test_breakOutsideOfLoop_breakInSwitchStatement();
-  }
-
-  @failingTest
-  void test_breakOutsideOfLoop_breakInWhileStatement() {
-    super.test_breakOutsideOfLoop_breakInWhileStatement();
   }
 
   @failingTest
@@ -916,11 +912,6 @@ class ErrorParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_continueOutsideOfLoop_continueInDoStatement() {
-    super.test_continueOutsideOfLoop_continueInDoStatement();
-  }
-
-  @failingTest
   void test_continueOutsideOfLoop_continueInForStatement() {
     super.test_continueOutsideOfLoop_continueInForStatement();
   }
@@ -933,11 +924,6 @@ class ErrorParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_continueOutsideOfLoop_continueInSwitchStatement() {
     super.test_continueOutsideOfLoop_continueInSwitchStatement();
-  }
-
-  @failingTest
-  void test_continueOutsideOfLoop_continueInWhileStatement() {
-    super.test_continueOutsideOfLoop_continueInWhileStatement();
   }
 
   @failingTest
@@ -1769,6 +1755,7 @@ class ErrorParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_missingAssignableSelector_identifiersAssigned() {
     super.test_missingAssignableSelector_identifiersAssigned();
+    dart2Failure();
   }
 
   @failingTest
@@ -1794,6 +1781,7 @@ class ErrorParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_missingAssignableSelector_superPropertyAccessAssigned() {
     super.test_missingAssignableSelector_superPropertyAccessAssigned();
+    dart2Failure();
   }
 
   @failingTest
@@ -2582,16 +2570,12 @@ class ExpressionParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_parseAssignableExpression_expression_index() {
     super.test_parseAssignableExpression_expression_index();
+    dart2Failure();
   }
 
   @failingTest
   void test_parseAssignableExpression_expression_question_dot() {
     super.test_parseAssignableExpression_expression_question_dot();
-  }
-
-  @failingTest
-  void test_parseAssignableExpression_identifier() {
-    super.test_parseAssignableExpression_identifier();
   }
 
   @failingTest
@@ -2614,11 +2598,6 @@ class ExpressionParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_parseAssignableExpression_identifier_dot() {
     super.test_parseAssignableExpression_identifier_dot();
-  }
-
-  @failingTest
-  void test_parseAssignableExpression_identifier_index() {
-    super.test_parseAssignableExpression_identifier_index();
   }
 
   @failingTest
@@ -2647,18 +2626,8 @@ class ExpressionParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_parseAssignableSelector_none() {
-    super.test_parseAssignableSelector_none();
-  }
-
-  @failingTest
   void test_parseAssignableSelector_question_dot() {
     super.test_parseAssignableSelector_question_dot();
-  }
-
-  @failingTest
-  void test_parseAwaitExpression() {
-    super.test_parseAwaitExpression();
   }
 
   @failingTest
@@ -2819,6 +2788,7 @@ class ExpressionParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_parseConditionalExpression() {
     super.test_parseConditionalExpression();
+    dart2Failure();
   }
 
   @failingTest
@@ -3058,11 +3028,6 @@ class ExpressionParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_parseListOrMapLiteral_map_noType() {
-    super.test_parseListOrMapLiteral_map_noType();
-  }
-
-  @failingTest
   void test_parseListOrMapLiteral_map_type() {
     super.test_parseListOrMapLiteral_map_type();
   }
@@ -3070,11 +3035,13 @@ class ExpressionParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_parseLogicalAndExpression() {
     super.test_parseLogicalAndExpression();
+    dart2Failure();
   }
 
   @failingTest
   void test_parseLogicalOrExpression() {
     super.test_parseLogicalOrExpression();
+    dart2Failure();
   }
 
   @failingTest
@@ -3083,28 +3050,8 @@ class ExpressionParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_parseMapLiteral_multiple() {
-    super.test_parseMapLiteral_multiple();
-  }
-
-  @failingTest
-  void test_parseMapLiteral_single() {
-    super.test_parseMapLiteral_single();
-  }
-
-  @failingTest
   void test_parseMapLiteralEntry_complex() {
     super.test_parseMapLiteralEntry_complex();
-  }
-
-  @failingTest
-  void test_parseMapLiteralEntry_int() {
-    super.test_parseMapLiteralEntry_int();
-  }
-
-  @failingTest
-  void test_parseMapLiteralEntry_string() {
-    super.test_parseMapLiteralEntry_string();
   }
 
   @failingTest
@@ -3130,11 +3077,6 @@ class ExpressionParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_parsePostfixExpression_increment() {
     super.test_parsePostfixExpression_increment();
-  }
-
-  @failingTest
-  void test_parsePostfixExpression_none_indexExpression() {
-    super.test_parsePostfixExpression_none_indexExpression();
   }
 
   @failingTest
@@ -3179,11 +3121,6 @@ class ExpressionParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_parsePrefixedIdentifier_noPrefix() {
-    super.test_parsePrefixedIdentifier_noPrefix();
-  }
-
-  @failingTest
   void test_parsePrefixedIdentifier_prefix() {
     super.test_parsePrefixedIdentifier_prefix();
   }
@@ -3191,8 +3128,7 @@ class ExpressionParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_parsePrimaryExpression_const() {
     super.test_parsePrimaryExpression_const();
-    fail(
-        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
+    dart2Failure();
   }
 
   @failingTest
@@ -3208,11 +3144,6 @@ class ExpressionParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_parsePrimaryExpression_genericFunctionExpression() {
     super.test_parsePrimaryExpression_genericFunctionExpression();
-  }
-
-  @failingTest
-  void test_parsePrimaryExpression_identifier() {
-    super.test_parsePrimaryExpression_identifier();
   }
 
   @failingTest
@@ -3321,16 +3252,6 @@ class ExpressionParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_parseSimpleIdentifier_builtInIdentifier() {
-    super.test_parseSimpleIdentifier_builtInIdentifier();
-  }
-
-  @failingTest
-  void test_parseSimpleIdentifier_normalIdentifier() {
-    super.test_parseSimpleIdentifier_normalIdentifier();
-  }
-
-  @failingTest
   void test_parseStringLiteral_endsWithInterpolation() {
     super.test_parseStringLiteral_endsWithInterpolation();
   }
@@ -3376,16 +3297,6 @@ class ExpressionParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_parseThrowExpression() {
-    super.test_parseThrowExpression();
-  }
-
-  @failingTest
-  void test_parseThrowExpressionWithoutCascade() {
-    super.test_parseThrowExpressionWithoutCascade();
-  }
-
-  @failingTest
   void test_parseUnaryExpression_decrement_normal() {
     super.test_parseUnaryExpression_decrement_normal();
   }
@@ -3428,11 +3339,6 @@ class ExpressionParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_parseUnaryExpression_minus_super() {
     super.test_parseUnaryExpression_minus_super();
-  }
-
-  @failingTest
-  void test_parseUnaryExpression_not_normal() {
-    super.test_parseUnaryExpression_not_normal();
   }
 
   @failingTest
@@ -3896,26 +3802,31 @@ class RecoveryParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_assignmentExpression_missing_compound1() {
     super.test_assignmentExpression_missing_compound1();
+    dart2Failure();
   }
 
   @failingTest
   void test_assignmentExpression_missing_compound2() {
     super.test_assignmentExpression_missing_compound2();
+    dart2Failure();
   }
 
   @failingTest
   void test_assignmentExpression_missing_compound3() {
     super.test_assignmentExpression_missing_compound3();
+    dart2Failure();
   }
 
   @failingTest
   void test_assignmentExpression_missing_LHS() {
     super.test_assignmentExpression_missing_LHS();
+    dart2Failure();
   }
 
   @failingTest
   void test_assignmentExpression_missing_RHS() {
     super.test_assignmentExpression_missing_RHS();
+    dart2Failure();
   }
 
   @failingTest
@@ -4041,11 +3952,13 @@ class RecoveryParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_conditionalExpression_missingElse() {
     super.test_conditionalExpression_missingElse();
+    dart2Failure();
   }
 
   @failingTest
   void test_conditionalExpression_missingThen() {
     super.test_conditionalExpression_missingThen();
+    dart2Failure();
   }
 
   @failingTest
@@ -4136,6 +4049,7 @@ class RecoveryParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_incomplete_conditionalExpression() {
     super.test_incomplete_conditionalExpression();
+    dart2Failure();
   }
 
   @failingTest
@@ -4316,16 +4230,19 @@ class RecoveryParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_logicalAndExpression_missing_LHS() {
     super.test_logicalAndExpression_missing_LHS();
+    dart2Failure();
   }
 
   @failingTest
   void test_logicalAndExpression_missing_LHS_RHS() {
     super.test_logicalAndExpression_missing_LHS_RHS();
+    dart2Failure();
   }
 
   @failingTest
   void test_logicalAndExpression_missing_RHS() {
     super.test_logicalAndExpression_missing_RHS();
+    dart2Failure();
   }
 
   @failingTest
@@ -4341,26 +4258,31 @@ class RecoveryParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_logicalOrExpression_missing_LHS() {
     super.test_logicalOrExpression_missing_LHS();
+    dart2Failure();
   }
 
   @failingTest
   void test_logicalOrExpression_missing_LHS_RHS() {
     super.test_logicalOrExpression_missing_LHS_RHS();
+    dart2Failure();
   }
 
   @failingTest
   void test_logicalOrExpression_missing_RHS() {
     super.test_logicalOrExpression_missing_RHS();
+    dart2Failure();
   }
 
   @failingTest
   void test_logicalOrExpression_precedence_logicalAnd_left() {
     super.test_logicalOrExpression_precedence_logicalAnd_left();
+    dart2Failure();
   }
 
   @failingTest
   void test_logicalOrExpression_precedence_logicalAnd_right() {
     super.test_logicalOrExpression_precedence_logicalAnd_right();
+    dart2Failure();
   }
 
   @failingTest
@@ -4825,11 +4747,6 @@ class SimpleParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_parseReturnStatement_value() {
-    super.test_parseReturnStatement_value();
-  }
-
-  @failingTest
   void test_parseStatement_function_noReturnType() {
     super.test_parseStatement_function_noReturnType();
   }
@@ -5035,46 +4952,6 @@ class StatementParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_parseAssertStatement() {
-    super.test_parseAssertStatement();
-  }
-
-  @failingTest
-  void test_parseAssertStatement_messageLowPrecedence() {
-    super.test_parseAssertStatement_messageLowPrecedence();
-  }
-
-  @failingTest
-  void test_parseAssertStatement_messageString() {
-    super.test_parseAssertStatement_messageString();
-  }
-
-  @failingTest
-  void test_parseAssertStatement_trailingComma_message() {
-    super.test_parseAssertStatement_trailingComma_message();
-  }
-
-  @failingTest
-  void test_parseAssertStatement_trailingComma_noMessage() {
-    super.test_parseAssertStatement_trailingComma_noMessage();
-  }
-
-  @failingTest
-  void test_parseBreakStatement_noLabel() {
-    super.test_parseBreakStatement_noLabel();
-  }
-
-  @failingTest
-  void test_parseContinueStatement_noLabel() {
-    super.test_parseContinueStatement_noLabel();
-  }
-
-  @failingTest
-  void test_parseDoStatement() {
-    super.test_parseDoStatement();
-  }
-
-  @failingTest
   void test_parseForStatement_each_await() {
     super.test_parseForStatement_each_await();
   }
@@ -5175,35 +5052,13 @@ class StatementParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_parseIfStatement_else_block() {
-    super.test_parseIfStatement_else_block();
-  }
-
-  @failingTest
-  void test_parseIfStatement_else_emptyStatements() {
-    super.test_parseIfStatement_else_emptyStatements();
-    fail(
-        'This passes under Dart 1, but fails under Dart 2 because of a cast exception');
-  }
-
-  @failingTest
   void test_parseIfStatement_else_statement() {
     super.test_parseIfStatement_else_statement();
   }
 
   @failingTest
-  void test_parseIfStatement_noElse_block() {
-    super.test_parseIfStatement_noElse_block();
-  }
-
-  @failingTest
   void test_parseIfStatement_noElse_statement() {
     super.test_parseIfStatement_noElse_statement();
-  }
-
-  @failingTest
-  void test_parseNonLabeledStatement_const_map_nonEmpty() {
-    super.test_parseNonLabeledStatement_const_map_nonEmpty();
   }
 
   @failingTest
@@ -5361,16 +5216,6 @@ class StatementParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_parseStatement_multipleLabels() {
-    super.test_parseStatement_multipleLabels();
-  }
-
-  @failingTest
-  void test_parseStatement_noLabels() {
-    super.test_parseStatement_noLabels();
-  }
-
-  @failingTest
   void test_parseStatement_singleLabel() {
     super.test_parseStatement_singleLabel();
   }
@@ -5523,11 +5368,6 @@ class StatementParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_parseVariableDeclarationStatementAfterMetadata_single() {
     super.test_parseVariableDeclarationStatementAfterMetadata_single();
-  }
-
-  @failingTest
-  void test_parseWhileStatement() {
-    super.test_parseWhileStatement();
   }
 
   @failingTest

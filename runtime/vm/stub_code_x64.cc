@@ -2121,12 +2121,56 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
       kFunctionTypeArgumentsReg, kOwnTypeArgumentValue, check_failed);
 }
 
+static void InvokeTypeCheckFromTypeTestStub(Assembler* assembler,
+                                            TypeCheckMode mode) {
+  const Register kInstanceReg = RAX;
+  const Register kInstantiatorTypeArgumentsReg = RDX;
+  const Register kFunctionTypeArgumentsReg = RCX;
+  const Register kDstTypeReg = RBX;
+  const Register kSubtypeTestCacheReg = R9;
+
+  __ PushObject(Object::null_object());  // Make room for result.
+  __ pushq(kInstanceReg);
+  __ pushq(kDstTypeReg);
+  __ pushq(kInstantiatorTypeArgumentsReg);
+  __ pushq(kFunctionTypeArgumentsReg);
+  __ PushObject(Object::null_object());
+  __ pushq(kSubtypeTestCacheReg);
+  __ PushObject(Smi::ZoneHandle(Smi::New(mode)));
+  __ CallRuntime(kTypeCheckRuntimeEntry, 7);
+  __ Drop(1);
+  __ popq(kSubtypeTestCacheReg);
+  __ Drop(1);
+  __ popq(kFunctionTypeArgumentsReg);
+  __ popq(kInstantiatorTypeArgumentsReg);
+  __ popq(kDstTypeReg);
+  __ popq(kInstanceReg);
+  __ Drop(1);  // Discard return value.
+}
+
+void StubCode::GenerateLazySpecializeTypeTestStub(Assembler* assembler) {
+  const Register kInstanceReg = RAX;
+
+  Label done;
+
+  // Fast case for 'null'.
+  __ CompareObject(kInstanceReg, Object::null_object());
+  __ BranchIf(EQUAL, &done);
+
+  __ movq(CODE_REG,
+          Address(THR, Thread::lazy_specialize_type_test_stub_offset()));
+  __ EnterStubFrame();
+  InvokeTypeCheckFromTypeTestStub(assembler, kTypeCheckFromLazySpecializeStub);
+  __ LeaveStubFrame();
+
+  __ Bind(&done);
+  __ Ret();
+}
+
 void StubCode::GenerateSlowTypeTestStub(Assembler* assembler) {
   Label done, call_runtime;
 
   const Register kInstanceReg = RAX;
-  const Register kInstantiatorTypeArgumentsReg = RDX;
-  const Register kFunctionTypeArgumentsReg = RCX;
   const Register kDstTypeReg = RBX;
   const Register kSubtypeTestCacheReg = R9;
 
@@ -2191,21 +2235,8 @@ void StubCode::GenerateSlowTypeTestStub(Assembler* assembler) {
   __ CompareObject(kDstTypeReg, Type::Handle(Type::ObjectType()));
   __ BranchIf(EQUAL, &done);
 
-  __ PushObject(Object::null_object());  // Make room for result.
-  __ pushq(kInstanceReg);
-  __ pushq(kDstTypeReg);
-  __ pushq(kInstantiatorTypeArgumentsReg);
-  __ pushq(kFunctionTypeArgumentsReg);
-  __ PushObject(Object::null_object());
-  __ pushq(kSubtypeTestCacheReg);
-  __ CallRuntime(kTypeCheckRuntimeEntry, 6);
-  __ popq(kSubtypeTestCacheReg);
-  __ Drop(1);
-  __ popq(kFunctionTypeArgumentsReg);
-  __ popq(kInstantiatorTypeArgumentsReg);
-  __ popq(kDstTypeReg);
-  __ popq(kInstanceReg);
-  __ Drop(1);  // Discard return value.
+  InvokeTypeCheckFromTypeTestStub(assembler, kTypeCheckFromSlowStub);
+
   __ Bind(&done);
   __ LeaveStubFrame();
   __ Ret();

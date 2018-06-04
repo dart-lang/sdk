@@ -122,7 +122,7 @@ void PreallocatedStackTraceBuilder::AddFrame(const Code& code,
 }
 
 static void BuildStackTrace(StackTraceBuilder* builder) {
-  StackFrameIterator frames(StackFrameIterator::kDontValidateFrames,
+  StackFrameIterator frames(ValidationPolicy::kDontValidateFrames,
                             Thread::Current(),
                             StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = frames.NextFrame();
@@ -163,7 +163,7 @@ class ExceptionHandlerFinder : public StackResource {
   // can continue in that frame. Sets 'needs_stacktrace' if there is no
   // cath-all handler or if a stack-trace is specified in the catch.
   bool Find() {
-    StackFrameIterator frames(StackFrameIterator::kDontValidateFrames,
+    StackFrameIterator frames(ValidationPolicy::kDontValidateFrames,
                               Thread::Current(),
                               StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* frame = frames.NextFrame();
@@ -342,7 +342,7 @@ class ExceptionHandlerFinder : public StackResource {
 static void FindErrorHandler(uword* handler_pc,
                              uword* handler_sp,
                              uword* handler_fp) {
-  StackFrameIterator frames(StackFrameIterator::kDontValidateFrames,
+  StackFrameIterator frames(ValidationPolicy::kDontValidateFrames,
                             Thread::Current(),
                             StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = frames.NextFrame();

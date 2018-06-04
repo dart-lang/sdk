@@ -4,7 +4,7 @@
 
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:compiler/src/types/masks.dart';
+import 'package:compiler/src/inferrer/typemasks/masks.dart';
 
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
@@ -27,7 +27,7 @@ main() {
         await runCompiler(memorySourceFiles: {'main.dart': CODE});
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
-    ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
 
     dynamic classA =

@@ -94,7 +94,7 @@ $mainSource
       return cls;
     }
 
-    ClosedWorld world = compiler.backendClosedWorldForTesting;
+    JClosedWorld world = compiler.backendClosedWorldForTesting;
     ElementEnvironment elementEnvironment = world.elementEnvironment;
     ClassEntity Object_ = registerClass(world.commonElements.objectClass);
     ClassEntity Interceptor =

@@ -201,10 +201,6 @@ class EntryFrame : public StackFrame {
 // concurrently.
 class StackFrameIterator : public ValueObject {
  public:
-  enum ValidationPolicy {
-    kValidateFrames = 0,
-    kDontValidateFrames = 1,
-  };
   enum CrossThreadPolicy {
     kNoCrossThreadIteration = 0,
     kAllowCrossThreadIteration = 1,
@@ -308,7 +304,7 @@ class DartFrameIterator : public ValueObject {
   explicit DartFrameIterator(
       Thread* thread,
       StackFrameIterator::CrossThreadPolicy cross_thread_policy)
-      : frames_(StackFrameIterator::kDontValidateFrames,
+      : frames_(ValidationPolicy::kDontValidateFrames,
                 thread,
                 cross_thread_policy) {}
   explicit DartFrameIterator(
@@ -316,7 +312,7 @@ class DartFrameIterator : public ValueObject {
       Thread* thread,
       StackFrameIterator::CrossThreadPolicy cross_thread_policy)
       : frames_(last_fp,
-                StackFrameIterator::kDontValidateFrames,
+                ValidationPolicy::kDontValidateFrames,
                 thread,
                 cross_thread_policy) {}
 
@@ -329,7 +325,7 @@ class DartFrameIterator : public ValueObject {
       : frames_(fp,
                 sp,
                 pc,
-                StackFrameIterator::kDontValidateFrames,
+                ValidationPolicy::kDontValidateFrames,
                 thread,
                 cross_thread_policy) {}
 #endif

@@ -52,7 +52,7 @@ runTests({bool strongMode: false}) async {
         new G();
       }
       """, options: strongMode ? [Flags.strongMode] : []);
-  ClosedWorld world = env.closedWorld;
+  KClosedWorld world = env.kClosedWorld;
 
   ClassEntity A = env.getElement("A");
   ClassEntity B = env.getElement("B");

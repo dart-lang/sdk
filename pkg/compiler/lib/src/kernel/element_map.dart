@@ -20,7 +20,7 @@ import '../js_model/closure.dart' show JRecordField, KernelScopeInfo;
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../native/native.dart' as native;
 import '../ssa/type_builder.dart';
-import '../types/masks.dart';
+import '../types/abstract_value_domain.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import '../world.dart';
@@ -369,59 +369,56 @@ enum ForeignKind {
 /// Interface for type inference results for kernel IR nodes.
 abstract class KernelToTypeInferenceMap {
   /// Returns the inferred return type of [function].
-  TypeMask getReturnTypeOf(FunctionEntity function);
+  AbstractValue getReturnTypeOf(FunctionEntity function);
 
   /// Returns the inferred receiver type of the dynamic [invocation].
-  TypeMask receiverTypeOfInvocation(
-      ir.MethodInvocation invocation, ClosedWorld closedWorld);
+  AbstractValue receiverTypeOfInvocation(
+      ir.MethodInvocation invocation, AbstractValueDomain abstractValueDomain);
 
   /// Returns the inferred receiver type of the dynamic [read].
-  TypeMask receiverTypeOfGet(ir.PropertyGet read);
+  AbstractValue receiverTypeOfGet(ir.PropertyGet read);
 
   /// Returns the inferred receiver type of the direct [read].
-  TypeMask receiverTypeOfDirectGet(ir.DirectPropertyGet read);
+  AbstractValue receiverTypeOfDirectGet(ir.DirectPropertyGet read);
 
   /// Returns the inferred receiver type of the dynamic [write].
-  TypeMask receiverTypeOfSet(ir.PropertySet write, ClosedWorld closedWorld);
+  AbstractValue receiverTypeOfSet(
+      ir.PropertySet write, AbstractValueDomain abstractValueDomain);
 
   /// Returns the inferred type of [listLiteral].
-  TypeMask typeOfListLiteral(covariant MemberEntity owner,
-      ir.ListLiteral listLiteral, ClosedWorld closedWorld);
+  AbstractValue typeOfListLiteral(MemberEntity owner,
+      ir.ListLiteral listLiteral, AbstractValueDomain abstractValueDomain);
 
   /// Returns the inferred type of iterator in [forInStatement].
-  TypeMask typeOfIterator(ir.ForInStatement forInStatement);
+  AbstractValue typeOfIterator(ir.ForInStatement forInStatement);
 
   /// Returns the inferred type of `current` in [forInStatement].
-  TypeMask typeOfIteratorCurrent(ir.ForInStatement forInStatement);
+  AbstractValue typeOfIteratorCurrent(ir.ForInStatement forInStatement);
 
   /// Returns the inferred type of `moveNext` in [forInStatement].
-  TypeMask typeOfIteratorMoveNext(ir.ForInStatement forInStatement);
+  AbstractValue typeOfIteratorMoveNext(ir.ForInStatement forInStatement);
 
   /// Returns `true` if [forInStatement] is inferred to be a JavaScript
   /// indexable iterator.
-  bool isJsIndexableIterator(
-      ir.ForInStatement forInStatement, ClosedWorld closedWorld);
-
-  /// Returns `true` if [mask] is inferred to have a JavaScript `length`
-  /// property.
-  bool isFixedLength(TypeMask mask, ClosedWorld closedWorld);
+  bool isJsIndexableIterator(ir.ForInStatement forInStatement,
+      AbstractValueDomain abstractValueDomain);
 
   /// Returns the inferred index type of [forInStatement].
-  TypeMask inferredIndexType(ir.ForInStatement forInStatement);
+  AbstractValue inferredIndexType(ir.ForInStatement forInStatement);
 
   /// Returns the inferred type of [member].
-  TypeMask getInferredTypeOf(MemberEntity member);
+  AbstractValue getInferredTypeOf(MemberEntity member);
 
   /// Returns the inferred type of the [parameter].
-  TypeMask getInferredTypeOfParameter(Local parameter);
+  AbstractValue getInferredTypeOfParameter(Local parameter);
 
-  /// Returns the inferred type of a dynamic [selector] access on a receiver of
-  /// type [mask].
-  TypeMask selectorTypeOf(Selector selector, TypeMask mask);
+  /// Returns the inferred type of a dynamic [selector] access on the
+  /// [receiver].
+  AbstractValue selectorTypeOf(Selector selector, AbstractValue receiver);
 
   /// Returns the returned type annotation in the [nativeBehavior].
-  TypeMask typeFromNativeBehavior(
-      native.NativeBehavior nativeBehavior, ClosedWorld closedWorld);
+  AbstractValue typeFromNativeBehavior(
+      native.NativeBehavior nativeBehavior, JClosedWorld closedWorld);
 }
 
 /// Map from kernel IR nodes to local entities.
