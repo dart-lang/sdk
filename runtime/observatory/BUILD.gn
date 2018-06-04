@@ -118,8 +118,40 @@ observatory_archive("compressed_observatory_archive") {
   compress = true
 }
 
+copy("copy_compressed_observatory_archive") {
+  archive_target = ":compressed_observatory_archive"
+  deps = [
+    archive_target,
+  ]
+  archive_dir = get_label_info(archive_target, "target_gen_dir")
+  archive_name = get_label_info(archive_target, "name")
+  archive_file = "${archive_dir}/${archive_name}.tar"
+  sources = [
+    archive_file,
+  ]
+  outputs = [
+    "$root_out_dir/${archive_name}.tar",
+  ]
+}
+
 observatory_archive("observatory_archive") {
   compress = false
+}
+
+copy("copy_observatory_archive") {
+  archive_target = ":observatory_archive"
+  deps = [
+    archive_target,
+  ]
+  archive_dir = get_label_info(archive_target, "target_gen_dir")
+  archive_name = get_label_info(archive_target, "name")
+  archive_file = "${archive_dir}/${archive_name}.tar"
+  sources = [
+    archive_file,
+  ]
+  outputs = [
+    "$root_out_dir/${archive_name}.tar",
+  ]
 }
 
 # Generates a .cc file containing the bytes of the observatory archive in a C

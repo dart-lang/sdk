@@ -51,7 +51,8 @@ group("runtime") {
 group("runtime_kernel") {
   import("runtime/runtime_args.gni")
 
-  target_supports_aot = dart_target_arch == "arm" || dart_target_arch == "arm64" || dart_target_arch == "x64"
+  target_supports_aot = dart_target_arch == "arm" ||
+                        dart_target_arch == "arm64" || dart_target_arch == "x64"
 
   if (targetting_fuchsia) {
     # Fuchsia has run_vm_tests marked testonly.
@@ -67,7 +68,7 @@ group("runtime_kernel") {
   ]
 
   if (target_supports_aot) {
-    deps += ["runtime/bin:precompiler_entry_points_json"]
+    deps += [ "runtime/bin:precompiler_entry_points_json" ]
   }
 }
 
@@ -139,9 +140,19 @@ group("samples") {
   ]
 }
 
+# This rule and the compressed_observatory_archive rule are for the Fuchsia
+# bots that pre-build the Observatory. They copy the observatory tar files to
+# the root build output directory for convenient access by the Fuchsia buildbot
+# scripts.
 group("observatory_archive") {
   deps = [
-    "runtime/observatory:observatory_archive"
+    "runtime/observatory:copy_observatory_archive",
+  ]
+}
+
+group("compressed_observatory_archive") {
+  deps = [
+    "runtime/observatory:copy_compressed_observatory_archive",
   ]
 }
 
