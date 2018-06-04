@@ -602,6 +602,11 @@ void_type_usage_test/paren_toString: MissingCompileTimeError # Issue 32804
 void_type_usage_test/paren_void_init: MissingCompileTimeError # Issue 32804
 void_type_usage_test/paren_while: MissingCompileTimeError # Issue 32804
 
+[ $arch == simarm && $compiler == dartkp && $strong ]
+cast_test/12: Crash # Issue 33329
+cast_test/15: Crash # Issue 33329
+cast_test/none: Crash # Issue 33329
+
 [ $arch != simarm && $arch != simarm64 && $arch != simdbc64 && $compiler == dartk && $runtime == vm && $strong ]
 export_ambiguous_main_test: Crash # Issue 32618
 
