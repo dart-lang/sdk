@@ -21,7 +21,7 @@ class FunctionRefMock implements M.FunctionRef {
       this.kind});
 }
 
-class FunctionMock implements M.Function {
+class FunctionMock implements M.ServiceFunction {
   final String id;
   final String name;
   final M.ClassRef clazz;

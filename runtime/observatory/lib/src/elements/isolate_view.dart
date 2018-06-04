@@ -65,7 +65,7 @@ class IsolateViewElement extends HtmlElement implements Renderable {
   M.LibraryRepository _libraries;
   M.ObjectRepository _objects;
   M.EvalRepository _eval;
-  M.Function _function;
+  M.ServiceFunction _function;
   M.ScriptRef _rootScript;
   StreamSubscription _subscription;
 

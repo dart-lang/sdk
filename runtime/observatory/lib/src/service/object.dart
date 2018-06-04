@@ -3098,7 +3098,7 @@ M.FunctionKind stringToFunctionKind(String value) {
   throw new FallThroughError();
 }
 
-class ServiceFunction extends HeapObject implements M.Function {
+class ServiceFunction extends HeapObject implements M.ServiceFunction {
   // owner is a Library, Class, or ServiceFunction.
   M.ObjectRef dartOwner;
   Library library;
