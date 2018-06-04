@@ -47,6 +47,7 @@ import '../universe/world_impact.dart'
     show ImpactStrategy, ImpactUseCase, WorldImpact, WorldImpactVisitor;
 import '../util/util.dart';
 import '../world.dart' show JClosedWorld;
+import 'allocator_analysis.dart';
 import 'annotations.dart' as optimizerHints;
 import 'backend_impact.dart';
 import 'backend_usage.dart';
@@ -363,6 +364,8 @@ class JavaScriptBackend {
   /// constructors for custom elements.
   CustomElementsCodegenAnalysis _customElementsCodegenAnalysis;
 
+  KAllocatorAnalysis _allocatorResolutionAnalysis;
+
   /// Codegen support for typed JavaScript interop.
   JsInteropAnalysis jsInteropAnalysis;
 
@@ -577,6 +580,7 @@ class JavaScriptBackend {
         commonElements,
         nativeBasicData,
         _backendUsageBuilder);
+    _allocatorResolutionAnalysis = new KAllocatorAnalysis(elementEnvironment);
     ClassQueries classQueries = compiler.frontendStrategy.createClassQueries();
     ClassHierarchyBuilder classHierarchyBuilder =
         new ClassHierarchyBuilder(commonElements, classQueries);
@@ -612,6 +616,7 @@ class JavaScriptBackend {
             noSuchMethodRegistry,
             customElementsResolutionAnalysis,
             _nativeResolutionEnqueuer,
+            _allocatorResolutionAnalysis,
             compiler.deferredLoadTask),
         compiler.frontendStrategy.createResolutionWorldBuilder(
             nativeBasicData,
@@ -619,6 +624,7 @@ class JavaScriptBackend {
             interceptorDataBuilder,
             _backendUsageBuilder,
             rtiNeedBuilder,
+            _allocatorResolutionAnalysis,
             _nativeResolutionEnqueuer,
             noSuchMethodRegistry,
             compiler.options.strongMode && useStrongModeWorldStrategy

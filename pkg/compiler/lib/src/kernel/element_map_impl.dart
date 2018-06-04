@@ -27,6 +27,7 @@ import '../elements/names.dart';
 import '../elements/types.dart';
 import '../environment.dart';
 import '../frontend_strategy.dart';
+import '../js_backend/allocator_analysis.dart' show KAllocatorAnalysis;
 import '../js_backend/backend_usage.dart';
 import '../js_backend/constant_system_javascript.dart';
 import '../js_backend/interceptor_data.dart';
@@ -1961,6 +1962,7 @@ class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
       InterceptorDataBuilder interceptorDataBuilder,
       BackendUsageBuilder backendUsageBuilder,
       RuntimeTypesNeedBuilder rtiNeedBuilder,
+      KAllocatorAnalysis allocatorAnalysis,
       NativeResolutionEnqueuer nativeResolutionEnqueuer,
       NoSuchMethodRegistry noSuchMethodRegistry,
       SelectorConstraintsStrategy selectorConstraintsStrategy,
@@ -1976,6 +1978,7 @@ class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
             interceptorDataBuilder,
             backendUsageBuilder,
             rtiNeedBuilder,
+            allocatorAnalysis,
             nativeResolutionEnqueuer,
             noSuchMethodRegistry,
             selectorConstraintsStrategy,
@@ -2090,6 +2093,7 @@ class KClosedWorldImpl extends ClosedWorldRtiNeedMixin implements KClosedWorld {
 
   /// Members that are written either directly or through a setter selector.
   final Iterable<MemberEntity> assignedInstanceMembers;
+  final KAllocatorAnalysis allocatorAnalysis;
 
   final Iterable<ClassEntity> liveNativeClasses;
 
@@ -2106,6 +2110,7 @@ class KClosedWorldImpl extends ClosedWorldRtiNeedMixin implements KClosedWorld {
       this.noSuchMethodData,
       ResolutionWorldBuilder resolutionWorldBuilder,
       RuntimeTypesNeedBuilder rtiNeedBuilder,
+      this.allocatorAnalysis,
       Set<ClassEntity> implementedClasses,
       this.liveNativeClasses,
       this.liveInstanceMembers,

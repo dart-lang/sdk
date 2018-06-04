@@ -826,10 +826,15 @@ class FragmentEmitter {
     }
 
     for (Field field in cls.fields) {
-      js.Parameter parameter = new js.Parameter('t${parameters.length}');
-      parameters.add(parameter);
-      statements.add(
-          js.js.statement('#.# = #', [thisRef, field.name, parameter.name]));
+      if (field.nullInitializerInAllocator) {
+        // TODO(sra): Chain initializations, e.g. `this.b = this.a = null;`.
+        statements.add(js.js.statement('#.# = null', [thisRef, field.name]));
+      } else {
+        js.Parameter parameter = new js.Parameter('t${parameters.length}');
+        parameters.add(parameter);
+        statements.add(
+            js.js.statement('#.# = #', [thisRef, field.name, parameter.name]));
+      }
     }
 
     if (cls.hasRtiField) {

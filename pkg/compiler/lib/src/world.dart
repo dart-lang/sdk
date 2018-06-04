@@ -14,6 +14,8 @@ import 'common_elements.dart' show CommonElements, ElementEnvironment;
 import 'constants/constant_system.dart';
 import 'elements/entities.dart';
 import 'elements/types.dart';
+import 'js_backend/allocator_analysis.dart'
+    show JAllocatorAnalysis, KAllocatorAnalysis;
 import 'js_backend/backend_usage.dart' show BackendUsage;
 import 'js_backend/interceptor_data.dart' show InterceptorData;
 import 'js_backend/native_data.dart' show NativeData;
@@ -42,6 +44,8 @@ abstract class World {}
 /// optimizations and other compiler decisions during code generation.
 // TODO(johnniwinther): Maybe this should just be called the JWorld.
 abstract class JClosedWorld implements World {
+  JAllocatorAnalysis get allocatorAnalysis;
+
   BackendUsage get backendUsage;
 
   NativeData get nativeData;
@@ -1224,6 +1228,7 @@ abstract class ClosedWorldRtiNeedMixin implements KClosedWorld {
 
 abstract class KClosedWorld {
   DartTypes get dartTypes;
+  KAllocatorAnalysis get allocatorAnalysis;
   BackendUsage get backendUsage;
   NativeData get nativeData;
   InterceptorData get interceptorData;

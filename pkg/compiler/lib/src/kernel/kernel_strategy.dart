@@ -20,6 +20,7 @@ import '../elements/types.dart';
 import '../enqueue.dart';
 import '../environment.dart' as env;
 import '../frontend_strategy.dart';
+import '../js_backend/allocator_analysis.dart' show KAllocatorAnalysis;
 import '../js_backend/backend_usage.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
@@ -129,6 +130,7 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
       InterceptorDataBuilder interceptorDataBuilder,
       BackendUsageBuilder backendUsageBuilder,
       RuntimeTypesNeedBuilder rtiNeedBuilder,
+      KAllocatorAnalysis allocatorAnalysis,
       NativeResolutionEnqueuer nativeResolutionEnqueuer,
       NoSuchMethodRegistry noSuchMethodRegistry,
       SelectorConstraintsStrategy selectorConstraintsStrategy,
@@ -142,6 +144,7 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
         interceptorDataBuilder,
         backendUsageBuilder,
         rtiNeedBuilder,
+        allocatorAnalysis,
         nativeResolutionEnqueuer,
         noSuchMethodRegistry,
         selectorConstraintsStrategy,

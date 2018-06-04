@@ -206,15 +206,22 @@ function $setupProgramName(programData, metadataOffset, typesOffset) {
       var accessors = [];
 
       var str = "function " + name + "(";
-      var body = "";
+      var comma = "", body = "";
 
       for (var i = 0; i < fields.length; i++) {
-        if(i != 0) str += ", ";
-
-        var field = generateAccessor(fields[i], accessors, name);
-        var parameter = "p_" + field;
-        str += parameter;
-        body += ("this." + field + " = " + parameter + ";\\n");
+        var fieldDescriptor = fields[i];
+        if (fieldDescriptor.charCodeAt(0) == 48) {
+          fieldDescriptor = fieldDescriptor.substring(1);
+          var field = generateAccessor(fieldDescriptor, accessors, name);
+          body += ("this." + field + " = null;\\n");
+        } else {
+          var field = generateAccessor(fieldDescriptor, accessors, name);
+          var parameter = "p_" + field;
+          str += comma;
+          comma = ", ";
+          str += parameter;
+          body += ("this." + field + " = " + parameter + ";\\n");
+        }
       }
       if (supportsDirectProtoAccess) {
         body += "this." + #deferredActionString + "();";

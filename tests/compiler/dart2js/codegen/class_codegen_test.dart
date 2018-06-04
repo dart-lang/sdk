@@ -38,13 +38,14 @@ main() {
 """;
 
 const String TEST_FOUR = r"""
+var g = 0;
 class A {
-  var x;
+  var x = g++;
 }
 
 class B extends A {
-  var y;
-  var z;
+  var y = g++;
+  var z = g++;
 }
 
 main() {

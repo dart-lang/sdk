@@ -12,6 +12,7 @@ import '../common_elements.dart' show CommonElements;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as js;
+import '../js_backend/allocator_analysis.dart' show JAllocatorAnalysis;
 import '../js_backend/backend.dart';
 import '../js_backend/native_data.dart' show NativeData;
 import '../js_backend/runtime_types.dart';
@@ -2586,17 +2587,21 @@ class SsaTypeConversionInserter extends HBaseVisitor
 class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   final Compiler compiler;
   final JClosedWorld closedWorld;
+  final JAllocatorAnalysis _allocatorAnalysis;
   final String name = "SsaLoadElimination";
   MemorySet memorySet;
   List<MemorySet> memories;
   bool newGvnCandidates = false;
+  HGraph _graph;
 
-  SsaLoadElimination(this.compiler, this.closedWorld);
+  SsaLoadElimination(this.compiler, this.closedWorld)
+      : _allocatorAnalysis = closedWorld.allocatorAnalysis;
 
   AbstractValueDomain get _abstractValueDomain =>
       closedWorld.abstractValueDomain;
 
   void visitGraph(HGraph graph) {
+    _graph = graph;
     memories = new List<MemorySet>(graph.blocks.length);
     List<HBasicBlock> blocks = graph.blocks;
     for (int i = 0; i < blocks.length; i++) {
@@ -2705,8 +2710,15 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
         if (compiler.elementHasCompileTimeError(
             // ignore: UNNECESSARY_CAST
             member as Entity)) return;
-        memorySet.registerFieldValue(
-            member, instruction, instruction.inputs[argumentIndex++]);
+        if (_allocatorAnalysis.isInitializedInAllocator(member)) {
+          // TODO(sra): Can we avoid calling HGraph.addConstant?
+          ConstantValue value = _allocatorAnalysis.initializerValue(member);
+          HConstant constant = _graph.addConstant(value, closedWorld);
+          memorySet.registerFieldValue(member, instruction, constant);
+        } else {
+          memorySet.registerFieldValue(
+              member, instruction, instruction.inputs[argumentIndex++]);
+        }
       });
     }
     // In case this instruction has as input non-escaping objects, we

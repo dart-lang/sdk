@@ -22,6 +22,7 @@ import '../elements/jumps.dart';
 import '../elements/types.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
+import '../js_backend/allocator_analysis.dart' show JAllocatorAnalysis;
 import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../js_backend/runtime_types.dart' show RuntimeTypesSubstitutions;
 import '../js_emitter/js_emitter.dart' show NativeEmitter;
@@ -73,6 +74,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   final CodegenWorldBuilder _worldBuilder;
   final CodegenRegistry registry;
   final ClosureDataLookup closureDataLookup;
+  JAllocatorAnalysis _allocatorAnalysis;
 
   /// A stack of [InterfaceType]s that have been seen during inlining of
   /// factory constructors.  These types are preserved in [HInvokeStatic]s and
@@ -131,7 +133,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       this.nativeEmitter,
       this._sourceInformationStrategy)
       : this.targetElement = _effectiveTargetElementFor(initialTargetElement),
-        _infoReporter = compiler.dumpInfoTask {
+        _infoReporter = compiler.dumpInfoTask,
+        _allocatorAnalysis = closedWorld.allocatorAnalysis {
     _enterFrame(targetElement);
     this.loopHandler = new KernelLoopHandler(this);
     typeBuilder = new KernelTypeBuilder(this, _elementMap, _globalLocalsMap);
@@ -487,7 +490,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
         (ClassEntity enclosingClass, FieldEntity member) {
       HInstruction value = constructorData.fieldValues[member];
       if (value == null) {
-        assert(isCustomElement || reporter.hasReportedError,
+        assert(
+            _allocatorAnalysis.isInitializedInAllocator(member) ||
+                isCustomElement ||
+                reporter.hasReportedError,
             'No initializer value for field ${member}');
       } else {
         fields.add(member);
@@ -697,12 +703,15 @@ class KernelSsaGraphBuilder extends ir.Visitor
         default:
           failedAt(field, "Unexpected member definition $definition.");
       }
+
       if (node.initializer == null) {
         // Unassigned fields of native classes are not initialized to
         // prevent overwriting pre-initialized native properties.
         if (!nativeData.isNativeOrExtendsNative(cls)) {
-          constructorData.fieldValues[field] =
-              graph.addConstantNull(closedWorld);
+          if (!_allocatorAnalysis.isInitializedInAllocator(field)) {
+            constructorData.fieldValues[field] =
+                graph.addConstantNull(closedWorld);
+          }
         }
       } else if (node.initializer is! ir.NullLiteral ||
           !nativeData.isNativeClass(cls)) {
@@ -710,10 +719,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
         // class type parameters are accessed as values.
         // TODO(sra): It would be sufficient to know the context was a field
         // initializer.
-        inlinedFrom(field, () {
-          node.initializer.accept(this);
-          constructorData.fieldValues[field] = pop();
-        });
+        if (!_allocatorAnalysis.isInitializedInAllocator(field)) {
+          inlinedFrom(field, () {
+            node.initializer.accept(this);
+            constructorData.fieldValues[field] = pop();
+          });
+        }
       }
     });
   }
@@ -741,6 +752,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     var foundSuperOrRedirectCall = false;
     for (var initializer in constructor.initializers) {
       if (initializer is ir.FieldInitializer) {
+        // TODO(sra): Skip fields initialized in allocator.
         initializer.value.accept(this);
         constructorData.fieldValues[_elementMap.getField(initializer.field)] =
             pop();
