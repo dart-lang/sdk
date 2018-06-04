@@ -15,7 +15,7 @@ import '../js_emitter/js_emitter.dart' show Emitter;
 import '../options.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show ClosedWorld, KClosedWorld;
 import 'backend_usage.dart';
 import 'namer.dart';
 import 'native_data.dart';
@@ -134,7 +134,7 @@ abstract class RuntimeTypesNeedBuilder {
   /// Computes the [RuntimeTypesNeed] for the data registered with this builder.
   RuntimeTypesNeed computeRuntimeTypesNeed(
       ResolutionWorldBuilder resolutionWorldBuilder,
-      ClosedWorld closedWorld,
+      KClosedWorld closedWorld,
       CompilerOptions options);
 }
 
@@ -153,7 +153,7 @@ class TrivialRuntimeTypesNeedBuilder implements RuntimeTypesNeedBuilder {
   @override
   RuntimeTypesNeed computeRuntimeTypesNeed(
       ResolutionWorldBuilder resolutionWorldBuilder,
-      ClosedWorld closedWorld,
+      KClosedWorld closedWorld,
       CompilerOptions options) {
     return const TrivialRuntimeTypesNeed();
   }
@@ -1362,7 +1362,7 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
   @override
   RuntimeTypesNeed computeRuntimeTypesNeed(
       ResolutionWorldBuilder resolutionWorldBuilder,
-      ClosedWorld closedWorld,
+      KClosedWorld closedWorld,
       CompilerOptions options) {
     TypeVariableTests typeVariableTests = new TypeVariableTests(
         closedWorld.elementEnvironment,

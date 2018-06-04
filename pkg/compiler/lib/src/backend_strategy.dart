@@ -23,7 +23,7 @@ import 'world.dart';
 /// and code generation.
 abstract class BackendStrategy {
   /// Create the [ClosedWorldRefiner] for [closedWorld].
-  ClosedWorldRefiner createClosedWorldRefiner(ClosedWorld closedWorld);
+  ClosedWorldRefiner createClosedWorldRefiner(KClosedWorld closedWorld);
 
   /// Converts [data] to use backend entities instead of frontend entities.
   OutputUnitData convertOutputUnitData(OutputUnitData data);

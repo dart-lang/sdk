@@ -54,7 +54,7 @@ abstract class ResolutionWorldBuilder implements WorldBuilder, OpenWorld {
   /// The closed world computed by this world builder.
   ///
   /// This is only available after the world builder has been closed.
-  ClosedWorld get closedWorldForTesting;
+  KClosedWorld get closedWorldForTesting;
 
   void registerClass(ClassEntity cls);
 }
@@ -363,7 +363,6 @@ abstract class ResolutionWorldBuilderBase extends WorldBuilderBase
   final ElementEnvironment _elementEnvironment;
   final DartTypes _dartTypes;
   final CommonElements _commonElements;
-  final ConstantSystem _constantSystem;
 
   final NativeBasicData _nativeBasicData;
   final NativeDataBuilder _nativeDataBuilder;
@@ -381,7 +380,7 @@ abstract class ResolutionWorldBuilderBase extends WorldBuilderBase
   bool hasFunctionApplySupport = false;
 
   bool _closed = false;
-  ClosedWorld _closedWorldCache;
+  KClosedWorld _closedWorldCache;
   final Set<MemberEntity> _liveInstanceMembers = new Set<MemberEntity>();
 
   final Set<ConstantValue> _constantValues = new Set<ConstantValue>();
@@ -397,7 +396,6 @@ abstract class ResolutionWorldBuilderBase extends WorldBuilderBase
       this._elementEnvironment,
       this._dartTypes,
       this._commonElements,
-      this._constantSystem,
       this._nativeBasicData,
       this._nativeDataBuilder,
       this._interceptorDataBuilder,
@@ -446,7 +444,7 @@ abstract class ResolutionWorldBuilderBase extends WorldBuilderBase
 
   Iterable<MemberEntity> get processedMembers => _processedMembers;
 
-  ClosedWorld get closedWorldForTesting {
+  KClosedWorld get closedWorldForTesting {
     if (!_closed) {
       failedAt(
           NO_LOCATION_SPANNABLE, "The world builder has not yet been closed.");
@@ -893,11 +891,6 @@ abstract class ResolutionWorldBuilderBase extends WorldBuilderBase
     }
   }
 
-  ClosedWorld get closedWorldCache {
-    assert(isClosed);
-    return _closedWorldCache;
-  }
-
   @override
   bool isMemberUsed(MemberEntity member) {
     return _memberUsage[member]?.hasUse ?? false;
@@ -996,7 +989,6 @@ abstract class KernelResolutionWorldBuilderBase
       ElementEnvironment elementEnvironment,
       DartTypes dartTypes,
       CommonElements commonElements,
-      ConstantSystem constantSystem,
       NativeBasicData nativeBasicData,
       NativeDataBuilder nativeDataBuilder,
       InterceptorDataBuilder interceptorDataBuilder,
@@ -1012,7 +1004,6 @@ abstract class KernelResolutionWorldBuilderBase
             elementEnvironment,
             dartTypes,
             commonElements,
-            constantSystem,
             nativeBasicData,
             nativeDataBuilder,
             interceptorDataBuilder,
@@ -1025,7 +1016,7 @@ abstract class KernelResolutionWorldBuilderBase
             classQueries);
 
   @override
-  ClosedWorld closeWorld(AbstractValueStrategy abstractValueStrategy) {
+  KClosedWorld closeWorld() {
     Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses =
         populateHierarchyNodes();
 
@@ -1041,7 +1032,7 @@ abstract class KernelResolutionWorldBuilderBase
         "ClassHierarchyNode/ClassSet mismatch: "
         "${classHierarchyBuilder.classHierarchyNodes} vs "
         "${classHierarchyBuilder.classSets}");
-    return _closedWorldCache = new KernelClosedWorld(elementMap,
+    return _closedWorldCache = new KClosedWorldImpl(elementMap,
         options: _options,
         elementEnvironment: _elementEnvironment,
         dartTypes: _dartTypes,
@@ -1052,7 +1043,6 @@ abstract class KernelResolutionWorldBuilderBase
         noSuchMethodData: _noSuchMethodRegistry.close(),
         resolutionWorldBuilder: this,
         rtiNeedBuilder: _rtiNeedBuilder,
-        constantSystem: _constantSystem,
         implementedClasses: _implementedClasses,
         liveNativeClasses: _nativeResolutionEnqueuer.liveNativeClasses,
         liveInstanceMembers: _liveInstanceMembers,
@@ -1061,7 +1051,6 @@ abstract class KernelResolutionWorldBuilderBase
         mixinUses: classHierarchyBuilder.mixinUses,
         typesImplementedBySubclasses: typesImplementedBySubclasses,
         classHierarchyNodes: classHierarchyBuilder.classHierarchyNodes,
-        classSets: classHierarchyBuilder.classSets,
-        abstractValueStrategy: abstractValueStrategy);
+        classSets: classHierarchyBuilder.classSets);
   }
 }

@@ -24,7 +24,7 @@ import 'universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitorImpl;
 import 'util/uri_extras.dart' as uri_extras;
 import 'util/util.dart' show makeUnique;
-import 'world.dart' show ClosedWorld;
+import 'world.dart' show KClosedWorld;
 
 /// A "hunk" of the program that will be loaded whenever one of its [imports]
 /// are loaded.
@@ -713,7 +713,7 @@ abstract class DeferredLoadTask extends CompilerTask {
   /// TODO(sigmund): investigate different heuristics for how to select the next
   /// work item (e.g. we might converge faster if we pick first the update that
   /// contains a bigger delta.)
-  OutputUnitData run(FunctionEntity main, ClosedWorld closedWorld) {
+  OutputUnitData run(FunctionEntity main, KClosedWorld closedWorld) {
     if (!isProgramSplit || main == null || disableProgramSplit) {
       return _buildResult();
     }

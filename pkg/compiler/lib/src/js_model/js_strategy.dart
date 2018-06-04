@@ -69,7 +69,7 @@ class JsBackendStrategy implements KernelBackendStrategy {
   GlobalLocalsMap get globalLocalsMapForTesting => _globalLocalsMap;
 
   @override
-  ClosedWorldRefiner createClosedWorldRefiner(ClosedWorld closedWorld) {
+  ClosedWorldRefiner createClosedWorldRefiner(KClosedWorld closedWorld) {
     KernelFrontEndStrategy strategy = _compiler.frontendStrategy;
     _elementMap = new JsKernelToElementMap(
         _compiler.reporter,
@@ -238,8 +238,8 @@ class JsClosedWorldBuilder {
   ElementEnvironment get _elementEnvironment => _elementMap.elementEnvironment;
   CommonElements get _commonElements => _elementMap.commonElements;
 
-  JsClosedWorld _convertClosedWorld(ClosedWorldBase closedWorld,
-      Map<MemberEntity, ScopeModel> closureModels) {
+  JsClosedWorld _convertClosedWorld(
+      KClosedWorld closedWorld, Map<MemberEntity, ScopeModel> closureModels) {
     JsToFrontendMap map = new JsToFrontendMapImpl(_elementMap);
 
     BackendUsage backendUsage =
@@ -606,6 +606,7 @@ class JsClosedWorldBuilder {
 class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
   final JsKernelToElementMap elementMap;
   final RuntimeTypesNeed rtiNeed;
+  AbstractValueDomain _abstractValueDomain;
 
   JsClosedWorld(this.elementMap,
       {ElementEnvironment elementEnvironment,
@@ -645,7 +646,17 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
             typesImplementedBySubclasses,
             classHierarchyNodes,
             classSets,
-            abstractValueStrategy);
+            abstractValueStrategy) {
+    _abstractValueDomain = abstractValueStrategy.createDomain(this);
+  }
+
+  @override
+  ClosedWorld get closedWorld => this;
+
+  @override
+  AbstractValueDomain get abstractValueDomain {
+    return _abstractValueDomain;
+  }
 
   @override
   void registerClosureClass(ClassEntity cls) {

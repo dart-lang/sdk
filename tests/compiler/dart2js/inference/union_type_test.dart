@@ -18,8 +18,8 @@ main() {
         new A();
         new B();
       }
-      """);
-    ClosedWorld world = env.closedWorld;
+      """, testBackendWorld: true);
+    ClosedWorld world = env.jClosedWorld;
     FlatTypeMask mask1 = new FlatTypeMask.exact(env.getClass('A'));
     FlatTypeMask mask2 = new FlatTypeMask.exact(env.getClass('B'));
     UnionTypeMask union1 = mask1.nonNullable().union(mask2, world);

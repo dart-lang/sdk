@@ -43,7 +43,7 @@ import 'universe/world_builder.dart'
 import 'universe/use.dart' show StaticUse, TypeUse;
 import 'universe/world_impact.dart'
     show ImpactStrategy, WorldImpact, WorldImpactBuilderImpl;
-import 'world.dart' show ClosedWorld, ClosedWorldRefiner;
+import 'world.dart' show ClosedWorld, ClosedWorldRefiner, KClosedWorld;
 
 typedef CompilerDiagnosticReporter MakeReporterFunction(
     Compiler compiler, CompilerOptions options);
@@ -421,14 +421,13 @@ abstract class Compiler {
   ClosedWorldRefiner closeResolution(FunctionEntity mainFunction) {
     phase = PHASE_DONE_RESOLVING;
 
-    ClosedWorld closedWorld =
-        resolutionWorldBuilder.closeWorld(abstractValueStrategy);
+    KClosedWorld closedWorld = resolutionWorldBuilder.closeWorld();
     OutputUnitData result = deferredLoadTask.run(mainFunction, closedWorld);
     ClosedWorldRefiner closedWorldRefiner =
         backendStrategy.createClosedWorldRefiner(closedWorld);
     // Compute whole-program-knowledge that the backend needs. (This might
     // require the information computed in [world.closeWorld].)
-    backend.onResolutionClosedWorld(closedWorld, closedWorldRefiner);
+    backend.onResolutionClosedWorld(closedWorldRefiner);
 
     backend.onDeferredLoadComplete(result);
 

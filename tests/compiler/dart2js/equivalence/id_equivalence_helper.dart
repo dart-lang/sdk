@@ -11,7 +11,6 @@ import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
 import 'package:sourcemap_testing/src/annotated_code_helper.dart';
 
@@ -163,7 +162,7 @@ Future<CompiledData> computeData(
     Expect.isTrue(result.isSuccess, "Unexpected compilation error.");
   }
   Compiler compiler = result.compiler;
-  ClosedWorld closedWorld = testFrontend
+  dynamic closedWorld = testFrontend
       ? compiler.resolutionWorldBuilder.closedWorldForTesting
       : compiler.backendClosedWorldForTesting;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;

@@ -105,9 +105,9 @@ Future testUnionTypeMaskFlatten() async {
         new D();
         new E();
       }
-      """);
+      """, testBackendWorld: true);
 
-  ClosedWorld closedWorld = env.closedWorld;
+  ClosedWorld closedWorld = env.jClosedWorld;
 
   ClassEntity Object_ = env.getElement("Object");
   ClassEntity A = env.getElement("A");
@@ -209,12 +209,14 @@ Future testUnionTypeMaskFlatten() async {
 }
 
 Future testStringSubtypes() async {
-  TypeEnvironment env = await TypeEnvironment.create('', mainSource: r"""
+  TypeEnvironment env = await TypeEnvironment.create('',
+      mainSource: r"""
       main() {
         '' is String;
       }
-      """);
-  ClosedWorld closedWorld = env.closedWorld;
+      """,
+      testBackendWorld: true);
+  ClosedWorld closedWorld = env.jClosedWorld;
 
   ClassEntity Object_ = env.getElement("Object");
   ClassEntity String_ = env.getElement("String");

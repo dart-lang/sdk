@@ -34,8 +34,7 @@ main() {
         memorySourceFiles: {'main.dart': TEST},
         outputProvider: outputCollector);
     Compiler compiler = result.compiler;
-    ClosedWorldBase closedWorld =
-        compiler.resolutionWorldBuilder.closedWorldForTesting;
+    ClosedWorldBase closedWorld = compiler.backendClosedWorldForTesting;
     var elementEnvironment = closedWorld.elementEnvironment;
 
     String generated = outputCollector.getOutput('', OutputType.js);

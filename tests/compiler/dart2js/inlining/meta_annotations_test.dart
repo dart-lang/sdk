@@ -8,7 +8,7 @@ import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_backend/annotations.dart' as optimizerHints;
-import 'package:compiler/src/world.dart' show ClosedWorld;
+import 'package:compiler/src/world.dart' show KClosedWorld;
 import '../memory_compiler.dart';
 
 const Map MEMORY_SOURCE_FILES = const {
@@ -37,7 +37,7 @@ main() {
     CompilationResult result =
         await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
     Compiler compiler = result.compiler;
-    ClosedWorld closedWorld =
+    KClosedWorld closedWorld =
         compiler.resolutionWorldBuilder.closedWorldForTesting;
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     Expect.isFalse(compiler.compilationFailed, 'Unsuccessful compilation');

@@ -546,8 +546,7 @@ class JavaScriptBackend {
   }
 
   /// Called when the closed world from resolution has been computed.
-  void onResolutionClosedWorld(
-      ClosedWorld closedWorld, ClosedWorldRefiner closedWorldRefiner) {
+  void onResolutionClosedWorld(ClosedWorldRefiner closedWorldRefiner) {
     processAnnotations(closedWorldRefiner);
   }
 
