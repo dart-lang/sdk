@@ -78,8 +78,12 @@ async_scope_test: Pass, Slow
 *: Skip
 
 [ ($compiler == none || $compiler == precompiler) && ($runtime == dart_precompiled || $runtime == vm) ]
+async_step_out_test: RuntimeError # Issue 29158, Async debugging
+awaiter_async_stack_contents_test: RuntimeError # Issue 29158, Async debugging
 evaluate_activation_test/instance: RuntimeError # http://dartbug.com/20047
 evaluate_activation_test/scope: RuntimeError # http://dartbug.com/20047
+regress_28980_test: RuntimeError # Issue 29158, Async debugging
+set_library_debuggable_test: RuntimeError # Issue 29158, Async debugging
 
 [ $arch != ia32 || $arch != x64 || $system != linux ]
 get_native_allocation_samples_test: Skip # Unsupported.

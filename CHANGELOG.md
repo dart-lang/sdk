@@ -13,6 +13,9 @@
 
 ### Dart VM
 
+* The VM now uses `--sync-async` by default. Users can still opt out by
+  providing the `--no-sync-async` flag.
+
 ### Tool Changes
 
 #### Analyzer

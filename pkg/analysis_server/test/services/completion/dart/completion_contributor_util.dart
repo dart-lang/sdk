@@ -533,15 +533,17 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   }
 
   Future<E> performAnalysis<E>(int times, Completer<E> completer) async {
+    // Await a microtask. Otherwise the futures are chained and would
+    // resolve linearly using up the stack.
+    await null;
     if (completer.isCompleted) {
       return completer.future;
     }
     // We use a delayed future to allow microtask events to finish. The
-    // Future.value or Future() constructors use scheduleMicrotask themselves and
-    // would therefore not wait for microtask callbacks that are scheduled after
-    // invoking this method.
-    return new Future.delayed(
-        Duration.zero, () => performAnalysis(times - 1, completer));
+    // Future.value or Future.microtask() constructors use scheduleMicrotask
+    // themselves and would therefore not wait for microtask callbacks that
+    // are scheduled after invoking this method.
+    return new Future(() => performAnalysis(times - 1, completer));
   }
 
   void resolveSource(String path, String content) {

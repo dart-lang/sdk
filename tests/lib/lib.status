@@ -153,6 +153,7 @@ typed_data/float32x4_test: Fail, Pass # Safari has an optimization bug (nightlie
 typed_data/int32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).
 
 [ $runtime == vm ]
+async/async_await_sync_completer_test: RuntimeError # sync-async is on by default.
 convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeouts.
 
 [ !$checked ]
