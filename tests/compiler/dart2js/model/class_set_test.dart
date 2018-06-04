@@ -603,7 +603,7 @@ testClosures({bool strongMode}) async {
       """,
       options: strongMode ? [Flags.strongMode] : [],
       testBackendWorld: true);
-  ClosedWorld world = env.jClosedWorld;
+  JClosedWorld world = env.jClosedWorld;
 
   ClassEntity functionClass = world.commonElements.functionClass;
   ClassEntity closureClass = world.commonElements.closureClass;

@@ -33,7 +33,7 @@ import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/use.dart'
     show ConstantUse, ConstrainedDynamicUse, StaticUse, TypeUse;
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show JClosedWorld;
 import 'codegen_helpers.dart';
 import 'nodes.dart';
 import 'variable_allocator.dart';
@@ -71,7 +71,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
   }
 
   js.Expression generateCode(
-      CodegenWorkItem work, HGraph graph, ClosedWorld closedWorld) {
+      CodegenWorkItem work, HGraph graph, JClosedWorld closedWorld) {
     if (work.element.isField) {
       return generateLazyInitializer(work, graph, closedWorld);
     } else {
@@ -80,7 +80,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
   }
 
   js.Expression generateLazyInitializer(
-      CodegenWorkItem work, HGraph graph, ClosedWorld closedWorld) {
+      CodegenWorkItem work, HGraph graph, JClosedWorld closedWorld) {
     return measure(() {
       backend.tracer.traceGraph("codegen", graph);
       SourceInformation sourceInformation = sourceInformationFactory
@@ -105,7 +105,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
   }
 
   js.Expression generateMethod(
-      CodegenWorkItem work, HGraph graph, ClosedWorld closedWorld) {
+      CodegenWorkItem work, HGraph graph, JClosedWorld closedWorld) {
     return measure(() {
       FunctionEntity element = work.element;
       if (element.asyncMarker != AsyncMarker.SYNC) {
@@ -163,7 +163,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   final RuntimeTypesEncoder _rtiEncoder;
   final Namer _namer;
   final SuperMemberData _superMemberData;
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
   final CodegenWorkItem _work;
 
   final Set<HInstruction> generateAtUseSite;

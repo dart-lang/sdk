@@ -44,7 +44,7 @@ main() {
         await runCompiler(memorySourceFiles: {'main.dart': CODE});
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
-    ClosedWorld world = compiler.backendClosedWorldForTesting;
+    JClosedWorld world = compiler.backendClosedWorldForTesting;
     ElementEnvironment elementEnvironment = world.elementEnvironment;
 
     /// Checks the expectation of `isDisjoint` for two mask. Also checks that

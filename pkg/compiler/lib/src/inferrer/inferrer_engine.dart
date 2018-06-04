@@ -53,8 +53,7 @@ abstract class InferrerEngine<T> {
   ]);
 
   CompilerOptions get options;
-  ClosedWorld get closedWorld;
-  ClosedWorldRefiner get closedWorldRefiner;
+  JClosedWorld get closedWorld;
   DiagnosticReporter get reporter;
   AbstractValueDomain get abstractValueDomain =>
       closedWorld.abstractValueDomain;
@@ -267,10 +266,9 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
   final DiagnosticReporter reporter;
   final CompilerOutput _compilerOutput;
 
-  /// The [ClosedWorld] on which inference reasoning is based.
-  final ClosedWorld closedWorld;
+  /// The [JClosedWorld] on which inference reasoning is based.
+  final JClosedWorld closedWorld;
 
-  final ClosedWorldRefiner closedWorldRefiner;
   final TypeSystem<T> types;
   final Map<T, TypeInformation> concreteTypes = new Map<T, TypeInformation>();
 
@@ -294,7 +292,6 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
       this.reporter,
       this._compilerOutput,
       this.closedWorld,
-      this.closedWorldRefiner,
       this.noSuchMethodRegistry,
       this.mainElement,
       this.sorter,
@@ -345,8 +342,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
     } else if (callee.isGetter && !selector.isGetter) {
       sideEffectsBuilder.setAllSideEffectsAndDependsOnSomething();
     } else {
-      sideEffectsBuilder
-          .addInput(closedWorldRefiner.getSideEffectsBuilder(callee));
+      sideEffectsBuilder.addInput(closedWorld.getSideEffectsBuilder(callee));
     }
   }
 
@@ -506,7 +502,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
         tracer.run();
         if (!tracer.continueAnalyzing) {
           elements.forEach((FunctionEntity element) {
-            closedWorldRefiner.registerMightBePassedToApply(element);
+            closedWorld.registerMightBePassedToApply(element);
             if (debug.VERBOSE) {
               print("traced closure $element as ${true} (bail)");
             }
@@ -529,11 +525,11 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
             workQueue.add(info);
           });
           if (tracer.tracedType.mightBePassedToFunctionApply) {
-            closedWorldRefiner.registerMightBePassedToApply(element);
+            closedWorld.registerMightBePassedToApply(element);
           }
           if (debug.VERBOSE) {
             print("traced closure $element as "
-                "${closedWorldRefiner
+                "${closedWorld
                 .getCurrentlyKnownMightBePassedToApply(element)}");
           }
         });
@@ -766,7 +762,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
       }
       if (info is StaticCallSiteTypeInformation) {
         MemberEntity member = info.calledElement;
-        closedWorldRefiner.addFunctionCalledInLoop(member);
+        closedWorld.addFunctionCalledInLoop(member);
       } else if (info.mask != null &&
           !abstractValueDomain.containsAll(info.mask)) {
         // For instance methods, we only register a selector called in a
@@ -774,7 +770,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
         // methods as being called from within a loop. This cuts down
         // on the code bloat.
         info.callees.forEach((MemberEntity element) {
-          closedWorldRefiner.addFunctionCalledInLoop(element);
+          closedWorld.addFunctionCalledInLoop(element);
         });
       }
     });

@@ -233,7 +233,7 @@ doTest(String allocation,
   TypeMask keyType, valueType;
   TypeGraphInferrer typesInferrer =
       compiler.globalInference.typesInferrerInternal;
-  ClosedWorld closedWorld = typesInferrer.closedWorld;
+  JClosedWorld closedWorld = typesInferrer.closedWorld;
   AbstractValueDomain commonMasks = closedWorld.abstractValueDomain;
   TypeMask emptyType = new TypeMask.nonNullEmpty();
   MemberEntity aKey = findMember(closedWorld, 'aKey');

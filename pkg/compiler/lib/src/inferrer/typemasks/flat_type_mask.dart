@@ -50,7 +50,7 @@ class FlatTypeMask implements TypeMask {
    * [TypeMask.assertIsNormalized] with the factory's result returns `true`.
    */
   factory FlatTypeMask.normalized(
-      ClassEntity base, int flags, ClosedWorld world) {
+      ClassEntity base, int flags, JClosedWorld world) {
     if ((flags >> 1) == EMPTY || ((flags >> 1) == EXACT)) {
       return new FlatTypeMask.internal(base, flags);
     }
@@ -94,7 +94,7 @@ class FlatTypeMask implements TypeMask {
     return isNullable ? new FlatTypeMask.internal(base, flags & ~1) : this;
   }
 
-  bool contains(ClassEntity other, ClosedWorld closedWorld) {
+  bool contains(ClassEntity other, JClosedWorld closedWorld) {
     if (isEmptyOrNull) {
       return false;
     } else if (identical(base, other)) {
@@ -109,7 +109,7 @@ class FlatTypeMask implements TypeMask {
     }
   }
 
-  bool isSingleImplementationOf(ClassEntity cls, ClosedWorld closedWorld) {
+  bool isSingleImplementationOf(ClassEntity cls, JClosedWorld closedWorld) {
     // Special case basic types so that, for example, JSString is the
     // single implementation of String.
     // The general optimization is to realize there is only one class that
@@ -138,7 +138,7 @@ class FlatTypeMask implements TypeMask {
     return false;
   }
 
-  bool isInMask(TypeMask other, ClosedWorld closedWorld) {
+  bool isInMask(TypeMask other, JClosedWorld closedWorld) {
     if (isEmptyOrNull) return isNullable ? other.isNullable : true;
     // The empty type contains no classes.
     if (other.isEmptyOrNull) return false;
@@ -171,11 +171,11 @@ class FlatTypeMask implements TypeMask {
     return satisfies(otherBase, closedWorld);
   }
 
-  bool containsMask(TypeMask other, ClosedWorld closedWorld) {
+  bool containsMask(TypeMask other, JClosedWorld closedWorld) {
     return other.isInMask(this, closedWorld);
   }
 
-  bool containsOnlyInt(ClosedWorld closedWorld) {
+  bool containsOnlyInt(JClosedWorld closedWorld) {
     CommonElements commonElements = closedWorld.commonElements;
     return base == closedWorld.commonElements.intClass ||
         base == commonElements.jsIntClass ||
@@ -184,24 +184,24 @@ class FlatTypeMask implements TypeMask {
         base == commonElements.jsUInt32Class;
   }
 
-  bool containsOnlyDouble(ClosedWorld closedWorld) {
+  bool containsOnlyDouble(JClosedWorld closedWorld) {
     return base == closedWorld.commonElements.doubleClass ||
         base == closedWorld.commonElements.jsDoubleClass;
   }
 
-  bool containsOnlyNum(ClosedWorld closedWorld) {
+  bool containsOnlyNum(JClosedWorld closedWorld) {
     return containsOnlyInt(closedWorld) ||
         containsOnlyDouble(closedWorld) ||
         base == closedWorld.commonElements.numClass ||
         base == closedWorld.commonElements.jsNumberClass;
   }
 
-  bool containsOnlyBool(ClosedWorld closedWorld) {
+  bool containsOnlyBool(JClosedWorld closedWorld) {
     return base == closedWorld.commonElements.boolClass ||
         base == closedWorld.commonElements.jsBoolClass;
   }
 
-  bool containsOnlyString(ClosedWorld closedWorld) {
+  bool containsOnlyString(JClosedWorld closedWorld) {
     return base == closedWorld.commonElements.stringClass ||
         base == closedWorld.commonElements.jsStringClass;
   }
@@ -210,7 +210,7 @@ class FlatTypeMask implements TypeMask {
     return base == cls;
   }
 
-  bool satisfies(ClassEntity cls, ClosedWorld closedWorld) {
+  bool satisfies(ClassEntity cls, JClosedWorld closedWorld) {
     if (isEmptyOrNull) return false;
     if (closedWorld.isSubtypeOf(base, cls)) return true;
     return false;
@@ -218,7 +218,7 @@ class FlatTypeMask implements TypeMask {
 
   /// Returns the [Entity] if this type represents a single class, otherwise
   /// returns `null`.  This method is conservative.
-  ClassEntity singleClass(ClosedWorld closedWorld) {
+  ClassEntity singleClass(JClosedWorld closedWorld) {
     if (isEmptyOrNull) return null;
     if (isNullable) return null; // It is Null and some other class.
     if (isExact) {
@@ -234,12 +234,12 @@ class FlatTypeMask implements TypeMask {
   /**
    * Returns whether or not this type mask contains all types.
    */
-  bool containsAll(ClosedWorld closedWorld) {
+  bool containsAll(JClosedWorld closedWorld) {
     if (isEmptyOrNull || isExact) return false;
     return identical(base, closedWorld.commonElements.objectClass);
   }
 
-  TypeMask union(TypeMask other, ClosedWorld closedWorld) {
+  TypeMask union(TypeMask other, JClosedWorld closedWorld) {
     assert(other != null);
     assert(TypeMask.assertIsNormalized(this, closedWorld));
     assert(TypeMask.assertIsNormalized(other, closedWorld));
@@ -264,7 +264,7 @@ class FlatTypeMask implements TypeMask {
     }
   }
 
-  TypeMask unionSame(FlatTypeMask other, ClosedWorld closedWorld) {
+  TypeMask unionSame(FlatTypeMask other, JClosedWorld closedWorld) {
     assert(base == other.base);
     assert(TypeMask.assertIsNormalized(this, closedWorld));
     assert(TypeMask.assertIsNormalized(other, closedWorld));
@@ -284,7 +284,7 @@ class FlatTypeMask implements TypeMask {
     }
   }
 
-  TypeMask unionStrictSubclass(FlatTypeMask other, ClosedWorld closedWorld) {
+  TypeMask unionStrictSubclass(FlatTypeMask other, JClosedWorld closedWorld) {
     assert(base != other.base);
     assert(closedWorld.isSubclassOf(other.base, base));
     assert(TypeMask.assertIsNormalized(this, closedWorld));
@@ -311,7 +311,7 @@ class FlatTypeMask implements TypeMask {
         : this;
   }
 
-  TypeMask unionStrictSubtype(FlatTypeMask other, ClosedWorld closedWorld) {
+  TypeMask unionStrictSubtype(FlatTypeMask other, JClosedWorld closedWorld) {
     assert(base != other.base);
     assert(!closedWorld.isSubclassOf(other.base, base));
     assert(closedWorld.isSubtypeOf(other.base, base));
@@ -328,7 +328,7 @@ class FlatTypeMask implements TypeMask {
         : this;
   }
 
-  TypeMask intersection(TypeMask other, ClosedWorld closedWorld) {
+  TypeMask intersection(TypeMask other, JClosedWorld closedWorld) {
     assert(other != null);
     if (other is! FlatTypeMask) return other.intersection(this, closedWorld);
     assert(TypeMask.assertIsNormalized(this, closedWorld));
@@ -353,7 +353,7 @@ class FlatTypeMask implements TypeMask {
     }
   }
 
-  bool isDisjoint(TypeMask other, ClosedWorld closedWorld) {
+  bool isDisjoint(TypeMask other, JClosedWorld closedWorld) {
     if (other is! FlatTypeMask) return other.isDisjoint(this, closedWorld);
     FlatTypeMask flatOther = other;
 
@@ -379,7 +379,7 @@ class FlatTypeMask implements TypeMask {
   }
 
   static bool _isDisjointHelper(
-      FlatTypeMask a, FlatTypeMask b, ClosedWorld closedWorld) {
+      FlatTypeMask a, FlatTypeMask b, JClosedWorld closedWorld) {
     if (!a.isSubclass && b.isSubclass) {
       return _isDisjointHelper(b, a, closedWorld);
     }
@@ -394,7 +394,7 @@ class FlatTypeMask implements TypeMask {
     return true;
   }
 
-  TypeMask intersectionSame(FlatTypeMask other, ClosedWorld closedWorld) {
+  TypeMask intersectionSame(FlatTypeMask other, JClosedWorld closedWorld) {
     assert(base == other.base);
     // The two masks share the base type, so we must chose the most
     // constraining kind (the lowest) of the two. Only if both masks
@@ -413,7 +413,7 @@ class FlatTypeMask implements TypeMask {
   }
 
   TypeMask intersectionStrictSubclass(
-      FlatTypeMask other, ClosedWorld closedWorld) {
+      FlatTypeMask other, JClosedWorld closedWorld) {
     assert(base != other.base);
     assert(closedWorld.isSubclassOf(other.base, base));
     // If this mask isn't at least a subclass mask, then the
@@ -433,7 +433,7 @@ class FlatTypeMask implements TypeMask {
   }
 
   TypeMask intersectionStrictSubtype(
-      FlatTypeMask other, ClosedWorld closedWorld) {
+      FlatTypeMask other, JClosedWorld closedWorld) {
     assert(base != other.base);
     assert(closedWorld.isSubtypeOf(other.base, base));
     if (!isSubtype) return intersectionHelper(other, closedWorld);
@@ -450,14 +450,14 @@ class FlatTypeMask implements TypeMask {
     }
   }
 
-  TypeMask intersectionDisjoint(FlatTypeMask other, ClosedWorld closedWorld) {
+  TypeMask intersectionDisjoint(FlatTypeMask other, JClosedWorld closedWorld) {
     assert(base != other.base);
     assert(!closedWorld.isSubtypeOf(base, other.base));
     assert(!closedWorld.isSubtypeOf(other.base, base));
     return intersectionHelper(other, closedWorld);
   }
 
-  TypeMask intersectionHelper(FlatTypeMask other, ClosedWorld closedWorld) {
+  TypeMask intersectionHelper(FlatTypeMask other, JClosedWorld closedWorld) {
     assert(base != other.base);
     assert(!closedWorld.isSubclassOf(base, other.base));
     assert(!closedWorld.isSubclassOf(other.base, base));
@@ -492,7 +492,7 @@ class FlatTypeMask implements TypeMask {
    * privacy is taken into account.
    */
   bool canHit(
-      MemberEntity element, Selector selector, ClosedWorld closedWorld) {
+      MemberEntity element, Selector selector, JClosedWorld closedWorld) {
     CommonElements commonElements = closedWorld.commonElements;
     assert(element.name == selector.name);
     if (isEmpty) return false;
@@ -528,7 +528,7 @@ class FlatTypeMask implements TypeMask {
   }
 
   bool needsNoSuchMethodHandling(
-      Selector selector, covariant ClosedWorld closedWorld) {
+      Selector selector, covariant JClosedWorld closedWorld) {
     // A call on an empty type mask is either dead code, or a call on
     // `null`.
     if (isEmptyOrNull) return false;
@@ -536,12 +536,12 @@ class FlatTypeMask implements TypeMask {
     // TODO(johnniwinther): A type mask cannot be abstract. Remove the need
     // for this noise (currently used for super-calls in inference and mirror
     // usage).
-    if (isExact && closedWorld.isAbstract(base)) return false;
+    if (isExact && base.isAbstract) return false;
 
     return closedWorld.needsNoSuchMethod(base, selector, _classQuery);
   }
 
-  MemberEntity locateSingleMember(Selector selector, ClosedWorld closedWorld) {
+  MemberEntity locateSingleMember(Selector selector, JClosedWorld closedWorld) {
     if (isEmptyOrNull) return null;
     if (closedWorld.includesClosureCall(selector, this)) return null;
     Iterable<MemberEntity> targets = closedWorld.locateMembers(selector, this);

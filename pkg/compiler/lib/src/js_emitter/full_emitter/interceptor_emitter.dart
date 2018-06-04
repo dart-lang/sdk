@@ -8,13 +8,13 @@ import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
 import '../../elements/entities.dart';
 import '../../js/js.dart' as jsAst;
 import '../../js/js.dart' show js;
-import '../../world.dart' show ClosedWorld;
+import '../../world.dart' show JClosedWorld;
 import '../js_emitter.dart' hide Emitter, EmitterFactory;
 import '../model.dart';
 import 'emitter.dart';
 
 class InterceptorEmitter extends CodeEmitterHelper {
-  final ClosedWorld closedWorld;
+  final JClosedWorld closedWorld;
   final Set<jsAst.Name> interceptorInvocationNames = new Set<jsAst.Name>();
 
   InterceptorEmitter(this.closedWorld);

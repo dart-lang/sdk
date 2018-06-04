@@ -45,9 +45,9 @@ abstract class CodegenWorldBuilder implements WorldBuilder {
   ConstantValue getConstantFieldInitializer(covariant FieldEntity field);
 
   /// Returns `true` if [member] is invoked as a setter.
-  bool hasInvokedSetter(MemberEntity member, ClosedWorld world);
+  bool hasInvokedSetter(MemberEntity member, JClosedWorld world);
 
-  bool hasInvokedGetter(MemberEntity member, ClosedWorld world);
+  bool hasInvokedGetter(MemberEntity member, JClosedWorld world);
 
   Map<Selector, SelectorConstraints> invocationsByName(String name);
 
@@ -83,7 +83,7 @@ abstract class CodegenWorldBuilderImpl extends WorldBuilderBase
     implements CodegenWorldBuilder {
   final ElementEnvironment _elementEnvironment;
   final NativeBasicData _nativeBasicData;
-  final ClosedWorld _world;
+  final JClosedWorld _world;
 
   /// The set of all directly instantiated classes, that is, classes with a
   /// generative constructor that has been called directly and not only through
@@ -222,7 +222,7 @@ abstract class CodegenWorldBuilderImpl extends WorldBuilderBase
   }
 
   bool _hasMatchingSelector(Map<Selector, SelectorConstraints> selectors,
-      MemberEntity member, ClosedWorld world) {
+      MemberEntity member, JClosedWorld world) {
     if (selectors == null) return false;
     for (Selector selector in selectors.keys) {
       if (selector.appliesUnnamed(member)) {
@@ -235,16 +235,16 @@ abstract class CodegenWorldBuilderImpl extends WorldBuilderBase
     return false;
   }
 
-  bool hasInvocation(MemberEntity member, ClosedWorld world) {
+  bool hasInvocation(MemberEntity member, JClosedWorld world) {
     return _hasMatchingSelector(_invokedNames[member.name], member, world);
   }
 
-  bool hasInvokedGetter(MemberEntity member, ClosedWorld world) {
+  bool hasInvokedGetter(MemberEntity member, JClosedWorld world) {
     return _hasMatchingSelector(_invokedGetters[member.name], member, world) ||
         member.isFunction && methodsNeedingSuperGetter.contains(member);
   }
 
-  bool hasInvokedSetter(MemberEntity member, ClosedWorld world) {
+  bool hasInvokedSetter(MemberEntity member, JClosedWorld world) {
     return _hasMatchingSelector(_invokedSetters[member.name], member, world);
   }
 
@@ -647,7 +647,7 @@ class KernelCodegenWorldBuilder extends CodegenWorldBuilderImpl {
       this._globalLocalsMap,
       ElementEnvironment elementEnvironment,
       NativeBasicData nativeBasicData,
-      ClosedWorld world,
+      JClosedWorld world,
       SelectorConstraintsStrategy selectorConstraintsStrategy)
       : super(elementEnvironment, nativeBasicData, world,
             selectorConstraintsStrategy);

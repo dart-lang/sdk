@@ -32,7 +32,7 @@ jsAst.Statement buildSetupProgram(
     JavaScriptBackend backend,
     Namer namer,
     Emitter emitter,
-    ClosedWorld closedWorld) {
+    JClosedWorld closedWorld) {
   jsAst.Expression typeInformationAccess =
       emitter.generateEmbeddedGlobalAccess(embeddedNames.TYPE_INFORMATION);
   jsAst.Expression staticsAccess =

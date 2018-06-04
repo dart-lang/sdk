@@ -12,13 +12,13 @@ import '../../elements/entities.dart';
 import '../../js/js.dart' as jsAst;
 import '../../js/js.dart' show js;
 import '../../js_backend/js_backend.dart' show CompoundName, Namer;
-import '../../world.dart' show ClosedWorld;
+import '../../world.dart' show JClosedWorld;
 import '../js_emitter.dart' hide Emitter, EmitterFactory;
 import '../model.dart';
 import 'emitter.dart';
 
 class ClassEmitter extends CodeEmitterHelper {
-  final ClosedWorld closedWorld;
+  final JClosedWorld closedWorld;
 
   ClassEmitter(this.closedWorld);
 

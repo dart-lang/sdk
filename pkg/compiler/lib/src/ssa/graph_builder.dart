@@ -25,7 +25,7 @@ import '../js_emitter/code_emitter_task.dart';
 import '../options.dart';
 import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show JClosedWorld;
 import 'jump_handler.dart';
 import 'locals_handler.dart';
 import 'nodes.dart';
@@ -53,7 +53,7 @@ abstract class GraphBuilder {
 
   CodegenRegistry get registry;
 
-  ClosedWorld get closedWorld;
+  JClosedWorld get closedWorld;
 
   AbstractValueDomain get abstractValueDomain =>
       closedWorld.abstractValueDomain;

@@ -15,7 +15,7 @@ import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/world_builder.dart'
     show CodegenWorldBuilder, SelectorConstraints;
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show JClosedWorld;
 
 import 'model.dart';
 
@@ -27,7 +27,7 @@ class InstantiationStubGenerator {
   final CommonElements _commonElements;
   final Namer _namer;
   final CodegenWorldBuilder _codegenWorldBuilder;
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
   // ignore: UNUSED_FIELD
   final SourceInformationStrategy _sourceInformationStrategy;
 

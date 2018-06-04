@@ -27,7 +27,7 @@ class ValueTypeMask extends ForwardingTypeMask {
     return super.equalsDisregardNull(other) && value == other.value;
   }
 
-  TypeMask intersection(TypeMask other, ClosedWorld closedWorld) {
+  TypeMask intersection(TypeMask other, JClosedWorld closedWorld) {
     TypeMask forwardIntersection = forwardTo.intersection(other, closedWorld);
     if (forwardIntersection.isEmptyOrNull) return forwardIntersection;
     return forwardIntersection.isNullable ? nullable() : nonNullable();

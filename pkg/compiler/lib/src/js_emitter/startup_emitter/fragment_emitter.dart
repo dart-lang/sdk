@@ -534,7 +534,7 @@ class FragmentEmitter {
   final JavaScriptBackend backend;
   final ConstantEmitter constantEmitter;
   final ModelEmitter modelEmitter;
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
 
   FragmentEmitter(this.compiler, this.namer, this.backend, this.constantEmitter,
       this.modelEmitter, this._closedWorld);

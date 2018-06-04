@@ -14,7 +14,7 @@ import '../../universe/use.dart' show DynamicUse;
 import '../../universe/world_builder.dart'
     show UniverseSelectorConstraints, SelectorConstraintsStrategy;
 import '../../util/util.dart';
-import '../../world.dart' show ClassQuery, ClosedWorld;
+import '../../world.dart' show ClassQuery, JClosedWorld;
 import '../type_graph_inferrer.dart' show TypeGraphInferrer;
 import 'constants.dart';
 
@@ -30,7 +30,7 @@ part 'value_type_mask.dart';
 class CommonMasks implements AbstractValueDomain {
   // TODO(sigmund): once we split out the backend common elements, depend
   // directly on those instead.
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
 
   CommonMasks(this._closedWorld);
 

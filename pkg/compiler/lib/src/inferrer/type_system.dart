@@ -46,7 +46,7 @@ abstract class TypeSystemStrategy<T> {
  * The class [SimpleInferrerVisitor] will use when working on types.
  */
 class TypeSystem<T> {
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
   final TypeSystemStrategy<T> strategy;
 
   /// [parameterTypeInformations] and [memberTypeInformations] ordered by

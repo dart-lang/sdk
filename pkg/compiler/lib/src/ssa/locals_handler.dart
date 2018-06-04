@@ -13,7 +13,7 @@ import '../js_model/closure.dart' show JRecordField, JClosureField;
 import '../js_model/locals.dart' show JLocal;
 import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show JClosedWorld;
 
 import 'graph_builder.dart';
 import 'nodes.dart';
@@ -65,7 +65,7 @@ class LocalsHandler {
   LocalsHandler(this.builder, this.executableContext, this.memberContext,
       this.instanceType, this._nativeData, this._interceptorData);
 
-  ClosedWorld get closedWorld => builder.closedWorld;
+  JClosedWorld get closedWorld => builder.closedWorld;
 
   AbstractValueDomain get _abstractValueDomain =>
       closedWorld.abstractValueDomain;

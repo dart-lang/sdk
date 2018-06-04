@@ -46,7 +46,7 @@ import '../universe/world_builder.dart';
 import '../universe/world_impact.dart'
     show ImpactStrategy, ImpactUseCase, WorldImpact, WorldImpactVisitor;
 import '../util/util.dart';
-import '../world.dart' show ClosedWorld, ClosedWorldRefiner;
+import '../world.dart' show JClosedWorld;
 import 'annotations.dart' as optimizerHints;
 import 'backend_impact.dart';
 import 'backend_usage.dart';
@@ -70,7 +70,7 @@ abstract class FunctionCompiler {
   void onCodegenStart();
 
   /// Generates JavaScript code for `work.element`.
-  jsAst.Fun compile(CodegenWorkItem work, ClosedWorld closedWorld);
+  jsAst.Fun compile(CodegenWorkItem work, JClosedWorld closedWorld);
 
   Iterable get tasks;
 }
@@ -494,7 +494,7 @@ class JavaScriptBackend {
   }
 
   Namer determineNamer(
-      ClosedWorld closedWorld, CodegenWorldBuilder codegenWorldBuilder) {
+      JClosedWorld closedWorld, CodegenWorldBuilder codegenWorldBuilder) {
     return compiler.options.enableMinification
         ? compiler.options.useFrequencyNamer
             ? new FrequencyBasedNamer(closedWorld, codegenWorldBuilder)
@@ -546,8 +546,8 @@ class JavaScriptBackend {
   }
 
   /// Called when the closed world from resolution has been computed.
-  void onResolutionClosedWorld(ClosedWorldRefiner closedWorldRefiner) {
-    processAnnotations(closedWorldRefiner);
+  void onResolutionClosedWorld(JClosedWorld closedWorld) {
+    processAnnotations(closedWorld);
   }
 
   void onDeferredLoadComplete(OutputUnitData data) {
@@ -635,7 +635,7 @@ class JavaScriptBackend {
 
   /// Creates an [Enqueuer] for code generation specific to this backend.
   CodegenEnqueuer createCodegenEnqueuer(
-      CompilerTask task, Compiler compiler, ClosedWorld closedWorld) {
+      CompilerTask task, Compiler compiler, JClosedWorld closedWorld) {
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     CommonElements commonElements = closedWorld.commonElements;
     BackendImpacts impacts =
@@ -675,7 +675,7 @@ class JavaScriptBackend {
   static bool cacheCodegenImpactForTesting = false;
   Map<MemberEntity, WorldImpact> codegenImpactsForTesting;
 
-  WorldImpact codegen(CodegenWorkItem work, ClosedWorld closedWorld) {
+  WorldImpact codegen(CodegenWorkItem work, JClosedWorld closedWorld) {
     MemberEntity element = work.element;
     if (compiler.elementHasCompileTimeError(element)) {
       DiagnosticMessage message =
@@ -730,7 +730,7 @@ class JavaScriptBackend {
   }
 
   /// Generates the output and returns the total size of the generated code.
-  int assembleProgram(ClosedWorld closedWorld) {
+  int assembleProgram(JClosedWorld closedWorld) {
     int programSize = emitter.assembleProgram(namer, closedWorld);
     closedWorld.noSuchMethodData.emitDiagnostic(reporter);
     return programSize;
@@ -785,7 +785,7 @@ class JavaScriptBackend {
 
   /// Called when the compiler starts running the codegen enqueuer. The
   /// [WorldImpact] of enabled backend features is returned.
-  WorldImpact onCodegenStart(ClosedWorld closedWorld,
+  WorldImpact onCodegenStart(JClosedWorld closedWorld,
       CodegenWorldBuilder codegenWorldBuilder, Sorter sorter) {
     functionCompiler.onCodegenStart();
     _oneShotInterceptorData = new OneShotInterceptorData(
@@ -842,23 +842,20 @@ class JavaScriptBackend {
   /// Process backend specific annotations.
   // TODO(johnniwinther): Merge this with [AnnotationProcessor] and use
   // [ElementEnvironment.getMemberMetadata] in [AnnotationProcessor].
-  void processAnnotations(ClosedWorldRefiner closedWorldRefiner) {
-    ClosedWorld closedWorld = closedWorldRefiner.closedWorld;
+  void processAnnotations(JClosedWorld closedWorld) {
     // These methods are overwritten with generated versions.
     inlineCache.markAsNonInlinable(
         closedWorld.commonElements.getInterceptorMethod,
         insideLoop: true);
     for (MemberEntity entity in closedWorld.processedMembers) {
-      _processMemberAnnotations(closedWorld.elementEnvironment,
-          closedWorld.commonElements, entity, closedWorldRefiner);
+      _processMemberAnnotations(closedWorld, entity);
     }
   }
 
   void _processMemberAnnotations(
-      ElementEnvironment elementEnvironment,
-      CommonElements commonElements,
-      MemberEntity element,
-      ClosedWorldRefiner closedWorldRefiner) {
+      JClosedWorld closedWorld, MemberEntity element) {
+    ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
+    CommonElements commonElements = closedWorld.commonElements;
     bool hasNoInline = false;
     bool hasForceInline = false;
 
@@ -930,14 +927,14 @@ class JavaScriptBackend {
           reporter.reportHintMessage(
               method, MessageKind.GENERIC, {'text': "Cannot throw"});
         }
-        closedWorldRefiner.registerCannotThrow(method);
+        closedWorld.registerCannotThrow(method);
       } else if (cls == commonElements.noSideEffectsClass) {
         hasNoSideEffects = true;
         if (VERBOSE_OPTIMIZER_HINTS) {
           reporter.reportHintMessage(
               method, MessageKind.GENERIC, {'text': "Has no side effects"});
         }
-        closedWorldRefiner.registerSideEffectsFree(method);
+        closedWorld.registerSideEffectsFree(method);
       }
     }
     if (hasForceInline && hasNoInline) {

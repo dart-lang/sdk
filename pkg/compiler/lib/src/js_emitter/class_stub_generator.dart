@@ -15,7 +15,7 @@ import '../options.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/world_builder.dart'
     show CodegenWorldBuilder, SelectorConstraints;
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show JClosedWorld;
 
 import 'code_emitter_task.dart';
 import 'model.dart';
@@ -23,7 +23,7 @@ import 'model.dart';
 class ClassStubGenerator {
   final Namer _namer;
   final CodegenWorldBuilder _worldBuilder;
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
   final bool enableMinification;
   final Emitter _emitter;
   final CommonElements _commonElements;

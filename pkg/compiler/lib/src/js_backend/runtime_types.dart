@@ -15,7 +15,7 @@ import '../js_emitter/js_emitter.dart' show Emitter;
 import '../options.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
-import '../world.dart' show ClosedWorld, KClosedWorld;
+import '../world.dart' show JClosedWorld, KClosedWorld;
 import 'backend_usage.dart';
 import 'namer.dart';
 import 'native_data.dart';
@@ -202,7 +202,7 @@ abstract class RuntimeTypesChecksBuilder {
 }
 
 class TrivialRuntimeTypesChecksBuilder implements RuntimeTypesChecksBuilder {
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
   final TrivialRuntimeTypesSubstitutions _substitutions;
   bool rtiChecksBuilderClosed = false;
 
@@ -267,7 +267,7 @@ class ClassCollector extends ArgumentCollector {
 
 abstract class RuntimeTypesSubstitutionsMixin
     implements RuntimeTypesSubstitutions {
-  ClosedWorld get _closedWorld;
+  JClosedWorld get _closedWorld;
   TypeChecks get _requiredChecks;
 
   ElementEnvironment get _elementEnvironment => _closedWorld.elementEnvironment;
@@ -585,7 +585,7 @@ abstract class RuntimeTypesSubstitutionsMixin
 }
 
 class TrivialRuntimeTypesSubstitutions extends RuntimeTypesSubstitutionsMixin {
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
   TypeChecks _requiredChecks;
 
   TrivialRuntimeTypesSubstitutions(this._closedWorld);
@@ -1650,7 +1650,7 @@ class _RuntimeTypesChecks implements RuntimeTypesChecks {
 class RuntimeTypesImpl extends _RuntimeTypesBase
     with RuntimeTypesSubstitutionsMixin
     implements RuntimeTypesChecksBuilder {
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
 
   // The set of type arguments tested against type variable bounds.
   final Set<DartType> checkedTypeArguments = new Set<DartType>();

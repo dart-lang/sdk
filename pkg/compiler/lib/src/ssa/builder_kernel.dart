@@ -69,7 +69,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   final MemberEntity targetElement;
   final MemberEntity initialTargetElement;
 
-  final ClosedWorld closedWorld;
+  final JClosedWorld closedWorld;
   final CodegenWorldBuilder _worldBuilder;
   final CodegenRegistry registry;
   final ClosureDataLookup closureDataLookup;

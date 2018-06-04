@@ -21,7 +21,7 @@ import '../native/enqueue.dart';
 import '../options.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/world_builder.dart' show CodegenWorldBuilder;
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show JClosedWorld;
 
 import 'code_emitter_task.dart' show CodeEmitterTask, Emitter;
 
@@ -34,7 +34,7 @@ class InterceptorStubGenerator {
   final OneShotInterceptorData _oneShotInterceptorData;
   final CustomElementsCodegenAnalysis _customElementsCodegenAnalysis;
   final CodegenWorldBuilder _codegenWorldBuilder;
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
 
   InterceptorStubGenerator(
       this._options,

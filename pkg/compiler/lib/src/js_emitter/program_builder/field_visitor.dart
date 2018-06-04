@@ -32,7 +32,7 @@ class FieldVisitor {
   final CodegenWorldBuilder _codegenWorldBuilder;
   final NativeData _nativeData;
   final Namer _namer;
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
 
   FieldVisitor(
       this._options,

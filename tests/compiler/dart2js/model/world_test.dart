@@ -10,7 +10,7 @@ import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/universe/class_set.dart';
-import 'package:compiler/src/world.dart' show ClassQuery, ClosedWorld;
+import 'package:compiler/src/world.dart' show ClassQuery, JClosedWorld;
 import '../type_test_helper.dart';
 
 void main() {
@@ -52,7 +52,7 @@ testClassSets() async {
         new html.Worker('');
       }
       """, testBackendWorld: true);
-  ClosedWorld closedWorld = env.jClosedWorld;
+  JClosedWorld closedWorld = env.jClosedWorld;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
 
   ClassEntity Object_ = env.getElement("Object");
@@ -243,7 +243,7 @@ testProperties() async {
         new H4();
       }
       """, testBackendWorld: true);
-  ClosedWorld closedWorld = env.jClosedWorld;
+  JClosedWorld closedWorld = env.jClosedWorld;
 
   check(String name, {bool hasStrictSubtype, bool hasOnlySubclasses}) {
     ClassEntity cls = env.getElement(name);
@@ -320,7 +320,7 @@ testNativeClasses() async {
       }
       """,
       testBackendWorld: true);
-  ClosedWorld closedWorld = env.jClosedWorld;
+  JClosedWorld closedWorld = env.jClosedWorld;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   LibraryEntity dart_html = elementEnvironment.lookupLibrary(Uris.dart_html);
 
@@ -545,7 +545,7 @@ testCommonSubclasses() async {
       }
       """,
       testBackendWorld: true);
-  ClosedWorld closedWorld = env.jClosedWorld;
+  JClosedWorld closedWorld = env.jClosedWorld;
 
   ClassEntity A = env.getElement("A");
   ClassEntity B = env.getElement("B");

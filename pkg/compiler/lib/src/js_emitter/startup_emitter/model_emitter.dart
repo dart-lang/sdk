@@ -57,7 +57,7 @@ class ModelEmitter {
   ConstantEmitter constantEmitter;
   final NativeEmitter nativeEmitter;
   final bool shouldGenerateSourceMap;
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
   final ConstantOrdering _constantOrdering;
 
   // The full code that is written to each hunk part-file.

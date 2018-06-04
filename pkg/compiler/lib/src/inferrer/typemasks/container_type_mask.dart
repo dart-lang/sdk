@@ -50,13 +50,13 @@ class ContainerTypeMask<T> extends AllocationTypeMask<T> {
         length == other.length;
   }
 
-  TypeMask intersection(TypeMask other, ClosedWorld closedWorld) {
+  TypeMask intersection(TypeMask other, JClosedWorld closedWorld) {
     TypeMask forwardIntersection = forwardTo.intersection(other, closedWorld);
     if (forwardIntersection.isEmptyOrNull) return forwardIntersection;
     return forwardIntersection.isNullable ? nullable() : nonNullable();
   }
 
-  TypeMask union(dynamic other, ClosedWorld closedWorld) {
+  TypeMask union(dynamic other, JClosedWorld closedWorld) {
     if (this == other) {
       return this;
     } else if (equalsDisregardNull(other)) {

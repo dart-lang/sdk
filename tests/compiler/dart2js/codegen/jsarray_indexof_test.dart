@@ -48,7 +48,7 @@ runTest(List<String> options) async {
       memorySourceFiles: {'main.dart': source}, options: options);
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler;
-  ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+  JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
   MemberEntity jsArrayIndexOf =
       findClassMember(closedWorld, 'JSArray', 'indexOf');
   ProgramLookup programLookup = new ProgramLookup(result.compiler);

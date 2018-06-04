@@ -14,14 +14,14 @@ import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
 import '../native/enqueue.dart' show NativeCodegenEnqueuer;
 import '../universe/world_builder.dart' show CodegenWorldBuilder;
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show JClosedWorld;
 
 import 'code_emitter_task.dart' show CodeEmitterTask;
 import 'model.dart';
 
 class NativeEmitter {
   final CodeEmitterTask _emitterTask;
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
   final CodegenWorldBuilder _worldBuilder;
   final NativeCodegenEnqueuer _nativeCodegenEnqueuer;
 

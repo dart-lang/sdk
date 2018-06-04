@@ -112,7 +112,7 @@ class TestBackend extends JavaScriptBackend {
             useNewSourceInfo: compiler.options.useNewSourceInfo);
 
   @override
-  WorldImpact codegen(CodegenWorkItem work, ClosedWorld closedWorld) {
+  WorldImpact codegen(CodegenWorkItem work, JClosedWorld closedWorld) {
     compiler.test('Compiler.codegen');
     return super.codegen(work, closedWorld);
   }

@@ -8,7 +8,7 @@ import '../options.dart';
 import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show JClosedWorld;
 import 'nodes.dart';
 import 'optimize.dart';
 
@@ -37,7 +37,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   final GlobalTypeInferenceResults results;
   final CompilerOptions options;
   final CommonElements commonElements;
-  final ClosedWorld closedWorld;
+  final JClosedWorld closedWorld;
   String get name => 'SsaTypePropagator';
 
   SsaTypePropagator(

@@ -2130,7 +2130,7 @@ class KClosedWorldImpl extends ClosedWorldRtiNeedMixin implements KClosedWorld {
   /// of known classes.
   ///
   /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [ClosedWorld].
+  /// methods defined in [JClosedWorld].
   ClassHierarchyNode getClassHierarchyNode(ClassEntity cls) {
     return _classHierarchyNodes[cls];
   }
@@ -2139,7 +2139,7 @@ class KClosedWorldImpl extends ClosedWorldRtiNeedMixin implements KClosedWorld {
   /// relations of known classes.
   ///
   /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [ClosedWorld].
+  /// methods defined in [JClosedWorld].
   ClassSet getClassSet(ClassEntity cls) {
     return _classSets[cls];
   }

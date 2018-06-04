@@ -33,16 +33,10 @@ class KernelTypeGraphInferrer extends TypeGraphInferrer<ir.Node> {
   final GlobalLocalsMap _globalLocalsMap;
   final ClosureDataLookup<ir.Node> _closureDataLookup;
 
-  KernelTypeGraphInferrer(
-      this._compiler,
-      this._elementMap,
-      this._globalLocalsMap,
-      this._closureDataLookup,
-      ClosedWorld closedWorld,
-      ClosedWorldRefiner closedWorldRefiner,
+  KernelTypeGraphInferrer(this._compiler, this._elementMap,
+      this._globalLocalsMap, this._closureDataLookup, JClosedWorld closedWorld,
       {bool disableTypeInference: false})
-      : super(closedWorld, closedWorldRefiner,
-            disableTypeInference: disableTypeInference);
+      : super(closedWorld, disableTypeInference: disableTypeInference);
 
   @override
   InferrerEngine<ir.Node> createInferrerEngineFor(FunctionEntity main) {
@@ -55,7 +49,6 @@ class KernelTypeGraphInferrer extends TypeGraphInferrer<ir.Node> {
         _globalLocalsMap,
         _closureDataLookup,
         closedWorld,
-        closedWorldRefiner,
         _compiler.backend.noSuchMethodRegistry,
         main,
         _compiler.backendStrategy.sorter);
@@ -70,7 +63,7 @@ class KernelTypeGraphInferrer extends TypeGraphInferrer<ir.Node> {
 class KernelGlobalTypeInferenceResults
     extends GlobalTypeInferenceResults<ir.Node> {
   KernelGlobalTypeInferenceResults(
-      TypesInferrer<ir.Node> inferrer, ClosedWorld closedWorld)
+      TypesInferrer<ir.Node> inferrer, JClosedWorld closedWorld)
       : super(inferrer, closedWorld);
 
   GlobalTypeInferenceMemberResult<ir.Node> createMemberResult(
@@ -105,8 +98,7 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
       this._elementMap,
       this._globalLocalsMap,
       this._closureDataLookup,
-      ClosedWorld closedWorld,
-      ClosedWorldRefiner closedWorldRefiner,
+      JClosedWorld closedWorld,
       NoSuchMethodRegistry noSuchMethodRegistry,
       FunctionEntity mainElement,
       Sorter sorter)
@@ -116,7 +108,6 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
             reporter,
             compilerOutput,
             closedWorld,
-            closedWorldRefiner,
             noSuchMethodRegistry,
             mainElement,
             sorter,

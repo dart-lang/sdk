@@ -44,7 +44,7 @@ Future runTest() async {
     'C': '[exact=C]',
   };
 
-  ClosedWorld closedWorld = env.jClosedWorld;
+  JClosedWorld closedWorld = env.jClosedWorld;
   int closureCount = 0;
   Selector callSelector = new Selector.callClosure(0);
   closedWorld.forEachStrictSubclassOf(closedWorld.commonElements.objectClass,

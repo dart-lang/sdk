@@ -23,7 +23,7 @@ import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
 import '../universe/use.dart' show StaticUse;
 import '../util/util.dart';
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show JClosedWorld;
 import 'interceptor_simplifier.dart';
 import 'nodes.dart';
 import 'types.dart';
@@ -53,7 +53,7 @@ class SsaOptimizerTask extends CompilerTask {
 
   RuntimeTypesSubstitutions get _rtiSubstitutions => _backend.rtiSubstitutions;
 
-  void optimize(CodegenWorkItem work, HGraph graph, ClosedWorld closedWorld) {
+  void optimize(CodegenWorkItem work, HGraph graph, JClosedWorld closedWorld) {
     void runPhase(OptimizationPhase phase) {
       measureSubtask(phase.name, () => phase.visitGraph(graph));
       _backend.tracer.traceGraph(phase.name, graph);
@@ -155,7 +155,7 @@ class SsaOptimizerTask extends CompilerTask {
 /// cannot change.  The current implementation is conservative for the purpose
 /// of identifying gvn-able lengths and mis-identifies some unions of fixed
 /// length indexables (see TODO) as not fixed length.
-bool isFixedLength(mask, ClosedWorld closedWorld) {
+bool isFixedLength(mask, JClosedWorld closedWorld) {
   if (mask.isContainer && mask.length != null) {
     // A container on which we have inferred the length.
     return true;
@@ -185,7 +185,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   final GlobalTypeInferenceResults _globalInferenceResults;
   final CompilerOptions _options;
   final RuntimeTypesSubstitutions _rtiSubstitutions;
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
   final CodegenRegistry _registry;
   HGraph _graph;
 
@@ -1502,7 +1502,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
   final Set<HInstruction> boundsChecked;
   final bool trustPrimitives;
-  final ClosedWorld closedWorld;
+  final JClosedWorld closedWorld;
   final String name = "SsaCheckInserter";
   HGraph graph;
 
@@ -1588,7 +1588,7 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
 class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   final String name = "SsaDeadCodeEliminator";
 
-  final ClosedWorld closedWorld;
+  final JClosedWorld closedWorld;
   final SsaOptimizerTask optimizer;
   HGraph _graph;
   SsaLiveBlockAnalyzer analyzer;
@@ -1934,7 +1934,7 @@ class SsaLiveBlockAnalyzer extends HBaseVisitor {
   final Set<HBasicBlock> live = new Set<HBasicBlock>();
   final List<HBasicBlock> worklist = <HBasicBlock>[];
   final SsaOptimizerTask optimizer;
-  final ClosedWorld closedWorld;
+  final JClosedWorld closedWorld;
 
   SsaLiveBlockAnalyzer(this.graph, this.closedWorld, this.optimizer);
 
@@ -2442,7 +2442,7 @@ class SsaCodeMotion extends HBaseVisitor implements OptimizationPhase {
 class SsaTypeConversionInserter extends HBaseVisitor
     implements OptimizationPhase {
   final String name = "SsaTypeconversionInserter";
-  final ClosedWorld closedWorld;
+  final JClosedWorld closedWorld;
 
   SsaTypeConversionInserter(this.closedWorld);
 
@@ -2585,7 +2585,7 @@ class SsaTypeConversionInserter extends HBaseVisitor
  */
 class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   final Compiler compiler;
-  final ClosedWorld closedWorld;
+  final JClosedWorld closedWorld;
   final String name = "SsaLoadElimination";
   MemorySet memorySet;
   List<MemorySet> memories;
@@ -2843,7 +2843,7 @@ enum MemoryFeature {
 /// confuse aliasing.  Values stored into a memory place keep the type
 /// refinements to help further optimizations.
 class MemorySet {
-  final ClosedWorld closedWorld;
+  final JClosedWorld closedWorld;
 
   /// Maps a field to a map of receivers to their current field values.
   ///

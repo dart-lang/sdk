@@ -29,10 +29,10 @@ import 'universe/selector.dart' show Selector;
 import 'universe/side_effects.dart' show SideEffects, SideEffectsBuilder;
 import 'universe/world_builder.dart';
 
-/// Common superinterface for [OpenWorld] and [ClosedWorld].
+/// Common superinterface for [OpenWorld] and [JClosedWorld].
 abstract class World {}
 
-/// The [ClosedWorld] represents the information known about a program when
+/// The [JClosedWorld] represents the information known about a program when
 /// compiling with closed-world semantics.
 ///
 /// Given the entrypoint of an application, we can track what's reachable from
@@ -40,7 +40,8 @@ abstract class World {}
 /// JavaScript types are touched, what language features are used, and so on.
 /// This precise knowledge about what's live in the program is later used in
 /// optimizations and other compiler decisions during code generation.
-abstract class ClosedWorld implements World {
+// TODO(johnniwinther): Maybe this should just be called the JWorld.
+abstract class JClosedWorld implements World {
   BackendUsage get backendUsage;
 
   NativeData get nativeData;
@@ -92,10 +93,6 @@ abstract class ClosedWorld implements World {
   /// Returns `true` if [cls] is indirectly instantiated, that is through a
   /// subclass.
   bool isIndirectlyInstantiated(ClassEntity cls);
-
-  /// Returns `true` if [cls] is abstract and thus can only be instantiated
-  /// through subclasses.
-  bool isAbstract(ClassEntity cls);
 
   /// Returns `true` if [cls] is implemented by an instantiated class.
   bool isImplemented(ClassEntity cls);
@@ -270,14 +267,14 @@ abstract class ClosedWorld implements World {
   /// of known classes.
   ///
   /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [ClosedWorld].
+  /// methods defined in [JClosedWorld].
   ClassHierarchyNode getClassHierarchyNode(ClassEntity cls);
 
   /// Returns [ClassSet] for [cls] used to model the extends and implements
   /// relations of known classes.
   ///
   /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [ClosedWorld].
+  /// methods defined in [JClosedWorld].
   ClassSet getClassSet(ClassEntity cls);
 
   /// Returns `true` if the field [element] is known to be effectively final.
@@ -345,13 +342,6 @@ abstract class ClosedWorld implements World {
   ///
   /// If [cls] is provided, the dump will contain only classes related to [cls].
   String dump([ClassEntity cls]);
-}
-
-/// Interface for computing side effects and uses of elements. This is used
-/// during type inference to compute the [ClosedWorld] for code generation.
-abstract class ClosedWorldRefiner {
-  /// The closed world being refined.
-  ClosedWorld get closedWorld;
 
   /// Registers the executing of [element] as without side effects.
   void registerSideEffectsFree(FunctionEntity element);
@@ -422,7 +412,7 @@ enum ClassQuery {
   SUBTYPE,
 }
 
-abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
+abstract class ClosedWorldBase implements JClosedWorld {
   final ConstantSystem constantSystem;
   final NativeData nativeData;
   final InterceptorData interceptorData;
@@ -543,9 +533,6 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
     ClassHierarchyNode node = _classHierarchyNodes[cls];
     return node != null && node.isIndirectlyInstantiated;
   }
-
-  @override
-  bool isAbstract(ClassEntity cls) => cls.isAbstract;
 
   /// Returns `true` if [cls] is implemented by an instantiated class.
   bool isImplemented(ClassEntity cls) {
@@ -967,7 +954,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   /// of known classes.
   ///
   /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [ClosedWorld].
+  /// methods defined in [JClosedWorld].
   ClassHierarchyNode getClassHierarchyNode(ClassEntity cls) {
     return _classHierarchyNodes[cls];
   }
@@ -976,7 +963,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   /// relations of known classes.
   ///
   /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [ClosedWorld].
+  /// methods defined in [JClosedWorld].
   ClassSet getClassSet(ClassEntity cls) {
     return _classSets[cls];
   }
@@ -1250,14 +1237,14 @@ abstract class KClosedWorld {
   /// of known classes.
   ///
   /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [ClosedWorld].
+  /// methods defined in [JClosedWorld].
   ClassHierarchyNode getClassHierarchyNode(ClassEntity cls);
 
   /// Returns [ClassSet] for [cls] used to model the extends and implements
   /// relations of known classes.
   ///
   /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [ClosedWorld].
+  /// methods defined in [JClosedWorld].
   ClassSet getClassSet(ClassEntity cls);
   Iterable<MemberEntity> get liveInstanceMembers;
   Map<ClassEntity, Set<ClassEntity>> get mixinUses;

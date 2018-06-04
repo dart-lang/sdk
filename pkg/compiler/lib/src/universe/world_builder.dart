@@ -25,7 +25,7 @@ import '../options.dart';
 import '../universe/class_set.dart';
 import '../util/enumset.dart';
 import '../util/util.dart';
-import '../world.dart' show World, ClosedWorld, KClosedWorld, OpenWorld;
+import '../world.dart' show World, JClosedWorld, KClosedWorld, OpenWorld;
 import 'class_hierarchy_builder.dart' show ClassHierarchyBuilder, ClassQueries;
 import 'selector.dart' show Selector;
 import 'use.dart'
@@ -249,7 +249,7 @@ class StrongModeConstraint {
 }
 
 /// The [WorldBuilder] is an auxiliary class used in the process of computing
-/// the [ClosedWorld].
+/// the [JClosedWorld].
 // TODO(johnniwinther): Move common implementation to a [WorldBuilderBase] when
 // universes and worlds have been unified.
 abstract class WorldBuilder {

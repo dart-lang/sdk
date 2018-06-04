@@ -80,7 +80,7 @@ Future<String> compile(String code,
       outputProvider: outputCollector);
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler;
-  ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+  JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   LibraryEntity mainLibrary = elementEnvironment.mainLibrary;
   FunctionEntity element =

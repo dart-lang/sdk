@@ -26,11 +26,11 @@ import 'types/types.dart'
 import 'universe/world_builder.dart' show CodegenWorldBuilder;
 import 'universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitorImpl;
-import 'world.dart' show ClosedWorld;
+import 'world.dart' show JClosedWorld;
 
 class ElementInfoCollector {
   final Compiler compiler;
-  final ClosedWorld closedWorld;
+  final JClosedWorld closedWorld;
 
   ElementEnvironment get environment => closedWorld.elementEnvironment;
   CodegenWorldBuilder get codegenWorldBuilder => compiler.codegenWorldBuilder;
@@ -455,7 +455,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   /// Returns an iterable of [Selection]s that are used by [entity]. Each
   /// [Selection] contains an entity that is used and the selector that
   /// selected the entity.
-  Iterable<Selection> getRetaining(Entity entity, ClosedWorld closedWorld) {
+  Iterable<Selection> getRetaining(Entity entity, JClosedWorld closedWorld) {
     WorldImpact impact = impacts[entity];
     if (impact == null) return const <Selection>[];
 
@@ -540,7 +540,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     return sb.toString();
   }
 
-  void dumpInfo(ClosedWorld closedWorld) {
+  void dumpInfo(JClosedWorld closedWorld) {
     measure(() {
       infoCollector = new ElementInfoCollector(compiler, closedWorld)..run();
       StringBuffer jsonBuffer = new StringBuffer();
@@ -554,7 +554,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     });
   }
 
-  void dumpInfoJson(StringSink buffer, ClosedWorld closedWorld) {
+  void dumpInfoJson(StringSink buffer, JClosedWorld closedWorld) {
     JsonEncoder encoder = const JsonEncoder.withIndent('  ');
     Stopwatch stopwatch = new Stopwatch();
     stopwatch.start();

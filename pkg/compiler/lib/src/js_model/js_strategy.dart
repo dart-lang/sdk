@@ -69,7 +69,7 @@ class JsBackendStrategy implements KernelBackendStrategy {
   GlobalLocalsMap get globalLocalsMapForTesting => _globalLocalsMap;
 
   @override
-  ClosedWorldRefiner createClosedWorldRefiner(KClosedWorld closedWorld) {
+  JClosedWorld createJClosedWorld(KClosedWorld closedWorld) {
     KernelFrontEndStrategy strategy = _compiler.frontendStrategy;
     _elementMap = new JsKernelToElementMap(
         _compiler.reporter,
@@ -191,14 +191,14 @@ class JsBackendStrategy implements KernelBackendStrategy {
   }
 
   @override
-  WorkItemBuilder createCodegenWorkItemBuilder(ClosedWorld closedWorld) {
+  WorkItemBuilder createCodegenWorkItemBuilder(JClosedWorld closedWorld) {
     return new KernelCodegenWorkItemBuilder(_compiler.backend, closedWorld);
   }
 
   @override
   CodegenWorldBuilder createCodegenWorldBuilder(
       NativeBasicData nativeBasicData,
-      ClosedWorld closedWorld,
+      JClosedWorld closedWorld,
       SelectorConstraintsStrategy selectorConstraintsStrategy) {
     return new KernelCodegenWorldBuilder(
         elementMap,
@@ -215,10 +215,10 @@ class JsBackendStrategy implements KernelBackendStrategy {
   }
 
   @override
-  TypesInferrer createTypesInferrer(ClosedWorldRefiner closedWorldRefiner,
+  TypesInferrer createTypesInferrer(JClosedWorld closedWorld,
       {bool disableTypeInference: false}) {
     return new KernelTypeGraphInferrer(_compiler, _elementMap, _globalLocalsMap,
-        _closureDataLookup, closedWorldRefiner.closedWorld, closedWorldRefiner,
+        _closureDataLookup, closedWorld,
         disableTypeInference: disableTypeInference);
   }
 }
@@ -649,9 +649,6 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
             abstractValueStrategy) {
     _abstractValueDomain = abstractValueStrategy.createDomain(this);
   }
-
-  @override
-  ClosedWorld get closedWorld => this;
 
   @override
   AbstractValueDomain get abstractValueDomain {

@@ -229,7 +229,7 @@ checkTest(Compiler compiler, NoSuchMethodTest test) {
   NoSuchMethodResolver resolver = registry.internalResolverForTesting;
   FunctionEntity ObjectNSM = frontendEnvironment.lookupClassMember(
       compiler.frontendStrategy.commonElements.objectClass, 'noSuchMethod');
-  ClosedWorld backendClosedWorld = compiler.backendClosedWorldForTesting;
+  JClosedWorld backendClosedWorld = compiler.backendClosedWorldForTesting;
   ElementEnvironment backendEnvironment = backendClosedWorld.elementEnvironment;
   NoSuchMethodDataImpl data = backendClosedWorld.noSuchMethodData;
 

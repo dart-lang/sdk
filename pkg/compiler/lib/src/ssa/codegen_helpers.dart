@@ -9,7 +9,7 @@ import '../js_backend/interceptor_data.dart';
 import '../options.dart';
 import '../types/abstract_value_domain.dart';
 import '../universe/selector.dart' show Selector;
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show JClosedWorld;
 import 'nodes.dart';
 
 /**
@@ -17,7 +17,7 @@ import 'nodes.dart';
  * Caches codegen information on nodes.
  */
 class SsaInstructionSelection extends HBaseVisitor {
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
   final InterceptorData _interceptorData;
   HGraph graph;
 

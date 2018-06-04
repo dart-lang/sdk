@@ -418,7 +418,7 @@ abstract class KernelToTypeInferenceMap {
 
   /// Returns the returned type annotation in the [nativeBehavior].
   AbstractValue typeFromNativeBehavior(
-      native.NativeBehavior nativeBehavior, ClosedWorld closedWorld);
+      native.NativeBehavior nativeBehavior, JClosedWorld closedWorld);
 }
 
 /// Map from kernel IR nodes to local entities.

@@ -15,7 +15,7 @@ import '../elements/types.dart';
 import '../types/abstract_value_domain.dart';
 import '../universe/selector.dart' show Selector;
 import '../util/util.dart' show ImmutableEmptySet, Setlet;
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show JClosedWorld;
 import 'debug.dart' as debug;
 import 'locals_handler.dart' show ArgumentsTypes;
 import 'inferrer_engine.dart';
@@ -770,8 +770,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
       giveUp(inferrer);
       return safeType(inferrer);
     }
-    if (inferrer.closedWorldRefiner
-        .getCurrentlyKnownMightBePassedToApply(_method)) {
+    if (inferrer.closedWorld.getCurrentlyKnownMightBePassedToApply(_method)) {
       giveUp(inferrer);
       return safeType(inferrer);
     }
@@ -1081,7 +1080,7 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
    */
   TypeInformation handleIntrisifiedSelector(
       Selector selector, AbstractValue mask, InferrerEngine inferrer) {
-    ClosedWorld closedWorld = inferrer.closedWorld;
+    JClosedWorld closedWorld = inferrer.closedWorld;
     if (mask == null) return null;
     if (!inferrer.abstractValueDomain.isIntegerOrNull(mask)) {
       return null;
@@ -1177,7 +1176,7 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
   }
 
   AbstractValue computeType(InferrerEngine inferrer) {
-    ClosedWorld closedWorld = inferrer.closedWorld;
+    JClosedWorld closedWorld = inferrer.closedWorld;
     AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
     Iterable<MemberEntity> oldTargets = _concreteTargets;
     AbstractValue typeMask = computeTypedSelector(inferrer);
@@ -2009,7 +2008,7 @@ abstract class TypeInformationVisitor<T> {
 }
 
 AbstractValue _narrowType(
-    ClosedWorld closedWorld, AbstractValue type, DartType annotation,
+    JClosedWorld closedWorld, AbstractValue type, DartType annotation,
     {bool isNullable: true}) {
   AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
   AbstractValue otherType;

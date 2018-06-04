@@ -43,7 +43,7 @@ abstract class KernelBackendStrategy implements BackendStrategy {
 
 class KernelCodegenWorkItemBuilder implements WorkItemBuilder {
   final JavaScriptBackend _backend;
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
 
   KernelCodegenWorkItemBuilder(this._backend, this._closedWorld);
 
@@ -67,7 +67,7 @@ class KernelCodegenWorkItemBuilder implements WorkItemBuilder {
 
 class KernelCodegenWorkItem extends CodegenWorkItem {
   final JavaScriptBackend _backend;
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
   final MemberEntity element;
   final CodegenRegistry registry;
 
@@ -92,7 +92,7 @@ class KernelSsaBuilder implements SsaBuilder {
       this.task, this._compiler, this._elementMap, this._globalLocalsMap);
 
   @override
-  HGraph build(CodegenWorkItem work, ClosedWorld closedWorld) {
+  HGraph build(CodegenWorkItem work, JClosedWorld closedWorld) {
     return task.measure(() {
       KernelSsaGraphBuilder builder = new KernelSsaGraphBuilder(
           work.element,
@@ -193,7 +193,7 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
   }
 
   AbstractValue typeFromNativeBehavior(
-      NativeBehavior nativeBehavior, ClosedWorld closedWorld) {
+      NativeBehavior nativeBehavior, JClosedWorld closedWorld) {
     return AbstractValueFactory.fromNativeBehavior(nativeBehavior, closedWorld);
   }
 }

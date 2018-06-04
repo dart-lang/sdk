@@ -6,17 +6,12 @@ import 'common/tasks.dart' show CompilerTask, Measurer;
 import 'common.dart';
 import 'elements/entities.dart';
 import 'elements/types.dart';
-import 'world.dart' show ClosedWorldRefiner;
 
 // TODO(johnniwinther,efortuna): Split [ClosureConversionTask] from
 // [ClosureDataLookup].
 abstract class ClosureConversionTask<T> extends CompilerTask
     implements ClosureDataLookup<T> {
   ClosureConversionTask(Measurer measurer) : super(measurer);
-
-  //void analyzeClosures();
-  void convertClosures(Iterable<MemberEntity> processedEntities,
-      ClosedWorldRefiner closedWorldRefiner);
 }
 
 /// Class that provides information for how closures are rewritten/represented

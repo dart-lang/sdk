@@ -23,7 +23,7 @@ class Collector {
   final NativeData _nativeData;
   final InterceptorData _interceptorData;
   final OneShotInterceptorData _oneShotInterceptorData;
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
   final Set<ClassEntity> _rtiNeededClasses;
   final Map<MemberEntity, js.Expression> _generatedCode;
   final Sorter _sorter;

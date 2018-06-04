@@ -45,7 +45,7 @@ runTest(List<String> options, {bool trust: true}) async {
       memorySourceFiles: {'main.dart': source}, options: options);
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler;
-  ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+  JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
   AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   LibraryEntity helperLibrary =

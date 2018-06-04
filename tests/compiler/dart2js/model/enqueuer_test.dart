@@ -260,7 +260,7 @@ main() {}
   };
   compiler.onCodegenQueueEmptyForTesting = () {
     Enqueuer enqueuer = compiler.enqueuer.codegenEnqueuerForTesting;
-    ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     ElementEnvironment elementEnvironment =
         compiler.backendClosedWorldForTesting.elementEnvironment;
     checkInvariant(enqueuer, elementEnvironment);

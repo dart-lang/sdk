@@ -26,31 +26,31 @@ abstract class ForwardingTypeMask implements TypeMask {
   bool get isValue => false;
   bool get isForwarding => true;
 
-  bool isInMask(TypeMask other, ClosedWorld closedWorld) {
+  bool isInMask(TypeMask other, JClosedWorld closedWorld) {
     return forwardTo.isInMask(other, closedWorld);
   }
 
-  bool containsMask(TypeMask other, ClosedWorld closedWorld) {
+  bool containsMask(TypeMask other, JClosedWorld closedWorld) {
     return forwardTo.containsMask(other, closedWorld);
   }
 
-  bool containsOnlyInt(ClosedWorld closedWorld) {
+  bool containsOnlyInt(JClosedWorld closedWorld) {
     return forwardTo.containsOnlyInt(closedWorld);
   }
 
-  bool containsOnlyDouble(ClosedWorld closedWorld) {
+  bool containsOnlyDouble(JClosedWorld closedWorld) {
     return forwardTo.containsOnlyDouble(closedWorld);
   }
 
-  bool containsOnlyNum(ClosedWorld closedWorld) {
+  bool containsOnlyNum(JClosedWorld closedWorld) {
     return forwardTo.containsOnlyNum(closedWorld);
   }
 
-  bool containsOnlyBool(ClosedWorld closedWorld) {
+  bool containsOnlyBool(JClosedWorld closedWorld) {
     return forwardTo.containsOnlyBool(closedWorld);
   }
 
-  bool containsOnlyString(ClosedWorld closedWorld) {
+  bool containsOnlyString(JClosedWorld closedWorld) {
     return forwardTo.containsOnlyString(closedWorld);
   }
 
@@ -58,23 +58,23 @@ abstract class ForwardingTypeMask implements TypeMask {
     return forwardTo.containsOnly(cls);
   }
 
-  bool satisfies(ClassEntity cls, ClosedWorld closedWorld) {
+  bool satisfies(ClassEntity cls, JClosedWorld closedWorld) {
     return forwardTo.satisfies(cls, closedWorld);
   }
 
-  bool contains(ClassEntity cls, ClosedWorld closedWorld) {
+  bool contains(ClassEntity cls, JClosedWorld closedWorld) {
     return forwardTo.contains(cls, closedWorld);
   }
 
-  bool containsAll(ClosedWorld closedWorld) {
+  bool containsAll(JClosedWorld closedWorld) {
     return forwardTo.containsAll(closedWorld);
   }
 
-  ClassEntity singleClass(ClosedWorld closedWorld) {
+  ClassEntity singleClass(JClosedWorld closedWorld) {
     return forwardTo.singleClass(closedWorld);
   }
 
-  TypeMask union(other, ClosedWorld closedWorld) {
+  TypeMask union(other, JClosedWorld closedWorld) {
     if (this == other) {
       return this;
     } else if (equalsDisregardNull(other)) {
@@ -85,25 +85,25 @@ abstract class ForwardingTypeMask implements TypeMask {
     return forwardTo.union(other, closedWorld);
   }
 
-  bool isDisjoint(TypeMask other, ClosedWorld closedWorld) {
+  bool isDisjoint(TypeMask other, JClosedWorld closedWorld) {
     return forwardTo.isDisjoint(other, closedWorld);
   }
 
-  TypeMask intersection(TypeMask other, ClosedWorld closedWorld) {
+  TypeMask intersection(TypeMask other, JClosedWorld closedWorld) {
     return forwardTo.intersection(other, closedWorld);
   }
 
   bool needsNoSuchMethodHandling(
-      Selector selector, covariant ClosedWorld closedWorld) {
+      Selector selector, covariant JClosedWorld closedWorld) {
     return forwardTo.needsNoSuchMethodHandling(selector, closedWorld);
   }
 
   bool canHit(
-      MemberEntity element, Selector selector, ClosedWorld closedWorld) {
+      MemberEntity element, Selector selector, JClosedWorld closedWorld) {
     return forwardTo.canHit(element, selector, closedWorld);
   }
 
-  MemberEntity locateSingleMember(Selector selector, ClosedWorld closedWorld) {
+  MemberEntity locateSingleMember(Selector selector, JClosedWorld closedWorld) {
     return forwardTo.locateSingleMember(selector, closedWorld);
   }
 

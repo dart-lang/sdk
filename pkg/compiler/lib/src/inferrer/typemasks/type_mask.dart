@@ -12,7 +12,7 @@ class IncreasingTypeMaskSet extends UniverseSelectorConstraints {
   Set<TypeMask> _masks;
 
   @override
-  bool applies(MemberEntity element, Selector selector, ClosedWorld world) {
+  bool applies(MemberEntity element, Selector selector, JClosedWorld world) {
     if (isAll) return true;
     if (_masks == null) return false;
     for (TypeMask mask in _masks) {
@@ -22,7 +22,7 @@ class IncreasingTypeMaskSet extends UniverseSelectorConstraints {
   }
 
   @override
-  bool needsNoSuchMethodHandling(Selector selector, ClosedWorld world) {
+  bool needsNoSuchMethodHandling(Selector selector, JClosedWorld world) {
     if (isAll) {
       TypeMask mask =
           new TypeMask.subclass(world.commonElements.objectClass, world);
@@ -63,7 +63,7 @@ class TypeMaskStrategy implements AbstractValueStrategy {
   const TypeMaskStrategy();
 
   @override
-  AbstractValueDomain createDomain(ClosedWorld closedWorld) {
+  AbstractValueDomain createDomain(JClosedWorld closedWorld) {
     return new CommonMasks(closedWorld);
   }
 
@@ -82,8 +82,8 @@ class TypeMaskSelectorStrategy implements SelectorConstraintsStrategy {
   }
 
   @override
-  bool appliedUnnamed(
-      DynamicUse dynamicUse, MemberEntity member, covariant ClosedWorld world) {
+  bool appliedUnnamed(DynamicUse dynamicUse, MemberEntity member,
+      covariant JClosedWorld world) {
     Selector selector = dynamicUse.selector;
     TypeMask mask = dynamicUse.receiverConstraint;
     return selector.appliesUnnamed(member) &&
@@ -98,14 +98,14 @@ class TypeMaskSelectorStrategy implements SelectorConstraintsStrategy {
  */
 abstract class TypeMask implements AbstractValue {
   factory TypeMask(
-      ClassEntity base, int kind, bool isNullable, ClosedWorld closedWorld) {
+      ClassEntity base, int kind, bool isNullable, JClosedWorld closedWorld) {
     return new FlatTypeMask.normalized(
         base, (kind << 1) | (isNullable ? 1 : 0), closedWorld);
   }
 
   const factory TypeMask.empty() = FlatTypeMask.empty;
 
-  factory TypeMask.exact(ClassEntity base, ClosedWorld closedWorld) {
+  factory TypeMask.exact(ClassEntity base, JClosedWorld closedWorld) {
     assert(
         closedWorld.isInstantiated(base),
         failedAt(
@@ -115,12 +115,12 @@ abstract class TypeMask implements AbstractValue {
     return new FlatTypeMask.exact(base);
   }
 
-  factory TypeMask.exactOrEmpty(ClassEntity base, ClosedWorld closedWorld) {
+  factory TypeMask.exactOrEmpty(ClassEntity base, JClosedWorld closedWorld) {
     if (closedWorld.isInstantiated(base)) return new FlatTypeMask.exact(base);
     return const TypeMask.empty();
   }
 
-  factory TypeMask.subclass(ClassEntity base, ClosedWorld closedWorld) {
+  factory TypeMask.subclass(ClassEntity base, JClosedWorld closedWorld) {
     assert(
         closedWorld.isInstantiated(base),
         failedAt(
@@ -137,7 +137,7 @@ abstract class TypeMask implements AbstractValue {
     }
   }
 
-  factory TypeMask.subtype(ClassEntity base, ClosedWorld closedWorld) {
+  factory TypeMask.subtype(ClassEntity base, JClosedWorld closedWorld) {
     ClassEntity topmost = closedWorld.getLubOfInstantiatedSubtypes(base);
     if (topmost == null) {
       return new TypeMask.empty();
@@ -154,7 +154,7 @@ abstract class TypeMask implements AbstractValue {
 
   const factory TypeMask.nonNullEmpty() = FlatTypeMask.nonNullEmpty;
 
-  factory TypeMask.nonNullExact(ClassEntity base, ClosedWorld closedWorld) {
+  factory TypeMask.nonNullExact(ClassEntity base, JClosedWorld closedWorld) {
     assert(
         closedWorld.isInstantiated(base),
         failedAt(
@@ -165,14 +165,14 @@ abstract class TypeMask implements AbstractValue {
   }
 
   factory TypeMask.nonNullExactOrEmpty(
-      ClassEntity base, ClosedWorld closedWorld) {
+      ClassEntity base, JClosedWorld closedWorld) {
     if (closedWorld.isInstantiated(base)) {
       return new FlatTypeMask.nonNullExact(base);
     }
     return const TypeMask.nonNullEmpty();
   }
 
-  factory TypeMask.nonNullSubclass(ClassEntity base, ClosedWorld closedWorld) {
+  factory TypeMask.nonNullSubclass(ClassEntity base, JClosedWorld closedWorld) {
     assert(
         closedWorld.isInstantiated(base),
         failedAt(
@@ -189,7 +189,7 @@ abstract class TypeMask implements AbstractValue {
     }
   }
 
-  factory TypeMask.nonNullSubtype(ClassEntity base, ClosedWorld closedWorld) {
+  factory TypeMask.nonNullSubtype(ClassEntity base, JClosedWorld closedWorld) {
     ClassEntity topmost = closedWorld.getLubOfInstantiatedSubtypes(base);
     if (topmost == null) {
       return new TypeMask.nonNullEmpty();
@@ -204,7 +204,7 @@ abstract class TypeMask implements AbstractValue {
     }
   }
 
-  factory TypeMask.unionOf(Iterable<TypeMask> masks, ClosedWorld closedWorld) {
+  factory TypeMask.unionOf(Iterable<TypeMask> masks, JClosedWorld closedWorld) {
     return UnionTypeMask.unionOf(masks, closedWorld);
   }
 
@@ -226,14 +226,15 @@ abstract class TypeMask implements AbstractValue {
    * subclasses exist. We also normalize exact to empty if the corresponding
    * baseclass was never instantiated.
    */
-  static bool assertIsNormalized(TypeMask mask, ClosedWorld closedWorld) {
+  static bool assertIsNormalized(TypeMask mask, JClosedWorld closedWorld) {
     String reason = getNotNormalizedReason(mask, closedWorld);
     assert(reason == null,
         failedAt(NO_LOCATION_SPANNABLE, '$mask is not normalized: $reason'));
     return true;
   }
 
-  static String getNotNormalizedReason(TypeMask mask, ClosedWorld closedWorld) {
+  static String getNotNormalizedReason(
+      TypeMask mask, JClosedWorld closedWorld) {
     mask = nonForwardingMask(mask);
     if (mask is FlatTypeMask) {
       if (mask.isEmptyOrNull) return null;
@@ -316,11 +317,11 @@ abstract class TypeMask implements AbstractValue {
   /// Returns `true` if this mask holds encodes an exact value within a type.
   bool get isValue;
 
-  bool containsOnlyInt(ClosedWorld closedWorld);
-  bool containsOnlyDouble(ClosedWorld closedWorld);
-  bool containsOnlyNum(ClosedWorld closedWorld);
-  bool containsOnlyBool(ClosedWorld closedWorld);
-  bool containsOnlyString(ClosedWorld closedWorld);
+  bool containsOnlyInt(JClosedWorld closedWorld);
+  bool containsOnlyDouble(JClosedWorld closedWorld);
+  bool containsOnlyNum(JClosedWorld closedWorld);
+  bool containsOnlyBool(JClosedWorld closedWorld);
+  bool containsOnlyString(JClosedWorld closedWorld);
   bool containsOnly(ClassEntity cls);
 
   /**
@@ -337,7 +338,7 @@ abstract class TypeMask implements AbstractValue {
    * Enable [UnionTypeMask.PERFORM_EXTRA_CONTAINS_CHECK] to be notified of
    * false negatives.
    */
-  bool isInMask(TypeMask other, ClosedWorld closedWorld);
+  bool isInMask(TypeMask other, JClosedWorld closedWorld);
 
   /**
    * If this returns `true`, [other] is guaranteed to be a subtype of this mask,
@@ -345,52 +346,53 @@ abstract class TypeMask implements AbstractValue {
    * Enable [UnionTypeMask.PERFORM_EXTRA_CONTAINS_CHECK] to be notified of
    * false negatives.
    */
-  bool containsMask(TypeMask other, ClosedWorld closedWorld);
+  bool containsMask(TypeMask other, JClosedWorld closedWorld);
 
   /**
    * Returns whether this type mask is an instance of [cls].
    */
-  bool satisfies(ClassEntity cls, ClosedWorld closedWorld);
+  bool satisfies(ClassEntity cls, JClosedWorld closedWorld);
 
   /**
    * Returns whether or not this type mask contains the given class [cls].
    */
-  bool contains(ClassEntity cls, ClosedWorld closedWorld);
+  bool contains(ClassEntity cls, JClosedWorld closedWorld);
 
   /// Returns whether or not this type mask contains all types.
-  bool containsAll(ClosedWorld closedWorld);
+  bool containsAll(JClosedWorld closedWorld);
 
   /// Returns the [ClassEntity] if this type represents a single class,
   /// otherwise returns `null`.  This method is conservative.
-  ClassEntity singleClass(ClosedWorld closedWorld);
+  ClassEntity singleClass(JClosedWorld closedWorld);
 
   /**
    * Returns a type mask representing the union of [this] and [other].
    */
-  TypeMask union(TypeMask other, ClosedWorld closedWorld);
+  TypeMask union(TypeMask other, JClosedWorld closedWorld);
 
   /// Returns whether the intersection of this and [other] is empty.
-  bool isDisjoint(TypeMask other, ClosedWorld closedWorld);
+  bool isDisjoint(TypeMask other, JClosedWorld closedWorld);
 
   /**
    * Returns a type mask representing the intersection of [this] and [other].
    */
-  TypeMask intersection(TypeMask other, ClosedWorld closedWorld);
+  TypeMask intersection(TypeMask other, JClosedWorld closedWorld);
 
   /**
    * Returns whether [element] is a potential target when being
    * invoked on this type mask. [selector] is used to ensure library
    * privacy is taken into account.
    */
-  bool canHit(MemberEntity element, Selector selector, ClosedWorld closedWorld);
+  bool canHit(
+      MemberEntity element, Selector selector, JClosedWorld closedWorld);
 
   /// Returns whether this [TypeMask] applied to [selector] can hit a
   /// [noSuchMethod].
-  bool needsNoSuchMethodHandling(Selector selector, ClosedWorld world);
+  bool needsNoSuchMethodHandling(Selector selector, JClosedWorld world);
 
   /**
    * Returns the [element] that is known to always be hit at runtime
    * on this mask. Returns null if there is none.
    */
-  MemberEntity locateSingleMember(Selector selector, ClosedWorld closedWorld);
+  MemberEntity locateSingleMember(Selector selector, JClosedWorld closedWorld);
 }

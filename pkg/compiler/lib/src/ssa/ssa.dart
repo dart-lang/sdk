@@ -13,7 +13,7 @@ import '../js/js.dart' as js;
 import '../js_backend/backend.dart' show JavaScriptBackend, FunctionCompiler;
 import '../universe/call_structure.dart';
 import '../universe/use.dart';
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show JClosedWorld;
 
 import 'codegen.dart';
 import 'nodes.dart';
@@ -38,7 +38,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
 
   /// Generates JavaScript code for `work.element`.
   /// Using the ssa builder, optimizer and codegenerator.
-  js.Fun compile(CodegenWorkItem work, ClosedWorld closedWorld) {
+  js.Fun compile(CodegenWorkItem work, JClosedWorld closedWorld) {
     HGraph graph = _builder.build(work, closedWorld);
     if (graph == null) return null;
     optimizer.optimize(work, graph, closedWorld);
@@ -68,7 +68,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
 abstract class SsaBuilder {
   /// Creates the [HGraph] for [work] or returns `null` if no code is needed
   /// for [work].
-  HGraph build(CodegenWorkItem work, ClosedWorld closedWorld);
+  HGraph build(CodegenWorkItem work, JClosedWorld closedWorld);
 }
 
 class SsaBuilderTask extends CompilerTask {
@@ -88,7 +88,7 @@ class SsaBuilderTask extends CompilerTask {
 
   /// Creates the [HGraph] for [work] or returns `null` if no code is needed
   /// for [work].
-  HGraph build(CodegenWorkItem work, ClosedWorld closedWorld) {
+  HGraph build(CodegenWorkItem work, JClosedWorld closedWorld) {
     return _builder.build(work, closedWorld);
   }
 }
@@ -105,8 +105,8 @@ abstract class SsaBuilderFieldMixin {
   ///
   /// If the field is constant, no code is needed for the field and the method
   /// returns `true`.
-  bool handleConstantField(
-      MemberEntity element, CodegenRegistry registry, ClosedWorld closedWorld) {
+  bool handleConstantField(MemberEntity element, CodegenRegistry registry,
+      JClosedWorld closedWorld) {
     if (element.isField) {
       ConstantValue initialValue = getFieldInitialConstantValue(element);
       if (initialValue != null) {

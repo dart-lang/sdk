@@ -19,7 +19,7 @@ class UnionTypeMask implements TypeMask {
     assert(disjointMasks.every((TypeMask mask) => !mask.isUnion));
   }
 
-  static TypeMask unionOf(Iterable<TypeMask> masks, ClosedWorld closedWorld) {
+  static TypeMask unionOf(Iterable<TypeMask> masks, JClosedWorld closedWorld) {
     assert(
         masks.every((mask) => TypeMask.assertIsNormalized(mask, closedWorld)));
     List<FlatTypeMask> disjoint = <FlatTypeMask>[];
@@ -35,7 +35,7 @@ class UnionTypeMask implements TypeMask {
   }
 
   static void unionOfHelper(Iterable<TypeMask> masks,
-      List<FlatTypeMask> disjoint, ClosedWorld closedWorld) {
+      List<FlatTypeMask> disjoint, JClosedWorld closedWorld) {
     // TODO(johnniwinther): Impose an order on the mask to ensure subclass masks
     // are preferred to subtype masks.
     for (TypeMask mask in masks) {
@@ -87,7 +87,7 @@ class UnionTypeMask implements TypeMask {
     }
   }
 
-  static TypeMask flatten(List<FlatTypeMask> masks, ClosedWorld closedWorld) {
+  static TypeMask flatten(List<FlatTypeMask> masks, JClosedWorld closedWorld) {
     // TODO(johnniwinther): Move this computation to [ClosedWorld] and use the
     // class set structures.
     assert(masks.length > 1);
@@ -137,7 +137,7 @@ class UnionTypeMask implements TypeMask {
     return new TypeMask(bestElement, bestKind, isNullable, closedWorld);
   }
 
-  TypeMask union(dynamic other, ClosedWorld closedWorld) {
+  TypeMask union(dynamic other, JClosedWorld closedWorld) {
     other = TypeMask.nonForwardingMask(other);
     if (!other.isUnion && disjointMasks.contains(other)) return this;
 
@@ -151,7 +151,7 @@ class UnionTypeMask implements TypeMask {
     return new TypeMask.unionOf(newList, closedWorld);
   }
 
-  TypeMask intersection(dynamic other, ClosedWorld closedWorld) {
+  TypeMask intersection(dynamic other, JClosedWorld closedWorld) {
     other = TypeMask.nonForwardingMask(other);
     if (!other.isUnion && disjointMasks.contains(other)) return other;
     if (other.isUnion && this == other) return this;
@@ -173,7 +173,7 @@ class UnionTypeMask implements TypeMask {
     return new TypeMask.unionOf(intersections, closedWorld);
   }
 
-  bool isDisjoint(TypeMask other, ClosedWorld closedWorld) {
+  bool isDisjoint(TypeMask other, JClosedWorld closedWorld) {
     for (var current in disjointMasks) {
       if (!current.isDisjoint(other, closedWorld)) return false;
     }
@@ -216,7 +216,7 @@ class UnionTypeMask implements TypeMask {
    * - the cheap test matching against individual members of [disjointMasks]
    *   must have failed.
    */
-  bool slowContainsCheck(TypeMask other, ClosedWorld closedWorld) {
+  bool slowContainsCheck(TypeMask other, JClosedWorld closedWorld) {
     // Unions should never make it here.
     assert(!other.isUnion);
     // Ensure the cheap test fails.
@@ -245,7 +245,7 @@ class UnionTypeMask implements TypeMask {
     return members.every((ClassEntity cls) => this.contains(cls, closedWorld));
   }
 
-  bool isInMask(TypeMask other, ClosedWorld closedWorld) {
+  bool isInMask(TypeMask other, JClosedWorld closedWorld) {
     other = TypeMask.nonForwardingMask(other);
     if (isNullable && !other.isNullable) return false;
     if (other.isUnion) {
@@ -273,7 +273,7 @@ class UnionTypeMask implements TypeMask {
     return disjointMasks.every((mask) => mask.isInMask(other, closedWorld));
   }
 
-  bool containsMask(TypeMask other, ClosedWorld closedWorld) {
+  bool containsMask(TypeMask other, JClosedWorld closedWorld) {
     other = TypeMask.nonForwardingMask(other);
     if (other.isNullable && !isNullable) return false;
     if (other.isUnion) return other.isInMask(this, closedWorld);
@@ -288,25 +288,25 @@ class UnionTypeMask implements TypeMask {
     return contained;
   }
 
-  bool containsOnlyInt(ClosedWorld closedWorld) {
+  bool containsOnlyInt(JClosedWorld closedWorld) {
     return disjointMasks.every((mask) => mask.containsOnlyInt(closedWorld));
   }
 
-  bool containsOnlyDouble(ClosedWorld closedWorld) {
+  bool containsOnlyDouble(JClosedWorld closedWorld) {
     return disjointMasks.every((mask) => mask.containsOnlyDouble(closedWorld));
   }
 
-  bool containsOnlyNum(ClosedWorld closedWorld) {
+  bool containsOnlyNum(JClosedWorld closedWorld) {
     return disjointMasks.every((mask) {
       return mask.containsOnlyNum(closedWorld);
     });
   }
 
-  bool containsOnlyBool(ClosedWorld closedWorld) {
+  bool containsOnlyBool(JClosedWorld closedWorld) {
     return disjointMasks.every((mask) => mask.containsOnlyBool(closedWorld));
   }
 
-  bool containsOnlyString(ClosedWorld closedWorld) {
+  bool containsOnlyString(JClosedWorld closedWorld) {
     return disjointMasks.every((mask) => mask.containsOnlyString(closedWorld));
   }
 
@@ -314,31 +314,31 @@ class UnionTypeMask implements TypeMask {
     return disjointMasks.every((mask) => mask.containsOnly(element));
   }
 
-  bool satisfies(ClassEntity cls, ClosedWorld closedWorld) {
+  bool satisfies(ClassEntity cls, JClosedWorld closedWorld) {
     return disjointMasks.every((mask) => mask.satisfies(cls, closedWorld));
   }
 
-  bool contains(ClassEntity cls, ClosedWorld closedWorld) {
+  bool contains(ClassEntity cls, JClosedWorld closedWorld) {
     return disjointMasks.any((e) => e.contains(cls, closedWorld));
   }
 
-  bool containsAll(ClosedWorld closedWorld) {
+  bool containsAll(JClosedWorld closedWorld) {
     return disjointMasks.any((mask) => mask.containsAll(closedWorld));
   }
 
-  ClassEntity singleClass(ClosedWorld closedWorld) => null;
+  ClassEntity singleClass(JClosedWorld closedWorld) => null;
 
-  bool needsNoSuchMethodHandling(Selector selector, ClosedWorld closedWorld) {
+  bool needsNoSuchMethodHandling(Selector selector, JClosedWorld closedWorld) {
     return disjointMasks
         .any((e) => e.needsNoSuchMethodHandling(selector, closedWorld));
   }
 
   bool canHit(
-      MemberEntity element, Selector selector, ClosedWorld closedWorld) {
+      MemberEntity element, Selector selector, JClosedWorld closedWorld) {
     return disjointMasks.any((e) => e.canHit(element, selector, closedWorld));
   }
 
-  MemberEntity locateSingleMember(Selector selector, ClosedWorld closedWorld) {
+  MemberEntity locateSingleMember(Selector selector, JClosedWorld closedWorld) {
     MemberEntity candidate;
     for (FlatTypeMask mask in disjointMasks) {
       MemberEntity current = mask.locateSingleMember(selector, closedWorld);

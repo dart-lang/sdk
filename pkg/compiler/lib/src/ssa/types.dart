@@ -8,7 +8,7 @@ import '../native/native.dart' as native;
 import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show JClosedWorld;
 
 class AbstractValueFactory {
   static AbstractValue inferredReturnTypeForElement(
@@ -36,7 +36,7 @@ class AbstractValueFactory {
   }
 
   static AbstractValue fromNativeBehavior(
-      native.NativeBehavior nativeBehavior, ClosedWorld closedWorld) {
+      native.NativeBehavior nativeBehavior, JClosedWorld closedWorld) {
     AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
     var typesReturned = nativeBehavior.typesReturned;
     if (typesReturned.isEmpty) return abstractValueDomain.dynamicType;

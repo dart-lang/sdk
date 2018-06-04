@@ -11,13 +11,13 @@ import '../../js_backend/js_backend.dart' show GetterName, SetterName;
 import '../../universe/selector.dart' show Selector;
 import 'package:front_end/src/fasta/scanner/characters.dart'
     show $$, $A, $HASH, $Z, $a, $z;
-import '../../world.dart' show ClosedWorld;
+import '../../world.dart' show JClosedWorld;
 import '../js_emitter.dart' hide Emitter, EmitterFactory;
 import '../model.dart';
 import 'emitter.dart';
 
 class NsmEmitter extends CodeEmitterHelper {
-  final ClosedWorld closedWorld;
+  final JClosedWorld closedWorld;
   final List<Selector> trivialNsmHandlers = <Selector>[];
 
   NsmEmitter(this.closedWorld);

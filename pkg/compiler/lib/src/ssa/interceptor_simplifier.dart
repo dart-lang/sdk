@@ -8,7 +8,7 @@ import '../elements/entities.dart';
 import '../js_backend/interceptor_data.dart';
 import '../types/abstract_value_domain.dart';
 import '../universe/selector.dart' show Selector;
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show JClosedWorld;
 import 'nodes.dart';
 import 'optimize.dart';
 
@@ -35,7 +35,7 @@ import 'optimize.dart';
 class SsaSimplifyInterceptors extends HBaseVisitor
     implements OptimizationPhase {
   final String name = "SsaSimplifyInterceptors";
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
   final ClassEntity _enclosingClass;
   HGraph _graph;
 

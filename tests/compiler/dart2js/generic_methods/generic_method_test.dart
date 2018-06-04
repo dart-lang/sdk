@@ -182,7 +182,7 @@ main(List<String> args) {
       Flags.strongMode,
       Flags.disableRtiOptimization,
     ], expectedOutput: OUTPUT, printJs: args.contains('-v'));
-    ClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
 
     void checkMethod(String methodName,

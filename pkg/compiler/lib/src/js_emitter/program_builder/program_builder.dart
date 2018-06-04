@@ -36,7 +36,7 @@ import '../../options.dart';
 import '../../universe/selector.dart' show Selector;
 import '../../universe/world_builder.dart'
     show CodegenWorldBuilder, SelectorConstraints;
-import '../../world.dart' show ClosedWorld;
+import '../../world.dart' show JClosedWorld;
 import '../js_emitter.dart'
     show
         ClassStubGenerator,
@@ -82,7 +82,7 @@ class ProgramBuilder {
   final Map<MemberEntity, js.Expression> _generatedCode;
   final Namer _namer;
   final CodeEmitterTask _task;
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
   final SourceInformationStrategy _sourceInformationStrategy;
 
   /// The [Sorter] used for ordering elements in the generated JavaScript.

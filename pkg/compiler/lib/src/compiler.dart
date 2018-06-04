@@ -43,7 +43,7 @@ import 'universe/world_builder.dart'
 import 'universe/use.dart' show StaticUse, TypeUse;
 import 'universe/world_impact.dart'
     show ImpactStrategy, WorldImpact, WorldImpactBuilderImpl;
-import 'world.dart' show ClosedWorld, ClosedWorldRefiner, KClosedWorld;
+import 'world.dart' show JClosedWorld, KClosedWorld;
 
 typedef CompilerDiagnosticReporter MakeReporterFunction(
     Compiler compiler, CompilerOptions options);
@@ -79,7 +79,7 @@ abstract class Compiler {
 
   Uri mainLibraryUri;
 
-  ClosedWorld backendClosedWorldForTesting;
+  JClosedWorld backendClosedWorldForTesting;
 
   DiagnosticReporter get reporter => _reporter;
   Map<Entity, WorldImpact> get impactCache => _impactCache;
@@ -371,15 +371,13 @@ abstract class Compiler {
         if (options.analyzeOnly) return;
         assert(mainFunction != null);
 
-        ClosedWorldRefiner closedWorldRefiner = closeResolution(mainFunction);
-        ClosedWorld closedWorld = closedWorldRefiner.closedWorld;
+        JClosedWorld closedWorld = closeResolution(mainFunction);
         backendClosedWorldForTesting = closedWorld;
         mainFunction = closedWorld.elementEnvironment.mainFunction;
 
         reporter.log('Inferring types...');
-        globalInference.runGlobalTypeInference(
-            mainFunction, closedWorld, closedWorldRefiner);
-        closedWorldRefiner.computeSideEffects();
+        globalInference.runGlobalTypeInference(mainFunction, closedWorld);
+        closedWorld.computeSideEffects();
 
         if (stopAfterTypeInference) return;
 
@@ -409,7 +407,7 @@ abstract class Compiler {
         checkQueues(resolutionEnqueuer, codegenEnqueuer);
       });
 
-  Enqueuer startCodegen(ClosedWorld closedWorld) {
+  Enqueuer startCodegen(JClosedWorld closedWorld) {
     Enqueuer codegenEnqueuer = enqueuer.createCodegenEnqueuer(closedWorld);
     _codegenWorldBuilder = codegenEnqueuer.worldBuilder;
     codegenEnqueuer.applyImpact(backend.onCodegenStart(
@@ -418,23 +416,19 @@ abstract class Compiler {
   }
 
   /// Perform the steps needed to fully end the resolution phase.
-  ClosedWorldRefiner closeResolution(FunctionEntity mainFunction) {
+  JClosedWorld closeResolution(FunctionEntity mainFunction) {
     phase = PHASE_DONE_RESOLVING;
 
     KClosedWorld closedWorld = resolutionWorldBuilder.closeWorld();
     OutputUnitData result = deferredLoadTask.run(mainFunction, closedWorld);
-    ClosedWorldRefiner closedWorldRefiner =
-        backendStrategy.createClosedWorldRefiner(closedWorld);
+    JClosedWorld closedWorldRefiner =
+        backendStrategy.createJClosedWorld(closedWorld);
     // Compute whole-program-knowledge that the backend needs. (This might
     // require the information computed in [world.closeWorld].)
     backend.onResolutionClosedWorld(closedWorldRefiner);
 
     backend.onDeferredLoadComplete(result);
 
-    // TODO(johnniwinther): Move this after rti computation but before
-    // reflection members computation, and (re-)close the world afterwards.
-    backendStrategy.closureDataLookup.convertClosures(
-        enqueuer.resolution.processedEntities, closedWorldRefiner);
     return closedWorldRefiner;
   }
 

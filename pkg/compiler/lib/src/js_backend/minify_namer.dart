@@ -12,7 +12,7 @@ class MinifyNamer extends Namer
         _MinifiedFieldNamer,
         _MinifyConstructorBodyNamer,
         _MinifiedOneShotInterceptorNamer {
-  MinifyNamer(ClosedWorld closedWorld, CodegenWorldBuilder codegenWorldBuilder)
+  MinifyNamer(JClosedWorld closedWorld, CodegenWorldBuilder codegenWorldBuilder)
       : super(closedWorld, codegenWorldBuilder) {
     reserveBackendNames();
     fieldRegistry = new _FieldNamingRegistry(this);

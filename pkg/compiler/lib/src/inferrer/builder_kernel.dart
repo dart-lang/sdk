@@ -36,7 +36,7 @@ import 'type_system.dart';
 /// is doing.
 class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   final CompilerOptions _options;
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
   final ClosureDataLookup<ir.Node> _closureDataLookup;
   final InferrerEngine<ir.Node> _inferrer;
   final TypeSystem<ir.Node> _types;
@@ -81,8 +81,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         // TODO(johnniwinther): Should side effects also be tracked for field
         // initializers?
         this._sideEffectsBuilder = _analyzedMember is FunctionEntity
-            ? _inferrer.closedWorldRefiner
-                .getSideEffectsBuilder(_analyzedMember)
+            ? _inferrer.closedWorld.getSideEffectsBuilder(_analyzedMember)
             : new SideEffectsBuilder.free(_analyzedMember),
         this._inGenerativeConstructor = _analyzedNode is ir.Constructor {
     if (_locals != null) return;

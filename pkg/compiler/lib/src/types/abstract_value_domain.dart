@@ -16,7 +16,7 @@ enum AbstractBool { True, False, Maybe }
 /// inference.
 abstract class AbstractValueStrategy {
   /// Creates the abstract value domain for [closedWorld].
-  AbstractValueDomain createDomain(ClosedWorld closedWorld);
+  AbstractValueDomain createDomain(JClosedWorld closedWorld);
 
   /// Creates the [SelectorConstraintsStrategy] used by the backend enqueuer.
   SelectorConstraintsStrategy createSelectorStrategy();
