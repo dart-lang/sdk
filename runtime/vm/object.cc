@@ -5650,7 +5650,7 @@ void Function::AttachBytecode(const Code& value) const {
   // We should not have loaded the bytecode if the function had code.
   ASSERT(!HasCode());
 
-  // Set the code entry_point to to InterpretCall stub.
+  // Set the code entry_point to InterpretCall stub.
   SetInstructions(Code::Handle(StubCode::InterpretCall_entry()->code()));
 }
 
@@ -14881,6 +14881,8 @@ RawCode* Code::FinalizeBytecode(void* bytecode_data,
   code.SetPrologueOffset(bytecode_size);  // TODO(regis): Correct?
   INC_STAT(Thread::Current(), total_code_size,
            code.comments().comments_.Length());
+  // TODO(regis): Until we support exception handling.
+  code.set_exception_handlers(Object::empty_exception_handlers());
   return code.raw();
 }
 #endif  // defined(DART_USE_INTERPRETER)

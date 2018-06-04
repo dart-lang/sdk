@@ -5,6 +5,9 @@
 #ifndef RUNTIME_VM_INTERPRETER_H_
 #define RUNTIME_VM_INTERPRETER_H_
 
+#include "vm/globals.h"
+#if defined(DART_USE_INTERPRETER)
+
 #include "vm/compiler/method_recognizer.h"
 #include "vm/constants_kbc.h"
 
@@ -53,6 +56,14 @@ class Interpreter {
   // native stack.
   uword top_exit_frame_info() const { return top_exit_frame_info_; }
   void set_top_exit_frame_info(uword value) { top_exit_frame_info_ = value; }
+
+  // Returns true if the interpreter's stack contains the given frame.
+  // TODO(regis): Once the interpreter shares the native stack, we may rely on
+  // a new thread vm_tag to identify an interpreter frame and we will not need
+  // this HasFrame() method.
+  bool HasFrame(uword frame) const {
+    return frame >= stack_base() && frame <= get_fp();
+  }
 
   // Call on program start.
   static void InitOnce();
@@ -195,5 +206,7 @@ class Interpreter {
 };
 
 }  // namespace dart
+
+#endif  // defined(DART_USE_INTERPRETER)
 
 #endif  // RUNTIME_VM_INTERPRETER_H_

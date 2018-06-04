@@ -42,7 +42,6 @@ static const int kKBCFirstObjectSlotFromFp = -4;  // Used by GC.
 static const int kKBCLastFixedObjectSlotFromFp = -3;
 
 static const int kKBCSavedCallerFpSlotFromFp = -1;
-static const int kKBCSavedCallerPpSlotFromFp = kKBCSavedCallerFpSlotFromFp;
 static const int kKBCSavedCallerPcSlotFromFp = -2;
 static const int kKBCCallerSpSlotFromFp = -kKBCDartFrameFixedSize - 1;
 static const int kKBCPcMarkerSlotFromFp = -3;

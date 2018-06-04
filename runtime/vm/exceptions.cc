@@ -466,6 +466,15 @@ void Exceptions::JumpToFrame(Thread* thread,
   Simulator::Current()->JumpToFrame(program_counter, stack_pointer,
                                     frame_pointer, thread);
 #else
+#if defined(DART_USE_INTERPRETER)
+  Interpreter* interpreter = thread->isolate()->interpreter();
+  if ((interpreter != NULL) && interpreter->HasFrame(frame_pointer)) {
+    interpreter->JumpToFrame(program_counter, stack_pointer, frame_pointer,
+                             thread);
+  }
+  // TODO(regis): We still possibly need to unwind interpreter frames if they
+  // are callee frames of the C++ frame handling the exception.
+#endif
   // Prepare for unwinding frames by destroying all the stack resources
   // in the previous frames.
   StackResource::Unwind(thread);

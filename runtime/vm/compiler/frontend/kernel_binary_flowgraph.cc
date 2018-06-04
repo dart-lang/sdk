@@ -1007,6 +1007,7 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
   Field& field = Field::Handle(builder_->zone_);
   Class& cls = Class::Handle(builder_->zone_);
   String& name = String::Handle(builder_->zone_);
+  TypeArguments& type_args = TypeArguments::Handle(builder_->zone_);
   const intptr_t obj_count = pool.Length();
   for (intptr_t i = from_index; i < obj_count; ++i) {
     const intptr_t tag = builder_->ReadTag();
@@ -1056,8 +1057,15 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
         }
       } break;
       case ConstantPoolTag::kICData: {
-        StringIndex target = builder_->ReadStringReference();
-        name = H.DartSymbolPlain(target).raw();
+        InvocationKind kind = static_cast<InvocationKind>(builder_->ReadByte());
+        if (kind == InvocationKind::getter) {
+          name = builder_->ReadNameAsGetterName().raw();
+        } else if (kind == InvocationKind::setter) {
+          name = builder_->ReadNameAsSetterName().raw();
+        } else {
+          ASSERT(kind == InvocationKind::method);
+          name = builder_->ReadNameAsMethodName().raw();
+        }
         intptr_t arg_desc_index = builder_->ReadUInt();
         ASSERT(arg_desc_index < i);
         array ^= pool.ObjectAt(arg_desc_index);
@@ -1167,12 +1175,11 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
         cls =
             H.LookupClassByKernelClass(builder_->ReadCanonicalNameReference());
         obj = Instance::New(cls, Heap::kOld);
-        intptr_t elem_index = builder_->ReadUInt();
-        ASSERT(elem_index < i);
-        elem = pool.ObjectAt(elem_index);
-        if (!elem.IsNull()) {
-          ASSERT(elem.IsTypeArguments());
-          Instance::Cast(obj).SetTypeArguments(TypeArguments::Cast(elem));
+        intptr_t type_args_index = builder_->ReadUInt();
+        ASSERT(type_args_index < i);
+        type_args ^= pool.ObjectAt(type_args_index);
+        if (!type_args.IsNull()) {
+          Instance::Cast(obj).SetTypeArguments(type_args);
         }
         intptr_t num_fields = builder_->ReadUInt();
         for (intptr_t j = 0; j < num_fields; j++) {
@@ -1193,12 +1200,10 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
       case kTypeArgumentsForInstanceAllocation: {
         cls =
             H.LookupClassByKernelClass(builder_->ReadCanonicalNameReference());
-        intptr_t elem_index = builder_->ReadUInt();
-        ASSERT(elem_index < i);
-        elem = pool.ObjectAt(elem_index);
-        ASSERT(elem.IsNull() || elem.IsTypeArguments());
-        elem =
-            Type::New(cls, TypeArguments::Cast(elem), TokenPosition::kNoSource);
+        intptr_t type_args_index = builder_->ReadUInt();
+        ASSERT(type_args_index < i);
+        type_args ^= pool.ObjectAt(type_args_index);
+        elem = Type::New(cls, type_args, TokenPosition::kNoSource);
         elem = ClassFinalizer::FinalizeType(cls, Type::Cast(elem));
         obj = Type::Cast(elem).arguments();
       } break;

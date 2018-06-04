@@ -221,7 +221,6 @@ class Thread : public BaseThread {
   void PrepareForGC();
 
   void SetStackLimit(uword value);
-  void SetStackLimitFromStackBase(uword stack_base);
   void ClearStackLimit();
 
   // Access to the current stack limit for generated code.  This may be

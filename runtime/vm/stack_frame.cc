@@ -21,6 +21,9 @@
 namespace dart {
 
 bool StackFrame::IsStubFrame() const {
+  if (is_interpreted()) {
+    return false;
+  }
   ASSERT(!(IsEntryFrame() || IsExitFrame()));
 #if !defined(HOST_OS_WINDOWS) && !defined(HOST_OS_FUCHSIA)
   // On Windows and Fuchsia, the profiler calls this from a separate thread
@@ -116,6 +119,9 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
     map = code.GetStackMap(pc() - start, &maps, &map);
     if (!map.IsNull()) {
 #if !defined(TARGET_ARCH_DBC)
+      if (is_interpreted()) {
+        UNIMPLEMENTED();
+      }
       RawObject** first = reinterpret_cast<RawObject**>(sp());
       RawObject** last = reinterpret_cast<RawObject**>(
           fp() + (kFirstLocalSlotFromFp * kWordSize));
@@ -204,9 +210,10 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 #if !defined(TARGET_ARCH_DBC)
   // For normal unoptimized Dart frames and Stub frames each slot
   // between the first and last included are tagged objects.
-  RawObject** first = reinterpret_cast<RawObject**>(sp());
+  RawObject** first = reinterpret_cast<RawObject**>(
+      is_interpreted() ? fp() + (kKBCFirstObjectSlotFromFp * kWordSize) : sp());
   RawObject** last = reinterpret_cast<RawObject**>(
-      fp() + (kFirstObjectSlotFromFp * kWordSize));
+      is_interpreted() ? sp() : fp() + (kFirstObjectSlotFromFp * kWordSize));
 #else
   // On DBC stack grows upwards: fp() <= sp().
   RawObject** first = reinterpret_cast<RawObject**>(
@@ -250,8 +257,10 @@ RawCode* StackFrame::GetCodeObject() const {
 }
 
 RawCode* StackFrame::UncheckedGetCodeObject() const {
-  return *(
-      reinterpret_cast<RawCode**>(fp() + (kPcMarkerSlotFromFp * kWordSize)));
+  return *(reinterpret_cast<RawCode**>(
+      fp() +
+      ((is_interpreted() ? kKBCPcMarkerSlotFromFp : kPcMarkerSlotFromFp) *
+       kWordSize)));
 }
 
 bool StackFrame::FindExceptionHandler(Thread* thread,
@@ -332,14 +341,23 @@ void StackFrameIterator::SetupLastExitFrameData() {
   ASSERT(thread_ != NULL);
   uword exit_marker = thread_->top_exit_frame_info();
   frames_.fp_ = exit_marker;
+#if defined(DART_USE_INTERPRETER)
+  frames_.CheckIfInterpreted(exit_marker);
+#endif
 }
 
 void StackFrameIterator::SetupNextExitFrameData() {
-  uword exit_address = entry_.fp() + (kExitLinkSlotFromEntryFp * kWordSize);
+  uword exit_address =
+      entry_.fp() + ((entry_.is_interpreted() ? kKBCExitLinkSlotFromEntryFp
+                                              : kExitLinkSlotFromEntryFp) *
+                     kWordSize);
   uword exit_marker = *reinterpret_cast<uword*>(exit_address);
   frames_.fp_ = exit_marker;
   frames_.sp_ = 0;
   frames_.pc_ = 0;
+#if defined(DART_USE_INTERPRETER)
+  frames_.CheckIfInterpreted(exit_marker);
+#endif
 }
 
 // Tell MemorySanitizer that generated code initializes part of the stack.
@@ -379,6 +397,9 @@ StackFrameIterator::StackFrameIterator(uword last_fp,
   frames_.fp_ = last_fp;
   frames_.sp_ = 0;
   frames_.pc_ = 0;
+#if defined(DART_USE_INTERPRETER)
+  frames_.CheckIfInterpreted(last_fp);
+#endif
 }
 
 #if !defined(TARGET_ARCH_DBC)
@@ -399,6 +420,9 @@ StackFrameIterator::StackFrameIterator(uword fp,
   frames_.fp_ = fp;
   frames_.sp_ = sp;
   frames_.pc_ = pc;
+#if defined(DART_USE_INTERPRETER)
+  frames_.CheckIfInterpreted(fp);
+#endif
 }
 #endif
 
@@ -425,8 +449,10 @@ StackFrame* StackFrameIterator::NextFrame() {
       // Iteration starts from an exit frame given by its fp.
       current_frame_ = NextExitFrame();
     } else if (*(reinterpret_cast<uword*>(
-                   frames_.fp_ + (kSavedCallerFpSlotFromFp * kWordSize))) ==
-               0) {
+                   frames_.fp_ +
+                   ((frames_.is_interpreted() ? kKBCSavedCallerFpSlotFromFp
+                                              : kSavedCallerFpSlotFromFp) *
+                    kWordSize))) == 0) {
       // Iteration starts from an entry frame given by its fp, sp, and pc.
       current_frame_ = NextEntryFrame();
     } else {
@@ -462,6 +488,16 @@ StackFrame* StackFrameIterator::NextFrame() {
   return current_frame_;
 }
 
+#if defined(DART_USE_INTERPRETER)
+void StackFrameIterator::FrameSetIterator::CheckIfInterpreted(
+    uword exit_marker) {
+  // TODO(regis): Once the interpreter shares the native stack, we may rely on
+  // a new thread vm_tag to identify an interpreter frame.
+  Interpreter* interpreter = thread_->isolate()->interpreter();
+  is_interpreted_ = (interpreter != NULL) && interpreter->HasFrame(exit_marker);
+}
+#endif
+
 StackFrame* StackFrameIterator::FrameSetIterator::NextFrame(bool validate) {
   StackFrame* frame;
   ASSERT(HasNext());
@@ -469,9 +505,15 @@ StackFrame* StackFrameIterator::FrameSetIterator::NextFrame(bool validate) {
   frame->sp_ = sp_;
   frame->fp_ = fp_;
   frame->pc_ = pc_;
+#if defined(DART_USE_INTERPRETER)
+  frame->is_interpreted_ = is_interpreted_;
+#endif
   sp_ = frame->GetCallerSp();
   fp_ = frame->GetCallerFp();
   pc_ = frame->GetCallerPc();
+#if defined(DART_USE_INTERPRETER)
+  ASSERT(is_interpreted_ == frame->is_interpreted_);
+#endif
   ASSERT(!validate || frame->IsValid());
   return frame;
 }
@@ -480,9 +522,15 @@ ExitFrame* StackFrameIterator::NextExitFrame() {
   exit_.sp_ = frames_.sp_;
   exit_.fp_ = frames_.fp_;
   exit_.pc_ = frames_.pc_;
+#if defined(DART_USE_INTERPRETER)
+  exit_.is_interpreted_ = frames_.is_interpreted_;
+#endif
   frames_.sp_ = exit_.GetCallerSp();
   frames_.fp_ = exit_.GetCallerFp();
   frames_.pc_ = exit_.GetCallerPc();
+#if defined(DART_USE_INTERPRETER)
+  ASSERT(frames_.is_interpreted_ == exit_.is_interpreted_);
+#endif
   ASSERT(!validate_ || exit_.IsValid());
   return &exit_;
 }
@@ -492,6 +540,9 @@ EntryFrame* StackFrameIterator::NextEntryFrame() {
   entry_.sp_ = frames_.sp_;
   entry_.fp_ = frames_.fp_;
   entry_.pc_ = frames_.pc_;
+#if defined(DART_USE_INTERPRETER)
+  entry_.is_interpreted_ = frames_.is_interpreted_;
+#endif
   SetupNextExitFrameData();  // Setup data for next exit frame in chain.
   ASSERT(!validate_ || entry_.IsValid());
   return &entry_;

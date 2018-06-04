@@ -52,11 +52,15 @@ class ScopedIsolateStackLimits : public ValueObject {
     ASSERT(os_thread != NULL);
     os_thread->RefineStackBoundsFromSP(current_sp);
 
-    // Save the Thread's current stack limit and adjust the stack
-    // limit based on the thread's stack_base.
+    // Save the Thread's current stack limit and adjust the stack limit.
     ASSERT(thread->isolate() == Isolate::Current());
     saved_stack_limit_ = thread->saved_stack_limit();
-    thread->SetStackLimitFromStackBase(os_thread->stack_base());
+#if defined(USING_SIMULATOR)
+    thread->SetStackLimit(Simulator::Current()->stack_limit());
+#else
+    thread->SetStackLimit(OSThread::Current()->stack_limit_with_headroom());
+    // TODO(regis): For now, the interpreter is using its own stack limit.
+#endif
 
 #if defined(USING_SAFE_STACK)
     saved_safestack_limit_ = OSThread::GetCurrentSafestackPointer();

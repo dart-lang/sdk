@@ -260,7 +260,16 @@ ActivationFrame::ActivationFrame(uword pc,
       vars_initialized_(false),
       var_descriptors_(LocalVarDescriptors::ZoneHandle()),
       desc_indices_(8),
-      pc_desc_(PcDescriptors::ZoneHandle()) {}
+      pc_desc_(PcDescriptors::ZoneHandle()) {
+  // TODO(regis): If debugging of interpreted code is required, recognize an
+  // interpreted activation frame and respect alternate frame layout.
+  // For now, punt.
+#if defined(DART_USE_INTERPRETER)
+  if (function_.Bytecode() == code_.raw()) {
+    UNIMPLEMENTED();
+  }
+#endif
+}
 
 ActivationFrame::ActivationFrame(Kind kind)
     : pc_(0),
