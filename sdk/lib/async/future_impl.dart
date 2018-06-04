@@ -140,7 +140,7 @@ class _FutureListener<S, T> {
     // If the errorCallback returns something which is not a FutureOr<T>,
     // this return statement throws, and the caller handles the error.
     if (errorCallback is dynamic Function(Object, StackTrace)) {
-      return _zone.runBinary(
+      return _zone.runBinary<dynamic, Object, StackTrace>(
           errorCallback, asyncError.error, asyncError.stackTrace);
     } else {
       assert(errorCallback is dynamic Function(Object));
