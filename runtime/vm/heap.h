@@ -41,16 +41,21 @@ class Heap {
     kNumWeakSelectors
   };
 
+  enum GCType {
+    kScavenge,
+    kMarkSweep,
+    kMarkCompact,
+  };
+
   enum GCReason {
-    kNewSpace,
-    kPromotion,
-    kOldSpace,
-    kCompaction,
-    kFull,
-    kIdle,
-    kLowMemory,
-    kGCAtAlloc,
-    kGCTestCase,
+    kNewSpace,   // New space is full.
+    kPromotion,  // Old space limit crossed after a scavenge.
+    kOldSpace,   // Old space limit crossed.
+    kFull,       // Heap::CollectAllGarbage
+    kExternal,   // Dart_NewWeakPersistentHandle
+    kIdle,       // Dart_NotifyIdle
+    kLowMemory,  // Dart_NotifyLowMemory
+    kDebugging,  // service request, --gc_at_instance_allocation, etc.
   };
 
   // Pattern for unused new space and swept old space.
@@ -110,7 +115,7 @@ class Heap {
   void NotifyLowMemory();
 
   void CollectGarbage(Space space);
-  void CollectGarbage(Space space, GCReason reason);
+  void CollectGarbage(GCType type, GCReason reason);
   void CollectAllGarbage(GCReason reason = kFull);
   bool NeedsGarbageCollection() const {
     return old_space_.NeedsGarbageCollection();
@@ -162,7 +167,8 @@ class Heap {
   ObjectSet* CreateAllocatedObjectSet(Zone* zone,
                                       MarkExpectation mark_expectation) const;
 
-  static const char* GCReasonToString(GCReason gc_reason);
+  static const char* GCTypeToString(GCType type);
+  static const char* GCReasonToString(GCReason reason);
 
   // Associate a peer with an object.  A non-existent peer is equal to NULL.
   void SetPeer(RawObject* raw_obj, void* peer) {
@@ -263,7 +269,7 @@ class Heap {
    public:
     GCStats() {}
     intptr_t num_;
-    Heap::Space space_;
+    Heap::GCType type_;
     Heap::GCReason reason_;
 
     class Data : public ValueObject {
@@ -313,13 +319,12 @@ class Heap {
   // Helper functions for garbage collection.
   void CollectNewSpaceGarbage(Thread* thread,
                               GCReason reason);
-  void CollectOldSpaceGarbage(Thread* thread,
-                              GCReason reason);
+  void CollectOldSpaceGarbage(Thread* thread, GCType type, GCReason reason);
   void EvacuateNewSpace(Thread* thread, GCReason reason);
 
   // GC stats collection.
-  void RecordBeforeGC(Space space, GCReason reason);
-  void RecordAfterGC(Space space);
+  void RecordBeforeGC(GCType type, GCReason reason);
+  void RecordAfterGC(GCType type);
   void PrintStats();
   void PrintStatsToTimeline(TimelineEventScope* event, GCReason reason);
 

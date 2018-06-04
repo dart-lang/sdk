@@ -277,7 +277,7 @@ DEFINE_RUNTIME_ENTRY(AllocateObject, 2) {
     if (String::EqualsIgnoringPrivateKey(
             name,
             String::Handle(String::New(FLAG_gc_at_instance_allocation)))) {
-      Isolate::Current()->heap()->CollectAllGarbage();
+      Isolate::Current()->heap()->CollectAllGarbage(Heap::kDebugging);
     }
   }
 #endif

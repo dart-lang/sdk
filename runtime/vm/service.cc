@@ -3456,11 +3456,11 @@ static bool GetHeapMap(Thread* thread, JSONStream* js) {
   Isolate* isolate = thread->isolate();
   if (js->HasParam("gc")) {
     if (js->ParamIs("gc", "scavenge")) {
-      isolate->heap()->CollectGarbage(Heap::kNew);
+      isolate->heap()->CollectGarbage(Heap::kScavenge, Heap::kDebugging);
     } else if (js->ParamIs("gc", "mark-sweep")) {
-      isolate->heap()->CollectGarbage(Heap::kOld, Heap::kOldSpace);
+      isolate->heap()->CollectGarbage(Heap::kMarkSweep, Heap::kDebugging);
     } else if (js->ParamIs("gc", "mark-compact")) {
-      isolate->heap()->CollectGarbage(Heap::kOld, Heap::kCompaction);
+      isolate->heap()->CollectGarbage(Heap::kMarkCompact, Heap::kDebugging);
     } else {
       PrintInvalidParamError(js, "gc");
       return true;

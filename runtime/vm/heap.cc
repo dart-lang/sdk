@@ -134,7 +134,7 @@ void Heap::AllocateExternal(intptr_t cid, intptr_t size, Space space) {
     if (new_space_.ExternalInWords() > (4 * new_space_.CapacityInWords())) {
       // Attempt to free some external allocation by a scavenge. (If the total
       // remains above the limit, next external alloc will trigger another.)
-      CollectGarbage(kNew);
+      CollectGarbage(kScavenge, kExternal);
     }
   } else {
     ASSERT(space == kOld);
@@ -144,7 +144,7 @@ void Heap::AllocateExternal(intptr_t cid, intptr_t size, Space space) {
   // As a workaround, we check here on every external allocation. See issue
   // dartbug.com/33314.
   if (old_space_.NeedsGarbageCollection()) {
-    CollectAllGarbage();
+    CollectAllGarbage(kExternal);
   }
 }
 
@@ -367,10 +367,10 @@ void Heap::NotifyIdle(int64_t deadline) {
   // a mark-sweep on time.
   if (old_space_.ShouldPerformIdleMarkCompact(deadline)) {
     TIMELINE_FUNCTION_GC_DURATION(thread, "IdleGC");
-    CollectOldSpaceGarbage(thread, kCompaction);
+    CollectOldSpaceGarbage(thread, kMarkCompact, kIdle);
   } else if (old_space_.ShouldPerformIdleMarkSweep(deadline)) {
     TIMELINE_FUNCTION_GC_DURATION(thread, "IdleGC");
-    CollectOldSpaceGarbage(thread, kIdle);
+    CollectOldSpaceGarbage(thread, kMarkSweep, kIdle);
   }
 }
 
@@ -379,50 +379,52 @@ void Heap::NotifyLowMemory() {
 }
 
 void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
-  ASSERT((reason == kFull) || (reason == kLowMemory));
+  ASSERT((reason != kOldSpace) && (reason != kPromotion));
   if (BeginNewSpaceGC(thread)) {
-    RecordBeforeGC(kNew, reason);
+    RecordBeforeGC(kScavenge, reason);
     VMTagScope tagScope(thread, VMTag::kGCNewSpaceTagId);
     TIMELINE_FUNCTION_GC_DURATION(thread, "EvacuateNewGeneration");
     new_space_.Evacuate();
-    RecordAfterGC(kNew);
+    RecordAfterGC(kScavenge);
     PrintStats();
     NOT_IN_PRODUCT(PrintStatsToTimeline(&tds, reason));
     EndNewSpaceGC();
   }
 }
 
-void Heap::CollectNewSpaceGarbage(Thread* thread,
-                                  GCReason reason) {
+void Heap::CollectNewSpaceGarbage(Thread* thread, GCReason reason) {
   ASSERT((reason != kOldSpace) && (reason != kPromotion));
   if (BeginNewSpaceGC(thread)) {
-    RecordBeforeGC(kNew, reason);
+    RecordBeforeGC(kScavenge, reason);
     {
       VMTagScope tagScope(thread, VMTag::kGCNewSpaceTagId);
       TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, "CollectNewGeneration");
       new_space_.Scavenge();
-      RecordAfterGC(kNew);
+      RecordAfterGC(kScavenge);
       PrintStats();
       NOT_IN_PRODUCT(PrintStatsToTimeline(&tds, reason));
       EndNewSpaceGC();
     }
     if ((reason == kNewSpace) && old_space_.NeedsGarbageCollection()) {
-      CollectOldSpaceGarbage(thread, kPromotion);
+      CollectOldSpaceGarbage(thread, kMarkSweep, kPromotion);
     }
   }
 }
 
 void Heap::CollectOldSpaceGarbage(Thread* thread,
+                                  GCType type,
                                   GCReason reason) {
-  ASSERT((reason != kNewSpace));
+  ASSERT(reason != kNewSpace);
+  ASSERT(type != kScavenge);
+  if (FLAG_use_compactor) {
+    type = kMarkCompact;
+  }
   if (BeginOldSpaceGC(thread)) {
-    RecordBeforeGC(kOld, reason);
+    RecordBeforeGC(type, reason);
     VMTagScope tagScope(thread, VMTag::kGCOldSpaceTagId);
     TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, "CollectOldGeneration");
-    bool compact =
-        (reason == kCompaction) || (reason == kLowMemory) || FLAG_use_compactor;
-    old_space_.CollectGarbage(compact);
-    RecordAfterGC(kOld);
+    old_space_.CollectGarbage(type == kMarkCompact);
+    RecordAfterGC(type);
     PrintStats();
     NOT_IN_PRODUCT(PrintStatsToTimeline(&tds, reason));
     // Some Code objects may have been collected so invalidate handler cache.
@@ -432,19 +434,16 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
   }
 }
 
-void Heap::CollectGarbage(Space space,
-                          GCReason reason) {
+void Heap::CollectGarbage(GCType type, GCReason reason) {
   Thread* thread = Thread::Current();
-  switch (space) {
-    case kNew: {
+  switch (type) {
+    case kScavenge:
       CollectNewSpaceGarbage(thread, reason);
       break;
-    }
-    case kOld:
-    case kCode: {
-      CollectOldSpaceGarbage(thread, reason);
+    case kMarkSweep:
+    case kMarkCompact:
+      CollectOldSpaceGarbage(thread, type, reason);
       break;
-    }
     default:
       UNREACHABLE();
   }
@@ -453,7 +452,7 @@ void Heap::CollectGarbage(Space space,
 void Heap::CollectGarbage(Space space) {
   Thread* thread = Thread::Current();
   if (space == kOld) {
-    CollectOldSpaceGarbage(thread, kOldSpace);
+    CollectOldSpaceGarbage(thread, kMarkSweep, kOldSpace);
   } else {
     ASSERT(space == kNew);
     CollectNewSpaceGarbage(thread, kNewSpace);
@@ -466,7 +465,8 @@ void Heap::CollectAllGarbage(GCReason reason) {
   // New space is evacuated so this GC will collect all dead objects
   // kept alive by a cross-generational pointer.
   EvacuateNewSpace(thread, reason);
-  CollectOldSpaceGarbage(thread, reason);
+  CollectOldSpaceGarbage(
+      thread, reason == kLowMemory ? kMarkCompact : kMarkSweep, reason);
 }
 
 void Heap::WaitForSweeperTasks(Thread* thread) {
@@ -626,6 +626,20 @@ intptr_t Heap::Collections(Space space) const {
   return old_space_.collections();
 }
 
+const char* Heap::GCTypeToString(GCType type) {
+  switch (type) {
+    case kScavenge:
+      return "Scavenge";
+    case kMarkSweep:
+      return "MarkSweep";
+    case kMarkCompact:
+      return "MarkCompact";
+    default:
+      UNREACHABLE();
+      return "";
+  }
+}
+
 const char* Heap::GCReasonToString(GCReason gc_reason) {
   switch (gc_reason) {
     case kNewSpace:
@@ -634,18 +648,16 @@ const char* Heap::GCReasonToString(GCReason gc_reason) {
       return "promotion";
     case kOldSpace:
       return "old space";
-    case kCompaction:
-      return "compact";
     case kFull:
       return "full";
+    case kExternal:
+      return "external";
     case kIdle:
       return "idle";
     case kLowMemory:
       return "low memory";
-    case kGCAtAlloc:
+    case kDebugging:
       return "debugging";
-    case kGCTestCase:
-      return "test case";
     default:
       UNREACHABLE();
       return "";
@@ -724,11 +736,12 @@ void Heap::PrintToJSONObject(Space space, JSONObject* object) const {
 }
 #endif  // PRODUCT
 
-void Heap::RecordBeforeGC(Space space, GCReason reason) {
-  ASSERT((space == kNew && gc_new_space_in_progress_) ||
-         (space == kOld && gc_old_space_in_progress_));
+void Heap::RecordBeforeGC(GCType type, GCReason reason) {
+  ASSERT((type == kScavenge && gc_new_space_in_progress_) ||
+         (type == kMarkSweep && gc_old_space_in_progress_) ||
+         (type == kMarkCompact && gc_old_space_in_progress_));
   stats_.num_++;
-  stats_.space_ = space;
+  stats_.type_ = type;
   stats_.reason_ = reason;
   stats_.before_.micros_ = OS::GetCurrentMonotonicMicros();
   stats_.before_.new_ = new_space_.GetCurrentUsage();
@@ -739,10 +752,10 @@ void Heap::RecordBeforeGC(Space space, GCReason reason) {
     stats_.data_[i] = 0;
 }
 
-void Heap::RecordAfterGC(Space space) {
+void Heap::RecordAfterGC(GCType type) {
   stats_.after_.micros_ = OS::GetCurrentMonotonicMicros();
   int64_t delta = stats_.after_.micros_ - stats_.before_.micros_;
-  if (stats_.space_ == kNew) {
+  if (stats_.type_ == kScavenge) {
     new_space_.AddGCTime(delta);
     new_space_.IncrementCollections();
   } else {
@@ -751,8 +764,9 @@ void Heap::RecordAfterGC(Space space) {
   }
   stats_.after_.new_ = new_space_.GetCurrentUsage();
   stats_.after_.old_ = old_space_.GetCurrentUsage();
-  ASSERT((space == kNew && gc_new_space_in_progress_) ||
-         (space == kOld && gc_old_space_in_progress_));
+  ASSERT((type == kScavenge && gc_new_space_in_progress_) ||
+         (type == kMarkSweep && gc_old_space_in_progress_) ||
+         (type == kMarkCompact && gc_old_space_in_progress_));
 #ifndef PRODUCT
   if (FLAG_support_service && Service::gc_stream.enabled() &&
       !ServiceIsolate::IsServiceIsolateDescendant(Isolate::Current())) {
@@ -785,9 +799,8 @@ void Heap::PrintStats() {
   }
 
   // clang-format off
-  const char* space_str = stats_.space_ == kNew ? "Scavenge" : "Mark-Sweep";
   OS::PrintErr(
-    "[ %-13.13s, %10s(%9s), "  // GC(isolate), space(reason)
+    "[ %-13.13s, %10s(%9s), "  // GC(isolate), type(reason)
     "%4" Pd ", "  // count
     "%6.2f, "  // start time
     "%5.1f, "  // total time
@@ -800,11 +813,13 @@ void Heap::PrintStats() {
     "%6.2f, %6.2f, %6.2f, %6.2f, %6.2f, %6.2f, "  // times
     "%" Pd ", %" Pd ", %" Pd ", %" Pd ", "  // data
     "]\n",  // End with a comma to make it easier to import in spreadsheets.
-    isolate()->name(), space_str, GCReasonToString(stats_.reason_),
+    isolate()->name(),
+    GCTypeToString(stats_.type_),
+    GCReasonToString(stats_.reason_),
     stats_.num_,
     MicrosecondsToSeconds(isolate()->UptimeMicros()),
     MicrosecondsToMilliseconds(stats_.after_.micros_ -
-                                    stats_.before_.micros_),
+                               stats_.before_.micros_),
     RoundWordsToKB(stats_.before_.new_.used_in_words),
     RoundWordsToKB(stats_.after_.new_.used_in_words),
     RoundWordsToKB(stats_.before_.new_.capacity_in_words),
