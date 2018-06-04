@@ -2205,16 +2205,6 @@ Fragment FlowGraphBuilder::NativeFunctionBody(intptr_t first_positional_offset,
       body += LoadLocal(LookupVariable(first_positional_offset));
       body += CreateArray();
       break;
-    case MethodRecognizer::kBigint_getDigits:
-      body += LoadLocal(scopes_->this_variable);
-      body += LoadNativeField(kind, Bigint::digits_offset(),
-                              Object::dynamic_type(), kTypedDataUint32ArrayCid);
-      break;
-    case MethodRecognizer::kBigint_getUsed:
-      body += LoadLocal(scopes_->this_variable);
-      body += LoadNativeField(kind, Bigint::used_offset(),
-                              Type::ZoneHandle(Z, Type::SmiType()), kSmiCid);
-      break;
     case MethodRecognizer::kLinkedHashMap_getIndex:
       body += LoadLocal(scopes_->this_variable);
       body += LoadNativeField(kind, LinkedHashMap::index_offset(),
@@ -2277,11 +2267,6 @@ Fragment FlowGraphBuilder::NativeFunctionBody(intptr_t first_positional_offset,
                                  LinkedHashMap::deleted_keys_offset(),
                                  kNoStoreBarrier);
       body += NullConstant();
-      break;
-    case MethodRecognizer::kBigint_getNeg:
-      body += LoadLocal(scopes_->this_variable);
-      body += LoadNativeField(kind, Bigint::neg_offset(),
-                              Type::ZoneHandle(Z, Type::BoolType()), kBoolCid);
       break;
     default: {
       String& name = String::ZoneHandle(Z, function.native_name());

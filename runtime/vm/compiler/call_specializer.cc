@@ -1626,14 +1626,12 @@ bool CallSpecializer::SpecializeTestCidsForNumericTypes(
   } else if (type.IsIntType()) {
     ASSERT((*results)[0] == kSmiCid);
     TryAddTest(results, kMintCid, true);
-    TryAddTest(results, kBigintCid, true);
     // Cannot deoptimize since all tests returning true have been added.
     PurgeNegativeTestCidsEntries(results);
     return false;
   } else if (type.IsNumberType()) {
     ASSERT((*results)[0] == kSmiCid);
     TryAddTest(results, kMintCid, true);
-    TryAddTest(results, kBigintCid, true);
     TryAddTest(results, kDoubleCid, true);
     PurgeNegativeTestCidsEntries(results);
     return false;

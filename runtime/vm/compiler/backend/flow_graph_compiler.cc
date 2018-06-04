@@ -1184,10 +1184,8 @@ void FlowGraphCompiler::GenerateNumberTypeCheck(Register class_id_reg,
   if (type.IsNumberType()) {
     args.Add(kDoubleCid);
     args.Add(kMintCid);
-    args.Add(kBigintCid);
   } else if (type.IsIntType()) {
     args.Add(kMintCid);
-    args.Add(kBigintCid);
   } else if (type.IsDoubleType()) {
     args.Add(kDoubleCid);
   }

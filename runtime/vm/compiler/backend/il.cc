@@ -739,8 +739,6 @@ const Field& LoadStaticFieldInstr::StaticField() const {
 ConstantInstr::ConstantInstr(const Object& value, TokenPosition token_pos)
     : value_(value), token_pos_(token_pos) {
   // Check that the value is not an incorrect Integer representation.
-  ASSERT(!value.IsBigint() || !Bigint::Cast(value).FitsIntoSmi());
-  ASSERT(!value.IsBigint() || !Bigint::Cast(value).FitsIntoInt64());
   ASSERT(!value.IsMint() || !Smi::IsValid(Mint::Cast(value).AsInt64Value()));
   ASSERT(!value.IsField() || Field::Cast(value).IsOriginal());
 }
@@ -1505,7 +1503,6 @@ bool UnboxInt32Instr::ComputeCanDeoptimize() const {
   } else if (is_truncating() && value()->definition()->IsBoxInteger()) {
     return false;
   } else if ((kSmiBits < 32) && value()->Type()->IsInt()) {
-    // Note: we don't support truncation of Bigint values.
     return !RangeUtils::Fits(value()->definition()->range(),
                              RangeBoundary::kRangeBoundaryInt32);
   } else {
@@ -2003,7 +2000,6 @@ Definition* CheckedSmiComparisonInstr::Canonicalize(FlowGraph* flow_graph) {
   if ((left_type->ToCid() == kSmiCid) && (right_type->ToCid() == kSmiCid)) {
     op_cid = kSmiCid;
   } else if (Isolate::Current()->strong() && FLAG_use_strong_mode_types &&
-             FLAG_limit_ints_to_64_bits &&
              FlowGraphCompiler::SupportsUnboxedInt64() &&
              // TODO(dartbug.com/30480): handle nullable types here
              left_type->IsNullableInt() && !left_type->is_nullable() &&
@@ -2688,8 +2684,7 @@ Definition* BooleanNegateInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 static bool MayBeBoxableNumber(intptr_t cid) {
-  return (cid == kDynamicCid) || (cid == kMintCid) || (cid == kBigintCid) ||
-         (cid == kDoubleCid);
+  return (cid == kDynamicCid) || (cid == kMintCid) || (cid == kDoubleCid);
 }
 
 static bool MaybeNumber(CompileType* type) {
@@ -2708,7 +2703,7 @@ static Definition* CanonicalizeStrictCompare(StrictCompareInstr* compare,
                                              bool* negated,
                                              bool is_branch) {
   // Use propagated cid and type information to eliminate number checks.
-  // If one of the inputs is not a boxable number (Mint, Double, Bigint), or
+  // If one of the inputs is not a boxable number (Mint, Double), or
   // is not a subtype of num, no need for number checks.
   if (compare->needs_number_check()) {
     if (!MayBeBoxableNumber(compare->left()->Type()->ToCid()) ||
@@ -4122,7 +4117,6 @@ void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         break;
 
       case kUnboxedInt64: {
-        ASSERT(FLAG_limit_ints_to_64_bits);
         if (value()->Type()->ToCid() == kSmiCid) {
           // Smi -> int64 conversion is more efficient than
           // handling arbitrary smi/mint.

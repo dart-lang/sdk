@@ -460,10 +460,6 @@ const Range* RangeAnalysis::GetIntRange(Value* value) const {
     // However the definition itself is not a int-definition and
     // thus it will never have range assigned to it. Just return the widest
     // range possible for this value.
-    // It is safe to return Int64 range as this is the widest possible range
-    // supported by our unboxing operations - if this definition produces
-    // Bigint outside of Int64 we will deoptimize whenever we actually try
-    // to unbox it.
     // Note: that we can't return NULL here because it is used as lattice's
     // bottom element to indicate that the range was not computed *yet*.
     return &int64_range_;

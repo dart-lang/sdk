@@ -908,30 +908,10 @@ TEST_CASE(DartAPI_IntegerValues) {
   EXPECT_EQ(kIntegerVal2, out);
 
   Dart_Handle val3 = Dart_NewIntegerFromHexCString(kIntegerVal3);
-  if (FLAG_limit_ints_to_64_bits) {
-    EXPECT(Dart_IsApiError(val3));
-  } else {
-    EXPECT(Dart_IsInteger(val3));
-    result = Dart_IntegerFitsIntoInt64(val3, &fits);
-    EXPECT_VALID(result);
-    EXPECT(!fits);
-
-    const char* chars = NULL;
-    result = Dart_IntegerToHexCString(val3, &chars);
-    EXPECT_VALID(result);
-    EXPECT(!strcmp(kIntegerVal3, chars));
-  }
+  EXPECT(Dart_IsApiError(val3));
 
   Dart_Handle val4 = Dart_NewIntegerFromUint64(kIntegerVal4);
-  if (FLAG_limit_ints_to_64_bits) {
-    EXPECT(Dart_IsApiError(val4));
-  } else {
-    EXPECT_VALID(val4);
-    uint64_t out4 = 0;
-    result = Dart_IntegerToUint64(val4, &out4);
-    EXPECT_VALID(result);
-    EXPECT_EQ(kIntegerVal4, out4);
-  }
+  EXPECT(Dart_IsApiError(val4));
 
   Dart_Handle val5 = Dart_NewInteger(-1);
   EXPECT_VALID(val5);
@@ -972,29 +952,6 @@ TEST_CASE(DartAPI_IntegerToHexCString) {
     EXPECT_VALID(result);
     EXPECT_STREQ(kIntTestCases[i].s, chars);
   }
-
-  if (!FLAG_limit_ints_to_64_bits) {
-    const char* kStrTestCases[] = {
-        "0x8000000000000000",
-        "-0x8000000000000000",
-        "0xFFFFFFFFFFFFFFFF",
-        "-0xFFFFFFFFFFFFFFFF",
-        "0xAABBCCDDEEFF00112233445566778899",
-        "-0x1234567890ABCDEF1234567890ABCDEF",
-    };
-
-    const size_t kNumberOfStrTestCases =
-        sizeof(kStrTestCases) / sizeof(kStrTestCases[0]);
-
-    for (size_t i = 0; i < kNumberOfStrTestCases; ++i) {
-      Dart_Handle val = Dart_NewIntegerFromHexCString(kStrTestCases[i]);
-      EXPECT_VALID(val);
-      const char* chars = NULL;
-      Dart_Handle result = Dart_IntegerToHexCString(val, &chars);
-      EXPECT_VALID(result);
-      EXPECT_STREQ(kStrTestCases[i], chars);
-    }
-  }
 }
 
 TEST_CASE(DartAPI_IntegerFitsIntoInt64) {
@@ -1006,15 +963,7 @@ TEST_CASE(DartAPI_IntegerFitsIntoInt64) {
   EXPECT(fits);
 
   Dart_Handle above_max = Dart_NewIntegerFromHexCString("0x10000000000000000");
-  if (FLAG_limit_ints_to_64_bits) {
-    EXPECT(Dart_IsApiError(above_max));
-  } else {
-    EXPECT(Dart_IsInteger(above_max));
-    fits = true;
-    result = Dart_IntegerFitsIntoInt64(above_max, &fits);
-    EXPECT_VALID(result);
-    EXPECT(!fits);
-  }
+  EXPECT(Dart_IsApiError(above_max));
 
   Dart_Handle min = Dart_NewInteger(kMinInt64);
   EXPECT(Dart_IsInteger(min));
@@ -1024,39 +973,15 @@ TEST_CASE(DartAPI_IntegerFitsIntoInt64) {
   EXPECT(fits);
 
   Dart_Handle below_min = Dart_NewIntegerFromHexCString("-0x10000000000000001");
-  if (FLAG_limit_ints_to_64_bits) {
-    EXPECT(Dart_IsApiError(below_min));
-  } else {
-    EXPECT(Dart_IsInteger(below_min));
-    fits = true;
-    result = Dart_IntegerFitsIntoInt64(below_min, &fits);
-    EXPECT_VALID(result);
-    EXPECT(!fits);
-  }
+  EXPECT(Dart_IsApiError(below_min));
 }
 
 TEST_CASE(DartAPI_IntegerFitsIntoUint64) {
   Dart_Handle max = Dart_NewIntegerFromUint64(kMaxUint64);
-  if (FLAG_limit_ints_to_64_bits) {
-    EXPECT(Dart_IsApiError(max));
-  } else {
-    EXPECT(Dart_IsInteger(max));
-    bool fits = false;
-    Dart_Handle result = Dart_IntegerFitsIntoUint64(max, &fits);
-    EXPECT_VALID(result);
-    EXPECT(fits);
-  }
+  EXPECT(Dart_IsApiError(max));
 
   Dart_Handle above_max = Dart_NewIntegerFromHexCString("0x10000000000000000");
-  if (FLAG_limit_ints_to_64_bits) {
-    EXPECT(Dart_IsApiError(above_max));
-  } else {
-    EXPECT(Dart_IsInteger(above_max));
-    bool fits = true;
-    Dart_Handle result = Dart_IntegerFitsIntoUint64(above_max, &fits);
-    EXPECT_VALID(result);
-    EXPECT(!fits);
-  }
+  EXPECT(Dart_IsApiError(above_max));
 
   Dart_Handle min = Dart_NewInteger(0);
   EXPECT(Dart_IsInteger(min));
@@ -5275,14 +5200,8 @@ static void NativeArgumentAccess(Dart_NativeArguments args) {
 
     EXPECT(arg_values[1].as_int32 == 77);
 
-    // Note: this particular value is chosen for the following reasons.
-    // 1) When wrapped-around, it should not fit into int32, because this unit
-    // test verifies that getting it as int32 produces error.
-    // 2) It should be large enough to exercise Bigints with unlimited ints, so
-    // it should be > MaxInt64.
-    // Given these constraints, any value between MaxInt64+1 and
-    // MaxUint64-MaxInt32-1 would work. Value 0x8000000000000000 is in this
-    // range and easy to produce without using a large integer literal.
+    // When wrapped-around, this value should not fit into int32, because this
+    // unit test verifies that getting it as int32 produces error.
     EXPECT(arg_values[2].as_uint64 == 0x8000000000000000LL);
 
     EXPECT(arg_values[3].as_bool == true);
@@ -5386,7 +5305,7 @@ TEST_CASE(DartAPI_GetNativeArguments) {
       "  MyObject obj1 = MyObject.createObject();"
       "  MyObject obj2 = MyObject.createObject();"
       "  return obj1.accessFields(77,"
-      "                           1 << 63,"
+      "                           0x8000000000000000,"
       "                           true,"
       "                           3.14,"
       "                           str,"
@@ -7576,13 +7495,7 @@ TEST_CASE(DartAPI_InvalidGetSetPeer) {
   EXPECT(Dart_IsError(Dart_SetPeer(smi, &out)));
   out = &out;
   Dart_Handle big = Dart_NewIntegerFromHexCString("0x10000000000000000");
-  if (FLAG_limit_ints_to_64_bits) {
-    EXPECT(Dart_IsApiError(big));
-  } else {
-    EXPECT(Dart_IsError(Dart_GetPeer(big, &out)));
-    EXPECT(out == &out);
-    EXPECT(Dart_IsError(Dart_SetPeer(big, &out)));
-  }
+  EXPECT(Dart_IsApiError(big));
   out = &out;
   Dart_Handle dbl = Dart_NewDouble(0.0);
   EXPECT(Dart_IsError(Dart_GetPeer(dbl, &out)));

@@ -23,14 +23,9 @@ DEFINE_FLAG(bool,
 
 // Smi natives.
 
-// Returns false if integer is in wrong representation, e.g., as is a Bigint
+// Returns false if integer is in wrong representation, e.g., as is a Mint
 // when it could have been a Smi.
 static bool CheckInteger(const Integer& i) {
-  if (i.IsBigint()) {
-    ASSERT(!Bigint::IsDisabled());
-    const Bigint& bigint = Bigint::Cast(i);
-    return !bigint.FitsIntoSmi() && !bigint.FitsIntoInt64();
-  }
   if (i.IsMint()) {
     const Mint& mint = Mint::Cast(i);
     return !Smi::IsValid(mint.value());
@@ -245,35 +240,20 @@ static RawInteger* ShiftOperationHelper(Token::Kind kind,
     const Smi& smi_value = Smi::Cast(value);
     return smi_value.ShiftOp(kind, amount, Heap::kNew);
   }
-  if (value.IsMint()) {
-    const int64_t mint_value = value.AsInt64Value();
-    intptr_t shift_count = amount.Value();
-    switch (kind) {
-      case Token::kSHL:
-        if (FLAG_limit_ints_to_64_bits) {
-          return Integer::New(
-              Utils::ShiftLeftWithTruncation(mint_value, shift_count),
-              Heap::kNew);
-        } else {
-          const int count = Utils::HighestBit(mint_value);
-          if (shift_count < (Mint::kBits - count)) {
-            return Integer::New(mint_value << shift_count, Heap::kNew);
-          } else {
-            // Overflow in shift, use Bigints
-            return Integer::null();
-          }
-        }
-      case Token::kSHR:
-        shift_count = Utils::Minimum(shift_count, Mint::kBits);
-        return Integer::New(mint_value >> shift_count, Heap::kNew);
-      default:
-        UNIMPLEMENTED();
-    }
-  } else {
-    ASSERT(value.IsBigint());
+  ASSERT(value.IsMint());
+  const int64_t mint_value = value.AsInt64Value();
+  intptr_t shift_count = amount.Value();
+  switch (kind) {
+    case Token::kSHL:
+      return Integer::New(
+          Utils::ShiftLeftWithTruncation(mint_value, shift_count), Heap::kNew);
+    case Token::kSHR:
+      shift_count = Utils::Minimum(shift_count, Mint::kBits);
+      return Integer::New(mint_value >> shift_count, Heap::kNew);
+    default:
+      UNIMPLEMENTED();
+      return Integer::null();
   }
-  ASSERT(!Bigint::IsDisabled());
-  return Integer::null();
 }
 
 DEFINE_NATIVE_ENTRY(Smi_bitAndFromSmi, 2) {
@@ -367,33 +347,6 @@ DEFINE_NATIVE_ENTRY(Mint_shlFromInt, 2) {
   Exceptions::Throw(thread, exception);
   UNREACHABLE();
   return 0;
-}
-
-// Bigint natives.
-
-DEFINE_NATIVE_ENTRY(Bigint_getNeg, 1) {
-  const Bigint& bigint = Bigint::CheckedHandle(arguments->NativeArgAt(0));
-  return bigint.neg();
-}
-
-DEFINE_NATIVE_ENTRY(Bigint_getUsed, 1) {
-  const Bigint& bigint = Bigint::CheckedHandle(arguments->NativeArgAt(0));
-  return bigint.used();
-}
-
-DEFINE_NATIVE_ENTRY(Bigint_getDigits, 1) {
-  const Bigint& bigint = Bigint::CheckedHandle(arguments->NativeArgAt(0));
-  return bigint.digits();
-}
-
-DEFINE_NATIVE_ENTRY(Bigint_allocate, 4) {
-  ASSERT(!Bigint::IsDisabled());
-  // First arg is null type arguments, since class Bigint is not parameterized.
-  const Bool& neg = Bool::CheckedHandle(arguments->NativeArgAt(1));
-  const Smi& used = Smi::CheckedHandle(arguments->NativeArgAt(2));
-  const TypedData& digits = TypedData::CheckedHandle(arguments->NativeArgAt(3));
-  ASSERT(!digits.IsNull());
-  return Bigint::New(neg.value(), used.Value(), digits);
 }
 
 }  // namespace dart

@@ -55,7 +55,6 @@ namespace dart {
   V(intptr_t, DeoptimizeCopyFrame, uword, uword)                               \
   V(void, DeoptimizeFillFrame, uword)                                          \
   V(void, StoreBufferBlockProcess, Thread*)                                    \
-  V(intptr_t, BigintCompare, RawBigint*, RawBigint*)                           \
   V(double, LibcPow, double, double)                                           \
   V(double, DartModulo, double, double)                                        \
   V(double, LibcFloor, double)                                                 \

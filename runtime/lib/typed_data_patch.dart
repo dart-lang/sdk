@@ -2501,7 +2501,7 @@ class _Int64List extends _TypedList with _IntListMixin implements Int64List {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
     }
-    _setIndexedInt64(index, _toInt64(value));
+    _setIndexedInt64(index, value);
   }
 
   // Method(s) implementing the TypedData interface.
@@ -2548,7 +2548,7 @@ class _Uint64List extends _TypedList with _IntListMixin implements Uint64List {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
     }
-    _setIndexedUint64(index, _toUint64(value));
+    _setIndexedUint64(index, value);
   }
 
   // Method(s) implementing the TypedData interface.
@@ -3066,7 +3066,7 @@ class _ExternalInt64Array extends _TypedList
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
     }
-    _setIndexedInt64(index, _toInt64(value));
+    _setIndexedInt64(index, value);
   }
 
   // Method(s) implementing the TypedData interface.
@@ -3104,7 +3104,7 @@ class _ExternalUint64Array extends _TypedList
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
     }
-    _setIndexedUint64(index, _toUint64(value));
+    _setIndexedUint64(index, value);
   }
 
   // Method(s) implementing the TypedData interface.
@@ -3867,7 +3867,7 @@ class _Int64ArrayView extends _TypedListView
       throw new RangeError.index(index, this, "index");
     }
     _typedData._setInt64(
-        offsetInBytes + (index * Int64List.bytesPerElement), _toInt64(value));
+        offsetInBytes + (index * Int64List.bytesPerElement), value);
   }
 
   // Method(s) implementing TypedData interface.
@@ -3912,7 +3912,7 @@ class _Uint64ArrayView extends _TypedListView
       throw new RangeError.index(index, this, "index");
     }
     _typedData._setUint64(
-        offsetInBytes + (index * Uint64List.bytesPerElement), _toUint64(value));
+        offsetInBytes + (index * Uint64List.bytesPerElement), value);
   }
 
   // Method(s) implementing TypedData interface.
@@ -4442,25 +4442,6 @@ int _toInt32(int value) {
 
 int _toUint32(int value) {
   return value & 0xFFFFFFFF;
-}
-
-// Note: in --limit-ints-to-64-bits mode all integers are 64-bit already.
-// Still, it is harmless to apply _uint64Mask because (1 << 64) is 0 (all bits
-// are shifted out), so _uint64Mask is -1 (its bit pattern is 0xffffffffffffffff).
-const _uint64Mask = (1 << 64) - 1;
-
-int _toInt64(int value) {
-  // Avoid bigint mask when possible.
-  return (ClassID.getID(value) == ClassID.cidBigint)
-      ? _toInt(value, _uint64Mask)
-      : value;
-}
-
-int _toUint64(int value) {
-  // Avoid bigint mask when possible.
-  return (ClassID.getID(value) == ClassID.cidBigint)
-      ? _toInt(value, _uint64Mask)
-      : value;
 }
 
 void _rangeCheck(int listLength, int start, int length) {

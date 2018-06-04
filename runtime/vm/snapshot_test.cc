@@ -79,14 +79,6 @@ static void CompareDartCObjects(Dart_CObject* first, Dart_CObject* second) {
     case Dart_CObject_kInt64:
       EXPECT_EQ(first->value.as_int64, second->value.as_int64);
       break;
-    case Dart_CObject_kBigint: {
-      char* first_hex_value = TestCase::BigintToHexValue(first);
-      char* second_hex_value = TestCase::BigintToHexValue(second);
-      EXPECT_STREQ(first_hex_value, second_hex_value);
-      free(first_hex_value);
-      free(second_hex_value);
-      break;
-    }
     case Dart_CObject_kDouble:
       EXPECT_EQ(first->value.as_double, second->value.as_double);
       break;
@@ -390,97 +382,6 @@ TEST_CASE(SerializeCapability) {
   EXPECT_EQ(12345, id);
   CheckEncodeDecodeMessage(root);
   delete message;
-}
-
-TEST_CASE(SerializeBigint) {
-  if (Bigint::IsDisabled()) {
-    return;
-  }
-  // Write snapshot with object content.
-  const char* cstr = "0x270FFFFFFFFFFFFFD8F0";
-  const String& str = String::Handle(String::New(cstr));
-  Bigint& bigint = Bigint::Handle();
-  bigint ^= Integer::NewCanonical(str);
-  MessageWriter writer(true);
-  Message* message =
-      writer.WriteMessage(bigint, ILLEGAL_PORT, Message::kNormalPriority);
-
-  // Read object back from the snapshot.
-  MessageSnapshotReader reader(message, thread);
-  Bigint& obj = Bigint::Handle();
-  obj ^= reader.ReadObject();
-
-  Zone* zone = Thread::Current()->zone();
-  EXPECT_STREQ(bigint.ToHexCString(zone), obj.ToHexCString(zone));
-
-  // Read object back from the snapshot into a C structure.
-  ApiNativeScope scope;
-  ApiMessageReader api_reader(message);
-  Dart_CObject* root = api_reader.ReadMessage();
-  EXPECT_NOTNULL(root);
-  EXPECT_EQ(Dart_CObject_kBigint, root->type);
-  char* hex_value = TestCase::BigintToHexValue(root);
-  EXPECT_STREQ(cstr, hex_value);
-  free(hex_value);
-  CheckEncodeDecodeMessage(root);
-
-  delete message;
-}
-
-Dart_CObject* SerializeAndDeserializeBigint(const Bigint& bigint) {
-  // Write snapshot with object content.
-  MessageWriter writer(true);
-  Message* message =
-      writer.WriteMessage(bigint, ILLEGAL_PORT, Message::kNormalPriority);
-
-  {
-    // Switch to a regular zone, where VM handle allocation is allowed.
-    Thread* thread = Thread::Current();
-    StackZone zone(thread);
-    // Read object back from the snapshot.
-    MessageSnapshotReader reader(message, thread);
-    Bigint& serialized_bigint = Bigint::Handle();
-    serialized_bigint ^= reader.ReadObject();
-    const char* str1 = bigint.ToHexCString(thread->zone());
-    const char* str2 = serialized_bigint.ToHexCString(thread->zone());
-    EXPECT_STREQ(str1, str2);
-  }
-
-  // Read object back from the snapshot into a C structure.
-  ApiMessageReader api_reader(message);
-  Dart_CObject* root = api_reader.ReadMessage();
-  // Bigint not supported.
-  EXPECT_NOTNULL(root);
-  CheckEncodeDecodeMessage(root);
-
-  delete message;
-
-  return root;
-}
-
-void CheckBigint(const char* bigint_value) {
-  ApiNativeScope scope;
-  StackZone zone(Thread::Current());
-  Bigint& bigint = Bigint::Handle();
-  bigint ^= Bigint::NewFromCString(bigint_value);
-  Dart_CObject* bigint_cobject = SerializeAndDeserializeBigint(bigint);
-  EXPECT_EQ(Dart_CObject_kBigint, bigint_cobject->type);
-  char* hex_value = TestCase::BigintToHexValue(bigint_cobject);
-  EXPECT_STREQ(bigint_value, hex_value);
-  free(hex_value);
-}
-
-TEST_CASE(SerializeBigint2) {
-  if (Bigint::IsDisabled()) {
-    return;
-  }
-  CheckBigint("0x0");
-  CheckBigint("0x1");
-  CheckBigint("-0x1");
-  CheckBigint("0x11111111111111111111");
-  CheckBigint("-0x11111111111111111111");
-  CheckBigint("0x9876543210987654321098765432109876543210");
-  CheckBigint("-0x9876543210987654321098765432109876543210");
 }
 
 #define TEST_ROUND_TRIP_IDENTICAL(object)                                      \
@@ -1891,7 +1792,7 @@ static void CheckStringInvalid(Dart_Handle dart_string) {
 }
 
 VM_UNIT_TEST_CASE(DartGeneratedMessages) {
-  static const char* kCustomIsolateScriptCommonChars =
+  static const char* kCustomIsolateScriptChars =
       "final int kArrayLength = 10;\n"
       "getSmi() {\n"
       "  return 42;\n"
@@ -1920,33 +1821,17 @@ VM_UNIT_TEST_CASE(DartGeneratedMessages) {
       "getList() {\n"
       "  return new List(kArrayLength);\n"
       "}\n";
-  static const char* kCustomIsolateScriptBigintChars =
-      "getBigint() {\n"
-      "  return -0x424242424242424242424242424242424242;\n"
-      "}\n";
 
   TestCase::CreateTestIsolate();
   Isolate* isolate = Isolate::Current();
   EXPECT(isolate != NULL);
   Dart_EnterScope();
 
-  const char* scriptChars = kCustomIsolateScriptCommonChars;
-  if (!Bigint::IsDisabled()) {
-    scriptChars = OS::SCreate(Thread::Current()->zone(), "%s%s", scriptChars,
-                              kCustomIsolateScriptBigintChars);
-  }
-
-  Dart_Handle lib = TestCase::LoadTestScript(scriptChars, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kCustomIsolateScriptChars, NULL);
   EXPECT_VALID(lib);
   Dart_Handle smi_result;
   smi_result = Dart_Invoke(lib, NewString("getSmi"), 0, NULL);
   EXPECT_VALID(smi_result);
-
-  Dart_Handle bigint_result = NULL;
-  if (!Bigint::IsDisabled()) {
-    bigint_result = Dart_Invoke(lib, NewString("getBigint"), 0, NULL);
-    EXPECT_VALID(bigint_result);
-  }
 
   Dart_Handle ascii_string_result;
   ascii_string_result = Dart_Invoke(lib, NewString("getAsciiString"), 0, NULL);
@@ -2009,26 +1894,6 @@ VM_UNIT_TEST_CASE(DartGeneratedMessages) {
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject_kInt32, root->type);
       EXPECT_EQ(42, root->value.as_int32);
-      CheckEncodeDecodeMessage(root);
-      delete message;
-    }
-    if (!Bigint::IsDisabled()) {
-      StackZone zone(thread);
-      Bigint& bigint = Bigint::Handle();
-      bigint ^= Api::UnwrapHandle(bigint_result);
-      MessageWriter writer(false);
-      Message* message =
-          writer.WriteMessage(bigint, ILLEGAL_PORT, Message::kNormalPriority);
-
-      // Read object back from the snapshot into a C structure.
-      ApiNativeScope scope;
-      ApiMessageReader api_reader(message);
-      Dart_CObject* root = api_reader.ReadMessage();
-      EXPECT_NOTNULL(root);
-      EXPECT_EQ(Dart_CObject_kBigint, root->type);
-      char* hex_value = TestCase::BigintToHexValue(root);
-      EXPECT_STREQ("-0x424242424242424242424242424242424242", hex_value);
-      free(hex_value);
       CheckEncodeDecodeMessage(root);
       delete message;
     }
@@ -2387,7 +2252,7 @@ VM_UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
 
 VM_UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
   const int kArrayLength = 10;
-  static const char* kScriptCommonChars =
+  static const char* kScriptChars =
       "import 'dart:typed_data';\n"
       "final int kArrayLength = 10;\n"
       "getStringList() {\n"
@@ -2437,26 +2302,13 @@ VM_UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
       "  }\n"
       "  return list;\n"
       "}\n";
-  static const char* kScriptBigintChars =
-      "getBigintList() {\n"
-      "  var bigint = 0x1234567890123456789012345678901234567890;\n"
-      "  var list = new List(kArrayLength);\n"
-      "  for (var i = 0; i < kArrayLength; i++) list[i] = bigint;\n"
-      "  return list;\n"
-      "}\n";
 
   TestCase::CreateTestIsolate();
   Thread* thread = Thread::Current();
   EXPECT(thread->isolate() != NULL);
   Dart_EnterScope();
 
-  const char* scriptChars = kScriptCommonChars;
-  if (!Bigint::IsDisabled()) {
-    scriptChars =
-        OS::SCreate(thread->zone(), "%s%s", scriptChars, kScriptBigintChars);
-  }
-
-  Dart_Handle lib = TestCase::LoadTestScript(scriptChars, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT_VALID(lib);
 
   {
@@ -2492,24 +2344,6 @@ VM_UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
         EXPECT_EQ(root->value.as_array.values[0], element);
         EXPECT_EQ(Dart_CObject_kInt64, element->type);
         EXPECT_EQ(DART_INT64_C(0x7FFFFFFFFFFFFFFF), element->value.as_int64);
-      }
-      delete message;
-    }
-    if (!Bigint::IsDisabled()) {
-      // Generate a list of bigints from Dart code.
-      Message* message = GetSerialized(lib, "getBigintList");
-      ApiNativeScope scope;
-      Dart_CObject* root = GetDeserialized(message);
-      EXPECT_NOTNULL(root);
-      EXPECT_EQ(Dart_CObject_kArray, root->type);
-      EXPECT_EQ(kArrayLength, root->value.as_array.length);
-      for (int i = 0; i < kArrayLength; i++) {
-        Dart_CObject* element = root->value.as_array.values[i];
-        EXPECT_EQ(root->value.as_array.values[0], element);
-        EXPECT_EQ(Dart_CObject_kBigint, element->type);
-        char* hex_value = TestCase::BigintToHexValue(element);
-        EXPECT_STREQ("0x1234567890123456789012345678901234567890", hex_value);
-        free(hex_value);
       }
       delete message;
     }
@@ -2620,7 +2454,7 @@ VM_UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
 
 VM_UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
   const int kArrayLength = 10;
-  static const char* kScriptCommonChars =
+  static const char* kScriptChars =
       "import 'dart:typed_data';\n"
       "final int kArrayLength = 10;\n"
       "getStringList() {\n"
@@ -2676,25 +2510,13 @@ VM_UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
       "  }\n"
       "  return list;\n"
       "}\n";
-  static const char* kScriptBigintChars =
-      "getBigintList() {\n"
-      "  var bigint = 0x1234567890123456789012345678901234567890;\n"
-      "  var list = [bigint, bigint, bigint, bigint, bigint,\n"
-      "              bigint, bigint, bigint, bigint, bigint];\n"
-      "  return list;\n"
-      "}\n";
 
   TestCase::CreateTestIsolate();
   Thread* thread = Thread::Current();
   EXPECT(thread->isolate() != NULL);
   Dart_EnterScope();
 
-  const char* scriptChars = kScriptCommonChars;
-  if (!Bigint::IsDisabled()) {
-    scriptChars =
-        OS::SCreate(thread->zone(), "%s%s", scriptChars, kScriptBigintChars);
-  }
-  Dart_Handle lib = TestCase::LoadTestScript(scriptChars, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT_VALID(lib);
 
   {
@@ -2730,24 +2552,6 @@ VM_UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
         EXPECT_EQ(root->value.as_array.values[0], element);
         EXPECT_EQ(Dart_CObject_kInt64, element->type);
         EXPECT_EQ(DART_INT64_C(0x7FFFFFFFFFFFFFFF), element->value.as_int64);
-      }
-      delete message;
-    }
-    if (!Bigint::IsDisabled()) {
-      // Generate a list of bigints from Dart code.
-      Message* message = GetSerialized(lib, "getBigintList");
-      ApiNativeScope scope;
-      Dart_CObject* root = GetDeserialized(message);
-      EXPECT_NOTNULL(root);
-      EXPECT_EQ(Dart_CObject_kArray, root->type);
-      EXPECT_EQ(kArrayLength, root->value.as_array.length);
-      for (int i = 0; i < kArrayLength; i++) {
-        Dart_CObject* element = root->value.as_array.values[i];
-        EXPECT_EQ(root->value.as_array.values[0], element);
-        EXPECT_EQ(Dart_CObject_kBigint, element->type);
-        char* hex_value = TestCase::BigintToHexValue(element);
-        EXPECT_STREQ("0x1234567890123456789012345678901234567890", hex_value);
-        free(hex_value);
       }
       delete message;
     }

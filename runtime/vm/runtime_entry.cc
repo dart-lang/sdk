@@ -2446,20 +2446,6 @@ DEFINE_RUNTIME_ENTRY(RewindPostDeopt, 0) {
   UNREACHABLE();
 }
 
-DEFINE_LEAF_RUNTIME_ENTRY(intptr_t,
-                          BigintCompare,
-                          2,
-                          RawBigint* left,
-                          RawBigint* right) {
-  Thread* thread = Thread::Current();
-  StackZone zone(thread);
-  HANDLESCOPE(thread);
-  const Bigint& big_left = Bigint::Handle(left);
-  const Bigint& big_right = Bigint::Handle(right);
-  return big_left.CompareWith(big_right);
-}
-END_LEAF_RUNTIME_ENTRY
-
 double DartModulo(double left, double right) {
   double remainder = fmod_ieee(left, right);
   if (remainder == 0.0) {

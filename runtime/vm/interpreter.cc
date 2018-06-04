@@ -144,10 +144,6 @@ class InterpreterHelpers {
           case kMintCid:
             return (static_cast<RawMint*>(lhs)->ptr()->value_ ==
                     static_cast<RawMint*>(rhs)->ptr()->value_);
-
-          case kBigintCid:
-            return (DLRT_BigintCompare(static_cast<RawBigint*>(lhs),
-                                       static_cast<RawBigint*>(rhs)) == 0);
         }
       }
     }

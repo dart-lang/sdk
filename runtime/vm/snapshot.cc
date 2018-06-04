@@ -992,7 +992,6 @@ uword SnapshotWriter::GetObjectTagsAndHash(RawObject* raw) {
   V(OneByteString)                                                             \
   V(TwoByteString)                                                             \
   V(Mint)                                                                      \
-  V(Bigint)                                                                    \
   V(Double)                                                                    \
   V(ImmutableArray)
 

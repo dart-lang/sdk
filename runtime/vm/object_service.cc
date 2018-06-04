@@ -1179,10 +1179,6 @@ void Double::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("valueAsString", ToCString());
 }
 
-void Bigint::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Integer::PrintJSONImpl(stream, ref);
-}
-
 void String::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   if (raw() == Symbols::OptimizedOut().raw()) {

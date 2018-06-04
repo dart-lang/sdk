@@ -74,46 +74,15 @@ static RawInteger* DoubleToInteger(double val, const char* error_msg) {
     args.SetAt(0, String::Handle(String::New(error_msg)));
     Exceptions::ThrowByType(Exceptions::kUnsupported, args);
   }
-  if (FLAG_limit_ints_to_64_bits) {
-    int64_t ival = 0;
-    if (val <= static_cast<double>(kMinInt64)) {
-      ival = kMinInt64;
-    } else if (val >= static_cast<double>(kMaxInt64)) {
-      ival = kMaxInt64;
-    } else {  // Representable in int64_t.
-      ival = static_cast<int64_t>(val);
-    }
-    return Integer::New(ival);
+  int64_t ival = 0;
+  if (val <= static_cast<double>(kMinInt64)) {
+    ival = kMinInt64;
+  } else if (val >= static_cast<double>(kMaxInt64)) {
+    ival = kMaxInt64;
+  } else {  // Representable in int64_t.
+    ival = static_cast<int64_t>(val);
   }
-  if ((-1.0 < val) && (val < 1.0)) {
-    return Smi::New(0);
-  }
-  DoubleInternals internals = DoubleInternals(val);
-  ASSERT(!internals.IsSpecial());  // Only Infinity and NaN are special.
-  uint64_t significand = internals.Significand();
-  intptr_t exponent = internals.Exponent();
-  if (exponent <= 0) {
-    significand >>= -exponent;
-    exponent = 0;
-  } else if (exponent <= 10) {
-    // A double significand has at most 53 bits. The following shift will
-    // hence not overflow, and yield an integer of at most 63 bits.
-    significand <<= exponent;
-    exponent = 0;
-  }
-  // A significand has at most 63 bits (after the shift above).
-  // The cast to int64_t is hence safe.
-  int64_t ival = static_cast<int64_t>(significand);
-  if (internals.Sign() < 0) {
-    ival = -ival;
-  }
-  if (exponent == 0) {
-    // The double fits in a Smi or Mint.
-    return Integer::New(ival);
-  }
-  Integer& result = Integer::Handle();
-  result = Bigint::NewFromShiftedInt64(ival, exponent);
-  return result.AsValidInteger();
+  return Integer::New(ival);
 }
 
 DEFINE_NATIVE_ENTRY(Double_hashCode, 1) {
@@ -126,14 +95,6 @@ DEFINE_NATIVE_ENTRY(Double_hashCode, 1) {
     int64_t ival = static_cast<int64_t>(val);
     if (static_cast<double>(ival) == val) {
       return Integer::New(ival);
-    }
-  } else if (!FLAG_limit_ints_to_64_bits && !isinf(val) && !isnan(val)) {
-    // Since this code is temporary until we limit ints to 64 bits, we
-    // reuse the existing DoubleToInteger helper function and pass it
-    // an empty error message ("") because it cannot fail.
-    const Integer& bigint = Integer::Handle(DoubleToInteger(val, ""));
-    if (bigint.AsDoubleValue() == val) {
-      return bigint.raw();
     }
   }
 

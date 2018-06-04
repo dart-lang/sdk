@@ -385,7 +385,6 @@ vm_sources_tests = [
   "atomic_test.cc",
   "benchmark_test.cc",
   "benchmark_test.h",
-  "bigint_test.cc",
   "bit_set_test.cc",
   "bit_vector_test.cc",
   "bitfield_test.cc",

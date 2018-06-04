@@ -52,11 +52,6 @@
     },
     {
       "library": "dart:core",
-      "class": "_Bigint",
-      "action": "create-instance"
-    },
-    {
-      "library": "dart:core",
       "class": "_Double",
       "action": "create-instance"
     },
@@ -970,11 +965,6 @@
       "action": "call"
     },
     {
-      "library": "dart:vmservice_io",
-      "name": "main",
-      "action": "call"
-    },
-    {
       "library": "dart:_builtin",
       "name": "_isolateId",
       "action": "get"
@@ -1012,6 +1002,16 @@
     {
       "library": "dart:vmservice_io",
       "name": "_autoStart",
+      "action": "set"
+    },
+    {
+      "library": "dart:vmservice_io",
+      "name": "_deterministic",
+      "action": "get"
+    },
+    {
+      "library": "dart:vmservice_io",
+      "name": "_deterministic",
       "action": "set"
     },
     {
@@ -1635,30 +1635,6 @@
         "action": "return",
         "library": "dart:typed_data",
         "class": "_Int32x4",
-        "nullable": false
-      }
-    ],
-    "Bigint_getNeg": [
-      {
-        "action": "return",
-        "library": "dart:core",
-        "class": "bool",
-        "nullable": false
-      }
-    ],
-    "Bigint_getUsed": [
-      {
-        "action": "return",
-        "library": "dart:core",
-        "class": "_Smi",
-        "nullable": false
-      }
-    ],
-    "Bigint_getDigits": [
-      {
-        "action": "return",
-        "library": "dart:typed_data",
-        "class": "_Uint32List",
         "nullable": false
       }
     ],

@@ -3341,16 +3341,6 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
             token_pos, element_type, length, owner()->GetNextDeoptId());
         return ReturnDefinition(create_array);
       }
-      case MethodRecognizer::kBigint_getDigits: {
-        return ReturnDefinition(BuildNativeGetter(
-            node, kind, Bigint::digits_offset(), Object::dynamic_type(),
-            kTypedDataUint32ArrayCid));
-      }
-      case MethodRecognizer::kBigint_getUsed: {
-        return ReturnDefinition(
-            BuildNativeGetter(node, kind, Bigint::used_offset(),
-                              Type::ZoneHandle(Z, Type::SmiType()), kSmiCid));
-      }
       case MethodRecognizer::kLinkedHashMap_getIndex: {
         return ReturnDefinition(BuildNativeGetter(
             node, kind, LinkedHashMap::index_offset(), Object::dynamic_type(),
@@ -3398,11 +3388,6 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
         // Smi field; no barrier needed.
         return ReturnDefinition(DoNativeSetterStoreValue(
             node, LinkedHashMap::deleted_keys_offset(), kNoStoreBarrier));
-      }
-      case MethodRecognizer::kBigint_getNeg: {
-        return ReturnDefinition(
-            BuildNativeGetter(node, kind, Bigint::neg_offset(),
-                              Type::ZoneHandle(Z, Type::BoolType()), kBoolCid));
       }
       default:
         break;

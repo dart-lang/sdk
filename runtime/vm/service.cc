@@ -4232,7 +4232,7 @@ static bool GetDefaultClassesAliases(Thread* thread, JSONStream* js) {
   }
   {
     JSONArray internals(&map, "Int");
-    for (intptr_t id = kIntegerCid; id <= kBigintCid; ++id) {
+    for (intptr_t id = kIntegerCid; id <= kMintCid; ++id) {
       DEFINE_ADD_VALUE_F(id);
     }
   }

@@ -17,7 +17,6 @@
           "../../runtime/lib/core_patch.dart",
           "../../runtime/lib/array.dart",
           "../../runtime/lib/array_patch.dart",
-          "../../runtime/lib/bigint.dart",
           "../../runtime/lib/bigint_patch.dart",
           "../../runtime/lib/bool_patch.dart",
           "../../runtime/lib/date_patch.dart",

@@ -177,7 +177,7 @@ class CompileType : public ZoneAllocated {
 
   // Returns true if value of this type is either int or null.
   bool IsNullableInt() {
-    if ((cid_ == kSmiCid) || (cid_ == kMintCid) || (cid_ == kBigintCid)) {
+    if ((cid_ == kSmiCid) || (cid_ == kMintCid)) {
       return true;
     }
     if ((cid_ == kIllegalCid) || (cid_ == kDynamicCid)) {
@@ -3426,7 +3426,7 @@ class StrictCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
-  // True if the comparison must check for double, Mint or Bigint and
+  // True if the comparison must check for double or Mint and
   // use value comparison instead.
   bool needs_number_check_;
 
@@ -6035,6 +6035,8 @@ class BinaryIntegerOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
     can_overflow_ = overflow;
   }
 
+  // TODO(alexmarkov): Figure out if we still need !is_truncating operations.
+  // If not, then remove is_truncating_ flag and simplify code.
   bool is_truncating() const { return is_truncating_; }
   void mark_truncating() {
     is_truncating_ = true;
@@ -6214,9 +6216,7 @@ class BinaryInt64OpInstr : public BinaryIntegerOpInstr {
                      SpeculativeMode speculative_mode = kGuardInputs)
       : BinaryIntegerOpInstr(op_kind, left, right, deopt_id),
         speculative_mode_(speculative_mode) {
-    if (FLAG_limit_ints_to_64_bits) {
-      mark_truncating();
-    }
+    mark_truncating();
   }
 
   virtual bool ComputeCanDeoptimize() const {
@@ -6271,9 +6271,7 @@ class ShiftInt64OpInstr : public BinaryIntegerOpInstr {
       : BinaryIntegerOpInstr(op_kind, left, right, deopt_id),
         shift_range_(NULL) {
     ASSERT((op_kind == Token::kSHR) || (op_kind == Token::kSHL));
-    if (FLAG_limit_ints_to_64_bits) {
-      mark_truncating();
-    }
+    mark_truncating();
   }
 
   Range* shift_range() const { return shift_range_; }

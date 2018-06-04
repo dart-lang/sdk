@@ -211,23 +211,7 @@ static bool GetNativeIntegerArgument(NativeArguments* arguments,
                                      int arg_index,
                                      int64_t* value) {
   ASSERT(value != NULL);
-  if (Api::GetNativeIntegerArgument(arguments, arg_index, value)) {
-    return true;
-  }
-  Thread* thread = arguments->thread();
-  ASSERT(thread == Thread::Current());
-  REUSABLE_OBJECT_HANDLESCOPE(thread);
-  Object& obj = thread->ObjectHandle();
-  obj = arguments->NativeArgAt(arg_index);
-  intptr_t cid = obj.GetClassId();
-  if (cid == kBigintCid) {
-    const Bigint& bigint = Bigint::Cast(obj);
-    if (bigint.FitsIntoInt64()) {
-      *value = bigint.AsInt64Value();
-      return true;
-    }
-  }
-  return false;
+  return Api::GetNativeIntegerArgument(arguments, arg_index, value);
 }
 
 static bool GetNativeUnsignedIntegerArgument(NativeArguments* arguments,
@@ -239,20 +223,6 @@ static bool GetNativeUnsignedIntegerArgument(NativeArguments* arguments,
     *value = static_cast<uint64_t>(arg_value);
     return true;
   }
-  Thread* thread = arguments->thread();
-  ASSERT(thread == Thread::Current());
-  REUSABLE_OBJECT_HANDLESCOPE(thread);
-  Object& obj = thread->ObjectHandle();
-  obj = arguments->NativeArgAt(arg_index);
-  intptr_t cid = obj.GetClassId();
-  if (cid == kBigintCid) {
-    ASSERT(!Bigint::IsDisabled());
-    const Bigint& bigint = Bigint::Cast(obj);
-    if (bigint.FitsIntoUint64()) {
-      *value = bigint.AsUint64Value();
-      return true;
-    }
-  }
   return false;
 }
 
@@ -260,20 +230,7 @@ static bool GetNativeDoubleArgument(NativeArguments* arguments,
                                     int arg_index,
                                     double* value) {
   ASSERT(value != NULL);
-  if (Api::GetNativeDoubleArgument(arguments, arg_index, value)) {
-    return true;
-  }
-  Thread* thread = arguments->thread();
-  ASSERT(thread == Thread::Current());
-  REUSABLE_OBJECT_HANDLESCOPE(thread);
-  Object& obj = thread->ObjectHandle();
-  obj = arguments->NativeArgAt(arg_index);
-  intptr_t cid = obj.GetClassId();
-  if (cid == kBigintCid) {
-    *value = Bigint::Cast(obj).AsDoubleValue();
-    return true;
-  }
-  return false;
+  return Api::GetNativeDoubleArgument(arguments, arg_index, value);
 }
 
 static Dart_Handle GetNativeFieldsOfArgument(NativeArguments* arguments,
@@ -2116,15 +2073,11 @@ DART_EXPORT Dart_Handle Dart_IntegerFitsIntoInt64(Dart_Handle integer,
     *fits = true;
     return Api::Success();
   }
-  // Slow path for Mints and Bigints.
+  // Slow path for type error.
   DARTSCOPE(thread);
   const Integer& int_obj = Api::UnwrapIntegerHandle(Z, integer);
-  if (int_obj.IsNull()) {
-    RETURN_TYPE_ERROR(Z, integer, Integer);
-  }
-  ASSERT(!Bigint::Cast(int_obj).FitsIntoInt64());
-  *fits = false;
-  return Api::Success();
+  ASSERT(int_obj.IsNull());
+  RETURN_TYPE_ERROR(Z, integer, Integer);
 }
 
 DART_EXPORT Dart_Handle Dart_IntegerFitsIntoUint64(Dart_Handle integer,
@@ -2138,19 +2091,14 @@ DART_EXPORT Dart_Handle Dart_IntegerFitsIntoUint64(Dart_Handle integer,
     *fits = (Api::SmiValue(integer) >= 0);
     return Api::Success();
   }
-  // Slow path for Mints and Bigints.
+  // Slow path for Mints.
   DARTSCOPE(thread);
   const Integer& int_obj = Api::UnwrapIntegerHandle(Z, integer);
   if (int_obj.IsNull()) {
     RETURN_TYPE_ERROR(Z, integer, Integer);
   }
-  ASSERT(!int_obj.IsSmi());
-  if (int_obj.IsMint()) {
-    *fits = !int_obj.IsNegative();
-  } else {
-    ASSERT(!Bigint::IsDisabled());
-    *fits = Bigint::Cast(int_obj).FitsIntoUint64();
-  }
+  ASSERT(int_obj.IsMint());
+  *fits = !int_obj.IsNegative();
   return Api::Success();
 }
 
@@ -2164,7 +2112,7 @@ DART_EXPORT Dart_Handle Dart_NewInteger(int64_t value) {
     NOHANDLESCOPE(thread);
     return Api::NewHandle(thread, Smi::New(static_cast<intptr_t>(value)));
   }
-  // Slow path for Mints and Bigints.
+  // Slow path for Mints.
   DARTSCOPE(thread);
   CHECK_CALLBACK_STATE(thread);
   return Api::NewHandle(thread, Integer::New(value));
@@ -2204,26 +2152,15 @@ DART_EXPORT Dart_Handle Dart_IntegerToInt64(Dart_Handle integer,
     *value = Api::SmiValue(integer);
     return Api::Success();
   }
-  // Slow path for Mints and Bigints.
+  // Slow path for Mints.
   DARTSCOPE(thread);
   const Integer& int_obj = Api::UnwrapIntegerHandle(Z, integer);
   if (int_obj.IsNull()) {
     RETURN_TYPE_ERROR(Z, integer, Integer);
   }
-  ASSERT(!int_obj.IsSmi());
-  if (int_obj.IsMint()) {
-    *value = int_obj.AsInt64Value();
-    return Api::Success();
-  } else {
-    ASSERT(!Bigint::IsDisabled());
-    const Bigint& bigint = Bigint::Cast(int_obj);
-    if (bigint.FitsIntoInt64()) {
-      *value = bigint.AsInt64Value();
-      return Api::Success();
-    }
-  }
-  return Api::NewError("%s: Integer %s cannot be represented as an int64_t.",
-                       CURRENT_FUNC, int_obj.ToCString());
+  ASSERT(int_obj.IsMint());
+  *value = int_obj.AsInt64Value();
+  return Api::Success();
 }
 
 DART_EXPORT Dart_Handle Dart_IntegerToUint64(Dart_Handle integer,
@@ -2239,7 +2176,7 @@ DART_EXPORT Dart_Handle Dart_IntegerToUint64(Dart_Handle integer,
       return Api::Success();
     }
   }
-  // Slow path for Mints and Bigints.
+  // Slow path for Mints.
   DARTSCOPE(thread);
   const Integer& int_obj = Api::UnwrapIntegerHandle(Z, integer);
   if (int_obj.IsNull()) {
@@ -2247,16 +2184,10 @@ DART_EXPORT Dart_Handle Dart_IntegerToUint64(Dart_Handle integer,
   }
   if (int_obj.IsSmi()) {
     ASSERT(int_obj.IsNegative());
-  } else if (int_obj.IsMint()) {
+  } else {
+    ASSERT(int_obj.IsMint());
     if (!int_obj.IsNegative()) {
       *value = int_obj.AsInt64Value();
-      return Api::Success();
-    }
-  } else {
-    ASSERT(!Bigint::IsDisabled());
-    const Bigint& bigint = Bigint::Cast(int_obj);
-    if (bigint.FitsIntoUint64()) {
-      *value = bigint.AsUint64Value();
       return Api::Success();
     }
   }
@@ -2666,22 +2597,11 @@ DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
   if (retval.IsSmi()) {
     *len = Smi::Cast(retval).Value();
     return Api::Success();
-  } else if (retval.IsMint() || retval.IsBigint()) {
-    if (retval.IsMint()) {
-      int64_t mint_value = Mint::Cast(retval).value();
-      if (mint_value >= kIntptrMin && mint_value <= kIntptrMax) {
-        *len = static_cast<intptr_t>(mint_value);
-      }
-    } else {
-      // Check for a non-canonical Mint range value.
-      ASSERT(retval.IsBigint());
-      const Bigint& bigint = Bigint::Handle();
-      if (bigint.FitsIntoInt64()) {
-        int64_t bigint_value = bigint.AsInt64Value();
-        if (bigint_value >= kIntptrMin && bigint_value <= kIntptrMax) {
-          *len = static_cast<intptr_t>(bigint_value);
-        }
-      }
+  } else if (retval.IsMint()) {
+    int64_t mint_value = Mint::Cast(retval).value();
+    if (mint_value >= kIntptrMin && mint_value <= kIntptrMax) {
+      *len = static_cast<intptr_t>(mint_value);
+      return Api::Success();
     }
     return Api::NewError(
         "Length of List object is greater than the "
@@ -5087,7 +5007,7 @@ DART_EXPORT void Dart_SetIntegerReturnValue(Dart_NativeArguments args,
   if (Smi::IsValid(retval)) {
     Api::SetSmiReturnValue(arguments, static_cast<intptr_t>(retval));
   } else {
-    // Slow path for Mints and Bigints.
+    // Slow path for Mints.
     ASSERT_CALLBACK_STATE(arguments->thread());
     TransitionNativeToVM transition(arguments->thread());
     Api::SetIntegerReturnValue(arguments, retval);

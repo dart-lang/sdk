@@ -7,7 +7,7 @@
 #ifndef RUNTIME_INCLUDE_DART_NATIVE_API_H_
 #define RUNTIME_INCLUDE_DART_NATIVE_API_H_
 
-#include "dart_api.h"
+#include "dart_api.h" /* NOLINT */
 
 /*
  * ==========================================
@@ -33,7 +33,6 @@ typedef enum {
   Dart_CObject_kBool,
   Dart_CObject_kInt32,
   Dart_CObject_kInt64,
-  Dart_CObject_kBigint,
   Dart_CObject_kDouble,
   Dart_CObject_kString,
   Dart_CObject_kArray,
@@ -53,11 +52,6 @@ typedef struct _Dart_CObject {
     int64_t as_int64;
     double as_double;
     char* as_string;
-    struct {
-      bool neg;
-      intptr_t used;
-      struct _Dart_CObject* digits;
-    } as_bigint;
     struct {
       Dart_Port id;
       Dart_Port origin_id;

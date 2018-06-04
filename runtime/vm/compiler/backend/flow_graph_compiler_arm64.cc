@@ -347,7 +347,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     __ b(is_not_instance_lbl);
     return false;
   }
-  // Custom checking for numbers (Smi, Mint, Bigint and Double).
+  // Custom checking for numbers (Smi, Mint and Double).
   // Note that instance is not Smi (checked above).
   if (type.IsNumberType() || type.IsIntType() || type.IsDoubleType()) {
     GenerateNumberTypeCheck(kClassIdReg, type, is_instance_lbl,
@@ -1059,7 +1059,7 @@ Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
     TokenPosition token_pos,
     intptr_t deopt_id) {
   if (needs_number_check) {
-    ASSERT(!obj.IsMint() && !obj.IsDouble() && !obj.IsBigint());
+    ASSERT(!obj.IsMint() && !obj.IsDouble());
     __ Push(reg);
     __ PushObject(obj);
     if (is_optimizing()) {

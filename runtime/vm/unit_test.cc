@@ -689,10 +689,6 @@ Dart_Handle TestCase::library_handler(Dart_LibraryTag tag,
   return Api::Success();
 }
 
-char* TestCase::BigintToHexValue(Dart_CObject* bigint) {
-  return bin::CObject::BigintToHexValue(bigint);
-}
-
 #if !defined(PRODUCT)
 static bool IsHex(int c) {
   return ('0' <= c && c <= '9') || ('a' <= c && c <= 'f');

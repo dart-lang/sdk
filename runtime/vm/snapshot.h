@@ -39,7 +39,6 @@ class MegamorphicCache;
 class PageSpace;
 class RawApiError;
 class RawArray;
-class RawBigint;
 class RawBoundedType;
 class RawCapability;
 class RawClass;
@@ -69,7 +68,6 @@ class RawLocalVarDescriptors;
 class RawMegamorphicCache;
 class RawMint;
 class RawMixinAppType;
-class RawBigint;
 class RawNamespace;
 class RawObject;
 class RawObjectPool;
@@ -470,7 +468,6 @@ class SnapshotReader : public BaseReader {
 
   friend class ApiError;
   friend class Array;
-  friend class Bigint;
   friend class BoundedType;
   friend class Class;
   friend class Closure;

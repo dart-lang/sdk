@@ -3266,7 +3266,6 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
       case kIntegerCid:  // Class Integer, not int.
       case kSmiCid:
       case kMintCid:
-      case kBigintCid:
       case kDoubleCid:  // Class Double, not double.
       case kOneByteStringCid:
       case kTwoByteStringCid:

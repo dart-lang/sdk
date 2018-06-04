@@ -3685,83 +3685,6 @@ class MintDeserializationCluster : public DeserializationCluster {
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-class BigintSerializationCluster : public SerializationCluster {
- public:
-  BigintSerializationCluster() : SerializationCluster("Bigint") {}
-  virtual ~BigintSerializationCluster() {}
-
-  void Trace(Serializer* s, RawObject* object) {
-    RawBigint* bigint = Bigint::RawCast(object);
-    objects_.Add(bigint);
-
-    RawObject** from = bigint->from();
-    RawObject** to = bigint->to();
-    for (RawObject** p = from; p <= to; p++) {
-      s->Push(*p);
-    }
-  }
-
-  void WriteAlloc(Serializer* s) {
-    s->WriteCid(kBigintCid);
-    intptr_t count = objects_.length();
-    s->WriteUnsigned(count);
-    for (intptr_t i = 0; i < count; i++) {
-      RawBigint* bigint = objects_[i];
-      s->AssignRef(bigint);
-    }
-  }
-
-  void WriteFill(Serializer* s) {
-    intptr_t count = objects_.length();
-    for (intptr_t i = 0; i < count; i++) {
-      RawBigint* bigint = objects_[i];
-      s->Write<bool>(bigint->IsCanonical());
-      RawObject** from = bigint->from();
-      RawObject** to = bigint->to();
-      for (RawObject** p = from; p <= to; p++) {
-        s->WriteRef(*p);
-      }
-    }
-  }
-
- private:
-  GrowableArray<RawBigint*> objects_;
-};
-#endif  // !DART_PRECOMPILED_RUNTIME
-
-class BigintDeserializationCluster : public DeserializationCluster {
- public:
-  BigintDeserializationCluster() {}
-  virtual ~BigintDeserializationCluster() {}
-
-  void ReadAlloc(Deserializer* d) {
-    start_index_ = d->next_index();
-    PageSpace* old_space = d->heap()->old_space();
-    intptr_t count = d->ReadUnsigned();
-    for (intptr_t i = 0; i < count; i++) {
-      d->AssignRef(AllocateUninitialized(old_space, Bigint::InstanceSize()));
-    }
-    stop_index_ = d->next_index();
-  }
-
-  void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
-    for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawBigint* bigint = reinterpret_cast<RawBigint*>(d->Ref(id));
-      bool is_canonical = d->Read<bool>();
-      Deserializer::InitializeHeader(bigint, kBigintCid, Bigint::InstanceSize(),
-                                     is_vm_object, is_canonical);
-      RawObject** from = bigint->from();
-      RawObject** to = bigint->to();
-      for (RawObject** p = from; p <= to; p++) {
-        *p = d->ReadRef();
-      }
-    }
-  }
-};
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
 class DoubleSerializationCluster : public SerializationCluster {
  public:
   DoubleSerializationCluster() : SerializationCluster("Double") {}
@@ -4813,8 +4736,6 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
       return new (Z) ClosureSerializationCluster();
     case kMintCid:
       return new (Z) MintSerializationCluster();
-    case kBigintCid:
-      return new (Z) BigintSerializationCluster();
     case kDoubleCid:
       return new (Z) DoubleSerializationCluster();
     case kGrowableObjectArrayCid:
@@ -5338,8 +5259,6 @@ DeserializationCluster* Deserializer::ReadCluster() {
       return new (Z) ClosureDeserializationCluster();
     case kMintCid:
       return new (Z) MintDeserializationCluster();
-    case kBigintCid:
-      return new (Z) BigintDeserializationCluster();
     case kDoubleCid:
       return new (Z) DoubleDeserializationCluster();
     case kGrowableObjectArrayCid:

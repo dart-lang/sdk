@@ -1903,13 +1903,12 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
 // Does identical check (object references are equal or not equal) with special
 // checks for boxed numbers.
 // Return ZF set.
-// Note: A Mint cannot contain a value that would fit in Smi, a Bigint
-// cannot contain a value that fits in Mint or Smi.
+// Note: A Mint cannot contain a value that would fit in Smi.
 static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
                                                  const Register left,
                                                  const Register right,
                                                  const Register temp) {
-  Label reference_compare, done, check_mint, check_bigint;
+  Label reference_compare, done, check_mint;
   // If any of the arguments is Smi do reference compare.
   __ testl(left, Immediate(kSmiTagMask));
   __ j(ZERO, &reference_compare, Assembler::kNearJump);
@@ -1932,7 +1931,7 @@ static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
 
   __ Bind(&check_mint);
   __ CompareClassId(left, kMintCid, temp);
-  __ j(NOT_EQUAL, &check_bigint, Assembler::kNearJump);
+  __ j(NOT_EQUAL, &reference_compare, Assembler::kNearJump);
   __ CompareClassId(right, kMintCid, temp);
   __ j(NOT_EQUAL, &done, Assembler::kNearJump);
   __ movl(temp, FieldAddress(left, Mint::value_offset() + 0 * kWordSize));
@@ -1941,21 +1940,6 @@ static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
   __ movl(temp, FieldAddress(left, Mint::value_offset() + 1 * kWordSize));
   __ cmpl(temp, FieldAddress(right, Mint::value_offset() + 1 * kWordSize));
   __ jmp(&done, Assembler::kNearJump);
-
-  __ Bind(&check_bigint);
-  __ CompareClassId(left, kBigintCid, temp);
-  __ j(NOT_EQUAL, &reference_compare, Assembler::kNearJump);
-  __ CompareClassId(right, kBigintCid, temp);
-  __ j(NOT_EQUAL, &done, Assembler::kNearJump);
-  __ EnterFrame(0);
-  __ ReserveAlignedFrameSpace(2 * kWordSize);
-  __ movl(Address(ESP, 1 * kWordSize), left);
-  __ movl(Address(ESP, 0 * kWordSize), right);
-  __ CallRuntime(kBigintCompareRuntimeEntry, 2);
-  // Result in EAX, 0 means equal.
-  __ LeaveFrame();
-  __ cmpl(EAX, Immediate(0));
-  __ jmp(&done);
 
   __ Bind(&reference_compare);
   __ cmpl(left, right);

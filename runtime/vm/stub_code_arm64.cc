@@ -2227,12 +2227,11 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
 // checks for boxed numbers.
 // Left and right are pushed on stack.
 // Return Zero condition flag set if equal.
-// Note: A Mint cannot contain a value that would fit in Smi, a Bigint
-// cannot contain a value that fits in Mint or Smi.
+// Note: A Mint cannot contain a value that would fit in Smi.
 static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
                                                  const Register left,
                                                  const Register right) {
-  Label reference_compare, done, check_mint, check_bigint;
+  Label reference_compare, done, check_mint;
   // If any of the arguments is Smi do reference compare.
   __ BranchIfSmi(left, &reference_compare);
   __ BranchIfSmi(right, &reference_compare);
@@ -2250,27 +2249,11 @@ static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
 
   __ Bind(&check_mint);
   __ CompareClassId(left, kMintCid);
-  __ b(&check_bigint, NE);
+  __ b(&reference_compare, NE);
   __ CompareClassId(right, kMintCid);
   __ b(&done, NE);
   __ LoadFieldFromOffset(left, left, Mint::value_offset());
   __ LoadFieldFromOffset(right, right, Mint::value_offset());
-  __ b(&reference_compare);
-
-  __ Bind(&check_bigint);
-  __ CompareClassId(left, kBigintCid);
-  __ b(&reference_compare, NE);
-  __ CompareClassId(right, kBigintCid);
-  __ b(&done, NE);
-  __ EnterStubFrame();
-  __ ReserveAlignedFrameSpace(2 * kWordSize);
-  __ StoreToOffset(left, SP, 0 * kWordSize);
-  __ StoreToOffset(right, SP, 1 * kWordSize);
-  __ CallRuntime(kBigintCompareRuntimeEntry, 2);
-  // Result in R0, 0 means equal.
-  __ LeaveStubFrame();
-  __ cmp(R0, Operand(0));
-  __ b(&done);
 
   __ Bind(&reference_compare);
   __ CompareRegisters(left, right);
