@@ -6,6 +6,23 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 
 /**
+ * Return the [Element] that is either [root], or one of its direct or
+ * indirect children, and has the given [nameOffset].
+ */
+Element findElementByNameOffset(Element root, int nameOffset) {
+  if (root == null) {
+    return null;
+  }
+  try {
+    var visitor = new _ElementByNameOffsetVisitor(nameOffset);
+    root.accept(visitor);
+  } on Element catch (result) {
+    return result;
+  }
+  return null;
+}
+
+/**
  * Uses [processor] to visit all of the children of [element].
  * If [processor] returns `true`, then children of a child are visited too.
  */
@@ -26,6 +43,24 @@ void visitLibraryTopLevelElements(
  * If `true` is returned, children of [element] will be visited.
  */
 typedef bool ElementProcessor(Element element);
+
+/**
+ * A visitor that finds the deep-most [Element] that contains the [nameOffset].
+ */
+class _ElementByNameOffsetVisitor extends GeneralizingElementVisitor {
+  final int nameOffset;
+
+  _ElementByNameOffsetVisitor(this.nameOffset);
+
+  visitElement(Element element) {
+    if (element.nameOffset != -1 &&
+        !element.isSynthetic &&
+        element.nameOffset == nameOffset) {
+      throw element;
+    }
+    super.visitElement(element);
+  }
+}
 
 /**
  * A [GeneralizingElementVisitor] adapter for [ElementProcessor].
