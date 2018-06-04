@@ -1268,7 +1268,7 @@ bool PageSpaceController::NeedsGarbageCollection(SpaceUsage after) const {
 bool PageSpaceController::NeedsExternalCollection(SpaceUsage after) const {
   intptr_t increase_in_words =
       after.external_in_words - last_usage_.external_in_words;
-  ASSERT(increase_in_words >= 0);
+  increase_in_words = Utils::Maximum<intptr_t>(0, increase_in_words);
   increase_in_words = Utils::RoundUp(increase_in_words, kPageSizeInWords);
   intptr_t increase_in_pages = increase_in_words / kPageSizeInWords;
   bool needs_gc = increase_in_pages > grow_external_;
