@@ -209,6 +209,14 @@ cc/Profiler_TrivialRecordAllocation: Fail, Pass
 cc/Service_Address: Fail
 cc/Service_Code: Fail
 
+[ $compiler == dartk && $hot_reload ]
+dart/data_uri_import_test/base64: Crash
+dart/data_uri_import_test/nocharset: Crash
+dart/data_uri_import_test/nomime: Crash
+dart/data_uri_import_test/percentencoded: Crash
+dart/data_uri_import_test/utf16: Crash
+dart/data_uri_import_test/wrongmime: Crash
+
 [ $compiler == dartk && $strong ]
 cc/DartGeneratedArrayLiteralMessages: Crash # Issue 32190
 cc/FullSnapshot1: Crash # Issue 32190
@@ -228,6 +236,9 @@ dart/script_determinism_test: SkipSlow # DFE too slow
 [ $compiler == dartk && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
 dart/data_uri_spawn_test: Skip # Please triage.
 dart/snapshot_version_test: RuntimeError # Please triage.
+
+[ $compiler == dartk && ($hot_reload || $hot_reload_rollback) ]
+dart/data_uri_spawn_test: Skip # Timeout
 
 [ $compiler != dartk && $compiler != none ]
 dart/appjit_cha_deopt_test: SkipByDesign # Test needs to run from source

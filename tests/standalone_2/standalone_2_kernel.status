@@ -73,6 +73,10 @@ io/socket_info_ipv4_test: Pass, Crash
 io/socket_info_ipv6_test: Pass, Crash
 io/socket_port_test: Pass, Crash
 
+[ $compiler == dartk && $mode == debug && $hot_reload ]
+io/http_basic_test: Crash
+io/web_socket_ping_test: Crash, Pass
+
 # ===== dartk + vm status lines =====
 [ $compiler == dartk && $runtime == vm && $strong ]
 io/http_client_request_test: Pass, Timeout
@@ -99,6 +103,13 @@ io/process_non_ascii_test: RuntimeError # Issue 31904
 io/regress_7679_test: RuntimeError # Issue 31904
 map_insert_remove_oom_test: Skip # Heap limit too low.
 
+[ $compiler == dartk && $hot_reload ]
+io/http_no_reason_phrase_test: Pass, Crash
+io/http_outgoing_size_test: Pass, Crash
+
+[ $compiler == dartk && $hot_reload_rollback ]
+io/directory_chdir_test: Skip # Timeout
+
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
@@ -119,6 +130,24 @@ package/scenarios/packages_option_only/packages_option_only_test: CompileTimeErr
 # ===== Skip dartk and darkp in !$strong mode ====
 [ $compiler == dartk && !$strong ]
 *: SkipByDesign
+
+[ $compiler == dartk && ($hot_reload || $hot_reload_rollback) ]
+io/addlatexhash_test: Skip # Timeout
+io/http_advanced_test: Skip # Timeout
+io/http_auth_digest_test: Crash
+io/http_auth_test: Skip # Timeout
+io/http_proxy_advanced_test: Skip # Timeout
+io/http_read_test: Skip # Timeout
+io/non_utf8_directory_test: Crash
+io/non_utf8_file_test: Crash
+io/non_utf8_link_test: Crash
+io/pipe_server_test: Skip # Timeout
+io/socket_close_test: Skip # Timeout
+io/socket_many_connections_test: Skip # Timeout
+io/test_extension_fail_test: RuntimeError
+io/test_extension_test: RuntimeError
+io/web_socket_compression_test: Skip # Timeout
+io/web_socket_test: Skip # Timeout
 
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
 io/compile_all_test: Crash # Issue 32373

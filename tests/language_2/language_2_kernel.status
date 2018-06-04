@@ -630,6 +630,16 @@ mixin_super_2_test/03: MissingCompileTimeError
 mixin_supertype_subclass_test/02: MissingCompileTimeError
 mixin_supertype_subclass_test/05: MissingCompileTimeError
 
+[ $compiler == dartk && $mode == debug && $hot_reload ]
+async_star_test/01: Crash
+async_star_test/05: Crash
+
+[ $compiler == dartk && $mode == debug && $hot_reload_rollback ]
+enum_test: Crash
+
+[ $compiler == dartk && $mode == debug && ($hot_reload || $hot_reload_rollback) ]
+enum_duplicate_test/01: Crash
+
 [ $compiler == dartk && $mode == product && $runtime == vm ]
 deferred_load_constants_test/02: Fail
 deferred_load_constants_test/03: Fail
@@ -863,6 +873,10 @@ wrong_number_type_arguments_test/none: Pass
 [ $compiler == dartk && $system == windows && $strong ]
 ct_const2_test: Fail
 
+[ $compiler == dartk && $hot_reload ]
+vm/causal_async_exception_stack2_test: Crash
+vm/causal_async_exception_stack_test: Crash
+
 [ $compiler == dartk && $strong ]
 assertion_initializer_const_error2_test/cc01: MissingCompileTimeError # Not reporting failed assert() at compile time.
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError # Not reporting failed assert() at compile time.
@@ -883,6 +897,14 @@ redirecting_factory_reflection_test: RuntimeError
 # batch mode.
 [ $compiler == dartk && $strong && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
 least_upper_bound_expansive_test/none: RuntimeError # Please triage.
+
+[ $compiler == dartk && ($hot_reload || $hot_reload_rollback) ]
+async_star_test/01: Skip # Timeout
+async_star_test/02: Skip # Timeout
+async_star_test/03: Skip # Timeout
+async_star_test/04: Skip # Timeout
+async_star_test/05: Skip # Timeout
+async_star_test/none: Skip # Timeout
 
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
 const_instance_field_test/01: Crash # Issue 32326.

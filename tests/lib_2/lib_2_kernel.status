@@ -74,6 +74,9 @@ isolate/browser/package_resolve_browser_test: CompileTimeError
 [ $compiler == dartk && $mode == debug && $runtime == vm && $strong ]
 mirrors/other_declarations_location_test: Crash # assertion error, TypeParameter not having position.
 
+[ $compiler == dartk && $mode == debug && $hot_reload_rollback ]
+isolate/message3_test/constList_identical: Skip # Timeout
+
 [ $compiler == dartk && $mode == debug && $strong ]
 mirrors/instance_members_unimplemented_interface_test: Crash
 mirrors/library_import_deferred_loading_test: Crash # Deferred loading kernel issue 28335.
@@ -208,6 +211,18 @@ mirrors/typevariable_mirror_metadata_test: RuntimeError
 [ $compiler == dartk && $system == windows ]
 isolate/ping_pause_test: Skip # Issues 32137 and 32138
 
+[ $compiler == dartk && $hot_reload ]
+async/stream_state_nonzero_timer_test: Crash
+async/stream_subscription_as_future_test: Crash
+async/stream_subscription_cancel_test: Crash
+isolate/message4_test: Crash
+isolate/spawn_uri_multi_test/01: Crash
+isolate/spawn_uri_multi_test/none: Crash
+
+[ $compiler == dartk && $hot_reload_rollback ]
+isolate/illegal_msg_function_test: Skip # Timeout
+isolate/pause_test: Skip # Timeout
+
 [ $compiler == dartk && $strong ]
 async/future_test/01: RuntimeError
 async/future_test/none: RuntimeError
@@ -268,6 +283,44 @@ mirrors/library_uri_io_test: RuntimeError # Please triage.
 # ===== Skip dartk and darkp in !$strong mode ====
 [ $compiler == dartk && !$strong ]
 *: SkipByDesign
+
+[ $compiler == dartk && ($hot_reload || $hot_reload_rollback) ]
+async/stream_from_iterable_test: Skip # Timeout
+async/stream_iterator_test: Skip # Timeout
+async/stream_periodic2_test: Skip # Timeout
+async/stream_periodic3_test: Skip # Timeout
+async/stream_periodic4_test: Skip # Timeout
+async/stream_periodic5_test: Skip # Timeout
+async/stream_periodic6_test: Skip # Timeout
+async/stream_periodic_test: Skip # Timeout
+async/stream_single_test: Skip # Timeout
+async/stream_single_to_multi_subscriber_test: Skip # Timeout
+async/stream_state_test: Skip # Timeout
+async/stream_timeout_test: Skip # Timeout
+async/stream_transform_test: Skip # Timeout
+async/stream_transformation_broadcast_test: Skip # Timeout
+async/timer_cancel1_test: Skip # Timeout
+async/timer_isActive_test: Skip # Timeout
+async/timer_test: Skip # Timeout
+isolate/count_test: Skip # Timeout
+isolate/cross_isolate_message_test: Skip # Timeout
+isolate/isolate_complex_messages_test: Skip # Timeout
+isolate/isolate_import_test/none: Skip # Timeout
+isolate/issue_21398_parent_isolate1_test: Skip # Timeout
+isolate/mandel_isolate_test: Skip # Timeout
+isolate/message2_test: Skip # Timeout
+isolate/nested_spawn2_test: Skip # Timeout
+isolate/nested_spawn_test: Skip # Timeout
+isolate/raw_port_test: Skip # Timeout
+isolate/spawn_function_test: Skip # Timeout
+isolate/spawn_uri_test: Skip # Timeout
+isolate/spawn_uri_vm_test: Skip # Timeout
+isolate/timer_isolate_test: Skip # Timeout
+isolate/timer_multiple_isolates_test: Skip # Timeout
+isolate/unresolved_ports_test: Skip # Timeout
+mirrors/dynamic_load_test: Crash
+mirrors/library_uri_io_test: Skip # Timeout
+mirrors/library_uri_package_test: Skip # Timeout
 
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
 isolate/static_function_test: Skip # Flaky (https://github.com/dart-lang/sdk/issues/30063).
