@@ -911,7 +911,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   friend class BreakableBlock;
   friend class CatchBlock;
-  friend class ConstantEvaluator;
   friend class KernelReaderHelper;
   friend class StreamingFlowGraphBuilder;
   friend class ScopeBuilder;

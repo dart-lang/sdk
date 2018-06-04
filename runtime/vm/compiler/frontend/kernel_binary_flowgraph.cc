@@ -1401,11 +1401,12 @@ StreamingScopeBuilder::StreamingScopeBuilder(ParsedFunction* parsed_function)
           Script::Handle(Z, parsed_function->function().script()),
           zone_,
           TypedData::Handle(Z, parsed_function->function().KernelData()),
-          parsed_function->function().KernelDataProgramOffset())),
+          parsed_function->function().KernelDataProgramOffset(),
+          &active_class_)),
       type_translator_(builder_, /*finalize=*/true) {
   H.InitFromScript(builder_->script());
-  type_translator_.active_class_ = &active_class_;
-  builder_->type_translator_.active_class_ = &active_class_;
+  ASSERT(type_translator_.active_class_ == &active_class_);
+  ASSERT(builder_->type_translator_.active_class_ == &active_class_);
 }
 
 StreamingScopeBuilder::~StreamingScopeBuilder() {
@@ -7424,8 +7425,7 @@ CatchBlock* StreamingFlowGraphBuilder::catch_block() {
 }
 
 ActiveClass* StreamingFlowGraphBuilder::active_class() {
-  return (flow_graph_builder_ != NULL) ? &flow_graph_builder_->active_class_
-                                       : NULL;
+  return active_class_;
 }
 
 ScopeBuildingResult* StreamingFlowGraphBuilder::scopes() {
@@ -11076,16 +11076,11 @@ RawObject* StreamingFlowGraphBuilder::BuildParameterDescriptor(
   return param_descriptor.raw();
 }
 
-RawObject* StreamingFlowGraphBuilder::EvaluateMetadata(
-    intptr_t kernel_offset,
-    const Class& owner_class) {
+RawObject* StreamingFlowGraphBuilder::EvaluateMetadata(intptr_t kernel_offset) {
   SetOffset(kernel_offset);
   const Tag tag = PeekTag();
 
-  // Setup active_class in type translator for type finalization.
-  ActiveClass active_class;
-  active_class.klass = &owner_class;
-  type_translator_.set_active_class(&active_class);
+  ASSERT(active_class() != NULL);
 
   if (tag == kClass) {
     ClassHelper class_helper(this);
@@ -11113,8 +11108,6 @@ RawObject* StreamingFlowGraphBuilder::EvaluateMetadata(
     SkipExpression();  // read (actual) initializer.
     metadata_values.SetAt(i, value);
   }
-
-  type_translator_.set_active_class(NULL);
 
   return metadata_values.raw();
 }

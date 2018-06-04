@@ -3696,7 +3696,7 @@ TokenPosition Class::ComputeEndTokenPos() const {
     kernel::TranslationHelper helper(thread);
     helper.InitFromScript(scr);
     kernel::StreamingFlowGraphBuilder builder_(&helper, scr, zone, kernel_data,
-                                               0);
+                                               0, /* active_class = */ NULL);
     builder_.SetOffset(class_offset);
     kernel::ClassHelper class_helper(&builder_);
     class_helper.ReadUntilIncluding(kernel::ClassHelper::kEndPosition);
@@ -7331,7 +7331,8 @@ RawFunction* Function::ImplicitClosureFunction() const {
     kernel::TranslationHelper translation_helper(thread);
     kernel::StreamingFlowGraphBuilder builder(
         &translation_helper, function_script, zone,
-        TypedData::Handle(zone, KernelData()), KernelDataProgramOffset());
+        TypedData::Handle(zone, KernelData()), KernelDataProgramOffset(),
+        /* active_class = */ NULL);
     translation_helper.InitFromScript(function_script);
     builder.SetOffset(kernel_offset());
 
