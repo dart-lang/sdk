@@ -168,7 +168,6 @@ LibTest/typed_data/Int32List/buffer_A01_t02: Pass, Timeout # Flutter Issue 9109
 
 [ $runtime == vm ]
 Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: MissingCompileTimeError # Issue 114
-Language/Expressions/Function_Invocation/async_invokation_t02: RuntimeError # sync-async is on by default.
 LibTest/isolate/Isolate/spawnUri_A01_t06: Pass, Fail # Issue 28269, These tests are timing dependent and should be non-flaky once the fix for https://github.com/dart-lang/co19/issues/86 is merged into master. (They are skipped on $runtime == pre_compiled below.)
 LibTest/isolate/Isolate/spawnUri_A01_t07: Pass, Fail # Issue 28269, These tests are timing dependent and should be non-flaky once the fix for https://github.com/dart-lang/co19/issues/86 is merged into master. (They are skipped on $runtime == pre_compiled below.)
 LibTest/isolate/Isolate/spawn_A04_t01: Pass, Fail # Issue 28269, These tests are timing dependent and should be non-flaky once the fix for https://github.com/dart-lang/co19/issues/86 is merged into master. (They are skipped on $runtime == pre_compiled below.)

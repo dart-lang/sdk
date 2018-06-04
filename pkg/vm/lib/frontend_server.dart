@@ -48,7 +48,7 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
       help: 'Run compiler in strong mode (uses strong mode semantics)',
       defaultsTo: false)
   ..addFlag('sync-async',
-      help: 'Start `async` functions synchronously.', defaultsTo: true)
+      help: 'Start `async` functions synchronously.', defaultsTo: false)
   ..addFlag('tfa',
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',

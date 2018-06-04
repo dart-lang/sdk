@@ -69,16 +69,16 @@ Future<int> main() async {
       )).captured;
       expect(capturedArgs.single['sdk-root'], equals('sdkroot'));
       expect(capturedArgs.single['strong'], equals(true));
-      expect(capturedArgs.single['sync-async'], equals(true));
+      expect(capturedArgs.single['sync-async'], equals(false));
     });
 
-    test('compile from command line (no-sync-async)', () async {
+    test('compile from command line (sync-async)', () async {
       final List<String> args = <String>[
         'server.dart',
         '--sdk-root',
         'sdkroot',
         '--strong',
-        '--no-sync-async',
+        '--sync-async',
       ];
       final int exitcode = await starter(args, compiler: compiler);
       expect(exitcode, equals(0));
@@ -89,7 +89,7 @@ Future<int> main() async {
       )).captured;
       expect(capturedArgs.single['sdk-root'], equals('sdkroot'));
       expect(capturedArgs.single['strong'], equals(true));
-      expect(capturedArgs.single['sync-async'], equals(false));
+      expect(capturedArgs.single['sync-async'], equals(true));
     });
 
     test('compile from command line with link platform', () async {

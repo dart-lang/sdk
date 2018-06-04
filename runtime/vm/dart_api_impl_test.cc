@@ -4333,6 +4333,43 @@ TEST_CASE(DartAPI_NegativeNativeFieldAccess) {
   EXPECT(Dart_IsError(result));
 }
 
+TEST_CASE(DartAPI_NegativeNativeFieldInIsolateMessage) {
+  const char* kScriptChars =
+      "import 'dart:isolate';\n"
+      "import 'dart:nativewrappers';\n"
+      "echo(msg) {\n"
+      "  var data = msg[0];\n"
+      "  var reply = msg[1];\n"
+      "  reply.send('echoing ${data(1)}}');\n"
+      "}\n"
+      "class Test extends NativeFieldWrapperClass2 {\n"
+      "  Test(this.i, this.j);\n"
+      "  int i, j;\n"
+      "}\n"
+      "main() {\n"
+      "  var port = new RawReceivePort();\n"
+      "  var obj = new Test(1,2);\n"
+      "  var msg = [obj, port.sendPort];\n"
+      "  var snd = Isolate.spawn(echo, msg);\n"
+      "  port.handler = (msg) {\n"
+      "    port.close();\n"
+      "    print('from worker ${msg}');\n"
+      "  };\n"
+      "}\n";
+
+  CHECK_API_SCOPE(thread);
+  HANDLESCOPE(thread);
+
+  // Create a test library and Load up a test script in it.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  // Invoke 'main' which should spawn an isolate and try to send an
+  // object with native fields over to the spawned isolate. This
+  // should result in an unhandled exception which is checked.
+  Dart_Handle retobj = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT(Dart_IsError(retobj));
+}
+
 TEST_CASE(DartAPI_GetStaticField_RunsInitializer) {
   const char* kScriptChars =
       "class TestClass  {\n"

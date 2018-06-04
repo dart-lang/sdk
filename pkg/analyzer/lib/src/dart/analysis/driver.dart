@@ -1939,8 +1939,6 @@ class AnalysisDriverScheduler {
    * priority first.
    */
   Future<Null> _run() async {
-    // Give other microtasks the time to run before doing the analysis cycle.
-    await null;
     Stopwatch timer = new Stopwatch()..start();
     PerformanceLogSection analysisSection;
     while (true) {

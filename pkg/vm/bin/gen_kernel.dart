@@ -28,8 +28,7 @@ final ArgParser _argParser = new ArgParser(allowTrailingOptions: true)
           'Produce kernel file for AOT compilation (enables global transformations).',
       defaultsTo: false)
   ..addFlag('strong-mode', help: 'Enable strong mode', defaultsTo: true)
-  ..addFlag('sync-async',
-      help: 'Start `async` functions synchronously', defaultsTo: true)
+  ..addFlag('sync-async', help: 'Start `async` functions synchronously')
   ..addFlag('embed-sources',
       help: 'Embed source files in the generated kernel component',
       defaultsTo: true)

@@ -474,10 +474,6 @@ vm/causal_async_exception_stack_test: SkipByDesign # Causal async stacks are not
 
 [ $runtime == dart_precompiled || $runtime == vm ]
 arithmetic_test: CompileTimeError # Large integer literal
-async_await_test: RuntimeError # sync-async is on by default
-asyncstar_throw_in_catch_test: RuntimeError # sync-async is on by default
-await_nonfuture_test: RuntimeError # sync-async is on by default
-await_not_started_immediately_test: RuntimeError # sync-async is on by default
 bit_operations_test: CompileTimeError # Large integer literal
 deopt_inlined_function_lazy_test: CompileTimeError # Large integer literal
 guess_cid_test: CompileTimeError # Large integer literal
