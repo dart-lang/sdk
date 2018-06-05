@@ -605,6 +605,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    */
   Future<void> discoverAvailableFiles() {
     _discoverAvailableFiles();
+    _scheduler.notify(this);
     return _discoverAvailableFilesTask.completer.future;
   }
 
