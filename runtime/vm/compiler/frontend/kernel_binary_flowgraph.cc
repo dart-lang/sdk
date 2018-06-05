@@ -1281,7 +1281,7 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
 
           closure.SetParameterTypeAt(pos, type);
           closure.SetParameterNameAt(pos,
-                                     H.DartSymbolObfuscate(helper.name_index_));
+                                     H.DartIdentifier(lib, helper.name_index_));
         }
 
         intptr_t named_parameter_count_check = builder_->ReadListLength();
@@ -1298,7 +1298,7 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
 
           closure.SetParameterTypeAt(pos, type);
           closure.SetParameterNameAt(pos,
-                                     H.DartSymbolObfuscate(helper.name_index_));
+                                     H.DartIdentifier(lib, helper.name_index_));
         }
 
         function_node_helper.SetJustRead(FunctionNodeHelper::kNamedParameters);
@@ -3973,10 +3973,10 @@ void StreamingConstantEvaluator::EvaluateStringConcatenation() {
 }
 
 void StreamingConstantEvaluator::EvaluateSymbolLiteral() {
-  // The symbol value is read plain and obfuscated later.
-  const String& symbol_value = H.DartSymbolPlain(
-      builder_->ReadStringReference());  // read index into string table.
-
+  const Class& owner =
+      Class::Handle(Z, builder_->parsed_function()->function().Owner());
+  const Library& lib = Library::Handle(Z, owner.library());
+  String& symbol_value = H.DartIdentifier(lib, builder_->ReadStringReference());
   const Class& symbol_class =
       Class::ZoneHandle(Z, I->object_store()->symbol_class());
   ASSERT(!symbol_class.IsNull());
@@ -10871,6 +10871,7 @@ void StreamingFlowGraphBuilder::LoadAndSetupTypeParameters(
 
   // Step a) Create array of [TypeParameter] objects (without bound).
   type_parameters = TypeArguments::New(type_parameter_count);
+  const Library& lib = Library::Handle(Z, active_class->klass->library());
   {
     AlternativeReadingScope alt(&reader_);
     for (intptr_t i = 0; i < type_parameter_count; i++) {
@@ -10879,7 +10880,7 @@ void StreamingFlowGraphBuilder::LoadAndSetupTypeParameters(
       parameter = TypeParameter::New(
           set_on_class ? *active_class->klass : Class::Handle(Z),
           parameterized_function, i,
-          H.DartSymbolObfuscate(helper.name_index_),  // read ith name index.
+          H.DartIdentifier(lib, helper.name_index_),  // read ith name index.
           null_bound, TokenPosition::kNoSource);
       type_parameters.SetTypeAt(i, parameter);
     }
@@ -10984,6 +10985,7 @@ void StreamingFlowGraphBuilder::SetupFunctionParameters(
     pos++;
   }
 
+  const Library& lib = Library::Handle(Z, active_class->klass->library());
   for (intptr_t i = 0; i < positional_parameter_count; ++i, ++pos) {
     // Read ith variable declaration.
     VariableDeclarationHelper helper(this);
@@ -10996,7 +10998,7 @@ void StreamingFlowGraphBuilder::SetupFunctionParameters(
 
     function.SetParameterTypeAt(
         pos, type.IsMalformed() ? Type::dynamic_type() : type);
-    function.SetParameterNameAt(pos, H.DartSymbolObfuscate(helper.name_index_));
+    function.SetParameterNameAt(pos, H.DartIdentifier(lib, helper.name_index_));
   }
 
   intptr_t named_parameter_count_check = ReadListLength();  // read list length.
@@ -11013,7 +11015,7 @@ void StreamingFlowGraphBuilder::SetupFunctionParameters(
 
     function.SetParameterTypeAt(
         pos, type.IsMalformed() ? Type::dynamic_type() : type);
-    function.SetParameterNameAt(pos, H.DartSymbolObfuscate(helper.name_index_));
+    function.SetParameterNameAt(pos, H.DartIdentifier(lib, helper.name_index_));
   }
 
   function_node_helper->SetJustRead(FunctionNodeHelper::kNamedParameters);

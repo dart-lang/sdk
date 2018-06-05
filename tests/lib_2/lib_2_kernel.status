@@ -108,7 +108,7 @@ mirrors/class_declarations_test/none: RuntimeError # Issue 31402 (Invocation arg
 mirrors/class_mirror_location_test: RuntimeError
 mirrors/constructor_kinds_test/01: RuntimeError
 mirrors/constructor_kinds_test/none: RuntimeError
-mirrors/constructor_private_name_test: RuntimeError
+mirrors/constructor_private_name_test: RuntimeError # Issue 33345 - Incorrect qualified symbol literal from kernel reader
 mirrors/constructors_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/dart2js_mirrors_test: RuntimeError # 31916
 mirrors/deferred_mirrors_metadata_test: RuntimeError, CompileTimeError # Deferred loading kernel issue 28335.
@@ -123,11 +123,7 @@ mirrors/generic_f_bounded_mixin_application_test: RuntimeError
 mirrors/generic_function_typedef_test: RuntimeError
 mirrors/generic_interface_test/01: RuntimeError
 mirrors/generic_mixin_applications_test: RuntimeError
-mirrors/hot_get_field_test: RuntimeError
-mirrors/hot_set_field_test: RuntimeError
 mirrors/invocation_fuzz_test: RuntimeError, Crash
-mirrors/invoke_private_test: RuntimeError
-mirrors/invoke_private_wrong_library_test: RuntimeError
 mirrors/library_declarations_test/none: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/library_enumeration_deferred_loading_test: RuntimeError
 mirrors/library_exports_hidden_test: RuntimeError # Issue 33098
@@ -163,10 +159,8 @@ mirrors/other_declarations_location_test: RuntimeError # Issue 33325 (no source 
 mirrors/parameter_annotation_mirror_test: RuntimeError
 mirrors/parameter_metadata_test: RuntimeError
 mirrors/parameter_of_mixin_app_constructor_test: RuntimeError # Issue 31402 (Invocation arguments)
-mirrors/private_class_field_test: RuntimeError
-mirrors/private_field_test: RuntimeError
-mirrors/private_symbol_test: RuntimeError
-mirrors/private_types_test: RuntimeError
+mirrors/private_symbol_test: RuntimeError # Issue 33326 - CFE/kernel invalid typedef substitution
+mirrors/private_types_test: RuntimeError # Issue 33326 - CFE/kernel invalid typedef substitution
 mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError
 mirrors/redirecting_factory_test/01: RuntimeError
 mirrors/redirecting_factory_test/02: RuntimeError

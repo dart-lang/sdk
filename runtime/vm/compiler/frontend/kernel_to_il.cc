@@ -487,6 +487,13 @@ String& TranslationHelper::DartSymbolObfuscate(StringIndex string_index) const {
   return result;
 }
 
+String& TranslationHelper::DartIdentifier(const Library& lib,
+                                          StringIndex string_index) {
+  String& name = DartString(string_index);
+  ManglePrivateName(lib, &name);
+  return name;
+}
+
 const String& TranslationHelper::DartClassName(NameIndex kernel_class) {
   ASSERT(IsClass(kernel_class));
   String& name = DartString(CanonicalNameString(kernel_class));
