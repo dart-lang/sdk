@@ -1379,6 +1379,12 @@ class Class : public Object {
                       const Array& param_values,
                       const Array& type_param_names,
                       const TypeArguments& type_param_values) const;
+  RawObject* EvaluateCompiledExpression(
+      const uint8_t* kernel_bytes,
+      intptr_t kernel_length,
+      const Array& type_definitions,
+      const Array& param_values,
+      const TypeArguments& type_param_values) const;
 
   RawError* EnsureIsFinalized(Thread* thread) const;
 
@@ -3749,6 +3755,13 @@ class Library : public Object {
                       const Array& type_param_names,
                       const TypeArguments& type_arguments) const;
 
+  RawObject* EvaluateCompiledExpression(
+      const uint8_t* kernel_bytes,
+      intptr_t kernel_length,
+      const Array& type_definitions,
+      const Array& param_values,
+      const TypeArguments& type_param_values) const;
+
   // Library scope name dictionary.
   //
   // TODO(turnidge): The Lookup functions are not consistent in how
@@ -5622,6 +5635,14 @@ class Instance : public Object {
                       const Array& param_values,
                       const Array& type_param_names,
                       const TypeArguments& type_param_values) const;
+
+  RawObject* EvaluateCompiledExpression(
+      const Class& method_cls,
+      const uint8_t* kernel_bytes,
+      intptr_t kernel_length,
+      const Array& type_definitions,
+      const Array& param_values,
+      const TypeArguments& type_param_values) const;
 
   // Equivalent to invoking hashCode on this instance.
   virtual RawObject* HashCode() const;

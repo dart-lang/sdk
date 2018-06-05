@@ -32,7 +32,7 @@ var tests = <IsolateTest>[
     final client = _socket.map(_decoder).asBroadcastStream();
 
     // Note: keep this in sync with sdk/lib/vmservice.dart
-    const kServiceDisappeared = 111;
+    const kServiceDisappeared = 112;
     const kServiceDisappeared_Msg = 'Service has disappeared';
 
     const serviceName = 'disapearService';

@@ -15,14 +15,14 @@ var tests = <IsolateTest>[
     dynamic result = await classLibrary.evaluate('3 + 4');
     print(result);
     expect(result is DartError, isTrue);
-    expect(result.message, contains('Cannot evaluate'));
+    expect(result.message, contains('can be evaluated only'));
 
     Class classClass = await classLibrary.clazz.load();
     print(classClass);
     result = await classClass.evaluate('3 + 4');
     print(result);
     expect(result is DartError, isTrue);
-    expect(result.message, contains('Cannot evaluate'));
+    expect(result.message, contains('can be evaluated only'));
 
     Instance someArray = await root.evaluate("new List(2)");
     print(someArray);

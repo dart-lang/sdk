@@ -35,7 +35,7 @@ var tests = <IsolateTest>[
     final client = _socket.map(_decoder).asBroadcastStream();
 
     // Note: keep this in sync with sdk/lib/vmservice.dart
-    const kServiceAlreadyRegistered = 110;
+    const kServiceAlreadyRegistered = 111;
     const kServiceAlreadyRegistered_Msg = 'Service already registered';
 
     const serviceName = 'serviceName';

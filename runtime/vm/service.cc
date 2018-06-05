@@ -8,6 +8,7 @@
 #include "include/dart_native_api.h"
 #include "platform/globals.h"
 
+#include "vm/base64.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/cpu.h"
 #include "vm/dart_api_impl.h"
@@ -2415,6 +2416,249 @@ static bool Evaluate(Thread* thread, JSONStream* js) {
   return true;
 }
 
+static const MethodParameter* build_expression_evaluation_scope_params[] = {
+    RUNNABLE_ISOLATE_PARAMETER,
+    new IdParameter("frameIndex", true),
+    NULL,
+};
+
+static bool BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
+  Isolate* isolate = thread->isolate();
+  if (!isolate->compilation_allowed()) {
+    js->PrintError(kFeatureDisabled,
+                   "Cannot evaluate when running a precompiled program.");
+    return true;
+  }
+  DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
+  intptr_t framePos = UIntParameter::Parse(js->LookupParam("frameIndex"));
+  if (framePos >= stack->Length()) {
+    PrintInvalidParamError(js, "frameIndex");
+    return true;
+  }
+
+  Zone* zone = thread->zone();
+  const GrowableObjectArray& param_names =
+      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+  const GrowableObjectArray& param_values =
+      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+  if (BuildScope(thread, js, param_names, param_values)) {
+    return true;
+  }
+
+  ActivationFrame* frame = stack->FrameAt(framePos);
+  const GrowableObjectArray& type_params_names =
+      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+  frame->BuildParameters(param_names, param_values, type_params_names);
+
+  JSONObject report(js);
+  {
+    JSONArray jsonParamNames(&report, "param_names");
+
+    String& param_name = String::Handle(zone);
+    for (intptr_t i = 0; i < param_names.Length(); i++) {
+      param_name ^= param_names.At(i);
+      jsonParamNames.AddValue(param_name.ToCString());
+    }
+  }
+
+  {
+    JSONArray jsonTypeParamsNames(&report, "type_params_names");
+    String& type_param_name = String::Handle(zone);
+    for (intptr_t i = 0; i < type_params_names.Length(); i++) {
+      type_param_name ^= type_params_names.At(i);
+      jsonTypeParamsNames.AddValue(type_param_name.ToCString());
+    }
+  }
+  String& klass_name = String::Handle(zone);
+  String& library_uri = String::Handle(zone);
+  bool isStatic = false;
+  if (frame->function().is_static()) {
+    const Class& cls = Class::Handle(zone, frame->function().Owner());
+    if (!cls.IsTopLevel()) {
+      klass_name ^= cls.UserVisibleName();
+    }
+    library_uri ^= Library::Handle(zone, cls.library()).url();
+    isStatic = !cls.IsTopLevel();
+  } else {
+    const Class& method_cls = Class::Handle(zone, frame->function().origin());
+    library_uri ^= Library::Handle(zone, method_cls.library()).url();
+    klass_name ^= method_cls.UserVisibleName();
+  }
+  report.AddProperty("libraryUri", library_uri.ToCString());
+  if (!klass_name.IsNull()) {
+    report.AddProperty("klass", klass_name.ToCString());
+  }
+  report.AddProperty("isStatic", isStatic);
+
+  return true;
+}
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+// Parse comma-separated list of values, put them into values
+static bool ParseCSVList(const char* csv_list,
+                         const GrowableObjectArray& values) {
+  Zone* zone = Thread::Current()->zone();
+  String& s = String::Handle(zone);
+  const char* c = csv_list;
+  if (*c++ != '[') return false;
+  while (IsWhitespace(*c) && *c != '\0') {
+    c++;
+  }
+  while (*c != '\0') {
+    const char* value = c;
+    while (*c != '\0' && *c != ']' && *c != ',' && !IsWhitespace(*c)) {
+      c++;
+    }
+    if (c > value) {
+      s ^= String::New(zone->MakeCopyOfStringN(value, c - value));
+      values.Add(s);
+    }
+    switch (*c) {
+      case '\0':
+        return false;
+      case ',':
+        c++;
+        break;
+      case ']':
+        return true;
+    }
+    while (IsWhitespace(*c) && *c != '\0') {
+      c++;
+    }
+  }
+  return false;
+}
+#endif
+
+static const MethodParameter* compile_expression_params[] = {
+    RUNNABLE_ISOLATE_PARAMETER,
+    new StringParameter("expression", true),
+    new StringParameter("definitions", false),
+    new StringParameter("typeDefinitions", false),
+    new StringParameter("libraryUri", true),
+    new StringParameter("klass", false),
+    new BoolParameter("isStatic", false),
+    NULL,
+};
+
+static bool CompileExpression(Thread* thread, JSONStream* js) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  Isolate* isolate = thread->isolate();
+  if (!isolate->compilation_allowed()) {
+    js->PrintError(kFeatureDisabled,
+                   "Cannot evaluate when running a precompiled program.");
+    return true;
+  }
+
+  if (!KernelIsolate::IsRunning()) {
+    // Assume we are in dart1 mode where separate compilation is not required.
+    // 0-length kernelBytes signals that we should evaluate expression in dart1
+    // mode.
+    // TODO(aam): When dart1 is no longer supported we need to return error
+    // here.
+    JSONObject report(js);
+    const uint8_t kernel_bytes[] = {0};
+    report.AddPropertyBase64("kernelBytes", kernel_bytes, 0);
+    return true;
+  }
+
+  bool is_static = BoolParameter::Parse(js->LookupParam("isStatic"), false);
+
+  Dart_KernelCompilationResult compilation_result;
+  const GrowableObjectArray& params =
+      GrowableObjectArray::Handle(thread->zone(), GrowableObjectArray::New());
+  if (!ParseCSVList(js->LookupParam("definitions"), params)) {
+    PrintInvalidParamError(js, "definitions");
+    return true;
+  }
+
+  const GrowableObjectArray& type_params =
+      GrowableObjectArray::Handle(thread->zone(), GrowableObjectArray::New());
+  if (!ParseCSVList(js->LookupParam("typeDefinitions"), type_params)) {
+    PrintInvalidParamError(js, "typedDefinitions");
+    return true;
+  }
+
+  {
+    TransitionVMToNative transition(thread);
+    compilation_result = KernelIsolate::CompileExpressionToKernel(
+        js->LookupParam("expression"),
+        Array::Handle(Array::MakeFixedLength(params)),
+        Array::Handle(Array::MakeFixedLength(type_params)),
+        js->LookupParam("libraryUri"), js->LookupParam("klass"), is_static);
+  }
+
+  if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
+    js->PrintError(kExpressionCompilationError, compilation_result.error);
+    free(compilation_result.error);
+    return true;
+  }
+
+  const uint8_t* kernel_bytes = compilation_result.kernel;
+  intptr_t kernel_length = compilation_result.kernel_size;
+  ASSERT(kernel_bytes != NULL);
+
+  JSONObject report(js);
+  report.AddPropertyBase64("kernelBytes", kernel_bytes, kernel_length);
+  return true;
+#else   // !defined(DART_PRECOMPILED_RUNTIME)
+  js->PrintError(
+      kFeatureDisabled,
+      "Cannot compile expression when running a precompiled program.");
+  return true;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+}
+
+static const MethodParameter* evaluate_compiled_expression_params[] = {
+    RUNNABLE_ISOLATE_PARAMETER,
+    new UIntParameter("frameIndex", true),
+    new StringParameter("kernelBytes", true),
+    NULL,
+};
+
+static bool EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
+  Isolate* isolate = thread->isolate();
+  if (!isolate->compilation_allowed()) {
+    js->PrintError(kFeatureDisabled,
+                   "Cannot evaluate when running a precompiled program.");
+    return true;
+  }
+  DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
+  intptr_t frame_pos = UIntParameter::Parse(js->LookupParam("frameIndex"));
+  if (frame_pos >= stack->Length()) {
+    PrintInvalidParamError(js, "frameIndex");
+    return true;
+  }
+  Zone* zone = thread->zone();
+  const GrowableObjectArray& param_names =
+      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+  const GrowableObjectArray& param_values =
+      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+  if (BuildScope(thread, js, param_names, param_values)) {
+    return true;
+  }
+
+  ActivationFrame* frame = stack->FrameAt(frame_pos);
+  const GrowableObjectArray& type_params_names =
+      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+  TypeArguments& type_arguments = TypeArguments::Handle(
+      zone,
+      frame->BuildParameters(param_names, param_values, type_params_names));
+
+  intptr_t kernel_length;
+  const char* kernel_bytes_str = js->LookupParam("kernelBytes");
+  uint8_t* kernel_bytes = DecodeBase64(zone, kernel_bytes_str, &kernel_length);
+
+  const Object& result = Object::Handle(
+      zone, frame->EvaluateCompiledExpression(
+                kernel_bytes, kernel_length,
+                Array::Handle(zone, Array::MakeFixedLength(type_params_names)),
+                Array::Handle(zone, Array::MakeFixedLength(param_values)),
+                type_arguments));
+  result.PrintJSON(js, true);
+  return true;
+}
+
 static const MethodParameter* evaluate_in_frame_params[] = {
     RUNNABLE_ISOLATE_PARAMETER, new UIntParameter("frameIndex", true),
     new MethodParameter("expression", true), NULL,
@@ -4288,10 +4532,13 @@ static const ServiceMethodDescriptor service_methods_[] = {
     add_breakpoint_at_entry_params },
   { "_addBreakpointAtActivation", AddBreakpointAtActivation,
     add_breakpoint_at_activation_params },
+  { "_buildExpressionEvaluationScope", BuildExpressionEvaluationScope,
+    build_expression_evaluation_scope_params },
   { "_clearCpuProfile", ClearCpuProfile,
     clear_cpu_profile_params },
   { "_clearVMTimeline", ClearVMTimeline,
     clear_vm_timeline_params, },
+  { "_compileExpression", CompileExpression, compile_expression_params },
   { "_enableProfiler", EnableProfiler,
     enable_profiler_params, },
   { "evaluate", Evaluate,
@@ -4375,6 +4622,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     resume_params },
   { "_requestHeapSnapshot", RequestHeapSnapshot,
     request_heap_snapshot_params },
+  { "_evaluateCompiledExpression", EvaluateCompiledExpression,
+    evaluate_compiled_expression_params },
   { "setExceptionPauseMode", SetExceptionPauseMode,
     set_exception_pause_mode_params },
   { "setFlag", SetFlag,

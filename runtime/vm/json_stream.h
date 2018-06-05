@@ -58,6 +58,9 @@ enum JSONRpcErrorCode {
   kIsolateIsReloading = 108,
   kIsolateReloadBarred = 109,
   kIsolateMustHaveReloaded = 110,
+  kServiceAlreadyRegistered = 111,
+  kServiceDisappeared = 112,
+  kExpressionCompilationError = 113,
 
   // Experimental (used in private rpcs).
   kFileSystemAlreadyExists = 1001,

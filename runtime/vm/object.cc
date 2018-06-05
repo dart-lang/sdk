@@ -3243,25 +3243,48 @@ RawObject* Class::Evaluate(const String& expr,
                            const Array& type_param_names,
                            const TypeArguments& type_param_values) const {
   ASSERT(Thread::Current()->IsMutatorThread());
-  if (id() < kInstanceCid) {
-    const Instance& exception = Instance::Handle(
-        String::New("Cannot evaluate against a VM internal class"));
+  if (id() < kInstanceCid || id() == kTypeArgumentsCid) {
+    const Instance& exception = Instance::Handle(String::New(
+        "Expressions can be evaluated only with regular Dart instances"));
     const Instance& stacktrace = Instance::Handle();
     return UnhandledException::New(exception, stacktrace);
   }
 
-  if (Library::Handle(library()).kernel_data() == TypedData::null() ||
-      !FLAG_enable_kernel_expression_compilation) {
-    const Function& eval_func = Function::Handle(
-        Function::EvaluateHelper(*this, expr, param_names, true));
-    return DartEntry::InvokeFunction(eval_func, param_values);
+  ASSERT(Library::Handle(library()).kernel_data() == TypedData::null() ||
+         !FLAG_enable_kernel_expression_compilation);
+  const Function& eval_func = Function::Handle(
+      Function::EvaluateHelper(*this, expr, param_names, true));
+  return DartEntry::InvokeFunction(eval_func, param_values);
+}
+
+static RawObject* EvaluateCompiledExpressionHelper(
+    const uint8_t* kernel_bytes,
+    intptr_t kernel_length,
+    const Array& type_definitions,
+    const String& library_url,
+    const String& klass,
+    const Array& arguments,
+    const TypeArguments& type_arguments);
+
+RawObject* Class::EvaluateCompiledExpression(
+    const uint8_t* kernel_bytes,
+    intptr_t kernel_length,
+    const Array& type_definitions,
+    const Array& arguments,
+    const TypeArguments& type_arguments) const {
+  ASSERT(Thread::Current()->IsMutatorThread());
+  if (id() < kInstanceCid || id() == kTypeArgumentsCid) {
+    const Instance& exception = Instance::Handle(String::New(
+        "Expressions can be evaluated only with regular Dart instances"));
+    const Instance& stacktrace = Instance::Handle();
+    return UnhandledException::New(exception, stacktrace);
   }
 
-  return EvaluateWithDFEHelper(
-      expr, param_names, type_param_names,
+  return EvaluateCompiledExpressionHelper(
+      kernel_bytes, kernel_length, type_definitions,
       String::Handle(Library::Handle(library()).url()),
       IsTopLevel() ? String::Handle() : String::Handle(UserVisibleName()),
-      !IsTopLevel(), param_values, type_param_values);
+      arguments, type_arguments);
 }
 
 // Ensure that top level parsing of the class has been done.
@@ -11393,6 +11416,17 @@ RawObject* Library::Evaluate(const String& expr,
                                param_values, type_param_values);
 }
 
+RawObject* Library::EvaluateCompiledExpression(
+    const uint8_t* kernel_bytes,
+    intptr_t kernel_length,
+    const Array& type_definitions,
+    const Array& arguments,
+    const TypeArguments& type_arguments) const {
+  return EvaluateCompiledExpressionHelper(
+      kernel_bytes, kernel_length, type_definitions, String::Handle(url()),
+      String::Handle(), arguments, type_arguments);
+}
+
 void Library::InitNativeWrappersLibrary(Isolate* isolate, bool is_kernel) {
   static const int kNumNativeWrappersClasses = 4;
   COMPILE_ASSERT((kNumNativeWrappersClasses > 0) &&
@@ -11472,10 +11506,12 @@ static RawObject* EvaluateWithDFEHelper(const String& expression,
         is_static);
   }
 
+  GrowableObjectArray& libraries =
+      GrowableObjectArray::Handle(T->zone(), I->object_store()->libraries());
+
   Function& callee = Function::Handle();
   intptr_t num_cids = I->class_table()->NumCids();
-  intptr_t num_libs =
-      GrowableObjectArray::Handle(I->object_store()->libraries()).Length();
+  intptr_t num_libs = libraries.Length();
 
   if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
     const String& prefix =
@@ -11506,12 +11542,9 @@ static RawObject* EvaluateWithDFEHelper(const String& expression,
   const Object& result = Object::Handle(loader.LoadProgram());
   if (result.IsError()) return result.raw();
   ASSERT(I->class_table()->NumCids() > num_cids &&
-         GrowableObjectArray::Handle(I->object_store()->libraries()).Length() ==
-             num_libs + 1);
-  const String& fake_library_url =
-      String::Handle(String::New("evaluate:source"));
+         libraries.Length() == num_libs + 1);
   const Library& loaded =
-      Library::Handle(Library::LookupLibrary(T, fake_library_url));
+      Library::Handle(Library::LookupLibrary(T, Symbols::EvalSourceUri()));
   ASSERT(!loaded.IsNull());
 
   String& debug_name = String::Handle(
@@ -11549,14 +11582,13 @@ static RawObject* EvaluateWithDFEHelper(const String& expression,
   callee.set_owner(real_class);
 
   // Unlink the fake library and class from the object store.
-  GrowableObjectArray::Handle(I->object_store()->libraries())
-      .SetLength(num_libs);
+  libraries.SetLength(num_libs);
   I->class_table()->SetNumCids(num_cids);
   if (!fake_class.IsNull()) {
     fake_class.set_id(kIllegalCid);
   }
   LibraryLookupMap libraries_map(I->object_store()->libraries_map());
-  bool removed = libraries_map.Remove(fake_library_url);
+  bool removed = libraries_map.Remove(Symbols::EvalSourceUri());
   ASSERT(removed);
   I->object_store()->set_libraries_map(libraries_map.Release());
 
@@ -11572,6 +11604,113 @@ static RawObject* EvaluateWithDFEHelper(const String& expression,
     arg = arguments.At(i);
     real_arguments.SetAt(i + 1, arg);
   }
+  const Array& args_desc = Array::Handle(
+      ArgumentsDescriptor::New(num_type_args, arguments.Length()));
+  return DartEntry::InvokeFunction(callee, real_arguments, args_desc);
+#endif
+}
+
+static RawObject* EvaluateCompiledExpressionHelper(
+    const uint8_t* kernel_bytes,
+    intptr_t kernel_length,
+    const Array& type_definitions,
+    const String& library_url,
+    const String& klass,
+    const Array& arguments,
+    const TypeArguments& type_arguments) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  const String& error_str = String::Handle(
+      String::New("Expression evaluation not available in precompiled mode."));
+  return ApiError::New(error_str);
+#else
+  Isolate* I = Isolate::Current();
+  Thread* T = Thread::Current();
+
+  kernel::Program* kernel_pgm =
+      kernel::Program::ReadFromBuffer(kernel_bytes, kernel_length, true);
+
+  if (kernel_pgm == NULL) {
+    return ApiError::New(String::Handle(
+        String::New("Kernel isolate returned ill-formed kernel.")));
+  }
+
+  kernel_pgm->set_release_buffer_callback(ReleaseFetchedBytes);
+
+  Function& callee = Function::Handle();
+  intptr_t num_cids = I->class_table()->NumCids();
+  GrowableObjectArray& libraries =
+      GrowableObjectArray::Handle(T->zone(), I->object_store()->libraries());
+  intptr_t num_libs = libraries.Length();
+
+  // Load the program with the debug procedure as a regular, independent
+  // program.
+  kernel::KernelLoader loader(kernel_pgm);
+  const Object& result = Object::Handle(loader.LoadProgram());
+  if (result.IsError()) return result.raw();
+  ASSERT(I->class_table()->NumCids() > num_cids &&
+         libraries.Length() == num_libs + 1);
+  const Library& loaded =
+      Library::Handle(Library::LookupLibrary(T, Symbols::EvalSourceUri()));
+  ASSERT(!loaded.IsNull());
+
+  String& debug_name = String::Handle(
+      String::New(Symbols::Symbol(Symbols::kDebugProcedureNameId)));
+  Class& fake_class = Class::Handle();
+  if (!klass.IsNull()) {
+    fake_class = loaded.LookupClass(Symbols::DebugClassName());
+    ASSERT(!fake_class.IsNull());
+    callee = fake_class.LookupFunctionAllowPrivate(debug_name);
+  } else {
+    callee = loaded.LookupFunctionAllowPrivate(debug_name);
+  }
+  ASSERT(!callee.IsNull());
+
+  // Save the loaded library's kernel data to the generic "data" field of the
+  // callee, so it doesn't require access it's parent library during
+  // compilation.
+  callee.SetKernelDataAndScript(Script::Handle(callee.script()),
+                                TypedData::Handle(loaded.kernel_data()),
+                                loaded.kernel_offset());
+
+  // Reparent the callee to the real enclosing class so we can remove the fake
+  // class and library from the object store.
+  const Library& real_library =
+      Library::Handle(Library::LookupLibrary(T, library_url));
+  ASSERT(!real_library.IsNull());
+  Class& real_class = Class::Handle();
+  if (!klass.IsNull()) {
+    real_class = real_library.LookupClassAllowPrivate(klass);
+  } else {
+    real_class = real_library.toplevel_class();
+  }
+  ASSERT(!real_class.IsNull());
+
+  callee.set_owner(real_class);
+
+  // Unlink the fake library and class from the object store.
+  libraries.SetLength(num_libs);
+  I->class_table()->SetNumCids(num_cids);
+  if (!fake_class.IsNull()) {
+    fake_class.set_id(kIllegalCid);
+  }
+  LibraryLookupMap libraries_map(I->object_store()->libraries_map());
+  bool removed = libraries_map.Remove(Symbols::EvalSourceUri());
+  ASSERT(removed);
+  I->object_store()->set_libraries_map(libraries_map.Release());
+
+  if (type_definitions.Length() == 0) {
+    return DartEntry::InvokeFunction(callee, arguments);
+  }
+
+  intptr_t num_type_args = type_arguments.Length();
+  Array& real_arguments = Array::Handle(Array::New(arguments.Length() + 1));
+  real_arguments.SetAt(0, type_arguments);
+  Object& arg = Object::Handle();
+  for (intptr_t i = 0; i < arguments.Length(); ++i) {
+    arg = arguments.At(i);
+    real_arguments.SetAt(i + 1, arg);
+  }
+
   const Array& args_desc = Array::Handle(
       ArgumentsDescriptor::New(num_type_args, arguments.Length()));
   return DartEntry::InvokeFunction(callee, real_arguments, args_desc);
@@ -15815,17 +15954,34 @@ RawObject* Instance::Evaluate(const Class& method_cls,
   }
 
   const Library& library = Library::Handle(method_cls.library());
-  if (library.kernel_data() == TypedData::null() ||
-      !FLAG_enable_kernel_expression_compilation) {
-    const Function& eval_func = Function::Handle(
-        Function::EvaluateHelper(method_cls, expr, param_names, false));
-    return DartEntry::InvokeFunction(eval_func, args);
+  ASSERT(library.kernel_data() == TypedData::null() ||
+         !FLAG_enable_kernel_expression_compilation);
+  const Function& eval_func = Function::Handle(
+      Function::EvaluateHelper(method_cls, expr, param_names, false));
+  return DartEntry::InvokeFunction(eval_func, args);
+}
+
+RawObject* Instance::EvaluateCompiledExpression(
+    const Class& method_cls,
+    const uint8_t* kernel_bytes,
+    intptr_t kernel_length,
+    const Array& type_definitions,
+    const Array& arguments,
+    const TypeArguments& type_arguments) const {
+  const Array& arguments_with_receiver =
+      Array::Handle(Array::New(1 + arguments.Length()));
+  PassiveObject& param = PassiveObject::Handle();
+  arguments_with_receiver.SetAt(0, *this);
+  for (intptr_t i = 0; i < arguments.Length(); i++) {
+    param = arguments.At(i);
+    arguments_with_receiver.SetAt(i + 1, param);
   }
-  return EvaluateWithDFEHelper(
-      expr, param_names, type_param_names,
+
+  return EvaluateCompiledExpressionHelper(
+      kernel_bytes, kernel_length, type_definitions,
       String::Handle(Library::Handle(method_cls.library()).url()),
-      String::Handle(method_cls.UserVisibleName()), false, args,
-      type_param_values);
+      String::Handle(method_cls.UserVisibleName()), arguments_with_receiver,
+      type_arguments);
 }
 
 RawObject* Instance::HashCode() const {

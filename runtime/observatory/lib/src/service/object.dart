@@ -46,6 +46,9 @@ class ServerRpcException extends RpcException implements M.RequestException {
   static const kIsolateIsReloading = 108;
   static const kIsolateReloadBarred = 109;
   static const kIsolateMustHaveReloaded = 110;
+  static const kServiceAlreadyRegistered = 111;
+  static const kServiceDisappeared = 112;
+  static const kExpressionCompilationError = 113;
 
   static const kFileSystemAlreadyExists = 1001;
   static const kFileSystemDoesNotExist = 1002;
@@ -1904,7 +1907,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   }
 
   Future<ServiceObject> evalFrame(int frameIndex, String expression,
-      {Map<String, ServiceObject> scope}) {
+      {Map<String, ServiceObject> scope}) async {
     Map params = {
       'frameIndex': frameIndex,
       'expression': expression,
@@ -1916,7 +1919,22 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
       });
       params["scope"] = scopeWithIds;
     }
-    return invokeRpc('evaluateInFrame', params);
+
+    try {
+      return await invokeRpc('evaluateInFrame', params);
+    } on ServerRpcException catch (error) {
+      if (error.code == ServerRpcException.kExpressionCompilationError) {
+        Map map = {
+          'type': 'Error',
+          'message': error.data.toString(),
+          'kind': 'LanguageError',
+          'exception': null,
+          'stacktrace': null,
+        };
+        return new ServiceObject._fromMap(null, map);
+      } else
+        rethrow;
+    }
   }
 
   Future<ServiceObject> getReachableSize(ServiceObject target) {

@@ -7,6 +7,7 @@
 
 #include "include/dart_tools_api.h"
 
+#include "vm/kernel_isolate.h"
 #include "vm/object.h"
 #include "vm/port.h"
 #include "vm/service_event.h"
@@ -325,9 +326,20 @@ class ActivationFrame : public ZoneAllocated {
   const Context& GetSavedCurrentContext();
   RawObject* GetAsyncOperation();
 
+  RawTypeArguments* BuildParameters(
+      const GrowableObjectArray& param_names,
+      const GrowableObjectArray& param_values,
+      const GrowableObjectArray& type_params_names);
+
   RawObject* Evaluate(const String& expr,
                       const GrowableObjectArray& names,
                       const GrowableObjectArray& values);
+
+  RawObject* EvaluateCompiledExpression(const uint8_t* kernel_bytes,
+                                        intptr_t kernel_length,
+                                        const Array& arguments,
+                                        const Array& type_definitions,
+                                        const TypeArguments& type_arguments);
 
   // Print the activation frame into |jsobj|. if |full| is false, script
   // and local variable objects are only references. if |full| is true,
