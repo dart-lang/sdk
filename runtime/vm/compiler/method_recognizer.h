@@ -434,6 +434,14 @@ namespace dart {
   V(::, _classRangeCheckNegative, ClassRangeCheckNegated, 0x5acdfb75)          \
   V(::, _classRangeAssert, ClassRangeAssert, 0x6c77116e)                       \
   V(::, _classIdEqualsAssert, ClassIdEqualsAssert, 0x09e0ae72)                 \
+  V(::, _toInt, ConvertMaskedInt, 0x713908fd)                                  \
+  V(::, _toInt8, ConvertIntToInt8, 0x7484a780)                                 \
+  V(::, _toUint8, ConvertIntToUint8, 0x0a15b522)                               \
+  V(::, _toClampedUint8, ConvertIntToClampedUint8, 0x564b0435)                 \
+  V(::, _toInt16, ConvertIntToInt16, 0x0a83fcc6)                               \
+  V(::, _toUint16, ConvertIntToUint16, 0x6087d1af)                             \
+  V(::, _toInt32, ConvertIntToInt32, 0x62b451b9)                               \
+  V(::, _toUint32, ConvertIntToUint32, 0x17a8e085)                             \
   V(Lists, copy, ListsCopy, 0x40e974f6)                                        \
   V(_HashVMBase, get:_index, LinkedHashMap_getIndex, 0x02477157)               \
   V(_HashVMBase, set:_index, LinkedHashMap_setIndex, 0x4fc8d5e0)               \
