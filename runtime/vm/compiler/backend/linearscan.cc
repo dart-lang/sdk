@@ -39,7 +39,9 @@ static const intptr_t kPairVirtualRegisterOffset = 1;
 // SSA index to the second.
 static intptr_t ToSecondPairVreg(intptr_t vreg) {
   // Map vreg to its pair vreg.
-  return vreg + kPairVirtualRegisterOffset;
+  ASSERT((vreg == kNoVirtualRegister) || vreg >= 0);
+  return (vreg == kNoVirtualRegister) ? kNoVirtualRegister
+                                      : (vreg + kPairVirtualRegisterOffset);
 }
 
 static intptr_t MinPosition(intptr_t a, intptr_t b) {
