@@ -236,8 +236,7 @@ abstract class _FilteredCallTreeBuilder<NodeT extends CallTreeNode> {
 
   CallTreeNode _findInChildren(CallTreeNode current, CallTreeNode needle) {
     for (var child in current.children) {
-      if ((child as CallTreeNode).profileData ==
-          (needle as CallTreeNode).profileData) {
+      if ((child as CallTreeNode).profileData == needle.profileData) {
         return child;
       }
     }
@@ -332,8 +331,8 @@ class _FilteredFunctionCallTreeBuilder
             new FunctionCallTree(
                 tree.inclusive,
                 new FunctionCallTreeNode(
-                    (tree.root as CallTreeNode).profileData,
-                    (tree.root as CallTreeNode).count,
+                    tree.root.profileData,
+                    tree.root.count,
                     tree.root.inclusiveNativeAllocations,
                     tree.root.exclusiveNativeAllocations)));
 
@@ -444,7 +443,7 @@ class FunctionCallTree extends CallTree<FunctionCallTreeNode>
 
   _markFunctionCalls() {
     for (var child in root.children) {
-      _markFunctionCallsInner(null, child as FunctionCallTreeNode);
+      _markFunctionCallsInner(null, child);
     }
   }
 }
