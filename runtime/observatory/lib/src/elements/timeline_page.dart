@@ -78,6 +78,9 @@ class TimelinePageElement extends HtmlElement implements Renderable {
   IFrameElement _frame;
   DivElement _content;
 
+  bool get usingVMRecorder =>
+      _recorder.name != "Fuchsia" && _recorder.name != "Systrace";
+
   void render() {
     if (_frame == null) {
       _frame = new IFrameElement()..src = 'timeline.html';
@@ -125,44 +128,85 @@ class TimelinePageElement extends HtmlElement implements Renderable {
                 ]
             ])
     ];
-    if (children.isEmpty) {
-      children = [
-        navBar([
-          new NavTopMenuElement(queue: _r.queue),
-          new NavVMMenuElement(vm, _events, queue: _r.queue),
-          navMenu('timeline', link: Uris.timeline()),
-          new NavRefreshElement(queue: _r.queue)
-            ..onRefresh.listen((e) async {
-              e.element.disabled = true;
-              await _refresh();
-              e.element.disabled = false;
-            }),
-          new NavRefreshElement(label: 'clear', queue: _r.queue)
-            ..onRefresh.listen((e) async {
-              e.element.disabled = true;
-              await _clear();
-              e.element.disabled = false;
-            }),
-          new NavRefreshElement(label: 'save', queue: _r.queue)
-            ..onRefresh.listen((e) async {
-              e.element.disabled = true;
-              await _save();
-              e.element.disabled = false;
-            }),
-          new NavRefreshElement(label: 'load', queue: _r.queue)
-            ..onRefresh.listen((e) async {
-              e.element.disabled = true;
-              await _load();
-              e.element.disabled = false;
-            }),
-          new NavNotifyElement(_notifications, queue: _r.queue)
-        ]),
-        _content,
-        new DivElement()
-          ..classes = ['iframe']
-          ..children = [_frame]
-      ];
+
+    children = [
+      navBar([
+        new NavTopMenuElement(queue: _r.queue),
+        new NavVMMenuElement(vm, _events, queue: _r.queue),
+        navMenu('timeline', link: Uris.timeline()),
+        new NavRefreshElement(queue: _r.queue)
+          ..onRefresh.listen((e) async {
+            e.element.disabled = true;
+            await _refresh();
+            e.element.disabled = !usingVMRecorder;
+          }),
+        new NavRefreshElement(label: 'clear', queue: _r.queue)
+          ..onRefresh.listen((e) async {
+            e.element.disabled = true;
+            await _clear();
+            e.element.disabled = !usingVMRecorder;
+          }),
+        new NavRefreshElement(label: 'save', queue: _r.queue)
+          ..onRefresh.listen((e) async {
+            e.element.disabled = true;
+            await _save();
+            e.element.disabled = !usingVMRecorder;
+          }),
+        new NavRefreshElement(label: 'load', queue: _r.queue)
+          ..onRefresh.listen((e) async {
+            e.element.disabled = true;
+            await _load();
+            e.element.disabled = !usingVMRecorder;
+          }),
+        new NavNotifyElement(_notifications, queue: _r.queue)
+      ]),
+      _content,
+      _createIFrameOrMessage(),
+    ];
+  }
+
+  HtmlElement _createIFrameOrMessage() {
+    if (_recorder == null) {
+      return new DivElement()
+        ..classes = ['content-centered-big']
+        ..text = 'Loading...';
     }
+
+    if (_recorder.name == "Fuchsia") {
+      return new DivElement()
+        ..classes = ['content-centered-big']
+        ..children = [
+          new BRElement(),
+          new SpanElement()
+            ..text =
+                "This VM is forwarding timeline events to Fuchsia's system tracing. See the ",
+          new AnchorElement()
+            ..text = "Fuchsia Tracing Usage Guide"
+            ..href =
+                "https://fuchsia.googlesource.com/garnet/+/master/docs/tracing_usage_guide.md",
+          new SpanElement()..text = ".",
+        ];
+    }
+
+    if (_recorder.name == "Systrace") {
+      return new DivElement()
+        ..classes = ['content-centered-big']
+        ..children = [
+          new BRElement(),
+          new SpanElement()
+            ..text =
+                "This VM is forwarding timeline events to Android's systrace. See the ",
+          new AnchorElement()
+            ..text = "systrace usage guide"
+            ..href =
+                "https://developer.android.com/studio/command-line/systrace",
+          new SpanElement()..text = ".",
+        ];
+    }
+
+    return new DivElement()
+      ..classes = ['iframe']
+      ..children = [_frame];
   }
 
   List<Element> _createProfileSelect() {
@@ -202,6 +246,9 @@ class TimelinePageElement extends HtmlElement implements Renderable {
 
   Future _postMessage(String method,
       [Map<String, dynamic> params = const <String, dynamic>{}]) async {
+    if (_frame.contentWindow == null) {
+      return null;
+    }
     var message = {'method': method, 'params': params};
     _frame.contentWindow
         .postMessage(json.encode(message), window.location.href);
