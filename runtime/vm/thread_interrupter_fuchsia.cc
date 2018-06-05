@@ -174,6 +174,11 @@ class ThreadInterrupterFuchsia : public AllStatic {
 
  private:
   static const char* ThreadStateGetString(uint32_t state) {
+// TODO(dje): This #ifdef is temporary to handle the transition.
+// It can be deleted once the new version of zircon rolls out.
+#ifdef ZX_THREAD_STATE_BASIC
+    state = ZX_THREAD_STATE_BASIC(state);
+#endif
     switch (state) {
       case ZX_THREAD_STATE_NEW:
         return "ZX_THREAD_STATE_NEW";
