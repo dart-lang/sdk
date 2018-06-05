@@ -379,8 +379,9 @@ class NativeTypedData implements TypedData {
 // because passing unvalidated values to the native constructors can cause
 // conversions or create views.
 int _checkLength(length) {
-  if (length is! int) throw new ArgumentError('Invalid length $length');
-  return length;
+  return length is int
+      ? length
+      : throw new ArgumentError('Invalid length $length');
 }
 
 // Validates `.view` constructor arguments.  Checking is necessary because
