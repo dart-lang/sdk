@@ -99,7 +99,7 @@ class _TestServerPlugin extends MockServerPlugin with FixesMixin {
     AnalysisError error = new AnalysisError(
         new MockSource(), 0, 0, CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT);
     AnalysisResult result = new AnalysisResult(null, null, null, null, null,
-        null, new LineInfo([0, 20]), null, null, [error], null);
+        null, new LineInfo([0, 20]), false, null, null, [error], null);
     return new DartFixesRequestImpl(resourceProvider, offset, [error], result);
   }
 }

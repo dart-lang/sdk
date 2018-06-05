@@ -663,7 +663,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     }
 
     return new ErrorsResult(currentSession, path, analysisResult.uri,
-        analysisResult.lineInfo, analysisResult.errors);
+        analysisResult.lineInfo, analysisResult.isPart, analysisResult.errors);
   }
 
   /**
@@ -688,6 +688,18 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     _referencingNameTasks.add(task);
     _scheduler.notify(this);
     return task.completer.future;
+  }
+
+  /**
+   * Return the [FileResult] for the Dart file with the given [path].
+   *
+   * The [path] must be absolute and normalized.
+   */
+  FileResult getFileSync(String path) {
+    _throwIfNotAbsolutePath(path);
+    FileState file = _fileTracker.verifyApiSignature(path);
+    return new FileResult(
+        _currentSession, path, file.uri, file.lineInfo, file.isPart);
   }
 
   /**
@@ -904,7 +916,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     RecordingErrorListener listener = new RecordingErrorListener();
     CompilationUnit unit = file.parse(listener);
     return new ParseResult(currentSession, file.path, file.uri, file.content,
-        unit.lineInfo, unit, listener.errors);
+        file.lineInfo, file.isPart, unit, listener.errors);
   }
 
   @override
@@ -1495,6 +1507,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         file.exists,
         content,
         file.lineInfo,
+        file.isPart,
         signature,
         resolvedUnit,
         errors,
@@ -1584,6 +1597,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         file.exists,
         null,
         file.lineInfo,
+        file.isPart,
         null,
         null,
         [
@@ -2044,10 +2058,9 @@ class AnalysisDriverTestView {
  * Every result is independent, and is not guaranteed to be consistent with
  * any previously returned result, even inside of the same library.
  */
-class AnalysisResult extends BaseAnalysisResult
-    implements results.ResolveResult {
+class AnalysisResult extends FileResult implements results.ResolveResult {
   static final _UNCHANGED = new AnalysisResult(
-      null, null, null, null, null, null, null, null, null, null, null);
+      null, null, null, null, null, null, null, null, null, null, null, null);
 
   /**
    * The [AnalysisDriver] that produced this result.
@@ -2066,9 +2079,6 @@ class AnalysisResult extends BaseAnalysisResult
 
   @override
   final String content;
-
-  @override
-  final LineInfo lineInfo;
 
   /**
    * The signature of the result based on the content of the file, and the
@@ -2095,12 +2105,13 @@ class AnalysisResult extends BaseAnalysisResult
       Uri uri,
       this.exists,
       this.content,
-      this.lineInfo,
+      LineInfo lineInfo,
+      bool isPart,
       this._signature,
       this.unit,
       this.errors,
       this._index)
-      : super(driver?.currentSession, path, uri);
+      : super(driver?.currentSession, path, uri, lineInfo, isPart);
 
   @override
   LibraryElement get libraryElement => unit.element.library;
@@ -2158,16 +2169,13 @@ abstract class DriverWatcher {
  * to each other. But none of the results is guaranteed to be consistent with
  * the state of the files.
  */
-class ErrorsResult extends BaseAnalysisResult implements results.ErrorsResult {
-  @override
-  final LineInfo lineInfo;
-
+class ErrorsResult extends FileResult implements results.ErrorsResult {
   @override
   final List<AnalysisError> errors;
 
-  ErrorsResult(
-      AnalysisSession session, String path, Uri uri, this.lineInfo, this.errors)
-      : super(session, path, uri);
+  ErrorsResult(AnalysisSession session, String path, Uri uri, LineInfo lineInfo,
+      bool isPart, this.errors)
+      : super(session, path, uri, lineInfo, isPart);
 
   @override
   results.ResultState get state => results.ResultState.VALID;
@@ -2201,18 +2209,34 @@ class ExceptionResult {
 }
 
 /**
+ * The result of computing some cheap information for a single file, when full
+ * parsed file is not required, so [ParseResult] is not necessary.
+ */
+class FileResult extends BaseAnalysisResult implements results.FileResult {
+  @override
+  final LineInfo lineInfo;
+
+  @override
+  final bool isPart;
+
+  FileResult(
+      AnalysisSession session, String path, Uri uri, this.lineInfo, this.isPart)
+      : super(session, path, uri);
+
+  @override
+  results.ResultState get state => results.ResultState.VALID;
+}
+
+/**
  * The result of parsing of a single file.
  *
  * These results are self-consistent, i.e. [content], [lineInfo], the
  * parsed [unit] correspond to each other. But none of the results is
  * guaranteed to be consistent with the state of the files.
  */
-class ParseResult extends BaseAnalysisResult implements results.ParseResult {
+class ParseResult extends FileResult implements results.ParseResult {
   @override
   final String content;
-
-  @override
-  final LineInfo lineInfo;
 
   @override
   final CompilationUnit unit;
@@ -2221,8 +2245,8 @@ class ParseResult extends BaseAnalysisResult implements results.ParseResult {
   final List<AnalysisError> errors;
 
   ParseResult(AnalysisSession session, String path, Uri uri, this.content,
-      this.lineInfo, this.unit, this.errors)
-      : super(session, path, uri);
+      LineInfo lineInfo, bool isPart, this.unit, this.errors)
+      : super(session, path, uri, lineInfo, isPart);
 
   @override
   results.ResultState get state => results.ResultState.VALID;

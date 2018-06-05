@@ -95,7 +95,7 @@ class _TestServerPlugin extends MockServerPlugin with EntryMixin {
   Future<EntryRequest> getEntryRequest(
       KytheGetKytheEntriesParams parameters) async {
     AnalysisResult result = new AnalysisResult(
-        null, null, null, null, null, null, null, null, null, null, null);
+        null, null, null, null, null, null, null, null, null, null, null, null);
     return new DartEntryRequestImpl(resourceProvider, result);
   }
 }

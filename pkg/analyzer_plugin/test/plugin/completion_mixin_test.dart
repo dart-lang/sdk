@@ -99,7 +99,7 @@ class _TestServerPlugin extends MockServerPlugin with CompletionMixin {
   Future<CompletionRequest> getCompletionRequest(
       CompletionGetSuggestionsParams parameters) async {
     AnalysisResult result = new AnalysisResult(
-        null, null, null, null, null, null, null, null, null, null, null);
+        null, null, null, null, null, null, null, null, null, null, null, null);
     return new DartCompletionRequestImpl(
         resourceProvider, parameters.offset, result);
   }

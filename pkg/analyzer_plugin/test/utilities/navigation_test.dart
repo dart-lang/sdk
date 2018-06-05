@@ -20,7 +20,7 @@ class NavigationGeneratorTest {
   MemoryResourceProvider provider = new MemoryResourceProvider();
 
   ResolveResult resolveResult = new driver.AnalysisResult(
-      null, null, 'a.dart', null, true, '', null, '', null, null, null);
+      null, null, 'a.dart', null, true, '', null, false, '', null, null, null);
 
   test_none() {
     NavigationGenerator generator = new NavigationGenerator([]);

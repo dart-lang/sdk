@@ -94,7 +94,7 @@ class _TestServerPlugin extends MockServerPlugin with FoldingMixin {
   @override
   Future<FoldingRequest> getFoldingRequest(String path) async {
     AnalysisResult result = new AnalysisResult(
-        null, null, path, null, null, null, null, null, null, null, null);
+        null, null, path, null, null, null, null, null, null, null, null, null);
     return new DartFoldingRequestImpl(resourceProvider, result);
   }
 }

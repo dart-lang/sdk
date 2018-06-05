@@ -95,7 +95,7 @@ class _TestServerPlugin extends MockServerPlugin with OutlineMixin {
   @override
   Future<OutlineRequest> getOutlineRequest(String path) async {
     AnalysisResult result = new AnalysisResult(
-        null, null, path, null, null, null, null, null, null, null, null);
+        null, null, path, null, null, null, null, null, null, null, null, null);
     return new DartOutlineRequestImpl(resourceProvider, result);
   }
 }

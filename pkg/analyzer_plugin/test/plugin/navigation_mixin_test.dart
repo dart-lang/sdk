@@ -110,7 +110,7 @@ class _TestServerPlugin extends MockServerPlugin with NavigationMixin {
   Future<NavigationRequest> getNavigationRequest(
       AnalysisGetNavigationParams parameters) async {
     AnalysisResult result = new AnalysisResult(null, null, parameters.file,
-        null, null, null, null, null, null, null, null);
+        null, null, null, null, null, null, null, null, null);
     return new DartNavigationRequestImpl(
         resourceProvider, parameters.offset, parameters.length, result);
   }

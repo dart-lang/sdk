@@ -42,16 +42,11 @@ abstract class AnalysisResult {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class AnalysisResultWithErrors implements AnalysisResult {
+abstract class AnalysisResultWithErrors implements FileResult {
   /**
    * The analysis errors that were computed during analysis.
    */
   List<AnalysisError> get errors;
-
-  /**
-   * Information about lines in the content.
-   */
-  LineInfo get lineInfo;
 }
 
 /**
@@ -61,6 +56,24 @@ abstract class AnalysisResultWithErrors implements AnalysisResult {
  * Clients may not extend, implement or mix-in this class.
  */
 abstract class ErrorsResult implements AnalysisResultWithErrors {}
+
+/**
+ * The result of computing some cheap information for a single file, when full
+ * parsed file is not required, so [ParseResult] is not necessary.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class FileResult implements AnalysisResult {
+  /**
+   * Whether the file is a part.
+   */
+  bool get isPart;
+
+  /**
+   * Information about lines in the content.
+   */
+  LineInfo get lineInfo;
+}
 
 /**
  * The result of parsing of a single file. The errors returned include only
