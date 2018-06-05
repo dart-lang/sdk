@@ -13,7 +13,7 @@ class I {
 
 abstract class C implements I {}
 
-selectKeys(map, predicate) {
+selectKeys<K, V>(Map<K, V> map, bool predicate(V)) {
   return map.keys.where((key) => predicate(map[key]));
 }
 

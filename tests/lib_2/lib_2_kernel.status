@@ -51,7 +51,6 @@ isolate/isolate_complex_messages_test: Crash # http://dartbug.com/33128
 
 [ $arch == x64 && $compiler == dartk && $mode == debug && $runtime == vm && $strong ]
 mirrors/invocation_fuzz_test: Skip # Because it times out, issue 29439.
-mirrors/variable_is_const_test/01: Crash
 
 [ $builder_tag == optimization_counter_threshold && $compiler == dartk ]
 isolate/unresolved_ports_test: CompileTimeError, Pass, Timeout # Fails to compile on opt counter builder (#31838)
@@ -72,21 +71,13 @@ isolate/browser/package_resolve_browser_hook_test: CompileTimeError
 isolate/browser/package_resolve_browser_test: CompileTimeError
 
 [ $compiler == dartk && $mode == debug && $runtime == vm && $strong ]
-mirrors/other_declarations_location_test: Crash # assertion error, TypeParameter not having position.
+mirrors/other_declarations_location_test: Crash # Issue 33325 (assertion error, TypeParameter not having position).
 
 [ $compiler == dartk && $mode == debug && $hot_reload_rollback ]
 isolate/message3_test/constList_identical: Skip # Timeout
 
 [ $compiler == dartk && $mode == debug && $strong ]
-mirrors/instance_members_unimplemented_interface_test: Crash
-mirrors/library_import_deferred_loading_test: Crash # Deferred loading kernel issue 28335.
-mirrors/load_library_test: Crash
-
-# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
-# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
-# batch mode.
-[ $compiler == dartk && $mode == debug && $strong && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
-mirrors/variable_is_const_test/01: Crash # Please triage.
+mirrors/variable_is_const_test/01: Crash # Issue 32326
 
 [ $compiler == dartk && $runtime == vm && $checked && $strong ]
 mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError # Issue 28424
@@ -121,7 +112,6 @@ mirrors/constructor_private_name_test: RuntimeError
 mirrors/constructors_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/dart2js_mirrors_test: RuntimeError # 31916
 mirrors/deferred_mirrors_metadata_test: RuntimeError, CompileTimeError # Deferred loading kernel issue 28335.
-mirrors/deferred_mirrors_test: Crash # 31916
 mirrors/deferred_type_test: CompileTimeError, RuntimeError
 mirrors/empty_test: Crash, RuntimeError
 mirrors/enum_test: RuntimeError # Issue 31402 (Invocation arguments)
@@ -169,7 +159,7 @@ mirrors/mixin_application_test: RuntimeError # Issue 31402 (Invocation arguments
 mirrors/mixin_members_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/native_class_test: SkipByDesign # Imports dart:html
 mirrors/operator_test: CompileTimeError # Issue 31402 (Invocation arguments)
-mirrors/other_declarations_location_test: RuntimeError
+mirrors/other_declarations_location_test: RuntimeError # Issue 33325 (no source positions for type parameters).
 mirrors/parameter_annotation_mirror_test: RuntimeError
 mirrors/parameter_metadata_test: RuntimeError
 mirrors/parameter_of_mixin_app_constructor_test: RuntimeError # Issue 31402 (Invocation arguments)
@@ -243,7 +233,6 @@ mirrors/deferred_constraints_constants_test/default_argument2: Pass
 mirrors/fake_function_with_call_test: RuntimeError
 mirrors/instance_members_easier_test: RuntimeError
 mirrors/instance_members_test: RuntimeError
-mirrors/instance_members_unimplemented_interface_test: RuntimeError
 mirrors/instance_members_with_override_test: RuntimeError
 mirrors/invoke_closurization2_test: RuntimeError
 mirrors/invoke_throws_test: RuntimeError
