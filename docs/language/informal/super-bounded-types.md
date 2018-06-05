@@ -2,9 +2,10 @@
 
 **Author**: eernst@.
 
-**Version**: 0.6 (2018-05-25).
+**Version**: 0.7 (2018-06-01).
 
-**Status**: Under implementation.
+**Status**: Background material.
+The language specification has the normative text on this topic.
 
 **This document** is an informal specification of the support in Dart 2 for
 using certain generic types where the declared bounds are violated. The
@@ -579,6 +580,10 @@ class types like `C<C<dynamic>>` that we have already argued are useful.
 
 
 ## Updates
+
+*   Version 0.7 (2018-06-01), marked as background material: The normative
+    text on variance and on super-bounded types is now part of the language
+    specification.
 
 *   Version 0.6 (2018-05-25), added example showing why we must check the
     right hand side of type aliases.
