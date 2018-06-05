@@ -1269,6 +1269,8 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
         closure.SetParameterNameAt(pos, Symbols::ClosureParameter());
         pos++;
 
+        const Library& lib = Library::Handle(
+            builder_->zone_, builder_->active_class()->klass->library());
         for (intptr_t j = 0; j < positional_parameter_count; ++j, ++pos) {
           VariableDeclarationHelper helper(builder_);
           helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
