@@ -179,7 +179,7 @@ class JsBackendStrategy implements KernelBackendStrategy {
   @override
   SourceInformationStrategy get sourceInformationStrategy {
     if (!_compiler.options.generateSourceMap) {
-      return const JavaScriptSourceInformationStrategy();
+      return const JavaScriptSourceInformationStrategy<ir.Node>();
     }
     return new KernelSourceInformationStrategy(this);
   }
