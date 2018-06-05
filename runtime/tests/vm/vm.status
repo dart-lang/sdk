@@ -128,6 +128,7 @@ cc/Profiler_TypedArrayAllocation: Skip
 
 [ $arch == x64 && $compiler == dartk && $system == windows && $strong ]
 cc/Profiler_BasicSourcePosition: Fail # http://dartbug.com/33224
+cc/Profiler_CodeTicks: Fail # dartbug.com/33337
 
 [ $arch == x64 && $system == windows ]
 cc/Profiler_BinaryOperatorSourcePositionOptimized: Pass, Fail # Issue 31137
