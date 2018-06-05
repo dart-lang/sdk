@@ -392,8 +392,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginTypeVariable(Token token) {
-    listener?.beginTypeVariable(token);
+  void beginTypeVariable(Token name) {
+    listener?.beginTypeVariable(name);
   }
 
   @override

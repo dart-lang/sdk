@@ -863,6 +863,7 @@ class AstBuilder extends StackListener {
     push(ast.thisExpression(thisKeyword));
   }
 
+  @override
   void handleType(Token beginToken, Token endToken) {
     debugEvent("Type");
 
@@ -2160,6 +2161,12 @@ class AstBuilder extends StackListener {
     Comment comment = _findComment(metadata, beginToken);
     declarations.add(ast.topLevelVariableDeclaration(
         comment, metadata, variableList, semicolon));
+  }
+
+  @override
+  void beginTypeVariable(Token name) {
+    debugEvent("beginTypeVariable");
+    push(ast.simpleIdentifier(name, isDeclaration: true));
   }
 
   @override
