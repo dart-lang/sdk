@@ -144,9 +144,6 @@ cc/Dart2JSCompileAll: SkipSlow # Timeout.
 [ $compiler == dart2analyzer && $strong ]
 *: Skip # Issue 28649
 
-[ $compiler == dartk && $mode == debug ]
-cc/EvalExpression: Crash # Instance::Evaluate should be replaced with EvaluateCompiledExpression
-
 [ $compiler == dartk && $mode == debug && $runtime == vm ]
 cc/PrintJSON: Crash
 cc/Service_TokenStream: Crash

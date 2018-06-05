@@ -7,6 +7,7 @@
 #include "vm/class_finalizer.h"
 #include "vm/code_patcher.h"
 #include "vm/dart_api_impl.h"
+#include "vm/kernel_isolate.h"
 #include "vm/object.h"
 #include "vm/safepoint.h"
 #include "vm/symbols.h"
@@ -170,8 +171,31 @@ TEST_CASE(EvalExpression) {
   expr_text = String::New("apa + ' ${calc(10)}' + dot");
   Object& val = Object::Handle();
   const Class& receiver_cls = Class::Handle(obj.clazz());
-  val = Instance::Cast(obj).Evaluate(
-      receiver_cls, expr_text, Array::empty_array(), Array::empty_array());
+
+  if (!KernelIsolate::IsRunning()) {
+    val = Instance::Cast(obj).Evaluate(
+        receiver_cls, expr_text, Array::empty_array(), Array::empty_array());
+  } else {
+    RawLibrary* raw_library = Library::RawCast(Api::UnwrapHandle(lib));
+    Library& lib_handle = Library::ZoneHandle(raw_library);
+
+    Dart_KernelCompilationResult compilation_result;
+    {
+      TransitionVMToNative transition(thread);
+      compilation_result = KernelIsolate::CompileExpressionToKernel(
+          expr_text.ToCString(), Array::empty_array(), Array::empty_array(),
+          String::Handle(lib_handle.url()).ToCString(), "A",
+          /* is_static= */ false);
+    }
+    EXPECT_EQ(Dart_KernelCompilationStatus_Ok, compilation_result.status);
+
+    const uint8_t* kernel_bytes = compilation_result.kernel;
+    intptr_t kernel_length = compilation_result.kernel_size;
+
+    val = Instance::Cast(obj).EvaluateCompiledExpression(
+        receiver_cls, kernel_bytes, kernel_length, Array::empty_array(),
+        Array::empty_array(), TypeArguments::null_type_arguments());
+  }
   EXPECT(!val.IsNull());
   EXPECT(!val.IsError());
   EXPECT(val.IsString());
