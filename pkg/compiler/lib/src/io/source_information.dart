@@ -43,7 +43,7 @@ class SourceInformationStrategy<T> {
   /// Create a [SourceInformationBuilder] for [member].
   SourceInformationBuilder<T> createBuilderForContext(
       covariant MemberEntity member) {
-    return const SourceInformationBuilder();
+    return new SourceInformationBuilder<T>();
   }
 
   /// Generate [SourceInformation] marker for non-preamble code.
