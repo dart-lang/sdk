@@ -305,23 +305,24 @@ class Search {
       return _searchReferences_Field(element, searchedFiles);
     } else if (kind == ElementKind.FUNCTION || kind == ElementKind.METHOD) {
       if (element.enclosingElement is ExecutableElement) {
-        return _searchReferences_Local(element, (n) => n is Block);
+        return _searchReferences_Local(
+            element, (n) => n is Block, searchedFiles);
       }
       return _searchReferences_Function(element, searchedFiles);
     } else if (kind == ElementKind.IMPORT) {
-      return _searchReferences_Import(element);
+      return _searchReferences_Import(element, searchedFiles);
     } else if (kind == ElementKind.LABEL ||
         kind == ElementKind.LOCAL_VARIABLE) {
-      return _searchReferences_Local(element, (n) => n is Block);
+      return _searchReferences_Local(element, (n) => n is Block, searchedFiles);
     } else if (kind == ElementKind.LIBRARY) {
-      return _searchReferences_Library(element);
+      return _searchReferences_Library(element, searchedFiles);
     } else if (kind == ElementKind.PARAMETER) {
       return _searchReferences_Parameter(element, searchedFiles);
     } else if (kind == ElementKind.PREFIX) {
-      return _searchReferences_Prefix(element);
+      return _searchReferences_Prefix(element, searchedFiles);
     } else if (kind == ElementKind.TYPE_PARAMETER) {
       return _searchReferences_Local(
-          element, (n) => n.parent is CompilationUnit);
+          element, (n) => n.parent is CompilationUnit, searchedFiles);
     }
     return const <SearchResult>[];
   }
@@ -470,7 +471,7 @@ class Search {
     String path = element.source.fullName;
     if (name.startsWith('_')) {
       String libraryPath = element.library.source.fullName;
-      if (_driver.addedFiles.contains(libraryPath)) {
+      if (searchedFiles.add(libraryPath, this)) {
         FileState library = _driver.fsState.getFileForPath(libraryPath);
         List<FileState> candidates = [library]..addAll(library.partedFiles);
         for (FileState file in candidates) {
@@ -603,10 +604,9 @@ class Search {
   }
 
   Future<List<SearchResult>> _searchReferences_Import(
-      ImportElement element) async {
-    // Search only in drivers to which the library was added.
+      ImportElement element, SearchedFiles searchedFiles) async {
     String path = element.source.fullName;
-    if (!_driver.addedFiles.contains(path)) {
+    if (!searchedFiles.add(path, this)) {
       return const <SearchResult>[];
     }
 
@@ -624,10 +624,9 @@ class Search {
   }
 
   Future<List<SearchResult>> _searchReferences_Library(
-      LibraryElement element) async {
-    // Search only in drivers to which the library with the prefix was added.
+      LibraryElement element, SearchedFiles searchedFiles) async {
     String path = element.source.fullName;
-    if (!_driver.addedFiles.contains(path)) {
+    if (!searchedFiles.add(path, this)) {
       return const <SearchResult>[];
     }
 
@@ -651,10 +650,10 @@ class Search {
     return results;
   }
 
-  Future<List<SearchResult>> _searchReferences_Local(
-      Element element, bool isRootNode(AstNode n)) async {
+  Future<List<SearchResult>> _searchReferences_Local(Element element,
+      bool isRootNode(AstNode n), SearchedFiles searchedFiles) async {
     String path = element.source.fullName;
-    if (!_driver.addedFiles.contains(path)) {
+    if (!searchedFiles.add(path, this)) {
       return const <SearchResult>[];
     }
 
@@ -687,10 +686,14 @@ class Search {
   Future<List<SearchResult>> _searchReferences_Parameter(
       ParameterElement parameter, SearchedFiles searchedFiles) async {
     List<SearchResult> results = <SearchResult>[];
-    results.addAll(await _searchReferences_Local(parameter, (AstNode node) {
-      AstNode parent = node.parent;
-      return parent is ClassDeclaration || parent is CompilationUnit;
-    }));
+    results.addAll(await _searchReferences_Local(
+      parameter,
+      (AstNode node) {
+        AstNode parent = node.parent;
+        return parent is ClassDeclaration || parent is CompilationUnit;
+      },
+      searchedFiles,
+    ));
     if (parameter.isOptional) {
       results.addAll(await _searchReferences(parameter, searchedFiles));
     }
@@ -698,10 +701,9 @@ class Search {
   }
 
   Future<List<SearchResult>> _searchReferences_Prefix(
-      PrefixElement element) async {
-    // Search only in drivers to which the library with the prefix was added.
+      PrefixElement element, SearchedFiles searchedFiles) async {
     String path = element.source.fullName;
-    if (!_driver.addedFiles.contains(path)) {
+    if (!searchedFiles.add(path, this)) {
       return const <SearchResult>[];
     }
 
