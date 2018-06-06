@@ -1220,7 +1220,7 @@
       ]
     },
     {
-      "builders": ["dart2js-csp-minified-linux-x64-drt"],
+      "builders": ["dart2js-csp-minified-linux-x64-chrome"],
       "meta": {
         "description": "This builder runs the dart2js tests in csp and minified mode."
       },
