@@ -114,6 +114,14 @@ void main() {
   * Added `FileSystemEntity.fromRawPath` constructor to allow for
     the creation of `FileSystemEntity` using `Uint8List` buffers.
 
+### Dart VM
+
+* `async` functions now start synchronously when previewing Dart 2 with
+  `--preview-dart-2`.  Build tools (e.g., build_runner) may override the
+  default and/or allow developers to configure.  Passing the
+  `--no-sync-async` flag will produce the old behavior, starting `async`
+  functions asynchronously.
+
 ### Tool Changes
 
 #### dartfmt
