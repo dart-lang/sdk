@@ -228,7 +228,7 @@ Bytecode {
   Push                 r2
   InstanceCall1        1, CP#52
   Drop1
-  PushConstant         CP#36
+  PushConstant         CP#18
   ReturnTOS
 }
 ConstantPool {
@@ -250,30 +250,30 @@ ConstantPool {
   [15] = Int 0
   [16] = Type #lib::A::T1
   [17] = TypeArgumentsFieldOffset #lib::A
-  [18] = Int 1
-  [19] = Type #lib::A::T2
-  [20] = Type #lib::A::foo::T3
-  [21] = Int 3
-  [22] = Type #lib::A::foo::T4
-  [23] = Type T5
-  [24] = Int 5
-  [25] = Type T6
-  [26] = Type T7
-  [27] = Int 7
-  [28] = Type T8
-  [29] = ArgDesc num-args 1, num-type-args 1, names []
-  [30] = StaticICData target 'dart.core::List::_fromLiteral', arg-desc CP#29
-  [31] = ArgDesc num-args 1, num-type-args 0, names []
-  [32] = StaticICData target 'dart.core::print', arg-desc CP#31
-  [33] = TypeArgs [#lib::A::T1, #lib::A::T2, #lib::A::foo::T3, #lib::A::foo::T4, T5, T6, T7, T8]
-  [34] = ArgDesc num-args 0, num-type-args 8, names []
-  [35] = StaticICData target '#lib::callWithArgs', arg-desc CP#34
-  [36] = Null
+  [18] = Null
+  [19] = Int 1
+  [20] = Type #lib::A::T2
+  [21] = Type #lib::A::foo::T3
+  [22] = Int 3
+  [23] = Type #lib::A::foo::T4
+  [24] = Type T5
+  [25] = Int 5
+  [26] = Type T6
+  [27] = Type T7
+  [28] = Int 7
+  [29] = Type T8
+  [30] = ArgDesc num-args 1, num-type-args 1, names []
+  [31] = StaticICData target 'dart.core::List::_fromLiteral', arg-desc CP#30
+  [32] = ArgDesc num-args 1, num-type-args 0, names []
+  [33] = StaticICData target 'dart.core::print', arg-desc CP#32
+  [34] = TypeArgs [#lib::A::T1, #lib::A::T2, #lib::A::foo::T3, #lib::A::foo::T4, T5, T6, T7, T8]
+  [35] = ArgDesc num-args 0, num-type-args 8, names []
+  [36] = StaticICData target '#lib::callWithArgs', arg-desc CP#35
   [37] = EndClosureFunctionScope
   [38] = Class dart.core::_Closure
   [39] = FieldOffset dart.core::_Closure::_instantiator_type_arguments
   [40] = FieldOffset dart.core::_Closure::_function
-  [41] = ICData target-name 'call', arg-desc CP#31
+  [41] = ICData target-name 'call', arg-desc CP#32
   [42] = EndClosureFunctionScope
   [43] = TypeArgs [#lib::C7, #lib::C8]
   [44] = ArgDesc num-args 1, num-type-args 2, names []
@@ -306,79 +306,67 @@ Closure CP#12 {
   Push                 r1
   LoadFieldTOS         CP#1
   LoadFieldTOS         CP#17
-  Push                 r0
+  PushConstant         CP#18
   InstantiateType      CP#16
   StoreIndexedTOS
   Push                 r3
+  PushConstant         CP#19
+  Push                 r1
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#17
   PushConstant         CP#18
-  Push                 r1
-  LoadFieldTOS         CP#1
-  LoadFieldTOS         CP#17
-  Push                 r0
-  InstantiateType      CP#19
-  StoreIndexedTOS
-  Push                 r3
-  PushConstant         CP#5
-  Push                 r1
-  LoadFieldTOS         CP#1
-  LoadFieldTOS         CP#17
-  Push                 r0
   InstantiateType      CP#20
   StoreIndexedTOS
   Push                 r3
-  PushConstant         CP#21
-  Push                 r1
-  LoadFieldTOS         CP#1
-  LoadFieldTOS         CP#17
+  PushConstant         CP#5
+  PushConstant         CP#18
   Push                 r0
-  InstantiateType      CP#22
+  InstantiateType      CP#21
   StoreIndexedTOS
   Push                 r3
-  PushConstant         CP#6
-  Push                 r1
-  LoadFieldTOS         CP#1
-  LoadFieldTOS         CP#17
+  PushConstant         CP#22
+  PushConstant         CP#18
   Push                 r0
   InstantiateType      CP#23
   StoreIndexedTOS
   Push                 r3
-  PushConstant         CP#24
-  Push                 r1
-  LoadFieldTOS         CP#1
-  LoadFieldTOS         CP#17
+  PushConstant         CP#6
+  PushConstant         CP#18
   Push                 r0
-  InstantiateType      CP#25
+  InstantiateType      CP#24
   StoreIndexedTOS
   Push                 r3
-  PushConstant         CP#10
-  Push                 r1
-  LoadFieldTOS         CP#1
-  LoadFieldTOS         CP#17
+  PushConstant         CP#25
+  PushConstant         CP#18
   Push                 r0
   InstantiateType      CP#26
   StoreIndexedTOS
   Push                 r3
-  PushConstant         CP#27
-  Push                 r1
-  LoadFieldTOS         CP#1
-  LoadFieldTOS         CP#17
+  PushConstant         CP#10
+  PushConstant         CP#18
   Push                 r0
-  InstantiateType      CP#28
+  InstantiateType      CP#27
   StoreIndexedTOS
-  PushConstant         CP#30
-  IndirectStaticCall   2, CP#29
-  PushConstant         CP#32
-  IndirectStaticCall   1, CP#31
+  Push                 r3
+  PushConstant         CP#28
+  PushConstant         CP#18
+  Push                 r0
+  InstantiateType      CP#29
+  StoreIndexedTOS
+  PushConstant         CP#31
+  IndirectStaticCall   2, CP#30
+  PushConstant         CP#33
+  IndirectStaticCall   1, CP#32
   Drop1
   Push                 r1
   LoadFieldTOS         CP#1
   LoadFieldTOS         CP#17
   Push                 r0
-  InstantiateTypeArgumentsTOS 1, CP#33
-  PushConstant         CP#35
-  IndirectStaticCall   1, CP#34
-  Drop1
+  InstantiateTypeArgumentsTOS 1, CP#34
   PushConstant         CP#36
+  IndirectStaticCall   1, CP#35
+  Drop1
+  PushConstant         CP#18
   ReturnTOS
 
 }
@@ -417,7 +405,7 @@ Closure CP#9 {
   Push                 r2
   InstanceCall1        1, CP#41
   Drop1
-  PushConstant         CP#36
+  PushConstant         CP#18
   ReturnTOS
 
 }
@@ -461,7 +449,7 @@ Closure CP#2 {
   Push                 r2
   InstanceCall1        1, CP#47
   Drop1
-  PushConstant         CP#36
+  PushConstant         CP#18
   ReturnTOS
 
 }

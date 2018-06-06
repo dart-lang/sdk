@@ -185,6 +185,158 @@ ConstantPool {
     core::print("C: ${s}");
   }
 }
+class E<K extends core::Object = dynamic, V extends core::Object = dynamic> extends core::Object {
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  Push                 FP[-5]
+  PushConstant         CP#1
+  IndirectStaticCall   1, CP#0
+  Drop1
+  PushConstant         CP#2
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ArgDesc num-args 1, num-type-args 0, names []
+  [1] = StaticICData target 'dart.core::Object::', arg-desc CP#0
+  [2] = Null
+}
+]  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  Push                 FP[-5]
+  LoadFieldTOS         CP#0
+  PushConstant         CP#2
+  IndirectStaticCall   1, CP#1
+  ReturnTOS
+  PushConstant         CP#3
+  ReturnTOS
+}
+ConstantPool {
+  [0] = TypeArgumentsFieldOffset #lib::E
+  [1] = ArgDesc num-args 0, num-type-args 2, names []
+  [2] = StaticICData target 'dart.core::Map::', arg-desc CP#1
+  [3] = Null
+}
+]  method test_reuse1() → dynamic
+    return core::Map::•<self::E::K, self::E::V>();
+}
+class F<K extends core::Object = dynamic, V extends core::Object = dynamic> extends self::E<core::String, core::List<self::F::V>> {
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  Push                 FP[-5]
+  PushConstant         CP#1
+  IndirectStaticCall   1, CP#0
+  Drop1
+  PushConstant         CP#2
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ArgDesc num-args 1, num-type-args 0, names []
+  [1] = StaticICData target '#lib::E::', arg-desc CP#0
+  [2] = Null
+}
+]  synthetic constructor •() → void
+    : super self::E::•()
+    ;
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  Push                 FP[-5]
+  LoadFieldTOS         CP#0
+  PushConstant         CP#2
+  IndirectStaticCall   1, CP#1
+  ReturnTOS
+  PushConstant         CP#3
+  ReturnTOS
+}
+ConstantPool {
+  [0] = TypeArgumentsFieldOffset #lib::F
+  [1] = ArgDesc num-args 0, num-type-args 2, names []
+  [2] = StaticICData target 'dart.core::Map::', arg-desc CP#1
+  [3] = Null
+}
+]  method test_reuse2() → dynamic
+    return core::Map::•<core::String, core::List<self::F::V>>();
+}
+class G<K extends core::Object = dynamic, V extends core::Object = dynamic> extends core::Object {
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  Push                 FP[-5]
+  PushConstant         CP#1
+  IndirectStaticCall   1, CP#0
+  Drop1
+  PushConstant         CP#2
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ArgDesc num-args 1, num-type-args 0, names []
+  [1] = StaticICData target 'dart.core::Object::', arg-desc CP#0
+  [2] = Null
+}
+]  constructor •() → void
+    : super core::Object::•()
+    ;
+[@vm.bytecode=
+Bytecode {
+  Entry                1
+  CheckStack
+  PushConstant         CP#1
+  Push                 FP[-5]
+  InstantiateTypeArgumentsTOS 1, CP#3
+  PushConstant         CP#0
+  AllocateT
+  StoreLocal           r0
+  Push                 r0
+  PushConstant         CP#5
+  IndirectStaticCall   1, CP#4
+  Drop1
+  ReturnTOS
+  PushConstant         CP#1
+  ReturnTOS
+}
+ConstantPool {
+  [0] = Class #lib::H
+  [1] = Null
+  [2] = TypeArgs [dart.core::String, #lib::G::test_factory::K, #lib::G::test_factory::V]
+  [3] = TypeArgumentsForInstanceAllocation #lib::H type-args CP#2
+  [4] = ArgDesc num-args 1, num-type-args 0, names []
+  [5] = StaticICData target '#lib::H::', arg-desc CP#4
+}
+]  static factory test_factory<K extends core::Object = dynamic, V extends core::Object = dynamic>() → self::G<self::G::test_factory::K, self::G::test_factory::V>
+    return new self::H::•<core::String, self::G::test_factory::K, self::G::test_factory::V>();
+}
+class H<P1 extends core::Object = dynamic, P2 extends core::Object = dynamic, P3 extends core::Object = dynamic> extends self::G<self::H::P2, self::H::P3> {
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  Push                 FP[-5]
+  PushConstant         CP#1
+  IndirectStaticCall   1, CP#0
+  Drop1
+  PushConstant         CP#2
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ArgDesc num-args 1, num-type-args 0, names []
+  [1] = StaticICData target '#lib::G::', arg-desc CP#0
+  [2] = Null
+}
+]  synthetic constructor •() → void
+    : super self::G::•()
+    ;
+}
 [@vm.bytecode=
 Bytecode {
   Entry                1
@@ -257,9 +409,9 @@ ConstantPool {
 Bytecode {
   Entry                1
   CheckStack
-  PushConstant         CP#3
+  PushConstant         CP#1
   Push                 FP[-5]
-  InstantiateTypeArgumentsTOS 1, CP#2
+  InstantiateTypeArgumentsTOS 1, CP#3
   PushConstant         CP#0
   AllocateT
   StoreLocal           r0
@@ -268,19 +420,39 @@ Bytecode {
   IndirectStaticCall   1, CP#4
   Drop1
   Drop1
-  PushConstant         CP#3
+  PushConstant         CP#1
   ReturnTOS
 }
 ConstantPool {
   [0] = Class #lib::B
-  [1] = TypeArgs [dart.core::List<#lib::foo3::T>]
-  [2] = TypeArgumentsForInstanceAllocation #lib::B type-args CP#1
-  [3] = Null
+  [1] = Null
+  [2] = TypeArgs [dart.core::List<#lib::foo3::T>]
+  [3] = TypeArgumentsForInstanceAllocation #lib::B type-args CP#2
   [4] = ArgDesc num-args 1, num-type-args 0, names []
   [5] = StaticICData target '#lib::B::', arg-desc CP#4
 }
 ]static method foo3<T extends core::Object = dynamic>() → void {
   new self::B::•<core::List<self::foo3::T>>();
+}
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  PushConstant         CP#0
+  PushConstant         CP#2
+  IndirectStaticCall   1, CP#1
+  Drop1
+  PushConstant         CP#3
+  ReturnTOS
+}
+ConstantPool {
+  [0] = TypeArgs [dart.core::int, dart.core::List<dart.core::String>]
+  [1] = ArgDesc num-args 0, num-type-args 2, names []
+  [2] = StaticICData target '#lib::G::test_factory', arg-desc CP#1
+  [3] = Null
+}
+]static method foo4() → void {
+  self::G::test_factory<core::int, core::List<core::String>>();
 }
 [@vm.bytecode=
 Bytecode {
