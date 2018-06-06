@@ -167,11 +167,18 @@ class FastaBodyBuilderTestCase extends Object
   /// finished parsing, or `null` (the default) if EOF is expected.
   int expectedEndOffset;
 
+  @override
+  void set enableGenericMethodComments(_) {
+    // Ignored.
+  }
+
   FastaBodyBuilderTestCase(this.resolveTypes);
 
   analyzer.Parser get parser => new ParserProxy(this);
 
   TypeProvider get typeProvider => CompilerTestContext.current._typeProvider;
+
+  bool get usingFastaParser => true;
 
   @override
   void assertNoErrors() {
@@ -186,6 +193,11 @@ class FastaBodyBuilderTestCase extends Object
   @override
   void expectNotNullIfNoErrors(Object result) {
     // TODO(brianwilkerson) Implement this.
+  }
+
+  @override
+  ExpectedError expectedError(ErrorCode code, int offset, int length) {
+    return new ExpectedError(code, offset, length);
   }
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
