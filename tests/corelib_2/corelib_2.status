@@ -306,9 +306,6 @@ string_base_vm_static_test: MissingCompileTimeError
 string_replace_static_test: MissingCompileTimeError
 string_static_test: MissingCompileTimeError
 
-[ $compiler == dartk && $mode == debug && $hot_reload ]
-map_test: Crash
-
 [ $compiler == dartk && $mode == release && $hot_reload ]
 bigint_parse_radix_test: Crash
 

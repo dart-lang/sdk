@@ -199,7 +199,7 @@ isolate/ping_pause_test: Skip # Issues 32137 and 32138
 async/stream_state_nonzero_timer_test: Crash
 async/stream_subscription_as_future_test: Crash
 async/stream_subscription_cancel_test: Crash
-isolate/message4_test: Crash
+isolate/message4_test: Pass, Timeout
 isolate/spawn_uri_multi_test/01: Crash
 isolate/spawn_uri_multi_test/none: Crash
 
