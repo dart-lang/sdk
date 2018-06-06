@@ -687,15 +687,15 @@ abstract class BehaviorBuilder {
 
   /// Models the behavior of having instances of [type] escape from Dart code
   /// into native code.
-  void _escape(DartType type) {
+  void _escape(DartType type, bool isJsInterop) {
     type = elementEnvironment.getUnaliasedType(type);
     if (type is FunctionType) {
       FunctionType functionType = type;
       // A function might be called from native code, passing us novel
       // parameters.
-      _escape(functionType.returnType);
+      _escape(functionType.returnType, isJsInterop);
       for (DartType parameter in functionType.parameterTypes) {
-        _capture(parameter);
+        _capture(parameter, isJsInterop);
       }
     }
   }
@@ -706,16 +706,16 @@ abstract class BehaviorBuilder {
   ///
   /// We assume that JS-interop APIs cannot instantiate Dart types or
   /// non-JSInterop native types.
-  void _capture(DartType type, {bool isInterop: false}) {
+  void _capture(DartType type, bool isJsInterop) {
     type = elementEnvironment.getUnaliasedType(type);
     if (type is FunctionType) {
       FunctionType functionType = type;
-      _capture(functionType.returnType, isInterop: isInterop);
+      _capture(functionType.returnType, isJsInterop);
       for (DartType parameter in functionType.parameterTypes) {
-        _escape(parameter);
+        _escape(parameter, isJsInterop);
       }
     } else {
-      if (!isInterop) {
+      if (!isJsInterop) {
         _behavior.typesInstantiated.add(type);
       } else {
         if (type is InterfaceType &&
@@ -756,14 +756,14 @@ abstract class BehaviorBuilder {
         : commonElements.dynamicType);
     // Declared types are nullable.
     _behavior.typesReturned.add(commonElements.nullType);
-    _capture(type, isInterop: isJsInterop);
+    _capture(type, isJsInterop);
     _overrideWithAnnotations(metadata, lookupType);
     return _behavior;
   }
 
   NativeBehavior buildFieldStoreBehavior(DartType type) {
     _behavior = new NativeBehavior();
-    _escape(type);
+    _escape(type, false);
     // We don't override the default behaviour - the annotations apply to
     // loading the field.
     return _behavior;
@@ -790,13 +790,13 @@ abstract class BehaviorBuilder {
       // Declared types are nullable.
       _behavior.typesReturned.add(commonElements.nullType);
     }
-    _capture(type, isInterop: isJsInterop);
+    _capture(type, isJsInterop);
 
     for (DartType type in type.optionalParameterTypes) {
-      _escape(type);
+      _escape(type, isJsInterop);
     }
     for (DartType type in type.namedParameterTypes) {
-      _escape(type);
+      _escape(type, isJsInterop);
     }
 
     _overrideWithAnnotations(metadata, lookupType);
