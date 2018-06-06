@@ -134,7 +134,7 @@ void _usageError(ArgParser parser, [String message]) {
 /// Compiles a [module] with a single matching ".dart" library and additional
 /// [libs] and [deps] on other modules.
 Future compileModule(String module,
-    {List<String> libs, List<String> deps}) async {
+    {List<String> libs = const [], List<String> deps = const []}) async {
   if (analyzerSummary != null) compileModuleUsingAnalyzer(module, libs, deps);
   if (kernelSummary != null) await compileKernelSummary(module, libs, deps);
 }
@@ -143,35 +143,20 @@ void compileModuleUsingAnalyzer(
     String module, List<String> libraries, List<String> dependencies) {
   var args = [
     '--dart-sdk-summary=$analyzerSummary',
-    '-o${pkgDirectory}/$module.js'
+    '-o${pkgDirectory}/$module.js',
+    // There is always a library that matches the module.
+    'package:$module/$module.dart'
   ];
 
-  // There is always a library that matches the module.
-  args.add('package:$module/$module.dart');
-
   // Add any additional libraries.
-  if (libraries != null) {
-    for (var lib in libraries) {
-      args.add('package:$module/$lib.dart');
-    }
+  for (var lib in libraries) {
+    args.add('package:$module/$lib.dart');
   }
 
   // Add summaries for any modules this depends on.
-  if (dependencies != null) {
-    for (var dep in dependencies) {
-      args.add('-s${pkgDirectory}/$dep.sum');
-    }
+  for (var dep in dependencies) {
+    args.add('-s${pkgDirectory}/$dep.sum');
   }
-
-  // TODO(rnystrom): Hack. DDC has its own forked copy of async_helper that
-  // has a couple of differences from pkg/async_helper. We should unfork them,
-  // but I'm not sure how they'll affect the other non-DDC tests. For now, just
-  // use ours.
-  if (module == 'async_helper') {
-    args.add('--url-mapping=package:async_helper/async_helper.dart,' +
-        p.join(scriptDirectory, "../test/codegen/async_helper.dart"));
-  }
-
   var exitCode = analyzer.compile(args);
   if (exitCode != 0) exit(exitCode);
 }
@@ -193,36 +178,20 @@ Future compileKernelSummary(
     ..reportMessages = true
     ..target = new DevCompilerTarget();
 
-  var inputs = <Uri>[];
+  // There is always a library that matches the module.
+  var inputs = [Uri.parse("package:$module/$module.dart")];
 
-  if (module == "async_helper") {
-    // TODO(rnystrom): Hack. DDC has its own forked copy of async_helper that
-    // has a couple of differences from pkg/async_helper. We should unfork them,
-    // but I'm not sure how they'll affect the other non-DDC tests. For now,
-    // just use ours.
-    inputs.add(_uriInRepo("pkg/dev_compiler/test/codegen/async_helper.dart"));
-  } else {
-    // There is always a library that matches the module.
-    inputs.add(Uri.parse("package:$module/$module.dart"));
-
-    // Add any other libraries too.
-    if (libraries != null) {
-      for (var lib in libraries) {
-        inputs.add(Uri.parse("package:$module/$lib.dart"));
-      }
-    }
+  // Add any other libraries too.
+  for (var lib in libraries) {
+    inputs.add(Uri.parse("package:$module/$lib.dart"));
   }
 
   // Add summaries for any modules this depends on.
-  if (dependencies != null) {
-    var uris = <Uri>[];
-
-    for (var dep in dependencies) {
-      uris.add(p.toUri(p.absolute(p.join(pkgDirectory, "$dep.dill"))));
-    }
-
-    options.inputSummaries = uris;
+  var uris = <Uri>[];
+  for (var dep in dependencies) {
+    uris.add(p.toUri(p.absolute(p.join(pkgDirectory, "$dep.dill"))));
   }
+  options.inputSummaries = uris;
 
   // Compile the summary.
   var bytes = await summaryFor(inputs, options);

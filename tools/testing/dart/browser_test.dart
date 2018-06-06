@@ -86,9 +86,6 @@ window.ddcSettings = {
 requirejs(["$testName", "dart_sdk", "async_helper"],
     function($testName, sdk, async_helper) {  
   sdk.dart.ignoreWhitelistedErrors(false);
-  // TODO(rnystrom): This uses DDC's forked version of async_helper. Unfork
-  // these packages when possible.
-  async_helper.async_helper.asyncTestInitialize(function() {});
   sdk._isolate_helper.startRootIsolate(function() {}, []);
   sdk._debugger.registerDevtoolsFormatter();
 
