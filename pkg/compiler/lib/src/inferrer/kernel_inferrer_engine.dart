@@ -13,6 +13,7 @@ import '../compiler.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
+import '../js_backend/inferred_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../js_emitter/sorter.dart';
 import '../js_model/locals.dart';
@@ -32,9 +33,15 @@ class KernelTypeGraphInferrer extends TypeGraphInferrer<ir.Node> {
   final KernelToElementMapForBuilding _elementMap;
   final GlobalLocalsMap _globalLocalsMap;
   final ClosureDataLookup<ir.Node> _closureDataLookup;
+  final InferredDataBuilder _inferredDataBuilder;
 
-  KernelTypeGraphInferrer(this._compiler, this._elementMap,
-      this._globalLocalsMap, this._closureDataLookup, JClosedWorld closedWorld,
+  KernelTypeGraphInferrer(
+      this._compiler,
+      this._elementMap,
+      this._globalLocalsMap,
+      this._closureDataLookup,
+      JClosedWorld closedWorld,
+      this._inferredDataBuilder,
       {bool disableTypeInference: false})
       : super(closedWorld, disableTypeInference: disableTypeInference);
 
@@ -51,7 +58,8 @@ class KernelTypeGraphInferrer extends TypeGraphInferrer<ir.Node> {
         closedWorld,
         _compiler.backend.noSuchMethodRegistry,
         main,
-        _compiler.backendStrategy.sorter);
+        _compiler.backendStrategy.sorter,
+        _inferredDataBuilder);
   }
 
   @override
@@ -101,7 +109,8 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
       JClosedWorld closedWorld,
       NoSuchMethodRegistry noSuchMethodRegistry,
       FunctionEntity mainElement,
-      Sorter sorter)
+      Sorter sorter,
+      InferredDataBuilder inferredDataBuilder)
       : super(
             options,
             progress,
@@ -111,6 +120,7 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
             noSuchMethodRegistry,
             mainElement,
             sorter,
+            inferredDataBuilder,
             new KernelTypeSystemStrategy(
                 _elementMap, _globalLocalsMap, _closureDataLookup));
 

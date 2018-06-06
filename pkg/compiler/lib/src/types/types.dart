@@ -8,6 +8,7 @@ import '../common.dart' show failedAt;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../elements/entities.dart';
+import '../js_backend/inferred_data.dart';
 import '../inferrer/type_graph_inferrer.dart' show TypeGraphInferrer;
 import '../universe/selector.dart' show Selector;
 import '../world.dart' show JClosedWorld;
@@ -253,21 +254,24 @@ class GlobalTypeInferenceTask extends CompilerTask {
 
   GlobalTypeInferenceResults results;
 
+  InferredData inferredData;
+
   GlobalTypeInferenceTask(Compiler compiler)
       : compiler = compiler,
         super(compiler.measurer);
 
   /// Runs the global type-inference algorithm once.
-  void runGlobalTypeInference(
-      FunctionEntity mainElement, JClosedWorld closedWorld) {
+  void runGlobalTypeInference(FunctionEntity mainElement,
+      JClosedWorld closedWorld, InferredDataBuilder inferredDataBuilder) {
     measure(() {
       typesInferrerInternal ??= compiler.backendStrategy.createTypesInferrer(
-          closedWorld,
+          closedWorld, inferredDataBuilder,
           disableTypeInference: compiler.disableTypeInference);
       typesInferrerInternal.analyzeMain(mainElement);
       typesInferrerInternal.clear();
       results = typesInferrerInternal.createResults();
       closedWorld.noSuchMethodData.categorizeComplexImplementations(results);
+      inferredData = inferredDataBuilder.close(closedWorld);
     });
   }
 }

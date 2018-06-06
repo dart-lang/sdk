@@ -81,7 +81,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         // TODO(johnniwinther): Should side effects also be tracked for field
         // initializers?
         this._sideEffectsBuilder = _analyzedMember is FunctionEntity
-            ? _inferrer.closedWorld.getSideEffectsBuilder(_analyzedMember)
+            ? _inferrer.inferredDataBuilder
+                .getSideEffectsBuilder(_analyzedMember)
             : new SideEffectsBuilder.free(_analyzedMember),
         this._inGenerativeConstructor = _analyzedNode is ir.Constructor {
     if (_locals != null) return;

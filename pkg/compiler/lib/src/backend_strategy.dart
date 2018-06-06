@@ -11,6 +11,7 @@ import 'deferred_load.dart' show OutputUnitData;
 import 'enqueue.dart';
 import 'elements/entities.dart';
 import 'io/source_information.dart';
+import 'js_backend/inferred_data.dart';
 import 'js_backend/js_backend.dart';
 import 'js_backend/native_data.dart';
 import 'js_emitter/sorter.dart';
@@ -55,6 +56,7 @@ abstract class BackendStrategy {
   SourceSpan spanFromSpannable(Spannable spannable, Entity currentElement);
 
   /// Creates the [TypesInferrer] used by this strategy.
-  TypesInferrer createTypesInferrer(JClosedWorld closedWorld,
+  TypesInferrer createTypesInferrer(
+      JClosedWorld closedWorld, InferredDataBuilder inferredDataBuilder,
       {bool disableTypeInference: false});
 }

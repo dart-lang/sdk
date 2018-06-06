@@ -9,6 +9,7 @@ import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/js_backend/inferred_data.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
 import 'package:compiler/src/world.dart';
@@ -28,11 +29,11 @@ main(List<String> args) {
 }
 
 abstract class ComputeValueMixin<T> {
-  JClosedWorld get closedWorld;
+  InferredData get inferredData;
 
   String getMemberValue(MemberEntity member) {
     if (member is FunctionEntity) {
-      return closedWorld.getSideEffectsOfElement(member).toString();
+      return inferredData.getSideEffectsOfElement(member).toString();
     }
     return null;
   }
@@ -52,7 +53,8 @@ void computeMemberIrSideEffects(
           actualMap,
           elementMap,
           compiler.backendClosedWorldForTesting,
-          backendStrategy.closureDataLookup as ClosureDataLookup<ir.Node>)
+          backendStrategy.closureDataLookup as ClosureDataLookup<ir.Node>,
+          compiler.globalInference.inferredData)
       .run(definition.node);
 }
 
@@ -62,13 +64,15 @@ class SideEffectsIrComputer extends IrDataExtractor
   final JClosedWorld closedWorld;
   final KernelToElementMapForBuilding _elementMap;
   final ClosureDataLookup<ir.Node> _closureDataLookup;
+  final InferredData inferredData;
 
   SideEffectsIrComputer(
       DiagnosticReporter reporter,
       Map<Id, ActualData> actualMap,
       this._elementMap,
       this.closedWorld,
-      this._closureDataLookup)
+      this._closureDataLookup,
+      this.inferredData)
       : super(reporter, actualMap);
 
   @override

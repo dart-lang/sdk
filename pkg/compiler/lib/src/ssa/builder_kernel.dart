@@ -3973,14 +3973,14 @@ class KernelSsaGraphBuilder extends ir.Visitor
     } else {
       instruction = new HInvokeStatic(
           target, arguments, typeMask, typeArguments,
-          targetCanThrow: !closedWorld.getCannotThrow(target))
+          targetCanThrow: !inferredData.getCannotThrow(target))
         ..sourceInformation = sourceInformation;
 
       if (currentImplicitInstantiations.isNotEmpty) {
         instruction.instantiatedTypes =
             new List<InterfaceType>.from(currentImplicitInstantiations);
       }
-      instruction.sideEffects = closedWorld.getSideEffectsOfElement(target);
+      instruction.sideEffects = inferredData.getSideEffectsOfElement(target);
     }
     push(instruction);
   }
@@ -4373,7 +4373,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         sourceInformation,
         isSetter: selector.isSetter || selector.isIndexSet);
     instruction.sideEffects =
-        closedWorld.getSideEffectsOfSelector(selector, null);
+        inferredData.getSideEffectsOfSelector(selector, null);
     push(instruction);
     return instruction;
   }

@@ -25,10 +25,11 @@ import '../../js_backend/backend_usage.dart';
 import '../../js_backend/constant_handler_javascript.dart'
     show JavaScriptConstantCompiler;
 import '../../js_backend/custom_elements_analysis.dart';
-import '../../js_backend/namer.dart' show Namer, StringBackedName;
-import '../../js_backend/native_data.dart';
+import '../../js_backend/inferred_data.dart';
 import '../../js_backend/interceptor_data.dart';
 import '../../js_backend/js_interop_analysis.dart';
+import '../../js_backend/namer.dart' show Namer, StringBackedName;
+import '../../js_backend/native_data.dart';
 import '../../js_backend/runtime_types.dart'
     show RuntimeTypesChecks, RuntimeTypesNeed, RuntimeTypesEncoder;
 import '../../js_model/elements.dart' show JGeneratorBody, JSignatureMethod;
@@ -85,6 +86,7 @@ class ProgramBuilder {
   final CodeEmitterTask _task;
   final JClosedWorld _closedWorld;
   final JAllocatorAnalysis _allocatorAnalysis;
+  final InferredData _inferredData;
   final SourceInformationStrategy _sourceInformationStrategy;
 
   /// The [Sorter] used for ordering elements in the generated JavaScript.
@@ -131,6 +133,7 @@ class ProgramBuilder {
       this._task,
       this._closedWorld,
       this._allocatorAnalysis,
+      this._inferredData,
       this._sourceInformationStrategy,
       this._sorter,
       Set<ClassEntity> rtiNeededClasses,
@@ -834,7 +837,7 @@ class ProgramBuilder {
 
   bool _methodCanBeApplied(FunctionEntity method) {
     return _backendUsage.isFunctionApplyUsed &&
-        _closedWorld.getMightBePassedToApply(method);
+        _inferredData.getMightBePassedToApply(method);
   }
 
   /* Map | List */ _computeParameterDefaultValues(FunctionEntity method) {

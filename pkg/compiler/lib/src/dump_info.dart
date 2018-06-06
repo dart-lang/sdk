@@ -286,7 +286,8 @@ class ElementInfoCollector {
     String returnType = '${functionType.returnType}';
 
     String inferredReturnType = '${_resultOfMember(function).returnType}';
-    String sideEffects = '${closedWorld.getSideEffectsOfElement(function)}';
+    String sideEffects =
+        '${compiler.globalInference.inferredData.getSideEffectsOfElement(function)}';
 
     int inlinedCount = compiler.dumpInfoTask.inlineCount[function];
     if (inlinedCount == null) inlinedCount = 0;

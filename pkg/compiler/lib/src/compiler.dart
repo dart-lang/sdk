@@ -29,6 +29,7 @@ import 'frontend_strategy.dart';
 import 'inferrer/typemasks/masks.dart' show TypeMaskStrategy;
 import 'io/source_information.dart' show SourceInformation;
 import 'js_backend/backend.dart' show JavaScriptBackend;
+import 'js_backend/inferred_data.dart';
 import 'kernel/kernel_backend_strategy.dart';
 import 'kernel/kernel_strategy.dart';
 import 'library_loader.dart' show LibraryLoaderTask, LoadedLibraries;
@@ -376,8 +377,10 @@ abstract class Compiler {
         mainFunction = closedWorld.elementEnvironment.mainFunction;
 
         reporter.log('Inferring types...');
-        globalInference.runGlobalTypeInference(mainFunction, closedWorld);
-        closedWorld.computeSideEffects();
+        InferredDataBuilder inferredDataBuilder = new InferredDataBuilderImpl();
+        backend.processAnnotations(closedWorld, inferredDataBuilder);
+        globalInference.runGlobalTypeInference(
+            mainFunction, closedWorld, inferredDataBuilder);
 
         if (stopAfterTypeInference) return;
 
@@ -423,9 +426,6 @@ abstract class Compiler {
     OutputUnitData result = deferredLoadTask.run(mainFunction, closedWorld);
     JClosedWorld closedWorldRefiner =
         backendStrategy.createJClosedWorld(closedWorld);
-    // Compute whole-program-knowledge that the backend needs. (This might
-    // require the information computed in [world.closeWorld].)
-    backend.onResolutionClosedWorld(closedWorldRefiner);
 
     backend.onDeferredLoadComplete(result);
 

@@ -13,6 +13,7 @@ import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../js_backend/annotations.dart' as optimizerHints;
+import '../js_backend/inferred_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../js_emitter/sorter.dart';
 import '../native/behavior.dart' as native;
@@ -65,6 +66,7 @@ abstract class InferrerEngine<T> {
 
   TypeSystem<T> get types;
   Map<T, TypeInformation> get concreteTypes;
+  InferredDataBuilder get inferredDataBuilder;
 
   FunctionEntity get mainElement;
 
@@ -268,6 +270,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
 
   /// The [JClosedWorld] on which inference reasoning is based.
   final JClosedWorld closedWorld;
+  final InferredDataBuilder inferredDataBuilder;
 
   final TypeSystem<T> types;
   final Map<T, TypeInformation> concreteTypes = new Map<T, TypeInformation>();
@@ -295,6 +298,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
       this.noSuchMethodRegistry,
       this.mainElement,
       this.sorter,
+      this.inferredDataBuilder,
       TypeSystemStrategy<T> typeSystemStrategy)
       : this.types = new TypeSystem<T>(closedWorld, typeSystemStrategy);
 
@@ -342,7 +346,8 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
     } else if (callee.isGetter && !selector.isGetter) {
       sideEffectsBuilder.setAllSideEffectsAndDependsOnSomething();
     } else {
-      sideEffectsBuilder.addInput(closedWorld.getSideEffectsBuilder(callee));
+      sideEffectsBuilder
+          .addInput(inferredDataBuilder.getSideEffectsBuilder(callee));
     }
   }
 
@@ -502,7 +507,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
         tracer.run();
         if (!tracer.continueAnalyzing) {
           elements.forEach((FunctionEntity element) {
-            closedWorld.registerMightBePassedToApply(element);
+            inferredDataBuilder.registerMightBePassedToApply(element);
             if (debug.VERBOSE) {
               print("traced closure $element as ${true} (bail)");
             }
@@ -525,11 +530,11 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
             workQueue.add(info);
           });
           if (tracer.tracedType.mightBePassedToFunctionApply) {
-            closedWorld.registerMightBePassedToApply(element);
+            inferredDataBuilder.registerMightBePassedToApply(element);
           }
           if (debug.VERBOSE) {
             print("traced closure $element as "
-                "${closedWorld
+                "${inferredDataBuilder
                 .getCurrentlyKnownMightBePassedToApply(element)}");
           }
         });
@@ -762,7 +767,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
       }
       if (info is StaticCallSiteTypeInformation) {
         MemberEntity member = info.calledElement;
-        closedWorld.addFunctionCalledInLoop(member);
+        inferredDataBuilder.addFunctionCalledInLoop(member);
       } else if (info.mask != null &&
           !abstractValueDomain.containsAll(info.mask)) {
         // For instance methods, we only register a selector called in a
@@ -770,7 +775,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
         // methods as being called from within a loop. This cuts down
         // on the code bloat.
         info.callees.forEach((MemberEntity element) {
-          closedWorld.addFunctionCalledInLoop(element);
+          inferredDataBuilder.addFunctionCalledInLoop(element);
         });
       }
     });

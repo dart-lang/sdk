@@ -57,6 +57,7 @@ import 'constant_handler_javascript.dart';
 import 'custom_elements_analysis.dart';
 import 'enqueuer.dart';
 import 'impact_transformer.dart';
+import 'inferred_data.dart';
 import 'interceptor_data.dart';
 import 'js_interop_analysis.dart' show JsInteropAnalysis;
 import 'namer.dart';
@@ -548,11 +549,6 @@ class JavaScriptBackend {
         frontendStrategy.nativeBasicData, nativeDataBuilder);
   }
 
-  /// Called when the closed world from resolution has been computed.
-  void onResolutionClosedWorld(JClosedWorld closedWorld) {
-    processAnnotations(closedWorld);
-  }
-
   void onDeferredLoadComplete(OutputUnitData data) {
     _outputUnitData = compiler.backendStrategy.convertOutputUnitData(data);
   }
@@ -848,18 +844,19 @@ class JavaScriptBackend {
   /// Process backend specific annotations.
   // TODO(johnniwinther): Merge this with [AnnotationProcessor] and use
   // [ElementEnvironment.getMemberMetadata] in [AnnotationProcessor].
-  void processAnnotations(JClosedWorld closedWorld) {
+  void processAnnotations(
+      JClosedWorld closedWorld, InferredDataBuilder inferredDataBuilder) {
     // These methods are overwritten with generated versions.
     inlineCache.markAsNonInlinable(
         closedWorld.commonElements.getInterceptorMethod,
         insideLoop: true);
     for (MemberEntity entity in closedWorld.processedMembers) {
-      _processMemberAnnotations(closedWorld, entity);
+      _processMemberAnnotations(closedWorld, inferredDataBuilder, entity);
     }
   }
 
-  void _processMemberAnnotations(
-      JClosedWorld closedWorld, MemberEntity element) {
+  void _processMemberAnnotations(JClosedWorld closedWorld,
+      InferredDataBuilder inferredDataBuilder, MemberEntity element) {
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     CommonElements commonElements = closedWorld.commonElements;
     bool hasNoInline = false;
@@ -933,14 +930,14 @@ class JavaScriptBackend {
           reporter.reportHintMessage(
               method, MessageKind.GENERIC, {'text': "Cannot throw"});
         }
-        closedWorld.registerCannotThrow(method);
+        inferredDataBuilder.registerCannotThrow(method);
       } else if (cls == commonElements.noSideEffectsClass) {
         hasNoSideEffects = true;
         if (VERBOSE_OPTIMIZER_HINTS) {
           reporter.reportHintMessage(
               method, MessageKind.GENERIC, {'text': "Has no side effects"});
         }
-        closedWorld.registerSideEffectsFree(method);
+        inferredDataBuilder.registerSideEffectsFree(method);
       }
     }
     if (hasForceInline && hasNoInline) {

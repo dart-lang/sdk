@@ -28,6 +28,7 @@ import '../js_backend/allocator_analysis.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/backend_usage.dart';
 import '../js_backend/constant_system_javascript.dart';
+import '../js_backend/inferred_data.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
@@ -216,10 +217,11 @@ class JsBackendStrategy implements KernelBackendStrategy {
   }
 
   @override
-  TypesInferrer createTypesInferrer(JClosedWorld closedWorld,
+  TypesInferrer createTypesInferrer(
+      JClosedWorld closedWorld, InferredDataBuilder inferredDataBuilder,
       {bool disableTypeInference: false}) {
     return new KernelTypeGraphInferrer(_compiler, _elementMap, _globalLocalsMap,
-        _closureDataLookup, closedWorld,
+        _closureDataLookup, closedWorld, inferredDataBuilder,
         disableTypeInference: disableTypeInference);
   }
 }
