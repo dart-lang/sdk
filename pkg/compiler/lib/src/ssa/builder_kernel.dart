@@ -2634,7 +2634,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   @override
   void visitIntLiteral(ir.IntLiteral node) {
-    stack.add(graph.addConstantInt(node.value, closedWorld));
+    stack.add(graph.addConstantIntAsUnsigned(node.value, closedWorld));
   }
 
   @override

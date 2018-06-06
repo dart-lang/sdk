@@ -7053,6 +7053,7 @@ LayoutTests/fast/canvas/gradient-addColorStop-with-invalid-color_t01: Pass, Runt
 LayoutTests/fast/canvas/rgba-parsing_t01: Pass, RuntimeError
 LibTest/core/Invocation/namedArguments_A01_t01: RuntimeError
 LibTest/core/double/isInfinite_A01_t03: CompileTimeError # Larger than 64 bit int
+LibTest/core/double/operator_GE_A01_t02: RuntimeError # WontFix: Not representable in JS.
 LibTest/core/int/abs_A01_t01: CompileTimeError # Larger than 64 bit int
 LibTest/core/int/ceilToDouble_A01_t01: CompileTimeError # Larger than 64 bit int
 LibTest/core/int/ceil_A01_t01: CompileTimeError # Larger than 64 bit int
@@ -7105,6 +7106,7 @@ LibTest/html/Window/postMessage_A01_t02: Crash
 LibTest/html/Window/requestFileSystem_A01_t01: Crash
 LibTest/html/Window/requestFileSystem_A01_t02: Crash
 LibTest/html/Window/requestFileSystem_A02_t01: Crash
+LibTest/math/pow_A09_t01: RuntimeError # WontFix: Not representable in JS.
 LibTest/math/pow_A10_t01: CompileTimeError # Larger than 64 bit int
 WebPlatformTest/html/semantics/embedded-content/the-audio-element/audio_constructor_t01: RuntimeError
 
