@@ -212,7 +212,7 @@ const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   "--sdk": Uri,
   "--strong": "--strong-mode",
   "--strong-mode": false,
-  "--sync-async": false,
+  "--sync-async": true,
   "--target": String,
   "--verbose": false,
   "--verify": false,

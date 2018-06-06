@@ -8,6 +8,10 @@
 
 ### Dart VM
 
+* `async` functions now start synchronously by default.
+  Passing the `--no-sync-async` flag will produce the old behavior,
+  starting `async` functions asynchronously.
+
 ### Tool Changes
 
 #### Pub

@@ -151,7 +151,7 @@
   C(stress_async_stacks, false, false, bool, false,                            \
     "Stress test async stack traces")                                          \
   P(strong, bool, false, "Enable strong mode.")                                \
-  P(sync_async, bool, false, "Start `async` functions synchronously.")         \
+  P(sync_async, bool, true, "Start `async` functions synchronously.")          \
   R(support_ast_printer, false, bool, true, "Support the AST printer.")        \
   R(support_compiler_stats, false, bool, true, "Support compiler stats.")      \
   R(support_disassembler, false, bool, true, "Support the disassembler.")      \
