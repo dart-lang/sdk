@@ -238,9 +238,7 @@ f(x) => l[x];
 ''');
   }
 
-  @failingTest
   void test_listLiteral_inner_last() {
-    // Parser crashes
     testRecovery('''
 var x = [[0], [1];
 ''', [ScannerErrorCode.EXPECTED_TOKEN], '''
@@ -248,13 +246,19 @@ var x = [[0], [1]];
 ''');
   }
 
-  @failingTest
   void test_listLiteral_inner_notLast() {
-    // Parser crashes
     testRecovery('''
 var x = [[0], [1, [2]];
 ''', [ScannerErrorCode.EXPECTED_TOKEN], '''
-var x = [[0], [1], [2]];
+var x = [[0], [1, [2]]];
+''');
+  }
+
+  void test_listLiteral_missing_comma() {
+    testRecovery('''
+var x = [0 1];
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+var x = [0, 1];
 ''');
   }
 
