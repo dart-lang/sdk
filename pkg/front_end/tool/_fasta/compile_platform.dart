@@ -44,8 +44,8 @@ Future main(List<String> arguments) async {
       await compilePlatform(arguments);
     } on deprecated_InputError catch (e) {
       exitCode = 1;
-      CompilerContext.runWithDefaultOptions(
-          (c) => c.report(deprecated_InputError.toMessage(e), Severity.error));
+      await CompilerContext.runWithDefaultOptions((c) => new Future<void>.sync(
+          () => c.report(deprecated_InputError.toMessage(e), Severity.error)));
       return null;
     }
   }

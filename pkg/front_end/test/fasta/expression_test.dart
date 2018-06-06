@@ -66,7 +66,7 @@ class Context extends ChainContext {
 
   MemoryFileSystem get fileSystem => options.fileSystem;
 
-  T runInContext<T>(T action(CompilerContext c)) {
+  Future<T> runInContext<T>(Future<T> action(CompilerContext c)) {
     return compilerContext.runInContext<T>(action);
   }
 

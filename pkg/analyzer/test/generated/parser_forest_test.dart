@@ -9,16 +9,18 @@ import '../src/fasta/body_builder_test_helper.dart';
 import 'parser_test.dart';
 
 main() async {
-  defineReflectiveSuite(() {
-    defineReflectiveTests(ClassMemberParserTest_Forest);
-    defineReflectiveTests(ComplexParserTest_Forest);
-    defineReflectiveTests(ErrorParserTest_Forest);
-    defineReflectiveTests(ExpressionParserTest_Forest);
-    defineReflectiveTests(FormalParameterParserTest_Forest);
-    defineReflectiveTests(RecoveryParserTest_Forest);
-    defineReflectiveTests(SimpleParserTest_Forest);
-    defineReflectiveTests(StatementParserTest_Forest);
-    defineReflectiveTests(TopLevelParserTest_Forest);
+  await CompilerTestContext.runWithTestOptions((_) {
+    defineReflectiveSuite(() {
+      defineReflectiveTests(ClassMemberParserTest_Forest);
+      defineReflectiveTests(ComplexParserTest_Forest);
+      defineReflectiveTests(ErrorParserTest_Forest);
+      defineReflectiveTests(ExpressionParserTest_Forest);
+      defineReflectiveTests(FormalParameterParserTest_Forest);
+      defineReflectiveTests(RecoveryParserTest_Forest);
+      defineReflectiveTests(SimpleParserTest_Forest);
+      defineReflectiveTests(StatementParserTest_Forest);
+      defineReflectiveTests(TopLevelParserTest_Forest);
+    });
   });
 }
 

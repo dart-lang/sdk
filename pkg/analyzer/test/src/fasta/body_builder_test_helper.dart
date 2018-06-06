@@ -40,27 +40,125 @@ import 'package:test/test.dart';
 import '../../generated/parser_test.dart';
 import '../../generated/test_support.dart';
 
+Element _buildElement(kernel.Class coreType) {
+  ClassElementImpl element =
+      new ClassElementImpl(coreType.name, coreType.fileOffset);
+  element.typeParameters = coreType.typeParameters.map((parameter) {
+    TypeParameterElementImpl element =
+        new TypeParameterElementImpl(parameter.name, parameter.fileOffset);
+    element.type = new TypeParameterTypeImpl(element);
+    return element;
+  }).toList();
+  return element;
+}
+
+class CompilerTestContext extends CompilerContext {
+  KernelTarget kernelTarget;
+  TypeProvider _typeProvider;
+
+  CompilerTestContext(ProcessedOptions options) : super(options);
+
+  Uri get entryPoint => options.inputs.single;
+
+  static Future<T> runWithTestOptions<T>(
+      Future<T> action(CompilerTestContext c)) async {
+    // TODO(danrubel): Consider HybridFileSystem.
+    final MemoryFileSystem fs =
+        new MemoryFileSystem(Uri.parse("org-dartlang-test:///"));
+
+    /// The custom URI used to locate the dill file in the MemoryFileSystem.
+    final Uri sdkSummary = fs.currentDirectory.resolve("vm_platform.dill");
+
+    /// The in memory test code URI
+    final Uri entryPoint = fs.currentDirectory.resolve("main.dart");
+
+    // Read the dill file containing kernel platform summaries into memory.
+    List<int> sdkSummaryBytes = await new File.fromUri(
+            computePlatformBinariesLocation().resolve("vm_platform.dill"))
+        .readAsBytes();
+    fs.entityForUri(sdkSummary).writeAsBytesSync(sdkSummaryBytes);
+
+    final CompilerOptions optionBuilder = new CompilerOptions()
+      ..strongMode = false // TODO(danrubel): enable strong mode.
+      ..reportMessages = true
+      ..verbose = false
+      ..fileSystem = fs
+      ..sdkSummary = sdkSummary
+      ..onProblem = (FormattedMessage problem, Severity severity,
+          List<FormattedMessage> context) {
+        // TODO(danrubel): Capture problems and check against expectations.
+//        print(problem.formatted);
+      };
+
+    final ProcessedOptions options =
+        new ProcessedOptions(optionBuilder, [entryPoint]);
+
+    UriTranslatorImpl uriTranslator = await options.getUriTranslator();
+
+    return await new CompilerTestContext(options)
+        .runInContext<T>((CompilerContext _c) async {
+      CompilerTestContext c = _c;
+      DillTarget dillTarget = new DillTarget(
+          new Ticker(isVerbose: false), uriTranslator, options.target);
+
+      c.kernelTarget = new KernelTarget(fs, true, dillTarget, uriTranslator);
+
+      // Load the dill file containing platform code.
+      dillTarget.loader.read(Uri.parse('dart:core'), -1, fileUri: sdkSummary);
+      kernel.Component sdkComponent =
+          kernel.loadComponentFromBytes(sdkSummaryBytes);
+      dillTarget.loader
+          .appendLibraries(sdkComponent, byteCount: sdkSummaryBytes.length);
+      await dillTarget.buildOutlines();
+      await c.kernelTarget.buildOutlines();
+      c.kernelTarget.computeCoreTypes();
+      assert(c.kernelTarget.loader.coreTypes != null);
+
+      // Initialize the typeProvider if types should be resolved.
+      Map<String, Element> map = <String, Element>{};
+      var coreTypes = c.kernelTarget.loader.coreTypes;
+      for (var coreType in [
+        coreTypes.boolClass,
+        coreTypes.doubleClass,
+        coreTypes.functionClass,
+        coreTypes.futureClass,
+        coreTypes.futureOrClass,
+        coreTypes.intClass,
+        coreTypes.iterableClass,
+        coreTypes.iteratorClass,
+        coreTypes.listClass,
+        coreTypes.mapClass,
+        coreTypes.nullClass,
+        coreTypes.numClass,
+        coreTypes.objectClass,
+        coreTypes.stackTraceClass,
+        coreTypes.streamClass,
+        coreTypes.stringClass,
+        coreTypes.symbolClass,
+        coreTypes.typeClass
+      ]) {
+        map[coreType.name] = _buildElement(coreType);
+      }
+      Namespace namespace = new Namespace(map);
+      c._typeProvider =
+          new TypeProviderImpl.forNamespaces(namespace, namespace);
+
+      T result;
+      Completer<T> completer = new Completer<T>();
+      tearDownAll(() => completer.complete(result));
+      result = await action(c);
+      return completer.future;
+    });
+  }
+
+  static CompilerTestContext get current => CompilerContext.current;
+}
+
 /// Implementation of [AbstractParserTestCase] specialized for testing building
 /// Analyzer AST using the fasta [Forest] API.
 class FastaBodyBuilderTestCase extends Object
     with ParserTestHelpers
     implements AbstractParserTestCase {
-  // TODO(danrubel): Consider HybridFileSystem.
-  static final MemoryFileSystem fs =
-      new MemoryFileSystem(Uri.parse("org-dartlang-test:///"));
-
-  /// The custom URI used to locate the dill file in the MemoryFileSystem.
-  static final Uri sdkSummary = fs.currentDirectory.resolve("vm_platform.dill");
-
-  /// The in memory test code URI
-  static final Uri entryPoint = fs.currentDirectory.resolve("main.dart");
-
-  static ProcessedOptions options;
-
-  static KernelTarget kernelTarget;
-
-  static TypeProvider _typeProvider;
-
   final bool resolveTypes;
 
   String content;
@@ -73,7 +171,7 @@ class FastaBodyBuilderTestCase extends Object
 
   analyzer.Parser get parser => new ParserProxy(this);
 
-  TypeProvider get typeProvider => _typeProvider;
+  TypeProvider get typeProvider => CompilerTestContext.current._typeProvider;
 
   @override
   void assertNoErrors() {
@@ -396,156 +494,68 @@ f() {
     return statement.variables;
   }
 
-  Future setUp() async {
-    // TODO(danrubel): Tear down once all tests in group have been run.
-    if (options != null) {
-      return;
-    }
-
-    // Read the dill file containing kernel platform summaries into memory.
-    List<int> sdkSummaryBytes = await new File.fromUri(
-            computePlatformBinariesLocation().resolve("vm_platform.dill"))
-        .readAsBytes();
-    fs.entityForUri(sdkSummary).writeAsBytesSync(sdkSummaryBytes);
-
-    final CompilerOptions optionBuilder = new CompilerOptions()
-      ..strongMode = false // TODO(danrubel): enable strong mode.
-      ..reportMessages = true
-      ..verbose = false
-      ..fileSystem = fs
-      ..sdkSummary = sdkSummary
-      ..onProblem = (FormattedMessage problem, Severity severity,
-          List<FormattedMessage> context) {
-        // TODO(danrubel): Capture problems and check against expectations.
-//        print(problem.formatted);
-      };
-
-    options = new ProcessedOptions(optionBuilder, [entryPoint]);
-
-    UriTranslatorImpl uriTranslator = await options.getUriTranslator();
-
-    await CompilerContext.runWithOptions(options, (CompilerContext c) async {
-      DillTarget dillTarget = new DillTarget(
-          new Ticker(isVerbose: false), uriTranslator, options.target);
-
-      kernelTarget = new KernelTarget(fs, true, dillTarget, uriTranslator);
-
-      // Load the dill file containing platform code.
-      dillTarget.loader.read(Uri.parse('dart:core'), -1, fileUri: sdkSummary);
-      kernel.Component sdkComponent =
-          kernel.loadComponentFromBytes(sdkSummaryBytes);
-      dillTarget.loader
-          .appendLibraries(sdkComponent, byteCount: sdkSummaryBytes.length);
-      await dillTarget.buildOutlines();
-      await kernelTarget.buildOutlines();
-      kernelTarget.computeCoreTypes();
-      assert(kernelTarget.loader.coreTypes != null);
-
-      // Initialize the typeProvider if types should be resolved.
-      Map<String, Element> map = <String, Element>{};
-      var coreTypes = kernelTarget.loader.coreTypes;
-      for (var coreType in [
-        coreTypes.boolClass,
-        coreTypes.doubleClass,
-        coreTypes.functionClass,
-        coreTypes.futureClass,
-        coreTypes.futureOrClass,
-        coreTypes.intClass,
-        coreTypes.iterableClass,
-        coreTypes.iteratorClass,
-        coreTypes.listClass,
-        coreTypes.mapClass,
-        coreTypes.nullClass,
-        coreTypes.numClass,
-        coreTypes.objectClass,
-        coreTypes.stackTraceClass,
-        coreTypes.streamClass,
-        coreTypes.stringClass,
-        coreTypes.symbolClass,
-        coreTypes.typeClass
-      ]) {
-        map[coreType.name] = _buildElement(coreType);
-      }
-      Namespace namespace = new Namespace(map);
-      _typeProvider = new TypeProviderImpl.forNamespaces(namespace, namespace);
-    });
-  }
-
-  Element _buildElement(kernel.Class coreType) {
-    ClassElementImpl element =
-        new ClassElementImpl(coreType.name, coreType.fileOffset);
-    element.typeParameters = coreType.typeParameters.map((parameter) {
-      TypeParameterElementImpl element =
-          new TypeParameterElementImpl(parameter.name, parameter.fileOffset);
-      element.type = new TypeParameterTypeImpl(element);
-      return element;
-    }).toList();
-    return element;
-  }
-
   T _parse<T>(
       String source, void parseFunction(Parser parser, Token previousToken),
       {bool inAsync: false, bool inCatchBlock: false}) {
     ScannerResult scan = scanString(source);
 
-    return CompilerContext.runWithOptions(options, (CompilerContext c) {
-      KernelLibraryBuilder library = new KernelLibraryBuilder(
-        entryPoint,
-        entryPoint,
-        kernelTarget.loader,
-        null /* actualOrigin */,
-        null /* enclosingLibrary */,
-      );
-      List<KernelTypeVariableBuilder> typeVariableBuilders =
-          <KernelTypeVariableBuilder>[];
-      List<KernelFormalParameterBuilder> formalParameterBuilders =
-          <KernelFormalParameterBuilder>[];
-      KernelProcedureBuilder procedureBuilder = new KernelProcedureBuilder(
-          null /* metadata */,
-          Modifier.staticMask /* or Modifier.varMask */,
-          kernelTarget.dynamicType,
-          "analyzerTest",
-          typeVariableBuilders,
-          formalParameterBuilders,
-          kernel.ProcedureKind.Method,
-          library,
-          -1 /* charOffset */,
-          -1 /* charOpenParenOffset */,
-          -1 /* charEndOffset */);
-
-      TypeInferrerDisabled typeInferrer =
-          new TypeInferrerDisabled(new TypeSchemaEnvironment(
-        kernelTarget.loader.coreTypes,
-        kernelTarget.loader.hierarchy,
-        // TODO(danrubel): Enable strong mode.
-        false /* strong mode */,
-      ));
-
-      AstBodyBuilder builder = new AstBodyBuilder(
+    CompilerTestContext c = CompilerTestContext.current;
+    KernelLibraryBuilder library = new KernelLibraryBuilder(
+      c.entryPoint,
+      c.entryPoint,
+      c.kernelTarget.loader,
+      null /* actualOrigin */,
+      null /* enclosingLibrary */,
+    );
+    List<KernelTypeVariableBuilder> typeVariableBuilders =
+        <KernelTypeVariableBuilder>[];
+    List<KernelFormalParameterBuilder> formalParameterBuilders =
+        <KernelFormalParameterBuilder>[];
+    KernelProcedureBuilder procedureBuilder = new KernelProcedureBuilder(
+        null /* metadata */,
+        Modifier.staticMask /* or Modifier.varMask */,
+        c.kernelTarget.dynamicType,
+        "analyzerTest",
+        typeVariableBuilders,
+        formalParameterBuilders,
+        kernel.ProcedureKind.Method,
         library,
-        procedureBuilder,
-        new UnlinkedScope(),
-        null,
-        kernelTarget.loader.hierarchy,
-        kernelTarget.loader.coreTypes,
-        null /* classBuilder */,
-        false /* isInstanceMember */,
-        null /* uri */,
-        typeInferrer,
-        typeProvider,
-      )..constantContext = ConstantContext.none; // .inferred ?
+        -1 /* charOffset */,
+        -1 /* charOpenParenOffset */,
+        -1 /* charEndOffset */);
 
-      Parser parser = new Parser(builder);
-      if (inAsync) {
-        parser.asyncState = AsyncModifier.Async;
-      }
-      if (inCatchBlock) {
-        builder.inCatchBlock = inCatchBlock;
-      }
-      parseFunction(parser, parser.syntheticPreviousToken(scan.tokens));
-      // TODO(brianwilkerson) Check `expectedEndOffset` if it is not `null`.
-      return builder.pop();
-    });
+    TypeInferrerDisabled typeInferrer =
+        new TypeInferrerDisabled(new TypeSchemaEnvironment(
+      c.kernelTarget.loader.coreTypes,
+      c.kernelTarget.loader.hierarchy,
+      // TODO(danrubel): Enable strong mode.
+      false /* strong mode */,
+    ));
+
+    AstBodyBuilder builder = new AstBodyBuilder(
+      library,
+      procedureBuilder,
+      new UnlinkedScope(),
+      null,
+      c.kernelTarget.loader.hierarchy,
+      c.kernelTarget.loader.coreTypes,
+      null /* classBuilder */,
+      false /* isInstanceMember */,
+      null /* uri */,
+      typeInferrer,
+      typeProvider,
+    )..constantContext = ConstantContext.none; // .inferred ?
+
+    Parser parser = new Parser(builder);
+    if (inAsync) {
+      parser.asyncState = AsyncModifier.Async;
+    }
+    if (inCatchBlock) {
+      builder.inCatchBlock = inCatchBlock;
+    }
+    parseFunction(parser, parser.syntheticPreviousToken(scan.tokens));
+    // TODO(brianwilkerson) Check `expectedEndOffset` if it is not `null`.
+    return builder.pop();
   }
 }
 
