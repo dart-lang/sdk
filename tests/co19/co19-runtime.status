@@ -425,6 +425,6 @@ LibTest/isolate/Isolate/spawn_A01_t04: Pass, Timeout
 LibTest/isolate/ReceivePort/take_A01_t02: Skip # Issue 27773
 
 [ $hot_reload || $hot_reload_rollback ]
-LibTest/async/Stream/firstWhere_A01_t01: Crash # Issue 33363
-LibTest/async/Stream/firstWhere_A02_t01: Crash # Issue 33363
-LibTest/async/Stream/lastWhere_A02_t01: Crash # Issue 33363
+LibTest/isolate/ReceivePort/firstWhere_A01_t01: Crash # Issue 33363
+LibTest/isolate/ReceivePort/firstWhere_A02_t01: Crash # Issue 33363
+LibTest/isolate/ReceivePort/lastWhere_A02_t01: Crash # Issue 33363
