@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/uri_converter.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -21,24 +22,25 @@ main() {
 }
 
 @reflectiveTest
-class DriverBasedUriConverterTest {
-  MemoryResourceProvider resourceProvider;
+class DriverBasedUriConverterTest extends Object with ResourceProviderMixin {
   DriverBasedUriConverter uriConverter;
 
   void setUp() {
     resourceProvider = new MemoryResourceProvider();
-    Folder packageFolder = resourceProvider.newFolder('/packages/bar/lib');
+
+    Folder barFolder = newFolder('/packages/bar/lib');
+    Folder fooFolder = newFolder('/packages/foo/lib');
 
     SourceFactory sourceFactory = new SourceFactory([
       new DartUriResolver(new MockSdk(resourceProvider: resourceProvider)),
       new PackageMapUriResolver(resourceProvider, {
-        'foo': [resourceProvider.newFolder('/packages/foo/lib')],
-        'bar': [packageFolder],
+        'foo': [fooFolder],
+        'bar': [barFolder],
       }),
       new ResourceUriResolver(resourceProvider),
     ], null, resourceProvider);
 
-    ContextRoot contextRoot = new ContextRoot(packageFolder.path, [],
+    ContextRoot contextRoot = new ContextRoot(barFolder.path, [],
         pathContext: resourceProvider.pathContext);
 
     MockAnalysisDriver driver = new MockAnalysisDriver();
@@ -50,45 +52,37 @@ class DriverBasedUriConverterTest {
   }
 
   test_pathToUri_dart() {
-    expect(
-        uriConverter
-            .pathToUri(resourceProvider.convertPath('/sdk/lib/core/core.dart')),
+    expect(uriConverter.pathToUri(convertPath('/sdk/lib/core/core.dart')),
         Uri.parse('dart:core'));
   }
 
   test_pathToUri_notRelative() {
     expect(
-        uriConverter.pathToUri(
-            resourceProvider.convertPath('/packages/foo/lib/foo.dart'),
-            containingPath:
-                resourceProvider.convertPath('/packages/bar/lib/bar.dart')),
+        uriConverter.pathToUri(convertPath('/packages/foo/lib/foo.dart'),
+            containingPath: convertPath('/packages/bar/lib/bar.dart')),
         Uri.parse('package:foo/foo.dart'));
   }
 
   test_pathToUri_package() {
-    expect(
-        uriConverter.pathToUri(
-            resourceProvider.convertPath('/packages/foo/lib/foo.dart')),
+    expect(uriConverter.pathToUri(convertPath('/packages/foo/lib/foo.dart')),
         Uri.parse('package:foo/foo.dart'));
   }
 
   test_pathToUri_relative() {
     expect(
-        uriConverter.pathToUri(
-            resourceProvider.convertPath('/packages/bar/lib/src/baz.dart'),
-            containingPath:
-                resourceProvider.convertPath('/packages/bar/lib/bar.dart')),
+        uriConverter.pathToUri(convertPath('/packages/bar/lib/src/baz.dart'),
+            containingPath: convertPath('/packages/bar/lib/bar.dart')),
         Uri.parse('src/baz.dart'));
   }
 
   test_uriToPath_dart() {
     expect(uriConverter.uriToPath(Uri.parse('dart:core')),
-        resourceProvider.convertPath('/sdk/lib/core/core.dart'));
+        convertPath('/sdk/lib/core/core.dart'));
   }
 
   test_uriToPath_package() {
     expect(uriConverter.uriToPath(Uri.parse('package:foo/foo.dart')),
-        resourceProvider.convertPath('/packages/foo/lib/foo.dart'));
+        convertPath('/packages/foo/lib/foo.dart'));
   }
 }
 
