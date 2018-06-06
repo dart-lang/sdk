@@ -4,12 +4,13 @@
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart' as driver;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:analyzer_plugin/utilities/generator.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../plugin/mocks.dart';
 
 void main() {
   defineReflectiveTests(NavigationGeneratorTest);
@@ -19,8 +20,7 @@ void main() {
 class NavigationGeneratorTest {
   MemoryResourceProvider provider = new MemoryResourceProvider();
 
-  ResolveResult resolveResult = new driver.AnalysisResult(
-      null, null, 'a.dart', null, true, '', null, false, '', null, null, null);
+  ResolveResult resolveResult = new MockAnalysisResult(path: 'a.dart');
 
   test_none() {
     NavigationGenerator generator = new NavigationGenerator([]);
