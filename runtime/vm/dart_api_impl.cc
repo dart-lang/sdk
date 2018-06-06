@@ -5246,7 +5246,7 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromKernel(const uint8_t* buffer,
   CHECK_COMPILATION_ALLOWED(I);
 
   kernel::Program* program = kernel::Program::ReadFromBuffer(
-      buffer, buffer_size, false /* take_buffer_ownership */);
+      buffer, buffer_size, /*take_buffer_ownership=*/false);
   const Object& tmp = kernel::KernelLoader::LoadEntireProgram(program);
   delete program;
 

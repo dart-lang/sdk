@@ -88,6 +88,8 @@ static const uint8_t* app_isolate_shared_instructions = NULL;
 
 static Dart_Isolate main_isolate = NULL;
 
+static void ReadFile(const char* filename, uint8_t** buffer, intptr_t* size);
+
 static Dart_Handle CreateRuntimeOptions(CommandLineOptions* options) {
   int options_count = options->count();
   Dart_Handle dart_arguments =
@@ -211,6 +213,54 @@ static void SnapshotOnExitHook(int64_t exit_code) {
     Snapshot::GenerateAppJIT(Options::snapshot_filename());
     WriteDepsFile(main_isolate);
   }
+}
+
+static Dart_Isolate IsolateSetupHelperAotCompilationDart2(
+    const char* script_uri,
+    const char* main,
+    const char* package_root,
+    const char* packages_config,
+    Dart_IsolateFlags* flags,
+    char** error,
+    int* exit_code) {
+  uint8_t* payload = NULL;
+  intptr_t payload_length = -1;
+  if (File::GetType(NULL, script_uri, true) == File::kIsFile) {
+    ReadFile(script_uri, &payload, &payload_length);
+  }
+  if (payload == NULL ||
+      DartUtils::SniffForMagicNumber(payload, payload_length) !=
+          DartUtils::kKernelMagicNumber) {
+    FATAL1(
+        "Dart 2.0 AOT compilations only accept Kernel IR files as "
+        "input ('%s' is not a valid Kernel IR file).\n",
+        script_uri);
+  }
+
+  auto isolate_data = new IsolateData(script_uri, NULL, NULL, NULL);
+
+  // We bootstrap the isolate from the Kernel file (instead of using a
+  // potentially linked-in kernel file).
+  Dart_Isolate isolate = Dart_CreateIsolateFromKernel(
+      script_uri, main, payload, payload_length, flags, isolate_data, error);
+  if (isolate == NULL) {
+    free(payload);
+    return NULL;
+  }
+
+  Dart_EnterScope();
+  Dart_Handle library = Dart_LoadScriptFromKernel(payload, payload_length);
+  free(payload);
+  CHECK_RESULT(library);
+  Dart_Handle url = DartUtils::NewString("dart:_builtin");
+  CHECK_RESULT(url);
+  Dart_Handle builtin_lib = Dart_LookupLibrary(url);
+  CHECK_RESULT(builtin_lib);
+  isolate_data->set_builtin_lib(builtin_lib);
+  Dart_ExitScope();
+  Dart_ExitIsolate();
+
+  return isolate;
 }
 
 static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
@@ -655,6 +705,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
 #else
     bool set_native_resolvers = isolate_snapshot_data != NULL;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
     created_isolate =
         IsolateSetupHelper(isolate, is_main_isolate, script_uri, package_root,
                            packages_config, set_native_resolvers,
@@ -888,9 +939,17 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
     flags.entry_points = standalone_entry_points;
   }
 
-  Dart_Isolate isolate = CreateIsolateAndSetupHelper(
-      is_main_isolate, script_name, "main", Options::package_root(),
-      Options::packages_file(), &flags, &error, &exit_code);
+  Dart_Isolate isolate = NULL;
+  if (flags.strong && Options::gen_snapshot_kind() == kAppAOT) {
+    isolate = IsolateSetupHelperAotCompilationDart2(
+        script_name, "main", Options::package_root(), Options::packages_file(),
+        &flags, &error, &exit_code);
+  } else {
+    isolate = CreateIsolateAndSetupHelper(
+        is_main_isolate, script_name, "main", Options::package_root(),
+        Options::packages_file(), &flags, &error, &exit_code);
+  }
+
   if (isolate == NULL) {
     delete[] isolate_name;
     Log::PrintErr("%s\n", error);
