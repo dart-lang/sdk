@@ -90,8 +90,7 @@ class _TestServerPlugin extends MockServerPlugin with AssistsMixin {
   @override
   Future<AssistRequest> getAssistRequest(
       EditGetAssistsParams parameters) async {
-    AnalysisResult result = new AnalysisResult(
-        null, null, null, null, null, null, null, null, null, null, null, null);
+    AnalysisResult result = new MockAnalysisResult();
     return new DartAssistRequestImpl(
         resourceProvider, parameters.offset, parameters.length, result);
   }
