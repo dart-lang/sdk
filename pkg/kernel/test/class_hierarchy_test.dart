@@ -237,7 +237,7 @@ abstract class _ClassHierarchyTest {
     var supertype =
         extends_ != null ? extends_(typeParameterTypes) : objectSuper;
     var implementedTypes =
-        implements_ != null ? implements_(typeParameterTypes) : [];
+        implements_ != null ? implements_(typeParameterTypes) : <Supertype>[];
     return addClass(new Class(
         name: name,
         typeParameters: typeParameters,
