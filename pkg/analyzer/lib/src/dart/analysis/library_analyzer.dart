@@ -683,8 +683,8 @@ class LibraryAnalyzer {
         .resolve(unit, unitElement);
 
     if (_libraryElement.context.analysisOptions.previewDart2) {
-      unit.accept(new AstRewriteVisitor(_libraryElement, source, _typeProvider,
-          AnalysisErrorListener.NULL_LISTENER));
+      unit.accept(new AstRewriteVisitor(_context.typeSystem, _libraryElement,
+          source, _typeProvider, AnalysisErrorListener.NULL_LISTENER));
     }
 
     // TODO(scheglov) remove EnumMemberBuilder class
@@ -737,8 +737,8 @@ class LibraryAnalyzer {
         .resolve(unit, unitElement);
 
     if (_libraryElement.context.analysisOptions.previewDart2) {
-      unit.accept(new AstRewriteVisitor(_libraryElement, file.source,
-          _typeProvider, AnalysisErrorListener.NULL_LISTENER));
+      unit.accept(new AstRewriteVisitor(_context.typeSystem, _libraryElement,
+          file.source, _typeProvider, AnalysisErrorListener.NULL_LISTENER));
     }
 
     for (var declaration in unit.declarations) {

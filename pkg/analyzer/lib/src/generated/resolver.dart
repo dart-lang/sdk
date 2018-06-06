@@ -46,13 +46,19 @@ export 'package:analyzer/src/generated/type_system.dart';
  */
 class AstRewriteVisitor extends ScopedVisitor {
   final bool addConstKeyword;
+  final TypeSystem typeSystem;
 
   /**
    * Initialize a newly created visitor.
    */
-  AstRewriteVisitor(LibraryElement definingLibrary, Source source,
-      TypeProvider typeProvider, AnalysisErrorListener errorListener,
-      {Scope nameScope, this.addConstKeyword: false})
+  AstRewriteVisitor(
+      this.typeSystem,
+      LibraryElement definingLibrary,
+      Source source,
+      TypeProvider typeProvider,
+      AnalysisErrorListener errorListener,
+      {Scope nameScope,
+      this.addConstKeyword: false})
       : super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope);
 
@@ -76,7 +82,6 @@ class AstRewriteVisitor extends ScopedVisitor {
       }
       Element element = nameScope.lookup(methodName, definingLibrary);
       if (element is ClassElement) {
-        ConstructorElement constructorElement = element.unnamedConstructor;
         AstFactory astFactory = new AstFactoryImpl();
         TypeName typeName = astFactory.typeName(methodName, node.typeArguments);
         ConstructorName constructorName =
@@ -84,7 +89,9 @@ class AstRewriteVisitor extends ScopedVisitor {
         InstanceCreationExpression instanceCreationExpression =
             astFactory.instanceCreationExpression(
                 _getKeyword(node), constructorName, node.argumentList);
-        DartType type = _getType(element, node.typeArguments);
+        InterfaceType type = _getType(element, node.typeArguments);
+        ConstructorElement constructorElement =
+            type.lookUpConstructor(null, definingLibrary);
         methodName.staticElement = element;
         methodName.staticType = type;
         typeName.type = type;
@@ -111,7 +118,9 @@ class AstRewriteVisitor extends ScopedVisitor {
           InstanceCreationExpression instanceCreationExpression =
               astFactory.instanceCreationExpression(
                   _getKeyword(node), constructorName, node.argumentList);
-          DartType type = _getType(element, node.typeArguments);
+          InterfaceType type = _getType(element, node.typeArguments);
+          constructorElement =
+              type.lookUpConstructor(methodName.name, definingLibrary);
           methodName.staticElement = element;
           methodName.staticType = type;
           typeName.type = type;
@@ -129,8 +138,6 @@ class AstRewriteVisitor extends ScopedVisitor {
             astFactory.simpleIdentifier(methodName.token));
         Element prefixedElement = nameScope.lookup(identifier, definingLibrary);
         if (prefixedElement is ClassElement) {
-          ConstructorElement constructorElement =
-              prefixedElement.unnamedConstructor;
           TypeName typeName = astFactory.typeName(
               astFactory.prefixedIdentifier(target, node.operator, methodName),
               node.typeArguments);
@@ -139,7 +146,9 @@ class AstRewriteVisitor extends ScopedVisitor {
           InstanceCreationExpression instanceCreationExpression =
               astFactory.instanceCreationExpression(
                   _getKeyword(node), constructorName, node.argumentList);
-          DartType type = _getType(prefixedElement, node.typeArguments);
+          InterfaceType type = _getType(prefixedElement, node.typeArguments);
+          ConstructorElement constructorElement =
+              type.lookUpConstructor(null, definingLibrary);
           methodName.staticElement = element;
           methodName.staticType = type;
           typeName.type = type;
@@ -164,7 +173,9 @@ class AstRewriteVisitor extends ScopedVisitor {
             InstanceCreationExpression instanceCreationExpression =
                 astFactory.instanceCreationExpression(
                     _getKeyword(node), constructorName, node.argumentList);
-            DartType type = _getType(element, node.typeArguments);
+            InterfaceType type = _getType(element, node.typeArguments);
+            constructorElement =
+                type.lookUpConstructor(methodName.name, definingLibrary);
             methodName.staticElement = element;
             methodName.staticType = type;
             typeName.type = type;
@@ -206,6 +217,8 @@ class AstRewriteVisitor extends ScopedVisitor {
           .map((TypeParameterElement parameter) => parameter.type)
           .toList();
       type = type.substitute2(argumentTypes, parameterTypes);
+    } else if (typeArguments == null && typeParameters != null) {
+      type = typeSystem.instantiateToBounds(type);
     }
     return type;
   }

@@ -1600,8 +1600,12 @@ class _UnitResynthesizer extends UnitResynthesizer with UnitResynthesizerMixin {
     var expression = new ExprBuilder(this, context, uc).build();
 
     if (expression != null && context.context.analysisOptions.previewDart2) {
-      astRewriteVisitor ??= new AstRewriteVisitor(libraryResynthesizer.library,
-          unit.source, typeProvider, AnalysisErrorListener.NULL_LISTENER,
+      astRewriteVisitor ??= new AstRewriteVisitor(
+          libraryResynthesizer.summaryResynthesizer.context.typeSystem,
+          libraryResynthesizer.library,
+          unit.source,
+          typeProvider,
+          AnalysisErrorListener.NULL_LISTENER,
           addConstKeyword: true);
       var container = astFactory.expressionStatement(expression, null);
       expression.accept(astRewriteVisitor);

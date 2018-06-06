@@ -2225,7 +2225,7 @@ class ExprTypeComputer {
     UnlinkedExpr unlinkedConst = unlinkedExecutable.bodyExpr;
     var errorListener = AnalysisErrorListener.NULL_LISTENER;
     var astRewriteVisitor = new AstRewriteVisitor(
-        library, unit.source, typeProvider, errorListener);
+        linker.typeSystem, library, unit.source, typeProvider, errorListener);
     // TODO(paulberry): Do we need to pass a nameScope to
     // resolverVisitor to get type variables to resolve properly?
     var resolverVisitor = new ResolverVisitor(
