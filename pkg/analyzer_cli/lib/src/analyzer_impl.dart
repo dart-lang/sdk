@@ -5,15 +5,14 @@
 library analyzer_cli.src.analyzer_impl;
 
 import 'dart:async';
-import 'dart:collection';
 import 'dart:io';
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
-import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
@@ -36,23 +35,19 @@ class AnalyzerImpl {
   final int startTime;
 
   final AnalysisOptions analysisOptions;
-  final AnalysisContext context;
   final AnalysisDriver analysisDriver;
 
   /// Accumulated analysis statistics.
   final AnalysisStats stats;
 
-  final Source librarySource;
+  /// The library file to analyze.
+  final FileState libraryFile;
 
-  /// All [Source]s references by the analyzed library.
-  final Set<Source> sources = new Set<Source>();
+  /// All files references by the analyzed library.
+  final Set<String> files = new Set<String>();
 
   /// All [AnalysisErrorInfo]s in the analyzed library.
   final List<AnalysisErrorInfo> errorInfos = new List<AnalysisErrorInfo>();
-
-  /// [HashMap] between sources and analysis error infos.
-  final HashMap<Source, AnalysisErrorInfo> sourceErrorsMap =
-      new HashMap<Source, AnalysisErrorInfo>();
 
   /// If the file specified on the command line is part of a package, the name
   /// of that package.  Otherwise `null`.  This allows us to analyze the file
@@ -61,8 +56,8 @@ class AnalyzerImpl {
   /// specified the "--package-warnings" option.
   String _selfPackageName;
 
-  AnalyzerImpl(this.analysisOptions, this.context, this.analysisDriver,
-      this.librarySource, this.options, this.stats, this.startTime);
+  AnalyzerImpl(this.analysisOptions, this.analysisDriver, this.libraryFile,
+      this.options, this.stats, this.startTime);
 
   void addCompilationUnitSource(
       CompilationUnitElement unit, Set<CompilationUnitElement> units) {
@@ -71,7 +66,7 @@ class AnalyzerImpl {
     }
     Source source = unit.source;
     if (source != null) {
-      sources.add(source);
+      files.add(source.fullName);
     }
   }
 
@@ -123,27 +118,21 @@ class AnalyzerImpl {
     return status;
   }
 
-  /// Fills [errorInfos] using [sources].
+  /// Fills [errorInfos] using [files].
   Future<Null> prepareErrors() async {
     PerformanceTag previous = _prepareErrorsTag.makeCurrent();
     try {
-      for (Source source in sources) {
-        if (analysisDriver != null) {
-          String path = source.fullName;
-          ErrorsResult errorsResult = await analysisDriver.getErrors(path);
-          errorInfos.add(new AnalysisErrorInfoImpl(
-              errorsResult.errors, errorsResult.lineInfo));
-        } else {
-          context.computeErrors(source);
-          errorInfos.add(context.getErrors(source));
-        }
+      for (String path in files) {
+        ErrorsResult errorsResult = await analysisDriver.getErrors(path);
+        errorInfos.add(new AnalysisErrorInfoImpl(
+            errorsResult.errors, errorsResult.lineInfo));
       }
     } finally {
       previous.makeCurrent();
     }
   }
 
-  /// Fills [sources].
+  /// Fills [files].
   void prepareSources(LibraryElement library) {
     var units = new Set<CompilationUnitElement>();
     var libraries = new Set<LibraryElement>();
@@ -152,9 +141,9 @@ class AnalyzerImpl {
 
   /// Setup local fields such as the analysis context for analysis.
   void setupForAnalysis() {
-    sources.clear();
+    files.clear();
     errorInfos.clear();
-    Uri libraryUri = librarySource.uri;
+    Uri libraryUri = libraryFile.uri;
     if (libraryUri.scheme == 'package' && libraryUri.pathSegments.length > 0) {
       _selfPackageName = libraryUri.pathSegments[0];
     }
@@ -163,13 +152,10 @@ class AnalyzerImpl {
   Future<ErrorSeverity> _analyze(
       int printMode, ErrorFormatter formatter) async {
     // Don't try to analyze parts.
-    String path = librarySource.fullName;
-    SourceKind librarySourceKind = analysisDriver != null
-        ? await analysisDriver.getSourceKind(path)
-        : context.computeKindOf(librarySource);
-    if (librarySourceKind == SourceKind.PART) {
+    if (libraryFile.isPart) {
+      String libraryPath = libraryFile.path;
       stderr.writeln("Only libraries can be analyzed.");
-      stderr.writeln("$path is a part and can not be analyzed.");
+      stderr.writeln("$libraryPath is a part and can not be analyzed.");
       return ErrorSeverity.ERROR;
     }
 
@@ -207,7 +193,6 @@ class AnalyzerImpl {
     }
   }
 
-  // TODO(devoncarew): This is never called.
   /// Determine whether the given URI refers to a package being analyzed.
   bool _isAnalyzedPackage(Uri uri) {
     if (uri.scheme != 'package' || uri.pathSegments.isEmpty) {
@@ -225,6 +210,7 @@ class AnalyzerImpl {
     }
   }
 
+  // TODO(devoncarew): This is never called.
   void _printColdPerf() {
     // Print cold VM performance numbers.
     int totalTime = currentTimeMillis - startTime;
@@ -243,35 +229,14 @@ class AnalyzerImpl {
   Future<LibraryElement> _resolveLibrary() async {
     PerformanceTag previous = _resolveLibraryTag.makeCurrent();
     try {
-      if (analysisDriver != null) {
-        String path = librarySource.fullName;
-        analysisDriver.priorityFiles = [path];
-        UnitElementResult elementResult =
-            await analysisDriver.getUnitElement(path);
-        return elementResult.element.library;
-      } else {
-        return context.computeLibraryElement(librarySource);
-      }
+      String libraryPath = libraryFile.path;
+      analysisDriver.priorityFiles = [libraryPath];
+      UnitElementResult elementResult =
+          await analysisDriver.getUnitElement(libraryPath);
+      return elementResult.element.library;
     } finally {
       previous.makeCurrent();
     }
-  }
-
-  /// Return the corresponding package directory or `null` if none is found.
-  static JavaFile getPackageDirectoryFor(JavaFile sourceFile) {
-    // We are going to ask parent file, so get absolute path.
-    sourceFile = sourceFile.getAbsoluteFile();
-    // Look in the containing directories.
-    JavaFile dir = sourceFile.getParentFile();
-    while (dir != null) {
-      JavaFile packagesDir = new JavaFile.relative(dir, "packages");
-      if (packagesDir.exists()) {
-        return packagesDir;
-      }
-      dir = dir.getParentFile();
-    }
-    // Not found.
-    return null;
   }
 
   /// Return `true` if the given [pathName] is in the Pub cache.

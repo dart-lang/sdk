@@ -10,18 +10,15 @@ import 'package:analyzer/file_system/file_system.dart' as file_system;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
-import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
-import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/interner.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart'
     show PerformanceTag;
 import 'package:analyzer/src/plugin/resolver_provider.dart';
@@ -31,7 +28,6 @@ import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/source/path_filter.dart';
 import 'package:analyzer/src/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/source/sdk_ext.dart';
-import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
@@ -107,17 +103,16 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
   /// The plugins that are defined outside the `analyzer_cli` package.
   List<Plugin> _userDefinedPlugins = <Plugin>[];
 
-  /// The context that was most recently created by a call to [_analyzeAll], or
+  /// The driver that was most recently created by a call to [_analyzeAll], or
   /// `null` if [_analyzeAll] hasn't been called yet.
-  InternalAnalysisContext _context;
-
+  @visibleForTesting
   AnalysisDriver analysisDriver;
 
   /// The total number of source files loaded by an AnalysisContext.
   int _analyzedFileCount = 0;
 
-  /// If [_context] is not `null`, the [CommandLineOptions] that guided its
-  /// creation.
+  /// If [analysisDriver] is not `null`, the [CommandLineOptions] that guided
+  /// its creation.
   CommandLineOptions _previousOptions;
 
   @override
@@ -149,10 +144,6 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
     }
   }
 
-  /// This Driver's current analysis context.
-  @visibleForTesting
-  AnalysisContext get context => _context;
-
   /// The crash reporting instance for analyzer-cli.
   /// TODO(devoncarew): Replace with the real crash product ID.
   CrashReportSender get crashReportSender => (_crashReportSender ??=
@@ -163,9 +154,14 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
     _userDefinedPlugins = plugins ?? <Plugin>[];
   }
 
+  String posixPathToPlatformPath(String filePath) {
+    var components = path.posix.split(filePath);
+    return resourceProvider.pathContext.joinAll(components);
+  }
+
   @override
   Future<Null> start(List<String> args) async {
-    if (_context != null) {
+    if (analysisDriver != null) {
       throw new StateError("start() can only be called once");
     }
     int startTime = new DateTime.now().millisecondsSinceEpoch;
@@ -207,8 +203,8 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
       }
     }
 
-    if (_context != null) {
-      _analyzedFileCount += _context.sources.length;
+    if (analysisDriver != null) {
+      _analyzedFileCount += analysisDriver.knownFiles.length;
     }
 
     // Send how long analysis took.
@@ -259,14 +255,14 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
     }
 
     // These are used to do part file analysis across sources.
-    Set<Uri> libUris = new Set<Uri>();
-    Set<Source> danglingParts = new Set<Source>();
+    Set<FileState> libraryFiles = new Set<FileState>();
+    Set<FileState> danglingParts = new Set<FileState>();
 
-    // Note: This references _context via closure, so it will change over time
-    // during the following analysis.
+    // Note: This references analysisDriver via closure, so it will change over
+    // time during the following analysis.
     SeverityProcessor defaultSeverityProcessor = (AnalysisError error) {
       return determineProcessedSeverity(
-          error, options, _context.analysisOptions);
+          error, options, analysisDriver.analysisOptions);
     };
 
     // We currently print out to stderr to ensure that when in batch mode we
@@ -286,9 +282,8 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
 
     ErrorSeverity allResult = ErrorSeverity.NONE;
 
-    void reportPartError(Source partSource) {
-      errorSink
-          .writeln("${partSource.fullName} is a part and cannot be analyzed.");
+    void reportPartError(String partPath) {
+      errorSink.writeln("$partPath is a part and cannot be analyzed.");
       errorSink.writeln("Please pass in a library that contains this part.");
       io.exitCode = ErrorSeverity.ERROR.ordinal;
       allResult = allResult.max(ErrorSeverity.ERROR);
@@ -296,6 +291,10 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
 
     for (String sourcePath in options.sourceFiles) {
       sourcePath = sourcePath.trim();
+
+      // Input paths could be given in the Posix format.
+      // Make sure that we continue using them in the platform format.
+      sourcePath = posixPathToPlatformPath(sourcePath);
 
       // Create a context, or re-use the previous one.
       try {
@@ -308,16 +307,14 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
       // Add all the files to be analyzed en masse to the context. Skip any
       // files that were added earlier (whether explicitly or implicitly) to
       // avoid causing those files to be unnecessarily re-read.
-      Set<Source> knownSources = context.sources.toSet();
-      Set<Source> sourcesToAnalyze = new Set<Source>();
-      ChangeSet changeSet = new ChangeSet();
+      Set<String> filesToAnalyze = new Set<String>();
 
       // Collect files for analysis.
       // Note that these files will all be analyzed in the same context.
       // This should be updated when the ContextManager re-work is complete
       // (See: https://github.com/dart-lang/sdk/issues/24133)
       Iterable<io.File> files =
-          _collectFiles(sourcePath, context.analysisOptions);
+          _collectFiles(sourcePath, analysisDriver.analysisOptions);
       if (files.isEmpty) {
         errorSink.writeln('No dart files found at: $sourcePath');
         io.exitCode = ErrorSeverity.ERROR.ordinal;
@@ -325,25 +322,15 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
       }
 
       for (io.File file in files) {
-        Source source = _computeLibrarySource(file.absolute.path);
-        if (!knownSources.contains(source)) {
-          changeSet.addedSource(source);
-        }
-        sourcesToAnalyze.add(source);
-      }
-
-      if (analysisDriver == null) {
-        context.applyChanges(changeSet);
+        filesToAnalyze.add(file.absolute.path);
       }
 
       // Analyze the libraries.
-      Set<Source> partSources = new Set<Source>();
-
-      for (Source source in sourcesToAnalyze) {
-        if (analysisDriver != null &&
-            (source.shortName == AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE ||
-                source.shortName == AnalysisEngine.ANALYSIS_OPTIONS_FILE)) {
-          file_system.File file = resourceProvider.getFile(source.fullName);
+      for (String path in filesToAnalyze) {
+        var shortName = resourceProvider.pathContext.basename(path);
+        if (shortName == AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE ||
+            shortName == AnalysisEngine.ANALYSIS_OPTIONS_FILE) {
+          file_system.File file = resourceProvider.getFile(path);
           String content = file.readAsStringSync();
           LineInfo lineInfo = new LineInfo.fromContent(content);
           List<AnalysisError> errors =
@@ -352,11 +339,11 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
           formatter.formatErrors([new AnalysisErrorInfoImpl(errors, lineInfo)]);
           for (AnalysisError error in errors) {
             allResult = allResult.max(determineProcessedSeverity(
-                error, options, _context.analysisOptions));
+                error, options, analysisDriver.analysisOptions));
           }
-        } else if (source.shortName == AnalysisEngine.PUBSPEC_YAML_FILE) {
+        } else if (shortName == AnalysisEngine.PUBSPEC_YAML_FILE) {
           try {
-            file_system.File file = resourceProvider.getFile(source.fullName);
+            file_system.File file = resourceProvider.getFile(path);
             String content = file.readAsStringSync();
             YamlNode node = loadYamlNode(content);
             if (node is YamlMap) {
@@ -368,65 +355,37 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
                   .formatErrors([new AnalysisErrorInfoImpl(errors, lineInfo)]);
               for (AnalysisError error in errors) {
                 allResult = allResult.max(determineProcessedSeverity(
-                    error, options, _context.analysisOptions));
+                    error, options, analysisDriver.analysisOptions));
               }
             }
           } catch (exception) {
             // If the file cannot be analyzed, ignore it.
           }
         } else {
-          SourceKind sourceKind = analysisDriver != null
-              ? await analysisDriver.getSourceKind(source.fullName)
-              : context.computeKindOf(source);
-          if (sourceKind == SourceKind.PART) {
-            partSources.add(source);
+          var file = analysisDriver.fsState.getFileForPath(path);
+
+          if (file.isPart) {
+            if (!libraryFiles.contains(file.library)) {
+              danglingParts.add(file);
+            }
             continue;
           }
-          ErrorSeverity status = await _runAnalyzer(source, options, formatter);
-          allResult = allResult.max(status);
-          libUris.add(source.uri);
-          if (analysisDriver != null) {
-            // With [AnalysisDriver], we can easily mark previously dangling
-            // parts as no longer dangling once we process the lib.
-            var libFile =
-                analysisDriver.fsState.getFileForPath(source.fullName);
-            for (FileState part in libFile.partedFiles) {
-              danglingParts.remove(part.source);
-            }
-          }
-        }
-      }
+          libraryFiles.add(file);
 
-      // Check that each part has a corresponding source in the input list.
-      for (Source partSource in partSources) {
-        if (analysisDriver != null) {
-          var partFile =
-              analysisDriver.fsState.getFileForPath(partSource.fullName);
-          if (!libUris.contains(partFile.library?.uri)) {
-            // With [AnalysisDriver], we can mark this as dangling, for now, and
-            // later on remove it from this list if its containing lib is found.
-            danglingParts.add(partSource);
-          }
-        } else {
-          final potentialLibs = context.getLibrariesContaining(partSource);
-          bool found = false;
-          for (var lib in potentialLibs) {
-            if (libUris.contains(lib.uri)) {
-              found = true;
-            }
-          }
-          if (!found) {
-            // Without an analysis driver, we can't easily mark it dangling "for
-            // now", but this path is deprecated anyway. Just give up now.
-            reportPartError(partSource);
+          ErrorSeverity status = await _runAnalyzer(file, options, formatter);
+          allResult = allResult.max(status);
+
+          // Mark previously dangling parts as no longer dangling.
+          for (FileState part in file.partedFiles) {
+            danglingParts.remove(part);
           }
         }
       }
     }
 
     // Any dangling parts still in this list were definitely dangling.
-    for (Source partSource in danglingParts) {
-      reportPartError(partSource);
+    for (FileState partFile in danglingParts) {
+      reportPartError(partFile.path);
     }
 
     formatter.flush();
@@ -455,33 +414,6 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
     } finally {
       previous.makeCurrent();
     }
-  }
-
-  /// Decide on the appropriate policy for which files need to be fully parsed
-  /// and which files need to be diet parsed, based on [options], and return an
-  /// [AnalyzeFunctionBodiesPredicate] that implements this policy.
-  AnalyzeFunctionBodiesPredicate _chooseDietParsingPolicy(
-      CommandLineOptions options) {
-    if (options.batchMode) {
-      // As analyzer is currently implemented, once a file has been diet
-      // parsed, it can't easily be un-diet parsed without creating a brand new
-      // context and losing caching.  In batch mode, we can't predict which
-      // files we'll need to generate errors and warnings for in the future, so
-      // we can't safely diet parse anything.
-      return (Source source) => true;
-    }
-
-    return (Source source) {
-      if (options.sourceFiles.contains(source.fullName)) {
-        return true;
-      } else if (source.uri.scheme == 'dart') {
-        return options.showSdkWarnings;
-      } else {
-        // TODO(paulberry): diet parse 'package:' imports when we don't want
-        // diagnostics. (Full parse is still needed for "self" packages.)
-        return true;
-      }
-    };
   }
 
   /// Decide on the appropriate method for resolving URIs based on the given
@@ -609,39 +541,18 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
     return files;
   }
 
-  /// Convert the given [sourcePath] (which may be relative to the current
-  /// working directory) to a [Source] object that can be fed to the analysis
-  /// context.
-  Source _computeLibrarySource(String sourcePath) {
-    sourcePath = _normalizeSourcePath(sourcePath);
-    File sourceFile = resourceProvider.getFile(sourcePath);
-    Source source = sdk.fromFileUri(sourceFile.toUri());
-    if (source != null) {
-      return source;
-    }
-    source = new FileSource(sourceFile, sourceFile.toUri());
-    Uri uri = _context.sourceFactory.restoreUri(source);
-    if (uri == null) {
-      return source;
-    }
-    return new FileSource(sourceFile, uri);
-  }
-
-  /// Create an analysis context that is prepared to analyze sources according
-  /// to the given [options], and store it in [_context].
+  /// Create an analysis driver that is prepared to analyze sources according
+  /// to the given [options], and store it in [analysisDriver].
   void _createContextAndAnalyze(CommandLineOptions options, String source) {
     // If not the same command-line options, clear cached information.
     if (!_equalCommandLineOptions(_previousOptions, options)) {
       _previousOptions = options;
       contextCache = new ContextCache(resourceProvider, options, verbosePrint);
-      _context = null;
       analysisDriver = null;
     }
 
     AnalysisOptionsImpl analysisOptions =
         createAnalysisOptionsForCommandLineOptions(options, source);
-    analysisOptions.analyzeFunctionBodiesPredicate =
-        _chooseDietParsingPolicy(options);
 
     // Store the [PathFilter] for this context to properly exclude files
     pathFilter = new PathFilter(getContextInfo(options, source).analysisRoot,
@@ -649,8 +560,9 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
 
     // If we have the analysis driver, and the new analysis options are the
     // same, we can reuse this analysis driver.
-    if (_context != null &&
-        _equalAnalysisOptions(_context.analysisOptions, analysisOptions)) {
+    if (analysisDriver != null &&
+        _equalAnalysisOptions(
+            analysisDriver.analysisOptions, analysisOptions)) {
       return;
     }
 
@@ -660,8 +572,8 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
     }
 
     // Save stats from previous context before clobbering it.
-    if (_context != null) {
-      _analyzedFileCount += _context.sources.length;
+    if (analysisDriver != null) {
+      _analyzedFileCount += analysisDriver.knownFiles.length;
     }
 
     // Find package info.
@@ -699,44 +611,30 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
     SourceFactory sourceFactory = _chooseUriResolutionPolicy(options,
         embedderMap, packageInfo, summaryDataStore, true, analysisOptions);
 
-    // Create a context.
-    _context = AnalysisEngine.instance.createAnalysisContext();
-    _context.analysisOptions = analysisOptions;
-    _context.sourceFactory = sourceFactory;
-    (context as AnalysisContextImpl).declaredVariables =
-        new DeclaredVariables.fromMap(options.definedVariables);
+    PerformanceLog log = new PerformanceLog(null);
+    AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
 
-    if (options.enableNewAnalysisDriver) {
-      PerformanceLog log = new PerformanceLog(null);
-      AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
-
-      bool enableKernelDriver = options.useCFE;
-      file_system.Folder kernelPlatformBinariesFolder;
-      if (enableKernelDriver && options.dartSdkPlatformBinariesPath != null) {
-        kernelPlatformBinariesFolder =
-            resourceProvider.getFolder(options.dartSdkPlatformBinariesPath);
-      }
-
-      analysisDriver = new AnalysisDriver(
-          scheduler,
-          log,
-          resourceProvider,
-          analysisDriverMemoryByteStore,
-          new FileContentOverlay(),
-          null,
-          context.sourceFactory,
-          context.analysisOptions,
-          enableKernelDriver: enableKernelDriver,
-          kernelPlatformFolder: kernelPlatformBinariesFolder);
-      analysisDriver.results.listen((_) {});
-      analysisDriver.exceptions.listen((_) {});
-      scheduler.start();
-    } else {
-      if (sdkBundle != null) {
-        _context.resultProvider =
-            new InputPackagesResultProvider(_context, summaryDataStore);
-      }
+    bool enableKernelDriver = options.useCFE;
+    file_system.Folder kernelPlatformBinariesFolder;
+    if (enableKernelDriver && options.dartSdkPlatformBinariesPath != null) {
+      kernelPlatformBinariesFolder =
+          resourceProvider.getFolder(options.dartSdkPlatformBinariesPath);
     }
+
+    analysisDriver = new AnalysisDriver(
+        scheduler,
+        log,
+        resourceProvider,
+        analysisDriverMemoryByteStore,
+        new FileContentOverlay(),
+        null,
+        sourceFactory,
+        analysisOptions,
+        enableKernelDriver: enableKernelDriver,
+        kernelPlatformFolder: kernelPlatformBinariesFolder);
+    analysisDriver.results.listen((_) {});
+    analysisDriver.exceptions.listen((_) {});
+    scheduler.start();
   }
 
   /// Return discovered packagespec, or `null` if none is found.
@@ -847,10 +745,10 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
 
   /// Analyze a single source.
   Future<ErrorSeverity> _runAnalyzer(
-      Source source, CommandLineOptions options, ErrorFormatter formatter) {
+      FileState file, CommandLineOptions options, ErrorFormatter formatter) {
     int startTime = currentTimeMillis;
-    AnalyzerImpl analyzer = new AnalyzerImpl(_context.analysisOptions, _context,
-        analysisDriver, source, options, stats, startTime);
+    AnalyzerImpl analyzer = new AnalyzerImpl(analysisDriver.analysisOptions,
+        analysisDriver, file, options, stats, startTime);
     return analyzer.analyze(formatter);
   }
 
@@ -968,10 +866,6 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
     }
     return true;
   }
-
-  /// Convert [sourcePath] into an absolute path.
-  static String _normalizeSourcePath(String sourcePath) =>
-      path.normalize(new io.File(sourcePath).absolute.path);
 }
 
 class _DriverError implements Exception {

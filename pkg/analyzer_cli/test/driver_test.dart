@@ -11,7 +11,6 @@ import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer_cli/src/ansi.dart' as ansi;
@@ -53,6 +52,8 @@ class BaseTest {
   ExitHandler _savedExitHandler;
 
   Driver driver;
+
+  AnalysisOptions get analysisOptions => driver.analysisDriver.analysisOptions;
 
   bool get useCFE => false;
 
@@ -731,10 +732,10 @@ linter:
     await _runLinter_defaultLints();
 
     /// Lints should be enabled.
-    expect(driver.context.analysisOptions.lint, isTrue);
+    expect(analysisOptions.lint, isTrue);
 
     /// Default list should include camel_case_types.
-    var lintNames = getLints(driver.context).map((r) => r.name);
+    var lintNames = analysisOptions.lintRules.map((r) => r.name);
     expect(lintNames, contains('camel_case_types'));
   }
 
@@ -748,16 +749,16 @@ linter:
     await _runLinter_lintsInOptions();
 
     /// Lints should be enabled.
-    expect(driver.context.analysisOptions.lint, isTrue);
+    expect(analysisOptions.lint, isTrue);
 
     /// The analysis options file only specifies 'camel_case_types'.
-    var lintNames = getLints(driver.context).map((r) => r.name);
+    var lintNames = analysisOptions.lintRules.map((r) => r.name);
     expect(lintNames, orderedEquals(['camel_case_types']));
   }
 
   test_noLints_lintsDisabled() async {
     await _runLinter_noLintsFlag();
-    expect(driver.context.analysisOptions.lint, isFalse);
+    expect(analysisOptions.lint, isFalse);
   }
 
   test_noLints_noGeneratedWarnings() async {
@@ -767,7 +768,7 @@ linter:
 
   test_noLints_noRegisteredLints() async {
     await _runLinter_noLintsFlag();
-    expect(getLints(driver.context), isEmpty);
+    expect(analysisOptions.lintRules, isEmpty);
   }
 
   YamlMap _parseOptions(String src) =>
@@ -843,8 +844,7 @@ flutter:
 class OptionsTest extends BaseTest {
   String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
 
-  List<ErrorProcessor> get processors =>
-      driver.context.analysisOptions.errorProcessors;
+  List<ErrorProcessor> get processors => analysisOptions.errorProcessors;
 
   ErrorProcessor processorFor(AnalysisError error) =>
       processors.firstWhere((p) => p.appliesTo(error));
@@ -910,14 +910,15 @@ class OptionsTest extends BaseTest {
 
   test_basic_language() async {
     await _driveBasic();
-    expect(driver.context.analysisOptions.enableSuperMixins, isTrue);
+    expect(analysisOptions.enableSuperMixins, isTrue);
   }
 
   test_basic_strongMode() async {
     await _driveBasic();
-    expect(driver.context.analysisOptions.strongMode, isTrue);
+    expect(analysisOptions.strongMode, isTrue);
     // https://github.com/dart-lang/sdk/issues/26129
-    AnalysisContext sdkContext = driver.context.sourceFactory.dartSdk.context;
+    AnalysisContext sdkContext =
+        driver.analysisDriver.sourceFactory.dartSdk.context;
     expect(sdkContext.analysisOptions.strongMode, isTrue);
   }
 
@@ -943,13 +944,13 @@ class OptionsTest extends BaseTest {
   test_previewDart2() async {
     await drive('data/options_tests_project/test_file.dart',
         args: ['--preview-dart-2']);
-    expect(driver.context.analysisOptions.useFastaParser, isFalse);
+    expect(analysisOptions.useFastaParser, isFalse);
   }
 
   test_strongSdk() async {
     String testDir = path.join(testDirectory, 'data', 'strong_sdk');
     await drive(path.join(testDir, 'main.dart'), args: ['--strong']);
-    expect(driver.context.analysisOptions.strongMode, isTrue);
+    expect(analysisOptions.strongMode, isTrue);
     expect(outSink.toString(), contains('No issues found'));
   }
 
