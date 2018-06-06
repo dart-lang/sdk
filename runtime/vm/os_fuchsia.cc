@@ -8,7 +8,7 @@
 #include "vm/os.h"
 
 #include <errno.h>
-#include <fdio/util.h>
+#include <lib/fdio/util.h>
 #include <zircon/process.h>
 #include <zircon/syscalls.h>
 #include <zircon/syscalls/object.h>

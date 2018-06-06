@@ -9,10 +9,10 @@
 
 #include <errno.h>
 #include <fcntl.h>
-#include <fdio/io.h>
-#include <fdio/namespace.h>
-#include <fdio/private.h>
-#include <fdio/util.h>
+#include <lib/fdio/io.h>
+#include <lib/fdio/namespace.h>
+#include <lib/fdio/private.h>
+#include <lib/fdio/util.h>
 #include <launchpad/launchpad.h>
 #include <launchpad/vmo.h>
 #include <poll.h>

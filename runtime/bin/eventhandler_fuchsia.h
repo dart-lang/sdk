@@ -10,7 +10,7 @@
 #endif
 
 #include <errno.h>
-#include <fdio/private.h>
+#include <lib/fdio/private.h>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <zircon/status.h>
