@@ -157,6 +157,13 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void endImplicitCreationExpression(Token token) {
+    debugEvent("ImplicitCreationExpression");
+
+    _handleInstanceCreation(null);
+  }
+
+  @override
   void endNewExpression(Token newKeyword) {
     assert(optional('new', newKeyword));
     debugEvent("NewExpression");
