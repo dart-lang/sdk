@@ -16,6 +16,8 @@
 
 #### Pub
 
+* Fix support for running executables in Dart 2 mode.
+
 #### Other Tools
 
 ## 2.0.0-dev.60.0
