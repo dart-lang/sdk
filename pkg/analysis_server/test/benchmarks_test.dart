@@ -77,5 +77,5 @@ List<String> _listBenchmarks() {
   );
   Map m = json.decode(result.stdout);
   List benchmarks = m['benchmarks'];
-  return benchmarks.map((b) => b['id']).toList();
+  return benchmarks.map((b) => b['id']).cast<String>().toList();
 }

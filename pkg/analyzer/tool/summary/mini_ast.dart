@@ -338,11 +338,12 @@ class MiniAstBuilder extends StackListener {
   void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {
     debugEvent("Metadata");
     inMetadata = false;
-    List<Expression> arguments = pop();
+    List arguments = pop();
     String constructorName = popIfNotNull(periodBeforeName);
     pop(); // Type arguments
     String name = pop();
-    push(new Annotation(name, constructorName, arguments));
+    push(new Annotation(name, constructorName,
+        arguments == null ? null : arguments.cast<Expression>()));
   }
 
   @override
