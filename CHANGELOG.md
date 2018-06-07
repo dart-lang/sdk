@@ -1,3 +1,8 @@
+# 0.1.52
+
+* fixed `void_checks` to handle arguments not resolved to a parameter
+* fixed exceptions produced by `prefer_const_literals_to_create_immutables`
+
 # 0.1.51
 
 * `unrelated_type_equality_checks` now allows comparison between `Int64` or `Int32` and `int`
