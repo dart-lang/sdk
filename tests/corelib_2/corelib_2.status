@@ -224,8 +224,6 @@ nan_infinity_test/01: RuntimeError
 string_split_test/checkedstore: RuntimeError
 symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') should be allowed.
 uri_base_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-uri_parameters_all_test: RuntimeError
-uri_test: RuntimeError
 
 [ $compiler == dart2js && $fasta ]
 int_from_environment_int64_test: RuntimeError # WontFix: Int not precisely representable in JS
@@ -254,8 +252,6 @@ regexp/pcre_test: RuntimeError
 string_split_test/checkedstore: RuntimeError # Issue 30548: does not check stores into List<String>
 symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') should be allowed.
 uri_base_test: RuntimeError
-uri_parameters_all_test: RuntimeError
-uri_test: RuntimeError
 
 [ $compiler == dart2js && $fasta && $minified && $strong ]
 cast_test: RuntimeError
@@ -280,8 +276,6 @@ symbol_operator_test/03: RuntimeError
 symbol_operator_test/none: RuntimeError
 symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') should be allowed.
 uri_base_test: RuntimeError
-uri_parameters_all_test: RuntimeError
-uri_test: RuntimeError
 
 [ $compiler == dart2js && $fasta && !$strong ]
 *: SkipByDesign
