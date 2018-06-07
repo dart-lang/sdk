@@ -62,7 +62,9 @@ mirrors/invocation_fuzz_test/string: Pass, Crash, RuntimeError # Flaky on vm-ker
 
 [ $compiler == app_jitk && $mode == product ]
 isolate/spawn_function_custom_class_test: Skip # Timeout
-isolate/spawn_uri_nested_vm_test: Skip # Timeout
+
+[ $compiler == app_jitk && ($mode == product || $mode == release) ]
+isolate/spawn_uri_nested_vm_test: Skip # Timeout, Issue 33385
 
 [ $compiler != dart2js && $fasta && !$strong ]
 isolate/browser/compute_this_script_browser_test: CompileTimeError
