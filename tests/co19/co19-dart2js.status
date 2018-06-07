@@ -1367,15 +1367,12 @@ WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocument-001_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == chrome && $csp && $minified ]
-LayoutTests/fast/css/fontface-properties_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/inherited-properties-rare-text_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLScriptElement/isURLAttribute_t01: SkipByDesign # Uses script injection
 LayoutTests/fast/dom/HTMLScriptElement/remove-source_t01: Pass # Please triage this failure
 LayoutTests/fast/dom/HTMLScriptElement/script-for-attribute-unexpected-execution_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLScriptElement/script-reexecution_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLTemplateElement/inertContents_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/create-contextual-fragment-script-unmark-already-started_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/shadow/elementfrompoint_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/files/workers/inline-worker-via-blob-url_t01: SkipByDesign # inlined script
 LayoutTests/fast/loader/scroll-position-restored-on-back_t01: Skip # Timeout. Please triage this failure
 WebPlatformTest/webstorage/event_local_key_t01: Skip # Timeout. Please triage this failure.
