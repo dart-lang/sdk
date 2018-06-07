@@ -828,19 +828,19 @@ void FlowGraphCompiler::CompileGraph() {
   if (!is_optimizing()) {
     const int num_locals = parsed_function().num_stack_locals();
 
-    intptr_t args_desc_index = -1;
+    intptr_t args_desc_slot = -1;
     if (parsed_function().has_arg_desc_var()) {
-      args_desc_index =
-          -(parsed_function().arg_desc_var()->index() - kFirstLocalSlotFromFp);
+      args_desc_slot = FrameSlotForVariable(parsed_function().arg_desc_var());
     }
 
     __ Comment("Initialize spill slots");
-    if (num_locals > 1 || (num_locals == 1 && args_desc_index == -1)) {
+    if (num_locals > 1 || (num_locals == 1 && args_desc_slot == -1)) {
       __ LoadObject(RAX, Object::null_object());
     }
     for (intptr_t i = 0; i < num_locals; ++i) {
-      Register value_reg = i == args_desc_index ? ARGS_DESC_REG : RAX;
-      __ movq(Address(RBP, (kFirstLocalSlotFromFp - i) * kWordSize), value_reg);
+      const intptr_t slot_index = FrameSlotForVariableIndex(-i);
+      Register value_reg = slot_index == args_desc_slot ? ARGS_DESC_REG : RAX;
+      __ movq(Address(RBP, slot_index * kWordSize), value_reg);
     }
   }
 

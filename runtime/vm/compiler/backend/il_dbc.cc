@@ -328,19 +328,17 @@ EMIT_NATIVE_CODE(PushArgument, 1) {
 
 EMIT_NATIVE_CODE(LoadLocal, 0) {
   ASSERT(!compiler->is_optimizing());
-  ASSERT(local().index() != 0);
-  __ Push((local().index() > 0) ? (-local().index()) : (-local().index() - 1));
+  const intptr_t slot_index = FrameSlotForVariable(&local());
+  __ Push(LocalVarIndex(0, slot_index));
 }
 
 EMIT_NATIVE_CODE(StoreLocal, 0) {
   ASSERT(!compiler->is_optimizing());
-  ASSERT(local().index() != 0);
+  const intptr_t slot_index = FrameSlotForVariable(&local());
   if (HasTemp()) {
-    __ StoreLocal((local().index() > 0) ? (-local().index())
-                                        : (-local().index() - 1));
+    __ StoreLocal(LocalVarIndex(0, slot_index));
   } else {
-    __ PopLocal((local().index() > 0) ? (-local().index())
-                                      : (-local().index() - 1));
+    __ PopLocal(LocalVarIndex(0, slot_index));
   }
 }
 
@@ -1188,12 +1186,13 @@ EMIT_NATIVE_CODE(CatchBlockEntry, 0) {
 
   if (!compiler->is_optimizing()) {
     if (raw_exception_var_ != nullptr) {
-      __ MoveSpecial(LocalVarIndex(0, raw_exception_var_->index()),
+      __ MoveSpecial(LocalVarIndex(0, FrameSlotForVariable(raw_exception_var_)),
                      Simulator::kExceptionSpecialIndex);
     }
     if (raw_stacktrace_var_ != nullptr) {
-      __ MoveSpecial(LocalVarIndex(0, raw_stacktrace_var_->index()),
-                     Simulator::kStackTraceSpecialIndex);
+      __ MoveSpecial(
+          LocalVarIndex(0, FrameSlotForVariable(raw_stacktrace_var_)),
+          Simulator::kStackTraceSpecialIndex);
     }
   }
 }

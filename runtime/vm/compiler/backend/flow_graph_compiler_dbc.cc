@@ -108,7 +108,9 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
 
   if (lazy_deopt_with_result_) {
     ASSERT(reason() == ICData::kDeoptAtCall);
-    builder->AddCopy(NULL, Location::StackSlot(stack_height), slot_ix++);
+    builder->AddCopy(
+        NULL, Location::StackSlot(FrameSlotForVariableIndex(-stack_height)),
+        slot_ix++);
   }
 
   // For the innermost environment, set outgoing arguments and the locals.
@@ -327,10 +329,10 @@ void FlowGraphCompiler::EmitFrameEntry() {
     if (parsed_function().has_arg_desc_var()) {
       // TODO(kustermann): If dbc simulator put the args_desc_ into the
       // _special_regs, we could replace these 3 with the MoveSpecial bytecode.
-      const intptr_t args_desc_index =
-          -(parsed_function().arg_desc_var()->index() - kFirstLocalSlotFromFp);
+      const intptr_t slot_index =
+          FrameSlotForVariable(parsed_function().arg_desc_var());
       __ LoadArgDescriptor();
-      __ StoreLocal(args_desc_index);
+      __ StoreLocal(LocalVarIndex(0, slot_index));
       __ Drop(1);
     }
   }
@@ -357,16 +359,6 @@ uint16_t FlowGraphCompiler::ToEmbeddableCid(intptr_t cid,
   return static_cast<uint16_t>(cid);
 }
 
-intptr_t FlowGraphCompiler::CatchEntryRegForVariable(const LocalVariable& var) {
-  const Function& function = parsed_function().function();
-  const intptr_t num_non_copied_params =
-      function.HasOptionalParameters() ? 0 : function.NumParameters();
-
-  ASSERT(is_optimizing());
-  ASSERT(var.index() <= 0);
-  return kNumberOfCpuRegisters - (num_non_copied_params - var.index());
-}
-
 #undef __
 #define __ compiler_->assembler()->
 
@@ -375,10 +367,11 @@ void ParallelMoveResolver::EmitMove(int index) {
   const Location source = move->src();
   const Location destination = move->dest();
   if (source.IsStackSlot() && destination.IsRegister()) {
-    // Only allow access to the arguments.
+    // Only allow access to the arguments (which have in the non-inverted stack
+    // positive indices).
     ASSERT(source.base_reg() == FPREG);
-    ASSERT(source.stack_index() < 0);
-    __ Move(destination.reg(), -kParamEndSlotFromFp + source.stack_index());
+    ASSERT(source.stack_index() > kParamEndSlotFromFp);
+    __ Move(destination.reg(), -source.stack_index());
   } else if (source.IsRegister() && destination.IsRegister()) {
     __ Move(destination.reg(), source.reg());
   } else if (source.IsArgsDescRegister()) {

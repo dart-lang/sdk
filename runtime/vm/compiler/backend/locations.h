@@ -327,7 +327,6 @@ class Location : public ValueObject {
     return static_cast<uword>(kStackIndexBias + stack_index);
   }
 
-  // Spill slots.
   static Location StackSlot(intptr_t stack_index, Register base = FPREG) {
     uword payload = StackSlotBaseField::encode(base) |
                     StackIndexField::encode(EncodeStackIndex(stack_index));

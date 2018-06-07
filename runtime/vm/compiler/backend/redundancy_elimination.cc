@@ -3156,10 +3156,8 @@ void TryCatchAnalyzer::Optimize(FlowGraph* flow_graph) {
     // generator functions they may be context-allocated in which case they are
     // not tracked in the environment anyway.
 
-    const intptr_t parameter_count = flow_graph->num_direct_parameters();
-    cdefs[catch_entry->raw_exception_var()->BitIndexIn(parameter_count)] = NULL;
-    cdefs[catch_entry->raw_stacktrace_var()->BitIndexIn(parameter_count)] =
-        NULL;
+    cdefs[flow_graph->EnvIndex(catch_entry->raw_exception_var())] = NULL;
+    cdefs[flow_graph->EnvIndex(catch_entry->raw_stacktrace_var())] = NULL;
 
     for (BlockIterator block_it = flow_graph->reverse_postorder_iterator();
          !block_it.Done(); block_it.Advance()) {

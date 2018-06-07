@@ -15,10 +15,38 @@
 #include "vm/parser.h"
 #include "vm/raw_object.h"
 #include "vm/reusable_handles.h"
+#include "vm/scopes.h"
 #include "vm/stub_code.h"
 #include "vm/visitor.h"
 
 namespace dart {
+
+intptr_t FrameSlotForVariable(const LocalVariable* variable) {
+  ASSERT(!variable->is_captured());
+  return FrameSlotForVariableIndex(variable->index().value());
+}
+
+intptr_t FrameOffsetInBytesForVariable(const LocalVariable* variable) {
+  return FrameSlotForVariable(variable) * kWordSize;
+}
+
+intptr_t FrameSlotForVariableIndex(intptr_t variable_index) {
+  // Variable indices are:
+  //    [1, 2, ..., M] for the M parameters.
+  //    [0, -1, -2, ... -(N-1)] for the N [LocalVariable]s
+  // See (runtime/vm/scopes.h)
+  return variable_index <= 0 ? (variable_index + kFirstLocalSlotFromFp)
+                             : (variable_index + kParamEndSlotFromFp);
+}
+
+intptr_t VariableIndexForFrameSlot(intptr_t frame_slot) {
+  if (frame_slot <= kFirstLocalSlotFromFp) {
+    return frame_slot - kFirstLocalSlotFromFp;
+  } else {
+    ASSERT(frame_slot > kParamEndSlotFromFp);
+    return frame_slot - kParamEndSlotFromFp;
+  }
+}
 
 bool StackFrame::IsStubFrame() const {
   if (is_interpreted()) {

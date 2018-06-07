@@ -291,7 +291,7 @@ LocationSummary* LoadLocalInstr::MakeLocationSummary(Zone* zone,
 
 void LoadLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register result = locs()->out(0).reg();
-  __ LoadFromOffset(result, FP, local().index() * kWordSize);
+  __ LoadFromOffset(result, FP, FrameOffsetInBytesForVariable(&local()));
 }
 
 LocationSummary* StoreLocalInstr::MakeLocationSummary(Zone* zone,
@@ -304,7 +304,7 @@ void StoreLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
   ASSERT(result == value);  // Assert that register assignment is correct.
-  __ StoreToOffset(value, FP, local().index() * kWordSize);
+  __ StoreToOffset(value, FP, FrameOffsetInBytesForVariable(&local()));
 }
 
 LocationSummary* ConstantInstr::MakeLocationSummary(Zone* zone,
@@ -2659,11 +2659,11 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!compiler->is_optimizing()) {
     if (raw_exception_var_ != nullptr) {
       __ StoreToOffset(kExceptionObjectReg, FP,
-                       raw_exception_var_->index() * kWordSize);
+                       FrameOffsetInBytesForVariable(raw_exception_var_));
     }
     if (raw_stacktrace_var_ != nullptr) {
       __ StoreToOffset(kStackTraceObjectReg, FP,
-                       raw_stacktrace_var_->index() * kWordSize);
+                       FrameOffsetInBytesForVariable(raw_stacktrace_var_));
     }
   }
 }

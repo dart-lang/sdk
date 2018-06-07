@@ -2477,16 +2477,17 @@ ISOLATE_UNIT_TEST_CASE(ContextScope) {
   EXPECT_EQ(4, local_scope->num_variables());         // ta, a, b, c.
   EXPECT_EQ(3, local_scope->NumCapturedVariables());  // ta, a, c.
 
-  const int first_parameter_index = 0;
+  const VariableIndex first_parameter_index = VariableIndex::From(0);
   const int num_parameters = 0;
-  const int first_frame_index = -1;
+  const VariableIndex first_local_index = VariableIndex::From(-1);
   bool found_captured_vars = false;
-  int next_frame_index = parent_scope->AllocateVariables(
-      first_parameter_index, num_parameters, first_frame_index, NULL,
+  VariableIndex next_index = parent_scope->AllocateVariables(
+      first_parameter_index, num_parameters, first_local_index, NULL,
       &found_captured_vars);
   // Variables a, c and var_ta are captured, therefore are not allocated in
   // frame.
-  EXPECT_EQ(0, next_frame_index - first_frame_index);  // Indices in frame < 0.
+  EXPECT_EQ(0, next_index.value() -
+                   first_local_index.value());  // Indices in frame < 0.
   const intptr_t parent_scope_context_level = 1;
   EXPECT_EQ(parent_scope_context_level, parent_scope->context_level());
   EXPECT(found_captured_vars);
@@ -2499,13 +2500,13 @@ ISOLATE_UNIT_TEST_CASE(ContextScope) {
 
   var_ta = outer_scope->LocalLookupVariable(ta);
   EXPECT(var_ta->is_captured());
-  EXPECT_EQ(0, var_ta->index());  // First index.
+  EXPECT_EQ(0, var_ta->index().value());  // First index.
   EXPECT_EQ(parent_scope_context_level - local_scope_context_level,
             var_ta->owner()->context_level());  // Adjusted context level.
 
   var_a = outer_scope->LocalLookupVariable(a);
   EXPECT(var_a->is_captured());
-  EXPECT_EQ(1, var_a->index());  // First index.
+  EXPECT_EQ(1, var_a->index().value());  // First index.
   EXPECT_EQ(parent_scope_context_level - local_scope_context_level,
             var_a->owner()->context_level());  // Adjusted context level.
 
@@ -2514,7 +2515,7 @@ ISOLATE_UNIT_TEST_CASE(ContextScope) {
 
   var_c = outer_scope->LocalLookupVariable(c);
   EXPECT(var_c->is_captured());
-  EXPECT_EQ(2, var_c->index());
+  EXPECT_EQ(2, var_c->index().value());
   EXPECT_EQ(parent_scope_context_level - local_scope_context_level,
             var_c->owner()->context_level());  // Adjusted context level.
 }

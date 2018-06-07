@@ -1444,7 +1444,7 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
     result_->this_variable =
         MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                      Symbols::This(), klass_type);
-    result_->this_variable->set_index(0);
+    result_->this_variable->set_index(VariableIndex::From(0));
     result_->this_variable->set_is_captured();
     enclosing_scope = new (Z) LocalScope(NULL, 0, 0);
     enclosing_scope->set_context_level(0);
@@ -6072,12 +6072,10 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
     // Copy captured parameters from the stack into the context.
     LocalScope* scope = parsed_function()->node_sequence()->scope();
     intptr_t parameter_count = dart_function.NumParameters();
-    intptr_t parameter_index = parsed_function()->first_parameter_index();
-
     const ParsedFunction& pf = *flow_graph_builder_->parsed_function_;
     const Function& function = pf.function();
 
-    for (intptr_t i = 0; i < parameter_count; ++i, --parameter_index) {
+    for (intptr_t i = 0; i < parameter_count; ++i) {
       LocalVariable* variable = scope->VariableAt(i);
       if (variable->is_captured()) {
         LocalVariable& raw_parameter = *pf.RawParameterVariable(i);
@@ -6094,7 +6092,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
         body += LoadLocal(&raw_parameter);
         body += flow_graph_builder_->StoreInstanceField(
             TokenPosition::kNoSource,
-            Context::variable_offset(variable->index()));
+            Context::variable_offset(variable->index().value()));
         body += NullConstant();
         body += StoreLocal(TokenPosition::kNoSource, &raw_parameter);
         body += Drop();

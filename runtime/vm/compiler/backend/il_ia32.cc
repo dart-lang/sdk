@@ -134,9 +134,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* LoadLocalInstr::MakeLocationSummary(Zone* zone,
                                                      bool opt) const {
   const intptr_t kNumInputs = 0;
-  const intptr_t stack_index = (local().index() < 0)
-                                   ? kFirstLocalSlotFromFp - local().index()
-                                   : kParamEndSlotFromFp - local().index();
+  const intptr_t stack_index = FrameSlotForVariable(&local());
   return LocationSummary::Make(zone, kNumInputs,
                                Location::StackSlot(stack_index),
                                LocationSummary::kNoCall);
@@ -158,7 +156,7 @@ void StoreLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
   ASSERT(result == value);  // Assert that register assignment is correct.
-  __ movl(Address(EBP, local().index() * kWordSize), value);
+  __ movl(Address(EBP, FrameOffsetInBytesForVariable(&local())), value);
 }
 
 LocationSummary* ConstantInstr::MakeLocationSummary(Zone* zone,
@@ -2498,11 +2496,11 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if (!compiler->is_optimizing()) {
     if (raw_exception_var_ != nullptr) {
-      __ movl(Address(EBP, raw_exception_var_->index() * kWordSize),
+      __ movl(Address(EBP, FrameOffsetInBytesForVariable(raw_exception_var_)),
               kExceptionObjectReg);
     }
     if (raw_stacktrace_var_ != nullptr) {
-      __ movl(Address(EBP, raw_stacktrace_var_->index() * kWordSize),
+      __ movl(Address(EBP, FrameOffsetInBytesForVariable(raw_stacktrace_var_)),
               kStackTraceObjectReg);
     }
   }

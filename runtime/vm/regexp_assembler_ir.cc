@@ -148,7 +148,8 @@ IRRegExpMacroAssembler::~IRRegExpMacroAssembler() {}
 void IRRegExpMacroAssembler::InitializeLocals() {
   // All generated functions are expected to have a current-context variable.
   // This variable is unused in irregexp functions.
-  parsed_function_->current_context_var()->set_index(GetNextLocalIndex());
+  parsed_function_->current_context_var()->set_index(
+      VariableIndex::From(GetNextLocalIndex()));
 
   // Create local variables and parameters.
   stack_ = Local(Symbols::stack());
@@ -341,8 +342,8 @@ LocalVariable* IRRegExpMacroAssembler::Parameter(const String& name,
       new (Z) LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                             name, Object::dynamic_type());
 
-  intptr_t param_frame_index = kParamEndSlotFromFp + kParamCount - index;
-  local->set_index(param_frame_index);
+  intptr_t param_frame_index = kParamCount - index;
+  local->set_index(VariableIndex::From(param_frame_index));
 
   return local;
 }
@@ -351,7 +352,7 @@ LocalVariable* IRRegExpMacroAssembler::Local(const String& name) {
   LocalVariable* local =
       new (Z) LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                             name, Object::dynamic_type());
-  local->set_index(GetNextLocalIndex());
+  local->set_index(VariableIndex::From(GetNextLocalIndex()));
 
   return local;
 }
@@ -709,7 +710,7 @@ void IRRegExpMacroAssembler::BindBlock(BlockLabel* label) {
 
 intptr_t IRRegExpMacroAssembler::GetNextLocalIndex() {
   intptr_t id = local_id_.Alloc();
-  return kFirstLocalSlotFromFp - id;
+  return -id;
 }
 
 Value* IRRegExpMacroAssembler::LoadRegister(intptr_t index) {

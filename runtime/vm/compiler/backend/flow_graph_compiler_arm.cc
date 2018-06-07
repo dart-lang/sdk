@@ -848,20 +848,19 @@ void FlowGraphCompiler::CompileGraph() {
   if (!is_optimizing()) {
     const int num_locals = parsed_function().num_stack_locals();
 
-    intptr_t args_desc_index = -1;
+    intptr_t args_desc_slot = -1;
     if (parsed_function().has_arg_desc_var()) {
-      args_desc_index =
-          -(parsed_function().arg_desc_var()->index() - kFirstLocalSlotFromFp);
+      args_desc_slot = FrameSlotForVariable(parsed_function().arg_desc_var());
     }
 
     __ Comment("Initialize spill slots");
-    if (num_locals > 1 || (num_locals == 1 && args_desc_index == -1)) {
+    if (num_locals > 1 || (num_locals == 1 && args_desc_slot == -1)) {
       __ LoadObject(R0, Object::null_object());
     }
     for (intptr_t i = 0; i < num_locals; ++i) {
-      Register value_reg = i == args_desc_index ? ARGS_DESC_REG : R0;
-      __ StoreToOffset(kWord, value_reg, FP,
-                       (kFirstLocalSlotFromFp - i) * kWordSize);
+      const intptr_t slot_index = FrameSlotForVariableIndex(-i);
+      Register value_reg = slot_index == args_desc_slot ? ARGS_DESC_REG : R0;
+      __ StoreToOffset(kWord, value_reg, FP, slot_index * kWordSize);
     }
   }
 

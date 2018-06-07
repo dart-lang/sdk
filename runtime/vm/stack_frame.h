@@ -30,6 +30,23 @@ namespace dart {
 // Forward declarations.
 class ObjectPointerVisitor;
 class RawContext;
+class LocalVariable;
+
+// Returns the FP-relative index where [variable] can be found (assumes
+// [variable] is not captured), in words.
+intptr_t FrameSlotForVariable(const LocalVariable* variable);
+
+// Returns the FP-relative index where [variable] can be found (assumes
+// [variable] is not captured), in bytes.
+intptr_t FrameOffsetInBytesForVariable(const LocalVariable* variable);
+
+// Returns the FP-relative index where [variable_index] can be found (assumes
+// [variable_index] comes from a [LocalVariable::index()], which is not
+// captured).
+intptr_t FrameSlotForVariableIndex(intptr_t variable_index);
+
+// Returns the variable index from a FP-relative index.
+intptr_t VariableIndexForFrameSlot(intptr_t frame_slot);
 
 // Generic stack frame.
 class StackFrame : public ValueObject {

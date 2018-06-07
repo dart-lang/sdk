@@ -124,11 +124,12 @@ void AstPrinter::PrintLocalVariable(const LocalVariable* variable) {
                  String::Handle(variable->type().Name()).ToCString(),
                  variable->name().ToCString());
   if (variable->HasIndex()) {
+    const int index = variable->index().value();
     if (variable->is_captured()) {
       logger_->Print(" (context %d %d)", variable->owner()->context_level(),
-                     variable->index());
+                     index);
     } else {
-      logger_->Print(" (stack %d)", variable->index());
+      logger_->Print(" (stack %d)", index);
     }
   }
 }
@@ -415,7 +416,7 @@ void AstPrinter::PrintLocalScopeVariable(const LocalScope* scope,
     logger_->Print(" alias");
   }
   if (var->HasIndex()) {
-    logger_->Print(" @%d", var->index());
+    logger_->Print(" @%d", var->index().value());
     if (var->is_captured()) {
       logger_->Print(" ctx %d", var->owner()->context_level());
     }
@@ -484,7 +485,7 @@ void AstPrinter::PrintFunctionScope(const ParsedFunction& parsed_function) {
       logger_->Print(" =%s", default_parameter_value.ToCString());
     }
     if (param->HasIndex()) {
-      logger_->Print(" @%d", param->index());
+      logger_->Print(" @%d", param->index().value());
       if (param->is_captured()) {
         logger_->Print(" ctx %d", param->owner()->context_level());
       }

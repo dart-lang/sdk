@@ -1221,16 +1221,16 @@ Fragment FlowGraphBuilder::CatchBlockEntry(const Array& handler_types,
   if (exception_var->is_captured()) {
     instructions += LoadLocal(context_variable);
     instructions += LoadLocal(raw_exception_var);
-    instructions +=
-        StoreInstanceField(TokenPosition::kNoSource,
-                           Context::variable_offset(exception_var->index()));
+    instructions += StoreInstanceField(
+        TokenPosition::kNoSource,
+        Context::variable_offset(exception_var->index().value()));
   }
   if (stacktrace_var->is_captured()) {
     instructions += LoadLocal(context_variable);
     instructions += LoadLocal(raw_stacktrace_var);
-    instructions +=
-        StoreInstanceField(TokenPosition::kNoSource,
-                           Context::variable_offset(stacktrace_var->index()));
+    instructions += StoreInstanceField(
+        TokenPosition::kNoSource,
+        Context::variable_offset(stacktrace_var->index().value()));
   }
 
   // :saved_try_context_var can be captured in the context of
@@ -1539,7 +1539,8 @@ Fragment FlowGraphBuilder::LoadLocal(LocalVariable* variable) {
   if (variable->is_captured()) {
     Fragment instructions;
     instructions += LoadContextAt(variable->owner()->context_level());
-    instructions += LoadField(Context::variable_offset(variable->index()));
+    instructions +=
+        LoadField(Context::variable_offset(variable->index().value()));
     return instructions;
   } else {
     return BaseFlowGraphBuilder::LoadLocal(variable);
@@ -1807,7 +1808,7 @@ Fragment BaseFlowGraphBuilder::StoreLocal(TokenPosition position,
     instructions += LoadContextAt(variable->owner()->context_level());
     instructions += LoadLocal(value);
     instructions += StoreInstanceField(
-        position, Context::variable_offset(variable->index()));
+        position, Context::variable_offset(variable->index().value()));
     return instructions;
   }
   return StoreLocalRaw(position, variable);
@@ -1969,9 +1970,8 @@ LocalVariable* BaseFlowGraphBuilder::MakeTemporary() {
                             symbol_name, Object::dynamic_type());
   // Set the index relative to the base of the expression stack including
   // outgoing arguments.
-  variable->set_index(kFirstLocalSlotFromFp -
-                      parsed_function_->num_stack_locals() -
-                      pending_argument_count_ - index);
+  variable->set_index(VariableIndex::From(
+      -parsed_function_->num_stack_locals() - pending_argument_count_ - index));
 
   // The value has uses as if it were a local variable.  Mark the definition
   // as used so that its temp index will not be cleared (causing it to never

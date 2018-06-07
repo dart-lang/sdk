@@ -182,7 +182,7 @@ class ParsedFunction : public ZoneAllocated {
     return guarded_fields_;
   }
 
-  int first_parameter_index() const { return first_parameter_index_; }
+  VariableIndex first_parameter_index() const { return first_parameter_index_; }
   int num_stack_locals() const { return num_stack_locals_; }
 
   void AllocateVariables();
@@ -240,7 +240,7 @@ class ParsedFunction : public ZoneAllocated {
   LocalVariable* raw_type_arguments_var_;
   ZoneGrowableArray<LocalVariable*> raw_parameters_;
 
-  int first_parameter_index_;
+  VariableIndex first_parameter_index_;
   int num_stack_locals_;
   bool have_seen_await_expr_;
 
