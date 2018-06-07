@@ -102,40 +102,28 @@ HtmlDocument get document =>
     JS('returns:HtmlDocument;depends:none;effects:none;gvn:true', 'document');
 
 // Supoort to convert JS Promise to a Dart Future.
-Future<T> promiseToFuture<T>(thePromise) {
+Future<T> promiseToFuture<T>(jsPromise) {
   var completer = new Completer<T>();
 
   var thenSuccessCode = (promiseValue) => completer.complete(promiseValue);
   var thenErrorCode = (promiseError) => completer.completeError(promiseError);
 
-  JS("", "#.then(#, #)", thePromise, convertDartClosureToJS(thenSuccessCode, 1),
+  JS("", "#.then(#, #)", jsPromise, convertDartClosureToJS(thenSuccessCode, 1),
       convertDartClosureToJS(thenErrorCode, 1));
 
   return completer.future;
 }
 
-// Supoort to convert JS Promise to a Dart Future that returns a MapLike (Class with Map mixin).
-Future promiseToFutureMap(thePromise) {
-  var completer = new Completer();
-
-  var thenSuccessCode = (promiseValue) => completer.complete(promiseValue);
-  var thenErrorCode = (promiseError) => completer.completeError(promiseError);
-
-  JS("", "#.then(#, #)", thePromise, convertDartClosureToJS(thenSuccessCode, 1),
-      convertDartClosureToJS(thenErrorCode, 1));
-
-  return completer.future;
-}
-
-// Supoort to convert JS Promise to a Dart Future that returns a Dictionary as a Dart Map.
-Future<Map> promiseToFutureDictionary(thePromise) {
-  var completer = new Completer<Map>();
+// Supoort to convert JS Promise to a Dart Future<Map<String, dynamic>>.  Each property of the JS
+// object is added to the Map as a key of type String with a value of type dynamic.
+Future<Map<String, dynamic>> promiseToFutureAsMap(jsPromise) {
+  var completer = new Completer<Map<String, dynamic>>();
 
   var thenSuccessCode = (promiseValue) =>
       completer.complete(convertNativeToDart_Dictionary(promiseValue));
   var thenErrorCode = (promiseError) => completer.completeError(promiseError);
 
-  JS("", "#.then(#, #)", thePromise, convertDartClosureToJS(thenSuccessCode, 1),
+  JS("", "#.then(#, #)", jsPromise, convertDartClosureToJS(thenSuccessCode, 1),
       convertDartClosureToJS(thenErrorCode, 1));
 
   return completer.future;
@@ -23376,8 +23364,8 @@ class ImageCapture extends Interceptor {
   @DomName('ImageCapture.getPhotoSettings')
   @DocsEditable()
   @Experimental() // untriaged
-  Future<Map> getPhotoSettings() =>
-      promiseToFutureDictionary(JS("", "#.getPhotoSettings()", this));
+  Future<Map<String, dynamic>> getPhotoSettings() =>
+      promiseToFutureAsMap(JS("", "#.getPhotoSettings()", this));
 
   @DomName('ImageCapture.grabFrame')
   @DocsEditable()
@@ -28253,8 +28241,8 @@ class NavigationPreloadManager extends Interceptor {
   @DomName('NavigationPreloadManager.getState')
   @DocsEditable()
   @Experimental() // untriaged
-  Future<Map> getState() =>
-      promiseToFutureDictionary(JS("", "#.getState()", this));
+  Future<Map<String, dynamic>> getState() =>
+      promiseToFutureAsMap(JS("", "#.getState()", this));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31582,8 +31570,8 @@ class PaymentInstruments extends Interceptor {
   @DomName('PaymentInstruments.get')
   @DocsEditable()
   @Experimental() // untriaged
-  Future<Map> get(String instrumentKey) =>
-      promiseToFutureDictionary(JS("", "#.get(#)", this, instrumentKey));
+  Future<Map<String, dynamic>> get(String instrumentKey) =>
+      promiseToFutureAsMap(JS("", "#.get(#)", this, instrumentKey));
 
   @DomName('PaymentInstruments.has')
   @DocsEditable()
@@ -34806,7 +34794,7 @@ class RtcPeerConnection extends EventTarget {
 
   @DomName('RTCPeerConnection.getStats')
   @DocsEditable()
-  Future getStats() => promiseToFutureMap(JS("", "#.getStats()", this));
+  Future getStats() => promiseToFuture<dynamic>(JS("", "#.getStats()", this));
 
   @DomName('RTCPeerConnection.removeStream')
   @DocsEditable()
@@ -37903,8 +37891,8 @@ class StorageManager extends Interceptor {
   @DomName('StorageManager.estimate')
   @DocsEditable()
   @Experimental() // untriaged
-  Future<Map> estimate() =>
-      promiseToFutureDictionary(JS("", "#.estimate()", this));
+  Future<Map<String, dynamic>> estimate() =>
+      promiseToFutureAsMap(JS("", "#.estimate()", this));
 
   @DomName('StorageManager.persist')
   @DocsEditable()
