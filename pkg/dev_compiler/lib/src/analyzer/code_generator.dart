@@ -49,7 +49,7 @@ import 'element_helpers.dart';
 import 'extension_types.dart' show ExtensionTypeSet;
 import 'js_interop.dart';
 import 'js_typeref_codegen.dart' show JSTypeRefCodegen;
-import 'js_typerep.dart' show JSTypeRep, JSType;
+import 'js_typerep.dart';
 import 'module_compiler.dart' show BuildUnit, CompilerOptions, JSModuleFile;
 import 'nullable_type_inference.dart' show NullableTypeInference;
 import 'property_model.dart';
@@ -84,7 +84,7 @@ class CodeGenerator extends Object
 
   final CompilerOptions options;
   final StrongTypeSystemImpl rules;
-  JSTypeRep _typeRep;
+  JSTypeRep jsTypeRep;
 
   /// The set of libraries we are currently compiling, and the temporaries used
   /// to refer to them.
@@ -136,12 +136,8 @@ class CodeGenerator extends Object
   /// The dart:core `identical` element.
   final FunctionElement _coreIdentical;
 
-  /// The dart:_interceptors implementation elements.
+  /// Classes and types defined in the SDK.
   final ClassElement _jsArray;
-  final ClassElement _jsBool;
-  final ClassElement _jsNumber;
-  final ClassElement _jsString;
-
   final ClassElement boolClass;
   final ClassElement intClass;
   final ClassElement doubleClass;
@@ -213,40 +209,32 @@ class CodeGenerator extends Object
       : context = c,
         rules = new StrongTypeSystemImpl(c.typeProvider),
         types = c.typeProvider,
-        _asyncStreamIterator =
-            _getLibrary(c, 'dart:async').getType('StreamIterator').type,
+        _asyncStreamIterator = getClass(c, 'dart:async', 'StreamIterator').type,
         _coreIdentical = _getLibrary(c, 'dart:core')
             .publicNamespace
             .get('identical') as FunctionElement,
-        _jsArray = _getLibrary(c, 'dart:_interceptors').getType('JSArray'),
-        _jsBool = _getLibrary(c, 'dart:_interceptors').getType('JSBool'),
-        _jsString = _getLibrary(c, 'dart:_interceptors').getType('JSString'),
-        _jsNumber = _getLibrary(c, 'dart:_interceptors').getType('JSNumber'),
-        interceptorClass =
-            _getLibrary(c, 'dart:_interceptors').getType('Interceptor'),
+        _jsArray = getClass(c, 'dart:_interceptors', 'JSArray'),
+        interceptorClass = getClass(c, 'dart:_interceptors', 'Interceptor'),
         coreLibrary = _getLibrary(c, 'dart:core'),
-        boolClass = _getLibrary(c, 'dart:core').getType('bool'),
-        intClass = _getLibrary(c, 'dart:core').getType('int'),
-        doubleClass = _getLibrary(c, 'dart:core').getType('double'),
-        numClass = _getLibrary(c, 'dart:core').getType('num'),
-        nullClass = _getLibrary(c, 'dart:core').getType('Null'),
-        objectClass = _getLibrary(c, 'dart:core').getType('Object'),
-        stringClass = _getLibrary(c, 'dart:core').getType('String'),
-        functionClass = _getLibrary(c, 'dart:core').getType('Function'),
-        privateSymbolClass =
-            _getLibrary(c, 'dart:_js_helper').getType('PrivateSymbol'),
+        boolClass = getClass(c, 'dart:core', 'bool'),
+        intClass = getClass(c, 'dart:core', 'int'),
+        doubleClass = getClass(c, 'dart:core', 'double'),
+        numClass = getClass(c, 'dart:core', 'num'),
+        nullClass = getClass(c, 'dart:core', 'Null'),
+        objectClass = getClass(c, 'dart:core', 'Object'),
+        stringClass = getClass(c, 'dart:core', 'String'),
+        functionClass = getClass(c, 'dart:core', 'Function'),
+        privateSymbolClass = getClass(c, 'dart:_js_helper', 'PrivateSymbol'),
         linkedHashMapImplType =
-            _getLibrary(c, 'dart:_js_helper').getType('LinkedMap').type,
+            getClass(c, 'dart:_js_helper', 'LinkedMap').type,
         identityHashMapImplType =
-            _getLibrary(c, 'dart:_js_helper').getType('IdentityMap').type,
-        linkedHashSetImplType =
-            _getLibrary(c, 'dart:collection').getType('_HashSet').type,
+            getClass(c, 'dart:_js_helper', 'IdentityMap').type,
+        linkedHashSetImplType = getClass(c, 'dart:collection', '_HashSet').type,
         identityHashSetImplType =
-            _getLibrary(c, 'dart:collection').getType('_IdentityHashSet').type,
-        syncIterableType =
-            _getLibrary(c, 'dart:_js_helper').getType('SyncIterable').type,
+            getClass(c, 'dart:collection', '_IdentityHashSet').type,
+        syncIterableType = getClass(c, 'dart:_js_helper', 'SyncIterable').type,
         dartJSLibrary = _getLibrary(c, 'dart:js') {
-    _typeRep = new JSTypeRep(rules, types);
+    jsTypeRep = new JSTypeRep(rules, c);
   }
 
   LibraryElement get currentLibrary => _currentElement.library;
@@ -782,7 +770,7 @@ class CodeGenerator extends Object
     }
 
     // All Dart number types map to a JS double.
-    if (_typeRep.isNumber(from) && _typeRep.isNumber(to)) {
+    if (jsTypeRep.isNumber(from) && jsTypeRep.isNumber(to)) {
       // Make sure to check when converting to int.
       if (from != types.intType && to == types.intType) {
         // TODO(jmesserly): fuse this with notNull check.
@@ -805,7 +793,7 @@ class CodeGenerator extends Object
     JS.Expression result;
     var type = node.type.type;
     var lhs = _visitExpression(node.expression);
-    var typeofName = _jsTypeofName(type);
+    var typeofName = jsTypeRep.typeFor(type).primitiveTypeOf;
     // Inline primitives other than int (which requires a Math.floor check).
     if (typeofName != null && type != types.intType) {
       result = js.call('typeof # == #', [lhs, js.string(typeofName, "'")]);
@@ -819,13 +807,6 @@ class CodeGenerator extends Object
       return js.call('!#', result);
     }
     return result;
-  }
-
-  String _jsTypeofName(DartType t) {
-    if (_typeRep.isNumber(t)) return 'number';
-    if (t == types.stringType) return 'string';
-    if (t == types.boolType) return 'boolean';
-    return null;
   }
 
   @override
@@ -1909,7 +1890,7 @@ class CodeGenerator extends Object
   void _registerExtensionType(
       ClassElement classElem, String jsPeerName, List<JS.Statement> body) {
     var className = _emitTopLevelName(classElem);
-    if (isPrimitiveType(classElem.type)) {
+    if (jsTypeRep.isPrimitive(classElem.type)) {
       body.add(
           runtimeStatement('definePrimitiveHashCode(#.prototype)', className));
     }
@@ -3847,7 +3828,7 @@ class CodeGenerator extends Object
     if (_isNull(left) || _isNull(right)) return true;
     // If the representation of the  two types will not induce conversion in
     // JS then we can use == .
-    return !_typeRep.equalityMayConvert(left.staticType, right.staticType);
+    return !jsTypeRep.equalityMayConvert(left.staticType, right.staticType);
   }
 
   bool _tripleEqIsIdentity(Expression left, Expression right) {
@@ -4579,21 +4560,6 @@ class CodeGenerator extends Object
         ctorNode: constructor);
   }
 
-  bool isPrimitiveType(DartType t) => _typeRep.isPrimitive(t);
-
-  /// Given a Dart type return the known implementation type, if any.
-  /// Given `bool`, `String`, or `num`/`int`/`double`,
-  /// returns the corresponding type in `dart:_interceptors`:
-  /// `JSBool`, `JSString`, and `JSNumber` respectively, otherwise null.
-  InterfaceType getImplementationType(DartType t) {
-    JSType rep = _typeRep.typeFor(t);
-    // Number, String, and Bool are final
-    if (rep == JSType.jsNumber) return _jsNumber.type;
-    if (rep == JSType.jsBoolean) return _jsBool.type;
-    if (rep == JSType.jsString) return _jsString.type;
-    return null;
-  }
-
   JS.Statement _nullParameterCheck(JS.Expression param) {
     var call = runtimeCall('argumentError((#))', [param]);
     return js.statement('if (# == null) #;', [param, call]);
@@ -4633,7 +4599,7 @@ class CodeGenerator extends Object
     // if `operator ==` was overridden, similar to how we devirtualize private
     // fields.
     var isEnum = leftType is InterfaceType && leftType.element.isEnum;
-    var usesIdentity = _typeRep.isPrimitive(leftType) ||
+    var usesIdentity = jsTypeRep.isPrimitive(leftType) ||
         isEnum ||
         _isNull(left) ||
         _isNull(right);
@@ -4699,7 +4665,7 @@ class CodeGenerator extends Object
         ..sourceInformation = _getLocation(node.operator.offset);
     }
 
-    if (_typeRep.binaryOperationIsPrimitive(leftType, rightType) ||
+    if (jsTypeRep.binaryOperationIsPrimitive(leftType, rightType) ||
         leftType == types.stringType && op.type == TokenType.PLUS) {
       // special cases where we inline the operation
       // these values are assumed to be non-null (determined by the checker)
@@ -5087,7 +5053,7 @@ class CodeGenerator extends Object
     var expr = node.operand;
 
     var dispatchType = getStaticType(expr);
-    if (_typeRep.unaryOperationIsPrimitive(dispatchType)) {
+    if (jsTypeRep.unaryOperationIsPrimitive(dispatchType)) {
       if (!isNullable(expr)) {
         return js.call('#$op', _visitExpression(expr));
       }
@@ -5124,9 +5090,9 @@ class CodeGenerator extends Object
     var expr = node.operand;
 
     var dispatchType = getStaticType(expr);
-    if (_typeRep.unaryOperationIsPrimitive(dispatchType)) {
+    if (jsTypeRep.unaryOperationIsPrimitive(dispatchType)) {
       if (op.lexeme == '~') {
-        if (_typeRep.isNumber(dispatchType)) {
+        if (jsTypeRep.isNumber(dispatchType)) {
           JS.Expression jsExpr = js.call('~#', notNull(expr));
           return _coerceBitOperationResultToUnsigned(node, jsExpr);
         }
@@ -5793,7 +5759,7 @@ class CodeGenerator extends Object
   JS.Expression _emitMapImplType(InterfaceType type, {bool identity}) {
     var typeArgs = type.typeArguments;
     if (typeArgs.isEmpty) return _emitType(type);
-    identity ??= isPrimitiveType(typeArgs[0]);
+    identity ??= jsTypeRep.isPrimitive(typeArgs[0]);
     type = identity ? identityHashMapImplType : linkedHashMapImplType;
     return _emitType(type.instantiate(typeArgs));
   }
@@ -5801,7 +5767,7 @@ class CodeGenerator extends Object
   JS.Expression _emitSetImplType(InterfaceType type, {bool identity}) {
     var typeArgs = type.typeArguments;
     if (typeArgs.isEmpty) return _emitType(type);
-    identity ??= isPrimitiveType(typeArgs[0]);
+    identity ??= jsTypeRep.isPrimitive(typeArgs[0]);
     type = identity ? identityHashSetImplType : linkedHashSetImplType;
     return _emitType(type.instantiate(typeArgs));
   }
@@ -5819,27 +5785,21 @@ class CodeGenerator extends Object
 
   @override
   JS.Expression visitStringInterpolation(StringInterpolation node) {
-    var strings = <String>[];
-    var interpolations = <JS.Expression>[];
-
-    var expectString = true;
-    for (var e in node.elements) {
-      if (e is InterpolationString) {
-        assert(expectString);
-        expectString = false;
-
-        // Escape the string as necessary for use in the eventual `` quotes.
-        // TODO(jmesserly): this call adds quotes, and then we strip them off.
-        var str = js.escapedString(e.value, '`').value;
-        strings.add(str.substring(1, str.length - 1));
+    var parts = <JS.Expression>[];
+    for (var elem in node.elements) {
+      if (elem is InterpolationString) {
+        if (elem.value.isEmpty) continue;
+        parts.add(js.escapedString(elem.value, '"'));
       } else {
-        assert(!expectString);
-        expectString = true;
-        interpolations.add(_visitExpression(e));
+        var e = (elem as InterpolationExpression).expression;
+        var jsExpr = _visitExpression(e);
+        parts.add(e.staticType == types.stringType && !isNullable(e)
+            ? jsExpr
+            : runtimeCall('str(#)', jsExpr));
       }
     }
-    return new JS.TaggedTemplate(
-        runtimeCall('str'), new JS.TemplateString(strings, interpolations));
+    if (parts.isEmpty) return js.string('');
+    return new JS.Expression.binary(parts, '+');
   }
 
   @override
@@ -6172,7 +6132,7 @@ class CodeGenerator extends Object
     if (type == null || type.isDynamic || type.isObject) {
       return isObjectMember(name);
     } else if (type is InterfaceType) {
-      var interfaceType = getImplementationType(type) ?? type;
+      var interfaceType = jsTypeRep.getImplementationType(type) ?? type;
       var element = interfaceType.element;
       if (_extensionTypes.isNativeClass(element)) {
         var member = _lookupForwardedMember(element, name);

@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'element_helpers.dart' show getStaticType, isInlineJS, findAnnotation;
 import 'js_interop.dart' show isNotNullAnnotation, isNullCheckAnnotation;
+import 'js_typerep.dart';
 import 'property_model.dart';
 
 /// An inference engine for nullable types.
@@ -27,8 +28,7 @@ abstract class NullableTypeInference {
   LibraryElement get coreLibrary;
   VirtualFieldModel get virtualFields;
 
-  InterfaceType getImplementationType(DartType type);
-  bool isPrimitiveType(DartType type);
+  JSTypeRep get jsTypeRep;
   bool isObjectMember(String name);
 
   /// Known non-null local variables.
@@ -85,7 +85,7 @@ abstract class NullableTypeInference {
       Element container = e.enclosingElement;
       if (container is ClassElement) {
         DartType targetType = container.type;
-        InterfaceType implType = getImplementationType(targetType);
+        InterfaceType implType = jsTypeRep.getImplementationType(targetType);
         if (implType != null) {
           MethodElement method = implType.lookUpMethod(e.name, coreLibrary);
           if (method != null) e = method;
@@ -109,7 +109,7 @@ abstract class NullableTypeInference {
     Element container = element.enclosingElement;
     if (container is ClassElement) {
       var targetType = container.type;
-      var implType = getImplementationType(targetType);
+      var implType = jsTypeRep.getImplementationType(targetType);
       if (implType != null) {
         var getter = implType.lookUpGetter(name, coreLibrary);
         if (getter != null) element = getter;
@@ -237,33 +237,48 @@ abstract class NullableTypeInference {
 
       return true;
     }
-
-    DartType type = null;
-    if (expr is BinaryExpression) {
-      switch (expr.operator.type) {
-        case TokenType.EQ_EQ:
-        case TokenType.BANG_EQ:
-        case TokenType.AMPERSAND_AMPERSAND:
-        case TokenType.BAR_BAR:
-          return false;
-        case TokenType.QUESTION_QUESTION:
-          return _isNullable(expr.leftOperand, localIsNullable) &&
-              _isNullable(expr.rightOperand, localIsNullable);
-      }
-      type = getStaticType(expr.leftOperand);
-    } else if (expr is PrefixExpression) {
-      if (expr.operator.type == TokenType.BANG) return false;
-      type = getStaticType(expr.operand);
-    } else if (expr is PostfixExpression) {
-      type = getStaticType(expr.operand);
-    }
-    if (type != null && isPrimitiveType(type)) {
-      return false;
-    }
     if (expr is MethodInvocation &&
-        (expr.operator?.type != TokenType.QUESTION_PERIOD ||
+        (expr.operator?.lexeme != '?.' ||
             !_isNullable(expr.target, localIsNullable)) &&
         _isNonNullMethodInvocation(expr)) {
+      return false;
+    }
+
+    Expression operand, rightOperand;
+    String op;
+    if (expr is AssignmentExpression) {
+      op = expr.operator.lexeme;
+      assert(op.endsWith('='));
+      if (op == '=') {
+        return _isNullable(expr.rightHandSide, localIsNullable);
+      }
+      // op assignment like +=, remove trailing '='
+      op = op.substring(0, op.length - 1);
+      operand = expr.leftHandSide;
+      rightOperand = expr.rightHandSide;
+    } else if (expr is BinaryExpression) {
+      operand = expr.leftOperand;
+      rightOperand = expr.rightOperand;
+      op = expr.operator.lexeme;
+    } else if (expr is PrefixExpression) {
+      operand = expr.operand;
+      op = expr.operator.lexeme;
+    } else if (expr is PostfixExpression) {
+      operand = expr.operand;
+      op = expr.operator.lexeme;
+    }
+    switch (op) {
+      case '==':
+      case '!=':
+      case '&&':
+      case '||':
+      case '!':
+        return false;
+      case '??':
+        return _isNullable(operand, localIsNullable) &&
+            _isNullable(rightOperand, localIsNullable);
+    }
+    if (operand != null && jsTypeRep.isPrimitive(getStaticType(operand))) {
       return false;
     }
 
@@ -370,17 +385,12 @@ class _NullableLocalInference extends RecursiveAstVisitor {
 
   @override
   visitAssignmentExpression(AssignmentExpression node) {
-    _visitAssignment(node.leftHandSide, node.rightHandSide);
-    super.visitAssignmentExpression(node);
-  }
-
-  @override
-  visitBinaryExpression(BinaryExpression node) {
-    var op = node.operator.type;
-    if (op.isAssignmentOperator) {
-      _visitAssignment(node.leftOperand, node);
+    if (node.operator.lexeme == '=') {
+      _visitAssignment(node.leftHandSide, node.rightHandSide);
+    } else {
+      _visitAssignment(node.leftHandSide, node);
     }
-    super.visitBinaryExpression(node);
+    super.visitAssignmentExpression(node);
   }
 
   @override

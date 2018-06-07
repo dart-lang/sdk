@@ -51,7 +51,7 @@ throwNullValueError() {
       null, new Symbol('<Unexpected Null Value>'), null, null, null);
 }
 
-castError(obj, expectedType, [@js_helper.notNull bool isImplicit = false]) {
+castError(obj, expectedType, [@notNull bool isImplicit = false]) {
   var actualType = getReifiedType(obj);
   var message = _castErrorMessage(actualType, expectedType);
   if (JS('!', 'dart.__ignoreAllErrors')) {

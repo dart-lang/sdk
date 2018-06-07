@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 
 /// Helpers for Analyzer's Element model and corelib model.
 
@@ -339,3 +340,6 @@ bool isBuiltinAnnotation(
   var path = uri.pathSegments[0];
   return uri.scheme == 'dart' && path == libraryName;
 }
+
+ClassElement getClass(AnalysisContext c, String uri, String name) =>
+    c.computeLibraryElement(c.sourceFactory.forUri(uri)).getType(name);

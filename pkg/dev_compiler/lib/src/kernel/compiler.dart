@@ -181,9 +181,6 @@ class ProgramCompiler extends Object
   final _labelNames = new HashMap<Statement, String>.identity();
 
   final Class _jsArrayClass;
-  final Class _jsBoolClass;
-  final Class _jsNumberClass;
-  final Class _jsStringClass;
   final Class privateSymbolClass;
   final Class linkedHashMapImplClass;
   final Class identityHashMapImplClass;
@@ -220,9 +217,6 @@ class ProgramCompiler extends Object
       this._constants, this.types, this._typeRep, this._nullableInference,
       {this.emitMetadata, this.enableAsserts, this.replCompile})
       : _jsArrayClass = sdk.getClass('dart:_interceptors', 'JSArray'),
-        _jsBoolClass = sdk.getClass('dart:_interceptors', 'JSBool'),
-        _jsNumberClass = sdk.getClass('dart:_interceptors', 'JSNumber'),
-        _jsStringClass = sdk.getClass('dart:_interceptors', 'JSString'),
         _asyncStreamIteratorClass =
             sdk.getClass('dart:async', 'StreamIterator'),
         privateSymbolClass = sdk.getClass('dart:_js_helper', 'PrivateSymbol'),
@@ -1929,7 +1923,7 @@ class ProgramCompiler extends Object
   void _registerExtensionType(
       Class c, String jsPeerName, List<JS.Statement> body) {
     var className = _emitTopLevelName(c);
-    if (isPrimitiveType(c.rawType)) {
+    if (_typeRep.isPrimitive(c.rawType)) {
       body.add(
           runtimeStatement('definePrimitiveHashCode(#.prototype)', className));
     }
@@ -2184,7 +2178,7 @@ class ProgramCompiler extends Object
         type == coreTypes.objectClass) {
       return isObjectMember(name);
     } else if (type is InterfaceType) {
-      var c = getImplementationClass(type) ?? type.classNode;
+      var c = _typeRep.getImplementationClass(type) ?? type.classNode;
       if (_extensionTypes.isNativeClass(c)) {
         var member = _lookupForwardedMember(c, name);
 
@@ -4410,8 +4404,6 @@ class ProgramCompiler extends Object
   /// [_notNullLocals].
   bool isNullable(Expression expr) => _nullableInference.isNullable(expr);
 
-  bool isPrimitiveType(DartType t) => _typeRep.isPrimitive(t);
-
   JS.Expression _emitJSDoubleEq(List<JS.Expression> args,
       {bool negated = false}) {
     var op = negated ? '# != #' : '# == #';
@@ -4525,7 +4517,7 @@ class ProgramCompiler extends Object
   JS.Expression _emitMapImplType(InterfaceType type, {bool identity}) {
     var typeArgs = type.typeArguments;
     if (typeArgs.isEmpty) return _emitType(type);
-    identity ??= isPrimitiveType(typeArgs[0]);
+    identity ??= _typeRep.isPrimitive(typeArgs[0]);
     var c = identity ? identityHashMapImplClass : linkedHashMapImplClass;
     return _emitType(new InterfaceType(c, typeArgs));
   }
@@ -4533,7 +4525,7 @@ class ProgramCompiler extends Object
   JS.Expression _emitSetImplType(InterfaceType type, {bool identity}) {
     var typeArgs = type.typeArguments;
     if (typeArgs.isEmpty) return _emitType(type);
-    identity ??= isPrimitiveType(typeArgs[0]);
+    identity ??= _typeRep.isPrimitive(typeArgs[0]);
     var c = identity ? identityHashSetImplClass : linkedHashSetImplClass;
     return _emitType(new InterfaceType(c, typeArgs));
   }
@@ -4586,37 +4578,18 @@ class ProgramCompiler extends Object
 
   @override
   visitStringConcatenation(StringConcatenation node) {
-    var expressions = node.expressions;
-    if (expressions.every((e) => e is StringLiteral)) {
-      return new JS.Expression.binary(_visitExpressionList(expressions), '+');
-    }
-
-    var strings = <String>[];
-    var interpolations = <JS.Expression>[];
-
-    var expectString = true;
-    for (var e in expressions) {
-      if (e is StringLiteral) {
-        // Escape the string as necessary for use in the eventual `` quotes.
-        // TODO(jmesserly): this call adds quotes, and then we strip them off.
-        var str = js.escapedString(e.value, '`').value;
-        str = str.substring(1, str.length - 1);
-        if (expectString) {
-          strings.add(str);
-        } else {
-          var last = strings.length - 1;
-          strings[last] = strings[last] + str;
-        }
-        expectString = false;
-      } else {
-        if (expectString) strings.add('');
-        interpolations.add(_visitExpression(e));
-        expectString = true;
+    var parts = <JS.Expression>[];
+    for (var e in node.expressions) {
+      var jsExpr = _visitExpression(e);
+      if (jsExpr is JS.LiteralString && jsExpr.valueWithoutQuotes.isEmpty) {
+        continue;
       }
+      parts.add(e.getStaticType(types) == types.stringType && !isNullable(e)
+          ? jsExpr
+          : runtimeCall('str(#)', jsExpr));
     }
-    if (expectString) strings.add('');
-    return new JS.TaggedTemplate(
-        runtimeCall('str'), new JS.TemplateString(strings, interpolations));
+    if (parts.isEmpty) return js.string('');
+    return new JS.Expression.binary(parts, '+');
   }
 
   @override
@@ -4625,7 +4598,7 @@ class ProgramCompiler extends Object
     JS.Expression result;
     var type = node.type;
     var lhs = _visitExpression(node.operand);
-    var typeofName = _jsTypeofName(type);
+    var typeofName = _typeRep.typeFor(type).primitiveTypeOf;
     // Inline primitives other than int (which requires a Math.floor check).
     if (typeofName != null && type != coreTypes.intClass.rawType) {
       result = js.call('typeof # == #', [lhs, js.string(typeofName, "'")]);
@@ -4635,22 +4608,6 @@ class ProgramCompiler extends Object
       result = js.call('#.is(#)', [castType, lhs]);
     }
     return result;
-  }
-
-  String _jsTypeofName(DartType type) {
-    var t = _typeRep.typeFor(type);
-    if (t is JSNumber) return 'number';
-    if (t is JSString) return 'string';
-    if (t is JSBoolean) return 'boolean';
-    return null;
-  }
-
-  Class getImplementationClass(DartType type) {
-    var t = _typeRep.typeFor(type);
-    if (t is JSNumber) return _jsNumberClass;
-    if (t is JSString) return _jsStringClass;
-    if (t is JSBoolean) return _jsBoolClass;
-    return null;
   }
 
   @override

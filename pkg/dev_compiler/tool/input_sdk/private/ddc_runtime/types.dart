@@ -427,7 +427,7 @@ class FunctionType extends AbstractFunctionType {
         }))()''');
 
   @JSExportName('as')
-  as_T(obj, [@js_helper.notNull bool isImplicit = false]) {
+  as_T(obj, [@notNull bool isImplicit = false]) {
     if (obj == null) return obj;
     if (JS('bool', 'typeof # == "function"', obj)) {
       var actual = JS('', '#[#]', obj, _runtimeType);

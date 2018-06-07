@@ -443,7 +443,7 @@ bool instanceOf(obj, type) {
 }
 
 @JSExportName('as')
-cast(obj, type, @js_helper.notNull bool isImplicit) {
+cast(obj, type, @notNull bool isImplicit) {
   if (obj == null) return obj;
   var actual = getReifiedType(obj);
   var result = isSubtype(actual, type);
@@ -491,8 +491,14 @@ asInt(obj) {
 }
 
 /// Checks that `x` is not null or undefined.
-// TODO(jmesserly): should we inline this?
-notNull(x) {
+//
+// TODO(jmesserly): inline this, either by generating it as a function into
+// the module, or via some other pattern such as:
+//
+//     <expr> || nullErr()
+//     (t0 = <expr>) != null ? t0 : nullErr()
+@JSExportName('notNull')
+_notNull(x) {
   if (x == null) throwNullValueError();
   return x;
 }
@@ -750,7 +756,19 @@ hashKey(k) {
 @JSExportName('toString')
 String _toString(obj) {
   if (obj == null) return "null";
-  return JS('String', '#[#]()', obj, extensionSymbol('toString'));
+  if (obj is String) return obj;
+  return JS('!', '#[#]()', obj, extensionSymbol('toString'));
+}
+
+/// Converts to a non-null [String], equivalent to
+/// `dart.notNull(dart.toString(obj))`.
+///
+/// This is commonly used in string interpolation.
+@notNull
+String str(obj) {
+  if (obj == null) return "null";
+  if (obj is String) return obj;
+  return _notNull(JS('!', '#[#]()', obj, extensionSymbol('toString')));
 }
 
 // TODO(jmesserly): is the argument type verified statically?
@@ -768,17 +786,6 @@ defaultNoSuchMethod(obj, Invocation i) {
 runtimeType(obj) {
   return obj == null ? Null : JS('', '#[dartx.runtimeType]', obj);
 }
-
-/// Implements Dart's interpolated strings as ES2015 tagged template literals.
-///
-/// For example: dart.str`hello ${name}`
-String str(strings, @rest values) => JS('', '''(() => {
-  let s = $strings[0];
-  for (let i = 0, len = $values.length; i < len; ) {
-    s += $notNull($_toString($values[i])) + $strings[++i];
-  }
-  return s;
-})()''');
 
 final identityHashCode_ = JS('', 'Symbol("_identityHashCode")');
 
