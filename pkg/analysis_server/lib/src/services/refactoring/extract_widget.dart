@@ -171,7 +171,12 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
   /// Checks if [offset] is a widget creation expression that can be extracted.
   RefactoringStatus _checkSelection() {
-    AstNode node = new NodeLocator2(offset, offset + length).searchWithin(unit);
+    AstNode node = new NodeLocator(offset, offset + length).searchWithin(unit);
+
+    // Treat single ReturnStatement as its expression.
+    if (node is ReturnStatement) {
+      node = (node as ReturnStatement).expression;
+    }
 
     // Find the enclosing class.
     _enclosingClassNode = node?.getAncestor((n) => n is ClassDeclaration);
