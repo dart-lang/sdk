@@ -145,6 +145,13 @@ class CompilerTestContext extends CompilerContext {
 
       T result;
       Completer<T> completer = new Completer<T>();
+      // Since we're using `package:test_reflective_loader`, we can't rely on
+      // normal async behavior, as `defineReflectiveSuite` doesn't return a
+      // future. However, since it's built on top of `package:test`, we can
+      // obtain a future that completes when all the tests are done using
+      // `tearDownAll`. This allows this function to complete no earlier than
+      // when the tests are done. This is important, as we don't want to call
+      // `CompilerContext.clear` before then.
       tearDownAll(() => completer.complete(result));
       result = await action(c);
       return completer.future;

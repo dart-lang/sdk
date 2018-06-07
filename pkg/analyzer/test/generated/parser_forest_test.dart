@@ -8,8 +8,8 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../src/fasta/body_builder_test_helper.dart';
 import 'parser_test.dart';
 
-main() async {
-  await CompilerTestContext.runWithTestOptions((_) {
+main() {
+  return CompilerTestContext.runWithTestOptions((_) {
     defineReflectiveSuite(() {
       defineReflectiveTests(ClassMemberParserTest_Forest);
       defineReflectiveTests(ComplexParserTest_Forest);
