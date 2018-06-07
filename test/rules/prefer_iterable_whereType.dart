@@ -21,6 +21,7 @@ main() {
     return e is String;
   });
   l.whereType<String>(); // OK
+  []..add(0)..where((e) => true); // OK
 }
 
 bool p(e) => e is String;
