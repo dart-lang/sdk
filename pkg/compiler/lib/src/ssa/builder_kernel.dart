@@ -37,6 +37,7 @@ import '../types/types.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart' show SideEffects;
+import '../universe/target_checks.dart' show TargetChecks;
 import '../universe/use.dart'
     show ConstantUse, ConstrainedDynamicUse, StaticUse;
 import '../universe/world_builder.dart' show CodegenWorldBuilder;
@@ -323,7 +324,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   void buildField(ir.Field node) {
     _inLazyInitializerExpression = node.isStatic;
     FieldEntity field = _elementMap.getMember(node);
-    openFunction(field);
+    openFunction(field, checks: TargetChecks.none);
     if (node.isInstanceMember && options.enableTypeAssertions) {
       HInstruction thisInstruction = localsHandler.readThis(
           sourceInformation: _sourceInformationBuilder.buildGet(node));
@@ -471,7 +472,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
     ClassEntity cls = constructor.enclosingClass;
 
     if (_inliningStack.isEmpty) {
-      openFunction(constructor, node.function);
+      openFunction(constructor,
+          functionNode: node.function, checks: TargetChecks.none);
     }
 
     // [fieldValues] accumulates the field initializer values, which may be
@@ -961,8 +963,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   /// Builds generative constructor body.
   void buildConstructorBody(ir.Constructor constructor) {
-    openFunction(
-        _elementMap.getConstructorBody(constructor), constructor.function);
+    openFunction(_elementMap.getConstructorBody(constructor),
+        functionNode: constructor.function, checks: TargetChecks.none);
     constructor.function.body.accept(this);
     closeFunction();
   }
@@ -976,7 +978,11 @@ class KernelSsaGraphBuilder extends ir.Visitor
       return;
     }
 
-    openFunction(function, functionNode);
+    // TODO(sra): Static methods with no tear-off can be generated with no
+    // checks.
+    // TODO(sra): Instance methods can be generated with reduced checks if
+    // called only from non-dynamic call-sites.
+    openFunction(function, functionNode: functionNode);
 
     // If [functionNode] is `operator==` we explicitly add a null check at the
     // beginning of the method. This is to avoid having call sites do the null
@@ -1033,7 +1039,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   /// per-invocation checks and the body, which is later transformed, contains
   /// the re-entrant 'state machine' code.
   void buildGenerator(FunctionEntity function, ir.FunctionNode functionNode) {
-    openFunction(function, functionNode);
+    openFunction(function, functionNode: functionNode);
 
     // Prepare to tail-call the body.
 
@@ -1097,7 +1103,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   void buildGeneratorBody(
       JGeneratorBody function, ir.FunctionNode functionNode) {
     FunctionEntity entry = function.function;
-    openFunction(entry, functionNode);
+    openFunction(entry, functionNode: functionNode, checks: TargetChecks.none);
     graph.needsAsyncRewrite = true;
     if (!function.elementType.containsFreeTypeVariables) {
       // We can generate the element type in place
@@ -1118,13 +1124,16 @@ class KernelSsaGraphBuilder extends ir.Visitor
     return true;
   }
 
-  void _potentiallyAddFunctionParameterTypeChecks(ir.FunctionNode function) {
+  void _potentiallyAddFunctionParameterTypeChecks(
+      ir.FunctionNode function, TargetChecks targetChecks) {
     // Put the type checks in the first successor of the entry,
     // because that is where the type guards will also be inserted.
     // This way we ensure that a type guard will dominate the type
     // check.
 
-    checkTypeVariableBounds(targetElement);
+    if (targetChecks.checkTypeParameters) {
+      checkTypeVariableBounds(targetElement);
+    }
 
     MemberDefinition definition =
         _elementMap.getMemberDefinition(targetElement);
@@ -1140,9 +1149,22 @@ class KernelSsaGraphBuilder extends ir.Visitor
         return;
       }
       HInstruction newParameter = localsHandler.directLocals[local];
+      DartType type = _getDartTypeIfValid(variable.type);
 
-      newParameter = typeBuilder.potentiallyCheckOrTrustTypeOfParameter(
-          newParameter, _getDartTypeIfValid(variable.type));
+      if (options.strongMode) {
+        if (targetChecks.checkAllParameters ||
+            (targetChecks.checkCovariantParameters &&
+                (variable.isGenericCovariantImpl || variable.isCovariant))) {
+          newParameter = typeBuilder.potentiallyCheckOrTrustTypeOfParameter(
+              newParameter, type);
+        } else {
+          newParameter = typeBuilder.trustTypeOfParameter(newParameter, type);
+        }
+      } else {
+        newParameter = typeBuilder.potentiallyCheckOrTrustTypeOfParameter(
+            newParameter, type);
+      }
+
       localsHandler.directLocals[local] = newParameter;
     }
 
@@ -1179,7 +1201,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     // TODO(johnniwinther): Non-js-interop external functions should
     // throw a runtime error.
     assert(functionNode.body == null);
-    openFunction(function, functionNode);
+    openFunction(function, functionNode: functionNode);
 
     if (closedWorld.nativeData.isNativeMember(targetElement)) {
       nativeEmitter.nativeMethods.add(targetElement);
@@ -1259,7 +1281,11 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
   }
 
-  void openFunction(MemberEntity member, [ir.FunctionNode functionNode]) {
+  void openFunction(MemberEntity member,
+      {ir.FunctionNode functionNode, TargetChecks checks}) {
+    // TODO(sra): Pass from all sites.
+    checks ??= TargetChecks.dynamicChecks;
+
     Map<Local, AbstractValue> parameterMap = <Local, AbstractValue>{};
     if (functionNode != null) {
       void handleParameter(ir.VariableDeclaration node) {
@@ -1293,7 +1319,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     _addFunctionTypeVariablesIfNeeded(member);
 
     if (functionNode != null) {
-      _potentiallyAddFunctionParameterTypeChecks(functionNode);
+      _potentiallyAddFunctionParameterTypeChecks(functionNode, checks);
     }
     _insertTraceCall(member);
     _insertCoverageCall(member);
