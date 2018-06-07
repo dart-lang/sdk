@@ -79,7 +79,7 @@ class PhysicalResourceProvider implements ResourceProvider {
   }
 
   @override
-  Context get pathContext => io.Platform.isWindows ? windows : posix;
+  Context get pathContext => context;
 
   @override
   File getFile(String path) {

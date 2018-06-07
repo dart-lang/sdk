@@ -154,9 +154,14 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
     _userDefinedPlugins = plugins ?? <Plugin>[];
   }
 
-  String posixPathToPlatformPath(String filePath) {
-    var components = path.posix.split(filePath);
-    return resourceProvider.pathContext.joinAll(components);
+  /**
+   * Converts the given [filePath] into absolute and normalized.
+   */
+  String normalizePath(String filePath) {
+    filePath = filePath.trim();
+    filePath = resourceProvider.pathContext.absolute(filePath);
+    filePath = resourceProvider.pathContext.normalize(filePath);
+    return filePath;
   }
 
   @override
@@ -290,11 +295,7 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
     }
 
     for (String sourcePath in options.sourceFiles) {
-      sourcePath = sourcePath.trim();
-
-      // Input paths could be given in the Posix format.
-      // Make sure that we continue using them in the platform format.
-      sourcePath = posixPathToPlatformPath(sourcePath);
+      sourcePath = normalizePath(sourcePath);
 
       // Create a context, or re-use the previous one.
       try {
