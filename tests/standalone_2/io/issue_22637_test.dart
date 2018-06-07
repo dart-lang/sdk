@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// This test checks that a shutdown(SocketDirection.SEND) of a socket,
+// This test checks that a shutdown(SocketDirection.send) of a socket,
 // when the other end is already closed, does not discard unread data
 // that remains in the connection.
 

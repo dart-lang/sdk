@@ -49,12 +49,12 @@ class Server {
     bool direct = directRequestPaths.fold(
         false, (prev, path) => prev ? prev : path == request.uri.path);
     if (!secure && !direct && proxyHops > 0) {
-      Expect.isNotNull(request.headers[HttpHeaders.VIA]);
-      Expect.equals(1, request.headers[HttpHeaders.VIA].length);
-      Expect.equals(
-          proxyHops, request.headers[HttpHeaders.VIA][0].split(",").length);
+      Expect.isNotNull(request.headers[HttpHeaders.viaHeader]);
+      Expect.equals(1, request.headers[HttpHeaders.viaHeader].length);
+      Expect.equals(proxyHops,
+          request.headers[HttpHeaders.viaHeader][0].split(",").length);
     } else {
-      Expect.isNull(request.headers[HttpHeaders.VIA]);
+      Expect.isNull(request.headers[HttpHeaders.viaHeader]);
     }
     var body = new StringBuffer();
     onRequestComplete() {
@@ -114,8 +114,8 @@ class ProxyServer {
     request.fold(null, (x, y) {}).then((_) {
       var response = request.response;
       response.headers
-          .set(HttpHeaders.PROXY_AUTHENTICATE, "Basic, realm=$realm");
-      response.statusCode = HttpStatus.PROXY_AUTHENTICATION_REQUIRED;
+          .set(HttpHeaders.proxyAuthenticateHeader, "Basic, realm=$realm");
+      response.statusCode = HttpStatus.proxyAuthenticationRequired;
       response.close();
     });
   }
@@ -123,7 +123,7 @@ class ProxyServer {
   digestAuthenticationRequired(request, {stale: false}) {
     request.fold(null, (x, y) {}).then((_) {
       var response = request.response;
-      response.statusCode = HttpStatus.PROXY_AUTHENTICATION_REQUIRED;
+      response.statusCode = HttpStatus.proxyAuthenticationRequired;
       StringBuffer authHeader = new StringBuffer();
       authHeader.write('Digest');
       authHeader.write(', realm="$realm"');
@@ -133,7 +133,7 @@ class ProxyServer {
         authHeader.write(', algorithm=$serverAlgorithm');
       }
       if (serverQop != null) authHeader.write(', qop="$serverQop"');
-      response.headers.set(HttpHeaders.PROXY_AUTHENTICATE, authHeader);
+      response.headers.set(HttpHeaders.proxyAuthenticateHeader, authHeader);
       response.close();
     });
   }
@@ -147,7 +147,7 @@ class ProxyServer {
       server.listen((HttpRequest request) {
         requestCount++;
         if (username != null && password != null) {
-          if (request.headers[HttpHeaders.PROXY_AUTHORIZATION] == null) {
+          if (request.headers[HttpHeaders.proxyAuthorizationHeader] == null) {
             if (authScheme == "Digest") {
               digestAuthenticationRequired(request);
             } else {
@@ -155,10 +155,10 @@ class ProxyServer {
             }
             return;
           } else {
-            Expect.equals(
-                1, request.headers[HttpHeaders.PROXY_AUTHORIZATION].length);
+            Expect.equals(1,
+                request.headers[HttpHeaders.proxyAuthorizationHeader].length);
             String authorization =
-                request.headers[HttpHeaders.PROXY_AUTHORIZATION][0];
+                request.headers[HttpHeaders.proxyAuthorizationHeader][0];
             if (authScheme == "Basic") {
               List<String> tokens = authorization.split(" ");
               Expect.equals("Basic", tokens[0]);
@@ -239,10 +239,10 @@ class ProxyServer {
             });
             // Special handling of Content-Length and Via.
             clientRequest.contentLength = request.contentLength;
-            List<String> via = request.headers[HttpHeaders.VIA];
+            List<String> via = request.headers[HttpHeaders.viaHeader];
             String viaPrefix = via == null ? "" : "${via[0]}, ";
             clientRequest.headers
-                .add(HttpHeaders.VIA, "${viaPrefix}1.1 localhost:$port");
+                .add(HttpHeaders.viaHeader, "${viaPrefix}1.1 localhost:$port");
             // Copy all content.
             return request.pipe(clientRequest);
           }).then((clientResponse) {

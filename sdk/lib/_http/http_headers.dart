@@ -20,7 +20,7 @@ class _HttpHeaders implements HttpHeaders {
   final int _defaultPortForScheme;
 
   _HttpHeaders(this.protocolVersion,
-      {int defaultPortForScheme: HttpClient.DEFAULT_HTTP_PORT,
+      {int defaultPortForScheme: HttpClient.defaultHttpPort,
       _HttpHeaders initialHeaders})
       : _headers = new HashMap<String, List<String>>(),
         _defaultPortForScheme = defaultPortForScheme {
@@ -70,7 +70,7 @@ class _HttpHeaders implements HttpHeaders {
     _checkMutable();
     name = _validateField(name);
     _headers.remove(name);
-    if (name == HttpHeaders.TRANSFER_ENCODING) {
+    if (name == HttpHeaders.transferEncodingHeader) {
       _chunkedTransferEncoding = false;
     }
     _addAll(name, value);
@@ -88,7 +88,7 @@ class _HttpHeaders implements HttpHeaders {
       }
       if (values.length == 0) _headers.remove(name);
     }
-    if (name == HttpHeaders.TRANSFER_ENCODING && value == "chunked") {
+    if (name == HttpHeaders.transferEncodingHeader && value == "chunked") {
       _chunkedTransferEncoding = false;
     }
   }
@@ -115,20 +115,20 @@ class _HttpHeaders implements HttpHeaders {
     if (persistentConnection == _persistentConnection) return;
     if (persistentConnection) {
       if (protocolVersion == "1.1") {
-        remove(HttpHeaders.CONNECTION, "close");
+        remove(HttpHeaders.connectionHeader, "close");
       } else {
         if (_contentLength == -1) {
           throw new HttpException(
               "Trying to set 'Connection: Keep-Alive' on HTTP 1.0 headers with "
               "no ContentLength");
         }
-        add(HttpHeaders.CONNECTION, "keep-alive");
+        add(HttpHeaders.connectionHeader, "keep-alive");
       }
     } else {
       if (protocolVersion == "1.1") {
-        add(HttpHeaders.CONNECTION, "close");
+        add(HttpHeaders.connectionHeader, "close");
       } else {
-        remove(HttpHeaders.CONNECTION, "keep-alive");
+        remove(HttpHeaders.connectionHeader, "keep-alive");
       }
     }
     _persistentConnection = persistentConnection;
@@ -149,9 +149,9 @@ class _HttpHeaders implements HttpHeaders {
     _contentLength = contentLength;
     if (_contentLength >= 0) {
       if (chunkedTransferEncoding) chunkedTransferEncoding = false;
-      _set(HttpHeaders.CONTENT_LENGTH, contentLength.toString());
+      _set(HttpHeaders.contentLengthHeader, contentLength.toString());
     } else {
-      removeAll(HttpHeaders.CONTENT_LENGTH);
+      removeAll(HttpHeaders.contentLengthHeader);
       if (protocolVersion == "1.1") {
         chunkedTransferEncoding = true;
       }
@@ -168,15 +168,15 @@ class _HttpHeaders implements HttpHeaders {
     }
     if (chunkedTransferEncoding == _chunkedTransferEncoding) return;
     if (chunkedTransferEncoding) {
-      List<String> values = _headers[HttpHeaders.TRANSFER_ENCODING];
+      List<String> values = _headers[HttpHeaders.transferEncodingHeader];
       if ((values == null || values.last != "chunked")) {
         // Headers does not specify chunked encoding - add it if set.
-        _addValue(HttpHeaders.TRANSFER_ENCODING, "chunked");
+        _addValue(HttpHeaders.transferEncodingHeader, "chunked");
       }
       contentLength = -1;
     } else {
       // Headers does specify chunked encoding - remove it if not set.
-      remove(HttpHeaders.TRANSFER_ENCODING, "chunked");
+      remove(HttpHeaders.transferEncodingHeader, "chunked");
     }
     _chunkedTransferEncoding = chunkedTransferEncoding;
   }
@@ -198,7 +198,7 @@ class _HttpHeaders implements HttpHeaders {
   }
 
   DateTime get ifModifiedSince {
-    List<String> values = _headers[HttpHeaders.IF_MODIFIED_SINCE];
+    List<String> values = _headers[HttpHeaders.ifModifiedSinceHeader];
     if (values != null) {
       try {
         return HttpDate.parse(values[0]);
@@ -213,11 +213,11 @@ class _HttpHeaders implements HttpHeaders {
     _checkMutable();
     // Format "ifModifiedSince" header with date in Greenwich Mean Time (GMT).
     String formatted = HttpDate.format(ifModifiedSince.toUtc());
-    _set(HttpHeaders.IF_MODIFIED_SINCE, formatted);
+    _set(HttpHeaders.ifModifiedSinceHeader, formatted);
   }
 
   DateTime get date {
-    List<String> values = _headers[HttpHeaders.DATE];
+    List<String> values = _headers[HttpHeaders.dateHeader];
     if (values != null) {
       try {
         return HttpDate.parse(values[0]);
@@ -236,7 +236,7 @@ class _HttpHeaders implements HttpHeaders {
   }
 
   DateTime get expires {
-    List<String> values = _headers[HttpHeaders.EXPIRES];
+    List<String> values = _headers[HttpHeaders.expiresHeader];
     if (values != null) {
       try {
         return HttpDate.parse(values[0]);
@@ -251,7 +251,7 @@ class _HttpHeaders implements HttpHeaders {
     _checkMutable();
     // Format "Expires" header with date in Greenwich Mean Time (GMT).
     String formatted = HttpDate.format(expires.toUtc());
-    _set(HttpHeaders.EXPIRES, formatted);
+    _set(HttpHeaders.expiresHeader, formatted);
   }
 
   ContentType get contentType {
@@ -265,7 +265,7 @@ class _HttpHeaders implements HttpHeaders {
 
   void set contentType(ContentType contentType) {
     _checkMutable();
-    _set(HttpHeaders.CONTENT_TYPE, contentType.toString());
+    _set(HttpHeaders.contentTypeHeader, contentType.toString());
   }
 
   void clear() {
@@ -285,45 +285,45 @@ class _HttpHeaders implements HttpHeaders {
     // faster than computing hash and looking up in a hash-map.
     switch (name.length) {
       case 4:
-        if (HttpHeaders.DATE == name) {
+        if (HttpHeaders.dateHeader == name) {
           _addDate(name, value);
           return;
         }
-        if (HttpHeaders.HOST == name) {
+        if (HttpHeaders.hostHeader == name) {
           _addHost(name, value);
           return;
         }
         break;
       case 7:
-        if (HttpHeaders.EXPIRES == name) {
+        if (HttpHeaders.expiresHeader == name) {
           _addExpires(name, value);
           return;
         }
         break;
       case 10:
-        if (HttpHeaders.CONNECTION == name) {
+        if (HttpHeaders.connectionHeader == name) {
           _addConnection(name, value);
           return;
         }
         break;
       case 12:
-        if (HttpHeaders.CONTENT_TYPE == name) {
+        if (HttpHeaders.contentTypeHeader == name) {
           _addContentType(name, value);
           return;
         }
         break;
       case 14:
-        if (HttpHeaders.CONTENT_LENGTH == name) {
+        if (HttpHeaders.contentLengthHeader == name) {
           _addContentLength(name, value);
           return;
         }
         break;
       case 17:
-        if (HttpHeaders.TRANSFER_ENCODING == name) {
+        if (HttpHeaders.transferEncodingHeader == name) {
           _addTransferEncoding(name, value);
           return;
         }
-        if (HttpHeaders.IF_MODIFIED_SINCE == name) {
+        if (HttpHeaders.ifModifiedSinceHeader == name) {
           _addIfModifiedSince(name, value);
           return;
         }
@@ -345,7 +345,7 @@ class _HttpHeaders implements HttpHeaders {
     if (value == "chunked") {
       chunkedTransferEncoding = true;
     } else {
-      _addValue(HttpHeaders.TRANSFER_ENCODING, value);
+      _addValue(HttpHeaders.transferEncodingHeader, value);
     }
   }
 
@@ -353,7 +353,7 @@ class _HttpHeaders implements HttpHeaders {
     if (value is DateTime) {
       date = value;
     } else if (value is String) {
-      _set(HttpHeaders.DATE, value);
+      _set(HttpHeaders.dateHeader, value);
     } else {
       throw new HttpException("Unexpected type for header named $name");
     }
@@ -363,7 +363,7 @@ class _HttpHeaders implements HttpHeaders {
     if (value is DateTime) {
       expires = value;
     } else if (value is String) {
-      _set(HttpHeaders.EXPIRES, value);
+      _set(HttpHeaders.expiresHeader, value);
     } else {
       throw new HttpException("Unexpected type for header named $name");
     }
@@ -373,7 +373,7 @@ class _HttpHeaders implements HttpHeaders {
     if (value is DateTime) {
       ifModifiedSince = value;
     } else if (value is String) {
-      _set(HttpHeaders.IF_MODIFIED_SINCE, value);
+      _set(HttpHeaders.ifModifiedSinceHeader, value);
     } else {
       throw new HttpException("Unexpected type for header named $name");
     }
@@ -384,7 +384,7 @@ class _HttpHeaders implements HttpHeaders {
       int pos = value.indexOf(":");
       if (pos == -1) {
         _host = value;
-        _port = HttpClient.DEFAULT_HTTP_PORT;
+        _port = HttpClient.defaultHttpPort;
       } else {
         if (pos > 0) {
           _host = value.substring(0, pos);
@@ -392,7 +392,7 @@ class _HttpHeaders implements HttpHeaders {
           _host = null;
         }
         if (pos + 1 == value.length) {
-          _port = HttpClient.DEFAULT_HTTP_PORT;
+          _port = HttpClient.defaultHttpPort;
         } else {
           try {
             _port = int.parse(value.substring(pos + 1));
@@ -401,7 +401,7 @@ class _HttpHeaders implements HttpHeaders {
           }
         }
       }
-      _set(HttpHeaders.HOST, value);
+      _set(HttpHeaders.hostHeader, value);
     } else {
       throw new HttpException("Unexpected type for header named $name");
     }
@@ -418,7 +418,7 @@ class _HttpHeaders implements HttpHeaders {
   }
 
   void _addContentType(String name, value) {
-    _set(HttpHeaders.CONTENT_TYPE, value);
+    _set(HttpHeaders.contentTypeHeader, value);
   }
 
   void _addValue(String name, Object value) {
@@ -453,7 +453,7 @@ class _HttpHeaders implements HttpHeaders {
   }
 
   _foldHeader(String name) {
-    if (name == HttpHeaders.SET_COOKIE ||
+    if (name == HttpHeaders.setCookieHeader ||
         (_noFoldingHeaders != null && _noFoldingHeaders.indexOf(name) != -1)) {
       return false;
     }
@@ -577,7 +577,7 @@ class _HttpHeaders implements HttpHeaders {
       }
     }
 
-    List<String> values = _headers[HttpHeaders.COOKIE];
+    List<String> values = _headers[HttpHeaders.cookieHeader];
     if (values != null) {
       values.forEach((headerValue) => parseCookieString(headerValue));
     }

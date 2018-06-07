@@ -20,6 +20,15 @@
 
 #### Other Tools
 
+### Core library changes
+
+* `dart:io`
+  * Dart-styled constants have been added for `HttpStatus`, `HttpHeaders`,
+    `ContentType`, `HttpClient`, `WebSocketStatus`, `CompressionOptions`,
+    and `WebSocket`. The `SCREAMING_CAPS` constants are marked deprecated.
+    Note that `HttpStatus.CONTINUE` is now `HttpStatus.continue_`, and that
+    e.g. `HttpHeaders.FIELD_NAME` is now `HttpHeaders.fieldNameHeader`.
+
 ## 2.0.0-dev.60.0
 
 ### Core library changes

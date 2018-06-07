@@ -12,21 +12,21 @@ import "package:expect/expect.dart";
 void testDefaultResponseHeaders() {
   checkDefaultHeaders(headers) {
     Expect.listEquals(
-        headers[HttpHeaders.CONTENT_TYPE], ['text/plain; charset=utf-8']);
+        headers[HttpHeaders.contentTypeHeader], ['text/plain; charset=utf-8']);
     Expect.listEquals(headers['X-Frame-Options'], ['SAMEORIGIN']);
     Expect.listEquals(headers['X-Content-Type-Options'], ['nosniff']);
     Expect.listEquals(headers['X-XSS-Protection'], ['1; mode=block']);
   }
 
   checkDefaultHeadersClear(headers) {
-    Expect.isNull(headers[HttpHeaders.CONTENT_TYPE]);
+    Expect.isNull(headers[HttpHeaders.contentTypeHeader]);
     Expect.isNull(headers['X-Frame-Options']);
     Expect.isNull(headers['X-Content-Type-Options']);
     Expect.isNull(headers['X-XSS-Protection']);
   }
 
   checkDefaultHeadersClearAB(headers) {
-    Expect.isNull(headers[HttpHeaders.CONTENT_TYPE]);
+    Expect.isNull(headers[HttpHeaders.contentTypeHeader]);
     Expect.isNull(headers['X-Frame-Options']);
     Expect.isNull(headers['X-Content-Type-Options']);
     Expect.isNull(headers['X-XSS-Protection']);

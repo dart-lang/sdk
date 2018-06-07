@@ -104,8 +104,8 @@ void testBody(int totalConnections, bool useHeader) {
         if (useHeader) {
           request.contentLength = 2;
         } else {
-          request.headers.add(HttpHeaders.CONTENT_LENGTH, "7");
-          request.headers.add(HttpHeaders.CONTENT_LENGTH, "2");
+          request.headers.add(HttpHeaders.contentLengthHeader, "7");
+          request.headers.add(HttpHeaders.contentLengthHeader, "2");
         }
         request.write("x");
         Expect.throws(
@@ -165,8 +165,8 @@ void testBodyChunked(int totalConnections, bool useHeader) {
           request.contentLength = 2;
           request.headers.chunkedTransferEncoding = true;
         } else {
-          request.headers.add(HttpHeaders.CONTENT_LENGTH, "2");
-          request.headers.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
+          request.headers.add(HttpHeaders.contentLengthHeader, "2");
+          request.headers.set(HttpHeaders.transferEncodingHeader, "chunked");
         }
         request.write("x");
         Expect.throws(() => request.headers.chunkedTransferEncoding = false,

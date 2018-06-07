@@ -8,19 +8,46 @@ part of dart._http;
  * WebSocket status codes used when closing a WebSocket connection.
  */
 abstract class WebSocketStatus {
-  static const int NORMAL_CLOSURE = 1000;
-  static const int GOING_AWAY = 1001;
-  static const int PROTOCOL_ERROR = 1002;
-  static const int UNSUPPORTED_DATA = 1003;
-  static const int RESERVED_1004 = 1004;
-  static const int NO_STATUS_RECEIVED = 1005;
-  static const int ABNORMAL_CLOSURE = 1006;
-  static const int INVALID_FRAME_PAYLOAD_DATA = 1007;
-  static const int POLICY_VIOLATION = 1008;
-  static const int MESSAGE_TOO_BIG = 1009;
-  static const int MISSING_MANDATORY_EXTENSION = 1010;
-  static const int INTERNAL_SERVER_ERROR = 1011;
-  static const int RESERVED_1015 = 1015;
+  static const int normalClosure = 1000;
+  static const int goingAway = 1001;
+  static const int protocolError = 1002;
+  static const int unsupportedData = 1003;
+  static const int reserved1004 = 1004;
+  static const int noStatusReceived = 1005;
+  static const int abnormalClosure = 1006;
+  static const int invalidFramePayloadData = 1007;
+  static const int policyViolation = 1008;
+  static const int messageTooBig = 1009;
+  static const int missingMandatoryExtension = 1010;
+  static const int internalServerError = 1011;
+  static const int reserved1015 = 1015;
+
+  @Deprecated("Use normalClosure instead")
+  static const int NORMAL_CLOSURE = normalClosure;
+  @Deprecated("Use goingAway instead")
+  static const int GOING_AWAY = goingAway;
+  @Deprecated("Use protocolError instead")
+  static const int PROTOCOL_ERROR = protocolError;
+  @Deprecated("Use unsupportedData instead")
+  static const int UNSUPPORTED_DATA = unsupportedData;
+  @Deprecated("Use reserved1004 instead")
+  static const int RESERVED_1004 = reserved1004;
+  @Deprecated("Use noStatusReceived instead")
+  static const int NO_STATUS_RECEIVED = noStatusReceived;
+  @Deprecated("Use abnormalClosure instead")
+  static const int ABNORMAL_CLOSURE = abnormalClosure;
+  @Deprecated("Use invalidFramePayloadData instead")
+  static const int INVALID_FRAME_PAYLOAD_DATA = invalidFramePayloadData;
+  @Deprecated("Use policyViolation instead")
+  static const int POLICY_VIOLATION = policyViolation;
+  @Deprecated("Use messageTooBig instead")
+  static const int MESSAGE_TOO_BIG = messageTooBig;
+  @Deprecated("Use missingMandatoryExtension instead")
+  static const int MISSING_MANDATORY_EXTENSION = missingMandatoryExtension;
+  @Deprecated("Use internalServerError instead")
+  static const int INTERNAL_SERVER_ERROR = internalServerError;
+  @Deprecated("Use reserved1015 instead")
+  static const int RESERVED_1015 = reserved1015;
 }
 
 /**
@@ -36,13 +63,18 @@ class CompressionOptions {
    * clientMaxWindowBits: 15
    * serverMaxWindowBits: 15
    */
-  static const CompressionOptions DEFAULT = const CompressionOptions();
+  static const CompressionOptions compressionDefault =
+      const CompressionOptions();
+  @Deprecated("Use compressionDefault instead")
+  static const CompressionOptions DEFAULT = compressionDefault;
 
   /**
    * Disables WebSocket Compression.
    */
-  static const CompressionOptions OFF =
+  static const CompressionOptions compressionOff =
       const CompressionOptions(enabled: false);
+  @Deprecated("Use compressionOff instead")
+  static const CompressionOptions OFF = compressionOff;
 
   /**
    * Control whether the client will reuse it's compression instances.
@@ -215,7 +247,7 @@ abstract class WebSocketTransformer
    */
   factory WebSocketTransformer(
       {/*String|Future<String>*/ protocolSelector(List<String> protocols),
-      CompressionOptions compression: CompressionOptions.DEFAULT}) {
+      CompressionOptions compression: CompressionOptions.compressionDefault}) {
     return new _WebSocketTransformerImpl(protocolSelector, compression);
   }
 
@@ -238,7 +270,7 @@ abstract class WebSocketTransformer
    */
   static Future<WebSocket> upgrade(HttpRequest request,
       {protocolSelector(List<String> protocols),
-      CompressionOptions compression: CompressionOptions.DEFAULT}) {
+      CompressionOptions compression: CompressionOptions.compressionDefault}) {
     return _WebSocketTransformerImpl._upgrade(
         request, protocolSelector, compression);
   }
@@ -264,10 +296,19 @@ abstract class WebSocket
   /**
    * Possible states of the connection.
    */
-  static const int CONNECTING = 0;
-  static const int OPEN = 1;
-  static const int CLOSING = 2;
-  static const int CLOSED = 3;
+  static const int connecting = 0;
+  static const int open = 1;
+  static const int closing = 2;
+  static const int closed = 3;
+
+  @Deprecated("Use connecting instead")
+  static const int CONNECTING = connecting;
+  @Deprecated("Use open instead")
+  static const int OPEN = open;
+  @Deprecated("Use closing instead")
+  static const int CLOSING = closing;
+  @Deprecated("Use closed instead")
+  static const int CLOSED = closed;
 
   /**
    * Set and get the interval for sending ping signals. If a ping message is not
@@ -315,7 +356,8 @@ abstract class WebSocket
   static Future<WebSocket> connect(String url,
           {Iterable<String> protocols,
           Map<String, dynamic> headers,
-          CompressionOptions compression: CompressionOptions.DEFAULT}) =>
+          CompressionOptions compression:
+              CompressionOptions.compressionDefault}) =>
       _WebSocketImpl.connect(url, protocols, headers, compression: compression);
 
   @Deprecated('This constructor will be removed in Dart 2.0. Use `implements`'
@@ -344,7 +386,7 @@ abstract class WebSocket
   factory WebSocket.fromUpgradedSocket(Socket socket,
       {String protocol,
       bool serverSide,
-      CompressionOptions compression: CompressionOptions.DEFAULT}) {
+      CompressionOptions compression: CompressionOptions.compressionDefault}) {
     if (serverSide == null) {
       throw new ArgumentError("The serverSide argument must be passed "
           "explicitly to WebSocket.fromUpgradedSocket.");

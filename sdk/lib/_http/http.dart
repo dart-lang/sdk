@@ -34,50 +34,138 @@ part 'websocket_impl.dart';
  * HTTP status codes.
  */
 abstract class HttpStatus {
-  static const int CONTINUE = 100;
-  static const int SWITCHING_PROTOCOLS = 101;
-  static const int OK = 200;
-  static const int CREATED = 201;
-  static const int ACCEPTED = 202;
-  static const int NON_AUTHORITATIVE_INFORMATION = 203;
-  static const int NO_CONTENT = 204;
-  static const int RESET_CONTENT = 205;
-  static const int PARTIAL_CONTENT = 206;
-  static const int MULTIPLE_CHOICES = 300;
-  static const int MOVED_PERMANENTLY = 301;
-  static const int FOUND = 302;
-  static const int MOVED_TEMPORARILY = 302; // Common alias for FOUND.
-  static const int SEE_OTHER = 303;
-  static const int NOT_MODIFIED = 304;
-  static const int USE_PROXY = 305;
-  static const int TEMPORARY_REDIRECT = 307;
-  static const int BAD_REQUEST = 400;
-  static const int UNAUTHORIZED = 401;
-  static const int PAYMENT_REQUIRED = 402;
-  static const int FORBIDDEN = 403;
-  static const int NOT_FOUND = 404;
-  static const int METHOD_NOT_ALLOWED = 405;
-  static const int NOT_ACCEPTABLE = 406;
-  static const int PROXY_AUTHENTICATION_REQUIRED = 407;
-  static const int REQUEST_TIMEOUT = 408;
-  static const int CONFLICT = 409;
-  static const int GONE = 410;
-  static const int LENGTH_REQUIRED = 411;
-  static const int PRECONDITION_FAILED = 412;
-  static const int REQUEST_ENTITY_TOO_LARGE = 413;
-  static const int REQUEST_URI_TOO_LONG = 414;
-  static const int UNSUPPORTED_MEDIA_TYPE = 415;
-  static const int REQUESTED_RANGE_NOT_SATISFIABLE = 416;
-  static const int EXPECTATION_FAILED = 417;
-  static const int UPGRADE_REQUIRED = 426;
-  static const int INTERNAL_SERVER_ERROR = 500;
-  static const int NOT_IMPLEMENTED = 501;
-  static const int BAD_GATEWAY = 502;
-  static const int SERVICE_UNAVAILABLE = 503;
-  static const int GATEWAY_TIMEOUT = 504;
-  static const int HTTP_VERSION_NOT_SUPPORTED = 505;
+  static const int continue_ = 100;
+  static const int switchingProtocols = 101;
+  static const int ok = 200;
+  static const int created = 201;
+  static const int accepted = 202;
+  static const int nonAuthoritativeInformation = 203;
+  static const int noContent = 204;
+  static const int resetContent = 205;
+  static const int partialContent = 206;
+  static const int multipleChoices = 300;
+  static const int movedPermanently = 301;
+  static const int found = 302;
+  static const int movedTemporarily = 302; // Common alias for found.
+  static const int seeOther = 303;
+  static const int notModified = 304;
+  static const int useProxy = 305;
+  static const int temporaryRedirect = 307;
+  static const int badRequest = 400;
+  static const int unauthorized = 401;
+  static const int paymentRequired = 402;
+  static const int forbidden = 403;
+  static const int notFound = 404;
+  static const int methodNotAllowed = 405;
+  static const int notAcceptable = 406;
+  static const int proxyAuthenticationRequired = 407;
+  static const int requestTimeout = 408;
+  static const int conflict = 409;
+  static const int gone = 410;
+  static const int lengthRequired = 411;
+  static const int preconditionFailed = 412;
+  static const int requestEntityTooLarge = 413;
+  static const int requestUriTooLong = 414;
+  static const int unsupportedMediaType = 415;
+  static const int requestedRangeNotSatisfiable = 416;
+  static const int expectationFailed = 417;
+  static const int upgradeRequired = 426;
+  static const int internalServerError = 500;
+  static const int notImplemented = 501;
+  static const int badGateway = 502;
+  static const int serviceUnavailable = 503;
+  static const int gatewayTimeout = 504;
+  static const int httpVersionNotSupported = 505;
   // Client generated status code.
-  static const int NETWORK_CONNECT_TIMEOUT_ERROR = 599;
+  static const int networkConnectTimeoutError = 599;
+
+  @Deprecated("Use continue_ instead")
+  static const int CONTINUE = continue_;
+  @Deprecated("Use switchingProtocols instead")
+  static const int SWITCHING_PROTOCOLS = switchingProtocols;
+  @Deprecated("Use ok instead")
+  static const int OK = ok;
+  @Deprecated("Use created instead")
+  static const int CREATED = created;
+  @Deprecated("Use accepted instead")
+  static const int ACCEPTED = accepted;
+  @Deprecated("Use nonAuthoritativeInformation instead")
+  static const int NON_AUTHORITATIVE_INFORMATION = nonAuthoritativeInformation;
+  @Deprecated("Use noContent instead")
+  static const int NO_CONTENT = noContent;
+  @Deprecated("Use resetContent instead")
+  static const int RESET_CONTENT = resetContent;
+  @Deprecated("Use partialContent instead")
+  static const int PARTIAL_CONTENT = partialContent;
+  @Deprecated("Use multipleChoices instead")
+  static const int MULTIPLE_CHOICES = multipleChoices;
+  @Deprecated("Use movedPermanently instead")
+  static const int MOVED_PERMANENTLY = movedPermanently;
+  @Deprecated("Use found instead")
+  static const int FOUND = found;
+  @Deprecated("Use movedTemporarily instead")
+  static const int MOVED_TEMPORARILY = movedTemporarily;
+  @Deprecated("Use seeOther instead")
+  static const int SEE_OTHER = seeOther;
+  @Deprecated("Use notModified instead")
+  static const int NOT_MODIFIED = notModified;
+  @Deprecated("Use useProxy instead")
+  static const int USE_PROXY = useProxy;
+  @Deprecated("Use temporaryRedirect instead")
+  static const int TEMPORARY_REDIRECT = temporaryRedirect;
+  @Deprecated("Use badRequest instead")
+  static const int BAD_REQUEST = badRequest;
+  @Deprecated("Use unauthorized instead")
+  static const int UNAUTHORIZED = unauthorized;
+  @Deprecated("Use paymentRequired instead")
+  static const int PAYMENT_REQUIRED = paymentRequired;
+  @Deprecated("Use forbidden instead")
+  static const int FORBIDDEN = forbidden;
+  @Deprecated("Use notFound instead")
+  static const int NOT_FOUND = notFound;
+  @Deprecated("Use methodNotAllowed instead")
+  static const int METHOD_NOT_ALLOWED = methodNotAllowed;
+  @Deprecated("Use notAcceptable instead")
+  static const int NOT_ACCEPTABLE = notAcceptable;
+  @Deprecated("Use proxyAuthenticationRequired instead")
+  static const int PROXY_AUTHENTICATION_REQUIRED = proxyAuthenticationRequired;
+  @Deprecated("Use requestTimeout instead")
+  static const int REQUEST_TIMEOUT = requestTimeout;
+  @Deprecated("Use conflict instead")
+  static const int CONFLICT = conflict;
+  @Deprecated("Use gone instead")
+  static const int GONE = gone;
+  @Deprecated("Use lengthRequired instead")
+  static const int LENGTH_REQUIRED = lengthRequired;
+  @Deprecated("Use preconditionFailed instead")
+  static const int PRECONDITION_FAILED = preconditionFailed;
+  @Deprecated("Use requestEntityTooLarge instead")
+  static const int REQUEST_ENTITY_TOO_LARGE = requestEntityTooLarge;
+  @Deprecated("Use requestUriTooLong instead")
+  static const int REQUEST_URI_TOO_LONG = requestUriTooLong;
+  @Deprecated("Use unsupportedMediaType instead")
+  static const int UNSUPPORTED_MEDIA_TYPE = unsupportedMediaType;
+  @Deprecated("Use requestedRangeNotSatisfiable instead")
+  static const int REQUESTED_RANGE_NOT_SATISFIABLE =
+      requestedRangeNotSatisfiable;
+  @Deprecated("Use expectationFailed instead")
+  static const int EXPECTATION_FAILED = expectationFailed;
+  @Deprecated("Use upgradeRequired instead")
+  static const int UPGRADE_REQUIRED = upgradeRequired;
+  @Deprecated("Use internalServerError instead")
+  static const int INTERNAL_SERVER_ERROR = internalServerError;
+  @Deprecated("Use notImplemented instead")
+  static const int NOT_IMPLEMENTED = notImplemented;
+  @Deprecated("Use badGateway instead")
+  static const int BAD_GATEWAY = badGateway;
+  @Deprecated("Use serviceUnavailable instead")
+  static const int SERVICE_UNAVAILABLE = serviceUnavailable;
+  @Deprecated("Use gatewayTimeout instead")
+  static const int GATEWAY_TIMEOUT = gatewayTimeout;
+  @Deprecated("Use httpVersionNotSupported instead")
+  static const int HTTP_VERSION_NOT_SUPPORTED = httpVersionNotSupported;
+  @Deprecated("Use networkConnectTimeoutError instead")
+  static const int NETWORK_CONNECT_TIMEOUT_ERROR = networkConnectTimeoutError;
 }
 
 /**
@@ -97,7 +185,7 @@ abstract class HttpStatus {
  *
  *     main() {
  *       HttpServer
- *           .bind(InternetAddress.ANY_IP_V6, 80)
+ *           .bind(InternetAddress.anyIPv6, 80)
  *           .then((server) {
  *             server.listen((HttpRequest request) {
  *               request.response.write('Hello, world!');
@@ -138,7 +226,7 @@ abstract class HttpStatus {
  *       context.usePrivateKey(key, password: 'dartdart');
  *
  *       HttpServer
- *           .bindSecure(InternetAddress.ANY_IP_V6,
+ *           .bindSecure(InternetAddress.anyIPv6,
  *                       443,
  *                       context)
  *           .then((server) {
@@ -160,7 +248,7 @@ abstract class HttpStatus {
  *     import 'dart:io';
  *
  *     main() {
- *       ServerSocket.bind(InternetAddress.ANY_IP_V6, 80)
+ *       ServerSocket.bind(InternetAddress.anyIPv6, 80)
  *         .then((serverSocket) {
  *           HttpServer httpserver = new HttpServer.listenOn(serverSocket);
  *           serverSocket.listen((Socket socket) {
@@ -242,17 +330,17 @@ abstract class HttpServer implements Stream<HttpRequest> {
    * perform a [InternetAddress.lookup] and use the first value in the
    * list. To listen on the loopback adapter, which will allow only
    * incoming connections from the local host, use the value
-   * [InternetAddress.LOOPBACK_IP_V4] or
-   * [InternetAddress.LOOPBACK_IP_V6]. To allow for incoming
+   * [InternetAddress.loopbackIPv4] or
+   * [InternetAddress.loopbackIPv6]. To allow for incoming
    * connection from the network use either one of the values
-   * [InternetAddress.ANY_IP_V4] or [InternetAddress.ANY_IP_V6] to
+   * [InternetAddress.anyIPv4] or [InternetAddress.anyIPv6] to
    * bind to all interfaces or the IP address of a specific interface.
    *
    * If an IP version 6 (IPv6) address is used, both IP version 6
    * (IPv6) and version 4 (IPv4) connections will be accepted. To
    * restrict this to version 6 (IPv6) only, use [v6Only] to set
    * version 6 only. However, if the address is
-   * [InternetAddress.LOOPBACK_IP_V6], only IP version 6 (IPv6) connections
+   * [InternetAddress.loopbackIPv6], only IP version 6 (IPv6) connections
    * will be accepted.
    *
    * If [port] has the value [:0:] an ephemeral port will be chosen by
@@ -281,10 +369,10 @@ abstract class HttpServer implements Stream<HttpRequest> {
    * perform a [InternetAddress.lookup] and use the first value in the
    * list. To listen on the loopback adapter, which will allow only
    * incoming connections from the local host, use the value
-   * [InternetAddress.LOOPBACK_IP_V4] or
-   * [InternetAddress.LOOPBACK_IP_V6]. To allow for incoming
+   * [InternetAddress.loopbackIPv4] or
+   * [InternetAddress.loopbackIPv6]. To allow for incoming
    * connection from the network use either one of the values
-   * [InternetAddress.ANY_IP_V4] or [InternetAddress.ANY_IP_V6] to
+   * [InternetAddress.anyIPv4] or [InternetAddress.anyIPv6] to
    * bind to all interfaces or the IP address of a specific interface.
    *
    * If an IP version 6 (IPv6) address is used, both IP version 6
@@ -415,12 +503,12 @@ class HttpConnectionsInfo {
  *
  * To set the value of a header use the `set()` method:
  *
- *     request.headers.set(HttpHeaders.CACHE_CONTROL,
+ *     request.headers.set(HttpHeaders.cacheControlHeader,
  *                         'max-age=3600, must-revalidate');
  *
  * To retrieve the value of a header use the `value()` method:
  *
- *     print(request.headers.value(HttpHeaders.USER_AGENT));
+ *     print(request.headers.value(HttpHeaders.userAgentHeader));
  *
  * An HttpHeaders object holds a list of values for each name
  * as the standard allows. In most cases a name holds only a single value,
@@ -428,116 +516,228 @@ class HttpConnectionsInfo {
  * and `value()` for retrieving a value.
  */
 abstract class HttpHeaders {
-  static const ACCEPT = "accept";
-  static const ACCEPT_CHARSET = "accept-charset";
-  static const ACCEPT_ENCODING = "accept-encoding";
-  static const ACCEPT_LANGUAGE = "accept-language";
-  static const ACCEPT_RANGES = "accept-ranges";
-  static const AGE = "age";
-  static const ALLOW = "allow";
-  static const AUTHORIZATION = "authorization";
-  static const CACHE_CONTROL = "cache-control";
-  static const CONNECTION = "connection";
-  static const CONTENT_ENCODING = "content-encoding";
-  static const CONTENT_LANGUAGE = "content-language";
-  static const CONTENT_LENGTH = "content-length";
-  static const CONTENT_LOCATION = "content-location";
-  static const CONTENT_MD5 = "content-md5";
-  static const CONTENT_RANGE = "content-range";
-  static const CONTENT_TYPE = "content-type";
-  static const DATE = "date";
-  static const ETAG = "etag";
-  static const EXPECT = "expect";
-  static const EXPIRES = "expires";
-  static const FROM = "from";
-  static const HOST = "host";
-  static const IF_MATCH = "if-match";
-  static const IF_MODIFIED_SINCE = "if-modified-since";
-  static const IF_NONE_MATCH = "if-none-match";
-  static const IF_RANGE = "if-range";
-  static const IF_UNMODIFIED_SINCE = "if-unmodified-since";
-  static const LAST_MODIFIED = "last-modified";
-  static const LOCATION = "location";
-  static const MAX_FORWARDS = "max-forwards";
-  static const PRAGMA = "pragma";
-  static const PROXY_AUTHENTICATE = "proxy-authenticate";
-  static const PROXY_AUTHORIZATION = "proxy-authorization";
-  static const RANGE = "range";
-  static const REFERER = "referer";
-  static const RETRY_AFTER = "retry-after";
-  static const SERVER = "server";
-  static const TE = "te";
-  static const TRAILER = "trailer";
-  static const TRANSFER_ENCODING = "transfer-encoding";
-  static const UPGRADE = "upgrade";
-  static const USER_AGENT = "user-agent";
-  static const VARY = "vary";
-  static const VIA = "via";
-  static const WARNING = "warning";
-  static const WWW_AUTHENTICATE = "www-authenticate";
+  static const acceptHeader = "accept";
+  static const acceptCharsetHeader = "accept-charset";
+  static const acceptEncodingHeader = "accept-encoding";
+  static const acceptLanguageHeader = "accept-language";
+  static const acceptRangesHeader = "accept-ranges";
+  static const ageHeader = "age";
+  static const allowHeader = "allow";
+  static const authorizationHeader = "authorization";
+  static const cacheControlHeader = "cache-control";
+  static const connectionHeader = "connection";
+  static const contentEncodingHeader = "content-encoding";
+  static const contentLanguageHeader = "content-language";
+  static const contentLengthHeader = "content-length";
+  static const contentLocationHeader = "content-location";
+  static const contentMD5Header = "content-md5";
+  static const contentRangeHeader = "content-range";
+  static const contentTypeHeader = "content-type";
+  static const dateHeader = "date";
+  static const etagHeader = "etag";
+  static const expectHeader = "expect";
+  static const expiresHeader = "expires";
+  static const fromHeader = "from";
+  static const hostHeader = "host";
+  static const ifMatchHeader = "if-match";
+  static const ifModifiedSinceHeader = "if-modified-since";
+  static const ifNoneMatchHeader = "if-none-match";
+  static const ifRangeHeader = "if-range";
+  static const ifUnmodifiedSinceHeader = "if-unmodified-since";
+  static const lastModifiedHeader = "last-modified";
+  static const locationHeader = "location";
+  static const maxForwardsHeader = "max-forwards";
+  static const pragmaHeader = "pragma";
+  static const proxyAuthenticateHeader = "proxy-authenticate";
+  static const proxyAuthorizationHeader = "proxy-authorization";
+  static const rangeHeader = "range";
+  static const refererHeader = "referer";
+  static const retryAfterHeader = "retry-after";
+  static const serverHeader = "server";
+  static const teHeader = "te";
+  static const trailerHeader = "trailer";
+  static const transferEncodingHeader = "transfer-encoding";
+  static const upgradeHeader = "upgrade";
+  static const userAgentHeader = "user-agent";
+  static const varyHeader = "vary";
+  static const viaHeader = "via";
+  static const warningHeader = "warning";
+  static const wwwAuthenticateHeader = "www-authenticate";
+
+  @Deprecated("Use acceptHeader instead")
+  static const ACCEPT = acceptHeader;
+  @Deprecated("Use acceptCharsetHeader instead")
+  static const ACCEPT_CHARSET = acceptCharsetHeader;
+  @Deprecated("Use acceptEncodingHeader instead")
+  static const ACCEPT_ENCODING = acceptEncodingHeader;
+  @Deprecated("Use acceptLanguageHeader instead")
+  static const ACCEPT_LANGUAGE = acceptLanguageHeader;
+  @Deprecated("Use acceptRangesHeader instead")
+  static const ACCEPT_RANGES = acceptRangesHeader;
+  @Deprecated("Use ageHeader instead")
+  static const AGE = ageHeader;
+  @Deprecated("Use allowHeader instead")
+  static const ALLOW = allowHeader;
+  @Deprecated("Use authorizationHeader instead")
+  static const AUTHORIZATION = authorizationHeader;
+  @Deprecated("Use cacheControlHeader instead")
+  static const CACHE_CONTROL = cacheControlHeader;
+  @Deprecated("Use connectionHeader instead")
+  static const CONNECTION = connectionHeader;
+  @Deprecated("Use contentEncodingHeader instead")
+  static const CONTENT_ENCODING = contentEncodingHeader;
+  @Deprecated("Use contentLanguageHeader instead")
+  static const CONTENT_LANGUAGE = contentLanguageHeader;
+  @Deprecated("Use contentLengthHeader instead")
+  static const CONTENT_LENGTH = contentLengthHeader;
+  @Deprecated("Use contentLocationHeader instead")
+  static const CONTENT_LOCATION = contentLocationHeader;
+  @Deprecated("Use contentMD5Header instead")
+  static const CONTENT_MD5 = contentMD5Header;
+  @Deprecated("Use contentRangeHeader instead")
+  static const CONTENT_RANGE = contentRangeHeader;
+  @Deprecated("Use contentTypeHeader instead")
+  static const CONTENT_TYPE = contentTypeHeader;
+  @Deprecated("Use dateHeader instead")
+  static const DATE = dateHeader;
+  @Deprecated("Use etagHeader instead")
+  static const ETAG = etagHeader;
+  @Deprecated("Use expectHeader instead")
+  static const EXPECT = expectHeader;
+  @Deprecated("Use expiresHeader instead")
+  static const EXPIRES = expiresHeader;
+  @Deprecated("Use fromHeader instead")
+  static const FROM = fromHeader;
+  @Deprecated("Use hostHeader instead")
+  static const HOST = hostHeader;
+  @Deprecated("Use ifMatchHeader instead")
+  static const IF_MATCH = ifMatchHeader;
+  @Deprecated("Use ifModifiedSinceHeader instead")
+  static const IF_MODIFIED_SINCE = ifModifiedSinceHeader;
+  @Deprecated("Use ifNoneMatchHeader instead")
+  static const IF_NONE_MATCH = ifNoneMatchHeader;
+  @Deprecated("Use ifRangeHeader instead")
+  static const IF_RANGE = ifRangeHeader;
+  @Deprecated("Use ifUnmodifiedSinceHeader instead")
+  static const IF_UNMODIFIED_SINCE = ifUnmodifiedSinceHeader;
+  @Deprecated("Use lastModifiedHeader instead")
+  static const LAST_MODIFIED = lastModifiedHeader;
+  @Deprecated("Use locationHeader instead")
+  static const LOCATION = locationHeader;
+  @Deprecated("Use maxForwardsHeader instead")
+  static const MAX_FORWARDS = maxForwardsHeader;
+  @Deprecated("Use pragmaHeader instead")
+  static const PRAGMA = pragmaHeader;
+  @Deprecated("Use proxyAuthenticateHeader instead")
+  static const PROXY_AUTHENTICATE = proxyAuthenticateHeader;
+  @Deprecated("Use proxyAuthorizationHeader instead")
+  static const PROXY_AUTHORIZATION = proxyAuthorizationHeader;
+  @Deprecated("Use rangeHeader instead")
+  static const RANGE = rangeHeader;
+  @Deprecated("Use refererHeader instead")
+  static const REFERER = refererHeader;
+  @Deprecated("Use retryAfterHeader instead")
+  static const RETRY_AFTER = retryAfterHeader;
+  @Deprecated("Use serverHeader instead")
+  static const SERVER = serverHeader;
+  @Deprecated("Use teHeader instead")
+  static const TE = teHeader;
+  @Deprecated("Use trailerHeader instead")
+  static const TRAILER = trailerHeader;
+  @Deprecated("Use transferEncodingHeader instead")
+  static const TRANSFER_ENCODING = transferEncodingHeader;
+  @Deprecated("Use upgradeHeader instead")
+  static const UPGRADE = upgradeHeader;
+  @Deprecated("Use userAgentHeader instead")
+  static const USER_AGENT = userAgentHeader;
+  @Deprecated("Use varyHeader instead")
+  static const VARY = varyHeader;
+  @Deprecated("Use viaHeader instead")
+  static const VIA = viaHeader;
+  @Deprecated("Use warningHeader instead")
+  static const WARNING = warningHeader;
+  @Deprecated("Use wwwAuthenticateHeader instead")
+  static const WWW_AUTHENTICATE = wwwAuthenticateHeader;
 
   // Cookie headers from RFC 6265.
-  static const COOKIE = "cookie";
-  static const SET_COOKIE = "set-cookie";
+  static const cookieHeader = "cookie";
+  static const setCookieHeader = "set-cookie";
 
-  static const GENERAL_HEADERS = const [
-    CACHE_CONTROL,
-    CONNECTION,
-    DATE,
-    PRAGMA,
-    TRAILER,
-    TRANSFER_ENCODING,
-    UPGRADE,
-    VIA,
-    WARNING
+  @Deprecated("Use cookieHeader instead")
+  static const COOKIE = cookieHeader;
+  @Deprecated("Use setCookieHeader instead")
+  static const SET_COOKIE = setCookieHeader;
+
+  static const generalHeaders = const [
+    cacheControlHeader,
+    connectionHeader,
+    dateHeader,
+    pragmaHeader,
+    trailerHeader,
+    transferEncodingHeader,
+    upgradeHeader,
+    viaHeader,
+    warningHeader
   ];
 
-  static const ENTITY_HEADERS = const [
-    ALLOW,
-    CONTENT_ENCODING,
-    CONTENT_LANGUAGE,
-    CONTENT_LENGTH,
-    CONTENT_LOCATION,
-    CONTENT_MD5,
-    CONTENT_RANGE,
-    CONTENT_TYPE,
-    EXPIRES,
-    LAST_MODIFIED
+  @Deprecated("Use generalHeaders instead")
+  static const GENERAL_HEADERS = generalHeaders;
+
+  static const entityHeaders = const [
+    allowHeader,
+    contentEncodingHeader,
+    contentLanguageHeader,
+    contentLengthHeader,
+    contentLocationHeader,
+    contentMD5Header,
+    contentRangeHeader,
+    contentTypeHeader,
+    expiresHeader,
+    lastModifiedHeader
   ];
 
-  static const RESPONSE_HEADERS = const [
-    ACCEPT_RANGES,
-    AGE,
-    ETAG,
-    LOCATION,
-    PROXY_AUTHENTICATE,
-    RETRY_AFTER,
-    SERVER,
-    VARY,
-    WWW_AUTHENTICATE
+  @Deprecated("Use entityHeaders instead")
+  static const ENTITY_HEADERS = entityHeaders;
+
+  static const responseHeaders = const [
+    acceptRangesHeader,
+    ageHeader,
+    etagHeader,
+    locationHeader,
+    proxyAuthenticateHeader,
+    retryAfterHeader,
+    serverHeader,
+    varyHeader,
+    wwwAuthenticateHeader
   ];
 
-  static const REQUEST_HEADERS = const [
-    ACCEPT,
-    ACCEPT_CHARSET,
-    ACCEPT_ENCODING,
-    ACCEPT_LANGUAGE,
-    AUTHORIZATION,
-    EXPECT,
-    FROM,
-    HOST,
-    IF_MATCH,
-    IF_MODIFIED_SINCE,
-    IF_NONE_MATCH,
-    IF_RANGE,
-    IF_UNMODIFIED_SINCE,
-    MAX_FORWARDS,
-    PROXY_AUTHORIZATION,
-    RANGE,
-    REFERER,
-    TE,
-    USER_AGENT
+  @Deprecated("Use responseHeaders instead")
+  static const RESPONSE_HEADERS = responseHeaders;
+
+  static const requestHeaders = const [
+    acceptHeader,
+    acceptCharsetHeader,
+    acceptEncodingHeader,
+    acceptLanguageHeader,
+    authorizationHeader,
+    expectHeader,
+    fromHeader,
+    hostHeader,
+    ifMatchHeader,
+    ifModifiedSinceHeader,
+    ifNoneMatchHeader,
+    ifRangeHeader,
+    ifUnmodifiedSinceHeader,
+    maxForwardsHeader,
+    proxyAuthorizationHeader,
+    rangeHeader,
+    refererHeader,
+    teHeader,
+    userAgentHeader
   ];
+
+  @Deprecated("Use requestHeaders instead")
+  static const REQUEST_HEADERS = requestHeaders;
 
   /**
    * Gets and sets the date. The value of this property will
@@ -677,13 +877,13 @@ abstract class HttpHeaders {
  *
  *     HttpClientRequest request = ...;
  *     var v = new HeaderValue("text/plain", {"q": "0.3"});
- *     request.headers.add(HttpHeaders.ACCEPT, v);
- *     request.headers.add(HttpHeaders.ACCEPT, "text/html");
+ *     request.headers.add(HttpHeaders.acceptHeader, v);
+ *     request.headers.add(HttpHeaders.acceptHeader, "text/html");
  *
  * To parse the header values use the [:parse:] static method.
  *
  *     HttpRequest request = ...;
- *     List<String> values = request.headers[HttpHeaders.ACCEPT];
+ *     List<String> values = request.headers[HttpHeaders.acceptHeader];
  *     values.forEach((value) {
  *       HeaderValue v = HeaderValue.parse(value);
  *       // Use v.value and v.parameters
@@ -767,28 +967,36 @@ abstract class ContentType implements HeaderValue {
    *
    *     text/plain; charset=utf-8
    */
-  static final TEXT = new ContentType("text", "plain", charset: "utf-8");
+  static final text = new ContentType("text", "plain", charset: "utf-8");
+  @Deprecated("Use text instead")
+  static final TEXT = text;
 
   /**
    *  Content type for HTML using UTF-8 encoding.
    *
    *     text/html; charset=utf-8
    */
-  static final HTML = new ContentType("text", "html", charset: "utf-8");
+  static final html = new ContentType("text", "html", charset: "utf-8");
+  @Deprecated("Use html instead")
+  static final HTML = html;
 
   /**
    *  Content type for JSON using UTF-8 encoding.
    *
    *     application/json; charset=utf-8
    */
-  static final JSON = new ContentType("application", "json", charset: "utf-8");
+  static final json = new ContentType("application", "json", charset: "utf-8");
+  @Deprecated("Use json instead")
+  static final JSON = json;
 
   /**
    *  Content type for binary data.
    *
    *     application/octet-stream
    */
-  static final BINARY = new ContentType("application", "octet-stream");
+  static final binary = new ContentType("application", "octet-stream");
+  @Deprecated("Use binary instead")
+  static final BINARY = binary;
 
   /**
    * Creates a new content type object setting the primary type and
@@ -935,7 +1143,7 @@ abstract class Cookie {
  * for HTTP requests. When the server receives a request,
  * it uses the HttpRequest object's `method` property to dispatch requests.
  *
- *     final HOST = InternetAddress.LOOPBACK_IP_V4;
+ *     final HOST = InternetAddress.loopbackIPv4;
  *     final PORT = 80;
  *
  *     HttpServer.bind(HOST, PORT).then((_server) {
@@ -1101,7 +1309,7 @@ abstract class HttpRequest implements Stream<List<int>> {
  * be used.
  *
  *     HttpResponse response = ...
- *     response.headers.add(HttpHeaders.CONTENT_TYPE, "text/plain");
+ *     response.headers.add(HttpHeaders.contentTypeHeader, "text/plain");
  *     response.write(...);  // Strings written will be ISO-8859-1 encoded.
  *
  * An exception is thrown if you use the `write()` method
@@ -1120,7 +1328,7 @@ abstract class HttpResponse implements IOSink {
    * Gets and sets the status code. Any integer value is accepted. For
    * the official HTTP status codes use the fields from
    * [HttpStatus]. If no status code is explicitly set the default
-   * value [HttpStatus.OK] is used.
+   * value [HttpStatus.ok] is used.
    *
    * The status code must be set before the body is written
    * to. Setting the status code after writing to the response body or
@@ -1186,14 +1394,14 @@ abstract class HttpResponse implements IOSink {
    * The URI in [location] should be absolute, but there are no checks
    * to enforce that.
    *
-   * By default the HTTP status code `HttpStatus.MOVED_TEMPORARILY`
+   * By default the HTTP status code `HttpStatus.movedTemporarily`
    * (`302`) is used for the redirect, but an alternative one can be
    * specified using the [status] argument.
    *
    * This method will also call `close`, and the returned future is
    * the future returned by `close`.
    */
-  Future redirect(Uri location, {int status: HttpStatus.MOVED_TEMPORARILY});
+  Future redirect(Uri location, {int status: HttpStatus.movedTemporarily});
 
   /**
    * Detaches the underlying socket from the HTTP server. When the
@@ -1283,7 +1491,7 @@ abstract class HttpResponse implements IOSink {
  * `Accept-Encoding` header to something else.
  * To turn off gzip compression of the response, clear this header:
  *
- *      request.headers.removeAll(HttpHeaders.ACCEPT_ENCODING)
+ *      request.headers.removeAll(HttpHeaders.acceptEncodingHeader)
  *
  * ## Closing the HttpClient
  *
@@ -1305,8 +1513,13 @@ abstract class HttpResponse implements IOSink {
  *     client.findProxy = null;
  */
 abstract class HttpClient {
-  static const int DEFAULT_HTTP_PORT = 80;
-  static const int DEFAULT_HTTPS_PORT = 443;
+  static const int defaultHttpPort = 80;
+  @Deprecated("Use defaultHttpPort instead")
+  static const int DEFAULT_HTTP_PORT = defaultHttpPort;
+
+  static const int defaultHttpsPort = 443;
+  @Deprecated("Use defaultHttpsPort instead")
+  static const int DEFAULT_HTTPS_PORT = defaultHttpsPort;
 
   /// Gets and sets the idle timeout of non-active persistent (keep-alive)
   /// connections.
@@ -1722,7 +1935,7 @@ abstract class HttpClient {
  * be used.
  *
  *     HttpClientRequest request = ...
- *     request.headers.add(HttpHeaders.CONTENT_TYPE, "text/plain");
+ *     request.headers.add(HttpHeaders.contentTypeHeader, "text/plain");
  *     request.write(...);  // Strings written will be ISO-8859-1 encoded.
  *
  * An exception is thrown if you use an unsupported encoding and the
@@ -1741,12 +1954,12 @@ abstract class HttpClientRequest implements IOSink {
    * automatically follow redirects. The default is [:true:].
    *
    * Automatic redirect will only happen for "GET" and "HEAD" requests
-   * and only for the status codes [:HttpStatus.MOVED_PERMANENTLY:]
-   * (301), [:HttpStatus.FOUND:] (302),
-   * [:HttpStatus.MOVED_TEMPORARILY:] (302, alias for
-   * [:HttpStatus.FOUND:]), [:HttpStatus.SEE_OTHER:] (303) and
-   * [:HttpStatus.TEMPORARY_REDIRECT:] (307). For
-   * [:HttpStatus.SEE_OTHER:] (303) automatic redirect will also happen
+   * and only for the status codes [:HttpStatus.movedPermanently:]
+   * (301), [:HttpStatus.found:] (302),
+   * [:HttpStatus.movedTemporarily:] (302, alias for
+   * [:HttpStatus.found:]), [:HttpStatus.seeOther:] (303) and
+   * [:HttpStatus.temporaryRedirect:] (307). For
+   * [:HttpStatus.seeOther:] (303) automatic redirect will also happen
    * for "POST" requests with the method changed to "GET" when
    * following the redirect.
    *
@@ -1878,9 +2091,9 @@ abstract class HttpClientResponse implements Stream<List<int>> {
 
   /**
    * Returns whether the status code is one of the normal redirect
-   * codes [HttpStatus.MOVED_PERMANENTLY], [HttpStatus.FOUND],
-   * [HttpStatus.MOVED_TEMPORARILY], [HttpStatus.SEE_OTHER] and
-   * [HttpStatus.TEMPORARY_REDIRECT].
+   * codes [HttpStatus.movedPermanently], [HttpStatus.found],
+   * [HttpStatus.movedTemporarily], [HttpStatus.seeOther] and
+   * [HttpStatus.temporaryRedirect].
    */
   bool get isRedirect;
 
@@ -1894,7 +2107,7 @@ abstract class HttpClientResponse implements Stream<List<int>> {
   /**
    * Redirects this connection to a new URL. The default value for
    * [method] is the method for the current request. The default value
-   * for [url] is the value of the [HttpHeaders.LOCATION] header of
+   * for [url] is the value of the [HttpHeaders.locationHeader] header of
    * the current response. All body data must have been read from the
    * current response before calling [redirect].
    *

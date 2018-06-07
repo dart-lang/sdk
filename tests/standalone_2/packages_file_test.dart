@@ -833,7 +833,7 @@ void createFiles(Directory tempDir, String subDir, Map content) {
 /// The file contents are run through [fixPaths] to allow them to be self-
 /// referential.
 Future<HttpServer> startServer(Map files) async {
-  return (await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 0))
+  return (await HttpServer.bind(InternetAddress.loopbackIPv4, 0))
     ..forEach((request) {
       var result = files;
       onFailure:
@@ -856,7 +856,7 @@ Future<HttpServer> startServer(Map files) async {
         }
       }
       request.response
-        ..statusCode = HttpStatus.NOT_FOUND
+        ..statusCode = HttpStatus.notFound
         ..close();
     });
 }

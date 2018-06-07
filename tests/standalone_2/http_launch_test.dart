@@ -27,7 +27,7 @@ Uri pathOfData = Platform.script.resolve('http_launch_data/');
 int port;
 
 _sendNotFound(HttpResponse response) {
-  response.statusCode = HttpStatus.NOT_FOUND;
+  response.statusCode = HttpStatus.notFound;
   response.close();
 }
 
@@ -94,5 +94,5 @@ checkResults(List<ProcessResult> results) {
 }
 
 main() {
-  HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 0).then(serverRunning);
+  HttpServer.bind(InternetAddress.loopbackIPv4, 0).then(serverRunning);
 }

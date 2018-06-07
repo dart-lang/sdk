@@ -40,7 +40,7 @@ void verify(String exePath, {String altPath}) {
 
 void testDartExecShouldNotBeInCurrentDir() {
   var type = FileSystemEntity.typeSync(platformExeName);
-  expectEquals(FileSystemEntityType.NOT_FOUND, type);
+  expectEquals(FileSystemEntityType.notFound, type);
 }
 
 void testShouldFailOutsidePath() {
