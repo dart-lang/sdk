@@ -176,3 +176,8 @@ allow_expression_fonction_body() {
   f = () => i; // OK
   f = () => i++; // OK
 }
+
+missing_parameter_for_argument() {
+  void foo() {}
+  foo(0);
+}
