@@ -52,7 +52,7 @@ class LogdogRpc {
         return <LogdogStream>[];
       }
       return json["streams"]
-          .map((stream) => new LogdogStream(stream["path"]))
+          .map<LogdogStream>((stream) => new LogdogStream(stream["path"]))
           .toList();
     });
   }

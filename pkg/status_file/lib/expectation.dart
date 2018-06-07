@@ -188,7 +188,7 @@ class Expectation {
     skipByDesign,
     ignore,
     verificationError,
-  ], key: (Expectation expectation) => expectation._name.toLowerCase());
+  ], key: (expectation) => expectation._name.toLowerCase());
 
   /// Looks up the expectation with [name].
   static Expectation find(String name) {

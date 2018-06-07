@@ -161,7 +161,7 @@ class StatusFile {
     }
 
     var implicitSectionHeaderComments = sectionHeaderComments;
-    var entries = [];
+    var entries = <Entry>[];
     if (lastEmptyLine > 0 && sectionHeaderMatch(_lineCount) != null) {
       // Comments after the last empty line belong to the next section's header.
       // The empty line is not added to the section header, because it will be

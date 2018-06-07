@@ -51,11 +51,11 @@ Future<Iterable<Builder>> fetchBuilders(String clientBucket) async {
   });
 }
 
-List<BuildBucketBuild> _buildsFromJson(Map json) {
+List<BuildBucketBuild> _buildsFromJson(dynamic json) {
   if (json == null || !json.containsKey("builds")) {
     return null;
   }
-  return json["builds"].map((build) {
+  return json["builds"].map<BuildBucketBuild>((build) {
     var tags = build["tags"];
     return new BuildBucketBuild(
         build["id"],

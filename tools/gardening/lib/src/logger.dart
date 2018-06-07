@@ -22,8 +22,8 @@ abstract class Logger {
 
 String _formatMessage(String msg, error, [StackTrace stackTrace]) {
   if (error == null) return msg;
-  if (stackTrace == null) return msg + ": $error";
-  return msg + ": $error\n$stackTrace";
+  if (stackTrace == null) return "$msg: $error";
+  return "$msg: $error\n$stackTrace";
 }
 
 class StdOutLogger extends Logger {

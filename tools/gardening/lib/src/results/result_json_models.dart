@@ -69,7 +69,7 @@ class Configuration {
         json["csp"],
         json["fasta"],
         json["system"],
-        json["vm_options"],
+        json["vm_options"].cast<String>(),
         json["use_sdk"],
         json["builder_tag"],
         json["fast_startup"],
@@ -80,7 +80,7 @@ class Configuration {
         json["hot_reload"] ?? false,
         json["hot_reload_rollback"] ?? false,
         json["preview_dart_2"] ?? false,
-        json["selectors"] ?? []);
+        json["selectors"].cast<String>() ?? <String>[]);
   }
 
   /// Returns the arguments needed for running test.py with the arguments
@@ -157,8 +157,9 @@ class Result {
       this.testExpectations, this.commands);
 
   static Result getFromJson(dynamic json) {
-    var commands = json["commands"].map((x) => Command.getFromJson(x)).toList();
-    var testExpectations = json["test_expectation"];
+    var commands =
+        json["commands"].map<Command>((x) => Command.getFromJson(x)).toList();
+    var testExpectations = json["test_expectation"].cast<String>();
     return new Result(json["configuration"], json["name"], json["result"],
         json["flaky"], json["negative"], testExpectations, commands);
   }
@@ -205,8 +206,10 @@ class TestResult {
 
   List<Result> _results;
   List<Result> get results {
-    return _results ??=
-        this.jsonObject["results"].map((x) => Result.getFromJson(x)).toList();
+    return _results ??= this
+        .jsonObject["results"]
+        .map<Result>((x) => Result.getFromJson(x))
+        .toList();
   }
 
   /// Combines multiple test-results into a single test-result, potentially by

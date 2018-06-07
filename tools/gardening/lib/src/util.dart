@@ -305,13 +305,14 @@ bool isNumber(String stringToTest) {
 
 /// Gets if the [url] is a swarming task url.
 bool isSwarmingTaskUrl(String url) {
-  return url.startsWith("https://ci.chromium.org/swarming");
+  return url.startsWith(new RegExp(r"https:\/\/.*\/swarming\/task\/"));
 }
 
 /// Gets the swarming task id from the [url].
 String getSwarmingTaskId(String url) {
   RegExp swarmingTaskIdInPathRegExp =
-      new RegExp(r"https:\/\/ci\.chromium\.org\/swarming\/task\/(.*)\?server");
+      new RegExp(r"https:\/\/.*\/swarming\/task\/(.*)");
+  url = url?.split("?")[0];
   Match swarmingTaskIdMatch = swarmingTaskIdInPathRegExp.firstMatch(url);
   if (swarmingTaskIdMatch == null) {
     return null;

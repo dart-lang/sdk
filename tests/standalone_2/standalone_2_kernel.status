@@ -11,7 +11,6 @@
 # to add them.
 
 [ $compiler == app_jitk ]
-io/dependency_graph_test: CompileTimeError
 io/directory_test: RuntimeError
 io/file_error_test: RuntimeError
 io/file_test: RuntimeError
@@ -34,12 +33,9 @@ io/platform_resolved_executable_test/05: RuntimeError
 io/platform_test: RuntimeError
 io/regress_10026_test: RuntimeError
 io/secure_socket_argument_test: CompileTimeError
-io/skipping_dart2js_compilations_test: CompileTimeError
 io/socket_upgrade_to_secure_test: RuntimeError
 io/test_extension_fail_test: RuntimeError
 io/test_extension_test: RuntimeError
-io/test_harness_analyzer_test: CompileTimeError
-io/test_runner_test: CompileTimeError
 io/web_socket_pipe_test: RuntimeError
 io/web_socket_protocol_processor_test: CompileTimeError
 io/zlib_test: RuntimeError
@@ -201,14 +197,10 @@ regress_29350_test/none: Pass # Issue 31537
 *: SkipByDesign
 
 [ $compiler == fasta && $strong ]
-io/dependency_graph_test: CompileTimeError
 io/http_cookie_date_test: CompileTimeError
 io/http_headers_test: CompileTimeError
 io/http_parser_test: CompileTimeError
 io/secure_socket_argument_test: CompileTimeError
-io/skipping_dart2js_compilations_test: CompileTimeError
-io/test_harness_analyzer_test: CompileTimeError
-io/test_runner_test: CompileTimeError
 io/web_socket_protocol_processor_test: CompileTimeError
 
 [ $fasta && !$strong ]

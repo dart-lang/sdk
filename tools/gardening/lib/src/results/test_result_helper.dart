@@ -88,7 +88,7 @@ Future<Iterable<BuildBucketTestResult>> getTestResultsFromCq(
   if (arguments.length == 1) {
     if (!isSwarmingTaskUrl(firstArgument)) {
       print("URI does not match "
-          "`https://ci.chromium.org/swarming/task/<taskid>?server...`.");
+          "`https://<hostname>/swarming/task/<taskid>`.");
       return null;
     }
     String swarmingTaskId = getSwarmingTaskId(firstArgument);
