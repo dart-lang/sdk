@@ -724,6 +724,7 @@ class _Allocator extends RecursiveVisitor<Null> {
 
   void _allocateParameters(TreeNode node, FunctionNode function) {
     final bool hasTypeArgs = function.typeParameters.isNotEmpty;
+    final bool isFactory = node is Procedure && node.isFactory;
     final bool hasReceiver =
         node is Constructor || (node is Procedure && !node.isStatic);
     final bool hasClosureArg =
@@ -731,7 +732,7 @@ class _Allocator extends RecursiveVisitor<Null> {
 
     _currentFrame.numParameters = function.positionalParameters.length +
         function.namedParameters.length +
-        (hasTypeArgs ? 1 : 0) +
+        (hasTypeArgs || isFactory ? 1 : 0) +
         (hasReceiver ? 1 : 0) +
         (hasClosureArg ? 1 : 0);
 
@@ -748,6 +749,10 @@ class _Allocator extends RecursiveVisitor<Null> {
     if (hasTypeArgs) {
       assert(!locals.isCaptured(_currentFrame.typeArgsVar));
       _allocateParameter(_currentFrame.typeArgsVar, count++);
+    } else if (isFactory) {
+      // Null type arguments are passed to factory constructors even if class
+      // is not generic. TODO(alexmarkov): Clean this up.
+      count++;
     }
     if (hasReceiver) {
       _allocateParameter(_currentFrame.receiverVar, count++);

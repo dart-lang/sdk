@@ -219,7 +219,7 @@ Bytecode {
 }
 ConstantPool {
   [0] = TypeArgumentsFieldOffset #lib::E
-  [1] = ArgDesc num-args 0, num-type-args 2, names []
+  [1] = ArgDesc num-args 1, num-type-args 0, names []
   [2] = StaticICData target 'dart.core::Map::', arg-desc CP#1
   [3] = Null
 }
@@ -260,7 +260,7 @@ Bytecode {
 }
 ConstantPool {
   [0] = TypeArgumentsFieldOffset #lib::F
-  [1] = ArgDesc num-args 0, num-type-args 2, names []
+  [1] = ArgDesc num-args 1, num-type-args 0, names []
   [2] = StaticICData target 'dart.core::Map::', arg-desc CP#1
   [3] = Null
 }
@@ -336,6 +336,54 @@ ConstantPool {
 ]  synthetic constructor •() → void
     : super self::G::•()
     ;
+}
+class I extends core::Object {
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  Push                 FP[-6]
+  PushConstant         CP#1
+  IndirectStaticCall   1, CP#0
+  Drop1
+  PushConstant         CP#2
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ArgDesc num-args 1, num-type-args 0, names []
+  [1] = StaticICData target 'dart.core::Object::', arg-desc CP#0
+  [2] = Null
+}
+]  constructor •(dynamic param) → void
+    : super core::Object::•()
+    ;
+[@vm.bytecode=
+Bytecode {
+  EntryOptional        1, 0, 1
+  LoadConstant         r1, CP#0
+  LoadConstant         r1, CP#1
+  Frame                1
+  CheckStack
+  Allocate             CP#2
+  StoreLocal           r2
+  Push                 r2
+  Push                 r1
+  PushConstant         CP#4
+  IndirectStaticCall   2, CP#3
+  Drop1
+  ReturnTOS
+  PushConstant         CP#1
+  ReturnTOS
+}
+ConstantPool {
+  [0] = String 'param'
+  [1] = Null
+  [2] = Class #lib::I
+  [3] = ArgDesc num-args 2, num-type-args 0, names []
+  [4] = StaticICData target '#lib::I::', arg-desc CP#3
+}
+]  static factory test_factory2({dynamic param = null}) → self::I
+    return new self::I::•(param);
 }
 [@vm.bytecode=
 Bytecode {
@@ -447,12 +495,40 @@ Bytecode {
 }
 ConstantPool {
   [0] = TypeArgs [dart.core::int, dart.core::List<dart.core::String>]
-  [1] = ArgDesc num-args 0, num-type-args 2, names []
+  [1] = ArgDesc num-args 1, num-type-args 0, names []
   [2] = StaticICData target '#lib::G::test_factory', arg-desc CP#1
   [3] = Null
 }
 ]static method foo4() → void {
   self::G::test_factory<core::int, core::List<core::String>>();
+}
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  PushConstant         CP#0
+  PushConstant         CP#2
+  IndirectStaticCall   1, CP#1
+  Drop1
+  PushConstant         CP#0
+  PushConstant         CP#3
+  PushConstant         CP#5
+  IndirectStaticCall   2, CP#4
+  Drop1
+  PushConstant         CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = Null
+  [1] = ArgDesc num-args 1, num-type-args 0, names []
+  [2] = StaticICData target '#lib::I::test_factory2', arg-desc CP#1
+  [3] = Int 42
+  [4] = ArgDesc num-args 2, num-type-args 0, names [param]
+  [5] = StaticICData target '#lib::I::test_factory2', arg-desc CP#4
+}
+]static method foo5() → void {
+  self::I::test_factory2();
+  self::I::test_factory2(param: 42);
 }
 [@vm.bytecode=
 Bytecode {

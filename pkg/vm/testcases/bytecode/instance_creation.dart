@@ -57,6 +57,16 @@ void foo4() {
   new G<int, List<String>>.test_factory();
 }
 
+class I {
+  I(param);
+  factory I.test_factory2({param}) => new I(param);
+}
+
+void foo5() {
+  new I.test_factory2();
+  new I.test_factory2(param: 42);
+}
+
 main() {
   foo1();
   foo2();

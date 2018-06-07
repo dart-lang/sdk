@@ -264,15 +264,17 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   }
 
   void _genStaticCallWithArgs(Member target, Arguments args,
-      {bool hasReceiver: false, bool alwaysPassTypeArgs: false}) {
-    final ConstantArgDesc argDesc =
-        new ConstantArgDesc.fromArguments(args, hasReceiver: hasReceiver);
+      {bool hasReceiver: false, bool isFactory: false}) {
+    final ConstantArgDesc argDesc = new ConstantArgDesc.fromArguments(args,
+        hasReceiver: hasReceiver, isFactory: isFactory);
 
     int totalArgCount = args.positional.length + args.named.length;
     if (hasReceiver) {
       totalArgCount++;
     }
-    if (args.types.isNotEmpty || alwaysPassTypeArgs) {
+    if (args.types.isNotEmpty || isFactory) {
+      // VM needs type arguments for every invocation of a factory constructor.
+      // TODO(alexmarkov): Clean this up.
       totalArgCount++;
     }
 
@@ -1309,16 +1311,13 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   @override
   visitStaticInvocation(StaticInvocation node) {
     final args = node.arguments;
-    bool alwaysPassTypeArgs = false;
     if (node.target.isFactory && args.types.isEmpty) {
       // VM needs type arguments for every invocation of a factory constructor.
-      // TODO(alexmarkov): Why? Clean this up.
+      // TODO(alexmarkov): Clean this up.
       _genPushNull();
-      alwaysPassTypeArgs = true;
     }
     _genArguments(null, args);
-    _genStaticCallWithArgs(node.target, args,
-        alwaysPassTypeArgs: alwaysPassTypeArgs);
+    _genStaticCallWithArgs(node.target, args, isFactory: node.target.isFactory);
   }
 
   @override
