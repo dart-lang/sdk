@@ -158,6 +158,13 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    _computer._addRegion(node.argumentList.leftParenthesis.end,
+        node.argumentList.rightParenthesis.offset, FoldingKind.INVOCATION);
+    return super.visitFunctionExpressionInvocation(node);
+  }
+
+  @override
   visitImportDirective(ImportDirective node) {
     _computer._recordDirective(node);
     return super.visitImportDirective(node);

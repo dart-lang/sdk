@@ -123,6 +123,28 @@ main() {/*1:INC*/
     _compareRegions(regions, content);
   }
 
+  test_function_expression_invocation() async {
+    String content = """
+// Content before
+
+getFunc() => (String a, String b) {/*1:INC*/
+  print(a);
+/*1:INC:FUNCTION_BODY*/};
+
+main2() {/*2:INC*/
+  getFunc()(/*3:INC*/
+    "one",
+    "two"
+  /*3:INC:INVOCATION*/);
+/*2:INC:FUNCTION_BODY*/}
+
+// Content after
+""";
+
+    final regions = await _computeRegions(content);
+    _compareRegions(regions, content);
+  }
+
   test_constructor_invocations() async {
     String content = """
 // Content before
