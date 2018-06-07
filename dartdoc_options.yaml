@@ -1,2 +1,2 @@
 dartdoc:
-  categoryOrder: ["VM", "Web"]
+  categoryOrder: ["Core", VM", "Web"]

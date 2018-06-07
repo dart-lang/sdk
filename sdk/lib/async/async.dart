@@ -88,6 +88,8 @@
  * [futures-tutorial]: https://www.dartlang.org/docs/tutorials/futures/
  * [futures-error-handling]: https://www.dartlang.org/articles/futures-and-error-handling/
  * [test-readme]: https://pub.dartlang.org/packages/test
+ *
+ * {@category Core}
  */
 library dart.async;
 

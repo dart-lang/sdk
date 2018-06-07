@@ -8,6 +8,8 @@
 /// To use this library in your code:
 ///
 ///     import 'dart:typed_data';
+///
+/// {@category Core}
 library dart.typed_data;
 
 import "dart:_internal" show UnmodifiableListBase;
