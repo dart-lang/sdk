@@ -140,10 +140,13 @@ class _Visitor extends SimpleAstVisitor<void> {
   void _checkArgs(
       NodeList<Expression> args, List<ParameterElement> parameters) {
     for (final arg in args) {
-      final type = arg.bestParameterElement.type;
-      final expression = arg is NamedExpression ? arg.expression : arg;
-      if (!_isFunctionRef(type, expression)) {
-        _check(type, expression?.bestType, expression);
+      final parameterElement = arg.bestParameterElement;
+      if (parameterElement != null) {
+        final type = parameterElement.type;
+        final expression = arg is NamedExpression ? arg.expression : arg;
+        if (!_isFunctionRef(type, expression)) {
+          _check(type, expression?.bestType, expression);
+        }
       }
     }
   }
