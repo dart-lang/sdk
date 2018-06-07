@@ -12,6 +12,7 @@
 #include "vm/gc_marker.h"
 #include "vm/gc_sweeper.h"
 #include "vm/lockers.h"
+#include "vm/log.h"
 #include "vm/object.h"
 #include "vm/object_set.h"
 #include "vm/os_thread.h"
@@ -1229,14 +1230,19 @@ PageSpaceController::PageSpaceController(Heap* heap,
                                          int garbage_collection_time_ratio)
     : heap_(heap),
       is_enabled_(false),
-      grow_heap_(heap_growth_max / 2),
-      grow_external_(heap_growth_max / 2),
       heap_growth_ratio_(heap_growth_ratio),
       desired_utilization_((100.0 - heap_growth_ratio) / 100.0),
       heap_growth_max_(heap_growth_max),
       garbage_collection_time_ratio_(garbage_collection_time_ratio),
       last_code_collection_in_us_(OS::GetCurrentMonotonicMicros()),
-      idle_gc_threshold_in_words_(0) {}
+      idle_gc_threshold_in_words_(0) {
+  intptr_t grow_heap = heap_growth_max / 2;
+  gc_threshold_in_words_ =
+      last_usage_.capacity_in_words + (kPageSizeInWords * grow_heap);
+  intptr_t grow_external = heap_growth_max / 2;
+  gc_external_threshold_in_words_ =
+      last_usage_.external_in_words + (kPageSizeInWords * grow_external);
+}
 
 PageSpaceController::~PageSpaceController() {}
 
@@ -1247,32 +1253,12 @@ bool PageSpaceController::NeedsGarbageCollection(SpaceUsage after) const {
   if (heap_growth_ratio_ == 100) {
     return false;
   }
-  intptr_t capacity_increase_in_words =
-      after.capacity_in_words - last_usage_.capacity_in_words;
-  // The concurrent sweeper might have freed more capacity than was allocated.
-  capacity_increase_in_words =
-      Utils::Maximum<intptr_t>(0, capacity_increase_in_words);
-  capacity_increase_in_words =
-      Utils::RoundUp(capacity_increase_in_words, kPageSizeInWords);
-  intptr_t capacity_increase_in_pages =
-      capacity_increase_in_words / kPageSizeInWords;
-  bool needs_gc = capacity_increase_in_pages > grow_heap_;
-  if (FLAG_log_growth) {
-    OS::PrintErr("%s: allocate %s %" Pd " %s %" Pd "\n",
-                 heap_->isolate()->name(), needs_gc ? "collect" : "grow",
-                 capacity_increase_in_pages, needs_gc ? ">" : "<=", grow_heap_);
-  }
-  return needs_gc || NeedsExternalCollection(after);
+  return (after.capacity_in_words > gc_threshold_in_words_) ||
+         NeedsExternalCollection(after);
 }
 
 bool PageSpaceController::NeedsExternalCollection(SpaceUsage after) const {
-  intptr_t increase_in_words =
-      after.external_in_words - last_usage_.external_in_words;
-  increase_in_words = Utils::Maximum<intptr_t>(0, increase_in_words);
-  increase_in_words = Utils::RoundUp(increase_in_words, kPageSizeInWords);
-  intptr_t increase_in_pages = increase_in_words / kPageSizeInWords;
-  bool needs_gc = increase_in_pages > grow_external_;
-  return needs_gc;
+  return after.external_in_words > gc_external_threshold_in_words_;
 }
 
 bool PageSpaceController::NeedsIdleGarbageCollection(SpaceUsage current) const {
@@ -1282,13 +1268,7 @@ bool PageSpaceController::NeedsIdleGarbageCollection(SpaceUsage current) const {
   if (heap_growth_ratio_ == 100) {
     return false;
   }
-  bool needs_gc = current.used_in_words > idle_gc_threshold_in_words_;
-  if (FLAG_log_growth) {
-    OS::PrintErr("%s: idle %s %" Pd " %s %" Pd "\n", heap_->isolate()->name(),
-                 needs_gc ? "collect" : "grow", current.used_in_words,
-                 needs_gc ? ">" : "<=", idle_gc_threshold_in_words_);
-  }
-  return needs_gc;
+  return current.capacity_in_words > idle_gc_threshold_in_words_;
 }
 
 void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
@@ -1314,14 +1294,18 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
     // - half of the growth since the last collection
     // whichever is bigger. The second case prevents shrinking the limit too
     // much. See similar handling of the Dart heap below.
-    grow_external_ = Utils::Maximum<intptr_t>(external_after_in_pages >> 2,
-                                              external_growth_in_pages >> 1);
+    intptr_t grow_external = Utils::Maximum<intptr_t>(
+        external_after_in_pages >> 2, external_growth_in_pages >> 1);
+
+    gc_external_threshold_in_words_ =
+        after.external_in_words + (kPageSizeInWords * grow_external);
   }
 
   // Assume garbage increases linearly with allocation:
   // G = kA, and estimate k from the previous cycle.
   const intptr_t allocated_since_previous_gc =
       before.used_in_words - last_usage_.used_in_words;
+  intptr_t grow_heap;
   if (allocated_since_previous_gc > 0) {
     const intptr_t garbage = before.used_in_words - after.used_in_words;
     ASSERT(garbage >= 0);
@@ -1348,13 +1332,13 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
         kPageSizeInWords;
     if (garbage_ratio == 0) {
       // No garbage in the previous cycle so it would be hard to compute a
-      // grow_heap_ size based on estimated garbage so we use growth ratio
+      // grow_heap size based on estimated garbage so we use growth ratio
       // heuristics instead.
-      grow_heap_ =
+      grow_heap =
           Utils::Maximum(static_cast<intptr_t>(heap_growth_max_), grow_pages);
     } else {
-      // Find minimum 'grow_heap_' such that after increasing capacity by
-      // 'grow_heap_' pages and filling them, we expect a GC to be worthwhile.
+      // Find minimum 'grow_heap' such that after increasing capacity by
+      // 'grow_heap' pages and filling them, we expect a GC to be worthwhile.
       intptr_t max = heap_growth_max_;
       intptr_t min = 0;
       intptr_t local_grow_heap = 0;
@@ -1371,33 +1355,43 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
         }
       }
       local_grow_heap = (max + min) / 2;
-      grow_heap_ = local_grow_heap;
-      ASSERT(grow_heap_ >= 0);
+      grow_heap = local_grow_heap;
+      ASSERT(grow_heap >= 0);
       // If we are going to grow by heap_grow_max_ then ensure that we
       // will be growing the heap at least by the growth ratio heuristics.
-      if (grow_heap_ >= heap_growth_max_) {
-        grow_heap_ = Utils::Maximum(grow_pages, grow_heap_);
+      if (grow_heap >= heap_growth_max_) {
+        grow_heap = Utils::Maximum(grow_pages, grow_heap);
       }
     }
   } else {
     heap_->RecordData(PageSpace::kGarbageRatio, 100);
-    grow_heap_ = 0;
+    grow_heap = 0;
   }
-  heap_->RecordData(PageSpace::kPageGrowth, grow_heap_);
+  heap_->RecordData(PageSpace::kPageGrowth, grow_heap);
 
   // Limit shrinkage: allow growth by at least half the pages freed by GC.
   const intptr_t freed_pages =
       (before.capacity_in_words - after.capacity_in_words) / kPageSizeInWords;
-  grow_heap_ = Utils::Maximum(grow_heap_, freed_pages / 2);
-  heap_->RecordData(PageSpace::kAllowedGrowth, grow_heap_);
+  grow_heap = Utils::Maximum(grow_heap, freed_pages / 2);
+  heap_->RecordData(PageSpace::kAllowedGrowth, grow_heap);
   last_usage_ = after;
 
-  // Set the idle threshold halfway between the current size and the capacity
-  // at which we'd block for a GC.
-  intptr_t gc_threshold_in_words =
-      after.capacity_in_words + (kPageSizeInWords * grow_heap_);
+  // Save final threshold compared before growing.
+  gc_threshold_in_words_ =
+      after.capacity_in_words + (kPageSizeInWords * grow_heap);
+
+  // Set the idle threshold halfway between the current capacity and the
+  // capacity at which we'd block for a GC.
   idle_gc_threshold_in_words_ =
-      (after.used_in_words + gc_threshold_in_words) / 2;
+      (after.capacity_in_words + gc_threshold_in_words_) / 2;
+
+  if (FLAG_log_growth) {
+    THR_Print("%s: threshold=%" Pd "kB, idle_threshold=%" Pd
+              "kB, external_threshold=%" Pd "kB\n",
+              heap_->isolate()->name(), gc_threshold_in_words_ / KBInWords,
+              idle_gc_threshold_in_words_ / KBInWords,
+              gc_external_threshold_in_words_ / KBInWords);
+  }
 }
 
 void PageSpaceGarbageCollectionHistory::AddGarbageCollectionTime(int64_t start,

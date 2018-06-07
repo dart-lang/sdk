@@ -181,32 +181,32 @@ class PageSpaceController {
   // Usage after last evaluated GC or last enabled.
   SpaceUsage last_usage_;
 
-  // Pages of capacity growth allowed before next GC is advised.
-  intptr_t grow_heap_;
-
-  // Pages of external growth allowed before next GC is advised.
-  intptr_t grow_external_;
-
   // If the garbage collector was not able to free more than heap_growth_ratio_
   // memory, then the heap is grown. Otherwise garbage collection is performed.
-  int heap_growth_ratio_;
+  const int heap_growth_ratio_;
 
   // The desired percent of heap in-use after a garbage collection.
   // Equivalent to \frac{100-heap_growth_ratio_}{100}.
-  double desired_utilization_;
+  const double desired_utilization_;
 
   // Max number of pages we grow.
-  int heap_growth_max_;
+  const int heap_growth_max_;
 
   // If the relative GC time goes above garbage_collection_time_ratio_ %,
   // we grow the heap more aggressively.
-  int garbage_collection_time_ratio_;
+  const int garbage_collection_time_ratio_;
 
   // The time in microseconds of the last time we tried to collect unused
   // code.
   int64_t last_code_collection_in_us_;
 
-  // We start considering idle mark-sweeps when old space crosses this size.
+  // Perform a synchronous GC when capacity exceeds this amount.
+  intptr_t gc_threshold_in_words_;
+
+  // Perform a synchronous GC when external allocations exceed this amount.
+  intptr_t gc_external_threshold_in_words_;
+
+  // Start considering idle GC when capacity exceeds this amount.
   intptr_t idle_gc_threshold_in_words_;
 
   PageSpaceGarbageCollectionHistory history_;
