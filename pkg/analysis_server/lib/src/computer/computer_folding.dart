@@ -164,15 +164,43 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitInstanceCreationExpression(InstanceCreationExpression node) {
+    _computer._addRegion(node.argumentList.leftParenthesis.end,
+        node.argumentList.rightParenthesis.offset, FoldingKind.INVOCATION);
+    return super.visitInstanceCreationExpression(node);
+  }
+
+  @override
   Object visitLibraryDirective(LibraryDirective node) {
     _computer._recordDirective(node);
     return super.visitLibraryDirective(node);
   }
 
   @override
+  Object visitListLiteral(ListLiteral node) {
+    _computer._addRegion(
+        node.leftBracket.end, node.rightBracket.offset, FoldingKind.LITERAL);
+    return super.visitListLiteral(node);
+  }
+
+  @override
+  Object visitMapLiteral(MapLiteral node) {
+    _computer._addRegion(
+        node.leftBracket.end, node.rightBracket.offset, FoldingKind.LITERAL);
+    return super.visitMapLiteral(node);
+  }
+
+  @override
   Object visitMethodDeclaration(MethodDeclaration node) {
     _computer._addRegionForAnnotations(node.metadata);
     return super.visitMethodDeclaration(node);
+  }
+
+  @override
+  Object visitMethodInvocation(MethodInvocation node) {
+    _computer._addRegion(node.argumentList.leftParenthesis.end,
+        node.argumentList.rightParenthesis.offset, FoldingKind.INVOCATION);
+    return super.visitMethodInvocation(node);
   }
 
   @override

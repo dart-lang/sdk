@@ -106,6 +106,97 @@ main() {/*2:INC*/
     _compareRegions(regions, content);
   }
 
+  test_invocations() async {
+    String content = """
+// Content before
+
+main() {/*1:INC*/
+  print(/*2:INC*/
+    "Hello, world!",
+  /*2:INC:INVOCATION*/);
+/*1:INC:FUNCTION_BODY*/}
+
+// Content after
+""";
+
+    final regions = await _computeRegions(content);
+    _compareRegions(regions, content);
+  }
+
+  test_constructor_invocations() async {
+    String content = """
+// Content before
+
+main() {/*1:INC*/
+  return new Text(/*2:INC*/
+    "Hello, world!",
+  /*2:INC:INVOCATION*/);
+/*1:INC:FUNCTION_BODY*/}
+
+// Content after
+""";
+
+    final regions = await _computeRegions(content);
+    _compareRegions(regions, content);
+  }
+
+  test_nested_invocations() async {
+    String content = """
+// Content before
+
+main() {/*1:INC*/
+  a(/*2:INC*/
+    b(/*3:INC*/
+      c(/*4:INC*/
+        d()
+      /*4:INC:INVOCATION*/),
+    /*3:INC:INVOCATION*/),
+  /*2:INC:INVOCATION*/);
+/*1:INC:FUNCTION_BODY*/}
+
+// Content after
+""";
+
+    final regions = await _computeRegions(content);
+    _compareRegions(regions, content);
+  }
+
+  test_literal_list() async {
+    String content = """
+// Content before
+
+main() {/*1:INC*/
+  final List<String> things = <String>[/*2:INC*/
+    "one",
+    "two"
+  /*2:INC:LITERAL*/];
+/*1:INC:FUNCTION_BODY*/}
+
+// Content after
+""";
+
+    final regions = await _computeRegions(content);
+    _compareRegions(regions, content);
+  }
+
+  test_literal_map() async {
+    String content = """
+// Content before
+
+main2() {/*1:INC*/
+  final Map<String, String> things = <String, String>{/*2:INC*/
+    "one": "one",
+    "two": "two"
+    /*2:INC:LITERAL*/};
+/*1:INC:FUNCTION_BODY*/}
+
+// Content after
+""";
+
+    final regions = await _computeRegions(content);
+    _compareRegions(regions, content);
+  }
+
   test_nested_function() async {
     String content = """
 // Content before
