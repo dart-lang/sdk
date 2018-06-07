@@ -5213,12 +5213,6 @@ class StatementParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_parseStatement_singleLabel() {
-    // Failing because the label doesn't know it's in a declaration context.
-    super.test_parseStatement_singleLabel();
-  }
-
-  @failingTest
   void test_parseSwitchStatement_case() {
     super.test_parseSwitchStatement_case();
   }
