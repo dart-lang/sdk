@@ -58,7 +58,6 @@ class ObjectPointerVisitor;
   RW(Class, pragma_class)                                                      \
   RW(Class, future_class)                                                      \
   RW(Class, completer_class)                                                   \
-  RW(Class, stream_iterator_class)                                             \
   RW(Class, symbol_class)                                                      \
   RW(Class, one_byte_string_class)                                             \
   RW(Class, two_byte_string_class)                                             \

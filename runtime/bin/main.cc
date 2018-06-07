@@ -37,6 +37,8 @@
 #include "bin/gzip.h"
 #endif
 
+#include "vm/flags.h"
+
 extern "C" {
 extern const uint8_t kDartVmSnapshotData[];
 extern const uint8_t kDartVmSnapshotInstructions[];
@@ -291,10 +293,12 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
   result = DartUtils::PrepareForScriptLoading(false, Options::trace_loading());
   CHECK_RESULT(result);
 
-  // Set up the load port provided by the service isolate so that we can
-  // load scripts.
-  result = DartUtils::SetupServiceLoadPort();
-  CHECK_RESULT(result);
+  if (FLAG_support_service || !kDartPrecompiledRuntime) {
+    // Set up the load port provided by the service isolate so that we can
+    // load scripts.
+    result = DartUtils::SetupServiceLoadPort();
+    CHECK_RESULT(result);
+  }
 
   // Setup package root if specified.
   result = DartUtils::SetupPackageRoot(package_root, packages_config);

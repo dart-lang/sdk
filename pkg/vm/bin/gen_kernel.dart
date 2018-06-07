@@ -15,7 +15,7 @@ import 'package:kernel/text/ast_to_text.dart'
     show globalDebuggingNames, NameSystem;
 import 'package:vm/bytecode/gen_bytecode.dart' show isKernelBytecodeEnabled;
 import 'package:vm/kernel_front_end.dart'
-    show compileToKernel, ErrorDetector, ErrorPrinter;
+    show compileToKernel, ErrorDetector, ErrorPrinter, parseCommandLineDefines;
 
 final ArgParser _argParser = new ArgParser(allowTrailingOptions: true)
   ..addOption('platform',
@@ -93,7 +93,7 @@ Future<int> compile(List<String> arguments) async {
   final bool enableConstantEvaluation = options['enable-constant-evaluation'];
   final Map<String, String> environmentDefines = {};
 
-  if (!_parseDefines(options['define'], environmentDefines)) {
+  if (!parseCommandLineDefines(options['define'], environmentDefines, _usage)) {
     return _badUsageExitCode;
   }
 
@@ -178,23 +178,4 @@ Future runBatchModeCompiler() async {
         throw 'Could not obtain correct exit code from compiler.';
     }
   });
-}
-
-bool _parseDefines(
-    List<String> dFlags, Map<String, String> environmentDefines) {
-  for (final String dflag in dFlags) {
-    final equalsSignIndex = dflag.indexOf('=');
-    if (equalsSignIndex < 0) {
-      environmentDefines[dflag] = '';
-    } else if (equalsSignIndex > 0) {
-      final key = dflag.substring(0, equalsSignIndex);
-      final value = dflag.substring(equalsSignIndex + 1);
-      environmentDefines[key] = value;
-    } else {
-      print('The environment constant options must have a key (was: "$dflag")');
-      print(_usage);
-      return false;
-    }
-  }
-  return true;
 }
