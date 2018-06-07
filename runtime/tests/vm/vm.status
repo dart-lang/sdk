@@ -67,6 +67,8 @@ cc/IsolateReload_KernelIncrementalCompileExpression: SkipByDesign
 cc/IsolateReload_KernelIncrementalCompileGenerics: SkipByDesign
 cc/Mixin_PrivateSuperResolution: Skip
 cc/Mixin_PrivateSuperResolutionCrossLibraryShouldFail: Skip
+dart/appjit_determinism_test: Pass, Fail # Issue 31427 - Lingering non-determinism.
+dart/script_determinism_test: Pass, Fail # Issue 31427 - Lingering non-determinism.
 
 [ $compiler == fasta ]
 dart/data_uri_import_test/badencodeddate: CompileTimeError
@@ -353,10 +355,6 @@ cc/CoreSnapshotSize: SkipByDesign # Imports dart:mirrors
 cc/CreateMirrorSystem: SkipByDesign # Imports dart:mirrors
 cc/StandaloneSnapshotSize: SkipByDesign # Imports dart:mirrors
 dart/redirection_type_shuffling_test: SkipByDesign # Imports dart:mirrors
-
-[ $system == windows || $checked ]
-dart/appjit_determinism_test: Skip # Issue 31427 - Lingering non-determinism in checked mode and Windows.
-dart/script_determinism_test: Skip # Issue 31427 - Lingering non-determinism in checked mode and Windows.
 
 [ $hot_reload || $hot_reload_rollback ]
 dart/appjit_determinism_test: Skip # Reload affects determinisim
