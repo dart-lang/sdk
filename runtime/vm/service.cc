@@ -234,6 +234,28 @@ static void PrintSuccess(JSONStream* js) {
   jsobj.AddProperty("type", "Success");
 }
 
+static bool CheckDebuggerDisabled(Thread* thread, JSONStream* js) {
+  Isolate* isolate = thread->isolate();
+  if (!isolate->compilation_allowed()) {
+    js->PrintError(kFeatureDisabled, "Debugger is disabled in AOT mode.");
+    return true;
+  }
+  if (isolate->debugger() == NULL) {
+    js->PrintError(kFeatureDisabled, "Debugger is disabled.");
+    return true;
+  }
+  return false;
+}
+
+static bool CheckCompilerDisabled(Thread* thread, JSONStream* js) {
+  Isolate* isolate = thread->isolate();
+  if (!isolate->compilation_allowed()) {
+    js->PrintError(kFeatureDisabled, "Compiler is disabled in AOT mode.");
+    return true;
+  }
+  return false;
+}
+
 static bool GetIntegerId(const char* s, intptr_t* id, int base = 10) {
   if ((s == NULL) || (*s == '\0')) {
     // Empty string.
@@ -1312,7 +1334,10 @@ static const MethodParameter* get_unused_changes_in_last_reload_params[] = {
 };
 
 static bool GetUnusedChangesInLastReload(Thread* thread, JSONStream* js) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (CheckCompilerDisabled(thread, js)) {
+    return true;
+  }
+
   const GrowableObjectArray& changed_in_last_reload =
       GrowableObjectArray::Handle(
           thread->isolate()->object_store()->changed_in_last_reload());
@@ -1366,11 +1391,6 @@ static bool GetUnusedChangesInLastReload(Thread* thread, JSONStream* js) {
     }
   }
   return true;
-#else  // !defined(DART_PRECOMPILED_RUNTIME)
-  js->PrintError(kFeatureDisabled,
-                 "Cannot reload source when running a precompiled program.");
-  return true;
-#endif
 }
 
 static const MethodParameter* get_stack_params[] = {
@@ -1378,13 +1398,11 @@ static const MethodParameter* get_stack_params[] = {
 };
 
 static bool GetStack(Thread* thread, JSONStream* js) {
-  Isolate* isolate = thread->isolate();
-  if (isolate->debugger() == NULL) {
-    js->PrintError(kFeatureDisabled,
-                   "Cannot get stack when debugger disabled.");
+  if (CheckDebuggerDisabled(thread, js)) {
     return true;
   }
-  ASSERT(isolate->compilation_allowed());
+
+  Isolate* isolate = thread->isolate();
   DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
   DebuggerStackTrace* async_causal_stack =
       isolate->debugger()->AsyncCausalStackTrace();
@@ -2342,11 +2360,10 @@ static bool BuildScope(Thread* thread,
 }
 
 static bool Evaluate(Thread* thread, JSONStream* js) {
-  if (!thread->isolate()->compilation_allowed()) {
-    js->PrintError(kFeatureDisabled,
-                   "Cannot evaluate when running a precompiled program.");
+  if (CheckDebuggerDisabled(thread, js)) {
     return true;
   }
+
   const char* target_id = js->LookupParam("targetId");
   if (target_id == NULL) {
     PrintMissingParamError(js, "targetId");
@@ -2423,12 +2440,11 @@ static const MethodParameter* build_expression_evaluation_scope_params[] = {
 };
 
 static bool BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
-  Isolate* isolate = thread->isolate();
-  if (!isolate->compilation_allowed()) {
-    js->PrintError(kFeatureDisabled,
-                   "Cannot evaluate when running a precompiled program.");
+  if (CheckDebuggerDisabled(thread, js)) {
     return true;
   }
+
+  Isolate* isolate = thread->isolate();
   DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
   intptr_t framePos = UIntParameter::Parse(js->LookupParam("frameIndex"));
   if (framePos >= stack->Length()) {
@@ -2542,11 +2558,11 @@ static const MethodParameter* compile_expression_params[] = {
 };
 
 static bool CompileExpression(Thread* thread, JSONStream* js) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  Isolate* isolate = thread->isolate();
-  if (!isolate->compilation_allowed()) {
-    js->PrintError(kFeatureDisabled,
-                   "Cannot evaluate when running a precompiled program.");
+#if defined(DART_PRECOMPILED_RUNTIME)
+  js->PrintError(kFeatureDisabled, "Debugger is disabled in AOT mode.");
+  return true;
+#else
+  if (CheckDebuggerDisabled(thread, js)) {
     return true;
   }
 
@@ -2601,12 +2617,7 @@ static bool CompileExpression(Thread* thread, JSONStream* js) {
   JSONObject report(js);
   report.AddPropertyBase64("kernelBytes", kernel_bytes, kernel_length);
   return true;
-#else   // !defined(DART_PRECOMPILED_RUNTIME)
-  js->PrintError(
-      kFeatureDisabled,
-      "Cannot compile expression when running a precompiled program.");
-  return true;
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif
 }
 
 static const MethodParameter* evaluate_compiled_expression_params[] = {
@@ -2617,12 +2628,11 @@ static const MethodParameter* evaluate_compiled_expression_params[] = {
 };
 
 static bool EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
-  Isolate* isolate = thread->isolate();
-  if (!isolate->compilation_allowed()) {
-    js->PrintError(kFeatureDisabled,
-                   "Cannot evaluate when running a precompiled program.");
+  if (CheckDebuggerDisabled(thread, js)) {
     return true;
   }
+
+  Isolate* isolate = thread->isolate();
   DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
   intptr_t frame_pos = UIntParameter::Parse(js->LookupParam("frameIndex"));
   if (frame_pos >= stack->Length()) {
@@ -2665,12 +2675,11 @@ static const MethodParameter* evaluate_in_frame_params[] = {
 };
 
 static bool EvaluateInFrame(Thread* thread, JSONStream* js) {
-  Isolate* isolate = thread->isolate();
-  if (!isolate->compilation_allowed()) {
-    js->PrintError(kFeatureDisabled,
-                   "Cannot evaluate when running a precompiled program.");
+  if (CheckDebuggerDisabled(thread, js)) {
     return true;
   }
+
+  Isolate* isolate = thread->isolate();
   DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
   intptr_t framePos = UIntParameter::Parse(js->LookupParam("frameIndex"));
   if (framePos >= stack->Length()) {
@@ -2800,12 +2809,10 @@ static const MethodParameter* get_source_report_params[] = {
 };
 
 static bool GetSourceReport(Thread* thread, JSONStream* js) {
-  if (!thread->isolate()->compilation_allowed()) {
-    js->PrintError(
-        kFeatureDisabled,
-        "Cannot get source report when running a precompiled program.");
+  if (CheckCompilerDisabled(thread, js)) {
     return true;
   }
+
   const char* reports_str = js->LookupParam("reports");
   const EnumListParameter* reports_parameter =
       static_cast<const EnumListParameter*>(get_source_report_params[1]);
@@ -2875,13 +2882,15 @@ static const MethodParameter* reload_sources_params[] = {
 };
 
 static bool ReloadSources(Thread* thread, JSONStream* js) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  Isolate* isolate = thread->isolate();
-  if (!isolate->compilation_allowed()) {
-    js->PrintError(kFeatureDisabled,
-                   "Cannot reload source when running a precompiled program.");
+#if defined(DART_PRECOMPILED_RUNTIME)
+  js->PrintError(kFeatureDisabled, "Compiler is disabled in AOT mode.");
+  return true;
+#else
+  if (CheckCompilerDisabled(thread, js)) {
     return true;
   }
+
+  Isolate* isolate = thread->isolate();
   Dart_LibraryTagHandler handler = isolate->library_tag_handler();
   if (handler == NULL) {
     js->PrintError(kFeatureDisabled,
@@ -2913,11 +2922,7 @@ static bool ReloadSources(Thread* thread, JSONStream* js) {
   Service::CheckForPause(isolate, js);
 
   return true;
-#else   // !defined(DART_PRECOMPILED_RUNTIME)
-  js->PrintError(kFeatureDisabled,
-                 "Cannot reload source when running a precompiled program.");
-  return true;
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif
 }
 
 void Service::CheckForPause(Isolate* isolate, JSONStream* stream) {
@@ -2945,12 +2950,10 @@ RawError* Service::MaybePause(Isolate* isolate, const Error& error) {
 static bool AddBreakpointCommon(Thread* thread,
                                 JSONStream* js,
                                 const String& script_uri) {
-  if (!thread->isolate()->compilation_allowed()) {
-    js->PrintError(
-        kFeatureDisabled,
-        "Cannot use breakpoints when running a precompiled program.");
+  if (CheckDebuggerDisabled(thread, js)) {
     return true;
   }
+
   const char* line_param = js->LookupParam("line");
   intptr_t line = UIntParameter::Parse(line_param);
   const char* col_param = js->LookupParam("column");
@@ -2986,12 +2989,10 @@ static const MethodParameter* add_breakpoint_params[] = {
 };
 
 static bool AddBreakpoint(Thread* thread, JSONStream* js) {
-  if (!thread->isolate()->compilation_allowed()) {
-    js->PrintError(
-        kFeatureDisabled,
-        "Cannot use breakpoints when running a precompiled program.");
+  if (CheckDebuggerDisabled(thread, js)) {
     return true;
   }
+
   const char* script_id_param = js->LookupParam("scriptId");
   Object& obj = Object::Handle(LookupHeapObject(thread, script_id_param, NULL));
   if (obj.raw() == Object::sentinel().raw() || !obj.IsScript()) {
@@ -3013,12 +3014,10 @@ static const MethodParameter* add_breakpoint_with_script_uri_params[] = {
 };
 
 static bool AddBreakpointWithScriptUri(Thread* thread, JSONStream* js) {
-  if (!thread->isolate()->compilation_allowed()) {
-    js->PrintError(
-        kFeatureDisabled,
-        "Cannot use breakpoints when running a precompiled program.");
+  if (CheckDebuggerDisabled(thread, js)) {
     return true;
   }
+
   const char* script_uri_param = js->LookupParam("scriptUri");
   const String& script_uri = String::Handle(String::New(script_uri_param));
   return AddBreakpointCommon(thread, js, script_uri);
@@ -3029,12 +3028,10 @@ static const MethodParameter* add_breakpoint_at_entry_params[] = {
 };
 
 static bool AddBreakpointAtEntry(Thread* thread, JSONStream* js) {
-  if (!thread->isolate()->compilation_allowed()) {
-    js->PrintError(
-        kFeatureDisabled,
-        "Cannot use breakpoints when running a precompiled program.");
+  if (CheckDebuggerDisabled(thread, js)) {
     return true;
   }
+
   const char* function_id = js->LookupParam("functionId");
   Object& obj = Object::Handle(LookupHeapObject(thread, function_id, NULL));
   if (obj.raw() == Object::sentinel().raw() || !obj.IsFunction()) {
@@ -3059,12 +3056,10 @@ static const MethodParameter* add_breakpoint_at_activation_params[] = {
 };
 
 static bool AddBreakpointAtActivation(Thread* thread, JSONStream* js) {
-  if (!thread->isolate()->compilation_allowed()) {
-    js->PrintError(
-        kFeatureDisabled,
-        "Cannot use breakpoints when running a precompiled program.");
+  if (CheckDebuggerDisabled(thread, js)) {
     return true;
   }
+
   const char* object_id = js->LookupParam("objectId");
   Object& obj = Object::Handle(LookupHeapObject(thread, object_id, NULL));
   if (obj.raw() == Object::sentinel().raw() || !obj.IsInstance()) {
@@ -3088,12 +3083,10 @@ static const MethodParameter* remove_breakpoint_params[] = {
 };
 
 static bool RemoveBreakpoint(Thread* thread, JSONStream* js) {
-  if (!thread->isolate()->compilation_allowed()) {
-    js->PrintError(
-        kFeatureDisabled,
-        "Cannot use breakpoints when running a precompiled program.");
+  if (CheckDebuggerDisabled(thread, js)) {
     return true;
   }
+
   if (!js->HasParam("breakpointId")) {
     PrintMissingParamError(js, "breakpointId");
     return true;
@@ -4417,12 +4410,10 @@ static const MethodParameter* set_trace_class_allocation_params[] = {
 };
 
 static bool SetTraceClassAllocation(Thread* thread, JSONStream* js) {
-  if (!thread->isolate()->compilation_allowed()) {
-    js->PrintError(
-        kFeatureDisabled,
-        "Cannot trace allocation when running a precompiled program.");
+  if (CheckCompilerDisabled(thread, js)) {
     return true;
   }
+
   const char* class_id = js->LookupParam("classId");
   const bool enable = BoolParameter::Parse(js->LookupParam("enable"));
   intptr_t cid = -1;
