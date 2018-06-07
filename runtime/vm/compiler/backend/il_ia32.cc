@@ -5191,6 +5191,7 @@ void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register out_hi = out_pair->At(1).reg();
   ASSERT(out_lo == left_lo);
   ASSERT(out_hi == left_hi);
+  ASSERT(!can_overflow());
 
   Label* deopt = NULL;
   if (CanDeoptimize()) {
@@ -5217,9 +5218,6 @@ void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       } else {
         __ subl(left_lo, right_lo);
         __ sbbl(left_hi, right_hi);
-      }
-      if (can_overflow()) {
-        __ j(OVERFLOW, deopt);
       }
       break;
     }
@@ -5251,17 +5249,12 @@ void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* ShiftInt64OpInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps =
-      (op_kind() == Token::kSHL) && CanDeoptimize() ? 2 : 0;
+  const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::Pair(Location::RequiresRegister(),
                                     Location::RequiresRegister()));
   summary->set_in(1, Location::FixedRegisterOrSmiConstant(right(), ECX));
-  if ((op_kind() == Token::kSHL) && CanDeoptimize()) {
-    summary->set_temp(0, Location::RequiresRegister());
-    summary->set_temp(1, Location::RequiresRegister());
-  }
   summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }
@@ -5275,6 +5268,7 @@ void ShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register out_hi = out_pair->At(1).reg();
   ASSERT(out_lo == left_lo);
   ASSERT(out_hi == left_hi);
+  ASSERT(!can_overflow());
 
   Label* deopt = NULL;
   if (CanDeoptimize()) {
@@ -5301,51 +5295,15 @@ void ShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       case Token::kSHL: {
         ASSERT(shift < 64);
-        if (can_overflow()) {
-          Register temp1 = locs()->temp(0).reg();
-          Register temp2 = locs()->temp(1).reg();
-          __ movl(temp1, left_hi);  // Preserve high 32 bits.
-          if (shift > 31) {
-            __ movl(left_hi, left_lo);  // Shift by 32.
-            if (shift > 32) {
-              __ shll(left_hi, Immediate(shift - 32));
-            }
-            // Check for overflow by sign extending the high 32 bits
-            // and comparing with the input.
-            __ movl(temp2, left_hi);
-            __ sarl(temp2, Immediate(31));
-            __ cmpl(temp1, temp2);
-            __ j(NOT_EQUAL, deopt);
-            if (shift > 32) {
-              // Also compare low word from input with high word from
-              // output shifted back shift - 32.
-              __ movl(temp2, left_hi);
-              __ sarl(temp2, Immediate(shift - 32));
-              __ cmpl(left_lo, temp2);
-              __ j(NOT_EQUAL, deopt);
-            }
-            __ xorl(left_lo, left_lo);  // Zero left_lo.
-          } else {
-            __ shldl(left_hi, left_lo, Immediate(shift));
-            __ shll(left_lo, Immediate(shift));
-            // Check for overflow by shifting back the high 32 bits
-            // and comparing with the input.
-            __ movl(temp2, left_hi);
-            __ sarl(temp2, Immediate(shift));
-            __ cmpl(temp1, temp2);
-            __ j(NOT_EQUAL, deopt);
+        if (shift > 31) {
+          __ movl(left_hi, left_lo);  // Shift by 32.
+          __ xorl(left_lo, left_lo);  // Zero left_lo.
+          if (shift > 32) {
+            __ shll(left_hi, Immediate(shift - 32));
           }
         } else {
-          if (shift > 31) {
-            __ movl(left_hi, left_lo);  // Shift by 32.
-            __ xorl(left_lo, left_lo);  // Zero left_lo.
-            if (shift > 32) {
-              __ shll(left_hi, Immediate(shift - 32));
-            }
-          } else {
-            __ shldl(left_hi, left_lo, Immediate(shift));
-            __ shll(left_lo, Immediate(shift));
-          }
+          __ shldl(left_hi, left_lo, Immediate(shift));
+          __ shll(left_lo, Immediate(shift));
         }
         break;
       }
@@ -5380,54 +5338,18 @@ void ShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         break;
       }
       case Token::kSHL: {
-        if (can_overflow()) {
-          Register temp1 = locs()->temp(0).reg();
-          Register temp2 = locs()->temp(1).reg();
-          __ movl(temp1, left_hi);  // Preserve high 32 bits.
-          __ cmpl(ECX, Immediate(31));
-          __ j(ABOVE, &large_shift);
+        __ cmpl(ECX, Immediate(31));
+        __ j(ABOVE, &large_shift);
 
-          __ shldl(left_hi, left_lo, ECX);  // Shift count in CL.
-          __ shll(left_lo, ECX);            // Shift count in CL.
-          // Check for overflow by shifting back the high 32 bits
-          // and comparing with the input.
-          __ movl(temp2, left_hi);
-          __ sarl(temp2, ECX);
-          __ cmpl(temp1, temp2);
-          __ j(NOT_EQUAL, deopt);
-          __ jmp(&done, Assembler::kNearJump);
+        __ shldl(left_hi, left_lo, ECX);  // Shift count in CL.
+        __ shll(left_lo, ECX);            // Shift count in CL.
+        __ jmp(&done, Assembler::kNearJump);
 
-          __ Bind(&large_shift);
-          // No need to subtract 32 from CL, only 5 bits used by shll.
-          __ movl(left_hi, left_lo);  // Shift by 32.
-          __ shll(left_hi, ECX);      // Shift count: CL % 32.
-          // Check for overflow by sign extending the high 32 bits
-          // and comparing with the input.
-          __ movl(temp2, left_hi);
-          __ sarl(temp2, Immediate(31));
-          __ cmpl(temp1, temp2);
-          __ j(NOT_EQUAL, deopt);
-          // Also compare low word from input with high word from
-          // output shifted back shift - 32.
-          __ movl(temp2, left_hi);
-          __ sarl(temp2, ECX);  // Shift count: CL % 32.
-          __ cmpl(left_lo, temp2);
-          __ j(NOT_EQUAL, deopt);
-          __ xorl(left_lo, left_lo);  // Zero left_lo.
-        } else {
-          __ cmpl(ECX, Immediate(31));
-          __ j(ABOVE, &large_shift);
-
-          __ shldl(left_hi, left_lo, ECX);  // Shift count in CL.
-          __ shll(left_lo, ECX);            // Shift count in CL.
-          __ jmp(&done, Assembler::kNearJump);
-
-          __ Bind(&large_shift);
-          // No need to subtract 32 from CL, only 5 bits used by shll.
-          __ movl(left_hi, left_lo);  // Shift by 32.
-          __ xorl(left_lo, left_lo);  // Zero left_lo.
-          __ shll(left_hi, ECX);      // Shift count: CL % 32.
-        }
+        __ Bind(&large_shift);
+        // No need to subtract 32 from CL, only 5 bits used by shll.
+        __ movl(left_hi, left_lo);  // Shift by 32.
+        __ xorl(left_lo, left_lo);  // Zero left_lo.
+        __ shll(left_hi, ECX);      // Shift count: CL % 32.
         break;
       }
       default:

@@ -6035,8 +6035,6 @@ class BinaryIntegerOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
     can_overflow_ = overflow;
   }
 
-  // TODO(alexmarkov): Figure out if we still need !is_truncating operations.
-  // If not, then remove is_truncating_ flag and simplify code.
   bool is_truncating() const { return is_truncating_; }
   void mark_truncating() {
     is_truncating_ = true;
@@ -6220,22 +6218,13 @@ class BinaryInt64OpInstr : public BinaryIntegerOpInstr {
   }
 
   virtual bool ComputeCanDeoptimize() const {
-    switch (op_kind()) {
-      case Token::kADD:
-      case Token::kSUB:
-        return can_overflow();
-      case Token::kMUL:
-// Note that ARM64 does not support operations with unboxed mints,
-// so it is not handled here.
-#if defined(TARGET_ARCH_X64)
-        return can_overflow();  // Deopt if overflow.
-#else
-        // IA32, ARM
-        return true;  // Deopt if inputs are not int32.
-#endif
-      default:
-        return false;
+    ASSERT(!can_overflow());
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM)
+    if (op_kind() == Token::kMUL) {
+      return true;  // Deopt if inputs are not int32.
     }
+#endif
+    return false;
   }
 
   virtual Representation representation() const { return kUnboxedInt64; }
@@ -6277,8 +6266,8 @@ class ShiftInt64OpInstr : public BinaryIntegerOpInstr {
   Range* shift_range() const { return shift_range_; }
 
   virtual bool ComputeCanDeoptimize() const {
-    return (!IsShiftCountInRange()) ||
-           (can_overflow() && (op_kind() == Token::kSHL));
+    ASSERT(!can_overflow());
+    return !IsShiftCountInRange();
   }
 
   virtual Representation representation() const { return kUnboxedInt64; }

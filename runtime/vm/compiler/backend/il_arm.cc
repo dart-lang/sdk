@@ -5750,6 +5750,7 @@ void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   PairLocation* out_pair = locs()->out(0).AsPairLocation();
   Register out_lo = out_pair->At(0).reg();
   Register out_hi = out_pair->At(1).reg();
+  ASSERT(!can_overflow());
 
   Label* deopt = NULL;
   if (CanDeoptimize()) {
@@ -5780,10 +5781,6 @@ void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         ASSERT(op_kind() == Token::kSUB);
         __ subs(out_lo, left_lo, Operand(right_lo));
         __ sbcs(out_hi, left_hi, Operand(right_hi));
-      }
-      if (can_overflow()) {
-        // Deopt on overflow.
-        __ b(deopt, VS);
       }
       break;
     }
@@ -5824,6 +5821,7 @@ void ShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   PairLocation* out_pair = locs()->out(0).AsPairLocation();
   Register out_lo = out_pair->At(0).reg();
   Register out_hi = out_pair->At(1).reg();
+  ASSERT(!can_overflow());
 
   Label* deopt = NULL;
   if (CanDeoptimize()) {
@@ -5866,22 +5864,6 @@ void ShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           }
           __ mov(out_lo, Operand(0));
         }
-        // Check for overflow.
-        if (can_overflow()) {
-          // Compare high word from input with shifted high word from output.
-          // If shift > 32, also compare low word from input with high word from
-          // output shifted back shift - 32.
-          if (shift > 32) {
-            __ cmp(left_lo, Operand(out_hi, ASR, shift - 32));
-            __ cmp(left_hi, Operand(out_hi, ASR, 31), EQ);
-          } else if (shift == 32) {
-            __ cmp(left_hi, Operand(out_hi, ASR, 31));
-          } else {
-            __ cmp(left_hi, Operand(out_hi, ASR, shift));
-          }
-          // Overflow if they aren't equal.
-          __ b(deopt, NE);
-        }
         break;
       }
       default:
@@ -5917,19 +5899,6 @@ void ShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ mov(out_hi, Operand(left_hi, LSL, shift), PL);
         __ orr(out_hi, out_hi, Operand(left_lo, LSR, IP), PL);
         __ mov(out_lo, Operand(left_lo, LSL, shift));
-
-        // Check for overflow.
-        if (can_overflow()) {
-          // If shift > 32, compare low word from input with high word from
-          // output shifted back shift - 32.
-          __ mov(IP, Operand(out_hi, ASR, IP), MI);
-          __ mov(IP, Operand(left_lo), PL);  // No test if shift <= 32.
-          __ cmp(left_lo, Operand(IP));
-          // Compare high word from input with shifted high word from output.
-          __ cmp(left_hi, Operand(out_hi, ASR, shift), EQ);
-          // Overflow if they aren't equal.
-          __ b(deopt, NE);
-        }
         break;
       }
       default:

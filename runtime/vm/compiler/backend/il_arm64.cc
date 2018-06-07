@@ -4988,10 +4988,8 @@ LocationSummary* BinaryInt64OpInstr::MakeLocationSummary(Zone* zone,
 }
 
 void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Label* deopt = NULL;
-  if (CanDeoptimize()) {
-    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryInt64Op);
-  }
+  ASSERT(!can_overflow());
+  ASSERT(!CanDeoptimize());
 
   const Register left = locs()->in(0).reg();
   const Location right = locs()->in(1);
@@ -5008,12 +5006,6 @@ void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       r = right.reg();
     }
     __ mul(out, left, r);
-    if (CanDeoptimize()) {
-      __ smulh(TMP, left, r);
-      // TMP: result bits 64..127.
-      __ cmp(TMP, Operand(out, ASR, 63));
-      __ b(deopt, NE);
-    }
     return;
   }
 
@@ -5023,20 +5015,10 @@ void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         constant_instr->GetUnboxedSignedIntegerConstantValue();
     switch (op_kind()) {
       case Token::kADD:
-        if (CanDeoptimize()) {
-          __ AddImmediateSetFlags(out, left, value);
-          __ b(deopt, VS);
-        } else {
-          __ AddImmediate(out, left, value);
-        }
+        __ AddImmediate(out, left, value);
         break;
       case Token::kSUB:
-        if (CanDeoptimize()) {
-          __ SubImmediateSetFlags(out, left, value);
-          __ b(deopt, VS);
-        } else {
-          __ AddImmediate(out, left, -value);
-        }
+        __ AddImmediate(out, left, -value);
         break;
       case Token::kBIT_AND:
         __ AndImmediate(out, left, value);
@@ -5054,20 +5036,10 @@ void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Operand r = Operand(right.reg());
     switch (op_kind()) {
       case Token::kADD:
-        if (CanDeoptimize()) {
-          __ adds(out, left, r);
-          __ b(deopt, VS);
-        } else {
-          __ add(out, left, r);
-        }
+        __ add(out, left, r);
         break;
       case Token::kSUB:
-        if (CanDeoptimize()) {
-          __ subs(out, left, r);
-          __ b(deopt, VS);
-        } else {
-          __ sub(out, left, r);
-        }
+        __ sub(out, left, r);
         break;
       case Token::kBIT_AND:
         __ and_(out, left, r);
@@ -5099,6 +5071,7 @@ LocationSummary* ShiftInt64OpInstr::MakeLocationSummary(Zone* zone,
 void ShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register left = locs()->in(0).reg();
   const Register out = locs()->out(0).reg();
+  ASSERT(!can_overflow());
 
   Label* deopt = NULL;
   if (CanDeoptimize()) {
@@ -5117,11 +5090,6 @@ void ShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       case Token::kSHL: {
         ASSERT(shift < 64);
         __ LslImmediate(out, left, shift);
-        // Check for overflow.
-        if (can_overflow()) {
-          __ cmp(left, Operand(out, ASR, shift));
-          __ b(deopt, NE);
-        }
         break;
       }
       default:
@@ -5147,13 +5115,6 @@ void ShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       case Token::kSHL: {
         __ lslv(out, left, TMP);
-
-        // Check for overflow.
-        if (can_overflow()) {
-          __ asrv(TMP2, out, TMP);
-          __ cmp(left, Operand(TMP2));
-          __ b(deopt, NE);
-        }
         break;
       }
       default:
