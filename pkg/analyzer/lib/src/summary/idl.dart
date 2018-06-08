@@ -1660,6 +1660,12 @@ abstract class UnlinkedEnum extends base.SummaryClass {
  */
 abstract class UnlinkedEnumValue extends base.SummaryClass {
   /**
+   * Annotations for this value.
+   */
+  @Id(3)
+  List<UnlinkedExpr> get annotations;
+
+  /**
    * Documentation comment for the enum value, or `null` if there is no
    * documentation comment.
    */

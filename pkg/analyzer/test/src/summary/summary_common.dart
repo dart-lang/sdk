@@ -8674,6 +8674,12 @@ D d;''');
         .annotations);
   }
 
+  test_metadata_enumConstantDeclaration() {
+    checkAnnotationA(serializeEnumText('const a = null; enum E { @a v }')
+        .values[0]
+        .annotations);
+  }
+
   test_metadata_enumDeclaration() {
     checkAnnotationA(
         serializeEnumText('const a = null; @a enum E { v }').annotations);
