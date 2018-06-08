@@ -79,7 +79,6 @@ html/custom_element_name_clash_test: Skip # Issue 29922
 html/custom_elements_23127_test: Skip # Issue 29922
 html/custom_elements_test: Skip # Issue 29922
 html/deferred_multi_app_htmltest: Skip # Issue 29919
-html/element_classes_svg_test: RuntimeError # Issue 29922
 html/element_classes_test: RuntimeError # Issue 29922
 html/fontface_loaded_test: RuntimeError
 html/isolates_test: RuntimeError # Issue 29922
