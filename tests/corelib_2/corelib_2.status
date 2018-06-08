@@ -466,6 +466,7 @@ symbol_reserved_word_test/09: RuntimeError # Issue 29921
 symbol_reserved_word_test/12: RuntimeError # Issue 29921
 symbol_test/none: RuntimeError # Issue 29921
 typed_data_with_limited_ints_test: Skip # Requires fixed-size int64 support.
+uri_parse_test: Pass, Slow
 
 [ $runtime == vm && !$strong ]
 collection_of_test: RuntimeError
