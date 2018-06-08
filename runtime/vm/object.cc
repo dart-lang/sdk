@@ -4173,7 +4173,7 @@ bool Class::FutureOrTypeTest(Zone* zone,
         return true;
       }
     }
-    if (other_type_arg.IsType() &&
+    if (other_type_arg.HasResolvedTypeClass() &&
         TypeTest(Class::kIsSubtypeOf, type_arguments,
                  Class::Handle(zone, other_type_arg.type_class()),
                  TypeArguments::Handle(other_type_arg.arguments()), bound_error,
