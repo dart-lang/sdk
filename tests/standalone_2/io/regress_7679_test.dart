@@ -14,7 +14,7 @@ import 'dart:io';
 class Expect {
   static void isTrue(var x) {
     if (!identical(x, true)) {
-      throw new Error("Not identical");
+      throw new StateError("Not identical");
     }
   }
 }
