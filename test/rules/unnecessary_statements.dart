@@ -19,6 +19,12 @@ notReturned() {
   "blah"; // LINT
   ~1; // LINT
 
+  getter; // OK
+  new MyClass().getter; // OK
+  var myClass = new MyClass();
+  myClass; // LINT
+  myClass.getter; // OK
+
   new MyClass(); // OK
   foo(); // OK
   new MyClass().foo(); // OK
@@ -153,6 +159,7 @@ inOtherStatements() {
 
 bool someBool = true;
 bool foo() => true;
+get getter => true;
 
 class MyClass {
   bool foo() => true;
