@@ -60,14 +60,14 @@ _convertDataTree(data) {
 
 newObject() => JS('=Object', '{}');
 
-hasProperty(o, name) => JS('bool', '# in #', name, o);
+bool hasProperty(o, name) => JS('bool', '# in #', name, o);
 getProperty(o, name) => JS('Object|Null', '#[#]', o, name);
 setProperty(o, name, value) => JS('', '#[#]=#', o, name, value);
 
 callMethod(o, String method, List args) =>
     JS('Object|Null', '#[#].apply(#, #)', o, method, o, args);
 
-instanceof(o, Function type) => JS('bool', '# instanceof #', o, type);
+bool instanceof(o, Function type) => JS('bool', '# instanceof #', o, type);
 callConstructor(Function constr, List arguments) {
   if (arguments == null) {
     return JS('Object', 'new #()', constr);
