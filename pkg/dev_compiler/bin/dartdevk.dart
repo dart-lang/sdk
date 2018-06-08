@@ -21,8 +21,7 @@ Future main(List<String> args) async {
     await new _CompilerWorker(parsedArgs.args).run();
   } else {
     var result = await compile(parsedArgs.args);
-    var succeeded = result.result;
-    exitCode = succeeded ? 0 : 1;
+    exitCode = result.success ? 0 : 1;
   }
 }
 
@@ -45,8 +44,7 @@ Future runBatch(List<String> batchArgs) async {
     try {
       var result = await compile(args, compilerState: compilerState);
       compilerState = result.compilerState;
-      var succeeded = result.result;
-      outcome = succeeded ? 'PASS' : 'FAIL';
+      outcome = result.success ? 'PASS' : 'FAIL';
     } catch (e, s) {
       outcome = 'CRASH';
       print('Unhandled exception:');
@@ -82,7 +80,7 @@ class _CompilerWorker extends AsyncWorkerLoop {
       output.writeln(message.toString());
     }));
     return new WorkResponse()
-      ..exitCode = result.result ? 0 : 1
+      ..exitCode = result.success ? 0 : 1
       ..output = output.toString();
   }
 }

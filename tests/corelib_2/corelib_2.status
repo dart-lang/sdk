@@ -401,7 +401,7 @@ regress_r21715_test: RuntimeError # Requires fixed-size int64 support.
 typed_data_with_limited_ints_test: Skip # Requires fixed-size int64 support.
 
 [ $runtime != none && ($compiler == dartdevc || $compiler == dartdevk) ]
-bigint_test: Pass, Slow
+bigint_test: Pass, Slow, Timeout
 compare_to2_test: RuntimeError # Issue 30170
 date_time10_test: RuntimeError # Issue 29921
 error_stack_trace_test/nullThrown: RuntimeError # .stackTrace not present for exception caught from 'throw null;'

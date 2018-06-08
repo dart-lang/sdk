@@ -85,10 +85,10 @@ getFunctionType(obj) {
 /// different from the user-visible Type object returned by calling
 /// `runtimeType` on some Dart object.
 getReifiedType(obj) {
-  switch (JS('String', 'typeof #', obj)) {
+  switch (JS<String>('!', 'typeof #', obj)) {
     case "object":
       if (obj == null) return JS('', '#', Null);
-      if (JS('bool', '# instanceof #', obj, Object)) {
+      if (JS('!', '# instanceof #', obj, Object)) {
         return JS('', '#.constructor', obj);
       }
       var result = JS('', '#[#]', obj, _extensionType);
@@ -118,7 +118,7 @@ getReifiedType(obj) {
 Type wrapType(type) {
   // If we've already wrapped this type once, use the previous wrapper. This
   // way, multiple references to the same type return an identical Type.
-  if (JS('bool', '#.hasOwnProperty(#)', type, _typeObject)) {
+  if (JS('!', '#.hasOwnProperty(#)', type, _typeObject)) {
     return JS('', '#[#]', type, _typeObject);
   }
   return JS('Type', '#[#] = #', type, _typeObject, new WrappedType(type));
@@ -141,7 +141,7 @@ List getModuleNames() {
 }
 
 String getSourceMap(module) {
-  return JS('String', '#.get(#)', _loadedSourceMaps, module);
+  return JS<String>('!', '#.get(#)', _loadedSourceMaps, module);
 }
 
 /// Return all library objects in the specified module.

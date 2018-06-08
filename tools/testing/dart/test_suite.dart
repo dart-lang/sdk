@@ -1061,7 +1061,7 @@ class StandardTestSuite extends TestSuite {
         // Always run with synchronous starts of `async` functions.
         // If we want to make this dependent on other parameters or flags,
         // this flag could be become conditional.
-        content = dartdevcHtml(nameNoExt, jsDir, buildDir);
+        content = dartdevcHtml(nameNoExt, jsDir, configuration.compiler);
       }
     }
 

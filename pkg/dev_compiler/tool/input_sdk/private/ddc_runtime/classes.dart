@@ -28,8 +28,8 @@ void mixinMembers(to, from) {
 
 void _copyMembers(to, from) {
   var names = getOwnNamesAndSymbols(from);
-  for (var i = 0, n = JS('int', '#.length', names); i < n; ++i) {
-    var name = JS('', '#[#]', names, i);
+  for (int i = 0, n = JS('!', '#.length', names); i < n; ++i) {
+    String name = JS('', '#[#]', names, i);
     if (name == 'constructor') continue;
     _copyMember(to, from, name);
   }
@@ -38,14 +38,14 @@ void _copyMembers(to, from) {
 
 void _copyMember(to, from, name) {
   var desc = getOwnPropertyDescriptor(from, name);
-  if (JS('bool', '# == Symbol.iterator', name)) {
+  if (JS('!', '# == Symbol.iterator', name)) {
     // On native types, Symbol.iterator may already be present.
     // TODO(jmesserly): investigate if we still need this.
     // If so, we need to find a better solution.
     // See https://github.com/dart-lang/sdk/issues/28324
     var existing = getOwnPropertyDescriptor(to, name);
     if (existing != null) {
-      if (JS('bool', '#.writable', existing)) {
+      if (JS('!', '#.writable', existing)) {
         JS('', '#[#] = #.value', to, name, desc);
       }
       return;
@@ -201,18 +201,18 @@ getType(obj) =>
 
 bool isJsInterop(obj) {
   if (obj == null) return false;
-  if (JS('bool', 'typeof # === "function"', obj)) {
+  if (JS('!', 'typeof # === "function"', obj)) {
     // A function is a Dart function if it has runtime type information.
-    return JS('bool', '#[#] == null', obj, _runtimeType);
+    return JS('!', '#[#] == null', obj, _runtimeType);
   }
   // Primitive types are not JS interop types.
-  if (JS('bool', 'typeof # !== "object"', obj)) return false;
+  if (JS('!', 'typeof # !== "object"', obj)) return false;
 
   // Extension types are not considered JS interop types.
   // Note that it is still possible to call typed JS interop methods on
   // extension types but the calls must be statically typed.
-  if (JS('bool', '#[#] != null', obj, _extensionType)) return false;
-  return JS('bool', '!($obj instanceof $Object)');
+  if (JS('!', '#[#] != null', obj, _extensionType)) return false;
+  return JS('!', '!($obj instanceof $Object)');
 }
 
 /// Get the type of a method from a type using the stored signature
@@ -227,7 +227,7 @@ getSetterType(type, name) {
   if (setters != null) {
     var type = JS('', '#[#]', setters, name);
     if (type != null) {
-      if (JS('bool', '# instanceof Array', type)) {
+      if (JS('!', '# instanceof Array', type)) {
         // The type has metadata attached.  Pull out just the type.
         // TODO(jmesserly): remove when we remove mirrors
         return JS('', '#[0]', type);
@@ -238,7 +238,7 @@ getSetterType(type, name) {
   var fields = getFields(type);
   if (fields != null) {
     var fieldInfo = JS('', '#[#]', fields, name);
-    if (fieldInfo != null && JS('bool', '!#.isFinal', fieldInfo)) {
+    if (fieldInfo != null && JS<bool>('!', '!#.isFinal', fieldInfo)) {
       return JS('', '#.type', fieldInfo);
     }
   }
@@ -285,14 +285,14 @@ void setStaticSetterSignature(f, sigF) =>
 
 _getMembers(type, kind) {
   var sig = JS('', '#[#]', type, kind);
-  return JS('bool', 'typeof # == "function"', sig)
-      ? JS('', '#[#] = #', type, kind, sig())
+  return JS<bool>('!', 'typeof # == "function"', sig)
+      ? JS('', '#[#] = #()', type, kind, sig)
       : sig;
 }
 
 bool _hasMember(type, kind, name) {
   var sig = _getMembers(type, kind);
-  return sig != null && JS('bool', '# in #', name, sig);
+  return sig != null && JS<bool>('!', '# in #', name, sig);
 }
 
 bool hasMethod(type, name) => _hasMember(type, _methodSig, name);
@@ -307,14 +307,14 @@ final dartx = JS('', 'dartx');
 /// Install properties in prototype-first order.  Properties / descriptors from
 /// more specific types should overwrite ones from less specific types.
 void _installProperties(jsProto, dartType, installedParent) {
-  if (JS('bool', '# === #', dartType, Object)) {
+  if (JS('!', '# === #', dartType, Object)) {
     _installPropertiesForObject(jsProto);
     return;
   }
   // If the extension methods of the parent have been installed on the parent
   // of [jsProto], the methods will be available via prototype inheritance.
   var dartSupertype = JS('', '#.__proto__', dartType);
-  if (JS('bool', '# !== #', dartSupertype, installedParent)) {
+  if (JS('!', '# !== #', dartSupertype, installedParent)) {
     _installProperties(jsProto, dartSupertype, installedParent);
   }
 
@@ -350,7 +350,7 @@ _applyExtension(jsType, dartExtType) {
   var jsProto = JS('', '#.prototype', jsType);
   if (jsProto == null) return;
 
-  if (JS('bool', '# === #', dartExtType, Object)) {
+  if (JS('!', '# === #', dartExtType, Object)) {
     _installPropertiesForGlobalObject(jsProto);
     return;
   }
@@ -359,7 +359,7 @@ _applyExtension(jsType, dartExtType) {
       jsProto, dartExtType, JS('', '#[#]', jsProto, _extensionType));
 
   // Mark the JS type's instances so we can easily check for extensions.
-  if (JS('bool', '# !== #', dartExtType, JSFunction)) {
+  if (JS('!', '# !== #', dartExtType, JSFunction)) {
     JS('', '#[#] = #', jsProto, _extensionType, dartExtType);
   }
   JS('', '#[#] = #[#]', jsType, _methodSig, dartExtType, _methodSig);

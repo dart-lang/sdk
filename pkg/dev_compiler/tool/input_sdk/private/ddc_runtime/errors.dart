@@ -23,22 +23,22 @@ void ignoreAllErrors(bool flag) {
 }
 
 argumentError(value) {
-  if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
+  if (JS('!', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
   throw new ArgumentError.value(value);
 }
 
 throwUnimplementedError(String message) {
-  if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
+  if (JS('!', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
   throw new UnimplementedError(message);
 }
 
 assertFailed(message) {
-  if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
+  if (JS('!', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
   throw new AssertionErrorImpl(message);
 }
 
 throwCyclicInitializationError([Object field]) {
-  if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
+  if (JS('!', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
   throw new CyclicInitializationError(field);
 }
 
@@ -46,7 +46,7 @@ throwNullValueError() {
   // TODO(vsm): Per spec, we should throw an NSM here.  Technically, we ought
   // to thread through method info, but that uglifies the code and can't
   // actually be queried ... it only affects how the error is printed.
-  if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
+  if (JS('!', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
   throw new NoSuchMethodError(
       null, new Symbol('<Unexpected Null Value>'), null, null, null);
 }

@@ -83,7 +83,7 @@ class NativeTypeSet {
   void _addExtensionTypesForLibrary(String library, List<String> classNames) {
     var sdk = coreTypes.index;
     for (var className in classNames) {
-      _addExtensionType(sdk.getClass(library, className), true);
+      _addExtensionType(sdk.getClass(library, className));
     }
   }
 

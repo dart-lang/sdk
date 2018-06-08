@@ -79,7 +79,7 @@ class DynamicType extends TypeRep {
   check_T(object) => object;
 }
 
-bool _isJsObject(obj) => JS('bool', '# === #', getReifiedType(obj), jsobject);
+bool _isJsObject(obj) => JS('!', '# === #', getReifiedType(obj), jsobject);
 
 class LazyJSType extends TypeRep {
   final Function() _rawJSType;
@@ -106,7 +106,7 @@ class LazyJSType extends TypeRep {
 
   bool isRawType(obj) {
     var raw = _raw();
-    if (raw != null) return JS('bool', '# instanceof #', obj, raw);
+    if (raw != null) return JS('!', '# instanceof #', obj, raw);
     // Treat as anonymous: return true for any JS object.
     return _isJsObject(obj);
   }
@@ -302,7 +302,7 @@ class FunctionType extends AbstractFunctionType {
     // identical function types that don't canonicalize
     // to the same object since we won't fall into this
     // fast path.
-    if (extra == null && JS('bool', '#.length < 3', args)) {
+    if (extra == null && JS<bool>('!', '#.length < 3', args)) {
       return _createSmall(returnType, args);
     }
     args = _canonicalizeArray(args, _fnTypeArrayArgMap);
@@ -311,7 +311,7 @@ class FunctionType extends AbstractFunctionType {
     if (extra == null) {
       keys = [returnType, args];
       create = () => new FunctionType(returnType, args, [], JS('', '{}'));
-    } else if (JS('bool', '# instanceof Array', extra)) {
+    } else if (JS('!', '# instanceof Array', extra)) {
       var optionals =
           _canonicalizeArray(JS('', '#', extra), _fnTypeArrayArgMap);
       keys = [returnType, args, optionals];
@@ -327,9 +327,9 @@ class FunctionType extends AbstractFunctionType {
 
   List _process(List array) {
     var result = [];
-    for (var i = 0; JS('bool', '# < #.length', i, array); ++i) {
+    for (var i = 0; JS<bool>('!', '# < #.length', i, array); ++i) {
       var arg = JS('', '#[#]', array, i);
-      if (JS('bool', '# instanceof Array', arg)) {
+      if (JS('!', '# instanceof Array', arg)) {
         JS('', '#.push(#.slice(1))', metadata, arg);
         JS('', '#.push(#[0])', result, arg);
       } else {
@@ -360,7 +360,7 @@ class FunctionType extends AbstractFunctionType {
     var result = <String, Object>{};
     var names = getOwnPropertyNames(named);
     JS('', '#.sort()', names);
-    for (var i = 0; JS('bool', '# < #.length', i, names); ++i) {
+    for (var i = 0; JS<bool>('!', '# < #.length', i, names); ++i) {
       String name = JS('!', '#[#]', names, i);
       result[name] = JS('', '#[#]', named, name);
     }
@@ -371,28 +371,28 @@ class FunctionType extends AbstractFunctionType {
     if (_stringValue != null) return _stringValue;
 
     var buffer = '(';
-    for (var i = 0; JS('bool', '# < #.length', i, args); ++i) {
+    for (var i = 0; JS<bool>('!', '# < #.length', i, args); ++i) {
       if (i > 0) {
         buffer += ', ';
       }
       buffer += typeName(JS('', '#[#]', args, i));
     }
-    if (JS('bool', '#.length > 0', optionals)) {
-      if (JS('bool', '#.length > 0', args)) buffer += ', ';
+    if (JS('!', '#.length > 0', optionals)) {
+      if (JS('!', '#.length > 0', args)) buffer += ', ';
       buffer += '[';
-      for (var i = 0; JS('bool', '# < #.length', i, optionals); ++i) {
+      for (var i = 0; JS<bool>('!', '# < #.length', i, optionals); ++i) {
         if (i > 0) {
           buffer += ', ';
         }
         buffer += typeName(JS('', '#[#]', optionals, i));
       }
       buffer += ']';
-    } else if (JS('bool', 'Object.keys(#).length > 0', named)) {
-      if (JS('bool', '#.length > 0', args)) buffer += ', ';
+    } else if (JS('!', 'Object.keys(#).length > 0', named)) {
+      if (JS('!', '#.length > 0', args)) buffer += ', ';
       buffer += '{';
       var names = getOwnPropertyNames(named);
       JS('', '#.sort()', names);
-      for (var i = 0; JS('bool', '# < #.length', i, names); ++i) {
+      for (var i = 0; JS<bool>('!', '# < #.length', i, names); ++i) {
         if (i > 0) {
           buffer += ', ';
         }
@@ -410,11 +410,11 @@ class FunctionType extends AbstractFunctionType {
 
   @JSExportName('is')
   bool is_T(obj) {
-    if (JS('bool', 'typeof # == "function"', obj)) {
+    if (JS('!', 'typeof # == "function"', obj)) {
       var actual = JS('', '#[#]', obj, _runtimeType);
       // If there's no actual type, it's a JS function.
       // Allow them to subtype all Dart function types.
-      return JS('bool', '# == null || !!#', actual, isSubtype(actual, this));
+      return JS('!', '# == null || !!#', actual, isSubtype(actual, this));
     }
     return false;
   }
@@ -429,7 +429,7 @@ class FunctionType extends AbstractFunctionType {
   @JSExportName('as')
   as_T(obj, [@notNull bool isImplicit = false]) {
     if (obj == null) return obj;
-    if (JS('bool', 'typeof # == "function"', obj)) {
+    if (JS('!', 'typeof # == "function"', obj)) {
       var actual = JS('', '#[#]', obj, _runtimeType);
       // If there's no actual type, it's a JS function.
       // Allow them to subtype all Dart function types.
@@ -466,14 +466,14 @@ class Typedef extends AbstractFunctionType {
     for (int i = 0, n = JS('!', '#.length', typeArgs); i < n; ++i) {
       if (i > 0) result += ', ';
       var typeArg = JS('', '#[#]', typeArgs, i);
-      if (JS('bool', '# !== #', typeArg, _dynamic)) allDynamic = false;
+      if (JS('!', '# !== #', typeArg, _dynamic)) allDynamic = false;
       result += typeName(typeArg);
     }
     result += '>';
     return allDynamic ? name : result;
   }
 
-  String get name => JS('String', '#', _name);
+  String get name => JS('!', '#', _name);
 
   AbstractFunctionType get functionType {
     var ft = _functionType;
@@ -507,7 +507,7 @@ class GenericFunctionType extends AbstractFunctionType {
 
   GenericFunctionType(instantiateTypeParts, this._instantiateTypeBounds)
       : _instantiateTypeParts = instantiateTypeParts,
-        formalCount = JS('int', '#.length', instantiateTypeParts);
+        formalCount = JS('!', '#.length', instantiateTypeParts);
 
   List<TypeVariable> get typeFormals {
     if (_typeFormals != null) return _typeFormals;
@@ -548,7 +548,7 @@ class GenericFunctionType extends AbstractFunctionType {
       if (i != 0) s += ", ";
       s += JS<String>('!', '#[#].name', typeFormals, i);
       var bound = typeBounds[i];
-      if (JS('bool', '# !== # && # !== #', bound, dynamic, bound, Object)) {
+      if (JS('!', '# !== # && # !== #', bound, dynamic, bound, Object)) {
         s += " extends $bound";
       }
     }
@@ -635,24 +635,25 @@ class GenericFunctionType extends AbstractFunctionType {
     return defaults;
   }
 
+  @notNull
   @JSExportName('is')
   bool is_T(obj) {
-    if (JS('bool', 'typeof # == "function"', obj)) {
+    if (JS('!', 'typeof # == "function"', obj)) {
       var actual = JS('', '#[#]', obj, _runtimeType);
-      return JS('bool', '# != null && !!#', actual, isSubtype(actual, this));
+      return JS('!', '# != null && !!#', actual, isSubtype(actual, this));
     }
     return false;
   }
 
   @JSExportName('as')
   as_T(obj) {
-    if (obj == null || JS('bool', '#', is_T(obj))) return obj;
+    if (obj == null || is_T(obj)) return obj;
     return castError(obj, this, false);
   }
 
   @JSExportName('_check')
   check_T(obj) {
-    if (obj == null || JS('bool', '#', is_T(obj))) return obj;
+    if (obj == null || is_T(obj)) return obj;
     return castError(obj, this, true);
   }
 }
@@ -715,7 +716,7 @@ getFunctionTypeMirror(AbstractFunctionType type) {
 bool isType(obj) => JS('', '#[#] === #', obj, _runtimeType, Type);
 
 void checkTypeBound(type, bound, name) {
-  if (JS('bool', '#', isSubtype(type, bound))) return;
+  if (JS('!', '#', isSubtype(type, bound))) return;
 
   throwTypeError('type `$type` does not extend `$bound`'
       ' of `$name`.');
@@ -835,12 +836,12 @@ bool isSubtype(t1, t2) {
   // code generator happy though.
   var map;
   bool result;
-  if (JS('bool', '!#.hasOwnProperty(#)', t1, _subtypeCache)) {
+  if (JS('!', '!#.hasOwnProperty(#)', t1, _subtypeCache)) {
     JS('', '#[#] = # = new Map()', t1, _subtypeCache, map);
   } else {
     map = JS('', '#[#]', t1, _subtypeCache);
     result = JS('bool|Null', '#.get(#)', map, t2);
-    if (JS('bool', '# !== void 0', result)) return result;
+    if (JS('!', '# !== void 0', result)) return result;
   }
   result =
       JS('bool|Null', '# === # || #(#, #, true)', t1, t2, _isSubtype, t1, t2);
@@ -850,13 +851,15 @@ bool isSubtype(t1, t2) {
 
 final _subtypeCache = JS('', 'Symbol("_subtypeCache")');
 
-_isBottom(type) => JS('bool', '# == # || # == #', type, bottom, type, Null);
+@notNull
+bool _isBottom(type) => JS('!', '# == # || # == #', type, bottom, type, Null);
 
-_isTop(type) {
+@notNull
+bool _isTop(type) {
   if (_isFutureOr(type)) {
     return _isTop(JS('', '#[0]', getGenericArgs(type)));
   }
-  return JS('bool', '# == # || # == # || # == #', type, Object, type, dynamic,
+  return JS('!', '# == # || # == # || # == #', type, Object, type, dynamic,
       type, void_);
 }
 
@@ -979,7 +982,7 @@ bool _isSubtype(t1, t2, isCovariant) => JS('', '''(() => {
   return ${_isFunctionSubtype(t1, t2, isCovariant)};
 })()''');
 
-_isInterfaceSubtype(t1, t2, isCovariant) => JS('', '''(() => {
+bool _isInterfaceSubtype(t1, t2, isCovariant) => JS('', '''(() => {
   // We support Dart's covariant generics with the caveat that we do not
   // substitute bottom for dynamic in subtyping rules.
   // I.e., given T1, ..., Tn where at least one Ti != dynamic we disallow:

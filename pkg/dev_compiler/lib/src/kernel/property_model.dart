@@ -310,13 +310,13 @@ class ClassPropertyModel {
   ///
   /// By tracking the set of seen members, we can visit superclasses and mixins
   /// and ultimately collect every most-derived member exposed by a given type.
-  void _findExtensionMembers(Class class_, HashSet<String> seenConcreteMembers,
-      Set<String> allNatives) {
+  void _findExtensionMembers(
+      Class c, HashSet<String> seenConcreteMembers, Set<String> allNatives) {
     // We only visit each most derived concrete member.
     // To avoid visiting an overridden superclass member, we skip members
     // we've seen, and visit starting from the class, then mixins in
     // reverse order, then superclasses.
-    for (var m in class_.members) {
+    for (var m in c.members) {
       var name = m.name.name;
       if (m.isAbstract || m is Constructor) continue;
       if (m is Procedure) {
@@ -338,8 +338,11 @@ class ClassPropertyModel {
   /// types.
   void _collectNativeMembers(Class c, Set<String> members) {
     if (extensionTypes.hasNativeSubtype(c)) {
-      for (var m in c.procedures) {
-        if (!m.name.isPrivate && !m.isStatic) members.add(m.name.name);
+      for (var m in c.members) {
+        if (!m.name.isPrivate &&
+            (m is Procedure && !m.isStatic || m is Field && !m.isStatic)) {
+          members.add(m.name.name);
+        }
       }
     }
     var m = c.mixedInClass;

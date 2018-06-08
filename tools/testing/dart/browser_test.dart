@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'utils.dart';
+import 'configuration.dart' show Compiler;
 
 String dart2jsHtml(String title, String scriptPath) {
   return """
@@ -40,10 +41,12 @@ String dart2jsHtml(String title, String scriptPath) {
 /// The [testName] is the short name of the test without any subdirectory path
 /// or extension, like "math_test". The [testJSDir] is the relative path to the
 /// build directory where the dartdevc-generated JS file is stored.
-String dartdevcHtml(String testName, String testJSDir, String buildDir) {
+String dartdevcHtml(String testName, String testJSDir, Compiler compiler) {
+  var isKernel = compiler == Compiler.dartdevk;
+  var sdkPath = isKernel ? 'kernel/amd/dart_sdk' : 'js/amd/dart_sdk';
+  var pkgDir = isKernel ? 'pkg_kernel' : 'pkg';
   var packagePaths = testPackages
-      .map((package) => '    "$package": "/root_dart/$buildDir/gen/utils/'
-          'dartdevc/pkg/$package",')
+      .map((p) => '    "$p": "/root_build/gen/utils/dartdevc/$pkgDir/$p",')
       .join("\n");
 
   return """
@@ -69,7 +72,7 @@ String dartdevcHtml(String testName, String testJSDir, String buildDir) {
 var require = {
   baseUrl: "/root_dart/$testJSDir",
   paths: {
-    "dart_sdk": "/root_build/gen/utils/dartdevc/js/amd/dart_sdk",
+    "dart_sdk": "/root_build/gen/utils/dartdevc/$sdkPath",
 $packagePaths
   },
   waitSeconds: 30,

@@ -1654,7 +1654,7 @@ class CodeGenerator extends Object
       // Pass along all arguments verbatim, and let the callee handle them.
       // TODO(jmesserly): we'll need something different once we have
       // rest/spread support, but this should work for now.
-      var params = _emitFormalParameters(node.parameters?.parameters);
+      var params = _emitParameters(node.parameters?.parameters);
 
       fun = new JS.Fun(
           params,
@@ -1671,7 +1671,7 @@ class CodeGenerator extends Object
       if (init != null) body.add(init);
       body.add(_visitStatement(node.body));
 
-      var params = _emitFormalParameters(node.parameters?.parameters);
+      var params = _emitParameters(node.parameters?.parameters);
       fun = new JS.Fun(params, new JS.Block(body), returnType: returnType);
     }
 
@@ -2272,7 +2272,7 @@ class CodeGenerator extends Object
 
   JS.Expression _emitConstructor(ConstructorDeclaration node,
       List<VariableDeclaration> fields, JS.Expression className) {
-    var params = _emitFormalParameters(node.parameters?.parameters);
+    var params = _emitParameters(node.parameters?.parameters);
 
     var savedFunction = _currentFunction;
     _currentFunction = node.body;
@@ -2584,7 +2584,7 @@ class CodeGenerator extends Object
     if (node.isGetter) {
       return new JS.Fun([], js.block('{ return this.#; }', [name]));
     } else if (node.isSetter) {
-      var params = _emitFormalParameters(node.parameters?.parameters);
+      var params = _emitParameters(node.parameters?.parameters);
       return new JS.Fun(
           params, js.block('{ this.# = #; }', [name, params.last]));
     } else {
@@ -2788,7 +2788,7 @@ class CodeGenerator extends Object
 
     // normal function (sync), vs (sync*, async, async*)
     var isSync = !(element.isAsynchronous || element.isGenerator);
-    var formals = _emitFormalParameters(parameters?.parameters);
+    var formals = _emitParameters(parameters?.parameters);
     var typeFormals = _emitTypeFormals(type.typeFormals);
     if (_reifyGeneric(element)) formals.insertAll(0, typeFormals);
 
@@ -2917,7 +2917,7 @@ class CodeGenerator extends Object
 
       var params = parameters?.parameters;
 
-      var jsParams = _emitFormalParameters(
+      var jsParams = _emitParameters(
           params?.where((p) => isPotentiallyMutated(body, p.element)));
 
       var gen = emitGeneratorFn(jsParams);
@@ -4092,8 +4092,7 @@ class CodeGenerator extends Object
     return jsParams;
   }
 
-  List<JS.Parameter> _emitFormalParameters(
-      Iterable<FormalParameter> parameters) {
+  List<JS.Parameter> _emitParameters(Iterable<FormalParameter> parameters) {
     if (parameters == null) return [];
 
     var result = <JS.Parameter>[];
@@ -6315,7 +6314,7 @@ class CodeGenerator extends Object
   @override
   visitExtendsClause(node) => _unreachable(node);
 
-  /// Unused, see [_emitFormalParameters].
+  /// Unused, see [_emitParameters].
   @override
   visitFormalParameterList(node) => _unreachable(node);
 

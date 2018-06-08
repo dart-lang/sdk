@@ -605,13 +605,14 @@ class DevKernelCompilerConfiguration extends CompilerConfiguration {
         .toNativePath();
 
     var summaryInputDir = new Path(_configuration.buildDirectory)
-        .append("/gen/utils/dartdevc/pkg")
+        .append("/gen/utils/dartdevc/pkg_kernel")
         .absolute
         .toNativePath();
 
     args.addAll([
       "--dart-sdk-summary",
       sdkSummary,
+      "--no-summarize",
       "-o",
       outputFile,
       inputFile,
@@ -622,7 +623,7 @@ class DevKernelCompilerConfiguration extends CompilerConfiguration {
     // get recompiled into the test's own module.
     for (var package in testPackages) {
       var summary = new Path(_configuration.buildDirectory)
-          .append("/gen/utils/dartdevc/pkg/$package.dill")
+          .append("/gen/utils/dartdevc/pkg_kernel/$package.dill")
           .absolute
           .toNativePath();
       args.add("-s");
