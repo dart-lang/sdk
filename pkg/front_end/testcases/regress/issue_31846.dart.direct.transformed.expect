@@ -8,4 +8,6 @@ static method main() → dynamic {
   core::print((<T extends core::num = dynamic>(T x) → dynamic => x).runtimeType);
   core::print((<T extends core::Comparable<T> = dynamic>(T x) → dynamic => x).runtimeType);
   core::print((<T extends core::Comparable<S> = dynamic, S extends core::Object = dynamic>(T x) → dynamic => x).runtimeType);
+  core::print((<T extends (T) → dynamic = dynamic>(T x) → dynamic => x).runtimeType);
+  core::print((<T extends core::List<core::List<T>> = dynamic>(T x) → dynamic => x).runtimeType);
 }
