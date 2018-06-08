@@ -18,6 +18,8 @@ class FieldFormalContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     AstNode node = request.target.containingNode;
     if (node is! FieldFormalParameter) {
       return EMPTY_LIST;

@@ -379,6 +379,8 @@ class InstrumentationService {
    * should be invoked on this instance after this method has been invoked.
    */
   Future shutdown() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     if (_instrumentationServer != null) {
       await _instrumentationServer.shutdown();
       _instrumentationServer = null;
@@ -473,6 +475,8 @@ class MulticastInstrumentationServer implements InstrumentationServer {
 
   @override
   Future shutdown() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     for (InstrumentationServer server in _servers) {
       await server.shutdown();
     }

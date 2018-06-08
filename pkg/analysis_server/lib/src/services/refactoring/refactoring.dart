@@ -498,6 +498,8 @@ class ResolvedUnitCache {
   }
 
   Future<CompilationUnit> getUnit(Element element) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     CompilationUnitElement unitElement = getUnitElement(element);
     CompilationUnit unit = _map[unitElement];
     if (unit == null) {

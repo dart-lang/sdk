@@ -27,6 +27,8 @@ abstract class DartNavigationMixin implements NavigationMixin {
   @override
   Future<NavigationRequest> getNavigationRequest(
       AnalysisGetNavigationParams parameters) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     String path = parameters.file;
     ResolveResult result = await getResolveResult(path);
     int offset = parameters.offset;
@@ -66,6 +68,8 @@ abstract class NavigationMixin implements ServerPlugin {
   @override
   Future<AnalysisGetNavigationResult> handleAnalysisGetNavigation(
       AnalysisGetNavigationParams parameters) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     String path = parameters.file;
     NavigationRequest request = await getNavigationRequest(parameters);
     NavigationGenerator generator =
@@ -82,6 +86,8 @@ abstract class NavigationMixin implements ServerPlugin {
    */
   @override
   Future<Null> sendNavigationNotification(String path) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     try {
       NavigationRequest request = await getNavigationRequest(
           new AnalysisGetNavigationParams(path, -1, -1));

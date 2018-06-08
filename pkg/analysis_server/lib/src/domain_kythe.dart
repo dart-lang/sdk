@@ -35,6 +35,8 @@ class KytheDomainHandler extends AbstractRequestHandler {
    * Implement the `kythe.getKytheEntries` request.
    */
   Future<Null> getKytheEntries(Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     String file = new KytheGetKytheEntriesParams.fromRequest(request).file;
     AnalysisDriver driver = server.getAnalysisDriver(file);
     if (driver == null) {

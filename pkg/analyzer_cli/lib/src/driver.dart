@@ -166,6 +166,8 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
 
   @override
   Future<Null> start(List<String> args) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     if (analysisDriver != null) {
       throw new StateError("start() can only be called once");
     }
@@ -197,6 +199,8 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
     } else if (options.batchMode) {
       BatchRunner batchRunner = new BatchRunner(outSink, errorSink);
       batchRunner.runAsBatch(args, (List<String> args) async {
+        // TODO(brianwilkerson) Determine whether this await is necessary.
+        await null;
         CommandLineOptions options = CommandLineOptions.parse(args);
         return await _analyzeAll(options);
       });
@@ -230,6 +234,8 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
   }
 
   Future<ErrorSeverity> _analyzeAll(CommandLineOptions options) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     PerformanceTag previous = _analyzeAllTag.makeCurrent();
     try {
       return await _analyzeAllImpl(options);
@@ -245,6 +251,8 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
 
   /// Perform analysis according to the given [options].
   Future<ErrorSeverity> _analyzeAllImpl(CommandLineOptions options) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     if (!options.machineFormat) {
       List<String> fileNames = options.sourceFiles.map((String file) {
         file = path.normalize(file);
@@ -400,6 +408,8 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
 
   /// Perform analysis in build mode according to the given [options].
   Future<ErrorSeverity> _buildModeAnalyze(CommandLineOptions options) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     PerformanceTag previous = _analyzeAllTag.makeCurrent();
     try {
       if (options.buildModePersistentWorker) {

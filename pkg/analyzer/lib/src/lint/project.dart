@@ -53,17 +53,6 @@ class DartProject {
     _apiModel = new _ApiModel(driver, sources, root);
   }
 
-  /// Create an initialized Dart project for the corresponding [driver] and
-  /// [sources].
-  /// If a [dir] is unspecified the current working directory will be
-  /// used.
-  static Future<DartProject> create(AnalysisDriver driver, List<Source> sources,
-      {Directory dir}) async {
-    DartProject project = new DartProject._(driver, sources, dir: dir);
-    await project._apiModel._calculate();
-    return project;
-  }
-
   /// The project's name.
   ///
   /// Project names correspond to the package name as specified in the project's
@@ -90,6 +79,19 @@ class DartProject {
       }
     }
     return p.basename(root.path);
+  }
+
+  /// Create an initialized Dart project for the corresponding [driver] and
+  /// [sources].
+  /// If a [dir] is unspecified the current working directory will be
+  /// used.
+  static Future<DartProject> create(AnalysisDriver driver, List<Source> sources,
+      {Directory dir}) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+    DartProject project = new DartProject._(driver, sources, dir: dir);
+    await project._apiModel._calculate();
+    return project;
   }
 }
 
@@ -121,6 +123,8 @@ class _ApiModel {
   }
 
   _calculate() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     if (sources == null || sources.isEmpty) {
       return;
     }

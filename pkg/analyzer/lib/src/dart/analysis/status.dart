@@ -43,6 +43,8 @@ class Monitor {
    * Return a [Future] that completes when [notify] is called at least once.
    */
   Future<Null> get signal async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     await _completer.future;
     _completer = new Completer<Null>();
   }

@@ -63,6 +63,8 @@ class ChangeBuilderImpl implements ChangeBuilder {
   @override
   Future<Null> addFileEdit(
       String path, void buildFileEdit(FileEditBuilder builder)) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     FileEditBuilderImpl builder = await createFileEditBuilder(path);
     buildFileEdit(builder);
     _change.addFileEdit(builder.fileEdit);
@@ -74,6 +76,8 @@ class ChangeBuilderImpl implements ChangeBuilder {
    * the file with the given [path] and [timeStamp].
    */
   Future<FileEditBuilderImpl> createFileEditBuilder(String path) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     return new FileEditBuilderImpl(this, path, 0);
   }
 
@@ -333,6 +337,8 @@ class FileEditBuilderImpl implements FileEditBuilder {
    * Finalize the source file edit that is being built.
    */
   Future<Null> finalize() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     // Nothing to do.
   }
 

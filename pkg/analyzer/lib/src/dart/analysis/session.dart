@@ -57,6 +57,8 @@ class AnalysisSessionImpl implements AnalysisSession {
 
   @override
   Future<TypeProvider> get typeProvider async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     _checkConsistency();
     if (_typeProvider == null) {
       LibraryElement coreLibrary = await _driver.getLibraryByUri('dart:core');
@@ -68,6 +70,8 @@ class AnalysisSessionImpl implements AnalysisSession {
 
   @override
   Future<TypeSystem> get typeSystem async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     _checkConsistency();
     if (_typeSystem == null) {
       if (_driver.analysisOptions.strongMode) {
@@ -92,6 +96,8 @@ class AnalysisSessionImpl implements AnalysisSession {
 
   @override
   Future<LibraryElement> getLibraryByUri(String uri) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     _checkConsistency();
     var libraryElement = _uriToLibraryCache[uri];
     if (libraryElement == null) {
@@ -103,6 +109,8 @@ class AnalysisSessionImpl implements AnalysisSession {
 
   @override
   Future<ParseResult> getParsedAst(String path) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     return getParsedAstSync(path);
   }
 

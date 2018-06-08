@@ -42,6 +42,8 @@ class InheritedReferenceContributor extends Object
   @override
   Future<Null> computeSuggestions(
       DartCompletionRequest request, CompletionCollector collector) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     CompletionTarget target =
         new CompletionTarget.forOffset(request.result.unit, request.offset);
     OpType optype = new OpType.forCompletion(target, request.offset);
@@ -69,6 +71,8 @@ class InheritedReferenceContributor extends Object
     CompletionTarget target,
     OpType optype,
   }) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     target ??= new CompletionTarget.forOffset(
         request.result.unit, request.offset,
         entryPoint: entryPoint);

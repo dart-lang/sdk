@@ -39,6 +39,8 @@ class FileInstrumentationServer implements InstrumentationServer {
 
   @override
   Future shutdown() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     await _sink.close();
     _sink = null;
   }

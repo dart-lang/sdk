@@ -32,6 +32,8 @@ class BatchRunner {
     Stream<String> cmdLine =
         stdin.transform(utf8.decoder).transform(new LineSplitter());
     cmdLine.listen((String line) async {
+      // TODO(brianwilkerson) Determine whether this await is necessary.
+      await null;
       // Maybe finish.
       if (line.isEmpty) {
         var time = stopwatch.elapsedMilliseconds;

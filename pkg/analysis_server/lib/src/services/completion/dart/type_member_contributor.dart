@@ -22,6 +22,8 @@ class TypeMemberContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     LibraryElement containingLibrary = request.libraryElement;
     // Gracefully degrade if the library element is not resolved
     // e.g. detached part file or source change

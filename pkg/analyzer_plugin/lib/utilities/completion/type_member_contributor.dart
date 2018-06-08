@@ -31,6 +31,8 @@ class TypeMemberContributor implements CompletionContributor {
   @override
   Future<Null> computeSuggestions(
       DartCompletionRequest request, CompletionCollector collector) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     LibraryElement containingLibrary = request.result.libraryElement;
     // Gracefully degrade if the library element is not resolved
     // e.g. detached part file or source change
@@ -51,6 +53,8 @@ class TypeMemberContributor implements CompletionContributor {
    */
   Future<Null> computeSuggestionsWithEntryPoint(DartCompletionRequest request,
       CompletionCollector collector, AstNode entryPoint) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     LibraryElement containingLibrary = request.result.libraryElement;
     // Gracefully degrade if the library element is not resolved
     // e.g. detached part file or source change

@@ -21,6 +21,39 @@ class FlutterDomainHandler extends AbstractRequestHandler {
    */
   FlutterDomainHandler(AnalysisServer server) : super(server);
 
+  /**
+   * Implement the 'flutter.getChangeAddForDesignTimeConstructor' request.
+   */
+  Future getChangeAddForDesignTimeConstructor(Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+    var params =
+        new FlutterGetChangeAddForDesignTimeConstructorParams.fromRequest(
+            request);
+    String file = params.file;
+    int offset = params.offset;
+
+    ResolveResult result = await server.getAnalysisResult(file);
+    if (result != null) {
+      var corrections = new FlutterCorrections(
+          file: file,
+          fileContent: result.content,
+          selectionOffset: offset,
+          selectionLength: 0,
+          session: result.session,
+          unit: result.unit);
+      SourceChange change = await corrections.addForDesignTimeConstructor();
+      if (change != null) {
+        server.sendResponse(
+            new FlutterGetChangeAddForDesignTimeConstructorResult(change)
+                .toResponse(request.id));
+        return;
+      }
+    }
+    server.sendResponse(
+        new Response.invalidParameter(request, 'file', 'No change'));
+  }
+
   @override
   Response handleRequest(Request request) {
     try {
@@ -48,36 +81,5 @@ class FlutterDomainHandler extends AbstractRequestHandler {
         valueCallback: (List<String> subscriptions) => subscriptions.toSet());
     server.setFlutterSubscriptions(subMap);
     return new FlutterSetSubscriptionsResult().toResponse(request.id);
-  }
-
-  /**
-   * Implement the 'flutter.getChangeAddForDesignTimeConstructor' request.
-   */
-  Future getChangeAddForDesignTimeConstructor(Request request) async {
-    var params =
-        new FlutterGetChangeAddForDesignTimeConstructorParams.fromRequest(
-            request);
-    String file = params.file;
-    int offset = params.offset;
-
-    ResolveResult result = await server.getAnalysisResult(file);
-    if (result != null) {
-      var corrections = new FlutterCorrections(
-          file: file,
-          fileContent: result.content,
-          selectionOffset: offset,
-          selectionLength: 0,
-          session: result.session,
-          unit: result.unit);
-      SourceChange change = await corrections.addForDesignTimeConstructor();
-      if (change != null) {
-        server.sendResponse(
-            new FlutterGetChangeAddForDesignTimeConstructorResult(change)
-                .toResponse(request.id));
-        return;
-      }
-    }
-    server.sendResponse(
-        new Response.invalidParameter(request, 'file', 'No change'));
   }
 }

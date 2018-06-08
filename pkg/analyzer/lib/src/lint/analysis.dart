@@ -159,6 +159,8 @@ class LintDriver {
   }
 
   Future<List<AnalysisErrorInfo>> analyze(Iterable<io.File> files) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     AnalysisEngine.instance.logger = new StdLogger();
 
     SourceFactory sourceFactory =

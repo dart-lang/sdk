@@ -100,6 +100,8 @@ class AnalyzerImpl {
   /// it will be marked as being for a cold VM.
   Future<ErrorSeverity> analyze(ErrorFormatter formatter,
       {int printMode: 1}) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     setupForAnalysis();
     return await _analyze(printMode, formatter);
   }
@@ -120,6 +122,8 @@ class AnalyzerImpl {
 
   /// Fills [errorInfos] using [files].
   Future<Null> prepareErrors() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     PerformanceTag previous = _prepareErrorsTag.makeCurrent();
     try {
       for (String path in files) {
@@ -151,6 +155,8 @@ class AnalyzerImpl {
 
   Future<ErrorSeverity> _analyze(
       int printMode, ErrorFormatter formatter) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     // Don't try to analyze parts.
     if (libraryFile.isPart) {
       String libraryPath = libraryFile.path;
@@ -227,6 +233,8 @@ class AnalyzerImpl {
   }
 
   Future<LibraryElement> _resolveLibrary() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     PerformanceTag previous = _resolveLibraryTag.makeCurrent();
     try {
       String libraryPath = libraryFile.path;

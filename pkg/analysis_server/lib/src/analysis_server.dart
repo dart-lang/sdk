@@ -657,6 +657,8 @@ class AnalysisServer {
    * [offset] or the node does not have an element.
    */
   Future<Element> getElementAtOffset(String file, int offset) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     if (!priorityFiles.contains(file)) {
       var driver = await getAnalysisDriver(file);
       if (driver == null) {
@@ -708,6 +710,8 @@ class AnalysisServer {
    * the [offset].
    */
   Future<AstNode> getNodeAtOffset(String file, int offset) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     nd.AnalysisResult result = await getAnalysisResult(file);
     CompilationUnit unit = result?.unit;
     if (unit != null) {
@@ -722,6 +726,8 @@ class AnalysisServer {
    * Dart file or cannot be resolved.
    */
   Future<CompilationUnit> getResolvedCompilationUnit(String path) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     nd.AnalysisResult result = await getAnalysisResult(path);
     return result?.unit;
   }
@@ -993,6 +999,8 @@ class AnalysisServer {
   }
 
   Future<Null> shutdown() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     running = false;
 
     await options.analytics
@@ -1134,6 +1142,8 @@ class AnalysisServer {
   }
 
   _scheduleAnalysisImplementedNotification() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     Set<String> files = analysisServices[AnalysisService.IMPLEMENTED];
     if (files != null) {
       scheduleImplementedNotification(this, files);

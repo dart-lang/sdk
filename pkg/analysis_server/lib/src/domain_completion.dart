@@ -72,6 +72,8 @@ class CompletionDomainHandler extends AbstractRequestHandler {
    */
   Future<CompletionResult> computeSuggestions(CompletionRequestImpl request,
       CompletionGetSuggestionsParams params) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     //
     // Allow plugins to start computing fixes.
     //
@@ -166,6 +168,8 @@ class CompletionDomainHandler extends AbstractRequestHandler {
    * Process a `completion.getSuggestions` request.
    */
   Future<Null> processRequest(Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     performance = new CompletionPerformance();
 
     // extract and validate params

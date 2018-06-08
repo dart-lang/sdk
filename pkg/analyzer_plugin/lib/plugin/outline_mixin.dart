@@ -25,6 +25,8 @@ import 'package:analyzer_plugin/utilities/outline/outline.dart';
 abstract class DartOutlineMixin implements OutlineMixin {
   @override
   Future<OutlineRequest> getOutlineRequest(String path) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     ResolveResult result = await getResolveResult(path);
     return new DartOutlineRequestImpl(resourceProvider, result);
   }
@@ -54,6 +56,8 @@ abstract class OutlineMixin implements ServerPlugin {
 
   @override
   Future<Null> sendOutlineNotification(String path) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     try {
       OutlineRequest request = await getOutlineRequest(path);
       OutlineGenerator generator =

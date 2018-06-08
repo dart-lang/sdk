@@ -96,7 +96,11 @@ class LibraryAnalyzer {
    * Compute analysis results for all units of the library.
    */
   Future<Map<FileState, UnitAnalysisResult>> analyze() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     return PerformanceStatistics.analysis.makeCurrentWhileAsync(() async {
+      // TODO(brianwilkerson) Determine whether this await is necessary.
+      await null;
       if (_useCFE) {
         return await _analyze2();
       } else {
@@ -181,7 +185,11 @@ class LibraryAnalyzer {
   }
 
   Future<Map<FileState, UnitAnalysisResult>> _analyze2() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     return await _logger.runAsync('Analyze', () async {
+      // TODO(brianwilkerson) Determine whether this await is necessary.
+      await null;
       Map<FileState, CompilationUnit> units = {};
 
       // Parse all files.

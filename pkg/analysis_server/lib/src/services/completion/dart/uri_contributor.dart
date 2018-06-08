@@ -20,8 +20,6 @@ import 'package:path/src/context.dart';
  * A contributor for calculating uri suggestions for import and part directives.
  */
 class UriContributor extends DartCompletionContributor {
-  _UriSuggestionBuilder builder;
-
   /**
    * A flag indicating whether file: and package: URI suggestions should
    * be included in the list of completion suggestions.
@@ -31,9 +29,13 @@ class UriContributor extends DartCompletionContributor {
   // to only those paths within context roots.
   static bool suggestFilePaths = true;
 
+  _UriSuggestionBuilder builder;
+
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     builder = new _UriSuggestionBuilder(request);
     request.target.containingNode.accept(builder);
     return builder.suggestions;

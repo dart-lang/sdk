@@ -45,6 +45,8 @@ abstract class RefactoringImpl implements Refactoring {
 
   @override
   Future<RefactoringStatus> checkAllConditions() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     RefactoringStatus result = new RefactoringStatus();
     result.addStatus(await checkInitialConditions());
     if (result.hasFatalError) {

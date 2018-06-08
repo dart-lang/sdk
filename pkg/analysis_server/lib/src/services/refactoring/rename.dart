@@ -89,6 +89,8 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
 
   @override
   Future<SourceChange> createChange() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     String changeName = "$refactoringName '$oldName' to '$newName'";
     change = new SourceChange(changeName);
     await fillChange();
