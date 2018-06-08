@@ -340,8 +340,6 @@ const_syntax_test/05: MissingCompileTimeError
 const_types_test/34: MissingCompileTimeError
 const_types_test/39: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
-constructor_redirect1_negative_test/01: MissingCompileTimeError
-constructor_redirect2_negative_test: MissingCompileTimeError
 constructor_redirect_test/01: MissingCompileTimeError
 covariant_subtyping_test: RuntimeError
 cyclic_constructor_test/01: MissingCompileTimeError
@@ -359,9 +357,9 @@ deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
 deferred_inheritance_constraints_test/redirecting_constructor: MissingCompileTimeError
 deferred_load_library_wrong_args_test/01: CompileTimeError
 double_identical_test: RuntimeError # Negative and positive zero are distinct, but not in ddk
-duplicate_export_negative_test: Fail
 duplicate_implements_test/01: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
+duplicate_interface_implements_test/01: MissingCompileTimeError
 dynamic_prefix_core_test/none: CompileTimeError
 emit_const_fields_test: CompileTimeError # Issue 31533
 export_ambiguous_main_test: MissingCompileTimeError
