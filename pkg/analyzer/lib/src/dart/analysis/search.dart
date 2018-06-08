@@ -377,13 +377,15 @@ class Search {
       id = subtype.id;
     }
 
+    await _driver.discoverAvailableFiles();
+
     List<SubtypeResult> results = [];
-    for (String path in _driver.addedFiles) {
+    for (String path in _driver.knownFiles) {
       FileState file = _driver.fsState.getFileForPath(path);
       if (file.subtypedNames.contains(name)) {
-        AnalysisDriverResolvedUnit unit = _driver.getResolvedUnitObject(file);
-        if (unit != null) {
-          for (AnalysisDriverSubtype subtype in unit.index.subtypes) {
+        AnalysisDriverUnitIndex index = await _driver.getIndex(path);
+        if (index != null) {
+          for (AnalysisDriverSubtype subtype in index.subtypes) {
             if (subtype.supertypes.contains(id)) {
               FileState library = file.isPart ? file.library : file;
               results.add(new SubtypeResult(

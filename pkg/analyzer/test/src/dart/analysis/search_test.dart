@@ -1646,6 +1646,68 @@ class F {}
     }
   }
 
+  test_subtypes_discover() async {
+    var pathT = _p('/test/lib/t.dart');
+    var pathA = _p('/aaa/lib/a.dart');
+    var pathB = _p('/bbb/lib/b.dart');
+
+    var tUri = 'package:test/t.dart';
+    var aUri = 'package:aaa/a.dart';
+    var bUri = 'package:bbb/b.dart';
+
+    provider.newFile(pathT, r'''
+import 'package:aaa/a.dart';
+
+class T1 extends A {
+  void method1() {}
+}
+
+class T2 extends A {
+  void method2() {}
+}
+''');
+
+    provider.newFile(pathB, r'''
+import 'package:aaa/a.dart';
+
+class B extends A {
+  void method1() {}
+}
+''');
+
+    provider.newFile(pathA, r'''
+class A {
+  void method1() {}
+  void method2() {}
+}
+''');
+
+    driver.addFile(pathT);
+
+    var aLibrary = await driver.getLibraryByUri(aUri);
+    ClassElement aClass = aLibrary.getType('A');
+
+    // Search by 'type'.
+    List<SubtypeResult> subtypes = await driver.search.subtypes(type: aClass);
+    expect(subtypes, hasLength(3));
+
+    SubtypeResult t1 = subtypes.singleWhere((r) => r.name == 'T1');
+    SubtypeResult t2 = subtypes.singleWhere((r) => r.name == 'T2');
+    SubtypeResult b = subtypes.singleWhere((r) => r.name == 'B');
+
+    expect(t1.libraryUri, tUri);
+    expect(t1.id, '$tUri;$tUri;T1');
+    expect(t1.members, ['method1']);
+
+    expect(t2.libraryUri, tUri);
+    expect(t2.id, '$tUri;$tUri;T2');
+    expect(t2.members, ['method2']);
+
+    expect(b.libraryUri, bUri);
+    expect(b.id, '$bUri;$bUri;B');
+    expect(b.members, ['method1']);
+  }
+
   test_subTypes_discover() async {
     var t = _p('/test/lib/t.dart');
     var a = _p('/aaa/lib/a.dart');
