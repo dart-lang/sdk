@@ -46,6 +46,7 @@ T fillDynamicTypeArgs<T extends DartType>(T t) {
 ///    (v) => v.type.name == 'Deprecated' && v.type.element.library.isDartCore
 ///
 DartObject findAnnotation(Element element, bool test(DartObjectImpl value)) {
+  if (element == null) return null;
   for (var metadata in element.metadata) {
     var value = metadata.computeConstantValue();
     if (value is DartObjectImpl && test(value)) return value;
