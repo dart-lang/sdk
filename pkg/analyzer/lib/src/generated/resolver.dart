@@ -4177,6 +4177,37 @@ class ImportsVerifier {
   }
 
   /**
+   * Report a [HintCode.DUPLICATE_SHOWN_HIDDEN_NAME] hint for each duplicate
+   * shown or hidden name.
+   *
+   * Only call this method after all of the compilation units have been visited
+   * by this visitor.
+   *
+   * @param errorReporter the error reporter used to report the set of
+   *          [HintCode.UNUSED_SHOWN_NAME] hints
+   */
+  void generateDuplicateShownHiddenNameHints(ErrorReporter reporter) {
+    _duplicateHiddenNamesMap.forEach(
+        (NamespaceDirective directive, List<SimpleIdentifier> identifiers) {
+      int length = identifiers.length;
+      for (int i = 0; i < length; i++) {
+        Identifier identifier = identifiers[i];
+        reporter.reportErrorForNode(
+            HintCode.DUPLICATE_HIDDEN_NAME, identifier, [identifier.name]);
+      }
+    });
+    _duplicateShownNamesMap.forEach(
+        (NamespaceDirective directive, List<SimpleIdentifier> identifiers) {
+      int length = identifiers.length;
+      for (int i = 0; i < length; i++) {
+        Identifier identifier = identifiers[i];
+        reporter.reportErrorForNode(
+            HintCode.DUPLICATE_SHOWN_NAME, identifier, [identifier.name]);
+      }
+    });
+  }
+
+  /**
    * Report an [HintCode.UNUSED_IMPORT] hint for each unused import.
    *
    * Only call this method after all of the compilation units have been visited by this visitor.
@@ -4230,37 +4261,6 @@ class ImportsVerifier {
   }
 
   /**
-   * Report a [HintCode.DUPLICATE_SHOWN_HIDDEN_NAME] hint for each duplicate
-   * shown or hidden name.
-   *
-   * Only call this method after all of the compilation units have been visited
-   * by this visitor.
-   *
-   * @param errorReporter the error reporter used to report the set of
-   *          [HintCode.UNUSED_SHOWN_NAME] hints
-   */
-  void generateDuplicateShownHiddenNameHints(ErrorReporter reporter) {
-    _duplicateHiddenNamesMap.forEach(
-        (NamespaceDirective directive, List<SimpleIdentifier> identifiers) {
-      int length = identifiers.length;
-      for (int i = 0; i < length; i++) {
-        Identifier identifier = identifiers[i];
-        reporter.reportErrorForNode(
-            HintCode.DUPLICATE_HIDDEN_NAME, identifier, [identifier.name]);
-      }
-    });
-    _duplicateShownNamesMap.forEach(
-        (NamespaceDirective directive, List<SimpleIdentifier> identifiers) {
-      int length = identifiers.length;
-      for (int i = 0; i < length; i++) {
-        Identifier identifier = identifiers[i];
-        reporter.reportErrorForNode(
-            HintCode.DUPLICATE_SHOWN_NAME, identifier, [identifier.name]);
-      }
-    });
-  }
-
-  /**
    * Remove elements from [_unusedImports] using the given [usedElements].
    */
   void removeUsedElements(UsedImportedElements usedElements) {
@@ -4304,26 +4304,6 @@ class ImportsVerifier {
   }
 
   /**
-   * Add every shown name from [importDirective] into [_unusedShownNamesMap].
-   */
-  void _addShownNames(ImportDirective importDirective) {
-    if (importDirective.combinators == null) {
-      return;
-    }
-    List<SimpleIdentifier> identifiers = new List<SimpleIdentifier>();
-    _unusedShownNamesMap[importDirective] = identifiers;
-    for (Combinator combinator in importDirective.combinators) {
-      if (combinator is ShowCombinator) {
-        for (SimpleIdentifier name in combinator.shownNames) {
-          if (name.staticElement != null) {
-            identifiers.add(name);
-          }
-        }
-      }
-    }
-  }
-
-  /**
    * Add duplicate shown and hidden names from [directive] into
    * [_duplicateHiddenNamesMap] and [_duplicateShownNamesMap].
    */
@@ -4354,6 +4334,26 @@ class ImportsVerifier {
                   .putIfAbsent(directive, () => new List<SimpleIdentifier>());
               duplicateNames.add(name);
             }
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Add every shown name from [importDirective] into [_unusedShownNamesMap].
+   */
+  void _addShownNames(ImportDirective importDirective) {
+    if (importDirective.combinators == null) {
+      return;
+    }
+    List<SimpleIdentifier> identifiers = new List<SimpleIdentifier>();
+    _unusedShownNamesMap[importDirective] = identifiers;
+    for (Combinator combinator in importDirective.combinators) {
+      if (combinator is ShowCombinator) {
+        for (SimpleIdentifier name in combinator.shownNames) {
+          if (name.staticElement != null) {
+            identifiers.add(name);
           }
         }
       }
@@ -5889,6 +5889,7 @@ class ResolverVisitor extends ScopedVisitor {
     if (node.metadata != null) {
       node.metadata.accept(this);
       ElementResolver.resolveMetadata(node);
+      node.constants.forEach(ElementResolver.resolveMetadata);
     }
     //
     // Continue the enum resolution.

@@ -95,6 +95,11 @@ class DeclarationResolverMetadataTest extends ResolverTestCase {
     checkMetadata('E');
   }
 
+  test_metadata_enumDeclaration_constant() async {
+    await setupCode('enum E { @a v }');
+    checkMetadata('v');
+  }
+
   test_metadata_exportDirective() async {
     addNamedSource('/foo.dart', 'class C {}');
     await setupCode('@a export "foo.dart";');

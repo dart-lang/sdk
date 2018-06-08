@@ -1293,6 +1293,13 @@ abstract class _ApiElementBuilderTestMixin {
     checkMetadata(parameterElement);
   }
 
+  void test_metadata_visitEnumConstant() {
+    ElementHolder enumElement = buildElementsForText('enum E { @a v }');
+    FieldElement v = enumElement.enums[0].fields[0];
+    expect(v.name, 'v');
+    checkMetadata(v);
+  }
+
   void test_metadata_visitEnumDeclaration() {
     ClassElement classElement =
         buildElementsForText('@a enum E { v }').enums[0];

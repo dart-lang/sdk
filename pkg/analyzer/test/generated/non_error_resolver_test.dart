@@ -3700,6 +3700,19 @@ class A {
     verify([source]);
   }
 
+  test_metadata_enumConstantDeclaration() async {
+    Source source = addSource(r'''
+const x = 1;
+enum E {
+  aaa,
+  @x
+  bbb
+}''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_methodDeclaration_scope_signature() async {
     Source source = addSource(r'''
 const app = 0;

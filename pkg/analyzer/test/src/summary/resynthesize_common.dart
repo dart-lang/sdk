@@ -8140,6 +8140,21 @@ const dynamic a = null;
 ''');
   }
 
+  test_metadata_enumConstantDeclaration() async {
+    var library = await checkLibrary('const a = null; enum E { @a v }');
+    checkElementText(library, r'''
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  @
+        a/*location: test.dart;a?*/
+  static const E v;
+  String toString() {}
+}
+const dynamic a = null;
+''');
+  }
+
   test_metadata_enumDeclaration() async {
     var library = await checkLibrary('const a = null; @a enum E { v }');
     checkElementText(library, r'''
