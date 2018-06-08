@@ -9290,7 +9290,7 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
   // Build creation of implicit StreamIterator.
   // var :for-in-iter = new StreamIterator(stream_expr).
   const Class& stream_iterator_cls =
-      Class::ZoneHandle(Z, async_lib.LookupClass(Symbols::StreamIterator()));
+      Class::ZoneHandle(Z, I->object_store()->stream_iterator_class());
   ASSERT(!stream_iterator_cls.IsNull());
   const Function& iterator_ctor = Function::ZoneHandle(
       Z,

@@ -29,8 +29,7 @@ import 'package:kernel/target/targets.dart';
 import 'package:path/path.dart' as path;
 import 'package:usage/uuid/uuid.dart';
 import 'package:vm/incremental_compiler.dart' show IncrementalCompiler;
-import 'package:vm/kernel_front_end.dart'
-    show compileToKernel, parseCommandLineDefines;
+import 'package:vm/kernel_front_end.dart' show compileToKernel;
 
 ArgParser argParser = new ArgParser(allowTrailingOptions: true)
   ..addFlag('train',
@@ -93,10 +92,7 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
       help: 'Normally the output dill is used to specify which dill to '
           'initialize from, but it can be overwritten here.',
       defaultsTo: null,
-      hide: true)
-  ..addMultiOption('define',
-      abbr: 'D',
-      help: 'The values for the environment constants (e.g. -Dkey=value).');
+      hide: true);
 
 String usage = '''
 Usage: server [options] [input.dart]
@@ -296,12 +292,6 @@ class FrontendCompiler implements CompilerInterface {
       }
     }
 
-    final Map<String, String> environmentDefines = {};
-    if (!parseCommandLineDefines(
-        options['define'], environmentDefines, usage)) {
-      return false;
-    }
-
     final TargetFlags targetFlags = new TargetFlags(
         strongMode: options['strong'], syncAsync: options['sync-async']);
     compilerOptions.target = getTarget(options['target'], targetFlags);
@@ -332,8 +322,7 @@ class FrontendCompiler implements CompilerInterface {
           _mainSource, compilerOptions,
           aot: options['aot'],
           useGlobalTypeFlowAnalysis: options['tfa'],
-          entryPoints: options['entry-points'],
-          environmentDefines: environmentDefines));
+          entryPoints: options['entry-points']));
     }
     if (component != null) {
       if (transformer != null) {

@@ -220,7 +220,7 @@ _registerSignalHandler() {
   _signalSubscription = _signalWatch(ProcessSignal.SIGQUIT).listen(_onSignal);
 }
 
-@pragma("vm.entry_point", !const bool.fromEnvironment("dart.vm.product"))
+@pragma("vm.entry_point")
 main() {
   // Set embedder hooks.
   VMServiceEmbedderHooks.cleanup = cleanupCallback;

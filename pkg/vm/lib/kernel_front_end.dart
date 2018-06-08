@@ -330,22 +330,3 @@ class ForwardConstantEvaluationErrors implements constants.ErrorReporter {
     return node == null ? TreeNode.noOffset : node.fileOffset;
   }
 }
-
-bool parseCommandLineDefines(
-    List<String> dFlags, Map<String, String> environmentDefines, String usage) {
-  for (final String dflag in dFlags) {
-    final equalsSignIndex = dflag.indexOf('=');
-    if (equalsSignIndex < 0) {
-      environmentDefines[dflag] = '';
-    } else if (equalsSignIndex > 0) {
-      final key = dflag.substring(0, equalsSignIndex);
-      final value = dflag.substring(equalsSignIndex + 1);
-      environmentDefines[key] = value;
-    } else {
-      print('The environment constant options must have a key (was: "$dflag")');
-      print(usage);
-      return false;
-    }
-  }
-  return true;
-}

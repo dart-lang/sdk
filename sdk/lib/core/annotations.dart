@@ -248,7 +248,6 @@ const Object proxy = const _Proxy();
  * function foo is annotated with a pragma 'other-pragma' specific to OtherTool.
  *
  */
-@pragma('vm.entry_point')
 class pragma {
   /**
    * The name of the hint.

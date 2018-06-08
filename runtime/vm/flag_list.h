@@ -26,12 +26,6 @@
 #define USING_PRODUCT false
 #endif
 
-#if defined(DART_PRECOMPILED_RUNTIME)
-constexpr bool kDartPrecompiledRuntime = true;
-#else
-constexpr bool kDartPrecompiledRuntime = false;
-#endif
-
 // List of all flags in the VM.
 // Flags can be one of three categories:
 // * P roduct flags: Can be set in any of the deployment modes, including in
