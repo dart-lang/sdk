@@ -229,19 +229,15 @@ library_for_all_configs("libdart") {
 }
 
 action("generate_version_cc_file") {
-  deps = [
-    "third_party/double-conversion/src:libdouble_conversion",
-    "vm:libdart_lib_jit",
-    "vm:libdart_lib_nosnapshot_with_precompiler",
-    "vm:libdart_vm_jit",
-    "vm:libdart_vm_nosnapshot_with_precompiler",
-  ]
   inputs = [
     "../tools/utils.py",
     "../tools/print_version.py",
     "../tools/VERSION",
     "vm/version_in.cc",
   ]
+  if (dart_version_git_info) {
+    inputs += [ "../.git/logs/HEAD" ]
+  }
   output = "$target_gen_dir/version.cc"
   outputs = [
     output,

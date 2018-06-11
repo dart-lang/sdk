@@ -137,6 +137,9 @@ def CreateTarball(tarfilename):
       GenerateChangeLog(change_log, version)
       tar.add(change_log, arcname='%s/debian/changelog' % versiondir)
 
+      # For generated version file build dependency, add fake git reflog.
+      tar.add('/dev/null', arcname='%s/dart/.git/logs/HEAD' % versiondir)
+
       # For bleeding_edge add the GIT_REVISION file.
       if utils.GetChannel() == 'be':
         git_revision = join(temp_dir, 'GIT_REVISION')
