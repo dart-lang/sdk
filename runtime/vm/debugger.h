@@ -10,6 +10,7 @@
 #include "vm/kernel_isolate.h"
 #include "vm/object.h"
 #include "vm/port.h"
+#include "vm/scopes.h"
 #include "vm/service_event.h"
 #include "vm/simulator.h"
 
@@ -392,7 +393,7 @@ class ActivationFrame : public ZoneAllocated {
     }
   }
 
-  RawObject* GetStackVar(intptr_t slot_index);
+  RawObject* GetStackVar(VariableIndex var_index);
   RawObject* GetContextVar(intptr_t ctxt_level, intptr_t slot_index);
 
   uword pc_;

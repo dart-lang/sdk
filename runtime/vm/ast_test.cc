@@ -22,7 +22,7 @@ TEST_CASE(Ast) {
   EXPECT(!ll->IsLiteralNode());
   LoadLocalNode* lln = ll->AsLoadLocalNode();
   EXPECT(NULL != lln);
-  v->set_index(VariableIndex::From(1));
+  v->set_index(VariableIndex(1));
   EXPECT_EQ(1, v->index().value());
 
   LocalVariable* p =
@@ -30,7 +30,7 @@ TEST_CASE(Ast) {
                         String::ZoneHandle(Symbols::New(thread, "p")),
                         Type::ZoneHandle(Type::DynamicType()));
   EXPECT(!p->HasIndex());
-  p->set_index(VariableIndex::From(-1));
+  p->set_index(VariableIndex(-1));
   EXPECT(p->HasIndex());
   EXPECT_EQ(-1, p->index().value());
 

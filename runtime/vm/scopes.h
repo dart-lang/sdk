@@ -57,9 +57,7 @@ class VariableIndex {
  public:
   static const int kInvalidIndex = std::numeric_limits<int>::min();
 
-  VariableIndex() : value_(kInvalidIndex) {}
-
-  static VariableIndex From(int index) { return VariableIndex(index); }
+  explicit VariableIndex(int value = kInvalidIndex) : value_(value) {}
 
   int operator==(const VariableIndex& other) { return value_ == other.value_; }
 
@@ -68,8 +66,6 @@ class VariableIndex {
   int value() const { return value_; }
 
  private:
-  explicit VariableIndex(int value) : value_(value) {}
-
   int value_;
 };
 

@@ -350,7 +350,7 @@ void ParsedFunction::AllocateVariables() {
 
       } else {
         raw_parameter->set_index(
-            VariableIndex::From(function().NumParameters() - param));
+            VariableIndex(function().NumParameters() - param));
       }
     }
     raw_parameters_.Add(raw_parameter);
@@ -382,24 +382,24 @@ void ParsedFunction::AllocateVariables() {
     // parameters to copy.
     if (num_opt_params == 0) {
       parameter_index_start = first_parameter_index_ =
-          VariableIndex::From(num_params);
-      reamining_local_variables_start = VariableIndex::From(0);
+          VariableIndex(num_params);
+      reamining_local_variables_start = VariableIndex(0);
     } else {
-      parameter_index_start = first_parameter_index_ = VariableIndex::From(0);
-      reamining_local_variables_start = VariableIndex::From(-num_params);
+      parameter_index_start = first_parameter_index_ = VariableIndex(0);
+      reamining_local_variables_start = VariableIndex(-num_params);
     }
   }
 
   if (function_type_arguments_ != NULL && num_opt_params > 0) {
     reamining_local_variables_start =
-        VariableIndex::From(reamining_local_variables_start.value() - 1);
+        VariableIndex(reamining_local_variables_start.value() - 1);
   }
 
   // Allocate parameters and local variables, either in the local frame or
   // in the context(s).
   bool found_captured_variables = false;
   VariableIndex first_local_index =
-      VariableIndex::From(parameter_index_start.value() > 0 ? 0 : -num_params);
+      VariableIndex(parameter_index_start.value() > 0 ? 0 : -num_params);
   VariableIndex next_free_index = scope->AllocateVariables(
       parameter_index_start, num_params, first_local_index, NULL,
       &found_captured_variables);
@@ -426,7 +426,7 @@ void ParsedFunction::AllocateIrregexpVariables(intptr_t num_stack_locals) {
   ASSERT(num_params == RegExpMacroAssembler::kParamCount);
   // Compute start indices to parameters and locals, and the number of
   // parameters to copy.
-  first_parameter_index_ = VariableIndex::From(num_params);
+  first_parameter_index_ = VariableIndex(num_params);
 
   // Frame indices are relative to the frame pointer and are decreasing.
   num_stack_locals_ = num_stack_locals;

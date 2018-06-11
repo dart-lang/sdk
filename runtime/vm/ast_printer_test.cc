@@ -19,7 +19,7 @@ TEST_CASE(AstPrinter) {
   LocalVariable* v = new LocalVariable(
       kPos, kPos, String::ZoneHandle(Symbols::New(thread, "wurscht")),
       Type::ZoneHandle(Type::DynamicType()));
-  v->set_index(VariableIndex::From(5));
+  v->set_index(VariableIndex(5));
   AstPrinter ast_printer;
   LoadLocalNode* ll = new LoadLocalNode(kPos, v);
   ReturnNode* r = new ReturnNode(kPos, ll);

@@ -2477,9 +2477,9 @@ ISOLATE_UNIT_TEST_CASE(ContextScope) {
   EXPECT_EQ(4, local_scope->num_variables());         // ta, a, b, c.
   EXPECT_EQ(3, local_scope->NumCapturedVariables());  // ta, a, c.
 
-  const VariableIndex first_parameter_index = VariableIndex::From(0);
+  const VariableIndex first_parameter_index(0);
   const int num_parameters = 0;
-  const VariableIndex first_local_index = VariableIndex::From(-1);
+  const VariableIndex first_local_index(-1);
   bool found_captured_vars = false;
   VariableIndex next_index = parent_scope->AllocateVariables(
       first_parameter_index, num_parameters, first_local_index, NULL,

@@ -179,7 +179,7 @@ void LocalScope::AllocateContextVariable(LocalVariable* variable,
     }
   }
   variable->set_index(
-      VariableIndex::From((*context_owner)->num_context_variables_++));
+      VariableIndex((*context_owner)->num_context_variables_++));
 }
 
 VariableIndex LocalScope::AllocateVariables(VariableIndex first_parameter_index,
@@ -208,12 +208,12 @@ VariableIndex LocalScope::AllocateVariables(VariableIndex first_parameter_index,
       // A captured parameter has a slot allocated in the frame and one in the
       // context, where it gets copied to. The parameter index reflects the
       // context allocation index.
-      next_index = VariableIndex::From(next_index.value() - 1);
+      next_index = VariableIndex(next_index.value() - 1);
       AllocateContextVariable(parameter, &context_owner);
       *found_captured_variables = true;
     } else {
       parameter->set_index(next_index);
-      next_index = VariableIndex::From(next_index.value() - 1);
+      next_index = VariableIndex(next_index.value() - 1);
     }
   }
   // No overlapping of parameters and locals.
@@ -227,7 +227,7 @@ VariableIndex LocalScope::AllocateVariables(VariableIndex first_parameter_index,
         *found_captured_variables = true;
       } else {
         variable->set_index(next_index);
-        next_index = VariableIndex::From(next_index.value() - 1);
+        next_index = VariableIndex(next_index.value() - 1);
       }
     }
     pos++;
@@ -237,7 +237,7 @@ VariableIndex LocalScope::AllocateVariables(VariableIndex first_parameter_index,
   LocalScope* child = this->child();
   while (child != NULL) {
     // Ignored, since no parameters.
-    const VariableIndex dummy_parameter_index = VariableIndex::From(0);
+    const VariableIndex dummy_parameter_index(0);
 
     // No parameters in children scopes.
     const int num_parameters_in_child = 0;
@@ -377,7 +377,7 @@ void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
         desc.info.declaration_pos = TokenPosition::kMinSource;
         desc.info.begin_pos = TokenPosition::kMinSource;
         desc.info.end_pos = TokenPosition::kMinSource;
-        desc.info.set_index(FrameSlotForVariable(var));
+        desc.info.set_index(var->index().value());
         vars->Add(desc);
       } else if (!IsFilteredIdentifier(var->name())) {
         // This is a regular Dart variable, either stack-based or captured.
@@ -388,12 +388,11 @@ void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
           ASSERT(var->owner() != NULL);
           ASSERT(var->owner()->context_level() >= 0);
           desc.info.scope_id = var->owner()->context_level();
-          desc.info.set_index(var->index().value());
         } else {
           desc.info.set_kind(RawLocalVarDescriptors::kStackVar);
           desc.info.scope_id = *scope_id;
-          desc.info.set_index(FrameSlotForVariable(var));
         }
+        desc.info.set_index(var->index().value());
         desc.info.declaration_pos = var->declaration_token_pos();
         desc.info.begin_pos = var->token_pos();
         desc.info.end_pos = var->owner()->end_token_pos();
@@ -629,7 +628,7 @@ LocalScope* LocalScope::RestoreOuterScope(const ContextScope& context_scope) {
                             AbstractType::ZoneHandle(context_scope.TypeAt(i)));
     }
     variable->set_is_captured();
-    variable->set_index(VariableIndex::From(context_scope.ContextIndexAt(i)));
+    variable->set_index(VariableIndex(context_scope.ContextIndexAt(i)));
     if (context_scope.IsFinalAt(i)) {
       variable->set_is_final();
     }

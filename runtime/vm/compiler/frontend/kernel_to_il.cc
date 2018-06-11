@@ -1970,8 +1970,8 @@ LocalVariable* BaseFlowGraphBuilder::MakeTemporary() {
                             symbol_name, Object::dynamic_type());
   // Set the index relative to the base of the expression stack including
   // outgoing arguments.
-  variable->set_index(VariableIndex::From(
-      -parsed_function_->num_stack_locals() - pending_argument_count_ - index));
+  variable->set_index(VariableIndex(-parsed_function_->num_stack_locals() -
+                                    pending_argument_count_ - index));
 
   // The value has uses as if it were a local variable.  Mark the definition
   // as used so that its temp index will not be cleared (causing it to never

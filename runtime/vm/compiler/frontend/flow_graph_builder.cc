@@ -2117,7 +2117,7 @@ LocalVariable* EffectGraphVisitor::EnterTempLocalScope(Value* value) {
       new (Z) LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                             String::ZoneHandle(Z, Symbols::New(T, name)),
                             *value->Type()->ToAbstractType());
-  var->set_index(VariableIndex::From(index));
+  var->set_index(VariableIndex(index));
   return var;
 }
 
@@ -2133,7 +2133,7 @@ void EffectGraphVisitor::BuildLetTempExpressions(LetNode* node) {
     Append(for_value);
     ASSERT(!node->TempAt(i)->HasIndex() ||
            (node->TempAt(i)->index().value() == GetCurrentTempLocalIndex()));
-    node->TempAt(i)->set_index(VariableIndex::From(GetCurrentTempLocalIndex()));
+    node->TempAt(i)->set_index(VariableIndex(GetCurrentTempLocalIndex()));
   }
 }
 

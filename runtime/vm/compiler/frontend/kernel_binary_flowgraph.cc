@@ -1444,7 +1444,7 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
     result_->this_variable =
         MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                      Symbols::This(), klass_type);
-    result_->this_variable->set_index(VariableIndex::From(0));
+    result_->this_variable->set_index(VariableIndex(0));
     result_->this_variable->set_is_captured();
     enclosing_scope = new (Z) LocalScope(NULL, 0, 0);
     enclosing_scope->set_context_level(0);

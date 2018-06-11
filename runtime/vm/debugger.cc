@@ -741,15 +741,16 @@ RawObject* ActivationFrame::GetAsyncContextVariable(const String& name) {
       if (!live_frame_) {
         ASSERT(kind == RawLocalVarDescriptors::kContextVar);
       }
+      const auto variable_index = VariableIndex(var_info.index());
       if (kind == RawLocalVarDescriptors::kStackVar) {
-        return GetStackVar(var_info.index());
+        return GetStackVar(variable_index);
       } else {
         ASSERT(kind == RawLocalVarDescriptors::kContextVar);
         if (!live_frame_) {
           ASSERT(!ctx_.IsNull());
-          return ctx_.At(var_info.index());
+          return ctx_.At(variable_index.value());
         }
-        return GetContextVar(var_info.scope_id, var_info.index());
+        return GetContextVar(var_info.scope_id, variable_index.value());
       }
     }
   }
@@ -968,7 +969,8 @@ const Context& ActivationFrame::GetSavedCurrentContext() {
         OS::PrintErr("\tFound saved current ctx at index %d\n",
                      var_info.index());
       }
-      obj = GetStackVar(var_info.index());
+      const auto variable_index = VariableIndex(var_info.index());
+      obj = GetStackVar(variable_index);
       if (obj.IsClosure()) {
         ASSERT(function().name() == Symbols::Call().raw());
         ASSERT(function().IsInvokeFieldDispatcher());
@@ -993,11 +995,12 @@ RawObject* ActivationFrame::GetAsyncOperation() {
     var_descriptors_.GetInfo(i, &var_info);
     if (var_descriptors_.GetName(i) == Symbols::AsyncOperation().raw()) {
       const int8_t kind = var_info.kind();
+      const auto variable_index = VariableIndex(var_info.index());
       if (kind == RawLocalVarDescriptors::kStackVar) {
-        return GetStackVar(var_info.index());
+        return GetStackVar(variable_index);
       } else {
         ASSERT(kind == RawLocalVarDescriptors::kContextVar);
-        return GetContextVar(var_info.scope_id, var_info.index());
+        return GetContextVar(var_info.scope_id, variable_index.value());
       }
     }
   }
@@ -1108,8 +1111,9 @@ RawObject* ActivationFrame::GetParameter(intptr_t index) {
     // can be in a number of places in the caller's frame depending on how many
     // were actually supplied at the call site, but they are copied to a fixed
     // place in the callee's frame.
+
     return GetVariableValue(
-        LocalVarAddress(fp(), (kFirstLocalSlotFromFp - index)));
+        LocalVarAddress(fp(), FrameSlotForVariableIndex(-index)));
   } else {
     intptr_t reverse_index = num_parameters - index;
     return GetVariableValue(ParamAddress(fp(), reverse_index));
@@ -1121,7 +1125,8 @@ RawObject* ActivationFrame::GetClosure() {
   return GetParameter(0);
 }
 
-RawObject* ActivationFrame::GetStackVar(intptr_t slot_index) {
+RawObject* ActivationFrame::GetStackVar(VariableIndex variable_index) {
+  const intptr_t slot_index = FrameSlotForVariableIndex(variable_index.value());
   if (deopt_frame_.IsNull()) {
     return GetVariableValue(LocalVarAddress(fp(), slot_index));
   } else {
@@ -1217,11 +1222,12 @@ void ActivationFrame::VariableAt(intptr_t i,
   *visible_end_token_pos = var_info.end_pos;
   ASSERT(value != NULL);
   const int8_t kind = var_info.kind();
+  const auto variable_index = VariableIndex(var_info.index());
   if (kind == RawLocalVarDescriptors::kStackVar) {
-    *value = GetStackVar(var_info.index());
+    *value = GetStackVar(variable_index);
   } else {
     ASSERT(kind == RawLocalVarDescriptors::kContextVar);
-    *value = GetContextVar(var_info.scope_id, var_info.index());
+    *value = GetContextVar(var_info.scope_id, variable_index.value());
   }
 }
 
