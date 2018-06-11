@@ -1656,7 +1656,6 @@ const_constructor2_test/24: MissingCompileTimeError
 const_constructor3_test/02: MissingCompileTimeError
 const_constructor3_test/04: MissingCompileTimeError
 const_init2_test/02: MissingCompileTimeError
-const_native_factory_test: MissingCompileTimeError
 const_syntax_test/08: MissingCompileTimeError
 const_syntax_test/10: MissingCompileTimeError
 const_types_test/01: MissingCompileTimeError

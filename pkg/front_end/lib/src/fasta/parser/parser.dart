@@ -3235,7 +3235,10 @@ class Parser {
     }
 
     listener.beginFactoryMethod(beforeStart, externalToken, varFinalOrConst);
-    token = parseConstructorReference(token);
+    token = ensureIdentifier(token, IdentifierContext.methodDeclaration);
+    token = parseQualifiedRestOpt(
+        token, IdentifierContext.methodDeclarationContinuation);
+    token = parseMethodTypeVar(token);
     token = parseFormalParametersRequiredOpt(token, MemberKind.Factory);
     Token asyncToken = token.next;
     token = parseAsyncModifierOpt(token);

@@ -576,7 +576,7 @@ class KernelLibraryBuilder
       String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
-      ConstructorReferenceBuilder constructorNameReference,
+      Object name,
       List<FormalParameterBuilder> formals,
       ConstructorReferenceBuilder redirectionTarget,
       int charOffset,
@@ -588,19 +588,17 @@ class KernelLibraryBuilder
     // Nested declaration began in `OutlineBuilder.beginFactoryMethod`.
     DeclarationBuilder<KernelTypeBuilder> factoryDeclaration =
         endNestedDeclaration("#factory_method");
-    Object name = constructorNameReference.name;
 
     // Prepare the simple procedure name.
     String procedureName;
     String constructorName =
-        computeAndValidateConstructorName(name, charOffset);
+        computeAndValidateConstructorName(name, charOffset, isFactory: true);
     if (constructorName != null) {
       procedureName = constructorName;
     } else {
       procedureName = name;
     }
 
-    assert(constructorNameReference.suffix == null);
     KernelProcedureBuilder procedure;
     if (redirectionTarget != null) {
       procedure = new KernelRedirectingFactoryBuilder(

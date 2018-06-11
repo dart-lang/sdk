@@ -397,6 +397,7 @@ class OutlineBuilder extends StackListener {
     push(typeVariables ?? NullValue.TypeVariables);
     library.currentDeclaration
       ..name = name.lexeme
+      ..charOffset = name.charOffset
       ..typeVariables = typeVariables;
     push(abstractToken != null ? abstractMask : 0);
   }
@@ -409,6 +410,7 @@ class OutlineBuilder extends StackListener {
     push(typeVariables ?? NullValue.TypeVariables);
     library.currentDeclaration
       ..name = name.lexeme
+      ..charOffset = name.charOffset
       ..typeVariables = typeVariables;
     push(abstractToken != null ? abstractMask : 0);
   }
@@ -1143,6 +1145,7 @@ class OutlineBuilder extends StackListener {
   @override
   void beginFactoryMethod(
       Token lastConsumed, Token externalToken, Token constToken) {
+    inConstructor = true;
     library.beginNestedDeclaration("#factory_method", hasMembers: false);
     push((externalToken != null ? externalMask : 0) |
         (constToken != null ? constMask : 0));
@@ -1159,7 +1162,9 @@ class OutlineBuilder extends StackListener {
     }
     List<FormalParameterBuilder> formals = pop();
     int formalsOffset = pop();
-    var name = pop();
+    pop(); // type variables
+    int charOffset = pop();
+    Object name = pop();
     int modifiers = pop();
     List<MetadataBuilder> metadata = pop();
     String documentationComment = getDocumentationComment(beginToken);
@@ -1170,11 +1175,12 @@ class OutlineBuilder extends StackListener {
         name,
         formals,
         redirectionTarget,
-        factoryKeyword.next.charOffset,
+        charOffset,
         formalsOffset,
         endToken.charOffset,
         nativeMethodName);
     nativeMethodName = null;
+    inConstructor = false;
   }
 
   @override

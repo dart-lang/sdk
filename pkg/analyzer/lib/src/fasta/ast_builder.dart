@@ -2065,7 +2065,8 @@ class AstBuilder extends StackListener {
     }
 
     FormalParameterList parameters = pop();
-    ConstructorName constructorName = pop();
+    pop(); // Type parameters
+    Object constructorName = pop();
     _Modifiers modifiers = pop();
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata, beginToken);
@@ -2075,7 +2076,7 @@ class AstBuilder extends StackListener {
     SimpleIdentifier returnType;
     Token period;
     SimpleIdentifier name;
-    Identifier typeName = constructorName.type.name;
+    Identifier typeName = constructorName;
     if (typeName is SimpleIdentifier) {
       returnType = typeName;
     } else if (typeName is PrefixedIdentifier) {

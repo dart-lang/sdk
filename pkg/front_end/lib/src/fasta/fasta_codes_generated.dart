@@ -1056,6 +1056,38 @@ const MessageCode messageConstructorWithTypeParameters = const MessageCode(
     message: r"""Constructors can't have type parameters.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstructorWithWrongName = messageConstructorWithWrongName;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstructorWithWrongName = const MessageCode(
+    "ConstructorWithWrongName",
+    analyzerCode: "INVALID_CONSTRUCTOR_NAME",
+    dart2jsCode: "*fatal*",
+    severity: Severity.error,
+    message:
+        r"""The name of a constructor must match the name of the enclosing class.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateConstructorWithWrongNameContext =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""The name of the enclosing class is '#name'.""",
+        withArguments: _withArgumentsConstructorWithWrongNameContext);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeConstructorWithWrongNameContext =
+    const Code<Message Function(String name)>("ConstructorWithWrongNameContext",
+        templateConstructorWithWrongNameContext,
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstructorWithWrongNameContext(String name) {
+  return new Message(codeConstructorWithWrongNameContext,
+      message: """The name of the enclosing class is '$name'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeContinueOutsideOfLoop = messageContinueOutsideOfLoop;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2605,29 +2637,6 @@ const MessageCode messageIllegalAssignmentToNonAssignable = const MessageCode(
     analyzerCode: "ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE",
     dart2jsCode: "*fatal*",
     message: r"""Illegal assignment to non-assignable expression.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2)>
-    templateIllegalMethodName =
-    const Template<Message Function(String name, String name2)>(
-        messageTemplate: r"""'#name' isn't a legal method name.""",
-        tipTemplate: r"""Did you mean '#name2'?""",
-        withArguments: _withArgumentsIllegalMethodName);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, String name2)> codeIllegalMethodName =
-    const Code<Message Function(String name, String name2)>(
-  "IllegalMethodName",
-  templateIllegalMethodName,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIllegalMethodName(String name, String name2) {
-  return new Message(codeIllegalMethodName,
-      message: """'$name' isn't a legal method name.""",
-      tip: """Did you mean '$name2'?""",
-      arguments: {'name': name, 'name2': name2});
-}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateIllegalMixin =

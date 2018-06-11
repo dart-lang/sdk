@@ -1028,6 +1028,22 @@ ConstructorWithTypeParameters:
   script:
     - "class C { C<T>() {} }"
     - "class C { C.foo<T>() {} }"
+    - "class C { factory C<T>() => null; }"
+    - "class C { factory C.foo<T>() => null; }"
+
+ConstructorWithWrongName:
+  template: "The name of a constructor must match the name of the enclosing class."
+  severity: ERROR
+  analyzerCode: INVALID_CONSTRUCTOR_NAME
+  dart2jsCode: "*fatal*"
+  script:
+    - "class A { B.foo() {} }"
+    - "class A { factory B() => null; }"
+    - "class A { factory B.foo() => null; }"
+
+ConstructorWithWrongNameContext:
+  template: "The name of the enclosing class is '#name'."
+  severity: CONTEXT
 
 FieldInitializerOutsideConstructor:
   template: "Field formal parameters can only be used in a constructor."
@@ -1556,10 +1572,6 @@ OverrideTypeMismatchReturnType:
   tip: "Change to a subtype of #type2."
   analyzerCode: INVALID_METHOD_OVERRIDE
   dart2jsCode: "*ignored*"
-
-IllegalMethodName:
-  template: "'#name' isn't a legal method name."
-  tip: "Did you mean '#name2'?"
 
 PartOfSelf:
   template: "A file can't be a part of itself."

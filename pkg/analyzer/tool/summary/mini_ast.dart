@@ -85,20 +85,11 @@ class CompilationUnitMember extends AnnotatedNode {
 
 /// "Mini AST" representation of a constructor declaration.
 class ConstructorDeclaration extends ClassMember {
-  final ConstructorReference name;
+  final String name;
 
   ConstructorDeclaration(
       Comment documentationComment, List<Annotation> metadata, this.name)
       : super(documentationComment, metadata);
-}
-
-/// "Mini AST" representation of a constructor reference.
-class ConstructorReference {
-  final String name;
-
-  final String constructorName;
-
-  ConstructorReference(this.name, this.constructorName);
 }
 
 /// "Mini AST" representation of an individual enum constant in an enum
@@ -218,16 +209,6 @@ class MiniAstBuilder extends StackListener {
     }
   }
 
-  @override
-  void endConstructorReference(
-      Token start, Token periodBeforeName, Token endToken) {
-    debugEvent("ConstructorReference");
-    String constructorName = popIfNotNull(periodBeforeName);
-    pop(); // Type arguments
-    String name = pop();
-    push(new ConstructorReference(name, constructorName));
-  }
-
   void endEnum(Token enumKeyword, Token leftBrace, int count) {
     debugEvent("Enum");
     List<EnumConstantDeclaration> constants =
@@ -245,7 +226,8 @@ class MiniAstBuilder extends StackListener {
       Token beginToken, Token factoryKeyword, Token endToken) {
     debugEvent("FactoryMethod");
     pop(); // Body
-    ConstructorReference name = pop();
+    pop(); // Type variables
+    String name = pop();
     List<Annotation> metadata = pop();
     Comment comment = pop();
     push(new ConstructorDeclaration(comment, metadata, name));
