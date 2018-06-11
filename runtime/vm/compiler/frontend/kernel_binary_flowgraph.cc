@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/compiler/frontend/kernel_binary_flowgraph.h"
+#include "vm/code_descriptors.h"
 #include "vm/compiler/aot/precompiler.h"
 #include "vm/compiler/assembler/disassembler_kbc.h"
 #include "vm/compiler/frontend/prologue_builder.h"
@@ -1168,7 +1169,7 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
           elem = pool.ObjectAt(elem_index);
           array.SetAt(j, elem);
         }
-        obj = H.Canonicalize(Array::Cast(obj));
+        obj = H.Canonicalize(Array::Cast(array));
         ASSERT(!obj.IsNull());
       } break;
       case ConstantPoolTag::kInstance: {
@@ -1354,37 +1355,62 @@ RawCode* BytecodeMetadataHelper::ReadBytecode(const ObjectPool& pool) {
 }
 
 void BytecodeMetadataHelper::ReadExceptionsTable(const Code& bytecode) {
-  const ObjectPool& pool =
-      ObjectPool::Handle(builder_->zone_, bytecode.object_pool());
-  AbstractType& handled_type = AbstractType::Handle(builder_->zone_);
+  const intptr_t try_block_count = builder_->reader_.ReadListLength();
+  if (try_block_count > 0) {
+    const ObjectPool& pool =
+        ObjectPool::Handle(builder_->zone_, bytecode.object_pool());
+    AbstractType& handler_type = AbstractType::Handle(builder_->zone_);
+    Array& handler_types = Array::Handle(builder_->zone_);
+    DescriptorList* pc_descriptors_list =
+        new (builder_->zone_) DescriptorList(64);
+    ExceptionHandlerList* exception_handlers_list =
+        new (builder_->zone_) ExceptionHandlerList();
 
-  // Encoding of ExceptionsTable is described in
-  // pkg/vm/lib/bytecode/exceptions.dart.
-  intptr_t try_block_count = builder_->reader_.ReadListLength();
-  for (intptr_t i = 0; i < try_block_count; i++) {
-    intptr_t outer_try_index_plus1 = builder_->reader_.ReadUInt();
-    intptr_t outer_try_index = outer_try_index_plus1 - 1;
-    USE(outer_try_index);
-    intptr_t start_pc = builder_->reader_.ReadUInt();
-    USE(start_pc);
-    intptr_t end_pc = builder_->reader_.ReadUInt();
-    USE(end_pc);
-    intptr_t handler_pc = builder_->reader_.ReadUInt();
-    USE(handler_pc);
-    uint8_t flags = builder_->reader_.ReadByte();
-    // flagNeedsStackTrace = 1 << 0;
-    // flagIsSynthetic = 1 << 1;
-    USE(flags);
+    // Encoding of ExceptionsTable is described in
+    // pkg/vm/lib/bytecode/exceptions.dart.
+    for (intptr_t try_index = 0; try_index < try_block_count; try_index++) {
+      intptr_t outer_try_index_plus1 = builder_->reader_.ReadUInt();
+      intptr_t outer_try_index = outer_try_index_plus1 - 1;
+      intptr_t start_pc = builder_->reader_.ReadUInt();
+      intptr_t end_pc = builder_->reader_.ReadUInt();
+      intptr_t handler_pc = builder_->reader_.ReadUInt();
+      uint8_t flags = builder_->reader_.ReadByte();
+      const uint8_t kFlagNeedsStackTrace = 1 << 0;
+      const uint8_t kFlagIsSynthetic = 1 << 1;
+      const bool needs_stacktrace = (flags & kFlagNeedsStackTrace) != 0;
+      const bool is_generated = (flags & kFlagIsSynthetic) != 0;
+      intptr_t type_count = builder_->reader_.ReadListLength();
+      ASSERT(type_count > 0);
+      handler_types = Array::New(type_count, Heap::kOld);
+      for (intptr_t i = 0; i < type_count; i++) {
+        intptr_t type_index = builder_->reader_.ReadUInt();
+        ASSERT(type_index < pool.Length());
+        handler_type ^= pool.ObjectAt(type_index);
+        handler_types.SetAt(i, handler_type);
+      }
+      pc_descriptors_list->AddDescriptor(RawPcDescriptors::kOther, start_pc,
+                                         Thread::kNoDeoptId,
+                                         TokenPosition::kNoSource, try_index);
+      pc_descriptors_list->AddDescriptor(RawPcDescriptors::kOther, end_pc,
+                                         Thread::kNoDeoptId,
+                                         TokenPosition::kNoSource, -1);
 
-    intptr_t type_count = builder_->reader_.ReadListLength();
-    for (intptr_t j = 0; j < type_count; j++) {
-      intptr_t type_index = builder_->reader_.ReadUInt();
-      ASSERT(type_index < pool.Length());
-      handled_type ^= pool.ObjectAt(type_index);
+      exception_handlers_list->AddHandler(
+          try_index, outer_try_index, handler_pc, TokenPosition::kNoSource,
+          is_generated, handler_types, needs_stacktrace);
     }
+    const PcDescriptors& descriptors = PcDescriptors::Handle(
+        builder_->zone_,
+        pc_descriptors_list->FinalizePcDescriptors(bytecode.PayloadStart()));
+    bytecode.set_pc_descriptors(descriptors);
+    const ExceptionHandlers& handlers = ExceptionHandlers::Handle(
+        builder_->zone_, exception_handlers_list->FinalizeExceptionHandlers(
+                             bytecode.PayloadStart()));
+    bytecode.set_exception_handlers(handlers);
+  } else {
+    bytecode.set_pc_descriptors(Object::empty_descriptors());
+    bytecode.set_exception_handlers(Object::empty_exception_handlers());
   }
-  // TODO(regis): Generate exception handlers (as well as pc descriptors)
-  // and store in bytecode: bytecode.set_exception_handlers(exception_handlers);
 }
 #endif  // defined(DART_USE_INTERPRETER)
 

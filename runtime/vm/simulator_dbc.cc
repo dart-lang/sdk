@@ -2667,7 +2667,7 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
-    BYTECODE(StoreFieldTOS, A_D);
+    BYTECODE(StoreFieldTOS, __D);
     const uint16_t offset_in_words = rD;
     RawInstance* instance = reinterpret_cast<RawInstance*>(SP[-1]);
     RawObject* value = reinterpret_cast<RawObject*>(SP[0]);
