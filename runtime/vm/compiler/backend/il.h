@@ -177,7 +177,7 @@ class CompileType : public ZoneAllocated {
 
   // Returns true if value of this type is either int or null.
   bool IsNullableInt() {
-    if ((cid_ == kSmiCid) || (cid_ == kMintCid) || (cid_ == kBigintCid)) {
+    if ((cid_ == kSmiCid) || (cid_ == kMintCid)) {
       return true;
     }
     if ((cid_ == kIllegalCid) || (cid_ == kDynamicCid)) {
@@ -3426,7 +3426,7 @@ class StrictCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
-  // True if the comparison must check for double, Mint or Bigint and
+  // True if the comparison must check for double or Mint and
   // use value comparison instead.
   bool needs_number_check_;
 
@@ -6214,28 +6214,17 @@ class BinaryInt64OpInstr : public BinaryIntegerOpInstr {
                      SpeculativeMode speculative_mode = kGuardInputs)
       : BinaryIntegerOpInstr(op_kind, left, right, deopt_id),
         speculative_mode_(speculative_mode) {
-    if (FLAG_limit_ints_to_64_bits) {
-      mark_truncating();
-    }
+    mark_truncating();
   }
 
   virtual bool ComputeCanDeoptimize() const {
-    switch (op_kind()) {
-      case Token::kADD:
-      case Token::kSUB:
-        return can_overflow();
-      case Token::kMUL:
-// Note that ARM64 does not support operations with unboxed mints,
-// so it is not handled here.
-#if defined(TARGET_ARCH_X64)
-        return can_overflow();  // Deopt if overflow.
-#else
-        // IA32, ARM
-        return true;  // Deopt if inputs are not int32.
-#endif
-      default:
-        return false;
+    ASSERT(!can_overflow());
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM)
+    if (op_kind() == Token::kMUL) {
+      return true;  // Deopt if inputs are not int32.
     }
+#endif
+    return false;
   }
 
   virtual Representation representation() const { return kUnboxedInt64; }
@@ -6271,16 +6260,14 @@ class ShiftInt64OpInstr : public BinaryIntegerOpInstr {
       : BinaryIntegerOpInstr(op_kind, left, right, deopt_id),
         shift_range_(NULL) {
     ASSERT((op_kind == Token::kSHR) || (op_kind == Token::kSHL));
-    if (FLAG_limit_ints_to_64_bits) {
-      mark_truncating();
-    }
+    mark_truncating();
   }
 
   Range* shift_range() const { return shift_range_; }
 
   virtual bool ComputeCanDeoptimize() const {
-    return (!IsShiftCountInRange()) ||
-           (can_overflow() && (op_kind() == Token::kSHL));
+    ASSERT(!can_overflow());
+    return !IsShiftCountInRange();
   }
 
   virtual Representation representation() const { return kUnboxedInt64; }

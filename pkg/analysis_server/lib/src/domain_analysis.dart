@@ -45,6 +45,8 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
    * Implement the `analysis.getErrors` request.
    */
   Future<Null> getErrors(Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     String file = new AnalysisGetErrorsParams.fromRequest(request).file;
 
     void send(engine.AnalysisOptions analysisOptions, LineInfo lineInfo,
@@ -77,6 +79,8 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
    * Implement the `analysis.getHover` request.
    */
   Future<Null> getHover(Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     var params = new AnalysisGetHoverParams.fromRequest(request);
 
     // Prepare the resolved units.
@@ -102,6 +106,8 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
    * Implement the `analysis.getImportedElements` request.
    */
   Future<Null> getImportedElements(Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     AnalysisGetImportedElementsParams params =
         new AnalysisGetImportedElementsParams.fromRequest(request);
     //
@@ -158,6 +164,8 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
    * Implement the `analysis.getNavigation` request.
    */
   Future<Null> getNavigation(Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     var params = new AnalysisGetNavigationParams.fromRequest(request);
     String file = params.file;
     int offset = params.offset;

@@ -96,7 +96,11 @@ class LibraryAnalyzer {
    * Compute analysis results for all units of the library.
    */
   Future<Map<FileState, UnitAnalysisResult>> analyze() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     return PerformanceStatistics.analysis.makeCurrentWhileAsync(() async {
+      // TODO(brianwilkerson) Determine whether this await is necessary.
+      await null;
       if (_useCFE) {
         return await _analyze2();
       } else {
@@ -181,7 +185,11 @@ class LibraryAnalyzer {
   }
 
   Future<Map<FileState, UnitAnalysisResult>> _analyze2() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     return await _logger.runAsync('Analyze', () async {
+      // TODO(brianwilkerson) Determine whether this await is necessary.
+      await null;
       Map<FileState, CompilationUnit> units = {};
 
       // Parse all files.
@@ -683,8 +691,8 @@ class LibraryAnalyzer {
         .resolve(unit, unitElement);
 
     if (_libraryElement.context.analysisOptions.previewDart2) {
-      unit.accept(new AstRewriteVisitor(_libraryElement, source, _typeProvider,
-          AnalysisErrorListener.NULL_LISTENER));
+      unit.accept(new AstRewriteVisitor(_context.typeSystem, _libraryElement,
+          source, _typeProvider, AnalysisErrorListener.NULL_LISTENER));
     }
 
     // TODO(scheglov) remove EnumMemberBuilder class
@@ -737,8 +745,8 @@ class LibraryAnalyzer {
         .resolve(unit, unitElement);
 
     if (_libraryElement.context.analysisOptions.previewDart2) {
-      unit.accept(new AstRewriteVisitor(_libraryElement, file.source,
-          _typeProvider, AnalysisErrorListener.NULL_LISTENER));
+      unit.accept(new AstRewriteVisitor(_context.typeSystem, _libraryElement,
+          file.source, _typeProvider, AnalysisErrorListener.NULL_LISTENER));
     }
 
     for (var declaration in unit.declarations) {

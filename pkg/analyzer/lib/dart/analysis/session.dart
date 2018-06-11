@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/uri_converter.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -29,7 +30,10 @@ abstract class AnalysisSession {
 
   /**
    * Return the source factory used to resolve URIs.
+   *
+   * Deprecated: Use the methods on [uriConverter] instead.
    */
+  @deprecated
   SourceFactory get sourceFactory;
 
   /**
@@ -42,6 +46,11 @@ abstract class AnalysisSession {
    * Return the type system being used by this session.
    */
   Future<TypeSystem> get typeSystem;
+
+  /**
+   * Return the URI converter used to convert between URI's and file paths.
+   */
+  UriConverter get uriConverter;
 
   /**
    * Return a future that will complete with information about the errors

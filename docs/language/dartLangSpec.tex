@@ -47,11 +47,14 @@
 %   local function evaluates to the closurization of that declaration.
 % - Make `mixin` and `interface` built-in identifiers.
 % - Make `async` *not* a reserved word inside async functions.
-% - Added 'Class Member Conflicts', simplifying and adjusting rules about
+% - Add 'Class Member Conflicts', simplifying and adjusting rules about
 %   member declaration conflicts beyond "`n` declared twice in one scope".
 % - Specify that integer literals are limited to signed 64-bit values,
 %   and that the `int` class is intended as signed 64-bit integer, but
 %   that platforms may differ.
+% - Specify variance and super-bounded types.
+% - Introduce `subterm` and `immediate subterm`.
+% - Introduce `top type`.
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -230,12 +233,38 @@ Punctuation tokens appear in quotes.
 Productions are embedded, as much as possible, in the discussion of the constructs they represent.
 
 \LMHash{}
+A {\em term} is a syntactic construct.
+It may be considered to be a piece of text which is derivable in the grammar,
+and it may be considered to be a tree created by such a derivation.
+An {\em immediate subterm} of a given term $t$ is a syntactic construct
+which corresponds to an immediate subtree of $t$ considered as a derivation tree.
+A {\em subterm} of a given term $t$ is $t$,
+or an immediate subterm of $t$,
+or a subterm of an immediate subterm of $t$.
+
+\LMHash{}
 A list $x_1, \ldots, x_n$ denotes any list of $n$ elements of the form $x_i, 1 \le i \le n$.
 Note that $n$ may be zero, in which case the list is empty.
 We use such lists extensively throughout this specification.
 
 \LMHash{}
-The notation $[x_1/y_1, \ldots, x_n/y_n]E$ denotes a copy of $E$ in which all occurrences of $y_i, 1 \le i \le n$ have been replaced with $x_i$.
+For $j \in 1 .. n$,
+let $y_j$ be an atomic syntactic entity (like an identifier),
+$x_j$ a composite syntactic entity (like an expression or a type),
+and $E$ again a composite syntactic entity.
+The notation $[x_1/y_1, \ldots, x_n/y_n]E$ then denotes a copy of $E$
+in which each occurrence of $y_i, 1 \le i \le n$ has been replaced by $x_i$.
+
+\LMHash{}
+This operation is also known as substitution, and it is the variant that avoids capture.
+That is, when $E$ contains a construct that introduces $y_i$ into a nested scope for some $i \in 1 .. n$,
+the substitution will not replace $y_i$ in that scope.
+Conversely, if such a replacement would put an identifier \id{} (a subterm of $x_i$) into a scope where \id{} is declared,
+the relevant declarations in $E$ are systematically renamed to fresh names.
+
+\commentary{
+In short, capture freedom ensures that the ``meaning'' of each identifier is preserved during substitution.
+}
 
 \LMHash{}
 We sometimes abuse list or map literal syntax, writing $[o_1, \ldots, o_n]$ (respectively $\{k_1: o_1, \ldots, k_n: o_n\}$) where the $o_i$ and $k_i$ may be objects rather than expressions.
@@ -1611,7 +1640,7 @@ A {\em constructor} is a special function that is used in instance creation expr
 Constructors may be generative (\ref{generativeConstructors}) or they may be factories (\ref{factories}).
 
 \LMHash{}
-A {\em constructor name} always begins with the name of its immediately enclosing class, and may optionally be followed by a dot and an identifier $id$.
+A {\em constructor name} always begins with the name of its immediately enclosing class, and may optionally be followed by a dot and an identifier \id.
 It is a compile-time error if the name of a constructor is not a constructor name.
 
 \commentary{
@@ -1641,14 +1670,14 @@ A {\em generative constructor} consists of a constructor name, a constructor par
 \LMHash{}
 A {\em constructor parameter list} is a parenthesized, comma-separated list of formal constructor parameters.
 A {\em formal constructor parameter} is either a formal parameter (\ref{formalParameters}) or an initializing formal.
-An {\em initializing formal} has the form \code{\THIS{}.$id$}, where $id$ is the name of an instance variable of the immediately enclosing class.
-It is a compile-time error if $id$ is not an instance variable of the immediately enclosing class.
+An {\em initializing formal} has the form \code{\THIS{}.\id}, where \id{} is the name of an instance variable of the immediately enclosing class.
+It is a compile-time error if \id{} is not an instance variable of the immediately enclosing class.
 It is a compile-time error if an initializing formal is used by a function other than a non-redirecting generative constructor.
 
 \LMHash{}
 If an explicit type is attached to the initializing formal, that is its static type.
-Otherwise, the type of an initializing formal named $id$ is $T_{id}$, where $T_{id}$ is the type of the instance variable named $id$ in the immediately enclosing class.
-It is a static warning if the static type of $id$ is not a subtype of $T_{id}$.
+Otherwise, the type of an initializing formal named \id{} is $T_{id}$, where $T_{id}$ is the type of the instance variable named \id{} in the immediately enclosing class.
+It is a static warning if the static type of \id{} is not a subtype of $T_{id}$.
 
 \LMHash{}
 Initializing formals constitute an exception to the rule that every formal parameter introduces a local variable into the formal parameter scope (\ref{formalParameters}).
@@ -1663,8 +1692,8 @@ The type of the constructor is defined in terms of its formal parameters, includ
 
 \LMHash{}
 Initializing formals are executed during the execution of generative constructors detailed below.
-Executing an initializing formal \code{\THIS{}.$id$} causes the instance variable $id$ of the immediately surrounding class to be assigned the value of the corresponding actual parameter,
-unless $id$ is a final variable that has already been initialized, in which case a run-time error occurs.
+Executing an initializing formal \code{\THIS{}.\id} causes the instance variable \id{} of the immediately surrounding class to be assigned the value of the corresponding actual parameter,
+unless \id{} is a final variable that has already been initialized, in which case a run-time error occurs.
 
 \commentary{
 The above rule allows initializing formals to be used as optional parameters:
@@ -1861,7 +1890,7 @@ Execution of a superinitializer of the form
 \code{\SUPER{}($a_1, \ldots,\ a_n,\ x_{n+1}: a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}
 
 (respectively
-\code{\SUPER{}.id($a_1, \ldots,\ a_n,\ x_{n+1}: a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)})
+\code{\SUPER{}.\id($a_1, \ldots,\ a_n,\ x_{n+1}: a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)})
 
 proceeds as follows:
 
@@ -1879,13 +1908,13 @@ Let $C$ be the class in which the superinitializer appears and let $S$ be the su
 If $S$ is generic (\ref{generics}), let $U_1, \ldots, U_m$ be the actual type arguments passed to $S$ in the superclass clause of $C$.
 
 \LMHash{}
-The generative constructor $S$ (respectively $S.id$) of $S$ is executed
+The generative constructor $S$ (respectively \code{$S$.\id}) of $S$ is executed
 to initialize $i$ with respect to the bindings that resulted from the evaluation of
 \code{($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)},
 and the type parameters (if any) of class $S$ bound to $U_1, \ldots, U_m$.
 
 \LMHash{}
-It is a compile-time error if class $S$ does not declare a generative constructor named $S$ (respectively $S.id$).
+It is a compile-time error if class $S$ does not declare a generative constructor named $S$ (respectively \code{$S$.\id}).
 
 
 \subsubsection{Factories}
@@ -1902,7 +1931,7 @@ A {\em factory} is a constructor prefaced by the built-in identifier (\ref{ident
 %The enclosing scope of a factory constructor is the static scope \ref{} of the class in which it is declared.
 
 \LMHash{}
-The {\em return type} of a factory whose signature is of the form \FACTORY{} $M$ or the form \FACTORY{} $M.id$ is $M$ if $M$ is not a generic type;
+The {\em return type} of a factory whose signature is of the form \FACTORY{} $M$ or the form \FACTORY{} \code{$M$.\id} is $M$ if $M$ is not a generic type;
 otherwise the return type is \code{$M$<$T_1, \ldots,\ T_n$>} where $T_1, \ldots, T_n$ are the type parameters of the enclosing class.
 
 \LMHash{}
@@ -1940,7 +1969,7 @@ Calling a redirecting factory constructor $k$ causes the constructor $k'$ denote
 The resulting constructor call is governed by the same rules as an instance creation expression using \NEW{} (\ref{instanceCreation}).
 
 \commentary{
-It follows that if $type$ or $type.id$ are not defined, or do not refer to a class or constructor, a dynamic error occurs, as with any other undefined constructor call.
+It follows that if \metavar{type} or \code{\metavar{type}.\id} are not defined, or do not refer to a class or constructor, a dynamic error occurs, as with any other undefined constructor call.
 The same holds if $k$ is called with fewer required parameters or more positional parameters than $k'$ expects, or if $k$ is called with a named parameter that is not declared by $k'$.
 }
 
@@ -1962,7 +1991,7 @@ Such cycles are therefore illegal.
 }
 
 \LMHash{}
-It is a static warning if $type$ does not denote a class accessible in the current scope; if $type$ does denote such a class $C$ it is a static warning if the referenced constructor (be it $type$ or $type.id$) is not a constructor of $C$.
+It is a static warning if $type$ does not denote a class accessible in the current scope; if $type$ does denote such a class $C$ it is a static warning if the referenced constructor (be it \metavar{type} or \code{\metavar{type}.\id}) is not a constructor of $C$.
 
 \commentary{
 Note that it is not possible to modify the arguments being passed to $k'$.
@@ -2803,16 +2832,16 @@ A {\em generic class declaration} introduces a generic class into the enclosing 
 A {\em generic class} is a mapping that accepts a list of actual type arguments and maps them to a class.
 Consider a generic class declaration $G$ named \code{C} with formal type parameter declarations
 $X_1\ \EXTENDS\ B_1, \ldots,\ X_m\ \EXTENDS\ B_m$,
-and a parameterized type \code{C<$T_1, \ldots,\ T_l$>}.
+and a parameterized type $T$ of the form \code{C<$T_1, \ldots,\ T_l$>}.
 
 \LMHash{}
 It is a static warning if $m \not= l$.
-It is a static warning if there exists a $j$
-such that $T_j$ is not a subtype of $[T_1/X_1, \ldots, T_m/X_m]B_j$.
+It is a static warning if $T$ is not well-bounded
+(\ref{superBoundedTypes}).
 
 \commentary{
 That is, if the number of type arguments is wrong,
-or if the $j$th actual type argument is not a subtype of the corresponding bound, where each formal type parameter has been replaced by the corresponding actual type argument.
+or one or more of the upper bounds has been violated.
 }
 
 \LMHash{}
@@ -2829,16 +2858,16 @@ A {\em generic type alias} introduces a mapping from actual type argument lists 
 Consider a generic type alias declaration $G$ named \code{F} with formal type parameter declarations
 $X_1\ \EXTENDS\ B_1, \ldots,\ X_m\ \EXTENDS\ B_m$,
 and right hand side $T$,
-and the parameterized type \code{F<$T_1, \ldots,\ T_l$>}.
+and the parameterized type $S$ of the form \code{F<$T_1, \ldots,\ T_l$>}.
 
 \LMHash{}
 It is a static warning if $m \not= l$.
-It is a static warning if there exists a $j$
-such that $T_j$ is not a subtype of $[T_1/X_1, \ldots, T_m/X_m]B_j$.
+It is a static warning if $S$ is not well-bounded
+(\ref{superBoundedTypes}).
 
 \commentary{
 That is, if the number of type arguments is wrong,
-or if the $j$th actual type argument violates the bound.
+or one or more of the upper bounds has been violated.
 }
 
 \LMHash{}
@@ -2856,6 +2885,11 @@ Hence, we may consider it as syntactic sugar which is eliminated before the prog
 }
 
 \LMHash{}
+A {\em generic type} is a type which is introduced by
+a generic class declaration or a generic type alias,
+or it is the type \code{FutureOr}.
+
+\LMHash{}
 A {\em generic function declaration} introduces a generic function (\ref{formalParameters}) into the enclosing scope.
 Consider a function invocation expression of the form
 \code{f<$T_1, \ldots,\ T_l$>(\ldots)},
@@ -2869,7 +2903,8 @@ such that $T_j$ is not a subtype of $[T_1/X_1, \ldots, T_m/X_m]B_j$.
 
 \commentary{
 That is, if the number of type arguments is wrong,
-or if the $j$th actual type argument is not a subtype of the corresponding bound, where each formal type parameter has been replaced by the corresponding actual type argument.
+or if the $j$th actual type argument is not a subtype of the corresponding bound,
+where each formal type parameter has been replaced by the corresponding actual type argument.
 }
 
 \begin{grammar}
@@ -2970,6 +3005,358 @@ Some of these restrictions may be lifted in the future.
 %class G<T> extends T;
 
 %By current rules, this is illegal. Make sure we preserve this.
+
+
+\subsection{Variance}
+\LMLabel{variance}
+
+\LMHash{}
+We say that a type $S$ {\em occurs covariantly} in a type $T$ if{}f
+$S$ occurs in a covariant position in $T$,
+but not in a contravariant position,
+and not in an invariant position.
+
+\LMHash{}
+We say that a type $S$ {\em occurs contravariantly} in a type $T$ if{}f
+$S$ occurs in a contravariant position in $T$,
+but not in a covariant position,
+and not in an invariant position.
+
+\LMHash{}
+We say that a type $S$ {\em occurs invariantly} in a type $T$ if{}f
+$S$ occurs in an invariant position in $T$,
+or $S$ occurs in a covariant position as well as a contravariant position.
+
+\LMHash{}
+We say that a type $S$ occurs {\em in a covariant position} in a type $T$
+if{}f one of the following conditions is true:
+
+\begin{itemize}
+\item $T$ is $S$
+
+\item $T$ is of the form \code{$G$<$S_1,\ \ldots,\ S_n$>}
+  where $G$ denotes a generic class
+  and $S$ occurs in a covariant position in $S_j$ for some $j \in 1 .. n$.
+
+\item $T$ is of the form
+  \code{$S_0$ \FUNCTION<$X_1\ \EXTENDS\ B_1, \ldots$>($S_1\ x_1, \ldots$)}
+  where the type parameter list may be omitted,
+  and $S$ occurs in a covariant position in $S_0$.
+
+\item $T$ is of the form
+
+  \code{$S_0$ \FUNCTION<$X_1\ \EXTENDS\ B_1, \ldots$>}
+
+  \code{\quad($S_1\ x_1, \ldots,\ S_k\ x_k,
+    $ [$S_{k+1}\ x_{k+1} = d_{k+1}, \ldots,\ S_n\ x_n = d_n$])}
+
+  \noindent
+  or of the form
+
+  \code{$S_0$ \FUNCTION<$X_1\ \EXTENDS\ B_1, \ldots$>}
+
+  \code{\quad($S_1\ x_1, \ldots,\ S_k\ x_k,
+    $ \{$S_{k+1}\ x_{k+1} = d_{k+1}, \ldots,\ S_n\ x_n = d_n$\})}
+
+  \noindent
+  where the type parameter list and each default value may be omitted,
+  and $S$ occurs in a contravariant position in $S_j$
+  for some $j \in 1 .. n$.
+
+\item $T$ is of the form \code{$G$<$S_1, \ldots,\ S_n$>}
+  where $G$ denotes a parameterized type alias such that
+  $j \in 1 .. n$,
+  the formal type parameter corresponding to $S_j$ is covariant,
+  and $S$ occurs in a covariant position in $S_j$.
+
+\item $T$ is of the form \code{$G$<$S_1, \ldots,\ S_n$>}
+  where $G$ denotes a parameterized type alias such that
+  $j \in 1 .. n$,
+  the formal type parameter corresponding to $S_j$ is contravariant,
+  and $S$ occurs in a contravariant position in $S_j$.
+\end{itemize}
+
+\LMHash{}
+We say that a type $S$ occurs {\em in a contravariant position} in a type $T$
+if{}f one of the following conditions is true:
+
+\begin{itemize}
+\item $T$ is of the form \code{$G$<$S_1,\ \ldots,\ S_n$>}
+  where $G$ denotes a generic class
+  and $S$ occurs in a contravariant position in $S_j$
+  for some $j \in 1 .. n$.
+
+\item $T$ is of the form
+  \code{$S_0$ \FUNCTION<$X_1\ \EXTENDS\ B_1, \ldots$>($S_1\ x_1, \ldots$)}
+  where the type parameter list may be omitted,
+  and $S$ occurs in a contravariant position in $S_0$.
+
+\item $T$ is of the form
+
+  \code{$S_0$ \FUNCTION<$X_1\ \EXTENDS\ B_1, \ldots$>}
+
+  \code{\quad($S_1\ x_1, \ldots,\ S_k\ x_k,
+    $ [$S_{k+1}\ x_{k+1} = d_{k+1}, \ldots,\ S_n\ x_n = d_n$])}
+
+  \noindent
+  or of the form
+
+  \code{$S_0$ \FUNCTION<$X_1\ \EXTENDS\ B_1, \ldots$>}
+
+  \code{\quad($S_1\ x_1, \ldots,\ S_k\ x_k,
+    $ \{$S_{k+1}\ x_{k+1} = d_{k+1}, \ldots,\ S_n\ x_n = d_n$\})}
+
+  \noindent
+  where the type parameter list and each default value may be omitted,
+  and $S$ occurs in a covariant position in $S_j$
+  for some $j \in 1 .. n$.
+
+\item $T$ is of the form \code{$G$<$S_1, \ldots,\ S_n$>}
+  where $G$ denotes a parameterized type alias such that
+  $j \in 1 .. n$,
+  the formal type parameter corresponding to $S_j$ is covariant,
+  and $S$ occurs in a contravariant position in $S_j$.
+
+\item $T$ is of the form \code{$G$<$S_1, \ldots,\ S_n$>}
+  where $G$ denotes a parameterized type alias such that
+  $j \in 1 .. n$,
+  the formal type parameter corresponding to $S_j$ is contravariant,
+  and $S$ occurs in a covariant position in $S_j$.
+\end{itemize}
+
+\LMHash{}
+We say that a type $S$ occurs {\em in an invariant position} in a type $T$
+if{}f one of the following conditions is true:
+
+\begin{itemize}
+\item $T$ is of the form \code{$G$<$S_1,\ \ldots,\ S_n$>}
+  where $G$ denotes a generic class or a parameterized type alias,
+  and $S$ occurs in an invariant position in $S_j$ for some $j \in 1 .. n$.
+
+\item $T$ is of the form
+
+  \code{$S_0$ \FUNCTION<$X_1\ \EXTENDS\ B_1, \ldots,\ X_m\ \EXTENDS\ B_m$>}
+
+  \code{\quad($S_1\ x_1, \ldots,\ S_k\ x_k,
+    $ [$S_{k+1}\ x_{k+1} = d_{k+1}, \ldots,\ S_n\ x_n = d_n$])}
+
+  \noindent
+  or of the form
+
+  \code{$S_0$ \FUNCTION<$X_1\ \EXTENDS\ B_1, \ldots,\ X_m\ \EXTENDS\ B_m$>}
+
+  \code{\quad($S_1\ x_1, \ldots,\ S_k\ x_k,
+    $ \{$S_{k+1}\ x_{k+1} = d_{k+1}, \ldots,\ S_n\ x_n = d_n$\})}
+
+  \noindent
+  where the type parameter list and each default value may be omitted,
+  and $S$ occurs in an invariant position in $S_j$
+  for some $j \in 0 .. n$,
+  or $S$ occurs in $B_i$
+  for some $i \in 1 .. m$.
+
+\item $T$ is of the form \code{$G$<$S_1, \ldots,\ S_n$>}
+  where $G$ denotes a parameterized type alias,
+  $j \in 1 .. n$,
+  the formal type parameter corresponding to $S_j$ is invariant,
+  and $S$ occurs in $S_j$.
+\end{itemize}
+
+\LMHash{}
+Consider a generic type alias declaration $G$
+with formal type parameter declarations
+$X_1\ \EXTENDS\ B_1, \ldots,\ X_m\ \EXTENDS\ B_m$,
+and right hand side $T$.
+Let $j \in 1 .. m$.
+%
+We say that {\em the formal type parameter} $X_j$ {\em is invariant}
+if{}f $X_j$ occurs invariantly in $T$,
+$X_j$ {\em is covariant} if{}f $X_j$ occurs covariantly in $T$,
+and $X_j$ {\em is contravariant} if{}f $X_j$ occurs contravariantly in $T$.
+
+\rationale{
+Variance gives a characterization of the way a type varies
+as the value of a subterm varies, e.g., a type variable:
+Assume that $T$ is a type where a type variable $X$ occurs,
+and $L$ and $U$ are types such that $L$ is a subtype of $U$.
+If $X$ occurs covariantly in $T$
+then $[L/X]T$ is a subtype of $[U/X]T$.
+Similarly, if $X$ occurs contravariantly in $T$
+then $[U/X]T$ is a subtype of $[L/X]T$.
+If $X$ occurs invariantly
+then $[L/X]T$ and $[U/X]T$ are not guaranteed to be subtypes of each other in any direction.
+In short: with covariance, the type covaries;
+with contravariance, the type contravaries;
+with invariance, all bets are off.
+}
+
+
+\subsection{Super-Bounded Types}
+\LMLabel{superBoundedTypes}
+
+\LMHash{}
+This section describes how
+the declared upper bounds of formal type parameters are enforced,
+including some cases where a limited form of violation is allowed.
+
+\LMHash{}
+A {\em top type} is a type $T$ such that \code{Object} is a subtype of $T$.
+\commentary{
+For instance, \code{Object}, \DYNAMIC, and \VOID{} are top types,
+and so are \code{FutureOr<\VOID>} and \code{FutureOr<FutureOr<\DYNAMIC>{}>}.
+}
+
+% We define the property of being regular-bounded for all types,
+% being super-bounded for parameterized types, and being well-bounded
+% for all types. We require that all types are well-bounded, which
+% covers every subterm of a type that is itself a type, and then we
+% require that types must be regular-bounded when used in certain
+% situations.
+
+\LMHash{}
+Every type which is not a parameterized type is {\em regular-bounded}.
+Let $T$ be a parameterized type of the form
+\code{$G$<$S_1, \ldots,\ S_n$>}
+where $G$ denotes a generic class or a parameterized type alias.
+Let
+\code{$X_1\ \EXTENDS\ B_1, \ldots,\ X_n\ \EXTENDS\ B_n$}
+be the formal type parameter declarations of $G$.
+$T$ is {\em regular-bounded} if{}f
+$S_j$ is a subtype of
+$[S_1/X_1, \ldots,\ S_n/X_n]B_j$,
+for all $j \in 1 .. n$.
+
+\commentary{
+This means that each actual type argument satisfies the declared upper
+bound for the corresponding formal type parameter.
+}
+
+\LMHash{}
+Let $T$ be a parameterized type of the form
+\code{$G$<$S_1, \ldots,\ S_n$>}
+where $G$ denotes a generic class or a parameterized type alias.
+$T$ is {\em super-bounded} if{}f the following conditions are both true:
+
+\begin{itemize}
+\item
+  $T$ is not regular-bounded.
+\item
+  For each $j \in 1 .. n$, let $S'_j$ be the result of replacing
+  every occurrence of a top type
+  in a covariant position in $S_j$ by \code{Null},
+  and every occurrence of \code{Null}
+  in a contravariant position in $S_j$ by \code{Object}.
+  It is then required that
+  \code{$G$<$S'_1, \ldots,\ S'_n$>}
+  is regular-bounded.
+\end{itemize}
+
+\commentary{
+In short, at least one type argument violates its bound, but the type is
+regular-bounded after replacing all occurrences of an extreme type by an
+opposite extreme type, depending on their variance.
+}
+
+\LMHash{}
+A type $T$ is {\em well-bounded} if{}f
+it is either regular-bounded or super-bounded.
+
+\LMHash{}
+Any use of a type $T$ which is not well-bounded is a compile-time error.
+
+\LMHash{}
+It is a compile-time error if a parameterized type $T$ is super-bounded
+when it is used in any of the following ways:
+\begin{itemize}
+\item $T$ is an immediate subterm of a new expression
+  (\ref{new})
+  or a constant object expression
+  (\ref{const}).
+\item $T$ is an immediate subterm of a redirecting factory constructor
+  signature
+ (\ref{redirectingFactoryConstructors}).
+\item $T$ is an immediate subterm of an \EXTENDS{} clause
+  (\ref{superclasses}),
+  or it occurs as an element in the type list of an \IMPLEMENTS{} clause
+  (\ref{superinterfaces}),
+  or a \WITH{} clause
+  (\ref{classes}).
+\end{itemize}
+
+\commentary{
+Types of members from super-bounded class types are computed using the same
+rules as types of members from other types. Types of function applications
+involving super-bounded types are computed using the same rules as types of
+function applications involving other types. Here is an example:
+}
+
+\begin{dartCode}
+\CLASS{} A<X \EXTENDS{} num> \{
+  X x;
+\}
+
+A<Object> a;
+\end{dartCode}
+
+\commentary{
+With this, \code{a.x} has static type \code{Object},
+even though the upper bound on the type variable \code{X} is \code{num}.
+}
+
+\rationale{
+Super-bounded types enable the expression of informative common supertypes
+of some sets of types whose common supertypes would otherwise be much less informative.
+For example, consider the following class:
+}
+
+\begin{dartCode}
+\CLASS{} C<X \EXTENDS{} C<X>$\!$> \{
+  X next;
+\}
+\end{dartCode}
+
+\rationale{
+Without super-bounded types,
+there is no type $T$ which makes \code{C<$T$>} a common supertype of
+all types of the form \code{C<$S$>}
+(noting that all types must be regular-bounded
+when we do not have the notion of super-bounded types).
+So if we wish to allow a variable to hold any instance ``of type \code{C}''
+then that variable must use \code{Object} or another top type
+as its type annotation,
+which means that a member like \code{next} is not known to exist
+(which is what we mean by saying that the type is `less informative').
+
+We could introduce a notion of recursive (infinite) types, and express
+the least upper bound of all types of the form \code{C<$S$>} as
+some syntax whose meaning could be approximated by
+\code{C<C<C<C<$\ldots$>$\!$>$\!$>$\!$>}.
+
+However, we expect that any such concept in Dart would incur a significant cost
+on developers and implementations in terms of added complexity and subtlety,
+so we have chosen not to do that.
+Super-bounded types are finite,
+but they offer a useful developer-controlled approximation to such infinite types.
+}
+
+\commentary{
+For example,
+\code{C<Object>} and
+\code{C<C<C<\VOID>{}>{}>}
+are types that a developer may choose to use as a type annotation.
+This choice serves as a commitment to
+a finite level of unfolding of the infinite type,
+and it allows for a certain amount of control
+at the point where the unfolding ends:
+%
+If \code{c} has type \code{C<C<\DYNAMIC>{}>}
+then \code{c.next.next} has type \DYNAMIC{}
+and \code{c.next.next.whatever} has no compile-time error,
+but if \code{c} has type \code{C<C<\VOID>{}>} then
+\code{Object x = c.next.next;} is a compile-time error.
+It is thus possible for developers to get a more or less strict treatment
+of expressions whose type proceeds beyond the given finite unfolding.
+}
 
 
 \section{Metadata}
@@ -3636,7 +4023,7 @@ The reader will note that the expression inside the interpolation could itself i
 An unescaped \$ character in a string signifies the beginning of an interpolated expression.
 The \$ sign may be followed by either:
 \begin{itemize}
-\item A single identifier $id$ that must not contain the \$ character.
+\item A single identifier \id{} that must not contain the \$ character.
 \item An expression $e$ delimited by curly braces.
 \end{itemize}
 
@@ -3665,10 +4052,10 @@ A {\em symbol literal} denotes the name of a declaration in a Dart program.
 \end{grammar}
 
 \LMHash{}
-A symbol literal \code{\#$id$} where $id$ does not begin with an underscore ('\code{\_}') is equivalent to the expression \code{\CONST{} Symbol('$id$')}.
+A symbol literal \code{\#\id} where \id{} does not begin with an underscore ('\code{\_}') is equivalent to the expression \code{\CONST{} Symbol('\id')}.
 
 \LMHash{}
-A symbol literal \code{\#\_$id$} evaluates to the object that would be returned by the call \code{MirrorSystem.getSymbol("\_$id$", \metavar{libraryMirror})} where \metavar{libraryMirror} is an instance of the class \code{LibraryMirror} defined in the library \code{dart:mirrors}, reflecting the current library.
+A symbol literal \code{\#\_\id} evaluates to the object that would be returned by the call \code{MirrorSystem.getSymbol("\_\id", \metavar{libraryMirror})} where \metavar{libraryMirror} is an instance of the class \code{LibraryMirror} defined in the library \code{dart:mirrors}, reflecting the current library.
 
 \rationale{
 One may well ask what is the motivation for introducing literal symbols? In some languages, symbols are canonicalized whereas strings are not.
@@ -4169,11 +4556,11 @@ Instance creation expressions invoke constructors to produce instances.
 It is a static type warning if
 the type $T$ in an instance creation expression of one of the forms
 
-\code{\NEW{} $T.id$($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)},
+\code{\NEW{} $T$.\id($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)},
 
 \code{\NEW{} $T$($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)},
 
-\code{\CONST{} $T.id$($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)},
+\code{\CONST{} $T$.\id($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)},
 
 \code{\CONST{} $T$($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}
 is malformed (\ref{dynamicTypeSystem}) or malbounded (\ref{parameterizedTypes}).
@@ -4181,11 +4568,11 @@ is malformed (\ref{dynamicTypeSystem}) or malbounded (\ref{parameterizedTypes}).
 \LMHash{}
 It is a compile-time error if the type $T$ in an instance creation expression of one of the forms
 
-\code{\NEW{} $T.id$($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)},
+\code{\NEW{} $T$.\id($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)},
 
 \code{\NEW{} $T$($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)},
 
-\code{\CONST{} $T.id$($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)},
+\code{\CONST{} $T$.\id($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)},
 
 \code{\CONST{} $T$($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}
 
@@ -4207,7 +4594,7 @@ The {\em new expression} invokes a constructor (\ref{constructors}).
 \LMHash{}
 Let $e$ be a new expression of the form
 
-\code{\NEW{} $T.id$($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}
+\code{\NEW{} $T$.\id($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}
 or the form
 
 \code{\NEW{} $T$($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}.
@@ -4223,8 +4610,8 @@ If $T$ is a class or parameterized type accessible in the current scope then:
 \begin{itemize}
 \item
 If $e$ is of the form
-\code{\NEW{} $T.id$($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}
-it is a static warning if $T.id$ is not the name of a constructor declared by the type $T$.
+\code{\NEW{} $T$.\id($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}
+it is a static warning if \code{$T$.\id} is not the name of a constructor declared by the type $T$.
 \item
 If $e$ is of the form
 \code{\NEW{} $T$($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}
@@ -4241,8 +4628,8 @@ let $R = S$.
 %error if $S$ is not a generic (\ref{generics}) type with $m$ type parameters.
 If $T$ is not a parameterized type, let $R = T$.
 Furthermore, if $e$ is of the form
-\code{\NEW{} $T.id$($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}
-then let $q$ be the constructor $T.id$, otherwise let $q$ be the constructor $T$.
+\code{\NEW{} $T$.\id($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}
+then let $q$ be the constructor \code{$T$.\id}, otherwise let $q$ be the constructor $T$.
 
 \LMHash{}
 If $R$ is a generic with $l = m$ type parameters then
@@ -4297,9 +4684,12 @@ Otherwise, $q$ is a factory constructor (\ref{factories}).
 Then:
 
 \LMHash{}
-If $q$ is a redirecting factory constructor of the form $T(p_1, \ldots,\ p_{n+k}) = c;$ or of the form $T.id(p_1, \ldots,\ p_{n+k}) = c;$ then the result of the evaluation of $e$ is equivalent to evaluating the expression
+If $q$ is a redirecting factory constructor of the form $T(p_1, \ldots,\ p_{n+k}) = c;$ or of the form \code{$T$.\id($p_1, \ldots,\ p_{n+k}$) = $c$;} then the result of the evaluation of $e$ is equivalent to evaluating the expression
 
-$[V_1/T_1, \ldots, V_m/T_m]($\code{\NEW{} $c(a_1, \ldots,\ a_n, x_{n+1}: a_{n+1}, \ldots,\ x_{n+k}: a_{n+k}))$}.
+\code{[$V_1/X_1, \ldots, V_m/X_m$](\NEW{} $c$($a_1, \ldots,\ a_n, x_{n+1}: a_{n+1}, \ldots,\ x_{n+k}: a_{n+k}$))}
+
+\noindent
+where $X_1, \ldots,\ X_m$ are the formal type parameters of $R$.
 If evaluation of $q$ causes $q$ to be re-evaluated cyclically, with only factory constructor redirections in-between, a run-time error occurs.
 % Used to not have the "in-between" clause, which would disallow a factory constructor redirecting to another constructor which conditionally calls the original factory constructor again with different arguments.
 
@@ -4327,14 +4717,14 @@ In particular, a factory constructor can be declared in an abstract class and us
 \LMHash{}
 The static type of an instance creation expression of either the form
 
-\code{\NEW{} $T.id$($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}
+\code{\NEW{} $T$.\id($a_1, \ldots,\ a_n,\ x_{n+1}:\ a_{n+1}, \ldots,\ x_{n+k}:\ a_{n+k}$)}
 
 or the form
 
-\code{\NEW{} $T$($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}
+\code{\NEW{} $T$($a_1, \ldots,\ a_n,\ x_{n+1}:\ a_{n+1}, \ldots,\ x_{n+k}:\ a_{n+k}$)}
 
 is $T$.
-It is a static warning if the static type of $a_i, 1 \le i \le n + k$ may not be assigned to the type of the corresponding formal parameter of the constructor $T.id$ (respectively $T$).
+It is a static warning if the static type of $a_i, 1 \le i \le n + k$ may not be assigned to the type of the corresponding formal parameter of the constructor \code{$T$.\id} (respectively $T$).
 
 
 \subsubsection{Const}
@@ -4351,10 +4741,10 @@ A {\em constant object expression} invokes a constant constructor (\ref{constant
 \LMHash{}
 Let $e$ be a constant object expression of the form
 
-\code{\CONST{} $T.id$($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}
+\code{\CONST{} $T$.\id($a_1, \ldots,\ a_n,\ x_{n+1}:\ a_{n+1}, \ldots,\ x_{n+k}:\ a_{n+k}$)}
 
 or the form
-\code{\CONST{} $T$($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}.
+\code{\CONST{} $T$($a_1, \ldots,\ a_n,\ x_{n+1}:\ a_{n+1}, \ldots,\ x_{n+k}:\ a_{n+k}$)}.
 It is a compile-time error if $T$ does not denote a class accessible in the current scope.
 It is a compile-time error if $T$ is a deferred type (\ref{staticTypes}).
 
@@ -4367,8 +4757,8 @@ If $T$ is a parameterized type, it is a compile-time error if $T$ includes a typ
 
 \LMHash{}
 If $e$ is of the form
-\code{\CONST{} $T.id$($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}
-it is a compile-time error if $T.id$ is not the name of a constant constructor declared by the type $T$.
+\code{\CONST{} $T$.\id($a_1, \ldots,\ a_n,\ x_{n+1}:\ a_{n+1}, \ldots,\ x_{n+k}:\ a_{n+k}$)}
+it is a compile-time error if \code{$T$.\id} is not the name of a constant constructor declared by the type $T$.
 If $e$ is of the form
 \code{\CONST{} $T$($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}
 it is a compile-time error if the type $T$ does not declare a constant constructor with the same name as the declaration of $T$.
@@ -4386,11 +4776,11 @@ Evaluation of $e$ proceeds as follows:
 \LMHash{}
 First, if $e$ is of the form
 
-\code{\CONST{} $T.id$($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}
+\code{\CONST{} $T$.\id($a_1, \ldots,\ a_n,\ x_{n+1}:\ a_{n+1}, \ldots,\ x_{n+k}:\ a_{n+k}$)}
 
 then let $i$ be the value of the expression
 
-\code{\NEW{} $T.id$($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}.
+\code{\NEW{} $T$.\id($a_1, \ldots,\ a_n,\ x_{n+1}:\ a_{n+1}, \ldots,\ x_{n+k}:\ a_{n+k}$)}.
 
 \LMHash{}
 Otherwise, $e$ must be of the form
@@ -4424,14 +4814,14 @@ The constructor need only be executed once per call site, at compile time.
 \LMHash{}
 The static type of a constant object expression of either the form
 
-\code{\CONST{} $T.id$($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}
+\code{\CONST{} $T$.\id($a_1, \ldots,\ a_n,\ x_{n+1}:\ a_{n+1}, \ldots,\ x_{n+k}:\ a_{n+k}$)}
 
 or the form
 
-\code{\CONST{} $T$($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}
+\code{\CONST{} $T$($a_1, \ldots,\ a_n,\ x_{n+1}:\ a_{n+1}, \ldots,\ x_{n+k}:\ a_{n+k}$)}
 
 is $T$.
-It is a static warning if the static type of $a_i, 1 \le i \le n+ k$ may not be assigned to the type of the corresponding formal parameter of the constructor $T.id$ (respectively $T$).
+It is a static warning if the static type of $a_i, 1 \le i \le n+ k$ may not be assigned to the type of the corresponding formal parameter of the constructor \code{$T$.\id} (respectively $T$).
 
 \LMHash{}
 It is a compile-time error if evaluation of a constant object results in an uncaught exception being thrown.
@@ -4785,23 +5175,23 @@ It is a static warning if $T_{m+j}$ may not be assigned to $S_{q_j}, j \in 1 .. 
 \LMHash{}
 An unqualified function invocation $i$ has the form
 
-\code{$id$<$A_1, \ldots,\ A_r$>($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)},
+\code{\id<$A_1, \ldots,\ A_r$>($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)},
 
 \noindent
-where $id$ is an identifier.
+where \id{} is an identifier.
 
 \commentary{
 Note that the type argument list is omitted when $r = 0$ (\ref{generics}).
 }
 
 \LMHash{}
-If there exists a lexically visible declaration named $id$, let $f_{id}$ be the innermost such declaration.
+If there exists a lexically visible declaration named \id, let $f_{id}$ be the innermost such declaration.
 Then:
 \begin{itemize}
 \item
-If $id$ is a type literal, then $i$ is interpreted as a function expression invocation (\ref{functionExpressionInvocation}) with $(id)$ as the expression $e_f$.
+If \id{} is a type literal, then $i$ is interpreted as a function expression invocation (\ref{functionExpressionInvocation}) with $(\id)$ as the expression $e_f$.
 \commentary{
-The expression $(id)$ where $id$ is a type literal always evaluates to an instance of class \code{Type} which is not a function.
+The expression $(\id)$ where \id{} is a type literal always evaluates to an instance of class \code{Type} which is not a function.
 This ensures that a run-time error occurs when trying to call a type literal.
 }
 \item
@@ -4810,10 +5200,10 @@ If $f_{id}$ is a prefix object, a compile-time error occurs.
 If $f_{id}$ is a local function, a library function, a library or static getter or a variable then $i$ is interpreted as a function expression invocation (\ref{functionExpressionInvocation}).
 \item
 Otherwise, if $f_{id}$ is a static method of the enclosing class $C$, $i$ is equivalent to
-\code{$C.id$<$A_1, \ldots,\ A_r$>($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}.
+\code{$C$.\id<$A_1, \ldots,\ A_r$>($a_1, \ldots,\ a_n,\ x_{n+1}:\ a_{n+1}, \ldots,\ x_{n+k}:\ a_{n+k}$)}.
 \item Otherwise, $f_{id}$ is equivalent to the ordinary method invocation
 
-\code{\THIS{}.$id$<$A_1, \ldots,\ A_r$>($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}.
+\code{\THIS{}.\id<$A_1, \ldots,\ A_r$>($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}.
 \end{itemize}
 
 \LMHash{}
@@ -4821,10 +5211,10 @@ Otherwise, if $i$ occurs inside a top level or static function (be it function, 
 
 \LMHash{}
 If $i$ does not occur inside a top level or static function, $i$ is equivalent to
-\code{\THIS{}.$id$<$A_1, \ldots,\ A_r$>($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}.
+\code{\THIS{}.\id<$A_1, \ldots,\ A_r$>($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}.
 
 % Should also say:
-% It is a static warning if $i$ occurs inside a top level or static function (be it function, method, getter, or setter) or variable initializer and there is no lexically visible declaration named $id$ in scope.
+% It is a static warning if $i$ occurs inside a top level or static function (be it function, method, getter, or setter) or variable initializer and there is no lexically visible declaration named \id{} in scope.
 
 
 \subsubsection{Function Expression Invocation}
@@ -4843,7 +5233,7 @@ Note that the type argument list is omitted when $r = 0$ (\ref{generics}).
 }
 
 \LMHash{}
-If $e_f$ is an identifier $id$, then $id$ must necessarily denote a local function, a library function, a library or static getter or a variable as described above, or $i$ is not considered a function expression invocation.
+If $e_f$ is an identifier \id, then \id{} must necessarily denote a local function, a library function, a library or static getter or a variable as described above, or $i$ is not considered a function expression invocation.
 If $e_f$ is a type literal, then it is equivalent to the expression $(e_f)$.
 
 \commentary{
@@ -5482,7 +5872,7 @@ Property extraction can be either {\em conditional} or {\em unconditional}.
 
 \LMHash{}
 Evaluation of a {\em conditional property extraction expression} $e$
-of the form \code{$e_1$?.\metavar{id}} proceeds as follows:
+of the form \code{$e_1$?.\id} proceeds as follows:
 
 \LMHash{}
 If $e_1$ is a type literal, $e$ is equivalent to \code{$e_1$.$m$}.
@@ -5491,12 +5881,12 @@ If $e_1$ is a type literal, $e$ is equivalent to \code{$e_1$.$m$}.
 Otherwise evaluate $e_1$ to an object $o$.
 If $o$ is the null object, $e$ evaluates to the null object (\ref{null}).
 Otherwise let $x$ be a fresh variable bound to $o$
-and evaluate \code{$x$.\metavar{id}} to a value $r$.
+and evaluate \code{$x$.\id} to a value $r$.
 Then $e$ evaluates to $r$.
 
-The static type of $e$ is the same as the static type of \code{$e_1$.\metavar{id}}.
+The static type of $e$ is the same as the static type of \code{$e_1$.\id}.
 Let $T$ be the static type of $e_1$ and let $y$ be a fresh variable of type $T$.
-Exactly the same static warnings that would be caused by \code{$y$.\metavar{id}} are also generated in the case of \code{$e_1$?.\metavar{id}}.
+Exactly the same static warnings that would be caused by \code{$y$.\id} are also generated in the case of \code{$e_1$?.\id}.
 
 \LMHash{}
 Unconditional property extraction has one of two syntactic forms: $e.m$ (\ref{getterAccessAndMethodExtraction}) or $\SUPER.m$ (\ref{superGetterAccessAndMethodClosurization}), where $e$ is an expression and $m$ is an identifier.
@@ -6849,18 +7239,18 @@ An {\em assignable expression} is either:
 \end{itemize}
 
 \LMHash{}
-An assignable expression of the form $id$ is evaluated as an identifier expression (\ref{identifierReference}).
+An assignable expression of the form \id{} is evaluated as an identifier expression (\ref{identifierReference}).
 
-%An assignable expression of the form $e.id(a_1, \ldots, a_n)$ is evaluated as a method invocation (\ref{methodInvocation}).
+%An assignable expression of the form \code{$e$.\id($a_1, \ldots, a_n$)} is evaluated as a method invocation (\ref{methodInvocation}).
 
 \LMHash{}
-An assignable expression of the form $e.id$ or $e?.id$ is evaluated as a property extraction (\ref{propertyExtraction}).
+An assignable expression of the form \code{$e$.\id} or \code{$e$?.\id} is evaluated as a property extraction (\ref{propertyExtraction}).
 
 \LMHash{}
 An assignable expression of the form \code{$e_1$[$e_2$]} is evaluated as a method invocation of the operator method \code{[]} on $e_1$ with argument $e_2$.
 
 \LMHash{}
-An assignable expression of the form \code{\SUPER{}.id} is evaluated as a property extraction.
+An assignable expression of the form \code{\SUPER{}.\id} is evaluated as a property extraction.
 
 \LMHash{}
 Evaluation of an assignable expression of the form \code{\SUPER{}[$e_2$]} is equivalent to evaluation of the method invocation \code{\SUPER{}.[]($e_2$)}.
@@ -6950,12 +7340,12 @@ Hence the restriction, which treats these names as reserved words in a limited c
 }
 
 \LMHash{}
-Evaluation of an identifier expression $e$ of the form $id$ proceeds as follows:
+Evaluation of an identifier expression $e$ of the form \id{} proceeds as follows:
 
 \LMHash{}
-Let $d$ be the innermost declaration in the enclosing lexical scope whose name is $id$ or $id=$.
-If no such declaration exists in the lexical scope, let $d$ be the declaration of the inherited member named $id$ if it exists.
-%If no such member exists, let $d$ be the declaration of the static member name $id$ declared in a superclass of the current class, if it exists.
+Let $d$ be the innermost declaration in the enclosing lexical scope whose name is \id{} or \code{\id=}.
+If no such declaration exists in the lexical scope, let $d$ be the declaration of the inherited member named \id{} if it exists.
+%If no such member exists, let $d$ be the declaration of the static member name \id{} declared in a superclass of the current class, if it exists.
 
 \begin{itemize}
 \item if $d$ is a prefix $p$, a compile-time error occurs unless the token immediately following $d$ is \code{'.'}.
@@ -6967,17 +7357,17 @@ If, however, $e$ occurs inside a static member, a compile-time error occurs.
 %\item If $d$ is a library variable then:
 %  \begin{itemize}
 %  \item If $d$ is of one of the forms \code{\VAR{} $v$ = $e_i$;} , \code{$T$ $v$ = $e_i$;} , \code{\FINAL{} $v$ = $e_i$;} or \code{\FINAL{} $T$ $v$ = $e_i$;} and no value has yet been stored into $v$ then the initializer expression $e_i$ is evaluated. If, during the evaluation of $e_i$, the getter for $v$ is referenced, a \code{CyclicInitializationError} is thrown. If the evaluation succeeded yielding an object $o$, let $r$ be $o$, otherwise let $r$ be the null object (\ref{null}). In any case, $r$ is stored into $v$. The value of $e$ is $r$.
-\item If $d$ is a constant variable of one of the forms \code{\CONST{} $v$ = $e$;} or \code{\CONST{} $T$ $v$ = $e$;} then the value $id$ is the value of the compile-time constant $e$.
+\item If $d$ is a constant variable of one of the forms \code{\CONST{} $v$ = $e$;} or \code{\CONST{} $T$ $v$ = $e$;} then the value \id{} is the value of the compile-time constant $e$.
 %  Otherwise
-%  \item $e$ evaluates to the current binding of $id$.
+%  \item $e$ evaluates to the current binding of \id.
 %  \end{itemize}
-\item If $d$ is a local variable or formal parameter then $e$ evaluates to the current binding of $id$.
-%\item If $d$ is a library variable, local variable, or formal parameter, then $e$ evaluates to the current binding of $id$. \commentary{This case also applies if d is a library or local function declaration, as these are equivalent to function-valued variable declarations.}
+\item If $d$ is a local variable or formal parameter then $e$ evaluates to the current binding of \id.
+%\item If $d$ is a library variable, local variable, or formal parameter, then $e$ evaluates to the current binding of \id. \commentary{This case also applies if d is a library or local function declaration, as these are equivalent to function-valued variable declarations.}
 \item If $d$ is a static method, top-level function or local function then $e$ evaluates to the function object obtained by closurization (\ref{functionClosurization}) of the declaration denoted by $d$.
-\item If $d$ is the declaration of a static variable, static getter or static setter declared in class $C$, then evaluation of $e$ is equivalent to evaluation of the property extraction (\ref{propertyExtraction}) $C.id$.
-\item If $d$ is the declaration of a library variable, top-level getter or top-level setter, then evaluation of $e$ is equivalent to evaluation of the top level getter invocation (\ref{topLevelGetterInvocation}) $id$.
+\item If $d$ is the declaration of a static variable, static getter or static setter declared in class $C$, then evaluation of $e$ is equivalent to evaluation of the property extraction (\ref{propertyExtraction}) \code{$C$.\id}.
+\item If $d$ is the declaration of a library variable, top-level getter or top-level setter, then evaluation of $e$ is equivalent to evaluation of the top level getter invocation (\ref{topLevelGetterInvocation}) \id.
 \item Otherwise, if $e$ occurs inside a top level or static function (be it function, method, getter, or setter) or variable initializer, evaluation of $e$ causes a \code{NoSuchMethod} to be thrown.
-\item Otherwise, evaluation of $e$ is equivalent to evaluation of the property extraction (\ref{propertyExtraction}) \THIS{}.$id$.
+\item Otherwise, evaluation of $e$ is equivalent to evaluation of the property extraction (\ref{propertyExtraction}) \THIS{}.\id.
 % This implies that referring to an undefined static getter by simple name is an error, whereas doing so by qualified name is only a warning. Same with assignments.  Revise?
 \end{itemize}
 
@@ -6986,12 +7376,12 @@ The static type of $e$ is determined as follows:
 
 \begin{itemize}
 \item If $d$ is a class, type alias or type parameter the static type of $e$ is \code{Type}.
-\item If $d$ is a local variable or formal parameter the static type of $e$ is the type of the variable $id$, unless $id$ is known to have some type $T$, in which case the static type of $e$ is $T$, provided that $T$ is more specific than any other type $S$ such that $v$ is known to have type $S$.
+\item If $d$ is a local variable or formal parameter the static type of $e$ is the type of the variable \id, unless \id{} is known to have some type $T$, in which case the static type of $e$ is $T$, provided that $T$ is more specific than any other type $S$ such that $v$ is known to have type $S$.
 \item If $d$ is a static method, top-level function or local function the static type of $e$ is the function type defined by $d$.
-\item If $d$ is the declaration of a static variable, static getter or static setter declared in class $C$, the static type of $e$ is the static type of the getter invocation (\ref{propertyExtraction}) $C.id$.
-\item If $d$ is the declaration of a library variable, top-level getter or top-level setter, the static type of $e$ is the static type of the top level getter invocation $id$.
+\item If $d$ is the declaration of a static variable, static getter or static setter declared in class $C$, the static type of $e$ is the static type of the getter invocation (\ref{propertyExtraction}) \code{$C$.\id}.
+\item If $d$ is the declaration of a library variable, top-level getter or top-level setter, the static type of $e$ is the static type of the top level getter invocation \id.
 \item Otherwise, if $e$ occurs inside a top level or static function (be it function, method, getter, or setter) or variable initializer, the static type of $e$ is \DYNAMIC{}.
-\item Otherwise, the static type of $e$ is the type of the property extraction (\ref{propertyExtraction}) \THIS{}.$id$.
+\item Otherwise, the static type of $e$ is the type of the property extraction (\ref{propertyExtraction}) \THIS{}.\id.
 \end{itemize}
 
 \commentary{
@@ -7004,7 +7394,7 @@ The intent is to prevent errors when a getter in a surrounding scope is used acc
 }
 
 \LMHash{}
-It is a static warning if an identifier expression $id$ occurs inside a top level or static function (be it function, method, getter, or setter) or variable initializer and there is no declaration $d$ with name $id$ in the lexical scope enclosing the expression.
+It is a static warning if an identifier expression \id{} occurs inside a top level or static function (be it function, method, getter, or setter) or variable initializer and there is no declaration $d$ with name \id{} in the lexical scope enclosing the expression.
 
 
 \subsection{Type Test}
@@ -7252,7 +7642,11 @@ A function declaration statement declares a new local function (\ref{functionDec
 \end{grammar}
 
 \LMHash{}
-A function declaration statement of one of the forms $id$ $signature$ $\{ statements \}$ or $T$ $id$ $signature$ $\{ statements \}$ causes a new function named $id$ to be added to the innermost enclosing scope.
+A function declaration statement of one of the forms
+\code{\id{} \metavar{signature} \{ \metavar{statements} \}}
+or
+\code{$T$ \id{} \metavar{signature} \{ \metavar{statements} \}}
+causes a new function named \id{} to be added to the innermost enclosing scope.
 It is a compile-time error to reference a local function before its declaration.
 
 \commentary{
@@ -7448,12 +7842,12 @@ It is a static warning if the static type of $c$ may not be assigned to \code{bo
 \LMHash{}
 Let $D$ be derived from \code{finalConstVarOrType?}
 and let $n0$ be an identifier that does not occur anywhere in the program.
-A for statement of the form \code{\FOR{} ($D$ $id$ \IN{} $e$) $s$} is equivalent to the following code:
+A for statement of the form \code{\FOR{} ($D$ \id{} \IN{} $e$) $s$} is equivalent to the following code:
 
 \begin{dartCode}
 \VAR{} $n0$ = $e$.iterator;
 \WHILE{} ($n0$.moveNext()) \{
-   $D$ $id$ = $n0$.current;
+   $D$ \id{} = $n0$.current;
    $s$
 \}
 \end{dartCode}
@@ -7463,7 +7857,7 @@ this code is checked under the assumption that $n0$ is declared to be of type $T
 where $T$ is the static type of \code{$e$.iterator}.
 
 \commentary{
-It follows that it is a static warning if $D$ is empty and $id$ is a final variable,
+It follows that it is a static warning if $D$ is empty and \id{} is a final variable,
 and a dynamic error will then occur if the body is executed.
 }
 
@@ -7479,13 +7873,13 @@ An asynchronous for loop is distinguished by the keyword \AWAIT{} immediately pr
 \LMHash{}
 Let $D$ be derived from \code{finalConstVarOrType?}.
 Execution of a for-in statement, $f$, of the form
-\code{\AWAIT{} \FOR{} ($D$ $id$ \IN{} $e$) $s$}
+\code{\AWAIT{} \FOR{} ($D$ \id{} \IN{} $e$) $s$}
 proceeds as follows:
 
 \LMHash{}
 The expression $e$ is evaluated to an object $o$.
 It is a dynamic error if $o$ is not an instance of a class that implements \code{Stream}.
-It is a static warning if $D$ is empty and $id$ is a final variable,
+It is a static warning if $D$ is empty and \id{} is a final variable,
 and it is then a dynamic error if the body is executed.
 
 \LMHash{}
@@ -7507,7 +7901,7 @@ The \code{pause} call can throw, although that should never happen for a correct
 
 \LMHash{}
 For each {\em data event} from $u$,
-the statement $s$ is executed with $id$ bound to the value of the current data event.
+the statement $s$ is executed with \id{} bound to the value of the current data event.
 
 \commentary{
 Either execution of $s$ is completely synchronous, or it contains an
@@ -7707,7 +8101,7 @@ or the form
 proceeds as follows:
 
 \LMHash{}
-The statement \code{\VAR{} $id$ = $e$;} is evaluated, where $id$ is a fresh variable.
+The statement \code{\VAR{} \id{} = $e$;} is evaluated, where \id{} is a fresh variable.
 In checked mode, it is a run-time error if the value of $e$ is not an instance of the same class as the constants $e_1, \ldots, e_n$.
 
 \commentary{
@@ -7715,7 +8109,7 @@ Note that if there are no case clauses ($n = 0$), the type of $e$ does not matte
 }
 
 \LMHash{}
-Next, the case clause \CASE{} $e_{1}$: $s_{1}$ is matched against $id$, if $n > 0$.
+Next, the case clause \CASE{} $e_{1}$: $s_{1}$ is matched against \id, if $n > 0$.
 Otherwise if there is a \DEFAULT{} clause, the case statements $s_{n+1}$ are executed (\ref{case-execute}).
 
 \LMHash{}
@@ -7730,11 +8124,11 @@ Matching of a \CASE{} clause \CASE{} $e_{k}: s_{k}$ of a switch statement
 \}
 \end{dartCode}
 
-against the value of a variable $id$ proceeds as follows:
+against the value of a variable \id{} proceeds as follows:
 
 \LMHash{}
-The expression \code{$e_k$ == $id$} is evaluated to an object $o$ which is then subjected to boolean conversion evaluating to a value $v$.
-If $v$ is not \TRUE{} the following case, \CASE{} $e_{k+1}: s_{k+1}$ is matched against $id$ if $k < n$.
+The expression \code{$e_k$ == \id} is evaluated to an object $o$ which is then subjected to boolean conversion evaluating to a value $v$.
+If $v$ is not \TRUE{} the following case, \CASE{} $e_{k+1}: s_{k+1}$ is matched against \id{} if $k < n$.
 If $k = n$, then the \DEFAULT{} clause's statements are executed (\ref{case-execute}).
 If $v$ is \TRUE{}, let $h$ be the smallest number such that $h \ge k$ and $s_h$ is non-empty.
 If no such $h$ exists, let $h = n + 1$.
@@ -7751,11 +8145,11 @@ Matching of a \CASE{} clause \CASE{} $e_{k}: s_{k}$ of a switch statement
 \}
 \end{dartCode}
 
-against the value of a variable $id$ proceeds as follows:
+against the value of a variable \id{} proceeds as follows:
 
 \LMHash{}
-The expression \code{$e_k$ == $id$} is evaluated to an object $o$ which is then subjected to boolean conversion evaluating to a value $v$.
-If $v$ is not \TRUE{} the following case, \CASE{} $e_{k+1}: s_{k+1}$ is matched against $id$ if $k < n$.
+The expression \code{$e_k$ == \id} is evaluated to an object $o$ which is then subjected to boolean conversion evaluating to a value $v$.
+If $v$ is not \TRUE{} the following case, \CASE{} $e_{k+1}: s_{k+1}$ is matched against \id{} if $k < n$.
 If $v$ is \TRUE{}, let $h$ be the smallest integer such that $h \ge k$ and $s_h$ is non-empty.
 If such a $h$ exists, the case statements $s_h$ are executed (\ref{case-execute}).
 Otherwise the switch statement completes normally (\ref{completion}).
@@ -8534,7 +8928,7 @@ The {\em current library} is the library currently being compiled.
 The import modifies the namespace of the current library in a manner that is determined by the imported library and by the optional elements of the import.
 
 \LMHash{}
-An immediate import directive $I$ may optionally include a prefix clause of the form \code{\AS{} $id$} used to prefix names imported by $I$.
+An immediate import directive $I$ may optionally include a prefix clause of the form \code{\AS{} \id} used to prefix names imported by $I$.
 A deferred import must include a prefix clause or a compile-time error occurs.
 It is a compile-time error if a prefix used in a deferred import is used in another import clause.
 
@@ -8557,13 +8951,13 @@ This method returns a future $f$.
 When called, the method causes an immediate import $I'$ to be executed at some future time, where $I'$ is derived from $I$ by eliding the word \DEFERRED{} and adding a \HIDE{} \code{loadLibrary} combinator clause.
 When $I'$ executes without error, $f$ completes successfully.
 If $I'$ executes without error, we say that the call to \code{loadLibrary} has succeeded, otherwise we say the call has failed.
-\item For every top level function $f$ named $id$ in the imported library $B$, a corresponding method named $id$ with the same signature as $f$.
+\item For every top level function $f$ named \id{} in the imported library $B$, a corresponding method named \id{} with the same signature as $f$.
 Calling the method results in a run-time error.
-\item For every top level getter $g$ named $id$ in $B$, a corresponding getter named $id$ with the same signature as $g$.
+\item For every top level getter $g$ named \id{} in $B$, a corresponding getter named \id{} with the same signature as $g$.
 Calling the method results in a run-time error.
-\item For every top level setter $s$ named $id$ in $B$, a corresponding setter named $id$ with the same signature as $s$.
+\item For every top level setter $s$ named \id{} in $B$, a corresponding setter named \id{} with the same signature as $s$.
 Calling the method results in a run-time error.
-\item For every type $T$ named $id$ in $B$, a corresponding getter named $id$ with return type \code{Type}.
+\item For every type $T$ named \id{} in $B$, a corresponding getter named \id{} with return type \code{Type}.
 Calling the method results in a run-time error.
 \end{itemize}
 
@@ -8642,10 +9036,10 @@ where $hide(l, n)$ takes a list of identifiers $l$ and a namespace $n$, and prod
 Next, if $I$ includes a prefix clause of the form \AS{} $p$, let $NS = NS_n \cup \{p: prefixObject(NS_n)\}$ where $prefixObject(NS_n)$ is a {\em prefix object} for the namespace $NS_n$, which is an object that has the following members:
 
 \begin{itemize}
-\item For every top level function $f$ named $id$ in $NS_n$, a corresponding method with the same name and signature as $f$ that forwards (\ref{functionDeclarations}) to $f$.
-\item For every top level getter with the same name and signature as $g$ named $id$ in $NS_n$, a corresponding getter that forwards to $g$.
-\item For every top level setter $s$ with the same name and signature as named $id$ in $NS_n$, a corresponding setter that forwards to $s$.
-\item For every type $T$ named $id$ in $NS_n$, a corresponding getter named $id$ with return type \code{Type}, that, when invoked, returns the type object for $T$.
+\item For every top level function $f$ named \id{} in $NS_n$, a corresponding method with the same name and signature as $f$ that forwards (\ref{functionDeclarations}) to $f$.
+\item For every top level getter with the same name and signature as $g$ named \id{} in $NS_n$, a corresponding getter that forwards to $g$.
+\item For every top level setter $s$ with the same name and signature as named \id{} in $NS_n$, a corresponding setter that forwards to $s$.
+\item For every type $T$ named \id{} in $NS_n$, a corresponding getter named \id{} with return type \code{Type}, that, when invoked, returns the type object for $T$.
 \end{itemize}
 
 \LMHash{}
@@ -8964,7 +9358,7 @@ This means it is dependent on the embedder.
 Dart supports optional typing based on interface types.
 
 \rationale{
-The type system is unsound, due to the covariance of generic types.
+The type system is unsound, due to the covariance of generic classes.
 This is a deliberate choice (and undoubtedly controversial).
 Experience has shown that sound type rules for generics fly in the face of programmer intuition.
 It is easy for tools to provide a sound type analysis if they choose, which may be useful for tasks like refactoring.
@@ -9009,18 +9403,45 @@ However, using these tools must not preclude successful compilation and executio
 \LMHash{}
 A type $T$ is {\em malformed} if{}f:
 \begin{itemize}
-\item $T$ has the form $id$ or the form $prefix.id$, and in the enclosing lexical scope, the name $id$ (respectively $prefix.id$) does not denote a type.
-\item $T$ denotes a type variable in the enclosing lexical scope, but occurs in the signature or body of a static member.
-\item $T$ is a parameterized type of the form \code{$G$<$S_1, \ldots,\ S_n$>}, and $G$ is malformed.
-\item $T$ denotes declarations that were imported from multiple imports clauses.
-%Either $G$ or $S_i, i \in 1 .. n$ are malformed.
-% \item $G$ is not a generic type with $n$ type parameters.
-% \item Let $T_i$ be the type parameters of $G$ (if any) and let $B_i$ be the bound of $T_i, i \in 1 .. n$, and $S_i$ is not a subtype of $[S_1/T_1, \ldots, S_n/T_n]B_i, i \in 1 .. n$.
-% \end{itemize}
+\item
+  $T$ has the form \id{} or the form \code{\metavar{prefix}.\id},
+  and in the enclosing lexical scope,
+  the name \id{} (respectively \code{\metavar{prefix}.\id}) does not denote a type.
+
+\item
+  $T$ denotes a type variable in the enclosing lexical scope,
+  but occurs in the signature or body of a static member.
+
+\item $T$ is a parameterized type of the form \code{$G$<$S_1, \ldots,\ S_n$>},
+  and $G$ is malformed,
+  or $G$ is not a generic type,
+  or $G$ is a generic type, but it declares $n'$ type parameters and $n' \not= n$,
+  or $S_j$ is malformed for some $j \in 1 .. n$.
+
+\item $T$ is a function type of the form
+
+  \code{$T_0$ \FUNCTION{}<$X_1\ \EXTENDS\ B_1, \ldots,\ X_m\ \EXTENDS\ B_m$>}
+
+  \code{\quad($T_1\ x_1, \ldots,\ T_k\ x_k,\ $[$T_{k+1}\ x_{k+1}, \ldots,\ T_n\ x_n$])}
+
+  \noindent
+  or of the form
+
+  \code{$T_0$ \FUNCTION{}<$X_1\ \EXTENDS\ B_1, \ldots,\ X_m\ \EXTENDS\ B_m$>}
+
+  \code{\quad($T_1\ x_1, \ldots,\ T_k\ x_k,\ $\{$T_{k+1}\ x_{k+1}, \ldots,\ T_n\ x_n$\})}
+
+  \noindent
+  where each $x_j$ which is not a named parameter may be omitted,
+  and $T_j$ is malformed for some $j \in 0 .. n$,
+  or $B_j$ is malformed for some $j \in 1 .. m$.
+
+\item
+  $T$ denotes declarations that were imported from multiple imports clauses.
 \end{itemize}
 
 \LMHash{}
- Any use of a malformed type gives rise to a static warning.
+Any use of a malformed type gives rise to a static warning.
 A malformed type is then interpreted as \DYNAMIC{} by the static type checker and the run-time system unless explicitly specified otherwise.
 
 \rationale{
@@ -9191,17 +9612,17 @@ A {\em type alias} declares a name for a type expression.
 \LMHash{}
 The effect of a type alias of the form
 
-\code{\TYPEDEF{} $T$ $id$($T_1\ p_1, \ldots,\ T_n\ p_n,\ [T_{n+1}\ p_{n+1}, \ldots,\ T_{n+k}\ p_{n+k}]$)}
+\code{\TYPEDEF{} $T$ \id($T_1\ p_1, \ldots,\ T_n\ p_n,\ [T_{n+1}\ p_{n+1}, \ldots,\ T_{n+k}\ p_{n+k}]$)}
 
 \noindent
-declared in a library $L$ is to introduce the name $id$ into the scope of $L$, bound to the function type
+declared in a library $L$ is to introduce the name \id{} into the scope of $L$, bound to the function type
 $(T_1, \ldots,\ T_n, [T_{n+1}\ p_{n+1}, \ldots,\ T_{n+k} p_{n+k}]) \rightarrow T$.
 The effect of a type alias of the form
 
-\code{\TYPEDEF{} $T$ $id$($T_1\ p_1, \ldots,\ T_n\ p_n,\ \{T_{n+1}\ p_{n+1}, \ldots,\ T_{n+k}\ p_{n+k}\}$)}
+\code{\TYPEDEF{} $T$ \id($T_1\ p_1, \ldots,\ T_n\ p_n,\ \{T_{n+1}\ p_{n+1}, \ldots,\ T_{n+k}\ p_{n+k}\}$)}
 
 \noindent
-declared in a library $L$ is to introduce the name $id$ into the scope of $L$, bound to the function type
+declared in a library $L$ is to introduce the name \id{} into the scope of $L$, bound to the function type
 $(T_1, \ldots,\ T_n, \{T_{n+1}\ p_{n+1}, \ldots,\ T_{n+k}\ p_{n+k}\}) \rightarrow T$.
 In either case, if{}f no return type is specified, it is taken to be \DYNAMIC{}.
 Likewise, if a type annotation is omitted on a formal parameter, it is taken to be \DYNAMIC{}.
@@ -9679,60 +10100,38 @@ When using the former, we will often leave the latter implicit.
 
 \LMHash{}
 Let $T$ be a parameterized type \code{$G$<$S_1, \ldots,\ S_n$>}.
-It is evaluated as follows.
+Assume that $T$ is not malformed.
 
-\LMHash{}
-If $G$ is not a generic type,
-the type arguments $S_i, i \in 1 .. n$ are ignored.
-If $G$ has $m \ne n$ type parameters, $T$ is treated as a parameterized type with $m$ arguments,
-all of which are \DYNAMIC{},
-and $S_i, i \in 1 .. n$ are ignored.
-
-%% TODO[dart-2]: This commentary should be completely obsolete in Dart 2.
 \commentary{
-In short, any arity mismatch results in all type arguments being dropped, and replaced by the correct number of type arguments, all set to \DYNAMIC{}.
-Of course, a static warning will be issued.
+In particular, $G$ denotes a generic type with $n$ formal type parameters.
 }
 
 \LMHash{}
-Otherwise, let $X_i$ be the type parameters of $G$ and let $B_i$ be the bound of $X_i, i \in 1 .. n$.
-Let $t_i$ be the result of evaluating $S_i$, for $i \in 1 .. n$.
-
-\LMHash{}
-$T$ is {\em malbounded} if{}f either $S_i$ is malbounded or $t_i$ is not a subtype of
-$[t_1/X_1, \ldots, t_n/X_n]B_i$,
-for one or more $i \in 1 .. n$.
-
-% TODO(eernst): When changing from warnings to errors, include the following
-% as a commentary:
-%
-%   We do not specify the result of evaluating a malbounded type.
-%   This is because it is a compile-time error when a parameterized type is
-%   encountered, unless it is statically known that it will not be malbounded.
-%
-% That is also the reason why we say "$S_i$ is malbounded", not "$t_i$" above.
-
-\LMHash{}
-Otherwise, $T$ evaluates to the generic instantiation where $G$ is applied to $t_1, \ldots, t_n$.
-
-\commentary{
-Note, that, in checked mode, it is a dynamic type error if a malbounded type is used in a type test as specified in \ref{dynamicTypeSystem}.
-}
+$T$ is {\em malbounded} if{}f either
+$S_i$ is malbounded for one or more $i \in 1 .. n$,
+or $T$ is not well-bounded (\ref{superBoundedTypes}).
 
 \LMHash{}
 Any use of a malbounded type gives rise to a static warning.
 
 \LMHash{}
-If $S$ is the static type of a member $m$ of $G$,
-then the static type of the member $m$ of
+Let $T$ be a parameterized type of the form
 \code{$G$<$A_1, \ldots,\ A_n$>}
-is
+and assume that $T$ is not malformed and not malbounded.
+If $S$ is the static type of a member $m$ declared by $G$,
+then the static type of the member $m$ of an expression of type $T$ is
 $[A_1/X_1, \ldots, A_n/X_n]S$,
 where $X_1, \ldots, X_n$ are the formal type parameters of $G$.
-Let $B_i$ be the bounds of $X_i, i \in 1 .. n$.
-It is a static type warning if $A_i$ is not a subtype of
-$[A_1/X_1, \ldots, A_n/X_n]B_i, i \in 1 .. n$.
-It is a static type warning if $G$ is not a generic type with exactly $n$ type parameters.
+
+\LMHash{}
+Let $T$ be a parameterized type of the form
+\code{$G$<$A_1, \ldots,\ A_n$>}
+and assume that $T$ is not malformed and not malbounded.
+$T$ is then evaluated as follows:
+
+\LMHash{}
+For $j \in 1 .. n$, evaluate $A_j$ to a type $t_j$.
+$T$ then evaluates to the generic instantiation where $G$ is applied to $t_1, \ldots, t_n$.
 
 
 \subsubsection{Actual Type of Declaration}
@@ -9741,7 +10140,7 @@ It is a static type warning if $G$ is not a generic type with exactly $n$ type p
 % NOTE(eernst): The actual type arguments in this section are dynamic entities,
 % not syntax (the concept of an 'actual type' and an 'actual bound' is used to
 % specify the dynamic semantics, including dynamic errors). So we use $t_i$
-% to denote these type arguments, just like all those location where the
+% to denote these type arguments, just like all those locations where the
 % concept is used, rather than $A_i$ which is frequently used to denote the
 % syntax of an actual type argument.
 %
@@ -9775,7 +10174,7 @@ one or more enclosing generic functions and an enclosing generic class.
 Let \code{$X$ \EXTENDS{} $B$} be a formal type parameter declaration.
 Let
 $X_1, \ldots, X_n$
-be the formal type parameters in scope the declaration of $X$.
+be the formal type parameters in scope at the declaration of $X$.
 In a context where the actual type arguments corresponding to
 $X_1, \ldots, X_n$
 are
@@ -9787,7 +10186,6 @@ $[t_1/X_1, \ldots, t_n/X_n]B$.
 Note that there exists a $j$ such that $X = X_j$,
 because each formal type parameter is in scope at its own declaration.
 }
-
 
 
 \subsubsection{Least Upper Bounds}

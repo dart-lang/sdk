@@ -151,6 +151,8 @@ class PageSpaceController {
   // (e.g., promotion), as it does not change the state of the controller.
   bool NeedsGarbageCollection(SpaceUsage after) const;
 
+  bool NeedsExternalCollection(SpaceUsage after) const;
+
   // Returns whether an idle GC is worthwhile.
   bool NeedsIdleGarbageCollection(SpaceUsage current) const;
 
@@ -179,29 +181,32 @@ class PageSpaceController {
   // Usage after last evaluated GC or last enabled.
   SpaceUsage last_usage_;
 
-  // Pages of capacity growth allowed before next GC is advised.
-  intptr_t grow_heap_;
-
   // If the garbage collector was not able to free more than heap_growth_ratio_
   // memory, then the heap is grown. Otherwise garbage collection is performed.
-  int heap_growth_ratio_;
+  const int heap_growth_ratio_;
 
   // The desired percent of heap in-use after a garbage collection.
   // Equivalent to \frac{100-heap_growth_ratio_}{100}.
-  double desired_utilization_;
+  const double desired_utilization_;
 
   // Max number of pages we grow.
-  int heap_growth_max_;
+  const int heap_growth_max_;
 
   // If the relative GC time goes above garbage_collection_time_ratio_ %,
   // we grow the heap more aggressively.
-  int garbage_collection_time_ratio_;
+  const int garbage_collection_time_ratio_;
 
   // The time in microseconds of the last time we tried to collect unused
   // code.
   int64_t last_code_collection_in_us_;
 
-  // We start considering idle mark-sweeps when old space crosses this size.
+  // Perform a synchronous GC when capacity exceeds this amount.
+  intptr_t gc_threshold_in_words_;
+
+  // Perform a synchronous GC when external allocations exceed this amount.
+  intptr_t gc_external_threshold_in_words_;
+
+  // Start considering idle GC when capacity exceeds this amount.
   intptr_t idle_gc_threshold_in_words_;
 
   PageSpaceGarbageCollectionHistory history_;
@@ -213,9 +218,7 @@ class PageSpace {
  public:
   enum GrowthPolicy { kControlGrowth, kForceGrowth };
 
-  PageSpace(Heap* heap,
-            intptr_t max_capacity_in_words,
-            intptr_t max_external_in_words);
+  PageSpace(Heap* heap, intptr_t max_capacity_in_words);
   ~PageSpace();
 
   uword TryAllocate(intptr_t size,
@@ -229,8 +232,7 @@ class PageSpace {
   }
 
   bool NeedsGarbageCollection() const {
-    return page_space_controller_.NeedsGarbageCollection(usage_) ||
-           NeedsExternalGC();
+    return page_space_controller_.NeedsGarbageCollection(usage_);
   }
 
   int64_t UsedInWords() const { return usage_.used_in_words; }
@@ -293,11 +295,6 @@ class PageSpace {
   }
 
   bool GrowthControlState() { return page_space_controller_.is_enabled(); }
-
-  bool NeedsExternalGC() const {
-    return (max_external_in_words_ != 0) &&
-           (ExternalInWords() > max_external_in_words_);
-  }
 
   // Note: Code pages are made executable/non-executable when 'read_only' is
   // true/false, respectively.
@@ -432,7 +429,7 @@ class PageSpace {
 
   // Various sizes being tracked for this generation.
   intptr_t max_capacity_in_words_;
-  intptr_t max_external_in_words_;
+
   // NOTE: The capacity component of usage_ is updated by the concurrent
   // sweeper. Use (Increase)CapacityInWords(Locked) for thread-safe access.
   SpaceUsage usage_;

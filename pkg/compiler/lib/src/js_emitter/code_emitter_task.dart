@@ -198,6 +198,8 @@ class CodeEmitterTask extends CompilerTask {
           namer,
           this,
           closedWorld,
+          closedWorld.allocatorAnalysis,
+          compiler.globalInference.inferredData,
           backend.sourceInformationStrategy,
           compiler.backendStrategy.sorter,
           typeTestRegistry.rtiNeededClasses,

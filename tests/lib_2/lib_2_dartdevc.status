@@ -4,6 +4,7 @@
 
 [ $compiler == dartdevc ]
 html/element_types_keygen_test: CompileTimeError # Chrome 57 keygen removed
+html/mediasource_test: RuntimeError # Issue 29922
 html/xhr_test: Pass, Slow
 
 [ $compiler == dartdevk ]
@@ -31,6 +32,7 @@ html/interactive_geolocation_test: Skip # Requires allowing geo location.
 html/client_rect_test: Pass, RuntimeError # Issue 31019
 html/css_test: Pass, RuntimeError # Issue 31019
 html/fileapi_entry_test: Pass, RuntimeError # Issue 31019
+html/interactive_media_test: Skip # Requires interactive camera, microphone permissions.
 
 [ $system == windows && ($compiler == dartdevc || $compiler == dartdevk) ]
 html/xhr_test: Skip # Times out. Issue 21527
@@ -79,7 +81,6 @@ html/custom_element_name_clash_test: Skip # Issue 29922
 html/custom_elements_23127_test: Skip # Issue 29922
 html/custom_elements_test: Skip # Issue 29922
 html/deferred_multi_app_htmltest: Skip # Issue 29919
-html/element_classes_svg_test: RuntimeError # Issue 29922
 html/element_classes_test: RuntimeError # Issue 29922
 html/fontface_loaded_test: RuntimeError
 html/isolates_test: RuntimeError # Issue 29922
@@ -89,7 +90,6 @@ html/js_typed_interop_type3_test/*: RuntimeError # Issue 30947
 html/js_typed_interop_type_test: RuntimeError # Issue 30947
 html/js_util_test: RuntimeError # Issue 29922
 html/media_stream_test: RuntimeError # Issue 29922
-html/mediasource_test: RuntimeError # Issue 29922
 html/no_linked_scripts_htmltest: Skip # Issue 29919
 html/notification_permission_test: Timeout # Issue 32002
 html/scripts_htmltest: Skip # Issue 29919

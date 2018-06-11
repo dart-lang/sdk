@@ -856,6 +856,31 @@ Random bar() => null;
     await _verifyReferences(element, expected);
   }
 
+  test_searchReferences_ImportElement_noPrefix_inPackage() async {
+    testFile = _p('/aaa/lib/a.dart');
+    await _resolveTestUnit('''
+import 'dart:math' show max, PI, Random hide min;
+export 'dart:math' show max, PI, Random hide min;
+main() {
+  PI;
+  new Random();
+  max(1, 2);
+}
+Random bar() => null;
+''', addToDriver: false);
+    ImportElement element = testLibraryElement.imports[0];
+    Element mainElement = await _findElement('main');
+    Element barElement = await _findElement('bar');
+    var kind = SearchResultKind.REFERENCE;
+    var expected = [
+      _expectId(mainElement, kind, 'PI;', length: 0),
+      _expectId(mainElement, kind, 'Random();', length: 0),
+      _expectId(mainElement, kind, 'max(1, 2);', length: 0),
+      _expectId(barElement, kind, 'Random bar()', length: 0),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
   test_searchReferences_ImportElement_withPrefix() async {
     await _resolveTestUnit('''
 import 'dart:math' as math show max, PI, Random hide min;
@@ -952,6 +977,32 @@ part 'unitB.dart';
     await _verifyReferences(element, expected);
   }
 
+  test_searchReferences_LibraryElement_inPackage() async {
+    testFile = _p('/aaa/lib/a.dart');
+    var partPathA = _p('/aaa/lib/unitA.dart');
+    var partPathB = _p('/aaa/lib/unitB.dart');
+
+    var codeA = 'part of lib; // A';
+    var codeB = 'part of lib; // B';
+    provider.newFile(partPathA, codeA);
+    provider.newFile(partPathB, codeB);
+    await _resolveTestUnit('''
+library lib;
+part 'unitA.dart';
+part 'unitB.dart';
+''', addToDriver: false);
+    LibraryElement element = testLibraryElement;
+    CompilationUnitElement unitElementA = element.parts[0];
+    CompilationUnitElement unitElementB = element.parts[1];
+    var expected = [
+      new ExpectedResult(unitElementA, SearchResultKind.REFERENCE,
+          codeA.indexOf('lib; // A'), 'lib'.length),
+      new ExpectedResult(unitElementB, SearchResultKind.REFERENCE,
+          codeB.indexOf('lib; // B'), 'lib'.length),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
   test_searchReferences_LocalVariableElement() async {
     await _resolveTestUnit(r'''
 main() {
@@ -973,7 +1024,7 @@ main() {
     await _verifyReferences(element, expected);
   }
 
-  test_searchReferences_localVariableElement_inForEachLoop() async {
+  test_searchReferences_LocalVariableElement_inForEachLoop() async {
     await _resolveTestUnit('''
 main() {
   for (var v in []) {
@@ -986,6 +1037,30 @@ main() {
 ''');
     Element element = findElementsByName(testUnit, 'v').single;
     Element main = _findElement('main');
+    var expected = [
+      _expectId(main, SearchResultKind.WRITE, 'v = 1;'),
+      _expectId(main, SearchResultKind.READ_WRITE, 'v += 2;'),
+      _expectId(main, SearchResultKind.READ, 'v);'),
+      _expectId(main, SearchResultKind.INVOCATION, 'v();')
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_LocalVariableElement_inPackage() async {
+    testFile = _p('/aaa/lib/a.dart');
+
+    await _resolveTestUnit('''
+main() {
+  var v;
+  v = 1;
+  v += 2;
+  print(v);
+  v();
+}
+''', addToDriver: false);
+    Element element = findElementsByName(testUnit, 'v').single;
+    Element main = _findElement('main');
+
     var expected = [
       _expectId(main, SearchResultKind.WRITE, 'v = 1;'),
       _expectId(main, SearchResultKind.READ_WRITE, 'v += 2;'),
@@ -1212,6 +1287,36 @@ main() {
     await _verifyReferences(element, expected);
   }
 
+  test_searchReferences_PrefixElement_inPackage() async {
+    testFile = _p('/aaa/lib/a.dart');
+    var partPath = _p('/aaa/lib/my_part.dart');
+
+    String partCode = r'''
+part of my_lib;
+ppp.Future c;
+''';
+    provider.newFile(partPath, partCode);
+    await _resolveTestUnit('''
+library my_lib;
+import 'dart:async' as ppp;
+part 'my_part.dart';
+main() {
+  ppp.Future a;
+  ppp.Stream b;
+}
+''', addToDriver: false);
+    PrefixElement element = _findElementAtString('ppp;');
+    Element main = _findElement('main');
+    Element c = findChildElement(testLibraryElement, 'c');
+    var expected = [
+      _expectId(main, SearchResultKind.REFERENCE, 'ppp.Future'),
+      _expectId(main, SearchResultKind.REFERENCE, 'ppp.Stream'),
+      new ExpectedResult(c, SearchResultKind.REFERENCE,
+          partCode.indexOf('ppp.Future c'), 'ppp'.length)
+    ];
+    await _verifyReferences(element, expected);
+  }
+
   test_searchReferences_private_declaredInDefiningUnit() async {
     String p1 = _p('$testProject/part1.dart');
     String p2 = _p('$testProject/part2.dart');
@@ -1286,6 +1391,40 @@ _C v1;
     var expected = [
       new ExpectedResult(
           v, SearchResultKind.REFERENCE, code.indexOf('_C v;'), 2),
+      new ExpectedResult(
+          v1, SearchResultKind.REFERENCE, code1.indexOf('_C v1;'), 2),
+      new ExpectedResult(
+          v2, SearchResultKind.REFERENCE, code2.indexOf('_C v2;'), 2),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_private_inPackage() async {
+    testFile = _p('/aaa/lib/a.dart');
+    var p1 = _p('/aaa/lib/part1.dart');
+    var p2 = _p('/aaa/lib/part2.dart');
+
+    String code1 = 'part of lib; _C v1;';
+    String code2 = 'part of lib; _C v2;';
+
+    provider.newFile(p1, code1);
+    provider.newFile(p2, code2);
+
+    await _resolveTestUnit('''
+library lib;
+part 'part1.dart';
+part 'part2.dart';
+class _C {}
+_C v;
+''', addToDriver: false);
+
+    Element element = testUnitElement.types.single;
+    Element v = testUnitElement.topLevelVariables[0];
+    Element v1 = testLibraryElement.parts[0].topLevelVariables[0];
+    Element v2 = testLibraryElement.parts[1].topLevelVariables[0];
+    var expected = [
+      new ExpectedResult(
+          v, SearchResultKind.REFERENCE, testCode.indexOf('_C v;'), 2),
       new ExpectedResult(
           v1, SearchResultKind.REFERENCE, code1.indexOf('_C v1;'), 2),
       new ExpectedResult(
@@ -1507,6 +1646,68 @@ class F {}
     }
   }
 
+  test_subtypes_discover() async {
+    var pathT = _p('/test/lib/t.dart');
+    var pathA = _p('/aaa/lib/a.dart');
+    var pathB = _p('/bbb/lib/b.dart');
+
+    var tUri = 'package:test/t.dart';
+    var aUri = 'package:aaa/a.dart';
+    var bUri = 'package:bbb/b.dart';
+
+    provider.newFile(pathT, r'''
+import 'package:aaa/a.dart';
+
+class T1 extends A {
+  void method1() {}
+}
+
+class T2 extends A {
+  void method2() {}
+}
+''');
+
+    provider.newFile(pathB, r'''
+import 'package:aaa/a.dart';
+
+class B extends A {
+  void method1() {}
+}
+''');
+
+    provider.newFile(pathA, r'''
+class A {
+  void method1() {}
+  void method2() {}
+}
+''');
+
+    driver.addFile(pathT);
+
+    var aLibrary = await driver.getLibraryByUri(aUri);
+    ClassElement aClass = aLibrary.getType('A');
+
+    // Search by 'type'.
+    List<SubtypeResult> subtypes = await driver.search.subtypes(type: aClass);
+    expect(subtypes, hasLength(3));
+
+    SubtypeResult t1 = subtypes.singleWhere((r) => r.name == 'T1');
+    SubtypeResult t2 = subtypes.singleWhere((r) => r.name == 'T2');
+    SubtypeResult b = subtypes.singleWhere((r) => r.name == 'B');
+
+    expect(t1.libraryUri, tUri);
+    expect(t1.id, '$tUri;$tUri;T1');
+    expect(t1.members, ['method1']);
+
+    expect(t2.libraryUri, tUri);
+    expect(t2.id, '$tUri;$tUri;T2');
+    expect(t2.members, ['method2']);
+
+    expect(b.libraryUri, bUri);
+    expect(b.id, '$bUri;$bUri;B');
+    expect(b.members, ['method1']);
+  }
+
   test_subTypes_discover() async {
     var t = _p('/test/lib/t.dart');
     var a = _p('/aaa/lib/a.dart');
@@ -1672,8 +1873,13 @@ class NoMatchABCDE {}
 
   String _p(String path) => provider.convertPath(path);
 
-  Future<Null> _resolveTestUnit(String code) async {
-    addTestFile(code);
+  Future<Null> _resolveTestUnit(String code, {bool addToDriver: true}) async {
+    if (addToDriver) {
+      addTestFile(code);
+    } else {
+      testCode = code;
+      provider.newFile(testFile, testCode);
+    }
     if (testUnit == null) {
       AnalysisResult result = await driver.getResult(testFile);
       testUnit = result.unit;

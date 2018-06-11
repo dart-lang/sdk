@@ -11,8 +11,10 @@ import 'package:build_integration/file_system/multi_root.dart';
 import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:kernel/kernel.dart';
+import 'package:kernel/text/ast_to_text.dart' as kernel show Printer;
+import 'package:kernel/binary/ast_to_binary.dart' as kernel show BinaryPrinter;
 import 'package:path/path.dart' as path;
-import 'package:source_maps/source_maps.dart';
+import 'package:source_maps/source_maps.dart' show SourceMapBuilder;
 
 import '../compiler/js_names.dart' as JS;
 import '../compiler/module_builder.dart';
@@ -98,11 +100,11 @@ Uri stringToCustomUri(String s, List<Uri> roots, String scheme) {
 
 class CompilerResult {
   final fe.InitializedCompilerState compilerState;
-  final bool result;
+  final bool success;
 
-  CompilerResult(this.compilerState, this.result);
+  CompilerResult(this.compilerState, this.success);
 
-  CompilerResult.noState(this.result) : compilerState = null;
+  CompilerResult.noState(this.success) : compilerState = null;
 }
 
 Future<CompilerResult> _compile(List<String> args,
@@ -113,9 +115,31 @@ Future<CompilerResult> _compile(List<String> args,
         abbr: 'h', help: 'Display this message.', negatable: false)
     ..addOption('out', abbr: 'o', help: 'Output file (required).')
     ..addOption('packages', help: 'The package spec file to use.')
+    ..addFlag('summarize',
+        help: 'emit API summary in a .dill file', defaultsTo: true)
+    // TODO(jmesserly): should default to `false` and be hidden.
+    // For now this is very helpful in debugging the compiler.
+    ..addFlag('summarize-text',
+        help: 'emit API summary in a .js.txt file', defaultsTo: true)
     // TODO(jmesserly): add verbose help to show hidden options
     ..addOption('dart-sdk-summary',
         help: 'The path to the Dart SDK summary file.', hide: true)
+    // TODO(jmesserly): this help description length is too long.
+    //
+    // Also summary-input-dir and custom-app-scheme should be removed.
+    // They are undocumented and not necessary.
+    //
+    // URIs can be passed to `--summary` (including relative ones if desired),
+    // and we can easily add logic to prevert absolute file URIs in source maps.
+    //
+    // It appears to have been added in this change, but none of the flags are
+    // described there:
+    // https://github.com/dart-lang/sdk/commit/226602dc189555d9a43785c2a2f599b1622c1890
+    //
+    // Looking at the code, it appears to be solving a similar problem as
+    // `--module-root` in our old Analyzer-based backend.
+    // See https://github.com/dart-lang/sdk/issues/32272 for context on removing
+    // --module-root.
     ..addMultiOption('summary',
         abbr: 's',
         help: 'path to a summary of a transitive dependency of this module.\n'
@@ -186,8 +210,9 @@ Future<CompilerResult> _compile(List<String> args,
   var fileSystem = new MultiRootFileSystem(
       customScheme, multiRoots, StandardFileSystem.instance);
 
+  var oldCompilerState = compilerState;
   compilerState = await fe.initializeCompiler(
-      compilerState,
+      oldCompilerState,
       stringToUri(sdkSummaryPath),
       stringToUri(packageFile),
       summaryUris,
@@ -206,13 +231,29 @@ Future<CompilerResult> _compile(List<String> args,
 
   String output = argResults['out'];
   var file = new File(output);
-  if (!file.parent.existsSync()) file.parent.createSync(recursive: true);
+  await file.parent.create(recursive: true);
 
-  // TODO(jmesserly): Save .dill file so other modules can link in this one.
-  //await writeComponentToBinary(component, output);
-
-  // Useful for debugging:
-  writeComponentToText(component, path: output + '.txt');
+  // Output files can be written in parallel, so collect the futures.
+  var outFiles = <Future>[];
+  if (argResults['summarize'] as bool) {
+    // TODO(jmesserly): CFE mutates the Kernel tree, so we can't save the dill
+    // file if we successfully reused a cached library. If compiler state is
+    // unchanged, it means we used the cache.
+    //
+    // In that case, we need to unbind canonical names, because they could be
+    // bound already from the previous compile.
+    if (identical(compilerState, oldCompilerState)) {
+      component.unbindCanonicalNames();
+    }
+    var sink = new File(path.withoutExtension(output) + '.dill').openWrite();
+    new kernel.BinaryPrinter(sink).writeComponentFile(component);
+    outFiles.add(sink.flush().then((_) => sink.close()));
+  }
+  if (argResults['summarize-text'] as bool) {
+    var sink = new File(output + '.txt').openWrite();
+    new kernel.Printer(sink, showExternal: false).writeComponentFile(component);
+    outFiles.add(sink.flush().then((_) => sink.close()));
+  }
 
   var compiler = new ProgramCompiler(component,
       declaredVariables: declaredVariables,
@@ -226,14 +267,14 @@ Future<CompilerResult> _compile(List<String> args,
       jsUrl: path.toUri(output).toString(),
       mapUrl: path.toUri(output + '.map').toString(),
       customScheme: customScheme);
-  file.writeAsStringSync(jsCode.code);
 
+  outFiles.add(file.writeAsString(jsCode.code));
   if (jsCode.sourceMap != null) {
-    file = new File(output + '.map');
-    if (!file.parent.existsSync()) file.parent.createSync(recursive: true);
-    file.writeAsStringSync(json.encode(jsCode.sourceMap));
+    outFiles.add(
+        new File(output + '.map').writeAsString(json.encode(jsCode.sourceMap)));
   }
 
+  await Future.wait(outFiles);
   return new CompilerResult(compilerState, true);
 }
 

@@ -77,9 +77,15 @@ class DevCompilerTarget extends Target {
     // to the file where the class resides, or the file where the method we're
     // mocking resides).
     Expression createInvocation(String name, List<Expression> positional) {
-      var ctor = coreTypes.invocationClass.procedures
+      // TODO(jmesserly): this uses the implementation _Invocation class,
+      // because the CFE does not resolve the redirecting factory constructors
+      // like it would for user code. Our code generator expects all redirecting
+      // factories to be resolved to the real constructor.
+      var ctor = coreTypes.index
+          .getClass('dart:core', '_Invocation')
+          .constructors
           .firstWhere((c) => c.name.name == name);
-      return new StaticInvocation(ctor, new Arguments(positional));
+      return new ConstructorInvocation(ctor, new Arguments(positional));
     }
 
     if (name.startsWith('get:')) {
@@ -96,6 +102,8 @@ class DevCompilerTarget extends Target {
     if (isGeneric) {
       ctorArgs.add(new ListLiteral(
           arguments.types.map((t) => new TypeLiteral(t)).toList()));
+    } else {
+      ctorArgs.add(new NullLiteral());
     }
     ctorArgs.add(new ListLiteral(arguments.positional));
     if (arguments.named.isNotEmpty) {
@@ -105,7 +113,7 @@ class DevCompilerTarget extends Target {
               .toList(),
           keyType: coreTypes.symbolClass.rawType));
     }
-    return createInvocation(isGeneric ? 'genericMethod' : 'method', ctorArgs);
+    return createInvocation('method', ctorArgs);
   }
 
   @override

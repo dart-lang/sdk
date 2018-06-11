@@ -245,8 +245,8 @@ const_map3_test/00: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 const_switch2_test/01: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 const_types_test/34: MissingCompileTimeError # Issue 32988
 const_types_test/39: MissingCompileTimeError # Issue 32988
-constructor_redirect1_negative_test/01: MissingCompileTimeError # Issue 30856
-constructor_redirect2_negative_test: MissingCompileTimeError # Issue 30856
+constructor_redirect_cycle_test/01: MissingCompileTimeError # Issue 30856
+constructor_redirect_indirect_cycle_test/01: MissingCompileTimeError # Issue 30856
 constructor_redirect_test/01: MissingCompileTimeError # Fasta bug: Initializer refers to this.
 cyclic_constructor_test/01: MissingCompileTimeError # Issue 30856 (cyclic constructor redirection)
 cyclic_type_variable_test/01: MissingCompileTimeError # Issue 32989 (missing cycle check in bounds)
@@ -259,7 +259,7 @@ deferred_inheritance_constraints_test/extends: MissingCompileTimeError # Fasta/K
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
 deferred_inheritance_constraints_test/redirecting_constructor: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
-duplicate_export_negative_test: Fail # Issue 12916
+duplicate_export_collision_test/01: MissingCompileTimeError # Issue 12916
 f_bounded_quantification_test/01: MissingCompileTimeError # Issue 33018
 f_bounded_quantification_test/02: MissingCompileTimeError # Issue 33018
 factory4_test/00: MissingCompileTimeError # Issue 32988
@@ -892,7 +892,7 @@ assertion_initializer_const_error2_test/cc11: MissingCompileTimeError # Not repo
 covariant_subtyping_test: RuntimeError
 redirecting_factory_reflection_test: RuntimeError
 
-# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
+# Enabling of dartk for sim{arm,arm64,dbc64} revealed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
 [ $compiler == dartk && $strong && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
@@ -1062,8 +1062,6 @@ cyclic_type_test/02: Fail, OK # Non-contractive types are not supported in the v
 cyclic_type_test/04: Fail, OK
 cyclic_typedef_test/10: Crash # Issue 32416.
 cyclic_typedef_test/11: Crash # Issue 32416.
-deep_nesting1_negative_test: Skip # Issue 31158
-deep_nesting2_negative_test: Skip # Issue 31158
 deferred_call_empty_before_load_test: RuntimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
 deferred_load_constants_test/none: RuntimeError # KernelVM bug: Deferred loading kernel issue 30273.
 deferred_load_library_wrong_args_test/01: Pass # Passes by mistake. KernelVM bug: Deferred loading kernel issue 30273.
@@ -1658,7 +1656,6 @@ const_constructor2_test/24: MissingCompileTimeError
 const_constructor3_test/02: MissingCompileTimeError
 const_constructor3_test/04: MissingCompileTimeError
 const_init2_test/02: MissingCompileTimeError
-const_native_factory_test: MissingCompileTimeError
 const_syntax_test/08: MissingCompileTimeError
 const_syntax_test/10: MissingCompileTimeError
 const_types_test/01: MissingCompileTimeError
@@ -1673,11 +1670,10 @@ const_types_test/40: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
 constructor13_test/01: MissingCompileTimeError
 constructor13_test/02: MissingCompileTimeError
-constructor_call_wrong_argument_count_negative_test: Fail
+constructor_call_wrong_argument_count_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/02: MissingCompileTimeError
 constructor_named_arguments_test/01: MissingCompileTimeError
-constructor_redirect1_negative_test/none: MissingCompileTimeError
 create_unresolved_type_test/01: MissingCompileTimeError
 cyclic_typedef_test/13: MissingCompileTimeError
 deferred_constraints_type_annotation_test/as_operation: MissingCompileTimeError
@@ -1697,7 +1693,6 @@ duplicate_implements_test/01: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
 duplicate_implements_test/03: MissingCompileTimeError
 duplicate_implements_test/04: MissingCompileTimeError
-duplicate_interface_negative_test: Fail
 dynamic_field_test/01: MissingCompileTimeError
 dynamic_field_test/02: MissingCompileTimeError
 dynamic_prefix_core_test/01: MissingCompileTimeError
@@ -2291,3 +2286,6 @@ unresolved_top_level_var_test: MissingCompileTimeError
 [ $compiler == dartk || $compiler == dartkp ]
 generic_function_bounds_test: RuntimeError # Issue 32076
 generic_test/01: MissingCompileTimeError
+
+[ $compiler == dartkp || $compiler == fasta ]
+duplicate_interface_implements_test/01: MissingCompileTimeError

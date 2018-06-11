@@ -433,6 +433,8 @@ class Driver implements ServerStarter {
 
     _captureExceptions(instrumentationService, () {
       stdioServer.serveStdio().then((_) async {
+        // TODO(brianwilkerson) Determine whether this await is necessary.
+        await null;
         if (serve_http) {
           httpServer.close();
         }

@@ -20,6 +20,8 @@ class StaticMemberContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     Expression targetId = request.dotTarget;
     if (targetId is Identifier && !request.target.isCascade) {
       Element elem = targetId.bestElement;
@@ -63,15 +65,15 @@ class _SuggestionBuilder extends GeneralizingElementVisitor {
   }
 
   @override
-  visitElement(Element element) {
-    // ignored
-  }
-
-  @override
   visitConstructorElement(ConstructorElement element) {
     if (element.context.analysisOptions.previewDart2) {
       _addSuggestion(element);
     }
+  }
+
+  @override
+  visitElement(Element element) {
+    // ignored
   }
 
   @override

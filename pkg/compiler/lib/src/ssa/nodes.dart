@@ -301,6 +301,12 @@ class HGraph {
         closedWorld.constantSystem.createIntFromInt(i), closedWorld);
   }
 
+  HConstant addConstantIntAsUnsigned(int i, JClosedWorld closedWorld) {
+    return addConstant(
+        closedWorld.constantSystem.createInt(new BigInt.from(i).toUnsigned(64)),
+        closedWorld);
+  }
+
   HConstant addConstantDouble(double d, JClosedWorld closedWorld) {
     return addConstant(closedWorld.constantSystem.createDouble(d), closedWorld);
   }

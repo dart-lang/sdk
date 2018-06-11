@@ -1969,6 +1969,8 @@ class ElementKind implements Enum {
  *   DOCUMENTATION_COMMENT
  *   FILE_HEADER
  *   FUNCTION_BODY
+ *   INVOCATION
+ *   LITERAL
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -1987,6 +1989,10 @@ class FoldingKind implements Enum {
 
   static const FoldingKind FUNCTION_BODY = const FoldingKind._("FUNCTION_BODY");
 
+  static const FoldingKind INVOCATION = const FoldingKind._("INVOCATION");
+
+  static const FoldingKind LITERAL = const FoldingKind._("LITERAL");
+
   /**
    * A list containing all of the enum values that are defined.
    */
@@ -1996,7 +2002,9 @@ class FoldingKind implements Enum {
     DIRECTIVES,
     DOCUMENTATION_COMMENT,
     FILE_HEADER,
-    FUNCTION_BODY
+    FUNCTION_BODY,
+    INVOCATION,
+    LITERAL
   ];
 
   @override
@@ -2018,6 +2026,10 @@ class FoldingKind implements Enum {
         return FILE_HEADER;
       case "FUNCTION_BODY":
         return FUNCTION_BODY;
+      case "INVOCATION":
+        return INVOCATION;
+      case "LITERAL":
+        return LITERAL;
     }
     throw new Exception('Illegal enum value: $name');
   }

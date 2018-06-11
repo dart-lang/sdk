@@ -37,7 +37,7 @@ class B extends core::Object {
 }
 static method foo([@vm.inferred-type.metadata=dart.core::Null?] (core::List<core::int>) → void a) → core::int {
   @self::VarAnnotation::•() core::int x = 2;
-  return x.{core::num::+}(2);
+  return [@vm.direct-call.metadata=dart.core::_IntegerImplementation::+] x.{core::num::+}(2);
 }
 @self::ParametrizedAnnotation::•<core::Null>(null)
 static method main(core::List<core::String> args) → dynamic {

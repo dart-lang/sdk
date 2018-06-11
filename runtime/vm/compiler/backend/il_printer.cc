@@ -563,11 +563,11 @@ void StaticCallInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 void LoadLocalInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s @%d", local().name().ToCString(), local().index());
+  f->Print("%s @%d", local().name().ToCString(), local().index().value());
 }
 
 void StoreLocalInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s @%d, ", local().name().ToCString(), local().index());
+  f->Print("%s @%d, ", local().name().ToCString(), local().index().value());
   value()->PrintTo(f);
 }
 

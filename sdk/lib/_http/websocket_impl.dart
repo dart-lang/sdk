@@ -449,7 +449,7 @@ class _WebSocketTransformerImpl
     if (!_isUpgradeRequest(request)) {
       // Send error response.
       response
-        ..statusCode = HttpStatus.BAD_REQUEST
+        ..statusCode = HttpStatus.badRequest
         ..close();
       return new Future.error(
           new WebSocketException("Invalid WebSocket upgrade request"));
@@ -458,9 +458,9 @@ class _WebSocketTransformerImpl
     Future<WebSocket> upgrade(String protocol) {
       // Send the upgrade response.
       response
-        ..statusCode = HttpStatus.SWITCHING_PROTOCOLS
-        ..headers.add(HttpHeaders.CONNECTION, "Upgrade")
-        ..headers.add(HttpHeaders.UPGRADE, "websocket");
+        ..statusCode = HttpStatus.switchingProtocols
+        ..headers.add(HttpHeaders.connectionHeader, "Upgrade")
+        ..headers.add(HttpHeaders.upgradeHeader, "websocket");
       String key = request.headers.value("Sec-WebSocket-Key");
       _SHA1 sha1 = new _SHA1();
       sha1.add("$key$_webSocketGUID".codeUnits);
@@ -493,7 +493,7 @@ class _WebSocketTransformerImpl
         return protocol;
       }).catchError((error) {
         response
-          ..statusCode = HttpStatus.INTERNAL_SERVER_ERROR
+          ..statusCode = HttpStatus.internalServerError
           ..close();
         throw error;
       }).then<WebSocket>(upgrade);
@@ -536,15 +536,15 @@ class _WebSocketTransformerImpl
     if (request.method != "GET") {
       return false;
     }
-    if (request.headers[HttpHeaders.CONNECTION] == null) {
+    if (request.headers[HttpHeaders.connectionHeader] == null) {
       return false;
     }
     bool isUpgrade = false;
-    request.headers[HttpHeaders.CONNECTION].forEach((String value) {
+    request.headers[HttpHeaders.connectionHeader].forEach((String value) {
       if (value.toLowerCase() == "upgrade") isUpgrade = true;
     });
     if (!isUpgrade) return false;
-    String upgrade = request.headers.value(HttpHeaders.UPGRADE);
+    String upgrade = request.headers.value(HttpHeaders.upgradeHeader);
     if (upgrade == null || upgrade.toLowerCase() != "websocket") {
       return false;
     }
@@ -964,7 +964,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
 
   final _socket;
   final bool _serverSide;
-  int _readyState = WebSocket.CONNECTING;
+  int _readyState = WebSocket.connecting;
   bool _writeClosed = false;
   int _closeCode;
   String _closeReason;
@@ -981,7 +981,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
 
   static Future<WebSocket> connect(
       String url, Iterable<String> protocols, Map<String, dynamic> headers,
-      {CompressionOptions compression: CompressionOptions.DEFAULT}) {
+      {CompressionOptions compression: CompressionOptions.compressionDefault}) {
     Uri uri = Uri.parse(url);
     if (uri.scheme != "ws" && uri.scheme != "wss") {
       throw new WebSocketException("Unsupported URL scheme '${uri.scheme}'");
@@ -1008,15 +1008,15 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
         // If the URL contains user information use that for basic
         // authorization.
         String auth = _CryptoUtils.bytesToBase64(utf8.encode(uri.userInfo));
-        request.headers.set(HttpHeaders.AUTHORIZATION, "Basic $auth");
+        request.headers.set(HttpHeaders.authorizationHeader, "Basic $auth");
       }
       if (headers != null) {
         headers.forEach((field, value) => request.headers.add(field, value));
       }
       // Setup the initial handshake.
       request.headers
-        ..set(HttpHeaders.CONNECTION, "Upgrade")
-        ..set(HttpHeaders.UPGRADE, "websocket")
+        ..set(HttpHeaders.connectionHeader, "Upgrade")
+        ..set(HttpHeaders.upgradeHeader, "websocket")
         ..set("Sec-WebSocket-Key", nonce)
         ..set("Cache-Control", "no-cache")
         ..set("Sec-WebSocket-Version", "13");
@@ -1039,11 +1039,11 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
         throw new WebSocketException(message);
       }
 
-      if (response.statusCode != HttpStatus.SWITCHING_PROTOCOLS ||
-          response.headers[HttpHeaders.CONNECTION] == null ||
-          !response.headers[HttpHeaders.CONNECTION]
+      if (response.statusCode != HttpStatus.switchingProtocols ||
+          response.headers[HttpHeaders.connectionHeader] == null ||
+          !response.headers[HttpHeaders.connectionHeader]
               .any((value) => value.toLowerCase() == "upgrade") ||
-          response.headers.value(HttpHeaders.UPGRADE).toLowerCase() !=
+          response.headers.value(HttpHeaders.upgradeHeader).toLowerCase() !=
               "websocket") {
         error("Connection to '$uri' was not upgraded to websocket");
       }
@@ -1114,7 +1114,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
       [this._serverSide = false, _WebSocketPerMessageDeflate deflate]) {
     _consumer = new _WebSocketConsumer(this, _socket);
     _sink = new _StreamSinkImpl(_consumer);
-    _readyState = WebSocket.OPEN;
+    _readyState = WebSocket.open;
     _deflate = deflate;
 
     var transformer = new _WebSocketProtocolTransformer(_serverSide, _deflate);
@@ -1140,14 +1140,14 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
       _controller.close();
     }, onDone: () {
       if (_closeTimer != null) _closeTimer.cancel();
-      if (_readyState == WebSocket.OPEN) {
-        _readyState = WebSocket.CLOSING;
+      if (_readyState == WebSocket.open) {
+        _readyState = WebSocket.closing;
         if (!_isReservedStatusCode(transformer.closeCode)) {
           _close(transformer.closeCode, transformer.closeReason);
         } else {
           _close();
         }
-        _readyState = WebSocket.CLOSED;
+        _readyState = WebSocket.closed;
       }
       // Protocol close, use close code from transformer.
       _closeCode = transformer.closeCode;

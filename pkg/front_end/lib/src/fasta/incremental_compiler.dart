@@ -89,7 +89,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       {Uri entryPoint, bool fullComponent: false}) async {
     ticker.reset();
     entryPoint ??= context.options.inputs.single;
-    return context.runInContext<Future<Component>>((CompilerContext c) async {
+    return context.runInContext<Component>((CompilerContext c) async {
       IncrementalCompilerData data = new IncrementalCompilerData();
 
       bool bypassCache = false;

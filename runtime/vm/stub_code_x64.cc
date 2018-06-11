@@ -2336,12 +2336,11 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
 // checks for boxed numbers.
 // Left and right are pushed on stack.
 // Return ZF set.
-// Note: A Mint cannot contain a value that would fit in Smi, a Bigint
-// cannot contain a value that fits in Mint or Smi.
+// Note: A Mint cannot contain a value that would fit in Smi.
 static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
                                                  const Register left,
                                                  const Register right) {
-  Label reference_compare, done, check_mint, check_bigint;
+  Label reference_compare, done, check_mint;
   // If any of the arguments is Smi do reference compare.
   __ testq(left, Immediate(kSmiTagMask));
   __ j(ZERO, &reference_compare);
@@ -2361,27 +2360,12 @@ static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
 
   __ Bind(&check_mint);
   __ CompareClassId(left, kMintCid);
-  __ j(NOT_EQUAL, &check_bigint, Assembler::kNearJump);
+  __ j(NOT_EQUAL, &reference_compare, Assembler::kNearJump);
   __ CompareClassId(right, kMintCid);
   __ j(NOT_EQUAL, &done, Assembler::kFarJump);
   __ movq(left, FieldAddress(left, Mint::value_offset()));
   __ cmpq(left, FieldAddress(right, Mint::value_offset()));
   __ jmp(&done, Assembler::kFarJump);
-
-  __ Bind(&check_bigint);
-  __ CompareClassId(left, kBigintCid);
-  __ j(NOT_EQUAL, &reference_compare, Assembler::kFarJump);
-  __ CompareClassId(right, kBigintCid);
-  __ j(NOT_EQUAL, &done, Assembler::kFarJump);
-  __ EnterStubFrame();
-  __ ReserveAlignedFrameSpace(0);
-  __ movq(CallingConventions::kArg1Reg, left);
-  __ movq(CallingConventions::kArg2Reg, right);
-  __ CallRuntime(kBigintCompareRuntimeEntry, 2);
-  // Result in RAX, 0 means equal.
-  __ LeaveStubFrame();
-  __ cmpq(RAX, Immediate(0));
-  __ jmp(&done);
 
   __ Bind(&reference_compare);
   __ cmpq(left, right);

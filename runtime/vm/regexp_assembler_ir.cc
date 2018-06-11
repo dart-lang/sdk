@@ -148,7 +148,8 @@ IRRegExpMacroAssembler::~IRRegExpMacroAssembler() {}
 void IRRegExpMacroAssembler::InitializeLocals() {
   // All generated functions are expected to have a current-context variable.
   // This variable is unused in irregexp functions.
-  parsed_function_->current_context_var()->set_index(GetNextLocalIndex());
+  parsed_function_->current_context_var()->set_index(
+      VariableIndex(GetNextLocalIndex()));
 
   // Create local variables and parameters.
   stack_ = Local(Symbols::stack());
@@ -341,8 +342,8 @@ LocalVariable* IRRegExpMacroAssembler::Parameter(const String& name,
       new (Z) LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                             name, Object::dynamic_type());
 
-  intptr_t param_frame_index = kParamEndSlotFromFp + kParamCount - index;
-  local->set_index(param_frame_index);
+  intptr_t param_frame_index = kParamCount - index;
+  local->set_index(VariableIndex(param_frame_index));
 
   return local;
 }
@@ -351,7 +352,7 @@ LocalVariable* IRRegExpMacroAssembler::Local(const String& name) {
   LocalVariable* local =
       new (Z) LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                             name, Object::dynamic_type());
-  local->set_index(GetNextLocalIndex());
+  local->set_index(VariableIndex(GetNextLocalIndex()));
 
   return local;
 }
@@ -709,7 +710,7 @@ void IRRegExpMacroAssembler::BindBlock(BlockLabel* label) {
 
 intptr_t IRRegExpMacroAssembler::GetNextLocalIndex() {
   intptr_t id = local_id_.Alloc();
-  return kFirstLocalSlotFromFp - id;
+  return -id;
 }
 
 Value* IRRegExpMacroAssembler::LoadRegister(intptr_t index) {
@@ -1708,24 +1709,18 @@ Value* IRRegExpMacroAssembler::LoadCodeUnitsAt(LocalVariable* index,
   // Bind the pattern as the load receiver.
   Value* pattern_val = BindLoadLocal(*string_param_);
   if (RawObject::IsExternalStringClassId(specialization_cid_)) {
-    // The data of an external string is stored through two indirections.
+    // The data of an external string is stored through one indirection.
     intptr_t external_offset = 0;
-    intptr_t data_offset = 0;
     if (specialization_cid_ == kExternalOneByteStringCid) {
       external_offset = ExternalOneByteString::external_data_offset();
-      data_offset = RawExternalOneByteString::ExternalData::data_offset();
     } else if (specialization_cid_ == kExternalTwoByteStringCid) {
       external_offset = ExternalTwoByteString::external_data_offset();
-      data_offset = RawExternalTwoByteString::ExternalData::data_offset();
     } else {
       UNREACHABLE();
     }
-    // This pushes untagged values on the stack which are immediately consumed:
-    // the first value is consumed to obtain the second value which is consumed
+    // This pushes an untagged value on the stack which is immediately consumed
     // by LoadCodeUnitsAtInstr below.
-    Value* external_val =
-        Bind(new (Z) LoadUntaggedInstr(pattern_val, external_offset));
-    pattern_val = Bind(new (Z) LoadUntaggedInstr(external_val, data_offset));
+    pattern_val = Bind(new (Z) LoadUntaggedInstr(pattern_val, external_offset));
   }
 
   // Here pattern_val might be untagged so this must not trigger a GC.

@@ -1942,51 +1942,6 @@ void RawMint::WriteTo(SnapshotWriter* writer,
   writer->Write<int64_t>(ptr()->value_);
 }
 
-RawBigint* Bigint::ReadFrom(SnapshotReader* reader,
-                            intptr_t object_id,
-                            intptr_t tags,
-                            Snapshot::Kind kind,
-                            bool as_reference) {
-  ASSERT(reader != NULL);
-
-  // Allocate bigint object.
-  Bigint& obj = Bigint::ZoneHandle(reader->zone(), Bigint::New());
-  reader->AddBackRef(object_id, &obj, kIsDeserialized);
-
-  // Set all the object fields.
-  READ_OBJECT_FIELDS(obj, obj.raw()->from(), obj.raw()->to(), kAsInlinedObject);
-
-  // If it is a canonical constant make it one.
-  // When reading a full snapshot we don't need to canonicalize the object
-  // as it would already be a canonical object.
-  // When reading a script snapshot or a message snapshot we always have
-  // to canonicalize the object.
-  if (RawObject::IsCanonical(tags)) {
-    obj ^= obj.CheckAndCanonicalize(reader->thread(), NULL);
-    ASSERT(!obj.IsNull());
-    ASSERT(obj.IsCanonical());
-  }
-  return obj.raw();
-}
-
-void RawBigint::WriteTo(SnapshotWriter* writer,
-                        intptr_t object_id,
-                        Snapshot::Kind kind,
-                        bool as_reference) {
-  ASSERT(writer != NULL);
-
-  // Write out the serialization header value for this object.
-  writer->WriteInlinedObjectHeader(object_id);
-
-  // Write out the class and tags information.
-  writer->WriteIndexedObject(kBigintCid);
-  writer->WriteTags(writer->GetObjectTags(this));
-
-  // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer, kAsInlinedObject);
-  visitor.VisitPointers(from(), to());
-}
-
 RawDouble* Double::ReadFrom(SnapshotReader* reader,
                             intptr_t object_id,
                             intptr_t tags,
@@ -2186,7 +2141,7 @@ void RawExternalOneByteString::WriteTo(SnapshotWriter* writer,
   // Serialize as a non-external one byte string.
   StringWriteTo(writer, object_id, kind, kOneByteStringCid,
                 writer->GetObjectTags(this), ptr()->length_,
-                ptr()->external_data_->data());
+                ptr()->external_data_);
 }
 
 void RawExternalTwoByteString::WriteTo(SnapshotWriter* writer,
@@ -2196,7 +2151,7 @@ void RawExternalTwoByteString::WriteTo(SnapshotWriter* writer,
   // Serialize as a non-external two byte string.
   StringWriteTo(writer, object_id, kind, kTwoByteStringCid,
                 writer->GetObjectTags(this), ptr()->length_,
-                ptr()->external_data_->data());
+                ptr()->external_data_);
 }
 
 RawBool* Bool::ReadFrom(SnapshotReader* reader,

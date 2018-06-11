@@ -53,7 +53,6 @@ import "dart:typed_data"
 /// These are the additional parts of this patch library:
 // part "array.dart";
 // part "array_patch.dart";
-// part "bigint.dart";
 // part "bigint_patch.dart";
 // part "bool_patch.dart";
 // part "date_patch.dart";
@@ -92,7 +91,6 @@ class num {
   num _remainderFromInteger(int other);
   bool _greaterThanFromInteger(int other);
   bool _equalToInteger(int other);
-  num _toBigintOrDouble();
 }
 
 // The members of this class are cloned and added to each class that

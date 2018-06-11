@@ -1,3 +1,26 @@
+## 2.0.0-dev.61.0
+
+### Dart VM
+
+* `async` functions now start synchronously by default.
+  Passing the `--no-sync-async` flag will produce the old behavior,
+  starting `async` functions asynchronously.
+
+### Tool Changes
+
+#### Pub
+
+* Fix support for running executables in Dart 2 mode.
+
+### Core library changes
+
+* `dart:io`
+  * Dart-styled constants have been added for `HttpStatus`, `HttpHeaders`,
+    `ContentType`, `HttpClient`, `WebSocketStatus`, `CompressionOptions`,
+    and `WebSocket`. The `SCREAMING_CAPS` constants are marked deprecated.
+    Note that `HttpStatus.CONTINUE` is now `HttpStatus.continue_`, and that
+    e.g. `HttpHeaders.FIELD_NAME` is now `HttpHeaders.fieldNameHeader`.
+
 ## 2.0.0-dev.60.0
 
 ### Core library changes
@@ -97,6 +120,14 @@ void main() {
     `X509Certificate.sha1`.
   * Added `FileSystemEntity.fromRawPath` constructor to allow for
     the creation of `FileSystemEntity` using `Uint8List` buffers.
+
+### Dart VM
+
+* `async` functions now start synchronously when previewing Dart 2 with
+  `--preview-dart-2`.  Build tools (e.g., build_runner) may override the
+  default and/or allow developers to configure.  Passing the
+  `--no-sync-async` flag will produce the old behavior, starting `async`
+  functions asynchronously.
 
 ### Tool Changes
 

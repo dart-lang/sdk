@@ -68,8 +68,10 @@ const kIsolateMustBePaused = 106;
 const kCannotResume = 107;
 const kIsolateIsReloading = 108;
 const kIsolateReloadBarred = 109;
-const kServiceAlreadyRegistered = 110;
-const kServiceDisappeared = 111;
+const kIsolateMustHaveReloaded = 110;
+const kServiceAlreadyRegistered = 111;
+const kServiceDisappeared = 112;
+const kExpressionCompilationError = 113;
 
 // Experimental (used in private rpcs).
 const kFileSystemAlreadyExists = 1001;
@@ -87,6 +89,7 @@ var _errorMessages = {
   kFileDoesNotExist: 'File does not exist',
   kServiceAlreadyRegistered: 'Service already registered',
   kServiceDisappeared: 'Service has disappeared',
+  kExpressionCompilationError: 'Expression compilation error',
 };
 
 String encodeRpcError(Message message, int code, {String details}) {
@@ -115,6 +118,11 @@ String encodeInvalidParamError(Message message, String param) {
   var value = message.params[param];
   return encodeRpcError(message, kInvalidParams,
       details: "${message.method}: invalid '${param}' parameter: ${value}");
+}
+
+String encodeCompilationError(Message message, String diagnostic) {
+  return encodeRpcError(message, kExpressionCompilationError,
+      details: diagnostic);
 }
 
 String encodeResult(Message message, Map result) {
@@ -233,7 +241,7 @@ class VMService extends MessageRouter {
             }
           }));
     }
-    // Complete all requestes as failed
+    // Complete all requests as failed
     for (var handle in client.serviceHandles.values) {
       handle(null);
     }
@@ -356,6 +364,17 @@ class VMService extends MessageRouter {
       }
     }
     return false;
+  }
+
+  Client _findFirstClientThatHandlesService(String service) {
+    if (clients != null) {
+      for (Client c in clients) {
+        if (c.services.containsKey(service)) {
+          return c;
+        }
+      }
+    }
+    return null;
   }
 
   static const kServiceStream = '_Service';
@@ -571,13 +590,13 @@ class VMService extends MessageRouter {
         var message = new Message.forIsolate(client, request, isolate);
         // Decode the JSON and and insert it into the map. The map key
         // is the request Uri.
-        var response = (await isolate.routeRequest(message)).decodeJson();
+        var response = (await isolate.routeRequest(this, message)).decodeJson();
         responses[message.toUri().toString()] = response['result'];
       }
       // Dump the object id ring requests.
       var message =
           new Message.forIsolate(client, Uri.parse('_dumpIdZone'), isolate);
-      var response = (await isolate.routeRequest(message)).decodeJson();
+      var response = (await isolate.routeRequest(this, message)).decodeJson();
       // Insert getObject requests into responses map.
       for (var object in response['result']['objects']) {
         final requestUri =
@@ -590,7 +609,7 @@ class VMService extends MessageRouter {
     return encodeResult(message, responses);
   }
 
-  Future<Response> routeRequest(Message message) async {
+  Future<Response> routeRequest(VMService _, Message message) async {
     return new Response.from(await _routeRequestImpl(message));
   }
 
@@ -622,7 +641,7 @@ class VMService extends MessageRouter {
         return await _handleService(message);
       }
       if (message.params['isolateId'] != null) {
-        return await runningIsolates.routeRequest(message);
+        return await runningIsolates.routeRequest(this, message);
       }
       return await message.sendToVM();
     } catch (e, st) {

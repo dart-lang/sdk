@@ -68,7 +68,6 @@ typedef RawObject* RawCompressed;
   V(Integer)                                                                   \
   V(Smi)                                                                       \
   V(Mint)                                                                      \
-  V(Bigint)                                                                    \
   V(Double)                                                                    \
   V(Bool)                                                                      \
   V(GrowableObjectArray)                                                       \
@@ -677,7 +676,6 @@ class RawObject {
   friend class Array;
   friend class Become;  // GetClassId
   friend class CompactorTask;  // GetClassId
-  friend class Bigint;
   friend class ByteBuffer;
   friend class CidRewriteVisitor;
   friend class Closure;
@@ -1969,16 +1967,6 @@ class RawMint : public RawInteger {
 };
 COMPILE_ASSERT(sizeof(RawMint) == 16);
 
-class RawBigint : public RawInteger {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(Bigint);
-
-  VISIT_FROM(RawObject*, neg_)
-  RawBool* neg_;
-  RawSmi* used_;
-  RawTypedData* digits_;
-  VISIT_TO(RawObject*, digits_)
-};
-
 class RawDouble : public RawNumber {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Double);
   VISIT_NOTHING();
@@ -2039,36 +2027,11 @@ class RawTwoByteString : public RawString {
   friend class String;
 };
 
-template <typename T>
-class ExternalStringData {
- public:
-  ExternalStringData(const T* data, void* peer, Dart_PeerFinalizer callback)
-      : data_(data), peer_(peer), callback_(callback) {}
-  ~ExternalStringData() {
-    if (callback_ != NULL) (*callback_)(peer_);
-  }
-
-  const T* data() { return data_; }
-  void* peer() { return peer_; }
-
-  static intptr_t data_offset() {
-    return OFFSET_OF(ExternalStringData<T>, data_);
-  }
-
- private:
-  const T* data_;
-  void* peer_;
-  Dart_PeerFinalizer callback_;
-};
-
 class RawExternalOneByteString : public RawString {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalOneByteString);
 
- public:
-  typedef ExternalStringData<uint8_t> ExternalData;
-
- private:
-  ExternalData* external_data_;
+  const uint8_t* external_data_;
+  void* peer_;
   friend class Api;
   friend class String;
 };
@@ -2076,11 +2039,8 @@ class RawExternalOneByteString : public RawString {
 class RawExternalTwoByteString : public RawString {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalTwoByteString);
 
- public:
-  typedef ExternalStringData<uint16_t> ExternalData;
-
- private:
-  ExternalData* external_data_;
+  const uint16_t* external_data_;
+  void* peer_;
   friend class Api;
   friend class String;
 };
@@ -2382,17 +2342,14 @@ inline bool RawObject::IsErrorClassId(intptr_t index) {
 inline bool RawObject::IsNumberClassId(intptr_t index) {
   // Make sure this function is updated when new Number types are added.
   COMPILE_ASSERT(kIntegerCid == kNumberCid + 1 && kSmiCid == kNumberCid + 2 &&
-                 kMintCid == kNumberCid + 3 && kBigintCid == kNumberCid + 4 &&
-                 kDoubleCid == kNumberCid + 5);
-  return (index >= kNumberCid && index < kBoolCid);
+                 kMintCid == kNumberCid + 3 && kDoubleCid == kNumberCid + 4);
+  return (index >= kNumberCid && index <= kDoubleCid);
 }
 
 inline bool RawObject::IsIntegerClassId(intptr_t index) {
   // Make sure this function is updated when new Integer types are added.
-  COMPILE_ASSERT(kSmiCid == kIntegerCid + 1 && kMintCid == kIntegerCid + 2 &&
-                 kBigintCid == kIntegerCid + 3 &&
-                 kDoubleCid == kIntegerCid + 4);
-  return (index >= kIntegerCid && index < kDoubleCid);
+  COMPILE_ASSERT(kSmiCid == kIntegerCid + 1 && kMintCid == kIntegerCid + 2);
+  return (index >= kIntegerCid && index <= kMintCid);
 }
 
 inline bool RawObject::IsStringClassId(intptr_t index) {

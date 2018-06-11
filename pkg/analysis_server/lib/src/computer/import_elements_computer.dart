@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/uri_converter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -50,10 +51,12 @@ class ImportElementsComputer {
    */
   Future<SourceChange> createEdits(
       List<ImportedElements> importedElementsList) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     List<ImportedElements> filteredImportedElements =
         _filterImportedElements(importedElementsList);
     LibraryElement libraryElement = libraryResult.libraryElement;
-    SourceFactory sourceFactory = libraryResult.session.sourceFactory;
+    UriConverter uriConverter = libraryResult.session.uriConverter;
     List<ImportDirective> existingImports = <ImportDirective>[];
     for (var directive in libraryResult.unit.directives) {
       if (directive is ImportDirective) {
@@ -73,7 +76,7 @@ class ImportElementsComputer {
           // so we need to add an import.
           //
           File importedFile = resourceProvider.getFile(importedElements.path);
-          Uri uri = sourceFactory.restoreUri(importedFile.createSource());
+          Uri uri = uriConverter.pathToUri(importedFile.path);
           Source importedSource = importedFile.createSource(uri);
           String importUri =
               _getLibrarySourceUri(libraryElement, importedSource);

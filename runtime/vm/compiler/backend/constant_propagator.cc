@@ -493,9 +493,7 @@ void ConstantPropagator::VisitTestSmi(TestSmiInstr* instr) {
   if (IsNonConstant(left) || IsNonConstant(right)) {
     SetValue(instr, non_constant_);
   } else if (IsConstant(left) && IsConstant(right)) {
-    // BitOp does not work on Bigints.
-    if (left.IsInteger() && right.IsInteger() && !left.IsBigint() &&
-        !right.IsBigint()) {
+    if (left.IsInteger() && right.IsInteger()) {
       const bool result = CompareIntegers(
           instr->kind(),
           Integer::Handle(Z, Integer::Cast(left).BitOp(Token::kBIT_AND,

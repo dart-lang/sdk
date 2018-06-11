@@ -1008,7 +1008,7 @@ class IsolateCommand extends DebuggerCommand {
       return new Future.value(null);
     }
     var arg = args[0].trim();
-    var num = int.parse(arg, onError: (_) => null);
+    var num = int.tryParse(arg);
 
     var candidate;
     for (var isolate in debugger.vm.isolates) {

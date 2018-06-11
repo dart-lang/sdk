@@ -235,8 +235,23 @@ class KernelImpactBuilder extends ir.Visitor {
 
   @override
   void visitIntLiteral(ir.IntLiteral literal) {
-    impactBuilder.registerConstantLiteral(
-        new IntConstantExpression(new BigInt.from(literal.value)));
+    // Check that this value can be precisely represented as a double, and throw
+    // an error if not:
+    if (new BigInt.from(literal.value) !=
+        new BigInt.from(literal.value.toDouble())) {
+      // TODO(efortuna): Switch to error message.
+      reporter.reportWarningMessage(
+          CURRENT_ELEMENT_SPANNABLE, MessageKind.GENERIC, {
+        'text': 'The integer literal '
+            '${new BigInt.from(literal.value)} cannot be represented'
+            ' exactly in JavaScript and will be rounded to '
+            '${new BigInt.from(literal.value.toDouble())}. Use the rounded '
+            'value to avoid this warning.'
+      });
+    }
+
+    impactBuilder.registerConstantLiteral(new IntConstantExpression(
+        new BigInt.from(literal.value).toUnsigned(64)));
   }
 
   @override

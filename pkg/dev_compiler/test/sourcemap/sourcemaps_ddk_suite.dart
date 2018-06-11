@@ -69,7 +69,7 @@ class DevCompilerRunner implements CompilerRunner {
     try {
       var result = await compile(args, compilerState: context.compilerState);
       context.compilerState = result.compilerState;
-      succeeded = result.result;
+      succeeded = result.success;
     } catch (e, s) {
       print('Unhandled exception:');
       print(e);

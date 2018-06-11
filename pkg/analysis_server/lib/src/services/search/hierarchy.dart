@@ -57,6 +57,8 @@ List<Element> getClassMembers(ClassElement clazz, [String name]) {
  */
 Future<Set<ClassElement>> getDirectSubClasses(
     SearchEngine searchEngine, ClassElement seed) async {
+  // TODO(brianwilkerson) Determine whether this await is necessary.
+  await null;
   List<SearchMatch> matches = await searchEngine.searchSubtypes(seed);
   return matches.map((match) => match.element).cast<ClassElement>().toSet();
 }
@@ -67,6 +69,8 @@ Future<Set<ClassElement>> getDirectSubClasses(
  */
 Future<Set<ClassMemberElement>> getHierarchyMembers(
     SearchEngine searchEngine, ClassMemberElement member) async {
+  // TODO(brianwilkerson) Determine whether this await is necessary.
+  await null;
   Set<ClassMemberElement> result = new HashSet<ClassMemberElement>();
   // static elements
   if (member.isStatic || member is ConstructorElement) {
@@ -105,6 +109,8 @@ Future<Set<ClassMemberElement>> getHierarchyMembers(
  */
 Future<List<ParameterElement>> getHierarchyNamedParameters(
     SearchEngine searchEngine, ParameterElement element) async {
+  // TODO(brianwilkerson) Determine whether this await is necessary.
+  await null;
   if (element.isNamed) {
     Element method = element.enclosingElement;
     if (method is MethodElement) {

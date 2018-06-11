@@ -15,8 +15,8 @@ class _MultiElementCssClassSet extends CssClassSetImpl {
   final List<CssClassSetImpl> _sets;
 
   factory _MultiElementCssClassSet(Iterable<Element> elements) {
-    return new _MultiElementCssClassSet._(
-        elements, elements.map((Element e) => e.classes).toList());
+    return new _MultiElementCssClassSet._(elements,
+        new List<CssClassSetImpl>.from(elements.map((Element e) => e.classes)));
   }
 
   _MultiElementCssClassSet._(this._elementIterable, this._sets);

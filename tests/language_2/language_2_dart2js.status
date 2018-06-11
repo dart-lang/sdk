@@ -269,10 +269,8 @@ constructor_duplicate_final_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/02: MissingCompileTimeError
 constructor_named_arguments_test/01: MissingCompileTimeError
 constructor_named_arguments_test/none: RuntimeError
-constructor_redirect1_negative_test/01: Crash # Stack Overflow
-constructor_redirect1_negative_test/none: MissingCompileTimeError
-constructor_redirect2_negative_test: Crash # Stack Overflow
-constructor_redirect2_test/01: MissingCompileTimeError
+constructor_redirect_cycle_test/01: MissingCompileTimeError
+constructor_redirect_indirect_cycle_test/01: Crash # Stack Overflow
 constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
 covariance_type_parameter_test/02: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 covariant_override/runtime_check_test: RuntimeError
@@ -298,7 +296,6 @@ deferred_load_library_wrong_args_test/01: MissingRuntimeError
 deferred_not_loaded_check_test: RuntimeError # Test out of date. Issue 31933
 deferred_redirecting_factory_test: RuntimeError
 double_int_to_string_test: RuntimeError, OK # non JS number semantics
-duplicate_export_negative_test: Fail
 duplicate_implements_test/01: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
 duplicate_implements_test/03: MissingCompileTimeError
@@ -569,8 +566,8 @@ const_types_test/39: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
 constructor12_test: RuntimeError
 constructor_named_arguments_test/none: RuntimeError
-constructor_redirect1_negative_test/01: Crash # Stack Overflow
-constructor_redirect2_negative_test: Crash # Stack Overflow
+constructor_redirect_cycle_test/01: Crash # Stack Overflow
+constructor_redirect_indirect_cycle_test/01: Crash # Stack Overflow
 constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
 covariance_type_parameter_test/02: RuntimeError
 covariant_override/tear_off_type_test: RuntimeError
@@ -589,7 +586,6 @@ deferred_load_library_wrong_args_test/01: CompileTimeError
 deferred_not_loaded_check_test: RuntimeError # Test out of date. Issue 31933
 deferred_redirecting_factory_test: RuntimeError
 double_int_to_string_test: RuntimeError, OK # non JS number semantics
-duplicate_export_negative_test: Fail
 duplicate_implements_test/01: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
 dynamic_prefix_core_test/none: CompileTimeError
@@ -844,6 +840,7 @@ type_promotion_more_specific_test/04: CompileTimeError
 type_variable_promotion_test: RuntimeError
 
 [ $compiler == dart2js && $fasta ]
+arithmetic_int64_test: RuntimeError # WontFix: Int not precisely representable in JS
 call_method_as_cast_test/06: RuntimeError
 call_method_implicit_tear_off_implements_function_test/05: RuntimeError
 call_method_implicit_tear_off_implements_function_test/06: RuntimeError
@@ -853,9 +850,13 @@ call_method_must_not_be_getter_test/03: RuntimeError # Issue 32155
 checked_setter2_test: RuntimeError # Issue 31128
 checked_setter_test: RuntimeError # Issue 31128
 const_dynamic_type_literal_test/03: Pass # but it shouldn't until we fix issue 17207
+constructor_redirect_cycle_test/01: Crash # Stack Overflow
+constructor_redirect_indirect_cycle_test/01: Crash # Stack Overflow
+duplicate_interface_implements_test/01: MissingCompileTimeError
 function_propagation_test: RuntimeError
 generic_test/01: MissingCompileTimeError # front end does not validate `extends`
 instantiate_tearoff_of_call_test: RuntimeError
+mint_compares_test: RuntimeError # WontFix: Int not precisely representable in JS
 mixin_type_parameter_inference_error_test/none: CompileTimeError
 mixin_type_parameter_inference_previous_mixin_test/01: CompileTimeError
 mixin_type_parameter_inference_previous_mixin_test/02: CompileTimeError
@@ -940,8 +941,8 @@ const_types_test/39: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
 constructor12_test: RuntimeError
 constructor_named_arguments_test/none: RuntimeError
-constructor_redirect1_negative_test/01: Crash # Stack Overflow
-constructor_redirect2_negative_test: Crash # Issue 30856
+constructor_redirect_cycle_test/01: Crash # Issue 30856
+constructor_redirect_indirect_cycle_test/01: Crash # Stack Overflow
 constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
 covariance_type_parameter_test/02: RuntimeError
 covariant_override/tear_off_type_test: RuntimeError
@@ -967,7 +968,6 @@ deferred_load_library_wrong_args_test/01: CompileTimeError
 deferred_not_loaded_check_test: RuntimeError # Test out of date. Issue 31933
 deferred_redirecting_factory_test: RuntimeError
 double_int_to_string_test: RuntimeError, OK # non JS number semantics
-duplicate_export_negative_test: Fail
 duplicate_implements_test/01: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
 dynamic_prefix_core_test/none: CompileTimeError
@@ -1455,8 +1455,8 @@ const_types_test/39: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
 constructor12_test: RuntimeError
 constructor_named_arguments_test/none: RuntimeError
-constructor_redirect1_negative_test/01: Crash # Stack Overflow
-constructor_redirect2_negative_test: Crash # Issue 30856
+constructor_redirect_cycle_test/01: Crash # Issue 30856
+constructor_redirect_indirect_cycle_test/01: Crash # Stack Overflow
 constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
 covariance_type_parameter_test/02: RuntimeError
 covariant_override/tear_off_type_test: RuntimeError
@@ -1478,7 +1478,6 @@ deferred_load_library_wrong_args_test/01: CompileTimeError
 deferred_not_loaded_check_test: RuntimeError # Test out of date. Issue 31933
 deferred_redirecting_factory_test: RuntimeError
 double_int_to_string_test: RuntimeError, OK # non JS number semantics
-duplicate_export_negative_test: Fail
 duplicate_implements_test/01: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
 dynamic_prefix_core_test/none: CompileTimeError

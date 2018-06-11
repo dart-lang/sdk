@@ -3,95 +3,29 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/element.dart' show ClassElement;
+import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/type_system.dart'
     show StrongTypeSystemImpl;
+import '../compiler/js_typerep.dart';
+import 'element_helpers.dart' show getClass;
 
-/// An abstraction of the JS types
-abstract class JSType {
-  const JSType();
-
-  /// True if this type is built-in to JS, and we use the values unwrapped.
-  /// For these types we generate a calling convention via static
-  /// "extension methods". This allows types to be extended without adding
-  /// extensions directly on the prototype.
-  bool get isPrimitive;
-
-  /// Is this type known to be definitively primitive
-  /// (using the JS notion of primitive)
-  bool get isPrimitiveInJS;
-
-  /// Can a non-null element of this type potentially be interpreted
-  /// as false in JS.
-  bool get isFalsey;
-
-  static const jsBoolean = const JSBoolean();
-  static const jsNumber = const JSNumber();
-  static const jsNull = const JSNull();
-  static const jsObject = const JSObject();
-  static const jsString = const JSString();
-  static const jsUnknown = const JSUnknown();
-}
-
-/// Inhabited by booleans (including JSBool), null, and undefined
-class JSBoolean extends JSType {
-  const JSBoolean();
-  bool get isPrimitive => true;
-  bool get isPrimitiveInJS => true;
-  bool get isFalsey => true;
-}
-
-/// Inhabited by numbers, null, and undefined
-/// In practice, this is 4 types: num, int, double, and _interceptors.JSNumber.
-///
-/// _interceptors.JSNumber is the type that actually "implements" all numbers,
-/// hence it's a subtype of int and double (and num).
-/// It's defined in our "dart:_interceptors".
-class JSNumber extends JSType {
-  const JSNumber();
-  bool get isPrimitive => true;
-  bool get isPrimitiveInJS => true;
-  bool get isFalsey => true;
-}
-
-/// Inhabited by null and undefined
-class JSNull extends JSType {
-  const JSNull();
-  bool get isPrimitive => false;
-  bool get isPrimitiveInJS => false;
-  bool get isFalsey => true;
-}
-
-/// Inhabited by objects, null, and undefined
-class JSObject extends JSType {
-  const JSObject();
-  bool get isPrimitive => false;
-  bool get isPrimitiveInJS => false;
-  bool get isFalsey => false;
-}
-
-/// Inhabited by strings (including JSString), null, and undefined
-class JSString extends JSType {
-  const JSString();
-  bool get isPrimitive => true;
-  bool get isPrimitiveInJS => false;
-  bool get isFalsey => true;
-}
-
-/// Inhabitance not statically known
-class JSUnknown extends JSType {
-  const JSUnknown();
-  bool get isPrimitive => false;
-  bool get isPrimitiveInJS => false;
-  bool get isFalsey => true;
-}
-
-class JSTypeRep {
+class JSTypeRep extends SharedJSTypeRep<DartType> {
   final StrongTypeSystemImpl rules;
   final TypeProvider types;
 
-  JSTypeRep(this.rules, this.types);
+  final ClassElement _jsBool;
+  final ClassElement _jsNumber;
+  final ClassElement _jsString;
 
+  JSTypeRep(this.rules, AnalysisContext c)
+      : types = c.typeProvider,
+        _jsBool = getClass(c, 'dart:_interceptors', 'JSBool'),
+        _jsString = getClass(c, 'dart:_interceptors', 'JSString'),
+        _jsNumber = getClass(c, 'dart:_interceptors', 'JSNumber');
+
+  @override
   JSType typeFor(DartType type) {
     while (type is TypeParameterType) {
       type = (type as TypeParameterType).element.bound;
@@ -115,40 +49,16 @@ class JSTypeRep {
     return JSType.jsObject;
   }
 
-  /// If the type [t] is [int] or [double], or a type parameter
-  /// bounded by [int], [double] or [num] returns [num].
-  /// Otherwise returns [t].
-  DartType canonicalizeNumTypes(DartType t) => isNumber(t) ? types.numType : t;
-
-  bool isNumber(DartType type) => typeFor(type) is JSNumber;
-
-  /// Is this type known to be represented as Object or Null in JS.
-  bool isObjectOrNull(DartType t) {
+  /// Given a Dart type return the known implementation type, if any.
+  /// Given `bool`, `String`, or `num`/`int`/`double`,
+  /// returns the corresponding type in `dart:_interceptors`:
+  /// `JSBool`, `JSString`, and `JSNumber` respectively, otherwise null.
+  InterfaceType getImplementationType(DartType t) {
     var rep = typeFor(t);
-    return rep is JSObject || rep is JSNull;
-  }
-
-  bool isUnknown(DartType t) => typeFor(t) is JSUnknown;
-
-  bool isPrimitive(DartType t) => typeFor(t).isPrimitive;
-
-  bool isPrimitiveInJS(DartType t) => typeFor(t).isPrimitiveInJS;
-
-  bool binaryOperationIsPrimitive(DartType leftT, DartType rightT) =>
-      isPrimitiveInJS(leftT) && isPrimitiveInJS(rightT);
-
-  bool unaryOperationIsPrimitive(DartType t) => isPrimitiveInJS(t);
-
-  /// True if the JS double equals (`==`) comparison on the representation
-  /// of these two types could potentially cause a conversion.
-  bool equalityMayConvert(DartType t0, DartType t1) => !equalOrNull(t0, t1);
-
-  // Are t0 and t1 known to either be represented by the same type
-  // or else one or both of them is represented by Null
-  bool equalOrNull(DartType t0, DartType t1) {
-    var rep0 = typeFor(t0);
-    var rep1 = typeFor(t1);
-    if (rep0 is JSNull || rep1 is JSNull) return true;
-    return rep0 == rep1 && rep0 is! JSUnknown;
+    // Number, String, and Bool are final
+    if (rep == JSType.jsNumber) return _jsNumber.type;
+    if (rep == JSType.jsBoolean) return _jsBool.type;
+    if (rep == JSType.jsString) return _jsString.type;
+    return null;
   }
 }

@@ -770,7 +770,8 @@ class ParameterTypeInformation extends ElementTypeInformation {
       giveUp(inferrer);
       return safeType(inferrer);
     }
-    if (inferrer.closedWorld.getCurrentlyKnownMightBePassedToApply(_method)) {
+    if (inferrer.inferredDataBuilder
+        .getCurrentlyKnownMightBePassedToApply(_method)) {
       giveUp(inferrer);
       return safeType(inferrer);
     }

@@ -157,6 +157,13 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void endImplicitCreationExpression(Token token) {
+    debugEvent("ImplicitCreationExpression");
+
+    _handleInstanceCreation(null);
+  }
+
+  @override
   void endNewExpression(Token newKeyword) {
     assert(optional('new', newKeyword));
     debugEvent("NewExpression");
@@ -863,6 +870,7 @@ class AstBuilder extends StackListener {
     push(ast.thisExpression(thisKeyword));
   }
 
+  @override
   void handleType(Token beginToken, Token endToken) {
     debugEvent("Type");
 
@@ -2057,7 +2065,8 @@ class AstBuilder extends StackListener {
     }
 
     FormalParameterList parameters = pop();
-    ConstructorName constructorName = pop();
+    pop(); // Type parameters
+    Object constructorName = pop();
     _Modifiers modifiers = pop();
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata, beginToken);
@@ -2067,7 +2076,7 @@ class AstBuilder extends StackListener {
     SimpleIdentifier returnType;
     Token period;
     SimpleIdentifier name;
-    Identifier typeName = constructorName.type.name;
+    Identifier typeName = constructorName;
     if (typeName is SimpleIdentifier) {
       returnType = typeName;
     } else if (typeName is PrefixedIdentifier) {
@@ -2160,6 +2169,12 @@ class AstBuilder extends StackListener {
     Comment comment = _findComment(metadata, beginToken);
     declarations.add(ast.topLevelVariableDeclaration(
         comment, metadata, variableList, semicolon));
+  }
+
+  @override
+  void beginTypeVariable(Token name) {
+    debugEvent("beginTypeVariable");
+    push(ast.simpleIdentifier(name, isDeclaration: true));
   }
 
   @override

@@ -740,8 +740,6 @@ void Object::InitOnce(Isolate* isolate) {
   isolate->object_store()->set_two_byte_string_class(cls);
   cls = Class::New<Mint>();
   isolate->object_store()->set_mint_class(cls);
-  cls = Class::New<Bigint>();
-  isolate->object_store()->set_bigint_class(cls);
   cls = Class::New<Double>();
   isolate->object_store()->set_double_class(cls);
 
@@ -1036,8 +1034,8 @@ class FinalizeVMIsolateVisitor : public ObjectVisitor {
         // Some classes have identity hash codes that depend on their contents,
         // not per object.
         ASSERT(!obj->IsStringInstance());
-        if (!obj->IsMint() && !obj->IsDouble() && !obj->IsBigint() &&
-            !obj->IsRawNull() && !obj->IsBool()) {
+        if (!obj->IsMint() && !obj->IsDouble() && !obj->IsRawNull() &&
+            !obj->IsBool()) {
           counter_ += 2011;  // The year Dart was announced and a prime.
           counter_ &= 0x3fffffff;
           if (counter_ == 0) counter_++;
@@ -1550,11 +1548,6 @@ RawError* Object::Init(Isolate* isolate,
     RegisterPrivateClass(cls, Symbols::_Mint(), core_lib);
     pending_classes.Add(cls);
 
-    cls = Class::New<Bigint>();
-    object_store->set_bigint_class(cls);
-    RegisterPrivateClass(cls, Symbols::_Bigint(), core_lib);
-    pending_classes.Add(cls);
-
     cls = Class::New<Double>();
     object_store->set_double_class(cls);
     RegisterPrivateClass(cls, Symbols::_Double(), core_lib);
@@ -1917,9 +1910,6 @@ RawError* Object::Init(Isolate* isolate,
 
     cls = Class::New<Closure>();
     object_store->set_closure_class(cls);
-
-    cls = Class::New<Bigint>();
-    object_store->set_bigint_class(cls);
 
     cls = Class::NewStringClass(kOneByteStringCid);
     object_store->set_one_byte_string_class(cls);
@@ -3253,25 +3243,48 @@ RawObject* Class::Evaluate(const String& expr,
                            const Array& type_param_names,
                            const TypeArguments& type_param_values) const {
   ASSERT(Thread::Current()->IsMutatorThread());
-  if (id() < kInstanceCid) {
-    const Instance& exception = Instance::Handle(
-        String::New("Cannot evaluate against a VM internal class"));
+  if (id() < kInstanceCid || id() == kTypeArgumentsCid) {
+    const Instance& exception = Instance::Handle(String::New(
+        "Expressions can be evaluated only with regular Dart instances"));
     const Instance& stacktrace = Instance::Handle();
     return UnhandledException::New(exception, stacktrace);
   }
 
-  if (Library::Handle(library()).kernel_data() == TypedData::null() ||
-      !FLAG_enable_kernel_expression_compilation) {
-    const Function& eval_func = Function::Handle(
-        Function::EvaluateHelper(*this, expr, param_names, true));
-    return DartEntry::InvokeFunction(eval_func, param_values);
+  ASSERT(Library::Handle(library()).kernel_data() == TypedData::null() ||
+         !FLAG_enable_kernel_expression_compilation);
+  const Function& eval_func = Function::Handle(
+      Function::EvaluateHelper(*this, expr, param_names, true));
+  return DartEntry::InvokeFunction(eval_func, param_values);
+}
+
+static RawObject* EvaluateCompiledExpressionHelper(
+    const uint8_t* kernel_bytes,
+    intptr_t kernel_length,
+    const Array& type_definitions,
+    const String& library_url,
+    const String& klass,
+    const Array& arguments,
+    const TypeArguments& type_arguments);
+
+RawObject* Class::EvaluateCompiledExpression(
+    const uint8_t* kernel_bytes,
+    intptr_t kernel_length,
+    const Array& type_definitions,
+    const Array& arguments,
+    const TypeArguments& type_arguments) const {
+  ASSERT(Thread::Current()->IsMutatorThread());
+  if (id() < kInstanceCid || id() == kTypeArgumentsCid) {
+    const Instance& exception = Instance::Handle(String::New(
+        "Expressions can be evaluated only with regular Dart instances"));
+    const Instance& stacktrace = Instance::Handle();
+    return UnhandledException::New(exception, stacktrace);
   }
 
-  return EvaluateWithDFEHelper(
-      expr, param_names, type_param_names,
+  return EvaluateCompiledExpressionHelper(
+      kernel_bytes, kernel_length, type_definitions,
       String::Handle(Library::Handle(library()).url()),
       IsTopLevel() ? String::Handle() : String::Handle(UserVisibleName()),
-      !IsTopLevel(), param_values, type_param_values);
+      arguments, type_arguments);
 }
 
 // Ensure that top level parsing of the class has been done.
@@ -3637,7 +3650,6 @@ RawString* Class::GenerateUserVisibleName() const {
     case kIntegerCid:
     case kSmiCid:
     case kMintCid:
-    case kBigintCid:
       return Symbols::Int().raw();
     case kDoubleCid:
       return Symbols::Double().raw();
@@ -3696,7 +3708,7 @@ TokenPosition Class::ComputeEndTokenPos() const {
     kernel::TranslationHelper helper(thread);
     helper.InitFromScript(scr);
     kernel::StreamingFlowGraphBuilder builder_(&helper, scr, zone, kernel_data,
-                                               0);
+                                               0, /* active_class = */ NULL);
     builder_.SetOffset(class_offset);
     kernel::ClassHelper class_helper(&builder_);
     class_helper.ReadUntilIncluding(kernel::ClassHelper::kEndPosition);
@@ -4161,7 +4173,7 @@ bool Class::FutureOrTypeTest(Zone* zone,
         return true;
       }
     }
-    if (other_type_arg.IsType() &&
+    if (other_type_arg.HasResolvedTypeClass() &&
         TypeTest(Class::kIsSubtypeOf, type_arguments,
                  Class::Handle(zone, other_type_arg.type_class()),
                  TypeArguments::Handle(other_type_arg.arguments()), bound_error,
@@ -4641,29 +4653,6 @@ RawMint* Class::LookupCanonicalMint(Zone* zone, int64_t value) const {
   return canonical_value.raw();
 }
 
-RawBigint* Class::LookupCanonicalBigint(Zone* zone,
-                                        const Bigint& value,
-                                        intptr_t* index) const {
-  ASSERT(this->raw() == Isolate::Current()->object_store()->bigint_class());
-  const Array& constants = Array::Handle(zone, this->constants());
-  const intptr_t constants_len = constants.Length();
-  // Linear search to see whether this value is already present in the
-  // list of canonicalized constants.
-  Bigint& canonical_value = Bigint::Handle(zone);
-  while (*index < constants_len) {
-    canonical_value ^= constants.At(*index);
-    if (canonical_value.IsNull()) {
-      break;
-    }
-    if (canonical_value.Equals(value)) {
-      ASSERT(canonical_value.IsCanonical());
-      return canonical_value.raw();
-    }
-    *index = *index + 1;
-  }
-  return Bigint::null();
-}
-
 class CanonicalInstanceKey {
  public:
   explicit CanonicalInstanceKey(const Instance& key) : key_(key) {
@@ -4762,23 +4751,9 @@ void Class::InsertCanonicalMint(Zone* zone, const Mint& constant) const {
   this->set_constants(constants.Release());
 }
 
-void Class::InsertCanonicalBigint(Zone* zone,
-                                  intptr_t index,
-                                  const Bigint& constant) const {
-  // The constant needs to be added to the list. Grow the list if it is full.
-  Array& canonical_list = Array::Handle(zone, constants());
-  const intptr_t list_len = canonical_list.Length();
-  if (index >= list_len) {
-    const intptr_t new_length = list_len + 4 + (list_len >> 2);
-    canonical_list ^= Array::Grow(canonical_list, new_length, Heap::kOld);
-    set_constants(canonical_list);
-  }
-  canonical_list.SetAt(index, constant);
-}
-
 void Class::RehashConstants(Zone* zone) const {
   intptr_t cid = id();
-  if ((cid == kMintCid) || (cid == kBigintCid) || (cid == kDoubleCid)) {
+  if ((cid == kMintCid) || (cid == kDoubleCid)) {
     // Constants stored as a plain list or in a hashset with a stable hashcode,
     // which only depends on the actual value of the constant.
     return;
@@ -5650,7 +5625,7 @@ void Function::AttachBytecode(const Code& value) const {
   // We should not have loaded the bytecode if the function had code.
   ASSERT(!HasCode());
 
-  // Set the code entry_point to to InterpretCall stub.
+  // Set the code entry_point to InterpretCall stub.
   SetInstructions(Code::Handle(StubCode::InterpretCall_entry()->code()));
 }
 
@@ -7331,7 +7306,8 @@ RawFunction* Function::ImplicitClosureFunction() const {
     kernel::TranslationHelper translation_helper(thread);
     kernel::StreamingFlowGraphBuilder builder(
         &translation_helper, function_script, zone,
-        TypedData::Handle(zone, KernelData()), KernelDataProgramOffset());
+        TypedData::Handle(zone, KernelData()), KernelDataProgramOffset(),
+        /* active_class = */ NULL);
     translation_helper.InitFromScript(function_script);
     builder.SetOffset(kernel_offset());
 
@@ -9191,7 +9167,6 @@ class CompressedTokenStreamData : public Scanner::TokenCollector {
       if (lit.IsNull()) {
         // Convert token to an error.
         ASSERT(descriptor.kind == Token::kINTEGER);
-        ASSERT(FLAG_limit_ints_to_64_bits);
         Scanner::TokenDescriptor errorDesc = descriptor;
         errorDesc.kind = Token::kERROR;
         errorDesc.literal = &String::Handle(Symbols::NewFormatted(
@@ -11441,6 +11416,17 @@ RawObject* Library::Evaluate(const String& expr,
                                param_values, type_param_values);
 }
 
+RawObject* Library::EvaluateCompiledExpression(
+    const uint8_t* kernel_bytes,
+    intptr_t kernel_length,
+    const Array& type_definitions,
+    const Array& arguments,
+    const TypeArguments& type_arguments) const {
+  return EvaluateCompiledExpressionHelper(
+      kernel_bytes, kernel_length, type_definitions, String::Handle(url()),
+      String::Handle(), arguments, type_arguments);
+}
+
 void Library::InitNativeWrappersLibrary(Isolate* isolate, bool is_kernel) {
   static const int kNumNativeWrappersClasses = 4;
   COMPILE_ASSERT((kNumNativeWrappersClasses > 0) &&
@@ -11520,10 +11506,12 @@ static RawObject* EvaluateWithDFEHelper(const String& expression,
         is_static);
   }
 
+  GrowableObjectArray& libraries =
+      GrowableObjectArray::Handle(T->zone(), I->object_store()->libraries());
+
   Function& callee = Function::Handle();
   intptr_t num_cids = I->class_table()->NumCids();
-  intptr_t num_libs =
-      GrowableObjectArray::Handle(I->object_store()->libraries()).Length();
+  intptr_t num_libs = libraries.Length();
 
   if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
     const String& prefix =
@@ -11554,12 +11542,9 @@ static RawObject* EvaluateWithDFEHelper(const String& expression,
   const Object& result = Object::Handle(loader.LoadProgram());
   if (result.IsError()) return result.raw();
   ASSERT(I->class_table()->NumCids() > num_cids &&
-         GrowableObjectArray::Handle(I->object_store()->libraries()).Length() ==
-             num_libs + 1);
-  const String& fake_library_url =
-      String::Handle(String::New("evaluate:source"));
+         libraries.Length() == num_libs + 1);
   const Library& loaded =
-      Library::Handle(Library::LookupLibrary(T, fake_library_url));
+      Library::Handle(Library::LookupLibrary(T, Symbols::EvalSourceUri()));
   ASSERT(!loaded.IsNull());
 
   String& debug_name = String::Handle(
@@ -11597,14 +11582,13 @@ static RawObject* EvaluateWithDFEHelper(const String& expression,
   callee.set_owner(real_class);
 
   // Unlink the fake library and class from the object store.
-  GrowableObjectArray::Handle(I->object_store()->libraries())
-      .SetLength(num_libs);
+  libraries.SetLength(num_libs);
   I->class_table()->SetNumCids(num_cids);
   if (!fake_class.IsNull()) {
     fake_class.set_id(kIllegalCid);
   }
   LibraryLookupMap libraries_map(I->object_store()->libraries_map());
-  bool removed = libraries_map.Remove(fake_library_url);
+  bool removed = libraries_map.Remove(Symbols::EvalSourceUri());
   ASSERT(removed);
   I->object_store()->set_libraries_map(libraries_map.Release());
 
@@ -11620,6 +11604,113 @@ static RawObject* EvaluateWithDFEHelper(const String& expression,
     arg = arguments.At(i);
     real_arguments.SetAt(i + 1, arg);
   }
+  const Array& args_desc = Array::Handle(
+      ArgumentsDescriptor::New(num_type_args, arguments.Length()));
+  return DartEntry::InvokeFunction(callee, real_arguments, args_desc);
+#endif
+}
+
+static RawObject* EvaluateCompiledExpressionHelper(
+    const uint8_t* kernel_bytes,
+    intptr_t kernel_length,
+    const Array& type_definitions,
+    const String& library_url,
+    const String& klass,
+    const Array& arguments,
+    const TypeArguments& type_arguments) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  const String& error_str = String::Handle(
+      String::New("Expression evaluation not available in precompiled mode."));
+  return ApiError::New(error_str);
+#else
+  Isolate* I = Isolate::Current();
+  Thread* T = Thread::Current();
+
+  kernel::Program* kernel_pgm =
+      kernel::Program::ReadFromBuffer(kernel_bytes, kernel_length, true);
+
+  if (kernel_pgm == NULL) {
+    return ApiError::New(String::Handle(
+        String::New("Kernel isolate returned ill-formed kernel.")));
+  }
+
+  kernel_pgm->set_release_buffer_callback(ReleaseFetchedBytes);
+
+  Function& callee = Function::Handle();
+  intptr_t num_cids = I->class_table()->NumCids();
+  GrowableObjectArray& libraries =
+      GrowableObjectArray::Handle(T->zone(), I->object_store()->libraries());
+  intptr_t num_libs = libraries.Length();
+
+  // Load the program with the debug procedure as a regular, independent
+  // program.
+  kernel::KernelLoader loader(kernel_pgm);
+  const Object& result = Object::Handle(loader.LoadProgram());
+  if (result.IsError()) return result.raw();
+  ASSERT(I->class_table()->NumCids() > num_cids &&
+         libraries.Length() == num_libs + 1);
+  const Library& loaded =
+      Library::Handle(Library::LookupLibrary(T, Symbols::EvalSourceUri()));
+  ASSERT(!loaded.IsNull());
+
+  String& debug_name = String::Handle(
+      String::New(Symbols::Symbol(Symbols::kDebugProcedureNameId)));
+  Class& fake_class = Class::Handle();
+  if (!klass.IsNull()) {
+    fake_class = loaded.LookupClass(Symbols::DebugClassName());
+    ASSERT(!fake_class.IsNull());
+    callee = fake_class.LookupFunctionAllowPrivate(debug_name);
+  } else {
+    callee = loaded.LookupFunctionAllowPrivate(debug_name);
+  }
+  ASSERT(!callee.IsNull());
+
+  // Save the loaded library's kernel data to the generic "data" field of the
+  // callee, so it doesn't require access it's parent library during
+  // compilation.
+  callee.SetKernelDataAndScript(Script::Handle(callee.script()),
+                                TypedData::Handle(loaded.kernel_data()),
+                                loaded.kernel_offset());
+
+  // Reparent the callee to the real enclosing class so we can remove the fake
+  // class and library from the object store.
+  const Library& real_library =
+      Library::Handle(Library::LookupLibrary(T, library_url));
+  ASSERT(!real_library.IsNull());
+  Class& real_class = Class::Handle();
+  if (!klass.IsNull()) {
+    real_class = real_library.LookupClassAllowPrivate(klass);
+  } else {
+    real_class = real_library.toplevel_class();
+  }
+  ASSERT(!real_class.IsNull());
+
+  callee.set_owner(real_class);
+
+  // Unlink the fake library and class from the object store.
+  libraries.SetLength(num_libs);
+  I->class_table()->SetNumCids(num_cids);
+  if (!fake_class.IsNull()) {
+    fake_class.set_id(kIllegalCid);
+  }
+  LibraryLookupMap libraries_map(I->object_store()->libraries_map());
+  bool removed = libraries_map.Remove(Symbols::EvalSourceUri());
+  ASSERT(removed);
+  I->object_store()->set_libraries_map(libraries_map.Release());
+
+  if (type_definitions.Length() == 0) {
+    return DartEntry::InvokeFunction(callee, arguments);
+  }
+
+  intptr_t num_type_args = type_arguments.Length();
+  Array& real_arguments = Array::Handle(Array::New(arguments.Length() + 1));
+  real_arguments.SetAt(0, type_arguments);
+  Object& arg = Object::Handle();
+  for (intptr_t i = 0; i < arguments.Length(); ++i) {
+    arg = arguments.At(i);
+    real_arguments.SetAt(i + 1, arg);
+  }
+
   const Array& args_desc = Array::Handle(
       ArgumentsDescriptor::New(num_type_args, arguments.Length()));
   return DartEntry::InvokeFunction(callee, real_arguments, args_desc);
@@ -14881,6 +14972,8 @@ RawCode* Code::FinalizeBytecode(void* bytecode_data,
   code.SetPrologueOffset(bytecode_size);  // TODO(regis): Correct?
   INC_STAT(Thread::Current(), total_code_size,
            code.comments().comments_.Length());
+  // TODO(regis): Until we support exception handling.
+  code.set_exception_handlers(Object::empty_exception_handlers());
   return code.raw();
 }
 #endif  // defined(DART_USE_INTERPRETER)
@@ -15861,17 +15954,34 @@ RawObject* Instance::Evaluate(const Class& method_cls,
   }
 
   const Library& library = Library::Handle(method_cls.library());
-  if (library.kernel_data() == TypedData::null() ||
-      !FLAG_enable_kernel_expression_compilation) {
-    const Function& eval_func = Function::Handle(
-        Function::EvaluateHelper(method_cls, expr, param_names, false));
-    return DartEntry::InvokeFunction(eval_func, args);
+  ASSERT(library.kernel_data() == TypedData::null() ||
+         !FLAG_enable_kernel_expression_compilation);
+  const Function& eval_func = Function::Handle(
+      Function::EvaluateHelper(method_cls, expr, param_names, false));
+  return DartEntry::InvokeFunction(eval_func, args);
+}
+
+RawObject* Instance::EvaluateCompiledExpression(
+    const Class& method_cls,
+    const uint8_t* kernel_bytes,
+    intptr_t kernel_length,
+    const Array& type_definitions,
+    const Array& arguments,
+    const TypeArguments& type_arguments) const {
+  const Array& arguments_with_receiver =
+      Array::Handle(Array::New(1 + arguments.Length()));
+  PassiveObject& param = PassiveObject::Handle();
+  arguments_with_receiver.SetAt(0, *this);
+  for (intptr_t i = 0; i < arguments.Length(); i++) {
+    param = arguments.At(i);
+    arguments_with_receiver.SetAt(i + 1, param);
   }
-  return EvaluateWithDFEHelper(
-      expr, param_names, type_param_names,
+
+  return EvaluateCompiledExpressionHelper(
+      kernel_bytes, kernel_length, type_definitions,
       String::Handle(Library::Handle(method_cls.library()).url()),
-      String::Handle(method_cls.UserVisibleName()), false, args,
-      type_param_values);
+      String::Handle(method_cls.UserVisibleName()), arguments_with_receiver,
+      type_arguments);
 }
 
 RawObject* Instance::HashCode() const {
@@ -18985,44 +19095,6 @@ RawInstance* Number::CheckAndCanonicalize(Thread* thread,
       return Mint::NewCanonical(Mint::Cast(*this).value());
     case kDoubleCid:
       return Double::NewCanonical(Double::Cast(*this).value());
-    case kBigintCid: {
-      if (this->IsCanonical()) {
-        return this->raw();
-      }
-      Zone* zone = thread->zone();
-      Isolate* isolate = thread->isolate();
-      Bigint& result = Bigint::Handle(zone);
-      const Class& cls = Class::Handle(zone, this->clazz());
-      intptr_t index = 0;
-      result ^= cls.LookupCanonicalBigint(zone, Bigint::Cast(*this), &index);
-      if (!result.IsNull()) {
-        return result.raw();
-      }
-      {
-        SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
-        // Retry lookup.
-        {
-          result ^=
-              cls.LookupCanonicalBigint(zone, Bigint::Cast(*this), &index);
-          if (!result.IsNull()) {
-            return result.raw();
-          }
-        }
-
-        // The value needs to be added to the list. Grow the list if
-        // it is full.
-        result ^= this->raw();
-        ASSERT((isolate == Dart::vm_isolate()) || !result.InVMHeap());
-        if (result.IsNew()) {
-          // Create a canonical object in old space.
-          result ^= Object::Clone(result, Heap::kOld);
-        }
-        ASSERT(result.IsOld());
-        result.SetCanonical();
-        cls.InsertCanonicalBigint(zone, index, result);
-        return result.raw();
-      }
-    }
     default:
       UNREACHABLE();
   }
@@ -19032,7 +19104,6 @@ RawInstance* Number::CheckAndCanonicalize(Thread* thread,
 #if defined(DEBUG)
 bool Number::CheckIsCanonical(Thread* thread) const {
   intptr_t cid = GetClassId();
-  intptr_t idx = 0;
   Zone* zone = thread->zone();
   const Class& cls = Class::Handle(zone, this->clazz());
   switch (cid) {
@@ -19047,11 +19118,6 @@ bool Number::CheckIsCanonical(Thread* thread) const {
       Double& dbl = Double::Handle(zone);
       dbl ^= cls.LookupCanonicalDouble(zone, Double::Cast(*this).value());
       return (dbl.raw() == this->raw());
-    }
-    case kBigintCid: {
-      Bigint& result = Bigint::Handle(zone);
-      result ^= cls.LookupCanonicalBigint(zone, Bigint::Cast(*this), &idx);
-      return (result.raw() == this->raw());
     }
     default:
       UNREACHABLE();
@@ -19083,21 +19149,14 @@ RawInteger* Integer::New(const String& str, Heap::Space space) {
   if (!OS::StringToInt64(cstr, &value)) {
     // TODO(T31600): Remove overflow checking code when 64-bit ints semantics
     // are only supported through the Kernel FE.
-    if (FLAG_limit_ints_to_64_bits) {
-      if (strcmp(cstr, kMaxInt64Plus1) == 0) {
-        // Allow MAX_INT64 + 1 integer literal as it can be used as an argument
-        // of unary minus to produce MIN_INT64 value. The value is automatically
-        // wrapped to MIN_INT64.
-        return Integer::New(kMinInt64, space);
-      }
-      // Out of range.
-      return Integer::null();
+    if (strcmp(cstr, kMaxInt64Plus1) == 0) {
+      // Allow MAX_INT64 + 1 integer literal as it can be used as an argument
+      // of unary minus to produce MIN_INT64 value. The value is automatically
+      // wrapped to MIN_INT64.
+      return Integer::New(kMinInt64, space);
     }
-    const Bigint& big =
-        Bigint::Handle(Bigint::NewFromCString(str.ToCString(), space));
-    ASSERT(!big.FitsIntoSmi());
-    ASSERT(!big.FitsIntoInt64());
-    return big.raw();
+    // Out of range.
+    return Integer::null();
   }
   return Integer::New(value, space);
 }
@@ -19110,20 +19169,14 @@ RawInteger* Integer::NewCanonical(const String& str) {
   if (!OS::StringToInt64(cstr, &value)) {
     // TODO(T31600): Remove overflow checking code when 64-bit ints semantics
     // are only supported through the Kernel FE.
-    if (FLAG_limit_ints_to_64_bits) {
-      if (strcmp(cstr, kMaxInt64Plus1) == 0) {
-        // Allow MAX_INT64 + 1 integer literal as it can be used as an argument
-        // of unary minus to produce MIN_INT64 value. The value is automatically
-        // wrapped to MIN_INT64.
-        return Mint::NewCanonical(kMinInt64);
-      }
-      // Out of range.
-      return Integer::null();
+    if (strcmp(cstr, kMaxInt64Plus1) == 0) {
+      // Allow MAX_INT64 + 1 integer literal as it can be used as an argument
+      // of unary minus to produce MIN_INT64 value. The value is automatically
+      // wrapped to MIN_INT64.
+      return Mint::NewCanonical(kMinInt64);
     }
-    const Bigint& big = Bigint::Handle(Bigint::NewCanonical(str));
-    ASSERT(!big.FitsIntoSmi());
-    ASSERT(!big.FitsIntoInt64());
-    return big.raw();
+    // Out of range.
+    return Integer::null();
   }
   if (Smi::IsValid(value)) {
     return Smi::New(static_cast<intptr_t>(value));
@@ -19140,19 +19193,11 @@ RawInteger* Integer::New(int64_t value, Heap::Space space) {
 }
 
 RawInteger* Integer::NewFromUint64(uint64_t value, Heap::Space space) {
-  if (!FLAG_limit_ints_to_64_bits &&
-      (value > static_cast<uint64_t>(Mint::kMaxValue))) {
-    return Bigint::NewFromUint64(value, space);
-  }
   return Integer::New(static_cast<int64_t>(value), space);
 }
 
 bool Integer::IsValueInRange(uint64_t value) {
-  if (FLAG_limit_ints_to_64_bits) {
-    return (value <= static_cast<uint64_t>(Mint::kMaxValue));
-  } else {
-    return true;
-  }
+  return (value <= static_cast<uint64_t>(Mint::kMaxValue));
 }
 
 bool Integer::Equals(const Instance& other) const {
@@ -19214,20 +19259,11 @@ RawInteger* Integer::AsValidInteger() const {
       return raw();
     }
   }
-  if (Bigint::Cast(*this).FitsIntoInt64()) {
-    const int64_t value = AsInt64Value();
-    if (Smi::IsValid(value)) {
-      // This cast is safe because Smi::IsValid verifies that value will fit.
-      intptr_t val = static_cast<intptr_t>(value);
-      return Smi::New(val);
-    }
-    return Mint::New(value);
-  }
   return raw();
 }
 
 const char* Integer::ToHexCString(Zone* zone) const {
-  ASSERT(IsSmi() || IsMint());  // Bigint has its own implementation.
+  ASSERT(IsSmi() || IsMint());
   int64_t value = AsInt64Value();
   if (value < 0) {
     return OS::SCreate(zone, "-0x%" PX64, static_cast<uint64_t>(-value));
@@ -19259,21 +19295,9 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
                               space);
         } else {
           ASSERT(sizeof(intptr_t) == sizeof(int64_t));
-          if (FLAG_limit_ints_to_64_bits) {
-            return Integer::New(
-                Utils::MulWithWrapAround(left_value, right_value), space);
-          } else {
-            // In 64-bit mode, the product of two signed integers fits in a
-            // 64-bit result if the sum of the highest bits of their absolute
-            // values is smaller than 62.
-            if ((Utils::HighestBit(left_value) +
-                 Utils::HighestBit(right_value)) < 62) {
-              return Integer::New(left_value * right_value, space);
-            }
-          }
+          return Integer::New(Utils::MulWithWrapAround(left_value, right_value),
+                              space);
         }
-        // Perform a Bigint multiplication below.
-        break;
       }
       case Token::kTRUNCDIV:
         return Integer::New(left_value / right_value, space);
@@ -19292,77 +19316,45 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
         UNIMPLEMENTED();
     }
   }
-  if (!IsBigint() && !other.IsBigint()) {
-    const int64_t left_value = AsInt64Value();
-    const int64_t right_value = other.AsInt64Value();
-    switch (operation) {
-      case Token::kADD: {
-        if (FLAG_limit_ints_to_64_bits) {
-          return Integer::New(Utils::AddWithWrapAround(left_value, right_value),
-                              space);
-        } else {
-          if (!Utils::WillAddOverflow(left_value, right_value)) {
-            return Integer::New(left_value + right_value, space);
-          }
-        }
-        break;
-      }
-      case Token::kSUB: {
-        if (FLAG_limit_ints_to_64_bits) {
-          return Integer::New(Utils::SubWithWrapAround(left_value, right_value),
-                              space);
-        } else {
-          if (!Utils::WillSubOverflow(left_value, right_value)) {
-            return Integer::New(left_value - right_value, space);
-          }
-        }
-        break;
-      }
-      case Token::kMUL: {
-        if (FLAG_limit_ints_to_64_bits) {
-          return Integer::New(Utils::MulWithWrapAround(left_value, right_value),
-                              space);
-        } else {
-          if ((Utils::HighestBit(left_value) + Utils::HighestBit(right_value)) <
-              62) {
-            return Integer::New(left_value * right_value, space);
-          }
-        }
-        break;
-      }
-      case Token::kTRUNCDIV: {
-        if ((left_value == Mint::kMinValue) && (right_value == -1)) {
-          // Division special case: overflow in int64_t.
-          if (FLAG_limit_ints_to_64_bits) {
-            // MIN_VALUE / -1 = (MAX_VALUE + 1), which wraps around to MIN_VALUE
-            return Integer::New(Mint::kMinValue, space);
-          }
-        } else {
-          return Integer::New(left_value / right_value, space);
-        }
-        break;
-      }
-      case Token::kMOD: {
-        const int64_t remainder = left_value % right_value;
-        if (remainder < 0) {
-          if (right_value < 0) {
-            return Integer::New(remainder - right_value, space);
-          } else {
-            return Integer::New(remainder + right_value, space);
-          }
-        }
-        return Integer::New(remainder, space);
-      }
-      default:
-        UNIMPLEMENTED();
-    }
-  }
-  ASSERT(!Bigint::IsDisabled());
-  return Integer::null();  // Notify caller that a bigint operation is required.
-}
+  const int64_t left_value = AsInt64Value();
+  const int64_t right_value = other.AsInt64Value();
+  switch (operation) {
+    case Token::kADD:
+      return Integer::New(Utils::AddWithWrapAround(left_value, right_value),
+                          space);
 
-static bool Are64bitOperands(const Integer& op1, const Integer& op2) {
-  return !op1.IsBigint() && !op2.IsBigint();
+    case Token::kSUB:
+      return Integer::New(Utils::SubWithWrapAround(left_value, right_value),
+                          space);
+
+    case Token::kMUL:
+      return Integer::New(Utils::MulWithWrapAround(left_value, right_value),
+                          space);
+
+    case Token::kTRUNCDIV:
+      if ((left_value == Mint::kMinValue) && (right_value == -1)) {
+        // Division special case: overflow in int64_t.
+        // MIN_VALUE / -1 = (MAX_VALUE + 1), which wraps around to MIN_VALUE
+        return Integer::New(Mint::kMinValue, space);
+      } else {
+        return Integer::New(left_value / right_value, space);
+      }
+
+    case Token::kMOD: {
+      const int64_t remainder = left_value % right_value;
+      if (remainder < 0) {
+        if (right_value < 0) {
+          return Integer::New(remainder - right_value, space);
+        } else {
+          return Integer::New(remainder + right_value, space);
+        }
+      }
+      return Integer::New(remainder, space);
+    }
+    default:
+      UNIMPLEMENTED();
+      return Integer::null();
+  }
 }
 
 RawInteger* Integer::BitOp(Token::Kind kind,
@@ -19387,7 +19379,7 @@ RawInteger* Integer::BitOp(Token::Kind kind,
     }
     ASSERT(Smi::IsValid(result));
     return Smi::New(result);
-  } else if (Are64bitOperands(*this, other)) {
+  } else {
     int64_t a = AsInt64Value();
     int64_t b = other.AsInt64Value();
     switch (kind) {
@@ -19399,10 +19391,9 @@ RawInteger* Integer::BitOp(Token::Kind kind,
         return Integer::New(a ^ b, space);
       default:
         UNIMPLEMENTED();
+        return Integer::null();
     }
   }
-  ASSERT(!Bigint::IsDisabled());
-  return Integer::null();  // Notify caller that a bigint operation is required.
 }
 
 // TODO(srdjan): Clarify handling of negative right operand in a shift op.
@@ -19421,18 +19412,8 @@ RawInteger* Smi::ShiftOp(Token::Kind kind,
       {  // Check for overflow.
         int cnt = Utils::BitLength(left_value);
         if (right_value > (Smi::kBits - cnt)) {
-          if (FLAG_limit_ints_to_64_bits) {
-            return Integer::New(
-                Utils::ShiftLeftWithTruncation(left_value, right_value), space);
-          } else {
-            if (right_value > (Mint::kBits - cnt)) {
-              return Bigint::NewFromShiftedInt64(left_value, right_value,
-                                                 space);
-            } else {
-              int64_t left_64 = left_value;
-              return Integer::New(left_64 << right_value, space);
-            }
-          }
+          return Integer::New(
+              Utils::ShiftLeftWithTruncation(left_value, right_value), space);
         }
       }
       result = left_value << right_value;
@@ -19482,7 +19463,7 @@ int Smi::CompareWith(const Integer& other) const {
     }
   }
   ASSERT(!other.FitsIntoSmi());
-  if (other.IsMint() || other.IsBigint()) {
+  if (other.IsMint()) {
     if (this->IsNegative() == other.IsNegative()) {
       return this->IsNegative() ? 1 : -1;
     }
@@ -19578,23 +19559,16 @@ bool Mint::FitsIntoSmi() const {
 
 int Mint::CompareWith(const Integer& other) const {
   ASSERT(!FitsIntoSmi());
-  if (other.IsMint() || other.IsSmi()) {
-    int64_t a = AsInt64Value();
-    int64_t b = other.AsInt64Value();
-    if (a < b) {
-      return -1;
-    } else if (a > b) {
-      return 1;
-    } else {
-      return 0;
-    }
+  ASSERT(other.IsMint() || other.IsSmi());
+  int64_t a = AsInt64Value();
+  int64_t b = other.AsInt64Value();
+  if (a < b) {
+    return -1;
+  } else if (a > b) {
+    return 1;
+  } else {
+    return 0;
   }
-  ASSERT(other.IsBigint());
-  ASSERT(!Bigint::Cast(other).FitsIntoInt64());
-  if (this->IsNegative() == other.IsNegative()) {
-    return this->IsNegative() ? 1 : -1;
-  }
-  return this->IsNegative() ? -1 : 1;
 }
 
 const char* Mint::ToCString() const {
@@ -19724,730 +19698,6 @@ const char* Double::ToCString() const {
   return buffer;
 }
 
-bool Bigint::Neg() const {
-  return Bool::Handle(neg()).value();
-}
-
-void Bigint::SetNeg(bool value) const {
-  StorePointer(&raw_ptr()->neg_, Bool::Get(value).raw());
-}
-
-intptr_t Bigint::Used() const {
-  return Smi::Value(used());
-}
-
-void Bigint::SetUsed(intptr_t value) const {
-  StoreSmi(&raw_ptr()->used_, Smi::New(value));
-}
-
-uint32_t Bigint::DigitAt(intptr_t index) const {
-  const TypedData& typed_data = TypedData::Handle(digits());
-  return typed_data.GetUint32(index << 2);
-}
-
-void Bigint::set_digits(const TypedData& value) const {
-  // The VM expects digits_ to be a Uint32List (not null).
-  ASSERT(!value.IsNull() && (value.GetClassId() == kTypedDataUint32ArrayCid));
-  StorePointer(&raw_ptr()->digits_, value.raw());
-}
-
-RawTypedData* Bigint::NewDigits(intptr_t length, Heap::Space space) {
-  ASSERT(length > 0);
-  // Account for leading zero for 64-bit processing.
-  return TypedData::New(kTypedDataUint32ArrayCid, length + 1, space);
-}
-
-uint32_t Bigint::DigitAt(const TypedData& digits, intptr_t index) {
-  return digits.GetUint32(index << 2);
-}
-
-void Bigint::SetDigitAt(const TypedData& digits,
-                        intptr_t index,
-                        uint32_t value) {
-  digits.SetUint32(index << 2, value);
-}
-
-bool Bigint::Equals(const Instance& other) const {
-  if (this->raw() == other.raw()) {
-    // Both handles point to the same raw instance.
-    return true;
-  }
-
-  if (!other.IsBigint() || other.IsNull()) {
-    return false;
-  }
-
-  const Bigint& other_bgi = Bigint::Cast(other);
-
-  if (this->Neg() != other_bgi.Neg()) {
-    return false;
-  }
-
-  const intptr_t used = this->Used();
-  if (used != other_bgi.Used()) {
-    return false;
-  }
-
-  for (intptr_t i = 0; i < used; i++) {
-    if (this->DigitAt(i) != other_bgi.DigitAt(i)) {
-      return false;
-    }
-  }
-  return true;
-}
-
-bool Bigint::CheckAndCanonicalizeFields(Thread* thread,
-                                        const char** error_str) const {
-  Zone* zone = thread->zone();
-  // Bool field neg should always be canonical.
-  ASSERT(Bool::Handle(zone, neg()).IsCanonical());
-  // Smi field used is canonical by definition.
-  if (Used() > 0) {
-    // Canonicalize TypedData field digits.
-    TypedData& digits_ = TypedData::Handle(zone, digits());
-    digits_ ^= digits_.CheckAndCanonicalize(thread, NULL);
-    ASSERT(!digits_.IsNull());
-    set_digits(digits_);
-  } else {
-    ASSERT(digits() == TypedData::EmptyUint32Array(Thread::Current()));
-  }
-  return true;
-}
-
-RawBigint* Bigint::New(Heap::Space space) {
-  ASSERT(!Bigint::IsDisabled());
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
-  ASSERT(isolate->object_store()->bigint_class() != Class::null());
-  Bigint& result = Bigint::Handle(zone);
-  {
-    RawObject* raw =
-        Object::Allocate(Bigint::kClassId, Bigint::InstanceSize(), space);
-    NoSafepointScope no_safepoint;
-    result ^= raw;
-  }
-  result.SetNeg(false);
-  result.SetUsed(0);
-  result.set_digits(
-      TypedData::Handle(zone, TypedData::EmptyUint32Array(thread)));
-  return result.raw();
-}
-
-RawBigint* Bigint::New(bool neg,
-                       intptr_t used,
-                       const TypedData& digits,
-                       Heap::Space space) {
-  ASSERT(!Bigint::IsDisabled());
-  ASSERT((used == 0) ||
-         (!digits.IsNull() && (digits.Length() >= (used + (used & 1)))));
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
-  ASSERT(isolate->object_store()->bigint_class() != Class::null());
-  Bigint& result = Bigint::Handle(zone);
-  {
-    RawObject* raw =
-        Object::Allocate(Bigint::kClassId, Bigint::InstanceSize(), space);
-    NoSafepointScope no_safepoint;
-    result ^= raw;
-  }
-  // Clamp the digits array.
-  while ((used > 0) && (digits.GetUint32((used - 1) << 2) == 0)) {
-    --used;
-  }
-  if (used > 0) {
-    if (((used & 1) != 0) && (digits.GetUint32(used << 2) != 0)) {
-      // Set leading zero for 64-bit processing of digit pairs if not set.
-      // The check above ensures that we avoid a write access to a possibly
-      // reused digits array that could be marked read only.
-      digits.SetUint32(used << 2, 0);
-    }
-    result.set_digits(digits);
-  } else {
-    neg = false;
-    result.set_digits(
-        TypedData::Handle(zone, TypedData::EmptyUint32Array(thread)));
-  }
-  result.SetNeg(neg);
-  result.SetUsed(used);
-  return result.raw();
-}
-
-RawBigint* Bigint::NewFromInt64(int64_t value, Heap::Space space) {
-  ASSERT(!Bigint::IsDisabled());
-  const TypedData& digits = TypedData::Handle(NewDigits(2, space));
-  bool neg;
-  uint64_t abs_value;
-  if (value < 0) {
-    neg = true;
-    abs_value = -value;
-  } else {
-    neg = false;
-    abs_value = value;
-  }
-  SetDigitAt(digits, 0, static_cast<uint32_t>(abs_value));
-  SetDigitAt(digits, 1, static_cast<uint32_t>(abs_value >> 32));
-  return New(neg, 2, digits, space);
-}
-
-RawBigint* Bigint::NewFromUint64(uint64_t value, Heap::Space space) {
-  ASSERT(!Bigint::IsDisabled());
-  const TypedData& digits = TypedData::Handle(NewDigits(2, space));
-  SetDigitAt(digits, 0, static_cast<uint32_t>(value));
-  SetDigitAt(digits, 1, static_cast<uint32_t>(value >> 32));
-  return New(false, 2, digits, space);
-}
-
-RawBigint* Bigint::NewFromShiftedInt64(int64_t value,
-                                       intptr_t shift,
-                                       Heap::Space space) {
-  ASSERT(!Bigint::IsDisabled());
-  ASSERT(kBitsPerDigit == 32);
-  ASSERT(shift >= 0);
-  const intptr_t digit_shift = shift / kBitsPerDigit;
-  const intptr_t bit_shift = shift % kBitsPerDigit;
-  const intptr_t used = 3 + digit_shift;
-  const TypedData& digits = TypedData::Handle(NewDigits(used, space));
-  bool neg;
-  uint64_t abs_value;
-  if (value < 0) {
-    neg = true;
-    abs_value = -value;
-  } else {
-    neg = false;
-    abs_value = value;
-  }
-  for (intptr_t i = 0; i < digit_shift; i++) {
-    SetDigitAt(digits, i, 0);
-  }
-  SetDigitAt(digits, 0 + digit_shift,
-             static_cast<uint32_t>(abs_value << bit_shift));
-  SetDigitAt(digits, 1 + digit_shift,
-             static_cast<uint32_t>(abs_value >> (32 - bit_shift)));
-  SetDigitAt(digits, 2 + digit_shift,
-             (bit_shift == 0)
-                 ? 0
-                 : static_cast<uint32_t>(abs_value >> (64 - bit_shift)));
-  return New(neg, used, digits, space);
-}
-
-RawBigint* Bigint::NewFromCString(const char* str, Heap::Space space) {
-  ASSERT(!Bigint::IsDisabled());
-  ASSERT(str != NULL);
-  bool neg = false;
-  TypedData& digits = TypedData::Handle();
-  if (str[0] == '-') {
-    ASSERT(str[1] != '-');
-    neg = true;
-    str++;
-  }
-  intptr_t used;
-  const intptr_t str_length = strlen(str);
-  if ((str_length >= 2) && (str[0] == '0') &&
-      ((str[1] == 'x') || (str[1] == 'X'))) {
-    digits = NewDigitsFromHexCString(&str[2], &used, space);
-  } else {
-    digits = NewDigitsFromDecCString(str, &used, space);
-  }
-  return New(neg, used, digits, space);
-}
-
-RawBigint* Bigint::NewCanonical(const String& str) {
-  ASSERT(!Bigint::IsDisabled());
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
-  const Bigint& value =
-      Bigint::Handle(zone, Bigint::NewFromCString(str.ToCString(), Heap::kOld));
-  const Class& cls =
-      Class::Handle(zone, isolate->object_store()->bigint_class());
-  intptr_t index = 0;
-  Bigint& canonical_value = Bigint::Handle(zone);
-  canonical_value ^= cls.LookupCanonicalBigint(zone, value, &index);
-  if (!canonical_value.IsNull()) {
-    return canonical_value.raw();
-  }
-  {
-    SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
-    // Retry lookup.
-    {
-      canonical_value ^= cls.LookupCanonicalBigint(zone, value, &index);
-      if (!canonical_value.IsNull()) {
-        return canonical_value.raw();
-      }
-    }
-    value.SetCanonical();
-    // The value needs to be added to the constants list. Grow the list if
-    // it is full.
-    cls.InsertCanonicalBigint(zone, index, value);
-    return value.raw();
-  }
-}
-
-RawTypedData* Bigint::NewDigitsFromHexCString(const char* str,
-                                              intptr_t* used,
-                                              Heap::Space space) {
-  const int kBitsPerHexDigit = 4;
-  const int kHexDigitsPerDigit = 8;
-  const int kBitsPerDigit = kBitsPerHexDigit * kHexDigitsPerDigit;
-  intptr_t hex_i = strlen(str);  // Terminating byte excluded.
-  if ((hex_i <= 0) || (hex_i >= kMaxInt32)) {
-    FATAL("Fatal error parsing hex bigint: string too long or empty");
-  }
-  const intptr_t length = (hex_i + kHexDigitsPerDigit - 1) / kHexDigitsPerDigit;
-  const TypedData& digits = TypedData::Handle(NewDigits(length, space));
-  intptr_t used_ = 0;
-  uint32_t digit = 0;
-  intptr_t bit_i = 0;
-  while (--hex_i >= 0) {
-    digit += Utils::HexDigitToInt(str[hex_i]) << bit_i;
-    bit_i += kBitsPerHexDigit;
-    if (bit_i == kBitsPerDigit) {
-      bit_i = 0;
-      SetDigitAt(digits, used_++, digit);
-      digit = 0;
-    }
-  }
-  if (bit_i != 0) {
-    SetDigitAt(digits, used_++, digit);
-  }
-  *used = used_;
-  return digits.raw();
-}
-
-RawTypedData* Bigint::NewDigitsFromDecCString(const char* str,
-                                              intptr_t* used,
-                                              Heap::Space space) {
-  // Read 9 digits a time. 10^9 < 2^32.
-  const int kDecDigitsPerIteration = 9;
-  const uint32_t kTenMultiplier = 1000000000;
-  ASSERT(kBitsPerDigit == 32);
-  const intptr_t str_length = strlen(str);
-  if ((str_length <= 0) || (str_length >= kMaxInt32)) {
-    FATAL("Fatal error parsing dec bigint: string too long or empty");
-  }
-  // One decimal digit takes log2(10) bits, i.e. ~3.32192809489 bits.
-  // That is a theoretical limit for large numbers.
-  // The extra 5 digits allocated take care of variations.
-  const int64_t kLog10Dividend = 33219281;
-  const int64_t kLog10Divisor = 10000000;
-  const intptr_t length =
-      (kLog10Dividend * str_length) / (kLog10Divisor * kBitsPerDigit) + 5;
-  const TypedData& digits = TypedData::Handle(NewDigits(length, space));
-  // Read first digit separately. This avoids a multiplication and addition.
-  // The first digit might also not have kDecDigitsPerIteration decimal digits.
-  const intptr_t lsdigit_length = str_length % kDecDigitsPerIteration;
-  uint32_t digit = 0;
-  intptr_t str_pos = 0;
-  for (intptr_t i = 0; i < lsdigit_length; i++) {
-    char c = str[str_pos++];
-    ASSERT(('0' <= c) && (c <= '9'));
-    digit = digit * 10 + c - '0';
-  }
-  SetDigitAt(digits, 0, digit);
-  intptr_t used_ = 1;
-  // Read kDecDigitsPerIteration at a time, and store it in 'digit'.
-  // Then multiply the temporary result by 10^kDecDigitsPerIteration and add
-  // 'digit' to the new result.
-  while (str_pos < str_length - 1) {
-    digit = 0;
-    for (intptr_t i = 0; i < kDecDigitsPerIteration; i++) {
-      char c = str[str_pos++];
-      ASSERT(('0' <= c) && (c <= '9'));
-      digit = digit * 10 + c - '0';
-    }
-    // Multiply result with kTenMultiplier and add digit.
-    for (intptr_t i = 0; i < used_; i++) {
-      uint64_t product =
-          (static_cast<uint64_t>(DigitAt(digits, i)) * kTenMultiplier) + digit;
-      SetDigitAt(digits, i, static_cast<uint32_t>(product & kDigitMask));
-      digit = static_cast<uint32_t>(product >> kBitsPerDigit);
-    }
-    SetDigitAt(digits, used_++, digit);
-  }
-  *used = used_;
-  return digits.raw();
-}
-
-static double Uint64ToDouble(uint64_t x) {
-#if _WIN64
-  // For static_cast<double>(x) MSVC x64 generates
-  //
-  //    cvtsi2sd xmm0, rax
-  //    test  rax, rax
-  //    jns done
-  //    addsd xmm0, static_cast<double>(2^64)
-  //  done:
-  //
-  // while GCC -m64 generates
-  //
-  //    test rax, rax
-  //    js negative
-  //    cvtsi2sd xmm0, rax
-  //    jmp done
-  //  negative:
-  //    mov rdx, rax
-  //    shr rdx, 1
-  //    and eax, 0x1
-  //    or rdx, rax
-  //    cvtsi2sd xmm0, rdx
-  //    addsd xmm0, xmm0
-  //  done:
-  //
-  // which results in a different rounding.
-  //
-  // For consistency between platforms fallback to GCC style conversion
-  // on Win64.
-  //
-  const int64_t y = static_cast<int64_t>(x);
-  if (y > 0) {
-    return static_cast<double>(y);
-  } else {
-    const double half =
-        static_cast<double>(static_cast<int64_t>(x >> 1) | (y & 1));
-    return half + half;
-  }
-#else
-  return static_cast<double>(x);
-#endif
-}
-
-double Bigint::AsDoubleValue() const {
-  ASSERT(kBitsPerDigit == 32);
-  const intptr_t used = Used();
-  if (used == 0) {
-    return 0.0;
-  }
-  if (used <= 2) {
-    const uint64_t digit1 = (used > 1) ? DigitAt(1) : 0;
-    const uint64_t abs_value = (digit1 << 32) + DigitAt(0);
-    const double abs_double_value = Uint64ToDouble(abs_value);
-    return Neg() ? -abs_double_value : abs_double_value;
-  }
-
-  static const int kPhysicalSignificandSize = 52;
-  // The significand size has an additional hidden bit.
-  static const int kSignificandSize = kPhysicalSignificandSize + 1;
-  static const int kExponentBias = 0x3FF + kPhysicalSignificandSize;
-  static const int kMaxExponent = 0x7FF - kExponentBias;
-  static const uint64_t kOne64 = 1;
-  static const uint64_t kInfinityBits =
-      DART_2PART_UINT64_C(0x7FF00000, 00000000);
-
-  // A double is composed of an exponent e and a significand s. Its value equals
-  // s * 2^e. The significand has 53 bits of which the first one must always be
-  // 1 (at least for then numbers we are working with here) and is therefore
-  // omitted. The physical size of the significand is thus 52 bits.
-  // The exponent has 11 bits and is biased by 0x3FF + 52. For example an
-  // exponent e = 10 is written as 0x3FF + 52 + 10 (in the 11 bits that are
-  // reserved for the exponent).
-  // When converting the given bignum to a double we have to pay attention to
-  // the rounding. In particular we have to decide which double to pick if an
-  // input lies exactly between two doubles. As usual with double operations
-  // we pick the double with an even significand in such cases.
-  //
-  // General approach of this algorithm: Get 54 bits (one more than the
-  // significand size) of the bigint. If the last bit is then 1, then (without
-  // knowledge of the remaining bits) we could have a half-way number.
-  // If the second-to-last bit is odd then we know that we have to round up:
-  // if the remaining bits are not zero then the input lies closer to the higher
-  // double. If the remaining bits are zero then we have a half-way case and
-  // we need to round up too (rounding to the even double).
-  // If the second-to-last bit is even then we need to look at the remaining
-  // bits to determine if any of them is not zero. If that's the case then the
-  // number lies closer to the next-higher double. Otherwise we round the
-  // half-way case down to even.
-
-  if (((used - 1) * kBitsPerDigit) > (kMaxExponent + kSignificandSize)) {
-    // Does not fit into a double.
-    const double infinity = bit_cast<double>(kInfinityBits);
-    return Neg() ? -infinity : infinity;
-  }
-
-  intptr_t digit_index = used - 1;
-  // In order to round correctly we need to look at half-way cases. Therefore we
-  // get kSignificandSize + 1 bits. If the last bit is 1 then we have to look
-  // at the remaining bits to know if we have to round up.
-  int needed_bits = kSignificandSize + 1;
-  ASSERT((kBitsPerDigit < needed_bits) && (2 * kBitsPerDigit >= needed_bits));
-  bool discarded_bits_were_zero = true;
-
-  const uint32_t firstDigit = DigitAt(digit_index--);
-  ASSERT(firstDigit > 0);
-  uint64_t twice_significand_floor = firstDigit;
-  intptr_t twice_significant_exponent = (digit_index + 1) * kBitsPerDigit;
-  needed_bits -= Utils::HighestBit(firstDigit) + 1;
-
-  if (needed_bits >= kBitsPerDigit) {
-    twice_significand_floor <<= kBitsPerDigit;
-    twice_significand_floor |= DigitAt(digit_index--);
-    twice_significant_exponent -= kBitsPerDigit;
-    needed_bits -= kBitsPerDigit;
-  }
-  if (needed_bits > 0) {
-    ASSERT(needed_bits <= kBitsPerDigit);
-    uint32_t digit = DigitAt(digit_index--);
-    int discarded_bits_count = kBitsPerDigit - needed_bits;
-    twice_significand_floor <<= needed_bits;
-    twice_significand_floor |= digit >> discarded_bits_count;
-    twice_significant_exponent -= needed_bits;
-    uint64_t discarded_bits_mask = (kOne64 << discarded_bits_count) - 1;
-    discarded_bits_were_zero = ((digit & discarded_bits_mask) == 0);
-  }
-  ASSERT((twice_significand_floor >> kSignificandSize) == 1);
-
-  // We might need to round up the significand later.
-  uint64_t significand = twice_significand_floor >> 1;
-  const intptr_t exponent = twice_significant_exponent + 1;
-
-  if (exponent >= kMaxExponent) {
-    // Infinity.
-    // Does not fit into a double.
-    const double infinity = bit_cast<double>(kInfinityBits);
-    return Neg() ? -infinity : infinity;
-  }
-
-  if ((twice_significand_floor & 1) == 1) {
-    bool round_up = false;
-
-    if ((significand & 1) != 0 || !discarded_bits_were_zero) {
-      // Even if the remaining bits are zero we still need to round up since we
-      // want to round to even for half-way cases.
-      round_up = true;
-    } else {
-      // Could be a half-way case. See if the remaining bits are non-zero.
-      for (intptr_t i = 0; i <= digit_index; i++) {
-        if (DigitAt(i) != 0) {
-          round_up = true;
-          break;
-        }
-      }
-    }
-
-    if (round_up) {
-      significand++;
-      // It might be that we just went from 53 bits to 54 bits.
-      // Example: After adding 1 to 1FFF..FF (with 53 bits set to 1) we have
-      // 2000..00 (= 2 ^ 54). When adding the exponent and significand together
-      // this will increase the exponent by 1 which is exactly what we want.
-    }
-  }
-
-  ASSERT(((significand >> (kSignificandSize - 1)) == 1) ||
-         (significand == (kOne64 << kSignificandSize)));
-  // The significand still has the hidden bit. We simply decrement the biased
-  // exponent by one instead of playing around with the significand.
-  const uint64_t biased_exponent = exponent + kExponentBias - 1;
-  // Note that we must use the plus operator instead of bit-or.
-  const uint64_t double_bits =
-      (biased_exponent << kPhysicalSignificandSize) + significand;
-
-  const double value = bit_cast<double>(double_bits);
-  return Neg() ? -value : value;
-}
-
-bool Bigint::FitsIntoSmi() const {
-  return FitsIntoInt64() && Smi::IsValid(AsInt64Value());
-}
-
-bool Bigint::FitsIntoInt64() const {
-  ASSERT(Bigint::kBitsPerDigit == 32);
-  const intptr_t used = Used();
-  if (used < 2) return true;
-  if (used > 2) return false;
-  const uint64_t digit1 = DigitAt(1);
-  const uint64_t value = (digit1 << 32) + DigitAt(0);
-  uint64_t limit = Mint::kMaxValue;
-  if (Neg()) {
-    limit++;
-  }
-  return value <= limit;
-}
-
-int64_t Bigint::AsTruncatedInt64Value() const {
-  const intptr_t used = Used();
-  if (used == 0) return 0;
-  const int64_t digit1 = (used > 1) ? DigitAt(1) : 0;
-  const int64_t value = (digit1 << 32) + DigitAt(0);
-  return Neg() ? -value : value;
-}
-
-int64_t Bigint::AsInt64Value() const {
-  ASSERT(FitsIntoInt64());
-  return AsTruncatedInt64Value();
-}
-
-bool Bigint::FitsIntoUint64() const {
-  ASSERT(Bigint::kBitsPerDigit == 32);
-  return !Neg() && (Used() <= 2);
-}
-
-uint64_t Bigint::AsUint64Value() const {
-  ASSERT(FitsIntoUint64());
-  const intptr_t used = Used();
-  if (used == 0) return 0;
-  const uint64_t digit1 = (used > 1) ? DigitAt(1) : 0;
-  return (digit1 << 32) + DigitAt(0);
-}
-
-uint32_t Bigint::AsTruncatedUint32Value() const {
-  // Note: the previous implementation of Bigint returned the absolute value
-  // truncated to 32 bits, which is not consistent with Smi and Mint behavior.
-  ASSERT(Bigint::kBitsPerDigit == 32);
-  const intptr_t used = Used();
-  if (used == 0) return 0;
-  const uint32_t digit0 = DigitAt(0);
-  return Neg() ? static_cast<uint32_t>(-static_cast<int32_t>(digit0)) : digit0;
-}
-
-// For positive values: Smi < Mint < Bigint.
-int Bigint::CompareWith(const Integer& other) const {
-  ASSERT(!FitsIntoSmi());
-  ASSERT(!FitsIntoInt64());
-  if (other.IsBigint() && (IsNegative() == other.IsNegative())) {
-    const Bigint& other_bgi = Bigint::Cast(other);
-    int64_t result = Used() - other_bgi.Used();
-    if (result == 0) {
-      for (intptr_t i = Used(); --i >= 0;) {
-        result = DigitAt(i);
-        result -= other_bgi.DigitAt(i);
-        if (result != 0) break;
-      }
-    }
-    if (IsNegative()) {
-      result = -result;
-    }
-    return result > 0 ? 1 : result < 0 ? -1 : 0;
-  }
-  return this->IsNegative() ? -1 : 1;
-}
-
-const char* Bigint::ToDecCString(Zone* zone) const {
-  // log10(2) ~= 0.30102999566398114.
-  const intptr_t kLog2Dividend = 30103;
-  const intptr_t kLog2Divisor = 100000;
-  intptr_t used = Used();
-  const intptr_t kMaxUsed =
-      kIntptrMax / kBitsPerDigit / kLog2Dividend * kLog2Divisor;
-  if (used > kMaxUsed) {
-    Exceptions::ThrowOOM();
-    UNREACHABLE();
-  }
-  const int64_t bit_len = used * kBitsPerDigit;
-  const int64_t dec_len = (bit_len * kLog2Dividend / kLog2Divisor) + 1;
-  // Add one byte for the minus sign and for the trailing \0 character.
-  const int64_t len = (Neg() ? 1 : 0) + dec_len + 1;
-  char* chars = zone->Alloc<char>(len);
-  intptr_t pos = 0;
-  const intptr_t kDivisor = 100000000;
-  const intptr_t kDigits = 8;
-  ASSERT(pow(10.0, 1.0 * kDigits) == kDivisor);
-  ASSERT(kDivisor < kDigitBase);
-  ASSERT(Smi::IsValid(kDivisor));
-  // Allocate a copy of the digits.
-  uint32_t* rest_digits = zone->Alloc<uint32_t>(used);
-  for (intptr_t i = 0; i < used; i++) {
-    rest_digits[i] = DigitAt(i);
-  }
-  if (used == 0) {
-    chars[pos++] = '0';
-  }
-  while (used > 0) {
-    uint32_t remainder = 0;
-    for (intptr_t i = used - 1; i >= 0; i--) {
-      uint64_t dividend =
-          (static_cast<uint64_t>(remainder) << kBitsPerDigit) + rest_digits[i];
-      uint32_t quotient = static_cast<uint32_t>(dividend / kDivisor);
-      remainder = static_cast<uint32_t>(
-          dividend - static_cast<uint64_t>(quotient) * kDivisor);
-      rest_digits[i] = quotient;
-    }
-    // Clamp rest_digits.
-    while ((used > 0) && (rest_digits[used - 1] == 0)) {
-      used--;
-    }
-    for (intptr_t i = 0; i < kDigits; i++) {
-      chars[pos++] = '0' + (remainder % 10);
-      remainder /= 10;
-    }
-    ASSERT(remainder == 0);
-  }
-  // Remove leading zeros.
-  while ((pos > 1) && (chars[pos - 1] == '0')) {
-    pos--;
-  }
-  if (Neg()) {
-    chars[pos++] = '-';
-  }
-  // Reverse the string.
-  intptr_t i = 0;
-  intptr_t j = pos - 1;
-  while (i < j) {
-    char tmp = chars[i];
-    chars[i] = chars[j];
-    chars[j] = tmp;
-    i++;
-    j--;
-  }
-  chars[pos] = '\0';
-  return chars;
-}
-
-const char* Bigint::ToHexCString(Zone* zone) const {
-  const intptr_t used = Used();
-  if (used == 0) {
-    const char* zero = "0x0";
-    const size_t len = strlen(zero) + 1;
-    char* chars = zone->Alloc<char>(len);
-    strncpy(chars, zero, len);
-    return chars;
-  }
-  const int kBitsPerHexDigit = 4;
-  const int kHexDigitsPerDigit = 8;
-  const intptr_t kMaxUsed = (kIntptrMax - 4) / kHexDigitsPerDigit;
-  if (used > kMaxUsed) {
-    Exceptions::ThrowOOM();
-    UNREACHABLE();
-  }
-  intptr_t hex_len = (used - 1) * kHexDigitsPerDigit;
-  // The most significant digit may use fewer than kHexDigitsPerDigit digits.
-  uint32_t digit = DigitAt(used - 1);
-  ASSERT(digit != 0);  // Value must be clamped.
-  while (digit != 0) {
-    hex_len++;
-    digit >>= kBitsPerHexDigit;
-  }
-  // Add bytes for '0x', for the minus sign, and for the trailing \0 character.
-  const int32_t len = (Neg() ? 1 : 0) + 2 + hex_len + 1;
-  char* chars = zone->Alloc<char>(len);
-  intptr_t pos = len;
-  chars[--pos] = '\0';
-  for (intptr_t i = 0; i < (used - 1); i++) {
-    digit = DigitAt(i);
-    for (intptr_t j = 0; j < kHexDigitsPerDigit; j++) {
-      chars[--pos] = Utils::IntToHexDigit(digit & 0xf);
-      digit >>= kBitsPerHexDigit;
-    }
-  }
-  digit = DigitAt(used - 1);
-  while (digit != 0) {
-    chars[--pos] = Utils::IntToHexDigit(digit & 0xf);
-    digit >>= kBitsPerHexDigit;
-  }
-  chars[--pos] = 'x';
-  chars[--pos] = '0';
-  if (Neg()) {
-    chars[--pos] = '-';
-  }
-  ASSERT(pos == 0);
-  return chars;
-}
-
-const char* Bigint::ToCString() const {
-  return ToDecCString(Thread::Current()->zone());
-}
-
 // Synchronize with implementation in compiler (intrinsifier).
 class StringHasher : ValueObject {
  public:
@@ -20531,7 +19781,7 @@ intptr_t String::Hash(RawString* raw) {
       ASSERT(raw->IsExternalOneByteString());
       RawExternalOneByteString* str =
           reinterpret_cast<RawExternalOneByteString*>(raw);
-      data = str->ptr()->external_data_->data();
+      data = str->ptr()->external_data_;
     }
     return String::Hash(data, length);
   } else {
@@ -20542,7 +19792,7 @@ intptr_t String::Hash(RawString* raw) {
       ASSERT(raw->IsExternalTwoByteString());
       RawExternalTwoByteString* str =
           reinterpret_cast<RawExternalTwoByteString*>(raw);
-      data = str->ptr()->external_data_->data();
+      data = str->ptr()->external_data_;
     }
     return String::Hash(data, length);
   }
@@ -20868,17 +20118,21 @@ RawString* String::New(const String& str, Heap::Space space) {
 RawString* String::NewExternal(const uint8_t* characters,
                                intptr_t len,
                                void* peer,
-                               Dart_PeerFinalizer callback,
+                               intptr_t external_allocation_size,
+                               Dart_WeakPersistentHandleFinalizer callback,
                                Heap::Space space) {
-  return ExternalOneByteString::New(characters, len, peer, callback, space);
+  return ExternalOneByteString::New(characters, len, peer,
+                                    external_allocation_size, callback, space);
 }
 
 RawString* String::NewExternal(const uint16_t* characters,
                                intptr_t len,
                                void* peer,
-                               Dart_PeerFinalizer callback,
+                               intptr_t external_allocation_size,
+                               Dart_WeakPersistentHandleFinalizer callback,
                                Heap::Space space) {
-  return ExternalTwoByteString::New(characters, len, peer, callback, space);
+  return ExternalTwoByteString::New(characters, len, peer,
+                                    external_allocation_size, callback, space);
 }
 
 void String::Copy(const String& dst,
@@ -21264,8 +20518,7 @@ static FinalizablePersistentHandle* AddFinalizer(
     void* peer,
     Dart_WeakPersistentHandleFinalizer callback,
     intptr_t external_size) {
-  ASSERT((callback != NULL && peer != NULL) ||
-         (callback == NULL && peer == NULL));
+  ASSERT(callback != NULL);
   return FinalizablePersistentHandle::New(Isolate::Current(), referent, peer,
                                           callback, external_size);
 }
@@ -21689,24 +20942,6 @@ RawOneByteString* OneByteString::SubStringUnchecked(const String& str,
   return result;
 }
 
-void OneByteString::SetPeer(const String& str,
-                            intptr_t external_size,
-                            void* peer,
-                            Dart_PeerFinalizer cback) {
-  ASSERT(!str.IsNull() && str.IsOneByteString());
-  ASSERT(peer != NULL);
-  ExternalStringData<uint8_t>* ext_data =
-      new ExternalStringData<uint8_t>(NULL, peer, cback);
-  AddFinalizer(str, ext_data, OneByteString::Finalize, external_size);
-  Isolate::Current()->heap()->SetPeer(str.raw(), peer);
-}
-
-void OneByteString::Finalize(void* isolate_callback_data,
-                             Dart_WeakPersistentHandle handle,
-                             void* peer) {
-  delete reinterpret_cast<ExternalStringData<uint8_t>*>(peer);
-}
-
 RawTwoByteString* TwoByteString::EscapeSpecialCharacters(const String& str) {
   intptr_t len = str.Length();
   if (len > 0) {
@@ -21886,29 +21121,12 @@ RawTwoByteString* TwoByteString::Transform(int32_t (*mapping)(int32_t ch),
   return TwoByteString::raw(result);
 }
 
-void TwoByteString::SetPeer(const String& str,
-                            intptr_t external_size,
-                            void* peer,
-                            Dart_PeerFinalizer cback) {
-  ASSERT(!str.IsNull() && str.IsTwoByteString());
-  ASSERT(peer != NULL);
-  ExternalStringData<uint16_t>* ext_data =
-      new ExternalStringData<uint16_t>(NULL, peer, cback);
-  AddFinalizer(str, ext_data, TwoByteString::Finalize, external_size);
-  Isolate::Current()->heap()->SetPeer(str.raw(), peer);
-}
-
-void TwoByteString::Finalize(void* isolate_callback_data,
-                             Dart_WeakPersistentHandle handle,
-                             void* peer) {
-  delete reinterpret_cast<ExternalStringData<uint16_t>*>(peer);
-}
-
 RawExternalOneByteString* ExternalOneByteString::New(
     const uint8_t* data,
     intptr_t len,
     void* peer,
-    Dart_PeerFinalizer callback,
+    intptr_t external_allocation_size,
+    Dart_WeakPersistentHandleFinalizer callback,
     Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->external_one_byte_string_class() !=
          Class::null());
@@ -21918,8 +21136,6 @@ RawExternalOneByteString* ExternalOneByteString::New(
            len);
   }
   String& result = String::Handle();
-  ExternalStringData<uint8_t>* external_data =
-      new ExternalStringData<uint8_t>(data, peer, callback);
   {
     RawObject* raw =
         Object::Allocate(ExternalOneByteString::kClassId,
@@ -21928,25 +21144,18 @@ RawExternalOneByteString* ExternalOneByteString::New(
     result ^= raw;
     result.SetLength(len);
     result.SetHash(0);
-    SetExternalData(result, external_data);
+    SetExternalData(result, data, peer);
   }
-  intptr_t external_size = len;
-  AddFinalizer(result, external_data, ExternalOneByteString::Finalize,
-               external_size);
+  AddFinalizer(result, peer, callback, external_allocation_size);
   return ExternalOneByteString::raw(result);
-}
-
-void ExternalOneByteString::Finalize(void* isolate_callback_data,
-                                     Dart_WeakPersistentHandle handle,
-                                     void* peer) {
-  delete reinterpret_cast<ExternalStringData<uint8_t>*>(peer);
 }
 
 RawExternalTwoByteString* ExternalTwoByteString::New(
     const uint16_t* data,
     intptr_t len,
     void* peer,
-    Dart_PeerFinalizer callback,
+    intptr_t external_allocation_size,
+    Dart_WeakPersistentHandleFinalizer callback,
     Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->external_two_byte_string_class() !=
          Class::null());
@@ -21956,8 +21165,6 @@ RawExternalTwoByteString* ExternalTwoByteString::New(
            len);
   }
   String& result = String::Handle();
-  ExternalStringData<uint16_t>* external_data =
-      new ExternalStringData<uint16_t>(data, peer, callback);
   {
     RawObject* raw =
         Object::Allocate(ExternalTwoByteString::kClassId,
@@ -21966,18 +21173,10 @@ RawExternalTwoByteString* ExternalTwoByteString::New(
     result ^= raw;
     result.SetLength(len);
     result.SetHash(0);
-    SetExternalData(result, external_data);
+    SetExternalData(result, data, peer);
   }
-  intptr_t external_size = len * 2;
-  AddFinalizer(result, external_data, ExternalTwoByteString::Finalize,
-               external_size);
+  AddFinalizer(result, peer, callback, external_allocation_size);
   return ExternalTwoByteString::raw(result);
-}
-
-void ExternalTwoByteString::Finalize(void* isolate_callback_data,
-                                     Dart_WeakPersistentHandle handle,
-                                     void* peer) {
-  delete reinterpret_cast<ExternalStringData<uint16_t>*>(peer);
 }
 
 RawBool* Bool::New(bool value) {

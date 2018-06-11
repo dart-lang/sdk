@@ -101,19 +101,6 @@ Dart_CObject* ApiMessageReader::AllocateDartCObjectInt64(int64_t val) {
 
 _Dart_CObject* ApiMessageReader::singleton_uint32_typed_data_ = NULL;
 
-Dart_CObject* ApiMessageReader::AllocateDartCObjectBigint() {
-  Dart_CObject* value = AllocateDartCObject(Dart_CObject_kBigint);
-  value->value.as_bigint.neg = false;
-  value->value.as_bigint.used = 0;
-  if (singleton_uint32_typed_data_ == NULL) {
-    singleton_uint32_typed_data_ =
-        AllocateDartCObjectTypedData(Dart_TypedData_kUint32, 0);
-  }
-  value->value.as_bigint.digits = singleton_uint32_typed_data_;
-  value->type = Dart_CObject_kBigint;
-  return value;
-}
-
 Dart_CObject* ApiMessageReader::AllocateDartCObjectDouble(double val) {
   Dart_CObject* value = AllocateDartCObject(Dart_CObject_kDouble);
   value->value.as_double = val;
@@ -570,27 +557,6 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
         object = AllocateDartCObjectInt64(value64);
       }
       AddBackRef(object_id, object, kIsDeserialized);
-      return object;
-    }
-    case kBigintCid: {
-      // Allocate an empty bigint which will be updated when its contents
-      // has been deserialized.
-      Dart_CObject* object = AllocateDartCObjectBigint();
-      AddBackRef(object_id, object, kIsDeserialized);
-      Dart_CObject* neg_obj = ReadObjectImpl();
-      ASSERT(neg_obj->type == Dart_CObject_kBool);
-      const bool neg = neg_obj->value.as_bool;
-      Dart_CObject* used_obj = ReadObjectImpl();
-      ASSERT(used_obj->type == Dart_CObject_kInt32);
-      const intptr_t used = used_obj->value.as_int32;
-      Dart_CObject* digits = ReadObjectImpl();
-      ASSERT(digits->type == Dart_CObject_kTypedData);
-      ASSERT(digits->value.as_typed_data.type == Dart_TypedData_kUint32);
-      ASSERT(digits->value.as_typed_data.length >= 4 * used);
-      // Update the bigint object.
-      object->value.as_bigint.neg = neg;
-      object->value.as_bigint.used = used;
-      object->value.as_bigint.digits = digits;
       return object;
     }
     case kDoubleCid: {
@@ -1092,24 +1058,6 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
     case Dart_CObject_kInt64:
       WriteInt64(object);
       break;
-    case Dart_CObject_kBigint: {
-      // Write out the serialization header value for this object.
-      WriteInlinedHeader(object);
-      // Write out the class and tags information.
-      WriteIndexedObject(kBigintCid);
-      WriteTags(0);
-      // Write neg field.
-      if (object->value.as_bigint.neg) {
-        WriteVMIsolateObject(kTrueValue);
-      } else {
-        WriteVMIsolateObject(kFalseValue);
-      }
-      // Write used field.
-      WriteSmi(object->value.as_bigint.used);
-      // Write digits as TypedData (or NullObject).
-      WriteCObject(object->value.as_bigint.digits);
-      break;
-    }
     case Dart_CObject_kDouble:
       WriteVMIsolateObject(kDoubleObject);
       WriteDouble(object->value.as_double);

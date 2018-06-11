@@ -53,6 +53,8 @@ class DartChangeBuilderImpl extends ChangeBuilderImpl
 
   @override
   Future<DartFileEditBuilderImpl> createFileEditBuilder(String path) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     ResolveResult result = await session.getResolvedAst(path);
     ResultState state = result?.state ?? ResultState.INVALID_FILE_TYPE;
     if (state == ResultState.INVALID_FILE_TYPE) {
@@ -1153,6 +1155,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
   @override
   Future<Null> finalize() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     if (librariesToImport.isNotEmpty) {
       CompilationUnitElement definingUnitElement =
           libraryElement.definingCompilationUnit;

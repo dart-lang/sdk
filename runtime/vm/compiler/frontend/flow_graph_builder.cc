@@ -837,7 +837,7 @@ Definition* EffectGraphVisitor::BuildStoreLocal(const LocalVariable& local,
     }
     Value* tmp_val = Bind(new (Z) LoadLocalInstr(*tmp_var, token_pos));
     StoreInstanceFieldInstr* store = new (Z)
-        StoreInstanceFieldInstr(Context::variable_offset(local.index()),
+        StoreInstanceFieldInstr(Context::variable_offset(local.index().value()),
                                 context, tmp_val, kEmitStoreBarrier, token_pos);
     Do(store);
     return ExitTempLocalScope(value);
@@ -859,9 +859,9 @@ Definition* EffectGraphVisitor::BuildLoadLocal(const LocalVariable& local,
                                             Type::ZoneHandle(Z, Type::null()),
                                             token_pos));
     }
-    LoadFieldInstr* load =
-        new (Z) LoadFieldInstr(context, Context::variable_offset(local.index()),
-                               local.type(), token_pos);
+    LoadFieldInstr* load = new (Z)
+        LoadFieldInstr(context, Context::variable_offset(local.index().value()),
+                       local.type(), token_pos);
     load->set_is_immutable(local.is_final());
     return load;
   } else {
@@ -2104,8 +2104,8 @@ void EffectGraphVisitor::VisitAwaitMarkerNode(AwaitMarkerNode* node) {
 }
 
 intptr_t EffectGraphVisitor::GetCurrentTempLocalIndex() const {
-  return kFirstLocalSlotFromFp - owner()->num_stack_locals() -
-         owner()->args_pushed() - owner()->temp_count() + 1;
+  return -owner()->num_stack_locals() - owner()->args_pushed() -
+         owner()->temp_count() + 1;
 }
 
 LocalVariable* EffectGraphVisitor::EnterTempLocalScope(Value* value) {
@@ -2117,7 +2117,7 @@ LocalVariable* EffectGraphVisitor::EnterTempLocalScope(Value* value) {
       new (Z) LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                             String::ZoneHandle(Z, Symbols::New(T, name)),
                             *value->Type()->ToAbstractType());
-  var->set_index(index);
+  var->set_index(VariableIndex(index));
   return var;
 }
 
@@ -2132,8 +2132,8 @@ void EffectGraphVisitor::BuildLetTempExpressions(LetNode* node) {
     node->InitializerAt(i)->Visit(&for_value);
     Append(for_value);
     ASSERT(!node->TempAt(i)->HasIndex() ||
-           (node->TempAt(i)->index() == GetCurrentTempLocalIndex()));
-    node->TempAt(i)->set_index(GetCurrentTempLocalIndex());
+           (node->TempAt(i)->index().value() == GetCurrentTempLocalIndex()));
+    node->TempAt(i)->set_index(VariableIndex(GetCurrentTempLocalIndex()));
   }
 }
 
@@ -3341,16 +3341,6 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
             token_pos, element_type, length, owner()->GetNextDeoptId());
         return ReturnDefinition(create_array);
       }
-      case MethodRecognizer::kBigint_getDigits: {
-        return ReturnDefinition(BuildNativeGetter(
-            node, kind, Bigint::digits_offset(), Object::dynamic_type(),
-            kTypedDataUint32ArrayCid));
-      }
-      case MethodRecognizer::kBigint_getUsed: {
-        return ReturnDefinition(
-            BuildNativeGetter(node, kind, Bigint::used_offset(),
-                              Type::ZoneHandle(Z, Type::SmiType()), kSmiCid));
-      }
       case MethodRecognizer::kLinkedHashMap_getIndex: {
         return ReturnDefinition(BuildNativeGetter(
             node, kind, LinkedHashMap::index_offset(), Object::dynamic_type(),
@@ -3398,11 +3388,6 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
         // Smi field; no barrier needed.
         return ReturnDefinition(DoNativeSetterStoreValue(
             node, LinkedHashMap::deleted_keys_offset(), kNoStoreBarrier));
-      }
-      case MethodRecognizer::kBigint_getNeg: {
-        return ReturnDefinition(
-            BuildNativeGetter(node, kind, Bigint::neg_offset(),
-                              Type::ZoneHandle(Z, Type::BoolType()), kBoolCid));
       }
       default:
         break;

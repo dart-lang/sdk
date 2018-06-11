@@ -275,18 +275,6 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
   bool get useCFE => true;
 
   @override
-  test_dynamicObjectGetter_hashCode() async {
-    // Fails with non-kernel analyzer but works correctly with kernel.
-    await super.test_dynamicObjectGetter_hashCode();
-  }
-
-  @override
-  test_dynamicObjectMethod_toString() async {
-    // Fails with non-kernel analyzer but works correctly with kernel.
-    await super.test_dynamicObjectMethod_toString();
-  }
-
-  @override
   test_futureOr_promotion3() async {
     // Test passes even though the overridden method fails.
     await super.test_futureOr_promotion3();

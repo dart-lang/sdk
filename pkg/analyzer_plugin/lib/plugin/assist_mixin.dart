@@ -38,6 +38,8 @@ abstract class AssistsMixin implements ServerPlugin {
   @override
   Future<EditGetAssistsResult> handleEditGetAssists(
       EditGetAssistsParams parameters) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     String path = parameters.file;
     AssistRequest request = await getAssistRequest(parameters);
     AssistGenerator generator =
@@ -61,6 +63,8 @@ abstract class DartAssistsMixin implements AssistsMixin {
   @override
   Future<AssistRequest> getAssistRequest(
       EditGetAssistsParams parameters) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     String path = parameters.file;
     ResolveResult result = await getResolveResult(path);
     return new DartAssistRequestImpl(

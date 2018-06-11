@@ -66,9 +66,9 @@ var tests = <IsolateTest>[
     );
     // Observe that it failed.
     expect(response['success'], isFalse);
-    List/*<Map<String, dynamic>>*/ notices = response['details']['notices'];
+    List notices = response['details']['notices'];
     expect(notices.length, equals(1));
-    Map/*<String, dynamic>*/ reasonForCancelling = notices[0];
+    Map<String, dynamic> reasonForCancelling = notices[0];
     expect(reasonForCancelling['type'], equals('ReasonForCancelling'));
     expect(reasonForCancelling['message'], contains('library_isnt_here_man'));
 

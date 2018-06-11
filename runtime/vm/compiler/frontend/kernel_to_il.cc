@@ -487,6 +487,13 @@ String& TranslationHelper::DartSymbolObfuscate(StringIndex string_index) const {
   return result;
 }
 
+String& TranslationHelper::DartIdentifier(const Library& lib,
+                                          StringIndex string_index) {
+  String& name = DartString(string_index);
+  ManglePrivateName(lib, &name);
+  return name;
+}
+
 const String& TranslationHelper::DartClassName(NameIndex kernel_class) {
   ASSERT(IsClass(kernel_class));
   String& name = DartString(CanonicalNameString(kernel_class));
@@ -1214,16 +1221,16 @@ Fragment FlowGraphBuilder::CatchBlockEntry(const Array& handler_types,
   if (exception_var->is_captured()) {
     instructions += LoadLocal(context_variable);
     instructions += LoadLocal(raw_exception_var);
-    instructions +=
-        StoreInstanceField(TokenPosition::kNoSource,
-                           Context::variable_offset(exception_var->index()));
+    instructions += StoreInstanceField(
+        TokenPosition::kNoSource,
+        Context::variable_offset(exception_var->index().value()));
   }
   if (stacktrace_var->is_captured()) {
     instructions += LoadLocal(context_variable);
     instructions += LoadLocal(raw_stacktrace_var);
-    instructions +=
-        StoreInstanceField(TokenPosition::kNoSource,
-                           Context::variable_offset(stacktrace_var->index()));
+    instructions += StoreInstanceField(
+        TokenPosition::kNoSource,
+        Context::variable_offset(stacktrace_var->index().value()));
   }
 
   // :saved_try_context_var can be captured in the context of
@@ -1532,7 +1539,8 @@ Fragment FlowGraphBuilder::LoadLocal(LocalVariable* variable) {
   if (variable->is_captured()) {
     Fragment instructions;
     instructions += LoadContextAt(variable->owner()->context_level());
-    instructions += LoadField(Context::variable_offset(variable->index()));
+    instructions +=
+        LoadField(Context::variable_offset(variable->index().value()));
     return instructions;
   } else {
     return BaseFlowGraphBuilder::LoadLocal(variable);
@@ -1800,7 +1808,7 @@ Fragment BaseFlowGraphBuilder::StoreLocal(TokenPosition position,
     instructions += LoadContextAt(variable->owner()->context_level());
     instructions += LoadLocal(value);
     instructions += StoreInstanceField(
-        position, Context::variable_offset(variable->index()));
+        position, Context::variable_offset(variable->index().value()));
     return instructions;
   }
   return StoreLocalRaw(position, variable);
@@ -1962,9 +1970,8 @@ LocalVariable* BaseFlowGraphBuilder::MakeTemporary() {
                             symbol_name, Object::dynamic_type());
   // Set the index relative to the base of the expression stack including
   // outgoing arguments.
-  variable->set_index(kFirstLocalSlotFromFp -
-                      parsed_function_->num_stack_locals() -
-                      pending_argument_count_ - index);
+  variable->set_index(VariableIndex(-parsed_function_->num_stack_locals() -
+                                    pending_argument_count_ - index));
 
   // The value has uses as if it were a local variable.  Mark the definition
   // as used so that its temp index will not be cleared (causing it to never
@@ -2205,16 +2212,6 @@ Fragment FlowGraphBuilder::NativeFunctionBody(intptr_t first_positional_offset,
       body += LoadLocal(LookupVariable(first_positional_offset));
       body += CreateArray();
       break;
-    case MethodRecognizer::kBigint_getDigits:
-      body += LoadLocal(scopes_->this_variable);
-      body += LoadNativeField(kind, Bigint::digits_offset(),
-                              Object::dynamic_type(), kTypedDataUint32ArrayCid);
-      break;
-    case MethodRecognizer::kBigint_getUsed:
-      body += LoadLocal(scopes_->this_variable);
-      body += LoadNativeField(kind, Bigint::used_offset(),
-                              Type::ZoneHandle(Z, Type::SmiType()), kSmiCid);
-      break;
     case MethodRecognizer::kLinkedHashMap_getIndex:
       body += LoadLocal(scopes_->this_variable);
       body += LoadNativeField(kind, LinkedHashMap::index_offset(),
@@ -2277,11 +2274,6 @@ Fragment FlowGraphBuilder::NativeFunctionBody(intptr_t first_positional_offset,
                                  LinkedHashMap::deleted_keys_offset(),
                                  kNoStoreBarrier);
       body += NullConstant();
-      break;
-    case MethodRecognizer::kBigint_getNeg:
-      body += LoadLocal(scopes_->this_variable);
-      body += LoadNativeField(kind, Bigint::neg_offset(),
-                              Type::ZoneHandle(Z, Type::BoolType()), kBoolCid);
       break;
     default: {
       String& name = String::ZoneHandle(Z, function.native_name());
@@ -2837,13 +2829,16 @@ RawObject* EvaluateMetadata(const Field& metadata_field) {
     Script& script = Script::Handle(Z, metadata_field.Script());
     helper.InitFromScript(script);
 
+    const Class& owner_class = Class::Handle(Z, metadata_field.Owner());
+    ActiveClass active_class;
+    ActiveClassScope active_class_scope(&active_class, &owner_class);
+
     StreamingFlowGraphBuilder streaming_flow_graph_builder(
         &helper, Script::Handle(Z, metadata_field.Script()), Z,
         TypedData::Handle(Z, metadata_field.KernelData()),
-        metadata_field.KernelDataProgramOffset());
-    const Class& owner_class = Class::Handle(Z, metadata_field.Owner());
+        metadata_field.KernelDataProgramOffset(), &active_class);
     return streaming_flow_graph_builder.EvaluateMetadata(
-        metadata_field.kernel_offset(), owner_class);
+        metadata_field.kernel_offset());
   } else {
     Thread* thread = Thread::Current();
     Error& error = Error::Handle();
@@ -2865,7 +2860,7 @@ RawObject* BuildParameterDescriptor(const Function& function) {
     StreamingFlowGraphBuilder streaming_flow_graph_builder(
         &helper, Script::Handle(Z, function.script()), Z,
         TypedData::Handle(Z, function.KernelData()),
-        function.KernelDataProgramOffset());
+        function.KernelDataProgramOffset(), /* active_class = */ NULL);
     return streaming_flow_graph_builder.BuildParameterDescriptor(
         function.kernel_offset());
   } else {
@@ -2928,7 +2923,8 @@ static void ProcessTokenPositionsEntry(
   }
 
   StreamingFlowGraphBuilder streaming_flow_graph_builder(
-      helper, script, zone_, kernel_data, data_kernel_offset);
+      helper, script, zone_, kernel_data, data_kernel_offset,
+      /* active_class = */ NULL);
   streaming_flow_graph_builder.CollectTokenPositionsFor(
       script.kernel_script_index(), entry_script.kernel_script_index(),
       kernel_offset, token_positions, yield_positions);

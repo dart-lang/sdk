@@ -10,6 +10,7 @@ import 'dart:collection';
 
 import 'dart:_foreign_helper' show JS, JSExportName, rest, spread;
 import 'dart:_interceptors' show JSArray, jsNull, JSFunction;
+import 'dart:_internal' as internal show Symbol;
 import 'dart:_js_helper'
     show
         AssertionErrorImpl,
@@ -22,8 +23,8 @@ import 'dart:_js_helper'
         ImmutableMap,
         PrivateSymbol,
         ReifyFunctionTypes,
-        NoReifyGeneric;
-import 'dart:_js_helper' as js_helper show notNull;
+        NoReifyGeneric,
+        notNull;
 import 'dart:_debugger' show trackCall;
 
 export 'dart:_debugger'

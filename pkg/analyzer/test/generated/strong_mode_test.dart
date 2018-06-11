@@ -2814,7 +2814,6 @@ class StrongModeStaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared {
     resetWith(options: options);
   }
 
-  @failingTest // https://github.com/dart-lang/sdk/issues/32173
   test_dynamicObjectGetter_hashCode() async {
     String code = r'''
 main() {
@@ -2823,10 +2822,9 @@ main() {
 }
 ''';
     await resolveTestUnit(code);
-    expectInitializerType('foo', 'dynamic', isNull);
+    expectInitializerType('foo', 'int', isNull);
   }
 
-  @failingTest // https://github.com/dart-lang/sdk/issues/32173
   test_dynamicObjectMethod_toString() async {
     String code = r'''
 main() {
@@ -2835,7 +2833,7 @@ main() {
 }
 ''';
     await resolveTestUnit(code);
-    expectInitializerType('foo', 'dynamic', isNull);
+    expectInitializerType('foo', 'String', isNull);
   }
 
   test_futureOr_promotion1() async {

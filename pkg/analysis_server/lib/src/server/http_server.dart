@@ -78,7 +78,11 @@ class HttpAnalysisServer {
   /**
    * Return the port this server is bound to.
    */
-  Future<int> get boundPort async => (await _serverFuture)?.port;
+  Future<int> get boundPort async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+    return (await _serverFuture)?.port;
+  }
 
   void close() {
     _serverFuture?.then((HttpServer server) {
@@ -101,6 +105,8 @@ class HttpAnalysisServer {
    * Begin serving HTTP requests over the given port.
    */
   Future<int> serveHttp([int initialPort]) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     if (_serverFuture != null) {
       return boundPort;
     }
@@ -125,6 +131,8 @@ class HttpAnalysisServer {
    * Handle a GET request received by the HTTP server.
    */
   Future<Null> _handleGetRequest(HttpRequest request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     if (getHandler == null) {
       getHandler = new DiagnosticsSite(socketServer, _printBuffer);
     }
@@ -136,6 +144,8 @@ class HttpAnalysisServer {
    */
   void _handleServer(HttpServer httpServer) {
     httpServer.listen((HttpRequest request) async {
+      // TODO(brianwilkerson) Determine whether this await is necessary.
+      await null;
       List<String> updateValues = request.headers[HttpHeaders.UPGRADE];
       if (request.method == 'GET') {
         await _handleGetRequest(request);

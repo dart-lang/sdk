@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_SCOPES_H_
 #define RUNTIME_VM_SCOPES_H_
 
+#include <limits>
+
 #include "platform/assert.h"
 #include "platform/globals.h"
 #include "vm/allocation.h"
@@ -18,6 +20,54 @@ namespace dart {
 
 class CompileType;
 class LocalScope;
+
+// Indices of [LocalVariable]s are abstract and have little todo with the
+// actual frame layout!
+//
+// There are generally 4 different kinds of [LocalVariable]s:
+//
+//    a) [LocalVariable]s refering to a parameter: The indices for those
+//       variables are assigned by the flow graph builder. Parameter n gets
+//       assigned the index (function.num_parameters - n - 1). I.e. the last
+//       parameter has index 1.
+//
+//    b) [LocalVariable]s referring to actual variables in the body of a
+//       function (either from Dart code or specially injected ones. The
+//       indices of those variables are assigned by the scope builder
+//       from 0, -1, ... -(M-1) for M local variables.
+//
+//       -> These variables participate in full SSA renaming and can therefore
+//          be used with [StoreLocalInstr]s (in addition to [LoadLocal]s).
+//
+//    c) [LocalVariable]s referring to values on the expression stack. Those are
+//       assigned by the flow graph builder. The indices of those variables are
+//       assigned by the flow graph builder (it simulates the expression stack
+//       height), they go from -NumVariabables - ExpressionHeight.
+//
+//       -> These variables participate only partially in SSA renaming and can
+//          therefore only be used with [LoadLocalInstr]s and with
+//          [StoreLocalInstr]s **where no phis are necessary**.
+//
+//    b) [LocalVariable]s referring to captured variables.  Those are never
+//       loaded/stored directly. Their only purpose is to tell the flow graph
+//       builder how many parent links to follow and into which context index to
+//       store.  The indices of those variables are assigned by the scope
+//       builder and they refer to indices into context objects.
+class VariableIndex {
+ public:
+  static const int kInvalidIndex = std::numeric_limits<int>::min();
+
+  explicit VariableIndex(int value = kInvalidIndex) : value_(value) {}
+
+  int operator==(const VariableIndex& other) { return value_ == other.value_; }
+
+  bool IsValid() const { return value_ != kInvalidIndex; }
+
+  int value() const { return value_; }
+
+ private:
+  int value_;
+};
 
 class LocalVariable : public ZoneAllocated {
  public:
@@ -39,7 +89,7 @@ class LocalVariable : public ZoneAllocated {
         is_captured_parameter_(false),
         is_forced_stack_(false),
         type_check_mode_(kDoTypeCheck),
-        index_(LocalVariable::kUninitializedIndex) {
+        index_() {
     ASSERT(type.IsZoneHandle() || type.IsReadOnlyHandle());
     ASSERT(type.IsFinalized());
     ASSERT(name.IsSymbol());
@@ -89,15 +139,15 @@ class LocalVariable : public ZoneAllocated {
 
   void set_type_check_mode(TypeCheckMode mode) { type_check_mode_ = mode; }
 
-  bool HasIndex() const { return index_ != kUninitializedIndex; }
-  int index() const {
+  bool HasIndex() const { return index_.IsValid(); }
+  VariableIndex index() const {
     ASSERT(HasIndex());
     return index_;
   }
 
   // Assign an index to a local.
-  void set_index(int index) {
-    ASSERT(index != kUninitializedIndex);
+  void set_index(VariableIndex index) {
+    ASSERT(index.IsValid());
     index_ = index;
   }
 
@@ -124,12 +174,6 @@ class LocalVariable : public ZoneAllocated {
 
   bool Equals(const LocalVariable& other) const;
 
-  // Map the frame index to a bit-vector index.  Assumes the variable is
-  // allocated to the frame.
-  // var_count is the total number of stack-allocated variables including
-  // all parameters.
-  int BitIndexIn(intptr_t fixed_parameter_count) const;
-
  private:
   static const int kUninitializedIndex = INT_MIN;
 
@@ -151,8 +195,7 @@ class LocalVariable : public ZoneAllocated {
   bool is_captured_parameter_;
   bool is_forced_stack_;
   TypeCheckMode type_check_mode_;
-  int index_;  // Allocation index in words relative to frame pointer (if not
-               // captured), or relative to the context pointer (if captured).
+  VariableIndex index_;
 
   friend class LocalScope;
   DISALLOW_COPY_AND_ASSIGN(LocalVariable);
@@ -334,12 +377,13 @@ class LocalScope : public ZoneAllocated {
   // and not in its children (we do not yet handle register parameters).
   // Locals must be listed after parameters in top scope and in its children.
   // Two locals in different sibling scopes may share the same frame slot.
+  //
   // Return the index of the next available frame slot.
-  int AllocateVariables(int first_parameter_index,
-                        int num_parameters,
-                        int first_frame_index,
-                        LocalScope* context_owner,
-                        bool* found_captured_variables);
+  VariableIndex AllocateVariables(VariableIndex first_parameter_index,
+                                  int num_parameters,
+                                  VariableIndex first_local_index,
+                                  LocalScope* context_owner,
+                                  bool* found_captured_variables);
 
   // Creates variable info for the scope and all its nested scopes.
   // Must be called after AllocateVariables() has been called.

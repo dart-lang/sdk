@@ -2101,6 +2101,19 @@ class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
   }
 
   @override
+  List<ElementAnnotation> get metadata {
+    if (_kernel != null) {
+      _metadata ??=
+          enclosingUnit._kernelContext.buildAnnotations(_kernel.annotations);
+    }
+    if (_unlinkedEnumValue != null) {
+      return _metadata ??=
+          _buildAnnotations(enclosingUnit, _unlinkedEnumValue.annotations);
+    }
+    return super.metadata;
+  }
+
+  @override
   String get name {
     if (_kernelEnumValue != null) {
       return _kernelEnumValue.name.name;

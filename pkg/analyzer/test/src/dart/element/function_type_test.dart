@@ -42,6 +42,8 @@ class FunctionTypeTest {
 
   final listType = _makeListType();
 
+  final intType = new InterfaceTypeImpl(new MockClassElement('int'));
+
   void basicChecks(FunctionType f,
       {element,
       displayName: '() → dynamic',
@@ -58,19 +60,23 @@ class FunctionTypeTest {
       name: isNull}) {
     // DartType properties
     expect(f.displayName, displayName, reason: 'displayName');
-    expect(f.element, element);
+    expect(f.element, element, reason: 'element');
     expect(f.name, name, reason: 'name');
     // ParameterizedType properties
     expect(f.typeArguments, typeArguments, reason: 'typeArguments');
     expect(f.typeParameters, typeParameters, reason: 'typeParameters');
     // FunctionType properties
-    expect(f.namedParameterTypes, namedParameterTypes);
+    expect(f.namedParameterTypes, namedParameterTypes,
+        reason: 'namedParameterTypes');
     expect(f.normalParameterNames, normalParameterNames,
         reason: 'normalParameterNames');
-    expect(f.normalParameterTypes, normalParameterTypes);
-    expect(f.optionalParameterNames, optionalParameterNames);
-    expect(f.optionalParameterTypes, optionalParameterTypes);
-    expect(f.parameters, parameters);
+    expect(f.normalParameterTypes, normalParameterTypes,
+        reason: 'normalParameterTypes');
+    expect(f.optionalParameterNames, optionalParameterNames,
+        reason: 'optionalParameterNames');
+    expect(f.optionalParameterTypes, optionalParameterTypes,
+        reason: 'optionalParameterTypes');
+    expect(f.parameters, parameters, reason: 'parameters');
     expect(f.returnType, returnType ?? same(dynamicType), reason: 'returnType');
     expect(f.typeFormals, typeFormals, reason: 'typeFormals');
   }
@@ -79,25 +85,6 @@ class FunctionTypeTest {
 
   DartType mapOf(DartType keyType, DartType valueType) =>
       mapType.instantiate([keyType, valueType]);
-
-  test_unnamedConstructor_nonTypedef_noTypeArguments() {
-    var e = new MockFunctionTypedElement();
-    FunctionType f = new FunctionTypeImpl(e);
-    basicChecks(f, element: same(e));
-  }
-
-  test_unnamedConstructor_nonTypedef_withTypeArguments() {
-    var t = new MockTypeParameterElement('T');
-    var c = new MockClassElement('C', typeParameters: [t]);
-    var e = new MockMethodElement(c, returnType: t.type);
-    FunctionType f = new FunctionTypeImpl(e);
-    basicChecks(f,
-        element: same(e),
-        typeArguments: [same(t.type)],
-        typeParameters: [same(t)],
-        displayName: '() → T',
-        returnType: same(t.type));
-  }
 
   test_forInstantiatedTypedef_bothTypeParameters() {
     var t = new MockTypeParameterElement('T');
@@ -433,10 +420,217 @@ class FunctionTypeTest {
         typeParameters: [same(t)]);
   }
 
+  test_synthetic() {
+    FunctionType f = new FunctionTypeImpl.synthetic(dynamicType, [], []);
+    basicChecks(f, element: isNull);
+  }
+
+  test_synthetic_instantiate() {
+    // T Function<T>(T x)
+    var t = new MockTypeParameterElement('T');
+    var x = new MockParameterElement('x', type: t.type);
+    FunctionType f = new FunctionTypeImpl.synthetic(t.type, [t], [x]);
+    FunctionType instantiated = f.instantiate([objectType]);
+    basicChecks(instantiated,
+        element: isNull,
+        displayName: '(Object) → Object',
+        returnType: same(objectType),
+        normalParameterNames: ['x'],
+        normalParameterTypes: [same(objectType)],
+        parameters: hasLength(1));
+  }
+
+  test_synthetic_instantiate_argument_length_mismatch() {
+    // dynamic Function<T>()
+    var t = new MockTypeParameterElement('T');
+    FunctionType f = new FunctionTypeImpl.synthetic(dynamicType, [t], []);
+    expect(() => f.instantiate([]), throwsA(new isInstanceOf<ArgumentError>()));
+  }
+
+  test_synthetic_instantiate_no_type_formals() {
+    FunctionType f = new FunctionTypeImpl.synthetic(dynamicType, [], []);
+    expect(f.instantiate([]), same(f));
+  }
+
+  test_synthetic_instantiate_share_parameters() {
+    // T Function<T>(int x)
+    var t = new MockTypeParameterElement('T');
+    var x = new MockParameterElement('x', type: intType);
+    FunctionType f = new FunctionTypeImpl.synthetic(t.type, [t], [x]);
+    FunctionType instantiated = f.instantiate([objectType]);
+    basicChecks(instantiated,
+        element: isNull,
+        displayName: '(int) → Object',
+        returnType: same(objectType),
+        normalParameterNames: ['x'],
+        normalParameterTypes: [same(intType)],
+        parameters: same(f.parameters));
+  }
+
+  test_synthetic_namedParameter() {
+    var p = new MockParameterElement('x',
+        type: objectType, parameterKind: ParameterKind.NAMED);
+    FunctionType f = new FunctionTypeImpl.synthetic(dynamicType, [], [p]);
+    basicChecks(f,
+        element: isNull,
+        displayName: '({x: Object}) → dynamic',
+        namedParameterTypes: {'x': same(objectType)},
+        parameters: hasLength(1));
+    expect(f.parameters[0].isNamed, isTrue);
+    expect(f.parameters[0].name, 'x');
+    expect(f.parameters[0].type, same(objectType));
+  }
+
+  test_synthetic_normalParameter() {
+    var p = new MockParameterElement('x', type: objectType);
+    FunctionType f = new FunctionTypeImpl.synthetic(dynamicType, [], [p]);
+    basicChecks(f,
+        element: isNull,
+        displayName: '(Object) → dynamic',
+        normalParameterNames: ['x'],
+        normalParameterTypes: [same(objectType)],
+        parameters: hasLength(1));
+    expect(f.parameters[0].isNotOptional, isTrue);
+    expect(f.parameters[0].name, 'x');
+    expect(f.parameters[0].type, same(objectType));
+  }
+
+  test_synthetic_optionalParameter() {
+    var p = new MockParameterElement('x',
+        type: objectType, parameterKind: ParameterKind.POSITIONAL);
+    FunctionType f = new FunctionTypeImpl.synthetic(dynamicType, [], [p]);
+    basicChecks(f,
+        element: isNull,
+        displayName: '([Object]) → dynamic',
+        optionalParameterNames: ['x'],
+        optionalParameterTypes: [same(objectType)],
+        parameters: hasLength(1));
+    expect(f.parameters[0].isOptionalPositional, isTrue);
+    expect(f.parameters[0].name, 'x');
+    expect(f.parameters[0].type, same(objectType));
+  }
+
+  test_synthetic_returnType() {
+    FunctionType f = new FunctionTypeImpl.synthetic(objectType, [], []);
+    basicChecks(f,
+        element: isNull,
+        displayName: '() → Object',
+        returnType: same(objectType));
+  }
+
+  test_synthetic_substitute() {
+    // Map<T, U> Function<U extends T>(T x, U y)
+    var t = new MockTypeParameterElement('T');
+    var u = new MockTypeParameterElement('U', bound: t.type);
+    var x = new MockParameterElement('x', type: t.type);
+    var y = new MockParameterElement('y', type: u.type);
+    FunctionType f =
+        new FunctionTypeImpl.synthetic(mapOf(t.type, u.type), [u], [x, y]);
+    FunctionType substituted = f.substitute2([objectType], [t.type]);
+    var uSubstituted = substituted.typeFormals[0];
+    basicChecks(substituted,
+        element: isNull,
+        displayName: '<U extends Object>(Object, U) → Map<Object, U>',
+        returnType: mapOf(objectType, uSubstituted.type),
+        typeFormals: [uSubstituted],
+        normalParameterNames: ['x', 'y'],
+        normalParameterTypes: [same(objectType), same(uSubstituted.type)],
+        parameters: hasLength(2));
+  }
+
+  test_synthetic_substitute_argument_length_mismatch() {
+    // dynamic Function()
+    var t = new MockTypeParameterElement('T');
+    FunctionType f = new FunctionTypeImpl.synthetic(dynamicType, [], []);
+    expect(() => f.substitute2([], [t.type]),
+        throwsA(new isInstanceOf<ArgumentError>()));
+  }
+
+  test_synthetic_substitute_share_returnType_and_parameters() {
+    // int Function<U extends T>(int x)
+    var t = new MockTypeParameterElement('T');
+    var u = new MockTypeParameterElement('U', bound: t.type);
+    var x = new MockParameterElement('x', type: intType);
+    FunctionType f = new FunctionTypeImpl.synthetic(intType, [u], [x]);
+    FunctionType substituted = f.substitute2([objectType], [t.type]);
+    basicChecks(substituted,
+        element: isNull,
+        displayName: '<U extends Object>(int) → int',
+        returnType: same(f.returnType),
+        typeFormals: hasLength(1),
+        normalParameterNames: ['x'],
+        normalParameterTypes: [same(intType)],
+        parameters: same(f.parameters));
+    expect(substituted.typeFormals[0].name, 'U');
+    expect(substituted.typeFormals[0].bound, same(objectType));
+  }
+
+  test_synthetic_substitute_share_returnType_and_typeFormals() {
+    // int Function<U>(T x, U y)
+    var t = new MockTypeParameterElement('T');
+    var u = new MockTypeParameterElement('U');
+    var x = new MockParameterElement('x', type: t.type);
+    var y = new MockParameterElement('y', type: u.type);
+    FunctionType f = new FunctionTypeImpl.synthetic(intType, [u], [x, y]);
+    FunctionType substituted = f.substitute2([objectType], [t.type]);
+    basicChecks(substituted,
+        element: isNull,
+        displayName: '<U>(Object, U) → int',
+        returnType: same(f.returnType),
+        typeFormals: same(f.typeFormals),
+        normalParameterNames: ['x', 'y'],
+        normalParameterTypes: [same(objectType), same(u.type)],
+        parameters: hasLength(2));
+  }
+
+  test_synthetic_substitute_share_typeFormals_and_parameters() {
+    // T Function<U>(U x)
+    var t = new MockTypeParameterElement('T');
+    var u = new MockTypeParameterElement('U');
+    var x = new MockParameterElement('x', type: u.type);
+    FunctionType f = new FunctionTypeImpl.synthetic(t.type, [u], [x]);
+    FunctionType substituted = f.substitute2([objectType], [t.type]);
+    basicChecks(substituted,
+        element: isNull,
+        displayName: '<U>(U) → Object',
+        returnType: same(objectType),
+        typeFormals: same(f.typeFormals),
+        normalParameterNames: ['x'],
+        normalParameterTypes: [same(u.type)],
+        parameters: same(f.parameters));
+  }
+
+  test_synthetic_substitute_unchanged() {
+    // dynamic Function<U>(U x)
+    var t = new MockTypeParameterElement('T');
+    var u = new MockTypeParameterElement('U');
+    var x = new MockParameterElement('x', type: u.type);
+    FunctionType f = new FunctionTypeImpl.synthetic(dynamicType, [u], [x]);
+    FunctionType substituted = f.substitute2([objectType], [t.type]);
+    expect(substituted, same(f));
+  }
+
+  test_synthetic_typeFormals() {
+    var t = new MockTypeParameterElement('T');
+    FunctionType f = new FunctionTypeImpl.synthetic(t.type, [t], []);
+    basicChecks(f,
+        element: isNull,
+        displayName: '<T>() → T',
+        returnType: same(t.type),
+        typeFormals: [same(t)]);
+  }
+
   test_unnamedConstructor() {
     var e = new MockFunctionTypedElement();
     FunctionType f = new FunctionTypeImpl(e);
     basicChecks(f, element: same(e));
+  }
+
+  test_unnamedConstructor_instantiate_argument_length_mismatch() {
+    var t = new MockTypeParameterElement('T');
+    var e = new MockFunctionTypedElement(typeParameters: [t]);
+    FunctionType f = new FunctionTypeImpl(e);
+    expect(() => f.instantiate([]), throwsA(new isInstanceOf<ArgumentError>()));
   }
 
   test_unnamedConstructor_instantiate_noop() {
@@ -454,7 +648,6 @@ class FunctionTypeTest {
         normalParameterTypes: [same(t.type)],
         parameters: [same(p)]);
     expect(instantiated.typeArguments[0], same(t.type));
-    // TODO(paulberry): test instantiate length mismatch
   }
 
   test_unnamedConstructor_instantiate_noTypeParameters() {
@@ -518,6 +711,25 @@ class FunctionTypeTest {
         displayName: '({x: Object}) → dynamic',
         namedParameterTypes: {'x': same(objectType)},
         parameters: [same(p)]);
+  }
+
+  test_unnamedConstructor_nonTypedef_noTypeArguments() {
+    var e = new MockFunctionTypedElement();
+    FunctionType f = new FunctionTypeImpl(e);
+    basicChecks(f, element: same(e));
+  }
+
+  test_unnamedConstructor_nonTypedef_withTypeArguments() {
+    var t = new MockTypeParameterElement('T');
+    var c = new MockClassElement('C', typeParameters: [t]);
+    var e = new MockMethodElement(c, returnType: t.type);
+    FunctionType f = new FunctionTypeImpl(e);
+    basicChecks(f,
+        element: same(e),
+        typeArguments: [same(t.type)],
+        typeParameters: [same(t)],
+        displayName: '() → T',
+        returnType: same(t.type));
   }
 
   test_unnamedConstructor_normalParameter() {
@@ -596,6 +808,18 @@ class FunctionTypeTest {
     basicChecks(f, element: same(e));
   }
 
+  test_unnamedConstructor_substitute_argument_length_mismatch() {
+    // abstract class C<T> {
+    //   dynamic f();
+    // }
+    var t = new MockTypeParameterElement('T');
+    var c = new MockClassElement('C', typeParameters: [t]);
+    var e = new MockFunctionTypedElement(enclosingElement: c);
+    FunctionType f = new FunctionTypeImpl(e);
+    expect(() => f.substitute2([], [t.type]),
+        throwsA(new isInstanceOf<ArgumentError>()));
+  }
+
   test_unnamedConstructor_substitute_bound_recursive() {
     // abstract class C<T> {
     //   Map<S, V> f<S extends T, T extends U, V extends T>();
@@ -641,6 +865,62 @@ class FunctionTypeTest {
       expect(substituted.returnType, mapOf(s2.type, v2.type));
     } else {
       expect(substituted.returnType, mapOf(s.type, v.type));
+    }
+  }
+
+  test_unnamedConstructor_substitute_bound_recursive_parameter() {
+    // abstract class C<T> {
+    //   void f<S extends T, T extends U, V extends T>(S x, V y);
+    // }
+    var s = new MockTypeParameterElement('S');
+    var t = new MockTypeParameterElement('T');
+    var u = new MockTypeParameterElement('U');
+    var v = new MockTypeParameterElement('V');
+    s.bound = t.type;
+    t.bound = u.type;
+    v.bound = t.type;
+    var c = new MockClassElement('C', typeParameters: [u]);
+    var x = new MockParameterElement('x', type: s.type);
+    var y = new MockParameterElement('y', type: v.type);
+    var e = new MockFunctionTypedElement(
+        returnType: voidType,
+        typeParameters: [s, t, v],
+        enclosingElement: c,
+        parameters: [x, y]);
+    FunctionType f = new FunctionTypeImpl(e);
+    var substituted = f.substitute2([objectType], [u.type]);
+    basicChecks(substituted,
+        element: same(e),
+        displayName: isNotNull,
+        returnType: same(voidType),
+        normalParameterNames: ['x', 'y'],
+        normalParameterTypes: hasLength(2),
+        parameters: hasLength(2),
+        typeFormals: hasLength(3),
+        typeParameters: [same(u)],
+        typeArguments: [same(objectType)]);
+    if (bug_33300_fixed) {
+      expect(substituted.displayName,
+          '<S extends T,T extends Object,V extends T>(S, V) → void');
+    } else {
+      expect(
+          substituted.displayName,
+          '<S extends T extends Object,T extends Object,V extends T>(S, V) '
+          '→ void');
+    }
+    var s2 = substituted.typeFormals[0];
+    var t2 = substituted.typeFormals[1];
+    var v2 = substituted.typeFormals[2];
+    expect(s2.name, 'S');
+    expect(t2.name, 'T');
+    expect(v2.name, 'V');
+    expect(s2.bound, t2.type);
+    expect(t2.bound, same(objectType));
+    expect(v2.bound, t2.type);
+    if (bug_33301_fixed) {
+      expect(substituted.normalParameterTypes, [same(s2.type), same(v2.type)]);
+    } else {
+      expect(substituted.normalParameterTypes, [same(s.type), same(v.type)]);
     }
   }
 
@@ -775,7 +1055,7 @@ class FunctionTypeTest {
   }
 }
 
-class MockClassElement implements ClassElement {
+class MockClassElement implements ClassElementImpl {
   @override
   final List<TypeParameterElement> typeParameters;
 
@@ -939,7 +1219,10 @@ class MockMethodElement extends MockFunctionTypedElement
   ClassElement get enclosingElement => super.enclosingElement;
 }
 
-class MockParameterElement implements ParameterElement {
+class MockParameterElement implements ParameterElementImpl {
+  @override
+  Element enclosingElement;
+
   @override
   final String name;
 

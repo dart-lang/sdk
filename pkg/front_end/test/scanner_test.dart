@@ -1279,7 +1279,7 @@ abstract class ScannerTestBase {
       new StringToken(TokenType.STRING, "", 3),
       new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 3),
     ];
-    var expectedErrors = [];
+    var expectedErrors = <TestError>[];
     if (usingFasta) {
       // Fasta scanner inserts a synthetic identifier
       expectedTokens.addAll([
@@ -1305,7 +1305,7 @@ abstract class ScannerTestBase {
       new StringToken(TokenType.STRING, "'", 0),
       new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 1),
     ];
-    var expectedErrors = [];
+    var expectedErrors = <TestError>[];
     if (usingFasta) {
       expectedTokens.addAll([
         new SyntheticStringToken(TokenType.IDENTIFIER, "", 2),

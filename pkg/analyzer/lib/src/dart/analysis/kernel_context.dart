@@ -78,7 +78,11 @@ class KernelContext {
       SourceFactory sourceFactory,
       FileSystemState fsState,
       FrontEndCompiler compiler) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     return logger.runAsync('Create kernel context', () async {
+      // TODO(brianwilkerson) Determine whether this await is necessary.
+      await null;
       Uri targetUri = targetLibrary.uri;
       LibraryCompilationResult compilationResult =
           await compiler.compile(targetUri);

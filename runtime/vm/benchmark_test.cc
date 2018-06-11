@@ -301,6 +301,10 @@ BENCHMARK(UseDartApi) {
   benchmark->set_score(elapsed_time);
 }
 
+static void NoopFinalizer(void* isolate_callback_data,
+                          Dart_WeakPersistentHandle handle,
+                          void* peer) {}
+
 //
 // Measure time accessing internal and external strings.
 //
@@ -316,7 +320,8 @@ BENCHMARK(DartStringAccess) {
   intptr_t char_size;
   intptr_t str_len;
   Dart_Handle external_string = Dart_NewExternalLatin1String(
-      data8, ARRAY_SIZE(data8), &external_peer_data, NULL);
+      data8, ARRAY_SIZE(data8), &external_peer_data, sizeof(data8),
+      NoopFinalizer);
   Dart_Handle internal_string = NewString("two");
 
   // Run benchmark.

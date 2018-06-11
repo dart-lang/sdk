@@ -33,8 +33,6 @@ typedef void ExitHandler(int code);
 
 /// Analyzer commandline configuration options.
 class CommandLineOptions {
-  final bool enableNewAnalysisDriver = true;
-
   /// Whether declaration casts are enabled (in strong mode)
   final bool declarationCasts;
 

@@ -604,7 +604,8 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
 
   @override
   ConstantExpression visitIntLiteral(ir.IntLiteral node) {
-    return new IntConstantExpression(new BigInt.from(node.value));
+    return new IntConstantExpression(
+        new BigInt.from(node.value).toUnsigned(64));
   }
 
   @override

@@ -21,6 +21,8 @@ class AnalysisSessionHelper {
   /// from the library with the given [libraryUri], or `null` if the library
   /// does not export a class with such name.
   Future<ClassElement> getClass(String libraryUri, String className) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     var libraryElement = await session.getLibraryByUri(libraryUri);
     var element = libraryElement.exportNamespace.get(className);
     if (element is ClassElement) {
@@ -35,6 +37,8 @@ class AnalysisSessionHelper {
   /// library does not export a top-level accessor with such name.
   Future<PropertyAccessorElement> getTopLevelPropertyAccessor(
       String uri, String name) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     var libraryElement = await session.getLibraryByUri(uri);
     var element = libraryElement.exportNamespace.get(name);
     if (element is PropertyAccessorElement) {

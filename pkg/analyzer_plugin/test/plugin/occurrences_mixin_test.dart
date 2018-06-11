@@ -120,8 +120,7 @@ class _TestServerPlugin extends MockServerPlugin with OccurrencesMixin {
 
   @override
   Future<OccurrencesRequest> getOccurrencesRequest(String path) async {
-    AnalysisResult result = new AnalysisResult(
-        null, null, path, null, null, null, null, null, null, null, null);
+    AnalysisResult result = new MockAnalysisResult(path: path);
     return new DartOccurrencesRequestImpl(resourceProvider, result);
   }
 }

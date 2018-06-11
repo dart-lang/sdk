@@ -217,6 +217,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
       constantField.isStatic = true;
       constantField.isConst = true;
       constantField.type = enumType;
+      constantField.metadata = _createElementAnnotations(constant.metadata);
       setElementDocumentationComment(constantField, constant);
       fields.add(constantField);
       new PropertyAccessorElementImpl_ImplicitGetter(constantField);

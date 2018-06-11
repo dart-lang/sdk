@@ -551,16 +551,16 @@ Bytecode {
   PushConstant         CP#15
   IndirectStaticCall   1, CP#9
   Drop1
-  PushConstant         CP#17
+  PushConstant         CP#16
   Push                 FP[-8]
-  InstantiateTypeArgumentsTOS 1, CP#16
+  InstantiateTypeArgumentsTOS 1, CP#17
   PushConstant         CP#18
   PushConstant         CP#19
   IndirectStaticCall   2, CP#7
   PushConstant         CP#20
   IndirectStaticCall   1, CP#9
   Drop1
-  PushConstant         CP#17
+  PushConstant         CP#16
   Push                 FP[-8]
   InstantiateTypeArgumentsTOS 1, CP#21
   PushConstant         CP#1
@@ -580,7 +580,7 @@ Bytecode {
   PushConstant         CP#23
   IndirectStaticCall   1, CP#9
   Drop1
-  PushConstant         CP#17
+  PushConstant         CP#16
   ReturnTOS
 }
 ConstantPool {
@@ -600,8 +600,8 @@ ConstantPool {
   [13] = ICData target-name 'toString', arg-desc CP#9
   [14] = StaticICData target 'dart.core::Map::_fromLiteral', arg-desc CP#7
   [15] = StaticICData target 'dart.core::print', arg-desc CP#9
-  [16] = TypeArgs [dart.core::String, #lib::test_map_literal::T]
-  [17] = Null
+  [16] = Null
+  [17] = TypeArgs [dart.core::String, #lib::test_map_literal::T]
   [18] = List type-arg dynamic, entries CP# []
   [19] = StaticICData target 'dart.core::Map::_fromLiteral', arg-desc CP#7
   [20] = StaticICData target 'dart.core::print', arg-desc CP#9

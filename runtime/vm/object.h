@@ -1221,13 +1221,6 @@ class Class : public Object {
   RawDouble* LookupCanonicalDouble(Zone* zone, double value) const;
   RawMint* LookupCanonicalMint(Zone* zone, int64_t value) const;
 
-  // Returns an instance of Bigint or Bigint::null().
-  // 'index' points to either:
-  // - constants_list_ position of found element, or
-  // - constants_list_ position where new canonical can be inserted.
-  RawBigint* LookupCanonicalBigint(Zone* zone,
-                                   const Bigint& value,
-                                   intptr_t* index) const;
   // The methods above are more efficient than this generic one.
   RawInstance* LookupCanonicalInstance(Zone* zone, const Instance& value) const;
 
@@ -1235,9 +1228,6 @@ class Class : public Object {
                                        const Instance& constant) const;
   void InsertCanonicalDouble(Zone* zone, const Double& constant) const;
   void InsertCanonicalMint(Zone* zone, const Mint& constant) const;
-  void InsertCanonicalBigint(Zone* zone,
-                             intptr_t index,
-                             const Bigint& constant) const;
 
   void RehashConstants(Zone* zone) const;
 
@@ -1389,6 +1379,12 @@ class Class : public Object {
                       const Array& param_values,
                       const Array& type_param_names,
                       const TypeArguments& type_param_values) const;
+  RawObject* EvaluateCompiledExpression(
+      const uint8_t* kernel_bytes,
+      intptr_t kernel_length,
+      const Array& type_definitions,
+      const Array& param_values,
+      const TypeArguments& type_param_values) const;
 
   RawError* EnsureIsFinalized(Thread* thread) const;
 
@@ -3759,6 +3755,13 @@ class Library : public Object {
                       const Array& type_param_names,
                       const TypeArguments& type_arguments) const;
 
+  RawObject* EvaluateCompiledExpression(
+      const uint8_t* kernel_bytes,
+      intptr_t kernel_length,
+      const Array& type_definitions,
+      const Array& param_values,
+      const TypeArguments& type_param_values) const;
+
   // Library scope name dictionary.
   //
   // TODO(turnidge): The Lookup functions are not consistent in how
@@ -5633,6 +5636,14 @@ class Instance : public Object {
                       const Array& type_param_names,
                       const TypeArguments& type_param_values) const;
 
+  RawObject* EvaluateCompiledExpression(
+      const Class& method_cls,
+      const uint8_t* kernel_bytes,
+      intptr_t kernel_length,
+      const Array& type_definitions,
+      const Array& param_values,
+      const TypeArguments& type_param_values) const;
+
   // Equivalent to invoking hashCode on this instance.
   virtual RawObject* HashCode() const;
 
@@ -6780,13 +6791,13 @@ class Integer : public Number {
   static RawInteger* New(const String& str, Heap::Space space = Heap::kNew);
 
   // Creates a new Integer by given uint64_t value.
-  // In the --limit-ints-to-64-bits mode silently casts value to int64_t
-  // (with wrap-around if it is greater than kMaxInt64).
+  // Silently casts value to int64_t with wrap-around if it is greater
+  // than kMaxInt64.
   static RawInteger* NewFromUint64(uint64_t value,
                                    Heap::Space space = Heap::kNew);
 
   // Returns a canonical Integer object allocated in the old gen space.
-  // Returns null if integer is out of range (in --limit-ints-to-64-bits mode).
+  // Returns null if integer is out of range.
   static RawInteger* NewCanonical(const String& str);
 
   static RawInteger* New(int64_t value, Heap::Space space = Heap::kNew);
@@ -6819,9 +6830,7 @@ class Integer : public Number {
   virtual int CompareWith(const Integer& other) const;
 
   // Converts integer to hex string.
-  // TODO(alexmarkov): this method can become non-virtual once Bigint class is
-  // decoupled from Integer hierarchy.
-  virtual const char* ToHexCString(Zone* zone) const;
+  const char* ToHexCString(Zone* zone) const;
 
   // Return the most compact presentation of an integer.
   RawInteger* AsValidInteger() const;
@@ -6965,107 +6974,6 @@ class Mint : public Integer {
   MINT_OBJECT_IMPLEMENTATION(Mint, Integer, Integer);
   friend class Class;
   friend class Number;
-};
-
-class Bigint : public Integer {
- public:
-  virtual bool IsZero() const { return Used() == 0; }
-  virtual bool IsNegative() const { return Neg(); }
-  virtual bool Equals(const Instance& other) const;
-
-  virtual double AsDoubleValue() const;
-  virtual int64_t AsInt64Value() const;
-  virtual int64_t AsTruncatedInt64Value() const;
-  virtual uint32_t AsTruncatedUint32Value() const;
-
-  virtual int CompareWith(const Integer& other) const;
-
-  virtual const char* ToHexCString(Zone* zone) const;
-
-  virtual bool CheckAndCanonicalizeFields(Thread* thread,
-                                          const char** error_str) const;
-
-  virtual bool FitsIntoSmi() const;
-  bool FitsIntoInt64() const;
-  bool FitsIntoUint64() const;
-  uint64_t AsUint64Value() const;
-
-  static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(RawBigint));
-  }
-
-  // Offsets of fields accessed directly by optimized code.
-  static intptr_t neg_offset() { return OFFSET_OF(RawBigint, neg_); }
-  static intptr_t used_offset() { return OFFSET_OF(RawBigint, used_); }
-  static intptr_t digits_offset() { return OFFSET_OF(RawBigint, digits_); }
-
-  // Accessors used by native calls from Dart.
-  RawBool* neg() const { return raw_ptr()->neg_; }
-  RawSmi* used() const { return raw_ptr()->used_; }
-  RawTypedData* digits() const { return raw_ptr()->digits_; }
-
-  // Accessors used by runtime calls from C++.
-  bool Neg() const;
-  intptr_t Used() const;
-  uint32_t DigitAt(intptr_t index) const;
-
-  const char* ToDecCString(Zone* zone) const;
-
-  static const intptr_t kBitsPerDigit = 32;  // Same as _Bigint._DIGIT_BITS
-  static const intptr_t kBytesPerDigit = 4;
-  static const int64_t kDigitBase = 1LL << kBitsPerDigit;
-  static const int64_t kDigitMask = kDigitBase - 1;
-
-  static RawBigint* New(Heap::Space space = Heap::kNew);  // For snapshots.
-
-  static RawBigint* New(bool neg,
-                        intptr_t used,
-                        const TypedData& digits,
-                        Heap::Space space = Heap::kNew);
-
-  static RawBigint* NewFromInt64(int64_t value, Heap::Space space = Heap::kNew);
-
-  static RawBigint* NewFromUint64(uint64_t value,
-                                  Heap::Space space = Heap::kNew);
-
-  static RawBigint* NewFromShiftedInt64(int64_t value,
-                                        intptr_t shift,
-                                        Heap::Space space = Heap::kNew);
-
-  static RawBigint* NewFromCString(const char* str,
-                                   Heap::Space space = Heap::kNew);
-
-  // Returns a canonical Bigint object allocated in the old gen space.
-  static RawBigint* NewCanonical(const String& str);
-
-  // Returns true if Bigint can't be instantiated.
-  static bool IsDisabled() { return FLAG_limit_ints_to_64_bits; }
-
- private:
-  void SetNeg(bool value) const;
-  void SetUsed(intptr_t value) const;
-  void set_digits(const TypedData& value) const;
-
-  // Convenience helpers.
-  static RawTypedData* NewDigits(intptr_t length,
-                                 Heap::Space space = Heap::kNew);
-  static uint32_t DigitAt(const TypedData& digits, intptr_t index);
-  static void SetDigitAt(const TypedData& digits,
-                         intptr_t index,
-                         uint32_t value);
-
-  static RawTypedData* NewDigitsFromHexCString(const char* str,
-                                               intptr_t* used,
-                                               Heap::Space space = Heap::kNew);
-
-  static RawTypedData* NewDigitsFromDecCString(const char* str,
-                                               intptr_t* used,
-                                               Heap::Space space = Heap::kNew);
-
-  static RawBigint* Allocate(intptr_t length, Heap::Space space = Heap::kNew);
-
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(Bigint, Integer);
-  friend class Class;
 };
 
 // Class Double represents class Double in corelib_impl, which implements
@@ -7303,7 +7211,8 @@ class String : public Instance {
   static RawString* NewExternal(const uint8_t* utf8_array,
                                 intptr_t array_len,
                                 void* peer,
-                                Dart_PeerFinalizer callback,
+                                intptr_t external_allocation_size,
+                                Dart_WeakPersistentHandleFinalizer callback,
                                 Heap::Space = Heap::kNew);
 
   // Creates a new External String object using the specified array of
@@ -7311,7 +7220,8 @@ class String : public Instance {
   static RawString* NewExternal(const uint16_t* utf16_array,
                                 intptr_t array_len,
                                 void* peer,
-                                Dart_PeerFinalizer callback,
+                                intptr_t external_allocation_size,
+                                Dart_WeakPersistentHandleFinalizer callback,
                                 Heap::Space = Heap::kNew);
 
   static void Copy(const String& dst,
@@ -7537,13 +7447,9 @@ class OneByteString : public AllStatic {
                                               Heap::Space space);
 
   static void SetPeer(const String& str,
-                      intptr_t external_size,
                       void* peer,
-                      Dart_PeerFinalizer cback);
-
-  static void Finalize(void* isolate_callback_data,
-                       Dart_WeakPersistentHandle handle,
-                       void* peer);
+                      intptr_t external_allocation_size,
+                      Dart_WeakPersistentHandleFinalizer callback);
 
   static const ClassId kClassId = kOneByteStringCid;
 
@@ -7664,13 +7570,9 @@ class TwoByteString : public AllStatic {
                                      Heap::Space space);
 
   static void SetPeer(const String& str,
-                      intptr_t external_size,
                       void* peer,
-                      Dart_PeerFinalizer cback);
-
-  static void Finalize(void* isolate_callback_data,
-                       Dart_WeakPersistentHandle handle,
-                       void* peer);
+                      intptr_t external_allocation_size,
+                      Dart_WeakPersistentHandleFinalizer callback);
 
   static RawTwoByteString* null() {
     return reinterpret_cast<RawTwoByteString*>(Object::null());
@@ -7719,9 +7621,7 @@ class ExternalOneByteString : public AllStatic {
     return *CharAddr(str, index);
   }
 
-  static void* GetPeer(const String& str) {
-    return raw_ptr(str)->external_data_->peer();
-  }
+  static void* GetPeer(const String& str) { return raw_ptr(str)->peer_; }
 
   static intptr_t external_data_offset() {
     return OFFSET_OF(RawExternalOneByteString, external_data_);
@@ -7735,11 +7635,13 @@ class ExternalOneByteString : public AllStatic {
     return String::RoundedAllocationSize(sizeof(RawExternalOneByteString));
   }
 
-  static RawExternalOneByteString* New(const uint8_t* characters,
-                                       intptr_t len,
-                                       void* peer,
-                                       Dart_PeerFinalizer callback,
-                                       Heap::Space space);
+  static RawExternalOneByteString* New(
+      const uint8_t* characters,
+      intptr_t len,
+      void* peer,
+      intptr_t external_allocation_size,
+      Dart_WeakPersistentHandleFinalizer callback,
+      Heap::Space space);
 
   static RawExternalOneByteString* null() {
     return reinterpret_cast<RawExternalOneByteString*>(Object::null());
@@ -7763,20 +7665,22 @@ class ExternalOneByteString : public AllStatic {
   static const uint8_t* CharAddr(const String& str, intptr_t index) {
     ASSERT((index >= 0) && (index < str.Length()));
     ASSERT(str.IsExternalOneByteString());
-    return &(raw_ptr(str)->external_data_->data()[index]);
+    return &(raw_ptr(str)->external_data_[index]);
   }
 
   static const uint8_t* DataStart(const String& str) {
     ASSERT(str.IsExternalOneByteString());
-    return &(raw_ptr(str)->external_data_->data()[0]);
+    return raw_ptr(str)->external_data_;
   }
 
   static void SetExternalData(const String& str,
-                              ExternalStringData<uint8_t>* data) {
+                              const uint8_t* data,
+                              void* peer) {
     ASSERT(str.IsExternalOneByteString());
-    ASSERT(!Isolate::Current()->heap()->Contains(
-        reinterpret_cast<uword>(data->data())));
+    ASSERT(
+        !Isolate::Current()->heap()->Contains(reinterpret_cast<uword>(data)));
     str.StoreNonPointer(&raw_ptr(str)->external_data_, data);
+    str.StoreNonPointer(&raw_ptr(str)->peer_, peer);
   }
 
   static void Finalize(void* isolate_callback_data,
@@ -7808,9 +7712,7 @@ class ExternalTwoByteString : public AllStatic {
     return *CharAddr(str, index);
   }
 
-  static void* GetPeer(const String& str) {
-    return raw_ptr(str)->external_data_->peer();
-  }
+  static void* GetPeer(const String& str) { return raw_ptr(str)->peer_; }
 
   static intptr_t external_data_offset() {
     return OFFSET_OF(RawExternalTwoByteString, external_data_);
@@ -7824,11 +7726,13 @@ class ExternalTwoByteString : public AllStatic {
     return String::RoundedAllocationSize(sizeof(RawExternalTwoByteString));
   }
 
-  static RawExternalTwoByteString* New(const uint16_t* characters,
-                                       intptr_t len,
-                                       void* peer,
-                                       Dart_PeerFinalizer callback,
-                                       Heap::Space space = Heap::kNew);
+  static RawExternalTwoByteString* New(
+      const uint16_t* characters,
+      intptr_t len,
+      void* peer,
+      intptr_t external_allocation_size,
+      Dart_WeakPersistentHandleFinalizer callback,
+      Heap::Space space = Heap::kNew);
 
   static RawExternalTwoByteString* null() {
     return reinterpret_cast<RawExternalTwoByteString*>(Object::null());
@@ -7848,20 +7752,22 @@ class ExternalTwoByteString : public AllStatic {
   static const uint16_t* CharAddr(const String& str, intptr_t index) {
     ASSERT((index >= 0) && (index < str.Length()));
     ASSERT(str.IsExternalTwoByteString());
-    return &(raw_ptr(str)->external_data_->data()[index]);
+    return &(raw_ptr(str)->external_data_[index]);
   }
 
   static const uint16_t* DataStart(const String& str) {
     ASSERT(str.IsExternalTwoByteString());
-    return &(raw_ptr(str)->external_data_->data()[0]);
+    return raw_ptr(str)->external_data_;
   }
 
   static void SetExternalData(const String& str,
-                              ExternalStringData<uint16_t>* data) {
+                              const uint16_t* data,
+                              void* peer) {
     ASSERT(str.IsExternalTwoByteString());
-    ASSERT(!Isolate::Current()->heap()->Contains(
-        reinterpret_cast<uword>(data->data())));
+    ASSERT(
+        !Isolate::Current()->heap()->Contains(reinterpret_cast<uword>(data)));
     str.StoreNonPointer(&raw_ptr(str)->external_data_, data);
+    str.StoreNonPointer(&raw_ptr(str)->peer_, peer);
   }
 
   static void Finalize(void* isolate_callback_data,

@@ -10,9 +10,11 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../../generated/parser_test.dart';
 import 'body_builder_test_helper.dart';
 
-main() async {
-  defineReflectiveSuite(() {
-    defineReflectiveTests(ResolutionTest);
+main() {
+  return CompilerTestContext.runWithTestOptions((_) {
+    defineReflectiveSuite(() {
+      defineReflectiveTests(ResolutionTest);
+    });
   });
 }
 

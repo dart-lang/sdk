@@ -231,6 +231,54 @@ class Test extends StatelessWidget {
 ''');
   }
 
+  test_expression_selection() async {
+    addFlutterPackage();
+    await indexTestUnit('''
+import 'package:flutter/material.dart';
+
+Widget main() {
+  return new Container();
+}
+''');
+
+    Future<void> assertResult(String str) async {
+      int offset = findOffset(str);
+      _createRefactoring(offset, str.length);
+
+      await _assertSuccessfulRefactoring('''
+import 'package:flutter/material.dart';
+
+Widget main() {
+  return new Test();
+}
+
+class Test extends StatelessWidget {
+  const Test({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return new Container();
+  }
+}
+''');
+    }
+
+    await assertResult('Container');
+    await assertResult('new Container');
+    await assertResult('new Container(');
+    await assertResult('new Container()');
+    await assertResult('new Container();');
+    await assertResult('taine');
+    await assertResult('tainer');
+    await assertResult('tainer(');
+    await assertResult('tainer()');
+    await assertResult('turn new Container');
+    await assertResult('return new Container()');
+    await assertResult('return new Container();');
+  }
+
   test_expression_topFunction() async {
     addFlutterPackage();
     await indexTestUnit('''

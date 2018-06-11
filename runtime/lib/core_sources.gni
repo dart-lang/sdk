@@ -10,7 +10,6 @@ core_runtime_sources = [
   "array.cc",
   "array.dart",
   "array_patch.dart",
-  "bigint.dart",
   "bigint_patch.dart",
   "bool.cc",
   "bool_patch.dart",

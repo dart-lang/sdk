@@ -21,7 +21,7 @@ closure_cycles_test: Pass, Slow
 large_class_declaration_test: SkipSlow # Uses too much memory.
 
 [ $arch == ia32 && $mode == release && $runtime == vm ]
-deep_nesting1_negative_test: Crash, Pass # Issue 31496
+deep_nesting_expression_test/01: Crash, Pass # Issue 31496
 
 [ !$strong && ($runtime == dart_precompiled || $runtime == vm) ]
 *: SkipByDesign # tests/language has the non-strong mode versions of these tests.

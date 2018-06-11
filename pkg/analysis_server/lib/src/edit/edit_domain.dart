@@ -148,6 +148,8 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Future getAssists(Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     EditGetAssistsParams params = new EditGetAssistsParams.fromRequest(request);
     String file = params.file;
     int offset = params.offset;
@@ -210,6 +212,8 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Future getFixes(Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     EditGetFixesParams params = new EditGetFixesParams.fromRequest(request);
     String file = params.file;
     int offset = params.offset;
@@ -257,6 +261,8 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Future getPostfixCompletion(Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     server.options.analytics?.sendEvent('edit', 'getPostfixCompletion');
 
     var params = new EditGetPostfixCompletionParams.fromRequest(request);
@@ -293,6 +299,8 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Future getStatementCompletion(Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     var params = new EditGetStatementCompletionParams.fromRequest(request);
     SourceChange change;
 
@@ -373,6 +381,8 @@ class EditDomainHandler extends AbstractRequestHandler {
    * Implement the `edit.importElements` request.
    */
   Future<Null> importElements(Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     EditImportElementsParams params =
         new EditImportElementsParams.fromRequest(request);
     //
@@ -406,6 +416,8 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Future isPostfixCompletionApplicable(Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     var params = new EditGetPostfixCompletionParams.fromRequest(request);
     bool value = false;
 
@@ -436,6 +448,8 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Future listPostfixCompletionTemplates(Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     var templates = DartPostfixCompletion.ALL_TEMPLATES
         .map((pfc) =>
             new PostfixTemplateDescriptor(pfc.name, pfc.key, pfc.example))
@@ -447,6 +461,8 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Future<Null> organizeDirectives(Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     server.options.analytics?.sendEvent('edit', 'organizeDirectives');
 
     var params = new EditOrganizeDirectivesParams.fromRequest(request);
@@ -482,6 +498,8 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Future<Null> sortMembers(Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     var params = new EditSortMembersParams.fromRequest(request);
     // prepare file
     String file = params.file;
@@ -520,6 +538,8 @@ class EditDomainHandler extends AbstractRequestHandler {
    */
   Future<List<AnalysisErrorFixes>> _computeServerErrorFixes(
       AnalysisDriver driver, String file, int offset) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     List<AnalysisErrorFixes> errorFixesList = <AnalysisErrorFixes>[];
     AnalysisResult result = await server.getAnalysisResult(file);
     if (result != null) {
@@ -562,6 +582,8 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Future _getAvailableRefactoringsImpl(Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     // prepare parameters
     var params = new EditGetAvailableRefactoringsParams.fromRequest(request);
     String file = params.file;
@@ -786,6 +808,8 @@ class _RefactoringManager {
     }
 
     runZoned(() async {
+      // TODO(brianwilkerson) Determine whether this await is necessary.
+      await null;
       await _init(params.kind, params.file, params.offset, params.length);
       if (initStatus.hasFatalError) {
         feedback = null;
@@ -876,6 +900,8 @@ class _RefactoringManager {
    */
   Future _init(
       RefactoringKind kind, String file, int offset, int length) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     // check if we can continue with the existing Refactoring instance
     if (this.kind == kind &&
         this.file == file &&

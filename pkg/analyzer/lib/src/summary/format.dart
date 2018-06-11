@@ -7238,9 +7238,21 @@ abstract class _UnlinkedEnumMixin implements idl.UnlinkedEnum {
 class UnlinkedEnumValueBuilder extends Object
     with _UnlinkedEnumValueMixin
     implements idl.UnlinkedEnumValue {
+  List<UnlinkedExprBuilder> _annotations;
   UnlinkedDocumentationCommentBuilder _documentationComment;
   String _name;
   int _nameOffset;
+
+  @override
+  List<UnlinkedExprBuilder> get annotations =>
+      _annotations ??= <UnlinkedExprBuilder>[];
+
+  /**
+   * Annotations for this value.
+   */
+  void set annotations(List<UnlinkedExprBuilder> value) {
+    this._annotations = value;
+  }
 
   @override
   UnlinkedDocumentationCommentBuilder get documentationComment =>
@@ -7276,10 +7288,12 @@ class UnlinkedEnumValueBuilder extends Object
   }
 
   UnlinkedEnumValueBuilder(
-      {UnlinkedDocumentationCommentBuilder documentationComment,
+      {List<UnlinkedExprBuilder> annotations,
+      UnlinkedDocumentationCommentBuilder documentationComment,
       String name,
       int nameOffset})
-      : _documentationComment = documentationComment,
+      : _annotations = annotations,
+        _documentationComment = documentationComment,
         _name = name,
         _nameOffset = nameOffset;
 
@@ -7287,6 +7301,7 @@ class UnlinkedEnumValueBuilder extends Object
    * Flush [informative] data recursively.
    */
   void flushInformative() {
+    _annotations?.forEach((b) => b.flushInformative());
     _documentationComment = null;
     _nameOffset = null;
   }
@@ -7296,11 +7311,24 @@ class UnlinkedEnumValueBuilder extends Object
    */
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addString(this._name ?? '');
+    if (this._annotations == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._annotations.length);
+      for (var x in this._annotations) {
+        x?.collectApiSignature(signature);
+      }
+    }
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_annotations;
     fb.Offset offset_documentationComment;
     fb.Offset offset_name;
+    if (!(_annotations == null || _annotations.isEmpty)) {
+      offset_annotations = fbBuilder
+          .writeList(_annotations.map((b) => b.finish(fbBuilder)).toList());
+    }
     if (_documentationComment != null) {
       offset_documentationComment = _documentationComment.finish(fbBuilder);
     }
@@ -7308,6 +7336,9 @@ class UnlinkedEnumValueBuilder extends Object
       offset_name = fbBuilder.writeString(_name);
     }
     fbBuilder.startTable();
+    if (offset_annotations != null) {
+      fbBuilder.addOffset(3, offset_annotations);
+    }
     if (offset_documentationComment != null) {
       fbBuilder.addOffset(2, offset_documentationComment);
     }
@@ -7337,9 +7368,18 @@ class _UnlinkedEnumValueImpl extends Object
 
   _UnlinkedEnumValueImpl(this._bc, this._bcOffset);
 
+  List<idl.UnlinkedExpr> _annotations;
   idl.UnlinkedDocumentationComment _documentationComment;
   String _name;
   int _nameOffset;
+
+  @override
+  List<idl.UnlinkedExpr> get annotations {
+    _annotations ??=
+        const fb.ListReader<idl.UnlinkedExpr>(const _UnlinkedExprReader())
+            .vTableGet(_bc, _bcOffset, 3, const <idl.UnlinkedExpr>[]);
+    return _annotations;
+  }
 
   @override
   idl.UnlinkedDocumentationComment get documentationComment {
@@ -7365,6 +7405,9 @@ abstract class _UnlinkedEnumValueMixin implements idl.UnlinkedEnumValue {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
+    if (annotations.isNotEmpty)
+      _result["annotations"] =
+          annotations.map((_value) => _value.toJson()).toList();
     if (documentationComment != null)
       _result["documentationComment"] = documentationComment.toJson();
     if (name != '') _result["name"] = name;
@@ -7374,6 +7417,7 @@ abstract class _UnlinkedEnumValueMixin implements idl.UnlinkedEnumValue {
 
   @override
   Map<String, Object> toMap() => {
+        "annotations": annotations,
         "documentationComment": documentationComment,
         "name": name,
         "nameOffset": nameOffset,

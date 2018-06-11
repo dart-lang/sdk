@@ -40,6 +40,7 @@ import 'package:analysis_server/src/protocol_server.dart' as server;
 import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
+import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
@@ -656,6 +657,25 @@ class AnalysisServer {
    * [offset] or the node does not have an element.
    */
   Future<Element> getElementAtOffset(String file, int offset) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+    if (!priorityFiles.contains(file)) {
+      var driver = await getAnalysisDriver(file);
+      if (driver == null) {
+        return null;
+      }
+
+      var unitElementResult = await driver.getUnitElement(file);
+      if (unitElementResult == null) {
+        return null;
+      }
+
+      var element = findElementByNameOffset(unitElementResult.element, offset);
+      if (element != null) {
+        return element;
+      }
+    }
+
     AstNode node = await getNodeAtOffset(file, offset);
     return getElementOfNode(node);
   }
@@ -690,6 +710,8 @@ class AnalysisServer {
    * the [offset].
    */
   Future<AstNode> getNodeAtOffset(String file, int offset) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     nd.AnalysisResult result = await getAnalysisResult(file);
     CompilationUnit unit = result?.unit;
     if (unit != null) {
@@ -704,6 +726,8 @@ class AnalysisServer {
    * Dart file or cannot be resolved.
    */
   Future<CompilationUnit> getResolvedCompilationUnit(String path) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     nd.AnalysisResult result = await getAnalysisResult(path);
     return result?.unit;
   }
@@ -975,6 +999,8 @@ class AnalysisServer {
   }
 
   Future<Null> shutdown() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     running = false;
 
     await options.analytics
@@ -1116,6 +1142,8 @@ class AnalysisServer {
   }
 
   _scheduleAnalysisImplementedNotification() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     Set<String> files = analysisServices[AnalysisService.IMPLEMENTED];
     if (files != null) {
       scheduleImplementedNotification(this, files);

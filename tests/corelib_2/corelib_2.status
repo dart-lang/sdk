@@ -66,6 +66,7 @@ from_environment_const_type_test/15: Fail # Flutter Issue 9111
 from_environment_const_type_test/16: MissingCompileTimeError # Flutter Issue 9111
 from_environment_const_type_test/none: Fail # Flutter Issue 9111
 int_from_environment2_test: Fail # Flutter Issue 9111
+int_from_environment_int64_test: Fail # Flutter Issue 9111
 int_from_environment_test: Fail # Flutter Issue 9111
 main_test: RuntimeError # Flutter Issue 9111
 string_from_environment2_test: Fail # Flutter Issue 9111
@@ -212,8 +213,6 @@ symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') sho
 cast_test: RuntimeError
 error_stack_trace1_test: RuntimeError
 growable_list_test: RuntimeError
-int_parse_radix_test/01: RuntimeError
-int_parse_radix_test/02: RuntimeError
 integer_to_radix_string_test/01: RuntimeError
 integer_to_radix_string_test/02: RuntimeError
 integer_to_radix_string_test/none: RuntimeError
@@ -225,19 +224,21 @@ nan_infinity_test/01: RuntimeError
 string_split_test/checkedstore: RuntimeError
 symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') should be allowed.
 uri_base_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
-uri_parameters_all_test: RuntimeError
-uri_test: RuntimeError
 
 [ $compiler == dart2js && $fasta ]
-int_from_environment_test: Pass # Issue 31762
-int_parse_radix_test/none: Pass # Issue 31762
+int_from_environment_int64_test: RuntimeError # WontFix: Int not precisely representable in JS
+int_parse_radix_int64_test/01: RuntimeError # WontFix: Int not precisely representable in JS
+int_parse_radix_int64_test/02: RuntimeError # WontFix: Int not precisely representable in JS
+int_parse_radix_int64_test/none: RuntimeError # WontFix: Int not precisely representable in JS
+int_parse_radix_test/01: RuntimeError
+int_parse_radix_test/badTypes: RuntimeError # Issue 33351
+int_parse_radix_test/none: RuntimeError # Issue 33351
+int_try_parse_int64_test: RuntimeError # WontFix: Int not precisely representable in JS
 
 [ $compiler == dart2js && $fasta && $host_checked && $strong ]
 cast_test: RuntimeError
 error_stack_trace1_test: RuntimeError # Issue 12399
 growable_list_test: RuntimeError # Concurrent modifications test always runs
-int_parse_radix_test/01: RuntimeError
-int_parse_radix_test/02: RuntimeError
 integer_to_radix_string_test/01: RuntimeError
 integer_to_radix_string_test/02: RuntimeError
 integer_to_radix_string_test/none: RuntimeError
@@ -251,8 +252,6 @@ regexp/pcre_test: RuntimeError
 string_split_test/checkedstore: RuntimeError # Issue 30548: does not check stores into List<String>
 symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') should be allowed.
 uri_base_test: RuntimeError
-uri_parameters_all_test: RuntimeError
-uri_test: RuntimeError
 
 [ $compiler == dart2js && $fasta && $minified && $strong ]
 cast_test: RuntimeError
@@ -260,7 +259,6 @@ dynamic_nosuchmethod_test: RuntimeError
 error_stack_trace1_test: RuntimeError # Issue 12399
 growable_list_test: RuntimeError # Concurrent modifications test always runs
 hash_set_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_CustomHashSet.#x), local(_CustomHashSet.#)) for j:closure_call(_CustomHashSet__CustomHashSet_closure.call).
-int_parse_radix_test/01: RuntimeError
 int_parse_radix_test/02: RuntimeError
 integer_to_radix_string_test/01: RuntimeError
 integer_to_radix_string_test/02: RuntimeError
@@ -278,8 +276,6 @@ symbol_operator_test/03: RuntimeError
 symbol_operator_test/none: RuntimeError
 symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') should be allowed.
 uri_base_test: RuntimeError
-uri_parameters_all_test: RuntimeError
-uri_test: RuntimeError
 
 [ $compiler == dart2js && $fasta && !$strong ]
 *: SkipByDesign
@@ -303,9 +299,6 @@ splay_tree_test/02: MissingCompileTimeError
 string_base_vm_static_test: MissingCompileTimeError
 string_replace_static_test: MissingCompileTimeError
 string_static_test: MissingCompileTimeError
-
-[ $compiler == dartk && $mode == debug && $hot_reload ]
-map_test: Crash
 
 [ $compiler == dartk && $mode == release && $hot_reload ]
 bigint_parse_radix_test: Crash
@@ -408,14 +401,14 @@ regress_r21715_test: RuntimeError # Requires fixed-size int64 support.
 typed_data_with_limited_ints_test: Skip # Requires fixed-size int64 support.
 
 [ $runtime != none && ($compiler == dartdevc || $compiler == dartdevk) ]
-bigint_test: Pass, Slow
+bigint_test: Pass, Slow, Timeout
 compare_to2_test: RuntimeError # Issue 30170
 date_time10_test: RuntimeError # Issue 29921
 error_stack_trace_test/nullThrown: RuntimeError # .stackTrace not present for exception caught from 'throw null;'
 hash_set_test/01: RuntimeError # Issue 29921
 int_modulo_arith_test/none: RuntimeError # Issue 29921
+int_parse_radix_int64_test/02: RuntimeError
 int_parse_radix_test/01: RuntimeError # Issue 29921
-int_parse_radix_test/02: RuntimeError # Issue 29921
 int_parse_with_limited_ints_test: Skip # Requires fixed-size int64 support.
 integer_arith_vm_test/modPow: RuntimeError # Issue 30170
 integer_parsed_arith_vm_test: RuntimeError # Issue 29921
@@ -473,6 +466,7 @@ symbol_reserved_word_test/09: RuntimeError # Issue 29921
 symbol_reserved_word_test/12: RuntimeError # Issue 29921
 symbol_test/none: RuntimeError # Issue 29921
 typed_data_with_limited_ints_test: Skip # Requires fixed-size int64 support.
+uri_parse_test: Pass, Slow
 
 [ $runtime == vm && !$strong ]
 collection_of_test: RuntimeError

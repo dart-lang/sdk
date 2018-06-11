@@ -48,6 +48,8 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future<RefactoringStatus> checkFinalConditions() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     RefactoringStatus result = new RefactoringStatus();
     await _prepareElements();
     for (LocalElement element in elements) {
@@ -74,6 +76,8 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future fillChange() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     for (Element element in elements) {
       addDeclarationEdit(element);
       var references = await searchEngine.searchReferences(element);
@@ -91,6 +95,8 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
    * Fills [elements] with [Element]s to rename.
    */
   Future _prepareElements() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     Element element = this.element;
     if (element is ParameterElement && element.isNamed) {
       elements = await getHierarchyNamedParameters(searchEngine, element);

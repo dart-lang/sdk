@@ -27,6 +27,8 @@ class OverrideContributor implements DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     SimpleIdentifier targetId = _getTargetId(request.target);
     if (targetId == null) {
       return EMPTY_LIST;
@@ -69,6 +71,8 @@ class OverrideContributor implements DartCompletionContributor {
       SimpleIdentifier targetId,
       ExecutableElement element,
       StringBuffer displayTextBuffer) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     DartChangeBuilder builder =
         new DartChangeBuilder(result.driver.currentSession);
     await builder.addFileEdit(result.path, (DartFileEditBuilder builder) {
@@ -86,6 +90,8 @@ class OverrideContributor implements DartCompletionContributor {
    */
   Future<CompletionSuggestion> _buildSuggestion(DartCompletionRequest request,
       SimpleIdentifier targetId, ExecutableElement element) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     StringBuffer displayTextBuffer = new StringBuffer();
     DartChangeBuilder builder = await _buildReplacementText(
         request.result, targetId, element, displayTextBuffer);

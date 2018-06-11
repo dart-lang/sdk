@@ -50,6 +50,8 @@
  *
  * See the documentation for the [Codec] and [Converter] classes
  * for information about creating your own converters.
+ *
+ * {@category Core}
  */
 library dart.convert;
 

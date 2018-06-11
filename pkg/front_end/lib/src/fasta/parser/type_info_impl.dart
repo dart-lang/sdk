@@ -138,10 +138,9 @@ class SimpleTypeWith1Argument implements TypeInfo {
 
   @override
   Token skipType(Token token) {
-    token = token.next.next;
-    assert(optional('<', token));
-    assert(token.endGroup != null || optional('>>', token.next.next));
-    return token.endGroup ?? token.next;
+    token = token.next;
+    assert(token.isKeywordOrIdentifier);
+    return simpleTypeArgument1.skip(token);
   }
 }
 
@@ -510,10 +509,9 @@ class SimpleTypeArgument1 implements TypeParamOrArgInfo {
     Listener listener = parser.listener;
     listener.beginTypeVariables(token);
     token = token.next;
-    listener.beginTypeVariable(token);
     listener.beginMetadataStar(token);
     listener.endMetadataStar(0);
-    listener.handleIdentifier(token, IdentifierContext.typeVariableDeclaration);
+    listener.beginTypeVariable(token);
     listener.handleNoType(token);
     token = processEndGroup(token, start, parser);
     listener.endTypeVariable(token, null);
@@ -527,9 +525,9 @@ class SimpleTypeArgument1 implements TypeParamOrArgInfo {
     assert(optional('<', token));
     assert(token.endGroup != null ||
         (optional('>', token.next.next) || optional('>>', token.next.next)));
-    return (optional('>>', token.endGroup ?? token.next.next)
-        ? token.next
-        : token.next.next);
+    return (optional('>', token.endGroup ?? token.next.next)
+        ? token.next.next
+        : token.next);
   }
 }
 
@@ -659,10 +657,12 @@ class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
     parser.listener.beginTypeVariables(start);
     int count = 0;
     while (true) {
-      parser.listener.beginTypeVariable(next.next);
       token = parser.parseMetadataStar(next);
-      token = parser.ensureIdentifier(
-          token, IdentifierContext.typeVariableDeclaration);
+      token = token.next.kind == IDENTIFIER_TOKEN
+          ? token.next
+          : IdentifierContext.typeVariableDeclaration
+              .ensureIdentifier(token, parser);
+      parser.listener.beginTypeVariable(token);
       Token extendsOrSuper = null;
       next = token.next;
       if (optional('extends', next) || optional('super', next)) {

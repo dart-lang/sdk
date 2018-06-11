@@ -134,6 +134,9 @@ class ClassEmitter extends CodeEmitterHelper {
       bool needsFieldsForConstructor = !emitStatics && !classIsNative;
       if (needsFieldsForConstructor || needsAccessor) {
         List<jsAst.Literal> fieldNameParts = <jsAst.Literal>[];
+        if (field.nullInitializerInAllocator) {
+          fieldNameParts.add(js.stringPart('0'));
+        }
         if (!needsAccessor) {
           // Emit field for constructor generation.
           assert(!classIsNative);

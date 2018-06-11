@@ -539,7 +539,6 @@ final String injectedCidFields = [
   'ImmutableArray',
   'OneByteString',
   'TwoByteString',
-  'Bigint'
 ].map((name) => "static final int cid${name} = 0;").join('\n');
 
 /// Merge `@patch` declarations into `external` declarations.

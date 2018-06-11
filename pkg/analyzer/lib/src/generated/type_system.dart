@@ -1628,12 +1628,8 @@ class StrongTypeSystemImpl extends TypeSystem {
         return type;
       }
 
-      var function = new FunctionElementImpl(type.name, -1)
-        ..isSynthetic = true
-        ..returnType = newReturnType
-        ..shareTypeParameters(type.typeFormals)
-        ..parameters = newParameters;
-      return function.type = new FunctionTypeImpl(function);
+      return new FunctionTypeImpl.synthetic(
+          newReturnType, type.typeFormals, newParameters);
     }
     return type;
   }

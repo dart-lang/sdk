@@ -508,8 +508,8 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginTypeVariable(Token token) {
-    super.beginTypeVariable(token);
+  void beginTypeVariable(Token name) {
+    super.beginTypeVariable(name);
     begin('TypeVariable');
   }
 

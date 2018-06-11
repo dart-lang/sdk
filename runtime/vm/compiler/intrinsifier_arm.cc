@@ -634,8 +634,8 @@ void Intrinsifier::Integer_greaterEqualThan(Assembler* assembler) {
   CompareIntegers(assembler, GE);
 }
 
-// This is called for Smi, Mint and Bigint receivers. The right argument
-// can be Smi, Mint, Bigint or double.
+// This is called for Smi and Mint receivers. The right argument
+// can be Smi, Mint or double.
 void Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   Label fall_through, true_label, check_for_mint;
   // For integer receiver '===' check first.
@@ -663,7 +663,7 @@ void Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   __ b(&receiver_not_smi, NE);
 
   // Left (receiver) is Smi, return false if right is not Double.
-  // Note that an instance of Mint or Bigint never contains a value that can be
+  // Note that an instance of Mint never contains a value that can be
   // represented by Smi.
 
   __ CompareClassId(R0, kDoubleCid, R2);
@@ -1143,7 +1143,7 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   __ Ret();
 }
 
-void Intrinsifier::Bigint_estQuotientDigit(Assembler* assembler) {
+void Intrinsifier::Bigint_estimateQuotientDigit(Assembler* assembler) {
   // No unsigned 64-bit / 32-bit divide instruction.
 }
 
@@ -1305,7 +1305,7 @@ void Intrinsifier::Double_div(Assembler* assembler) {
   DoubleArithmeticOperations(assembler, Token::kDIV);
 }
 
-// Left is double right is integer (Bigint, Mint or Smi)
+// Left is double, right is integer (Mint or Smi)
 void Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
   if (TargetCPUFeatures::vfp_supported()) {
     Label fall_through;
@@ -1576,14 +1576,14 @@ static void JumpIfInteger(Assembler* assembler,
                           Register cid,
                           Register tmp,
                           Label* target) {
-  RangeCheck(assembler, cid, tmp, kSmiCid, kBigintCid, kIfInRange, target);
+  RangeCheck(assembler, cid, tmp, kSmiCid, kMintCid, kIfInRange, target);
 }
 
 static void JumpIfNotInteger(Assembler* assembler,
                              Register cid,
                              Register tmp,
                              Label* target) {
-  RangeCheck(assembler, cid, tmp, kSmiCid, kBigintCid, kIfNotInRange, target);
+  RangeCheck(assembler, cid, tmp, kSmiCid, kMintCid, kIfNotInRange, target);
 }
 
 static void JumpIfString(Assembler* assembler,

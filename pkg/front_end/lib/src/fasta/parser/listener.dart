@@ -898,13 +898,16 @@ class Listener {
     logEvent("NoTypeArguments");
   }
 
-  void beginTypeVariable(Token token) {}
+  /// Handle the begin of a type formal parameter (e.g. "X extends Y").
+  /// Substructures:
+  /// - Metadata
+  void beginTypeVariable(Token name) {}
 
   /// Handle the end of a type formal parameter (e.g. "X extends Y").
   /// Substructures:
-  /// - Metadata
-  /// - Name (identifier)
   /// - Type bound
+  ///
+  /// See [beginTypeVariable] for additional substructures.
   void endTypeVariable(Token token, Token extendsOrSuper) {
     logEvent("TypeVariable");
   }

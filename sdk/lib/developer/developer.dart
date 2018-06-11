@@ -12,6 +12,7 @@
 ///
 ///     import 'dart:developer';
 ///
+/// {@category Core}
 library dart.developer;
 
 import 'dart:async';

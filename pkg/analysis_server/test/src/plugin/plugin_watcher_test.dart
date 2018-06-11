@@ -150,8 +150,8 @@ class TestDriver implements AnalysisDriver {
 
   Future<Null> computeResult(String uri) {
     FileState file = fsState.getFileForUri(Uri.parse(uri));
-    AnalysisResult result = new AnalysisResult(
-        this, null, file.path, null, true, null, null, null, null, null, null);
+    AnalysisResult result = new AnalysisResult(this, null, file.path, null,
+        true, null, null, false, null, null, null, null);
     _resultController.add(result);
     return new Future.delayed(new Duration(milliseconds: 1));
   }

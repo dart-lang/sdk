@@ -338,17 +338,6 @@ ISOLATE_UNIT_TEST_CASE(Smi) {
   EXPECT_EQ(1, a.CompareWith(mint2));
   EXPECT_EQ(-1, c.CompareWith(mint1));
   EXPECT_EQ(1, c.CompareWith(mint2));
-
-  if (!Bigint::IsDisabled()) {
-    Bigint& big1 =
-        Bigint::Handle(Bigint::NewFromCString("10000000000000000000"));
-    Bigint& big2 =
-        Bigint::Handle(Bigint::NewFromCString("-10000000000000000000"));
-    EXPECT_EQ(-1, a.CompareWith(big1));
-    EXPECT_EQ(1, a.CompareWith(big2));
-    EXPECT_EQ(-1, c.CompareWith(big1));
-    EXPECT_EQ(1, c.CompareWith(big2));
-  }
 }
 
 ISOLATE_UNIT_TEST_CASE(StringCompareTo) {
@@ -497,17 +486,6 @@ ISOLATE_UNIT_TEST_CASE(Mint) {
   EXPECT_EQ(-1, c.CompareWith(smi1));
   EXPECT_EQ(-1, c.CompareWith(smi2));
 
-  if (!Bigint::IsDisabled()) {
-    Bigint& big1 =
-        Bigint::Handle(Bigint::NewFromCString("10000000000000000000"));
-    Bigint& big2 =
-        Bigint::Handle(Bigint::NewFromCString("-10000000000000000000"));
-    EXPECT_EQ(-1, a.CompareWith(big1));
-    EXPECT_EQ(1, a.CompareWith(big2));
-    EXPECT_EQ(-1, c.CompareWith(big1));
-    EXPECT_EQ(1, c.CompareWith(big2));
-  }
-
   int64_t mint_value = DART_2PART_UINT64_C(0x7FFFFFFF, 64);
   const String& mint_string = String::Handle(String::New("0x7FFFFFFF00000064"));
   Mint& mint1 = Mint::Handle();
@@ -603,48 +581,6 @@ ISOLATE_UNIT_TEST_CASE(Double) {
   }
 }
 
-ISOLATE_UNIT_TEST_CASE(Bigint) {
-  if (Bigint::IsDisabled()) {
-    return;
-  }
-
-  Bigint& b = Bigint::Handle();
-  EXPECT(b.IsNull());
-  const char* cstr = "18446744073709551615000";
-  const String& test = String::Handle(String::New(cstr));
-  b ^= Integer::NewCanonical(test);
-  const char* str = b.ToCString();
-  EXPECT_STREQ(cstr, str);
-
-  int64_t t64 = DART_2PART_UINT64_C(1, 0);
-  Bigint& big = Bigint::Handle(Bigint::NewFromInt64(t64));
-  EXPECT_EQ(t64, big.AsInt64Value());
-  big = Bigint::NewFromCString("10000000000000000000");
-  EXPECT_EQ(1e19, big.AsDoubleValue());
-
-  Bigint& big1 =
-      Bigint::Handle(Bigint::NewFromCString("100000000000000000000"));
-  Bigint& big2 =
-      Bigint::Handle(Bigint::NewFromCString("100000000000000000010"));
-  Bigint& big3 =
-      Bigint::Handle(Bigint::NewFromCString("-10000000000000000000"));
-
-  EXPECT_EQ(0, big1.CompareWith(big1));
-  EXPECT_EQ(-1, big1.CompareWith(big2));
-  EXPECT_EQ(1, big2.CompareWith(big1));
-  EXPECT_EQ(1, big1.CompareWith(big3));
-  EXPECT_EQ(-1, big3.CompareWith(big1));
-
-  Smi& smi1 = Smi::Handle(Smi::New(5));
-  Smi& smi2 = Smi::Handle(Smi::New(-2));
-
-  EXPECT_EQ(-1, smi1.CompareWith(big1));
-  EXPECT_EQ(-1, smi2.CompareWith(big1));
-
-  EXPECT_EQ(1, smi1.CompareWith(big3));
-  EXPECT_EQ(1, smi2.CompareWith(big3));
-}
-
 ISOLATE_UNIT_TEST_CASE(Integer) {
   Integer& i = Integer::Handle();
   i = Integer::NewCanonical(String::Handle(String::New("12")));
@@ -655,10 +591,10 @@ ISOLATE_UNIT_TEST_CASE(Integer) {
   EXPECT(i.IsSmi());
   i = Integer::NewCanonical(
       String::Handle(String::New("12345678901234567890")));
-  EXPECT(FLAG_limit_ints_to_64_bits ? i.IsNull() : i.IsBigint());
+  EXPECT(i.IsNull());
   i = Integer::NewCanonical(
       String::Handle(String::New("-12345678901234567890111222")));
-  EXPECT(FLAG_limit_ints_to_64_bits ? i.IsNull() : i.IsBigint());
+  EXPECT(i.IsNull());
 }
 
 ISOLATE_UNIT_TEST_CASE(String) {
@@ -1630,12 +1566,16 @@ ISOLATE_UNIT_TEST_CASE(StringEqualsUTF32) {
   EXPECT(!th_str.Equals(chars, 3));
 }
 
+static void NoopFinalizer(void* isolate_callback_data,
+                          Dart_WeakPersistentHandle handle,
+                          void* peer) {}
+
 ISOLATE_UNIT_TEST_CASE(ExternalOneByteString) {
   uint8_t characters[] = {0xF6, 0xF1, 0xE9};
   intptr_t len = ARRAY_SIZE(characters);
 
-  const String& str = String::Handle(
-      ExternalOneByteString::New(characters, len, NULL, NULL, Heap::kNew));
+  const String& str = String::Handle(ExternalOneByteString::New(
+      characters, len, NULL, 0, NoopFinalizer, Heap::kNew));
   EXPECT(!str.IsOneByteString());
   EXPECT(str.IsExternalOneByteString());
   EXPECT_EQ(str.Length(), len);
@@ -1684,8 +1624,8 @@ ISOLATE_UNIT_TEST_CASE(EscapeSpecialCharactersExternalOneByteString) {
                           '\v', '\r', '\\', '$',  'z'};
   intptr_t len = ARRAY_SIZE(characters);
 
-  const String& str = String::Handle(
-      ExternalOneByteString::New(characters, len, NULL, NULL, Heap::kNew));
+  const String& str = String::Handle(ExternalOneByteString::New(
+      characters, len, NULL, 0, NoopFinalizer, Heap::kNew));
   EXPECT(!str.IsOneByteString());
   EXPECT(str.IsExternalOneByteString());
   EXPECT_EQ(str.Length(), len);
@@ -1694,8 +1634,8 @@ ISOLATE_UNIT_TEST_CASE(EscapeSpecialCharactersExternalOneByteString) {
       String::Handle(String::EscapeSpecialCharacters(str));
   EXPECT(escaped_str.Equals("a\\n\\f\\b\\t\\v\\r\\\\\\$z"));
 
-  const String& empty_str = String::Handle(
-      ExternalOneByteString::New(characters, 0, NULL, NULL, Heap::kNew));
+  const String& empty_str = String::Handle(ExternalOneByteString::New(
+      characters, 0, NULL, 0, NoopFinalizer, Heap::kNew));
   const String& escaped_empty_str =
       String::Handle(String::EscapeSpecialCharacters(empty_str));
   EXPECT_EQ(empty_str.Length(), 0);
@@ -1729,8 +1669,8 @@ ISOLATE_UNIT_TEST_CASE(EscapeSpecialCharactersExternalTwoByteString) {
                            '\v', '\r', '\\', '$',  'z'};
   intptr_t len = ARRAY_SIZE(characters);
 
-  const String& str = String::Handle(
-      ExternalTwoByteString::New(characters, len, NULL, NULL, Heap::kNew));
+  const String& str = String::Handle(ExternalTwoByteString::New(
+      characters, len, NULL, 0, NoopFinalizer, Heap::kNew));
   EXPECT(str.IsExternalTwoByteString());
   EXPECT_EQ(str.Length(), len);
   EXPECT(str.Equals("a\n\f\b\t\v\r\\$z"));
@@ -1738,8 +1678,8 @@ ISOLATE_UNIT_TEST_CASE(EscapeSpecialCharactersExternalTwoByteString) {
       String::Handle(String::EscapeSpecialCharacters(str));
   EXPECT(escaped_str.Equals("a\\n\\f\\b\\t\\v\\r\\\\\\$z"));
 
-  const String& empty_str = String::Handle(
-      ExternalTwoByteString::New(characters, 0, NULL, NULL, Heap::kNew));
+  const String& empty_str = String::Handle(ExternalTwoByteString::New(
+      characters, 0, NULL, 0, NoopFinalizer, Heap::kNew));
   const String& escaped_empty_str =
       String::Handle(String::EscapeSpecialCharacters(empty_str));
   EXPECT_EQ(empty_str.Length(), 0);
@@ -1750,8 +1690,8 @@ ISOLATE_UNIT_TEST_CASE(ExternalTwoByteString) {
   uint16_t characters[] = {0x1E6B, 0x1E85, 0x1E53};
   intptr_t len = ARRAY_SIZE(characters);
 
-  const String& str = String::Handle(
-      ExternalTwoByteString::New(characters, len, NULL, NULL, Heap::kNew));
+  const String& str = String::Handle(ExternalTwoByteString::New(
+      characters, len, NULL, 0, NoopFinalizer, Heap::kNew));
   EXPECT(!str.IsTwoByteString());
   EXPECT(str.IsExternalTwoByteString());
   EXPECT_EQ(str.Length(), len);
@@ -2537,16 +2477,17 @@ ISOLATE_UNIT_TEST_CASE(ContextScope) {
   EXPECT_EQ(4, local_scope->num_variables());         // ta, a, b, c.
   EXPECT_EQ(3, local_scope->NumCapturedVariables());  // ta, a, c.
 
-  const int first_parameter_index = 0;
+  const VariableIndex first_parameter_index(0);
   const int num_parameters = 0;
-  const int first_frame_index = -1;
+  const VariableIndex first_local_index(-1);
   bool found_captured_vars = false;
-  int next_frame_index = parent_scope->AllocateVariables(
-      first_parameter_index, num_parameters, first_frame_index, NULL,
+  VariableIndex next_index = parent_scope->AllocateVariables(
+      first_parameter_index, num_parameters, first_local_index, NULL,
       &found_captured_vars);
   // Variables a, c and var_ta are captured, therefore are not allocated in
   // frame.
-  EXPECT_EQ(0, next_frame_index - first_frame_index);  // Indices in frame < 0.
+  EXPECT_EQ(0, next_index.value() -
+                   first_local_index.value());  // Indices in frame < 0.
   const intptr_t parent_scope_context_level = 1;
   EXPECT_EQ(parent_scope_context_level, parent_scope->context_level());
   EXPECT(found_captured_vars);
@@ -2559,13 +2500,13 @@ ISOLATE_UNIT_TEST_CASE(ContextScope) {
 
   var_ta = outer_scope->LocalLookupVariable(ta);
   EXPECT(var_ta->is_captured());
-  EXPECT_EQ(0, var_ta->index());  // First index.
+  EXPECT_EQ(0, var_ta->index().value());  // First index.
   EXPECT_EQ(parent_scope_context_level - local_scope_context_level,
             var_ta->owner()->context_level());  // Adjusted context level.
 
   var_a = outer_scope->LocalLookupVariable(a);
   EXPECT(var_a->is_captured());
-  EXPECT_EQ(1, var_a->index());  // First index.
+  EXPECT_EQ(1, var_a->index().value());  // First index.
   EXPECT_EQ(parent_scope_context_level - local_scope_context_level,
             var_a->owner()->context_level());  // Adjusted context level.
 
@@ -2574,7 +2515,7 @@ ISOLATE_UNIT_TEST_CASE(ContextScope) {
 
   var_c = outer_scope->LocalLookupVariable(c);
   EXPECT(var_c->is_captured());
-  EXPECT_EQ(2, var_c->index());
+  EXPECT_EQ(2, var_c->index().value());
   EXPECT_EQ(parent_scope_context_level - local_scope_context_level,
             var_c->owner()->context_level());  // Adjusted context level.
 }
@@ -3219,15 +3160,15 @@ ISOLATE_UNIT_TEST_CASE(EqualsIgnoringPrivate) {
   mangled_name = OneByteString::New("foo@12345.name@12345");
   ext_mangled_name = ExternalOneByteString::New(
       reinterpret_cast<const uint8_t*>(ext_mangled_str),
-      strlen(ext_mangled_str), NULL, NULL, Heap::kNew);
+      strlen(ext_mangled_str), NULL, 0, NoopFinalizer, Heap::kNew);
   EXPECT(ext_mangled_name.IsExternalOneByteString());
-  ext_bare_name =
-      ExternalOneByteString::New(reinterpret_cast<const uint8_t*>(ext_bare_str),
-                                 strlen(ext_bare_str), NULL, NULL, Heap::kNew);
+  ext_bare_name = ExternalOneByteString::New(
+      reinterpret_cast<const uint8_t*>(ext_bare_str), strlen(ext_bare_str),
+      NULL, 0, NoopFinalizer, Heap::kNew);
   EXPECT(ext_bare_name.IsExternalOneByteString());
   ext_bad_bare_name = ExternalOneByteString::New(
       reinterpret_cast<const uint8_t*>(ext_bad_bare_str),
-      strlen(ext_bad_bare_str), NULL, NULL, Heap::kNew);
+      strlen(ext_bad_bare_str), NULL, 0, NoopFinalizer, Heap::kNew);
   EXPECT(ext_bad_bare_name.IsExternalOneByteString());
 
   // str1 - OneByteString, str2 - ExternalOneByteString.
@@ -4186,25 +4127,6 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"id\":\"\",\"valueAsString\":\"-9223372036854775808\"}",
         buffer);
   }
-  // Bigint reference
-  if (!Bigint::IsDisabled()) {
-    JSONStream js;
-    const String& bigint_str =
-        String::Handle(String::New("44444444444444444444444444444444"));
-    const Integer& bigint = Integer::Handle(Integer::New(bigint_str));
-    bigint.PrintJSON(&js, true);
-    ElideJSONSubstring("classes", js.ToCString(), buffer);
-    ElideJSONSubstring("objects", buffer, buffer);
-    ElideJSONSubstring("_Bigint@", buffer, buffer);
-    EXPECT_STREQ(
-        "{\"type\":\"@Instance\","
-        "\"_vmType\":\"Bigint\","
-        "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
-        "\"name\":\"_Bigint\",\"_vmName\":\"\"},"
-        "\"kind\":\"Int\","
-        "\"id\":\"\",\"valueAsString\":\"44444444444444444444444444444444\"}",
-        buffer);
-  }
   // Double reference
   {
     JSONStream js;
@@ -4576,8 +4498,8 @@ ISOLATE_UNIT_TEST_CASE(Symbols_FromConcatAll) {
     uint8_t characters[] = {0xF6, 0xF1, 0xE9};
     intptr_t len = ARRAY_SIZE(characters);
 
-    const String& str = String::Handle(
-        ExternalOneByteString::New(characters, len, NULL, NULL, Heap::kNew));
+    const String& str = String::Handle(ExternalOneByteString::New(
+        characters, len, NULL, 0, NoopFinalizer, Heap::kNew));
     const String* data[3] = {&str, &Symbols::Dot(), &str};
     CheckConcatAll(data, 3);
   }
@@ -4587,8 +4509,8 @@ ISOLATE_UNIT_TEST_CASE(Symbols_FromConcatAll) {
                              '\v', '\r', '\\', '$',  'z'};
     intptr_t len = ARRAY_SIZE(characters);
 
-    const String& str = String::Handle(
-        ExternalTwoByteString::New(characters, len, NULL, NULL, Heap::kNew));
+    const String& str = String::Handle(ExternalTwoByteString::New(
+        characters, len, NULL, 0, NoopFinalizer, Heap::kNew));
     const String* data[3] = {&str, &Symbols::Dot(), &str};
     CheckConcatAll(data, 3);
   }
@@ -4597,15 +4519,15 @@ ISOLATE_UNIT_TEST_CASE(Symbols_FromConcatAll) {
     uint8_t characters1[] = {0xF6, 0xF1, 0xE9};
     intptr_t len1 = ARRAY_SIZE(characters1);
 
-    const String& str1 = String::Handle(
-        ExternalOneByteString::New(characters1, len1, NULL, NULL, Heap::kNew));
+    const String& str1 = String::Handle(ExternalOneByteString::New(
+        characters1, len1, NULL, 0, NoopFinalizer, Heap::kNew));
 
     uint16_t characters2[] = {'a',  '\n', '\f', '\b', '\t',
                               '\v', '\r', '\\', '$',  'z'};
     intptr_t len2 = ARRAY_SIZE(characters2);
 
-    const String& str2 = String::Handle(
-        ExternalTwoByteString::New(characters2, len2, NULL, NULL, Heap::kNew));
+    const String& str2 = String::Handle(ExternalTwoByteString::New(
+        characters2, len2, NULL, 0, NoopFinalizer, Heap::kNew));
     const String* data[3] = {&str1, &Symbols::Dot(), &str2};
     CheckConcatAll(data, 3);
   }

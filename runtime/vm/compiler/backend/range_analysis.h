@@ -64,12 +64,9 @@ class RangeBoundary : public ValueObject {
   static RangeBoundary FromDefinition(Definition* defn, int64_t offs = 0);
 
   static bool IsValidOffsetForSymbolicRangeBoundary(int64_t offset) {
-    if (FLAG_limit_ints_to_64_bits) {
-      if ((offset > (kMaxInt64 - kSmiMax)) ||
-          (offset < (kMinInt64 - kSmiMin))) {
-        // Avoid creating symbolic range boundaries which can wrap around.
-        return false;
-      }
+    if ((offset > (kMaxInt64 - kSmiMax)) || (offset < (kMinInt64 - kSmiMin))) {
+      // Avoid creating symbolic range boundaries which can wrap around.
+      return false;
     }
     return true;
   }
@@ -297,8 +294,7 @@ class Range : public ZoneAllocated {
   Range(RangeBoundary min, RangeBoundary max) : min_(min), max_(max) {
     ASSERT(min_.IsUnknown() == max_.IsUnknown());
 
-    if (FLAG_limit_ints_to_64_bits &&
-        (min_.IsInfinity() || max_.IsInfinity())) {
+    if (min_.IsInfinity() || max_.IsInfinity()) {
       // Value can wrap around, so fall back to the full 64-bit range.
       SetInt64Range();
     }
@@ -342,7 +338,7 @@ class Range : public ZoneAllocated {
   void set_min(const RangeBoundary& value) {
     min_ = value;
 
-    if (FLAG_limit_ints_to_64_bits && min_.IsInfinity()) {
+    if (min_.IsInfinity()) {
       // Value can wrap around, so fall back to the full 64-bit range.
       SetInt64Range();
     }
@@ -351,7 +347,7 @@ class Range : public ZoneAllocated {
   void set_max(const RangeBoundary& value) {
     max_ = value;
 
-    if (FLAG_limit_ints_to_64_bits && max_.IsInfinity()) {
+    if (max_.IsInfinity()) {
       // Value can wrap around, so fall back to the full 64-bit range.
       SetInt64Range();
     }
@@ -529,10 +525,6 @@ class RangeAnalysis : public ValueObject {
   // inference.
   // Returns meaningful results for uses of non-smi/non-int definitions that
   // have smi/int as a reaching type.
-  // For Int typed definitions we use full Int64 range as a safe approximation
-  // even though they might contain Bigint values because we only support
-  // 64-bit operations in the optimized code - which means that Bigint will
-  // cause deoptimization.
   const Range* GetSmiRange(Value* value) const;
   const Range* GetIntRange(Value* value) const;
 

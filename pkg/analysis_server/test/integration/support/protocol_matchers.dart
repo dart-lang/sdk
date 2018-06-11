@@ -578,6 +578,8 @@ final Matcher isFlutterService = new MatchesEnum("FlutterService", ["OUTLINE"]);
  *   DOCUMENTATION_COMMENT
  *   FILE_HEADER
  *   FUNCTION_BODY
+ *   INVOCATION
+ *   LITERAL
  * }
  */
 final Matcher isFoldingKind = new MatchesEnum("FoldingKind", [
@@ -586,7 +588,9 @@ final Matcher isFoldingKind = new MatchesEnum("FoldingKind", [
   "DIRECTIVES",
   "DOCUMENTATION_COMMENT",
   "FILE_HEADER",
-  "FUNCTION_BODY"
+  "FUNCTION_BODY",
+  "INVOCATION",
+  "LITERAL"
 ]);
 
 /**

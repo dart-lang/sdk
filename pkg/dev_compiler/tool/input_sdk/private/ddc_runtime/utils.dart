@@ -39,13 +39,13 @@ final Function(Object) getOwnPropertySymbols =
 /// This error indicates a strong mode specific failure, other than a type
 /// assertion failure (TypeError) or CastError.
 void throwTypeError(String message) {
-  if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
+  if (JS('!', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
   throw new TypeErrorImpl(message);
 }
 
 /// This error indicates a bug in the runtime or the compiler.
 void throwInternalError(String message) {
-  if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
+  if (JS('!', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
   JS('', 'throw Error(#)', message);
 }
 
@@ -103,14 +103,14 @@ copyTheseProperties(to, from, names) {
 
 copyProperty(to, from, name) {
   var desc = getOwnPropertyDescriptor(from, name);
-  if (JS('bool', '# == Symbol.iterator', name)) {
+  if (JS('!', '# == Symbol.iterator', name)) {
     // On native types, Symbol.iterator may already be present.
     // TODO(jmesserly): investigate if we still need this.
     // If so, we need to find a better solution.
     // See https://github.com/dart-lang/sdk/issues/28324
     var existing = getOwnPropertyDescriptor(to, name);
     if (existing != null) {
-      if (JS('bool', '#.writable', existing)) {
+      if (JS('!', '#.writable', existing)) {
         JS('', '#[#] = #.value', to, name, desc);
       }
       return;

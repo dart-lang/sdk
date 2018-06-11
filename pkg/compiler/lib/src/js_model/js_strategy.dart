@@ -24,9 +24,11 @@ import '../io/source_information.dart';
 import '../inferrer/kernel_inferrer_engine.dart';
 import '../js_emitter/sorter.dart';
 import '../js/js_source_mapping.dart';
+import '../js_backend/allocator_analysis.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/backend_usage.dart';
 import '../js_backend/constant_system_javascript.dart';
+import '../js_backend/inferred_data.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
@@ -178,7 +180,7 @@ class JsBackendStrategy implements KernelBackendStrategy {
   @override
   SourceInformationStrategy get sourceInformationStrategy {
     if (!_compiler.options.generateSourceMap) {
-      return const JavaScriptSourceInformationStrategy();
+      return const JavaScriptSourceInformationStrategy<ir.Node>();
     }
     return new KernelSourceInformationStrategy(this);
   }
@@ -215,10 +217,11 @@ class JsBackendStrategy implements KernelBackendStrategy {
   }
 
   @override
-  TypesInferrer createTypesInferrer(JClosedWorld closedWorld,
+  TypesInferrer createTypesInferrer(
+      JClosedWorld closedWorld, InferredDataBuilder inferredDataBuilder,
       {bool disableTypeInference: false}) {
     return new KernelTypeGraphInferrer(_compiler, _elementMap, _globalLocalsMap,
-        _closureDataLookup, closedWorld,
+        _closureDataLookup, closedWorld, inferredDataBuilder,
         disableTypeInference: disableTypeInference);
   }
 }
@@ -374,6 +377,9 @@ class JsClosedWorldBuilder {
         map.toBackendFunctionSet(oldNoSuchMethodData.otherImpls),
         map.toBackendFunctionSet(oldNoSuchMethodData.forwardingSyntaxImpls));
 
+    JAllocatorAnalysis allocatorAnalysis =
+        JAllocatorAnalysis.from(closedWorld.allocatorAnalysis, map, _options);
+
     return new JsClosedWorld(_elementMap,
         elementEnvironment: _elementEnvironment,
         dartTypes: _elementMap.types,
@@ -396,7 +402,8 @@ class JsClosedWorldBuilder {
         processedMembers: processedMembers,
         mixinUses: mixinUses,
         typesImplementedBySubclasses: typesImplementedBySubclasses,
-        abstractValueStrategy: _abstractValueStrategy);
+        abstractValueStrategy: _abstractValueStrategy,
+        allocatorAnalysis: allocatorAnalysis);
   }
 
   BackendUsage _convertBackendUsage(
@@ -607,6 +614,7 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
   final JsKernelToElementMap elementMap;
   final RuntimeTypesNeed rtiNeed;
   AbstractValueDomain _abstractValueDomain;
+  final JAllocatorAnalysis allocatorAnalysis;
 
   JsClosedWorld(this.elementMap,
       {ElementEnvironment elementEnvironment,
@@ -617,6 +625,7 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
       InterceptorData interceptorData,
       BackendUsage backendUsage,
       this.rtiNeed,
+      this.allocatorAnalysis,
       NoSuchMethodData noSuchMethodData,
       Set<ClassEntity> implementedClasses,
       Iterable<ClassEntity> liveNativeClasses,

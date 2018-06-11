@@ -38,6 +38,7 @@ const useSdk = "--use-sdk";
 const releaseMode = "--mode=release";
 const productMode = "--mode=product";
 const strong = "--strong";
+const previewDart2 = "--preview-dart-2";
 
 /// Maps configuration names to a corresponding set of test.dart command line
 /// arguments.
@@ -75,6 +76,7 @@ final allConfigs = {
   ],
   "dart2js-jsshell": [dart2js, jsshell, fastStartup, useSdk, dart2jsBatch],
   // TODO(rnystrom): Is it worth running dart2js on Firefox too?
+  "dart2js-2": [dart2js, chrome, dart2jsBatch, previewDart2],
   "dartdevc": [dartdevc, chrome, useSdk, strong],
   "dartdevc-kernel": [dartdevk, chrome, checked, useSdk, strong],
   "dartdevc-kernel-noruntime": [dartdevk, noRuntime, checked, useSdk, strong],

@@ -8,6 +8,8 @@
  * To use this library in your code:
  *
  *     import 'dart:math';
+ *
+ * {@category Core}
  */
 library dart.math;
 

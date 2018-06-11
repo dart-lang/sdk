@@ -175,7 +175,8 @@ KernelLoader::KernelLoader(Program* program)
                zone_,
                program_->kernel_data(),
                program_->kernel_data_size(),
-               0),
+               0,
+               &active_class_),
       external_name_class_(Class::Handle(Z)),
       external_name_field_(Field::Handle(Z)),
       potential_natives_(GrowableObjectArray::Handle(Z)),
@@ -185,7 +186,7 @@ KernelLoader::KernelLoader(Program* program)
         "Trying to load a concatenated dill file at a time where that is "
         "not allowed");
   }
-  T.active_class_ = &active_class_;
+  ASSERT(T.active_class_ == &active_class_);
   T.finalize_ = false;
 
   initialize_fields();
@@ -340,12 +341,17 @@ KernelLoader::KernelLoader(const Script& script,
       kernel_program_info_(
           KernelProgramInfo::ZoneHandle(zone_, script.kernel_program_info())),
       translation_helper_(this, thread_),
-      builder_(&translation_helper_, script, zone_, kernel_data, 0),
+      builder_(&translation_helper_,
+               script,
+               zone_,
+               kernel_data,
+               0,
+               &active_class_),
       external_name_class_(Class::Handle(Z)),
       external_name_field_(Field::Handle(Z)),
       potential_natives_(GrowableObjectArray::Handle(Z)),
       potential_extension_libraries_(GrowableObjectArray::Handle(Z)) {
-  T.active_class_ = &active_class_;
+  ASSERT(T.active_class_ == &active_class_);
   T.finalize_ = false;
 
   const Array& scripts = Array::Handle(Z, kernel_program_info_.scripts());
@@ -369,7 +375,7 @@ const Array& KernelLoader::ReadConstantTable() {
 
   builder_.SetOffset(program_->constant_table_offset());
   StreamingDartTypeTranslator type_translator_(&builder_, true /* finalize */);
-  type_translator_.active_class_ = &active_class_;
+  ASSERT(type_translator_.active_class_ == &active_class_);
 
   ConstantHelper helper(&active_class_, &builder_, &type_translator_,
                         &translation_helper_, Z, skip_vmservice_library_);

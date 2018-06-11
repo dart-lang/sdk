@@ -298,7 +298,6 @@ class CObject {
   bool IsInt64() { return type() == Dart_CObject_kInt64; }
   bool IsInt32OrInt64() { return IsInt32() || IsInt64(); }
   bool IsIntptr() { return IsInt32OrInt64(); }
-  bool IsBigint() { return type() == Dart_CObject_kBigint; }
   bool IsDouble() { return type() == Dart_CObject_kDouble; }
   bool IsString() { return type() == Dart_CObject_kString; }
   bool IsArray() { return type() == Dart_CObject_kArray; }
@@ -326,8 +325,6 @@ class CObject {
   static Dart_CObject* NewInt32(int32_t value);
   static Dart_CObject* NewInt64(int64_t value);
   static Dart_CObject* NewIntptr(intptr_t value);
-  static Dart_CObject* NewBigint(const char* hex_value);
-  static char* BigintToHexValue(Dart_CObject* bigint);
   static Dart_CObject* NewDouble(double value);
   static Dart_CObject* NewString(intptr_t length);
   static Dart_CObject* NewString(const char* str);
@@ -466,36 +463,6 @@ class CObjectIntptr : public CObject {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CObjectIntptr);
-};
-
-class CObjectBigint : public CObject {
- public:
-  // DECLARE_COBJECT_CONSTRUCTORS(Bigint) would miss hex_value_ initialization.
-  explicit CObjectBigint(Dart_CObject* cobject) : CObject(cobject) {
-    ASSERT(type() == Dart_CObject_kBigint);
-    cobject_ = cobject;
-    hex_value_ = NULL;
-  }
-  explicit CObjectBigint(CObject* cobject) : CObject() {
-    ASSERT(cobject != NULL);
-    ASSERT(cobject->type() == Dart_CObject_kBigint);
-    cobject_ = cobject->AsApiCObject();
-    hex_value_ = NULL;
-  }
-
-  char* Value() {
-    if (hex_value_ == NULL) {
-      hex_value_ = BigintToHexValue(cobject_);
-    }
-    ASSERT(hex_value_ != NULL);
-    return hex_value_;
-  }
-
-  ~CObjectBigint() { free(hex_value_); }
-
- private:
-  char* hex_value_;
-  DISALLOW_COPY_AND_ASSIGN(CObjectBigint);
 };
 
 class CObjectDouble : public CObject {

@@ -50,6 +50,8 @@ class ByteStreamClientChannel implements ClientCommunicationChannel {
 
   @override
   Future<Response> sendRequest(Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     String id = request.id;
     output.write(json.encode(request.toJson()) + '\n');
     return await responseStream

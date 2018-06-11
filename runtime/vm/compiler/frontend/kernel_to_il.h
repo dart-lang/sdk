@@ -395,6 +395,8 @@ class TranslationHelper {
   const String& DartSymbolObfuscate(const char* content) const;
   String& DartSymbolObfuscate(StringIndex string_index) const;
 
+  String& DartIdentifier(const Library& lib, StringIndex string_index);
+
   const String& DartClassName(NameIndex kernel_class);
 
   const String& DartConstructorName(NameIndex constructor);
@@ -911,7 +913,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   friend class BreakableBlock;
   friend class CatchBlock;
-  friend class ConstantEvaluator;
   friend class KernelReaderHelper;
   friend class StreamingFlowGraphBuilder;
   friend class ScopeBuilder;

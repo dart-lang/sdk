@@ -83,9 +83,6 @@
     "Report error for bad overrides. Ignored in strong mode.")                 \
   R(error_on_bad_type, false, bool, false,                                     \
     "Report error for malformed types.")                                       \
-  P(external_max_size, int, (kWordSize <= 4) ? 512 : 1024,                     \
-    "Max total size of external allocations in MB, or 0 for unlimited,"        \
-    "e.g: --external_max_size=1024 allows up to 1024MB of externals")          \
   P(fields_may_be_reset, bool, false,                                          \
     "Don't optimize away static field initialization")                         \
   C(force_clone_compiler_objects, false, false, bool, false,                   \
@@ -104,7 +101,6 @@
   P(interpret_irregexp, bool, USING_DBC, "Use irregexp bytecode interpreter")  \
   P(lazy_dispatchers, bool, true, "Generate dispatchers lazily")               \
   P(link_natives_lazily, bool, false, "Link native calls lazily")              \
-  P(limit_ints_to_64_bits, bool, true, "Truncate integers to 64 bits")         \
   C(load_deferred_eagerly, true, true, bool, false,                            \
     "Load deferred libraries eagerly.")                                        \
   R(log_marker_tasks, false, bool, false,                                      \
@@ -116,8 +112,6 @@
     "Maximum number of polymorphic check, otherwise it is megamorphic.")       \
   P(max_equality_polymorphic_checks, int, 32,                                  \
     "Maximum number of polymorphic checks in equality operator,")              \
-  P(new_gen_ext_limit, int, 64,                                                \
-    "maximum total external size (MB) in new gen before triggering GC")        \
   P(new_gen_semi_max_size, int, (kWordSize <= 4) ? 16 : 32,                    \
     "Max size of new gen semi space in MB")                                    \
   P(optimization_counter_threshold, int, 30000,                                \
@@ -157,7 +151,7 @@
   C(stress_async_stacks, false, false, bool, false,                            \
     "Stress test async stack traces")                                          \
   P(strong, bool, false, "Enable strong mode.")                                \
-  P(sync_async, bool, false, "Start `async` functions synchronously.")         \
+  P(sync_async, bool, true, "Start `async` functions synchronously.")          \
   R(support_ast_printer, false, bool, true, "Support the AST printer.")        \
   R(support_compiler_stats, false, bool, true, "Support compiler stats.")      \
   R(support_disassembler, false, bool, true, "Support the disassembler.")      \

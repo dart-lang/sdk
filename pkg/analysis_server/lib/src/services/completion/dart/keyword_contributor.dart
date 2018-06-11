@@ -30,6 +30,8 @@ class KeywordContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
 
     // Don't suggest anything right after double or integer literals.

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 
 /// Helpers for Analyzer's Element model and corelib model.
 
@@ -45,6 +46,7 @@ T fillDynamicTypeArgs<T extends DartType>(T t) {
 ///    (v) => v.type.name == 'Deprecated' && v.type.element.library.isDartCore
 ///
 DartObject findAnnotation(Element element, bool test(DartObjectImpl value)) {
+  if (element == null) return null;
   for (var metadata in element.metadata) {
     var value = metadata.computeConstantValue();
     if (value is DartObjectImpl && test(value)) return value;
@@ -339,3 +341,6 @@ bool isBuiltinAnnotation(
   var path = uri.pathSegments[0];
   return uri.scheme == 'dart' && path == libraryName;
 }
+
+ClassElement getClass(AnalysisContext c, String uri, String name) =>
+    c.computeLibraryElement(c.sourceFactory.forUri(uri)).getType(name);

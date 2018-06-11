@@ -9,8 +9,8 @@
 
 #include <errno.h>
 #include <fcntl.h>
-#include <fdio/namespace.h>
-#include <fdio/private.h>
+#include <lib/fdio/namespace.h>
+#include <lib/fdio/private.h>
 #include <zircon/status.h>
 
 #include "bin/file.h"

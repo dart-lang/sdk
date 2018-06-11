@@ -25,6 +25,8 @@ import 'package:analyzer_plugin/utilities/generator.dart';
 abstract class DartFoldingMixin implements FoldingMixin {
   @override
   Future<FoldingRequest> getFoldingRequest(String path) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     ResolveResult result = await getResolveResult(path);
     return new DartFoldingRequestImpl(resourceProvider, result);
   }
@@ -54,6 +56,8 @@ abstract class FoldingMixin implements ServerPlugin {
 
   @override
   Future<Null> sendFoldingNotification(String path) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     try {
       FoldingRequest request = await getFoldingRequest(path);
       FoldingGenerator generator =

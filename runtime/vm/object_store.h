@@ -46,7 +46,6 @@ class ObjectPointerVisitor;
   RW(Type, smi_type)                                                           \
   RW(Class, mint_class)                                                        \
   RW(Type, mint_type)                                                          \
-  RW(Class, bigint_class)                                                      \
   RW(Class, double_class)                                                      \
   RW(Type, double_type)                                                        \
   RW(Type, float32x4_type)                                                     \

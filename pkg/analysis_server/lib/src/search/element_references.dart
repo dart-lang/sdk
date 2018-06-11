@@ -23,6 +23,8 @@ class ElementReferencesComputer {
    */
   Future<List<SearchResult>> compute(
       Element element, bool withPotential) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     List<SearchResult> results = <SearchResult>[];
 
     // Add element references.
@@ -45,6 +47,8 @@ class ElementReferencesComputer {
    * to the corresponding hierarchy [Element]s.
    */
   Future<List<SearchResult>> _findElementsReferences(Element element) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     List<SearchResult> allResults = <SearchResult>[];
     Iterable<Element> refElements = await _getRefElements(element);
     for (Element refElement in refElements) {
@@ -60,6 +64,8 @@ class ElementReferencesComputer {
    */
   Future<List<SearchResult>> _findSingleElementReferences(
       Element element) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     List<SearchMatch> matches = await searchEngine.searchReferences(element);
     matches = SearchMatch.withNotNullElement(matches);
     return matches.map(toResult).toList();

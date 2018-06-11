@@ -713,10 +713,6 @@ class StreamingDartTypeTranslator {
 
   const Type& ReceiverType(const Class& klass);
 
-  void set_active_class(ActiveClass* active_class) {
-    active_class_ = active_class;
-  }
-
  private:
   // Can build a malformed type.
   void BuildTypeInternal(bool invalid_as_dynamic = false);
@@ -753,7 +749,7 @@ class StreamingDartTypeTranslator {
 
   StreamingFlowGraphBuilder* builder_;
   TranslationHelper& translation_helper_;
-  ActiveClass* active_class_;
+  ActiveClass* const active_class_;
   TypeParameterScope* type_parameter_scope_;
   Zone* zone_;
   AbstractType& result_;
@@ -1205,6 +1201,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
             data,
             data_program_offset),
         flow_graph_builder_(flow_graph_builder),
+        active_class_(&flow_graph_builder->active_class_),
         constant_evaluator_(this),
         type_translator_(this, /* finalize= */ true),
         current_script_id_(-1),
@@ -1221,13 +1218,15 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                             Zone* zone,
                             const uint8_t* data_buffer,
                             intptr_t buffer_length,
-                            intptr_t data_program_offset)
+                            intptr_t data_program_offset,
+                            ActiveClass* active_class)
       : KernelReaderHelper(zone,
                            translation_helper,
                            data_buffer,
                            buffer_length,
                            data_program_offset),
         flow_graph_builder_(NULL),
+        active_class_(active_class),
         constant_evaluator_(this),
         type_translator_(this, /* finalize= */ true),
         current_script_id_(-1),
@@ -1244,13 +1243,15 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                             const Script& script,
                             Zone* zone,
                             const TypedData& data,
-                            intptr_t data_program_offset)
+                            intptr_t data_program_offset,
+                            ActiveClass* active_class)
       : KernelReaderHelper(zone,
                            translation_helper,
                            script,
                            data,
                            data_program_offset),
         flow_graph_builder_(NULL),
+        active_class_(active_class),
         constant_evaluator_(this),
         type_translator_(this, /* finalize= */ true),
         current_script_id_(-1),
@@ -1271,7 +1272,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
 
   Fragment BuildStatementAt(intptr_t kernel_offset);
   RawObject* BuildParameterDescriptor(intptr_t kernel_offset);
-  RawObject* EvaluateMetadata(intptr_t kernel_offset, const Class& owner_class);
+  RawObject* EvaluateMetadata(intptr_t kernel_offset);
   void CollectTokenPositionsFor(
       intptr_t script_index,
       intptr_t initial_script_index,
@@ -1586,6 +1587,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   void EnsureMetadataIsScanned();
 
   FlowGraphBuilder* flow_graph_builder_;
+  ActiveClass* const active_class_;
   StreamingConstantEvaluator constant_evaluator_;
   StreamingDartTypeTranslator type_translator_;
   intptr_t current_script_id_;
@@ -1735,7 +1737,7 @@ class ConstantHelper {
   bool ShouldSkipConstant(NameIndex index);
 
   NameIndex skip_vmservice_library_;
-  ActiveClass* active_class_;
+  ActiveClass* const active_class_;
   StreamingFlowGraphBuilder& builder_;
   StreamingDartTypeTranslator& type_translator_;
   StreamingConstantEvaluator const_evaluator_;

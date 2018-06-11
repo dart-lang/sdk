@@ -5,7 +5,7 @@
 part of dart._vmservice;
 
 abstract class MessageRouter {
-  Future<Response> routeRequest(Message message);
+  Future<Response> routeRequest(VMService service, Message message);
   void routeResponse(Message message);
 }
 

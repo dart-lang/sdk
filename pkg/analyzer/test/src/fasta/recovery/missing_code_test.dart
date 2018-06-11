@@ -29,7 +29,6 @@ f() => [a, _s_, b];
 ''');
   }
 
-  @failingTest
   void test_missingComma() {
     testRecovery('''
 f() => [a, b c];

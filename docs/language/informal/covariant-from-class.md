@@ -4,7 +4,7 @@
 
 **Status**: Implemented.
 
-**Version**: 0.5 (2018-02-01)
+**Version**: 0.6 (2018-06-01)
 
 
 ## Summary
@@ -258,55 +258,9 @@ declaration of a formal parameter _p1_ (which may be the same as _p_, or it
 may be different) which contains the built-in identifier `covariant`.*
 
 *We need to introduce a new kind of covariant parameters, in addition to the
-ones that are covariant by modifier.  To do that, we also need to define the
-variance of each occurrence of a type variable in a type, which determines how
-variations of the value of that type variable affect the overall type in a
-specific direction. There are three kinds: covariant, contravariant, and
-invariant occurrences.*
-
-We say that a type variable _X_ _occurs covariantly_ in a type _T_ if:
-
--   _T_ is _X_.
--   _T_ is a parameterized type _G<S<sub>0</sub> ..., S<sub>n</sub>>_, and
-    there is a _j_ such that _X_ occurs covariantly in _S<sub>j</sub>_.
--   _T_ is a function type and _X_ occurs covariantly in the return type of
-    _T_, or _X_ occurs contravariantly in a parameter type of _T_.
-
-We say that a type variable _X_ _occurs contravariantly_ in a type _T_ if:
-
--   _T_ is a parameterized type _G<S<sub>0</sub>, ..., S<sub>n</sub>>_, and
-    there is a _j_ such that _X_ occurs contravariantly in _S<sub>j</sub>_.
--   _T_ is a function type and _X_ occurs contravariantly in the return
-    type of _T_, or _X_ occurs covariantly in a parameter type of _T_.
-
-We say that a type variable _X_ _occurs invariantly_ in a type _T_ if:
-
--   _T_ is a parameterized type _G<S<sub>0</sub> ..., S<sub>n</sub>>_, and
-    there is a _j_ such that _X_ occurs invariantly in _S<sub>j</sub>_.
--   _T_ is a function type, and _X_ occurs invariantly in the return type
-    or a parameter type of _T_, or _X_ occurs anywhere in the bound of a
-    formal type parameter of _T_.
-
-*Note that the notion of occurring invariantly differs from that of many
-other languages, where it simply means occurring covariantly as well as
-contravariantly somewhere in the same type. In Dart, a type variable occurs
-invariantly if and only if it occurs in the bound of a formal type
-parameter of a function type, anywhere in the given type. The situation
-where a given type variable occurs both covariantly and contravariantly
-differs from this situation, and there is no separate name for that in
-Dart; if it is of interest it must be spelled out as we just did here.*
-
-*As mentioned, variance gives a characterization of the way a type varies
-as the value of a type variable therein varies: Assume that _T_ is a type
-where a type variable _X_ occurs, and and _L_ and _U_ are types such that
-_L <: U_. If _X_ occurs covariantly in _T_, but not contravariantly and not
-invariantly, then _[L/X]T <: [U/X]T_. Similarly, if _X_ occurs
-contravariantly in _T_, but not covariantly and not invariantly, then 
-_[U/X]T <: [L/X]T_. If _X_ occurs both covariantly and contravariantly, or
-it occurs invariantly (at all), then _[L/X]T_ and _[U/X]T_ are not
-guaranteed to be subtypes of each other in any direction. In short: with
-covariance, the type covaries; with contravariance, the type contravaries;
-with invariance, all bets are off.*
+ones that are covariant by modifier. To do that, we also need to refer to
+the variance of each occurrence of a type variable in a type, which is
+specified in the language specification.*
 
 Consider a class _T_ which is generic or has a generic supertype (directly
 or indirectly). Let _S_ be said generic class. Assume that there is a
@@ -511,6 +465,11 @@ invocations will go wrong.
 
 
 ## Updates
+
+*   Jun 1st 2018, version 0.6: Removed specification of variance, for which
+    the normative text is now part of the language specification. Adjusted
+    the wording to fit the slightly different definitions of variance given
+    there. The meaning of this feature specification has not changed.
 
 *   Feb 1st 2018, version 0.5: Added specification of override checks for
     parameters which are covariant from class.

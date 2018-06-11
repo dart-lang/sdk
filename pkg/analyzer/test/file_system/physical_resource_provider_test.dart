@@ -658,7 +658,7 @@ class PhysicalResourceProviderTest extends _BaseTest {
       expect(changesReceived, hasLength(0));
       file.writeAsStringSync('contents 2');
       return _delayed(() {
-        expect(changesReceived, hasLength(1));
+        expect(changesReceived, anyOf(hasLength(1), hasLength(2)));
         expect(changesReceived[0].type, equals(ChangeType.MODIFY));
         expect(changesReceived[0].path, equals(path));
       });

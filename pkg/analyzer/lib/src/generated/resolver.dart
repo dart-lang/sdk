@@ -46,13 +46,19 @@ export 'package:analyzer/src/generated/type_system.dart';
  */
 class AstRewriteVisitor extends ScopedVisitor {
   final bool addConstKeyword;
+  final TypeSystem typeSystem;
 
   /**
    * Initialize a newly created visitor.
    */
-  AstRewriteVisitor(LibraryElement definingLibrary, Source source,
-      TypeProvider typeProvider, AnalysisErrorListener errorListener,
-      {Scope nameScope, this.addConstKeyword: false})
+  AstRewriteVisitor(
+      this.typeSystem,
+      LibraryElement definingLibrary,
+      Source source,
+      TypeProvider typeProvider,
+      AnalysisErrorListener errorListener,
+      {Scope nameScope,
+      this.addConstKeyword: false})
       : super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope);
 
@@ -76,7 +82,6 @@ class AstRewriteVisitor extends ScopedVisitor {
       }
       Element element = nameScope.lookup(methodName, definingLibrary);
       if (element is ClassElement) {
-        ConstructorElement constructorElement = element.unnamedConstructor;
         AstFactory astFactory = new AstFactoryImpl();
         TypeName typeName = astFactory.typeName(methodName, node.typeArguments);
         ConstructorName constructorName =
@@ -84,7 +89,9 @@ class AstRewriteVisitor extends ScopedVisitor {
         InstanceCreationExpression instanceCreationExpression =
             astFactory.instanceCreationExpression(
                 _getKeyword(node), constructorName, node.argumentList);
-        DartType type = _getType(element, node.typeArguments);
+        InterfaceType type = _getType(element, node.typeArguments);
+        ConstructorElement constructorElement =
+            type.lookUpConstructor(null, definingLibrary);
         methodName.staticElement = element;
         methodName.staticType = type;
         typeName.type = type;
@@ -111,7 +118,9 @@ class AstRewriteVisitor extends ScopedVisitor {
           InstanceCreationExpression instanceCreationExpression =
               astFactory.instanceCreationExpression(
                   _getKeyword(node), constructorName, node.argumentList);
-          DartType type = _getType(element, node.typeArguments);
+          InterfaceType type = _getType(element, node.typeArguments);
+          constructorElement =
+              type.lookUpConstructor(methodName.name, definingLibrary);
           methodName.staticElement = element;
           methodName.staticType = type;
           typeName.type = type;
@@ -129,8 +138,6 @@ class AstRewriteVisitor extends ScopedVisitor {
             astFactory.simpleIdentifier(methodName.token));
         Element prefixedElement = nameScope.lookup(identifier, definingLibrary);
         if (prefixedElement is ClassElement) {
-          ConstructorElement constructorElement =
-              prefixedElement.unnamedConstructor;
           TypeName typeName = astFactory.typeName(
               astFactory.prefixedIdentifier(target, node.operator, methodName),
               node.typeArguments);
@@ -139,7 +146,9 @@ class AstRewriteVisitor extends ScopedVisitor {
           InstanceCreationExpression instanceCreationExpression =
               astFactory.instanceCreationExpression(
                   _getKeyword(node), constructorName, node.argumentList);
-          DartType type = _getType(prefixedElement, node.typeArguments);
+          InterfaceType type = _getType(prefixedElement, node.typeArguments);
+          ConstructorElement constructorElement =
+              type.lookUpConstructor(null, definingLibrary);
           methodName.staticElement = element;
           methodName.staticType = type;
           typeName.type = type;
@@ -164,7 +173,9 @@ class AstRewriteVisitor extends ScopedVisitor {
             InstanceCreationExpression instanceCreationExpression =
                 astFactory.instanceCreationExpression(
                     _getKeyword(node), constructorName, node.argumentList);
-            DartType type = _getType(element, node.typeArguments);
+            InterfaceType type = _getType(element, node.typeArguments);
+            constructorElement =
+                type.lookUpConstructor(methodName.name, definingLibrary);
             methodName.staticElement = element;
             methodName.staticType = type;
             typeName.type = type;
@@ -206,6 +217,8 @@ class AstRewriteVisitor extends ScopedVisitor {
           .map((TypeParameterElement parameter) => parameter.type)
           .toList();
       type = type.substitute2(argumentTypes, parameterTypes);
+    } else if (typeArguments == null && typeParameters != null) {
+      type = typeSystem.instantiateToBounds(type);
     }
     return type;
   }
@@ -4164,6 +4177,37 @@ class ImportsVerifier {
   }
 
   /**
+   * Report a [HintCode.DUPLICATE_SHOWN_HIDDEN_NAME] hint for each duplicate
+   * shown or hidden name.
+   *
+   * Only call this method after all of the compilation units have been visited
+   * by this visitor.
+   *
+   * @param errorReporter the error reporter used to report the set of
+   *          [HintCode.UNUSED_SHOWN_NAME] hints
+   */
+  void generateDuplicateShownHiddenNameHints(ErrorReporter reporter) {
+    _duplicateHiddenNamesMap.forEach(
+        (NamespaceDirective directive, List<SimpleIdentifier> identifiers) {
+      int length = identifiers.length;
+      for (int i = 0; i < length; i++) {
+        Identifier identifier = identifiers[i];
+        reporter.reportErrorForNode(
+            HintCode.DUPLICATE_HIDDEN_NAME, identifier, [identifier.name]);
+      }
+    });
+    _duplicateShownNamesMap.forEach(
+        (NamespaceDirective directive, List<SimpleIdentifier> identifiers) {
+      int length = identifiers.length;
+      for (int i = 0; i < length; i++) {
+        Identifier identifier = identifiers[i];
+        reporter.reportErrorForNode(
+            HintCode.DUPLICATE_SHOWN_NAME, identifier, [identifier.name]);
+      }
+    });
+  }
+
+  /**
    * Report an [HintCode.UNUSED_IMPORT] hint for each unused import.
    *
    * Only call this method after all of the compilation units have been visited by this visitor.
@@ -4217,37 +4261,6 @@ class ImportsVerifier {
   }
 
   /**
-   * Report a [HintCode.DUPLICATE_SHOWN_HIDDEN_NAME] hint for each duplicate
-   * shown or hidden name.
-   *
-   * Only call this method after all of the compilation units have been visited
-   * by this visitor.
-   *
-   * @param errorReporter the error reporter used to report the set of
-   *          [HintCode.UNUSED_SHOWN_NAME] hints
-   */
-  void generateDuplicateShownHiddenNameHints(ErrorReporter reporter) {
-    _duplicateHiddenNamesMap.forEach(
-        (NamespaceDirective directive, List<SimpleIdentifier> identifiers) {
-      int length = identifiers.length;
-      for (int i = 0; i < length; i++) {
-        Identifier identifier = identifiers[i];
-        reporter.reportErrorForNode(
-            HintCode.DUPLICATE_HIDDEN_NAME, identifier, [identifier.name]);
-      }
-    });
-    _duplicateShownNamesMap.forEach(
-        (NamespaceDirective directive, List<SimpleIdentifier> identifiers) {
-      int length = identifiers.length;
-      for (int i = 0; i < length; i++) {
-        Identifier identifier = identifiers[i];
-        reporter.reportErrorForNode(
-            HintCode.DUPLICATE_SHOWN_NAME, identifier, [identifier.name]);
-      }
-    });
-  }
-
-  /**
    * Remove elements from [_unusedImports] using the given [usedElements].
    */
   void removeUsedElements(UsedImportedElements usedElements) {
@@ -4291,26 +4304,6 @@ class ImportsVerifier {
   }
 
   /**
-   * Add every shown name from [importDirective] into [_unusedShownNamesMap].
-   */
-  void _addShownNames(ImportDirective importDirective) {
-    if (importDirective.combinators == null) {
-      return;
-    }
-    List<SimpleIdentifier> identifiers = new List<SimpleIdentifier>();
-    _unusedShownNamesMap[importDirective] = identifiers;
-    for (Combinator combinator in importDirective.combinators) {
-      if (combinator is ShowCombinator) {
-        for (SimpleIdentifier name in combinator.shownNames) {
-          if (name.staticElement != null) {
-            identifiers.add(name);
-          }
-        }
-      }
-    }
-  }
-
-  /**
    * Add duplicate shown and hidden names from [directive] into
    * [_duplicateHiddenNamesMap] and [_duplicateShownNamesMap].
    */
@@ -4341,6 +4334,26 @@ class ImportsVerifier {
                   .putIfAbsent(directive, () => new List<SimpleIdentifier>());
               duplicateNames.add(name);
             }
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Add every shown name from [importDirective] into [_unusedShownNamesMap].
+   */
+  void _addShownNames(ImportDirective importDirective) {
+    if (importDirective.combinators == null) {
+      return;
+    }
+    List<SimpleIdentifier> identifiers = new List<SimpleIdentifier>();
+    _unusedShownNamesMap[importDirective] = identifiers;
+    for (Combinator combinator in importDirective.combinators) {
+      if (combinator is ShowCombinator) {
+        for (SimpleIdentifier name in combinator.shownNames) {
+          if (name.staticElement != null) {
+            identifiers.add(name);
           }
         }
       }
@@ -5876,6 +5889,7 @@ class ResolverVisitor extends ScopedVisitor {
     if (node.metadata != null) {
       node.metadata.accept(this);
       ElementResolver.resolveMetadata(node);
+      node.constants.forEach(ElementResolver.resolveMetadata);
     }
     //
     // Continue the enum resolution.

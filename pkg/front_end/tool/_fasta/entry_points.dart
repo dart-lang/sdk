@@ -121,8 +121,8 @@ class BatchCompiler {
       return await withGlobalOptions("compile", arguments, true,
           (CompilerContext c, _) => batchCompileImpl(c));
     } on deprecated_InputError catch (e) {
-      CompilerContext.runWithDefaultOptions(
-          (c) => c.report(deprecated_InputError.toMessage(e), Severity.error));
+      await CompilerContext.runWithDefaultOptions((c) => new Future<void>.sync(
+          () => c.report(deprecated_InputError.toMessage(e), Severity.error)));
       return false;
     }
   }
@@ -173,8 +173,8 @@ Future<KernelTarget> outline(List<String> arguments) async {
     });
   } on deprecated_InputError catch (e) {
     exitCode = 1;
-    CompilerContext.runWithDefaultOptions(
-        (c) => c.report(deprecated_InputError.toMessage(e), Severity.error));
+    await CompilerContext.runWithDefaultOptions((c) => new Future<void>.sync(
+        () => c.report(deprecated_InputError.toMessage(e), Severity.error)));
     return null;
   }
 }
@@ -192,8 +192,8 @@ Future<Uri> compile(List<String> arguments) async {
     });
   } on deprecated_InputError catch (e) {
     exitCode = 1;
-    CompilerContext.runWithDefaultOptions(
-        (c) => c.report(deprecated_InputError.toMessage(e), Severity.error));
+    await CompilerContext.runWithDefaultOptions((c) => new Future<void>.sync(
+        () => c.report(deprecated_InputError.toMessage(e), Severity.error)));
     return null;
   }
 }

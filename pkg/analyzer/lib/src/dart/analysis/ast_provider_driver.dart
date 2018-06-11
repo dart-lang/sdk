@@ -20,12 +20,16 @@ class AstProviderForDriver implements AstProvider {
 
   @override
   Future<SimpleIdentifier> getParsedNameForElement(Element element) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     CompilationUnit unit = await getParsedUnitForElement(element);
     return _getNameNode(unit, element);
   }
 
   @override
   Future<CompilationUnit> getParsedUnitForElement(Element element) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     String path = element.source.fullName;
     ParseResult parseResult = await driver.parseFile(path);
     return parseResult.unit;
@@ -33,12 +37,16 @@ class AstProviderForDriver implements AstProvider {
 
   @override
   Future<SimpleIdentifier> getResolvedNameForElement(Element element) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     CompilationUnit unit = await getResolvedUnitForElement(element);
     return _getNameNode(unit, element);
   }
 
   @override
   Future<CompilationUnit> getResolvedUnitForElement(Element element) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     String path = element.source.fullName;
     AnalysisResult analysisResult = await driver.getResult(path);
     return analysisResult?.unit;

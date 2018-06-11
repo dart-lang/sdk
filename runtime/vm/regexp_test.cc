@@ -64,11 +64,15 @@ TEST_CASE(RegExp_TwoByteString) {
   EXPECT_EQ(3, smi_2.Value());
 }
 
+static void NoopFinalizer(void* isolate_callback_data,
+                          Dart_WeakPersistentHandle handle,
+                          void* peer) {}
+
 TEST_CASE(RegExp_ExternalOneByteString) {
   uint8_t chars[] = {'a', 'b', 'c', 'b', 'a'};
   intptr_t len = ARRAY_SIZE(chars);
-  const String& str = String::Handle(
-      ExternalOneByteString::New(chars, len, NULL, NULL, Heap::kNew));
+  const String& str = String::Handle(ExternalOneByteString::New(
+      chars, len, NULL, 0, NoopFinalizer, Heap::kNew));
 
   const String& pat = String::Handle(String::New("bc"));
   const Array& res = Array::Handle(Match(pat, str));
@@ -88,8 +92,8 @@ TEST_CASE(RegExp_ExternalOneByteString) {
 TEST_CASE(RegExp_ExternalTwoByteString) {
   uint16_t chars[] = {'a', 'b', 'c', 'b', 'a'};
   intptr_t len = ARRAY_SIZE(chars);
-  const String& str = String::Handle(
-      ExternalTwoByteString::New(chars, len, NULL, NULL, Heap::kNew));
+  const String& str = String::Handle(ExternalTwoByteString::New(
+      chars, len, NULL, 0, NoopFinalizer, Heap::kNew));
 
   const String& pat = String::Handle(String::New("bc"));
   const Array& res = Array::Handle(Match(pat, str));

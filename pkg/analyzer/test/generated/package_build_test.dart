@@ -7,7 +7,6 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/generated/package_build.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:mockito/mockito.dart';
 import 'package:package_config/packages.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -20,11 +19,31 @@ main() {
   });
 }
 
-class MockContextBuilder extends Mock implements ContextBuilder {}
+class MockContextBuilder implements ContextBuilder {
+  Map<String, Packages> packagesMapMap = <String, Packages>{};
+  Map<Packages, Map<String, List<Folder>>> packagesToMapMap =
+      <Packages, Map<String, List<Folder>>>{};
 
-class MockPackages extends Mock implements Packages {}
+  Map<String, List<Folder>> convertPackagesToMap(Packages packages) =>
+      packagesToMapMap[packages];
 
-class MockUriResolver extends Mock implements UriResolver {}
+  Packages createPackageMap(String rootDirectoryPath) =>
+      packagesMapMap[rootDirectoryPath];
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class MockPackages implements Packages {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class MockUriResolver implements UriResolver {
+  Map<Uri, Source> resolveAbsoluteMap = {};
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) => resolveAbsoluteMap[uri];
+}
 
 @reflectiveTest
 class PackageBuildFileUriResolverTest extends _BaseTest {
@@ -35,12 +54,10 @@ class PackageBuildFileUriResolverTest extends _BaseTest {
     provider.newFolder(_p('/workspace/.dart_tool/build/generated/project/lib'));
     provider.newFileWithBytes(
         _p('/workspace/pubspec.yaml'), 'name: project'.codeUnits);
-    final ContextBuilder contextBuilder = new MockContextBuilder();
+    final MockContextBuilder contextBuilder = new MockContextBuilder();
     final Packages packages = new MockPackages();
-    when(contextBuilder.createPackageMap(_p('/workspace')))
-        .thenReturn(packages);
-    when(contextBuilder.convertPackagesToMap(packages))
-        .thenReturn({'project': []});
+    contextBuilder.packagesMapMap[_p('/workspace')] = packages;
+    contextBuilder.packagesToMapMap[packages] = {'project': []};
     workspace =
         PackageBuildWorkspace.find(provider, _p('/workspace'), contextBuilder);
     resolver = new PackageBuildFileUriResolver(workspace);
@@ -112,7 +129,7 @@ class PackageBuildFileUriResolverTest extends _BaseTest {
 class PackageBuildPackageUriResolverTest extends _BaseTest {
   PackageBuildWorkspace workspace;
   PackageBuildPackageUriResolver resolver;
-  UriResolver packageUriResolver;
+  MockUriResolver packageUriResolver;
 
   Uri addPackageSource(String path, String uriStr, {bool create: true}) {
     Uri uri = Uri.parse(uriStr);
@@ -120,7 +137,7 @@ class PackageBuildPackageUriResolverTest extends _BaseTest {
         ? provider.newFile(_p(path), '')
         : provider.getResource(_p(path));
     final Source source = file.createSource(uri);
-    when(packageUriResolver.resolveAbsolute(uri)).thenReturn(source);
+    packageUriResolver.resolveAbsoluteMap[uri] = source;
     return uri;
   }
 
@@ -189,10 +206,8 @@ class PackageBuildPackageUriResolverTest extends _BaseTest {
     }
     final contextBuilder = new MockContextBuilder();
     final packages = new MockPackages();
-    when(contextBuilder.createPackageMap(_p(workspacePath)))
-        .thenReturn(packages);
-    when(contextBuilder.convertPackagesToMap(packages))
-        .thenReturn({'project': []});
+    contextBuilder.packagesMapMap[_p(workspacePath)] = packages;
+    contextBuilder.packagesToMapMap[packages] = {'project': []};
     workspace =
         PackageBuildWorkspace.find(provider, _p(workspacePath), contextBuilder);
     packageUriResolver = new MockUriResolver();
@@ -463,8 +478,8 @@ class PackageBuildWorkspaceTest extends _BaseTest {
     final contextBuilder = new MockContextBuilder();
     final packages = new MockPackages();
     final packageMap = new Map.fromIterable(packageNames, value: ((_) => []));
-    when(contextBuilder.createPackageMap(_p(root))).thenReturn(packages);
-    when(contextBuilder.convertPackagesToMap(packages)).thenReturn(packageMap);
+    contextBuilder.packagesMapMap[_p(root)] = packages;
+    contextBuilder.packagesToMapMap[packages] = packageMap;
     return PackageBuildWorkspace.find(provider, _p(root), contextBuilder);
   }
 }

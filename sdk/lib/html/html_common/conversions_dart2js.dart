@@ -2,9 +2,9 @@ part of html_common;
 
 /// Converts a JavaScript object with properties into a Dart Map.
 /// Not suitable for nested objects.
-Map convertNativeToDart_Dictionary(object) {
+Map<String, dynamic> convertNativeToDart_Dictionary(object) {
   if (object == null) return null;
-  var dict = {};
+  var dict = <String, dynamic>{};
   var keys = JS('JSExtendableArray', 'Object.getOwnPropertyNames(#)', object);
   for (final key in keys) {
     dict[key] = JS('var', '#[#]', object, key);

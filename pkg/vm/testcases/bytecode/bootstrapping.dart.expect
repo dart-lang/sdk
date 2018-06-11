@@ -654,7 +654,7 @@ L5:
   PushConstant         CP#0
   PushStatic           CP#0
   PushConstant         CP#14
-  IndirectStaticCall   2, CP#9
+  IndirectStaticCall   2, CP#2
   InstanceCall1        2, CP#15
   ReturnTOS
 L6:
@@ -676,7 +676,7 @@ ConstantPool {
   [11] = ArgDesc num-args 0, num-type-args 0, names []
   [12] = StaticICData get target 'dart.core::Uri::base', arg-desc CP#11
   [13] = Null
-  [14] = StaticICData target 'dart.core::_Uri::file', arg-desc CP#9
+  [14] = StaticICData target 'dart.core::_Uri::file', arg-desc CP#2
   [15] = ICData target-name 'resolveUri', arg-desc CP#2
 }
 ]static method _scriptUri() → core::Uri {

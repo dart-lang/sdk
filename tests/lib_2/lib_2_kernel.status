@@ -51,7 +51,6 @@ isolate/isolate_complex_messages_test: Crash # http://dartbug.com/33128
 
 [ $arch == x64 && $compiler == dartk && $mode == debug && $runtime == vm && $strong ]
 mirrors/invocation_fuzz_test: Skip # Because it times out, issue 29439.
-mirrors/variable_is_const_test/01: Crash
 
 [ $builder_tag == optimization_counter_threshold && $compiler == dartk ]
 isolate/unresolved_ports_test: CompileTimeError, Pass, Timeout # Fails to compile on opt counter builder (#31838)
@@ -63,7 +62,9 @@ mirrors/invocation_fuzz_test/string: Pass, Crash, RuntimeError # Flaky on vm-ker
 
 [ $compiler == app_jitk && $mode == product ]
 isolate/spawn_function_custom_class_test: Skip # Timeout
-isolate/spawn_uri_nested_vm_test: Skip # Timeout
+
+[ $compiler == app_jitk && ($mode == product || $mode == release) ]
+isolate/spawn_uri_nested_vm_test: Skip # Timeout, Issue 33385
 
 [ $compiler != dart2js && $fasta && !$strong ]
 isolate/browser/compute_this_script_browser_test: CompileTimeError
@@ -72,21 +73,13 @@ isolate/browser/package_resolve_browser_hook_test: CompileTimeError
 isolate/browser/package_resolve_browser_test: CompileTimeError
 
 [ $compiler == dartk && $mode == debug && $runtime == vm && $strong ]
-mirrors/other_declarations_location_test: Crash # assertion error, TypeParameter not having position.
+mirrors/other_declarations_location_test: Crash # Issue 33325 (assertion error, TypeParameter not having position).
 
 [ $compiler == dartk && $mode == debug && $hot_reload_rollback ]
 isolate/message3_test/constList_identical: Skip # Timeout
 
 [ $compiler == dartk && $mode == debug && $strong ]
-mirrors/instance_members_unimplemented_interface_test: Crash
-mirrors/library_import_deferred_loading_test: Crash # Deferred loading kernel issue 28335.
-mirrors/load_library_test: Crash
-
-# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
-# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
-# batch mode.
-[ $compiler == dartk && $mode == debug && $strong && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
-mirrors/variable_is_const_test/01: Crash # Please triage.
+mirrors/variable_is_const_test/01: Crash # Issue 32326
 
 [ $compiler == dartk && $runtime == vm && $checked && $strong ]
 mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError # Issue 28424
@@ -117,11 +110,10 @@ mirrors/class_declarations_test/none: RuntimeError # Issue 31402 (Invocation arg
 mirrors/class_mirror_location_test: RuntimeError
 mirrors/constructor_kinds_test/01: RuntimeError
 mirrors/constructor_kinds_test/none: RuntimeError
-mirrors/constructor_private_name_test: RuntimeError
+mirrors/constructor_private_name_test: RuntimeError # Issue 33345 - Incorrect qualified symbol literal from kernel reader
 mirrors/constructors_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/dart2js_mirrors_test: RuntimeError # 31916
 mirrors/deferred_mirrors_metadata_test: RuntimeError, CompileTimeError # Deferred loading kernel issue 28335.
-mirrors/deferred_mirrors_test: Crash # 31916
 mirrors/deferred_type_test: CompileTimeError, RuntimeError
 mirrors/empty_test: Crash, RuntimeError
 mirrors/enum_test: RuntimeError # Issue 31402 (Invocation arguments)
@@ -133,11 +125,7 @@ mirrors/generic_f_bounded_mixin_application_test: RuntimeError
 mirrors/generic_function_typedef_test: RuntimeError
 mirrors/generic_interface_test/01: RuntimeError
 mirrors/generic_mixin_applications_test: RuntimeError
-mirrors/hot_get_field_test: RuntimeError
-mirrors/hot_set_field_test: RuntimeError
 mirrors/invocation_fuzz_test: RuntimeError, Crash
-mirrors/invoke_private_test: RuntimeError
-mirrors/invoke_private_wrong_library_test: RuntimeError
 mirrors/library_declarations_test/none: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/library_enumeration_deferred_loading_test: RuntimeError
 mirrors/library_exports_hidden_test: RuntimeError # Issue 33098
@@ -169,14 +157,12 @@ mirrors/mixin_application_test: RuntimeError # Issue 31402 (Invocation arguments
 mirrors/mixin_members_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/native_class_test: SkipByDesign # Imports dart:html
 mirrors/operator_test: CompileTimeError # Issue 31402 (Invocation arguments)
-mirrors/other_declarations_location_test: RuntimeError
+mirrors/other_declarations_location_test: RuntimeError # Issue 33325 (no source positions for type parameters).
 mirrors/parameter_annotation_mirror_test: RuntimeError
 mirrors/parameter_metadata_test: RuntimeError
 mirrors/parameter_of_mixin_app_constructor_test: RuntimeError # Issue 31402 (Invocation arguments)
-mirrors/private_class_field_test: RuntimeError
-mirrors/private_field_test: RuntimeError
-mirrors/private_symbol_test: RuntimeError
-mirrors/private_types_test: RuntimeError
+mirrors/private_symbol_test: RuntimeError # Issue 33326 - CFE/kernel invalid typedef substitution
+mirrors/private_types_test: RuntimeError # Issue 33326 - CFE/kernel invalid typedef substitution
 mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError
 mirrors/redirecting_factory_test/01: RuntimeError
 mirrors/redirecting_factory_test/02: RuntimeError
@@ -215,7 +201,7 @@ isolate/ping_pause_test: Skip # Issues 32137 and 32138
 async/stream_state_nonzero_timer_test: Crash
 async/stream_subscription_as_future_test: Crash
 async/stream_subscription_cancel_test: Crash
-isolate/message4_test: Crash
+isolate/message4_test: Pass, Timeout
 isolate/spawn_uri_multi_test/01: Crash
 isolate/spawn_uri_multi_test/none: Crash
 
@@ -243,7 +229,6 @@ mirrors/deferred_constraints_constants_test/default_argument2: Pass
 mirrors/fake_function_with_call_test: RuntimeError
 mirrors/instance_members_easier_test: RuntimeError
 mirrors/instance_members_test: RuntimeError
-mirrors/instance_members_unimplemented_interface_test: RuntimeError
 mirrors/instance_members_with_override_test: RuntimeError
 mirrors/invoke_closurization2_test: RuntimeError
 mirrors/invoke_throws_test: RuntimeError

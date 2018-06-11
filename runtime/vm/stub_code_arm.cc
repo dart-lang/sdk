@@ -2177,13 +2177,12 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
 // checks for boxed numbers.
 // LR: return address.
 // Return Zero condition flag set if equal.
-// Note: A Mint cannot contain a value that would fit in Smi, a Bigint
-// cannot contain a value that fits in Mint or Smi.
+// Note: A Mint cannot contain a value that would fit in Smi.
 static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
                                                  const Register left,
                                                  const Register right,
                                                  const Register temp) {
-  Label reference_compare, done, check_mint, check_bigint;
+  Label reference_compare, done, check_mint;
   // If any of the arguments is Smi do reference compare.
   __ tst(left, Operand(kSmiTagMask));
   __ b(&reference_compare, EQ);
@@ -2208,7 +2207,7 @@ static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
 
   __ Bind(&check_mint);
   __ CompareClassId(left, kMintCid, temp);
-  __ b(&check_bigint, NE);
+  __ b(&reference_compare, NE);
   __ CompareClassId(right, kMintCid, temp);
   __ b(&done, NE);
   __ ldr(temp, FieldAddress(left, Mint::value_offset() + 0 * kWordSize));
@@ -2218,20 +2217,6 @@ static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
   __ ldr(temp, FieldAddress(left, Mint::value_offset() + 1 * kWordSize));
   __ ldr(IP, FieldAddress(right, Mint::value_offset() + 1 * kWordSize));
   __ cmp(temp, Operand(IP));
-  __ b(&done);
-
-  __ Bind(&check_bigint);
-  __ CompareClassId(left, kBigintCid, temp);
-  __ b(&reference_compare, NE);
-  __ CompareClassId(right, kBigintCid, temp);
-  __ b(&done, NE);
-  __ EnterStubFrame();
-  __ ReserveAlignedFrameSpace(2 * kWordSize);
-  __ stm(IA, SP, (1 << R0) | (1 << R1));
-  __ CallRuntime(kBigintCompareRuntimeEntry, 2);
-  // Result in R0, 0 means equal.
-  __ LeaveStubFrame();
-  __ cmp(R0, Operand(0));
   __ b(&done);
 
   __ Bind(&reference_compare);

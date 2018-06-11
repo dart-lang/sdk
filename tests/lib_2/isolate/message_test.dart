@@ -137,7 +137,6 @@ void main([args, port]) {
         expect(replyObject[0], same(replyObject[2][2]));
         expect(replyObject[2], same(replyObject[4][0]));
         expect(replyObject[0][0], same(replyObject[0][2]));
-        // Bigint literals are not canonicalized so do a == check.
         expect(replyObject[0][3], equals(replyObject[4][4]));
       });
 

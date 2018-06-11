@@ -159,8 +159,7 @@ Bytecode {
   Entry                0
   CheckStack
   Push                 FP[-5]
-  Push                 FP[-6]
-  LoadFieldTOS         CP#0
+  PushConstant         CP#0
   Push                 FP[-7]
   PushConstant         CP#1
   InstanceCall1        4, CP#3
@@ -174,31 +173,31 @@ Bytecode {
 L1:
   Push                 FP[-5]
   Push                 FP[-6]
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#8
   Push                 FP[-7]
-  PushConstant         CP#8
-  InstanceCall1        4, CP#9
+  PushConstant         CP#9
+  InstanceCall1        4, CP#10
   PushConstant         CP#4
   IfNeStrictTOS
   Jump                 L2
-  PushConstant         CP#10
   PushConstant         CP#11
+  PushConstant         CP#12
   IndirectStaticCall   1, CP#6
   Drop1
 L2:
   Push                 FP[-5]
   Push                 FP[-6]
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#8
   Push                 FP[-7]
-  PushConstant         CP#12
-  InstanceCall1        4, CP#13
-  InstanceCall1        1, CP#14
+  PushConstant         CP#13
+  InstanceCall1        4, CP#14
+  InstanceCall1        1, CP#15
   ReturnTOS
-  PushConstant         CP#15
+  PushConstant         CP#0
   ReturnTOS
 }
 ConstantPool {
-  [0] = TypeArgumentsFieldOffset #lib::D
+  [0] = Null
   [1] = Type #lib::A<#lib::D::foo3::T1>
   [2] = ArgDesc num-args 4, num-type-args 0, names []
   [3] = ICData target-name 'dart.core::_instanceOf', arg-desc CP#2
@@ -206,14 +205,14 @@ ConstantPool {
   [5] = String '31'
   [6] = ArgDesc num-args 1, num-type-args 0, names []
   [7] = StaticICData target 'dart.core::print', arg-desc CP#6
-  [8] = Type #lib::C<dart.core::Map<#lib::D::foo3::T1, #lib::D::P>, dart.core::List<#lib::D::foo3::T2>, #lib::D::Q>
-  [9] = ICData target-name 'dart.core::_instanceOf', arg-desc CP#2
-  [10] = String '32'
-  [11] = StaticICData target 'dart.core::print', arg-desc CP#6
-  [12] = Type dart.core::Map<#lib::D::foo3::T2, #lib::D::Q>
-  [13] = ICData target-name 'dart.core::_as', arg-desc CP#2
-  [14] = ICData get target-name 'values', arg-desc CP#6
-  [15] = Null
+  [8] = TypeArgumentsFieldOffset #lib::D
+  [9] = Type #lib::C<dart.core::Map<#lib::D::foo3::T1, #lib::D::P>, dart.core::List<#lib::D::foo3::T2>, #lib::D::Q>
+  [10] = ICData target-name 'dart.core::_instanceOf', arg-desc CP#2
+  [11] = String '32'
+  [12] = StaticICData target 'dart.core::print', arg-desc CP#6
+  [13] = Type dart.core::Map<#lib::D::foo3::T2, #lib::D::Q>
+  [14] = ICData target-name 'dart.core::_as', arg-desc CP#2
+  [15] = ICData get target-name 'values', arg-desc CP#6
 }
 ]  method foo3<T1 extends core::Object = dynamic, T2 extends core::Object = dynamic>(dynamic z) → dynamic {
     if(z is self::A<self::D::foo3::T1>) {

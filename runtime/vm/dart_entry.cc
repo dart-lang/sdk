@@ -25,6 +25,16 @@ RawArray* ArgumentsDescriptor::cached_args_descriptors_[kCachedDescriptorCount];
 RawObject* DartEntry::InvokeFunction(const Function& function,
                                      const Array& arguments) {
   ASSERT(Thread::Current()->IsMutatorThread());
+
+  // We use a kernel2kernel constant evaluator in Dart 2.0 AOT compilation
+  // and never start the VM service isolate. So we should never end up invoking
+  // any dart code in the Dart 2.0 AOT compiler.
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (Isolate::Current()->strong() && FLAG_precompiled_mode) {
+    UNREACHABLE();
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
   const int kTypeArgsLen = 0;  // No support to pass type args to generic func.
   const Array& arguments_descriptor =
       Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, arguments.Length()));
@@ -52,11 +62,15 @@ class ScopedIsolateStackLimits : public ValueObject {
     ASSERT(os_thread != NULL);
     os_thread->RefineStackBoundsFromSP(current_sp);
 
-    // Save the Thread's current stack limit and adjust the stack
-    // limit based on the thread's stack_base.
+    // Save the Thread's current stack limit and adjust the stack limit.
     ASSERT(thread->isolate() == Isolate::Current());
     saved_stack_limit_ = thread->saved_stack_limit();
-    thread->SetStackLimitFromStackBase(os_thread->stack_base());
+#if defined(USING_SIMULATOR)
+    thread->SetStackLimit(Simulator::Current()->stack_limit());
+#else
+    thread->SetStackLimit(OSThread::Current()->stack_limit_with_headroom());
+    // TODO(regis): For now, the interpreter is using its own stack limit.
+#endif
 
 #if defined(USING_SAFE_STACK)
     saved_safestack_limit_ = OSThread::GetCurrentSafestackPointer();

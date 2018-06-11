@@ -59,7 +59,11 @@ void main(List<String> args) {
   ProcessResult runDdc(String command, List<String> args) {
     if (debug) {
       // Use unbuilt script.  This only works from a source checkout.
-      args.insertAll(0, ['--preview-dart-2', '--enable-asserts', path.join(ddcPath, 'bin', '${command}.dart')]);
+      args.insertAll(0, [
+        '--preview-dart-2',
+        '--enable-asserts',
+        path.join(ddcPath, 'bin', '${command}.dart')
+      ]);
       command = dartBinary;
     } else {
       // Use built snapshot.
@@ -86,8 +90,17 @@ void main(List<String> args) {
       mod = 'amd';
       break;
   }
-  var sdkJsPath = path.join(dartSdk, 'lib', 'dev_compiler', mod);
 
+  String sdkJsPath;
+  if (debug) {
+    var sdkRoot = path.dirname(path.dirname(ddcPath));
+    var buildDir = path.join(sdkRoot, Platform.isMacOS ? 'xcodebuild' : 'out');
+    var genDir = path.join(buildDir, 'ReleaseX64', 'gen', 'utils', 'dartdevc');
+    sdkJsPath = path.join(genDir, kernel ? 'kernel' : 'js', mod);
+  } else {
+    var suffix = kernel ? path.join('kernel', mod) : mod;
+    sdkJsPath = path.join(dartSdk, 'lib', 'dev_compiler', suffix);
+  }
   ProcessResult result;
   if (kernel) {
     var ddcSdk = path.join(dartSdk, 'lib', '_internal', 'ddc_sdk.dill');

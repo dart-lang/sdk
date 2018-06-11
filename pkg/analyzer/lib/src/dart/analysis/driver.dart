@@ -95,7 +95,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 60;
+  static const int DATA_VERSION = 61;
 
   /**
    * The number of exception contexts allowed to write. Once this field is
@@ -605,6 +605,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    */
   Future<void> discoverAvailableFiles() {
     _discoverAvailableFiles();
+    _scheduler.notify(this);
     return _discoverAvailableFilesTask.completer.future;
   }
 
@@ -642,6 +643,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * interactive analysis, such as Analysis Server or its plugins.
    */
   Future<ErrorsResult> getErrors(String path) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     _throwIfNotAbsolutePath(path);
 
     // Ask the analysis result without unit, so return cached errors.
@@ -662,7 +665,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     }
 
     return new ErrorsResult(currentSession, path, analysisResult.uri,
-        analysisResult.lineInfo, analysisResult.errors);
+        analysisResult.lineInfo, analysisResult.isPart, analysisResult.errors);
   }
 
   /**
@@ -690,6 +693,18 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   /**
+   * Return the [FileResult] for the Dart file with the given [path].
+   *
+   * The [path] must be absolute and normalized.
+   */
+  FileResult getFileSync(String path) {
+    _throwIfNotAbsolutePath(path);
+    FileState file = _fileTracker.verifyApiSignature(path);
+    return new FileResult(
+        _currentSession, path, file.uri, file.lineInfo, file.isPart);
+  }
+
+  /**
    * Return a [Future] that completes with the [AnalysisDriverUnitIndex] for
    * the file with the given [path], or with `null` if the file cannot be
    * analyzed.
@@ -713,6 +728,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * store, or built for a file to which the given [uri] is resolved.
    */
   Future<LibraryElement> getLibraryByUri(String uri) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     if (_externalSummaries != null && _externalSummaries.hasUnlinkedUnit(uri)) {
       return LibraryContext.resynthesizeLibraryElement(analysisOptions,
           declaredVariables, sourceFactory, _externalSummaries, uri);
@@ -728,23 +745,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     var file = fsState.getFileForPath(path);
     signature.addString(file.contentHash);
     return signature;
-  }
-
-  /**
-   * Return the cached [AnalysisDriverResolvedUnit] for the file with the given
-   * [file], or `null` if the cache does not contain this information.
-   */
-  AnalysisDriverResolvedUnit getResolvedUnitObject(FileState file) {
-    FileState library = file.isPart ? file.library : file;
-    if (library != null) {
-      String signature = _getResolvedUnitSignature(library, file);
-      String key = _getResolvedUnitKey(signature);
-      List<int> bytes = _byteStore.get(key);
-      if (bytes != null) {
-        return new AnalysisDriverResolvedUnit.fromBuffer(bytes);
-      }
-    }
-    return null;
   }
 
   /**
@@ -801,6 +801,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * The [path] must be absolute and normalized.
    */
   Future<SourceKind> getSourceKind(String path) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     _throwIfNotAbsolutePath(path);
     if (AnalysisEngine.isDartFileName(path)) {
       FileState file = _fsState.getFileForPath(path);
@@ -883,6 +885,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * resolved unit).
    */
   Future<ParseResult> parseFile(String path) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     return parseFileSync(path);
   }
 
@@ -903,11 +907,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     RecordingErrorListener listener = new RecordingErrorListener();
     CompilationUnit unit = file.parse(listener);
     return new ParseResult(currentSession, file.path, file.uri, file.content,
-        unit.lineInfo, unit, listener.errors);
+        file.lineInfo, file.isPart, unit, listener.errors);
   }
 
   @override
   Future<Null> performWork() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     if (_fileTracker.verifyChangedFilesIfNeeded()) {
       return;
     }
@@ -1194,6 +1200,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       {bool withUnit: false,
       bool asIsIfPartWithoutLibrary: false,
       bool skipIfSameSignature: false}) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     FileState file = _fsState.getFileForPath(path);
 
     // Prepare the library - the file itself, or the known library.
@@ -1230,6 +1238,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     // We need the fully resolved unit, or the result is not cached.
     return _logger.runAsync('Compute analysis result for $path', () async {
+      // TODO(brianwilkerson) Determine whether this await is necessary.
+      await null;
       try {
         LibraryContext libraryContext;
         KernelContext kernelContext;
@@ -1316,6 +1326,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   Future<AnalysisDriverUnitIndex> _computeIndex(String path) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     AnalysisResult analysisResult = await _computeAnalysisResult(path,
         withUnit: false, asIsIfPartWithoutLibrary: true);
     return analysisResult._index;
@@ -1323,6 +1335,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   Future<UnitElementResult> _computeUnitElement(String path,
       {bool asIsIfPartWithoutLibrary: false}) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     FileState file = _fsState.getFileForPath(path);
 
     // Prepare the library - the file itself, or the known library.
@@ -1393,6 +1407,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   Future<KernelContext> _createKernelContext(FileState library) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     return await KernelContext.forSingleLibrary(
         library,
         _logger,
@@ -1426,6 +1442,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * Return the context in which the [library] should be analyzed.
    */
   Future<LibraryContext> _createLibraryContext(FileState library) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     _testView.numOfCreatedLibraryContexts++;
     return new LibraryContext.forSingleLibrary(
         library,
@@ -1494,6 +1512,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         file.exists,
         content,
         file.lineInfo,
+        file.isPart,
         signature,
         resolvedUnit,
         errors,
@@ -1583,6 +1602,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         file.exists,
         null,
         file.lineInfo,
+        file.isPart,
         null,
         null,
         [
@@ -1939,6 +1959,8 @@ class AnalysisDriverScheduler {
    * priority first.
    */
   Future<Null> _run() async {
+    // Give other microtasks the time to run before doing the analysis cycle.
+    await null;
     Stopwatch timer = new Stopwatch()..start();
     PerformanceLogSection analysisSection;
     while (true) {
@@ -2023,6 +2045,8 @@ class AnalysisDriverTestView {
 
   Future<SummaryDataStore> getSummaryStore(String libraryPath) async {
     FileState library = driver.fsState.getFileForPath(libraryPath);
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     LibraryContext libraryContext = await driver._createLibraryContext(library);
     try {
       return libraryContext.store;
@@ -2043,10 +2067,9 @@ class AnalysisDriverTestView {
  * Every result is independent, and is not guaranteed to be consistent with
  * any previously returned result, even inside of the same library.
  */
-class AnalysisResult extends BaseAnalysisResult
-    implements results.ResolveResult {
+class AnalysisResult extends FileResult implements results.ResolveResult {
   static final _UNCHANGED = new AnalysisResult(
-      null, null, null, null, null, null, null, null, null, null, null);
+      null, null, null, null, null, null, null, null, null, null, null, null);
 
   /**
    * The [AnalysisDriver] that produced this result.
@@ -2065,9 +2088,6 @@ class AnalysisResult extends BaseAnalysisResult
 
   @override
   final String content;
-
-  @override
-  final LineInfo lineInfo;
 
   /**
    * The signature of the result based on the content of the file, and the
@@ -2094,12 +2114,13 @@ class AnalysisResult extends BaseAnalysisResult
       Uri uri,
       this.exists,
       this.content,
-      this.lineInfo,
+      LineInfo lineInfo,
+      bool isPart,
       this._signature,
       this.unit,
       this.errors,
       this._index)
-      : super(driver?.currentSession, path, uri);
+      : super(driver?.currentSession, path, uri, lineInfo, isPart);
 
   @override
   LibraryElement get libraryElement => unit.element.library;
@@ -2157,16 +2178,13 @@ abstract class DriverWatcher {
  * to each other. But none of the results is guaranteed to be consistent with
  * the state of the files.
  */
-class ErrorsResult extends BaseAnalysisResult implements results.ErrorsResult {
-  @override
-  final LineInfo lineInfo;
-
+class ErrorsResult extends FileResult implements results.ErrorsResult {
   @override
   final List<AnalysisError> errors;
 
-  ErrorsResult(
-      AnalysisSession session, String path, Uri uri, this.lineInfo, this.errors)
-      : super(session, path, uri);
+  ErrorsResult(AnalysisSession session, String path, Uri uri, LineInfo lineInfo,
+      bool isPart, this.errors)
+      : super(session, path, uri, lineInfo, isPart);
 
   @override
   results.ResultState get state => results.ResultState.VALID;
@@ -2200,18 +2218,34 @@ class ExceptionResult {
 }
 
 /**
+ * The result of computing some cheap information for a single file, when full
+ * parsed file is not required, so [ParseResult] is not necessary.
+ */
+class FileResult extends BaseAnalysisResult implements results.FileResult {
+  @override
+  final LineInfo lineInfo;
+
+  @override
+  final bool isPart;
+
+  FileResult(
+      AnalysisSession session, String path, Uri uri, this.lineInfo, this.isPart)
+      : super(session, path, uri);
+
+  @override
+  results.ResultState get state => results.ResultState.VALID;
+}
+
+/**
  * The result of parsing of a single file.
  *
  * These results are self-consistent, i.e. [content], [lineInfo], the
  * parsed [unit] correspond to each other. But none of the results is
  * guaranteed to be consistent with the state of the files.
  */
-class ParseResult extends BaseAnalysisResult implements results.ParseResult {
+class ParseResult extends FileResult implements results.ParseResult {
   @override
   final String content;
-
-  @override
-  final LineInfo lineInfo;
 
   @override
   final CompilationUnit unit;
@@ -2220,8 +2254,8 @@ class ParseResult extends BaseAnalysisResult implements results.ParseResult {
   final List<AnalysisError> errors;
 
   ParseResult(AnalysisSession session, String path, Uri uri, this.content,
-      this.lineInfo, this.unit, this.errors)
-      : super(session, path, uri);
+      LineInfo lineInfo, bool isPart, this.unit, this.errors)
+      : super(session, path, uri, lineInfo, isPart);
 
   @override
   results.ResultState get state => results.ResultState.VALID;

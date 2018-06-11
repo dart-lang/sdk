@@ -27,6 +27,8 @@ abstract class DartEntryMixin implements EntryMixin {
   @override
   Future<EntryRequest> getEntryRequest(
       KytheGetKytheEntriesParams parameters) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     String path = parameters.file;
     ResolveResult result = await getResolveResult(path);
     return new DartEntryRequestImpl(resourceProvider, result);
@@ -58,6 +60,8 @@ abstract class EntryMixin implements ServerPlugin {
   @override
   Future<KytheGetKytheEntriesResult> handleKytheGetKytheEntries(
       KytheGetKytheEntriesParams parameters) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     String path = parameters.file;
     EntryRequest request = await getEntryRequest(parameters);
     EntryGenerator generator = new EntryGenerator(getEntryContributors(path));

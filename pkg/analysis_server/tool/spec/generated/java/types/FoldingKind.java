@@ -27,4 +27,8 @@ public class FoldingKind {
 
   public static final String FUNCTION_BODY = "FUNCTION_BODY";
 
+  public static final String INVOCATION = "INVOCATION";
+
+  public static final String LITERAL = "LITERAL";
+
 }

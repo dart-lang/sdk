@@ -149,6 +149,8 @@
  * The
  * [Dart Language Specification](http://www.dartlang.org/docs/spec/)
  * provides technical details.
+ *
+ * {@category Core}
  */
 library dart.core;
 

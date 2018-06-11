@@ -793,7 +793,8 @@ class _LocalFunctionTypeMirror extends _LocalClassMirror
   List<ParameterMirror> _parameters;
   List<ParameterMirror> get parameters {
     if (_parameters == null) {
-      _parameters = _FunctionTypeMirror_parameters(_functionReflectee);
+      _parameters = _FunctionTypeMirror_parameters(_functionReflectee)
+          .cast<ParameterMirror>();
       _parameters = new UnmodifiableListView<ParameterMirror>(_parameters);
     }
     return _parameters;

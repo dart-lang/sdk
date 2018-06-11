@@ -7,4 +7,7 @@ main() {
   print((<T>(T x) => x).runtimeType);
   print((<T extends num>(T x) => x).runtimeType);
   print((<T extends Comparable<T>>(T x) => x).runtimeType);
+  print((<T extends Comparable<S>, S>(T x) => x).runtimeType);
+  print((<T extends Function(T)>(T x) => x).runtimeType);
+  print((<T extends List<List<T>>>(T x) => x).runtimeType);
 }

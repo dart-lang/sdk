@@ -213,7 +213,6 @@ class ObjectPointerVisitor;
   V(Number, "num")                                                             \
   V(_Smi, "_Smi")                                                              \
   V(_Mint, "_Mint")                                                            \
-  V(_Bigint, "_Bigint")                                                        \
   V(_Double, "_Double")                                                        \
   V(Bool, "bool")                                                              \
   V(_List, "_List")                                                            \

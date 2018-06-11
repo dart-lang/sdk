@@ -3691,6 +3691,12 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   }
 
   @override
+  void beginTypeVariable(Token name) {
+    debugEvent("beginTypeVariable");
+    push(new Identifier(name));
+  }
+
+  @override
   void handleNoTypeVariables(Token token) {
     debugEvent("NoTypeVariables");
     enterFunctionTypeScope(null);

@@ -260,7 +260,16 @@ ActivationFrame::ActivationFrame(uword pc,
       vars_initialized_(false),
       var_descriptors_(LocalVarDescriptors::ZoneHandle()),
       desc_indices_(8),
-      pc_desc_(PcDescriptors::ZoneHandle()) {}
+      pc_desc_(PcDescriptors::ZoneHandle()) {
+  // TODO(regis): If debugging of interpreted code is required, recognize an
+  // interpreted activation frame and respect alternate frame layout.
+  // For now, punt.
+#if defined(DART_USE_INTERPRETER)
+  if (function_.Bytecode() == code_.raw()) {
+    UNIMPLEMENTED();
+  }
+#endif
+}
 
 ActivationFrame::ActivationFrame(Kind kind)
     : pc_(0),
@@ -732,15 +741,16 @@ RawObject* ActivationFrame::GetAsyncContextVariable(const String& name) {
       if (!live_frame_) {
         ASSERT(kind == RawLocalVarDescriptors::kContextVar);
       }
+      const auto variable_index = VariableIndex(var_info.index());
       if (kind == RawLocalVarDescriptors::kStackVar) {
-        return GetStackVar(var_info.index());
+        return GetStackVar(variable_index);
       } else {
         ASSERT(kind == RawLocalVarDescriptors::kContextVar);
         if (!live_frame_) {
           ASSERT(!ctx_.IsNull());
-          return ctx_.At(var_info.index());
+          return ctx_.At(variable_index.value());
         }
-        return GetContextVar(var_info.scope_id, var_info.index());
+        return GetContextVar(var_info.scope_id, variable_index.value());
       }
     }
   }
@@ -959,7 +969,8 @@ const Context& ActivationFrame::GetSavedCurrentContext() {
         OS::PrintErr("\tFound saved current ctx at index %d\n",
                      var_info.index());
       }
-      obj = GetStackVar(var_info.index());
+      const auto variable_index = VariableIndex(var_info.index());
+      obj = GetStackVar(variable_index);
       if (obj.IsClosure()) {
         ASSERT(function().name() == Symbols::Call().raw());
         ASSERT(function().IsInvokeFieldDispatcher());
@@ -984,11 +995,12 @@ RawObject* ActivationFrame::GetAsyncOperation() {
     var_descriptors_.GetInfo(i, &var_info);
     if (var_descriptors_.GetName(i) == Symbols::AsyncOperation().raw()) {
       const int8_t kind = var_info.kind();
+      const auto variable_index = VariableIndex(var_info.index());
       if (kind == RawLocalVarDescriptors::kStackVar) {
-        return GetStackVar(var_info.index());
+        return GetStackVar(variable_index);
       } else {
         ASSERT(kind == RawLocalVarDescriptors::kContextVar);
-        return GetContextVar(var_info.scope_id, var_info.index());
+        return GetContextVar(var_info.scope_id, variable_index.value());
       }
     }
   }
@@ -1099,8 +1111,9 @@ RawObject* ActivationFrame::GetParameter(intptr_t index) {
     // can be in a number of places in the caller's frame depending on how many
     // were actually supplied at the call site, but they are copied to a fixed
     // place in the callee's frame.
+
     return GetVariableValue(
-        LocalVarAddress(fp(), (kFirstLocalSlotFromFp - index)));
+        LocalVarAddress(fp(), FrameSlotForVariableIndex(-index)));
   } else {
     intptr_t reverse_index = num_parameters - index;
     return GetVariableValue(ParamAddress(fp(), reverse_index));
@@ -1112,7 +1125,8 @@ RawObject* ActivationFrame::GetClosure() {
   return GetParameter(0);
 }
 
-RawObject* ActivationFrame::GetStackVar(intptr_t slot_index) {
+RawObject* ActivationFrame::GetStackVar(VariableIndex variable_index) {
+  const intptr_t slot_index = FrameSlotForVariableIndex(variable_index.value());
   if (deopt_frame_.IsNull()) {
     return GetVariableValue(LocalVarAddress(fp(), slot_index));
   } else {
@@ -1208,11 +1222,12 @@ void ActivationFrame::VariableAt(intptr_t i,
   *visible_end_token_pos = var_info.end_pos;
   ASSERT(value != NULL);
   const int8_t kind = var_info.kind();
+  const auto variable_index = VariableIndex(var_info.index());
   if (kind == RawLocalVarDescriptors::kStackVar) {
-    *value = GetStackVar(var_info.index());
+    *value = GetStackVar(variable_index);
   } else {
     ASSERT(kind == RawLocalVarDescriptors::kContextVar);
-    *value = GetContextVar(var_info.scope_id, var_info.index());
+    *value = GetContextVar(var_info.scope_id, variable_index.value());
   }
 }
 
@@ -1286,22 +1301,48 @@ static bool IsPrivateVariableName(const String& var_name) {
   return (var_name.Length() >= 1) && (var_name.CharAt(0) == '_');
 }
 
-RawObject* ActivationFrame::Evaluate(const String& expr,
-                                     const GrowableObjectArray& param_names,
-                                     const GrowableObjectArray& param_values) {
+RawObject* ActivationFrame::EvaluateCompiledExpression(
+    const uint8_t* kernel_bytes,
+    intptr_t kernel_length,
+    const Array& type_definitions,
+    const Array& arguments,
+    const TypeArguments& type_arguments) {
+  if (function().is_static()) {
+    const Class& cls = Class::Handle(function().Owner());
+    return cls.EvaluateCompiledExpression(kernel_bytes, kernel_length,
+                                          type_definitions, arguments,
+                                          type_arguments);
+  } else {
+    const Object& receiver = Object::Handle(GetReceiver());
+    const Class& method_cls = Class::Handle(function().origin());
+    ASSERT(receiver.IsInstance() || receiver.IsNull());
+    if (!(receiver.IsInstance() || receiver.IsNull())) {
+      return Object::null();
+    }
+    const Instance& inst = Instance::Cast(receiver);
+    return inst.EvaluateCompiledExpression(method_cls, kernel_bytes,
+                                           kernel_length, type_definitions,
+                                           arguments, type_arguments);
+  }
+}
+
+RawTypeArguments* ActivationFrame::BuildParameters(
+    const GrowableObjectArray& param_names,
+    const GrowableObjectArray& param_values,
+    const GrowableObjectArray& type_params_names) {
   GetDescIndices();
   bool type_arguments_available = false;
-  TypeArguments& type_arguments = TypeArguments::Handle();
   String& name = String::Handle();
   String& existing_name = String::Handle();
   Object& value = Instance::Handle();
+  TypeArguments& type_arguments = TypeArguments::Handle();
   intptr_t num_variables = desc_indices_.length();
   for (intptr_t i = 0; i < num_variables; i++) {
     TokenPosition ignore;
     VariableAt(i, &name, &ignore, &ignore, &ignore, &value);
     if (name.Equals(Symbols::FunctionTypeArgumentsVar())) {
       type_arguments_available = true;
-      type_arguments = TypeArguments::RawCast(value.raw());
+      type_arguments ^= value.raw();
     } else if (!name.Equals(Symbols::This()) &&
                !IsSyntheticVariableName(name)) {
       if (IsPrivateVariableName(name)) {
@@ -1325,15 +1366,14 @@ RawObject* ActivationFrame::Evaluate(const String& expr,
     }
   }
 
-  Array& type_param_names = Array::Handle();
   if ((function().IsGeneric() || function().HasGenericParent()) &&
       type_arguments_available) {
     intptr_t num_vars =
         function().NumTypeParameters() + function().NumParentTypeParameters();
-    type_param_names = Array::New(num_vars);
+    type_params_names.Grow(num_vars);
+    type_params_names.SetLength(num_vars);
     TypeArguments& type_params = TypeArguments::Handle();
     TypeParameter& type_param = TypeParameter::Handle();
-    String& name = String::Handle();
     Function& current = Function::Handle(function().raw());
     for (intptr_t i = 0; !current.IsNull(); i += current.NumTypeParameters(),
                   current = current.parent_function()) {
@@ -1343,26 +1383,41 @@ RawObject* ActivationFrame::Evaluate(const String& expr,
         name = type_param.Name();
         // Write the names in backwards so they match up with the order of the
         // types in 'type_arguments'.
-        type_param_names.SetAt(num_vars - (i + j) - 1, name);
+        type_params_names.SetAt(num_vars - (i + j) - 1, name);
       }
     }
-    if (type_arguments.IsNull()) {
-      type_arguments = TypeArguments::New(num_vars);
-      for (intptr_t i = 0; i < num_vars; ++i) {
-        type_arguments.SetTypeAt(i, Object::dynamic_type());
+    if (!type_arguments.IsNull()) {
+      if (type_arguments.Length() == 0) {
+        for (intptr_t i = 0; i < num_vars; ++i) {
+          type_arguments.SetTypeAt(i, Object::dynamic_type());
+        }
       }
+      ASSERT(type_arguments.Length() == num_vars);
     }
-    ASSERT(type_arguments.Length() == num_vars);
-  } else {
-    type_param_names = Object::empty_array().raw();
   }
+
+  return type_arguments.raw();
+}
+
+RawObject* ActivationFrame::Evaluate(const String& expr,
+                                     const GrowableObjectArray& param_names,
+                                     const GrowableObjectArray& param_values) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Object::null();
+#else
+  Zone* zone = Thread::Current()->zone();
+  const GrowableObjectArray& type_params_names =
+      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+  TypeArguments& type_arguments = TypeArguments::Handle(
+      zone, BuildParameters(param_names, param_values, type_params_names));
 
   if (function().is_static()) {
     const Class& cls = Class::Handle(function().Owner());
-    return cls.Evaluate(expr,
-                        Array::Handle(Array::MakeFixedLength(param_names)),
-                        Array::Handle(Array::MakeFixedLength(param_values)),
-                        type_param_names, type_arguments);
+    return cls.Evaluate(
+        expr, Array::Handle(zone, Array::MakeFixedLength(param_names)),
+        Array::Handle(zone, Array::MakeFixedLength(param_values)),
+        Array::Handle(zone, Array::MakeFixedLength(type_params_names)),
+        type_arguments);
   } else {
     const Object& receiver = Object::Handle(GetReceiver());
     const Class& method_cls = Class::Handle(function().origin());
@@ -1371,13 +1426,14 @@ RawObject* ActivationFrame::Evaluate(const String& expr,
       return Object::null();
     }
     const Instance& inst = Instance::Cast(receiver);
-    return inst.Evaluate(method_cls, expr,
-                         Array::Handle(Array::MakeFixedLength(param_names)),
-                         Array::Handle(Array::MakeFixedLength(param_values)),
-                         type_param_names, type_arguments);
+    return inst.Evaluate(
+        method_cls, expr,
+        Array::Handle(zone, Array::MakeFixedLength(param_names)),
+        Array::Handle(zone, Array::MakeFixedLength(param_values)),
+        Array::Handle(zone, Array::MakeFixedLength(type_params_names)),
+        type_arguments);
   }
-  UNREACHABLE();
-  return Object::null();
+#endif
 }
 
 const char* ActivationFrame::ToCString() {

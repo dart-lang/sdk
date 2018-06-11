@@ -31,6 +31,8 @@ abstract class Page {
   String get path => '/$id';
 
   Future<Null> asyncDiv(void gen(), {String classes}) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     if (classes != null) {
       buf.writeln('<div class="$classes">');
     } else {
@@ -55,6 +57,8 @@ abstract class Page {
   }
 
   Future<String> generate(Map<String, String> params) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     buf.clear();
     await generatePage(params);
     return buf.toString();
@@ -139,6 +143,8 @@ abstract class Site {
   Page createUnknownPage(String unknownPath);
 
   Future<Null> handleGetRequest(HttpRequest request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     try {
       String path = request.uri.path;
 
@@ -174,6 +180,8 @@ abstract class Site {
 
   Future<Null> respond(HttpRequest request, Page page,
       [int code = HttpStatus.OK]) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     HttpResponse response = request.response;
     response.statusCode = code;
     response.headers.contentType = ContentType.HTML;

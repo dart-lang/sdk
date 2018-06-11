@@ -390,14 +390,6 @@ void Thread::PrepareForGC() {
   store_buffer_block_ = isolate()->store_buffer()->PopEmptyBlock();
 }
 
-void Thread::SetStackLimitFromStackBase(uword stack_base) {
-#if defined(USING_SIMULATOR)
-  SetStackLimit(Simulator::Current()->stack_limit());
-#else
-  SetStackLimit(OSThread::Current()->stack_limit_with_headroom());
-#endif
-}
-
 void Thread::SetStackLimit(uword limit) {
   // The thread setting the stack limit is not necessarily the thread which
   // the stack limit is being set on.

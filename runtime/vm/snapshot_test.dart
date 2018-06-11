@@ -1332,6 +1332,7 @@ message_test_main() {
       Expect.equals(true, identical(replyObject[0], replyObject[2][2]));
       Expect.equals(true, identical(replyObject[2], replyObject[4][0]));
       Expect.equals(true, identical(replyObject[0][0], replyObject[0][2]));
+      // TODO(alexmarkov): Revise this comment.
       // Bigint literals are not canonicalized so do a == check.
       Expect.equals(true, replyObject[0][3] == replyObject[4][4]);
     });

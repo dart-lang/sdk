@@ -174,10 +174,30 @@
     },
     {
       "builders": [
+        "vm-linux-product-x64",
+        "vm-mac-product-x64",
+        "vm-win-product-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the vm product builders."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["runtime"]
+        },
+        {
+          "name": "vm tests",
+          "arguments": ["--builder-tag=swarming"]
+        }
+      ]
+    },
+    {
+      "builders": [
         "vm-linux-debug-ia32",
         "vm-linux-debug-simarm",
         "vm-linux-debug-x64",
-        "vm-linux-product-x64",
         "vm-linux-release-ia32",
         "vm-linux-release-simarm",
         "vm-linux-release-simarm64",
@@ -185,18 +205,16 @@
         "vm-mac-debug-ia32",
         "vm-mac-debug-simdbc64",
         "vm-mac-debug-x64",
-        "vm-mac-product-x64",
         "vm-mac-release-ia32",
         "vm-mac-release-simdbc64",
         "vm-mac-release-x64",
         "vm-win-debug-ia32",
         "vm-win-debug-x64",
-        "vm-win-product-x64",
         "vm-win-release-ia32",
         "vm-win-release-x64"
       ],
       "meta": {
-        "description": "This configuration is used by the vm debug, vm product and vm release builders."
+        "description": "This configuration is used by the vm debug and vm release builders."
       },
       "steps": [
         {
@@ -1220,7 +1238,7 @@
       ]
     },
     {
-      "builders": ["dart2js-csp-minified-linux-x64-drt"],
+      "builders": ["dart2js-csp-minified-linux-x64-chrome"],
       "meta": {
         "description": "This builder runs the dart2js tests in csp and minified mode."
       },

@@ -580,6 +580,18 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   }
 
   /**
+   * Serialize an [EnumConstantDeclaration] into an [UnlinkedEnumValue].
+   */
+  UnlinkedEnumValueBuilder serializeEnumConstantDeclaration(
+      EnumConstantDeclaration node) {
+    return new UnlinkedEnumValueBuilder(
+        annotations: serializeAnnotations(node.metadata),
+        documentationComment: serializeDocumentation(node.documentationComment),
+        name: node.name.name,
+        nameOffset: node.name.offset);
+  }
+
+  /**
    * Serialize a [FunctionDeclaration] or [MethodDeclaration] into an
    * [UnlinkedExecutable].
    *
@@ -1134,13 +1146,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     UnlinkedEnumBuilder b = new UnlinkedEnumBuilder();
     b.name = node.name.name;
     b.nameOffset = node.name.offset;
-    b.values = node.constants
-        .map((EnumConstantDeclaration value) => new UnlinkedEnumValueBuilder(
-            documentationComment:
-                serializeDocumentation(value.documentationComment),
-            name: value.name.name,
-            nameOffset: value.name.offset))
-        .toList();
+    b.values = node.constants.map(serializeEnumConstantDeclaration).toList();
     b.documentationComment = serializeDocumentation(node.documentationComment);
     b.annotations = serializeAnnotations(node.metadata);
     b.codeRange = serializeCodeRange(node);

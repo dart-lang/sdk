@@ -116,7 +116,8 @@ Future asyncStepOver(Isolate isolate) async {
         (event.breakpoint == syntheticBreakpoint);
     if (isAdd) {
       syntheticBreakpoint = event.breakpoint;
-    } else if (isResume) {} else if (isPaused) {
+    } else if (isResume) {
+    } else if (isPaused) {
       pausedAtSyntheticBreakpoint.complete(isolate);
       syntheticBreakpoint = null;
       cancelSubscription();
@@ -269,7 +270,7 @@ IsolateTest stoppedAtLine(int line) {
     ServiceMap stack = await isolate.getStack();
     expect(stack.type, equals('Stack'));
 
-    List/*<Frame>*/ frames = stack['frames'];
+    List frames = stack['frames'];
     expect(frames.length, greaterThanOrEqualTo(1));
 
     Frame top = frames[0];
@@ -297,10 +298,10 @@ IsolateTest stoppedInFunction(String functionName,
     ServiceMap stack = await isolate.getStack();
     expect(stack.type, equals('Stack'));
 
-    List/*<Frame>*/ frames = stack['frames'];
+    List frames = stack['frames'];
     expect(frames.length, greaterThanOrEqualTo(1));
 
-    Frame topFrame = stack['frames'][0];
+    Frame topFrame = frames[0];
     ServiceFunction function = await topFrame.function.load();
     String name = function.name;
     if (includeOwner) {
@@ -315,7 +316,7 @@ IsolateTest stoppedInFunction(String functionName,
       sb.write("Expected to be in function $functionName but "
           "actually in function $name");
       sb.write("\nFull stack trace:\n");
-      for (Frame f in stack['frames']) {
+      for (Frame f in frames) {
         await f.function.load();
         await (f.function.dartOwner as ServiceObject).load();
         String name = f.function.name;
@@ -444,7 +445,7 @@ IsolateTest resumeProgramRecordingStops(
         // We are paused: Resume after recording.
         ServiceMap stack = await isolate.getStack();
         expect(stack.type, equals('Stack'));
-        List/*<Frame>*/ frames = stack['frames'];
+        List frames = stack['frames'];
         expect(frames.length, greaterThanOrEqualTo(2));
         Frame frame = frames[0];
         String brokeAt = await frame.location.toUserString();

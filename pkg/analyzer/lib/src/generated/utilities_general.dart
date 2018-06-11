@@ -215,6 +215,8 @@ class _PerformanceTagImpl implements PerformanceTag {
 
   @override
   Future<E> makeCurrentWhileAsync<E>(Future<E> f()) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     PerformanceTag prevTag = makeCurrent();
     try {
       return await f();

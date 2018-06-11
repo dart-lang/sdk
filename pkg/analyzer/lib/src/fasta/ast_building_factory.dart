@@ -321,8 +321,8 @@ class AstBuildingForest
       node is VariableDeclarationStatement && node.variables != 1;
 
   @override
-  Label label(Token identifier, Token colon) =>
-      astFactory.label(astFactory.simpleIdentifier(identifier), colon);
+  Label label(Token identifier, Token colon) => astFactory.label(
+      astFactory.simpleIdentifier(identifier, isDeclaration: true), colon);
 
   @override
   Statement labeledStatement(

@@ -46,6 +46,9 @@ class ServerRpcException extends RpcException implements M.RequestException {
   static const kIsolateIsReloading = 108;
   static const kIsolateReloadBarred = 109;
   static const kIsolateMustHaveReloaded = 110;
+  static const kServiceAlreadyRegistered = 111;
+  static const kServiceDisappeared = 112;
+  static const kExpressionCompilationError = 113;
 
   static const kFileSystemAlreadyExists = 1001;
   static const kFileSystemDoesNotExist = 1002;
@@ -1624,7 +1627,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   void _update(Map map, bool mapIsRef) {
     name = map['name'];
     vmName = map.containsKey('_vmName') ? map['_vmName'] : name;
-    number = int.parse(map['number'], onError: (_) => null);
+    number = int.tryParse(map['number']);
     if (mapIsRef) {
       return;
     }
@@ -1632,7 +1635,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     loading = false;
     runnable = map['runnable'] == true;
     _upgradeCollection(map, isolate);
-    originNumber = int.parse(map['_originNumber'], onError: (_) => null);
+    originNumber = int.tryParse(map['_originNumber']);
     rootLibrary = map['rootLib'];
     if (map['entry'] != null) {
       entry = map['entry'];
@@ -1904,7 +1907,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   }
 
   Future<ServiceObject> evalFrame(int frameIndex, String expression,
-      {Map<String, ServiceObject> scope}) {
+      {Map<String, ServiceObject> scope}) async {
     Map params = {
       'frameIndex': frameIndex,
       'expression': expression,
@@ -1916,7 +1919,22 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
       });
       params["scope"] = scopeWithIds;
     }
-    return invokeRpc('evaluateInFrame', params);
+
+    try {
+      return await invokeRpc('evaluateInFrame', params);
+    } on ServerRpcException catch (error) {
+      if (error.code == ServerRpcException.kExpressionCompilationError) {
+        Map map = {
+          'type': 'Error',
+          'message': error.data.toString(),
+          'kind': 'LanguageError',
+          'exception': null,
+          'stacktrace': null,
+        };
+        return new ServiceObject._fromMap(null, map);
+      } else
+        rethrow;
+    }
   }
 
   Future<ServiceObject> getReachableSize(ServiceObject target) {
@@ -2035,8 +2053,9 @@ class ObjectStore extends ServiceObject implements M.ObjectStore {
 }
 
 /// A [ServiceObject] which implements [Map].
-class ServiceMap extends ServiceObject implements Map, M.UnknownObjectRef {
-  final Map _map = {};
+class ServiceMap extends ServiceObject
+    implements Map<String, dynamic>, M.UnknownObjectRef {
+  final Map<String, dynamic> _map = {};
   static String objectIdRingPrefix = 'objects/';
 
   bool get immutable => false;
@@ -2074,7 +2093,7 @@ class ServiceMap extends ServiceObject implements Map, M.UnknownObjectRef {
   operator []=(k, v) => _map[k] = v;
   bool get isEmpty => _map.isEmpty;
   bool get isNotEmpty => _map.isNotEmpty;
-  Iterable get keys => _map.keys;
+  Iterable<String> get keys => _map.keys;
   Iterable get values => _map.values;
   int get length => _map.length;
 
@@ -3098,7 +3117,7 @@ M.FunctionKind stringToFunctionKind(String value) {
   throw new FallThroughError();
 }
 
-class ServiceFunction extends HeapObject implements M.Function {
+class ServiceFunction extends HeapObject implements M.ServiceFunction {
   // owner is a Library, Class, or ServiceFunction.
   M.ObjectRef dartOwner;
   Library library;
@@ -3599,7 +3618,7 @@ class Script extends HeapObject implements M.Script {
     library = map['library'];
   }
 
-  void _parseTokenPosTable(List/*<List<int>>*/ table) {
+  void _parseTokenPosTable(List table) {
     if (table == null) {
       return;
     }
@@ -3609,14 +3628,14 @@ class Script extends HeapObject implements M.Script {
     lastTokenPos = null;
     var lineSet = new Set();
 
-    for (var line in table) {
+    for (List line in table) {
       // Each entry begins with a line number...
-      var lineNumber = line[0];
+      int lineNumber = line[0];
       lineSet.add(lineNumber);
       for (var pos = 1; pos < line.length; pos += 2) {
         // ...and is followed by (token offset, col number) pairs.
-        var tokenOffset = line[pos];
-        var colNumber = line[pos + 1];
+        int tokenOffset = line[pos];
+        int colNumber = line[pos + 1];
         if (firstTokenPos == null) {
           // Mark first token position.
           firstTokenPos = tokenOffset;
@@ -4409,7 +4428,7 @@ class Code extends HeapObject implements M.Code {
     }
   }
 
-  void _processDescriptors(List/*<Map>*/ descriptors) {
+  void _processDescriptors(List descriptors) {
     for (Map descriptor in descriptors) {
       var pcOffset = int.parse(descriptor['pcOffset'], radix: 16);
       var address = startAddress + pcOffset;
@@ -4569,7 +4588,7 @@ class ServiceMetric extends ServiceObject implements M.Metric {
   String toString() => "ServiceMetric($_id)";
 }
 
-Future<Null> printFrames(List/*<Frame>*/ frames) async {
+Future<Null> printFrames(List frames) async {
   for (int i = 0; i < frames.length; i++) {
     final Frame frame = frames[i];
     String frameText = await frame.toUserString();

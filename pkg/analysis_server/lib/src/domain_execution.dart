@@ -63,6 +63,8 @@ class ExecutionDomainHandler implements RequestHandler {
    * Implement the 'execution.getSuggestions' request.
    */
   void getSuggestions(Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     var params = new ExecutionGetSuggestionsParams.fromRequest(request);
     var computer = new RuntimeCompletionComputer(
         server.resourceProvider,

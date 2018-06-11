@@ -20,6 +20,8 @@ class LibraryMemberContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     // Determine if the target looks like a library prefix
     Expression targetId = request.dotTarget;
     if (targetId is SimpleIdentifier && !request.target.isCascade) {

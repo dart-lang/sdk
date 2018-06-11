@@ -1293,12 +1293,12 @@ class Dart2JSBackend(HtmlDartGenerator):
       promiseCall = 'promiseToFuture'
       if promiseFound is not(None):
         if 'maplike' in promiseFound:
-          promiseCall = 'promiseToFutureMap'
+          promiseCall = 'promiseToFuture<dynamic>'
           promiseType = 'Future'
         elif promiseFound['type'] == 'dictionary':
           # It's a dictionary so return as a Map.
-          promiseCall = 'promiseToFutureDictionary'
-          promiseType = 'Future<Map>'
+          promiseCall = 'promiseToFutureAsMap'
+          promiseType = 'Future<Map<String, dynamic>>'
         else:
           paramType = promiseFound['type']
           promiseCall = 'promiseToFuture<%s>' % paramType

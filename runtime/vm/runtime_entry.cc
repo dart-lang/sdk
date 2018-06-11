@@ -277,7 +277,7 @@ DEFINE_RUNTIME_ENTRY(AllocateObject, 2) {
     if (String::EqualsIgnoringPrivateKey(
             name,
             String::Handle(String::New(FLAG_gc_at_instance_allocation)))) {
-      Isolate::Current()->heap()->CollectAllGarbage();
+      Isolate::Current()->heap()->CollectAllGarbage(Heap::kDebugging);
     }
   }
 #endif
@@ -357,9 +357,13 @@ DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 3) {
          instantiator_type_arguments.IsInstantiated());
   ASSERT(function_type_arguments.IsNull() ||
          function_type_arguments.IsInstantiated());
+#if !defined(DART_USE_INTERPRETER)
   // Code inlined in the caller should have optimized the case where the
   // instantiator can be reused as type argument vector.
+  // However, it is non-trivial for the bytecode generator to implement this
+  // optimization, so we do not require it when the interpreter is used.
   ASSERT(!type_arguments.IsUninstantiatedIdentity());
+#endif
   if (isolate->type_checks()) {
     Error& bound_error = Error::Handle(zone);
     type_arguments = type_arguments.InstantiateAndCanonicalizeFrom(
@@ -1936,10 +1940,22 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   // persist.
   uword stack_overflow_flags = thread->GetAndClearStackOverflowFlags();
 
+  bool interpreter_stack_overflow = false;
+#if defined(DART_USE_INTERPRETER)
+  // Do not allocate an interpreter, if none is allocated yet.
+  Interpreter* interpreter = Isolate::Current()->interpreter();
+  if (interpreter != NULL) {
+    interpreter_stack_overflow =
+        interpreter->get_sp() >= interpreter->stack_limit();
+  }
+#endif
+
   // If an interrupt happens at the same time as a stack overflow, we
   // process the stack overflow now and leave the interrupt for next
   // time.
-  if (IsCalleeFrameOf(thread->saved_stack_limit(), stack_pos)) {
+  // TODO(regis): Warning: IsCalleeFrameOf is overridden in stack_frame_dbc.h.
+  if (interpreter_stack_overflow ||
+      IsCalleeFrameOf(thread->saved_stack_limit(), stack_pos)) {
     // Use the preallocated stack overflow exception to avoid calling
     // into dart code.
     const Instance& exception =
@@ -2429,20 +2445,6 @@ DEFINE_RUNTIME_ENTRY(RewindPostDeopt, 0) {
 #endif  // !DART_PRECOMPILED_RUNTIME
   UNREACHABLE();
 }
-
-DEFINE_LEAF_RUNTIME_ENTRY(intptr_t,
-                          BigintCompare,
-                          2,
-                          RawBigint* left,
-                          RawBigint* right) {
-  Thread* thread = Thread::Current();
-  StackZone zone(thread);
-  HANDLESCOPE(thread);
-  const Bigint& big_left = Bigint::Handle(left);
-  const Bigint& big_right = Bigint::Handle(right);
-  return big_left.CompareWith(big_right);
-}
-END_LEAF_RUNTIME_ENTRY
 
 double DartModulo(double left, double right) {
   double remainder = fmod_ieee(left, right);

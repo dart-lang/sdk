@@ -16,10 +16,11 @@ import '../io/source_information.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/backend_usage.dart';
 import '../js_backend/constant_handler_javascript.dart';
+import '../js_backend/interceptor_data.dart';
+import '../js_backend/inferred_data.dart';
+import '../js_backend/js_interop_analysis.dart';
 import '../js_backend/namer.dart';
 import '../js_backend/native_data.dart';
-import '../js_backend/js_interop_analysis.dart';
-import '../js_backend/interceptor_data.dart';
 import '../js_backend/runtime_types.dart';
 import '../js_emitter/code_emitter_task.dart';
 import '../options.dart';
@@ -91,6 +92,8 @@ abstract class GraphBuilder {
   FunctionInlineCache get inlineCache => backend.inlineCache;
 
   JsInteropAnalysis get jsInteropAnalysis => backend.jsInteropAnalysis;
+
+  InferredData get inferredData => compiler.globalInference.inferredData;
 
   DeferredLoadTask get deferredLoadTask => compiler.deferredLoadTask;
 

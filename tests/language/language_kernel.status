@@ -153,7 +153,6 @@ closure_call_wrong_argument_count_negative_test: Fail
 compile_time_constant_c_test/02: MissingCompileTimeError
 const_conditional_test/08: MissingCompileTimeError
 const_constructor_nonconst_field_test/01: MissingCompileTimeError
-const_native_factory_test/01: MissingCompileTimeError
 const_optional_args_negative_test: Fail
 const_syntax_test/05: MissingCompileTimeError
 const_syntax_test/08: MissingCompileTimeError

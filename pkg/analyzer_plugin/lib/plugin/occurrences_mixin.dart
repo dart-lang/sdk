@@ -25,6 +25,8 @@ import 'package:analyzer_plugin/utilities/occurrences/occurrences.dart';
 abstract class DartOccurrencesMixin implements OccurrencesMixin {
   @override
   Future<OccurrencesRequest> getOccurrencesRequest(String path) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     ResolveResult result = await getResolveResult(path);
     return new DartOccurrencesRequestImpl(resourceProvider, result);
   }
@@ -54,6 +56,8 @@ abstract class OccurrencesMixin implements ServerPlugin {
 
   @override
   Future<Null> sendOccurrencesNotification(String path) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     try {
       OccurrencesRequest request = await getOccurrencesRequest(path);
       OccurrencesGenerator generator =

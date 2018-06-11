@@ -277,7 +277,7 @@ void testSimpleReadWrite(
             client.writeEventsEnabled = true;
           }
           if (bytesWritten == data.length) {
-            client.shutdown(SocketDirection.SEND);
+            client.shutdown(SocketDirection.send);
           }
           break;
         case RawSocketEvent.readClosed:

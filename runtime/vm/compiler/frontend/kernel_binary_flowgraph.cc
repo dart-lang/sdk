@@ -1007,6 +1007,7 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
   Field& field = Field::Handle(builder_->zone_);
   Class& cls = Class::Handle(builder_->zone_);
   String& name = String::Handle(builder_->zone_);
+  TypeArguments& type_args = TypeArguments::Handle(builder_->zone_);
   const intptr_t obj_count = pool.Length();
   for (intptr_t i = from_index; i < obj_count; ++i) {
     const intptr_t tag = builder_->ReadTag();
@@ -1056,8 +1057,15 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
         }
       } break;
       case ConstantPoolTag::kICData: {
-        StringIndex target = builder_->ReadStringReference();
-        name = H.DartSymbolPlain(target).raw();
+        InvocationKind kind = static_cast<InvocationKind>(builder_->ReadByte());
+        if (kind == InvocationKind::getter) {
+          name = builder_->ReadNameAsGetterName().raw();
+        } else if (kind == InvocationKind::setter) {
+          name = builder_->ReadNameAsSetterName().raw();
+        } else {
+          ASSERT(kind == InvocationKind::method);
+          name = builder_->ReadNameAsMethodName().raw();
+        }
         intptr_t arg_desc_index = builder_->ReadUInt();
         ASSERT(arg_desc_index < i);
         array ^= pool.ObjectAt(arg_desc_index);
@@ -1167,12 +1175,11 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
         cls =
             H.LookupClassByKernelClass(builder_->ReadCanonicalNameReference());
         obj = Instance::New(cls, Heap::kOld);
-        intptr_t elem_index = builder_->ReadUInt();
-        ASSERT(elem_index < i);
-        elem = pool.ObjectAt(elem_index);
-        if (!elem.IsNull()) {
-          ASSERT(elem.IsTypeArguments());
-          Instance::Cast(obj).SetTypeArguments(TypeArguments::Cast(elem));
+        intptr_t type_args_index = builder_->ReadUInt();
+        ASSERT(type_args_index < i);
+        type_args ^= pool.ObjectAt(type_args_index);
+        if (!type_args.IsNull()) {
+          Instance::Cast(obj).SetTypeArguments(type_args);
         }
         intptr_t num_fields = builder_->ReadUInt();
         for (intptr_t j = 0; j < num_fields; j++) {
@@ -1193,12 +1200,10 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
       case kTypeArgumentsForInstanceAllocation: {
         cls =
             H.LookupClassByKernelClass(builder_->ReadCanonicalNameReference());
-        intptr_t elem_index = builder_->ReadUInt();
-        ASSERT(elem_index < i);
-        elem = pool.ObjectAt(elem_index);
-        ASSERT(elem.IsNull() || elem.IsTypeArguments());
-        elem =
-            Type::New(cls, TypeArguments::Cast(elem), TokenPosition::kNoSource);
+        intptr_t type_args_index = builder_->ReadUInt();
+        ASSERT(type_args_index < i);
+        type_args ^= pool.ObjectAt(type_args_index);
+        elem = Type::New(cls, type_args, TokenPosition::kNoSource);
         elem = ClassFinalizer::FinalizeType(cls, Type::Cast(elem));
         obj = Type::Cast(elem).arguments();
       } break;
@@ -1264,6 +1269,8 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
         closure.SetParameterNameAt(pos, Symbols::ClosureParameter());
         pos++;
 
+        const Library& lib = Library::Handle(
+            builder_->zone_, builder_->active_class()->klass->library());
         for (intptr_t j = 0; j < positional_parameter_count; ++j, ++pos) {
           VariableDeclarationHelper helper(builder_);
           helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
@@ -1276,7 +1283,7 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
 
           closure.SetParameterTypeAt(pos, type);
           closure.SetParameterNameAt(pos,
-                                     H.DartSymbolObfuscate(helper.name_index_));
+                                     H.DartIdentifier(lib, helper.name_index_));
         }
 
         intptr_t named_parameter_count_check = builder_->ReadListLength();
@@ -1293,7 +1300,7 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
 
           closure.SetParameterTypeAt(pos, type);
           closure.SetParameterNameAt(pos,
-                                     H.DartSymbolObfuscate(helper.name_index_));
+                                     H.DartIdentifier(lib, helper.name_index_));
         }
 
         function_node_helper.SetJustRead(FunctionNodeHelper::kNamedParameters);
@@ -1396,11 +1403,12 @@ StreamingScopeBuilder::StreamingScopeBuilder(ParsedFunction* parsed_function)
           Script::Handle(Z, parsed_function->function().script()),
           zone_,
           TypedData::Handle(Z, parsed_function->function().KernelData()),
-          parsed_function->function().KernelDataProgramOffset())),
+          parsed_function->function().KernelDataProgramOffset(),
+          &active_class_)),
       type_translator_(builder_, /*finalize=*/true) {
   H.InitFromScript(builder_->script());
-  type_translator_.active_class_ = &active_class_;
-  builder_->type_translator_.active_class_ = &active_class_;
+  ASSERT(type_translator_.active_class_ == &active_class_);
+  ASSERT(builder_->type_translator_.active_class_ == &active_class_);
 }
 
 StreamingScopeBuilder::~StreamingScopeBuilder() {
@@ -1436,7 +1444,7 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
     result_->this_variable =
         MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                      Symbols::This(), klass_type);
-    result_->this_variable->set_index(0);
+    result_->this_variable->set_index(VariableIndex(0));
     result_->this_variable->set_is_captured();
     enclosing_scope = new (Z) LocalScope(NULL, 0, 0);
     enclosing_scope->set_context_level(0);
@@ -3967,10 +3975,10 @@ void StreamingConstantEvaluator::EvaluateStringConcatenation() {
 }
 
 void StreamingConstantEvaluator::EvaluateSymbolLiteral() {
-  // The symbol value is read plain and obfuscated later.
-  const String& symbol_value = H.DartSymbolPlain(
-      builder_->ReadStringReference());  // read index into string table.
-
+  const Class& owner =
+      Class::Handle(Z, builder_->parsed_function()->function().Owner());
+  const Library& lib = Library::Handle(Z, owner.library());
+  String& symbol_value = H.DartIdentifier(lib, builder_->ReadStringReference());
   const Class& symbol_class =
       Class::ZoneHandle(Z, I->object_store()->symbol_class());
   ASSERT(!symbol_class.IsNull());
@@ -6064,12 +6072,10 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
     // Copy captured parameters from the stack into the context.
     LocalScope* scope = parsed_function()->node_sequence()->scope();
     intptr_t parameter_count = dart_function.NumParameters();
-    intptr_t parameter_index = parsed_function()->first_parameter_index();
-
     const ParsedFunction& pf = *flow_graph_builder_->parsed_function_;
     const Function& function = pf.function();
 
-    for (intptr_t i = 0; i < parameter_count; ++i, --parameter_index) {
+    for (intptr_t i = 0; i < parameter_count; ++i) {
       LocalVariable* variable = scope->VariableAt(i);
       if (variable->is_captured()) {
         LocalVariable& raw_parameter = *pf.RawParameterVariable(i);
@@ -6086,7 +6092,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
         body += LoadLocal(&raw_parameter);
         body += flow_graph_builder_->StoreInstanceField(
             TokenPosition::kNoSource,
-            Context::variable_offset(variable->index()));
+            Context::variable_offset(variable->index().value()));
         body += NullConstant();
         body += StoreLocal(TokenPosition::kNoSource, &raw_parameter);
         body += Drop();
@@ -7419,8 +7425,7 @@ CatchBlock* StreamingFlowGraphBuilder::catch_block() {
 }
 
 ActiveClass* StreamingFlowGraphBuilder::active_class() {
-  return (flow_graph_builder_ != NULL) ? &flow_graph_builder_->active_class_
-                                       : NULL;
+  return active_class_;
 }
 
 ScopeBuildingResult* StreamingFlowGraphBuilder::scopes() {
@@ -10866,6 +10871,7 @@ void StreamingFlowGraphBuilder::LoadAndSetupTypeParameters(
 
   // Step a) Create array of [TypeParameter] objects (without bound).
   type_parameters = TypeArguments::New(type_parameter_count);
+  const Library& lib = Library::Handle(Z, active_class->klass->library());
   {
     AlternativeReadingScope alt(&reader_);
     for (intptr_t i = 0; i < type_parameter_count; i++) {
@@ -10874,7 +10880,7 @@ void StreamingFlowGraphBuilder::LoadAndSetupTypeParameters(
       parameter = TypeParameter::New(
           set_on_class ? *active_class->klass : Class::Handle(Z),
           parameterized_function, i,
-          H.DartSymbolObfuscate(helper.name_index_),  // read ith name index.
+          H.DartIdentifier(lib, helper.name_index_),  // read ith name index.
           null_bound, TokenPosition::kNoSource);
       type_parameters.SetTypeAt(i, parameter);
     }
@@ -10979,6 +10985,7 @@ void StreamingFlowGraphBuilder::SetupFunctionParameters(
     pos++;
   }
 
+  const Library& lib = Library::Handle(Z, active_class->klass->library());
   for (intptr_t i = 0; i < positional_parameter_count; ++i, ++pos) {
     // Read ith variable declaration.
     VariableDeclarationHelper helper(this);
@@ -10991,7 +10998,7 @@ void StreamingFlowGraphBuilder::SetupFunctionParameters(
 
     function.SetParameterTypeAt(
         pos, type.IsMalformed() ? Type::dynamic_type() : type);
-    function.SetParameterNameAt(pos, H.DartSymbolObfuscate(helper.name_index_));
+    function.SetParameterNameAt(pos, H.DartIdentifier(lib, helper.name_index_));
   }
 
   intptr_t named_parameter_count_check = ReadListLength();  // read list length.
@@ -11008,7 +11015,7 @@ void StreamingFlowGraphBuilder::SetupFunctionParameters(
 
     function.SetParameterTypeAt(
         pos, type.IsMalformed() ? Type::dynamic_type() : type);
-    function.SetParameterNameAt(pos, H.DartSymbolObfuscate(helper.name_index_));
+    function.SetParameterNameAt(pos, H.DartIdentifier(lib, helper.name_index_));
   }
 
   function_node_helper->SetJustRead(FunctionNodeHelper::kNamedParameters);
@@ -11071,16 +11078,11 @@ RawObject* StreamingFlowGraphBuilder::BuildParameterDescriptor(
   return param_descriptor.raw();
 }
 
-RawObject* StreamingFlowGraphBuilder::EvaluateMetadata(
-    intptr_t kernel_offset,
-    const Class& owner_class) {
+RawObject* StreamingFlowGraphBuilder::EvaluateMetadata(intptr_t kernel_offset) {
   SetOffset(kernel_offset);
   const Tag tag = PeekTag();
 
-  // Setup active_class in type translator for type finalization.
-  ActiveClass active_class;
-  active_class.klass = &owner_class;
-  type_translator_.set_active_class(&active_class);
+  ASSERT(active_class() != NULL);
 
   if (tag == kClass) {
     ClassHelper class_helper(this);
@@ -11108,8 +11110,6 @@ RawObject* StreamingFlowGraphBuilder::EvaluateMetadata(
     SkipExpression();  // read (actual) initializer.
     metadata_values.SetAt(i, value);
   }
-
-  type_translator_.set_active_class(NULL);
 
   return metadata_values.raw();
 }

@@ -185,7 +185,7 @@ testSameDVI(String tmpDirPath) {
   var renewLMHashCmd = r"\renewcommand{\LMHash}[1]{\OriginalLMHash{xxxx}}";
   new File(styPath)
       .copySync(tmpStyPath)
-      .writeAsStringSync(renewLMHashCmd, mode: FileMode.APPEND);
+      .writeAsStringSync(renewLMHashCmd, mode: FileMode.append);
   new File(specPath).copySync(tmpSpecPath);
 
   checkAction(runAddHash(), "addlatexhash.dart failed");

@@ -1326,18 +1326,6 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
     with SimpleParserTestMixin {
   @override
   @failingTest
-  void test_parseInstanceCreation_noKeyword_noPrefix() {
-    super.test_parseInstanceCreation_noKeyword_noPrefix();
-  }
-
-  @override
-  @failingTest
-  void test_parseInstanceCreation_noKeyword_prefix() {
-    super.test_parseInstanceCreation_noKeyword_prefix();
-  }
-
-  @override
-  @failingTest
   void test_parseTypeParameterList_single() {
     // TODO(brianwilkerson) Does not use all tokens.
     super.test_parseTypeParameterList_single();

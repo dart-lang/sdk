@@ -741,13 +741,9 @@ static bool BuildCodeUnitAt(FlowGraph* flow_graph, intptr_t cid) {
   if (cid == kExternalOneByteStringCid) {
     str = builder.AddDefinition(new LoadUntaggedInstr(
         new Value(str), ExternalOneByteString::external_data_offset()));
-    str = builder.AddDefinition(new LoadUntaggedInstr(
-        new Value(str), RawExternalOneByteString::ExternalData::data_offset()));
   } else if (cid == kExternalTwoByteStringCid) {
     str = builder.AddDefinition(new LoadUntaggedInstr(
         new Value(str), ExternalTwoByteString::external_data_offset()));
-    str = builder.AddDefinition(new LoadUntaggedInstr(
-        new Value(str), RawExternalTwoByteString::ExternalData::data_offset()));
   }
 
   Definition* result = builder.AddDefinition(new LoadIndexedInstr(

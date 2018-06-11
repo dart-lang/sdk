@@ -10,7 +10,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
-#include <fdio/private.h>
+#include <lib/fdio/private.h>
 #include <poll.h>
 #include <pthread.h>
 #include <stdio.h>

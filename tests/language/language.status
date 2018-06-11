@@ -366,6 +366,7 @@ enum_private_test/01: Pass, Crash # http://dartbug.com/33156
 
 [ $mode == debug && ($hot_reload || $hot_reload_rollback) ]
 enum_duplicate_test/01: Pass, Crash # http://dartbug.com/33156
+enum_private_test/02: Pass, Crash # dartbug.com/33339
 
 [ $runtime == dart_precompiled && $minified ]
 cyclic_type_test/*: Skip # Tests below rely on Type.toString()
@@ -474,6 +475,10 @@ vm/causal_async_exception_stack_test: SkipByDesign # Causal async stacks are not
 
 [ $runtime == dart_precompiled || $runtime == vm ]
 arithmetic_test: CompileTimeError # Large integer literal
+async_await_test: RuntimeError # sync-async is on by default
+asyncstar_throw_in_catch_test: RuntimeError # sync-async is on by default
+await_nonfuture_test: RuntimeError # sync-async is on by default
+await_not_started_immediately_test: RuntimeError # sync-async is on by default
 bit_operations_test: CompileTimeError # Large integer literal
 deopt_inlined_function_lazy_test: CompileTimeError # Large integer literal
 guess_cid_test: CompileTimeError # Large integer literal

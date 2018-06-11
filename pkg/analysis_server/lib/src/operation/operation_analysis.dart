@@ -20,6 +20,8 @@ import 'package:analyzer/src/generated/source.dart';
 
 Future<Null> scheduleImplementedNotification(
     AnalysisServer server, Iterable<String> files) async {
+  // TODO(brianwilkerson) Determine whether this await is necessary.
+  await null;
   SearchEngine searchEngine = server.searchEngine;
   if (searchEngine == null) {
     return;
@@ -81,15 +83,6 @@ void sendAnalysisNotificationClosingLabels(AnalysisServer server, String file,
   });
 }
 
-void sendAnalysisNotificationFolding(AnalysisServer server, String file,
-    LineInfo lineInfo, CompilationUnit dartUnit) {
-  _sendNotification(server, () {
-    var regions = new DartUnitFoldingComputer(lineInfo, dartUnit).compute();
-    var params = new protocol.AnalysisFoldingParams(file, regions);
-    server.sendNotification(params.toNotification());
-  });
-}
-
 void sendAnalysisNotificationFlushResults(
     AnalysisServer server, List<String> files) {
   _sendNotification(server, () {
@@ -97,6 +90,15 @@ void sendAnalysisNotificationFlushResults(
       var params = new protocol.AnalysisFlushResultsParams(files);
       server.sendNotification(params.toNotification());
     }
+  });
+}
+
+void sendAnalysisNotificationFolding(AnalysisServer server, String file,
+    LineInfo lineInfo, CompilationUnit dartUnit) {
+  _sendNotification(server, () {
+    var regions = new DartUnitFoldingComputer(lineInfo, dartUnit).compute();
+    var params = new protocol.AnalysisFoldingParams(file, regions);
+    server.sendNotification(params.toNotification());
   });
 }
 

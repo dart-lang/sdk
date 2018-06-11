@@ -178,14 +178,15 @@ void LocalScope::AllocateContextVariable(LocalVariable* variable,
       ASSERT(context_level() == (*context_owner)->context_level());
     }
   }
-  variable->set_index((*context_owner)->num_context_variables_++);
+  variable->set_index(
+      VariableIndex((*context_owner)->num_context_variables_++));
 }
 
-int LocalScope::AllocateVariables(int first_parameter_index,
-                                  int num_parameters,
-                                  int first_frame_index,
-                                  LocalScope* context_owner,
-                                  bool* found_captured_variables) {
+VariableIndex LocalScope::AllocateVariables(VariableIndex first_parameter_index,
+                                            int num_parameters,
+                                            VariableIndex first_local_index,
+                                            LocalScope* context_owner,
+                                            bool* found_captured_variables) {
   // We should not allocate variables of nested functions while compiling an
   // enclosing function.
   ASSERT(function_level() == 0);
@@ -193,7 +194,8 @@ int LocalScope::AllocateVariables(int first_parameter_index,
   // Parameters must be listed first and must all appear in the top scope.
   ASSERT(num_parameters <= num_variables());
   int pos = 0;                              // Current variable position.
-  int frame_index = first_parameter_index;  // Current free frame index.
+  VariableIndex next_index =
+      first_parameter_index;  // Current free frame index.
   while (pos < num_parameters) {
     LocalVariable* parameter = VariableAt(pos);
     pos++;
@@ -206,16 +208,17 @@ int LocalScope::AllocateVariables(int first_parameter_index,
       // A captured parameter has a slot allocated in the frame and one in the
       // context, where it gets copied to. The parameter index reflects the
       // context allocation index.
-      frame_index--;
+      next_index = VariableIndex(next_index.value() - 1);
       AllocateContextVariable(parameter, &context_owner);
       *found_captured_variables = true;
     } else {
-      parameter->set_index(frame_index--);
+      parameter->set_index(next_index);
+      next_index = VariableIndex(next_index.value() - 1);
     }
   }
   // No overlapping of parameters and locals.
-  ASSERT(frame_index >= first_frame_index);
-  frame_index = first_frame_index;
+  ASSERT(next_index.value() >= first_local_index.value());
+  next_index = first_local_index;
   while (pos < num_variables()) {
     LocalVariable* variable = VariableAt(pos);
     if (variable->owner() == this) {
@@ -223,26 +226,30 @@ int LocalScope::AllocateVariables(int first_parameter_index,
         AllocateContextVariable(variable, &context_owner);
         *found_captured_variables = true;
       } else {
-        variable->set_index(frame_index--);
+        variable->set_index(next_index);
+        next_index = VariableIndex(next_index.value() - 1);
       }
     }
     pos++;
   }
   // Allocate variables of all children.
-  int min_frame_index = frame_index;  // Frame index decreases with allocations.
+  VariableIndex min_index = next_index;
   LocalScope* child = this->child();
   while (child != NULL) {
-    const int dummy_parameter_index = 0;    // Ignored, since no parameters.
-    const int num_parameters_in_child = 0;  // No parameters in children scopes.
-    int child_frame_index = child->AllocateVariables(
-        dummy_parameter_index, num_parameters_in_child, frame_index,
+    // Ignored, since no parameters.
+    const VariableIndex dummy_parameter_index(0);
+
+    // No parameters in children scopes.
+    const int num_parameters_in_child = 0;
+    VariableIndex child_next_index = child->AllocateVariables(
+        dummy_parameter_index, num_parameters_in_child, next_index,
         context_owner, found_captured_variables);
-    if (child_frame_index < min_frame_index) {
-      min_frame_index = child_frame_index;
+    if (child_next_index.value() < min_index.value()) {
+      min_index = child_next_index;
     }
     child = child->sibling();
   }
-  return min_frame_index;
+  return min_index;
 }
 
 // The parser creates internal variables that start with ":"
@@ -370,7 +377,7 @@ void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
         desc.info.declaration_pos = TokenPosition::kMinSource;
         desc.info.begin_pos = TokenPosition::kMinSource;
         desc.info.end_pos = TokenPosition::kMinSource;
-        desc.info.set_index(var->index());
+        desc.info.set_index(var->index().value());
         vars->Add(desc);
       } else if (!IsFilteredIdentifier(var->name())) {
         // This is a regular Dart variable, either stack-based or captured.
@@ -385,10 +392,10 @@ void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
           desc.info.set_kind(RawLocalVarDescriptors::kStackVar);
           desc.info.scope_id = *scope_id;
         }
+        desc.info.set_index(var->index().value());
         desc.info.declaration_pos = var->declaration_token_pos();
         desc.info.begin_pos = var->token_pos();
         desc.info.end_pos = var->owner()->end_token_pos();
-        desc.info.set_index(var->index());
         vars->Add(desc);
       }
     }
@@ -585,7 +592,7 @@ RawContextScope* LocalScope::PreserveOuterScope(
       } else {
         context_scope.SetTypeAt(captured_idx, variable->type());
       }
-      context_scope.SetContextIndexAt(captured_idx, variable->index());
+      context_scope.SetContextIndexAt(captured_idx, variable->index().value());
       // Adjust the context level relative to the current context level,
       // since the context of the current scope will be at level 0 when
       // compiling the nested function.
@@ -621,7 +628,7 @@ LocalScope* LocalScope::RestoreOuterScope(const ContextScope& context_scope) {
                             AbstractType::ZoneHandle(context_scope.TypeAt(i)));
     }
     variable->set_is_captured();
-    variable->set_index(context_scope.ContextIndexAt(i));
+    variable->set_index(VariableIndex(context_scope.ContextIndexAt(i)));
     if (context_scope.IsFinalAt(i)) {
       variable->set_is_final();
     }
@@ -693,21 +700,6 @@ bool LocalVariable::Equals(const LocalVariable& other) const {
     }
   }
   return false;
-}
-
-int LocalVariable::BitIndexIn(intptr_t fixed_parameter_count) const {
-  ASSERT(!is_captured());
-  // Parameters have positive indexes with the lowest index being
-  // kParamEndSlotFromFp + 1.  Locals have negative indexes with the lowest
-  // (closest to 0) index being kFirstLocalSlotFromFp.
-  if (index() > 0) {
-    // Shift non-negative indexes so that the lowest one is 0.
-    return fixed_parameter_count - (index() - kParamEndSlotFromFp);
-  } else {
-    // Shift negative indexes so that the lowest one is 0 (they are still
-    // non-positive).
-    return fixed_parameter_count - (index() - kFirstLocalSlotFromFp);
-  }
 }
 
 }  // namespace dart

@@ -5,10 +5,12 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/engine.dart'
+    show AnalysisOptionsImpl, TimestampedData;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/timestamped_data.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
@@ -52,6 +54,22 @@ class MockAnalysisDriver extends AnalysisDriver {
 
   @override
   Future<Null> performWork() => new Future.value(null);
+}
+
+class MockAnalysisResult implements AnalysisResult {
+  @override
+  final List<AnalysisError> errors;
+
+  @override
+  final LineInfo lineInfo;
+
+  @override
+  final String path;
+
+  MockAnalysisResult({this.errors, this.lineInfo, this.path});
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class MockChannel implements PluginCommunicationChannel {

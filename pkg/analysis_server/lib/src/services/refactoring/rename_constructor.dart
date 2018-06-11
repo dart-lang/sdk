@@ -57,6 +57,8 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future fillChange() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     // prepare references
     List<SearchMatch> matches = await searchEngine.searchReferences(element);
     List<SourceReference> references = getSourceReferences(matches);
@@ -112,6 +114,8 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   }
 
   Future<Null> _replaceSynthetic() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     ClassElement classElement = element.enclosingElement;
     AstNode name = await astProvider.getResolvedNameForElement(classElement);
     ClassDeclaration classNode = name.parent as ClassDeclaration;

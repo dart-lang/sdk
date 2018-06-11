@@ -223,9 +223,7 @@ class HeapMapElement extends HtmlElement implements Renderable {
     final address = _objectAt(event.offset).address.toRadixString(16);
     isolate.getObjectByAddress(address).then((result) {
       if (result.type != 'Sentinel') {
-        new AnchorElement(
-                href: Uris.inspect(_isolate, object: result as S.HeapObject))
-            .click();
+        new AnchorElement(href: Uris.inspect(_isolate, object: result)).click();
       }
     });
   }

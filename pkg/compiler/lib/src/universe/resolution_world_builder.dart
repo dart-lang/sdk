@@ -369,6 +369,7 @@ abstract class ResolutionWorldBuilderBase extends WorldBuilderBase
   final InterceptorDataBuilder _interceptorDataBuilder;
   final BackendUsageBuilder _backendUsageBuilder;
   final RuntimeTypesNeedBuilder _rtiNeedBuilder;
+  final KAllocatorAnalysis _allocatorAnalysis;
   final NativeResolutionEnqueuer _nativeResolutionEnqueuer;
   final NoSuchMethodRegistry _noSuchMethodRegistry;
 
@@ -401,6 +402,7 @@ abstract class ResolutionWorldBuilderBase extends WorldBuilderBase
       this._interceptorDataBuilder,
       this._backendUsageBuilder,
       this._rtiNeedBuilder,
+      this._allocatorAnalysis,
       this._nativeResolutionEnqueuer,
       this._noSuchMethodRegistry,
       this.selectorConstraintsStrategy,
@@ -994,6 +996,7 @@ abstract class KernelResolutionWorldBuilderBase
       InterceptorDataBuilder interceptorDataBuilder,
       BackendUsageBuilder backendUsageBuilder,
       RuntimeTypesNeedBuilder rtiNeedBuilder,
+      KAllocatorAnalysis allocatorAnalysis,
       NativeResolutionEnqueuer nativeResolutionEnqueuer,
       NoSuchMethodRegistry noSuchMethodRegistry,
       SelectorConstraintsStrategy selectorConstraintsStrategy,
@@ -1009,6 +1012,7 @@ abstract class KernelResolutionWorldBuilderBase
             interceptorDataBuilder,
             backendUsageBuilder,
             rtiNeedBuilder,
+            allocatorAnalysis,
             nativeResolutionEnqueuer,
             noSuchMethodRegistry,
             selectorConstraintsStrategy,
@@ -1043,6 +1047,7 @@ abstract class KernelResolutionWorldBuilderBase
         noSuchMethodData: _noSuchMethodRegistry.close(),
         resolutionWorldBuilder: this,
         rtiNeedBuilder: _rtiNeedBuilder,
+        allocatorAnalysis: _allocatorAnalysis,
         implementedClasses: _implementedClasses,
         liveNativeClasses: _nativeResolutionEnqueuer.liveNativeClasses,
         liveInstanceMembers: _liveInstanceMembers,

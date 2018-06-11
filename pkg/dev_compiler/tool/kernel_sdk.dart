@@ -22,10 +22,18 @@ Future main(List<String> args) async {
   var parserOptions = parser.parse(args);
   var rest = parserOptions.rest;
 
-  Directory.current = path.dirname(path.dirname(path.fromUri(Platform.script)));
+  var ddcPath = path.dirname(path.dirname(path.fromUri(Platform.script)));
+  Directory.current = ddcPath;
 
-  var outputPath =
-      path.absolute(rest.length > 0 ? rest[0] : 'gen/sdk/kernel/ddc_sdk.dill');
+  String outputPath;
+  if (rest.isNotEmpty) {
+    outputPath = path.absolute(rest[0]);
+  } else {
+    var sdkRoot = path.absolute(path.dirname(path.dirname(ddcPath)));
+    var buildDir = path.join(sdkRoot, Platform.isMacOS ? 'xcodebuild' : 'out');
+    var genDir = path.join(buildDir, 'ReleaseX64', 'gen', 'utils', 'dartdevc');
+    outputPath = path.join(genDir, 'kernel', 'ddc_sdk.dill');
+  }
 
   var inputPath = path.absolute('tool/input_sdk');
   var target = new DevCompilerTarget();

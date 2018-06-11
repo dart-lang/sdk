@@ -144,10 +144,6 @@ class InterpreterHelpers {
           case kMintCid:
             return (static_cast<RawMint*>(lhs)->ptr()->value_ ==
                     static_cast<RawMint*>(rhs)->ptr()->value_);
-
-          case kBigintCid:
-            return (DLRT_BigintCompare(static_cast<RawBigint*>(lhs),
-                                       static_cast<RawBigint*>(rhs)) == 0);
         }
       }
     }
@@ -627,6 +623,7 @@ void Interpreter::Exit(Thread* thread,
   thread->set_top_exit_frame_info(reinterpret_cast<uword>(fp_));
 #if defined(DEBUG)
   if (IsTracingExecution()) {
+    THR_Print("%" Pu64 " ", icount_);
     THR_Print("Exiting interpreter 0x%" Px " at fp_ 0x%" Px "\n",
               reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_));
   }
@@ -870,16 +867,18 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
     if (Function::HasCode(function)) {
       RawCode* code = function->ptr()->code_;
       ASSERT(code != StubCode::LazyCompile_entry()->code());
-      // TODO(regis): Do we really need a stub? Try to invoke directly.
+      // TODO(regis): Once we share the same stack, try to invoke directly.
 
       // On success, returns a RawInstance.  On failure, a RawError.
       typedef RawObject* (*invokestub)(RawCode * code, RawArray * argdesc,
                                        RawObject * *arg0, Thread * thread);
       invokestub entrypoint = reinterpret_cast<invokestub>(
           StubCode::InvokeDartCodeFromBytecode_entry()->EntryPoint());
-      *call_base = entrypoint(code, argdesc, call_base, thread);
-      // Result is at call_base;
+      RawObject* result = entrypoint(code, argdesc, call_base, thread);
+
+      // Pop args and push result.
       *SP = call_base;
+      **SP = result;
     } else {
       ASSERT(Function::HasBytecode(function));
       // Bytecode was loaded in the above compilation step.
@@ -916,6 +915,12 @@ DART_FORCE_INLINE void Interpreter::Invoke(Thread* thread,
   RawObject** callee_fp = call_top + kKBCDartFrameFixedSize;
 
   RawFunction* function = FrameFunction(callee_fp);
+#if defined(DEBUG)
+  if (IsTracingExecution()) {
+    THR_Print("%" Pu64 " ", icount_);
+    THR_Print("invoking %s\n", Function::Handle(function).ToCString());
+  }
+#endif
   if (Function::HasCode(function) || !Function::HasBytecode(function)) {
     // TODO(regis): If the function is a dispatcher, execute the dispatch here.
     if (!InvokeCompiled(thread, function, argdesc_, call_base, call_top, pc, FP,
@@ -1254,16 +1259,18 @@ static DART_NOINLINE bool InvokeNative(Thread* thread,
     FP = reinterpret_cast<RawObject**>(fp_);                                   \
     pc = reinterpret_cast<uint32_t*>(pc_);                                     \
     if ((reinterpret_cast<uword>(pc) & 2) != 0) { /* Entry frame? */           \
-      fp_ = reinterpret_cast<RawObject**>(fp_[0]);                             \
-      thread->set_top_exit_frame_info(reinterpret_cast<uword>(fp_));           \
+      uword exit_fp = reinterpret_cast<uword>(fp_[0]);                         \
+      thread->set_top_exit_frame_info(exit_fp);                                \
       thread->set_top_resource(top_resource);                                  \
       thread->set_vm_tag(vm_tag);                                              \
       if (IsTracingExecution()) {                                              \
+        THR_Print("%" Pu64 " ", icount_);                                      \
         THR_Print("Returning exception from interpreter 0x%" Px                \
                   " at fp_ 0x%" Px "\n",                                       \
                   reinterpret_cast<uword>(this),                               \
                   reinterpret_cast<uword>(fp_));                               \
       }                                                                        \
+      ASSERT(reinterpret_cast<uword>(fp_) < stack_limit());                    \
       return special_[kExceptionSpecialIndex];                                 \
     }                                                                          \
     pp_ = InterpreterHelpers::FrameCode(FP)->ptr()->object_pool_;              \
@@ -1277,8 +1284,8 @@ static DART_NOINLINE bool InvokeNative(Thread* thread,
     FP = reinterpret_cast<RawObject**>(fp_);                                   \
     pc = reinterpret_cast<uint32_t*>(pc_);                                     \
     if ((reinterpret_cast<uword>(pc) & 2) != 0) { /* Entry frame? */           \
-      fp_ = reinterpret_cast<RawObject**>(fp_[0]);                             \
-      thread->set_top_exit_frame_info(reinterpret_cast<uword>(fp_));           \
+      uword exit_fp = reinterpret_cast<uword>(fp_[0]);                         \
+      thread->set_top_exit_frame_info(exit_fp);                                \
       thread->set_top_resource(top_resource);                                  \
       thread->set_vm_tag(vm_tag);                                              \
       return special_[kExceptionSpecialIndex];                                 \
@@ -1388,13 +1395,15 @@ RawObject* Interpreter::Call(const Code& code,
 
   bool reentering = fp_ != NULL;
   if (!reentering) {
-    fp_ = reinterpret_cast<RawObject**>(stack_);
+    fp_ = reinterpret_cast<RawObject**>(stack_base_);
   }
 #if defined(DEBUG)
   if (IsTracingExecution()) {
-    THR_Print("%s interpreter 0x%" Px " at fp_ 0x%" Px "\n",
+    THR_Print("%" Pu64 " ", icount_);
+    THR_Print("%s interpreter 0x%" Px " at fp_ 0x%" Px " %s\n",
               reentering ? "Re-entering" : "Entering",
-              reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_));
+              reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_),
+              Function::Handle(code.function()).ToCString());
   }
 #endif
 
@@ -1420,7 +1429,7 @@ RawObject* Interpreter::Call(const Code& code,
   //       | arg 1       | -+
   //       | function    | -+
   //       | code        |  |
-  //       | callee PC   | ---> special fake PC marking an entry frame
+  //       | caller PC   | ---> special fake PC marking an entry frame
   //  SP > | fp_         |  |
   //  FP > | ........... |   > normal Dart frame (see stack_frame_kbc.h)
   //                        |
@@ -1705,14 +1714,12 @@ RawObject* Interpreter::Call(const Code& code,
   {
     BYTECODE(CheckStack, A);
     {
-      // TODO(regis): Support a second stack limit or can we share the DBC one?
-#if 0
-      if (reinterpret_cast<uword>(SP) >= thread->stack_limit()) {
+      // Using the interpreter stack limit and not the thread stack limit.
+      if (reinterpret_cast<uword>(SP) >= stack_limit()) {
         Exit(thread, FP, SP + 1, pc);
         NativeArguments args(thread, 0, NULL, NULL);
         INVOKE_RUNTIME(DRT_StackOverflow, args);
       }
-#endif
     }
     DISPATCH();
   }
@@ -2908,16 +2915,22 @@ RawObject* Interpreter::Call(const Code& code,
 
     // Check if it is a fake PC marking the entry frame.
     if ((reinterpret_cast<uword>(pc) & 2) != 0) {
-      const intptr_t argc = reinterpret_cast<uword>(pc) >> 2;
-      fp_ = reinterpret_cast<RawObject**>(FrameArguments(FP, argc + 1)[0]);
-      thread->set_top_exit_frame_info(reinterpret_cast<uword>(fp_));
+      // Pop entry frame.
+      fp_ = SavedCallerFP(FP);
+      // Restore exit frame info saved in entry frame.
+      uword exit_fp = reinterpret_cast<uword>(fp_[0]);
+      thread->set_top_exit_frame_info(exit_fp);
       thread->set_top_resource(top_resource);
       thread->set_vm_tag(vm_tag);
 #if defined(DEBUG)
       if (IsTracingExecution()) {
+        THR_Print("%" Pu64 " ", icount_);
         THR_Print("Returning from interpreter 0x%" Px " at fp_ 0x%" Px "\n",
                   reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_));
       }
+      ASSERT(reinterpret_cast<uword>(fp_) < stack_limit());
+      const intptr_t argc = reinterpret_cast<uword>(pc) >> 2;
+      ASSERT(fp_ == FrameArguments(FP, argc + 1));
 #endif
       return result;
     }

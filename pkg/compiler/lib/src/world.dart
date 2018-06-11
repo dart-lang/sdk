@@ -4,8 +4,6 @@
 
 library dart2js.world;
 
-import 'dart:collection' show Queue;
-
 import 'package:front_end/src/fasta/util/link.dart' show Link;
 
 import 'common.dart';
@@ -14,6 +12,8 @@ import 'common_elements.dart' show CommonElements, ElementEnvironment;
 import 'constants/constant_system.dart';
 import 'elements/entities.dart';
 import 'elements/types.dart';
+import 'js_backend/allocator_analysis.dart'
+    show JAllocatorAnalysis, KAllocatorAnalysis;
 import 'js_backend/backend_usage.dart' show BackendUsage;
 import 'js_backend/interceptor_data.dart' show InterceptorData;
 import 'js_backend/native_data.dart' show NativeData;
@@ -26,7 +26,6 @@ import 'types/abstract_value_domain.dart';
 import 'universe/class_set.dart';
 import 'universe/function_set.dart' show FunctionSet;
 import 'universe/selector.dart' show Selector;
-import 'universe/side_effects.dart' show SideEffects, SideEffectsBuilder;
 import 'universe/world_builder.dart';
 
 /// Common superinterface for [OpenWorld] and [JClosedWorld].
@@ -42,6 +41,8 @@ abstract class World {}
 /// optimizations and other compiler decisions during code generation.
 // TODO(johnniwinther): Maybe this should just be called the JWorld.
 abstract class JClosedWorld implements World {
+  JAllocatorAnalysis get allocatorAnalysis;
+
   BackendUsage get backendUsage;
 
   NativeData get nativeData;
@@ -318,55 +319,10 @@ abstract class JClosedWorld implements World {
   /// `null` is returned.
   FieldEntity locateSingleField(Selector selector, AbstractValue receiver);
 
-  /// Returns the side effects of executing [element].
-  SideEffects getSideEffectsOfElement(FunctionEntity element);
-
-  /// Returns the side effects of calling [selector] on the [receiver].
-  SideEffects getSideEffectsOfSelector(
-      Selector selector, AbstractValue receiver);
-
-  /// Returns `true` if [element] is guaranteed not to throw an exception.
-  bool getCannotThrow(FunctionEntity element);
-
-  /// Returns `true` if [element] is called in a loop.
-  // TODO(johnniwinther): Is this 'potentially called' or 'known to be called'?
-  // TODO(johnniwinther): Change [MemberEntity] to [FunctionEntity].
-  bool isCalledInLoop(MemberEntity element);
-
-  /// Returns `true` if [element] might be passed to `Function.apply`.
-  // TODO(johnniwinther): Is this 'passed invocation target` or
-  // `passed as argument`?
-  bool getMightBePassedToApply(FunctionEntity element);
-
   /// Returns a string representation of the closed world.
   ///
   /// If [cls] is provided, the dump will contain only classes related to [cls].
   String dump([ClassEntity cls]);
-
-  /// Registers the executing of [element] as without side effects.
-  void registerSideEffectsFree(FunctionEntity element);
-
-  /// Returns the [SideEffectBuilder] associated with [element].
-  SideEffectsBuilder getSideEffectsBuilder(FunctionEntity member);
-
-  /// Compute [SideEffects] for all registered [SideEffectBuilder]s.
-  void computeSideEffects();
-
-  /// Registers that [element] might be passed to `Function.apply`.
-  // TODO(johnniwinther): Is this 'passed invocation target` or
-  // `passed as argument`?
-  void registerMightBePassedToApply(FunctionEntity element);
-
-  /// Returns `true` if [element] might be passed to `Function.apply` given the
-  /// currently inferred information.
-  bool getCurrentlyKnownMightBePassedToApply(FunctionEntity element);
-
-  /// Registers that [element] is called in a loop.
-  // TODO(johnniwinther): Is this 'potentially called' or 'known to be called'?
-  void addFunctionCalledInLoop(MemberEntity element);
-
-  /// Registers that [element] is guaranteed not to throw an exception.
-  void registerCannotThrow(FunctionEntity element);
 
   /// Adds the closure class [cls] to the inference world. The class is
   /// considered directly instantiated. If [fromInstanceMember] is true, this
@@ -431,22 +387,6 @@ abstract class ClosedWorldBase implements JClosedWorld {
 
   final Map<ClassEntity, Map<ClassEntity, bool>> _subtypeCoveredByCache =
       <ClassEntity, Map<ClassEntity, bool>>{};
-
-  final Set<MemberEntity> _functionsCalledInLoop = new Set<MemberEntity>();
-  Map<FunctionEntity, SideEffects> _sideEffects;
-  Map<MemberEntity, SideEffectsBuilder> _sideEffectsBuilders =
-      <MemberEntity, SideEffectsBuilder>{};
-  final Set<FunctionEntity> prematureSideEffectAccesses =
-      new Set<FunctionEntity>();
-
-  final Set<FunctionEntity> _sideEffectsFreeElements =
-      new Set<FunctionEntity>();
-
-  final Set<FunctionEntity> _elementsThatCannotThrow =
-      new Set<FunctionEntity>();
-
-  final Set<FunctionEntity> _functionsThatMightBePassedToApply =
-      new Set<FunctionEntity>();
 
   final ElementEnvironment elementEnvironment;
   final DartTypes dartTypes;
@@ -1053,139 +993,6 @@ abstract class ClosedWorldBase implements JClosedWorld {
     return false;
   }
 
-  SideEffects getSideEffectsOfSelector(
-      Selector selector, AbstractValue receiver) {
-    // We're not tracking side effects of closures.
-    if (selector.isClosureCall || includesClosureCall(selector, receiver)) {
-      return new SideEffects();
-    }
-    SideEffects sideEffects = new SideEffects.empty();
-    _ensureFunctionSet();
-    for (MemberEntity e
-        in _allFunctions.filter(selector, receiver, abstractValueDomain)) {
-      if (e.isField) {
-        if (selector.isGetter) {
-          if (!fieldNeverChanges(e)) {
-            sideEffects.setDependsOnInstancePropertyStore();
-          }
-        } else if (selector.isSetter) {
-          sideEffects.setChangesInstanceProperty();
-        } else {
-          assert(selector.isCall);
-          sideEffects.setAllSideEffects();
-          sideEffects.setDependsOnSomething();
-        }
-      } else {
-        sideEffects.add(getSideEffectsOfElement(e));
-      }
-    }
-    return sideEffects;
-  }
-
-  SideEffects getSideEffectsOfElement(FunctionEntity element) {
-    assert(checkEntity(element));
-    assert(_sideEffects != null,
-        failedAt(element, "Side effects have not been computed yet."));
-    // TODO(johnniwinther): Check that [_makeSideEffects] is only called if
-    // type inference has been disabled (explicitly or because of compile time
-    // errors).
-    return _sideEffects.putIfAbsent(element, _makeSideEffects);
-  }
-
-  static SideEffects _makeSideEffects() => new SideEffects();
-
-  @override
-  SideEffectsBuilder getSideEffectsBuilder(MemberEntity member) {
-    return _sideEffectsBuilders.putIfAbsent(
-        member, () => new SideEffectsBuilder(member));
-  }
-
-  void registerSideEffectsFree(FunctionEntity element) {
-    assert(checkEntity(element));
-    _sideEffectsFreeElements.add(element);
-    assert(!_sideEffectsBuilders.containsKey(element));
-    _sideEffectsBuilders[element] = new SideEffectsBuilder.free(element);
-  }
-
-  void computeSideEffects() {
-    assert(
-        _sideEffects == null, "Side effects have already been computed yet.");
-    _sideEffects = <FunctionEntity, SideEffects>{};
-    Iterable<SideEffectsBuilder> sideEffectsBuilders =
-        _sideEffectsBuilders.values;
-    emptyWorkList(sideEffectsBuilders);
-    for (SideEffectsBuilder sideEffectsBuilder in sideEffectsBuilders) {
-      _sideEffects[sideEffectsBuilder.member] = sideEffectsBuilder.sideEffects;
-    }
-    _sideEffectsBuilders = null;
-  }
-
-  static void emptyWorkList(Iterable<SideEffectsBuilder> sideEffectsBuilders) {
-    // TODO(johnniwinther): Optimize this algorithm, possibly by using
-    // `pkg/front_end/lib/src/dependency_walker.dart`.
-    Queue<SideEffectsBuilder> queue = new Queue<SideEffectsBuilder>();
-    Set<SideEffectsBuilder> inQueue = new Set<SideEffectsBuilder>();
-
-    for (SideEffectsBuilder builder in sideEffectsBuilders) {
-      queue.addLast(builder);
-      inQueue.add(builder);
-    }
-    while (queue.isNotEmpty) {
-      SideEffectsBuilder sideEffectsBuilder = queue.removeFirst();
-      inQueue.remove(sideEffectsBuilder);
-      for (SideEffectsBuilder dependent in sideEffectsBuilder.depending) {
-        if (dependent.add(sideEffectsBuilder.sideEffects)) {
-          if (inQueue.add(dependent)) {
-            queue.addLast(dependent);
-          }
-        }
-      }
-    }
-  }
-
-  void addFunctionCalledInLoop(MemberEntity element) {
-    assert(checkEntity(element));
-    _functionsCalledInLoop.add(element);
-  }
-
-  bool isCalledInLoop(MemberEntity element) {
-    assert(checkEntity(element));
-    return _functionsCalledInLoop.contains(element);
-  }
-
-  void registerCannotThrow(FunctionEntity element) {
-    assert(checkEntity(element));
-    _elementsThatCannotThrow.add(element);
-  }
-
-  bool getCannotThrow(FunctionEntity element) {
-    return _elementsThatCannotThrow.contains(element);
-  }
-
-  void registerMightBePassedToApply(FunctionEntity element) {
-    _functionsThatMightBePassedToApply.add(element);
-  }
-
-  bool getMightBePassedToApply(FunctionEntity element) {
-    // We assume all functions reach Function.apply if no functions are
-    // registered so.  We get an empty set in two circumstances (1) a trivial
-    // program and (2) when compiling without type inference
-    // (i.e. --disable-type-inference). Returning `true` has consequences (extra
-    // metadata for Function.apply) only when Function.apply is also part of the
-    // program. It is an unusual trivial program that includes Function.apply
-    // but does not call it on a function.
-    //
-    // TODO(sra): We should reverse the sense of this set and register functions
-    // that we have proven do not reach Function.apply.
-    if (_functionsThatMightBePassedToApply.isEmpty) return true;
-    return _functionsThatMightBePassedToApply.contains(element);
-  }
-
-  @override
-  bool getCurrentlyKnownMightBePassedToApply(FunctionEntity element) {
-    return _functionsThatMightBePassedToApply.contains(element);
-  }
-
   @override
   String dump([ClassEntity cls]) {
     StringBuffer sb = new StringBuffer();
@@ -1224,6 +1031,7 @@ abstract class ClosedWorldRtiNeedMixin implements KClosedWorld {
 
 abstract class KClosedWorld {
   DartTypes get dartTypes;
+  KAllocatorAnalysis get allocatorAnalysis;
   BackendUsage get backendUsage;
   NativeData get nativeData;
   InterceptorData get interceptorData;

@@ -272,8 +272,7 @@ bool AotCallSpecializer::IsSupportedIntOperandForStaticDoubleOp(
       return true;
     }
 
-    if (FLAG_limit_ints_to_64_bits &&
-        FlowGraphCompiler::SupportsUnboxedInt64() &&
+    if (FlowGraphCompiler::SupportsUnboxedInt64() &&
         FlowGraphCompiler::CanConvertInt64ToDouble()) {
       return true;
     }
@@ -286,8 +285,7 @@ Value* AotCallSpecializer::PrepareStaticOpInput(Value* input,
                                                 intptr_t cid,
                                                 Instruction* call) {
   ASSERT(I->strong() && FLAG_use_strong_mode_types);
-  ASSERT((cid == kDoubleCid) ||
-         (FLAG_limit_ints_to_64_bits && (cid == kMintCid)));
+  ASSERT((cid == kDoubleCid) || (cid == kMintCid));
 
   const String& function_name =
       (call->IsInstanceCall()
@@ -303,8 +301,7 @@ Value* AotCallSpecializer::PrepareStaticOpInput(Value* input,
 
     if (input->Type()->ToNullableCid() == kSmiCid) {
       conversion = new (Z) SmiToDoubleInstr(input, call->token_pos());
-    } else if (FLAG_limit_ints_to_64_bits &&
-               FlowGraphCompiler::SupportsUnboxedInt64() &&
+    } else if (FlowGraphCompiler::SupportsUnboxedInt64() &&
                FlowGraphCompiler::CanConvertInt64ToDouble()) {
       conversion = new (Z) Int64ToDoubleInstr(input, Thread::kNoDeoptId,
                                               Instruction::kNotSpeculative);
@@ -325,8 +322,7 @@ Value* AotCallSpecializer::PrepareStaticOpInput(Value* input,
 Value* AotCallSpecializer::PrepareReceiverOfDevirtualizedCall(Value* input,
                                                               intptr_t cid) {
   ASSERT(I->strong() && FLAG_use_strong_mode_types);
-  ASSERT((cid == kDoubleCid) ||
-         (FLAG_limit_ints_to_64_bits && (cid == kMintCid)));
+  ASSERT((cid == kDoubleCid) || (cid == kMintCid));
 
   // Can't assert !input->Type()->is_nullable() here as PushArgument receives
   // value prior to a CheckNull in case of devirtualized call.
@@ -374,8 +370,7 @@ bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
       CompileType* left_type = left_value->Type();
       CompileType* right_type = right_value->Type();
       if (left_type->IsNullableInt() && right_type->IsNullableInt()) {
-        if (FLAG_limit_ints_to_64_bits &&
-            FlowGraphCompiler::SupportsUnboxedInt64()) {
+        if (FlowGraphCompiler::SupportsUnboxedInt64()) {
           if (Token::IsRelationalOperator(op_kind)) {
             left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
             right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
@@ -445,8 +440,7 @@ bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
       CompileType* right_type = right_value->Type();
       if (left_type->IsNullableInt() && right_type->IsNullableInt() &&
           (op_kind != Token::kDIV)) {
-        if (FLAG_limit_ints_to_64_bits &&
-            FlowGraphCompiler::SupportsUnboxedInt64()) {
+        if (FlowGraphCompiler::SupportsUnboxedInt64()) {
           if ((op_kind == Token::kSHR) || (op_kind == Token::kSHL)) {
             // TODO(dartbug.com/30480): Enable 64-bit integer shifts.
             // replacement = new ShiftInt64OpInstr(
@@ -526,8 +520,7 @@ bool AotCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
   // instance calls of these operators into static calls.
 
   if (owner.id() == kIntegerCid) {
-    if (!FLAG_limit_ints_to_64_bits ||
-        !FlowGraphCompiler::SupportsUnboxedInt64()) {
+    if (!FlowGraphCompiler::SupportsUnboxedInt64()) {
       return false;
     }
 

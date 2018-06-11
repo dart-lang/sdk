@@ -188,6 +188,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
 
   @override
   Future<RefactoringStatus> checkFinalConditions() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     RefactoringStatus result = new RefactoringStatus();
     result.addStatus(validateMethodName(name));
     result.addStatus(_checkParameterNames());
@@ -198,6 +200,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
 
   @override
   Future<RefactoringStatus> checkInitialConditions() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     RefactoringStatus result = new RefactoringStatus();
     // selection
     result.addStatus(_checkSelection());
@@ -236,6 +240,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
 
   @override
   Future<SourceChange> createChange() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     SourceChange change = new SourceChange(refactoringName);
     // replace occurrences with method invocation
     for (_Occurrence occurrence in _occurrences) {
@@ -439,6 +445,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
    * Checks if created method will shadow or will be shadowed by other elements.
    */
   Future<RefactoringStatus> _checkPossibleConflicts() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     RefactoringStatus result = new RefactoringStatus();
     AstNode parent = _parentMember.parent;
     // top-level function
@@ -715,6 +723,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
    * parameters.
    */
   Future<RefactoringStatus> _initializeParameters() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     _parameters.clear();
     _parametersMap.clear();
     _parameterReferencesMap.clear();
@@ -773,6 +783,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   }
 
   Future<Null> _initializeReturnType() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     TypeProvider typeProvider = await session.typeProvider;
     InterfaceType futureType = typeProvider.futureType;
     if (_selectionFunctionExpression != null) {

@@ -56,6 +56,8 @@ class DartCompletionManager implements CompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       CompletionRequest request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     request.checkAborted();
     if (!AnalysisEngine.isDartFileName(request.result.path)) {
       return EMPTY_LIST;
@@ -292,6 +294,8 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
    */
   static Future<DartCompletionRequest> from(CompletionRequest request,
       {ResultDescriptor resultDescriptor}) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     request.checkAborted();
     CompletionPerformance performance =
         (request as CompletionRequestImpl).performance;

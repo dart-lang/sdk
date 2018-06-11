@@ -201,8 +201,6 @@ GetterNotFound/analyzerCode: Fail
 GetterNotFound/example: Fail
 GetterWithFormals/example: Fail
 IllegalAssignmentToNonAssignable/script1: Fail
-IllegalMethodName/analyzerCode: Fail
-IllegalMethodName/example: Fail
 IllegalMixin/analyzerCode: Fail
 IllegalMixin/example: Fail
 IllegalMixinDueToConstructors/analyzerCode: Fail

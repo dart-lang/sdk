@@ -561,6 +561,7 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
       pc_ = reinterpret_cast<uword*>(frame->pc());
       fp_ = reinterpret_cast<uword*>(frame->fp());
       sp_ = reinterpret_cast<uword*>(frame->sp());
+      is_interpreted_frame_ = frame->is_interpreted();
     }
   }
 
@@ -572,7 +573,7 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
     }
     ASSERT(ValidFramePointer());
     uword return_pc = InitialReturnAddress();
-    if (StubCode::InInvocationStub(return_pc)) {
+    if (StubCode::InInvocationStub(return_pc, is_interpreted_frame_)) {
       // Edge case- we have called out from the Invocation Stub but have not
       // created the stack frame of the callee. Attempt to locate the exit
       // frame before walking the stack.
@@ -597,14 +598,16 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
     if (!ValidFramePointer()) {
       return false;
     }
-    if (StubCode::InInvocationStub(reinterpret_cast<uword>(pc_))) {
+    if (StubCode::InInvocationStub(reinterpret_cast<uword>(pc_),
+                                   is_interpreted_frame_)) {
       // In invocation stub.
       return NextExit();
     }
     // In regular Dart frame.
     uword* new_pc = CallerPC();
     // Check if we've moved into the invocation stub.
-    if (StubCode::InInvocationStub(reinterpret_cast<uword>(new_pc))) {
+    if (StubCode::InInvocationStub(reinterpret_cast<uword>(new_pc),
+                                   is_interpreted_frame_)) {
       // New PC is inside invocation stub, skip.
       return NextExit();
     }
@@ -691,6 +694,7 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
   uword* pc_;
   uword* fp_;
   uword* sp_;
+  bool is_interpreted_frame_;
   const uword stack_upper_;
   const uword stack_lower_;
   bool has_exit_frame_;

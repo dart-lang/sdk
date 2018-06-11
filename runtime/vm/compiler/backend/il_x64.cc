@@ -236,9 +236,7 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* LoadLocalInstr::MakeLocationSummary(Zone* zone,
                                                      bool opt) const {
   const intptr_t kNumInputs = 0;
-  const intptr_t stack_index = (local().index() < 0)
-                                   ? kFirstLocalSlotFromFp - local().index()
-                                   : kParamEndSlotFromFp - local().index();
+  const intptr_t stack_index = FrameSlotForVariable(&local());
   return LocationSummary::Make(zone, kNumInputs,
                                Location::StackSlot(stack_index),
                                LocationSummary::kNoCall);
@@ -260,7 +258,7 @@ void StoreLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
   ASSERT(result == value);  // Assert that register assignment is correct.
-  __ movq(Address(RBP, local().index() * kWordSize), value);
+  __ movq(Address(RBP, FrameOffsetInBytesForVariable(&local())), value);
 }
 
 LocationSummary* ConstantInstr::MakeLocationSummary(Zone* zone,
@@ -2591,11 +2589,11 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if (!compiler->is_optimizing()) {
     if (raw_exception_var_ != nullptr) {
-      __ movq(Address(RBP, raw_exception_var_->index() * kWordSize),
+      __ movq(Address(RBP, FrameOffsetInBytesForVariable(raw_exception_var_)),
               kExceptionObjectReg);
     }
     if (raw_stacktrace_var_ != nullptr) {
-      __ movq(Address(RBP, raw_stacktrace_var_->index() * kWordSize),
+      __ movq(Address(RBP, FrameOffsetInBytesForVariable(raw_stacktrace_var_)),
               kStackTraceObjectReg);
     }
   }
@@ -5153,8 +5151,7 @@ template <typename OperandType>
 static void EmitInt64Arithmetic(FlowGraphCompiler* compiler,
                                 Token::Kind op_kind,
                                 Register left,
-                                const OperandType& right,
-                                Label* deopt) {
+                                const OperandType& right) {
   switch (op_kind) {
     case Token::kADD:
       __ addq(left, right);
@@ -5177,7 +5174,6 @@ static void EmitInt64Arithmetic(FlowGraphCompiler* compiler,
     default:
       UNREACHABLE();
   }
-  if (deopt != NULL) __ j(OVERFLOW, deopt);
 }
 
 LocationSummary* BinaryInt64OpInstr::MakeLocationSummary(Zone* zone,
@@ -5193,23 +5189,20 @@ LocationSummary* BinaryInt64OpInstr::MakeLocationSummary(Zone* zone,
 }
 
 void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Label* deopt = NULL;
-  if (CanDeoptimize()) {
-    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryInt64Op);
-  }
   const Location left = locs()->in(0);
   const Location right = locs()->in(1);
   const Location out = locs()->out(0);
   ASSERT(out.reg() == left.reg());
+  ASSERT(!can_overflow());
+  ASSERT(!CanDeoptimize());
 
   if (right.IsConstant()) {
     ConstantInstr* constant_instr = right.constant_instruction();
     const int64_t value =
         constant_instr->GetUnboxedSignedIntegerConstantValue();
-    EmitInt64Arithmetic(compiler, op_kind(), left.reg(), Immediate(value),
-                        deopt);
+    EmitInt64Arithmetic(compiler, op_kind(), left.reg(), Immediate(value));
   } else {
-    EmitInt64Arithmetic(compiler, op_kind(), left.reg(), right.reg(), deopt);
+    EmitInt64Arithmetic(compiler, op_kind(), left.reg(), right.reg());
   }
 }
 
@@ -5235,14 +5228,11 @@ void UnaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* ShiftInt64OpInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = can_overflow() ? 1 : 0;
+  const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
   summary->set_in(1, Location::FixedRegisterOrSmiConstant(right(), RCX));
-  if (kNumTemps > 0) {
-    summary->set_temp(0, Location::RequiresRegister());
-  }
   summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }
@@ -5251,6 +5241,7 @@ void ShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register left = locs()->in(0).reg();
   const Register out = locs()->out(0).reg();
   ASSERT(left == out);
+  ASSERT(!can_overflow());
 
   Label* deopt = NULL;
   if (CanDeoptimize()) {
@@ -5268,16 +5259,6 @@ void ShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         break;
       case Token::kSHL: {
         ASSERT(shift < 64);
-        if (can_overflow()) {
-          // Check for overflow.
-          Register temp = locs()->temp(0).reg();
-          __ movq(temp, left);
-          __ shlq(left, Immediate(shift));
-          __ sarq(left, Immediate(shift));
-          __ cmpq(left, temp);
-          __ j(NOT_EQUAL, deopt);  // Overflow.
-        }
-        // Shift for result now we know there is no overflow.
         __ shlq(left, Immediate(shift));
         break;
       }
@@ -5300,16 +5281,6 @@ void ShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         break;
       }
       case Token::kSHL: {
-        if (can_overflow()) {
-          // Check for overflow.
-          Register temp = locs()->temp(0).reg();
-          __ movq(temp, left);
-          __ shlq(left, RCX);
-          __ sarq(left, RCX);
-          __ cmpq(left, temp);
-          __ j(NOT_EQUAL, deopt);  // Overflow.
-        }
-        // Shift for result now we know there is no overflow.
         __ shlq(left, RCX);
         break;
       }

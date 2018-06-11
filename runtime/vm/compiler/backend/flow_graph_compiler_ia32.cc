@@ -364,7 +364,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     __ jmp(is_not_instance_lbl);
     return false;
   }
-  // Custom checking for numbers (Smi, Mint, Bigint and Double).
+  // Custom checking for numbers (Smi, Mint and Double).
   // Note that instance is not Smi (checked above).
   if (type.IsNumberType() || type.IsIntType() || type.IsDoubleType()) {
     GenerateNumberTypeCheck(kClassIdReg, type, is_instance_lbl,
@@ -786,21 +786,21 @@ void FlowGraphCompiler::CompileGraph() {
   if (!is_optimizing()) {
     const int num_locals = parsed_function().num_stack_locals();
 
-    intptr_t args_desc_index = -1;
+    intptr_t args_desc_slot = -1;
     if (parsed_function().has_arg_desc_var()) {
-      args_desc_index =
-          -(parsed_function().arg_desc_var()->index() - kFirstLocalSlotFromFp);
+      args_desc_slot = FrameSlotForVariable(parsed_function().arg_desc_var());
     }
 
     __ Comment("Initialize spill slots");
-    if (num_locals > 1 || args_desc_index != 0) {
+    if (num_locals > 1 || (num_locals == 1 && args_desc_slot == -1)) {
       const Immediate& raw_null =
           Immediate(reinterpret_cast<intptr_t>(Object::null()));
       __ movl(EAX, raw_null);
     }
     for (intptr_t i = 0; i < num_locals; ++i) {
-      Register value_reg = i == args_desc_index ? ARGS_DESC_REG : EAX;
-      __ movl(Address(EBP, (kFirstLocalSlotFromFp - i) * kWordSize), value_reg);
+      const intptr_t slot_index = FrameSlotForVariableIndex(-i);
+      Register value_reg = slot_index == args_desc_slot ? ARGS_DESC_REG : EAX;
+      __ movl(Address(EBP, slot_index * kWordSize), value_reg);
     }
   }
 
@@ -977,8 +977,7 @@ Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
     bool needs_number_check,
     TokenPosition token_pos,
     intptr_t deopt_id) {
-  ASSERT(!needs_number_check ||
-         (!obj.IsMint() && !obj.IsDouble() && !obj.IsBigint()));
+  ASSERT(!needs_number_check || (!obj.IsMint() && !obj.IsDouble()));
 
   if (obj.IsSmi() && (Smi::Cast(obj).Value() == 0)) {
     ASSERT(!needs_number_check);

@@ -10,16 +10,7 @@ conditional_import_test: Fail # Uses conditional import.
 config_import_corelib_test: Fail # Uses conditional import.
 config_import_test: Fail # Uses conditional import.
 const_native_factory_test: Skip # Uses `native`.
-constructor_call_wrong_argument_count_negative_test: Skip # Negative, not syntax.
-constructor_redirect1_negative_test/01: Skip # Negative, not syntax.
-constructor_redirect1_negative_test/none: Skip # Negative, not syntax.
-constructor_redirect2_negative_test: Skip # Negative, not syntax.
-constructor_setter_negative_test: Skip # Negative, not syntax.
-deep_nesting1_negative_test: Skip # Stack overflow.
-deep_nesting2_negative_test: Skip # Stack overflow.
 double_invalid_test: Skip # Contains illegaly formatted double.
-duplicate_export_negative_test: Skip # Negative, not syntax.
-duplicate_interface_negative_test: Skip # Negative, not syntax.
 external_test/21: Fail # Test expects `runtime error`, it is a syntax error.
 getter_declaration_negative_test: Fail # Negative, uses getter with parameter.
 inst_field_initializer1_negative_test: Skip # Negative, not syntax.

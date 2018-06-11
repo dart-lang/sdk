@@ -91,9 +91,9 @@ import 'dart:collection' show HashMap, ListMixin;
 
 import 'dart:_js_helper' show Primitives;
 import 'dart:_foreign_helper' show JS;
+import 'dart:_runtime' as dart;
 
-final _global = JS('', 'dart.global');
-final JsObject context = _wrapToDart(_global);
+final JsObject context = _wrapToDart(dart.global_);
 
 /**
  * Proxies a JavaScript object to Dart.
@@ -503,17 +503,13 @@ dynamic _wrapDartFunction(f) {
 // converts a Dart object to a reference to a native JS object
 // which might be a DartObject JS->Dart proxy
 Object _convertToDart(o) {
-  if (JS('bool', '# == null', o) ||
-      JS('bool', 'typeof # == "string"', o) ||
-      JS('bool', 'typeof # == "number"', o) ||
-      JS('bool', 'typeof # == "boolean"', o) ||
-      _isBrowserType(o)) {
+  if (o == null || o is String || o is num || o is bool || _isBrowserType(o)) {
     return o;
-  } else if (JS('bool', '# instanceof Date', o)) {
+  } else if (JS('!', '# instanceof Date', o)) {
     num ms = JS('!', '#.getTime()', o);
     return new DateTime.fromMillisecondsSinceEpoch(ms);
   } else if (o is _DartObject &&
-      JS('bool', 'dart.jsobject != dart.getReifiedType(#)', o)) {
+      !identical(dart.getReifiedType(o), dart.jsobject)) {
     return o._dartObj;
   } else {
     return _wrapToDart(o);

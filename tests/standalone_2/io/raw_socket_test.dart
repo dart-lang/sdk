@@ -90,7 +90,7 @@ void testCloseOneEnd(String toClose) {
     server.listen((serverConnection) {
       serverConnection.listen((event) {
         if (toClose == "server" || event == RawSocketEvent.readClosed) {
-          serverConnection.shutdown(SocketDirection.SEND);
+          serverConnection.shutdown(SocketDirection.send);
         }
       }, onDone: () {
         serverEndDone.complete(null);
@@ -101,7 +101,7 @@ void testCloseOneEnd(String toClose) {
     RawSocket.connect("127.0.0.1", server.port).then((clientConnection) {
       clientConnection.listen((event) {
         if (toClose == "client" || event == RawSocketEvent.readClosed) {
-          clientConnection.shutdown(SocketDirection.SEND);
+          clientConnection.shutdown(SocketDirection.send);
         }
       }, onDone: () {
         clientEndDone.complete(null);
@@ -186,7 +186,7 @@ void testSimpleReadWrite({bool dropReads}) {
               client.writeEventsEnabled = true;
             }
             if (bytesWritten == data.length) {
-              client.shutdown(SocketDirection.SEND);
+              client.shutdown(SocketDirection.send);
             }
             break;
           case RawSocketEvent.readClosed:

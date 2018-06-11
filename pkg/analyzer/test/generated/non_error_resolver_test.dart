@@ -3700,6 +3700,19 @@ class A {
     verify([source]);
   }
 
+  test_metadata_enumConstantDeclaration() async {
+    Source source = addSource(r'''
+const x = 1;
+enum E {
+  aaa,
+  @x
+  bbb
+}''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_methodDeclaration_scope_signature() async {
     Source source = addSource(r'''
 const app = 0;
@@ -4825,6 +4838,87 @@ class B {
 }
 ''');
     await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_optionalNew_rewrite_instantiatesToBounds() async {
+    resetWith(
+        options: new AnalysisOptionsImpl()
+          ..previewDart2 = true
+          ..strongMode = true);
+    Source source = addSource(r'''
+import 'b.dart';
+
+@B.named1()
+@B.named2()
+@B.named3()
+@B.named4()
+@B.named5()
+@B.named6()
+@B.named7()
+@B.named8()
+main() {}
+''');
+    final aSource = addNamedSource("/a.dart", r'''
+class Unbounded<T> {
+  const Unbounded();
+  const Unbounded.named();
+}
+class Bounded<T extends String> {
+  const Bounded();
+  const Bounded.named();
+}
+''');
+    final bSource = addNamedSource("/b.dart", r'''
+import 'a.dart';
+import 'a.dart' as p;
+
+const unbounded1 = Unbounded();
+const unbounded2 = Unbounded.named();
+const unbounded3 = p.Unbounded();
+const unbounded4 = p.Unbounded.named();
+const bounded1 = Bounded();
+const bounded2 = Bounded.named();
+const bounded3 = p.Bounded();
+const bounded4 = p.Bounded.named();
+
+class B {
+  const B.named1({this.unbounded: unbounded1}) : bounded = null;
+  const B.named2({this.unbounded: unbounded2}) : bounded = null;
+  const B.named3({this.unbounded: unbounded3}) : bounded = null;
+  const B.named4({this.unbounded: unbounded4}) : bounded = null;
+  const B.named5({this.bounded: bounded1}) : unbounded = null;
+  const B.named6({this.bounded: bounded2}) : unbounded = null;
+  const B.named7({this.bounded: bounded3}) : unbounded = null;
+  const B.named8({this.bounded: bounded4}) : unbounded = null;
+
+  final Unbounded unbounded;
+  final Bounded bounded;
+}
+''');
+    final result = await computeAnalysisResult(source);
+    expect(result.unit.declarations, hasLength(1));
+    final mainDecl = result.unit.declarations[0];
+    expect(mainDecl.metadata, hasLength(8));
+    mainDecl.metadata.forEach((metadata) {
+      final value = metadata.elementAnnotation.computeConstantValue();
+      expect(value, isNotNull);
+      expect(value.type.toString(), 'B');
+      final unbounded = value.getField('unbounded');
+      final bounded = value.getField('bounded');
+      if (!unbounded.isNull) {
+        expect(bounded.isNull, true);
+        expect(unbounded.type.name, 'Unbounded');
+        expect(unbounded.type.typeArguments, hasLength(1));
+        expect(unbounded.type.typeArguments[0].isDynamic, isTrue);
+      } else {
+        expect(unbounded.isNull, true);
+        expect(bounded.type.name, 'Bounded');
+        expect(bounded.type.typeArguments, hasLength(1));
+        expect(bounded.type.typeArguments[0].name, 'String');
+      }
+    });
     assertNoErrors(source);
     verify([source]);
   }

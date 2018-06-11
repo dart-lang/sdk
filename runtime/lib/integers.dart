@@ -9,35 +9,15 @@
 abstract class _int64 implements int {}
 
 abstract class _IntegerImplementation implements int {
-  num operator +(num other) {
-    var result = other._addFromInteger(this);
-    if (result != null) return result;
-    final _IntegerImplementation otherAsIntImpl = other;
-    return otherAsIntImpl._toBigint()._addFromInteger(this);
-  }
-
-  num operator -(num other) {
-    var result = other._subFromInteger(this);
-    if (result != null) return result;
-    final _IntegerImplementation otherAsIntImpl = other;
-    return otherAsIntImpl._toBigint()._subFromInteger(this);
-  }
-
-  num operator *(num other) {
-    var result = other._mulFromInteger(this);
-    if (result != null) return result;
-    final _IntegerImplementation otherAsIntImpl = other;
-    return otherAsIntImpl._toBigint()._mulFromInteger(this);
-  }
+  num operator +(num other) => other._addFromInteger(this);
+  num operator -(num other) => other._subFromInteger(this);
+  num operator *(num other) => other._mulFromInteger(this);
 
   int operator ~/(num other) {
     if ((other is int) && (other == 0)) {
       throw const IntegerDivisionByZeroException();
     }
-    var result = other._truncDivFromInteger(this);
-    if (result != null) return result;
-    final _IntegerImplementation otherAsIntImpl = other;
-    return otherAsIntImpl._toBigint()._truncDivFromInteger(this);
+    return other._truncDivFromInteger(this);
   }
 
   double operator /(num other) {
@@ -48,33 +28,16 @@ abstract class _IntegerImplementation implements int {
     if ((other is int) && (other == 0)) {
       throw const IntegerDivisionByZeroException();
     }
-    var result = other._moduloFromInteger(this);
-    if (result != null) return result;
-    final _IntegerImplementation otherAsIntImpl = other;
-    return otherAsIntImpl._toBigint()._moduloFromInteger(this);
+    return other._moduloFromInteger(this);
   }
 
   int operator -() {
     return 0 - this;
   }
 
-  int operator &(int other) {
-    var result = other._bitAndFromInteger(this);
-    if (result != null) return result;
-    return other._toBigint()._bitAndFromInteger(this);
-  }
-
-  int operator |(int other) {
-    var result = other._bitOrFromInteger(this);
-    if (result != null) return result;
-    return other._toBigint()._bitOrFromInteger(this);
-  }
-
-  int operator ^(int other) {
-    var result = other._bitXorFromInteger(this);
-    if (result != null) return result;
-    return other._toBigint()._bitXorFromInteger(this);
-  }
+  int operator &(int other) => other._bitAndFromInteger(this);
+  int operator |(int other) => other._bitOrFromInteger(this);
+  int operator ^(int other) => other._bitXorFromInteger(this);
 
   num remainder(num other) {
     return other._remainderFromInteger(this);
@@ -93,17 +56,8 @@ abstract class _IntegerImplementation implements int {
     return other - (other ~/ this) * this;
   }
 
-  int operator >>(int other) {
-    var result = other._shrFromInt(this);
-    if (result != null) return result;
-    return other._toBigint()._shrFromInt(this);
-  }
-
-  int operator <<(int other) {
-    var result = other._shlFromInt(this);
-    if (result != null) return result;
-    return other._toBigint()._shlFromInt(this);
-  }
+  int operator >>(int other) => other._shrFromInt(this);
+  int operator <<(int other) => other._shlFromInt(this);
 
   bool operator <(num other) {
     return other > this;
@@ -272,14 +226,6 @@ abstract class _IntegerImplementation implements int {
     return new _Double.fromInteger(this);
   }
 
-  _Bigint _toBigint() {
-    return new _Bigint._fromInt(this);
-  }
-
-  num _toBigintOrDouble() {
-    return _toBigint();
-  }
-
   String toStringAsFixed(int fractionDigits) {
     return this.toDouble().toStringAsFixed(fractionDigits);
   }
@@ -386,9 +332,6 @@ abstract class _IntegerImplementation implements int {
     if (e < 0) throw new RangeError.range(e, 0, null, "exponent");
     if (m <= 0) throw new RangeError.range(m, 1, null, "modulus");
     if (e == 0) return 1;
-    if (e is _Bigint || m is _Bigint) {
-      return _toBigint().modPow(e, m);
-    }
     int b = this;
     if (b < 0 || b > m) {
       b %= m;
@@ -483,9 +426,6 @@ abstract class _IntegerImplementation implements int {
     }
     if (m <= 0) throw new RangeError.range(m, 1, null, "modulus");
     if (m == 1) return 0;
-    if (m is _Bigint) {
-      return _toBigint().modInverse(m);
-    }
     int t = this;
     if ((t < 0) || (t >= m)) t %= m;
     if (t == 1) return 1;
@@ -505,9 +445,6 @@ abstract class _IntegerImplementation implements int {
     if (x == 0) return y;
     if (y == 0) return x;
     if ((x == 1) || (y == 1)) return 1;
-    if (y is _Bigint) {
-      return x._toBigint().gcd(y);
-    }
     return _binaryGcd(x, y, false);
   }
 }

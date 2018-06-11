@@ -10,19 +10,18 @@ RawSocket client;
 
 serverListen(RawSocket serverSide) {
   serveData(RawSocketEvent event) {
-    serverSide.shutdown(SocketDirection.SEND);
+    serverSide.shutdown(SocketDirection.send);
   }
 
   serverSide.listen(serveData);
 }
 
 IPv4ToIPv6FailureTest() async {
-  server = await RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V6, 0);
+  server = await RawServerSocket.bind(InternetAddress.loopbackIPv6, 0);
   server.listen(serverListen);
   bool testFailure = false;
   try {
-    client =
-        await RawSocket.connect(InternetAddress.LOOPBACK_IP_V4, server.port);
+    client = await RawSocket.connect(InternetAddress.loopbackIPv4, server.port);
     await client.close();
     testFailure = true;
   } on SocketException catch (e) {
@@ -37,12 +36,11 @@ IPv4ToIPv6FailureTest() async {
 }
 
 IPv6ToIPv4FailureTest() async {
-  server = await RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0);
+  server = await RawServerSocket.bind(InternetAddress.loopbackIPv4, 0);
   server.listen(serverListen);
   bool testFailure = false;
   try {
-    client =
-        await RawSocket.connect(InternetAddress.LOOPBACK_IP_V6, server.port);
+    client = await RawSocket.connect(InternetAddress.loopbackIPv6, server.port);
     await client.close();
     testFailure = true;
   } on SocketException catch (e) {
@@ -74,6 +72,6 @@ loopbackSuccessTest(InternetAddress address) async {
 main() async {
   await IPv4ToIPv6FailureTest();
   await IPv6ToIPv4FailureTest();
-  await loopbackSuccessTest(InternetAddress.LOOPBACK_IP_V4);
-  await loopbackSuccessTest(InternetAddress.LOOPBACK_IP_V6);
+  await loopbackSuccessTest(InternetAddress.loopbackIPv4);
+  await loopbackSuccessTest(InternetAddress.loopbackIPv6);
 }

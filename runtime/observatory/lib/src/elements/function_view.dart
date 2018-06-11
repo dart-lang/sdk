@@ -58,7 +58,7 @@ class FunctionViewElement extends HtmlElement implements Renderable {
   M.IsolateRef _isolate;
   M.EventRepository _events;
   M.NotificationRepository _notifications;
-  M.Function _function;
+  M.ServiceFunction _function;
   M.LibraryRef _library;
   M.FunctionRepository _functions;
   M.ClassRepository _classes;
@@ -72,12 +72,12 @@ class FunctionViewElement extends HtmlElement implements Renderable {
   M.VMRef get vm => _vm;
   M.IsolateRef get isolate => _isolate;
   M.NotificationRepository get notifications => _notifications;
-  M.Function get function => _function;
+  M.ServiceFunction get function => _function;
 
   factory FunctionViewElement(
       M.VM vm,
       M.IsolateRef isolate,
-      M.Function function,
+      M.ServiceFunction function,
       M.EventRepository events,
       M.NotificationRepository notifications,
       M.FunctionRepository functions,

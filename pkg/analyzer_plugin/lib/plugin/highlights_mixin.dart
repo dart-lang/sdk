@@ -25,6 +25,8 @@ import 'package:analyzer_plugin/utilities/highlights/highlights.dart';
 abstract class DartHighlightsMixin implements HighlightsMixin {
   @override
   Future<HighlightsRequest> getHighlightsRequest(String path) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     ResolveResult result = await getResolveResult(path);
     return new DartHighlightsRequestImpl(resourceProvider, result);
   }
@@ -54,6 +56,8 @@ abstract class HighlightsMixin implements ServerPlugin {
 
   @override
   Future<Null> sendHighlightsNotification(String path) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     try {
       HighlightsRequest request = await getHighlightsRequest(path);
       HighlightsGenerator generator =

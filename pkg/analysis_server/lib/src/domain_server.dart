@@ -67,6 +67,8 @@ class ServerDomainHandler implements RequestHandler {
    * Cleanly shutdown the analysis server.
    */
   Future<Null> shutdown(Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     await server.shutdown();
     Response response = new ServerShutdownResult().toResponse(request.id);
     server.sendResponse(response);

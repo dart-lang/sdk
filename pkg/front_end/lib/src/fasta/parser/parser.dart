@@ -1961,9 +1961,12 @@ class Parser {
   /// ;
   /// ```
   Token parseTypeVariable(Token token) {
-    listener.beginTypeVariable(token.next);
     token = parseMetadataStar(token);
-    token = ensureIdentifier(token, IdentifierContext.typeVariableDeclaration);
+    token = token.next.kind == IDENTIFIER_TOKEN
+        ? token.next
+        : IdentifierContext.typeVariableDeclaration
+            .ensureIdentifier(token, this);
+    listener.beginTypeVariable(token);
     Token extendsOrSuper = null;
     Token next = token.next;
     if (optional('extends', next) || optional('super', next)) {
@@ -3232,7 +3235,10 @@ class Parser {
     }
 
     listener.beginFactoryMethod(beforeStart, externalToken, varFinalOrConst);
-    token = parseConstructorReference(token);
+    token = ensureIdentifier(token, IdentifierContext.methodDeclaration);
+    token = parseQualifiedRestOpt(
+        token, IdentifierContext.methodDeclarationContinuation);
+    token = parseMethodTypeVar(token);
     token = parseFormalParametersRequiredOpt(token, MemberKind.Factory);
     Token asyncToken = token.next;
     token = parseAsyncModifierOpt(token);
@@ -4276,25 +4282,55 @@ class Parser {
     Token beginToken = token = token.next;
     assert(optional('[', token) || optional('[]', token));
     int count = 0;
-    if (optional('[', token)) {
-      bool old = mayParseFunctionExpressions;
-      mayParseFunctionExpressions = true;
-      do {
-        if (optional(']', token.next)) {
-          token = token.next;
+    if (optional('[]', token)) {
+      token = rewriteSquareBrackets(beforeToken).next;
+      listener.handleLiteralList(0, token, constKeyword, token.next);
+      return token.next;
+    }
+    bool old = mayParseFunctionExpressions;
+    mayParseFunctionExpressions = true;
+    while (true) {
+      Token next = token.next;
+      if (optional(']', next)) {
+        token = next;
+        break;
+      }
+      token = parseExpression(token);
+      next = token.next;
+      ++count;
+      if (!optional(',', next)) {
+        if (optional(']', next)) {
+          token = next;
           break;
         }
-        token = parseExpression(token).next;
-        ++count;
-      } while (optional(',', token));
-      mayParseFunctionExpressions = old;
-      listener.handleLiteralList(count, beginToken, constKeyword, token);
-      expect(']', token);
-      return token;
+
+        // Recovery
+        if (!isExpressionStartForRecovery(next)) {
+          if (beginToken.endGroup.isSynthetic) {
+            // The scanner has already reported an error,
+            // but inserted `]` in the wrong place.
+            token = rewriter.moveSynthetic(token, beginToken.endGroup);
+          } else {
+            // Report an error and jump to the end of the list.
+            reportRecoverableError(
+                next, fasta.templateExpectedButGot.withArguments(']'));
+            token = beginToken.endGroup;
+          }
+          break;
+        }
+        // This looks like the start of an expression.
+        // Report an error, insert the comma, and continue parsing.
+        next = rewriteAndRecover(
+                token,
+                fasta.templateExpectedButGot.withArguments(','),
+                new SyntheticToken(TokenType.COMMA, next.offset))
+            .next;
+      }
+      token = next;
     }
-    token = rewriteSquareBrackets(beforeToken).next;
-    listener.handleLiteralList(0, token, constKeyword, token.next);
-    return token.next;
+    mayParseFunctionExpressions = old;
+    listener.handleLiteralList(count, beginToken, constKeyword, token);
+    return token;
   }
 
   /// This method parses the portion of a map literal that starts with the left

@@ -79,7 +79,7 @@ class PhysicalResourceProvider implements ResourceProvider {
   }
 
   @override
-  Context get pathContext => io.Platform.isWindows ? windows : posix;
+  Context get pathContext => context;
 
   @override
   File getFile(String path) {
@@ -95,6 +95,8 @@ class PhysicalResourceProvider implements ResourceProvider {
 
   @override
   Future<List<int>> getModificationTimes(List<Source> sources) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     List<String> paths = sources.map((source) => source.fullName).toList();
     return _pathsToTimes(paths);
   }

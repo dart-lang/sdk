@@ -83,8 +83,10 @@ bool isBuiltinAnnotation(
     Expression value, String libraryName, String expectedName) {
   if (value is ConstructorInvocation) {
     var c = value.target.enclosingClass;
-    return c.name == expectedName &&
-        c.enclosingLibrary.importUri.toString() == libraryName;
+    if (c.name == expectedName) {
+      var uri = c.enclosingLibrary.importUri;
+      return uri.scheme == 'dart' && uri.path == libraryName;
+    }
   }
   return false;
 }

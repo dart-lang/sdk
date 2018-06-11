@@ -116,7 +116,7 @@ int _intPow(int base, int exponent) {
       result *= base;
     }
     exponent >>= 1;
-    // Skip unnecessary operation (can overflow to Mint or Bigint).
+    // Skip unnecessary operation (can overflow to Mint).
     if (exponent != 0) {
       base *= base;
     }

@@ -53,6 +53,8 @@ class FlutterCorrections {
   String get eol => utils.endOfLine;
 
   Future<SourceChange> addForDesignTimeConstructor() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     final node = this.node;
     if (node is ClassDeclaration) {
       var className = node.name.name;

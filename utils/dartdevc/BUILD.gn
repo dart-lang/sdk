@@ -128,6 +128,7 @@ prebuilt_dart_action("dartdevc_patch_sdk") {
   # tools/patch_sdk.dart and then change this to use generate_patch_sdk().
   deps = [
     ":dartdevc_files_stamp",
+    ":dartdevc_sdk_patch_stamp",
 
     # The patch script uses several packages, including analyzer, so consider
     # it dirty if any of those change.
@@ -252,6 +253,11 @@ create_timestamp_file("dartdevc_files_stamp") {
   output = "$target_gen_dir/dartdevc_files.stamp"
 }
 
+create_timestamp_file("dartdevc_sdk_patch_stamp") {
+  path = rebase_path("../../pkg/dev_compiler/tool/input_sdk")
+  output = "$target_gen_dir/dartdevc_sdk_patch_stamp.stamp"
+}
+
 # Compiles the packages used by the tests to JS with dartdevc so that they are
 # available for loading by the tests.
 prebuilt_dart_action("dartdevc_test_pkg") {
@@ -318,6 +324,7 @@ prebuilt_dart_action("dartdevc_test_pkg") {
 prebuilt_dart_action("dartdevk_sdk") {
   deps = [
     ":dartdevc_files_stamp",
+    ":dartdevc_sdk_patch_stamp",
   ]
 
   inputs = [

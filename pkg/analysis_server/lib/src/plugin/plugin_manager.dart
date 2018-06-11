@@ -246,6 +246,8 @@ abstract class PluginInfo {
    * used to interact with the plugin, or `null` if the plugin could not be run.
    */
   Future<PluginSession> start(String byteStorePath, String sdkPath) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     if (currentSession != null) {
       throw new StateError('Cannot start a plugin that is already running.');
     }
@@ -378,6 +380,8 @@ class PluginManager {
    */
   Future<Null> addPluginToContextRoot(
       analyzer.ContextRoot contextRoot, String path) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     PluginInfo plugin = _pluginMap[path];
     bool isNew = plugin == null;
     if (isNew) {
@@ -447,6 +451,8 @@ class PluginManager {
    */
   Future<List<Future<Response>>> broadcastWatchEvent(
       watcher.WatchEvent watchEvent) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     String filePath = watchEvent.path;
 
     /**
@@ -572,6 +578,8 @@ class PluginManager {
    * Restart all currently running plugins.
    */
   Future<Null> restartPlugins() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     for (PluginInfo plugin in _pluginMap.values.toList()) {
       if (plugin.currentSession != null) {
         //
@@ -1044,6 +1052,8 @@ class PluginSession {
    * running.
    */
   Future<bool> start(String byteStorePath, String sdkPath) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     if (channel != null) {
       throw new StateError('Cannot start a plugin that is already running.');
     }

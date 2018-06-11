@@ -23,6 +23,7 @@ const dartiumFile = 'dartium/dartium-macos-x64-release.zip';
 const contentShellFile = 'dartium/content_shell-macos-x64-release.zip';
 
 const dartRbFileName = 'dart.rb';
+const dart2RbFileName = 'dart@2.rb';
 
 Future<String> getHash256(
     String channel, String revision, String download) async {
@@ -106,6 +107,9 @@ Future writeHomebrewInfo(
 
   await new File(p.join(repository, dartRbFileName)).writeAsString(
       createDartFormula(revisions, hashes, devVersion, stableVersion),
+      flush: true);
+  await new File(p.join(repository, dart2RbFileName)).writeAsString(
+      createDart2Formula(revisions, hashes, devVersion, stableVersion),
       flush: true);
 }
 
@@ -199,6 +203,61 @@ class Dart < Formula
   end
 end
 ''';
+
+/// TODO: Remove this formula after Dart 2 is released as stable.
+/// This is a transitional mechanism to support developers migrating
+/// from Dart 1 to Dart 2 while it's in pre-release.
+String createDart2Formula(
+        Map revisions, Map hashes, String devVersion, String stableVersion) =>
+    '''
+class DartAT2 < Formula
+  desc "The Dart 2 SDK"
+  homepage "https://www.dartlang.org/"
+  version "$devVersion"
+
+  keg_only :versioned_formula
+
+  if MacOS.prefer_64_bit?
+    url "$urlBase/dev/release/${revisions['dev']}/$x64File"
+    sha256 "${hashes['dev'][x64File]}"
+  else
+    url "$urlBase/dev/release/${revisions['dev']}/$ia32File"
+    sha256 "${hashes['dev'][ia32File]}"
+  end
+
+  def install
+    libexec.install Dir["*"]
+    bin.install_symlink "#{libexec}/bin/dart"
+    bin.write_exec_script Dir["#{libexec}/bin/{pub,dart?*}"]
+  end
+
+  def shim_script(target)
+    <<~EOS
+      #!/usr/bin/env bash
+      exec "#{prefix}/#{target}" "$@"
+    EOS
+  end
+
+  def caveats; <<~EOS
+    Note that this is a prerelease version of Dart.
+
+    Please note the path to the Dart SDK:
+      #{opt_libexec}
+    EOS
+  end
+
+  test do
+    (testpath/"sample.dart").write <<~EOS
+      void main() {
+        print(r"test message");
+      }
+    EOS
+
+    assert_equal "test message\n", shell_output("#{bin}/dart sample.dart")
+  end
+end
+''';
+
 
 Future runGit(List<String> args, String repository,
     Map<String, String> gitEnvironment) async {

@@ -612,7 +612,6 @@ class VariableLivenessAnalysis : public LivenessAnalysis {
   explicit VariableLivenessAnalysis(FlowGraph* flow_graph)
       : LivenessAnalysis(flow_graph->variable_count(), flow_graph->postorder()),
         flow_graph_(flow_graph),
-        num_direct_parameters_(flow_graph->num_direct_parameters()),
         assigned_vars_() {}
 
   // For every block (in preorder) compute and return set of variables that
@@ -657,7 +656,7 @@ class VariableLivenessAnalysis : public LivenessAnalysis {
       return false;
     }
     if (store->is_last()) {
-      const intptr_t index = store->local().BitIndexIn(num_direct_parameters_);
+      const intptr_t index = flow_graph_->EnvIndex(&store->local());
       return GetLiveOutSet(block)->Contains(index);
     }
 
@@ -670,7 +669,7 @@ class VariableLivenessAnalysis : public LivenessAnalysis {
     if (load->local().Equals(*flow_graph_->CurrentContextVar())) {
       return false;
     }
-    const intptr_t index = load->local().BitIndexIn(num_direct_parameters_);
+    const intptr_t index = flow_graph_->EnvIndex(&load->local());
     return load->is_last() && !GetLiveOutSet(block)->Contains(index);
   }
 
@@ -678,7 +677,6 @@ class VariableLivenessAnalysis : public LivenessAnalysis {
   virtual void ComputeInitialSets();
 
   const FlowGraph* flow_graph_;
-  const intptr_t num_direct_parameters_;
   GrowableArray<BitVector*> assigned_vars_;
 };
 
@@ -710,7 +708,7 @@ void VariableLivenessAnalysis::ComputeInitialSets() {
 
       LoadLocalInstr* load = current->AsLoadLocal();
       if (load != NULL) {
-        const intptr_t index = load->local().BitIndexIn(num_direct_parameters_);
+        const intptr_t index = flow_graph_->EnvIndex(&load->local());
         if (index >= live_in->length()) continue;  // Skip tmp_locals.
         live_in->Add(index);
         if (!last_loads->Contains(index)) {
@@ -722,8 +720,7 @@ void VariableLivenessAnalysis::ComputeInitialSets() {
 
       StoreLocalInstr* store = current->AsStoreLocal();
       if (store != NULL) {
-        const intptr_t index =
-            store->local().BitIndexIn(num_direct_parameters_);
+        const intptr_t index = flow_graph_->EnvIndex(&store->local());
         if (index >= live_in->length()) continue;  // Skip tmp_locals.
         if (kill->Contains(index)) {
           if (!live_in->Contains(index)) {
@@ -989,8 +986,7 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
         AllocateSSAIndexes(defn);
         AddToInitialDefinitions(defn);
 
-        intptr_t index = parsed_function_.RawParameterVariable(i)->BitIndexIn(
-            num_direct_parameters_);
+        intptr_t index = EnvIndex(parsed_function_.RawParameterVariable(i));
         env[index] = defn;
       }
     }
@@ -1086,13 +1082,11 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
                  block_entry->AsCatchBlockEntry()) {
     const intptr_t raw_exception_var_envindex =
         catch_entry->raw_exception_var() != nullptr
-            ? catch_entry->raw_exception_var()->BitIndexIn(
-                  num_direct_parameters_)
+            ? EnvIndex(catch_entry->raw_exception_var())
             : -1;
     const intptr_t raw_stacktrace_var_envindex =
         catch_entry->raw_stacktrace_var() != nullptr
-            ? catch_entry->raw_stacktrace_var()->BitIndexIn(
-                  num_direct_parameters_)
+            ? EnvIndex(catch_entry->raw_stacktrace_var())
             : -1;
 
     // Add real definitions for all locals and parameters.
@@ -1143,13 +1137,11 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
     const LocalVariable* raw_exception_var = catch_entry->raw_exception_var();
     const LocalVariable* raw_stacktrace_var = catch_entry->raw_stacktrace_var();
     if (raw_exception_var != nullptr) {
-      Value* value = deopt_env->ValueAt(
-          raw_exception_var->BitIndexIn(num_direct_parameters_));
+      Value* value = deopt_env->ValueAt(EnvIndex(raw_exception_var));
       value->BindToEnvironment(constant_null());
     }
     if (raw_stacktrace_var != nullptr) {
-      Value* value = deopt_env->ValueAt(
-          raw_stacktrace_var->BitIndexIn(num_direct_parameters_));
+      Value* value = deopt_env->ValueAt(EnvIndex(raw_stacktrace_var));
       value->BindToEnvironment(constant_null());
     }
   }
@@ -1201,10 +1193,11 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
     switch (current->tag()) {
       case Instruction::kLoadLocal: {
         LoadLocalInstr* load = current->Cast<LoadLocalInstr>();
+
         // The graph construction ensures we do not have an unused LoadLocal
         // computation.
         ASSERT(load->HasTemp());
-        const intptr_t index = load->local().BitIndexIn(num_direct_parameters_);
+        const intptr_t index = EnvIndex(&load->local());
         result = (*env)[index];
 
         PhiInstr* phi = result->AsPhi();
@@ -1245,8 +1238,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
 
       case Instruction::kStoreLocal: {
         StoreLocalInstr* store = current->Cast<StoreLocalInstr>();
-        const intptr_t index =
-            store->local().BitIndexIn(num_direct_parameters_);
+        const intptr_t index = EnvIndex(&store->local());
         result = store->value()->definition();
 
         if (!FLAG_prune_dead_locals ||

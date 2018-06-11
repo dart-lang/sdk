@@ -184,7 +184,7 @@ ParsedFunction::ParsedFunction(Thread* thread, const Function& function)
       guarded_fields_(new ZoneGrowableArray<const Field*>()),
       default_parameter_values_(NULL),
       raw_type_arguments_var_(NULL),
-      first_parameter_index_(0),
+      first_parameter_index_(),
       num_stack_locals_(0),
       have_seen_await_expr_(false),
       kernel_scopes_(NULL) {
@@ -320,7 +320,7 @@ void ParsedFunction::AllocateVariables() {
   const intptr_t num_opt_params = function().NumOptionalParameters();
   const intptr_t num_params = num_fixed_params + num_opt_params;
 
-  // Before we start allocating frame indices to variables, we'll setup the
+  // Before we start allocating indices to variables, we'll setup the
   // parameters array, which can be used to access the raw parameters (i.e. not
   // the potentially variables which are in the context)
 
@@ -349,8 +349,8 @@ void ParsedFunction::AllocateVariables() {
         raw_parameter->set_is_captured_parameter(true);
 
       } else {
-        raw_parameter->set_index(kParamEndSlotFromFp +
-                                 function().NumParameters() - param);
+        raw_parameter->set_index(
+            VariableIndex(function().NumParameters() - param));
       }
     }
     raw_parameters_.Add(raw_parameter);
@@ -375,41 +375,36 @@ void ParsedFunction::AllocateVariables() {
 
   // The copy parameters implementation will still write to local variables
   // which we assign indices as with the old CopyParams implementation.
-  intptr_t parameter_frame_index_start;
-  intptr_t reamining_local_variables_start;
+  VariableIndex parameter_index_start;
+  VariableIndex reamining_local_variables_start;
   {
     // Compute start indices to parameters and locals, and the number of
     // parameters to copy.
     if (num_opt_params == 0) {
-      // Parameter i will be at fp[kParamEndSlotFromFp + num_params - i] and
-      // local variable j will be at fp[kFirstLocalSlotFromFp - j].
-      parameter_frame_index_start = first_parameter_index_ =
-          kParamEndSlotFromFp + num_params;
-      reamining_local_variables_start = kFirstLocalSlotFromFp;
+      parameter_index_start = first_parameter_index_ =
+          VariableIndex(num_params);
+      reamining_local_variables_start = VariableIndex(0);
     } else {
-      // Parameter i will be at fp[kFirstLocalSlotFromFp - i] and local variable
-      // j will be at fp[kFirstLocalSlotFromFp - num_params - j].
-      parameter_frame_index_start = first_parameter_index_ =
-          kFirstLocalSlotFromFp;
-      reamining_local_variables_start = first_parameter_index_ - num_params;
+      parameter_index_start = first_parameter_index_ = VariableIndex(0);
+      reamining_local_variables_start = VariableIndex(-num_params);
     }
   }
 
   if (function_type_arguments_ != NULL && num_opt_params > 0) {
-    reamining_local_variables_start--;
+    reamining_local_variables_start =
+        VariableIndex(reamining_local_variables_start.value() - 1);
   }
 
   // Allocate parameters and local variables, either in the local frame or
   // in the context(s).
   bool found_captured_variables = false;
-  int next_free_frame_index = scope->AllocateVariables(
-      parameter_frame_index_start, num_params,
-      parameter_frame_index_start > 0 ? kFirstLocalSlotFromFp
-                                      : kFirstLocalSlotFromFp - num_params,
-      NULL, &found_captured_variables);
+  VariableIndex first_local_index =
+      VariableIndex(parameter_index_start.value() > 0 ? 0 : -num_params);
+  VariableIndex next_free_index = scope->AllocateVariables(
+      parameter_index_start, num_params, first_local_index, NULL,
+      &found_captured_variables);
 
-  // Frame indices are relative to the frame pointer and are decreasing.
-  num_stack_locals_ = -(next_free_frame_index - kFirstLocalSlotFromFp);
+  num_stack_locals_ = -next_free_index.value();
 }
 
 struct CatchParamDesc {
@@ -431,9 +426,7 @@ void ParsedFunction::AllocateIrregexpVariables(intptr_t num_stack_locals) {
   ASSERT(num_params == RegExpMacroAssembler::kParamCount);
   // Compute start indices to parameters and locals, and the number of
   // parameters to copy.
-  // Parameter i will be at fp[kParamEndSlotFromFp + num_params - i] and
-  // local variable j will be at fp[kFirstLocalSlotFromFp - j].
-  first_parameter_index_ = kParamEndSlotFromFp + num_params;
+  first_parameter_index_ = VariableIndex(num_params);
 
   // Frame indices are relative to the frame pointer and are decreasing.
   num_stack_locals_ = num_stack_locals;

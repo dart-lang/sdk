@@ -1066,8 +1066,7 @@ Isolate* Isolate::Init(const char* name_prefix,
                  : FLAG_new_gen_semi_max_size * MBInWords,
              (is_service_or_kernel_isolate ? kDefaultMaxOldGenHeapSize
                                            : FLAG_old_gen_heap_size) *
-                 MBInWords,
-             FLAG_external_max_size * MBInWords);
+                 MBInWords);
 
   // TODO(5411455): For now just set the recently created isolate as
   // the current isolate.

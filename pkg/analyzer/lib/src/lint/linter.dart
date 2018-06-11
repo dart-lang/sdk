@@ -67,6 +67,8 @@ class DartLinter implements AnalysisErrorListener {
   DartLinter(this.options, {this.reporter: const PrintingReporter()});
 
   Future<Iterable<AnalysisErrorInfo>> lintFiles(List<File> files) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     List<AnalysisErrorInfo> errors = [];
     final lintDriver = new LintDriver(options);
     errors.addAll(await lintDriver.analyze(files.where((f) => isDartFile(f))));
@@ -377,6 +379,8 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
 
   @override
   Future<Iterable<AnalysisErrorInfo>> lintFiles(List<File> files) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     List<AnalysisErrorInfo> errors = [];
     final lintDriver = new LintDriver(options);
     errors.addAll(await lintDriver.analyze(files.where((f) => isDartFile(f))));

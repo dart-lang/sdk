@@ -1016,9 +1016,9 @@ intptr_t DeoptInfoBuilder::FindOrAddObjectInTable(const Object& obj) const {
 
 intptr_t DeoptInfoBuilder::CalculateStackIndex(
     const Location& source_loc) const {
-  return source_loc.stack_index() < 0
-             ? source_loc.stack_index() + num_args_
-             : source_loc.stack_index() + num_args_ + kDartFrameFixedSize;
+  intptr_t index = -VariableIndexForFrameSlot(source_loc.stack_index());
+  return index < 0 ? index + num_args_
+                   : index + num_args_ + kDartFrameFixedSize;
 }
 
 CpuRegisterSource DeoptInfoBuilder::ToCpuRegisterSource(const Location& loc) {

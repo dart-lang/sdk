@@ -87,9 +87,9 @@ void main() {
   Expect.equals(0xABCD, int.tryParse("ABCD", radix: 16));
   Expect.equals(0xABCD, int.tryParse("abcd", radix: 16));
   Expect.equals(15628859, int.tryParse("09azAZ", radix: 36));
-  // Big numbers (representable as both Int64 and double).
-  Expect.equals(9223372036854774784, int.tryParse("9223372036854774784"));
-  Expect.equals(-9223372036854775808, int.tryParse("-9223372036854775808"));
+  // Bigish numbers (representable precisely as both Int64 and double (2^53)).
+  Expect.equals(9007199254740991, int.tryParse("9007199254740991"));
+  Expect.equals(-9007199254740991, int.tryParse("-9007199254740991"));
   // Allow whitespace before and after the number.
   Expect.equals(1, int.tryParse(" 1", radix: 2));
   Expect.equals(1, int.tryParse("1 ", radix: 2));

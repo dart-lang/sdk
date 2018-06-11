@@ -1442,6 +1442,31 @@ bbb() {}
     expect(files, isNot(contains(c)));
   }
 
+  test_getFileSync_library() async {
+    var path = _p('/test/lib/a.dart');
+    provider.newFile(path, '');
+    var file = driver.getFileSync(path);
+    expect(file.path, path);
+    expect(file.uri.toString(), 'package:test/a.dart');
+    expect(file.isPart, isFalse);
+  }
+
+  test_getFileSync_notAbsolutePath() async {
+    try {
+      driver.getFileSync('not_absolute.dart');
+      fail('ArgumentError expected.');
+    } on ArgumentError {}
+  }
+
+  test_getFileSync_part() async {
+    var path = _p('/test/lib/a.dart');
+    provider.newFile(path, 'part of lib;');
+    var file = driver.getFileSync(path);
+    expect(file.path, path);
+    expect(file.uri.toString(), 'package:test/a.dart');
+    expect(file.isPart, isTrue);
+  }
+
   test_getIndex() async {
     String content = r'''
 foo(int p) {}

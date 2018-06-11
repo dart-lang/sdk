@@ -99,6 +99,8 @@ class CompletionGenerator {
    */
   Future<GeneratorResult> generateCompletionResponse(
       CompletionRequest request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     List<Notification> notifications = <Notification>[];
     CompletionCollectorImpl collector = new CompletionCollectorImpl();
     try {

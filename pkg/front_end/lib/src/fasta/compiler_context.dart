@@ -4,7 +4,7 @@
 
 library fasta.compiler_context;
 
-import 'dart:async' show Zone, runZoned;
+import 'dart:async' show Future, Zone, runZoned;
 
 import 'package:kernel/ast.dart' show Source;
 
@@ -101,25 +101,23 @@ class CompilerContext {
 
   /// Perform [action] in a [Zone] where [this] will be available as
   /// `CompilerContext.current`.
-  T runInContext<T>(T action(CompilerContext c)) {
-    try {
-      return runZoned(() => action(this),
-          zoneValues: {compilerContextKey: this});
-    } finally {
-      clear();
-    }
+  Future<T> runInContext<T>(Future<T> action(CompilerContext c)) {
+    return runZoned(
+        () => new Future<T>.sync(() => action(this)).whenComplete(clear),
+        zoneValues: {compilerContextKey: this});
   }
 
   /// Perform [action] in a [Zone] where [options] will be available as
   /// `CompilerContext.current.options`.
-  static T runWithOptions<T>(
-      ProcessedOptions options, T action(CompilerContext c)) {
+  static Future<T> runWithOptions<T>(
+      ProcessedOptions options, Future<T> action(CompilerContext c)) {
     return new CompilerContext(options).runInContext(action);
   }
 
-  static T runWithDefaultOptions<T>(T action(CompilerContext c)) {
-    var options = new ProcessedOptions(new CompilerOptions());
-    return new CompilerContext(options).runInContext(action);
+  static Future<T> runWithDefaultOptions<T>(
+      Future<T> action(CompilerContext c)) {
+    return new CompilerContext(new ProcessedOptions(new CompilerOptions()))
+        .runInContext(action);
   }
 
   static bool get enableColors {

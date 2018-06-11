@@ -37,7 +37,7 @@ class AnalysisSessionImplTest {
   }
 
   test_getErrors() async {
-    ErrorsResult result = new ErrorsResult(null, null, null, null, null);
+    ErrorsResult result = new ErrorsResult(null, null, null, null, null, null);
     driver.errorsResult = result;
     expect(await session.getErrors('path'), result);
   }
@@ -58,14 +58,14 @@ class AnalysisSessionImplTest {
 
   test_getParsedAst() async {
     ParseResult result =
-        new ParseResult(null, null, null, null, null, null, null);
+        new ParseResult(null, null, null, null, null, null, null, null);
     driver.parseResult = result;
     expect(await session.getParsedAst('path'), result);
   }
 
   test_getResolvedAst() async {
-    AnalysisResult result = new AnalysisResult(
-        driver, null, null, null, null, null, null, null, null, null, null);
+    AnalysisResult result = new AnalysisResult(driver, null, null, null, null,
+        null, null, null, null, null, null, null);
     driver.result = result;
     expect(await session.getResolvedAst('path'), result);
   }

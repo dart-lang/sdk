@@ -63,8 +63,6 @@ fi
 BASENAME=$( basename "${1%.*}")
 LIBROOT=$(cd $( dirname "${1%.*}") && pwd)
 
-export NODE_PATH=$GEN_DIR/js/common:$LIBROOT:$NODE_PATH
-
 if [ "$KERNEL" = true ]; then
 
   if [ ! -e $GEN_DIR/kernel/ddc_sdk.dill ]; then
@@ -73,6 +71,8 @@ if [ "$KERNEL" = true ]; then
     echo "    ./tools/build.py -m release dartdevk_sdk"
     exit 1
   fi
+
+  NODE_PATH=$GEN_DIR/kernel/common:$LIBROOT:$NODE_PATH
 
   $SDK_DIR/sdk/bin/dartdevk --modules=node \
       --dart-sdk-summary=$GEN_DIR/kernel/ddc_sdk.dill \
@@ -85,6 +85,8 @@ else
     echo "    ./tools/build.py -m release dartdevc_sdk"
     exit 1
   fi
+
+  NODE_PATH=$GEN_DIR/js/common:$LIBROOT:$NODE_PATH
 
   $SDK_DIR/sdk/bin/dartdevc --modules=node \
       --library-root=$LIBROOT --dart-sdk-summary=$GEN_DIR/ddc_sdk.sum \

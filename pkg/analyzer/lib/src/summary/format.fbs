@@ -2042,6 +2042,11 @@ table UnlinkedEnum {
  */
 table UnlinkedEnumValue {
   /**
+   * Annotations for this value.
+   */
+  annotations:[UnlinkedExpr] (id: 3);
+
+  /**
    * Documentation comment for the enum value, or `null` if there is no
    * documentation comment.
    */

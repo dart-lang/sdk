@@ -45,21 +45,26 @@ var tests = <IsolateTest>[
     var thing2 = thing2Field.staticValue;
     print(thing2);
 
-    Instance result = await isolate.evalFrame(0, "x + y + a + b",
+    final isInstanceOf<Instance> isInstanceOfInstance =
+        new isInstanceOf<Instance>();
+    ServiceObject result = await isolate.evalFrame(0, "x + y + a + b",
         scope: <String, ServiceObject>{"a": thing1, "b": thing2});
+    expect(result, isInstanceOfInstance);
     print(result);
-    expect(result.valueAsString, equals('2033'));
+    expect((result as Instance).valueAsString, equals('2033'));
 
     result = await isolate.evalFrame(0, "local + a + b",
         scope: <String, ServiceObject>{"a": thing1, "b": thing2});
+    expect(result, isInstanceOfInstance);
     print(result);
-    expect(result.valueAsString, equals('2033'));
+    expect((result as Instance).valueAsString, equals('2033'));
 
     // Note the eval's scope is shadowing the locals' scope.
     result = await isolate.evalFrame(0, "x + y",
         scope: <String, ServiceObject>{"x": thing1, "y": thing2});
+    expect(result, isInstanceOfInstance);
     print(result);
-    expect(result.valueAsString, equals('7'));
+    expect((result as Instance).valueAsString, equals('7'));
 
     bool didThrow = false;
     try {

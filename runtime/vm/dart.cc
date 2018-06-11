@@ -43,6 +43,7 @@ DECLARE_FLAG(bool, print_class_table);
 DECLARE_FLAG(bool, trace_time_all);
 DEFINE_FLAG(bool, keep_code, false, "Keep deoptimized code for profiling.");
 DEFINE_FLAG(bool, trace_shutdown, false, "Trace VM shutdown on stderr");
+DECLARE_FLAG(bool, strong);
 
 Isolate* Dart::vm_isolate_ = NULL;
 int64_t Dart::start_time_micros_ = 0;
@@ -306,7 +307,17 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     Service::SetGetServiceAssetsCallback(get_service_assets);
   }
 
-  ServiceIsolate::Run();
+#if defined(DART_PRECOMPILED_RUNTIME)
+  const bool is_precompiled_runtime = true;
+#else
+  const bool is_precompiled_runtime = false;
+#endif
+
+  const bool is_dart2_aot_precompiler =
+      FLAG_strong && FLAG_precompiled_mode && !is_precompiled_runtime;
+  if (!is_dart2_aot_precompiler) {
+    ServiceIsolate::Run();
+  }
 
 #ifndef DART_PRECOMPILED_RUNTIME
   if (start_kernel_isolate) {

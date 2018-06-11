@@ -75,7 +75,7 @@ abstract class FunctionRef extends ObjectRef {
   FunctionKind get kind;
 }
 
-abstract class Function extends Object implements FunctionRef {
+abstract class ServiceFunction extends Object implements FunctionRef {
   /// The location of this function in the source code. [optional]
   SourceLocation get location;
 

@@ -62,10 +62,6 @@ namespace dart {
   V(Mint_bitNegate, 1)                                                         \
   V(Mint_bitLength, 1)                                                         \
   V(Mint_shlFromInt, 2)                                                        \
-  V(Bigint_getNeg, 1)                                                          \
-  V(Bigint_getUsed, 1)                                                         \
-  V(Bigint_getDigits, 1)                                                       \
-  V(Bigint_allocate, 4)                                                        \
   V(Developer_debugger, 2)                                                     \
   V(Developer_getIsolateIDFromSendPort, 1)                                     \
   V(Developer_getServerInfo, 1)                                                \

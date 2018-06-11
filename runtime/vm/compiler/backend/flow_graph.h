@@ -130,17 +130,20 @@ class FlowGraph : public ZoneAllocated {
   }
 
   intptr_t CurrentContextEnvIndex() const {
-    return parsed_function().current_context_var()->BitIndexIn(
-        num_direct_parameters_);
+    return EnvIndex(parsed_function().current_context_var());
   }
 
   intptr_t RawTypeArgumentEnvIndex() const {
-    return parsed_function().RawTypeArgumentsVariable()->BitIndexIn(
-        num_direct_parameters_);
+    return EnvIndex(parsed_function().RawTypeArgumentsVariable());
   }
 
   intptr_t ArgumentDescriptorEnvIndex() const {
-    return parsed_function().arg_desc_var()->BitIndexIn(num_direct_parameters_);
+    return EnvIndex(parsed_function().arg_desc_var());
+  }
+
+  intptr_t EnvIndex(const LocalVariable* variable) const {
+    ASSERT(!variable->is_captured());
+    return num_direct_parameters_ - variable->index().value();
   }
 
   // Flow graph orders.

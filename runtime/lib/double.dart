@@ -149,9 +149,6 @@ class _Double implements double {
   }
 
   int toInt() native "Double_toInt";
-  num _toBigintOrDouble() {
-    return this;
-  }
 
   double toDouble() {
     return this;
