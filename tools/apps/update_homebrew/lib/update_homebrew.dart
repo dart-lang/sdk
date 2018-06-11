@@ -234,7 +234,7 @@ class DartAT2 < Formula
   def shim_script(target)
     <<~EOS
       #!/usr/bin/env bash
-      exec "#{prefix}/#{target}" "$@"
+      exec "#{prefix}/#{target}" "\$@"
     EOS
   end
 
@@ -257,7 +257,6 @@ class DartAT2 < Formula
   end
 end
 ''';
-
 
 Future runGit(List<String> args, String repository,
     Map<String, String> gitEnvironment) async {
