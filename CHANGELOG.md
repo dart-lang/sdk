@@ -4,6 +4,22 @@
 
 ### Language
 
+Inference chooses `void` when combining `Object` or `dynamic` and `void` ([issue
+3341]).  When combining with other top types, inference now prefers `void`.  So
+for example, given:
+
+```dart
+void foo() {};
+dynamic bar() {};
+var a = [foo(), bar()];
+```
+
+the variable `a` would previously have been inferred as `dynamic`, and will now
+be inferred as `void`.
+
+[issue 3341]: https://github.com/dart-lang/sdk/issues/33341
+
+
 #### Strong Mode
 
 ### Dart VM
