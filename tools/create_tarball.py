@@ -101,6 +101,10 @@ def GenerateChangeLog(filename, version):
     f.write(' -- Dart Team <misc@dartlang.org>  %s\n' %
             datetime.datetime.utcnow().strftime('%a, %d %b %Y %X +0000'))
 
+def GenerateEmpty(filename):
+  f = open(filename, 'w')
+  f.close()
+
 def GenerateGitRevision(filename, git_revision):
   with open(filename, 'w') as f:
     f.write(str(git_revision))
@@ -138,7 +142,9 @@ def CreateTarball(tarfilename):
       tar.add(change_log, arcname='%s/debian/changelog' % versiondir)
 
       # For generated version file build dependency, add fake git reflog.
-      tar.add('/dev/null', arcname='%s/dart/.git/logs/HEAD' % versiondir)
+      empty = join(temp_dir, 'empty')
+      GenerateEmpty(empty)
+      tar.add(empty, arcname='%s/dart/.git/logs/HEAD' % versiondir)
 
       # For bleeding_edge add the GIT_REVISION file.
       if utils.GetChannel() == 'be':
