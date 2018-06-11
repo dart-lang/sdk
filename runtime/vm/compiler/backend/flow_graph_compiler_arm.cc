@@ -743,7 +743,8 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
   __ LoadField(R9,
                FieldAddress(kDstTypeReg,
                             AbstractType::type_test_stub_entry_point_offset()));
-  __ ldr(kSubtypeTestCacheReg, Address(PP, sub_type_cache_offset));
+  __ LoadWordFromPoolOffset(kSubtypeTestCacheReg, sub_type_cache_offset, PP,
+                            AL);
   __ blx(R9);
   EmitCallsiteMetadata(token_pos, deopt_id, RawPcDescriptors::kOther, locs);
   __ Bind(&done);

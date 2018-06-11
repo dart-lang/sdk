@@ -1493,6 +1493,10 @@ class Assembler : public ValueObject {
   void LoadImmediate(Register reg, int64_t imm);
   void LoadDImmediate(VRegister reg, double immd);
 
+  // Load word from pool from the given offset using encoding that
+  // InstructionPattern::DecodeLoadWordFromPool can decode.
+  void LoadWordFromPoolOffset(Register dst, uint32_t offset, Register pp = PP);
+
   void PushObject(const Object& object) {
     LoadObject(TMP, object);
     Push(TMP);
@@ -1618,7 +1622,6 @@ class Assembler : public ValueObject {
 
   bool constant_pool_allowed_;
 
-  void LoadWordFromPoolOffset(Register dst, uint32_t offset, Register pp = PP);
   void LoadWordFromPoolOffsetFixed(Register dst, uint32_t offset);
 
   void LoadObjectHelper(Register dst, const Object& obj, bool is_unique);
