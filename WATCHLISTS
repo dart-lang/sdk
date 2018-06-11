@@ -27,6 +27,9 @@
     'kernel': {
       'filepath': '^pkg/kernel',
     },
+    'package_vm': {
+      'filepath': '^pkg/vm',
+    },
     'messages_review': {
       'filepath': (
         '^('
@@ -62,10 +65,12 @@
     'build': [ 'zra@google.com', 'keertip@google.com' ],
     'front_end': [ 'dart-fe-team+reviews@google.com' ],
     'http': [ 'zra@google.com' ],
-    'kernel': [ 'karlklose@google.com', 'jensj@google.com', 'kmillikin@google.com' ],
+    'kernel': [ 'karlklose@google.com', 'jensj@google.com', 'kmillikin@google.com',
+                'alexmarkov@google.com' ],
     'messages_review': [ 'dart-uxr+reviews@google.com' ],
     'mirrors' : [ 'rmacnak@google.com' ],
     'observatory': [ 'rmacnak@google.com' ],
+    'package_vm': [ 'alexmarkov@google.com' ],
     'runtime': [ 'vm-dev@dartlang.org' ],
   },
 }
