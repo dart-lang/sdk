@@ -33,7 +33,6 @@ import 'package:front_end/src/fasta/problems.dart' show unhandled;
 import 'package:front_end/src/fasta/messages.dart'
     show
         Message,
-        codeExpectedFunctionBody,
         messageConstConstructorWithBody,
         messageConstMethod,
         messageConstructorWithReturnType,
@@ -1438,24 +1437,6 @@ class AstBuilder extends StackListener {
     Token star = pop();
     Token asyncKeyword = pop();
     push(ast.blockFunctionBody(asyncKeyword, star, block));
-  }
-
-  @override
-  Token handleUnrecoverableError(Token token, Message message) {
-    if (message.code == codeExpectedFunctionBody) {
-      if (identical('native', token.stringValue) && parser != null) {
-        Token nativeKeyword = token;
-        Token semicolon = parser.parseLiteralString(token).next;
-        // TODO(brianwilkerson) Should this be using ensureSemicolon?
-        token = parser.expectSemicolon(semicolon);
-        StringLiteral name = pop();
-        pop(); // star
-        pop(); // async
-        push(ast.nativeFunctionBody(nativeKeyword, name, semicolon));
-        return token;
-      }
-    }
-    return super.handleUnrecoverableError(token, message);
   }
 
   void handleUnaryPrefixExpression(Token operator) {

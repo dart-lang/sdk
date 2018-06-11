@@ -10,7 +10,7 @@ import '../fasta_codes.dart' as fasta;
 
 import '../scanner.dart' show ErrorToken, Token;
 
-import '../scanner/recover.dart' show closeBraceFor, skipToEof;
+import '../scanner/recover.dart' show skipToEof;
 
 import '../../scanner/token.dart'
     show
@@ -48,8 +48,6 @@ import '../scanner/token_constants.dart'
         STRING_INTERPOLATION_IDENTIFIER_TOKEN,
         STRING_INTERPOLATION_TOKEN,
         STRING_TOKEN;
-
-import '../scanner/characters.dart' show $CLOSE_CURLY_BRACKET;
 
 import '../util/link.dart' show Link;
 
@@ -96,7 +94,7 @@ import 'type_info.dart'
         noType,
         noTypeParamOrArg;
 
-import 'util.dart' show findNonSyntheticToken, optional;
+import 'util.dart' show findNonSyntheticToken, isOneOf, optional;
 
 /// An event generating parser of Dart programs. This parser expects all tokens
 /// in a linked list (aka a token stream).
@@ -1585,13 +1583,8 @@ class Parser {
   }
 
   Token skipBlock(Token token) {
-    token = ensureBlock(token, null);
-    Token closeBrace = token.endGroup;
-    if (closeBrace == null ||
-        !identical(closeBrace.kind, $CLOSE_CURLY_BRACKET)) {
-      return reportUnmatchedToken(token).next;
-    }
-    return closeBrace;
+    // The scanner ensures that `{` always has a closing `}`.
+    return ensureBlock(token, null).endGroup;
   }
 
   /// ```
@@ -2848,10 +2841,6 @@ class Parser {
     return token;
   }
 
-  Token expectSemicolon(Token token) {
-    return expect(';', token);
-  }
-
   Token parseNativeClause(Token token) {
     Token nativeToken = token = token.next;
     assert(optional('native', nativeToken));
@@ -2867,17 +2856,8 @@ class Parser {
   }
 
   Token skipClassBody(Token token) {
-    Token previousToken = token;
-    token = token.next;
-    if (!optional('{', token)) {
-      token = ensureBlock(previousToken, fasta.templateExpectedClassBody);
-    }
-    Token closeBrace = token.endGroup;
-    if (closeBrace == null ||
-        !identical(closeBrace.kind, $CLOSE_CURLY_BRACKET)) {
-      return reportUnmatchedToken(token).next;
-    }
-    return closeBrace;
+    // The scanner ensures that `{` always has a closing `}`.
+    return ensureBlock(token, fasta.templateExpectedClassBody);
   }
 
   /// ```
@@ -3820,13 +3800,33 @@ class Parser {
       // This happens in degenerate programs, for example, with a lot of nested
       // list literals. This is provoked by, for example, the language test
       // deep_nesting1_negative_test.
-      return reportUnmatchedToken(token.next);
+      Token next = token.next;
+      reportRecoverableError(next, fasta.messageStackOverflow);
+
+      // Recovery
+      Token endGroup = next.endGroup;
+      if (endGroup != null) {
+        while (!next.isEof && !identical(next, endGroup)) {
+          token = next;
+          next = token.next;
+        }
+      } else {
+        while (!isOneOf(next, const [')', ']', '}', ';'])) {
+          token = next;
+          next = token.next;
+        }
+      }
+      if (!token.isEof) {
+        token = rewriter.insertSyntheticIdentifier(token);
+        listener.handleIdentifier(token, IdentifierContext.expression);
+      }
+    } else {
+      token = optional('throw', token.next)
+          ? parseThrowExpression(token, true)
+          : parsePrecedenceExpression(token, ASSIGNMENT_PRECEDENCE, true);
     }
-    Token result = optional('throw', token.next)
-        ? parseThrowExpression(token, true)
-        : parsePrecedenceExpression(token, ASSIGNMENT_PRECEDENCE, true);
     expressionDepth--;
-    return result;
+    return token;
   }
 
   Token parseExpressionWithoutCascade(Token token) {
@@ -6088,13 +6088,6 @@ class Parser {
     }
     listener.handleInvalidTopLevelDeclaration(next);
     return next;
-  }
-
-  Token reportUnmatchedToken(BeginToken token) {
-    return reportUnrecoverableError(
-        token,
-        fasta.templateUnmatchedToken
-            .withArguments(closeBraceFor(token.lexeme), token));
   }
 
   Token reportUnexpectedToken(Token token) {

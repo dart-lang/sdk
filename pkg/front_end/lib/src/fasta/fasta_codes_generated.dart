@@ -5325,7 +5325,9 @@ const Code<Null> codeStackOverflow = messageStackOverflow;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageStackOverflow = const MessageCode("StackOverflow",
-    dart2jsCode: "GENERIC", message: r"""Stack overflow.""");
+    analyzerCode: "STACK_OVERFLOW",
+    dart2jsCode: "GENERIC",
+    message: r"""Stack overflow.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeStaticAfterConst = messageStaticAfterConst;

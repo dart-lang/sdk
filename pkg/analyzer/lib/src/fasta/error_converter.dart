@@ -511,6 +511,10 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.RETURN_IN_GENERATOR, offset, length);
         return;
+      case "STACK_OVERFLOW":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.STACK_OVERFLOW, offset, length);
+        return;
       case "STATIC_AFTER_CONST":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.STATIC_AFTER_CONST, offset, length);

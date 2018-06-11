@@ -355,7 +355,6 @@ SourceBodySummary/analyzerCode: Fail
 SourceBodySummary/example: Fail
 SourceOutlineSummary/analyzerCode: Fail
 SourceOutlineSummary/example: Fail
-StackOverflow/analyzerCode: Fail
 StackOverflow/example: Fail
 StaticAfterConst/script1: Fail
 SuperAsExpression/analyzerCode: Fail

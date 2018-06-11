@@ -758,6 +758,7 @@ RequiredParameterWithDefault:
 
 StackOverflow:
   template: "Stack overflow."
+  analyzerCode: STACK_OVERFLOW
   dart2jsCode: GENERIC
 
 UnexpectedDollarInString:
