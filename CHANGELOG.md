@@ -8,6 +8,18 @@
 
 ### Dart VM
 
+### Tool Changes
+
+#### Pub
+
+#### Other Tools
+
+### Core library changes
+
+## 2.0.0-dev.61.0
+
+### Dart VM
+
 * `async` functions now start synchronously by default.
   Passing the `--no-sync-async` flag will produce the old behavior,
   starting `async` functions asynchronously.
@@ -17,8 +29,6 @@
 #### Pub
 
 * Fix support for running executables in Dart 2 mode.
-
-#### Other Tools
 
 ### Core library changes
 
