@@ -543,7 +543,7 @@ list_test/*: RuntimeError # VM doesn't implement strong mode covariance checks
 
 [ $arch == simarm || $arch == simarm64 || $arch == simdbc64 ]
 bigint_parse_radix_test: Pass, Slow # Bigint computations are slow on simulated architectures.
-bigint_test: Pass, Slow # Bigint computations are slow on simulated architectures.
+bigint_test: Pass, Slow, Timeout # Bigint computations are slow on simulated architectures.
 
 [ $arch == simdbc || $arch == simdbc64 ]
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
