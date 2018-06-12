@@ -682,6 +682,12 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
     return data.getBound(this);
   }
 
+  DartType _getTypeVariableDefaultType(IndexedTypeVariable typeVariable) {
+    assert(checkFamily(typeVariable));
+    TypeVariableData data = _typeVariables.getData(typeVariable);
+    return data.getDefaultType(this);
+  }
+
   ClassEntity _getAppliedMixin(IndexedClass cls) {
     assert(checkFamily(cls));
     ClassData data = _classes.getData(cls);
@@ -1280,6 +1286,11 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
     return super._getTypeVariableBound(typeVariable);
   }
 
+  DartType _getTypeVariableDefaultType(TypeVariableEntity typeVariable) {
+    if (typeVariable is KLocalTypeVariable) return typeVariable.defaultType;
+    return super._getTypeVariableDefaultType(typeVariable);
+  }
+
   @override
   void _forEachNestedClosure(
       MemberEntity member, void f(FunctionEntity closure)) {
@@ -1373,6 +1384,8 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
       index = 0;
       for (ir.TypeParameter typeParameter in function.typeParameters) {
         typeVariables[index].bound = getDartType(typeParameter.bound);
+        typeVariables[index].defaultType =
+            getDartType(typeParameter.defaultType);
         index++;
       }
       localFunction.functionType = getFunctionType(function);
@@ -1485,6 +1498,11 @@ class KernelElementEnvironment extends ElementEnvironment {
   @override
   DartType getTypeVariableBound(TypeVariableEntity typeVariable) {
     return elementMap._getTypeVariableBound(typeVariable);
+  }
+
+  @override
+  DartType getTypeVariableDefaultType(TypeVariableEntity typeVariable) {
+    return elementMap._getTypeVariableDefaultType(typeVariable);
   }
 
   @override

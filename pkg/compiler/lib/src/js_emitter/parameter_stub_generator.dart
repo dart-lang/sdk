@@ -170,7 +170,7 @@ class ParameterStubGenerator {
           targetArguments[count++] = _rtiEncoder.getTypeRepresentation(
               _emitter,
               _closedWorld.elementEnvironment
-                  .getTypeVariableBound(typeVariable.element),
+                  .getTypeVariableDefaultType(typeVariable.element),
               (_) => _emitter.constantReference(new NullConstantValue()));
         } else {
           String jsName = '\$${typeVariable.element.name}';

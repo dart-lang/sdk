@@ -1014,11 +1014,16 @@ class TypedefData {
 class TypeVariableData {
   final ir.TypeParameter node;
   DartType _bound;
+  DartType _defaultType;
 
   TypeVariableData(this.node);
 
   DartType getBound(KernelToElementMap elementMap) {
     return _bound ??= elementMap.getDartType(node.bound);
+  }
+
+  DartType getDefaultType(KernelToElementMap elementMap) {
+    return _defaultType ??= elementMap.getDartType(node.defaultType);
   }
 
   TypeVariableData copy() {

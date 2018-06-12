@@ -1455,6 +1455,12 @@ abstract class ElementEnvironment {
   /// `Object`.
   DartType getTypeVariableBound(TypeVariableEntity typeVariable);
 
+  /// The default type of the [typeVariable].
+  ///
+  /// This is the type used as the default type argument when no explicit type
+  /// argument is passed.
+  DartType getTypeVariableDefaultType(TypeVariableEntity typeVariable);
+
   /// Returns the type of [function].
   FunctionType getFunctionType(FunctionEntity function);
 
