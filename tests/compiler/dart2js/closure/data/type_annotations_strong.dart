@@ -21,7 +21,8 @@ method1<T>(T o) {
 ////////////////////////////////////////////////////////////////////////////////
 
 method2<T>() {
-  /*fields=[T],free=[T]*/
+  /*strong.fields=[T],free=[T]*/
+  /*omit.*/
   dynamic local(T t) => t;
   return local;
 }
@@ -31,7 +32,8 @@ method2<T>() {
 ////////////////////////////////////////////////////////////////////////////////
 
 method3<T>(dynamic o) {
-  /*fields=[T,o],free=[T,o]*/
+  /*strong.fields=[T,o],free=[T,o]*/
+  /*omit.fields=[o],free=[o]*/
   T local() => o;
   return local;
 }
@@ -61,7 +63,8 @@ T method5<T>(dynamic o) {
 ////////////////////////////////////////////////////////////////////////////////
 
 method6<T>() {
-  /*fields=[T],free=[T]*/
+  /*strong.fields=[T],free=[T]*/
+  /*omit.*/
   dynamic local(T t) {
     /*fields=[t],free=[t]*/
     dynamic inner() => t;
@@ -76,7 +79,8 @@ method6<T>() {
 ////////////////////////////////////////////////////////////////////////////////
 
 method7<T>(dynamic o) {
-  /*fields=[T,o],free=[T,o]*/
+  /*strong.fields=[T,o],free=[T,o]*/
+  /*omit.fields=[o],free=[o]*/
   T local() {
     /*fields=[o],free=[o]*/
     dynamic inner() => o;

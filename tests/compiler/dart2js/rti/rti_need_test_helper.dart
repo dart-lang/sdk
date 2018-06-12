@@ -15,6 +15,7 @@ import 'package:compiler/src/js_backend/runtime_types.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
+import 'package:compiler/src/universe/feature.dart';
 import 'package:compiler/src/universe/selector.dart';
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:kernel/ast.dart' as ir;
@@ -56,6 +57,7 @@ class Tags {
   static const String indirectTypeArgumentTest = 'indirect';
   static const String typeLiteral = 'exp';
   static const String selectors = 'selectors';
+  static const String instantiationsNeedTypeArguments = 'needsInst';
 }
 
 abstract class ComputeValueMixin<T> {
@@ -160,6 +162,13 @@ abstract class ComputeValueMixin<T> {
             ?.forEach((Selector selector, Set<Entity> targets) {
           if (targets.contains(entity)) {
             features.addElement(Tags.selectors, selector);
+          }
+        });
+        rtiNeedBuilder.instantiationsNeedingTypeArgumentsForTesting?.forEach(
+            (GenericInstantiation instantiation, Set<Entity> targets) {
+          if (targets.contains(entity)) {
+            features.addElement(
+                Tags.instantiationsNeedTypeArguments, instantiation.shortText);
           }
         });
       }

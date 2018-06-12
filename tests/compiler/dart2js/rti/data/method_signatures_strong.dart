@@ -16,7 +16,7 @@ class Class1 {
 }
 
 class Class2 {
-  /*strong.element: Class2.method4:direct,explicit=[method4.T],needsArgs*/
+  /*strong.element: Class2.method4:direct,explicit=[method4.T],needsArgs,needsInst=[<num>,<num>]*/
   /*omit.element: Class2.method4:*/
   num method4<T>(T n) => null;
 }
@@ -27,19 +27,19 @@ class Class3 {
 }
 
 class Class4 {
-  /*strong.element: Class4.method6:direct,explicit=[method6.T],needsArgs*/
+  /*strong.element: Class4.method6:direct,explicit=[method6.T],needsArgs,needsInst=[<num>,<num>]*/
   /*omit.element: Class4.method6:*/
   num method6<T>(num n, T t) => null;
 }
 
-/*strong.element: method7:direct,explicit=[method7.T],needsArgs*/
+/*strong.element: method7:direct,explicit=[method7.T],needsArgs,needsInst=[<num>,<num>]*/
 /*omit.element: method7:*/
 num method7<T>(T n) => null;
 
 /*element: method8:*/
 T method8<T>(num n) => null;
 
-/*strong.element: method9:direct,explicit=[method9.T],needsArgs*/
+/*strong.element: method9:direct,explicit=[method9.T],needsArgs,needsInst=[<num>,<num>]*/
 /*omit.element: method9:*/
 num method9<T>(num n, T t) => null;
 

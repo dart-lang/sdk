@@ -680,7 +680,9 @@ class KernelImpactBuilder extends ir.Visitor {
   @override
   void visitInstantiation(ir.Instantiation node) {
     // TODO(johnniwinther): Track which arities are used in instantiation.
-    impactBuilder.registerFeature(Feature.GENERIC_INSTANTIATION);
+    impactBuilder.registerInstantiation(new GenericInstantiation(
+        elementMap.getStaticType(node.expression),
+        node.typeArguments.map(elementMap.getDartType).toList()));
     node.visitChildren(this);
   }
 

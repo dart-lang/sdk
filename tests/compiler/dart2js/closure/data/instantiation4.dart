@@ -2,15 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-T id<T>(T t) => t;
+bool f<T>(T a) => a is T;
 
-method<S>(S s) {
-  /*strong.fields=[S],free=[S]*/
-  /*omit.*/
-  S Function(S) getId() => id;
-  return getId();
+typedef bool F<R>(R a);
+
+method<S>() {
+  return
+      /*strong.fields=[S],free=[S]*/
+      /*omit.fields=[S],free=[S]*/
+      () {
+    F<S> c = f;
+    return c;
+  };
 }
 
 main() {
-  method(0);
+  method();
 }

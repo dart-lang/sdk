@@ -35,6 +35,7 @@ import '../native/native.dart' as native;
 import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
 import '../universe/call_structure.dart';
+import '../universe/feature.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart' show SideEffects;
 import '../universe/target_checks.dart' show TargetChecks;
@@ -4234,9 +4235,20 @@ class KernelSsaGraphBuilder extends ir.Visitor
     var arguments = <HInstruction>[];
     node.expression.accept(this);
     arguments.add(pop());
-    for (ir.DartType type in node.typeArguments) {
-      HInstruction instruction = typeBuilder.analyzeTypeArgument(
-          _elementMap.getDartType(type), sourceElement);
+    // TODO(johnniwinther): Use the static type of the expression.
+    bool typeArgumentsNeeded = rtiNeed.instantiationNeedsTypeArguments(
+        null, node.typeArguments.length);
+    List<DartType> typeArguments = node.typeArguments
+        .map((type) => typeArgumentsNeeded
+            ? _elementMap.getDartType(type)
+            : _commonElements.dynamicType)
+        .toList();
+    registry.registerGenericInstantiation(
+        new GenericInstantiation(null, typeArguments));
+    // TODO(johnniwinther): Can we avoid creating the instantiation object?
+    for (DartType type in typeArguments) {
+      HInstruction instruction =
+          typeBuilder.analyzeTypeArgument(type, sourceElement);
       arguments.add(instruction);
     }
     int typeArgumentCount = node.typeArguments.length;

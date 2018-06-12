@@ -77,7 +77,7 @@ method9<T>() {
 }
 
 method10() {
-  /*strong.direct,explicit=[local.T],needsArgs,needsSignature*/
+  /*strong.direct,explicit=[local.T],needsArgs,needsInst=[<dynamic>,<num>,<num>],needsSignature*/
   /*omit.needsSignature*/
   num local<T>(T n) => null;
   return local;
@@ -90,7 +90,7 @@ method11() {
 }
 
 method12() {
-  /*strong.direct,explicit=[local.T],needsArgs*/
+  /*strong.direct,explicit=[local.T],needsArgs,needsInst=[<dynamic>,<num>,<num>]*/
   /*omit.*/
   num local<T>(num n, T t) => null;
   return local;
@@ -103,7 +103,7 @@ num Function(num) method13() {
 }
 
 num Function(num) method14() {
-  /*strong.direct,explicit=[local.T],needsArgs,needsSignature*/
+  /*strong.direct,explicit=[local.T],needsArgs,needsInst=[<dynamic>,<num>,<num>],needsSignature*/
   /*omit.needsSignature*/
   num local<T>(T n) => null;
   return local;

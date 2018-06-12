@@ -306,7 +306,8 @@ testIsCheck25(/*[null|subclass=Object]*/ a) {
 
 /*element: testIsCheck26:[subclass=JSInt]*/
 testIsCheck26(/*[null|subclass=Object]*/ a) {
-  if (a is int) {} else {
+  if (a is int) {
+  } else {
     throw 42;
   }
   return a;
@@ -314,7 +315,8 @@ testIsCheck26(/*[null|subclass=Object]*/ a) {
 
 /*element: testIsCheck27:[subclass=JSInt]*/
 testIsCheck27(/*[null|subclass=Object]*/ a) {
-  if (a is int) {} else {
+  if (a is int) {
+  } else {
     return 42;
   }
   return a;
@@ -322,7 +324,8 @@ testIsCheck27(/*[null|subclass=Object]*/ a) {
 
 /*element: testIsCheck28:[null|subclass=Object]*/
 testIsCheck28(/*[null|subclass=Object]*/ a) {
-  if (a is int) {} else {}
+  if (a is int) {
+  } else {}
   return a;
 }
 
@@ -344,7 +347,8 @@ testIf1(/*[null|subclass=Object]*/ a) {
 /*element: testIf2:[null|exact=JSUInt31]*/
 testIf2(/*[null|subclass=Object]*/ a) {
   var c = null;
-  if (a) {} else {
+  if (a) {
+  } else {
     c = 10;
   }
   return c;

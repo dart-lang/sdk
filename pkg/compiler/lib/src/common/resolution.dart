@@ -21,4 +21,7 @@ class ResolutionImpact extends WorldImpact {
   Iterable<ClassEntity> get seenClasses => const <ClassEntity>[];
 
   Iterable<dynamic> get nativeData => const <dynamic>[];
+
+  Iterable<GenericInstantiation> get genericInstantiations =>
+      const <GenericInstantiation>[];
 }
