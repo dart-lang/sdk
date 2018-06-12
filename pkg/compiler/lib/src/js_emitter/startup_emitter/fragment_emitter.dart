@@ -825,17 +825,40 @@ class FragmentEmitter {
       thisRef = js.js('this');
     }
 
+    // Chain assignments of the same value, e.g. `this.b = this.a = null`.
+    // Limit chain length so that the JavaScript parser has bounded recursion.
+    const int maxChainLength = 30;
+    js.Expression assignment = null;
+    int chainLength = 0;
+    bool previousIsNull = false;
+    void flushAssignment() {
+      if (assignment != null) {
+        statements.add(js.js.statement('#;', assignment));
+        assignment = null;
+        chainLength = 0;
+        previousIsNull = false;
+      }
+    }
+
     for (Field field in cls.fields) {
       if (field.nullInitializerInAllocator) {
-        // TODO(sra): Chain initializations, e.g. `this.b = this.a = null;`.
-        statements.add(js.js.statement('#.# = null', [thisRef, field.name]));
+        if (previousIsNull && chainLength < maxChainLength) {
+          assignment = js.js('#.# = #', [thisRef, field.name, assignment]);
+        } else {
+          flushAssignment();
+          assignment = js.js('#.# = null', [thisRef, field.name]);
+        }
+        ++chainLength;
+        previousIsNull = true;
       } else {
+        flushAssignment();
         js.Parameter parameter = new js.Parameter('t${parameters.length}');
         parameters.add(parameter);
         statements.add(
             js.js.statement('#.# = #', [thisRef, field.name, parameter.name]));
       }
     }
+    flushAssignment();
 
     if (cls.hasRtiField) {
       js.Parameter parameter = new js.Parameter('t${parameters.length}');
