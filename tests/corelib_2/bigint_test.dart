@@ -5,7 +5,7 @@
 // Testing Bigints with and without intrinsics.
 // VMOptions=
 // VMOptions=--no_intrinsify
-// VMOptions=--optimization_counter_threshold=10 --no-background_compilation
+// VMOptions=--optimization_counter_threshold=5 --no-background_compilation
 
 import "package:expect/expect.dart";
 
@@ -1030,7 +1030,7 @@ void testFromToDouble() {
 }
 
 main() {
-  for (int i = 0; i < 10; i++) {
+  for (int i = 0; i < 8; i++) {
     Expect.equals(BigInt.parse("1234567890123456789"), foo());
     Expect.equals(BigInt.parse("12345678901234567890"), bar());
     testModPow();
