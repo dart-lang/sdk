@@ -2735,10 +2735,11 @@ class _BigIntClassicReduction implements _BigIntReduction {
   int _convert(_BigIntImpl x, Uint32List resultDigits) {
     var digits;
     var used;
-    if (x._isNegative || x.compareTo(_modulus) >= 0) {
+    if (x._isNegative || x._absCompare(_modulus) >= 0) {
       var remainder = x._rem(_modulus);
-      if (x._isNegative && !remainder._isNegative && remainder._used > 0) {
-        remainder = _modulus - remainder;
+      if (x._isNegative && remainder._used > 0) {
+        assert(remainder._isNegative);
+        remainder += _modulus;
       }
       assert(!remainder._isNegative);
       used = remainder._used;
