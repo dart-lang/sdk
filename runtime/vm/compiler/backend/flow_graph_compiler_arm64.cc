@@ -712,7 +712,7 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
   const intptr_t sub_type_cache_index = __ object_pool_wrapper().AddObject(
       Object::null_object(), Patchability::kPatchable);
   const intptr_t sub_type_cache_offset =
-      ObjectPool::element_offset(sub_type_cache_index) - kHeapObjectTag;
+      ObjectPool::element_offset(sub_type_cache_index);
   const intptr_t dst_name_index =
       __ object_pool_wrapper().AddObject(dst_name, Patchability::kPatchable);
   ASSERT((sub_type_cache_index + 1) == dst_name_index);
