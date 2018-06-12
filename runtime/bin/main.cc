@@ -371,7 +371,7 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
     result = DartUtils::SetupIOLibrary(Options::namespc(), script_uri,
                                        Options::exit_disabled());
     CHECK_RESULT(result);
-    if (FLAG_support_service) {
+    if (FLAG_support_service || !kDartPrecompiledRuntime) {
       Loader::InitForSnapshot(script_uri);
     }
 #if !defined(DART_PRECOMPILED_RUNTIME)
