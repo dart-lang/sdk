@@ -1,6 +1,7 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 #ifndef DART_PRECOMPILED_RUNTIME
 #include "vm/compiler/call_specializer.h"
 
@@ -211,7 +212,14 @@ bool CallSpecializer::TryCreateICData(InstanceCallInstr* call) {
   }
 
   const Token::Kind op_kind = call->token_kind();
-  if (FLAG_guess_icdata_cid) {
+  if (FLAG_precompiled_mode && FLAG_strong && kBitsPerWord == 64) {
+    // Avoid speculation for AOT Dart2 64-bit targets.
+    //
+    // TODO(ajcbik): expand this to more and more targets as we
+    // investigate the performance impact of moving smi decision
+    // into a later phase.
+    //
+  } else if (FLAG_guess_icdata_cid) {
     if (FLAG_precompiled_mode) {
       // In precompiler speculate that both sides of bitwise operation
       // are Smi-s.
@@ -220,7 +228,6 @@ bool CallSpecializer::TryCreateICData(InstanceCallInstr* call) {
         class_ids[1] = kSmiCid;
       }
     }
-
     if (Token::IsRelationalOperator(op_kind) ||
         Token::IsEqualityOperator(op_kind) ||
         Token::IsBinaryOperator(op_kind)) {

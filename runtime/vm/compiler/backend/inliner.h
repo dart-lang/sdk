@@ -130,7 +130,7 @@ class FlowGraphInliner : ValueObject {
                                         TokenPosition token_pos,
                                         const ICData* ic_data,
                                         TargetEntryInstr** entry,
-                                        Definition** last,
+                                        Instruction** last,
                                         SpeculativeInliningPolicy* policy);
 
  private:
