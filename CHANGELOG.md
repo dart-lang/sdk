@@ -28,6 +28,9 @@ be inferred as `void`.
 
 #### Pub
 
+* Fix an error on `pub get` when running with Dart 2 mode and already existing
+  snapshots of executables.
+
 #### Other Tools
 
 ### Core library changes
