@@ -27,7 +27,6 @@ package/scenarios/packages_file_only/packages_file_only_test: StaticWarning
 package/scenarios/packages_file_only/packages_file_only_test: CompileTimeError
 
 [ $compiler == dart2analyzer && $system == windows ]
-package/package_isolate_test: Crash # Issue 28645
 package/scenarios/empty_packages_file/empty_packages_file_option_test: Crash, Pass # Issue 28645
 package/scenarios/packages_file_strange_formatting/empty_package_dir_test: Crash # Issue 28645
 
