@@ -1508,6 +1508,51 @@ DART_EXPORT bool Dart_IsFuture(Dart_Handle object);
  */
 DART_EXPORT Dart_Handle Dart_InstanceGetType(Dart_Handle instance);
 
+/**
+ * Returns the name for the provided function or method.
+ *
+ * \return A valid string handle if no error occurs during the
+ *   operation.
+ */
+DART_EXPORT Dart_Handle Dart_FunctionName(Dart_Handle function);
+
+/**
+ * Returns a handle to the owner of a function.
+ *
+ * The owner of an instance method or a static method is its defining
+ * class. The owner of a top-level function is its defining
+ * library. The owner of the function of a non-implicit closure is the
+ * function of the method or closure that defines the non-implicit
+ * closure.
+ *
+ * \return A valid handle to the owner of the function, or an error
+ *   handle if the argument is not a valid handle to a function.
+ */
+DART_EXPORT Dart_Handle Dart_FunctionOwner(Dart_Handle function);
+
+/**
+ * Determines whether a function handle referes to a static function
+ * of method.
+ *
+ * For the purposes of the embedding API, a top-level function is
+ * implicitly declared static.
+ *
+ * \param function A handle to a function or method declaration.
+ * \param is_static Returns whether the function or method is declared static.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_FunctionIsStatic(Dart_Handle function,
+                                              bool* is_static);
+
+/**
+ * Retrieves the function of a closure.
+ *
+ * \return A handle to the function of the closure, or an error handle if the
+ *   argument is not a closure.
+ */
+DART_EXPORT Dart_Handle Dart_ClosureFunction(Dart_Handle closure);
+
 /*
  * =============================
  * Numbers, Integers and Doubles

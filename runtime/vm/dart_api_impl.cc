@@ -2057,6 +2057,69 @@ DART_EXPORT Dart_Handle Dart_InstanceGetType(Dart_Handle instance) {
   return Api::NewHandle(T, type.Canonicalize());
 }
 
+DART_EXPORT Dart_Handle Dart_FunctionName(Dart_Handle function) {
+  DARTSCOPE(Thread::Current());
+  const Function& func = Api::UnwrapFunctionHandle(Z, function);
+  if (func.IsNull()) {
+    RETURN_TYPE_ERROR(Z, function, Function);
+  }
+  return Api::NewHandle(T, func.UserVisibleName());
+}
+
+DART_EXPORT Dart_Handle Dart_FunctionOwner(Dart_Handle function) {
+  DARTSCOPE(Thread::Current());
+  const Function& func = Api::UnwrapFunctionHandle(Z, function);
+  if (func.IsNull()) {
+    RETURN_TYPE_ERROR(Z, function, Function);
+  }
+  if (func.IsNonImplicitClosureFunction()) {
+    RawFunction* parent_function = func.parent_function();
+    return Api::NewHandle(T, parent_function);
+  }
+  const Class& owner = Class::Handle(Z, func.Owner());
+  ASSERT(!owner.IsNull());
+  if (owner.IsTopLevel()) {
+// Top-level functions are implemented as members of a hidden class. We hide
+// that class here and instead answer the library.
+#if defined(DEBUG)
+    const Library& lib = Library::Handle(Z, owner.library());
+    if (lib.IsNull()) {
+      ASSERT(owner.IsDynamicClass() || owner.IsVoidClass());
+    }
+#endif
+    return Api::NewHandle(T, owner.library());
+  } else {
+    return Api::NewHandle(T, owner.RareType());
+  }
+}
+
+DART_EXPORT Dart_Handle Dart_FunctionIsStatic(Dart_Handle function,
+                                              bool* is_static) {
+  DARTSCOPE(Thread::Current());
+  if (is_static == NULL) {
+    RETURN_NULL_ERROR(is_static);
+  }
+  const Function& func = Api::UnwrapFunctionHandle(Z, function);
+  if (func.IsNull()) {
+    RETURN_TYPE_ERROR(Z, function, Function);
+  }
+  *is_static = func.is_static();
+  return Api::Success();
+}
+
+DART_EXPORT Dart_Handle Dart_ClosureFunction(Dart_Handle closure) {
+  DARTSCOPE(Thread::Current());
+  const Instance& closure_obj = Api::UnwrapInstanceHandle(Z, closure);
+  if (closure_obj.IsNull() || !closure_obj.IsClosure()) {
+    RETURN_TYPE_ERROR(Z, closure, Instance);
+  }
+
+  ASSERT(ClassFinalizer::AllClassesFinalized());
+
+  RawFunction* rf = Closure::Cast(closure_obj).function();
+  return Api::NewHandle(T, rf);
+}
+
 // --- Numbers, Integers and Doubles ----
 
 DART_EXPORT Dart_Handle Dart_IntegerFitsIntoInt64(Dart_Handle integer,
