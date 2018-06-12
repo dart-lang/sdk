@@ -6,7 +6,26 @@ library fasta.kernel_library_builder;
 
 import 'dart:convert' show jsonEncode;
 
-import 'package:kernel/ast.dart';
+import 'package:kernel/ast.dart'
+    show
+        Arguments,
+        Class,
+        ConstructorInvocation,
+        DartType,
+        Expression,
+        Field,
+        Library,
+        LibraryDependency,
+        LibraryPart,
+        Member,
+        Name,
+        Procedure,
+        ProcedureKind,
+        StaticInvocation,
+        StringLiteral,
+        TreeNode,
+        Typedef,
+        VoidType;
 
 import '../../scanner/token.dart' show Token;
 

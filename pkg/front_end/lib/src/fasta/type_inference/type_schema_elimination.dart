@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'package:front_end/src/fasta/type_inference/type_schema.dart';
-import 'package:kernel/ast.dart';
-import 'package:kernel/core_types.dart';
+import 'package:kernel/ast.dart'
+    show DartType, DynamicType, FunctionType, InterfaceType, NamedType;
+
+import 'package:kernel/core_types.dart' show CoreTypes;
+
+import 'type_schema.dart' show TypeSchemaVisitor, UnknownType;
 
 /// Returns the greatest closure of the given type [schema] with respect to `?`.
 ///

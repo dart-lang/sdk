@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'package:front_end/src/fasta/fasta_codes.dart'
-    show templateInternalProblemStackNotEmpty;
-import 'package:front_end/src/fasta/problems.dart' show internalProblem;
-import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
-import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
-import 'package:kernel/ast.dart';
+import 'package:kernel/ast.dart'
+    show DartType, Expression, TypeParameterType, VariableDeclaration;
+
+import '../fasta_codes.dart' show templateInternalProblemStackNotEmpty;
+
+import '../problems.dart' show internalProblem;
+
+import 'type_schema_environment.dart' show TypeSchemaEnvironment;
 
 /// Keeps track of the state necessary to perform type promotion.
 ///

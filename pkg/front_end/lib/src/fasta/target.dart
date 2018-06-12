@@ -6,7 +6,8 @@ library fasta.target;
 
 import 'dart:async' show Future;
 
-import 'package:kernel/ast.dart';
+import 'package:kernel/ast.dart' show Component;
+
 import 'ticker.dart' show Ticker;
 
 /// A compilation target.
