@@ -43,6 +43,8 @@ void main([List<String> args]) {
   generateRule(ruleName, outDir: outDir);
 }
 
+String get _thisYear => new DateTime.now().year.toString();
+
 String capitalize(String s) => s.substring(0, 1).toUpperCase() + s.substring(1);
 
 void generateRule(String ruleName, {String outDir}) {
@@ -156,7 +158,5 @@ String _generateTest(String libName, String className) => '''
 // test w/ `pub run test -N $libName`
 
 ''';
-
-String get _thisYear => new DateTime.now().year.toString();
 
 typedef String _Generator(String libName, String className);

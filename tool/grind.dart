@@ -11,31 +11,7 @@ import 'rule.dart';
 
 main(args) => grind(args);
 
-@Task('Generate lint rule docs.')
-docs() {
-  TaskArgs args = context.invocation.arguments;
-  String dir = args.getOption('dir');
-  generateDocs(dir);
-}
-
-@Task('Generate a lint rule stub.')
-rule() {
-  TaskArgs args = context.invocation.arguments;
-  String name = args.getOption('name');
-  generateRule(name, outDir: Directory.current.path);
-}
-
-@Task('Format linter sources.')
-format() {
-  Pub.run('dart_style',
-      script: 'format', arguments: ['--overwrite']..addAll(sourcePaths));
-}
-
-@DefaultTask()
-@Task('Validate linter sources.')
-validate() {
-  Analyzer.analyze(sourcePaths, fatalWarnings: true);
-}
+List<String> get sourcePaths => sources.map((dir) => dir.path);
 
 List<FileSystemEntity> get sources => existingSourceDirs.expand((dir) {
       // Skip:
@@ -48,4 +24,28 @@ List<FileSystemEntity> get sources => existingSourceDirs.expand((dir) {
       return [dir];
     });
 
-List<String> get sourcePaths => sources.map((dir) => dir.path);
+@Task('Generate lint rule docs.')
+docs() {
+  TaskArgs args = context.invocation.arguments;
+  String dir = args.getOption('dir');
+  generateDocs(dir);
+}
+
+@Task('Format linter sources.')
+format() {
+  Pub.run('dart_style',
+      script: 'format', arguments: ['--overwrite']..addAll(sourcePaths));
+}
+
+@Task('Generate a lint rule stub.')
+rule() {
+  TaskArgs args = context.invocation.arguments;
+  String name = args.getOption('name');
+  generateRule(name, outDir: Directory.current.path);
+}
+
+@DefaultTask()
+@Task('Validate linter sources.')
+validate() {
+  Analyzer.analyze(sourcePaths, fatalWarnings: true);
+}
