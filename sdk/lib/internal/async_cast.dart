@@ -19,9 +19,6 @@ class CastStream<S, T> extends Stream<T> {
   }
 
   Stream<R> cast<R>() => new CastStream<S, R>(_source);
-
-  @Deprecated("Use cast instead.")
-  Stream<R> retype<R>() => cast<R>();
 }
 
 class CastStreamSubscription<S, T> implements StreamSubscription<T> {
@@ -64,10 +61,6 @@ class CastStreamTransformer<SS, ST, TS, TT>
 
   StreamTransformer<RS, RT> cast<RS, RT>() =>
       new CastStreamTransformer<SS, ST, RS, RT>(_source);
-
-  @Deprecated("Use cast instead.")
-  StreamTransformer<RS, RT> retype<RS, RT>() => cast<RS, RT>();
-
   Stream<TT> bind(Stream<TS> stream) =>
       _source.bind(stream.cast<SS>()).cast<TT>();
 }
@@ -85,7 +78,4 @@ class CastConverter<SS, ST, TS, TT> extends Converter<TS, TT> {
 
   Converter<RS, RT> cast<RS, RT>() =>
       new CastConverter<SS, ST, RS, RT>(_source);
-
-  @Deprecated("Use cast instead.")
-  Converter<RS, RT> retype<RS, RT>() => cast<RS, RT>();
 }

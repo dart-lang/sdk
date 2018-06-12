@@ -192,10 +192,6 @@ abstract class Map<K, V> {
    * `Map<RK, RV>`.
    */
   Map<RK, RV> cast<RK, RV>();
-
-  @Deprecated("Use cast instead.")
-  Map<RK, RV> retype<RK, RV>();
-
   /**
    * Returns true if this map contains the given [value].
    *

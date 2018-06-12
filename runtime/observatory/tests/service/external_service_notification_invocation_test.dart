@@ -27,10 +27,10 @@ var tests = <IsolateTest>[
 
     // Avoid to manually encode and decode messages from the stream
     Stream<String> socket_stream = socket.stream.map(jsonEncode);
-    socket_stream.retype<Object>().pipe(_socket);
+    socket_stream.cast<Object>().pipe(_socket);
     Stream<String> socket_invoker_stream =
         socket_invoker.stream.map(jsonEncode);
-    socket_invoker_stream.retype<Object>().pipe(_socket_invoker);
+    socket_invoker_stream.cast<Object>().pipe(_socket_invoker);
     dynamic _decoder(dynamic obj) {
       return jsonDecode(obj);
     }

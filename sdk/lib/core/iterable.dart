@@ -164,10 +164,6 @@ abstract class Iterable<E> {
    * the type [R], e.g., from [toList], it will have exactly the type [R].
    */
   Iterable<R> cast<R>() => Iterable.castFrom<E, R>(this);
-
-  @Deprecated("Use cast instead.")
-  Iterable<R> retype<R>() => cast<R>();
-
   /**
    * Returns the lazy concatentation of this iterable and [other].
    *

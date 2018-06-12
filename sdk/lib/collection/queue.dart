@@ -78,10 +78,6 @@ abstract class Queue<E> implements EfficientLengthIterable<E> {
    * this queue as well.
    */
   Queue<R> cast<R>();
-
-  @Deprecated("Use cast instead.")
-  Queue<R> retype<R>();
-
   /**
    * Removes and returns the first element of this queue.
    *
@@ -344,10 +340,6 @@ class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
       new DoubleLinkedQueue<E>()..addAll(elements);
 
   Queue<R> cast<R>() => Queue.castFrom<E, R>(this);
-
-  @Deprecated("Use cast instead.")
-  Queue<R> retype<R>() => cast<R>();
-
   int get length => _elementCount;
 
   void addLast(E value) {
@@ -643,10 +635,6 @@ class ListQueue<E> extends ListIterable<E> implements Queue<E> {
   // Iterable interface.
 
   Queue<R> cast<R>() => Queue.castFrom<E, R>(this);
-
-  @Deprecated("Use cast instead.")
-  Queue<R> retype<R>() => cast<R>();
-
   Iterator<E> get iterator => new _ListQueueIterator<E>(this);
 
   void forEach(void f(E element)) {

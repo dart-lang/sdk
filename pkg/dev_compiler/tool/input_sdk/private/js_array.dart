@@ -69,10 +69,6 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
   }
 
   List<R> cast<R>() => List.castFrom<E, R>(this);
-
-  @Deprecated("Use cast instead.")
-  List<R> retype<R>() => cast<R>();
-
   void add(E value) {
     checkGrowable('add');
     JS('void', r'#.push(#)', this, value);

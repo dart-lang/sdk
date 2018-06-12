@@ -268,10 +268,6 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * Typically implemented as `List.castFrom<E, R>(this)`.
    */
   List<R> cast<R>();
-
-  @Deprecated("Use cast instead.")
-  List<R> retype<R>();
-
   /**
    * Returns the object at the given [index] in the list
    * or throws a [RangeError] if [index] is out of bounds.

@@ -14,10 +14,6 @@ class _ImmutableMap<K, V> implements Map<K, V> {
       : _kvPairs = keyValuePairs;
 
   Map<K2, V2> cast<K2, V2>() => Map.castFrom<K, V, K2, V2>(this);
-
-  @Deprecated("Use cast instead.")
-  Map<K2, V2> retype<K2, V2>() => cast<K2, V2>();
-
   V operator [](Object key) {
     // To preserve the key-value order of the map literal, the keys are
     // not sorted. Need to do linear search or implement an additional

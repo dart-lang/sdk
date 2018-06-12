@@ -62,6 +62,9 @@ be inferred as `void`.
 * `dart:convert`
   * Allow `utf8.decoder.fuse(json.decoder)` to ignore leading Unicode BOM.
 
+* `dart:core`/`dart:collection`
+  * Remove the `retype` method on iterables and maps again. Use `cast` instead.
+
 ### Tool Changes
 
 #### Analyzer

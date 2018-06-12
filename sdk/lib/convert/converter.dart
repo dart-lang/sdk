@@ -65,9 +65,6 @@ abstract class Converter<S, T> extends StreamTransformerBase<S, T> {
    * are acually instances of [RT].
    */
   Converter<RS, RT> cast<RS, RT>() => Converter.castFrom<S, T, RS, RT>(this);
-
-  @Deprecated("Use cast instead.")
-  Converter<RS, RT> retype<RS, RT>() => cast<RS, RT>();
 }
 
 /**

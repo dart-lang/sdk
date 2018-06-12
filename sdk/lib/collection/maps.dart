@@ -119,10 +119,6 @@ abstract class MapMixin<K, V> implements Map<K, V> {
   void clear();
 
   Map<RK, RV> cast<RK, RV>() => Map.castFrom<K, V, RK, RV>(this);
-
-  @Deprecated("Use cast instead.")
-  Map<RK, RV> retype<RK, RV>() => cast<RK, RV>();
-
   void forEach(void action(K key, V value)) {
     for (K key in keys) {
       action(key, this[key]);
@@ -315,10 +311,6 @@ class MapView<K, V> implements Map<K, V> {
   const MapView(Map<K, V> map) : _map = map;
 
   Map<RK, RV> cast<RK, RV>() => _map.cast<RK, RV>();
-
-  @Deprecated("Use cast instead.")
-  Map<RK, RV> retype<RK, RV>() => cast<RK, RV>();
-
   V operator [](Object key) => _map[key];
   void operator []=(K key, V value) {
     _map[key] = value;
@@ -381,7 +373,4 @@ class UnmodifiableMapView<K, V> extends MapView<K, V>
 
   Map<RK, RV> cast<RK, RV>() =>
       new UnmodifiableMapView<RK, RV>(_map.cast<RK, RV>());
-
-  @Deprecated("Use cast instead.")
-  Map<RK, RV> retype<RK, RV>() => cast<RK, RV>();
 }
