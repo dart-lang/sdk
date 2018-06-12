@@ -16,6 +16,8 @@
 
 namespace dart {
 
+// TODO(33433): The kernel service does not belong in the VM.
+
 class KernelIsolate : public AllStatic {
  public:
   static const char* kName;
@@ -24,6 +26,7 @@ class KernelIsolate : public AllStatic {
   static const int kAcceptTag;
   static const int kTrainTag;
   static const int kCompileExpressionTag;
+  static const int kListDependenciesTag;
 
   static void Run();
 
@@ -55,6 +58,8 @@ class KernelIsolate : public AllStatic {
       const char* library_url,
       const char* klass,
       bool is_static);
+
+  static Dart_KernelCompilationResult ListDependencies();
 
  protected:
   static Monitor* monitor_;

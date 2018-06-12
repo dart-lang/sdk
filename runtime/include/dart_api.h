@@ -3199,6 +3199,8 @@ DART_EXPORT Dart_Handle Dart_SetPeer(Dart_Handle object, void* peer);
  *
  */
 
+// TODO(33433): Remove kernel service from the embedding API.
+
 typedef enum {
   Dart_KernelCompilationStatus_Unknown = -1,
   Dart_KernelCompilationStatus_Ok = 0,
@@ -3236,6 +3238,8 @@ Dart_CompileSourcesToKernel(const char* script_uri,
                             Dart_SourceFile source_files[],
                             bool incremental_compile,
                             const char* package_config);
+
+DART_EXPORT Dart_KernelCompilationResult Dart_KernelListDependencies();
 
 #define DART_KERNEL_ISOLATE_NAME "kernel-service"
 

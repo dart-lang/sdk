@@ -1528,12 +1528,19 @@ int main(int argc, char** argv) {
   if (app_script_name != NULL) {
     dfe.ReadScript(app_script_name, &kernel_buffer, &kernel_buffer_size);
   }
-  if (kernel_buffer != NULL && !SnapshotKindAllowedFromKernel()) {
-    // TODO(sivachandra): Add check for the kernel program format (incremental
-    // vs batch).
-    Log::PrintErr(
-        "Can only generate core or aot snapshots from a kernel file.\n");
-    return kErrorExitCode;
+  if (kernel_buffer != NULL) {
+    if (!SnapshotKindAllowedFromKernel()) {
+      // TODO(sivachandra): Add check for the kernel program format (incremental
+      // vs batch).
+      Log::PrintErr(
+          "Can only generate core or aot snapshots from a kernel file.\n");
+      return kErrorExitCode;
+    }
+    if ((dependencies_filename != NULL) || print_dependencies ||
+        dependencies_only) {
+      Log::PrintErr("Depfiles are not supported in Dart 2.\n");
+      return kErrorExitCode;
+    }
   }
 
   if (!Platform::Initialize()) {

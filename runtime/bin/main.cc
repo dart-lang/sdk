@@ -193,6 +193,17 @@ static void WriteDepsFile(Dart_Isolate isolate) {
     success &= file->Print("%s ", dep);
     free(dep);
   }
+  if (Options::preview_dart_2()) {
+    Dart_KernelCompilationResult result = Dart_KernelListDependencies();
+    if (result.status != Dart_KernelCompilationStatus_Ok) {
+      ErrorExit(
+          kErrorExitCode,
+          "Error: Failed to fetch dependencies from kernel service: %s\n\n",
+          result.error);
+    }
+    success &= file->WriteFully(result.kernel, result.kernel_size);
+    free(result.kernel);
+  }
   success &= file->Print("\n");
   if (!success) {
     ErrorExit(kErrorExitCode, "Error: Unable to write snapshot depfile: %s\n\n",

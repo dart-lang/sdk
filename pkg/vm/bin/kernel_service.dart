@@ -21,6 +21,7 @@
 library runtime.tools.kernel_service;
 
 import 'dart:async' show Future, ZoneSpecification, runZoned;
+import 'dart:convert' show utf8;
 import 'dart:io' show Platform, stderr hide FileSystemEntity;
 import 'dart:isolate';
 import 'dart:typed_data' show Uint8List;
@@ -38,7 +39,7 @@ import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:kernel/target/vm.dart' show VmTarget;
 import 'package:vm/incremental_compiler.dart';
 
-const bool verbose = const bool.fromEnvironment('DFE_VERBOSE');
+final bool verbose = new bool.fromEnvironment('DFE_VERBOSE');
 const String platformKernelFile = 'virtual_platform_kernel.dill';
 
 // NOTE: Any changes to these tags need to be reflected in kernel_isolate.cc
@@ -51,11 +52,13 @@ const String platformKernelFile = 'virtual_platform_kernel.dill';
 //   3 - APP JIT snapshot training run for kernel_service.
 //   4 - Compile an individual expression in some context (for debugging
 //       purposes).
+//   5 - List program dependencies (for creating depfiles)
 const int kCompileTag = 0;
 const int kUpdateSourcesTag = 1;
 const int kAcceptTag = 2;
 const int kTrainTag = 3;
 const int kCompileExpressionTag = 4;
+const int kListDependenciesTag = 5;
 
 bool allowDartInternalImport = false;
 
@@ -182,8 +185,10 @@ class SingleShotCompilerWrapper extends Compiler {
   }
 }
 
+// TODO(33428): This state is leaked on isolate shutdown.
 final Map<int, IncrementalCompilerWrapper> isolateCompilers =
     new Map<int, IncrementalCompilerWrapper>();
+final Map<int, List<Uri>> isolateDependencies = new Map<int, List<Uri>>();
 
 IncrementalCompilerWrapper lookupIncrementalCompiler(int isolateId) {
   return isolateCompilers[isolateId];
@@ -294,6 +299,54 @@ Future _processExpressionCompilationRequest(request) async {
   port.send(result.toResponse());
 }
 
+void _recordDependencies(
+    int isolateId, Component component, String packageConfig) {
+  final dependencies = isolateDependencies[isolateId] ??= new List<Uri>();
+
+  for (var lib in component.libraries) {
+    if (lib.importUri.scheme == "dart") continue;
+
+    dependencies.add(lib.fileUri);
+    for (var part in lib.parts) {
+      final fileUri = lib.fileUri.resolve(part.partUri);
+      if (fileUri.scheme != "" && fileUri.scheme != "file") {
+        // E.g. part 'package:foo/foo.dart';
+        // Maybe the front end should resolve this?
+        continue;
+      }
+      dependencies.add(fileUri);
+    }
+  }
+
+  if (packageConfig != null) {
+    dependencies.add(Uri.parse(packageConfig));
+  }
+}
+
+String _escapeDependency(Uri uri) {
+  return uri.toFilePath().replaceAll("\\", "\\\\").replaceAll(" ", "\\ ");
+}
+
+List<int> _serializeDependencies(List<Uri> uris) {
+  return utf8.encode(uris.map(_escapeDependency).join(" "));
+}
+
+Future _processListDependenciesRequest(request) async {
+  final SendPort port = request[1];
+  final int isolateId = request[6];
+
+  final List<Uri> dependencies = isolateDependencies[isolateId] ?? <Uri>[];
+
+  CompilationResult result;
+  try {
+    result = new CompilationResult.ok(_serializeDependencies(dependencies));
+  } catch (error, stack) {
+    result = new CompilationResult.crash(error, stack);
+  }
+
+  port.send(result.toResponse());
+}
+
 Future _processLoadRequest(request) async {
   if (verbose) print("DFE: request: $request");
 
@@ -301,6 +354,11 @@ Future _processLoadRequest(request) async {
 
   if (tag == kCompileExpressionTag) {
     await _processExpressionCompilationRequest(request);
+    return;
+  }
+
+  if (tag == kListDependenciesTag) {
+    await _processListDependenciesRequest(request);
     return;
   }
 
@@ -387,6 +445,7 @@ Future _processLoadRequest(request) async {
     }
 
     Component component = await compiler.compile(script);
+    _recordDependencies(isolateId, component, packageConfig);
 
     if (compiler.errors.isNotEmpty) {
       result = new CompilationResult.errors(compiler.errors,

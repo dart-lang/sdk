@@ -5905,7 +5905,6 @@ Dart_CompileToKernel(const char* script_uri,
 #if defined(DART_PRECOMPILED_RUNTIME)
   result.status = Dart_KernelCompilationStatus_Unknown;
   result.error = strdup("Dart_CompileToKernel is unsupported.");
-  return result;
 #else
   result = KernelIsolate::CompileToKernel(script_uri, platform_kernel,
                                           platform_kernel_size, 0, NULL,
@@ -5918,8 +5917,8 @@ Dart_CompileToKernel(const char* script_uri,
           " compilation results.");
     }
   }
-  return result;
 #endif
+  return result;
 }
 
 DART_EXPORT Dart_KernelCompilationResult
@@ -5934,7 +5933,6 @@ Dart_CompileSourcesToKernel(const char* script_uri,
 #if defined(DART_PRECOMPILED_RUNTIME)
   result.status = Dart_KernelCompilationStatus_Unknown;
   result.error = strdup("Dart_CompileSourcesToKernel is unsupported.");
-  return result;
 #else
   result = KernelIsolate::CompileToKernel(
       script_uri, platform_kernel, platform_kernel_size, source_files_count,
@@ -5947,9 +5945,19 @@ Dart_CompileSourcesToKernel(const char* script_uri,
           " compilation results.");
     }
   }
-  return result;
-
 #endif
+  return result;
+}
+
+DART_EXPORT Dart_KernelCompilationResult Dart_KernelListDependencies() {
+  Dart_KernelCompilationResult result;
+#if defined(DART_PRECOMPILED_RUNTIME)
+  result.status = Dart_KernelCompilationStatus_Unknown;
+  result.error = strdup("Dart_KernelListDependencies is unsupported.");
+#else
+  result = KernelIsolate::ListDependencies();
+#endif
+  return result;
 }
 
 // --- Service support ---
