@@ -3,6 +3,8 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js ]
+bounds_check4a_test: RuntimeError # Issue 32741
+bounds_check4b_test: RuntimeError # Issue 32741
 class_test: Fail
 constant_javascript_semantics4_test: Fail, OK
 generic_class_is_test: Fail # Issue 32004

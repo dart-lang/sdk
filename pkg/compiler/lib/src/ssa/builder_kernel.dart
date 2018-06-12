@@ -5192,10 +5192,20 @@ class KernelSsaGraphBuilder extends ir.Visitor
       } else {
         assert(callStructure.typeArgumentCount == 0);
         // Pass type variable bounds as type arguments.
-        for (int i = 0; i < parameterStructure.typeParameters; i++) {
-          // TODO(johnniwinther): Pass type variable bounds.
-          compiledArguments[compiledArgumentIndex++] =
-              graph.addConstantNull(closedWorld);
+        for (TypeVariableType typeVariable in _elementMap.elementEnvironment
+            .getFunctionTypeVariables(function)) {
+          DartType bound = _elementMap.elementEnvironment
+              .getTypeVariableDefaultType(typeVariable.element);
+          if (bound.containsTypeVariables) {
+            // TODO(33422): Support type variables in default
+            // types. Temporarily using the "any" type (encoded as -2) to
+            // avoid failing on bounds checks.
+            compiledArguments[compiledArgumentIndex++] =
+                graph.addConstantInt(-2, closedWorld);
+          } else {
+            compiledArguments[compiledArgumentIndex++] =
+                typeBuilder.analyzeTypeArgument(bound, function);
+          }
         }
       }
     }

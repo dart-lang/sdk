@@ -241,6 +241,9 @@ String runtimeTypeToStringV2(var rti, List<String> genericContext) {
     // A reference to the constructor.
     return rawRtiToJsConstructorName(rti);
   }
+  if (isDartJsInteropTypeArgumentRti(rti)) {
+    return 'dynamic';
+  }
   if (isGenericFunctionTypeParameter(rti)) {
     int index = rti;
     if (genericContext == null || index < 0 || index >= genericContext.length) {
@@ -255,9 +258,6 @@ String runtimeTypeToStringV2(var rti, List<String> genericContext) {
   if (isDartFutureOrType(rti)) {
     var typeArgument = getFutureOrArgument(rti);
     return 'FutureOr<${runtimeTypeToStringV2(typeArgument, genericContext)}>';
-  }
-  if (isDartJsInteropTypeArgumentRti(rti)) {
-    return 'dynamic';
   }
   // We should not get here.
   return 'unknown-reified-type';

@@ -171,7 +171,11 @@ class ParameterStubGenerator {
               _emitter,
               _closedWorld.elementEnvironment
                   .getTypeVariableDefaultType(typeVariable.element),
-              (_) => _emitter.constantReference(new NullConstantValue()));
+              (_) => _emitter.constantReference(
+                  // TODO(33422): Support type variables in default
+                  // types. Temporarily using the "any" type (encoded as -2) to
+                  // avoid failing on bounds checks.
+                  new IntConstantValue(new BigInt.from(-2))));
         } else {
           String jsName = '\$${typeVariable.element.name}';
           stubParameters[parameterIndex++] = new jsAst.Parameter(jsName);
