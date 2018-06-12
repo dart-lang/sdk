@@ -868,17 +868,6 @@ class CodeGenerator extends Object
     return _emitClassDeclaration(node, node.element as ClassElement, []);
   }
 
-  JS.Statement _emitJSType(Element e) {
-    var jsTypeName = getAnnotationName(e, isJSAnnotation);
-    if (jsTypeName == null || jsTypeName == e.name) return null;
-
-    // We export the JS type as if it was a Dart type. For example this allows
-    // `dom.InputElement` to actually be HTMLInputElement.
-    // TODO(jmesserly): if we had the JS name on the Element, we could just
-    // generate it correctly when we refer to it.
-    return js.statement('# = #;', [_emitTopLevelName(e), jsTypeName]);
-  }
-
   @override
   JS.Statement visitClassDeclaration(ClassDeclaration node) {
     return _emitClassDeclaration(node, node.element, node.members);
@@ -888,10 +877,6 @@ class CodeGenerator extends Object
       ClassElement classElem, List<ClassMember> members) {
     // If this class is annotated with `@JS`, then there is nothing to emit.
     if (_hasJSInteropAnnotation(classElem)) return null;
-
-    // If this is a JavaScript type, emit it now and then exit.
-    var jsTypeDef = _emitJSType(classElem);
-    if (jsTypeDef != null) return jsTypeDef;
 
     // Generic classes will be defined inside a function that closes over the
     // type parameter. So we can use their local variable name directly.

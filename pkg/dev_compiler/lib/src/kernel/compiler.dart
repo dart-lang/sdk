@@ -521,10 +521,6 @@ class ProgramCompiler extends Object
     // If this class is annotated with `@JS`, then there is nothing to emit.
     if (findAnnotation(c, isPublicJSAnnotation) != null) return null;
 
-    // If this is a JavaScript type, emit it now and then exit.
-    var jsTypeDef = _emitJSType(c);
-    if (jsTypeDef != null) return jsTypeDef;
-
     // Generic classes will be defined inside a function that closes over the
     // type parameter. So we can use their local variable name directly.
     //
@@ -1944,17 +1940,6 @@ class ProgramCompiler extends Object
     }
     body.add(runtimeStatement(
         'registerExtension(#, #)', [js.string(jsPeerName), className]));
-  }
-
-  JS.Statement _emitJSType(Class c) {
-    var jsTypeName = getAnnotationName(c, isJSAnnotation);
-    if (jsTypeName == null || jsTypeName == c.name) return null;
-
-    // We export the JS type as if it was a Dart type. For example this allows
-    // `dom.InputElement` to actually be HTMLInputElement.
-    // TODO(jmesserly): if we had the JS name on the Element, we could just
-    // generate it correctly when we refer to it.
-    return js.statement('# = #;', [_emitTopLevelName(c), jsTypeName]);
   }
 
   void _emitTypedef(Typedef t) {
