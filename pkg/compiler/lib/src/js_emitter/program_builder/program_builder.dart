@@ -677,8 +677,10 @@ class ProgramBuilder {
 
     void visitMember(MemberEntity member) {
       if (member.isInstanceMember && !member.isAbstract && !member.isField) {
-        Method method = _buildMethod(member);
-        if (method != null && member is! JSignatureMethod) methods.add(method);
+        if (member is! JSignatureMethod) {
+          Method method = _buildMethod(member);
+          if (method != null) methods.add(method);
+        }
       }
       if (member.isGetter || member.isField) {
         Map<Selector, SelectorConstraints> selectors =
