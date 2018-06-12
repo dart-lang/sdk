@@ -161,8 +161,11 @@ class _ReportNoClearEffectVisitor extends UnifyingAstVisitor {
 
   @override
   visitPrefixedIdentifier(PrefixedIdentifier node) {
-    // Allow getters; they may have a side effect.
-    if (node.identifier.bestElement is PropertyAccessorElement) return;
+    // Allow getters; getters with side effects were the main cause of false
+    // positives.
+    var bestElement = node.identifier.bestElement;
+    if (bestElement is PropertyAccessorElement && !bestElement.isSynthetic)
+      return;
 
     super.visitPrefixedIdentifier(node);
   }
@@ -178,8 +181,12 @@ class _ReportNoClearEffectVisitor extends UnifyingAstVisitor {
 
   @override
   visitPropertyAccess(PropertyAccess node) {
-    // Allow getters; they may have a side effect.
-    if (node.propertyName.bestElement is PropertyAccessorElement) return;
+    // Allow getters; getters with side effects were the main cause of false
+    // positives.
+    var bestElement = node.propertyName.bestElement;
+    if (bestElement is PropertyAccessorElement && !bestElement.isSynthetic) {
+      return;
+    }
 
     super.visitPropertyAccess(node);
   }
@@ -196,8 +203,13 @@ class _ReportNoClearEffectVisitor extends UnifyingAstVisitor {
 
   @override
   visitSimpleIdentifier(SimpleIdentifier node) {
-    // Allow getters; they may have a side effect.
-    if (node.bestElement is PropertyAccessorElement) return;
+    // Allow getters; getters with side effects were the main cause of false
+    // positives.
+    var bestElement = node.bestElement;
+    if (node.bestElement is PropertyAccessorElement &&
+        !bestElement.isSynthetic) {
+      return;
+    }
 
     super.visitSimpleIdentifier(node);
   }
