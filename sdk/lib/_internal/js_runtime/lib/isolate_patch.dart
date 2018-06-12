@@ -146,5 +146,4 @@ class Capability {
 /// This is used by `Isolate.resolvePackageUri` to load resources. The default
 /// value is `packages/` but users can override this by using the
 /// `defaultPackagesBase` hook.
-Uri _packagesBase =
-    Uri.base.resolve(JS('String', r'self.defaultPackagesBase || "packages/"'));
+Uri _packagesBase = Uri.base.resolve(JS('String', r'self.defaultPackagesBase'));

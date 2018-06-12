@@ -30,7 +30,7 @@ class _Platform {
    */
   external static _environment();
   external static List<String> _executableArguments();
-  external static String _packageRoot();
+  external static String _packageRoot(); // TODO(mfairhurst): remove this
   external static String _packageConfig();
   external static String _version();
   external static String _localeName();
@@ -38,7 +38,7 @@ class _Platform {
 
   static String executable = _executable();
   static String resolvedExecutable = _resolvedExecutable();
-  static String packageRoot = _packageRoot();
+  static String packageRoot = null; // TODO(mfairhurst): remove this
   static String packageConfig = _packageConfig();
 
   static String Function() _localeClosure;

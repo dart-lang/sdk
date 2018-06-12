@@ -8,7 +8,8 @@
 // OtherResources=http_launch_data/http_isolate_main.dart
 // OtherResources=http_launch_data/http_launch_main.dart
 // OtherResources=http_launch_data/http_spawn_main.dart
-// OtherResources=http_launch_data/packages/simple/simple.dart
+// OtherResources=http_launch_data/the_packages/simple/simple.dart
+// OtherResources=http_launch_data/.packages
 //
 // Test:
 //   *) Launching a script fetched over HTTP.
@@ -54,7 +55,7 @@ serverRunning(HttpServer server) {
   Future<ProcessResult> http_run = Process
       .run(pathToExecutable, ['http://127.0.0.1:$port/http_launch_main.dart']);
   Future<ProcessResult> http_pkg_root_run = Process.run(pathToExecutable, [
-    '--package-root=http://127.0.0.1:$port/packages/',
+    '--package-root=http://127.0.0.1:$port/the_packages/',
     'http://127.0.0.1:$port/http_launch_main.dart'
   ]);
   Future<ProcessResult> isolate_run = Process.run(pathToExecutable,

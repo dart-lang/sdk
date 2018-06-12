@@ -343,10 +343,8 @@ class Isolate {
       // The VM will invoke [_startIsolate] with entryPoint as argument.
       readyPort = new RawReceivePort();
 
-      // We do not inherit the package root or package config settings
-      // from the parent isolate, instead we use the values that were
-      // set on the command line.
-      var packageRoot = VMLibraryHooks.packageRootString;
+      // We do not inherit the package config settings from the parent isolate,
+      // instead we use the values that were set on the command line.
       var packageConfig = VMLibraryHooks.packageConfigString;
       var script = VMLibraryHooks.platformScript;
       if (script == null) {
@@ -359,7 +357,7 @@ class Isolate {
       }
 
       _spawnFunction(readyPort.sendPort, script.toString(), entryPoint, message,
-          paused, errorsAreFatal, onExit, onError, packageRoot, packageConfig);
+          paused, errorsAreFatal, onExit, onError, null, packageConfig);
       return await _spawnCommon(readyPort);
     } catch (e, st) {
       if (readyPort != null) {
@@ -419,11 +417,9 @@ class Isolate {
 
       // Ensure to resolve package: URIs being handed in as parameters.
       if (packageRoot != null) {
-        // Avoid calling resolvePackageUri if not stricly necessary in case
-        // the API is not supported.
-        if (packageRoot.scheme == "package") {
-          packageRoot = await Isolate.resolvePackageUri(packageRoot);
-        }
+        // `packages/` directory is no longer supported. Force it null.
+        // TODO(mfairhurst) Should this throw an exception?
+        packageRoot = null;
       } else if (packageConfig != null) {
         // Avoid calling resolvePackageUri if not strictly necessary in case
         // the API is not supported.

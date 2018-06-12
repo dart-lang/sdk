@@ -1684,8 +1684,7 @@ int main(int argc, char** argv) {
     CHECK_RESULT(result);
 
     // Setup package root if specified.
-    result = DartUtils::SetupPackageRoot(commandline_package_root,
-                                         commandline_packages_file);
+    result = DartUtils::SetupPackageRoot(NULL, commandline_packages_file);
     CHECK_RESULT(result);
 
     UriResolverIsolateScope::isolate = isolate;

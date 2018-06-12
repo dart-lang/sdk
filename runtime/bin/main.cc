@@ -301,7 +301,7 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
   }
 
   // Setup package root if specified.
-  result = DartUtils::SetupPackageRoot(package_root, packages_config);
+  result = DartUtils::SetupPackageRoot(NULL, packages_config);
   CHECK_RESULT(result);
   const char* resolved_packages_config = NULL;
   if (!Dart_IsNull(result)) {

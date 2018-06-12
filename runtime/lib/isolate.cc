@@ -217,8 +217,8 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 10) {
             message, ILLEGAL_PORT, Message::kNormalPriority));
       }
 
-      const char* utf8_package_root =
-          packageRoot.IsNull() ? NULL : String2UTF8(packageRoot);
+      // TODO(mfairhurst) remove package_root, as it no longer does anything.
+      const char* utf8_package_root = NULL;
       const char* utf8_package_config =
           packageConfig.IsNull() ? NULL : String2UTF8(packageConfig);
 
@@ -343,8 +343,8 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
     ThrowIsolateSpawnException(msg);
   }
 
-  const char* utf8_package_root =
-      packageRoot.IsNull() ? NULL : String2UTF8(packageRoot);
+  // TODO(mfairhurst) remove package_root, as it no longer does anything.
+  const char* utf8_package_root = NULL;
   const char* utf8_package_config =
       packageConfig.IsNull() ? NULL : String2UTF8(packageConfig);
 

@@ -333,11 +333,13 @@ Future<List<int>> _resourceReadAsBytes(Uri uri) async {
   }
 }
 
+// TODO(mfairhurst): remove this
 Future<Uri> _getPackageRootFuture() {
   if (_traceLoading) {
     _log("Request for package root from user code.");
   }
-  return _makeLoaderRequest<Uri>(_Dart_kGetPackageRootUri, null);
+  // Return null, as the `packages/` directory is not supported in dart 2.
+  return new Future.value(null);
 }
 
 Future<Uri> _getPackageConfigFuture() {

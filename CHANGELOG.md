@@ -39,6 +39,9 @@ be inferred as `void`.
 * `async` functions now start synchronously by default.
   Passing the `--no-sync-async` flag will produce the old behavior,
   starting `async` functions asynchronously.
+* The dart VM will no longer attempt to perform `packages/` directory
+  resolution (for loading scripts, and in `Isolate.resolveUri`). Users
+  relying on `packages/` directories should switch to `.packages` files.
 
 ### Tool Changes
 
@@ -54,6 +57,18 @@ be inferred as `void`.
     and `WebSocket`. The `SCREAMING_CAPS` constants are marked deprecated.
     Note that `HttpStatus.CONTINUE` is now `HttpStatus.continue_`, and that
     e.g. `HttpHeaders.FIELD_NAME` is now `HttpHeaders.fieldNameHeader`.
+  * Deprecated `Platform.packageRoot`, which is only used for `packages/`
+    directory resolution which is no longer supported. It will now always
+    return null, which is a value that was always possible for it to return
+    previously.
+* `dart:isolate'
+  * Deprecated `Isolate.packageRoot`, which is only used for `packages/`
+    directory resolution which is no longer supported. It will now always
+    return null, which is a value that was always possible for it to return
+    previously.
+  * Deprecated `packageRoot` parameter in `Isolate.spawnUri`, which is was
+    previously used only for `packages/` directory resolution. That style
+    of resolution is no longer supported in dart 2.
 
 ## 2.0.0-dev.60.0
 

@@ -21,15 +21,13 @@ main([args, port]) async {
       print(msg.runtimeType);
       throw "Failure return from spawned isolate:\n\n$msg";
     }
-    var child_pkg_root = Platform.script.resolve("packages/");
-    if (msg[0] != child_pkg_root.toString()) {
+    if (msg[0] != null) {
       throw "Bad package root in child isolate: ${msg[0]}.\n"
-          "Expected: $child_pkg_root";
+          "Expected: null";
     }
-    var child_pkg_path = child_pkg_root.resolve("foo/bar.dart");
-    if (msg[1] != child_pkg_path.toString()) {
+    if (msg[1] != null) {
       throw "Package path not matching: ${msg[1]}\n"
-          "Expected $child_pkg_path";
+          "Expected: null";
     }
     print("SUCCESS");
   };

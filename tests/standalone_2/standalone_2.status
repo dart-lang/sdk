@@ -9,6 +9,8 @@ io/http_close_test: Pass, RuntimeError # Issue 28380
 io/raw_socket_test: Pass, RuntimeError # Issue 28288
 issue14236_test: Pass # Do not remove this line. It serves as a marker for Issue 14516 comment #4.
 package/invalid_uri_test: Fail, OK # CompileTimeErrors intentionally
+package/package1_test: Fail # imports 'package:foo.dart' which is no longer valid
+package/package_test: Fail # imports 'package:foo.dart' which is no longer valid
 package/scenarios/empty_packages_file/empty_packages_file_discovery_test: Fail, OK # CompileTimeErrors intentionally
 package/scenarios/empty_packages_file/empty_packages_file_option_test: Fail, OK # CompileTimeErrors intentionally
 package/scenarios/invalid/invalid_package_name_test: RuntimeError, CompileTimeError # Errors intentionally
@@ -71,6 +73,11 @@ io/*: Skip # Issue 30618
 # All static_tests have expected compile-time errors.
 [ $compiler != app_jitk && $compiler != dart2analyzer && $compiler != dartdevc && $compiler != dartk && $compiler != dartkp && $runtime != none && $strong ]
 float_array_static_test: MissingCompileTimeError
+
+# We want to confirm that this behavior no longer works. Works in kernel though.
+# TODO(mfairhurst) delete this test.
+[ $compiler != dartk && !$fasta ]
+package/scenarios/packages_dir_only/packages_dir_only_test: Fail
 
 [ $compiler == none && $runtime == vm && $system == fuchsia ]
 *: Skip # Not yet triaged.
