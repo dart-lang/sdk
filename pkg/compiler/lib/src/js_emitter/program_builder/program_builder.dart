@@ -924,16 +924,21 @@ class ProgramBuilder {
 
     int requiredParameterCount;
     var /* List | Map */ optionalParameterDefaultValues;
+    int applyIndex = 0;
     if (canBeApplied) {
       // TODO(redemption): Handle function entities.
       FunctionEntity method = element;
       ParameterStructure parameterStructure = method.parameterStructure;
       requiredParameterCount = parameterStructure.requiredParameters;
       optionalParameterDefaultValues = _computeParameterDefaultValues(method);
+
+      if (element.parameterStructure.typeParameters > 0) {
+        applyIndex = 1;
+      }
     }
 
     return new InstanceMethod(element, name, code,
-        _generateParameterStubs(element, canTearOff), callName,
+        _generateParameterStubs(element, canTearOff, canBeApplied), callName,
         needsTearOff: canTearOff,
         tearOffName: tearOffName,
         isClosureCallMethod: isClosureCallMethod,
@@ -942,7 +947,8 @@ class ProgramBuilder {
         canBeApplied: canBeApplied,
         requiredParameterCount: requiredParameterCount,
         optionalParameterDefaultValues: optionalParameterDefaultValues,
-        functionType: functionType);
+        functionType: functionType,
+        applyIndex: applyIndex);
   }
 
   js.Expression _generateFunctionType(
@@ -956,7 +962,7 @@ class ProgramBuilder {
   }
 
   List<ParameterStubMethod> _generateParameterStubs(
-      FunctionEntity element, bool canTearOff) {
+      FunctionEntity element, bool canTearOff, bool canBeApplied) {
     if (!_methodNeedsStubs(element)) return const <ParameterStubMethod>[];
 
     ParameterStubGenerator generator = new ParameterStubGenerator(
@@ -968,7 +974,8 @@ class ProgramBuilder {
         _worldBuilder,
         _closedWorld,
         _sourceInformationStrategy);
-    return generator.generateParameterStubs(element, canTearOff: canTearOff);
+    return generator.generateParameterStubs(element,
+        canTearOff: canTearOff, canBeApplied: canBeApplied);
   }
 
   List<StubMethod> _generateInstantiationStubs(ClassEntity instantiationClass) {
@@ -1146,24 +1153,34 @@ class ProgramBuilder {
 
     int requiredParameterCount;
     var /* List | Map */ optionalParameterDefaultValues;
+    int applyIndex = 0;
     if (canBeApplied) {
       // TODO(redemption): Support entities;
       FunctionEntity method = element;
       ParameterStructure parameterStructure = method.parameterStructure;
       requiredParameterCount = parameterStructure.requiredParameters;
       optionalParameterDefaultValues = _computeParameterDefaultValues(method);
+      if (parameterStructure.typeParameters > 0) {
+        applyIndex = 1;
+      }
     }
 
     // TODO(floitsch): we shouldn't update the registry in the middle of
     // building a static method.
-    return new StaticDartMethod(element, name, _registry.registerHolder(holder),
-        code, _generateParameterStubs(element, needsTearOff), callName,
+    return new StaticDartMethod(
+        element,
+        name,
+        _registry.registerHolder(holder),
+        code,
+        _generateParameterStubs(element, needsTearOff, canBeApplied),
+        callName,
         needsTearOff: needsTearOff,
         tearOffName: tearOffName,
         canBeApplied: canBeApplied,
         requiredParameterCount: requiredParameterCount,
         optionalParameterDefaultValues: optionalParameterDefaultValues,
-        functionType: functionType);
+        functionType: functionType,
+        applyIndex: applyIndex);
   }
 
   void _registerConstants(

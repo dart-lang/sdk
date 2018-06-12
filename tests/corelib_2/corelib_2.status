@@ -20,7 +20,6 @@ iterable_element_at_test/static: Pass
 num_sign_test: Crash, Pass # Issue 31768
 
 [ $compiler == dart2js ]
-apply_generic_function_test: RuntimeError # Issue 32691
 bigint_from_test: RuntimeError # Issue 32589
 date_time11_test: RuntimeError, Pass # Fails when US is on winter time, issue 31285.
 iterable_where_type_test: RuntimeError # issue 31718
@@ -213,6 +212,7 @@ symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') sho
 cast_test: RuntimeError
 error_stack_trace1_test: RuntimeError
 growable_list_test: RuntimeError
+int_parse_radix_test/02: RuntimeError
 integer_to_radix_string_test/01: RuntimeError
 integer_to_radix_string_test/02: RuntimeError
 integer_to_radix_string_test/none: RuntimeError
@@ -239,6 +239,7 @@ int_try_parse_int64_test: RuntimeError # WontFix: Int not precisely representabl
 cast_test: RuntimeError
 error_stack_trace1_test: RuntimeError # Issue 12399
 growable_list_test: RuntimeError # Concurrent modifications test always runs
+int_parse_radix_test/02: RuntimeError
 integer_to_radix_string_test/01: RuntimeError
 integer_to_radix_string_test/02: RuntimeError
 integer_to_radix_string_test/none: RuntimeError

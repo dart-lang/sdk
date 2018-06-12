@@ -433,6 +433,7 @@ abstract class DartMethod extends Method {
   final js.Name tearOffName;
   final List<ParameterStubMethod> parameterStubs;
   final bool canBeApplied;
+  final int applyIndex;
 
   // Is non-null if [needsTearOff].
   //
@@ -458,7 +459,8 @@ abstract class DartMethod extends Method {
       this.canBeApplied,
       this.requiredParameterCount,
       this.optionalParameterDefaultValues,
-      this.functionType})
+      this.functionType,
+      this.applyIndex})
       : super(element, name, code) {
     assert(needsTearOff != null);
     assert(!needsTearOff || tearOffName != null);
@@ -486,6 +488,9 @@ class InstanceMethod extends DartMethod {
   /// True if the interceptor calling convention is used for this method.
   final bool isIntercepted;
 
+  /// Name called via the general 'catch all' path of Function.apply.
+  ///final js.Name applyName;
+
   InstanceMethod(FunctionEntity element, js.Name name, js.Expression code,
       List<ParameterStubMethod> parameterStubs, js.Name callName,
       {bool needsTearOff,
@@ -496,14 +501,16 @@ class InstanceMethod extends DartMethod {
       /* List | Map */ optionalParameterDefaultValues,
       this.isClosureCallMethod,
       this.isIntercepted,
-      js.Expression functionType})
+      js.Expression functionType,
+      int applyIndex})
       : super(element, name, code, parameterStubs, callName,
             needsTearOff: needsTearOff,
             tearOffName: tearOffName,
             canBeApplied: canBeApplied,
             requiredParameterCount: requiredParameterCount,
             optionalParameterDefaultValues: optionalParameterDefaultValues,
-            functionType: functionType) {
+            functionType: functionType,
+            applyIndex: applyIndex) {
     assert(isClosureCallMethod != null);
   }
 
@@ -549,8 +556,9 @@ class ParameterStubMethod extends StubMethod {
       : super(name, code);
 
   String toString() {
-    return 'ParameterStubMethod(name=${name.key},element=${element}'
-        ',code=${js.nodeToString(code)})';
+    return 'ParameterStubMethod(name=${name.key}, callName=${callName?.key}'
+        ', element=${element}'
+        ', code=${js.nodeToString(code)})';
   }
 }
 
@@ -573,14 +581,16 @@ class StaticDartMethod extends DartMethod implements StaticMethod {
       bool canBeApplied,
       int requiredParameterCount,
       /* List | Map */ optionalParameterDefaultValues,
-      js.Expression functionType})
+      js.Expression functionType,
+      int applyIndex})
       : super(element, name, code, parameterStubs, callName,
             needsTearOff: needsTearOff,
             tearOffName: tearOffName,
             canBeApplied: canBeApplied,
             requiredParameterCount: requiredParameterCount,
             optionalParameterDefaultValues: optionalParameterDefaultValues,
-            functionType: functionType);
+            functionType: functionType,
+            applyIndex: applyIndex);
 
   bool get isStatic => true;
 

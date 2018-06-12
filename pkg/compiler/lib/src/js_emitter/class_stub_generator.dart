@@ -237,6 +237,7 @@ class ClassStubGenerator {
 ///    member that is torn off. There can be more than one, since a member
 ///    can have several stubs.
 ///    Each function must have the `$callName` property set.
+///   * `applyTrampolineIndex` is the index of the stub to be used for Function.apply
 ///   * `reflectionInfo`: contains reflective information, and the function
 ///    type. TODO(floitsch): point to where this is specified.
 ///   * `isStatic`.
@@ -268,22 +269,22 @@ List<jsAst.Statement> buildTearOffCode(CompilerOptions options, Emitter emitter,
     jsAst.Expression tearOffAccessText = new jsAst.UnparsedNode(
         tearOffAccessExpression, options.enableMinification, false);
     tearOffGetter = js.statement('''
-function tearOffGetter(funcs, reflectionInfo, name, isIntercepted) {
+function tearOffGetter(funcs, applyTrampolineIndex, reflectionInfo, name, isIntercepted) {
   return isIntercepted
-      ? new Function("funcs", "reflectionInfo", "name",
+      ? new Function("funcs", "applyTrampolineIndex", "reflectionInfo", "name",
                      #tearOffGlobalObjectString, "c",
           "return function tearOff_" + name + (functionCounter++) + "(x) {" +
             "if (c === null) c = " + #tearOffAccessText + "(" +
-                "this, funcs, reflectionInfo, false, [x], name);" +
+                "this, funcs, applyTrampolineIndex, reflectionInfo, false, [x], name);" +
                 "return new c(this, funcs[0], x, name);" +
-                "}")(funcs, reflectionInfo, name, #tearOffGlobalObject, null)
-      : new Function("funcs", "reflectionInfo", "name",
+           "}")(funcs, applyTrampolineIndex, reflectionInfo, name, #tearOffGlobalObject, null)
+      : new Function("funcs", "applyTrampolineIndex", "reflectionInfo", "name",
                      #tearOffGlobalObjectString, "c",
           "return function tearOff_" + name + (functionCounter++)+ "() {" +
             "if (c === null) c = " + #tearOffAccessText + "(" +
-                "this, funcs, reflectionInfo, false, [], name);" +
+                "this, funcs, applyTrampolineIndex, reflectionInfo, false, [], name);" +
                 "return new c(this, funcs[0], null, name);" +
-                "}")(funcs, reflectionInfo, name, #tearOffGlobalObject, null);
+             "}")(funcs, applyTrampolineIndex, reflectionInfo, name, #tearOffGlobalObject, null);
 }''', {
       'tearOffAccessText': tearOffAccessText,
       'tearOffGlobalObject': tearOffGlobalObject,
@@ -291,32 +292,35 @@ function tearOffGetter(funcs, reflectionInfo, name, isIntercepted) {
     });
   } else {
     tearOffGetter = js.statement('''
-      function tearOffGetter(funcs, reflectionInfo, name, isIntercepted) {
+        function tearOffGetter(funcs, applyTrampolineIndex, reflectionInfo, name, isIntercepted) {
         var cache = null;
         return isIntercepted
             ? function(x) {
                 if (cache === null) cache = #(
-                    this, funcs, reflectionInfo, false, [x], name);
+                    this, funcs, applyTrampolineIndex, reflectionInfo, false, [x], name);
                 return new cache(this, funcs[0], x, name);
               }
             : function() {
                 if (cache === null) cache = #(
-                    this, funcs, reflectionInfo, false, [], name);
+                    this, funcs, applyTrampolineIndex, reflectionInfo, false, [], name);
                 return new cache(this, funcs[0], null, name);
               };
       }''', [tearOffAccessExpression, tearOffAccessExpression]);
   }
 
   jsAst.Statement tearOff = js.statement('''
-    function tearOff(funcs, reflectionInfo, isStatic, name, isIntercepted) {
+      function tearOff(funcs, applyTrampolineIndex,
+          reflectionInfo, isStatic, name, isIntercepted) {
       var cache;
       return isStatic
           ? function() {
               if (cache === void 0) cache = #tearOff(
-                  this, funcs, reflectionInfo, true, [], name).prototype;
+                  this, funcs, applyTrampolineIndex,
+                  reflectionInfo, true, [], name).prototype;
               return cache;
             }
-          : tearOffGetter(funcs, reflectionInfo, name, isIntercepted);
+          : tearOffGetter(funcs, applyTrampolineIndex,
+              reflectionInfo, name, isIntercepted);
     }''', {'tearOff': tearOffAccessExpression});
 
   return <jsAst.Statement>[tearOffGetter, tearOff];
