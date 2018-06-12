@@ -52,7 +52,9 @@ const _Dart_kResolvePackageUri = 8; // Resolve a package: uri.
 // either a Uri or a List<int>.
 Future<T> _makeLoaderRequest<T>(int tag, String uri) {
   assert(_isolateId != null);
-  assert(_loadPort != null);
+  if (_loadPort == null) {
+    throw new UnsupportedError("Service isolate is not available.");
+  }
   Completer completer = new Completer<T>();
   RawReceivePort port = new RawReceivePort();
   port.handler = (msg) {

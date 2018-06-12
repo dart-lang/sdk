@@ -37,6 +37,8 @@
 #include "bin/gzip.h"
 #endif
 
+#include "vm/flags.h"
+
 extern "C" {
 extern const uint8_t kDartVmSnapshotData[];
 extern const uint8_t kDartVmSnapshotInstructions[];
@@ -291,10 +293,12 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
   result = DartUtils::PrepareForScriptLoading(false, Options::trace_loading());
   CHECK_RESULT(result);
 
-  // Set up the load port provided by the service isolate so that we can
-  // load scripts.
-  result = DartUtils::SetupServiceLoadPort();
-  CHECK_RESULT(result);
+  if (FLAG_support_service || !kDartPrecompiledRuntime) {
+    // Set up the load port provided by the service isolate so that we can
+    // load scripts.
+    result = DartUtils::SetupServiceLoadPort();
+    CHECK_RESULT(result);
+  }
 
   // Setup package root if specified.
   result = DartUtils::SetupPackageRoot(package_root, packages_config);
@@ -367,7 +371,9 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
     result = DartUtils::SetupIOLibrary(Options::namespc(), script_uri,
                                        Options::exit_disabled());
     CHECK_RESULT(result);
-    Loader::InitForSnapshot(script_uri);
+    if (FLAG_support_service) {
+      Loader::InitForSnapshot(script_uri);
+    }
 #if !defined(DART_PRECOMPILED_RUNTIME)
     if (is_main_isolate) {
       // Find the canonical uri of the app snapshot. We'll use this to decide if

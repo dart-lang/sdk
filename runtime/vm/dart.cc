@@ -307,15 +307,11 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     Service::SetGetServiceAssetsCallback(get_service_assets);
   }
 
-#if defined(DART_PRECOMPILED_RUNTIME)
-  const bool is_precompiled_runtime = true;
-#else
-  const bool is_precompiled_runtime = false;
-#endif
-
   const bool is_dart2_aot_precompiler =
-      FLAG_strong && FLAG_precompiled_mode && !is_precompiled_runtime;
-  if (!is_dart2_aot_precompiler) {
+      FLAG_strong && FLAG_precompiled_mode && !kDartPrecompiledRuntime;
+
+  if (!is_dart2_aot_precompiler &&
+      (FLAG_support_service || !kDartPrecompiledRuntime)) {
     ServiceIsolate::Run();
   }
 
