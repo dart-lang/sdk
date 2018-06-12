@@ -59,17 +59,22 @@
 # `#unicode` a Unicode short identifier (U+xxxx). We use this to represent code
 #  units or code points.
 #
-# `#name` a name (a string).
-#
-# `#name2` another name (a string).
+# `#name`, `#name2`, `#name3`: names (as strings).
 #
 # `#lexeme` a token. The token's `lexeme` property is used.
 #
-# `#string` a string.
+# `#string`, `#string2`, `#string3`: strings (that aren't names).
 #
-# `#string2` another string.
+# `#type`, #type2`: Kernel types.
 #
-# `#uri` a Uri.
+# `#uri`, `#uri2`, `#uri3`: URIs.
+#
+# `#count`, `#count2`: counts (as integers)
+#
+# `#constant` a Kernel constant.
+#
+# `#num1%N.M`, `#num2%N.M`, `#num3%N.M`: numbers (doubles) formatted to minimum
+# width N and with M fraction digits.
 
 AsciiControlCharacter:
   template: "The control character #unicode can only be used in strings and comments."
@@ -1147,8 +1152,7 @@ LoadLibraryHidesMember:
   severity: NIT
 
 TypeArgumentMismatch:
-  # TODO(sigmund): #string should be a number instead.
-  template: "'#name' expects #string type arguments."
+  template: "'#name' expects #count type arguments."
   severity: ERROR_LEGACY_WARNING
 
 NotAType:
@@ -2163,21 +2167,21 @@ UndefinedMethod:
 
 SourceOutlineSummary:
   template: |
-    Built outlines for #count compilation units (#count2 bytes) in #string, that is,
-    #string2 bytes/ms, and
-    #string3 ms/compilation unit.
+    Built outlines for #count compilation units (#count2 bytes) in #num1%.3ms, that is,
+    #num2%12.3 bytes/ms, and
+    #num3%12.3 ms/compilation unit.
 
 SourceBodySummary:
   template: |
-    Built bodies for #count compilation units (#count2 bytes) in #string, that is,
-    #string2 bytes/ms, and
-    #string3 ms/compilation unit.
+    Built bodies for #count compilation units (#count2 bytes) in #num1%.3ms, that is,
+    #num2%12.3 bytes/ms, and
+    #num3%12.3 ms/compilation unit.
 
 DillOutlineSummary:
   template: |
-    Indexed #count libraries (#count2 bytes) in #string, that is,
-    #string2 bytes/ms, and
-    #string3 ms/libraries.
+    Indexed #count libraries (#count2 bytes) in #num1%.3ms, that is,
+    #num2%12.3 bytes/ms, and
+    #num3%12.3 ms/libraries.
 
 CantInferTypeDueToInconsistentOverrides:
   template: "Can't infer the type of '#string': overridden members must all have the same type."

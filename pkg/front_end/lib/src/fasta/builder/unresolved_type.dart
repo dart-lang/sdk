@@ -37,7 +37,7 @@ class UnresolvedType<T extends TypeBuilder> {
               charOffset,
               fileUri,
               templateTypeArgumentMismatch.withArguments(
-                  resolvedType.name, "${declaration.typeVariablesCount}"));
+                  resolvedType.name, declaration.typeVariablesCount));
         }
       } else if (declaration is FunctionTypeAliasBuilder) {
         if (resolvedType.arguments != null &&
@@ -46,7 +46,7 @@ class UnresolvedType<T extends TypeBuilder> {
               charOffset,
               fileUri,
               templateTypeArgumentMismatch.withArguments(
-                  resolvedType.name, "${declaration.typeVariablesCount}"));
+                  resolvedType.name, declaration.typeVariablesCount));
         }
       }
     }

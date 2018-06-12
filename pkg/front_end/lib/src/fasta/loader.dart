@@ -185,11 +185,7 @@ abstract class Loader<L> {
       });
       double ms = elapsed.inMicroseconds / Duration.microsecondsPerMillisecond;
       Message message = template.withArguments(
-          libraryCount,
-          byteCount,
-          "${format(ms, 3, 0)}ms",
-          format(byteCount / ms, 3, 12),
-          format(ms / libraryCount, 3, 12));
+          libraryCount, byteCount, ms, byteCount / ms, ms / libraryCount);
       print("$sinceStart: ${message.message}");
     });
   }
@@ -282,8 +278,4 @@ severity: $severity
   void recordMessage(Severity severity, Message message, int charOffset,
       int length, Uri fileUri,
       {List<LocatedMessage> context}) {}
-}
-
-String format(double d, int fractionDigits, int width) {
-  return d.toStringAsFixed(fractionDigits).padLeft(width);
 }

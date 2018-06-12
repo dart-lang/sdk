@@ -1265,7 +1265,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void warnTypeArgumentsMismatch(String name, int expected, int charOffset) {
     addProblemErrorIfConst(
-        fasta.templateTypeArgumentMismatch.withArguments(name, '${expected}'),
+        fasta.templateTypeArgumentMismatch.withArguments(name, expected),
         charOffset,
         name.length);
   }

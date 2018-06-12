@@ -148,7 +148,7 @@ abstract class KernelClassBuilder
       // That should be caught and reported as a compile-time error earlier.
       return unhandled(
           templateTypeArgumentMismatch
-              .withArguments(name, typeVariables.length.toString())
+              .withArguments(name, typeVariables.length)
               .message,
           "buildTypeArguments",
           -1,

@@ -61,7 +61,8 @@ part of fasta.codes;
   return new DartFormatter().format("$sb");
 }
 
-final RegExp placeholderPattern = new RegExp("#[a-zA-Z0-9_]+");
+final RegExp placeholderPattern =
+    new RegExp("#\([-a-zA-Z0-9_]+\)(?:%\([0-9]*\)\.\([0-9]+\))?");
 
 String compileTemplate(String name, String template, String tip,
     String analyzerCode, String dart2jsCode, String severity) {
@@ -78,13 +79,34 @@ String compileTemplate(String name, String template, String tip,
   var conversions = new Set<String>();
   var arguments = new Set<String>();
   for (Match match in placeholderPattern.allMatches("$template${tip ?? ''}")) {
-    switch (match[0]) {
-      case "#character":
+    String name = match[1];
+    String padding = match[2];
+    String fractionDigits = match[3];
+
+    String format(String name) {
+      String conversion;
+      if (fractionDigits == null) {
+        conversion = "'\$$name'";
+      } else {
+        conversion = "$name.toStringAsFixed($fractionDigits)";
+      }
+      if (padding.isNotEmpty) {
+        if (padding.startsWith("0")) {
+          conversion += ".padLeft(${int.parse(padding)}, '0')";
+        } else {
+          conversion += ".padLeft(${int.parse(padding)})";
+        }
+      }
+      return conversion;
+    }
+
+    switch (name) {
+      case "character":
         parameters.add("String character");
         arguments.add("'character': character");
         break;
 
-      case "#unicode":
+      case "unicode":
         // Write unicode value using at least four (but otherwise no more than
         // necessary) hex digits, using uppercase letters.
         // http://www.unicode.org/versions/Unicode10.0.0/appA.pdf
@@ -94,43 +116,43 @@ String compileTemplate(String name, String template, String tip,
         arguments.add("'codePoint': codePoint");
         break;
 
-      case "#name":
+      case "name":
         parameters.add("String name");
         arguments.add("'name': name");
         break;
 
-      case "#name2":
+      case "name2":
         parameters.add("String name2");
         arguments.add("'name2': name2");
         break;
 
-      case "#name3":
+      case "name3":
         parameters.add("String name3");
         arguments.add("'name3': name3");
         break;
 
-      case "#lexeme":
+      case "lexeme":
         parameters.add("Token token");
         conversions.add("String lexeme = token.lexeme;");
         arguments.add("'token': token");
         break;
 
-      case "#string":
+      case "string":
         parameters.add("String string");
         arguments.add("'string': string");
         break;
 
-      case "#string2":
+      case "string2":
         parameters.add("String string2");
         arguments.add("'string2': string2");
         break;
 
-      case "#string3":
+      case "string3":
         parameters.add("String string3");
         arguments.add("'string3': string3");
         break;
 
-      case "#type":
+      case "type":
         parameters.add("DartType _type");
         conversions.add(r"""
 NameSystem nameSystem = new NameSystem();
@@ -141,7 +163,7 @@ String type = '$buffer';
         arguments.add("'type': _type");
         break;
 
-      case "#type2":
+      case "type2":
         parameters.add("DartType _type2");
         conversions.add(r"""
 buffer = new StringBuffer();
@@ -151,47 +173,67 @@ String type2 = '$buffer';
         arguments.add("'type2': _type2");
         break;
 
-      case "#uri":
+      case "uri":
         parameters.add("Uri uri_");
         conversions.add("String uri = relativizeUri(uri_);");
         arguments.add("'uri': uri_");
         break;
 
-      case "#uri2":
+      case "uri2":
         parameters.add("Uri uri2_");
         conversions.add("String uri2 = relativizeUri(uri2_);");
         arguments.add("'uri2': uri2_");
         break;
 
-      case "#uri3":
+      case "uri3":
         parameters.add("Uri uri3_");
         conversions.add("String uri3 = relativizeUri(uri3_);");
         arguments.add("'uri3': uri3_");
         break;
 
-      case "#count":
+      case "count":
         parameters.add("int count");
         arguments.add("'count': count");
         break;
 
-      case "#count2":
+      case "count2":
         parameters.add("int count2");
         arguments.add("'count2': count2");
         break;
 
-      case "#constant":
+      case "constant":
         parameters.add("Constant constant");
         arguments.add("'constant': constant");
         break;
 
+      case "num1":
+        parameters.add("num _num1");
+        conversions.add("String num1 = ${format('_num1')};");
+        arguments.add("'num1': _num1");
+        break;
+
+      case "num2":
+        parameters.add("num _num2");
+        conversions.add("String num2 = ${format('_num2')};");
+        arguments.add("'num2': _num2");
+        break;
+
+      case "num3":
+        parameters.add("num _num3");
+        conversions.add("String num3 = ${format('_num3')};");
+        arguments.add("'num3': _num3");
+        break;
+
       default:
-        throw "Unhandled placeholder in template: ${match[0]}";
+        throw "Unhandled placeholder in template: '$name'";
     }
   }
 
   String interpolate(String name, String text) {
-    return "$name: "
-        "\"\"\"${text.replaceAll(r'$', r'\$').replaceAll('#', '\$')}\"\"\"";
+    text = text
+        .replaceAll(r"$", r"\$")
+        .replaceAllMapped(placeholderPattern, (Match m) => "\${${m[1]}}");
+    return "$name: \"\"\"$text\"\"\"";
   }
 
   List<String> codeArguments = <String>[];
