@@ -367,8 +367,10 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
     CHECK_RESULT(result);
   }
 
+  const char* namespc =
+      Dart_IsKernelIsolate(isolate) ? NULL : Options::namespc();
   if (isolate_run_app_snapshot) {
-    result = DartUtils::SetupIOLibrary(Options::namespc(), script_uri,
+    result = DartUtils::SetupIOLibrary(namespc, script_uri,
                                        Options::exit_disabled());
     CHECK_RESULT(result);
     if (FLAG_support_service || !kDartPrecompiledRuntime) {
@@ -411,7 +413,7 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
                        Dart_GetMainPortId(), Dart_Timeline_Event_Async_End, 0,
                        NULL, NULL);
 
-    result = DartUtils::SetupIOLibrary(Options::namespc(), script_uri,
+    result = DartUtils::SetupIOLibrary(namespc, script_uri,
                                        Options::exit_disabled());
     CHECK_RESULT(result);
 #else
