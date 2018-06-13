@@ -4132,10 +4132,10 @@ class Wrong<T> {
   }
 
   void test_invalidOperatorAfterSuper_primaryExpression() {
-    Expression expression = parsePrimaryExpression('super?.v');
+    Expression expression = parseExpression('super?.v', errors: [
+      expectedError(ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, 5, 2)
+    ]);
     expectNotNullIfNoErrors(expression);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, 5, 2)]);
   }
 
   void test_invalidOperatorForSuper() {
