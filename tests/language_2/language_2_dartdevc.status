@@ -142,6 +142,7 @@ override_inheritance_field_test/50: CompileTimeError
 override_inheritance_generic_test/02: CompileTimeError
 override_inheritance_method_test/28: CompileTimeError
 override_inheritance_method_test/29: CompileTimeError
+part_of_multiple_libs_test/01: MissingCompileTimeError
 part_refers_to_core_library_test/01: Crash
 prefix_shadow_test/01: MissingCompileTimeError # Issue 33005
 regress_23089_test: MissingCompileTimeError

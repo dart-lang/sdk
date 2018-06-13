@@ -1704,6 +1704,15 @@ PartOfTwice:
 PartTwice:
   template: "Can't use '#uri' as a part more than once."
 
+PartOfTwoLibraries:
+  template: "A file can't be part of more than one library."
+  tip: "Try moving the shared declarations into the libraries, or into a new library."
+  severity: ERROR
+
+PartOfTwoLibrariesContext:
+  template: "Used as a part in this library."
+  severity: CONTEXT
+
 FactoryTopLevelDeclaration:
   template: "Top-level declarations can't be declared to be 'factory'."
   tip: "Try removing the keyword 'factory'."

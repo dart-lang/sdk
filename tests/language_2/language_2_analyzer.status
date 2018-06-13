@@ -102,6 +102,7 @@ parameter_initializer2_negative_test: CompileTimeError
 parameter_initializer3_negative_test: CompileTimeError
 parameter_initializer4_negative_test: CompileTimeError
 parameter_initializer6_negative_test: CompileTimeError
+part_of_multiple_libs_test/01: MissingCompileTimeError # Issue 33227
 part_refers_to_core_library_test/01: MissingCompileTimeError # Issue 29709
 prefix_shadow_test/01: MissingCompileTimeError # Issue 33005
 private_member1_negative_test: Fail # Issue 14021

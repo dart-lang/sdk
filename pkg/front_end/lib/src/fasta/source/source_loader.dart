@@ -206,6 +206,10 @@ class SourceLoader<L> extends Loader<L> {
       DietParser parser = new DietParser(listener);
       parser.parseUnit(tokens);
       for (SourceLibraryBuilder part in library.parts) {
+        if (part.partOfLibrary != library) {
+          // Part was included in multiple libraries. Skip it here.
+          continue;
+        }
         Token tokens = await tokenize(part);
         if (tokens != null) {
           listener.uri = part.fileUri;

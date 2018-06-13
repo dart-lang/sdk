@@ -313,6 +313,8 @@ PartOfLibraryNameMismatch/analyzerCode: Fail
 PartOfLibraryNameMismatch/example: Fail
 PartOfSelf/analyzerCode: Fail
 PartOfSelf/example: Fail
+PartOfTwoLibraries/analyzerCode: Fail # Issue 33227
+PartOfTwoLibraries/example: Fail # Needs multiple files
 PartOfUriMismatch/analyzerCode: Fail
 PartOfUriMismatch/example: Fail
 PartOfUseUri/analyzerCode: Fail

@@ -43,6 +43,8 @@ import '../fasta_codes.dart'
         messageExpectedUri,
         messageMemberWithSameNameAsClass,
         messagePartOfSelf,
+        messagePartOfTwoLibraries,
+        messagePartOfTwoLibrariesContext,
         noLength,
         templateConflictsWithMember,
         templateConflictsWithSetter,
@@ -589,11 +591,23 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   void includeParts() {
     Set<Uri> seenParts = new Set<Uri>();
-    for (SourceLibraryBuilder<T, R> part in parts.toList()) {
+    for (SourceLibraryBuilder<T, R> part in parts) {
       if (part == this) {
         addCompileTimeError(messagePartOfSelf, -1, noLength, fileUri);
       } else if (seenParts.add(part.fileUri)) {
-        includePart(part);
+        if (part.partOfLibrary != null &&
+            // TODO(askesc): Remove this hack when co19 fix is rolled in.
+            !part.fileUri.path.endsWith("/co19/src/Utils/expect_common.dart")) {
+          addProblem(messagePartOfTwoLibraries, -1, noLength, part.fileUri,
+              context: [
+                messagePartOfTwoLibrariesContext.withLocation(
+                    part.partOfLibrary.fileUri, -1, noLength),
+                messagePartOfTwoLibrariesContext.withLocation(
+                    this.fileUri, -1, noLength)
+              ]);
+        } else {
+          includePart(part);
+        }
       } else {
         addCompileTimeError(templatePartTwice.withArguments(part.fileUri), -1,
             noLength, fileUri);

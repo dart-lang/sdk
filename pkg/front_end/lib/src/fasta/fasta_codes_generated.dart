@@ -4859,6 +4859,27 @@ const MessageCode messagePartOfTwice = const MessageCode("PartOfTwice",
     tip: r"""Try removing all but one of the part-of directives.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codePartOfTwoLibraries = messagePartOfTwoLibraries;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messagePartOfTwoLibraries = const MessageCode(
+    "PartOfTwoLibraries",
+    severity: Severity.error,
+    message: r"""A file can't be part of more than one library.""",
+    tip:
+        r"""Try moving the shared declarations into the libraries, or into a new library.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codePartOfTwoLibrariesContext =
+    messagePartOfTwoLibrariesContext;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messagePartOfTwoLibrariesContext = const MessageCode(
+    "PartOfTwoLibrariesContext",
+    severity: Severity.context,
+    message: r"""Used as a part in this library.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         Uri uri_,
