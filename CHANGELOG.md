@@ -64,7 +64,7 @@ be inferred as `void`.
     directory resolution which is no longer supported. It will now always
     return null, which is a value that was always possible for it to return
     previously.
-* `dart:isolate'
+* `dart:isolate`
   * Deprecated `Isolate.packageRoot`, which is only used for `packages/`
     directory resolution which is no longer supported. It will now always
     return null, which is a value that was always possible for it to return
