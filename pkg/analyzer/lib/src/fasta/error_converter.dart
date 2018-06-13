@@ -509,7 +509,10 @@ class FastaErrorReporter {
         return;
       case "RETURN_IN_GENERATOR":
         errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.RETURN_IN_GENERATOR, offset, length);
+            CompileTimeErrorCode.RETURN_IN_GENERATOR, offset, length,
+            // TODO(danrubel): Update the parser to report the modifier
+            // involved in this error... either async* or sync*
+            ['async*']);
         return;
       case "STACK_OVERFLOW":
         errorReporter?.reportErrorForOffset(

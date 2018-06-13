@@ -202,32 +202,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_invalidStarAfterAsync() {
-    // TODO(brianwilkerson) Does not recover.
-    //   Expected: an object with length of <1>
-    //   Actual: <Instance of 'Stack'>
-    //   Which: has length of <0>
-    //
-    //   package:test                                                       expect
-    //   test/generated/parser_fasta_test.dart 3290:7                       ParserProxy._run
-    super.test_invalidStarAfterAsync();
-  }
-
-  @override
-  @failingTest
-  void test_invalidSync() {
-    // TODO(brianwilkerson) Does not recover.
-    //   Expected: an object with length of <1>
-    //   Actual: <Instance of 'Stack'>
-    //   Which: has length of <0>
-    //
-    //   package:test                                                       expect
-    //   test/generated/parser_fasta_test.dart 3290:7                       ParserProxy._run
-    super.test_invalidSync();
-  }
-
-  @override
-  @failingTest
   void test_invalidUnicodeEscape_incomplete_noDigits() {
     // TODO(brianwilkerson) Does not recover.
     //   Internal problem: Compiler cannot run without a compiler context.

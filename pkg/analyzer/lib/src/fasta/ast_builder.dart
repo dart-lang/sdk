@@ -509,9 +509,8 @@ class AstBuilder extends StackListener {
     debugEvent("ExpressionFunctionBody");
 
     Expression expression = pop();
-    Token star = pop();
+    pop(); // star (*)
     Token asyncKeyword = pop();
-    assert(star == null);
     if (parseFunctionBodies) {
       push(ast.expressionFunctionBody(
           asyncKeyword, arrowToken, expression, semicolon));
