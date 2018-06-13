@@ -1,3 +1,7 @@
+# 0.1.53
+
+* updated `unnecessary_statements` to ignore getters (as they may be side-effecting).
+
 # 0.1.52
 
 * fixed `void_checks` to handle arguments not resolved to a parameter
