@@ -10,12 +10,9 @@ import 'dart:core' hide Type;
 import 'dart:io' show File;
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/core_types.dart' show CoreTypes;
-
-// TODO(alexmarkov): Move findNativeName out of treeshaker and avoid dependency
-// on unrelated transformation.
-import 'package:kernel/transformations/treeshaker.dart' show findNativeName;
+import 'package:kernel/external_name.dart' show getExternalName;
+import 'package:kernel/library_index.dart' show LibraryIndex;
 
 import 'calls.dart';
 import 'types.dart';
@@ -108,7 +105,7 @@ class NativeCodeOracle {
   /// using [entryPointsListener]. Returns result type of the native method.
   Type handleNativeProcedure(
       Member member, EntryPointsListener entryPointsListener) {
-    final String nativeName = findNativeName(member);
+    final String nativeName = getExternalName(member);
     Type returnType = null;
 
     final nativeActions = _nativeMethods[nativeName];

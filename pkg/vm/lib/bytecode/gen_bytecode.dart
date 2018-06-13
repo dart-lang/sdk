@@ -8,6 +8,7 @@ import 'package:kernel/ast.dart' hide MapEntry;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/clone.dart';
 import 'package:kernel/core_types.dart' show CoreTypes;
+import 'package:kernel/external_name.dart' show getExternalName;
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/transformations/constants.dart'
     show ConstantEvaluator, ConstantsBackend, EvaluationEnvironment;
@@ -103,7 +104,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   @override
   defaultMember(Member node) {
-    if (node.isAbstract || node.isExternal) {
+    if (node.isAbstract) {
       return;
     }
     try {
@@ -124,9 +125,17 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         if (node is Constructor) {
           _genConstructorInitializers(node);
         }
-        node.function?.body?.accept(this);
-        // TODO(alexmarkov): figure out when 'return null' should be generated.
-        _genPushNull();
+        if (node.isExternal) {
+          final String nativeName = getExternalName(node);
+          if (nativeName == null) {
+            return;
+          }
+          _genNativeCall(nativeName);
+        } else {
+          node.function?.body?.accept(this);
+          // TODO(alexmarkov): figure out when 'return null' should be generated.
+          _genPushNull();
+        }
         _genReturnTOS();
         end(node);
       }
@@ -135,6 +144,27 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         print('Unable to generate bytecode for $node: $e');
       }
     }
+  }
+
+  void _genNativeCall(String nativeName) {
+    final function = enclosingMember.function;
+    assert(function != null);
+
+    if (locals.hasTypeArgsVar) {
+      asm.emitPush(locals.typeArgsVarIndexInFrame);
+    }
+    if (locals.hasReceiver) {
+      asm.emitPush(locals.getVarIndexInFrame(locals.receiverVar));
+    }
+    for (var param in function.positionalParameters) {
+      asm.emitPush(locals.getVarIndexInFrame(param));
+    }
+    for (var param in function.namedParameters) {
+      asm.emitPush(locals.getVarIndexInFrame(param));
+    }
+
+    final nativeEntryCpIndex = cp.add(new ConstantNativeEntry(nativeName));
+    asm.emitNativeCall(nativeEntryCpIndex);
   }
 
   LibraryIndex _libraryIndex;

@@ -15,6 +15,9 @@ library vm.bytecode.dbc;
 //    parameters. This DBC instruction was removed at
 //    https://github.com/dart-lang/sdk/commit/cf1de7d46cd88e204380e8f96a993439be56b24c
 //
+// 3. NativeCall instruction is modified to have 'D' format and take 1 argument:
+//    D = index of NativeEntry constant pool entry
+//
 
 enum Opcode {
   kTrap,
@@ -302,7 +305,7 @@ const Map<Opcode, Format> BytecodeFormats = const {
   Opcode.kPushPolymorphicInstanceCallByRange: const Format(
       Encoding.kAD, const [Operand.imm, Operand.imm, Operand.none]),
   Opcode.kNativeCall: const Format(
-      Encoding.kABC, const [Operand.imm, Operand.imm, Operand.imm]),
+      Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
   Opcode.kOneByteStringFromCharCode: const Format(
       Encoding.kAX, const [Operand.reg, Operand.xeg, Operand.none]),
   Opcode.kStringToCharCode: const Format(
