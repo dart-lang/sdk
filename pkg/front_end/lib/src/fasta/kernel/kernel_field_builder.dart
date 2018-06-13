@@ -87,17 +87,10 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
   @override
   void prepareTopLevelInference() {
     if (!isEligibleForInference) return;
-    var typeInferenceEngine = library.loader.typeInferenceEngine;
-    var typeInferrer = typeInferenceEngine.createTopLevelTypeInferrer(
-        field.enclosingClass?.thisType, field);
+    var typeInferrer = library.loader.typeInferenceEngine
+        .createTopLevelTypeInferrer(field.enclosingClass?.thisType, field);
     if (hasInitializer) {
-      initializer = new KernelBodyBuilder.forField(
-              this,
-              // TODO(ahe): Why can't we use the loader's classHierarchy and
-              // coreTypes?
-              typeInferenceEngine.classHierarchy,
-              typeInferenceEngine.coreTypes,
-              typeInferrer)
+      initializer = new KernelBodyBuilder.forField(this, typeInferrer)
           .parseFieldInitializer(initializerTokenForInference);
     }
   }

@@ -755,15 +755,15 @@ class SourceLoader<L> extends Loader<L> {
       for (int i = 0; i < sourceClasses.length; i++) {
         classes[i] = sourceClasses[i].target;
       }
+      orderedClasses = null;
       List<ClassBuilder> result = new List<ClassBuilder>(sourceClasses.length);
       int i = 0;
-      for (Class cls in hierarchy.getOrderedClasses(classes)) {
-        result[i++] = ShadowClass.getClassInferenceInfo(cls).builder;
+      for (Class cls
+          in new List<Class>.from(hierarchy.getOrderedClasses(classes))) {
+        result[i++] = ShadowClass.getClassInferenceInfo(cls).builder
+          ..prepareTopLevelInference();
       }
       orderedClasses = result;
-    }
-    for (ClassBuilder cls in orderedClasses) {
-      cls.prepareTopLevelInference();
     }
     typeInferenceEngine.isTypeInferencePrepared = true;
     ticker.logMs("Prepared top level inference");

@@ -234,35 +234,27 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         typePromoter = _typeInferrer?.typePromoter,
         super(enclosingScope);
 
-  BodyBuilder.withParents(
-      KernelFieldBuilder field,
-      KernelLibraryBuilder part,
-      KernelClassBuilder classBuilder,
-      ClassHierarchy hierarchy,
-      CoreTypes coreTypes,
-      TypeInferrer typeInferrer)
+  BodyBuilder.withParents(KernelFieldBuilder field, KernelLibraryBuilder part,
+      KernelClassBuilder classBuilder, TypeInferrer typeInferrer)
       : this(
             part,
             field,
             classBuilder?.scope ?? field.library.scope,
             null,
-            hierarchy,
-            coreTypes,
+            part.loader.hierarchy,
+            part.loader.coreTypes,
             classBuilder,
             field.isInstanceMember,
             field.fileUri,
             typeInferrer);
 
-  BodyBuilder.forField(KernelFieldBuilder field, ClassHierarchy hierarchy,
-      CoreTypes coreTypes, TypeInferrer typeInferrer)
+  BodyBuilder.forField(KernelFieldBuilder field, TypeInferrer typeInferrer)
       : this.withParents(
             field,
             field.parent is KernelClassBuilder
                 ? field.parent.parent
                 : field.parent,
             field.parent is KernelClassBuilder ? field.parent : null,
-            hierarchy,
-            coreTypes,
             typeInferrer);
 
   bool get hasParserError => recoverableErrors.isNotEmpty;

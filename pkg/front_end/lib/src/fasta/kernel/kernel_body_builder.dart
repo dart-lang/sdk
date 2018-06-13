@@ -40,9 +40,8 @@ class KernelBodyBuilder extends BodyBuilder<Expression, Statement, Arguments> {
       : super(library, member, scope, formalParameterScope, hierarchy,
             coreTypes, classBuilder, isInstanceMember, uri, typeInferrer);
 
-  KernelBodyBuilder.forField(ModifierBuilder member, ClassHierarchy hierarchy,
-      CoreTypes coreTypes, TypeInferrer typeInferrer)
-      : super.forField(member, hierarchy, coreTypes, typeInferrer);
+  KernelBodyBuilder.forField(ModifierBuilder member, TypeInferrer typeInferrer)
+      : super.forField(member, typeInferrer);
 
   @override
   void enterThenForTypePromotion(Expression condition) {
