@@ -4,6 +4,22 @@
 
 ### Language
 
+#### Strong Mode
+
+### Dart VM
+
+### Tool Changes
+
+#### Pub
+
+#### Other Tools
+
+### Core library changes
+
+## 2.0.0-dev.62.0
+
+### Language
+
 Inference chooses `void` when combining `Object` or `dynamic` and `void` ([issue
 3341]).  When combining with other top types, inference now prefers `void`.  So
 for example, given:
@@ -24,6 +40,10 @@ be inferred as `void`.
 
 ### Dart VM
 
+* The dart VM will no longer attempt to perform `packages/` directory
+  resolution (for loading scripts, and in `Isolate.resolveUri`). Users
+  relying on `packages/` directories should switch to `.packages` files.
+
 ### Tool Changes
 
 #### Pub
@@ -35,6 +55,21 @@ be inferred as `void`.
 
 ### Core library changes
 
+* `dart:core`/`dart:collection`
+  * Remove the `retype` method on iterables and maps again. Use `cast` instead.
+  * Deprecated `Platform.packageRoot`, which is only used for `packages/`
+    directory resolution which is no longer supported. It will now always
+    return null, which is a value that was always possible for it to return
+    previously.
+* `dart:isolate`
+  * Deprecated `Isolate.packageRoot`, which is only used for `packages/`
+    directory resolution which is no longer supported. It will now always
+    return null, which is a value that was always possible for it to return
+    previously.
+  * Deprecated `packageRoot` parameter in `Isolate.spawnUri`, which is was
+    previously used only for `packages/` directory resolution. That style
+    of resolution is no longer supported in dart 2.
+
 ## 2.0.0-dev.61.0
 
 ### Dart VM
@@ -42,9 +77,6 @@ be inferred as `void`.
 * `async` functions now start synchronously by default.
   Passing the `--no-sync-async` flag will produce the old behavior,
   starting `async` functions asynchronously.
-* The dart VM will no longer attempt to perform `packages/` directory
-  resolution (for loading scripts, and in `Isolate.resolveUri`). Users
-  relying on `packages/` directories should switch to `.packages` files.
 
 ### Tool Changes
 
@@ -60,18 +92,6 @@ be inferred as `void`.
     and `WebSocket`. The `SCREAMING_CAPS` constants are marked deprecated.
     Note that `HttpStatus.CONTINUE` is now `HttpStatus.continue_`, and that
     e.g. `HttpHeaders.FIELD_NAME` is now `HttpHeaders.fieldNameHeader`.
-  * Deprecated `Platform.packageRoot`, which is only used for `packages/`
-    directory resolution which is no longer supported. It will now always
-    return null, which is a value that was always possible for it to return
-    previously.
-* `dart:isolate`
-  * Deprecated `Isolate.packageRoot`, which is only used for `packages/`
-    directory resolution which is no longer supported. It will now always
-    return null, which is a value that was always possible for it to return
-    previously.
-  * Deprecated `packageRoot` parameter in `Isolate.spawnUri`, which is was
-    previously used only for `packages/` directory resolution. That style
-    of resolution is no longer supported in dart 2.
 
 ## 2.0.0-dev.60.0
 
@@ -79,9 +99,6 @@ be inferred as `void`.
 
 * `dart:convert`
   * Allow `utf8.decoder.fuse(json.decoder)` to ignore leading Unicode BOM.
-
-* `dart:core`/`dart:collection`
-  * Remove the `retype` method on iterables and maps again. Use `cast` instead.
 
 ### Tool Changes
 
