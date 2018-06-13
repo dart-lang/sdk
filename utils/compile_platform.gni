@@ -14,7 +14,8 @@ if (_is_fuchsia) {
 _dart_root = get_path_info("..", "abspath")
 
 template("compile_platform") {
-  assert(defined(invoker.sources), "Need 'sources' in $target_name")
+  assert(defined(invoker.libraries_specification_uri),
+      "Need 'libraries_specification_uri' in $target_name")
   assert(defined(invoker.outputs), "Need 'outputs' in $target_name")
   assert(defined(invoker.args), "Need 'args' in $target_name")
   if (defined(invoker.single_root_scheme)) {
@@ -42,16 +43,6 @@ template("compile_platform") {
 
   action(target_name) {
     script = "$_dart_root/tools/compile_platform.py"
-
-    # Note: invoker.sources contains a library-specification URI. It's not
-    # listed as a source of the action because it may be written using a custom
-    # URI when this template is invoked with a single_root_scheme.
-    #
-    # The compile_platform script, however, generates a deps file which includes
-    # the corresponding library-specification file URI, so we rely on that to
-    # track the required dependencies.
-    # TODO(sigmund): replace "sources" with a "library_specification_uri"
-    # argument to make this clearer.
 
     outputs = invoker.outputs
 
@@ -97,9 +88,9 @@ template("compile_platform") {
       args += ["--single-root-base=" + invoker.single_root_base]
     }
     if (defined(invoker.single_root_scheme)) {
-      args += invoker.sources
+      args += [invoker.libraries_specification_uri]
     } else {
-      args += rebase_path(invoker.sources, root_build_dir)
+      args += [rebase_path(invoker.libraries_specification_uri, root_build_dir)]
     }
     args += rebase_path(outputs, root_build_dir)
   }
