@@ -57,7 +57,7 @@ main() {
           // FF wraps family in quotes - remove the quotes.
           fontFamily.substring(1, fontFamily.length - 1);
         }
-        expect(fontFace.family, 'Ahem');
+        expect(fontFamily, 'Ahem');
       }
     }));
   });
