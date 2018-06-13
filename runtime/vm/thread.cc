@@ -538,7 +538,7 @@ RawError* Thread::HandleInterrupts() {
       // False result from HandleOOBMessages signals that the isolate should
       // be terminating.
       if (FLAG_trace_isolates) {
-        OS::Print(
+        OS::PrintErr(
             "[!] Terminating isolate due to OOB message:\n"
             "\tisolate:    %s\n",
             isolate()->name());

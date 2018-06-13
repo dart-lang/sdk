@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include <stdio.h>
-
 #include "bin/console.h"
 #include "bin/dartutils.h"
 #include "bin/dfe.h"
@@ -54,15 +52,15 @@ static const char* kernel_snapshot = NULL;
 static int run_matches = 0;
 
 void TestCase::Run() {
-  OS::Print("Running test: %s\n", name());
+  bin::Log::Print("Running test: %s\n", name());
   (*run_)();
-  OS::Print("Done: %s\n", name());
+  bin::Log::Print("Done: %s\n", name());
 }
 
 void RawTestCase::Run() {
-  OS::Print("Running test: %s\n", name());
+  bin::Log::Print("Running test: %s\n", name());
   (*run_)();
-  OS::Print("Done: %s\n", name());
+  bin::Log::Print("Done: %s\n", name());
 }
 
 void TestCaseBase::RunTest() {
@@ -70,7 +68,7 @@ void TestCaseBase::RunTest() {
     this->Run();
     run_matches++;
   } else if (run_filter == kList) {
-    OS::Print("%s\n", this->name());
+    bin::Log::Print("%s\n", this->name());
     run_matches++;
   }
 }
@@ -79,17 +77,17 @@ void Benchmark::RunBenchmark() {
   if ((run_filter == kAllBenchmarks) ||
       (strcmp(run_filter, this->name()) == 0)) {
     this->Run();
-    OS::Print("%s(%s): %" Pd64 "\n", this->name(), this->score_kind(),
-              this->score());
+    bin::Log::Print("%s(%s): %" Pd64 "\n", this->name(), this->score_kind(),
+                    this->score());
     run_matches++;
   } else if (run_filter == kList) {
-    OS::Print("%s\n", this->name());
+    bin::Log::Print("%s\n", this->name());
     run_matches++;
   }
 }
 
 static void PrintUsage() {
-  OS::PrintErr(
+  bin::Log::PrintErr(
       "Usage: one of the following\n"
       "  run_vm_tests --list\n"
       "  run_vm_tests [--dfe=<snapshot file name>] --benchmarks\n"
@@ -212,7 +210,7 @@ static int Main(int argc, const char** argv) {
 
   // Perform platform specific initialization.
   if (!dart::bin::Platform::Initialize()) {
-    OS::PrintErr("Initialization failed\n");
+    bin::Log::PrintErr("Initialization failed\n");
     return 1;
   }
 
@@ -240,7 +238,7 @@ static int Main(int argc, const char** argv) {
   if (strstr(argv[arg_pos], "--dfe") == argv[arg_pos]) {
     const char* delim = strstr(argv[1], "=");
     if (delim == NULL || strlen(delim + 1) == 0) {
-      OS::PrintErr("Invalid value for the option: %s\n", argv[1]);
+      bin::Log::PrintErr("Invalid value for the option: %s\n", argv[1]);
       PrintUsage();
       return 1;
     }
@@ -294,7 +292,7 @@ static int Main(int argc, const char** argv) {
   TestCaseBase::RunAllRaw();
   // Print a warning message if no tests or benchmarks were matched.
   if (run_matches == 0) {
-    OS::PrintErr("No tests matched: %s\n", run_filter);
+    bin::Log::PrintErr("No tests matched: %s\n", run_filter);
     return 1;
   }
   if (Expect::failed()) {

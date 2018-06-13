@@ -1121,7 +1121,7 @@ static void IterateScripts(const Library& lib) {
     script ^= lib_scripts.At(i);
     EXPECT(!script.IsNull());
     uri = script.url();
-    OS::Print("Generating source for part: %s\n", uri.ToCString());
+    OS::PrintErr("Generating source for part: %s\n", uri.ToCString());
     GenerateSourceAndCheck(script);
   }
 }
@@ -1142,7 +1142,7 @@ ISOLATE_UNIT_TEST_CASE(GenerateSource) {
     lib ^= libs.At(i);
     EXPECT(!lib.IsNull());
     uri = lib.url();
-    OS::Print("Generating source for library: %s\n", uri.ToCString());
+    OS::PrintErr("Generating source for library: %s\n", uri.ToCString());
     IterateScripts(lib);
   }
 

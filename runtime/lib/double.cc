@@ -23,7 +23,7 @@ DEFINE_NATIVE_ENTRY(Double_doubleFromInteger, 2) {
   ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
   const Integer& value = Integer::CheckedHandle(arguments->NativeArgAt(1));
   if (FLAG_trace_intrinsified_natives) {
-    OS::Print("Double_doubleFromInteger %s\n", value.ToCString());
+    OS::PrintErr("Double_doubleFromInteger %s\n", value.ToCString());
   }
   return Double::New(value.AsDoubleValue());
 }
@@ -33,7 +33,7 @@ DEFINE_NATIVE_ENTRY(Double_add, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
   double right = right_object.value();
   if (FLAG_trace_intrinsified_natives) {
-    OS::Print("Double_add %f + %f\n", left, right);
+    OS::PrintErr("Double_add %f + %f\n", left, right);
   }
   return Double::New(left + right);
 }
@@ -43,7 +43,7 @@ DEFINE_NATIVE_ENTRY(Double_sub, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
   double right = right_object.value();
   if (FLAG_trace_intrinsified_natives) {
-    OS::Print("Double_sub %f - %f\n", left, right);
+    OS::PrintErr("Double_sub %f - %f\n", left, right);
   }
   return Double::New(left - right);
 }
@@ -53,7 +53,7 @@ DEFINE_NATIVE_ENTRY(Double_mul, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
   double right = right_object.value();
   if (FLAG_trace_intrinsified_natives) {
-    OS::Print("Double_mul %f * %f\n", left, right);
+    OS::PrintErr("Double_mul %f * %f\n", left, right);
   }
   return Double::New(left * right);
 }
@@ -63,7 +63,7 @@ DEFINE_NATIVE_ENTRY(Double_div, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
   double right = right_object.value();
   if (FLAG_trace_intrinsified_natives) {
-    OS::Print("Double_div %f / %f\n", left, right);
+    OS::PrintErr("Double_div %f / %f\n", left, right);
   }
   return Double::New(left / right);
 }
@@ -88,7 +88,7 @@ static RawInteger* DoubleToInteger(double val, const char* error_msg) {
 DEFINE_NATIVE_ENTRY(Double_hashCode, 1) {
   double val = Double::CheckedHandle(arguments->NativeArgAt(0)).value();
   if (FLAG_trace_intrinsified_natives) {
-    OS::Print("Double_hashCode %f\n", val);
+    OS::PrintErr("Double_hashCode %f\n", val);
   }
   if (val >= static_cast<double>(kMinInt64) &&
       val <= static_cast<double>(kMaxInt64)) {
@@ -107,7 +107,7 @@ DEFINE_NATIVE_ENTRY(Double_trunc_div, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
   double right = right_object.value();
   if (FLAG_trace_intrinsified_natives) {
-    OS::Print("Double_trunc_div %f ~/ %f\n", left, right);
+    OS::PrintErr("Double_trunc_div %f ~/ %f\n", left, right);
   }
   return DoubleToInteger(trunc(left / right),
                          "Result of truncating division is Infinity or NaN");
@@ -132,8 +132,8 @@ DEFINE_NATIVE_ENTRY(Double_greaterThan, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Double, right, arguments->NativeArgAt(1));
   bool result = right.IsNull() ? false : (left.value() > right.value());
   if (FLAG_trace_intrinsified_natives) {
-    OS::Print("Double_greaterThan %s > %s\n", left.ToCString(),
-              right.ToCString());
+    OS::PrintErr("Double_greaterThan %s > %s\n", left.ToCString(),
+                 right.ToCString());
   }
   return Bool::Get(result).raw();
 }
@@ -149,7 +149,8 @@ DEFINE_NATIVE_ENTRY(Double_equal, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Double, right, arguments->NativeArgAt(1));
   bool result = right.IsNull() ? false : (left.value() == right.value());
   if (FLAG_trace_intrinsified_natives) {
-    OS::Print("Double_equal %s == %s\n", left.ToCString(), right.ToCString());
+    OS::PrintErr("Double_equal %s == %s\n", left.ToCString(),
+                 right.ToCString());
   }
   return Bool::Get(result).raw();
 }

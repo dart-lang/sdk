@@ -17,8 +17,8 @@ void FUNCTION_NAME(Unhandled_equals)(Dart_NativeArguments args) {
   const Instance& expected = Instance::CheckedHandle(arguments->NativeArgAt(0));
   const Instance& actual = Instance::CheckedHandle(arguments->NativeArgAt(1));
   if (!expected.CanonicalizeEquals(actual)) {
-    OS::Print("expected: '%s' actual: '%s'\n", expected.ToCString(),
-              actual.ToCString());
+    OS::PrintErr("expected: '%s' actual: '%s'\n", expected.ToCString(),
+                 actual.ToCString());
     FATAL("Unhandled_equals fails.\n");
   }
 }

@@ -110,8 +110,8 @@ void SafepointHandler::SafepointThreads(Thread* T) {
         if (num_attempts > 10) {
           // We have been waiting too long, start logging this as we might
           // have an issue where a thread is not checking in for a safepoint.
-          OS::Print("Attempt:%" Pd " waiting for %d threads to check in\n",
-                    num_attempts, number_threads_not_at_safepoint_);
+          OS::PrintErr("Attempt:%" Pd " waiting for %d threads to check in\n",
+                       num_attempts, number_threads_not_at_safepoint_);
         }
       }
     }

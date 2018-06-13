@@ -305,8 +305,8 @@ TEST_CASE(DescriptorList_TokenPositions) {
   intptr_t i = 0;
   while (it.MoveNext()) {
     if (token_positions[i] != it.TokenPos().value()) {
-      OS::Print("[%" Pd "]: Expected: %" Pd " != %" Pd "\n", i,
-                token_positions[i], it.TokenPos().value());
+      OS::PrintErr("[%" Pd "]: Expected: %" Pd " != %" Pd "\n", i,
+                   token_positions[i], it.TokenPos().value());
     }
     EXPECT(token_positions[i] == it.TokenPos().value());
     i++;

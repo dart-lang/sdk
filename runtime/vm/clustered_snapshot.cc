@@ -4987,7 +4987,7 @@ void Serializer::Serialize() {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_print_snapshot_sizes_verbose) {
-    OS::Print("             Cluster   Objs     Size Fraction Cumulative\n");
+    OS::PrintErr("             Cluster   Objs     Size Fraction Cumulative\n");
     GrowableArray<SerializationCluster*> clusters_by_size;
     for (intptr_t cid = 1; cid < num_cids_; cid++) {
       SerializationCluster* cluster = clusters_by_cid_[cid];
@@ -5007,9 +5007,9 @@ void Serializer::Serialize() {
       SerializationCluster* cluster = clusters_by_size[i];
       double fraction = static_cast<double>(cluster->size()) / total_size;
       cumulative_fraction += fraction;
-      OS::Print("%20s %6" Pd " %8" Pd " %lf %lf\n", cluster->name(),
-                cluster->num_objects(), cluster->size(), fraction,
-                cumulative_fraction);
+      OS::PrintErr("%20s %6" Pd " %8" Pd " %lf %lf\n", cluster->name(),
+                   cluster->num_objects(), cluster->size(), fraction,
+                   cumulative_fraction);
     }
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

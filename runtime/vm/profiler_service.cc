@@ -49,7 +49,7 @@ class DeoptimizedCodeSet : public ZoneAllocated {
     if ((size_before > 0) && FLAG_trace_profiler) {
       intptr_t length_before = previous_.Length();
       intptr_t length_after = current_.Length();
-      OS::Print(
+      OS::PrintErr(
           "Updating isolate deoptimized code array: "
           "%" Pd " -> %" Pd " [%" Pd " -> %" Pd "]\n",
           size_before, size_after, length_before, length_after);
@@ -163,9 +163,9 @@ void ProfileFunction::TickSourcePosition(TokenPosition token_position,
     ProfileFunctionSourcePosition& position = source_position_ticks_[i];
     if (position.token_pos().value() == token_position.value()) {
       if (FLAG_trace_profiler_verbose) {
-        OS::Print("Ticking source position %s %s\n",
-                  exclusive ? "exclusive" : "inclusive",
-                  token_position.ToCString());
+        OS::PrintErr("Ticking source position %s %s\n",
+                     exclusive ? "exclusive" : "inclusive",
+                     token_position.ToCString());
       }
       // Found existing position, tick it.
       position.Tick(exclusive);
@@ -179,9 +179,9 @@ void ProfileFunction::TickSourcePosition(TokenPosition token_position,
   // Add new one, sorted by token position value.
   ProfileFunctionSourcePosition pfsp(token_position);
   if (FLAG_trace_profiler_verbose) {
-    OS::Print("Ticking source position %s %s\n",
-              exclusive ? "exclusive" : "inclusive",
-              token_position.ToCString());
+    OS::PrintErr("Ticking source position %s %s\n",
+                 exclusive ? "exclusive" : "inclusive",
+                 token_position.ToCString());
   }
   pfsp.Tick(exclusive);
 
@@ -1027,8 +1027,8 @@ class ProfileCodeInlinedFunctionsCache : public ValueObject {
   ~ProfileCodeInlinedFunctionsCache() {
     if (FLAG_trace_profiler) {
       intptr_t total = cache_hit_ + cache_miss_;
-      OS::Print("LOOKUPS: %" Pd " HITS: %" Pd " MISSES: %" Pd "\n", total,
-                cache_hit_, cache_miss_);
+      OS::PrintErr("LOOKUPS: %" Pd " HITS: %" Pd " MISSES: %" Pd "\n", total,
+                   cache_hit_, cache_miss_);
     }
   }
 

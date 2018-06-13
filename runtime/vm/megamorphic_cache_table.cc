@@ -99,8 +99,8 @@ void MegamorphicCacheTable::PrintSizes(Isolate* isolate) {
       max_size = buckets.Length();
     }
   }
-  OS::Print("%" Pd " megamorphic caches using %" Pd "KB.\n", table.Length(),
-            size / 1024);
+  OS::PrintErr("%" Pd " megamorphic caches using %" Pd "KB.\n", table.Length(),
+               size / 1024);
 
   intptr_t* probe_counts = new intptr_t[max_size];
   intptr_t entry_count = 0;
@@ -141,9 +141,10 @@ void MegamorphicCacheTable::PrintSizes(Isolate* isolate) {
   intptr_t cumulative_entries = 0;
   for (intptr_t i = 0; i <= max_probe_count; i++) {
     cumulative_entries += probe_counts[i];
-    OS::Print("Megamorphic probe %" Pd ": %" Pd " (%lf)\n", i, probe_counts[i],
-              static_cast<double>(cumulative_entries) /
-                  static_cast<double>(entry_count));
+    OS::PrintErr("Megamorphic probe %" Pd ": %" Pd " (%lf)\n", i,
+                 probe_counts[i],
+                 static_cast<double>(cumulative_entries) /
+                     static_cast<double>(entry_count));
   }
   delete[] probe_counts;
 }

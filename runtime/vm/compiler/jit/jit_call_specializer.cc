@@ -205,10 +205,12 @@ void JitCallSpecializer::VisitStoreInstanceField(
       if (FLAG_trace_optimization || FLAG_trace_field_guards) {
         THR_Print("Disabling unboxing of %s\n", field.ToCString());
         if (!setter.IsNull()) {
-          OS::Print("  setter usage count: %" Pd "\n", setter.usage_counter());
+          OS::PrintErr("  setter usage count: %" Pd "\n",
+                       setter.usage_counter());
         }
         if (!getter.IsNull()) {
-          OS::Print("  getter usage count: %" Pd "\n", getter.usage_counter());
+          OS::PrintErr("  getter usage count: %" Pd "\n",
+                       getter.usage_counter());
         }
       }
       ASSERT(field.IsOriginal());

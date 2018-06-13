@@ -190,7 +190,7 @@ void ClassFinalizer::CollectInterfaces(const Class& cls,
 #if !defined(DART_PRECOMPILED_RUNTIME)
 void ClassFinalizer::VerifyBootstrapClasses() {
   if (FLAG_trace_class_finalization) {
-    OS::Print("VerifyBootstrapClasses START.\n");
+    OS::PrintErr("VerifyBootstrapClasses START.\n");
   }
   ObjectStore* object_store = Isolate::Current()->object_store();
 
@@ -249,7 +249,7 @@ void ClassFinalizer::VerifyBootstrapClasses() {
     OS::Exit(255);
   }
   if (FLAG_trace_class_finalization) {
-    OS::Print("VerifyBootstrapClasses END.\n");
+    OS::PrintErr("VerifyBootstrapClasses END.\n");
   }
   Isolate::Current()->heap()->Verify();
 }

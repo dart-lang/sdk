@@ -26,7 +26,7 @@ typedef void (*LogPrinter)(const char* str, ...);
 
 class Log {
  public:
-  explicit Log(LogPrinter printer = OS::Print);
+  explicit Log(LogPrinter printer = OS::PrintErr);
   ~Log();
 
   static Log* Current();

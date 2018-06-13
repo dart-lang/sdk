@@ -13,13 +13,13 @@ namespace dart {
 typedef ZoneGrowableArray<Scanner::TokenDescriptor> GrowableTokenStream;
 
 static void LogTokenDesc(Scanner::TokenDescriptor token) {
-  OS::Print("pos %2d:%d-%d token %s  ", token.position.line,
-            token.position.column, token.position.column,
-            Token::Name(token.kind));
+  OS::PrintErr("pos %2d:%d-%d token %s  ", token.position.line,
+               token.position.column, token.position.column,
+               Token::Name(token.kind));
   if (token.literal != NULL) {
-    OS::Print("%s", token.literal->ToCString());
+    OS::PrintErr("%s", token.literal->ToCString());
   }
-  OS::Print("\n");
+  OS::PrintErr("\n");
 }
 
 static void LogTokenStream(const GrowableTokenStream& token_stream) {
@@ -100,7 +100,7 @@ class Collector : public Scanner::TokenCollector {
 };
 
 static const GrowableTokenStream& Scan(const char* source) {
-  OS::Print("\nScanning: <%s>\n", source);
+  OS::PrintErr("\nScanning: <%s>\n", source);
 
   Scanner scanner(String::Handle(String::New(source)),
                   String::Handle(String::New("")));

@@ -676,12 +676,12 @@ void Symbols::DumpStats(Isolate* isolate) {
   intptr_t capacity = -1;
   // First dump VM symbol table stats.
   GetStats(Dart::vm_isolate(), &size, &capacity);
-  OS::Print("VM Isolate: Number of symbols : %" Pd "\n", size);
-  OS::Print("VM Isolate: Symbol table capacity : %" Pd "\n", capacity);
+  OS::PrintErr("VM Isolate: Number of symbols : %" Pd "\n", size);
+  OS::PrintErr("VM Isolate: Symbol table capacity : %" Pd "\n", capacity);
   // Now dump regular isolate symbol table stats.
   GetStats(isolate, &size, &capacity);
-  OS::Print("Isolate: Number of symbols : %" Pd "\n", size);
-  OS::Print("Isolate: Symbol table capacity : %" Pd "\n", capacity);
+  OS::PrintErr("Isolate: Number of symbols : %" Pd "\n", size);
+  OS::PrintErr("Isolate: Symbol table capacity : %" Pd "\n", capacity);
   // TODO(koda): Consider recording growth and collision stats in HashTable,
   // in DEBUG mode.
 }

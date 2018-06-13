@@ -31,7 +31,7 @@ DEFINE_NATIVE_ENTRY(UserTag_label, 1) {
 DEFINE_NATIVE_ENTRY(UserTag_makeCurrent, 1) {
   const UserTag& self = UserTag::CheckedHandle(arguments->NativeArgAt(0));
   if (FLAG_trace_intrinsified_natives) {
-    OS::Print("UserTag_makeCurrent: %s\n", self.ToCString());
+    OS::PrintErr("UserTag_makeCurrent: %s\n", self.ToCString());
   }
   const UserTag& old = UserTag::Handle(isolate->current_tag());
   self.MakeActive();
@@ -40,14 +40,14 @@ DEFINE_NATIVE_ENTRY(UserTag_makeCurrent, 1) {
 
 DEFINE_NATIVE_ENTRY(UserTag_defaultTag, 0) {
   if (FLAG_trace_intrinsified_natives) {
-    OS::Print("UserTag_defaultTag\n");
+    OS::PrintErr("UserTag_defaultTag\n");
   }
   return isolate->default_tag();
 }
 
 DEFINE_NATIVE_ENTRY(Profiler_getCurrentTag, 0) {
   if (FLAG_trace_intrinsified_natives) {
-    OS::Print("Profiler_getCurrentTag\n");
+    OS::PrintErr("Profiler_getCurrentTag\n");
   }
   return isolate->current_tag();
 }

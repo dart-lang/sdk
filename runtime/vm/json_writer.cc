@@ -317,7 +317,7 @@ bool JSONWriter::NeedComma() {
 void JSONWriter::EnsureIntegerIsRepresentableInJavaScript(int64_t i) {
 #ifdef DEBUG
   if (!Utils::IsJavascriptInt(i)) {
-    OS::Print(
+    OS::PrintErr(
         "JSONWriter::EnsureIntegerIsRepresentableInJavaScript failed on "
         "%" Pd64 "\n",
         i);

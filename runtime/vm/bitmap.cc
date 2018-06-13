@@ -70,9 +70,9 @@ void BitmapBuilder::SetRange(intptr_t min, intptr_t max, bool value) {
 void BitmapBuilder::Print() const {
   for (intptr_t i = 0; i < Length(); i++) {
     if (Get(i)) {
-      OS::Print("1");
+      OS::PrintErr("1");
     } else {
-      OS::Print("0");
+      OS::PrintErr("0");
     }
   }
 }

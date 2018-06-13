@@ -2906,7 +2906,7 @@ BreakpointLocation* Debugger::SetBreakpoint(const Script& script,
           intptr_t line_number;
           intptr_t column_number;
           script.GetTokenLocation(breakpoint_pos, &line_number, &column_number);
-          OS::Print(
+          OS::PrintErr(
               "Resolved BP for "
               "function '%s' at line %" Pd " col %" Pd "\n",
               func.ToFullyQualifiedCString(), line_number, column_number);
@@ -2923,12 +2923,12 @@ BreakpointLocation* Debugger::SetBreakpoint(const Script& script,
     intptr_t column_number;
     script.GetTokenLocation(token_pos, &line_number, &column_number);
     if (func.IsNull()) {
-      OS::Print(
+      OS::PrintErr(
           "Registering pending breakpoint for "
           "an uncompiled function literal at line %" Pd " col %" Pd "\n",
           line_number, column_number);
     } else {
-      OS::Print(
+      OS::PrintErr(
           "Registering pending breakpoint for "
           "uncompiled function '%s' at line %" Pd " col %" Pd "\n",
           func.ToFullyQualifiedCString(), line_number, column_number);
@@ -3072,7 +3072,7 @@ BreakpointLocation* Debugger::BreakpointLocationAtLineCol(
     BreakpointLocation* latent_bpt =
         GetLatentBreakpoint(script_url, line_number, column_number);
     if (FLAG_verbose_debug) {
-      OS::Print(
+      OS::PrintErr(
           "Set latent breakpoint in url '%s' at "
           "line %" Pd " col %" Pd "\n",
           script_url.ToCString(), line_number, column_number);
@@ -3081,7 +3081,7 @@ BreakpointLocation* Debugger::BreakpointLocationAtLineCol(
   }
   if (scripts.Length() > 1) {
     if (FLAG_verbose_debug) {
-      OS::Print("Multiple scripts match url '%s'\n", script_url.ToCString());
+      OS::PrintErr("Multiple scripts match url '%s'\n", script_url.ToCString());
     }
     return NULL;
   }
@@ -3091,15 +3091,15 @@ BreakpointLocation* Debugger::BreakpointLocationAtLineCol(
   if (!first_token_idx.IsReal()) {
     // Script does not contain the given line number.
     if (FLAG_verbose_debug) {
-      OS::Print("Script '%s' does not contain line number %" Pd "\n",
-                script_url.ToCString(), line_number);
+      OS::PrintErr("Script '%s' does not contain line number %" Pd "\n",
+                   script_url.ToCString(), line_number);
     }
     return NULL;
   } else if (!last_token_idx.IsReal()) {
     // Line does not contain any tokens.
     if (FLAG_verbose_debug) {
-      OS::Print("No executable code at line %" Pd " in '%s'\n", line_number,
-                script_url.ToCString());
+      OS::PrintErr("No executable code at line %" Pd " in '%s'\n", line_number,
+                   script_url.ToCString());
     }
     return NULL;
   }
@@ -3112,8 +3112,8 @@ BreakpointLocation* Debugger::BreakpointLocationAtLineCol(
     first_token_idx.Next();
   }
   if ((bpt == NULL) && FLAG_verbose_debug) {
-    OS::Print("No executable code at line %" Pd " in '%s'\n", line_number,
-              script_url.ToCString());
+    OS::PrintErr("No executable code at line %" Pd " in '%s'\n", line_number,
+                 script_url.ToCString());
   }
   return bpt;
 }
@@ -3449,7 +3449,7 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
     skip_next_step_ = skip_next_step;
     SetAsyncSteppingFramePointer();
     if (FLAG_verbose_debug) {
-      OS::Print("HandleSteppingRequest- kStepInto\n");
+      OS::PrintErr("HandleSteppingRequest- kStepInto\n");
     }
   } else if (resume_action_ == kStepOver) {
     DeoptimizeWorld();
@@ -3459,7 +3459,7 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
     stepping_fp_ = stack_trace->FrameAt(0)->fp();
     SetAsyncSteppingFramePointer();
     if (FLAG_verbose_debug) {
-      OS::Print("HandleSteppingRequest- kStepOver %" Px "\n", stepping_fp_);
+      OS::PrintErr("HandleSteppingRequest- kStepOver %" Px "\n", stepping_fp_);
     }
   } else if (resume_action_ == kStepOut) {
     if (FLAG_async_debugger) {
@@ -3488,7 +3488,7 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
       }
     }
     if (FLAG_verbose_debug) {
-      OS::Print("HandleSteppingRequest- kStepOut %" Px "\n", stepping_fp_);
+      OS::PrintErr("HandleSteppingRequest- kStepOut %" Px "\n", stepping_fp_);
     }
   } else if (resume_action_ == kStepRewind) {
     if (FLAG_trace_rewind) {
@@ -3874,11 +3874,11 @@ RawError* Debugger::PauseStepping() {
   ASSERT(!HasActiveBreakpoint(frame->pc()));
 
   if (FLAG_verbose_debug) {
-    OS::Print(">>> single step break at %s:%" Pd " (func %s token %s)\n",
-              String::Handle(frame->SourceUrl()).ToCString(),
-              frame->LineNumber(),
-              String::Handle(frame->QualifiedFunctionName()).ToCString(),
-              frame->TokenPos().ToCString());
+    OS::PrintErr(">>> single step break at %s:%" Pd " (func %s token %s)\n",
+                 String::Handle(frame->SourceUrl()).ToCString(),
+                 frame->LineNumber(),
+                 String::Handle(frame->QualifiedFunctionName()).ToCString(),
+                 frame->TokenPos().ToCString());
   }
 
   CacheStackTraces(CollectStackTrace(), CollectAsyncCausalStackTrace(),
@@ -3923,12 +3923,12 @@ RawError* Debugger::PauseBreakpoint() {
 
     // Hit a synthetic async breakpoint.
     if (FLAG_verbose_debug) {
-      OS::Print(">>> hit synthetic breakpoint at %s:%" Pd
-                " "
-                "(token %s) (address %#" Px ")\n",
-                String::Handle(cbpt->SourceUrl()).ToCString(),
-                cbpt->LineNumber(), cbpt->token_pos().ToCString(),
-                top_frame->pc());
+      OS::PrintErr(">>> hit synthetic breakpoint at %s:%" Pd
+                   " "
+                   "(token %s) (address %#" Px ")\n",
+                   String::Handle(cbpt->SourceUrl()).ToCString(),
+                   cbpt->LineNumber(), cbpt->token_pos().ToCString(),
+                   top_frame->pc());
     }
 
     ASSERT(synthetic_async_breakpoint_ == NULL);
@@ -3946,12 +3946,12 @@ RawError* Debugger::PauseBreakpoint() {
   }
 
   if (FLAG_verbose_debug) {
-    OS::Print(">>> hit breakpoint %" Pd " at %s:%" Pd
-              " (token %s) "
-              "(address %#" Px ")\n",
-              bpt_hit->id(), String::Handle(cbpt->SourceUrl()).ToCString(),
-              cbpt->LineNumber(), cbpt->token_pos().ToCString(),
-              top_frame->pc());
+    OS::PrintErr(">>> hit breakpoint %" Pd " at %s:%" Pd
+                 " (token %s) "
+                 "(address %#" Px ")\n",
+                 bpt_hit->id(), String::Handle(cbpt->SourceUrl()).ToCString(),
+                 cbpt->LineNumber(), cbpt->token_pos().ToCString(),
+                 top_frame->pc());
   }
 
   CacheStackTraces(stack_trace, CollectAsyncCausalStackTrace(),
@@ -4105,8 +4105,8 @@ void Debugger::NotifyCompilation(const Function& func) {
         // be compiled already.
         ASSERT(!inner_function.HasCode());
         if (FLAG_verbose_debug) {
-          OS::Print("Pending BP remains unresolved in inner function '%s'\n",
-                    inner_function.ToFullyQualifiedCString());
+          OS::PrintErr("Pending BP remains unresolved in inner function '%s'\n",
+                       inner_function.ToFullyQualifiedCString());
         }
         continue;
       }
@@ -4125,8 +4125,8 @@ void Debugger::NotifyCompilation(const Function& func) {
                                  loc->requested_column_number());
         if (!bp_pos.IsDebugPause()) {
           if (FLAG_verbose_debug) {
-            OS::Print("Failed resolving breakpoint for function '%s'\n",
-                      String::Handle(func.name()).ToCString());
+            OS::PrintErr("Failed resolving breakpoint for function '%s'\n",
+                         String::Handle(func.name()).ToCString());
           }
           continue;
         }
@@ -4136,17 +4136,17 @@ void Debugger::NotifyCompilation(const Function& func) {
         Breakpoint* bpt = loc->breakpoints();
         while (bpt != NULL) {
           if (FLAG_verbose_debug) {
-            OS::Print("Resolved BP %" Pd
-                      " to pos %s, "
-                      "line %" Pd " col %" Pd
-                      ", "
-                      "function '%s' (requested range %s-%s, "
-                      "requested col %" Pd ")\n",
-                      bpt->id(), loc->token_pos().ToCString(),
-                      loc->LineNumber(), loc->ColumnNumber(),
-                      func.ToFullyQualifiedCString(), requested_pos.ToCString(),
-                      requested_end_pos.ToCString(),
-                      loc->requested_column_number());
+            OS::PrintErr(
+                "Resolved BP %" Pd
+                " to pos %s, "
+                "line %" Pd " col %" Pd
+                ", "
+                "function '%s' (requested range %s-%s, "
+                "requested col %" Pd ")\n",
+                bpt->id(), loc->token_pos().ToCString(), loc->LineNumber(),
+                loc->ColumnNumber(), func.ToFullyQualifiedCString(),
+                requested_pos.ToCString(), requested_end_pos.ToCString(),
+                loc->requested_column_number());
           }
           SendBreakpointEvent(ServiceEvent::kBreakpointResolved, bpt);
           bpt = bpt->next();
@@ -4156,12 +4156,12 @@ void Debugger::NotifyCompilation(const Function& func) {
       if (FLAG_verbose_debug) {
         Breakpoint* bpt = loc->breakpoints();
         while (bpt != NULL) {
-          OS::Print("Setting breakpoint %" Pd " at line %" Pd " col %" Pd
-                    ""
-                    " for %s '%s'\n",
-                    bpt->id(), loc->LineNumber(), loc->ColumnNumber(),
-                    func.IsClosureFunction() ? "closure" : "function",
-                    String::Handle(func.name()).ToCString());
+          OS::PrintErr("Setting breakpoint %" Pd " at line %" Pd " col %" Pd
+                       ""
+                       " for %s '%s'\n",
+                       bpt->id(), loc->LineNumber(), loc->ColumnNumber(),
+                       func.IsClosureFunction() ? "closure" : "function",
+                       String::Handle(func.name()).ToCString());
           bpt = bpt->next();
         }
       }
@@ -4213,10 +4213,10 @@ void Debugger::NotifyDoneLoading() {
           Breakpoint* bpt = matched_loc->breakpoints();
           while (bpt != NULL) {
             if (FLAG_verbose_debug) {
-              OS::Print("No code found at line %" Pd
-                        ": "
-                        "dropping latent breakpoint %" Pd " in '%s'\n",
-                        line_number, bpt->id(), url.ToCString());
+              OS::PrintErr("No code found at line %" Pd
+                           ": "
+                           "dropping latent breakpoint %" Pd " in '%s'\n",
+                           line_number, bpt->id(), url.ToCString());
             }
             Breakpoint* prev = bpt;
             bpt = bpt->next();
@@ -4245,7 +4245,7 @@ void Debugger::NotifyDoneLoading() {
             while (bpt != NULL) {
               bpt->set_bpt_location(unresolved_loc);
               if (FLAG_verbose_debug) {
-                OS::Print(
+                OS::PrintErr(
                     "Converted latent breakpoint "
                     "%" Pd " in '%s' at line %" Pd " col %" Pd "\n",
                     bpt->id(), url.ToCString(), line_number, column_number);
@@ -4273,7 +4273,7 @@ void Debugger::NotifyDoneLoading() {
       if (FLAG_verbose_debug) {
         Breakpoint* bpt = loc->breakpoints();
         while (bpt != NULL) {
-          OS::Print(
+          OS::PrintErr(
               "No match found for latent breakpoint id "
               "%" Pd " with url '%s'\n",
               bpt->id(), url.ToCString());

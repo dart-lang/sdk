@@ -42,7 +42,7 @@ static void DumpFunction(const Library& lib,
       AstPrinter ast_printer;
       ast_printer.PrintFunctionNodes(*parsed_function);
     } else {
-      OS::Print("AST printer not supported.");
+      OS::PrintErr("AST printer not supported.");
     }
     retval = true;
   } else {

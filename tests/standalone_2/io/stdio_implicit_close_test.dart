@@ -13,11 +13,7 @@ void test({bool closeStdout, bool closeStderr}) {
   var scriptFile = "stdio_implicit_close_script.dart";
   var script = Platform.script.resolve(scriptFile).toFilePath();
 
-  // Relying on these flags to print something specific on stdout and stderr
-  // is brittle, but otherwise we would need to add our own flag.
   var arguments = [
-    "--print-metrics", // Prints on stderr.
-    "--timing", //         Prints on stdout.
     script,
   ];
   if (closeStdout) arguments.add("stdout");
@@ -32,17 +28,8 @@ void test({bool closeStdout, bool closeStderr}) {
     print(result.stderr);
     Expect.equals(0, result.exitCode);
 
-    if (closeStdout) {
-      Expect.equals("", result.stdout);
-    } else {
-      Expect.isTrue(result.stdout.contains("Timing for"));
-    }
-
-    if (closeStderr) {
-      Expect.equals("", result.stderr);
-    } else {
-      Expect.isTrue(result.stderr.contains("Printing metrics"));
-    }
+    Expect.isTrue(result.stdout.contains("APPLE"));
+    Expect.isTrue(result.stderr.contains("BANANA"));
 
     asyncEnd();
   });

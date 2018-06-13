@@ -323,7 +323,7 @@ class HashTable : public ValueObject {
     const intptr_t num25 = NumLT25Collisions();
     const intptr_t num_more = NumGT25Collisions();
     // clang-format off
-    OS::Print("Stats for %s table :\n"
+    OS::PrintErr("Stats for %s table :\n"
               " Size of table = %" Pd ",Number of Occupied entries = %" Pd "\n"
               " Number of Grows = %" Pd "\n"
               " Number of lookups with < 5 collisions = %" Pd "\n"

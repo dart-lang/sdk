@@ -32,7 +32,8 @@ class ScopeTimer : public ValueObject {
     }
     int64_t elapsed = GetElapsed();
     double seconds = MicrosecondsToSeconds(elapsed);
-    OS::Print("%s: %f seconds (%" Pd64 " \u00B5s)\n", name_, seconds, elapsed);
+    OS::PrintErr("%s: %f seconds (%" Pd64 " \u00B5s)\n", name_, seconds,
+                 elapsed);
   }
 
  private:

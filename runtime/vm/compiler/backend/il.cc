@@ -2829,7 +2829,7 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
       comp->RemoveFromGraph();
       SetComparison(comp);
       if (FLAG_trace_optimization) {
-        OS::Print("Merging comparison v%" Pd "\n", comp->ssa_temp_index());
+        OS::PrintErr("Merging comparison v%" Pd "\n", comp->ssa_temp_index());
       }
       // Clear the comparison's temp index and ssa temp index since the
       // value of the comparison is not used outside the branch anymore.
@@ -2850,7 +2850,7 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
     }
     if (bit_and != NULL) {
       if (FLAG_trace_optimization) {
-        OS::Print("Merging test smi v%" Pd "\n", bit_and->ssa_temp_index());
+        OS::PrintErr("Merging test smi v%" Pd "\n", bit_and->ssa_temp_index());
       }
       TestSmiInstr* test = new TestSmiInstr(
           comparison()->token_pos(),

@@ -103,16 +103,6 @@ main() {
         }
       });
 
-      vm.stderr
-          .transform(utf8.decoder)
-          .transform(splitter)
-          .toList()
-          .then((err) {
-        print(err.join('\n'));
-        expect(err.isEmpty, isTrue,
-            reason: "Should be no errors, but got ${err.join('\n')}");
-      });
-
       String portLine = await portLineCompleter.future;
 
       final RegExp observatoryPortRegExp =

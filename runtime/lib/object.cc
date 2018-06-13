@@ -144,15 +144,15 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 4) {
       type, instantiator_type_arguments, function_type_arguments, &bound_error);
   if (FLAG_trace_type_checks) {
     const char* result_str = is_instance_of ? "true" : "false";
-    OS::Print("Native Object.instanceOf: result %s\n", result_str);
+    OS::PrintErr("Native Object.instanceOf: result %s\n", result_str);
     const AbstractType& instance_type =
         AbstractType::Handle(zone, instance.GetType(Heap::kNew));
-    OS::Print("  instance type: %s\n",
-              String::Handle(zone, instance_type.Name()).ToCString());
-    OS::Print("  test type: %s\n",
-              String::Handle(zone, type.Name()).ToCString());
+    OS::PrintErr("  instance type: %s\n",
+                 String::Handle(zone, instance_type.Name()).ToCString());
+    OS::PrintErr("  test type: %s\n",
+                 String::Handle(zone, type.Name()).ToCString());
     if (!bound_error.IsNull()) {
-      OS::Print("  bound error: %s\n", bound_error.ToErrorCString());
+      OS::PrintErr("  bound error: %s\n", bound_error.ToErrorCString());
     }
   }
   if (!is_instance_of && !bound_error.IsNull()) {
@@ -223,15 +223,15 @@ DEFINE_NATIVE_ENTRY(Object_as, 4) {
                             function_type_arguments, &bound_error);
   if (FLAG_trace_type_checks) {
     const char* result_str = is_instance_of ? "true" : "false";
-    OS::Print("Object.as: result %s\n", result_str);
+    OS::PrintErr("Object.as: result %s\n", result_str);
     const AbstractType& instance_type =
         AbstractType::Handle(zone, instance.GetType(Heap::kNew));
-    OS::Print("  instance type: %s\n",
-              String::Handle(zone, instance_type.Name()).ToCString());
-    OS::Print("  cast type: %s\n",
-              String::Handle(zone, type.Name()).ToCString());
+    OS::PrintErr("  instance type: %s\n",
+                 String::Handle(zone, instance_type.Name()).ToCString());
+    OS::PrintErr("  cast type: %s\n",
+                 String::Handle(zone, type.Name()).ToCString());
     if (!bound_error.IsNull()) {
-      OS::Print("  bound error: %s\n", bound_error.ToErrorCString());
+      OS::PrintErr("  bound error: %s\n", bound_error.ToErrorCString());
     }
   }
   if (!is_instance_of) {

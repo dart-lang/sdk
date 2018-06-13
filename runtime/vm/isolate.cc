@@ -700,7 +700,7 @@ static MessageHandler::MessageStatus StoreError(Thread* thread,
 MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
     const Error& result) {
   if (FLAG_trace_isolates) {
-    OS::Print(
+    OS::PrintErr(
         "[!] Unhandled exception in %s:\n"
         "         exception: %s\n",
         T->isolate()->name(), result.ToErrorCString());
@@ -1104,7 +1104,7 @@ Isolate* Isolate::Init(const char* name_prefix,
 #endif
   if (FLAG_trace_isolates) {
     if (name_prefix == NULL || strcmp(name_prefix, "vm-isolate") != 0) {
-      OS::Print(
+      OS::PrintErr(
           "[+] Starting isolate:\n"
           "\tisolate:    %s\n",
           result->name());
@@ -1765,7 +1765,7 @@ void Isolate::LowLevelShutdown() {
   }
   if (FLAG_trace_isolates) {
     heap()->PrintSizes();
-    OS::Print(
+    OS::PrintErr(
         "[-] Stopping isolate:\n"
         "\tisolate:    %s\n",
         name());
@@ -1826,7 +1826,7 @@ void Isolate::Shutdown() {
     if (FLAG_support_compiler_stats && FLAG_compiler_stats &&
         !ServiceIsolate::IsServiceIsolateDescendant(this) &&
         (this != Dart::vm_isolate())) {
-      OS::Print("%s", aggregate_compiler_stats()->PrintToZone());
+      OS::PrintErr("%s", aggregate_compiler_stats()->PrintToZone());
     }
   }
 
@@ -2506,7 +2506,7 @@ void Isolate::PauseEventHandler() {
         const int64_t reload_time_micros =
             OS::GetCurrentMonotonicMicros() - start_time_micros;
         double reload_millis = MicrosecondsToMilliseconds(reload_time_micros);
-        OS::Print("Reloading has finished! (%.2f ms)\n", reload_millis);
+        OS::PrintErr("Reloading has finished! (%.2f ms)\n", reload_millis);
       }
       break;
     }

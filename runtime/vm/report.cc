@@ -154,7 +154,7 @@ void Report::MessageV(Kind kind,
       const String& msg = String::Handle(String::NewFormattedV(format, args));
       const String& snippet_msg = String::Handle(
           PrependSnippet(kind, script, token_pos, report_after_token, msg));
-      OS::Print("%s", snippet_msg.ToCString());
+      OS::PrintErr("%s", snippet_msg.ToCString());
       return;
     }
   }
