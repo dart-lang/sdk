@@ -44,6 +44,7 @@ namespace dart {
   V(_TypedList, _setFloat64, ByteArrayBaseSetFloat64, Dynamic, 0x38a80b0d)     \
   V(_TypedList, _setFloat32x4, ByteArrayBaseSetFloat32x4, Dynamic, 0x40052c4e) \
   V(_TypedList, _setInt32x4, ByteArrayBaseSetInt32x4, Dynamic, 0x07b89f54)     \
+  V(::, _toClampedUint8, ConvertIntToClampedUint8, Smi, 0x564b0435)            \
   V(_StringBase, _interpolate, StringBaseInterpolate, Dynamic, 0x01ecb15a)     \
   V(_IntegerImplementation, toDouble, IntegerToDouble, Double, 0x05da96ed)     \
   V(_Double, _add, DoubleAdd, Double, 0x2a38277b)                              \
@@ -437,7 +438,6 @@ namespace dart {
   V(::, _toInt, ConvertMaskedInt, 0x713908fd)                                  \
   V(::, _toInt8, ConvertIntToInt8, 0x7484a780)                                 \
   V(::, _toUint8, ConvertIntToUint8, 0x0a15b522)                               \
-  V(::, _toClampedUint8, ConvertIntToClampedUint8, 0x564b0435)                 \
   V(::, _toInt16, ConvertIntToInt16, 0x0a83fcc6)                               \
   V(::, _toUint16, ConvertIntToUint16, 0x6087d1af)                             \
   V(::, _toInt32, ConvertIntToInt32, 0x62b451b9)                               \
