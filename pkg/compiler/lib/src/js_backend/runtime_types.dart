@@ -13,6 +13,7 @@ import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_emitter/js_emitter.dart' show Emitter;
 import '../options.dart';
+import '../universe/feature.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
 import '../world.dart' show JClosedWorld, KClosedWorld;
@@ -95,6 +96,13 @@ abstract class RuntimeTypesNeed {
   /// Returns `true` if a dynamic call of [selector] needs to pass type
   /// arguments.
   bool selectorNeedsTypeArguments(Selector selector);
+
+  /// Returns `true` if a generic instantiation on an expression of type
+  /// [functionType] with the given [typeArgumentCount] needs to pass type
+  /// arguments.
+  // TODO(johnniwinther): Use [functionType].
+  bool instantiationNeedsTypeArguments(
+      DartType functionType, int typeArgumentCount);
 }
 
 class TrivialRuntimeTypesNeed implements RuntimeTypesNeed {
@@ -117,6 +125,12 @@ class TrivialRuntimeTypesNeed implements RuntimeTypesNeed {
 
   @override
   bool selectorNeedsTypeArguments(Selector selector) => true;
+
+  @override
+  bool instantiationNeedsTypeArguments(
+      DartType functionType, int typeArgumentCount) {
+    return true;
+  }
 }
 
 /// Interface for computing classes and methods that need runtime types.
@@ -130,6 +144,9 @@ abstract class RuntimeTypesNeedBuilder {
   /// Registers that [localFunction] uses one of its type variables as a
   /// literal.
   void registerLocalFunctionUsingTypeVariableLiteral(Local localFunction);
+
+  /// Registers that a generic [instantiation] is used.
+  void registerGenericInstantiation(GenericInstantiation instantiation);
 
   /// Computes the [RuntimeTypesNeed] for the data registered with this builder.
   RuntimeTypesNeed computeRuntimeTypesNeed(
@@ -149,6 +166,9 @@ class TrivialRuntimeTypesNeedBuilder implements RuntimeTypesNeedBuilder {
 
   @override
   void registerLocalFunctionUsingTypeVariableLiteral(Local localFunction) {}
+
+  @override
+  void registerGenericInstantiation(GenericInstantiation instantiation) {}
 
   @override
   RuntimeTypesNeed computeRuntimeTypesNeed(
@@ -194,6 +214,9 @@ abstract class RuntimeTypesChecksBuilder {
   void registerTypeVariableBoundsSubtypeCheck(
       DartType typeArgument, DartType bound);
 
+  /// Registers that a generic [instantiation] is used.
+  void registerGenericInstantiation(GenericInstantiation instantiation);
+
   /// Computes the [RuntimeTypesChecks] for the data in this builder.
   RuntimeTypesChecks computeRequiredChecks(
       CodegenWorldBuilder codegenWorldBuilder, CompilerOptions options);
@@ -213,6 +236,9 @@ class TrivialRuntimeTypesChecksBuilder implements RuntimeTypesChecksBuilder {
   @override
   void registerTypeVariableBoundsSubtypeCheck(
       DartType typeArgument, DartType bound) {}
+
+  @override
+  void registerGenericInstantiation(GenericInstantiation instantiation) {}
 
   @override
   RuntimeTypesChecks computeRequiredChecks(
@@ -700,6 +726,7 @@ class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
   final Set<Local> localFunctionsNeedingSignature;
   final Set<Local> localFunctionsNeedingTypeArguments;
   final Set<Selector> selectorsNeedingTypeArguments;
+  final Set<int> instantiationsNeedingTypeArguments;
 
   RuntimeTypesNeedImpl(
       this._elementEnvironment,
@@ -709,7 +736,8 @@ class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
       this.methodsNeedingTypeArguments,
       this.localFunctionsNeedingSignature,
       this.localFunctionsNeedingTypeArguments,
-      this.selectorsNeedingTypeArguments);
+      this.selectorsNeedingTypeArguments,
+      this.instantiationsNeedingTypeArguments);
 
   bool checkClass(covariant ClassEntity cls) => true;
 
@@ -749,6 +777,12 @@ class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
     if (_backendUsage.isRuntimeTypeUsed) return true;
     return selectorsNeedingTypeArguments.contains(selector);
   }
+
+  @override
+  bool instantiationNeedsTypeArguments(
+      DartType functionType, int typeArgumentCount) {
+    return instantiationsNeedingTypeArguments.contains(typeArgumentCount);
+  }
 }
 
 class TypeVariableTests {
@@ -756,6 +790,7 @@ class TypeVariableTests {
   Map<ClassEntity, ClassNode> _classes = <ClassEntity, ClassNode>{};
   Map<Entity, MethodNode> _methods = <Entity, MethodNode>{};
   Map<Selector, Set<Entity>> _appliedSelectorMap;
+  Map<GenericInstantiation, Set<Entity>> _instantiationMap;
 
   /// All explicit is-tests.
   final Set<DartType> explicitIsChecks;
@@ -763,11 +798,17 @@ class TypeVariableTests {
   /// All implicit is-tests.
   final Set<DartType> implicitIsChecks = new Set<DartType>();
 
-  TypeVariableTests(ElementEnvironment elementEnvironment,
-      CommonElements commonElements, DartTypes types, WorldBuilder worldBuilder,
+  TypeVariableTests(
+      ElementEnvironment elementEnvironment,
+      CommonElements commonElements,
+      DartTypes types,
+      WorldBuilder worldBuilder,
+      Set<GenericInstantiation> genericInstantiations,
       {bool forRtiNeeds: true})
       : explicitIsChecks = new Set<DartType>.from(worldBuilder.isChecks) {
-    _setupDependencies(elementEnvironment, commonElements, worldBuilder);
+    _setupDependencies(
+        elementEnvironment, commonElements, worldBuilder, genericInstantiations,
+        forRtiNeeds: forRtiNeeds);
     _propagateTests(commonElements, elementEnvironment, worldBuilder);
     if (forRtiNeeds) {
       _propagateLiterals(elementEnvironment, worldBuilder);
@@ -867,6 +908,13 @@ class TypeVariableTests {
     _appliedSelectorMap.forEach(f);
   }
 
+  /// Calls [f] for each generic instantiation that applies to generic
+  /// closurized [targets].
+  void forEachGenericInstantiation(
+      void f(GenericInstantiation instantiation, Set<Entity> targets)) {
+    _instantiationMap?.forEach(f);
+  }
+
   ClassNode _getClassNode(ClassEntity cls) {
     return _classes.putIfAbsent(cls, () {
       ClassNode node = new ClassNode(cls);
@@ -905,8 +953,12 @@ class TypeVariableTests {
     });
   }
 
-  void _setupDependencies(ElementEnvironment elementEnvironment,
-      CommonElements commonElements, WorldBuilder worldBuilder) {
+  void _setupDependencies(
+      ElementEnvironment elementEnvironment,
+      CommonElements commonElements,
+      WorldBuilder worldBuilder,
+      Set<GenericInstantiation> genericInstantiations,
+      {bool forRtiNeeds: true}) {
     /// Register that if `node.entity` needs type arguments then so do entities
     /// whose type variables occur in [type].
     ///
@@ -1018,6 +1070,31 @@ class TypeVariableTests {
       worldBuilder.closurizedStatics.forEach(processEntity);
       worldBuilder.userNoSuchMethods.forEach(processEntity);
     });
+
+    for (GenericInstantiation instantiation in genericInstantiations) {
+      void processEntity(Entity entity) {
+        MethodNode node =
+            _getMethodNode(elementEnvironment, worldBuilder, entity);
+        if (node.parameterStructure.typeParameters ==
+            instantiation.typeArguments.length) {
+          if (forRtiNeeds) {
+            _instantiationMap ??= <GenericInstantiation, Set<Entity>>{};
+            _instantiationMap
+                .putIfAbsent(instantiation, () => new Set<Entity>())
+                .add(entity);
+          }
+          for (DartType type in instantiation.typeArguments) {
+            // Register that if `node.entity` needs type arguments then so do
+            // the entities that declare type variables occurring in [type].
+            registerDependencies(node, type);
+          }
+        }
+      }
+
+      worldBuilder.closurizedMembers.forEach(processEntity);
+      worldBuilder.closurizedStatics.forEach(processEntity);
+      worldBuilder.genericLocalFunctions.forEach(processEntity);
+    }
   }
 
   void _propagateTests(CommonElements commonElements,
@@ -1339,6 +1416,12 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
 
   Map<Selector, Set<Entity>> selectorsNeedingTypeArgumentsForTesting;
 
+  Map<GenericInstantiation, Set<Entity>>
+      instantiationsNeedingTypeArgumentsForTesting;
+
+  final Set<GenericInstantiation> _genericInstantiations =
+      new Set<GenericInstantiation>();
+
   TypeVariableTests typeVariableTestsForTesting;
 
   RuntimeTypesNeedBuilderImpl(this._elementEnvironment, DartTypes types)
@@ -1360,6 +1443,11 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
   }
 
   @override
+  void registerGenericInstantiation(GenericInstantiation instantiation) {
+    _genericInstantiations.add(instantiation);
+  }
+
+  @override
   RuntimeTypesNeed computeRuntimeTypesNeed(
       ResolutionWorldBuilder resolutionWorldBuilder,
       KClosedWorld closedWorld,
@@ -1368,7 +1456,8 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
         closedWorld.elementEnvironment,
         closedWorld.commonElements,
         closedWorld.dartTypes,
-        resolutionWorldBuilder);
+        resolutionWorldBuilder,
+        _genericInstantiations);
     Set<ClassEntity> classesNeedingTypeArguments = new Set<ClassEntity>();
     Set<FunctionEntity> methodsNeedingSignature = new Set<FunctionEntity>();
     Set<FunctionEntity> methodsNeedingTypeArguments = new Set<FunctionEntity>();
@@ -1440,8 +1529,9 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
           if (potentialSubtypeOf == null ||
               closedWorld.dartTypes.isPotentialSubtype(
                   functionType, potentialSubtypeOf,
-                  assumeInstantiations:
-                      closedWorld.backendUsage.isGenericInstantiationUsed)) {
+                  // TODO(johnniwinther): Use register generic instantiations
+                  // instead.
+                  assumeInstantiations: _genericInstantiations.isNotEmpty)) {
             functionType.forEachTypeVariable((TypeVariableType typeVariable) {
               Entity typeDeclaration = typeVariable.element.typeDeclaration;
               if (!processedEntities.contains(typeDeclaration)) {
@@ -1571,6 +1661,28 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
         }
       }
     });
+    Set<int> instantiationsNeedingTypeArguments = new Set<int>();
+    typeVariableTests.forEachGenericInstantiation(
+        (GenericInstantiation instantiation, Set<Entity> targets) {
+      for (Entity target in targets) {
+        if (methodsNeedingTypeArguments.contains(target) ||
+            localFunctionsNeedingTypeArguments.contains(target)) {
+          // TODO(johnniwinther): Use the static type of the instantiated
+          // expression.
+          instantiationsNeedingTypeArguments
+              .add(instantiation.typeArguments.length);
+          if (cacheRtiDataForTesting) {
+            instantiationsNeedingTypeArgumentsForTesting ??=
+                <GenericInstantiation, Set<Entity>>{};
+            instantiationsNeedingTypeArgumentsForTesting
+                .putIfAbsent(instantiation, () => new Set<Entity>())
+                .add(target);
+          } else {
+            return;
+          }
+        }
+      }
+    });
 
     if (cacheRtiDataForTesting) {
       typeVariableTestsForTesting = typeVariableTests;
@@ -1594,9 +1706,11 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
     localFunctionsNeedingTypeArguments.forEach((e) => print('  $e'));
     print('------------------------------------------------------------------');
     print('selectorsNeedingTypeArguments:');
-    selectorsNeedingTypeArguments.forEach((e) => print('  $e'));*/
+    selectorsNeedingTypeArguments.forEach((e) => print('  $e'));
+    print('instantiationsNeedingTypeArguments: '
+        '$instantiationsNeedingTypeArguments');*/
 
-    return _createRuntimeTypesNeed(
+    return new RuntimeTypesNeedImpl(
         _elementEnvironment,
         closedWorld.backendUsage,
         classesNeedingTypeArguments,
@@ -1604,27 +1718,8 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
         methodsNeedingTypeArguments,
         localFunctionsNeedingSignature,
         localFunctionsNeedingTypeArguments,
-        selectorsNeedingTypeArguments);
-  }
-
-  RuntimeTypesNeed _createRuntimeTypesNeed(
-      ElementEnvironment elementEnvironment,
-      BackendUsage backendUsage,
-      Set<ClassEntity> classesNeedingTypeArguments,
-      Set<FunctionEntity> methodsNeedingSignature,
-      Set<FunctionEntity> methodsNeedingTypeArguments,
-      Set<Local> localFunctionsNeedingSignature,
-      Set<Local> localFunctionsNeedingTypeArguments,
-      Set<Selector> selectorsNeedingTypeArguments) {
-    return new RuntimeTypesNeedImpl(
-        _elementEnvironment,
-        backendUsage,
-        classesNeedingTypeArguments,
-        methodsNeedingSignature,
-        methodsNeedingTypeArguments,
-        localFunctionsNeedingSignature,
-        localFunctionsNeedingTypeArguments,
-        selectorsNeedingTypeArguments);
+        selectorsNeedingTypeArguments,
+        instantiationsNeedingTypeArguments);
   }
 }
 
@@ -1672,6 +1767,9 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
 
   Map<ClassEntity, ClassUse> classUseMapForTesting;
 
+  final Set<GenericInstantiation> _genericInstantiations =
+      new Set<GenericInstantiation>();
+
   @override
   void registerTypeVariableBoundsSubtypeCheck(
       DartType typeArgument, DartType bound) {
@@ -1679,10 +1777,19 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
     checkedBounds.add(bound);
   }
 
+  @override
+  void registerGenericInstantiation(GenericInstantiation instantiation) {
+    _genericInstantiations.add(instantiation);
+  }
+
   RuntimeTypesChecks computeRequiredChecks(
       CodegenWorldBuilder codegenWorldBuilder, CompilerOptions options) {
     TypeVariableTests typeVariableTests = new TypeVariableTests(
-        _elementEnvironment, _commonElements, _types, codegenWorldBuilder,
+        _elementEnvironment,
+        _commonElements,
+        _types,
+        codegenWorldBuilder,
+        _genericInstantiations,
         forRtiNeeds: false);
     Set<DartType> explicitIsChecks = typeVariableTests.explicitIsChecks;
     Set<DartType> implicitIsChecks = typeVariableTests.implicitIsChecks;

@@ -220,8 +220,7 @@ Future<Context> createContext(
     ..fileSystem = fs
     ..sdkSummary = sdkSummary
     ..onError = (CompilationMessage message) {
-      if (message.severity != Severity.nit &&
-          message.severity != Severity.warning) {
+      if (message.severity != Severity.warning) {
         errors.add(message);
       }
     };

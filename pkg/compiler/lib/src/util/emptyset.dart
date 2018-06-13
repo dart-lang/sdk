@@ -10,10 +10,6 @@ class ImmutableEmptySet<E> extends IterableBase<E> implements Set<E> {
   const ImmutableEmptySet();
 
   Set<R> cast<R>() => new ImmutableEmptySet<R>();
-
-  @Deprecated("Use cast instead.")
-  Set<R> retype<R>() => cast<R>();
-
   get iterator => const _EmptySetIterator();
   int get length => 0;
   bool get isEmpty => true;

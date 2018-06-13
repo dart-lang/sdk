@@ -939,10 +939,6 @@ abstract class Stream<T> {
    * each data event emitted by this stream is also an instance of [R].
    */
   Stream<R> cast<R>() => Stream.castFrom<T, R>(this);
-
-  @Deprecated("Use cast instead.")
-  Stream<R> retype<R>() => cast<R>();
-
   /**
    * Collects all elements of this stream in a [List].
    *
@@ -2020,9 +2016,6 @@ abstract class StreamTransformer<S, T> {
    * are acually instances of [RT].
    */
   StreamTransformer<RS, RT> cast<RS, RT>();
-
-  @Deprecated("Use cast instead.")
-  StreamTransformer<RS, RT> retype<RS, RT>();
 }
 
 /**
@@ -2035,9 +2028,6 @@ abstract class StreamTransformerBase<S, T> implements StreamTransformer<S, T> {
 
   StreamTransformer<RS, RT> cast<RS, RT>() =>
       StreamTransformer.castFrom<S, T, RS, RT>(this);
-
-  @Deprecated("Use cast instead.")
-  StreamTransformer<RS, RT> retype<RS, RT>() => cast<RS, RT>();
 }
 
 /**

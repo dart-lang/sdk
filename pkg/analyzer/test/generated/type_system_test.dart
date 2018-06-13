@@ -637,7 +637,7 @@ abstract class LeastUpperBoundTestBase extends BoundTestBase {
 
   void test_dynamic_void() {
     // Note: _checkLeastUpperBound tests `LUB(x, y)` as well as `LUB(y, x)`
-    _checkLeastUpperBound(dynamicType, voidType, dynamicType);
+    _checkLeastUpperBound(dynamicType, voidType, voidType);
   }
 
   void test_functionsDifferentRequiredArity() {
@@ -1553,15 +1553,15 @@ class StrongGreatestLowerBoundTest extends BoundTestBase {
 
     final orderedTops = [
       // Lower index, so lower Top
+      voidType,
       dynamicType,
       objectType,
-      voidType,
+      futureOrVoidType,
       futureOrDynamicType,
       futureOrObjectType,
-      futureOrVoidType,
+      futureOrFutureOrVoidType,
       futureOrFutureOrDynamicType,
       futureOrFutureOrObjectType,
-      futureOrFutureOrVoidType,
       // Higher index, higher Top
     ];
 
@@ -1593,7 +1593,7 @@ class StrongGreatestLowerBoundTest extends BoundTestBase {
     // Sanity check specific cases of top for GLB/LUB.
     _checkLeastUpperBound(objectType, dynamicType, dynamicType);
     _checkGreatestLowerBound(objectType, dynamicType, objectType);
-    _checkLeastUpperBound(objectType, voidType, objectType);
+    _checkLeastUpperBound(objectType, voidType, voidType);
     _checkLeastUpperBound(futureOrDynamicType, dynamicType, dynamicType);
     _checkGreatestLowerBound(
         futureOrDynamicType, objectType, futureOrDynamicType);
@@ -1644,7 +1644,7 @@ class StrongGreatestLowerBoundTest extends BoundTestBase {
 
   void test_dynamic_void() {
     // Note: _checkGreatestLowerBound tests `GLB(x, y)` as well as `GLB(y, x)`
-    _checkGreatestLowerBound(dynamicType, voidType, voidType);
+    _checkGreatestLowerBound(dynamicType, voidType, dynamicType);
   }
 
   void test_functionsDifferentNamedTakeUnion() {

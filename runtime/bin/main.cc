@@ -37,6 +37,8 @@
 #include "bin/gzip.h"
 #endif
 
+#include "vm/flags.h"
+
 extern "C" {
 extern const uint8_t kDartVmSnapshotData[];
 extern const uint8_t kDartVmSnapshotInstructions[];
@@ -191,6 +193,17 @@ static void WriteDepsFile(Dart_Isolate isolate) {
     success &= file->Print("%s ", dep);
     free(dep);
   }
+  if (Options::preview_dart_2()) {
+    Dart_KernelCompilationResult result = Dart_KernelListDependencies();
+    if (result.status != Dart_KernelCompilationStatus_Ok) {
+      ErrorExit(
+          kErrorExitCode,
+          "Error: Failed to fetch dependencies from kernel service: %s\n\n",
+          result.error);
+    }
+    success &= file->WriteFully(result.kernel, result.kernel_size);
+    free(result.kernel);
+  }
   success &= file->Print("\n");
   if (!success) {
     ErrorExit(kErrorExitCode, "Error: Unable to write snapshot depfile: %s\n\n",
@@ -291,13 +304,15 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
   result = DartUtils::PrepareForScriptLoading(false, Options::trace_loading());
   CHECK_RESULT(result);
 
-  // Set up the load port provided by the service isolate so that we can
-  // load scripts.
-  result = DartUtils::SetupServiceLoadPort();
-  CHECK_RESULT(result);
+  if (FLAG_support_service || !kDartPrecompiledRuntime) {
+    // Set up the load port provided by the service isolate so that we can
+    // load scripts.
+    result = DartUtils::SetupServiceLoadPort();
+    CHECK_RESULT(result);
+  }
 
   // Setup package root if specified.
-  result = DartUtils::SetupPackageRoot(package_root, packages_config);
+  result = DartUtils::SetupPackageRoot(NULL, packages_config);
   CHECK_RESULT(result);
   const char* resolved_packages_config = NULL;
   if (!Dart_IsNull(result)) {
@@ -363,11 +378,15 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
     CHECK_RESULT(result);
   }
 
+  const char* namespc =
+      Dart_IsKernelIsolate(isolate) ? NULL : Options::namespc();
   if (isolate_run_app_snapshot) {
-    result = DartUtils::SetupIOLibrary(Options::namespc(), script_uri,
+    result = DartUtils::SetupIOLibrary(namespc, script_uri,
                                        Options::exit_disabled());
     CHECK_RESULT(result);
-    Loader::InitForSnapshot(script_uri);
+    if (FLAG_support_service || !kDartPrecompiledRuntime) {
+      Loader::InitForSnapshot(script_uri);
+    }
 #if !defined(DART_PRECOMPILED_RUNTIME)
     if (is_main_isolate) {
       // Find the canonical uri of the app snapshot. We'll use this to decide if
@@ -405,7 +424,7 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
                        Dart_GetMainPortId(), Dart_Timeline_Event_Async_End, 0,
                        NULL, NULL);
 
-    result = DartUtils::SetupIOLibrary(Options::namespc(), script_uri,
+    result = DartUtils::SetupIOLibrary(namespc, script_uri,
                                        Options::exit_disabled());
     CHECK_RESULT(result);
 #else

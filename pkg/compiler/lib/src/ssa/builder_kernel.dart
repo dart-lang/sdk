@@ -35,6 +35,7 @@ import '../native/native.dart' as native;
 import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
 import '../universe/call_structure.dart';
+import '../universe/feature.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart' show SideEffects;
 import '../universe/target_checks.dart' show TargetChecks;
@@ -4234,9 +4235,20 @@ class KernelSsaGraphBuilder extends ir.Visitor
     var arguments = <HInstruction>[];
     node.expression.accept(this);
     arguments.add(pop());
-    for (ir.DartType type in node.typeArguments) {
-      HInstruction instruction = typeBuilder.analyzeTypeArgument(
-          _elementMap.getDartType(type), sourceElement);
+    // TODO(johnniwinther): Use the static type of the expression.
+    bool typeArgumentsNeeded = rtiNeed.instantiationNeedsTypeArguments(
+        null, node.typeArguments.length);
+    List<DartType> typeArguments = node.typeArguments
+        .map((type) => typeArgumentsNeeded
+            ? _elementMap.getDartType(type)
+            : _commonElements.dynamicType)
+        .toList();
+    registry.registerGenericInstantiation(
+        new GenericInstantiation(null, typeArguments));
+    // TODO(johnniwinther): Can we avoid creating the instantiation object?
+    for (DartType type in typeArguments) {
+      HInstruction instruction =
+          typeBuilder.analyzeTypeArgument(type, sourceElement);
       arguments.add(instruction);
     }
     int typeArgumentCount = node.typeArguments.length;
@@ -5180,10 +5192,20 @@ class KernelSsaGraphBuilder extends ir.Visitor
       } else {
         assert(callStructure.typeArgumentCount == 0);
         // Pass type variable bounds as type arguments.
-        for (int i = 0; i < parameterStructure.typeParameters; i++) {
-          // TODO(johnniwinther): Pass type variable bounds.
-          compiledArguments[compiledArgumentIndex++] =
-              graph.addConstantNull(closedWorld);
+        for (TypeVariableType typeVariable in _elementMap.elementEnvironment
+            .getFunctionTypeVariables(function)) {
+          DartType bound = _elementMap.elementEnvironment
+              .getTypeVariableDefaultType(typeVariable.element);
+          if (bound.containsTypeVariables) {
+            // TODO(33422): Support type variables in default
+            // types. Temporarily using the "any" type (encoded as -2) to
+            // avoid failing on bounds checks.
+            compiledArguments[compiledArgumentIndex++] =
+                graph.addConstantInt(-2, closedWorld);
+          } else {
+            compiledArguments[compiledArgumentIndex++] =
+                typeBuilder.analyzeTypeArgument(bound, function);
+          }
         }
       }
     }

@@ -160,11 +160,10 @@ class Isolate {
   /**
    * The location of the package configuration of the current isolate, if any.
    *
-   * If the isolate is using a [packageConfig] or the isolate has not been
-   * setup for package resolution, this getter returns `null`, otherwise it
-   * returns the package root - a directory that package URIs are resolved
-   * against.
+   * This getter returns `null`, as the `packages/` directory is not supported
+   * in Dart 2.
    */
+  @Deprecated('packages/ directory resolution is not supported in Dart 2.')
   external static Future<Uri> get packageRoot;
 
   /**
@@ -286,16 +285,6 @@ class Isolate {
    *
    * WARNING: The [checked] parameter is not implemented on all platforms yet.
    *
-   * If the [packageRoot] parameter is provided, it is used to find the location
-   * of package sources in the spawned isolate.
-   *
-   * The `packageRoot` URI must be a "file" or "http"/"https" URI that specifies
-   * a directory. If it doesn't end in a slash, one will be added before
-   * using the URI, and any query or fragment parts are ignored.
-   * Package imports (like `"package:foo/bar.dart"`) in the new isolate are
-   * resolved against this location, as by
-   * `packageRoot.resolve("foo/bar.dart")`.
-   *
    * If the [packageConfig] parameter is provided, then it is used to find the
    * location of a package resolution configuration file for the spawned
    * isolate.
@@ -317,14 +306,17 @@ class Isolate {
    * spawning succeeded. It will complete with an error otherwise.
    */
   external static Future<Isolate> spawnUri(
-      Uri uri, List<String> args, var message,
+      Uri uri,
+      List<String> args,
+      var message,
       {bool paused: false,
       SendPort onExit,
       SendPort onError,
       bool errorsAreFatal,
       bool checked,
       Map<String, String> environment,
-      Uri packageRoot,
+      @Deprecated('The packages/ dir is not supported in Dart 2')
+          Uri packageRoot,
       Uri packageConfig,
       bool automaticPackageResolution: false});
 

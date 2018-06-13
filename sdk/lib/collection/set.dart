@@ -48,10 +48,6 @@ abstract class SetMixin<E> implements Set<E> {
   bool get isNotEmpty => length != 0;
 
   Set<R> cast<R>() => Set.castFrom<E, R>(this);
-
-  @Deprecated("Use cast instead.")
-  Set<R> retype<R>() => cast<R>();
-
   Iterable<E> followedBy(Iterable<E> other) =>
       new FollowedByIterable<E>.firstEfficient(this, other);
 

@@ -52,7 +52,9 @@ const _Dart_kResolvePackageUri = 8; // Resolve a package: uri.
 // either a Uri or a List<int>.
 Future<T> _makeLoaderRequest<T>(int tag, String uri) {
   assert(_isolateId != null);
-  assert(_loadPort != null);
+  if (_loadPort == null) {
+    throw new UnsupportedError("Service isolate is not available.");
+  }
   Completer completer = new Completer<T>();
   RawReceivePort port = new RawReceivePort();
   port.handler = (msg) {
@@ -331,11 +333,13 @@ Future<List<int>> _resourceReadAsBytes(Uri uri) async {
   }
 }
 
+// TODO(mfairhurst): remove this
 Future<Uri> _getPackageRootFuture() {
   if (_traceLoading) {
     _log("Request for package root from user code.");
   }
-  return _makeLoaderRequest<Uri>(_Dart_kGetPackageRootUri, null);
+  // Return null, as the `packages/` directory is not supported in dart 2.
+  return new Future.value(null);
 }
 
 Future<Uri> _getPackageConfigFuture() {

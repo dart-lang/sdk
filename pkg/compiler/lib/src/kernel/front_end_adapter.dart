@@ -96,9 +96,6 @@ void reportFrontEndMessage(
     case fe.Severity.warning:
       reporter.reportWarningMessage(span, kind, {'text': message.message});
       break;
-    case fe.Severity.nit:
-      reporter.reportHintMessage(span, kind, {'text': message.message});
-      break;
     case fe.Severity.context:
       reporter.reportInfo(span, kind, {'text': message.message});
       break;

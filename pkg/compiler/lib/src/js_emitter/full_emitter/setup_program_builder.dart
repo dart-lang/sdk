@@ -211,6 +211,7 @@ function $setupProgramName(programData, metadataOffset, typesOffset) {
       for (var i = 0; i < fields.length; i++) {
         var fieldDescriptor = fields[i];
         if (fieldDescriptor.charCodeAt(0) == 48) {
+          // null-initialized field.
           fieldDescriptor = fieldDescriptor.substring(1);
           var field = generateAccessor(fieldDescriptor, accessors, name);
           body += ("this." + field + " = null;\\n");
@@ -489,7 +490,7 @@ function $setupProgramName(programData, metadataOffset, typesOffset) {
               descriptor[property];
           var optionalMethods = descriptor.$methodsWithOptionalArgumentsField;
           if (!optionalMethods) {
-            descriptor.$methodsWithOptionalArgumentsField = optionalMethods={}
+            descriptor.$methodsWithOptionalArgumentsField = optionalMethods = {}
           }
           optionalMethods[property] = previousProperty;
         } else {
@@ -604,14 +605,19 @@ function $setupProgramName(programData, metadataOffset, typesOffset) {
     // the information is thrown away at the call site. This is to avoid
     // conditionals.
     function addStubs(prototype, array, name, isStatic, functions) {
-      var index = $FUNCTION_INDEX, alias = array[index], f;
+      var index = $FUNCTION_INDEX, applyTrampolineIndex = index, alias = array[index], f;
       if (typeof alias == "string") {
         f = array[++index];
       } else {
         f = alias;
         alias = name;
       }
-      var funcs = [prototype[name] = prototype[alias] = f];
+      if (typeof f == "number") {
+        applyTrampolineIndex = f;
+        f = array[++index];
+      }
+      prototype[name] = prototype[alias] = f;
+      var funcs = [f];
       f.\$stubName = name;
       functions.push(name);
       for (index++; index < array.length; index++) {
@@ -665,7 +671,7 @@ function $setupProgramName(programData, metadataOffset, typesOffset) {
       var unmangledNameIndex = $unmangledNameIndex;
 
       if (getterStubName) {
-        f = tearOff(funcs, array, isStatic, name, isIntercepted);
+        f = tearOff(funcs, applyTrampolineIndex, array, isStatic, name, isIntercepted);
         prototype[name].\$getter = f;
         f.\$getterStub = true;
         if (isStatic) {
@@ -712,7 +718,7 @@ function $setupProgramName(programData, metadataOffset, typesOffset) {
           funcs[0].$metadataIndexField = unmangledNameIndex + 1;
           // The following line installs the [${JsGetName.CALL_CATCH_ALL}]
           // property for closures.
-          if (optionalParameterCount) prototype[unmangledName + "*"] = funcs[0];
+          if (optionalParameterCount) prototype[unmangledName + "*"] = funcs[applyTrampolineIndex];
         }
       }
     }

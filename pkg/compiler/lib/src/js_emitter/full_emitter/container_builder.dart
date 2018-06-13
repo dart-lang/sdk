@@ -64,9 +64,10 @@ class ContainerBuilder extends CodeEmitterHelper {
     // The information is stored in an array with this format:
     //
     // 1.   The alias name for this function (optional).
-    // 2.   The JS function for this member.
-    // 3.   First stub.
-    // 4.   Name of first stub.
+    // 2.   Index into the functions and stubs of the apply stub (optional).
+    // 3.   The JS function for this member.
+    // 4.   First stub.
+    // 5.   Name of first stub.
     // ...
     // M.   Call name of this member.
     // M+1. Call name of first stub.
@@ -92,6 +93,12 @@ class ContainerBuilder extends CodeEmitterHelper {
     // Create the optional aliasing entry if this method is called via super.
     if (hasSuperAlias) {
       expressions.add(js.quoteName(superAlias));
+    }
+
+    if (canBeApplied && parameters.typeParameters > 0) {
+      // The first stub is the one that has all the value parameters parameters
+      // but no type parameters. This is the entry point for Function.apply.
+      expressions.add(js.number(1));
     }
 
     expressions.add(code);

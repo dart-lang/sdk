@@ -80,7 +80,7 @@ import '../parser/class_member_parser.dart' show ClassMemberParser;
 
 import '../parser.dart' show Parser, lengthForToken, offsetForToken;
 
-import '../problems.dart' show internalProblem;
+import '../problems.dart' show internalProblem, unhandled;
 
 import '../scanner.dart' show ErrorToken, ScannerResult, Token, scan;
 
@@ -206,6 +206,10 @@ class SourceLoader<L> extends Loader<L> {
       DietParser parser = new DietParser(listener);
       parser.parseUnit(tokens);
       for (SourceLibraryBuilder part in library.parts) {
+        if (part.partOfLibrary != library) {
+          // Part was included in multiple libraries. Skip it here.
+          continue;
+        }
         Token tokens = await tokenize(part);
         if (tokens != null) {
           listener.uri = part.fileUri;
@@ -755,15 +759,15 @@ class SourceLoader<L> extends Loader<L> {
       for (int i = 0; i < sourceClasses.length; i++) {
         classes[i] = sourceClasses[i].target;
       }
+      orderedClasses = null;
       List<ClassBuilder> result = new List<ClassBuilder>(sourceClasses.length);
       int i = 0;
-      for (Class cls in hierarchy.getOrderedClasses(classes)) {
-        result[i++] = ShadowClass.getClassInferenceInfo(cls).builder;
+      for (Class cls
+          in new List<Class>.from(hierarchy.getOrderedClasses(classes))) {
+        result[i++] = ShadowClass.getClassInferenceInfo(cls).builder
+          ..prepareTopLevelInference();
       }
       orderedClasses = result;
-    }
-    for (ClassBuilder cls in orderedClasses) {
-      cls.prepareTopLevelInference();
     }
     typeInferenceEngine.isTypeInferencePrepared = true;
     ticker.logMs("Prepared top level inference");
@@ -862,8 +866,7 @@ class SourceLoader<L> extends Loader<L> {
     if (instrumentation == null) return;
 
     if (charOffset == -1 &&
-        (severity == Severity.nit ||
-            message.code == fasta_codes.codeConstConstructorWithBody ||
+        (message.code == fasta_codes.codeConstConstructorWithBody ||
             message.code == fasta_codes.codeConstructorNotFound ||
             message.code == fasta_codes.codeSuperclassHasNoDefaultConstructor ||
             message.code == fasta_codes.codeTypeArgumentsOnTypeVariable ||
@@ -883,10 +886,6 @@ class SourceLoader<L> extends Loader<L> {
         severityString = "internal problem";
         break;
 
-      case Severity.nit:
-        severityString = "nit";
-        break;
-
       case Severity.warning:
         severityString = "warning";
         break;
@@ -900,6 +899,10 @@ class SourceLoader<L> extends Loader<L> {
       case Severity.context:
         severityString = "context";
         break;
+
+      case Severity.ignored:
+        unhandled("IGNORED", "recordMessage", charOffset, fileUri);
+        return;
     }
     instrumentation.record(
         fileUri,

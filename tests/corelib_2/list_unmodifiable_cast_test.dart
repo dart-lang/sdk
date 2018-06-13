@@ -19,11 +19,6 @@ void main() {
   test(new UnmodifiableListView<Object>(<num>[37]).cast<int>());
   test(new UnmodifiableListView<Object>(<int>[37]).cast<num>());
 
-  test(new UnmodifiableListView<num>(<num>[37]).retype<int>());
-  test(new UnmodifiableListView<num>(<int>[37]).retype<int>());
-  test(new UnmodifiableListView<Object>(<num>[37]).retype<int>());
-  test(new UnmodifiableListView<Object>(<int>[37]).retype<num>());
-
   var m2 = new List<num>.unmodifiable([37]);
   test(m2);
   test(m2.cast<int>());

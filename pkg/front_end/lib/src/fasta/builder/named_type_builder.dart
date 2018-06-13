@@ -4,7 +4,7 @@
 
 library fasta.named_type_builder;
 
-import '../fasta_codes.dart' show Message;
+import '../fasta_codes.dart' show Message, templateTypeArgumentMismatch;
 
 import 'builder.dart'
     show
@@ -51,6 +51,27 @@ abstract class NamedTypeBuilder<T extends TypeBuilder, R> extends TypeBuilder {
       return;
     }
     declaration = buildInvalidType(charOffset, fileUri);
+  }
+
+  @override
+  void check(int charOffset, Uri fileUri) {
+    if (arguments != null &&
+        arguments.length != declaration.typeVariablesCount) {
+      declaration = buildInvalidType(
+          charOffset,
+          fileUri,
+          templateTypeArgumentMismatch.withArguments(
+              name, declaration.typeVariablesCount));
+    }
+  }
+
+  @override
+  void normalize(int charOffset, Uri fileUri) {
+    if (arguments != null &&
+        arguments.length != declaration.typeVariablesCount) {
+      // [arguments] will be normalized later if they are null.
+      arguments = null;
+    }
   }
 
   String get debugName => "NamedTypeBuilder";

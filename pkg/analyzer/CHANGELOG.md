@@ -1,5 +1,7 @@
 ## 0.32.1
 
+* The Parser() class now by default will parse with optional new or const. This
+  affects many APIs, for instance, `analyzer.dart`'s `parseCompilationUnit()`.
 * Add the ability to specify a pathContext when creating a ContextRoot (not part
   of the officially supported API, but needed by some clients).
 * AnalysisSession now exports resourceProvider.

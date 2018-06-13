@@ -23,10 +23,10 @@ main([args, port]) async {
       print(msg.runtimeType);
       throw "Failure return from spawned isolate:\n\n$msg";
     }
-    if (msg[0] != SPAWN_PACKAGE_ROOT) {
+    if (msg[0] != null) {
       throw "Bad package root in child isolate: ${msg[0]}";
     }
-    if (msg[1] != PACKAGE_PATH) {
+    if (msg[1] != null) {
       throw "Package path not matching: ${msg[1]}";
     }
     print("SUCCESS");

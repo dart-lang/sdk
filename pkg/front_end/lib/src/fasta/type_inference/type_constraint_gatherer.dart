@@ -2,10 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'package:front_end/src/fasta/type_inference/type_schema.dart';
-import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
-import 'package:kernel/ast.dart';
-import 'package:kernel/type_algebra.dart';
+import 'package:kernel/ast.dart'
+    show
+        DartType,
+        DynamicType,
+        FunctionType,
+        InterfaceType,
+        NamedType,
+        TypeParameter,
+        TypeParameterType,
+        VoidType;
+
+import 'package:kernel/type_algebra.dart' show substitute;
+
+import 'type_schema.dart' show UnknownType;
+
+import 'type_schema_environment.dart'
+    show TypeConstraint, TypeSchemaEnvironment, substituteTypeParams;
 
 /// Creates a collection of [TypeConstraint]s corresponding to type parameters,
 /// based on an attempt to make one type schema a subtype of another.

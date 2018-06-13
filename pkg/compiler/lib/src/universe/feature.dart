@@ -8,7 +8,8 @@
 /// compilation pipeline, for example during resolution.
 library compiler.universe.feature;
 
-import '../elements/types.dart' show InterfaceType;
+import '../elements/types.dart' show DartType, InterfaceType;
+import '../util/util.dart';
 
 /// A language feature that may be seen in the program.
 // TODO(johnniwinther): Should mirror usage be part of this?
@@ -42,9 +43,6 @@ enum Feature {
 
   /// A field without an initializer.
   FIELD_WITHOUT_INITIALIZER,
-
-  /// A generic instantiation (application of type parameters).
-  GENERIC_INSTANTIATION,
 
   /// A field whose initialization is not a constant.
   LAZY_FIELD,
@@ -147,5 +145,35 @@ class ListLiteralUse {
 
   String toString() {
     return 'ListLiteralUse($type,isConstant:$isConstant,isEmpty:$isEmpty)';
+  }
+}
+
+/// A generic instantiation of an expression of type [functionType] with the
+/// given [typeArguments].
+class GenericInstantiation {
+  /// The static type of the instantiated expression.
+  final DartType functionType;
+
+  /// The type arguments of the instantiation.
+  final List<DartType> typeArguments;
+
+  GenericInstantiation(this.functionType, this.typeArguments);
+
+  /// Short textual representation use for testing.
+  String get shortText => '<${typeArguments.join(',')}>';
+
+  int get hashCode =>
+      Hashing.listHash(typeArguments, Hashing.objectHash(functionType));
+
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! GenericInstantiation) return false;
+    return functionType == other.functionType &&
+        equalElements(typeArguments, other.typeArguments);
+  }
+
+  String toString() {
+    return 'GenericInstantiation(functionType:$functionType,'
+        'typeArguments:$typeArguments)';
   }
 }

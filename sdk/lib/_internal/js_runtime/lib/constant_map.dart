@@ -48,10 +48,6 @@ abstract class ConstantMap<K, V> implements Map<K, V> {
   const ConstantMap._();
 
   Map<RK, RV> cast<RK, RV>() => Map.castFrom<K, V, RK, RV>(this);
-
-  @Deprecated("Use cast instead.")
-  Map<RK, RV> retype<RK, RV>() => cast<RK, RV>();
-
   bool get isEmpty => length == 0;
 
   bool get isNotEmpty => !isEmpty;

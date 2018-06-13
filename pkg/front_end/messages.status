@@ -113,11 +113,8 @@ DuplicateDeferred/example: Fail
 DuplicatePrefix/example: Fail
 DuplicatedDefinition/analyzerCode: Fail
 DuplicatedDefinition/example: Fail
-DuplicatedExport/example: Fail
 DuplicatedExportInType/analyzerCode: Fail
 DuplicatedExportInType/example: Fail
-DuplicatedImport/analyzerCode: Fail
-DuplicatedImport/example: Fail
 DuplicatedImportInType/analyzerCode: Fail
 DuplicatedImportInType/example: Fail
 DuplicatedModifier/script1: Fail
@@ -150,8 +147,6 @@ ExpectedType/example: Fail
 ExpectedUri/analyzerCode: Fail
 ExpectedUri/example: Fail
 ExportAfterPart/script1: Fail
-ExportHidesExport/analyzerCode: Fail
-ExportHidesExport/example: Fail
 ExpressionNotMetadata/analyzerCode: Fail
 ExpressionNotMetadata/example: Fail
 ExtendingEnum/analyzerCode: Fail
@@ -210,8 +205,6 @@ ImplementsBeforeWith/script: Fail
 ImplicitCallOfNonMethod/analyzerCode: Fail
 ImplicitCallOfNonMethod/example: Fail
 ImportAfterPart/script1: Fail
-ImportHidesImport/analyzerCode: Fail
-ImportHidesImport/example: Fail
 InheritedMembersConflict/analyzerCode: Fail
 InputFileNotFound/analyzerCode: Fail
 InputFileNotFound/example: Fail
@@ -241,14 +234,8 @@ ListLiteralTooManyTypeArguments/analyzerCode: Fail
 ListLiteralTooManyTypeArguments/example: Fail
 ListLiteralTypeArgumentMismatch/analyzerCode: Fail
 ListLiteralTypeArgumentMismatch/example: Fail
-LoadLibraryHidesMember/analyzerCode: Fail
-LoadLibraryHidesMember/example: Fail
 LoadLibraryTakesNoArguments/analyzerCode: Fail
 LoadLibraryTakesNoArguments/example: Fail
-LocalDefinitionHidesExport/analyzerCode: Fail
-LocalDefinitionHidesExport/example: Fail
-LocalDefinitionHidesImport/analyzerCode: Fail
-LocalDefinitionHidesImport/example: Fail
 MemberWithSameNameAsClass/analyzerCode: Fail
 MemberWithSameNameAsClass/example: Fail
 MetadataTypeArguments/analyzerCode: Fail
@@ -313,6 +300,8 @@ PartOfLibraryNameMismatch/analyzerCode: Fail
 PartOfLibraryNameMismatch/example: Fail
 PartOfSelf/analyzerCode: Fail
 PartOfSelf/example: Fail
+PartOfTwoLibraries/analyzerCode: Fail # Issue 33227
+PartOfTwoLibraries/example: Fail # Needs multiple files
 PartOfUriMismatch/analyzerCode: Fail
 PartOfUriMismatch/example: Fail
 PartOfUseUri/analyzerCode: Fail
@@ -355,7 +344,6 @@ SourceBodySummary/analyzerCode: Fail
 SourceBodySummary/example: Fail
 SourceOutlineSummary/analyzerCode: Fail
 SourceOutlineSummary/example: Fail
-StackOverflow/analyzerCode: Fail
 StackOverflow/example: Fail
 StaticAfterConst/script1: Fail
 SuperAsExpression/analyzerCode: Fail

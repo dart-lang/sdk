@@ -325,19 +325,44 @@ bool StackFrame::FindExceptionHandler(Thread* thread,
   PcDescriptors& descriptors = reused_pc_descriptors_handle.Handle();
   descriptors = code.pc_descriptors();
   PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);
-  while (iter.MoveNext()) {
-    const intptr_t current_try_index = iter.TryIndex();
-    if ((iter.PcOffset() == pc_offset) && (current_try_index != -1)) {
-      ExceptionHandlerInfo handler_info;
-      handlers.GetHandlerInfo(current_try_index, &handler_info);
-      *handler_pc = code.PayloadStart() + handler_info.handler_pc_offset;
-      *needs_stacktrace = handler_info.needs_stacktrace;
-      *has_catch_all = handler_info.has_catch_all;
-      cache->Insert(pc(), handler_info);
-      return true;
+  intptr_t try_index = -1;
+  if (is_interpreted()) {
+    while (iter.MoveNext()) {
+      // PC descriptors for try blocks in bytecode are generated in pairs,
+      // marking start and end of a try block.
+      // See BytecodeMetadataHelper::ReadExceptionsTable for details.
+      const intptr_t current_try_index = iter.TryIndex();
+      const uword start_pc = iter.PcOffset();
+      if (pc_offset < start_pc) {
+        break;
+      }
+      const bool has_next = iter.MoveNext();
+      ASSERT(has_next);
+      const uword end_pc = iter.PcOffset();
+      if (start_pc <= pc_offset && pc_offset < end_pc) {
+        ASSERT(try_index < current_try_index);
+        try_index = current_try_index;
+      }
+    }
+  } else {
+    while (iter.MoveNext()) {
+      const intptr_t current_try_index = iter.TryIndex();
+      if ((iter.PcOffset() == pc_offset) && (current_try_index != -1)) {
+        try_index = current_try_index;
+        break;
+      }
     }
   }
-  return false;
+  if (try_index == -1) {
+    return false;
+  }
+  ExceptionHandlerInfo handler_info;
+  handlers.GetHandlerInfo(try_index, &handler_info);
+  *handler_pc = code.PayloadStart() + handler_info.handler_pc_offset;
+  *needs_stacktrace = handler_info.needs_stacktrace;
+  *has_catch_all = handler_info.has_catch_all;
+  cache->Insert(pc(), handler_info);
+  return true;
 }
 
 TokenPosition StackFrame::GetTokenPos() const {

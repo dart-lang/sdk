@@ -6,6 +6,10 @@
 # listed in tests/lib/analyzer/analyze_tests.status without the "standalone"
 # prefix.
 
+# Obsolete behavior. We want to test that it fails.
+# TODO(mfairhurst) delete this test.
+isolate/scenarios/package_relative_root/package_relative_root_test: Fail
+
 [ $builder_tag == no_ipv6 ]
 io/raw_datagram_socket_test: SkipByDesign
 

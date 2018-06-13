@@ -212,10 +212,4 @@ class CompilerOptions {
   ///
   /// Typically used by developers to debug internals of the compiler.
   bool throwOnWarningsForDebugging = false;
-
-  /// Whether the compiler should throw as soon as it encounters a
-  /// compilation nit.
-  ///
-  /// Typically used by developers to debug internals of the compiler.
-  bool throwOnNitsForDebugging = false;
 }

@@ -29,7 +29,8 @@ import 'package:kernel/target/targets.dart';
 import 'package:path/path.dart' as path;
 import 'package:usage/uuid/uuid.dart';
 import 'package:vm/incremental_compiler.dart' show IncrementalCompiler;
-import 'package:vm/kernel_front_end.dart' show compileToKernel;
+import 'package:vm/kernel_front_end.dart'
+    show compileToKernel, parseCommandLineDefines;
 
 ArgParser argParser = new ArgParser(allowTrailingOptions: true)
   ..addFlag('train',
@@ -92,7 +93,10 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
       help: 'Normally the output dill is used to specify which dill to '
           'initialize from, but it can be overwritten here.',
       defaultsTo: null,
-      hide: true);
+      hide: true)
+  ..addMultiOption('define',
+      abbr: 'D',
+      help: 'The values for the environment constants (e.g. -Dkey=value).');
 
 String usage = '''
 Usage: server [options] [input.dart]
@@ -259,14 +263,12 @@ class FrontendCompiler implements CompilerInterface {
             printMessage = true;
             errors.add(message.formatted);
             break;
-          case Severity.nit:
-            printMessage = false;
-            break;
           case Severity.warning:
             printMessage = true;
             break;
           case Severity.errorLegacyWarning:
           case Severity.context:
+          case Severity.ignored:
             throw 'Unexpected severity: $severity';
         }
         if (printMessage) {
@@ -290,6 +292,12 @@ class FrontendCompiler implements CompilerInterface {
             ' of a target dill file.');
         return false;
       }
+    }
+
+    final Map<String, String> environmentDefines = {};
+    if (!parseCommandLineDefines(
+        options['define'], environmentDefines, usage)) {
+      return false;
     }
 
     final TargetFlags targetFlags = new TargetFlags(
@@ -322,7 +330,8 @@ class FrontendCompiler implements CompilerInterface {
           _mainSource, compilerOptions,
           aot: options['aot'],
           useGlobalTypeFlowAnalysis: options['tfa'],
-          entryPoints: options['entry-points']));
+          entryPoints: options['entry-points'],
+          environmentDefines: environmentDefines));
     }
     if (component != null) {
       if (transformer != null) {

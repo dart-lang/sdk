@@ -352,25 +352,8 @@ int Options::ParseArguments(int argc,
       // Check if this flag is a potentially valid VM flag.
       const char* kChecked = "-c";
       const char* kCheckedFull = "--checked";
-      const char* kPackageRoot = "-p";
-      if (strncmp(argv[i], kPackageRoot, strlen(kPackageRoot)) == 0) {
-        // If argv[i] + strlen(kPackageRoot) is \0, then look in argv[i + 1]
-        // Otherwise set Option::package_root_ = argv[i] + strlen(kPackageRoot)
-        const char* opt = argv[i] + strlen(kPackageRoot);
-        if (opt[0] == '\0') {
-          i++;
-          opt = argv[i];
-          if ((opt == NULL) || (opt[0] == '-')) {
-            Log::PrintErr("Invalid option specification : '%s'\n", argv[i - 1]);
-            i++;
-            break;
-          }
-        }
-        package_root_ = opt;
-        i++;
-        continue;  // '-p' is not a VM flag so don't add to vm options.
-      } else if ((strncmp(argv[i], kChecked, strlen(kChecked)) == 0) ||
-                 (strncmp(argv[i], kCheckedFull, strlen(kCheckedFull)) == 0)) {
+      if ((strncmp(argv[i], kChecked, strlen(kChecked)) == 0) ||
+          (strncmp(argv[i], kCheckedFull, strlen(kCheckedFull)) == 0)) {
         checked_set = true;
         vm_options->AddArgument(kCheckedFull);
         i++;

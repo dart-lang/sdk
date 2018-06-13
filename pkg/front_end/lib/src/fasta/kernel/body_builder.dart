@@ -234,35 +234,27 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         typePromoter = _typeInferrer?.typePromoter,
         super(enclosingScope);
 
-  BodyBuilder.withParents(
-      KernelFieldBuilder field,
-      KernelLibraryBuilder part,
-      KernelClassBuilder classBuilder,
-      ClassHierarchy hierarchy,
-      CoreTypes coreTypes,
-      TypeInferrer typeInferrer)
+  BodyBuilder.withParents(KernelFieldBuilder field, KernelLibraryBuilder part,
+      KernelClassBuilder classBuilder, TypeInferrer typeInferrer)
       : this(
             part,
             field,
             classBuilder?.scope ?? field.library.scope,
             null,
-            hierarchy,
-            coreTypes,
+            part.loader.hierarchy,
+            part.loader.coreTypes,
             classBuilder,
             field.isInstanceMember,
             field.fileUri,
             typeInferrer);
 
-  BodyBuilder.forField(KernelFieldBuilder field, ClassHierarchy hierarchy,
-      CoreTypes coreTypes, TypeInferrer typeInferrer)
+  BodyBuilder.forField(KernelFieldBuilder field, TypeInferrer typeInferrer)
       : this.withParents(
             field,
             field.parent is KernelClassBuilder
                 ? field.parent.parent
                 : field.parent,
             field.parent is KernelClassBuilder ? field.parent : null,
-            hierarchy,
-            coreTypes,
             typeInferrer);
 
   bool get hasParserError => recoverableErrors.isNotEmpty;
@@ -1265,7 +1257,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void warnTypeArgumentsMismatch(String name, int expected, int charOffset) {
     addProblemErrorIfConst(
-        fasta.templateTypeArgumentMismatch.withArguments(name, '${expected}'),
+        fasta.templateTypeArgumentMismatch.withArguments(name, expected),
         charOffset,
         name.length);
   }
@@ -1360,6 +1352,10 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   void handleIdentifier(Token token, IdentifierContext context) {
     debugEvent("handleIdentifier");
     String name = token.lexeme;
+    if (name.startsWith("deprecated_")) {
+      addProblem(fasta.templateUseOfDeprecatedIdentifier.withArguments(name),
+          offsetForToken(token), lengthForToken(token));
+    }
     if (context.isScopeReference) {
       assert(!inInitializer ||
           this.scope == enclosingScope ||

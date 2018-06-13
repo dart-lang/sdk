@@ -20,13 +20,13 @@ library kernel.transformations.constants;
 
 import 'dart:io' as io;
 
-import '../kernel.dart';
 import '../ast.dart';
+import '../class_hierarchy.dart';
 import '../core_types.dart';
+import '../external_name.dart' show getExternalName;
+import '../kernel.dart';
 import '../type_algebra.dart';
 import '../type_environment.dart';
-import '../class_hierarchy.dart';
-import 'treeshaker.dart' show findNativeName;
 
 Component transformComponent(Component component, ConstantsBackend backend,
     {bool keepFields: false,
@@ -940,7 +940,7 @@ class ConstantEvaluator extends RecursiveVisitor {
   visitStaticInvocation(StaticInvocation node) {
     final Procedure target = node.target;
     if (target.kind == ProcedureKind.Factory) {
-      final String nativeName = findNativeName(target);
+      final String nativeName = getExternalName(target);
       if (nativeName != null) {
         final Constant constant = backend.buildConstantForNative(
             nativeName,

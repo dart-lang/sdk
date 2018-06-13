@@ -170,8 +170,12 @@ class ParameterStubGenerator {
           targetArguments[count++] = _rtiEncoder.getTypeRepresentation(
               _emitter,
               _closedWorld.elementEnvironment
-                  .getTypeVariableBound(typeVariable.element),
-              (_) => _emitter.constantReference(new NullConstantValue()));
+                  .getTypeVariableDefaultType(typeVariable.element),
+              (_) => _emitter.constantReference(
+                  // TODO(33422): Support type variables in default
+                  // types. Temporarily using the "any" type (encoded as -2) to
+                  // avoid failing on bounds checks.
+                  new IntConstantValue(new BigInt.from(-2))));
         } else {
           String jsName = '\$${typeVariable.element.name}';
           stubParameters[parameterIndex++] = new jsAst.Parameter(jsName);
@@ -257,7 +261,9 @@ class ParameterStubGenerator {
   // (2) foo$3$c(a, b, c) => MyClass.foo$4$c$d(this, a, b, c, null);
   // (3) foo$3$d(a, b, d) => MyClass.foo$4$c$d(this, a, b, null, d);
   List<ParameterStubMethod> generateParameterStubs(FunctionEntity member,
-      {bool canTearOff: true}) {
+      {bool canTearOff, bool canBeApplied}) {
+    assert(canTearOff != null);
+    assert(canBeApplied != null);
     // The set of selectors that apply to `member`. For example, for
     // a member `foo(x, [y])` the following selectors may apply:
     // `foo(x)`, and `foo(x, y)`.
@@ -269,6 +275,8 @@ class ParameterStubGenerator {
     // a member `foo(x, [y])` the following selectors would be possible
     // call-selectors: `call(x)`, and `call(x, y)`.
     Map<Selector, SelectorConstraints> callSelectors;
+
+    int memberTypeParameters = member.parameterStructure.typeParameters;
 
     // Only instance members (not static methods) need stubs.
     if (member.isInstanceMember) {
@@ -286,7 +294,10 @@ class ParameterStubGenerator {
 
     List<ParameterStubMethod> stubs = <ParameterStubMethod>[];
 
-    if (liveSelectors.isEmpty && callSelectors.isEmpty) {
+    if (liveSelectors.isEmpty &&
+        callSelectors.isEmpty &&
+        // Function.apply might need a stub to default the type parameter.
+        !(canBeApplied && memberTypeParameters > 0)) {
       return stubs;
     }
 
@@ -295,13 +306,28 @@ class ParameterStubGenerator {
     //
     // For example, for the call-selector `call(x, y)` the renamed selector
     // for member `foo` would be `foo(x, y)`.
-    Set<Selector> renamedCallSelectors =
-        callSelectors.isEmpty ? emptySelectorSet : new Set<Selector>();
+    Set<Selector> renamedCallSelectors = new Set<Selector>();
 
     Set<Selector> stubSelectors = new Set<Selector>();
 
-    // Start with the callSelectors since they imply the generation of the
-    // non-call version.
+    // Start with closure-call selectors, since since they imply the generation
+    // of the non-call version.
+    if (canBeApplied && memberTypeParameters > 0) {
+      // Function.apply calls the function with no type arguments, so generic
+      // methods need the stub to default the type arguments.
+      // This has to be the first stub.
+      Selector namedSelector = new Selector.fromElement(member).toNonGeneric();
+      Selector closureSelector =
+          namedSelector.isClosureCall ? null : namedSelector.toCallSelector();
+
+      renamedCallSelectors.add(namedSelector);
+      stubSelectors.add(namedSelector);
+      ParameterStubMethod stub =
+          generateParameterStub(member, namedSelector, closureSelector);
+      assert(stub != null);
+      stubs.add(stub);
+    }
+
     for (Selector selector in callSelectors.keys) {
       Selector renamedSelector =
           new Selector.call(member.memberName, selector.callStructure);
@@ -326,12 +352,11 @@ class ParameterStubGenerator {
       //
       // This is basically the same logic as above, but with type arguments.
       if (selector.callStructure.typeArgumentCount == 0) {
-        ParameterStructure parameterStructure = member.parameterStructure;
-        if (parameterStructure.typeParameters > 0) {
+        if (memberTypeParameters > 0) {
           Selector renamedSelectorWithTypeArguments = new Selector.call(
               member.memberName,
               selector.callStructure
-                  .withTypeArgumentCount(parameterStructure.typeParameters));
+                  .withTypeArgumentCount(memberTypeParameters));
           renamedCallSelectors.add(renamedSelectorWithTypeArguments);
 
           if (stubSelectors.add(renamedSelectorWithTypeArguments)) {
@@ -348,8 +373,8 @@ class ParameterStubGenerator {
     }
 
     // Now run through the actual member selectors (eg. `foo$2(x, y)` and not
-    // `call$2(x, y)`. Some of them have already been generated because of the
-    // call-selectors (and they are in the renamedCallSelectors set.
+    // `call$2(x, y)`). Some of them have already been generated because of the
+    // call-selectors and they are in the renamedCallSelectors set.
     for (Selector selector in liveSelectors.keys) {
       if (renamedCallSelectors.contains(selector)) continue;
       if (!selector.appliesUnnamed(member)) continue;

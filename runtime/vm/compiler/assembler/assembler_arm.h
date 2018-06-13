@@ -767,6 +767,13 @@ class Assembler : public ValueObject {
 
   void LoadIsolate(Register rd);
 
+  // Load word from pool from the given offset using encoding that
+  // InstructionPattern::DecodeLoadWordFromPool can decode.
+  void LoadWordFromPoolOffset(Register rd,
+                              int32_t offset,
+                              Register pp,
+                              Condition cond);
+
   void LoadObject(Register rd, const Object& object, Condition cond = AL);
   void LoadUniqueObject(Register rd, const Object& object, Condition cond = AL);
   void LoadFunctionFromCalleePool(Register dst,
@@ -1109,11 +1116,6 @@ class Assembler : public ValueObject {
 
   void BindARMv6(Label* label);
   void BindARMv7(Label* label);
-
-  void LoadWordFromPoolOffset(Register rd,
-                              int32_t offset,
-                              Register pp,
-                              Condition cond);
 
   void BranchLink(const ExternalLabel* label);
 

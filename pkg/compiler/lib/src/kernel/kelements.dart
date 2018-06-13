@@ -293,6 +293,7 @@ class KLocalTypeVariable implements TypeVariableEntity {
   final String name;
   final int index;
   DartType bound;
+  DartType defaultType;
 
   KLocalTypeVariable(this.typeDeclaration, this.name, this.index);
 

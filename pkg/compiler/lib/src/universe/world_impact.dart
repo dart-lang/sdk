@@ -99,9 +99,7 @@ class WorldImpactBuilderImpl extends WorldImpact implements WorldImpactBuilder {
 
   void registerDynamicUse(DynamicUse dynamicUse) {
     assert(dynamicUse != null);
-    if (_dynamicUses == null) {
-      _dynamicUses = new Setlet<DynamicUse>();
-    }
+    _dynamicUses ??= new Setlet<DynamicUse>();
     _dynamicUses.add(dynamicUse);
   }
 
@@ -111,9 +109,7 @@ class WorldImpactBuilderImpl extends WorldImpact implements WorldImpactBuilder {
 
   void registerTypeUse(TypeUse typeUse) {
     assert(typeUse != null);
-    if (_typeUses == null) {
-      _typeUses = new Setlet<TypeUse>();
-    }
+    _typeUses ??= new Setlet<TypeUse>();
     _typeUses.add(typeUse);
   }
 
@@ -123,9 +119,7 @@ class WorldImpactBuilderImpl extends WorldImpact implements WorldImpactBuilder {
 
   void registerStaticUse(StaticUse staticUse) {
     assert(staticUse != null);
-    if (_staticUses == null) {
-      _staticUses = new Setlet<StaticUse>();
-    }
+    _staticUses ??= new Setlet<StaticUse>();
     _staticUses.add(staticUse);
   }
 
@@ -135,9 +129,7 @@ class WorldImpactBuilderImpl extends WorldImpact implements WorldImpactBuilder {
 
   void registerConstantUse(ConstantUse constantUse) {
     assert(constantUse != null);
-    if (_constantUses == null) {
-      _constantUses = new Setlet<ConstantUse>();
-    }
+    _constantUses ??= new Setlet<ConstantUse>();
     _constantUses.add(constantUse);
   }
 

@@ -11,7 +11,6 @@ io/process_exit_negative_test: Skip
 io/web_socket_protocol_processor_test: Pass, StaticWarning, CompileTimeError # Issue 28843
 package/package1_test: StaticWarning
 package/package1_test: CompileTimeError
-package/package_isolate_test: CompileTimeError
 package/package_test: StaticWarning
 package/package_test: CompileTimeError
 package/scenarios/both_dir_and_file/prefers_packages_file_test: StaticWarning
@@ -28,7 +27,6 @@ package/scenarios/packages_file_only/packages_file_only_test: StaticWarning
 package/scenarios/packages_file_only/packages_file_only_test: CompileTimeError
 
 [ $compiler == dart2analyzer && $system == windows ]
-package/package_isolate_test: Crash # Issue 28645
 package/scenarios/empty_packages_file/empty_packages_file_option_test: Crash, Pass # Issue 28645
 package/scenarios/packages_file_strange_formatting/empty_package_dir_test: Crash # Issue 28645
 
@@ -38,6 +36,7 @@ io/process_invalid_arguments_test: CompileTimeError
 io/raw_secure_server_socket_argument_test: CompileTimeError
 io/secure_socket_argument_test: CompileTimeError
 io/stdout_bad_argument_test: CompileTimeError
+package/package_isolate_test: CompileTimeError
 
 [ $compiler == dart2analyzer && !$strong ]
 io/directory_invalid_arguments_test: StaticWarning

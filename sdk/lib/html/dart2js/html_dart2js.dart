@@ -46684,10 +46684,6 @@ abstract class _AttributeMap extends MapBase<String, String> {
   }
 
   Map<K, V> cast<K, V>() => Map.castFrom<String, String, K, V>(this);
-
-  @Deprecated("Use cast instead.")
-  Map<K, V> retype<K, V>() => cast<K, V>();
-
   bool containsValue(Object value) {
     for (var v in this.values) {
       if (value == v) {
@@ -46849,10 +46845,6 @@ class _DataAttributeMap extends MapBase<String, String> {
   }
 
   Map<K, V> cast<K, V>() => Map.castFrom<String, String, K, V>(this);
-
-  @Deprecated("Use cast instead.")
-  Map<K, V> retype<K, V>() => cast<K, V>();
-
   // TODO: Use lazy iterator when it is available on Map.
   bool containsValue(Object value) => values.any((v) => v == value);
 

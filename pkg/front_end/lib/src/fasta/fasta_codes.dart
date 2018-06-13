@@ -159,5 +159,4 @@ String relativizeUri(Uri uri) {
   return util.relativizeUri(uri, base: Uri.base);
 }
 
-typedef Message SummaryTemplate(
-    int count, int count2, String string, String string2, String string3);
+typedef SummaryTemplate = Message Function(int, int, num, num, num);

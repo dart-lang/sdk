@@ -2515,8 +2515,15 @@ abstract class Closure implements Function {
    * Caution: this function may be called when building constants.
    * TODO(ahe): Don't call this function when building constants.
    */
-  static fromTearOff(receiver, List functions, var reflectionInfo,
-      bool isStatic, jsArguments, String propertyName) {
+  static fromTearOff(
+    receiver,
+    List functions,
+    int applyTrampolineIndex,
+    var reflectionInfo,
+    bool isStatic,
+    jsArguments,
+    String propertyName,
+  ) {
     JS_EFFECT(() {
       // The functions are called here to model the calls from JS forms below.
       // The types in the JS forms in the arguments are propagated in type
@@ -2648,20 +2655,24 @@ abstract class Closure implements Function {
 
     JS('', '#[#] = #', prototype, JS_GET_NAME(JsGetName.SIGNATURE_NAME),
         signatureFunction);
-
+    var applyTrampoline = trampoline;
     JS('', '#[#] = #', prototype, callName, trampoline);
     for (int i = 1; i < functions.length; i++) {
       var stub = functions[i];
       var stubCallName = JS('String|Null', '#[#]', stub,
           JS_GET_NAME(JsGetName.CALL_NAME_PROPERTY));
       if (stubCallName != null) {
-        JS('', '#[#] = #', prototype, stubCallName,
-            isStatic ? stub : forwardCallTo(receiver, stub, isIntercepted));
+        stub = isStatic ? stub : forwardCallTo(receiver, stub, isIntercepted);
+        JS('', '#[#] = #', prototype, stubCallName, stub);
+      }
+      if (i == applyTrampolineIndex) {
+        applyTrampoline = stub;
+        JS('', '#.\$reflectionInfo = #', applyTrampoline, reflectionInfo);
       }
     }
 
     JS('', '#[#] = #', prototype, JS_GET_NAME(JsGetName.CALL_CATCH_ALL),
-        trampoline);
+        applyTrampoline);
     String reqArgProperty = JS_GET_NAME(JsGetName.REQUIRED_PARAMETER_PROPERTY);
     String defValProperty = JS_GET_NAME(JsGetName.DEFAULT_VALUES_PROPERTY);
     JS('', '#.# = #.#', prototype, reqArgProperty, function, reqArgProperty);
@@ -2938,11 +2949,12 @@ abstract class Closure implements Function {
 }
 
 /// Called from implicit method getter (aka tear-off).
-closureFromTearOff(
-    receiver, functions, reflectionInfo, isStatic, jsArguments, name) {
+closureFromTearOff(receiver, functions, applyTrampolineIndex, reflectionInfo,
+    isStatic, jsArguments, name) {
   return Closure.fromTearOff(
       receiver,
       JSArray.markFixedList(functions),
+      applyTrampolineIndex,
       reflectionInfo is List
           ? JSArray.markFixedList(reflectionInfo)
           : reflectionInfo,

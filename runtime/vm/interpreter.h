@@ -132,7 +132,7 @@ class Interpreter {
                    RawObject** result,
                    uword target);
 
-  void Invoke(Thread* thread,
+  bool Invoke(Thread* thread,
               RawObject** call_base,
               RawObject** call_top,
               uint32_t** pc,
@@ -163,7 +163,7 @@ class Interpreter {
                        RawObject** FP,
                        RawObject** SP);
 
-  void InstanceCall1(Thread* thread,
+  bool InstanceCall1(Thread* thread,
                      RawICData* icdata,
                      RawObject** call_base,
                      RawObject** call_top,
@@ -172,7 +172,7 @@ class Interpreter {
                      RawObject*** SP,
                      bool optimized);
 
-  void InstanceCall2(Thread* thread,
+  bool InstanceCall2(Thread* thread,
                      RawICData* icdata,
                      RawObject** call_base,
                      RawObject** call_top,

@@ -28,3 +28,10 @@ config("sdk") {
     }
   }
 }
+
+config("executable_config") {
+  if (current_cpu != "x86") {
+    cflags = [ "-fPIE" ]
+    ldflags = [ "-pie" ]
+  }
+}

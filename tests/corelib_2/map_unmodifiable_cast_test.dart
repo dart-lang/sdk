@@ -10,16 +10,13 @@ import 'dart:collection';
 void main() {
   testNum(const {1: 37}, "const");
   testNum(const <num, num>{1: 37}.cast<int, int>(), "const.cast");
-  testNum(const <num, num>{1: 37}.retype<int, int>(), "const.retype");
 
   testNum(new UnmodifiableMapView({1: 37}), "unmod");
   testNum(new UnmodifiableMapView<num, num>(<num, num>{1: 37}), "unmod.cast");
-  testNum(new UnmodifiableMapView<num, num>(<int, int>{1: 37}), "unmod.retype");
-
   testNum(new UnmodifiableMapView<num, num>(<num, num>{1: 37}).cast<int, int>(),
-      "unmodView<num>.cast<int>");
+      "unmodView<num>(num).cast<int>");
   testNum(new UnmodifiableMapView<num, num>(<int, int>{1: 37}).cast<int, int>(),
-      "unmodView<int>.cast<int>");
+      "unmodView<num>(int).cast<int>");
   testNum(
       new UnmodifiableMapView<Object, Object>(<num, num>{1: 37})
           .cast<int, int>(),
@@ -29,21 +26,6 @@ void main() {
           .cast<num, num>(),
       "unmodView<Object>(int).cast<num>");
 
-  testNum(
-      new UnmodifiableMapView<num, num>(<num, num>{1: 37}).retype<int, int>(),
-      "unmodView<num>(num).retype<int>");
-  testNum(
-      new UnmodifiableMapView<num, num>(<int, int>{1: 37}).retype<int, int>(),
-      "unmodView<num>(int).retype<int>");
-  testNum(
-      new UnmodifiableMapView<Object, Object>(<num, num>{1: 37})
-          .retype<int, int>(),
-      "unmodView<Object>(num).retype<int>");
-  testNum(
-      new UnmodifiableMapView<Object, Object>(<int, int>{1: 37})
-          .retype<num, num>(),
-      "unmodView<Object>(int).retype<num>");
-
   var m2 = new Map<num, num>.unmodifiable({1: 37});
   testNum(m2, "Map<num>.unmod");
   testNum(m2.cast<int, int>(), "Map<num>.unmod.cast<int>");
@@ -51,7 +33,6 @@ void main() {
   Map<Symbol, dynamic> nsm = new NsmMap().foo(a: 0);
   test(nsm, #a, 0, "nsm", noSuchMethodMap: true);
   test(nsm.cast<Object, int>(), #a, 0, "nsm.cast", noSuchMethodMap: true);
-  test(nsm.retype<Object, int>(), #a, 0, "nsm.retype", noSuchMethodMap: true);
 }
 
 void testNum(Map<Object, Object> map, String name) {

@@ -22,10 +22,6 @@ class UnmodifiableListView<E> extends UnmodifiableListBase<E> {
   UnmodifiableListView(Iterable<E> source) : _source = source;
 
   List<R> cast<R>() => new UnmodifiableListView(_source.cast<R>());
-
-  @Deprecated("Use cast instead.")
-  List<R> retype<R>() => cast<R>();
-
   int get length => _source.length;
 
   E operator [](int index) => _source.elementAt(index);

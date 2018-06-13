@@ -416,7 +416,6 @@ class JsClosedWorldBuilder {
         map.toBackendFunctionSet(backendUsage.helperFunctionsUsed);
     Set<ClassEntity> helperClassesUsed =
         map.toBackendClassSet(backendUsage.helperClassesUsed);
-
     return new BackendUsageImpl(
         globalFunctionDependencies: globalFunctionDependencies,
         globalClassDependencies: globalClassDependencies,
@@ -572,7 +571,8 @@ class JsClosedWorldBuilder {
         methodsNeedingTypeArguments,
         null,
         null,
-        selectorsNeedingTypeArguments);
+        selectorsNeedingTypeArguments,
+        rtiNeed.instantiationsNeedingTypeArguments);
   }
 
   /// Construct a closure class and set up the necessary class inference
@@ -829,12 +829,28 @@ class TypeConverter extends DartTypeVisitor<DartType, Null> {
 class TrivialClosureRtiNeed implements ClosureRtiNeed {
   const TrivialClosureRtiNeed();
 
+  @override
   bool localFunctionNeedsSignature(ir.Node node) => true;
+
+  @override
   bool classNeedsTypeArguments(ClassEntity cls) => true;
+
+  @override
   bool methodNeedsTypeArguments(FunctionEntity method) => true;
+
+  @override
   bool localFunctionNeedsTypeArguments(ir.Node node) => true;
+
+  @override
   bool selectorNeedsTypeArguments(Selector selector) => true;
+
+  @override
   bool methodNeedsSignature(MemberEntity method) => true;
+
+  @override
+  bool instantiationNeedsTypeArguments(
+          DartType functionType, int typeArgumentCount) =>
+      true;
 }
 
 class JsClosureRtiNeed implements ClosureRtiNeed {
@@ -849,6 +865,7 @@ class JsClosureRtiNeed implements ClosureRtiNeed {
       this.localFunctionsNodesNeedingTypeArguments,
       this.localFunctionsNodesNeedingSignature);
 
+  @override
   bool localFunctionNeedsSignature(ir.Node node) {
     assert(node is ir.FunctionDeclaration || node is ir.FunctionExpression);
     return backendUsage.isRuntimeTypeUsed
@@ -856,12 +873,15 @@ class JsClosureRtiNeed implements ClosureRtiNeed {
         : localFunctionsNodesNeedingSignature.contains(node);
   }
 
+  @override
   bool classNeedsTypeArguments(ClassEntity cls) =>
       rtiNeed.classNeedsTypeArguments(cls);
 
+  @override
   bool methodNeedsTypeArguments(FunctionEntity method) =>
       rtiNeed.methodNeedsTypeArguments(method);
 
+  @override
   bool localFunctionNeedsTypeArguments(ir.Node node) {
     assert(node is ir.FunctionDeclaration || node is ir.FunctionExpression);
     return backendUsage.isRuntimeTypeUsed
@@ -869,9 +889,16 @@ class JsClosureRtiNeed implements ClosureRtiNeed {
         : localFunctionsNodesNeedingTypeArguments.contains(node);
   }
 
+  @override
   bool selectorNeedsTypeArguments(Selector selector) =>
       rtiNeed.selectorNeedsTypeArguments(selector);
 
+  @override
   bool methodNeedsSignature(MemberEntity method) =>
       rtiNeed.methodNeedsSignature(method);
+
+  @override
+  bool instantiationNeedsTypeArguments(
+          DartType functionType, int typeArgumentCount) =>
+      rtiNeed.instantiationNeedsTypeArguments(functionType, typeArgumentCount);
 }

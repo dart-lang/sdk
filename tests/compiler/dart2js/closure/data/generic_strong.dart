@@ -55,8 +55,14 @@ class Class1<T> {
       return /*fields=[S,U],free=[S,U],hasThis*/ () => '$S$U';
     }
 
-    var local2 = /*fields=[S,this],free=[S,this],hasThis*/ (o) {
-      return /*fields=[S,this],free=[S,this],hasThis*/ () => new Map<T, S>();
+    var local2 =
+        /*strong.fields=[S,this],free=[S,this],hasThis*/
+        /*omit.hasThis*/
+        (o) {
+      return
+          /*strong.fields=[S,this],free=[S,this],hasThis*/
+          /*omit.hasThis*/
+          () => new Map<T, S>();
     };
     return local2(local<double>());
   }

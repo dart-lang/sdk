@@ -2266,6 +2266,144 @@ void FlowGraph::AppendExtractNthOutputForMerged(Definition* instr,
   InsertAfter(instr, extract, NULL, FlowGraph::kValue);
 }
 
+//
+// Static helpers for the flow graph utilities.
+//
+
+static TargetEntryInstr* NewTarget(FlowGraph* graph, Instruction* inherit) {
+  TargetEntryInstr* target = new (graph->zone())
+      TargetEntryInstr(graph->allocate_block_id(),
+                       inherit->GetBlock()->try_index(), Thread::kNoDeoptId);
+  target->InheritDeoptTarget(graph->zone(), inherit);
+  return target;
+}
+
+static JoinEntryInstr* NewJoin(FlowGraph* graph, Instruction* inherit) {
+  JoinEntryInstr* join = new (graph->zone())
+      JoinEntryInstr(graph->allocate_block_id(),
+                     inherit->GetBlock()->try_index(), Thread::kNoDeoptId);
+  join->InheritDeoptTarget(graph->zone(), inherit);
+  return join;
+}
+
+static GotoInstr* NewGoto(FlowGraph* graph,
+                          JoinEntryInstr* target,
+                          Instruction* inherit) {
+  GotoInstr* got = new (graph->zone()) GotoInstr(target, Thread::kNoDeoptId);
+  got->InheritDeoptTarget(graph->zone(), inherit);
+  return got;
+}
+
+static BranchInstr* NewBranch(FlowGraph* graph,
+                              ComparisonInstr* cmp,
+                              Instruction* inherit) {
+  BranchInstr* bra = new (graph->zone()) BranchInstr(cmp, Thread::kNoDeoptId);
+  bra->InheritDeoptTarget(graph->zone(), inherit);
+  return bra;
+}
+
+//
+// Flow graph utilities.
+//
+
+// Constructs new diamond decision at the given instruction.
+//
+//               ENTRY
+//             instruction
+//            if (compare)
+//              /   \
+//           B_TRUE B_FALSE
+//              \   /
+//               JOIN
+//
+JoinEntryInstr* FlowGraph::NewDiamond(Instruction* instruction,
+                                      Instruction* inherit,
+                                      ComparisonInstr* compare,
+                                      TargetEntryInstr** b_true,
+                                      TargetEntryInstr** b_false) {
+  BlockEntryInstr* entry = instruction->GetBlock();
+
+  TargetEntryInstr* bt = NewTarget(this, inherit);
+  TargetEntryInstr* bf = NewTarget(this, inherit);
+  JoinEntryInstr* join = NewJoin(this, inherit);
+  GotoInstr* gotot = NewGoto(this, join, inherit);
+  GotoInstr* gotof = NewGoto(this, join, inherit);
+  BranchInstr* bra = NewBranch(this, compare, inherit);
+
+  instruction->AppendInstruction(bra);
+  entry->set_last_instruction(bra);
+
+  *bra->true_successor_address() = bt;
+  *bra->false_successor_address() = bf;
+
+  bt->AppendInstruction(gotot);
+  bt->set_last_instruction(gotot);
+
+  bf->AppendInstruction(gotof);
+  bf->set_last_instruction(gotof);
+
+  // Update dominance relation incrementally.
+  for (intptr_t i = 0, n = entry->dominated_blocks().length(); i < n; ++i) {
+    join->AddDominatedBlock(entry->dominated_blocks()[i]);
+  }
+  entry->ClearDominatedBlocks();
+  entry->AddDominatedBlock(bt);
+  entry->AddDominatedBlock(bf);
+  entry->AddDominatedBlock(join);
+
+  // TODO(ajcbik): update pred/succ/ordering incrementally too.
+
+  // Return new blocks.
+  *b_true = bt;
+  *b_false = bf;
+  return join;
+}
+
+JoinEntryInstr* FlowGraph::NewDiamond(Instruction* instruction,
+                                      Instruction* inherit,
+                                      const LogicalAnd& condition,
+                                      TargetEntryInstr** b_true,
+                                      TargetEntryInstr** b_false) {
+  // First diamond for first comparison.
+  TargetEntryInstr* bt = nullptr;
+  TargetEntryInstr* bf = nullptr;
+  JoinEntryInstr* mid_point =
+      NewDiamond(instruction, inherit, condition.oper1, &bt, &bf);
+
+  // Short-circuit second comparison and connect through phi.
+  condition.oper2->InsertAfter(bt);
+  AllocateSSAIndexes(condition.oper2);
+  condition.oper2->InheritDeoptTarget(zone(), inherit);  // must inherit
+  PhiInstr* phi =
+      AddPhi(mid_point, condition.oper2, GetConstant(Bool::False()));
+  StrictCompareInstr* circuit = new (zone()) StrictCompareInstr(
+      inherit->token_pos(), Token::kEQ_STRICT, new (zone()) Value(phi),
+      new (zone()) Value(GetConstant(Bool::True())), false,
+      Thread::kNoDeoptId);  // don't inherit
+
+  // Return new blocks through the second diamond.
+  return NewDiamond(mid_point, inherit, circuit, b_true, b_false);
+}
+
+PhiInstr* FlowGraph::AddPhi(JoinEntryInstr* join,
+                            Definition* d1,
+                            Definition* d2) {
+  PhiInstr* phi = new (zone()) PhiInstr(join, 2);
+  Value* v1 = new (zone()) Value(d1);
+  Value* v2 = new (zone()) Value(d2);
+
+  AllocateSSAIndexes(phi);
+
+  phi->mark_alive();
+  phi->SetInputAt(0, v1);
+  phi->SetInputAt(1, v2);
+  d1->AddInputUse(v1);
+  d2->AddInputUse(v2);
+  join->InsertPhi(phi);
+
+  return phi;
+}
+
 }  // namespace dart
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

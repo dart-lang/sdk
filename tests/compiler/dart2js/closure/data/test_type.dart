@@ -38,7 +38,7 @@ class Class2<T> {
 class Class3<T> {
   /*element: Class3.method3:hasThis*/
   method3(dynamic o) {
-    /*kernel.fields=[o],free=[o],hasThis*/
+    /*!strong.fields=[o],free=[o],hasThis*/
     /*strong.fields=[o,this],free=[o,this],hasThis*/
     T local() => o;
     return local;

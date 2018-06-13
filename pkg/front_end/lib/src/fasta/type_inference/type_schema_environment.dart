@@ -4,14 +4,32 @@
 
 import 'dart:math' as math;
 
-import 'package:front_end/src/fasta/type_inference/type_constraint_gatherer.dart';
-import 'package:front_end/src/fasta/type_inference/type_schema.dart';
-import 'package:front_end/src/fasta/type_inference/type_schema_elimination.dart';
-import 'package:kernel/ast.dart';
-import 'package:kernel/class_hierarchy.dart';
-import 'package:kernel/core_types.dart';
-import 'package:kernel/type_algebra.dart';
-import 'package:kernel/type_environment.dart';
+import 'package:kernel/ast.dart'
+    show
+        BottomType,
+        DartType,
+        DynamicType,
+        FunctionType,
+        InterfaceType,
+        NamedType,
+        Procedure,
+        TypeParameter,
+        TypeParameterType,
+        VoidType;
+
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+
+import 'package:kernel/core_types.dart' show CoreTypes;
+
+import 'package:kernel/type_algebra.dart' show Substitution;
+
+import 'package:kernel/type_environment.dart' show TypeEnvironment;
+
+import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
+
+import 'type_schema.dart' show UnknownType, typeSchemaToString, isKnown;
+
+import 'type_schema_elimination.dart' show greatestClosure, leastClosure;
 
 // TODO(paulberry): try to push this functionality into kernel.
 FunctionType substituteTypeParams(

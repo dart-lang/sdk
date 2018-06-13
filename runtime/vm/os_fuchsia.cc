@@ -14,7 +14,7 @@
 #include <zircon/syscalls/object.h>
 #include <zircon/types.h>
 
-#include <time_zone/cpp/fidl.h>
+#include <fuchsia/timezone/cpp/fidl.h>
 
 #include "lib/app/cpp/environment_services.h"
 
@@ -43,7 +43,7 @@ intptr_t OS::ProcessId() {
 static zx_status_t GetLocalAndDstOffsetInSeconds(int64_t seconds_since_epoch,
                                                  int32_t* local_offset,
                                                  int32_t* dst_offset) {
-  time_zone::TimezoneSyncPtr time_svc;
+  fuchsia::timezone::TimezoneSyncPtr time_svc;
   fuchsia::sys::ConnectToEnvironmentService(time_svc.NewRequest());
   if (!time_svc->GetTimezoneOffsetMinutes(seconds_since_epoch * 1000,
                                           local_offset, dst_offset))
@@ -56,7 +56,7 @@ static zx_status_t GetLocalAndDstOffsetInSeconds(int64_t seconds_since_epoch,
 const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
   // TODO(abarth): Handle time zone changes.
   static const auto* tz_name = new std::string([] {
-    time_zone::TimezoneSyncPtr time_svc;
+    fuchsia::timezone::TimezoneSyncPtr time_svc;
     fuchsia::sys::ConnectToEnvironmentService(time_svc.NewRequest());
     fidl::StringPtr result;
     time_svc->GetTimezoneId(&result);

@@ -189,10 +189,6 @@ class CastSet<S, T> extends _CastIterableBase<S, T> implements Set<T> {
   static Set<R> _defaultEmptySet<R>() => new Set<R>();
 
   Set<R> cast<R>() => new CastSet<S, R>(_source, _emptySet);
-
-  @Deprecated("Use cast instead.")
-  Set<R> retype<R>() => cast<R>();
-
   bool add(T value) => _source.add(value as S);
 
   void addAll(Iterable<T> elements) {
@@ -368,9 +364,6 @@ class CastQueue<S, T> extends _CastIterableBase<S, T>
   final Queue<S> _source;
   CastQueue(this._source);
   Queue<R> cast<R>() => new CastQueue<S, R>(_source);
-
-  @Deprecated("Use cast instead.")
-  Queue<R> retype<R>() => cast<R>();
 }
 
 // TODO(lrn): Use when ListQueue implements List.

@@ -246,8 +246,8 @@ class BytecodeAssembler {
     emitWord(_encodeAD(Opcode.kPushPolymorphicInstanceCallByRange, ra, rd));
   }
 
-  void emitNativeCall(int ra, int rb, int rc) {
-    emitWord(_encodeABC(Opcode.kNativeCall, ra, rb, rc));
+  void emitNativeCall(int rd) {
+    emitWord(_encodeD(Opcode.kNativeCall, rd));
   }
 
   void emitOneByteStringFromCharCode(int ra, int rx) {

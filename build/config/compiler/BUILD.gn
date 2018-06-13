@@ -234,7 +234,7 @@ config("compiler") {
   # 3. When using the sanitizers.
   # Otherwise there is a performance hit, in particular on ia32.
   if (is_android || is_asan || is_lsan || is_msan || is_tsan ||
-      (is_linux && current_cpu == "arm")) {
+      (is_linux && current_cpu != "x86")) {
     cflags += [ "-fPIC" ]
     ldflags += [ "-fPIC" ]
   }

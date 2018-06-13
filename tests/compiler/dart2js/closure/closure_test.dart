@@ -25,7 +25,7 @@ main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, computeKernelClosureData,
-        skipForKernel: skipForKernel, args: args);
+        skipForKernel: skipForKernel, args: args, testOmit: true);
   });
 }
 

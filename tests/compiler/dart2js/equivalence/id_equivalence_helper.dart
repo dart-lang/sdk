@@ -484,7 +484,8 @@ Future checkTests(
     ComputeClassDataFunction computeClassDataFromKernel,
     int shards: 1,
     int shardIndex: 0,
-    bool testOmit: false}) async {
+    bool testOmit: false,
+    void onTest(Uri uri)}) async {
   args = args.toList();
   bool verbose = args.remove('-v');
   bool shouldContinue = args.remove('-c');
@@ -523,6 +524,9 @@ Future checkTests(
       trustTypeAnnotations = true;
     }
 
+    if (onTest != null) {
+      onTest(entity.uri);
+    }
     print('----------------------------------------------------------------');
     print('Test file: ${entity.uri}');
     // Pretend this is a dart2js_native test to allow use of 'native' keyword

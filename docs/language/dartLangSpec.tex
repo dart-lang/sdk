@@ -55,6 +55,7 @@
 % - Specify variance and super-bounded types.
 % - Introduce `subterm` and `immediate subterm`.
 % - Introduce `top type`.
+% - Specify configurable imports.
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -8829,11 +8830,14 @@ The members of a library $L$ are those top level declarations given within $L$.
 {\bf scriptTag:}`\#!' {\escapegrammar (\~{}NEWLINE)*} NEWLINE
   .
 
-{\bf libraryName:}metadata \LIBRARY{} identifier (`{\escapegrammar .}' identifier)* `{\escapegrammar ;}'
+{\bf libraryName:}metadata \LIBRARY{} dottedIdentifierList `{\escapegrammar ;}'
   .
 
 {\bf importOrExport:}libraryImport;
   libraryExport
+  .
+
+{\bf dottedIdentifierList:} identifier (`{\escapegrammar .}' identifier)*
   .
 \end{grammar}
 
@@ -8891,7 +8895,7 @@ An {\em import} specifies a library to be used in the scope of another library.
 {\bf libraryImport:}metadata importSpecification
   .
 
-{\bf importSpecification:}\IMPORT{} uri (\AS{} identifier)? combinator* `{\escapegrammar ;}';
+{\bf importSpecification:}\IMPORT{} configurableUri (\AS{} identifier)? combinator* `{\escapegrammar ;}';
   \IMPORT{} uri \DEFERRED{} \AS{} identifier combinator* `{\escapegrammar ;}'
   .
 
@@ -9156,7 +9160,7 @@ A library $L$ exports a namespace (\ref{scoping}), meaning that the declarations
 The namespace that $L$ exports is known as its {\em exported namespace}.
 
 \begin{grammar}
-{\bf libraryExport:}metadata \EXPORT{} uri combinator* `{\escapegrammar ;}'
+{\bf libraryExport:}metadata \EXPORT{} configurableUri combinator* `{\escapegrammar ;}'
   .
 \end{grammar}
 
@@ -9318,10 +9322,48 @@ URIs are specified by means of string literals:
 \begin{grammar}
 {\bf uri:}stringLiteral
   .
+{\bf configurableUri:} uri configurationUri*
+  .
+{\bf configurationUri:} \IF{} `(' uriTest `)' uri
+  .
+{\bf uriTest:} dottedIdentifierList (`==' stringLiteral)?
+  .
 \end{grammar}
 
 \LMHash{}
 It is a compile-time error if the string literal $x$ that describes a URI is not a compile-time constant, or if $x$ involves string interpolation.
+
+\LMHash{}
+It is a compile-time error if the string literal $x$ that is used in a {\em uriTest} is not a compile-time constant, or if $x$ involves string interpolation.
+
+\LMHash{} A {\em configurable URI} $c$ of the form \code{\metavar{uri} $\metavar{configurationUri}_1$ \ldots $\metavar{configurationUri}_n$} {\em specifies a URI} as follows:
+\begin{itemize}
+\item{} Let $u$ be \metavar{uri}.
+\item{} For each of the following configuration URIs of the form \code{\IF{} ($\metavar{test}_i$) $\metavar{uri}_i$}, in source order, do the following.
+\begin{itemize}
+  \item{} If $\metavar{test}_i$ is \code{\metavar{ids}} with no \code{==} clause, it is
+  equivalent to \code{\metavar{ids} == "true"}.
+  \item{} If $\metavar{test}_i$ is \code{\metavar{ids} == \metavar{string}},
+  then create a string, \metavar{key}, from \metavar{ids}
+  by concatenating the identfiers and dots,
+  omitting any spaces between them that may occur in the source.
+  \item{} Look up \metavar{key} in the available compilation {\em environment}.
+  \commentary{
+  The compilation environment is provided by the platform.
+  It maps some string keys to string values,
+  and can be accessed programmatically using the
+  \code{const String.fromEnvironment} constructor.
+  Tools may choose to only make some parts of the compilation environment
+  available for choosing configuration URIs.
+  }
+  \item{} If the environment contains an entry for \metavar{key} and the
+  associated value is equal, as a constant string value, to the value of
+  the string literal \metavar{string},
+  then let $u$ be $\metavar{uri}_i$ and stop iterating the configuration URIs.
+  \item{} Otherwise proceed to the next configuration URI.
+\end{itemize}
+\item{} The URI specified by $c$ is $u$.
+\end{itemize}
 
 \LMHash{}
 This specification does not discuss the interpretation of URIs, with the following exceptions.

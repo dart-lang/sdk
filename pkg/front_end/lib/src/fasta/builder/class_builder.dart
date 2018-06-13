@@ -225,7 +225,5 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
     library.addProblem(message, charOffset, length, fileUri, context: context);
   }
 
-  int get typeVariablesCount;
-
   void prepareTopLevelInference() {}
 }

@@ -104,10 +104,6 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
               new TypeUse.instantiation(_commonElements.nullType));
           registerImpact(_impacts.nullLiteral);
           break;
-        case Feature.GENERIC_INSTANTIATION:
-          registerImpact(_impacts.genericInstantiation);
-          _backendUsageBuilder.isGenericInstantiationUsed = true;
-          break;
         case Feature.LAZY_FIELD:
           registerImpact(_impacts.lazyField);
           break;
@@ -292,6 +288,14 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       _classHierarchyBuilder.registerClass(classEntity);
     }
 
+    if (worldImpact.genericInstantiations.isNotEmpty) {
+      registerImpact(_impacts.genericInstantiation);
+      for (GenericInstantiation instantiation
+          in worldImpact.genericInstantiations) {
+        _rtiNeedBuilder.registerGenericInstantiation(instantiation);
+      }
+    }
+
     return transformed;
   }
 
@@ -458,6 +462,10 @@ class CodegenImpactTransformer {
               .registerImpact(transformed, _elementEnvironment);
           break;
       }
+    }
+
+    for (GenericInstantiation instantiation in impact.genericInstantiations) {
+      _rtiChecksBuilder.registerGenericInstantiation(instantiation);
     }
 
     // TODO(johnniwinther): Remove eager registration.

@@ -330,10 +330,6 @@ abstract class ListMixin<E> implements List<E> {
   }
 
   List<R> cast<R>() => List.castFrom<E, R>(this);
-
-  @Deprecated("Use cast instead.")
-  List<R> retype<R>() => cast<R>();
-
   E removeLast() {
     if (length == 0) {
       throw IterableElementError.noElement();

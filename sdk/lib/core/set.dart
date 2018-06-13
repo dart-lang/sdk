@@ -126,10 +126,6 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
    * this set as well.
    */
   Set<R> cast<R>();
-
-  @Deprecated("Use cast instead.")
-  Set<R> retype<R>();
-
   /**
    * Provides an iterator that iterates over the elements of this set.
    *

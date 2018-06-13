@@ -20,7 +20,6 @@ iterable_element_at_test/static: Pass
 num_sign_test: Crash, Pass # Issue 31768
 
 [ $compiler == dart2js ]
-apply_generic_function_test: RuntimeError # Issue 32691
 bigint_from_test: RuntimeError # Issue 32589
 date_time11_test: RuntimeError, Pass # Fails when US is on winter time, issue 31285.
 iterable_where_type_test: RuntimeError # issue 31718
@@ -37,6 +36,7 @@ int_modulo_arith_test/none: RuntimeError
 string_from_environment3_test/03: Crash
 
 [ $compiler == precompiler ]
+bigint_test: Pass, Timeout # --no_intrinsify
 int_parse_radix_test: Pass, Timeout # --no_intrinsify
 integer_parsed_mul_div_vm_test: Pass, Timeout # --no_intrinsify
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
@@ -213,6 +213,7 @@ symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') sho
 cast_test: RuntimeError
 error_stack_trace1_test: RuntimeError
 growable_list_test: RuntimeError
+int_parse_radix_test/02: RuntimeError
 integer_to_radix_string_test/01: RuntimeError
 integer_to_radix_string_test/02: RuntimeError
 integer_to_radix_string_test/none: RuntimeError
@@ -239,6 +240,7 @@ int_try_parse_int64_test: RuntimeError # WontFix: Int not precisely representabl
 cast_test: RuntimeError
 error_stack_trace1_test: RuntimeError # Issue 12399
 growable_list_test: RuntimeError # Concurrent modifications test always runs
+int_parse_radix_test/02: RuntimeError
 integer_to_radix_string_test/01: RuntimeError
 integer_to_radix_string_test/02: RuntimeError
 integer_to_radix_string_test/none: RuntimeError
@@ -319,6 +321,7 @@ unicode_test: RuntimeError # Issue 18061: German double S.
 apply_test/01: RuntimeError
 
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
+bigint_test: Pass, Timeout # --no_intrinsify
 iterable_fold_test/02: RuntimeError
 iterable_reduce_test/01: CompileTimeError # Issue 31533
 iterable_reduce_test/none: RuntimeError
@@ -540,7 +543,7 @@ list_test/*: RuntimeError # VM doesn't implement strong mode covariance checks
 
 [ $arch == simarm || $arch == simarm64 || $arch == simdbc64 ]
 bigint_parse_radix_test: Pass, Slow # Bigint computations are slow on simulated architectures.
-bigint_test: Pass, Slow # Bigint computations are slow on simulated architectures.
+bigint_test: Pass, Slow, Timeout # Bigint computations are slow on simulated architectures.
 
 [ $arch == simdbc || $arch == simdbc64 ]
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
@@ -605,5 +608,5 @@ regexp/UC16_test: RuntimeError
 
 [ $hot_reload || $hot_reload_rollback ]
 bigint_parse_radix_test: Pass, Timeout # Issue 31659
-bigint_test: Pass, Crash # Issue 31660
+bigint_test: Pass, Timeout # Issue 31659
 integer_parsed_mul_div_vm_test: Pass, Slow # Slow

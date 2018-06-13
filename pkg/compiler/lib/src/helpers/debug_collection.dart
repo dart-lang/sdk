@@ -22,10 +22,6 @@ class DebugMap<K, V> implements Map<K, V> {
   }
 
   Map<RK, RV> cast<RK, RV>() => Map.castFrom<K, V, RK, RV>(this);
-
-  @Deprecated("Use cast instead.")
-  Map<RK, RV> retype<RK, RV>() => cast<RK, RV>();
-
   bool containsValue(Object value) {
     return sourceMap.containsValue(value);
   }
@@ -108,10 +104,6 @@ class DebugIterable<E> implements Iterable<E> {
   Iterator<E> get iterator => iterable.iterator;
 
   Iterable<R> cast<R>() => Iterable.castFrom<E, R>(this);
-
-  @Deprecated("Use cast instead.")
-  Iterable<R> retype<R>() => cast<R>();
-
   Iterable<T> map<T>(T f(E element)) => iterable.map(f);
 
   Iterable<E> where(bool test(E element)) => iterable.where(test);
@@ -190,10 +182,6 @@ class DebugList<E> extends DebugIterable<E> implements List<E> {
   List<E> get list => iterable;
 
   List<R> cast<R>() => List.castFrom<E, R>(this);
-
-  @Deprecated("Use cast instead.")
-  List<R> retype<R>() => cast<R>();
-
   List<E> operator +(List<E> other) => list + other;
 
   E operator [](int index) => list[index];
@@ -297,10 +285,6 @@ class DebugSet<E> extends DebugIterable<E> implements Set<E> {
   Set<E> get set => iterable;
 
   Set<R> cast<R>() => Set.castFrom<E, R>(this);
-
-  @Deprecated("Use cast instead.")
-  Set<R> retype<R>() => cast<R>();
-
   bool contains(Object value) => set.contains(value);
 
   bool add(E value) {

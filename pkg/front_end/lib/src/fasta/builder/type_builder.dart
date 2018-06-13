@@ -12,6 +12,12 @@ abstract class TypeBuilder {
 
   void resolveIn(Scope scope, int charOffset, Uri fileUri) {}
 
+  /// See `UnresolvedType.checkType`.
+  void check(int charOffset, Uri fileUri) {}
+
+  /// See `UnresolvedType.normalizeType`.
+  void normalize(int charOffset, Uri fileUri) {}
+
   void bind(TypeDeclarationBuilder builder) {}
 
   /// May return null, for example, for mixin applications.

@@ -4132,10 +4132,10 @@ class Wrong<T> {
   }
 
   void test_invalidOperatorAfterSuper_primaryExpression() {
-    Expression expression = parsePrimaryExpression('super?.v');
+    Expression expression = parseExpression('super?.v', errors: [
+      expectedError(ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, 5, 2)
+    ]);
     expectNotNullIfNoErrors(expression);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, 5, 2)]);
   }
 
   void test_invalidOperatorForSuper() {
@@ -4150,18 +4150,21 @@ class Wrong<T> {
   }
 
   void test_invalidStarAfterAsync() {
-    createParser('async* => 0;');
-    FunctionBody functionBody = parser.parseFunctionBody(false, null, false);
-    expectNotNullIfNoErrors(functionBody);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.INVALID_STAR_AFTER_ASYNC, 5, 1)]);
+    createParser('foo() async* => 0;');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expectNotNullIfNoErrors(unit);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(CompileTimeErrorCode.RETURN_IN_GENERATOR, 13, 2)]
+        : [expectedError(ParserErrorCode.INVALID_STAR_AFTER_ASYNC, 11, 1)]);
   }
 
   void test_invalidSync() {
-    createParser('sync* => 0;');
-    FunctionBody functionBody = parser.parseFunctionBody(false, null, false);
-    expectNotNullIfNoErrors(functionBody);
-    listener.assertErrors([expectedError(ParserErrorCode.INVALID_SYNC, 0, 4)]);
+    createParser('foo() sync* => 0;');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expectNotNullIfNoErrors(unit);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(CompileTimeErrorCode.RETURN_IN_GENERATOR, 12, 2)]
+        : [expectedError(ParserErrorCode.INVALID_SYNC, 0, 4)]);
   }
 
   void test_invalidTopLevelSetter() {

@@ -35,9 +35,9 @@ int _getTopiness(DartType t) {
   assert(_isTop(t), 'only Top types have a topiness');
 
   // Highest top
-  if (t.isDynamic) return 3;
-  if (t.isObject) return 2;
-  if (t.isVoid) return 1;
+  if (t.isVoid) return 3;
+  if (t.isDynamic) return 2;
+  if (t.isObject) return 1;
   if (t.isDartAsyncFutureOr)
     return -3 + _getTopiness((t as InterfaceType).typeArguments[0]);
   // Lowest top

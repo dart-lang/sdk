@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+# No longer supported in dart 2
+scenarios/package_relative_root: Fail
+
 [ $compiler == dart2analyzer ]
 browser/typed_data_message_test: StaticWarning
 

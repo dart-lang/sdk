@@ -212,7 +212,7 @@ class Parser {
    * A flag indicating whether the parser should parse instance creation
    * expressions that lack either the `new` or `const` keyword.
    */
-  bool _enableOptionalNewAndConst = false;
+  bool _enableOptionalNewAndConst = true;
 
   /**
    * A flag indicating whether parser is to parse function bodies.

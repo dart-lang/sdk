@@ -2,20 +2,84 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'package:front_end/src/base/instrumentation.dart';
-import 'package:front_end/src/fasta/builder/library_builder.dart';
-import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
-import 'package:front_end/src/fasta/messages.dart';
-import 'package:front_end/src/fasta/names.dart';
-import 'package:front_end/src/fasta/problems.dart';
-import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
-import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
-import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
-import 'package:kernel/ast.dart';
-import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/ast.dart'
+    show
+        Arguments,
+        Class,
+        DartType,
+        DynamicType,
+        Expression,
+        Field,
+        FunctionNode,
+        FunctionType,
+        Member,
+        Name,
+        NamedExpression,
+        Procedure,
+        ProcedureKind,
+        ReturnStatement,
+        SuperMethodInvocation,
+        SuperPropertyGet,
+        SuperPropertySet,
+        TypeParameter,
+        TypeParameterType,
+        VariableDeclaration,
+        VariableGet,
+        VoidType;
+
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+
 import 'package:kernel/transformations/flags.dart' show TransformerFlag;
-import 'package:kernel/type_algebra.dart';
-import 'package:kernel/type_environment.dart';
+
+import 'package:kernel/type_algebra.dart' show Substitution;
+
+import 'package:kernel/type_environment.dart' show TypeEnvironment;
+
+import '../../base/instrumentation.dart'
+    show
+        Instrumentation,
+        InstrumentationValueForForwardingStub,
+        InstrumentationValueLiteral;
+
+import '../builder/builder.dart' show LibraryBuilder;
+
+import '../kernel/kernel_shadow_ast.dart'
+    show
+        ShadowClass,
+        ShadowField,
+        ShadowMember,
+        ShadowProcedure,
+        ShadowVariableDeclaration;
+
+import '../messages.dart'
+    show
+        messageDeclaredMemberConflictsWithInheritedMember,
+        messageDeclaredMemberConflictsWithInheritedMemberCause,
+        messageInheritedMembersConflict,
+        messageInheritedMembersConflictCause1,
+        messageInheritedMembersConflictCause2,
+        noLength,
+        templateCantInferTypeDueToCircularity,
+        templateCantInferTypeDueToInconsistentOverrides;
+
+import '../names.dart' show indexSetName;
+
+import '../problems.dart' show unhandled;
+
+import 'type_inference_engine.dart'
+    show
+        FieldInitializerInferenceNode,
+        IncludesTypeParametersCovariantly,
+        InferenceNode,
+        TypeInferenceEngine;
+
+import 'type_inferrer.dart' show getNamedFormal;
+
+import 'type_schema_environment.dart'
+    show
+        getNamedParameterType,
+        getPositionalParameterType,
+        substituteTypeParams;
 
 /// Concrete class derived from [InferenceNode] to represent type inference of
 /// getters, setters, and fields based on inheritance.

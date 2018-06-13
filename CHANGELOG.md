@@ -1,3 +1,57 @@
+## 2.0.0-dev.62.0
+
+### Language
+
+Inference chooses `void` when combining `Object` or `dynamic` and `void` ([issue
+3341]).  When combining with other top types, inference now prefers `void`.  So
+for example, given:
+
+```dart
+void foo() {};
+dynamic bar() {};
+var a = [foo(), bar()];
+```
+
+the variable `a` would previously have been inferred as `dynamic`, and will now
+be inferred as `void`.
+
+[issue 3341]: https://github.com/dart-lang/sdk/issues/33341
+
+
+#### Strong Mode
+
+### Dart VM
+
+* The dart VM will no longer attempt to perform `packages/` directory
+  resolution (for loading scripts, and in `Isolate.resolveUri`). Users
+  relying on `packages/` directories should switch to `.packages` files.
+
+### Tool Changes
+
+#### Pub
+
+* Fix an error on `pub get` when running with Dart 2 mode and already existing
+  snapshots of executables.
+
+#### Other Tools
+
+### Core library changes
+
+* `dart:core`/`dart:collection`
+  * Remove the `retype` method on iterables and maps again. Use `cast` instead.
+  * Deprecated `Platform.packageRoot`, which is only used for `packages/`
+    directory resolution which is no longer supported. It will now always
+    return null, which is a value that was always possible for it to return
+    previously.
+* `dart:isolate`
+  * Deprecated `Isolate.packageRoot`, which is only used for `packages/`
+    directory resolution which is no longer supported. It will now always
+    return null, which is a value that was always possible for it to return
+    previously.
+  * Deprecated `packageRoot` parameter in `Isolate.spawnUri`, which is was
+    previously used only for `packages/` directory resolution. That style
+    of resolution is no longer supported in dart 2.
+
 ## 2.0.0-dev.61.0
 
 ### Dart VM

@@ -788,6 +788,116 @@ TEST_CASE(DartAPI_InstanceGetType) {
                "type Instance.");
 }
 
+TEST_CASE(DartAPI_FunctionName) {
+  const char* kScriptChars = "int getInt() { return 1; }\n";
+  // Create a test library and Load up a test script in it.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_VALID(lib);
+
+  Dart_Handle closure = Dart_GetClosure(lib, NewString("getInt"));
+  EXPECT_VALID(closure);
+  if (Dart_IsClosure(closure)) {
+    closure = Dart_ClosureFunction(closure);
+    EXPECT_VALID(closure);
+  }
+
+  Dart_Handle name = Dart_FunctionName(closure);
+  EXPECT_VALID(name);
+  const char* result_str = "";
+  Dart_StringToCString(name, &result_str);
+  EXPECT_STREQ(result_str, "getInt");
+}
+
+TEST_CASE(DartAPI_FunctionOwner) {
+  const char* kScriptChars = "int getInt() { return 1; }\n";
+  // Create a test library and Load up a test script in it.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_VALID(lib);
+
+  Dart_Handle closure = Dart_GetClosure(lib, NewString("getInt"));
+  EXPECT_VALID(closure);
+  if (Dart_IsClosure(closure)) {
+    closure = Dart_ClosureFunction(closure);
+    EXPECT_VALID(closure);
+  }
+
+  const char* url = "";
+  Dart_Handle owner = Dart_FunctionOwner(closure);
+  EXPECT_VALID(owner);
+  Dart_Handle owner_url = Dart_LibraryUrl(owner);
+  EXPECT_VALID(owner_url);
+  Dart_StringToCString(owner_url, &url);
+
+  const char* lib_url = "";
+  Dart_Handle library_url = Dart_LibraryUrl(lib);
+  EXPECT_VALID(library_url);
+  Dart_StringToCString(library_url, &lib_url);
+
+  EXPECT_STREQ(url, lib_url);
+}
+
+TEST_CASE(DartAPI_FunctionIsStatic) {
+  const char* kScriptChars =
+      "int getInt() { return 1; }\n"
+      "class Foo { String getString() => 'foobar'; }\n";
+  // Create a test library and Load up a test script in it.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_VALID(lib);
+
+  Dart_Handle closure = Dart_GetClosure(lib, NewString("getInt"));
+  EXPECT_VALID(closure);
+  if (Dart_IsClosure(closure)) {
+    closure = Dart_ClosureFunction(closure);
+    EXPECT_VALID(closure);
+  }
+
+  bool is_static = false;
+  Dart_Handle result = Dart_FunctionIsStatic(closure, &is_static);
+  EXPECT_VALID(result);
+  EXPECT(is_static);
+
+  // TODO(bkonyi): uncomment when issue 33417 is resolved.
+  /*
+  Dart_Handle klass = Dart_GetType(lib, NewString("Foo"), 0, NULL);
+  EXPECT_VALID(klass);
+
+  Dart_Handle instance = Dart_Allocate(klass);
+
+  closure = Dart_GetField(instance, NewString("getString"));
+  EXPECT_VALID(closure);
+  if (Dart_IsClosure(closure)) {
+    closure = Dart_ClosureFunction(closure);
+    EXPECT_VALID(closure);
+  }
+
+  result = Dart_FunctionIsStatic(closure, &is_static);
+  EXPECT_VALID(result);
+  EXPECT(!is_static);
+*/
+}
+
+TEST_CASE(DartAPI_ClosureFunction) {
+  const char* kScriptChars = "int getInt() { return 1; }\n";
+  // Create a test library and Load up a test script in it.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_VALID(lib);
+
+  Dart_Handle closure = Dart_GetClosure(lib, NewString("getInt"));
+  EXPECT_VALID(closure);
+  EXPECT(Dart_IsClosure(closure));
+  Dart_Handle closure_str = Dart_ToString(closure);
+  const char* result = "";
+  Dart_StringToCString(closure_str, &result);
+  EXPECT(strstr(result, "getInt") != NULL);
+
+  Dart_Handle function = Dart_ClosureFunction(closure);
+  EXPECT_VALID(function);
+  EXPECT(Dart_IsFunction(function));
+  Dart_Handle func_str = Dart_ToString(function);
+  Dart_StringToCString(func_str, &result);
+  EXPECT(strstr(result, "getInt"));
+}
+
 TEST_CASE(DartAPI_BooleanValues) {
   Dart_Handle str = NewString("test");
   EXPECT(!Dart_IsBoolean(str));

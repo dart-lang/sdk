@@ -631,7 +631,8 @@ class CapturedScopeBuilder extends ir.Visitor {
 
   @override
   visitInstantiation(ir.Instantiation node) {
-    visitChildrenInContext(node, VariableUse.explicit);
+    visitChildrenInContext(
+        node, new VariableUse.instantiationTypeArgument(node));
   }
 
   /// Returns true if the node is a field, or a constructor (factory or

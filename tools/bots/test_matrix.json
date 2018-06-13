@@ -150,6 +150,7 @@
           "arguments": [
             "--checked",
             "--compiler=none",
+            "--no-preview-dart-2",
             "--runtime=vm",
             "--timeout=240",
             "pkg/(kernel|front_end|fasta)"
@@ -167,6 +168,7 @@
           "name": "fasta legacy mode sdk tests",
           "arguments": [
             "--compiler=fasta",
+            "--no-preview-dart-2",
             "--runtime=none"
           ]
         }
@@ -189,7 +191,7 @@
         },
         {
           "name": "vm tests",
-          "arguments": ["--builder-tag=swarming"]
+          "arguments": ["--builder-tag=swarming", "--no-preview-dart-2"]
         }
       ]
     },
@@ -224,11 +226,15 @@
         },
         {
           "name": "vm tests",
-          "arguments": ["--builder-tag=swarming"]
+          "arguments": ["--builder-tag=swarming", "--no-preview-dart-2"]
         },
         {
           "name": "checked vm tests",
-          "arguments": ["--builder-tag=swarming", "--checked"]
+          "arguments": [
+            "--builder-tag=swarming",
+            "--checked",
+            "--no-preview-dart-2"
+          ]
         }
       ]
     },
@@ -247,11 +253,11 @@
         },
         {
           "name": "vm ia32 tests",
-          "arguments": ["--arch=ia32", "vm"]
+          "arguments": ["--arch=ia32", "--no-preview-dart-2", "vm"]
         },
         {
           "name": "vm x64 tests",
-          "arguments": ["--arch=x64", "vm"]
+          "arguments": ["--arch=x64", "--no-preview-dart-2", "vm"]
         }
       ]
     },
@@ -270,7 +276,7 @@
         },
         {
           "name": "vm legacy tests",
-          "arguments": ["--compiler=dartk"],
+          "arguments": ["--compiler=dartk", "--no-preview-dart-2"],
           "fileset": "vm-kernel",
           "shards": 10
         }
@@ -384,7 +390,7 @@
         },
         {
           "name": "vm tests",
-          "arguments": ["--timeout=240"],
+          "arguments": ["--timeout=240", "--no-preview-dart-2"],
           "environment": {
             "ASAN_OPTIONS": "handle_segv=0:detect_stack_use_after_return=0",
             "ASAN_SYMBOLIZER_PATH": "buildtools/toolchain/clang+llvm-x86_64-linux/bin/llvm-symbolizer"
@@ -392,7 +398,7 @@
         },
         {
           "name": "checked vm tests",
-          "arguments": ["--checked","--timeout=240"],
+          "arguments": ["--checked", "--no-preview-dart-2", "--timeout=240"],
           "environment": {
             "ASAN_OPTIONS": "handle_segv=0:detect_stack_use_after_return=0",
             "ASAN_SYMBOLIZER_PATH": "buildtools/toolchain/clang+llvm-x86_64-linux/bin/llvm-symbolizer"
@@ -448,7 +454,7 @@
         },
         {
           "name": "vm tests",
-          "arguments": ["--compiler=app_jit"]
+          "arguments": ["--compiler=app_jit", "--no-preview-dart-2"]
         }
       ]
     },
@@ -638,6 +644,7 @@
           "name": "vm tests",
           "arguments": [
             "--compiler=precompiler",
+            "--no-preview-dart-2",
             "--runtime=dart_precompiled",
             "--use-blobs"]
         }
@@ -660,6 +667,7 @@
           "name": "vm tests",
           "arguments": [
             "--compiler=precompiler",
+            "--no-preview-dart-2",
             "--runtime=dart_precompiled",
             "--system=android",
             "--use-blobs"]
@@ -685,16 +693,18 @@
         {
           "name": "vm tests",
           "arguments": [
-            "--vm-options=--optimization-counter-threshold=5",
-            "--builder-tag=optimization_counter_threshold"
+            "--builder-tag=optimization_counter_threshold",
+            "--no-preview-dart-2",
+            "--vm-options=--optimization-counter-threshold=5"
           ]
         },
         {
           "name": "checked vm tests",
           "arguments": [
+            "--builder-tag=optimization_counter_threshold",
             "--checked",
-            "--vm-options=--optimization-counter-threshold=5",
-            "--builder-tag=optimization_counter_threshold"
+            "--no-preview-dart-2",
+            "--vm-options=--optimization-counter-threshold=5"
           ]
         }
       ]
@@ -745,11 +755,11 @@
         },
         {
           "name": "vm tests",
-          "arguments": ["--hot-reload"]
+          "arguments": ["--hot-reload", "--no-preview-dart-2"]
         },
         {
           "name": "checked vm tests",
-          "arguments": ["--checked","--hot-reload"]
+          "arguments": ["--checked", "--hot-reload", "--no-preview-dart-2"]
         }
       ]
     },
@@ -791,11 +801,15 @@
         },
         {
           "name": "vm tests",
-          "arguments": ["--hot-reload-rollback"]
+          "arguments": ["--hot-reload-rollback", "--no-preview-dart-2"]
         },
         {
           "name": "checked vm tests",
-          "arguments": ["--checked","--hot-reload-rollback"]
+          "arguments": [
+            "--checked",
+            "--hot-reload-rollback",
+            "--no-preview-dart-2"
+          ]
         }
       ]
     },
@@ -837,8 +851,9 @@
           "arguments": [
             "--compiler=dart2js",
             "--dart2js-batch",
-            "--reset-browser-configuration",
-            "--host-checked"
+            "--host-checked",
+            "--no-preview-dart-2",
+            "--reset-browser-configuration"
           ],
           "exclude_tests": ["observatory_ui", "co19"]
         },
@@ -847,8 +862,9 @@
           "arguments": [
             "--compiler=dart2js",
             "--dart2js-batch",
-            "--reset-browser-configuration",
-            "--host-checked"
+            "--host-checked",
+            "--no-preview-dart-2",
+            "--reset-browser-configuration"
           ],
           "tests": ["pkg"]
         },
@@ -857,8 +873,9 @@
           "arguments": [
             "--compiler=dart2js",
             "--dart2js-batch",
-            "--reset-browser-configuration",
-            "--host-checked"
+            "--host-checked",
+            "--no-preview-dart-2",
+            "--reset-browser-configuration"
           ],
           "tests": ["observatory_ui"]
         },
@@ -867,8 +884,9 @@
           "arguments": [
             "--compiler=dart2js",
             "--dart2js-batch",
-            "--reset-browser-configuration",
-            "--host-checked"
+            "--host-checked",
+            "--no-preview-dart-2",
+            "--reset-browser-configuration"
           ],
           "tests": ["dart2js_extra","dart2js_native"]
         },
@@ -877,73 +895,80 @@
           "arguments": [
             "--compiler=dart2js",
             "--dart2js-batch",
-            "--reset-browser-configuration",
-            "--host-checked"
+            "--host-checked",
+            "--no-preview-dart-2",
+            "--reset-browser-configuration"
           ],
           "tests": ["co19"]
         },
         {
           "name": "dart2js checked tests",
           "arguments": [
+            "--checked",
             "--compiler=dart2js",
             "--dart2js-batch",
-            "--reset-browser-configuration",
             "--host-checked",
-            "--checked"
+            "--no-preview-dart-2",
+            "--reset-browser-configuration"
           ],
           "exclude_tests": ["observatory_ui", "co19"]
         },
         {
           "name": "dart2js checked package tests",
           "arguments": [
+            "--checked",
             "--compiler=dart2js",
             "--dart2js-batch",
-            "--reset-browser-configuration",
             "--host-checked",
-            "--checked"
+            "--no-preview-dart-2",
+            "--reset-browser-configuration"
           ],
           "tests": ["pkg"]
         },
         {
           "name": "dart2js checked observatory-ui tests",
           "arguments": [
+            "--checked",
             "--compiler=dart2js",
             "--dart2js-batch",
-            "--reset-browser-configuration",
             "--host-checked",
-            "--checked"
+            "--no-preview-dart-2",
+            "--reset-browser-configuration"
           ],
           "tests": ["observatory_ui"]
         },
         {
           "name": "dart2js checked extra tests",
           "arguments": [
+            "--checked",
             "--compiler=dart2js",
             "--dart2js-batch",
-            "--reset-browser-configuration",
             "--host-checked",
-            "--checked"
+            "--no-preview-dart-2",
+            "--reset-browser-configuration"
           ],
           "tests": ["dart2js_extra","dart2js_native"]
         },
         {
           "name": "dart2js checked co19 tests",
           "arguments": [
+            "--checked",
             "--compiler=dart2js",
             "--dart2js-batch",
-            "--reset-browser-configuration",
             "--host-checked",
-            "--checked"
+            "--no-preview-dart-2",
+            "--reset-browser-configuration"
           ],
           "tests": ["co19"]
         },
         {
           "name": "dart2js checked unit tests",
           "arguments": [
+            "--checked",
             "--compiler=none",
-            "--runtime=vm",
+            "--no-preview-dart-2",
             "--reset-browser-configuration",
-            "--checked"
+            "--runtime=vm"
           ],
           "tests": ["dart2js"]
         }
@@ -973,10 +998,11 @@
         {
           "name": "dart2js tests",
           "arguments": [
-            "--use-sdk",
             "--compiler=dart2js",
             "--dart2js-batch",
-            "--reset-browser-configuration"
+            "--no-preview-dart-2",
+            "--reset-browser-configuration",
+            "--use-sdk"
           ],
           "exclude_tests": ["observatory_ui", "co19"],
           "shards": 4,
@@ -985,10 +1011,11 @@
         {
           "name": "dart2js co19 tests",
           "arguments": [
-            "--use-sdk",
             "--compiler=dart2js",
             "--dart2js-batch",
-            "--reset-browser-configuration"
+            "--no-preview-dart-2",
+            "--reset-browser-configuration",
+            "--use-sdk"
           ],
           "tests": ["co19"],
           "shards": 4,
@@ -997,30 +1024,33 @@
         {
           "name": "dart2js package tests",
           "arguments": [
-            "--use-sdk",
             "--compiler=dart2js",
             "--dart2js-batch",
-            "--reset-browser-configuration"
+            "--no-preview-dart-2",
+            "--reset-browser-configuration",
+            "--use-sdk"
           ],
           "tests": ["pkg"]
         },
         {
           "name": "dart2js observatory-ui tests",
           "arguments": [
-            "--use-sdk",
             "--compiler=dart2js",
             "--dart2js-batch",
-            "--reset-browser-configuration"
+            "--no-preview-dart-2",
+            "--reset-browser-configuration",
+            "--use-sdk"
           ],
           "tests": ["observatory_ui"]
         },
         {
           "name": "dart2js extra tests",
           "arguments": [
-            "--use-sdk",
             "--compiler=dart2js",
             "--dart2js-batch",
-            "--reset-browser-configuration"
+            "--no-preview-dart-2",
+            "--reset-browser-configuration",
+            "--use-sdk"
           ],
           "tests": ["dart2js_extra","dart2js_native"]
         }
@@ -1043,11 +1073,12 @@
         {
           "name": "dart2js fast-startup tests",
           "arguments": [
-            "--use-sdk",
             "--compiler=dart2js",
             "--dart2js-batch",
+            "--fast-startup",
+            "--no-preview-dart-2",
             "--reset-browser-configuration",
-            "--fast-startup"
+            "--use-sdk"
           ],
           "exclude_tests": ["observatory_ui", "co19"],
           "shards": 4,
@@ -1056,11 +1087,12 @@
         {
           "name": "dart2js fast-startup co19 tests",
           "arguments": [
-            "--use-sdk",
             "--compiler=dart2js",
             "--dart2js-batch",
+            "--fast-startup",
+            "--no-preview-dart-2",
             "--reset-browser-configuration",
-            "--fast-startup"
+            "--use-sdk"
           ],
           "tests": ["co19"],
           "shards": 4,
@@ -1069,33 +1101,36 @@
         {
           "name": "dart2js fast-startup package tests",
           "arguments": [
-            "--use-sdk",
             "--compiler=dart2js",
             "--dart2js-batch",
+            "--fast-startup",
+            "--no-preview-dart-2",
             "--reset-browser-configuration",
-            "--fast-startup"
+            "--use-sdk"
           ],
           "tests": ["pkg"]
         },
         {
           "name": "dart2js fast-startup observatory-ui tests",
           "arguments": [
-            "--use-sdk",
             "--compiler=dart2js",
             "--dart2js-batch",
+            "--fast-startup",
+            "--no-preview-dart-2",
             "--reset-browser-configuration",
-            "--fast-startup"
+            "--use-sdk"
           ],
           "tests": ["observatory_ui"]
         },
         {
           "name": "dart2js fast-startup extra tests",
           "arguments": [
-            "--use-sdk",
             "--compiler=dart2js",
             "--dart2js-batch",
+            "--fast-startup",
+            "--no-preview-dart-2",
             "--reset-browser-configuration",
-            "--fast-startup"
+            "--use-sdk"
           ],
           "tests": ["dart2js_extra","dart2js_native"]
         }
@@ -1115,11 +1150,12 @@
         {
           "name": "dart2js tests",
           "arguments": [
-            "--use-sdk",
             "--compiler=dart2js",
             "--dart2js-batch",
+            "--minified",
+            "--no-preview-dart-2",
             "--reset-browser-configuration",
-            "--minified"
+            "--use-sdk"
           ],
           "exclude_tests": ["observatory_ui", "co19"],
           "shards": 4,
@@ -1128,11 +1164,12 @@
         {
           "name": "dart2js co19 tests",
           "arguments": [
-            "--use-sdk",
             "--compiler=dart2js",
             "--dart2js-batch",
+            "--minified",
+            "--no-preview-dart-2",
             "--reset-browser-configuration",
-            "--minified"
+            "--use-sdk"
           ],
           "tests": ["co19"],
           "shards": 4,
@@ -1141,12 +1178,13 @@
         {
           "name": "dart2js fast-startup tests",
           "arguments": [
-            "--use-sdk",
             "--compiler=dart2js",
             "--dart2js-batch",
-            "--reset-browser-configuration",
+            "--fast-startup",
             "--minified",
-            "--fast-startup"
+            "--no-preview-dart-2",
+            "--reset-browser-configuration",
+            "--use-sdk"
           ],
           "exclude_tests": ["observatory_ui", "co19"],
           "shards": 4,
@@ -1158,9 +1196,10 @@
             "--use-sdk",
             "--compiler=dart2js",
             "--dart2js-batch",
-            "--reset-browser-configuration",
+            "--fast-startup",
             "--minified",
-            "--fast-startup"
+            "--no-preview-dart-2",
+            "--reset-browser-configuration"
           ],
           "tests": ["co19"],
           "shards": 4,
@@ -1169,69 +1208,75 @@
         {
           "name": "dart2js package tests",
           "arguments": [
-            "--use-sdk",
             "--compiler=dart2js",
             "--dart2js-batch",
+            "--minified",
+            "--no-preview-dart-2",
             "--reset-browser-configuration",
-            "--minified"
+            "--use-sdk"
           ],
           "tests": ["pkg"]
         },
         {
           "name": "dart2js observatory-ui tests",
           "arguments": [
-            "--use-sdk",
             "--compiler=dart2js",
             "--dart2js-batch",
+            "--minified",
+            "--no-preview-dart-2",
             "--reset-browser-configuration",
-            "--minified"
+            "--use-sdk"
           ],
           "tests": ["observatory_ui"]
         },
         {
           "name": "dart2js extra tests",
           "arguments": [
-            "--use-sdk",
             "--compiler=dart2js",
             "--dart2js-batch",
+            "--minified",
+            "--no-preview-dart-2",
             "--reset-browser-configuration",
-            "--minified"
+            "--use-sdk"
           ],
           "tests": ["dart2js_extra","dart2js_native"]
         },
         {
           "name": "dart2js fast-startup pkg tests",
           "arguments": [
-            "--use-sdk",
             "--compiler=dart2js",
             "--dart2js-batch",
-            "--reset-browser-configuration",
+            "--fast-startup",
             "--minified",
-            "--fast-startup"
+            "--no-preview-dart-2",
+            "--reset-browser-configuration",
+            "--use-sdk"
           ],
           "tests": ["pkg"]
         },
         {
           "name": "dart2js fast-startup observatory-ui tests",
           "arguments": [
-            "--use-sdk",
             "--compiler=dart2js",
             "--dart2js-batch",
-            "--reset-browser-configuration",
+            "--fast-startup",
             "--minified",
-            "--fast-startup"
+            "--no-preview-dart-2",
+            "--reset-browser-configuration",
+            "--use-sdk"
           ],
           "tests": ["observatory_ui"]
         },
         {
           "name": "dart2js fast-startup extra tests",
           "arguments": [
-            "--use-sdk",
             "--compiler=dart2js",
             "--dart2js-batch",
-            "--reset-browser-configuration",
+            "--fast-startup",
             "--minified",
-            "--fast-startup"
+            "--no-preview-dart-2",
+            "--reset-browser-configuration",
+            "--use-sdk"
           ],
           "tests": ["dart2js_extra","dart2js_native"]
         }
@@ -1251,12 +1296,13 @@
         {
           "name": "dart2js tests",
           "arguments": [
-            "--use-sdk",
             "--compiler=dart2js",
+            "--csp",
             "--dart2js-batch",
-            "--reset-browser-configuration",
             "--minified",
-            "--csp"
+            "--no-preview-dart-2",
+            "--reset-browser-configuration",
+            "--use-sdk"
           ],
           "exclude_tests": ["observatory_ui", "co19"],
           "shards": 4,
@@ -1265,12 +1311,13 @@
         {
           "name": "dart2js co19 tests",
           "arguments": [
-            "--use-sdk",
             "--compiler=dart2js",
+            "--csp",
             "--dart2js-batch",
-            "--reset-browser-configuration",
             "--minified",
-            "--csp"
+            "--no-preview-dart-2",
+            "--reset-browser-configuration",
+            "--use-sdk"
           ],
           "tests": ["co19"],
           "shards": 4,
@@ -1279,13 +1326,14 @@
         {
           "name": "dart2js fast-startup tests",
           "arguments": [
-            "--use-sdk",
             "--compiler=dart2js",
-            "--dart2js-batch",
-            "--reset-browser-configuration",
-            "--minified",
             "--csp",
-            "--fast-startup"
+            "--dart2js-batch",
+            "--fast-startup",
+            "--minified",
+            "--no-preview-dart-2",
+            "--reset-browser-configuration",
+            "--use-sdk"
           ],
           "exclude_tests": ["observatory_ui", "co19"],
           "shards": 4,
@@ -1294,13 +1342,14 @@
         {
           "name": "dart2js fast-startup co19 tests",
           "arguments": [
-            "--use-sdk",
             "--compiler=dart2js",
-            "--dart2js-batch",
-            "--reset-browser-configuration",
-            "--minified",
             "--csp",
-            "--fast-startup"
+            "--dart2js-batch",
+            "--fast-startup",
+            "--minified",
+            "--no-preview-dart-2",
+            "--reset-browser-configuration",
+            "--use-sdk"
           ],
           "tests": ["co19"],
           "shards": 4,
@@ -1309,75 +1358,81 @@
         {
           "name": "dart2js package tests",
           "arguments": [
-            "--use-sdk",
             "--compiler=dart2js",
+            "--csp",
             "--dart2js-batch",
-            "--reset-browser-configuration",
             "--minified",
-            "--csp"
+            "--no-preview-dart-2",
+            "--reset-browser-configuration",
+            "--use-sdk"
           ],
           "tests": ["pkg"]
         },
         {
           "name": "dart2js observatory-ui tests",
           "arguments": [
-            "--use-sdk",
             "--compiler=dart2js",
+            "--csp",
             "--dart2js-batch",
-            "--reset-browser-configuration",
             "--minified",
-            "--csp"
+            "--no-preview-dart-2",
+            "--reset-browser-configuration",
+            "--use-sdk"
           ],
           "tests": ["observatory_ui"]
         },
         {
           "name": "dart2js extra tests",
           "arguments": [
-            "--use-sdk",
             "--compiler=dart2js",
+            "--csp",
             "--dart2js-batch",
-            "--reset-browser-configuration",
             "--minified",
-            "--csp"
+            "--no-preview-dart-2",
+            "--reset-browser-configuration",
+            "--use-sdk"
           ],
           "tests": ["dart2js_extra","dart2js_native"]
         },
         {
           "name": "dart2js fast-startup pkg tests",
           "arguments": [
-            "--use-sdk",
             "--compiler=dart2js",
-            "--dart2js-batch",
-            "--reset-browser-configuration",
-            "--minified",
             "--csp",
-            "--fast-startup"
+            "--dart2js-batch",
+            "--fast-startup",
+            "--minified",
+            "--no-preview-dart-2",
+            "--reset-browser-configuration",
+            "--use-sdk"
           ],
           "tests": ["pkg"]
         },
         {
           "name": "dart2js fast-startup observatory-ui tests",
           "arguments": [
-            "--use-sdk",
             "--compiler=dart2js",
-            "--dart2js-batch",
-            "--reset-browser-configuration",
-            "--minified",
             "--csp",
-            "--fast-startup"
+            "--dart2js-batch",
+            "--fast-startup",
+            "--minified",
+            "--no-preview-dart-2",
+            "--reset-browser-configuration",
+            "--use-sdk"
           ],
           "tests": ["observatory_ui"]
         },
         {
           "name": "dart2js fast-startup extra tests",
           "arguments": [
-            "--use-sdk",
             "--compiler=dart2js",
-            "--dart2js-batch",
-            "--reset-browser-configuration",
-            "--minified",
             "--csp",
-            "--fast-startup"
+            "--dart2js-batch",
+            "--fast-startup",
+            "--minified",
+            "--no-preview-dart-2",
+            "--reset-browser-configuration",
+            "--use-sdk"
           ],
           "tests": ["dart2js_extra","dart2js_native"]
         }
@@ -1446,21 +1501,36 @@
         },
         {
           "name": "analyze tests",
-          "arguments": ["--compiler=dart2analyzer", "--use-sdk"]
+          "arguments": [
+            "--compiler=dart2analyzer",
+            "--no-preview-dart-2",
+            "--use-sdk"
+          ]
         },
         {
           "name": "analyze pkg tests",
-          "arguments": ["--compiler=dart2analyzer", "--use-sdk", "pkg"]
+          "arguments": [
+            "--compiler=dart2analyzer",
+            "--no-preview-dart-2",
+            "--use-sdk",
+            "pkg"
+          ]
         },
         {
           "name": "analyze tests checked",
-          "arguments": ["--checked", "--compiler=dart2analyzer", "--use-sdk"]
+          "arguments": [
+            "--checked",
+            "--compiler=dart2analyzer",
+            "--no-preview-dart-2",
+            "--use-sdk"
+          ]
         },
         {
           "name": "analyze pkg tests checked",
           "arguments": [
             "--checked",
             "--compiler=dart2analyzer",
+            "--no-preview-dart-2",
             "--use-sdk",
             "pkg"
           ]
@@ -1470,6 +1540,7 @@
           "arguments": [
             "--checked",
             "--compiler=none",
+            "--no-preview-dart-2",
             "--use-sdk",
             "pkg/analyzer"
           ]
@@ -1479,6 +1550,7 @@
           "arguments": [
             "--checked",
             "--compiler=none",
+            "--no-preview-dart-2",
             "--use-sdk",
             "pkg/analysis_server"
           ]
@@ -1488,6 +1560,7 @@
           "arguments": [
             "--checked",
             "--compiler=none",
+            "--no-preview-dart-2",
             "--use-sdk",
             "pkg/analyzer_cli"
           ]
@@ -1497,102 +1570,7 @@
           "arguments": [
             "--checked",
             "--compiler=none",
-            "--use-sdk",
-            "pkg/analyzer_plugin"
-          ]
-        }
-      ]
-    },
-    {
-      "builders": [
-        "analyzer-linux-release-strong-hostchecked"
-      ],
-      "meta": {
-        "description": "This configuration is used by the analyzer CQ builder running in strong and hostchecked mode."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": ["create_sdk"]
-        },
-        {
-          "name": "analyze tests",
-          "arguments": [
-            "--compiler=dart2analyzer",
-            "--host-checked",
-            "--strong"
-          ]
-        },
-        {
-          "name": "analyze pkg tests",
-          "arguments": [
-            "--compiler=dart2analyzer",
-            "--host-checked",
-            "--strong",
-            "pkg"
-          ]
-        },
-        {
-          "name": "analyze tests checked",
-          "arguments": [
-            "--checked",
-            "--compiler=dart2analyzer",
-            "--host-checked",
-            "--strong"
-          ]
-        },
-        {
-          "name": "analyze pkg tests checked",
-          "arguments": [
-            "--checked",
-            "--compiler=dart2analyzer",
-            "--host-checked",
-            "--strong",
-            "pkg"
-          ]
-        },
-        {
-          "name": "analyze tests preview-dart2",
-          "arguments": [
-            "--compiler=dart2analyzer",
-            "--host-checked",
-            "--strong",
-            "--preview-dart-2"
-          ]
-        },
-        {
-          "name": "analyzer unit tests",
-          "arguments": [
-            "--checked",
-            "--compiler=none",
-            "--use-sdk",
-            "pkg/analyzer"
-          ]
-        },
-        {
-          "name": "analysis_server unit tests",
-          "arguments": [
-            "--checked",
-            "--compiler=none",
-            "--use-sdk",
-            "pkg/analysis_server"
-          ]
-        },
-        {
-          "name": "analyzer_cli unit tests",
-          "arguments": [
-            "--checked",
-            "--compiler=none",
-            "--use-sdk",
-            "pkg/analyzer_cli"
-          ]
-        },
-        {
-          "name": "analyzer_plugin unit tests",
-          "arguments": [
-            "--checked",
-            "--compiler=none",
+            "--no-preview-dart-2",
             "--use-sdk",
             "pkg/analyzer_plugin"
           ]
@@ -1615,34 +1593,12 @@
           "arguments": ["create_sdk"]
         },
         {
-          "name": "analyze tests",
-          "arguments": ["--compiler=dart2analyzer", "--strong", "--use-sdk"]
-        },
-        {
           "name": "analyze pkg tests",
           "arguments": [
             "--compiler=dart2analyzer",
+            "--preview-dart-2",
             "--strong",
             "--use-sdk",
-            "pkg"
-          ]
-        },
-        {
-          "name": "analyze tests checked",
-          "arguments": [
-            "--checked",
-            "--compiler=dart2analyzer",
-            "--strong",
-            "--use-sdk"
-          ]
-        },
-        {
-          "name": "analyze pkg tests checked",
-          "arguments": [
-            "--checked",
-            "--compiler=dart2analyzer",
-            "--use-sdk",
-            "--strong",
             "pkg"
           ]
         },
@@ -1650,9 +1606,9 @@
           "name": "analyze tests preview-dart2",
           "arguments": [
             "--compiler=dart2analyzer",
+            "--preview-dart-2",
             "--strong",
-            "--use-sdk",
-            "--preview-dart-2"
+            "--use-sdk"
           ]
         }
       ]
@@ -1696,21 +1652,23 @@
         {
           "name": "package unit tests",
           "arguments": [
-            "--use-sdk",
-            "--compiler=none",
-            "--runtime=vm",
             "--checked",
-            "--timeout=120"
+            "--compiler=none",
+            "--no-preview-dart-2",
+            "--runtime=vm",
+            "--timeout=120",
+            "--use-sdk"
           ],
           "tests": ["pkg"]
         },
         {
           "name": "third_party/pkg_tested unit tests",
           "arguments": [
-            "--use-sdk",
+            "--checked",
             "--compiler=none",
+            "--no-preview-dart-2",
             "--runtime=vm",
-            "--checked"
+            "--use-sdk"
           ],
           "tests": ["pkg_tested"]
         },

@@ -631,8 +631,8 @@ void FlowGraphCompiler::AddDescriptor(RawPcDescriptors::Kind kind,
                                       TokenPosition token_pos,
                                       intptr_t try_index) {
   code_source_map_builder_->NoteDescriptor(kind, pc_offset, token_pos);
-  // When running with optimizations disabled, don't emit deopt-descriptors.
-  if (!CanOptimize() && (kind == RawPcDescriptors::kDeopt)) return;
+  // Don't emit deopt-descriptors in AOT mode.
+  if (FLAG_precompiled_mode && (kind == RawPcDescriptors::kDeopt)) return;
   pc_descriptors_list_->AddDescriptor(kind, pc_offset, deopt_id, token_pos,
                                       try_index);
 }

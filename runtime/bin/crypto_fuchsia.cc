@@ -18,12 +18,11 @@ bool Crypto::GetRandomBytes(intptr_t count, uint8_t* buffer) {
     const intptr_t remaining = count - read;
     const intptr_t len =
         (ZX_CPRNG_DRAW_MAX_LEN < remaining) ? ZX_CPRNG_DRAW_MAX_LEN : remaining;
-    size_t res = 0;
-    const zx_status_t status = zx_cprng_draw(buffer + read, len, &res);
+    const zx_status_t status = zx_cprng_draw_new(buffer + read, len);
     if (status != ZX_OK) {
       return false;
     }
-    read += res;
+    read += len;
   }
   return true;
 }

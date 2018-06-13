@@ -12,7 +12,7 @@ import 'dart:io' show exitCode;
 
 import 'package:kernel/ast.dart' show Location;
 
-import 'colors.dart' show cyan, green, magenta, red;
+import 'colors.dart' show green, magenta, red;
 
 import 'compiler_context.dart' show CompilerContext;
 
@@ -23,7 +23,7 @@ import 'fasta_codes.dart' show LocatedMessage;
 
 import 'messages.dart' show getLocation, getSourceLine, isVerbose;
 
-import 'problems.dart' show unexpected;
+import 'problems.dart' show unhandled;
 
 import 'severity.dart' show Severity;
 
@@ -54,10 +54,6 @@ String format(LocatedMessage message, Severity severity, {Location location}) {
           text = red(text);
           break;
 
-        case Severity.nit:
-          text = cyan(text);
-          break;
-
         case Severity.warning:
           text = magenta(text);
           break;
@@ -67,7 +63,7 @@ String format(LocatedMessage message, Severity severity, {Location location}) {
           break;
 
         default:
-          return unexpected("$severity", "format", -1, null);
+          return unhandled("$severity", "format", -1, null);
       }
     }
 
@@ -95,7 +91,7 @@ String format(LocatedMessage message, Severity severity, {Location location}) {
         sourceLine = "\n$sourceLine\n$pointer";
       }
       String position =
-          location == null ? "" : ":${location.line}:${location.column}";
+          location == null ? ":1" : ":${location.line}:${location.column}";
       return "$path$position: $text$sourceLine";
     } else {
       return text;
@@ -117,14 +113,11 @@ bool isHidden(Severity severity) {
     case Severity.context:
       return false;
 
-    case Severity.nit:
-      return !isVerbose;
-
     case Severity.warning:
       return hideWarnings;
 
     default:
-      return unexpected("$severity", "isHidden", -1, null);
+      return unhandled("$severity", "isHidden", -1, null);
   }
 }
 
@@ -138,9 +131,6 @@ bool shouldThrowOn(Severity severity) {
     case Severity.internalProblem:
       return true;
 
-    case Severity.nit:
-      return CompilerContext.current.options.throwOnNitsForDebugging;
-
     case Severity.warning:
       return CompilerContext.current.options.throwOnWarningsForDebugging;
 
@@ -148,7 +138,7 @@ bool shouldThrowOn(Severity severity) {
       return false;
 
     default:
-      return unexpected("$severity", "shouldThrowOn", -1, null);
+      return unhandled("$severity", "shouldThrowOn", -1, null);
   }
 }
 
@@ -161,9 +151,6 @@ String severityName(Severity severity, {bool capitalized: false}) {
     case Severity.internalProblem:
       return capitalized ? "Internal problem" : "internal problem";
 
-    case Severity.nit:
-      return capitalized ? "Nit" : "nit";
-
     case Severity.warning:
       return capitalized ? "Warning" : "warning";
 
@@ -171,7 +158,7 @@ String severityName(Severity severity, {bool capitalized: false}) {
       return capitalized ? "Context" : "context";
 
     default:
-      return unexpected("$severity", "severityName", -1, null);
+      return unhandled("$severity", "severityName", -1, null);
   }
 }
 
@@ -208,12 +195,14 @@ bool isCompileTimeError(Severity severity) {
     case Severity.errorLegacyWarning:
       return CompilerContext.current.options.strongMode;
 
-    case Severity.nit:
     case Severity.warning:
     case Severity.context:
       return false;
+
+    case Severity.ignored:
+      break; // Fall-through to unhandled below.
   }
-  return unexpected("$severity", "isCompileTimeError", -1, null);
+  return unhandled("$severity", "isCompileTimeError", -1, null);
 }
 
 /// Report [message] unless [severity] is suppressed (see [isHidden]). Throws

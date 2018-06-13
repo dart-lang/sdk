@@ -204,7 +204,7 @@ var typesOffset = 0;
 // different tearOffCode?
 function installTearOff(
     container, getterName, isStatic, isIntercepted, requiredParameterCount,
-    optionalParameterDefaultValues, callNames, funsOrNames, funType) {
+    optionalParameterDefaultValues, callNames, funsOrNames, funType, applyIndex) {
   // A function can have several stubs (for example to fill in optional
   // arguments). We collect these functions in the `funs` array.
   var funs = [];
@@ -230,7 +230,7 @@ function installTearOff(
   var name = funsOrNames[0];
   fun.#stubName = name;
   var getterFunction =
-      tearOff(funs, reflectionInfo, isStatic, name, isIntercepted);
+      tearOff(funs, applyIndex || 0, reflectionInfo, isStatic, name, isIntercepted);
   container[getterName] = getterFunction;
   if (isStatic) {
     fun.$tearOffPropertyName = getterFunction;
@@ -825,17 +825,40 @@ class FragmentEmitter {
       thisRef = js.js('this');
     }
 
+    // Chain assignments of the same value, e.g. `this.b = this.a = null`.
+    // Limit chain length so that the JavaScript parser has bounded recursion.
+    const int maxChainLength = 30;
+    js.Expression assignment = null;
+    int chainLength = 0;
+    bool previousIsNull = false;
+    void flushAssignment() {
+      if (assignment != null) {
+        statements.add(js.js.statement('#;', assignment));
+        assignment = null;
+        chainLength = 0;
+        previousIsNull = false;
+      }
+    }
+
     for (Field field in cls.fields) {
       if (field.nullInitializerInAllocator) {
-        // TODO(sra): Chain initializations, e.g. `this.b = this.a = null;`.
-        statements.add(js.js.statement('#.# = null', [thisRef, field.name]));
+        if (previousIsNull && chainLength < maxChainLength) {
+          assignment = js.js('#.# = #', [thisRef, field.name, assignment]);
+        } else {
+          flushAssignment();
+          assignment = js.js('#.# = null', [thisRef, field.name]);
+        }
+        ++chainLength;
+        previousIsNull = true;
       } else {
+        flushAssignment();
         js.Parameter parameter = new js.Parameter('t${parameters.length}');
         parameters.add(parameter);
         statements.add(
             js.js.statement('#.# = #', [thisRef, field.name, parameter.name]));
       }
     }
+    flushAssignment();
 
     if (cls.hasRtiField) {
       js.Parameter parameter = new js.Parameter('t${parameters.length}');
@@ -1011,8 +1034,10 @@ class FragmentEmitter {
         // complex cases. [forceAdd] might be true when this is fixed.
         bool forceAdd = !method.isClosureCallMethod;
 
-        properties[js.string(namer.callCatchAllName)] =
-            js.quoteName(method.name);
+        properties[js.string(namer.callCatchAllName)] = js.quoteName(
+            method.applyIndex == 0
+                ? method.name
+                : method.parameterStubs[method.applyIndex - 1].name);
         properties[js.string(namer.requiredParameterField)] =
             js.number(method.requiredParameterCount);
 
@@ -1210,10 +1235,12 @@ class FragmentEmitter {
           _encodeOptionalParameterDefaultValues(method);
     }
 
+    var applyIndex = js.number(method.applyIndex);
+
     return js.js.statement('''
         installTearOff(#container, #getterName, #isStatic, #isIntercepted,
                        #requiredParameterCount, #optionalParameterDefaultValues,
-                       #callNames, #funsOrNames, #funType)''', {
+                       #callNames, #funsOrNames, #funType, #applyIndex)''', {
       "container": container,
       "getterName": js.quoteName(method.tearOffName),
       // 'Truthy' values are ok for `isStatic` and `isIntercepted`.
@@ -1224,6 +1251,7 @@ class FragmentEmitter {
       "callNames": callNameArray,
       "funsOrNames": funsOrNamesArray,
       "funType": method.functionType,
+      "applyIndex": applyIndex,
     });
   }
 
