@@ -219,8 +219,9 @@ class MessageTestSuite extends ChainContext {
               : null,
           location: badSeverity?.span?.start);
 
-      bool exampleAndAnalyzerCodeRequired = (severity != Severity.context &&
-          severity != Severity.internalProblem);
+      bool exampleAndAnalyzerCodeRequired = severity != Severity.context &&
+          severity != Severity.internalProblem &&
+          severity != Severity.ignored;
 
       yield createDescription(
           "externalexample",

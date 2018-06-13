@@ -6134,6 +6134,25 @@ const MessageCode messageUnterminatedToken = const MessageCode(
     message: r"""Incomplete token.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateUseOfDeprecatedIdentifier =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""'#name' is deprecated.""",
+        withArguments: _withArgumentsUseOfDeprecatedIdentifier);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeUseOfDeprecatedIdentifier =
+    const Code<Message Function(String name)>(
+        "UseOfDeprecatedIdentifier", templateUseOfDeprecatedIdentifier,
+        severity: Severity.ignored);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUseOfDeprecatedIdentifier(String name) {
+  return new Message(codeUseOfDeprecatedIdentifier,
+      message: """'${name}' is deprecated.""", arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeVarReturnType = messageVarReturnType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

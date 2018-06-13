@@ -2255,3 +2255,7 @@ InitializingFormalTypeMismatch:
 InitializingFormalTypeMismatchField:
   template: "The field that corresponds to the parameter."
   severity: CONTEXT
+
+UseOfDeprecatedIdentifier:
+  template: "'#name' is deprecated."
+  severity: IGNORED

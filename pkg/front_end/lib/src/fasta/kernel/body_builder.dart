@@ -1352,6 +1352,10 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   void handleIdentifier(Token token, IdentifierContext context) {
     debugEvent("handleIdentifier");
     String name = token.lexeme;
+    if (name.startsWith("deprecated_")) {
+      addProblem(fasta.templateUseOfDeprecatedIdentifier.withArguments(name),
+          offsetForToken(token), lengthForToken(token));
+    }
     if (context.isScopeReference) {
       assert(!inInitializer ||
           this.scope == enclosingScope ||
