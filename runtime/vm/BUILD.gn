@@ -319,6 +319,8 @@ compile_platform("vm_legacy_platform") {
 }
 
 compile_platform("vm_platform") {
+  add_implicit_vm_platform_dependency = false
+
   sources = [
     "../../sdk/lib/libraries.json",
   ]

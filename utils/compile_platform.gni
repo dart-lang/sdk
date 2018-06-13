@@ -20,6 +20,18 @@ template("compile_platform") {
   assert(!defined(invoker.script), "Remove 'script' from $target_name")
   assert(!defined(invoker.depfile), "Remove 'depfile' from $target_name")
 
+  # In order to automatically compute dependencies, we need to add a dependency
+  # on vm_outline.dill. This is used to include the source code of Fasta itself
+  # in the dependency file. Without this, a change to Fasta wouldn't cause the
+  # platform dill files to be rebuilt.  However, when building
+  # vm_outline_strong.dill, we shouldn't list it as a dependency as this would
+  # lead to cyclic dependencies.
+  add_implicit_vm_platform_dependency = true
+  if (defined(invoker.add_implicit_vm_platform_dependency)) {
+    add_implicit_vm_platform_dependency =
+        invoker.add_implicit_vm_platform_dependency
+  }
+
   action(target_name) {
     script = "$_dart_root/tools/compile_platform.py"
 
@@ -39,6 +51,10 @@ template("compile_platform") {
       inputs += invoker.inputs
     }
 
+    if (add_implicit_vm_platform_dependency) {
+      inputs += [ "$root_out_dir/vm_outline_strong.dill" ]
+      deps += [ "$_dart_root/runtime/vm:vm_platform" ]
+    }
     depfile = outputs[0] + ".d"
 
     if (_is_fuchsia) {

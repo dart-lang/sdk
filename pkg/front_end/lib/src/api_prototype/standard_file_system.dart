@@ -9,6 +9,8 @@ import 'dart:io' as io;
 
 import 'file_system.dart';
 
+import '../fasta/compiler_context.dart' show CompilerContext;
+
 /// Concrete implementation of [FileSystem] handling standard URI schemes.
 ///
 /// file: URIs are handled using file I/O.
@@ -60,6 +62,7 @@ class _IoFileSystemEntity implements FileSystemEntity {
   @override
   Future<List<int>> readAsBytes() async {
     try {
+      CompilerContext.recordDependency(uri);
       return await new io.File.fromUri(uri).readAsBytes();
     } on io.FileSystemException catch (exception) {
       throw _toFileSystemException(exception);
@@ -69,6 +72,7 @@ class _IoFileSystemEntity implements FileSystemEntity {
   @override
   Future<String> readAsString() async {
     try {
+      CompilerContext.recordDependency(uri);
       return await new io.File.fromUri(uri).readAsString();
     } on io.FileSystemException catch (exception) {
       throw _toFileSystemException(exception);

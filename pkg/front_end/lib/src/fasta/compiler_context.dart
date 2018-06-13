@@ -47,7 +47,9 @@ class CompilerContext {
   /// programs.
   final Map<Uri, Source> uriToSource = <Uri, Source>{};
 
-  final List errors = <Object>[];
+  final List<Object> errors = <Object>[];
+
+  final List<Uri> dependencies = <Uri>[];
 
   FileSystem get fileSystem => options.fileSystem;
 
@@ -87,8 +89,18 @@ class CompilerContext {
     errors.add(severity);
   }
 
+  static void recordDependency(Uri uri) {
+    if (uri.scheme != "file") {
+      throw new ArgumentError("Expected a file-URI, but got: '$uri'.");
+    }
+    CompilerContext context = Zone.current[compilerContextKey];
+    if (context != null) {
+      context.dependencies.add(uri);
+    }
+  }
+
   static CompilerContext get current {
-    var context = Zone.current[compilerContextKey];
+    CompilerContext context = Zone.current[compilerContextKey];
     if (context == null) {
       // Note: we throw directly and don't use internalProblem, because
       // internalProblem depends on having a compiler context available.
@@ -127,5 +139,6 @@ class CompilerContext {
   void clear() {
     StringToken.canonicalizer.clear();
     errors.clear();
+    dependencies.clear();
   }
 }
