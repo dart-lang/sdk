@@ -401,7 +401,6 @@ websql_test: Pass # Triage, seen some double reporting on windows.
 
 [ $compiler == dart2js && $browser ]
 custom/created_callback_test: Fail # Support for created constructor. Issue 14835
-fontface_loaded_test: Fail # Support for promises.
 
 [ $compiler == dart2js && $browser && $csp ]
 custom/element_upgrade_test: Fail # Issue 17298

@@ -32,22 +32,28 @@ main() {
       treeSanitizer: new NullTreeSanitizer());
   document.head.append(style);
 
-  test('document fonts - temporary', () {
+  test('document fonts - temporary', () async {
     var atLeastOneFont = false;
-    var loaded = <Future>[];
-    document.fonts.forEach((FontFace fontFace, _, __) {
+    var loaded = <Future<FontFace>>[];
+    document.fonts.forEach((FontFace fontFace, _, __) async {
       atLeastOneFont = true;
-      Future f1 = fontFace.loaded;
-      Future f2 = fontFace.loaded;
+      var f1 = fontFace.loaded;
+      var f2 = fontFace.loaded;
       loaded.add(fontFace.load());
       loaded.add(f1);
       loaded.add(f2);
     });
     expect(atLeastOneFont, isTrue);
-    return Future.wait(loaded).then(expectAsync((_) {
+    return Future.wait(loaded).then(expectAsync((_) async {
       document.fonts.forEach((fontFace, _, __) {
         expect(fontFace.status, 'loaded');
       });
+      expect(loaded.length, 3);
+      for (var loadedEntry in loaded) {
+        var fontFace = await loadedEntry;
+        expect(fontFace.status, 'loaded');
+        expect(fontFace.family, 'Ahem');
+      }
     }));
   });
 }

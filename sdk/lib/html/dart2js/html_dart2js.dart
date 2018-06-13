@@ -870,7 +870,8 @@ class Animation extends EventTarget {
   @DomName('Animation.finished')
   @DocsEditable()
   @Experimental() // untriaged
-  final Future finished;
+  Future<Animation> get finished =>
+      promiseToFuture<Animation>(JS("", "#.finished", this));
 
   @DomName('Animation.id')
   @DocsEditable()
@@ -890,7 +891,8 @@ class Animation extends EventTarget {
   @DomName('Animation.ready')
   @DocsEditable()
   @Experimental() // untriaged
-  final Future ready;
+  Future<Animation> get ready =>
+      promiseToFuture<Animation>(JS("", "#.ready", this));
 
   @DomName('Animation.startTime')
   @DocsEditable()
@@ -2118,7 +2120,8 @@ class BeforeInstallPromptEvent extends Event {
   @DomName('BeforeInstallPromptEvent.userChoice')
   @DocsEditable()
   @Experimental() // untriaged
-  final Future userChoice;
+  Future<Map<String, dynamic>> get userChoice =>
+      promiseToFutureAsMap(JS("", "#.userChoice", this));
 
   @DomName('BeforeInstallPromptEvent.prompt')
   @DocsEditable()
@@ -19387,7 +19390,8 @@ class FetchEvent extends ExtendableEvent {
   @DomName('FetchEvent.preloadResponse')
   @DocsEditable()
   @Experimental() // untriaged
-  final Future preloadResponse;
+  Future get preloadResponse =>
+      promiseToFuture(JS("", "#.preloadResponse", this));
 
   @DomName('FetchEvent.request')
   @DocsEditable()
@@ -20108,7 +20112,8 @@ class FontFace extends Interceptor {
   @DomName('FontFace.loaded')
   @DocsEditable()
   @Experimental() // untriaged
-  final Future loaded;
+  Future<FontFace> get loaded =>
+      promiseToFuture<FontFace>(JS("", "#.loaded", this));
 
   @DomName('FontFace.status')
   @DocsEditable()
@@ -25820,7 +25825,7 @@ class MediaKeySession extends EventTarget {
   @DomName('MediaKeySession.closed')
   @DocsEditable()
   @Experimental() // untriaged
-  final Future closed;
+  Future<void> get closed => promiseToFuture<void>(JS("", "#.closed", this));
 
   @DomName('MediaKeySession.expiration')
   @DocsEditable()
@@ -33137,7 +33142,9 @@ class PresentationReceiver extends Interceptor {
   @DomName('PresentationReceiver.connectionList')
   @DocsEditable()
   @Experimental() // untriaged
-  final Future connectionList;
+  Future<PresentationConnectionList> get connectionList =>
+      promiseToFuture<PresentationConnectionList>(
+          JS("", "#.connectionList", this));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -33330,7 +33337,7 @@ class PromiseRejectionEvent extends Event {
   @DomName('PromiseRejectionEvent.promise')
   @DocsEditable()
   @Experimental() // untriaged
-  final Future promise;
+  Future get promise => promiseToFuture(JS("", "#.promise", this));
 
   @DomName('PromiseRejectionEvent.reason')
   @DocsEditable()
@@ -36013,7 +36020,8 @@ class ServiceWorkerContainer extends EventTarget {
   @DomName('ServiceWorkerContainer.ready')
   @DocsEditable()
   @Experimental() // untriaged
-  final Future ready;
+  Future<ServiceWorkerRegistration> get ready =>
+      promiseToFuture<ServiceWorkerRegistration>(JS("", "#.ready", this));
 
   @DomName('ServiceWorkerContainer.getRegistration')
   @DocsEditable()

@@ -771,12 +771,14 @@ class HtmlDartInterfaceGenerator(object):
                  parameterized Promise type.
 '''
 promise_attributes = monitored.Dict('systemhtml.promise_attr_type', {
-    "Animation.finished": {"type": "Animation"},
-    "Animation.ready": {"type": "Animation"},
-    "FontFace.loaded": {"type": "FontFace"},
-    "FontFaceSet.ready": {"type": "FontFaceSet"},
-    "PresentationReceiver.connectionList": {"type": "PresentationConnectionList"},
-    "ServiceWorkerContainer.ready": {"type": "ServiceWorkerRegistration"},
+  "Animation.finished": {"type": "Animation"},
+  "Animation.ready": {"type": "Animation"},
+  "BeforeInstallPromptEvent.userChoice": {"type": "dictionary"},
+  "FontFace.loaded": {"type": "FontFace"},
+  "FontFaceSet.ready": {"type": "FontFaceSet"},
+  "MediaKeySession.closed": {"type": "void"},
+  "PresentationReceiver.connectionList": {"type": "PresentationConnectionList"},
+  "ServiceWorkerContainer.ready": {"type": "ServiceWorkerRegistration"},
 })
 
 promise_operations = monitored.Dict('systemhtml.promise_oper_type', {
@@ -1125,6 +1127,8 @@ class Dart2JSBackend(HtmlDartGenerator):
     metadata = self._Metadata(attribute.type.id, attribute.id, output_type)
     rename = self._RenamingAnnotation(attribute.id, html_name)
     if not read_only:
+      if attribute.type.id == 'Promise':
+        _logger.warn('R/W member is a Promise: %s.%s' % (self._interface.id, html_name))
       self._members_emitter.Emit(
           '\n  $RENAME$METADATA$TYPE $NAME;'
           '\n',
@@ -1134,17 +1138,44 @@ class Dart2JSBackend(HtmlDartGenerator):
           TYPE=output_type)
     else:
       template = '\n  $RENAME$(ANNOTATIONS)final $TYPE $NAME;\n'
-      # Need to use a getter for list.length properties so we can add a
-      # setter which throws an exception, satisfying List API.
-      if self._interface_type_info.list_item_type() and html_name == 'length':
-        template = ('\n  $RENAME$(ANNOTATIONS)$TYPE get $NAME => ' +
-            'JS("$TYPE", "#.$NAME", this);\n')
-      self._members_emitter.Emit(
-          template,
-          RENAME=rename,
-          ANNOTATIONS=metadata,
-          NAME=html_name,
-          TYPE=input_type if output_type == 'double' else output_type)
+      if attribute.type.id == 'Promise':
+          lookupOp = "%s.%s" % (self._interface.id, html_name)
+          promiseFound = _GetPromiseAttributeType(lookupOp)
+          promiseType = 'Future'
+          promiseCall = 'promiseToFuture'
+          if promiseFound is not (None):
+              if 'maplike' in promiseFound:
+                  promiseCall = 'promiseToFuture<dynamic>'
+                  promiseType = 'Future'
+              elif promiseFound['type'] == 'dictionary':
+                  # It's a dictionary so return as a Map.
+                  promiseCall = 'promiseToFutureAsMap'
+                  promiseType = 'Future<Map<String, dynamic>>'
+              else:
+                  paramType = promiseFound['type']
+                  promiseCall = 'promiseToFuture<%s>' % paramType
+                  promiseType = 'Future<%s>' % paramType
+
+          template = '\n  $RENAME$(ANNOTATIONS)$TYPE get $NAME => $PROMISE_CALL(JS("", "#.$NAME", this));\n'
+
+          self._members_emitter.Emit(template,
+                                     RENAME=rename,
+                                     ANNOTATIONS=metadata,
+                                     TYPE=promiseType,
+                                     PROMISE_CALL=promiseCall,
+                                     NAME=html_name)
+      else:
+        # Need to use a getter for list.length properties so we can add a
+        # setter which throws an exception, satisfying List API.
+        if self._interface_type_info.list_item_type() and html_name == 'length':
+          template = ('\n  $RENAME$(ANNOTATIONS)$TYPE get $NAME => ' +
+              'JS("$TYPE", "#.$NAME", this);\n')
+        self._members_emitter.Emit(
+            template,
+            RENAME=rename,
+            ANNOTATIONS=metadata,
+            NAME=html_name,
+            TYPE=input_type if output_type == 'double' else output_type)
 
   def _AddAttributeUsingProperties(self, attribute, html_name, read_only):
     self._AddRenamingGetter(attribute, html_name)
