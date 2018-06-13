@@ -12,6 +12,8 @@
 
 #### Pub
 
+* Fix an error which prevented `pub publish` due to the package validation.
+
 #### Other Tools
 
 ### Core library changes
