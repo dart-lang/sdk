@@ -72,6 +72,9 @@ for command; do
     ./tools/build.py --mode=release --arch=ia32 create_sdk
     ./tools/build.py --mode=release --arch=ia32 runtime
     tar -czf linux-ia32_profile.tar.gz \
+      --exclude .git \
+      --exclude .gitignore \
+      -- \
       third_party/d8/linux/ia32/natives_blob.bin \
       third_party/d8/linux/ia32/snapshot_blob.bin \
       out/ReleaseIA32/vm_outline.dill \
@@ -92,8 +95,7 @@ for command; do
       pkg \
       runtime/bin \
       runtime/lib \
-      --exclude .git \
-      --exclude .gitignore || (rm -f linux-ia32_profile.tar.gz; exit 1)
+      || (rm -f linux-ia32_profile.tar.gz; exit 1)
     strip -w \
       -K 'kDartVmSnapshotData' \
       -K 'kDartVmSnapshotInstructions' \
@@ -171,6 +173,9 @@ for command; do
       -K '_ZN4dart7Version7commit_E' \
       -K '_ZN4dart9Bootstrap*_paths_E' third_party/d8/linux/ia32/d8
     tar -czf linux-ia32.tar.gz \
+      --exclude .git \
+      --exclude .gitignore \
+      -- \
       third_party/d8/linux/ia32/natives_blob.bin \
       third_party/d8/linux/ia32/snapshot_blob.bin \
       out/ReleaseIA32/vm_outline.dill \
@@ -192,8 +197,7 @@ for command; do
       pkg \
       runtime/bin \
       runtime/lib \
-      --exclude .git \
-      --exclude .gitignore || (rm -f linux-ia32.tar.gz; exit 1)
+      || (rm -f linux-ia32.tar.gz; exit 1)
   elif [ "$command" = linux-ia32-benchmark ]; then
     rm -rf tmp
     mkdir tmp
@@ -237,6 +241,9 @@ EOF
     ./tools/build.py --mode=release --arch=simdbc64 runtime
     ./tools/build.py --mode=release --arch=x64 runtime_kernel
     tar -czf linux-x64_profile.tar.gz \
+      --exclude .git \
+      --exclude .gitignore \
+      -- \
       third_party/d8/linux/x64/natives_blob.bin \
       third_party/d8/linux/x64/snapshot_blob.bin \
       out/ReleaseX64/vm_outline.dill \
@@ -260,8 +267,7 @@ EOF
       pkg \
       runtime/bin \
       runtime/lib \
-      --exclude .git \
-      --exclude .gitignore || (rm -f linux-x64_profile.tar.gz; exit 1)
+      || (rm -f linux-x64_profile.tar.gz; exit 1)
     strip -w \
       -K 'kDartVmSnapshotData' \
       -K 'kDartVmSnapshotInstructions' \
@@ -358,6 +364,9 @@ EOF
       -K '_ZN4dart7Version7commit_E' \
       -K '_ZN4dart9Bootstrap*_paths_E' out/ReleaseX64/dart_precompiled_runtime
     tar -czf linux-x64.tar.gz \
+      --exclude .git \
+      --exclude .gitignore \
+      -- \
       third_party/d8/linux/x64/natives_blob.bin \
       third_party/d8/linux/x64/snapshot_blob.bin \
       out/ReleaseX64/vm_outline.dill \
@@ -381,8 +390,7 @@ EOF
       pkg \
       runtime/bin \
       runtime/lib \
-      --exclude .git \
-      --exclude .gitignore  || (rm -f linux-x64.tar.gz; exit 1)
+      || (rm -f linux-x64.tar.gz; exit 1)
   elif [ "$command" = linux-x64-benchmark ]; then
     rm -rf tmp
     mkdir tmp
