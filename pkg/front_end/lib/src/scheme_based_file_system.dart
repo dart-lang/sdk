@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'file_system.dart';
+import 'api_prototype/file_system.dart';
 
 /// A [FileSystem] that delegates to other file systems based on the URI scheme.
 class SchemeBasedFileSystem implements FileSystem {

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/src/api_prototype/file_system.dart';
-import 'package:front_end/src/api_prototype/scheme_based_file_system.dart';
+import 'package:front_end/src/scheme_based_file_system.dart';
 
 import 'package:test/test.dart';
 

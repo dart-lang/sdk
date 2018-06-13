@@ -6,8 +6,16 @@ library fasta.tool.command_line;
 
 import 'dart:io' show exit;
 
+import 'package:build_integration/file_system/single_root.dart'
+    show SingleRootFileSystem;
+
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
+
+import 'package:front_end/src/api_prototype/file_system.dart' show FileSystem;
+
+import 'package:front_end/src/api_prototype/standard_file_system.dart'
+    show StandardFileSystem;
 
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
@@ -29,10 +37,13 @@ import 'package:front_end/src/fasta/problems.dart' show unhandled;
 
 import 'package:front_end/src/fasta/severity.dart' show Severity;
 
+import 'package:front_end/src/scheme_based_file_system.dart'
+    show SchemeBasedFileSystem;
+
 import 'package:kernel/target/targets.dart'
     show Target, getTarget, TargetFlags, targets;
 
-Uri resolveFile(String path) => Uri.base.resolveUri(new Uri.file(path));
+import 'resolve_input_uri.dart' show resolveInputUri;
 
 class CommandLineProblem {
   final Message message;
@@ -159,7 +170,9 @@ class ParsedArguments {
                     "but expected one of: 'true', 'false', 'yes', or 'no'.");
               }
             } else if (valueSpecification == Uri) {
-              parsedValue = resolveFile(value);
+              // TODO(ahe): resolve Uris lazily, so that schemes provided by
+              // other flags can be used for parsed command-line arguments too.
+              parsedValue = resolveInputUri(value);
             } else if (valueSpecification == String) {
               parsedValue = value;
             } else if (valueSpecification is String) {
@@ -210,6 +223,8 @@ const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   "--packages": Uri,
   "--platform": Uri,
   "--sdk": Uri,
+  "--single-root-scheme": String,
+  "--single-root-base": Uri,
   "--strong": "--strong-mode",
   "--strong-mode": false,
   "--sync-async": true,
@@ -279,6 +294,24 @@ ProcessedOptions analyzeCommandLine(
 
   final bool compileSdk = options.containsKey("--compile-sdk");
 
+  final String singleRootScheme = options["--single-root-scheme"];
+  final Uri singleRootBase = options["--single-root-base"];
+
+  FileSystem fileSystem = StandardFileSystem.instance;
+  List<String> extraSchemes = const [];
+  if (singleRootScheme != null) {
+    extraSchemes = [singleRootScheme];
+    fileSystem = new SchemeBasedFileSystem({
+      'file': fileSystem,
+      'data': fileSystem,
+      // TODO(askesc): remove also when fixing StandardFileSystem (empty schemes
+      // should have been handled elsewhere).
+      '': fileSystem,
+      singleRootScheme: new SingleRootFileSystem(
+          singleRootScheme, singleRootBase, fileSystem),
+    });
+  }
+
   if (programName == "compile_platform") {
     if (arguments.length != 4) {
       return throw new CommandLineProblem.deprecated(
@@ -296,8 +329,10 @@ ProcessedOptions analyzeCommandLine(
     return new ProcessedOptions(
         new CompilerOptions()
           ..sdkSummary = options["--platform"]
-          ..librariesSpecificationUri = resolveFile(arguments[1])
+          ..librariesSpecificationUri =
+              resolveInputUri(arguments[1], extraSchemes: extraSchemes)
           ..setExitCodeOnProblem = true
+          ..fileSystem = fileSystem
           ..packagesFileUri = packages
           ..strongMode = strongMode
           ..target = target
@@ -308,12 +343,13 @@ ProcessedOptions analyzeCommandLine(
           ..verbose = verbose
           ..verify = verify,
         <Uri>[Uri.parse(arguments[0])],
-        resolveFile(arguments[2]));
+        resolveInputUri(arguments[2], extraSchemes: extraSchemes));
   } else if (arguments.isEmpty) {
     return throw new CommandLineProblem.deprecated("No Dart file specified.");
   }
 
-  final Uri defaultOutput = resolveFile("${arguments.first}.dill");
+  final Uri defaultOutput =
+      resolveInputUri("${arguments.first}.dill", extraSchemes: extraSchemes);
 
   final Uri output = options["-o"] ?? options["--output"] ?? defaultOutput;
 
@@ -326,6 +362,7 @@ ProcessedOptions analyzeCommandLine(
 
   CompilerOptions compilerOptions = new CompilerOptions()
     ..compileSdk = compileSdk
+    ..fileSystem = fileSystem
     ..sdkRoot = sdk
     ..sdkSummary = platform
     ..packagesFileUri = packages
@@ -343,7 +380,7 @@ ProcessedOptions analyzeCommandLine(
   List<Uri> inputs = <Uri>[];
   if (areRestArgumentsInputs) {
     for (String argument in arguments) {
-      inputs.add(resolveFile(argument));
+      inputs.add(resolveInputUri(argument, extraSchemes: extraSchemes));
     }
   }
   return new ProcessedOptions(compilerOptions, inputs, output);
