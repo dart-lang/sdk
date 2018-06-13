@@ -1149,7 +1149,7 @@ LoadLibraryTakesNoArguments:
 LoadLibraryHidesMember:
   template: "The library '#uri' defines a top-level member named 'loadLibrary'. This member is hidden by the special member 'loadLibrary' that the language adds to support deferred loading."
   tip: "Try to rename or hide the member."
-  severity: NIT
+  severity: IGNORED
 
 TypeArgumentMismatch:
   template: "'#name' expects #count type arguments."
@@ -1229,7 +1229,6 @@ FastaUsageLong:
 
       --fatal=errors
       --fatal=warnings
-      --fatal=nits
         Makes messages of the given kinds fatal, that is, immediately stop the
         compiler with a non-zero exit-code. In --verbose mode, also display an
         internal stack trace from the compiler. Multiple kinds can be separated by
@@ -1343,19 +1342,19 @@ InternalVisitorUnsupportedDefault:
 
 LocalDefinitionHidesExport:
   template: "Local definition of '#name' hides export from '#uri'."
-  severity: NIT
+  severity: IGNORED
 
 LocalDefinitionHidesImport:
   template: "Local definition of '#name' hides import from '#uri'."
-  severity: NIT
+  severity: IGNORED
 
 ExportHidesExport:
   template: "Export of '#name' (from '#uri') hides export from '#uri2'."
-  severity: NIT
+  severity: IGNORED
 
 ImportHidesImport:
   template: "Import of '#name' (from '#uri') hides import from '#uri2'."
-  severity: NIT
+  severity: IGNORED
 
 MissingPrefixInDeferredImport:
   template: "Deferred imports should have a prefix."
@@ -1396,7 +1395,7 @@ PrefixAfterCombinator:
 
 DuplicatedExport:
   template: "'#name' is exported from both '#uri' and '#uri2'."
-  severity: NIT
+  severity: IGNORED
   analyzerCode: AMBIGUOUS_EXPORT
   dart2jsCode: "*ignored*"
 
@@ -1406,7 +1405,7 @@ DuplicatedExportInType:
 
 DuplicatedImport:
   template: "'#name' is imported from both '#uri' and '#uri2'."
-  severity: NIT
+  severity: IGNORED
 
 DuplicatedImportInType:
   template: "'#name' is imported from both '#uri' and '#uri2'."

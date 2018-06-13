@@ -263,14 +263,12 @@ class FrontendCompiler implements CompilerInterface {
             printMessage = true;
             errors.add(message.formatted);
             break;
-          case Severity.nit:
-            printMessage = false;
-            break;
           case Severity.warning:
             printMessage = true;
             break;
           case Severity.errorLegacyWarning:
           case Severity.context:
+          case Severity.ignored:
             throw 'Unexpected severity: $severity';
         }
         if (printMessage) {

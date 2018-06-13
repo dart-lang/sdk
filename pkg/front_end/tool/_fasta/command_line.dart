@@ -277,8 +277,6 @@ ProcessedOptions analyzeCommandLine(
 
   final bool warningsAreFatal = fatal.contains("warnings");
 
-  final bool nitsAreFatal = fatal.contains("nits");
-
   final bool compileSdk = options.containsKey("--compile-sdk");
 
   if (programName == "compile_platform") {
@@ -305,7 +303,6 @@ ProcessedOptions analyzeCommandLine(
           ..target = target
           ..throwOnErrorsForDebugging = errorsAreFatal
           ..throwOnWarningsForDebugging = warningsAreFatal
-          ..throwOnNitsForDebugging = nitsAreFatal
           ..embedSourceText = !excludeSource
           ..debugDump = dumpIr
           ..verbose = verbose
@@ -336,7 +333,6 @@ ProcessedOptions analyzeCommandLine(
     ..target = target
     ..throwOnErrorsForDebugging = errorsAreFatal
     ..throwOnWarningsForDebugging = warningsAreFatal
-    ..throwOnNitsForDebugging = nitsAreFatal
     ..embedSourceText = !excludeSource
     ..debugDump = dumpIr
     ..verbose = verbose

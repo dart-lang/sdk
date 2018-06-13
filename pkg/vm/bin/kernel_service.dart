@@ -109,14 +109,12 @@ abstract class Compiler {
             printMessage = false; // errors are printed by VM
             errors.add(message.formatted);
             break;
-          case Severity.nit:
-            printMessage = false;
-            break;
           case Severity.warning:
             printMessage = !suppressWarnings;
             break;
           case Severity.errorLegacyWarning:
           case Severity.context:
+          case Severity.ignored:
             throw "Unexpected severity: $severity";
         }
         if (printMessage) {

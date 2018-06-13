@@ -170,8 +170,6 @@ class ProcessedOptions {
 
   bool get throwOnWarningsForDebugging => _raw.throwOnWarningsForDebugging;
 
-  bool get throwOnNitsForDebugging => _raw.throwOnNitsForDebugging;
-
   /// The entry-points provided to the compiler.
   final List<Uri> inputs;
 
@@ -630,7 +628,6 @@ class ProcessedOptions {
 
     sb.writeln('throwOnErrorsForDebugging: ${throwOnErrorsForDebugging}');
     sb.writeln('throwOnWarningsForDebugging: ${throwOnWarningsForDebugging}');
-    sb.writeln('throwOnNitsForDebugging: ${throwOnNitsForDebugging}');
     sb.writeln('exit on problem: ${setExitCodeOnProblem}');
     sb.writeln('Embed sources: ${embedSourceText}');
     sb.writeln('debugDump: ${debugDump}');

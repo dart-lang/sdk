@@ -8,8 +8,8 @@ enum Severity {
   context,
   error,
   errorLegacyWarning,
+  ignored,
   internalProblem,
-  nit,
   warning,
 }
 
@@ -17,8 +17,8 @@ const Map<String, String> severityEnumNames = const <String, String>{
   'CONTEXT': 'context',
   'ERROR': 'error',
   'ERROR_LEGACY_WARNING': 'errorLegacyWarning',
+  'IGNORED': 'ignored',
   'INTERNAL_PROBLEM': 'internalProblem',
-  'NIT': 'nit',
   'WARNING': 'warning',
 };
 
@@ -26,7 +26,7 @@ const Map<String, Severity> severityEnumValues = const <String, Severity>{
   'CONTEXT': Severity.context,
   'ERROR': Severity.error,
   'ERROR_LEGACY_WARNING': Severity.errorLegacyWarning,
+  'IGNORED': Severity.ignored,
   'INTERNAL_PROBLEM': Severity.internalProblem,
-  'NIT': Severity.nit,
   'WARNING': Severity.warning,
 };

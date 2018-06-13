@@ -80,7 +80,7 @@ import '../parser/class_member_parser.dart' show ClassMemberParser;
 
 import '../parser.dart' show Parser, lengthForToken, offsetForToken;
 
-import '../problems.dart' show internalProblem;
+import '../problems.dart' show internalProblem, unhandled;
 
 import '../scanner.dart' show ErrorToken, ScannerResult, Token, scan;
 
@@ -862,8 +862,7 @@ class SourceLoader<L> extends Loader<L> {
     if (instrumentation == null) return;
 
     if (charOffset == -1 &&
-        (severity == Severity.nit ||
-            message.code == fasta_codes.codeConstConstructorWithBody ||
+        (message.code == fasta_codes.codeConstConstructorWithBody ||
             message.code == fasta_codes.codeConstructorNotFound ||
             message.code == fasta_codes.codeSuperclassHasNoDefaultConstructor ||
             message.code == fasta_codes.codeTypeArgumentsOnTypeVariable ||
@@ -883,10 +882,6 @@ class SourceLoader<L> extends Loader<L> {
         severityString = "internal problem";
         break;
 
-      case Severity.nit:
-        severityString = "nit";
-        break;
-
       case Severity.warning:
         severityString = "warning";
         break;
@@ -900,6 +895,10 @@ class SourceLoader<L> extends Loader<L> {
       case Severity.context:
         severityString = "context";
         break;
+
+      case Severity.ignored:
+        unhandled("IGNORED", "recordMessage", charOffset, fileUri);
+        return;
     }
     instrumentation.record(
         fileUri,

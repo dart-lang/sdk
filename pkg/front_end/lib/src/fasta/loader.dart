@@ -237,6 +237,7 @@ abstract class Loader<L> {
   bool addMessage(Message message, int charOffset, int length, Uri fileUri,
       Severity severity,
       {bool wasHandled: false, List<LocatedMessage> context}) {
+    if (severity == Severity.ignored) return false;
     String trace = """
 message: ${message.message}
 charOffset: $charOffset

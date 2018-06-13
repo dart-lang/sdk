@@ -138,9 +138,7 @@ Future<bool> computeSummary(List<String> args,
     for (fe.FormattedMessage message in context) {
       out.println(message.formatted);
     }
-    if (severity != fe.Severity.nit) {
-      succeeded = false;
-    }
+    succeeded = false;
   }
 
   var summary = await fe.compile(state, sources, onProblem);

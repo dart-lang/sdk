@@ -1477,7 +1477,7 @@ const Code<Message Function(String name, Uri uri_, Uri uri2_)>
         "DuplicatedExport", templateDuplicatedExport,
         analyzerCode: "AMBIGUOUS_EXPORT",
         dart2jsCode: "*ignored*",
-        severity: Severity.nit);
+        severity: Severity.ignored);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedExport(String name, Uri uri_, Uri uri2_) {
@@ -1525,7 +1525,7 @@ const Code<Message Function(String name, Uri uri_, Uri uri2_)>
     codeDuplicatedImport =
     const Code<Message Function(String name, Uri uri_, Uri uri2_)>(
         "DuplicatedImport", templateDuplicatedImport,
-        severity: Severity.nit);
+        severity: Severity.ignored);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedImport(String name, Uri uri_, Uri uri2_) {
@@ -2133,7 +2133,7 @@ const Code<Message Function(String name, Uri uri_, Uri uri2_)>
     codeExportHidesExport =
     const Code<Message Function(String name, Uri uri_, Uri uri2_)>(
         "ExportHidesExport", templateExportHidesExport,
-        severity: Severity.nit);
+        severity: Severity.ignored);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExportHidesExport(String name, Uri uri_, Uri uri2_) {
@@ -2433,7 +2433,6 @@ const MessageCode messageFastaUsageLong =
 
   --fatal=errors
   --fatal=warnings
-  --fatal=nits
     Makes messages of the given kinds fatal, that is, immediately stop the
     compiler with a non-zero exit-code. In --verbose mode, also display an
     internal stack trace from the compiler. Multiple kinds can be separated by
@@ -2792,7 +2791,7 @@ const Code<Message Function(String name, Uri uri_, Uri uri2_)>
     codeImportHidesImport =
     const Code<Message Function(String name, Uri uri_, Uri uri2_)>(
         "ImportHidesImport", templateImportHidesImport,
-        severity: Severity.nit);
+        severity: Severity.ignored);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsImportHidesImport(String name, Uri uri_, Uri uri2_) {
@@ -3815,7 +3814,7 @@ const Template<
 const Code<Message Function(Uri uri_)> codeLoadLibraryHidesMember =
     const Code<Message Function(Uri uri_)>(
         "LoadLibraryHidesMember", templateLoadLibraryHidesMember,
-        severity: Severity.nit);
+        severity: Severity.ignored);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsLoadLibraryHidesMember(Uri uri_) {
@@ -3850,7 +3849,7 @@ const Code<Message Function(String name, Uri uri_)>
     codeLocalDefinitionHidesExport =
     const Code<Message Function(String name, Uri uri_)>(
         "LocalDefinitionHidesExport", templateLocalDefinitionHidesExport,
-        severity: Severity.nit);
+        severity: Severity.ignored);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsLocalDefinitionHidesExport(String name, Uri uri_) {
@@ -3873,7 +3872,7 @@ const Code<Message Function(String name, Uri uri_)>
     codeLocalDefinitionHidesImport =
     const Code<Message Function(String name, Uri uri_)>(
         "LocalDefinitionHidesImport", templateLocalDefinitionHidesImport,
-        severity: Severity.nit);
+        severity: Severity.ignored);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsLocalDefinitionHidesImport(String name, Uri uri_) {
