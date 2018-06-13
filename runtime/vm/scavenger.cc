@@ -6,6 +6,7 @@
 
 #include "vm/dart.h"
 #include "vm/dart_api_state.h"
+#include "vm/flag_list.h"
 #include "vm/isolate.h"
 #include "vm/lockers.h"
 #include "vm/object.h"
@@ -31,7 +32,7 @@ DEFINE_FLAG(int,
             new_gen_garbage_threshold,
             90,
             "Grow new gen when less than this percentage is garbage.");
-DEFINE_FLAG(int, new_gen_growth_factor, 4, "Grow new gen by this factor.");
+DEFINE_FLAG(int, new_gen_growth_factor, 2, "Grow new gen by this factor.");
 
 // Scavenger uses RawObject::kMarkBit to distinguish forwarded and non-forwarded
 // objects. The kMarkBit does not intersect with the target address because of
@@ -350,10 +351,9 @@ Scavenger::Scavenger(Heap* heap,
   // going to use for forwarding pointers.
   ASSERT(Object::tags_offset() == 0);
 
-  // Set initial size resulting in a total of three different levels.
-  const intptr_t initial_semi_capacity_in_words =
-      max_semi_capacity_in_words /
-      (FLAG_new_gen_growth_factor * FLAG_new_gen_growth_factor);
+  // Set initial semi space size in words.
+  const intptr_t initial_semi_capacity_in_words = Utils::Minimum(
+      max_semi_capacity_in_words, FLAG_new_gen_semi_initial_size * MBInWords);
 
   const intptr_t kVmNameSize = 128;
   char vm_name[kVmNameSize];

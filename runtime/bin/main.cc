@@ -1159,7 +1159,7 @@ static Dart_GetVMServiceAssetsArchive GetVMServiceAssetsArchiveCallback = NULL;
 
 void main(int argc, char** argv) {
   char* script_name;
-  const int EXTRA_VM_ARGUMENTS = 8;
+  const int EXTRA_VM_ARGUMENTS = 10;
   CommandLineOptions vm_options(argc + EXTRA_VM_ARGUMENTS);
   CommandLineOptions dart_options(argc);
   bool print_flags_seen = false;
@@ -1182,6 +1182,16 @@ void main(int argc, char** argv) {
   // Processing of some command line flags directly manipulates dfe.
   Options::set_dfe(&dfe);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+  // When running from the command line we assume that we are optimizing for
+  // throughput, and therefore use a larger new gen semi space size and a faster
+  // new gen growth factor unless others have been specified.
+  if (kWordSize <= 4) {
+    vm_options.AddArgument("--new_gen_semi_max_size=16");
+  } else {
+    vm_options.AddArgument("--new_gen_semi_max_size=32");
+  }
+  vm_options.AddArgument("--new_gen_growth_factor=4");
 
   // Parse command line arguments.
   if (Options::ParseArguments(argc, argv, vm_run_app_snapshot, &vm_options,
