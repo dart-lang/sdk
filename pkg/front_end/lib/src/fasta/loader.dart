@@ -26,6 +26,8 @@ import 'messages.dart'
 
 import 'problems.dart' show internalProblem;
 
+import 'rewrite_severity.dart' show rewriteSeverity;
+
 import 'severity.dart' show Severity;
 
 import 'target_implementation.dart' show TargetImplementation;
@@ -237,6 +239,7 @@ abstract class Loader<L> {
   bool addMessage(Message message, int charOffset, int length, Uri fileUri,
       Severity severity,
       {bool wasHandled: false, List<LocatedMessage> context}) {
+    severity = rewriteSeverity(severity, message.code, fileUri);
     if (severity == Severity.ignored) return false;
     String trace = """
 message: ${message.message}
