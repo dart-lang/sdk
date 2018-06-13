@@ -81,6 +81,8 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   DartTypeConverter _typeConverter;
   KernelConstantEnvironment _constantEnvironment;
   _KernelDartTypes _types;
+  ir.TypeEnvironment _typeEnvironment;
+  bool _isStaticTypePrepared = false;
 
   /// Library environment. Used for fast lookup.
   ProgramEnv _env = new ProgramEnv();
@@ -840,6 +842,36 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
     LibraryData data = _libraries.getData(_getLibrary(library));
     return data.imports[node];
   }
+
+  DartType getStaticType(ir.Expression node) {
+    if (!_isStaticTypePrepared) {
+      _isStaticTypePrepared = true;
+      try {
+        _typeEnvironment ??= new ir.TypeEnvironment(
+            new ir.CoreTypes(_env.mainComponent),
+            new ir.ClassHierarchy(_env.mainComponent),
+            strongMode: options.strongMode);
+      } catch (e) {}
+    }
+    if (_typeEnvironment == null) {
+      // The class hierarchy crashes on multiple inheritance. Use `dynamic`
+      // as static type.
+      return commonElements.dynamicType;
+    }
+    ir.TreeNode enclosingClass = node;
+    while (enclosingClass != null && enclosingClass is! ir.Class) {
+      enclosingClass = enclosingClass.parent;
+    }
+    try {
+      _typeEnvironment.thisType =
+          enclosingClass is ir.Class ? enclosingClass.thisType : null;
+      return getDartType(node.getStaticType(_typeEnvironment));
+    } catch (e) {
+      // The static type computation crashes on type errors. Use `dynamic`
+      // as static type.
+      return commonElements.dynamicType;
+    }
+  }
 }
 
 /// Mixin that implements the abstract methods in [KernelToElementMapBase].
@@ -1241,36 +1273,10 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
         KElementCreatorMixin {
   native.BehaviorBuilder _nativeBehaviorBuilder;
   FrontendStrategy _frontendStrategy;
-  ir.TypeEnvironment _typeEnvironment;
-  bool _isStaticTypePrepared = false;
 
   KernelToElementMapForImpactImpl(DiagnosticReporter reporter,
       Environment environment, this._frontendStrategy, CompilerOptions options)
       : super(options, reporter, environment);
-
-  DartType getStaticType(ir.Expression node) {
-    if (!_isStaticTypePrepared) {
-      _isStaticTypePrepared = true;
-      try {
-        _typeEnvironment ??= new ir.TypeEnvironment(
-            new ir.CoreTypes(_env.mainComponent),
-            new ir.ClassHierarchy(_env.mainComponent),
-            strongMode: options.strongMode);
-      } catch (e) {}
-    }
-    if (_typeEnvironment == null) {
-      // The class hierarchy crashes on multiple inheritance. Use `dynamic`
-      // as static type.
-      return commonElements.dynamicType;
-    }
-    ir.TreeNode enclosingClass = node;
-    while (enclosingClass != null && enclosingClass is! ir.Class) {
-      enclosingClass = enclosingClass.parent;
-    }
-    _typeEnvironment.thisType =
-        enclosingClass is ir.Class ? enclosingClass.thisType : null;
-    return getDartType(node.getStaticType(_typeEnvironment));
-  }
 
   @override
   bool checkFamily(Entity entity) {
