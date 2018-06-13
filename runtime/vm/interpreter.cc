@@ -2135,25 +2135,169 @@ RawObject* Interpreter::Call(const Code& code,
   }
 
   {
-    BYTECODE(NativeCall, A_B_C);
-    NativeFunctionWrapper trampoline =
-        reinterpret_cast<NativeFunctionWrapper>(LOAD_CONSTANT(rA));
-    Dart_NativeFunction function =
-        reinterpret_cast<Dart_NativeFunction>(LOAD_CONSTANT(rB));
-    intptr_t argc_tag = reinterpret_cast<intptr_t>(LOAD_CONSTANT(rC));
-    const intptr_t num_arguments = NativeArguments::ArgcBits::decode(argc_tag);
+    BYTECODE(NativeCall, __D);
+    RawTypedData* native_entry = static_cast<RawTypedData*>(LOAD_CONSTANT(rD));
+    // TODO(regis): Introduce a new VM class subclassing Object and containing
+    // the four untagged values currently stored as TypeData array elements.
+    MethodRecognizer::Kind kind =
+        static_cast<MethodRecognizer::Kind>(*(reinterpret_cast<uintptr_t*>(
+            native_entry->ptr()->data() + (0 << kWordSizeLog2))));
+    switch (kind) {
+      case MethodRecognizer::kObjectEquals: {
+        SP[-1] = SP[-1] == SP[0] ? Bool::True().raw() : Bool::False().raw();
+        SP--;
+      } break;
+      case MethodRecognizer::kStringBaseLength:
+      case MethodRecognizer::kStringBaseIsEmpty: {
+        RawInstance* instance = reinterpret_cast<RawInstance*>(SP[0]);
+        SP[0] = reinterpret_cast<RawObject**>(
+            instance->ptr())[String::length_offset() / kWordSize];
+        if (kind == MethodRecognizer::kStringBaseIsEmpty) {
+          SP[0] =
+              SP[0] == Smi::New(0) ? Bool::True().raw() : Bool::False().raw();
+        }
+      } break;
+      case MethodRecognizer::kGrowableArrayLength: {
+        RawInstance* instance = reinterpret_cast<RawInstance*>(SP[0]);
+        SP[0] = reinterpret_cast<RawObject**>(
+            instance->ptr())[GrowableObjectArray::length_offset() / kWordSize];
+      } break;
+      case MethodRecognizer::kObjectArrayLength:
+      case MethodRecognizer::kImmutableArrayLength: {
+        RawInstance* instance = reinterpret_cast<RawInstance*>(SP[0]);
+        SP[0] = reinterpret_cast<RawObject**>(
+            instance->ptr())[Array::length_offset() / kWordSize];
+      } break;
+      case MethodRecognizer::kTypedDataLength: {
+        RawInstance* instance = reinterpret_cast<RawInstance*>(SP[0]);
+        SP[0] = reinterpret_cast<RawObject**>(
+            instance->ptr())[TypedData::length_offset() / kWordSize];
+      } break;
+      case MethodRecognizer::kClassIDgetID: {
+        SP[0] = InterpreterHelpers::GetClassIdAsSmi(SP[0]);
+      } break;
+      case MethodRecognizer::kGrowableArrayCapacity: {
+        RawInstance* instance = reinterpret_cast<RawInstance*>(SP[0]);
+        instance = reinterpret_cast<RawInstance**>(
+            instance->ptr())[GrowableObjectArray::data_offset() / kWordSize];
+        SP[0] = reinterpret_cast<RawObject**>(
+            instance->ptr())[Array::length_offset() / kWordSize];
+      } break;
+      case MethodRecognizer::kListFactory: {
+        // factory List<E>([int length]) {
+        //   return (:arg_desc.positional_count == 2) ? new _List<E>(length)
+        //                                            : new _GrowableList<E>(0);
+        // }
+        if (InterpreterHelpers::ArgDescPosCount(argdesc_) == 2) {
+          SP[1] = SP[0];   // length
+          SP[2] = SP[-1];  // type
+          Exit(thread, FP, SP + 3, pc);
+          NativeArguments native_args(thread, 2, SP + 1, SP - 1);
+          INVOKE_RUNTIME(DRT_AllocateArray, native_args);
+          SP -= 1;  // Result is in SP - 1.
+        } else {
+          // SP[0] is type.
+          *++SP = Smi::New(0);  // len
+          *++SP = thread->isolate()->object_store()->growable_list_factory();
+          argdesc_ = ArgumentsDescriptor::New(0, 2);  // Returns a cached desc.
+          if (!Invoke(thread, SP - 2, SP, &pc, &FP, &SP)) {
+            HANDLE_EXCEPTION;
+          }
+        }
+      } break;
+      case MethodRecognizer::kObjectArrayAllocate: {
+        SP[1] = SP[0];   // length
+        SP[2] = SP[-1];  // type
+        Exit(thread, FP, SP + 3, pc);
+        NativeArguments native_args(thread, 2, SP + 1, SP - 1);
+        INVOKE_RUNTIME(DRT_AllocateArray, native_args);
+        SP -= 1;  // Result is in SP - 1.
+      } break;
+      case MethodRecognizer::kLinkedHashMap_getIndex: {
+        RawInstance* instance = reinterpret_cast<RawInstance*>(SP[0]);
+        SP[0] = reinterpret_cast<RawObject**>(
+            instance->ptr())[LinkedHashMap::index_offset() / kWordSize];
+      } break;
+      case MethodRecognizer::kLinkedHashMap_setIndex: {
+        RawInstance* instance = reinterpret_cast<RawInstance*>(SP[-1]);
+        reinterpret_cast<RawObject**>(
+            instance->ptr())[LinkedHashMap::index_offset() / kWordSize] = SP[0];
+        *--SP = null_value;
+      } break;
+      case MethodRecognizer::kLinkedHashMap_getData: {
+        RawInstance* instance = reinterpret_cast<RawInstance*>(SP[0]);
+        SP[0] = reinterpret_cast<RawObject**>(
+            instance->ptr())[LinkedHashMap::data_offset() / kWordSize];
+      } break;
+      case MethodRecognizer::kLinkedHashMap_setData: {
+        RawInstance* instance = reinterpret_cast<RawInstance*>(SP[-1]);
+        reinterpret_cast<RawObject**>(
+            instance->ptr())[LinkedHashMap::data_offset() / kWordSize] = SP[0];
+        *--SP = null_value;
+      } break;
+      case MethodRecognizer::kLinkedHashMap_getHashMask: {
+        RawInstance* instance = reinterpret_cast<RawInstance*>(SP[0]);
+        SP[0] = reinterpret_cast<RawObject**>(
+            instance->ptr())[LinkedHashMap::hash_mask_offset() / kWordSize];
+      } break;
+      case MethodRecognizer::kLinkedHashMap_setHashMask: {
+        RawInstance* instance = reinterpret_cast<RawInstance*>(SP[-1]);
+        reinterpret_cast<RawObject**>(
+            instance->ptr())[LinkedHashMap::hash_mask_offset() / kWordSize] =
+            SP[0];
+        *--SP = null_value;
+      } break;
+      case MethodRecognizer::kLinkedHashMap_getUsedData: {
+        RawInstance* instance = reinterpret_cast<RawInstance*>(SP[0]);
+        SP[0] = reinterpret_cast<RawObject**>(
+            instance->ptr())[LinkedHashMap::used_data_offset() / kWordSize];
+      } break;
+      case MethodRecognizer::kLinkedHashMap_setUsedData: {
+        RawInstance* instance = reinterpret_cast<RawInstance*>(SP[-1]);
+        reinterpret_cast<RawObject**>(
+            instance->ptr())[LinkedHashMap::used_data_offset() / kWordSize] =
+            SP[0];
+        *--SP = null_value;
+      } break;
+      case MethodRecognizer::kLinkedHashMap_getDeletedKeys: {
+        RawInstance* instance = reinterpret_cast<RawInstance*>(SP[0]);
+        SP[0] = reinterpret_cast<RawObject**>(
+            instance->ptr())[LinkedHashMap::deleted_keys_offset() / kWordSize];
+      } break;
+      case MethodRecognizer::kLinkedHashMap_setDeletedKeys: {
+        RawInstance* instance = reinterpret_cast<RawInstance*>(SP[-1]);
+        reinterpret_cast<RawObject**>(
+            instance->ptr())[LinkedHashMap::deleted_keys_offset() / kWordSize] =
+            SP[0];
+        *--SP = null_value;
+      } break;
+      default: {
+        NativeFunctionWrapper trampoline =
+            reinterpret_cast<NativeFunctionWrapper>(
+                *(reinterpret_cast<uintptr_t*>(native_entry->ptr()->data() +
+                                               (1 << kWordSizeLog2))));
+        Dart_NativeFunction function = reinterpret_cast<Dart_NativeFunction>(
+            *(reinterpret_cast<uintptr_t*>(native_entry->ptr()->data() +
+                                           (2 << kWordSizeLog2))));
+        intptr_t argc_tag =
+            static_cast<intptr_t>(*(reinterpret_cast<uintptr_t*>(
+                native_entry->ptr()->data() + (3 << kWordSizeLog2))));
+        const intptr_t num_arguments =
+            NativeArguments::ArgcBits::decode(argc_tag);
 
-    *++SP = null_value;  // Result slot.
+        *++SP = null_value;  // Result slot.
 
-    RawObject** incoming_args = SP - num_arguments;
-    RawObject** return_slot = SP;
-    Exit(thread, FP, SP, pc);
-    NativeArguments args(thread, argc_tag, incoming_args, return_slot);
-    INVOKE_NATIVE(trampoline, function,
-                  reinterpret_cast<Dart_NativeArguments>(&args));
+        RawObject** incoming_args = SP - num_arguments;
+        RawObject** return_slot = SP;
+        Exit(thread, FP, SP, pc);
+        NativeArguments args(thread, argc_tag, incoming_args, return_slot);
+        INVOKE_NATIVE(trampoline, function,
+                      reinterpret_cast<Dart_NativeArguments>(&args));
 
-    *(SP - num_arguments) = *return_slot;
-    SP -= num_arguments;
+        *(SP - num_arguments) = *return_slot;
+        SP -= num_arguments;
+      }
+    }
     DISPATCH();
   }
 

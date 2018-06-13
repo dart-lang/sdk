@@ -165,10 +165,10 @@ namespace dart {
 //    with arguments SP[-(1+ArgC)], ..., SP[-1].
 //    The ICData indicates whether the first argument is a type argument vector.
 //
-//  - NativeCall ArgA, ArgB, ArgC
+//  - NativeCall D
 //
-//    Invoke native function at pool[ArgB] with argc_tag at pool[ArgC] using
-//    wrapper at pool[ArgA].
+//    Invoke native function described by array at pool[D].
+//    array[0] is wrapper, array[1] is function, array[2] is argc_tag.
 //
 //  - PushPolymorphicInstanceCall ArgC, D
 //
@@ -791,7 +791,7 @@ namespace dart {
   V(InstanceCall2Opt,                    A_D, num, num, ___)                   \
   V(PushPolymorphicInstanceCall,         A_D, num, num, ___)                   \
   V(PushPolymorphicInstanceCallByRange,  A_D, num, num, ___)                   \
-  V(NativeCall,                        A_B_C, num, num, num)                   \
+  V(NativeCall,                            D, lit, ___, ___)                   \
   V(OneByteStringFromCharCode,           A_X, reg, xeg, ___)                   \
   V(StringToCharCode,                    A_X, reg, xeg, ___)                   \
   V(AddTOS,                                0, ___, ___, ___)                   \

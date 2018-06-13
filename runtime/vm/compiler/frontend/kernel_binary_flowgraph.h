@@ -686,6 +686,8 @@ class BytecodeMetadataHelper : public MetadataHelper {
                            intptr_t from_index);
   RawCode* ReadBytecode(const ObjectPool& pool);
   void ReadExceptionsTable(const Code& bytecode);
+  RawTypedData* NativeEntry(const Function& function,
+                            const String& external_name);
 #endif
 };
 

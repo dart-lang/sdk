@@ -108,6 +108,7 @@ class ObjectPointerVisitor;
   RW(Function, lookup_port_handler)                                            \
   RW(TypedData, empty_uint32_array)                                            \
   RW(Function, handle_message_function)                                        \
+  RW(Function, growable_list_factory)                                          \
   RW(Function, simple_instance_of_function)                                    \
   RW(Function, simple_instance_of_true_function)                               \
   RW(Function, simple_instance_of_false_function)                              \

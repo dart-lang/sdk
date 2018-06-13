@@ -4630,7 +4630,7 @@ void NativeCallInstr::SetupNative() {
   const Library& library = Library::Handle(zone, cls.library());
 
   Dart_NativeEntryResolver resolver = library.native_entry_resolver();
-  bool is_bootstrap_native = Bootstrap::IsBootstapResolver(resolver);
+  bool is_bootstrap_native = Bootstrap::IsBootstrapResolver(resolver);
   set_is_bootstrap_native(is_bootstrap_native);
 
   const int num_params =

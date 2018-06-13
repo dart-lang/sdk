@@ -221,6 +221,12 @@ void ObjectStore::InitKnownObjects() {
   ASSERT(!cls.IsNull());
   set_pragma_class(cls);
 
+  cls = core_lib.LookupClassAllowPrivate(Symbols::_GrowableList());
+  ASSERT(!cls.IsNull());
+  growable_list_factory_ =
+      cls.LookupFactoryAllowPrivate(Symbols::_GrowableListFactory());
+  ASSERT(growable_list_factory_ != Function::null());
+
   // Cache the core private functions used for fast instance of checks.
   simple_instance_of_function_ =
       PrivateObjectLookup(Symbols::_simpleInstanceOf());

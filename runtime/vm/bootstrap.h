@@ -28,7 +28,7 @@ class Bootstrap : public AllStatic {
                                    intptr_t kernel_buffer_size);
 
   static void SetupNativeResolver();
-  static bool IsBootstapResolver(Dart_NativeEntryResolver resolver);
+  static bool IsBootstrapResolver(Dart_NativeEntryResolver resolver);
 
   // Source path mapping for library URI and 'parts'.
   static const char* async_source_paths_[];
