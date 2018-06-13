@@ -1579,106 +1579,6 @@
     },
     {
       "builders": [
-        "analyzer-linux-release-strong-hostchecked"
-      ],
-      "meta": {
-        "description": "This configuration is used by the analyzer CQ builder running in strong and hostchecked mode."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": ["create_sdk"]
-        },
-        {
-          "name": "analyze tests",
-          "arguments": [
-            "--compiler=dart2analyzer",
-            "--host-checked",
-            "--strong"
-          ]
-        },
-        {
-          "name": "analyze pkg tests",
-          "arguments": [
-            "--compiler=dart2analyzer",
-            "--host-checked",
-            "--strong",
-            "pkg"
-          ]
-        },
-        {
-          "name": "analyze tests checked",
-          "arguments": [
-            "--checked",
-            "--compiler=dart2analyzer",
-            "--host-checked",
-            "--strong"
-          ]
-        },
-        {
-          "name": "analyze pkg tests checked",
-          "arguments": [
-            "--checked",
-            "--compiler=dart2analyzer",
-            "--host-checked",
-            "--strong",
-            "pkg"
-          ]
-        },
-        {
-          "name": "analyze tests preview-dart2",
-          "arguments": [
-            "--compiler=dart2analyzer",
-            "--host-checked",
-            "--strong",
-            "--preview-dart-2"
-          ]
-        },
-        {
-          "name": "analyzer unit tests",
-          "arguments": [
-            "--checked",
-            "--compiler=none",
-            "--no-preview-dart-2",
-            "--use-sdk",
-            "pkg/analyzer"
-          ]
-        },
-        {
-          "name": "analysis_server unit tests",
-          "arguments": [
-            "--checked",
-            "--compiler=none",
-            "--no-preview-dart-2",
-            "--use-sdk",
-            "pkg/analysis_server"
-          ]
-        },
-        {
-          "name": "analyzer_cli unit tests",
-          "arguments": [
-            "--checked",
-            "--compiler=none",
-            "--no-preview-dart-2",
-            "--use-sdk",
-            "pkg/analyzer_cli"
-          ]
-        },
-        {
-          "name": "analyzer_plugin unit tests",
-          "arguments": [
-            "--checked",
-            "--compiler=none",
-            "--no-preview-dart-2",
-            "--use-sdk",
-            "pkg/analyzer_plugin"
-          ]
-        }
-      ]
-    },
-    {
-      "builders": [
         "analyzer-strong-linux-release",
         "analyzer-strong-mac-release",
         "analyzer-strong-win-release"
@@ -1693,34 +1593,12 @@
           "arguments": ["create_sdk"]
         },
         {
-          "name": "analyze tests",
-          "arguments": ["--compiler=dart2analyzer", "--strong", "--use-sdk"]
-        },
-        {
           "name": "analyze pkg tests",
           "arguments": [
             "--compiler=dart2analyzer",
+            "--preview-dart-2",
             "--strong",
             "--use-sdk",
-            "pkg"
-          ]
-        },
-        {
-          "name": "analyze tests checked",
-          "arguments": [
-            "--checked",
-            "--compiler=dart2analyzer",
-            "--strong",
-            "--use-sdk"
-          ]
-        },
-        {
-          "name": "analyze pkg tests checked",
-          "arguments": [
-            "--checked",
-            "--compiler=dart2analyzer",
-            "--use-sdk",
-            "--strong",
             "pkg"
           ]
         },
@@ -1728,9 +1606,9 @@
           "name": "analyze tests preview-dart2",
           "arguments": [
             "--compiler=dart2analyzer",
+            "--preview-dart-2",
             "--strong",
-            "--use-sdk",
-            "--preview-dart-2"
+            "--use-sdk"
           ]
         }
       ]
