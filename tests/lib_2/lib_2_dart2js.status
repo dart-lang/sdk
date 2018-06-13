@@ -462,6 +462,7 @@ html/element_types_datalist_test: RuntimeError # Issue 29922
 html/element_types_shadow_test: RuntimeError # Issue 29922
 html/file_sample_test: Skip # FileSystem not supported on Safari.
 html/fileapi_supported_throws_test: Skip # FileSystem not supported on Safari
+html/fontface_loaded_test: RuntimeError # FontFace polyfill?
 html/js_mock_test: RuntimeError # Issue 32286
 html/storage_promise_test: RuntimeError # Not supported on Safari
 html/xhr_test: RuntimeError
@@ -788,3 +789,6 @@ convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out. Issue 22050
 html/custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Polyfill does not support
 html/custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
 html/fontface_test: Fail # Fontface not supported on these.
+
+[ $compiler == dart2js && ($runtime == safari || $ie) ]
+html/fontface_loaded_test: RuntimeError # FontFace polyfill?
