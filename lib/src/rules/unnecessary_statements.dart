@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/analyzer.dart';
 
@@ -21,18 +22,16 @@ For example,
 **BAD:**
 ```
 myvar;
+list.clear;
 1 + 2;
-some.getter;
 methodOne() + methodTwo();
 foo ? bar : baz;
 ```
 
-While the getter may trigger a side-effect, it is not usually obvious.  Though
-the added methods have a clear effect, the addition itself does not unless there
-is some magical overload of the + operator.
+Though the added methods have a clear effect, the addition itself does not
+unless there is some magical overload of the + operator.
 
-Usually code like this indicates an incomplete thought, and is a bug.  For
-instance, the getter was likely supposed to be a function call.
+Usually code like this indicates an incomplete thought, and is a bug.
 
 **GOOD:**
 ```
@@ -161,12 +160,35 @@ class _ReportNoClearEffectVisitor extends UnifyingAstVisitor {
   }
 
   @override
+  visitPrefixedIdentifier(PrefixedIdentifier node) {
+    // Allow getters; getters with side effects were the main cause of false
+    // positives.
+    var bestElement = node.identifier.bestElement;
+    if (bestElement is PropertyAccessorElement && !bestElement.isSynthetic)
+      return;
+
+    super.visitPrefixedIdentifier(node);
+  }
+
+  @override
   visitPrefixExpression(PrefixExpression node) {
     if (node.operator.lexeme == '--' || node.operator.lexeme == '++') {
       // Has a clear effect
       return;
     }
     super.visitPrefixExpression(node);
+  }
+
+  @override
+  visitPropertyAccess(PropertyAccess node) {
+    // Allow getters; getters with side effects were the main cause of false
+    // positives.
+    var bestElement = node.propertyName.bestElement;
+    if (bestElement is PropertyAccessorElement && !bestElement.isSynthetic) {
+      return;
+    }
+
+    super.visitPropertyAccess(node);
   }
 
   @override
@@ -177,6 +199,19 @@ class _ReportNoClearEffectVisitor extends UnifyingAstVisitor {
   @override
   visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     // Has a clear effect
+  }
+
+  @override
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    // Allow getters; getters with side effects were the main cause of false
+    // positives.
+    var bestElement = node.bestElement;
+    if (node.bestElement is PropertyAccessorElement &&
+        !bestElement.isSynthetic) {
+      return;
+    }
+
+    super.visitSimpleIdentifier(node);
   }
 
   @override
