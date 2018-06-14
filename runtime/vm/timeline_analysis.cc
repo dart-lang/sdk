@@ -181,7 +181,7 @@ void TimelineAnalysis::SetError(const char* format, ...) {
   error_msg_ = zone_->VPrint(format, args);
   ASSERT(error_msg_ != NULL);
   if (FLAG_trace_timeline_analysis) {
-    OS::Print("TimelineAnalysis error = %s\n", error_msg_);
+    OS::PrintErr("TimelineAnalysis error = %s\n", error_msg_);
   }
 }
 

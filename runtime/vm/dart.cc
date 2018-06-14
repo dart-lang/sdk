@@ -246,15 +246,15 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
       }
 #endif  // !defined(PRODUCT)
       if (FLAG_trace_isolates) {
-        OS::Print("Size of vm isolate snapshot = %" Pd "\n",
-                  snapshot->length());
+        OS::PrintErr("Size of vm isolate snapshot = %" Pd "\n",
+                     snapshot->length());
         vm_isolate_->heap()->PrintSizes();
         MegamorphicCacheTable::PrintSizes(vm_isolate_);
         intptr_t size;
         intptr_t capacity;
         Symbols::GetStats(vm_isolate_, &size, &capacity);
-        OS::Print("VM Isolate: Number of symbols : %" Pd "\n", size);
-        OS::Print("VM Isolate: Symbol table capacity : %" Pd "\n", capacity);
+        OS::PrintErr("VM Isolate: Number of symbols : %" Pd "\n", size);
+        OS::PrintErr("VM Isolate: Symbol table capacity : %" Pd "\n", capacity);
       }
     } else {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -553,7 +553,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
       return ApiError::New(message);
     }
     if (FLAG_trace_isolates) {
-      OS::Print("Size of isolate snapshot = %" Pd "\n", snapshot->length());
+      OS::PrintErr("Size of isolate snapshot = %" Pd "\n", snapshot->length());
     }
     FullSnapshotReader reader(snapshot, snapshot_instructions, shared_data,
                               shared_instructions, T);

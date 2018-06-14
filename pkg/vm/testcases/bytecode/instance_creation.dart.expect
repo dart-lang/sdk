@@ -1,6 +1,7 @@
 library #lib;
 import self as self;
 import "dart:core" as core;
+import "dart:_internal" as _in;
 
 class Base<T1 extends core::Object = dynamic, T2 extends core::Object = dynamic> extends core::Object {
   generic-covariant-impl field self::Base::T1 t1 = null;
@@ -384,6 +385,22 @@ ConstantPool {
 }
 ]  static factory test_factory2({dynamic param = null}) → self::I
     return new self::I::•(param);
+}
+class J extends core::Object {
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  PushConstant         CP#0
+  NativeCall           CP#1
+  ReturnTOS
+}
+ConstantPool {
+  [0] = Null
+  [1] = NativeEntry agent_J
+}
+]  @_in::ExternalName::•("agent_J")
+  external static factory •() → self::J;
 }
 [@vm.bytecode=
 Bytecode {

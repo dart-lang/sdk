@@ -373,39 +373,40 @@ class FrontendCompiler implements CompilerInterface {
     // be invalidated by the normal approach anyway.
     if (_generator.initialized) return null;
 
+    final File f = new File(_initializeFromDill);
+    if (!f.existsSync()) return null;
+
+    Component component;
     try {
-      final File f = new File(_initializeFromDill);
-      if (!f.existsSync()) return null;
+      component = loadComponentSourceFromBytes(f.readAsBytesSync());
+    } catch (e) {
+      // If we cannot load the dill file we shouldn't initialize from it.
+      _generator = _createGenerator(null);
+      return null;
+    }
 
-      final Component component =
-          loadComponentSourceFromBytes(f.readAsBytesSync());
-      for (Uri uri in component.uriToSource.keys) {
-        if ('$uri' == '') continue;
+    nextUri:
+    for (Uri uri in component.uriToSource.keys) {
+      if (uri == null || '$uri' == '') continue nextUri;
 
-        final List<int> oldBytes = component.uriToSource[uri].source;
-        final FileSystemEntity entity =
-            _compilerOptions.fileSystem.entityForUri(uri);
-        if (!await entity.exists()) {
+      final List<int> oldBytes = component.uriToSource[uri].source;
+      final FileSystemEntity entity =
+          _compilerOptions.fileSystem.entityForUri(uri);
+      if (!await entity.exists()) {
+        _generator.invalidate(uri);
+        continue nextUri;
+      }
+      final List<int> newBytes = await entity.readAsBytes();
+      if (oldBytes.length != newBytes.length) {
+        _generator.invalidate(uri);
+        continue nextUri;
+      }
+      for (int i = 0; i < oldBytes.length; ++i) {
+        if (oldBytes[i] != newBytes[i]) {
           _generator.invalidate(uri);
-          continue;
-        }
-        final List<int> newBytes = await entity.readAsBytes();
-        if (oldBytes.length != newBytes.length) {
-          _generator.invalidate(uri);
-          continue;
-        }
-        for (int i = 0; i < oldBytes.length; ++i) {
-          if (oldBytes[i] != newBytes[i]) {
-            _generator.invalidate(uri);
-            continue;
-          }
+          continue nextUri;
         }
       }
-    } catch (e) {
-      // If there's a failure in the above block we might not have invalidated
-      // correctly. Create a new generator that doesn't initialize from dill to
-      // avoid missing any changes.
-      _generator = _createGenerator(null);
     }
   }
 

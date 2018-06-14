@@ -13,7 +13,7 @@ namespace dart {
 void PrintUtf16(uint16_t c) {
   const char* format =
       (0x20 <= c && c <= 0x7F) ? "%c" : (c <= 0xff) ? "\\x%02x" : "\\u%04x";
-  OS::Print(format, c);
+  OS::PrintErr(format, c);
 }
 
 

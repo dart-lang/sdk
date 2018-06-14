@@ -276,7 +276,7 @@ intptr_t RawObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
       size = Size();
       break;
     default:
-      OS::Print("Class Id: %" Pd "\n", class_id);
+      OS::PrintErr("Class Id: %" Pd "\n", class_id);
       UNREACHABLE();
       break;
   }

@@ -1123,7 +1123,7 @@ void TimelineEventRecorder::WriteTo(const char* directory) {
       OS::SCreate(NULL, "%s/dart-timeline-%" Pd ".json", directory, pid);
   void* file = (*file_open)(filename, true);
   if (file == NULL) {
-    OS::Print("Failed to write timeline file: %s\n", filename);
+    OS::PrintErr("Failed to write timeline file: %s\n", filename);
     free(filename);
     return;
   }
@@ -1450,7 +1450,7 @@ TimelineEventBlock* TimelineEventEndlessRecorder::GetNewBlockLocked() {
   block->Open();
   head_ = block;
   if (FLAG_trace_timeline) {
-    OS::Print("Created new block %p\n", block);
+    OS::PrintErr("Created new block %p\n", block);
   }
   return head_;
 }
@@ -1540,7 +1540,7 @@ TimelineEvent* TimelineEventBlock::StartEvent() {
     OSThread* os_thread = OSThread::Current();
     ASSERT(os_thread != NULL);
     intptr_t tid = OSThread::ThreadIdToIntPtr(os_thread->id());
-    OS::Print("StartEvent in block %p for thread %" Px "\n", this, tid);
+    OS::PrintErr("StartEvent in block %p for thread %" Px "\n", this, tid);
   }
   return &events_[length_++];
 }
@@ -1595,7 +1595,7 @@ void TimelineEventBlock::Open() {
 
 void TimelineEventBlock::Finish() {
   if (FLAG_trace_timeline) {
-    OS::Print("Finish block %p\n", this);
+    OS::PrintErr("Finish block %p\n", this);
   }
   in_use_ = false;
   if (Service::timeline_stream.enabled()) {

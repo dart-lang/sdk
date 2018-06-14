@@ -186,6 +186,7 @@ html/fileapi_supported_test: RuntimeError
 html/fileapi_supported_throws_test: RuntimeError
 html/filereader_test: RuntimeError
 html/filteredelementlist_test: RuntimeError
+html/fontface_loaded_test: RuntimeError
 html/fontface_test: RuntimeError
 html/form_data_test: RuntimeError
 html/form_element_test: RuntimeError
@@ -339,7 +340,6 @@ js/prototype_access_test: RuntimeError
 collection/list_test: RuntimeError
 
 [ $compiler == dart2js && $runtime != d8 && $runtime != jsshell ]
-html/fontface_loaded_test: RuntimeError
 html/html_mock_test: RuntimeError # Issue 31038
 html/input_element_attributes_test: RuntimeError
 html/js_dart_functions_test: RuntimeError # does not implement Dart 2 implicit `.call` tearoff
@@ -462,6 +462,7 @@ html/element_types_datalist_test: RuntimeError # Issue 29922
 html/element_types_shadow_test: RuntimeError # Issue 29922
 html/file_sample_test: Skip # FileSystem not supported on Safari.
 html/fileapi_supported_throws_test: Skip # FileSystem not supported on Safari
+html/fontface_loaded_test: RuntimeError # FontFace polyfill?
 html/js_mock_test: RuntimeError # Issue 32286
 html/storage_promise_test: RuntimeError # Not supported on Safari
 html/xhr_test: RuntimeError
@@ -474,7 +475,6 @@ html/xhr_test: RuntimeError
 
 [ $compiler == dart2js && $browser ]
 html/custom/created_callback_test: RuntimeError
-html/fontface_loaded_test: Fail # Support for promises.
 html/js_typed_interop_lazy_test/01: RuntimeError
 html/notification_permission_test: Timeout, Pass # Issue 32002
 html/private_extension_member_test: RuntimeError
@@ -688,7 +688,6 @@ html/js_typed_interop_test: RuntimeError
 [ $compiler == dart2js && $fasta && $host_checked ]
 html/custom/mirrors_2_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/custom/mirrors_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
-html/fontface_loaded_test: RuntimeError # TypeError: Cannot read property 'createFragment$3$treeSanitizer$validator' of undefined
 html/indexeddb_3_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/indexeddb_5_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/js_array_test: CompileTimeError
@@ -725,7 +724,6 @@ html/element_types_keygen_test: RuntimeError # Issue 29922
 html/event_customevent_test: RuntimeError
 html/file_sample_test: RuntimeError
 html/fileapi_entry_test: RuntimeError
-html/fontface_loaded_test: RuntimeError
 html/indexeddb_1_test/functional: RuntimeError
 html/indexeddb_2_test: RuntimeError
 html/indexeddb_3_test: RuntimeError
@@ -791,3 +789,6 @@ convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out. Issue 22050
 html/custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Polyfill does not support
 html/custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
 html/fontface_test: Fail # Fontface not supported on these.
+
+[ $compiler == dart2js && ($runtime == safari || $ie) ]
+html/fontface_loaded_test: RuntimeError # FontFace polyfill?

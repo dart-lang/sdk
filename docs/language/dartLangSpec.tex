@@ -56,6 +56,8 @@
 % - Introduce `subterm` and `immediate subterm`.
 % - Introduce `top type`.
 % - Specify configurable imports.
+% - Specify the dynamic type of the Iterable/Future/Stream returned from
+%   invocations of functions marked sync*/async/async*.
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -4907,7 +4909,13 @@ Completing normally or returning without a value is treated the same as returnin
 }
 
 \LMHash{}
-If $f$ is marked \SYNC* (\ref{functions}), then a fresh instance $i$ implementing the built-in class \code{Iterable} is associated with the invocation and immediately returned.
+If $f$ is marked \SYNC* (\ref{functions}),
+then a fresh instance (\ref{generativeConstructors}) $i$
+implementing \code{Iterable<$U$>} is immediately returned,
+where $U$ is determined as follows:
+Let $T$ be the actual return type of $f$ (\ref{actualTypeOfADeclaration}).
+If $T$ is \code{Iterable<$S$>} for some type $S$, then $U$ is $S$,
+otherwise $U$ is \code{Object}.
 
 \commentary{
 A Dart implementation will need to provide a specific implementation of \code{Iterable} that will be returned by \SYNC* methods.
@@ -4957,7 +4965,10 @@ Two executions of an iterator interact only via state outside the function.
 % The alternative would be to cache the results of an iterator in the iterable, and check the cache at each \YIELD{}.  This would have strange issues as well. The yielded value might differ from the expression in the yield. And it is a potential memory leak as the cache is kept alive by any iterator.
 
 \LMHash{}
-If $f$ is marked \ASYNC{} (\ref{functions}), then a fresh instance (\ref{generativeConstructors}) $o$ implementing the built-in class \code{Future} is associated with the invocation.
+If $f$ is marked \ASYNC{} (\ref{functions}),
+then a fresh instance (\ref{generativeConstructors}) $o$ is associated with the invocation,
+where the dynamic type of $o$ implements \code{Future<$flatten(T)$>},
+and $T$ is the actual return type of $f$ (\ref{actualTypeOfADeclaration}).
 Then the body of $f$ is executed until it either suspends or completes, at which point $o$ is returned.
 \commentary{
 The body of $f$ may suspend during the evaluation of an \AWAIT{} expression or execution of an asynchronous \FOR{} loop.
@@ -4976,7 +4987,13 @@ so the future is not completed with an error {\em before} it has been returned.
 }
 
 \LMHash{}
-If $f$ is marked \ASYNC* (\ref{functions}), then a fresh instance $s$ implementing the built-in class \code{Stream} is associated with the invocation and immediately returned.
+If $f$ is marked \ASYNC* (\ref{functions}),
+then a fresh instance (\ref{generativeConstructors}) $s$
+implementing \code{Stream<$U$>} is immediately returned,
+where $U$ is determined as follows:
+Let $T$ be the actual return type of $f$ (\ref{actualTypeOfADeclaration}).
+If $T$ is \code{Stream<$S$>} for some type $S$, then $U$ is $S$,
+otherwise $U$ is \code{Object}.
 When $s$ is listened to, execution of the body of $f$ will begin.
 When execution of the body of $f$ completes:
 \begin{itemize}

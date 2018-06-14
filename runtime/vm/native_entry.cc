@@ -102,7 +102,7 @@ void NativeEntry::PropagateErrors(NativeArguments* arguments) {
   UNREACHABLE();
 }
 
-#if defined(TARGET_ARCH_DBC)
+#if defined(TARGET_ARCH_DBC) || defined(DART_USE_INTERPRETER)
 uword NativeEntry::BootstrapNativeCallWrapperEntry() {
   uword entry =
       reinterpret_cast<uword>(NativeEntry::BootstrapNativeCallWrapper);
@@ -223,7 +223,7 @@ static NativeFunction ResolveNativeFunction(Zone* zone,
   const Library& library = Library::Handle(zone, cls.library());
 
   *is_bootstrap_native =
-      Bootstrap::IsBootstapResolver(library.native_entry_resolver());
+      Bootstrap::IsBootstrapResolver(library.native_entry_resolver());
 
   const String& native_name = String::Handle(zone, func.native_name());
   ASSERT(!native_name.IsNull());

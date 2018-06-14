@@ -183,7 +183,13 @@ class ResynthesizeAstStrongTest extends _ResynthesizeAstTest {
 
   @failingTest // See dartbug.com/32290
   test_const_constructor_inferred_args() =>
-      test_const_constructor_inferred_args();
+      super.test_const_constructor_inferred_args();
+
+  @failingTest // See dartbug.com/33441
+  test_const_list_inferredType() => super.test_const_list_inferredType();
+
+  @failingTest // See dartbug.com/33441
+  test_const_map_inferredType() => super.test_const_map_inferredType();
 
   @override
   @failingTest

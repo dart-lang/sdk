@@ -129,7 +129,7 @@ class NativeEntry : public AllStatic {
                                                uword pc);
   static const uint8_t* ResolveSymbol(uword pc);
 
-#if defined(TARGET_ARCH_DBC)
+#if defined(TARGET_ARCH_DBC) || defined(DART_USE_INTERPRETER)
   static uword BootstrapNativeCallWrapperEntry();
   static void BootstrapNativeCallWrapper(Dart_NativeArguments args,
                                          Dart_NativeFunction func);

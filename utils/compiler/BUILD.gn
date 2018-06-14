@@ -76,9 +76,9 @@ application_snapshot("dart2js") {
 }
 
 compile_platform("compile_dart2js_platform") {
-  sources = [
-    "../../sdk/lib/libraries.json",
-  ]
+  single_root_scheme = "org-dartlang-sdk"
+  single_root_base = "../../"
+  libraries_specification_uri = "org-dartlang-sdk:///sdk/lib/libraries.json"
 
   outputs = [
     "$root_out_dir/dart2js_platform.dill",
@@ -92,9 +92,9 @@ compile_platform("compile_dart2js_platform") {
 }
 
 compile_platform("compile_dart2js_platform_strong") {
-  sources = [
-    "../../sdk/lib/libraries.json",
-  ]
+  single_root_scheme = "org-dartlang-sdk"
+  single_root_base = "../../"
+  libraries_specification_uri = "org-dartlang-sdk:///sdk/lib/libraries.json"
 
   outputs = [
     "$root_out_dir/dart2js_platform_strong.dill",
@@ -109,9 +109,9 @@ compile_platform("compile_dart2js_platform_strong") {
 }
 
 compile_platform("compile_dart2js_server_platform") {
-  sources = [
-    "../../sdk/lib/libraries.json",
-  ]
+  single_root_scheme = "org-dartlang-sdk"
+  single_root_base = "../../"
+  libraries_specification_uri = "org-dartlang-sdk:///sdk/lib/libraries.json"
 
   outputs = [
     "$root_out_dir/dart2js_server_platform.dill",
@@ -125,9 +125,9 @@ compile_platform("compile_dart2js_server_platform") {
 }
 
 compile_platform("compile_dart2js_server_platform_strong") {
-  sources = [
-    "../../sdk/lib/libraries.json",
-  ]
+  single_root_scheme = "org-dartlang-sdk"
+  single_root_base = "../../"
+  libraries_specification_uri = "org-dartlang-sdk:///sdk/lib/libraries.json"
 
   outputs = [
     "$root_out_dir/dart2js_server_platform_strong.dill",

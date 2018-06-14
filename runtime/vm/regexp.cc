@@ -3471,23 +3471,23 @@ class DotPrinter : public NodeVisitor {
 };
 
 void DotPrinter::PrintNode(const char* label, RegExpNode* node) {
-  OS::Print("digraph G {\n  graph [label=\"");
+  OS::PrintErr("digraph G {\n  graph [label=\"");
   for (intptr_t i = 0; label[i]; i++) {
     switch (label[i]) {
       case '\\':
-        OS::Print("\\\\");
+        OS::PrintErr("\\\\");
         break;
       case '"':
-        OS::Print("\"");
+        OS::PrintErr("\"");
         break;
       default:
-        OS::Print("%c", label[i]);
+        OS::PrintErr("%c", label[i]);
         break;
     }
   }
-  OS::Print("\"];\n");
+  OS::PrintErr("\"];\n");
   Visit(node);
-  OS::Print("}\n");
+  OS::PrintErr("}\n");
 }
 
 void DotPrinter::Visit(RegExpNode* node) {
@@ -3497,7 +3497,7 @@ void DotPrinter::Visit(RegExpNode* node) {
 }
 
 void DotPrinter::PrintOnFailure(RegExpNode* from, RegExpNode* on_failure) {
-  OS::Print("  n%p -> n%p [style=dotted];\n", from, on_failure);
+  OS::PrintErr("  n%p -> n%p [style=dotted];\n", from, on_failure);
   Visit(on_failure);
 }
 
@@ -3508,18 +3508,18 @@ class AttributePrinter : public ValueObject {
     if (first_) {
       first_ = false;
     } else {
-      OS::Print("|");
+      OS::PrintErr("|");
     }
   }
   void PrintBit(const char* name, bool value) {
     if (!value) return;
     PrintSeparator();
-    OS::Print("{%s}", name);
+    OS::PrintErr("{%s}", name);
   }
   void PrintPositive(const char* name, intptr_t value) {
     if (value < 0) return;
     PrintSeparator();
-    OS::Print("{%s|%" Pd "}", name, value);
+    OS::PrintErr("{%s|%" Pd "}", name, value);
   }
 
  private:
@@ -3527,7 +3527,7 @@ class AttributePrinter : public ValueObject {
 };
 
 void DotPrinter::PrintAttributes(RegExpNode* that) {
-  OS::Print(
+  OS::PrintErr(
       "  a%p [shape=Mrecord, color=grey, fontcolor=grey, "
       "margin=0.1, fontsize=10, label=\"{",
       that);
@@ -3538,17 +3538,17 @@ void DotPrinter::PrintAttributes(RegExpNode* that) {
   printer.PrintBit("SI", info->follows_start_interest);
   BlockLabel* label = that->label();
   if (label->IsBound()) printer.PrintPositive("@", label->Position());
-  OS::Print(
+  OS::PrintErr(
       "}\"];\n"
       "  a%p -> n%p [style=dashed, color=grey, arrowhead=none];\n",
       that, that);
 }
 
 void DotPrinter::VisitChoice(ChoiceNode* that) {
-  OS::Print("  n%p [shape=Mrecord, label=\"?\"];\n", that);
+  OS::PrintErr("  n%p [shape=Mrecord, label=\"?\"];\n", that);
   for (intptr_t i = 0; i < that->alternatives()->length(); i++) {
     GuardedAlternative alt = that->alternatives()->At(i);
-    OS::Print("  n%p -> n%p", that, alt.node());
+    OS::PrintErr("  n%p -> n%p", that, alt.node());
   }
   for (intptr_t i = 0; i < that->alternatives()->length(); i++) {
     GuardedAlternative alt = that->alternatives()->At(i);
@@ -3557,120 +3557,120 @@ void DotPrinter::VisitChoice(ChoiceNode* that) {
 }
 
 void DotPrinter::VisitText(TextNode* that) {
-  OS::Print("  n%p [label=\"", that);
+  OS::PrintErr("  n%p [label=\"", that);
   for (intptr_t i = 0; i < that->elements()->length(); i++) {
-    if (i > 0) OS::Print(" ");
+    if (i > 0) OS::PrintErr(" ");
     TextElement elm = that->elements()->At(i);
     switch (elm.text_type()) {
       case TextElement::ATOM: {
         ZoneGrowableArray<uint16_t>* data = elm.atom()->data();
         for (intptr_t i = 0; i < data->length(); i++) {
-          OS::Print("%c", static_cast<char>(data->At(i)));
+          OS::PrintErr("%c", static_cast<char>(data->At(i)));
         }
         break;
       }
       case TextElement::CHAR_CLASS: {
         RegExpCharacterClass* node = elm.char_class();
-        OS::Print("[");
-        if (node->is_negated()) OS::Print("^");
+        OS::PrintErr("[");
+        if (node->is_negated()) OS::PrintErr("^");
         for (intptr_t j = 0; j < node->ranges()->length(); j++) {
           CharacterRange range = node->ranges()->At(j);
           PrintUtf16(range.from());
-          OS::Print("-");
+          OS::PrintErr("-");
           PrintUtf16(range.to());
         }
-        OS::Print("]");
+        OS::PrintErr("]");
         break;
       }
       default:
         UNREACHABLE();
     }
   }
-  OS::Print("\", shape=box, peripheries=2];\n");
+  OS::PrintErr("\", shape=box, peripheries=2];\n");
   PrintAttributes(that);
-  OS::Print("  n%p -> n%p;\n", that, that->on_success());
+  OS::PrintErr("  n%p -> n%p;\n", that, that->on_success());
   Visit(that->on_success());
 }
 
 void DotPrinter::VisitBackReference(BackReferenceNode* that) {
-  OS::Print("  n%p [label=\"$%" Pd "..$%" Pd "\", shape=doubleoctagon];\n",
-            that, that->start_register(), that->end_register());
+  OS::PrintErr("  n%p [label=\"$%" Pd "..$%" Pd "\", shape=doubleoctagon];\n",
+               that, that->start_register(), that->end_register());
   PrintAttributes(that);
-  OS::Print("  n%p -> n%p;\n", that, that->on_success());
+  OS::PrintErr("  n%p -> n%p;\n", that, that->on_success());
   Visit(that->on_success());
 }
 
 void DotPrinter::VisitEnd(EndNode* that) {
-  OS::Print("  n%p [style=bold, shape=point];\n", that);
+  OS::PrintErr("  n%p [style=bold, shape=point];\n", that);
   PrintAttributes(that);
 }
 
 void DotPrinter::VisitAssertion(AssertionNode* that) {
-  OS::Print("  n%p [", that);
+  OS::PrintErr("  n%p [", that);
   switch (that->assertion_type()) {
     case AssertionNode::AT_END:
-      OS::Print("label=\"$\", shape=septagon");
+      OS::PrintErr("label=\"$\", shape=septagon");
       break;
     case AssertionNode::AT_START:
-      OS::Print("label=\"^\", shape=septagon");
+      OS::PrintErr("label=\"^\", shape=septagon");
       break;
     case AssertionNode::AT_BOUNDARY:
-      OS::Print("label=\"\\b\", shape=septagon");
+      OS::PrintErr("label=\"\\b\", shape=septagon");
       break;
     case AssertionNode::AT_NON_BOUNDARY:
-      OS::Print("label=\"\\B\", shape=septagon");
+      OS::PrintErr("label=\"\\B\", shape=septagon");
       break;
     case AssertionNode::AFTER_NEWLINE:
-      OS::Print("label=\"(?<=\\n)\", shape=septagon");
+      OS::PrintErr("label=\"(?<=\\n)\", shape=septagon");
       break;
   }
-  OS::Print("];\n");
+  OS::PrintErr("];\n");
   PrintAttributes(that);
   RegExpNode* successor = that->on_success();
-  OS::Print("  n%p -> n%p;\n", that, successor);
+  OS::PrintErr("  n%p -> n%p;\n", that, successor);
   Visit(successor);
 }
 
 void DotPrinter::VisitAction(ActionNode* that) {
-  OS::Print("  n%p [", that);
+  OS::PrintErr("  n%p [", that);
   switch (that->action_type_) {
     case ActionNode::SET_REGISTER:
-      OS::Print("label=\"$%" Pd ":=%" Pd "\", shape=octagon",
-                that->data_.u_store_register.reg,
-                that->data_.u_store_register.value);
+      OS::PrintErr("label=\"$%" Pd ":=%" Pd "\", shape=octagon",
+                   that->data_.u_store_register.reg,
+                   that->data_.u_store_register.value);
       break;
     case ActionNode::INCREMENT_REGISTER:
-      OS::Print("label=\"$%" Pd "++\", shape=octagon",
-                that->data_.u_increment_register.reg);
+      OS::PrintErr("label=\"$%" Pd "++\", shape=octagon",
+                   that->data_.u_increment_register.reg);
       break;
     case ActionNode::STORE_POSITION:
-      OS::Print("label=\"$%" Pd ":=$pos\", shape=octagon",
-                that->data_.u_position_register.reg);
+      OS::PrintErr("label=\"$%" Pd ":=$pos\", shape=octagon",
+                   that->data_.u_position_register.reg);
       break;
     case ActionNode::BEGIN_SUBMATCH:
-      OS::Print("label=\"$%" Pd ":=$pos,begin\", shape=septagon",
-                that->data_.u_submatch.current_position_register);
+      OS::PrintErr("label=\"$%" Pd ":=$pos,begin\", shape=septagon",
+                   that->data_.u_submatch.current_position_register);
       break;
     case ActionNode::POSITIVE_SUBMATCH_SUCCESS:
-      OS::Print("label=\"escape\", shape=septagon");
+      OS::PrintErr("label=\"escape\", shape=septagon");
       break;
     case ActionNode::EMPTY_MATCH_CHECK:
-      OS::Print("label=\"$%" Pd "=$pos?,$%" Pd "<%" Pd "?\", shape=septagon",
-                that->data_.u_empty_match_check.start_register,
-                that->data_.u_empty_match_check.repetition_register,
-                that->data_.u_empty_match_check.repetition_limit);
+      OS::PrintErr("label=\"$%" Pd "=$pos?,$%" Pd "<%" Pd "?\", shape=septagon",
+                   that->data_.u_empty_match_check.start_register,
+                   that->data_.u_empty_match_check.repetition_register,
+                   that->data_.u_empty_match_check.repetition_limit);
       break;
     case ActionNode::CLEAR_CAPTURES: {
-      OS::Print("label=\"clear $%" Pd " to $%" Pd "\", shape=septagon",
-                that->data_.u_clear_captures.range_from,
-                that->data_.u_clear_captures.range_to);
+      OS::PrintErr("label=\"clear $%" Pd " to $%" Pd "\", shape=septagon",
+                   that->data_.u_clear_captures.range_from,
+                   that->data_.u_clear_captures.range_to);
       break;
     }
   }
-  OS::Print("];\n");
+  OS::PrintErr("];\n");
   PrintAttributes(that);
   RegExpNode* successor = that->on_success();
-  OS::Print("  n%p -> n%p;\n", that, successor);
+  OS::PrintErr("  n%p -> n%p;\n", that, successor);
   Visit(successor);
 }
 

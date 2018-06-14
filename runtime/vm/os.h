@@ -92,6 +92,9 @@ class OS {
   static uintptr_t GetProgramCounter();
 
   // Print formatted output to stdout/stderr for debugging.
+  // Tracing and debugging prints from the VM should strongly prefer to use
+  // PrintErr to avoid interfering with the application's output, which may
+  // be parsed by another program.
   static void Print(const char* format, ...) PRINTF_ATTRIBUTE(1, 2);
   static void PrintErr(const char* format, ...) PRINTF_ATTRIBUTE(1, 2);
   static void VFPrint(FILE* stream, const char* format, va_list args);

@@ -83,6 +83,7 @@ class ConstantAstCloner extends AstCloner {
   @override
   ListLiteral visitListLiteral(ListLiteral node) {
     ListLiteral literal = super.visitListLiteral(node);
+    literal.staticType = node.staticType;
     if (previewDart2 && node.constKeyword == null && node.isConst) {
       literal.constKeyword = new KeywordToken(Keyword.CONST, node.offset);
     }
@@ -92,6 +93,7 @@ class ConstantAstCloner extends AstCloner {
   @override
   MapLiteral visitMapLiteral(MapLiteral node) {
     MapLiteral literal = super.visitMapLiteral(node);
+    literal.staticType = node.staticType;
     if (previewDart2 && node.constKeyword == null && node.isConst) {
       literal.constKeyword = new KeywordToken(Keyword.CONST, node.offset);
     }

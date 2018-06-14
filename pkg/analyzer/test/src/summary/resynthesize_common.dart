@@ -3297,6 +3297,35 @@ const dynamic v =
     }
   }
 
+  test_const_list_inferredType() async {
+    if (!isStrongMode) return;
+    // The summary needs to contain enough information so that when the constant
+    // is resynthesized, the constant value can get the type that was computed
+    // by type inference.
+    var library = await checkLibrary('''
+const Object x = const [1];
+''');
+    checkElementText(library, '''
+const Object x = const <
+        int/*location: dart:core;int*/>[1];
+''');
+  }
+
+  test_const_map_inferredType() async {
+    if (!isStrongMode) return;
+    // The summary needs to contain enough information so that when the constant
+    // is resynthesized, the constant value can get the type that was computed
+    // by type inference.
+    var library = await checkLibrary('''
+const Object x = const {1: 1.0};
+''');
+    checkElementText(library, '''
+const Object x = const <
+        int/*location: dart:core;int*/,
+        double/*location: dart:core;double*/>{1: 1.0};
+''');
+  }
+
   test_const_parameterDefaultValue_initializingFormal_functionTyped() async {
     var library = await checkLibrary(r'''
 class C {

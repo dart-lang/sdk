@@ -106,7 +106,7 @@ void MessageHandler::Run(ThreadPool* pool,
   bool task_running;
   MonitorLocker ml(&monitor_);
   if (FLAG_trace_isolates) {
-    OS::Print(
+    OS::PrintErr(
         "[+] Starting message handler:\n"
         "\thandler:    %s\n",
         name());
@@ -130,7 +130,7 @@ void MessageHandler::PostMessage(Message* message, bool before_events) {
     if (FLAG_trace_isolates) {
       Isolate* source_isolate = Isolate::Current();
       if (source_isolate) {
-        OS::Print(
+        OS::PrintErr(
             "[>] Posting message:\n"
             "\tlen:        %" Pd "\n\tsource:     (%" Pd64
             ") %s\n\tdest:       %s\n"
@@ -138,7 +138,7 @@ void MessageHandler::PostMessage(Message* message, bool before_events) {
             message->Size(), static_cast<int64_t>(source_isolate->main_port()),
             source_isolate->name(), name(), message->dest_port());
       } else {
-        OS::Print(
+        OS::PrintErr(
             "[>] Posting message:\n"
             "\tlen:        %" Pd
             "\n\tsource:     <native code>\n"
@@ -214,7 +214,7 @@ MessageHandler::MessageStatus MessageHandler::HandleMessages(
   while (message != NULL) {
     intptr_t message_len = message->Size();
     if (FLAG_trace_isolates) {
-      OS::Print(
+      OS::PrintErr(
           "[<] Handling message:\n"
           "\tlen:        %" Pd
           "\n"
@@ -235,7 +235,7 @@ MessageHandler::MessageStatus MessageHandler::HandleMessages(
     message = NULL;  // May be deleted by now.
     ml->Enter();
     if (FLAG_trace_isolates) {
-      OS::Print(
+      OS::PrintErr(
           "[.] Message handled (%s):\n"
           "\tlen:        %" Pd
           "\n"
@@ -459,13 +459,13 @@ void MessageHandler::TaskCallback() {
       if (FLAG_trace_isolates) {
         if (status != kOK && thread() != NULL) {
           const Error& error = Error::Handle(thread()->sticky_error());
-          OS::Print(
+          OS::PrintErr(
               "[-] Stopping message handler (%s):\n"
               "\thandler:    %s\n"
               "\terror:    %s\n",
               MessageStatusString(status), name(), error.ToCString());
         } else {
-          OS::Print(
+          OS::PrintErr(
               "[-] Stopping message handler (%s):\n"
               "\thandler:    %s\n",
               MessageStatusString(status), name());
@@ -534,7 +534,7 @@ bool MessageHandler::CheckAndRunIdleLocked(MonitorLocker* ml) {
 void MessageHandler::ClosePort(Dart_Port port) {
   MonitorLocker ml(&monitor_);
   if (FLAG_trace_isolates) {
-    OS::Print(
+    OS::PrintErr(
         "[-] Closing port:\n"
         "\thandler:    %s\n"
         "\tport:       %" Pd64
@@ -547,7 +547,7 @@ void MessageHandler::ClosePort(Dart_Port port) {
 void MessageHandler::CloseAllPorts() {
   MonitorLocker ml(&monitor_);
   if (FLAG_trace_isolates) {
-    OS::Print(
+    OS::PrintErr(
         "[-] Closing all ports:\n"
         "\thandler:    %s\n",
         name());

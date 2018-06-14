@@ -154,9 +154,9 @@ SampleBuffer::SampleBuffer(intptr_t capacity) {
   cursor_ = 0;
 
   if (FLAG_trace_profiler) {
-    OS::Print("Profiler holds %" Pd " samples\n", capacity);
-    OS::Print("Profiler sample is %" Pd " bytes\n", Sample::instance_size());
-    OS::Print("Profiler memory usage = %" Pd " bytes\n", size);
+    OS::PrintErr("Profiler holds %" Pd " samples\n", capacity);
+    OS::PrintErr("Profiler sample is %" Pd " bytes\n", Sample::instance_size());
+    OS::PrintErr("Profiler memory usage = %" Pd " bytes\n", size);
   }
 }
 

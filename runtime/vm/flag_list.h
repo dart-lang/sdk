@@ -118,8 +118,10 @@ constexpr bool kDartPrecompiledRuntime = false;
     "Maximum number of polymorphic check, otherwise it is megamorphic.")       \
   P(max_equality_polymorphic_checks, int, 32,                                  \
     "Maximum number of polymorphic checks in equality operator,")              \
-  P(new_gen_semi_max_size, int, (kWordSize <= 4) ? 16 : 32,                    \
+  P(new_gen_semi_max_size, int, (kWordSize <= 4) ? 8 : 16,                     \
     "Max size of new gen semi space in MB")                                    \
+  P(new_gen_semi_initial_size, int, (kWordSize <= 4) ? 1 : 2,                  \
+    "Initial size of new gen semi space in MB")                                \
   P(optimization_counter_threshold, int, 30000,                                \
     "Function's usage-counter value before it is optimized, -1 means never")   \
   P(old_gen_heap_size, int, kDefaultMaxOldGenHeapSize,                         \

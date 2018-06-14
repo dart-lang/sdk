@@ -38,11 +38,11 @@ TEST_CASE(RangeTests) {
     max = Clamp(max);                                                          \
     EXPECT(min.Equals(res_min));                                               \
     if (FLAG_support_il_printer && !min.Equals(res_min)) {                     \
-      OS::Print("%s\n", min.ToCString());                                      \
+      OS::PrintErr("%s\n", min.ToCString());                                   \
     }                                                                          \
     EXPECT(max.Equals(res_max));                                               \
     if (FLAG_support_il_printer && !max.Equals(res_max)) {                     \
-      OS::Print("%s\n", max.ToCString());                                      \
+      OS::PrintErr("%s\n", max.ToCString());                                   \
     }                                                                          \
   }
 
@@ -317,11 +317,11 @@ TEST_CASE(RangeAdd) {
     Range::Add(left_range, right_range, &min, &max, NULL);                     \
     EXPECT(min.Equals(result_min));                                            \
     if (FLAG_support_il_printer && !min.Equals(result_min)) {                  \
-      OS::Print("%s != %s\n", min.ToCString(), result_min.ToCString());        \
+      OS::PrintErr("%s != %s\n", min.ToCString(), result_min.ToCString());     \
     }                                                                          \
     EXPECT(max.Equals(result_max));                                            \
     if (FLAG_support_il_printer && !max.Equals(result_max)) {                  \
-      OS::Print("%s != %s\n", max.ToCString(), result_max.ToCString());        \
+      OS::PrintErr("%s != %s\n", max.ToCString(), result_max.ToCString());     \
     }                                                                          \
   }
 
@@ -397,11 +397,11 @@ TEST_CASE(RangeSub) {
     Range::Sub(left_range, right_range, &min, &max, NULL);                     \
     EXPECT(min.Equals(result_min));                                            \
     if (FLAG_support_il_printer && !min.Equals(result_min)) {                  \
-      OS::Print("%s != %s\n", min.ToCString(), result_min.ToCString());        \
+      OS::PrintErr("%s != %s\n", min.ToCString(), result_min.ToCString());     \
     }                                                                          \
     EXPECT(max.Equals(result_max));                                            \
     if (FLAG_support_il_printer && !max.Equals(result_max)) {                  \
-      OS::Print("%s != %s\n", max.ToCString(), result_max.ToCString());        \
+      OS::PrintErr("%s != %s\n", max.ToCString(), result_max.ToCString());     \
     }                                                                          \
   }
 
@@ -450,11 +450,11 @@ TEST_CASE(RangeAnd) {
     Range::And(left_range, right_range, &min, &max);                           \
     EXPECT(min.Equals(result_min));                                            \
     if (FLAG_support_il_printer && !min.Equals(result_min)) {                  \
-      OS::Print("%s != %s\n", min.ToCString(), result_min.ToCString());        \
+      OS::PrintErr("%s != %s\n", min.ToCString(), result_min.ToCString());     \
     }                                                                          \
     EXPECT(max.Equals(result_max));                                            \
     if (FLAG_support_il_printer && !max.Equals(result_max)) {                  \
-      OS::Print("%s != %s\n", max.ToCString(), result_max.ToCString());        \
+      OS::PrintErr("%s != %s\n", max.ToCString(), result_max.ToCString());     \
     }                                                                          \
   }
 

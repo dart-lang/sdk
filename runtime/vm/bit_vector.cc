@@ -105,11 +105,11 @@ bool BitVector::IsEmpty() const {
 }
 
 void BitVector::Print() const {
-  OS::Print("[");
+  OS::PrintErr("[");
   for (intptr_t i = 0; i < length_; i++) {
-    OS::Print(Contains(i) ? "1" : "0");
+    OS::PrintErr(Contains(i) ? "1" : "0");
   }
-  OS::Print("]");
+  OS::PrintErr("]");
 }
 
 }  // namespace dart

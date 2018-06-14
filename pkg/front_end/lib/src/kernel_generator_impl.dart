@@ -144,7 +144,7 @@ Future<CompilerResult> generateKernelInternal(
     return new CompilerResult(
         summary: summary,
         component: component,
-        deps: kernelTarget.loader.getDependencies());
+        deps: new List<Uri>.from(CompilerContext.current.dependencies));
   } on deprecated_InputError catch (e) {
     options.report(
         deprecated_InputError.toMessage(e), Severity.internalProblem);

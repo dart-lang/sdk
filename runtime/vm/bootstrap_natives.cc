@@ -136,7 +136,7 @@ void Bootstrap::SetupNativeResolver() {
   library.set_native_entry_symbol_resolver(symbol_resolver);
 }
 
-bool Bootstrap::IsBootstapResolver(Dart_NativeEntryResolver resolver) {
+bool Bootstrap::IsBootstrapResolver(Dart_NativeEntryResolver resolver) {
   return (resolver ==
           reinterpret_cast<Dart_NativeEntryResolver>(BootstrapNatives::Lookup));
 }

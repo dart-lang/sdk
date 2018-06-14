@@ -152,6 +152,11 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     if (locals.hasTypeArgsVar) {
       asm.emitPush(locals.typeArgsVarIndexInFrame);
+    } else if (enclosingMember is Procedure &&
+        (enclosingMember as Procedure).isFactory) {
+      // Null type arguments are passed to factory constructors even if class
+      // is not generic. TODO(alexmarkov): Clean this up.
+      _genPushNull();
     }
     if (locals.hasReceiver) {
       asm.emitPush(locals.getVarIndexInFrame(locals.receiverVar));

@@ -274,8 +274,8 @@ void FlowGraph::MergeBlocks() {
       merged->Add(successor->postorder_number());
       changed = true;
       if (FLAG_trace_optimization) {
-        OS::Print("Merged blocks B%" Pd " and B%" Pd "\n", block->block_id(),
-                  successor->block_id());
+        OS::PrintErr("Merged blocks B%" Pd " and B%" Pd "\n", block->block_id(),
+                     successor->block_id());
       }
     }
     // The new block inherits the block id of the last successor to maintain
@@ -580,25 +580,25 @@ void LivenessAnalysis::Analyze() {
 }
 
 static void PrintBitVector(const char* tag, BitVector* v) {
-  OS::Print("%s:", tag);
+  OS::PrintErr("%s:", tag);
   for (BitVector::Iterator it(v); !it.Done(); it.Advance()) {
-    OS::Print(" %" Pd "", it.Current());
+    OS::PrintErr(" %" Pd "", it.Current());
   }
-  OS::Print("\n");
+  OS::PrintErr("\n");
 }
 
 void LivenessAnalysis::Dump() {
   const intptr_t block_count = postorder_.length();
   for (intptr_t i = 0; i < block_count; i++) {
     BlockEntryInstr* block = postorder_[i];
-    OS::Print("block @%" Pd " -> ", block->block_id());
+    OS::PrintErr("block @%" Pd " -> ", block->block_id());
 
     Instruction* last = block->last_instruction();
     for (intptr_t j = 0; j < last->SuccessorCount(); j++) {
       BlockEntryInstr* succ = last->SuccessorAt(j);
-      OS::Print(" @%" Pd "", succ->block_id());
+      OS::PrintErr(" @%" Pd "", succ->block_id());
     }
-    OS::Print("\n");
+    OS::PrintErr("\n");
 
     PrintBitVector("  live out", live_out_[i]);
     PrintBitVector("  kill", kill_[i]);
@@ -1450,8 +1450,8 @@ ZoneGrowableArray<BlockEntryInstr*>* FlowGraph::ComputeLoops() const {
       BlockEntryInstr* pred = block->PredecessorAt(i);
       if (block->Dominates(pred)) {
         if (FLAG_trace_optimization) {
-          OS::Print("Back edge B%" Pd " -> B%" Pd "\n", pred->block_id(),
-                    block->block_id());
+          OS::PrintErr("Back edge B%" Pd " -> B%" Pd "\n", pred->block_id(),
+                       block->block_id());
         }
         BitVector* loop_info = FindLoop(pred, block);
         // Loops that share the same loop header are treated as one loop.
@@ -1474,10 +1474,10 @@ ZoneGrowableArray<BlockEntryInstr*>* FlowGraph::ComputeLoops() const {
   if (FLAG_trace_optimization) {
     for (intptr_t i = 0; i < loop_headers->length(); ++i) {
       BlockEntryInstr* header = (*loop_headers)[i];
-      OS::Print("Loop header B%" Pd "\n", header->block_id());
+      OS::PrintErr("Loop header B%" Pd "\n", header->block_id());
       for (BitVector::Iterator it(header->loop_info()); !it.Done();
            it.Advance()) {
-        OS::Print("  B%" Pd "\n", preorder_[it.Current()]->block_id());
+        OS::PrintErr("  B%" Pd "\n", preorder_[it.Current()]->block_id());
       }
     }
   }

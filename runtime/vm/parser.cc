@@ -83,8 +83,8 @@ class TraceParser : public ValueObject {
         intptr_t line, column;
         script.GetTokenLocation(token_pos, &line, &column);
         PrintIndent();
-        OS::Print("%s (line %" Pd ", col %" Pd ", token %" Pd ")\n", msg, line,
-                  column, token_pos.value());
+        OS::PrintErr("%s (line %" Pd ", col %" Pd ", token %" Pd ")\n", msg,
+                     line, column, token_pos.value());
       }
       (*indent_)++;
     }
@@ -99,7 +99,7 @@ class TraceParser : public ValueObject {
  private:
   void PrintIndent() {
     for (intptr_t i = 0; i < *indent_; i++) {
-      OS::Print(". ");
+      OS::PrintErr(". ");
     }
   }
   intptr_t* indent_;
@@ -4766,7 +4766,7 @@ void Parser::ParseEnumDeclaration(const GrowableObjectArray& pending_classes,
   String* enum_name =
       ExpectUserDefinedTypeIdentifier("enum type name expected");
   if (FLAG_trace_parser) {
-    OS::Print("TopLevel parsing enum '%s'\n", enum_name->ToCString());
+    OS::PrintErr("TopLevel parsing enum '%s'\n", enum_name->ToCString());
   }
   ExpectToken(Token::kLBRACE);
   if (!IsIdentifier()) {
@@ -4823,7 +4823,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
   const TokenPosition classname_pos = TokenPos();
   String& class_name = *ExpectUserDefinedTypeIdentifier("class name expected");
   if (FLAG_trace_parser) {
-    OS::Print("TopLevel parsing class '%s'\n", class_name.ToCString());
+    OS::PrintErr("TopLevel parsing class '%s'\n", class_name.ToCString());
   }
   Class& cls = Class::Handle(Z);
   TypeArguments& orig_type_parameters = TypeArguments::Handle(Z);
@@ -5356,8 +5356,8 @@ void Parser::ParseMixinAppAlias(const GrowableObjectArray& pending_classes,
   const TokenPosition classname_pos = TokenPos();
   String& class_name = *ExpectUserDefinedTypeIdentifier("class name expected");
   if (FLAG_trace_parser) {
-    OS::Print("toplevel parsing mixin application alias class '%s'\n",
-              class_name.ToCString());
+    OS::PrintErr("toplevel parsing mixin application alias class '%s'\n",
+                 class_name.ToCString());
   }
   const Object& obj = Object::Handle(Z, library_.LookupLocalObject(class_name));
   if (!obj.IsNull()) {
@@ -5542,8 +5542,8 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
          Type::Cast(function_type).signature());
 
   if (FLAG_trace_parser) {
-    OS::Print("TopLevel parsing function type alias '%s'\n",
-              String::Handle(Z, signature_function.Signature()).ToCString());
+    OS::PrintErr("TopLevel parsing function type alias '%s'\n",
+                 String::Handle(Z, signature_function.Signature()).ToCString());
   }
   // The alias should not be marked as finalized yet, since it needs to be
   // checked in the class finalizer for illegal self references.

@@ -378,22 +378,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     // Fasta no longer supports type comment based syntax
     // super.test_method_invalidTypeParameterExtendsComment();
   }
-
-  @override
-  @failingTest
-  void test_missingFunctionParameters_topLevel_void_block() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_FUNCTION_PARAMETERS, found 0
-    super.test_missingFunctionParameters_topLevel_void_block();
-  }
-
-  @override
-  @failingTest
-  void test_missingFunctionParameters_topLevel_void_expression() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_FUNCTION_PARAMETERS, found 0
-    super.test_missingFunctionParameters_topLevel_void_expression();
-  }
 }
 
 /**

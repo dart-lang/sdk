@@ -719,10 +719,10 @@ void AssemblerTest::Assemble() {
   const Instructions& instructions = Instructions::Handle(code_.instructions());
   uword start = instructions.PayloadStart();
   if (FLAG_disassemble) {
-    OS::Print("Code for test '%s' {\n", name_);
+    OS::PrintErr("Code for test '%s' {\n", name_);
     uword start = instructions.PayloadStart();
     Disassembler::Disassemble(start, start + assembler_->CodeSize());
-    OS::Print("}\n");
+    OS::PrintErr("}\n");
   }
   Disassembler::Disassemble(start, start + assembler_->CodeSize(), disassembly_,
                             DISASSEMBLY_SIZE);
@@ -790,7 +790,7 @@ bool CompilerTest::TestCompileScript(const Library& library,
   ASSERT(isolate != NULL);
   const Error& error = Error::Handle(Compiler::Compile(library, script));
   if (!error.IsNull()) {
-    OS::Print("Error compiling test script:\n%s\n", error.ToErrorCString());
+    OS::PrintErr("Error compiling test script:\n%s\n", error.ToErrorCString());
   }
   return error.IsNull();
 }

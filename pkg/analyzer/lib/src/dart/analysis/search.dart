@@ -145,15 +145,15 @@ class Search {
     await _driver.discoverAvailableFiles();
 
     try {
-      for (String path in _driver.knownFiles) {
-        if (onlyForFile != null && path != onlyForFile) {
+      List<FileState> knownFiles = _driver.fsState.knownFiles.toList();
+      for (FileState file in knownFiles) {
+        if (onlyForFile != null && file.path != onlyForFile) {
           continue;
         }
-        if (files.contains(path)) {
+        if (files.contains(file.path)) {
           continue;
         }
 
-        FileState file = _driver.fsState.getFileForPath(path);
         int fileIndex;
 
         void addDeclaration(String name, DeclarationKind kind, int offset,
@@ -380,10 +380,10 @@ class Search {
     await _driver.discoverAvailableFiles();
 
     List<SubtypeResult> results = [];
-    for (String path in _driver.knownFiles) {
-      FileState file = _driver.fsState.getFileForPath(path);
+    List<FileState> knownFiles = _driver.fsState.knownFiles.toList();
+    for (FileState file in knownFiles) {
       if (file.subtypedNames.contains(name)) {
-        AnalysisDriverUnitIndex index = await _driver.getIndex(path);
+        AnalysisDriverUnitIndex index = await _driver.getIndex(file.path);
         if (index != null) {
           for (AnalysisDriverSubtype subtype in index.subtypes) {
             if (subtype.supertypes.contains(id)) {

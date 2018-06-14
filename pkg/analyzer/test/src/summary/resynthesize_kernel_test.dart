@@ -147,7 +147,7 @@ class C {
 
   @failingTest // See dartbug.com/32290
   test_const_constructor_inferred_args() =>
-      test_const_constructor_inferred_args();
+      super.test_const_constructor_inferred_args();
 
   @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30258')

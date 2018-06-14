@@ -100,7 +100,8 @@ class BatchCompiler {
   run() async {
     await for (String line in lines) {
       try {
-        if (await batchCompileArguments(jsonDecode(line))) {
+        if (await batchCompileArguments(
+            new List<String>.from(jsonDecode(line)))) {
           stdout.writeln(">>> TEST OK");
         } else {
           stdout.writeln(">>> TEST FAIL");

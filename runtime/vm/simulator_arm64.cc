@@ -122,7 +122,7 @@ SimulatorDebugger::SimulatorDebugger(Simulator* sim) {
 SimulatorDebugger::~SimulatorDebugger() {}
 
 void SimulatorDebugger::Stop(Instr* instr, const char* message) {
-  OS::Print("Simulator hit %s\n", message);
+  OS::PrintErr("Simulator hit %s\n", message);
   Debug();
 }
 
@@ -280,7 +280,7 @@ void SimulatorDebugger::PrintDartFrame(uword pc,
   if (token_pos.IsReal()) {
     script.GetTokenLocation(token_pos, &line, &column);
   }
-  OS::Print(
+  OS::PrintErr(
       "pc=0x%" Px " fp=0x%" Px " sp=0x%" Px " %s%s (%s:%" Pd ":%" Pd ")\n", pc,
       fp, sp, is_optimized ? (is_inlined ? "inlined " : "optimized ") : "",
       func_name.ToCString(), url.ToCString(), line, column);
@@ -325,13 +325,13 @@ void SimulatorDebugger::PrintBacktrace() {
                      GetApproximateTokenIndex(code, frame->pc()),
                      code.is_optimized(), false);
     } else {
-      OS::Print("pc=0x%" Px " fp=0x%" Px " sp=0x%" Px " %s frame\n",
-                frame->pc(), frame->fp(), frame->sp(),
-                frame->IsEntryFrame()
-                    ? "entry"
-                    : frame->IsExitFrame()
-                          ? "exit"
-                          : frame->IsStubFrame() ? "stub" : "invalid");
+      OS::PrintErr("pc=0x%" Px " fp=0x%" Px " sp=0x%" Px " %s frame\n",
+                   frame->pc(), frame->fp(), frame->sp(),
+                   frame->IsEntryFrame()
+                       ? "entry"
+                       : frame->IsExitFrame()
+                             ? "exit"
+                             : frame->IsStubFrame() ? "stub" : "invalid");
     }
     frame = frames.NextFrame();
   }
@@ -400,12 +400,12 @@ void SimulatorDebugger::Debug() {
     if (last_pc != sim_->get_pc()) {
       last_pc = sim_->get_pc();
       if (Simulator::IsIllegalAddress(last_pc)) {
-        OS::Print("pc is out of bounds: 0x%" Px "\n", last_pc);
+        OS::PrintErr("pc is out of bounds: 0x%" Px "\n", last_pc);
       } else {
         if (FLAG_support_disassembler) {
           Disassembler::Disassemble(last_pc, last_pc + Instr::kInstrSize);
         } else {
-          OS::Print("Disassembler not supported in this mode.\n");
+          OS::PrintErr("Disassembler not supported in this mode.\n");
         }
       }
     }
@@ -421,7 +421,7 @@ void SimulatorDebugger::Debug() {
                         "%" XSTR(ARG_SIZE) "s",
                         cmd, arg1, arg2);
       if ((strcmp(cmd, "h") == 0) || (strcmp(cmd, "help") == 0)) {
-        OS::Print(
+        OS::PrintErr(
             "c/cont -- continue execution\n"
             "disasm -- disassemble instrs at current pc location\n"
             "  other variants are:\n"
@@ -444,7 +444,7 @@ void SimulatorDebugger::Debug() {
             "unstop -- if current pc is a stop instr make it a nop\n"
             "q/quit -- Quit the debugger and exit the program\n");
       } else if ((strcmp(cmd, "quit") == 0) || (strcmp(cmd, "q") == 0)) {
-        OS::Print("Quitting\n");
+        OS::PrintErr("Quitting\n");
         OS::Exit(0);
       } else if ((strcmp(cmd, "si") == 0) || (strcmp(cmd, "stepi") == 0)) {
         sim_->InstructionDecode(reinterpret_cast<Instr*>(sim_->get_pc()));
@@ -458,26 +458,26 @@ void SimulatorDebugger::Debug() {
           uint64_t value;
           if (strcmp(arg1, "icount") == 0) {
             value = sim_->get_icount();
-            OS::Print("icount: %" Pu64 " 0x%" Px64 "\n", value, value);
+            OS::PrintErr("icount: %" Pu64 " 0x%" Px64 "\n", value, value);
           } else if (GetValue(arg1, &value)) {
-            OS::Print("%s: %" Pu64 " 0x%" Px64 "\n", arg1, value, value);
+            OS::PrintErr("%s: %" Pu64 " 0x%" Px64 "\n", arg1, value, value);
           } else {
-            OS::Print("%s unrecognized\n", arg1);
+            OS::PrintErr("%s unrecognized\n", arg1);
           }
         } else {
-          OS::Print("print <reg or icount or value or *addr>\n");
+          OS::PrintErr("print <reg or icount or value or *addr>\n");
         }
       } else if ((strcmp(cmd, "pf") == 0) || (strcmp(cmd, "printfloat") == 0)) {
         if (args == 2) {
           uint32_t value;
           if (GetSValue(arg1, &value)) {
             float svalue = bit_cast<float, uint32_t>(value);
-            OS::Print("%s: %d 0x%x %.8g\n", arg1, value, value, svalue);
+            OS::PrintErr("%s: %d 0x%x %.8g\n", arg1, value, value, svalue);
           } else {
-            OS::Print("%s unrecognized\n", arg1);
+            OS::PrintErr("%s unrecognized\n", arg1);
           }
         } else {
-          OS::Print("printfloat <vreg or *addr>\n");
+          OS::PrintErr("printfloat <vreg or *addr>\n");
         }
       } else if ((strcmp(cmd, "pd") == 0) ||
                  (strcmp(cmd, "printdouble") == 0)) {
@@ -485,13 +485,13 @@ void SimulatorDebugger::Debug() {
           uint64_t long_value;
           if (GetDValue(arg1, &long_value)) {
             double dvalue = bit_cast<double, uint64_t>(long_value);
-            OS::Print("%s: %" Pu64 " 0x%" Px64 " %.8g\n", arg1, long_value,
-                      long_value, dvalue);
+            OS::PrintErr("%s: %" Pu64 " 0x%" Px64 " %.8g\n", arg1, long_value,
+                         long_value, dvalue);
           } else {
-            OS::Print("%s unrecognized\n", arg1);
+            OS::PrintErr("%s unrecognized\n", arg1);
           }
         } else {
-          OS::Print("printdouble <vreg or *addr>\n");
+          OS::PrintErr("printdouble <vreg or *addr>\n");
         }
       } else if ((strcmp(cmd, "pq") == 0) || (strcmp(cmd, "printquad") == 0)) {
         if (args == 2) {
@@ -509,17 +509,19 @@ void SimulatorDebugger::Debug() {
             const float sval1 = bit_cast<float, int32_t>(s1);
             const float sval2 = bit_cast<float, int32_t>(s2);
             const float sval3 = bit_cast<float, int32_t>(s3);
-            OS::Print("%s: %" Pu64 " 0x%" Px64 " %.8g\n", arg1, d0, d0, dval0);
-            OS::Print("%s: %" Pu64 " 0x%" Px64 " %.8g\n", arg1, d1, d1, dval1);
-            OS::Print("%s: %d 0x%x %.8g\n", arg1, s0, s0, sval0);
-            OS::Print("%s: %d 0x%x %.8g\n", arg1, s1, s1, sval1);
-            OS::Print("%s: %d 0x%x %.8g\n", arg1, s2, s2, sval2);
-            OS::Print("%s: %d 0x%x %.8g\n", arg1, s3, s3, sval3);
+            OS::PrintErr("%s: %" Pu64 " 0x%" Px64 " %.8g\n", arg1, d0, d0,
+                         dval0);
+            OS::PrintErr("%s: %" Pu64 " 0x%" Px64 " %.8g\n", arg1, d1, d1,
+                         dval1);
+            OS::PrintErr("%s: %d 0x%x %.8g\n", arg1, s0, s0, sval0);
+            OS::PrintErr("%s: %d 0x%x %.8g\n", arg1, s1, s1, sval1);
+            OS::PrintErr("%s: %d 0x%x %.8g\n", arg1, s2, s2, sval2);
+            OS::PrintErr("%s: %d 0x%x %.8g\n", arg1, s3, s3, sval3);
           } else {
-            OS::Print("%s unrecognized\n", arg1);
+            OS::PrintErr("%s unrecognized\n", arg1);
           }
         } else {
-          OS::Print("printquad <vreg or *addr>\n");
+          OS::PrintErr("printquad <vreg or *addr>\n");
         }
       } else if ((strcmp(cmd, "po") == 0) ||
                  (strcmp(cmd, "printobject") == 0)) {
@@ -529,20 +531,20 @@ void SimulatorDebugger::Debug() {
           if (((arg1[0] == '*') && GetValue(arg1 + 1, &value)) ||
               GetValue(arg1, &value)) {
             if (Isolate::Current()->heap()->Contains(value)) {
-              OS::Print("%s: \n", arg1);
+              OS::PrintErr("%s: \n", arg1);
 #if defined(DEBUG)
               const Object& obj =
                   Object::Handle(reinterpret_cast<RawObject*>(value));
               obj.Print();
 #endif  // defined(DEBUG)
             } else {
-              OS::Print("0x%" Px64 " is not an object reference\n", value);
+              OS::PrintErr("0x%" Px64 " is not an object reference\n", value);
             }
           } else {
-            OS::Print("%s unrecognized\n", arg1);
+            OS::PrintErr("%s unrecognized\n", arg1);
           }
         } else {
-          OS::Print("printobject <*reg or *addr>\n");
+          OS::PrintErr("printobject <*reg or *addr>\n");
         }
       } else if (strcmp(cmd, "disasm") == 0) {
         uint64_t start = 0;
@@ -555,9 +557,10 @@ void SimulatorDebugger::Debug() {
             // No length parameter passed, assume 10 instructions.
             if (Simulator::IsIllegalAddress(start)) {
               // If start isn't a valid address, warn and use PC instead.
-              OS::Print("First argument yields invalid address: 0x%" Px64 "\n",
-                        start);
-              OS::Print("Using PC instead\n");
+              OS::PrintErr("First argument yields invalid address: 0x%" Px64
+                           "\n",
+                           start);
+              OS::PrintErr("Using PC instead\n");
               start = sim_->get_pc();
             }
             end = start + (10 * Instr::kInstrSize);
@@ -567,9 +570,10 @@ void SimulatorDebugger::Debug() {
           if (GetValue(arg1, &start) && GetValue(arg2, &length)) {
             if (Simulator::IsIllegalAddress(start)) {
               // If start isn't a valid address, warn and use PC instead.
-              OS::Print("First argument yields invalid address: 0x%" Px64 "\n",
-                        start);
-              OS::Print("Using PC instead\n");
+              OS::PrintErr("First argument yields invalid address: 0x%" Px64
+                           "\n",
+                           start);
+              OS::PrintErr("Using PC instead\n");
               start = sim_->get_pc();
             }
             end = start + (length * Instr::kInstrSize);
@@ -579,58 +583,58 @@ void SimulatorDebugger::Debug() {
           if (FLAG_support_disassembler) {
             Disassembler::Disassemble(start, end);
           } else {
-            OS::Print("Disassembler not supported in this mode.\n");
+            OS::PrintErr("Disassembler not supported in this mode.\n");
           }
         } else {
-          OS::Print("disasm [<address> [<number_of_instructions>]]\n");
+          OS::PrintErr("disasm [<address> [<number_of_instructions>]]\n");
         }
       } else if (strcmp(cmd, "gdb") == 0) {
-        OS::Print("relinquishing control to gdb\n");
+        OS::PrintErr("relinquishing control to gdb\n");
         OS::DebugBreak();
-        OS::Print("regaining control from gdb\n");
+        OS::PrintErr("regaining control from gdb\n");
       } else if (strcmp(cmd, "break") == 0) {
         if (args == 2) {
           uint64_t addr;
           if (GetValue(arg1, &addr)) {
             if (!SetBreakpoint(reinterpret_cast<Instr*>(addr))) {
-              OS::Print("setting breakpoint failed\n");
+              OS::PrintErr("setting breakpoint failed\n");
             }
           } else {
-            OS::Print("%s unrecognized\n", arg1);
+            OS::PrintErr("%s unrecognized\n", arg1);
           }
         } else {
-          OS::Print("break <addr>\n");
+          OS::PrintErr("break <addr>\n");
         }
       } else if (strcmp(cmd, "del") == 0) {
         if (!DeleteBreakpoint(NULL)) {
-          OS::Print("deleting breakpoint failed\n");
+          OS::PrintErr("deleting breakpoint failed\n");
         }
       } else if (strcmp(cmd, "flags") == 0) {
-        OS::Print("APSR: ");
-        OS::Print("N flag: %d; ", sim_->n_flag_);
-        OS::Print("Z flag: %d; ", sim_->z_flag_);
-        OS::Print("C flag: %d; ", sim_->c_flag_);
-        OS::Print("V flag: %d\n", sim_->v_flag_);
+        OS::PrintErr("APSR: ");
+        OS::PrintErr("N flag: %d; ", sim_->n_flag_);
+        OS::PrintErr("Z flag: %d; ", sim_->z_flag_);
+        OS::PrintErr("C flag: %d; ", sim_->c_flag_);
+        OS::PrintErr("V flag: %d\n", sim_->v_flag_);
       } else if (strcmp(cmd, "unstop") == 0) {
         intptr_t stop_pc = sim_->get_pc() - Instr::kInstrSize;
         Instr* stop_instr = reinterpret_cast<Instr*>(stop_pc);
         if (stop_instr->IsExceptionGenOp()) {
           stop_instr->SetInstructionBits(Instr::kNopInstruction);
         } else {
-          OS::Print("Not at debugger stop.\n");
+          OS::PrintErr("Not at debugger stop.\n");
         }
       } else if (strcmp(cmd, "trace") == 0) {
         if (FLAG_trace_sim_after == ULLONG_MAX) {
           FLAG_trace_sim_after = sim_->get_icount();
-          OS::Print("execution tracing on\n");
+          OS::PrintErr("execution tracing on\n");
         } else {
           FLAG_trace_sim_after = ULLONG_MAX;
-          OS::Print("execution tracing off\n");
+          OS::PrintErr("execution tracing off\n");
         }
       } else if (strcmp(cmd, "bt") == 0) {
         PrintBacktrace();
       } else {
-        OS::Print("Unknown command: %s\n", cmd);
+        OS::PrintErr("Unknown command: %s\n", cmd);
       }
     }
     delete[] line;
@@ -652,7 +656,7 @@ char* SimulatorDebugger::ReadLine(const char* prompt) {
   char line_buf[256];
   intptr_t offset = 0;
   bool keep_going = true;
-  OS::Print("%s", prompt);
+  OS::PrintErr("%s", prompt);
   while (keep_going) {
     if (fgets(line_buf, sizeof(line_buf), stdin) == NULL) {
       // fgets got an error. Just give up.
@@ -1159,8 +1163,8 @@ intptr_t Simulator::WriteExclusiveW(uword addr, intptr_t value, Instr* instr) {
 
 // Unsupported instructions use Format to print an error and stop execution.
 void Simulator::Format(Instr* instr, const char* format) {
-  OS::Print("Simulator found unsupported instruction:\n 0x%p: %s\n", instr,
-            format);
+  OS::PrintErr("Simulator found unsupported instruction:\n 0x%p: %s\n", instr,
+               format);
   UNIMPLEMENTED();
 }
 

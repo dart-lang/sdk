@@ -815,8 +815,6 @@ class SourceLoader<L> extends Loader<L> {
     ticker.logMs("Performed top level inference");
   }
 
-  List<Uri> getDependencies() => sourceBytes.keys.toList();
-
   Expression instantiateInvocation(Expression receiver, String name,
       Arguments arguments, int offset, bool isSuper) {
     return target.backendTarget.instantiateInvocation(

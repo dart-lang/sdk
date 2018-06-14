@@ -1505,7 +1505,7 @@ static int GenerateSnapshotFromKernel(const uint8_t* kernel_buffer,
 }
 
 int main(int argc, char** argv) {
-  const int EXTRA_VM_ARGUMENTS = 2;
+  const int EXTRA_VM_ARGUMENTS = 4;
   CommandLineOptions vm_options(argc + EXTRA_VM_ARGUMENTS);
 
   // Initialize the URL mapping array.
@@ -1515,6 +1515,16 @@ int main(int argc, char** argv) {
   // Initialize the entrypoints array.
   CommandLineOptions entry_points_files_array(argc);
   entry_points_files = &entry_points_files_array;
+
+  // When running from the command line we assume that we are optimizing for
+  // throughput, and therefore use a larger new gen semi space size and a faster
+  // new gen growth factor unless others have been specified.
+  if (kWordSize <= 4) {
+    vm_options.AddArgument("--new_gen_semi_max_size=16");
+  } else {
+    vm_options.AddArgument("--new_gen_semi_max_size=32");
+  }
+  vm_options.AddArgument("--new_gen_growth_factor=4");
 
   // Parse command line arguments.
   if (ParseArguments(argc, argv, &vm_options, &app_script_name) < 0) {

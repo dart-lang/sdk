@@ -25,16 +25,6 @@ RawArray* ArgumentsDescriptor::cached_args_descriptors_[kCachedDescriptorCount];
 RawObject* DartEntry::InvokeFunction(const Function& function,
                                      const Array& arguments) {
   ASSERT(Thread::Current()->IsMutatorThread());
-
-  // We use a kernel2kernel constant evaluator in Dart 2.0 AOT compilation
-  // and never start the VM service isolate. So we should never end up invoking
-  // any dart code in the Dart 2.0 AOT compiler.
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  if (Isolate::Current()->strong() && FLAG_precompiled_mode) {
-    UNREACHABLE();
-  }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
   const int kTypeArgsLen = 0;  // No support to pass type args to generic func.
   const Array& arguments_descriptor =
       Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, arguments.Length()));
@@ -120,6 +110,15 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
                                      const Array& arguments,
                                      const Array& arguments_descriptor,
                                      uword current_sp) {
+  // We use a kernel2kernel constant evaluator in Dart 2.0 AOT compilation
+  // and never start the VM service isolate. So we should never end up invoking
+  // any dart code in the Dart 2.0 AOT compiler.
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (Isolate::Current()->strong() && FLAG_precompiled_mode) {
+    UNREACHABLE();
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
   // Get the entrypoint corresponding to the function specified, this
   // will result in a compilation of the function if it is not already
   // compiled.

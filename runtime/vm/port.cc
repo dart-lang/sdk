@@ -107,7 +107,7 @@ void PortMap::SetPortState(Dart_Port port, PortState state) {
     map_[index].handler->increment_live_ports();
   }
   if (FLAG_trace_isolates) {
-    OS::Print(
+    OS::PrintErr(
         "[^] Port (%s) -> (%s): \n"
         "\thandler:    %s\n"
         "\tport:       %" Pd64 "\n",
@@ -168,7 +168,7 @@ Dart_Port PortMap::CreatePort(MessageHandler* handler) {
   MaintainInvariants();
 
   if (FLAG_trace_isolates) {
-    OS::Print(
+    OS::PrintErr(
         "[+] Opening port: \n"
         "\thandler:    %s\n"
         "\tport:       %" Pd64 "\n",
@@ -323,9 +323,9 @@ void PortMap::DebugDumpForMessageHandler(MessageHandler* handler) {
   for (intptr_t i = 0; i < capacity_; i++) {
     if (map_[i].handler == handler) {
       if (map_[i].state == kLivePort) {
-        OS::Print("Live Port = %" Pd64 "\n", map_[i].port);
+        OS::PrintErr("Live Port = %" Pd64 "\n", map_[i].port);
         msg_handler = DartLibraryCalls::LookupHandler(map_[i].port);
-        OS::Print("Handler = %s\n", msg_handler.ToCString());
+        OS::PrintErr("Handler = %s\n", msg_handler.ToCString());
       }
     }
   }

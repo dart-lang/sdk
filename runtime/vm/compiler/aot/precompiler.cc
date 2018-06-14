@@ -344,6 +344,7 @@ void Precompiler::DoCompileAll(
       I->object_store()->set_completer_class(null_class);
       I->object_store()->set_symbol_class(null_class);
       I->object_store()->set_compiletime_error_class(null_class);
+      I->object_store()->set_growable_list_factory(null_function);
       I->object_store()->set_simple_instance_of_function(null_function);
       I->object_store()->set_simple_instance_of_true_function(null_function);
       I->object_store()->set_simple_instance_of_false_function(null_function);

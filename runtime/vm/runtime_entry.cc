@@ -486,7 +486,7 @@ static void PrintTypeCheck(const char* message,
                  String::Handle(instantiated_type.Name()).ToCString(),
                  String::Handle(type.Name()).ToCString(), caller_frame->pc());
     if (!bound_error.IsNull()) {
-      OS::Print("  bound error: %s\n", bound_error.ToErrorCString());
+      OS::PrintErr("  bound error: %s\n", bound_error.ToErrorCString());
     }
   }
   const Function& function =
@@ -513,13 +513,13 @@ static void UpdateTypeTestCache(
   // inlined assembly.
   if (new_cache.IsNull()) {
     if (FLAG_trace_type_checks) {
-      OS::Print("UpdateTypeTestCache: cache is null\n");
+      OS::PrintErr("UpdateTypeTestCache: cache is null\n");
     }
     return;
   }
   if (instance.IsSmi()) {
     if (FLAG_trace_type_checks) {
-      OS::Print("UpdateTypeTestCache: instance is Smi\n");
+      OS::PrintErr("UpdateTypeTestCache: instance is Smi\n");
     }
     return;
   }
@@ -540,7 +540,7 @@ static void UpdateTypeTestCache(
     if (Closure::Cast(instance).function_type_arguments() !=
         TypeArguments::null()) {
       if (FLAG_trace_type_checks) {
-        OS::Print(
+        OS::PrintErr(
             "UpdateTypeTestCache: closure function_type_arguments is "
             "not null\n");
       }
@@ -1906,9 +1906,9 @@ static void HandleOSRRequest(Thread* thread) {
       Code::Handle(function.unoptimized_code()).GetDeoptIdForOsr(frame->pc());
   ASSERT(osr_id != Compiler::kNoOSRDeoptId);
   if (FLAG_trace_osr) {
-    OS::Print("Attempting OSR for %s at id=%" Pd ", count=%" Pd "\n",
-              function.ToFullyQualifiedCString(), osr_id,
-              function.usage_counter());
+    OS::PrintErr("Attempting OSR for %s at id=%" Pd ", count=%" Pd "\n",
+                 function.ToFullyQualifiedCString(), osr_id,
+                 function.usage_counter());
   }
 
   // Since the code is referenced from the frame and the ZoneHandle,
@@ -2482,7 +2482,7 @@ DEFINE_RUNTIME_ENTRY(InitStaticField, 1) {
 
 // Print the stop message.
 DEFINE_LEAF_RUNTIME_ENTRY(void, PrintStopMessage, 1, const char* message) {
-  OS::Print("Stop message: %s\n", message);
+  OS::PrintErr("Stop message: %s\n", message);
 }
 END_LEAF_RUNTIME_ENTRY
 

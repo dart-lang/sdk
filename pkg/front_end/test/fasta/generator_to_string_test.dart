@@ -54,11 +54,11 @@ import 'package:front_end/src/fasta/kernel/kernel_body_builder.dart'
 
 import 'package:front_end/src/fasta/kernel/kernel_expression_generator.dart'
     show
-        DelayedAssignment,
-        DelayedPostfixIncrement,
         IncompleteErrorGenerator,
         IncompletePropertyAccessGenerator,
         KernelDeferredAccessGenerator,
+        KernelDelayedAssignment,
+        KernelDelayedPostfixIncrement,
         KernelIndexedAccessGenerator,
         KernelLargeIntAccessGenerator,
         KernelLoadLibraryGenerator,
@@ -140,12 +140,12 @@ main() {
     check(
         "DelayedAssignment(offset: 4, value: expression,"
         " assignmentOperator: +=)",
-        new DelayedAssignment(
+        new KernelDelayedAssignment(
             helper, token, generator, expression, assignmentOperator));
     check(
         "DelayedPostfixIncrement(offset: 4, binaryOperator: +,"
         " interfaceTarget: $uri::#class1::myInterfaceTarget)",
-        new DelayedPostfixIncrement(
+        new KernelDelayedPostfixIncrement(
             helper, token, generator, binaryOperator, interfaceTarget));
     check(
         "VariableUseGenerator(offset: 4, variable: dynamic #t1;\n,"

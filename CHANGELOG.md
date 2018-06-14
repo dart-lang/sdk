@@ -1,3 +1,29 @@
+## 2.0.0-dev.XX.0
+(Add new changes here, and they will be copied to the
+ change section for the next dev version)
+
+### Language
+
+#### Strong Mode
+
+### Dart VM
+
+### Tool Changes
+
+#### Pub
+
+#### Other Tools
+
+### Core library changes
+
+## 2.0.0-dev.63.0
+
+### Tool Changes
+
+#### Pub
+
+* Fix an error which prevented `pub publish` due to the package validation.
+
 ## 2.0.0-dev.62.0
 
 ### Language

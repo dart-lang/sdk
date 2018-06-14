@@ -6,6 +6,7 @@ import '../../scanner/token.dart'
     show
         BeginToken,
         SimpleToken,
+        SyntheticBeginToken,
         SyntheticStringToken,
         SyntheticToken,
         Token,
@@ -38,6 +39,25 @@ class TokenStreamRewriter {
 
   /// Initialize a newly created re-writer.
   TokenStreamRewriter();
+
+  /// Insert a synthetic open and close parenthesis and return the new synthetic
+  /// open parenthesis. If [insertIdentifier] is true, then a synthetic
+  /// identifier is included between the open and close parenthesis.
+  Token insertParens(Token token, bool includeIdentifier) {
+    Token next = token.next;
+    int offset = next.charOffset;
+    BeginToken leftParen =
+        next = new SyntheticBeginToken(TokenType.OPEN_PAREN, offset);
+    if (includeIdentifier) {
+      next = next.setNext(
+          new SyntheticStringToken(TokenType.IDENTIFIER, '', offset, 0));
+    }
+    next = next.setNext(new SyntheticToken(TokenType.CLOSE_PAREN, offset));
+    leftParen.endGroup = next;
+    next.setNext(token.next);
+    token.setNext(leftParen);
+    return leftParen;
+  }
 
   /// Insert a synthetic identifier after [token] and return the new identifier.
   Token insertSyntheticIdentifier(Token token) {

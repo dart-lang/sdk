@@ -8,6 +8,8 @@ import 'dart:async' show Future;
 
 import 'dart:io' show File, Platform, exitCode;
 
+import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
+
 import 'package:vm/bytecode/gen_bytecode.dart'
     show generateBytecode, isKernelBytecodeEnabledForPlatform;
 
@@ -16,17 +18,17 @@ import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/fasta/deprecated_problems.dart'
     show deprecated_InputError;
 
+import 'package:front_end/src/fasta/get_dependencies.dart' show getDependencies;
+
 import 'package:front_end/src/fasta/kernel/utils.dart'
     show writeComponentToFile;
 
 import 'package:front_end/src/fasta/severity.dart' show Severity;
 
-import 'package:front_end/src/kernel_generator_impl.dart'
-    show generateKernelInternal;
-
 import 'package:front_end/src/fasta/util/relativize.dart' show relativizeUri;
 
-import 'package:front_end/src/fasta/get_dependencies.dart' show getDependencies;
+import 'package:front_end/src/kernel_generator_impl.dart'
+    show generateKernelInternal;
 
 import 'additional_targets.dart' show installAdditionalTargets;
 
@@ -87,14 +89,33 @@ Future compilePlatformInternal(
   c.options.ticker.logMs("Wrote component to ${fullOutput.toFilePath()}");
 
   List<Uri> deps = result.deps.toList();
-  deps.addAll(await getDependencies(Platform.script,
-      platform: outlineOutput, target: c.options.target));
+  for (Uri dependency
+      in await computeHostDependencies(outlineOutput.resolve("./"))) {
+    // Add the dependencies of the compiler's own sources.
+    if (dependency != outlineOutput) {
+      // We're computing the dependencies for [outlineOutput], so we shouldn't
+      // include it in the deps file.
+      deps.add(dependency);
+    }
+  }
   await writeDepsFile(
       fullOutput, new File(new File.fromUri(fullOutput).path + ".d").uri, deps);
 }
 
+Future<List<Uri>> computeHostDependencies(Uri platformLocation) async {
+  // Returns a list of source files that make up the Fasta compiler (the files
+  // the Dart VM reads to run Fasta). Until Fasta is self-hosting (in strong
+  // mode), this is only an approximation, albeit accurate.  Once Fasta is
+  // self-hosting, this isn't an approximation. Regardless, strong mode
+  // shouldn't affect which files are read.
+  Uri hostPlatform = platformLocation.resolve("vm_outline_strong.dill");
+  Target hostTarget = getTarget("vm", new TargetFlags(strongMode: true));
+  return getDependencies(Platform.script,
+      platform: hostPlatform, target: hostTarget);
+}
+
 Future writeDepsFile(
-    Uri output, Uri depsFile, Iterable<Uri> allDependencies) async {
+    Uri output, Uri depsFile, List<Uri> allDependencies) async {
   if (allDependencies.isEmpty) return;
   String toRelativeFilePath(Uri uri) {
     // Ninja expects to find file names relative to the current working
@@ -122,9 +143,20 @@ Future writeDepsFile(
   StringBuffer sb = new StringBuffer();
   sb.write(toRelativeFilePath(output));
   sb.write(":");
-  for (Uri uri in allDependencies) {
-    sb.write(" \\\n  ");
-    sb.write(toRelativeFilePath(uri));
+  List<String> paths = new List<String>(allDependencies.length);
+  for (int i = 0; i < allDependencies.length; i++) {
+    paths[i] = toRelativeFilePath(allDependencies[i]);
+  }
+  // Sort the relative paths to ease analyzing future changes to this code.
+  paths.sort();
+  String previous;
+  for (String path in paths) {
+    // Check for and omit duplicates.
+    if (path != previous) {
+      previous = path;
+      sb.write(" \\\n  ");
+      sb.write(path);
+    }
   }
   sb.writeln();
   await new File.fromUri(depsFile).writeAsString("$sb");

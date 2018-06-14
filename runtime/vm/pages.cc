@@ -806,7 +806,7 @@ bool PageSpace::ShouldCollectCode() {
   if ((start - last_code_collection_in_us) >
       FLAG_code_collection_interval_in_us) {
     if (FLAG_log_code_drop) {
-      OS::Print("Trying to detach code.\n");
+      OS::PrintErr("Trying to detach code.\n");
     }
     page_space_controller_.set_last_code_collection_in_us(start);
     return true;
@@ -933,9 +933,9 @@ void PageSpace::CollectGarbage(bool compact) {
     NoSafepointScope no_safepoints;
 
     if (FLAG_print_free_list_before_gc) {
-      OS::Print("Data Freelist (before GC):\n");
+      OS::PrintErr("Data Freelist (before GC):\n");
       freelist_[HeapPage::kData].Print();
-      OS::Print("Executable Freelist (before GC):\n");
+      OS::PrintErr("Executable Freelist (before GC):\n");
       freelist_[HeapPage::kExecutable].Print();
     }
 
@@ -1054,9 +1054,9 @@ void PageSpace::CollectGarbage(bool compact) {
     heap_->RecordTime(kSweepLargePages, end - mid3);
 
     if (FLAG_print_free_list_after_gc) {
-      OS::Print("Data Freelist (after GC):\n");
+      OS::PrintErr("Data Freelist (after GC):\n");
       freelist_[HeapPage::kData].Print();
-      OS::Print("Executable Freelist (after GC):\n");
+      OS::PrintErr("Executable Freelist (after GC):\n");
       freelist_[HeapPage::kExecutable].Print();
     }
 

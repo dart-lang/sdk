@@ -37,8 +37,8 @@ DECLARE_FLAG(bool, trace_thread_interrupter);
 class ThreadSuspendScope {
  public:
   explicit ThreadSuspendScope(zx_handle_t thread_handle)
-      : thread_handle_(thread_handle), suspended_(true) {
-    zx_status_t status = zx_task_suspend(thread_handle);
+      : thread_handle_(thread_handle), suspend_token_(ZX_HANDLE_INVALID) {
+    zx_status_t status = zx_task_suspend_token(thread_handle, &suspend_token_);
     // If a thread is somewhere where suspend is impossible, zx_task_suspend()
     // can return ZX_ERR_NOT_SUPPORTED.
     if (status != ZX_OK) {
@@ -46,27 +46,21 @@ class ThreadSuspendScope {
         OS::PrintErr("ThreadInterrupter: zx_task_suspend failed: %s\n",
                      zx_status_get_string(status));
       }
-      suspended_ = false;
     }
   }
 
   ~ThreadSuspendScope() {
-    if (suspended_) {
-      zx_status_t status = zx_task_resume(thread_handle_, 0);
-      if (status != ZX_OK) {
-        // If we fail to resume a thread, then it's likely the program will
-        // hang. Crash instead.
-        FATAL1("zx_task_resume failed: %s", zx_status_get_string(status));
-      }
+    if (suspend_token_ != ZX_HANDLE_INVALID) {
+      zx_handle_close(suspend_token_);
     }
     zx_handle_close(thread_handle_);
   }
 
-  bool suspended() const { return suspended_; }
+  bool suspended() const { return suspend_token_ != ZX_HANDLE_INVALID; }
 
  private:
   zx_handle_t thread_handle_;
-  bool suspended_;
+  zx_handle_t suspend_token_;  // ZX_HANDLE_INVALID when not suspended.
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(ThreadSuspendScope);

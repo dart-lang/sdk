@@ -38,7 +38,7 @@ static void TestPrinter(const char* format, ...) {
   test_output_ = buffer;
 
   // Also print to stdout to see the overall result.
-  OS::Print("%s", test_output_);
+  OS::PrintErr("%s", test_output_);
 }
 
 class LogTestHelper : public AllStatic {

@@ -401,7 +401,6 @@ websql_test: Pass # Triage, seen some double reporting on windows.
 
 [ $compiler == dart2js && $browser ]
 custom/created_callback_test: Fail # Support for created constructor. Issue 14835
-fontface_loaded_test: Fail # Support for promises.
 
 [ $compiler == dart2js && $browser && $csp ]
 custom/element_upgrade_test: Fail # Issue 17298
@@ -521,6 +520,9 @@ request_animation_frame_test: Skip # Async test hangs.
 custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Polyfill does not support
 custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
 fontface_test: Fail # Fontface not supported on these.
+
+[ $compiler == dart2js && ($runtime == safari || $ie) ]
+fontface_loaded_test: Fail # Not supported on these.
 
 [ $runtime == chrome && $system == macos ]
 canvasrenderingcontext2d_test/drawImage_video_element: Skip # Times out. Please triage this failure.

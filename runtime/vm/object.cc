@@ -9143,8 +9143,8 @@ class CompressedTokenStreamData : public Scanner::TokenCollector {
       token_objects_.Add(str_);
       if (kPrintTokenObjects) {
         int iid = Isolate::Current()->main_port() % 1024;
-        OS::Print("%03x ident <%s -> %s>\n", iid, ident.ToCString(),
-                  str_.ToCString());
+        OS::PrintErr("%03x ident <%s -> %s>\n", iid, ident.ToCString(),
+                     str_.ToCString());
       }
     }
     WriteIndex(index);
@@ -12622,7 +12622,7 @@ void Library::CheckFunctionFingerprints() {
   func = GetFunction(all_libs, #class_name, #function_name);                   \
   if (func.IsNull()) {                                                         \
     has_errors = true;                                                         \
-    OS::Print("Function not found %s.%s\n", #class_name, #function_name);      \
+    OS::PrintErr("Function not found %s.%s\n", #class_name, #function_name);   \
   } else {                                                                     \
     CHECK_FINGERPRINT3(func, class_name, function_name, dest, fp);             \
   }
@@ -12662,7 +12662,7 @@ void Library::CheckFunctionFingerprints() {
   func = GetFunction(all_libs, #class_name, #factory_name);                    \
   if (func.IsNull()) {                                                         \
     has_errors = true;                                                         \
-    OS::Print("Function not found %s.%s\n", #class_name, #factory_name);       \
+    OS::PrintErr("Function not found %s.%s\n", #class_name, #factory_name);    \
   } else {                                                                     \
     CHECK_FINGERPRINT2(func, symbol, cid, fp);                                 \
   }

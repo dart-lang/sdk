@@ -12,7 +12,7 @@ int foo(int x) {
   x = x + 1;
   // Print marker message while foo is on the stack so the code cannot be
   // collected.
-  print("foo=$x");
+  stderr.write("foo=$x\n");
   return x;
 }
 
@@ -56,7 +56,7 @@ main(List<String> arguments) {
   if (arguments.contains("--run")) {
     doTest();
   } else {
-    // Run the test and capture stdout.
+    // Run the test and capture stderr.
     var args = packageOptions();
     args.addAll([
       "--verbose-gc",
@@ -72,13 +72,13 @@ main(List<String> arguments) {
 
     Expect.equals(0, pr.exitCode);
 
-    // Code drops are logged with --log-code-drop. Look through stdout for the
+    // Code drops are logged with --log-code-drop. Look through stderr for the
     // message that foo's code was dropped.
-    print(pr.stdout);
+    print(pr.stderr);
     bool saw_foo2 = false;
     bool saw_detaching_foo = false;
     bool saw_foo3 = false;
-    pr.stdout.split("\n").forEach((line) {
+    pr.stderr.split("\n").forEach((line) {
       if (line.contains("foo=2")) {
         Expect.isFalse(saw_foo2, "foo=2 ran twice");
         saw_foo2 = true;

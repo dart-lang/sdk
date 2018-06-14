@@ -27,7 +27,7 @@
 #define LOG_ERR(msg, ...)                                                      \
   OS::PrintErr("VMVM: %s:%d: " msg, __FILE__, __LINE__, ##__VA_ARGS__)
 #define LOG_INFO(msg, ...)                                                     \
-  OS::Print("VMVM: %s:%d: " msg, __FILE__, __LINE__, ##__VA_ARGS__)
+  OS::PrintErr("VMVM: %s:%d: " msg, __FILE__, __LINE__, ##__VA_ARGS__)
 #else
 #define LOG_ERR(msg, ...)
 #define LOG_INFO(msg, ...)

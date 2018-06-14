@@ -472,6 +472,20 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
       Location location,
       UnlinkedDeclaration declaration);
 
+  Generator<Expression, Statement, Arguments> delayedAssignment(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Location location,
+      Generator<Expression, Statement, Arguments> generator,
+      Expression value,
+      String assignmentOperator);
+
+  Generator<Expression, Statement, Arguments> delayedPostfixIncrement(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Location location,
+      Generator<Expression, Statement, Arguments> generator,
+      kernel.Name binaryOperator,
+      kernel.Procedure interfaceTarget);
+
   // TODO(ahe): Remove this method when all users are moved here.
   kernel.Arguments castArguments(Arguments arguments) {
     dynamic a = arguments;

@@ -323,7 +323,7 @@ RawArray* IRRegExpMacroAssembler::Execute(const RegExp& regexp,
       Object::Handle(zone, DartEntry::InvokeFunction(fun, args));
   if (retval.IsError()) {
     const Error& error = Error::Cast(retval);
-    OS::Print("%s\n", error.ToErrorCString());
+    OS::PrintErr("%s\n", error.ToErrorCString());
     // Should never happen.
     UNREACHABLE();
   }
@@ -569,7 +569,7 @@ Value* IRRegExpMacroAssembler::BindLoadLocal(const LocalVariable& local) {
 #define HANDLE_DEAD_CODE_EMISSION()                                            \
   if (current_instruction_ == NULL) {                                          \
     if (FLAG_trace_irregexp) {                                                 \
-      OS::Print(                                                               \
+      OS::PrintErr(                                                            \
           "WARNING: Attempting to append to a closed assembler. "              \
           "This could be either a bug or generation of dead code "             \
           "inherited from V8.\n");                                             \

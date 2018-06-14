@@ -46,10 +46,6 @@ class KernelFormalParameterBuilder
           isFieldFormal: hasThis,
           isCovariant: isCovariant)
         ..fileOffset = charOffset;
-      if (type == null && hasThis) {
-        library.loader.typeInferenceEngine
-            .recordInitializingFormal(declaration);
-      }
     }
     return declaration;
   }

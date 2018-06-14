@@ -3,11 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/compiler/frontend/kernel_binary_flowgraph.h"
+
+#include "vm/bootstrap.h"
 #include "vm/code_descriptors.h"
 #include "vm/compiler/aot/precompiler.h"
 #include "vm/compiler/assembler/disassembler_kbc.h"
 #include "vm/compiler/frontend/prologue_builder.h"
 #include "vm/compiler/jit/compiler.h"
+#include "vm/dart_entry.h"
 #include "vm/longjump.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
@@ -994,6 +997,7 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
     kContextOffset,
     kClosureFunction,
     kEndClosureFunctionScope,
+    kNativeEntry,
   };
 
   enum InvocationKind {
@@ -1332,6 +1336,10 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
         pool.SetObjectAt(i, obj);
         return i;  // The caller will close the scope.
       } break;
+      case ConstantPoolTag::kNativeEntry: {
+        name = H.DartString(builder_->ReadStringReference()).raw();
+        obj = NativeEntry(function, name);
+      } break;
       default:
         UNREACHABLE();
     }
@@ -1411,6 +1419,87 @@ void BytecodeMetadataHelper::ReadExceptionsTable(const Code& bytecode) {
     bytecode.set_pc_descriptors(Object::empty_descriptors());
     bytecode.set_exception_handlers(Object::empty_exception_handlers());
   }
+}
+
+RawTypedData* BytecodeMetadataHelper::NativeEntry(const Function& function,
+                                                  const String& external_name) {
+  Zone* zone = builder_->zone_;
+  MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(function);
+  // This list of recognized methods must be kept in sync with the list of
+  // methods handled specially by the NativeCall bytecode in the interpreter.
+  switch (kind) {
+    case MethodRecognizer::kObjectEquals:
+    case MethodRecognizer::kStringBaseLength:
+    case MethodRecognizer::kStringBaseIsEmpty:
+    case MethodRecognizer::kGrowableArrayLength:
+    case MethodRecognizer::kObjectArrayLength:
+    case MethodRecognizer::kImmutableArrayLength:
+    case MethodRecognizer::kTypedDataLength:
+    case MethodRecognizer::kClassIDgetID:
+    case MethodRecognizer::kGrowableArrayCapacity:
+    case MethodRecognizer::kListFactory:
+    case MethodRecognizer::kObjectArrayAllocate:
+    case MethodRecognizer::kLinkedHashMap_getIndex:
+    case MethodRecognizer::kLinkedHashMap_setIndex:
+    case MethodRecognizer::kLinkedHashMap_getData:
+    case MethodRecognizer::kLinkedHashMap_setData:
+    case MethodRecognizer::kLinkedHashMap_getHashMask:
+    case MethodRecognizer::kLinkedHashMap_setHashMask:
+    case MethodRecognizer::kLinkedHashMap_getUsedData:
+    case MethodRecognizer::kLinkedHashMap_setUsedData:
+    case MethodRecognizer::kLinkedHashMap_getDeletedKeys:
+    case MethodRecognizer::kLinkedHashMap_setDeletedKeys:
+      break;
+    default:
+      kind = MethodRecognizer::kUnknown;
+  }
+  NativeFunctionWrapper trampoline = NULL;
+  NativeFunction native_function = NULL;
+  intptr_t argc_tag = 0;
+  if (kind == MethodRecognizer::kUnknown) {
+    if (FLAG_link_natives_lazily) {
+      trampoline = &NativeEntry::BootstrapNativeCallWrapper;
+      native_function =
+          reinterpret_cast<NativeFunction>(&NativeEntry::LinkNativeCall);
+    } else {
+      const Class& cls = Class::Handle(zone, function.Owner());
+      const Library& library = Library::Handle(zone, cls.library());
+      Dart_NativeEntryResolver resolver = library.native_entry_resolver();
+      const bool is_bootstrap_native = Bootstrap::IsBootstrapResolver(resolver);
+      const int num_params =
+          NativeArguments::ParameterCountForResolution(function);
+      bool is_auto_scope = true;
+      native_function = NativeEntry::ResolveNative(library, external_name,
+                                                   num_params, &is_auto_scope);
+      ASSERT(native_function != NULL);  // TODO(regis): Should we throw instead?
+      if (is_bootstrap_native) {
+        trampoline = &NativeEntry::BootstrapNativeCallWrapper;
+      } else if (is_auto_scope) {
+        trampoline = &NativeEntry::AutoScopeNativeCallWrapper;
+      } else {
+        trampoline = &NativeEntry::NoScopeNativeCallWrapper;
+      }
+    }
+    argc_tag = NativeArguments::ComputeArgcTag(function);
+  }
+  // TODO(regis): Introduce a new VM class subclassing Object and containing
+  // these four untagged values.
+#ifdef ARCH_IS_32_BIT
+  const TypedData& native_entry = TypedData::Handle(
+      zone, TypedData::New(kTypedDataUint32ArrayCid, 4, Heap::kOld));
+  native_entry.SetUint32(0 << 2, static_cast<uint32_t>(kind));
+  native_entry.SetUint32(1 << 2, reinterpret_cast<uint32_t>(trampoline));
+  native_entry.SetUint32(2 << 2, reinterpret_cast<uint32_t>(native_function));
+  native_entry.SetUint32(3 << 2, static_cast<uint32_t>(argc_tag));
+#else
+  const TypedData& native_entry = TypedData::Handle(
+      zone, TypedData::New(kTypedDataUint64ArrayCid, 4, Heap::kOld));
+  native_entry.SetUint64(0 << 3, static_cast<uint64_t>(kind));
+  native_entry.SetUint64(1 << 3, reinterpret_cast<uint64_t>(trampoline));
+  native_entry.SetUint64(2 << 3, reinterpret_cast<uint64_t>(native_function));
+  native_entry.SetUint64(3 << 3, static_cast<uint64_t>(argc_tag));
+#endif
+  return native_entry.raw();
 }
 #endif  // defined(DART_USE_INTERPRETER)
 
@@ -4259,6 +4348,13 @@ RawObject* StreamingConstantEvaluator::EvaluateConstConstructorCall(
     const TypeArguments& type_arguments,
     const Function& constructor,
     const Object& argument) {
+  // We use a kernel2kernel constant evaluator in Dart 2.0 AOT compilation, so
+  // we should never end up evaluating constants using the VM's constant
+  // evaluator.
+  if (I->strong() && FLAG_precompiled_mode) {
+    UNREACHABLE();
+  }
+
   // Factories have one extra argument: the type arguments.
   // Constructors have 1 extra arguments: receiver.
   const int kTypeArgsLen = 0;

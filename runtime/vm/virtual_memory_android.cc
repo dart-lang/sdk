@@ -15,7 +15,6 @@
 #include "platform/utils.h"
 
 #include "vm/isolate.h"
-#include "vm/profiler.h"
 
 namespace dart {
 
@@ -39,7 +38,6 @@ static void unmap(void* address, intptr_t size) {
     int error = errno;
     const int kBufferSize = 1024;
     char error_buf[kBufferSize];
-    NOT_IN_PRODUCT(Profiler::DumpStackTrace());
     FATAL2("munmap error: %d (%s)", error,
            Utils::StrError(error, error_buf, kBufferSize));
   }
@@ -132,7 +130,6 @@ void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
     int error = errno;
     const int kBufferSize = 1024;
     char error_buf[kBufferSize];
-    NOT_IN_PRODUCT(Profiler::DumpStackTrace());
     FATAL2("mprotect error: %d (%s)", error,
            Utils::StrError(error, error_buf, kBufferSize));
   }

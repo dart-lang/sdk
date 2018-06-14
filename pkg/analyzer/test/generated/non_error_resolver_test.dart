@@ -4860,7 +4860,7 @@ import 'b.dart';
 @B.named8()
 main() {}
 ''');
-    final aSource = addNamedSource("/a.dart", r'''
+    addNamedSource("/a.dart", r'''
 class Unbounded<T> {
   const Unbounded();
   const Unbounded.named();
@@ -4870,7 +4870,7 @@ class Bounded<T extends String> {
   const Bounded.named();
 }
 ''');
-    final bSource = addNamedSource("/b.dart", r'''
+    addNamedSource("/b.dart", r'''
 import 'a.dart';
 import 'a.dart' as p;
 

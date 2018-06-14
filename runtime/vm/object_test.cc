@@ -150,8 +150,8 @@ ISOLATE_UNIT_TEST_CASE(TypeArguments) {
   type_arguments2.SetTypeAt(0, type1);
   type_arguments2.SetTypeAt(1, type2);
   EXPECT_NE(type_arguments1.raw(), type_arguments2.raw());
-  OS::Print("1: %s\n", type_arguments1.ToCString());
-  OS::Print("2: %s\n", type_arguments2.ToCString());
+  OS::PrintErr("1: %s\n", type_arguments1.ToCString());
+  OS::PrintErr("2: %s\n", type_arguments2.ToCString());
   EXPECT(type_arguments1.Equals(type_arguments2));
   TypeArguments& type_arguments3 = TypeArguments::Handle();
   type_arguments1.Canonicalize();
@@ -3765,16 +3765,17 @@ ISOLATE_UNIT_TEST_CASE(FindInvocationDispatcherFunctionIndex) {
 
 static void PrintMetadata(const char* name, const Object& data) {
   if (data.IsError()) {
-    OS::Print("Error in metadata evaluation for %s: '%s'\n", name,
-              Error::Cast(data).ToErrorCString());
+    OS::PrintErr("Error in metadata evaluation for %s: '%s'\n", name,
+                 Error::Cast(data).ToErrorCString());
   }
   EXPECT(data.IsArray());
   const Array& metadata = Array::Cast(data);
-  OS::Print("Metadata for %s has %" Pd " values:\n", name, metadata.Length());
+  OS::PrintErr("Metadata for %s has %" Pd " values:\n", name,
+               metadata.Length());
   Object& elem = Object::Handle();
   for (int i = 0; i < metadata.Length(); i++) {
     elem = metadata.At(i);
-    OS::Print("  %d: %s\n", i, elem.ToCString());
+    OS::PrintErr("  %d: %s\n", i, elem.ToCString());
   }
 }
 

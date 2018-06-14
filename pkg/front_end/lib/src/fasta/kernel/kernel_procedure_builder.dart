@@ -444,6 +444,15 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
     return isRedirectingGenerativeConstructorImplementation(constructor);
   }
 
+  bool get isEligibleForTopLevelInference {
+    if (formals != null) {
+      for (var formal in formals) {
+        if (formal.type == null && formal.hasThis) return true;
+      }
+    }
+    return false;
+  }
+
   Constructor build(SourceLibraryBuilder library) {
     if (constructor.name == null) {
       constructor.function = buildFunction(library);
@@ -454,6 +463,14 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
       constructor.isConst = isConst;
       constructor.isExternal = isExternal;
       constructor.name = new Name(name, library.target);
+    }
+    if (!library.disableTypeInference && isEligibleForTopLevelInference) {
+      for (KernelFormalParameterBuilder formal in formals) {
+        if (formal.type == null && formal.hasThis) {
+          formal.declaration.type = null;
+        }
+      }
+      library.loader.typeInferenceEngine.toBeInferred[constructor] = library;
     }
     return constructor;
   }

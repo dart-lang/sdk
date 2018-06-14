@@ -391,7 +391,7 @@ RawObject* SnapshotReader::ReadStaticImplicitClosure(intptr_t object_id,
     str_ = String::ScrubName(str_);
     cls_ = library_.LookupClassAllowPrivate(str_);
     if (cls_.IsNull()) {
-      OS::Print("Name of class not found %s\n", str_.ToCString());
+      OS::PrintErr("Name of class not found %s\n", str_.ToCString());
       SetReadException("Invalid Class object found in message.");
     }
     cls_.EnsureIsFinalized(thread());
@@ -1082,7 +1082,7 @@ bool SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
         return true;
       }
       default:
-        OS::Print("class id = %" Pd "\n", id);
+        OS::PrintErr("class id = %" Pd "\n", id);
         break;
     }
   }

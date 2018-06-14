@@ -6338,7 +6338,7 @@ TEST_CASE(DartAPI_ParsePatchLibrary) {
 
     const Error& err = Error::Handle(lib.Patch(patch_script));
     if (!err.IsNull()) {
-      OS::Print("Patching error: %s\n", err.ToErrorCString());
+      OS::PrintErr("Patching error: %s\n", err.ToErrorCString());
       EXPECT(false);
     }
   }
@@ -8819,7 +8819,7 @@ TEST_CASE(DartAPI_LoadLibraryPatch_Error2) {
   EXPECT_VALID(result);
   result = Dart_Invoke(lib, NewString("foozoo"), 0, NULL);
   EXPECT(Dart_IsError(result));
-  OS::Print("Patched class executed\n");
+  OS::PrintErr("Patched class executed\n");
 }
 
 TEST_CASE(DartAPI_LoadLibraryPatch_Error3) {

@@ -776,18 +776,7 @@ class Parser {
     if (!optional('(', leftParen)) {
       reportRecoverableError(
           leftParen, fasta.templateExpectedButGot.withArguments('('));
-
-      int offset = leftParen.charOffset;
-      BeginToken openParen =
-          new SyntheticBeginToken(TokenType.OPEN_PAREN, offset);
-      Token next = openParen
-          .setNext(new SyntheticStringToken(TokenType.IDENTIFIER, '', offset));
-      next = next.setNext(new SyntheticToken(TokenType.CLOSE_PAREN, offset));
-      openParen.endGroup = next;
-
-      token.setNext(openParen);
-      next.setNext(leftParen);
-      leftParen = openParen;
+      leftParen = rewriter.insertParens(token, true);
     }
     token = parseDottedName(leftParen);
     Token next = token.next;
@@ -1150,10 +1139,7 @@ class Parser {
     Token next = token.next;
     if (!optional('(', next)) {
       reportRecoverableError(next, missingParameterMessage(kind));
-      Token replacement = link(
-          new SyntheticBeginToken(TokenType.OPEN_PAREN, next.charOffset),
-          new SyntheticToken(TokenType.CLOSE_PAREN, next.charOffset));
-      rewriter.insertTokenAfter(token, replacement);
+      rewriter.insertParens(token, false);
     }
     return parseFormalParameters(token, kind);
   }
@@ -2469,7 +2455,7 @@ class Parser {
       token = name;
       listener.handleNoTypeVariables(token.next);
     }
-    checkFormals(name, isGetter, token.next, MemberKind.TopLevelMethod);
+    checkFormals(token, name, isGetter, MemberKind.TopLevelMethod);
     token = parseFormalParametersOpt(token, MemberKind.TopLevelMethod);
     AsyncModifier savedAsyncModifier = asyncState;
     Token asyncToken = token.next;
@@ -2499,10 +2485,11 @@ class Parser {
     return token;
   }
 
-  void checkFormals(Token name, bool isGetter, Token token, MemberKind kind) {
-    if (optional("(", token)) {
+  void checkFormals(Token token, Token name, bool isGetter, MemberKind kind) {
+    Token next = token.next;
+    if (optional("(", next)) {
       if (isGetter) {
-        reportRecoverableError(token, fasta.messageGetterWithFormals);
+        reportRecoverableError(next, fasta.messageGetterWithFormals);
       }
     } else if (!isGetter) {
       if (optional('operator', name)) {
@@ -2513,7 +2500,9 @@ class Parser {
           name = next.next;
         }
       }
+      // Recovery
       reportRecoverableError(name, missingParameterMessage(kind));
+      rewriter.insertParens(token, false);
     }
   }
 
@@ -3157,7 +3146,7 @@ class Parser {
     MemberKind kind = staticToken != null
         ? MemberKind.StaticMethod
         : MemberKind.NonStaticMethod;
-    checkFormals(name, isGetter, token.next, kind);
+    checkFormals(token, name, isGetter, kind);
     Token beforeParam = token;
     token = parseFormalParametersOpt(token, kind);
     token = parseInitializersOpt(token);
@@ -4203,10 +4192,7 @@ class Parser {
       // TODO(danrubel): Consider removing the 2nd error message.
       reportRecoverableError(
           next, fasta.templateExpectedToken.withArguments(')'));
-      BeginToken replacement = link(
-          new SyntheticBeginToken(TokenType.OPEN_PAREN, next.charOffset),
-          new SyntheticToken(TokenType.CLOSE_PAREN, next.charOffset));
-      rewriter.insertTokenAfter(token, replacement).next;
+      rewriter.insertParens(token, false);
     }
     Token begin = token.next;
     token = parseExpressionInParenthesis(token);
@@ -4474,10 +4460,7 @@ class Parser {
     if (!optional('(', next)) {
       reportRecoverableError(
           token, fasta.templateExpectedButGot.withArguments('('));
-      BeginToken replacement = link(
-          new SyntheticBeginToken(TokenType.OPEN_PAREN, next.offset),
-          new SyntheticToken(TokenType.CLOSE_PAREN, next.offset));
-      rewriter.insertTokenAfter(token, replacement);
+      rewriter.insertParens(token, false);
     }
     token = parseArguments(token);
     return token;
@@ -5507,15 +5490,7 @@ class Parser {
         Token openParens = catchKeyword.next;
         if (!optional("(", openParens)) {
           reportRecoverableError(openParens, fasta.messageCatchSyntax);
-          BeginToken open = new SyntheticBeginToken(
-              TokenType.OPEN_PAREN, openParens.charOffset);
-          Token identifier = open.setNext(new SyntheticStringToken(
-              TokenType.IDENTIFIER, '', openParens.charOffset));
-          Token close = identifier.setNext(
-              new SyntheticToken(TokenType.CLOSE_PAREN, openParens.charOffset));
-          open.endGroup = close;
-          rewriter.insertTokenAfter(catchKeyword, open);
-          openParens = open;
+          openParens = rewriter.insertParens(catchKeyword, true);
         }
 
         Token exceptionName = openParens.next;
@@ -5774,18 +5749,7 @@ class Parser {
       // Recovery
       reportRecoverableError(
           leftParenthesis, fasta.templateExpectedButGot.withArguments('('));
-      int offset = leftParenthesis.offset;
-
-      BeginToken openParen =
-          token.setNext(new SyntheticBeginToken(TokenType.OPEN_PAREN, offset));
-      Token identifier = openParen
-          .setNext(new SyntheticStringToken(TokenType.IDENTIFIER, '', offset));
-      Token closeParen =
-          identifier.setNext(new SyntheticToken(TokenType.CLOSE_PAREN, offset));
-      openParen.endGroup = closeParen;
-      closeParen.setNext(leftParenthesis);
-
-      leftParenthesis = openParen;
+      leftParenthesis = rewriter.insertParens(token, true);
     }
     token = leftParenthesis;
     Token commaToken = null;
