@@ -46,6 +46,8 @@ import 'body_builder.dart' show LabelTarget;
 import 'kernel_expression_generator.dart'
     show
         KernelDeferredAccessGenerator,
+        KernelDelayedAssignment,
+        KernelDelayedPostfixIncrement,
         KernelIndexedAccessGenerator,
         KernelLargeIntAccessGenerator,
         KernelLoadLibraryGenerator,
@@ -774,6 +776,28 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
       Token token,
       UnlinkedDeclaration declaration) {
     return new KernelUnlinkedGenerator(helper, token, declaration);
+  }
+
+  @override
+  KernelDelayedAssignment delayedAssignment(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Generator<Expression, Statement, Arguments> generator,
+      Expression value,
+      String assignmentOperator) {
+    return new KernelDelayedAssignment(
+        helper, token, generator, value, assignmentOperator);
+  }
+
+  @override
+  KernelDelayedPostfixIncrement delayedPostfixIncrement(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Generator<Expression, Statement, Arguments> generator,
+      Name binaryOperator,
+      Procedure interfaceTarget) {
+    return new KernelDelayedPostfixIncrement(
+        helper, token, generator, binaryOperator, interfaceTarget);
   }
 }
 

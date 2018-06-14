@@ -186,6 +186,28 @@ class AstBuildingForest
   }
 
   @override
+  Generator<Expression, Statement, Arguments> delayedAssignment(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Generator<Expression, Statement, Arguments> generator,
+      Expression value,
+      String assignmentOperator) {
+    // TODO(brianwilkerson) Implement this.
+    throw new UnimplementedError();
+  }
+
+  @override
+  Generator<Expression, Statement, Arguments> delayedPostfixIncrement(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Generator<Expression, Statement, Arguments> generator,
+      kernel.Name binaryOperator,
+      kernel.Procedure interfaceTarget) {
+    // TODO(brianwilkerson) Implement this.
+    throw new UnimplementedError();
+  }
+
+  @override
   Statement doStatement(Token doKeyword, Statement body, Token whileKeyword,
           ParenthesizedExpression condition, Token semicolon) =>
       astFactory.doStatement(

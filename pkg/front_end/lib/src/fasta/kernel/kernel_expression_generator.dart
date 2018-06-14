@@ -18,23 +18,7 @@ import '../fasta_codes.dart'
 
 import '../messages.dart' show Message, noLength;
 
-import '../names.dart'
-    show
-        ampersandName,
-        barName,
-        callName,
-        caretName,
-        divisionName,
-        equalsName,
-        indexGetName,
-        indexSetName,
-        leftShiftName,
-        minusName,
-        multiplyName,
-        mustacheName,
-        percentName,
-        plusName,
-        rightShiftName;
+import '../names.dart' show callName, equalsName, indexGetName, indexSetName;
 
 import '../parser.dart' show lengthForToken, lengthOfSpan, offsetForToken;
 
@@ -46,7 +30,10 @@ import 'constness.dart' show Constness;
 
 import 'expression_generator.dart'
     show
+        ContextAwareGenerator,
         DeferredAccessGenerator,
+        DelayedAssignment,
+        DelayedPostfixIncrement,
         ErroneousExpressionGenerator,
         ExpressionGenerator,
         Generator,
@@ -79,7 +66,6 @@ import 'kernel_ast_api.dart'
     show
         Constructor,
         DartType,
-        DynamicType,
         Field,
         Initializer,
         InvalidType,
@@ -1510,6 +1496,71 @@ class KernelUnlinkedGenerator extends KernelGenerator
   Expression doInvocation(int offset, Arguments arguments) {
     return unsupported("doInvocation", offset, uri);
   }
+}
+
+abstract class KernelContextAwareGenerator extends KernelGenerator
+    with ContextAwareGenerator<Expression, Statement, Arguments> {
+  @override
+  final Generator<Expression, Statement, Arguments> generator;
+
+  KernelContextAwareGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      this.generator)
+      : super(helper, token);
+
+  @override
+  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+    return unsupported("_makeRead", offsetForToken(token), uri);
+  }
+
+  @override
+  Expression _makeWrite(Expression value, bool voidContext,
+      ShadowComplexAssignment complexAssignment) {
+    return unsupported("_makeWrite", offsetForToken(token), uri);
+  }
+}
+
+class KernelDelayedAssignment extends KernelContextAwareGenerator
+    with DelayedAssignment<Expression, Statement, Arguments> {
+  @override
+  final Expression value;
+
+  @override
+  String assignmentOperator;
+
+  KernelDelayedAssignment(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Generator<Expression, Statement, Arguments> generator,
+      this.value,
+      this.assignmentOperator)
+      : super(helper, token, generator);
+
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", value: ");
+    printNodeOn(value, sink);
+    sink.write(", assignmentOperator: ");
+    sink.write(assignmentOperator);
+  }
+}
+
+class KernelDelayedPostfixIncrement extends KernelContextAwareGenerator
+    with DelayedPostfixIncrement<Expression, Statement, Arguments> {
+  @override
+  final Name binaryOperator;
+
+  @override
+  final Procedure interfaceTarget;
+
+  KernelDelayedPostfixIncrement(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      Token token,
+      Generator<Expression, Statement, Arguments> generator,
+      this.binaryOperator,
+      this.interfaceTarget)
+      : super(helper, token, generator);
 }
 
 Expression makeLet(VariableDeclaration variable, Expression body) {
