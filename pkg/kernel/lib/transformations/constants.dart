@@ -287,6 +287,10 @@ class ConstantsTransformer extends Transformer {
 
   // Handle use-sites of constants (and "inline" constant expressions):
 
+  visitSymbolLiteral(SymbolLiteral node) {
+    return new ConstantExpression(constantEvaluator.evaluate(node));
+  }
+
   visitStaticGet(StaticGet node) {
     final Member target = node.target;
     if (target is Field && target.isConst) {

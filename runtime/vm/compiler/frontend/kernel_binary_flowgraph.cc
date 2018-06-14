@@ -4348,6 +4348,13 @@ RawObject* StreamingConstantEvaluator::EvaluateConstConstructorCall(
     const TypeArguments& type_arguments,
     const Function& constructor,
     const Object& argument) {
+  // We use a kernel2kernel constant evaluator in Dart 2.0 AOT compilation, so
+  // we should never end up evaluating constants using the VM's constant
+  // evaluator.
+  if (I->strong() && FLAG_precompiled_mode) {
+    UNREACHABLE();
+  }
+
   // Factories have one extra argument: the type arguments.
   // Constructors have 1 extra arguments: receiver.
   const int kTypeArgsLen = 0;
