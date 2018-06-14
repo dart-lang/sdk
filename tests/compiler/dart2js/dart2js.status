@@ -38,7 +38,6 @@ rti/rti_need1_test: Pass, Slow
 show_package_warnings_test: RuntimeError # missing errors from the FE
 sourcemaps/d2js_validity_test: RuntimeError # Issue 33072
 sourcemaps/deferred_d2js_validity_test: RuntimeError # Issue 33072
-sourcemaps/pub_build_validity_test: Pass, RuntimeError # Investigate: passes locally, but only fails in bots.
 sourcemaps/source_mapping_invokes_test: Pass, Slow
 sourcemaps/source_mapping_operators_test: Pass, Slow
 sourcemaps/source_mapping_test: Pass, Slow
@@ -51,7 +50,6 @@ end_to_end/dart2js_batch_test: Pass, Slow
 end_to_end/exit_code_test: Pass, Slow
 in_user_code_test: Pass, Slow
 show_package_warnings_test: Pass, Slow
-sourcemaps/source_map_pub_build_validity_test: Pass, Slow
 
 [ $system == linux ]
 dart2js_batch2_test: Pass, RuntimeError # Issue 29021
@@ -65,7 +63,6 @@ jsinterop/interop_anonymous_unreachable_test: Pass, Slow
 jsinterop/world_test: Pass, Slow
 kernel/visitor_test: Pass, Slow
 output_type_test: Pass, Slow
-sourcemaps/source_map_pub_build_validity_test: Pass, Slow
 sourcemaps/stacktrace_test: Pass, Slow
 uri_retention_test: Pass, Slow
 
