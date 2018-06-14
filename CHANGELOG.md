@@ -12,11 +12,17 @@
 
 #### Pub
 
-* Fix an error which prevented `pub publish` due to the package validation.
-
 #### Other Tools
 
 ### Core library changes
+
+## 2.0.0-dev.63.0
+
+### Tool Changes
+
+#### Pub
+
+* Fix an error which prevented `pub publish` due to the package validation.
 
 ## 2.0.0-dev.62.0
 
