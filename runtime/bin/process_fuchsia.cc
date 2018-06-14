@@ -12,9 +12,8 @@
 #include <lib/fdio/io.h>
 #include <lib/fdio/namespace.h>
 #include <lib/fdio/private.h>
+#include <lib/fdio/spawn.h>
 #include <lib/fdio/util.h>
-#include <launchpad/launchpad.h>
-#include <launchpad/vmo.h>
 #include <poll.h>
 #include <pthread.h>
 #include <stdbool.h>
@@ -23,6 +22,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <zircon/process.h>
+#include <zircon/processargs.h>
 #include <zircon/status.h>
 #include <zircon/syscalls.h>
 #include <zircon/syscalls/object.h>
@@ -548,7 +548,6 @@ class ProcessStarter {
       program_arguments_[i + 1] = arguments[i];
     }
     program_arguments_[arguments_length + 1] = NULL;
-    program_arguments_count_ = arguments_length + 1;
 
     program_environment_ = NULL;
     if (environment != NULL) {
@@ -585,27 +584,46 @@ class ProcessStarter {
     LOG_INFO("ProcessStarter: Start() set up exit_pipe_fds (%d, %d)\n",
              exit_pipe_fds[0], exit_pipe_fds[1]);
 
-    // Set up a launchpad.
-    launchpad_t* lp = NULL;
-    zx_status_t status = SetupLaunchpad(&lp);
+    NamespaceScope ns(namespc_, path_);
+    const int pathfd =
+        TEMP_FAILURE_RETRY(openat64(ns.fd(), ns.path(), O_RDONLY));
+    zx_handle_t vmo = ZX_HANDLE_INVALID;
+    zx_status_t status = fdio_get_vmo_clone(pathfd, &vmo);
+    VOID_TEMP_FAILURE_RETRY(close(pathfd));
     if (status != ZX_OK) {
       close(exit_pipe_fds[0]);
       close(exit_pipe_fds[1]);
+      *os_error_message_ = DartUtils::ScopedCopyCString(
+          "Failed to load executable for process start.");
       return status;
     }
-    ASSERT(lp != NULL);
 
-    // Launch it.
-    LOG_INFO("ProcessStarter: Start() Calling launchpad_start\n");
+    fdio_spawn_action_t actions[4];
+    memset(actions, 0, sizeof(actions));
+    AddPipe(0, &write_out_, &actions[0]);
+    AddPipe(1, &read_in_, &actions[1]);
+    AddPipe(2, &read_err_, &actions[2]);
+    actions[3] = {
+      .action = FDIO_SPAWN_ACTION_SET_NAME,
+      .name.data = program_arguments_[0],
+    };
+
+    // TODO(zra): Use the supplied working directory when fdio_spawn_vmo adds an
+    // API to set it.
+
+    LOG_INFO("ProcessStarter: Start() Calling fdio_spawn_vmo\n");
     zx_handle_t process = ZX_HANDLE_INVALID;
-    const char* errormsg = NULL;
-    status = launchpad_go(lp, &process, &errormsg);
-    lp = NULL;  // launchpad_go() calls launchpad_destroy() on the launchpad.
+    char err_msg[FDIO_SPAWN_ERR_MSG_MAX_LENGTH];
+    uint32_t flags = FDIO_SPAWN_CLONE_JOB | FDIO_SPAWN_CLONE_LDSVC |
+        FDIO_SPAWN_CLONE_NAMESPACE;
+    status = fdio_spawn_vmo(ZX_HANDLE_INVALID, flags, vmo, program_arguments_,
+                            program_environment_, 4, actions, &process, err_msg);
+
     if (status != ZX_OK) {
-      LOG_ERR("ProcessStarter: Start() launchpad_start failed\n");
+      LOG_ERR("ProcessStarter: Start() fdio_spawn_vmo failed\n");
       close(exit_pipe_fds[0]);
       close(exit_pipe_fds[1]);
-      ReportStartError(errormsg);
+      ReportStartError(err_msg);
       return status;
     }
 
@@ -652,39 +670,14 @@ class ProcessStarter {
     *os_error_message_ = message;
   }
 
-  zx_status_t SetupLaunchpad(launchpad_t** launchpad) {
-    // TODO(zra): Use the supplied working directory when launchpad adds an
-    // API to set it.
-    ASSERT(launchpad != NULL);
-    launchpad_t* lp = NULL;
-    launchpad_create(ZX_HANDLE_INVALID, program_arguments_[0], &lp);
-    launchpad_set_args(lp, program_arguments_count_, program_arguments_);
-    launchpad_set_environ(lp, program_environment_);
-    launchpad_clone(lp, LP_CLONE_FDIO_NAMESPACE);
-    launchpad_add_pipe(lp, &write_out_, 0);
-    launchpad_add_pipe(lp, &read_in_, 1);
-    launchpad_add_pipe(lp, &read_err_, 2);
-    launchpad_add_vdso_vmo(lp);
-
-    NamespaceScope ns(namespc_, path_);
-    const int pathfd =
-        TEMP_FAILURE_RETRY(openat64(ns.fd(), ns.path(), O_RDONLY));
-    launchpad_load_from_fd(lp, pathfd);
-    VOID_TEMP_FAILURE_RETRY(close(pathfd));
-
-    // If there were any errors, grab launchpad's error message and put it in
-    // the os_error_message_ field.
-    zx_status_t status = launchpad_get_status(lp);
-    if (status != ZX_OK) {
-      const intptr_t kMaxMessageSize = 256;
-      char* message = DartUtils::ScopedCString(kMaxMessageSize);
-      snprintf(message, kMaxMessageSize, "launchpad failed: %s, %s",
-               zx_status_get_string(status), launchpad_error_message(lp));
-      *os_error_message_ = message;
+  zx_status_t AddPipe(int target_fd, int* local_fd,
+                      fdio_spawn_action_t* action) {
+    zx_status_t status = fdio_pipe_half(&action->h.handle, &action->h.id);
+    if (status < 0)
       return status;
-    }
-
-    *launchpad = lp;
+    *local_fd = status;
+    action->action = FDIO_SPAWN_ACTION_ADD_HANDLE;
+    action->h.id = PA_HND(PA_HND_TYPE(action->h.id), target_fd);
     return ZX_OK;
   }
 
@@ -693,7 +686,6 @@ class ProcessStarter {
   int write_out_;  // Pipe for stdin to child process.
 
   char** program_arguments_;
-  intptr_t program_arguments_count_;
   char** program_environment_;
 
   Namespace* namespc_;

@@ -272,7 +272,6 @@ template("build_libdart_builtin") {
       ":generate_web_sql_cc_file",
     ]
     if (is_fuchsia) {
-      deps += [ "//zircon/public/lib/launchpad" ]
       public_deps = [
         "//zircon/public/lib/fdio",
       ]
@@ -348,9 +347,6 @@ template("build_gen_snapshot") {
              ":generate_cli_cc_file",
              ":generate_cli_patch_cc_file",
            ] + extra_deps
-    if (is_fuchsia) {
-      deps += [ "//zircon/public/lib/launchpad" ]
-    }
 
     sources = [
       # Include generated source files.
@@ -598,7 +594,6 @@ template("dart_io") {
     if (is_fuchsia) {
       deps += [
         "//garnet/public/lib/netstack/c",
-        "//zircon/public/lib/launchpad",
       ]
       public_deps = [
         "//zircon/public/lib/fdio",
@@ -895,10 +890,6 @@ template("dart_executable") {
              "//third_party/boringssl",
              "$dart_zlib_path",
            ] + extra_deps
-
-    if (is_fuchsia) {
-      deps += [ "//zircon/public/lib/launchpad" ]
-    }
 
     defines = extra_defines
     if (exclude_kernel_service) {
