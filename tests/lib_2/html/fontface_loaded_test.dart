@@ -55,7 +55,7 @@ main() {
         var fontFamily = fontFace.family;
         if (fontFamily.startsWith('"')) {
           // FF wraps family in quotes - remove the quotes.
-          fontFamily.substring(1, fontFamily.length - 1);
+          fontFamily = fontFamily.substring(1, fontFamily.length - 1);
         }
         expect(fontFamily, 'Ahem');
       }
