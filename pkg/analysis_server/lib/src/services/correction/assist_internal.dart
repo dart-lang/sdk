@@ -1404,8 +1404,6 @@ class AssistProcessor {
   }
 
   Future<Null> _addProposal_flutterConvertToStatefulWidget() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     ClassDeclaration widgetClass =
         node.getAncestor((n) => n is ClassDeclaration);
     TypeName superclass = widgetClass?.extendsClause?.superclass;
@@ -1447,27 +1445,93 @@ class AssistProcessor {
     String widgetName = widgetClassElement.displayName;
     String stateName = widgetName + 'State';
 
-    var buildLinesRange = utils.getLinesRange(range.node(buildMethod));
-    var buildText = utils.getRangeText(buildLinesRange);
+    // Find fields assigned in constructors.
+    var fieldsAssignedInConstructors = new Set<FieldElement>();
+    for (var member in widgetClass.members) {
+      if (member is ConstructorDeclaration) {
+        member.accept(new _SimpleIdentifierRecursiveAstVisitor((node) {
+          if (node.parent is FieldFormalParameter) {
+            Element element = node.staticElement;
+            if (element is FieldFormalParameterElement) {
+              fieldsAssignedInConstructors.add(element.field);
+            }
+          }
+          if (node.parent is ConstructorFieldInitializer) {
+            Element element = node.staticElement;
+            if (element is FieldElement) {
+              fieldsAssignedInConstructors.add(element);
+            }
+          }
+          if (node.inSetterContext()) {
+            Element element = node.staticElement;
+            if (element is PropertyAccessorElement) {
+              PropertyInducingElement field = element.variable;
+              if (field is FieldElement) {
+                fieldsAssignedInConstructors.add(field);
+              }
+            }
+          }
+        }));
+      }
+    }
 
-    // Update the build() text to insert `widget.` before references to
-    // the widget class members.
-    final List<SourceEdit> buildTextEdits = [];
-    buildMethod.body.accept(new _SimpleIdentifierRecursiveAstVisitor((node) {
-      if (node.staticElement?.enclosingElement == widgetClassElement) {
-        var offset = node.offset - buildLinesRange.offset;
-        AstNode parent = node.parent;
-        if (parent is InterpolationExpression &&
-            parent.leftBracket.type ==
-                TokenType.STRING_INTERPOLATION_IDENTIFIER) {
-          buildTextEdits.add(new SourceEdit(offset, 0, '{widget.'));
-          buildTextEdits.add(new SourceEdit(offset + node.length, 0, '}'));
-        } else {
-          buildTextEdits.add(new SourceEdit(offset, 0, 'widget.'));
+    // Prepare nodes to move.
+    var nodesToMove = new Set<ClassMember>();
+    var elementsToMove = new Set<Element>();
+    for (var member in widgetClass.members) {
+      if (member is FieldDeclaration && !member.isStatic) {
+        for (VariableDeclaration fieldNode in member.fields.variables) {
+          FieldElement fieldElement = fieldNode.element;
+          if (!fieldsAssignedInConstructors.contains(fieldElement)) {
+            nodesToMove.add(member);
+            elementsToMove.add(fieldElement);
+            elementsToMove.add(fieldElement.getter);
+            if (fieldElement.setter != null) {
+              elementsToMove.add(fieldElement.setter);
+            }
+          }
         }
       }
-    }));
-    buildText = SourceEdit.applySequence(buildText, buildTextEdits.reversed);
+      if (member is MethodDeclaration && !member.isStatic) {
+        nodesToMove.add(member);
+        elementsToMove.add(member.element);
+      }
+    }
+
+    /// Return the code for the [movedNode] which is suitable to be used
+    /// inside the `State` class, so that references to the widget fields and
+    /// methods, that are not moved, are qualified with the corresponding
+    /// instance `widget.`, or static `MyWidgetClass.` qualifier.
+    String rewriteWidgetMemberReferences(AstNode movedNode) {
+      var linesRange = utils.getLinesRange(range.node(movedNode));
+      var text = utils.getRangeText(linesRange);
+
+      // Insert `widget.` before references to the widget instance members.
+      final List<SourceEdit> edits = [];
+      movedNode.accept(new _SimpleIdentifierRecursiveAstVisitor((node) {
+        if (node.inDeclarationContext()) {
+          return;
+        }
+        var element = node.staticElement;
+        if (element is ExecutableElement &&
+            element?.enclosingElement == widgetClassElement &&
+            !elementsToMove.contains(element)) {
+          var offset = node.offset - linesRange.offset;
+          var qualifier = element.isStatic ? widgetName : 'widget';
+
+          AstNode parent = node.parent;
+          if (parent is InterpolationExpression &&
+              parent.leftBracket.type ==
+                  TokenType.STRING_INTERPOLATION_IDENTIFIER) {
+            edits.add(new SourceEdit(offset, 0, '{$qualifier.'));
+            edits.add(new SourceEdit(offset + node.length, 0, '}'));
+          } else {
+            edits.add(new SourceEdit(offset, 0, '$qualifier.'));
+          }
+        }
+      }));
+      return SourceEdit.applySequence(text, edits.reversed);
+    }
 
     var statefulWidgetClass = await sessionHelper.getClass(
         flutter.WIDGETS_LIBRARY_URI, 'StatefulWidget');
@@ -1480,23 +1544,94 @@ class AssistProcessor {
 
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) async {
-      // TODO(brianwilkerson) Determine whether this await is necessary.
-      await null;
       builder.addReplacement(range.node(superclass), (builder) {
         builder.writeType(statefulWidgetClass.type);
       });
-      builder.addReplacement(buildLinesRange, (builder) {
-        builder.writeln('  @override');
-        builder.writeln('  $stateName createState() {');
-        builder.writeln('    return new $stateName();');
-        builder.writeln('  }');
-      });
+
+      int replaceOffset = 0;
+      bool hasBuildMethod = false;
+
+      /// Replace code between [replaceOffset] and [replaceEnd] with
+      /// `createState()`, empty line, or nothing.
+      void replaceInterval(int replaceEnd,
+          {bool replaceWithEmptyLine: false,
+          bool hasEmptyLineBeforeCreateState: false,
+          bool hasEmptyLineAfterCreateState: true}) {
+        int replaceLength = replaceEnd - replaceOffset;
+        builder.addReplacement(
+          new SourceRange(replaceOffset, replaceLength),
+          (builder) {
+            if (hasBuildMethod) {
+              if (hasEmptyLineBeforeCreateState) {
+                builder.writeln();
+              }
+              builder.writeln('  @override');
+              builder.writeln('  $stateName createState() {');
+              builder.writeln('    return new $stateName();');
+              builder.writeln('  }');
+              if (hasEmptyLineAfterCreateState) {
+                builder.writeln();
+              }
+              hasBuildMethod = false;
+            } else if (replaceWithEmptyLine) {
+              builder.writeln();
+            }
+          },
+        );
+        replaceOffset = 0;
+      }
+
+      // Remove continuous ranges of lines of nodes being moved.
+      bool lastToRemoveIsField = false;
+      int endOfLastNodeToKeep = 0;
+      for (var node in widgetClass.members) {
+        if (nodesToMove.contains(node)) {
+          if (replaceOffset == 0) {
+            var linesRange = utils.getLinesRange(range.node(node));
+            replaceOffset = linesRange.offset;
+          }
+          if (node == buildMethod) {
+            hasBuildMethod = true;
+          }
+          lastToRemoveIsField = node is FieldDeclaration;
+        } else {
+          var linesRange = utils.getLinesRange(range.node(node));
+          endOfLastNodeToKeep = linesRange.end;
+          if (replaceOffset != 0) {
+            replaceInterval(linesRange.offset,
+                replaceWithEmptyLine:
+                    lastToRemoveIsField && node is! FieldDeclaration);
+          }
+        }
+      }
+
+      // Remove nodes at the end of the widget class.
+      if (replaceOffset != 0) {
+        // Remove from the last node to keep, so remove empty lines.
+        if (endOfLastNodeToKeep != 0) {
+          replaceOffset = endOfLastNodeToKeep;
+        }
+        replaceInterval(widgetClass.rightBracket.offset,
+            hasEmptyLineBeforeCreateState: endOfLastNodeToKeep != 0,
+            hasEmptyLineAfterCreateState: false);
+      }
+
+      // Create the State subclass.
       builder.addInsertion(widgetClass.end, (builder) {
         builder.writeln();
         builder.writeln();
         builder.writeClassDeclaration(stateName, superclass: stateType,
             membersWriter: () {
-          builder.write(buildText);
+          bool writeEmptyLine = false;
+          for (var member in nodesToMove) {
+            if (writeEmptyLine) {
+              builder.writeln();
+            }
+            String text = rewriteWidgetMemberReferences(member);
+            builder.write(text);
+            // Write empty lines between members, but not before the first.
+            writeEmptyLine = true;
+          }
         });
       });
     });
