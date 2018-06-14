@@ -34,7 +34,10 @@ import '../../base/instrumentation.dart'
         InstrumentationValueForTypeArgs;
 
 import '../fasta_codes.dart'
-    show noLength, templateCantUseSuperBoundedTypeForInstanceCreation;
+    show
+        noLength,
+        templateCantInferTypeDueToCircularity,
+        templateCantUseSuperBoundedTypeForInstanceCreation;
 
 import '../problems.dart' show unhandled, unsupported;
 
@@ -607,6 +610,36 @@ class ShadowConstructorInvocation extends ConstructorInvocation
 
   @override
   DartType _inferExpression(ShadowTypeInferrer inferrer, DartType typeContext) {
+    var library = inferrer.engine.beingInferred[target];
+    if (library != null) {
+      // There is a cyclic dependency where inferring the types of the
+      // initializing formals of a constructor required us to infer the
+      // corresponding field type which required us to know the type of the
+      // constructor.
+      var name = target.enclosingClass.name;
+      if (target.name.name != '') name += '.${target.name.name}';
+      library.addProblem(
+          templateCantInferTypeDueToCircularity.withArguments(name),
+          target.fileOffset,
+          name.length,
+          target.fileUri);
+      for (var declaration in target.function.positionalParameters) {
+        declaration.type ??= const DynamicType();
+      }
+      for (var declaration in target.function.namedParameters) {
+        declaration.type ??= const DynamicType();
+      }
+    } else if ((library = inferrer.engine.toBeInferred[target]) != null) {
+      inferrer.engine.toBeInferred.remove(target);
+      inferrer.engine.beingInferred[target] = library;
+      for (var declaration in target.function.positionalParameters) {
+        inferrer.engine.inferInitializingFormal(declaration, target);
+      }
+      for (var declaration in target.function.namedParameters) {
+        inferrer.engine.inferInitializingFormal(declaration, target);
+      }
+      inferrer.engine.beingInferred.remove(target);
+    }
     var inferredType = inferrer.inferInvocation(
         typeContext,
         fileOffset,
@@ -807,7 +840,7 @@ class ShadowFactoryConstructorInvocation extends StaticInvocation
 /// Concrete shadow object representing a field in kernel form.
 class ShadowField extends Field implements ShadowMember {
   @override
-  InferenceNode _inferenceNode;
+  InferenceNode inferenceNode;
 
   ShadowTypeInferrer _typeInferrer;
 
@@ -823,13 +856,13 @@ class ShadowField extends Field implements ShadowMember {
   }
 
   static bool hasTypeInferredFromInitializer(ShadowField field) =>
-      field._inferenceNode is FieldInitializerInferenceNode;
+      field.inferenceNode is FieldInitializerInferenceNode;
 
   static bool isImplicitlyTyped(ShadowField field) => field._isImplicitlyTyped;
 
   static void setInferenceNode(ShadowField field, InferenceNode node) {
-    assert(field._inferenceNode == null);
-    field._inferenceNode = node;
+    assert(field.inferenceNode == null);
+    field.inferenceNode = node;
   }
 }
 
@@ -1428,18 +1461,18 @@ class ShadowMapLiteral extends MapLiteral implements ShadowExpression {
 abstract class ShadowMember implements Member {
   Uri get fileUri;
 
-  InferenceNode get _inferenceNode;
+  InferenceNode get inferenceNode;
 
-  void set _inferenceNode(InferenceNode value);
+  void set inferenceNode(InferenceNode value);
 
   void setInferredType(
       TypeInferenceEngine engine, Uri uri, DartType inferredType);
 
   static void resolveInferenceNode(Member member) {
     if (member is ShadowMember) {
-      if (member._inferenceNode != null) {
-        member._inferenceNode.resolve();
-        member._inferenceNode = null;
+      if (member.inferenceNode != null) {
+        member.inferenceNode.resolve();
+        member.inferenceNode = null;
       }
     }
   }
@@ -1568,7 +1601,7 @@ class ShadowNullLiteral extends NullLiteral implements ShadowExpression {
 /// Concrete shadow object representing a procedure in kernel form.
 class ShadowProcedure extends Procedure implements ShadowMember {
   @override
-  InferenceNode _inferenceNode;
+  InferenceNode inferenceNode;
 
   final bool _hasImplicitReturnType;
 
@@ -1757,9 +1790,9 @@ class ShadowStaticAssignment extends ShadowComplexAssignment {
     if (write is StaticSet) {
       writeContext = write.target.setterType;
       writeMember = write.target;
-      if (writeMember is ShadowField && writeMember._inferenceNode != null) {
-        writeMember._inferenceNode.resolve();
-        writeMember._inferenceNode = null;
+      if (writeMember is ShadowField && writeMember.inferenceNode != null) {
+        writeMember.inferenceNode.resolve();
+        writeMember.inferenceNode = null;
       }
     }
     var inferredResult = _inferRhs(inferrer, readType, writeContext);
@@ -1776,9 +1809,9 @@ class ShadowStaticGet extends StaticGet implements ShadowExpression {
   @override
   DartType _inferExpression(ShadowTypeInferrer inferrer, DartType typeContext) {
     var target = this.target;
-    if (target is ShadowField && target._inferenceNode != null) {
-      target._inferenceNode.resolve();
-      target._inferenceNode = null;
+    if (target is ShadowField && target.inferenceNode != null) {
+      target.inferenceNode.resolve();
+      target.inferenceNode = null;
     }
     var type = target.getterType;
     if (target is Procedure && target.kind == ProcedureKind.Method) {

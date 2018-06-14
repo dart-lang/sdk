@@ -514,10 +514,12 @@ class KernelTarget extends TargetImplementation {
       Constructor constructor, Map<TypeParameter, DartType> substitutionMap) {
     VariableDeclaration copyFormal(VariableDeclaration formal) {
       // TODO(ahe): Handle initializers.
-      return new VariableDeclaration(formal.name,
-          type: substitute(formal.type, substitutionMap),
-          isFinal: formal.isFinal,
-          isConst: formal.isConst);
+      var copy = new VariableDeclaration(formal.name,
+          isFinal: formal.isFinal, isConst: formal.isConst);
+      if (formal.type != null) {
+        copy.type = substitute(formal.type, substitutionMap);
+      }
+      return copy;
     }
 
     List<VariableDeclaration> positionalParameters = <VariableDeclaration>[];

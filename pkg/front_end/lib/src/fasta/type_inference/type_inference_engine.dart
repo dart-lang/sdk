@@ -4,16 +4,16 @@
 
 import 'package:kernel/ast.dart'
     show
-        Class,
+        Constructor,
         DartType,
         DartTypeVisitor,
         DynamicType,
         FunctionType,
         InterfaceType,
-        Location,
         TypeParameter,
         TypeParameterType,
-        TypedefType;
+        TypedefType,
+        VariableDeclaration;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 
@@ -21,12 +21,9 @@ import '../../base/instrumentation.dart';
 
 import '../builder/library_builder.dart';
 
-import '../deprecated_problems.dart' show Crash;
-
 import '../kernel/kernel_shadow_ast.dart';
 
-import '../messages.dart'
-    show getLocationFromNode, noLength, templateCantInferTypeDueToCircularity;
+import '../messages.dart' show noLength, templateCantInferTypeDueToCircularity;
 
 import '../source/source_library_builder.dart';
 
@@ -211,7 +208,20 @@ abstract class TypeInferenceEngine {
 
   final staticInferenceNodes = <FieldInitializerInferenceNode>[];
 
-  final initializingFormals = <ShadowVariableDeclaration>[];
+  /// A map containing constructors with initializing formals whose types
+  /// need to be inferred.
+  ///
+  /// This is represented as a map from a constructor to its library
+  /// builder because the builder is used to report errors due to cyclic
+  /// inference dependencies.
+  final Map<Constructor, LibraryBuilder> toBeInferred = {};
+
+  /// A map containing constructors in the process of being inferred.
+  ///
+  /// This is used to detect cyclic inference dependencies.  It is represented
+  /// as a map from a constructor to its library builder because the builder
+  /// is used to report errors.
+  final Map<Constructor, LibraryBuilder> beingInferred = {};
 
   final Instrumentation instrumentation;
 
@@ -248,20 +258,37 @@ abstract class TypeInferenceEngine {
   }
 
   /// Performs the third phase of top level inference, which is to visit all
-  /// initializing formals and infer their types (if necessary) from the
-  /// corresponding fields.
+  /// constructors still needing inference and infer the types of their
+  /// initializing formals from the corresponding fields.
   void finishTopLevelInitializingFormals() {
-    for (ShadowVariableDeclaration formal in initializingFormals) {
-      try {
-        formal.type = _inferInitializingFormalType(formal);
-      } catch (e, s) {
-        Location location = getLocationFromNode(formal);
-        if (location == null) {
-          rethrow;
-        } else {
-          throw new Crash(location.file, formal.fileOffset, e, s);
+    // Field types have all been inferred so there cannot be a cyclic
+    // dependency.
+    for (Constructor constructor in toBeInferred.keys) {
+      for (var declaration in constructor.function.positionalParameters) {
+        inferInitializingFormal(declaration, constructor);
+      }
+      for (var declaration in constructor.function.namedParameters) {
+        inferInitializingFormal(declaration, constructor);
+      }
+    }
+    toBeInferred.clear();
+  }
+
+  void inferInitializingFormal(VariableDeclaration formal, Constructor parent) {
+    if (formal.type == null) {
+      for (ShadowField field in parent.enclosingClass.fields) {
+        if (field.name.name == formal.name) {
+          if (field.inferenceNode != null) {
+            field.inferenceNode.resolve();
+          }
+          formal.type = field.type;
+          return;
         }
       }
+      // We did not find the corresponding field, so the program is erroneous.
+      // The error should have been reported elsewhere and type inference
+      // should continue by inferring dynamic.
+      formal.type = const DynamicType();
     }
   }
 
@@ -274,33 +301,11 @@ abstract class TypeInferenceEngine {
         new TypeSchemaEnvironment(coreTypes, hierarchy, strongMode);
   }
 
-  /// Records that the given initializing [formal] will need top level type
-  /// inference.
-  void recordInitializingFormal(ShadowVariableDeclaration formal) {
-    initializingFormals.add(formal);
-  }
-
   /// Records that the given static [field] will need top level type inference.
   void recordStaticFieldInferenceCandidate(
       ShadowField field, LibraryBuilder library) {
     var node = new FieldInitializerInferenceNode(this, field, library);
     ShadowField.setInferenceNode(field, node);
     staticInferenceNodes.add(node);
-  }
-
-  DartType _inferInitializingFormalType(ShadowVariableDeclaration formal) {
-    assert(ShadowVariableDeclaration.isImplicitlyTyped(formal));
-    var enclosingClass = formal.parent?.parent?.parent;
-    if (enclosingClass is Class) {
-      for (var field in enclosingClass.fields) {
-        if (field.name.name == formal.name) {
-          return field.type;
-        }
-      }
-    }
-    // No matching field, or something else has gone wrong (e.g. initializing
-    // formal outside of a class declaration).  The error should be reported
-    // elsewhere, so just infer `dynamic`.
-    return const DynamicType();
   }
 }
