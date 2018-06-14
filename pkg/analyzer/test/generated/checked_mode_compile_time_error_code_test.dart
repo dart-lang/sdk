@@ -492,6 +492,18 @@ var v = const A(null);''');
     verify([source]);
   }
 
+  test_listLiteral_inferredElementType() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+const Object x = [1];
+const List<String> y = x;
+''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH]);
+    verify([source]);
+  }
+
   test_mapKeyTypeNotAssignable() async {
     Source source = addSource("var v = const <String, int > {1 : 2};");
     await computeAnalysisResult(source);
@@ -499,6 +511,30 @@ var v = const A(null);''');
       CheckedModeCompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
       StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE
     ]);
+    verify([source]);
+  }
+
+  test_mapLiteral_inferredKeyType() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+const Object x = {1: 1};
+const Map<String, dynamic> y = x;
+''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH]);
+    verify([source]);
+  }
+
+  test_mapLiteral_inferredValueType() async {
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('''
+const Object x = {1: 1};
+const Map<dynamic, String> y = x;
+''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH]);
     verify([source]);
   }
 

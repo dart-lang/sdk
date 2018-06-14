@@ -1409,14 +1409,11 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     if (errorOccurred) {
       return null;
     }
-    DartType elementType = _typeProvider.dynamicType;
-    NodeList<TypeAnnotation> typeArgs = node.typeArguments?.arguments;
-    if (typeArgs?.length == 1) {
-      DartType type = visitTypeAnnotation(typeArgs[0])?.toTypeValue();
-      if (type != null) {
-        elementType = type;
-      }
-    }
+    var nodeType = node.staticType;
+    DartType elementType =
+        nodeType is InterfaceType && nodeType.typeArguments.isNotEmpty
+            ? nodeType.typeArguments[0]
+            : _typeProvider.dynamicType;
     InterfaceType listType = _typeProvider.listType.instantiate([elementType]);
     return new DartObjectImpl(listType, new ListState(elements));
   }
@@ -1445,17 +1442,12 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     }
     DartType keyType = _typeProvider.dynamicType;
     DartType valueType = _typeProvider.dynamicType;
-    NodeList<TypeAnnotation> typeArgs = node.typeArguments?.arguments;
-    if (typeArgs?.length == 2) {
-      DartType keyTypeCandidate =
-          visitTypeAnnotation(typeArgs[0])?.toTypeValue();
-      if (keyTypeCandidate != null) {
-        keyType = keyTypeCandidate;
-      }
-      DartType valueTypeCandidate =
-          visitTypeAnnotation(typeArgs[1])?.toTypeValue();
-      if (valueTypeCandidate != null) {
-        valueType = valueTypeCandidate;
+    var nodeType = node.staticType;
+    if (nodeType is InterfaceType) {
+      var typeArguments = nodeType.typeArguments;
+      if (typeArguments.length >= 2) {
+        keyType = typeArguments[0];
+        valueType = typeArguments[1];
       }
     }
     InterfaceType mapType =
