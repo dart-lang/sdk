@@ -157,10 +157,11 @@ class MessageTestSuite extends ChainContext {
             if (node is YamlList) {
               int i = 0;
               for (YamlNode script in node.nodes) {
-                examples.add(new ScriptExample("script${++i}", name, script));
+                examples
+                    .add(new ScriptExample("script${++i}", name, script, this));
               }
             } else {
-              examples.add(new ScriptExample("script", name, node));
+              examples.add(new ScriptExample("script", name, node, this));
             }
             break;
 
@@ -301,6 +302,10 @@ abstract class Example {
   YamlNode get node;
 
   Uint8List get bytes;
+
+  Map<String, Uint8List> get scripts {
+    return {"main.dart": bytes};
+  }
 }
 
 class BytesExample extends Example {
@@ -380,15 +385,33 @@ class ScriptExample extends Example {
   @override
   final YamlNode node;
 
-  final String script;
+  final Object script;
 
-  ScriptExample(String name, String code, this.node)
+  ScriptExample(String name, String code, this.node, MessageTestSuite suite)
       : script = node.value,
-        super(name, code);
+        super(name, code) {
+    if (script is! String && script is! Map) {
+      throw suite.formatProblems(
+          "A script must be either a String or a Map in $code:",
+          this, <List>[]);
+    }
+  }
 
   @override
-  Uint8List get bytes {
-    return new Uint8List.fromList(utf8.encode(script));
+  Uint8List get bytes => throw "Unsupported: ScriptExample.bytes";
+
+  @override
+  Map<String, Uint8List> get scripts {
+    Object script = this.script;
+    if (script is Map) {
+      var scriptFiles = <String, Uint8List>{};
+      script.forEach((fileName, value) {
+        scriptFiles[fileName] = new Uint8List.fromList(utf8.encode(value));
+      });
+      return scriptFiles;
+    } else {
+      return {"main.dart": new Uint8List.fromList(utf8.encode(script))};
+    }
   }
 }
 
@@ -414,12 +437,16 @@ class Compile extends Step<Example, Null, MessageTestSuite> {
 
   Future<Result<Null>> run(Example example, MessageTestSuite suite) async {
     if (example == null) return pass(null);
-    String name = "${example.expectedCode}/${example.name}";
-    Uri uri = suite.fileSystem.currentDirectory.resolve("${name}.dart");
-    suite.fileSystem.entityForUri(uri).writeAsBytesSync(example.bytes);
-    Uri output = uri.resolve("${uri.path}.dill");
+    String dir = "${example.expectedCode}/${example.name}";
+    example.scripts.forEach((String fileName, Uint8List bytes) {
+      Uri uri = suite.fileSystem.currentDirectory.resolve("$dir/$fileName");
+      suite.fileSystem.entityForUri(uri).writeAsBytesSync(bytes);
+    });
+    Uri main = suite.fileSystem.currentDirectory.resolve("$dir/main.dart");
+    Uri output =
+        suite.fileSystem.currentDirectory.resolve("$dir/main.dart.dill");
 
-    print("Compiling $uri");
+    print("Compiling $main");
     List<List> problems = <List>[];
 
     await suite.compiler.batchCompile(
@@ -432,7 +459,7 @@ class Compile extends Step<Example, Null, MessageTestSuite> {
             problems.add([problem, severity]);
           }
           ..strongMode = true,
-        uri,
+        main,
         output);
 
     List<List> unexpectedProblems = <List>[];

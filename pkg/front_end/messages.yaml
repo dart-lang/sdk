@@ -1410,6 +1410,10 @@ DuplicatedImport:
 DuplicatedImportInType:
   template: "'#name' is imported from both '#uri' and '#uri2'."
   severity: ERROR_LEGACY_WARNING
+  script:
+    lib1.dart: "class A {}"
+    lib2.dart: "class A {}"
+    main.dart: "import 'lib1.dart'; import 'lib2.dart'; A a;"
 
 CyclicClassHierarchy:
   template: "'#name' is a supertype of itself via '#string'."
@@ -1579,6 +1583,8 @@ OverrideTypeMismatchReturnType:
 
 PartOfSelf:
   template: "A file can't be a part of itself."
+  script:
+    main.dart: "part 'main.dart';"
 
 TypeVariableDuplicatedName:
   template: "A type variable can't have the same name as another."
@@ -1703,11 +1709,18 @@ PartOfTwice:
 
 PartTwice:
   template: "Can't use '#uri' as a part more than once."
+  script:
+    part.dart: "part of 'main.dart';"
+    main.dart: "part 'part.dart'; part 'part.dart';"
 
 PartOfTwoLibraries:
   template: "A file can't be part of more than one library."
   tip: "Try moving the shared declarations into the libraries, or into a new library."
   severity: ERROR
+  script:
+    main.dart: "library lib; import 'lib.dart'; part 'part.dart';"
+    lib.dart: "library lib; part 'part.dart';"
+    part.dart: "part of lib;"
 
 PartOfTwoLibrariesContext:
   template: "Used as a part in this library."
@@ -1765,6 +1778,9 @@ MissingTypedefParameters:
 
 MissingPartOf:
   template: "Can't use '#uri' as a part, because it has no 'part of' declaration."
+  script:
+    part.dart: ""
+    main.dart: "part 'part.dart';"
 
 SupertypeIsFunction:
   template: "Can't use a function type as supertype."
