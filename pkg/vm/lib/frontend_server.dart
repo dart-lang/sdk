@@ -385,25 +385,26 @@ class FrontendCompiler implements CompilerInterface {
       return null;
     }
 
+    nextUri:
     for (Uri uri in component.uriToSource.keys) {
-      if (uri == null || '$uri' == '') continue;
+      if (uri == null || '$uri' == '') continue nextUri;
 
       final List<int> oldBytes = component.uriToSource[uri].source;
       final FileSystemEntity entity =
           _compilerOptions.fileSystem.entityForUri(uri);
       if (!await entity.exists()) {
         _generator.invalidate(uri);
-        continue;
+        continue nextUri;
       }
       final List<int> newBytes = await entity.readAsBytes();
       if (oldBytes.length != newBytes.length) {
         _generator.invalidate(uri);
-        continue;
+        continue nextUri;
       }
       for (int i = 0; i < oldBytes.length; ++i) {
         if (oldBytes[i] != newBytes[i]) {
           _generator.invalidate(uri);
-          continue;
+          continue nextUri;
         }
       }
     }
