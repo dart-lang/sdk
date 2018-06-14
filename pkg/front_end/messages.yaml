@@ -766,6 +766,12 @@ StackOverflow:
   analyzerCode: STACK_OVERFLOW
   dart2jsCode: GENERIC
 
+StringLiteralError:
+  template: "#string at offset #count"
+  analyzerCode: ERROR_IN_STRING_LITERAL
+  dart2jsCode: "*fatal*"
+  expression: "'\\u{110000'"
+
 UnexpectedDollarInString:
   template: "A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({})."
   tip: "Try adding a backslash (\\) to escape the '$'."

@@ -206,7 +206,7 @@ class AstBuilder extends StackListener {
 
     if (interpolationCount == 0) {
       Token token = pop();
-      String value = unescapeString(token.lexeme);
+      String value = unescapeString(token.lexeme, token, this);
       push(ast.simpleStringLiteral(token, value));
     } else {
       List<Object> parts = popTypedList(1 + interpolationCount * 2);

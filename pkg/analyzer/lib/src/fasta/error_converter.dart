@@ -7,6 +7,13 @@ import 'package:analyzer/dart/ast/token.dart' show Token;
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:front_end/src/api_prototype/compilation_message.dart';
 import 'package:front_end/src/fasta/messages.dart' show Code, Message;
+import 'package:front_end/src/fasta/quote.dart'
+    show
+        incompleteHexSequence,
+        incompleteUnicodeSequence,
+        invalidCodePoint,
+        invalidHexSequenceCharacter,
+        invalidUnicodeCharacter;
 
 /// An error reporter that knows how to convert a Fasta error into an analyzer
 /// error.
@@ -182,6 +189,23 @@ class FastaErrorReporter {
             ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND,
             offset,
             length);
+        return;
+      case "ERROR_IN_STRING_LITERAL":
+        String stringError = arguments['string'];
+        if (stringError == invalidCodePoint) {
+          errorReporter?.reportErrorForOffset(
+              ParserErrorCode.INVALID_CODE_POINT, offset, length, ['\\u{...}']);
+        } else if (stringError == invalidHexSequenceCharacter ||
+            stringError == incompleteHexSequence) {
+          errorReporter?.reportErrorForOffset(
+              ParserErrorCode.INVALID_HEX_ESCAPE, offset, length);
+        } else if (stringError == invalidUnicodeCharacter ||
+            stringError == incompleteUnicodeSequence) {
+          errorReporter?.reportErrorForOffset(
+              ParserErrorCode.INVALID_UNICODE_ESCAPE, offset, length);
+        } else {
+          throw 'Unhandled error in string literal: ${arguments['string']}';
+        }
         return;
       case "EXPECTED_CLASS_MEMBER":
         errorReporter?.reportErrorForOffset(

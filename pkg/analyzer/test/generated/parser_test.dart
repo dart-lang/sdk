@@ -3998,8 +3998,8 @@ class Wrong<T> {
   }
 
   void test_invalidCodePoint() {
-    StringLiteral literal = parseExpression("'\\u{110000}'",
-        errors: [expectedError(ParserErrorCode.INVALID_CODE_POINT, 0, 10)]);
+    StringLiteral literal = parseExpression("'begin \\u{110000}'",
+        errors: [expectedError(ParserErrorCode.INVALID_CODE_POINT, 7, 9)]);
     expectNotNullIfNoErrors(literal);
   }
 
@@ -4065,8 +4065,8 @@ class Wrong<T> {
   }
 
   void test_invalidHexEscape_invalidDigit() {
-    StringLiteral literal = parseExpression("'\\x0 a'",
-        errors: [expectedError(ParserErrorCode.INVALID_HEX_ESCAPE, 1, 3)]);
+    StringLiteral literal = parseExpression("'not \\x0 a'",
+        errors: [expectedError(ParserErrorCode.INVALID_HEX_ESCAPE, 5, 3)]);
     expectNotNullIfNoErrors(literal);
   }
 
@@ -4248,7 +4248,7 @@ class Wrong<T> {
   }
 
   void test_invalidUnicodeEscape_invalidDigit() {
-    Expression expression = parseStringLiteral("'\\u0 a'");
+    Expression expression = parseStringLiteral("'\\u0 and some more'");
     expectNotNullIfNoErrors(expression);
     listener.assertErrors(
         [expectedError(ParserErrorCode.INVALID_UNICODE_ESCAPE, 1, 3)]);
@@ -4271,10 +4271,12 @@ class Wrong<T> {
   void test_invalidUnicodeEscape_tooManyDigits_variable() {
     Expression expression = parseStringLiteral("'\\u{12345678}'");
     expectNotNullIfNoErrors(expression);
-    listener.assertErrors([
-      expectedError(ParserErrorCode.INVALID_UNICODE_ESCAPE, 1, 12),
-      expectedError(ParserErrorCode.INVALID_CODE_POINT, 1, 12)
-    ]);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.INVALID_CODE_POINT, 1, 9)]
+        : [
+            expectedError(ParserErrorCode.INVALID_UNICODE_ESCAPE, 1, 12),
+            expectedError(ParserErrorCode.INVALID_CODE_POINT, 1, 12)
+          ]);
   }
 
   void test_libraryDirectiveNotFirst() {

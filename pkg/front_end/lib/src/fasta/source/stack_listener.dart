@@ -12,7 +12,8 @@ import '../fasta_codes.dart'
     show
         Message,
         messageNativeClauseShouldBeAnnotation,
-        templateInternalProblemStackNotEmpty;
+        templateInternalProblemStackNotEmpty,
+        templateStringLiteralError;
 
 import '../parser.dart' show Listener, MemberKind, Parser;
 
@@ -354,6 +355,15 @@ abstract class StackListener extends Listener {
   @override
   Token handleUnrecoverableError(Token token, Message message) {
     throw deprecated_inputError(uri, token.charOffset, message.message);
+  }
+
+  @override
+  void handleUnescapeError(
+      String error, Token token, int stringOffset, int length) {
+    addCompileTimeError(
+        templateStringLiteralError.withArguments(error, stringOffset),
+        token.charOffset + stringOffset,
+        length);
   }
 
   void addCompileTimeError(Message message, int charOffset, int length);

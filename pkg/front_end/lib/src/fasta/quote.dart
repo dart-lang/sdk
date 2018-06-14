@@ -130,27 +130,31 @@ String unescapeLastStringPart(String last, Quote quote) {
       last.substring(0, last.length - lastQuoteLength(quote)), quote);
 }
 
-String unescapeString(String string) {
+String unescapeString(String string,
+    [Object token, UnescapeErrorListener listener]) {
   Quote quote = analyzeQuote(string);
   return unescape(
       string.substring(firstQuoteLength(string, quote),
           string.length - lastQuoteLength(quote)),
-      quote);
+      quote,
+      token,
+      listener);
 }
 
-String unescape(String string, Quote quote) {
+String unescape(String string, Quote quote,
+    [Object token, UnescapeErrorListener listener]) {
   switch (quote) {
     case Quote.Single:
     case Quote.Double:
       return !string.contains("\\")
           ? string
-          : unescapeCodeUnits(string.codeUnits, false);
+          : unescapeCodeUnits(string.codeUnits, false, token, listener);
 
     case Quote.MultiLineSingle:
     case Quote.MultiLineDouble:
       return !string.contains("\\") && !string.contains("\r")
           ? string
-          : unescapeCodeUnits(string.codeUnits, false);
+          : unescapeCodeUnits(string.codeUnits, false, token, listener);
 
     case Quote.RawSingle:
     case Quote.RawDouble:
@@ -160,24 +164,38 @@ String unescape(String string, Quote quote) {
     case Quote.RawMultiLineDouble:
       return !string.contains("\r")
           ? string
-          : unescapeCodeUnits(string.codeUnits, true);
+          : unescapeCodeUnits(string.codeUnits, true, token, listener);
   }
   return unhandled("$quote", "unescape", -1, null);
 }
 
-const String incompleteSequence = "Incomplete escape sequence.";
+const String incompleteHexSequence = "Incomplete hex escape sequence.";
 
-const String invalidCharacter = "Invalid character in escape sequence.";
+const String invalidHexSequenceCharacter =
+    "Invalid character in hex escape sequence.";
 
 const String invalidCodePoint = "Invalid code point.";
 
+const String incompleteUnicodeSequence = "Incomplete unicode escape sequence.";
+
+const String invalidUnicodeCharacter =
+    "Invalid character in unicode escape sequence.";
+
 // Note: based on
 // [StringValidator.validateString](pkg/compiler/lib/src/string_validator.dart).
-String unescapeCodeUnits(List<int> codeUnits, bool isRaw) {
+String unescapeCodeUnits(List<int> codeUnits, bool isRaw,
+    // TODO(danrubel): Update remaining call sites
+    // and make these parameters required.
+    [Object location,
+    UnescapeErrorListener listener]) {
   // Can't use Uint8List or Uint16List here, the code units may be larger.
   List<int> result = new List<int>(codeUnits.length);
   int resultOffset = 0;
-  error(int offset, String message) {
+  error(String message, int offset, int length) {
+    if (location != null && listener != null && length != null) {
+      listener.handleUnescapeError(message, location, offset, length);
+      return new String.fromCharCodes(codeUnits);
+    }
     deprecated_inputError(null, null, message);
   }
 
@@ -189,7 +207,9 @@ String unescapeCodeUnits(List<int> codeUnits, bool isRaw) {
       }
       code = $LF;
     } else if (!isRaw && code == $BACKSLASH) {
-      if (codeUnits.length == ++i) return error(i, incompleteSequence);
+      if (codeUnits.length == ++i) {
+        return error(incompleteUnicodeSequence, i, 1);
+      }
       code = codeUnits[i];
 
       /// `\n` for newline, equivalent to `\x0A`.
@@ -214,43 +234,71 @@ String unescapeCodeUnits(List<int> codeUnits, bool isRaw) {
         code = $VTAB;
       } else if (code == $x) {
         // Expect exactly 2 hex digits.
-        if (codeUnits.length <= i + 2) return error(i, incompleteSequence);
+        int begin = i;
+        if (codeUnits.length <= i + 2) {
+          return error(
+              incompleteHexSequence, begin, codeUnits.length + 1 - begin);
+        }
         code = 0;
         for (int j = 0; j < 2; j++) {
           int digit = codeUnits[++i];
-          if (!isHexDigit(digit)) return error(i, invalidCharacter);
+          if (!isHexDigit(digit)) {
+            return error(invalidHexSequenceCharacter, begin, i + 1 - begin);
+          }
           code = (code << 4) + hexDigitValue(digit);
         }
       } else if (code == $u) {
-        if (codeUnits.length == i + 1) return error(i, incompleteSequence);
+        int begin = i;
+        if (codeUnits.length == i + 1) {
+          return error(
+              incompleteUnicodeSequence, begin, codeUnits.length + 1 - begin);
+        }
         code = codeUnits[i + 1];
         if (code == $OPEN_CURLY_BRACKET) {
           // Expect 1-6 hex digits followed by '}'.
-          if (codeUnits.length == ++i) return error(i, incompleteSequence);
+          if (codeUnits.length == ++i) {
+            return error(incompleteUnicodeSequence, begin, i + 1 - begin);
+          }
           code = 0;
           for (int j = 0; j < 7; j++) {
-            if (codeUnits.length == ++i) return error(i, incompleteSequence);
+            if (codeUnits.length == ++i) {
+              return error(incompleteUnicodeSequence, begin, i + 1 - begin);
+            }
             int digit = codeUnits[i];
             if (j != 0 && digit == $CLOSE_CURLY_BRACKET) break;
-            if (!isHexDigit(digit)) return error(i, invalidCharacter);
+            if (!isHexDigit(digit)) {
+              return error(invalidUnicodeCharacter, begin, i + 2 - begin);
+            }
             code = (code << 4) + hexDigitValue(digit);
           }
         } else {
           // Expect exactly 4 hex digits.
-          if (codeUnits.length <= i + 4) return error(i, incompleteSequence);
+          if (codeUnits.length <= i + 4) {
+            return error(
+                incompleteUnicodeSequence, begin, codeUnits.length + 1 - begin);
+          }
           code = 0;
           for (int j = 0; j < 4; j++) {
             int digit = codeUnits[++i];
-            if (!isHexDigit(digit)) return error(i, invalidCharacter);
+            if (!isHexDigit(digit)) {
+              return error(invalidUnicodeCharacter, begin, i + 1 - begin);
+            }
             code = (code << 4) + hexDigitValue(digit);
           }
+        }
+        if (code > 0x10FFFF) {
+          return error(invalidCodePoint, begin, i + 1 - begin);
         }
       } else {
         // Nothing, escaped character is passed through;
       }
-      if (code > 0x10FFFF) return error(i, invalidCodePoint);
     }
     result[resultOffset++] = code;
   }
   return new String.fromCharCodes(result, 0, resultOffset);
+}
+
+abstract class UnescapeErrorListener {
+  void handleUnescapeError(
+      String error, covariant location, int offset, int length);
 }

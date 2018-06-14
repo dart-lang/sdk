@@ -5422,6 +5422,26 @@ const MessageCode messageStaticOperator = const MessageCode("StaticOperator",
     tip: r"""Try removing the keyword 'static'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string, int count)>
+    templateStringLiteralError =
+    const Template<Message Function(String string, int count)>(
+        messageTemplate: r"""#string at offset #count""",
+        withArguments: _withArgumentsStringLiteralError);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, int count)> codeStringLiteralError =
+    const Code<Message Function(String string, int count)>(
+        "StringLiteralError", templateStringLiteralError,
+        analyzerCode: "ERROR_IN_STRING_LITERAL", dart2jsCode: "*fatal*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsStringLiteralError(String string, int count) {
+  return new Message(codeStringLiteralError,
+      message: """${string} at offset ${count}""",
+      arguments: {'string': string, 'count': count});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeSuperAsExpression = messageSuperAsExpression;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

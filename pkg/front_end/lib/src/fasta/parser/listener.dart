@@ -7,7 +7,12 @@ library fasta.parser.listener;
 import '../../scanner/token.dart' show Token, TokenType;
 
 import '../fasta_codes.dart'
-    show Message, messageNativeClauseShouldBeAnnotation;
+    show
+        Message,
+        messageNativeClauseShouldBeAnnotation,
+        templateStringLiteralError;
+
+import '../quote.dart' show UnescapeErrorListener;
 
 import 'assert.dart' show Assert;
 
@@ -30,7 +35,7 @@ import 'parser_error.dart' show ParserError;
 ///
 /// Events starting with `handle` are used when isn't possible to have a begin
 /// event.
-class Listener {
+class Listener implements UnescapeErrorListener {
   final List<ParserError> recoverableErrors = <ParserError>[];
 
   Uri get uri => null;
@@ -1230,6 +1235,15 @@ class Listener {
     }
     recoverableErrors
         .add(new ParserError.fromTokens(startToken, endToken, message));
+  }
+
+  @override
+  void handleUnescapeError(
+      String error, Token location, int stringOffset, int length) {
+    handleRecoverableError(
+        templateStringLiteralError.withArguments(error, stringOffset),
+        location,
+        location);
   }
 
   /// Signals to the listener that the previous statement contained a semantic
