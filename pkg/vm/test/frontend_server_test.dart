@@ -6,6 +6,8 @@ import 'dart:isolate';
 import 'package:args/src/arg_results.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/ast.dart' show Component;
+import 'package:kernel/kernel.dart' show loadComponentFromBinary;
+import 'package:kernel/verifier.dart' show verifyComponent;
 import 'package:mockito/mockito.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
@@ -786,6 +788,168 @@ Future<int> main() async {
       expect(path.basename(depContentsParsed[0]), path.basename(dillFile.path));
       expect(depContentsParsed[1], isNotEmpty);
     });
+
+    test('mimic flutter benchmark', () async {
+      // This is based on what flutters "hot_mode_dev_cycle__benchmark" does.
+      var dillFile = new File('${tempDir.path}/full.dill');
+      var incrementalDillFile = new File('${tempDir.path}/incremental.dill');
+      expect(dillFile.existsSync(), equals(false));
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--strong',
+        '--incremental',
+        '--platform=${platformKernel.path}',
+        '--output-dill=${dillFile.path}',
+        '--output-incremental-dill=${incrementalDillFile.path}'
+      ];
+      File dart2js = new File.fromUri(
+          Platform.script.resolve("../../../pkg/compiler/bin/dart2js.dart"));
+      expect(dart2js.existsSync(), equals(true));
+      File dart2jsOtherFile = new File.fromUri(Platform.script
+          .resolve("../../../pkg/compiler/lib/src/compiler.dart"));
+      expect(dart2jsOtherFile.existsSync(), equals(true));
+
+      int libraryCount = -1;
+      int sourceCount = -1;
+
+      for (int serverCloses = 0; serverCloses < 2; ++serverCloses) {
+        print("Restart #$serverCloses");
+        final StreamController<List<int>> streamController =
+            new StreamController<List<int>>();
+        final StreamController<List<int>> stdoutStreamController =
+            new StreamController<List<int>>();
+        final IOSink ioSink = new IOSink(stdoutStreamController.sink);
+        StreamController<String> receivedResults =
+            new StreamController<String>();
+
+        String boundaryKey;
+        stdoutStreamController.stream
+            .transform(utf8.decoder)
+            .transform(const LineSplitter())
+            .listen((String s) {
+          const String RESULT_OUTPUT_SPACE = 'result ';
+          if (boundaryKey == null) {
+            if (s.startsWith(RESULT_OUTPUT_SPACE)) {
+              boundaryKey = s.substring(RESULT_OUTPUT_SPACE.length);
+            }
+          } else {
+            if (s.startsWith(boundaryKey)) {
+              receivedResults.add(s.substring(boundaryKey.length + 1));
+              boundaryKey = null;
+            }
+          }
+        });
+
+        int exitcode =
+            await starter(args, input: streamController.stream, output: ioSink);
+        expect(exitcode, equals(0));
+        streamController.add('compile ${dart2js.path}\n'.codeUnits);
+        int count = 0;
+        Completer<bool> allDone = new Completer<bool>();
+        receivedResults.stream.listen((String outputFilenameAndErrorCount) {
+          int delim = outputFilenameAndErrorCount.lastIndexOf(' ');
+          expect(delim > 0, equals(true));
+          String outputFilename =
+              outputFilenameAndErrorCount.substring(0, delim);
+          print("$outputFilename -- count $count");
+          if (count == 0) {
+            // First request is to 'compile', which results in full kernel file.
+            expect(dillFile.existsSync(), equals(true));
+            expect(outputFilename, dillFile.path);
+
+            // Dill file can be loaded and includes data.
+            Component component = loadComponentFromBinary(dillFile.path);
+            if (serverCloses == 0) {
+              libraryCount = component.libraries.length;
+              sourceCount = component.uriToSource.length;
+              expect(libraryCount > 100, equals(true));
+              expect(sourceCount >= libraryCount, equals(true),
+                  reason: "Expects >= source entries than libraries.");
+            } else {
+              expect(component.libraries.length, equals(libraryCount),
+                  reason: "Expects the same number of libraries "
+                      "when compiling after a restart");
+              expect(component.uriToSource.length, equals(sourceCount),
+                  reason: "Expects the same number of sources "
+                      "when compiling after a restart");
+            }
+
+            // Include platform and verify.
+            component = loadComponentFromBinary(platformKernel.path, component);
+            expect(component.mainMethod, isNotNull);
+            verifyComponent(component);
+
+            count += 1;
+
+            // Restart with no changes
+            streamController.add('accept\n'.codeUnits);
+            streamController.add('reset\n'.codeUnits);
+            streamController.add('recompile ${dart2js.path} x$count\n'
+                'x$count\n'
+                .codeUnits);
+          } else if (count == 1) {
+            // Restart. Expect full kernel file.
+            expect(dillFile.existsSync(), equals(true));
+            expect(outputFilename, dillFile.path);
+
+            // Dill file can be loaded and includes data.
+            Component component = loadComponentFromBinary(dillFile.path);
+            expect(component.libraries.length, equals(libraryCount),
+                reason: "Expect the same number of libraries after a reset.");
+            expect(component.uriToSource.length, equals(sourceCount),
+                reason: "Expect the same number of sources after a reset.");
+
+            // Include platform and verify.
+            component = loadComponentFromBinary(platformKernel.path, component);
+            expect(component.mainMethod, isNotNull);
+            verifyComponent(component);
+
+            count += 1;
+
+            // Reload with no changes
+            streamController.add('accept\n'.codeUnits);
+            streamController.add('recompile ${dart2js.path} x$count\n'
+                'x$count\n'
+                .codeUnits);
+          } else if (count == 2) {
+            // Partial file. Expect to be empty.
+            expect(incrementalDillFile.existsSync(), equals(true));
+            expect(outputFilename, incrementalDillFile.path);
+
+            // Dill file can be loaded and includes no data.
+            Component component =
+                loadComponentFromBinary(incrementalDillFile.path);
+            expect(component.libraries.length, equals(0));
+
+            count += 1;
+
+            // Reload with 1 change
+            streamController.add('accept\n'.codeUnits);
+            streamController.add('recompile ${dart2js.path} x$count\n'
+                '${dart2jsOtherFile.path}\n'
+                'x$count\n'
+                .codeUnits);
+          } else if (count == 3) {
+            // Partial file. Expect to not be empty.
+            expect(incrementalDillFile.existsSync(), equals(true));
+            expect(outputFilename, incrementalDillFile.path);
+
+            // Dill file can be loaded and includes some data.
+            Component component =
+                loadComponentFromBinary(incrementalDillFile.path);
+            expect(component.libraries, isNotEmpty);
+            expect(component.uriToSource.length >= component.libraries.length,
+                equals(true),
+                reason: "Expects >= source entries than libraries.");
+
+            count += 1;
+
+            allDone.complete(true);
+          }
+        });
+        expect(await allDone.future, true);
+      }
+    }, timeout: new Timeout.factor(8));
   });
   return 0;
 }
