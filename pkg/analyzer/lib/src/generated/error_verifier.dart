@@ -209,24 +209,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   ClassElementImpl _enclosingClass;
 
-  ClassElement get enclosingClass => _enclosingClass;
-
-  /**
-   * For consumers of error verification as a library, (currently just the
-   * angular plugin), expose a setter that can make the errors reported more
-   * accurate when dangling code snippets are being resolved from a class
-   * context. Note that this setter is very defensive for potential misuse; it
-   * should not be modified in the middle of visiting a tree and requires an
-   * analyzer-provided Impl instance to work.
-   */
-  set enclosingClass(ClassElement classElement) {
-    assert(classElement is ClassElementImpl);
-    assert(_enclosingClass == null);
-    assert(_enclosingEnum == null);
-    assert(_enclosingFunction == null);
-    _enclosingClass = classElement;
-  }
-
   /**
    * The enum containing the AST nodes being visited, or `null` if we are not
    * in the scope of an enum.
@@ -343,6 +325,24 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     _DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT = _typeProvider.nonSubtypableTypes;
     _typeSystem = _currentLibrary.context.typeSystem;
     _options = _currentLibrary.context.analysisOptions;
+  }
+
+  ClassElement get enclosingClass => _enclosingClass;
+
+  /**
+   * For consumers of error verification as a library, (currently just the
+   * angular plugin), expose a setter that can make the errors reported more
+   * accurate when dangling code snippets are being resolved from a class
+   * context. Note that this setter is very defensive for potential misuse; it
+   * should not be modified in the middle of visiting a tree and requires an
+   * analyzer-provided Impl instance to work.
+   */
+  set enclosingClass(ClassElement classElement) {
+    assert(classElement is ClassElementImpl);
+    assert(_enclosingClass == null);
+    assert(_enclosingEnum == null);
+    assert(_enclosingFunction == null);
+    _enclosingClass = classElement;
   }
 
   @override
@@ -5743,8 +5743,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           return;
         }
       }
-
-      return reportTypeError();
+      reportTypeError();
+      return;
     }
     // TODO(leafp): Delete this non Dart 2 path
     DartType staticReturnType = _computeReturnTypeForMethod(returnExpression);
