@@ -8,39 +8,43 @@ import 'dart:async' show Future;
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
-import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+import 'package:kernel/binary/ast_from_binary.dart'
+    show BinaryBuilder, CanonicalNameError, InvalidKernelVersionError;
 
-import '../api_prototype/file_system.dart' show FileSystemEntity;
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/kernel.dart'
     show
-        Library,
-        Name,
-        ReturnStatement,
-        FunctionNode,
         Class,
-        Expression,
-        DartType,
-        LibraryPart,
         Component,
+        DartType,
+        Expression,
+        FunctionNode,
+        Library,
         LibraryDependency,
-        Source,
+        LibraryPart,
+        Name,
         Procedure,
-        TypeParameter,
-        ProcedureKind;
-
-import '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
-
-import 'hybrid_file_system.dart' show HybridFileSystem;
+        ProcedureKind,
+        ReturnStatement,
+        Source,
+        TreeNode,
+        TypeParameter;
 
 import 'package:kernel/kernel.dart' as kernel show Combinator;
+
+import '../api_prototype/file_system.dart' show FileSystemEntity;
 
 import '../api_prototype/incremental_kernel_generator.dart'
     show IncrementalKernelGenerator, isLegalIdentifier;
 
+import '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
+
 import 'builder/builder.dart' show LibraryBuilder;
 
 import 'builder_graph.dart' show BuilderGraph;
+
+import 'combinator.dart' show Combinator;
 
 import 'compiler_context.dart' show CompilerContext;
 
@@ -48,21 +52,27 @@ import 'dill/dill_library_builder.dart' show DillLibraryBuilder;
 
 import 'dill/dill_target.dart' show DillTarget;
 
+import 'fasta_codes.dart'
+    show
+        templateInitializeFromDillNotSelfContained,
+        templateInitializeFromDillUnknownProblem;
+
+import 'hybrid_file_system.dart' show HybridFileSystem;
+
 import 'kernel/kernel_incremental_target.dart'
     show KernelIncrementalTarget, KernelIncrementalTargetErroneousComponent;
 
-import 'library_graph.dart' show LibraryGraph;
-
 import 'kernel/kernel_library_builder.dart' show KernelLibraryBuilder;
+
 import 'kernel/kernel_shadow_ast.dart' show ShadowVariableDeclaration;
+
+import 'library_graph.dart' show LibraryGraph;
 
 import 'source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'ticker.dart' show Ticker;
 
 import 'uri_translator.dart' show UriTranslator;
-
-import 'combinator.dart' show Combinator;
 
 class IncrementalCompiler implements IncrementalKernelGenerator {
   final CompilerContext context;
@@ -112,6 +122,25 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             // We might have loaded x out of y libraries into the component.
             // To avoid any unforeseen problems start over.
             bytesLength = prepareSummary(summaryBytes, uriTranslator, c, data);
+
+            if (e is InvalidKernelVersionError || e is PackageChangedError) {
+              // Don't report any warning.
+            } else if (e is CanonicalNameError) {
+              dillLoadedData.loader.addProblem(
+                  templateInitializeFromDillNotSelfContained
+                      .withArguments(initializeFromDillUri.toString()),
+                  TreeNode.noOffset,
+                  1,
+                  null);
+            } else {
+              // Unknown error: Report problem as such.
+              dillLoadedData.loader.addProblem(
+                  templateInitializeFromDillUnknownProblem.withArguments(
+                      initializeFromDillUri.toString(), "$e"),
+                  TreeNode.noOffset,
+                  1,
+                  null);
+            }
           }
         }
         appendLibraries(data, bytesLength);
@@ -348,7 +377,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         // We're going to output all we read here so lazy loading it
         // doesn't make sense.
         new BinaryBuilder(initializationBytes, disableLazyReading: true)
-            .readComponent(data.component);
+            .readComponent(data.component, checkCanonicalNames: true);
 
         // Check the any package-urls still point to the same file
         // (e.g. the package still exists and hasn't been updated).
@@ -360,7 +389,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             // Everything that depends on it should be thrown away.
             // TODO(jensj): Anything that doesn't depend on it can be kept.
             // For now just don't initialize from this dill.
-            throw "Changed package";
+            throw const PackageChangedError();
           }
         }
 
@@ -610,6 +639,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }
 
   void recordInvalidatedImportUrisForTesting(List<Uri> uris) {}
+}
+
+class PackageChangedError {
+  const PackageChangedError();
 }
 
 class IncrementalCompilerData {

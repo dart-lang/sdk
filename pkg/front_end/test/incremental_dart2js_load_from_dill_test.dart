@@ -29,28 +29,17 @@ void testDart2jsCompile() async {
   Uri fullDillFromInitialized =
       outDir.uri.resolve("dart2js.full_from_initialized.dill");
   Uri nonexisting = outDir.uri.resolve("dart2js.nonexisting.dill");
-  Uri nonLoadable = outDir.uri.resolve("dart2js.nonloadable.dill");
 
   // Compile dart2js without initializing from dill.
   Stopwatch stopwatch = new Stopwatch()..start();
   await normalCompile(dart2jsUrl, normalDill);
   print("Normal compile took ${stopwatch.elapsedMilliseconds} ms");
 
-  // Create a file that cannot be (fully) loaded as a dill file.
-  List<int> corruptData = new File.fromUri(normalDill).readAsBytesSync();
-  for (int i = 10 * (corruptData.length ~/ 16);
-      i < 15 * (corruptData.length ~/ 16);
-      ++i) {
-    corruptData[i] = 42;
-  }
-  new File.fromUri(nonLoadable).writeAsBytesSync(corruptData);
-
   // Compile dart2js, initializing from the just-compiled dill,
   // a nonexisting file and a dill file that isn't valid.
   for (List<Object> initializationData in [
     [normalDill, true],
     [nonexisting, false],
-    //  [nonLoadable, false] // disabled for now
   ]) {
     Uri initializeWith = initializationData[0];
     bool initializeExpect = initializationData[1];

@@ -2281,3 +2281,15 @@ InitializingFormalTypeMismatchField:
 UseOfDeprecatedIdentifier:
   template: "'#name' is deprecated."
   severity: IGNORED
+
+InitializeFromDillNotSelfContained:
+  template: "Tried to initialize from a previous compilation (#string), but the file was not self-contained. This might be a bug, please report at http://dartbug.com/new."
+  severity: WARNING
+  frontendInternal: true
+  external: test/incremental_load_from_invalid_dill_test.dart
+
+InitializeFromDillUnknownProblem:
+  template: "Tried to initialize from a previous compilation (#string), but couldn't. This might be a bug, please report at http://dartbug.com/new. Error message was '#string2'."
+  severity: WARNING
+  frontendInternal: true
+  external: test/incremental_load_from_invalid_dill_test.dart

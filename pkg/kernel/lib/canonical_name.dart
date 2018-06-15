@@ -30,6 +30,11 @@ import 'ast.dart';
 ///         "@fields"
 ///         Qualified name
 ///
+///      Typedef:
+///         Canonical name of enclosing class
+///         "@typedefs"
+///         Name text
+///
 ///      Procedure that is not an accessor or factory:
 ///         Canonical name of enclosing class or library
 ///         "@methods"

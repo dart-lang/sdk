@@ -229,8 +229,10 @@ class MessageTestSuite extends ChainContext {
           null,
           exampleAndAnalyzerCodeRequired &&
                   externalTest != null &&
-                  !(new File(externalTest).existsSync())
-              ? "Given external example for $name points to a nonexisting file."
+                  !(new File.fromUri(suite.uri.resolve(externalTest))
+                      .existsSync())
+              ? "Given external example for $name points to a nonexisting file "
+                  "(${suite.uri.resolve(externalTest)})."
               : null);
 
       yield createDescription(

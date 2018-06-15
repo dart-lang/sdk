@@ -2833,6 +2833,60 @@ const MessageCode messageInheritedMembersConflictCause2 = const MessageCode(
     message: r"""This is the other inherited member.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            string)> templateInitializeFromDillNotSelfContained = const Template<
+        Message Function(String string)>(
+    messageTemplate:
+        r"""Tried to initialize from a previous compilation (#string), but the file was not self-contained. This might be a bug, please report at http://dartbug.com/new.""",
+    withArguments: _withArgumentsInitializeFromDillNotSelfContained);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)>
+    codeInitializeFromDillNotSelfContained =
+    const Code<Message Function(String string)>(
+        "InitializeFromDillNotSelfContained",
+        templateInitializeFromDillNotSelfContained,
+        severity: Severity.warning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInitializeFromDillNotSelfContained(String string) {
+  return new Message(codeInitializeFromDillNotSelfContained,
+      message:
+          """Tried to initialize from a previous compilation (${string}), but the file was not self-contained. This might be a bug, please report at http://dartbug.com/new.""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String string,
+        String
+            string2)> templateInitializeFromDillUnknownProblem = const Template<
+        Message Function(String string, String string2)>(
+    messageTemplate:
+        r"""Tried to initialize from a previous compilation (#string), but couldn't. This might be a bug, please report at http://dartbug.com/new. Error message was '#string2'.""",
+    withArguments: _withArgumentsInitializeFromDillUnknownProblem);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String string2)>
+    codeInitializeFromDillUnknownProblem =
+    const Code<Message Function(String string, String string2)>(
+        "InitializeFromDillUnknownProblem",
+        templateInitializeFromDillUnknownProblem,
+        severity: Severity.warning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInitializeFromDillUnknownProblem(
+    String string, String string2) {
+  return new Message(codeInitializeFromDillUnknownProblem,
+      message:
+          """Tried to initialize from a previous compilation (${string}), but couldn't. This might be a bug, please report at http://dartbug.com/new. Error message was '${string2}'.""",
+      arguments: {'string': string, 'string2': string2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInitializedVariableInForEach =
     messageInitializedVariableInForEach;
 

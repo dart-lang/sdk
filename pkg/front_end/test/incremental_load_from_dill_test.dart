@@ -115,8 +115,8 @@ class RunCompilations extends Step<TestData, TestData, Context> {
   }
 }
 
-void basicTest(Map<String, String> sourceFiles, String entryPoint, bool strong,
-    List<String> invalidate, Directory outDir) async {
+Future<Null> basicTest(Map<String, String> sourceFiles, String entryPoint,
+    bool strong, List<String> invalidate, Directory outDir) async {
   Uri entryPointUri = outDir.uri.resolve(entryPoint);
   Set<String> invalidateFilenames = invalidate?.toSet() ?? new Set<String>();
   List<Uri> invalidateUris = <Uri>[];
@@ -172,7 +172,7 @@ void basicTest(Map<String, String> sourceFiles, String entryPoint, bool strong,
   checkIsEqual(normalDillData, initializedDillData);
 }
 
-void newWorldTest(bool strong, List worlds) async {
+Future<Null> newWorldTest(bool strong, List worlds) async {
   final Uri sdkRoot = computePlatformBinariesLocation();
   final Uri base = Uri.parse("org-dartlang-test:///");
   final Uri sdkSummary = base.resolve("vm_platform.dill");
