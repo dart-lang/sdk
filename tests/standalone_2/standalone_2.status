@@ -15,6 +15,7 @@ package/scenarios/empty_packages_file/empty_packages_file_discovery_test: Fail, 
 package/scenarios/empty_packages_file/empty_packages_file_option_test: Fail, OK # CompileTimeErrors intentionally
 package/scenarios/invalid/invalid_package_name_test: RuntimeError, CompileTimeError # Errors intentionally
 package/scenarios/invalid/same_package_twice_test.dart: RuntimeError, CompileTimeError # Errors intentionally
+package/scenarios/packages_dir_only/packages_dir_only_test: Fail # Confirm this no longer works for now. TODO(mfairhurst): delete this test.
 package/scenarios/packages_file_strange_formatting/empty_package_dir_test: Fail, OK # CompileTimeErrors intentionally
 packages_file_test: Skip # Issue 26715
 packages_file_test/none: Skip # contains no tests.
@@ -73,11 +74,6 @@ io/*: Skip # Issue 30618
 # All static_tests have expected compile-time errors.
 [ $compiler != app_jitk && $compiler != dart2analyzer && $compiler != dartdevc && $compiler != dartk && $compiler != dartkp && $runtime != none && $strong ]
 float_array_static_test: MissingCompileTimeError
-
-# We want to confirm that this behavior no longer works. Works in kernel though.
-# TODO(mfairhurst) delete this test.
-[ $compiler != dartk && !$fasta ]
-package/scenarios/packages_dir_only/packages_dir_only_test: Fail
 
 [ $compiler == none && $runtime == vm && $system == fuchsia ]
 *: Skip # Not yet triaged.
