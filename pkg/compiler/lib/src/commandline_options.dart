@@ -41,6 +41,11 @@ class Flags {
 
   static const String strongMode = '--strong';
   static const String previewDart2 = '--preview-dart-2';
+  // Revert to Dart 1.0
+  //
+  // Temporary option to opt-out of Dart 2.0 while migrating.
+  static const String noPreviewDart2 = '--no-preview-dart-2';
+
   static const String omitImplicitChecks = '--omit-implicit-checks';
 
   static const String platformBinaries = '--platform-binaries=.+';

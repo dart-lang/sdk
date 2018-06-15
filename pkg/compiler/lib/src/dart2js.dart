@@ -359,6 +359,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.enableAssertMessage, passThrough),
     new OptionHandler(Flags.strongMode, setStrongMode),
     new OptionHandler(Flags.previewDart2, setStrongMode),
+    new OptionHandler(Flags.noPreviewDart2, ignoreOption),
     new OptionHandler(Flags.omitImplicitChecks, passThrough),
     new OptionHandler(Flags.benchmarkingProduction, passThrough),
 
