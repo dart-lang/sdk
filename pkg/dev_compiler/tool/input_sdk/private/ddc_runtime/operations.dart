@@ -4,7 +4,7 @@
 
 /// This library defines runtime operations on objects used by the code
 /// generator.
-part of dart._runtime;
+part of "runtime.dart";
 
 // TODO(jmesserly): remove this in favor of _Invocation.
 class InvocationImpl extends Invocation {
@@ -408,7 +408,7 @@ _ignoreMemo(f) => JS('', '''(() => {
   };
 })()''');
 
-final _ignoreTypeFailure = JS('', '''(() => {
+final Object _ignoreTypeFailure = JS('', '''(() => {
   return $_ignoreMemo((actual, type) => {
       // TODO(vsm): Remove this hack ...
       // This is primarily due to the lack of generic methods,

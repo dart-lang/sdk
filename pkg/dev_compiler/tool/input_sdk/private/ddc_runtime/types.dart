@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// This library defines the representation of runtime types.
-part of dart._runtime;
+part of "runtime.dart";
 
 final metadata = JS('', 'Symbol("metadata")');
 

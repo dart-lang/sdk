@@ -4,7 +4,8 @@
 
 // Patch file for the dart:async library.
 
-import 'dart:_js_helper' show patch, setTraceForException, ReifyFunctionTypes;
+import 'dart:_js_helper'
+    show notNull, patch, setTraceForException, ReifyFunctionTypes;
 import 'dart:_isolate_helper'
     show TimerImpl, global, leaveJsAsync, enterJsAsync;
 import 'dart:_foreign_helper' show JS, JSExportName;
@@ -13,6 +14,17 @@ import 'dart:_runtime' as dart;
 typedef void _Callback();
 typedef void _TakeCallback(_Callback callback);
 
+/// This function adapts ES6 generators to implement Dart's async/await.
+///
+/// It's designed to interact with Dart's Future and follow Dart async/await
+/// semantics.
+///
+/// See https://github.com/dart-lang/sdk/issues/27315 for ideas on reconciling
+/// Dart's Future and ES6 Promise. At that point we should use native JS
+/// async/await.
+///
+/// Inspired by `co`: https://github.com/tj/co/blob/master/index.js, which is a
+/// stepping stone for ES async/await.
 @JSExportName('async')
 @ReifyFunctionTypes(false)
 _async<T>(Function() initGenerator) {
@@ -219,4 +231,274 @@ class Timer {
 void _rethrow(Object error, StackTrace stackTrace) {
   setTraceForException(error, stackTrace);
   dart.throw_(error);
+}
+
+/// Used by the compiler to implement `async*` functions.
+///
+/// This is inspired by _AsyncStarStreamController in dart-lang/sdk's
+/// runtime/lib/core_patch.dart
+///
+/// Given input like:
+///
+///     foo() async* {
+///       yield 1;
+///       yield* bar();
+///       print(await baz());
+///     }
+///
+/// This compiles to:
+///
+///     function foo() {
+///       return new (AsyncStarImplOfT()).new(function*(stream) {
+///         if (stream.add(1)) return;
+///         yield;
+///         if (stream.addStream(bar()) return;
+///         yield;
+///         print(yield baz());
+///      });
+///     }
+///
+class _AsyncStarImpl<T> {
+  StreamController<T> controller;
+  Object Function(_AsyncStarImpl<T>) initGenerator;
+  @notNull
+  bool isSuspendedAtYieldStar = false;
+  @notNull
+  bool onListenReceived = false;
+  @notNull
+  bool isScheduled = false;
+  @notNull
+  bool isSuspendedAtYield = false;
+
+  /// Whether we're suspended at an `await`.
+  @notNull
+  bool isSuspendedAtAwait = false;
+
+  Completer cancellationCompleter;
+  Object jsIterator;
+
+  Null Function(Object, StackTrace) _handleErrorCallback;
+  void Function([Object]) _runBodyCallback;
+
+  _AsyncStarImpl(this.initGenerator) {
+    controller = StreamController(
+        onListen: JS('!', 'this.onListen.bind(this)'),
+        onResume: JS('!', 'this.onResume.bind(this)'),
+        onCancel: JS('!', 'this.onCancel.bind(this)'));
+    jsIterator = JS('!', '#[Symbol.iterator]()', initGenerator(this));
+  }
+
+  /// The stream produced by this `async*` function.
+  Stream<T> get stream => controller.stream;
+
+  /// Returns the callback used for error handling.
+  ///
+  /// This callback throws the error back into the user code, at the appropriate
+  /// location (e.g. `await` `yield` or `yield*`). This gives user code a chance
+  /// to handle it try-catch. If they do not handle, the error gets routed to
+  /// the [stream] as an error via [addError].
+  ///
+  /// As a performance optimization, this callback is only bound once to the
+  /// current [Zone]. This works because a single subscription stream should
+  /// always be running in its original zone. An `async*` method will always
+  /// save/restore the zone that was active when `listen()` was first called,
+  /// similar to a stream. This follows from section 16.14 of the Dart 4th
+  /// edition spec:
+  ///
+  /// > If `f` is marked `async*` (9), then a fresh instance `s` implementing
+  /// > the built-in class `Stream` is associated with the invocation and
+  /// > immediately returned. When `s` is listened to, execution of the body of
+  /// > `f` will begin.
+  ///
+  Null Function(Object, StackTrace) get handleError {
+    if (_handleErrorCallback == null) {
+      _handleErrorCallback = (error, StackTrace stackTrace) {
+        try {
+          JS('', '#.throw(#)', jsIterator, error);
+        } catch (e) {
+          addError(e, stackTrace);
+        }
+      };
+      var zone = Zone.current;
+      if (!identical(zone, Zone.root)) {
+        _handleErrorCallback = zone.bindBinaryCallback(_handleErrorCallback);
+      }
+    }
+    return _handleErrorCallback;
+  }
+
+  void scheduleGenerator() {
+    // TODO(jmesserly): is this isPaused check in the right place? Assuming the
+    // async* Stream yields, then is paused (by other code), the body will
+    // already be scheduled. This will cause at least one more iteration to
+    // run (adding another data item to the Stream) before actually pausing.
+    // It could be fixed by moving the `isPaused` check inside `runBody`.
+    if (isScheduled ||
+        controller.isPaused ||
+        isSuspendedAtYieldStar ||
+        isSuspendedAtAwait) {
+      return;
+    }
+    isScheduled = true;
+    // Capture the current zone. See comment on [handleError] for more
+    // information about this optimization.
+    var zone = Zone.current;
+    if (_runBodyCallback == null) {
+      _runBodyCallback = JS('!', '#.bind(this)', runBody);
+      if (!identical(zone, Zone.root)) {
+        var registered = zone.registerUnaryCallback(_runBodyCallback);
+        _runBodyCallback = ([arg]) => zone.runUnaryGuarded(registered, arg);
+      }
+    }
+    zone.scheduleMicrotask(_runBodyCallback);
+  }
+
+  void runBody(awaitValue) {
+    isScheduled = false;
+    isSuspendedAtYield = false;
+    isSuspendedAtAwait = false;
+
+    Object iterResult;
+    try {
+      iterResult = JS('', '#.next(#)', jsIterator, awaitValue);
+    } catch (e, s) {
+      addError(e, s);
+      close();
+      return null;
+    }
+
+    if (JS('!', '#.done', iterResult)) {
+      close();
+      return null;
+    }
+
+    // If we're suspended at a yield/yield*, we're done for now.
+    if (isSuspendedAtYield || isSuspendedAtYieldStar) return null;
+
+    // Handle `await`: if we get a value passed to `yield` it means we are
+    // waiting on this Future. Make sure to prevent scheduling, and pass the
+    // value back as the result of the `yield`.
+    //
+    // TODO(jmesserly): is the timing here correct? The assumption here is
+    // that we should schedule `await` in `async*` the same as in `async`.
+    isSuspendedAtAwait = true;
+    FutureOr<Object> value = JS('', '#.value', iterResult);
+
+    // TODO(jmesserly): this logic was copied from `async` function impl.
+    _Future f;
+    if (value is _Future) {
+      f = value;
+    } else if (value is Future) {
+      f = _Future();
+      _Future._chainForeignFuture(value, f);
+    } else {
+      f = _Future.value(value);
+    }
+    f._thenNoZoneRegistration(_runBodyCallback, handleError);
+  }
+
+  /// Adds element to [stream] and returns true if the caller should terminate
+  /// execution of the generator.
+  ///
+  /// This is called from generated code like this:
+  ///
+  ///     if (controller.add(1)) return;
+  ///     yield;
+  //
+  // TODO(hausner): Per spec, the generator should be suspended before exiting
+  // when the stream is closed. We could add a getter like this:
+  //
+  //     get isCancelled => controller.hasListener;
+  //
+  // The generator would translate a 'yield e' statement to
+  //
+  //     controller.add(1);
+  //     suspend; // this is `yield` in JS.
+  //     if (controller.isCancelled) return;
+  bool add(T event) {
+    if (!onListenReceived) _fatal("yield before stream is listened to");
+    if (isSuspendedAtYield) _fatal("unexpected yield");
+    // If stream is cancelled, tell caller to exit the async generator.
+    if (!controller.hasListener) {
+      return true;
+    }
+    controller.add(event);
+    scheduleGenerator();
+    isSuspendedAtYield = true;
+    return false;
+  }
+
+  /// Adds the elements of [stream] into this [controller]'s stream, and returns
+  /// true if the caller should terminate execution of the generator.
+  ///
+  /// The generator will be scheduled again when all of the elements of the
+  /// added stream have been consumed.
+  bool addStream(Stream<T> stream) {
+    if (!onListenReceived) _fatal("yield* before stream is listened to");
+    // If stream is cancelled, tell caller to exit the async generator.
+    if (!controller.hasListener) return true;
+    isSuspendedAtYieldStar = true;
+    var whenDoneAdding = controller.addStream(stream, cancelOnError: false);
+    whenDoneAdding.then((_) {
+      isSuspendedAtYieldStar = false;
+      scheduleGenerator();
+      if (!isScheduled) isSuspendedAtYield = true;
+    }, onError: handleError);
+    return false;
+  }
+
+  void addError(Object error, StackTrace stackTrace) {
+    if (cancellationCompleter != null && !cancellationCompleter.isCompleted) {
+      // If the stream has been cancelled, complete the cancellation future
+      // with the error.
+      cancellationCompleter.completeError(error, stackTrace);
+      return;
+    }
+    // If stream is cancelled, tell caller to exit the async generator.
+    if (!controller.hasListener) return;
+    controller.addError(error, stackTrace);
+    // No need to schedule the generator body here. This code is only
+    // called from the catch clause of the implicit try-catch-finally
+    // around the generator body. That is, we are on the error path out
+    // of the generator and do not need to run the generator again.
+  }
+
+  close() {
+    if (cancellationCompleter != null && !cancellationCompleter.isCompleted) {
+      // If the stream has been cancelled, complete the cancellation future
+      // with the error.
+      cancellationCompleter.complete();
+    }
+    controller.close();
+  }
+
+  onListen() {
+    assert(!onListenReceived);
+    onListenReceived = true;
+    scheduleGenerator();
+  }
+
+  onResume() {
+    if (isSuspendedAtYield) {
+      scheduleGenerator();
+    }
+  }
+
+  onCancel() {
+    if (controller.isClosed) {
+      return null;
+    }
+    if (cancellationCompleter == null) {
+      cancellationCompleter = Completer();
+      // Only resume the generator if it is suspended at a yield.
+      // Cancellation does not affect an async generator that is
+      // suspended at an await.
+      if (isSuspendedAtYield) {
+        scheduleGenerator();
+      }
+    }
+    return cancellationCompleter.future;
+  }
+
+  _fatal(String message) => throw StateError(message);
 }

@@ -38,7 +38,6 @@ html/interactive_media_test: Skip # Requires interactive camera, microphone perm
 html/xhr_test: Skip # Times out. Issue 21527
 
 [ $compiler == dartdevc || $compiler == dartdevk ]
-async/async_await_zones_test: RuntimeError # Issue 29922
 async/future_or_bad_type_test/implements: RuntimeError # Issue 29922
 async/future_or_bad_type_test/none: RuntimeError # Issue 29922
 async/future_test: RuntimeError # Issue 29922

@@ -152,6 +152,7 @@ class CodeGenerator extends Object
   final InterfaceType linkedHashSetImplType;
   final InterfaceType identityHashSetImplType;
   final InterfaceType syncIterableType;
+  final InterfaceType asyncStarImplType;
 
   ConstFieldVisitor _constants;
 
@@ -232,6 +233,7 @@ class CodeGenerator extends Object
         identityHashSetImplType =
             getClass(c, 'dart:collection', '_IdentityHashSet').type,
         syncIterableType = getClass(c, 'dart:_js_helper', 'SyncIterable').type,
+        asyncStarImplType = getClass(c, 'dart:async', '_AsyncStarImpl').type,
         dartJSLibrary = _getLibrary(c, 'dart:js') {
     jsTypeRep = JSTypeRep(rules, c);
   }
@@ -2907,17 +2909,18 @@ class CodeGenerator extends Object
     }
 
     if (element.isGenerator) {
-      // `async*` uses the `dart.asyncStar` helper, and also has an extra
-      // `stream` parameter to the generator, which is used for passing values
-      // to the `_AsyncStarStreamController` implementation type.
+      // `async*` uses the `_AsyncStarImpl<T>` helper class. The generator
+      // callback takes an instance of this class.
       //
       // `yield` is specially generated inside `async*` by visitYieldStatement.
       // `await` is generated as `yield`.
       //
-      // dart:_runtime/generators.dart has an example of the generated code.
+      // _AsyncStarImpl has an example of the generated code.
       var asyncStarParam = JS.TemporaryId('stream');
       var gen = emitGeneratorFn([asyncStarParam], asyncStarParam);
-      return runtimeCall('asyncStar(#, #)', [_emitType(returnType), gen]);
+
+      var asyncStarImpl = asyncStarImplType.instantiate([returnType]);
+      return js.call('new #.new(#).stream', [_emitType(asyncStarImpl), gen]);
     }
 
     // `async` works similar to `sync*`:

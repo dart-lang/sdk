@@ -4,7 +4,7 @@
 
 /// This library defines the association between runtime objects and
 /// runtime types.
-part of dart._runtime;
+part of "runtime.dart";
 
 /// Runtime type information.  This module defines the mapping from
 /// runtime objects to their runtime type information.  See the types
