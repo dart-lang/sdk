@@ -4,7 +4,7 @@
 
 import("../application_snapshot.gni")
 
-application_snapshot("kernel_summary_worker") {
-  main_dart = "kernel_summary_worker.dart"
+application_snapshot("kernel_worker") {
+  main_dart = "kernel_worker.dart"
   training_args = [ "--help" ]
 }

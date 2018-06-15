@@ -15,9 +15,10 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:bazel_worker/bazel_worker.dart';
 import 'package:build_integration/file_system/multi_root.dart';
-import 'package:front_end/src/api_unstable/summary_worker.dart' as fe;
+import 'package:front_end/src/api_unstable/bazel_worker.dart' as fe;
 import 'package:kernel/ast.dart' show Component, Library;
 import 'package:kernel/target/targets.dart';
+import 'package:kernel/target/vm.dart';
 
 main(List<String> args) async {
   args = preprocessArgs(args);
@@ -27,22 +28,22 @@ main(List<String> args) async {
       throw new StateError(
           "unexpected args, expected only --persistent-worker but got: $args");
     }
-    await new SummaryWorker().run();
+    await new KernelWorker().run();
   } else {
-    var succeeded = await computeSummary(args);
+    var succeeded = await computeKernel(args);
     if (!succeeded) {
       exitCode = 15;
     }
   }
 }
 
-/// A bazel worker loop that can compute summaries.
-class SummaryWorker extends AsyncWorkerLoop {
+/// A bazel worker loop that can compute full or summary kernel files.
+class KernelWorker extends AsyncWorkerLoop {
   Future<WorkResponse> performRequest(WorkRequest request) async {
     var outputBuffer = new StringBuffer();
     var response = new WorkResponse()..exitCode = 0;
     try {
-      var succeeded = await computeSummary(request.arguments,
+      var succeeded = await computeKernel(request.arguments,
           isWorker: true, outputBuffer: outputBuffer);
       if (!succeeded) {
         response.exitCode = 15;
@@ -87,15 +88,20 @@ final summaryArgsParser = new ArgParser()
       negatable: false,
       help: 'Whether source files loaded implicitly should be included as '
           'part of the summary.')
+  ..addFlag('summary-only',
+      defaultsTo: true,
+      negatable: true,
+      help: 'Whether to only build summary files.')
   ..addOption('dart-sdk-summary')
-  ..addOption('input-summary', allowMultiple: true)
-  ..addOption('multi-root', allowMultiple: true)
+  ..addMultiOption('input-summary')
+  ..addMultiOption('input-linked')
+  ..addMultiOption('multi-root')
   ..addOption('multi-root-scheme', defaultsTo: 'org-dartlang-multi-root')
   ..addOption('packages-file')
-  ..addOption('source', allowMultiple: true)
+  ..addMultiOption('source')
   ..addOption('output');
 
-/// Computes a kernel summary based on [args].
+/// Computes a kernel file based on [args].
 ///
 /// If [isWorker] is true then exit codes will not be set on failure.
 ///
@@ -103,14 +109,16 @@ final summaryArgsParser = new ArgParser()
 /// instead of printed to the console.
 ///
 /// Returns whether or not the summary was successfully output.
-Future<bool> computeSummary(List<String> args,
+Future<bool> computeKernel(List<String> args,
     {bool isWorker: false, StringBuffer outputBuffer}) async {
+  dynamic out = outputBuffer ?? stderr;
   bool succeeded = true;
   var parsedArgs = summaryArgsParser.parse(args);
 
   if (parsedArgs['help']) {
-    print(summaryArgsParser.usage);
-    exit(0);
+    out.writeln(summaryArgsParser.usage);
+    if (!isWorker) exit(0);
+    return false;
   }
 
   // Bazel creates an overlay file system where some files may be located in the
@@ -121,32 +129,41 @@ Future<bool> computeSummary(List<String> args,
   var fileSystem = new MultiRootFileSystem(parsedArgs['multi-root-scheme'],
       multiRoots, fe.StandardFileSystem.instance);
   var sources = parsedArgs['source'].map(Uri.parse).toList();
+  Target target;
+  var summaryOnly = parsedArgs['summary-only'] as bool;
+  var excludeNonSources = parsedArgs['exclude-non-sources'] as bool;
+  if (summaryOnly) {
+    target = new SummaryTarget(
+        sources, excludeNonSources, new TargetFlags(strongMode: true));
+  } else {
+    target = new VmTarget(new TargetFlags(strongMode: true));
+  }
   var state = await fe.initializeCompiler(
       // TODO(sigmund): pass an old state once we can make use of it.
       null,
       Uri.base.resolve(parsedArgs['dart-sdk-summary']),
       Uri.base.resolve(parsedArgs['packages-file']),
       parsedArgs['input-summary'].map(Uri.base.resolve).toList(),
-      new SummaryTarget(sources, parsedArgs['exclude-non-sources'],
-          new TargetFlags(strongMode: true)),
+      parsedArgs['input-linked'].map(Uri.base.resolve).toList(),
+      target,
       fileSystem);
 
   void onProblem(fe.FormattedMessage message, severity,
       List<fe.FormattedMessage> context) {
-    dynamic out = outputBuffer ?? stderr;
-    out.println(message.formatted);
+    out.writeln(message.formatted);
     for (fe.FormattedMessage message in context) {
-      out.println(message.formatted);
+      out.writeln(message.formatted);
     }
     succeeded = false;
   }
 
-  var summary = await fe.compile(state, sources, onProblem);
+  var kernel =
+      await fe.compile(state, sources, onProblem, summaryOnly: summaryOnly);
 
-  if (summary != null) {
+  if (kernel != null) {
     var outputFile = new File(parsedArgs['output']);
     outputFile.createSync(recursive: true);
-    outputFile.writeAsBytesSync(summary);
+    outputFile.writeAsBytesSync(kernel);
   } else {
     assert(!succeeded);
   }

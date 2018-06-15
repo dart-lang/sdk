@@ -20,12 +20,14 @@ export 'compiler_state.dart';
 export '../api_prototype/standard_file_system.dart' show StandardFileSystem;
 export '../fasta/fasta_codes.dart' show FormattedMessage;
 export '../fasta/severity.dart' show Severity;
+import '../fasta/kernel/utils.dart' show serializeComponent;
 
 Future<InitializedCompilerState> initializeCompiler(
     InitializedCompilerState oldState,
     Uri sdkSummary,
     Uri packagesFile,
-    List<Uri> inputSummaries,
+    List<Uri> summaryInputs,
+    List<Uri> linkedInputs,
     Target target,
     FileSystem fileSystem) async {
   // TODO(sigmund): use incremental compiler when it supports our use case.
@@ -36,7 +38,8 @@ Future<InitializedCompilerState> initializeCompiler(
   CompilerOptions options = new CompilerOptions()
     ..sdkSummary = sdkSummary
     ..packagesFileUri = packagesFile
-    ..inputSummaries = inputSummaries
+    ..inputSummaries = summaryInputs
+    ..linkedDependencies = linkedInputs
     ..target = target
     ..fileSystem = fileSystem;
 
@@ -46,7 +49,9 @@ Future<InitializedCompilerState> initializeCompiler(
 }
 
 Future<List<int>> compile(InitializedCompilerState compilerState,
-    List<Uri> inputs, ProblemHandler problemHandler) async {
+    List<Uri> inputs, ProblemHandler problemHandler,
+    {bool summaryOnly}) async {
+  summaryOnly ??= true;
   CompilerOptions options = compilerState.options;
   options..onProblem = problemHandler;
 
@@ -55,6 +60,24 @@ Future<List<int>> compile(InitializedCompilerState compilerState,
   processedOpts.inputs.addAll(inputs);
 
   var result = await generateKernel(processedOpts,
-      buildSummary: true, buildComponent: false, truncateSummary: true);
-  return result?.summary;
+      buildSummary: summaryOnly, buildComponent: !summaryOnly);
+
+  var component = result?.component;
+  if (component != null && !summaryOnly) {
+    for (var lib in component.libraries) {
+      if (!inputs.contains(lib.importUri)) {
+        // Excluding the library also means that their canonical names will not
+        // be computed as part of serialization, so we need to do that
+        // preemtively here to avoid errors when serializing references to
+        // elements of these libraries.
+        component.root.getChildFromUri(lib.importUri).bindTo(lib.reference);
+        lib.computeCanonicalNames();
+      }
+    }
+  }
+
+  return summaryOnly
+      ? result?.summary
+      : serializeComponent(result?.component,
+          filter: (library) => inputs.contains(library.importUri));
 }
