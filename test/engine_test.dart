@@ -88,7 +88,7 @@ void defineLinterEngineTests() {
       });
       test('validation', () {
         expect(() => new CamelCaseString('foo'),
-            throwsA(new isInstanceOf<ArgumentError>()));
+            throwsA(new TypeMatcher<ArgumentError>()));
       });
       test('toString', () {
         expect(new CamelCaseString('FooBar').toString(), 'FooBar');

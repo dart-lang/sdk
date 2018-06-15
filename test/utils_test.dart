@@ -46,7 +46,7 @@ main() {
     group('CamelCaseString', () {
       test('invalid creation', () {
         expect(() => new CamelCaseString('invalid'),
-            throwsA(new isInstanceOf<ArgumentError>()));
+            throwsA(new TypeMatcher<ArgumentError>()));
       });
       test('toString', () {
         expect(new CamelCaseString('CamelCase').toString(), 'CamelCase');

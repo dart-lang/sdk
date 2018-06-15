@@ -214,15 +214,15 @@ defineSanityTests() {
       expect(
           () => expect(new Annotation('Message', ErrorType.LINT, 1),
               matchesAnnotation('Message', ErrorType.HINT, 1)),
-          throwsA(new isInstanceOf<TestFailure>()));
+          throwsA(new TypeMatcher<TestFailure>()));
       expect(
           () => expect(new Annotation('Message', ErrorType.LINT, 1),
               matchesAnnotation('Message2', ErrorType.LINT, 1)),
-          throwsA(new isInstanceOf<TestFailure>()));
+          throwsA(new TypeMatcher<TestFailure>()));
       expect(
           () => expect(new Annotation('Message', ErrorType.LINT, 1),
               matchesAnnotation('Message', ErrorType.LINT, 2)),
-          throwsA(new isInstanceOf<TestFailure>()));
+          throwsA(new TypeMatcher<TestFailure>()));
     });
   });
 
