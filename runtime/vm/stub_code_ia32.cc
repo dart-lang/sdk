@@ -92,6 +92,14 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ ret();
 }
 
+void StubCode::GenerateNullErrorSharedWithoutFPURegsStub(Assembler* assembler) {
+  __ Breakpoint();
+}
+
+void StubCode::GenerateNullErrorSharedWithFPURegsStub(Assembler* assembler) {
+  __ Breakpoint();
+}
+
 // Input parameters:
 //   ESP : points to return address.
 //   EAX : stop message (const char*).

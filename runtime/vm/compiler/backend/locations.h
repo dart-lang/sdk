@@ -516,6 +516,17 @@ class RegisterSet : public ValueObject {
     ASSERT(kNumberOfFpuRegisters <= (kWordSize * kBitsPerByte));
   }
 
+  void AddAllNonReservedRegisters() {
+    for (intptr_t i = kNumberOfFpuRegisters - 1; i >= 0; --i) {
+      Add(Location::FpuRegisterLocation(static_cast<FpuRegister>(i)));
+    }
+
+    for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
+      if (kReservedCpuRegisters & (1 << i)) continue;
+      Add(Location::RegisterLocation(static_cast<Register>(i)));
+    }
+  }
+
   void Add(Location loc, Representation rep = kTagged) {
     if (loc.IsRegister()) {
       cpu_registers_.Add(loc.reg());
@@ -610,8 +621,10 @@ class LocationSummary : public ZoneAllocated {
   enum ContainsCall {
     kNoCall,  // Used registers must be reserved as tmp.
     kCall,    // Registers have been saved and can be used without reservation.
-    kCallCalleeSafe,  // Registers will be saved by the callee.
-    kCallOnSlowPath   // Used registers must be reserved as tmp.
+    kCallCalleeSafe,       // Registers will be saved by the callee.
+    kCallOnSlowPath,       // Used registers must be reserved as tmp.
+    kCallOnSharedSlowPath  // Registers used to invoke shared stub must be
+                           // reserved as tmp.
   };
 
   LocationSummary(Zone* zone,
@@ -701,6 +714,10 @@ class LocationSummary : public ZoneAllocated {
   bool can_call() { return contains_call_ != kNoCall; }
 
   bool HasCallOnSlowPath() { return can_call() && !always_calls(); }
+
+  bool call_on_shared_slow_path() const {
+    return contains_call_ == kCallOnSharedSlowPath;
+  }
 
   void PrintTo(BufferFormatter* f) const;
 

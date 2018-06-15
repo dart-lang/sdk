@@ -1380,6 +1380,8 @@ class Assembler : public ValueObject {
   void BranchLinkPatchable(const StubEntry& stub_entry);
   void BranchLinkToRuntime();
 
+  void CallNullErrorShared(bool save_fpu_registers) { UNREACHABLE(); }
+
   // Emit a call that shares its object pool entries with other calls
   // that have the same equivalence marker.
   void BranchLinkWithEquivalence(const StubEntry& stub_entry,

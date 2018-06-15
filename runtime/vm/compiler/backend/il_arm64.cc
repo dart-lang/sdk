@@ -2681,6 +2681,8 @@ LocationSummary* CheckStackOverflowInstr::MakeLocationSummary(Zone* zone,
 class CheckStackOverflowSlowPath
     : public TemplateSlowPathCode<CheckStackOverflowInstr> {
  public:
+  static constexpr intptr_t kNumSlowPathArgs = 0;
+
   explicit CheckStackOverflowSlowPath(CheckStackOverflowInstr* instruction)
       : TemplateSlowPathCode(instruction) {}
 
@@ -2698,11 +2700,12 @@ class CheckStackOverflowSlowPath
     // pending_deoptimization_env_ is needed to generate a runtime call that
     // may throw an exception.
     ASSERT(compiler->pending_deoptimization_env_ == NULL);
-    Environment* env = compiler->SlowPathEnvironmentFor(instruction());
+    Environment* env =
+        compiler->SlowPathEnvironmentFor(instruction(), kNumSlowPathArgs);
     compiler->pending_deoptimization_env_ = env;
     compiler->GenerateRuntimeCall(
         instruction()->token_pos(), instruction()->deopt_id(),
-        kStackOverflowRuntimeEntry, 0, instruction()->locs());
+        kStackOverflowRuntimeEntry, kNumSlowPathArgs, instruction()->locs());
 
     if (compiler->isolate()->use_osr() && !compiler->is_optimizing() &&
         instruction()->in_loop()) {
@@ -2851,6 +2854,8 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
 
 class CheckedSmiSlowPath : public TemplateSlowPathCode<CheckedSmiOpInstr> {
  public:
+  static constexpr intptr_t kNumSlowPathArgs = 2;
+
   CheckedSmiSlowPath(CheckedSmiOpInstr* instruction, intptr_t try_index)
       : TemplateSlowPathCode(instruction), try_index_(try_index) {}
 
@@ -2865,7 +2870,8 @@ class CheckedSmiSlowPath : public TemplateSlowPathCode<CheckedSmiOpInstr> {
 
     compiler->SaveLiveRegisters(locs);
     if (instruction()->env() != NULL) {
-      Environment* env = compiler->SlowPathEnvironmentFor(instruction());
+      Environment* env =
+          compiler->SlowPathEnvironmentFor(instruction(), kNumSlowPathArgs);
       compiler->pending_deoptimization_env_ = env;
     }
     __ Push(locs->in(0).reg());
@@ -2876,8 +2882,7 @@ class CheckedSmiSlowPath : public TemplateSlowPathCode<CheckedSmiOpInstr> {
         Array::Handle(instruction()->call()->ic_data()->arguments_descriptor());
     compiler->EmitMegamorphicInstanceCall(
         selector, arguments_descriptor, instruction()->call()->deopt_id(),
-        instruction()->call()->token_pos(), locs, try_index_,
-        /* slow_path_argument_count = */ 2);
+        instruction()->call()->token_pos(), locs, try_index_, kNumSlowPathArgs);
     __ mov(result, R0);
     compiler->RestoreLiveRegisters(locs);
     __ b(exit_label());
@@ -2986,6 +2991,8 @@ void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 class CheckedSmiComparisonSlowPath
     : public TemplateSlowPathCode<CheckedSmiComparisonInstr> {
  public:
+  static constexpr intptr_t kNumSlowPathArgs = 2;
+
   CheckedSmiComparisonSlowPath(CheckedSmiComparisonInstr* instruction,
                                intptr_t try_index,
                                BranchLabels labels,
@@ -3006,7 +3013,8 @@ class CheckedSmiComparisonSlowPath
 
     compiler->SaveLiveRegisters(locs);
     if (instruction()->env() != NULL) {
-      Environment* env = compiler->SlowPathEnvironmentFor(instruction());
+      Environment* env =
+          compiler->SlowPathEnvironmentFor(instruction(), kNumSlowPathArgs);
       compiler->pending_deoptimization_env_ = env;
     }
     __ Push(locs->in(0).reg());
@@ -3017,8 +3025,7 @@ class CheckedSmiComparisonSlowPath
         Array::Handle(instruction()->call()->ic_data()->arguments_descriptor());
     compiler->EmitMegamorphicInstanceCall(
         selector, arguments_descriptor, instruction()->call()->deopt_id(),
-        instruction()->call()->token_pos(), locs, try_index_,
-        /* slow_path_argument_count = */ 2);
+        instruction()->call()->token_pos(), locs, try_index_, kNumSlowPathArgs);
     __ mov(result, R0);
     compiler->RestoreLiveRegisters(locs);
     compiler->pending_deoptimization_env_ = NULL;

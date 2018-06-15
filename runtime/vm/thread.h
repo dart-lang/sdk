@@ -94,6 +94,10 @@ class Zone;
     StubCode::InvokeDartCodeFromBytecode_entry()->code(), NULL)                \
   V(RawCode*, call_to_runtime_stub_, StubCode::CallToRuntime_entry()->code(),  \
     NULL)                                                                      \
+  V(RawCode*, null_error_shared_without_fpu_regs_stub_,                        \
+    StubCode::NullErrorSharedWithoutFPURegs_entry()->code(), NULL)             \
+  V(RawCode*, null_error_shared_with_fpu_regs_stub_,                           \
+    StubCode::NullErrorSharedWithFPURegs_entry()->code(), NULL)                \
   V(RawCode*, monomorphic_miss_stub_,                                          \
     StubCode::MonomorphicMiss_entry()->code(), NULL)                           \
   V(RawCode*, ic_lookup_through_code_stub_,                                    \
@@ -134,6 +138,10 @@ class Zone;
     StubCode::UpdateStoreBuffer_entry()->EntryPoint(), 0)                      \
   V(uword, call_to_runtime_entry_point_,                                       \
     StubCode::CallToRuntime_entry()->EntryPoint(), 0)                          \
+  V(uword, null_error_shared_without_fpu_regs_entry_point_,                    \
+    StubCode::NullErrorSharedWithoutFPURegs_entry()->EntryPoint(), 0)          \
+  V(uword, null_error_shared_with_fpu_regs_entry_point_,                       \
+    StubCode::NullErrorSharedWithFPURegs_entry()->EntryPoint(), 0)             \
   V(uword, megamorphic_call_checked_entry_,                                    \
     StubCode::MegamorphicCall_entry()->EntryPoint(), 0)                        \
   V(uword, monomorphic_miss_entry_,                                            \

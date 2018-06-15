@@ -583,8 +583,10 @@ class FlowGraphCompiler : public ValueObject {
                     TokenPosition token_pos,
                     intptr_t null_check_name_idx);
 
+  // 'environment' is required if 'using_shared_stub'.
   void RecordSafepoint(LocationSummary* locs,
-                       intptr_t slow_path_argument_count = 0);
+                       intptr_t slow_path_argument_count = 0,
+                       Environment* env = NULL);
 
   Label* AddDeoptStub(intptr_t deopt_id,
                       ICData::DeoptReasonId reason,
@@ -626,7 +628,8 @@ class FlowGraphCompiler : public ValueObject {
   void ClobberDeadTempRegisters(LocationSummary* locs);
 #endif
 
-  Environment* SlowPathEnvironmentFor(Instruction* instruction);
+  Environment* SlowPathEnvironmentFor(Instruction* instruction,
+                                      intptr_t num_slow_path_args);
 
   intptr_t CurrentTryIndex() const {
     if (current_block_ == NULL) {

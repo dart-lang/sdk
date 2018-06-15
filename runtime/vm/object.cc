@@ -1215,6 +1215,8 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
           reinterpret_cast<RawTypedData*>(RawObject::FromAddr(addr));
       uword new_tags = RawObject::ClassIdTag::update(kTypedDataInt8ArrayCid, 0);
       new_tags = RawObject::SizeTag::update(leftover_size, new_tags);
+      new_tags = RawObject::VMHeapObjectTag::update(obj.raw()->IsVMHeapObject(),
+                                                    new_tags);
       uint32_t tags = raw->ptr()->tags_;
       uint32_t old_tags;
       // TODO(iposva): Investigate whether CompareAndSwapWord is necessary.
@@ -1235,6 +1237,8 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
       RawObject* raw = reinterpret_cast<RawObject*>(RawObject::FromAddr(addr));
       uword new_tags = RawObject::ClassIdTag::update(kInstanceCid, 0);
       new_tags = RawObject::SizeTag::update(leftover_size, new_tags);
+      new_tags = RawObject::VMHeapObjectTag::update(
+          obj.raw()->ptr()->IsVMHeapObject(), new_tags);
       uint32_t tags = raw->ptr()->tags_;
       uint32_t old_tags;
       // TODO(iposva): Investigate whether CompareAndSwapWord is necessary.

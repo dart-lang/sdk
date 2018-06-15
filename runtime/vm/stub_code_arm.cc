@@ -105,6 +105,16 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ Ret();
 }
 
+void StubCode::GenerateNullErrorSharedWithoutFPURegsStub(Assembler* assembler) {
+  // TODO(sjindel): implement.
+  __ Breakpoint();
+}
+
+void StubCode::GenerateNullErrorSharedWithFPURegsStub(Assembler* assembler) {
+  // TODO(sjindel): implement.
+  __ Breakpoint();
+}
+
 // Input parameters:
 //   R0 : stop message (const char*).
 // Must preserve all registers.

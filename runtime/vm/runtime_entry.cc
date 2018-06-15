@@ -180,6 +180,10 @@ DEFINE_RUNTIME_ENTRY(NullError, 0) {
   const Code& code = Code::Handle(zone, caller_frame->LookupDartCode());
   const uword pc_offset = caller_frame->pc() - code.PayloadStart();
 
+  if (FLAG_shared_slow_path_triggers_gc) {
+    Isolate::Current()->heap()->CollectAllGarbage();
+  }
+
   const CodeSourceMap& map =
       CodeSourceMap::Handle(zone, code.code_source_map());
   ASSERT(!map.IsNull());

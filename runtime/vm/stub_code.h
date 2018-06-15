@@ -77,7 +77,9 @@ class SnapshotWriter;
   V(LazySpecializeTypeTest)                                                    \
   V(CallClosureNoSuchMethod)                                                   \
   V(FrameAwaitingMaterialization)                                              \
-  V(AsynchronousGapMarker)
+  V(AsynchronousGapMarker)                                                     \
+  V(NullErrorSharedWithFPURegs)                                                \
+  V(NullErrorSharedWithoutFPURegs)
 
 #else
 #define VM_STUB_CODE_LIST(V)                                                   \
@@ -199,6 +201,9 @@ class StubCode : public AllStatic {
   // code executable area.
   static RawCode* Generate(const char* name,
                            void (*GenerateStub)(Assembler* assembler));
+
+  static void GenerateNullErrorShared(Assembler* assembler,
+                                      bool save_fpu_registers);
 
   static void GenerateMegamorphicMissStub(Assembler* assembler);
   static void GenerateAllocationStubForClass(Assembler* assembler,

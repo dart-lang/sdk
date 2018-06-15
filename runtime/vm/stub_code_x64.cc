@@ -12,6 +12,7 @@
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/jit/compiler.h"
+#include "vm/constants_x64.h"
 #include "vm/dart_entry.h"
 #include "vm/heap.h"
 #include "vm/instructions.h"
@@ -98,6 +99,49 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   __ LeaveStubFrame();
   __ ret();
+}
+
+void StubCode::GenerateNullErrorShared(Assembler* assembler,
+                                       bool save_fpu_registers) {
+  // We want the saved registers to appear like part of the caller's frame, so
+  // we push them before calling EnterStubFrame.
+  __ PushRegisters(kDartAvailableCpuRegs,
+                   save_fpu_registers ? kAllFpuRegistersList : 0);
+
+  const intptr_t kSavedCpuRegisterSlots =
+      Utils::CountOneBitsWord(kDartAvailableCpuRegs);
+
+  const intptr_t kSavedFpuRegisterSlots =
+      save_fpu_registers ? kNumberOfFpuRegisters * kFpuRegisterSize / kWordSize
+                         : 0;
+
+  const intptr_t kAllSavedRegistersSlots =
+      kSavedCpuRegisterSlots + kSavedFpuRegisterSlots;
+
+  // Copy down the return address so the stack layout is correct.
+  __ pushq(Address(RSP, kAllSavedRegistersSlots * kWordSize));
+
+  const intptr_t stub_offset =
+      save_fpu_registers
+          ? Thread::null_error_shared_with_fpu_regs_stub_offset()
+          : Thread::null_error_shared_without_fpu_regs_stub_offset();
+  __ movq(CODE_REG, Address(THR, stub_offset));
+
+  __ EnterStubFrame();
+
+  __ movq(CODE_REG, Address(THR, Thread::call_to_runtime_stub_offset()));
+  __ movq(RBX, Address(THR, Thread::OffsetFromThread(&kNullErrorRuntimeEntry)));
+  __ movq(R10, Immediate(/*argument_count=*/0));
+  __ call(Address(THR, Thread::call_to_runtime_entry_point_offset()));
+  __ Breakpoint();
+}
+
+void StubCode::GenerateNullErrorSharedWithoutFPURegsStub(Assembler* assembler) {
+  GenerateNullErrorShared(assembler, false);
+}
+
+void StubCode::GenerateNullErrorSharedWithFPURegsStub(Assembler* assembler) {
+  GenerateNullErrorShared(assembler, true);
 }
 
 // Input parameters:
@@ -791,8 +835,8 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ movq(RAX, Address(THR, Thread::top_exit_frame_info_offset()));
   __ pushq(RAX);
 
-  // The constant kExitLinkSlotFromEntryFp must be kept in sync with the
-  // code below.
+// The constant kExitLinkSlotFromEntryFp must be kept in sync with the
+// code below.
 #if defined(DEBUG)
   {
     Label ok;
@@ -930,8 +974,8 @@ void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
   __ movq(RAX, Address(THR, Thread::top_exit_frame_info_offset()));
   __ pushq(RAX);
 
-  // The constant kExitLinkSlotFromEntryFp must be kept in sync with the
-  // code below.
+// The constant kExitLinkSlotFromEntryFp must be kept in sync with the
+// code below.
 #if defined(DEBUG)
   {
     Label ok;

@@ -3980,24 +3980,42 @@ class ThrowErrorSlowPathCode : public TemplateSlowPathCode<Instruction> {
 
   virtual void AddMetadataForRuntimeCall(FlowGraphCompiler* compiler) {}
 
+  virtual void EmitSharedStubCall(Assembler* assembler,
+                                  bool save_fpu_registers) {
+    UNREACHABLE();
+  }
+
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
     if (Assembler::EmittingComments()) {
       __ Comment("slow path %s operation", name());
     }
+    bool use_shared_stub =
+        instruction()->UseSharedSlowPathStub(compiler->is_optimizing());
+    bool live_fpu_registers =
+        instruction()->locs()->live_registers()->FpuRegisterCount() > 0;
+    ASSERT(!use_shared_stub || num_args_ == 0);
     __ Bind(entry_label());
     LocationSummary* locs = instruction()->locs();
     // Save registers as they are needed for lazy deopt / exception handling.
-    compiler->SaveLiveRegisters(locs);
+    if (!use_shared_stub) {
+      compiler->SaveLiveRegisters(locs);
+    }
     for (intptr_t i = 0; i < num_args_; ++i) {
       __ PushRegister(locs->in(i).reg());
     }
-    __ CallRuntime(runtime_entry_, num_args_);
+    if (use_shared_stub) {
+      EmitSharedStubCall(compiler->assembler(), live_fpu_registers);
+    } else {
+      __ CallRuntime(runtime_entry_, num_args_);
+    }
     compiler->AddDescriptor(
         RawPcDescriptors::kOther, compiler->assembler()->CodeSize(),
         instruction()->deopt_id(), instruction()->token_pos(), try_index_);
     AddMetadataForRuntimeCall(compiler);
-    compiler->RecordSafepoint(locs, num_args_);
-    Environment* env = compiler->SlowPathEnvironmentFor(instruction());
+    ASSERT(instruction()->env() != nullptr);
+    compiler->RecordSafepoint(locs, num_args_, instruction()->env());
+    Environment* env =
+        compiler->SlowPathEnvironmentFor(instruction(), num_args_);
     compiler->EmitCatchEntryState(env, try_index_);
     __ Breakpoint();
   }
@@ -4042,7 +4060,9 @@ LocationSummary* CheckNullInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone) LocationSummary(
-      zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
+      zone, kNumInputs, kNumTemps,
+      UseSharedSlowPathStub(opt) ? LocationSummary::kCallOnSharedSlowPath
+                                 : LocationSummary::kCallOnSlowPath);
   locs->set_in(0, Location::RequiresRegister());
   return locs;
 }
@@ -4058,6 +4078,11 @@ class NullErrorSlowPath : public ThrowErrorSlowPathCode {
                                try_index) {}
 
   const char* name() override { return "check null"; }
+
+  void EmitSharedStubCall(Assembler* assembler,
+                          bool save_fpu_registers) override {
+    assembler->CallNullErrorShared(save_fpu_registers);
+  }
 
   void AddMetadataForRuntimeCall(FlowGraphCompiler* compiler) override {
     const String& function_name = instruction()->AsCheckNull()->function_name();
