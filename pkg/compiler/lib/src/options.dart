@@ -208,6 +208,10 @@ class CompilerOptions implements DiagnosticOptions {
   /// Whether to omit implicit strong mode checks.
   bool omitImplicitChecks = false;
 
+  /// Whether to omit class type arguments only needed for `toString` on
+  /// `RuntimeType`.
+  bool laxRuntimeTypeToString = false;
+
   /// What should the compiler do with type assertions of assignments.
   ///
   /// This is an internal configuration option derived from other flags.
@@ -323,6 +327,8 @@ class CompilerOptions implements DiagnosticOptions {
       ..sourceMapUri = _extractUriOption(options, '--source-map=')
       ..strongMode = _hasOption(options, Flags.strongMode)
       ..omitImplicitChecks = _hasOption(options, Flags.omitImplicitChecks)
+      ..laxRuntimeTypeToString =
+          _hasOption(options, Flags.laxRuntimeTypeToString)
       ..testMode = _hasOption(options, Flags.testMode)
       ..trustJSInteropTypeAnnotations =
           _hasOption(options, Flags.trustJSInteropTypeAnnotations)

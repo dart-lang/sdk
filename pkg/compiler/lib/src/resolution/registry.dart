@@ -22,6 +22,7 @@ class ResolutionWorldImpactBuilder extends WorldImpactBuilderImpl
   Setlet<ConstantExpression> _constantLiterals;
   Setlet<dynamic> _nativeData;
   Setlet<ClassEntity> _seenClasses;
+  Set<RuntimeTypeUse> _runtimeTypeUses;
   Set<GenericInstantiation> _genericInstantiations;
 
   ResolutionWorldImpactBuilder(this.name);
@@ -49,6 +50,19 @@ class ResolutionWorldImpactBuilder extends WorldImpactBuilderImpl
   @override
   Iterable<ListLiteralUse> get listLiterals {
     return _listLiterals != null ? _listLiterals : const <ListLiteralUse>[];
+  }
+
+  void registerRuntimeTypeUse(RuntimeTypeUse runtimeTypeUse) {
+    assert(runtimeTypeUse != null);
+    _runtimeTypeUses ??= new Setlet<RuntimeTypeUse>();
+    _runtimeTypeUses.add(runtimeTypeUse);
+  }
+
+  @override
+  Iterable<RuntimeTypeUse> get runtimeTypeUses {
+    return _runtimeTypeUses != null
+        ? _runtimeTypeUses
+        : const <RuntimeTypeUse>[];
   }
 
   void registerConstSymbolName(String name) {

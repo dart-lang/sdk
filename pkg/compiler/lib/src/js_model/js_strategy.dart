@@ -44,6 +44,7 @@ import '../ssa/ssa.dart';
 import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
 import '../universe/class_set.dart';
+import '../universe/feature.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
 import '../world.dart';
@@ -348,11 +349,12 @@ class JsClosedWorldBuilder {
           this,
           map.toBackendMemberMap(closureModels, identity),
           new JsClosureRtiNeed(
-            backendUsage,
-            jRtiNeed,
-            localFunctionsNodesNeedingTypeArguments,
-            localFunctionsNodesNeedingSignature,
-          ));
+              jRtiNeed,
+              localFunctionsNodesNeedingTypeArguments,
+              localFunctionsNodesNeedingSignature,
+              runtimeTypeUsedOnClosures:
+                  kernelRtiNeed.runtimeTypeUsedOnClosures,
+              allNeedsTypeArguments: kernelRtiNeed.allNeedsTypeArguments));
 
       List<FunctionEntity> callMethodsNeedingSignature = <FunctionEntity>[];
       for (ir.Node node in localFunctionsNodesNeedingSignature) {
@@ -416,6 +418,14 @@ class JsClosedWorldBuilder {
         map.toBackendFunctionSet(backendUsage.helperFunctionsUsed);
     Set<ClassEntity> helperClassesUsed =
         map.toBackendClassSet(backendUsage.helperClassesUsed);
+    Set<RuntimeTypeUse> runtimeTypeUses =
+        backendUsage.runtimeTypeUses.map((RuntimeTypeUse runtimeTypeUse) {
+      return new RuntimeTypeUse(
+          runtimeTypeUse.kind,
+          map.toBackendType(runtimeTypeUse.receiverType),
+          map.toBackendType(runtimeTypeUse.argumentType));
+    }).toSet();
+
     return new BackendUsageImpl(
         globalFunctionDependencies: globalFunctionDependencies,
         globalClassDependencies: globalClassDependencies,
@@ -427,7 +437,7 @@ class JsClosedWorldBuilder {
             backendUsage.needToInitializeDispatchProperty,
         requiresPreamble: backendUsage.requiresPreamble,
         isInvokeOnUsed: backendUsage.isInvokeOnUsed,
-        isRuntimeTypeUsed: backendUsage.isRuntimeTypeUsed,
+        runtimeTypeUses: runtimeTypeUses,
         isFunctionApplyUsed: backendUsage.isFunctionApplyUsed,
         isMirrorsUsed: backendUsage.isMirrorsUsed,
         isNoSuchMethodUsed: backendUsage.isNoSuchMethodUsed);
@@ -565,14 +575,15 @@ class JsClosedWorldBuilder {
     }).toSet();
     return new RuntimeTypesNeedImpl(
         _elementEnvironment,
-        backendUsage,
         classesNeedingTypeArguments,
         methodsNeedingSignature,
         methodsNeedingTypeArguments,
         null,
         null,
         selectorsNeedingTypeArguments,
-        rtiNeed.instantiationsNeedingTypeArguments);
+        rtiNeed.instantiationsNeedingTypeArguments,
+        allNeedsTypeArguments: rtiNeed.allNeedsTypeArguments,
+        runtimeTypeUsedOnClosures: rtiNeed.runtimeTypeUsedOnClosures);
   }
 
   /// Construct a closure class and set up the necessary class inference
@@ -854,23 +865,21 @@ class TrivialClosureRtiNeed implements ClosureRtiNeed {
 }
 
 class JsClosureRtiNeed implements ClosureRtiNeed {
-  final BackendUsage backendUsage;
   final RuntimeTypesNeed rtiNeed;
   final Set<ir.Node> localFunctionsNodesNeedingTypeArguments;
   final Set<ir.Node> localFunctionsNodesNeedingSignature;
+  final bool runtimeTypeUsedOnClosures;
+  final bool allNeedsTypeArguments;
 
-  JsClosureRtiNeed(
-      this.backendUsage,
-      this.rtiNeed,
-      this.localFunctionsNodesNeedingTypeArguments,
-      this.localFunctionsNodesNeedingSignature);
+  JsClosureRtiNeed(this.rtiNeed, this.localFunctionsNodesNeedingTypeArguments,
+      this.localFunctionsNodesNeedingSignature,
+      {this.runtimeTypeUsedOnClosures, this.allNeedsTypeArguments});
 
   @override
   bool localFunctionNeedsSignature(ir.Node node) {
     assert(node is ir.FunctionDeclaration || node is ir.FunctionExpression);
-    return backendUsage.isRuntimeTypeUsed
-        ? true
-        : localFunctionsNodesNeedingSignature.contains(node);
+    return runtimeTypeUsedOnClosures ||
+        localFunctionsNodesNeedingSignature.contains(node);
   }
 
   @override
@@ -884,9 +893,8 @@ class JsClosureRtiNeed implements ClosureRtiNeed {
   @override
   bool localFunctionNeedsTypeArguments(ir.Node node) {
     assert(node is ir.FunctionDeclaration || node is ir.FunctionExpression);
-    return backendUsage.isRuntimeTypeUsed
-        ? true
-        : localFunctionsNodesNeedingTypeArguments.contains(node);
+    return allNeedsTypeArguments ||
+        localFunctionsNodesNeedingTypeArguments.contains(node);
   }
 
   @override

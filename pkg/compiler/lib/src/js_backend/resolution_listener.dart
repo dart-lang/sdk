@@ -298,7 +298,6 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       // runtimeType. We have to enable runtime type before hitting the
       // codegen, so that constructors know whether they need to generate code
       // for runtime type.
-      _backendUsage.isRuntimeTypeUsed = true;
       // TODO(ahe): Record precise dependency here.
       worldImpact.addImpact(_registerRuntimeType());
     }

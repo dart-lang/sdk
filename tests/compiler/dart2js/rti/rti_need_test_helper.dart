@@ -34,6 +34,9 @@ runTests(List<String> args, [int shardIndex]) {
     await checkTests(dataDir, computeKernelRtiMemberNeed,
         computeClassDataFromKernel: computeKernelRtiClassNeed,
         options: [],
+        skipForKernel: [
+          'runtime_type_closure_equals2.dart',
+        ],
         skipForStrong: [
           'map_literal_checked.dart',
           // TODO(johnniwinther): Optimize local function type signature need.

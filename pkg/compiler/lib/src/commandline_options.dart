@@ -47,6 +47,7 @@ class Flags {
   static const String noPreviewDart2 = '--no-preview-dart-2';
 
   static const String omitImplicitChecks = '--omit-implicit-checks';
+  static const String laxRuntimeTypeToString = '--lax-runtime-type-to-string';
 
   static const String platformBinaries = '--platform-binaries=.+';
 

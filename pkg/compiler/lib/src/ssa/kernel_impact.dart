@@ -13,6 +13,7 @@ import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../kernel/element_map.dart';
+import '../kernel/runtime_type_analysis.dart';
 import '../options.dart';
 import '../resolution/registry.dart' show ResolutionWorldImpactBuilder;
 import '../universe/call_structure.dart';
@@ -651,6 +652,16 @@ class KernelImpactBuilder extends ir.Visitor {
     impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
         new Selector.getter(elementMap.getName(node.name)),
         constraint, const <DartType>[]));
+
+    if (node.name.name == Identifiers.runtimeType_) {
+      if (_options.strongMode) {
+        RuntimeTypeUse runtimeTypeUse = computeRuntimeTypeUse(elementMap, node);
+        impactBuilder.registerRuntimeTypeUse(runtimeTypeUse);
+      } else {
+        impactBuilder.registerRuntimeTypeUse(new RuntimeTypeUse(
+            RuntimeTypeUseKind.unknown, const DynamicType(), null));
+      }
+    }
   }
 
   @override

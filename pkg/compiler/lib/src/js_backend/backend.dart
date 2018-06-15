@@ -799,6 +799,7 @@ class JavaScriptBackend {
         closedWorld.nativeData,
         closedWorld.elementEnvironment,
         closedWorld.commonElements,
+        closedWorld.rtiNeed,
         strongMode: compiler.options.strongMode);
     emitter.createEmitter(namer, closedWorld, codegenWorldBuilder, sorter);
     // TODO(johnniwinther): Share the impact object created in
