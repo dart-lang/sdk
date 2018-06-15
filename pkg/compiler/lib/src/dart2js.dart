@@ -424,6 +424,17 @@ Future<api.CompilationResult> compile(List<String> argv,
   if (enableColors != null) {
     diagnosticHandler.enableColors = enableColors;
   }
+
+  if (checkedMode && strongMode) {
+    checkedMode = false;
+    hints.add("Option '${Flags.enableCheckedMode}' is not needed in Dart 2.0.");
+  }
+
+  if (trustTypeAnnotations && strongMode) {
+    hints.add("Option '${Flags.trustTypeAnnotations}' is not available "
+        "in Dart 2.0. Try using '${Flags.omitImplicitChecks}' instead.");
+  }
+
   for (String hint in hints) {
     diagnosticHandler.info(hint, api.Diagnostic.HINT);
   }
@@ -440,20 +451,9 @@ Future<api.CompilationResult> compile(List<String> argv,
     helpAndFail('Extra arguments: ${extra.join(" ")}');
   }
 
-  if (checkedMode && strongMode) {
-    checkedMode = false;
-    hints.add("Option '${Flags.enableCheckedMode}' is not needed in strong "
-        "mode.");
-  }
-
-  if (trustTypeAnnotations) {
-    if (checkedMode) {
-      helpAndFail("Option '${Flags.trustTypeAnnotations}' may not be used in "
-          "checked mode.");
-    } else if (strongMode) {
-      hints.add("Option '${Flags.trustTypeAnnotations}' is not available "
-          "in strong mode. Try using '${Flags.omitImplicitChecks}' instead.");
-    }
+  if (trustTypeAnnotations && checkedMode) {
+    helpAndFail("Option '${Flags.trustTypeAnnotations}' may not be used in "
+        "checked mode.");
   }
 
   if (packageRoot != null && packageConfig != null) {
@@ -506,8 +506,6 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   Uri script = currentDirectory.resolve(arguments[0]);
   diagnosticHandler.autoReadFileUri = true;
-  // TODO(sigmund): reenable hints (Issue #32111)
-  diagnosticHandler.showHints = showHints = false;
   CompilerOptions compilerOptions = CompilerOptions.parse(options,
       libraryRoot: libraryRoot, platformBinaries: platformBinaries)
     ..entryPoint = script
@@ -589,7 +587,6 @@ Compiles Dart to JavaScript.
 
 Common options:
   -o <file> Generate the output into <file>.
-  -c        Insert runtime type checks and enable assertions (checked mode).
   -m        Generate minified output.
   -h        Display this message (add -v for information about all options).''');
 }
@@ -622,24 +619,9 @@ Supported options:
   --version
     Display version information.
 
-  -p<path>, --package-root=<path>
-    Where to find packages, that is, "package:..." imports.  This option cannot
-    be used with --packages.
-
   --packages=<path>
     Path to the package resolution configuration file, which supplies a mapping
     of package names to paths.  This option cannot be used with --package-root.
-
-  --analyze-all
-    Analyze all code.  Without this option, the compiler only analyzes
-    code that is reachable from [main].  This option implies --analyze-only.
-
-  --analyze-only
-    Analyze but do not generate code.
-
-  --analyze-signatures-only
-    Skip analysis of method bodies and field initializers. This option implies
-    --analyze-only.
 
   --suppress-warnings
     Do not display any warnings.
@@ -670,14 +652,10 @@ Supported options:
   --fast-startup
     Produce JavaScript that can be parsed more quickly by VMs. This option
     usually results in larger JavaScript files with faster startup.
-    Note: the dart:mirrors library is not supported with this option.
 
   --preview-dart-2
     Preview of all Dart 2.0 semantics, this includes generic methods and strong
-    mode type checks.
-
-    This flag is mainly for early dogfooding and will be removed when all
-    features are shipped.
+    mode type checks. This will be enabled by default very soon.
 
 The following advanced options can help reduce the size of the generated code,
 but they may cause programs to behave unexpectedly if assumptions are not met.
@@ -686,7 +664,7 @@ safe to use:
 
   --omit-implicit-checks
     Omit implicit runtime checks, such as parameter checks and implicit
-    downcasts. These checks are included by default in strong mode. By
+    downcasts. These checks are included by default in Dart 2.0. By
     using this flag the checks are removed, however the compiler will assume
     that all such checks were valid and may use this information for
     optimizations. Use this option only if you have enough testing to ensure
