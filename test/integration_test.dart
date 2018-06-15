@@ -363,6 +363,30 @@ defineTests() {
       });
     });
 
+    group('file_names', () {
+      IOSink currentOut = outSink;
+      CollectingSink collectingOut = new CollectingSink();
+      setUp(() {
+        exitCode = 0;
+        outSink = collectingOut;
+      });
+      tearDown(() {
+        collectingOut.buffer.clear();
+        outSink = currentOut;
+        exitCode = 0;
+      });
+
+      test('on bad file names', () async {
+        await dartlint.main(['test/_data/file_names', '--rules=file_names']);
+        expect(exitCode, 1);
+        expect(
+            collectingOut.trim(),
+            stringContainsInOrder([
+              'a-b.dart 1:1 [lint] Name source files using `lowercase_with_underscores`.'
+            ]));
+      });
+    });
+
     group('only_throw_errors', () {
       IOSink currentOut = outSink;
       CollectingSink collectingOut = new CollectingSink();
