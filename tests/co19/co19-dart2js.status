@@ -76,6 +76,7 @@ LayoutTests/fast/borders/border-color-visited_t01: RuntimeError # See issue 143
 LayoutTests/fast/canvas/fillText-shadow_t01: RuntimeError # See issue 143
 LayoutTests/fast/css/content/content-quotes-01_t01: Pass, RuntimeError
 LayoutTests/fast/css/font-face-cache-bug_t01: Pass, RuntimeError
+LayoutTests/fast/css/font-shorthand-mix-inherit_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontfaceset-loadingdone_t01: Pass, RuntimeError
 LayoutTests/fast/css/misplaced-charset_t01: RuntimeError # See issue 143
 LayoutTests/fast/css/pseudo-empty-dynamic-empty_t01: RuntimeError # See issue 143
@@ -118,6 +119,7 @@ LayoutTests/fast/table/fixed-table-layout-toggle-colwidth_t01: Pass, RuntimeErro
 LayoutTests/fast/table/fixed-table-with-percent-width-inside-extra-large-div_t01: Pass, RuntimeError
 LayoutTests/fast/table/hittest-tablecell-right-edge_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/table/hittest-tablecell-with-borders-right-edge_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
+LayoutTests/fast/table/resize-table-cell_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/table/table-all-rowspans-height-distribution-in-rows-except-overlapped_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/table/table-colgroup-present-after-table-row_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/table/table-rowspan-height-distribution-in-rows_t02: Skip # https://github.com/dart-lang/sdk/issues/28873
@@ -183,6 +185,7 @@ LibTest/core/int/operator_subtraction_A01_t01: RuntimeError # Large integer lite
 LibTest/core/int/operator_truncating_division_A01_t01: RuntimeError # Large integer literal. Not valid dart 2.
 LibTest/core/int/toDouble_A01_t01: RuntimeError, OK # co19 issue 200
 LibTest/html/Element/addEventListener_A01_t04: Skip # https://github.com/dart-lang/sdk/issues/28873
+LibTest/html/Element/mouseEnterEvent_A01_t01: Pass, RuntimeError # Please triage this failure
 LibTest/html/Element/queryAll_A01_t01: RuntimeError # See issue 143
 LibTest/html/Element/query_A01_t01: RuntimeError # See issue 143
 LibTest/html/HttpRequest/responseType_A01_t03: CompileTimeError # co19-roll r706: Please triage this failure
@@ -1484,7 +1487,6 @@ Language/Generics/malformed_t02: Crash
 [ $compiler == dart2js && $runtime == d8 && $fasta ]
 LayoutTests/*: SkipByDesign
 LibTest/html/*: SkipByDesign
-LibTest/html/Element/mouseEnterEvent_A01_t01: RuntimeError
 WebPlatformTest/*: SkipByDesign
 
 [ $compiler == dart2js && $runtime != d8 && $runtime != drt && $checked ]
@@ -2491,7 +2493,6 @@ LayoutTests/fast/css/first-child-display-change-inverse_t01: RuntimeError # Plea
 LayoutTests/fast/css/focus-display-block-inline_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-insert-link_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-property-priority_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/font-shorthand-mix-inherit_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontface-properties_t01: RuntimeError # Uses FontFace class, not defined for this browser.
 LayoutTests/fast/css/getComputedStyle/computed-style-border-image_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/getComputedStyle/computed-style-cross-fade_t01: RuntimeError # Please triage this failure
@@ -4913,7 +4914,6 @@ LayoutTests/fast/table/min-width-html-inline-table_t01: RuntimeError # Please tr
 LayoutTests/fast/table/nested-tables-with-div-offset_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/padding-height-and-override-height_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/resize-table-binding-cell_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/table/resize-table-cell_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/table-all-rowspans-height-distribution-in-rows-except-overlapped_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/table-all-rowspans-height-distribution-in-rows_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/table-cell-offset-width_t01: RuntimeError # Please triage this failure
