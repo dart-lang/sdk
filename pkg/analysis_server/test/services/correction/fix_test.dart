@@ -95,11 +95,6 @@ bool test() {
     expect(resultCode, expected);
   }
 
-  assertNoFix(FixKind kind) async {
-    AnalysisError error = await _findErrorToFix();
-    await _assertNoFix(kind, error);
-  }
-
   assertHasFixAllFix(ErrorCode errorCode, FixKind kind, String expected,
       {String target}) async {
     AnalysisError error = await _findErrorToFixOfType(errorCode);
@@ -119,6 +114,11 @@ bool test() {
     resultCode = SourceEdit.applySequence(fileContent, change.edits[0].edits);
     // verify
     expect(resultCode, expected);
+  }
+
+  assertNoFix(FixKind kind) async {
+    AnalysisError error = await _findErrorToFix();
+    await _assertNoFix(kind, error);
   }
 
   List<LinkedEditSuggestion> expectedSuggestions(
@@ -2102,6 +2102,44 @@ class Test {
 }
 ''');
     _assertLinkedGroup(change.linkedEditGroups[0], ['Test v =', 'Test {']);
+  }
+
+  test_createClass_instanceCreation_withoutNew_fromFunction() async {
+    await resolveTestUnit('''
+main() {
+  Test ();
+}
+''');
+    await assertHasFix(DartFixKind.CREATE_CLASS, '''
+main() {
+  Test ();
+}
+
+class Test {
+}
+''');
+    _assertLinkedGroup(change.linkedEditGroups[0], ['Test ()', 'Test {']);
+  }
+
+  test_createClass_instanceCreation_withoutNew_fromMethod() async {
+    await resolveTestUnit('''
+class A {
+  main() {
+    Test ();
+  }
+}
+''');
+    await assertHasFix(DartFixKind.CREATE_CLASS, '''
+class A {
+  main() {
+    Test ();
+  }
+}
+
+class Test {
+}
+''');
+    _assertLinkedGroup(change.linkedEditGroups[0], ['Test ()', 'Test {']);
   }
 
   test_createClass_itemOfList() async {
@@ -5476,36 +5514,6 @@ main() {
 ''');
   }
 
-  test_removeUnusedImport_anotherImportOnLine() async {
-    await resolveTestUnit('''
-import 'dart:math'; import 'dart:async';
-
-main() {
-  Future f;
-}
-''');
-    await assertHasFix(DartFixKind.REMOVE_UNUSED_IMPORT, '''
-import 'dart:async';
-
-main() {
-  Future f;
-}
-''');
-  }
-
-  test_removeUnusedImport_severalLines() async {
-    await resolveTestUnit('''
-import
-  'dart:math';
-main() {
-}
-''');
-    await assertHasFix(DartFixKind.REMOVE_UNUSED_IMPORT, '''
-main() {
-}
-''');
-  }
-
   test_removeUnusedImport_all() async {
     await resolveTestUnit('''
 import 'dart:math';
@@ -5566,6 +5574,36 @@ main() {
 ''');
     await assertHasFixAllFix(
         HintCode.UNUSED_IMPORT, DartFixKind.REMOVE_UNUSED_IMPORT, '''
+main() {
+}
+''');
+  }
+
+  test_removeUnusedImport_anotherImportOnLine() async {
+    await resolveTestUnit('''
+import 'dart:math'; import 'dart:async';
+
+main() {
+  Future f;
+}
+''');
+    await assertHasFix(DartFixKind.REMOVE_UNUSED_IMPORT, '''
+import 'dart:async';
+
+main() {
+  Future f;
+}
+''');
+  }
+
+  test_removeUnusedImport_severalLines() async {
+    await resolveTestUnit('''
+import
+  'dart:math';
+main() {
+}
+''');
+    await assertHasFix(DartFixKind.REMOVE_UNUSED_IMPORT, '''
 main() {
 }
 ''');

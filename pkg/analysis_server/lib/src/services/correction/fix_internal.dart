@@ -481,6 +481,7 @@ class FixProcessor {
       await _addFix_createClass();
     }
     if (errorCode == StaticTypeWarningCode.UNDEFINED_FUNCTION) {
+      await _addFix_createClass();
       await _addFix_importLibrary_withFunction();
       await _addFix_importLibrary_withType();
       await _addFix_undefinedFunction_useSimilar();
@@ -494,6 +495,7 @@ class FixProcessor {
     }
     if (errorCode == HintCode.UNDEFINED_METHOD ||
         errorCode == StaticTypeWarningCode.UNDEFINED_METHOD) {
+      await _addFix_createClass();
       await _addFix_importLibrary_withFunction();
       await _addFix_importLibrary_withType();
       await _addFix_undefinedMethod_useSimilar();
