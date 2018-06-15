@@ -2283,13 +2283,13 @@ UseOfDeprecatedIdentifier:
   severity: IGNORED
 
 InitializeFromDillNotSelfContained:
-  template: "Tried to initialize from a previous compilation (#string), but the file was not self-contained. This might be a bug, please report at http://dartbug.com/new."
+  template: "Tried to initialize from a previous compilation (#string), but the file was not self-contained. This might be a bug. The Dart team would greatly appreciate if you would take a moment to report this problem at http://dartbug.com/new."
   severity: WARNING
   frontendInternal: true
   external: test/incremental_load_from_invalid_dill_test.dart
 
 InitializeFromDillUnknownProblem:
-  template: "Tried to initialize from a previous compilation (#string), but couldn't. This might be a bug, please report at http://dartbug.com/new. Error message was '#string2'."
+  template: "Tried to initialize from a previous compilation (#string), but couldn't. Error message was '#string2'. This might be a bug. The Dart team would greatly appreciate if you would take a moment to report this problem at http://dartbug.com/new."
   severity: WARNING
   frontendInternal: true
   external: test/incremental_load_from_invalid_dill_test.dart
