@@ -64,6 +64,9 @@
 # `#lexeme` a token. The token's `lexeme` property is used.
 #
 # `#string`, `#string2`, `#string3`: strings (that aren't names).
+#    Note: as a rule of thumb, avoid using the `#string` keys. In particular,
+#    do not use them for composing error messages, see [diagnostics.md](
+#    lib/src/fasta/diagnostics.md#avoid-composing-messages-programmatically).
 #
 # `#type`, #type2`: Kernel types.
 #
@@ -864,6 +867,9 @@ UnterminatedToken:
   template: "Incomplete token."
   dart2jsCode: UNTERMINATED_TOKEN
 
+# Note: avoid using this template, it should only be used for debugging and
+# prototyping, see [diagnostics.md](
+# lib/src/fasta/diagnostics.md#avoid-composing-messages-programmatically).
 Unspecified:
   template: "#string"
   dart2jsCode: GENERIC

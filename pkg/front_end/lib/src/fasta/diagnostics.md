@@ -41,7 +41,9 @@ Also, remember that the output isn't Markdown, so be careful to not use Markdown
 
 ## Avoid Composing Messages Programmatically
 
-Composing messages programmatically can make it hard to translate them.
+Composing messages programmatically can make it hard to translate them. A tool that compose messages programmatically also makes it hard for its clients to distinguish the diagnostics.
+
+For example, [messages.yaml](../../../messages.yaml) includes an error code named `Unspecified`. This code is useful when prototyping a new diagnostic, but shouldn't otherwise be used.
 
 ## Keep Message Short
 
