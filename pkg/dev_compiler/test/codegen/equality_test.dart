@@ -26,7 +26,7 @@ class _Norman extends BluesBrother {}
 T hideNull<T>(T x) => x;
 
 /// Generate undefined at a type
-T getUndefined<T>() => (new List(1))[0];
+T getUndefined<T>() => (List(1))[0];
 
 main() {
   group('Enum equality', () {
@@ -95,8 +95,8 @@ main() {
       String s2 = hideNull("");
       int i1 = hideNull(3);
       int i2 = hideNull(0);
-      List l1 = hideNull(new List(3));
-      BluesBrother b1 = hideNull(new _Norman());
+      List l1 = hideNull(List(3));
+      BluesBrother b1 = hideNull(_Norman());
 
       expect(e1 == s1, false);
       expect(e1 == s2, false);
@@ -120,8 +120,8 @@ main() {
       String s2 = "";
       int i1 = 3;
       int i2 = 0;
-      List l1 = new List(3);
-      BluesBrother b1 = new _Norman();
+      List l1 = List(3);
+      BluesBrother b1 = _Norman();
 
       expect(e1 == s1, false);
       expect(e1 == s2, false);
@@ -146,8 +146,8 @@ main() {
       dynamic s2 = hideNull("");
       dynamic i1 = hideNull(3);
       dynamic i2 = hideNull(0);
-      dynamic l1 = hideNull(new List(3));
-      dynamic b1 = hideNull(new _Norman());
+      dynamic l1 = hideNull(List(3));
+      dynamic b1 = hideNull(_Norman());
 
       expect(e1 == s1, false);
       expect(e1 == s2, false);
@@ -186,8 +186,8 @@ main() {
       String s2 = "";
       int i1 = 3;
       int i2 = 0;
-      List l1 = new List(3);
-      BluesBrother b1 = new _Norman();
+      List l1 = List(3);
+      BluesBrother b1 = _Norman();
 
       expect(e1 == s1, false);
       expect(e1 == s2, false);
@@ -285,8 +285,8 @@ main() {
       String s2 = hideNull("");
       int i1 = hideNull(3);
       int i2 = hideNull(0);
-      List l1 = hideNull(new List(3));
-      BluesBrother b1 = hideNull(new _Norman());
+      List l1 = hideNull(List(3));
+      BluesBrother b1 = hideNull(_Norman());
 
       expect(e1 == s1, false);
       expect(e1 == s2, false);
@@ -310,8 +310,8 @@ main() {
       String s2 = "";
       int i1 = 3;
       int i2 = 0;
-      List l1 = new List(3);
-      BluesBrother b1 = new _Norman();
+      List l1 = List(3);
+      BluesBrother b1 = _Norman();
 
       expect(e1 == s1, false);
       expect(e1 == s2, false);
@@ -336,8 +336,8 @@ main() {
       dynamic s2 = hideNull("");
       dynamic i1 = hideNull(3);
       dynamic i2 = hideNull(0);
-      dynamic l1 = hideNull(new List(3));
-      dynamic b1 = hideNull(new _Norman());
+      dynamic l1 = hideNull(List(3));
+      dynamic b1 = hideNull(_Norman());
 
       expect(e1 == s1, false);
       expect(e1 == s2, false);
@@ -376,8 +376,8 @@ main() {
       String s2 = "";
       int i1 = 3;
       int i2 = 0;
-      List l1 = new List(3);
-      BluesBrother b1 = new _Norman();
+      List l1 = List(3);
+      BluesBrother b1 = _Norman();
 
       expect(e1 == s1, false);
       expect(e1 == s2, false);
@@ -475,8 +475,8 @@ main() {
       String s2 = hideNull("");
       int i1 = hideNull(3);
       int i2 = hideNull(0);
-      List l1 = hideNull(new List(3));
-      BluesBrother b1 = hideNull(new _Norman());
+      List l1 = hideNull(List(3));
+      BluesBrother b1 = hideNull(_Norman());
 
       expect(e1 == s1, false);
       expect(e1 == s2, false);
@@ -500,8 +500,8 @@ main() {
       String s2 = "";
       int i1 = 3;
       int i2 = 0;
-      List l1 = new List(3);
-      BluesBrother b1 = new _Norman();
+      List l1 = List(3);
+      BluesBrother b1 = _Norman();
 
       expect(e1 == s1, false);
       expect(e1 == s2, false);
@@ -526,8 +526,8 @@ main() {
       dynamic s2 = hideNull("");
       dynamic i1 = hideNull(3);
       dynamic i2 = hideNull(0);
-      dynamic l1 = hideNull(new List(3));
-      dynamic b1 = hideNull(new _Norman());
+      dynamic l1 = hideNull(List(3));
+      dynamic b1 = hideNull(_Norman());
 
       expect(e1 == s1, false);
       expect(e1 == s2, false);
@@ -566,8 +566,8 @@ main() {
       String s2 = "";
       int i1 = 3;
       int i2 = 0;
-      List l1 = new List(3);
-      BluesBrother b1 = new _Norman();
+      List l1 = List(3);
+      BluesBrother b1 = _Norman();
 
       expect(e1 == s1, false);
       expect(e1 == s2, false);
@@ -665,8 +665,8 @@ main() {
       String s2 = hideNull("");
       int i1 = hideNull(3);
       int i2 = hideNull(0);
-      List l1 = hideNull(new List(3));
-      BluesBrother b1 = hideNull(new _Norman());
+      List l1 = hideNull(List(3));
+      BluesBrother b1 = hideNull(_Norman());
 
       expect(e1 == s1, false);
       expect(e1 == s2, false);
@@ -690,8 +690,8 @@ main() {
       String s2 = "";
       int i1 = 3;
       int i2 = 0;
-      List l1 = new List(3);
-      BluesBrother b1 = new _Norman();
+      List l1 = List(3);
+      BluesBrother b1 = _Norman();
 
       expect(e1 == s1, false);
       expect(e1 == s2, false);
@@ -716,8 +716,8 @@ main() {
       dynamic s2 = hideNull("");
       dynamic i1 = hideNull(3);
       dynamic i2 = hideNull(0);
-      dynamic l1 = hideNull(new List(3));
-      dynamic b1 = hideNull(new _Norman());
+      dynamic l1 = hideNull(List(3));
+      dynamic b1 = hideNull(_Norman());
 
       expect(e1 == s1, false);
       expect(e1 == s2, false);
@@ -756,8 +756,8 @@ main() {
       String s2 = "";
       int i1 = 3;
       int i2 = 0;
-      List l1 = new List(3);
-      BluesBrother b1 = new _Norman();
+      List l1 = List(3);
+      BluesBrother b1 = _Norman();
 
       expect(e1 == s1, false);
       expect(e1 == s2, false);
@@ -855,8 +855,8 @@ main() {
       String s2 = hideNull("");
       int i1 = hideNull(3);
       int i2 = hideNull(0);
-      List l1 = hideNull(new List(3));
-      BluesBrother b1 = hideNull(new _Norman());
+      List l1 = hideNull(List(3));
+      BluesBrother b1 = hideNull(_Norman());
 
       expect(e1 == s1, false);
       expect(e1 == s2, false);
@@ -880,8 +880,8 @@ main() {
       String s2 = "";
       int i1 = 3;
       int i2 = 0;
-      List l1 = new List(3);
-      BluesBrother b1 = new _Norman();
+      List l1 = List(3);
+      BluesBrother b1 = _Norman();
 
       expect(e1 == s1, false);
       expect(e1 == s2, false);
@@ -906,8 +906,8 @@ main() {
       dynamic s2 = hideNull("");
       dynamic i1 = hideNull(3);
       dynamic i2 = hideNull(0);
-      dynamic l1 = hideNull(new List(3));
-      dynamic b1 = hideNull(new _Norman());
+      dynamic l1 = hideNull(List(3));
+      dynamic b1 = hideNull(_Norman());
 
       expect(e1 == s1, false);
       expect(e1 == s2, false);
@@ -946,8 +946,8 @@ main() {
       String s2 = "";
       int i1 = 3;
       int i2 = 0;
-      List l1 = new List(3);
-      BluesBrother b1 = new _Norman();
+      List l1 = List(3);
+      BluesBrother b1 = _Norman();
 
       expect(e1 == s1, false);
       expect(e1 == s2, false);
@@ -982,12 +982,12 @@ main() {
   group('Object equality', () {
     // Test equality of two objects, various types, nullable
     test('Equal object/object (nullable)', () {
-      _Jake e1 = hideNull(new _Jake());
-      _Elwood e2 = hideNull(new _Elwood());
+      _Jake e1 = hideNull(_Jake());
+      _Elwood e2 = hideNull(_Elwood());
       dynamic d1 = hideNull(e1);
-      dynamic d2 = hideNull(new _Elwood());
+      dynamic d2 = hideNull(_Elwood());
       Object o1 = hideNull(e1);
-      Object o2 = hideNull(new _Elwood());
+      Object o2 = hideNull(_Elwood());
       expect(e1 == e1, true);
       expect(e1 == d1, true);
       expect(e1 == o1, true);
@@ -1011,12 +1011,12 @@ main() {
 
     // Test equality of two objects, various types, non-nullable
     test('Equal object/object (non-null)', () {
-      _Jake e1 = new _Jake();
-      _Elwood e2 = new _Elwood();
+      _Jake e1 = _Jake();
+      _Elwood e2 = _Elwood();
       dynamic d1 = e1;
-      dynamic d2 = new _Elwood();
+      dynamic d2 = _Elwood();
       Object o1 = e1;
-      Object o2 = new _Elwood();
+      Object o2 = _Elwood();
       expect(e1 == e1, true);
       expect(e1 == d1, true);
       expect(e1 == o1, true);
@@ -1040,13 +1040,13 @@ main() {
 
     // Test equality of object and other types (static, nullable)
     test('Equal object/other (static, nullable)', () {
-      _Jake e1 = hideNull(new _Jake());
+      _Jake e1 = hideNull(_Jake());
       String s1 = hideNull("hello");
       String s2 = hideNull("");
       int i1 = hideNull(3);
       int i2 = hideNull(0);
-      List l1 = hideNull(new List(3));
-      BluesBrother b1 = hideNull(new _Norman());
+      List l1 = hideNull(List(3));
+      BluesBrother b1 = hideNull(_Norman());
 
       expect(e1 == s1, false);
       expect(e1 == s2, false);
@@ -1065,13 +1065,13 @@ main() {
 
     // Test equality of object and other types (static, non-null)
     test('Equal object/other (static, non-null)', () {
-      _Jake e1 = new _Jake();
+      _Jake e1 = _Jake();
       String s1 = "hello";
       String s2 = "";
       int i1 = 3;
       int i2 = 0;
-      List l1 = new List(3);
-      BluesBrother b1 = new _Norman();
+      List l1 = List(3);
+      BluesBrother b1 = _Norman();
 
       expect(e1 == s1, false);
       expect(e1 == s2, false);
@@ -1090,14 +1090,14 @@ main() {
 
     // Test equality of object and other types (dynamic, nullable)
     test('Equal object/other (dynamic, nullable)', () {
-      _Jake e1 = hideNull(new _Jake());
-      dynamic d1 = hideNull(new _Jake());
+      _Jake e1 = hideNull(_Jake());
+      dynamic d1 = hideNull(_Jake());
       dynamic s1 = hideNull("hello");
       dynamic s2 = hideNull("");
       dynamic i1 = hideNull(3);
       dynamic i2 = hideNull(0);
-      dynamic l1 = hideNull(new List(3));
-      dynamic b1 = hideNull(new _Norman());
+      dynamic l1 = hideNull(List(3));
+      dynamic b1 = hideNull(_Norman());
 
       expect(e1 == s1, false);
       expect(e1 == s2, false);
@@ -1130,14 +1130,14 @@ main() {
 
     // Test equality of object and other types (dynamic, non-null)
     test('Equal object/other (dynamic, non-null)', () {
-      _Jake e1 = new _Jake();
-      dynamic d1 = new _Jake();
+      _Jake e1 = _Jake();
+      dynamic d1 = _Jake();
       String s1 = "hello";
       String s2 = "";
       int i1 = 3;
       int i2 = 0;
-      List l1 = new List(3);
-      BluesBrother b1 = new _Norman();
+      List l1 = List(3);
+      BluesBrother b1 = _Norman();
 
       expect(e1 == s1, false);
       expect(e1 == s2, false);

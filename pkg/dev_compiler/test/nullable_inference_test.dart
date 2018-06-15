@@ -469,7 +469,7 @@ void main() {
 /// inference.
 Future expectNotNull(String code, String expectedNotNull) async {
   var component = await kernelCompile(code);
-  var collector = new NotNullCollector();
+  var collector = NotNullCollector();
   component.accept(collector);
   var actualNotNull =
       collector.notNullExpressions.map((e) => e.toString()).join(', ');
@@ -478,7 +478,7 @@ Future expectNotNull(String code, String expectedNotNull) async {
 
 /// Given the Dart [code], expects all the expressions inferred to be not-null.
 Future expectAllNotNull(String code) async {
-  (await kernelCompile(code)).accept(new ExpectAllNotNull());
+  (await kernelCompile(code)).accept(ExpectAllNotNull());
 }
 
 bool useAnnotations = false;
@@ -489,9 +489,8 @@ class _TestRecursiveVisitor extends RecursiveVisitor<void> {
 
   @override
   visitComponent(Component node) {
-    inference ??= new NullableInference(new JSTypeRep(
-      new TypeSchemaEnvironment(
-          new CoreTypes(node), new ClassHierarchy(node), true),
+    inference ??= NullableInference(JSTypeRep(
+      TypeSchemaEnvironment(CoreTypes(node), ClassHierarchy(node), true),
     ));
 
     if (useAnnotations) {
@@ -543,7 +542,7 @@ class ExpectAllNotNull extends _TestRecursiveVisitor {
 }
 
 fe.InitializedCompilerState _compilerState;
-final _fileSystem = new MemoryFileSystem(new Uri.file('/memory/'));
+final _fileSystem = MemoryFileSystem(Uri.file('/memory/'));
 
 Future<Component> kernelCompile(String code) async {
   var succeeded = true;
@@ -553,17 +552,17 @@ Future<Component> kernelCompile(String code) async {
     }
   }
 
-  var sdkUri = new Uri.file('/memory/dart_sdk.dill');
+  var sdkUri = Uri.file('/memory/dart_sdk.dill');
   var sdkFile = _fileSystem.entityForUri(sdkUri);
   if (!await sdkFile.exists()) {
-    sdkFile.writeAsBytesSync(new File(defaultSdkSummaryPath).readAsBytesSync());
+    sdkFile.writeAsBytesSync(File(defaultSdkSummaryPath).readAsBytesSync());
   }
-  var packagesUri = new Uri.file('/memory/.packages');
+  var packagesUri = Uri.file('/memory/.packages');
   var packagesFile = _fileSystem.entityForUri(packagesUri);
   if (!await packagesFile.exists()) {
     packagesFile.writeAsStringSync('meta:/memory/meta/lib');
     _fileSystem
-        .entityForUri(new Uri.file('/memory/meta/lib/meta.dart'))
+        .entityForUri(Uri.file('/memory/meta/lib/meta.dart'))
         .writeAsStringSync('''
 class _NotNull { const _NotNull(); }
 const notNull = const _NotNull();
@@ -572,10 +571,10 @@ const nullCheck = const _NullCheck();
     ''');
   }
 
-  var mainUri = new Uri.file('/memory/test.dart');
+  var mainUri = Uri.file('/memory/test.dart');
   _fileSystem.entityForUri(mainUri).writeAsStringSync(code);
   _compilerState = await fe.initializeCompiler(
-      _compilerState, sdkUri, packagesUri, [], new DevCompilerTarget(),
+      _compilerState, sdkUri, packagesUri, [], DevCompilerTarget(),
       fileSystem: _fileSystem);
   fe.DdcResult result =
       await fe.compile(_compilerState, [mainUri], errorHandler);

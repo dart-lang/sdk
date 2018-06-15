@@ -36,7 +36,7 @@ int compile(List<String> args, {void printFn(Object obj)}) {
       args = filterUnknownArguments(args, parser);
     }
     argResults = parser.parse(args);
-    analyzerOptions = new AnalyzerOptions.fromArguments(argResults);
+    analyzerOptions = AnalyzerOptions.fromArguments(argResults);
   } on FormatException catch (error) {
     printFn('$error\n\n$_usageMessage');
     return 64;
@@ -91,8 +91,8 @@ $stackTrace
   }
 }
 
-ArgParser ddcArgParser({bool hide: true}) {
-  var argParser = new ArgParser(allowTrailingOptions: true)
+ArgParser ddcArgParser({bool hide = true}) {
+  var argParser = ArgParser(allowTrailingOptions: true)
     ..addFlag('help',
         abbr: 'h',
         help: 'Display this message. Add -v to show hidden options.',
@@ -128,8 +128,8 @@ bool _changed(List<int> list1, List<int> list2) {
 
 void _compile(ArgResults argResults, AnalyzerOptions analyzerOptions,
     void printFn(Object obj)) {
-  var compiler = new ModuleCompiler(analyzerOptions);
-  var compilerOpts = new CompilerOptions.fromArguments(argResults);
+  var compiler = ModuleCompiler(analyzerOptions);
+  var compilerOpts = CompilerOptions.fromArguments(argResults);
   var outPaths = argResults['out'] as List<String>;
   var moduleFormats = parseModuleFormatOption(argResults);
   bool singleOutFile = argResults['single-out-file'];
@@ -175,7 +175,7 @@ void _compile(ArgResults argResults, AnalyzerOptions analyzerOptions,
     modulePath = path.basenameWithoutExtension(firstOutPath);
   }
 
-  var unit = new BuildUnit(
+  var unit = BuildUnit(
       modulePath,
       libraryRoot,
       argResults.rest,
@@ -187,8 +187,8 @@ void _compile(ArgResults argResults, AnalyzerOptions analyzerOptions,
 
   if (!module.isValid) {
     throw compilerOpts.unsafeForceCompile
-        ? new ForceCompileErrorException()
-        : new CompileErrorException();
+        ? ForceCompileErrorException()
+        : CompileErrorException();
   }
 
   // Write JS file, as well as source map and summary (if requested).
@@ -206,7 +206,7 @@ void _compile(ArgResults argResults, AnalyzerOptions analyzerOptions,
     for (var summaryPath in summaryPaths) {
       // Only overwrite if summary changed.  This plays better with timestamp
       // based build systems.
-      var file = new File(summaryPath);
+      var file = File(summaryPath);
       if (!file.existsSync() ||
           _changed(file.readAsBytesSync(), module.summaryBytes)) {
         if (!file.parent.existsSync()) file.parent.createSync(recursive: true);
@@ -254,7 +254,7 @@ String _getVersion() {
   try {
     // This is relative to bin/snapshot, so ../..
     String versionPath = Platform.script.resolve('../../version').toFilePath();
-    File versionFile = new File(versionPath);
+    File versionFile = File(versionPath);
     return versionFile.readAsStringSync().trim();
   } catch (_) {
     // This happens when the script is not running in the context of an SDK.
@@ -263,7 +263,7 @@ String _getVersion() {
 }
 
 void _usageException(String message) {
-  throw new UsageException(message, _usageMessage);
+  throw UsageException(message, _usageMessage);
 }
 
 /// Thrown when the input source code has errors.
@@ -279,8 +279,8 @@ class ForceCompileErrorException extends CompileErrorException {
 
 // TODO(jmesserly): fix this function in analyzer
 List<String> filterUnknownArguments(List<String> args, ArgParser parser) {
-  Set<String> knownOptions = new Set<String>();
-  Set<String> knownAbbreviations = new Set<String>();
+  Set<String> knownOptions = Set<String>();
+  Set<String> knownAbbreviations = Set<String>();
   parser.options.forEach((String name, option) {
     knownOptions.add(name);
     String abbreviation = option.abbr;

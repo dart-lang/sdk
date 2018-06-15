@@ -63,8 +63,8 @@ class CustomHashMap<K, V> extends InternalMap<K, V> {
   @notNull
   bool get isNotEmpty => JS('bool', '#.size != 0', _map);
 
-  Iterable<K> get keys => new _JSMapIterable<K>(this, true);
-  Iterable<V> get values => new _JSMapIterable<V>(this, false);
+  Iterable<K> get keys => _JSMapIterable<K>(this, true);
+  Iterable<V> get values => _JSMapIterable<V>(this, false);
 
   @notNull
   bool containsKey(Object key) {

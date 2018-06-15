@@ -31,11 +31,11 @@ class ExtensionTypeSet {
 
   // Abstract types that may be implemented by both native and non-native
   // classes.
-  final _extensibleTypes = new HashSet<ClassElement>();
+  final _extensibleTypes = HashSet<ClassElement>();
 
   // Concrete native types.
-  final _nativeTypes = new HashSet<ClassElement>();
-  final _pendingLibraries = new HashSet<String>();
+  final _nativeTypes = HashSet<ClassElement>();
+  final _pendingLibraries = HashSet<String>();
 
   ExtensionTypeSet(this._context) {
     // TODO(vsm): Eventually, we want to make this extensible - i.e., find

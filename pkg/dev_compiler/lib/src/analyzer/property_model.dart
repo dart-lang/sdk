@@ -22,12 +22,11 @@ import 'extension_types.dart';
 /// which members are private and thus, could not be overridden outside of the
 /// current library.
 class VirtualFieldModel {
-  final _modelForLibrary =
-      new HashMap<LibraryElement, _LibraryVirtualFieldModel>();
+  final _modelForLibrary = HashMap<LibraryElement, _LibraryVirtualFieldModel>();
 
   _LibraryVirtualFieldModel _getModel(LibraryElement library) =>
       _modelForLibrary.putIfAbsent(
-          library, () => new _LibraryVirtualFieldModel.build(library));
+          library, () => _LibraryVirtualFieldModel.build(library));
 
   /// Returns true if a field is virtual.
   bool isVirtual(FieldElement field) =>
@@ -42,7 +41,7 @@ class _LibraryVirtualFieldModel {
   ///
   /// This means we must generate them as virtual fields using a property pair
   /// in JavaScript.
-  final _overriddenPrivateFields = new HashSet<FieldElement>();
+  final _overriddenPrivateFields = HashSet<FieldElement>();
 
   /// Private classes that can be extended outside of this library.
   ///
@@ -56,7 +55,7 @@ class _LibraryVirtualFieldModel {
   ///     class C extends _A {}
   ///
   /// The class _A must treat is "x" as virtual, however _B does not.
-  final _extensiblePrivateClasses = new HashSet<ClassElement>();
+  final _extensiblePrivateClasses = HashSet<ClassElement>();
 
   _LibraryVirtualFieldModel.build(LibraryElement library) {
     var allTypes = library.units.expand((u) => u.types).toList();
@@ -65,7 +64,7 @@ class _LibraryVirtualFieldModel {
     // From there, visit all immediate private types in this library, and so on
     // from those private types, marking them as extensible.
     var typesToVisit =
-        new Queue<ClassElement>.from(allTypes.where((t) => t.isPublic));
+        Queue<ClassElement>.from(allTypes.where((t) => t.isPublic));
     while (typesToVisit.isNotEmpty) {
       var extensibleType = typesToVisit.removeFirst();
 
@@ -84,12 +83,12 @@ class _LibraryVirtualFieldModel {
     // time.
     Map<String, FieldElement> getInstanceFieldMap(ClassElement c) {
       var instanceFields = c.fields.where((f) => !f.isStatic);
-      return new HashMap.fromIterables(
+      return HashMap.fromIterables(
           instanceFields.map((f) => f.name), instanceFields);
     }
 
     var allFields =
-        new HashMap.fromIterables(allTypes, allTypes.map(getInstanceFieldMap));
+        HashMap.fromIterables(allTypes, allTypes.map(getInstanceFieldMap));
 
     for (var type in allTypes) {
       Set<ClassElement> supertypes = null;
@@ -108,7 +107,7 @@ class _LibraryVirtualFieldModel {
         }
 
         if (supertypes == null) {
-          supertypes = new Set();
+          supertypes = Set();
           void collectSupertypes(ClassElement cls) {
             if (!supertypes.add(cls)) return;
             var s = cls.supertype?.element;
@@ -177,18 +176,18 @@ class ClassPropertyModel {
   /// The set of inherited getters, used because JS getters/setters are paired,
   /// so if we're generating a setter we may need to emit a getter that calls
   /// super.
-  final inheritedGetters = new HashSet<String>();
+  final inheritedGetters = HashSet<String>();
 
   /// The set of inherited setters, used because JS getters/setters are paired,
   /// so if we're generating a getter we may need to emit a setter that calls
   /// super.
-  final inheritedSetters = new HashSet<String>();
+  final inheritedSetters = HashSet<String>();
 
   final mockMembers = <String, ExecutableElement>{};
 
-  final extensionMethods = new Set<String>();
+  final extensionMethods = Set<String>();
 
-  final extensionAccessors = new Set<String>();
+  final extensionAccessors = Set<String>();
 
   /// Parameters that are covariant due to covariant generics.
   final Set<Element> covariantParameters;
@@ -220,7 +219,7 @@ class ClassPropertyModel {
     _collectMockMembers(classElem.type);
     _collectExtensionMembers(classElem);
 
-    var virtualAccessorNames = new HashSet<String>()
+    var virtualAccessorNames = HashSet<String>()
       ..addAll(inheritedGetters)
       ..addAll(inheritedSetters)
       ..addAll(extensionAccessors)
@@ -246,7 +245,7 @@ class ClassPropertyModel {
                 covariantParameters != null &&
                 covariantParameters.contains(setter.parameters[0]) &&
                 covariantPrivateMembers.contains(setter)) {
-          virtualFields[field] = new JS.TemporaryId(name);
+          virtualFields[field] = JS.TemporaryId(name);
         }
       }
     }
@@ -274,7 +273,7 @@ class ClassPropertyModel {
     // members are allowed to "override" concrete ones in Dart.
     // (In that case, it will still be treated as a concrete member and can be
     // called at runtime.)
-    var concreteMembers = new HashSet<String>();
+    var concreteMembers = HashSet<String>();
 
     void visit(InterfaceType type, bool isAbstract) {
       if (type == null) return;
@@ -303,12 +302,12 @@ class ClassPropertyModel {
     // Find all generic interfaces that could be used to call into members of
     // this class. This will help us identify which parameters need checks
     // for soundness.
-    var allNatives = new HashSet<String>();
+    var allNatives = HashSet<String>();
     _collectNativeMembers(element.type, allNatives);
     if (allNatives.isEmpty) return;
 
     // For members on this class, check them against all generic interfaces.
-    var seenConcreteMembers = new HashSet<String>();
+    var seenConcreteMembers = HashSet<String>();
     _findExtensionMembers(element.type, seenConcreteMembers, allNatives);
     // Add mock members. These are compiler-generated concrete members that
     // forward to `noSuchMethod`.
@@ -325,13 +324,13 @@ class ClassPropertyModel {
     // For members of the superclass, we may need to add checks because this
     // class adds a new unsafe interface. Collect those checks.
 
-    var visited = new HashSet<ClassElement>()..add(element);
-    var existingMembers = new HashSet<String>();
+    var visited = HashSet<ClassElement>()..add(element);
+    var existingMembers = HashSet<String>();
 
     void visitImmediateSuper(InterfaceType type) {
       // For members of mixins/supertypes, check them against new interfaces,
       // and also record any existing checks they already had.
-      var oldCovariant = new HashSet<String>();
+      var oldCovariant = HashSet<String>();
       _collectNativeMembers(type, oldCovariant);
       var newCovariant = allNatives.difference(oldCovariant);
       if (newCovariant.isEmpty) return;

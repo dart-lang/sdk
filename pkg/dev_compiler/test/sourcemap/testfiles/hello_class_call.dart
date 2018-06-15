@@ -4,7 +4,7 @@
 
 main() {
   /*bl*/
-  Foo foo = new Foo();
+  Foo foo = Foo();
   foo.foo();
   /*nbb:0:1*/
 }

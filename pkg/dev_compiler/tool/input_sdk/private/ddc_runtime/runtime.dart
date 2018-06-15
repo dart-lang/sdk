@@ -27,8 +27,7 @@ import 'dart:_js_helper'
         notNull;
 import 'dart:_debugger' show trackCall;
 
-export 'dart:_debugger'
-    show getDynamicStats, clearDynamicStats, trackCall;
+export 'dart:_debugger' show getDynamicStats, clearDynamicStats, trackCall;
 
 part 'utils.dart';
 part 'classes.dart';

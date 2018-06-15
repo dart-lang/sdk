@@ -9,7 +9,7 @@ import '../js_ast/js_ast.dart' show js;
 import '../compiler/js_names.dart' as JS;
 
 Set<TypeParameter> freeTypeParameters(DartType t) {
-  var result = new Set<TypeParameter>();
+  var result = Set<TypeParameter>();
   void find(DartType t) {
     if (t is TypeParameterType) {
       result.add(t.parameter);
@@ -63,7 +63,7 @@ class _CacheTable {
 
   bool isNamed(DartType type) => _names.containsKey(type);
 
-  String _typeString(DartType type, {bool flat: false}) {
+  String _typeString(DartType type, {bool flat = false}) {
     if (type is InterfaceType) {
       var name = type.classNode.name;
       var typeArgs = type.typeArguments;
@@ -103,7 +103,7 @@ class _CacheTable {
   /// Heuristically choose a good name for the cache and generator
   /// variables.
   JS.TemporaryId chooseTypeName(DartType type) {
-    return new JS.TemporaryId(_typeString(type));
+    return JS.TemporaryId(_typeString(type));
   }
 }
 
@@ -150,7 +150,7 @@ class TypeTable {
   /// parameter.
   final _scopeDependencies = <TypeParameter, List<DartType>>{};
 
-  TypeTable(JS.Identifier runtime) : _generators = new _GeneratorTable(runtime);
+  TypeTable(JS.Identifier runtime) : _generators = _GeneratorTable(runtime);
 
   /// Emit a list of statements declaring the cache variables and generator
   /// definitions tracked by the table.  If [formals] is present, only
@@ -200,9 +200,9 @@ class TypeTable {
   /// type itself. This allows better integration with `lazyFn`, avoiding an
   /// extra level of indirection.
   JS.Expression nameFunctionType(FunctionType type, JS.Expression typeRep,
-      {bool lazy: false}) {
+      {bool lazy = false}) {
     if (!_generators.isNamed(type) && recordScopeDependencies(type)) {
-      return lazy ? new JS.ArrowFun([], typeRep) : typeRep;
+      return lazy ? JS.ArrowFun([], typeRep) : typeRep;
     }
     var name = _generators._nameType(type, typeRep);
     return lazy ? name : js.call('#()', [name]);

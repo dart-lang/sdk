@@ -18,7 +18,7 @@ class Foo<T> {
 
   Foo(this.i, this.v);
 
-  factory Foo.build() => new Foo(1, null);
+  factory Foo.build() => Foo(1, null);
 
   untyped_method(a, b) {}
 

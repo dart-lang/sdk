@@ -9,7 +9,7 @@ class ChildServerProcess {
   /// [IOSink]s like [stdout] don't like to be piped more than one [Stream], but
   /// we want to pipe many of them (basically, every standard output and error
   /// of every child process we open), so we pipe to an accommodating consumer.
-  static final _consoleOut = new _MultipleStreamConsumer(stdout);
+  static final _consoleOut = _MultipleStreamConsumer(stdout);
 
   final Process process;
   final String host;
@@ -19,20 +19,20 @@ class ChildServerProcess {
   get httpUri => Uri.parse('http://$host:$port');
 
   static build(Future<Process> builder(String host, int port),
-      {int defaultPort: 1024,
-      int maxPort: 65535,
-      String host: '0.0.0.0'}) async {
+      {int defaultPort = 1024,
+      int maxPort = 65535,
+      String host = '0.0.0.0'}) async {
     var port = await _findUnusedPort(defaultPort, maxPort);
     var p = (await builder(host, port))
       ..stdout.pipe(_consoleOut)
       ..stderr.pipe(_consoleOut);
     await _waitForServer(host, port);
-    return new ChildServerProcess._(p, host, port);
+    return ChildServerProcess._(p, host, port);
   }
 
   static _waitForServer(String host, int port,
-      {int attempts: 10,
-      Duration retryDelay: const Duration(seconds: 1)}) async {
+      {int attempts = 10,
+      Duration retryDelay = const Duration(seconds: 1)}) async {
     var lastError;
     for (int i = 0; i < attempts; i++) {
       try {
@@ -40,10 +40,10 @@ class ChildServerProcess {
         return;
       } catch (e) {
         lastError = e;
-        await new Future.delayed(retryDelay);
+        await Future.delayed(retryDelay);
       }
     }
-    throw new StateError(
+    throw StateError(
         'Failed to connect to $host:$port after $attempts attempts; '
         'Last error:\n$lastError');
   }
@@ -59,7 +59,7 @@ class ChildServerProcess {
         lastError = e;
       }
     }
-    throw new StateError(
+    throw StateError(
         'Failed to find an unused port between $fromPort and $toPort; '
         'Last error:\n$lastError');
   }

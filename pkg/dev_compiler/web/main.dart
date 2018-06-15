@@ -39,8 +39,8 @@ _runCommand(List<String> args, {MessageHandler messageHandler}) {
   try {
     // TODO: Remove CommandRunner and args if possible. May run into issues
     // with ArgResults or ArgParsers.
-    var runner = new CommandRunner('dartdevc', 'Dart Development Compiler');
-    runner.addCommand(new WebCompileCommand(messageHandler: messageHandler));
+    var runner = CommandRunner('dartdevc', 'Dart Development Compiler');
+    runner.addCommand(WebCompileCommand(messageHandler: messageHandler));
     _setUpCompilerInBrowser = runner.run(args) as Future<Function>;
   } catch (e, s) {
     _handleError(e, s, args, messageHandler: messageHandler);

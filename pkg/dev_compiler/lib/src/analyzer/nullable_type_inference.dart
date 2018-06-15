@@ -35,14 +35,15 @@ abstract class NullableTypeInference {
   HashSet<LocalVariableElement> _notNullLocals;
 
   void inferNullableTypes(AstNode node) {
-    var visitor = new _NullableLocalInference(this);
+    var visitor = _NullableLocalInference(this);
     node.accept(visitor);
     _notNullLocals = visitor.computeNotNullLocals();
   }
 
   /// Adds a new variable, typically a compiler generated temporary, and record
   /// whether its type is nullable.
-  void addTemporaryVariable(LocalVariableElement local, {bool nullable: true}) {
+  void addTemporaryVariable(LocalVariableElement local,
+      {bool nullable = true}) {
     if (!nullable) _notNullLocals.add(local);
   }
 
@@ -301,14 +302,14 @@ class _NullableLocalInference extends RecursiveAstVisitor {
   final NullableTypeInference _nullInference;
 
   /// Known local variables.
-  final _locals = new HashSet<LocalVariableElement>.identity();
+  final _locals = HashSet<LocalVariableElement>.identity();
 
   /// Variables that are known to be nullable.
-  final _nullableLocals = new HashSet<LocalVariableElement>.identity();
+  final _nullableLocals = HashSet<LocalVariableElement>.identity();
 
   /// Given a variable, tracks all other variables that it is assigned to.
   final _assignments =
-      new HashMap<LocalVariableElement, Set<LocalVariableElement>>.identity();
+      HashMap<LocalVariableElement, Set<LocalVariableElement>>.identity();
 
   _NullableLocalInference(this._nullInference);
 
@@ -418,7 +419,7 @@ class _NullableLocalInference extends RecursiveAstVisitor {
         bool visitLocal(LocalVariableElement otherLocal) {
           // Record the assignment.
           _assignments
-              .putIfAbsent(otherLocal, () => new HashSet.identity())
+              .putIfAbsent(otherLocal, () => HashSet.identity())
               .add(element);
           // Optimistically assume this local is not null.
           // We will validate this assumption later.

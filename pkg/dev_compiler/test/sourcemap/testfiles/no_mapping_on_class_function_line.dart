@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  Foo foo = new Foo();
+  Foo foo = Foo();
   foo.foo();
 }
 

@@ -25,10 +25,10 @@ _async<T>(Function() initGenerator) {
     if (value is _Future) {
       f = value;
     } else if (value is Future) {
-      f = new _Future();
+      f = _Future();
       _Future._chainForeignFuture(value, f);
     } else {
-      f = new _Future.value(value);
+      f = _Future.value(value);
     }
     f = JS('', '#', f._thenNoZoneRegistration(onValue, onError));
     return f;
@@ -59,7 +59,7 @@ _async<T>(Function() initGenerator) {
     onValue = zone.registerUnaryCallback(onValue);
     onError = zone.registerUnaryCallback(onError);
   }
-  var asyncFuture = new _Future<T>();
+  var asyncFuture = _Future<T>();
   var body = () {
     try {
       iter = JS('', '#[Symbol.iterator]()', initGenerator());
@@ -203,7 +203,7 @@ class Timer {
   static Timer _createTimer(Duration duration, void callback()) {
     int milliseconds = duration.inMilliseconds;
     if (milliseconds < 0) milliseconds = 0;
-    return new TimerImpl(milliseconds, callback);
+    return TimerImpl(milliseconds, callback);
   }
 
   @patch
@@ -211,7 +211,7 @@ class Timer {
       Duration duration, void callback(Timer timer)) {
     int milliseconds = duration.inMilliseconds;
     if (milliseconds < 0) milliseconds = 0;
-    return new TimerImpl.periodic(milliseconds, callback);
+    return TimerImpl.periodic(milliseconds, callback);
   }
 }
 

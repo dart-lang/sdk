@@ -38,7 +38,7 @@ String outputDirectory;
 /// summaries for the test packages against that SDK summary. Otherwise, skips
 /// generating kernel summaries.
 Future main(List<String> arguments) async {
-  var argParser = new ArgParser();
+  var argParser = ArgParser();
   argParser.addOption("analyzer-sdk",
       help: "Path to SDK analyzer summary '.sum' file");
   argParser.addOption("kernel-sdk",
@@ -129,7 +129,7 @@ Future compileModule(String module,
     {List<String> libs = const [], List<String> deps = const []}) async {
   makeArgs(bool kernel) {
     var pkgDirectory = p.join(outputDirectory, kernel ? 'pkg_kernel' : 'pkg');
-    new Directory(pkgDirectory).createSync(recursive: true);
+    Directory(pkgDirectory).createSync(recursive: true);
 
     var args = [
       '--dart-sdk-summary=${kernel ? kernelSummary : analyzerSummary}',

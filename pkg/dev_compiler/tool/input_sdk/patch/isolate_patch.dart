@@ -30,7 +30,7 @@ class Isolate {
 
   @patch
   static Future<Isolate> spawn<T>(void entryPoint(T message), T message,
-          {bool paused: false,
+          {bool paused = false,
           bool errorsAreFatal,
           SendPort onExit,
           SendPort onError}) =>
@@ -38,7 +38,7 @@ class Isolate {
 
   @patch
   static Future<Isolate> spawnUri(Uri uri, List<String> args, var message,
-          {bool paused: false,
+          {bool paused = false,
           SendPort onExit,
           SendPort onError,
           bool errorsAreFatal,
@@ -46,7 +46,7 @@ class Isolate {
           Map<String, String> environment,
           Uri packageRoot,
           Uri packageConfig,
-          bool automaticPackageResolution: false}) =>
+          bool automaticPackageResolution = false}) =>
       _unsupported();
 
   @patch
@@ -66,10 +66,10 @@ class Isolate {
   void setErrorsFatal(bool errorsAreFatal) => _unsupported();
 
   @patch
-  void kill({int priority: beforeNextEvent}) => _unsupported();
+  void kill({int priority = beforeNextEvent}) => _unsupported();
   @patch
   void ping(SendPort responsePort,
-          {Object response, int priority: immediate}) =>
+          {Object response, int priority = immediate}) =>
       _unsupported();
 
   @patch
@@ -115,5 +115,5 @@ class Capability {
 
 @NoReifyGeneric()
 T _unsupported<T>() {
-  throw new UnsupportedError('dart:isolate is not supported on dart4web');
+  throw UnsupportedError('dart:isolate is not supported on dart4web');
 }

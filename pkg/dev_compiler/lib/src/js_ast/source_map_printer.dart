@@ -33,7 +33,7 @@ class SourceMapPrintingContext extends SimpleJavaScriptPrintingContext {
   int _column = 0;
 
   /// The source_maps builder we write JavaScript code to.
-  final sourceMap = new SourceMapBuilder();
+  final sourceMap = SourceMapBuilder();
 
   /// The last marked line in the buffer.
   int _previousDartOffset = -1;
@@ -75,7 +75,7 @@ class SourceMapPrintingContext extends SimpleJavaScriptPrintingContext {
       _mark(srcInfo.end);
       emit('*/');
     } else if (srcInfo is! NodeEnd) {
-      throw new StateError(
+      throw StateError(
           'wrong kind of source map data: `$srcInfo` <${srcInfo.runtimeType}>');
     }
 
@@ -101,7 +101,7 @@ class SourceMapPrintingContext extends SimpleJavaScriptPrintingContext {
     } else if (srcInfo is NodeEnd) {
       dartEnd = srcInfo.end;
     } else if (srcInfo is! SourceLocation && srcInfo is! HoverComment) {
-      throw new StateError(
+      throw StateError(
           'wrong kind of source map data: `$srcInfo` <${srcInfo.runtimeType}>');
     }
 
@@ -113,8 +113,8 @@ class SourceMapPrintingContext extends SimpleJavaScriptPrintingContext {
         if (column >= 0) {
           // Adjust the colum, because any ending brace or semicolon is already in
           // the output.
-          var jsEnd = new SourceLocation(buffer.length - 1,
-              line: _line, column: column);
+          var jsEnd =
+              SourceLocation(buffer.length - 1, line: _line, column: column);
           _mark(dartEnd, jsEnd);
         }
       } else {
@@ -168,7 +168,7 @@ class SourceMapPrintingContext extends SimpleJavaScriptPrintingContext {
   }
 
   SourceLocation _getJSLocation() =>
-      new SourceLocation(buffer.length, line: _line, column: _column);
+      SourceLocation(buffer.length, line: _line, column: _column);
 }
 
 const int _LF = 10;

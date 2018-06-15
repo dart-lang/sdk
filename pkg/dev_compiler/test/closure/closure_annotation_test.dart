@@ -11,36 +11,35 @@ import 'package:dev_compiler/src/js_ast/js_ast.dart' show TypeRef, Identifier;
 
 void main() {
   group('ClosureAnnotation', () {
-    var anyType = new TypeRef.any();
-    var unknownType = new TypeRef.unknown();
-    var numberType = new TypeRef.number();
-    var stringType = new TypeRef.string();
-    var booleanType = new TypeRef.boolean();
-    var fooType =
-        new TypeRef.qualified([new Identifier("foo"), new Identifier("Foo")]);
-    var barType = new TypeRef.named("Bar");
-    var bazType = new TypeRef.named("Baz");
-    var bamType = new TypeRef.named("Bam");
-    var batType = new TypeRef.named("Bat");
+    var anyType = TypeRef.any();
+    var unknownType = TypeRef.unknown();
+    var numberType = TypeRef.number();
+    var stringType = TypeRef.string();
+    var booleanType = TypeRef.boolean();
+    var fooType = TypeRef.qualified([Identifier("foo"), Identifier("Foo")]);
+    var barType = TypeRef.named("Bar");
+    var bazType = TypeRef.named("Baz");
+    var bamType = TypeRef.named("Bam");
+    var batType = TypeRef.named("Bat");
 
     test('gives empty comment when no has no meaningful info', () {
-      expect(new ClosureAnnotation().toString(), "");
-      expect(new ClosureAnnotation(type: anyType).toString(), "");
-      expect(new ClosureAnnotation(type: unknownType).toString(), "");
+      expect(ClosureAnnotation().toString(), "");
+      expect(ClosureAnnotation(type: anyType).toString(), "");
+      expect(ClosureAnnotation(type: unknownType).toString(), "");
     });
 
     test('gives single line comment when it fits', () {
-      expect(new ClosureAnnotation(type: numberType).toString(),
+      expect(ClosureAnnotation(type: numberType).toString(),
           "/** @type {number} */");
-      expect(new ClosureAnnotation(paramTypes: {'foo': anyType}).toString(),
+      expect(ClosureAnnotation(paramTypes: {'foo': anyType}).toString(),
           "/** @param {*} foo */");
-      expect(new ClosureAnnotation(paramTypes: {'foo': unknownType}).toString(),
+      expect(ClosureAnnotation(paramTypes: {'foo': unknownType}).toString(),
           "/** @param {?} foo */");
     });
 
     test('gives multiple line comment when it it does not fit on one line', () {
       expect(
-          new ClosureAnnotation(
+          ClosureAnnotation(
               returnType: stringType,
               paramTypes: {'foo': numberType}).toString(),
           "/**\n"
@@ -51,7 +50,7 @@ void main() {
 
     test('inserts indentation', () {
       expect(
-          new ClosureAnnotation(
+          ClosureAnnotation(
               returnType: stringType,
               paramTypes: {'foo': numberType}).toString("  "),
           "/**\n" // No indent on first line.
@@ -62,23 +61,20 @@ void main() {
 
     test('compresses @type, @final, @const, @private, @protected, @typedef',
         () {
-      expect(new ClosureAnnotation(type: stringType).toString(),
+      expect(ClosureAnnotation(type: stringType).toString(),
           "/** @type {string} */");
-      expect(new ClosureAnnotation(type: stringType, isConst: true).toString(),
+      expect(ClosureAnnotation(type: stringType, isConst: true).toString(),
           "/** @const {string} */");
-      expect(new ClosureAnnotation(type: stringType, isFinal: true).toString(),
+      expect(ClosureAnnotation(type: stringType, isFinal: true).toString(),
           "/** @final {string} */");
-      expect(
-          new ClosureAnnotation(type: stringType, isPrivate: true).toString(),
+      expect(ClosureAnnotation(type: stringType, isPrivate: true).toString(),
           "/** @private {string} */");
-      expect(
-          new ClosureAnnotation(type: stringType, isTypedef: true).toString(),
+      expect(ClosureAnnotation(type: stringType, isTypedef: true).toString(),
           "/** @typedef {string} */");
-      expect(
-          new ClosureAnnotation(type: stringType, isProtected: true).toString(),
+      expect(ClosureAnnotation(type: stringType, isProtected: true).toString(),
           "/** @protected {string} */");
       expect(
-          new ClosureAnnotation(
+          ClosureAnnotation(
                   type: stringType,
                   isPrivate: true,
                   isConst: true,
@@ -91,7 +87,7 @@ void main() {
 
     test('supports a full constructor annotation', () {
       expect(
-          new ClosureAnnotation(
+          ClosureAnnotation(
               returnType: booleanType,
               throwsType: bamType,
               thisType: fooType,

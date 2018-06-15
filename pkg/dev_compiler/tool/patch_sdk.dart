@@ -30,7 +30,7 @@ void main(List<String> argv) {
     exit(1);
   }
 
-  var selfModifyTime = new File(self).lastModifiedSync().millisecondsSinceEpoch;
+  var selfModifyTime = File(self).lastModifiedSync().millisecondsSinceEpoch;
 
   var repoDir = argv[0];
   var patchDir = argv[1];
@@ -43,17 +43,17 @@ void main(List<String> argv) {
 
   // Copy libraries.dart, libraries.json and version
   var librariesDart = path.join(patchDir, 'libraries.dart');
-  var libContents = new File(librariesDart).readAsStringSync();
+  var libContents = File(librariesDart).readAsStringSync();
   // TODO(jmesserly): can we remove this?
   _writeSync(path.join(sdkOut, '_internal', 'libraries.dart'), libContents);
   _writeSync(path.join(sdkOut, 'libraries.json'),
-      new File(path.join(patchDir, 'libraries.json')).readAsStringSync());
+      File(path.join(patchDir, 'libraries.json')).readAsStringSync());
   _writeSync(
       path.join(
           sdkOut, '_internal', 'sdk_library_metadata', 'lib', 'libraries.dart'),
       libContents);
   _writeSync(path.join(sdkOut, '..', 'version'),
-      new File(path.join(repoDir, 'tools', 'VERSION')).readAsStringSync());
+      File(path.join(repoDir, 'tools', 'VERSION')).readAsStringSync());
 
   // Parse libraries.dart
   var sdkLibraries = _getSdkLibraries(libContents);
@@ -71,13 +71,13 @@ void main(List<String> argv) {
     if (library.path.contains(INTERNAL_PATH)) {
       libraryIn =
           path.join(privateIn, library.path.replaceAll(INTERNAL_PATH, ''));
-    } else if (new File(libraryOverride).existsSync()) {
+    } else if (File(libraryOverride).existsSync()) {
       libraryIn = libraryOverride;
     } else {
       libraryIn = libraryOut;
     }
 
-    var libraryFile = new File(libraryIn);
+    var libraryFile = File(libraryIn);
     if (libraryFile.existsSync()) {
       var outPaths = <String>[libraryOut];
       var libraryContents = libraryFile.readAsStringSync();
@@ -90,7 +90,7 @@ void main(List<String> argv) {
           var partPath = part.uri.stringValue;
           outPaths.add(path.join(path.dirname(libraryOut), partPath));
 
-          var partFile = new File(path.join(path.dirname(libraryIn), partPath));
+          var partFile = File(path.join(path.dirname(libraryIn), partPath));
           partFiles.add(partFile);
           inputModifyTime = math.max(inputModifyTime,
               partFile.lastModifiedSync().millisecondsSinceEpoch);
@@ -101,7 +101,7 @@ void main(List<String> argv) {
       var patchPath = path.join(
           patchIn, path.basenameWithoutExtension(libraryIn) + '_patch.dart');
 
-      var patchFile = new File(patchPath);
+      var patchFile = File(patchPath);
       bool patchExists = patchFile.existsSync();
       if (patchExists) {
         inputModifyTime = math.max(inputModifyTime,
@@ -116,7 +116,7 @@ void main(List<String> argv) {
       // Compare output modify time with input modify time.
       bool needsUpdate = false;
       for (var outPath in outPaths) {
-        var outFile = new File(outPath);
+        var outFile = File(outPath);
         if (!outFile.existsSync() ||
             outFile.lastModifiedSync().millisecondsSinceEpoch <
                 inputModifyTime) {
@@ -147,10 +147,10 @@ void main(List<String> argv) {
 
 /// Writes a file, creating the directory if needed.
 void _writeSync(String filePath, String contents) {
-  var outDir = new Directory(path.dirname(filePath));
+  var outDir = Directory(path.dirname(filePath));
   if (!outDir.existsSync()) outDir.createSync(recursive: true);
 
-  new File(filePath).writeAsStringSync(contents);
+  File(filePath).writeAsStringSync(contents);
 }
 
 /// Merges dart:* library code with code from *_patch.dart file.
@@ -177,20 +177,20 @@ List<String> _patchLibrary(List<String> partsContents, String patchContents) {
 
   // Parse the patch first. We'll need to extract bits of this as we go through
   // the other files.
-  var patchFinder = new PatchFinder.parseAndVisit(patchContents);
+  var patchFinder = PatchFinder.parseAndVisit(patchContents);
 
   // Merge `external` declarations with the corresponding `@patch` code.
   bool failed = false;
   for (var partContent in partsContents) {
-    var partEdits = new StringEditBuffer(partContent);
+    var partEdits = StringEditBuffer(partContent);
     var partUnit = parseCompilationUnit(partContent);
-    var patcher = new PatchApplier(partEdits, patchFinder);
+    var patcher = PatchApplier(partEdits, patchFinder);
     partUnit.accept(patcher);
     if (!failed) failed = patcher.patchWasMissing;
     results.add(partEdits);
   }
   if (failed) return null;
-  return new List<String>.from(results.map((e) => e.toString()));
+  return List<String>.from(results.map((e) => e.toString()));
 }
 
 /// Merge `@patch` declarations into `external` declarations.
@@ -395,7 +395,7 @@ class StringEditBuffer {
   /// Edit the original text, replacing text on the range [begin] and
   /// exclusive [end] with the [replacement] string.
   void replace(int begin, int end, String replacement) {
-    _edits.add(new _StringEdit(begin, end, replacement));
+    _edits.add(_StringEdit(begin, end, replacement));
   }
 
   /// Insert [string] at [offset].
@@ -415,7 +415,7 @@ class StringEditBuffer {
   /// Throws [UnsupportedError] if the edits were overlapping. If no edits were
   /// made, the original string will be returned.
   String toString() {
-    var sb = new StringBuffer();
+    var sb = StringBuffer();
     if (_edits.length == 0) return original;
 
     // Sort edits by start location.
@@ -424,7 +424,7 @@ class StringEditBuffer {
     int consumed = 0;
     for (var edit in _edits) {
       if (consumed > edit.begin) {
-        sb = new StringBuffer();
+        sb = StringBuffer();
         sb.write('overlapping edits. Insert at offset ');
         sb.write(edit.begin);
         sb.write(' but have consumed ');
@@ -434,7 +434,7 @@ class StringEditBuffer {
           sb.write('\n    ');
           sb.write(e);
         }
-        throw new UnsupportedError(sb.toString());
+        throw UnsupportedError(sb.toString());
       }
 
       // Add characters from the original string between this edit and the last
@@ -470,7 +470,10 @@ class _StringEdit implements Comparable<_StringEdit> {
 }
 
 List<SdkLibrary> _getSdkLibraries(String contents) {
-  var libraryBuilder = new SdkLibrariesReader_LibraryBuilder(true);
+  // TODO(jmesserly): fix SdkLibrariesReader_LibraryBuilder in Analyzer.
+  // It doesn't understand optional new/const in Dart 2. For now, we keep
+  // redundant `const` in tool/input_sdk/libraries.dart as a workaround.
+  var libraryBuilder = SdkLibrariesReader_LibraryBuilder(true);
   parseCompilationUnit(contents).accept(libraryBuilder);
   return libraryBuilder.librariesMap.sdkLibraries;
 }

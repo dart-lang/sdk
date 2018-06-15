@@ -13,11 +13,11 @@ void main(List<String> argv) {
     print('for example: sdk_version_check.dart 1.9.0-dev.4.0');
     exit(2);
   }
-  var minVersion = new Version.parse(argv[0]);
+  var minVersion = Version.parse(argv[0]);
 
   var vmStr = Platform.version;
   vmStr = vmStr.substring(0, vmStr.indexOf(' '));
-  var vmVersion = new Version.parse(vmStr);
+  var vmVersion = Version.parse(vmStr);
   if (vmVersion < minVersion) {
     print('Requires VM $minVersion but actual version $vmVersion');
     exit(1);

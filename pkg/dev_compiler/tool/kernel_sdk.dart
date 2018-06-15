@@ -18,7 +18,7 @@ import 'package:path/path.dart' as path;
 
 Future main(List<String> args) async {
   // Parse flags.
-  var parser = new ArgParser();
+  var parser = ArgParser();
   var parserOptions = parser.parse(args);
   var rest = parserOptions.rest;
 
@@ -36,8 +36,8 @@ Future main(List<String> args) async {
   }
 
   var inputPath = path.absolute('tool/input_sdk');
-  var target = new DevCompilerTarget();
-  var options = new CompilerOptions()
+  var target = DevCompilerTarget();
+  var options = CompilerOptions()
     ..compileSdk = true
     ..packagesFileUri = path.toUri(path.absolute('../../.packages'))
     ..sdkRoot = path.toUri(inputPath)
@@ -47,10 +47,10 @@ Future main(List<String> args) async {
   var component = await kernelForComponent(inputs, options);
 
   var outputDir = path.dirname(outputPath);
-  await new Directory(outputDir).create(recursive: true);
+  await Directory(outputDir).create(recursive: true);
   await writeComponentToBinary(component, outputPath);
 
-  var jsModule = new ProgramCompiler(component, declaredVariables: {})
+  var jsModule = ProgramCompiler(component, declaredVariables: {})
       .emitModule(component, [], []);
   var moduleFormats = {
     'amd': ModuleFormat.amd,
@@ -63,9 +63,9 @@ Future main(List<String> args) async {
     var format = moduleFormats[name];
     var jsDir = path.join(outputDir, name);
     var jsPath = path.join(jsDir, 'dart_sdk.js');
-    await new Directory(jsDir).create();
+    await Directory(jsDir).create();
     var jsCode = jsProgramToCode(jsModule, format);
-    await new File(jsPath).writeAsString(jsCode.code);
-    await new File('$jsPath.map').writeAsString(json.encode(jsCode.sourceMap));
+    await File(jsPath).writeAsString(jsCode.code);
+    await File('$jsPath.map').writeAsString(json.encode(jsCode.sourceMap));
   }
 }

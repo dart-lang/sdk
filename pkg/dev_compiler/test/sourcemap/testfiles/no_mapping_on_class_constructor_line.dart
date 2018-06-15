@@ -4,7 +4,7 @@
 
 main() {
   // ignore: unused_local_variable
-  Foo foo = new Foo();
+  Foo foo = Foo();
 }
 
 class Foo {

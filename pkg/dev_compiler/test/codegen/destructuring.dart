@@ -11,14 +11,14 @@ f_nat(int a, b, [c = 1]) native "f_nat";
 f_sync(int a, b, [c = 1]) sync* {}
 f_async(int a, b, [c = 1]) async* {}
 
-g(int a, b, {c: 1}) {
+g(int a, b, {c = 1}) {
   f(a, b, c);
 }
 
-external g_ext(int a, b, {c: 1});
-g_nat(int a, b, {c: 1}) native "g_nat";
-g_sync(int a, b, {c: 1}) sync* {}
-g_async(int a, b, {c: 1}) async* {}
+external g_ext(int a, b, {c = 1});
+g_nat(int a, b, {c = 1}) native "g_nat";
+g_sync(int a, b, {c = 1}) sync* {}
+g_async(int a, b, {c = 1}) async* {}
 
 r(int a, @rest others) {
   r(a, spread(others));
@@ -37,11 +37,11 @@ invalid_names2([int let, function = 1, arguments]) {
   f(let, function, arguments);
 }
 
-invalid_names3({int let, function, arguments: 2}) {
+invalid_names3({int let, function, arguments = 2}) {
   f(let, function, arguments);
 }
 
 names_clashing_with_object_props(
-    {int constructor, valueOf, hasOwnProperty: 2}) {
+    {int constructor, valueOf, hasOwnProperty = 2}) {
   f(constructor, valueOf, hasOwnProperty);
 }

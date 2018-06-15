@@ -36,7 +36,7 @@ _parseJson(String source, reviver(Object key, Object value)) {
     parsed = JS('=Object|JSExtendableArray|Null|bool|num|String',
         'JSON.parse(#)', source);
   } catch (e) {
-    throw new FormatException(JS('String', 'String(#)', e));
+    throw FormatException(JS('String', 'String(#)', e));
   }
 
   if (reviver == null) {
@@ -78,7 +78,7 @@ _convertJsonToDart(json, reviver(Object key, Object value)) {
 
     // Otherwise it is a plain object, so copy to a JSON map, so we process
     // and revive all entries recursively.
-    _JsonMap map = new _JsonMap(e);
+    _JsonMap map = _JsonMap(e);
     var processed = map._processed;
     List<String> keys = map._computeKeys();
     for (int i = 0; i < keys.length; i++) {
@@ -108,7 +108,7 @@ _convertJsonToDartLazy(object) {
   // TODO(sra): Replace this test with cheaper '#.constructor === Array' when
   // bug https://code.google.com/p/v8/issues/detail?id=621 is fixed.
   if (JS('bool', 'Object.getPrototypeOf(#) !== Array.prototype', object)) {
-    return new _JsonMap(object);
+    return _JsonMap(object);
   }
 
   // Update the elements in place since JS arrays are Dart lists.
@@ -159,12 +159,12 @@ class _JsonMap extends MapBase<String, dynamic> {
 
   Iterable<String> get keys {
     if (_isUpgraded) return _upgradedMap.keys;
-    return new _JsonMapKeyIterable(this);
+    return _JsonMapKeyIterable(this);
   }
 
   Iterable get values {
     if (_isUpgraded) return _upgradedMap.values;
-    return new MappedIterable(_computeKeys(), (each) => this[each]);
+    return MappedIterable(_computeKeys(), (each) => this[each]);
   }
 
   operator []=(key, value) {
@@ -251,7 +251,7 @@ class _JsonMap extends MapBase<String, dynamic> {
       // Check if invoking the callback function changed
       // the key set. If so, throw an exception.
       if (!identical(keys, _data)) {
-        throw new ConcurrentModificationError(this);
+        throw ConcurrentModificationError(this);
       }
     }
   }
@@ -361,7 +361,7 @@ class _JsonMapKeyIterable extends ListIterable<String> {
 class JsonDecoder {
   @patch
   StringConversionSink startChunkedConversion(Sink<Object> sink) {
-    return new _JsonDecoderSink(_reviver, sink);
+    return _JsonDecoderSink(_reviver, sink);
   }
 }
 
@@ -376,7 +376,7 @@ class _JsonDecoderSink extends _StringSinkConversionSink {
   final _Reviver _reviver;
   final Sink<Object> _sink;
 
-  _JsonDecoderSink(this._reviver, this._sink) : super(new StringBuffer(''));
+  _JsonDecoderSink(this._reviver, this._sink) : super(StringBuffer(''));
 
   void close() {
     super.close();

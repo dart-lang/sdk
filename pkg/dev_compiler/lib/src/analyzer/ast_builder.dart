@@ -10,10 +10,10 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 
 export 'package:analyzer/dart/ast/standard_ast_factory.dart';
 
-final ast = new AstBuilder();
+final ast = AstBuilder();
 
 class AstBuilder {
-  KeywordToken get constKeyword => new KeywordToken(Keyword.CONST, 0);
+  KeywordToken get constKeyword => KeywordToken(Keyword.CONST, 0);
 
   TypeName typeName(Identifier id, List<TypeAnnotation> args) {
     TypeArgumentList argList = null;
@@ -26,8 +26,8 @@ class AstBuilder {
     TypeParameterList tps =
         (tParams.length == 0) ? null : typeParameterList(tParams);
     FormalParameterList fps = formalParameterList(params);
-    Token semi = new Token(TokenType.SEMICOLON, 0);
-    Token td = new KeywordToken(Keyword.TYPEDEF, 0);
+    Token semi = Token(TokenType.SEMICOLON, 0);
+    Token td = KeywordToken(Keyword.TYPEDEF, 0);
     return astFactory.functionTypeAlias(
         null, null, td, ret, name, tps, fps, semi);
   }
@@ -41,13 +41,13 @@ class AstBuilder {
   }
 
   PropertyAccess propertyAccess(Expression target, SimpleIdentifier name) {
-    var p = new Token(TokenType.PERIOD, 0);
+    var p = Token(TokenType.PERIOD, 0);
     return astFactory.propertyAccess(target, p, name);
   }
 
   MethodInvocation methodInvoke(Expression target, SimpleIdentifier name,
       TypeArgumentList typeArguments, NodeList<Expression> args) {
-    var p = new Token(TokenType.PERIOD, 0);
+    var p = Token(TokenType.PERIOD, 0);
     return astFactory.methodInvocation(
         target, p, name, typeArguments, argumentList(args));
   }
@@ -180,7 +180,7 @@ class AstBuilder {
   Token _binaryOperation(String oper) {
     var type = getTokenType(oper);
     assert(type != null);
-    return new Token(type, 0);
+    return Token(type, 0);
   }
 
   BinaryExpression binaryExpression(Expression l, String oper, Expression r) {
@@ -190,8 +190,8 @@ class AstBuilder {
 
   ConditionalExpression conditionalExpression(
       Expression cond, Expression tExp, Expression fExp) {
-    var q = new Token(TokenType.QUESTION, 0);
-    var c = new Token(TokenType.COLON, 0);
+    var q = Token(TokenType.QUESTION, 0);
+    var c = Token(TokenType.COLON, 0);
     return astFactory.conditionalExpression(cond, q, tExp, c, fExp);
   }
 
@@ -201,14 +201,14 @@ class AstBuilder {
   }
 
   Block block(List<Statement> statements) {
-    Token ld = new BeginToken(TokenType.OPEN_CURLY_BRACKET, 0);
-    Token rd = new Token(TokenType.CLOSE_CURLY_BRACKET, 0);
+    Token ld = BeginToken(TokenType.OPEN_CURLY_BRACKET, 0);
+    Token rd = Token(TokenType.CLOSE_CURLY_BRACKET, 0);
     return astFactory.block(ld, statements, rd);
   }
 
   MethodDeclaration blockMethodDeclaration(TypeName rt, SimpleIdentifier m,
       List<FormalParameter> params, List<Statement> statements,
-      {bool isStatic: false}) {
+      {bool isStatic = false}) {
     FormalParameterList fl = formalParameterList(params);
     Block b = block(statements);
     BlockFunctionBody body = blockFunctionBody(b);
@@ -266,8 +266,8 @@ class AstBuilder {
   }
 
   NamedExpression namedExpression(String s, Expression e) {
-    Label l = astFactory.label(
-        identifierFromString(s), new Token(TokenType.COLON, 0));
+    Label l =
+        astFactory.label(identifierFromString(s), Token(TokenType.COLON, 0));
     return astFactory.namedExpression(l, e);
   }
 
@@ -275,8 +275,8 @@ class AstBuilder {
   /// specified by the VariableElement. See also [variableStatement].
   VariableDeclarationList declareVariable(SimpleIdentifier name,
       [Expression init]) {
-    var eqToken = init != null ? new Token(TokenType.EQ, 0) : null;
-    var varToken = new KeywordToken(Keyword.VAR, 0);
+    var eqToken = init != null ? Token(TokenType.EQ, 0) : null;
+    var varToken = KeywordToken(Keyword.VAR, 0);
     return astFactory.variableDeclarationList(null, null, varToken, null,
         [astFactory.variableDeclaration(name, eqToken, init)]);
   }
@@ -288,89 +288,88 @@ class AstBuilder {
 
   InstanceCreationExpression instanceCreation(
       ConstructorName ctor, List<Expression> args) {
-    var newToken = new KeywordToken(Keyword.NEW, 0);
+    var newToken = KeywordToken(Keyword.NEW, 0);
     return astFactory.instanceCreationExpression(
         newToken, ctor, argumentList(args));
   }
 
   ConstructorName constructorName(TypeName type, [SimpleIdentifier name]) {
-    Token period = name != null ? new Token(TokenType.PERIOD, 0) : null;
+    Token period = name != null ? Token(TokenType.PERIOD, 0) : null;
     return astFactory.constructorName(type, period, name);
   }
 
   SimpleIdentifier identifierFromString(String name) {
-    StringToken token = new SyntheticStringToken(TokenType.IDENTIFIER, name, 0);
+    StringToken token = SyntheticStringToken(TokenType.IDENTIFIER, name, 0);
     return astFactory.simpleIdentifier(token);
   }
 
   PrefixedIdentifier prefixedIdentifier(
       SimpleIdentifier pre, SimpleIdentifier id) {
-    Token period = new Token(TokenType.PERIOD, 0);
+    Token period = Token(TokenType.PERIOD, 0);
     return astFactory.prefixedIdentifier(pre, period, id);
   }
 
   TypeParameter typeParameter(SimpleIdentifier name, [TypeName bound = null]) {
-    Token keyword =
-        (bound == null) ? null : new KeywordToken(Keyword.EXTENDS, 0);
+    Token keyword = (bound == null) ? null : KeywordToken(Keyword.EXTENDS, 0);
     return astFactory.typeParameter(null, null, name, keyword, bound);
   }
 
   TypeParameterList typeParameterList(List<TypeParameter> params) {
-    Token lb = new Token(TokenType.LT, 0);
-    Token rb = new Token(TokenType.GT, 0);
+    Token lb = Token(TokenType.LT, 0);
+    Token rb = Token(TokenType.GT, 0);
     return astFactory.typeParameterList(lb, params, rb);
   }
 
   TypeArgumentList typeArgumentList(List<TypeAnnotation> args) {
-    Token lb = new Token(TokenType.LT, 0);
-    Token rb = new Token(TokenType.GT, 0);
+    Token lb = Token(TokenType.LT, 0);
+    Token rb = Token(TokenType.GT, 0);
     return astFactory.typeArgumentList(lb, args, rb);
   }
 
   ArgumentList argumentList(List<Expression> args) {
-    Token lp = new BeginToken(TokenType.OPEN_PAREN, 0);
-    Token rp = new Token(TokenType.CLOSE_PAREN, 0);
+    Token lp = BeginToken(TokenType.OPEN_PAREN, 0);
+    Token rp = Token(TokenType.CLOSE_PAREN, 0);
     return astFactory.argumentList(lp, args, rp);
   }
 
   BooleanLiteral booleanLiteral(bool b) {
-    var k = new KeywordToken(b ? Keyword.TRUE : Keyword.FALSE, 0);
+    var k = KeywordToken(b ? Keyword.TRUE : Keyword.FALSE, 0);
     return astFactory.booleanLiteral(k, b);
   }
 
   NullLiteral nullLiteral() {
-    var n = new KeywordToken(Keyword.NULL, 0);
+    var n = KeywordToken(Keyword.NULL, 0);
     return astFactory.nullLiteral(n);
   }
 
   IntegerLiteral integerLiteral(int i) {
-    StringToken token = new StringToken(TokenType.INT, '$i', 0);
+    StringToken token = StringToken(TokenType.INT, '$i', 0);
     return astFactory.integerLiteral(token, i);
   }
 
   SimpleStringLiteral simpleStringLiteral(String s) {
-    StringToken token = new StringToken(TokenType.STRING, "\"" + s + "\"", 0);
+    StringToken token = StringToken(TokenType.STRING, "\"" + s + "\"", 0);
     return astFactory.simpleStringLiteral(token, s);
   }
 
   SimpleStringLiteral tripleQuotedStringLiteral(String s) {
-    StringToken token = new StringToken(TokenType.STRING, '"""' + s + '"""', 0);
+    StringToken token = StringToken(TokenType.STRING, '"""' + s + '"""', 0);
     return astFactory.simpleStringLiteral(token, s);
   }
 
   AsExpression asExpression(Expression exp, TypeName type) {
-    Token token = new KeywordToken(Keyword.AS, 0);
+    Token token = KeywordToken(Keyword.AS, 0);
     return astFactory.asExpression(exp, token, type);
   }
 
   IsExpression isExpression(Expression exp, TypeName type) {
-    Token token = new KeywordToken(Keyword.IS, 0);
+    Token token = KeywordToken(Keyword.IS, 0);
     return astFactory.isExpression(exp, token, null, type);
   }
 
   ParenthesizedExpression parenthesizedExpression(Expression exp) {
-    Token lp = new BeginToken(TokenType.OPEN_PAREN, exp.offset);
-    Token rp = new Token(TokenType.CLOSE_PAREN, exp.end);
+    Token lp = BeginToken(TokenType.OPEN_PAREN, exp.offset);
+    Token rp = Token(TokenType.CLOSE_PAREN, exp.end);
     return astFactory.parenthesizedExpression(lp, exp, rp);
   }
 
@@ -380,20 +379,20 @@ class AstBuilder {
   }
 
   FormalParameterList formalParameterList(List<FormalParameter> params) {
-    Token lp = new BeginToken(TokenType.OPEN_PAREN, 0);
-    Token rp = new Token(TokenType.CLOSE_PAREN, 0);
+    Token lp = BeginToken(TokenType.OPEN_PAREN, 0);
+    Token rp = Token(TokenType.CLOSE_PAREN, 0);
     bool hasOptional = params.any((p) => p.isPositional);
     bool hasNamed = params.any((p) => p.isNamed);
     assert(!(hasOptional && hasNamed));
     Token ld = null;
     Token rd = null;
     if (hasOptional) {
-      ld = new BeginToken(TokenType.OPEN_SQUARE_BRACKET, 0);
-      rd = new Token(TokenType.CLOSE_SQUARE_BRACKET, 0);
+      ld = BeginToken(TokenType.OPEN_SQUARE_BRACKET, 0);
+      rd = Token(TokenType.CLOSE_SQUARE_BRACKET, 0);
     }
     if (hasNamed) {
-      ld = new BeginToken(TokenType.OPEN_CURLY_BRACKET, 0);
-      rd = new Token(TokenType.CLOSE_CURLY_BRACKET, 0);
+      ld = BeginToken(TokenType.OPEN_CURLY_BRACKET, 0);
+      rd = Token(TokenType.CLOSE_CURLY_BRACKET, 0);
     }
     return astFactory.formalParameterList(lp, params, ld, rd, rp);
   }
@@ -404,12 +403,12 @@ class AstBuilder {
 
   ExpressionFunctionBody expressionFunctionBody(Expression body,
       [bool decl = false]) {
-    Token semi = (decl) ? new Token(TokenType.SEMICOLON, 0) : null;
+    Token semi = (decl) ? Token(TokenType.SEMICOLON, 0) : null;
     return astFactory.expressionFunctionBody(null, null, body, semi);
   }
 
   ExpressionStatement expressionStatement(Expression expression) {
-    Token semi = new Token(TokenType.SEMICOLON, 0);
+    Token semi = Token(TokenType.SEMICOLON, 0);
     return astFactory.expressionStatement(expression, semi);
   }
 
@@ -420,8 +419,8 @@ class AstBuilder {
 
   MethodDeclaration methodDeclaration(TypeName rt, SimpleIdentifier m,
       FormalParameterList fl, FunctionBody body,
-      {bool isStatic: false}) {
-    Token st = isStatic ? new KeywordToken(Keyword.STATIC, 0) : null;
+      {bool isStatic = false}) {
+    Token st = isStatic ? KeywordToken(Keyword.STATIC, 0) : null;
     return astFactory.methodDeclaration(
         null, null, null, st, rt, null, null, m, null, fl, body);
   }
@@ -432,8 +431,8 @@ class AstBuilder {
   }
 
   Statement returnExpression([Expression e]) {
-    Token ret = new KeywordToken(Keyword.RETURN, 0);
-    Token semi = new Token(TokenType.SEMICOLON, 0);
+    Token ret = KeywordToken(Keyword.RETURN, 0);
+    Token semi = Token(TokenType.SEMICOLON, 0);
     return astFactory.returnStatement(ret, e, semi);
   }
 
@@ -453,7 +452,7 @@ class AstBuilder {
 
   VariableDeclarationStatement variableDeclarationStatement(
       VariableDeclarationList varDecl) {
-    var semi = new Token(TokenType.SEMICOLON, 0);
+    var semi = Token(TokenType.SEMICOLON, 0);
     return astFactory.variableDeclarationStatement(varDecl, semi);
   }
 }

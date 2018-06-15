@@ -21,7 +21,7 @@ class Class3 extends Class2 {
 }
 
 main() {
-  Class3 c = new Class3();
+  Class3 c = Class3();
   c[42];
   c.code();
 }

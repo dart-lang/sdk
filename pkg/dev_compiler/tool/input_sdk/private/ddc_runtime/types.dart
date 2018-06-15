@@ -149,7 +149,7 @@ var _anonymousJSTypes = JS('', 'new Map()');
 lazyJSType(Function() getJSTypeCallback, String name) {
   var ret = JS('', '#.get(#)', _lazyJSTypes, name);
   if (ret == null) {
-    ret = new LazyJSType(getJSTypeCallback, name);
+    ret = LazyJSType(getJSTypeCallback, name);
     JS('', '#.set(#, #)', _lazyJSTypes, name, ret);
   }
   return ret;
@@ -158,33 +158,33 @@ lazyJSType(Function() getJSTypeCallback, String name) {
 anonymousJSType(String name) {
   var ret = JS('', '#.get(#)', _anonymousJSTypes, name);
   if (ret == null) {
-    ret = new AnonymousJSType(name);
+    ret = AnonymousJSType(name);
     JS('', '#.set(#, #)', _anonymousJSTypes, name, ret);
   }
   return ret;
 }
 
 @JSExportName('dynamic')
-final _dynamic = new DynamicType();
+final _dynamic = DynamicType();
 
 class VoidType extends TypeRep {
   toString() => 'void';
 }
 
 @JSExportName('void')
-final void_ = new VoidType();
+final void_ = VoidType();
 
 class BottomType extends TypeRep {
   toString() => 'bottom';
 }
 
-final bottom = new BottomType();
+final bottom = BottomType();
 
 class JSObjectType extends TypeRep {
   toString() => 'NativeJavaScriptObject';
 }
 
-final jsobject = new JSObjectType();
+final jsobject = JSObjectType();
 
 class WrappedType extends Type {
   final _wrappedType;
@@ -310,17 +310,16 @@ class FunctionType extends AbstractFunctionType {
     FunctionType Function() create;
     if (extra == null) {
       keys = [returnType, args];
-      create = () => new FunctionType(returnType, args, [], JS('', '{}'));
+      create = () => FunctionType(returnType, args, [], JS('', '{}'));
     } else if (JS('!', '# instanceof Array', extra)) {
       var optionals =
           _canonicalizeArray(JS('', '#', extra), _fnTypeArrayArgMap);
       keys = [returnType, args, optionals];
-      create =
-          () => new FunctionType(returnType, args, optionals, JS('', '{}'));
+      create = () => FunctionType(returnType, args, optionals, JS('', '{}'));
     } else {
       var named = _canonicalizeNamed(extra, _fnTypeNamedArgMap);
       keys = [returnType, args, named];
-      create = () => new FunctionType(returnType, args, [], named);
+      create = () => FunctionType(returnType, args, [], named);
     }
     return _memoizeArray(_fnTypeTypeMap, keys, create);
   }
@@ -534,7 +533,7 @@ class GenericFunctionType extends AbstractFunctionType {
       // The Dart 1 spec says omitted type parameters have an upper bound of
       // Object. However strong mode assumes `dynamic` for all purposes
       // (such as instantiate to bounds) so we use that here.
-      return new List.filled(formalCount, _dynamic);
+      return List.filled(formalCount, _dynamic);
     }
     // If bounds are recursive, we need to apply type formals and return them.
     return JS('List', '#.apply(null, #)', boundsFn, typeArgs);
@@ -566,16 +565,16 @@ class GenericFunctionType extends AbstractFunctionType {
     var typeFormals = this.typeFormals;
 
     // All type formals
-    var all = new HashMap<Object, int>.identity();
+    var all = HashMap<Object, int>.identity();
     // ground types, by index.
     //
     // For each index, this will be a ground type for the corresponding type
     // formal if known, or it will be the original TypeVariable if we are still
     // solving for it. This array is passed to `instantiateToBounds` as we are
     // progressively solving for type variables.
-    var defaults = new List<Object>(typeFormals.length);
+    var defaults = List<Object>(typeFormals.length);
     // not ground
-    var partials = new Map<TypeVariable, Object>.identity();
+    var partials = Map<TypeVariable, Object>.identity();
 
     var typeBounds = this.instantiateTypeBounds(typeFormals);
     for (var i = 0; i < typeFormals.length; i++) {
@@ -675,15 +674,15 @@ List<TypeVariable> _typeFormalsFromFunction(Object typeConstructor) {
     return str
         .substring(1, end)
         .split(',')
-        .map((n) => new TypeVariable(n.trim()))
+        .map((n) => TypeVariable(n.trim()))
         .toList();
   } else {
-    return [new TypeVariable(str.substring(0, end).trim())];
+    return [TypeVariable(str.substring(0, end).trim())];
   }
 }
 
 Typedef typedef(name, AbstractFunctionType Function() closure) =>
-    new Typedef(name, closure);
+    Typedef(name, closure);
 
 /// Create a function type.
 FunctionType fnType(returnType, List args, [extra = undefined]) =>
@@ -700,14 +699,14 @@ FunctionType fnType(returnType, List args, [extra = undefined]) =>
 /// For example given the type <T extends Iterable<T>>(T) -> T, we can declare
 /// this type with `gFnType(T => [T, [T]], T => [Iterable$(T)])`.\
 gFnType(instantiateFn, typeBounds) =>
-    new GenericFunctionType(instantiateFn, typeBounds);
+    GenericFunctionType(instantiateFn, typeBounds);
 
 /// TODO(vsm): Remove when mirrors is deprecated.
 /// This is a temporary workaround to support dart:mirrors, which doesn't
 /// understand generic methods.
 getFunctionTypeMirror(AbstractFunctionType type) {
   if (type is GenericFunctionType) {
-    var typeArgs = new List.filled(type.formalCount, dynamic);
+    var typeArgs = List.filled(type.formalCount, dynamic);
     return type.instantiate(typeArgs);
   }
   return type;
@@ -1066,15 +1065,15 @@ bool _isInterfaceSubtype(t1, t2, isCovariant) => JS('', '''(() => {
 
 Object extractTypeArguments<T>(T instance, Function f) {
   if (instance == null) {
-    throw new ArgumentError('Cannot extract type of null instance.');
+    throw ArgumentError('Cannot extract type of null instance.');
   }
   var type = unwrapType(T);
   if (type is AbstractFunctionType || _isFutureOr(type)) {
-    throw new ArgumentError('Cannot extract from non-class type ($type).');
+    throw ArgumentError('Cannot extract from non-class type ($type).');
   }
   var typeArguments = getGenericArgs(type);
   if (typeArguments.isEmpty) {
-    throw new ArgumentError('Cannot extract from non-generic type ($type).');
+    throw ArgumentError('Cannot extract from non-generic type ($type).');
   }
   var supertype = _getMatchingSupertype(getReifiedType(instance), type);
   // The signature of this method guarantees that instance is a T, so we
@@ -1093,12 +1092,12 @@ class _TypeInferrer {
   /// Creates a [TypeConstraintGatherer] which is prepared to gather type
   /// constraints for the given type parameters.
   _TypeInferrer(Iterable<TypeVariable> typeVariables)
-      : _typeVariables = new Map.fromIterables(
-            typeVariables, typeVariables.map((_) => new TypeConstraint()));
+      : _typeVariables = Map.fromIterables(
+            typeVariables, typeVariables.map((_) => TypeConstraint()));
 
   /// Returns the inferred types based on the current constraints.
   List<Object> getInferredTypes() {
-    var result = new List<Object>();
+    var result = List<Object>();
     for (var constraint in _typeVariables.values) {
       // Prefer the known bound, if any.
       if (constraint.lower != null) {

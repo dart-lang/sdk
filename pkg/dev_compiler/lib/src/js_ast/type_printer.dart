@@ -123,7 +123,7 @@ abstract class TypeScriptTypePrinter extends _TypePrinterBase {
 }
 
 class ClosureTypePrinter extends _TypePrinterBase implements NodeVisitor {
-  final _buffer = new StringBuffer();
+  final _buffer = StringBuffer();
 
   @override
   void out(String s) => _buffer.write(s);

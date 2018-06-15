@@ -19,23 +19,21 @@ class InvocationImpl extends Invocation {
   InvocationImpl(memberName, List<Object> positionalArguments,
       {namedArguments,
       List typeArguments,
-      this.isMethod: false,
-      this.isGetter: false,
-      this.isSetter: false})
+      this.isMethod = false,
+      this.isGetter = false,
+      this.isSetter = false})
       : memberName =
             isSetter ? _setterSymbol(memberName) : _dartSymbol(memberName),
-        positionalArguments = new List.unmodifiable(positionalArguments),
+        positionalArguments = List.unmodifiable(positionalArguments),
         namedArguments = _namedArgsToSymbols(namedArguments),
         typeArguments = typeArguments == null
             ? const []
-            : new List.unmodifiable(typeArguments.map(wrapType));
+            : List.unmodifiable(typeArguments.map(wrapType));
 
   static Map<Symbol, dynamic> _namedArgsToSymbols(namedArgs) {
     if (namedArgs == null) return const {};
-    return new Map.unmodifiable(new Map.fromIterable(
-        getOwnPropertyNames(namedArgs),
-        key: _dartSymbol,
-        value: (k) => JS('', '#[#]', namedArgs, k)));
+    return Map.unmodifiable(Map.fromIterable(getOwnPropertyNames(namedArgs),
+        key: _dartSymbol, value: (k) => JS('', '#[#]', namedArgs, k)));
   }
 }
 
@@ -115,8 +113,7 @@ dload(obj, field, [mirrors = undefined]) {
       return JS('', '#[#]', obj, f);
     }
   }
-  return noSuchMethod(
-      obj, new InvocationImpl(field, JS('', '[]'), isGetter: true));
+  return noSuchMethod(obj, InvocationImpl(field, JS('', '[]'), isGetter: true));
 }
 
 // Version of dload that matches legacy mirrors behavior for JS types.
@@ -153,7 +150,7 @@ dput(obj, field, value, [mirrors = undefined]) {
     }
   }
   noSuchMethod(
-      obj, new InvocationImpl(field, JS('', '[#]', value), isSetter: true));
+      obj, InvocationImpl(field, JS('', '[#]', value), isSetter: true));
   return value;
 }
 
@@ -365,8 +362,7 @@ callMethod(obj, name, typeArgs, args, named, displayName) {
   }
   var symbol = _canonicalMember(obj, name);
   if (symbol == null) {
-    return noSuchMethod(
-        obj, new InvocationImpl(displayName, args, isMethod: true));
+    return noSuchMethod(obj, InvocationImpl(displayName, args, isMethod: true));
   }
   var f = obj != null ? JS('', '#[#]', obj, symbol) : null;
   var type = getType(obj);
@@ -475,13 +471,11 @@ bool dtest(obj) {
   return obj;
 }
 
-void _throwBooleanConversionError() =>
-    throw new BooleanConversionAssertionError();
+void _throwBooleanConversionError() => throw BooleanConversionAssertionError();
 
 void booleanConversionFailed(obj) {
   var actual = typeName(getReifiedType(test(obj)));
-  throw new TypeErrorImpl(
-      "type '$actual' is not a 'bool' in boolean expression");
+  throw TypeErrorImpl("type '$actual' is not a 'bool' in boolean expression");
 }
 
 asInt(obj) {
@@ -524,7 +518,7 @@ constMap<K, V>(JSArray elements) {
   map = lookupNonTerminal(map, K);
   var result = JS('', '#.get(#)', map, V);
   if (result != null) return result;
-  result = new ImmutableMap<K, V>.from(elements);
+  result = ImmutableMap<K, V>.from(elements);
   JS('', '#.set(#, #)', map, V, result);
   return result;
 }
@@ -772,7 +766,7 @@ noSuchMethod(obj, Invocation invocation) {
 /// The default implementation of `noSuchMethod` to match `Object.noSuchMethod`.
 defaultNoSuchMethod(obj, Invocation i) {
   if (JS('!', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
-  throw new NoSuchMethodError.withInvocation(obj, i);
+  throw NoSuchMethodError.withInvocation(obj, i);
 }
 
 runtimeType(obj) {
@@ -817,7 +811,7 @@ _canonicalMember(obj, name) {
 ///
 /// Libraries are not actually deferred in DDC, so this just returns a future
 /// that completes immediately.
-Future loadLibrary() => new Future.value();
+Future loadLibrary() => Future.value();
 
 /// Defines lazy statics.
 void defineLazy(to, from) {

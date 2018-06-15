@@ -13,7 +13,7 @@ import '../js_ast/js_ast.dart' as JS;
 import '../js_ast/js_ast.dart' show js;
 
 Set<TypeParameterElement> freeTypeParameters(DartType t) {
-  var result = new Set<TypeParameterElement>();
+  var result = Set<TypeParameterElement>();
   void find(DartType t) {
     if (t is TypeParameterType) {
       result.add(t.element);
@@ -43,7 +43,7 @@ class _CacheTable {
   // Use a LinkedHashMap to maintain key insertion order so the generated code
   // is stable under slight perturbation.  (If this is not good enough we could
   // sort by name to canonicalize order.)
-  final _names = new LinkedHashMap<DartType, JS.TemporaryId>(
+  final _names = LinkedHashMap<DartType, JS.TemporaryId>(
       equals: typesAreEqual, hashCode: typeHashCode);
   Iterable<DartType> get keys => _names.keys.toList();
 
@@ -75,7 +75,7 @@ class _CacheTable {
     return name;
   }
 
-  String _typeString(DartType type, {bool flat: false}) {
+  String _typeString(DartType type, {bool flat = false}) {
     if (type is ParameterizedType && type.name != null) {
       var clazz = type.name;
       var params = type.typeArguments;
@@ -109,14 +109,14 @@ class _CacheTable {
   /// Heuristically choose a good name for the cache and generator
   /// variables.
   JS.TemporaryId chooseTypeName(DartType type) {
-    return new JS.TemporaryId(_typeString(type));
+    return JS.TemporaryId(_typeString(type));
   }
 }
 
 /// _GeneratorTable tracks types which have been
 /// named and hoisted.
 class _GeneratorTable extends _CacheTable {
-  final _defs = new LinkedHashMap<DartType, JS.Expression>(
+  final _defs = LinkedHashMap<DartType, JS.Expression>(
       equals: typesAreEqual, hashCode: typeHashCode);
 
   final JS.Identifier _runtimeModule;
@@ -157,7 +157,7 @@ class TypeTable {
   /// parameter.
   final _scopeDependencies = <TypeParameterElement, List<DartType>>{};
 
-  TypeTable(JS.Identifier runtime) : _generators = new _GeneratorTable(runtime);
+  TypeTable(JS.Identifier runtime) : _generators = _GeneratorTable(runtime);
 
   /// Emit a list of statements declaring the cache variables and generator
   /// definitions tracked by the table.  If [formals] is present, only
@@ -212,9 +212,9 @@ class TypeTable {
   /// type itself. This allows better integration with `lazyFn`, avoiding an
   /// extra level of indirection.
   JS.Expression nameFunctionType(FunctionType type, JS.Expression typeRep,
-      {bool lazy: false}) {
+      {bool lazy = false}) {
     if (!_generators.isNamed(type) && recordScopeDependencies(type)) {
-      return lazy ? new JS.ArrowFun([], typeRep) : typeRep;
+      return lazy ? JS.ArrowFun([], typeRep) : typeRep;
     }
 
     var name = _generators._nameType(type, typeRep);

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  new Foo();
+  Foo();
   // Comment to push the ending brace back a bit.
 /*s:2*/
 }

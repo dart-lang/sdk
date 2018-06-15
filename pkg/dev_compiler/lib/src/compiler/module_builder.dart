@@ -46,7 +46,7 @@ List<ModuleFormat> parseModuleFormatOption(ArgResults argResults) {
 /// [allowMultiple] formats to be specified, with each emitted into a separate
 /// file.
 void addModuleFormatOptions(ArgParser argParser,
-    {bool allowMultiple: false, bool hide: true, bool singleOutFile: true}) {
+    {bool allowMultiple = false, bool hide = true, bool singleOutFile = true}) {
   argParser.addMultiOption('modules', help: 'module pattern to emit', allowed: [
     'es6',
     'common',
@@ -80,18 +80,18 @@ void addModuleFormatOptions(ArgParser argParser,
 /// that affects the top-level module items, especially [ImportDeclaration]s and
 /// [ExportDeclaration]s.
 Program transformModuleFormat(ModuleFormat format, Program module,
-    {bool singleOutFile: false}) {
+    {bool singleOutFile = false}) {
   switch (format) {
     case ModuleFormat.legacy:
       // Legacy format always generates output compatible with single file mode.
-      return new LegacyModuleBuilder().build(module);
+      return LegacyModuleBuilder().build(module);
     case ModuleFormat.common:
       assert(!singleOutFile);
-      return new CommonJSModuleBuilder().build(module);
+      return CommonJSModuleBuilder().build(module);
     case ModuleFormat.amd:
       // TODO(jmesserly): encode singleOutFile as a module format?
       // Since it's irrelevant except for AMD.
-      return new AmdModuleBuilder(singleOutFile: singleOutFile).build(module);
+      return AmdModuleBuilder(singleOutFile: singleOutFile).build(module);
     case ModuleFormat.es6:
       assert(!singleOutFile);
       return module;
@@ -150,7 +150,7 @@ class LegacyModuleBuilder extends _ModuleBuilder {
     visitProgram(module);
 
     // Build import parameters.
-    var exportsVar = new TemporaryId('exports');
+    var exportsVar = TemporaryId('exports');
     var parameters = <TemporaryId>[exportsVar];
     var importNames = <Expression>[];
     var importStatements = <Statement>[];
@@ -158,7 +158,7 @@ class LegacyModuleBuilder extends _ModuleBuilder {
       importNames.add(import.from);
       // TODO(jmesserly): we could use destructuring here.
       var moduleVar =
-          new TemporaryId(pathToJSIdentifier(import.from.valueWithoutQuotes));
+          TemporaryId(pathToJSIdentifier(import.from.valueWithoutQuotes));
       parameters.add(moduleVar);
       for (var importName in import.namedImports) {
         assert(!importName.isStar); // import * not supported in legacy modules.
@@ -195,19 +195,19 @@ class LegacyModuleBuilder extends _ModuleBuilder {
 
     var functionName =
         'load__' + pathToJSIdentifier(module.name.replaceAll('.', '_'));
-    var resultModule = new NamedFunction(
-        new Identifier(functionName),
+    var resultModule = NamedFunction(
+        Identifier(functionName),
         js.fun("function(#) { 'use strict'; #; }", [parameters, statements]),
         true);
 
     var moduleDef = js.statement("dart_library.library(#, #, #, #)", [
       js.string(module.name, "'"),
-      new LiteralNull(),
+      LiteralNull(),
       js.commentExpression(
-          "Imports", new ArrayInitializer(importNames, multiline: true)),
+          "Imports", ArrayInitializer(importNames, multiline: true)),
       resultModule
     ]);
-    return new Program(<ModuleItem>[moduleDef]);
+    return Program(<ModuleItem>[moduleDef]);
   }
 }
 
@@ -224,7 +224,7 @@ class CommonJSModuleBuilder extends _ModuleBuilder {
     for (var import in imports) {
       // TODO(jmesserly): we could use destructuring here.
       var moduleVar =
-          new TemporaryId(pathToJSIdentifier(import.from.valueWithoutQuotes));
+          TemporaryId(pathToJSIdentifier(import.from.valueWithoutQuotes));
       importStatements
           .add(js.statement('const # = require(#);', [moduleVar, import.from]));
 
@@ -240,7 +240,7 @@ class CommonJSModuleBuilder extends _ModuleBuilder {
     statements.insertAll(0, importStatements);
 
     if (exports.isNotEmpty) {
-      var exportsVar = new Identifier('exports');
+      var exportsVar = Identifier('exports');
       statements.add(js.comment('Exports:'));
       for (var export in exports) {
         var names = export.exportedNames;
@@ -253,7 +253,7 @@ class CommonJSModuleBuilder extends _ModuleBuilder {
       }
     }
 
-    return new Program(statements);
+    return Program(statements);
   }
 }
 
@@ -261,7 +261,7 @@ class CommonJSModuleBuilder extends _ModuleBuilder {
 class AmdModuleBuilder extends _ModuleBuilder {
   final bool singleOutFile;
 
-  AmdModuleBuilder({this.singleOutFile: false});
+  AmdModuleBuilder({this.singleOutFile = false});
 
   Program build(Program module) {
     var importStatements = <Statement>[];
@@ -274,7 +274,7 @@ class AmdModuleBuilder extends _ModuleBuilder {
     for (var import in imports) {
       // TODO(jmesserly): we could use destructuring once Atom supports it.
       var moduleVar =
-          new TemporaryId(pathToJSIdentifier(import.from.valueWithoutQuotes));
+          TemporaryId(pathToJSIdentifier(import.from.valueWithoutQuotes));
       fnParams.add(moduleVar);
       dependencies.add(import.from);
 
@@ -296,12 +296,11 @@ class AmdModuleBuilder extends _ModuleBuilder {
         // export * is not emitted by the compiler, so we don't handle it here.
         assert(names != null);
         for (var name in names) {
-          exportedProps.add(new Property(js.string(name.name), name));
+          exportedProps.add(Property(js.string(name.name), name));
         }
       }
       statements.add(js.comment('Exports:'));
-      statements.add(
-          new Return(new ObjectInitializer(exportedProps, multiline: true)));
+      statements.add(Return(ObjectInitializer(exportedProps, multiline: true)));
     }
 
     // TODO(vsm): Consider using an immediately invoked named function pattern
@@ -309,14 +308,14 @@ class AmdModuleBuilder extends _ModuleBuilder {
     var block = singleOutFile
         ? js.statement("define(#, #, function(#) { 'use strict'; #; });", [
             js.string(module.name, "'"),
-            new ArrayInitializer(dependencies),
+            ArrayInitializer(dependencies),
             fnParams,
             statements
           ])
         : js.statement("define(#, function(#) { 'use strict'; #; });",
-            [new ArrayInitializer(dependencies), fnParams, statements]);
+            [ArrayInitializer(dependencies), fnParams, statements]);
 
-    return new Program([block]);
+    return Program([block]);
   }
 }
 
@@ -335,7 +334,7 @@ String toJSIdentifier(String name) {
     var ch = name[i];
     var needsEscape = ch == r'$' || _invalidCharInIdentifier.hasMatch(ch);
     if (needsEscape && buffer == null) {
-      buffer = new StringBuffer(name.substring(0, i));
+      buffer = StringBuffer(name.substring(0, i));
     }
     if (buffer != null) {
       buffer.write(needsEscape ? '\$${ch.codeUnits.join("")}' : ch);
@@ -345,11 +344,11 @@ String toJSIdentifier(String name) {
   var result = buffer != null ? '$buffer' : name;
   // Ensure the identifier first character is not numeric and that the whole
   // identifier is not a keyword.
-  if (result.startsWith(new RegExp('[0-9]')) || invalidVariableName(result)) {
+  if (result.startsWith(RegExp('[0-9]')) || invalidVariableName(result)) {
     return '\$$result';
   }
   return result;
 }
 
 // Invalid characters for identifiers, which would need to be escaped.
-final _invalidCharInIdentifier = new RegExp(r'[^A-Za-z_$0-9]');
+final _invalidCharInIdentifier = RegExp(r'[^A-Za-z_$0-9]');

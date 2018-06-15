@@ -69,7 +69,7 @@ class ModuleCompiler {
 
   ModuleCompiler._(AnalysisContext context, this.summaryData)
       : context = context,
-        _extensionTypes = new ExtensionTypeSet(context);
+        _extensionTypes = ExtensionTypeSet(context);
 
   factory ModuleCompiler(AnalyzerOptions options,
       {ResourceProvider resourceProvider,
@@ -82,17 +82,17 @@ class ModuleCompiler {
     resourceProvider ??= PhysicalResourceProvider.INSTANCE;
     analysisRoot ??= path.current;
 
-    var contextBuilder = new ContextBuilder(resourceProvider,
-        new DartSdkManager(options.dartSdkPath, true), new ContentCache(),
+    var contextBuilder = ContextBuilder(resourceProvider,
+        DartSdkManager(options.dartSdkPath, true), ContentCache(),
         options: options.contextBuilderOptions);
 
     var analysisOptions = contextBuilder.getAnalysisOptions(analysisRoot);
     var sdk = contextBuilder.findSdk(null, analysisOptions);
 
-    var sdkResolver = new DartUriResolver(sdk);
+    var sdkResolver = DartUriResolver(sdk);
 
     // Read the summaries.
-    summaryData ??= new SummaryDataStore(options.summaryPaths,
+    summaryData ??= SummaryDataStore(options.summaryPaths,
         resourceProvider: resourceProvider,
         // TODO(vsm): Reset this to true once we cleanup internal build rules.
         disallowOverlappingSummaries: false);
@@ -114,20 +114,20 @@ class ModuleCompiler {
     context.sourceFactory = srcFactory;
     if (sdkSummaryBundle != null) {
       context.resultProvider =
-          new InputPackagesResultProvider(context, summaryData);
+          InputPackagesResultProvider(context, summaryData);
     }
-    var variables = new Map<String, String>.from(options.declaredVariables)
+    var variables = Map<String, String>.from(options.declaredVariables)
       ..addAll(sdkLibraryVariables);
 
-    context.declaredVariables = new DeclaredVariables.fromMap(variables);
+    context.declaredVariables = DeclaredVariables.fromMap(variables);
     if (!context.analysisOptions.strongMode) {
-      throw new ArgumentError('AnalysisContext must be strong mode');
+      throw ArgumentError('AnalysisContext must be strong mode');
     }
     if (!context.sourceFactory.dartSdk.context.analysisOptions.strongMode) {
-      throw new ArgumentError('AnalysisContext must have strong mode SDK');
+      throw ArgumentError('AnalysisContext must have strong mode SDK');
     }
 
-    return new ModuleCompiler._(context, summaryData);
+    return ModuleCompiler._(context, summaryData);
   }
 
   bool _isFatalError(AnalysisError e, CompilerOptions options) {
@@ -154,7 +154,7 @@ class ModuleCompiler {
     var trees = <CompilationUnit>[];
     var errors = <AnalysisError>[];
 
-    var librariesToCompile = new Queue<LibraryElement>();
+    var librariesToCompile = Queue<LibraryElement>();
 
     var compilingSdk = false;
     for (var sourcePath in unit.sources) {
@@ -167,12 +167,12 @@ class ModuleCompiler {
       var fileUsage = 'You need to pass at least one existing .dart file as an'
           ' argument.';
       if (source == null) {
-        throw new UsageException(
+        throw UsageException(
             'Could not create a source for "$sourcePath". The file name is in'
             ' the wrong format or was not found.',
             fileUsage);
       } else if (!source.exists()) {
-        throw new UsageException(
+        throw UsageException(
             'Given file "$sourcePath" does not exist.', fileUsage);
       }
 
@@ -184,7 +184,7 @@ class ModuleCompiler {
       librariesToCompile.add(context.computeLibraryElement(source));
     }
 
-    var libraries = new HashSet<LibraryElement>();
+    var libraries = HashSet<LibraryElement>();
     while (librariesToCompile.isNotEmpty) {
       var library = librariesToCompile.removeFirst();
       if (library.source is InSummarySource) continue;
@@ -199,8 +199,8 @@ class ModuleCompiler {
       if (!compilingSdk && !options.emitMetadata) {
         var node = _getDartMirrorsImport(library);
         if (node != null) {
-          errors.add(new AnalysisError(library.source, node.uriOffset,
-              node.uriEnd, invalidImportDartMirrors));
+          errors.add(AnalysisError(library.source, node.uriOffset, node.uriEnd,
+              invalidImportDartMirrors));
         }
       }
 
@@ -224,19 +224,19 @@ class ModuleCompiler {
 
     if (!options.unsafeForceCompile &&
         errors.any((e) => _isFatalError(e, options))) {
-      return new JSModuleFile.invalid(unit.name, messages, options);
+      return JSModuleFile.invalid(unit.name, messages, options);
     }
 
     try {
       var codeGenerator =
-          new CodeGenerator(context, summaryData, options, _extensionTypes);
+          CodeGenerator(context, summaryData, options, _extensionTypes);
       return codeGenerator.compile(unit, trees, messages);
     } catch (e) {
       if (errors.any((e) => _isFatalError(e, options))) {
         // Force compilation failed.  Suppress the exception and report
         // the static errors instead.
         assert(options.unsafeForceCompile);
-        return new JSModuleFile.invalid(unit.name, messages, options);
+        return JSModuleFile.invalid(unit.name, messages, options);
       }
       rethrow;
     }
@@ -299,17 +299,17 @@ class CompilerOptions {
   final String summaryOutPath;
 
   const CompilerOptions(
-      {this.sourceMap: true,
-      this.sourceMapComment: true,
-      this.inlineSourceMap: false,
-      this.summarizeApi: true,
-      this.summaryExtension: 'sum',
-      this.unsafeForceCompile: false,
-      this.replCompile: false,
-      this.emitMetadata: false,
-      this.enableAsserts: true,
-      this.closure: false,
-      this.bazelMapping: const {},
+      {this.sourceMap = true,
+      this.sourceMapComment = true,
+      this.inlineSourceMap = false,
+      this.summarizeApi = true,
+      this.summaryExtension = 'sum',
+      this.unsafeForceCompile = false,
+      this.replCompile = false,
+      this.emitMetadata = false,
+      this.enableAsserts = true,
+      this.closure = false,
+      this.bazelMapping = const {},
       this.summaryOutPath});
 
   CompilerOptions.fromArguments(ArgResults args)
@@ -327,7 +327,7 @@ class CompilerOptions {
             _parseBazelMappings(args['bazel-mapping'] as List<String>),
         summaryOutPath = args['summary-out'] as String;
 
-  static void addArguments(ArgParser parser, {bool hide: true}) {
+  static void addArguments(ArgParser parser, {bool hide = true}) {
     parser
       ..addFlag('summarize',
           help: 'emit an API summary file', defaultsTo: true, hide: hide)
@@ -454,25 +454,24 @@ class JSModuleFile {
   // TODO(jmesserly): this should match our old logic, but I'm not sure we are
   // correctly handling the pointer from the .js file to the .map file.
   JSModuleCode getCode(ModuleFormat format, String jsUrl, String mapUrl,
-      {bool singleOutFile: false}) {
-    var opts = new JS.JavaScriptPrintingOptions(
+      {bool singleOutFile = false}) {
+    var opts = JS.JavaScriptPrintingOptions(
         emitTypes: options.closure,
         allowKeywordsInProperties: true,
         allowSingleLineIfStatements: true);
     JS.SimpleJavaScriptPrintingContext printer;
     SourceMapBuilder sourceMap;
     if (options.sourceMap) {
-      var sourceMapContext = new SourceMapPrintingContext();
+      var sourceMapContext = SourceMapPrintingContext();
       sourceMap = sourceMapContext.sourceMap;
       printer = sourceMapContext;
     } else {
-      printer = new JS.SimpleJavaScriptPrintingContext();
+      printer = JS.SimpleJavaScriptPrintingContext();
     }
 
     var tree =
         transformModuleFormat(format, moduleTree, singleOutFile: singleOutFile);
-    tree.accept(
-        new JS.Printer(opts, printer, localNamer: new JS.TemporaryNamer(tree)));
+    tree.accept(JS.Printer(opts, printer, localNamer: JS.TemporaryNamer(tree)));
 
     Map builtMap;
     if (options.sourceMap && sourceMap != null) {
@@ -495,7 +494,7 @@ class JSModuleFile {
         : 'null';
     text = text.replaceFirst(sourceMapHoleID, rawSourceMap);
 
-    return new JSModuleCode(text, builtMap);
+    return JSModuleCode(text, builtMap);
   }
 
   /// Similar to [getCode] but immediately writes the resulting files.
@@ -503,7 +502,7 @@ class JSModuleFile {
   /// If [mapPath] is not supplied but [options.sourceMap] is set, mapPath
   /// will default to [jsPath].map.
   void writeCodeSync(ModuleFormat format, String jsPath,
-      {bool singleOutFile: false}) {
+      {bool singleOutFile = false}) {
     String mapPath = jsPath + '.map';
     var code = getCode(
         format, path.toUri(jsPath).toString(), path.toUri(mapPath).toString(),
@@ -521,7 +520,7 @@ class JSModuleFile {
       c = 'eval(${json.encode(c)});\n';
     }
 
-    var file = new File(jsPath);
+    var file = File(jsPath);
     if (!file.parent.existsSync()) file.parent.createSync(recursive: true);
     file.writeAsStringSync(c);
 
@@ -530,7 +529,7 @@ class JSModuleFile {
     // should also write a copy of the source file without a sourcemap even when
     // inlineSourceMap is true.
     if (code.sourceMap != null) {
-      file = new File(mapPath);
+      file = File(mapPath);
       if (!file.parent.existsSync()) file.parent.createSync(recursive: true);
       file.writeAsStringSync(json.encode(code.sourceMap));
     }
@@ -560,7 +559,7 @@ class JSModuleCode {
 // TODO(jmesserly): find a new home for this.
 Map placeSourceMap(
     Map sourceMap, String sourceMapPath, Map<String, String> bazelMappings) {
-  var map = new Map.from(sourceMap);
+  var map = Map.from(sourceMap);
   // Convert to a local file path if it's not.
   sourceMapPath = path.fromUri(_sourceToUri(sourceMapPath));
   var sourceMapDir = path.dirname(path.absolute(sourceMapPath));
@@ -606,11 +605,11 @@ Uri _sourceToUri(String source) {
     default:
       // Assume a file path.
       // TODO(jmesserly): shouldn't this be `path.toUri(path.absolute)`?
-      return new Uri.file(path.absolute(source));
+      return Uri.file(path.absolute(source));
   }
 }
 
-const invalidImportDartMirrors = const StrongModeCode(
+const invalidImportDartMirrors = StrongModeCode(
     ErrorType.COMPILE_TIME_ERROR,
     'IMPORT_DART_MIRRORS',
     'Cannot import "dart:mirrors" in web applications (https://goo.gl/R1anEs).');

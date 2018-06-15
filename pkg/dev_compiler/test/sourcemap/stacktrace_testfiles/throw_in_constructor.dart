@@ -4,7 +4,7 @@
 
 main() {
   // ignore: UNUSED_LOCAL_VARIABLE
-  var c = /*ddc.1:main*/ new /*ddk.1:main*/ Class();
+  var /*ddc.1:main*/ c = /*ddk.1:main*/ Class();
 }
 
 class Class {

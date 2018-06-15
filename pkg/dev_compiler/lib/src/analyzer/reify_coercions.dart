@@ -18,14 +18,14 @@ import 'element_helpers.dart' show isInlineJS;
 // This class implements a pass which modifies (in place) the ast replacing
 // abstract coercion nodes with their dart implementations.
 class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object> {
-  final cloner = new _TreeCloner();
+  final cloner = _TreeCloner();
 
   CoercionReifier._();
 
   /// Transforms the given compilation units, and returns a new AST with
   /// explicit coercion nodes in appropriate places.
   static List<CompilationUnit> reify(List<CompilationUnit> units) {
-    var cr = new CoercionReifier._();
+    var cr = CoercionReifier._();
     return units.map(cr.visitCompilationUnit).toList(growable: false);
   }
 
@@ -109,7 +109,7 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object> {
 
   void _replaceNode(AstNode parent, AstNode oldNode, AstNode newNode) {
     if (!identical(oldNode, newNode)) {
-      var replaced = parent.accept(new NodeReplacer(oldNode, newNode));
+      var replaced = parent.accept(NodeReplacer(oldNode, newNode));
       // It looks like NodeReplacer will always return true.
       // It does throw IllegalArgumentException though, if child is not found.
       assert(replaced);

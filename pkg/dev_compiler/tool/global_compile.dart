@@ -15,7 +15,7 @@ const ENTRY = "main";
 
 void main(List<String> args) {
   // Parse flags.
-  var parser = new ArgParser()
+  var parser = ArgParser()
     ..addOption('out',
         help: 'Output file (defaults to "out.js")',
         abbr: 'o',
@@ -64,8 +64,8 @@ void main(List<String> args) {
   }
 
   // Compute the transitive closure
-  var total = new Stopwatch()..start();
-  var partial = new Stopwatch()..start();
+  var total = Stopwatch()..start();
+  var partial = Stopwatch()..start();
 
   // TODO(vsm): We're using the analyzer just to compute the import/export/part
   // dependence graph.  This is expensive.  Is there a lighterweight way to do
@@ -78,21 +78,20 @@ void main(List<String> args) {
   print('Computed global build graph in $graphTime seconds');
 
   // Prepend Dart runtime files to the output
-  var out = new File(outfile);
+  var out = File(outfile);
   var dartLibrary =
-      new File(path.join(ddcPath, 'lib', 'js', 'legacy', 'dart_library.js'))
+      File(path.join(ddcPath, 'lib', 'js', 'legacy', 'dart_library.js'))
           .readAsStringSync();
   out.writeAsStringSync(dartLibrary);
-  var dartSdk =
-      new File(path.join(ddcPath, 'lib', 'js', 'legacy', 'dart_sdk.js'))
-          .readAsStringSync();
+  var dartSdk = File(path.join(ddcPath, 'lib', 'js', 'legacy', 'dart_sdk.js'))
+      .readAsStringSync();
   out.writeAsStringSync(dartSdk, mode: FileMode.APPEND);
 
   // Linearize module concatenation for deterministic output
-  var last = new Future.value();
+  var last = Future.value();
   for (var module in orderedModules) {
     linearizerMap[module] = last;
-    var completer = new Completer();
+    var completer = Completer();
     completerMap[module] = completer;
     last = completer.future;
   }
@@ -101,7 +100,7 @@ void main(List<String> args) {
   var tmpdir = (tmp == null)
       ? Directory.systemTemp
           .createTempSync(outfile.replaceAll(path.separator, '__'))
-      : new Directory(tmp)
+      : Directory(tmp)
     ..createSync();
   for (var module in orderedModules) {
     var file = tmpdir.path + path.separator + module + '.js';
@@ -135,7 +134,7 @@ void main(List<String> args) {
         print(result.stdout);
 
         // Schedule module append once the previous module is written
-        var codefile = new File(file);
+        var codefile = File(file);
         linearizerMap[module]
             .then((_) => codefile.readAsString())
             .then((code) =>
@@ -157,24 +156,24 @@ void main(List<String> args) {
   });
 }
 
-final inputSet = new Set<String>();
-final dependenceMap = new Map<String, Set<String>>();
-final transitiveDependenceMap = new Map<String, Set<String>>();
-final fileMap = new Map<String, Set<String>>();
+final inputSet = Set<String>();
+final dependenceMap = Map<String, Set<String>>();
+final transitiveDependenceMap = Map<String, Set<String>>();
+final fileMap = Map<String, Set<String>>();
 
-final readyMap = new Map<String, Future>();
-final linearizerMap = new Map<String, Future>();
-final completerMap = new Map<String, Completer>();
+final readyMap = Map<String, Future>();
+final linearizerMap = Map<String, Future>();
+final completerMap = Map<String, Completer>();
 
-final orderedModules = new List<String>();
-final visitedModules = new Set<String>();
+final orderedModules = List<String>();
+final visitedModules = Set<String>();
 
 void orderModules(
     [String module = ENTRY, List<String> stack, Set<String> visited]) {
   if (stack == null) {
     assert(visited == null);
-    stack = new List<String>();
-    visited = new Set<String>();
+    stack = List<String>();
+    visited = Set<String>();
   }
   if (visited.contains(module)) return;
   visited.add(module);
@@ -196,7 +195,7 @@ void orderModules(
 
 void computeTransitiveDependences() {
   for (var module in orderedModules) {
-    var transitiveSet = new Set<String>();
+    var transitiveSet = Set<String>();
     if (dependenceMap.containsKey(module)) {
       transitiveSet.addAll(dependenceMap[module]);
       for (var dependence in dependenceMap[module]) {
@@ -222,7 +221,7 @@ bool processFile(String file) {
   inputSet.add(file);
 
   var module = getModule(file);
-  fileMap.putIfAbsent(module, () => new Set<String>());
+  fileMap.putIfAbsent(module, () => Set<String>());
   return fileMap[module].add(file);
 }
 
@@ -230,7 +229,7 @@ void processDependence(String from, String to) {
   var fromModule = getModule(from);
   var toModule = getModule(to);
   if (fromModule == toModule || toModule == 'dart') return;
-  dependenceMap.putIfAbsent(fromModule, () => new Set<String>());
+  dependenceMap.putIfAbsent(fromModule, () => Set<String>());
   dependenceMap[fromModule].add(toModule);
 }
 
@@ -259,7 +258,7 @@ String _loadFile(String uri, String packageRoot) {
   if (uri.startsWith('package:')) {
     uri = path.join(packageRoot, uri.substring(8));
   }
-  return new File(uri).readAsStringSync();
+  return File(uri).readAsStringSync();
 }
 
 void transitiveFiles(String entryPoint, String root, String packageRoot) {

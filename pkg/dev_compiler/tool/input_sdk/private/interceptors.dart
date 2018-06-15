@@ -104,10 +104,9 @@ class NativeError extends Interceptor {
 // it to be picked up as an extension type.
 @JsPeerInterface(name: 'TypeError')
 class NullError extends NativeError implements NoSuchMethodError {
-  static RegExp _nullError =
-      new RegExp(r"^Cannot read property '(.+)' of null$");
-  static RegExp _extensionName = new RegExp(r"^Symbol\(dartx\.(.+)\)$");
-  static RegExp _privateName = new RegExp(r"^Symbol\((_.+)\)$");
+  static RegExp _nullError = RegExp(r"^Cannot read property '(.+)' of null$");
+  static RegExp _extensionName = RegExp(r"^Symbol\(dartx\.(.+)\)$");
+  static RegExp _privateName = RegExp(r"^Symbol\((_.+)\)$");
 
   String _fieldName() {
     var message = JS('String', '#.message', this);
@@ -186,7 +185,7 @@ class JSNull {
   noSuchMethod(Invocation i) => dart.defaultNoSuchMethod(null, i);
 }
 
-final Object jsNull = new JSNull();
+final Object jsNull = JSNull();
 
 // Note that this needs to be in interceptors.dart in order for
 // it to be picked up as an extension type.

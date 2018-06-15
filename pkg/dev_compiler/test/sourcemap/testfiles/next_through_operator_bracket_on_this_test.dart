@@ -14,7 +14,7 @@ class Class2 {
 }
 
 main() {
-  Class2 c = new Class2();
+  Class2 c = Class2();
   c[42];
   c.code();
 }

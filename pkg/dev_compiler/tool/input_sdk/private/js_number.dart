@@ -75,7 +75,7 @@ class JSNumber extends Interceptor implements int, double {
       return JS('int', r'# + 0', truncateToDouble()); // Converts -0.0 to +0.0.
     }
     // This is either NaN, Infinity or -Infinity.
-    throw new UnsupportedError(JS("String", '"" + #', this));
+    throw UnsupportedError(JS("String", '"" + #', this));
   }
 
   @notNull
@@ -104,7 +104,7 @@ class JSNumber extends Interceptor implements int, double {
       return JS('int', r'0 - Math.round(0 - #)', this);
     }
     // This is either NaN, Infinity or -Infinity.
-    throw new UnsupportedError(JS("String", '"" + #', this));
+    throw UnsupportedError(JS("String", '"" + #', this));
   }
 
   @notNull
@@ -141,7 +141,7 @@ class JSNumber extends Interceptor implements int, double {
   @notNull
   String toStringAsFixed(@notNull int fractionDigits) {
     if (fractionDigits < 0 || fractionDigits > 20) {
-      throw new RangeError.range(fractionDigits, 0, 20, "fractionDigits");
+      throw RangeError.range(fractionDigits, 0, 20, "fractionDigits");
     }
     String result = JS('String', r'#.toFixed(#)', this, fractionDigits);
     if (this == 0 && isNegative) return "-$result";
@@ -155,7 +155,7 @@ class JSNumber extends Interceptor implements int, double {
       @notNull
       var _fractionDigits = fractionDigits;
       if (_fractionDigits < 0 || _fractionDigits > 20) {
-        throw new RangeError.range(_fractionDigits, 0, 20, "fractionDigits");
+        throw RangeError.range(_fractionDigits, 0, 20, "fractionDigits");
       }
       result = JS('String', r'#.toExponential(#)', this, _fractionDigits);
     } else {
@@ -168,7 +168,7 @@ class JSNumber extends Interceptor implements int, double {
   @notNull
   String toStringAsPrecision(@nullCheck int precision) {
     if (precision < 1 || precision > 21) {
-      throw new RangeError.range(precision, 1, 21, "precision");
+      throw RangeError.range(precision, 1, 21, "precision");
     }
     String result = JS('String', r'#.toPrecision(#)', this, precision);
     if (this == 0 && isNegative) return "-$result";
@@ -178,7 +178,7 @@ class JSNumber extends Interceptor implements int, double {
   @notNull
   String toRadixString(@nullCheck int radix) {
     if (radix < 2 || radix > 36) {
-      throw new RangeError.range(radix, 2, 36, "radix");
+      throw RangeError.range(radix, 2, 36, "radix");
     }
     String result = JS('String', r'#.toString(#)', this, radix);
     const int rightParenCode = 0x29;
@@ -196,7 +196,7 @@ class JSNumber extends Interceptor implements int, double {
         '', r'/^([\da-z]+)(?:\.([\da-z]+))?\(e\+(\d+)\)$/.exec(#)', result);
     if (match == null) {
       // Then we don't know how to handle it at all.
-      throw new UnsupportedError("Unexpected toString result: $result");
+      throw UnsupportedError("Unexpected toString result: $result");
     }
     result = JS('!', '#', match[1]);
     int exponent = JS("!", "+#", match[3]);
@@ -401,8 +401,8 @@ class JSNumber extends Interceptor implements int, double {
   // Returns pow(this, e) % m.
   @notNull
   int modPow(@nullCheck int e, @nullCheck int m) {
-    if (e < 0) throw new RangeError.range(e, 0, null, "exponent");
-    if (m <= 0) throw new RangeError.range(m, 1, null, "modulus");
+    if (e < 0) throw RangeError.range(e, 0, null, "exponent");
+    if (m <= 0) throw RangeError.range(m, 1, null, "modulus");
     if (e == 0) return 1;
     int b = this;
     if (b < 0 || b > m) {
@@ -479,7 +479,7 @@ class JSNumber extends Interceptor implements int, double {
       }
     } while (u != 0);
     if (!inv) return s * v;
-    if (v != 1) throw new Exception("Not coprime");
+    if (v != 1) throw Exception("Not coprime");
     if (d < 0) {
       d += x;
       if (d < 0) d += x;
@@ -493,13 +493,13 @@ class JSNumber extends Interceptor implements int, double {
   // Returns 1/this % m, with m > 0.
   @notNull
   int modInverse(@nullCheck int m) {
-    if (m <= 0) throw new RangeError.range(m, 1, null, "modulus");
+    if (m <= 0) throw RangeError.range(m, 1, null, "modulus");
     if (m == 1) return 0;
     int t = this;
     if ((t < 0) || (t >= m)) t %= m;
     if (t == 1) return 1;
     if ((t == 0) || (t.isEven && m.isEven)) {
-      throw new Exception("Not coprime");
+      throw Exception("Not coprime");
     }
     return _binaryGcd(m, t, true);
   }

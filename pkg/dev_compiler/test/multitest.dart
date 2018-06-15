@@ -6,7 +6,7 @@
 // dart-lang/sdk/tools/testing/dart/multitest.dart
 library dev_compiler.test.tools.multitest;
 
-final validMultitestOutcomes = new Set<String>.from([
+final validMultitestOutcomes = Set<String>.from([
   'ok',
   'compile-time error',
   'runtime error',
@@ -22,9 +22,9 @@ final runtimeErrorOutcomes = [
 
 // Require at least one non-space character before '//#'
 // Handle both //# and the legacy /// multitest regexp patterns.
-final _multiTestRegExp = new RegExp(r"\S *//[#/] \w+:(.*)");
+final _multiTestRegExp = RegExp(r"\S *//[#/] \w+:(.*)");
 
-final _multiTestRegExpSeperator = new RegExp(r"//[#/]");
+final _multiTestRegExpSeperator = RegExp(r"//[#/]");
 
 bool isMultiTest(String contents) => _multiTestRegExp.hasMatch(contents);
 
@@ -91,25 +91,25 @@ void extractTestsFromMultitest(
 
   // Create the set of multitests, which will have a new test added each
   // time we see a multitest line with a new key.
-  var testsAsLines = new Map<String, List<String>>();
-  var outcomes = new Map<String, Set<String>>();
+  var testsAsLines = Map<String, List<String>>();
+  var outcomes = Map<String, Set<String>>();
 
   // Add the default case with key "none".
-  testsAsLines['none'] = new List<String>();
-  outcomes['none'] = new Set<String>();
+  testsAsLines['none'] = List<String>();
+  outcomes['none'] = Set<String>();
 
   int lineCount = 0;
   for (String line in lines) {
     lineCount++;
-    var annotation = new _Annotation.from(line);
+    var annotation = _Annotation.from(line);
     if (annotation != null) {
       testsAsLines.putIfAbsent(
-          annotation.key, () => new List<String>.from(testsAsLines["none"]));
+          annotation.key, () => List<String>.from(testsAsLines["none"]));
       // Add line to test with annotation.key as key, empty line to the rest.
       for (var key in testsAsLines.keys) {
         testsAsLines[key].add(annotation.key == key ? line : "");
       }
-      outcomes.putIfAbsent(annotation.key, () => new Set<String>());
+      outcomes.putIfAbsent(annotation.key, () => Set<String>());
       if (annotation.rest != 'continued') {
         for (String nextOutcome in annotation.outcomesList) {
           if (validMultitestOutcomes.contains(nextOutcome)) {
@@ -178,7 +178,7 @@ class _Annotation {
       return null;
     }
 
-    var annotation = new _Annotation();
+    var annotation = _Annotation();
     annotation.key = parts[0];
     annotation.rest = parts[1];
     annotation.outcomesList =

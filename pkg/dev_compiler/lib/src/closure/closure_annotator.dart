@@ -21,7 +21,7 @@ abstract class ClosureAnnotator {
   ClosureAnnotation closureAnnotationFor(JS.Node node, AnnotatedNode original,
       Element e, String namedArgsMapName) {
     // Note: Dart and Closure privacy are not compatible: don't set `isPrivate: e.isPrivate`.
-    return new ClosureAnnotation(
+    return ClosureAnnotation(
         comment: original?.documentationComment?.toSource(),
         // Note: we don't set isConst here because Closure's constness and
         // Dart's are not really compatible.

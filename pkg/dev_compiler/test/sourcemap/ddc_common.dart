@@ -32,15 +32,15 @@ class Compile extends Step<Data, Data, ChainContext> {
   String get name => "compile";
 
   Future<Result<Data>> run(Data data, ChainContext context) async {
-    var dartScriptAbsolute = new File.fromUri(data.uri).absolute;
+    var dartScriptAbsolute = File.fromUri(data.uri).absolute;
     var inputFile = dartScriptAbsolute.path;
 
     data.outDir = await Directory.systemTemp.createTemp("ddc_step_test");
-    data.code = new AnnotatedCode.fromText(
-        new File(inputFile).readAsStringSync(), commentStart, commentEnd);
+    data.code = AnnotatedCode.fromText(
+        File(inputFile).readAsStringSync(), commentStart, commentEnd);
     var outDirUri = data.outDir.uri;
     var testFile = outDirUri.resolve("test.dart");
-    new File.fromUri(testFile).writeAsStringSync(data.code.sourceCode);
+    File.fromUri(testFile).writeAsStringSync(data.code.sourceCode);
     var outputFilename = "js.js";
     var outputFile = outDirUri.resolve(outputFilename);
     var outWrapperPath = outDirUri.resolve("wrapper.js");
@@ -62,7 +62,7 @@ class TestStackTrace extends Step<Data, Data, ChainContext> {
 
   Future<Result<Data>> run(Data data, ChainContext context) async {
     data.outDir = await Directory.systemTemp.createTemp("stacktrace-test");
-    String code = await new File.fromUri(data.uri).readAsString();
+    String code = await File.fromUri(data.uri).readAsString();
     Test test = processTestCode(code, knownMarkers);
     await testStackTrace(test, marker, _compile,
         jsPreambles: _getPreambles,
@@ -74,15 +74,15 @@ class TestStackTrace extends Step<Data, Data, ChainContext> {
   }
 
   Future<bool> _compile(String input, String output) async {
-    var outWrapperPath = _getWrapperPathFromDirectoryFile(new Uri.file(input));
-    await runner.run(new Uri.file(input), new Uri.file(output), outWrapperPath);
+    var outWrapperPath = _getWrapperPathFromDirectoryFile(Uri.file(input));
+    await runner.run(Uri.file(input), Uri.file(output), outWrapperPath);
     return true;
   }
 
   List<String> _getPreambles(String input, String output) {
     return [
       '--module',
-      _getWrapperPathFromDirectoryFile(new Uri.file(input)).toFilePath(),
+      _getWrapperPathFromDirectoryFile(Uri.file(input)).toFilePath(),
       '--'
     ];
   }
@@ -108,7 +108,7 @@ class TestStackTrace extends Step<Data, Data, ChainContext> {
 Directory _cachedDdcDir;
 Directory getDdcDir() {
   Directory search() {
-    Directory dir = new File.fromUri(Platform.script).parent;
+    Directory dir = File.fromUri(Platform.script).parent;
     Uri dirUrl = dir.uri;
     if (dirUrl.pathSegments.contains("dev_compiler")) {
       for (int i = dirUrl.pathSegments.length - 2; i >= 0; --i) {
@@ -151,10 +151,9 @@ void createHtmlWrapper(File sdkJsFile, Uri outputFile, String jsContent,
   String jsRootDart =
       "/root_dart/${new File(path.relative(sdkJsFile.path, from: sdkPath.path))
       .uri}";
-  new File.fromUri(outputFile.resolve("$outputFilename.html.js"))
-      .writeAsStringSync(
-          jsContent.replaceFirst("from 'dart_sdk'", "from '$jsRootDart'"));
-  new File.fromUri(outputFile.resolve("$outputFilename.html.html"))
+  File.fromUri(outputFile.resolve("$outputFilename.html.js")).writeAsStringSync(
+      jsContent.replaceFirst("from 'dart_sdk'", "from '$jsRootDart'"));
+  File.fromUri(outputFile.resolve("$outputFilename.html.html"))
       .writeAsStringSync(getWrapperHtmlContent(
           jsRootDart, "/root_build/$outputFilename.html.js"));
 
@@ -192,6 +191,6 @@ String getWrapperHtmlContent(String jsRootDart, String outFileRootBuild) {
 Uri selfUri = currentMirrorSystem()
     .findLibrary(#dev_compiler.test.sourcemap.ddc_common)
     .uri;
-String d8Preambles = new File.fromUri(
+String d8Preambles = File.fromUri(
         selfUri.resolve('../../tool/input_sdk/private/preambles/d8.js'))
     .readAsStringSync();

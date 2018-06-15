@@ -85,31 +85,31 @@ class DevCompilerTarget extends Target {
           .getClass('dart:core', '_Invocation')
           .constructors
           .firstWhere((c) => c.name.name == name);
-      return new ConstructorInvocation(ctor, new Arguments(positional));
+      return ConstructorInvocation(ctor, Arguments(positional));
     }
 
     if (name.startsWith('get:')) {
-      return createInvocation('getter', [new SymbolLiteral(name.substring(4))]);
+      return createInvocation('getter', [SymbolLiteral(name.substring(4))]);
     }
     if (name.startsWith('set:')) {
       return createInvocation('setter', [
-        new SymbolLiteral(name.substring(4) + '='),
+        SymbolLiteral(name.substring(4) + '='),
         arguments.positional.single
       ]);
     }
-    var ctorArgs = <Expression>[new SymbolLiteral(name)];
+    var ctorArgs = <Expression>[SymbolLiteral(name)];
     bool isGeneric = arguments.types.isNotEmpty;
     if (isGeneric) {
-      ctorArgs.add(new ListLiteral(
-          arguments.types.map((t) => new TypeLiteral(t)).toList()));
+      ctorArgs.add(
+          ListLiteral(arguments.types.map((t) => TypeLiteral(t)).toList()));
     } else {
-      ctorArgs.add(new NullLiteral());
+      ctorArgs.add(NullLiteral());
     }
-    ctorArgs.add(new ListLiteral(arguments.positional));
+    ctorArgs.add(ListLiteral(arguments.positional));
     if (arguments.named.isNotEmpty) {
-      ctorArgs.add(new MapLiteral(
+      ctorArgs.add(MapLiteral(
           arguments.named
-              .map((n) => new MapEntry(new SymbolLiteral(n.name), n.value))
+              .map((n) => MapEntry(SymbolLiteral(n.name), n.value))
               .toList(),
           keyType: coreTypes.symbolClass.rawType));
     }
@@ -119,17 +119,17 @@ class DevCompilerTarget extends Target {
   @override
   Expression instantiateNoSuchMethodError(CoreTypes coreTypes,
       Expression receiver, String name, Arguments arguments, int offset,
-      {bool isMethod: false,
-      bool isGetter: false,
-      bool isSetter: false,
-      bool isField: false,
-      bool isLocalVariable: false,
-      bool isDynamic: false,
-      bool isSuper: false,
-      bool isStatic: false,
-      bool isConstructor: false,
-      bool isTopLevel: false}) {
+      {bool isMethod = false,
+      bool isGetter = false,
+      bool isSetter = false,
+      bool isField = false,
+      bool isLocalVariable = false,
+      bool isDynamic = false,
+      bool isSuper = false,
+      bool isStatic = false,
+      bool isConstructor = false,
+      bool isTopLevel = false}) {
     // TODO(sigmund): implement;
-    return new InvalidExpression(null);
+    return InvalidExpression(null);
   }
 }

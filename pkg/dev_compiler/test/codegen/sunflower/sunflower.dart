@@ -39,7 +39,7 @@ void draw() {
     final r = sqrt(i) * SCALE_FACTOR;
     final x = centerX + r * cos(theta);
     final y = centerY - r * sin(theta);
-    new SunflowerSeed(x, y, SEED_RADIUS).draw(context);
+    SunflowerSeed(x, y, SEED_RADIUS).draw(context);
   }
   notes.text = "$seeds seeds";
 }

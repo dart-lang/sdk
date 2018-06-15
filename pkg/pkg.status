@@ -147,6 +147,9 @@ testing/test/analyze_test: SkipByDesign
 [ $jscl ]
 kernel/test/*: SkipByDesign # Uses dart:io and bigints.
 
+[ $no_preview_dart_2 ]
+dev_compiler/*: SkipByDesign # uses Dart 2.
+
 [ $arch == x64 && $runtime == vm && $system == windows && $checked ]
 analyzer/test/src/task/strong/inferred_type_test: Pass, Slow
 
