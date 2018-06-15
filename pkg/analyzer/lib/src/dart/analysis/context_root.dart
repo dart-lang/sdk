@@ -103,7 +103,7 @@ class ContextRootImpl implements ContextRoot {
     }
     for (String excludedPath in excludedPaths) {
       if (context.isAbsolute(excludedPath)) {
-        if (context.isWithin(excludedPath, path)) {
+        if (path == excludedPath || context.isWithin(excludedPath, path)) {
           return true;
         }
       } else {
@@ -127,7 +127,7 @@ class ContextRootImpl implements ContextRoot {
   bool _isIncluded(String path) {
     Context context = resourceProvider.pathContext;
     for (String includedPath in includedPaths) {
-      if (context.isWithin(includedPath, path)) {
+      if (path == includedPath || context.isWithin(includedPath, path)) {
         return true;
       }
     }
