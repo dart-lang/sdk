@@ -45,6 +45,26 @@ initializer_super_last_test/cc29: MissingCompileTimeError
 initializer_super_last_test/cc30: MissingCompileTimeError
 initializer_super_last_test/cc31: MissingCompileTimeError
 initializer_super_last_test/cc32: MissingCompileTimeError
+void/return_future_future_or_void_async_error0_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
+void/return_future_future_or_void_sync_error0_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
+void/return_future_or_future_or_void_sync_error0_test: MissingCompileTimeError
+void/return_future_or_future_or_void_sync_error1_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
+void/return_future_or_void_async_error0_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
+void/return_future_or_void_sync_error0_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
+void/return_future_or_void_sync_error1_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
+void/return_future_or_void_sync_error2_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
+void/return_future_or_void_sync_error3_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
+void/return_future_void_async_error0_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
+void/return_future_void_async_error1_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
+void/return_future_void_async_error2_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
+void/return_void_async_error0_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
+void/return_void_async_error1_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
+void/return_void_async_error2_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
+void/return_void_async_error3_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
+void/return_void_async_error4_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
+void/return_void_sync_error0_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
+void/return_void_sync_error1_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
+void/return_void_sync_error2_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
 
 [ $compiler != app_jitk && $compiler != dartk && $compiler != dartkp && $mode == debug && $runtime == vm ]
 built_in_identifier_type_annotation_test/set: Crash # Not supported by legacy VM front-end.
@@ -235,6 +255,7 @@ vm/type_vm_test/24: MissingCompileTimeError
 vm/type_vm_test/25: MissingCompileTimeError
 vm/type_vm_test/26: MissingCompileTimeError
 vm/type_vm_test/27: MissingCompileTimeError
+void/return_future_future_or_void_sync_error1_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
 void_block_return_test/00: MissingCompileTimeError # Requires strong mode
 void_type_callbacks_test: Skip # Requires strong mode
 void_type_function_types_test: Skip # Requires strong mode
@@ -270,6 +291,25 @@ implicit_creation/implicit_new_or_const_test: Fail # No support for implicit cre
 implicit_creation/implicit_new_prefix_constructor_generic_named_test: Fail # No support for implicit creation.
 implicit_creation/implicit_new_prefix_constructor_named_test: Fail # No support for implicit creation.
 setter_override2_test/02: MissingCompileTimeError # Issue 14736
+void/return_future_future_or_void_async_error0_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
+void/return_future_future_or_void_async_error1_test/none: MissingStaticWarning # https://github.com/dart-lang/sdk/issues/33218
+void/return_future_future_or_void_sync_error0_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
+void/return_future_or_future_or_void_sync_error1_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
+void/return_future_or_future_or_void_sync_error2_test/none: MissingStaticWarning # https://github.com/dart-lang/sdk/issues/33218
+void/return_future_or_void_async_error0_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
+void/return_future_or_void_sync_error3_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
+void/return_future_or_void_sync_error4_test/none: MissingStaticWarning # https://github.com/dart-lang/sdk/issues/33218
+void/return_future_void_async_error2_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
+void/return_future_void_async_test: StaticWarning # https://github.com/dart-lang/sdk/issues/33218
+void/return_void_async_error0_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
+void/return_void_async_error1_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
+void/return_void_async_error2_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
+void/return_void_async_error3_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
+void/return_void_async_error4_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
+void/return_void_async_test: StaticWarning # https://github.com/dart-lang/sdk/issues/33218
+void/return_void_sync_error0_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
+void/return_void_sync_error1_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
+void/return_void_sync_error2_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
 
 [ $compiler == app_jit || $compiler == none ]
 library_env_test/has_no_mirror_support: RuntimeError, OK

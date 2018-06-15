@@ -45,14 +45,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @notForDart2
-  test_async_return_flattens_futures() async {
-    // Only FutureOr is flattened.
-    return super.test_async_return_flattens_futures();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31604')
   test_commentReference_beforeConstructor() async {
     return super.test_commentReference_beforeConstructor();

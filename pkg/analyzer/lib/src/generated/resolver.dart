@@ -1186,7 +1186,30 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       if (body.isGenerator) {
         return;
       }
-      // Check that the type is resolvable, and is not "void"
+
+      if (_typeSystem is StrongTypeSystemImpl) {
+        // Check that the type is resolvable, and is not "void"
+        DartType returnTypeType = returnType.type;
+        if (returnTypeType == null) {
+          return;
+        }
+
+        var flattenedType = body.isAsynchronous
+            ? returnTypeType.flattenFutures(_typeSystem)
+            : returnTypeType;
+        if (flattenedType.isDynamic ||
+            flattenedType.isDartCoreNull ||
+            flattenedType.isVoid) {
+          return;
+        }
+        // Check the block for a return statement, if not, create the hint
+        if (!ExitDetector.exits(body)) {
+          _errorReporter.reportErrorForNode(HintCode.MISSING_RETURN, returnType,
+              [returnTypeType.displayName]);
+        }
+      }
+      // TODO(leafp): Delete this non-strong mode path
+      // Check that the type is resolvable and not "void"
       DartType returnTypeType = returnType.type;
       if (returnTypeType == null ||
           returnTypeType.isVoid ||

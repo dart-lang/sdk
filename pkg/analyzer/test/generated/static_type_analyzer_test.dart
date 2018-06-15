@@ -342,10 +342,10 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     expect(_flatten(futureDynamicType), dynamicType);
     // flatten(Future<int>) = int
     expect(_flatten(futureIntType), intType);
-    // flatten(Future<Future>) = dynamic
-    expect(_flatten(futureFutureDynamicType), dynamicType);
-    // flatten(Future<Future<int>>) = int
-    expect(_flatten(futureFutureIntType), intType);
+    // flatten(Future<Future>) = Future<dynamic>
+    expect(_flatten(futureFutureDynamicType), futureDynamicType);
+    // flatten(Future<Future<int>>) = Future<int>
+    expect(_flatten(futureFutureIntType), futureIntType);
   }
 
   void test_flatten_unrelated_types() {
@@ -482,7 +482,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
         _typeProvider.futureType.instantiate(<DartType>[futureIntType]);
     Expression node = AstTestFactory
         .awaitExpression(_resolvedVariable(futureFutureIntType, 'e'));
-    expect(_analyze(node), same(intType));
+    expect(_analyze(node), same(futureIntType));
     _listener.assertNoErrors();
   }
 

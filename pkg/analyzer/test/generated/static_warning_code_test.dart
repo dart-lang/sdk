@@ -3672,6 +3672,18 @@ Future<int> f() async {
     verify([source]);
   }
 
+  test_returnWithoutValue_async_future_object_with_return() async {
+    Source source = addSource('''
+import 'dart:async';
+Future<Object> f() async {
+  return;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.RETURN_WITHOUT_VALUE]);
+    verify([source]);
+  }
+
   test_returnWithoutValue_factoryConstructor() async {
     Source source = addSource("class A { factory A() { return; } }");
     await computeAnalysisResult(source);

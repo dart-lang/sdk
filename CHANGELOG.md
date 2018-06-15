@@ -4,6 +4,30 @@
 
 ### Language
 
+* Numerous corner case bugs around return statements in synchronous and
+asynchronous functions fixed.  Specifically:
+  * Issues [31887][issue 31887], [32881][issue 32881]. Future flattening should
+    not be recursive.
+  * Issues [30638][issue 30638], [32233][issue 32233]. Incorrect downcast errors
+    with `FutureOr`
+  * Issue [32233][issue 32233]. Errors when returning `FutureOr`
+  * Issue [33218][issue 33218]. Returns in functions with void related types
+  * Issue [31278][issue 31278]. Incorrect hint on empty returns in async
+    functions 
+* An empty `return;` in an async function with return type `Future<Object>` will
+    not report an error.
+* `return exp;` where `exp` has type `void` in an async function is now an error
+unless the return type of the function is `void` or `dynamic`.
+* Mixed return statements of the form `return;` and `return exp;` are now
+allowed when `exp` has type `void`.
+
+[issue 31887]: https://github.com/dart-lang/sdk/issues/31887
+[issue 30638]: https://github.com/dart-lang/sdk/issues/30638
+[issue 32233]: https://github.com/dart-lang/sdk/issues/32233
+[issue 32881]: https://github.com/dart-lang/sdk/issues/32881
+[issue 33218]: https://github.com/dart-lang/sdk/issues/33218
+[issue 31278]: https://github.com/dart-lang/sdk/issues/31278
+
 #### Strong Mode
 
 ### Dart VM
@@ -28,7 +52,7 @@
 
 ### Language
 
-Inference chooses `void` when combining `Object` or `dynamic` and `void` ([issue
+* Inference chooses `void` when combining `Object` or `dynamic` and `void` ([issue
 3341]).  When combining with other top types, inference now prefers `void`.  So
 for example, given:
 

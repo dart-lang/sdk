@@ -1619,6 +1619,57 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
+   * Check that return statements without expressions are not in a generative
+   * constructor and the return type is not assignable to `null`; that is, we
+   * don't have `return;` if the enclosing method has a non-void containing
+   * return type.
+   *
+   * See [CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR],
+   * [StaticWarningCode.RETURN_WITHOUT_VALUE], and
+   * [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE].
+   */
+  void _checkForAllEmptyReturnStatementErrorCodes(
+      ReturnStatement statement, DartType expectedReturnType) {
+    if (_inGenerator) {
+      return;
+    }
+    if (_options.strongMode) {
+      var returnType = _inAsync
+          ? expectedReturnType.flattenFutures(_typeSystem)
+          : expectedReturnType;
+      if (returnType.isDynamic ||
+          returnType.isDartCoreNull ||
+          returnType.isVoid) {
+        return;
+      }
+    } else {
+      // TODO(leafp): Delete this non-strong path
+      if (_inAsync) {
+        if (expectedReturnType.isDynamic || expectedReturnType.isVoid) {
+          return;
+        }
+        if (expectedReturnType is InterfaceType &&
+            expectedReturnType.isDartAsyncFuture) {
+          DartType futureArgument = expectedReturnType.typeArguments[0];
+          if (futureArgument.isDynamic ||
+              futureArgument.isDartCoreNull ||
+              futureArgument.isVoid ||
+              futureArgument.isObject) {
+            return;
+          }
+        }
+      } else if (expectedReturnType.isDynamic || expectedReturnType.isVoid) {
+        return;
+      }
+    }
+    // If we reach here, this is an invalid return
+    _hasReturnWithoutValue = true;
+    _errorReporter.reportErrorForNode(
+        StaticWarningCode.RETURN_WITHOUT_VALUE, statement);
+    return;
+  }
+
+  /**
    * Verify that the given [constructor] declaration does not violate any of the
    * error codes relating to the initialization of fields in the enclosing
    * class.
@@ -2307,7 +2358,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * Check that return statements without expressions are not in a generative
    * constructor and the return type is not assignable to `null`; that is, we
-   * don't have `return;` if the enclosing method has a return type.
+   * don't have `return;` if the enclosing method has a non-void containing
+   * return type.
    *
    * Check that the return type matches the type of the declared return type in
    * the enclosing method or function.
@@ -2322,6 +2374,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         ? DynamicTypeImpl.instance
         : functionType.returnType;
     Expression returnExpression = statement.expression;
+
     // RETURN_IN_GENERATIVE_CONSTRUCTOR
     bool isGenerativeConstructor(ExecutableElement element) =>
         element is ConstructorElement && !element.isFactory;
@@ -2336,34 +2389,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     // RETURN_WITHOUT_VALUE
     if (returnExpression == null) {
-      if (_inGenerator) {
-        return;
-      } else if (_inAsync) {
-        if (expectedReturnType.isDynamic || expectedReturnType.isVoid) {
-          return;
-        }
-        if (expectedReturnType is InterfaceType &&
-            expectedReturnType.isDartAsyncFuture) {
-          DartType futureArgument = expectedReturnType.typeArguments[0];
-          if (futureArgument.isDynamic ||
-              futureArgument.isDartCoreNull ||
-              futureArgument.isVoid ||
-              futureArgument.isObject) {
-            return;
-          }
-        }
-      } else if (expectedReturnType.isDynamic ||
-          expectedReturnType.isVoid ||
-          (expectedReturnType.isDartCoreNull && _options.strongMode)) {
-        // TODO(leafp): Empty returns shouldn't be allowed for Null in strong
-        // mode either once we allow void as a type argument.  But for now, the
-        // only type we can validly infer for f.then((_) {print("hello");}) is
-        // Future<Null>, so we allow this.
-        return;
-      }
-      _hasReturnWithoutValue = true;
-      _errorReporter.reportErrorForNode(
-          StaticWarningCode.RETURN_WITHOUT_VALUE, statement);
+      _checkForAllEmptyReturnStatementErrorCodes(statement, expectedReturnType);
       return;
     } else if (_inGenerator) {
       // RETURN_IN_GENERATOR
@@ -2371,6 +2397,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           CompileTimeErrorCode.RETURN_IN_GENERATOR,
           statement,
           [_inAsync ? "async*" : "sync*"]);
+      return;
     }
 
     _checkForReturnOfInvalidType(returnExpression, expectedReturnType);
@@ -4837,8 +4864,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (_hasReturnWithoutValue) {
       return;
     }
-    if (_returnsWith.isNotEmpty && _returnsWithout.isNotEmpty) {
-      for (ReturnStatement returnWith in _returnsWith) {
+    var nonVoidReturnsWith =
+        _returnsWith.where((stmt) => !getStaticType(stmt.expression).isVoid);
+    if (nonVoidReturnsWith.isNotEmpty && _returnsWithout.isNotEmpty) {
+      for (ReturnStatement returnWith in nonVoidReturnsWith) {
         _errorReporter.reportErrorForToken(
             StaticWarningCode.MIXED_RETURN_TYPES, returnWith.returnKeyword);
       }
@@ -5647,7 +5676,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * See [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE].
    */
   void _checkForReturnOfInvalidType(
-      Expression returnExpression, DartType expectedReturnType,
+      Expression returnExpression, DartType expectedType,
       {bool isArrowFunction = false}) {
     if (_enclosingFunction == null) {
       return;
@@ -5658,19 +5687,79 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       // of the return type.  So no need to do any further checking.
       return;
     }
+    if (_options.strongMode) {
+      if (returnExpression == null) {
+        return; // Empty returns are handled elsewhere
+      }
+
+      DartType expressionType = getStaticType(returnExpression);
+
+      void reportTypeError() {
+        String displayName = _enclosingFunction.displayName;
+
+        if (displayName.isEmpty) {
+          _errorReporter.reportTypeErrorForNode(
+              StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
+              returnExpression,
+              [expressionType, expectedType]);
+        } else {
+          _errorReporter.reportTypeErrorForNode(
+              StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
+              returnExpression,
+              [expressionType, expectedType, displayName]);
+        }
+      }
+
+      var toType = expectedType;
+      var fromType = expressionType;
+
+      if (isArrowFunction) {
+        if (_inAsync && toType.flattenFutures(_typeSystem).isVoid) {
+          return;
+        } else if (toType.isVoid) {
+          return;
+        }
+      }
+
+      if (toType.isDynamic) {
+        return;
+      }
+
+      if (toType.isVoid) {
+        if (fromType.isVoid) {
+          return;
+        }
+        if (!_inAsync && fromType.isDynamic ||
+            fromType.isDartCoreNull ||
+            fromType.isBottom) {
+          return;
+        }
+      } else if (!fromType.isVoid) {
+        if (_inAsync) {
+          fromType = _typeProvider.futureType
+              .instantiate(<DartType>[fromType.flattenFutures(_typeSystem)]);
+        }
+        if (_expressionIsAssignableAtType(returnExpression, fromType, toType)) {
+          return;
+        }
+      }
+
+      return reportTypeError();
+    }
+    // TODO(leafp): Delete this non Dart 2 path
     DartType staticReturnType = _computeReturnTypeForMethod(returnExpression);
     String displayName = _enclosingFunction.displayName;
 
     void reportTypeError() => _errorReporter.reportTypeErrorForNode(
         StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
         returnExpression,
-        [staticReturnType, expectedReturnType, displayName]);
+        [staticReturnType, expectedType, displayName]);
     void reportTypeErrorFromClosure() => _errorReporter.reportTypeErrorForNode(
         StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
         returnExpression,
-        [staticReturnType, expectedReturnType]);
+        [staticReturnType, expectedType]);
 
-    if (expectedReturnType.isVoid) {
+    if (expectedType.isVoid) {
       if (isArrowFunction) {
         // "void f(..) => e" admits all types for "e".
         return;
@@ -5691,10 +5780,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
     // TODO(mfairhurst) Make this stricter once codebases are compliant.
     final invalidVoidReturn = staticReturnType.isVoid &&
-        !(expectedReturnType.isVoid || expectedReturnType.isDynamic);
+        !(expectedType.isVoid || expectedType.isDynamic);
     if (!invalidVoidReturn &&
         _expressionIsAssignableAtType(
-            returnExpression, staticReturnType, expectedReturnType)) {
+            returnExpression, staticReturnType, expectedType)) {
       return;
     }
     if (displayName.isEmpty) {
