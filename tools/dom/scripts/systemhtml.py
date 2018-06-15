@@ -876,6 +876,8 @@ class Dart2JSBackend(HtmlDartGenerator):
     self._interface_type_info = self._type_registry.TypeInfo(self._interface.id)
     self._current_secondary_parent = None
     self._library_name = self._renamer.GetLibraryName(self._interface)
+    # Global constants for all WebGLRenderingContextBase, WebGL2RenderingContextBase, WebGLDrawBuffers
+    self._gl_constants = []
     _logger.setLevel(logging_level)
 
   def ImplementsMergedMembers(self):

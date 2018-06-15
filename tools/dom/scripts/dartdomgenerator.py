@@ -88,7 +88,7 @@ def LoadDatabase(database_dir, use_database_cache):
   return common_database
 
 def GenerateFromDatabase(common_database,
-                         dart2js_output_dir, dartium_output_dir, blink_output_dir,
+                         dart2js_output_dir,
                          update_dom_metadata=False,
                          logging_level=logging.WARNING, dart_js_interop=False):
   print '\n ----- Accessing DOM using %s -----\n' % ('dart:js' if dart_js_interop else 'C++')
@@ -136,11 +136,13 @@ def GenerateFromDatabase(common_database,
     event_generator = HtmlEventGenerator(webkit_database, renamer, metadata,
         template_loader)
 
-    def generate_interface(interface):
+    def generate_interface(interface, gl_constants=None):
       backend = backend_factory(interface)
       interface_generator = HtmlDartInterfaceGenerator(
           options, dart_library_emitter, event_generator, interface, backend)
       interface_generator.Generate()
+      if len(backend._gl_constants) > 0 and not(gl_constants is None):
+          gl_constants.extend(backend._gl_constants)
 
     generator.Generate(webkit_database, common_database, generate_interface)
 
@@ -171,48 +173,7 @@ def GenerateFromDatabase(common_database,
 
     print 'Generated dart2js in %s seconds' % round(time.time() - start_time, 2)
 
-  if dartium_output_dir:
-    template_paths = ['html/dartium', 'html/impl', 'html/interface', '']
-    template_loader = TemplateLoader(template_dir,
-                                     template_paths,
-                                     {'DARTIUM': True,
-                                      'DART2JS': False,
-                                      'JSINTEROP': dart_js_interop})
-    backend_options = GeneratorOptions(
-        template_loader, webkit_database, type_registry, renamer,
-        metadata, dart_js_interop)
-    cpp_output_dir = os.path.join(dartium_output_dir, 'cpp')
-    cpp_library_emitter = CPPLibraryEmitter(emitters, cpp_output_dir)
-    dart_output_dir = os.path.join(dartium_output_dir, 'dart')
-    backend_factory = lambda interface:\
-        DartiumBackend(interface, cpp_library_emitter, backend_options, _logger)
-    dart_libraries = DartLibraries(
-        HTML_LIBRARY_NAMES, template_loader, 'dartium', dartium_output_dir, dart_js_interop)
-
-    print '\nGenerating dartium:\n'
-    start_time = time.time()
-
-    RunGenerator(dart_libraries, dart_output_dir, template_loader,
-                 backend_factory, dart_js_interop)
-    print 'Generated dartium in %s seconds' % round(time.time() - start_time, 2)
-
-    cpp_library_emitter.EmitDerivedSources(
-        template_loader.Load('cpp_derived_sources.template'),
-        dartium_output_dir)
-    cpp_library_emitter.EmitResolver(
-        template_loader.Load('cpp_resolver.template'), dartium_output_dir)
-    cpp_library_emitter.EmitClassIdTable(
-        webkit_database, dartium_output_dir, type_registry, renamer)
-
   emitters.Flush()
-
-  if blink_output_dir:
-    print '\nGenerating _blink:\n'
-    start_time = time.time()
-
-    Generate_Blink(blink_output_dir, webkit_database, type_registry)
-
-    print 'Generated _blink in %s seconds' % round(time.time() - start_time, 2)
 
   if update_dom_metadata:
     metadata.Flush()
@@ -312,12 +273,6 @@ def main():
   dart2js_output_dir = None
   if 'htmldart2js' in systems:
     dart2js_output_dir = os.path.join(output_dir, 'dart2js')
-  dartium_output_dir = None
-  if 'htmldartium' in systems:
-    dartium_output_dir = os.path.join(output_dir, 'dartium')
-  blink_output_dir = None
-  if '_blink' in systems:
-    blink_output_dir = os.path.join(output_dir, 'dartium')
 
   logging_level = options.logging_level \
     if options.logging == logging.NOTSET else options.logging
@@ -331,8 +286,6 @@ def main():
 
   GenerateFromDatabase(database,
                        dart2js_output_dir,
-                       dartium_output_dir,
-                       blink_output_dir,
                        options.update_dom_metadata,
                        logging_level,
                        options.dart_js_interop)
@@ -346,32 +299,6 @@ def main():
       GenerateSingleFile(
           os.path.join(dart2js_output_dir, '%s_dart2js.dart' % library_name),
           os.path.join('..', '..', '..', 'sdk', 'lib', library_name, 'dart2js'))
-
-  if 'htmldartium' in systems:
-    _logger.info('Generating dartium single files.')
-    file_generation_start_time = time.time()
-
-    for library_name in HTML_LIBRARY_NAMES:
-      GenerateSingleFile(
-          os.path.join(dartium_output_dir, '%s_dartium.dart' % library_name),
-          os.path.join('..', '..', '..', 'sdk', 'lib', library_name, 'dartium'))
-
-    if (not(options.no_cached_patches)):
-      # Blow away the cached_patches.dart needs to be re-generated for Dartium
-      # see tools/dartium/generate_patches.sh
-      cached_patches_filename = os.path.join('..', '..', '..', 'sdk', 'lib', 'js', 'dartium',
-                                             'cached_patches.dart')
-      cached_patches = open(cached_patches_filename, 'w')
-      cached_patches.write(CACHED_PATCHES);
-      cached_patches.close()
-
-  if '_blink' in systems:
-    _logger.info('Generating dartium _blink file.')
-    file_generation_start_time = time.time()
-
-    GenerateSingleFile(
-        os.path.join(dartium_output_dir, '%s_dartium.dart' % '_blink'),
-        os.path.join('..', '..', '..', 'sdk', 'lib', '_blink', 'dartium'))
 
   print '\nGenerating single file %s seconds' % round(time.time() - file_generation_start_time, 2)
 

@@ -72,8 +72,14 @@ class HtmlDartGenerator(object):
         TYPE=events_class_name)
 
   def AddMembers(self, interface, declare_only=False, dart_js_interop=False):
-    for const in sorted(interface.constants, ConstantOutputOrder):
-      self.AddConstant(const)
+    if self._interface.id == 'WebGLRenderingContextBase' or self._interface.id == 'WebGL2RenderingContextBase' or \
+        self._interface.id == 'WebGLDrawBuffers':
+      # Constants in classes WebGLRenderingContextBase, WebGL2RenderingContext, WebGLDrawBuffers are consolidated into
+      # one synthesized class (WebGL).
+      self._gl_constants.extend(interface.constants);
+    else:
+      for const in sorted(interface.constants, ConstantOutputOrder):
+        self.AddConstant(const)
 
     for attr in sorted(interface.attributes, ConstantOutputOrder):
       if attr.type.id != 'EventHandler' and attr.type.id != 'EventListener':
@@ -111,28 +117,7 @@ class HtmlDartGenerator(object):
           convert_to_future_members):
         self.AddOperation(ConvertToFuture(info), declare_only)
 
-  def _HoistableConstants(self, interface):
-    consts = []
-    if interface.parents:
-      for parent in interface.parents:
-        parent_interface = self._database.GetInterface(parent.type.id)
-        # TODO(vsm): This should be a general check.  E.g., on private
-        # interfaces?
-        if parent.type.id == 'WebGLRenderingContextBase':
-          consts = consts + parent_interface.constants
-    return consts
-
   def AddSecondaryMembers(self, interface):
-    # With multiple inheritance, attributes and operations of non-first
-    # interfaces need to be added.  Sometimes the attribute or operation is
-    # defined in the current interface as well as a parent.  In that case we
-    # avoid making a duplicate definition and pray that the signatures match.
-    if not self._renamer.ShouldSuppressInterface(interface):
-      secondary_constants = sorted(self._HoistableConstants(interface),
-                                     ConstantOutputOrder)
-      for const in secondary_constants:
-        self.AddConstant(const)
-
     secondary_parents = self._database.TransitiveSecondaryParents(interface,
                           not self._dart_use_blink)
     remove_duplicate_parents = list(set(secondary_parents))
