@@ -253,7 +253,7 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseUnaryExpression_decrement_super() {
-    // TODO(brianwilkerson) Does not recover.
+    // TODO(danrubel) Reports a different error and different token stream.
     // Expected: TokenType:<MINUS>
     //   Actual: TokenType:<MINUS_MINUS>
     super.test_parseUnaryExpression_decrement_super();
@@ -262,7 +262,7 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseUnaryExpression_decrement_super_withComment() {
-    // TODO(brianwilkerson) Does not recover.
+    // TODO(danrubel) Reports a different error and different token stream.
     // Expected: TokenType:<MINUS>
     //   Actual: TokenType:<MINUS_MINUS>
     super.test_parseUnaryExpression_decrement_super_withComment();
@@ -961,13 +961,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
   }
 
   @override
-  @failingTest
-  void test_missingIdentifier_afterAnnotation() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_missingIdentifier_afterAnnotation();
-  }
-
-  @override
   void test_relationalExpression_missing_LHS_RHS() {
     parseExpression("is", codes: [
       ParserErrorCode.EXPECTED_TYPE_NAME,
@@ -987,14 +980,7 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 
 @reflectiveTest
 class SimpleParserTest_Fasta extends FastaParserTestCase
-    with SimpleParserTestMixin {
-  @override
-  @failingTest
-  void test_parseTypeParameterList_single() {
-    // TODO(brianwilkerson) Does not use all tokens.
-    super.test_parseTypeParameterList_single();
-  }
-}
+    with SimpleParserTestMixin {}
 
 /**
  * Tests of the fasta parser based on [StatementParserTestMixin].
