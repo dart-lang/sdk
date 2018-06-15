@@ -302,11 +302,6 @@ $!MEMBERS
     }
   }
 
-  @DomName('CanvasRenderingContext2D.fill')
-  void fill([String winding = 'nonzero']) {
-    JS('void', '#.fill(#)', this, winding);
-  }
-
   /** Deprecated always returns 1.0 */
   @DomName('CanvasRenderingContext2D.webkitBackingStorePixelRation')
   @Experimental()

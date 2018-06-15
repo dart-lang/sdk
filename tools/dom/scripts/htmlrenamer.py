@@ -444,6 +444,7 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'SubtleCrypto.importKey',
   'SubtleCrypto.unwrapKey',
   'ShadowRoot.applyAuthorStyles',
+  'SpeechSynthesis.getVoices',
 
   'TextEvent.initTextEvent',
   # TODO(leafp): These have been converted from int to double in Chrome 37.

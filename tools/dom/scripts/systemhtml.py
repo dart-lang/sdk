@@ -39,7 +39,6 @@ _js_custom_members = monitored.Set('systemhtml._js_custom_members', [
     'AudioContext.createGain',
     'AudioContext.createScriptProcessor',
     'CanvasRenderingContext2D.drawImage',
-    'CanvasRenderingContext2D.fill',
     'CanvasRenderingContext2D.fillText',
     'CanvasRenderingContext2D.lineDashOffset',
     'CanvasRenderingContext2D.setLineDash',
@@ -1126,14 +1125,16 @@ class Dart2JSBackend(HtmlDartGenerator):
     input_type = self._NarrowInputType(attribute.type.id)
     metadata = self._Metadata(attribute.type.id, attribute.id, output_type)
     rename = self._RenamingAnnotation(attribute.id, html_name)
+    static_attribute = 'static' if attribute.is_static else ''
     if not read_only:
       if attribute.type.id == 'Promise':
         _logger.warn('R/W member is a Promise: %s.%s' % (self._interface.id, html_name))
+      template = '\n  $RENAME$METADATA$STATIC $TYPE $NAME;\n'
       self._members_emitter.Emit(
-          '\n  $RENAME$METADATA$TYPE $NAME;'
-          '\n',
+          template,
           RENAME=rename,
           METADATA=metadata,
+          STATIC=static_attribute,
           NAME=html_name,
           TYPE=output_type)
     else:
@@ -1165,6 +1166,7 @@ class Dart2JSBackend(HtmlDartGenerator):
                                      PROMISE_CALL=promiseCall,
                                      NAME=html_name)
       else:
+        template = '\n  $RENAME$(ANNOTATIONS)$STATIC final $TYPE $NAME;\n'
         # Need to use a getter for list.length properties so we can add a
         # setter which throws an exception, satisfying List API.
         if self._interface_type_info.list_item_type() and html_name == 'length':
@@ -1174,6 +1176,7 @@ class Dart2JSBackend(HtmlDartGenerator):
             template,
             RENAME=rename,
             ANNOTATIONS=metadata,
+            STATIC=static_attribute,
             NAME=html_name,
             TYPE=input_type if output_type == 'double' else output_type)
 

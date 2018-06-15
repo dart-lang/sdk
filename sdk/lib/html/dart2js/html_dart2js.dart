@@ -3433,6 +3433,10 @@ class CanvasRenderingContext2D extends Interceptor
   @Experimental() // untriaged
   void drawFocusIfNeeded(element_OR_path, [Element element]) native;
 
+  @DomName('CanvasRenderingContext2D.fill')
+  @DocsEditable()
+  void fill([path_OR_winding, String winding]) native;
+
   @DomName('CanvasRenderingContext2D.fillRect')
   @DocsEditable()
   void fillRect(num x, num y, num width, num height) native;
@@ -3920,11 +3924,6 @@ class CanvasRenderingContext2D extends Interceptor
     } else {
       JS('void', '#.fillText(#, #, #)', this, text, x, y);
     }
-  }
-
-  @DomName('CanvasRenderingContext2D.fill')
-  void fill([String winding = 'nonzero']) {
-    JS('void', '#.fill(#)', this, winding);
   }
 
   /** Deprecated always returns 1.0 */
@@ -4603,7 +4602,7 @@ class Css extends Interceptor {
   @DomName('CSS.paintWorklet')
   @DocsEditable()
   @Experimental() // untriaged
-  final _Worklet paintWorklet;
+  static final _Worklet paintWorklet;
 
   @DomName('CSS.Hz')
   @DocsEditable()
@@ -29831,11 +29830,11 @@ class Notification extends EventTarget {
   @DomName('Notification.maxActions')
   @DocsEditable()
   @Experimental() // untriaged
-  final int maxActions;
+  static final int maxActions;
 
   @DomName('Notification.permission')
   @DocsEditable()
-  final String permission;
+  static final String permission;
 
   @DomName('Notification.renotify')
   @DocsEditable()
@@ -33417,7 +33416,7 @@ class PushManager extends Interceptor {
   @DomName('PushManager.supportedContentEncodings')
   @DocsEditable()
   @Experimental() // untriaged
-  final List<String> supportedContentEncodings;
+  static final List<String> supportedContentEncodings;
 
   @DomName('PushManager.getSubscription')
   @DocsEditable()
@@ -37362,12 +37361,19 @@ class SpeechRecognitionResult extends Interceptor {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@DocsEditable()
 @DomName('SpeechSynthesis')
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section
 @Experimental()
 @Native("SpeechSynthesis")
 class SpeechSynthesis extends EventTarget {
+  @DomName('SpeechSynthesis.getVoices')
+  @DocsEditable()
+  List<SpeechSynthesisVoice> getVoices() {
+    List<SpeechSynthesisVoice> voices = _getVoices();
+    if (voices.length > 0) applyExtension('SpeechSynthesisVoice', voices[0]);
+    return voices;
+  }
+
   // To suppress missing implicit constructor warnings.
   factory SpeechSynthesis._() {
     throw new UnsupportedError("Not supported");
@@ -37389,9 +37395,10 @@ class SpeechSynthesis extends EventTarget {
   @DocsEditable()
   void cancel() native;
 
+  @JSName('getVoices')
   @DomName('SpeechSynthesis.getVoices')
   @DocsEditable()
-  List<SpeechSynthesisVoice> getVoices() native;
+  List<SpeechSynthesisVoice> _getVoices() native;
 
   @DomName('SpeechSynthesis.pause')
   @DocsEditable()
@@ -51735,7 +51742,7 @@ Element querySelector(String selectors) => document.querySelector(selectors);
  * For details about CSS selector syntax, see the
  * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
  */
-ElementList<Element> querySelectorAll(String selectors) =>
+ElementList<T> querySelectorAll<T extends Element>(String selectors) =>
     document.querySelectorAll(selectors);
 
 /// A utility for changing the Dart wrapper type for elements.
