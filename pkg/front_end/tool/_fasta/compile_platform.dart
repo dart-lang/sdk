@@ -56,13 +56,15 @@ Future main(List<String> arguments) async {
 Future compilePlatform(List<String> arguments) async {
   await withGlobalOptions("compile_platform", arguments, false,
       (CompilerContext c, List<String> restArguments) {
-    Uri outlineOutput = Uri.base.resolveUri(new Uri.file(restArguments.last));
-    return compilePlatformInternal(c, c.options.output, outlineOutput);
+    Uri hostPlatform = Uri.base.resolveUri(new Uri.file(restArguments[2]));
+    Uri outlineOutput = Uri.base.resolveUri(new Uri.file(restArguments[4]));
+    return compilePlatformInternal(
+        c, c.options.output, outlineOutput, hostPlatform);
   });
 }
 
-Future compilePlatformInternal(
-    CompilerContext c, Uri fullOutput, Uri outlineOutput) async {
+Future compilePlatformInternal(CompilerContext c, Uri fullOutput,
+    Uri outlineOutput, Uri hostPlatform) async {
   if (c.options.verbose) {
     print("Generating outline of ${c.options.sdkRoot} into $outlineOutput");
     print("Compiling ${c.options.sdkRoot} to $fullOutput");
@@ -89,8 +91,7 @@ Future compilePlatformInternal(
   c.options.ticker.logMs("Wrote component to ${fullOutput.toFilePath()}");
 
   List<Uri> deps = result.deps.toList();
-  for (Uri dependency
-      in await computeHostDependencies(outlineOutput.resolve("./"))) {
+  for (Uri dependency in await computeHostDependencies(hostPlatform)) {
     // Add the dependencies of the compiler's own sources.
     if (dependency != outlineOutput) {
       // We're computing the dependencies for [outlineOutput], so we shouldn't
@@ -102,13 +103,12 @@ Future compilePlatformInternal(
       fullOutput, new File(new File.fromUri(fullOutput).path + ".d").uri, deps);
 }
 
-Future<List<Uri>> computeHostDependencies(Uri platformLocation) async {
+Future<List<Uri>> computeHostDependencies(Uri hostPlatform) async {
   // Returns a list of source files that make up the Fasta compiler (the files
   // the Dart VM reads to run Fasta). Until Fasta is self-hosting (in strong
   // mode), this is only an approximation, albeit accurate.  Once Fasta is
   // self-hosting, this isn't an approximation. Regardless, strong mode
   // shouldn't affect which files are read.
-  Uri hostPlatform = platformLocation.resolve("vm_outline_strong.dill");
   Target hostTarget = getTarget("vm", new TargetFlags(strongMode: true));
   return getDependencies(Platform.script,
       platform: hostPlatform, target: hostTarget);

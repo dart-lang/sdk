@@ -313,9 +313,9 @@ ProcessedOptions analyzeCommandLine(
   }
 
   if (programName == "compile_platform") {
-    if (arguments.length != 4) {
+    if (arguments.length != 5) {
       return throw new CommandLineProblem.deprecated(
-          "Expected four arguments.");
+          "Expected five arguments.");
     }
     if (compileSdk) {
       return throw new CommandLineProblem.deprecated(
@@ -343,7 +343,7 @@ ProcessedOptions analyzeCommandLine(
           ..verbose = verbose
           ..verify = verify,
         <Uri>[Uri.parse(arguments[0])],
-        resolveInputUri(arguments[2], extraSchemes: extraSchemes));
+        resolveInputUri(arguments[3], extraSchemes: extraSchemes));
   } else if (arguments.isEmpty) {
     return throw new CommandLineProblem.deprecated("No Dart file specified.");
   }
@@ -445,7 +445,8 @@ Message computeUsage(String programName, bool verbose) {
     case "compile_platform":
       summary = "Compiles Dart SDK platform to the Dill/Kernel IR format.";
       basicUsage = "Usage: $programName [options]"
-          " dart-library-uri libraries.json platform.dill outline.dill\n";
+          " dart-library-uri libraries.json vm_outline_strong.dill"
+          " platform.dill outline.dill\n";
   }
   StringBuffer sb = new StringBuffer(basicUsage);
   if (summary != null) {

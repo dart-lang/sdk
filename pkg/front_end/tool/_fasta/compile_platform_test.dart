@@ -27,6 +27,7 @@ main(List<String> arguments) {
         "--strong",
         "dart:core",
         librariesJson.toFilePath(),
+        outlineDill.toFilePath(),
         platformDill.toFilePath(),
         outlineDill.toFilePath(),
       ]);

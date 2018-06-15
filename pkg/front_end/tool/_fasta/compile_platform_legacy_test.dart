@@ -26,6 +26,7 @@ main(List<String> arguments) {
         "-v",
         "dart:core",
         librariesJson.toFilePath(),
+        outlineDill.toFilePath(),
         platformDill.toFilePath(),
         outlineDill.toFilePath(),
       ]);
