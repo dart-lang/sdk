@@ -255,8 +255,7 @@ class Address : public ValueObject {
         return kUnsignedWord;
       case kTypedDataInt64ArrayCid:
       case kTypedDataUint64ArrayCid:
-        UNREACHABLE();
-        return kByte;
+        return kDWord;
       case kTypedDataFloat32ArrayCid:
         return kSWord;
       case kTypedDataFloat64ArrayCid:

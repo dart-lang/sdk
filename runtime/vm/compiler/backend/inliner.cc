@@ -3104,6 +3104,7 @@ bool FlowGraphInliner::TryReplaceInstanceCallWithInline(
     }
     // Replace all uses of this definition with the result.
     if (call->HasUses()) {
+      ASSERT(last->IsDefinition());
       call->ReplaceUsesWith(last->AsDefinition());
     }
     // Finally insert the sequence other definition in place of this one in the
@@ -3359,17 +3360,19 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
                               can_speculate);
     case MethodRecognizer::kInt32ArrayGetIndexed:
     case MethodRecognizer::kUint32ArrayGetIndexed:
-      if (!CanUnboxInt32()) return false;
+      if (!CanUnboxInt32()) {
+        return false;
+      }
       return InlineGetIndexed(flow_graph, kind, call, receiver, entry, last,
                               can_speculate);
-
     case MethodRecognizer::kInt64ArrayGetIndexed:
       if (!ShouldInlineInt64ArrayOps()) {
         return false;
       }
       return InlineGetIndexed(flow_graph, kind, call, receiver, entry, last,
                               can_speculate);
-
+    case MethodRecognizer::kUint64ArrayGetIndexed:
+      break;  // TODO(ajcbik): do this too?
     default:
       break;
   }
@@ -3416,6 +3419,8 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
       }
       return InlineSetIndexed(flow_graph, kind, target, call, receiver,
                               token_pos, /* value_check = */ NULL, entry, last);
+    case MethodRecognizer::kUint64ArraySetIndexed:
+      return false;  // TODO(ajcbik): do this too?
     case MethodRecognizer::kFloat32ArraySetIndexed:
     case MethodRecognizer::kFloat64ArraySetIndexed: {
       if (!CanUnboxDouble()) {

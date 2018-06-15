@@ -54,6 +54,22 @@ bool Intrinsifier::CanIntrinsify(const Function& function) {
     }
     return false;
   }
+  switch (function.recognized_kind()) {
+    case MethodRecognizer::kInt64ArrayGetIndexed:
+    case MethodRecognizer::kInt64ArraySetIndexed:
+    case MethodRecognizer::kUint64ArrayGetIndexed:
+    case MethodRecognizer::kUint64ArraySetIndexed:
+      // TODO(ajcbik): consider 32-bit as well.
+      if (kBitsPerWord == 64 && FlowGraphCompiler::SupportsUnboxedInt64()) {
+        break;
+      }
+      if (FLAG_trace_intrinsifier) {
+        THR_Print("No, 64-bit int intrinsic on 32-bit platform.\n");
+      }
+      return false;
+    default:
+      break;
+  }
   if (FLAG_trace_intrinsifier) {
     THR_Print("Yes.\n");
   }
@@ -523,6 +539,11 @@ static bool IntrinsifyArrayGetIndexed(FlowGraph* flow_graph,
     case kTypedDataUint16ArrayCid:
       // Nothing to do.
       break;
+    case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid:
+      result = builder.AddDefinition(
+          BoxInstr::Create(kUnboxedInt64, new Value(result)));
+      break;
     default:
       UNREACHABLE();
       break;
@@ -572,6 +593,12 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
       value = builder.AddUnboxInstr(kUnboxedUint32, new Value(value),
                                     /* is_checked = */ false);
       break;
+    case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid:
+      value = builder.AddUnboxInstr(kUnboxedInt64, new Value(value),
+                                    /* is_checked = */ false);
+      break;
+
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
     case kTypedDataFloat32x4ArrayCid:
@@ -660,6 +687,8 @@ DEFINE_ARRAY_GETTER_SETTER_INTRINSICS(Int16Array)
 DEFINE_ARRAY_GETTER_SETTER_INTRINSICS(Uint16Array)
 DEFINE_ARRAY_GETTER_SETTER_INTRINSICS(Int32Array)
 DEFINE_ARRAY_GETTER_SETTER_INTRINSICS(Uint32Array)
+DEFINE_ARRAY_GETTER_SETTER_INTRINSICS(Int64Array)
+DEFINE_ARRAY_GETTER_SETTER_INTRINSICS(Uint64Array)
 
 #undef DEFINE_ARRAY_GETTER_SETTER_INTRINSICS
 #undef DEFINE_ARRAY_GETTER_INTRINSIC

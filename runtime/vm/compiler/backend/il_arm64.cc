@@ -1047,6 +1047,7 @@ Representation LoadIndexedInstr::representation() const {
     case kTypedDataUint32ArrayCid:
       return kUnboxedUint32;
     case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid:
       return kUnboxedInt64;
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
@@ -1200,7 +1201,8 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   if (representation() == kUnboxedInt64) {
-    ASSERT(class_id() == kTypedDataInt64ArrayCid);
+    ASSERT(class_id() == kTypedDataInt64ArrayCid ||
+           class_id() == kTypedDataUint64ArrayCid);
     Register result = locs()->out(0).reg();
     if (aligned()) {
       __ ldr(result, element_address, kDoubleWord);
@@ -1336,6 +1338,7 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
     case kTypedDataUint32ArrayCid:
       return kUnboxedUint32;
     case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid:
       return kUnboxedInt64;
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
@@ -1380,6 +1383,8 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
     case kTypedDataUint16ArrayCid:
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid:
+    case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid:
       locs->set_in(2, Location::RequiresRegister());
       break;
     case kTypedDataFloat32ArrayCid:
@@ -1505,6 +1510,16 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ str(value, element_address, kUnsignedWord);
       } else {
         __ StoreUnaligned(value, address, scratch, kUnsignedWord);
+      }
+      break;
+    }
+    case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid: {
+      const Register value = locs()->in(2).reg();
+      if (aligned()) {
+        __ str(value, element_address, kDoubleWord);
+      } else {
+        __ StoreUnaligned(value, address, scratch, kDoubleWord);
       }
       break;
     }

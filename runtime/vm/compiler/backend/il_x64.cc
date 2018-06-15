@@ -1093,8 +1093,8 @@ CompileType LoadIndexedInstr::ComputeType() const {
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid:
       return CompileType::FromCid(kSmiCid);
-
     case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid:
       return CompileType::Int();
 
     default:
@@ -1124,6 +1124,7 @@ Representation LoadIndexedInstr::representation() const {
     case kTypedDataUint32ArrayCid:
       return kUnboxedUint32;
     case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid:
       return kUnboxedInt64;
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
@@ -1229,7 +1230,8 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   if (representation() == kUnboxedInt64) {
-    ASSERT(class_id() == kTypedDataInt64ArrayCid);
+    ASSERT(class_id() == kTypedDataInt64ArrayCid ||
+           class_id() == kTypedDataUint64ArrayCid);
     if ((index_scale() == 1) && index.IsRegister()) {
       __ SmiUntag(index.reg());
     }
@@ -1361,6 +1363,7 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
     case kTypedDataUint32ArrayCid:
       return kUnboxedUint32;
     case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid:
       return kUnboxedInt64;
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
@@ -1421,6 +1424,7 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid:
     case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid:
       locs->set_in(2, Location::RequiresRegister());
       break;
     case kTypedDataFloat32ArrayCid:
@@ -1525,7 +1529,8 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ movl(element_address, value);
       break;
     }
-    case kTypedDataInt64ArrayCid: {
+    case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid: {
       Register value = locs()->in(2).reg();
       __ movq(element_address, value);
       break;
