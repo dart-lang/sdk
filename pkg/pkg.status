@@ -166,7 +166,6 @@ analyzer/test/src/summary/expr_builder_test: StaticWarning, Pass
 analyzer/test/src/summary/resynthesize_ast_test: StaticWarning, Pass
 analyzer/test/src/summary/resynthesize_kernel_test: StaticWarning, Pass
 front_end/test/incremental_dart2js_load_from_dill_test: StaticWarning, Pass
-front_end/test/incremental_load_from_dill_test: StaticWarning, Pass
 
 # ILLEGAL_ASYNC_RETURN_TYPE warnings
 [ $compiler == dart2analyzer && !$preview_dart_2 && !$strong && ($system == macos || $system == windows) ]
@@ -175,7 +174,6 @@ analyzer/test/src/summary/expr_builder_test: StaticWarning
 analyzer/test/src/summary/resynthesize_ast_test: StaticWarning
 analyzer/test/src/summary/resynthesize_kernel_test: StaticWarning
 front_end/test/incremental_dart2js_load_from_dill_test: StaticWarning
-front_end/test/incremental_load_from_dill_test: StaticWarning
 
 # Analyze dev_compiler but only run its tests on the vm
 [ $compiler != dart2analyzer && $runtime != vm ]
