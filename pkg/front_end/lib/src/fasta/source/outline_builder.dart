@@ -316,7 +316,7 @@ class OutlineBuilder extends StackListener {
     debugEvent("endLiteralString");
     if (interpolationCount == 0) {
       Token token = pop();
-      push(unescapeString(token.lexeme));
+      push(unescapeString(token.lexeme, token, this));
       push(token.charOffset);
     } else {
       Token beginToken = pop();

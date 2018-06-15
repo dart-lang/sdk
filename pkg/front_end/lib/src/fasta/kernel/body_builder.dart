@@ -1560,7 +1560,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     debugEvent("endLiteralString");
     if (interpolationCount == 0) {
       Token token = pop();
-      String value = unescapeString(token.lexeme);
+      String value = unescapeString(token.lexeme, token, this);
       push(forest.literalString(value, token));
     } else {
       var count = 1 + interpolationCount * 2;
@@ -1572,7 +1572,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       List<Expression> expressions = <Expression>[];
       // Contains more than just \' or \".
       if (first.lexeme.length > 1) {
-        String value = unescapeFirstStringPart(first.lexeme, quote);
+        String value =
+            unescapeFirstStringPart(first.lexeme, quote, first, this);
         if (value.isNotEmpty) {
           expressions.add(forest.literalString(value, first));
         }
@@ -1581,7 +1582,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         var part = parts[i];
         if (part is Token) {
           if (part.lexeme.length != 0) {
-            String value = unescape(part.lexeme, quote);
+            String value = unescape(part.lexeme, quote, part, this);
             expressions.add(forest.literalString(value, part));
           }
         } else {
@@ -1590,7 +1591,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       }
       // Contains more than just \' or \".
       if (last.lexeme.length > 1) {
-        String value = unescapeLastStringPart(last.lexeme, quote);
+        String value = unescapeLastStringPart(last.lexeme, quote, last, this);
         if (value.isNotEmpty) {
           expressions.add(forest.literalString(value, last));
         }

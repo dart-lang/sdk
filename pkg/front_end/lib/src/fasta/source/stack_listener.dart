@@ -298,7 +298,7 @@ abstract class StackListener extends Listener {
     debugEvent("endLiteralString");
     if (interpolationCount == 0) {
       Token token = pop();
-      push(unescapeString(token.lexeme));
+      push(unescapeString(token.lexeme, token, this));
     } else {
       unimplemented("string interpolation", endToken.charOffset, uri);
     }

@@ -215,7 +215,7 @@ class AstBuilder extends StackListener {
       Quote quote = analyzeQuote(first.lexeme);
       List<InterpolationElement> elements = <InterpolationElement>[];
       elements.add(ast.interpolationString(
-          first, unescapeFirstStringPart(first.lexeme, quote)));
+          first, unescapeFirstStringPart(first.lexeme, quote, first, this)));
       for (int i = 1; i < parts.length - 1; i++) {
         var part = parts[i];
         if (part is Token) {
@@ -228,7 +228,7 @@ class AstBuilder extends StackListener {
         }
       }
       elements.add(ast.interpolationString(
-          last, unescapeLastStringPart(last.lexeme, quote)));
+          last, unescapeLastStringPart(last.lexeme, quote, last, this)));
       push(ast.stringInterpolation(elements));
     }
   }

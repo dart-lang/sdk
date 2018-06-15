@@ -391,7 +391,8 @@ class DietListener extends StackListener {
     // Native imports must be skipped because they aren't assigned corresponding
     // LibraryDependency nodes.
     Token importUriToken = importKeyword.next;
-    String importUri = unescapeString(importUriToken.lexeme);
+    String importUri =
+        unescapeString(importUriToken.lexeme, importUriToken, this);
     if (importUri.startsWith("dart-ext:")) return;
 
     Library libraryNode = library.target;

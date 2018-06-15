@@ -341,7 +341,6 @@ SourceOutlineSummary/analyzerCode: Fail
 SourceOutlineSummary/example: Fail
 StackOverflow/example: Fail
 StaticAfterConst/script1: Fail
-StringLiteralError/expression: Fail
 SuperAsExpression/analyzerCode: Fail
 SuperAsExpression/example: Fail
 SuperAsIdentifier/analyzerCode: Fail
