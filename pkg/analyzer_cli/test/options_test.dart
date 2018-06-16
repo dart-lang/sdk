@@ -251,6 +251,17 @@ main() {
         expect(options.useCFE, isTrue);
       });
 
+      test('--use-fasta-parser', () {
+        CommandLineOptions options =
+            CommandLineOptions.parse(['--use-fasta-parser', 'foo.dart']);
+        expect(options.useFastaParser, isTrue);
+      });
+
+      test('--no-use-fasta-parser', () {
+        CommandLineOptions options = CommandLineOptions.parse(['', 'foo.dart']);
+        expect(options.useFastaParser, isFalse);
+      });
+
       test('--preview-dart-2', () {
         CommandLineOptions options =
             CommandLineOptions.parse(['--preview-dart-2', 'foo.dart']);

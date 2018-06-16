@@ -263,6 +263,11 @@ class Driver implements ServerStarter {
   static const String USE_CFE = "use-cfe";
 
   /**
+   * Whether to enable parsing via the Fasta parser.
+   */
+  static const String USE_FASTA_PARSER = "use-fasta-parser";
+
+  /**
    * The instrumentation server that is to be used by the analysis server.
    */
   InstrumentationServer instrumentationServer;
@@ -313,6 +318,7 @@ class Driver implements ServerStarter {
       analysisServerOptions.previewDart2 = true;
     }
     analysisServerOptions.useCFE = results[USE_CFE];
+    analysisServerOptions.useFastaParser = results[USE_FASTA_PARSER];
 
     telemetry.Analytics analytics = telemetry.createAnalyticsInstance(
         'UA-26406144-29', 'analysis-server',
@@ -537,6 +543,8 @@ class Driver implements ServerStarter {
     parser.addFlag(PREVIEW_DART2, help: "Enable the Dart 2.0 preview");
     parser.addFlag(USE_CFE,
         help: "Enable the Dart 2.0 Common Front End implementation");
+    parser.addFlag(USE_FASTA_PARSER,
+        help: "Whether to enable parsing via the Fasta parser");
 
     return parser;
   }

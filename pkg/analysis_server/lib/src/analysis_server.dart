@@ -372,7 +372,8 @@ class AnalysisServer {
         new PluginWatcher(resourceProvider, pluginManager);
 
     defaultContextOptions.generateImplicitErrors = false;
-    defaultContextOptions.useFastaParser = options.useCFE;
+    defaultContextOptions.useFastaParser =
+        options.useCFE || options.useFastaParser;
     defaultContextOptions.previewDart2 = options.previewDart2;
 
     {
@@ -1189,6 +1190,11 @@ class AnalysisServerOptions {
    * Whether to enable the Dart 2.0 Common Front End implementation.
    */
   bool useCFE = false;
+
+  /**
+   * Whether to enable parsing via the Fasta parser.
+   */
+  bool useFastaParser = false;
 }
 
 /**

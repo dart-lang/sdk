@@ -114,6 +114,9 @@ class CommandLineOptions {
   /// Whether to enable the Dart 2.0 Common Front End.
   final bool useCFE;
 
+  /// Whether to enable parsing via the Fasta parser.
+  final bool useFastaParser;
+
   /// Whether to enable the Dart 2.0 Preview.
   final bool previewDart2;
 
@@ -187,6 +190,7 @@ class CommandLineOptions {
         machineFormat = args['format'] == 'machine',
         perfReport = args['x-perf-report'],
         useCFE = args['use-cfe'],
+        useFastaParser = args['use-fasta-parser'],
         previewDart2 = args['preview-dart-2'],
         batchMode = args['batch'],
         showPackageWarnings = args['show-package-warnings'] ||
@@ -509,7 +513,10 @@ class CommandLineOptions {
           help:
               'Enable the Dart 2.0 Common Front End implementation (experimental).',
           defaultsTo: false,
-          negatable: false,
+          hide: hide)
+      ..addFlag('use-fasta-parser',
+          help: 'Whether to enable parsing via the Fasta parser.',
+          defaultsTo: false,
           hide: hide)
       ..addFlag('preview-dart-2',
           help: 'Enable the Dart 2.0 preview.',
