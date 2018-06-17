@@ -147,6 +147,7 @@ io/web_socket_test: Skip # Timeout
 
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
 io/compile_all_test: Crash # Issue 32373
+io/directory_test: Crash # Issue 33475
 io/raw_socket_test: Crash
 io/skipping_dart2js_compilations_test: Crash
 io/socket_exception_test: Pass, Crash
