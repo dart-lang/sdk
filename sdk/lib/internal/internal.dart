@@ -12,7 +12,8 @@ import 'dart:async'
         Stream,
         StreamSubscription,
         StreamTransformer,
-        StreamTransformerBase;
+        StreamTransformerBase,
+        Zone;
 import 'dart:convert' show Converter;
 import 'dart:core' hide Symbol;
 import 'dart:core' as core;
