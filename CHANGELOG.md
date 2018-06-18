@@ -40,6 +40,11 @@ allowed when `exp` has type `void`.
 
 ### Core library changes
 
+* `dart:core`
+  * `int.parse` on the VM no longer accepts unsigned hexadecimal numbers
+    greater than or equal to 2**63 when not prefixed by `0x`.
+    (SDK issue [32858](https://github.com/dart-lang/sdk/issues/32858))
+
 ## 2.0.0-dev.63.0
 
 ### Tool Changes

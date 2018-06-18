@@ -99,8 +99,8 @@ void main() {
   Expect.equals(1, int.tryParse("\n1\n", radix: 2));
   Expect.equals(1, int.tryParse("+1", radix: 2));
 
-  void testFails(String source, int radix) {
-    Expect.isNull(int.tryParse(source, radix: radix));
+  void testFails(String source, int radix, [String message]) {
+    Expect.isNull(int.tryParse(source, radix: radix), message);
   }
 
   for (int i = 2; i < 36; i++) {
@@ -117,6 +117,7 @@ void main() {
     // At radix 34 and above, "x" is a valid digit.
     testFails("0x10", i);
   }
+
   int digitX = 33;
   Expect.equals(((digitX * 34) + 1) * 34, int.tryParse("0x10", radix: 34));
   Expect.equals(((digitX * 35) + 1) * 35, int.tryParse("0x10", radix: 35));
@@ -126,4 +127,22 @@ void main() {
   Expect.throwsArgumentError(() => int.tryParse("0", radix: 0));
   Expect.throwsArgumentError(() => int.tryParse("0", radix: -1));
   Expect.throwsArgumentError(() => int.tryParse("0", radix: 37));
+
+  // Regression test for http://dartbug.com/32858
+  Expect.equals(
+      -0x8000000000000000, int.tryParse("-0x8000000000000000"), "-minint");
+
+  // Tests run only with 64-bit integers.
+  if (0x8000000000000000 < 0) {
+    // `int` is 64-bit signed integers.
+    Expect.equals(
+        -0x8000000000000000, int.tryParse("0x8000000000000000"), "0xUnsigned");
+    Expect.equals(-1, int.tryParse("0xFFFFFFFFFFFFFFFF"), "0xUnsigned2");
+
+    Expect.equals(
+        0x8000000000000000 - 1, int.tryParse("0x7FFFFFFFFFFFFFFF"), "maxint");
+    testFails("8000000000000000", 16, "2^63 radix: 16");
+    testFails("FFFFFFFFFFFFFFFF", 16, "maxuint64 radix: 16");
+    testFails("-0xC000000000000000", null, "signed uint64");
+  }
 }

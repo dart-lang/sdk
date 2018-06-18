@@ -4637,7 +4637,7 @@ class Parser {
       Token token = getAndAdvance();
       int value = null;
       try {
-        value = int.parse(token.lexeme.substring(2), radix: 16);
+        value = int.parse(token.lexeme);
       } on FormatException {
         // The invalid format should have been reported by the scanner.
       }
