@@ -60,6 +60,7 @@
 %   invocations of functions marked sync*/async/async*.
 % - Add appendix listing the major differences between 64-bit integers
 %   and JavaScript integers.
+% - Remove appendix on naming conventions.
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -399,7 +400,7 @@ If a declaration $d$ named $n$ is in the namespace induced by a scope $S$, then 
 \commentary{
 A consequence of these rules is that it is possible to hide a type with a method or variable.
 Naming conventions usually prevent such abuses.
-Nevertheless,the following program is legal:
+Nevertheless, the following program is legal:
 }
 
 \begin{dartCode}
@@ -10458,31 +10459,6 @@ Assignment & =, *=, /=, +=, -= ,\&=, \^{}= etc. & Right & 1\\
 \end{tabular}
 }
 
-
-\section*{Appendix: Naming Conventions}
-\LMLabel{namingConventions}
-
-\commentary{
-The following naming conventions are customary in Dart programs.
-\begin{itemize}
-\item The names of compile-time constant variables never use lower case letters.
-If they consist of multiple words, those words are separated by underscores.
-Examples: PI, I\_AM\_A\_CONSTANT.
-\item The names of functions (including getters, setters, methods and local or library functions) and non-constant variables begin with a lowercase letter.
-If the name consists of multiple words, each word (except the first) begins with an uppercase letter.
-No other uppercase letters are used.
-Examples: camlCase, dart4TheWorld
-\item The names of types (including classes and type aliases) begin with an upper case letter.
-If the name consists of multiple words, each word begins with an uppercase letter.
-No other uppercase letters are used.
-Examples: CamlCase, Dart4TheWorld.
-\item The names of type variables are short (preferably single letter).
-Examples: T, S, K, V , E.
-\item The names of libraries or library prefixes never use upper case letters.
-If they consist of multiple words, those words are separated by underscores.
-Example: my\_favorite\_library.
-\end{itemize}
-}
 
 \section*{Appendix: Integer Implementations}
 \LMLabel{integerImplementations}
