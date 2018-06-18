@@ -6998,14 +6998,12 @@ Language/Expressions/Assignment/no_such_method_t08: RuntimeError
 Language/Expressions/Assignment/no_such_method_t09: RuntimeError
 Language/Expressions/Constants/bitwise_operators_t05: MissingCompileTimeError
 Language/Expressions/Constants/depending_on_itself_t03: Crash
-Language/Expressions/Constants/exception_t01: MissingCompileTimeError # Larger than 64 bit int
 Language/Expressions/Constants/exception_t02: Pass
 Language/Expressions/Constants/literal_number_t01: CompileTimeError # Larger than 64 bit int
 Language/Expressions/Constants/logical_expression_t04: MissingCompileTimeError
 Language/Expressions/Constants/math_operators_t01: CompileTimeError # Larger than 64 bit int
 Language/Expressions/Constants/math_operators_t06: CompileTimeError # Larger than 64 bit int
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t04: Crash
-Language/Expressions/Instance_Creation/Const/exception_t01: MissingCompileTimeError
 Language/Expressions/Method_Invocation/Ordinary_Invocation/evaluation_t08: RuntimeError
 Language/Expressions/Method_Invocation/Super_Invocation/accessible_instance_member_t02: Crash
 Language/Expressions/Method_Invocation/Super_Invocation/evaluation_t05: RuntimeError

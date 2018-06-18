@@ -215,6 +215,7 @@ enum MessageKind {
   INVALID_CONSTANT_COMPLEMENT_TYPE,
   INVALID_CONSTANT_CONDITIONAL_TYPE,
   INVALID_CONSTANT_CONSTRUCTOR,
+  INVALID_CONSTANT_DIV,
   INVALID_CONSTANT_INDEX,
   INVALID_CONSTANT_INTERPOLATION_TYPE,
   INVALID_CONSTANT_NEGATE_TYPE,
@@ -222,6 +223,7 @@ enum MessageKind {
   INVALID_CONSTANT_NUM_ADD_TYPE,
   INVALID_CONSTANT_STRING_ADD_TYPE,
   INVALID_CONSTANT_STRING_LENGTH_TYPE,
+  INVALID_CONSTANT_SHIFT,
   INVALID_CONSTRUCTOR_ARGUMENTS,
   INVALID_CONSTRUCTOR_NAME,
   INVALID_CONTINUE,
@@ -3500,6 +3502,15 @@ part of test.main;
           MessageKind.INVALID_CONSTANT_STRING_LENGTH_TYPE,
           "`#{constant}` of type '#{type}' is not a valid operand for a "
           ".length expression. Must be a value of type 'String'."),
+
+      MessageKind.INVALID_CONSTANT_SHIFT: const MessageTemplate(
+          MessageKind.INVALID_CONSTANT_SHIFT,
+          "Shift amount must be non-negative in "
+          "`#{left} #{operator} #{right}`."),
+
+      MessageKind.INVALID_CONSTANT_DIV: const MessageTemplate(
+          MessageKind.INVALID_CONSTANT_DIV,
+          "Divisor must be non-zero in `#{left} #{operator} #{right}`."),
 
       MessageKind.INVALID_CONSTANT_NUM_ADD_TYPE: const MessageTemplate(
           MessageKind.INVALID_CONSTANT_NUM_ADD_TYPE,
