@@ -753,23 +753,29 @@ class OverlayTestSupport {
       String content,
       String path,
       bool withOverlay = false}) {
+    if (path == null) {
+      path = defaultFilePath;
+    } else {
+      path = baseProvider.convertPath(path);
+    }
     if (exists) {
-      baseProvider.newFile(
-          baseProvider.convertPath(path) ?? defaultFilePath, content ?? 'a');
+      baseProvider.newFile(path, content ?? 'a');
     }
     if (withOverlay) {
-      provider.setOverlay(baseProvider.convertPath(path) ?? defaultFilePath,
-          content: 'bbb', modificationStamp: 42);
+      provider.setOverlay(path, content: 'bbb', modificationStamp: 42);
     }
-    return provider.getFile(baseProvider.convertPath(path) ?? defaultFilePath);
+    return provider.getFile(path);
   }
 
   Folder _folder({@required bool exists, String path}) {
-    if (exists) {
-      baseProvider
-          .newFolder(baseProvider.convertPath(path) ?? defaultFolderPath);
+    if (path == null) {
+      path = defaultFolderPath;
+    } else {
+      path = baseProvider.convertPath(path);
     }
-    return provider
-        .getFolder(baseProvider.convertPath(path) ?? defaultFolderPath);
+    if (exists) {
+      baseProvider.newFolder(path);
+    }
+    return provider.getFolder(path);
   }
 }
