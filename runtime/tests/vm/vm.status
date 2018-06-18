@@ -100,6 +100,7 @@ dart/spawn_shutdown_test: Skip # OOM crash can bring down the OS.
 
 [ $system == windows ]
 cc/CorelibCompilerStats: Skip
+cc/Profiler_ContextAllocation: Fail, Pass # Flaky on Windows --- sometimes give "profiler_test.cc: 1107: error: expected: !walker.Down()"
 cc/Service_Profile: Skip
 
 [ !$strong ]
@@ -206,7 +207,6 @@ cc/IsolateReload_LibraryLookup: Fail, Crash
 
 [ $compiler == dartk && $system == windows ]
 cc/IsolateReload_LibraryLookup: Fail, Crash
-cc/Profiler_ContextAllocation: Fail, Pass # Flaky on Windows --- sometimes give "profiler_test.cc: 1107: error: expected: !walker.Down()"
 cc/Profiler_FunctionTicks: Fail, Pass
 cc/Profiler_ToggleRecordAllocation: Fail, Pass
 cc/Profiler_TrivialRecordAllocation: Fail, Pass
