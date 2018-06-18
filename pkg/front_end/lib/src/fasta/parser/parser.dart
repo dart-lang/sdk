@@ -3951,7 +3951,7 @@ class Parser {
     Token mark;
     do {
       mark = token;
-      if (optional('.', next)) {
+      if (optional('.', next) || optional('?.', next)) {
         Token period = next;
         token = parseSend(next, IdentifierContext.expressionContinuation);
         next = token.next;
