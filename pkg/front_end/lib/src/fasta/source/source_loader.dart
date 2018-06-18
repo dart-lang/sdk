@@ -715,11 +715,15 @@ class SourceLoader<L> extends Loader<L> {
   void addNoSuchMethodForwarders(List<SourceClassBuilder> sourceClasses) {
     if (!target.backendTarget.enableNoSuchMethodForwarders) return;
 
+    List<Class> changedClasses = new List<Class>();
     for (SourceClassBuilder builder in sourceClasses) {
       if (builder.library.loader == this) {
-        builder.addNoSuchMethodForwarders(target, hierarchy);
+        if (builder.addNoSuchMethodForwarders(target, hierarchy)) {
+          changedClasses.add(builder.target);
+        }
       }
     }
+    hierarchy.applyMemberChanges(changedClasses, findDescendants: true);
     ticker.logMs("Added noSuchMethod forwarders");
   }
 

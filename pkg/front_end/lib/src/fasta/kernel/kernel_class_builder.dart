@@ -435,10 +435,12 @@ abstract class KernelClassBuilder
     cloned.parent = cls;
   }
 
-  void addNoSuchMethodForwarders(
+  /// Adds noSuchMethod forwarding stubs to this class. Returns `true` if the
+  /// class was modified.
+  bool addNoSuchMethodForwarders(
       KernelTarget target, ClassHierarchy hierarchy) {
     if (!hasUserDefinedNoSuchMethod(cls, hierarchy)) {
-      return;
+      return false;
     }
 
     Set<Name> existingForwardersNames = new Set<Name>();
@@ -488,6 +490,7 @@ abstract class KernelClassBuilder
     Member noSuchMethod = ClassHierarchy.findMemberByName(
         hierarchy.getInterfaceMembers(cls), noSuchMethodName);
 
+    bool changed = false;
     for (Member member in hierarchy.getInterfaceMembers(cls)) {
       if (member is Procedure &&
           ClassHierarchy.findMemberByName(concrete, member.name) == null &&
@@ -500,6 +503,7 @@ abstract class KernelClassBuilder
               noSuchMethod, target, member, hierarchy);
         }
         existingForwardersNames.add(member.name);
+        changed = true;
       }
     }
 
@@ -521,8 +525,11 @@ abstract class KernelClassBuilder
               noSuchMethod, target, member, hierarchy);
         }
         existingSetterForwardersNames.add(member.name);
+        changed = true;
       }
     }
+
+    return changed;
   }
 
   Uri _getMemberUri(Member member) {

@@ -8,7 +8,7 @@ var result;
 
 class A {
   set foo(int a);
-  
+
   noSuchMethod(im) {
     result = 42;
   }
@@ -24,5 +24,5 @@ class B extends A {
 
 main() {
   new B().foo = 0;
-  Expect.equals(42, result);
+  Expect.equals(87, result);
 }

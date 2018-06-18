@@ -163,13 +163,9 @@ string_split_test: CompileTimeError
 string_supertype_checked_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
 super_call4_test/01: MissingCompileTimeError
-super_no_such_method1_test: RuntimeError
-super_no_such_method2_test: RuntimeError
-super_no_such_method3_test: RuntimeError
-super_no_such_method4_test: RuntimeError
-super_operator_index5_test: RuntimeError
-super_operator_index7_test: RuntimeError
-super_operator_index8_test: RuntimeError
+super_operator_index5_test: RuntimeError # 33470
+super_operator_index7_test: RuntimeError # 33470
+super_operator_index8_test: RuntimeError # 33470
 switch_case_test/none: CompileTimeError
 syntax_test/60: MissingCompileTimeError
 syntax_test/61: MissingCompileTimeError
@@ -558,15 +554,7 @@ string_interpolate_test: CompileTimeError # Issue 31533
 string_split_test: CompileTimeError # Issue 31616
 string_supertype_checked_test: CompileTimeError # Issue 31616
 super_bound_closure_test/none: CompileTimeError # Issue 31533
-super_no_such_method1_test: CompileTimeError
-super_no_such_method2_test: CompileTimeError
-super_no_such_method3_test: CompileTimeError
-super_no_such_method4_test: CompileTimeError
-super_no_such_method5_test: CompileTimeError
-super_operator_index5_test: CompileTimeError
-super_operator_index6_test: CompileTimeError
-super_operator_index7_test: CompileTimeError
-super_operator_index8_test: CompileTimeError
+super_call4_test/01: MissingCompileTimeError
 switch_bad_case_test/01: MissingCompileTimeError
 switch_bad_case_test/02: MissingCompileTimeError
 switch_case_test/00: MissingCompileTimeError

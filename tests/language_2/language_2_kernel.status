@@ -151,15 +151,6 @@ string_interpolation_and_buffer_test: RuntimeError
 string_split_test: CompileTimeError
 string_supertype_checked_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
-super_no_such_method1_test: CompileTimeError
-super_no_such_method2_test: CompileTimeError
-super_no_such_method3_test: CompileTimeError
-super_no_such_method4_test: CompileTimeError
-super_no_such_method5_test: CompileTimeError
-super_operator_index5_test: CompileTimeError
-super_operator_index6_test: CompileTimeError
-super_operator_index7_test: CompileTimeError
-super_operator_index8_test: CompileTimeError
 super_test: RuntimeError
 type_alias_equality_test/02: RuntimeError
 type_alias_equality_test/03: RuntimeError
@@ -630,6 +621,9 @@ mixin_super_2_test/03: MissingCompileTimeError
 mixin_supertype_subclass_test/02: MissingCompileTimeError
 mixin_supertype_subclass_test/05: MissingCompileTimeError
 
+[ $compiler != dart2js && $fasta && $strong ]
+super_call4_test/01: MissingCompileTimeError
+
 [ $compiler == dartk && $mode == debug && $hot_reload ]
 async_star_test/01: Crash
 async_star_test/05: Crash
@@ -811,8 +805,8 @@ mock_writable_final_private_field_test: RuntimeError # Issue 30849
 named_constructor_test/01: MissingRuntimeError # Fasta bug: Bad compilation of constructor reference.
 named_parameters_default_eq_test/none: RuntimeError
 nested_generic_closure_test: RuntimeError
-no_main_test/01: DartkCrash
 no_main_test/01: Skip
+no_main_test/01: DartkCrash
 no_such_method_mock_test: RuntimeError # Issue 31426
 null_no_such_method_test: CompileTimeError # Issue 31533
 override_inheritance_field_test/04: CompileTimeError # Issue 31616
@@ -837,15 +831,7 @@ string_interpolation_and_buffer_test: RuntimeError # Issue 31402 (Return and yie
 string_split_test: CompileTimeError # Issue 31616
 string_supertype_checked_test: CompileTimeError # Issue 31616
 super_bound_closure_test/none: CompileTimeError # Issue 31533
-super_no_such_method1_test: CompileTimeError
-super_no_such_method2_test: CompileTimeError
-super_no_such_method3_test: CompileTimeError
-super_no_such_method4_test: CompileTimeError
-super_no_such_method5_test: CompileTimeError
-super_operator_index5_test: CompileTimeError
-super_operator_index6_test: CompileTimeError
-super_operator_index7_test: CompileTimeError
-super_operator_index8_test: CompileTimeError
+super_call4_test/01: MissingCompileTimeError
 super_test: Fail, OK
 type_literal_test: RuntimeError
 type_promotion_functions_test/02: CompileTimeError # Issue 31537
@@ -1206,15 +1192,6 @@ string_interpolation_and_buffer_test: RuntimeError # Issue 31402 (Return and yie
 string_split_test: CompileTimeError # Issue 31616
 string_supertype_checked_test: CompileTimeError # Issue 31616
 super_bound_closure_test/none: CompileTimeError # Issue 31533
-super_no_such_method1_test: CompileTimeError
-super_no_such_method2_test: CompileTimeError
-super_no_such_method3_test: CompileTimeError
-super_no_such_method4_test: CompileTimeError
-super_no_such_method5_test: CompileTimeError
-super_operator_index5_test: CompileTimeError
-super_operator_index6_test: CompileTimeError
-super_operator_index7_test: CompileTimeError
-super_operator_index8_test: CompileTimeError
 super_test: Fail, OK
 syntax_test/00: MissingCompileTimeError
 type_literal_test: RuntimeError
@@ -1410,15 +1387,6 @@ string_interpolate_test: CompileTimeError
 string_split_test: CompileTimeError
 string_supertype_checked_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
-super_no_such_method1_test: CompileTimeError
-super_no_such_method2_test: CompileTimeError
-super_no_such_method3_test: CompileTimeError
-super_no_such_method4_test: CompileTimeError
-super_no_such_method5_test: CompileTimeError
-super_operator_index5_test: CompileTimeError
-super_operator_index6_test: CompileTimeError
-super_operator_index7_test: CompileTimeError
-super_operator_index8_test: CompileTimeError
 try_catch_test/01: MissingCompileTimeError
 type_promotion_functions_test/02: CompileTimeError
 type_promotion_functions_test/03: CompileTimeError
