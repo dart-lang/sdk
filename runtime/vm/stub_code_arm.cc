@@ -1694,6 +1694,8 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
   __ PopList((1 << R4) | (1 << R9));  // Restore arg desc. and IC data.
   __ LeaveStubFrame();
 
+  // When using the interpreter, the function's code may now point to the
+  // InterpretCall stub. Make sure R0, R4, and R9 are preserved.
   __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
   __ ldr(R2, FieldAddress(R0, Function::entry_point_offset()));
   __ bx(R2);
@@ -2138,7 +2140,10 @@ void StubCode::GenerateJumpToFrameStub(Assembler* assembler) {
 // Does not return.
 void StubCode::GenerateRunExceptionHandlerStub(Assembler* assembler) {
   __ LoadFromOffset(kWord, LR, THR, Thread::resume_pc_offset());
-  __ LoadImmediate(R2, 0);
+
+  ASSERT(Thread::CanLoadFromThread(Object::null_object()));
+  __ LoadFromOffset(kWord, R2, THR,
+                    Thread::OffsetFromThread(Object::null_object()));
 
   // Exception object.
   __ LoadFromOffset(kWord, R0, THR, Thread::active_exception_offset());

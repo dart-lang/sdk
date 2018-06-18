@@ -1621,8 +1621,10 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
   __ popl(EDX);  // Restore arguments descriptor array.
   __ LeaveFrame();
 
-  __ movl(EAX, FieldAddress(EAX, Function::entry_point_offset()));
-  __ jmp(EAX);
+  // When using the interpreter, the function's code may now point to the
+  // InterpretCall stub. Make sure EAX, ECX, and EDX are preserved.
+  __ movl(EBX, FieldAddress(EAX, Function::entry_point_offset()));
+  __ jmp(EBX);
 }
 
 void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
@@ -1868,15 +1870,18 @@ void StubCode::GenerateRunExceptionHandlerStub(Assembler* assembler) {
   ASSERT(kStackTraceObjectReg == EDX);
   __ movl(EBX, Address(THR, Thread::resume_pc_offset()));
 
+  ASSERT(Thread::CanLoadFromThread(Object::null_object()));
+  __ movl(ECX, Address(THR, Thread::OffsetFromThread(Object::null_object())));
+
   // Load the exception from the current thread.
   Address exception_addr(THR, Thread::active_exception_offset());
   __ movl(kExceptionObjectReg, exception_addr);
-  __ movl(exception_addr, Immediate(0));
+  __ movl(exception_addr, ECX);
 
   // Load the stacktrace from the current thread.
   Address stacktrace_addr(THR, Thread::active_stacktrace_offset());
   __ movl(kStackTraceObjectReg, stacktrace_addr);
-  __ movl(stacktrace_addr, Immediate(0));
+  __ movl(stacktrace_addr, ECX);
 
   __ jmp(EBX);  // Jump to continuation point.
 }

@@ -3947,6 +3947,8 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
     RawObject* raw_exception = thread->active_exception();
     RawObject* raw_stacktrace = thread->active_stacktrace();
     ASSERT(raw_exception != Object::null());
+    thread->set_active_exception(Object::null_object());
+    thread->set_active_stacktrace(Object::null_object());
     special_[kExceptionSpecialIndex] = raw_exception;
     special_[kStackTraceSpecialIndex] = raw_stacktrace;
     pc_ = thread->resume_pc();
