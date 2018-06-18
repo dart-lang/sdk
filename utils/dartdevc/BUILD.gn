@@ -123,7 +123,7 @@ dart2js_compile("stack_trace_mapper") {
 
 # Apply dev_compiler's patch files to create the Dart version of the dartdevc
 # SDK.
-dart_action("dartdevc_patch_sdk") {
+prebuilt_dart_action("dartdevc_patch_sdk") {
   vm_args = ["--preview-dart-2"]
 
   # TODO(rnystrom): Unfork DDC's patch_sdk.dart script with the
@@ -166,7 +166,7 @@ dart_action("dartdevc_patch_sdk") {
 
 # Compiles the Dart core libraries and DDC runtime to an analyzer summary and
 # JS.
-dart_action("dartdevc_sdk") {
+prebuilt_dart_action("dartdevc_sdk") {
   vm_args = ["--preview-dart-2"]
 
   deps = [
@@ -264,7 +264,7 @@ create_timestamp_file("dartdevc_sdk_patch_stamp") {
 
 # Compiles the packages used by the tests to JS with dartdevc so that they are
 # available for loading by the tests.
-dart_action("dartdevc_test_pkg") {
+prebuilt_dart_action("dartdevc_test_pkg") {
   vm_args = ["--preview-dart-2"]
 
   deps = [
@@ -327,7 +327,7 @@ dart_action("dartdevc_test_pkg") {
 }
 
 # Compiles the DDC SDK's kernel summary and JS code.
-dart_action("dartdevk_sdk") {
+prebuilt_dart_action("dartdevk_sdk") {
   vm_args = ["--preview-dart-2"]
 
   deps = [
