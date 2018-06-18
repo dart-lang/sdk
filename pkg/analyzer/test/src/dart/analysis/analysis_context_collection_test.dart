@@ -94,6 +94,22 @@ class AnalysisContextCollectionTest extends Object with ResourceProviderMixin {
         same(innerContext));
   }
 
+  test_new_sdkPath_notAbsolute() {
+    expect(
+      () => new AnalysisContextCollectionImpl(
+          includedPaths: ['/root'], sdkPath: 'sdk'),
+      throwsArgumentError,
+    );
+  }
+
+  test_new_sdkPath_notNormalized() {
+    expect(
+      () => new AnalysisContextCollectionImpl(
+          includedPaths: [convertPath('/root')], sdkPath: '/home/sdk/../sdk'),
+      throwsArgumentError,
+    );
+  }
+
   AnalysisContextCollectionImpl _newCollection(
       {@required List<String> includedPaths}) {
     return new AnalysisContextCollectionImpl(

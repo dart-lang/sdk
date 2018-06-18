@@ -26,6 +26,9 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
   }) : resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE {
     _throwIfAnyNotAbsoluteNormalizedPath(includedPaths);
+    if (sdkPath != null) {
+      _throwIfNotAbsoluteNormalizedPath(sdkPath);
+    }
 
     var contextLocator = new ContextLocator(
       resourceProvider: this.resourceProvider,
