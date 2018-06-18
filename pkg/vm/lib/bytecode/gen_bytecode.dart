@@ -585,7 +585,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   void _genEqualsOperatorNullHandling(Member member) {
     if (member.name.name != '==' ||
         locals.numParameters != 2 ||
-        member.enclosingClass != coreTypes.objectClass) {
+        member.enclosingClass == coreTypes.objectClass) {
       return;
     }
 
