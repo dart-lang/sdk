@@ -149,18 +149,21 @@ class ShadowArguments extends Arguments {
 }
 
 /// Shadow object for [AsExpression].
-class ShadowAsExpression extends AsExpression implements ExpressionJudgment {
+class AsJudgment extends AsExpression implements ExpressionJudgment {
   DartType inferredType;
 
-  ShadowAsExpression(Expression operand, DartType type) : super(operand, type);
+  AsJudgment(Expression operand, DartType type) : super(operand, type);
+
+  ExpressionJudgment get judgment => operand;
 
   @override
   DartType infer<Expression, Statement, Initializer>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer> factory,
       DartType typeContext) {
-    inferrer.inferExpression(factory, operand, const UnknownType(), false);
-    return type;
+    inferrer.inferExpression(factory, judgment, const UnknownType(), false);
+    inferredType = type;
+    return inferredType;
   }
 }
 

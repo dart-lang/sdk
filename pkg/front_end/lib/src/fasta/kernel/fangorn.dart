@@ -67,7 +67,7 @@ import 'kernel_expression_generator.dart'
 import 'kernel_shadow_ast.dart'
     show
         ShadowArguments,
-        ShadowAsExpression,
+        AsJudgment,
         ShadowAssertInitializer,
         ShadowAssertStatement,
         ShadowAwaitExpression,
@@ -258,8 +258,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
 
   @override
   Expression asExpression(Expression expression, covariant type, Token token) {
-    return new ShadowAsExpression(expression, type)
-      ..fileOffset = offsetForToken(token);
+    return new AsJudgment(expression, type)..fileOffset = offsetForToken(token);
   }
 
   @override
