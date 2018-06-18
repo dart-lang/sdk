@@ -52,8 +52,8 @@ bool _beginsWithAsOrTo(String name) {
   return regExp.matchAsPrefix(name) != null;
 }
 
-bool _isVoid(TypeName returnType) =>
-    returnType != null && returnType.name.name == 'void';
+bool _isVoid(TypeAnnotation returnType) =>
+    returnType is TypeName && returnType.name.name == 'void';
 
 class UseToAndAsIfApplicable extends LintRule implements NodeLintRule {
   UseToAndAsIfApplicable()
