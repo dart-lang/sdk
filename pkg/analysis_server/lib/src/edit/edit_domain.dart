@@ -593,11 +593,13 @@ class EditDomainHandler extends AbstractRequestHandler {
     List<RefactoringKind> kinds = <RefactoringKind>[];
     // Check nodes.
     {
-      var unit = await server.getResolvedCompilationUnit(file);
-      var analysisSession = server.getAnalysisDriver(file)?.currentSession;
-      if (unit != null && analysisSession != null) {
+      var analysisResult = await server.getAnalysisResult(file);
+      if (analysisResult != null) {
+        // TODO(scheglov) Update other refactorings to use ResolveResult.
+        var unit = analysisResult.unit;
         // Try EXTRACT_LOCAL_VARIABLE.
-        if (new ExtractLocalRefactoring(unit, offset, length).isAvailable()) {
+        if (new ExtractLocalRefactoring(analysisResult, offset, length)
+            .isAvailable()) {
           kinds.add(RefactoringKind.EXTRACT_LOCAL_VARIABLE);
         }
         // Try EXTRACT_METHOD.
@@ -608,7 +610,7 @@ class EditDomainHandler extends AbstractRequestHandler {
         }
         // Try EXTRACT_WIDGETS.
         if (new ExtractWidgetRefactoring(
-                searchEngine, analysisSession, unit, offset, length)
+                searchEngine, analysisResult.session, unit, offset, length)
             .isAvailable()) {
           kinds.add(RefactoringKind.EXTRACT_WIDGET);
         }
@@ -939,9 +941,10 @@ class _RefactoringManager {
       }
     }
     if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
-      CompilationUnit unit = await server.getResolvedCompilationUnit(file);
-      if (unit != null) {
-        refactoring = new ExtractLocalRefactoring(unit, offset, length);
+      var analysisResult = await server.getAnalysisResult(file);
+      if (analysisResult != null) {
+        refactoring =
+            new ExtractLocalRefactoring(analysisResult, offset, length);
         feedback = new ExtractLocalVariableFeedback(
             <String>[], <int>[], <int>[],
             coveringExpressionOffsets: <int>[],

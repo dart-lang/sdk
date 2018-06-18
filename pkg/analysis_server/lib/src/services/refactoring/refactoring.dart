@@ -20,6 +20,7 @@ import 'package:analysis_server/src/services/refactoring/rename_library.dart';
 import 'package:analysis_server/src/services/refactoring/rename_local.dart';
 import 'package:analysis_server/src/services/refactoring/rename_unit_member.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -65,11 +66,8 @@ abstract class ExtractLocalRefactoring implements Refactoring {
   /**
    * Returns a new [ExtractLocalRefactoring] instance.
    */
-  factory ExtractLocalRefactoring(
-      CompilationUnit unit, int selectionOffset, int selectionLength) {
-    return new ExtractLocalRefactoringImpl(
-        unit, selectionOffset, selectionLength);
-  }
+  factory ExtractLocalRefactoring(ResolveResult resolveResult,
+      int selectionOffset, int selectionLength) = ExtractLocalRefactoringImpl;
 
   /**
    * The lengths of the expressions that cover the specified selection,

@@ -14,6 +14,7 @@ import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -30,11 +31,9 @@ const String _TOKEN_SEPARATOR = "\uFFFF";
  */
 class ExtractLocalRefactoringImpl extends RefactoringImpl
     implements ExtractLocalRefactoring {
-  final CompilationUnit unit;
+  final ResolveResult resolveResult;
   final int selectionOffset;
   final int selectionLength;
-  CompilationUnitElement unitElement;
-  String file;
   SourceRange selectionRange;
   CorrectionUtils utils;
 
@@ -55,15 +54,19 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   Set<String> excludedVariableNames = new Set<String>();
 
   ExtractLocalRefactoringImpl(
-      this.unit, this.selectionOffset, this.selectionLength) {
-    unitElement = unit.element;
+      this.resolveResult, this.selectionOffset, this.selectionLength) {
     selectionRange = new SourceRange(selectionOffset, selectionLength);
-    utils = new CorrectionUtils(unit);
-    file = unitElement.source.fullName;
+    utils = new CorrectionUtils(unit, buffer: resolveResult.content);
   }
+
+  String get file => resolveResult.path;
 
   @override
   String get refactoringName => 'Extract Local Variable';
+
+  CompilationUnit get unit => resolveResult.unit;
+
+  CompilationUnitElement get unitElement => unit.element;
 
   String get _declarationKeyword {
     if (_isPartOfConstantExpression(rootExpression)) {
