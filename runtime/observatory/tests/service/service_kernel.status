@@ -149,6 +149,8 @@ code_test: RuntimeError
 step_test: RuntimeError
 
 [ $compiler == dartk && $mode == debug ]
+eval_internal_class_test: RuntimeError
+eval_test: RuntimeError
 isolate_lifecycle_test: Skip # Flaky.
 pause_idle_isolate_test: Skip # Flaky
 

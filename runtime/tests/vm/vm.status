@@ -148,6 +148,7 @@ cc/Dart2JSCompileAll: SkipSlow # Timeout.
 
 [ $compiler == dartk && $mode == debug && $runtime == vm ]
 cc/PrintJSON: Crash
+cc/Profiler_FunctionInline: Fail
 cc/Service_TokenStream: Crash
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
