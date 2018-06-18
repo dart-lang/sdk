@@ -10,7 +10,7 @@ import 'dart:io';
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
-Future withTempDir(String prefix, void test(Directory dir)) async {
+Future withTempDir(String prefix, Future<void> test(Directory dir)) async {
   var tempDir = Directory.systemTemp.createTempSync(prefix);
   try {
     await test(tempDir);
