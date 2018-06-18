@@ -564,7 +564,6 @@ f(x) {
     verify([source]);
   }
 
-  @failingTest
   test_awaitInWrongContext_syncStar() async {
     // This test requires better error recovery than we currently have. In
     // particular, we need to be able to distinguish between an await expression
@@ -574,7 +573,9 @@ f(x) sync* {
   yield await x;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT]);
+    if (usingFastaParser) {
+      assertErrors(source, [CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT]);
+    }
     verify([source]);
   }
 
@@ -588,10 +589,18 @@ class B {
 }
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      ParserErrorCode.EXPECTED_CLASS_MEMBER,
-      ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE
-    ]);
+    assertErrors(
+        source,
+        usingFastaParser
+            ? [
+                ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE,
+                ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE,
+                ParserErrorCode.EXPECTED_TOKEN
+              ]
+            : [
+                ParserErrorCode.EXPECTED_CLASS_MEMBER,
+                ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE
+              ]);
     verify([source]);
   }
 
@@ -655,7 +664,15 @@ f() {
   typedef x;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE]);
+    assertErrors(
+        source,
+        usingFastaParser
+            ? [
+                StaticWarningCode.UNDEFINED_IDENTIFIER,
+                StaticWarningCode.UNDEFINED_IDENTIFIER,
+                ParserErrorCode.EXPECTED_TOKEN
+              ]
+            : [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE]);
     verify([source]);
   }
 
@@ -5105,7 +5122,23 @@ f() {
 }''');
     await computeAnalysisResult(source);
     assertErrors(
-        source, [CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT]);
+        source,
+        usingFastaParser
+            ? [
+                // TODO(danrubel): Consider improving recovery
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.UNEXPECTED_TOKEN,
+                ParserErrorCode.UNEXPECTED_TOKEN,
+                ParserErrorCode.UNEXPECTED_TOKEN,
+              ]
+            : [CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT]);
     verify([source]);
   }
 
@@ -5116,7 +5149,21 @@ f() {
 }''');
     await computeAnalysisResult(source);
     assertErrors(
-        source, [CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT]);
+        source,
+        usingFastaParser
+            ? [
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.UNEXPECTED_TOKEN,
+                ParserErrorCode.UNEXPECTED_TOKEN,
+                ParserErrorCode.UNEXPECTED_TOKEN,
+              ]
+            : [CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT]);
     verify([source]);
   }
 
@@ -6494,7 +6541,14 @@ f() async* {
   return 0;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.RETURN_IN_GENERATOR]);
+    assertErrors(
+        source,
+        usingFastaParser
+            ? [
+                CompileTimeErrorCode.RETURN_IN_GENERATOR,
+                CompileTimeErrorCode.RETURN_IN_GENERATOR
+              ]
+            : [CompileTimeErrorCode.RETURN_IN_GENERATOR]);
     verify([source]);
   }
 
@@ -6504,7 +6558,14 @@ f() sync* {
   return 0;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.RETURN_IN_GENERATOR]);
+    assertErrors(
+        source,
+        usingFastaParser
+            ? [
+                CompileTimeErrorCode.RETURN_IN_GENERATOR,
+                CompileTimeErrorCode.RETURN_IN_GENERATOR
+              ]
+            : [CompileTimeErrorCode.RETURN_IN_GENERATOR]);
     verify([source]);
   }
 
@@ -6680,10 +6741,14 @@ var s5 = const Symbol('x', foo: 'x');''');
 f(this.x(y)) {}
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR,
-      CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR
-    ]);
+    assertErrors(
+        source,
+        usingFastaParser
+            ? [CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR]
+            : [
+                ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR,
+                CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR
+              ]);
     verify([source]);
   }
 

@@ -500,7 +500,8 @@ class AstBuilder extends StackListener {
         identical(token.kind, HEXADECIMAL_TOKEN));
     debugEvent("LiteralInt");
 
-    push(ast.integerLiteral(token, int.parse(token.lexeme)));
+    push(ast.integerLiteral(
+        token, int.parse(token.lexeme, onError: (_) => null)));
   }
 
   void handleExpressionFunctionBody(Token arrowToken, Token semicolon) {
