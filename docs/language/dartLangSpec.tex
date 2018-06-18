@@ -58,6 +58,8 @@
 % - Specify configurable imports.
 % - Specify the dynamic type of the Iterable/Future/Stream returned from
 %   invocations of functions marked sync*/async/async*.
+% - Add appendix listing the major differences between 64-bit integers
+%   and JavaScript integers.
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -10479,6 +10481,43 @@ Examples: T, S, K, V , E.
 \item The names of libraries or library prefixes never use upper case letters.
 If they consist of multiple words, those words are separated by underscores.
 Example: my\_favorite\_library.
+\end{itemize}
+}
+
+\section*{Appendix: Integer Implementations}
+\LMLabel{integerImplementations}
+
+\commentary{
+The \code{int} type represents integers.
+The specification is written with 64-bit two's complement integers as the
+intended implementation, but when Dart is compiled to JavaScript,
+the implementation of \code{int} will instead use the JavaScript
+number type.
+
+This introduces a number of differencs:
+\begin{itemize}
+\item Valid values of JavaScript \code{int} are any
+IEEE-754 64-bit floating point number with no fractional part.
+This includes positive and negative {\em infinity},
+which can be reached by overflowing
+(integer division by zero is still not allowed).
+Otherwise valid integer literals (including any leading minus sign)
+that represent invalid JavaScript \code{int} values
+cannot be compiled to JavaScript.
+Operations on integers may lose precision since 64-bit floating point numbers
+are limited to 53 significant bits.
+\item JavaScript \code{int} instances also implement \code{double},
+and integer-valued \code{double} instances also implement \code{int}.
+The \code{int} and \code{double} class are still separate subclasses of the
+class \code{num}, but {\em instances} of either class that represent an integer,
+act as if they are actually instances of a common subclass implementing both
+\code{int} and \code{double}. Fractional numbers only implement \code{double}.
+\item Bitwise operations on integers (and, or, xor, negate and shifts)
+all truncate the operands to 32-bit values.
+\item The \code{identical} method cannot distinguish the values $0.0$ and $-0.0$,
+and it cannot recognize any {\em NaN} value as identical to itself.
+For efficiency, the \code{identical} operation uses the JavaScript \code{===}
+operator.
 \end{itemize}
 }
 
