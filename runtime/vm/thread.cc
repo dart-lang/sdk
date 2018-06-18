@@ -248,7 +248,6 @@ void Thread::clear_pending_functions() {
 }
 
 void Thread::set_active_exception(const Object& value) {
-  ASSERT(!value.IsNull());
   active_exception_ = value.raw();
 }
 

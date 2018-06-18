@@ -1859,14 +1859,41 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
 // RAX: Function.
 void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
 #if defined(DART_USE_INTERPRETER)
+  const intptr_t thread_offset = NativeArguments::thread_offset();
+  const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
+  const intptr_t argv_offset = NativeArguments::argv_offset();
+  const intptr_t retval_offset = NativeArguments::retval_offset();
+
   __ EnterStubFrame();
-  __ movq(RDI, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
+
+  // Save exit frame information to enable stack walking as we are about
+  // to transition to Dart VM C++ code.
+  __ movq(Address(THR, Thread::top_exit_frame_info_offset()), RBP);
+
+#if defined(DEBUG)
+  {
+    Label ok;
+    // Check that we are always entering from Dart code.
+    __ movq(R8, Immediate(VMTag::kDartTagId));
+    __ cmpq(R8, Assembler::VMTagAddress());
+    __ j(EQUAL, &ok, Assembler::kNearJump);
+    __ Stop("Not coming from Dart code.");
+    __ Bind(&ok);
+  }
+#endif
+
+  // Mark that the thread is executing VM code.
+  __ movq(RCX, Immediate(kInterpretCallRuntimeEntry.GetEntryPoint()));
+  __ movq(Assembler::VMTagAddress(), RCX);
+
+  // Push result and first 3 arguments of the interpreted function call.
   __ pushq(Immediate(0));  // Setup space on stack for result.
   __ pushq(RAX);           // Function.
   __ pushq(RBX);           // ICData/MegamorphicCache.
   __ pushq(R10);           // Arguments descriptor array.
 
   // Adjust arguments count.
+  __ movq(RDI, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
   __ cmpq(FieldAddress(R10, ArgumentsDescriptor::type_args_len_offset()),
           Immediate(0));
   __ movq(R10, RDI);
@@ -1875,12 +1902,43 @@ void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
   __ addq(R10, Immediate(Smi::RawValue(1)));  // Include the type arguments.
   __ Bind(&args_count_ok);
 
+  // Push 4th Dart argument of the interpreted function call.
   // R10: Smi-tagged arguments array length.
   PushArrayOfArguments(assembler);
   const intptr_t kNumArgs = 4;
-  __ CallRuntime(kInterpretCallRuntimeEntry, kNumArgs);
-  __ Drop(kNumArgs);
-  __ popq(RAX);  // Return value.
+
+  // Set callee-saved RBX to point to first one of the 4 Dart arguments.
+  __ leaq(RBX, Address(RSP, (kNumArgs - 1) * kWordSize));
+
+  // Reserve space for native args and align frame before entering C++ world.
+  __ subq(RSP, Immediate(sizeof(NativeArguments)));
+  if (OS::ActivationFrameAlignment() > 1) {
+    __ andq(RSP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
+  }
+
+  // Pass NativeArguments structure by value and call runtime.
+  __ movq(Address(RSP, thread_offset), THR);  // Set thread in NativeArgs.
+  __ movq(Address(RSP, argc_tag_offset), Immediate(kNumArgs));  // Set argc.
+  // Compute argv.
+  __ movq(Address(RSP, argv_offset), RBX);    // Set argv in NativeArguments.
+  __ addq(RBX, Immediate(1 * kWordSize));     // Retval is next to 1st argument.
+  __ movq(Address(RSP, retval_offset), RBX);  // Set retval in NativeArguments.
+#if defined(_WIN64)
+  ASSERT(sizeof(NativeArguments) > CallingConventions::kRegisterTransferLimit);
+  __ movq(CallingConventions::kArg1Reg, RSP);
+#endif
+  __ movq(RCX, Immediate(kInterpretCallRuntimeEntry.GetEntryPoint()));
+  __ CallCFunction(RCX);
+
+  // Mark that the thread is executing Dart code.
+  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
+
+  // Reset exit frame information in Isolate structure.
+  __ movq(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
+
+  // Load result of interpreted function call into RAX.
+  __ movq(RAX, Address(RBX, 0));
+
   __ LeaveStubFrame();
   __ ret();
 #else
@@ -2326,15 +2384,18 @@ void StubCode::GenerateRunExceptionHandlerStub(Assembler* assembler) {
   __ movq(CallingConventions::kArg1Reg,
           Address(THR, Thread::resume_pc_offset()));
 
+  ASSERT(Thread::CanLoadFromThread(Object::null_object()));
+  __ movq(TMP, Address(THR, Thread::OffsetFromThread(Object::null_object())));
+
   // Load the exception from the current thread.
   Address exception_addr(THR, Thread::active_exception_offset());
   __ movq(kExceptionObjectReg, exception_addr);
-  __ movq(exception_addr, Immediate(0));
+  __ movq(exception_addr, TMP);
 
   // Load the stacktrace from the current thread.
   Address stacktrace_addr(THR, Thread::active_stacktrace_offset());
   __ movq(kStackTraceObjectReg, stacktrace_addr);
-  __ movq(stacktrace_addr, Immediate(0));
+  __ movq(stacktrace_addr, TMP);
 
   __ jmp(CallingConventions::kArg1Reg);  // Jump to continuation point.
 }

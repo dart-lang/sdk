@@ -1738,12 +1738,26 @@ DEFINE_RUNTIME_ENTRY(InterpretCall, 4) {
   const Code& bytecode = Code::Handle(zone, function.Bytecode());
   Object& result = Object::Handle(zone);
   Interpreter* interpreter = Interpreter::Current();
+#if defined(DEBUG)
+  uword exit_fp = thread->top_exit_frame_info();
+  ASSERT(exit_fp != 0);
+  if (interpreter->IsTracing()) {
+    THR_Print("Interpreting call to %s exit 0x%" Px "\n", function.ToCString(),
+              exit_fp);
+  }
+#endif
   ASSERT(interpreter != NULL);
   {
     TransitionToGenerated transition(thread);
     result = interpreter->Call(bytecode, orig_arguments_desc, orig_arguments,
                                thread);
   }
+#if defined(DEBUG)
+  ASSERT(thread->top_exit_frame_info() == exit_fp);
+  if (interpreter->IsTracing()) {
+    THR_Print("Returning from interpreted function %s\n", function.ToCString());
+  }
+#endif
   if (result.IsError()) {
     if (result.IsLanguageError()) {
       Exceptions::ThrowCompileTimeError(LanguageError::Cast(result));
@@ -1753,7 +1767,7 @@ DEFINE_RUNTIME_ENTRY(InterpretCall, 4) {
   }
 #else
   UNREACHABLE();
-#endif
+#endif  // defined(DART_USE_INTERPRETER)
 }
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)

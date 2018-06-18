@@ -599,6 +599,14 @@ DART_NOINLINE void Interpreter::TraceInstruction(uint32_t* pc) const {
 }
 #endif  // defined(DEBUG)
 
+bool Interpreter::IsTracing() const {
+#if defined(DEBUG)
+  return IsTracingExecution();
+#else
+  return false;
+#endif
+}
+
 // Calls into the Dart runtime are based on this interface.
 typedef void (*InterpreterRuntimeCall)(NativeArguments arguments);
 
@@ -909,34 +917,38 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
                                      RawObject * *arg0, Thread * thread);
     invokestub entrypoint = reinterpret_cast<invokestub>(
         StubCode::InvokeDartCodeFromBytecode_entry()->EntryPoint());
+    RawObject* result;
     Exit(thread, *FP, call_top + 1, *pc);
     {
       InterpreterSetjmpBuffer buffer(this);
       if (!setjmp(buffer.buffer_)) {
         thread->set_vm_tag(reinterpret_cast<uword>(entrypoint));
-        RawObject* result = entrypoint(code, argdesc, call_base, thread);
+        result = entrypoint(code, argdesc, call_base, thread);
         thread->set_vm_tag(VMTag::kDartTagId);
         thread->set_top_exit_frame_info(0);
         ASSERT(thread->execution_state() == Thread::kThreadInGenerated);
-
-        // It is legit to call the constructor of an error object, however a
-        // result of class UnhandledException must be propagated.
-        if (result->IsHeapObject() &&
-            result->GetClassId() == kUnhandledExceptionCid) {
-          // TODO(regis): Shoudn't the callee have set these and thrown?
-          special_[kExceptionSpecialIndex] = result;
-          special_[kStackTraceSpecialIndex] = Object::null();
-          return false;
-        }
-
-        // Pop args and push result.
-        *SP = call_base;
-        **SP = result;
-        return true;
       } else {
         return false;
       }
     }
+    // Pop args and push result.
+    *SP = call_base;
+    **SP = result;
+
+    // It is legit to call the constructor of an error object, however a
+    // result of class UnhandledException must be propagated.
+    if (result->IsHeapObject() &&
+        result->GetClassId() == kUnhandledExceptionCid) {
+      (*SP)[0] = UnhandledException::RawCast(result)->ptr()->exception_;
+      (*SP)[1] = UnhandledException::RawCast(result)->ptr()->stacktrace_;
+      (*SP)[2] = 0;  // Space for result.
+      Exit(thread, *FP, *SP + 3, *pc);
+      NativeArguments args(thread, 2, *SP, *SP + 2);
+      if (!InvokeRuntime(thread, this, DRT_ReThrow, args)) {
+        return false;
+      }
+    }
+    return true;
   }
   ASSERT(Function::HasBytecode(function));
   // Bytecode was loaded in the above compilation step.
@@ -1275,9 +1287,9 @@ DART_FORCE_INLINE void Interpreter::PrepareForTailCall(
       if (IsTracingExecution()) {                                              \
         THR_Print("%" Pu64 " ", icount_);                                      \
         THR_Print("Returning exception from interpreter 0x%" Px                \
-                  " at fp_ 0x%" Px "\n",                                       \
-                  reinterpret_cast<uword>(this),                               \
-                  reinterpret_cast<uword>(fp_));                               \
+                  " at fp_ 0x%" Px " exit 0x%" Px "\n",                        \
+                  reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_), \
+                  exit_fp);                                                    \
       }                                                                        \
       ASSERT(reinterpret_cast<uword>(fp_) < stack_limit());                    \
       return special_[kExceptionSpecialIndex];                                 \
@@ -1409,9 +1421,10 @@ RawObject* Interpreter::Call(const Code& code,
 #if defined(DEBUG)
   if (IsTracingExecution()) {
     THR_Print("%" Pu64 " ", icount_);
-    THR_Print("%s interpreter 0x%" Px " at fp_ 0x%" Px " %s\n",
+    THR_Print("%s interpreter 0x%" Px " at fp_ 0x%" Px " exit 0x%" Px " %s\n",
               reentering ? "Re-entering" : "Entering",
               reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_),
+              thread->top_exit_frame_info(),
               Function::Handle(code.function()).ToCString());
   }
 #endif
@@ -3090,8 +3103,10 @@ RawObject* Interpreter::Call(const Code& code,
 #if defined(DEBUG)
       if (IsTracingExecution()) {
         THR_Print("%" Pu64 " ", icount_);
-        THR_Print("Returning from interpreter 0x%" Px " at fp_ 0x%" Px "\n",
-                  reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_));
+        THR_Print("Returning from interpreter 0x%" Px " at fp_ 0x%" Px
+                  " exit 0x%" Px "\n",
+                  reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_),
+                  exit_fp);
       }
       ASSERT(reinterpret_cast<uword>(fp_) < stack_limit());
       const intptr_t argc = reinterpret_cast<uword>(pc) >> 2;
@@ -4437,6 +4452,8 @@ void Interpreter::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
     RawObject* raw_exception = thread->active_exception();
     RawObject* raw_stacktrace = thread->active_stacktrace();
     ASSERT(raw_exception != Object::null());
+    thread->set_active_exception(Object::null_object());
+    thread->set_active_stacktrace(Object::null_object());
     special_[kExceptionSpecialIndex] = raw_exception;
     special_[kStackTraceSpecialIndex] = raw_stacktrace;
     pc_ = thread->resume_pc();
