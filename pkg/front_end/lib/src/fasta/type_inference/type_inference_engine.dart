@@ -23,6 +23,8 @@ import '../builder/library_builder.dart';
 
 import '../kernel/kernel_shadow_ast.dart';
 
+import '../kernel/toplevel_inference_factory.dart';
+
 import '../messages.dart' show noLength, templateCantInferTypeDueToCircularity;
 
 import '../source/source_library_builder.dart';
@@ -52,8 +54,8 @@ class FieldInitializerInferenceNode extends InferenceNode {
       // typeInferrer to be null.  If this happens, just skip type inference for
       // this field.
       if (typeInferrer != null) {
-        var inferredType = typeInferrer
-            .inferDeclarationType(typeInferrer.inferFieldTopLevel(field, true));
+        var inferredType = typeInferrer.inferDeclarationType(typeInferrer
+            .inferFieldTopLevel(toplevelInferenceFactory, field, true));
         if (isCircular) {
           // Report the appropriate error.
           _library.addCompileTimeError(

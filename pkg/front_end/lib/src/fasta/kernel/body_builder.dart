@@ -110,6 +110,8 @@ import 'kernel_ast_api.dart' hide Expression, Statement;
 
 import 'kernel_builder.dart';
 
+import 'kernel_factory.dart' show KernelFactory;
+
 import 'type_algorithms.dart' show calculateBounds;
 
 // TODO(ahe): Remove this and ensure all nodes have a location.
@@ -158,6 +160,14 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
 
   @override
   final TypePromoter typePromoter;
+
+  /// The factory used to construct body expressions, statements, and
+  /// initializers.
+  ///
+  /// TODO(paulberry): when the analyzer's diet parser is in use, this should
+  /// point to the analyzer's factory.  Note that type arguments will have to be
+  /// added to BodyBuilder to make this happen.
+  final KernelFactory factory = new KernelFactory();
 
   /// Only used when [member] is a constructor. It tracks if an implicit super
   /// initializer is needed.
@@ -514,6 +524,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         field.initializer = initializer;
         _typeInferrer.inferFieldInitializer(
             this,
+            factory,
             field.hasTypeInferredFromInitializer ? null : field.builtType,
             toKernelExpression(initializer));
       }
@@ -521,7 +532,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     pop(); // Type.
     List annotations = pop();
     if (annotations != null) {
-      _typeInferrer.inferMetadata(this, annotations);
+      _typeInferrer.inferMetadata(this, factory, annotations);
       Field field = fields.first.target;
       // The first (and often only field) will not get a clone.
       annotations.forEach((annotation) => field.addAnnotation(annotation));
@@ -645,7 +656,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       }
       initializer = buildInvalidInitializer(node, token.charOffset);
     }
-    _typeInferrer.inferInitializer(this, initializer);
+    _typeInferrer.inferInitializer(this, factory, initializer);
     if (member is KernelConstructorBuilder && !member.isExternal) {
       member.addInitializer(initializer, _typeInferrer);
     } else {
@@ -687,12 +698,12 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         realParameter.initializer = toKernelExpression(initializer)
           ..parent = realParameter;
         _typeInferrer.inferParameterInitializer(
-            this, toKernelExpression(initializer), realParameter.type);
+            this, factory, toKernelExpression(initializer), realParameter.type);
       }
     }
 
     _typeInferrer.inferFunctionBody(
-        this, _computeReturnTypeContext(member), asyncModifier, body);
+        this, factory, _computeReturnTypeContext(member), asyncModifier, body);
     if (builder.kind == ProcedureKind.Setter) {
       bool oneParameter = formals != null &&
           formals.required.length == 1 &&
@@ -732,7 +743,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       }
     }
     Member target = builder.target;
-    _typeInferrer.inferMetadata(this, annotations);
+    _typeInferrer.inferMetadata(this, factory, annotations);
     for (Expression annotation in annotations ?? const []) {
       target.addAnnotation(toKernelExpression(annotation));
     }
@@ -749,7 +760,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   List<kernel.Expression> finishMetadata() {
     List<kernel.Expression> expressions = pop();
-    _typeInferrer.inferMetadata(this, expressions);
+    _typeInferrer.inferMetadata(this, factory, expressions);
     return expressions;
   }
 
@@ -786,7 +797,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         new ShadowReturnStatement(toKernelExpression(expression));
 
     _typeInferrer.inferFunctionBody(
-        this, const DynamicType(), AsyncMarker.Sync, fakeReturn);
+        this, factory, const DynamicType(), AsyncMarker.Sync, fakeReturn);
 
     return toExpression(fakeReturn.expression);
   }
@@ -2290,7 +2301,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     }
     if (annotations != null) {
       if (functionNestingLevel == 0) {
-        _typeInferrer.inferMetadata(this, toKernelExpressionList(annotations));
+        _typeInferrer.inferMetadata(
+            this, factory, toKernelExpressionList(annotations));
       }
       for (Expression annotation in annotations) {
         variable.addAnnotation(toKernelExpression(annotation));
@@ -3718,7 +3730,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     }
     variable.parameter.bound = bound;
     if (annotations != null) {
-      _typeInferrer.inferMetadata(this, toKernelExpressionList(annotations));
+      _typeInferrer.inferMetadata(
+          this, factory, toKernelExpressionList(annotations));
       for (Expression annotation in annotations) {
         variable.parameter.addAnnotation(toKernelExpression(annotation));
       }
