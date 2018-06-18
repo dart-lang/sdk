@@ -6,6 +6,7 @@ import 'dart:io' hide File;
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/dart/analysis/context_locator.dart';
 
 /**
  * A mixin for test classes that adds a [ResourceProvider] and utility methods
@@ -14,6 +15,24 @@ import 'package:analyzer/file_system/memory_file_system.dart';
  */
 class ResourceProviderMixin {
   MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
+
+  String convertPath(String path) => resourceProvider.convertPath(path);
+
+  /// Convert the given [path] to be a valid import uri for this provider's path context.
+  String convertPathForImport(String path) {
+    path = resourceProvider.convertPath(path);
+
+    // On Windows, absolute import paths are not quite the same as a normal fs path.
+    // C:\test.dart must be imported as one of:
+    //   import "file:///C:/test.dart"
+    //   import "/C:/test.dart"
+    if (Platform.isWindows && resourceProvider.pathContext.isAbsolute(path)) {
+      // The .path on a file Uri is in the form "/C:/test.dart"
+      path = new Uri.file(path).path;
+    }
+
+    return path;
+  }
 
   void deleteFile(String path) {
     String convertedPath = resourceProvider.convertPath(path);
@@ -35,6 +54,17 @@ class ResourceProviderMixin {
     return resourceProvider.getFolder(convertedPath);
   }
 
+  String join(String part1,
+          [String part2,
+          String part3,
+          String part4,
+          String part5,
+          String part6,
+          String part7,
+          String part8]) =>
+      resourceProvider.pathContext
+          .join(part1, part2, part3, part4, part5, part6, part7, part8);
+
   void modifyFile(String path, String content) {
     String convertedPath = resourceProvider.convertPath(path);
     resourceProvider.modifyFile(convertedPath, content);
@@ -55,32 +85,13 @@ class ResourceProviderMixin {
     return resourceProvider.newFolder(convertedPath);
   }
 
-  String join(String part1,
-          [String part2,
-          String part3,
-          String part4,
-          String part5,
-          String part6,
-          String part7,
-          String part8]) =>
-      resourceProvider.pathContext
-          .join(part1, part2, part3, part4, part5, part6, part7, part8);
+  File newOptionsFile(String directoryPath) {
+    return newFile(resourceProvider.pathContext
+        .join(directoryPath, ContextLocatorImpl.ANALYSIS_OPTIONS_NAME));
+  }
 
-  String convertPath(String path) => resourceProvider.convertPath(path);
-
-  /// Convert the given [path] to be a valid import uri for this provider's path context.
-  String convertPathForImport(String path) {
-    path = resourceProvider.convertPath(path);
-
-    // On Windows, absolute import paths are not quite the same as a normal fs path.
-    // C:\test.dart must be imported as one of:
-    //   import "file:///C:/test.dart"
-    //   import "/C:/test.dart"
-    if (Platform.isWindows && resourceProvider.pathContext.isAbsolute(path)) {
-      // The .path on a file Uri is in the form "/C:/test.dart"
-      path = new Uri.file(path).path;
-    }
-
-    return path;
+  File newPackagesFile(String directoryPath) {
+    return newFile(resourceProvider.pathContext
+        .join(directoryPath, ContextLocatorImpl.PACKAGES_FILE_NAME));
   }
 }

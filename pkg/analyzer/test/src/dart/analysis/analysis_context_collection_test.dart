@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/src/dart/analysis/context_locator.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
@@ -68,7 +66,7 @@ class AnalysisContextCollectionTest extends Object with ResourceProviderMixin {
     newFile('/test/outer/lib/outer.dart');
 
     var innerFolder = newFolder('/test/outer/inner');
-    _newOptionsFile('/test/outer/inner');
+    newOptionsFile('/test/outer/inner');
     newFile('/test/outer/inner/inner.dart');
 
     var collection = _newCollection(includedPaths: [outerFolder.path]);
@@ -117,10 +115,5 @@ class AnalysisContextCollectionTest extends Object with ResourceProviderMixin {
       includedPaths: includedPaths,
       sdkPath: sdkRoot,
     );
-  }
-
-  File _newOptionsFile(String directoryPath) {
-    return newFile(resourceProvider.pathContext
-        .join(directoryPath, ContextLocatorImpl.ANALYSIS_OPTIONS_NAME));
   }
 }
