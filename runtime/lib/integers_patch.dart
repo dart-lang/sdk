@@ -11,12 +11,12 @@ class int {
   const factory int.fromEnvironment(String name, {int defaultValue})
       native "Integer_fromEnvironment";
 
-  int _shrFromInt(int other);
-  int _shlFromInt(int other);
   int _bitAndFromSmi(_Smi other);
   int _bitAndFromInteger(int other);
   int _bitOrFromInteger(int other);
   int _bitXorFromInteger(int other);
+  int _shrFromInteger(int other);
+  int _shlFromInteger(int other);
 
   static int _tryParseSmi(String str, int first, int last) {
     assert(first <= last);

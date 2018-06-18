@@ -19149,18 +19149,11 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
         return Integer::New(left_value + right_value, space);
       case Token::kSUB:
         return Integer::New(left_value - right_value, space);
-      case Token::kMUL: {
-        if (Smi::kBits < 32) {
-          // In 32-bit mode, the product of two Smis fits in a 64-bit result.
-          return Integer::New(static_cast<int64_t>(left_value) *
-                                  static_cast<int64_t>(right_value),
-                              space);
-        } else {
-          ASSERT(sizeof(intptr_t) == sizeof(int64_t));
-          return Integer::New(Utils::MulWithWrapAround(left_value, right_value),
-                              space);
-        }
-      }
+      case Token::kMUL:
+        return Integer::New(
+            Utils::MulWithWrapAround(static_cast<int64_t>(left_value),
+                                     static_cast<int64_t>(right_value)),
+            space);
       case Token::kTRUNCDIV:
         return Integer::New(left_value / right_value, space);
       case Token::kMOD: {
@@ -19258,40 +19251,21 @@ RawInteger* Integer::BitOp(Token::Kind kind,
   }
 }
 
-// TODO(srdjan): Clarify handling of negative right operand in a shift op.
-RawInteger* Smi::ShiftOp(Token::Kind kind,
-                         const Smi& other,
-                         Heap::Space space) const {
-  intptr_t result = 0;
-  const intptr_t left_value = Value();
-  const intptr_t right_value = other.Value();
-  ASSERT(right_value >= 0);
+RawInteger* Integer::ShiftOp(Token::Kind kind,
+                             const Integer& other,
+                             Heap::Space space) const {
+  int64_t a = AsInt64Value();
+  int64_t b = other.AsInt64Value();
+  ASSERT(b >= 0);
   switch (kind) {
-    case Token::kSHL: {
-      if ((left_value == 0) || (right_value == 0)) {
-        return raw();
-      }
-      {  // Check for overflow.
-        int cnt = Utils::BitLength(left_value);
-        if (right_value > (Smi::kBits - cnt)) {
-          return Integer::New(
-              Utils::ShiftLeftWithTruncation(left_value, right_value), space);
-        }
-      }
-      result = left_value << right_value;
-      break;
-    }
-    case Token::kSHR: {
-      const intptr_t shift_amount =
-          (right_value >= kBitsPerWord) ? (kBitsPerWord - 1) : right_value;
-      result = left_value >> shift_amount;
-      break;
-    }
+    case Token::kSHL:
+      return Integer::New(Utils::ShiftLeftWithTruncation(a, b), space);
+    case Token::kSHR:
+      return Integer::New(a >> Utils::Minimum<int64_t>(b, Mint::kBits), space);
     default:
       UNIMPLEMENTED();
+      return Integer::null();
   }
-  ASSERT(Smi::IsValid(result));
-  return Smi::New(result);
 }
 
 bool Smi::Equals(const Instance& other) const {

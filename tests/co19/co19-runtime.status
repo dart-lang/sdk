@@ -188,9 +188,6 @@ LibTest/collection/ListBase/ListBase_class_A01_t02: Skip # co19 issue 673, These
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Skip # co19 issue 673, These tests take too much memory (300 MB) for our 1 GB test machine co19 issue 673. http://code.google.com/p/co19/issues/detail?id=673
 LibTest/core/List/List_class_A01_t02: Skip # co19 issue 673, These tests take too much memory (300 MB) for our 1 GB test machine co19 issue 673. http://code.google.com/p/co19/issues/detail?id=673
 
-[ $arch != arm64 && $arch != simarm64 && $arch != simdbc && $arch != simdbc64 && $arch != x64 && ($runtime == dart_precompiled || $runtime == vm) ]
-LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
-
 [ $arch == ia32 && $mode == release && $runtime == vm && $system == linux ]
 service/dev_fs_spawn_test: Pass, Fail # Issue 28411
 

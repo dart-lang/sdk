@@ -6842,6 +6842,9 @@ class Integer : public Number {
   RawInteger* BitOp(Token::Kind operation,
                     const Integer& other,
                     Heap::Space space = Heap::kNew) const;
+  RawInteger* ShiftOp(Token::Kind operation,
+                      const Integer& other,
+                      Heap::Space space = Heap::kNew) const;
 
  private:
   OBJECT_IMPLEMENTATION(Integer, Number);
@@ -6894,10 +6897,6 @@ class Smi : public Integer {
   static bool IsValid(int64_t value) {
     return (value >= kMinValue) && (value <= kMaxValue);
   }
-
-  RawInteger* ShiftOp(Token::Kind kind,
-                      const Smi& other,
-                      Heap::Space space = Heap::kNew) const;
 
   void operator=(RawSmi* value) {
     raw_ = value;

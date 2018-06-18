@@ -47,6 +47,8 @@ abstract class _IntegerImplementation implements int {
   int _bitAndFromInteger(int other) native "Integer_bitAndFromInteger";
   int _bitOrFromInteger(int other) native "Integer_bitOrFromInteger";
   int _bitXorFromInteger(int other) native "Integer_bitXorFromInteger";
+  int _shrFromInteger(int other) native "Integer_shrFromInteger";
+  int _shlFromInteger(int other) native "Integer_shlFromInteger";
   int _addFromInteger(int other) native "Integer_addFromInteger";
   int _subFromInteger(int other) native "Integer_subFromInteger";
   int _mulFromInteger(int other) native "Integer_mulFromInteger";
@@ -56,8 +58,8 @@ abstract class _IntegerImplementation implements int {
     return other - (other ~/ this) * this;
   }
 
-  int operator >>(int other) => other._shrFromInt(this);
-  int operator <<(int other) => other._shlFromInt(this);
+  int operator >>(int other) => other._shrFromInteger(this);
+  int operator <<(int other) => other._shlFromInteger(this);
 
   bool operator <(num other) {
     return other > this;
@@ -461,8 +463,6 @@ class _Smi extends _IntegerImplementation implements _int64 {
   int operator &(int other) => other._bitAndFromSmi(this);
 
   int _bitAndFromSmi(_Smi other) native "Smi_bitAndFromSmi";
-  int _shrFromInt(int other) native "Smi_shrFromInt";
-  int _shlFromInt(int other) native "Smi_shlFromInt";
 
   /**
    * The digits of '00', '01', ... '99' as a single array.
@@ -659,15 +659,4 @@ class _Mint extends _IntegerImplementation implements _int64 {
   int get bitLength native "Mint_bitLength";
 
   int _bitAndFromSmi(_Smi other) => _bitAndFromInteger(other);
-
-  // Shift by mint exceeds range that can be handled by the VM.
-  int _shrFromInt(int other) {
-    if (other < 0) {
-      return -1;
-    } else {
-      return 0;
-    }
-  }
-
-  int _shlFromInt(int other) native "Mint_shlFromInt";
 }

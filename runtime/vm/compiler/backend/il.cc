@@ -1900,7 +1900,7 @@ RawInteger* BinaryIntegerOpInstr::Evaluate(const Integer& left,
     case Token::kTRUNCDIV:
     case Token::kMOD:
       // Check right value for zero.
-      if (right.IsSmi() && right.AsInt64Value() == 0) {
+      if (right.AsInt64Value() == 0) {
         break;  // Will throw.
       }
     // Fall through.
@@ -1912,9 +1912,8 @@ RawInteger* BinaryIntegerOpInstr::Evaluate(const Integer& left,
     }
     case Token::kSHL:
     case Token::kSHR:
-      if (left.IsSmi() && right.IsSmi() && (Smi::Cast(right).Value() >= 0)) {
-        result =
-            Smi::Cast(left).ShiftOp(op_kind(), Smi::Cast(right), Heap::kOld);
+      if (right.AsInt64Value() >= 0) {
+        result = left.ShiftOp(op_kind(), right, Heap::kOld);
       }
       break;
     case Token::kBIT_AND:

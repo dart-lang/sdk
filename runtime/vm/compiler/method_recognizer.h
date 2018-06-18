@@ -229,8 +229,8 @@ namespace dart {
   V(_IntegerImplementation, <, Integer_lessThan, Bool, 0x365d1eba)             \
   V(_IntegerImplementation, <=, Integer_lessEqualThan, Bool, 0x74b5eb64)       \
   V(_IntegerImplementation, >=, Integer_greaterEqualThan, Bool, 0x4260c184)    \
-  V(_IntegerImplementation, <<, Integer_shl, Dynamic, 0x4db3bf69)              \
-  V(_IntegerImplementation, >>, Integer_sar, Dynamic, 0x70172b76)              \
+  V(_IntegerImplementation, <<, Integer_shl, Dynamic, 0x371c45fa)              \
+  V(_IntegerImplementation, >>, Integer_sar, Dynamic, 0x2b630578)              \
   V(_Double, toInt, DoubleToInteger, Dynamic, 0x26ef344b)                      \
 
 #define MATH_LIB_INTRINSIC_LIST(V)                                             \
@@ -497,8 +497,8 @@ namespace dart {
   V(_IntegerImplementation, <, Integer_lessThan, 0x365d1eba)                   \
   V(_IntegerImplementation, <=, Integer_lessEqualThan, 0x74b5eb64)             \
   V(_IntegerImplementation, >=, Integer_greaterEqualThan, 0x4260c184)          \
-  V(_IntegerImplementation, <<, Integer_shl, 0x4db3bf69)                       \
-  V(_IntegerImplementation, >>, Integer_sar, 0x70172b76)                       \
+  V(_IntegerImplementation, <<, Integer_shl, 0x371c45fa)                       \
+  V(_IntegerImplementation, >>, Integer_sar, 0x2b630578)                       \
 
 // A list of core functions that internally dispatch based on received id.
 #define POLYMORPHIC_TARGET_LIST(V)                                             \
