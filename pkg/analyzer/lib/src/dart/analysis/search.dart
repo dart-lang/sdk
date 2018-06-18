@@ -767,12 +767,13 @@ class Search {
  * Container that keeps track of file owners.
  */
 class SearchedFiles {
-  final Map<String, Search> owners = {};
+  final Map<Uri, Search> owners = {};
 
   bool add(String path, Search search) {
-    var owner = owners[path];
+    var file = search._driver.fsState.getFileForPath(path);
+    var owner = owners[file.uri];
     if (owner == null) {
-      owners[path] = search;
+      owners[file.uri] = search;
       return true;
     }
     return identical(owner, search);
@@ -780,7 +781,7 @@ class SearchedFiles {
 
   void ownAdded(Search search) {
     for (var path in search._driver.addedFiles) {
-      owners[path] = search;
+      add(path, search);
     }
   }
 }
