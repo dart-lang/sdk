@@ -640,6 +640,72 @@ defineTests() {
       });
     });
 
+    // TODO(a14n) move to unit test once previewDart2 disappears
+    group('unnecessary_const', () {
+      IOSink currentOut = outSink;
+      CollectingSink collectingOut = new CollectingSink();
+
+      setUp(() {
+        exitCode = 0;
+        outSink = collectingOut;
+      });
+
+      tearDown(() {
+        collectingOut.buffer.clear();
+        outSink = currentOut;
+        exitCode = 0;
+      });
+
+      test('avoid keyword to create instances', () async {
+        await dartlint.runLinter(
+            ['test/_data/unnecessary_const', '--rules=unnecessary_const'],
+            new LinterOptions()..previewDart2 = true);
+        expect(exitCode, 1);
+        expect(
+            collectingOut.trim(),
+            stringContainsInOrder([
+              'a.dart 24:14 [lint] Avoid const keyword.',
+              'a.dart 27:14 [lint] Avoid const keyword.',
+              'a.dart 30:22 [lint] Avoid const keyword.',
+              'a.dart 32:23 [lint] Avoid const keyword.',
+              '1 file analyzed, 4 issues found',
+            ]));
+      });
+    });
+
+    // TODO(a14n) move to unit test once previewDart2 disappears
+    group('unnecessary_new', () {
+      IOSink currentOut = outSink;
+      CollectingSink collectingOut = new CollectingSink();
+
+      setUp(() {
+        exitCode = 0;
+        outSink = collectingOut;
+      });
+
+      tearDown(() {
+        collectingOut.buffer.clear();
+        outSink = currentOut;
+        exitCode = 0;
+      });
+
+      test('avoid keyword to create instances', () async {
+        await dartlint.runLinter(
+            ['test/_data/unnecessary_new', '--rules=unnecessary_new'],
+            new LinterOptions()..previewDart2 = true);
+        expect(exitCode, 1);
+        expect(
+            collectingOut.trim(),
+            stringContainsInOrder([
+              'a.dart 14:3 [lint] Unnecessary new keyword.',
+              'a.dart 17:3 [lint] Unnecessary new keyword.',
+              'a.dart 20:3 [lint] Unnecessary new keyword.',
+              'a.dart 24:14 [lint] Unnecessary new keyword.',
+              '1 file analyzed, 4 issues found',
+            ]));
+      });
+    });
+
     group('examples', () {
       test('all.yaml', () {
         String src = readFile('example/all.yaml');

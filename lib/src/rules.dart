@@ -105,8 +105,10 @@ import 'package:linter/src/rules/type_annotate_public_apis.dart';
 import 'package:linter/src/rules/type_init_formals.dart';
 import 'package:linter/src/rules/unawaited_futures.dart';
 import 'package:linter/src/rules/unnecessary_brace_in_string_interps.dart';
+import 'package:linter/src/rules/unnecessary_const.dart';
 import 'package:linter/src/rules/unnecessary_getters_setters.dart';
 import 'package:linter/src/rules/unnecessary_lambdas.dart';
+import 'package:linter/src/rules/unnecessary_new.dart';
 import 'package:linter/src/rules/unnecessary_null_aware_assignments.dart';
 import 'package:linter/src/rules/unnecessary_null_in_if_null_operators.dart';
 import 'package:linter/src/rules/unnecessary_overrides.dart';
@@ -225,6 +227,8 @@ void registerLintRules() {
     ..registerDefault(new TypeInitFormals())
     ..register(new UnawaitedFutures())
     ..registerDefault(new UnnecessaryBraceInStringInterps())
+    ..register(new UnnecessaryConst())
+    ..register(new UnnecessaryNew())
     ..registerDefault(new UnnecessaryNullAwareAssignments())
     ..registerDefault(new UnnecessaryNullInIfNullOperators())
     // Disabled pending fix: https://github.com/dart-lang/linter/issues/35
