@@ -2336,23 +2336,25 @@ class ShadowVariableDeclaration extends VariableDeclaration
 
   @override
   void _inferStatement(ShadowTypeInferrer inferrer) {
-    inferrer.inferMetadataKeepingHelper(annotations);
+    if (annotations.isNotEmpty) {
+      inferrer.inferMetadataKeepingHelper(annotations);
 
-    // After the inference was done on the annotations, we may clone them for
-    // this instance of VariableDeclaration in order to avoid having the same
-    // annotation node for two VariableDeclaration nodes in a situation like
-    // the following:
-    //
-    //     class Foo { const Foo(List<String> list); }
-    //
-    //     @Foo(const [])
-    //     var x, y;
-    CloneVisitor cloner = new CloneVisitor();
-    for (int i = 0; i < annotations.length; ++i) {
-      Expression annotation = annotations[i];
-      if (annotation.parent != this) {
-        annotations[i] = cloner.clone(annotation);
-        annotations[i].parent = this;
+      // After the inference was done on the annotations, we may clone them for
+      // this instance of VariableDeclaration in order to avoid having the same
+      // annotation node for two VariableDeclaration nodes in a situation like
+      // the following:
+      //
+      //     class Foo { const Foo(List<String> list); }
+      //
+      //     @Foo(const [])
+      //     var x, y;
+      CloneVisitor cloner = new CloneVisitor();
+      for (int i = 0; i < annotations.length; ++i) {
+        Expression annotation = annotations[i];
+        if (annotation.parent != this) {
+          annotations[i] = cloner.clone(annotation);
+          annotations[i].parent = this;
+        }
       }
     }
 
@@ -2408,7 +2410,7 @@ class ShadowVariableGet extends VariableGet implements ShadowExpression {
 
   @override
   DartType _inferExpression(ShadowTypeInferrer inferrer, DartType typeContext) {
-    var variable = this.variable as ShadowVariableDeclaration;
+    ShadowVariableDeclaration variable = this.variable;
     bool mutatedInClosure = variable._mutatedInClosure;
     DartType declaredOrInferredType = variable.type;
 

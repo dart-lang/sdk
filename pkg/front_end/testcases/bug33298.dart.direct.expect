@@ -1,0 +1,37 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method call(core::String s) → core::String
+    return "${s}${s}";
+}
+class B<T extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method call(self::B::T t) → self::B::T
+    return t;
+}
+class C extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method call<T extends core::Object = dynamic>(self::C::call::T t) → self::C::call::T
+    return t;
+}
+static method test() → dynamic {
+  self::A a = new self::A::•();
+  core::List<core::String> list1 = <dynamic>["a", "b", "c"].map(a.call).toList();
+  core::List<core::String> list2 = <dynamic>["a", "b", "c"].map(a).toList();
+  self::B<core::String> b = new self::B::•<dynamic>();
+  core::List<core::String> list3 = <dynamic>["a", "b", "c"].map(b.call).toList();
+  core::List<core::String> list4 = <dynamic>["a", "b", "c"].map(b).toList();
+  self::C c = new self::C::•();
+  core::List<core::String> list5 = <dynamic>["a", "b", "c"].map(c.call).toList();
+  core::List<core::String> list6 = <dynamic>["a", "b", "c"].map(c).toList();
+}
+static method main() → dynamic {}
