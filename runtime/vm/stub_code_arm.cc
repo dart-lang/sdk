@@ -102,6 +102,13 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ StoreToOffset(kWord, R2, THR, Thread::top_exit_frame_info_offset());
 
   __ LeaveStubFrame();
+
+  // The following return can jump to a lazy-deopt stub, which assumes R0
+  // contains a return value and will save it in a GC-visible way.  We therefore
+  // have to ensure R0 does not contain any garbage value left from the C
+  // function we called (which has return type "void").
+  // (See GenerateDeoptimizationSequence::saved_result_slot_from_fp.)
+  __ LoadImmediate(R0, 0);
   __ Ret();
 }
 

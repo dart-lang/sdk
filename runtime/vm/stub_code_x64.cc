@@ -98,6 +98,13 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ movq(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
 
   __ LeaveStubFrame();
+
+  // The following return can jump to a lazy-deopt stub, which assumes RAX
+  // contains a return value and will save it in a GC-visible way.  We therefore
+  // have to ensure RAX does not contain any garbage value left from the C
+  // function we called (which has return type "void").
+  // (See GenerateDeoptimizationSequence::saved_result_slot_from_fp.)
+  __ xorq(RAX, RAX);
   __ ret();
 }
 

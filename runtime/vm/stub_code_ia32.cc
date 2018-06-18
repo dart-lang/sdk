@@ -89,6 +89,13 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ movl(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
 
   __ LeaveFrame();
+
+  // The following return can jump to a lazy-deopt stub, which assumes EAX
+  // contains a return value and will save it in a GC-visible way.  We therefore
+  // have to ensure EAX does not contain any garbage value left from the C
+  // function we called (which has return type "void").
+  // (See GenerateDeoptimizationSequence::saved_result_slot_from_fp.)
+  __ xorl(EAX, EAX);
   __ ret();
 }
 
