@@ -64,8 +64,6 @@ class HtmlDartGenerator(object):
 
   def EmitEventGetter(self, events_class_name):
     self._members_emitter.Emit(
-        "\n  @DocsEditable()"
-        "\n  @DomName('EventTarget.addEventListener, "
         "EventTarget.removeEventListener, EventTarget.dispatchEvent')"
         "\n  @deprecated"
         "\n  $TYPE get on =>\n    new $TYPE(this);\n",

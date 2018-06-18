@@ -22,14 +22,10 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   }
 $!MEMBERS
 
-  @DomName('MouseEvent.clientX') @DomName('MouseEvent.clientY')
   Point get client => new Point(_clientX, _clientY);
 
-  @DomName('MouseEvent.movementX')
-  @DomName('MouseEvent.movementY')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
-  @Experimental()
   Point get movement => new Point(_movementX, _movementY);
 
   /**
@@ -56,19 +52,12 @@ $!MEMBERS
     }
   }
 
-  @DomName('MouseEvent.screenX')
-  @DomName('MouseEvent.screenY')
   Point get screen => new Point(_screenX, _screenY);
 
-  @DomName('MouseEvent.layerX')
-  @DomName('MouseEvent.layerY')
   Point get layer => new Point(_layerX, _layerY);
 
-  @DomName('MouseEvent.pageX')
-  @DomName('MouseEvent.pageY')
   Point get page => new Point(_pageX, _pageY);
 
-  @DomName('MouseEvent.dataTransfer')
   DataTransfer get dataTransfer => JS('DataTransfer', "#['dataTransfer']", this);
 
 }

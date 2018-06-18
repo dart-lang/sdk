@@ -6,7 +6,6 @@ part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
-  @DomName('Navigator.getGamepads')
   List<Gamepad> getGamepads() {
     var gamepadList = _getGamepads();
 
@@ -20,7 +19,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     return gamepadList;
   }
 
-  @DomName('Navigator.language')
   String get language => JS('String', '#.language || #.userLanguage', this,
       this);
 
@@ -59,9 +57,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    * See also:
    * * [MediaStream.supported]
    */
-  @DomName('Navigator.webkitGetUserMedia')
   @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental()
   Future<MediaStream> getUserMedia({audio: false, video: false}) {
     var completer = new Completer<MediaStream>();
     var options = {

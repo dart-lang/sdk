@@ -4,12 +4,9 @@
 
 part of $LIBRARYNAME;
 
-@DocsEditable()
 $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS implements _WebGL2RenderingContextBase, _WebGLRenderingContextBase {
 $!MEMBERS
 
-  @DomName('WebGLRenderingContext2.readPixels')
-  @DocsEditable()
   void readPixels(int x, int y, int width, int height, int format, int type,
           TypedData pixels) {
       _readPixels(x, y, width, height, format, type, pixels);

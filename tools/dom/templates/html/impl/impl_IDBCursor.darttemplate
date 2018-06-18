@@ -5,7 +5,6 @@
 part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
-  @DomName('IDBCursor.delete')
   Future delete() {
    try {
       return _completeRequest(_delete());
@@ -14,7 +13,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     }
   }
 
-  @DomName('IDBCursor.value')
   Future update(value) {
    try {
       return _completeRequest(_update(value));
@@ -24,7 +22,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   }
 
   @JSName('continue')
-  @DomName('IDBCursor.continue')
   void next([Object key]) {
     if (key == null) {
       JS('void', '#.continue()', this);

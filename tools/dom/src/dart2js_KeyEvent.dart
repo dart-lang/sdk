@@ -25,7 +25,6 @@
  * on how we can make this class work with as many international keyboards as
  * possible. Bugs welcome!
  */
-@Experimental()
 class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   /** The parent KeyboardEvent that this KeyEvent is wrapping and "fixing". */
   KeyboardEvent _parent;
@@ -230,10 +229,8 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
         "Cannot initialize a KeyboardEvent from a KeyEvent.");
   }
 
-  @Experimental() // untriaged
   bool getModifierState(String keyArgument) => throw new UnimplementedError();
 
-  @Experimental() // untriaged
   bool get repeat => throw new UnimplementedError();
   bool get isComposed => throw new UnimplementedError();
   dynamic get _get_view => throw new UnimplementedError();

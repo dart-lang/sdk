@@ -260,7 +260,6 @@ class DartiumBackend(HtmlDartGenerator):
             self.DeriveQualifiedBlinkName(self._interface.id,
                                           dart_native_name)
         self._members_emitter.Emit(
-            '\n  @DocsEditable()\n'
             '  static $INTERFACE_NAME $FACTORY_METHOD_NAME($PARAMETERS) => '
             '$TOPLEVEL_NAME($OUTPARAMETERS);\n',
             INTERFACE_NAME=self._interface_type_info.interface_name(),

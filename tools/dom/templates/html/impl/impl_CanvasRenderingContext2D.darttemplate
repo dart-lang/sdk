@@ -11,8 +11,6 @@ abstract class CanvasRenderingContext {
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS implements CanvasRenderingContext {
 $!MEMBERS
 
-  @DomName('CanvasRenderingContext2D.createImageDataFromImageData')
-  @DocsEditable()
   ImageData createImageDataFromImageData(ImageData imagedata) =>
     JS('ImageData', '#.createImageData(#)', this, imagedata);
 
@@ -52,7 +50,6 @@ $!MEMBERS
     this.strokeStyle = 'hsla($h, $s%, $l%, $a)';
   }
 
-  @DomName('CanvasRenderingContext2D.arc')
   void arc(num x,  num y,  num radius,  num startAngle, num endAngle,
       [bool anticlockwise = false]) {
     // TODO(terry): This should not be needed: dartbug.com/20939.
@@ -60,7 +57,6 @@ $!MEMBERS
        endAngle, anticlockwise);
   }
 
-  @DomName('CanvasRenderingContext2D.createPatternFromImage')
   CanvasPattern createPatternFromImage(ImageElement image, String repetitionType) =>
     JS('CanvasPattern', '#.createPattern(#, #)', this, image, repetitionType);
 
@@ -104,7 +100,6 @@ $!MEMBERS
    *   * [drawImage](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#dom-context-2d-drawimage)
    * from the WHATWG.
    */
-  @DomName('CanvasRenderingContext2D.drawImage')
   void drawImageToRect(CanvasImageSource source, Rectangle destRect,
       {Rectangle sourceRect}) {
     if (sourceRect == null) {
@@ -155,7 +150,6 @@ $!MEMBERS
    *   * [drawImage](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#dom-context-2d-drawimage)
    * from the WHATWG.
    */
-  @DomName('CanvasRenderingContext2D.drawImage')
   @JSName('drawImage')
   void drawImage(CanvasImageSource source, num destX, num destY) native;
 
@@ -185,7 +179,6 @@ $!MEMBERS
    *   * [drawImage](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#dom-context-2d-drawimage)
    * from the WHATWG.
    */
-  @DomName('CanvasRenderingContext2D.drawImage')
   @JSName('drawImage')
   void drawImageScaled(CanvasImageSource source,
       num destX, num destY, num destWidth, num destHeight) native;
@@ -219,7 +212,6 @@ $!MEMBERS
    *   * [drawImage](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#dom-context-2d-drawimage)
    * from the WHATWG.
    */
-  @DomName('CanvasRenderingContext2D.drawImage')
   @JSName('drawImage')
   void drawImageScaledFromSource(CanvasImageSource source,
       num sourceX, num sourceY, num sourceWidth, num sourceHeight,
@@ -229,7 +221,6 @@ $!MEMBERS
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @SupportedBrowser(SupportedBrowser.IE, '11')
   @Unstable()
-  @DomName('CanvasRenderingContext2D.lineDashOffset')
   // TODO(14316): Firefox has this functionality with mozDashOffset, but it
   // needs to be polyfilled.
   num get lineDashOffset => JS('num',
@@ -239,7 +230,6 @@ $!MEMBERS
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @SupportedBrowser(SupportedBrowser.IE, '11')
   @Unstable()
-  @DomName('CanvasRenderingContext2D.lineDashOffset')
   // TODO(14316): Firefox has this functionality with mozDashOffset, but it
   // needs to be polyfilled.
   set lineDashOffset(num value) {
@@ -252,7 +242,6 @@ $!MEMBERS
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @SupportedBrowser(SupportedBrowser.IE, '11')
   @Unstable()
-  @DomName('CanvasRenderingContext2D.getLineDash')
   List<num> getLineDash() {
     // TODO(14316): Firefox has this functionality with mozDash, but it's a bit
     // different.
@@ -267,7 +256,6 @@ $!MEMBERS
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @SupportedBrowser(SupportedBrowser.IE, '11')
   @Unstable()
-  @DomName('CanvasRenderingContext2D.setLineDash')
   void setLineDash(List<num> dash) {
     // TODO(14316): Firefox has this functionality with mozDash, but it's a bit
     // different.
@@ -293,7 +281,6 @@ $!MEMBERS
    * [CanvasRenderingContext2D.textBaseLine] properties are also applied to the
    * drawn text.
    */
-  @DomName('CanvasRenderingContext2D.fillText')
   void fillText(String text, num x, num y, [num maxWidth]) {
     if (maxWidth != null) {
       JS('void', '#.fillText(#, #, #, #)', this, text, x, y, maxWidth);
@@ -303,8 +290,6 @@ $!MEMBERS
   }
 
   /** Deprecated always returns 1.0 */
-  @DomName('CanvasRenderingContext2D.webkitBackingStorePixelRation')
-  @Experimental()
   @deprecated
   double get backingStorePixelRatio => 1.0;
 }

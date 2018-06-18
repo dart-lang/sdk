@@ -50,40 +50,28 @@ $!MEMBERS
  * Exposes the functionality common between all InputElement types.
  */
 abstract class InputElementBase implements Element {
-  @DomName('HTMLInputElement.autofocus')
   bool autofocus;
 
-  @DomName('HTMLInputElement.disabled')
   bool disabled;
 
-  @DomName('HTMLInputElement.incremental')
   bool incremental;
 
-  @DomName('HTMLInputElement.indeterminate')
   bool indeterminate;
 
-  @DomName('HTMLInputElement.labels')
   List<Node> get labels;
 
-  @DomName('HTMLInputElement.name')
   String name;
 
-  @DomName('HTMLInputElement.validationMessage')
   String get validationMessage;
 
-  @DomName('HTMLInputElement.validity')
   ValidityState get validity;
 
-  @DomName('HTMLInputElement.value')
   String value;
 
-  @DomName('HTMLInputElement.willValidate')
   bool get willValidate;
 
-  @DomName('HTMLInputElement.checkValidity')
   bool checkValidity();
 
-  @DomName('HTMLInputElement.setCustomValidity')
   void setCustomValidity(String error);
 }
 
@@ -99,40 +87,28 @@ abstract class HiddenInputElement implements InputElementBase {
  * Base interface for all inputs which involve text editing.
  */
 abstract class TextInputElementBase implements InputElementBase {
-  @DomName('HTMLInputElement.autocomplete')
   String autocomplete;
 
-  @DomName('HTMLInputElement.maxLength')
   int maxLength;
 
-  @DomName('HTMLInputElement.pattern')
   String pattern;
 
-  @DomName('HTMLInputElement.placeholder')
   String placeholder;
 
-  @DomName('HTMLInputElement.readOnly')
   bool readOnly;
 
-  @DomName('HTMLInputElement.required')
   bool required;
 
-  @DomName('HTMLInputElement.size')
   int size;
 
-  @DomName('HTMLInputElement.select')
   void select();
 
-  @DomName('HTMLInputElement.selectionDirection')
   String selectionDirection;
 
-  @DomName('HTMLInputElement.selectionEnd')
   int selectionEnd;
 
-  @DomName('HTMLInputElement.selectionStart')
   int selectionStart;
 
-  @DomName('HTMLInputElement.setSelectionRange')
   void setSelectionRange(int start, int end, [String direction]);
 }
 
@@ -149,10 +125,8 @@ abstract class TextInputElementBase implements InputElementBase {
 abstract class SearchInputElement implements TextInputElementBase {
   factory SearchInputElement() => new InputElement(type: 'search');
 
-  @DomName('HTMLInputElement.dirName')
   String dirName;
 
-  @DomName('HTMLInputElement.list')
   Element get list;
 
   /// Returns true if this input type is supported on the current platform.
@@ -167,10 +141,8 @@ abstract class SearchInputElement implements TextInputElementBase {
 abstract class TextInputElement implements TextInputElementBase {
   factory TextInputElement() => new InputElement(type: 'text');
 
-  @DomName('HTMLInputElement.dirName')
   String dirName;
 
-  @DomName('HTMLInputElement.list')
   Element get list;
 }
 
@@ -186,7 +158,6 @@ abstract class TextInputElement implements TextInputElementBase {
 abstract class UrlInputElement implements TextInputElementBase {
   factory UrlInputElement() => new InputElement(type: 'url');
 
-  @DomName('HTMLInputElement.list')
   Element get list;
 
   /// Returns true if this input type is supported on the current platform.
@@ -210,7 +181,6 @@ abstract class UrlInputElement implements TextInputElementBase {
 abstract class TelephoneInputElement implements TextInputElementBase {
   factory TelephoneInputElement() => new InputElement(type: 'tel');
 
-  @DomName('HTMLInputElement.list')
   Element get list;
 
   /// Returns true if this input type is supported on the current platform.
@@ -231,34 +201,24 @@ abstract class TelephoneInputElement implements TextInputElementBase {
 abstract class EmailInputElement implements TextInputElementBase {
   factory EmailInputElement() => new InputElement(type: 'email');
 
-  @DomName('HTMLInputElement.autocomplete')
   String autocomplete;
 
-  @DomName('HTMLInputElement.autofocus')
   bool autofocus;
 
-  @DomName('HTMLInputElement.list')
   Element get list;
 
-  @DomName('HTMLInputElement.maxLength')
   int maxLength;
 
-  @DomName('HTMLInputElement.multiple')
   bool multiple;
 
-  @DomName('HTMLInputElement.pattern')
   String pattern;
 
-  @DomName('HTMLInputElement.placeholder')
   String placeholder;
 
-  @DomName('HTMLInputElement.readOnly')
   bool readOnly;
 
-  @DomName('HTMLInputElement.required')
   bool required;
 
-  @DomName('HTMLInputElement.size')
   int size;
 
   /// Returns true if this input type is supported on the current platform.
@@ -279,25 +239,18 @@ abstract class PasswordInputElement implements TextInputElementBase {
  */
 abstract class RangeInputElementBase implements InputElementBase {
 
-  @DomName('HTMLInputElement.list')
   Element get list;
 
-  @DomName('HTMLInputElement.max')
   String max;
 
-  @DomName('HTMLInputElement.min')
   String min;
 
-  @DomName('HTMLInputElement.step')
   String step;
 
-  @DomName('HTMLInputElement.valueAsNumber')
   num valueAsNumber;
 
-  @DomName('HTMLInputElement.stepDown')
   void stepDown([int n]);
 
-  @DomName('HTMLInputElement.stepUp')
   void stepUp([int n]);
 }
 
@@ -307,17 +260,13 @@ abstract class RangeInputElementBase implements InputElementBase {
  * Use [supported] to check if this is supported on the current platform.
  */
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
 abstract class DateInputElement implements RangeInputElementBase {
   factory DateInputElement() => new InputElement(type: 'date');
 
-  @DomName('HTMLInputElement.valueAsDate')
   DateTime valueAsDate;
 
-  @DomName('HTMLInputElement.readOnly')
   bool readOnly;
 
-  @DomName('HTMLInputElement.required')
   bool required;
 
   /// Returns true if this input type is supported on the current platform.
@@ -332,17 +281,13 @@ abstract class DateInputElement implements RangeInputElementBase {
  * Use [supported] to check if this is supported on the current platform.
  */
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
 abstract class MonthInputElement implements RangeInputElementBase {
   factory MonthInputElement() => new InputElement(type: 'month');
 
-  @DomName('HTMLInputElement.valueAsDate')
   DateTime valueAsDate;
 
-  @DomName('HTMLInputElement.readOnly')
   bool readOnly;
 
-  @DomName('HTMLInputElement.required')
   bool required;
 
   /// Returns true if this input type is supported on the current platform.
@@ -357,17 +302,13 @@ abstract class MonthInputElement implements RangeInputElementBase {
  * Use [supported] to check if this is supported on the current platform.
  */
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
 abstract class WeekInputElement implements RangeInputElementBase {
   factory WeekInputElement() => new InputElement(type: 'week');
 
-  @DomName('HTMLInputElement.valueAsDate')
   DateTime valueAsDate;
 
-  @DomName('HTMLInputElement.readOnly')
   bool readOnly;
 
-  @DomName('HTMLInputElement.required')
   bool required;
 
   /// Returns true if this input type is supported on the current platform.
@@ -382,17 +323,13 @@ abstract class WeekInputElement implements RangeInputElementBase {
  * Use [supported] to check if this is supported on the current platform.
  */
 @SupportedBrowser(SupportedBrowser.CHROME)
-@Experimental()
 abstract class TimeInputElement implements RangeInputElementBase {
   factory TimeInputElement() => new InputElement(type: 'time');
 
-  @DomName('HTMLInputElement.valueAsDate')
   DateTime valueAsDate;
 
-  @DomName('HTMLInputElement.readOnly')
   bool readOnly;
 
-  @DomName('HTMLInputElement.required')
   bool required;
 
   /// Returns true if this input type is supported on the current platform.
@@ -408,15 +345,12 @@ abstract class TimeInputElement implements RangeInputElementBase {
  * Use [supported] to check if this is supported on the current platform.
  */
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
 abstract class LocalDateTimeInputElement implements RangeInputElementBase {
   factory LocalDateTimeInputElement() =>
       new InputElement(type: 'datetime-local');
 
-  @DomName('HTMLInputElement.readOnly')
   bool readOnly;
 
-  @DomName('HTMLInputElement.required')
   bool required;
 
   /// Returns true if this input type is supported on the current platform.
@@ -431,17 +365,13 @@ abstract class LocalDateTimeInputElement implements RangeInputElementBase {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.IE)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental()
 abstract class NumberInputElement implements RangeInputElementBase {
   factory NumberInputElement() => new InputElement(type: 'number');
 
-  @DomName('HTMLInputElement.placeholder')
   String placeholder;
 
-  @DomName('HTMLInputElement.readOnly')
   bool readOnly;
 
-  @DomName('HTMLInputElement.required')
   bool required;
 
   /// Returns true if this input type is supported on the current platform.
@@ -458,7 +388,6 @@ abstract class NumberInputElement implements RangeInputElementBase {
  */
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.IE, '10')
-@Experimental()
 abstract class RangeInputElement implements RangeInputElementBase {
   factory RangeInputElement() => new InputElement(type: 'range');
 
@@ -477,10 +406,8 @@ abstract class RangeInputElement implements RangeInputElementBase {
 abstract class CheckboxInputElement implements InputElementBase {
   factory CheckboxInputElement() => new InputElement(type: 'checkbox');
 
-  @DomName('HTMLInputElement.checked')
   bool checked;
 
-  @DomName('HTMLInputElement.required')
   bool required;
 }
 
@@ -499,10 +426,8 @@ abstract class CheckboxInputElement implements InputElementBase {
 abstract class RadioButtonInputElement implements InputElementBase {
   factory RadioButtonInputElement() => new InputElement(type: 'radio');
 
-  @DomName('HTMLInputElement.checked')
   bool checked;
 
-  @DomName('HTMLInputElement.required')
   bool required;
 }
 
@@ -512,16 +437,12 @@ abstract class RadioButtonInputElement implements InputElementBase {
 abstract class FileUploadInputElement implements InputElementBase {
   factory FileUploadInputElement() => new InputElement(type: 'file');
 
-  @DomName('HTMLInputElement.accept')
   String accept;
 
-  @DomName('HTMLInputElement.multiple')
   bool multiple;
 
-  @DomName('HTMLInputElement.required')
   bool required;
 
-  @DomName('HTMLInputElement.files')
   List<File> files;
 }
 
@@ -531,19 +452,14 @@ abstract class FileUploadInputElement implements InputElementBase {
 abstract class SubmitButtonInputElement implements InputElementBase {
   factory SubmitButtonInputElement() => new InputElement(type: 'submit');
 
-  @DomName('HTMLInputElement.formAction')
   String formAction;
 
-  @DomName('HTMLInputElement.formEnctype')
   String formEnctype;
 
-  @DomName('HTMLInputElement.formMethod')
   String formMethod;
 
-  @DomName('HTMLInputElement.formNoValidate')
   bool formNoValidate;
 
-  @DomName('HTMLInputElement.formTarget')
   String formTarget;
 }
 
@@ -554,31 +470,22 @@ abstract class SubmitButtonInputElement implements InputElementBase {
 abstract class ImageButtonInputElement implements InputElementBase {
   factory ImageButtonInputElement() => new InputElement(type: 'image');
 
-  @DomName('HTMLInputElement.alt')
   String alt;
 
-  @DomName('HTMLInputElement.formAction')
   String formAction;
 
-  @DomName('HTMLInputElement.formEnctype')
   String formEnctype;
 
-  @DomName('HTMLInputElement.formMethod')
   String formMethod;
 
-  @DomName('HTMLInputElement.formNoValidate')
   bool formNoValidate;
 
-  @DomName('HTMLInputElement.formTarget')
   String formTarget;
 
-  @DomName('HTMLInputElement.height')
   int height;
 
-  @DomName('HTMLInputElement.src')
   String src;
 
-  @DomName('HTMLInputElement.width')
   int width;
 }
 

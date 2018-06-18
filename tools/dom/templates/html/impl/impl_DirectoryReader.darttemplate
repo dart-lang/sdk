@@ -7,8 +7,6 @@ part of $LIBRARYNAME;
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 $!MEMBERS
 
-  @DomName('DirectoryReader.readEntries')
-  @DocsEditable()
   Future<List<Entry>> readEntries() {
     var completer = new Completer<List<Entry>>();
     _readEntries((value) {

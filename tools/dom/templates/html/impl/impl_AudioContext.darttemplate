@@ -41,13 +41,10 @@ $!MEMBERS
   }
 
   @JSName('decodeAudioData')
-  @DomName('AudioContext.decodeAudioData')
-  @DocsEditable()
   Future _decodeAudioData(ByteBuffer audioData,
       [DecodeSuccessCallback successCallback,
       DecodeErrorCallback errorCallback]) native;
 
-  @DomName('AudioContext.decodeAudioData')
   Future<AudioBuffer> decodeAudioData(ByteBuffer audioData,
       [DecodeSuccessCallback successCallback,
       DecodeErrorCallback errorCallback]) {

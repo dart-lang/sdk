@@ -292,7 +292,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    * This API provides a subset of [request] which works on IE9. If IE9
    * cross-origin support is not required then [request] should be used instead.
    */
-  @Experimental()
   static Future<String> requestCrossOrigin(String url,
       {String method, String sendData}) {
     if (supportsCrossOrigin) {
@@ -381,8 +380,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    * `open` method is intended only for more complex HTTP requests where
    * finer-grained control is needed.
    */
-  @DomName('XMLHttpRequest.open')
-  @DocsEditable()
   void open(String method, String url, {bool async, String user, String password}) native;
 
 $!MEMBERS

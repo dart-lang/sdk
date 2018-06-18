@@ -7,7 +7,6 @@ part of $LIBRARYNAME;
 // We implement EventTarget and have stubs for its methods because it's tricky to
 // convince the scripts to make our instance methods abstract, and the bodies that
 // get generated require `this` to be an EventTarget.
-@DocsEditable()
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME implements EventTarget {
 
   void addEventListener(String type, dynamic listener(Event event), [bool useCapture]);

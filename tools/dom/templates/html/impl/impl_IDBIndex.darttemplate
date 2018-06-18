@@ -5,7 +5,6 @@
 part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
-  @DomName('IDBIndex.count')
   Future<int> count([key_OR_range]) {
    try {
       var request = _count(key_OR_range);
@@ -15,7 +14,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     }
   }
 
-  @DomName('IDBIndex.get')
   Future get(key) {
     try {
       var request = _get(key);
@@ -26,7 +24,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     }
   }
 
-  @DomName('IDBIndex.getKey')
   Future getKey(key) {
     try {
       var request = _getKey(key);

@@ -7,8 +7,6 @@ part of $LIBRARYNAME;
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 $!MEMBERS
   @JSName('target')
-  @DomName('IDBVersionChangeEvent.target')
-  @DocsEditable()
   final OpenDBRequest target;
 }
 

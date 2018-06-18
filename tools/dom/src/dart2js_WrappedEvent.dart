@@ -83,7 +83,6 @@ class _WrappedEvent implements Event {
    *   from W3C.
    */
   // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#extensions-to-event
-  @Experimental()
   List<Node> get path => wrapped.path;
 
   dynamic get _get_currentTarget => wrapped._get_currentTarget;

@@ -211,7 +211,6 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    * Unlike [getBoundingClientRect], the dimensions of this rectangle
    * will return the same numerical height if the element is hidden or not.
    */
-  @Experimental()
   CssRect get contentEdge;
 
   /**
@@ -226,7 +225,6 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    * is also a rectangle equalling the dimensions of clientHeight and
    * clientWidth.
    */
-  @Experimental()
   CssRect get paddingEdge;
 
   /**
@@ -239,7 +237,6 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    * will return the same numerical height if the element is hidden or not. This
    * can be used to retrieve jQuery's `outerHeight` value for an element.
    */
-  @Experimental()
   CssRect get borderEdge;
 
   /**
@@ -252,7 +249,6 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    * will return the same numerical height if the element is hidden or not. This
    * can be used to retrieve jQuery's `outerHeight` value for an element.
    */
-  @Experimental()
   CssRect get marginEdge;
 $!STREAM_GETTER_SIGNATURES
 }
@@ -323,7 +319,6 @@ class _FrozenElementList<E extends Element> extends ListBase<E>
 $!ELEMENT_STREAM_GETTERS
 }
 
-@DocsEditable()
 $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
   /**
@@ -598,7 +593,6 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    * For details about CSS selector syntax, see the
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
-  @DomName('Element.querySelectorAll')
   ElementList<T> querySelectorAll<T extends Element>(String selectors) =>
     new _FrozenElementList<T>._wrap(_querySelectorAll(selectors));
 
@@ -738,7 +732,6 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    * [Custom Elements](http://w3c.github.io/webcomponents/spec/custom/#dfn-attached-callback)
    * draft specification.
    */
-  @Experimental()
   void attached() {
     // For the deprecation period, call the old callback.
     enteredView();
@@ -752,19 +745,15 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    * [Custom Elements](http://w3c.github.io/webcomponents/spec/custom/#dfn-detached-callback)
    * draft specification.
    */
-  @Experimental()
   void detached() {
     // For the deprecation period, call the old callback.
     leftView();
   }
 
   /** *Deprecated*: override [attached] instead. */
-  @Experimental()
   @deprecated
   void enteredView() {}
 
-  @DomName('Element.getClientRects')
-  @DocsEditable()
   List<Rectangle> getClientRects() {
     var value = _getClientRects();
 
@@ -780,7 +769,6 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   }
 
   /** *Deprecated*: override [detached] instead. */
-  @Experimental()
   @deprecated
   void leftView() {}
 
@@ -806,7 +794,6 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    * for the transition, or a Map with fields corresponding to those
    * of the [Timing] object.
   **/
-  @Experimental()
   @SupportedBrowser(SupportedBrowser.CHROME, '36')
   Animation animate(Iterable<Map<String, dynamic>> frames, [timing]) {
     if (frames is! Iterable || !(frames.every((x) => x is Map))) {
@@ -825,17 +812,13 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
       : _animate(convertedFrames, convertedTiming);
   }
 
-  @DomName('Element.animate')
   @JSName('animate')
-  @Experimental() // untriaged
   Animation _animate(Object effect, [timing]) native;
   /**
    * Called by the DOM whenever an attribute on this has been changed.
    */
   void attributeChanged(String name, String oldValue, String newValue) {}
 
-  @DomName('Element.localName')
-  @DocsEditable()
   @Returns('String')
   // Non-null for Elements.
   String get localName => JS('String', '#', _localName);
@@ -850,7 +833,6 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    * * [Node.namespaceURI](http://www.w3.org/TR/DOM-Level-3-Core/core.html#ID-NodeNSname)
    *   from W3C.
    */
-  @DomName('Element.namespaceUri')
   String get namespaceUri => _namespaceUri;
 
   /**
@@ -902,7 +884,6 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    *
    * See [EventStreamProvider] for usage information.
    */
-  @DomName('Element.mouseWheelEvent')
   static const EventStreamProvider<WheelEvent> mouseWheelEvent =
       const _CustomEventStreamProvider<WheelEvent>(
         Element._determineMouseWheelEventType);
@@ -915,7 +896,6 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    *
    * See [EventStreamProvider] for usage information.
    */
-  @DomName('Element.transitionEndEvent')
   static const EventStreamProvider<TransitionEvent> transitionEndEvent =
       const _CustomEventStreamProvider<TransitionEvent>(
         Element._determineTransitionEventType);
@@ -1032,7 +1012,6 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   /**
    * Checks if this element matches the CSS selectors.
    */
-  @Experimental()
   bool matches(String selectors) {
     if (JS('bool', '!!#.matches', this)) {
       return JS('bool', '#.matches(#)', this, selectors);
@@ -1050,7 +1029,6 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   }
 
   /** Checks if this element or any of its parents match the CSS selectors. */
-  @Experimental()
   bool matchesWithAncestors(String selectors) {
     var elem = this;
     do {
@@ -1069,9 +1047,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    *   from HTML5Rocks.
    * * [Shadow DOM specification](http://www.w3.org/TR/shadow-dom/) from W3C.
    */
-  @DomName('Element.createShadowRoot')
   @SupportedBrowser(SupportedBrowser.CHROME, '25')
-  @Experimental()
   ShadowRoot createShadowRoot() {
     return JS('ShadowRoot',
       '(#.createShadowRoot || #.webkitCreateShadowRoot).call(#)',
@@ -1088,9 +1064,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    * * [Shadow DOM specification](http://www.w3.org/TR/shadow-dom/)
    *   from W3C.
    */
-  @DomName('Element.shadowRoot')
   @SupportedBrowser(SupportedBrowser.CHROME, '25')
-  @Experimental()
   ShadowRoot get shadowRoot =>
       JS('ShadowRoot|Null', '#.shadowRoot || #.webkitShadowRoot', this, this);
 
@@ -1107,7 +1081,6 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    * animation frame is discouraged. See also:
    * [Browser Reflow](https://developers.google.com/speed/articles/reflow)
    */
-  @Experimental()
   CssRect get contentEdge => new _ContentCssRect(this);
 
   /**
@@ -1127,7 +1100,6 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    * animation frame is discouraged. See also:
    * [Browser Reflow](https://developers.google.com/speed/articles/reflow)
    */
-  @Experimental()
   CssRect get paddingEdge => new _PaddingCssRect(this);
 
   /**
@@ -1146,7 +1118,6 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    * animation frame is discouraged. See also:
    * [Browser Reflow](https://developers.google.com/speed/articles/reflow)
    */
-  @Experimental()
   CssRect get borderEdge => new _BorderCssRect(this);
 
   /**
@@ -1165,7 +1136,6 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    * animation frame is discouraged. See also:
    * [Browser Reflow](https://developers.google.com/speed/articles/reflow)
    */
-  @Experimental()
   CssRect get marginEdge => new _MarginCssRect(this);
 
   /**
@@ -1175,7 +1145,6 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    * This method is the Dart equivalent to jQuery's
    * [offset](http://api.jquery.com/offset/) method.
    */
-  @Experimental()
   Point get documentOffset => offsetTo(document.documentElement);
 
   /**
@@ -1189,7 +1158,6 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    * element is _not_ an offset parent or transitive offset parent to this
    * element, an [ArgumentError] is thrown.
    */
-  @Experimental()
   Point offsetTo(Element parent) {
     return Element._offsetToHelper(this, parent);
   }
@@ -1430,52 +1398,29 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
     return result;
   }
 
-  @DomName('Element.offsetParent')
-  @DocsEditable()
   final Element offsetParent;
 
-  @DomName('Element.offsetHeight')
-  @DocsEditable()
   int get offsetHeight => JS('num', '#.offsetHeight', this).round();
 
-  @DomName('Element.offsetLeft')
-  @DocsEditable()
   int get offsetLeft => JS('num', '#.offsetLeft', this).round();
 
-  @DomName('Element.offsetTop')
-  @DocsEditable()
   int get offsetTop => JS('num', '#.offsetTop', this).round();
 
-  @DomName('Element.offsetWidth')
-  @DocsEditable()
   int get offsetWidth => JS('num', '#.offsetWidth', this).round();
 
-  @DomName('Element.scrollHeight')
-  @DocsEditable()
   int get scrollHeight => JS('num', '#.scrollHeight', this).round();
-
-  @DomName('Element.scrollLeft')
-  @DocsEditable()
   int get scrollLeft => JS('num', '#.scrollLeft', this).round();
 
-  @DomName('Element.scrollLeft')
-  @DocsEditable()
   set scrollLeft(int value) {
     JS("void", "#.scrollLeft = #", this, value.round());
   }
 
-  @DomName('Element.scrollTop')
-  @DocsEditable()
   int get scrollTop => JS('num', '#.scrollTop', this).round();
 
-  @DomName('Element.scrollTop')
-  @DocsEditable()
   set scrollTop(int value) {
     JS("void", "#.scrollTop = #", this, value.round());
   }
 
-  @DomName('Element.scrollWidth')
-  @DocsEditable()
   int get scrollWidth => JS('num', '#.scrollWidth', this).round();
 
 $!MEMBERS
@@ -1484,7 +1429,6 @@ $!MEMBERS
 
 class _ElementFactoryProvider {
 
-  @DomName('Document.createElement')
   // Optimization to improve performance until the dart2js compiler inlines this
   // method.
   static dynamic createElement_tag(String tag, String typeExtension) {
