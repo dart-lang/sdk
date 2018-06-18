@@ -452,28 +452,26 @@ class ContextBuilder {
         verbose('Exception: $e\n  when loading ${optionsFile.path}');
       }
     } else {
-      // Search for the default analysis options
-      // unless explicitly directed not to do so.
+      // Search for the default analysis options.
+      // TODO(danrubel) determine if bazel or gn project depends upon flutter
       Source source;
-      if (builderOptions.packageDefaultAnalysisOptions) {
-        // TODO(danrubel) determine if bazel or gn project depends upon flutter
-        if (workspace.hasFlutterDependency) {
-          source = sourceFactory.forUri(flutterAnalysisOptionsPath);
-        }
-        if (source == null || !source.exists()) {
-          source = sourceFactory.forUri(bazelAnalysisOptionsPath);
-        }
-        if (source != null && source.exists()) {
-          try {
-            optionMap = optionsProvider.getOptionsFromSource(source);
-            if (contextRoot != null) {
-              contextRoot.optionsFilePath = source.fullName;
-            }
-            verbose('Loaded analysis options from ${source.fullName}');
-          } catch (e) {
-            // Ignore exceptions thrown while trying to load the options file.
-            verbose('Exception: $e\n  when loading ${source.fullName}');
+      if (workspace.hasFlutterDependency) {
+        source = sourceFactory.forUri(flutterAnalysisOptionsPath);
+      }
+      if (source == null || !source.exists()) {
+        source = sourceFactory.forUri(bazelAnalysisOptionsPath);
+      }
+
+      if (source != null && source.exists()) {
+        try {
+          optionMap = optionsProvider.getOptionsFromSource(source);
+          if (contextRoot != null) {
+            contextRoot.optionsFilePath = source.fullName;
           }
+          verbose('Loaded analysis options from ${source.fullName}');
+        } catch (e) {
+          // Ignore exceptions thrown while trying to load the options file.
+          verbose('Exception: $e\n  when loading ${source.fullName}');
         }
       }
     }
@@ -691,11 +689,6 @@ class ContextBuilderOptions {
    * or `null` if the normal lookup mechanism should be used.
    */
   String defaultPackagesDirectoryPath;
-
-  /**
-   * Allow Flutter and bazel default analysis options to be used.
-   */
-  bool packageDefaultAnalysisOptions = true;
 
   /**
    * Initialize a newly created set of options

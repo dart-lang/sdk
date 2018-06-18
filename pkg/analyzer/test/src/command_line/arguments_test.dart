@@ -154,7 +154,7 @@ class ArgumentsTest {
   void test_defineAnalysisArguments() {
     ArgParser parser = new ArgParser();
     defineAnalysisArguments(parser);
-    expect(parser.options, hasLength(14));
+    expect(parser.options, hasLength(13));
   }
 
   void test_extractDefinedVariables() {
