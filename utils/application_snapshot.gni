@@ -76,6 +76,7 @@ template("application_snapshot") {
   if (defined(invoker.output)) {
     output = invoker.output
   }
+  # TODO(asiva), flip default once the VM is dart2 by default.
   dart_version = 1
   if (defined(invoker.dart_version)) {
     dart_version = invoker.dart_version
@@ -85,14 +86,15 @@ template("application_snapshot") {
   dart_action(target_name) {
     deps = extra_deps
 
-    if (dart_version == 2) {
+    if (dart_version == 1) {
+      snapshot_vm_args += [ "--no-preview-dart-2" ]
+    } else {
       # HACK: When creating app-jit snapshots for Dart 2 apps, the standalone
       # Dart VM binary requires the app-jit snapshot for the kernel service to
       # be adjacent to it. This deps ensures that it is there, but a different
       # approach will be needed when the kernel service itself switches to
       # Dart 2 to avoid creating a circular dependence.
       deps += [ "$_dart_root/utils/kernel-service:copy_kernel_service_snapshot"]
-      snapshot_vm_args += [ "--preview-dart-2" ]
     }
 
     depfile = "$output.d"

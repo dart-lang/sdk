@@ -503,6 +503,7 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
   }
 
   if (isolate == NULL) {
+    Log::PrintErr("%s\n", *error);
     delete isolate_data;
     return NULL;
   }
@@ -1302,7 +1303,7 @@ void main(int argc, char** argv) {
                                       application_kernel_buffer_size);
     // Since we saw a dill file, it means we have to turn on all the
     // preview_dart_2 options.
-    Options::SetPreviewDart2Options(&vm_options);
+    Options::SetDart2Options(&vm_options);
   }
 #endif
 

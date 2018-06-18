@@ -41,7 +41,6 @@ class Configuration {
       this.listTests,
       this.listStatusFiles,
       this.noPreviewDart2,
-      this.previewDart2,
       this.printTiming,
       this.printReport,
       this.reportInJson,
@@ -116,7 +115,6 @@ class Configuration {
   final bool listTests;
   final bool listStatusFiles;
   final bool noPreviewDart2;
-  final bool previewDart2;
   final bool printTiming;
   final bool printReport;
   final bool reportInJson;
@@ -196,13 +194,6 @@ class Configuration {
     return fastaCompilers.contains(compiler) ||
         compiler == Compiler.dart2js && !useDart2JSOldFrontend;
   }
-
-  /// Returns true if this configuration is considered Dart 2.0 configuration
-  /// by VM (which is identified by using common front-end and strong mode).
-  /// In this case instead of invoking VM binary directly we use
-  /// pkg/vm/tool/dart2 wrapper script, which takes care of passing
-  /// correct arguments to VM binary.
-  bool get usingDart2VMWrapper => isStrong && compiler == Compiler.dartk;
 
   /// The base directory named for this configuration, like:
   ///
@@ -478,7 +469,6 @@ class Configuration {
         'fast_startup': useFastStartup,
         'timeout': timeout,
         'no_preview_dart_2': noPreviewDart2,
-        'preview_dart_2': previewDart2,
         'dart2js_with_kernel': useDart2JSWithKernel,
         'dart2js_old_frontend': useDart2JSOldFrontend,
         'enable_asserts': useEnableAsserts,

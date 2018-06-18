@@ -130,10 +130,6 @@ abstract class TestSuite {
     _environmentOverrides = {
       'DART_CONFIGURATION': configuration.configurationDirectory,
     };
-
-    if (useSdk && configuration.usingDart2VMWrapper) {
-      _environmentOverrides['DART_USE_SDK'] = '1';
-    }
   }
 
   Map<String, String> get environmentOverrides => _environmentOverrides;
@@ -167,14 +163,6 @@ abstract class TestSuite {
   String get dartVmBinaryFileName {
     // Controlled by user with the option "--dart".
     var dartExecutable = configuration.dartPath;
-
-    if (configuration.usingDart2VMWrapper) {
-      if (dartExecutable != null) {
-        throw 'Can not use --dart when testing Dart 2.0 configuration';
-      }
-
-      dartExecutable = 'pkg/vm/tool/dart2$executableScriptSuffix';
-    }
 
     if (dartExecutable == null) {
       dartExecutable = dartVmExecutableFileName;
@@ -489,7 +477,7 @@ class VMTestSuite extends TestSuite {
 
   void _addTest(ExpectationSet testExpectations, String testName) {
     var args = configuration.standardOptions.toList();
-    if (configuration.compilerConfiguration.useDfe) {
+    if (configuration.compilerConfiguration.previewDart2) {
       args.add('--use-dart-frontend');
       // '--dfe' has to be the first argument for run_vm_test to pick it up.
       args.insert(0, '--dfe=$buildDir/gen/kernel-service.dart.snapshot');
@@ -857,14 +845,6 @@ class StandardTestSuite extends TestSuite {
       var allVmOptions = vmOptions;
       if (!extraVmOptions.isEmpty) {
         allVmOptions = vmOptions.toList()..addAll(extraVmOptions);
-      }
-
-      // TODO(rnystrom): Hack. When running the 2.0 tests, always implicitly
-      // turn on reified generics in the VM.
-      // Note that VMOptions=--no-reify-generic-functions in test is ignored.
-      // Dart 2 VM wrapper (pkg/vm/tool/dart2) already passes correct arguments.
-      if (suiteName.endsWith("_2") && !configuration.usingDart2VMWrapper) {
-        allVmOptions = allVmOptions.toList()..add("--reify-generic-functions");
       }
 
       var commands =
@@ -1309,12 +1289,15 @@ class StandardTestSuite extends TestSuite {
     if (configuration.compiler == Compiler.dart2analyzer) {
       args.add('--format=machine');
       args.add('--no-hints');
-      if (configuration.previewDart2) args.add("--preview-dart-2");
-      if (configuration.noPreviewDart2) args.add("--no-preview-dart-2");
 
       if (filePath.filename.contains("dart2js") ||
           filePath.directoryPath.segments().last.contains('html_common')) {
         args.add("--use-dart2js-libraries");
+      }
+      if (configuration.noPreviewDart2) {
+        args.add("--no-preview-dart-2");
+      } else {
+        args.add("--preview-dart-2");
       }
     }
 

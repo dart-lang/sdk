@@ -95,6 +95,7 @@ symbol_test/03: MissingCompileTimeError
 
 [ !$strong ]
 cast_test: SkipByDesign # Uses generic method parameters.
+regress_33166_test: SkipByDesign # Not a Dart 1 test
 
 [ $arch == simarmv5te && ($runtime == dart_precompiled || $runtime == vm) ]
 int_parse_radix_test/*: Pass, Slow

@@ -48,6 +48,7 @@ Future runCompiler(Uri compiler, Uri input, Uri output) async {
   Uri dartVm = Uri.base.resolveUri(new Uri.file(Platform.resolvedExecutable));
   StdioProcess result = await StdioProcess.run(dartVm.toFilePath(), <String>[
     "-c",
+    "--no_preview_dart_2",
     compiler.toFilePath(),
     "--compile-sdk=sdk/",
     "--output=${output.toFilePath()}",

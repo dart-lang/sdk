@@ -42,7 +42,8 @@ namespace bin {
   V(trace_loading, trace_loading)                                              \
   V(short_socket_read, short_socket_read)                                      \
   V(short_socket_write, short_socket_write)                                    \
-  V(disable_exit, exit_disabled)
+  V(disable_exit, exit_disabled)                                               \
+  V(no_preview_dart_2, no_preview_dart_2)
 
 // Boolean flags that have a short form.
 #define SHORT_BOOL_OPTIONS_LIST(V)                                             \
@@ -107,8 +108,9 @@ class Options {
   CB_OPTIONS_LIST(CB_OPTIONS_DECL)
 #undef CB_OPTIONS_DECL
 
-  static bool preview_dart_2() { return preview_dart_2_; }
-  static void SetPreviewDart2Options(CommandLineOptions* vm_options);
+  static bool preview_dart_2() { return !no_preview_dart_2(); }
+  static void SetDart2Options(CommandLineOptions* vm_options);
+  static void SetDart1Options(CommandLineOptions* vm_options);
 
   static dart::HashMap* environment() { return environment_; }
 
@@ -143,7 +145,6 @@ class Options {
   ENUM_OPTIONS_LIST(ENUM_OPTION_DECL)
 #undef ENUM_OPTION_DECL
 
-  static bool preview_dart_2_;
   static dart::HashMap* environment_;
 
 // Frontend argument processing.
@@ -174,8 +175,6 @@ class Options {
   friend class OptionProcessor_##flag;
   ENUM_OPTIONS_LIST(ENUM_OPTION_FRIEND)
 #undef ENUM_OPTION_FRIEND
-
-  friend class OptionProcessor_preview_dart_2;
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Options);

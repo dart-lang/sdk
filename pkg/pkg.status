@@ -222,6 +222,7 @@ analyzer/tool/task_dependency_graph/check_test: Slow, Pass
 front_end/tool/perf_test: Slow, Pass
 
 [ $runtime == vm && $checked ]
+analysis_server/test/benchmarks_test: Pass, Slow
 analysis_server/test/completion_test: Pass, Slow
 analysis_server/test/integration/edit/sort_members_test: Pass, Slow
 analysis_server/test/services/correction/fix_test: Pass, Slow

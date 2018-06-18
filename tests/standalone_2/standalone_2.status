@@ -75,6 +75,12 @@ io/*: Skip # Issue 30618
 [ $compiler != app_jitk && $compiler != dart2analyzer && $compiler != dartdevc && $compiler != dartk && $compiler != dartkp && $runtime != none && $strong ]
 float_array_static_test: MissingCompileTimeError
 
+# These tests spawn a process that imports using a http URL, since
+# spawned processes now run in Dart2 mode the tests fail as http URL imports
+# is not supported by the front end.
+[ $compiler == none && $runtime == vm ]
+http_launch_test: RuntimeError # Issue 33388
+
 [ $compiler == none && $runtime == vm && $system == fuchsia ]
 *: Skip # Not yet triaged.
 

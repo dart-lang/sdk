@@ -72,6 +72,12 @@ pause_on_unhandled_async_exceptions_test: Pass, RuntimeError # Issue 33365
 [ $compiler == dart2analyzer && $strong ]
 *: Skip # Issue 28649
 
+[ $compiler == none && $runtime == vm ]
+coverage_leaf_function_test: RuntimeError
+coverage_optimized_function_test: RuntimeError
+get_object_rpc_test: RuntimeError # Spawned process runs in Dart2 mode
+get_source_report_test: RuntimeError # Spawned process runs in Dart2 mode
+
 [ $compiler == none && $runtime == vm && $system == fuchsia ]
 *: Skip # Not yet triaged.
 
@@ -85,12 +91,8 @@ async_scope_test: Pass, Slow
 *: Skip
 
 [ ($compiler == none || $compiler == precompiler) && ($runtime == dart_precompiled || $runtime == vm) ]
-async_step_out_test: RuntimeError # Issue 29158, Async debugging
-awaiter_async_stack_contents_test: RuntimeError # Issue 29158, Async debugging
 evaluate_activation_test/instance: RuntimeError # http://dartbug.com/20047
 evaluate_activation_test/scope: RuntimeError # http://dartbug.com/20047
-regress_28980_test: RuntimeError # Issue 29158, Async debugging
-set_library_debuggable_test: RuntimeError # Issue 29158, Async debugging
 
 [ $arch != ia32 || $arch != x64 || $system != linux ]
 get_native_allocation_samples_test: Skip # Unsupported.

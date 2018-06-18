@@ -22,7 +22,7 @@ if %SDK_DIR:~-1%==\ set SDK_DIR=%SDK_DIR:~0,-1%
 
 set SDK_ARG=--dart-sdk=%SDK_DIR%
 
-"%DART%" "--preview-dart-2" "%SNAPSHOT%" "%SDK_ARG%" %*
+"%DART%" "%SNAPSHOT%" "%SDK_ARG%" %*
 
 endlocal
 

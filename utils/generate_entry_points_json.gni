@@ -30,6 +30,7 @@ template("generate_entry_points_json_with_dart_bootstrap") {
       output,
     ]
     vm_args = [
+      "--no-preview-dart-2",
       "--print-precompiler-entry-points=" + rebase_path(output),
       "--snapshot=" + rebase_path("$target_gen_dir/dummy.snapshot"),
       "--snapshot-kind=app-aot",

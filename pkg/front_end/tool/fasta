@@ -68,4 +68,4 @@ esac
 
 shift
 
-exec "${DART_VM}" -c "${SCRIPT}" "$@"
+exec "${DART_VM}" --no_preview_dart_2 -c "${SCRIPT}" "$@"

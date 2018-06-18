@@ -73,11 +73,16 @@ Future testNativeExtensions(String snapshotKind) async {
         snapshot = script;
       } else {
         snapshot = join(testDirectory, "$test.snapshot");
-        await run(Platform.executable,
-            ['--snapshot=$snapshot', '--snapshot-kind=$snapshotKind', script]);
+        List<String> args = new List<String>.from(Platform.executableArguments);
+        args.add('--snapshot=$snapshot');
+        args.add('--snapshot-kind=$snapshotKind');
+        args.add(script);
+        await run(Platform.executable, args);
       }
 
-      await run(Platform.executable, [snapshot]);
+      List<String> args = new List<String>.from(Platform.executableArguments);
+      args.add(snapshot);
+      await run(Platform.executable, args);
     }
   } finally {
     await tempDirectory.deleteSync(recursive: true);

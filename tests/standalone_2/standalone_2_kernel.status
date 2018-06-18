@@ -73,8 +73,8 @@ io/socket_port_test: Pass, Crash
 io/http_basic_test: Crash
 io/web_socket_ping_test: Crash, Pass
 
-# ===== dartk + vm status lines =====
 [ $compiler == dartk && $runtime == vm && $strong ]
+http_launch_test: RuntimeError # Issue 33388
 io/http_client_request_test: Pass, Timeout
 io/http_compression_test: RuntimeError
 io/platform_resolved_executable_test/03: Pass, RuntimeError
@@ -93,10 +93,6 @@ io/wait_for_event_isolate_test: Skip # Issues 32137 and 32138.
 
 [ $compiler == dartk && $system == windows && $strong ]
 io/compile_all_test: Pass, Fail # Possibly related to issue 32373
-io/file_stream_test: RuntimeError # Issue 31904
-io/platform_test: RuntimeError # Issue 31904
-io/process_non_ascii_test: RuntimeError # Issue 31904
-io/regress_7679_test: RuntimeError # Issue 31904
 map_insert_remove_oom_test: Skip # Heap limit too low.
 
 [ $compiler == dartk && $hot_reload ]

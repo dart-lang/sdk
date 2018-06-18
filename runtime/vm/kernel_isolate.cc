@@ -89,7 +89,7 @@ class RunKernelTask : public ThreadPool::Task {
     api_flags.enable_error_on_bad_override = false;
     api_flags.reify_generic_functions = false;
     api_flags.strong = false;
-    api_flags.sync_async = true;
+    api_flags.sync_async = false;
 #if !defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC)
     api_flags.use_field_guards = true;
 #endif
