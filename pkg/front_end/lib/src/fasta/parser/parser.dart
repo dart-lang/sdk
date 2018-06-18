@@ -3819,10 +3819,9 @@ class Parser {
   }
 
   Token parseExpressionWithoutCascade(Token token) {
-    Token result = optional('throw', token.next)
+    return optional('throw', token.next)
         ? parseThrowExpression(token, false)
         : parsePrecedenceExpression(token, ASSIGNMENT_PRECEDENCE, false);
-    return result;
   }
 
   Token parseConditionalExpressionRest(Token token) {
@@ -3868,7 +3867,10 @@ class Parser {
         } else if (identical(tokenLevel, ASSIGNMENT_PRECEDENCE)) {
           // Right associative, so we recurse at the same precedence
           // level.
-          token = parsePrecedenceExpression(token.next, level, allowCascades);
+          Token next = token.next;
+          token = optional('throw', next.next)
+              ? parseThrowExpression(next, false)
+              : parsePrecedenceExpression(next, level, allowCascades);
           listener.handleAssignmentExpression(operator);
         } else if (identical(tokenLevel, POSTFIX_PRECEDENCE)) {
           if ((identical(type, TokenType.PLUS_PLUS)) ||
