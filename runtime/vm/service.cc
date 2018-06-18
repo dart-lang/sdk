@@ -2435,7 +2435,8 @@ static bool Evaluate(Thread* thread, JSONStream* js) {
 
 static const MethodParameter* build_expression_evaluation_scope_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
-    new IdParameter("frameIndex", true),
+    new IdParameter("frameIndex", false),
+    new IdParameter("targetId", false),
     NULL,
 };
 
@@ -2457,14 +2458,87 @@ static bool BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
       GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
   const GrowableObjectArray& param_values =
       GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+  const GrowableObjectArray& type_params_names =
+      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+  String& klass_name = String::Handle(zone);
+  String& library_uri = String::Handle(zone);
+  bool isStatic = false;
+
   if (BuildScope(thread, js, param_names, param_values)) {
     return true;
   }
 
-  ActivationFrame* frame = stack->FrameAt(framePos);
-  const GrowableObjectArray& type_params_names =
-      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
-  frame->BuildParameters(param_names, param_values, type_params_names);
+  if (js->HasParam("frameIndex")) {
+    // building scope in the context of a given frame
+    DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
+    intptr_t framePos = UIntParameter::Parse(js->LookupParam("frameIndex"));
+    if (framePos >= stack->Length()) {
+      PrintInvalidParamError(js, "frameIndex");
+      return true;
+    }
+
+    ActivationFrame* frame = stack->FrameAt(framePos);
+    frame->BuildParameters(param_names, param_values, type_params_names);
+
+    if (frame->function().is_static()) {
+      const Class& cls = Class::Handle(zone, frame->function().Owner());
+      if (!cls.IsTopLevel()) {
+        klass_name ^= cls.UserVisibleName();
+      }
+      library_uri ^= Library::Handle(zone, cls.library()).url();
+      isStatic = !cls.IsTopLevel();
+    } else {
+      const Class& method_cls = Class::Handle(zone, frame->function().origin());
+      library_uri ^= Library::Handle(zone, method_cls.library()).url();
+      klass_name ^= method_cls.UserVisibleName();
+    }
+  } else {
+    // building scope in the context of a given object
+    if (!js->HasParam("targetId")) {
+      js->PrintError(kInvalidParams,
+                     "Either targetId or frameIndex has to be provided.");
+      return true;
+    }
+    const char* target_id = js->LookupParam("targetId");
+
+    ObjectIdRing::LookupResult lookup_result;
+    Object& obj = Object::Handle(
+        zone, LookupHeapObject(thread, target_id, &lookup_result));
+    if (obj.raw() == Object::sentinel().raw()) {
+      PrintInvalidParamError(js, "targetId");
+      return true;
+    }
+    if (obj.IsLibrary()) {
+      const Library& lib = Library::Cast(obj);
+      library_uri ^= lib.url();
+    } else if (obj.IsClass() || ((obj.IsInstance() || obj.IsNull()) &&
+                                 !ContainsNonInstance(obj))) {
+      Class& cls = Class::Handle(zone);
+      if (obj.IsClass()) {
+        cls ^= obj.raw();
+      } else {
+        Instance& instance = Instance::Handle(zone);
+        instance ^= obj.raw();
+        cls ^= instance.clazz();
+      }
+      if (cls.id() < kInstanceCid || cls.id() == kTypeArgumentsCid) {
+        js->PrintError(
+            kInvalidParams,
+            "Expressions can be evaluated only with regular Dart instances");
+        return true;
+      }
+
+      if (!cls.IsTopLevel()) {
+        klass_name ^= cls.UserVisibleName();
+      }
+      library_uri ^= Library::Handle(zone, cls.library()).url();
+    } else {
+      js->PrintError(kInvalidParams,
+                     "%s: invalid 'targetId' parameter: "
+                     "Cannot evaluate against a VM-internal object",
+                     js->method());
+    }
+  }
 
   JSONObject report(js);
   {
@@ -2484,21 +2558,6 @@ static bool BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
       type_param_name ^= type_params_names.At(i);
       jsonTypeParamsNames.AddValue(type_param_name.ToCString());
     }
-  }
-  String& klass_name = String::Handle(zone);
-  String& library_uri = String::Handle(zone);
-  bool isStatic = false;
-  if (frame->function().is_static()) {
-    const Class& cls = Class::Handle(zone, frame->function().Owner());
-    if (!cls.IsTopLevel()) {
-      klass_name ^= cls.UserVisibleName();
-    }
-    library_uri ^= Library::Handle(zone, cls.library()).url();
-    isStatic = !cls.IsTopLevel();
-  } else {
-    const Class& method_cls = Class::Handle(zone, frame->function().origin());
-    library_uri ^= Library::Handle(zone, method_cls.library()).url();
-    klass_name ^= method_cls.UserVisibleName();
   }
   report.AddProperty("libraryUri", library_uri.ToCString());
   if (!klass_name.IsNull()) {
@@ -2622,7 +2681,8 @@ static bool CompileExpression(Thread* thread, JSONStream* js) {
 
 static const MethodParameter* evaluate_compiled_expression_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
-    new UIntParameter("frameIndex", true),
+    new UIntParameter("frameIndex", false),
+    new IdParameter("targetId", false),
     new StringParameter("kernelBytes", true),
     NULL,
 };
@@ -2647,26 +2707,102 @@ static bool EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
   if (BuildScope(thread, js, param_names, param_values)) {
     return true;
   }
-
-  ActivationFrame* frame = stack->FrameAt(frame_pos);
   const GrowableObjectArray& type_params_names =
       GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
-  TypeArguments& type_arguments = TypeArguments::Handle(
-      zone,
-      frame->BuildParameters(param_names, param_values, type_params_names));
 
   intptr_t kernel_length;
   const char* kernel_bytes_str = js->LookupParam("kernelBytes");
   uint8_t* kernel_bytes = DecodeBase64(zone, kernel_bytes_str, &kernel_length);
 
-  const Object& result = Object::Handle(
-      zone, frame->EvaluateCompiledExpression(
-                kernel_bytes, kernel_length,
-                Array::Handle(zone, Array::MakeFixedLength(type_params_names)),
-                Array::Handle(zone, Array::MakeFixedLength(param_values)),
-                type_arguments));
-  result.PrintJSON(js, true);
-  return true;
+  if (js->HasParam("frameIndex")) {
+    DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
+    intptr_t frame_pos = UIntParameter::Parse(js->LookupParam("frameIndex"));
+    if (frame_pos >= stack->Length()) {
+      PrintInvalidParamError(js, "frameIndex");
+      return true;
+    }
+
+    ActivationFrame* frame = stack->FrameAt(frame_pos);
+    TypeArguments& type_arguments = TypeArguments::Handle(
+        zone,
+        frame->BuildParameters(param_names, param_values, type_params_names));
+
+    const Object& result = Object::Handle(
+        zone,
+        frame->EvaluateCompiledExpression(
+            kernel_bytes, kernel_length,
+            Array::Handle(zone, Array::MakeFixedLength(type_params_names)),
+            Array::Handle(zone, Array::MakeFixedLength(param_values)),
+            type_arguments));
+    result.PrintJSON(js, true);
+    return true;
+  } else {
+    // evaluating expression in the context of a given object
+    if (!js->HasParam("targetId")) {
+      js->PrintError(kInvalidParams,
+                     "Either targetId or frameIndex has to be provided.");
+      return true;
+    }
+    const char* target_id = js->LookupParam("targetId");
+    ObjectIdRing::LookupResult lookup_result;
+    Object& obj = Object::Handle(
+        zone, LookupHeapObject(thread, target_id, &lookup_result));
+    if (obj.raw() == Object::sentinel().raw()) {
+      if (lookup_result == ObjectIdRing::kCollected) {
+        PrintSentinel(js, kCollectedSentinel);
+      } else if (lookup_result == ObjectIdRing::kExpired) {
+        PrintSentinel(js, kExpiredSentinel);
+      } else {
+        PrintInvalidParamError(js, "targetId");
+      }
+      return true;
+    }
+    TypeArguments& type_arguments = TypeArguments::Handle(zone);
+    if (obj.IsLibrary()) {
+      const Library& lib = Library::Cast(obj);
+      const Object& result = Object::Handle(
+          zone,
+          lib.EvaluateCompiledExpression(
+              kernel_bytes, kernel_length,
+              Array::Handle(zone, Array::MakeFixedLength(type_params_names)),
+              Array::Handle(zone, Array::MakeFixedLength(param_values)),
+              type_arguments));
+      result.PrintJSON(js, true);
+      return true;
+    }
+    if (obj.IsClass()) {
+      const Class& cls = Class::Cast(obj);
+      const Object& result = Object::Handle(
+          zone,
+          cls.EvaluateCompiledExpression(
+              kernel_bytes, kernel_length,
+              Array::Handle(zone, Array::MakeFixedLength(type_params_names)),
+              Array::Handle(zone, Array::MakeFixedLength(param_values)),
+              type_arguments));
+      result.PrintJSON(js, true);
+      return true;
+    }
+    if ((obj.IsInstance() || obj.IsNull()) && !ContainsNonInstance(obj)) {
+      // We don't use Instance::Cast here because it doesn't allow null.
+      Instance& instance = Instance::Handle(zone);
+      instance ^= obj.raw();
+      const Class& receiver_cls = Class::Handle(zone, instance.clazz());
+      const Object& result = Object::Handle(
+          zone,
+          instance.EvaluateCompiledExpression(
+              receiver_cls, kernel_bytes, kernel_length,
+              Array::Handle(zone, Array::MakeFixedLength(type_params_names)),
+              Array::Handle(zone, Array::MakeFixedLength(param_values)),
+              type_arguments));
+      result.PrintJSON(js, true);
+      return true;
+    }
+    js->PrintError(kInvalidParams,
+                   "%s: invalid 'targetId' parameter: "
+                   "Cannot evaluate against a VM-internal object",
+                   js->method());
+    return true;
+  }
 }
 
 static const MethodParameter* evaluate_in_frame_params[] = {
