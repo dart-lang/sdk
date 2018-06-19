@@ -1,3 +1,15 @@
+/**
+ * HTML elements and other resources for web-based applications that need to
+ * interact with the browser and the DOM (Document Object Model).
+ *
+ * This library includes DOM element types, CSS styling, local storage,
+ * media, speech, events, and more.
+ * To get started,
+ * check out the [Element] class, the base class for many of the HTML
+ * DOM types.
+ *
+ * {@category Web}
+ */
 library dart.dom.html;
 
 import 'dart:async';
