@@ -446,7 +446,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     if (arguments != null) {
       push(arguments);
       buildConstructorReferenceInvocation(
-          beginToken, beginToken.offset, Constness.explicitConst);
+          beginToken.next, beginToken.offset, Constness.explicitConst);
       push(popForValue());
     } else {
       String name = pop();
