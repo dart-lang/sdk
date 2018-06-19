@@ -3024,7 +3024,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     debugEvent("NamedArgument");
     Expression value = popForValue();
     Identifier identifier = pop();
-    push(new NamedExpression(identifier.name, toKernelExpression(value))
+    push(new NamedExpressionJudgment(identifier.name, toKernelExpression(value))
       ..fileOffset = offsetForToken(identifier.token));
   }
 

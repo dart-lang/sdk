@@ -2808,6 +2808,13 @@ class CheckLibraryIsLoadedJudgment extends CheckLibraryIsLoaded
   }
 }
 
+/// Concrete shadow object representing a named expression.
+class NamedExpressionJudgment extends NamedExpression {
+  NamedExpressionJudgment(String name, Expression value) : super(name, value);
+
+  ExpressionJudgment get judgment => value;
+}
+
 /// The result of inference for a RHS of an assignment.
 class _ComplexAssignmentInferenceResult {
   /// The resolved combiner [Procedure], e.g. `operator+` for `a += 2`, or
