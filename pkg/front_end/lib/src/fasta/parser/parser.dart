@@ -2967,7 +2967,8 @@ class Parser {
         }
         // Fall through to continue parsing `get` or `set` as an identifier.
       } else if (identical(value, 'factory')) {
-        if (next.next.isIdentifier) {
+        Token next2 = next.next;
+        if (next2.isIdentifier || next2.isModifier) {
           token = parseFactoryMethod(token, beforeStart, externalToken,
               staticToken ?? covariantToken, varFinalOrConst);
           listener.endMember();
