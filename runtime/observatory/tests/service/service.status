@@ -16,8 +16,6 @@ valid_source_locations_test: Pass, Slow # Generally slow, even in release-x64.
 process_service_test: Pass, Fail # Issue 24344
 
 [ $compiler == app_jit ]
-async_step_out_test: RuntimeError # Issue 29158, Async debugging
-awaiter_async_stack_contents_test: RuntimeError # Issue 29158, Async debugging
 bad_reload_test: RuntimeError # Issue 27806
 complex_reload_test: RuntimeError # Issue 27806
 debugger_location_second_test: Skip # Issue 28180
@@ -30,8 +28,7 @@ next_through_create_list_and_map_test: RuntimeError # Snapshots don't include so
 next_through_for_each_loop_test: RuntimeError # Snapshots don't include source and generated source is not 1-to-1. The column offsets are thus off.
 next_through_implicit_call_test: RuntimeError # Snapshots don't include source and generated source is not 1-to-1. The column offsets are thus off.
 pause_on_unhandled_async_exceptions2_test: Pass, RuntimeError, Timeout, Crash # Issue 29178
-regress_28980_test: RuntimeError # Issue 29158, Async debugging
-set_library_debuggable_test: RuntimeError # Issue 29158, Async debugging
+process_service_test: RuntimeError # Spawned process runs in Dart2 mode
 set_name_rpc_test: RuntimeError # Issue 27806
 step_through_constructor_calls_test: RuntimeError # Snapshots don't include source and generated source is not 1-to-1. The column offsets are thus off.
 step_through_function_test: RuntimeError # Snapshots don't include source and generated source is not 1-to-1. The column offsets are thus off.
@@ -72,12 +69,6 @@ pause_on_unhandled_async_exceptions_test: Pass, RuntimeError # Issue 33365
 [ $compiler == dart2analyzer && $strong ]
 *: Skip # Issue 28649
 
-[ $compiler == none && $runtime == vm ]
-coverage_leaf_function_test: RuntimeError
-coverage_optimized_function_test: RuntimeError
-get_object_rpc_test: RuntimeError # Spawned process runs in Dart2 mode
-get_source_report_test: RuntimeError # Spawned process runs in Dart2 mode
-
 [ $compiler == none && $runtime == vm && $system == fuchsia ]
 *: Skip # Not yet triaged.
 
@@ -86,6 +77,12 @@ async_scope_test: Pass, Slow
 
 [ $mode == debug && ($arch == simarm || $arch == simarm64) ]
 *: SkipSlow
+
+[ $runtime == vm && ($compiler == app_jit || $compiler == none) ]
+coverage_leaf_function_test: RuntimeError
+coverage_optimized_function_test: RuntimeError
+get_object_rpc_test: RuntimeError # Spawned process runs in Dart2 mode
+get_source_report_test: RuntimeError # Spawned process runs in Dart2 mode
 
 [ !$strong && ($compiler == dartk || $compiler == dartkp) ]
 *: Skip

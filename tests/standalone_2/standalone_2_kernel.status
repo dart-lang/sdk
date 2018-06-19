@@ -11,6 +11,7 @@
 # to add them.
 
 [ $compiler == app_jitk ]
+http_launch_test: RuntimeError # Issue 33388
 io/directory_test: RuntimeError
 io/file_error_test: RuntimeError
 io/file_test: RuntimeError
@@ -23,20 +24,12 @@ io/http_parser_test: CompileTimeError
 io/http_redirect_test: RuntimeError
 io/http_reuse_server_port_test: RuntimeError
 io/http_server_response_test: RuntimeError
-io/namespace_test: RuntimeError
-io/platform_resolved_executable_test/00: RuntimeError
-io/platform_resolved_executable_test/01: RuntimeError
-io/platform_resolved_executable_test/02: RuntimeError
-io/platform_resolved_executable_test/03: RuntimeError
-io/platform_resolved_executable_test/04: RuntimeError
-io/platform_resolved_executable_test/05: RuntimeError
 io/platform_test: RuntimeError
 io/regress_10026_test: RuntimeError
 io/secure_socket_argument_test: CompileTimeError
 io/socket_upgrade_to_secure_test: RuntimeError
 io/test_extension_fail_test: RuntimeError
 io/test_extension_test: RuntimeError
-io/test_runner_test: RuntimeError
 io/web_socket_pipe_test: RuntimeError
 io/web_socket_protocol_processor_test: CompileTimeError
 io/zlib_test: RuntimeError

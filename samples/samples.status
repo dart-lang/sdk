@@ -23,7 +23,7 @@ sample_extension/test/sample_extension_app_snapshot_test: Pass, RuntimeError # I
 [ $compiler == none && $runtime == vm && $system == fuchsia ]
 *: Skip # Not yet triaged.
 
-[ $compiler == dartk || $compiler == dartkp ]
+[ $compiler == app_jitk || $compiler == dartk || $compiler == dartkp ]
 sample_extension/test/sample_extension_app_snapshot_test: RuntimeError
 sample_extension/test/sample_extension_script_snapshot_test: RuntimeError
 sample_extension/test/sample_extension_test: RuntimeError
