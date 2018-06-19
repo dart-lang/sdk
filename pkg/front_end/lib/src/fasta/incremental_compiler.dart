@@ -479,6 +479,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               dependency.isDeferred,
               -1,
               -1,
+              -1,
               -1);
         }
 

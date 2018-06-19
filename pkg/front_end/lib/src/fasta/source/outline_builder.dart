@@ -96,6 +96,7 @@ class OutlineBuilder extends StackListener {
   final bool stringExpectedAfterNative;
   bool inConstructor = false;
   bool inConstructorName = false;
+  int importIndex = 0;
 
   String nativeMethodName;
 
@@ -219,8 +220,17 @@ class OutlineBuilder extends StackListener {
     int uriOffset = popCharOffset();
     String uri = pop(); // For a conditional import, this is the default URI.
     List<MetadataBuilder> metadata = pop();
-    library.addImport(metadata, uri, configurations, prefix, combinators,
-        isDeferred, importKeyword.charOffset, prefixOffset, uriOffset);
+    library.addImport(
+        metadata,
+        uri,
+        configurations,
+        prefix,
+        combinators,
+        isDeferred,
+        importKeyword.charOffset,
+        prefixOffset,
+        uriOffset,
+        importIndex++);
     checkEmpty(importKeyword.charOffset);
   }
 

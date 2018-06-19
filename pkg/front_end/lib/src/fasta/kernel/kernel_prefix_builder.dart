@@ -16,8 +16,8 @@ class KernelPrefixBuilder extends PrefixBuilder {
   LoadLibraryBuilder loadLibraryBuilder;
 
   KernelPrefixBuilder(String name, bool deferred, LibraryBuilder parent,
-      this.dependency, int charOffset)
-      : super(name, deferred, parent, charOffset) {
+      this.dependency, int charOffset, int importIndex)
+      : super(name, deferred, parent, charOffset, importIndex) {
     if (deferred) {
       loadLibraryBuilder =
           new LoadLibraryBuilder(parent, dependency, charOffset);
