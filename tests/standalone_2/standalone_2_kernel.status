@@ -98,12 +98,15 @@ io/directory_chdir_test: Skip # Timeout
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
 [ $compiler == dartk && $strong && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
+fragmentation_test: Timeout, Pass
+io/dart_std_io_pipe_test: Timeout, Pass
 io/directory_list_sync_test: Timeout, Pass # Please triage.
 io/file_blocking_lock_test: Pass, Crash # Please triage.
 io/file_lock_test: Slow, Pass
 io/platform_resolved_executable_test/01: Pass, RuntimeError # Issue 32134
 io/platform_resolved_executable_test/05: Pass, RuntimeError # Issue 32134
 io/platform_test: RuntimeError # Please triage.
+io/process_sync_test: Timeout, Pass
 io/test_extension_fail_test: RuntimeError # Please traige.
 io/test_extension_test: RuntimeError # Please traige.
 map_insert_remove_oom_test: Skip # Heap limit too low.

@@ -22,6 +22,9 @@ io/test_extension_test: Skip # Platform.executable
 io/test_runner_test: RuntimeError # Issue 33168
 regress_26031_test: Skip # Platform.resolvedExecutable
 
+[ $runtime == vm ]
+io/test_runner_test: Skip # Spawns a process which runs in Dart2 mode.
+
 [ $system == android ]
 io/file_stat_test: Skip # Issue 26376
 io/file_system_watcher_test: Skip # Issue 26376
@@ -84,9 +87,13 @@ io/regress_7191_test: Pass, Timeout # Issue 28374: timeout.
 io/file_constructor_test: RuntimeError
 
 [ $runtime == vm && ($arch == arm || $arch == arm64) ]
+io/code_collection_test: Timeout, Pass
+io/dart_std_io_pipe_test: Timeout, Pass
 io/file_input_stream_test: Skip # Issue 26109
 io/file_stream_test: Skip # Issue 26109
 io/file_typed_data_test: Skip # Issue 26109
+io/http_client_stays_alive_test: RuntimeError
+io/process_sync_test: Timeout, Pass
 
 [ $arch == simdbc || $arch == simdbc64 ]
 full_coverage_test: Skip # TODO(vegorov) SIMDBC interpreter doesn't support coverage yet.
