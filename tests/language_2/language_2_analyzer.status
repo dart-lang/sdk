@@ -582,7 +582,6 @@ static_getter_no_setter2_test/01: MissingCompileTimeError
 static_getter_no_setter3_test/01: MissingCompileTimeError
 static_initializer_type_error_test: MissingCompileTimeError
 static_setter_get_test/01: MissingCompileTimeError
-string_interpolate_test: StaticWarning
 string_test/01: MissingCompileTimeError
 string_unicode1_negative_test: CompileTimeError
 string_unicode2_negative_test: CompileTimeError
@@ -1026,7 +1025,6 @@ static_getter_no_setter2_test/01: MissingCompileTimeError
 static_getter_no_setter3_test/01: MissingCompileTimeError
 static_initializer_type_error_test: MissingCompileTimeError
 static_setter_get_test/01: MissingCompileTimeError
-string_interpolate_test: StaticWarning
 string_test/01: MissingCompileTimeError
 string_unicode1_negative_test: CompileTimeError
 string_unicode2_negative_test: CompileTimeError
@@ -1165,7 +1163,6 @@ regress_30121_test: CompileTimeError # Issue 31087
 regress_30339_test: CompileTimeError
 reify_typevar_static_test/00: MissingCompileTimeError # Issue 28823
 setter_override2_test/02: MissingCompileTimeError # Issue 14736
-string_interpolate_test: CompileTimeError
 string_split_test: CompileTimeError
 string_supertype_checked_test: CompileTimeError
 string_unicode1_negative_test: CompileTimeError

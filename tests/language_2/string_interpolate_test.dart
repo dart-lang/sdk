@@ -6,13 +6,12 @@
 import "package:expect/expect.dart";
 
 class WhatchamaCallIt {
-
-  String get name => "";
-
   WhatchamaCallIt() {}
 
   String foo() {
     // Test $this and Field name is defined in subclass.
+    dynamic self = this;
+    dynamic name = self.name;
     return "$this and $name";
   }
 }
@@ -20,7 +19,7 @@ class WhatchamaCallIt {
 class ThingamaBob extends WhatchamaCallIt {
   ThingamaBob(String s)
       : name = s,
-        super() {}
+        super();
   String name;
   toString() => "Hansel";
 }
@@ -56,7 +55,7 @@ main() {
   print(s);
   Expect.equals(r"eins und 1 macht zwei.", s);
 
-  var t = new ThingamaBob("Gretel");
+  dynamic t = new ThingamaBob("Gretel");
   print(t.foo());
   Expect.equals(t.foo(), "Hansel and Gretel");
 
@@ -73,8 +72,8 @@ class Stringable {
 void testStringVariants() {
   String latin = "ab\x00\xff";
   String nonLatin = "\u2000\u{10000}\ufeff";
-  Object oLatin = new Stringable(latin);
-  Object oNonLatin = new Stringable(nonLatin);
+  dynamic oLatin = new Stringable(latin);
+  dynamic oNonLatin = new Stringable(nonLatin);
 
   // ASCII.
   Expect.equals(latin * 3, "$latin$latin$latin");

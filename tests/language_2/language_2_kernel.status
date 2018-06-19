@@ -146,7 +146,6 @@ regress_23408_test: CompileTimeError
 regress_29025_test: CompileTimeError
 regress_29405_test: CompileTimeError
 regress_30339_test: CompileTimeError
-string_interpolate_test: CompileTimeError
 string_interpolation_and_buffer_test: RuntimeError
 string_split_test: CompileTimeError
 string_supertype_checked_test: CompileTimeError
@@ -830,7 +829,6 @@ regress_23408_test: RuntimeError
 regress_29025_test: CompileTimeError # Issue 31402 (Variable declaration)
 regress_29405_test: CompileTimeError # Issue 31402 (Invocation arguments)
 regress_30339_test: CompileTimeError # Issue 31402 (Variable declaration)
-string_interpolate_test: CompileTimeError # Issue 31533
 string_interpolation_and_buffer_test: RuntimeError # Issue 31402 (Return and yield statements)
 string_split_test: CompileTimeError # Issue 31616
 string_supertype_checked_test: CompileTimeError # Issue 31616
@@ -1191,7 +1189,6 @@ setter_no_getter_test/01: Pass, CompileTimeError # Issue 31533 (started passing 
 setter_override_test/00: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
 setter_override_test/03: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
 stacktrace_demangle_ctors_test: RuntimeError
-string_interpolate_test: CompileTimeError # Issue 31533
 string_interpolation_and_buffer_test: RuntimeError # Issue 31402 (Return and yield statements)
 string_split_test: CompileTimeError # Issue 31616
 string_supertype_checked_test: CompileTimeError # Issue 31616
@@ -1387,7 +1384,6 @@ regress_30339_test: CompileTimeError
 setter_no_getter_test/01: CompileTimeError
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
-string_interpolate_test: CompileTimeError
 string_split_test: CompileTimeError
 string_supertype_checked_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
