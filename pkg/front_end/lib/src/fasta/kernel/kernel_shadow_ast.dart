@@ -272,10 +272,21 @@ class BoolJudgment extends BoolLiteral implements ExpressionJudgment {
   }
 }
 
-/// Concrete shadow object representing a break or continue statement in kernel
-/// form.
-class ShadowBreakStatement extends BreakStatement implements StatementJudgment {
-  ShadowBreakStatement(LabeledStatement target) : super(target);
+/// Concrete shadow object representing a break statement in kernel form.
+class BreakJudgment extends BreakStatement implements StatementJudgment {
+  BreakJudgment(LabeledStatement target) : super(target);
+
+  @override
+  void infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory) {
+    // No inference needs to be done.
+  }
+}
+
+/// Concrete shadow object representing a continue statement in kernel form.
+class ContinueJudgment extends BreakStatement implements StatementJudgment {
+  ContinueJudgment(LabeledStatement target) : super(target);
 
   @override
   void infer<Expression, Statement, Initializer, Type>(

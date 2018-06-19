@@ -73,7 +73,8 @@ import 'kernel_shadow_ast.dart'
         AwaitJudgment,
         ShadowBlock,
         BoolJudgment,
-        ShadowBreakStatement,
+        BreakJudgment,
+        ContinueJudgment,
         CheckLibraryIsLoadedJudgment,
         ConditionalJudgment,
         ShadowDoStatement,
@@ -339,7 +340,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
 
   @override
   Statement breakStatement(Token breakKeyword, Object label, Token semicolon) {
-    return new ShadowBreakStatement(null)..fileOffset = breakKeyword.charOffset;
+    return new BreakJudgment(null)..fileOffset = breakKeyword.charOffset;
   }
 
   @override
@@ -367,8 +368,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   @override
   Statement continueStatement(
       Token continueKeyword, Object label, Token semicolon) {
-    return new ShadowBreakStatement(null)
-      ..fileOffset = continueKeyword.charOffset;
+    return new ContinueJudgment(null)..fileOffset = continueKeyword.charOffset;
   }
 
   @override
