@@ -252,8 +252,3 @@ rasta/issue_000046: Fail
 rasta/issue_000047: Fail
 rasta/native_is_illegal: Pass # Issue 29763
 rasta/type_with_parse_error: Fail
-
-no_such_method_forwarders/forwarders_not_assumed_from_mixin: Fail
-no_such_method_forwarders/no_forwarders_for_abstract_classes: Fail
-no_such_method_forwarders/no_forwarders_for_abstract_classes_chain: Fail
-no_such_method_forwarders/concrete_method_over_forwarder_in_mixin_application: Fail

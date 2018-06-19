@@ -221,8 +221,3 @@ incomplete_field_formal_parameter: Fail # Fasta doesn't recover well
 co19_language_metadata_syntax_t04: RuntimeError # Fasta doesn't recover well
 
 external_import: RuntimeError # The native extension to import doesn't exist. This is ok.
-
-no_such_method_forwarders/forwarders_not_assumed_from_mixin: Fail
-no_such_method_forwarders/no_forwarders_for_abstract_classes: Fail
-no_such_method_forwarders/no_forwarders_for_abstract_classes_chain: Fail
-no_such_method_forwarders/concrete_method_over_forwarder_in_mixin_application: Fail
