@@ -27,68 +27,82 @@ void main(List<String> args) {
       .uri
       .resolve("../../tests/standalone_2/app_snapshot_share_test.dart")
       .toFilePath();
+  final scriptPathDill = tempDir.uri.resolve('app.dill').toFilePath();
 
-  var exec = "$buildDir/dart_bootstrap";
-  args = new List<String>();
-  args.add("--deterministic");
-  args.add("--use-blobs");
-  args.add("--snapshot-kind=app-aot");
-  args.add("--snapshot=$snapshot1Path");
-  args.add(scriptPath);
-  print("+ $exec $args");
-  var result = Process.runSync(exec, args);
+  try {
+    args = <String>[
+      '--aot',
+      '--strong-mode',
+      '--sync-async',
+      '--platform=$buildDir/vm_platform_strong.dill',
+      '-o',
+      scriptPathDill,
+      '--entry-points',
+      'out/ReleaseX64/gen/runtime/bin/precompiler_entry_points.json',
+      '--entry-points',
+      'pkg/vm/lib/transformations/type_flow/entry_points_extra.json',
+      '--entry-points',
+      'pkg/vm/lib/transformations/type_flow/entry_points_extra_standalone.json',
+      scriptPath,
+    ];
+    runSync("pkg/vm/tool/gen_kernel${Platform.isWindows ? '.bat' : ''}", args);
+
+    args = <String>[
+      "--strong",
+      "--deterministic",
+      "--use-blobs",
+      "--snapshot-kind=app-aot",
+      "--snapshot=$snapshot1Path",
+      scriptPathDill,
+    ];
+    runSync("$buildDir/dart_bootstrap", args);
+
+    args = <String>[
+      "--strong",
+      "--deterministic",
+      "--use-blobs",
+      "--snapshot-kind=app-aot",
+      "--snapshot=$snapshot2Path",
+      "--shared-blobs=$snapshot1Path",
+      scriptPathDill,
+    ];
+    runSync("$buildDir/dart_bootstrap", args);
+
+    var sizeWithoutSharing = new File(snapshot1Path).statSync().size;
+    var deltaWhenSharing = new File(snapshot2Path).statSync().size;
+    print("sizeWithoutSharing: ${sizeWithoutSharing.toString().padLeft(8)}");
+    print("deltaWhenSharing:   ${deltaWhenSharing.toString().padLeft(8)}");
+    if (deltaWhenSharing >= sizeWithoutSharing) {
+      throw "Sharing did not shrink size";
+    }
+
+    args = <String>[
+      "--strong",
+      "--shared-blobs=$snapshot1Path",
+      snapshot2Path,
+      "--child",
+    ];
+    final result = runSync("$buildDir/dart_precompiled_runtime", args);
+    if (!result.stdout.contains("Hello, sharing world!")) {
+      throw "Missing output";
+    }
+  } finally {
+    tempDir.deleteSync(recursive: true);
+  }
+}
+
+ProcessResult runSync(String executable, List<String> args) {
+  print("+ $executable ${args.join(' ')}");
+
+  final result = Process.runSync(executable, args);
   print("Exit code: ${result.exitCode}");
   print("stdout:");
   print(result.stdout);
   print("stderr:");
   print(result.stderr);
+
   if (result.exitCode != 0) {
     throw "Bad exit code";
   }
-
-  exec = "$buildDir/dart_bootstrap";
-  args = new List<String>();
-  args.add("--deterministic");
-  args.add("--use-blobs");
-  args.add("--snapshot-kind=app-aot");
-  args.add("--snapshot=$snapshot2Path");
-  args.add("--shared-blobs=$snapshot1Path");
-  args.add(scriptPath);
-  print("+ $exec $args");
-  result = Process.runSync(exec, args);
-  print("Exit code: ${result.exitCode}");
-  print("stdout:");
-  print(result.stdout);
-  print("stderr:");
-  print(result.stderr);
-  if (result.exitCode != 0) {
-    throw "Bad exit code";
-  }
-
-  var sizeWithoutSharing = new File(snapshot1Path).statSync().size;
-  var deltaWhenSharing = new File(snapshot2Path).statSync().size;
-  print("sizeWithoutSharing: $sizeWithoutSharing");
-  print("deltaWhenSharing: $deltaWhenSharing");
-  if (deltaWhenSharing >= sizeWithoutSharing) {
-    throw "Sharing did not shrink size";
-  }
-
-  exec = "$buildDir/dart_precompiled_runtime";
-  args = new List<String>();
-  args.add("--shared-blobs=$snapshot1Path");
-  args.add(snapshot2Path);
-  args.add("--child");
-  print("+ $exec $args");
-  result = Process.runSync(exec, args);
-  print("Exit code: ${result.exitCode}");
-  print("stdout:");
-  print(result.stdout);
-  print("stderr:");
-  print(result.stderr);
-  if (result.exitCode != 0) {
-    throw "Bad exit code";
-  }
-  if (!result.stdout.contains("Hello, sharing world!")) {
-    throw "Missing output";
-  }
+  return result;
 }

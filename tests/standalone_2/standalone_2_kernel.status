@@ -152,7 +152,6 @@ io/socket_port_test: Pass, Crash
 io/namespace_test: RuntimeError
 
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
-app_snapshot_share_test: RuntimeError # Only dill files are valid
 dwarf_stack_trace_test: RuntimeError
 io/compile_all_test: RuntimeError # Issue 32338
 io/file_fuzz_test: RuntimeError, Pass
