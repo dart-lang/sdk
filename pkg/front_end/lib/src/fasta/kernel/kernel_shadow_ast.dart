@@ -238,17 +238,18 @@ class ShadowBlock extends Block implements StatementJudgment {
 }
 
 /// Concrete shadow object representing a boolean literal in kernel form.
-class ShadowBoolLiteral extends BoolLiteral implements ExpressionJudgment {
+class BoolJudgment extends BoolLiteral implements ExpressionJudgment {
   DartType inferredType;
 
-  ShadowBoolLiteral(bool value) : super(value);
+  BoolJudgment(bool value) : super(value);
 
   @override
   DartType infer<Expression, Statement, Initializer>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer> factory,
       DartType typeContext) {
-    return inferrer.coreTypes.boolClass.rawType;
+    inferredType = inferrer.coreTypes.boolClass.rawType;
+    return inferredType;
   }
 }
 

@@ -72,7 +72,7 @@ import 'kernel_shadow_ast.dart'
         ShadowAssertStatement,
         ShadowAwaitExpression,
         ShadowBlock,
-        ShadowBoolLiteral,
+        BoolJudgment,
         ShadowBreakStatement,
         ShadowCheckLibraryIsLoaded,
         ShadowConditionalExpression,
@@ -155,8 +155,8 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   ShadowStringLiteral asLiteralString(Expression value) => value;
 
   @override
-  ShadowBoolLiteral literalBool(bool value, Token token) {
-    return new ShadowBoolLiteral(value)..fileOffset = offsetForToken(token);
+  BoolJudgment literalBool(bool value, Token token) {
+    return new BoolJudgment(value)..fileOffset = offsetForToken(token);
   }
 
   @override
