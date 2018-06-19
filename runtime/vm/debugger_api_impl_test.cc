@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include <include/dart_api.h>
 #include "include/dart_tools_api.h"
 
 #include "vm/class_finalizer.h"
@@ -232,39 +233,50 @@ DART_EXPORT Dart_Handle Dart_SetBreakpoint(Dart_Handle script_url_in,
   return Dart_NewInteger(bpt->id());
 }
 
-DART_EXPORT Dart_Handle Dart_EvaluateExpr(Dart_Handle target_in,
-                                          Dart_Handle expr_in) {
+DART_EXPORT Dart_Handle Dart_EvaluateStaticExpr(Dart_Handle lib_handle,
+                                                Dart_Handle expr_in) {
   DARTSCOPE(Thread::Current());
   CHECK_DEBUGGER(T->isolate());
 
-  const Object& target = Object::Handle(Z, Api::UnwrapHandle(target_in));
-  if (target.IsError()) return target_in;
+  const Object& target = Object::Handle(Z, Api::UnwrapHandle(lib_handle));
+  if (target.IsError()) return lib_handle;
   if (target.IsNull()) {
     return Api::NewError("%s expects argument 'target' to be non-null",
                          CURRENT_FUNC);
   }
+  const Library& lib = Library::Cast(target);
   UNWRAP_AND_CHECK_PARAM(String, expr, expr_in);
-  // Type extends Instance, must check first.
-  if (target.IsType()) {
-    const Class& cls = Class::Handle(Z, Type::Cast(target).type_class());
-    return Api::NewHandle(
-        T, cls.Evaluate(expr, Array::empty_array(), Array::empty_array()));
-  } else if (target.IsInstance()) {
-    const Instance& inst = Instance::Cast(target);
-    const Class& receiver_cls = Class::Handle(Z, inst.clazz());
-    return Api::NewHandle(
-        T, inst.Evaluate(receiver_cls, expr, Array::empty_array(),
-                         Array::empty_array()));
-  } else if (target.IsLibrary()) {
-    const Library& lib = Library::Cast(target);
+
+  if (!KernelIsolate::IsRunning()) {
     return Api::NewHandle(
         T, lib.Evaluate(expr, Array::empty_array(), Array::empty_array()));
-  } else if (target.IsClass()) {
-    const Class& cls = Class::Cast(target);
-    return Api::NewHandle(
-        T, cls.Evaluate(expr, Array::empty_array(), Array::empty_array()));
+  } else {
+    Dart_KernelCompilationResult compilation_result;
+    {
+      TransitionVMToNative transition(T);
+      compilation_result = KernelIsolate::CompileExpressionToKernel(
+          expr.ToCString(),
+          /* definitions= */ Array::empty_array(),
+          /* type_defintions= */ Array::empty_array(),
+          String::Handle(lib.url()).ToCString(),
+          /* klass= */ nullptr,
+          /* is_static= */ false);
+    }
+    if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
+      return Api::NewError("Failed to compile expression.");
+    }
+
+    const uint8_t* kernel_bytes = compilation_result.kernel;
+    intptr_t kernel_length = compilation_result.kernel_size;
+    return Api::NewHandle(T, lib.EvaluateCompiledExpression(
+                                 kernel_bytes, kernel_length,
+                                 /* type_definitions= */
+                                 Array::empty_array(),
+                                 /* param_values= */
+                                 Array::empty_array(),
+                                 /* type_param_values= */
+                                 TypeArguments::null_type_arguments()));
   }
-  return Api::NewError("%s: unsupported target type", CURRENT_FUNC);
 }
 
 DART_EXPORT Dart_Handle Dart_GetLibraryIds() {

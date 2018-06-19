@@ -208,11 +208,13 @@ ISOLATE_UNIT_TEST_CASE(EvalExpressionWithLazyCompile) {
     TestCase::LoadTestScript("", NULL);
   }
   Library& lib = Library::Handle(Library::CoreLibrary());
-
   const String& expression = String::Handle(
       String::New("(){ return (){ return (){ return 3 + 4; }(); }(); }()"));
   Object& val = Object::Handle();
-  val = lib.Evaluate(expression, Array::empty_array(), Array::empty_array());
+  val = Api::UnwrapHandle(
+      TestCase::EvaluateExpression(lib, expression,
+                                   /* param_names= */ Array::empty_array(),
+                                   /* param_values= */ Array::empty_array()));
 
   EXPECT(!val.IsNull());
   EXPECT(!val.IsError());
@@ -226,12 +228,13 @@ ISOLATE_UNIT_TEST_CASE(EvalExpressionExhaustCIDs) {
     TestCase::LoadTestScript("", NULL);
   }
   Library& lib = Library::Handle(Library::CoreLibrary());
-
   const String& expression = String::Handle(String::New("3 + 4"));
   Object& val = Object::Handle();
+  val = Api::UnwrapHandle(
+      TestCase::EvaluateExpression(lib, expression,
+                                   /* param_names= */ Array::empty_array(),
+                                   /* param_values= */ Array::empty_array()));
 
-  // Run once to ensure everything we touch is compiled.
-  val = lib.Evaluate(expression, Array::empty_array(), Array::empty_array());
   EXPECT(!val.IsNull());
   EXPECT(!val.IsError());
   EXPECT(val.IsInteger());
@@ -240,7 +243,10 @@ ISOLATE_UNIT_TEST_CASE(EvalExpressionExhaustCIDs) {
   intptr_t initial_class_table_size =
       Isolate::Current()->class_table()->NumCids();
 
-  val = lib.Evaluate(expression, Array::empty_array(), Array::empty_array());
+  val = Api::UnwrapHandle(
+      TestCase::EvaluateExpression(lib, expression,
+                                   /* param_names= */ Array::empty_array(),
+                                   /* param_values= */ Array::empty_array()));
   EXPECT(!val.IsNull());
   EXPECT(!val.IsError());
   EXPECT(val.IsInteger());

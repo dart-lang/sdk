@@ -76,7 +76,7 @@ class ServiceTestMessageHandler : public MessageHandler {
 
 static RawArray* Eval(Dart_Handle lib, const char* expr) {
   const String& dummy_isolate_id = String::Handle(String::New("isolateId"));
-  Dart_Handle expr_val = Dart_EvaluateExpr(lib, NewString(expr));
+  Dart_Handle expr_val = Dart_EvaluateStaticExpr(lib, NewString(expr));
   EXPECT_VALID(expr_val);
   Zone* zone = Thread::Current()->zone();
   const GrowableObjectArray& value =

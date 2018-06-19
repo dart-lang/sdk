@@ -350,6 +350,11 @@ class TestCase : TestCaseBase {
   static Dart_Handle LoadCoreTestScript(const char* script,
                                         Dart_NativeEntryResolver resolver);
 
+  static Dart_Handle EvaluateExpression(const Library& lib,
+                                        const String& expr,
+                                        const Array& param_names,
+                                        const Array& param_values);
+
   static Dart_Handle lib();
   static const char* url();
   static Dart_Isolate CreateTestIsolateFromSnapshot(uint8_t* buffer,
