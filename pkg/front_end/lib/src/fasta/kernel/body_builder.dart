@@ -4233,7 +4233,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
 
   @override
   StaticGet makeStaticGet(Member readTarget, Token token) {
-    return new ShadowStaticGet(readTarget)..fileOffset = offsetForToken(token);
+    return new StaticGetJudgment(readTarget)
+      ..fileOffset = offsetForToken(token);
   }
 
   @override

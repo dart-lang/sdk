@@ -2072,10 +2072,10 @@ class ShadowStaticAssignment extends ShadowComplexAssignment {
 
 /// Concrete shadow object representing a read of a static variable in kernel
 /// form.
-class ShadowStaticGet extends StaticGet implements ExpressionJudgment {
+class StaticGetJudgment extends StaticGet implements ExpressionJudgment {
   DartType inferredType;
 
-  ShadowStaticGet(Member target) : super(target);
+  StaticGetJudgment(Member target) : super(target);
 
   @override
   DartType infer<Expression, Statement, Initializer, Type>(
@@ -2091,7 +2091,7 @@ class ShadowStaticGet extends StaticGet implements ExpressionJudgment {
     if (target is Procedure && target.kind == ProcedureKind.Method) {
       type = inferrer.instantiateTearOff(type, typeContext, this);
     }
-    return type;
+    return inferredType = type;
   }
 }
 

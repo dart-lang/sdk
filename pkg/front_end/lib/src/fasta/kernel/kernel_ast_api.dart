@@ -95,7 +95,7 @@ export 'kernel_shadow_ast.dart'
         ShadowRedirectingInitializer,
         ShadowReturnStatement,
         ShadowStaticAssignment,
-        ShadowStaticGet,
+        StaticGetJudgment,
         ShadowStaticInvocation,
         ShadowSuperInitializer,
         ShadowSuperMethodInvocation,
