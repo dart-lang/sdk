@@ -325,43 +325,43 @@ abstract class TypeInferrer {
   Uri get uri;
 
   /// Performs full type inference on the given field initializer.
-  void inferFieldInitializer<Expression, Statement, Initializer>(
+  void inferFieldInitializer<Expression, Statement, Initializer, Type>(
       InferenceHelper helper,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType declaredType,
       kernel.Expression initializer);
 
   /// Performs type inference on the given function body.
-  void inferFunctionBody<Expression, Statement, Initializer>(
+  void inferFunctionBody<Expression, Statement, Initializer, Type>(
       InferenceHelper helper,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType returnType,
       AsyncMarker asyncMarker,
       Statement body);
 
   /// Performs type inference on the given constructor initializer.
-  void inferInitializer<Expression, Statement, Initializer>(
+  void inferInitializer<Expression, Statement, Initializer, Type>(
       InferenceHelper helper,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       kernel.Initializer initializer);
 
   /// Performs type inference on the given metadata annotations.
-  void inferMetadata<Expression, Statement, Initializer>(
+  void inferMetadata<Expression, Statement, Initializer, Type>(
       InferenceHelper helper,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       List<kernel.Expression> annotations);
 
   /// Performs type inference on the given metadata annotations keeping the
   /// existing helper if possible.
-  void inferMetadataKeepingHelper<Expression, Statement, Initializer>(
-      Factory<Expression, Statement, Initializer> factory,
+  void inferMetadataKeepingHelper<Expression, Statement, Initializer, Type>(
+      Factory<Expression, Statement, Initializer, Type> factory,
       List<kernel.Expression> annotations);
 
   /// Performs type inference on the given function parameter initializer
   /// expression.
-  void inferParameterInitializer<Expression, Statement, Initializer>(
+  void inferParameterInitializer<Expression, Statement, Initializer, Type>(
       InferenceHelper helper,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       kernel.Expression initializer,
       DartType declaredType);
 }
@@ -383,41 +383,41 @@ class TypeInferrerDisabled extends TypeInferrer {
   Uri get uri => null;
 
   @override
-  void inferFieldInitializer<Expression, Statement, Initializer>(
+  void inferFieldInitializer<Expression, Statement, Initializer, Type>(
       InferenceHelper helper,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType declaredType,
       kernel.Expression initializer) {}
 
   @override
-  void inferFunctionBody<Expression, Statement, Initializer>(
+  void inferFunctionBody<Expression, Statement, Initializer, Type>(
       InferenceHelper helper,
-      Factory<Expression, Statement, Initializer> statementFactory,
+      Factory<Expression, Statement, Initializer, Type> statementFactory,
       DartType returnType,
       AsyncMarker asyncMarker,
       Statement body) {}
 
   @override
-  void inferInitializer<Expression, Statement, Initializer>(
+  void inferInitializer<Expression, Statement, Initializer, Type>(
       InferenceHelper helper,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       kernel.Initializer initializer) {}
 
   @override
-  void inferMetadata<Expression, Statement, Initializer>(
+  void inferMetadata<Expression, Statement, Initializer, Type>(
       InferenceHelper helper,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       List<kernel.Expression> annotations) {}
 
   @override
-  void inferMetadataKeepingHelper<Expression, Statement, Initializer>(
-      Factory<Expression, Statement, Initializer> factory,
+  void inferMetadataKeepingHelper<Expression, Statement, Initializer, Type>(
+      Factory<Expression, Statement, Initializer, Type> factory,
       List<kernel.Expression> annotations) {}
 
   @override
-  void inferParameterInitializer<Expression, Statement, Initializer>(
+  void inferParameterInitializer<Expression, Statement, Initializer, Type>(
       InferenceHelper helper,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       kernel.Expression initializer,
       DartType declaredType) {}
 }
@@ -998,16 +998,16 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   ///
   /// Derived classes should override this method with logic that dispatches on
   /// the expression type and calls the appropriate specialized "infer" method.
-  DartType inferExpression<Expression, Statement, Initializer>(
-      Factory<Expression, Statement, Initializer> factory,
+  DartType inferExpression<Expression, Statement, Initializer, Type>(
+      Factory<Expression, Statement, Initializer, Type> factory,
       kernel.Expression expression,
       DartType typeContext,
       bool typeNeeded);
 
   @override
-  void inferFieldInitializer<Expression, Statement, Initializer>(
+  void inferFieldInitializer<Expression, Statement, Initializer, Type>(
       InferenceHelper helper,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType declaredType,
       kernel.Expression initializer) {
     assert(closureContext == null);
@@ -1025,15 +1025,15 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   ///
   /// Derived classes should provide an implementation that calls
   /// [inferExpression] for the given [field]'s initializer expression.
-  DartType inferFieldTopLevel<Expression, Statement, Initializer>(
-      Factory<Expression, Statement, Initializer> factory,
+  DartType inferFieldTopLevel<Expression, Statement, Initializer, Type>(
+      Factory<Expression, Statement, Initializer, Type> factory,
       ShadowField field,
       bool typeNeeded);
 
   @override
-  void inferFunctionBody<Expression, Statement, Initializer>(
+  void inferFunctionBody<Expression, Statement, Initializer, Type>(
       InferenceHelper helper,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType returnType,
       AsyncMarker asyncMarker,
       Statement body) {
@@ -1048,8 +1048,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Performs the type inference steps that are shared by all kinds of
   /// invocations (constructors, instance methods, and static methods).
-  DartType inferInvocation<Expression, Statement, Initializer>(
-      Factory<Expression, Statement, Initializer> factory,
+  DartType inferInvocation<Expression, Statement, Initializer, Type>(
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext,
       int offset,
       FunctionType calleeType,
@@ -1185,8 +1185,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     return inferredType;
   }
 
-  DartType inferLocalFunction<Expression, Statement, Initializer>(
-      Factory<Expression, Statement, Initializer> factory,
+  DartType inferLocalFunction<Expression, Statement, Initializer, Type>(
+      Factory<Expression, Statement, Initializer, Type> factory,
       FunctionNode function,
       DartType typeContext,
       int fileOffset,
@@ -1339,9 +1339,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   }
 
   @override
-  void inferMetadata<Expression, Statement, Initializer>(
+  void inferMetadata<Expression, Statement, Initializer, Type>(
       InferenceHelper helper,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       List<kernel.Expression> annotations) {
     if (annotations != null) {
       this.helper = helper;
@@ -1351,8 +1351,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   }
 
   @override
-  void inferMetadataKeepingHelper<Expression, Statement, Initializer>(
-      Factory<Expression, Statement, Initializer> factory,
+  void inferMetadataKeepingHelper<Expression, Statement, Initializer, Type>(
+      Factory<Expression, Statement, Initializer, Type> factory,
       List<kernel.Expression> annotations) {
     if (annotations != null) {
       // Place annotations in a temporary list literal so that they will have a
@@ -1371,8 +1371,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Performs the core type inference algorithm for method invocations (this
   /// handles both null-aware and non-null-aware method invocations).
-  DartType inferMethodInvocation<Expression, Statement, Initializer>(
-      Factory<Expression, Statement, Initializer> factory,
+  DartType inferMethodInvocation<Expression, Statement, Initializer, Type>(
+      Factory<Expression, Statement, Initializer, Type> factory,
       kernel.Expression expression,
       kernel.Expression receiver,
       int fileOffset,
@@ -1431,9 +1431,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   }
 
   @override
-  void inferParameterInitializer<Expression, Statement, Initializer>(
+  void inferParameterInitializer<Expression, Statement, Initializer, Type>(
       InferenceHelper helper,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       kernel.Expression initializer,
       DartType declaredType) {
     assert(closureContext == null);
@@ -1447,8 +1447,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Performs the core type inference algorithm for property gets (this handles
   /// both null-aware and non-null-aware property gets).
-  DartType inferPropertyGet<Expression, Statement, Initializer>(
-      Factory<Expression, Statement, Initializer> factory,
+  DartType inferPropertyGet<Expression, Statement, Initializer, Type>(
+      Factory<Expression, Statement, Initializer, Type> factory,
       kernel.Expression expression,
       kernel.Expression receiver,
       int fileOffset,
@@ -1504,8 +1504,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   ///
   /// Derived classes should override this method with logic that dispatches on
   /// the statement type and calls the appropriate specialized "infer" method.
-  void inferStatement<Expression, Statement, Initializer>(
-      Factory<Expression, Statement, Initializer> factory, Statement statement);
+  void inferStatement<Expression, Statement, Initializer, Type>(
+      Factory<Expression, Statement, Initializer, Type> factory,
+      Statement statement);
 
   /// Performs the type inference steps necessary to instantiate a tear-off
   /// (if necessary).

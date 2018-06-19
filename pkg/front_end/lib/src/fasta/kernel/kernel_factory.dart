@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/scanner/token.dart' show Token;
+
 import 'package:kernel/ast.dart'
     show
         Catch,
@@ -21,10 +23,16 @@ import 'kernel_shadow_ast.dart'
 
 /// Implementation of [Factory] that builds source code into a kernel
 /// representation.
-class KernelFactory implements Factory<Expression, Statement, Initializer> {
+class KernelFactory
+    implements Factory<Expression, Statement, Initializer, DartType> {
   @override
   Expression asExpression(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {
+      ExpressionJudgment judgment,
+      int fileOffset,
+      Expression expression,
+      Token asOperator,
+      DartType type,
+      DartType inferredType) {
     return judgment;
   }
 

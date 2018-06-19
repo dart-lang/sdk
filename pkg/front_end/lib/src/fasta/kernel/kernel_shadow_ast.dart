@@ -157,9 +157,9 @@ class AsJudgment extends AsExpression implements ExpressionJudgment {
   ExpressionJudgment get judgment => operand;
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     inferrer.inferExpression(factory, judgment, const UnknownType(), false);
     inferredType = type;
@@ -175,8 +175,9 @@ class AssertInitializerJudgment extends AssertInitializer
   AssertStatementJudgment get judgment => statement;
 
   @override
-  void infer<Expression, Statement, Initializer>(ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory) {
+  void infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory) {
     inferrer.inferStatement(factory, judgment);
   }
 }
@@ -196,8 +197,9 @@ class AssertStatementJudgment extends AssertStatement
   ExpressionJudgment get messageJudgment => message;
 
   @override
-  void infer<Expression, Statement, Initializer>(ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory) {
+  void infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory) {
     var conditionJudgment = this.conditionJudgment;
     var messageJudgment = this.messageJudgment;
     var expectedType = inferrer.coreTypes.boolClass.rawType;
@@ -221,9 +223,9 @@ class AwaitJudgment extends AwaitExpression implements ExpressionJudgment {
   ExpressionJudgment get judgment => operand;
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     if (!inferrer.typeSchemaEnvironment.isEmptyContext(typeContext)) {
       typeContext = inferrer.wrapFutureOrType(typeContext);
@@ -241,8 +243,9 @@ class ShadowBlock extends Block implements StatementJudgment {
   ShadowBlock(List<Statement> statements) : super(statements);
 
   @override
-  void infer<Expression, Statement, Initializer>(ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory) {
+  void infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory) {
     for (var statement in statements) {
       inferrer.inferStatement(factory, statement);
     }
@@ -256,9 +259,9 @@ class BoolJudgment extends BoolLiteral implements ExpressionJudgment {
   BoolJudgment(bool value) : super(value);
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     inferredType = inferrer.coreTypes.boolClass.rawType;
     return inferredType;
@@ -271,8 +274,9 @@ class ShadowBreakStatement extends BreakStatement implements StatementJudgment {
   ShadowBreakStatement(LabeledStatement target) : super(target);
 
   @override
-  void infer<Expression, Statement, Initializer>(ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory) {
+  void infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory) {
     // No inference needs to be done.
   }
 }
@@ -333,9 +337,9 @@ class ShadowCascadeExpression extends Let implements ExpressionJudgment {
   }
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     var lhsType = inferrer.inferExpression(
         factory, variable.initializer, typeContext, true);
@@ -474,9 +478,9 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
       '$runtimeType', 'ShadowComplexAssignment._getWriteType', -1, null);
 
   _ComplexAssignmentInferenceResult
-      _inferRhs<Expression, Statement, Initializer>(
+      _inferRhs<Expression, Statement, Initializer, Type>(
           ShadowTypeInferrer inferrer,
-          Factory<Expression, Statement, Initializer> factory,
+          Factory<Expression, Statement, Initializer, Type> factory,
           DartType readType,
           DartType writeContext) {
     assert(writeContext != null);
@@ -588,9 +592,9 @@ abstract class ShadowComplexAssignmentWithReceiver
     return parts;
   }
 
-  DartType _inferReceiver<Expression, Statement, Initializer>(
+  DartType _inferReceiver<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory) {
+      Factory<Expression, Statement, Initializer, Type> factory) {
     if (receiver != null) {
       var receiverType = inferrer.inferExpression(
           factory, receiver, const UnknownType(), true);
@@ -616,9 +620,9 @@ class ShadowConditionalExpression extends ConditionalExpression
       : super(condition, then, otherwise, null);
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     var expectedType = inferrer.coreTypes.boolClass.rawType;
     var conditionType = inferrer.inferExpression(
@@ -670,9 +674,9 @@ class ShadowConstructorInvocation extends ConstructorInvocation
       : super(target, arguments, isConst: isConst);
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     var library = inferrer.engine.beingInferred[target];
     if (library != null) {
@@ -766,8 +770,9 @@ class ShadowContinueSwitchStatement extends ContinueSwitchStatement
   ShadowContinueSwitchStatement(SwitchCase target) : super(target);
 
   @override
-  void infer<Expression, Statement, Initializer>(ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory) {
+  void infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory) {
     // No inference needs to be done.
   }
 }
@@ -780,9 +785,9 @@ class ShadowDeferredCheck extends Let implements ExpressionJudgment {
       : super(variable, body);
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     // Since the variable is not used in the body we don't need to type infer
     // it.  We can just type infer the body.
@@ -796,8 +801,9 @@ class ShadowDoStatement extends DoStatement implements StatementJudgment {
       : super(body, condition);
 
   @override
-  void infer<Expression, Statement, Initializer>(ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory) {
+  void infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory) {
     inferrer.inferStatement(factory, body);
     var boolType = inferrer.coreTypes.boolClass.rawType;
     var actualType = inferrer.inferExpression(
@@ -814,9 +820,9 @@ class ShadowDoubleLiteral extends DoubleLiteral implements ExpressionJudgment {
   ShadowDoubleLiteral(double value) : super(value);
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     return inferrer.coreTypes.doubleClass.rawType;
   }
@@ -829,9 +835,9 @@ abstract class ExpressionJudgment implements Expression {
 
   /// Calls back to [inferrer] to perform type inference for whatever concrete
   /// type of [ExpressionJudgment] this is.
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext);
 }
 
@@ -839,8 +845,9 @@ abstract class ExpressionJudgment implements Expression {
 class EmptyStatementJudgment extends EmptyStatement
     implements StatementJudgment {
   @override
-  void infer<Expression, Statement, Initializer>(ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory) {
+  void infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory) {
     // No inference needs to be done.
   }
 }
@@ -851,8 +858,9 @@ class ShadowExpressionStatement extends ExpressionStatement
   ShadowExpressionStatement(Expression expression) : super(expression);
 
   @override
-  void infer<Expression, Statement, Initializer>(ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory) {
+  void infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory) {
     inferrer.inferExpression(factory, expression, const UnknownType(), false);
   }
 }
@@ -887,9 +895,9 @@ class ShadowFactoryConstructorInvocation extends StaticInvocation
       : super(target, arguments, isConst: isConst);
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     var inferredType = inferrer.inferInvocation(
         factory,
@@ -971,8 +979,9 @@ class ShadowFieldInitializer extends FieldInitializer
   ShadowFieldInitializer(Field field, Expression value) : super(field, value);
 
   @override
-  void infer<Expression, Statement, Initializer>(ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory) {
+  void infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory) {
     var initializerType =
         inferrer.inferExpression(factory, value, field.type, true);
     inferrer.ensureAssignable(field.type, initializerType, value, fileOffset);
@@ -991,8 +1000,9 @@ class ShadowForInStatement extends ForInStatement implements StatementJudgment {
       : super(variable, iterable, body, isAsync: isAsync);
 
   @override
-  void infer<Expression, Statement, Initializer>(ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory) {
+  void infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory) {
     var iterableClass = isAsync
         ? inferrer.coreTypes.streamClass
         : inferrer.coreTypes.iterableClass;
@@ -1082,8 +1092,9 @@ class ShadowForStatement extends ForStatement implements StatementJudgment {
       : super(variables, condition, updates, body);
 
   @override
-  void infer<Expression, Statement, Initializer>(ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory) {
+  void infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory) {
     for (var variable in variables) {
       inferrer.inferStatement(factory, variable);
     }
@@ -1111,8 +1122,9 @@ class ShadowFunctionDeclaration extends FunctionDeclaration
       : super(variable, function);
 
   @override
-  void infer<Expression, Statement, Initializer>(ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory) {
+  void infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory) {
     inferrer.inferMetadataKeepingHelper(factory, variable.annotations);
     inferrer.inferLocalFunction(
         factory,
@@ -1139,9 +1151,9 @@ class ShadowFunctionExpression extends FunctionExpression
   ShadowFunctionExpression(FunctionNode function) : super(function);
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     return inferrer.inferLocalFunction(
         factory, function, typeContext, fileOffset, null);
@@ -1170,9 +1182,9 @@ class ShadowIfNullExpression extends Let implements ExpressionJudgment {
   Expression get _rhs => body.then;
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     // To infer `e0 ?? e1` in context K:
     // - Infer e0 in context K to get T0
@@ -1205,8 +1217,9 @@ class ShadowIfStatement extends IfStatement implements StatementJudgment {
       : super(condition, then, otherwise);
 
   @override
-  void infer<Expression, Statement, Initializer>(ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory) {
+  void infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory) {
     var expectedType = inferrer.coreTypes.boolClass.rawType;
     var conditionType = inferrer.inferExpression(
         factory, condition, expectedType, !inferrer.isTopLevel);
@@ -1228,9 +1241,9 @@ class ShadowIllegalAssignment extends ShadowComplexAssignment {
   }
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     if (write != null) {
       inferrer.inferExpression(factory, write, const UnknownType(), false);
@@ -1270,9 +1283,9 @@ class ShadowIndexAssign extends ShadowComplexAssignmentWithReceiver {
   }
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     var receiverType = _inferReceiver(inferrer, factory);
     var writeMember = inferrer.findMethodInvocationMember(receiverType, write);
@@ -1338,8 +1351,9 @@ class ShadowIndexAssign extends ShadowComplexAssignmentWithReceiver {
 abstract class InitializerJudgment implements Initializer {
   /// Performs type inference for whatever concrete type of [InitializerJudgment]
   /// this is.
-  void infer<Expression, Statement, Initializer>(ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory);
+  void infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory);
 }
 
 /// Concrete shadow object representing an integer literal in kernel form.
@@ -1349,9 +1363,9 @@ class ShadowIntLiteral extends IntLiteral implements ExpressionJudgment {
   ShadowIntLiteral(int value) : super(value);
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     return inferrer.coreTypes.intClass.rawType;
   }
@@ -1363,8 +1377,9 @@ class ShadowInvalidInitializer extends LocalInitializer
   ShadowInvalidInitializer(VariableDeclaration variable) : super(variable);
 
   @override
-  void infer<Expression, Statement, Initializer>(ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory) {
+  void infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory) {
     inferrer.inferExpression(
         factory, variable.initializer, const UnknownType(), false);
   }
@@ -1377,9 +1392,9 @@ class ShadowIsExpression extends IsExpression implements ExpressionJudgment {
   ShadowIsExpression(Expression operand, DartType type) : super(operand, type);
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     inferrer.inferExpression(factory, operand, const UnknownType(), false);
     return inferrer.coreTypes.boolClass.rawType;
@@ -1394,9 +1409,9 @@ class ShadowIsNotExpression extends Not implements ExpressionJudgment {
       : super(new IsExpression(operand, type)..fileOffset = charOffset);
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     IsExpression isExpression = this.operand;
     inferrer.inferExpression(
@@ -1413,8 +1428,9 @@ class LabeledStatementJudgment extends LabeledStatement
   StatementJudgment get judgment => body;
 
   @override
-  void infer<Expression, Statement, Initializer>(ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory) {
+  void infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory) {
     inferrer.inferStatement(factory, judgment);
   }
 }
@@ -1433,9 +1449,9 @@ class ShadowListLiteral extends ListLiteral implements ExpressionJudgment {
             isConst: isConst);
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     var listClass = inferrer.coreTypes.listClass;
     var listType = listClass.thisType;
@@ -1500,9 +1516,9 @@ class ShadowLogicalExpression extends LogicalExpression
       : super(left, operator, right);
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     var boolType = inferrer.coreTypes.boolClass.rawType;
     var leftType =
@@ -1525,8 +1541,9 @@ class ShadowLoopAssignmentStatement extends ExpressionStatement
   ShadowLoopAssignmentStatement(Expression expression) : super(expression);
 
   @override
-  void infer<Expression, Statement, Initializer>(ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory) {}
+  void infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory) {}
 }
 
 /// Shadow object for [MapLiteral].
@@ -1546,9 +1563,9 @@ class ShadowMapLiteral extends MapLiteral implements ExpressionJudgment {
             isConst: isConst);
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     var mapClass = inferrer.coreTypes.mapClass;
     var mapType = mapClass.thisType;
@@ -1658,9 +1675,9 @@ class ShadowMethodInvocation extends MethodInvocation
         super(receiver, name, arguments, interfaceTarget);
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     return inferrer.inferMethodInvocation(
         factory, this, receiver, fileOffset, _isImplicitCall, typeContext,
@@ -1684,9 +1701,9 @@ class ShadowNamedFunctionExpression extends Let implements ExpressionJudgment {
       : super(variable, new VariableGet(variable));
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     var inferredType = inferrer.inferExpression(
         factory, variable.initializer, typeContext, true);
@@ -1702,9 +1719,9 @@ class ShadowNot extends Not implements ExpressionJudgment {
   ShadowNot(Expression operand) : super(operand);
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     // First infer the receiver so we can look up the method that was invoked.
     var boolType = inferrer.coreTypes.boolClass.rawType;
@@ -1734,9 +1751,9 @@ class ShadowNullAwareMethodInvocation extends Let
   MethodInvocation get _desugaredInvocation => body.otherwise;
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     var inferredType = inferrer.inferMethodInvocation(
         factory, this, variable.initializer, fileOffset, false, typeContext,
@@ -1767,9 +1784,9 @@ class ShadowNullAwarePropertyGet extends Let implements ExpressionJudgment {
   PropertyGet get _desugaredGet => body.otherwise;
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     var inferredType = inferrer.inferPropertyGet(
         factory, this, variable.initializer, fileOffset, typeContext,
@@ -1786,9 +1803,9 @@ class ShadowNullLiteral extends NullLiteral implements ExpressionJudgment {
   DartType inferredType;
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     return inferrer.coreTypes.nullClass.rawType;
   }
@@ -1856,9 +1873,9 @@ class ShadowPropertyAssign extends ShadowComplexAssignmentWithReceiver {
   }
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     var receiverType = _inferReceiver(inferrer, factory);
 
@@ -1898,9 +1915,9 @@ class ShadowPropertyGet extends PropertyGet implements ExpressionJudgment {
       : super.byReference(receiver, name, interfaceTargetReference);
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     return inferrer.inferPropertyGet(
         factory, this, receiver, fileOffset, typeContext,
@@ -1916,8 +1933,8 @@ class ShadowRedirectingInitializer extends RedirectingInitializer
       : super(target, arguments);
 
   @override
-  infer<Expression, Statement, Initializer>(ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory) {
+  infer<Expression, Statement, Initializer, Type>(ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory) {
     List<TypeParameter> classTypeParameters =
         target.enclosingClass.typeParameters;
     List<DartType> typeArguments =
@@ -1938,9 +1955,9 @@ class ShadowRethrow extends Rethrow implements ExpressionJudgment {
   DartType inferredType;
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     return const BottomType();
   }
@@ -1952,8 +1969,9 @@ class ShadowReturnStatement extends ReturnStatement
   ShadowReturnStatement([Expression expression]) : super(expression);
 
   @override
-  void infer<Expression, Statement, Initializer>(ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory) {
+  void infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory) {
     var closureContext = inferrer.closureContext;
     var typeContext = !closureContext.isGenerator
         ? closureContext.returnOrYieldContext
@@ -1976,8 +1994,9 @@ class ShadowReturnStatement extends ReturnStatement
 abstract class StatementJudgment extends Statement {
   /// Calls back to [inferrer] to perform type inference for whatever concrete
   /// type of [StatementJudgment] this is.
-  void infer<Expression, Statement, Initializer>(ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> statement);
+  void infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> statement);
 }
 
 /// Concrete shadow object representing an assignment to a static variable.
@@ -1991,9 +2010,9 @@ class ShadowStaticAssignment extends ShadowComplexAssignment {
   }
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     DartType readType = const DynamicType(); // Only used in error recovery
     var read = this.read;
@@ -2026,9 +2045,9 @@ class ShadowStaticGet extends StaticGet implements ExpressionJudgment {
   ShadowStaticGet(Member target) : super(target);
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     var target = this.target;
     if (target is ShadowField && target.inferenceNode != null) {
@@ -2053,9 +2072,9 @@ class ShadowStaticInvocation extends StaticInvocation
       : super(target, arguments, isConst: isConst);
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     var calleeType = target.function.functionType;
     return inferrer.inferInvocation(factory, typeContext, fileOffset,
@@ -2071,9 +2090,9 @@ class ShadowStringConcatenation extends StringConcatenation
   ShadowStringConcatenation(List<Expression> expressions) : super(expressions);
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     if (!inferrer.isTopLevel) {
       for (kernel.Expression expression in expressions) {
@@ -2092,9 +2111,9 @@ class ShadowStringLiteral extends StringLiteral implements ExpressionJudgment {
   ShadowStringLiteral(String value) : super(value);
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     return inferrer.coreTypes.stringClass.rawType;
   }
@@ -2107,8 +2126,9 @@ class ShadowSuperInitializer extends SuperInitializer
       : super(target, arguments);
 
   @override
-  void infer<Expression, Statement, Initializer>(ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory) {
+  void infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory) {
     var substitution = Substitution.fromSupertype(inferrer.classHierarchy
         .getClassAsInstanceOf(
             inferrer.thisType.classNode, target.enclosingClass));
@@ -2134,9 +2154,9 @@ class ShadowSuperMethodInvocation extends SuperMethodInvocation
       : super(name, arguments, interfaceTarget);
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     if (interfaceTarget != null) {
       inferrer.instrumentation?.record(inferrer.uri, fileOffset, 'target',
@@ -2159,9 +2179,9 @@ class ShadowSuperPropertyGet extends SuperPropertyGet
       : super(name, interfaceTarget);
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     if (interfaceTarget != null) {
       inferrer.instrumentation?.record(inferrer.uri, fileOffset, 'target',
@@ -2180,8 +2200,9 @@ class ShadowSwitchStatement extends SwitchStatement
       : super(expression, cases);
 
   @override
-  void infer<Expression, Statement, Initializer>(ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory) {
+  void infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory) {
     var expressionType = inferrer.inferExpression(
         factory, expression, const UnknownType(), true);
     for (var switchCase in cases) {
@@ -2201,9 +2222,9 @@ class ShadowSymbolLiteral extends SymbolLiteral implements ExpressionJudgment {
   ShadowSymbolLiteral(String value) : super(value);
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     return inferrer.coreTypes.symbolClass.rawType;
   }
@@ -2230,9 +2251,9 @@ class ShadowSyntheticExpression extends Let implements ExpressionJudgment {
   }
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     _replaceWithDesugared();
     return const DynamicType();
@@ -2281,9 +2302,9 @@ class ThisJudgment extends ThisExpression implements ExpressionJudgment {
   DartType inferredType;
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     return (inferrer.thisType ?? const DynamicType());
   }
@@ -2297,9 +2318,9 @@ class ThrowJudgment extends Throw implements ExpressionJudgment {
   ThrowJudgment(Expression expression) : super(expression);
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     inferrer.inferExpression(factory, judgment, const UnknownType(), false);
     return inferredType = const BottomType();
@@ -2311,8 +2332,9 @@ class ShadowTryCatch extends TryCatch implements StatementJudgment {
   ShadowTryCatch(Statement body, List<Catch> catches) : super(body, catches);
 
   @override
-  void infer<Expression, Statement, Initializer>(ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory) {
+  void infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory) {
     inferrer.inferStatement(factory, body);
     for (var catch_ in catches) {
       inferrer.inferStatement(factory, catch_.body);
@@ -2326,8 +2348,9 @@ class ShadowTryFinally extends TryFinally implements StatementJudgment {
       : super(body, finalizer);
 
   @override
-  void infer<Expression, Statement, Initializer>(ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory) {
+  void infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory) {
     inferrer.inferStatement(factory, body);
     inferrer.inferStatement(factory, finalizer);
   }
@@ -2379,8 +2402,8 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
   }
 
   @override
-  DartType inferExpression<Expression, Statement, Initializer>(
-      Factory<Expression, Statement, Initializer> factory,
+  DartType inferExpression<Expression, Statement, Initializer, Type>(
+      Factory<Expression, Statement, Initializer, Type> factory,
       kernel.Expression expression,
       DartType typeContext,
       bool typeNeeded) {
@@ -2420,8 +2443,8 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
   }
 
   @override
-  DartType inferFieldTopLevel<Expression, Statement, Initializer>(
-      Factory<Expression, Statement, Initializer> factory,
+  DartType inferFieldTopLevel<Expression, Statement, Initializer, Type>(
+      Factory<Expression, Statement, Initializer, Type> factory,
       ShadowField field,
       bool typeNeeded) {
     if (field.initializer == null) return const DynamicType();
@@ -2430,9 +2453,9 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
   }
 
   @override
-  void inferInitializer<Expression, Statement, Initializer>(
+  void inferInitializer<Expression, Statement, Initializer, Type>(
       InferenceHelper helper,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       kernel.Initializer initializer) {
     assert(initializer is InitializerJudgment);
     this.helper = helper;
@@ -2447,8 +2470,8 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
   }
 
   @override
-  void inferStatement<Expression, Statement, Initializer>(
-      Factory<Expression, Statement, Initializer> factory,
+  void inferStatement<Expression, Statement, Initializer, Type>(
+      Factory<Expression, Statement, Initializer, Type> factory,
       Statement statement) {
     // For full (non-top level) inference, we need access to the
     // ExpressionGeneratorHelper so that we can perform error recovery.
@@ -2476,9 +2499,9 @@ class TypeLiteralJudgment extends TypeLiteral implements ExpressionJudgment {
   TypeLiteralJudgment(DartType type) : super(type);
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     return inferredType = inferrer.coreTypes.typeClass.rawType;
   }
@@ -2563,9 +2586,9 @@ class VariableAssignmentJudgment extends ShadowComplexAssignment {
   }
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     DartType readType;
     var read = this.read;
@@ -2630,8 +2653,9 @@ class ShadowVariableDeclaration extends VariableDeclaration
         super.forValue(initializer);
 
   @override
-  void infer<Expression, Statement, Initializer>(ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory) {
+  void infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory) {
     if (annotations.isNotEmpty) {
       inferrer.inferMetadataKeepingHelper(factory, annotations);
 
@@ -2707,9 +2731,9 @@ class VariableGetJudgment extends VariableGet implements ExpressionJudgment {
       : super(variable);
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     ShadowVariableDeclaration variable = this.variable;
     bool mutatedInClosure = variable._mutatedInClosure;
@@ -2736,8 +2760,9 @@ class ShadowWhileStatement extends WhileStatement implements StatementJudgment {
       : super(condition, body);
 
   @override
-  void infer<Expression, Statement, Initializer>(ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory) {
+  void infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory) {
     var expectedType = inferrer.coreTypes.boolClass.rawType;
     var actualType = inferrer.inferExpression(
         factory, condition, expectedType, !inferrer.isTopLevel);
@@ -2753,8 +2778,9 @@ class ShadowYieldStatement extends YieldStatement implements StatementJudgment {
       : super(expression, isYieldStar: isYieldStar);
 
   @override
-  void infer<Expression, Statement, Initializer>(ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory) {
+  void infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory) {
     var closureContext = inferrer.closureContext;
     DartType inferredType;
     if (closureContext.isGenerator) {
@@ -2784,9 +2810,9 @@ class LoadLibraryJudgment extends LoadLibrary implements ExpressionJudgment {
   LoadLibraryJudgment(LibraryDependency import) : super(import);
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     return inferredType = super.getStaticType(inferrer.typeSchemaEnvironment);
   }
@@ -2800,9 +2826,9 @@ class CheckLibraryIsLoadedJudgment extends CheckLibraryIsLoaded
   CheckLibraryIsLoadedJudgment(LibraryDependency import) : super(import);
 
   @override
-  DartType infer<Expression, Statement, Initializer>(
+  DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer> factory,
+      Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     return inferredType = super.getStaticType(inferrer.typeSchemaEnvironment);
   }

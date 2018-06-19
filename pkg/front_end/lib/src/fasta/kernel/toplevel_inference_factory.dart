@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/scanner/token.dart' show Token;
+
 import 'package:kernel/ast.dart' show Catch, DartType, FunctionType, Node;
 
 import 'package:kernel/type_algebra.dart' show Substitution;
@@ -14,12 +16,12 @@ import 'kernel_shadow_ast.dart'
 /// Implementation of [Factory] for use during top level type inference, when
 /// no representation of the code semantics needs to be created (only the type
 /// needs to be inferred).
-class ToplevelInferenceFactory implements Factory<void, void, void> {
+class ToplevelInferenceFactory implements Factory<void, void, void, void> {
   const ToplevelInferenceFactory();
 
   @override
-  void asExpression(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {}
+  void asExpression(ExpressionJudgment judgment, int fileOffset,
+      void expression, Token asOperator, void type, DartType inferredType) {}
 
   @override
   void assertInitializer(InitializerJudgment judgment, int fileOffset) {}

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/scanner/token.dart' show Token;
+
 import 'package:kernel/ast.dart' show Catch, DartType, FunctionType, Node;
 
 import 'package:kernel/type_algebra.dart' show Substitution;
@@ -12,9 +14,14 @@ import 'kernel_shadow_ast.dart'
 /// Abstract base class for factories that can construct trees of expressions,
 /// statements, initializers, and literal types based on tokens, inferred types,
 /// and invocation targets.
-abstract class Factory<Expression, Statement, Initializer> {
+abstract class Factory<Expression, Statement, Initializer, Type> {
   Expression asExpression(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType);
+      ExpressionJudgment judgment,
+      int fileOffset,
+      Expression expression,
+      Token asOperator,
+      Type type,
+      DartType inferredType);
 
   Initializer assertInitializer(InitializerJudgment judgment, int fileOffset);
 
