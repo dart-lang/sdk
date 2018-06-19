@@ -6,7 +6,7 @@ homepage: https://github.com/dart-lang/linter
 environment:
   sdk: '>=2.0.0-dev <2.0.0'
 dependencies:
-  analyzer: ^0.31.2-alpha.2
+  analyzer: ^0.32.1
   args: '>=1.4.0 <2.0.0'
   glob: ^1.0.3
   meta: ^1.0.2
@@ -14,9 +14,9 @@ dependencies:
   yaml: ^2.1.2
 dev_dependencies:
   cli_util: ^0.1.2
-  dart_style: ^1.0.0
+  dart_style: ^1.1.0
   grinder: ^0.8.0
-  markdown: '>=0.11.0 <2.0.0'
+  markdown: ^2.0.0
   matcher: ^0.12.0
   path: '>=0.9.0 <2.0.0'
-  test: ^0.12.24+1
+  test: ^1.0.0
