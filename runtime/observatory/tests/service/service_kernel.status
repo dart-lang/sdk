@@ -24,8 +24,6 @@ causal_async_stack_presence_test: RuntimeError
 causal_async_star_stack_contents_test: RuntimeError
 causal_async_star_stack_presence_test: RuntimeError
 complex_reload_test: RuntimeError
-coverage_leaf_function_test: RuntimeError
-coverage_optimized_function_test: RuntimeError
 debugger_inspect_test: Skip # Timeout
 debugger_location_second_test: RuntimeError
 debugger_location_test: RuntimeError
@@ -87,7 +85,6 @@ pause_on_exceptions_test: Skip # Timeout
 pause_on_unhandled_async_exceptions2_test: RuntimeError
 pause_on_unhandled_async_exceptions_test: RuntimeError
 positive_token_pos_test: RuntimeError
-process_service_test: RuntimeError
 regress_28443_test: RuntimeError
 regress_28980_test: RuntimeError
 rewind_optimized_out_test: RuntimeError

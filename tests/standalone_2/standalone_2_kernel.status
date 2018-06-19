@@ -51,7 +51,6 @@ map_insert_remove_oom_test: Skip # Heap limit too low.
 
 [ $compiler == app_jitk && ($mode == debug || $mode == release) ]
 dart_developer_disabled_env_test: RuntimeError
-io/code_collection_test: RuntimeError
 
 [ $compiler == dartk && $mode == debug && $runtime == vm && $strong ]
 io/file_lock_test: Slow, Pass
@@ -150,6 +149,7 @@ io/socket_port_test: Pass, Crash
 io/namespace_test: RuntimeError
 
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
+app_snapshot_share_test: RuntimeError # Only dill files are valid
 dwarf_stack_trace_test: RuntimeError
 io/compile_all_test: RuntimeError # Issue 32338
 io/file_fuzz_test: RuntimeError, Pass
