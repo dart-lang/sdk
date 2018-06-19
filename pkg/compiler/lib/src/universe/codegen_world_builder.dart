@@ -79,7 +79,7 @@ abstract class CodegenWorldBuilder implements WorldBuilder {
       [Comparator<ConstantValue> preSortCompare]);
 }
 
-abstract class CodegenWorldBuilderImpl extends WorldBuilderBase
+class CodegenWorldBuilderImpl extends WorldBuilderBase
     implements CodegenWorldBuilder {
   final ElementEnvironment _elementEnvironment;
   final NativeBasicData _nativeBasicData;
@@ -159,8 +159,16 @@ abstract class CodegenWorldBuilderImpl extends WorldBuilderBase
 
   final Set<ConstantValue> _constantValues = new Set<ConstantValue>();
 
-  CodegenWorldBuilderImpl(this._elementEnvironment, this._nativeBasicData,
-      this._world, this.selectorConstraintsStrategy);
+  final KernelToWorldBuilder _elementMap;
+  final GlobalLocalsMap _globalLocalsMap;
+
+  CodegenWorldBuilderImpl(
+      this._elementMap,
+      this._globalLocalsMap,
+      this._elementEnvironment,
+      this._nativeBasicData,
+      this._world,
+      this.selectorConstraintsStrategy);
 
   Iterable<ClassEntity> get processedClasses => _processedClasses.keys
       .where((cls) => _processedClasses[cls].isInstantiated);
@@ -636,21 +644,6 @@ abstract class CodegenWorldBuilderImpl extends WorldBuilderBase
     _staticMemberUsage.forEach(processMemberUse);
     return functions;
   }
-}
-
-class KernelCodegenWorldBuilder extends CodegenWorldBuilderImpl {
-  final KernelToWorldBuilder _elementMap;
-  final GlobalLocalsMap _globalLocalsMap;
-
-  KernelCodegenWorldBuilder(
-      this._elementMap,
-      this._globalLocalsMap,
-      ElementEnvironment elementEnvironment,
-      NativeBasicData nativeBasicData,
-      JClosedWorld world,
-      SelectorConstraintsStrategy selectorConstraintsStrategy)
-      : super(elementEnvironment, nativeBasicData, world,
-            selectorConstraintsStrategy);
 
   @override
   bool hasConstantFieldInitializer(FieldEntity field) {

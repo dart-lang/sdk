@@ -203,7 +203,7 @@ class JsBackendStrategy implements KernelBackendStrategy {
       NativeBasicData nativeBasicData,
       JClosedWorld closedWorld,
       SelectorConstraintsStrategy selectorConstraintsStrategy) {
-    return new KernelCodegenWorldBuilder(
+    return new CodegenWorldBuilderImpl(
         elementMap,
         _globalLocalsMap,
         closedWorld.elementEnvironment,

@@ -37,7 +37,6 @@ import '../js_backend/runtime_types.dart';
 import '../js_model/closure.dart';
 import '../js_model/elements.dart';
 import '../js_model/locals.dart';
-import '../native/enqueue.dart';
 import '../native/native.dart' as native;
 import '../native/resolver.dart';
 import '../options.dart';
@@ -1973,48 +1972,6 @@ class KernelEvaluationEnvironment extends EvaluationEnvironmentBase {
 
   @override
   bool get enableAssertions => _elementMap.options.enableUserAssertions;
-}
-
-class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
-  final KernelToElementMapForImpactImpl elementMap;
-
-  KernelResolutionWorldBuilder(
-      CompilerOptions options,
-      this.elementMap,
-      NativeBasicData nativeBasicData,
-      NativeDataBuilder nativeDataBuilder,
-      InterceptorDataBuilder interceptorDataBuilder,
-      BackendUsageBuilder backendUsageBuilder,
-      RuntimeTypesNeedBuilder rtiNeedBuilder,
-      KAllocatorAnalysis allocatorAnalysis,
-      NativeResolutionEnqueuer nativeResolutionEnqueuer,
-      NoSuchMethodRegistry noSuchMethodRegistry,
-      SelectorConstraintsStrategy selectorConstraintsStrategy,
-      ClassHierarchyBuilder classHierarchyBuilder,
-      ClassQueries classQueries)
-      : super(
-            options,
-            elementMap.elementEnvironment,
-            elementMap.types,
-            elementMap.commonElements,
-            nativeBasicData,
-            nativeDataBuilder,
-            interceptorDataBuilder,
-            backendUsageBuilder,
-            rtiNeedBuilder,
-            allocatorAnalysis,
-            nativeResolutionEnqueuer,
-            noSuchMethodRegistry,
-            selectorConstraintsStrategy,
-            classHierarchyBuilder,
-            classQueries);
-
-  @override
-  void forEachLocalFunction(void f(MemberEntity member, Local localFunction)) {
-    for (KLocalFunction local in localFunctions) {
-      f(local.memberContext, local);
-    }
-  }
 }
 
 abstract class KernelClosedWorldMixin implements ClosedWorldBase {
