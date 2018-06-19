@@ -166,7 +166,6 @@ type_promotion_functions_test/13: CompileTimeError
 type_promotion_functions_test/14: CompileTimeError
 type_promotion_functions_test/none: CompileTimeError
 type_promotion_more_specific_test/04: CompileTimeError
-vm/optimized_guarded_field_isolates_test: RuntimeError
 vm/type_cast_vm_test: RuntimeError
 
 [ $compiler == dartkp ]
@@ -843,7 +842,6 @@ type_promotion_functions_test/none: CompileTimeError # Issue 31537
 type_promotion_logical_and_test/01: MissingCompileTimeError
 type_promotion_more_specific_test/04: CompileTimeError # Issue 31533
 vm/closure_memory_retention_test: Skip # KernelVM bug: Hits OOM
-vm/optimized_guarded_field_isolates_test: RuntimeError # Issue 31402 (Variable declaration)
 vm/regress_29145_test: Skip # Issue 29145
 vm/type_cast_vm_test: RuntimeError
 void_block_return_test/00: MissingCompileTimeError
@@ -1205,7 +1203,6 @@ type_promotion_more_specific_test/04: CompileTimeError # Issue 31533
 vm/causal_async_exception_stack2_test: SkipByDesign
 vm/causal_async_exception_stack_test: SkipByDesign
 vm/closure_memory_retention_test: Skip # KernelVM bug: Hits OOM
-vm/optimized_guarded_field_isolates_test: RuntimeError
 vm/optimized_stacktrace_test: Crash
 vm/optimized_stacktrace_test: Skip # Issue 30198
 vm/reflect_core_vm_test: SkipByDesign

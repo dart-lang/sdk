@@ -37,9 +37,9 @@ test_field_type() {
     test_b(b);
   }
   Expect.equals(3, test_b(b));
-  Future<B> item = receive_port.first;
-  item.then((B value) {
-    Expect.equals("foobar", test_b(value));
+  Future item = receive_port.first;
+  item.then((value) {
+    Expect.equals("foobar", test_b(value as B));
     receive_port.close();
     asyncEnd();
   });
@@ -65,9 +65,9 @@ test_list_length() {
     test_c(c);
   }
   Expect.equals(null, test_c(c));
-  Future<C> item = receive_port.first;
-  item.then((C value) {
-    Expect.throwsRangeError(() => test_c(value));
+  Future item = receive_port.first;
+  item.then((value) {
+    Expect.throwsRangeError(() => test_c(value as C));
     receive_port.close();
     asyncEnd();
   });
