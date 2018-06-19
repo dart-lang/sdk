@@ -83,7 +83,7 @@ import 'kernel_shadow_ast.dart'
         ShadowExpressionStatement,
         ShadowForStatement,
         ShadowIfStatement,
-        ShadowIntLiteral,
+        IntJudgment,
         ShadowIsExpression,
         ShadowIsNotExpression,
         LabeledStatementJudgment,
@@ -167,8 +167,8 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
-  ShadowIntLiteral literalInt(int value, Token token) {
-    return new ShadowIntLiteral(value)..fileOffset = offsetForToken(token);
+  IntJudgment literalInt(int value, Token token) {
+    return new IntJudgment(value)..fileOffset = offsetForToken(token);
   }
 
   @override

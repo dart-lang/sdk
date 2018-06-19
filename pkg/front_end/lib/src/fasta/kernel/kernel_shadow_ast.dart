@@ -1385,17 +1385,17 @@ abstract class InitializerJudgment implements Initializer {
 }
 
 /// Concrete shadow object representing an integer literal in kernel form.
-class ShadowIntLiteral extends IntLiteral implements ExpressionJudgment {
+class IntJudgment extends IntLiteral implements ExpressionJudgment {
   DartType inferredType;
 
-  ShadowIntLiteral(int value) : super(value);
+  IntJudgment(int value) : super(value);
 
   @override
   DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
-    return inferrer.coreTypes.intClass.rawType;
+    return inferredType = inferrer.coreTypes.intClass.rawType;
   }
 }
 
