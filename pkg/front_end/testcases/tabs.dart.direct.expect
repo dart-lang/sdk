@@ -1,0 +1,12 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method test() → dynamic {
+  core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#one, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
+  core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#two, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
+  core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#three, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
+  core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#four, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
+  core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#five, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
+}
+static method main() → dynamic {}
