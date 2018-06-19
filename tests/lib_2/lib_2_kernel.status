@@ -198,15 +198,11 @@ mirrors/typevariable_mirror_metadata_test: RuntimeError
 isolate/ping_pause_test: Skip # Issues 32137 and 32138
 
 [ $compiler == dartk && $hot_reload ]
-async/stream_state_nonzero_timer_test: Crash
-async/stream_subscription_as_future_test: Crash
-async/stream_subscription_cancel_test: Crash
 isolate/message4_test: Pass, Timeout
-isolate/spawn_uri_multi_test/01: Crash
-isolate/spawn_uri_multi_test/none: Crash
 
 [ $compiler == dartk && $hot_reload_rollback ]
 isolate/illegal_msg_function_test: Skip # Timeout
+isolate/message4_test: Pass, Timeout
 isolate/pause_test: Skip # Timeout
 
 [ $compiler == dartk && $strong ]

@@ -854,10 +854,6 @@ wrong_number_type_arguments_test/none: Pass
 [ $compiler == dartk && $system == windows && $strong ]
 ct_const2_test: Fail
 
-[ $compiler == dartk && $hot_reload ]
-vm/causal_async_exception_stack2_test: Crash
-vm/causal_async_exception_stack_test: Crash
-
 [ $compiler == dartk && $strong ]
 assertion_initializer_const_error2_test/cc01: MissingCompileTimeError # Not reporting failed assert() at compile time.
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError # Not reporting failed assert() at compile time.
