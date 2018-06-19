@@ -102,6 +102,15 @@ ConstEvalInvalidType:
 ConstEvalInvalidBinaryOperandType:
   template: "Binary operator '#string' on '#constant' requires operand of type '#type', but was of type '#type2'."
 
+ConstEvalZeroDivisor:
+  template: "Binary operator '#string' on '#string2' requires non-zero divisor, but divisor was '0'."
+  dart2jsCode: INVALID_CONSTANT_DIV
+  analyzerCode: CONST_EVAL_THROWS_IDBZE
+
+ConstEvalNegativeShift:
+  template: "Binary operator '#string' on '#string2' requires non-negative operand, but was '#string3'."
+  dart2jsCode: INVALID_CONSTANT_SHIFT
+
 ConstEvalInvalidMethodInvocation:
   template: "The method '#string' can't be invoked on '#constant' within a const context."
   analyzerCode: UNDEFINED_OPERATOR

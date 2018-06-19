@@ -949,6 +949,34 @@ Message _withArgumentsConstEvalInvalidType(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
+        String string,
+        String string2,
+        String
+            string3)> templateConstEvalNegativeShift = const Template<
+        Message Function(String string, String string2, String string3)>(
+    messageTemplate:
+        r"""Binary operator '#string' on '#string2' requires non-negative operand, but was '#string3'.""",
+    withArguments: _withArgumentsConstEvalNegativeShift);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String string2, String string3)>
+    codeConstEvalNegativeShift =
+    const Code<Message Function(String string, String string2, String string3)>(
+        "ConstEvalNegativeShift", templateConstEvalNegativeShift,
+        dart2jsCode: "INVALID_CONSTANT_SHIFT");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalNegativeShift(
+    String string, String string2, String string3) {
+  return new Message(codeConstEvalNegativeShift,
+      message:
+          """Binary operator '${string}' on '${string2}' requires non-negative operand, but was '${string3}'.""",
+      arguments: {'string': string, 'string2': string2, 'string3': string3});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
         String
             string)> templateConstEvalNonConstantLiteral = const Template<
         Message Function(String string)>(
@@ -968,6 +996,33 @@ Message _withArgumentsConstEvalNonConstantLiteral(String string) {
       message:
           """Can't have a non-constant ${string} literal within a const context.""",
       arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String string,
+        String
+            string2)> templateConstEvalZeroDivisor = const Template<
+        Message Function(String string, String string2)>(
+    messageTemplate:
+        r"""Binary operator '#string' on '#string2' requires non-zero divisor, but divisor was '0'.""",
+    withArguments: _withArgumentsConstEvalZeroDivisor);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String string2)>
+    codeConstEvalZeroDivisor =
+    const Code<Message Function(String string, String string2)>(
+        "ConstEvalZeroDivisor", templateConstEvalZeroDivisor,
+        analyzerCode: "CONST_EVAL_THROWS_IDBZE",
+        dart2jsCode: "INVALID_CONSTANT_DIV");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalZeroDivisor(String string, String string2) {
+  return new Message(codeConstEvalZeroDivisor,
+      message:
+          """Binary operator '${string}' on '${string2}' requires non-zero divisor, but divisor was '0'.""",
+      arguments: {'string': string, 'string2': string2});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

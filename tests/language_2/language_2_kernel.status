@@ -212,6 +212,10 @@ implicit_creation/implicit_const_not_default_values_test/e4: MissingCompileTimeE
 implicit_creation/implicit_const_not_default_values_test/e5: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e7: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e8: MissingCompileTimeError
+vm/regress_33469_test/01: MissingCompileTimeError
+vm/regress_33469_test/02: MissingCompileTimeError
+vm/regress_33469_test/03: MissingCompileTimeError
+vm/regress_33469_test/04: MissingCompileTimeError
 
 [ $fasta ]
 abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue 32014.
@@ -805,8 +809,8 @@ mock_writable_final_private_field_test: RuntimeError # Issue 30849
 named_constructor_test/01: MissingRuntimeError # Fasta bug: Bad compilation of constructor reference.
 named_parameters_default_eq_test/none: RuntimeError
 nested_generic_closure_test: RuntimeError
-no_main_test/01: Skip
 no_main_test/01: DartkCrash
+no_main_test/01: Skip
 no_such_method_mock_test: RuntimeError # Issue 31426
 null_no_such_method_test: CompileTimeError # Issue 31533
 override_inheritance_field_test/04: CompileTimeError # Issue 31616

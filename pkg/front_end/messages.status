@@ -80,8 +80,11 @@ ConstEvalInvalidStringInterpolationOperand/dart2jsCode: Fail
 ConstEvalInvalidStringInterpolationOperand/example: Fail
 ConstEvalInvalidType/analyzerCode: Fail # CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH / CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH / CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH / ...
 ConstEvalInvalidType/example: Fail
+ConstEvalNegativeShift/analyzerCode: Fail # http://dartbug.com/33481
+ConstEvalNegativeShift/example: Fail
 ConstEvalNonConstantLiteral/dart2jsCode: Fail
 ConstEvalNonConstantLiteral/example: Fail
+ConstEvalZeroDivisor/example: Fail
 ConstFieldWithoutInitializer/example: Fail
 ConstructorNotFound/analyzerCode: Fail
 ConstructorNotFound/example: Fail

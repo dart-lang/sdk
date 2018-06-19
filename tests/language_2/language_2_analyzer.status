@@ -142,6 +142,9 @@ vm/debug_break_vm_test/*: Skip
 vm/lazy_deopt_with_exception_test: Pass
 vm/reflect_core_vm_test: CompileTimeError
 vm/regress_27201_test: SkipByDesign # Loads bad library, so will always crash.
+vm/regress_33469_test/01: Crash # http://dartbug.com/33481
+vm/regress_33469_test/02: Crash # http://dartbug.com/33481
+vm/regress_33469_test/03: MissingCompileTimeError # http://dartbug.com/33481
 void_type_override_test/00: MissingCompileTimeError
 void_type_override_test/00b: MissingCompileTimeError
 void_type_override_test/01: MissingCompileTimeError

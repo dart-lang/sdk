@@ -27,6 +27,7 @@ import 'package:kernel/ast.dart'
         DartType,
         Field,
         FileUriNode,
+        IntConstant,
         Procedure,
         StaticGet,
         TreeNode;
@@ -280,6 +281,20 @@ class ForwardConstantEvaluationErrors implements constants.ErrorReporter {
       List<TreeNode> context, TreeNode node, Constant constant) {
     final message = codes.templateConstEvalInvalidStringInterpolationOperand
         .withArguments(constant);
+    reportIt(context, message, node);
+  }
+
+  zeroDivisor(
+      List<TreeNode> context, TreeNode node, IntConstant receiver, String op) {
+    final message = codes.templateConstEvalZeroDivisor
+        .withArguments(op, '${receiver.value}');
+    reportIt(context, message, node);
+  }
+
+  negativeShift(List<TreeNode> context, TreeNode node, IntConstant receiver,
+      String op, IntConstant argument) {
+    final message = codes.templateConstEvalNegativeShift
+        .withArguments(op, '${receiver.value}', '${argument.value}');
     reportIt(context, message, node);
   }
 
