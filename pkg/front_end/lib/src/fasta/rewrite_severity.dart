@@ -76,7 +76,6 @@ Severity rewriteSeverity(
       case "fasta_codes.dart":
       case "import.dart":
       case "incremental_compiler.dart":
-      case "kernel/body_builder.dart":
       case "kernel/expression_generator.dart":
       case "kernel/expression_generator_helper.dart":
       case "kernel/fangorn.dart":
