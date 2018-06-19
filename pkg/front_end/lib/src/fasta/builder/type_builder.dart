@@ -10,7 +10,8 @@ import 'builder.dart'
 abstract class TypeBuilder {
   const TypeBuilder();
 
-  void resolveIn(Scope scope, int charOffset, Uri fileUri) {}
+  void resolveIn(
+      Scope scope, int charOffset, Uri fileUri, LibraryBuilder library) {}
 
   /// See `UnresolvedType.checkType`.
   void check(int charOffset, Uri fileUri) {}

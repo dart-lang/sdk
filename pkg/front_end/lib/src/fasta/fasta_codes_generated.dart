@@ -4012,6 +4012,26 @@ const MessageCode messageMissingConstFinalVarOrType = const MessageCode(
         r"""Try adding the name of the type of the variable or the keyword 'var'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(int count)>
+    templateMissingExplicitTypeArguments =
+    const Template<Message Function(int count)>(
+        messageTemplate: r"""No type arguments provided, #count possible.""",
+        withArguments: _withArgumentsMissingExplicitTypeArguments);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(int count)> codeMissingExplicitTypeArguments =
+    const Code<Message Function(int count)>(
+        "MissingExplicitTypeArguments", templateMissingExplicitTypeArguments,
+        severity: Severity.ignored);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMissingExplicitTypeArguments(int count) {
+  return new Message(codeMissingExplicitTypeArguments,
+      message: """No type arguments provided, ${count} possible.""",
+      arguments: {'count': count});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMissingExponent = messageMissingExponent;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

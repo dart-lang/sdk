@@ -2299,3 +2299,7 @@ InitializeFromDillUnknownProblem:
   severity: WARNING
   frontendInternal: true
   external: test/incremental_load_from_invalid_dill_test.dart
+
+MissingExplicitTypeArguments:
+  template: "No type arguments provided, #count possible."
+  severity: IGNORED

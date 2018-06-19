@@ -15,6 +15,7 @@ import '../fasta_codes.dart'
         messageInvalidInitializer,
         templateDeferredTypeAnnotation,
         templateIntegerLiteralIsOutOfRange,
+        templateMissingExplicitTypeArguments,
         templateNotAType,
         templateUnresolvedPrefixInTypeAnnotation;
 
@@ -632,6 +633,12 @@ abstract class TypeUseGenerator<Expression, Statement, Arguments>
         // as a recovery node once the IR can represent it (Issue #29840).
         arguments = null;
       }
+    } else if (declaration.typeVariablesCount != 0) {
+      helper.addProblem(
+          templateMissingExplicitTypeArguments
+              .withArguments(declaration.typeVariablesCount),
+          offsetForToken(token),
+          lengthForToken(token));
     }
 
     DartType type;

@@ -3694,7 +3694,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     // [ClassMemberParser] is not used to build the type variables for the local
     // function.  See the comment above.
     for (UnresolvedType t in library.types) {
-      t.resolveIn(scope);
+      t.resolveIn(scope, library);
     }
     library.types.clear();
   }
@@ -3755,8 +3755,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
             library.loader.target.objectClassBuilder);
         for (int i = 0; i < typeVariables.length; ++i) {
           typeVariables[i].defaultType = calculatedBounds[i];
-          typeVariables[i].defaultType.resolveIn(
-              scope, typeVariables[i].charOffset, typeVariables[i].fileUri);
+          typeVariables[i].defaultType.resolveIn(scope,
+              typeVariables[i].charOffset, typeVariables[i].fileUri, library);
           typeVariables[i].finish(
               library,
               library.loader.target.objectClassBuilder,
