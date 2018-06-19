@@ -221,7 +221,6 @@ InvalidCastTopLevelFunction/example: Fail
 InvalidInitializer/analyzerCode: Fail
 InvalidInitializer/example: Fail
 InvalidInlineFunctionType/analyzerCode: Fail
-InvalidInlineFunctionType/declaration: Fail
 InvalidPackageUri/analyzerCode: Fail
 InvalidPackageUri/example: Fail
 InvalidVoid/analyzerCode: Fail

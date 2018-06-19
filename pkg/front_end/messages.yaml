@@ -926,7 +926,7 @@ InvalidInlineFunctionType:
   template: "Invalid inline function type."
   tip: "Try changing the inline function type (as in 'int f()') to a prefixed function type using the `Function` keyword (as in 'int Function() f')."
   dart2jsCode: INVALID_INLINE_FUNCTION_TYPE
-  declaration: "typedef F = Function(int f(String x)); main() { F f; }"
+  declaration: "typedef F = Function(int f(String x));"
 
 SetterNotSync:
   template: "Setters can't use 'async', 'async*', or 'sync*'."
