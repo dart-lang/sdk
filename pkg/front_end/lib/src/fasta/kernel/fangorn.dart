@@ -68,7 +68,7 @@ import 'kernel_shadow_ast.dart'
     show
         ShadowArguments,
         AsJudgment,
-        ShadowAssertInitializer,
+        AssertInitializerJudgment,
         AssertStatementJudgment,
         AwaitJudgment,
         ShadowBlock,
@@ -268,7 +268,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
       Expression condition,
       Token comma,
       Expression message) {
-    return new ShadowAssertInitializer(assertStatement(
+    return new AssertInitializerJudgment(assertStatement(
         assertKeyword, leftParenthesis, condition, comma, message, null));
   }
 

@@ -168,14 +168,16 @@ class AsJudgment extends AsExpression implements ExpressionJudgment {
 }
 
 /// Concrete shadow object representing an assert initializer in kernel form.
-class ShadowAssertInitializer extends AssertInitializer
+class AssertInitializerJudgment extends AssertInitializer
     implements InitializerJudgment {
-  ShadowAssertInitializer(AssertStatement statement) : super(statement);
+  AssertInitializerJudgment(AssertStatement statement) : super(statement);
+
+  AssertStatementJudgment get judgment => statement;
 
   @override
   void infer<Expression, Statement, Initializer>(ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer> factory) {
-    inferrer.inferStatement(factory, statement);
+    inferrer.inferStatement(factory, judgment);
   }
 }
 
