@@ -34,7 +34,8 @@ class FileTest extends OverlayTestSupport {
 
   test_copyTo_noOverlay() {
     File file = _file(exists: true);
-    File targetFile = provider.getFile('/foo/test.dart');
+    File targetFile =
+        provider.getFile(baseProvider.convertPath('/foo/test.dart'));
     expect(targetFile.exists, isFalse);
     file.copyTo(file.parent.parent);
     expect(targetFile.exists, isTrue);
@@ -43,7 +44,8 @@ class FileTest extends OverlayTestSupport {
   test_copyTo_onlyOverlay() {
     File file = _file(exists: false);
     provider.setOverlay(file.path, content: 'overlay', modificationStamp: 3);
-    File targetFile = provider.getFile('/foo/test.dart');
+    File targetFile =
+        provider.getFile(baseProvider.convertPath('/foo/test.dart'));
     expect(targetFile.exists, isFalse);
     file.copyTo(file.parent.parent);
     expect(targetFile.exists, isTrue);
@@ -55,7 +57,8 @@ class FileTest extends OverlayTestSupport {
   test_copyTo_withOverlay() {
     File file = _file(exists: true, content: 'base');
     provider.setOverlay(file.path, content: 'overlay', modificationStamp: 3);
-    File targetFile = provider.getFile('/foo/test.dart');
+    File targetFile =
+        provider.getFile(baseProvider.convertPath('/foo/test.dart'));
     expect(targetFile.exists, isFalse);
     file.copyTo(file.parent.parent);
     expect(targetFile.exists, isTrue);
@@ -216,9 +219,9 @@ class FileTest extends OverlayTestSupport {
     File oldFile = _file(content: 'old', exists: true, path: oldPath);
     File newFile = _file(content: 'new', exists: true, path: newPath);
     oldFile.renameSync(newPath);
-    expect(oldFile.path, oldPath);
+    expect(oldFile.path, baseProvider.convertPath(oldPath));
     expect(oldFile.exists, isFalse);
-    expect(newFile.path, newPath);
+    expect(newFile.path, baseProvider.convertPath(newPath));
     expect(newFile.exists, isTrue);
     expect(newFile.readAsStringSync(), 'old');
   }
@@ -229,9 +232,9 @@ class FileTest extends OverlayTestSupport {
     File oldFile = _file(exists: true, path: oldPath);
     Folder newFolder = _folder(exists: true, path: newPath);
     expect(() => oldFile.renameSync(newPath), throwsA(_isFileSystemException));
-    expect(oldFile.path, oldPath);
+    expect(oldFile.path, baseProvider.convertPath(oldPath));
     expect(oldFile.exists, isTrue);
-    expect(newFolder.path, newPath);
+    expect(newFolder.path, baseProvider.convertPath(newPath));
     expect(newFolder.exists, isTrue);
   }
 
@@ -240,9 +243,9 @@ class FileTest extends OverlayTestSupport {
     String newPath = '/foo/bar/new-file.txt';
     File oldFile = _file(exists: true, path: oldPath);
     File newFile = oldFile.renameSync(newPath);
-    expect(oldFile.path, oldPath);
+    expect(oldFile.path, baseProvider.convertPath(oldPath));
     expect(oldFile.exists, isFalse);
-    expect(newFile.path, newPath);
+    expect(newFile.path, baseProvider.convertPath(newPath));
     expect(newFile.exists, isTrue);
     expect(newFile.readAsStringSync(), 'a');
   }
@@ -252,9 +255,9 @@ class FileTest extends OverlayTestSupport {
     String newPath = '/foo/bar/new-file.txt';
     File oldFile = _file(exists: true, path: oldPath, withOverlay: true);
     File newFile = oldFile.renameSync(newPath);
-    expect(oldFile.path, oldPath);
+    expect(oldFile.path, baseProvider.convertPath(oldPath));
     expect(oldFile.exists, isFalse);
-    expect(newFile.path, newPath);
+    expect(newFile.path, baseProvider.convertPath(newPath));
     expect(newFile.exists, isTrue);
     expect(newFile.readAsStringSync(), 'bbb');
   }
@@ -264,9 +267,9 @@ class FileTest extends OverlayTestSupport {
     String newPath = '/foo/bar/new-file.txt';
     File oldFile = _file(exists: true, path: oldPath);
     File newFile = oldFile.renameSync(newPath);
-    expect(oldFile.path, oldPath);
+    expect(oldFile.path, baseProvider.convertPath(oldPath));
     expect(oldFile.exists, isFalse);
-    expect(newFile.path, newPath);
+    expect(newFile.path, baseProvider.convertPath(newPath));
     expect(newFile.exists, isTrue);
     expect(newFile.readAsStringSync(), 'a');
   }
@@ -276,9 +279,9 @@ class FileTest extends OverlayTestSupport {
     String newPath = '/foo/bar/new-file.txt';
     File oldFile = _file(exists: false, path: oldPath, withOverlay: true);
     File newFile = oldFile.renameSync(newPath);
-    expect(oldFile.path, oldPath);
+    expect(oldFile.path, baseProvider.convertPath(oldPath));
     expect(oldFile.exists, isFalse);
-    expect(newFile.path, newPath);
+    expect(newFile.path, baseProvider.convertPath(newPath));
     expect(newFile.exists, isTrue);
     expect(newFile.readAsStringSync(), 'bbb');
   }

@@ -113,7 +113,7 @@ class AnalysisContextCollectionTest extends Object with ResourceProviderMixin {
     return new AnalysisContextCollectionImpl(
       resourceProvider: resourceProvider,
       includedPaths: includedPaths,
-      sdkPath: sdkRoot,
+      sdkPath: convertPath(sdkRoot),
     );
   }
 }
