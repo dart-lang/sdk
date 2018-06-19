@@ -95,6 +95,13 @@ io/file_typed_data_test: Skip # Issue 26109
 io/http_client_stays_alive_test: RuntimeError
 io/process_sync_test: Timeout, Pass
 
+[ $runtime == vm && ($arch == simarm || $arch == simarm64) ]
+io/code_collection_test: Timeout, Pass
+io/dart_std_io_pipe_test: Timeout, Pass
+io/http_client_stays_alive_test: Skip # Spawns process in Dart2 mode.
+io/process_sync_test: Timeout, Pass
+io/skipping_dart2js_compilations_test: Skip # Spawns process in Dart2 mode.
+
 [ $arch == simdbc || $arch == simdbc64 ]
 full_coverage_test: Skip # TODO(vegorov) SIMDBC interpreter doesn't support coverage yet.
 link_natives_lazily_test: SkipByDesign # SIMDBC interpreter doesn't support lazy linking of natives.
