@@ -1464,8 +1464,9 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         return new ReadOnlyAccessGenerator<Expression, Statement, Arguments>(
             this,
             token,
-            toExpression(new ShadowVariableGet(declaration.target, fact, scope)
-              ..fileOffset = charOffset),
+            toExpression(
+                new VariableGetJudgment(declaration.target, fact, scope)
+                  ..fileOffset = charOffset),
             name);
       } else {
         return new VariableUseGenerator<Expression, Statement, Arguments>(
@@ -3284,7 +3285,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
           typePromoter.getFactForAccess(variable, functionNestingLevel);
       TypePromotionScope scope = typePromoter.currentScope;
       syntheticAssignment = toKernelExpression(lvalue.buildAssignment(
-          toExpression(new ShadowVariableGet(variable, fact, scope)
+          toExpression(new VariableGetJudgment(variable, fact, scope)
             ..fileOffset = inKeyword.offset),
           voidContext: true));
       kernelBody = combineStatements(

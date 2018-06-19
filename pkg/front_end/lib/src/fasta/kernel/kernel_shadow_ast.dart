@@ -2265,9 +2265,7 @@ class ShadowSyntheticExpression extends Let implements ExpressionJudgment {
   }
 }
 
-/// Shadow object for [ThisExpression].
-class ShadowThisExpression extends ThisExpression
-    implements ExpressionJudgment {
+class ThisJudgment extends ThisExpression implements ExpressionJudgment {
   DartType inferredType;
 
   @override
@@ -2279,19 +2277,20 @@ class ShadowThisExpression extends ThisExpression
   }
 }
 
-/// Shadow object for [Throw].
-class ShadowThrow extends Throw implements ExpressionJudgment {
+class ThrowJudgment extends Throw implements ExpressionJudgment {
   DartType inferredType;
 
-  ShadowThrow(Expression expression) : super(expression);
+  ExpressionJudgment get judgment => expression;
+
+  ThrowJudgment(Expression expression) : super(expression);
 
   @override
   DartType infer<Expression, Statement, Initializer>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer> factory,
       DartType typeContext) {
-    inferrer.inferExpression(factory, expression, const UnknownType(), false);
-    return const BottomType();
+    inferrer.inferExpression(factory, judgment, const UnknownType(), false);
+    return inferredType = const BottomType();
   }
 }
 
@@ -2459,18 +2458,17 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
   }
 }
 
-/// Shadow object for [TypeLiteral].
-class ShadowTypeLiteral extends TypeLiteral implements ExpressionJudgment {
+class TypeLiteralJudgment extends TypeLiteral implements ExpressionJudgment {
   DartType inferredType;
 
-  ShadowTypeLiteral(DartType type) : super(type);
+  TypeLiteralJudgment(DartType type) : super(type);
 
   @override
   DartType infer<Expression, Statement, Initializer>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer> factory,
       DartType typeContext) {
-    return inferrer.coreTypes.typeClass.rawType;
+    return inferredType = inferrer.coreTypes.typeClass.rawType;
   }
 }
 
@@ -2543,9 +2541,8 @@ class ShadowTypePromoter extends TypePromoterImpl {
   }
 }
 
-/// Concrete shadow object representing an assignment to a local variable.
-class ShadowVariableAssignment extends ShadowComplexAssignment {
-  ShadowVariableAssignment(Expression rhs) : super(rhs);
+class VariableAssignmentJudgment extends ShadowComplexAssignment {
+  VariableAssignmentJudgment(Expression rhs) : super(rhs);
 
   @override
   DartType _getWriteType(ShadowTypeInferrer inferrer) {
@@ -2573,7 +2570,7 @@ class ShadowVariableAssignment extends ShadowComplexAssignment {
     }
     var inferredResult = _inferRhs(inferrer, factory, readType, writeContext);
     _replaceWithDesugared();
-    return inferredResult.type;
+    return inferredType = inferredResult.type;
   }
 }
 
@@ -2687,14 +2684,14 @@ class ShadowVariableDeclaration extends VariableDeclaration
 }
 
 /// Concrete shadow object representing a read from a variable in kernel form.
-class ShadowVariableGet extends VariableGet implements ExpressionJudgment {
+class VariableGetJudgment extends VariableGet implements ExpressionJudgment {
   DartType inferredType;
 
   final TypePromotionFact _fact;
 
   final TypePromotionScope _scope;
 
-  ShadowVariableGet(VariableDeclaration variable, this._fact, this._scope)
+  VariableGetJudgment(VariableDeclaration variable, this._fact, this._scope)
       : super(variable);
 
   @override
@@ -2717,7 +2714,7 @@ class ShadowVariableGet extends VariableGet implements ExpressionJudgment {
     if (variable._isLocalFunction) {
       type = inferrer.instantiateTearOff(type, typeContext, this);
     }
-    return type;
+    return inferredType = type;
   }
 }
 
@@ -2769,33 +2766,33 @@ class ShadowYieldStatement extends YieldStatement implements StatementJudgment {
 }
 
 /// Concrete shadow object representing a deferred load library call.
-class ShadowLoadLibrary extends LoadLibrary implements ExpressionJudgment {
+class LoadLibraryJudgment extends LoadLibrary implements ExpressionJudgment {
   DartType inferredType;
 
-  ShadowLoadLibrary(LibraryDependency import) : super(import);
+  LoadLibraryJudgment(LibraryDependency import) : super(import);
 
   @override
   DartType infer<Expression, Statement, Initializer>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer> factory,
       DartType typeContext) {
-    return super.getStaticType(inferrer.typeSchemaEnvironment);
+    return inferredType = super.getStaticType(inferrer.typeSchemaEnvironment);
   }
 }
 
 /// Concrete shadow object representing a deferred library-is-loaded check.
-class ShadowCheckLibraryIsLoaded extends CheckLibraryIsLoaded
+class CheckLibraryIsLoadedJudgment extends CheckLibraryIsLoaded
     implements ExpressionJudgment {
   DartType inferredType;
 
-  ShadowCheckLibraryIsLoaded(LibraryDependency import) : super(import);
+  CheckLibraryIsLoadedJudgment(LibraryDependency import) : super(import);
 
   @override
   DartType infer<Expression, Statement, Initializer>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer> factory,
       DartType typeContext) {
-    return super.getStaticType(inferrer.typeSchemaEnvironment);
+    return inferredType = super.getStaticType(inferrer.typeSchemaEnvironment);
   }
 }
 

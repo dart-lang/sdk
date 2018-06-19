@@ -84,9 +84,9 @@ import 'kernel_ast_api.dart'
         ShadowStaticAssignment,
         ShadowSuperMethodInvocation,
         ShadowSuperPropertyGet,
-        ShadowVariableAssignment,
+        VariableAssignmentJudgment,
         ShadowVariableDeclaration,
-        ShadowVariableGet,
+        VariableGetJudgment,
         StaticSet,
         SuperMethodInvocation,
         SuperPropertySet,
@@ -278,7 +278,7 @@ class KernelVariableUseGenerator extends KernelGenerator
     var fact = helper.typePromoter
         .getFactForAccess(variable, helper.functionNestingLevel);
     var scope = helper.typePromoter.currentScope;
-    var read = new ShadowVariableGet(variable, fact, scope)
+    var read = new VariableGetJudgment(variable, fact, scope)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.read = read;
     return read;
@@ -305,7 +305,7 @@ class KernelVariableUseGenerator extends KernelGenerator
 
   @override
   ShadowComplexAssignment startComplexAssignment(Expression rhs) =>
-      new ShadowVariableAssignment(rhs);
+      new VariableAssignmentJudgment(rhs);
 
   @override
   void printOn(StringSink sink) {

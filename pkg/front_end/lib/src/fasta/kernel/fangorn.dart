@@ -74,7 +74,7 @@ import 'kernel_shadow_ast.dart'
         ShadowBlock,
         BoolJudgment,
         ShadowBreakStatement,
-        ShadowCheckLibraryIsLoaded,
+        CheckLibraryIsLoadedJudgment,
         ShadowConditionalExpression,
         ShadowDoStatement,
         ShadowDoubleLiteral,
@@ -86,7 +86,7 @@ import 'kernel_shadow_ast.dart'
         ShadowIsNotExpression,
         ShadowLabeledStatement,
         ShadowListLiteral,
-        ShadowLoadLibrary,
+        LoadLibraryJudgment,
         ShadowLogicalExpression,
         ShadowMapLiteral,
         ShadowNot,
@@ -97,11 +97,11 @@ import 'kernel_shadow_ast.dart'
         ShadowStringLiteral,
         ShadowSymbolLiteral,
         ShadowSyntheticExpression,
-        ShadowThisExpression,
-        ShadowThrow,
+        ThisJudgment,
+        ThrowJudgment,
         ShadowTryCatch,
         ShadowTryFinally,
-        ShadowTypeLiteral,
+        TypeLiteralJudgment,
         ShadowWhileStatement,
         ShadowYieldStatement;
 
@@ -223,8 +223,8 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
-  ShadowTypeLiteral literalType(DartType type, Token token) {
-    return new ShadowTypeLiteral(type)..fileOffset = offsetForToken(token);
+  TypeLiteralJudgment literalType(DartType type, Token token) {
+    return new TypeLiteralJudgment(type)..fileOffset = offsetForToken(token);
   }
 
   @override
@@ -248,12 +248,12 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
 
   @override
   Expression loadLibrary(LibraryDependency dependency) {
-    return new ShadowLoadLibrary(dependency);
+    return new LoadLibraryJudgment(dependency);
   }
 
   @override
   Expression checkLibraryIsLoaded(LibraryDependency dependency) {
-    return new ShadowCheckLibraryIsLoaded(dependency);
+    return new CheckLibraryIsLoadedJudgment(dependency);
   }
 
   @override
@@ -476,12 +476,12 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
 
   @override
   Expression thisExpression(Token token) {
-    return new ShadowThisExpression()..fileOffset = offsetForToken(token);
+    return new ThisJudgment()..fileOffset = offsetForToken(token);
   }
 
   @override
   Expression throwExpression(Token throwKeyword, Expression expression) {
-    return new ShadowThrow(expression)
+    return new ThrowJudgment(expression)
       ..fileOffset = offsetForToken(throwKeyword);
   }
 
