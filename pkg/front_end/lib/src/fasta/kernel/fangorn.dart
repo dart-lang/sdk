@@ -77,7 +77,7 @@ import 'kernel_shadow_ast.dart'
         ContinueJudgment,
         CheckLibraryIsLoadedJudgment,
         ConditionalJudgment,
-        ShadowDoStatement,
+        DoJudgment,
         ShadowDoubleLiteral,
         EmptyStatementJudgment,
         ShadowExpressionStatement,
@@ -374,8 +374,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   @override
   Statement doStatement(Token doKeyword, Statement body, Token whileKeyword,
       Expression condition, Token semicolon) {
-    return new ShadowDoStatement(body, condition)
-      ..fileOffset = doKeyword.charOffset;
+    return new DoJudgment(body, condition)..fileOffset = doKeyword.charOffset;
   }
 
   Statement expressionStatement(Expression expression, Token semicolon) {

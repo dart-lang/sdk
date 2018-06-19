@@ -820,20 +820,24 @@ class ShadowDeferredCheck extends Let implements ExpressionJudgment {
 }
 
 /// Concrete shadow object representing a do loop in kernel form.
-class ShadowDoStatement extends DoStatement implements StatementJudgment {
-  ShadowDoStatement(Statement body, Expression condition)
-      : super(body, condition);
+class DoJudgment extends DoStatement implements StatementJudgment {
+  DoJudgment(Statement body, Expression condition) : super(body, condition);
+
+  StatementJudgment get bodyJudgment => body;
+
+  ExpressionJudgment get conditionJudgment => condition;
 
   @override
   void infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory) {
-    inferrer.inferStatement(factory, body);
+    var conditionJudgment = this.conditionJudgment;
+    inferrer.inferStatement(factory, bodyJudgment);
     var boolType = inferrer.coreTypes.boolClass.rawType;
-    var actualType = inferrer.inferExpression(
-        factory, condition, boolType, !inferrer.isTopLevel);
-    inferrer.ensureAssignable(
-        boolType, actualType, condition, condition.fileOffset);
+    inferrer.inferExpression(
+        factory, conditionJudgment, boolType, !inferrer.isTopLevel);
+    inferrer.ensureAssignable(boolType, conditionJudgment.inferredType,
+        condition, condition.fileOffset);
   }
 }
 
