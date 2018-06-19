@@ -711,9 +711,6 @@ class Server {
     } else if (servicesPort != null) {
       arguments.add('--enable-vm-service=$servicesPort');
     }
-    if (Platform.packageRoot != null) {
-      arguments.add('--package-root=${Platform.packageRoot}');
-    }
     if (Platform.packageConfig != null) {
       arguments.add('--packages=${Platform.packageConfig}');
     }
@@ -741,9 +738,6 @@ class Server {
     if (useCFE) {
       arguments.add('--use-cfe');
     }
-    // TODO(devoncarew): We could experiment with instead launching the analysis
-    // server in a separate isolate. This would make it easier to debug the
-    // integration tests, and would likely speed up the tests as well.
     _process = await Process.start(dartBinary, arguments);
     _process.exitCode.then((int code) {
       if (code != 0) {
