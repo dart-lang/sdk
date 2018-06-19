@@ -234,7 +234,6 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
       List<String> originalArguments,
       CommandArtifact artifact) {
     var args = <String>[];
-    args.add('--preview-dart-2');
     if (_isChecked || _useEnableAsserts) {
       args.add('--enable_asserts');
     }
@@ -745,7 +744,6 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       args.add('--strong');
     }
     if (previewDart2) {
-      args.add('--preview-dart-2');
       args.addAll(_replaceDartFiles(arguments, tempKernelFile(tempDir)));
     } else {
       args.add('--no-preview-dart-2');
@@ -867,11 +865,11 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       CommandArtifact artifact) {
     var args = <String>[];
     if (previewDart2) {
-      args.add('--preview-dart-2');
       if (_isChecked) {
         args.add('--enable_asserts');
       }
     } else {
+      args.add('--no-preview-dart-2');
       if (_isChecked) {
         args.add('--enable_asserts');
         args.add('--enable_type_checks');
@@ -924,9 +922,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
     var exec = "${_configuration.buildDirectory}/dart";
     var snapshot = "$tempDir/out.jitsnapshot";
     var args = ["--snapshot=$snapshot", "--snapshot-kind=app-jit"];
-    if (previewDart2) {
-      args.add("--preview-dart-2");
-    } else {
+    if (!previewDart2) {
       args.add("--no-preview-dart-2");
     }
     args.addAll(arguments);
@@ -958,7 +954,6 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
       CommandArtifact artifact) {
     var args = <String>[];
     if (previewDart2) {
-      args.add('--preview-dart-2');
       if (_isChecked) {
         args.add('--enable_asserts');
       }
