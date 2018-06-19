@@ -36,3 +36,6 @@ sample_extension/test/sample_extension_test: RuntimeError
 build_dart/*: Skip
 build_dart_simple/*: Skip
 sample_extension/*: Skip
+
+[ $hot_reload || $hot_reload_rollback ]
+sample_extension/test/sample_extension_script_snapshot_test: SkipByDesign # This test makes a script snapshot, which implies not exercising Dart code.
