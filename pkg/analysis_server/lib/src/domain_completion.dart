@@ -49,11 +49,6 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       new RecentBuffer<CompletionPerformance>(performanceListMaxLength);
 
   /**
-   * Performance for the last priority change event.
-   */
-  CompletionPerformance computeCachePerformance;
-
-  /**
    * The current request being processed or `null` if none.
    */
   CompletionRequestImpl _currentRequest;

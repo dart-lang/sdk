@@ -18,7 +18,7 @@ import 'package:analyzer/dart/element/type.dart';
 class TypeHierarchyComputer {
   final SearchEngine _searchEngine;
 
-  Element _pivotElement;
+  final Element _pivotElement;
   LibraryElement _pivotLibrary;
   ElementKind _pivotKind;
   String _pivotName;
