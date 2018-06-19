@@ -38,7 +38,7 @@ void main(List<String> args) {
       '-o',
       scriptPathDill,
       '--entry-points',
-      'out/ReleaseX64/gen/runtime/bin/precompiler_entry_points.json',
+      '$buildDir/gen/runtime/bin/precompiler_entry_points.json',
       '--entry-points',
       'pkg/vm/lib/transformations/type_flow/entry_points_extra.json',
       '--entry-points',
