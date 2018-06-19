@@ -1406,14 +1406,16 @@ class ShadowIsNotExpression extends Not implements ExpressionJudgment {
 }
 
 /// Concrete shadow object representing a labeled statement in kernel form.
-class ShadowLabeledStatement extends LabeledStatement
+class LabeledStatementJudgment extends LabeledStatement
     implements StatementJudgment {
-  ShadowLabeledStatement(Statement body) : super(body);
+  LabeledStatementJudgment(Statement body) : super(body);
+
+  StatementJudgment get judgment => body;
 
   @override
   void infer<Expression, Statement, Initializer>(ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer> factory) {
-    inferrer.inferStatement(factory, body);
+    inferrer.inferStatement(factory, judgment);
   }
 }
 

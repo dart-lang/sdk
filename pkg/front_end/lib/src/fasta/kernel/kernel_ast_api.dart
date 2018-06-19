@@ -83,7 +83,7 @@ export 'kernel_shadow_ast.dart'
         ShadowIllegalAssignment,
         ShadowIndexAssign,
         ShadowInvalidInitializer,
-        ShadowLabeledStatement,
+        LabeledStatementJudgment,
         ShadowLogicalExpression,
         ShadowLoopAssignmentStatement,
         ShadowMethodInvocation,

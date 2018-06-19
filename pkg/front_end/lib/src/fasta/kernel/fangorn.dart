@@ -85,7 +85,7 @@ import 'kernel_shadow_ast.dart'
         ShadowIntLiteral,
         ShadowIsExpression,
         ShadowIsNotExpression,
-        ShadowLabeledStatement,
+        LabeledStatementJudgment,
         ShadowListLiteral,
         LoadLibraryJudgment,
         ShadowLogicalExpression,
@@ -472,7 +472,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
 
   @override
   Statement syntheticLabeledStatement(Statement statement) {
-    return new ShadowLabeledStatement(statement);
+    return new LabeledStatementJudgment(statement);
   }
 
   @override

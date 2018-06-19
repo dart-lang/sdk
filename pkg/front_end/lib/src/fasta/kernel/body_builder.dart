@@ -3255,7 +3255,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     JumpTarget<Statement> breakTarget = exitBreakTarget();
     kernel.Statement kernelBody = toKernelStatement(body);
     if (continueTarget.hasUsers) {
-      kernelBody = new ShadowLabeledStatement(kernelBody);
+      kernelBody = new LabeledStatementJudgment(kernelBody);
       continueTarget.resolveContinues(forest, toStatement(kernelBody));
     }
     VariableDeclaration variable;
@@ -3309,7 +3309,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       ..fileOffset = awaitToken?.charOffset ?? forToken.charOffset
       ..bodyOffset = kernelBody.fileOffset;
     if (breakTarget.hasUsers) {
-      result = new ShadowLabeledStatement(result);
+      result = new LabeledStatementJudgment(result);
       breakTarget.resolveBreaks(forest, toStatement(result));
     }
     exitLoopOrSwitch(toStatement(result));
@@ -3531,7 +3531,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         new ShadowSwitchStatement(toKernelExpression(expression), cases)
           ..fileOffset = switchKeyword.charOffset;
     if (target.hasUsers) {
-      result = new ShadowLabeledStatement(result);
+      result = new LabeledStatementJudgment(result);
       target.resolveBreaks(forest, toStatement(result));
     }
     exitLoopOrSwitch(toStatement(result));
